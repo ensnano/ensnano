@@ -21,14 +21,12 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! happens. In addition to the transistion in the automat, a `Consequence` is returned to the
 //! scene, that describes the consequences that the input must have on the view or the data held by
 //! the scene.
-use self::automata::ReleasedPivot;
-
 use super::data::{ClickResult, FreeEnd};
 use super::{
-    ActionMode, Arc, CameraPtr, DataPtr, FlatHelix, FlatNucl, Mediator, Mutex, PhySize,
-    PhysicalPosition, ViewPtr, WindowEvent,
+    ActionMode, AppState, CameraPtr, DataPtr, FlatHelix, FlatNucl, PhySize, PhysicalPosition,
+    Selection, ViewPtr, WindowEvent,
 };
-use crate::design::StrandBuilder;
+
 use iced_winit::winit::event::*;
 use std::cell::RefCell;
 use ultraviolet::Vec2;
@@ -36,7 +34,7 @@ use ultraviolet::Vec2;
 mod automata;
 use automata::{ControllerState, NormalState, Transition};
 
-pub struct Controller {
+pub struct Controller<S: AppState> {
     #[allow(dead_code)]
     view: ViewPtr,
     data: DataPtr,
@@ -46,13 +44,12 @@ pub struct Controller {
     camera_top: CameraPtr,
     camera_bottom: CameraPtr,
     splited: bool,
-    state: RefCell<Box<dyn ControllerState>>,
+    state: RefCell<Box<dyn ControllerState<S>>>,
     action_mode: ActionMode,
-    mediator: Arc<Mutex<Mediator>>,
-    pasting: bool,
     modifiers: ModifiersState,
 }
 
+#[derive(Debug)]
 pub enum Consequence {
     #[allow(dead_code)]
     GlobalsChanged,
@@ -63,23 +60,36 @@ pub enum Consequence {
     FreeEnd(Option<FreeEnd>),
     CutFreeEnd(FlatNucl, Option<FreeEnd>),
     NewCandidate(Option<FlatNucl>),
+    NewHelixCandidate(FlatHelix),
     RmStrand(FlatNucl),
     RmHelix(FlatHelix),
     FlipVisibility(FlatHelix, bool),
-    Built(Box<StrandBuilder>),
+    Built,
     FlipGroup(FlatHelix),
     FollowingSuggestion(FlatNucl, bool),
     Centering(FlatNucl, bool),
     DrawingSelection(PhysicalPosition<f64>, PhysicalPosition<f64>),
-    ReleasedSelection(Vec2, Vec2),
+    ReleasedSelection(Option<Vec<Selection>>),
     PasteRequest(Option<FlatNucl>),
     AddClick(ClickResult, bool),
-    SelectionChanged,
+    SelectionChanged(Vec<Selection>),
     ClearSelection,
     DoubleClick(ClickResult),
+    MoveBuilders(isize),
+    InitBuilding(FlatNucl),
+    Helix2DMvmtEnded,
+    Snap {
+        pivots: Vec<FlatNucl>,
+        translation: Vec2,
+    },
+    Rotation {
+        helices: Vec<FlatHelix>,
+        center: Vec2,
+        angle: f32,
+    },
 }
 
-impl Controller {
+impl<S: AppState> Controller<S> {
     pub fn new(
         view: ViewPtr,
         data: DataPtr,
@@ -87,7 +97,6 @@ impl Controller {
         area_size: PhySize,
         camera_top: CameraPtr,
         camera_bottom: CameraPtr,
-        mediator: Arc<Mutex<Mediator>>,
         splited: bool,
     ) -> Self {
         Self {
@@ -102,8 +111,6 @@ impl Controller {
             })),
             splited,
             action_mode: ActionMode::Normal,
-            mediator,
-            pasting: false,
             modifiers: ModifiersState::empty(),
         }
     }
@@ -118,9 +125,20 @@ impl Controller {
         self.update_globals();
     }
 
-    pub fn set_splited(&mut self, splited: bool) {
+    pub fn set_splited(&mut self, splited: bool, refit: bool) {
         self.splited = splited;
+        let old_rectangle_top = self.camera_top.borrow().get_visible_rectangle();
         self.update_globals();
+        if refit {
+            if splited {
+                let (new_top, new_bottom) = old_rectangle_top.splited_vertically();
+                self.camera_top.borrow_mut().fit(new_top);
+                self.camera_bottom.borrow_mut().fit(new_bottom);
+            } else {
+                let new_top = old_rectangle_top.with_double_height();
+                self.camera_top.borrow_mut().fit(new_top);
+            }
+        }
     }
 
     fn update_globals(&mut self) {
@@ -152,13 +170,31 @@ impl Controller {
         }
     }
 
+    pub fn get_other_camera(&self, y: f64) -> Option<CameraPtr> {
+        if self.splited {
+            if y > self.area_size.height as f64 / 2. {
+                Some(self.camera_top.clone())
+            } else {
+                Some(self.camera_bottom.clone())
+            }
+        } else {
+            None
+        }
+    }
+
     pub fn fit(&mut self) {
         let rectangle = self.data.borrow().get_fit_rectangle();
         self.camera_top.borrow_mut().fit(rectangle);
         self.camera_bottom.borrow_mut().fit(rectangle);
     }
 
-    pub fn input(&mut self, event: &WindowEvent, position: PhysicalPosition<f64>) -> Consequence {
+    pub fn input(
+        &mut self,
+        event: &WindowEvent,
+        position: PhysicalPosition<f64>,
+        app_state: &S,
+    ) -> Consequence {
+        self.update_hovered_nucl(position);
         let transition = if let WindowEvent::Focused(false) = event {
             Transition {
                 new_state: Some(Box::new(NormalState {
@@ -167,11 +203,13 @@ impl Controller {
                 consequences: Consequence::Nothing,
             }
         } else {
-            self.state.borrow_mut().input(event, position, self)
+            self.state
+                .borrow_mut()
+                .input(event, position, self, app_state)
         };
 
         if let Some(state) = transition.new_state {
-            println!("{}", state.display());
+            log::info!("2D automata state: {}", state.display());
             self.state.borrow().transition_from(&self);
             self.state = RefCell::new(state);
             self.state.borrow().transition_to(&self);
@@ -179,38 +217,21 @@ impl Controller {
         transition.consequences
     }
 
-    pub fn set_pasting(&mut self, pasting: bool) {
-        let change = self.pasting != pasting;
-        self.pasting = pasting;
-        if change {
-            let transition = Transition {
-                new_state: Some(Box::new(NormalState {
-                    mouse_position: PhysicalPosition::new(-1., -1.),
-                })),
-                consequences: Consequence::Nothing,
-            };
-            self.state.borrow().transition_from(&self);
-            self.state = RefCell::new(transition.new_state.unwrap());
-            self.state.borrow().transition_to(&self);
-        }
-    }
-
-    pub fn select_pivots(&mut self, translation_pivots: Vec<FlatNucl>, rotation_pivots: Vec<Vec2>) {
-        let transition = Transition {
-            new_state: Some(Box::new(ReleasedPivot {
-                translation_pivots,
-                rotation_pivots,
-                mouse_position: PhysicalPosition::new(-1., -1.),
-            })),
-            consequences: Consequence::Nothing,
+    fn update_hovered_nucl(&self, position: PhysicalPosition<f64>) {
+        let (x, y) = self
+            .get_camera(position.y)
+            .borrow()
+            .screen_to_world(position.x as f32, position.y as f32);
+        let click_result = self
+            .data
+            .borrow()
+            .get_click(x, y, &self.get_camera(position.y));
+        let nucl = if let ClickResult::Nucl(n) = click_result {
+            Some(n)
+        } else {
+            None
         };
-        self.state.borrow().transition_from(&self);
-        self.state = RefCell::new(transition.new_state.unwrap());
-        self.state.borrow().transition_to(&self);
-    }
-
-    pub fn set_action_mode(&mut self, action_mode: ActionMode) {
-        self.action_mode = action_mode;
+        self.view.borrow_mut().set_hovered_nucl(nucl);
     }
 
     pub fn process_keyboard(&self, event: &WindowEvent) {
@@ -240,8 +261,6 @@ impl Controller {
                 VirtualKeyCode::K => {
                     self.data.borrow_mut().move_helix_forward();
                 }
-                VirtualKeyCode::Z if ctrl(&self.modifiers) => self.mediator.lock().unwrap().undo(),
-                VirtualKeyCode::R if ctrl(&self.modifiers) => self.mediator.lock().unwrap().redo(),
                 _ => (),
             }
         }
@@ -278,12 +297,10 @@ impl Controller {
         }
         transition.consequences
     }
-}
 
-fn ctrl(modifiers: &ModifiersState) -> bool {
-    if cfg!(target_os = "macos") {
-        modifiers.logo()
-    } else {
-        modifiers.ctrl()
+    pub fn flip_split_views(&mut self) {
+        self.camera_bottom
+            .borrow_mut()
+            .swap(&mut self.camera_top.borrow_mut())
     }
 }

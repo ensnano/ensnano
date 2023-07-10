@@ -53,13 +53,13 @@ impl InsertionDrawer {
         let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: None,
             contents: bytemuck::cast_slice(&vertices.vertices),
-            usage: wgpu::BufferUsage::VERTEX,
+            usage: wgpu::BufferUsages::VERTEX,
         });
 
         let index_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: None,
             contents: bytemuck::cast_slice(&vertices.indices),
-            usage: wgpu::BufferUsage::INDEX,
+            usage: wgpu::BufferUsages::INDEX,
         });
         let number_indices = vertices.indices.len();
 
@@ -108,17 +108,14 @@ impl InsertionDrawer {
 }
 
 #[repr(C)]
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct InsertionVertex {
     pub position: [f32; 2],
     pub normal: [f32; 2],
 }
 
-unsafe impl bytemuck::Zeroable for InsertionVertex {}
-unsafe impl bytemuck::Pod for InsertionVertex {}
-
 #[repr(C)]
-#[derive(Clone, Copy, Debug, Default)]
+#[derive(Clone, Copy, Debug, Default, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct InsertionInstance {
     pub position: Vec2,
     pub depth: f32,
@@ -126,9 +123,6 @@ pub struct InsertionInstance {
     pub orientation: Mat2,
     pub color: [f32; 4],
 }
-
-unsafe impl bytemuck::Zeroable for InsertionInstance {}
-unsafe impl bytemuck::Pod for InsertionInstance {}
 
 impl InsertionInstance {
     pub fn new(position: Vec2, depth: f32, orientation: ultraviolet::Rotor2, color: u32) -> Self {
@@ -187,23 +181,14 @@ fn insertion_pipeline(
     });
     let targets = &[wgpu::ColorTargetState {
         format: wgpu::TextureFormat::Bgra8UnormSrgb,
-        color_blend: wgpu::BlendState {
-            src_factor: wgpu::BlendFactor::SrcAlpha,
-            dst_factor: wgpu::BlendFactor::OneMinusSrcAlpha,
-            operation: wgpu::BlendOperation::Add,
-        },
-        alpha_blend: wgpu::BlendState {
-            src_factor: wgpu::BlendFactor::One,
-            dst_factor: wgpu::BlendFactor::One,
-            operation: wgpu::BlendOperation::Add,
-        },
-        write_mask: wgpu::ColorWrite::ALL,
+        blend: Some(wgpu::BlendState::ALPHA_BLENDING),
+        write_mask: wgpu::ColorWrites::ALL,
     }];
 
     let primitive = wgpu::PrimitiveState {
         topology: wgpu::PrimitiveTopology::TriangleList,
         front_face: wgpu::FrontFace::Ccw,
-        cull_mode: wgpu::CullMode::None,
+        cull_mode: None,
         ..Default::default()
     };
 
@@ -214,8 +199,8 @@ fn insertion_pipeline(
             entry_point: "main",
             buffers: &[wgpu::VertexBufferLayout {
                 array_stride: std::mem::size_of::<InsertionVertex>() as u64,
-                step_mode: wgpu::InputStepMode::Vertex,
-                attributes: &wgpu::vertex_attr_array![0 => Float2, 1 => Float2],
+                step_mode: wgpu::VertexStepMode::Vertex,
+                attributes: &wgpu::vertex_attr_array![0 => Float32x2, 1 => Float32x2],
             }],
         },
         fragment: Some(wgpu::FragmentState {

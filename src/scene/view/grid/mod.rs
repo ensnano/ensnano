@@ -21,7 +21,7 @@ use ultraviolet::{Mat4, Vec2, Vec3};
 use wgpu::{include_spirv, Device, RenderPass};
 
 use super::{grid_disc::GridDisc, instances_drawer::*, LetterInstance};
-pub use crate::design::{Grid, GridDivision, GridType, GridTypeDescr, Parameters};
+use ensnano_design::grid::{Grid, GridDivision, GridType};
 
 mod texture;
 
@@ -187,7 +187,7 @@ impl GridInstance {
 }
 
 #[repr(C)]
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct GridInstanceRaw {
     pub model: Mat4,          // padding 0
     pub min_x: f32,           // padding 1
@@ -201,9 +201,6 @@ pub struct GridInstanceRaw {
     pub design_id: u32,       // padding 3,
     pub _padding: u32,
 }
-
-unsafe impl bytemuck::Zeroable for GridInstanceRaw {}
-unsafe impl bytemuck::Pod for GridInstanceRaw {}
 
 /// A structure that manages the pipepline that draw the grids
 pub struct GridManager {
@@ -288,6 +285,17 @@ impl GridManager {
         ret
     }
 
+    pub fn specific_intersect(
+        &self,
+        origin: Vec3,
+        direction: Vec3,
+        grid_id: usize,
+    ) -> Option<GridIntersection> {
+        self.instances
+            .get(grid_id)
+            .and_then(|g| g.ray_intersection(origin, direction))
+    }
+
     pub fn set_candidate_grid(&mut self, grids: Vec<(usize, usize)>) {
         self.need_new_colors = true;
         self.candidate = grids
@@ -323,13 +331,10 @@ pub struct GridIntersection {
 }
 
 #[repr(C)]
-#[derive(Clone, Debug, Copy)]
+#[derive(Clone, Debug, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct GridVertex {
     pub position: Vec2,
 }
-
-unsafe impl bytemuck::Zeroable for GridVertex {}
-unsafe impl bytemuck::Pod for GridVertex {}
 
 impl Vertexable for GridVertex {
     type RawType = GridVertex;
@@ -341,8 +346,8 @@ impl Vertexable for GridVertex {
     fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
         wgpu::VertexBufferLayout {
             array_stride: std::mem::size_of::<GridVertex>() as wgpu::BufferAddress,
-            step_mode: wgpu::InputStepMode::Vertex,
-            attributes: &wgpu::vertex_attr_array![0 => Float2],
+            step_mode: wgpu::VertexStepMode::Vertex,
+            attributes: &wgpu::vertex_attr_array![0 => Float32x2],
         }
     }
 }
@@ -368,39 +373,39 @@ impl RessourceProvider for GridTextures {
         &[
             wgpu::BindGroupLayoutEntry {
                 binding: 0,
-                visibility: wgpu::ShaderStage::FRAGMENT,
+                visibility: wgpu::ShaderStages::FRAGMENT,
                 ty: wgpu::BindingType::Texture {
                     multisampled: false,
                     view_dimension: wgpu::TextureViewDimension::D2,
-                    sample_type: wgpu::TextureSampleType::Float { filterable: false },
+                    sample_type: wgpu::TextureSampleType::Float { filterable: true },
                 },
                 count: None,
             },
             wgpu::BindGroupLayoutEntry {
                 binding: 1,
-                visibility: wgpu::ShaderStage::FRAGMENT,
+                visibility: wgpu::ShaderStages::FRAGMENT,
                 ty: wgpu::BindingType::Sampler {
                     comparison: false,
-                    filtering: false,
+                    filtering: true,
                 },
                 count: None,
             },
             wgpu::BindGroupLayoutEntry {
                 binding: 2,
-                visibility: wgpu::ShaderStage::FRAGMENT,
+                visibility: wgpu::ShaderStages::FRAGMENT,
                 ty: wgpu::BindingType::Texture {
                     multisampled: false,
                     view_dimension: wgpu::TextureViewDimension::D2,
-                    sample_type: wgpu::TextureSampleType::Float { filterable: false },
+                    sample_type: wgpu::TextureSampleType::Float { filterable: true },
                 },
                 count: None,
             },
             wgpu::BindGroupLayoutEntry {
                 binding: 3,
-                visibility: wgpu::ShaderStage::FRAGMENT,
+                visibility: wgpu::ShaderStages::FRAGMENT,
                 ty: wgpu::BindingType::Sampler {
                     comparison: false,
-                    filtering: false,
+                    filtering: true,
                 },
                 count: None,
             },

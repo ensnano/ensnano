@@ -30,10 +30,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //!
 //!
 //! The multiplexer is also in charge of drawing to the frame.
-use crate::gui::{Requests, UiSize};
-use crate::mediator::{ActionMode, SelectionMode};
+use super::{Action, Requests};
+use crate::gui::UiSize;
 use crate::utils::texture::SampledTexture;
 use crate::PhySize;
+use ensnano_interactor::{ActionMode, SelectionMode};
 use iced_wgpu::wgpu;
 use iced_winit::winit;
 use iced_winit::winit::event::*;
@@ -47,59 +48,8 @@ use winit::{
 };
 
 mod layout_manager;
+use ensnano_interactor::graphics::{DrawArea, ElementType, SplitMode};
 use layout_manager::{LayoutTree, PixelRegion};
-
-/// A structure that represents an area on which an element can be drawn
-#[derive(Clone, Copy, Debug)]
-pub struct DrawArea {
-    /// The top left corner of the element
-    pub position: PhysicalPosition<u32>,
-    /// The *physical* size of the element
-    pub size: PhySize,
-}
-
-/// The different elements represented on the scene. Each element is instanciated once.
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
-pub enum ElementType {
-    /// The top menu bar
-    TopBar,
-    /// The 3D scene
-    Scene,
-    /// The flat Scene
-    FlatScene,
-    /// The Left Panel
-    LeftPanel,
-    /// The status bar
-    StatusBar,
-    GridPanel,
-    /// An overlay area
-    Overlay(usize),
-    /// An area that has not been attributed to an element
-    Unattributed,
-}
-
-impl ElementType {
-    pub fn is_gui(&self) -> bool {
-        match self {
-            ElementType::TopBar | ElementType::LeftPanel | ElementType::StatusBar => true,
-            _ => false,
-        }
-    }
-
-    pub fn is_scene(&self) -> bool {
-        match self {
-            ElementType::Scene | ElementType::FlatScene => true,
-            _ => false,
-        }
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum SplitMode {
-    Flat,
-    Scene3D,
-    Both,
-}
 
 /// A structure that handles the division of the window into different `DrawArea`
 pub struct Multiplexer {
@@ -116,18 +66,18 @@ pub struct Multiplexer {
     /// The area that are drawn on top of the application
     overlays: Vec<Overlay>,
     /// The texture on which the scene is rendered
-    scene_texture: Option<SampledTexture>,
+    scene_texture: Option<MultiplexerTexture>,
     /// The texture on which the top bar gui is rendered
-    top_bar_texture: Option<SampledTexture>,
+    top_bar_texture: Option<MultiplexerTexture>,
     /// The texture on which the left pannel is rendered
-    left_pannel_texture: Option<SampledTexture>,
+    left_pannel_texture: Option<MultiplexerTexture>,
     /// The textures on which the overlays are rendered
-    overlays_textures: Vec<SampledTexture>,
+    overlays_textures: Vec<MultiplexerTexture>,
     /// The texture on wich the grid is rendered
-    grid_panel_texture: Option<SampledTexture>,
+    grid_panel_texture: Option<MultiplexerTexture>,
     /// The texutre on which the flat scene is rendered,
-    status_bar_texture: Option<SampledTexture>,
-    flat_scene_texture: Option<SampledTexture>,
+    status_bar_texture: Option<MultiplexerTexture>,
+    flat_scene_texture: Option<MultiplexerTexture>,
     /// The pointer the node that separate the left pannel from the scene
     left_pannel_split: usize,
     /// The pointer to the node that separate the top bar from the scene
@@ -142,6 +92,7 @@ pub struct Multiplexer {
     modifiers: ModifiersState,
     ui_size: UiSize,
     pub invert_y_scroll: bool,
+    pub icon: Option<CursorIcon>,
 }
 
 const MAX_LEFT_PANNEL_WIDTH: f64 = 200.;
@@ -205,6 +156,7 @@ impl Multiplexer {
             modifiers: ModifiersState::empty(),
             ui_size,
             invert_y_scroll: false,
+            icon: None,
         };
         ret.generate_textures();
         ret
@@ -213,13 +165,26 @@ impl Multiplexer {
     /// Return a view of the texture on which the element must be rendered
     pub fn get_texture_view(&self, element_type: ElementType) -> Option<&wgpu::TextureView> {
         match element_type {
-            ElementType::Scene => self.scene_texture.as_ref().map(|t| &t.view),
-            ElementType::LeftPanel => self.left_pannel_texture.as_ref().map(|t| &t.view),
-            ElementType::TopBar => self.top_bar_texture.as_ref().map(|t| &t.view),
-            ElementType::Overlay(n) => Some(&self.overlays_textures[n].view),
-            ElementType::GridPanel => self.grid_panel_texture.as_ref().map(|t| &t.view),
-            ElementType::FlatScene => self.flat_scene_texture.as_ref().map(|t| &t.view),
-            ElementType::StatusBar => self.status_bar_texture.as_ref().map(|t| &t.view),
+            ElementType::Scene => self.scene_texture.as_ref().map(|t| &t.texture.view),
+            ElementType::LeftPanel => self.left_pannel_texture.as_ref().map(|t| &t.texture.view),
+            ElementType::TopBar => self.top_bar_texture.as_ref().map(|t| &t.texture.view),
+            ElementType::Overlay(n) => Some(&self.overlays_textures[n].texture.view),
+            ElementType::GridPanel => self.grid_panel_texture.as_ref().map(|t| &t.texture.view),
+            ElementType::FlatScene => self.flat_scene_texture.as_ref().map(|t| &t.texture.view),
+            ElementType::StatusBar => self.status_bar_texture.as_ref().map(|t| &t.texture.view),
+            ElementType::Unattributed => unreachable!(),
+        }
+    }
+
+    fn get_texture_size(&self, element_type: ElementType) -> Option<DrawArea> {
+        match element_type {
+            ElementType::Scene => self.scene_texture.as_ref().map(|t| t.area),
+            ElementType::LeftPanel => self.left_pannel_texture.as_ref().map(|t| t.area),
+            ElementType::TopBar => self.top_bar_texture.as_ref().map(|t| t.area),
+            ElementType::Overlay(n) => Some(self.overlays_textures[n].area),
+            ElementType::GridPanel => self.grid_panel_texture.as_ref().map(|t| t.area),
+            ElementType::FlatScene => self.flat_scene_texture.as_ref().map(|t| t.area),
+            ElementType::StatusBar => self.status_bar_texture.as_ref().map(|t| t.area),
             ElementType::Unattributed => unreachable!(),
         }
     }
@@ -228,9 +193,14 @@ impl Multiplexer {
         self.modifiers = modifiers
     }
 
-    pub fn draw(&mut self, encoder: &mut wgpu::CommandEncoder, target: &wgpu::TextureView) {
+    pub fn draw(
+        &mut self,
+        encoder: &mut wgpu::CommandEncoder,
+        target: &wgpu::TextureView,
+        window: &crate::Window,
+    ) {
         if self.pipeline.is_none() {
-            let bg_layout = &self.top_bar_texture.as_ref().unwrap().bg_layout;
+            let bg_layout = &self.top_bar_texture.as_ref().unwrap().texture.bg_layout;
             self.pipeline = Some(create_pipeline(self.device.as_ref(), bg_layout));
         }
         let clear_color = wgpu::Color {
@@ -256,8 +226,8 @@ impl Multiplexer {
 
         let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: None,
-            color_attachments: &[wgpu::RenderPassColorAttachmentDescriptor {
-                attachment,
+            color_attachments: &[wgpu::RenderPassColorAttachment {
+                view: attachment,
                 resolve_target,
                 ops: wgpu::Operations {
                     load: wgpu::LoadOp::Clear(clear_color),
@@ -277,7 +247,7 @@ impl Multiplexer {
             ]
             .iter()
             {
-                if let Some(area) = self.get_draw_area(*element) {
+                if let Some(area) = self.get_texture_size(*element) {
                     render_pass.set_bind_group(0, self.get_bind_group(element), &[]);
 
                     render_pass.set_viewport(
@@ -291,11 +261,11 @@ impl Multiplexer {
                     let width = area
                         .size
                         .width
-                        .min(self.window_size.width - area.position.x);
+                        .min(window.inner_size().width - area.position.x);
                     let height = area
                         .size
                         .height
-                        .min(self.window_size.height - area.position.y);
+                        .min(window.inner_size().height - area.position.y);
                     render_pass.set_scissor_rect(area.position.x, area.position.y, width, height);
                     render_pass.set_pipeline(self.pipeline.as_ref().unwrap());
                     render_pass.draw(0..4, 0..1);
@@ -306,13 +276,20 @@ impl Multiplexer {
 
     fn get_bind_group(&self, element_type: &ElementType) -> &wgpu::BindGroup {
         match element_type {
-            ElementType::TopBar => &self.top_bar_texture.as_ref().unwrap().bind_group,
-            ElementType::LeftPanel => &self.left_pannel_texture.as_ref().unwrap().bind_group,
-            ElementType::Scene => &self.scene_texture.as_ref().unwrap().bind_group,
-            ElementType::FlatScene => &self.flat_scene_texture.as_ref().unwrap().bind_group,
-            ElementType::GridPanel => &self.grid_panel_texture.as_ref().unwrap().bind_group,
-            ElementType::Overlay(n) => &self.overlays_textures[*n].bind_group,
-            ElementType::StatusBar => &self.status_bar_texture.as_ref().unwrap().bind_group,
+            ElementType::TopBar => &self.top_bar_texture.as_ref().unwrap().texture.bind_group,
+            ElementType::LeftPanel => {
+                &self
+                    .left_pannel_texture
+                    .as_ref()
+                    .unwrap()
+                    .texture
+                    .bind_group
+            }
+            ElementType::Scene => &self.scene_texture.as_ref().unwrap().texture.bind_group,
+            ElementType::FlatScene => &self.flat_scene_texture.as_ref().unwrap().texture.bind_group,
+            ElementType::GridPanel => &self.grid_panel_texture.as_ref().unwrap().texture.bind_group,
+            ElementType::Overlay(n) => &self.overlays_textures[*n].texture.bind_group,
+            ElementType::StatusBar => &self.status_bar_texture.as_ref().unwrap().texture.bind_group,
             ElementType::Unattributed => unreachable!(),
         }
     }
@@ -358,11 +335,7 @@ impl Multiplexer {
         mut event: WindowEvent<'static>,
         resized: &mut bool,
         scale_factor_changed: &mut bool,
-    ) -> (
-        Option<(WindowEvent<'static>, ElementType)>,
-        Option<CursorIcon>,
-    ) {
-        let mut icon = None;
+    ) -> Option<(WindowEvent<'static>, ElementType)> {
         let mut captured = false;
         match &mut event {
             WindowEvent::CursorMoved { position, .. } => match &mut self.state {
@@ -383,7 +356,7 @@ impl Multiplexer {
                         &clicked_position,
                         *old_proportion,
                     );
-                    icon = Some(CursorIcon::EwResize);
+                    self.icon = Some(CursorIcon::EwResize);
                     captured = true;
                 }
 
@@ -394,11 +367,11 @@ impl Multiplexer {
                         let element = self.pixel_to_element(*position);
                         let area = match element {
                             PixelRegion::Resize(_) => {
-                                icon = Some(CursorIcon::EwResize);
+                                self.icon = Some(CursorIcon::EwResize);
                                 None
                             }
                             PixelRegion::Element(element) => {
-                                icon = Some(CursorIcon::Arrow);
+                                self.icon = None;
                                 self.focus = Some(element);
                                 self.get_draw_area(element)
                             }
@@ -493,17 +466,23 @@ impl Multiplexer {
                     VirtualKeyCode::Escape => {
                         self.requests.lock().unwrap().action_mode = Some(ActionMode::Normal)
                     }
+                    VirtualKeyCode::Z if ctrl(&self.modifiers) => {
+                        self.requests.lock().unwrap().undo = Some(());
+                    }
+                    VirtualKeyCode::R if ctrl(&self.modifiers) => {
+                        self.requests.lock().unwrap().redo = Some(());
+                    }
                     VirtualKeyCode::C if ctrl(&self.modifiers) => {
-                        self.requests.lock().unwrap().copy = true;
+                        self.requests.lock().unwrap().copy = Some(());
                     }
                     VirtualKeyCode::V if ctrl(&self.modifiers) => {
-                        self.requests.lock().unwrap().paste = true;
+                        self.requests.lock().unwrap().paste = Some(());
                     }
                     VirtualKeyCode::J if ctrl(&self.modifiers) => {
-                        self.requests.lock().unwrap().duplication = true;
+                        self.requests.lock().unwrap().duplication = Some(());
                     }
                     VirtualKeyCode::L if ctrl(&self.modifiers) => {
-                        self.requests.lock().unwrap().anchor = true;
+                        self.requests.lock().unwrap().anchor = Some(());
                     }
                     VirtualKeyCode::R if !ctrl(&self.modifiers) => {
                         self.requests.lock().unwrap().action_mode = Some(ActionMode::Rotate)
@@ -522,20 +501,35 @@ impl Multiplexer {
                         self.requests.lock().unwrap().save_shortcut = Some(());
                     }
                     VirtualKeyCode::O if ctrl(&self.modifiers) => {
-                        self.requests.lock().unwrap().open_shortcut = Some(());
+                        self.requests
+                            .lock()
+                            .unwrap()
+                            .keep_proceed
+                            .push_back(Action::LoadDesign(None));
                     }
                     VirtualKeyCode::Q if ctrl(&self.modifiers) && cfg!(target_os = "macos") => {
-                        self.requests.lock().unwrap().exit_shortcut = Some(());
+                        self.requests
+                            .lock()
+                            .unwrap()
+                            .keep_proceed
+                            .push_back(Action::Exit);
+                    }
+                    keycode if keycode_to_num(keycode).is_some() => {
+                        let n_camera = keycode_to_num(keycode).unwrap();
+                        self.requests
+                            .lock()
+                            .unwrap()
+                            .keep_proceed
+                            .push_back(Action::SelectFavoriteCamera(n_camera));
                     }
                     VirtualKeyCode::S => {
                         self.requests.lock().unwrap().selection_mode = Some(SelectionMode::Strand)
                     }
-                    /*
                     VirtualKeyCode::K => {
-                        self.requests.lock().unwrap().recolor_stapples = true;
-                    }*/
+                        self.requests.lock().unwrap().recolor_stapples = Some(());
+                    }
                     VirtualKeyCode::Delete | VirtualKeyCode::Back => {
-                        self.requests.lock().unwrap().delete_selection = true;
+                        self.requests.lock().unwrap().delete_selection = Some(());
                     }
                     _ => captured = false,
                 }
@@ -556,9 +550,9 @@ impl Multiplexer {
         }
 
         if let Some(focus) = self.focus.filter(|_| !captured) {
-            (Some((event, focus)), icon)
+            Some((event, focus))
         } else {
-            (None, icon)
+            None
         }
     }
 
@@ -607,7 +601,8 @@ impl Multiplexer {
         self.generate_textures();
     }
 
-    fn resize(&mut self, window_size: PhySize, scale_factor: f64) {
+    pub fn resize(&mut self, window_size: PhySize, scale_factor: f64) -> bool {
+        let ret = self.window_size != window_size;
         let top_pannel_prop = exact_proportion(
             self.ui_size.top_bar() * scale_factor,
             window_size.height as f64,
@@ -625,12 +620,13 @@ impl Multiplexer {
             .resize(self.top_bar_split, top_pannel_prop);
         self.layout_manager
             .resize(self.status_bar_split, 1. - status_bar_prop);
+        ret
     }
 
-    fn texture(&mut self, element_type: ElementType) -> Option<SampledTexture> {
-        self.get_draw_area(element_type)
-            .filter(|a| a.size.height > 0 && a.size.width > 0)
-            .map(|a| SampledTexture::create_target_texture(self.device.as_ref(), &a.size))
+    fn texture(&mut self, element_type: ElementType) -> Option<MultiplexerTexture> {
+        let area = self.get_draw_area(element_type)?;
+        let texture = SampledTexture::create_target_texture(self.device.as_ref(), &area.size);
+        Some(MultiplexerTexture { area, texture })
     }
 
     pub fn generate_textures(&mut self) {
@@ -644,11 +640,15 @@ impl Multiplexer {
         self.overlays_textures.clear();
         for overlay in self.overlays.iter() {
             let size = overlay.size;
-            self.overlays_textures
-                .push(SampledTexture::create_target_texture(
-                    self.device.as_ref(),
-                    &size,
-                ));
+            let texture = SampledTexture::create_target_texture(self.device.as_ref(), &size);
+
+            self.overlays_textures.push(MultiplexerTexture {
+                texture,
+                area: DrawArea {
+                    size,
+                    position: overlay.position,
+                },
+            });
         }
     }
 
@@ -686,11 +686,14 @@ impl Multiplexer {
         self.overlays_textures.clear();
         for overlay in self.overlays.iter_mut() {
             let size = overlay.size;
-            self.overlays_textures
-                .push(SampledTexture::create_target_texture(
-                    self.device.as_ref(),
-                    &size,
-                ));
+            let texture = SampledTexture::create_target_texture(self.device.as_ref(), &size);
+            self.overlays_textures.push(MultiplexerTexture {
+                texture,
+                area: DrawArea {
+                    size,
+                    position: overlay.position,
+                },
+            });
         }
     }
 
@@ -736,16 +739,15 @@ fn create_pipeline(device: &Device, bg_layout: &wgpu::BindGroupLayout) -> wgpu::
 
     let targets = &[wgpu::ColorTargetState {
         format: wgpu::TextureFormat::Bgra8UnormSrgb,
-        color_blend: wgpu::BlendState::REPLACE,
-        alpha_blend: wgpu::BlendState::REPLACE,
-        write_mask: wgpu::ColorWrite::ALL,
+        blend: Some(wgpu::BlendState::REPLACE),
+        write_mask: wgpu::ColorWrites::ALL,
     }];
 
     let primitive = wgpu::PrimitiveState {
         topology: wgpu::PrimitiveTopology::TriangleStrip,
         strip_index_format: Some(wgpu::IndexFormat::Uint16),
         front_face: wgpu::FrontFace::Ccw,
-        cull_mode: wgpu::CullMode::None,
+        cull_mode: None,
         ..Default::default()
     };
 
@@ -815,4 +817,45 @@ fn ctrl(modifiers: &ModifiersState) -> bool {
     } else {
         modifiers.ctrl()
     }
+}
+
+use crate::gui::Multiplexer as GuiMultiplexer;
+
+impl GuiMultiplexer for Multiplexer {
+    fn get_draw_area(&self, element_type: ElementType) -> Option<DrawArea> {
+        self.get_texture_size(element_type)
+    }
+
+    fn get_texture_view(&self, element_type: ElementType) -> Option<&wgpu::TextureView> {
+        self.get_texture_view(element_type)
+    }
+
+    fn get_cursor_position(&self) -> PhysicalPosition<f64> {
+        self.get_cursor_position()
+    }
+
+    fn foccused_element(&self) -> Option<ElementType> {
+        self.foccused_element()
+    }
+}
+
+fn keycode_to_num(keycode: VirtualKeyCode) -> Option<u32> {
+    if keycode as u32 >= VirtualKeyCode::Key1 as u32
+        && keycode as u32 <= VirtualKeyCode::Key0 as u32
+    {
+        Some(keycode as u32 - VirtualKeyCode::Key1 as u32)
+    } else if keycode == VirtualKeyCode::Numpad0 {
+        Some(9)
+    } else if keycode as u32 >= VirtualKeyCode::Numpad1 as u32
+        && keycode as u32 <= VirtualKeyCode::Numpad9 as u32
+    {
+        Some(keycode as u32 - VirtualKeyCode::Numpad1 as u32)
+    } else {
+        None
+    }
+}
+
+struct MultiplexerTexture {
+    area: DrawArea,
+    texture: SampledTexture,
 }

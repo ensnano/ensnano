@@ -21,7 +21,7 @@ use ultraviolet::Vec3;
 use wgpu::{BindGroup, BindGroupLayout, Device};
 
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct Light {
     position: Vec3,
     // Due to uniforms requiring 16 byte (4 float) spacing, we need to use a padding field here
@@ -47,14 +47,14 @@ pub fn create_light(device: &Device) -> (BindGroup, BindGroupLayout) {
     let light_buffer = create_buffer_with_data(
         device,
         bytemuck::cast_slice(&[light]),
-        wgpu::BufferUsage::UNIFORM | wgpu::BufferUsage::COPY_DST,
+        wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
     );
 
     let light_bind_group_layout =
         device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             entries: &[wgpu::BindGroupLayoutEntry {
                 binding: 0,
-                visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                visibility: wgpu::ShaderStages::VERTEX | wgpu::ShaderStages::FRAGMENT,
                 ty: wgpu::BindingType::Buffer {
                     ty: wgpu::BufferBindingType::Uniform,
                     has_dynamic_offset: false,
@@ -69,16 +69,13 @@ pub fn create_light(device: &Device) -> (BindGroup, BindGroupLayout) {
         layout: &light_bind_group_layout,
         entries: &[wgpu::BindGroupEntry {
             binding: 0,
-            resource: wgpu::BindingResource::Buffer {
+            resource: wgpu::BindingResource::Buffer(wgpu::BufferBinding {
                 buffer: &light_buffer,
                 offset: 0,
                 size: None,
-            },
+            }),
         }],
         label: Some("light bind group"),
     });
     (light_bind_group, light_bind_group_layout)
 }
-
-unsafe impl bytemuck::Zeroable for Light {}
-unsafe impl bytemuck::Pod for Light {}

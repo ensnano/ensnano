@@ -32,7 +32,7 @@ pub struct LetterInstance {
 }
 
 #[repr(C)]
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, bytemuck::Zeroable, bytemuck::Pod)]
 pub struct RawLetter {
     pub position: Vec3,
     pub design_id: u32,
@@ -41,28 +41,25 @@ pub struct RawLetter {
     pub scale: f32,
 }
 
-unsafe impl bytemuck::Zeroable for RawLetter {}
-unsafe impl bytemuck::Pod for RawLetter {}
-
 impl RessourceProvider for Letter {
     fn ressources_layout() -> &'static [wgpu::BindGroupLayoutEntry] {
         &[
             wgpu::BindGroupLayoutEntry {
                 binding: 0,
-                visibility: wgpu::ShaderStage::FRAGMENT,
+                visibility: wgpu::ShaderStages::FRAGMENT,
                 ty: wgpu::BindingType::Texture {
-                    multisampled: true,
+                    multisampled: false,
                     view_dimension: wgpu::TextureViewDimension::D2,
-                    sample_type: wgpu::TextureSampleType::Uint,
+                    sample_type: wgpu::TextureSampleType::Float { filterable: true },
                 },
                 count: None,
             },
             wgpu::BindGroupLayoutEntry {
                 binding: 1,
-                visibility: wgpu::ShaderStage::FRAGMENT,
+                visibility: wgpu::ShaderStages::FRAGMENT,
                 ty: wgpu::BindingType::Sampler {
                     comparison: false,
-                    filtering: false,
+                    filtering: true,
                 },
                 count: None,
             },
@@ -101,13 +98,10 @@ impl RessourceProvider for Letter {
 }
 
 #[repr(C)]
-#[derive(Clone, Debug, Copy)]
+#[derive(Clone, Debug, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct LetterVertex {
     pub position: Vec2,
 }
-
-unsafe impl bytemuck::Zeroable for LetterVertex {}
-unsafe impl bytemuck::Pod for LetterVertex {}
 
 impl Vertexable for LetterVertex {
     type RawType = LetterVertex;
@@ -119,8 +113,8 @@ impl Vertexable for LetterVertex {
     fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
         wgpu::VertexBufferLayout {
             array_stride: std::mem::size_of::<LetterVertex>() as wgpu::BufferAddress,
-            step_mode: wgpu::InputStepMode::Vertex,
-            attributes: &wgpu::vertex_attr_array![0 => Float2],
+            step_mode: wgpu::VertexStepMode::Vertex,
+            attributes: &wgpu::vertex_attr_array![0 => Float32x2],
         }
     }
 }
