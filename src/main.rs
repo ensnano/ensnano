@@ -20,12 +20,12 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! # Organization of the software
 //!
 //!
-//! The [main](main) function owns the event loop and the framebuffer. It recieves window events
+//! The [main] function owns the event loop and the framebuffer. It recieves window events
 //! and handles the framebuffer.
 //!
 //! ## Drawing process
 //!
-//! On each redraw request, the [main](main) funtion generates a new frame, and ask the
+//! On each redraw request, the [main] funtion generates a new frame, and ask the
 //! [Multiplexer](multiplexer) to draw on a view of that texture.
 //!
 //! The [Multiplexer](multiplexer) knows how the window is devided into several regions. For each
@@ -37,7 +37,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! ## Handling of events
 //!
 //! The Global state of the program is encoded in an automata defined in the
-//! [controller](controller) module. This global state determines weither inputs are handled
+//! [controller] module. This global state determines weither inputs are handled
 //! normally or if the program should wait for the user to interact with dialog windows.
 //!
 //! When the Global automata is in NormalState, events are forwarded to the
@@ -46,14 +46,14 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! events like resizing of the window are handled by the multiplexer.
 //!
 //! When GUIs handle an event. They recieve a reference to the state of the main program. This
-//! state is encoded in the [AppState](app_state::AppState) data structure. Each GUI components
+//! state is encoded in the [AppState] data structure. Each GUI components
 //! needs to be able to recieve some specific information about the state of the program to handle
 //! events and to draw their views. Theese needs are encoded in traits. GUI component typically
 //! defines their own `AppState` trait that must be implemented by the concrete `AppState` type.
 //!
 //! GUI components may interpret event as a request from the user to modify the design or the state
 //! of the main application (for example by changing the selection). These requests are stored in
-//! the [Requests](requests::Requests) data structure. Each application defines a `Requests` trait
+//! the [Requests] data structure. Each application defines a `Requests` trait
 //! that must be implemented by the concrete `Requests` type.
 //!
 //! On each itteration of the main event loop, if the Global controller is in Normal State,
@@ -206,8 +206,8 @@ const PANIC_ON_WGPU_ERRORS: bool = true;
 /// * It initializes a multiplexer.
 /// * It initializes applications and GUI component, and associate regions of the screen to these
 /// components
-/// * It initializes the [Mediator](mediator), the [Scheduler](mediator::Scheduler) and the [Gui
-/// manager](gui::Gui)
+/// * It initializes the [Mediator](ensnano_interactor::application::AppId::Mediator), the
+/// [Scheduler] and the [Gui manager](gui::Gui)
 ///
 /// # Event loop
 ///
@@ -218,7 +218,7 @@ const PANIC_ON_WGPU_ERRORS: bool = true;
 /// * When all window events have been handled, the main function reads messages that it recieved
 /// from the [Gui Manager](gui::Gui).  The consequences of these messages are forwarded to the
 /// applications.
-/// * The main loops then reads the messages that it recieved from the [Mediator](mediator) and
+/// * The main loops then reads the messages that it recieved from the [Mediator](ensnano_interactor::application::AppId::Mediator) and
 /// forwards their consequences to the Gui components.
 /// * Finally, a redraw is requested.
 ///

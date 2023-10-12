@@ -132,7 +132,7 @@ pub(super) fn junction(prime5: &HelixInterval, prime3: &HelixInterval) -> Domain
 ///
 /// Moreover at the end of each iteration of the loop, previous_domain points to some
 /// Domain::HelixDomain. The loop is responsible for preserving the invariant. The invariant is
-/// true at initilasation if [SaneDomains] is true.
+/// true at initilasation if `[SaneDomains]` is true.
 fn add_juction<'b, 'a: 'b>(
     junctions: &'b mut Vec<DomainJunction>,
     current: &'a Domain,

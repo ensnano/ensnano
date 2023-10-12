@@ -17,10 +17,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 //! This module handles the separation of the window into different regions.
 //!
-//! The layout manager split the window into different regions and attribute each region to an
-//! an application or a gui component.
+//! The layout manager splits the window into different regions and attribute each region to an
+//! an application or a GUI component.
 //!
-//! In addition, the multiplexer holds a Vec of overlays which are floating regions.
+//! In addition, the multiplexer holds a [Vec] of [overlays](Overlay), which are floating regions.
 //!
 //! When an event is recieved by the window, the multiplexer is in charge of forwarding it to the
 //! appropriate application, gui component or overlay. The multiplexer also handles some events

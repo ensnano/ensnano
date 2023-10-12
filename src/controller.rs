@@ -79,7 +79,7 @@ impl Controller {
 }
 
 pub(crate) trait State {
-    /// Operate on [`main_state`] and return the new State of the automata
+    /// Operate on [MainState] and return the new State of the automata
     fn make_progress(self: Box<Self>, main_state: &mut dyn MainState) -> Box<dyn State>;
 }
 

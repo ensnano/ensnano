@@ -15,11 +15,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-//! The [Gui Manager](gui::Gui) handles redraw request on textures that corresponds to regions
+//! The [Gui Manager](Gui) handles redraw request on textures that corresponds to regions
 //! attributed to GUI components and events happening on these regions.
 //!
 //! When a message is emmitted by a Gui component that have consequences that must be forwarded to
-//! other components of the program it is forwarded to the [main](main) function via the
+//! other components of the program it is forwarded to the `main` function via the
 //! [Request](Requests) data structure.
 
 /// Draw the top bar of the GUI
@@ -574,7 +574,7 @@ impl<R: Requests, S: AppState> GuiElement<R, S> {
 
 /// The Gui manager.
 pub struct Gui<R: Requests, S: AppState> {
-    /// HashMap mapping [ElementType](ElementType) to a GuiElement
+    /// HashMap mapping [ElementType] to a GuiElement
     elements: HashMap<ElementType, GuiElement<R, S>>,
     settings: Settings,
     device: Rc<Device>,
