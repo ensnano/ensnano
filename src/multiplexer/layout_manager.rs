@@ -41,8 +41,14 @@ const RESIZE_REGION_WIDTH: f64 = 0.001;
 ///
 #[derive(Clone, Debug)]
 enum LayoutNode {
+<<<<<<< HEAD
     /// A leaf of a [LayoutTree]. It represents an area that can be drawn on.
     /// The last attribute is the identifier of the area.
+=======
+    /// A leaf of a  [LayoutTree]. It represents an area that can be drawn on.
+    /// The first 4 attributes represents the boundaries of the area, expressed between 0. and 1.,
+    /// the last attribute is the identifier of the area.
+>>>>>>> 9914f83a (Fix some doc warnings)
     Area {
         left: f64,
         top: f64,
