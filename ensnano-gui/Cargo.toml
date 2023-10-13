@@ -11,7 +11,7 @@ iced = { version = "0.4.2", features=["image"] }
 iced_graphics = "0.3.1"
 iced_winit = "0.4.0"
 iced_native = "0.5.1"
-iced_aw = { version = "0.2.0", features = ["tab_bar"]}
+iced_aw = { version = "0.2.0", features = ["tab_bar"], git = "https://github.com/iced-rs/iced_aw", tag = "v0.2.0" }
 ensnano_design = { path = "../ensnano-design" }
 ensnano_interactor = { path = "../ensnano-interactor" }
 ensnano_organizer = { path = "../ensnano-organizer" }
