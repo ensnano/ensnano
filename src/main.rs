@@ -328,6 +328,8 @@ fn main() {
     multiplexer.change_split(SplitMode::Both);
 
     // Initialize the scenes
+    //
+    // The `encoder` encodes a series of GPU operations.
     let mut encoder =
         device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
     let scene_area = multiplexer.get_element_area(ElementType::Scene).unwrap();
