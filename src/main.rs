@@ -93,7 +93,7 @@ use ensnano_interactor::{
     SuggestionParameters,
 };
 use iced_native::Event as IcedEvent;
-use iced_wgpu::{wgpu, Backend, Renderer, Settings, Viewport};
+use iced_wgpu::{wgpu, Settings, Viewport};
 use iced_winit::winit::event::VirtualKeyCode;
 use iced_winit::{conversion, futures, program, winit, Debug, Size};
 
@@ -244,13 +244,14 @@ fn main() {
 
     log::info!("scale factor {}", window.scale_factor());
 
-    let modifiers = ModifiersState::default();
+    // Represents the current state of the keyboard modifiers (Shift, Ctrl, etc.)
+    let kbd_modifiers = ModifiersState::default();
 
-    let instance = wgpu::Instance::new(BACKEND);
-    let surface = unsafe { instance.create_surface(&window) };
+    let gpu = wgpu::Instance::new(BACKEND);
+    let surface = unsafe { gpu.create_surface(&window) };
     // Initialize WGPU
     let (device, queue) = futures::executor::block_on(async {
-        let adapter = instance
+        let adapter = gpu
             .request_adapter(&wgpu::RequestAdapterOptions {
                 power_preference: wgpu::PowerPreference::LowPower,
                 compatible_surface: Some(&surface),
@@ -304,7 +305,8 @@ fn main() {
         default_font: Some(include_bytes!("../font/ensnano2.ttf")),
         ..Default::default()
     };
-    let mut renderer = Renderer::new(Backend::new(&device, settings, TEXTURE_FORMAT));
+    let mut renderer =
+        iced_wgpu::Renderer::new(iced_wgpu::Backend::new(&device, settings, TEXTURE_FORMAT));
     let device = Rc::new(device);
     let queue = Rc::new(queue);
     let mut resized = false;
@@ -480,7 +482,7 @@ fn main() {
                         let event = iced_winit::conversion::window_event(
                             &event,
                             window.scale_factor(),
-                            modifiers,
+                            kbd_modifiers,
                         );
                         if let Some(event) = event {
                             gui.forward_event_all(event);
@@ -513,7 +515,7 @@ fn main() {
                                 let event = iced_winit::conversion::window_event(
                                     &event,
                                     window.scale_factor(),
-                                    modifiers,
+                                    kbd_modifiers,
                                 );
                                 if let Some(event) = event {
                                     gui.forward_event(area, event);
@@ -523,7 +525,7 @@ fn main() {
                                 let event = iced_winit::conversion::window_event(
                                     &event,
                                     window.scale_factor(),
-                                    modifiers,
+                                    kbd_modifiers,
                                 );
                                 if let Some(event) = event {
                                     overlay_manager.forward_event(event, n);
@@ -773,7 +775,11 @@ pub struct OverlayManager {
 }
 
 impl OverlayManager {
-    pub fn new(requests: Arc<Mutex<Requests>>, window: &Window, renderer: &mut Renderer) -> Self {
+    pub fn new(
+        requests: Arc<Mutex<Requests>>,
+        window: &Window,
+        renderer: &mut iced_wgpu::Renderer,
+    ) -> Self {
         let color = ColorOverlay::new(
             requests,
             PhysicalSize::new(250., 250.).to_logical(window.scale_factor()),
@@ -817,7 +823,7 @@ impl OverlayManager {
 
     fn process_event(
         &mut self,
-        renderer: &mut Renderer,
+        renderer: &mut iced_wgpu::Renderer,
         resized: bool,
         multiplexer: &Multiplexer,
         window: &Window,
@@ -855,7 +861,7 @@ impl OverlayManager {
         target: &wgpu::TextureView,
         multiplexer: &Multiplexer,
         window: &Window,
-        renderer: &mut Renderer,
+        renderer: &mut iced_wgpu::Renderer,
     ) {
         for overlay_type in self.overlay_types.iter() {
             match overlay_type {
@@ -912,7 +918,7 @@ impl OverlayManager {
         &mut self,
         multiplexer: &Multiplexer,
         window: &Window,
-        renderer: &mut Renderer,
+        renderer: &mut iced_wgpu::Renderer,
     ) -> bool {
         let mut ret = false;
         for (n, overlay) in self.overlay_types.iter().enumerate() {

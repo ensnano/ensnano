@@ -26,7 +26,7 @@ use iced::{
 use iced::{container, Background, Column, Container, Row};
 use iced_aw::{TabLabel, Tabs};
 use iced_native::Program;
-use iced_wgpu::{Backend, Renderer};
+use iced_wgpu;
 use iced_winit::winit::{
     dpi::{LogicalPosition, LogicalSize},
     event::ModifiersState,
@@ -347,7 +347,7 @@ impl<R: Requests, S: AppState> LeftPanel<R, S> {
 }
 
 impl<R: Requests, S: AppState> Program for LeftPanel<R, S> {
-    type Renderer = Renderer;
+    type Renderer = iced_wgpu::Renderer;
     type Message = Message<S>;
 
     fn update(&mut self, message: Message<S>) -> Command<Message<S>> {
@@ -1098,7 +1098,7 @@ pub enum ColorMessage {
 }
 
 impl<R: Requests> Program for ColorOverlay<R> {
-    type Renderer = Renderer;
+    type Renderer = iced_wgpu::Renderer;
     type Message = ColorMessage;
 
     fn update(&mut self, message: ColorMessage) -> Command<ColorMessage> {
