@@ -1,9 +1,10 @@
-use iced::{
-    button, scrollable, text_input, tooltip, Button, Column, Container, Element, Row, Scrollable,
-    Space, TextInput, Tooltip,
-};
+use iced::Element;
 pub use iced_aw::Icon;
 use iced_native::keyboard::Modifiers;
+use iced_native::widget::{
+    button, scrollable, text_input, tooltip, Button, Column, Container, Row, Scrollable, Space,
+    TextInput, Tooltip,
+};
 use iced_native::{text::Renderer, widget::Text};
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::convert::TryInto;
@@ -291,7 +292,7 @@ impl<E: OrganizerElement> Organizer<E> {
                 ),
             )
         }
-        let mut new_group_button = Button::new(&mut self.new_group_button, Text::new("New Group"));
+        let mut new_group_button = Button::new(Text::new("New Group"));
         if !selection.is_empty() {
             new_group_button = new_group_button.on_press(OrganizerMessage::new_group());
         }
@@ -841,7 +842,7 @@ impl<E: OrganizerElement> Section<E> {
         &mut self,
         theme: &Theme,
         selection: &BTreeSet<E::Key>,
-    ) -> Container<OrganizerMessage<E>> {
+    ) -> Container<OrganizerMessage<E>, iced_wgpu::Renderer> {
         let title_row = self
             .view
             .view(theme, &self.name, self.id.clone(), self.expanded, false);
@@ -931,14 +932,12 @@ impl<E: OrganizerElement> ElementView<E> {
             }
         }
         if let Some(id) = deletable.clone() {
-            content = content.push(
-                Button::new(&mut self.delete_button_state, icon(Icon::Trash.into()))
-                    .on_press(OrganizerMessage::delete(id)),
-            );
+            content = content
+                .push(Button::new(icon(Icon::Trash.into())).on_press(OrganizerMessage::delete(id)));
         }
         let mut button = HoverableContainer::new(
             &mut self.hovering_state,
-            Button::new(&mut self.button_state, content)
+            Button::new(content)
                 .on_press(OrganizerMessage::element_selected(element.key().clone()))
                 .width(iced::Length::Fill)
                 .style(theme.selected(selected)),
@@ -1030,23 +1029,18 @@ impl<E: OrganizerElement> NodeView<E> {
     ) -> DragDropTarget<OrganizerMessage<E>, E::Key, E::AutoGroup> {
         let level = get_group_id(&id).map(|v| v.len()).unwrap_or(0);
         let title_row = match &mut self.state {
-            GroupState::Iddle {
-                edit_button,
-                delete_button,
-            } => {
-                let mut row = Row::new();
+            GroupState::Iddle { .. } => {
+                let mut row = Row::new(); // TODO: try to use the new row! macro.
                 row = row.push(
-                    Button::new(&mut self.expansion_btn_state, expand_icon(expanded))
+                    Button::new(expand_icon(expanded))
                         .on_press(OrganizerMessage::expand(id.clone(), !expanded)),
                 );
                 row = row
                     .push(Text::new(name.clone()))
                     .push(Space::with_width(iced::Length::Fill));
 
-                row = row.push(
-                    Button::new(edit_button, edit_icon())
-                        .on_press(OrganizerMessage::edit(id.clone())),
-                );
+                row =
+                    row.push(Button::new(edit_icon()).on_press(OrganizerMessage::edit(id.clone())));
 
                 for ad in self.attribute_displayers.iter_mut() {
                     if let Some(view) = ad.view() {
@@ -1058,33 +1052,27 @@ impl<E: OrganizerElement> NodeView<E> {
                 }
 
                 row = row.push(
-                    Button::new(delete_button, icon(Icon::Trash.into()))
+                    Button::new(icon(Icon::Trash.into()))
                         .on_press(OrganizerMessage::delete(id.clone())),
                 );
                 row
             }
-            GroupState::Editing {
-                input,
-                delete_button,
-                edit_button,
-            } => {
+            GroupState::Editing { .. } => {
                 let name = name.clone();
-                let mut row = Row::new()
+                let mut row = Row::new() // TODO: try to use the new row! macro.
                     .push(
-                        Button::new(&mut self.expansion_btn_state, expand_icon(expanded))
+                        Button::new(expand_icon(expanded))
                             .on_press(OrganizerMessage::expand(id.clone(), !expanded)),
                     )
                     .push(
-                        TextInput::new(input, "New group name...", &name, |s| {
+                        TextInput::new("New group name...", &name, |s| {
                             OrganizerMessage::name_input(s)
                         })
                         .on_submit(OrganizerMessage::stop_edit()),
                     )
                     .push(Space::with_width(iced::Length::Fill));
 
-                row = row.push(
-                    Button::new(edit_button, edit_icon()).on_press(OrganizerMessage::stop_edit()),
-                );
+                row = row.push(Button::new(edit_icon()).on_press(OrganizerMessage::stop_edit()));
                 for ad in self.attribute_displayers.iter_mut() {
                     if let Some(view) = ad.view() {
                         let id = id.clone();
@@ -1094,19 +1082,17 @@ impl<E: OrganizerElement> NodeView<E> {
                     }
                 }
                 row = row.push(
-                    Button::new(delete_button, icon(Icon::Trash.into()))
+                    Button::new(icon(Icon::Trash.into()))
                         .on_press(OrganizerMessage::delete(id.clone())),
                 );
                 row
             }
             GroupState::NotEditable => {
-                let mut row = Row::new();
-                row = row.push(
-                    Button::new(&mut self.expansion_btn_state, expand_icon(expanded))
+                iced_native::row![
+                    Button::new(expand_icon(expanded))
                         .on_press(OrganizerMessage::expand(id.clone(), !expanded)),
-                );
-                row = row.push(Text::new(name.clone()));
-                row
+                    Text::new(name.clone()),
+                ]
             }
         };
         let theme = if selected {
@@ -1116,7 +1102,7 @@ impl<E: OrganizerElement> NodeView<E> {
         };
         let button = HoverableContainer::new(
             &mut self.title_button_hovering_state,
-            Button::new(&mut self.title_button_state, title_row)
+            Button::new(title_row)
                 .on_press(OrganizerMessage::node_selected(id.clone()))
                 .width(iced::Length::Fill)
                 .style(theme),
@@ -1175,7 +1161,7 @@ impl<E: OrganizerElement> GroupContent<E> {
         sections: &[Section<E>],
         selection: &BTreeSet<E::Key>,
         selected_nodes: &BTreeSet<NodeId<E::AutoGroup>>,
-    ) -> Container<OrganizerMessage<E>> {
+    ) -> Container<OrganizerMessage<E>, iced_wgpu::Renderer> {
         let level;
         let colummn = match self {
             Self::Node {
@@ -1690,9 +1676,10 @@ impl<E: OrganizerElement> GroupContent<E> {
     }
 }
 
-fn icon<R: Renderer>(unicode: char) -> Text<R>
+fn icon<'a, R: Renderer>(unicode: char) -> Text<'a, R>
 where
     <R as iced_native::text::Renderer>::Font: From<iced::Font>,
+    <R as iced_native::Renderer>::Theme: iced::widget::text::StyleSheet,
 {
     use iced::alignment::Horizontal as HorizontalAlignment;
     Text::new(&unicode.to_string())
@@ -1701,9 +1688,10 @@ where
         .horizontal_alignment(HorizontalAlignment::Center)
 }
 
-fn expand_icon<R: Renderer>(expanded: bool) -> Text<R>
+fn expand_icon<'a, R: Renderer>(expanded: bool) -> Text<'a, R>
 where
     <R as iced_native::text::Renderer>::Font: From<iced::Font>,
+    <R as iced_native::Renderer>::Theme: iced::widget::text::StyleSheet,
 {
     if expanded {
         icon(Icon::CaretDown.into())
@@ -1712,16 +1700,18 @@ where
     }
 }
 
-fn edit_icon<R: Renderer>() -> Text<R>
+fn edit_icon<'a, R: Renderer>() -> Text<'a, R>
 where
     <R as iced_native::text::Renderer>::Font: From<iced::Font>,
+    <R as iced_native::Renderer>::Theme: iced::widget::text::StyleSheet,
 {
     icon(Icon::VectorPen.into())
 }
 
-fn _delete_icon<R: Renderer>() -> Text<R>
+fn _delete_icon<'a, R: Renderer>() -> Text<'a, R>
 where
     <R as iced_native::text::Renderer>::Font: From<iced::Font>,
+    <R as iced_native::Renderer>::Theme: iced::widget::text::StyleSheet,
 {
     icon('\u{E806}')
 }

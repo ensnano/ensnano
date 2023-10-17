@@ -1,4 +1,6 @@
-use iced::button::Style as ButtonStyle;
+//! Customize the theme of ENSnano
+use iced::theme;
+use iced::widget::{button, container};
 use iced::Color;
 
 #[derive(Debug, Clone, Copy)]
@@ -65,6 +67,7 @@ impl ColorGradient {
     }
 }
 
+/// “Parent” theme
 pub struct Theme {
     gradient: ColorGradient,
     text_color: Color,
@@ -72,6 +75,7 @@ pub struct Theme {
     max_level: usize,
 }
 
+/// “Level” theme
 #[derive(Debug, Copy, Clone)]
 pub(super) struct ThemeLevel {
     gradient: ColorGradient,
@@ -81,6 +85,7 @@ pub(super) struct ThemeLevel {
     selected: bool,
 }
 
+/// “Selection” theme
 pub(super) struct ThemeSelection {
     selected: bool,
     text_color: Color,
@@ -88,15 +93,18 @@ pub(super) struct ThemeSelection {
     border_color: Color,
 }
 
-impl iced::button::StyleSheet for ThemeSelection {
-    fn active(&self) -> ButtonStyle {
+/// Implements the [Button](button::Button) style sheet for [ThemeSelection]
+impl button::StyleSheet for ThemeSelection {
+    type Style = ();
+
+    fn active(&self, style: &Self::Style) -> button::Appearance {
         let border_width = if self.selected { 4. } else { 0. };
         let text_color = if self.selected {
             self.selected_color
         } else {
             self.text_color
         };
-        ButtonStyle {
+        button::Appearance {
             shadow_offset: iced::Vector::new(0., 0.),
             background: None,
             border_radius: 0.,
@@ -105,25 +113,34 @@ impl iced::button::StyleSheet for ThemeSelection {
             text_color,
         }
     }
-    fn hovered(&self) -> ButtonStyle {
-        ButtonStyle {
-            border_width: self.active().border_width + 1.,
-            ..self.active()
+    fn hovered(&self, style: &Self::Style) -> button::Appearance {
+        button::Appearance {
+            border_width: self.active(style).border_width + 1.,
+            ..self.active(style)
         }
     }
 
-    fn pressed(&self) -> ButtonStyle {
-        ButtonStyle {
-            border_width: self.active().border_width + 1.,
-            ..self.active()
+    fn pressed(&self, style: &Self::Style) -> button::Appearance {
+        button::Appearance {
+            border_width: self.active(style).border_width + 1.,
+            ..self.active(style)
         }
     }
 }
 
-impl iced::button::StyleSheet for ThemeLevel {
-    fn active(&self) -> ButtonStyle {
+impl From<ThemeSelection> for theme::Button {
+    fn from(_: ThemeSelection) -> Self {
+        Default::default()
+    }
+}
+
+/// Implements the [Button](button::Button) style sheet for [ThemeLevel]
+impl button::StyleSheet for ThemeLevel {
+    type Style = ();
+
+    fn active(&self, style: &Self::Style) -> button::Appearance {
         let border_width = if self.selected { 4. } else { 0. };
-        ButtonStyle {
+        button::Appearance {
             shadow_offset: iced::Vector::new(0., 0.),
             background: None,
             border_radius: 0.,
@@ -132,30 +149,45 @@ impl iced::button::StyleSheet for ThemeLevel {
             text_color: self.text_color,
         }
     }
-    fn hovered(&self) -> ButtonStyle {
+    fn hovered(&self, style: &Self::Style) -> button::Appearance {
         let border_width = if self.selected { 5. } else { 1. };
-        ButtonStyle {
+        button::Appearance {
             border_width,
-            ..self.active()
+            ..self.active(style)
         }
     }
 
-    fn pressed(&self) -> ButtonStyle {
-        ButtonStyle {
+    fn pressed(&self, style: &Self::Style) -> button::Appearance {
+        button::Appearance {
             border_width: 1.,
-            ..self.active()
+            ..self.active(style)
         }
     }
 }
 
-impl iced::container::StyleSheet for ThemeLevel {
-    fn style(&self) -> iced::container::Style {
-        iced::container::Style {
+impl From<ThemeLevel> for theme::Button {
+    fn from(_: ThemeLevel) -> Self {
+        Default::default()
+    }
+}
+
+/// Implements the [Container](container::Container) style sheet for [ThemeLevel]
+impl container::StyleSheet for ThemeLevel {
+    type Style = ();
+
+    fn appearance(&self, style: &Self::Style) -> container::Appearance {
+        container::Appearance {
             background: Some(iced::Background::Color(
                 self.gradient.linear_interpolation(self.gradient_value),
             )),
             ..Default::default()
         }
+    }
+}
+
+impl From<ThemeLevel> for theme::Container {
+    fn from(_: ThemeLevel) -> Self {
+        Default::default()
     }
 }
 

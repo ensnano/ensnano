@@ -14,7 +14,7 @@ use iced_native::{
 
 use std::u32;
 
-pub use iced_style::container::{Style, StyleSheet};
+pub use iced_style::container::{Appearance, StyleSheet};
 
 /// The local state of an [`HoverableContainer`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -39,7 +39,7 @@ pub struct HoverableContainer<'a, Message: Clone, Renderer> {
     max_height: u32,
     horizontal_alignment: alignment::Horizontal,
     vertical_alignment: alignment::Vertical,
-    style_sheet: Box<dyn StyleSheet + 'a>,
+    style_sheet: Box<dyn StyleSheet<Style = ()> + 'a>,
     content: Element<'a, Message, Renderer>,
     on_hovered_in: Option<Message>,
     on_hovered_out: Option<Message>,
@@ -126,7 +126,7 @@ where
     }
 
     /// Sets the style of the [Container](iced::widget::container::Container).
-    pub fn style(mut self, style_sheet: impl Into<Box<dyn StyleSheet + 'a>>) -> Self {
+    pub fn style(mut self, style_sheet: impl Into<Box<dyn StyleSheet<Style = ()> + 'a>>) -> Self {
         self.style_sheet = style_sheet.into();
         self
     }
@@ -284,8 +284,8 @@ where
 }
 
 /// Draws the background of a
-/// [Container](iced::widget::container::Container) given its [Style] and its `bounds`.
-pub fn draw_background<Renderer>(renderer: &mut Renderer, style: &Style, bounds: Rectangle)
+/// [Container](iced::widget::container::Container) given its [Appearance] and its `bounds`.
+pub fn draw_background<Renderer>(renderer: &mut Renderer, style: &Appearance, bounds: Rectangle)
 where
     Renderer: iced_native::Renderer,
 {

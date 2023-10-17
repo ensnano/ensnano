@@ -1,6 +1,6 @@
-use iced::pick_list::Style as PickListStyle;
+use iced::widget::Text;
 use iced::Element;
-use iced::{button, pick_list, Button, PickList, Text};
+use iced_native::widget::{button, pick_list};
 
 /// A key identifing an element
 pub trait ElementKey:
@@ -122,7 +122,7 @@ impl<A: OrganizerAttribute> AttributeDisplayer<A> {
         if let Some(widget) = self.widget.as_mut() {
             match widget {
                 AttributeWidget::PickList { choices } => {
-                    let mut picklist = PickList::new(
+                    let mut picklist = pick_list::PickList::new(
                         &mut self.pick_list_state,
                         *choices,
                         self.attribute.clone(),
@@ -145,7 +145,7 @@ impl<A: OrganizerAttribute> AttributeDisplayer<A> {
                         _ => Text::new("???"),
                     };
                     Some(
-                        Button::new(&mut self.button_state, content)
+                        button::Button::new(&mut self.button_state, content)
                             .on_press(value_if_pressed.clone())
                             .into(),
                     )
@@ -157,22 +157,20 @@ impl<A: OrganizerAttribute> AttributeDisplayer<A> {
     }
 }
 
+/// An [pick_list::Appearance] where there is no icon.
+///
 struct NoIcon {}
 
-impl iced::pick_list::StyleSheet for NoIcon {
-    fn menu(&self) -> iced::pick_list::Menu {
-        Default::default()
-    }
-
-    fn active(&self) -> PickListStyle {
-        PickListStyle {
+impl pick_list::StyleSheet for NoIcon {
+    fn active(&self) -> pick_list::Appearance {
+        pick_list::Appearance {
             icon_size: 0.,
             ..Default::default()
         }
     }
 
-    fn hovered(&self) -> PickListStyle {
-        PickListStyle {
+    fn hovered(&self) -> pick_list::Appearance {
+        pick_list::Appearance {
             icon_size: 0.,
             ..Default::default()
         }
