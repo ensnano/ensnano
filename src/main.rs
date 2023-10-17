@@ -258,9 +258,9 @@ fn main() {
                 force_fallback_adapter: false,
             })
             .await
-            .expect("Could not get adapter\n
-                This might be because gpu drivers are missing. \n
-                You need Vulkan, Metal (for MacOS) or DirectX (for Windows) drivers to run this software");
+            .expect("Could not get adapter\n\
+                     This might be because gpu drivers are missing.\n\
+                     You need Vulkan, Metal (for MacOS) or DirectX (for Windows) drivers to run this software");
 
         adapter
             .request_device(

@@ -942,53 +942,54 @@ impl<R: Requests, S: AppState> Program for LeftPanel<R, S> {
 
     fn view(&mut self) -> Element<Message<S>> {
         let width = self.logical_size.cast::<u16>().width;
-        let tabs: Tabs<Message<S>, Backend> = Tabs::new(self.selected_tab, Message::TabSelected)
-            .push(
-                TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::GridOn))),
-                self.grid_tab
-                    .view(self.ui_size, width, &self.application_state),
-            )
-            .push(
-                TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Edit))),
-                self.edition_tab
-                    .view(self.ui_size, width, &self.application_state),
-            )
-            .push(
-                TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Videocam))),
-                self.camera_tab.view(self.ui_size, &self.application_state),
-            )
-            .push(
-                TabLabel::Icon(ICON_PHYSICAL_ENGINE),
-                self.simulation_tab
-                    .view(self.ui_size, &self.application_state),
-            )
-            .push(
-                TabLabel::Icon(ICON_ATGC),
-                self.sequence_tab
-                    .view(self.ui_size, &self.application_state),
-            )
-            .push(
-                TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Settings))),
-                self.parameters_tab
-                    .view(self.ui_size, &self.application_state),
-            )
-            .push(
-                TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Draw))),
-                self.pen_tab.view(self.ui_size, &self.application_state),
-            )
-            .push(
-                TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::AutoMode))),
-                self.revolution_tab
-                    .view(self.ui_size, &self.application_state),
-            )
-            .text_size(self.ui_size.icon())
-            .text_font(ICONFONT)
-            .icon_font(ENSNANO_FONT)
-            .icon_size(self.ui_size.icon())
-            .tab_bar_height(Length::Units(self.ui_size.button()))
-            .tab_bar_style(TabStyle)
-            .width(Length::Units(width))
-            .height(Length::Fill);
+        let tabs: Tabs<Message<S>, iced_wgpu::Backend> =
+            Tabs::new(self.selected_tab, Message::TabSelected)
+                .push(
+                    TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::GridOn))),
+                    self.grid_tab
+                        .view(self.ui_size, width, &self.application_state),
+                )
+                .push(
+                    TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Edit))),
+                    self.edition_tab
+                        .view(self.ui_size, width, &self.application_state),
+                )
+                .push(
+                    TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Videocam))),
+                    self.camera_tab.view(self.ui_size, &self.application_state),
+                )
+                .push(
+                    TabLabel::Icon(ICON_PHYSICAL_ENGINE),
+                    self.simulation_tab
+                        .view(self.ui_size, &self.application_state),
+                )
+                .push(
+                    TabLabel::Icon(ICON_ATGC),
+                    self.sequence_tab
+                        .view(self.ui_size, &self.application_state),
+                )
+                .push(
+                    TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Settings))),
+                    self.parameters_tab
+                        .view(self.ui_size, &self.application_state),
+                )
+                .push(
+                    TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Draw))),
+                    self.pen_tab.view(self.ui_size, &self.application_state),
+                )
+                .push(
+                    TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::AutoMode))),
+                    self.revolution_tab
+                        .view(self.ui_size, &self.application_state),
+                )
+                .text_size(self.ui_size.icon())
+                .text_font(ICONFONT)
+                .icon_font(ENSNANO_FONT)
+                .icon_size(self.ui_size.icon())
+                .tab_bar_height(Length::Units(self.ui_size.button()))
+                .tab_bar_style(TabStyle)
+                .width(Length::Units(width))
+                .height(Length::Fill);
         let camera_shortcut =
             self.camera_shortcut
                 .view(self.ui_size, width, &self.application_state);
