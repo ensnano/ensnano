@@ -117,7 +117,7 @@ pub trait Requests: 'static + Send {
     fn set_scaffold_shift(&mut self, shift: usize);
     /// Change the size of the UI components
     fn set_ui_size(&mut self, size: UiSize);
-    /// Finalize the currently eddited hyperboloid grid
+    /// Finalize the currently edited hyperboloid grid
     fn finalize_hyperboloid(&mut self);
     fn stop_roll_simulation(&mut self);
     fn start_roll_simulation(&mut self, roll_request: RollRequest);
@@ -131,7 +131,7 @@ pub trait Requests: 'static + Send {
     /// Update the parameters of the current simulation (rigid grids or helices)
     fn update_rigid_body_simulation_parameters(&mut self, parameters: RigidBodyParametersRequest);
     fn create_new_hyperboloid(&mut self, parameters: HyperboloidRequest);
-    /// Update the parameters of the currently eddited hyperboloid grid
+    /// Update the parameters of the currently edited hyperboloid grid
     fn update_current_hyperboloid(&mut self, parameters: HyperboloidRequest);
     fn update_roll_of_selected_helices(&mut self, roll: f32);
     fn update_scroll_sensitivity(&mut self, sensitivity: f32);

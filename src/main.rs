@@ -81,7 +81,7 @@ use std::rc::Rc;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
-use controller::{ChanelReader, ChanelReaderUpdate, SimulationRequest};
+use controller::{ChannelReader, ChannelReaderUpdate, SimulationRequest};
 use ensnano_design::{grid::GridId, Camera};
 use ensnano_exports::{ExportResult, ExportType};
 use ensnano_interactor::{
@@ -498,15 +498,15 @@ fn main() {
 
                     if let Some((event, area)) = event {
                         // pass the event to the area on which it happenened
-                        if main_state.focussed_element != Some(area) {
+                        if main_state.focused_element != Some(area) {
                             if let Some(app) = main_state
-                                .focussed_element
+                                .focused_element
                                 .as_ref()
                                 .and_then(|elt| main_state.applications.get(elt))
                             {
                                 app.lock().unwrap().on_notify(Notification::WindowFocusLost)
                             }
-                            main_state.focussed_element = Some(area);
+                            main_state.focused_element = Some(area);
                             main_state.update_candidates(vec![]);
                         }
                         main_state.applications_cursor = None;
@@ -573,14 +573,14 @@ fn main() {
                 resized |= first_iteration;
                 first_iteration = false;
 
-                for update in main_state.chanel_reader.get_updates() {
-                    if let ChanelReaderUpdate::ScaffoldShiftOptimizationProgress(x) = update {
+                for update in main_state.channel_reader.get_updates() {
+                    if let ChannelReaderUpdate::ScaffoldShiftOptimizationProgress(x) = update {
                         main_state
                             .messages
                             .lock()
                             .unwrap()
                             .push_progress("Optimizing: ".to_string(), x);
-                    } else if let ChanelReaderUpdate::ScaffoldShiftOptimizationResult(result) =
+                    } else if let ChannelReaderUpdate::ScaffoldShiftOptimizationResult(result) =
                         update
                     {
                         main_state.messages.lock().unwrap().finish_progess();
@@ -597,9 +597,9 @@ fn main() {
                             // unwrap because in this block, result is necessarilly an Err
                             log::warn!("{:?}", result.err().unwrap());
                         }
-                    } else if let ChanelReaderUpdate::SimulationUpdate(update) = update {
+                    } else if let ChannelReaderUpdate::SimulationUpdate(update) = update {
                         main_state.app_state.apply_simulation_update(update)
-                    } else if let ChanelReaderUpdate::SimulationExpired = update {
+                    } else if let ChannelReaderUpdate::SimulationExpired = update {
                         main_state.update_simulation(SimulationRequest::Stop)
                     }
                 }
@@ -974,10 +974,10 @@ pub(crate) struct MainState {
     pending_actions: VecDeque<Action>,
     undo_stack: Vec<AppStateTransition>,
     redo_stack: Vec<AppStateTransition>,
-    chanel_reader: ChanelReader,
+    channel_reader: ChannelReader,
     messages: Arc<Mutex<IcedMessages<AppState>>>,
     applications: HashMap<ElementType, Arc<Mutex<dyn Application<AppState = AppState>>>>,
-    focussed_element: Option<ElementType>,
+    focused_element: Option<ElementType>,
     last_saved_state: AppState,
 
     /// The name of the file containing the current design.
@@ -1002,10 +1002,10 @@ struct MainStateConstructor {
 use controller::SaveDesignError;
 impl MainState {
     fn new(constructor: MainStateConstructor) -> Self {
-        let app_state = match AppState::with_preffered_parameters() {
+        let app_state = match AppState::with_preferred_parameters() {
             Ok(state) => state,
             Err(e) => {
-                log::error!("Could not load preferences {e}");
+                log::error!("Could not load preferrences {e}");
                 Default::default()
             }
         };
@@ -1014,10 +1014,10 @@ impl MainState {
             pending_actions: VecDeque::new(),
             undo_stack: Vec::new(),
             redo_stack: Vec::new(),
-            chanel_reader: Default::default(),
+            channel_reader: Default::default(),
             messages: constructor.messages,
             applications: Default::default(),
-            focussed_element: None,
+            focused_element: None,
             last_saved_state: app_state.clone(),
             file_name: None,
             wants_fit: false,
@@ -1032,7 +1032,7 @@ impl MainState {
 
     fn update_cursor(&mut self, multiplexer: &Multiplexer) -> bool {
         self.update_simulation_cursor();
-        // Usefull to remember to finish hyperboloid before trying to eddit
+        // Usefull to remember to finish hyperboloid before trying to edit
         if self.app_state.is_building_hyperboloid()
             && multiplexer
                 .foccused_element()
@@ -1154,7 +1154,7 @@ impl MainState {
     fn start_helix_simulation(&mut self, parameters: RigidBodyConstants) {
         let result = self.app_state.start_simulation(
             parameters,
-            &mut self.chanel_reader,
+            &mut self.channel_reader,
             SimulationTarget::Helices,
         );
         self.apply_operation_result(result)
@@ -1163,7 +1163,7 @@ impl MainState {
     fn start_grid_simulation(&mut self, parameters: RigidBodyConstants) {
         let result = self.app_state.start_simulation(
             parameters,
-            &mut self.chanel_reader,
+            &mut self.channel_reader,
             SimulationTarget::Grids,
         );
         self.apply_operation_result(result)
@@ -1172,7 +1172,7 @@ impl MainState {
     fn start_revolution_simulation(&mut self, desc: RevolutionSurfaceSystemDescriptor) {
         let result = self.app_state.start_simulation(
             Default::default(),
-            &mut self.chanel_reader,
+            &mut self.channel_reader,
             SimulationTarget::Revolution { desc },
         );
         self.apply_operation_result(result)
@@ -1181,7 +1181,7 @@ impl MainState {
     fn start_twist(&mut self, grid_id: GridId) {
         let result = self.app_state.start_simulation(
             Default::default(),
-            &mut self.chanel_reader,
+            &mut self.channel_reader,
             SimulationTarget::Twist { grid_id },
         );
         self.apply_operation_result(result)
@@ -1190,7 +1190,7 @@ impl MainState {
     fn start_roll_simulation(&mut self, target_helices: Option<Vec<usize>>) {
         let result = self.app_state.start_simulation(
             Default::default(),
-            &mut self.chanel_reader,
+            &mut self.channel_reader,
             SimulationTarget::Roll { target_helices },
         );
         self.apply_operation_result(result)
@@ -1303,7 +1303,7 @@ impl MainState {
     }
 
     fn optimize_shift(&mut self) {
-        let reader = &mut self.chanel_reader;
+        let reader = &mut self.channel_reader;
         let result = self.app_state.optimize_shift(reader);
         self.apply_operation_result(result);
     }
@@ -1679,8 +1679,8 @@ impl<'a> MainStateInteface for MainStateView<'a> {
         Ok(())
     }
 
-    fn get_chanel_reader(&mut self) -> &mut ChanelReader {
-        &mut self.main_state.chanel_reader
+    fn get_chanel_reader(&mut self) -> &mut ChannelReader {
+        &mut self.main_state.channel_reader
     }
 
     fn apply_operation(&mut self, operation: DesignOperation) {

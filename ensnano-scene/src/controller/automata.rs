@@ -434,7 +434,7 @@ impl<S: AppState> ControllerState<S> for NormalState {
                         //   which case we are appening a new vertex to the path to which this vertex
                         //   belong
                         // - None, in which case we are creating a new bezier path
-                        let path_id = context.get_bezier_vertex_being_eddited().map(|v| v.path_id);
+                        let path_id = context.get_bezier_vertex_being_edited().map(|v| v.path_id);
 
                         if let Some((plane_id, intersection)) = context.get_plane_under_cursor() {
                             println!("{:?}", intersection);
