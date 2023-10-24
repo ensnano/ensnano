@@ -113,10 +113,10 @@ impl CharDrawer {
     fn create_pipeline(&self, globals_layout: &BindGroupLayout) -> RenderPipeline {
         let vertex_module = self
             .device
-            .create_shader_module(&include_spirv!("chars.vert.spv"));
+            .create_shader_module(include_spirv!("chars.vert.spv"));
         let fragment_module = self
             .device
-            .create_shader_module(&include_spirv!("chars.frag.spv"));
+            .create_shader_module(include_spirv!("chars.frag.spv"));
         let render_pipeline_layout =
             self.device
                 .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
@@ -131,11 +131,11 @@ impl CharDrawer {
 
         let format = wgpu::TextureFormat::Bgra8UnormSrgb;
 
-        let targets = &[wgpu::ColorTargetState {
+        let targets = &[Some(wgpu::ColorTargetState {
             format,
             blend: Some(wgpu::BlendState::ALPHA_BLENDING),
             write_mask: wgpu::ColorWrites::ALL,
-        }];
+        })];
 
         let primitive = wgpu::PrimitiveState {
             topology: wgpu::PrimitiveTopology::TriangleStrip,

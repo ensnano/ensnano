@@ -145,15 +145,15 @@ impl CircleDrawer {
     ) -> RenderPipeline {
         let vertex_module = self
             .device
-            .create_shader_module(&include_spirv!("circle.vert.spv"));
+            .create_shader_module(include_spirv!("circle.vert.spv"));
 
         let fragment_module = match circle_kind {
             CircleKind::FullCircle => self
                 .device
-                .create_shader_module(&include_spirv!("circle.frag.spv")),
+                .create_shader_module(include_spirv!("circle.frag.spv")),
             CircleKind::RotationWidget => self
                 .device
-                .create_shader_module(&include_spirv!("rotation_widget.frag.spv")),
+                .create_shader_module(include_spirv!("rotation_widget.frag.spv")),
         };
 
         let render_pipeline_layout =
@@ -166,11 +166,11 @@ impl CircleDrawer {
 
         let format = wgpu::TextureFormat::Bgra8UnormSrgb;
 
-        let targets = &[wgpu::ColorTargetState {
+        let targets = &[Some(wgpu::ColorTargetState {
             format,
             blend: Some(wgpu::BlendState::ALPHA_BLENDING),
             write_mask: wgpu::ColorWrites::ALL,
-        }];
+        })];
 
         let primitive = wgpu::PrimitiveState {
             topology: wgpu::PrimitiveTopology::TriangleStrip,

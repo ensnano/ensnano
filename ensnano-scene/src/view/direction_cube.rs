@@ -55,11 +55,11 @@ impl Instanciable for SkyBox {
     }
 
     fn vertex_module(device: &Device) -> wgpu::ShaderModule {
-        device.create_shader_module(&wgpu::include_spirv!("skybox.vert.spv"))
+        device.create_shader_module(wgpu::include_spirv!("skybox.vert.spv"))
     }
 
     fn fragment_module(device: &Device) -> wgpu::ShaderModule {
-        device.create_shader_module(&wgpu::include_spirv!("skybox.frag.spv"))
+        device.create_shader_module(wgpu::include_spirv!("skybox.frag.spv"))
     }
 }
 
@@ -203,11 +203,11 @@ impl Instanciable for DirectionCube {
     }
 
     fn vertex_module(device: &Device) -> wgpu::ShaderModule {
-        device.create_shader_module(&wgpu::include_spirv!("direction_cube.vert.spv"))
+        device.create_shader_module(wgpu::include_spirv!("direction_cube.vert.spv"))
     }
 
     fn fragment_module(device: &Device) -> wgpu::ShaderModule {
-        device.create_shader_module(&wgpu::include_spirv!("direction_cube.frag.spv"))
+        device.create_shader_module(wgpu::include_spirv!("direction_cube.frag.spv"))
     }
 }
 
