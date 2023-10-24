@@ -96,8 +96,10 @@ pub(super) struct ThemeSelection {
 /// Implements the [Button](button::Button) style sheet for [ThemeSelection]
 impl button::StyleSheet for ThemeSelection {
     type Style = ();
+    //type Style = iced_style::theme::Button;
+    // I think the good way to do it is to implement a custom Style.
 
-    fn active(&self, style: &Self::Style) -> button::Appearance {
+    fn active(&self, _style: &Self::Style) -> button::Appearance {
         let border_width = if self.selected { 4. } else { 0. };
         let text_color = if self.selected {
             self.selected_color
@@ -137,8 +139,10 @@ impl From<ThemeSelection> for theme::Button {
 /// Implements the [Button](button::Button) style sheet for [ThemeLevel]
 impl button::StyleSheet for ThemeLevel {
     type Style = ();
+    //type Style = iced_style::theme::Button;
+    // I think the good way to do it is to implement a custom Style.
 
-    fn active(&self, style: &Self::Style) -> button::Appearance {
+    fn active(&self, _style: &Self::Style) -> button::Appearance {
         let border_width = if self.selected { 4. } else { 0. };
         button::Appearance {
             shadow_offset: iced::Vector::new(0., 0.),
@@ -174,8 +178,10 @@ impl From<ThemeLevel> for theme::Button {
 /// Implements the [Container](container::Container) style sheet for [ThemeLevel]
 impl container::StyleSheet for ThemeLevel {
     type Style = ();
+    //type Style = iced_style::theme::Container;
+    // I think the good way to do it is to implement a custom Style.
 
-    fn appearance(&self, style: &Self::Style) -> container::Appearance {
+    fn appearance(&self, _style: &Self::Style) -> container::Appearance {
         container::Appearance {
             background: Some(iced::Background::Color(
                 self.gradient.linear_interpolation(self.gradient_value),

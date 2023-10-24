@@ -1,7 +1,7 @@
-use iced::{widget::Container, Element};
+use iced::Element;
 use iced_native::{
-    event, layout, overlay, renderer::Style, Alignment, Clipboard, Event, Layout, Length, Point,
-    Rectangle, Shell, Widget,
+    event, layout, overlay, renderer::Style, widget, Alignment, Clipboard, Event, Layout, Length,
+    Point, Rectangle, Shell, Widget,
 };
 
 #[derive(Debug, Clone, PartialOrd, PartialEq, Eq, Ord)]
@@ -18,7 +18,7 @@ pub(super) struct DragDropTarget<'a, Message, K, E> {
     max_height: u32,
     horizontal_alignment: Alignment,
     vertical_alignment: Alignment,
-    content: Container<'a, Message>,
+    content: iced::widget::Container<'a, Message>,
     identifier: Identifier<K, E>,
 }
 
@@ -36,7 +36,7 @@ impl<'a, Message, K, E> DragDropTarget<'a, Message, K, E> {
             max_height: u32::MAX,
             horizontal_alignment: Alignment::Start,
             vertical_alignment: Alignment::Start,
-            content: Container::new(content).width(Length::Fill),
+            content: iced::widget::Container::new(content).width(Length::Fill),
             identifier,
         }
     }
@@ -85,6 +85,7 @@ impl<'a, E: super::OrganizerElement> Widget<OrganizerMessage<E>, Renderer>
 
     fn on_event(
         &mut self,
+        state: &mut iced_native::widget::tree::Tree,
         event: Event,
         layout: Layout<'_>,
         cursor_position: Point,
@@ -95,6 +96,7 @@ impl<'a, E: super::OrganizerElement> Widget<OrganizerMessage<E>, Renderer>
         use iced::mouse;
         use iced::mouse::Event as MouseEvent;
         let status = self.content.on_event(
+            state,
             event.clone(),
             layout.children().next().unwrap(),
             cursor_position,
@@ -121,14 +123,18 @@ impl<'a, E: super::OrganizerElement> Widget<OrganizerMessage<E>, Renderer>
 
     fn draw(
         &self,
+        state: &widget::Tree,
         renderer: &mut Renderer,
+        theme: &iced_native::Theme,
         style: &Style,
         layout: Layout<'_>,
         cursor_position: Point,
         viewport: &Rectangle,
     ) {
         self.content.draw(
+            state,
             renderer,
+            theme,
             style,
             layout.children().next().unwrap(),
             cursor_position,
@@ -136,12 +142,13 @@ impl<'a, E: super::OrganizerElement> Widget<OrganizerMessage<E>, Renderer>
         )
     }
 
-    fn overlay(
-        &mut self,
+    fn overlay<'b>(
+        &'b self,
+        state: &'b mut widget::Tree,
         layout: Layout<'_>,
         renderer: &Renderer,
     ) -> Option<overlay::Element<'_, OrganizerMessage<E>, Renderer>> {
         self.content
-            .overlay(layout.children().next().unwrap(), renderer)
+            .overlay(state, layout.children().next().unwrap(), renderer)
     }
 }

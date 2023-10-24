@@ -1,11 +1,12 @@
 use iced::Element;
 pub use iced_aw::Icon;
 use iced_native::keyboard::Modifiers;
+use iced_native::text::Renderer;
+use iced_native::theme as iced_theme;
 use iced_native::widget::{
-    button, scrollable, text_input, tooltip, Button, Column, Container, Row, Scrollable, Space,
+    button, text_input, tooltip, Button, Column, Container, Row, Scrollable, Space, Text,
     TextInput, Tooltip,
 };
-use iced_native::{text::Renderer, widget::Text};
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::convert::TryInto;
 
@@ -28,7 +29,8 @@ use drag_drop_target::*;
 
 use hoverable_button::HoverableContainer;
 
-const LEVEL0_SPACING: u16 = 3;
+//const LEVEL0_SPACING: u16 = 3;
+// We should consider how we handle vertical spacing.
 const LEVELS_SPACING: u16 = 2;
 const ICON_SIZE: u16 = 10;
 
@@ -199,14 +201,12 @@ pub struct Organizer<E: OrganizerElement> {
     groups: Vec<GroupContent<E>>,
     sections: Vec<Section<E>>,
     auto_groups: BTreeMap<E::AutoGroup, Section<E>>,
-    scroll_state: scrollable::State,
     theme: Theme,
-    width: iced::Length,
+    width: u16,
     editing: Option<GroupId>,
     modifiers: Modifiers,
     selected_nodes: BTreeSet<NodeId<E::AutoGroup>>,
     dragging: BTreeSet<Identifier<E::Key, E::AutoGroup>>,
-    new_group_button: button::State,
     hovered_in: Option<NodeId<E::AutoGroup>>,
     last_read_tree: *const OrganizerTree<E::Key>,
     must_update_tree: bool,
@@ -231,14 +231,12 @@ impl<E: OrganizerElement> Organizer<E> {
             groups: vec![],
             sections,
             auto_groups: Default::default(),
-            scroll_state: Default::default(),
             theme: Theme::grey(),
-            width: iced::Length::Units(300),
+            width: 300,
             editing: None,
             modifiers: Modifiers::default(),
             selected_nodes: BTreeSet::new(),
             dragging: BTreeSet::new(),
-            new_group_button: Default::default(),
             hovered_in: None,
             last_read_tree: std::ptr::null(),
             must_update_tree: false,
@@ -255,16 +253,15 @@ impl<E: OrganizerElement> Organizer<E> {
     }
 
     pub fn set_width(&mut self, width: u16) {
-        self.width = iced::Length::Units(width);
+        //self.width = iced::Length::Units(width);
+        self.width = width;
     }
 
     pub fn view(&mut self, selection: BTreeSet<E::Key>) -> Element<OrganizerMessage<E>> {
         self.hovered_in = None;
-        let mut ret = Scrollable::new(&mut self.scroll_state)
-            .width(self.width)
-            .spacing(LEVEL0_SPACING);
+        let mut content = Row::new();
         for c in self.groups.iter_mut() {
-            ret = ret.push(
+            content = content.push(
                 Row::new().push(tabulation()).push(
                     c.view(
                         &self.theme,
@@ -277,7 +274,7 @@ impl<E: OrganizerElement> Organizer<E> {
             )
         }
         for s in self.sections.iter_mut() {
-            ret = ret.push(
+            content = content.push(
                 Row::new().push(tabulation()).push(
                     s.view(&self.theme, &selection)
                         .width(iced::Length::FillPortion(8)),
@@ -285,13 +282,14 @@ impl<E: OrganizerElement> Organizer<E> {
             )
         }
         for s in self.auto_groups.values_mut() {
-            ret = ret.push(
+            content = content.push(
                 Row::new().push(tabulation()).push(
                     s.view(&self.theme, &selection)
                         .width(iced::Length::FillPortion(8)),
                 ),
             )
         }
+        let ret = Scrollable::new(content);
         let mut new_group_button = Button::new(Text::new("New Group"));
         if !selection.is_empty() {
             new_group_button = new_group_button.on_press(OrganizerMessage::new_group());
@@ -891,8 +889,6 @@ impl<E: OrganizerElement> Section<E> {
 struct ElementView<E: OrganizerElement + 'static> {
     attribute_displayers: Vec<AttributeDisplayer<E::Attribute>>,
     hovering_state: hoverable_button::State,
-    button_state: button::State,
-    delete_button_state: button::State,
 }
 
 impl<E: OrganizerElement> ElementView<E> {
@@ -900,8 +896,6 @@ impl<E: OrganizerElement> ElementView<E> {
         Self {
             attribute_displayers: vec![AttributeDisplayer::new(); E::all_repr().len()],
             hovering_state: Default::default(),
-            button_state: Default::default(),
-            delete_button_state: Default::default(),
         }
     }
     fn view(
@@ -940,7 +934,7 @@ impl<E: OrganizerElement> ElementView<E> {
             Button::new(content)
                 .on_press(OrganizerMessage::element_selected(element.key().clone()))
                 .width(iced::Length::Fill)
-                .style(theme.selected(selected)),
+                .style(iced_theme::Button::from(theme.selected(selected))),
         );
         if let Some(id) = deletable {
             button = button
@@ -969,9 +963,7 @@ impl<E: OrganizerElement> ElementView<E> {
 
 /// A data structure whose view is a "title bar" for a group or a section
 struct NodeView<E: OrganizerElement> {
-    expansion_btn_state: button::State,
     title_button_hovering_state: hoverable_button::State,
-    title_button_state: button::State,
     state: GroupState,
     attribute_displayers: Vec<AttributeDisplayer<E::Attribute>>,
 }
@@ -979,8 +971,6 @@ struct NodeView<E: OrganizerElement> {
 impl<E: OrganizerElement> NodeView<E> {
     fn new() -> Self {
         Self {
-            expansion_btn_state: Default::default(),
-            title_button_state: Default::default(),
             title_button_hovering_state: Default::default(),
             state: GroupState::Iddle {
                 edit_button: Default::default(),
@@ -992,8 +982,6 @@ impl<E: OrganizerElement> NodeView<E> {
 
     fn new_section() -> Self {
         Self {
-            expansion_btn_state: Default::default(),
-            title_button_state: Default::default(),
             title_button_hovering_state: Default::default(),
             state: GroupState::NotEditable,
             attribute_displayers: vec![],
@@ -1095,7 +1083,7 @@ impl<E: OrganizerElement> NodeView<E> {
                 ]
             }
         };
-        let theme = if selected {
+        let button_theme = if selected {
             theme.level_selected(level)
         } else {
             theme.level(level)
@@ -1105,12 +1093,12 @@ impl<E: OrganizerElement> NodeView<E> {
             Button::new(title_row)
                 .on_press(OrganizerMessage::node_selected(id.clone()))
                 .width(iced::Length::Fill)
-                .style(theme),
+                .style(iced_theme::Button::from(button_theme)),
         )
         .on_hovered_in(OrganizerMessage::node_hovered(id.clone(), true))
         .on_hovered_out(OrganizerMessage::node_hovered(id.clone(), false))
         .width(iced::Length::Fill)
-        .style(theme);
+        .style(button_theme);
         DragDropTarget::new(button, Identifier::Group { id: id.clone() }).width(iced::Length::Fill)
     }
 
@@ -1676,20 +1664,22 @@ impl<E: OrganizerElement> GroupContent<E> {
     }
 }
 
-fn icon<'a, R: Renderer>(unicode: char) -> Text<'a, R>
+fn icon<'a, R>(unicode: char) -> Text<'a, R>
 where
+    R: Renderer,
     <R as iced_native::text::Renderer>::Font: From<iced::Font>,
     <R as iced_native::Renderer>::Theme: iced::widget::text::StyleSheet,
 {
     use iced::alignment::Horizontal as HorizontalAlignment;
-    Text::new(&unicode.to_string())
+    Text::new(unicode.to_string())
         .font(ICONS)
         .size(ICON_SIZE)
         .horizontal_alignment(HorizontalAlignment::Center)
 }
 
-fn expand_icon<'a, R: Renderer>(expanded: bool) -> Text<'a, R>
+fn expand_icon<'a, R: iced_native::text::Renderer>(expanded: bool) -> Text<'a, R>
 where
+    R: Renderer,
     <R as iced_native::text::Renderer>::Font: From<iced::Font>,
     <R as iced_native::Renderer>::Theme: iced::widget::text::StyleSheet,
 {
@@ -1700,16 +1690,18 @@ where
     }
 }
 
-fn edit_icon<'a, R: Renderer>() -> Text<'a, R>
+fn edit_icon<'a, R>() -> Text<'a, R>
 where
+    R: Renderer,
     <R as iced_native::text::Renderer>::Font: From<iced::Font>,
     <R as iced_native::Renderer>::Theme: iced::widget::text::StyleSheet,
 {
     icon(Icon::VectorPen.into())
 }
 
-fn _delete_icon<'a, R: Renderer>() -> Text<'a, R>
+fn _delete_icon<'a, R>() -> Text<'a, R>
 where
+    R: Renderer,
     <R as iced_native::text::Renderer>::Font: From<iced::Font>,
     <R as iced_native::Renderer>::Theme: iced::widget::text::StyleSheet,
 {

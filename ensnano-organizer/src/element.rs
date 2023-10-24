@@ -1,6 +1,8 @@
 use iced::widget::Text;
 use iced::Element;
+use iced::{Background, Color};
 use iced_native::widget::{button, pick_list};
+//use iced_style::theme;
 
 /// A key identifing an element
 pub trait ElementKey:
@@ -85,8 +87,6 @@ pub enum AttributeWidget<E: OrganizerAttribute> {
 
 #[derive(Default, Clone)]
 pub(crate) struct AttributeDisplayer<A: OrganizerAttribute> {
-    pick_list_state: pick_list::State<A>,
-    button_state: button::State,
     being_modified: bool,
     widget: Option<AttributeWidget<A>>,
     attribute: Option<A>,
@@ -95,8 +95,6 @@ pub(crate) struct AttributeDisplayer<A: OrganizerAttribute> {
 impl<A: OrganizerAttribute> AttributeDisplayer<A> {
     pub fn new() -> Self {
         Self {
-            pick_list_state: Default::default(),
-            button_state: Default::default(),
             being_modified: false,
             widget: None,
             attribute: None,
@@ -122,13 +120,9 @@ impl<A: OrganizerAttribute> AttributeDisplayer<A> {
         if let Some(widget) = self.widget.as_mut() {
             match widget {
                 AttributeWidget::PickList { choices } => {
-                    let mut picklist = pick_list::PickList::new(
-                        &mut self.pick_list_state,
-                        *choices,
-                        self.attribute.clone(),
-                        |a| a,
-                    )
-                    .style(NoIcon {});
+                    let mut picklist =
+                        pick_list::PickList::new(*choices, self.attribute.clone(), |a| a)
+                            .style(NoIcon {});
                     if let Some(AttributeDisplay::Icon(_)) =
                         self.attribute.as_ref().map(|a| a.char_repr())
                     {
@@ -145,7 +139,7 @@ impl<A: OrganizerAttribute> AttributeDisplayer<A> {
                         _ => Text::new("???"),
                     };
                     Some(
-                        button::Button::new(&mut self.button_state, content)
+                        button::Button::new(content)
                             .on_press(value_if_pressed.clone())
                             .into(),
                     )
@@ -162,17 +156,41 @@ impl<A: OrganizerAttribute> AttributeDisplayer<A> {
 struct NoIcon {}
 
 impl pick_list::StyleSheet for NoIcon {
-    fn active(&self) -> pick_list::Appearance {
+    type Style = ();
+    //type Style = iced_style::theme::PickList;
+    // I think the good way to do it is to implement a custom Style.
+
+    fn active(&self, _style: &Self::Style) -> pick_list::Appearance {
         pick_list::Appearance {
+            text_color: Color::BLACK,
+            placeholder_color: [0.4, 0.4, 0.4].into(),
+            background: Background::Color([0.87, 0.87, 0.87].into()),
+            border_radius: 0.0,
+            border_width: 1.0,
+            border_color: [0.7, 0.7, 0.7].into(),
+            // The values above use to be provided by `Default::default()`. Maybe there is a
+            // “Default apparance” somewhere in iced 0.5
             icon_size: 0.,
-            ..Default::default()
         }
     }
 
-    fn hovered(&self) -> pick_list::Appearance {
+    fn hovered(&self, _style: &Self::Style) -> pick_list::Appearance {
         pick_list::Appearance {
+            text_color: Color::BLACK,
+            placeholder_color: [0.4, 0.4, 0.4].into(),
+            background: Background::Color([0.87, 0.87, 0.87].into()),
+            border_radius: 0.0,
+            border_width: 1.0,
+            border_color: [0.7, 0.7, 0.7].into(),
+            // The values above use to be provided by `Default::default()`. Maybe there is a
+            // “Default apparance” somewhere in iced 0.5
             icon_size: 0.,
-            ..Default::default()
         }
+    }
+}
+
+impl From<NoIcon> for iced::theme::PickList {
+    fn from(_: NoIcon) -> Self {
+        Default::default()
     }
 }
