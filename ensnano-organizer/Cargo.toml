@@ -9,7 +9,7 @@ edition = "2018"
 [dependencies]
 iced = "0.5"
 iced_wgpu = "0.6"
-iced_graphics = "0.3.1"
+iced_graphics = "0.4"
 iced_winit = "0.5"
 iced_native = "0.6"
 iced_style = "0.5"

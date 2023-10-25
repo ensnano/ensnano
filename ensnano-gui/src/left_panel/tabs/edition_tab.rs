@@ -18,12 +18,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::*;
 
 pub struct EditionTab<S: AppState> {
-    scroll: iced::scrollable::State,
     helix_roll_factory: RequestFactory<HelixRoll>,
     color_picker: ColorPicker,
     _sequence_input: SequenceInput,
-    redim_helices_button: button::State,
-    redim_all_helices_button: button::State,
     roll_target_btn: GoStop<S>,
     color_square_state: ColorState,
     memory_color_squares: VecDeque<MemoryColorSquare>,
@@ -75,7 +72,7 @@ fn memory_color_column<'a, S: AppState>(
                 ));
             }
             if remaining_space > 0 {
-                row = row.push(iced::Space::with_width(Length::FillPortion(
+                row = row.push(iced::widget::Space::with_width(Length::FillPortion(
                     remaining_space as u16,
                 )));
             }
@@ -124,11 +121,7 @@ macro_rules! add_color_square {
 
 macro_rules! add_tighten_helices_button {
     ($ret: ident, $self: ident, $app_state: ident, $ui_size: ident, $roll_target_helices: ident) => {
-        let mut tighten_helices_button = text_btn(
-            &mut $self.redim_helices_button,
-            "Selected",
-            $ui_size.clone(),
-        );
+        let mut tighten_helices_button = text_btn("Selected", $ui_size.clone());
         if !$roll_target_helices.is_empty() {
             tighten_helices_button =
                 tighten_helices_button.on_press(Message::Redim2dHelices(false));
@@ -136,10 +129,7 @@ macro_rules! add_tighten_helices_button {
         $ret = $ret.push(
             Row::new()
                 .push(tighten_helices_button)
-                .push(
-                    text_btn(&mut $self.redim_all_helices_button, "All", $ui_size)
-                        .on_press(Message::Redim2dHelices(true)),
-                )
+                .push(text_btn("All", $ui_size).on_press(Message::Redim2dHelices(true)))
                 .spacing(5),
         );
     };
@@ -183,12 +173,9 @@ macro_rules! add_suggestion_parameters_checkboxes {
 impl<S: AppState> EditionTab<S> {
     pub fn new() -> Self {
         Self {
-            scroll: Default::default(),
             helix_roll_factory: RequestFactory::new(FactoryId::HelixRoll, HelixRoll {}),
             color_picker: ColorPicker::new(),
             _sequence_input: SequenceInput::new(),
-            redim_helices_button: Default::default(),
-            redim_all_helices_button: Default::default(),
             roll_target_btn: GoStop::new(
                 "Autoroll selected helices".to_owned(),
                 Message::RollTargeted,
@@ -224,7 +211,7 @@ impl<S: AppState> EditionTab<S> {
         subsection!(ret, ui_size, "Tighten 2D helices");
         add_tighten_helices_button!(ret, self, app_state, ui_size, roll_target_helices);
 
-        Scrollable::new(&mut self.scroll).push(ret).into()
+        Scrollable::new(ret).into()
     }
 
     fn get_roll_target_helices(&self, selection: &[DnaElementKey]) -> Vec<usize> {

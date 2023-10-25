@@ -16,39 +16,38 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use super::{AppState, Message};
-use iced::{button, text_input, Button, Row, Text, TextInput};
+use iced_native::{row, widget::helpers::horizontal_space, Length};
+use iced_native::{widget, widget::text_input};
 
 pub struct SequenceInput {
-    input: text_input::State,
     #[allow(dead_code)]
-    button_state: button::State,
+    text_input_state: text_input::State,
     sequence: String,
 }
 
 impl SequenceInput {
     pub fn new() -> Self {
         Self {
-            input: Default::default(),
+            text_input_state: Default::default(),
             sequence: String::new(),
-            button_state: Default::default(),
         }
     }
 
     #[allow(dead_code)]
-    pub fn view<S: AppState>(&mut self) -> Row<Message<S>> {
-        let sequence_input = Row::new()
-            .spacing(5)
-            .push(TextInput::new(
-                &mut self.input,
-                "Sequence",
-                &self.sequence,
-                Message::SequenceChanged,
-            ))
-            .push(
-                Button::new(&mut self.button_state, Text::new("Load File"))
-                    .on_press(Message::SequenceFileRequested),
-            );
-        sequence_input
+    pub fn view<S, R>(&mut self) -> widget::Row<Message<S>, R>
+    where
+        S: AppState,
+        R: iced_native::text::Renderer,
+        R::Theme: text_input::StyleSheet,
+        R::Theme: widget::text::StyleSheet,
+        R::Theme: widget::button::StyleSheet,
+    {
+        row![
+            horizontal_space(Length::Units(5)),
+            text_input::TextInput::new("Sequence", &self.sequence, Message::SequenceChanged,),
+            widget::Button::new(widget::Text::new("Load File"))
+                .on_press(Message::SequenceFileRequested),
+        ]
     }
 
     pub fn update_sequence(&mut self, sequence: String) {
@@ -56,6 +55,6 @@ impl SequenceInput {
     }
 
     pub fn has_keyboard_priority(&self) -> bool {
-        self.input.is_focused()
+        self.text_input_state.is_focused()
     }
 }

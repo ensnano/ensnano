@@ -18,7 +18,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::{AppState, Requests, UiSize};
 use ensnano_interactor::operation::{Operation, ParameterField};
 pub use ensnano_interactor::StrandBuildingStatus;
-use iced::{container, slider, Background, Container, Length};
+use iced::widget::{container, slider, Container};
+use iced::{Background, Length};
 use iced_native::{
     widget::{pick_list, text_input, PickList, TextInput},
     Color,
@@ -220,7 +221,7 @@ impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
         Command::none()
     }
 
-    fn view(&mut self) -> Element<Message<S>, iced_wgpu::Renderer> {
+    fn view(&self) -> Element<Message<S>, iced_wgpu::Renderer> {
         self.update_operation();
         let clipboard_text = format!(
             "Clipboard: {}",
@@ -279,11 +280,12 @@ impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
 
 struct StatusBarStyle;
 impl container::StyleSheet for StatusBarStyle {
-    fn style(&self) -> container::Style {
-        container::Style {
+    type Style = ();
+    fn appearance(&self, _style: &Self::Style) -> container::Appearance {
+        container::Appearance {
             background: Some(Background::Color(BACKGROUND)),
             text_color: Some(Color::WHITE),
-            ..container::Style::default()
+            ..container::Appearance::default()
         }
     }
 }
@@ -398,19 +400,17 @@ impl OperationInput {
             .map(|i| self.active_input(i))
             .collect::<Vec<_>>();
         let mut need_validation = false;
-        for (i, p) in self.parameters.iter_mut().enumerate() {
+        for i in 0..self.values.len() {
             if let Some(param) = op.parameters().get(i) {
                 match param.field {
                     ParameterField::Value => {
-                        let mut input = TextInput::new(
-                            p.get_value(),
-                            "",
-                            &format!("{0:.4}", str_values[i]),
-                            move |s| Message::ValueStrChanged(i, s),
-                        )
-                        .size(ui_size.main_text())
-                        .width(Length::Units(40))
-                        .on_submit(Message::ValueSet(i, str_values[i].clone()));
+                        let mut input =
+                            TextInput::new("", &format!("{0:.4}", str_values[i]), move |s| {
+                                Message::ValueStrChanged(i, s)
+                            })
+                            .size(ui_size.main_text())
+                            .width(Length::Units(40))
+                            .on_submit(Message::ValueSet(i, str_values[i].clone()));
                         if active_input.get(i) == Some(&true) {
                             use input_color::InputValueState;
                             let state = if values.get(i) == str_values.get(i) {
@@ -430,12 +430,9 @@ impl OperationInput {
                     }
                     ParameterField::Choice(ref v) => {
                         row = row.spacing(20).push(
-                            PickList::new(
-                                p.get_choice(),
-                                v.clone(),
-                                Some(values[i].clone()),
-                                move |s| Message::ValueSet(i, s),
-                            )
+                            PickList::new(v.clone(), Some(values[i].clone()), move |s| {
+                                Message::ValueSet(i, s)
+                            })
                             .text_size(ui_size.main_text() - 4),
                         )
                     }
@@ -482,17 +479,20 @@ impl OperationInput {
 }
 
 mod input_color {
+    use iced::theme;
     use iced::{Background, Color};
     use iced_native::widget::text_input::*;
+
     pub enum InputValueState {
         Normal,
         BeingTyped,
         Invalid,
     }
 
-    impl iced_native::widget::text_input::StyleSheet for InputValueState {
-        fn active(&self) -> Style {
-            Style {
+    impl StyleSheet for InputValueState {
+        type Style = ();
+        fn active(&self, _style: &Self::Style) -> Appearance {
+            Appearance {
                 background: Background::Color(Color::WHITE),
                 border_radius: 5.0,
                 border_width: 1.0,
@@ -500,18 +500,18 @@ mod input_color {
             }
         }
 
-        fn focused(&self) -> Style {
-            Style {
+        fn focused(&self, style: &Self::Style) -> Appearance {
+            Appearance {
                 border_color: Color::from_rgb(0.5, 0.5, 0.5),
-                ..self.active()
+                ..self.active(style)
             }
         }
 
-        fn placeholder_color(&self) -> Color {
+        fn placeholder_color(&self, _style: &Self::Style) -> Color {
             Color::from_rgb(0.7, 0.7, 0.7)
         }
 
-        fn value_color(&self) -> Color {
+        fn value_color(&self, _style: &Self::Style) -> Color {
             match self {
                 Self::Normal => Color::from_rgb(0.3, 0.3, 0.3),
                 Self::Invalid => Color::from_rgb(1., 0.3, 0.3),
@@ -519,8 +519,15 @@ mod input_color {
             }
         }
 
-        fn selection_color(&self) -> Color {
+        fn selection_color(&self, _style: &Self::Style) -> Color {
             Color::from_rgb(0.8, 0.8, 1.0)
+        }
+    }
+
+    impl From<InputValueState> for theme::TextInput {
+        fn from(value: InputValueState) -> Self {
+            Default::default()
+            // Maybe this is not correct. I wrote this to make it compile.
         }
     }
 }

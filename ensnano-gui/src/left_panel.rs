@@ -19,12 +19,12 @@ use ensnano_interactor::{graphics::HBoundDisplay, EquadiffSolvingMethod};
 use ensnano_organizer::{Organizer, OrganizerMessage, OrganizerTree};
 use std::sync::{Arc, Mutex};
 
-use iced::{
-    button, pick_list, slider, text_input, Button, Checkbox, Color, Command, Element, Length,
-    PickList, Scrollable, Slider, Text, TextInput,
+use iced_aw::{style::tab_bar, TabLabel, Tabs};
+use iced_native::widget::{
+    container, Button, Checkbox, Column, Container, PickList, Row, Scrollable, Slider, Text,
+    TextInput,
 };
-use iced::{container, Background, Column, Container, Row};
-use iced_aw::{TabLabel, Tabs};
+use iced_native::{Background, Color, Command, Element, Length};
 use iced_wgpu;
 use iced_winit::winit::{
     dpi::{LogicalPosition, LogicalSize},
@@ -87,7 +87,6 @@ pub struct LeftPanel<R: Requests, S: AppState> {
     #[allow(dead_code)]
     logical_position: LogicalPosition<f64>,
     #[allow(dead_code)]
-    open_color: button::State,
     sequence_input: SequenceInput,
     requests: Arc<Mutex<R>>,
     #[allow(dead_code)]
@@ -250,7 +249,6 @@ impl<R: Requests, S: AppState> LeftPanel<R, S> {
         Self {
             logical_size,
             logical_position,
-            open_color: Default::default(),
             sequence_input: SequenceInput::new(),
             requests,
             show_torsion: false,
@@ -346,7 +344,11 @@ impl<R: Requests, S: AppState> LeftPanel<R, S> {
     }
 }
 
-impl<R: Requests, S: AppState> Program for LeftPanel<R, S> {
+impl<R, S> Program for LeftPanel<R, S>
+where
+    R: Requests,
+    S: AppState,
+{
     type Renderer = iced_wgpu::Renderer;
     type Message = Message<S>;
 
@@ -940,7 +942,7 @@ impl<R: Requests, S: AppState> Program for LeftPanel<R, S> {
         Command::none()
     }
 
-    fn view(&mut self) -> Element<Message<S>> {
+    fn view(&self) -> Element<Message<S>, Self::Renderer> {
         let width = self.logical_size.cast::<u16>().width;
         let tabs: Tabs<Message<S>, iced_wgpu::Backend> =
             Tabs::new(self.selected_tab, Message::TabSelected)
@@ -1035,11 +1037,11 @@ impl<R: Requests, S: AppState> Program for LeftPanel<R, S> {
             Column::new()
                 .width(Length::Fill)
                 .push(first_container)
-                .push(iced::Rule::horizontal(5))
+                .push(iced::widget::Rule::horizontal(5))
                 .push(Container::new(camera_shortcut).height(Length::FillPortion(1)))
-                .push(iced::Rule::horizontal(5))
+                .push(iced::widget::Rule::horizontal(5))
                 .push(Container::new(contextual_menu).height(Length::FillPortion(1)))
-                .push(iced::Rule::horizontal(5))
+                .push(iced::widget::Rule::horizontal(5))
                 .push(Container::new(organizer).height(Length::FillPortion(2)))
                 .padding(3),
         )
@@ -1051,11 +1053,12 @@ impl<R: Requests, S: AppState> Program for LeftPanel<R, S> {
 
 struct TopBarStyle;
 impl container::StyleSheet for TopBarStyle {
-    fn style(&self) -> container::Style {
-        container::Style {
+    type Style = ();
+    fn appearance(&self, _style: &Self::Style) -> container::Appearance {
+        container::Appearance {
             background: Some(Background::Color(BACKGROUND)),
             text_color: Some(Color::WHITE),
-            ..container::Style::default()
+            ..container::Appearance::default()
         }
     }
 }
@@ -1069,7 +1072,6 @@ pub const BACKGROUND: Color = Color::from_rgb(
 pub struct ColorOverlay<R: Requests> {
     logical_size: LogicalSize<f64>,
     color_picker: ColorPicker,
-    close_button: iced::button::State,
     requests: Arc<Mutex<R>>,
 }
 
@@ -1077,7 +1079,6 @@ impl<R: Requests> ColorOverlay<R> {
     pub fn new(requests: Arc<Mutex<R>>, logical_size: LogicalSize<f64>) -> Self {
         Self {
             logical_size,
-            close_button: Default::default(),
             color_picker: ColorPicker::new(),
             requests,
         }
@@ -1120,7 +1121,7 @@ impl<R: Requests> Program for ColorOverlay<R> {
         Command::none()
     }
 
-    fn view(&mut self) -> Element<ColorMessage> {
+    fn view(&self) -> Element<ColorMessage, Self::Renderer> {
         let width = self.logical_size.cast::<u16>().width;
 
         let widget = Column::new()
@@ -1129,10 +1130,7 @@ impl<R: Requests> Program for ColorOverlay<R> {
             .spacing(5)
             .push(self.color_picker.new_view())
             .spacing(5)
-            .push(
-                Button::new(&mut self.close_button, Text::new("Close"))
-                    .on_press(ColorMessage::Closed),
-            );
+            .push(Button::new(Text::new("Close")).on_press(ColorMessage::Closed));
 
         Container::new(widget)
             .style(FloatingStyle)
@@ -1143,8 +1141,9 @@ impl<R: Requests> Program for ColorOverlay<R> {
 
 struct FloatingStyle;
 impl container::StyleSheet for FloatingStyle {
-    fn style(&self) -> container::Style {
-        container::Style {
+    type Style = ();
+    fn appearance(&self, style: &Self::Style) -> container::Appearance {
+        container::Appearance {
             background: Some(Background::Color(BACKGROUND)),
             text_color: Some(Color::WHITE),
             border_width: 3_f32,
@@ -1157,8 +1156,9 @@ impl container::StyleSheet for FloatingStyle {
 struct ButtonStyle(bool);
 
 impl iced_native::widget::button::StyleSheet for ButtonStyle {
-    fn active(&self) -> iced_native::widget::button::Style {
-        iced_native::widget::button::Style {
+    type Style = ();
+    fn active(&self, style: &Self::Style) -> iced_native::widget::button::Appearance {
+        iced_native::widget::button::Appearance {
             border_width: if self.0 { 3_f32 } else { 1_f32 },
             border_radius: if self.0 { 3_f32 } else { 2_f32 },
             border_color: if self.0 {
@@ -1186,8 +1186,9 @@ impl ButtonColor {
 }
 
 impl iced_native::widget::button::StyleSheet for ButtonColor {
-    fn active(&self) -> iced_native::widget::button::Style {
-        iced_native::widget::button::Style {
+    type Style = ();
+    fn active(&self, style: &Self::Style) -> iced_native::widget::button::Appearance {
+        iced_native::widget::button::Appearance {
             background: Some(Background::Color(self.0)),
             //background: Some(Background::Color(BACKGROUND)),
             border_radius: 2.0,
@@ -1198,9 +1199,9 @@ impl iced_native::widget::button::StyleSheet for ButtonColor {
         }
     }
 
-    fn hovered(&self) -> iced_native::widget::button::Style {
-        let active = self.active();
-        iced_native::widget::button::Style {
+    fn hovered(&self, style: &Self::Style) -> iced_native::widget::button::Appearance {
+        let active = self.active(style);
+        iced_native::widget::button::Appearance {
             background: active.background.map(|background| match background {
                 Background::Color(color) => Background::Color(Color {
                     a: color.a * 0.75,
@@ -1231,7 +1232,10 @@ fn rotation_message<S: AppState>(i: usize, _xz: isize, _yz: isize, _xy: isize) -
     Message::RotateCam(angle_xz, angle_yz, angle_xy)
 }
 
-fn rotation_text(i: usize, ui_size: UiSize) -> Text {
+fn rotation_text<'a, R>(i: usize, ui_size: UiSize) -> Text<'a, R>
+where
+    R: iced_native::Renderer,
+{
     match i {
         0 => icon(MaterialIcon::ArrowBack, ui_size),
         1 => icon(MaterialIcon::ArrowForward, ui_size),
@@ -1244,30 +1248,31 @@ fn rotation_text(i: usize, ui_size: UiSize) -> Text {
 
 mod text_input_style {
     use iced::{Background, Color};
-    use iced_native::widget::text_input::*;
+    use iced_native::widget::text_input;
     pub struct BadValue(pub bool);
-    impl iced_native::widget::text_input::StyleSheet for BadValue {
-        fn active(&self) -> Style {
-            Style {
+    impl text_input::StyleSheet for BadValue {
+        type Style = ();
+        fn active(&self, style: &Self::Style) -> text_input::Appearance {
+            text_input::Appearance {
                 background: Background::Color(Color::WHITE),
                 border_radius: 5.0,
-                border_width: 1.0,
                 border_color: Color::from_rgb(0.7, 0.7, 0.7),
+                border_width: Default::default(),
             }
         }
 
-        fn focused(&self) -> Style {
-            Style {
+        fn focused(&self, style: &Self::Style) -> text_input::Appearance {
+            text_input::Appearance {
                 border_color: Color::from_rgb(0.5, 0.5, 0.5),
-                ..self.active()
+                ..self.active(style)
             }
         }
 
-        fn placeholder_color(&self) -> Color {
+        fn placeholder_color(&self, style: &Self::Style) -> Color {
             Color::from_rgb(0.7, 0.7, 0.7)
         }
 
-        fn value_color(&self) -> Color {
+        fn value_color(&self, style: &Self::Style) -> Color {
             if self.0 {
                 Color::from_rgb(0.3, 0.3, 0.3)
             } else {
@@ -1275,7 +1280,7 @@ mod text_input_style {
             }
         }
 
-        fn selection_color(&self) -> Color {
+        fn selection_color(&self, style: &Self::Style) -> Color {
             Color::from_rgb(0.8, 0.8, 1.0)
         }
     }
@@ -1589,9 +1594,10 @@ impl Requestable for RigidBodyFactory {
 #[derive(Clone, Copy, Debug)]
 struct TabStyle;
 
-impl iced_aw::style::tab_bar::StyleSheet for TabStyle {
-    fn active(&self, is_active: bool) -> iced_aw::style::tab_bar::Style {
-        iced_aw::style::tab_bar::Style {
+impl tab_bar::StyleSheet for TabStyle {
+    type Style = ();
+    fn active(&self, _style: Self::Style, is_active: bool) -> tab_bar::Appearance {
+        tab_bar::Appearance {
             background: None,
             border_color: None,
             border_width: 0.0,
@@ -1607,20 +1613,20 @@ impl iced_aw::style::tab_bar::StyleSheet for TabStyle {
         }
     }
 
-    fn hovered(&self, is_active: bool) -> iced_aw::style::tab_bar::Style {
-        iced_aw::style::tab_bar::Style {
+    fn hovered(&self, _style: Self::Style, is_active: bool) -> tab_bar::Appearance {
+        tab_bar::Appearance {
             tab_label_background: Background::Color([0.6, 0.6, 0.6].into()),
             ..self.active(is_active)
         }
     }
 }
 
-fn right_checkbox<'a, F, S: AppState>(
+fn right_checkbox<'a, F, S: AppState, R: iced_native::Renderer>(
     is_checked: bool,
     label: impl Into<String>,
     f: F,
     ui_size: UiSize,
-) -> Element<'a, Message<S>>
+) -> Element<'a, Message<S>, R>
 where
     F: 'static + Fn(bool) -> Message<S>,
 {

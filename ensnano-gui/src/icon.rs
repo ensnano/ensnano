@@ -16,7 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use iced::image::Handle;
+use iced::widget::image::Handle;
 
 use ensnano_interactor::{ActionMode, SelectionMode};
 

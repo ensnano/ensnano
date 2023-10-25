@@ -8,10 +8,10 @@ license = "GPL-3.0-or-later"
 [dependencies]
 iced_wgpu = { version = "0.6", features = ["spirv"] }
 iced = { version = "0.5", features=["image"] }
-iced_graphics = "0.3.1"
+iced_graphics = "0.4"
 iced_winit = "0.5"
 iced_native = "0.6"
-iced_aw = { version = "0.2.0", features = ["tab_bar"], git = "https://github.com/iced-rs/iced_aw", tag = "v0.2.0" }
+iced_aw = { version = "0.3.0", features = ["tab_bar"], git = "https://github.com/iced-rs/iced_aw", tag = "v0.3.0" }
 ensnano_design = { path = "../ensnano-design" }
 ensnano_interactor = { path = "../ensnano-interactor" }
 ensnano_organizer = { path = "../ensnano-organizer" }

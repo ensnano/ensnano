@@ -17,37 +17,18 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::*;
-use iced_native::widget::scrollable;
 
 #[derive(Default)]
-pub struct ExportMenu {
-    scroll: scrollable::State,
-    button_cancel: button::State,
-    button_oxdna: button::State,
-    button_pdb: button::State,
-    button_cadnano: button::State,
-}
+pub struct ExportMenu {}
 
 impl ExportMenu {
     pub fn view<'a, S: AppState>(&'a mut self) -> Element<'a, Message<S>> {
         let ret = Column::new()
-            .push(
-                Button::new(&mut self.button_cancel, Text::new("Cancel"))
-                    .on_press(Message::CancelExport),
-            )
-            .push(
-                Button::new(&mut self.button_oxdna, Text::new("Oxdna"))
-                    .on_press(Message::Export(ExportType::Oxdna)),
-            )
-            .push(
-                Button::new(&mut self.button_pdb, Text::new("Pdb"))
-                    .on_press(Message::Export(ExportType::Pdb)),
-            )
-            .push(
-                Button::new(&mut self.button_cadnano, Text::new("Cadnano"))
-                    .on_press(Message::Export(ExportType::Cadnano)),
-            );
+            .push(Button::new(Text::new("Cancel")).on_press(Message::CancelExport))
+            .push(Button::new(Text::new("Oxdna")).on_press(Message::Export(ExportType::Oxdna)))
+            .push(Button::new(Text::new("Pdb")).on_press(Message::Export(ExportType::Pdb)))
+            .push(Button::new(Text::new("Cadnano")).on_press(Message::Export(ExportType::Cadnano)));
 
-        Scrollable::new(&mut self.scroll).push(ret).into()
+        Scrollable::new(ret).into()
     }
 }

@@ -323,18 +323,44 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
         size: iced::Size,
         cursor_position: iced::Point,
         renderer: &mut Renderer,
+        theme: &<Renderer as iced_native::renderer::Renderer>::Theme,
+        style: &iced_native::renderer::Style,
         debug: &mut Debug,
     ) {
         let mut clipboard = iced_native::clipboard::Null;
         match self {
             GuiState::TopBar(state) => {
-                state.update(size, cursor_position, renderer, &mut clipboard, debug);
+                state.update(
+                    size,
+                    cursor_position,
+                    renderer,
+                    theme,
+                    style,
+                    &mut clipboard,
+                    debug,
+                );
             }
             GuiState::LeftPanel(state) => {
-                state.update(size, cursor_position, renderer, &mut clipboard, debug);
+                state.update(
+                    size,
+                    cursor_position,
+                    renderer,
+                    theme,
+                    style,
+                    &mut clipboard,
+                    debug,
+                );
             }
             GuiState::StatusBar(state) => {
-                state.update(size, cursor_position, renderer, &mut clipboard, debug);
+                state.update(
+                    size,
+                    cursor_position,
+                    renderer,
+                    theme,
+                    style,
+                    &mut clipboard,
+                    debug,
+                );
             }
         }
     }
@@ -533,6 +559,8 @@ impl<R: Requests, S: AppState> GuiElement<R, S> {
                 convert_size(area.size),
                 conversion::cursor_position(cursor, window.scale_factor()),
                 &mut self.renderer,
+                &Default::default(),
+                &Default::default(),
                 &mut self.debug,
             );
             log::debug!("GUI request redraw");
@@ -864,28 +892,20 @@ fn convert_size_u32(size: PhysicalSize<u32>) -> Size<u32> {
     Size::new(size.width, size.height)
 }
 
-use iced::{button, Button, Length, Text};
-fn text_btn<'a, M: Clone>(
-    state: &'a mut button::State,
-    text: &'static str,
-    ui_size: UiSize,
-) -> Button<'a, M> {
+use iced::widget::{Button, Text};
+use iced::Length;
+fn text_btn<'a, M: Clone>(text: &'static str, ui_size: UiSize) -> Button<'a, M> {
     let size = if text.len() > 1 {
         ui_size.main_text()
     } else {
         ui_size.icon()
     };
-    Button::new(state, Text::new(text).size(size)).height(Length::Units(ui_size.button()))
+    Button::new(Text::new(text).size(size)).height(Length::Units(ui_size.button()))
 }
 
 #[allow(clippy::needless_lifetimes)]
-fn icon_btn<'a, M: Clone>(
-    state: &'a mut button::State,
-    icon_char: char,
-    ui_size: UiSize,
-) -> Button<'a, M> {
+fn icon_btn<'a, M: Clone>(icon_char: char, ui_size: UiSize) -> Button<'a, M> {
     Button::new(
-        state,
         Text::new(icon_char.to_string())
             .font(left_panel::ENSNANO_FONT)
             .size(ui_size.icon()),
@@ -894,14 +914,15 @@ fn icon_btn<'a, M: Clone>(
 }
 
 mod slider_style {
-    use iced::slider::{Handle, HandleShape, Style, StyleSheet};
+    use iced::widget::slider::{Appearance, Handle, HandleShape, StyleSheet};
     use iced::Color;
 
     pub struct DesactivatedSlider;
 
     impl StyleSheet for DesactivatedSlider {
-        fn active(&self) -> Style {
-            Style {
+        type Style = ();
+        fn active(&self, style: &Self::Style) -> Appearance {
+            Appearance {
                 rail_colors: ([0.6, 0.6, 0.6, 0.5].into(), Color::WHITE),
                 handle: Handle {
                     shape: HandleShape::Rectangle {
@@ -915,12 +936,12 @@ mod slider_style {
             }
         }
 
-        fn hovered(&self) -> Style {
-            self.active()
+        fn hovered(&self, style: &Self::Style) -> Appearance {
+            self.active(style)
         }
 
-        fn dragging(&self) -> Style {
-            self.active()
+        fn dragging(&self, style: &Self::Style) -> Appearance {
+            self.active(style)
         }
     }
 }

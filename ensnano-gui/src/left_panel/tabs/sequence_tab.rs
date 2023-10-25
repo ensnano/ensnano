@@ -20,28 +20,17 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::*;
 
 pub struct SequenceTab {
-    scroll: scrollable::State,
-    button_scaffold: button::State,
-    button_stapples: button::State,
-    button_origamis: button::State,
     toggle_text_value: bool,
     scaffold_position_str: String,
     scaffold_position: usize,
-    scaffold_input: text_input::State,
-    button_selection_from_scaffold: button::State,
-    button_selection_to_scaffold: button::State,
-    button_show_sequence: button::State,
-    button_optimize_shift: button::State,
 }
 
 macro_rules! add_show_sequence_button {
     ($ret: ident, $self: ident, $ui_size: ident) => {
         let button_show_sequence = if $self.toggle_text_value {
-            text_btn(&mut $self.button_show_sequence, "Hide Sequences", $ui_size)
-                .on_press(Message::ToggleText(false))
+            text_btn("Hide Sequences", $ui_size).on_press(Message::ToggleText(false))
         } else {
-            text_btn(&mut $self.button_show_sequence, "Show Sequences", $ui_size)
-                .on_press(Message::ToggleText(true))
+            text_btn("Show Sequences", $ui_size).on_press(Message::ToggleText(true))
         };
         $ret = $ret.push(button_show_sequence);
     };
@@ -49,13 +38,8 @@ macro_rules! add_show_sequence_button {
 
 macro_rules! add_scaffold_from_to_selection_buttons {
     ($ret: ident, $self:ident, $ui_size: ident, $app_state: ident) => {
-        let mut button_selection_to_scaffold = text_btn(
-            &mut $self.button_selection_to_scaffold,
-            "From selection",
-            $ui_size,
-        );
-        let mut button_selection_from_scaffold =
-            text_btn(&mut $self.button_selection_from_scaffold, "Show", $ui_size);
+        let mut button_selection_to_scaffold = text_btn("From selection", $ui_size);
+        let mut button_selection_from_scaffold = text_btn("Show", $ui_size);
         if $app_state.get_scaffold_info().is_some() {
             button_selection_from_scaffold =
                 button_selection_from_scaffold.on_press(Message::SelectScaffold);
@@ -68,7 +52,7 @@ macro_rules! add_scaffold_from_to_selection_buttons {
         $ret = $ret.push(
             Row::new()
                 .push(button_selection_to_scaffold)
-                .push(iced::Space::with_width(Length::Units(5)))
+                .push(iced::widget::Space::with_width(Length::Units(5)))
                 .push(button_selection_from_scaffold),
         );
     };
@@ -110,12 +94,9 @@ macro_rules! add_scaffold_info {
 
 macro_rules! add_set_scaffold_sequence_button {
     ($ret: ident, $self: ident, $ui_size: ident) => {
-        let button_scaffold = Button::new(
-            &mut $self.button_scaffold,
-            iced::Text::new("Set scaffold sequence"),
-        )
-        .height(Length::Units($ui_size.button()))
-        .on_press(Message::SetScaffoldSeqButtonPressed);
+        let button_scaffold = Button::new(iced::widget::Text::new("Set scaffold sequence"))
+            .height(Length::Units($ui_size.button()))
+            .on_press(Message::SetScaffoldSeqButtonPressed);
         $ret = $ret.push(button_scaffold);
     };
 }
@@ -149,7 +130,6 @@ macro_rules! add_scaffold_position_input_row {
             .push(Text::new(scaffold_position_text).width(Length::FillPortion(2)))
             .push(
                 TextInput::new(
-                    &mut $self.scaffold_input,
                     "Scaffold position",
                     &$self.scaffold_position_str,
                     Message::ScaffoldPositionInput,
@@ -165,12 +145,9 @@ macro_rules! add_scaffold_position_input_row {
 
 macro_rules! add_optimize_scaffold_shift_button {
     ($ret: ident, $self: ident, $ui_size: ident) => {
-        let button_scaffold = Button::new(
-            &mut $self.button_optimize_shift,
-            iced::Text::new("Optimize starting position"),
-        )
-        .height(Length::Units($ui_size.button()))
-        .on_press(Message::OptimizeScaffoldShiftPressed);
+        let button_scaffold = Button::new(iced::widget::Text::new("Optimize starting position"))
+            .height(Length::Units($ui_size.button()))
+            .on_press(Message::OptimizeScaffoldShiftPressed);
         $ret = $ret.push(button_scaffold);
     };
 }
@@ -205,18 +182,12 @@ macro_rules! add_scaffold_start_position {
 
 macro_rules! add_download_staples_button {
     ($ret: ident, $self: ident, $ui_size: ident) => {
-        let button_stapples = Button::new(
-            &mut $self.button_stapples,
-            iced::Text::new("Export Staples"),
-        )
-        .height(Length::Units($ui_size.button()))
-        .on_press(Message::StapplesRequested);
-        let button_origamis = Button::new(
-            &mut $self.button_origamis,
-            iced::Text::new("Export Origamis"),
-        )
-        .height(Length::Units($ui_size.button()))
-        .on_press(Message::OrigamisRequested);
+        let button_stapples = Button::new(iced::widget::Text::new("Export Staples"))
+            .height(Length::Units($ui_size.button()))
+            .on_press(Message::StapplesRequested);
+        let button_origamis = Button::new(iced::widget::Text::new("Export Origamis"))
+            .height(Length::Units($ui_size.button()))
+            .on_press(Message::OrigamisRequested);
         $ret = $ret.push(button_stapples).push(button_origamis);
     };
 }
@@ -235,18 +206,9 @@ macro_rules! add_rainbow_scaffold_checkbox {
 impl SequenceTab {
     pub fn new() -> Self {
         Self {
-            scroll: Default::default(),
-            button_stapples: Default::default(),
-            button_scaffold: Default::default(),
-            button_origamis: Default::default(),
             toggle_text_value: false,
             scaffold_position_str: "0".to_string(),
             scaffold_position: 0,
-            scaffold_input: Default::default(),
-            button_selection_from_scaffold: Default::default(),
-            button_selection_to_scaffold: Default::default(),
-            button_show_sequence: Default::default(),
-            button_optimize_shift: Default::default(),
         }
     }
 
@@ -287,7 +249,7 @@ impl SequenceTab {
         section!(ret, ui_size, "Staples");
         extra_jump!(ret);
         add_download_staples_button!(ret, self, ui_size);
-        Scrollable::new(&mut self.scroll).push(ret).into()
+        Scrollable::new(ret).into()
     }
 
     pub fn toggle_text_value(&mut self, b: bool) {

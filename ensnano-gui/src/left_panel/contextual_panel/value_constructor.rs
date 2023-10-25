@@ -19,7 +19,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::{Selection, UiSize};
 
 use iced_native::{
-    widget::{slider, text_input, Column, Row, Slider, Text, TextInput},
+    widget::{slider, Column, Row, Slider, Text, TextInput},
     Element,
 };
 use iced_wgpu::Renderer;
@@ -39,7 +39,7 @@ macro_rules! type_builder {
                     #[allow(dead_code)]
                     $param: $param_type,
                     [<$param _string>]: String,
-                    [<$param _input>]: text_input::State,
+                    //[<$param _input>]: text_input::State,
                 )*
                     value_to_modify: ValueKind,
             }
@@ -53,7 +53,7 @@ macro_rules! type_builder {
                         $(
                             $param: initial.$param,
                             [<$param _string>]: $formatter::fmt(&initial.$param),
-                            [<$param _input>]: Default::default(),
+                            //[<$param _input>]: Default::default(),
                         )*
                     }
 
@@ -67,15 +67,26 @@ macro_rules! type_builder {
 
                 fn view<'a ,Message: BuilderMessage>(&'a mut self) -> Element<'a, Message, Renderer> {
                     let str_values = [$(& self.[<$param _string>],)*];
-                    let states = vec![$(&mut self.[<$param _input>],)*];
+                    //let states = vec![$(&mut self.[<$param _input>],)*];
                     let mut ret = Column::new().width(iced::Length::Fill).align_items(iced::Alignment::End);
                     let value_to_modify = self.value_to_modify;
-                    for (i, s) in states.into_iter().enumerate() {
+                    //for (i, s) in states.into_iter().enumerate() {
+                    //    let mut row = Row::new().width(iced::Length::Fill);
+                    //    row = row.push(Text::new(Self::PARAMETER_NAMES[i]));
+                    //    row = row.push(iced::widget::Space::with_width(iced::Length::Units(5)));
+                    //    row = row.push(
+                    //        TextInput::new(s, "", str_values[i], move |string| Message::value_changed(value_to_modify, i, string))
+                    //        .on_submit(Message::value_submitted(value_to_modify))
+                    //        .width(iced::Length::Units(50))
+                    //    );
+                    //    ret = ret.push(row)
+                    //}
+                    for i in ..Self::PARAMETER_NAMES.len() {
                         let mut row = Row::new().width(iced::Length::Fill);
                         row = row.push(Text::new(Self::PARAMETER_NAMES[i]));
-                        row = row.push(iced::Space::with_width(iced::Length::Units(5)));
+                        row = row.push(iced::widget::Space::with_width(iced::Length::Units(5)));
                         row = row.push(
-                            TextInput::new(s, "", str_values[i], move |string| Message::value_changed(value_to_modify, i, string))
+                            TextInput::new("", str_values[i], move |string| Message::value_changed(value_to_modify, i, string))
                             .on_submit(Message::value_submitted(value_to_modify))
                             .width(iced::Length::Units(50))
                         );
@@ -337,7 +348,6 @@ impl GridBuilder {
     }
 
     fn nb_turn_row<'a, S: AppState>(
-        slider: &'a mut slider::State,
         app_state: &S,
         selection: &Selection,
     ) -> Option<Element<'a, super::Message<S>, Renderer>> {
@@ -348,16 +358,11 @@ impl GridBuilder {
                     .spacing(consts::NB_TURN_SLIDER_SPACING)
                     .push(Text::new(format!("{:.2}", nb_turn)))
                     .push(
-                        Slider::new(
-                            slider,
-                            consts::MIN_NB_TURN..=consts::MAX_NB_TURN,
-                            nb_turn,
-                            |x| {
-                                super::Message::InstanciatedValueSubmitted(
-                                    InstanciatedValue::GridNbTurn(x),
-                                )
-                            },
-                        )
+                        Slider::new(consts::MIN_NB_TURN..=consts::MAX_NB_TURN, nb_turn, |x| {
+                            super::Message::InstanciatedValueSubmitted(
+                                InstanciatedValue::GridNbTurn(x),
+                            )
+                        })
                         .step(consts::NB_TURN_STEP),
                     );
                 return Some(row.into());
@@ -382,7 +387,7 @@ impl<S: AppState> Builder<S> for GridBuilder {
         ret = ret.push(Text::new("Orientation").size(ui_size.intermediate_text()));
         ret = ret.push(orientation_builder_view);
         ret = ret.push(Text::new("Twist").size(ui_size.intermediate_text()));
-        if let Some(row) = Self::nb_turn_row(&mut self.nb_turn_slider, app_state, selection) {
+        if let Some(row) = Self::nb_turn_row(app_state, selection) {
             ret = ret.push(row)
         }
         ret.into()

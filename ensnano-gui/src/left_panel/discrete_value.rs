@@ -1,4 +1,4 @@
-use iced::Space;
+use iced::widget::Space;
 
 /*
 ENSnano, a 3d graphical application for DNA nanostructures.
@@ -17,7 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use super::{button, slider, AppState, Button, DesactivatedSlider, Element, Row, Slider, Text};
+use super::{AppState, Button, DesactivatedSlider, Element, Row, Slider, Text};
 
 use super::Message;
 use std::collections::BTreeMap;
@@ -132,9 +132,6 @@ struct DiscreteValue {
     name: String,
     owner_id: FactoryId,
     value_id: ValueId,
-    incr_button: button::State,
-    decr_button: button::State,
-    slider: slider::State,
     hidden: bool,
 }
 
@@ -157,53 +154,44 @@ impl DiscreteValue {
             name,
             owner_id,
             value_id,
-            incr_button: Default::default(),
-            decr_button: Default::default(),
-            slider: Default::default(),
             hidden,
         }
     }
 
     fn view<S: AppState>(&mut self, active: bool, name_size: u16) -> Element<Message<S>> {
         let decr_button = if active && self.value - self.step >= self.min_val {
-            Button::new(&mut self.decr_button, Text::new("-")).on_press(Message::DescreteValue {
+            Button::new(Text::new("-")).on_press(Message::DescreteValue {
                 factory_id: self.owner_id,
                 value_id: self.value_id,
                 value: self.value - self.step,
             })
         } else {
-            Button::new(&mut self.decr_button, Text::new("-"))
+            Button::new(Text::new("-"))
         };
         let incr_button = if active && self.value + self.step <= self.max_val {
-            Button::new(&mut self.incr_button, Text::new("+")).on_press(Message::DescreteValue {
+            Button::new(Text::new("+")).on_press(Message::DescreteValue {
                 factory_id: self.owner_id,
                 value_id: self.value_id,
                 value: self.value + self.step,
             })
         } else {
-            Button::new(&mut self.incr_button, Text::new("+"))
+            Button::new(Text::new("+"))
         };
         let factory_id = self.owner_id.clone();
         let value_id = self.value_id.clone();
         let slider = if active {
-            Slider::new(
-                &mut self.slider,
-                self.min_val..=self.max_val,
-                self.value,
-                move |value| Message::DescreteValue {
+            Slider::new(self.min_val..=self.max_val, self.value, move |value| {
+                Message::DescreteValue {
                     factory_id,
                     value_id,
                     value,
-                },
-            )
+                }
+            })
             .step(self.step)
         } else {
-            Slider::new(
-                &mut self.slider,
-                self.min_val..=self.max_val,
-                self.value,
-                |_| Message::Nothing,
-            )
+            Slider::new(self.min_val..=self.max_val, self.value, |_| {
+                Message::Nothing
+            })
             .style(DesactivatedSlider)
         };
 
@@ -215,7 +203,7 @@ impl DiscreteValue {
 
         let left = Row::new()
             .push(name_text)
-            .push(iced::Space::with_width(iced::Length::Fill))
+            .push(Space::with_width(iced::Length::Fill))
             .align_items(iced::Alignment::Center)
             .width(iced::Length::FillPortion(8));
 
@@ -225,7 +213,7 @@ impl DiscreteValue {
         let right = Row::new()
             .push(decr_button)
             .push(incr_button)
-            .push(iced::Space::with_width(iced::Length::Units(2)))
+            .push(Space::with_width(iced::Length::Units(2)))
             .push(slider)
             .width(iced::Length::FillPortion(10));
 

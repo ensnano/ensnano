@@ -23,9 +23,7 @@ pub struct SimulationTab<S: AppState> {
     brownian_factory: RequestFactory<BrownianParametersFactory>,
     rigid_grid_button: GoStop<S>,
     rigid_helices_button: GoStop<S>,
-    scroll: scrollable::State,
     physical_simulation: PhysicalSimulation,
-    reset_state: button::State,
 }
 
 impl<S: AppState> SimulationTab<S> {
@@ -52,9 +50,7 @@ impl<S: AppState> SimulationTab<S> {
                 String::from("Rigid Grids"),
                 Message::RigidGridSimulation,
             ),
-            scroll: Default::default(),
             physical_simulation: Default::default(),
-            reset_state: Default::default(),
         }
     }
 
@@ -77,7 +73,6 @@ impl<S: AppState> SimulationTab<S> {
             )
             .push(Self::helix_btns(
                 &mut self.rigid_helices_button,
-                &mut self.reset_state,
                 app_state,
                 ui_size.clone(),
             ));
@@ -112,12 +107,11 @@ impl<S: AppState> SimulationTab<S> {
             ret = ret.push(view);
         }
 
-        Scrollable::new(&mut self.scroll).push(ret).into()
+        Scrollable::new(ret).into()
     }
 
     fn helix_btns<'a>(
         go_stop: &'a mut GoStop<S>,
-        reset_state: &'a mut button::State,
         app_state: &S,
         ui_size: UiSize,
     ) -> Element<'a, Message<S>> {
@@ -126,7 +120,7 @@ impl<S: AppState> SimulationTab<S> {
             Row::new()
                 .push(go_stop.view(true, false))
                 .spacing(3)
-                .push(text_btn(reset_state, "Reset", ui_size).on_press(Message::ResetSimulation))
+                .push(text_btn("Reset", ui_size).on_press(Message::ResetSimulation))
                 .into()
         } else {
             let helices_active = sim_state.is_none() || sim_state.simulating_helices();
@@ -196,9 +190,7 @@ impl<S: AppState> SimulationTab<S> {
 }
 
 #[derive(Default)]
-struct PhysicalSimulation {
-    go_stop_button: button::State,
-}
+struct PhysicalSimulation {}
 
 impl PhysicalSimulation {
     fn view<'a, 'b, S: AppState>(
@@ -209,8 +201,7 @@ impl PhysicalSimulation {
         running: bool,
     ) -> Row<'a, Message<S>> {
         let button_str = if running { "Stop" } else { name };
-        let mut button = Button::new(&mut self.go_stop_button, Text::new(button_str))
-            .style(ButtonColor::red_green(running));
+        let mut button = Button::new(Text::new(button_str)).style(ButtonColor::red_green(running));
         if active {
             button = button.on_press(Message::SimRequest);
         }

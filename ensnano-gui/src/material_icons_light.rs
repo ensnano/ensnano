@@ -16,14 +16,14 @@ pub const DARK_ICONFONT: iced::Font = iced::Font::External {
     bytes: MATERIAL_ICON_DARK,
 };
 
-pub fn light_icon(icon: LightIcon, ui_size: UiSize) -> iced::Text {
-    iced::Text::new(format!("{}", icon_to_char(icon)))
+pub fn light_icon<'a>(icon: LightIcon, ui_size: UiSize) -> iced::widget::Text<'a> {
+    iced::widget::Text::new(format!("{}", icon_to_char(icon)))
         .font(LIGHT_ICONFONT)
         .size(ui_size.icon())
 }
 
-pub fn dark_icon(icon: LightIcon, ui_size: UiSize) -> iced::Text {
-    iced::Text::new(format!("{}", icon_to_char(icon)))
+pub fn dark_icon<'a>(icon: LightIcon, ui_size: UiSize) -> iced::widget::Text<'a> {
+    iced::widget::Text::new(format!("{}", icon_to_char(icon)))
         .font(DARK_ICONFONT)
         .size(ui_size.icon())
 }

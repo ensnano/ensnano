@@ -19,7 +19,7 @@ use super::color_picker::{ColorSquare, ColorState};
 use super::*;
 use ensnano_design::CameraId;
 use ensnano_interactor::{RollRequest, SimulationState};
-use iced::scrollable;
+use iced::widget::scrollable;
 use std::collections::VecDeque;
 
 const MEMORY_COLOR_ROWS: usize = 3;
@@ -33,19 +33,15 @@ const LIGHT_ICONFONT: iced::Font = iced::Font::External {
     name: "IconFontLight",
     bytes: material_icons_light::MATERIAL_ICON_LIGHT,
 };
-fn light_icon(icon: LightIcon, ui_size: UiSize) -> iced::Text {
-    iced::Text::new(format!("{}", material_icons_light::icon_to_char(icon)))
+fn light_icon<'a>(icon: LightIcon, ui_size: UiSize) -> iced::widget::Text<'a> {
+    iced::widget::Text::new(format!("{}", material_icons_light::icon_to_char(icon)))
         .font(LIGHT_ICONFONT)
         .size(ui_size.icon())
 }
 
-fn light_icon_btn<'a, Message: Clone>(
-    state: &'a mut button::State,
-    icon: LightIcon,
-    ui_size: UiSize,
-) -> Button<'a, Message> {
+fn light_icon_btn<'a, Message: Clone>(icon: LightIcon, ui_size: UiSize) -> Button<'a, Message> {
     let content = light_icon(icon, ui_size);
-    Button::new(state, content).height(iced::Length::Units(ui_size.button()))
+    Button::new(content).height(iced::Length::Units(ui_size.button()))
 }
 
 macro_rules! section {
@@ -61,10 +57,12 @@ macro_rules! subsection {
 
 macro_rules! extra_jump {
     ($row: ident) => {
-        $row = $row.push(iced::Space::with_height(iced::Length::Units(JUMP_SIZE)))
+        $row = $row.push(iced::widget::Space::with_height(iced::Length::Units(
+            JUMP_SIZE,
+        )))
     };
     ($nb: tt, $row: ident) => {
-        $row = $row.push(iced::Space::with_height(iced::Length::Units($nb)))
+        $row = $row.push(iced::widget::Space::with_height(iced::Length::Units($nb)))
     };
 }
 
@@ -88,7 +86,6 @@ pub(super) mod revolution_tab;
 pub use revolution_tab::*;
 
 struct GoStop<S: AppState> {
-    go_stop_button: button::State,
     pub name: String,
     on_press: Box<dyn Fn(bool) -> Message<S>>,
 }
@@ -99,7 +96,6 @@ impl<S: AppState> GoStop<S> {
         F: 'static + Fn(bool) -> Message<S>,
     {
         Self {
-            go_stop_button: Default::default(),
             name,
             on_press: Box::new(on_press),
         }
@@ -111,8 +107,7 @@ impl<S: AppState> GoStop<S> {
         } else {
             self.name.clone()
         };
-        let mut button = Button::new(&mut self.go_stop_button, Text::new(button_str))
-            .style(ButtonColor::red_green(running));
+        let mut button = Button::new(Text::new(button_str)).style(ButtonColor::red_green(running));
         if active {
             button = button.on_press((self.on_press)(!running));
         }

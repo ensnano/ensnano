@@ -21,24 +21,18 @@ const NEW_BEZIER_PLANE_ICON: LightIcon = LightIcon::HistoryEdu;
 const EDIT_BEZIER_PATH_ICON: LightIcon = LightIcon::LinearScale;
 
 #[derive(Default)]
-pub struct PenTab {
-    add_plane_btn: button::State,
-    edit_path_btn: button::State,
-    make_square_grid_btn: button::State,
-    make_honeycomb_grid_btn: button::State,
-    load_svg_btn: button::State,
-}
+pub struct PenTab {}
 
 macro_rules! add_buttons {
     ($ret: ident, $self:ident, $ui_size: ident) => {
         $ret = $ret.push(
             Row::new()
                 .push(
-                    light_icon_btn(&mut $self.add_plane_btn, NEW_BEZIER_PLANE_ICON, $ui_size)
+                    light_icon_btn(NEW_BEZIER_PLANE_ICON, $ui_size)
                         .on_press(Message::NewBezierPlane),
                 )
                 .push(
-                    light_icon_btn(&mut $self.edit_path_btn, EDIT_BEZIER_PATH_ICON, $ui_size)
+                    light_icon_btn(EDIT_BEZIER_PATH_ICON, $ui_size)
                         .on_press(Message::StartBezierPath),
                 ),
         );
@@ -49,21 +43,15 @@ macro_rules! add_grid_buttons {
     ($ret: ident, $self: ident, $ui_size: ident, $app_state: ident) => {
         if let Some(path_id) = $app_state.get_selected_bezier_path() {
             let make_square_grid_btn =
-                icon_btn(&mut $self.make_square_grid_btn, ICON_SQUARE_GRID, $ui_size).on_press(
-                    Message::TurnPathIntoGrid {
-                        path_id,
-                        grid_type: GridTypeDescr::Square { twist: None },
-                    },
-                );
-            let make_honeycomb_grid_btn = icon_btn(
-                &mut $self.make_honeycomb_grid_btn,
-                ICON_HONEYCOMB_GRID,
-                $ui_size,
-            )
-            .on_press(Message::TurnPathIntoGrid {
-                path_id,
-                grid_type: GridTypeDescr::Honeycomb { twist: None },
-            });
+                icon_btn(ICON_SQUARE_GRID, $ui_size).on_press(Message::TurnPathIntoGrid {
+                    path_id,
+                    grid_type: GridTypeDescr::Square { twist: None },
+                });
+            let make_honeycomb_grid_btn =
+                icon_btn(ICON_HONEYCOMB_GRID, $ui_size).on_press(Message::TurnPathIntoGrid {
+                    path_id,
+                    grid_type: GridTypeDescr::Honeycomb { twist: None },
+                });
 
             let grid_buttons = Row::new()
                 .push(make_square_grid_btn)
@@ -82,10 +70,7 @@ impl PenTab {
     ) -> Element<'a, Message<S>> {
         let mut ret = Column::new().spacing(5);
         section!(ret, ui_size, "Bezier Planes");
-        ret = ret.push(
-            light_icon_btn(&mut self.load_svg_btn, LightIcon::FileOpen, ui_size)
-                .on_press(Message::LoadSvgFile),
-        );
+        ret = ret.push(light_icon_btn(LightIcon::FileOpen, ui_size).on_press(Message::LoadSvgFile));
         add_buttons!(ret, self, ui_size);
         add_grid_buttons!(ret, self, ui_size, app_state);
         let selected_path_id = app_state.get_selected_bezier_path();

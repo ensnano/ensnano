@@ -23,32 +23,16 @@ use ensnano_interactor::graphics::{
 
 pub struct CameraTab {
     fog: FogParameters,
-    scroll: scrollable::State,
-    selection_visibility_btn: button::State,
-    compl_visibility_btn: button::State,
-    all_visible_btn: button::State,
     pub background3d: Background3D,
-    background3d_picklist: pick_list::State<Background3D>,
     pub rendering_mode: RenderingMode,
-    rendering_mode_picklist: pick_list::State<RenderingMode>,
-    check_xover_picklist: pick_list::State<CheckXoversParameter>,
-    h_bounds_picklist: pick_list::State<HBoundDisplay>,
 }
 
 impl CameraTab {
     pub fn new() -> Self {
         Self {
             fog: Default::default(),
-            scroll: Default::default(),
-            selection_visibility_btn: Default::default(),
-            compl_visibility_btn: Default::default(),
-            all_visible_btn: Default::default(),
             background3d: Default::default(),
-            background3d_picklist: Default::default(),
             rendering_mode: Default::default(),
-            rendering_mode_picklist: Default::default(),
-            check_xover_picklist: Default::default(),
-            h_bounds_picklist: Default::default(),
         }
     }
 
@@ -89,7 +73,6 @@ impl CameraTab {
         let h_bound_column = Column::new()
             .push(Text::new("Show H-Bounds").size(ui_size.intermediate_text()))
             .push(PickList::new(
-                &mut self.h_bounds_picklist,
                 [
                     HBoundDisplay::No,
                     HBoundDisplay::Stick,
@@ -118,7 +101,6 @@ impl CameraTab {
 
         subsection!(ret, ui_size, "Highlight Xovers");
         ret = ret.push(PickList::new(
-            &mut self.check_xover_picklist,
             CheckXoversParameter::ALL,
             Some(app_state.get_checked_xovers_parameters()),
             Message::CheckXoversParameter,
@@ -127,14 +109,12 @@ impl CameraTab {
         subsection!(ret, ui_size, "Rendering");
         ret = ret.push(Text::new("Style"));
         ret = ret.push(PickList::new(
-            &mut self.rendering_mode_picklist,
             &ALL_RENDERING_MODE[..],
             Some(self.rendering_mode),
             Message::RenderingMode,
         ));
         ret = ret.push(Text::new("Background"));
         ret = ret.push(PickList::new(
-            &mut self.background3d_picklist,
             &ALL_BACKGROUND3D[..],
             Some(self.background3d),
             Message::Background3D,
@@ -182,10 +162,7 @@ struct FogParameters {
     from_camera: bool,
     dark: bool,
     radius: f32,
-    radius_slider: slider::State,
     length: f32,
-    length_slider: slider::State,
-    picklist: pick_list::State<FogChoice>,
     reversed: bool,
 }
 
@@ -194,7 +171,6 @@ impl FogParameters {
         let mut column = Column::new()
             .push(Text::new("Fog").size(ui_size.intermediate_text()))
             .push(PickList::new(
-                &mut self.picklist,
                 &ALL_FOG_CHOICE[..],
                 Some(FogChoice::from_param(
                     self.visible,
@@ -218,31 +194,15 @@ impl FogParameters {
         };
 
         let length_slider = if self.visible {
-            Slider::new(
-                &mut self.length_slider,
-                0f32..=100f32,
-                self.length,
-                Message::FogLength,
-            )
+            Slider::new(0f32..=100f32, self.length, Message::FogLength)
         } else {
-            Slider::new(&mut self.length_slider, 0f32..=100f32, self.length, |_| {
-                Message::Nothing
-            })
-            .style(DesactivatedSlider)
+            Slider::new(0f32..=100f32, self.length, |_| Message::Nothing).style(DesactivatedSlider)
         };
 
         let softness_slider = if self.visible {
-            Slider::new(
-                &mut self.radius_slider,
-                0f32..=100f32,
-                self.radius,
-                Message::FogRadius,
-            )
+            Slider::new(0f32..=100f32, self.radius, Message::FogRadius)
         } else {
-            Slider::new(&mut self.radius_slider, 0f32..=100f32, self.radius, |_| {
-                Message::Nothing
-            })
-            .style(DesactivatedSlider)
+            Slider::new(0f32..=100f32, self.radius, |_| Message::Nothing).style(DesactivatedSlider)
         };
 
         column = column
@@ -280,10 +240,7 @@ impl Default for FogParameters {
             dark: false,
             length: 10.,
             radius: 10.,
-            length_slider: Default::default(),
-            radius_slider: Default::default(),
             from_camera: true,
-            picklist: Default::default(),
             reversed: false,
         }
     }

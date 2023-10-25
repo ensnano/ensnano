@@ -19,26 +19,15 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::*;
 
 pub struct GridTab {
-    scroll: iced::scrollable::State,
-    finalize_hyperboloid_btn: button::State,
-    make_square_grid_btn: button::State,
-    make_honeycomb_grid_btn: button::State,
     hyperboloid_factory: RequestFactory<Hyperboloid_>,
-    start_hyperboloid_btn: button::State,
-    make_grid_btn: button::State,
 }
 
 macro_rules! add_grid_buttons {
     ($ret: ident, $self:ident, $ui_size: ident) => {
-        let make_square_grid_btn =
-            icon_btn(&mut $self.make_square_grid_btn, ICON_SQUARE_GRID, $ui_size)
-                .on_press(Message::NewGrid(GridTypeDescr::Square { twist: None }));
-        let make_honeycomb_grid_btn = icon_btn(
-            &mut $self.make_honeycomb_grid_btn,
-            ICON_HONEYCOMB_GRID,
-            $ui_size,
-        )
-        .on_press(Message::NewGrid(GridTypeDescr::Honeycomb { twist: None }));
+        let make_square_grid_btn = icon_btn(ICON_SQUARE_GRID, $ui_size)
+            .on_press(Message::NewGrid(GridTypeDescr::Square { twist: None }));
+        let make_honeycomb_grid_btn = icon_btn(ICON_HONEYCOMB_GRID, $ui_size)
+            .on_press(Message::NewGrid(GridTypeDescr::Honeycomb { twist: None }));
 
         let grid_buttons = Row::new()
             .push(make_square_grid_btn)
@@ -51,23 +40,13 @@ macro_rules! add_grid_buttons {
 macro_rules! add_start_cancel_hyperboloid_button {
     ($ret:ident, $self:ident, $ui_size: ident, $app_state: ident) => {
         let start_hyperboloid_btn = if !$app_state.is_building_hyperboloid() {
-            icon_btn(
-                &mut $self.start_hyperboloid_btn,
-                ICON_NANOTUBE,
-                $ui_size.clone(),
-            )
-            .on_press(Message::NewHyperboloid)
+            icon_btn(ICON_NANOTUBE, $ui_size.clone()).on_press(Message::NewHyperboloid)
         } else {
-            text_btn(&mut $self.start_hyperboloid_btn, "Finish", $ui_size.clone())
-                .on_press(Message::FinalizeHyperboloid)
+            text_btn("Finish", $ui_size.clone()).on_press(Message::FinalizeHyperboloid)
         };
 
-        let cancel_hyperboloid_btn = text_btn(
-            &mut $self.finalize_hyperboloid_btn,
-            "Cancel",
-            $ui_size.clone(),
-        )
-        .on_press(Message::CancelHyperboloid);
+        let cancel_hyperboloid_btn =
+            text_btn("Cancel", $ui_size.clone()).on_press(Message::CancelHyperboloid);
 
         if $app_state.is_building_hyperboloid() {
             $ret = $ret.push(
@@ -96,9 +75,8 @@ macro_rules! add_hyperboloid_sliders {
 
 macro_rules! add_guess_grid_button {
     ($ret: ident, $self: ident, $ui_size: ident, $app_state: ident) => {
-        let mut button_make_grid =
-            Button::new(&mut $self.make_grid_btn, iced::Text::new("From Selection"))
-                .height(Length::Units($ui_size.button()));
+        let mut button_make_grid = Button::new(iced::widget::Text::new("From Selection"))
+            .height(Length::Units($ui_size.button()));
 
         if $app_state.can_make_grid() {
             button_make_grid = button_make_grid.on_press(Message::MakeGrids);
@@ -112,13 +90,7 @@ macro_rules! add_guess_grid_button {
 impl GridTab {
     pub fn new() -> Self {
         Self {
-            scroll: Default::default(),
-            make_square_grid_btn: Default::default(),
-            make_honeycomb_grid_btn: Default::default(),
             hyperboloid_factory: RequestFactory::new(FactoryId::Hyperboloid, Hyperboloid_ {}),
-            finalize_hyperboloid_btn: Default::default(),
-            start_hyperboloid_btn: Default::default(),
-            make_grid_btn: Default::default(),
         }
     }
 
@@ -149,7 +121,7 @@ impl GridTab {
 
         add_guess_grid_button!(ret, self, ui_size, app_state);
 
-        Scrollable::new(&mut self.scroll).push(ret).into()
+        Scrollable::new(ret).into()
     }
 
     pub fn new_hyperboloid(&mut self, requests: &mut Option<HyperboloidRequest>) {
