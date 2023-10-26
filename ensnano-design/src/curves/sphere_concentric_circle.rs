@@ -27,6 +27,8 @@ pub struct SphereConcentricCircleDescriptor {
     pub radius: f64,
     pub theta_0: f64,
     pub helix_index: i32, // 0 is the equator, negative for below the equator, positive above
+    pub helix_index_shift: Option<f64>, // -0.5 if you want to center the equator between the helices
+    pub inter_helix_center_gap: Option<f64>, // in nm, by default 2.65nm 
 }
 
 fn default_number_of_helices() -> usize {
@@ -35,8 +37,10 @@ fn default_number_of_helices() -> usize {
 
 impl SphereConcentricCircleDescriptor {
     pub(super) fn with_parameters(self, parameters: Parameters) -> SphereConcentricCircle {
+        let helix_index = self.helix_index as f64 + self.helix_index_shift.unwrap_or(0.);
+        let inter_helix_center_gap = self.inter_helix_center_gap.unwrap_or(Parameters::INTER_CENTER_GAP as f64);
         let φ = PI / 2.0 
-                - self.helix_index as f64 * Parameters::INTER_CENTER_GAP as f64/ self.radius;
+                - helix_index * inter_helix_center_gap as f64/ self.radius;
         let z_radius = self.radius * φ.sin();
         let z = self.radius * φ.cos(); 
         let perimeter = TAU * z_radius;
@@ -45,7 +49,8 @@ impl SphereConcentricCircleDescriptor {
             _parameters: parameters,
             radius: self.radius,
             theta_0: self.theta_0,
-            helix_index: self.helix_index,
+            helix_index,
+            inter_helix_center_gap,
             perimeter,
             φ,
             z_radius,
@@ -60,7 +65,8 @@ pub(super) struct SphereConcentricCircle {
     pub _parameters: Parameters,
     pub radius: f64,
     pub theta_0: f64,
-    pub helix_index: i32,
+    pub helix_index: f64,
+    pub inter_helix_center_gap: f64,
     pub perimeter: f64,
     pub φ: f64,
     pub z_radius: f64,

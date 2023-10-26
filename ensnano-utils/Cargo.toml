@@ -15,6 +15,6 @@ ensnano_interactor = { path = "../ensnano-interactor" }
 ensnano_design = { path = "../ensnano-design" }
 log = "0.4"
 fontdue = "0.6.4"
-ahash = "0.6.2"
+ahash = "0.8.6" # "0.6.2"
 gltf = "0.16.0"
 nom_stl = "0.2.2"
