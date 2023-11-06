@@ -11,7 +11,7 @@ ensnano_interactor = { path = "../ensnano-interactor" }
 ensnano_utils = { path = "../ensnano-utils" }
 lyon = { git = "https://github.com/nical/lyon", rev = "ea6d904c6c9ec0445c5653c119a48c43ea76cee9" }
 log = "0.4"
-ahash = "0.6.2"
+ahash = "0.8.6" #  "0.6.2"
 color_space = "0.5.2"
 bytemuck = "1.2.0"
 png = "0.17.5"

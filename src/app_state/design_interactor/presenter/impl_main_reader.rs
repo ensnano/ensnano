@@ -110,13 +110,14 @@ impl StaplesDownloader for DesignReader {
             ])
         }
 
+        // Add one sheet per plate
         for (sheet_id, rows) in sheets.iter() {
             let mut sheet = wb.create_sheet(&format!("Plate {}", sheet_id));
             wb.write_sheet(&mut sheet, |sw| {
                 for row in rows {
-                    if let Ok(length) = row[3].parse::<f64>() {
+                    if let Ok(length) = row[4].parse::<f64>() {
                         sw.append_row(row![
-                            row[0], row[1], row[2], length, row[4], row[5], row[6]
+                            row[0], row[1], row[2], row[3], length, row[5], row[6]
                         ])?;
                     } else {
                         sw.append_row(row![
@@ -128,6 +129,34 @@ impl StaplesDownloader for DesignReader {
             })
             .expect("write excel error!");
         }
+
+        // Add one extra sheet with all the strands
+        let mut sheep_with_all_strands = wb.create_sheet(&"All strands");
+        wb.write_sheet(&mut sheep_with_all_strands, |sw| {
+            sw.append_row(row![
+                "Well Position",
+                "Name",
+                "Sequence",
+                "Domains",
+                "Length",
+                "Domain Length",
+                "Groups",
+                "Color"
+            ])?;
+            for (sheet_id, rows) in sheets.iter() {
+                for row in rows {
+                    if let Ok(length) = row[4].parse::<f64>() {
+                        sw.append_row(row![
+                            row[0], row[1], row[2], row[3], length, row[5], row[6]
+                        ])?;
+                    }
+                }
+            }
+            Ok(())
+        })
+        .expect("write excel error!");
+
+        // close the excel file
         wb.close().expect("close excel error!");
     }
 

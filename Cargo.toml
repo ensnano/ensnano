@@ -41,7 +41,7 @@ log = "0.4"
 pretty_env_logger = "0.4"
 tobj = "3.0"
 dirs = "4.0"
-ahash = "0.6.2"
+ahash = "0.8.6"
 color_space = "0.5.2"
 confy = {git = "https://github.com/rust-cli/confy", rev = "64282241313", default-features=false, features=["yaml_conf"]}
 version-compare = "0.1.0"
@@ -51,6 +51,9 @@ iced_graphics = "0.3.1"
 iced_winit = "0.4.0"
 iced_native = "0.5.1"
 chebyshev_polynomials = { git = "https://github.com/thenlevy/chebyshev_polynomials" }
+
+[patch.crates-io]
+iced_aw = { git="https://github.com/iced-rs/iced_aw.git", tag="v0.2.0" }
 
 
 # [target.'cfg(not(target_env = "msvc"))'.dependencies]
