@@ -291,8 +291,9 @@ impl DesignContent {
                             log::error!("Could not map to virtual nucl");
                         }
                     }
-                } else if let Domain::Insertion { .. } = domain {
-                    sequence.push_str(" **INSERTION**")
+                } else if let Domain::Insertion { nb_nucl, .. } = domain {
+                    // Number of nucleotides inserted added
+                    sequence.push_str(&format!("**INSERTION {nb_nucl}**"))
                 }
                 if let Some(d) = staple_domain {
                     intervals.intervals.push(d.finish())

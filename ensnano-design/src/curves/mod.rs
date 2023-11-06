@@ -32,12 +32,12 @@ use std::sync::Arc;
 mod bezier;
 mod discretization;
 mod revolution;
+mod sphere_concentric_circle;
 mod sphere_like_spiral;
 mod supertwist;
 mod time_nucl_map;
 mod torus;
 mod tube_spiral;
-mod sphere_concentric_circle;
 mod twist;
 use super::GridId;
 use crate::grid::*;
@@ -49,6 +49,7 @@ pub use bezier::{
     CubicBezierControlPoint,
 };
 pub use revolution::{InterpolatedCurveDescriptor, InterpolationDescriptor};
+pub use sphere_concentric_circle::SphereConcentricCircleDescriptor;
 pub use sphere_like_spiral::{SphereLikeSpiralDescriptor, SphereOrientation};
 use std::collections::HashMap;
 pub use supertwist::SuperTwist;
@@ -59,7 +60,6 @@ pub use torus::{CurveDescriptor2D, TwistedTorusDescriptor};
 pub use torus::{PointOnSurface, Torus};
 pub use tube_spiral::TubeSpiralDescritor;
 pub use twist::{nb_turn_per_100_nt_to_omega, twist_to_omega, Twist};
-pub use sphere_concentric_circle::SphereConcentricCircleDescriptor;
 
 const EPSILON_DERIVATIVE: f64 = 1e-6;
 
@@ -701,7 +701,9 @@ impl InstanciatedCurveDescriptor {
                 InstanciatedCurveDescriptor_::SphereLikeSpiral(s.clone())
             }
             CurveDescriptor::TubeSpiral(t) => InstanciatedCurveDescriptor_::TubeSpiral(t.clone()),
-            CurveDescriptor::SphereConcentricCircle(t) => InstanciatedCurveDescriptor_::SphereConcentricCircle(t.clone()),
+            CurveDescriptor::SphereConcentricCircle(t) => {
+                InstanciatedCurveDescriptor_::SphereConcentricCircle(t.clone())
+            }
             CurveDescriptor::Twist(t) => InstanciatedCurveDescriptor_::Twist(t.clone()),
             CurveDescriptor::Torus(t) => InstanciatedCurveDescriptor_::Torus(t.clone()),
             CurveDescriptor::SuperTwist(t) => InstanciatedCurveDescriptor_::SuperTwist(t.clone()),
@@ -774,9 +776,9 @@ impl InstanciatedCurveDescriptor {
             CurveDescriptor::TubeSpiral(s) => {
                 Some(InstanciatedCurveDescriptor_::TubeSpiral(s.clone()))
             }
-            CurveDescriptor::SphereConcentricCircle(s) => {
-                Some(InstanciatedCurveDescriptor_::SphereConcentricCircle(s.clone()))
-            }
+            CurveDescriptor::SphereConcentricCircle(s) => Some(
+                InstanciatedCurveDescriptor_::SphereConcentricCircle(s.clone()),
+            ),
             CurveDescriptor::Twist(t) => Some(InstanciatedCurveDescriptor_::Twist(t.clone())),
             CurveDescriptor::Torus(t) => Some(InstanciatedCurveDescriptor_::Torus(t.clone())),
             CurveDescriptor::SuperTwist(t) => {

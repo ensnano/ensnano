@@ -16,7 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use crate::{Parameters, parameters};
+use crate::{parameters, Parameters};
 
 use super::Curved;
 use std::f64::consts::{PI, TAU};
@@ -28,7 +28,7 @@ pub struct SphereConcentricCircleDescriptor {
     pub theta_0: f64,
     pub helix_index: i32, // 0 is the equator, negative for below the equator, positive above
     pub helix_index_shift: Option<f64>, // -0.5 if you want to center the equator between the helices
-    pub inter_helix_center_gap: Option<f64>, // in nm, by default 2.65nm 
+    pub inter_helix_center_gap: Option<f64>, // in nm, by default 2.65nm
 }
 
 fn default_number_of_helices() -> usize {
@@ -38,11 +38,12 @@ fn default_number_of_helices() -> usize {
 impl SphereConcentricCircleDescriptor {
     pub(super) fn with_parameters(self, parameters: Parameters) -> SphereConcentricCircle {
         let helix_index = self.helix_index as f64 + self.helix_index_shift.unwrap_or(0.);
-        let inter_helix_center_gap = self.inter_helix_center_gap.unwrap_or(Parameters::INTER_CENTER_GAP as f64);
-        let φ = PI / 2.0 
-                - helix_index * inter_helix_center_gap as f64/ self.radius;
+        let inter_helix_center_gap = self
+            .inter_helix_center_gap
+            .unwrap_or(Parameters::INTER_CENTER_GAP as f64);
+        let φ = PI / 2.0 - helix_index * inter_helix_center_gap as f64 / self.radius;
         let z_radius = self.radius * φ.sin();
-        let z = self.radius * φ.cos(); 
+        let z = self.radius * φ.cos();
         let perimeter = TAU * z_radius;
 
         SphereConcentricCircle {
@@ -76,7 +77,6 @@ pub(super) struct SphereConcentricCircle {
 }
 
 impl SphereConcentricCircle {
-
     fn theta(&self, t: f64) -> f64 {
         t * TAU + self.theta_0
     }
