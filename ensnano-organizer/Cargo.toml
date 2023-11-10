@@ -13,7 +13,7 @@ iced_graphics = "0.3.1"
 iced_winit = "0.4.0"
 iced_native = "0.5.1"
 iced_style = "0.4.0"
-iced_aw = { version = "0.2.0", features=["icons", "icon_text"] }
+iced_aw = { version = "0.2.0", features=["icons", "icon_text"], git = "https://github.com/iced-rs/iced_aw", tag = "v0.2.0" }
 serde = "1.0.116"
 serde_derive = "1.0.116"
 serde_json = "1.0"

@@ -16,7 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-//! This modules defines types and operation used  by the graphical component of ENSnano to
+//! This modules defines types and operations used by the graphical component of ENSnano to
 //! interact with the design.
 
 use std::path::PathBuf;

@@ -15,11 +15,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-//! The [Gui Manager](gui::Gui) handles redraw request on textures that corresponds to regions
+//! The [Gui Manager](Gui) handles redraw request on textures that corresponds to regions
 //! attributed to GUI components and events happening on these regions.
 //!
 //! When a message is emmitted by a Gui component that have consequences that must be forwarded to
-//! other components of the program it is forwarded to the [main](main) function via the
+//! other components of the program it is forwarded to the `main` function via the
 //! [Request](Requests) data structure.
 
 /// Draw the top bar of the GUI
@@ -117,7 +117,7 @@ pub trait Requests: 'static + Send {
     fn set_scaffold_shift(&mut self, shift: usize);
     /// Change the size of the UI components
     fn set_ui_size(&mut self, size: UiSize);
-    /// Finalize the currently eddited hyperboloid grid
+    /// Finalize the currently edited hyperboloid grid
     fn finalize_hyperboloid(&mut self);
     fn stop_roll_simulation(&mut self);
     fn start_roll_simulation(&mut self, roll_request: RollRequest);
@@ -131,7 +131,7 @@ pub trait Requests: 'static + Send {
     /// Update the parameters of the current simulation (rigid grids or helices)
     fn update_rigid_body_simulation_parameters(&mut self, parameters: RigidBodyParametersRequest);
     fn create_new_hyperboloid(&mut self, parameters: HyperboloidRequest);
-    /// Update the parameters of the currently eddited hyperboloid grid
+    /// Update the parameters of the currently edited hyperboloid grid
     fn update_current_hyperboloid(&mut self, parameters: HyperboloidRequest);
     fn update_roll_of_selected_helices(&mut self, roll: f32);
     fn update_scroll_sensitivity(&mut self, sensitivity: f32);
@@ -574,7 +574,7 @@ impl<R: Requests, S: AppState> GuiElement<R, S> {
 
 /// The Gui manager.
 pub struct Gui<R: Requests, S: AppState> {
-    /// HashMap mapping [ElementType](ElementType) to a GuiElement
+    /// HashMap mapping [ElementType] to a GuiElement
     elements: HashMap<ElementType, GuiElement<R, S>>,
     settings: Settings,
     device: Rc<Device>,

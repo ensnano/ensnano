@@ -36,7 +36,7 @@ chrono = "0.4"
 simple_excel_writer = "0.1.7"
 regex = "1.4.2"
 ahash = "0.8.6" # 0.6.2
-mathru = "0.8.4"
+mathru = "0.13"
 rand = "0.8.3"
 rand_distr = "0.4.0"
 ordered-float = {version = "2.0", features = ["serde"]}
