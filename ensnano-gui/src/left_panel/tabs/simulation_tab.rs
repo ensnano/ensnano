@@ -54,7 +54,11 @@ impl<S: AppState> SimulationTab<S> {
         }
     }
 
-    pub fn view<'a>(&'a mut self, ui_size: UiSize, app_state: &S) -> Element<'a, Message<S>> {
+    pub fn view<'a, R: iced_native::Renderer>(
+        &'a mut self,
+        ui_size: UiSize,
+        app_state: &S,
+    ) -> Element<'a, Message<S>, R> {
         let sim_state = &app_state.get_simulation_state();
         let grid_active = sim_state.is_none() || sim_state.simulating_grid();
         let roll_active = sim_state.is_none() || sim_state.is_rolling();
@@ -110,11 +114,11 @@ impl<S: AppState> SimulationTab<S> {
         Scrollable::new(ret).into()
     }
 
-    fn helix_btns<'a>(
+    fn helix_btns<'a, R: iced_native::Renderer>(
         go_stop: &'a mut GoStop<S>,
         app_state: &S,
         ui_size: UiSize,
-    ) -> Element<'a, Message<S>> {
+    ) -> Element<'a, Message<S>, R> {
         let sim_state = app_state.get_simulation_state();
         if sim_state.is_paused() {
             Row::new()
@@ -193,13 +197,13 @@ impl<S: AppState> SimulationTab<S> {
 struct PhysicalSimulation {}
 
 impl PhysicalSimulation {
-    fn view<'a, 'b, S: AppState>(
+    fn view<'a, 'b, S: AppState, R: iced_native::Renderer>(
         &'a mut self,
         _ui_size: &'b UiSize,
         name: &'static str,
         active: bool,
         running: bool,
-    ) -> Row<'a, Message<S>> {
+    ) -> Row<'a, Message<S>, R> {
         let button_str = if running { "Stop" } else { name };
         let mut button = Button::new(Text::new(button_str)).style(ButtonColor::red_green(running));
         if active {

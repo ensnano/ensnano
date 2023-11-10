@@ -16,10 +16,15 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use super::*;
+use super::{
+    helpers::*, right_checkbox, text_btn, AppState, CheckXoversParameter, DesactivatedSlider, Fog,
+    HBoundDisplay, Message, UiSize,
+};
 use ensnano_interactor::graphics::{
     Background3D, RenderingMode, ALL_BACKGROUND3D, ALL_RENDERING_MODE,
 };
+use iced_native::widget::helpers::*;
+use iced_native::{widget, Element, Renderer};
 
 pub struct CameraTab {
     fog: FogParameters,
@@ -36,96 +41,71 @@ impl CameraTab {
         }
     }
 
-    pub fn view<'a, S: AppState>(
+    pub fn view<'a, S: AppState, R: Renderer>(
         &'a mut self,
         ui_size: UiSize,
         app_state: &S,
-    ) -> Element<'a, Message<S>> {
-        let mut ret = Column::new().spacing(5);
-        section!(ret, ui_size, "Camera");
-        subsection!(ret, ui_size, "Visibility");
-        ret = ret.push(
-            text_btn(
-                &mut self.selection_visibility_btn,
-                "Toggle Selected Visibility",
-                ui_size.clone(),
-            )
-            .on_press(Message::ToggleVisibility(false)),
-        );
-        ret = ret.push(
-            text_btn(
-                &mut self.compl_visibility_btn,
-                "Toggle NonSelected Visibility",
-                ui_size.clone(),
-            )
-            .on_press(Message::ToggleVisibility(true)),
-        );
-        ret = ret.push(
-            text_btn(
-                &mut self.all_visible_btn,
-                "Everything visible",
-                ui_size.clone(),
-            )
-            .on_press(Message::AllVisible),
-        );
-        ret = ret.push(self.fog.view(&ui_size));
-
-        let h_bound_column = Column::new()
-            .push(Text::new("Show H-Bounds").size(ui_size.intermediate_text()))
-            .push(PickList::new(
+    ) -> Element<'a, Message<S>, R> {
+        let mut content = widget::Column::new().spacing(5);
+        let content = iced_native::column![
+            section("Camera", ui_size),
+            subsection("Visibility", ui_size),
+            text_btn("Toggle Selected Visibility", ui_size.clone())
+                .on_press(Message::ToggleVisibility(false)),
+            text_btn("Toggle NonSelected Visibility", ui_size.clone())
+                .on_press(Message::ToggleVisibility(true)),
+            text_btn("Everything visible", ui_size.clone()).on_press(Message::AllVisible),
+            self.fog.view(&ui_size),
+            subsection("Visibility", ui_size),
+            pick_list(
                 [
                     HBoundDisplay::No,
                     HBoundDisplay::Stick,
                     HBoundDisplay::Ellipsoid,
-                ]
-                .as_slice(),
+                ],
                 Some(app_state.get_h_bounds_display()),
                 Message::ShowHBonds,
-            ));
+            ),
+            right_checkbox(
+                app_state.show_stereographic_camera(),
+                "Show stereographic camera",
+                Message::ShowStereographicCamera,
+                ui_size,
+            ),
+            right_checkbox(
+                app_state.follow_stereographic_camera(),
+                "Follow stereographic camera",
+                Message::FollowStereographicCamera,
+                ui_size,
+            ),
+            subsection("Highlight Xovers", ui_size),
+            pick_list(
+                CheckXoversParameter::ALL,
+                Some(app_state.get_checked_xovers_parameters()),
+                Message::CheckXoversParameter,
+            ),
+            subsection("Rendering", ui_size),
+            text("Style"),
+            pick_list(
+                &ALL_RENDERING_MODE[..],
+                Some(self.rendering_mode),
+                Message::RenderingMode,
+            ),
+            text("Background"),
+            pick_list(
+                &ALL_BACKGROUND3D[..],
+                Some(self.background3d),
+                Message::Background3D,
+            ),
+            checkbox(
+                app_state.expand_insertions(),
+                "Expand insertions",
+                Message::SetExpandInsertions,
+            ),
+        ]
+        .spacing(5);
 
-        ret = ret.push(h_bound_column);
-
-        ret = ret.push(right_checkbox(
-            app_state.show_stereographic_camera(),
-            "Show stereographic camera",
-            Message::ShowStereographicCamera,
-            ui_size,
-        ));
-
-        ret = ret.push(right_checkbox(
-            app_state.follow_stereographic_camera(),
-            "Follow stereographic camera",
-            Message::FollowStereographicCamera,
-            ui_size,
-        ));
-
-        subsection!(ret, ui_size, "Highlight Xovers");
-        ret = ret.push(PickList::new(
-            CheckXoversParameter::ALL,
-            Some(app_state.get_checked_xovers_parameters()),
-            Message::CheckXoversParameter,
-        ));
-
-        subsection!(ret, ui_size, "Rendering");
-        ret = ret.push(Text::new("Style"));
-        ret = ret.push(PickList::new(
-            &ALL_RENDERING_MODE[..],
-            Some(self.rendering_mode),
-            Message::RenderingMode,
-        ));
-        ret = ret.push(Text::new("Background"));
-        ret = ret.push(PickList::new(
-            &ALL_BACKGROUND3D[..],
-            Some(self.background3d),
-            Message::Background3D,
-        ));
-        ret = ret.push(Checkbox::new(
-            app_state.expand_insertions(),
-            "Expand insertions",
-            Message::SetExpandInsertions,
-        ));
-
-        Scrollable::new(&mut self.scroll).push(ret).into()
+        scrollable(content).into()
     }
 
     pub fn fog_visible(&mut self, visible: bool) {
@@ -167,10 +147,13 @@ struct FogParameters {
 }
 
 impl FogParameters {
-    fn view<S: AppState>(&mut self, ui_size: &UiSize) -> Column<Message<S>> {
-        let mut column = Column::new()
-            .push(Text::new("Fog").size(ui_size.intermediate_text()))
-            .push(PickList::new(
+    fn view<S: AppState, R: iced_native::Renderer>(
+        &mut self,
+        ui_size: &UiSize,
+    ) -> widget::Column<Message<S>, R> {
+        let mut column = widget::Column::new()
+            .push(widget::Text::new("Fog").size(ui_size.intermediate_text()))
+            .push(widget::PickList::new(
                 &ALL_FOG_CHOICE[..],
                 Some(FogChoice::from_param(
                     self.visible,
@@ -182,33 +165,40 @@ impl FogParameters {
             ));
 
         let radius_text = if self.visible {
-            Text::new("Radius")
+            widget::Text::new("Radius")
         } else {
-            Text::new("Radius").color([0.6, 0.6, 0.6])
+            widget::Text::new("Radius").color([0.6, 0.6, 0.6])
         };
 
         let gradient_text = if self.visible {
-            Text::new("Softness")
+            widget::Text::new("Softness")
         } else {
-            Text::new("Softness").color([0.6, 0.6, 0.6])
+            widget::Text::new("Softness").color([0.6, 0.6, 0.6])
         };
 
         let length_slider = if self.visible {
-            Slider::new(0f32..=100f32, self.length, Message::FogLength)
+            widget::Slider::new(0f32..=100f32, self.length, Message::FogLength)
         } else {
-            Slider::new(0f32..=100f32, self.length, |_| Message::Nothing).style(DesactivatedSlider)
+            widget::Slider::new(0f32..=100f32, self.length, |_| Message::Nothing)
+                .style(DesactivatedSlider)
         };
 
         let softness_slider = if self.visible {
-            Slider::new(0f32..=100f32, self.radius, Message::FogRadius)
+            widget::Slider::new(0f32..=100f32, self.radius, Message::FogRadius)
         } else {
-            Slider::new(0f32..=100f32, self.radius, |_| Message::Nothing).style(DesactivatedSlider)
+            widget::Slider::new(0f32..=100f32, self.radius, |_| Message::Nothing)
+                .style(DesactivatedSlider)
         };
 
         column = column
-            .push(Row::new().spacing(5).push(radius_text).push(length_slider))
             .push(
-                Row::new()
+                widget::Row::new()
+                    .spacing(5)
+                    .push(radius_text)
+                    .push(length_slider),
+            )
+            .push(
+                widget::Row::new()
                     .spacing(5)
                     .push(gradient_text)
                     .push(softness_slider),

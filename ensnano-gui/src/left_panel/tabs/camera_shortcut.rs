@@ -16,6 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use super::*;
+use iced_native::widget;
 
 struct TargetShortcut {
     name: &'static str,
@@ -283,12 +284,12 @@ impl CameraShortcut {
             .collect();
     }
 
-    pub fn view<'a, S: AppState>(
+    pub fn view<'a, S: AppState, R: iced_native::Renderer>(
         &'a mut self,
         ui_size: UiSize,
         width: u16,
         app: &S,
-    ) -> Element<'a, Message<S>> {
+    ) -> Element<'a, Message<S>, R> {
         self.set_camera_widget(app);
         let mut ret = Column::new();
         section!(ret, ui_size, "Camera");
@@ -336,35 +337,41 @@ impl CameraWidget {
         }
     }
 
-    fn view<'a, S: AppState>(
+    fn view<'a, S, R>(
         &self,
         ui_size: UiSize,
         //state: &'a mut CameraWidgetState,
-    ) -> Element<'a, Message<S>> {
-        let name: Element<Message<S>> = if self.being_edited {
+    ) -> Row<'a, Message<S>, R>
+    where
+        S: AppState,
+        R: iced_native::Renderer + iced_native::text::Renderer,
+        <R as iced_native::Renderer>::Theme: widget::text::StyleSheet,
+        <R as iced_native::Renderer>::Theme: widget::text_input::StyleSheet,
+    {
+        let name: Element<'a, Message<S>, R> = if self.being_edited {
             TextInput::new("Camera name", &self.name, Message::EditCameraName)
-                .on_submit(Message::SubmitCameraName)
+                .on_submit(Message::<S>::SubmitCameraName)
                 .into()
         } else {
             Text::new(&self.name).into()
         };
 
         let select_camera_btn = light_icon_btn(LightIcon::Visibility, ui_size)
-            .on_press(Message::SelectCamera(self.camera_id));
+            .on_press(Message::<S>::SelectCamera(self.camera_id));
 
         let edit_button = light_icon_btn(LightIcon::Edit, ui_size)
-            .on_press(Message::StartEditCameraName(self.camera_id));
+            .on_press(Message::<S>::StartEditCameraName(self.camera_id));
 
         let delete_button = light_icon_btn(LightIcon::Delete, ui_size)
-            .on_press(Message::DeleteCamera(self.camera_id));
+            .on_press(Message::<S>::DeleteCamera(self.camera_id));
 
-        Row::new()
-            .push(name)
-            .push(iced::widget::Space::with_width(iced::Length::Units(3)))
-            .push(edit_button)
-            .push(iced::widget::Space::with_width(iced::Length::Fill))
-            .push(select_camera_btn)
-            .push(delete_button)
-            .into()
+        iced_native::row![
+            name,
+            widget::Space::with_width(iced::Length::Units(3)),
+            edit_button,
+            widget::Space::with_width(iced::Length::Fill),
+            select_camera_btn,
+            delete_button,
+        ]
     }
 }

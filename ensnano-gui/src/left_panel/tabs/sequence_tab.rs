@@ -212,11 +212,11 @@ impl SequenceTab {
         }
     }
 
-    pub fn view<'a, S: AppState>(
+    pub fn view<'a, S: AppState, R: iced_native::Renderer>(
         &'a mut self,
         ui_size: UiSize,
         app_state: &'a S,
-    ) -> Element<'a, Message<S>> {
+    ) -> Element<'a, Message<S>, R> {
         if !self.scaffold_input.is_focused() {
             if let Some(n) = app_state.get_scaffold_info().and_then(|info| info.shift) {
                 self.update_pos_str(n.to_string());

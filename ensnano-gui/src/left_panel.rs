@@ -19,6 +19,7 @@ use ensnano_interactor::{graphics::HBoundDisplay, EquadiffSolvingMethod};
 use ensnano_organizer::{Organizer, OrganizerMessage, OrganizerTree};
 use std::sync::{Arc, Mutex};
 
+use iced::theme;
 use iced_aw::{style::tab_bar, TabLabel, Tabs};
 use iced_native::widget::{
     container, Button, Checkbox, Column, Container, PickList, Row, Scrollable, Slider, Text,
@@ -1063,6 +1064,12 @@ impl container::StyleSheet for TopBarStyle {
     }
 }
 
+impl From<TopBarStyle> for theme::Container {
+    fn from(value: TopBarStyle) -> Self {
+        Default::default()
+    }
+}
+
 pub const BACKGROUND: Color = Color::from_rgb(
     0x23 as f32 / 255.0,
     0x27 as f32 / 255.0,
@@ -1153,6 +1160,12 @@ impl container::StyleSheet for FloatingStyle {
     }
 }
 
+impl From<FloatingStyle> for theme::Container {
+    fn from(value: FloatingStyle) -> Self {
+        Default::default()
+    }
+}
+
 struct ButtonStyle(bool);
 
 impl iced_native::widget::button::StyleSheet for ButtonStyle {
@@ -1234,7 +1247,8 @@ fn rotation_message<S: AppState>(i: usize, _xz: isize, _yz: isize, _xy: isize) -
 
 fn rotation_text<'a, R>(i: usize, ui_size: UiSize) -> Text<'a, R>
 where
-    R: iced_native::Renderer,
+    R: iced_native::text::Renderer,
+    <R as iced_native::Renderer>::Theme: iced_native::widget::text::StyleSheet,
 {
     match i {
         0 => icon(MaterialIcon::ArrowBack, ui_size),
@@ -1621,13 +1635,18 @@ impl tab_bar::StyleSheet for TabStyle {
     }
 }
 
-fn right_checkbox<'a, F, S: AppState, R: iced_native::Renderer>(
+fn right_checkbox<'a, F, S, R>(
     is_checked: bool,
     label: impl Into<String>,
+    //label: impl Into<Cow<'a, str>>,
     f: F,
     ui_size: UiSize,
 ) -> Element<'a, Message<S>, R>
 where
+    S: AppState,
+    R: iced_native::text::Renderer,
+    <R as iced_native::Renderer>::Theme: iced_native::widget::text::StyleSheet,
+    <R as iced_native::Renderer>::Theme: iced_native::widget::checkbox::StyleSheet,
     F: 'static + Fn(bool) -> Message<S>,
 {
     Row::new()

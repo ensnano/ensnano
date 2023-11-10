@@ -892,8 +892,8 @@ fn convert_size_u32(size: PhysicalSize<u32>) -> Size<u32> {
     Size::new(size.width, size.height)
 }
 
-use iced::widget::{Button, Text};
 use iced::Length;
+use iced_native::widget::{Button, Text};
 fn text_btn<'a, M: Clone>(text: &'static str, ui_size: UiSize) -> Button<'a, M> {
     let size = if text.len() > 1 {
         ui_size.main_text()

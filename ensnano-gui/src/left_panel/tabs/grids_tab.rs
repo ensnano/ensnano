@@ -16,75 +16,16 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use super::*;
+use super::{
+    helpers::*, icon_btn, text_btn, AppState, FactoryId, GridTypeDescr, HyperboloidRequest,
+    Hyperboloid_, Length, Message, RequestFactory, UiSize, ValueId, ICON_HONEYCOMB_GRID,
+    ICON_NANOTUBE, ICON_SQUARE_GRID, JUMP_SIZE,
+};
+use iced_native::widget::helpers::*;
+use iced_native::{widget, Element, Renderer};
 
 pub struct GridTab {
     hyperboloid_factory: RequestFactory<Hyperboloid_>,
-}
-
-macro_rules! add_grid_buttons {
-    ($ret: ident, $self:ident, $ui_size: ident) => {
-        let make_square_grid_btn = icon_btn(ICON_SQUARE_GRID, $ui_size)
-            .on_press(Message::NewGrid(GridTypeDescr::Square { twist: None }));
-        let make_honeycomb_grid_btn = icon_btn(ICON_HONEYCOMB_GRID, $ui_size)
-            .on_press(Message::NewGrid(GridTypeDescr::Honeycomb { twist: None }));
-
-        let grid_buttons = Row::new()
-            .push(make_square_grid_btn)
-            .push(make_honeycomb_grid_btn)
-            .spacing(5);
-        $ret = $ret.push(grid_buttons);
-    };
-}
-
-macro_rules! add_start_cancel_hyperboloid_button {
-    ($ret:ident, $self:ident, $ui_size: ident, $app_state: ident) => {
-        let start_hyperboloid_btn = if !$app_state.is_building_hyperboloid() {
-            icon_btn(ICON_NANOTUBE, $ui_size.clone()).on_press(Message::NewHyperboloid)
-        } else {
-            text_btn("Finish", $ui_size.clone()).on_press(Message::FinalizeHyperboloid)
-        };
-
-        let cancel_hyperboloid_btn =
-            text_btn("Cancel", $ui_size.clone()).on_press(Message::CancelHyperboloid);
-
-        if $app_state.is_building_hyperboloid() {
-            $ret = $ret.push(
-                Row::new()
-                    .spacing(3)
-                    .push(start_hyperboloid_btn)
-                    .push(cancel_hyperboloid_btn),
-            );
-        } else {
-            $ret = $ret.push(start_hyperboloid_btn);
-        }
-    };
-}
-
-macro_rules! add_hyperboloid_sliders {
-    ($ret: ident, $self: ident, $ui_size: ident, $app_state: ident) => {
-        for view in $self
-            .hyperboloid_factory
-            .view($app_state.is_building_hyperboloid(), $ui_size.main_text())
-            .into_iter()
-        {
-            $ret = $ret.push(view);
-        }
-    };
-}
-
-macro_rules! add_guess_grid_button {
-    ($ret: ident, $self: ident, $ui_size: ident, $app_state: ident) => {
-        let mut button_make_grid = Button::new(iced::widget::Text::new("From Selection"))
-            .height(Length::Units($ui_size.button()));
-
-        if $app_state.can_make_grid() {
-            button_make_grid = button_make_grid.on_press(Message::MakeGrids);
-        }
-
-        $ret = $ret.push(button_make_grid);
-        $ret = $ret.push(Text::new("Select ≥4 unattached helices").size($ui_size.main_text()));
-    };
 }
 
 impl GridTab {
@@ -94,34 +35,70 @@ impl GridTab {
         }
     }
 
-    pub fn view<'a, S: AppState>(
+    pub fn view<'a, S, R>(
         &'a mut self,
         ui_size: UiSize,
-        _width: u16,
+        //_width: u16,
         app_state: &S,
-    ) -> Element<'a, Message<S>> {
-        let mut ret = Column::new().spacing(5);
-        section!(ret, ui_size, "Grids");
-
-        subsection!(ret, ui_size, "New Grid");
-
-        add_grid_buttons!(ret, self, ui_size);
-
-        extra_jump!(ret);
-
-        subsection!(ret, ui_size, "New nanotube");
-
-        add_start_cancel_hyperboloid_button!(ret, self, ui_size, app_state);
-
-        add_hyperboloid_sliders!(ret, self, ui_size, app_state);
-
-        extra_jump!(ret);
-
-        subsection!(ret, ui_size, "Guess grid");
-
-        add_guess_grid_button!(ret, self, ui_size, app_state);
-
-        Scrollable::new(ret).into()
+    ) -> Element<'a, Message<S>, R>
+    where
+        S: AppState,
+        R: Renderer + iced_native::text::Renderer,
+        R::Theme: widget::button::StyleSheet
+            + widget::checkbox::StyleSheet
+            + widget::container::StyleSheet
+            + iced::overlay::menu::StyleSheet
+            + widget::pick_list::StyleSheet
+            + widget::scrollable::StyleSheet
+            + widget::text::StyleSheet,
+        <R::Theme as iced::overlay::menu::StyleSheet>::Style:
+            From<<R::Theme as widget::pick_list::StyleSheet>::Style>,
+    {
+        let content = iced_native::column![
+            section("Grids", ui_size),
+            subsection("New Grid", ui_size),
+            // add_grid_buttons!
+            iced_native::row![
+                icon_btn(ICON_SQUARE_GRID, ui_size)
+                    .on_press(Message::NewGrid(GridTypeDescr::Square { twist: None })),
+                icon_btn(ICON_HONEYCOMB_GRID, ui_size)
+                    .on_press(Message::NewGrid(GridTypeDescr::Honeycomb { twist: None })),
+            ]
+            .spacing(5),
+            vertical_space(Length::Units(JUMP_SIZE)),
+            subsection("New nanotube", ui_size),
+            // add_start_cancel_hyperboloid_button!
+            if app_state.is_building_hyperboloid() {
+                iced_native::row![
+                    icon_btn(ICON_NANOTUBE, ui_size.clone()).on_press(Message::NewHyperboloid),
+                    text_btn("Finish", ui_size.clone()).on_press(Message::FinalizeHyperboloid),
+                ]
+                .spacing(3)
+            } else {
+                iced_native::row![
+                    text_btn("Cancel", ui_size.clone()).on_press(Message::CancelHyperboloid)
+                ]
+                .spacing(3)
+            },
+            // add hyperboloid sliders!
+            column(
+                self.hyperboloid_factory
+                    .view(app_state.is_building_hyperboloid(), ui_size.main_text()),
+            ),
+            vertical_space(Length::Units(JUMP_SIZE)),
+            subsection("Guess grid", ui_size),
+            // add_guess_grid_button!
+            if app_state.can_make_grid() {
+                button(text("From Selection"))
+                    .height(Length::Units(ui_size.button()))
+                    .on_press(Message::MakeGrids)
+            } else {
+                button(text("From Selection")).height(Length::Units(ui_size.button()))
+            },
+            text("Select ≥4 unattached helices").size(ui_size.main_text()),
+        ]
+        .spacing(5);
+        scrollable(content).into()
     }
 
     pub fn new_hyperboloid(&mut self, requests: &mut Option<HyperboloidRequest>) {

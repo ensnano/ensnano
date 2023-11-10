@@ -221,7 +221,11 @@ impl<S: AppState> ContextualPanel<S> {
         }
     }
 
-    pub fn view(&mut self, ui_size: UiSize, app_state: &S) -> Element<Message<S>> {
+    pub fn view<R: iced_native::Renderer>(
+        &mut self,
+        ui_size: UiSize,
+        app_state: &S,
+    ) -> Element<Message<S>, R> {
         let mut column = Column::new().max_width(self.width - 2);
         let selection = app_state
             .get_selection()
@@ -472,12 +476,12 @@ enum TwistStatus {
     Twisting,
 }
 
-fn add_grid_content<'a, S: AppState, I: std::ops::Deref<Target = str>>(
-    mut column: Column<'a, Message<S>>,
+fn add_grid_content<'a, S: AppState, R: iced_native::Renderer, I: std::ops::Deref<Target = str>>(
+    mut column: Column<'a, Message<S>, R>,
     info_values: &[I],
     ui_size: UiSize,
     twisting: TwistStatus,
-) -> Column<'a, Message<S>> {
+) -> Column<'a, Message<S>, R> {
     let twist_button = match twisting {
         TwistStatus::Twisting => text_btn("Stop", ui_size).on_press(Message::StopSimulation),
         TwistStatus::CanTwist => text_btn("Twist", ui_size).on_press(Message::StartTwist),
@@ -503,11 +507,16 @@ fn add_grid_content<'a, S: AppState, I: std::ops::Deref<Target = str>>(
     column
 }
 
-fn add_strand_content<'a, S: AppState, I: std::ops::Deref<Target = str>>(
-    mut column: Column<'a, Message<S>>,
+fn add_strand_content<
+    'a,
+    S: AppState,
+    R: iced_native::Renderer,
+    I: std::ops::Deref<Target = str>,
+>(
+    mut column: Column<'a, Message<S>, R>,
     info_values: &[I],
     ui_size: UiSize,
-) -> Column<'a, Message<S>> {
+) -> Column<'a, Message<S>, R> {
     let s_id = info_values[2].parse::<usize>().unwrap();
     let name_row = Row::new()
         .push(Text::new("Name").size(ui_size.main_text()))
@@ -538,12 +547,12 @@ fn bool_to_string(b: bool) -> String {
 }
 
 #[allow(clippy::needless_lifetimes)]
-fn add_help_to_column<'a, M: 'static>(
-    mut column: Column<'a, M>,
+fn add_help_to_column<'a, M: 'static, R: iced_native::Renderer>(
+    mut column: Column<'a, M, R>,
     help_title: impl Into<String>,
     help: Vec<(String, String)>,
     ui_size: UiSize,
-) -> Column<'a, M> {
+) -> Column<'a, M, R> {
     column = column.push(Text::new(help_title).size(ui_size.intermediate_text()));
     for (l, r) in help {
         if l.is_empty() {
@@ -571,10 +580,10 @@ fn add_help_to_column<'a, M: 'static>(
 }
 
 #[allow(clippy::needless_lifetimes)]
-fn turn_into_help_column<'a, M: 'static>(
-    mut column: Column<'a, M>,
+fn turn_into_help_column<'a, M: 'static, R: iced_native::Renderer>(
+    mut column: Column<'a, M, R>,
     ui_size: UiSize,
-) -> Column<'a, M> {
+) -> Column<'a, M, R> {
     column = column.push(
         Text::new("Help")
             .size(ui_size.head_text())
@@ -745,7 +754,10 @@ fn view_2d_help() -> Vec<(String, String)> {
     ]
 }
 
-fn link_row<'a, S: AppState>(link: &'static str, ui_size: UiSize) -> Row<'a, Message<S>> {
+fn link_row<'a, S: AppState, R: iced_native::Renderer>(
+    link: &'static str,
+    ui_size: UiSize,
+) -> Row<'a, Message<S>, R> {
     Row::new()
         .push(
             Column::new()
@@ -873,7 +885,11 @@ impl AddStrandMenu {
     }
 
     #[allow(clippy::needless_lifetimes)]
-    fn view<'a, S: AppState>(&'a mut self, ui_size: UiSize, width: u16) -> Element<'a, Message<S>> {
+    fn view<'a, S: AppState, R: iced_native::Renderer>(
+        &'a mut self,
+        ui_size: UiSize,
+        width: u16,
+    ) -> Element<'a, Message<S>, R> {
         let mut ret = Column::new();
         let mut inputs = self.builder_input.iter_mut();
         let position_input =

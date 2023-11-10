@@ -16,7 +16,12 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use super::*;
+use super::{
+    helpers::*, right_checkbox, AppState, FactoryId, Length, Message, RequestFactory,
+    ScrollSentivity, UiSize, ValueId, JUMP_SIZE,
+};
+use iced_native::widget::helpers::*;
+use iced_native::{widget, Element, Renderer};
 
 pub struct ParametersTab {
     scroll_sensitivity_factory: RequestFactory<ScrollSentivity>,
@@ -36,66 +41,87 @@ impl ParametersTab {
         }
     }
 
-    pub fn view<'a, S: AppState>(
+    pub fn view<'a, S, R>(
         &'a mut self,
         ui_size: UiSize,
         app_state: &S,
-    ) -> Element<'a, Message<S>> {
-        let mut ret = Column::new();
-        section!(ret, ui_size, "Parameters");
-        extra_jump!(ret);
-        subsection!(ret, ui_size, "Font size");
-        ret = ret.push(PickList::new(
-            &super::super::super::ALL_UI_SIZE[..],
-            Some(ui_size.clone()),
-            Message::UiSizePicked,
-        ));
+    ) -> Element<'a, Message<S>, R>
+    where
+        S: AppState,
+        R: Renderer + iced_native::text::Renderer,
+        R::Theme: widget::button::StyleSheet
+            + widget::checkbox::StyleSheet
+            + widget::container::StyleSheet
+            + iced::overlay::menu::StyleSheet
+            + widget::pick_list::StyleSheet
+            + widget::scrollable::StyleSheet
+            + widget::text::StyleSheet,
+        <R::Theme as iced::overlay::menu::StyleSheet>::Style:
+            From<<R::Theme as widget::pick_list::StyleSheet>::Style>,
+    {
+        let dna_params = &app_state.get_dna_parameters();
 
-        extra_jump!(ret);
-        subsection!(ret, ui_size, "Scrolling");
-        for view in self
-            .scroll_sensitivity_factory
-            .view(true, ui_size.main_text())
-            .into_iter()
-        {
-            ret = ret.push(view);
-        }
-
-        ret = ret.push(right_checkbox(
-            app_state.get_invert_y_scroll(),
-            "Inverse direction",
-            Message::InvertScroll,
-            ui_size.clone(),
-        ));
-
-        extra_jump!(10, ret);
-        section!(ret, ui_size, "P-stick model");
-        ret = ret.push(PickList::new(
-            &ensnano_design::NAMED_DNA_PARAMETERS[..],
-            Some(app_state.get_dna_parameters().name().clone()),
-            Message::NewDnaParameters,
-        ));
-        for line in app_state.get_dna_parameters().formated_string().lines() {
-            ret = ret.push(Text::new(line));
-        }
-        ret = ret.push(iced::widget::Space::with_height(Length::Units(10)));
-        ret = ret.push(Text::new("About").size(ui_size.head_text()));
-        ret = ret.push(Text::new(format!(
-            "Version {}",
-            ensnano_design::ensnano_version()
-        )));
-
-        subsection!(ret, ui_size, "Development:");
-        ret = ret.push(Text::new("Nicolas Levy"));
-        extra_jump!(ret);
-        subsection!(ret, ui_size, "Conception:");
-        ret = ret.push(Text::new("Nicolas Levy"));
-        ret = ret.push(Text::new("Nicolas Schabanel"));
-        extra_jump!(ret);
-        subsection!(ret, ui_size, "License:");
-        ret = ret.push(Text::new("GPLv3"));
-
-        Scrollable::new(ret).into()
+        let content = iced_native::column![
+            section("Parameters", ui_size),
+            vertical_space(Length::Units(JUMP_SIZE)),
+            subsection("Font size", ui_size),
+            pick_list(
+                &super::super::super::ALL_UI_SIZE[..],
+                Some(ui_size.clone()),
+                Message::UiSizePicked,
+            ),
+            vertical_space(Length::Units(JUMP_SIZE)),
+            subsection("Scrolling", ui_size),
+            column(
+                self.scroll_sensitivity_factory
+                    .view(true, ui_size.main_text())
+            ),
+            right_checkbox(
+                app_state.get_invert_y_scroll(),
+                "Inverse direction",
+                Message::InvertScroll,
+                ui_size.clone(),
+            ),
+            vertical_space(Length::Units(10)),
+            section("P-stick model", ui_size),
+            pick_list(
+                &ensnano_design::NAMED_DNA_PARAMETERS[..],
+                Some(app_state.get_dna_parameters().name().clone()),
+                Message::NewDnaParameters,
+            ),
+            iced_native::column![
+                text(format!("  Radius: {:.3} nm", dna_params.helix_radius)),
+                text(format!("  Radius: {:.3} nm", dna_params.helix_radius)),
+                text(format!("  Rise: {:.3} nm", dna_params.z_step)),
+                text(format!("  Inclination {:.3} nm", dna_params.inclination)),
+                text(format!("  Helicity: {:.2} bp", dna_params.bases_per_turn)),
+                text(format!(
+                    "  Axis: {:.1}°",
+                    dna_params.groove_angle.to_degrees()
+                )),
+                text(format!(
+                    "  Inter helix gap: {:.2} nm",
+                    dna_params.inter_helix_gap
+                )),
+                text(format!(
+                    " Expected xover length: {:.2} nm",
+                    dna_params.dist_ac()
+                )),
+            ],
+            vertical_space(Length::Units(10)),
+            section("About", ui_size),
+            text(format!("Version {}", ensnano_design::ensnano_version())),
+            subsection("Development:", ui_size),
+            text("Nicolas Levy"),
+            vertical_space(Length::Units(JUMP_SIZE)),
+            subsection("Conception:", ui_size),
+            text("Nicolas Levy"),
+            text("Nicolas Schabanel"),
+            vertical_space(Length::Units(JUMP_SIZE)),
+            subsection("License:", ui_size),
+            text("GPLv3"),
+        ];
+        scrollable(content).into()
     }
 
     pub fn update_scroll_request(

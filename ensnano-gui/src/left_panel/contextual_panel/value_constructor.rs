@@ -81,7 +81,7 @@ macro_rules! type_builder {
                     //    );
                     //    ret = ret.push(row)
                     //}
-                    for i in ..Self::PARAMETER_NAMES.len() {
+                    for i in 0..Self::PARAMETER_NAMES.len() {
                         let mut row = Row::new().width(iced::Length::Fill);
                         row = row.push(Text::new(Self::PARAMETER_NAMES[i]));
                         row = row.push(iced::widget::Space::with_width(iced::Length::Units(5)));

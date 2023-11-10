@@ -24,8 +24,8 @@ use ensnano_interactor::{
     UnrootedRevolutionSurfaceDescriptor,
 };
 use iced_native::widget::{
-    button::{self, Button},
-    pick_list::{self, PickList},
+    button::Button,
+    pick_list::PickList,
     scrollable::{self, Scrollable},
     text_input::{self, TextInput},
 };
@@ -148,9 +148,12 @@ impl ParameterWidget {
         }
     }
 
-    fn input_view<S: AppState>(&mut self, id: RevolutionParameterId) -> Element<Message<S>> {
+    fn input_view<S: AppState, R: iced_native::Renderer>(
+        &mut self,
+        id: RevolutionParameterId,
+    ) -> Element<Message<S>, R> {
         let style = super::BadValue(self.contains_valid_input());
-        TextInput::new(&mut self.state, "", &self.current_text, move |s| {
+        TextInput::new("", &self.current_text, move |s| {
             Message::RevolutionParameterUpdate {
                 parameter_id: id,
                 text: s,
@@ -215,7 +218,7 @@ impl<S: AppState> CurveDescriptorWidget<S> {
         }
     }
 
-    fn view<'a>(&'a mut self) -> Element<'a, Message<S>> {
+    fn view<'a, R: iced_native::Renderer>(&'a mut self) -> Element<'a, Message<S>, R> {
         let column: Column<'a, Message<S>> =
             self.parameters
                 .iter_mut()
@@ -265,16 +268,12 @@ impl<S: AppState> CurveDescriptorWidget<S> {
 
 pub(crate) struct RevolutionTab<S: AppState> {
     curve_descriptor_widget: Option<CurveDescriptorWidget<S>>,
-    pick_curve_state: pick_list::State<CurveDescriptorBuilder<S>>,
     half_turn_count: ParameterWidget,
     radius_input: ParameterWidget,
     scaling: Option<RevolutionScaling>,
     nb_sprial_state_input: ParameterWidget,
     shift_generator: Option<ShiftGenerator>,
     pub shift_idx: isize,
-    incr_shift: button::State,
-    decr_shift: button::State,
-
     scaffold_len_target: ParameterWidget,
 
     nb_section_per_segment_input: ParameterWidget,
@@ -284,13 +283,8 @@ pub(crate) struct RevolutionTab<S: AppState> {
     ball_mass: ParameterWidget,
     time_span: ParameterWidget,
     simulation_step: ParameterWidget,
-    pick_method_state: pick_list::State<EquadiffSolvingMethod>,
     equadiff_method: EquadiffSolvingMethod,
     scroll_state: scrollable::State,
-
-    go_button: button::State,
-    abbort_button: button::State,
-    finish_button: button::State,
 }
 
 impl<S: AppState> Default for RevolutionTab<S> {
@@ -299,15 +293,12 @@ impl<S: AppState> Default for RevolutionTab<S> {
         Self {
             scroll_state: Default::default(),
             curve_descriptor_widget: None,
-            pick_curve_state: Default::default(),
             half_turn_count: ParameterWidget::new(InstanciatedParameter::Int(0)),
             radius_input: ParameterWidget::new(InstanciatedParameter::Float(0.)),
             scaling: None,
             nb_sprial_state_input: ParameterWidget::new(InstanciatedParameter::Uint(2)),
             shift_generator: None,
             shift_idx: 0,
-            incr_shift: Default::default(),
-            decr_shift: Default::default(),
             nb_section_per_segment_input: ParameterWidget::new(InstanciatedParameter::Uint(
                 init_parameter.nb_section_per_segment,
             )),
@@ -325,12 +316,8 @@ impl<S: AppState> Default for RevolutionTab<S> {
             simulation_step: ParameterWidget::new(InstanciatedParameter::Float(
                 init_parameter.simulation_step,
             )),
-            pick_method_state: Default::default(),
             equadiff_method: init_parameter.method,
             scaffold_len_target: ParameterWidget::new(InstanciatedParameter::Uint(7249)),
-            go_button: Default::default(),
-            abbort_button: Default::default(),
-            finish_button: Default::default(),
         }
     }
 }
@@ -413,7 +400,11 @@ impl<S: AppState> RevolutionTab<S> {
         })
     }
 
-    pub fn view<'a>(&'a mut self, ui_size: UiSize, app_state: &S) -> Element<'a, Message<S>> {
+    pub fn view<'a, R: iced_native::Renderer>(
+        &'a mut self,
+        ui_size: UiSize,
+        app_state: &S,
+    ) -> Element<'a, Message<S>, R> {
         let desc = self.get_revolution_system(app_state, false);
         let nb_shift = self.get_shift_per_turn(app_state);
 
@@ -427,7 +418,6 @@ impl<S: AppState> RevolutionTab<S> {
 
         subsection!(ret, ui_size, "Section parameters");
         let curve_pick_list = PickList::new(
-            &mut self.pick_curve_state,
             S::POSSIBLE_CURVES,
             self.curve_descriptor_widget
                 .as_ref()
@@ -474,8 +464,8 @@ impl<S: AppState> RevolutionTab<S> {
         } else {
             "Nb shift: ###".into()
         };
-        let mut button_incr = Button::new(&mut self.incr_shift, Text::new("+"));
-        let mut button_decr = Button::new(&mut self.decr_shift, Text::new("-"));
+        let mut button_incr = Button::new(Text::new("+"));
+        let mut button_decr = Button::new(Text::new("-"));
         if nb_shift.is_some() {
             button_decr = button_decr.on_press(Message::DecrRevolutionShift);
             button_incr = button_incr.on_press(Message::IncrRevolutionShift);
@@ -535,7 +525,6 @@ impl<S: AppState> RevolutionTab<S> {
                 .push(self.ball_mass.input_view(RevolutionParameterId::BallMass)),
         );
         let method_pick_list = PickList::new(
-            &mut self.pick_method_state,
             EquadiffSolvingMethod::ALL_METHODS,
             Some(self.equadiff_method),
             |method| Message::RevolutionEquadiffSolvingMethodPicked(method),
@@ -562,18 +551,17 @@ impl<S: AppState> RevolutionTab<S> {
         extra_jump!(ret);
         section!(ret, ui_size, "Relaxation computation");
         if let SimulationState::Relaxing = app_state.get_simulation_state() {
-            let button_abbort = Button::new(&mut self.abbort_button, Text::new("Abort"))
-                .on_press(Message::StopSimulation);
+            let button_abbort = Button::new(Text::new("Abort")).on_press(Message::StopSimulation);
             ret = ret.push(button_abbort);
             extra_jump!(2, ret);
             if let Some(len) = app_state.get_reader().get_current_length_of_relaxed_shape() {
                 ret = ret.push(Text::new(format!("Current total length: {len}")));
             }
-            let button_relaxation = Button::new(&mut self.finish_button, Text::new("Finish"))
-                .on_press(Message::FinishRelaxation);
+            let button_relaxation =
+                Button::new(Text::new("Finish")).on_press(Message::FinishRelaxation);
             ret = ret.push(button_relaxation);
         } else {
-            let mut button = Button::new(&mut self.go_button, Text::new("Start"));
+            let mut button = Button::new(Text::new("Start"));
             if let SimulationState::None = app_state.get_simulation_state() {
                 if desc.is_some() {
                     button = button.on_press(Message::InitRevolutionRelaxation);

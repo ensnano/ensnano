@@ -19,7 +19,6 @@ use super::color_picker::{ColorSquare, ColorState};
 use super::*;
 use ensnano_design::CameraId;
 use ensnano_interactor::{RollRequest, SimulationState};
-use iced::widget::scrollable;
 use std::collections::VecDeque;
 
 const MEMORY_COLOR_ROWS: usize = 3;
@@ -39,20 +38,43 @@ fn light_icon<'a>(icon: LightIcon, ui_size: UiSize) -> iced::widget::Text<'a> {
         .size(ui_size.icon())
 }
 
-fn light_icon_btn<'a, Message: Clone>(icon: LightIcon, ui_size: UiSize) -> Button<'a, Message> {
+fn light_icon_btn<'a, Message: Clone>(
+    icon: LightIcon,
+    ui_size: UiSize,
+) -> iced::widget::Button<'a, Message> {
     let content = light_icon(icon, ui_size);
     Button::new(content).height(iced::Length::Units(ui_size.button()))
 }
 
+// Should be replaced by helpers::section.
+#[deprecated]
 macro_rules! section {
     ($row:ident, $ui_size:ident, $text:tt) => {
-        $row = $row.push(Text::new($text).size($ui_size.head_text()));
+        $row = $row.push(widget::Text::new($text).size($ui_size.head_text()));
     };
 }
+// Should be replaced by helpers::section.
+#[deprecated]
 macro_rules! subsection {
     ($row:ident, $ui_size:ident, $text:tt) => {
-        $row = $row.push(Text::new($text).size($ui_size.intermediate_text()));
+        $row = $row.push(widget::Text::new($text).size($ui_size.intermediate_text()));
     };
+}
+
+/// Additional Iced widget helpers
+mod helpers {
+    use super::UiSize;
+    use iced_native::widget::helpers::*;
+
+    /// Section title widget
+    pub(crate) fn section<Message, Renderer>(title: str, ui_size: UiSize) {
+        text(title).size(ui_size.head_text())
+    }
+
+    /// Section subtitle widget
+    pub(crate) fn subsection<Message, Renderer>(title: str, ui_size: UiSize) {
+        text(title).size(ui_size.intermediate_text())
+    }
 }
 
 macro_rules! extra_jump {
@@ -101,7 +123,11 @@ impl<S: AppState> GoStop<S> {
         }
     }
 
-    fn view(&mut self, active: bool, running: bool) -> Row<Message<S>> {
+    fn view<R: iced_native::Renderer>(
+        &mut self,
+        active: bool,
+        running: bool,
+    ) -> Row<Message<S>, R> {
         let button_str = if running {
             "Stop".to_owned()
         } else {
@@ -111,6 +137,6 @@ impl<S: AppState> GoStop<S> {
         if active {
             button = button.on_press((self.on_press)(!running));
         }
-        Row::new().push(button)
+        iced::widget::row![button]
     }
 }

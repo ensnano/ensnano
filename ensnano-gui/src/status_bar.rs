@@ -18,6 +18,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::{AppState, Requests, UiSize};
 use ensnano_interactor::operation::{Operation, ParameterField};
 pub use ensnano_interactor::StrandBuildingStatus;
+use iced::theme;
 use iced::widget::{container, slider, Container};
 use iced::{Background, Length};
 use iced_native::{
@@ -287,6 +288,12 @@ impl container::StyleSheet for StatusBarStyle {
             text_color: Some(Color::WHITE),
             ..container::Appearance::default()
         }
+    }
+}
+
+impl From<StatusBarStyle> for theme::Container {
+    fn from(value: StatusBarStyle) -> Self {
+        Default::default()
     }
 }
 

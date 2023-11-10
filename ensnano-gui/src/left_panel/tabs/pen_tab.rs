@@ -63,11 +63,11 @@ macro_rules! add_grid_buttons {
 }
 
 impl PenTab {
-    pub fn view<'a, S: AppState>(
+    pub fn view<'a, S: AppState, R: iced_native::Renderer>(
         &'a mut self,
         ui_size: UiSize,
         app_state: &S,
-    ) -> Element<'a, Message<S>> {
+    ) -> Element<'a, Message<S>, R> {
         let mut ret = Column::new().spacing(5);
         section!(ret, ui_size, "Bezier Planes");
         ret = ret.push(light_icon_btn(LightIcon::FileOpen, ui_size).on_press(Message::LoadSvgFile));

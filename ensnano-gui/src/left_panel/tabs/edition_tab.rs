@@ -15,7 +15,13 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use super::*;
+use super::{
+    right_checkbox, text_btn, AppState, Color, ColorPicker, ColorSquare, ColorState, DnaElementKey,
+    FactoryId, GoStop, HelixRoll, Length, Message, RequestFactory, RollRequest, SequenceInput,
+    UiSize, ValueId, VecDeque, MEMORY_COLOR_COLUMN, MEMORY_COLOR_ROWS, NB_MEMORY_COLOR,
+};
+use iced_native::widget::helpers::*;
+use iced_native::{widget, Element, Renderer};
 
 pub struct EditionTab<S: AppState> {
     helix_roll_factory: RequestFactory<HelixRoll>,
@@ -46,10 +52,10 @@ impl MemoryColorSquare {
     }
 }
 
-fn memory_color_column<'a, S: AppState>(
+fn memory_color_column<'a, S: AppState, R: iced_native::Renderer>(
     states: &'a mut [MemoryColorSquare],
-) -> Column<'a, Message<S>> {
-    let mut ret = Column::new();
+) -> widget::Column<'a, Message<S>, R> {
+    let mut ret = widget::Column::new();
     let mut right = states;
     let mut left;
     for _ in 0..MEMORY_COLOR_ROWS {
@@ -61,7 +67,7 @@ fn memory_color_column<'a, S: AppState>(
         log::debug!("right len after split {}", right.len());
 
         if left.len() > 0 {
-            let mut row = Row::new();
+            let mut row = widget::Row::new();
             let remaining_space = MEMORY_COLOR_COLUMN - left.len();
             for state in left.iter_mut() {
                 row = row.push(ColorSquare::new(
@@ -111,7 +117,7 @@ macro_rules! add_autoroll_button {
 macro_rules! add_color_square {
     ($ret: ident, $self: ident, $color_square: ident) => {
         $ret = $ret.push($self.color_picker.view()).push(
-            Row::new().push($color_square).push(
+            widget::Row::new().push($color_square).push(
                 memory_color_column($self.memory_color_squares.make_contiguous())
                     .width(Length::FillPortion(4)),
             ),
@@ -127,7 +133,7 @@ macro_rules! add_tighten_helices_button {
                 tighten_helices_button.on_press(Message::Redim2dHelices(false));
         }
         $ret = $ret.push(
-            Row::new()
+            widget::Row::new()
                 .push(tighten_helices_button)
                 .push(text_btn("All", $ui_size).on_press(Message::Redim2dHelices(true)))
                 .spacing(5),
@@ -185,33 +191,33 @@ impl<S: AppState> EditionTab<S> {
         }
     }
 
-    pub fn view<'a>(
+    pub fn view<'a, R: Renderer>(
         &'a mut self,
         ui_size: UiSize,
         _width: u16,
         app_state: &S,
-    ) -> Element<'a, Message<S>> {
-        let mut ret = Column::new().spacing(5);
+    ) -> Element<'a, Message<S>, R> {
+        let mut content = widget::Column::new().spacing(5);
         let selection = app_state.get_selection_as_dnaelement();
         let roll_target_helices = self.get_roll_target_helices(&selection);
-        section!(ret, ui_size, "Edition");
-        add_roll_slider!(ret, self, app_state, ui_size);
-        add_autoroll_button!(ret, self, app_state, roll_target_helices);
+        section!(content, ui_size, "Edition");
+        add_roll_slider!(content, self, app_state, ui_size);
+        add_autoroll_button!(content, self, app_state, roll_target_helices);
 
         let selection_contains_strand =
             ensnano_interactor::extract_strands_from_selection(app_state.get_selection()).len() > 0;
         if selection_contains_strand {
             let color_square = self.color_picker.color_square(&mut self.color_square_state);
-            add_color_square!(ret, self, color_square);
+            add_color_square!(content, self, color_square);
         }
 
-        subsection!(ret, ui_size, "Suggestions Parameters");
-        add_suggestion_parameters_checkboxes!(ret, self, app_state, ui_size);
+        subsection!(content, ui_size, "Suggestions Parameters");
+        add_suggestion_parameters_checkboxes!(content, self, app_state, ui_size);
 
-        subsection!(ret, ui_size, "Tighten 2D helices");
-        add_tighten_helices_button!(ret, self, app_state, ui_size, roll_target_helices);
+        subsection!(content, ui_size, "Tighten 2D helices");
+        add_tighten_helices_button!(content, self, app_state, ui_size, roll_target_helices);
 
-        Scrollable::new(ret).into()
+        scrollable(content).into()
     }
 
     fn get_roll_target_helices(&self, selection: &[DnaElementKey]) -> Vec<usize> {

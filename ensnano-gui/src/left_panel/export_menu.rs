@@ -16,19 +16,28 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use super::*;
+use super::{AppState, ExportType, Message};
+use iced_native::widget::helpers::*;
+use iced_native::{widget, Element, Renderer};
 
 #[derive(Default)]
 pub struct ExportMenu {}
 
 impl ExportMenu {
-    pub fn view<'a, S: AppState>(&'a mut self) -> Element<'a, Message<S>> {
-        let ret = Column::new()
-            .push(Button::new(Text::new("Cancel")).on_press(Message::CancelExport))
-            .push(Button::new(Text::new("Oxdna")).on_press(Message::Export(ExportType::Oxdna)))
-            .push(Button::new(Text::new("Pdb")).on_press(Message::Export(ExportType::Pdb)))
-            .push(Button::new(Text::new("Cadnano")).on_press(Message::Export(ExportType::Cadnano)));
+    pub fn view<'a, S, R>(&'a self) -> Element<'a, Message<S>, R>
+    where
+        S: AppState,
+        R: Renderer + iced_native::text::Renderer,
+        R::Theme:
+            widget::button::StyleSheet + widget::scrollable::StyleSheet + widget::text::StyleSheet,
+    {
+        let content = iced_native::column![
+            button(text("Cancel")).on_press(Message::CancelExport),
+            button(text("Oxdna")).on_press(Message::Export(ExportType::Oxdna)),
+            button(text("Pdb")).on_press(Message::Export(ExportType::Pdb)),
+            button(text("Cadnano")).on_press(Message::Export(ExportType::Cadnano)),
+        ];
 
-        Scrollable::new(ret).into()
+        scrollable(content).into()
     }
 }
