@@ -97,7 +97,7 @@ impl Default for AppState {
 }
 
 impl AppState {
-    pub fn with_preffered_parameters() -> Result<Self, confy::ConfyError> {
+    pub fn with_preferred_parameters() -> Result<Self, confy::ConfyError> {
         let state: AppState_ = AppState_ {
             parameters: confy::load(APP_NAME, APP_NAME)?,
             ..Default::default()
@@ -706,7 +706,7 @@ struct AppState_ {
     /// The set of objects that are "one click away from beeing selected"
     candidates: AddressPointer<Vec<Selection>>,
     selection_mode: SelectionMode,
-    /// A pointer to the design currently beign eddited. The pointed design is never mutatated.
+    /// A pointer to the design currently beign edited. The pointed design is never mutatated.
     /// Instead, when a modification is requested, the design is cloned and the `design` pointer is
     /// replaced by a pointer to a modified `Design`.
     design: AddressPointer<DesignInteractor>,

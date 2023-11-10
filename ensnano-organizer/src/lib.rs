@@ -114,8 +114,8 @@ impl<E: OrganizerElement> OrganizerMessage<E> {
         }))
     }
 
-    fn eddit(id: NodeId<E::AutoGroup>) -> Self {
-        Self::InternalMessage(InternalMessage(OrganizerMessage_::Eddit { id }))
+    fn edit(id: NodeId<E::AutoGroup>) -> Self {
+        Self::InternalMessage(InternalMessage(OrganizerMessage_::Edit { id }))
     }
 
     fn delete(id: NodeId<E::AutoGroup>) -> Self {
@@ -126,8 +126,8 @@ impl<E: OrganizerElement> OrganizerMessage<E> {
         Self::InternalMessage(InternalMessage(OrganizerMessage_::NameInput { name }))
     }
 
-    fn stop_eddit() -> Self {
-        Self::InternalMessage(InternalMessage(OrganizerMessage_::StopEddit))
+    fn stop_edit() -> Self {
+        Self::InternalMessage(InternalMessage(OrganizerMessage_::StopEdit))
     }
 
     fn element_selected(key: E::Key) -> Self {
@@ -174,10 +174,10 @@ enum OrganizerMessage_<E: OrganizerElement> {
     ElementSelected {
         key: E::Key,
     },
-    Eddit {
+    Edit {
         id: NodeId<E::AutoGroup>,
     },
-    StopEddit,
+    StopEdit,
     NameInput {
         name: String,
     },
@@ -201,7 +201,7 @@ pub struct Organizer<E: OrganizerElement> {
     scroll_state: scrollable::State,
     theme: Theme,
     width: iced::Length,
-    edditing: Option<GroupId>,
+    editing: Option<GroupId>,
     modifiers: Modifiers,
     selected_nodes: BTreeSet<NodeId<E::AutoGroup>>,
     dragging: BTreeSet<Identifier<E::Key, E::AutoGroup>>,
@@ -233,7 +233,7 @@ impl<E: OrganizerElement> Organizer<E> {
             scroll_state: Default::default(),
             theme: Theme::grey(),
             width: iced::Length::Units(300),
-            edditing: None,
+            editing: None,
             modifiers: Modifiers::default(),
             selected_nodes: BTreeSet::new(),
             dragging: BTreeSet::new(),
@@ -312,7 +312,7 @@ impl<E: OrganizerElement> Organizer<E> {
             .get_group_id()
             .expect("new group should have an Id");
         self.groups.push(new_group);
-        self.edditing = Some(ret);
+        self.editing = Some(ret);
         ret
     }
 
@@ -335,17 +335,17 @@ impl<E: OrganizerElement> Organizer<E> {
                     new_group,
                 ));
             }
-            OrganizerMessage_::Eddit { id } => {
-                log::info!("Message eddit {:?}", id);
+            OrganizerMessage_::Edit { id } => {
+                log::info!("Message edit {:?}", id);
                 if let Some(group_id) = self.get_group(id).and_then(|g| g.get_group_id()) {
-                    self.start_edditing(group_id)
+                    self.start_editing(group_id)
                 } else {
                     log::error!("Could not get group id");
                 }
             }
-            OrganizerMessage_::NameInput { name } => self.eddit_name(name.clone()),
-            OrganizerMessage_::StopEddit => {
-                self.stop_edditing();
+            OrganizerMessage_::NameInput { name } => self.edit_name(name.clone()),
+            OrganizerMessage_::StopEdit => {
+                self.stop_editing();
                 return Some(OrganizerMessage::NewTree(self.tree()));
             }
             OrganizerMessage_::ElementSelected { key } => {
@@ -374,7 +374,7 @@ impl<E: OrganizerElement> Organizer<E> {
                 });
             }
             OrganizerMessage_::Delete { id } => {
-                self.stop_edditing();
+                self.stop_editing();
                 self.pop_id(id);
                 return Some(OrganizerMessage::NewTree(self.tree()));
             }
@@ -527,43 +527,43 @@ impl<E: OrganizerElement> Organizer<E> {
         current_selection
     }
 
-    fn start_edditing(&mut self, id: GroupId) {
+    fn start_editing(&mut self, id: GroupId) {
         println!("Start editing {:?}", id);
-        self.stop_edditing();
+        self.stop_editing();
         let node_id = self.group_to_node.get(&id);
         if let Some(id_slice) = node_id.and_then(get_group_id) {
-            log::info!("start edditing {:?}", id);
-            self.groups[id_slice[0]].start_edditing(&id_slice[1..]);
-            self.edditing = Some(id);
+            log::info!("start editing {:?}", id);
+            self.groups[id_slice[0]].start_editing(&id_slice[1..]);
+            self.editing = Some(id);
         }
     }
 
     pub fn has_keyboard_priority(&self) -> bool {
-        self.edditing.is_some()
+        self.editing.is_some()
     }
 
-    fn stop_edditing(&mut self) {
+    fn stop_editing(&mut self) {
         let node_id = self
-            .edditing
+            .editing
             .as_ref()
             .and_then(|g_id| self.group_to_node.get(g_id).clone())
             .cloned();
         if let Some(id) = node_id.as_ref().and_then(get_group_id) {
-            self.groups[id[0]].stop_edditing(&id[1..]);
+            self.groups[id[0]].stop_editing(&id[1..]);
         }
-        self.edditing = None;
+        self.editing = None;
     }
 
-    fn eddit_name(&mut self, name: String) {
+    fn edit_name(&mut self, name: String) {
         let node_id = self
-            .edditing
+            .editing
             .as_ref()
             .and_then(|g_id| self.group_to_node.get(g_id).clone())
             .cloned();
         if let Some(id) = node_id.as_ref().and_then(get_group_id) {
-            self.groups[id[0]].eddit_name(&id[1..], name);
+            self.groups[id[0]].edit_name(&id[1..], name);
         } else {
-            println!("ERROR receive name input but self.edditing is None");
+            println!("ERROR receive name input but self.editing is None");
         }
     }
 
@@ -613,8 +613,8 @@ impl<E: OrganizerElement> Organizer<E> {
             }
             self.recompute_id();
             self.update_attributes();
-            if let Some(group_id) = self.edditing {
-                self.start_edditing(group_id)
+            if let Some(group_id) = self.editing {
+                self.start_editing(group_id)
             }
         }
         let ret = self.must_update_tree;
@@ -984,7 +984,7 @@ impl<E: OrganizerElement> NodeView<E> {
             title_button_state: Default::default(),
             title_button_hovering_state: Default::default(),
             state: GroupState::Iddle {
-                eddit_button: Default::default(),
+                edit_button: Default::default(),
                 delete_button: Default::default(),
             },
             attribute_displayers: vec![AttributeDisplayer::new(); E::all_repr().len()],
@@ -996,26 +996,26 @@ impl<E: OrganizerElement> NodeView<E> {
             expansion_btn_state: Default::default(),
             title_button_state: Default::default(),
             title_button_hovering_state: Default::default(),
-            state: GroupState::NotEdditable,
+            state: GroupState::NotEditable,
             attribute_displayers: vec![],
         }
     }
 
-    fn start_edditing(&mut self) {
+    fn start_editing(&mut self) {
         log::info!("reached view");
-        self.state = GroupState::Edditing {
+        self.state = GroupState::Editing {
             input: text_input::State::focused(),
             delete_button: Default::default(),
-            eddit_button: Default::default(),
+            edit_button: Default::default(),
         };
-        if let GroupState::Edditing { input, .. } = &mut self.state {
+        if let GroupState::Editing { input, .. } = &mut self.state {
             input.select_all()
         }
     }
 
-    fn stop_edditing(&mut self) {
+    fn stop_editing(&mut self) {
         self.state = GroupState::Iddle {
-            eddit_button: Default::default(),
+            edit_button: Default::default(),
             delete_button: Default::default(),
         };
     }
@@ -1031,7 +1031,7 @@ impl<E: OrganizerElement> NodeView<E> {
         let level = get_group_id(&id).map(|v| v.len()).unwrap_or(0);
         let title_row = match &mut self.state {
             GroupState::Iddle {
-                eddit_button,
+                edit_button,
                 delete_button,
             } => {
                 let mut row = Row::new();
@@ -1044,8 +1044,8 @@ impl<E: OrganizerElement> NodeView<E> {
                     .push(Space::with_width(iced::Length::Fill));
 
                 row = row.push(
-                    Button::new(eddit_button, eddit_icon())
-                        .on_press(OrganizerMessage::eddit(id.clone())),
+                    Button::new(edit_button, edit_icon())
+                        .on_press(OrganizerMessage::edit(id.clone())),
                 );
 
                 for ad in self.attribute_displayers.iter_mut() {
@@ -1063,10 +1063,10 @@ impl<E: OrganizerElement> NodeView<E> {
                 );
                 row
             }
-            GroupState::Edditing {
+            GroupState::Editing {
                 input,
                 delete_button,
-                eddit_button,
+                edit_button,
             } => {
                 let name = name.clone();
                 let mut row = Row::new()
@@ -1078,13 +1078,12 @@ impl<E: OrganizerElement> NodeView<E> {
                         TextInput::new(input, "New group name...", &name, |s| {
                             OrganizerMessage::name_input(s)
                         })
-                        .on_submit(OrganizerMessage::stop_eddit()),
+                        .on_submit(OrganizerMessage::stop_edit()),
                     )
                     .push(Space::with_width(iced::Length::Fill));
 
                 row = row.push(
-                    Button::new(eddit_button, eddit_icon())
-                        .on_press(OrganizerMessage::stop_eddit()),
+                    Button::new(edit_button, edit_icon()).on_press(OrganizerMessage::stop_edit()),
                 );
                 for ad in self.attribute_displayers.iter_mut() {
                     if let Some(view) = ad.view() {
@@ -1100,7 +1099,7 @@ impl<E: OrganizerElement> NodeView<E> {
                 );
                 row
             }
-            GroupState::NotEdditable => {
+            GroupState::NotEditable => {
                 let mut row = Row::new();
                 row = row.push(
                     Button::new(&mut self.expansion_btn_state, expand_icon(expanded))
@@ -1158,15 +1157,15 @@ enum GroupContent<E: OrganizerElement> {
 
 pub enum GroupState {
     Iddle {
-        eddit_button: button::State,
+        edit_button: button::State,
         delete_button: button::State,
     },
-    Edditing {
+    Editing {
         input: text_input::State,
         delete_button: button::State,
-        eddit_button: button::State,
+        edit_button: button::State,
     },
-    NotEdditable,
+    NotEditable,
 }
 
 impl<E: OrganizerElement> GroupContent<E> {
@@ -1320,13 +1319,13 @@ impl<E: OrganizerElement> GroupContent<E> {
         }
     }
 
-    fn start_edditing(&mut self, id: &[usize]) {
+    fn start_editing(&mut self, id: &[usize]) {
         if id.len() > 0 {
             match self {
                 Self::Leaf { .. } => {
                     println!("ERROR ACCESSING A LEAF WITHOUT EXHAUSTING ID");
                 }
-                Self::Node { childrens, .. } => childrens[id[0]].start_edditing(&id[1..]),
+                Self::Node { childrens, .. } => childrens[id[0]].start_editing(&id[1..]),
                 Self::Placeholder => unreachable!("Expanding a Placeholder"),
             }
         } else {
@@ -1334,19 +1333,19 @@ impl<E: OrganizerElement> GroupContent<E> {
                 Self::Leaf { .. } => {
                     println!("ERROR ACCESSING A LEAF WITHOUT EXHAUSTING ID");
                 }
-                Self::Node { view, .. } => view.start_edditing(),
+                Self::Node { view, .. } => view.start_editing(),
                 Self::Placeholder => unreachable!("Expanding a Placeholder"),
             }
         }
     }
 
-    fn stop_edditing(&mut self, id: &[usize]) {
+    fn stop_editing(&mut self, id: &[usize]) {
         if id.len() > 0 {
             match self {
                 Self::Leaf { .. } => {
                     println!("ERROR ACCESSING A LEAF WITHOUT EXHAUSTING ID");
                 }
-                Self::Node { childrens, .. } => childrens[id[0]].stop_edditing(&id[1..]),
+                Self::Node { childrens, .. } => childrens[id[0]].stop_editing(&id[1..]),
                 Self::Placeholder => unreachable!("Expanding a Placeholder"),
             }
         } else {
@@ -1355,20 +1354,20 @@ impl<E: OrganizerElement> GroupContent<E> {
                     println!("ERROR ACCESSING A LEAF WITHOUT EXHAUSTING ID");
                 }
                 Self::Node { view, .. } => {
-                    view.stop_edditing();
+                    view.stop_editing();
                 }
                 Self::Placeholder => unreachable!("Expanding a Placeholder"),
             }
         }
     }
 
-    fn eddit_name(&mut self, id: &[usize], name: String) {
+    fn edit_name(&mut self, id: &[usize], name: String) {
         if id.len() > 0 {
             match self {
                 Self::Leaf { .. } => {
                     println!("ERROR ACCESSING A LEAF WITHOUT EXHAUSTING ID");
                 }
-                Self::Node { childrens, .. } => childrens[id[0]].eddit_name(&id[1..], name),
+                Self::Node { childrens, .. } => childrens[id[0]].edit_name(&id[1..], name),
                 Self::Placeholder => unreachable!("Expanding a Placeholder"),
             }
         } else {
@@ -1713,7 +1712,7 @@ where
     }
 }
 
-fn eddit_icon<R: Renderer>() -> Text<R>
+fn edit_icon<R: Renderer>() -> Text<R>
 where
     <R as iced_native::text::Renderer>::Font: From<iced::Font>,
 {

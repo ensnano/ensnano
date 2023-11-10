@@ -18,7 +18,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::{AppState, UiSize};
 use ensnano_interactor::{ActionMode, SelectionMode};
 use iced::{container, Background, Container};
-use iced_wgpu::Renderer;
+use iced_wgpu;
 use iced_winit::winit::dpi::LogicalSize;
 use iced_winit::{
     widget::{button, Button, Row},
@@ -146,7 +146,7 @@ impl<R: Requests, S: AppState> TopBar<R, S> {
 }
 
 impl<R: Requests, S: AppState> Program for TopBar<R, S> {
-    type Renderer = Renderer;
+    type Renderer = iced_wgpu::Renderer;
     type Message = Message<S>;
 
     fn update(&mut self, message: Message<S>) -> Command<Message<S>> {
@@ -209,7 +209,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
         Command::none()
     }
 
-    fn view(&mut self) -> Element<Message<S>, Renderer> {
+    fn view(&mut self) -> Element<Message<S>, iced_wgpu::Renderer> {
         let build_helix_mode = self.get_build_helix_mode();
         let action_modes = [
             ActionMode::Normal,
@@ -573,7 +573,7 @@ fn action_mode_btn<'a, S: AppState>(
     fixed_mode: ActionMode,
     button_size: u16,
     axis_aligned: bool,
-) -> Button<'a, Message<S>, Renderer> {
+) -> Button<'a, Message<S>, iced_wgpu::Renderer> {
     let icon_path = if fixed_mode == mode {
         mode.icon_on(axis_aligned)
     } else {
@@ -591,7 +591,7 @@ fn selection_mode_btn<'a, S: AppState>(
     mode: SelectionMode,
     fixed_mode: SelectionMode,
     button_size: u16,
-) -> Button<'a, Message<S>, Renderer> {
+) -> Button<'a, Message<S>, iced_wgpu::Renderer> {
     let icon_path = if fixed_mode == mode {
         mode.icon_on()
     } else {

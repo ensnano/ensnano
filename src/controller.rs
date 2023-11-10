@@ -40,7 +40,7 @@ pub use set_scaffold_sequence::{
 mod chanel_reader;
 mod messages;
 mod normal_state;
-pub use chanel_reader::{ChanelReader, ChanelReaderUpdate};
+pub use chanel_reader::{ChannelReader, ChannelReaderUpdate};
 pub use normal_state::Action;
 use normal_state::NormalState;
 
@@ -79,7 +79,7 @@ impl Controller {
 }
 
 pub(crate) trait State {
-    /// Operate on [`main_state`] and return the new State of the automata
+    /// Operate on [MainState] and return the new State of the automata
     fn make_progress(self: Box<Self>, main_state: &mut dyn MainState) -> Box<dyn State>;
 }
 
@@ -194,7 +194,7 @@ pub(crate) trait MainState: ScaffoldSetter {
     fn load_design(&mut self, path: PathBuf) -> Result<(), LoadDesignError>;
     fn save_design(&mut self, path: &PathBuf) -> Result<(), SaveDesignError>;
     fn save_backup(&mut self) -> Result<(), SaveDesignError>;
-    fn get_chanel_reader(&mut self) -> &mut ChanelReader;
+    fn get_chanel_reader(&mut self) -> &mut ChannelReader;
     fn apply_operation(&mut self, operation: DesignOperation);
     fn apply_silent_operation(&mut self, operation: DesignOperation);
     fn undo(&mut self);

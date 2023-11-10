@@ -182,7 +182,7 @@ impl<'a, S: AppState> EventContext<'a, S> {
         )
     }
 
-    pub fn get_bezier_vertex_being_eddited(&self) -> Option<BezierVertexId> {
+    pub fn get_bezier_vertex_being_edited(&self) -> Option<BezierVertexId> {
         self.app_state.get_selected_bezier_vertex()
     }
 

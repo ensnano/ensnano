@@ -16,11 +16,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-//! A wrapper arround an Arc<T> that uses `Arc::ptr_eq` to test for equality.
+//! A wrapper arround an `Arc<T>` that uses `Arc::ptr_eq` to test for equality.
 
 use std::sync::Arc;
 
-/// A wrapper arround an Arc<T> that uses `Arc::ptr_eq` to test for equality.
+/// A wrapper arround an `Arc<T>` that uses `Arc::ptr_eq` to test for equality.
 #[derive(Default)]
 pub(super) struct AddressPointer<T: Default>(Arc<T>);
 

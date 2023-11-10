@@ -16,7 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-//! This module defines the `ChanelReader` struct which is in charge of communication with
+//! This module defines the [ChannelReader] struct which is in charge of communication with
 //! computation threads that can be spawned by the progam
 
 use std::sync::mpsc;
@@ -27,13 +27,13 @@ use crate::app_state::{
     SimulationUpdate,
 };
 #[derive(Default)]
-pub struct ChanelReader {
+pub struct ChannelReader {
     scaffold_shift_optimization_progress: Option<mpsc::Receiver<f32>>,
     scaffold_shift_optimization_result: Option<mpsc::Receiver<ShiftOptimizationResult>>,
     simulation_interface: Option<Weak<Mutex<dyn SimulationInterface>>>,
 }
 
-pub enum ChanelReaderUpdate {
+pub enum ChannelReaderUpdate {
     /// Progress has been made in the optimization of the scaffold position
     ScaffoldShiftOptimizationProgress(f32),
     /// The optimum scaffold position has been found
@@ -42,26 +42,26 @@ pub enum ChanelReaderUpdate {
     SimulationExpired,
 }
 
-impl ChanelReader {
-    pub fn get_updates(&mut self) -> Vec<ChanelReaderUpdate> {
+impl ChannelReader {
+    pub fn get_updates(&mut self) -> Vec<ChannelReaderUpdate> {
         let mut updates = Vec::new();
         if let Some(progress) = self.get_scaffold_shift_optimization_progress() {
-            updates.push(ChanelReaderUpdate::ScaffoldShiftOptimizationProgress(
+            updates.push(ChannelReaderUpdate::ScaffoldShiftOptimizationProgress(
                 progress,
             ));
         }
         if let Some(result) = self.get_scaffold_shift_optimization_result() {
-            updates.push(ChanelReaderUpdate::ScaffoldShiftOptimizationResult(result));
+            updates.push(ChannelReaderUpdate::ScaffoldShiftOptimizationResult(result));
         }
         let mut invalidated = false;
         if let Some(interface_ptr) = self.simulation_interface.as_ref() {
             if let Some(interface) = interface_ptr.upgrade() {
                 if !interface.lock().unwrap().still_valid() {
                     invalidated = true;
-                    updates.push(ChanelReaderUpdate::SimulationExpired)
+                    updates.push(ChannelReaderUpdate::SimulationExpired)
                 }
                 if let Some(new_state) = interface.lock().unwrap().get_simulation_state() {
-                    updates.push(ChanelReaderUpdate::SimulationUpdate(new_state))
+                    updates.push(ChannelReaderUpdate::SimulationUpdate(new_state))
                 }
             } else {
                 invalidated = true;
@@ -86,7 +86,7 @@ impl ChanelReader {
     }
 }
 
-impl ShiftOptimizerReader for ChanelReader {
+impl ShiftOptimizerReader for ChannelReader {
     fn attach_result_chanel(&mut self, chanel: mpsc::Receiver<ShiftOptimizationResult>) {
         self.scaffold_shift_optimization_result = Some(chanel);
     }
@@ -96,7 +96,7 @@ impl ShiftOptimizerReader for ChanelReader {
     }
 }
 
-impl SimulationReader for ChanelReader {
+impl SimulationReader for ChannelReader {
     fn attach_state(&mut self, state_chanel: &std::sync::Arc<Mutex<dyn SimulationInterface>>) {
         self.simulation_interface = Some(Arc::downgrade(state_chanel));
     }

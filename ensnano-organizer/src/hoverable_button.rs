@@ -50,7 +50,7 @@ impl<'a, Message: Clone, Renderer> HoverableContainer<'a, Message, Renderer>
 where
     Renderer: iced_native::Renderer,
 {
-    /// Creates an empty [`Container`].
+    /// Creates an empty [Container](iced::widget::container::Container).
     pub fn new<T>(state: &'a mut State, content: T) -> Self
     where
         T: Into<Element<'a, Message, Renderer>>,
@@ -71,61 +71,61 @@ where
         }
     }
 
-    /// Sets the [`Padding`] of the [`Container`].
+    /// Sets the [`Padding`] of the [Container](iced::widget::container::Container).
     pub fn padding<P: Into<Padding>>(mut self, padding: P) -> Self {
         self.padding = padding.into();
         self
     }
 
-    /// Sets the width of the [`Container`].
+    /// Sets the width of the [Container](iced::widget::container::Container).
     pub fn width(mut self, width: Length) -> Self {
         self.width = width;
         self
     }
 
-    /// Sets the height of the [`Container`].
+    /// Sets the height of the [Container](iced::widget::container::Container).
     pub fn height(mut self, height: Length) -> Self {
         self.height = height;
         self
     }
 
-    /// Sets the maximum width of the [`Container`].
+    /// Sets the maximum width of the [Container](iced::widget::container::Container).
     pub fn max_width(mut self, max_width: u32) -> Self {
         self.max_width = max_width;
         self
     }
 
-    /// Sets the maximum height of the [`Container`] in pixels.
+    /// Sets the maximum height of the [Container](iced::widget::container::Container) in pixels.
     pub fn max_height(mut self, max_height: u32) -> Self {
         self.max_height = max_height;
         self
     }
 
-    /// Sets the content alignment for the horizontal axis of the [`Container`].
+    /// Sets the content alignment for the horizontal axis of the [Container](iced::widget::container::Container).
     pub fn align_x(mut self, alignment: alignment::Horizontal) -> Self {
         self.horizontal_alignment = alignment;
         self
     }
 
-    /// Sets the content alignment for the vertical axis of the [`Container`].
+    /// Sets the content alignment for the vertical axis of the [Container](iced::widget::container::Container).
     pub fn align_y(mut self, alignment: alignment::Vertical) -> Self {
         self.vertical_alignment = alignment;
         self
     }
 
-    /// Centers the contents in the horizontal axis of the [`Container`].
+    /// Centers the contents in the horizontal axis of the [Container](iced::widget::container::Container).
     pub fn center_x(mut self) -> Self {
         self.horizontal_alignment = alignment::Horizontal::Center;
         self
     }
 
-    /// Centers the contents in the vertical axis of the [`Container`].
+    /// Centers the contents in the vertical axis of the [Container](iced::widget::container::Container).
     pub fn center_y(mut self) -> Self {
         self.vertical_alignment = alignment::Vertical::Center;
         self
     }
 
-    /// Sets the style of the [`Container`].
+    /// Sets the style of the [Container](iced::widget::container::Container).
     pub fn style(mut self, style_sheet: impl Into<Box<dyn StyleSheet + 'a>>) -> Self {
         self.style_sheet = style_sheet.into();
         self
@@ -142,7 +142,7 @@ where
     }
 }
 
-/// Computes the layout of a [`Container`].
+/// Computes the layout of a [Container](iced::widget::container::Container).
 pub fn layout<Renderer>(
     renderer: &Renderer,
     limits: &layout::Limits,
@@ -283,7 +283,8 @@ where
     }
 }
 
-/// Draws the background of a [`Container`] given its [`Style`] and its `bounds`.
+/// Draws the background of a
+/// [Container](iced::widget::container::Container) given its [Style] and its `bounds`.
 pub fn draw_background<Renderer>(renderer: &mut Renderer, style: &Style, bounds: Rectangle)
 where
     Renderer: iced_native::Renderer,

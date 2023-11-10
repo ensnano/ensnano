@@ -679,10 +679,10 @@ impl DraggingTransitionTable for MovingBezierVertex {
     ) -> Option<Consequence> {
         let (plane_id, vertex_id, path_id) = match self {
             Self::New { plane_id } => {
-                if let Some(vertex) = cursor.context.get_bezier_vertex_being_eddited() {
+                if let Some(vertex) = cursor.context.get_bezier_vertex_being_edited() {
                     (*plane_id, vertex.vertex_id, vertex.path_id)
                 } else {
-                    log::error!("Could not get id of bezier vertex being eddited");
+                    log::error!("Could not get id of bezier vertex being edited");
                     return None;
                 }
             }
@@ -693,7 +693,7 @@ impl DraggingTransitionTable for MovingBezierVertex {
                 {
                     (plane_id, *vertex_id, *path_id)
                 } else {
-                    log::error!("Could not get plane_id of bezier vertex being eddited");
+                    log::error!("Could not get plane_id of bezier vertex being edited");
                     return None;
                 }
             }

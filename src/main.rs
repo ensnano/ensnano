@@ -20,12 +20,12 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! # Organization of the software
 //!
 //!
-//! The [main](main) function owns the event loop and the framebuffer. It recieves window events
+//! The [main] function owns the event loop and the framebuffer. It recieves window events
 //! and handles the framebuffer.
 //!
 //! ## Drawing process
 //!
-//! On each redraw request, the [main](main) funtion generates a new frame, and ask the
+//! On each redraw request, the [main] funtion generates a new frame, and ask the
 //! [Multiplexer](multiplexer) to draw on a view of that texture.
 //!
 //! The [Multiplexer](multiplexer) knows how the window is devided into several regions. For each
@@ -37,7 +37,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! ## Handling of events
 //!
 //! The Global state of the program is encoded in an automata defined in the
-//! [controller](controller) module. This global state determines weither inputs are handled
+//! [controller] module. This global state determines weither inputs are handled
 //! normally or if the program should wait for the user to interact with dialog windows.
 //!
 //! When the Global automata is in NormalState, events are forwarded to the
@@ -46,14 +46,14 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! events like resizing of the window are handled by the multiplexer.
 //!
 //! When GUIs handle an event. They recieve a reference to the state of the main program. This
-//! state is encoded in the [AppState](app_state::AppState) data structure. Each GUI components
+//! state is encoded in the [AppState] data structure. Each GUI components
 //! needs to be able to recieve some specific information about the state of the program to handle
 //! events and to draw their views. Theese needs are encoded in traits. GUI component typically
 //! defines their own `AppState` trait that must be implemented by the concrete `AppState` type.
 //!
 //! GUI components may interpret event as a request from the user to modify the design or the state
 //! of the main application (for example by changing the selection). These requests are stored in
-//! the [Requests](requests::Requests) data structure. Each application defines a `Requests` trait
+//! the [Requests] data structure. Each application defines a `Requests` trait
 //! that must be implemented by the concrete `Requests` type.
 //!
 //! On each itteration of the main event loop, if the Global controller is in Normal State,
@@ -81,7 +81,7 @@ use std::rc::Rc;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
-use controller::{ChanelReader, ChanelReaderUpdate, SimulationRequest};
+use controller::{ChannelReader, ChannelReaderUpdate, SimulationRequest};
 use ensnano_design::{grid::GridId, Camera};
 use ensnano_exports::{ExportResult, ExportType};
 use ensnano_interactor::{
@@ -93,7 +93,7 @@ use ensnano_interactor::{
     SuggestionParameters,
 };
 use iced_native::Event as IcedEvent;
-use iced_wgpu::{wgpu, Backend, Renderer, Settings, Viewport};
+use iced_wgpu::{wgpu, Settings, Viewport};
 use iced_winit::winit::event::VirtualKeyCode;
 use iced_winit::{conversion, futures, program, winit, Debug, Size};
 
@@ -206,8 +206,8 @@ const PANIC_ON_WGPU_ERRORS: bool = true;
 /// * It initializes a multiplexer.
 /// * It initializes applications and GUI component, and associate regions of the screen to these
 /// components
-/// * It initializes the [Mediator](mediator), the [Scheduler](mediator::Scheduler) and the [Gui
-/// manager](gui::Gui)
+/// * It initializes the [Mediator](ensnano_interactor::application::AppId::Mediator), the
+/// [Scheduler] and the [Gui manager](gui::Gui)
 ///
 /// # Event loop
 ///
@@ -218,7 +218,7 @@ const PANIC_ON_WGPU_ERRORS: bool = true;
 /// * When all window events have been handled, the main function reads messages that it recieved
 /// from the [Gui Manager](gui::Gui).  The consequences of these messages are forwarded to the
 /// applications.
-/// * The main loops then reads the messages that it recieved from the [Mediator](mediator) and
+/// * The main loops then reads the messages that it recieved from the [Mediator](ensnano_interactor::application::AppId::Mediator) and
 /// forwards their consequences to the Gui components.
 /// * Finally, a redraw is requested.
 ///
@@ -244,22 +244,23 @@ fn main() {
 
     log::info!("scale factor {}", window.scale_factor());
 
-    let modifiers = ModifiersState::default();
+    // Represents the current state of the keyboard modifiers (Shift, Ctrl, etc.)
+    let kbd_modifiers = ModifiersState::default();
 
-    let instance = wgpu::Instance::new(BACKEND);
-    let surface = unsafe { instance.create_surface(&window) };
+    let gpu = wgpu::Instance::new(BACKEND);
+    let surface = unsafe { gpu.create_surface(&window) };
     // Initialize WGPU
     let (device, queue) = futures::executor::block_on(async {
-        let adapter = instance
+        let adapter = gpu
             .request_adapter(&wgpu::RequestAdapterOptions {
                 power_preference: wgpu::PowerPreference::LowPower,
                 compatible_surface: Some(&surface),
                 force_fallback_adapter: false,
             })
             .await
-            .expect("Could not get adapter\n
-                This might be because gpu drivers are missing. \n
-                You need Vulkan, Metal (for MacOS) or DirectX (for Windows) drivers to run this software");
+            .expect("Could not get adapter\n\
+                     This might be because gpu drivers are missing.\n\
+                     You need Vulkan, Metal (for MacOS) or DirectX (for Windows) drivers to run this software");
 
         adapter
             .request_device(
@@ -304,7 +305,8 @@ fn main() {
         default_font: Some(include_bytes!("../font/ensnano2.ttf")),
         ..Default::default()
     };
-    let mut renderer = Renderer::new(Backend::new(&device, settings, TEXTURE_FORMAT));
+    let mut renderer =
+        iced_wgpu::Renderer::new(iced_wgpu::Backend::new(&device, settings, TEXTURE_FORMAT));
     let device = Rc::new(device);
     let queue = Rc::new(queue);
     let mut resized = false;
@@ -328,6 +330,8 @@ fn main() {
     multiplexer.change_split(SplitMode::Both);
 
     // Initialize the scenes
+    //
+    // The `encoder` encodes a series of GPU operations.
     let mut encoder =
         device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
     let scene_area = multiplexer.get_element_area(ElementType::Scene).unwrap();
@@ -478,7 +482,7 @@ fn main() {
                         let event = iced_winit::conversion::window_event(
                             &event,
                             window.scale_factor(),
-                            modifiers,
+                            kbd_modifiers,
                         );
                         if let Some(event) = event {
                             gui.forward_event_all(event);
@@ -494,15 +498,15 @@ fn main() {
 
                     if let Some((event, area)) = event {
                         // pass the event to the area on which it happenened
-                        if main_state.focussed_element != Some(area) {
+                        if main_state.focused_element != Some(area) {
                             if let Some(app) = main_state
-                                .focussed_element
+                                .focused_element
                                 .as_ref()
                                 .and_then(|elt| main_state.applications.get(elt))
                             {
                                 app.lock().unwrap().on_notify(Notification::WindowFocusLost)
                             }
-                            main_state.focussed_element = Some(area);
+                            main_state.focused_element = Some(area);
                             main_state.update_candidates(vec![]);
                         }
                         main_state.applications_cursor = None;
@@ -511,7 +515,7 @@ fn main() {
                                 let event = iced_winit::conversion::window_event(
                                     &event,
                                     window.scale_factor(),
-                                    modifiers,
+                                    kbd_modifiers,
                                 );
                                 if let Some(event) = event {
                                     gui.forward_event(area, event);
@@ -521,7 +525,7 @@ fn main() {
                                 let event = iced_winit::conversion::window_event(
                                     &event,
                                     window.scale_factor(),
-                                    modifiers,
+                                    kbd_modifiers,
                                 );
                                 if let Some(event) = event {
                                     overlay_manager.forward_event(event, n);
@@ -569,14 +573,14 @@ fn main() {
                 resized |= first_iteration;
                 first_iteration = false;
 
-                for update in main_state.chanel_reader.get_updates() {
-                    if let ChanelReaderUpdate::ScaffoldShiftOptimizationProgress(x) = update {
+                for update in main_state.channel_reader.get_updates() {
+                    if let ChannelReaderUpdate::ScaffoldShiftOptimizationProgress(x) = update {
                         main_state
                             .messages
                             .lock()
                             .unwrap()
                             .push_progress("Optimizing: ".to_string(), x);
-                    } else if let ChanelReaderUpdate::ScaffoldShiftOptimizationResult(result) =
+                    } else if let ChannelReaderUpdate::ScaffoldShiftOptimizationResult(result) =
                         update
                     {
                         main_state.messages.lock().unwrap().finish_progess();
@@ -593,9 +597,9 @@ fn main() {
                             // unwrap because in this block, result is necessarilly an Err
                             log::warn!("{:?}", result.err().unwrap());
                         }
-                    } else if let ChanelReaderUpdate::SimulationUpdate(update) = update {
+                    } else if let ChannelReaderUpdate::SimulationUpdate(update) = update {
                         main_state.app_state.apply_simulation_update(update)
-                    } else if let ChanelReaderUpdate::SimulationExpired = update {
+                    } else if let ChannelReaderUpdate::SimulationExpired = update {
                         main_state.update_simulation(SimulationRequest::Stop)
                     }
                 }
@@ -771,7 +775,11 @@ pub struct OverlayManager {
 }
 
 impl OverlayManager {
-    pub fn new(requests: Arc<Mutex<Requests>>, window: &Window, renderer: &mut Renderer) -> Self {
+    pub fn new(
+        requests: Arc<Mutex<Requests>>,
+        window: &Window,
+        renderer: &mut iced_wgpu::Renderer,
+    ) -> Self {
         let color = ColorOverlay::new(
             requests,
             PhysicalSize::new(250., 250.).to_logical(window.scale_factor()),
@@ -815,7 +823,7 @@ impl OverlayManager {
 
     fn process_event(
         &mut self,
-        renderer: &mut Renderer,
+        renderer: &mut iced_wgpu::Renderer,
         resized: bool,
         multiplexer: &Multiplexer,
         window: &Window,
@@ -853,7 +861,7 @@ impl OverlayManager {
         target: &wgpu::TextureView,
         multiplexer: &Multiplexer,
         window: &Window,
-        renderer: &mut Renderer,
+        renderer: &mut iced_wgpu::Renderer,
     ) {
         for overlay_type in self.overlay_types.iter() {
             match overlay_type {
@@ -910,7 +918,7 @@ impl OverlayManager {
         &mut self,
         multiplexer: &Multiplexer,
         window: &Window,
-        renderer: &mut Renderer,
+        renderer: &mut iced_wgpu::Renderer,
     ) -> bool {
         let mut ret = false;
         for (n, overlay) in self.overlay_types.iter().enumerate() {
@@ -966,10 +974,10 @@ pub(crate) struct MainState {
     pending_actions: VecDeque<Action>,
     undo_stack: Vec<AppStateTransition>,
     redo_stack: Vec<AppStateTransition>,
-    chanel_reader: ChanelReader,
+    channel_reader: ChannelReader,
     messages: Arc<Mutex<IcedMessages<AppState>>>,
     applications: HashMap<ElementType, Arc<Mutex<dyn Application<AppState = AppState>>>>,
-    focussed_element: Option<ElementType>,
+    focused_element: Option<ElementType>,
     last_saved_state: AppState,
 
     /// The name of the file containing the current design.
@@ -994,10 +1002,10 @@ struct MainStateConstructor {
 use controller::SaveDesignError;
 impl MainState {
     fn new(constructor: MainStateConstructor) -> Self {
-        let app_state = match AppState::with_preffered_parameters() {
+        let app_state = match AppState::with_preferred_parameters() {
             Ok(state) => state,
             Err(e) => {
-                log::error!("Could not load preferences {e}");
+                log::error!("Could not load preferrences {e}");
                 Default::default()
             }
         };
@@ -1006,10 +1014,10 @@ impl MainState {
             pending_actions: VecDeque::new(),
             undo_stack: Vec::new(),
             redo_stack: Vec::new(),
-            chanel_reader: Default::default(),
+            channel_reader: Default::default(),
             messages: constructor.messages,
             applications: Default::default(),
-            focussed_element: None,
+            focused_element: None,
             last_saved_state: app_state.clone(),
             file_name: None,
             wants_fit: false,
@@ -1024,7 +1032,7 @@ impl MainState {
 
     fn update_cursor(&mut self, multiplexer: &Multiplexer) -> bool {
         self.update_simulation_cursor();
-        // Usefull to remember to finish hyperboloid before trying to eddit
+        // Usefull to remember to finish hyperboloid before trying to edit
         if self.app_state.is_building_hyperboloid()
             && multiplexer
                 .foccused_element()
@@ -1146,7 +1154,7 @@ impl MainState {
     fn start_helix_simulation(&mut self, parameters: RigidBodyConstants) {
         let result = self.app_state.start_simulation(
             parameters,
-            &mut self.chanel_reader,
+            &mut self.channel_reader,
             SimulationTarget::Helices,
         );
         self.apply_operation_result(result)
@@ -1155,7 +1163,7 @@ impl MainState {
     fn start_grid_simulation(&mut self, parameters: RigidBodyConstants) {
         let result = self.app_state.start_simulation(
             parameters,
-            &mut self.chanel_reader,
+            &mut self.channel_reader,
             SimulationTarget::Grids,
         );
         self.apply_operation_result(result)
@@ -1164,7 +1172,7 @@ impl MainState {
     fn start_revolution_simulation(&mut self, desc: RevolutionSurfaceSystemDescriptor) {
         let result = self.app_state.start_simulation(
             Default::default(),
-            &mut self.chanel_reader,
+            &mut self.channel_reader,
             SimulationTarget::Revolution { desc },
         );
         self.apply_operation_result(result)
@@ -1173,7 +1181,7 @@ impl MainState {
     fn start_twist(&mut self, grid_id: GridId) {
         let result = self.app_state.start_simulation(
             Default::default(),
-            &mut self.chanel_reader,
+            &mut self.channel_reader,
             SimulationTarget::Twist { grid_id },
         );
         self.apply_operation_result(result)
@@ -1182,7 +1190,7 @@ impl MainState {
     fn start_roll_simulation(&mut self, target_helices: Option<Vec<usize>>) {
         let result = self.app_state.start_simulation(
             Default::default(),
-            &mut self.chanel_reader,
+            &mut self.channel_reader,
             SimulationTarget::Roll { target_helices },
         );
         self.apply_operation_result(result)
@@ -1295,7 +1303,7 @@ impl MainState {
     }
 
     fn optimize_shift(&mut self) {
-        let reader = &mut self.chanel_reader;
+        let reader = &mut self.channel_reader;
         let result = self.app_state.optimize_shift(reader);
         self.apply_operation_result(result);
     }
@@ -1671,8 +1679,8 @@ impl<'a> MainStateInteface for MainStateView<'a> {
         Ok(())
     }
 
-    fn get_chanel_reader(&mut self) -> &mut ChanelReader {
-        &mut self.main_state.chanel_reader
+    fn get_chanel_reader(&mut self) -> &mut ChannelReader {
+        &mut self.main_state.channel_reader
     }
 
     fn apply_operation(&mut self, operation: DesignOperation) {

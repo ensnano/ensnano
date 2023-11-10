@@ -15,17 +15,17 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-//! This module handles the separation of the window into different regions.
+//! This module handles the different regions of the window.
 //!
-//! The layout manager split the window into different regions and attribute each region to an
-//! an application or a gui component.
+//! The [layout_manager] splits the window into different regions and attribute each region to an
+//! an application or a GUI component.
 //!
-//! In addition, the multiplexer holds a Vec of overlays which are floating regions.
+//! In addition, the multiplexer holds a [Vec] of [overlays](Overlay), which are floating regions.
 //!
 //! When an event is recieved by the window, the multiplexer is in charge of forwarding it to the
-//! appropriate application, gui component or overlay. The multiplexer also handles some events
-//! like resizing events or keyboard input that should be handled independently of the foccussed
-//! region.
+//! appropriate application, GUI component, or overlay. The multiplexer also handles some events
+//! directly, like resizing events or keyboard input that should be handled independently of the
+//! foccussed region.
 //!
 //!
 //!
@@ -52,13 +52,15 @@ use ensnano_interactor::graphics::{DrawArea, ElementType, SplitMode};
 use layout_manager::{LayoutTree, PixelRegion};
 
 /// A structure that handles the division of the window into different `DrawArea`.
+///
+///
 pub struct Multiplexer {
     /// The *physical* size of the window.
     pub window_size: PhySize,
     /// The scale factor of the window.
     pub scale_factor: f64,
     /// The object mapping pixels to drawing areas.
-    layout_manager: LayoutTree,
+    layout: LayoutTree,
     /// The element on which the mouse cursor is currently on.
     focus: Option<ElementType>,
     /// The *physical* position of the cursor on the focus area.
@@ -104,6 +106,23 @@ const MAX_STATUS_BAR_HEIGHT: f64 = 50.;
 
 impl Multiplexer {
     /// Create a new multiplexer for a window with size `window_size`.
+    ///
+    /// Immediately creates a _top bar_, then a _left pannel_, then a _status bar_. The remaining
+    /// aera is called the _scene._ It looks like this:
+    ///
+    /// ```text
+    ///     ┌───────────────────────────┐
+    ///     │          top bar          │
+    ///     ├────────┬──────────────────┤
+    ///     │        │                  │
+    ///     │  left  │      scene       │
+    ///     │ pannel │                  │
+    ///     │        │                  │
+    ///     │        ├──────────────────┤
+    ///     │        │    status bar    │
+    ///     └────────┴──────────────────┘
+    /// ```
+    ///
     pub fn new(
         window_size: PhySize,
         scale_factor: f64,
@@ -111,31 +130,31 @@ impl Multiplexer {
         requests: Arc<Mutex<Requests>>,
         ui_size: UiSize,
     ) -> Self {
-        let mut layout_manager = LayoutTree::new();
+        let mut layout = LayoutTree::new();
         let top_pannel_prop =
             exact_proportion(ui_size.top_bar() * scale_factor, window_size.height as f64);
         let top_bar_split = 0;
-        let (top_bar, scene) = layout_manager.hsplit(0, top_pannel_prop, false);
+        let (top_bar, scene) = layout.hsplit(0, top_pannel_prop, false);
         let left_pannel_prop = proportion(
             0.2,
             MAX_LEFT_PANNEL_WIDTH * scale_factor,
             window_size.width as f64,
         );
-        let (left_pannel, scene) = layout_manager.vsplit(scene, left_pannel_prop, true);
+        let (left_pannel, scene) = layout.vsplit(scene, left_pannel_prop, true);
         let scene_height = (1. - top_pannel_prop) * window_size.height as f64;
         let status_bar_prop = exact_proportion(MAX_STATUS_BAR_HEIGHT * scale_factor, scene_height);
         let status_bar_split = scene;
-        let (scene, status_bar) = layout_manager.hsplit(scene, 1. - status_bar_prop, false);
+        let (scene, status_bar) = layout.hsplit(scene, 1. - status_bar_prop, false);
         //let (scene, grid_panel) = layout_manager.hsplit(scene, 0.8);
-        layout_manager.attribute_element(top_bar, ElementType::TopBar);
-        layout_manager.attribute_element(scene, ElementType::Scene);
-        layout_manager.attribute_element(status_bar, ElementType::StatusBar);
-        layout_manager.attribute_element(left_pannel, ElementType::LeftPanel);
+        layout.attribute_element(top_bar, ElementType::TopBar);
+        layout.attribute_element(scene, ElementType::Scene);
+        layout.attribute_element(status_bar, ElementType::StatusBar);
+        layout.attribute_element(left_pannel, ElementType::LeftPanel);
         //layout_manager.attribute_element(grid_panel, ElementType::GridPanel);
         let mut ret = Self {
             window_size,
             scale_factor,
-            layout_manager,
+            layout,
             focus: None,
             cursor_position: PhysicalPosition::new(-1., -1.),
             scene_texture: None,
@@ -321,7 +340,7 @@ impl Multiplexer {
         let (position, size) = if let Overlay(n) = element_type {
             (self.overlays[n].position, self.overlays[n].size)
         } else {
-            let (left, top, right, bottom) = self.layout_manager.get_area(element_type)?;
+            let (left, top, right, bottom) = self.layout.get_area(element_type)?;
             let top = top * self.window_size.height as f64;
             let left = left * self.window_size.width as f64;
             let bottom = bottom * self.window_size.height as f64;
@@ -371,7 +390,7 @@ impl Multiplexer {
                     position.x /= self.window_size.width as f64;
                     position.y /= self.window_size.height as f64;
                     *resized = true;
-                    self.layout_manager.resize_click(
+                    self.layout.resize_click(
                         *region,
                         &position,
                         &clicked_position,
@@ -448,7 +467,7 @@ impl Multiplexer {
                         let mut clicked_position = mouse_position.clone();
                         clicked_position.x /= self.window_size.width as f64;
                         clicked_position.y /= self.window_size.height as f64;
-                        let old_proportion = self.layout_manager.get_proportion(n).unwrap();
+                        let old_proportion = self.layout.get_proportion(n).unwrap();
                         self.state = State::Resizing {
                             mouse_position,
                             clicked_position,
@@ -460,7 +479,7 @@ impl Multiplexer {
                         self.state = State::Normal { mouse_position };
                         if log::log_enabled!(log::Level::Info) {
                             log::info!("Tree after reisze");
-                            self.layout_manager.log_tree();
+                            self.layout.log_tree();
                         }
                     }
                     PixelRegion::Element(element) => match state {
@@ -475,7 +494,7 @@ impl Multiplexer {
                                 && log::log_enabled!(log::Level::Info)
                             {
                                 log::info!("Tree after reisze");
-                                self.layout_manager.log_tree();
+                                self.layout.log_tree();
                             }
                             self.state = State::Normal { mouse_position };
                         }
@@ -603,26 +622,22 @@ impl Multiplexer {
                     SplitMode::Flat => self.element_2d,
                     SplitMode::Both => unreachable!(),
                 };
-                self.layout_manager.merge(ElementType::Scene, new_type);
+                self.layout.merge(ElementType::Scene, new_type);
             }
             SplitMode::Scene3D | SplitMode::Flat => {
                 let id = self
-                    .layout_manager
+                    .layout
                     .get_area_id(self.element_3d)
-                    .or(self.layout_manager.get_area_id(self.element_2d))
+                    .or(self.layout.get_area_id(self.element_2d))
                     .unwrap();
                 match split_mode {
                     SplitMode::Both => {
-                        let (scene, flat_scene) = self.layout_manager.vsplit(id, 0.5, true);
-                        self.layout_manager
-                            .attribute_element(scene, self.element_3d);
-                        self.layout_manager
-                            .attribute_element(flat_scene, self.element_2d);
+                        let (scene, flat_scene) = self.layout.vsplit(id, 0.5, true);
+                        self.layout.attribute_element(scene, self.element_3d);
+                        self.layout.attribute_element(flat_scene, self.element_2d);
                     }
-                    SplitMode::Scene3D => {
-                        self.layout_manager.attribute_element(id, self.element_3d)
-                    }
-                    SplitMode::Flat => self.layout_manager.attribute_element(id, self.element_2d),
+                    SplitMode::Scene3D => self.layout.attribute_element(id, self.element_3d),
+                    SplitMode::Flat => self.layout.attribute_element(id, self.element_2d),
                 }
             }
         }
@@ -632,7 +647,7 @@ impl Multiplexer {
         log::info!("Toggle 2d");
         if log::log_enabled!(log::Level::Info) {
             println!("Old tree");
-            self.layout_manager.log_tree();
+            self.layout.log_tree();
         }
         let old_element_2d = self.element_2d;
         if self.element_2d == ElementType::FlatScene {
@@ -640,13 +655,13 @@ impl Multiplexer {
         } else {
             self.element_2d = ElementType::FlatScene;
         }
-        if let Some(id) = self.layout_manager.get_area_id(old_element_2d) {
-            self.layout_manager.attribute_element(id, self.element_2d)
+        if let Some(id) = self.layout.get_area_id(old_element_2d) {
+            self.layout.attribute_element(id, self.element_2d)
         }
         log::info!("new element_2d {:?}", self.element_2d);
         if log::log_enabled!(log::Level::Info) {
             println!("New tree");
-            self.layout_manager.log_tree();
+            self.layout.log_tree();
         }
         self.generate_textures();
     }
@@ -667,9 +682,8 @@ impl Multiplexer {
         );
         let scene_height = (1. - top_pannel_prop) * window_size.height as f64;
         let status_bar_prop = exact_proportion(MAX_STATUS_BAR_HEIGHT * scale_factor, scene_height);
-        self.layout_manager
-            .resize(self.top_bar_split, top_pannel_prop);
-        self.layout_manager
+        self.layout.resize(self.top_bar_split, top_pannel_prop);
+        self.layout
             .resize(self.status_bar_split, 1. - status_bar_prop);
         ret
     }
@@ -714,7 +728,7 @@ impl Multiplexer {
                 return PixelRegion::Element(ElementType::Overlay(n));
             }
         }
-        self.layout_manager.get_area_pixel(
+        self.layout.get_area_pixel(
             pixel.x / self.window_size.width as f64,
             pixel.y / self.window_size.height as f64,
         )
