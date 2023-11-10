@@ -111,11 +111,11 @@ impl Instanciable for GridDisc {
     }
 
     fn vertex_module(device: &Device) -> wgpu::ShaderModule {
-        device.create_shader_module(&include_spirv!("grid_disc.vert.spv"))
+        device.create_shader_module(include_spirv!("grid_disc.vert.spv"))
     }
 
     fn fragment_module(device: &Device) -> wgpu::ShaderModule {
-        device.create_shader_module(&include_spirv!("grid_disc.frag.spv"))
+        device.create_shader_module(include_spirv!("grid_disc.frag.spv"))
     }
 
     fn to_raw_instance(&self) -> GridDiscRaw {

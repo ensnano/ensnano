@@ -490,11 +490,11 @@ impl<D: Instanciable> InstanceDrawer<D> {
         } else {
             wgpu::CompareFunction::Always
         };
-        let targets = &[wgpu::ColorTargetState {
+        let targets = &[Some(wgpu::ColorTargetState {
             format,
             blend: Some(blend_state),
             write_mask: wgpu::ColorWrites::ALL,
-        }];
+        })];
         let strip_index_format = match primitive_topology {
             PrimitiveTopology::LineStrip | PrimitiveTopology::TriangleStrip => {
                 Some(wgpu::IndexFormat::Uint16)

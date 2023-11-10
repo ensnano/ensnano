@@ -151,10 +151,10 @@ impl<D: Drawable> Drawer<D> {
     ) -> RenderPipeline {
         let vertex_module = self
             .device
-            .create_shader_module(&include_spirv!("plane_vert.spv"));
+            .create_shader_module(include_spirv!("plane_vert.spv"));
         let fragment_module = self
             .device
-            .create_shader_module(&include_spirv!("plane_frag.spv"));
+            .create_shader_module(include_spirv!("plane_frag.spv"));
         let render_pipeline_layout =
             self.device
                 .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
@@ -177,11 +177,11 @@ impl<D: Drawable> Drawer<D> {
 
         let sample_count = if !fake { SAMPLE_COUNT } else { 1 };
 
-        let targets = &[wgpu::ColorTargetState {
+        let targets = &[Some(wgpu::ColorTargetState {
             format,
             blend: Some(blend_state),
             write_mask: wgpu::ColorWrites::ALL,
-        }];
+        })];
         let strip_index_format = match self.primitive_topology {
             wgpu::PrimitiveTopology::LineStrip | wgpu::PrimitiveTopology::TriangleStrip => {
                 Some(wgpu::IndexFormat::Uint16)

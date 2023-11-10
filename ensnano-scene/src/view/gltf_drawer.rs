@@ -335,8 +335,8 @@ fn build_render_pipeline(
 ) -> wgpu::RenderPipeline {
     let viewer_bg_layout = device.create_bind_group_layout(view_bg_layout_desc);
 
-    let vertex_module = device.create_shader_module(&wgpu::include_spirv!("gltf_obj.vert.spv"));
-    let fragment_module = device.create_shader_module(&wgpu::include_spirv!("gltf_obj.frag.spv"));
+    let vertex_module = device.create_shader_module(wgpu::include_spirv!("gltf_obj.vert.spv"));
+    let fragment_module = device.create_shader_module(wgpu::include_spirv!("gltf_obj.frag.spv"));
     let format = TEXTURE_FORMAT;
     let blend_state = wgpu::BlendState::ALPHA_BLENDING;
     let sample_count = consts::SAMPLE_COUNT;
@@ -364,11 +364,11 @@ fn build_render_pipeline(
         ..Default::default()
     };
 
-    let targets = &[wgpu::ColorTargetState {
+    let targets = &[Some(wgpu::ColorTargetState {
         format,
         blend: Some(blend_state),
         write_mask: wgpu::ColorWrites::ALL,
-    }];
+    })];
 
     device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
         layout: Some(&render_pipeline_layout),

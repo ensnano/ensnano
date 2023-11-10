@@ -124,11 +124,11 @@ impl Instanciable for Sheet2D {
     }
 
     fn vertex_module(device: &Device) -> wgpu::ShaderModule {
-        device.create_shader_module(&include_spirv!("sheet_2d.vert.spv"))
+        device.create_shader_module(include_spirv!("sheet_2d.vert.spv"))
     }
 
     fn fragment_module(device: &Device) -> wgpu::ShaderModule {
-        device.create_shader_module(&include_spirv!("sheet_2d.frag.spv"))
+        device.create_shader_module(include_spirv!("sheet_2d.frag.spv"))
     }
 
     fn indices() -> Vec<u16> {
