@@ -1,5 +1,3 @@
-use ensnano_interactor::StandardSequence;
-
 /*
 ENSnano, a 3d graphical application for DNA nanostructures.
     Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
@@ -17,45 +15,18 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+use ensnano_interactor::StandardSequence;
+
+use super::helpers::*;
 use super::*;
+use iced_native::widget;
+use iced_native::widget::helpers::*;
 
 pub struct SequenceTab {
     toggle_text_value: bool,
     scaffold_position_str: String,
     scaffold_position: usize,
-}
-
-macro_rules! add_show_sequence_button {
-    ($ret: ident, $self: ident, $ui_size: ident) => {
-        let button_show_sequence = if $self.toggle_text_value {
-            text_btn("Hide Sequences", $ui_size).on_press(Message::ToggleText(false))
-        } else {
-            text_btn("Show Sequences", $ui_size).on_press(Message::ToggleText(true))
-        };
-        $ret = $ret.push(button_show_sequence);
-    };
-}
-
-macro_rules! add_scaffold_from_to_selection_buttons {
-    ($ret: ident, $self:ident, $ui_size: ident, $app_state: ident) => {
-        let mut button_selection_to_scaffold = text_btn("From selection", $ui_size);
-        let mut button_selection_from_scaffold = text_btn("Show", $ui_size);
-        if $app_state.get_scaffold_info().is_some() {
-            button_selection_from_scaffold =
-                button_selection_from_scaffold.on_press(Message::SelectScaffold);
-        }
-        let selection = $app_state.get_selection_as_dnaelement();
-        if let Some(n) = Self::get_candidate_scaffold(&selection) {
-            button_selection_to_scaffold =
-                button_selection_to_scaffold.on_press(Message::ScaffoldIdSet(n, true));
-        }
-        $ret = $ret.push(
-            Row::new()
-                .push(button_selection_to_scaffold)
-                .push(iced::widget::Space::with_width(Length::Units(5)))
-                .push(button_selection_from_scaffold),
-        );
-    };
+    scaffold_input: widget::text_input::State,
 }
 
 macro_rules! scaffold_length_fmt {
@@ -70,49 +41,6 @@ macro_rules! nucl_text_fmt {
     };
 }
 
-macro_rules! add_scaffold_info {
-    ($ret: ident, $self: ident, $ui_size: ident, $app_state: ident) => {
-        let (scaffold_text, length_text) = if let Some(info) = $app_state.get_scaffold_info() {
-            (
-                format!("Strand #{}", info.id),
-                format!(scaffold_length_fmt!(), info.length),
-            )
-        } else {
-            (
-                "NOT SET".to_owned(),
-                format!(scaffold_length_fmt!(), "—").to_owned(),
-            )
-        };
-        let mut length_text = Text::new(length_text);
-        if $app_state.get_scaffold_info().is_none() {
-            length_text = length_text.color(innactive_color())
-        }
-        $ret = $ret.push(Text::new(scaffold_text).size($ui_size.main_text()));
-        $ret = $ret.push(length_text);
-    };
-}
-
-macro_rules! add_set_scaffold_sequence_button {
-    ($ret: ident, $self: ident, $ui_size: ident) => {
-        let button_scaffold = Button::new(iced::widget::Text::new("Set scaffold sequence"))
-            .height(Length::Units($ui_size.button()))
-            .on_press(Message::SetScaffoldSeqButtonPressed);
-        $ret = $ret.push(button_scaffold);
-    };
-}
-
-macro_rules! show_current_sequence_name {
-    ($ret: ident, $self: ident, $app_state: ident ) => {
-        let sequence_name = $app_state
-            .get_reader()
-            .get_scaffold_sequence()
-            .map(get_sequence_name)
-            .unwrap_or("None");
-        let message = format!("current sequence: {sequence_name}");
-        $ret = $ret.push(Text::new(message));
-    };
-}
-
 fn get_sequence_name(sequence: &str) -> &'static str {
     let n = sequence.len();
     let candidate = StandardSequence::from_length(n);
@@ -123,133 +51,156 @@ fn get_sequence_name(sequence: &str) -> &'static str {
     }
 }
 
-macro_rules! add_scaffold_position_input_row {
-    ($ret: ident, $self: ident) => {
-        let scaffold_position_text = "Starting position";
-        let scaffold_row = Row::new()
-            .push(Text::new(scaffold_position_text).width(Length::FillPortion(2)))
-            .push(
-                TextInput::new(
-                    "Scaffold position",
-                    &$self.scaffold_position_str,
-                    Message::ScaffoldPositionInput,
-                )
-                .style(BadValue(
-                    $self.scaffold_position_str == $self.scaffold_position.to_string(),
-                ))
-                .width(iced::Length::FillPortion(1)),
-            );
-        $ret = $ret.push(scaffold_row);
-    };
-}
-
-macro_rules! add_optimize_scaffold_shift_button {
-    ($ret: ident, $self: ident, $ui_size: ident) => {
-        let button_scaffold = Button::new(iced::widget::Text::new("Optimize starting position"))
-            .height(Length::Units($ui_size.button()))
-            .on_press(Message::OptimizeScaffoldShiftPressed);
-        $ret = $ret.push(button_scaffold);
-    };
-}
-
-macro_rules! add_scaffold_start_position {
-    ($ret: ident, $ui_size: ident, $app_state: ident) => {
-        let starting_nucl = $app_state
-            .get_scaffold_info()
-            .as_ref()
-            .and_then(|info| info.starting_nucl);
-        let nucl_text = if let Some(nucl) = starting_nucl {
-            format!(
-                nucl_text_fmt!(),
-                nucl.helix,
-                if nucl.forward {
-                    "→ forward"
-                } else {
-                    "← backward"
-                }, // Pourquoi pas "→" et "←" ?
-                nucl.position
-            )
-        } else {
-            format!(nucl_text_fmt!(), " —", " —", " —")
-        };
-        let mut nucl_text = Text::new(nucl_text).size($ui_size.main_text());
-        if starting_nucl.is_none() {
-            nucl_text = nucl_text.color(innactive_color())
-        }
-        $ret = $ret.push(nucl_text);
-    };
-}
-
-macro_rules! add_download_staples_button {
-    ($ret: ident, $self: ident, $ui_size: ident) => {
-        let button_stapples = Button::new(iced::widget::Text::new("Export Staples"))
-            .height(Length::Units($ui_size.button()))
-            .on_press(Message::StapplesRequested);
-        let button_origamis = Button::new(iced::widget::Text::new("Export Origamis"))
-            .height(Length::Units($ui_size.button()))
-            .on_press(Message::OrigamisRequested);
-        $ret = $ret.push(button_stapples).push(button_origamis);
-    };
-}
-
-macro_rules! add_rainbow_scaffold_checkbox {
-    ($ret: ident, $ui_size: ident, $app_state: ident) => {
-        $ret = $ret.push(right_checkbox(
-            $app_state.get_reader().rainbow_scaffold(),
-            "Rainbow Scaffold",
-            Message::RainbowScaffold,
-            $ui_size,
-        ));
-    };
-}
-
 impl SequenceTab {
     pub fn new() -> Self {
         Self {
             toggle_text_value: false,
             scaffold_position_str: "0".to_string(),
             scaffold_position: 0,
+            scaffold_input: Default::default(),
         }
     }
 
-    pub fn view<'a, S: AppState, R: iced_native::Renderer>(
-        &'a mut self,
-        ui_size: UiSize,
-        app_state: &'a S,
-    ) -> Element<'a, Message<S>, R> {
+    pub fn view<S: AppState>(&self, ui_size: UiSize, app_state: &S) -> iced::Element<Message<S>> {
         if !self.scaffold_input.is_focused() {
             if let Some(n) = app_state.get_scaffold_info().and_then(|info| info.shift) {
                 self.update_pos_str(n.to_string());
             }
         }
 
-        let mut ret = Column::new();
-        section!(ret, ui_size, "Sequence");
-        extra_jump!(ret);
-        add_show_sequence_button!(ret, self, ui_size);
-        extra_jump!(ret);
-        section!(ret, ui_size, "Scaffold");
-        extra_jump!(ret);
-        add_scaffold_from_to_selection_buttons!(ret, self, ui_size, app_state);
-        extra_jump!(ret);
-        add_scaffold_info!(ret, self, ui_size, app_state);
-        extra_jump!(ret);
-
-        add_rainbow_scaffold_checkbox!(ret, ui_size, app_state);
-        extra_jump!(ret);
-
-        add_set_scaffold_sequence_button!(ret, self, ui_size);
-        show_current_sequence_name!(ret, self, app_state);
-        extra_jump!(ret);
-        add_scaffold_position_input_row!(ret, self);
-
-        add_optimize_scaffold_shift_button!(ret, self, ui_size);
-        add_scaffold_start_position!(ret, ui_size, app_state);
-        extra_jump!(ret);
-        section!(ret, ui_size, "Staples");
-        extra_jump!(ret);
-        add_download_staples_button!(ret, self, ui_size);
-        Scrollable::new(ret).into()
+        let content = iced_native::column![
+            section("Sequence", ui_size),
+            extra_jump(),
+            // add_show_sequence_button!
+            {
+                let button_show_sequence = if self.toggle_text_value {
+                    text_btn("Hide Sequences", ui_size).on_press(Message::ToggleText(false))
+                } else {
+                    text_btn("Show Sequences", ui_size).on_press(Message::ToggleText(true))
+                };
+                button_show_sequence
+            },
+            extra_jump(),
+            section("Scaffold", ui_size),
+            extra_jump(),
+            // add_scaffold_from_to_selection_buttons!
+            {
+                let mut button_selection_to_scaffold = text_btn("From selection", ui_size);
+                let mut button_selection_from_scaffold = text_btn("Show", ui_size);
+                if app_state.get_scaffold_info().is_some() {
+                    button_selection_from_scaffold =
+                        button_selection_from_scaffold.on_press(Message::SelectScaffold);
+                }
+                let selection = app_state.get_selection_as_dnaelement();
+                if let Some(n) = Self::get_candidate_scaffold(&selection) {
+                    button_selection_to_scaffold =
+                        button_selection_to_scaffold.on_press(Message::ScaffoldIdSet(n, true));
+                }
+                iced_native::row![
+                    button_selection_to_scaffold,
+                    horizontal_space(Length::Units(5)),
+                    button_selection_from_scaffold,
+                ]
+            },
+            extra_jump(),
+            // add_scaffold_info!
+            {
+                let (scaffold_text, length_text) = if let Some(info) = app_state.get_scaffold_info()
+                {
+                    (
+                        format!("Strand #{}", info.id),
+                        format!(scaffold_length_fmt!(), info.length),
+                    )
+                } else {
+                    (
+                        "NOT SET".to_owned(),
+                        format!(scaffold_length_fmt!(), "—").to_owned(),
+                    )
+                };
+                let mut length_text = text(length_text);
+                if app_state.get_scaffold_info().is_none() {
+                    length_text = length_text.style(iced::theme::Text::Color(innactive_color()))
+                }
+                iced_native::column![text(scaffold_text).size(ui_size.main_text()), length_text,]
+            },
+            extra_jump(),
+            // add_rainbow_scaffold_checkbox!
+            right_checkbox(
+                app_state.get_reader().rainbow_scaffold(),
+                "Rainbow Scaffold",
+                Message::RainbowScaffold,
+                ui_size,
+            ),
+            extra_jump(),
+            // add_set_scaffold_sequence_button!
+            button(text("Set scaffold sequence"))
+                .height(Length::Units(ui_size.button()))
+                .on_press(Message::SetScaffoldSeqButtonPressed),
+            // show_current_sequence_name!
+            {
+                let name = app_state
+                    .get_reader()
+                    .get_scaffold_sequence()
+                    .map(get_sequence_name)
+                    .unwrap_or("None");
+                text(format!("current sequence: {name}"))
+            },
+            extra_jump(),
+            // add_scaffold_position_input_row!
+            iced_native::row![
+                text("Starting position").width(Length::FillPortion(2)),
+                text_input(
+                    "Scaffold position",
+                    &self.scaffold_position_str,
+                    Message::ScaffoldPositionInput,
+                )
+                .style(BadValue(
+                    self.scaffold_position_str == self.scaffold_position.to_string(),
+                ))
+                .width(iced::Length::FillPortion(1)),
+            ],
+            // add_optimize_scaffold_shift_button!
+            button(text("Optimize starting position"))
+                .height(Length::Units(ui_size.button()))
+                .on_press(Message::OptimizeScaffoldShiftPressed),
+            // add_scaffold_start_position!
+            {
+                let starting_nucl = app_state
+                    .get_scaffold_info()
+                    .as_ref()
+                    .and_then(|info| info.starting_nucl);
+                let nucl_text = if let Some(nucl) = starting_nucl {
+                    format!(
+                        nucl_text_fmt!(),
+                        nucl.helix,
+                        if nucl.forward {
+                            "→ forward"
+                        } else {
+                            "← backward"
+                        }, // Pourquoi pas "→" et "←" ?
+                        nucl.position
+                    )
+                } else {
+                    format!(nucl_text_fmt!(), " —", " —", " —")
+                };
+                let mut nucl_text = text(nucl_text).size(ui_size.main_text());
+                if starting_nucl.is_none() {
+                    nucl_text = nucl_text.style(iced::theme::Text::Color(innactive_color()))
+                }
+                nucl_text
+            },
+            extra_jump(),
+            section("Staples", ui_size),
+            extra_jump(),
+            // add_download_staples_button!
+            button(text("Export Staples"))
+                .height(Length::Units(ui_size.button()))
+                .on_press(Message::StapplesRequested),
+            button(text("Export Origamis"))
+                .height(Length::Units(ui_size.button()))
+                .on_press(Message::OrigamisRequested),
+        ];
+        scrollable(content).into()
     }
 
     pub fn toggle_text_value(&mut self, b: bool) {

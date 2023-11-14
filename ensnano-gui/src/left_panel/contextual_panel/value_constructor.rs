@@ -18,10 +18,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::{Selection, UiSize};
 
-use iced_native::{
-    widget::{slider, Column, Row, Slider, Text, TextInput},
-    Element,
-};
+use iced::Element;
+use iced_native::widget::helpers::*;
+use iced_native::widget::{slider, text_input, Column, Row, Slider, Text};
 use iced_wgpu::Renderer;
 
 pub trait BuilderMessage: Clone + 'static {
@@ -32,14 +31,14 @@ pub trait BuilderMessage: Clone + 'static {
 use crate::ultraviolet::{Bivec3, Mat3, Rotor3, Vec2, Vec3};
 
 macro_rules! type_builder {
-    ($builder_name:ident, $initializer:tt, $internal:tt, $convert_in:path, $convert_out:path, $($param: ident: $param_type: tt %$formatter:path) , *) => {
+    ($builder_name:ident, $initializer:tt, $internal:tt, $convert_in:path, $convert_out:path, $($param: ident: $param_type: tt %$formatter:path), *) => {
         paste! {
             pub struct $builder_name {
                 $(
                     #[allow(dead_code)]
                     $param: $param_type,
                     [<$param _string>]: String,
-                    //[<$param _input>]: text_input::State,
+                    [<$param _input>]: text_input::State,
                 )*
                     value_to_modify: ValueKind,
             }
@@ -53,7 +52,7 @@ macro_rules! type_builder {
                         $(
                             $param: initial.$param,
                             [<$param _string>]: $formatter::fmt(&initial.$param),
-                            //[<$param _input>]: Default::default(),
+                            [<$param _input>]: Default::default(),
                         )*
                     }
 
@@ -65,7 +64,7 @@ macro_rules! type_builder {
                     }
                 }
 
-                fn view<'a ,Message: BuilderMessage>(&'a mut self) -> Element<'a, Message, Renderer> {
+                fn view<'a ,Message: BuilderMessage>(&self) -> Element<Message> {
                     let str_values = [$(& self.[<$param _string>],)*];
                     //let states = vec![$(&mut self.[<$param _input>],)*];
                     let mut ret = Column::new().width(iced::Length::Fill).align_items(iced::Alignment::End);
@@ -82,15 +81,14 @@ macro_rules! type_builder {
                     //    ret = ret.push(row)
                     //}
                     for i in 0..Self::PARAMETER_NAMES.len() {
-                        let mut row = Row::new().width(iced::Length::Fill);
-                        row = row.push(Text::new(Self::PARAMETER_NAMES[i]));
-                        row = row.push(iced::widget::Space::with_width(iced::Length::Units(5)));
-                        row = row.push(
-                            TextInput::new("", str_values[i], move |string| Message::value_changed(value_to_modify, i, string))
-                            .on_submit(Message::value_submitted(value_to_modify))
-                            .width(iced::Length::Units(50))
-                        );
-                        ret = ret.push(row)
+                        ret = ret.push(iced_native::row![
+                            text(Self::PARAMETER_NAMES[i]),
+                            horizontal_space(iced::Length::Units(5)),
+                            text_input("", str_values[i], move |string| Message::value_changed(value_to_modify, i, string))
+                                .on_submit(Message::value_submitted(value_to_modify))
+                                .width(iced::Length::Units(50))
+                            ,
+                        ].width(iced::Length::Fill))
                     }
                     ret.into()
                 }

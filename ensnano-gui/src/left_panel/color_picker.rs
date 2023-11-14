@@ -71,7 +71,7 @@ impl ColorPicker {
         self.hsv_value = hsv_value
     }
 
-    pub fn view<S, B, T>(&mut self) -> widget::Row<Message<S>, Renderer<B, T>>
+    pub fn view<S, B, Theme>(&mut self) -> widget::Row<Message<S>, Renderer<B, Theme>>
     where
         S: AppState,
         B: Backend,
@@ -101,7 +101,7 @@ impl ColorPicker {
         )
     }
 
-    pub fn new_view<B, T>(&mut self) -> widget::Row<ColorMessage, Renderer<B, T>>
+    pub fn new_view<B, Theme>(&mut self) -> widget::Row<ColorMessage, Renderer<B, Theme>>
     where
         B: Backend,
     {
@@ -123,6 +123,7 @@ impl ColorPicker {
 }
 
 mod hue_column {
+    use super::Color;
     use iced_graphics::{
         triangle::{Mesh2D, Vertex2D},
         Backend, Primitive, Rectangle, Renderer,
@@ -164,7 +165,7 @@ mod hue_column {
         }
     }
 
-    impl<'a, B, T, Message> Widget<Message, Renderer<B, T>> for HueColumn<'a, Message>
+    impl<'a, B, Theme, Message> Widget<Message, Renderer<B, Theme>> for HueColumn<'a, Message>
     where
         B: Backend,
     {
@@ -176,7 +177,7 @@ mod hue_column {
             Length::Shrink
         }
 
-        fn layout(&self, _renderer: &Renderer<B, T>, limits: &layout::Limits) -> layout::Node {
+        fn layout(&self, _renderer: &Renderer<B, Theme>, limits: &layout::Limits) -> layout::Node {
             let size = limits
                 .width(Length::Fill)
                 .height(Length::Fill)
@@ -188,9 +189,9 @@ mod hue_column {
         fn draw(
             &self,
             state: &widget::Tree,
-            renderer: &mut Renderer<B, T>,
-            theme: &T,
-            _style: &Style,
+            renderer: &mut Renderer<B, Theme>,
+            theme: &Theme,
+            style: &Style,
             layout: Layout<'_>,
             _cursor_position: Point,
             _viewport: &Rectangle,
@@ -229,10 +230,18 @@ mod hue_column {
                 }
             }
 
+            let dummy_color = Color {
+                r: 1.0,
+                g: 0.0,
+                b: 0.0,
+                a: 1.0,
+            };
+
             renderer.with_translation(Vector::new(b.x, b.y), |renderer| {
                 renderer.draw_primitive(Primitive::Mesh2D {
                     size: b.size(),
                     buffers: Mesh2D { vertices, indices },
+                    style: iced_graphics::triangle::Style::Solid(dummy_color),
                 })
             });
         }
@@ -243,7 +252,7 @@ mod hue_column {
             event: Event,
             layout: Layout<'_>,
             cursor_position: Point,
-            _renderer: &Renderer<B, T>,
+            _renderer: &Renderer<B, Theme>,
             _clipboard: &mut dyn Clipboard,
             shell: &mut Shell<'_, Message>,
         ) -> iced_native::event::Status {
@@ -303,6 +312,7 @@ mod hue_column {
 }
 
 mod light_sat_square {
+    use super::Color;
     use iced_graphics::{
         triangle::{Mesh2D, Vertex2D},
         Backend, Primitive, Rectangle, Renderer,
@@ -351,7 +361,8 @@ mod light_sat_square {
         }
     }
 
-    impl<'a, Message: Clone, B, T> Widget<Message, Renderer<B, T>> for LightSatSquare<'a, Message>
+    impl<'a, Message: Clone, B, Theme> Widget<Message, Renderer<B, Theme>>
+        for LightSatSquare<'a, Message>
     where
         B: Backend,
     {
@@ -363,7 +374,7 @@ mod light_sat_square {
             Length::Shrink
         }
 
-        fn layout(&self, _renderer: &Renderer<B, T>, limits: &layout::Limits) -> layout::Node {
+        fn layout(&self, _renderer: &Renderer<B, Theme>, limits: &layout::Limits) -> layout::Node {
             let size = limits
                 .width(Length::Fill)
                 .height(Length::Fill)
@@ -375,9 +386,9 @@ mod light_sat_square {
         fn draw(
             &self,
             state: &widget::Tree,
-            renderer: &mut Renderer<B, T>,
-            theme: &T,
-            _style: &Style,
+            renderer: &mut Renderer<B, Theme>,
+            theme: &Theme,
+            style: &Style,
             layout: Layout<'_>,
             _cursor_position: Point,
             _viewport: &Rectangle,
@@ -402,7 +413,6 @@ mod light_sat_square {
                             x_max * (j as f32 / nb_column as f32),
                             y_max * (i as f32 / nb_row as f32),
                         ],
-                        color,
                     });
                     if i > 0 && j > 0 {
                         indices.push(nb_row * (i - 1) + j - 1);
@@ -415,10 +425,18 @@ mod light_sat_square {
                 }
             }
 
+            let dummy_color = Color {
+                r: 1.0f32,
+                g: 0.0f32,
+                b: 0.0f32,
+                a: 1.0f32,
+            };
+
             renderer.with_translation(Vector::new(b.x, b.y), |renderer| {
                 renderer.draw_primitive(Primitive::Mesh2D {
                     size: b.size(),
                     buffers: Mesh2D { vertices, indices },
+                    style: iced_graphics::triangle::Style::Solid(dummy_color),
                 })
             });
         }
@@ -429,7 +447,7 @@ mod light_sat_square {
             event: Event,
             layout: Layout<'_>,
             cursor_position: Point,
-            _renderer: &Renderer<B, T>,
+            _renderer: &Renderer<B, Theme>,
             _clipboard: &mut dyn Clipboard,
             shell: &mut Shell<'_, Message>,
         ) -> iced_native::event::Status {
@@ -510,7 +528,7 @@ mod color_square {
         Backend, Primitive, Rectangle, Renderer,
     };
     use iced_native::{
-        layout, mouse, renderer::Style, widget, Clipboard, Element, Event, Layout, Length, Point,
+        layout, mouse, renderer, widget, Clipboard, Element, Event, Layout, Length, Point,
         Renderer as RendererTrait, Shell, Size, Vector, Widget,
     };
 
@@ -535,8 +553,9 @@ mod color_square {
         }
     }
 
-    impl<'a, Message: Clone, B, T> Widget<Message, Renderer<B, T>> for ColorSquare<'a, Message>
+    impl<'a, Message, B, Theme> Widget<Message, Renderer<B, Theme>> for ColorSquare<'a, Message>
     where
+        Message: Clone + 'a,
         B: Backend,
     {
         fn width(&self) -> Length {
@@ -547,7 +566,7 @@ mod color_square {
             Length::FillPortion(1)
         }
 
-        fn layout(&self, _renderer: &Renderer<B, T>, limits: &layout::Limits) -> layout::Node {
+        fn layout(&self, _renderer: &Renderer<B, Theme>, limits: &layout::Limits) -> layout::Node {
             let size = limits
                 .width(Length::Fill)
                 .height(Length::Fill)
@@ -559,9 +578,9 @@ mod color_square {
         fn draw(
             &self,
             state: &widget::Tree,
-            renderer: &mut Renderer<B, T>,
-            theme: &T,
-            _style: &Style,
+            renderer: &mut Renderer<B, Theme>,
+            _theme: &Theme,
+            _style: &renderer::Style,
             layout: Layout<'_>,
             _cursor_position: Point,
             _viewport: &Rectangle,
@@ -569,31 +588,32 @@ mod color_square {
             let b = layout.bounds();
             let x_max = b.width;
             let y_max = b.height;
-            let color = [self.color.r, self.color.g, self.color.b, self.color.a];
             let vertices = vec![
-                Vertex2D {
-                    position: [0., 0.],
-                    color,
-                },
+                Vertex2D { position: [0., 0.] },
                 Vertex2D {
                     position: [0., y_max],
-                    color,
                 },
                 Vertex2D {
                     position: [x_max, 0.],
-                    color,
                 },
                 Vertex2D {
                     position: [x_max, y_max],
-                    color,
                 },
             ];
             let indices = vec![0, 1, 2, 1, 2, 3];
+            let dummy_color = Color {
+                r: 1.0,
+                g: 0.0,
+                b: 0.0,
+                a: 1.0,
+            };
 
             renderer.with_translation(Vector::new(b.x, b.y), |renderer| {
                 renderer.draw_primitive(Primitive::Mesh2D {
                     size: b.size(),
                     buffers: Mesh2D { vertices, indices },
+                    style: iced_graphics::triangle::Style::Solid(dummy_color),
+                    // This is not satisfying.
                 })
             });
         }
@@ -604,7 +624,7 @@ mod color_square {
             event: Event,
             layout: Layout<'_>,
             cursor_position: Point,
-            _renderer: &Renderer<B, T>,
+            _renderer: &Renderer<B, Theme>,
             _clipboard: &mut dyn Clipboard,
             shell: &mut Shell<'_, Message>,
         ) -> iced_native::event::Status {
@@ -645,13 +665,15 @@ mod color_square {
         }
     }
 
-    impl<'a, Message, B, T> Into<Element<'a, Message, Renderer<B, T>>> for ColorSquare<'a, Message>
+    impl<'a, Message, B, Theme> From<ColorSquare<'a, Message>>
+        for Element<'a, Message, Renderer<B, Theme>>
     where
+        Message: Clone + 'a,
         B: Backend,
-        Message: 'a + Clone,
+        //Renderer::Theme: StyleSheet,
     {
-        fn into(self) -> Element<'a, Message, Renderer<B, T>> {
-            Element::new(self)
+        fn from(color_square: ColorSquare<'a, Message>) -> Self {
+            Self::new(color_square)
         }
     }
 }

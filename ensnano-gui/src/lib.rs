@@ -15,10 +15,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-//! The [Gui Manager](Gui) handles redraw request on textures that corresponds to regions
+//! The [GUI Manager](Gui) handles redraw request on textures that corresponds to regions
 //! attributed to GUI components and events happening on these regions.
 //!
-//! When a message is emmitted by a Gui component that have consequences that must be forwarded to
+//! When a message is emmitted by a GUI component that have consequences that must be forwarded to
 //! other components of the program it is forwarded to the `main` function via the
 //! [Request](Requests) data structure.
 
@@ -32,6 +32,7 @@ pub use left_panel::{
     ColorOverlay, CurveDescriptorBuilder, CurveDescriptorParameter, InstanciatedParameter,
     LeftPanel, ParameterKind, RevolutionScaling, RigidBodyParametersRequest,
 };
+/// Draw the status bar
 pub mod status_bar;
 mod ui_size;
 pub use ui_size::*;
@@ -893,20 +894,35 @@ fn convert_size_u32(size: PhysicalSize<u32>) -> Size<u32> {
 }
 
 use iced::Length;
-use iced_native::widget::{Button, Text};
-fn text_btn<'a, M: Clone>(text: &'static str, ui_size: UiSize) -> Button<'a, M> {
-    let size = if text.len() > 1 {
+use iced_native::widget;
+use iced_native::widget::helpers::*;
+fn text_btn<'a, M, R>(inner_text: &'a str, ui_size: UiSize) -> widget::Button<'a, M, R>
+where
+    M: Clone,
+    R: iced_native::Renderer + iced_native::text::Renderer,
+    R::Theme: widget::button::StyleSheet + widget::text::StyleSheet,
+{
+    let size = if inner_text.len() > 1 {
         ui_size.main_text()
     } else {
         ui_size.icon()
     };
-    Button::new(Text::new(text).size(size)).height(Length::Units(ui_size.button()))
+    button(text(inner_text).size(size)).height(Length::Units(ui_size.button()))
 }
 
 #[allow(clippy::needless_lifetimes)]
-fn icon_btn<'a, M: Clone>(icon_char: char, ui_size: UiSize) -> Button<'a, M> {
-    Button::new(
-        Text::new(icon_char.to_string())
+fn icon_btn<'a, M: Clone, R: iced_native::Renderer>(
+    icon_char: char,
+    ui_size: UiSize,
+) -> widget::Button<'a, M, R>
+where
+    M: Clone,
+    R: iced_native::Renderer + iced_native::text::Renderer,
+    R::Theme: widget::button::StyleSheet + widget::text::StyleSheet,
+    R::Font: From<iced::Font>,
+{
+    button(
+        text(icon_char.to_string())
             .font(left_panel::ENSNANO_FONT)
             .size(ui_size.icon()),
     )
@@ -942,6 +958,12 @@ mod slider_style {
 
         fn dragging(&self, style: &Self::Style) -> Appearance {
             self.active(style)
+        }
+    }
+
+    impl From<DesactivatedSlider> for iced::theme::Slider {
+        fn from(value: DesactivatedSlider) -> Self {
+            Default::default()
         }
     }
 }

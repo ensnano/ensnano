@@ -16,6 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+use super::helpers::*;
 use super::*;
 use ensnano_design::{ultraviolet::Rotor3, CurveDescriptor2D};
 use ensnano_interactor::{
@@ -23,12 +24,15 @@ use ensnano_interactor::{
     RevolutionSurfaceSystemDescriptor, RootingParameters, ShiftGenerator,
     UnrootedRevolutionSurfaceDescriptor,
 };
-use iced_native::widget::{
-    button::Button,
-    pick_list::PickList,
-    scrollable::{self, Scrollable},
-    text_input::{self, TextInput},
-};
+use iced::Element;
+use iced_native::widget;
+use iced_native::widget::helpers::*;
+//use iced_native::widget::{
+//    button::Button,
+//    pick_list::PickList,
+//    scrollable::{self, Scrollable},
+//    text_input::{self, TextInput},
+//};
 
 #[derive(Debug, Clone, Copy)]
 pub enum ParameterKind {
@@ -130,7 +134,7 @@ impl<S: AppState> Eq for CurveDescriptorBuilder<S> {}
 
 struct ParameterWidget {
     current_text: String,
-    state: text_input::State,
+    state: widget::text_input::State,
     parameter_kind: ParameterKind,
 }
 
@@ -148,10 +152,7 @@ impl ParameterWidget {
         }
     }
 
-    fn input_view<S: AppState, R: iced_native::Renderer>(
-        &mut self,
-        id: RevolutionParameterId,
-    ) -> Element<Message<S>, R> {
+    fn input_view<S: AppState>(&self, id: RevolutionParameterId) -> Element<Message<S>> {
         let style = super::BadValue(self.contains_valid_input());
         TextInput::new("", &self.current_text, move |s| {
             Message::RevolutionParameterUpdate {
@@ -218,20 +219,23 @@ impl<S: AppState> CurveDescriptorWidget<S> {
         }
     }
 
-    fn view<'a, R: iced_native::Renderer>(&'a mut self) -> Element<'a, Message<S>, R> {
-        let column: Column<'a, Message<S>> =
+    fn view(&self) -> Element<Message<S>> {
+        column(
             self.parameters
                 .iter_mut()
                 .enumerate()
-                .fold(Column::new(), |col, (param_id, param)| {
-                    let row = Row::new().push(Text::new(param.0)).push(
+                .map(|(param_id, param)| {
+                    iced_native::row![
+                        text(param.0),
                         param
                             .1
-                            .input_view(RevolutionParameterId::SectionParameter(param_id)),
-                    );
-                    col.push(row)
-                });
-        column.into()
+                            .input_view(RevolutionParameterId::SectionParameter(param_id))
+                    ]
+                    .into()
+                })
+                .collect(),
+        )
+        .into()
     }
 
     fn update_builder_parameter(&mut self, param_id: usize, text: String) {
@@ -284,7 +288,7 @@ pub(crate) struct RevolutionTab<S: AppState> {
     time_span: ParameterWidget,
     simulation_step: ParameterWidget,
     equadiff_method: EquadiffSolvingMethod,
-    scroll_state: scrollable::State,
+    scroll_state: widget::scrollable::State,
 }
 
 impl<S: AppState> Default for RevolutionTab<S> {
@@ -400,176 +404,187 @@ impl<S: AppState> RevolutionTab<S> {
         })
     }
 
-    pub fn view<'a, R: iced_native::Renderer>(
-        &'a mut self,
-        ui_size: UiSize,
-        app_state: &S,
-    ) -> Element<'a, Message<S>, R> {
+    pub fn view(&self, ui_size: UiSize, app_state: &S) -> iced::Element<Message<S>> {
         let desc = self.get_revolution_system(app_state, false);
         let nb_shift = self.get_shift_per_turn(app_state);
 
-        let mut ret = Scrollable::new(&mut self.scroll_state);
-        section!(ret, ui_size, "Revolution Surfaces");
-        ret = ret.push(Checkbox::new(
-            app_state.get_show_bezier_paths(),
-            "Show bezier paths",
-            Message::SetShowBezierPaths,
-        ));
+        let mut shift_buttons = [button(text("-")), button(text("+"))];
+        let shift_buttons = if let Some(shift) = self.get_shift_per_turn(app_state) {
+            shift_buttons[0].on_press(Message::DecrRevolutionShift);
+            shift_buttons[1].on_press(Message::IncrRevolutionShift);
+            iced_native::row![
+                shift_buttons[0],
+                shift_buttons[1],
+                text(format!("Nb shift: {shift}"))
+            ]
+        } else {
+            iced_native::row![shift_buttons[0], shift_buttons[1], text("Nb shift: ###")]
+        };
 
-        subsection!(ret, ui_size, "Section parameters");
-        let curve_pick_list = PickList::new(
-            S::POSSIBLE_CURVES,
+        let mut simulation_buttons =
+            if let SimulationState::Relaxing = app_state.get_simulation_state() {
+                iced_native::column![
+                    button(text("Abort")).on_press(Message::StopSimulation),
+                    jump_by(2),
+                    text(
+                        app_state
+                            .get_reader()
+                            .get_current_length_of_relaxed_shape()
+                            .map_or("".into(), |l| format!("Current total length: {l}"))
+                    ),
+                    button(text("Finish")).on_press(Message::FinishRelaxation),
+                ]
+            } else {
+                let mut button = Button::new(Text::new("Start"));
+                if let SimulationState::None = app_state.get_simulation_state() {
+                    if desc.is_some() {
+                        button = button.on_press(Message::InitRevolutionRelaxation);
+                    }
+                }
+                iced_native::column![button]
+            };
+
+        iced_native::column![
+            section("Revolution Surfaces", ui_size),
+            checkbox(
+                "Show bezier paths",
+                app_state.get_show_bezier_paths(),
+                Message::SetShowBezierPaths,
+            ),
+            subsection("Section parameters", ui_size),
+            iced_native::row![
+                text("Curve type"),
+                pick_list(
+                    S::POSSIBLE_CURVES,
+                    self.curve_descriptor_widget
+                        .as_ref()
+                        .map(|w| w.builder.clone()),
+                    //|curve| Message::CurveBuilderPicked(curve),
+                    Message::CurveBuilderPicked,
+                )
+                .placeholder("Pick.."),
+            ],
             self.curve_descriptor_widget
-                .as_ref()
-                .map(|w| w.builder.clone()),
-            |curve| Message::CurveBuilderPicked(curve),
-        )
-        .placeholder("Pick..");
-
-        let pick_curve_row = Row::new()
-            .push(Text::new("Curve type"))
-            .push(curve_pick_list);
-
-        ret = ret.push(pick_curve_row);
-
-        if let Some(widget) = self.curve_descriptor_widget.as_mut() {
-            ret = ret.push(widget.view())
-        }
-
-        extra_jump!(ret);
-        subsection!(ret, ui_size, "Revolution parameter");
-
-        ret = ret.push(
-            Row::new().push(Text::new("Nb Half Turns")).push(
+                .as_mut()
+                .map_or(iced_native::column![].into(), |w| w.view()),
+            extra_jump(),
+            subsection("Revolution parameter", ui_size),
+            iced_native::row![
+                text("Nb Half Turns"),
                 self.half_turn_count
                     .input_view(RevolutionParameterId::HalfTurnCount),
-            ),
-        );
-        let helix_text = if let Some(RevolutionScaling { nb_helix, .. }) = self.scaling {
-            format!("Nb helix: {nb_helix}")
-        } else {
-            "Nb helix: ###".into()
-        };
-
-        ret = ret.push(Text::new(helix_text));
-
-        ret = ret.push(
-            Row::new().push(Text::new("Nb spiral")).push(
+            ],
+            text(self.scaling.map_or(
+                "Nb helix: ###".into(),
+                |RevolutionScaling { nb_helix, .. }| format!("Nb helix: {nb_helix}")
+            )),
+            iced_native::row![
+                text("Nb spiral"),
                 self.nb_sprial_state_input
                     .input_view(RevolutionParameterId::NbSpiral),
-            ),
-        );
-        let shift_txt = if let Some(shift) = nb_shift {
-            format!("Nb shift: {shift}")
-        } else {
-            "Nb shift: ###".into()
-        };
-        let mut button_incr = Button::new(Text::new("+"));
-        let mut button_decr = Button::new(Text::new("-"));
-        if nb_shift.is_some() {
-            button_decr = button_decr.on_press(Message::DecrRevolutionShift);
-            button_incr = button_incr.on_press(Message::IncrRevolutionShift);
-        }
-        ret = ret.push(
-            Row::new()
-                .push(button_decr)
-                .push(button_incr)
-                .push(Text::new(shift_txt)),
-        );
-
-        ret = ret.push(
-            Row::new().push(Text::new("Revolution Radius")).push(
+            ],
+            shift_buttons,
+            iced_native::row![
+                text("Revolution Radius"),
                 self.radius_input
                     .input_view(RevolutionParameterId::RevolutionRadius),
-            ),
-        );
-
-        extra_jump!(ret);
-        subsection!(ret, ui_size, "Discretization parameters");
-        ret = ret.push(
-            Row::new().push(Text::new("Nb section per segments")).push(
+            ],
+            extra_jump(),
+            subsection("Discretization parameters", ui_size),
+            iced_native::row![
+                text("Nb section per segments"),
                 self.nb_section_per_segment_input
                     .input_view(RevolutionParameterId::NbSectionPerSegment),
-            ),
-        );
-        ret = ret.push(
-            Row::new().push(Text::new("Target length")).push(
+            ],
+            iced_native::row![
+                text("Target length"),
                 self.scaffold_len_target
                     .input_view(RevolutionParameterId::ScaffoldLenTarget),
-            ),
-        );
-
-        extra_jump!(ret);
-        subsection!(ret, ui_size, "Simulation parameters");
-        ret = ret.push(
-            Row::new().push(Text::new("Spring Stiffness")).push(
+            ],
+            extra_jump(),
+            subsection("Simulation parameters", ui_size),
+            iced_native::row![
+                text("Spring Stiffness"),
                 self.spring_stiffness
                     .input_view(RevolutionParameterId::SpringStiffness),
-            ),
-        );
-        ret = ret.push(
-            Row::new().push(Text::new("Torsion Stiffness")).push(
+            ],
+            iced_native::row![
+                text("Torsion Stiffness"),
                 self.torsion_stiffness
                     .input_view(RevolutionParameterId::TorsionStiffness),
-            ),
-        );
-        ret = ret.push(
-            Row::new().push(Text::new("Fluid Friction")).push(
+            ],
+            iced_native::row![
+                text("Fluid Friction"),
                 self.fluid_friction
                     .input_view(RevolutionParameterId::FluidFriction),
-            ),
-        );
-        ret = ret.push(
-            Row::new()
-                .push(Text::new("Ball Mass"))
-                .push(self.ball_mass.input_view(RevolutionParameterId::BallMass)),
-        );
-        let method_pick_list = PickList::new(
-            EquadiffSolvingMethod::ALL_METHODS,
-            Some(self.equadiff_method),
-            |method| Message::RevolutionEquadiffSolvingMethodPicked(method),
-        );
-
-        let pick_method_row = Row::new()
-            .push(Text::new("Solving Method"))
-            .push(method_pick_list);
-
-        ret = ret.push(pick_method_row);
-
-        ret = ret.push(
-            Row::new()
-                .push(Text::new("Time Span"))
-                .push(self.time_span.input_view(RevolutionParameterId::TimeSpan)),
-        );
-        ret = ret.push(
-            Row::new().push(Text::new("Simulation Step")).push(
+            ],
+            iced_native::row![
+                text("Ball Mass"),
+                self.ball_mass.input_view(RevolutionParameterId::BallMass),
+            ],
+            iced_native::row![
+                text("Solving Method"),
+                pick_list(
+                    EquadiffSolvingMethod::ALL_METHODS,
+                    Some(self.equadiff_method),
+                    // |method| Message::RevolutionEquadiffSolvingMethodPicked(method),
+                    Message::RevolutionEquadiffSolvingMethodPicked,
+                ),
+            ],
+            iced_native::row![
+                text("Tie Span"),
+                self.time_span.input_view(RevolutionParameterId::TimeSpan),
+            ],
+            iced_native::row![
+                text("Simulation Step"),
                 self.simulation_step
                     .input_view(RevolutionParameterId::SimulationStep),
-            ),
-        );
+            ],
+            extra_jump(),
+            section("Relaxation computation", ui_size),
+            simulation_buttons,
+        ]
+        .into()
 
-        extra_jump!(ret);
-        section!(ret, ui_size, "Relaxation computation");
-        if let SimulationState::Relaxing = app_state.get_simulation_state() {
-            let button_abbort = Button::new(Text::new("Abort")).on_press(Message::StopSimulation);
-            ret = ret.push(button_abbort);
-            extra_jump!(2, ret);
-            if let Some(len) = app_state.get_reader().get_current_length_of_relaxed_shape() {
-                ret = ret.push(Text::new(format!("Current total length: {len}")));
-            }
-            let button_relaxation =
-                Button::new(Text::new("Finish")).on_press(Message::FinishRelaxation);
-            ret = ret.push(button_relaxation);
-        } else {
-            let mut button = Button::new(Text::new("Start"));
-            if let SimulationState::None = app_state.get_simulation_state() {
-                if desc.is_some() {
-                    button = button.on_press(Message::InitRevolutionRelaxation);
-                }
-            }
-            ret = ret.push(button);
-        }
-        ret.into()
+        //let mut ret = widget::scrollable::Scrollable::new(&mut self.scroll_state);
+
+        //let shift_txt = if let Some(shift) = nb_shift {
+        //    format!("Nb shift: {shift}")
+        //} else {
+        //    "Nb shift: ###".into()
+        //};
+        //let mut button_incr = Button::new(Text::new("+"));
+        //let mut button_decr = Button::new(Text::new("-"));
+        //if nb_shift.is_some() {
+        //    button_decr = button_decr.on_press(Message::DecrRevolutionShift);
+        //    button_incr = button_incr.on_press(Message::IncrRevolutionShift);
+        //}
+        //ret = ret.push(
+        //    Row::new()
+        //        .push(button_decr)
+        //        .push(button_incr)
+        //        .push(Text::new(shift_txt)),
+        //);
+        //if let SimulationState::Relaxing = app_state.get_simulation_state() {
+        //    let button_abbort = Button::new(Text::new("Abort")).on_press(Message::StopSimulation);
+        //    ret = ret.push(button_abbort);
+        //    extra_jump!(2, ret);
+        //    if let Some(len) = app_state.get_reader().get_current_length_of_relaxed_shape() {
+        //        ret = ret.push(Text::new(format!("Current total length: {len}")));
+        //    }
+        //    let button_relaxation =
+        //        Button::new(Text::new("Finish")).on_press(Message::FinishRelaxation);
+        //    ret = ret.push(button_relaxation);
+        //} else {
+        //    let mut button = Button::new(Text::new("Start"));
+        //    if let SimulationState::None = app_state.get_simulation_state() {
+        //        if desc.is_some() {
+        //            button = button.on_press(Message::InitRevolutionRelaxation);
+        //        }
+        //    }
+        //    ret = ret.push(button);
+        //}
+        //ret.into()
     }
 
     pub fn has_keyboard_priority(&self) -> bool {

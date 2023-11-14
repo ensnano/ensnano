@@ -16,12 +16,13 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use super::{
-    right_checkbox, text_btn, AppState, Color, ColorPicker, ColorSquare, ColorState, DnaElementKey,
-    FactoryId, GoStop, HelixRoll, Length, Message, RequestFactory, RollRequest, SequenceInput,
-    UiSize, ValueId, VecDeque, MEMORY_COLOR_COLUMN, MEMORY_COLOR_ROWS, NB_MEMORY_COLOR,
+    helpers::*, right_checkbox, text_btn, AppState, Color, ColorPicker, ColorSquare, ColorState,
+    DnaElementKey, FactoryId, GoStop, HelixRoll, Length, Message, RequestFactory, RollRequest,
+    SequenceInput, UiSize, ValueId, VecDeque, MEMORY_COLOR_COLUMN, MEMORY_COLOR_ROWS,
+    NB_MEMORY_COLOR,
 };
+use iced_native::widget;
 use iced_native::widget::helpers::*;
-use iced_native::{widget, Element, Renderer};
 
 pub struct EditionTab<S: AppState> {
     helix_roll_factory: RequestFactory<HelixRoll>,
@@ -52,9 +53,10 @@ impl MemoryColorSquare {
     }
 }
 
-fn memory_color_column<'a, S: AppState, R: iced_native::Renderer>(
-    states: &'a mut [MemoryColorSquare],
-) -> widget::Column<'a, Message<S>, R> {
+fn memory_color_column<S: AppState>(
+    states: &mut [MemoryColorSquare],
+    fill_portion: u16,
+) -> iced::Element<Message<S>> {
     let mut ret = widget::Column::new();
     let mut right = states;
     let mut left;
@@ -78,102 +80,14 @@ fn memory_color_column<'a, S: AppState, R: iced_native::Renderer>(
                 ));
             }
             if remaining_space > 0 {
-                row = row.push(iced::widget::Space::with_width(Length::FillPortion(
+                row = row.push(horizontal_space(Length::FillPortion(
                     remaining_space as u16,
                 )));
             }
             ret = ret.push(row)
         }
     }
-    ret
-}
-macro_rules! add_roll_slider {
-    ($ret:ident, $self:ident, $app_state: ident, $ui_size: ident) => {
-        let selection = $app_state.get_selection_as_dnaelement();
-        let roll_target_helices = $self.get_roll_target_helices(&selection);
-
-        for view in $self
-            .helix_roll_factory
-            .view(roll_target_helices.len() >= 1, $ui_size.intermediate_text())
-            .into_iter()
-        {
-            $ret = $ret.push(view);
-        }
-    };
-}
-
-macro_rules! add_autoroll_button {
-    ($ret:ident, $self:ident, $app_state: ident, $roll_target_helices: ident) => {
-        let sim_state = &$app_state.get_simulation_state();
-        let roll_target_active = sim_state.is_rolling() || $roll_target_helices.len() > 0;
-        $ret = $ret.push(
-            $self
-                .roll_target_btn
-                .view(roll_target_active, sim_state.is_rolling()),
-        );
-    };
-}
-
-macro_rules! add_color_square {
-    ($ret: ident, $self: ident, $color_square: ident) => {
-        $ret = $ret.push($self.color_picker.view()).push(
-            widget::Row::new().push($color_square).push(
-                memory_color_column($self.memory_color_squares.make_contiguous())
-                    .width(Length::FillPortion(4)),
-            ),
-        )
-    };
-}
-
-macro_rules! add_tighten_helices_button {
-    ($ret: ident, $self: ident, $app_state: ident, $ui_size: ident, $roll_target_helices: ident) => {
-        let mut tighten_helices_button = text_btn("Selected", $ui_size.clone());
-        if !$roll_target_helices.is_empty() {
-            tighten_helices_button =
-                tighten_helices_button.on_press(Message::Redim2dHelices(false));
-        }
-        $ret = $ret.push(
-            widget::Row::new()
-                .push(tighten_helices_button)
-                .push(text_btn("All", $ui_size).on_press(Message::Redim2dHelices(true)))
-                .spacing(5),
-        );
-    };
-}
-
-macro_rules! add_suggestion_parameters_checkboxes {
-    ($ret: ident, $self: ident, $app_state: ident, $ui_size: ident) => {
-        let suggestion_parameters = $app_state.get_suggestion_parameters().clone();
-        $ret = $ret.push(right_checkbox(
-            suggestion_parameters.include_scaffold,
-            "Include scaffold",
-            move |b| {
-                Message::NewSuggestionParameters(suggestion_parameters.with_include_scaffod(b))
-            },
-            $ui_size,
-        ));
-        let suggestion_parameters = $app_state.get_suggestion_parameters().clone();
-        $ret = $ret.push(right_checkbox(
-            suggestion_parameters.include_intra_strand,
-            "Intra strand suggestions",
-            move |b| Message::NewSuggestionParameters(suggestion_parameters.with_intra_strand(b)),
-            $ui_size,
-        ));
-        let suggestion_parameters = $app_state.get_suggestion_parameters().clone();
-        $ret = $ret.push(right_checkbox(
-            suggestion_parameters.include_xover_ends,
-            "Include Xover ends",
-            move |b| Message::NewSuggestionParameters(suggestion_parameters.with_xover_ends(b)),
-            $ui_size,
-        ));
-        let suggestion_parameters = $app_state.get_suggestion_parameters().clone();
-        $ret = $ret.push(right_checkbox(
-            suggestion_parameters.ignore_groups,
-            "All helices",
-            move |b| Message::NewSuggestionParameters(suggestion_parameters.with_ignore_groups(b)),
-            $ui_size,
-        ));
-    };
+    ret.width(Length::FillPortion(fill_portion)).into()
 }
 
 impl<S: AppState> EditionTab<S> {
@@ -191,31 +105,81 @@ impl<S: AppState> EditionTab<S> {
         }
     }
 
-    pub fn view<'a, R: Renderer>(
-        &'a mut self,
-        ui_size: UiSize,
-        _width: u16,
-        app_state: &S,
-    ) -> Element<'a, Message<S>, R> {
-        let mut content = widget::Column::new().spacing(5);
-        let selection = app_state.get_selection_as_dnaelement();
-        let roll_target_helices = self.get_roll_target_helices(&selection);
-        section!(content, ui_size, "Edition");
-        add_roll_slider!(content, self, app_state, ui_size);
-        add_autoroll_button!(content, self, app_state, roll_target_helices);
-
+    pub fn view(&self, ui_size: UiSize, _width: u16, app_state: &S) -> iced::Element<Message<S>> {
+        let roll_target_helices =
+            self.get_roll_target_helices(&app_state.get_selection_as_dnaelement());
+        let sim_state = &app_state.get_simulation_state();
+        let roll_target_active = sim_state.is_rolling() || roll_target_helices.len() > 0;
         let selection_contains_strand =
             ensnano_interactor::extract_strands_from_selection(app_state.get_selection()).len() > 0;
-        if selection_contains_strand {
-            let color_square = self.color_picker.color_square(&mut self.color_square_state);
-            add_color_square!(content, self, color_square);
+        let suggestion_parameters = app_state.get_suggestion_parameters().clone();
+        let mut tighten_helices_button = text_btn("Selected", ui_size.clone());
+        if !roll_target_helices.is_empty() {
+            tighten_helices_button =
+                tighten_helices_button.on_press(Message::Redim2dHelices(false));
         }
 
-        subsection!(content, ui_size, "Suggestions Parameters");
-        add_suggestion_parameters_checkboxes!(content, self, app_state, ui_size);
-
-        subsection!(content, ui_size, "Tighten 2D helices");
-        add_tighten_helices_button!(content, self, app_state, ui_size, roll_target_helices);
+        let content = iced_native::column![
+            section("Edition", ui_size),
+            // add_roll_slider!
+            column(
+                self.helix_roll_factory
+                    .view(roll_target_helices.len() >= 1, ui_size.intermediate_text())
+            ),
+            // add_autoroll_button!
+            self.roll_target_btn
+                .view(roll_target_active, sim_state.is_rolling()),
+            // add_color_square!
+            if selection_contains_strand {
+                iced_native::row![
+                    self.color_picker.view(),
+                    self.color_picker.color_square(&mut self.color_square_state),
+                    memory_color_column(self.memory_color_squares.make_contiguous(), 4),
+                ]
+            } else {
+                iced_native::row![]
+            },
+            subsection("Suggestions Parameters", ui_size),
+            // add_suggestion_parameters_checkboxes!
+            right_checkbox(
+                suggestion_parameters.include_scaffold,
+                "Include scaffold",
+                move |b| {
+                    Message::NewSuggestionParameters(suggestion_parameters.with_include_scaffod(b))
+                },
+                ui_size,
+            ),
+            right_checkbox(
+                suggestion_parameters.include_intra_strand,
+                "Intra strand suggestions",
+                move |b| Message::NewSuggestionParameters(
+                    suggestion_parameters.with_intra_strand(b)
+                ),
+                ui_size,
+            ),
+            right_checkbox(
+                suggestion_parameters.include_xover_ends,
+                "Include Xover ends",
+                move |b| Message::NewSuggestionParameters(suggestion_parameters.with_xover_ends(b)),
+                ui_size,
+            ),
+            right_checkbox(
+                suggestion_parameters.ignore_groups,
+                "All helices",
+                move |b| Message::NewSuggestionParameters(
+                    suggestion_parameters.with_ignore_groups(b)
+                ),
+                ui_size,
+            ),
+            subsection("Tighten 2D helices", ui_size),
+            // add_tighten_helices_button!
+            iced_native::row![
+                tighten_helices_button,
+                text_btn("All", ui_size).on_press(Message::Redim2dHelices(true)),
+            ]
+            .spacing(5),
+        ]
+        .spacing(5);
 
         scrollable(content).into()
     }

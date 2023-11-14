@@ -17,9 +17,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use super::{AppState, Button, DesactivatedSlider, Element, Row, Slider, Text};
+use super::{AppState, Button, DesactivatedSlider, Row, Slider, Text};
 
 use super::Message;
+use iced_native::widget::helpers::*;
 use std::collections::BTreeMap;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -87,10 +88,9 @@ impl<R: Requestable> RequestFactory<R> {
         }
     }
 
-    pub fn view<S, Rd>(&mut self, active: bool, size: u16) -> Vec<Element<Message<S>, Rd>>
+    pub fn view<S>(&mut self, active: bool, size: u16) -> Vec<iced::Element<Message<S>>>
     where
         S: AppState,
-        Rd: iced_native::Renderer,
     {
         self.values
             .values_mut()
@@ -162,33 +162,32 @@ impl DiscreteValue {
         }
     }
 
-    fn view<S, Rb>(&mut self, active: bool, name_size: u16) -> Element<Message<S>, Rb>
+    fn view<S>(&mut self, active: bool, name_size: u16) -> iced::Element<Message<S>>
     where
         S: AppState,
-        Rb: iced_native::Renderer,
     {
         let decr_button = if active && self.value - self.step >= self.min_val {
-            Button::new(Text::new("-")).on_press(Message::DescreteValue {
+            button(text("-")).on_press(Message::DescreteValue {
                 factory_id: self.owner_id,
                 value_id: self.value_id,
                 value: self.value - self.step,
             })
         } else {
-            Button::new(Text::new("-"))
+            button(text("-"))
         };
         let incr_button = if active && self.value + self.step <= self.max_val {
-            Button::new(Text::new("+")).on_press(Message::DescreteValue {
+            button(text("+")).on_press(Message::DescreteValue {
                 factory_id: self.owner_id,
                 value_id: self.value_id,
                 value: self.value + self.step,
             })
         } else {
-            Button::new(Text::new("+"))
+            button(text("+"))
         };
         let factory_id = self.owner_id.clone();
         let value_id = self.value_id.clone();
         let slider = if active {
-            Slider::new(self.min_val..=self.max_val, self.value, move |value| {
+            slider(self.min_val..=self.max_val, self.value, move |value| {
                 Message::DescreteValue {
                     factory_id,
                     value_id,
@@ -197,41 +196,41 @@ impl DiscreteValue {
             })
             .step(self.step)
         } else {
-            Slider::new(self.min_val..=self.max_val, self.value, |_| {
+            slider(self.min_val..=self.max_val, self.value, |_| {
                 Message::Nothing
             })
             .style(DesactivatedSlider)
         };
 
-        let mut name_text = Text::new(self.name.clone()).size(name_size);
+        let mut name_text = text(self.name.clone()).size(name_size);
 
         if !active {
-            name_text = name_text.color([0.6, 0.6, 0.6]);
+            name_text = name_text.style(iced::theme::Text::Color(iced::Color::from_rgb(
+                0.6, 0.6, 0.6,
+            )));
         }
 
-        let left = Row::new()
-            .push(name_text)
-            .push(Space::with_width(iced::Length::Fill))
-            .align_items(iced::Alignment::Center)
-            .width(iced::Length::FillPortion(8));
-
-        let middle = Row::new()
-            .push(Text::new(format!("{:.1}", self.value)))
-            .width(iced::Length::FillPortion(3));
-        let right = Row::new()
-            .push(decr_button)
-            .push(incr_button)
-            .push(Space::with_width(iced::Length::Units(2)))
-            .push(slider)
-            .width(iced::Length::FillPortion(10));
-
-        Row::new()
-            .push(left)
-            .push(middle)
-            .push(right)
-            .push(Space::with_width(iced::Length::FillPortion(1)))
-            .align_items(iced::Alignment::Center)
-            .into()
+        iced_native::row![
+            // left
+            iced_native::row![name_text, horizontal_space(iced::Length::Fill),]
+                .align_items(iced::Alignment::Center)
+                .width(iced::Length::FillPortion(8)),
+            // middle
+            iced_native::row![text(format!("{:.1}", self.value)),]
+                .width(iced::Length::FillPortion(3)),
+            // right
+            iced_native::row![
+                decr_button,
+                incr_button,
+                horizontal_space(iced::Length::Units(2)),
+                slider,
+            ]
+            .width(iced::Length::FillPortion(10)),
+            //
+            horizontal_space(iced::Length::FillPortion(1)),
+        ]
+        .align_items(iced::Alignment::Center)
+        .into()
     }
 
     fn get_value(&self) -> f32 {

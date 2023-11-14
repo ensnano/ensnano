@@ -19,10 +19,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::{
     helpers::*, icon_btn, text_btn, AppState, FactoryId, GridTypeDescr, HyperboloidRequest,
     Hyperboloid_, Length, Message, RequestFactory, UiSize, ValueId, ICON_HONEYCOMB_GRID,
-    ICON_NANOTUBE, ICON_SQUARE_GRID, JUMP_SIZE,
+    ICON_NANOTUBE, ICON_SQUARE_GRID,
 };
+use iced::Element;
 use iced_native::widget::helpers::*;
-use iced_native::{widget, Element, Renderer};
 
 pub struct GridTab {
     hyperboloid_factory: RequestFactory<Hyperboloid_>,
@@ -35,24 +35,14 @@ impl GridTab {
         }
     }
 
-    pub fn view<'a, S, R>(
-        &'a mut self,
+    pub fn view<S>(
+        &self,
         ui_size: UiSize,
         //_width: u16,
         app_state: &S,
-    ) -> Element<'a, Message<S>, R>
+    ) -> Element<Message<S>>
     where
         S: AppState,
-        R: Renderer + iced_native::text::Renderer,
-        R::Theme: widget::button::StyleSheet
-            + widget::checkbox::StyleSheet
-            + widget::container::StyleSheet
-            + iced::overlay::menu::StyleSheet
-            + widget::pick_list::StyleSheet
-            + widget::scrollable::StyleSheet
-            + widget::text::StyleSheet,
-        <R::Theme as iced::overlay::menu::StyleSheet>::Style:
-            From<<R::Theme as widget::pick_list::StyleSheet>::Style>,
     {
         let content = iced_native::column![
             section("Grids", ui_size),
@@ -65,7 +55,7 @@ impl GridTab {
                     .on_press(Message::NewGrid(GridTypeDescr::Honeycomb { twist: None })),
             ]
             .spacing(5),
-            vertical_space(Length::Units(JUMP_SIZE)),
+            extra_jump(),
             subsection("New nanotube", ui_size),
             // add_start_cancel_hyperboloid_button!
             if app_state.is_building_hyperboloid() {
@@ -85,7 +75,7 @@ impl GridTab {
                 self.hyperboloid_factory
                     .view(app_state.is_building_hyperboloid(), ui_size.main_text()),
             ),
-            vertical_space(Length::Units(JUMP_SIZE)),
+            extra_jump(),
             subsection("Guess grid", ui_size),
             // add_guess_grid_button!
             if app_state.can_make_grid() {

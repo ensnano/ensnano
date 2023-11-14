@@ -15,7 +15,13 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use super::*;
+use super::helpers::*;
+use super::{
+    icon_btn, light_icon_btn, AppState, GridTypeDescr, LightIcon, Message, UiSize,
+    ICON_HONEYCOMB_GRID, ICON_SQUARE_GRID,
+};
+use iced::Element;
+use iced_native::widget::helpers::*;
 
 const NEW_BEZIER_PLANE_ICON: LightIcon = LightIcon::HistoryEdu;
 const EDIT_BEZIER_PATH_ICON: LightIcon = LightIcon::LinearScale;
@@ -23,79 +29,61 @@ const EDIT_BEZIER_PATH_ICON: LightIcon = LightIcon::LinearScale;
 #[derive(Default)]
 pub struct PenTab {}
 
-macro_rules! add_buttons {
-    ($ret: ident, $self:ident, $ui_size: ident) => {
-        $ret = $ret.push(
-            Row::new()
-                .push(
-                    light_icon_btn(NEW_BEZIER_PLANE_ICON, $ui_size)
-                        .on_press(Message::NewBezierPlane),
-                )
-                .push(
-                    light_icon_btn(EDIT_BEZIER_PATH_ICON, $ui_size)
-                        .on_press(Message::StartBezierPath),
-                ),
-        );
-    };
-}
-
-macro_rules! add_grid_buttons {
-    ($ret: ident, $self: ident, $ui_size: ident, $app_state: ident) => {
-        if let Some(path_id) = $app_state.get_selected_bezier_path() {
-            let make_square_grid_btn =
-                icon_btn(ICON_SQUARE_GRID, $ui_size).on_press(Message::TurnPathIntoGrid {
-                    path_id,
-                    grid_type: GridTypeDescr::Square { twist: None },
-                });
-            let make_honeycomb_grid_btn =
-                icon_btn(ICON_HONEYCOMB_GRID, $ui_size).on_press(Message::TurnPathIntoGrid {
-                    path_id,
-                    grid_type: GridTypeDescr::Honeycomb { twist: None },
-                });
-
-            let grid_buttons = Row::new()
-                .push(make_square_grid_btn)
-                .push(make_honeycomb_grid_btn)
-                .spacing(5);
-            $ret = $ret.push(grid_buttons);
-        }
-    };
-}
-
 impl PenTab {
-    pub fn view<'a, S: AppState, R: iced_native::Renderer>(
-        &'a mut self,
-        ui_size: UiSize,
-        app_state: &S,
-    ) -> Element<'a, Message<S>, R> {
-        let mut ret = Column::new().spacing(5);
-        section!(ret, ui_size, "Bezier Planes");
-        ret = ret.push(light_icon_btn(LightIcon::FileOpen, ui_size).on_press(Message::LoadSvgFile));
-        add_buttons!(ret, self, ui_size);
-        add_grid_buttons!(ret, self, ui_size, app_state);
+    pub fn view<S>(&self, ui_size: UiSize, app_state: &S) -> Element<Message<S>>
+    where
+        S: AppState,
+    {
         let selected_path_id = app_state.get_selected_bezier_path();
         let path_txt = selected_path_id
             .map(|p| format!("{:?}", p))
             .unwrap_or_else(|| "None".to_string());
-        ret = ret.push(Text::new(format!("Selected path {path_txt}")));
 
-        if let Some(b) =
-            selected_path_id.and_then(|p_id| app_state.get_reader().is_bezier_path_cyclic(p_id))
-        {
-            ret = ret.push(Checkbox::new(b, "Cyclic", move |cyclic| {
-                Message::MakeBezierPathCyclic {
-                    path_id: selected_path_id.unwrap(),
-                    cyclic,
-                }
-            }));
-        }
-
-        extra_jump!(ret);
-        ret = ret.push(Checkbox::new(
-            app_state.get_show_bezier_paths(),
-            "Show bezier paths",
-            Message::SetShowBezierPaths,
-        ));
-        ret.into()
+        iced_native::column![
+            section("Bezier Planes", ui_size),
+            light_icon_btn(LightIcon::FileOpen, ui_size).on_press(Message::LoadSvgFile),
+            // add_buttons!
+            iced_native::row![
+                light_icon_btn(NEW_BEZIER_PLANE_ICON, ui_size).on_press(Message::NewBezierPlane),
+                light_icon_btn(EDIT_BEZIER_PATH_ICON, ui_size).on_press(Message::StartBezierPath),
+            ],
+            // add_grid_buttons!
+            if let Some(path_id) = app_state.get_selected_bezier_path() {
+                iced_native::row![
+                    icon_btn(ICON_SQUARE_GRID, ui_size).on_press(Message::TurnPathIntoGrid {
+                        path_id,
+                        grid_type: GridTypeDescr::Square { twist: None },
+                    }),
+                    icon_btn(ICON_HONEYCOMB_GRID, ui_size).on_press(Message::TurnPathIntoGrid {
+                        path_id,
+                        grid_type: GridTypeDescr::Honeycomb { twist: None },
+                    }),
+                ]
+                .spacing(5)
+            } else {
+                iced_native::row![] // Yes, an empty row…
+            },
+            text(format!("Selected path {path_txt}")),
+            if let Some(b) =
+                selected_path_id.and_then(|p_id| app_state.get_reader().is_bezier_path_cyclic(p_id))
+            {
+                iced_native::row![checkbox("Cyclic", b, move |cyclic| {
+                    Message::MakeBezierPathCyclic {
+                        path_id: selected_path_id.unwrap(),
+                        cyclic,
+                    }
+                })]
+            } else {
+                iced_native::row![] // This is trickery to always return the same object.
+            },
+            extra_jump(),
+            checkbox(
+                "Show bezier paths",
+                app_state.get_show_bezier_paths(),
+                Message::SetShowBezierPaths,
+            ),
+        ]
+        .spacing(5)
+        .into()
     }
 }

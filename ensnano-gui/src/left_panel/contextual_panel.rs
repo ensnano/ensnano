@@ -19,7 +19,8 @@ use super::super::DesignReader;
 use super::*;
 use ensnano_design::{grid::GridId, BezierVertexId};
 use ensnano_interactor::{Selection, SimulationState};
-use iced::widget::Scrollable;
+use iced_native::widget;
+use iced_native::widget::helpers::*;
 
 mod value_constructor;
 use value_constructor::{BezierVertexBuilder, Builder, GridBuilder};
@@ -178,10 +179,12 @@ impl<S: AppState> InstantiatedBuilder<S> {
 }
 
 pub(super) struct ContextualPanel<S: AppState> {
+    //scroll: widget::scrollable::State,
     width: u32,
     pub force_help: bool,
     pub show_tutorial: bool,
     add_strand_menu: AddStrandMenu,
+    strand_name_state: widget::text_input::State,
     builder: Option<InstantiatedBuilder<S>>,
     insertion_length_state: InsertionLengthState,
 }
@@ -189,10 +192,12 @@ pub(super) struct ContextualPanel<S: AppState> {
 impl<S: AppState> ContextualPanel<S> {
     pub fn new(width: u32) -> Self {
         Self {
+            //scroll: Default::default(),
             width,
             force_help: false,
             show_tutorial: false,
             add_strand_menu: Default::default(),
+            strand_name_state: Default::default(),
             builder: None,
             insertion_length_state: Default::default(),
         }
@@ -221,12 +226,8 @@ impl<S: AppState> ContextualPanel<S> {
         }
     }
 
-    pub fn view<R: iced_native::Renderer>(
-        &mut self,
-        ui_size: UiSize,
-        app_state: &S,
-    ) -> Element<Message<S>, R> {
-        let mut column = Column::new().max_width(self.width - 2);
+    pub fn view(&self, ui_size: UiSize, app_state: &S) -> iced::Element<Message<S>> {
+        let mut content = Column::new().max_width(self.width - 2);
         let selection = app_state
             .get_selection()
             .get(0)
@@ -255,45 +256,46 @@ impl<S: AppState> ContextualPanel<S> {
         self.insertion_length_state.update_selection(selection);
         let info_values = values_of_selection(selection, app_state.get_reader().as_ref());
         if self.show_tutorial {
-            column = column.push(
-                Text::new("Tutorials")
+            content = content.push(
+                text("Tutorials")
                     .size(ui_size.head_text())
                     .width(Length::Fill)
                     .horizontal_alignment(iced::alignment::Horizontal::Center),
             );
-            column = column.push(Text::new("ENSnano website"));
-            column = column.push(link_row("http://ens-lyon.fr/ensnano", ui_size));
+            content = content.push(text("ENSnano website"));
+            content = content.push(link_row("http://ens-lyon.fr/ensnano", ui_size));
         } else if self.force_help && xover_len.is_none() {
-            column = turn_into_help_column(column, ui_size)
+            content = content.push(turn_into_help_column(ui_size))
         } else if app_state.get_action_mode().is_build() {
             let strand_menu = self.add_strand_menu.view(ui_size, self.width as u16);
-            column = column.push(strand_menu);
+            content = content.push(strand_menu);
         } else if *selection == Selection::Nothing && xover_len.is_none() {
-            column = turn_into_help_column(column, ui_size)
+            content = content.push(turn_into_help_column(ui_size))
         } else if nb_selected > 1 {
-            let help_btn = text_btn("Help", ui_size).on_press(Message::ForceHelp);
-            column = column.push(
-                Row::new()
-                    .width(Length::Fill)
-                    .push(iced::widget::Space::with_width(Length::FillPortion(1)))
-                    .align_items(iced::Alignment::Center)
-                    .push(Column::new().width(Length::FillPortion(1)).push(help_btn))
-                    .push(iced::widget::Space::with_width(Length::FillPortion(1))),
-            );
-            column = column.push(Text::new(format!("{} objects selected", nb_selected)));
+            content = content
+                .push(iced_native::row![
+                    horizontal_space(Length::FillPortion(1)),
+                    iced_native::column![text_btn("Help", ui_size).on_press(Message::ForceHelp),]
+                        .width(Length::FillPortion(1)),
+                    horizontal_space(Length::FillPortion(1)),
+                ])
+                .width(Length::Fill)
+                .align_items(iced::Alignment::Center);
+            content = content.push(Text::new(format!("{} objects selected", nb_selected)));
         } else {
-            let help_btn = text_btn("Help", ui_size).on_press(Message::ForceHelp);
-            column = column.push(
-                Row::new()
-                    .width(Length::Fill)
-                    .push(iced::widget::Space::with_width(Length::FillPortion(1)))
-                    .align_items(iced::Alignment::Center)
-                    .push(Column::new().width(Length::FillPortion(1)).push(help_btn))
-                    .push(iced::widget::Space::with_width(Length::FillPortion(1))),
+            content = content.push(
+                iced_native::row![
+                    horizontal_space(Length::FillPortion(1)),
+                    iced_native::column![text_btn("Help", ui_size).on_press(Message::ForceHelp),]
+                        .width(Length::FillPortion(1)),
+                    horizontal_space(Length::FillPortion(1)),
+                ]
+                .width(Length::Fill)
+                .align_items(iced::Alignment::Center),
             );
 
             if !matches!(selection, Selection::Nothing) {
-                column = column.push(Text::new(selection.info()).size(ui_size.main_text()));
+                content = content.push(text(selection.info()).size(ui_size.main_text()));
             }
 
             match selection {
@@ -305,38 +307,39 @@ impl<S: AppState> ContextualPanel<S> {
                         SimulationState::None => TwistStatus::CanTwist,
                         _ => TwistStatus::CannotTwist,
                     };
-                    column = add_grid_content(column, info_values.as_slice(), ui_size, twisting)
+                    content =
+                        content.push(add_grid_content(info_values.as_slice(), ui_size, twisting))
                 }
                 Selection::Strand(_, _) => {
-                    column = add_strand_content(column, info_values.as_slice(), ui_size)
+                    content = content.push(add_strand_content(info_values.as_slice(), ui_size))
                 }
                 Selection::Nucleotide(_, _) => {
                     let anchor = info_values[0].clone();
-                    column = column.push(Text::new(format!("Anchor {}", anchor)));
+                    content = content.push(text(format!("Anchor {}", anchor)));
                 }
                 Selection::Xover(_, _) => {
                     if xover_len.is_none() {
                         if let Some(info) = info_values.get(0) {
-                            column = column.push(Text::new(info));
+                            content = content.push(text(info));
                         }
                         if let Some(info) = info_values.get(1) {
-                            column = column.push(Text::new(info));
+                            content = content.push(text(info));
                         }
                     }
                 }
                 _ => (),
             }
             if let Some(builder) = &mut self.builder {
-                column = column.push(builder.builder.view(ui_size, selection, app_state))
+                content = content.push(builder.builder.view(ui_size, selection, app_state))
             }
         }
 
         if let Some(info_values) = xover_len.map(|v| fmt_xover_len(Some(v))) {
             if let Some(info) = info_values.get(0) {
-                column = column.push(Text::new(info));
+                content = content.push(text(info));
             }
             if let Some(info) = info_values.get(1) {
-                column = column.push(Text::new(info));
+                content = content.push(text(info));
             }
         }
 
@@ -347,15 +350,14 @@ impl<S: AppState> ContextualPanel<S> {
                 .input_str
                 .as_ref()
                 .unwrap_or(&real_len_string);
-            column = column.push(
-                Row::new().push(Text::new("Loopout")).push(
-                    TextInput::new("", text_input_content, Message::InsertionLengthInput)
-                        .on_submit(Message::InsertionLengthSubmitted),
-                ),
-            );
+            content = content.push(iced_native::row![
+                text("Loopout"),
+                text_input("", text_input_content, Message::InsertionLengthInput)
+                    .on_submit(Message::InsertionLengthSubmitted),
+            ]);
         }
 
-        Scrollable::new(&mut self.scroll).push(column).into()
+        scrollable(content).into()
     }
 
     pub fn selection_value_changed<R: Requests>(
@@ -476,66 +478,54 @@ enum TwistStatus {
     Twisting,
 }
 
-fn add_grid_content<'a, S: AppState, R: iced_native::Renderer, I: std::ops::Deref<Target = str>>(
-    mut column: Column<'a, Message<S>, R>,
+fn add_grid_content<S: AppState, I: std::ops::Deref<Target = str>>(
     info_values: &[I],
     ui_size: UiSize,
     twisting: TwistStatus,
-) -> Column<'a, Message<S>, R> {
-    let twist_button = match twisting {
-        TwistStatus::Twisting => text_btn("Stop", ui_size).on_press(Message::StopSimulation),
-        TwistStatus::CanTwist => text_btn("Twist", ui_size).on_press(Message::StartTwist),
-        TwistStatus::CannotTwist => text_btn("Twist", ui_size),
-    };
-    column = column.push(twist_button);
-    column = column.push(
-        Checkbox::new(
-            info_values[0].parse::<bool>().unwrap(),
+) -> iced::Element<Message<S>> {
+    iced_native::column![
+        // twist_button
+        match twisting {
+            TwistStatus::Twisting => text_btn("Stop", ui_size).on_press(Message::StopSimulation),
+            TwistStatus::CanTwist => text_btn("Twist", ui_size).on_press(Message::StartTwist),
+            TwistStatus::CannotTwist => text_btn("Twist", ui_size),
+        },
+        checkbox(
             "Persistent phantoms",
+            info_values[0].parse::<bool>().unwrap(),
             |b| Message::SelectionValueChanged(0, bool_to_string(b)),
         )
         .size(ui_size.checkbox())
         .text_size(ui_size.main_text()),
-    );
-    column = column.push(
-        Checkbox::new(info_values[1].parse::<bool>().unwrap(), "No sphere", |b| {
+        checkbox("No sphere", info_values[1].parse::<bool>().unwrap(), |b| {
             Message::SetSmallSpheres(b)
         })
         .size(ui_size.checkbox())
         .text_size(ui_size.main_text()),
-    );
-    column
+    ]
+    .into()
 }
 
-fn add_strand_content<
-    'a,
-    S: AppState,
-    R: iced_native::Renderer,
-    I: std::ops::Deref<Target = str>,
->(
-    mut column: Column<'a, Message<S>, R>,
+fn add_strand_content<S: AppState, I: std::ops::Deref<Target = str>>(
     info_values: &[I],
     ui_size: UiSize,
-) -> Column<'a, Message<S>, R> {
+) -> iced::Element<Message<S>> {
     let s_id = info_values[2].parse::<usize>().unwrap();
-    let name_row = Row::new()
-        .push(Text::new("Name").size(ui_size.main_text()))
-        .push(
-            TextInput::new("Name", &info_values[4], move |new_name| {
+    iced_native::column![
+        iced_native::row![
+            text("Name").size(ui_size.main_text()),
+            text_input("Name", &info_values[4], move |new_name| {
                 Message::StrandNameChanged(s_id, new_name)
             })
             .size(ui_size.main_text()),
-        );
-    column = column.push(name_row);
-    column = column
-        .push(Text::new(format!("length {}", info_values[0].deref())).size(ui_size.main_text()));
-    column = column.push(Checkbox::new(
-        info_values[1].parse().unwrap(),
-        "Scaffold",
-        move |b| Message::ScaffoldIdSet(s_id, b),
-    ));
-    column = column.push(Text::new(info_values[3].deref()).size(ui_size.main_text()));
-    column
+        ],
+        text(format!("length {}", info_values[0].deref())).size(ui_size.main_text()),
+        checkbox("Scaffold", info_values[1].parse().unwrap(), move |b| {
+            Message::ScaffoldIdSet(s_id, b)
+        }),
+        text(info_values[3].deref()).size(ui_size.main_text()),
+    ]
+    .into()
 }
 
 fn bool_to_string(b: bool) -> String {
@@ -546,56 +536,48 @@ fn bool_to_string(b: bool) -> String {
     }
 }
 
-#[allow(clippy::needless_lifetimes)]
-fn add_help_to_column<'a, M: 'static, R: iced_native::Renderer>(
-    mut column: Column<'a, M, R>,
-    help_title: impl Into<String>,
+fn add_help_to_column<'a, S: AppState>(
+    help_title: impl ToString,
     help: Vec<(String, String)>,
     ui_size: UiSize,
-) -> Column<'a, M, R> {
-    column = column.push(Text::new(help_title).size(ui_size.intermediate_text()));
+) -> iced::Element<'a, Message<S>> {
+    let mut content = widget::Column::new();
+    content = content.push(text(help_title).size(ui_size.intermediate_text()));
     for (l, r) in help {
         if l.is_empty() {
-            column = column.push(iced::widget::Space::with_height(Length::Units(10)));
+            content = content.push(horizontal_space(Length::Units(10)));
         } else if r.is_empty() {
-            column = column.push(
-                Text::new(l)
+            content = content.push(
+                text(l)
                     .width(Length::Fill)
                     .horizontal_alignment(iced::alignment::Horizontal::Center),
             );
         } else {
-            column = column.push(
-                Row::new()
-                    .push(
-                        Text::new(l)
-                            .width(Length::FillPortion(5))
-                            .horizontal_alignment(iced::alignment::Horizontal::Right),
-                    )
-                    .push(iced::widget::Space::with_width(Length::FillPortion(1)))
-                    .push(Text::new(r).width(Length::FillPortion(5))),
-            );
+            content = content.push(iced_native::row![
+                text(l)
+                    .width(Length::FillPortion(5))
+                    .horizontal_alignment(iced::alignment::Horizontal::Right),
+                horizontal_space(Length::FillPortion(1)),
+                text(r).width(Length::FillPortion(5)),
+            ]);
         }
     }
-    column
+    content.into()
 }
 
-#[allow(clippy::needless_lifetimes)]
-fn turn_into_help_column<'a, M: 'static, R: iced_native::Renderer>(
-    mut column: Column<'a, M, R>,
-    ui_size: UiSize,
-) -> Column<'a, M, R> {
-    column = column.push(
-        Text::new("Help")
+fn turn_into_help_column<'a, S: AppState>(ui_size: UiSize) -> iced::Element<'a, Message<S>> {
+    iced_native::column![
+        text("Help")
             .size(ui_size.head_text())
             .width(Length::Fill)
             .horizontal_alignment(iced::alignment::Horizontal::Center),
-    );
-    column = add_help_to_column(column, "3D view", view_3d_help(), ui_size);
-    column = column.push(iced::widget::Space::with_height(Length::Units(15)));
-    column = add_help_to_column(column, "2D/3D view", view_2d_3d_help(), ui_size);
-    column = column.push(iced::widget::Space::with_height(Length::Units(15)));
-    column = add_help_to_column(column, "2D view", view_2d_help(), ui_size);
-    column
+        add_help_to_column("3D view", view_3d_help(), ui_size),
+        horizontal_space(Length::Units(15)),
+        add_help_to_column("2D/3D view", view_2d_3d_help(), ui_size),
+        horizontal_space(Length::Units(15)),
+        add_help_to_column("2D view", view_2d_help(), ui_size),
+    ]
+    .into()
 }
 
 fn view_3d_help() -> Vec<(String, String)> {
@@ -754,21 +736,13 @@ fn view_2d_help() -> Vec<(String, String)> {
     ]
 }
 
-fn link_row<'a, S: AppState, R: iced_native::Renderer>(
-    link: &'static str,
-    ui_size: UiSize,
-) -> Row<'a, Message<S>, R> {
-    Row::new()
-        .push(
-            Column::new()
-                .push(Text::new(link))
-                .width(Length::FillPortion(3)),
-        )
-        .push(
-            Column::new()
-                .push(text_btn("Go", ui_size).on_press(Message::OpenLink(link)))
-                .width(Length::FillPortion(1)),
-        )
+fn link_row<S: AppState>(link: &'static str, ui_size: UiSize) -> iced::Element<Message<S>> {
+    iced_native::row![
+        iced_native::column![text(link),].width(Length::FillPortion(3)),
+        iced_native::column![text_btn("Go", ui_size).on_press(Message::OpenLink(link)),]
+            .width(Length::FillPortion(1)),
+    ]
+    .into()
 }
 
 fn values_of_selection(selection: &Selection, reader: &dyn DesignReader) -> Vec<String> {
@@ -826,6 +800,7 @@ struct AddStrandMenu {
     pos_str: String,
     length_str: String,
     text_inputs_are_active: bool,
+    builder_input: [widget::text_input::State; 2],
 }
 
 impl Default for AddStrandMenu {
@@ -836,6 +811,7 @@ impl Default for AddStrandMenu {
             pos_str: "0".into(),
             length_str: "0".into(),
             text_inputs_are_active: false,
+            builder_input: Default::default(),
         }
     }
 }
@@ -885,19 +861,15 @@ impl AddStrandMenu {
     }
 
     #[allow(clippy::needless_lifetimes)]
-    fn view<'a, S: AppState, R: iced_native::Renderer>(
-        &'a mut self,
-        ui_size: UiSize,
-        width: u16,
-    ) -> Element<'a, Message<S>, R> {
-        let mut ret = Column::new();
+    fn view<S: AppState>(&self, ui_size: UiSize, width: u16) -> iced::Element<Message<S>> {
+        let mut ret = widget::Column::new();
         let mut inputs = self.builder_input.iter_mut();
         let position_input =
-            TextInput::new("Position", &self.pos_str, Message::PositionHelicesChanged)
+            widget::TextInput::new("Position", &self.pos_str, Message::PositionHelicesChanged)
                 .style(BadValue(self.pos_str == self.helix_pos.to_string()));
 
         let length_input =
-            TextInput::new("Length", &self.length_str, Message::LengthHelicesChanged)
+            widget::TextInput::new("Length", &self.length_str, Message::LengthHelicesChanged)
                 .style(BadValue(self.length_str == self.helix_length.to_string()));
 
         ret = ret.push(right_checkbox(
@@ -918,16 +890,22 @@ impl AddStrandMenu {
         } else {
             color_gray
         };
-        let row = Row::new()
+        let row = widget::Row::new()
             .push(
-                Column::new()
-                    .push(Text::new("Starting nt").color(color_choose_strand_start_length))
+                widget::Column::new()
+                    .push(
+                        Text::new("Starting nt")
+                            .style(iced::theme::Text::Color(color_choose_strand_start_length)),
+                    )
                     .push(position_input)
                     .width(Length::Units(width / 2)),
             )
             .push(
-                Column::new()
-                    .push(Text::new("Length (nt)").color(color_choose_strand_start_length))
+                widget::Column::new()
+                    .push(
+                        Text::new("Length (nt)")
+                            .style(iced::theme::Text::Color(color_choose_strand_start_length)),
+                    )
                     .push(length_input),
             );
         ret = ret.push(row);
@@ -936,6 +914,7 @@ impl AddStrandMenu {
 }
 
 struct InsertionLengthState {
+    state: widget::text_input::State,
     selection: Selection,
     input_str: Option<String>,
 }
@@ -943,6 +922,7 @@ struct InsertionLengthState {
 impl Default for InsertionLengthState {
     fn default() -> Self {
         Self {
+            state: Default::default(),
             selection: Selection::Nothing,
             input_str: None,
         }

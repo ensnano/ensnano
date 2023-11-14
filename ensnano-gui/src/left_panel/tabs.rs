@@ -46,46 +46,38 @@ fn light_icon_btn<'a, Message: Clone>(
     Button::new(content).height(iced::Length::Units(ui_size.button()))
 }
 
-// Should be replaced by helpers::section.
-#[deprecated]
-macro_rules! section {
-    ($row:ident, $ui_size:ident, $text:tt) => {
-        $row = $row.push(widget::Text::new($text).size($ui_size.head_text()));
-    };
-}
-// Should be replaced by helpers::section.
-#[deprecated]
-macro_rules! subsection {
-    ($row:ident, $ui_size:ident, $text:tt) => {
-        $row = $row.push(widget::Text::new($text).size($ui_size.intermediate_text()));
-    };
-}
-
 /// Additional Iced widget helpers
 mod helpers {
-    use super::UiSize;
-    use iced_native::widget::helpers::*;
+    use super::{Length, UiSize, JUMP_SIZE};
+    use iced_native::widget::{self, helpers::*};
 
     /// Section title widget
-    pub(crate) fn section<Message, Renderer>(title: str, ui_size: UiSize) {
+    pub(crate) fn section<'a, R>(title: &'a str, ui_size: UiSize) -> widget::Text<'a, R>
+    where
+        R: iced_native::text::Renderer,
+        R::Theme: widget::text::StyleSheet,
+    {
         text(title).size(ui_size.head_text())
     }
 
     /// Section subtitle widget
-    pub(crate) fn subsection<Message, Renderer>(title: str, ui_size: UiSize) {
+    pub(crate) fn subsection<'a, R>(title: &'a str, ui_size: UiSize) -> widget::Text<'a, R>
+    where
+        R: iced_native::text::Renderer,
+        R::Theme: widget::text::StyleSheet,
+    {
         text(title).size(ui_size.intermediate_text())
     }
-}
 
-macro_rules! extra_jump {
-    ($row: ident) => {
-        $row = $row.push(iced::widget::Space::with_height(iced::Length::Units(
-            JUMP_SIZE,
-        )))
-    };
-    ($nb: tt, $row: ident) => {
-        $row = $row.push(iced::widget::Space::with_height(iced::Length::Units($nb)))
-    };
+    /// Add vertical space of [JUMP_SIZE] amount
+    pub(crate) fn extra_jump() -> widget::Space {
+        jump_by(JUMP_SIZE)
+    }
+
+    /// Add vertical space of specified amount.
+    pub(crate) fn jump_by(amount: u16) -> widget::Space {
+        vertical_space(Length::Units(amount))
+    }
 }
 
 mod edition_tab;
@@ -123,20 +115,19 @@ impl<S: AppState> GoStop<S> {
         }
     }
 
-    fn view<R: iced_native::Renderer>(
-        &mut self,
-        active: bool,
-        running: bool,
-    ) -> Row<Message<S>, R> {
+    fn view(&self, active: bool, running: bool) -> iced::Element<Message<S>> {
+        use iced_native::widget::helpers::*;
         let button_str = if running {
             "Stop".to_owned()
         } else {
             self.name.clone()
         };
-        let mut button = Button::new(Text::new(button_str)).style(ButtonColor::red_green(running));
+        //let mut button = button(text(button_str)).style(ButtonColor::red_green(running));
+        let mut button = button(text(button_str)).style(iced::theme::Button::Positive);
+        // This is a dirty fix to compile.
         if active {
             button = button.on_press((self.on_press)(!running));
         }
-        iced::widget::row![button]
+        iced::widget::row![button].into()
     }
 }

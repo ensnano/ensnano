@@ -16,7 +16,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+use super::helpers::*;
 use super::*;
+use iced_native::widget;
+use iced_native::widget::helpers::*;
 
 pub struct SimulationTab<S: AppState> {
     rigid_body_factory: RequestFactory<RigidBodyFactory>,
@@ -54,78 +57,58 @@ impl<S: AppState> SimulationTab<S> {
         }
     }
 
-    pub fn view<'a, R: iced_native::Renderer>(
-        &'a mut self,
-        ui_size: UiSize,
-        app_state: &S,
-    ) -> Element<'a, Message<S>, R> {
+    pub fn view(&self, ui_size: UiSize, app_state: &S) -> iced::Element<Message<S>> {
         let sim_state = &app_state.get_simulation_state();
         let grid_active = sim_state.is_none() || sim_state.simulating_grid();
         let roll_active = sim_state.is_none() || sim_state.is_rolling();
-        let mut ret = Column::new().spacing(5);
-        section!(ret, ui_size, "Simulation (Beta)");
-        ret = ret.push(self.physical_simulation.view(
-            &ui_size,
-            "Roll",
-            roll_active,
-            sim_state.is_rolling(),
-        ));
-        ret = ret
-            .push(
-                self.rigid_grid_button
-                    .view(grid_active, sim_state.simulating_grid()),
-            )
-            .push(Self::helix_btns(
-                &mut self.rigid_helices_button,
-                app_state,
-                ui_size.clone(),
-            ));
 
         let volume_exclusion = self.rigid_body_factory.requestable.volume_exclusion;
         let brownian_motion = self.rigid_body_factory.requestable.brownian_motion;
-        subsection!(ret, ui_size, "Parameters for helices simulation");
-        for view in self
-            .rigid_body_factory
-            .view(true, ui_size.main_text())
-            .into_iter()
-        {
-            ret = ret.push(view);
-        }
-        ret = ret.push(right_checkbox(
-            volume_exclusion,
-            "Volume exclusion",
-            Message::VolumeExclusion,
-            ui_size,
-        ));
-        ret = ret.push(right_checkbox(
-            brownian_motion,
-            "Unmatched nt jiggling",
-            Message::BrownianMotion,
-            ui_size,
-        ));
-        for view in self
-            .brownian_factory
-            .view(brownian_motion, ui_size.main_text())
-            .into_iter()
-        {
-            ret = ret.push(view);
-        }
 
-        Scrollable::new(ret).into()
+        let content = iced_native::column![
+            section("Simulation (Beta)", ui_size),
+            self.physical_simulation
+                .view(&ui_size, "Roll", roll_active, sim_state.is_rolling(),),
+            self.rigid_grid_button
+                .view(grid_active, sim_state.simulating_grid()),
+            Self::helix_btns(&self.rigid_helices_button, app_state, ui_size.clone(),),
+            subsection("Parameters for helices simulation", ui_size),
+            column(self.rigid_body_factory.view(true, ui_size.main_text())),
+            right_checkbox(
+                volume_exclusion,
+                "Volume exclusion",
+                Message::VolumeExclusion,
+                ui_size,
+            ),
+            right_checkbox(
+                brownian_motion,
+                "Unmatched nt jiggling",
+                Message::BrownianMotion,
+                ui_size,
+            ),
+            column(
+                self.brownian_factory
+                    .view(brownian_motion, ui_size.main_text())
+            ),
+        ]
+        .spacing(5);
+
+        scrollable(content).into()
     }
 
-    fn helix_btns<'a, R: iced_native::Renderer>(
-        go_stop: &'a mut GoStop<S>,
+    fn helix_btns<'a>(
+        go_stop: &GoStop<S>,
         app_state: &S,
         ui_size: UiSize,
-    ) -> Element<'a, Message<S>, R> {
+    ) -> iced::Element<'a, Message<S>> {
         let sim_state = app_state.get_simulation_state();
         if sim_state.is_paused() {
-            Row::new()
-                .push(go_stop.view(true, false))
-                .spacing(3)
-                .push(text_btn("Reset", ui_size).on_press(Message::ResetSimulation))
-                .into()
+            iced_native::row![
+                go_stop.view(true, false),
+                text_btn("Reset", ui_size).on_press(Message::ResetSimulation),
+            ]
+            .spacing(3)
+            .into()
         } else {
             let helices_active = sim_state.is_none() || sim_state.simulating_helices();
             go_stop
@@ -197,19 +180,24 @@ impl<S: AppState> SimulationTab<S> {
 struct PhysicalSimulation {}
 
 impl PhysicalSimulation {
-    fn view<'a, 'b, S: AppState, R: iced_native::Renderer>(
-        &'a mut self,
+    fn view<'b, S: AppState>(
+        &self,
         _ui_size: &'b UiSize,
         name: &'static str,
         active: bool,
         running: bool,
-    ) -> Row<'a, Message<S>, R> {
+    ) -> iced::Element<Message<S>> {
         let button_str = if running { "Stop" } else { name };
-        let mut button = Button::new(Text::new(button_str)).style(ButtonColor::red_green(running));
+        let mut button = button(text(button_str)).style(
+            // ButtonColor::red_green(running)  // Not working
+            // iced::theme::Button::Custom(Box::new(ButtonColor::red_green(running)))
+            //   Still not working
+            iced::theme::Button::Positive,
+        );
         if active {
             button = button.on_press(Message::SimRequest);
         }
-        Row::new().push(button)
+        iced_native::row![button].into()
     }
 
     fn request(&self) -> RollRequest {

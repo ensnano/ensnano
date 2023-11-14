@@ -123,6 +123,7 @@ pub enum Message<S: AppState> {
     FinishChangingColor,
     HueChanged(f64),
     NewGrid(GridTypeDescr),
+    /// Set camera to fixed position.
     FixPoint(Vec3, Vec3),
     RotateCam(f32, f32, f32),
     PositionHelicesChanged(String),
@@ -949,8 +950,7 @@ where
             Tabs::new(self.selected_tab, Message::TabSelected)
                 .push(
                     TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::GridOn))),
-                    self.grid_tab
-                        .view(self.ui_size, width, &self.application_state),
+                    self.grid_tab.view(self.ui_size, &self.application_state),
                 )
                 .push(
                     TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Edit))),
@@ -1186,14 +1186,18 @@ impl iced_native::widget::button::StyleSheet for ButtonStyle {
     }
 }
 
-struct ButtonColor(iced::Color);
+struct ButtonColor {
+    background: iced::Color,
+}
 
 impl ButtonColor {
     fn red_green(active: bool) -> Self {
-        if active {
-            Self(iced::Color::from_rgb(1., 0., 0.))
-        } else {
-            Self(iced::Color::from_rgb(0., 1., 0.))
+        Self {
+            background: if active {
+                iced::Color::from_rgb(1., 0., 0.)
+            } else {
+                iced::Color::from_rgb(0., 1., 0.)
+            },
         }
     }
 }
@@ -1202,7 +1206,7 @@ impl iced_native::widget::button::StyleSheet for ButtonColor {
     type Style = ();
     fn active(&self, style: &Self::Style) -> iced_native::widget::button::Appearance {
         iced_native::widget::button::Appearance {
-            background: Some(Background::Color(self.0)),
+            background: Some(Background::Color(self.background)),
             //background: Some(Background::Color(BACKGROUND)),
             border_radius: 2.0,
             border_width: 1.0,
@@ -1226,6 +1230,12 @@ impl iced_native::widget::button::StyleSheet for ButtonColor {
     }
 }
 
+impl From<ButtonColor> for iced::theme::Button {
+    fn from(value: ButtonColor) -> Self {
+        Default::default()
+    }
+}
+
 fn rotation_message<S: AppState>(i: usize, _xz: isize, _yz: isize, _xy: isize) -> Message<S> {
     let angle_xz = match i {
         0 => 15f32.to_radians(),
@@ -1245,11 +1255,7 @@ fn rotation_message<S: AppState>(i: usize, _xz: isize, _yz: isize, _xy: isize) -
     Message::RotateCam(angle_xz, angle_yz, angle_xy)
 }
 
-fn rotation_text<'a, R>(i: usize, ui_size: UiSize) -> Text<'a, R>
-where
-    R: iced_native::text::Renderer,
-    <R as iced_native::Renderer>::Theme: iced_native::widget::text::StyleSheet,
-{
+fn rotation_text<'a>(i: usize, ui_size: UiSize) -> iced::widget::Text<'a> {
     match i {
         0 => icon(MaterialIcon::ArrowBack, ui_size),
         1 => icon(MaterialIcon::ArrowForward, ui_size),
@@ -1296,6 +1302,11 @@ mod text_input_style {
 
         fn selection_color(&self, style: &Self::Style) -> Color {
             Color::from_rgb(0.8, 0.8, 1.0)
+        }
+    }
+    impl From<BadValue> for iced::theme::TextInput {
+        fn from(value: BadValue) -> Self {
+            Default::default()
         }
     }
 }
@@ -1630,30 +1641,29 @@ impl tab_bar::StyleSheet for TabStyle {
     fn hovered(&self, _style: Self::Style, is_active: bool) -> tab_bar::Appearance {
         tab_bar::Appearance {
             tab_label_background: Background::Color([0.6, 0.6, 0.6].into()),
-            ..self.active(is_active)
+            ..self.active(_style, is_active)
         }
     }
 }
 
-fn right_checkbox<'a, F, S, R>(
+fn right_checkbox<'a, S, F>(
     is_checked: bool,
-    label: impl Into<String>,
+    label: impl ToString,
     //label: impl Into<Cow<'a, str>>,
     f: F,
     ui_size: UiSize,
-) -> Element<'a, Message<S>, R>
+) -> iced::Element<'a, Message<S>>
 where
     S: AppState,
-    R: iced_native::text::Renderer,
-    <R as iced_native::Renderer>::Theme: iced_native::widget::text::StyleSheet,
-    <R as iced_native::Renderer>::Theme: iced_native::widget::checkbox::StyleSheet,
     F: 'static + Fn(bool) -> Message<S>,
 {
-    Row::new()
-        .push(Text::new(label))
-        .push(Checkbox::new(is_checked, "", f).size(ui_size.checkbox()))
-        .spacing(CHECKBOXSPACING)
-        .into()
+    use iced_native::widget::helpers::*;
+    iced_native::row![
+        text(label),
+        checkbox("", is_checked, f).size(ui_size.checkbox()),
+    ]
+    .spacing(CHECKBOXSPACING)
+    .into()
 }
 
 fn color_to_u32(color: Color) -> u32 {

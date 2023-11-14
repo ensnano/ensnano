@@ -17,11 +17,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::{
-    helpers::*, right_checkbox, AppState, FactoryId, Length, Message, RequestFactory,
-    ScrollSentivity, UiSize, ValueId, JUMP_SIZE,
+    helpers::*, right_checkbox, AppState, FactoryId, Message, RequestFactory, ScrollSentivity,
+    UiSize, ValueId,
 };
+use iced::Element;
 use iced_native::widget::helpers::*;
-use iced_native::{widget, Element, Renderer};
 
 pub struct ParametersTab {
     scroll_sensitivity_factory: RequestFactory<ScrollSentivity>,
@@ -41,36 +41,22 @@ impl ParametersTab {
         }
     }
 
-    pub fn view<'a, S, R>(
-        &'a mut self,
-        ui_size: UiSize,
-        app_state: &S,
-    ) -> Element<'a, Message<S>, R>
+    pub fn view<S>(&self, ui_size: UiSize, app_state: &S) -> Element<Message<S>>
     where
         S: AppState,
-        R: Renderer + iced_native::text::Renderer,
-        R::Theme: widget::button::StyleSheet
-            + widget::checkbox::StyleSheet
-            + widget::container::StyleSheet
-            + iced::overlay::menu::StyleSheet
-            + widget::pick_list::StyleSheet
-            + widget::scrollable::StyleSheet
-            + widget::text::StyleSheet,
-        <R::Theme as iced::overlay::menu::StyleSheet>::Style:
-            From<<R::Theme as widget::pick_list::StyleSheet>::Style>,
     {
         let dna_params = &app_state.get_dna_parameters();
 
         let content = iced_native::column![
             section("Parameters", ui_size),
-            vertical_space(Length::Units(JUMP_SIZE)),
+            extra_jump(),
             subsection("Font size", ui_size),
             pick_list(
                 &super::super::super::ALL_UI_SIZE[..],
                 Some(ui_size.clone()),
                 Message::UiSizePicked,
             ),
-            vertical_space(Length::Units(JUMP_SIZE)),
+            extra_jump(),
             subsection("Scrolling", ui_size),
             column(
                 self.scroll_sensitivity_factory
@@ -82,7 +68,7 @@ impl ParametersTab {
                 Message::InvertScroll,
                 ui_size.clone(),
             ),
-            vertical_space(Length::Units(10)),
+            jump_by(10),
             section("P-stick model", ui_size),
             pick_list(
                 &ensnano_design::NAMED_DNA_PARAMETERS[..],
@@ -108,16 +94,16 @@ impl ParametersTab {
                     dna_params.dist_ac()
                 )),
             ],
-            vertical_space(Length::Units(10)),
+            jump_by(10),
             section("About", ui_size),
             text(format!("Version {}", ensnano_design::ensnano_version())),
             subsection("Development:", ui_size),
             text("Nicolas Levy"),
-            vertical_space(Length::Units(JUMP_SIZE)),
+            extra_jump(),
             subsection("Conception:", ui_size),
             text("Nicolas Levy"),
             text("Nicolas Schabanel"),
-            vertical_space(Length::Units(JUMP_SIZE)),
+            extra_jump(),
             subsection("License:", ui_size),
             text("GPLv3"),
         ];

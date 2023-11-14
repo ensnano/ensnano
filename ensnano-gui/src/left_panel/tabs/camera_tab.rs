@@ -23,8 +23,9 @@ use super::{
 use ensnano_interactor::graphics::{
     Background3D, RenderingMode, ALL_BACKGROUND3D, ALL_RENDERING_MODE,
 };
+use iced::Element;
+use iced_native::widget;
 use iced_native::widget::helpers::*;
-use iced_native::{widget, Element, Renderer};
 
 pub struct CameraTab {
     fog: FogParameters,
@@ -41,12 +42,87 @@ impl CameraTab {
         }
     }
 
-    pub fn view<'a, S: AppState, R: Renderer>(
-        &'a mut self,
-        ui_size: UiSize,
-        app_state: &S,
-    ) -> Element<'a, Message<S>, R> {
-        let mut content = widget::Column::new().spacing(5);
+    //pub fn view<'a, S, R>(
+    //    &'a mut self,
+    //    ui_size: UiSize,
+    //    app_state: &S,
+    //) -> Element<'a, Message<S>, R>
+    //where
+    //    S: AppState,
+    //    R: Renderer + iced_native::text::Renderer,
+    //    R::Theme: widget::button::StyleSheet
+    //        + widget::checkbox::StyleSheet
+    //        + widget::container::StyleSheet
+    //        + widget::pick_list::StyleSheet
+    //        + widget::scrollable::StyleSheet
+    //        + widget::text::StyleSheet
+    //        + iced::overlay::menu::StyleSheet,
+    //    <R::Theme as iced::overlay::menu::StyleSheet>::Style:
+    //        From<<R::Theme as iced::overlay::menu::StyleSheet>::Style>,
+    //{
+    //    let mut content = widget::Column::new().spacing(5);
+    //    let content = iced_native::column![
+    //        section("Camera", ui_size),
+    //        subsection("Visibility", ui_size),
+    //        text_btn("Toggle Selected Visibility", ui_size.clone())
+    //            .on_press(Message::ToggleVisibility(false)),
+    //        text_btn("Toggle NonSelected Visibility", ui_size.clone())
+    //            .on_press(Message::ToggleVisibility(true)),
+    //        text_btn("Everything visible", ui_size.clone()).on_press(Message::AllVisible),
+    //        self.fog.view(&ui_size),
+    //        subsection("Visibility", ui_size),
+    //        pick_list(
+    //            [
+    //                HBoundDisplay::No,
+    //                HBoundDisplay::Stick,
+    //                HBoundDisplay::Ellipsoid,
+    //            ],
+    //            Some(app_state.get_h_bounds_display()),
+    //            Message::ShowHBonds,
+    //        ),
+    //        right_checkbox(
+    //            app_state.show_stereographic_camera(),
+    //            "Show stereographic camera",
+    //            Message::ShowStereographicCamera,
+    //            ui_size,
+    //        ),
+    //        right_checkbox(
+    //            app_state.follow_stereographic_camera(),
+    //            "Follow stereographic camera",
+    //            Message::FollowStereographicCamera,
+    //            ui_size,
+    //        ),
+    //        subsection("Highlight Xovers", ui_size),
+    //        pick_list(
+    //            CheckXoversParameter::ALL,
+    //            Some(app_state.get_checked_xovers_parameters()),
+    //            Message::CheckXoversParameter,
+    //        ),
+    //        subsection("Rendering", ui_size),
+    //        text("Style"),
+    //        pick_list(
+    //            &ALL_RENDERING_MODE[..],
+    //            Some(self.rendering_mode),
+    //            Message::RenderingMode,
+    //        ),
+    //        text("Background"),
+    //        pick_list(
+    //            &ALL_BACKGROUND3D[..],
+    //            Some(self.background3d),
+    //            Message::Background3D,
+    //        ),
+    //        checkbox(
+    //            app_state.expand_insertions(),
+    //            "Expand insertions",
+    //            Message::SetExpandInsertions,
+    //        ),
+    //    ]
+    //    .spacing(5);
+
+    //    scrollable(content).into()
+    //}
+
+    pub fn view<S: AppState>(&self, ui_size: UiSize, app_state: &S) -> Element<Message<S>> {
         let content = iced_native::column![
             section("Camera", ui_size),
             subsection("Visibility", ui_size),
@@ -55,10 +131,10 @@ impl CameraTab {
             text_btn("Toggle NonSelected Visibility", ui_size.clone())
                 .on_press(Message::ToggleVisibility(true)),
             text_btn("Everything visible", ui_size.clone()).on_press(Message::AllVisible),
-            self.fog.view(&ui_size),
+            self.fog.view(ui_size),
             subsection("Visibility", ui_size),
             pick_list(
-                [
+                vec![
                     HBoundDisplay::No,
                     HBoundDisplay::Stick,
                     HBoundDisplay::Ellipsoid,
@@ -98,8 +174,8 @@ impl CameraTab {
                 Message::Background3D,
             ),
             checkbox(
-                app_state.expand_insertions(),
                 "Expand insertions",
+                app_state.expand_insertions(),
                 Message::SetExpandInsertions,
             ),
         ]
@@ -147,33 +223,21 @@ struct FogParameters {
 }
 
 impl FogParameters {
-    fn view<S: AppState, R: iced_native::Renderer>(
-        &mut self,
-        ui_size: &UiSize,
-    ) -> widget::Column<Message<S>, R> {
-        let mut column = widget::Column::new()
-            .push(widget::Text::new("Fog").size(ui_size.intermediate_text()))
-            .push(widget::PickList::new(
-                &ALL_FOG_CHOICE[..],
-                Some(FogChoice::from_param(
-                    self.visible,
-                    self.from_camera,
-                    self.dark,
-                    self.reversed,
-                )),
-                Message::FogChoice,
-            ));
-
+    fn view<S: AppState>(&self, ui_size: UiSize) -> Element<Message<S>> {
         let radius_text = if self.visible {
-            widget::Text::new("Radius")
+            text("Radius")
         } else {
-            widget::Text::new("Radius").color([0.6, 0.6, 0.6])
+            text("Radius").style(iced::theme::Text::Color(iced::Color::from_rgb(
+                0.6, 0.6, 0.6,
+            )))
         };
 
         let gradient_text = if self.visible {
-            widget::Text::new("Softness")
+            text("Softness")
         } else {
-            widget::Text::new("Softness").color([0.6, 0.6, 0.6])
+            text("Softness").style(iced::theme::Text::Color(iced::Color::from_rgb(
+                0.6, 0.6, 0.6,
+            )))
         };
 
         let length_slider = if self.visible {
@@ -190,20 +254,22 @@ impl FogParameters {
                 .style(DesactivatedSlider)
         };
 
-        column = column
-            .push(
-                widget::Row::new()
-                    .spacing(5)
-                    .push(radius_text)
-                    .push(length_slider),
-            )
-            .push(
-                widget::Row::new()
-                    .spacing(5)
-                    .push(gradient_text)
-                    .push(softness_slider),
-            );
-        column
+        iced_native::column![
+            subsection("Fog", ui_size),
+            pick_list(
+                &ALL_FOG_CHOICE[..],
+                Some(FogChoice::from_param(
+                    self.visible,
+                    self.from_camera,
+                    self.dark,
+                    self.reversed,
+                )),
+                Message::FogChoice,
+            ),
+            iced_native::row![radius_text, length_slider,].spacing(5),
+            iced_native::row![gradient_text, softness_slider,].spacing(5),
+        ]
+        .into()
     }
 
     fn request(&self) -> Fog {
