@@ -178,27 +178,34 @@ impl ElementSelector {
         encoder.copy_texture_to_buffer(texture_copy_view, buffer_copy_view, extent);
         self.queue.submit(Some(encoder.finish()));
 
+        let (sender, receiver) = futures_channel::oneshot::channel();
         let buffer_slice = staging_buffer.slice(..);
-        let buffer_future = buffer_slice.map_async(wgpu::MapMode::Read);
+        buffer_slice.map_async(wgpu::MapMode::Read, |result| {
+            let _ = sender.send(result);
+        });
         self.device.poll(wgpu::Maintain::Wait);
+        executor::block_on(async {
+            receiver
+                .await
+                .expect("communication failed")
+                .expect("buffer_reading_failed");
+        });
+        // This pattern is copied from
+        //  https://stackoverflow.com/questions/76839881/creating-writing-and-reading-from-buffer-wgpu
 
-        let pixels = async {
-            if let Ok(()) = buffer_future.await {
-                let pixels_slice = buffer_slice.get_mapped_range();
-                let mut pixels = Vec::with_capacity((size.height * size.width) as usize);
-                for chunck in pixels_slice.chunks(buffer_dimensions.padded_bytes_per_row) {
-                    for byte in chunck[..buffer_dimensions.unpadded_bytes_per_row].iter() {
-                        pixels.push(*byte);
-                    }
+        let pixels = {
+            let pixels_slice = buffer_slice.get_mapped_range();
+            let mut pixels = Vec::with_capacity((size.height * size.width) as usize);
+            for chunck in pixels_slice.chunks(buffer_dimensions.padded_bytes_per_row) {
+                for byte in chunck[..buffer_dimensions.unpadded_bytes_per_row].iter() {
+                    pixels.push(*byte);
                 }
-                drop(pixels_slice);
-                staging_buffer.unmap();
-                pixels
-            } else {
-                panic!("could not read fake texture");
             }
+            drop(pixels_slice);
+            staging_buffer.unmap();
+            pixels
         };
-        executor::block_on(pixels)
+        pixels
     }
 
     fn create_fake_scene_texture(

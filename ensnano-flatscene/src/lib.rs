@@ -624,31 +624,37 @@ impl<S: AppState> FlatScene<S> {
         encoder.copy_texture_to_buffer(texture_copy_view, buffer_copy_view, extent);
         queue.submit(Some(encoder.finish()));
 
+        let (sender, receiver) = futures_channel::oneshot::channel();
         let buffer_slice = staging_buffer.slice(..);
-        let buffer_future = buffer_slice.map_async(wgpu::MapMode::Read);
+        buffer_slice.map_async(wgpu::MapMode::Read, |result| {
+            let _ = sender.send(result);
+        });
         device.poll(wgpu::Maintain::Wait);
+        futures::executor::block_on(async {
+            receiver
+                .await
+                .expect("communication failed")
+                .expect("buffer_reading_failed");
+        });
+        // This pattern is copied from
+        //  https://stackoverflow.com/questions/76839881/creating-writing-and-reading-from-buffer-wgpu
 
-        let pixels = async {
-            if let Ok(()) = buffer_future.await {
-                let pixels_slice = buffer_slice.get_mapped_range();
-                let mut pixels = Vec::with_capacity((size.height * size.width) as usize);
-                for chunck in pixels_slice.chunks(buffer_dimensions.padded_bytes_per_row) {
-                    for chunk in chunck.chunks(4) {
-                        // convert Bgra to Rgba
-                        pixels.push(chunk[2]);
-                        pixels.push(chunk[1]);
-                        pixels.push(chunk[0]);
-                        pixels.push(chunk[3]);
-                    }
+        let pixels = {
+            let pixels_slice = buffer_slice.get_mapped_range();
+            let mut pixels = Vec::with_capacity((size.height * size.width) as usize);
+            for chunck in pixels_slice.chunks(buffer_dimensions.padded_bytes_per_row) {
+                for chunk in chunck.chunks(4) {
+                    // convert Bgra to Rgba
+                    pixels.push(chunk[2]);
+                    pixels.push(chunk[1]);
+                    pixels.push(chunk[0]);
+                    pixels.push(chunk[3]);
                 }
-                drop(pixels_slice);
-                staging_buffer.unmap();
-                pixels
-            } else {
-                panic!("could not read fake texture");
             }
+            drop(pixels_slice);
+            staging_buffer.unmap();
+            pixels
         };
-        let pixels = futures::executor::block_on(pixels);
         let mut png_encoder = png::Encoder::new(
             std::fs::File::create(png_name).unwrap(),
             PNG_SIZE.width,
