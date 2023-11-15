@@ -71,7 +71,7 @@ impl GridTab {
                 .spacing(3)
             },
             // add hyperboloid sliders!
-            column(
+            iced_native::widget::Column::with_children(
                 self.hyperboloid_factory
                     .view(app_state.is_building_hyperboloid(), ui_size.main_text()),
             ),

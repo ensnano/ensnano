@@ -73,7 +73,7 @@ impl<S: AppState> SimulationTab<S> {
                 .view(grid_active, sim_state.simulating_grid()),
             Self::helix_btns(&self.rigid_helices_button, app_state, ui_size.clone(),),
             subsection("Parameters for helices simulation", ui_size),
-            column(self.rigid_body_factory.view(true, ui_size.main_text())),
+            widget::Column::with_children(self.rigid_body_factory.view(true, ui_size.main_text())),
             right_checkbox(
                 volume_exclusion,
                 "Volume exclusion",
@@ -86,7 +86,7 @@ impl<S: AppState> SimulationTab<S> {
                 Message::BrownianMotion,
                 ui_size,
             ),
-            column(
+            widget::Column::with_children(
                 self.brownian_factory
                     .view(brownian_motion, ui_size.main_text())
             ),

@@ -58,7 +58,7 @@ impl ParametersTab {
             ),
             extra_jump(),
             subsection("Scrolling", ui_size),
-            column(
+            iced_native::widget::Column::with_children(
                 self.scroll_sensitivity_factory
                     .view(true, ui_size.main_text())
             ),

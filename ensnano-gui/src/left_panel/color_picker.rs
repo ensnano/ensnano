@@ -16,8 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use super::{AppState, ColorMessage, Message};
-use iced_graphics::{Backend, Renderer};
-use iced_native::{widget, Color};
+use iced_native::Color;
 
 pub struct ColorPicker {
     hue_state: hue_column::State,
@@ -71,22 +70,21 @@ impl ColorPicker {
         self.hsv_value = hsv_value
     }
 
-    pub fn view<S, B, Theme>(&mut self) -> widget::Row<Message<S>, Renderer<B, Theme>>
+    pub fn view<S>(&self) -> iced::Element<Message<S>>
     where
         S: AppState,
-        B: Backend,
     {
-        let color_picker = widget::Row::new()
-            .spacing(5)
-            .push(HueColumn::new(&mut self.hue_state, Message::HueChanged))
-            .spacing(10)
-            .push(LightSatSquare::new(
+        iced_native::row![
+            HueColumn::new(&mut self.hue_state, Message::HueChanged),
+            LightSatSquare::new(
                 self.hue as f64,
                 &mut self.light_sat_square_state,
                 Message::HsvSatValueChanged,
                 Message::FinishChangingColor,
-            ));
-        color_picker
+            ),
+        ]
+        .spacing(10)
+        .into()
     }
 
     pub fn color_square<'a, S: AppState>(
@@ -101,24 +99,21 @@ impl ColorPicker {
         )
     }
 
-    pub fn new_view<B, Theme>(&mut self) -> widget::Row<ColorMessage, Renderer<B, Theme>>
+    pub fn new_view<S>(&self) -> iced::Element<Message<S>>
     where
-        B: Backend,
+        S: AppState,
     {
-        let color_picker = widget::Row::new()
-            .spacing(5)
-            .push(HueColumn::new(
-                &mut self.hue_state,
-                ColorMessage::HueChanged,
-            ))
-            .spacing(10)
-            .push(LightSatSquare::new(
+        iced_native::row![
+            HueColumn::new(&mut self.hue_state, ColorMessage::HueChanged,),
+            LightSatSquare::new(
                 self.hue as f64,
                 &mut self.light_sat_square_state,
                 ColorMessage::HsvSatValueChanged,
                 ColorMessage::FinishChangingColor,
-            ));
-        color_picker
+            ),
+        ]
+        .spacing(10)
+        .into()
     }
 }
 
@@ -126,11 +121,11 @@ mod hue_column {
     use super::Color;
     use iced_graphics::{
         triangle::{Mesh2D, Vertex2D},
-        Backend, Primitive, Rectangle, Renderer,
+        Primitive, Rectangle,
     };
     use iced_native::{
         layout, mouse, renderer::Style, widget, Clipboard, Element, Event, Layout, Length, Point,
-        Renderer as RendererTrait, Shell, Size, Vector, Widget,
+        Shell, Size, Vector, Widget,
     };
 
     use color_space::{Hsv, Rgb};
@@ -165,9 +160,9 @@ mod hue_column {
         }
     }
 
-    impl<'a, B, Theme, Message> Widget<Message, Renderer<B, Theme>> for HueColumn<'a, Message>
+    impl<'a, Message, R> Widget<Message, R> for HueColumn<'a, Message>
     where
-        B: Backend,
+        R: iced_native::Renderer,
     {
         fn width(&self) -> Length {
             Length::FillPortion(1)
@@ -177,7 +172,7 @@ mod hue_column {
             Length::Shrink
         }
 
-        fn layout(&self, _renderer: &Renderer<B, Theme>, limits: &layout::Limits) -> layout::Node {
+        fn layout(&self, _renderer: &R, limits: &layout::Limits) -> layout::Node {
             let size = limits
                 .width(Length::Fill)
                 .height(Length::Fill)
@@ -189,8 +184,8 @@ mod hue_column {
         fn draw(
             &self,
             state: &widget::Tree,
-            renderer: &mut Renderer<B, Theme>,
-            theme: &Theme,
+            renderer: &mut R,
+            theme: &R::Theme,
             style: &Style,
             layout: Layout<'_>,
             _cursor_position: Point,
@@ -252,7 +247,7 @@ mod hue_column {
             event: Event,
             layout: Layout<'_>,
             cursor_position: Point,
-            _renderer: &Renderer<B, Theme>,
+            _renderer: &R,
             _clipboard: &mut dyn Clipboard,
             shell: &mut Shell<'_, Message>,
         ) -> iced_native::event::Status {
@@ -300,12 +295,11 @@ mod hue_column {
         }
     }
 
-    impl<'a, Message, B, T> From<HueColumn<'a, Message>> for Element<'a, Message, Renderer<B, T>>
+    impl<'a, Message> From<HueColumn<'a, Message>> for iced::Element<'a, Message>
     where
-        B: Backend,
         Message: 'a + Clone,
     {
-        fn from(hue_column: HueColumn<'a, Message>) -> Element<'a, Message, Renderer<B, T>> {
+        fn from(hue_column: HueColumn<'a, Message>) -> iced::Element<'a, Message> {
             Element::new(hue_column)
         }
     }
@@ -315,11 +309,11 @@ mod light_sat_square {
     use super::Color;
     use iced_graphics::{
         triangle::{Mesh2D, Vertex2D},
-        Backend, Primitive, Rectangle, Renderer,
+        Primitive, Rectangle,
     };
     use iced_native::{
-        layout, mouse, renderer::Style, widget, Clipboard, Element, Event, Layout, Length, Point,
-        Renderer as RendererTrait, Shell, Size, Vector, Widget,
+        layout, mouse, renderer::Style, widget, Clipboard, Event, Layout, Length, Point, Shell,
+        Size, Vector, Widget,
     };
 
     use color_space::{Hsv, Rgb};
@@ -361,10 +355,10 @@ mod light_sat_square {
         }
     }
 
-    impl<'a, Message: Clone, B, Theme> Widget<Message, Renderer<B, Theme>>
-        for LightSatSquare<'a, Message>
+    impl<'a, Message, Renderer> Widget<Message, Renderer> for LightSatSquare<'a, Message>
     where
-        B: Backend,
+        Message: Clone + 'a,
+        Renderer: iced_native::Renderer,
     {
         fn width(&self) -> Length {
             Length::FillPortion(4)
@@ -374,7 +368,7 @@ mod light_sat_square {
             Length::Shrink
         }
 
-        fn layout(&self, _renderer: &Renderer<B, Theme>, limits: &layout::Limits) -> layout::Node {
+        fn layout(&self, _renderer: &Renderer, limits: &layout::Limits) -> layout::Node {
             let size = limits
                 .width(Length::Fill)
                 .height(Length::Fill)
@@ -386,8 +380,8 @@ mod light_sat_square {
         fn draw(
             &self,
             state: &widget::Tree,
-            renderer: &mut Renderer<B, Theme>,
-            theme: &Theme,
+            renderer: &mut Renderer,
+            theme: &Renderer::Theme,
             style: &Style,
             layout: Layout<'_>,
             _cursor_position: Point,
@@ -447,7 +441,7 @@ mod light_sat_square {
             event: Event,
             layout: Layout<'_>,
             cursor_position: Point,
-            _renderer: &Renderer<B, Theme>,
+            _renderer: &Renderer,
             _clipboard: &mut dyn Clipboard,
             shell: &mut Shell<'_, Message>,
         ) -> iced_native::event::Status {
@@ -506,13 +500,12 @@ mod light_sat_square {
         }
     }
 
-    impl<'a, Message, B, T> Into<Element<'a, Message, Renderer<B, T>>> for LightSatSquare<'a, Message>
+    impl<'a, Message> From<LightSatSquare<'a, Message>> for iced::Element<'a, Message>
     where
-        B: Backend,
-        Message: 'a + Clone,
+        Message: Clone + 'a,
     {
-        fn into(self) -> Element<'a, Message, Renderer<B, T>> {
-            Element::new(self)
+        fn from(value: LightSatSquare<'a, Message>) -> Self {
+            Self::new(value)
         }
     }
 }
@@ -525,10 +518,10 @@ mod color_square {
     use super::Color;
     use iced_graphics::{
         triangle::{Mesh2D, Vertex2D},
-        Backend, Primitive, Rectangle, Renderer,
+        Primitive, Rectangle,
     };
     use iced_native::{
-        layout, mouse, renderer, widget, Clipboard, Element, Event, Layout, Length, Point,
+        layout, mouse, renderer, widget, Clipboard, Event, Layout, Length, Point,
         Renderer as RendererTrait, Shell, Size, Vector, Widget,
     };
 
@@ -553,10 +546,10 @@ mod color_square {
         }
     }
 
-    impl<'a, Message, B, Theme> Widget<Message, Renderer<B, Theme>> for ColorSquare<'a, Message>
+    impl<'a, Message, Renderer> Widget<Message, Renderer> for ColorSquare<'a, Message>
     where
         Message: Clone + 'a,
-        B: Backend,
+        Renderer: iced_native::Renderer,
     {
         fn width(&self) -> Length {
             Length::FillPortion(1)
@@ -566,7 +559,7 @@ mod color_square {
             Length::FillPortion(1)
         }
 
-        fn layout(&self, _renderer: &Renderer<B, Theme>, limits: &layout::Limits) -> layout::Node {
+        fn layout(&self, _renderer: &Renderer, limits: &layout::Limits) -> layout::Node {
             let size = limits
                 .width(Length::Fill)
                 .height(Length::Fill)
@@ -578,8 +571,8 @@ mod color_square {
         fn draw(
             &self,
             state: &widget::Tree,
-            renderer: &mut Renderer<B, Theme>,
-            _theme: &Theme,
+            renderer: &mut Renderer,
+            _theme: &Renderer::Theme,
             _style: &renderer::Style,
             layout: Layout<'_>,
             _cursor_position: Point,
@@ -624,7 +617,7 @@ mod color_square {
             event: Event,
             layout: Layout<'_>,
             cursor_position: Point,
-            _renderer: &Renderer<B, Theme>,
+            _renderer: &Renderer,
             _clipboard: &mut dyn Clipboard,
             shell: &mut Shell<'_, Message>,
         ) -> iced_native::event::Status {
@@ -665,12 +658,9 @@ mod color_square {
         }
     }
 
-    impl<'a, Message, B, Theme> From<ColorSquare<'a, Message>>
-        for Element<'a, Message, Renderer<B, Theme>>
+    impl<'a, Message> From<ColorSquare<'a, Message>> for iced::Element<'a, Message>
     where
         Message: Clone + 'a,
-        B: Backend,
-        //Renderer::Theme: StyleSheet,
     {
         fn from(color_square: ColorSquare<'a, Message>) -> Self {
             Self::new(color_square)

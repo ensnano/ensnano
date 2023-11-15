@@ -21,10 +21,7 @@ use std::sync::{Arc, Mutex};
 
 use iced::theme;
 use iced_aw::{style::tab_bar, TabLabel, Tabs};
-use iced_native::widget::{
-    container, Button, Checkbox, Column, Container, PickList, Row, Scrollable, Slider, Text,
-    TextInput,
-};
+use iced_native::widget::{container, Button, Column, Container, Row, Slider, Text, TextInput};
 use iced_native::{Background, Color, Command, Element, Length};
 use iced_wgpu;
 use iced_winit::winit::{

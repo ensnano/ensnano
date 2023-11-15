@@ -365,7 +365,7 @@ impl CameraShortcut {
             horizontal_space(Length::Fill),
             light_icon_btn(LightIcon::AddAPhoto, ui_size).on_press(Message::NewCustomCamera),
             // add_camera_widgets!
-            column(
+            Column::with_children(
                 self.camera_widgets
                     .iter_mut()
                     .map(|w| w.view(ui_size).into())

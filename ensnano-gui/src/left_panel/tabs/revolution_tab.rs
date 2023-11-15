@@ -220,7 +220,7 @@ impl<S: AppState> CurveDescriptorWidget<S> {
     }
 
     fn view(&self) -> Element<Message<S>> {
-        column(
+        iced_native::widget::Column::with_children(
             self.parameters
                 .iter_mut()
                 .enumerate()

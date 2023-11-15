@@ -122,7 +122,7 @@ impl<S: AppState> EditionTab<S> {
         let content = iced_native::column![
             section("Edition", ui_size),
             // add_roll_slider!
-            column(
+            widget::Column::with_children(
                 self.helix_roll_factory
                     .view(roll_target_helices.len() >= 1, ui_size.intermediate_text())
             ),
