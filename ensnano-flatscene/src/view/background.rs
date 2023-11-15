@@ -64,13 +64,13 @@ impl Background {
         });
 
         let bg_vs_module =
-            &device.create_shader_module(&wgpu::include_spirv!("background.vert.spv"));
+            &device.create_shader_module(wgpu::include_spirv!("background.vert.spv"));
         let bg_fs_module =
-            &device.create_shader_module(&wgpu::include_spirv!("background.frag.spv"));
+            &device.create_shader_module(wgpu::include_spirv!("background.frag.spv"));
         let border_vs_module =
-            &device.create_shader_module(&wgpu::include_spirv!("border.vert.spv"));
+            &device.create_shader_module(wgpu::include_spirv!("border.vert.spv"));
         let border_fs_module =
-            &device.create_shader_module(&wgpu::include_spirv!("border.frag.spv"));
+            &device.create_shader_module(wgpu::include_spirv!("border.frag.spv"));
 
         let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             bind_group_layouts: &[globals_layout],
@@ -78,11 +78,11 @@ impl Background {
             label: None,
         });
 
-        let targets = &[wgpu::ColorTargetState {
+        let targets = &[Some(wgpu::ColorTargetState {
             format: wgpu::TextureFormat::Bgra8UnormSrgb,
             blend: Some(wgpu::BlendState::REPLACE),
             write_mask: wgpu::ColorWrites::ALL,
-        }];
+        })];
 
         let primitive = wgpu::PrimitiveState {
             topology: wgpu::PrimitiveTopology::TriangleList,

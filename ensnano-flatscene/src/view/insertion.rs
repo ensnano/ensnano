@@ -184,19 +184,19 @@ fn insertion_pipeline(
     insertions: &wgpu::BindGroupLayout,
     depth_stencil: Option<wgpu::DepthStencilState>,
 ) -> wgpu::RenderPipeline {
-    let vs_module = &device.create_shader_module(&wgpu::include_spirv!("insertion.vert.spv"));
-    let fs_module = &device.create_shader_module(&wgpu::include_spirv!("strand.frag.spv"));
+    let vs_module = &device.create_shader_module(wgpu::include_spirv!("insertion.vert.spv"));
+    let fs_module = &device.create_shader_module(wgpu::include_spirv!("strand.frag.spv"));
 
     let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         bind_group_layouts: &[globals, insertions],
         push_constant_ranges: &[],
         label: None,
     });
-    let targets = &[wgpu::ColorTargetState {
+    let targets = &[Some(wgpu::ColorTargetState {
         format: wgpu::TextureFormat::Bgra8UnormSrgb,
         blend: Some(wgpu::BlendState::ALPHA_BLENDING),
         write_mask: wgpu::ColorWrites::ALL,
-    }];
+    })];
 
     let primitive = wgpu::PrimitiveState {
         topology: wgpu::PrimitiveTopology::TriangleList,

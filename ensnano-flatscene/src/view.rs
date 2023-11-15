@@ -676,14 +676,14 @@ impl View {
         let bottom = false;
         let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: None,
-            color_attachments: &[wgpu::RenderPassColorAttachment {
+            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                 view: attachment,
                 resolve_target,
                 ops: wgpu::Operations {
                     load: wgpu::LoadOp::Clear(clear_color),
                     store: true,
                 },
-            }],
+            })],
             depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
                 view: depth_texture_view,
                 depth_ops: Some(wgpu::Operations {
@@ -737,14 +737,14 @@ impl View {
         drop(render_pass);
         let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: None,
-            color_attachments: &[wgpu::RenderPassColorAttachment {
+            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                 view: attachment,
                 resolve_target,
                 ops: wgpu::Operations {
                     load: wgpu::LoadOp::Load,
                     store: true,
                 },
-            }],
+            })],
             depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
                 view: depth_texture_view,
                 depth_ops: Some(wgpu::Operations {
@@ -808,14 +808,14 @@ impl View {
         drop(render_pass);
         let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: None,
-            color_attachments: &[wgpu::RenderPassColorAttachment {
+            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                 view: attachment,
                 resolve_target,
                 ops: wgpu::Operations {
                     load: wgpu::LoadOp::Load,
                     store: true,
                 },
-            }],
+            })],
             depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
                 view: depth_texture_view,
                 depth_ops: Some(wgpu::Operations {
@@ -871,14 +871,14 @@ impl View {
             let bottom = true;
             let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: None,
-                color_attachments: &[wgpu::RenderPassColorAttachment {
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                     view: attachment,
                     resolve_target,
                     ops: wgpu::Operations {
                         load: wgpu::LoadOp::Load,
                         store: true,
                     },
-                }],
+                })],
                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
                     view: depth_texture_view,
                     depth_ops: Some(wgpu::Operations {
@@ -921,14 +921,14 @@ impl View {
             drop(render_pass);
             let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: None,
-                color_attachments: &[wgpu::RenderPassColorAttachment {
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                     view: attachment,
                     resolve_target,
                     ops: wgpu::Operations {
                         load: wgpu::LoadOp::Load,
                         store: true,
                     },
-                }],
+                })],
                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
                     view: depth_texture_view,
                     depth_ops: Some(wgpu::Operations {
@@ -981,14 +981,14 @@ impl View {
             drop(render_pass);
             let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: None,
-                color_attachments: &[wgpu::RenderPassColorAttachment {
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                     view: attachment,
                     resolve_target,
                     ops: wgpu::Operations {
                         load: wgpu::LoadOp::Load,
                         store: true,
                     },
-                }],
+                })],
                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
                     view: depth_texture_view,
                     depth_ops: Some(wgpu::Operations {
@@ -1039,14 +1039,14 @@ impl View {
         if !exporting_png {
             let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: None,
-                color_attachments: &[wgpu::RenderPassColorAttachment {
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                     view: attachment,
                     resolve_target,
                     ops: wgpu::Operations {
                         load: wgpu::LoadOp::Load,
                         store: true,
                     },
-                }],
+                })],
                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
                     view: depth_texture_view,
                     depth_ops: Some(wgpu::Operations {
@@ -1286,18 +1286,18 @@ fn helices_pipeline_descr(
     models_layout: &wgpu::BindGroupLayout,
     depth_stencil: Option<wgpu::DepthStencilState>,
 ) -> wgpu::RenderPipeline {
-    let vs_module = &device.create_shader_module(&wgpu::include_spirv!("view/grid.vert.spv"));
-    let fs_module = &device.create_shader_module(&wgpu::include_spirv!("view/grid.frag.spv"));
+    let vs_module = &device.create_shader_module(wgpu::include_spirv!("view/grid.vert.spv"));
+    let fs_module = &device.create_shader_module(wgpu::include_spirv!("view/grid.frag.spv"));
     let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         bind_group_layouts: &[globals_layout, models_layout],
         push_constant_ranges: &[],
         label: None,
     });
-    let color_targets = &[wgpu::ColorTargetState {
+    let color_targets = &[Some(wgpu::ColorTargetState {
         format: wgpu::TextureFormat::Bgra8UnormSrgb,
         blend: Some(wgpu::BlendState::REPLACE),
         write_mask: wgpu::ColorWrites::ALL,
-    }];
+    })];
     let primitive_state = wgpu::PrimitiveState {
         topology: wgpu::PrimitiveTopology::TriangleList,
         front_face: wgpu::FrontFace::Ccw,
@@ -1340,18 +1340,18 @@ fn strand_pipeline_descr(
     globals: &wgpu::BindGroupLayout,
     depth_stencil: Option<wgpu::DepthStencilState>,
 ) -> wgpu::RenderPipeline {
-    let vs_module = &device.create_shader_module(&wgpu::include_spirv!("view/strand.vert.spv"));
-    let fs_module = &device.create_shader_module(&wgpu::include_spirv!("view/strand.frag.spv"));
+    let vs_module = &device.create_shader_module(wgpu::include_spirv!("view/strand.vert.spv"));
+    let fs_module = &device.create_shader_module(wgpu::include_spirv!("view/strand.frag.spv"));
     let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         bind_group_layouts: &[globals],
         push_constant_ranges: &[],
         label: None,
     });
-    let color_targets = &[wgpu::ColorTargetState {
+    let color_targets = &[Some(wgpu::ColorTargetState {
         format: wgpu::TextureFormat::Bgra8UnormSrgb,
         blend: Some(wgpu::BlendState::ALPHA_BLENDING),
         write_mask: wgpu::ColorWrites::ALL,
-    }];
+    })];
 
     let primitive_state = wgpu::PrimitiveState {
         front_face: wgpu::FrontFace::Ccw,

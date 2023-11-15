@@ -53,8 +53,8 @@ impl Vertex {
 
 impl Rectangle {
     pub fn new(device: &Device, queue: Rc<Queue>) -> Self {
-        let vs_module = device.create_shader_module(&wgpu::include_spirv!("rectangle.vert.spv"));
-        let fs_module = device.create_shader_module(&wgpu::include_spirv!("rectangle.frag.spv"));
+        let vs_module = device.create_shader_module(wgpu::include_spirv!("rectangle.vert.spv"));
+        let fs_module = device.create_shader_module(wgpu::include_spirv!("rectangle.frag.spv"));
 
         let vertices = [Vertex::default(); 4];
         let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
@@ -78,11 +78,11 @@ impl Rectangle {
                 push_constant_ranges: &[],
             });
 
-        let targets = &[wgpu::ColorTargetState {
+        let targets = &[Some(wgpu::ColorTargetState {
             format: wgpu::TextureFormat::Bgra8UnormSrgb,
             blend: Some(wgpu::BlendState::ALPHA_BLENDING),
             write_mask: wgpu::ColorWrites::ALL,
-        }];
+        })];
 
         let depth_stencil = Some(wgpu::DepthStencilState {
             format: wgpu::TextureFormat::Depth32Float,
