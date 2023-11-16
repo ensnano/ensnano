@@ -15,7 +15,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-pub const ALL_UI_SIZE: [UiSize; 3] = [UiSize::Small, UiSize::Medium, UiSize::Large];
+pub const ALL_UI_SIZES: [UiSize; 3] = [UiSize::Small, UiSize::Medium, UiSize::Large];
 
 use serde_derive::{Deserialize, Serialize};
 

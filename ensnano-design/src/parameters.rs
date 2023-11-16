@@ -113,7 +113,7 @@ impl Parameters {
         }
     }
 
-    pub fn formated_string(&self) -> String {
+    pub fn formatted_string(&self) -> String {
         use std::fmt::Write;
         let mut ret = String::new();
         writeln!(&mut ret, "  Radius: {:.3} nm", self.helix_radius).unwrap_or_default();

@@ -17,14 +17,14 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::{
-    helpers::*, right_checkbox, AppState, FactoryId, Message, RequestFactory, ScrollSentivity,
+    helpers::*, right_checkbox, AppState, FactoryId, Message, RequestFactory, ScrollSensitivity,
     UiSize, ValueId,
 };
 use iced::Element;
 use iced_native::widget::helpers::*;
 
 pub struct ParametersTab {
-    scroll_sensitivity_factory: RequestFactory<ScrollSentivity>,
+    scroll_sensitivity_factory: RequestFactory<ScrollSensitivity>,
     pub invert_y_scroll: bool,
 }
 
@@ -33,7 +33,7 @@ impl ParametersTab {
         Self {
             scroll_sensitivity_factory: RequestFactory::new(
                 FactoryId::Scroll,
-                ScrollSentivity {
+                ScrollSensitivity {
                     initial_value: app_state.get_scroll_sensitivity(),
                 },
             ),
@@ -52,7 +52,7 @@ impl ParametersTab {
             extra_jump(),
             subsection("Font size", ui_size),
             pick_list(
-                &super::super::super::ALL_UI_SIZE[..],
+                &super::super::super::ALL_UI_SIZES[..],
                 Some(ui_size.clone()),
                 Message::UiSizePicked,
             ),

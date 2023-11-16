@@ -1382,11 +1382,11 @@ impl Requestable for Hyperboloid_ {
     }
 }
 
-struct ScrollSentivity {
+struct ScrollSensitivity {
     initial_value: f32,
 }
 
-impl Requestable for ScrollSentivity {
+impl Requestable for ScrollSensitivity {
     type Request = f32;
     fn request_from_values(&self, values: &[f32]) -> f32 {
         values[0]
