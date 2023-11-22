@@ -16,185 +16,68 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use super::helpers::*;
-use super::*;
+use super::{tabs::light_icon_btn, AppState, Message, UiSize, Vec3};
+use crate::{material_icons_light::LightIcon, CameraId};
 use iced::{Element, Length};
 use iced_native::widget;
 use iced_native::widget::helpers::*;
+use iced_native::{column, row, Pixels};
 
-/// A predefined camera.
+/// A named camera orientation.
+///
+/// Orientation is defined by the direction pointed by the camera lens, and the direction pointed
+/// by the top of the camera (representing the top of the screen view).
 #[derive(Clone)]
-struct TargetShortcut {
+struct NamedCameraPosition {
     name: &'static str,
-    target_axis: (Vec3, Vec3),
+    // Direction pointed the camera lens.
+    direction: Vec3,
+    // Direction pointed the top of the camera.
+    up: Vec3,
 }
 
-impl TargetShortcut {
-    /// Generate message to set camera to target position.
+impl NamedCameraPosition {
+    /// Generate message to set camera to desired position.
     fn message<S: AppState>(&self) -> Message<S> {
-        Message::FixPoint(self.target_axis.0, self.target_axis.1)
+        Message::FixPoint(self.direction, self.up)
     }
 }
 
-/// Convenience to define a Vec3.
-macro_rules! vec3 {
-    ($x: expr, $y: expr, $z: expr) => {
-        Vec3 {
-            x: $x,
-            y: $y,
-            z: $z,
-        }
-    };
-}
-
-const TARGETS: [TargetShortcut; 6] = [
-    TargetShortcut {
+/// Six predefined positions.
+const PREDEFINED_CAMERA_ORIENTATION: [NamedCameraPosition; 6] = [
+    NamedCameraPosition {
         name: "Left",
-        target_axis: (vec3!(-1., 0., 0.), vec3!(0., 1., 0.)),
+        direction: Vec3::new(-1., 0., 0.),
+        up: Vec3::new(0., 1., 0.),
     },
-    TargetShortcut {
+    NamedCameraPosition {
         name: "Right",
-        target_axis: (vec3!(1., 0., 0.), vec3!(0., 1., 0.)),
+        direction: Vec3::new(1., 0., 0.),
+        up: Vec3::new(0., 1., 0.),
     },
-    TargetShortcut {
+    NamedCameraPosition {
         name: "Top",
-        target_axis: (vec3!(0., 1., 0.), vec3!(0., 0., 1.)),
+        direction: Vec3::new(0., 1., 0.),
+        up: Vec3::new(0., 0., 1.),
     },
-    TargetShortcut {
+    NamedCameraPosition {
         name: "Back",
-        target_axis: (vec3!(0., 0., 1.), vec3!(0., 1., 0.)),
+        direction: Vec3::new(0., 0., 1.),
+        up: Vec3::new(0., 1., 0.),
     },
-    TargetShortcut {
+    NamedCameraPosition {
         name: "Front",
-        target_axis: (vec3!(0., 0., -1.), vec3!(0., 1., 0.)),
+        direction: Vec3::new(0., 0., -1.),
+        up: Vec3::new(0., 1., 0.),
     },
-    TargetShortcut {
+    NamedCameraPosition {
         name: "Bottom",
-        target_axis: (vec3!(0., -1., 0.), vec3!(0., 0., -1.)),
+        direction: Vec3::new(0., -1., 0.),
+        up: Vec3::new(0., 0., -1.),
     },
 ];
 
-//macro_rules! add_target_buttons {
-//    ($ret: ident, $self:ident, $ui_size: ident, $width: ident) => {
-//        let mut target_buttons: Vec<_> = TARGETS
-//            .map(|t| {
-//                Button::new(Text::new(t.name).size($ui_size.main_text()))
-//                    .on_press(t.message())
-//                    .width(Length::Units(2 * $ui_size.button()))
-//            })
-//            .collect();
-//        //let mut target_buttons: Vec<_> = $self
-//        //    .camera_target_buttons
-//        //    .iter_mut()
-//        //    .enumerate()
-//        //    .map(|(i, s)| {
-//        //        Button::new(s, Text::new(TARGETS[i].name).size($ui_size.main_text()))
-//        //            .on_press(TARGETS[i].message())
-//        //            .width(Length::Units(2 * $ui_size.button()))
-//        //    })
-//        //    .collect();
-//        while target_buttons.len() > 0 {
-//            let mut row = Row::new();
-//            row = row.push(target_buttons.remove(0)).spacing(5);
-//            let mut nb_button_row = 1;
-//            let mut space = 2 * $ui_size.button() + 5;
-//            while space + 2 * $ui_size.button() < $width
-//                && target_buttons.len() > 0
-//                && nb_button_row < 3
-//            {
-//                row = row.push(target_buttons.remove(0)).spacing(5);
-//                space += 2 * $ui_size.button() + 5;
-//                nb_button_row += 1;
-//            }
-//            $ret = $ret.push(row)
-//        }
-//    };
-//}
-//
-//macro_rules! add_rotate_buttons {
-//    ($ret: ident, $self: ident, $ui_size: ident, $width: ident) => {
-//        let xz = $self.xz;
-//        let yz = $self.yz;
-//        let xy = $self.xy;
-//
-//        let mut rotate_buttons: Vec<_> = 0..6
-//            .map(|i| {
-//                Button::new(rotation_text(i, $ui_size))
-//                    .on_press(rotation_message(i, xz, yz, xy))
-//                    .width(Length::Units($ui_size.button()))
-//            })
-//            .collect();
-//        //let mut rotate_buttons: Vec<_> = $self
-//        //    .camera_rotation_buttons
-//        //    .iter_mut()
-//        //    .enumerate()
-//        //    .map(|(i, s)| {
-//        //        Button::new(s, rotation_text(i, $ui_size))
-//        //            .on_press(rotation_message(i, xz, yz, xy))
-//        //            .width(Length::Units($ui_size.button()))
-//        //    })
-//        //    .collect();
-//
-//        $ret = $ret.push(Text::new("Rotate Camera"));
-//        while rotate_buttons.len() > 0 {
-//            let mut row = Row::new();
-//            row = row.push(rotate_buttons.remove(0)).spacing(5);
-//            let mut space = $ui_size.button() + 5;
-//            while space + $ui_size.button() < $width && rotate_buttons.len() > 0 {
-//                row = row.push(rotate_buttons.remove(0)).spacing(5);
-//                space += $ui_size.button() + 5;
-//            }
-//            $ret = $ret.spacing(5).push(row)
-//        }
-//    };
-//}
-//
-//macro_rules! add_screenshot_button {
-//    ($ret: ident, $self: ident, $ui_size: ident, $width: ident) => {
-//        let screenshot_button = Button::new(Text::new("3D").size($ui_size.main_text()))
-//            .on_press(Message::ScreenShot3D)
-//            .width(Length::Units($ui_size.button()));
-//
-//        $ret = $ret.push(Text::new("Screenshot"));
-//        $ret = $ret.spacing(5).push(screenshot_button);
-//    };
-//}
-//
-//macro_rules! add_custom_camera_row {
-//    ($ret: ident, $self: ident, $ui_size: ident) => {
-//        let new_camera_button =
-//            light_icon_btn(LightIcon::AddAPhoto, $ui_size).on_press(Message::NewCustomCamera);
-//        let custom_cameras_row = Row::new()
-//            .push(Text::new("Custom cameras").size($ui_size.head_text()))
-//            .push(iced::widget::Space::with_width(Length::Fill))
-//            .push(new_camera_button);
-//
-//        $ret = $ret.push(custom_cameras_row);
-//    };
-//}
-//
-//macro_rules! add_camera_widgets {
-//    ($ret: ident, $self: ident, $ui_size: ident) => {
-//        //if $self.camera_widget_states.len() < $self.camera_widgets.len() {
-//        //    $self.camera_widget_states.extend(vec![
-//        //        CameraWidgetState::default();
-//        //        $self.camera_widgets.len(),
-//        //    ]);
-//        //}
-//        //for (c, s) in $self
-//        //    .camera_widgets
-//        //    .iter_mut()
-//        //    .zip($self.camera_widget_states.iter_mut())
-//        //{
-//        //    $ret = $ret.push(c.view($ui_size, s));
-//        //}
-//        for cam in $self.camera_widgets.iter_mut() {
-//            $ret = $ret.push(cam.view($ui_size));
-//        }
-//    };
-//}
-pub struct CameraShortcut {
-    //camera_target_buttons: [widget::button::State; 6],
-    //camera_rotation_buttons: [widget::button::State; 6],
+pub struct CameraShortcutPanel {
     // Camera angles
     xz: isize,
     yz: isize,
@@ -203,16 +86,12 @@ pub struct CameraShortcut {
     camera_input_name: Option<String>,
     camera_being_edited: Option<CameraId>,
     camera_widgets: Vec<CameraWidget>,
-    //new_camera_button: widget::button::State,
     camera_widget_states: Vec<CameraWidgetState>,
-    //screenshot_button: widget::button::State,
 }
 
-impl CameraShortcut {
+impl CameraShortcutPanel {
     pub fn new() -> Self {
         Self {
-            //camera_target_buttons: Default::default(),
-            //camera_rotation_buttons: Default::default(),
             xz: 0,
             yz: 0,
             xy: 0,
@@ -220,9 +99,7 @@ impl CameraShortcut {
             camera_input_name: None,
             camera_being_edited: None,
             camera_widgets: vec![],
-            //new_camera_button: Default::default(),
             camera_widget_states: Default::default(),
-            //screenshot_button: Default::default(),
         }
     }
 
@@ -291,36 +168,24 @@ impl CameraShortcut {
             .collect();
     }
 
-    pub fn view<S: AppState>(&self, ui_size: UiSize, width: u16, app: &S) -> Element<Message<S>> {
+    pub fn view<S: AppState>(
+        &self,
+        ui_size: UiSize,
+        width: impl Into<Pixels>,
+        app: &S,
+    ) -> Element<Message<S>> {
         self.set_camera_widget(app);
 
-        // Create button widget for each target.
-        let target_buttons = TARGETS
+        // Create button widget for each predefined target.
+        let predefined_orientation_buttons = PREDEFINED_CAMERA_ORIENTATION
             .into_iter()
-            .map(|t| {
-                button(text(t.name).size(ui_size.main_text()))
-                    .on_press(t.message())
-                    .width(2.0 * ui_size.button())
+            .map(|c| {
+                button(text(c.name).size(ui_size.main_text()))
+                    .on_press(c.message())
+                    .width(2.0 * ui_size.button()) // Twice the button's height.
                     .into()
             })
             .collect();
-
-        //let mut ret = Column::new();
-        //while target_buttons.len() > 0 {
-        //    let mut row = Row::new();
-        //    row = row.push(target_buttons.remove(0)).spacing(5);
-        //    let mut nb_button_row = 1;
-        //    let mut space = 2 * ui_size.button() + 5;
-        //    while space + 2 * ui_size.button() < width
-        //        && target_buttons.len() > 0
-        //        && nb_button_row < 3
-        //    {
-        //        row = row.push(target_buttons.remove(0)).spacing(5);
-        //        space += 2 * ui_size.button() + 5;
-        //        nb_button_row += 1;
-        //    }
-        //    ret = ret.push(row)
-        //}
 
         let rotate_buttons = (0..6)
             .into_iter()
@@ -344,10 +209,10 @@ impl CameraShortcut {
         //    ret = ret.spacing(5).push(row)
         //}
 
-        let content = iced_native::column![
+        let content = column![
             section("Camera", ui_size),
             // add_target_buttons!
-            row(target_buttons),
+            row(predefined_orientation_buttons),
             // Nicolas Levy did some intermediate splitting (see commented code above), that is not
             // reimplemented for now.
             // add_rotate_buttons!
@@ -365,7 +230,7 @@ impl CameraShortcut {
             horizontal_space(Length::Fill),
             light_icon_btn(LightIcon::AddAPhoto, ui_size).on_press(Message::NewCustomCamera),
             // add_camera_widgets!
-            Column::with_children(
+            widget::Column::with_children(
                 self.camera_widgets
                     .iter_mut()
                     .map(|w| w.view(ui_size).into())
@@ -373,16 +238,27 @@ impl CameraShortcut {
             )
         ];
 
-        scrollable(content).scrollbar_width(width).into()
+        let scrollbar_properties = widget::scrollable::Properties::new()
+            .width(width)
+            .scroller_width(width);
+        // NOTE: For consistency, it would be desirable to have a global instance of this.
+
+        scrollable(content)
+            .vertical_scroll(scrollbar_properties)
+            .into()
     }
 
     pub fn scroll_down(&mut self) {
-        self.scroll_state.snap_to(1.);
+        self.scroll_state
+            .snap_to(widget::operation::scrollable::RelativeOffset::END);
     }
 }
 
+// Custom camera editor.
 struct CameraWidget {
+    // Name of the custom camera orientation
     name: String,
+    // Wether the name is being edited.
     being_edited: bool,
     camera_id: CameraId,
 }
@@ -396,39 +272,33 @@ impl CameraWidget {
         }
     }
 
-    fn view<S>(
-        &self,
-        ui_size: UiSize,
-        //state: &'a mut CameraWidgetState,
-    ) -> Element<Message<S>>
+    fn view<S>(&self, ui_size: UiSize) -> Element<Message<S>>
     where
         S: AppState,
     {
-        let name: Element<Message<S>> = if self.being_edited {
-            TextInput::new("Camera name", &self.name)
+        let name_field: Element<Message<S>> = if self.being_edited {
+            text_input("Camera name", &self.name)
                 .on_input(Message::EditCameraName)
                 .on_submit(Message::<S>::SubmitCameraName)
                 .into()
         } else {
-            Text::new(&self.name).into()
+            text(&self.name).into()
         };
 
-        let select_camera_btn = light_icon_btn(LightIcon::Visibility, ui_size)
-            .on_press(Message::<S>::SelectCamera(self.camera_id));
-
-        let edit_button = light_icon_btn(LightIcon::Edit, ui_size)
-            .on_press(Message::<S>::StartEditCameraName(self.camera_id));
-
-        let delete_button = light_icon_btn(LightIcon::Delete, ui_size)
-            .on_press(Message::<S>::DeleteCamera(self.camera_id));
-
-        iced_native::row![
-            name,
+        row![
+            name_field,
             horizontal_space(3),
-            edit_button,
+            // edit button
+            light_icon_btn(LightIcon::Edit, ui_size)
+                .on_press(Message::<S>::StartEditCameraName(self.camera_id)),
+            //
             horizontal_space(Length::Fill),
-            select_camera_btn,
-            delete_button,
+            //select camera button
+            light_icon_btn(LightIcon::Visibility, ui_size)
+                .on_press(Message::<S>::SelectCamera(self.camera_id)),
+            // delete button
+            light_icon_btn(LightIcon::Delete, ui_size)
+                .on_press(Message::<S>::DeleteCamera(self.camera_id)),
         ]
         .into()
     }
@@ -436,8 +306,8 @@ impl CameraWidget {
 
 #[derive(Debug, Clone, Default)]
 struct CameraWidgetState {
-    select_camera_btn: widget::button::State,
-    edit_name_btn: widget::button::State,
-    delete_btn: widget::button::State,
+    //select_camera_btn: widget::button::State,
+    //edit_name_btn: widget::button::State,
+    //delete_btn: widget::button::State,
     name_input: widget::text_input::State,
 }

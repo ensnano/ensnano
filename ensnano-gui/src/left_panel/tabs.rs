@@ -48,7 +48,8 @@ fn light_icon_btn<'a, Message: Clone>(
 
 /// Additional Iced widget helpers
 mod helpers {
-    use super::{UiSize, JUMP_SIZE};
+    use super::{icon, Message, UiSize, JUMP_SIZE};
+    use crate::{left_panel::MaterialIcon, AppState};
     use iced::Length;
     use iced_native::widget::{self, helpers::*};
 
@@ -79,6 +80,43 @@ mod helpers {
     pub(crate) fn jump_by(amount: impl Into<Length>) -> widget::Space {
         vertical_space(amount)
     }
+
+    // Generate the message that request rotation.
+    pub(crate) fn rotation_message<S: AppState>(
+        i: usize,
+        _xz: isize,
+        _yz: isize,
+        _xy: isize,
+    ) -> Message<S> {
+        let angle_xz = match i {
+            0 => 15f32.to_radians(),
+            1 => -15f32.to_radians(),
+            _ => 0f32,
+        };
+        let angle_yz = match i {
+            2 => -15f32.to_radians(),
+            3 => 15f32.to_radians(),
+            _ => 0f32,
+        };
+        let angle_xy = match i {
+            4 => 15f32.to_radians(),
+            5 => -15f32.to_radians(),
+            _ => 0f32,
+        };
+        Message::RotateCam(angle_xz, angle_yz, angle_xy)
+    }
+
+    /// Return a text widget containing the rotation arrow.
+    pub(crate) fn rotation_text<'a>(i: usize, ui_size: UiSize) -> iced::widget::Text<'a> {
+        match i {
+            0 => icon(MaterialIcon::ArrowBack, ui_size),
+            1 => icon(MaterialIcon::ArrowForward, ui_size),
+            2 => icon(MaterialIcon::ArrowUpward, ui_size),
+            3 => icon(MaterialIcon::ArrowDownward, ui_size),
+            4 => icon(MaterialIcon::Undo, ui_size),
+            _ => icon(MaterialIcon::Redo, ui_size),
+        }
+    }
 }
 
 mod edition_tab;
@@ -86,7 +124,7 @@ pub use edition_tab::EditionTab;
 mod grids_tab;
 pub use grids_tab::GridTab;
 mod camera_shortcut;
-pub use camera_shortcut::CameraShortcut;
+pub use camera_shortcut::CameraShortcutPanel;
 mod camera_tab;
 pub use camera_tab::{CameraTab, FogChoice};
 mod simulation_tab;

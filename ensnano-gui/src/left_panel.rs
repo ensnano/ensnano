@@ -21,7 +21,7 @@ use std::sync::{Arc, Mutex};
 
 use iced::theme;
 use iced_aw::{style::tab_bar, TabLabel, Tabs};
-use iced_native::widget::{container, Button, Column, Container, Row, Slider, Text, TextInput};
+use iced_native::widget::{container, Button, Column, Container, Text, TextInput};
 use iced_native::{Background, Color, Command, Element, Length};
 use iced_wgpu;
 use iced_winit::winit::{
@@ -69,7 +69,7 @@ use export_menu::ExportMenu;
 use ensnano_interactor::{CheckXoversParameter, HyperboloidRequest, Selection};
 pub use tabs::revolution_tab::*;
 use tabs::{
-    CameraShortcut, CameraTab, EditionTab, GridTab, ParametersTab, PenTab, SequenceTab,
+    CameraShortcutPanel, CameraTab, EditionTab, GridTab, ParametersTab, PenTab, SequenceTab,
     SimulationTab,
 };
 
@@ -101,7 +101,7 @@ pub struct LeftPanel<R: Requests, S: AppState> {
     pen_tab: PenTab,
     revolution_tab: RevolutionTab<S>,
     contextual_panel: ContextualPanel<S>,
-    camera_shortcut: CameraShortcut,
+    camera_shortcut: CameraShortcutPanel,
     application_state: S,
     exports_menu: ExportMenu,
 }
@@ -263,7 +263,7 @@ impl<R: Requests, S: AppState> LeftPanel<R, S> {
             pen_tab: Default::default(),
             revolution_tab: Default::default(),
             contextual_panel: ContextualPanel::new(logical_size.width as u32),
-            camera_shortcut: CameraShortcut::new(),
+            camera_shortcut: CameraShortcutPanel::new(),
             application_state: state.clone(),
             exports_menu: Default::default(),
         }
@@ -1230,36 +1230,6 @@ impl iced_native::widget::button::StyleSheet for ButtonColor {
 impl From<ButtonColor> for iced::theme::Button {
     fn from(value: ButtonColor) -> Self {
         Default::default()
-    }
-}
-
-fn rotation_message<S: AppState>(i: usize, _xz: isize, _yz: isize, _xy: isize) -> Message<S> {
-    let angle_xz = match i {
-        0 => 15f32.to_radians(),
-        1 => -15f32.to_radians(),
-        _ => 0f32,
-    };
-    let angle_yz = match i {
-        2 => -15f32.to_radians(),
-        3 => 15f32.to_radians(),
-        _ => 0f32,
-    };
-    let angle_xy = match i {
-        4 => 15f32.to_radians(),
-        5 => -15f32.to_radians(),
-        _ => 0f32,
-    };
-    Message::RotateCam(angle_xz, angle_yz, angle_xy)
-}
-
-fn rotation_text<'a>(i: usize, ui_size: UiSize) -> iced::widget::Text<'a> {
-    match i {
-        0 => icon(MaterialIcon::ArrowBack, ui_size),
-        1 => icon(MaterialIcon::ArrowForward, ui_size),
-        2 => icon(MaterialIcon::ArrowUpward, ui_size),
-        3 => icon(MaterialIcon::ArrowDownward, ui_size),
-        4 => icon(MaterialIcon::Undo, ui_size),
-        _ => icon(MaterialIcon::Redo, ui_size),
     }
 }
 
