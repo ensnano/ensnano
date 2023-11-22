@@ -83,10 +83,10 @@ macro_rules! type_builder {
                     for i in 0..Self::PARAMETER_NAMES.len() {
                         ret = ret.push(iced_native::row![
                             text(Self::PARAMETER_NAMES[i]),
-                            horizontal_space(iced::Length::Units(5)),
+                            horizontal_space(5),
                             text_input("", str_values[i], move |string| Message::value_changed(value_to_modify, i, string))
                                 .on_submit(Message::value_submitted(value_to_modify))
-                                .width(iced::Length::Units(50))
+                                .width(50)
                             ,
                         ].width(iced::Length::Fill))
                     }

@@ -227,7 +227,7 @@ impl<S: AppState> ContextualPanel<S> {
     }
 
     pub fn view(&self, ui_size: UiSize, app_state: &S) -> iced::Element<Message<S>> {
-        let mut content = Column::new().max_width(self.width - 2);
+        let mut content = Column::new().max_width((self.width - 2) as u16);
         let selection = app_state
             .get_selection()
             .get(0)
@@ -545,7 +545,7 @@ fn add_help_to_column<'a, S: AppState>(
     content = content.push(text(help_title).size(ui_size.intermediate_text()));
     for (l, r) in help {
         if l.is_empty() {
-            content = content.push(horizontal_space(Length::Units(10)));
+            content = content.push(horizontal_space(10));
         } else if r.is_empty() {
             content = content.push(
                 text(l)
@@ -572,9 +572,9 @@ fn turn_into_help_column<'a, S: AppState>(ui_size: UiSize) -> iced::Element<'a, 
             .width(Length::Fill)
             .horizontal_alignment(iced::alignment::Horizontal::Center),
         add_help_to_column("3D view", view_3d_help(), ui_size),
-        horizontal_space(Length::Units(15)),
+        horizontal_space(15),
         add_help_to_column("2D/3D view", view_2d_3d_help(), ui_size),
-        horizontal_space(Length::Units(15)),
+        horizontal_space(15),
         add_help_to_column("2D view", view_2d_help(), ui_size),
     ]
     .into()
@@ -898,7 +898,7 @@ impl AddStrandMenu {
                             .style(iced::theme::Text::Color(color_choose_strand_start_length)),
                     )
                     .push(position_input)
-                    .width(Length::Units(width / 2)),
+                    .width(width / 2),
             )
             .push(
                 widget::Column::new()

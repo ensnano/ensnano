@@ -1,5 +1,3 @@
-use iced::widget::Space;
-
 /*
 ENSnano, a 3d graphical application for DNA nanostructures.
     Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
@@ -17,10 +15,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use super::{AppState, Button, DesactivatedSlider, Row, Slider, Text};
+use super::{AppState, DesactivatedSlider};
 
 use super::Message;
-use iced_native::widget::helpers::*;
+use iced_native::{widget::helpers::*, Pixels};
 use std::collections::BTreeMap;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -88,7 +86,11 @@ impl<R: Requestable> RequestFactory<R> {
         }
     }
 
-    pub fn view<S>(&mut self, active: bool, size: u16) -> Vec<iced::Element<Message<S>>>
+    pub fn view<S>(
+        &mut self,
+        active: bool,
+        size: impl Into<Pixels>,
+    ) -> Vec<iced::Element<Message<S>>>
     where
         S: AppState,
     {
@@ -162,7 +164,7 @@ impl DiscreteValue {
         }
     }
 
-    fn view<S>(&mut self, active: bool, name_size: u16) -> iced::Element<Message<S>>
+    fn view<S>(&mut self, active: bool, name_size: impl Into<Pixels>) -> iced::Element<Message<S>>
     where
         S: AppState,
     {
@@ -219,13 +221,8 @@ impl DiscreteValue {
             iced_native::row![text(format!("{:.1}", self.value)),]
                 .width(iced::Length::FillPortion(3)),
             // right
-            iced_native::row![
-                decr_button,
-                incr_button,
-                horizontal_space(iced::Length::Units(2)),
-                slider,
-            ]
-            .width(iced::Length::FillPortion(10)),
+            iced_native::row![decr_button, incr_button, horizontal_space(2), slider,]
+                .width(iced::Length::FillPortion(10)),
             //
             horizontal_space(iced::Length::FillPortion(1)),
         ]

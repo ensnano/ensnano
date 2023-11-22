@@ -218,10 +218,10 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
             ActionMode::Rotate,
             build_helix_mode.clone(),
         ];
-        let height = self.logical_size.cast::<u16>().height;
+        let height = self.logical_size.cast::<f32>().height;
         let button_fit = Button::new(light_icon(LightIcon::ViewInAr, self.ui_size))
             .on_press(Message::SceneFitRequested)
-            .height(Length::Units(height));
+            .height(Length::Fixed(height));
 
         let button_horizon = Button::new(light_icon(LightIcon::WbTwilight, self.ui_size))
             .on_press(Message::AlignHorizon);
@@ -273,10 +273,10 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
         }
 
         let button_2d = Button::new(iced::widget::Text::new("2D"))
-            .height(Length::Units(self.ui_size.button()))
+            .height(self.ui_size.button())
             .on_press(Message::ToggleView(SplitMode::Flat));
         let button_3d = Button::new(iced::widget::Text::new("3D"))
-            .height(Length::Units(self.ui_size.button()))
+            .height(self.ui_size.button())
             .on_press(Message::ToggleView(SplitMode::Scene3D));
         let button_thick_helices = if self.application_state.app_state.want_thick_helices() {
             Button::new(light_icon(LightIcon::Dehaze, self.ui_size))
@@ -286,16 +286,16 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
                 .on_press(Message::ThickHelices(true))
         };
         let button_split = Button::new(iced::widget::Text::new("3D+2D"))
-            .height(Length::Units(self.ui_size.button()))
+            .height(self.ui_size.button())
             .on_press(Message::ToggleView(SplitMode::Both));
 
         let button_oxdna = Button::new(light_icon(LightIcon::Upload, self.ui_size))
-            .height(Length::Units(self.ui_size.button()))
+            .height(self.ui_size.button())
             .on_press(Message::ExportRequested);
         let oxdna_tooltip = button_oxdna;
 
         let button_3d_import = Button::new(light_icon(LightIcon::Coronavirus, self.ui_size))
-            .height(Length::Units(self.ui_size.button()))
+            .height(self.ui_size.button())
             .on_press(Message::Import3D);
 
         let split_icon = if self.application_state.splited_2d {
@@ -304,32 +304,32 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
             LightIcon::BorderHorizontal
         };
 
-        let mut button_split_2d = Button::new(light_icon(split_icon, self.ui_size))
-            .height(Length::Units(self.ui_size.button()));
+        let mut button_split_2d =
+            Button::new(light_icon(split_icon, self.ui_size)).height(self.ui_size.button());
 
         if self.application_state.can_split2d {
             button_split_2d = button_split_2d.on_press(Message::Split2d);
         }
 
-        let mut button_toggle_2d = Button::new(iced::widget::Text::new("Toggle 2D"))
-            .height(Length::Units(self.ui_size.button()));
+        let mut button_toggle_2d =
+            Button::new(iced::widget::Text::new("Toggle 2D")).height(self.ui_size.button());
 
         if self.application_state.can_toggle_2d {
             button_toggle_2d = button_toggle_2d.on_press(Message::Toggle2D);
         }
 
         let mut button_flip_split = Button::new(light_icon(LightIcon::SwapVert, self.ui_size))
-            .height(Length::Units(self.ui_size.button()));
+            .height(self.ui_size.button());
         if self.application_state.splited_2d {
             button_flip_split = button_flip_split.on_press(Message::FlipSplitViews);
         }
 
         let button_help = Button::new(iced::widget::Text::new("Help"))
-            .height(Length::Units(self.ui_size.button()))
+            .height(self.ui_size.button())
             .on_press(Message::ForceHelp);
 
         let button_tutorial = Button::new(iced::widget::Text::new("Tutorials"))
-            .height(Length::Units(self.ui_size.button()))
+            .height(self.ui_size.button())
             .on_press(Message::ShowTutorial);
 
         let app_state = &self.application_state.app_state;
@@ -373,7 +373,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
 
         let mut buttons = Row::new()
             .width(Length::Fill)
-            .height(Length::Units(height))
+            .height(height)
             .push(button_new_empty_design)
             .push(button_add_file)
             .push(button_reload)
@@ -381,7 +381,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
             .push(button_save_as)
             .push(oxdna_tooltip)
             .push(button_3d_import)
-            .push(iced::widget::Space::with_width(Length::Units(10)))
+            .push(iced::widget::Space::with_width(10))
             .push(button_3d)
             .push(button_thick_helices)
             .push(button_2d)
@@ -389,29 +389,29 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
             .push(button_split_2d)
             .push(button_toggle_2d)
             .push(button_flip_split)
-            .push(iced::widget::Space::with_width(Length::Units(10)))
+            .push(iced::widget::Space::with_width(10))
             .push(button_fit)
             .push(button_horizon)
-            .push(iced::widget::Space::with_width(Length::Units(10)))
+            .push(iced::widget::Space::with_width(10))
             .push(button_undo)
             .push(button_redo)
-            .push(iced::widget::Space::with_width(Length::Units(10)));
+            .push(iced::widget::Space::with_width(10));
 
         for button in action_buttons.into_iter() {
             buttons = buttons.push(button);
         }
 
-        buttons = buttons.push(iced::widget::Space::with_width(Length::Units(10)));
+        buttons = buttons.push(iced::widget::Space::with_width(10));
 
         for button in selection_buttons.into_iter() {
             buttons = buttons.push(button);
         }
 
-        buttons = buttons.push(iced::widget::Space::with_width(Length::Units(10)));
+        buttons = buttons.push(iced::widget::Space::with_width(10));
 
         buttons = buttons
             .push(button_help)
-            .push(iced::widget::Space::with_width(Length::Units(2)))
+            .push(iced::widget::Space::with_width(2))
             .push(button_tutorial)
             .push(
                 iced::widget::Text::new("\u{e91c}")
@@ -419,10 +419,10 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
                     .horizontal_alignment(iced::alignment::Horizontal::Right)
                     .vertical_alignment(iced::alignment::Vertical::Center),
             )
-            .push(iced::widget::Space::with_width(Length::Units(10)));
+            .push(iced::widget::Space::with_width(10));
 
         Container::new(buttons)
-            .width(Length::Units(self.logical_size.width as u16))
+            .width(self.logical_size.width as f32)
             .style(TopBarStyle)
             .into()
     }
@@ -541,7 +541,7 @@ fn action_mode_btn<'a, S: AppState>(
     state: &'a mut button::State,
     mode: ActionMode,
     fixed_mode: ActionMode,
-    button_size: u16,
+    button_size: impl Into<Length>,
     axis_aligned: bool,
 ) -> Button<'a, Message<S>, iced_wgpu::Renderer> {
     let icon_path = if fixed_mode == mode {
@@ -554,14 +554,14 @@ fn action_mode_btn<'a, S: AppState>(
         .on_press(Message::ActionModeChanged(mode))
         //.style(ButtonStyle(fixed_mode == mode))
         // TODO: Reimplement fixed_mode
-        .width(Length::Units(button_size))
+        .width(button_size)
 }
 
 fn selection_mode_btn<'a, S: AppState>(
     state: &'a mut button::State,
     mode: SelectionMode,
     fixed_mode: SelectionMode,
-    button_size: u16,
+    button_size: impl Into<Length>,
 ) -> Button<'a, Message<S>, iced_wgpu::Renderer> {
     let icon_path = if fixed_mode == mode {
         mode.icon_on()
@@ -573,5 +573,5 @@ fn selection_mode_btn<'a, S: AppState>(
         .on_press(Message::SelectionModeChanged(mode))
         //.style(ButtonStyle(fixed_mode == mode))
         // TODO: Reimplement fixed_mode
-        .width(Length::Units(button_size))
+        .width(button_size)
 }

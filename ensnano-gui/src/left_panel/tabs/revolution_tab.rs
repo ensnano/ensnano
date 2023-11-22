@@ -160,7 +160,7 @@ impl ParameterWidget {
                 text: s,
             }
         })
-        .width(iced::Length::Units(50))
+        .width(50)
         .style(style)
         .into()
     }

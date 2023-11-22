@@ -18,8 +18,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::{
     helpers::*, icon_btn, text_btn, AppState, FactoryId, GridTypeDescr, HyperboloidRequest,
-    Hyperboloid_, Length, Message, RequestFactory, UiSize, ValueId, ICON_HONEYCOMB_GRID,
-    ICON_NANOTUBE, ICON_SQUARE_GRID,
+    Hyperboloid_, Message, RequestFactory, UiSize, ValueId, ICON_HONEYCOMB_GRID, ICON_NANOTUBE,
+    ICON_SQUARE_GRID,
 };
 use iced::Element;
 use iced_native::widget::helpers::*;
@@ -80,10 +80,10 @@ impl GridTab {
             // add_guess_grid_button!
             if app_state.can_make_grid() {
                 button(text("From Selection"))
-                    .height(Length::Units(ui_size.button()))
+                    .height(ui_size.button())
                     .on_press(Message::MakeGrids)
             } else {
-                button(text("From Selection")).height(Length::Units(ui_size.button()))
+                button(text("From Selection")).height(ui_size.button())
             },
             text("Select ≥4 unattached helices").size(ui_size.main_text()),
         ]

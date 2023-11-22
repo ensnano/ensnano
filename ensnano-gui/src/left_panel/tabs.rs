@@ -24,7 +24,7 @@ use std::collections::VecDeque;
 const MEMORY_COLOR_ROWS: usize = 3;
 const MEMORY_COLOR_COLUMN: usize = 8;
 const NB_MEMORY_COLOR: usize = MEMORY_COLOR_ROWS * MEMORY_COLOR_COLUMN;
-const JUMP_SIZE: u16 = 4;
+const JUMP_SIZE: f32 = 4.0;
 
 use super::super::material_icons_light;
 use material_icons_light::LightIcon;
@@ -43,12 +43,13 @@ fn light_icon_btn<'a, Message: Clone>(
     ui_size: UiSize,
 ) -> iced::widget::Button<'a, Message> {
     let content = light_icon(icon, ui_size);
-    Button::new(content).height(iced::Length::Units(ui_size.button()))
+    Button::new(content).height(ui_size.button())
 }
 
 /// Additional Iced widget helpers
 mod helpers {
-    use super::{Length, UiSize, JUMP_SIZE};
+    use super::{UiSize, JUMP_SIZE};
+    use iced::Length;
     use iced_native::widget::{self, helpers::*};
 
     /// Section title widget
@@ -75,8 +76,8 @@ mod helpers {
     }
 
     /// Add vertical space of specified amount.
-    pub(crate) fn jump_by(amount: u16) -> widget::Space {
-        vertical_space(Length::Units(amount))
+    pub(crate) fn jump_by(amount: impl Into<Length>) -> widget::Space {
+        vertical_space(amount)
     }
 }
 

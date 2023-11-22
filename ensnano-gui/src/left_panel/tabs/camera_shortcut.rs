@@ -300,7 +300,7 @@ impl CameraShortcut {
             .map(|t| {
                 button(text(t.name).size(ui_size.main_text()))
                     .on_press(t.message())
-                    .width(Length::Units(2 * ui_size.button()))
+                    .width(2.0 * ui_size.button())
                     .into()
             })
             .collect();
@@ -327,7 +327,7 @@ impl CameraShortcut {
             .map(|i| {
                 button(rotation_text(i, ui_size))
                     .on_press(rotation_message(i, self.xz, self.yz, self.xy))
-                    .width(Length::Units(ui_size.button()))
+                    .width(ui_size.button())
                     .into()
             })
             .collect();
@@ -359,7 +359,7 @@ impl CameraShortcut {
             jump_by(5),
             button(text("3D").size(ui_size.main_text()))
                 .on_press(Message::ScreenShot3D)
-                .width(Length::Units(ui_size.button())),
+                .width(ui_size.button()),
             // add_custom_camera_row!
             section("Custom cameras", ui_size),
             horizontal_space(Length::Fill),
@@ -423,7 +423,7 @@ impl CameraWidget {
 
         iced_native::row![
             name,
-            horizontal_space(Length::Units(3)),
+            horizontal_space(3),
             edit_button,
             horizontal_space(Length::Fill),
             select_camera_btn,

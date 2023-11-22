@@ -259,21 +259,21 @@ impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
             .push(content)
             .push(Space::with_width(Length::Fill)) // To right align the clipboard text
             .push(Text::new(clipboard_text))
-            .push(Space::with_width(Length::Units(5)))
+            .push(Space::with_width(5))
             .align_items(iced_winit::Alignment::End);
 
         let pasting_status_row = Row::new()
             .push(Space::with_width(Length::Fill))
             .push(Text::new(pasting_text))
-            .push(Space::with_width(Length::Units(5)));
+            .push(Space::with_width(5));
 
         let column = Column::new()
-            .push(Space::new(Length::Fill, Length::Units(3)))
+            .push(Space::new(Length::Fill, 3))
             .push(content)
             .push(pasting_status_row);
         Container::new(column)
             .style(StatusBarStyle)
-            .width(Length::Units(size.width as u16))
+            .width(size.width as f32)
             .height(Length::Fill)
             .into()
     }
@@ -416,7 +416,7 @@ impl OperationInput {
                                 Message::ValueStrChanged(i, s)
                             })
                             .size(ui_size.main_text())
-                            .width(Length::Units(40))
+                            .width(40)
                             .on_submit(Message::ValueSet(i, str_values[i].clone()));
                         if active_input.get(i) == Some(&true) {
                             use input_color::InputValueState;
@@ -440,7 +440,7 @@ impl OperationInput {
                             PickList::new(v.clone(), Some(values[i].clone()), move |s| {
                                 Message::ValueSet(i, s)
                             })
-                            .text_size(ui_size.main_text() - 4),
+                            .text_size(ui_size.main_text() - 4.0),
                         )
                     }
                 }

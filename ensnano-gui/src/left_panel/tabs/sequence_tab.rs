@@ -98,7 +98,7 @@ impl SequenceTab {
                 }
                 iced_native::row![
                     button_selection_to_scaffold,
-                    horizontal_space(Length::Units(5)),
+                    horizontal_space(5),
                     button_selection_from_scaffold,
                 ]
             },
@@ -134,7 +134,7 @@ impl SequenceTab {
             extra_jump(),
             // add_set_scaffold_sequence_button!
             button(text("Set scaffold sequence"))
-                .height(Length::Units(ui_size.button()))
+                .height(ui_size.button())
                 .on_press(Message::SetScaffoldSeqButtonPressed),
             // show_current_sequence_name!
             {
@@ -161,7 +161,7 @@ impl SequenceTab {
             ],
             // add_optimize_scaffold_shift_button!
             button(text("Optimize starting position"))
-                .height(Length::Units(ui_size.button()))
+                .height(ui_size.button())
                 .on_press(Message::OptimizeScaffoldShiftPressed),
             // add_scaffold_start_position!
             {
@@ -194,10 +194,10 @@ impl SequenceTab {
             extra_jump(),
             // add_download_staples_button!
             button(text("Export Staples"))
-                .height(Length::Units(ui_size.button()))
+                .height(ui_size.button())
                 .on_press(Message::StapplesRequested),
             button(text("Export Origamis"))
-                .height(Length::Units(ui_size.button()))
+                .height(ui_size.button())
                 .on_press(Message::OrigamisRequested),
         ];
         scrollable(content).into()

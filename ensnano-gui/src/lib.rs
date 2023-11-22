@@ -854,7 +854,7 @@ impl<R: Requests, S: AppState> Gui<R, S> {
         );
     }
 
-    fn set_text_size(&mut self, text_size: u16) {
+    fn set_text_size(&mut self, text_size: f32) {
         let settings = Settings {
             default_text_size: text_size,
             ..self.settings
@@ -893,7 +893,6 @@ fn convert_size_u32(size: PhysicalSize<u32>) -> Size<u32> {
     Size::new(size.width, size.height)
 }
 
-use iced::Length;
 use iced_native::widget;
 use iced_native::widget::helpers::*;
 fn text_btn<'a, M, R>(inner_text: &'a str, ui_size: UiSize) -> widget::Button<'a, M, R>
@@ -907,7 +906,7 @@ where
     } else {
         ui_size.icon()
     };
-    button(text(inner_text).size(size)).height(Length::Units(ui_size.button()))
+    button(text(inner_text).size(size)).height(ui_size.button())
 }
 
 #[allow(clippy::needless_lifetimes)]
@@ -926,7 +925,7 @@ where
             .font(left_panel::ENSNANO_FONT)
             .size(ui_size.icon()),
     )
-    .height(Length::Units(ui_size.button()))
+    .height(ui_size.button())
 }
 
 mod slider_style {
@@ -941,7 +940,7 @@ mod slider_style {
             Appearance {
                 rail: Rail {
                     colors: ([0.6, 0.6, 0.6, 0.5].into(), Color::WHITE),
-                    width: 8,
+                    width: 8.0,
                 },
                 handle: Handle {
                     shape: HandleShape::Rectangle {

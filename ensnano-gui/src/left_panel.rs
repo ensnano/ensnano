@@ -986,9 +986,9 @@ where
                 .text_font(ICONFONT)
                 .icon_font(ENSNANO_FONT)
                 .icon_size(self.ui_size.icon())
-                .tab_bar_height(Length::Units(self.ui_size.button()))
+                .tab_bar_height(Length::Fixed(self.ui_size.button()))
                 .tab_bar_style(TabStyle)
-                .width(Length::Units(width))
+                .width(Length::Fixed(width as f32))
                 .height(Length::Fill);
         let camera_shortcut =
             self.camera_shortcut
@@ -1044,7 +1044,7 @@ where
                 .padding(3),
         )
         .style(TopBarStyle)
-        .height(Length::Units(self.logical_size.height as u16))
+        .height(self.logical_size.height as f32)
         .into()
     }
 }
@@ -1129,7 +1129,7 @@ impl<R: Requests> Program for ColorOverlay<R> {
         let width = self.logical_size.cast::<u16>().width;
 
         let widget = Column::new()
-            .width(Length::Units(width))
+            .width(width)
             .height(Length::Fill)
             .spacing(5)
             .push(self.color_picker.new_view())

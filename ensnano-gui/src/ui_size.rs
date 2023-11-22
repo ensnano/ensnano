@@ -41,11 +41,11 @@ impl UiSize {
         }
     }
 
-    pub fn main_text(&self) -> u16 {
+    pub fn main_text(&self) -> f32 {
         match self {
-            Self::Small => 12,
-            Self::Medium => 16,
-            Self::Large => 20,
+            Self::Small => 12.0,
+            Self::Medium => 16.0,
+            Self::Large => 20.0,
         }
     }
 
@@ -65,11 +65,12 @@ impl UiSize {
         }
     }
 
-    pub fn icon(&self) -> u16 {
+    // Size of an icon
+    pub fn icon(&self) -> f32 {
         match self {
-            Self::Small => 14,
-            Self::Medium => 20,
-            Self::Large => 30,
+            Self::Small => 14.0,
+            Self::Medium => 20.0,
+            Self::Large => 30.0,
         }
     }
 
@@ -81,8 +82,9 @@ impl UiSize {
         }
     }
 
-    pub fn button(&self) -> u16 {
-        self.icon() + 8
+    /// Height of a button.
+    pub fn button(&self) -> f32 {
+        self.icon() + 8.0
     }
 
     pub fn top_bar(&self) -> f64 {
