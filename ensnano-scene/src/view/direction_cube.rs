@@ -301,6 +301,7 @@ impl DirectionTexture {
             dimension: wgpu::TextureDimension::D2,
             format: ensnano_utils::TEXTURE_FORMAT,
             usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
+            view_formats: Default::default(),
         });
 
         queue.write_texture(

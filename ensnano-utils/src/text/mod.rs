@@ -85,6 +85,7 @@ impl Letter {
             format: crate::TEXTURE_FORMAT,
             usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
             label: Some("diffuse_texture"),
+            view_formats: Default::default(),
         });
 
         let font: &[u8] = if character.is_ascii_uppercase() {

@@ -223,6 +223,7 @@ impl ElementSelector {
                 | wgpu::TextureUsages::TEXTURE_BINDING
                 | wgpu::TextureUsages::COPY_SRC,
             label: Some("desc"),
+            view_formats: Default::default(),
         };
         let texture_view_descriptor = wgpu::TextureViewDescriptor {
             label: Some("texture_view_descriptor"),

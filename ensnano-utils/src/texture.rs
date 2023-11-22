@@ -52,6 +52,7 @@ impl Texture {
                 | wgpu::TextureUsages::TEXTURE_BINDING
                 | wgpu::TextureUsages::COPY_SRC,
             label: Some("desc"),
+            view_formats: Default::default(),
         };
         let texture = device.create_texture(&desc);
 
@@ -129,6 +130,7 @@ impl Texture {
             dimension: wgpu::TextureDimension::D2,
             format,
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+            view_formats: Default::default(),
         };
 
         device
@@ -151,6 +153,7 @@ impl SampledTexture {
             dimension: wgpu::TextureDimension::D2,
             format: wgpu::TextureFormat::Bgra8UnormSrgb,
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING,
+            view_formats: Default::default(),
         };
 
         let texture = device.create_texture(texture_descriptor);

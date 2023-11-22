@@ -58,6 +58,7 @@ impl SquareTexture {
             format: ensnano_utils::TEXTURE_FORMAT,
             usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::RENDER_ATTACHMENT,
             label: Some("square texture"),
+            view_formats: Default::default(),
         });
 
         let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
@@ -200,6 +201,7 @@ impl HonneyTexture {
             format: ensnano_utils::TEXTURE_FORMAT,
             usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::RENDER_ATTACHMENT,
             label: Some("honneycomb texture"),
+            view_formats: Default::default(),
         });
 
         let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
