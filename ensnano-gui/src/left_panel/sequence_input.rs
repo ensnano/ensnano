@@ -44,7 +44,8 @@ impl SequenceInput {
     {
         row![
             horizontal_space(5),
-            text_input::TextInput::new("Sequence", &self.sequence, Message::SequenceChanged,),
+            text_input::TextInput::new("Sequence", &self.sequence)
+                .on_input(Message::SequenceChanged,),
             widget::Button::new(widget::Text::new("Load File"))
                 .on_press(Message::SequenceFileRequested),
         ]

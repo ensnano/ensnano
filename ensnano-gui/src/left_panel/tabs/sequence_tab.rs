@@ -149,15 +149,12 @@ impl SequenceTab {
             // add_scaffold_position_input_row!
             iced_native::row![
                 text("Starting position").width(Length::FillPortion(2)),
-                text_input(
-                    "Scaffold position",
-                    &self.scaffold_position_str,
-                    Message::ScaffoldPositionInput,
-                )
-                .style(BadValue(
-                    self.scaffold_position_str == self.scaffold_position.to_string(),
-                ))
-                .width(iced::Length::FillPortion(1)),
+                text_input("Scaffold position", &self.scaffold_position_str)
+                    .on_input(Message::ScaffoldPositionInput,)
+                    .style(BadValue(
+                        self.scaffold_position_str == self.scaffold_position.to_string(),
+                    ))
+                    .width(iced::Length::FillPortion(1)),
             ],
             // add_optimize_scaffold_shift_button!
             button(text("Optimize starting position"))

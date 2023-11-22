@@ -405,7 +405,8 @@ impl CameraWidget {
         S: AppState,
     {
         let name: Element<Message<S>> = if self.being_edited {
-            TextInput::new("Camera name", &self.name, Message::EditCameraName)
+            TextInput::new("Camera name", &self.name)
+                .on_input(Message::EditCameraName)
                 .on_submit(Message::<S>::SubmitCameraName)
                 .into()
         } else {

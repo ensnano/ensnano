@@ -411,10 +411,8 @@ impl OperationInput {
             if let Some(param) = op.parameters().get(i) {
                 match param.field {
                     ParameterField::Value => {
-                        let mut input =
-                            TextInput::new("", &format!("{0:.4}", str_values[i]), move |s| {
-                                Message::ValueStrChanged(i, s)
-                            })
+                        let mut input = TextInput::new("", &format!("{0:.4}", str_values[i]))
+                            .on_input(move |s| Message::ValueStrChanged(i, s))
                             .size(ui_size.main_text())
                             .width(40)
                             .on_submit(Message::ValueSet(i, str_values[i].clone()));

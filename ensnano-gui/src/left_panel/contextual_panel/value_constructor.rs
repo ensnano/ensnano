@@ -84,7 +84,8 @@ macro_rules! type_builder {
                         ret = ret.push(iced_native::row![
                             text(Self::PARAMETER_NAMES[i]),
                             horizontal_space(5),
-                            text_input("", str_values[i], move |string| Message::value_changed(value_to_modify, i, string))
+                            text_input("", str_values[i])
+                                .on_input(move |string| Message::value_changed(value_to_modify, i, string))
                                 .on_submit(Message::value_submitted(value_to_modify))
                                 .width(50)
                             ,

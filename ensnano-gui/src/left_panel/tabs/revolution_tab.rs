@@ -154,15 +154,14 @@ impl ParameterWidget {
 
     fn input_view<S: AppState>(&self, id: RevolutionParameterId) -> Element<Message<S>> {
         let style = super::BadValue(self.contains_valid_input());
-        TextInput::new("", &self.current_text, move |s| {
-            Message::RevolutionParameterUpdate {
+        TextInput::new("", &self.current_text)
+            .on_input(move |s| Message::RevolutionParameterUpdate {
                 parameter_id: id,
                 text: s,
-            }
-        })
-        .width(50)
-        .style(style)
-        .into()
+            })
+            .width(50)
+            .style(style)
+            .into()
     }
 
     fn set_text(&mut self, text: String) {

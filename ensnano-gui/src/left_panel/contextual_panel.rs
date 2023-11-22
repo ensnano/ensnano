@@ -352,7 +352,8 @@ impl<S: AppState> ContextualPanel<S> {
                 .unwrap_or(&real_len_string);
             content = content.push(iced_native::row![
                 text("Loopout"),
-                text_input("", text_input_content, Message::InsertionLengthInput)
+                text_input("", text_input_content)
+                    .on_input(Message::InsertionLengthInput)
                     .on_submit(Message::InsertionLengthSubmitted),
             ]);
         }
@@ -514,10 +515,9 @@ fn add_strand_content<S: AppState, I: std::ops::Deref<Target = str>>(
     iced_native::column![
         iced_native::row![
             text("Name").size(ui_size.main_text()),
-            text_input("Name", &info_values[4], move |new_name| {
-                Message::StrandNameChanged(s_id, new_name)
-            })
-            .size(ui_size.main_text()),
+            text_input("Name", &info_values[4])
+                .on_input(move |new_name| { Message::StrandNameChanged(s_id, new_name) })
+                .size(ui_size.main_text()),
         ],
         text(format!("length {}", info_values[0].deref())).size(ui_size.main_text()),
         checkbox("Scaffold", info_values[1].parse().unwrap(), move |b| {
@@ -864,13 +864,13 @@ impl AddStrandMenu {
     fn view<S: AppState>(&self, ui_size: UiSize, width: u16) -> iced::Element<Message<S>> {
         let mut ret = widget::Column::new();
         let mut inputs = self.builder_input.iter_mut();
-        let position_input =
-            widget::TextInput::new("Position", &self.pos_str, Message::PositionHelicesChanged)
-                .style(BadValue(self.pos_str == self.helix_pos.to_string()));
+        let position_input = widget::TextInput::new("Position", &self.pos_str)
+            .on_input(Message::PositionHelicesChanged)
+            .style(BadValue(self.pos_str == self.helix_pos.to_string()));
 
-        let length_input =
-            widget::TextInput::new("Length", &self.length_str, Message::LengthHelicesChanged)
-                .style(BadValue(self.length_str == self.helix_length.to_string()));
+        let length_input = widget::TextInput::new("Length", &self.length_str)
+            .on_input(Message::LengthHelicesChanged)
+            .style(BadValue(self.length_str == self.helix_length.to_string()));
 
         ret = ret.push(right_checkbox(
             self.text_inputs_are_active,
