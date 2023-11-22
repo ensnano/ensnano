@@ -143,7 +143,7 @@ impl<'a, E: super::OrganizerElement> Widget<OrganizerMessage<E>, Renderer>
     }
 
     fn overlay<'b>(
-        &'b self,
+        &'b mut self,
         state: &'b mut widget::Tree,
         layout: Layout<'_>,
         renderer: &Renderer,

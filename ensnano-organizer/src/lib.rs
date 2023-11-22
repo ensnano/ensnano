@@ -1,11 +1,10 @@
 use iced::Element;
 pub use iced_aw::Icon;
 use iced_native::keyboard::Modifiers;
-use iced_native::text::Renderer;
 use iced_native::theme as iced_theme;
 use iced_native::widget::{
-    button, text_input, tooltip, Button, Column, Container, Row, Scrollable, Space, Text,
-    TextInput, Tooltip,
+    button, helpers::*, text_input, tooltip, Button, Column, Container, Row, Scrollable, Space,
+    Text, Tooltip,
 };
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::convert::TryInto;
@@ -1047,20 +1046,17 @@ impl<E: OrganizerElement> NodeView<E> {
             }
             GroupState::Editing { .. } => {
                 let name = name.clone();
-                let mut row = Row::new() // TODO: try to use the new row! macro.
-                    .push(
-                        Button::new(expand_icon(expanded))
-                            .on_press(OrganizerMessage::expand(id.clone(), !expanded)),
-                    )
-                    .push(
-                        TextInput::new("New group name...", &name, |s| {
-                            OrganizerMessage::name_input(s)
-                        })
-                        .on_submit(OrganizerMessage::stop_edit()),
-                    )
-                    .push(Space::with_width(iced::Length::Fill));
 
-                row = row.push(Button::new(edit_icon()).on_press(OrganizerMessage::stop_edit()));
+                let mut row = iced_native::row![
+                    button(expand_icon(expanded))
+                        .on_press(OrganizerMessage::expand(id.clone(), !expanded)),
+                    text_input("New group name...", &name)
+                        .on_input(|s| { OrganizerMessage::name_input(s) })
+                        .on_submit(OrganizerMessage::stop_edit()),
+                    horizontal_space(iced::Length::Fill),
+                ];
+
+                row = row.push(button(edit_icon()).on_press(OrganizerMessage::stop_edit()));
                 for ad in self.attribute_displayers.iter_mut() {
                     if let Some(view) = ad.view() {
                         let id = id.clone();
@@ -1664,11 +1660,11 @@ impl<E: OrganizerElement> GroupContent<E> {
     }
 }
 
-fn icon<'a, R>(unicode: char) -> Text<'a, R>
+fn icon<'a, Renderer>(unicode: char) -> Text<'a, Renderer>
 where
-    R: Renderer,
-    <R as iced_native::text::Renderer>::Font: From<iced::Font>,
-    <R as iced_native::Renderer>::Theme: iced::widget::text::StyleSheet,
+    Renderer: iced_native::Renderer + iced_native::text::Renderer,
+    Renderer::Font: From<iced::Font>,
+    Renderer::Theme: iced_native::widget::text::StyleSheet,
 {
     use iced::alignment::Horizontal as HorizontalAlignment;
     Text::new(unicode.to_string())
@@ -1677,11 +1673,11 @@ where
         .horizontal_alignment(HorizontalAlignment::Center)
 }
 
-fn expand_icon<'a, R: iced_native::text::Renderer>(expanded: bool) -> Text<'a, R>
+fn expand_icon<'a, Renderer>(expanded: bool) -> Text<'a, Renderer>
 where
-    R: Renderer,
-    <R as iced_native::text::Renderer>::Font: From<iced::Font>,
-    <R as iced_native::Renderer>::Theme: iced::widget::text::StyleSheet,
+    Renderer: iced_native::Renderer + iced_native::text::Renderer,
+    Renderer::Font: From<iced::Font>,
+    Renderer::Theme: iced_native::widget::text::StyleSheet,
 {
     if expanded {
         icon(Icon::CaretDown.into())
@@ -1690,20 +1686,20 @@ where
     }
 }
 
-fn edit_icon<'a, R>() -> Text<'a, R>
+fn edit_icon<'a, Renderer>() -> Text<'a, Renderer>
 where
-    R: Renderer,
-    <R as iced_native::text::Renderer>::Font: From<iced::Font>,
-    <R as iced_native::Renderer>::Theme: iced::widget::text::StyleSheet,
+    Renderer: iced_native::Renderer + iced_native::text::Renderer,
+    Renderer::Font: From<iced::Font>,
+    Renderer::Theme: iced_native::widget::text::StyleSheet,
 {
     icon(Icon::VectorPen.into())
 }
 
-fn _delete_icon<'a, R>() -> Text<'a, R>
+fn _delete_icon<'a, Renderer>() -> Text<'a, Renderer>
 where
-    R: Renderer,
-    <R as iced_native::text::Renderer>::Font: From<iced::Font>,
-    <R as iced_native::Renderer>::Theme: iced::widget::text::StyleSheet,
+    Renderer: iced_native::Renderer + iced_native::text::Renderer,
+    Renderer::Font: From<iced::Font>,
+    Renderer::Theme: iced_native::widget::text::StyleSheet,
 {
     icon('\u{E806}')
 }
@@ -1714,7 +1710,7 @@ const ICONS: iced::Font = iced::Font::External {
 };
 
 fn tabulation() -> Space {
-    Space::with_width(iced::Length::Units(3))
+    Space::with_width(iced::Length::Fixed(3.0))
 }
 
 fn merge_attributes<T: Ord + Clone + std::fmt::Debug>(

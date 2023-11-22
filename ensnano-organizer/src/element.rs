@@ -1,8 +1,7 @@
 use iced::widget::Text;
 use iced::Element;
 use iced::{Background, Color};
-use iced_native::widget::{button, pick_list};
-//use iced_style::theme;
+use iced_native::widget::{self, helpers::*};
 
 /// A key identifing an element
 pub trait ElementKey:
@@ -121,8 +120,7 @@ impl<A: OrganizerAttribute> AttributeDisplayer<A> {
             match widget {
                 AttributeWidget::PickList { choices } => {
                     let mut picklist =
-                        pick_list::PickList::new(*choices, self.attribute.clone(), |a| a)
-                            .style(NoIcon {});
+                        pick_list(*choices, self.attribute.clone(), |a| a).style(NoIcon {});
                     if let Some(AttributeDisplay::Icon(_)) =
                         self.attribute.as_ref().map(|a| a.char_repr())
                     {
@@ -138,11 +136,7 @@ impl<A: OrganizerAttribute> AttributeDisplayer<A> {
                         }
                         _ => Text::new("???"),
                     };
-                    Some(
-                        button::Button::new(content)
-                            .on_press(value_if_pressed.clone())
-                            .into(),
-                    )
+                    Some(button(content).on_press(value_if_pressed.clone()).into())
                 }
             }
         } else {
@@ -155,36 +149,36 @@ impl<A: OrganizerAttribute> AttributeDisplayer<A> {
 ///
 struct NoIcon {}
 
-impl pick_list::StyleSheet for NoIcon {
+impl widget::pick_list::StyleSheet for NoIcon {
     type Style = ();
     //type Style = iced_style::theme::PickList;
     // I think the good way to do it is to implement a custom Style.
 
-    fn active(&self, _style: &Self::Style) -> pick_list::Appearance {
-        pick_list::Appearance {
+    fn active(&self, _style: &Self::Style) -> widget::pick_list::Appearance {
+        widget::pick_list::Appearance {
             text_color: Color::BLACK,
             placeholder_color: [0.4, 0.4, 0.4].into(),
+            handle_color: Color::BLACK, // TODO: Check and adapt this value on the UI
             background: Background::Color([0.87, 0.87, 0.87].into()),
             border_radius: 0.0,
             border_width: 1.0,
             border_color: [0.7, 0.7, 0.7].into(),
             // The values above use to be provided by `Default::default()`. Maybe there is a
             // “Default apparance” somewhere in iced 0.5
-            icon_size: 0.,
         }
     }
 
-    fn hovered(&self, _style: &Self::Style) -> pick_list::Appearance {
-        pick_list::Appearance {
+    fn hovered(&self, _style: &Self::Style) -> widget::pick_list::Appearance {
+        widget::pick_list::Appearance {
             text_color: Color::BLACK,
             placeholder_color: [0.4, 0.4, 0.4].into(),
+            handle_color: Color::BLACK, // TODO: Check and adapt this value on the UI
             background: Background::Color([0.87, 0.87, 0.87].into()),
             border_radius: 0.0,
             border_width: 1.0,
             border_color: [0.7, 0.7, 0.7].into(),
             // The values above use to be provided by `Default::default()`. Maybe there is a
             // “Default apparance” somewhere in iced 0.5
-            icon_size: 0.,
         }
     }
 }

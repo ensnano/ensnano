@@ -2,20 +2,24 @@
 //!
 //! A [`HoverableContainer`] is an `iced_native::Container` that produces a messages when hovered.
 
+// This file is manifestly a copy-paste of the iced_native::widget::container source code
+//
+//    https://docs.rs/iced_native/0.9.1/src/iced_native/widget/container.rs.html
+
 use iced_native::alignment::{self, Alignment};
 use iced_native::event::{self, Event};
 use iced_native::layout;
 use iced_native::mouse;
 use iced_native::overlay;
 use iced_native::renderer;
+use iced_native::widget::{self};
 use iced_native::{
-    widget, Background, Clipboard, Color, Element, Layout, Length, Padding, Point, Rectangle,
-    Shell, Widget,
+    Background, Clipboard, Color, Element, Layout, Length, Padding, Point, Rectangle, Shell, Widget,
 };
 
-use std::u32;
-
 pub use iced_style::container::{Appearance, StyleSheet};
+
+use std::u32;
 
 /// The local state of an [`HoverableContainer`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -29,7 +33,7 @@ impl State {
         State::default()
     }
 }
-/// Note: State should be deleted to follow the “stateless” paradigm of iced.
+/// NOTE: Consider to delete state sto follow the “stateless” paradigm of iced.
 
 /// An `iced_native::Container` that emits a message when hovered.
 #[allow(missing_debug_implementations)]
@@ -37,7 +41,7 @@ pub struct HoverableContainer<'a, Message, Renderer>
 where
     Message: Clone,
     Renderer: iced_native::Renderer,
-    Renderer::Theme: iced_native::widget::container::StyleSheet,
+    Renderer::Theme: StyleSheet,
 {
     padding: Padding,
     width: Length,
@@ -46,7 +50,7 @@ where
     max_height: u32,
     horizontal_alignment: alignment::Horizontal,
     vertical_alignment: alignment::Vertical,
-    style: <Renderer::Theme as StyleSheet>::Style,
+    style: <Renderer::Theme as widget::container::StyleSheet>::Style,
     content: Element<'a, Message, Renderer>,
     on_hovered_in: Option<Message>,
     on_hovered_out: Option<Message>,
@@ -57,7 +61,7 @@ impl<'a, Message, Renderer> HoverableContainer<'a, Message, Renderer>
 where
     Message: Clone,
     Renderer: iced_native::Renderer,
-    Renderer::Theme: iced_native::widget::container::StyleSheet,
+    Renderer::Theme: StyleSheet,
 {
     /// Creates an empty [Container](iced::widget::container::Container).
     pub fn new<T>(state: &'a mut State, content: T) -> Self
@@ -135,7 +139,10 @@ where
     }
 
     /// Set the appearance of the [Container](iced::widget::container::Container).
-    pub fn style(mut self, style: impl Into<<Renderer::Theme as StyleSheet>::Style>) -> Self {
+    pub fn style(
+        mut self,
+        style: impl Into<<Renderer::Theme as iced_native::widget::container::StyleSheet>::Style>,
+    ) -> Self {
         self.style = style.into();
         self
     }
@@ -181,7 +188,7 @@ impl<'a, Message, Renderer> Widget<Message, Renderer> for HoverableContainer<'a,
 where
     Message: Clone,
     Renderer: iced_native::Renderer,
-    Renderer::Theme: iced_native::widget::container::StyleSheet,
+    Renderer::Theme: iced_native::widget::container::StyleSheet + StyleSheet,
 {
     fn width(&self) -> Length {
         self.width
@@ -266,7 +273,7 @@ where
 
     fn draw(
         &self,
-        state: &widget::Tree,
+        tree: &widget::Tree,
         renderer: &mut Renderer,
         theme: &Renderer::Theme,
         renderer_style: &renderer::Style,
@@ -279,7 +286,7 @@ where
         draw_background(renderer, &style, layout.bounds());
 
         self.content.as_widget().draw(
-            state,
+            &tree.children[0],
             renderer,
             theme,
             &renderer::Style {
@@ -292,13 +299,13 @@ where
     }
 
     fn overlay<'b>(
-        &'b self,
+        &'b mut self,
         state: &'b mut widget::Tree,
         layout: Layout<'_>,
         renderer: &Renderer,
     ) -> Option<overlay::Element<'_, Message, Renderer>> {
         self.content
-            .as_widget()
+            .as_widget_mut()
             .overlay(state, layout.children().next().unwrap(), renderer)
     }
 }
@@ -313,7 +320,7 @@ where
         renderer.fill_quad(
             renderer::Quad {
                 bounds,
-                border_radius: style.border_radius,
+                border_radius: style.border_radius.into(),
                 border_width: style.border_width,
                 border_color: style.border_color,
             },
@@ -330,7 +337,7 @@ where
     Message: 'a,
     Message: Clone,
     Renderer: 'a + iced_native::Renderer,
-    Renderer::Theme: iced_native::widget::container::StyleSheet,
+    Renderer::Theme: StyleSheet,
 {
     fn from(column: HoverableContainer<'a, Message, Renderer>) -> Element<'a, Message, Renderer> {
         Element::new(column)
