@@ -930,7 +930,7 @@ where
 }
 
 mod slider_style {
-    use iced::widget::slider::{Appearance, Handle, HandleShape, StyleSheet};
+    use iced::widget::slider::{Appearance, Handle, HandleShape, Rail, StyleSheet};
     use iced::Color;
 
     pub struct DesactivatedSlider;
@@ -939,7 +939,10 @@ mod slider_style {
         type Style = ();
         fn active(&self, style: &Self::Style) -> Appearance {
             Appearance {
-                rail_colors: ([0.6, 0.6, 0.6, 0.5].into(), Color::WHITE),
+                rail: Rail {
+                    colors: ([0.6, 0.6, 0.6, 0.5].into(), Color::WHITE),
+                    width: 8,
+                },
                 handle: Handle {
                     shape: HandleShape::Rectangle {
                         width: 8,
