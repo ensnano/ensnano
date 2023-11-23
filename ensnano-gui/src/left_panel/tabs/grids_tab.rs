@@ -17,10 +17,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::{
-    helpers::*, icon_btn, text_btn, AppState, FactoryId, GridTypeDescr, HyperboloidRequest,
-    Hyperboloid_, Message, RequestFactory, UiSize, ValueId, ICON_HONEYCOMB_GRID, ICON_NANOTUBE,
-    ICON_SQUARE_GRID,
+    icon_btn, text_btn, AppState, FactoryId, GridTypeDescr, HyperboloidRequest, Hyperboloid_,
+    Message, RequestFactory, UiSize, ValueId, ICON_HONEYCOMB_GRID, ICON_NANOTUBE, ICON_SQUARE_GRID,
 };
+use crate::helpers::*;
 use iced::Element;
 use iced_native::widget::helpers::*;
 
@@ -36,7 +36,7 @@ impl GridTab {
     }
 
     pub fn view<S>(
-        &self,
+        &mut self,
         ui_size: UiSize,
         //_width: u16,
         app_state: &S,

@@ -560,7 +560,7 @@ impl PastingStatus {
 }
 
 /// Parameters of strand suggestions
-#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct SuggestionParameters {
     pub include_scaffold: bool,
     pub include_intra_strand: bool,

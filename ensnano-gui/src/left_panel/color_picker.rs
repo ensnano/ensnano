@@ -70,7 +70,7 @@ impl ColorPicker {
         self.hsv_value = hsv_value
     }
 
-    pub fn view<S>(&self) -> iced::Element<Message<S>>
+    pub fn view<S>(&mut self) -> iced::Element<Message<S>>
     where
         S: AppState,
     {
@@ -99,7 +99,7 @@ impl ColorPicker {
         )
     }
 
-    pub fn new_view(&self) -> iced::Element<ColorMessage> {
+    pub fn new_view(&mut self) -> iced::Element<ColorMessage> {
         iced_native::row![
             HueColumn::new(&mut self.hue_state, ColorMessage::HueChanged,),
             LightSatSquare::new(
@@ -185,10 +185,10 @@ mod hue_column {
 
         fn draw(
             &self,
-            state: &widget::Tree,
+            _state: &widget::Tree,
             renderer: &mut Renderer<Backend, Theme>,
-            theme: &Theme,
-            style: &Style,
+            _theme: &Theme,
+            _style: &Style,
             layout: Layout<'_>,
             _cursor_position: Point,
             _viewport: &Rectangle,
@@ -199,10 +199,6 @@ mod hue_column {
             let y_max = b.height;
 
             let nb_row = 10;
-
-            let dummy_color = [1.0, 0.0, 0.0, 1.0]; // TODO: Find an appropriate color.
-                                                    // The primitiver API changed. It now ask for
-                                                    // some color. I do not now which one to choose now.
 
             let mut vertices = Vec::new();
             let mut indices = Vec::new();
@@ -217,11 +213,11 @@ mod hue_column {
                 ];
                 vertices.push(ColoredVertex2D {
                     position: [0., y_max * (i as f32 / nb_row as f32)],
-                    color: dummy_color,
+                    color,
                 });
                 vertices.push(ColoredVertex2D {
                     position: [x_max, y_max * (i as f32 / nb_row as f32)],
-                    color: dummy_color,
+                    color,
                 });
                 if i > 0 {
                     indices.push(2 * i - 2);
@@ -243,7 +239,7 @@ mod hue_column {
 
         fn on_event(
             &mut self,
-            state: &mut widget::Tree,
+            _state: &mut widget::Tree,
             event: Event,
             layout: Layout<'_>,
             cursor_position: Point,
@@ -384,10 +380,10 @@ mod light_sat_square {
 
         fn draw(
             &self,
-            state: &widget::Tree,
+            _state: &widget::Tree,
             renderer: &mut Renderer<Backend, Theme>,
-            theme: &Theme,
-            style: &Style,
+            _theme: &Theme,
+            _style: &Style,
             layout: Layout<'_>,
             _cursor_position: Point,
             _viewport: &Rectangle,
@@ -399,10 +395,6 @@ mod light_sat_square {
 
             let nb_row = 100;
             let nb_column = 100;
-
-            let dummy_color = [1.0, 0.0, 0.0, 1.0]; // TODO: Find an appropriate color.
-                                                    // The primitiver API changed. It now ask for
-                                                    // some color. I do not now which one to choose now.
 
             let mut vertices = Vec::new();
             let mut indices = Vec::new();
@@ -416,7 +408,7 @@ mod light_sat_square {
                             x_max * (j as f32 / nb_column as f32),
                             y_max * (i as f32 / nb_row as f32),
                         ],
-                        color: dummy_color,
+                        color,
                     });
                     if i > 0 && j > 0 {
                         indices.push(nb_row * (i - 1) + j - 1);
@@ -439,7 +431,7 @@ mod light_sat_square {
 
         fn on_event(
             &mut self,
-            state: &mut widget::Tree,
+            _state: &mut widget::Tree,
             event: Event,
             layout: Layout<'_>,
             cursor_position: Point,
@@ -524,8 +516,8 @@ mod color_square {
         Primitive, Rectangle,
     };
     use iced_native::{
-        layout, mouse, renderer, widget, Clipboard, Event, Layout, Length, Point,
-        Renderer as RendererTrait, Shell, Size, Vector, Widget,
+        layout, mouse, widget, Clipboard, Event, Layout, Length, Point, Renderer as RendererTrait,
+        Shell, Size, Vector, Widget,
     };
 
     pub struct ColorSquare<'a, Message: Clone> {
@@ -578,7 +570,7 @@ mod color_square {
 
         fn draw(
             &self,
-            state: &widget::Tree,
+            _state: &widget::Tree,
             renderer: &mut Renderer<Backend, Theme>,
             _theme: &Theme,
             _style: &Style,
@@ -622,7 +614,7 @@ mod color_square {
 
         fn on_event(
             &mut self,
-            state: &mut widget::Tree,
+            _state: &mut widget::Tree,
             event: Event,
             layout: Layout<'_>,
             cursor_position: Point,

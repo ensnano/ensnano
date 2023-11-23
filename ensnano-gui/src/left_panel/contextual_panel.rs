@@ -17,6 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use super::super::DesignReader;
 use super::*;
+use crate::helpers::*;
 use ensnano_design::{grid::GridId, BezierVertexId};
 use ensnano_interactor::{Selection, SimulationState};
 use iced_native::widget;
@@ -226,7 +227,7 @@ impl<S: AppState> ContextualPanel<S> {
         }
     }
 
-    pub fn view(&self, ui_size: UiSize, app_state: &S) -> iced::Element<Message<S>> {
+    pub fn view(&mut self, ui_size: UiSize, app_state: &S) -> iced::Element<Message<S>> {
         let mut content = Column::new().max_width((self.width - 2) as u16);
         let selection = app_state
             .get_selection()

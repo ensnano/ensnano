@@ -16,8 +16,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use super::helpers::*;
 use super::*;
+use crate::helpers::*;
 use ensnano_design::{ultraviolet::Rotor3, CurveDescriptor2D};
 use ensnano_interactor::{
     EquadiffSolvingMethod, RevolutionSimulationParameters, RevolutionSurfaceRadius,
@@ -218,7 +218,7 @@ impl<S: AppState> CurveDescriptorWidget<S> {
         }
     }
 
-    fn view(&self) -> Element<Message<S>> {
+    fn view(&mut self) -> Element<Message<S>> {
         iced_native::widget::Column::with_children(
             self.parameters
                 .iter_mut()
@@ -403,7 +403,7 @@ impl<S: AppState> RevolutionTab<S> {
         })
     }
 
-    pub fn view(&self, ui_size: UiSize, app_state: &S) -> iced::Element<Message<S>> {
+    pub fn view(&mut self, ui_size: UiSize, app_state: &S) -> iced::Element<Message<S>> {
         let desc = self.get_revolution_system(app_state, false);
         let nb_shift = self.get_shift_per_turn(app_state);
 
@@ -420,28 +420,28 @@ impl<S: AppState> RevolutionTab<S> {
             iced_native::row![shift_buttons[0], shift_buttons[1], text("Nb shift: ###")]
         };
 
-        let mut simulation_buttons =
-            if let SimulationState::Relaxing = app_state.get_simulation_state() {
-                iced_native::column![
-                    button(text("Abort")).on_press(Message::StopSimulation),
-                    jump_by(2),
-                    text(
-                        app_state
-                            .get_reader()
-                            .get_current_length_of_relaxed_shape()
-                            .map_or("".into(), |l| format!("Current total length: {l}"))
-                    ),
-                    button(text("Finish")).on_press(Message::FinishRelaxation),
-                ]
-            } else {
-                let mut button = Button::new(Text::new("Start"));
-                if let SimulationState::None = app_state.get_simulation_state() {
-                    if desc.is_some() {
-                        button = button.on_press(Message::InitRevolutionRelaxation);
-                    }
+        let simulation_buttons = if let SimulationState::Relaxing = app_state.get_simulation_state()
+        {
+            iced_native::column![
+                button(text("Abort")).on_press(Message::StopSimulation),
+                jump_by(2),
+                text(
+                    app_state
+                        .get_reader()
+                        .get_current_length_of_relaxed_shape()
+                        .map_or("".into(), |l| format!("Current total length: {l}"))
+                ),
+                button(text("Finish")).on_press(Message::FinishRelaxation),
+            ]
+        } else {
+            let mut button = Button::new(Text::new("Start"));
+            if let SimulationState::None = app_state.get_simulation_state() {
+                if desc.is_some() {
+                    button = button.on_press(Message::InitRevolutionRelaxation);
                 }
-                iced_native::column![button]
-            };
+            }
+            iced_native::column![button]
+        };
 
         iced_native::column![
             section("Revolution Surfaces", ui_size),

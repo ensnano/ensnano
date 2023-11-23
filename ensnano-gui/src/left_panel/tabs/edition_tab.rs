@@ -16,11 +16,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use super::{
-    helpers::*, right_checkbox, text_btn, AppState, Color, ColorPicker, ColorSquare, ColorState,
-    DnaElementKey, FactoryId, GoStop, HelixRoll, Length, Message, RequestFactory, RollRequest,
-    SequenceInput, UiSize, ValueId, VecDeque, MEMORY_COLOR_COLUMN, MEMORY_COLOR_ROWS,
-    NB_MEMORY_COLOR,
+    text_btn, AppState, Color, ColorPicker, ColorSquare, ColorState, DnaElementKey, FactoryId,
+    GoStop, HelixRoll, Length, Message, RequestFactory, RollRequest, SequenceInput, UiSize,
+    ValueId, VecDeque, MEMORY_COLOR_COLUMN, MEMORY_COLOR_ROWS, NB_MEMORY_COLOR,
 };
+use crate::helpers::*;
 use iced_native::widget;
 use iced_native::widget::helpers::*;
 
@@ -105,7 +105,12 @@ impl<S: AppState> EditionTab<S> {
         }
     }
 
-    pub fn view(&self, ui_size: UiSize, _width: u16, app_state: &S) -> iced::Element<Message<S>> {
+    pub fn view(
+        &mut self,
+        ui_size: UiSize,
+        _width: u16,
+        app_state: &S,
+    ) -> iced::Element<Message<S>> {
         let roll_target_helices =
             self.get_roll_target_helices(&app_state.get_selection_as_dnaelement());
         let sim_state = &app_state.get_simulation_state();

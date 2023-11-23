@@ -16,10 +16,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use super::{
-    helpers::*, right_checkbox, AppState, FactoryId, Message, RequestFactory, ScrollSensitivity,
-    UiSize, ValueId,
-};
+use super::{AppState, FactoryId, Message, RequestFactory, ScrollSensitivity, UiSize, ValueId};
+use crate::helpers::*;
 use iced::Element;
 use iced_native::widget::helpers::*;
 
@@ -41,7 +39,7 @@ impl ParametersTab {
         }
     }
 
-    pub fn view<S>(&self, ui_size: UiSize, app_state: &S) -> Element<Message<S>>
+    pub fn view<S>(&mut self, ui_size: UiSize, app_state: &S) -> Element<Message<S>>
     where
         S: AppState,
     {

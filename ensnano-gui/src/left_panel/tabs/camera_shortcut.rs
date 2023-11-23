@@ -15,8 +15,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use super::helpers::*;
-use super::{tabs::light_icon_btn, AppState, Message, UiSize, Vec3};
+use super::{rotation_message, AppState, Message, UiSize, Vec3};
+use crate::helpers::*;
 use crate::{material_icons_light::LightIcon, CameraId};
 use iced::{Element, Length};
 use iced_native::widget;
@@ -169,7 +169,7 @@ impl CameraShortcutPanel {
     }
 
     pub fn view<S: AppState>(
-        &self,
+        &mut self,
         ui_size: UiSize,
         width: impl Into<Pixels>,
         app: &S,
@@ -228,7 +228,7 @@ impl CameraShortcutPanel {
             // add_custom_camera_row!
             section("Custom cameras", ui_size),
             horizontal_space(Length::Fill),
-            light_icon_btn(LightIcon::AddAPhoto, ui_size).on_press(Message::NewCustomCamera),
+            light_icon_button(LightIcon::AddAPhoto, ui_size).on_press(Message::NewCustomCamera),
             // add_camera_widgets!
             widget::Column::with_children(
                 self.camera_widgets
@@ -238,10 +238,7 @@ impl CameraShortcutPanel {
             )
         ];
 
-        let scrollbar_properties = widget::scrollable::Properties::new()
-            .width(width)
-            .scroller_width(width);
-        // NOTE: For consistency, it would be desirable to have a global instance of this.
+        let scrollbar_properties = widget::scrollable::Properties::new().width(width);
 
         scrollable(content)
             .vertical_scroll(scrollbar_properties)
@@ -289,15 +286,15 @@ impl CameraWidget {
             name_field,
             horizontal_space(3),
             // edit button
-            light_icon_btn(LightIcon::Edit, ui_size)
+            light_icon_button(LightIcon::Edit, ui_size)
                 .on_press(Message::<S>::StartEditCameraName(self.camera_id)),
             //
             horizontal_space(Length::Fill),
             //select camera button
-            light_icon_btn(LightIcon::Visibility, ui_size)
+            light_icon_button(LightIcon::Visibility, ui_size)
                 .on_press(Message::<S>::SelectCamera(self.camera_id)),
             // delete button
-            light_icon_btn(LightIcon::Delete, ui_size)
+            light_icon_button(LightIcon::Delete, ui_size)
                 .on_press(Message::<S>::DeleteCamera(self.camera_id)),
         ]
         .into()

@@ -44,9 +44,7 @@ use ensnano_exports::ExportType;
 
 use super::{
     icon_btn,
-    material_icons_light::{
-        dark_icon as icon, icon_to_char, LightIcon as MaterialIcon, DARK_ICONFONT as ICONFONT,
-    },
+    material_icons_light::{icon_to_char, LightIcon as MaterialIcon, DARK_ICONFONT as ICONFONT},
     slider_style::DesactivatedSlider,
     text_btn, AppState, FogParameters as Fog, OverlayType, Requests, UiSize,
 };
@@ -77,8 +75,6 @@ pub(super) const ENSNANO_FONT: iced::Font = iced::Font::External {
     name: "EnsNanoFont",
     bytes: include_bytes!("../../font/ensnano.ttf"),
 };
-
-const CHECKBOXSPACING: u16 = 5;
 
 pub struct LeftPanel<R: Requests, S: AppState> {
     logical_size: LogicalSize<f64>,
@@ -1236,6 +1232,26 @@ impl From<ButtonColor> for iced::theme::Button {
     }
 }
 
+/// Generate the message that request rotation.
+fn rotation_message<S: AppState>(i: usize, _xz: isize, _yz: isize, _xy: isize) -> Message<S> {
+    let angle_xz = match i {
+        0 => 15f32.to_radians(),
+        1 => -15f32.to_radians(),
+        _ => 0f32,
+    };
+    let angle_yz = match i {
+        2 => -15f32.to_radians(),
+        3 => 15f32.to_radians(),
+        _ => 0f32,
+    };
+    let angle_xy = match i {
+        4 => 15f32.to_radians(),
+        5 => -15f32.to_radians(),
+        _ => 0f32,
+    };
+    Message::RotateCam(angle_xz, angle_yz, angle_xy)
+}
+
 mod text_input_style {
     use iced::{Background, Color};
     use iced_native::widget::text_input;
@@ -1627,26 +1643,6 @@ impl tab_bar::StyleSheet for TabStyle {
             ..self.active(_style, is_active)
         }
     }
-}
-
-fn right_checkbox<'a, S, F>(
-    is_checked: bool,
-    label: impl ToString,
-    //label: impl Into<Cow<'a, str>>,
-    f: F,
-    ui_size: UiSize,
-) -> iced::Element<'a, Message<S>>
-where
-    S: AppState,
-    F: 'static + Fn(bool) -> Message<S>,
-{
-    use iced_native::widget::helpers::*;
-    iced_native::row![
-        text(label),
-        checkbox("", is_checked, f).size(ui_size.checkbox()),
-    ]
-    .spacing(CHECKBOXSPACING)
-    .into()
 }
 
 fn color_to_u32(color: Color) -> u32 {

@@ -16,12 +16,12 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use super::{AppState, Message};
-use iced_native::{row, widget::helpers::horizontal_space};
-use iced_native::{widget, widget::text_input};
+use iced::Element;
+use iced_native::{row, widget, widget::helpers::*};
 
 pub struct SequenceInput {
     #[allow(dead_code)]
-    text_input_state: text_input::State,
+    text_input_state: widget::text_input::State,
     sequence: String,
 }
 
@@ -34,21 +34,16 @@ impl SequenceInput {
     }
 
     #[allow(dead_code)]
-    pub fn view<S, R>(&mut self) -> widget::Row<Message<S>, R>
+    pub fn view<'a, S>(&'a mut self) -> Element<'a, Message<S>>
     where
         S: AppState,
-        R: iced_native::text::Renderer,
-        R::Theme: text_input::StyleSheet,
-        R::Theme: widget::text::StyleSheet,
-        R::Theme: widget::button::StyleSheet,
     {
         row![
             horizontal_space(5),
-            text_input::TextInput::new("Sequence", &self.sequence)
-                .on_input(Message::SequenceChanged,),
-            widget::Button::new(widget::Text::new("Load File"))
-                .on_press(Message::SequenceFileRequested),
+            text_input("Sequence", &self.sequence).on_input(Message::SequenceChanged,),
+            button(text("Load File")).on_press(Message::SequenceFileRequested),
         ]
+        .into()
     }
 
     pub fn update_sequence(&mut self, sequence: String) {

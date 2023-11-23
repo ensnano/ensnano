@@ -16,8 +16,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use super::helpers::*;
 use super::*;
+use crate::helpers::*;
 use iced_native::widget;
 use iced_native::widget::helpers::*;
 
@@ -57,7 +57,7 @@ impl<S: AppState> SimulationTab<S> {
         }
     }
 
-    pub fn view(&self, ui_size: UiSize, app_state: &S) -> iced::Element<Message<S>> {
+    pub fn view(&mut self, ui_size: UiSize, app_state: &S) -> iced::Element<Message<S>> {
         let sim_state = &app_state.get_simulation_state();
         let grid_active = sim_state.is_none() || sim_state.simulating_grid();
         let roll_active = sim_state.is_none() || sim_state.is_rolling();
@@ -97,7 +97,7 @@ impl<S: AppState> SimulationTab<S> {
     }
 
     fn helix_btns<'a>(
-        go_stop: &GoStop<S>,
+        go_stop: &'a GoStop<S>,
         app_state: &S,
         ui_size: UiSize,
     ) -> iced::Element<'a, Message<S>> {

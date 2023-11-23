@@ -17,8 +17,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use ensnano_interactor::StandardSequence;
 
-use super::helpers::*;
 use super::*;
+use crate::helpers::*;
 use iced_native::widget;
 use iced_native::widget::helpers::*;
 
@@ -61,7 +61,11 @@ impl SequenceTab {
         }
     }
 
-    pub fn view<S: AppState>(&self, ui_size: UiSize, app_state: &S) -> iced::Element<Message<S>> {
+    pub fn view<S: AppState>(
+        &mut self,
+        ui_size: UiSize,
+        app_state: &S,
+    ) -> iced::Element<Message<S>> {
         if !self.scaffold_input.is_focused() {
             if let Some(n) = app_state.get_scaffold_info().and_then(|info| info.shift) {
                 self.update_pos_str(n.to_string());

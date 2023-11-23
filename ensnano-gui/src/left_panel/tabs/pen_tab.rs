@@ -15,11 +15,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use super::helpers::*;
 use super::{
-    icon_btn, light_icon_btn, AppState, GridTypeDescr, LightIcon, Message, UiSize,
-    ICON_HONEYCOMB_GRID, ICON_SQUARE_GRID,
+    icon_btn, AppState, GridTypeDescr, Message, UiSize, ICON_HONEYCOMB_GRID, ICON_SQUARE_GRID,
 };
+use crate::helpers::*;
+use crate::material_icons_light::LightIcon;
 use iced::Element;
 use iced_native::widget::helpers::*;
 
@@ -41,11 +41,12 @@ impl PenTab {
 
         iced_native::column![
             section("Bezier Planes", ui_size),
-            light_icon_btn(LightIcon::FileOpen, ui_size).on_press(Message::LoadSvgFile),
+            light_icon_button(LightIcon::FileOpen, ui_size).on_press(Message::LoadSvgFile),
             // add_buttons!
             iced_native::row![
-                light_icon_btn(NEW_BEZIER_PLANE_ICON, ui_size).on_press(Message::NewBezierPlane),
-                light_icon_btn(EDIT_BEZIER_PATH_ICON, ui_size).on_press(Message::StartBezierPath),
+                light_icon_button(NEW_BEZIER_PLANE_ICON, ui_size).on_press(Message::NewBezierPlane),
+                light_icon_button(EDIT_BEZIER_PATH_ICON, ui_size)
+                    .on_press(Message::StartBezierPath),
             ],
             // add_grid_buttons!
             if let Some(path_id) = app_state.get_selected_bezier_path() {

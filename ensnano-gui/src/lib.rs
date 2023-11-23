@@ -22,6 +22,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! other components of the program it is forwarded to the `main` function via the
 //! [Request](Requests) data structure.
 
+pub mod helpers;
+
 /// Draw the top bar of the GUI
 pub mod top_bar;
 use ensnano_organizer::GroupId;
@@ -964,7 +966,7 @@ mod slider_style {
     }
 
     impl From<DesactivatedSlider> for iced::theme::Slider {
-        fn from(value: DesactivatedSlider) -> Self {
+        fn from(_value: DesactivatedSlider) -> Self {
             Default::default()
         }
     }

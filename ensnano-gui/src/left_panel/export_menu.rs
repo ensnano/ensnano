@@ -17,19 +17,16 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::{AppState, ExportType, Message};
+use iced::Element;
 use iced_native::widget::helpers::*;
-use iced_native::{widget, Element, Renderer};
 
 #[derive(Default)]
 pub struct ExportMenu {}
 
 impl ExportMenu {
-    pub fn view<'a, S, R>(&'a self) -> Element<'a, Message<S>, R>
+    pub fn view<'a, S>(&'a self) -> Element<'a, Message<S>>
     where
         S: AppState,
-        R: Renderer + iced_native::text::Renderer,
-        R::Theme:
-            widget::button::StyleSheet + widget::scrollable::StyleSheet + widget::text::StyleSheet,
     {
         let content = iced_native::column![
             button(text("Cancel")).on_press(Message::CancelExport),

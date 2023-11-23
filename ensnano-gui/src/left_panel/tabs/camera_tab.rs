@@ -17,9 +17,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::{
-    helpers::*, right_checkbox, text_btn, AppState, CheckXoversParameter, DesactivatedSlider, Fog,
-    HBoundDisplay, Message, UiSize,
+    text_btn, AppState, CheckXoversParameter, DesactivatedSlider, Fog, HBoundDisplay, Message,
+    UiSize,
 };
+use crate::helpers::*;
 use ensnano_interactor::graphics::{
     Background3D, RenderingMode, ALL_BACKGROUND3D, ALL_RENDERING_MODE,
 };
