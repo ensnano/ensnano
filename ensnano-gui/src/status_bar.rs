@@ -502,6 +502,7 @@ mod input_color {
                 border_radius: 5.0,
                 border_width: 1.0,
                 border_color: Color::from_rgb(0.7, 0.7, 0.7),
+                icon_color: Default::default(), // TODO:Choose an appropriate value for this field.
             }
         }
 
@@ -524,8 +525,20 @@ mod input_color {
             }
         }
 
+        fn disabled_color(&self, _style: &Self::Style) -> Color {
+            Color::from_rgb(0.4, 0.4, 0.4) // TODO: Choose an appropriate value for this field
+        }
+
         fn selection_color(&self, _style: &Self::Style) -> Color {
             Color::from_rgb(0.8, 0.8, 1.0)
+        }
+
+        fn disabled(&self, style: &Self::Style) -> Appearance {
+            Appearance {
+                // TODO: Choose an appropriate value for this field
+                border_color: Color::from_rgb(0.4, 0.4, 0.4),
+                ..self.active(style)
+            }
         }
     }
 

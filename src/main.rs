@@ -92,6 +92,7 @@ use ensnano_interactor::{
     CenterOfSelection, CursorIcon, DesignOperation, DesignReader, RigidBodyConstants,
     SuggestionParameters,
 };
+use iced_native::theme::Theme;
 use iced_native::Event as IcedEvent;
 use iced_wgpu::{wgpu, Settings, Viewport};
 use iced_winit::winit::event::VirtualKeyCode;
@@ -227,7 +228,7 @@ fn main() {
     if EARLY_LOG {
         pretty_env_logger::init();
     }
-    // parse arugments, if an argument was given it is treated as a file to open
+    // Parse arugments. If an argument was given it is treated as a file to open.
     let args: Vec<String> = env::args().collect();
     let path = if args.len() >= 2 {
         Some(PathBuf::from(&args[1]))
@@ -235,7 +236,7 @@ fn main() {
         None
     };
 
-    // Initialize winit
+    // Initialize winit. Create an event_loop and a window.
     let event_loop = EventLoop::new();
     let window = winit::window::Window::new(&event_loop).unwrap();
     let mut windows_title = String::from("ENSnano");
@@ -247,9 +248,10 @@ fn main() {
     // Represents the current state of the keyboard modifiers (Shift, Ctrl, etc.)
     let kbd_modifiers = ModifiersState::default();
 
+    // Initialize the GPU backend.
     let gpu = wgpu::Instance::new(BACKEND);
     let surface = unsafe { gpu.create_surface(&window) };
-    // Initialize WGPU
+    // Initialize WGPU.
     let (device, queue) = futures::executor::block_on(async {
         let adapter = gpu
             .request_adapter(&wgpu::RequestAdapterOptions {
@@ -290,6 +292,8 @@ fn main() {
                 width: size.width,
                 height: size.height,
                 present_mode: wgpu::PresentMode::Mailbox,
+                alpha_mode: Default::default(),
+                view_formats: Default::default(),
             },
         )
     }
@@ -619,8 +623,13 @@ fn main() {
                 }
 
                 // Treat eventual event that happenend in the gui left panel.
-                let _overlay_change =
-                    overlay_manager.fetch_change(&multiplexer, &window, &mut renderer);
+                let _overlay_change = overlay_manager.fetch_change(
+                    &multiplexer,
+                    &window,
+                    &mut renderer,
+                    Theme::Dark, // Use built-in dark theme for now.
+                    &(),         // Dummy style.
+                );
                 {
                     let mut messages = messages.lock().unwrap();
                     gui.forward_messages(&mut messages);
@@ -664,6 +673,8 @@ fn main() {
                             width: window_size.width,
                             height: window_size.height,
                             present_mode: wgpu::PresentMode::Mailbox,
+                            alpha_mode: Default::default(),
+                            view_formats: Default::default(),
                         },
                     );
 
@@ -694,6 +705,8 @@ fn main() {
                             width: window_size.width,
                             height: window_size.height,
                             present_mode: wgpu::PresentMode::Mailbox,
+                            alpha_mode: Default::default(),
+                            view_formats: Default::default(),
                         },
                     );
 
@@ -704,7 +717,14 @@ fn main() {
                 // If there are events pending
                 gui.update(&multiplexer, &window);
 
-                overlay_manager.process_event(&mut renderer, resized, &multiplexer, &window);
+                overlay_manager.process_event(
+                    &mut renderer,
+                    Theme::Dark, // Use built-in dark theme for now.
+                    &(),         // Dummy style.
+                    resized,
+                    &multiplexer,
+                    &window,
+                );
 
                 resized = false;
                 scale_factor_changed = false;
@@ -824,6 +844,8 @@ impl OverlayManager {
     fn process_event(
         &mut self,
         renderer: &mut iced_wgpu::Renderer,
+        theme: iced_wgpu::Renderer::Theme,
+        style: &renderer::Style,
         resized: bool,
         multiplexer: &Multiplexer,
         window: &Window,
@@ -843,6 +865,8 @@ impl OverlayManager {
                             convert_size(PhysicalSize::new(250, 250)),
                             conversion::cursor_position(cursor_position, window.scale_factor()),
                             renderer,
+                            theme,
+                            style,
                             &mut clipboard,
                             &mut self.color_debug,
                         );
@@ -919,6 +943,8 @@ impl OverlayManager {
         multiplexer: &Multiplexer,
         window: &Window,
         renderer: &mut iced_wgpu::Renderer,
+        theme: iced_wgpu::Renderer::Theme,
+        style: &renderer::Style,
     ) -> bool {
         let mut ret = false;
         for (n, overlay) in self.overlay_types.iter().enumerate() {
@@ -937,6 +963,8 @@ impl OverlayManager {
                             convert_size(PhysicalSize::new(250, 250)),
                             conversion::cursor_position(cursor_position, window.scale_factor()),
                             renderer,
+                            theme,
+                            style,
                             &mut clipboard,
                             &mut self.color_debug,
                         );

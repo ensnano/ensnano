@@ -234,6 +234,7 @@ impl<S: AppState> contextual_panel::BuilderMessage for Message<S> {
 }
 
 impl<R: Requests, S: AppState> LeftPanel<R, S> {
+    /// Create a new [LeftPanel].
     pub fn new(
         requests: Arc<Mutex<R>>,
         logical_size: LogicalSize<f64>,
@@ -269,6 +270,7 @@ impl<R: Requests, S: AppState> LeftPanel<R, S> {
         }
     }
 
+    /// Resize the [LeftPanel] to the given dimensions.
     pub fn resize(
         &mut self,
         logical_size: LogicalSize<f64>,
@@ -348,7 +350,7 @@ where
     R: Requests,
     S: AppState,
 {
-    type Renderer = iced_wgpu::Renderer;
+    type Renderer = iced_graphics::Renderer<iced_wgpu::Backend, iced_native::theme::Theme>;
     type Message = Message<S>;
 
     fn update(&mut self, message: Message<S>) -> Command<Message<S>> {
@@ -943,7 +945,7 @@ where
 
     fn view(&self) -> Element<Message<S>, Self::Renderer> {
         let width = self.logical_size.cast::<u16>().width;
-        let tabs: Tabs<Message<S>, iced_wgpu::Backend> =
+        let tabs: Tabs<Message<S>, iced_wgpu::Backend, iced_native::theme::Theme> =
             Tabs::new(self.selected_tab, Message::TabSelected)
                 .push(
                     TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::GridOn))),
@@ -987,7 +989,8 @@ where
                 .icon_font(ENSNANO_FONT)
                 .icon_size(self.ui_size.icon())
                 .tab_bar_height(Length::Fixed(self.ui_size.button()))
-                .tab_bar_style(TabStyle)
+                //.tab_bar_style(TabStyle)
+                .tab_bar_style(Default::default())
                 .width(Length::Fixed(width as f32))
                 .height(Length::Fill);
         let camera_shortcut =
@@ -1245,6 +1248,7 @@ mod text_input_style {
                 border_radius: 5.0,
                 border_color: Color::from_rgb(0.7, 0.7, 0.7),
                 border_width: Default::default(),
+                icon_color: Default::default(), // TODO:Choose an appropriate value for this field.
             }
         }
 
@@ -1267,8 +1271,20 @@ mod text_input_style {
             }
         }
 
+        fn disabled_color(&self, _style: &Self::Style) -> Color {
+            Color::from_rgb(0.4, 0.4, 0.4) // TODO: Choose an appropriate value for this field
+        }
+
         fn selection_color(&self, style: &Self::Style) -> Color {
             Color::from_rgb(0.8, 0.8, 1.0)
+        }
+
+        fn disabled(&self, style: &Self::Style) -> text_input::Appearance {
+            text_input::Appearance {
+                // TODO: Choose an appropriate value for this field
+                border_color: Color::from_rgb(0.4, 0.4, 0.4),
+                ..self.active(style)
+            }
         }
     }
     impl From<BadValue> for iced::theme::TextInput {

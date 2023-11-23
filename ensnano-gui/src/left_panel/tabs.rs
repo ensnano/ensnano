@@ -17,7 +17,6 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use super::color_picker::{ColorSquare, ColorState};
 use super::*;
-use ensnano_design::CameraId;
 use ensnano_interactor::{RollRequest, SimulationState};
 use std::collections::VecDeque;
 

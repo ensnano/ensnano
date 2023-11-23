@@ -99,10 +99,7 @@ impl ColorPicker {
         )
     }
 
-    pub fn new_view<S>(&self) -> iced::Element<Message<S>>
-    where
-        S: AppState,
-    {
+    pub fn new_view(&self) -> iced::Element<ColorMessage> {
         iced_native::row![
             HueColumn::new(&mut self.hue_state, ColorMessage::HueChanged,),
             LightSatSquare::new(
@@ -118,14 +115,14 @@ impl ColorPicker {
 }
 
 mod hue_column {
-    use super::Color;
     use iced_graphics::{
-        triangle::{Mesh2D, Vertex2D},
+        renderer::{Renderer, Style},
+        triangle::{ColoredVertex2D, Mesh2D},
         Primitive, Rectangle,
     };
     use iced_native::{
-        layout, mouse, renderer::Style, widget, Clipboard, Element, Event, Layout, Length, Point,
-        Shell, Size, Vector, Widget,
+        layout, mouse, widget, Clipboard, Element, Event, Layout, Length, Point,
+        Renderer as RendererTrait, Shell, Size, Vector, Widget,
     };
 
     use color_space::{Hsv, Rgb};
@@ -160,9 +157,10 @@ mod hue_column {
         }
     }
 
-    impl<'a, Message, R> Widget<Message, R> for HueColumn<'a, Message>
+    impl<'a, Message, Backend, Theme> Widget<Message, Renderer<Backend, Theme>>
+        for HueColumn<'a, Message>
     where
-        R: iced_native::Renderer,
+        Backend: iced_graphics::Backend,
     {
         fn width(&self) -> Length {
             Length::FillPortion(1)
@@ -172,7 +170,11 @@ mod hue_column {
             Length::Shrink
         }
 
-        fn layout(&self, _renderer: &R, limits: &layout::Limits) -> layout::Node {
+        fn layout(
+            &self,
+            _renderer: &Renderer<Backend, Theme>,
+            limits: &layout::Limits,
+        ) -> layout::Node {
             let size = limits
                 .width(Length::Fill)
                 .height(Length::Fill)
@@ -184,8 +186,8 @@ mod hue_column {
         fn draw(
             &self,
             state: &widget::Tree,
-            renderer: &mut R,
-            theme: &R::Theme,
+            renderer: &mut Renderer<Backend, Theme>,
+            theme: &Theme,
             style: &Style,
             layout: Layout<'_>,
             _cursor_position: Point,
@@ -198,6 +200,10 @@ mod hue_column {
 
             let nb_row = 10;
 
+            let dummy_color = [1.0, 0.0, 0.0, 1.0]; // TODO: Find an appropriate color.
+                                                    // The primitiver API changed. It now ask for
+                                                    // some color. I do not now which one to choose now.
+
             let mut vertices = Vec::new();
             let mut indices = Vec::new();
             for i in 0..=nb_row {
@@ -209,11 +215,13 @@ mod hue_column {
                     rgb.b as f32 / 255.,
                     1.,
                 ];
-                vertices.push(Vertex2D {
+                vertices.push(ColoredVertex2D {
                     position: [0., y_max * (i as f32 / nb_row as f32)],
+                    color: dummy_color,
                 });
-                vertices.push(Vertex2D {
+                vertices.push(ColoredVertex2D {
                     position: [x_max, y_max * (i as f32 / nb_row as f32)],
+                    color: dummy_color,
                 });
                 if i > 0 {
                     indices.push(2 * i - 2);
@@ -225,18 +233,10 @@ mod hue_column {
                 }
             }
 
-            let dummy_color = Color {
-                r: 1.0,
-                g: 0.0,
-                b: 0.0,
-                a: 1.0,
-            };
-
             renderer.with_translation(Vector::new(b.x, b.y), |renderer| {
-                renderer.draw_primitive(Primitive::Mesh2D {
+                renderer.draw_primitive(Primitive::SolidMesh {
                     size: b.size(),
                     buffers: Mesh2D { vertices, indices },
-                    style: iced_graphics::triangle::Style::Solid(dummy_color),
                 })
             });
         }
@@ -247,7 +247,7 @@ mod hue_column {
             event: Event,
             layout: Layout<'_>,
             cursor_position: Point,
-            _renderer: &R,
+            _renderer: &Renderer<Backend, Theme>,
             _clipboard: &mut dyn Clipboard,
             shell: &mut Shell<'_, Message>,
         ) -> iced_native::event::Status {
@@ -306,14 +306,14 @@ mod hue_column {
 }
 
 mod light_sat_square {
-    use super::Color;
     use iced_graphics::{
-        triangle::{Mesh2D, Vertex2D},
+        renderer::{Renderer, Style},
+        triangle::{ColoredVertex2D, Mesh2D},
         Primitive, Rectangle,
     };
     use iced_native::{
-        layout, mouse, renderer::Style, widget, Clipboard, Event, Layout, Length, Point, Shell,
-        Size, Vector, Widget,
+        layout, mouse, widget, Clipboard, Event, Layout, Length, Point, Renderer as RendererTrait,
+        Shell, Size, Vector, Widget,
     };
 
     use color_space::{Hsv, Rgb};
@@ -355,10 +355,11 @@ mod light_sat_square {
         }
     }
 
-    impl<'a, Message, Renderer> Widget<Message, Renderer> for LightSatSquare<'a, Message>
+    impl<'a, Message, Backend, Theme> Widget<Message, Renderer<Backend, Theme>>
+        for LightSatSquare<'a, Message>
     where
         Message: Clone + 'a,
-        Renderer: iced_native::Renderer,
+        Backend: iced_graphics::Backend,
     {
         fn width(&self) -> Length {
             Length::FillPortion(4)
@@ -368,7 +369,11 @@ mod light_sat_square {
             Length::Shrink
         }
 
-        fn layout(&self, _renderer: &Renderer, limits: &layout::Limits) -> layout::Node {
+        fn layout(
+            &self,
+            _renderer: &Renderer<Backend, Theme>,
+            limits: &layout::Limits,
+        ) -> layout::Node {
             let size = limits
                 .width(Length::Fill)
                 .height(Length::Fill)
@@ -380,8 +385,8 @@ mod light_sat_square {
         fn draw(
             &self,
             state: &widget::Tree,
-            renderer: &mut Renderer,
-            theme: &Renderer::Theme,
+            renderer: &mut Renderer<Backend, Theme>,
+            theme: &Theme,
             style: &Style,
             layout: Layout<'_>,
             _cursor_position: Point,
@@ -395,6 +400,10 @@ mod light_sat_square {
             let nb_row = 100;
             let nb_column = 100;
 
+            let dummy_color = [1.0, 0.0, 0.0, 1.0]; // TODO: Find an appropriate color.
+                                                    // The primitiver API changed. It now ask for
+                                                    // some color. I do not now which one to choose now.
+
             let mut vertices = Vec::new();
             let mut indices = Vec::new();
             for i in 0..nb_row {
@@ -402,11 +411,12 @@ mod light_sat_square {
                 for j in 0..nb_column {
                     let sat = 1. - (j as f64 / nb_column as f64);
                     let color = hsv_to_linear(self.hue, sat, value);
-                    vertices.push(Vertex2D {
+                    vertices.push(ColoredVertex2D {
                         position: [
                             x_max * (j as f32 / nb_column as f32),
                             y_max * (i as f32 / nb_row as f32),
                         ],
+                        color: dummy_color,
                     });
                     if i > 0 && j > 0 {
                         indices.push(nb_row * (i - 1) + j - 1);
@@ -419,18 +429,10 @@ mod light_sat_square {
                 }
             }
 
-            let dummy_color = Color {
-                r: 1.0f32,
-                g: 0.0f32,
-                b: 0.0f32,
-                a: 1.0f32,
-            };
-
             renderer.with_translation(Vector::new(b.x, b.y), |renderer| {
-                renderer.draw_primitive(Primitive::Mesh2D {
+                renderer.draw_primitive(Primitive::SolidMesh {
                     size: b.size(),
                     buffers: Mesh2D { vertices, indices },
-                    style: iced_graphics::triangle::Style::Solid(dummy_color),
                 })
             });
         }
@@ -441,7 +443,7 @@ mod light_sat_square {
             event: Event,
             layout: Layout<'_>,
             cursor_position: Point,
-            _renderer: &Renderer,
+            _renderer: &Renderer<Backend, Theme>,
             _clipboard: &mut dyn Clipboard,
             shell: &mut Shell<'_, Message>,
         ) -> iced_native::event::Status {
@@ -517,7 +519,8 @@ mod color_square {
     }
     use super::Color;
     use iced_graphics::{
-        triangle::{Mesh2D, Vertex2D},
+        renderer::{Renderer, Style},
+        triangle::{ColoredVertex2D, Mesh2D},
         Primitive, Rectangle,
     };
     use iced_native::{
@@ -546,10 +549,11 @@ mod color_square {
         }
     }
 
-    impl<'a, Message, Renderer> Widget<Message, Renderer> for ColorSquare<'a, Message>
+    impl<'a, Message, Backend, Theme> Widget<Message, Renderer<Backend, Theme>>
+        for ColorSquare<'a, Message>
     where
         Message: Clone + 'a,
-        Renderer: iced_native::Renderer,
+        Backend: iced_graphics::Backend,
     {
         fn width(&self) -> Length {
             Length::FillPortion(1)
@@ -559,7 +563,11 @@ mod color_square {
             Length::FillPortion(1)
         }
 
-        fn layout(&self, _renderer: &Renderer, limits: &layout::Limits) -> layout::Node {
+        fn layout(
+            &self,
+            _renderer: &Renderer<Backend, Theme>,
+            limits: &layout::Limits,
+        ) -> layout::Node {
             let size = limits
                 .width(Length::Fill)
                 .height(Length::Fill)
@@ -571,9 +579,9 @@ mod color_square {
         fn draw(
             &self,
             state: &widget::Tree,
-            renderer: &mut Renderer,
-            _theme: &Renderer::Theme,
-            _style: &renderer::Style,
+            renderer: &mut Renderer<Backend, Theme>,
+            _theme: &Theme,
+            _style: &Style,
             layout: Layout<'_>,
             _cursor_position: Point,
             _viewport: &Rectangle,
@@ -581,32 +589,33 @@ mod color_square {
             let b = layout.bounds();
             let x_max = b.width;
             let y_max = b.height;
+            let dummy_color = [1.0, 0.0, 0.0, 1.0]; // TODO: Find an appropriate color.
+                                                    // The primitiver API changed. It now ask for
+                                                    // some color. I do not now which one to choose now.
             let vertices = vec![
-                Vertex2D { position: [0., 0.] },
-                Vertex2D {
+                ColoredVertex2D {
+                    position: [0., 0.],
+                    color: dummy_color,
+                },
+                ColoredVertex2D {
                     position: [0., y_max],
+                    color: dummy_color,
                 },
-                Vertex2D {
+                ColoredVertex2D {
                     position: [x_max, 0.],
+                    color: dummy_color,
                 },
-                Vertex2D {
+                ColoredVertex2D {
                     position: [x_max, y_max],
+                    color: dummy_color,
                 },
             ];
             let indices = vec![0, 1, 2, 1, 2, 3];
-            let dummy_color = Color {
-                r: 1.0,
-                g: 0.0,
-                b: 0.0,
-                a: 1.0,
-            };
 
             renderer.with_translation(Vector::new(b.x, b.y), |renderer| {
-                renderer.draw_primitive(Primitive::Mesh2D {
-                    size: b.size(),
+                renderer.draw_primitive(Primitive::SolidMesh {
                     buffers: Mesh2D { vertices, indices },
-                    style: iced_graphics::triangle::Style::Solid(dummy_color),
-                    // This is not satisfying.
+                    size: b.size(),
                 })
             });
         }
@@ -617,7 +626,7 @@ mod color_square {
             event: Event,
             layout: Layout<'_>,
             cursor_position: Point,
-            _renderer: &Renderer,
+            _renderer: &Renderer<Backend, Theme>,
             _clipboard: &mut dyn Clipboard,
             shell: &mut Shell<'_, Message>,
         ) -> iced_native::event::Status {
