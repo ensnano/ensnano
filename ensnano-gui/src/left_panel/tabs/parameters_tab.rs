@@ -96,10 +96,13 @@ impl ParametersTab {
 
         subsection!(ret, ui_size, "Development:");
         ret = ret.push(Text::new("Nicolas Levy"));
+        ret = ret.push(Text::new("Nicolas Schabanel"));
+        ret = ret.push(Text::new("Joris Picot"));
+        ret = ret.push(Text::new("Pierre Marcus"));
         extra_jump!(ret);
         subsection!(ret, ui_size, "Conception:");
-        ret = ret.push(Text::new("Nicolas Levy"));
         ret = ret.push(Text::new("Nicolas Schabanel"));
+        ret = ret.push(Text::new("Nicolas Levy"));
         extra_jump!(ret);
         subsection!(ret, ui_size, "License:");
         ret = ret.push(Text::new("GPLv3"));
