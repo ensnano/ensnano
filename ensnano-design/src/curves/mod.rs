@@ -31,6 +31,7 @@ use super::{Helix, Parameters};
 use std::sync::Arc;
 mod bezier;
 mod discretization;
+mod legacy;
 mod revolution;
 mod sphere_concentric_circle;
 mod sphere_like_spiral;
@@ -235,6 +236,10 @@ pub trait Curved {
     fn pre_compute_polynomials(&self) -> bool {
         false
     }
+
+    fn legacy(&self) -> bool {
+        false
+    }
 }
 
 /// The bounds of the curve. This describe the interval in which t can be taken
@@ -391,6 +396,11 @@ impl Curve {
         parameters: &Parameters,
     ) -> Option<DVec3> {
         use std::f64::consts::{PI, TAU};
+
+        if self.geometry.legacy() {
+            return self.legacy_nucl_pos(n, forward, theta, parameters);
+        }
+
         let idx = self.idx_convertsion(n)?;
         let theta = if let Some(real_theta) = self.geometry.theta_shift(parameters) {
             let base_theta = TAU / parameters.bases_per_turn as f64;
@@ -547,9 +557,15 @@ pub enum CurveDescriptor {
     TranslatedPath {
         path_id: BezierPathId,
         translation: Vec3,
+        #[serde(default, skip_serializing_if = "is_false")]
+        legacy: bool,
     },
     SuperTwist(SuperTwist),
     InterpolatedCurve(InterpolatedCurveDescriptor),
+}
+
+fn is_false(b: &bool) -> bool {
+    !b
 }
 
 const NO_BEZIER: &[BezierEnd] = &[];
@@ -726,9 +742,12 @@ impl InstanciatedCurveDescriptor {
             CurveDescriptor::TranslatedPath {
                 path_id,
                 translation,
+                legacy,
             } => grid_reader
                 .source_paths()
-                .and_then(|paths| Self::instanciate_translated_path(*path_id, *translation, paths))
+                .and_then(|paths| {
+                    Self::instanciate_translated_path(*path_id, *translation, paths, *legacy)
+                })
                 .unwrap_or_else(|| {
                     let instanciated = InstanciatedPiecewiseBezierDescriptor::instanciate(
                         &[],
@@ -752,6 +771,7 @@ impl InstanciatedCurveDescriptor {
         path_id: BezierPathId,
         translation: Vec3,
         source_path: BezierPathData,
+        legacy: bool,
     ) -> Option<InstanciatedCurveDescriptor_> {
         source_path
             .instanciated_paths
@@ -763,6 +783,7 @@ impl InstanciatedCurveDescriptor {
                     initial_frame: frame,
                     translation: vec_to_dvec(translation),
                     paths_data: source_path.clone(),
+                    legacy,
                 },
             )
     }
@@ -887,6 +908,7 @@ enum InstanciatedCurveDescriptor_ {
         translation: DVec3,
         initial_frame: DMat3,
         paths_data: BezierPathData,
+        legacy: bool,
     },
     InterpolatedCurve(InterpolatedCurveDescriptor),
 }
@@ -1007,12 +1029,14 @@ impl InstanciatedCurveDescriptor_ {
                 path_curve,
                 translation,
                 initial_frame,
+                legacy,
                 ..
             } => Arc::new(Curve::new(
                 TranslatedPiecewiseBezier {
-                    original_curve: path_curve.clone(),
+                    original_curve: path_curve,
                     translation,
                     initial_frame,
+                    legacy,
                 },
                 parameters,
             )),
@@ -1029,11 +1053,11 @@ impl InstanciatedCurveDescriptor_ {
                 parameters,
             ))),
             Self::SphereLikeSpiral(spiral) => Some(Arc::new(Curve::new(
-                spiral.clone().with_parameters(parameters.clone()),
+                spiral.clone().with_parameters(*parameters),
                 parameters,
             ))),
             Self::TubeSpiral(spiral) => Some(Arc::new(Curve::new(
-                spiral.clone().with_parameters(parameters.clone()),
+                spiral.clone().with_parameters(*parameters),
                 parameters,
             ))),
             Self::SphereConcentricCircle(constructor) => Some(Arc::new(Curve::new(
@@ -1049,12 +1073,14 @@ impl InstanciatedCurveDescriptor_ {
                 path_curve,
                 translation,
                 initial_frame,
+                legacy,
                 ..
             } => Some(Arc::new(Curve::new(
                 TranslatedPiecewiseBezier {
                     original_curve: path_curve.clone(),
                     translation: *translation,
                     initial_frame: *initial_frame,
+                    legacy: *legacy,
                 },
                 parameters,
             ))),
@@ -1071,10 +1097,10 @@ impl InstanciatedCurveDescriptor_ {
                 Some(Curve::compute_length(constructor.clone().into_bezier()))
             }
             Self::SphereLikeSpiral(spiral) => Some(Curve::compute_length(
-                spiral.clone().with_parameters(parameters.clone()),
+                spiral.clone().with_parameters(*parameters),
             )),
             Self::TubeSpiral(spiral) => Some(Curve::compute_length(
-                spiral.clone().with_parameters(parameters.clone()),
+                spiral.clone().with_parameters(*parameters),
             )),
             Self::SphereConcentricCircle(constructor) => Some(Curve::compute_length(
                 constructor.clone().with_parameters(parameters.clone()),
@@ -1088,11 +1114,13 @@ impl InstanciatedCurveDescriptor_ {
                 path_curve,
                 translation,
                 initial_frame,
+                legacy,
                 ..
             } => Some(Curve::compute_length(TranslatedPiecewiseBezier {
                 original_curve: path_curve.clone(),
                 translation: *translation,
                 initial_frame: *initial_frame,
+                legacy: *legacy,
             })),
             Self::InterpolatedCurve(desc) => {
                 Some(Curve::compute_length(desc.clone().instanciate(true)))
@@ -1121,11 +1149,13 @@ impl InstanciatedCurveDescriptor_ {
                 path_curve,
                 translation,
                 initial_frame,
+                legacy,
                 ..
             } => Some(Curve::path(TranslatedPiecewiseBezier {
                 original_curve: path_curve.clone(),
                 translation: *translation,
                 initial_frame: *initial_frame,
+                legacy: *legacy,
             })),
             Self::InterpolatedCurve(desc) => Some(Curve::path(desc.clone().instanciate(false))),
         }
@@ -1199,10 +1229,7 @@ impl Helix {
             .instanciated_curve
             .as_ref()
             .map(|c| Arc::as_ptr(&c.source))
-            == self
-                .instanciated_descriptor
-                .as_ref()
-                .map(|target| Arc::as_ptr(&target));
+            == self.instanciated_descriptor.as_ref().map(Arc::as_ptr);
         !up_to_date
     }
 
