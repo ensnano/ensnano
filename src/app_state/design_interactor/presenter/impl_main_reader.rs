@@ -18,9 +18,12 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::*;
 use crate::controller::{DownloadStappleError, DownloadStappleOk, StaplesDownloader};
+use rust_xlsxwriter::{Format, Workbook, XlsxError, Color};
 use serde::Serialize;
 use std::io::Write;
 use std::path::PathBuf;
+use hex;
+use std::borrow::Cow;
 
 impl StaplesDownloader for DesignReader {
     fn download_staples(&self) -> Result<DownloadStappleOk, DownloadStappleError> {
@@ -67,13 +70,21 @@ impl StaplesDownloader for DesignReader {
     }
 
     fn write_staples_xlsx(&self, xlsx_path: &PathBuf) {
-        use simple_excel_writer::{row, Row, Workbook};
+        // use simple_excel_writer::{row, Row, Workbook};
+
+        let all_group_names: Vec<String> = self.presenter.get_names_of_all_groups();
+        let mut group_map: HashMap<&String, usize> = HashMap::new();
+        for (j, name) in all_group_names.iter().enumerate() {  
+            group_map.insert(name, j);
+        }
+
         let stapples = self
             .presenter
             .content
             .get_staples(&self.presenter.current_design, &self.presenter);
-        let mut wb = Workbook::create(xlsx_path.to_str().unwrap());
-        let mut sheets = BTreeMap::new();
+
+        let mut wb = Workbook::new(); //create(xlsx_path.to_str().unwrap());
+        let mut sheets: BTreeMap<usize, Vec<Vec<&str>>> = BTreeMap::new();
 
         let interval_strs: Vec<_> = stapples
             .iter()
@@ -85,79 +96,126 @@ impl StaplesDownloader for DesignReader {
                 }
             })
             .collect();
+
+        let mut first_row_content = vec![
+            "Well Position",
+            "Name",
+            "Sequence",
+            "Domains",
+            "Length",
+            "Domain Length",
+            "Color",
+            "Groups",
+        ];
+        first_row_content.extend(all_group_names.iter().map(|s| &**s));
+
+        // Staples are scattered on the sheets according to their plate number
         for (i, stapple) in stapples.iter().enumerate() {
             let sheet = sheets.entry(stapple.plate).or_insert_with(|| {
-                vec![vec![
-                    "Well Position",
-                    "Name",
-                    "Sequence",
-                    "Domains",
-                    "Length",
-                    "Domain Length",
-                    "Groups",
-                    "Color",
-                ]]
+                vec![first_row_content.clone()]
             });
-            sheet.push(vec![
+            let mut group_vec = Vec::from_iter(all_group_names.iter().map(|_| ""));
+            for group_name in stapple.group_names.iter() {
+                if let Some(index) = group_map.get(&group_name) {
+                    group_vec[*index] = &group_name.as_str();
+                }
+            }
+            let mut row: Vec<&str> = vec![
                 &stapple.well,
-                &stapple.name,
+                &stapple.name, 
                 &stapple.sequence,
                 &interval_strs[i],
                 &stapple.length_str,
                 &stapple.domain_decomposition,
-                &stapple.groups_name_str,
                 &stapple.color_str,
-            ])
+                &stapple.group_names_string, 
+            ];
+            row.extend(group_vec.iter());
+            sheet.push(row)
         }
 
         // Add one sheet per plate
         for (sheet_id, rows) in sheets.iter() {
-            let mut sheet = wb.create_sheet(&format!("Plate {}", sheet_id));
-            wb.write_sheet(&mut sheet, |sw| {
-                for row in rows {
-                    if let Ok(length) = row[4].parse::<f64>() {
-                        sw.append_row(row![
-                            row[0], row[1], row[2], row[3], length, row[5], row[6]
-                        ])?;
-                    } else {
-                        sw.append_row(row![
-                            row[0], row[1], row[2], row[3], row[4], row[5], row[6]
-                        ])?;
-                    }
-                }
-                Ok(())
-            })
-            .expect("write excel error!");
-        }
+            let mut sheet: &mut rust_xlsxwriter::Worksheet = wb.add_worksheet().set_name(&format!("Plate {sheet_id}")).expect("Excel error: cannot create worksheet"); 
 
-        // Add one extra sheet with all the strands
-        let mut sheep_with_all_strands = wb.create_sheet(&"All strands");
-        wb.write_sheet(&mut sheep_with_all_strands, |sw| {
-            sw.append_row(row![
-                "Well Position",
-                "Name",
-                "Sequence",
-                "Domains",
-                "Length",
-                "Domain Length",
-                "Groups",
-                "Color"
-            ])?;
-            for (sheet_id, rows) in sheets.iter() {
-                for row in rows {
-                    if let Ok(length) = row[4].parse::<f64>() {
-                        sw.append_row(row![
-                            row[0], row[1], row[2], row[3], length, row[5], row[6]
-                        ])?;
+            for (i,row) in rows.iter().enumerate() {
+                if i == 0 {
+                    for (j, data) in row.iter().enumerate() {
+                        let bold = Format::new().set_bold();
+                        sheet.write_with_format(0, j as u16, data.to_string(), &bold).expect("error write cell");
                     }
+                    continue;
+                }
+                // write staple
+                for (j, data) in row.iter().enumerate() {
+                    if j == 4 { // length
+                        if let Ok(length) = row[j].parse::<f64>() {
+                            sheet.write(i as u32, j as u16, length).expect("error write cell");
+                            continue;
+                        }
+                    }
+                    if j == 6 { // color
+                        if let Ok(color) = u32::from_str_radix(row[j], 16) {
+                            let (r,g,b) = ((color>>4)&0xFF, (color>>2)&0xFF, color&0xFF);
+                            let luminance = r+b+3*g;
+                            let font_color = if luminance >= 5*255/2 { Color::Black } else { Color::White };
+                            let format = Format::new().set_background_color(Color::RGB(color)).set_font_color(font_color);
+                            sheet.write_with_format(i as u32, j as u16, row[j].to_string(), &format).expect("error write cell");
+                            continue;
+                        }
+                    }
+                    sheet.write(i as u32, j as u16, row[j].to_string()).expect("error write cell");
                 }
             }
-            Ok(())
-        })
-        .expect("write excel error!");
+
+            sheet.autofit();
+        }
+
+        let mut sheet: &mut rust_xlsxwriter::Worksheet = wb.add_worksheet().set_name(&format!("All staples")).expect("Excel error: cannot create worksheet"); 
+        let mut write_once = true;
+        let mut all_i = 0;
+        for (_, rows) in sheets.iter() {
+            for (i,row) in rows.iter().enumerate() {
+                if i == 0 {
+                    if write_once {
+                        for (j, data) in row.iter().enumerate() {
+                            let bold = Format::new().set_bold();
+                            sheet.write_with_format(0, j as u16, data.to_string(), &bold).expect("error write cell");
+                        }
+                        write_once = false;
+                        all_i += 1;
+                    }   
+                    continue;
+                }
+                // write staple
+                for (j, data) in row.iter().enumerate() {
+                    if j == 4 { // length
+                        if let Ok(length) = row[j].parse::<f64>() {
+                            sheet.write(all_i, j as u16, length).expect("error write cell");
+                            continue;
+                        }
+                    }
+                    if j == 6 { // color
+                        if let Ok(color) = u32::from_str_radix(row[j], 16) {
+                            let (r,g,b) = ((color>>4)&0xFF, (color>>2)&0xFF, color&0xFF);
+                            let luminance = r+b+3*g;
+                            let font_color = if luminance >= 5*255/2 { Color::Black } else { Color::White };
+                            let format = Format::new().set_background_color(Color::RGB(color)).set_font_color(font_color);
+                            sheet.write_with_format(all_i, j as u16, row[j].to_string(), &format).expect("error write cell");
+                            continue;
+                        }
+                    }
+                    sheet.write(all_i as u32, j as u16, row[j].to_string()).expect("error write cell");
+                }
+                all_i += 1;
+            }
+
+            sheet.autofit();
+        }
 
         // close the excel file
-        wb.close().expect("close excel error!");
+        wb.save(xlsx_path).expect("save excel error!");
+        // wb.close().expect("close excel error!");
     }
 
     fn write_intervals(&self, origami_path: &PathBuf) {

@@ -34,6 +34,7 @@ serde_derive = "1.0.116"
 serde_with = "1.11.0"
 chrono = "0.4"
 simple_excel_writer = "0.1.7"
+rust_xlsxwriter = "0.55.0"
 regex = "1.4.2"
 ahash = "0.8.6" # 0.6.2
 mathru = "0.13"

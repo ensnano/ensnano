@@ -20,6 +20,7 @@ serde = "1.0.116"
 serde_derive = "1.0.116"
 chrono = "0.4"
 simple_excel_writer = "0.1.7"
+rust_xlsxwriter = "0.55.0"
 regex = "1.4.2"
 mathru = "0.13"
 rand = "0.8.3"
@@ -49,6 +50,7 @@ iced_graphics = "0.3.1"
 iced_winit = "0.4.0"
 iced_native = "0.5.1"
 chebyshev_polynomials = { git = "https://github.com/thenlevy/chebyshev_polynomials" }
+hex = "0.4.3"
 
 [patch.crates-io]
 iced_aw = { git="https://github.com/iced-rs/iced_aw.git", tag="v0.2.0" }
