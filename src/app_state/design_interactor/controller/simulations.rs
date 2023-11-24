@@ -16,12 +16,19 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+use crate::app_state::design_interactor::presenter::NuclCollection;
+
+pub use revolutions::*;
+
 use super::*;
 
 use ensnano_design::{grid::Grid, Parameters};
-use ensnano_interactor::RigidBodyConstants;
+use ensnano_interactor::{RevolutionSurfaceSystemDescriptor, RigidBodyConstants};
 use mathru::algebra::linear::vector::vector::Vector;
-use mathru::analysis::differential_equation::ordinary::{ExplicitEuler, ExplicitODE, Kutta3};
+use mathru::analysis::differential_equation::ordinary::{
+    solver::runge_kutta::{explicit::fixed::FixedStepper, ExplicitEuler, Kutta3},
+    ExplicitODE,
+};
 use ordered_float::OrderedFloat;
 use rand::Rng;
 use rand_distr::{Exp, StandardNormal};
@@ -33,6 +40,9 @@ use ultraviolet::{Bivec3, Mat3};
 
 mod roller;
 pub use roller::{PhysicalSystem, RollInterface, RollPresenter};
+mod twister;
+pub use twister::{TwistInterface, TwistPresenter, Twister};
+mod revolutions;
 
 const MAX_DERIVATIVE_NORM: f32 = 1e4;
 
@@ -112,7 +122,6 @@ struct RigidHelix {
     pub center_of_mass: Vec3,
     pub center_to_origin: Vec3,
     pub mass: f32,
-    pub id: usize,
     pub locked: bool,
     interval: (isize, isize),
 }
@@ -205,7 +214,7 @@ impl ExplicitODE<f32> for HelixSystem {
             }
         }
 
-        Vector::new_row(ret.len(), ret)
+        Vector::new_row(ret)
     }
 
     fn time_span(&self) -> (f32, f32) {
@@ -263,7 +272,7 @@ impl ExplicitODE<f32> for HelixSystem {
                 ret.push(angular_momentum.y);
                 ret.push(angular_momentum.z);
             }
-            Vector::new_row(ret.len(), ret)
+            Vector::new_row(ret)
         }
     }
 }
@@ -501,9 +510,9 @@ impl HelixSystem {
             let gz: f32 = rnd.sample(StandardNormal);
             if let Some(state) = self.last_state.as_mut() {
                 let entry = 13 * (self.helices.len() + nucl_id);
-                *state.get_mut(entry) += self.rigid_parameters.brownian_amplitude * gx;
-                *state.get_mut(entry + 1) += self.rigid_parameters.brownian_amplitude * gy;
-                *state.get_mut(entry + 2) += self.rigid_parameters.brownian_amplitude * gz;
+                state[entry] += self.rigid_parameters.brownian_amplitude * gx;
+                state[entry + 1] += self.rigid_parameters.brownian_amplitude * gy;
+                state[entry + 2] += self.rigid_parameters.brownian_amplitude * gz;
             }
 
             let exp_law = Exp::new(self.rigid_parameters.brownian_rate).unwrap();
@@ -535,9 +544,9 @@ impl HelixSystem {
             ShakeTarget::FreeNucl(n) => 13 * (self.helices.len() + n),
         };
         if let Some(state) = self.last_state.as_mut() {
-            *state.get_mut(entry) += 10. * self.rigid_parameters.brownian_amplitude * gx;
-            *state.get_mut(entry + 1) += 10. * self.rigid_parameters.brownian_amplitude * gy;
-            *state.get_mut(entry + 2) += 10. * self.rigid_parameters.brownian_amplitude * gz;
+            state[entry] += 10. * self.rigid_parameters.brownian_amplitude * gx;
+            state[entry + 1] += 10. * self.rigid_parameters.brownian_amplitude * gy;
+            state[entry + 2] += 10. * self.rigid_parameters.brownian_amplitude * gz;
             if let ShakeTarget::Helix(_) = nucl {
                 let delta_roll =
                     rnd.gen::<f32>() * 2. * std::f32::consts::PI - std::f32::consts::PI;
@@ -579,8 +588,6 @@ impl RigidHelix {
             center_to_origin: -(x_min + x_max) / 2. * Vec3::unit_x(),
             mass: x_max - x_min,
             inertia_inverse: inertia_helix(x_max - x_min, 1.).inversed(),
-            // at the moment we do not care for the id when creating a rigid helix for a grid
-            id: 0,
             interval,
             locked: false,
         }
@@ -594,7 +601,6 @@ impl RigidHelix {
         mass: f32,
         roll: f32,
         orientation: Rotor3,
-        id: usize,
         interval: (isize, isize),
     ) -> RigidHelix {
         Self {
@@ -604,7 +610,6 @@ impl RigidHelix {
             center_to_origin: delta,
             mass,
             inertia_inverse: inertia_helix(mass, 1.).inversed(),
-            id,
             interval,
             locked: false,
         }
@@ -843,7 +848,6 @@ pub struct RigidHelixState {
     positions: Vec<Vec3>,
     orientations: Vec<Rotor3>,
     center_of_mass_from_helix: Vec<Vec3>,
-    ids: Vec<usize>,
     constants: Arc<RigidHelixConstants>,
 }
 
@@ -897,7 +901,8 @@ impl HelixSystemThread {
                 interface.new_state = Some(self.get_state());
                 drop(interface);
                 self.helix_system.next_time();
-                let solver = ExplicitEuler::new(1e-4f32);
+                let solver = FixedStepper::new(1e-4f32);
+                let method = ExplicitEuler::default();
                 if self.helix_system.rigid_parameters.brownian_motion {
                     self.helix_system.brownian_jump();
                 }
@@ -906,7 +911,7 @@ impl HelixSystemThread {
                     self.helix_system.shake_nucl(nucl)
                 }
                 drop(interface);
-                if let Ok((_, y)) = solver.solve(&self.helix_system) {
+                if let Ok((_, y)) = solver.solve(&self.helix_system, &method) {
                     self.helix_system.last_state = y.last().cloned();
                 }
             }
@@ -916,7 +921,6 @@ impl HelixSystemThread {
     fn get_state(&self) -> RigidHelixState {
         let state = self.helix_system.init_cond();
         let (positions, orientations, _, _) = self.helix_system.read_state(&state);
-        let ids = self.helix_system.helices.iter().map(|g| g.id).collect();
         let center_of_mass_from_helix = self
             .helix_system
             .helices
@@ -927,7 +931,6 @@ impl HelixSystemThread {
             positions,
             orientations,
             center_of_mass_from_helix,
-            ids,
             constants: self.constants.clone(),
         }
     }
@@ -938,7 +941,7 @@ pub struct GridSystemState {
     positions: Vec<Vec3>,
     orientations: Vec<Rotor3>,
     center_of_mass_from_grid: Vec<Vec3>,
-    ids: Vec<usize>,
+    ids: Vec<GridId>,
 }
 
 pub(super) struct GridsSystemThread {
@@ -978,8 +981,9 @@ impl GridsSystemThread {
                     self.grid_system.update_parameters(parameters);
                 }
                 interface_ptr.lock().unwrap().new_state = Some(self.get_state());
-                let solver = Kutta3::new(1e-4f32);
-                if let Ok((_, y)) = solver.solve(&self.grid_system) {
+                let solver = FixedStepper::new(1e-4f32);
+                let method = Kutta3::default();
+                if let Ok((_, y)) = solver.solve(&self.grid_system, &method) {
                     self.grid_system.last_state = y.last().cloned();
                 }
             }
@@ -1153,7 +1157,6 @@ fn make_rigid_helix_world_pov_interval(
         (right - left).mag(),
         helix.roll,
         helix.orientation,
-        h_id,
         interval,
     )
 }
@@ -1333,6 +1336,16 @@ pub enum SimulationOperation<'pres, 'reader> {
         reader: &'reader mut dyn SimulationReader,
         target_helices: Option<Vec<usize>>,
     },
+    StartTwist {
+        grid_id: GridId,
+        presenter: &'pres dyn TwistPresenter,
+        reader: &'reader mut dyn SimulationReader,
+    },
+    RevolutionRelaxation {
+        system: RevolutionSurfaceSystemDescriptor,
+        reader: &'reader mut dyn SimulationReader,
+    },
+    FinishRelaxation,
 }
 
 pub trait SimulationReader {
@@ -1364,7 +1377,7 @@ impl SimulationUpdate for RigidHelixState {
 
     fn update_positions(
         &self,
-        identifier_nucl: &HashMap<Nucl, u32, ahash::RandomState>,
+        identifier_nucl: &dyn NuclCollection,
         space_position: &mut HashMap<u32, [f32; 3], ahash::RandomState>,
     ) {
         let helices: Vec<Helix> = (0..self.constants.nb_helices)
@@ -1377,7 +1390,7 @@ impl SimulationUpdate for RigidHelixState {
                 h
             })
             .collect();
-        for (nucl, id) in identifier_nucl.iter() {
+        for (nucl, id) in identifier_nucl.iter_nucls_ids() {
             let free_nucl = self.constants.nucl_maps[nucl];
             if let Some(n) = free_nucl.helix {
                 space_position.insert(
@@ -1421,13 +1434,12 @@ struct RigidGrid {
     orientation: Rotor3,
     inertia_inverse: Mat3,
     mass: f32,
-    id: usize,
-    helices: Vec<RigidHelix>,
+    id: GridId,
 }
 
 impl RigidGrid {
     pub fn from_helices(
-        id: usize,
+        id: GridId,
         helices: Vec<RigidHelix>,
         position_grid: Vec3,
         orientation: Rotor3,
@@ -1447,7 +1459,6 @@ impl RigidGrid {
             orientation,
             mass,
             id,
-            helices,
         }
     }
 }
@@ -1585,7 +1596,7 @@ impl ExplicitODE<f32> for GridsSystem {
             ret.push(d_angular_momentum.z);
         }
 
-        Vector::new_row(ret.len(), ret)
+        Vector::new_row(ret)
     }
 
     fn time_span(&self) -> (f32, f32) {
@@ -1620,7 +1631,7 @@ impl ExplicitODE<f32> for GridsSystem {
                 ret.push(angular_momentum.y);
                 ret.push(angular_momentum.z);
             }
-            Vector::new_row(ret.len(), ret)
+            Vector::new_row(ret)
         }
     }
 }
@@ -1677,15 +1688,21 @@ fn make_grid_system(
     time_span: (f32, f32),
     rigid_paramaters: RigidBodyConstants,
 ) -> Result<GridsSystem, ErrOperation> {
-    let intervals = presenter.get_design().get_intervals();
+    let intervals = presenter.get_design().strands.get_intervals();
     let parameters = presenter
         .get_design()
         .parameters
         .clone()
         .unwrap_or_default();
-    let mut selected_grids = HashMap::with_capacity(presenter.get_design().grids.len());
-    let mut rigid_grids = Vec::with_capacity(presenter.get_design().grids.len());
-    for g_id in 0..presenter.get_design().grids.len() {
+    let mut selected_grids = HashMap::with_capacity(presenter.get_design().free_grids.len());
+    let mut rigid_grids = Vec::with_capacity(presenter.get_design().free_grids.len());
+    for g_id in presenter
+        .get_design()
+        .free_grids
+        .keys()
+        .cloned()
+        .map(FreeGridId::to_grid_id)
+    {
         if let Some(rigid_grid) = make_rigid_grid(presenter, g_id, &intervals, &parameters) {
             selected_grids.insert(g_id, rigid_grids.len());
             rigid_grids.push(rigid_grid);
@@ -1753,7 +1770,7 @@ fn make_grid_system(
 
 fn make_rigid_grid(
     presenter: &dyn GridPresenter,
-    g_id: usize,
+    g_id: GridId,
     intervals: &BTreeMap<usize, (isize, isize)>,
     parameters: &Parameters,
 ) -> Option<RigidGrid> {
@@ -1801,8 +1818,8 @@ fn make_rigid_helix_grid_pov(
 
 pub trait GridPresenter {
     fn get_design(&self) -> &Design;
-    fn get_grid(&self, g_id: usize) -> Option<&Grid>;
-    fn get_helices_attached_to_grid(&self, g_id: usize) -> Option<Vec<usize>>;
+    fn get_grid(&self, g_id: GridId) -> Option<&Grid>;
+    fn get_helices_attached_to_grid(&self, g_id: GridId) -> Option<Vec<usize>>;
     fn get_xovers_list(&self) -> Vec<(Nucl, Nucl)>;
 }
 
@@ -1815,14 +1832,14 @@ impl SimulationInterface for GridSystemInterface {
 
 impl SimulationUpdate for GridSystemState {
     fn update_design(&self, design: &mut Design) {
-        let mut new_grids = Vec::clone(design.grids.as_ref());
+        let mut new_grids = design.free_grids.make_mut();
         for i in 0..self.ids.len() {
             let position = self.positions[i];
             let orientation = self.orientations[i].normalized();
-            let grid = &mut new_grids[self.ids[i]];
-            grid.position = position - self.center_of_mass_from_grid[i].rotated_by(orientation);
-            grid.orientation = orientation;
+            if let Some(grid) = new_grids.get_mut_g_id(&self.ids[i]) {
+                grid.position = position - self.center_of_mass_from_grid[i].rotated_by(orientation);
+                grid.orientation = orientation;
+            }
         }
-        design.grids = Arc::new(new_grids);
     }
 }

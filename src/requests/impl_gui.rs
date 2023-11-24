@@ -16,8 +16,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+//! Implements the [Requests](`crate::gui::Requests`) trait for [Requests](`super::Requests`).
+
 use crate::gui::{Requests as GuiRequests, RigidBodyParametersRequest};
-use ensnano_interactor::{RigidBodyConstants, RollRequest};
+use ensnano_design::grid::GridId;
+use ensnano_interactor::{InsertionPoint, RigidBodyConstants, RollRequest};
 use std::collections::BTreeSet;
 
 use super::*;
@@ -54,7 +57,7 @@ impl GuiRequests for Requests {
     }
 
     fn invert_scroll(&mut self, inverted: bool) {
-        self.keep_proceed.push_back(Action::InvertScrollY(inverted));
+        self.set_invert_y_scroll = Some(inverted)
     }
 
     fn resize_2d_helices(&mut self, all: bool) {
@@ -177,6 +180,10 @@ impl GuiRequests for Requests {
         self.new_grid = Some(grid_type_descriptor);
     }
 
+    fn create_bezier_plane(&mut self) {
+        self.new_bezier_plane = Some(())
+    }
+
     fn set_candidates_keys(&mut self, candidates: Vec<DnaElementKey>) {
         self.organizer_candidates = Some(candidates);
     }
@@ -206,8 +213,8 @@ impl GuiRequests for Requests {
         self.keep_proceed.push_back(Action::ToggleSplit(split_mode))
     }
 
-    fn export_to_oxdna(&mut self) {
-        self.keep_proceed.push_back(Action::OxDnaExport)
+    fn export(&mut self, export_type: ExportType) {
+        self.keep_proceed.push_back(Action::Export(export_type))
     }
 
     fn toggle_2d_view_split(&mut self) {
@@ -340,7 +347,7 @@ impl GuiRequests for Requests {
         self.new_suggestion_parameters = Some(param);
     }
 
-    fn set_grid_position(&mut self, grid_id: usize, position: Vec3) {
+    fn set_grid_position(&mut self, grid_id: GridId, position: Vec3) {
         self.keep_proceed
             .push_back(Action::DesignOperation(DesignOperation::SetGridPosition {
                 grid_id,
@@ -348,7 +355,7 @@ impl GuiRequests for Requests {
             }))
     }
 
-    fn set_grid_orientation(&mut self, grid_id: usize, orientation: Rotor3) {
+    fn set_grid_orientation(&mut self, grid_id: GridId, orientation: Rotor3) {
         self.keep_proceed.push_back(Action::DesignOperation(
             DesignOperation::SetGridOrientation {
                 grid_id,
@@ -357,8 +364,156 @@ impl GuiRequests for Requests {
         ))
     }
 
+    fn toggle_2d(&mut self) {
+        self.keep_proceed.push_back(Action::Toggle2D)
+    }
+
+    fn set_nb_turn(&mut self, grid_id: GridId, nb_turn: f32) {
+        self.keep_proceed
+            .push_back(Action::DesignOperation(DesignOperation::SetGridNbTurn {
+                grid_id,
+                nb_turn,
+            }))
+    }
+
+    fn set_check_xover_parameters(&mut self, paramters: CheckXoversParameter) {
+        self.check_xover_parameters = Some(paramters);
+    }
+
+    fn follow_stereographic_camera(&mut self, follow: bool) {
+        self.follow_stereographic_camera = Some(follow);
+    }
+
     fn flip_split_views(&mut self) {
         self.keep_proceed.push_back(Action::FlipSplitViews);
+    }
+
+    fn set_rainbow_scaffold(&mut self, rainbow: bool) {
+        self.keep_proceed.push_back(Action::DesignOperation(
+            DesignOperation::SetRainbowScaffold(rainbow),
+        ))
+    }
+
+    fn set_show_stereographic_camera(&mut self, show: bool) {
+        self.set_show_stereographic_camera = Some(show);
+    }
+
+    fn set_show_h_bonds(&mut self, show: HBoundDisplay) {
+        self.set_show_h_bonds = Some(show);
+    }
+
+    fn set_show_bezier_paths(&mut self, show: bool) {
+        self.set_show_bezier_paths = Some(show);
+    }
+
+    fn set_thick_helices(&mut self, thick: bool) {
+        self.set_thick_helices = Some(thick)
+    }
+
+    fn start_twist_simulation(&mut self, grid_id: GridId) {
+        self.twist_simulation = Some(grid_id);
+    }
+
+    fn align_horizon(&mut self) {
+        self.horizon_targeted = Some(());
+    }
+
+    fn download_origamis(&mut self) {
+        self.keep_proceed.push_back(Action::DownloadOrigamiRequest);
+    }
+
+    fn set_dna_parameters(&mut self, param: ensnano_design::Parameters) {
+        self.keep_proceed.push_back(Action::SetDnaParameters(param));
+    }
+
+    fn set_expand_insertions(&mut self, expand: bool) {
+        self.keep_proceed
+            .push_back(Action::SetExpandInsertions(expand))
+    }
+
+    fn set_insertion_length(&mut self, insertion_point: InsertionPoint, length: usize) {
+        self.keep_proceed.push_back(Action::DesignOperation(
+            DesignOperation::SetInsertionLength {
+                length,
+                insertion_point,
+            },
+        ))
+    }
+
+    fn turn_path_into_grid(
+        &mut self,
+        path_id: ensnano_design::BezierPathId,
+        grid_type: GridTypeDescr,
+    ) {
+        self.keep_proceed.push_back(Action::DesignOperation(
+            DesignOperation::TurnPathVerticesIntoGrid { path_id, grid_type },
+        ))
+    }
+
+    fn make_bezier_path_cyclic(&mut self, path_id: ensnano_design::BezierPathId, cyclic: bool) {
+        self.keep_proceed.push_back(Action::DesignOperation(
+            DesignOperation::MakeBezierPathCyclic { path_id, cyclic },
+        ))
+    }
+
+    fn set_exporting(&mut self, exporting: bool) {
+        self.keep_proceed.push_back(Action::SetExporting(exporting))
+    }
+
+    fn import_3d_object(&mut self) {
+        self.keep_proceed.push_back(Action::Import3DObject)
+    }
+
+    fn set_position_of_bezier_vertex(
+        &mut self,
+        vertex_id: ensnano_design::BezierVertexId,
+        position: ensnano_design::Vec2,
+    ) {
+        self.keep_proceed.push_back(Action::DesignOperation(
+            DesignOperation::SetBezierVertexPosition {
+                vertex_id,
+                position,
+            },
+        ))
+    }
+
+    fn optimize_scaffold_shift(&mut self) {
+        self.keep_proceed.push_back(Action::OptimizeShift)
+    }
+
+    fn start_revolution_relaxation(&mut self, desc: RevolutionSurfaceSystemDescriptor) {
+        self.keep_proceed
+            .push_back(Action::RevolutionSimulation { desc })
+    }
+
+    fn finish_revolutiion_relaxation(&mut self) {
+        self.keep_proceed
+            .push_back(Action::FinishRelaxationSimulation)
+    }
+
+    fn load_svg(&mut self) {
+        self.keep_proceed.push_back(Action::ImportSvg)
+    }
+
+    fn set_bezier_revolution_id(&mut self, id: Option<usize>) {
+        self.new_bezier_revolution_id = Some(id);
+    }
+
+    fn set_bezier_revolution_radius(&mut self, radius: f64) {
+        self.new_bezier_revolution_radius = Some(radius);
+    }
+
+    fn request_screenshot_3d(&mut self) {
+        self.keep_proceed
+            .push_back(Action::NotifyApps(Notification::ScreenShot3D))
+    }
+
+    fn set_unrooted_surface(&mut self, surface: Option<UnrootedRevolutionSurfaceDescriptor>) {
+        self.new_unrooted_surface = Some(surface);
+    }
+
+    fn notify_revolution_tab(&mut self) {
+        self.switched_to_revolution_tab = Some(());
     }
 }
 

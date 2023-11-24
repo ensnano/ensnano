@@ -16,10 +16,16 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+use crate::app_state::PastePosition;
+
+use super::download_intervals::DownloadIntervals;
+use super::messages::CHANGING_DNA_PARAMETERS_WARNING;
 use super::*;
 use ensnano_design::group_attributes::GroupPivot;
-use ensnano_design::Nucl;
-use ensnano_interactor::{graphics::FogParameters, HyperboloidOperation};
+use ensnano_design::{grid::GridId, Parameters};
+use ensnano_interactor::{
+    graphics::FogParameters, HyperboloidOperation, RevolutionSurfaceSystemDescriptor,
+};
 
 /// User is interacting with graphical components.
 pub(super) struct NormalState;
@@ -41,23 +47,20 @@ impl State for NormalState {
                     }
                 }
                 Action::DownloadStaplesRequest => Box::new(DownloadStaples::default()),
+                Action::DownloadOrigamiRequest => Box::new(DownloadIntervals::default()),
                 Action::SetScaffoldSequence { shift } => Box::new(SetScaffoldSequence::init(shift)),
                 Action::Exit => Quit::quit(main_state.need_save()),
                 Action::ToggleSplit(mode) => {
                     main_state.toggle_split_mode(mode);
                     self
                 }
-                Action::OxDnaExport => oxdna_export(),
+                Action::Export(export_type) => export(export_type),
                 Action::CloseOverlay(_) | Action::OpenOverlay(_) => {
                     println!("unexpected action");
                     self
                 }
                 Action::ChangeUiSize(size) => {
                     main_state.change_ui_size(size);
-                    self
-                }
-                Action::InvertScrollY(inverted) => {
-                    main_state.invert_scroll_y(inverted);
                     self
                 }
                 Action::ErrorMsg(msg) => {
@@ -99,7 +102,19 @@ impl State for NormalState {
                 }
                 Action::ToggleSmallSphere(small) => self.toggle_small_spheres(main_state, small),
                 Action::LoadDesign(Some(path)) => Box::new(Load::known_path(path)),
-                Action::LoadDesign(None) => Load::load(main_state.need_save()),
+                Action::LoadDesign(None) => Load::load(main_state.need_save(), LoadType::Design),
+                Action::Import3DObject => {
+                    if main_state.get_current_design_directory().is_some() {
+                        Load::load(None, LoadType::Object3D)
+                    } else {
+                        TransitionMessage::new(
+                            messages::SET_DESIGN_DIRECTORY_FIRST,
+                            rfd::MessageLevel::Error,
+                            Box::new(NormalState),
+                        )
+                    }
+                }
+                Action::ImportSvg => Load::load(None, LoadType::SvgPath),
                 Action::SuspendOp => {
                     log::info!("Suspending operation");
                     main_state.finish_operation();
@@ -146,6 +161,19 @@ impl State for NormalState {
                     }
                     self
                 }
+                Action::AddBezierPlane => {
+                    if let Some((position, orientation)) =
+                        main_state.get_bezier_sheet_creation_position()
+                    {
+                        main_state.apply_operation(DesignOperation::AddBezierPlane {
+                            desc: ensnano_design::BezierPlaneDescriptor {
+                                position,
+                                orientation,
+                            },
+                        })
+                    }
+                    self
+                }
                 Action::RigidHelicesSimulation { parameters } => {
                     main_state.start_helix_simulation(parameters);
                     self
@@ -154,8 +182,16 @@ impl State for NormalState {
                     main_state.start_grid_simulation(parameters);
                     self
                 }
+                Action::RevolutionSimulation { desc } => {
+                    main_state.start_revolution_simulation(desc);
+                    self
+                }
                 Action::StopSimulation => {
                     main_state.update_simulation(SimulationRequest::Stop);
+                    self
+                }
+                Action::FinishRelaxationSimulation => {
+                    main_state.update_simulation(SimulationRequest::FinishRelaxation);
                     self
                 }
                 Action::RollHelices(roll) => {
@@ -230,10 +266,38 @@ impl State for NormalState {
                     main_state.update_camera(camera_id);
                     self
                 }
+                Action::Toggle2D => {
+                    main_state.toggle_2d();
+                    self
+                }
+
+                Action::MakeAllSuggestedXover { doubled } => {
+                    main_state.make_all_suggested_xover(doubled);
+                    self
+                }
+
                 Action::FlipSplitViews => {
                     main_state.flip_split_views();
                     self
                 }
+                Action::Twist(g_id) => {
+                    main_state.start_twist(g_id);
+                    self
+                }
+                Action::SetDnaParameters(param) => Box::new(YesNo::new(
+                    CHANGING_DNA_PARAMETERS_WARNING,
+                    Box::new(ChangindDnaParameters(param)),
+                    self,
+                )),
+                Action::SetExpandInsertions(b) => {
+                    main_state.set_expand_insertions(b);
+                    self
+                }
+                Action::SetExporting(exporting) => {
+                    main_state.set_exporting(exporting);
+                    self
+                }
+                Action::OptimizeShift => Box::new(SetScaffoldSequence::optimize_shift()),
                 action => {
                     println!("Not implemented {:?}", action);
                     self
@@ -242,6 +306,15 @@ impl State for NormalState {
         } else {
             self
         }
+    }
+}
+
+struct ChangindDnaParameters(Parameters);
+
+impl State for ChangindDnaParameters {
+    fn make_progress(self: Box<Self>, main_state: &mut dyn MainState) -> Box<dyn State> {
+        main_state.apply_operation(DesignOperation::SetDnaParameters { parameters: self.0 });
+        Box::new(NormalState)
     }
 }
 
@@ -269,6 +342,7 @@ impl NormalState {
                 position,
                 orientation,
                 invisible: false,
+                bezier_vertex: None,
             }))
         } else {
             println!("Could not get position and orientation for new grid");
@@ -291,7 +365,7 @@ impl NormalState {
     ) -> Box<Self> {
         let grid_ids =
             ensnano_interactor::extract_grids(main_state.get_selection().as_ref().as_ref());
-        if grid_ids.len() > 0 {
+        if !grid_ids.is_empty() {
             main_state.apply_operation(DesignOperation::SetSmallSpheres { grid_ids, small });
         }
         self
@@ -304,7 +378,7 @@ impl NormalState {
     ) -> Box<Self> {
         let grid_ids =
             ensnano_interactor::extract_grids(main_state.get_selection().as_ref().as_ref());
-        if grid_ids.len() > 0 {
+        if !grid_ids.is_empty() {
             main_state.apply_operation(DesignOperation::SetHelicesPersistance {
                 grid_ids,
                 persistant,
@@ -336,14 +410,14 @@ fn quicksave<P: AsRef<Path>>(starting_path: P) -> Box<dyn State> {
     })
 }
 
-fn oxdna_export() -> Box<dyn State> {
+fn export(export_type: ExportType) -> Box<dyn State> {
     let on_success = Box::new(NormalState);
     let on_error = TransitionMessage::new(
         messages::OXDNA_EXPORT_FAILED,
         rfd::MessageLevel::Error,
         Box::new(NormalState),
     );
-    Box::new(OxDnaExport::new(on_success, on_error))
+    Box::new(Exporting::new(on_success, on_error, export_type))
 }
 
 use ensnano_design::grid::{GridDescriptor, GridTypeDescr};
@@ -361,13 +435,14 @@ pub enum Action {
     SaveAs,
     QuickSave,
     DownloadStaplesRequest,
+    DownloadOrigamiRequest,
     /// Trigger the sequence of action that will set the scaffold of the sequence.
     SetScaffoldSequence {
         shift: usize,
     },
     Exit,
     ToggleSplit(SplitMode),
-    OxDnaExport,
+    Export(ExportType),
     CloseOverlay(OverlayType),
     OpenOverlay(OverlayType),
     ChangeUiSize(UiSize),
@@ -391,13 +466,17 @@ pub enum Action {
     StopSimulation,
     RollHelices(f32),
     Copy,
-    PasteCandidate(Option<Nucl>),
+    PasteCandidate(Option<PastePosition>),
     InitPaste,
     ApplyPaste,
     Duplicate,
     RigidGridSimulation {
         parameters: RigidBodyConstants,
     },
+    RevolutionSimulation {
+        desc: RevolutionSurfaceSystemDescriptor,
+    },
+    FinishRelaxationSimulation,
     RigidHelicesSimulation {
         parameters: RigidBodyConstants,
     },
@@ -425,5 +504,17 @@ pub enum Action {
     SelectCamera(ensnano_design::CameraId),
     SelectFavoriteCamera(u32),
     UpdateCamera(ensnano_design::CameraId),
+    Toggle2D,
+    MakeAllSuggestedXover {
+        doubled: bool,
+    },
     FlipSplitViews,
+    Twist(GridId),
+    SetDnaParameters(Parameters),
+    SetExpandInsertions(bool),
+    AddBezierPlane,
+    SetExporting(bool),
+    Import3DObject,
+    ImportSvg,
+    OptimizeShift,
 }

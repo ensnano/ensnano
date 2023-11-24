@@ -16,6 +16,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+//! This module defines the `Request` structure, used by applications to express the user intent.
+//!
+//! The main event loop regularly calls `Request::poll` to see if there are pending requests.
+
 mod impl_flatscene;
 mod impl_gui;
 mod impl_scene;
@@ -23,14 +27,15 @@ mod poll;
 
 use super::gui::UiSize;
 use super::*;
-use ensnano_interactor::CenterOfSelection;
 use ensnano_interactor::{application::AppId, RollRequest, Selection};
+use ensnano_interactor::{graphics::HBoundDisplay, UnrootedRevolutionSurfaceDescriptor};
+use ensnano_interactor::{CenterOfSelection, CheckXoversParameter};
 pub(crate) use poll::poll_all;
 use ultraviolet::Vec3;
 
 use super::gui::OrganizerTree;
 use super::scene::FogParameters;
-use ensnano_design::grid::GridTypeDescr;
+use ensnano_design::grid::{GridId, GridPosition, GridTypeDescr};
 use ensnano_design::{
     elements::{DnaAttribute, DnaElementKey},
     Nucl,
@@ -42,7 +47,11 @@ use ensnano_interactor::{
 
 use std::collections::VecDeque;
 
-/// A structure that contains all the requests that can be made through the GUI.
+/// A structure that contains all the requests that can be made through the GUI or the
+/// Applications.
+///
+/// The GUI and the applications are given a pointer to a `Mutex<Requests>` to store the user
+/// requests.
 #[derive(Default)]
 pub struct Requests {
     /// A change of the rotation mode
@@ -65,6 +74,7 @@ pub struct Requests {
     pub operation_update: Option<Arc<dyn Operation>>,
     pub toggle_persistent_helices: Option<bool>,
     pub new_grid: Option<GridTypeDescr>,
+    pub new_bezier_plane: Option<()>,
     pub camera_rotation: Option<(f32, f32, f32)>,
     pub camera_target: Option<(Vec3, Vec3)>,
     pub small_spheres: Option<bool>,
@@ -115,7 +125,23 @@ pub struct Requests {
     pub toggle_widget_basis: Option<()>,
     pub stop_roll: Option<()>,
     pub new_paste_candiate: Option<Option<Nucl>>,
+    pub new_grid_paste_candidate: Option<GridPosition>,
     pub new_double_strand_parameters: Option<Option<(isize, usize)>>,
     pub new_center_of_selection: Option<Option<CenterOfSelection>>,
     pub new_suggestion_parameters: Option<SuggestionParameters>,
+    pub check_xover_parameters: Option<CheckXoversParameter>,
+    pub follow_stereographic_camera: Option<bool>,
+    pub set_show_stereographic_camera: Option<bool>,
+    pub set_show_h_bonds: Option<HBoundDisplay>,
+    pub set_show_bezier_paths: Option<bool>,
+    pub set_invert_y_scroll: Option<bool>,
+    pub set_thick_helices: Option<bool>,
+    pub toggle_thick_helices: Option<()>,
+    pub twist_simulation: Option<GridId>,
+    pub horizon_targeted: Option<()>,
+    pub new_bezier_revolution_id: Option<Option<usize>>,
+    pub new_bezier_revolution_radius: Option<f64>,
+    pub new_bezier_revolution_axis_position: Option<f64>,
+    pub new_unrooted_surface: Option<Option<UnrootedRevolutionSurfaceDescriptor>>,
+    pub switched_to_revolution_tab: Option<()>,
 }

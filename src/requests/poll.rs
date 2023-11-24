@@ -16,7 +16,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+//! This modules defines the `poll_all` method that polls the requests stored in a `Requests`
+//! object.
+
 use super::*;
+use crate::PastePosition;
 
 use ensnano_interactor::{application::Notification, HyperboloidOperation, SelectionConversion};
 
@@ -29,48 +33,9 @@ pub(crate) fn poll_all<R: DerefMut<Target = Requests>>(
         main_state.push_action(Action::NotifyApps(Notification::FitRequest))
     }
 
-    /*
-    if let Some(ref path) = requests.file_add.take() {
-        let design = Design::new_with_path(0, path);
-        let path_end = formated_path_end(path);
-        if let Ok(design) = design {
-            window.set_title(&format!("ENSnano: {}", path_end));
-            messages.lock().unwrap().notify_new_design();
-            if let Some(tree) = design.get_organizer_tree() {
-                messages.lock().unwrap().push_new_tree(tree)
-            }
-            mediator.lock().unwrap().clear_designs();
-            let design = Arc::new(RwLock::new(design));
-            mediator.lock().unwrap().add_design(design);
-        } else {
-            //TODO
-        }
-    }*/
-
-    /*
-    if let Some((path, keep_proceed)) = requests.file_save.take() {
-        let path_end = formated_path_end(&path);
-        window.set_title(&format!("ENSnano: {}", path_end));
-        mediator.lock().unwrap().save_design(&path);
-        if let Some(keep_proceed) = keep_proceed {
-            requests.keep_proceed.push_back(keep_proceed);
-        }
-    }*/
-
     if let Some(value) = requests.toggle_text.take() {
         main_state.push_action(Action::NotifyApps(Notification::ToggleText(value)))
     }
-
-    /*
-    if let Some(value) = requests.toggle_scene {
-        multiplexer.change_split(value);
-        scheduler
-            .lock()
-            .unwrap()
-            .forward_new_size(window.inner_size(), &multiplexer);
-        gui.resize(&multiplexer, &window);
-        requests.toggle_scene = None;
-    }*/
 
     if requests.make_grids.take().is_some() {
         main_state.push_action(Action::TurnSelectionIntoGrid);
@@ -78,6 +43,10 @@ pub(crate) fn poll_all<R: DerefMut<Target = Requests>>(
 
     if let Some(grid_type) = requests.new_grid.take() {
         main_state.push_action(Action::AddGrid(grid_type));
+    }
+
+    if requests.new_bezier_plane.take().is_some() {
+        main_state.push_action(Action::AddBezierPlane);
     }
 
     if let Some(selection_mode) = requests.selection_mode.take() {
@@ -101,19 +70,8 @@ pub(crate) fn poll_all<R: DerefMut<Target = Requests>>(
     }
 
     if let Some(sensitivity) = requests.scroll_sensitivity.take() {
-        main_state.push_action(Action::NotifyApps(Notification::NewSensitivity(
-            sensitivity,
-        )))
+        main_state.set_scroll_sensitivity(sensitivity)
     }
-
-    /*
-    if let Some(overlay_type) = requests.overlay_closed.take() {
-        overlay_manager.rm_overlay(overlay_type, &mut multiplexer);
-    }
-
-    if let Some(overlay_type) = requests.overlay_opened.take() {
-        overlay_manager.add_overlay(overlay_type, &mut multiplexer);
-    }*/
 
     if let Some(op) = requests.operation_update.take() {
         main_state.update_pending_operation(op);
@@ -200,6 +158,10 @@ pub(crate) fn poll_all<R: DerefMut<Target = Requests>>(
         main_state.push_action(Action::RigidGridSimulation { parameters })
     }
 
+    if let Some(g_id) = requests.twist_simulation.take() {
+        main_state.push_action(Action::Twist(g_id))
+    }
+
     if let Some(parameters) = requests.rigid_helices_simulation.take() {
         main_state.push_action(Action::RigidHelicesSimulation { parameters })
     }
@@ -212,25 +174,19 @@ pub(crate) fn poll_all<R: DerefMut<Target = Requests>>(
         main_state.push_action(Action::TurnIntoAnchor)
     }
 
-    /*
-    if let Some((d_id, path)) = requests.stapples_file.take() {
-        mediator.lock().unwrap().proceed_stapples(d_id, &path);
-    }*/
-
-    /*
-    if let Some(content) = requests.sequence_input.take() {
-        main_state.messages.lock().unwrap().push_sequence(content);
-    }*/
-
     if let Some(f) = requests.new_shift_hyperboloid.take() {
         main_state.push_action(Action::UpdateHyperboloidShift(f))
     }
 
     if let Some((s, g_id, new_group)) = requests.organizer_selection.take() {
         let selection = s.into_iter().map(|e| e.to_selection(0)).collect();
-        if new_group && g_id.is_some() {
-            main_state.transfer_selection_pivot_to_group(g_id.unwrap());
+
+        if new_group {
+            if let Some(g_id) = g_id {
+                main_state.transfer_selection_pivot_to_group(g_id);
+            }
         }
+
         main_state.update_selection(selection, g_id);
     }
 
@@ -256,19 +212,6 @@ pub(crate) fn poll_all<R: DerefMut<Target = Requests>>(
         main_state.push_action(Action::DesignOperation(DesignOperation::CleanDesign))
     }
 
-    /*
-    if let Some(ui_size) = requests.new_ui_size.take() {
-        gui.new_ui_size(ui_size.clone(), &window, &multiplexer);
-        multiplexer.change_ui_size(ui_size.clone(), &window);
-        messages.lock().unwrap().new_ui_size(ui_size);
-        resized = true;
-    }*/
-
-    /*
-    if requests.oxdna.take().is_some() {
-        mediator.lock().unwrap().oxdna_export();
-    }*/
-
     if requests.split2d.take().is_some() {
         main_state.push_action(Action::Split2D)
     }
@@ -281,10 +224,9 @@ pub(crate) fn poll_all<R: DerefMut<Target = Requests>>(
         main_state.push_action(Action::SetVisiblitySieve { compl: b })
     }
 
-    /*
-    if let Some(b) = requests.invert_scroll.take() {
-        multiplexer.invert_y_scroll = b;
-    }*/
+    if let Some(b) = requests.set_invert_y_scroll.take() {
+        main_state.set_invert_y_scroll(b)
+    }
 
     if requests.delete_selection.take().is_some() {
         main_state.push_action(Action::DeleteSelection)
@@ -302,11 +244,11 @@ pub(crate) fn poll_all<R: DerefMut<Target = Requests>>(
     }
 
     if let Some(mode) = requests.rendering_mode.take() {
-        main_state.push_action(Action::NotifyApps(Notification::RenderingMode(mode)))
+        main_state.set_rendering_mode(mode);
     }
 
     if let Some(bg) = requests.background3d.take() {
-        main_state.push_action(Action::NotifyApps(Notification::Background3D(bg)))
+        main_state.set_background_3d(bg);
     }
 
     if requests.undo.take().is_some() {
@@ -352,6 +294,12 @@ pub(crate) fn poll_all<R: DerefMut<Target = Requests>>(
         requests.keep_proceed.push_back(Action::SuspendOp);
     }
 
+    if requests.horizon_targeted.take().is_some() {
+        main_state
+            .pending_actions
+            .push_back(Action::NotifyApps(Notification::HorizonAligned))
+    }
+
     if let Some(all_helices) = requests.redim_2d_helices.take() {
         main_state
             .pending_actions
@@ -371,7 +319,15 @@ pub(crate) fn poll_all<R: DerefMut<Target = Requests>>(
     if let Some(candidate) = requests.new_paste_candiate.take() {
         main_state
             .pending_actions
-            .push_back(Action::PasteCandidate(candidate))
+            .push_back(Action::PasteCandidate(candidate.map(PastePosition::Nucl)))
+    }
+
+    if let Some(candidate) = requests.new_grid_paste_candidate.take() {
+        main_state
+            .pending_actions
+            .push_back(Action::PasteCandidate(Some(PastePosition::GridPosition(
+                candidate,
+            ))))
     }
 
     for action in requests.keep_proceed.drain(..) {
@@ -380,5 +336,53 @@ pub(crate) fn poll_all<R: DerefMut<Target = Requests>>(
 
     if let Some(param) = requests.new_suggestion_parameters.take() {
         main_state.set_suggestion_parameters(param);
+    }
+
+    if let Some(param) = requests.check_xover_parameters.take() {
+        main_state.set_check_xovers_parameters(param);
+    }
+
+    if let Some(b) = requests.follow_stereographic_camera.take() {
+        main_state.set_follow_stereographic_camera(b);
+    }
+
+    if let Some(b) = requests.set_show_stereographic_camera.take() {
+        main_state.set_show_stereographic_camera(b);
+    }
+
+    if let Some(b) = requests.set_show_h_bonds.take() {
+        main_state.set_show_h_bonds(b);
+    }
+
+    if let Some(b) = requests.set_show_bezier_paths.take() {
+        main_state.set_show_bezier_paths(b);
+    }
+
+    if let Some(b) = requests.set_thick_helices.take() {
+        main_state.set_thick_helices(b);
+    }
+
+    if let Some(()) = requests.toggle_thick_helices.take() {
+        main_state.toggle_thick_helices();
+    }
+
+    if let Some(id) = requests.new_bezier_revolution_id.take() {
+        main_state.set_bezier_revolution_id(id)
+    }
+
+    if let Some(radius) = requests.new_bezier_revolution_radius.take() {
+        main_state.set_bezier_revolution_radius(radius)
+    }
+
+    if let Some(position) = requests.new_bezier_revolution_axis_position.take() {
+        main_state.set_revolution_axis_position(position)
+    }
+
+    if let Some(surface) = requests.new_unrooted_surface.take() {
+        main_state.set_unrooted_surface(surface);
+    }
+
+    if requests.switched_to_revolution_tab.take().is_some() {
+        main_state.create_default_bezier_plane();
     }
 }

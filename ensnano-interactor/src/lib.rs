@@ -16,28 +16,34 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-//! This modules defines types and operation used  by the graphical component of ENSnano to
-//! interract with the design.
+//! This modules defines types and operations used by the graphical component of ENSnano to
+//! interact with the design.
+
+use std::path::PathBuf;
 
 use ensnano_design::{
     elements::{DnaAttribute, DnaElementKey},
-    grid::{GridDescriptor, GridPosition, Hyperboloid},
+    grid::{GridDescriptor, GridId, GridObject, GridTypeDescr, HelixGridPosition, Hyperboloid},
     group_attributes::GroupPivot,
-    Nucl,
+    BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, BezierVertexId,
+    CurveDescriptor2D, Isometry3, Nucl, Parameters,
 };
+use serde::{Deserialize, Serialize};
 use ultraviolet::{Isometry2, Rotor3, Vec2, Vec3};
 pub mod graphics;
 mod selection;
 pub use selection::*;
 pub mod application;
+pub use application::CursorIcon;
 pub mod operation;
 mod strand_builder;
 pub use strand_builder::*;
+pub mod consts;
 pub mod torsion;
 use ensnano_organizer::GroupId;
-
-#[macro_use]
-extern crate log;
+mod operation_labels;
+mod surfaces;
+pub use surfaces::*;
 
 #[derive(Clone, Copy, Eq, PartialEq)]
 pub enum ObjectType {
@@ -49,17 +55,11 @@ pub enum ObjectType {
 
 impl ObjectType {
     pub fn is_nucl(&self) -> bool {
-        match self {
-            ObjectType::Nucleotide(_) => true,
-            _ => false,
-        }
+        matches!(self, ObjectType::Nucleotide(_))
     }
 
     pub fn is_bound(&self) -> bool {
-        match self {
-            ObjectType::Bound(_, _) => true,
-            _ => false,
-        }
+        matches!(self, ObjectType::Bound(_, _))
     }
 
     pub fn same_type(&self, other: Self) -> bool {
@@ -76,10 +76,7 @@ pub enum Referential {
 
 impl Referential {
     pub fn is_world(&self) -> bool {
-        match self {
-            Referential::World => true,
-            _ => false,
-        }
+        matches!(self, Referential::World)
     }
 }
 
@@ -92,9 +89,13 @@ pub enum DesignOperation {
     Translation(DesignTranslation),
     /// Add an helix on a grid
     AddGridHelix {
-        position: GridPosition,
+        position: HelixGridPosition,
         start: isize,
         length: usize,
+    },
+    AddTwoPointsBezier {
+        start: HelixGridPosition,
+        end: HelixGridPosition,
     },
     RmHelices {
         h_ids: Vec<usize>,
@@ -159,7 +160,7 @@ pub enum DesignOperation {
     CleanDesign,
     HelicesToGrid(Vec<Selection>),
     SetHelicesPersistance {
-        grid_ids: Vec<usize>,
+        grid_ids: Vec<GridId>,
         persistant: bool,
     },
     UpdateAttribute {
@@ -167,12 +168,12 @@ pub enum DesignOperation {
         elements: Vec<DnaElementKey>,
     },
     SetSmallSpheres {
-        grid_ids: Vec<usize>,
+        grid_ids: Vec<GridId>,
         small: bool,
     },
     /// Apply a translation to the 2d representation of helices holding each pivot
     SnapHelices {
-        pivots: Vec<Nucl>,
+        pivots: Vec<(Nucl, usize)>,
         translation: Vec2,
     },
     RotateHelices {
@@ -180,8 +181,14 @@ pub enum DesignOperation {
         center: Vec2,
         angle: f32,
     },
+    ApplySymmetryToHelices {
+        helices: Vec<usize>,
+        centers: Vec<Vec2>,
+        symmetry: Vec2,
+    },
     SetIsometry {
         helix: usize,
+        segment: usize,
         isometry: Isometry2,
     },
     RequestStrandBuilders {
@@ -202,9 +209,9 @@ pub enum DesignOperation {
     FlipAnchors {
         nucls: Vec<Nucl>,
     },
-    AttachHelix {
-        helix: usize,
-        grid: usize,
+    AttachObject {
+        object: GridObject,
+        grid: GridId,
         x: isize,
         y: isize,
     },
@@ -221,6 +228,7 @@ pub enum DesignOperation {
     CreateNewCamera {
         position: Vec3,
         orientation: Rotor3,
+        pivot_position: Option<Vec3>,
     },
     SetFavouriteCamera(ensnano_design::CameraId),
     UpdateCamera {
@@ -233,13 +241,91 @@ pub enum DesignOperation {
         name: String,
     },
     SetGridPosition {
-        grid_id: usize,
+        grid_id: GridId,
         position: Vec3,
     },
     SetGridOrientation {
-        grid_id: usize,
+        grid_id: GridId,
         orientation: Rotor3,
     },
+    SetGridNbTurn {
+        grid_id: GridId,
+        nb_turn: f32,
+    },
+    MakeSeveralXovers {
+        xovers: Vec<(Nucl, Nucl)>,
+        doubled: bool,
+    },
+    CheckXovers {
+        xovers: Vec<usize>,
+    },
+    SetRainbowScaffold(bool),
+    SetDnaParameters {
+        parameters: Parameters,
+    },
+    SetInsertionLength {
+        length: usize,
+        insertion_point: InsertionPoint,
+    },
+    AddBezierPlane {
+        desc: BezierPlaneDescriptor,
+    },
+    CreateBezierPath {
+        first_vertex: BezierVertex,
+    },
+    AppendVertexToPath {
+        path_id: BezierPathId,
+        vertex: BezierVertex,
+    },
+    /// Move the first vertex to `position` and apply the same translation to the other vertices
+    MoveBezierVertex {
+        vertices: Vec<BezierVertexId>,
+        position: Vec2,
+    },
+    SetBezierVertexPosition {
+        vertex_id: BezierVertexId,
+        position: Vec2,
+    },
+    TurnPathVerticesIntoGrid {
+        path_id: BezierPathId,
+        grid_type: GridTypeDescr,
+    },
+    ApplyHomothethyOnBezierPlane {
+        homothethy: BezierPlaneHomothethy,
+    },
+    SetVectorOfBezierTengent(NewBezierTengentVector),
+    MakeBezierPathCyclic {
+        path_id: BezierPathId,
+        cyclic: bool,
+    },
+    RmFreeGrids {
+        grid_ids: Vec<usize>,
+    },
+    RmBezierVertices {
+        vertices: Vec<BezierVertexId>,
+    },
+    Add3DObject {
+        file_path: PathBuf,
+        design_path: PathBuf,
+    },
+    ImportSvgPath {
+        path: PathBuf,
+    },
+}
+
+#[derive(Clone, Debug, Copy)]
+pub struct NewBezierTengentVector {
+    pub vertex_id: BezierVertexId,
+    /// Wether `new_vector` is the vector of the inward or outward tengent
+    pub tengent_in: bool,
+    pub full_symetry_other_tengent: bool,
+    pub new_vector: Vec2,
+}
+
+#[derive(Clone, Debug, Copy)]
+pub struct InsertionPoint {
+    pub nucl: Nucl,
+    pub nucl_is_prime5_of_insertion: bool,
 }
 
 /// An action performed on the application
@@ -286,15 +372,29 @@ pub enum IsometryTarget {
     /// An helix of the design
     Helices(Vec<usize>, bool),
     /// A grid of the desgin
-    Grids(Vec<usize>),
+    Grids(Vec<GridId>),
     /// The pivot of a group
     GroupPivot(GroupId),
+    /// The control points of bezier curves
+    ControlPoint(Vec<(usize, BezierControlPoint)>),
+}
+
+impl ToString for IsometryTarget {
+    fn to_string(&self) -> String {
+        match self {
+            Self::Design => "Design".into(),
+            Self::Helices(hs, _) => format!("Helices {:?}", hs),
+            Self::Grids(gs) => format!("Grids {:?}", gs),
+            Self::GroupPivot(_) => "Group pivot".into(),
+            Self::ControlPoint(_) => "Bezier control point".into(),
+        }
+    }
 }
 
 /// A stucture that defines an helix on a grid
 #[derive(Clone, Debug)]
 pub struct GridHelixDescriptor {
-    pub grid_id: usize,
+    pub grid_id: GridId,
     pub x: isize,
     pub y: isize,
 }
@@ -305,6 +405,7 @@ pub struct HyperboloidRequest {
     pub length: f32,
     pub shift: f32,
     pub radius_shift: f32,
+    pub nb_turn: f64,
 }
 
 impl HyperboloidRequest {
@@ -315,6 +416,7 @@ impl HyperboloidRequest {
             shift: self.shift,
             radius_shift: self.radius_shift,
             forced_radius: None,
+            nb_turn_per_100_nt: self.nb_turn,
         }
     }
 }
@@ -366,54 +468,33 @@ pub enum SimulationState {
     RigidGrid,
     RigidHelices,
     Paused,
+    Twisting { grid_id: GridId },
+    Relaxing,
 }
 
 impl SimulationState {
     pub fn is_none(&self) -> bool {
-        if let Self::None = self {
-            true
-        } else {
-            false
-        }
+        matches!(self, Self::None)
     }
 
     pub fn is_rolling(&self) -> bool {
-        if let Self::Rolling = self {
-            true
-        } else {
-            false
-        }
+        matches!(self, Self::Rolling)
     }
 
     pub fn simulating_grid(&self) -> bool {
-        if let Self::RigidGrid = self {
-            true
-        } else {
-            false
-        }
+        matches!(self, Self::RigidGrid)
     }
 
     pub fn simulating_helices(&self) -> bool {
-        if let Self::RigidHelices = self {
-            true
-        } else {
-            false
-        }
+        matches!(self, Self::RigidHelices)
     }
 
     pub fn is_paused(&self) -> bool {
-        if let Self::Paused = self {
-            true
-        } else {
-            false
-        }
+        matches!(self, Self::Paused)
     }
 
     pub fn is_runing(&self) -> bool {
-        match self {
-            Self::Paused | Self::None => false,
-            _ => true,
-        }
+        !matches!(self, Self::Paused | Self::None)
     }
 }
 
@@ -462,8 +543,24 @@ pub struct StrandBuildingStatus {
     pub dragged_nucl: Nucl,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum PastingStatus {
+    Copy,
+    Duplication,
+    None,
+}
+
+impl PastingStatus {
+    pub fn is_pasting(&self) -> bool {
+        match self {
+            Self::Copy | Self::Duplication => true,
+            Self::None => false,
+        }
+    }
+}
+
 /// Parameters of strand suggestions
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct SuggestionParameters {
     pub include_scaffold: bool,
     pub include_intra_strand: bool,
@@ -505,5 +602,108 @@ impl SuggestionParameters {
         let mut ret = self.clone();
         ret.include_xover_ends = include_xover_ends;
         ret
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum CheckXoversParameter {
+    None,
+    Checked,
+    Unchecked,
+    Both,
+}
+
+impl Default for CheckXoversParameter {
+    fn default() -> Self {
+        Self::None
+    }
+}
+
+impl ToString for CheckXoversParameter {
+    fn to_string(&self) -> String {
+        match self {
+            Self::None => String::from("None"),
+            Self::Checked => String::from("Checked"),
+            Self::Unchecked => String::from("Unchecked"),
+            Self::Both => String::from("Both"),
+        }
+    }
+}
+
+impl CheckXoversParameter {
+    pub const ALL: &'static [Self] = &[Self::None, Self::Checked, Self::Unchecked, Self::Both];
+
+    pub fn wants_checked(&self) -> bool {
+        match self {
+            Self::Checked | Self::Both => true,
+            Self::None | Self::Unchecked => false,
+        }
+    }
+
+    pub fn wants_unchecked(&self) -> bool {
+        match self {
+            Self::Unchecked | Self::Both => true,
+            Self::None | Self::Checked => false,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct BezierPlaneHomothethy {
+    pub plane_id: BezierPlaneId,
+    pub fixed_corner: Vec2,
+    pub origin_moving_corner: Vec2,
+    pub moving_corner: Vec2,
+}
+
+#[derive(Debug, Clone, Copy)]
+/// One of the standard scaffold sequence shipped with ENSnano
+pub enum StandardSequence {
+    P4844,
+    P7249,
+    P7560,
+    P8064,
+    PUC19,
+}
+
+impl StandardSequence {
+    pub fn description(&self) -> &'static str {
+        match self {
+            Self::P4844 => "m13 p4844",
+            Self::P7249 => "m13 p7249",
+            Self::P7560 => "m13 p7560",
+            Self::P8064 => "m13 p8064",
+            Self::PUC19 => "pUC19 (2686 nt)",
+        }
+    }
+
+    pub fn sequence(&self) -> &'static str {
+        match self {
+            Self::P4844 => include_str!("../p4844-Tilibit.txt"),
+            Self::P7249 => include_str!("../p7249-Tilibit.txt"),
+            Self::P7560 => include_str!("../p7560.txt"),
+            Self::P8064 => include_str!("../m13-p8064.txt"),
+            Self::PUC19 => include_str!("../pUC19.txt"),
+        }
+    }
+
+    /// Return the variant of Self whose associated sequence length is closest to n
+    pub fn from_length(n: usize) -> Self {
+        let mut best_score = isize::MAX;
+        let mut ret = Self::default();
+        for candidate in [Self::P4844, Self::P7249, Self::P7560, Self::P8064] {
+            let score = (candidate.sequence().len() as isize - (n as isize)).abs();
+            if score < best_score {
+                best_score = score;
+                ret = candidate;
+            }
+        }
+        ret
+    }
+}
+
+impl Default for StandardSequence {
+    fn default() -> Self {
+        Self::P7249
     }
 }

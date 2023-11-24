@@ -16,8 +16,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+//! Implements the [Requests](`crate::scene::Requests`) trait for [Requests](`super::Requests`).
+
 use super::*;
 use crate::scene::Requests as SceneRequests;
+use crate::PastePosition;
 
 impl SceneRequests for Requests {
     fn update_opperation(&mut self, op: Arc<dyn Operation>) {
@@ -42,7 +45,23 @@ impl SceneRequests for Requests {
     }
 
     fn attempt_paste(&mut self, nucl: Option<Nucl>) {
-        self.keep_proceed.push_back(Action::PasteCandidate(nucl));
+        self.keep_proceed
+            .push_back(Action::PasteCandidate(nucl.map(PastePosition::Nucl)));
+        self.keep_proceed.push_back(Action::ApplyPaste);
+    }
+
+    fn paste_candidate_on_grid(&mut self, position: GridPosition) {
+        self.keep_proceed
+            .push_back(Action::PasteCandidate(Some(PastePosition::GridPosition(
+                position,
+            ))));
+    }
+
+    fn attempt_paste_on_grid(&mut self, position: GridPosition) {
+        self.keep_proceed
+            .push_back(Action::PasteCandidate(Some(PastePosition::GridPosition(
+                position,
+            ))));
         self.keep_proceed.push_back(Action::ApplyPaste);
     }
 
@@ -105,5 +124,9 @@ impl SceneRequests for Requests {
             self.keep_proceed
                 .push_back(Action::RotateGroupPivot(rotation))
         }
+    }
+
+    fn set_revolution_axis_position(&mut self, position: f32) {
+        self.new_bezier_revolution_axis_position = Some(position as f64);
     }
 }

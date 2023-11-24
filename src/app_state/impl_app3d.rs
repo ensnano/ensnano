@@ -16,7 +16,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use crate::scene::AppState as App3D;
+use crate::scene::{AppState as App3D, DrawOptions};
+use ensnano_design::grid::GridId;
 use ensnano_interactor::StrandBuilder;
 
 use super::*;
@@ -68,7 +69,14 @@ impl App3D for AppState {
     }
 
     fn get_widget_basis(&self) -> WidgetBasis {
-        self.0.widget_basis
+        // When the selected object is a grid associated to a bezier vertex, we always want to
+        // return WidgetBasis::Object. We do so to enforce that all rotation applied to that grid
+        // happen in a cannonical plane
+        if self.has_selected_a_bezier_grid() {
+            WidgetBasis::Object
+        } else {
+            self.0.widget_basis
+        }
     }
 
     fn is_changing_color(&self) -> bool {
@@ -76,11 +84,11 @@ impl App3D for AppState {
     }
 
     fn is_pasting(&self) -> bool {
-        self.is_pasting().is_pasting()
+        self.get_pasting_status().is_pasting()
     }
 
     fn get_selected_element(&self) -> Option<CenterOfSelection> {
-        self.0.center_of_selection.clone()
+        self.0.center_of_selection
     }
 
     fn get_current_group_pivot(&self) -> Option<ensnano_design::group_attributes::GroupPivot> {
@@ -89,8 +97,8 @@ impl App3D for AppState {
             .selection
             .selected_group
             .and_then(|g_id| reader.get_group_attributes(g_id))
-            .and_then(|attributes| attributes.pivot.clone())
-            .or(self.0.selection.pivot.read().as_deref().unwrap().clone())
+            .and_then(|attributes| attributes.pivot)
+            .or(*self.0.selection.pivot.read().as_deref().unwrap())
     }
 
     fn get_current_group_id(&self) -> Option<ensnano_design::GroupId> {
@@ -98,7 +106,84 @@ impl App3D for AppState {
     }
 
     fn suggestion_parameters_were_updated(&self, other: &Self) -> bool {
-        self.0.suggestion_parameters != other.0.suggestion_parameters
+        self.0.parameters.suggestion_parameters != other.0.parameters.suggestion_parameters
+    }
+
+    fn get_check_xover_parameters(&self) -> CheckXoversParameter {
+        self.0.parameters.check_xover_paramters
+    }
+
+    fn follow_stereographic_camera(&self) -> bool {
+        self.0.parameters.follow_stereography
+    }
+
+    fn get_draw_options(&self) -> DrawOptions {
+        DrawOptions {
+            background3d: self.0.parameters.background3d,
+            rendering_mode: self.0.parameters.rendering_mode,
+            show_stereographic_camera: self.0.parameters.show_stereography,
+            thick_helices: self.0.parameters.thick_helices,
+            h_bonds: self.0.parameters.show_h_bonds,
+            show_bezier_planes: self.0.parameters.show_bezier_paths,
+        }
+    }
+
+    fn draw_options_were_updated(&self, other: &Self) -> bool {
+        self.get_draw_options() != other.get_draw_options()
+    }
+
+    fn get_scroll_sensitivity(&self) -> f32 {
+        let sign = if self.0.parameters.inverted_y_scroll {
+            -1.0
+        } else {
+            1.0
+        };
+        sign * crate::consts::scroll_sensitivity_convertion(self.0.parameters.scroll_sensitivity)
+    }
+
+    fn show_insertion_representents(&self) -> bool {
+        self.0.show_insertion_representents
+    }
+
+    fn show_bezier_paths(&self) -> bool {
+        self.0.parameters.show_bezier_paths
+    }
+
+    fn get_design_path(&self) -> Option<PathBuf> {
+        self.0.path_to_current_design.clone()
+    }
+
+    fn get_selected_bezier_vertex(&self) -> Option<ensnano_design::BezierVertexId> {
+        if let Some(Selection::BezierVertex(vertex)) = self.0.selection.selection.get(0) {
+            Some(*vertex)
+        } else {
+            None
+        }
+    }
+
+    fn has_selected_a_bezier_grid(&self) -> bool {
+        matches!(
+            self.get_selection().as_ref().get(0),
+            Some(Selection::Grid(_, GridId::BezierPathGrid(_)))
+        )
+    }
+
+    fn revolution_bezier_updated(&self, other: &Self) -> bool {
+        self.0.unrooted_surface.descriptor != other.0.unrooted_surface.descriptor
+    }
+
+    fn get_current_unrooted_surface(&self) -> Option<UnrootedRevolutionSurfaceDescriptor> {
+        self.0.unrooted_surface.descriptor.clone()
+    }
+
+    fn get_revolution_axis_position(&self) -> Option<f64> {
+        Some(
+            self.0
+                .unrooted_surface
+                .descriptor
+                .as_ref()?
+                .get_revolution_axis_position(),
+        )
     }
 }
 
@@ -136,6 +221,7 @@ mod tests {
 
         assert!(!state.design_was_modified(&old_state));
         state.update_design(Default::default());
+        state.update();
         assert!(state.design_was_modified(&old_state));
     }
 

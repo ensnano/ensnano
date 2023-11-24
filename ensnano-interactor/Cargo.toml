@@ -2,7 +2,7 @@
 name = "ensnano_interactor"
 version = "0.2.1"
 authors = ["thenlevy <nicolaspierrelevy@gmail.com>"]
-edition = "2018"
+edition = "2021"
 license = "GPL-3.0-or-later"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -19,7 +19,7 @@ serde_derive = "1.0.116"
 color_space = "0.5.2"
 chrono = "0.4"
 image = "0.23"
-ahash = "0.6.2"
+ahash = "0.8.6" # "0.6.2"
 rand = "0.8.3"
 rand_distr = "0.4.0"
 ordered-float = "2.0"
@@ -29,6 +29,7 @@ num_enum = "0.5.1"
 open = "1"
 ensnano_design = { path = "../ensnano-design" }
 ensnano_organizer = { path = "../ensnano-organizer" }
-iced_wgpu = { git = "https://github.com/hecrj/iced", rev = "61c747b53589d98f477fea95f85d2ea5349666d3" }
-iced_winit = { git = "https://github.com/hecrj/iced", rev = "61c747b53589d98f477fea95f85d2ea5349666d3" }
+iced_wgpu = "0.5.1"
+iced_winit = "0.4.0"
 log = "0.4"
+rayon = "1.6.0"

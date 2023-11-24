@@ -1,17 +1,16 @@
 use iced::{Container, Element};
 use iced_native::{
-    event, layout, overlay, Alignment, Clipboard, Event, Hasher, Layout, Length, Point, Rectangle,
-    Widget,
+    event, layout, overlay, renderer::Style, Alignment, Clipboard, Event, Layout, Length, Point,
+    Rectangle, Shell, Widget,
 };
-use std::hash::Hash;
 
 #[derive(Debug, Clone, PartialOrd, PartialEq, Eq, Ord)]
-pub(super) enum Identifier<K> {
-    Group { id: super::NodeId },
+pub(super) enum Identifier<K, AutoGroup> {
+    Group { id: super::NodeId<AutoGroup> },
     Section { key: K },
 }
 
-pub(super) struct DragDropTarget<'a, Message, K> {
+pub(super) struct DragDropTarget<'a, Message, K, E> {
     padding: u16,
     width: Length,
     height: Length,
@@ -20,12 +19,12 @@ pub(super) struct DragDropTarget<'a, Message, K> {
     horizontal_alignment: Alignment,
     vertical_alignment: Alignment,
     content: Container<'a, Message>,
-    identifier: Identifier<K>,
+    identifier: Identifier<K, E>,
 }
 
-impl<'a, Message, K> DragDropTarget<'a, Message, K> {
+impl<'a, Message, K, E> DragDropTarget<'a, Message, K, E> {
     /// Creates an empty [`DragDropTarget`].
-    pub fn new<T>(content: T, identifier: Identifier<K>) -> Self
+    pub fn new<T>(content: T, identifier: Identifier<K, E>) -> Self
     where
         T: Into<Element<'a, Message>>,
     {
@@ -54,7 +53,7 @@ use super::OrganizerMessage;
 use iced_wgpu::Renderer;
 
 impl<'a, E: super::OrganizerElement> Widget<OrganizerMessage<E>, Renderer>
-    for DragDropTarget<'a, OrganizerMessage<E>, E::Key>
+    for DragDropTarget<'a, OrganizerMessage<E>, E::Key, E::AutoGroup>
 {
     fn width(&self) -> Length {
         self.width
@@ -91,7 +90,7 @@ impl<'a, E: super::OrganizerElement> Widget<OrganizerMessage<E>, Renderer>
         cursor_position: Point,
         renderer: &Renderer,
         clipboard: &mut dyn Clipboard,
-        messages: &mut Vec<OrganizerMessage<E>>,
+        shell: &mut Shell<OrganizerMessage<E>>,
     ) -> event::Status {
         use iced::mouse;
         use iced::mouse::Event as MouseEvent;
@@ -101,17 +100,17 @@ impl<'a, E: super::OrganizerElement> Widget<OrganizerMessage<E>, Renderer>
             cursor_position,
             renderer,
             clipboard,
-            messages,
+            shell,
         );
         match event {
             Event::Mouse(MouseEvent::ButtonReleased(mouse::Button::Left)) => {
                 if layout.bounds().contains(cursor_position) {
-                    messages.push(OrganizerMessage::drag_dropped(self.identifier.clone()))
+                    shell.publish(OrganizerMessage::drag_dropped(self.identifier.clone()))
                 }
             }
             Event::Mouse(MouseEvent::ButtonPressed(mouse::Button::Left)) => {
                 if layout.bounds().contains(cursor_position) {
-                    messages.push(OrganizerMessage::dragging(self.identifier.clone()))
+                    shell.publish(OrganizerMessage::dragging(self.identifier.clone()))
                 }
                 return event::Status::Captured;
             }
@@ -123,37 +122,26 @@ impl<'a, E: super::OrganizerElement> Widget<OrganizerMessage<E>, Renderer>
     fn draw(
         &self,
         renderer: &mut Renderer,
-        defaults: &<Renderer as iced_native::Renderer>::Defaults,
+        style: &Style,
         layout: Layout<'_>,
         cursor_position: Point,
         viewport: &Rectangle,
-    ) -> <Renderer as iced_native::Renderer>::Output {
+    ) {
         self.content.draw(
             renderer,
-            defaults,
+            style,
             layout.children().next().unwrap(),
             cursor_position,
             viewport,
         )
     }
 
-    fn hash_layout(&self, state: &mut Hasher) {
-        struct Marker;
-        std::any::TypeId::of::<Marker>().hash(state);
-
-        self.padding.hash(state);
-        self.width.hash(state);
-        self.height.hash(state);
-        self.max_width.hash(state);
-        self.max_height.hash(state);
-
-        self.content.hash_layout(state);
-    }
-
     fn overlay(
         &mut self,
         layout: Layout<'_>,
+        renderer: &Renderer,
     ) -> Option<overlay::Element<'_, OrganizerMessage<E>, Renderer>> {
-        self.content.overlay(layout.children().next().unwrap())
+        self.content
+            .overlay(layout.children().next().unwrap(), renderer)
     }
 }
