@@ -19,23 +19,19 @@ use super::{AppState, ColorMessage, Message};
 use iced_native::Color;
 
 pub struct ColorPicker {
-    hue_state: hue_column::State,
-    light_sat_square_state: light_sat_square::State,
     color: Color,
     hue: f64,
     saturation: f64,
     hsv_value: f64,
 }
 
-pub use color_square::{ColorSquare, State as ColorState};
+pub use color_square::{ColorSquare, ColorSquareState as ColorState};
 use hue_column::HueColumn;
 use light_sat_square::LightSatSquare;
 
 impl ColorPicker {
     pub fn new() -> Self {
         Self {
-            hue_state: Default::default(),
-            light_sat_square_state: Default::default(),
             color: Color::BLACK,
             hue: 0.,
             saturation: 1.,
@@ -70,15 +66,14 @@ impl ColorPicker {
         self.hsv_value = hsv_value
     }
 
-    pub fn view<S>(&mut self) -> iced::Element<Message<S>>
+    pub fn view<S>(&self) -> iced::Element<Message<S>>
     where
         S: AppState,
     {
         iced_native::row![
-            HueColumn::new(&mut self.hue_state, Message::HueChanged),
+            HueColumn::new(Message::HueChanged),
             LightSatSquare::new(
                 self.hue as f64,
-                &mut self.light_sat_square_state,
                 Message::HsvSatValueChanged,
                 Message::FinishChangingColor,
             ),
@@ -87,24 +82,19 @@ impl ColorPicker {
         .into()
     }
 
-    pub fn color_square<'a, S: AppState>(
-        &self,
-        state: &'a mut color_square::State,
-    ) -> ColorSquare<'a, Message<S>> {
+    pub fn color_square<'a, S: AppState>(&self) -> ColorSquare<'a, Message<S>> {
         ColorSquare::new(
             self.color,
-            state,
             Message::ColorPicked,
             Message::FinishChangingColor,
         )
     }
 
-    pub fn new_view(&mut self) -> iced::Element<ColorMessage> {
+    pub fn new_view(&self) -> iced::Element<ColorMessage> {
         iced_native::row![
-            HueColumn::new(&mut self.hue_state, ColorMessage::HueChanged,),
+            HueColumn::new(ColorMessage::HueChanged,),
             LightSatSquare::new(
                 self.hue as f64,
-                &mut self.light_sat_square_state,
                 ColorMessage::HsvSatValueChanged,
                 ColorMessage::FinishChangingColor,
             ),
@@ -114,6 +104,7 @@ impl ColorPicker {
     }
 }
 
+/// A Iced Widget to select Hue.
 mod hue_column {
     use iced_graphics::{
         renderer::{Renderer, Style},
@@ -121,37 +112,29 @@ mod hue_column {
         Primitive, Rectangle,
     };
     use iced_native::{
-        layout, mouse, widget, Clipboard, Element, Event, Layout, Length, Point,
-        Renderer as RendererTrait, Shell, Size, Vector, Widget,
+        layout, mouse, widget, Clipboard, Event, Layout, Length, Point, Renderer as RendererTrait,
+        Shell, Size, Vector, Widget,
     };
 
     use color_space::{Hsv, Rgb};
 
+    /// The internal state of a [HueColumnState].
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-    pub struct State {
+    pub struct HueColumnState {
         is_dragging: bool,
     }
 
-    impl State {
-        /// Creates a new [`State`].
-        ///
-        pub fn new() -> State {
-            State::default()
-        }
-    }
-
+    /// A HueColumn Widget.
     pub struct HueColumn<'a, Message> {
-        state: &'a mut State,
-        on_slide: Box<dyn Fn(f64) -> Message>,
+        on_slide: Box<dyn Fn(f64) -> Message + 'a>,
     }
 
     impl<'a, Message> HueColumn<'a, Message> {
-        pub fn new<F>(state: &'a mut State, on_slide: F) -> Self
+        pub fn new<F>(on_slide: F) -> Self
         where
             F: 'static + Fn(f64) -> Message,
         {
             Self {
-                state,
                 on_slide: Box::new(on_slide),
             }
         }
@@ -162,6 +145,9 @@ mod hue_column {
     where
         Backend: iced_graphics::Backend,
     {
+        fn state(&self) -> widget::tree::State {
+            widget::tree::State::Some(Box::new(HueColumnState::default()))
+        }
         fn width(&self) -> Length {
             Length::FillPortion(1)
         }
@@ -239,7 +225,7 @@ mod hue_column {
 
         fn on_event(
             &mut self,
-            _state: &mut widget::Tree,
+            tree: &mut widget::Tree,
             event: Event,
             layout: Layout<'_>,
             cursor_position: Point,
@@ -261,22 +247,23 @@ mod hue_column {
             };
 
             if let Event::Mouse(mouse_event) = event {
+                let state = tree.state.downcast_mut::<HueColumnState>();
                 match mouse_event {
                     mouse::Event::ButtonPressed(mouse::Button::Left) => {
                         if layout.bounds().contains(cursor_position) {
                             change();
-                            self.state.is_dragging = true;
+                            state.is_dragging = true;
                         }
                         iced_native::event::Status::Captured
                     }
                     mouse::Event::ButtonReleased(mouse::Button::Left) => {
-                        if self.state.is_dragging {
-                            self.state.is_dragging = false;
+                        if state.is_dragging {
+                            state.is_dragging = false;
                         }
                         iced_native::event::Status::Captured
                     }
                     mouse::Event::CursorMoved { .. } => {
-                        if self.state.is_dragging {
+                        if state.is_dragging {
                             change();
                             iced_native::event::Status::Captured
                         } else {
@@ -295,12 +282,13 @@ mod hue_column {
     where
         Message: 'a + Clone,
     {
-        fn from(hue_column: HueColumn<'a, Message>) -> iced::Element<'a, Message> {
-            Element::new(hue_column)
+        fn from(hue_column: HueColumn<'a, Message>) -> Self {
+            Self::new(hue_column)
         }
     }
 }
 
+/// A widget to select Lightness and Saturation values.
 mod light_sat_square {
     use iced_graphics::{
         renderer::{Renderer, Style},
@@ -314,8 +302,9 @@ mod light_sat_square {
 
     use color_space::{Hsv, Rgb};
 
+    /// The internal state of a [LightSatSquare].
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-    pub struct State {
+    pub struct LightSatState {
         is_dragging: bool,
     }
 
@@ -330,21 +319,20 @@ mod light_sat_square {
         ]
     }
 
+    /// A Lightness-Saturation square Widget.
     pub struct LightSatSquare<'a, Message: Clone> {
         hue: f64,
-        state: &'a mut State,
-        on_slide: Box<dyn Fn(f64, f64) -> Message>,
+        on_slide: Box<dyn Fn(f64, f64) -> Message + 'a>,
         on_finish: Message,
     }
 
     impl<'a, Message: Clone> LightSatSquare<'a, Message> {
-        pub fn new<F>(hue: f64, state: &'a mut State, on_slide: F, on_finish: Message) -> Self
+        pub fn new<F>(hue: f64, on_slide: F, on_finish: Message) -> Self
         where
-            F: 'static + Fn(f64, f64) -> Message,
+            F: 'static + Fn(f64, f64) -> Message + 'a,
         {
             Self {
                 hue,
-                state,
                 on_slide: Box::new(on_slide),
                 on_finish,
             }
@@ -357,6 +345,9 @@ mod light_sat_square {
         Message: Clone + 'a,
         Backend: iced_graphics::Backend,
     {
+        fn state(&self) -> widget::tree::State {
+            widget::tree::State::Some(Box::new(LightSatState::default()))
+        }
         fn width(&self) -> Length {
             Length::FillPortion(4)
         }
@@ -431,7 +422,7 @@ mod light_sat_square {
 
         fn on_event(
             &mut self,
-            _state: &mut widget::Tree,
+            tree: &mut widget::Tree,
             event: Event,
             layout: Layout<'_>,
             cursor_position: Point,
@@ -463,25 +454,26 @@ mod light_sat_square {
             };
 
             if let Event::Mouse(mouse_event) = event {
+                let state = tree.state.downcast_mut::<LightSatState>();
                 match mouse_event {
                     mouse::Event::ButtonPressed(mouse::Button::Left) => {
                         if layout.bounds().contains(cursor_position) {
                             change();
-                            self.state.is_dragging = true;
+                            state.is_dragging = true;
                             iced_native::event::Status::Captured
                         } else {
                             iced_native::event::Status::Ignored
                         }
                     }
                     mouse::Event::ButtonReleased(mouse::Button::Left) => {
-                        if self.state.is_dragging {
-                            self.state.is_dragging = false;
+                        if state.is_dragging {
+                            state.is_dragging = false;
                         }
                         shell.publish(self.on_finish.clone());
                         iced_native::event::Status::Captured
                     }
                     mouse::Event::CursorMoved { .. } => {
-                        if self.state.is_dragging {
+                        if state.is_dragging {
                             change();
                         }
                         iced_native::event::Status::Captured
@@ -504,11 +496,8 @@ mod light_sat_square {
     }
 }
 
+/// A widget to Visualize selected color.
 mod color_square {
-    #[derive(Default, Clone, Eq, PartialEq)]
-    pub struct State {
-        clicked: bool,
-    }
     use super::Color;
     use iced_graphics::{
         renderer::{Renderer, Style},
@@ -520,20 +509,27 @@ mod color_square {
         Shell, Size, Vector, Widget,
     };
 
+    /// The State of a [ColorSquare]
+    #[derive(Default, Clone, Eq, PartialEq)]
+    pub struct ColorSquareState {
+        clicked: bool,
+    }
+
+    /// A ColorSquare Widget
     pub struct ColorSquare<'a, Message: Clone> {
-        state: &'a mut State,
+        //state: &'a mut State,
         color: Color,
-        on_click: Box<dyn Fn(Color) -> Message>,
+        on_click: Box<dyn Fn(Color) -> Message + 'a>,
         on_release: Message,
     }
 
     impl<'a, Message: Clone> ColorSquare<'a, Message> {
-        pub fn new<F>(color: Color, state: &'a mut State, on_click: F, on_release: Message) -> Self
+        pub fn new<F>(color: Color, on_click: F, on_release: Message) -> Self
         where
-            F: 'static + Fn(Color) -> Message,
+            F: 'static + Fn(Color) -> Message + 'a,
         {
             Self {
-                state,
+                //state,
                 color,
                 on_click: Box::new(on_click),
                 on_release,
@@ -547,6 +543,9 @@ mod color_square {
         Message: Clone + 'a,
         Backend: iced_graphics::Backend,
     {
+        fn state(&self) -> widget::tree::State {
+            widget::tree::State::Some(Box::new(ColorSquareState::default()))
+        }
         fn width(&self) -> Length {
             Length::FillPortion(1)
         }
@@ -614,7 +613,7 @@ mod color_square {
 
         fn on_event(
             &mut self,
-            _state: &mut widget::Tree,
+            tree: &mut widget::Tree,
             event: Event,
             layout: Layout<'_>,
             cursor_position: Point,
@@ -623,30 +622,31 @@ mod color_square {
             shell: &mut Shell<'_, Message>,
         ) -> iced_native::event::Status {
             if let Event::Mouse(mouse_event) = event {
+                let state = tree.state.downcast_mut::<ColorSquareState>();
                 match mouse_event {
                     mouse::Event::ButtonPressed(mouse::Button::Left) => {
                         if layout.bounds().contains(cursor_position) {
-                            self.state.clicked = true;
+                            state.clicked = true;
                             shell.publish((self.on_click)(self.color));
                             iced_native::event::Status::Captured
                         } else {
                             iced_native::event::Status::Ignored
                         }
                     }
-                    mouse::Event::ButtonReleased(mouse::Button::Left) if self.state.clicked => {
+                    mouse::Event::ButtonReleased(mouse::Button::Left) if state.clicked => {
                         if layout.bounds().contains(cursor_position) {
-                            self.state.clicked = false;
+                            state.clicked = false;
                             shell.publish(self.on_release.clone());
                             iced_native::event::Status::Captured
                         } else {
                             iced_native::event::Status::Ignored
                         }
                     }
-                    mouse::Event::CursorMoved { .. } if self.state.clicked => {
+                    mouse::Event::CursorMoved { .. } if state.clicked => {
                         if layout.bounds().contains(cursor_position) {
                             iced_native::event::Status::Ignored
                         } else {
-                            self.state.clicked = false;
+                            state.clicked = false;
                             shell.publish(self.on_release.clone());
                             iced_native::event::Status::Captured
                         }

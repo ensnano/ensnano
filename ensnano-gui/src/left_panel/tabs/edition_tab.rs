@@ -29,7 +29,6 @@ pub struct EditionTab<S: AppState> {
     color_picker: ColorPicker,
     _sequence_input: SequenceInput,
     roll_target_btn: GoStop<S>,
-    color_square_state: ColorState,
     memory_color_squares: VecDeque<MemoryColorSquare>,
 }
 
@@ -74,7 +73,6 @@ fn memory_color_column<S: AppState>(
             for state in left.iter_mut() {
                 row = row.push(ColorSquare::new(
                     state.color,
-                    &mut state.state,
                     Message::ColorPicked,
                     Message::FinishChangingColor,
                 ));
@@ -100,7 +98,6 @@ impl<S: AppState> EditionTab<S> {
                 "Autoroll selected helices".to_owned(),
                 Message::RollTargeted,
             ),
-            color_square_state: Default::default(),
             memory_color_squares: VecDeque::new(),
         }
     }
@@ -138,7 +135,7 @@ impl<S: AppState> EditionTab<S> {
             if selection_contains_strand {
                 iced_native::row![
                     self.color_picker.view(),
-                    self.color_picker.color_square(&mut self.color_square_state),
+                    self.color_picker.color_square(),
                     memory_color_column(self.memory_color_squares.make_contiguous(), 4),
                 ]
             } else {
