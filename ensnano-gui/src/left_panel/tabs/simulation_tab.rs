@@ -57,7 +57,7 @@ impl<S: AppState> SimulationTab<S> {
         }
     }
 
-    pub fn view(&mut self, ui_size: UiSize, app_state: &S) -> iced::Element<Message<S>> {
+    pub fn view(&self, ui_size: UiSize, app_state: &S) -> iced::Element<Message<S>> {
         let sim_state = &app_state.get_simulation_state();
         let grid_active = sim_state.is_none() || sim_state.simulating_grid();
         let roll_active = sim_state.is_none() || sim_state.is_rolling();
@@ -189,9 +189,12 @@ impl PhysicalSimulation {
     ) -> iced::Element<Message<S>> {
         let button_str = if running { "Stop" } else { name };
         let mut button = button(text(button_str)).style(
+            // TODO: Reimplement the colored buttons.
+            //       Tried these values :
             // ButtonColor::red_green(running)  // Not working
             // iced::theme::Button::Custom(Box::new(ButtonColor::red_green(running)))
-            //   Still not working
+            //       … but that does not work.
+            //       My guess is to use the Style associated type in the StyleSheet.
             iced::theme::Button::Positive,
         );
         if active {

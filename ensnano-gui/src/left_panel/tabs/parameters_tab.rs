@@ -39,7 +39,7 @@ impl ParametersTab {
         }
     }
 
-    pub fn view<S>(&mut self, ui_size: UiSize, app_state: &S) -> Element<Message<S>>
+    pub fn view<S>(&self, ui_size: UiSize, app_state: &S) -> Element<Message<S>>
     where
         S: AppState,
     {

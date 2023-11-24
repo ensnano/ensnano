@@ -61,16 +61,15 @@ impl SequenceTab {
         }
     }
 
-    pub fn view<S: AppState>(
-        &mut self,
-        ui_size: UiSize,
-        app_state: &S,
-    ) -> iced::Element<Message<S>> {
-        if !self.scaffold_input.is_focused() {
-            if let Some(n) = app_state.get_scaffold_info().and_then(|info| info.shift) {
-                self.update_pos_str(n.to_string());
-            }
-        }
+    pub fn view<S: AppState>(&self, ui_size: UiSize, app_state: &S) -> iced::Element<Message<S>> {
+        // TODO: This update should happen, but somewhere else in the code.
+        //       I think it must happen inside LeftPanel::update
+        //
+        //if !self.scaffold_input.is_focused() {
+        //    if let Some(n) = app_state.get_scaffold_info().and_then(|info| info.shift) {
+        //        self.update_pos_str(n.to_string());
+        //    }
+        //}
 
         let content = iced_native::column![
             section("Sequence", ui_size),
@@ -178,7 +177,7 @@ impl SequenceTab {
                             "→ forward"
                         } else {
                             "← backward"
-                        }, // Pourquoi pas "→" et "←" ?
+                        },
                         nucl.position
                     )
                 } else {

@@ -21,8 +21,8 @@ use ensnano_interactor::{RollRequest, SimulationState};
 use std::collections::VecDeque;
 
 const MEMORY_COLOR_ROWS: usize = 3;
-const MEMORY_COLOR_COLUMN: usize = 8;
-const NB_MEMORY_COLOR: usize = MEMORY_COLOR_ROWS * MEMORY_COLOR_COLUMN;
+const MEMORY_COLOR_COLUMNS: usize = 8;
+const NB_MEMORY_COLOR: usize = MEMORY_COLOR_ROWS * MEMORY_COLOR_COLUMNS;
 
 mod edition_tab;
 pub use edition_tab::EditionTab;

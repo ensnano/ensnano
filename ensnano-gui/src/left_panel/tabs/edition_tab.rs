@@ -16,9 +16,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use super::{
-    AppState, Color, ColorPicker, ColorSquare, ColorState, DnaElementKey, FactoryId, GoStop,
-    HelixRoll, Length, Message, RequestFactory, RollRequest, SequenceInput, UiSize, ValueId,
-    VecDeque, MEMORY_COLOR_COLUMN, MEMORY_COLOR_ROWS, NB_MEMORY_COLOR,
+    AppState, Color, ColorPicker, ColorSquare, DnaElementKey, FactoryId, GoStop, HelixRoll, Length,
+    Message, RequestFactory, RollRequest, SequenceInput, UiSize, ValueId, VecDeque,
+    MEMORY_COLOR_COLUMNS, MEMORY_COLOR_ROWS, NB_MEMORY_COLOR,
 };
 use crate::helpers::*;
 use iced_native::widget;
@@ -32,9 +32,9 @@ pub struct EditionTab<S: AppState> {
     memory_color_squares: VecDeque<MemoryColorSquare>,
 }
 
+/// An entry of the stack of last picked colors.
 struct MemoryColorSquare {
     color: Color,
-    state: ColorState,
 }
 
 impl PartialEq<MemoryColorSquare> for MemoryColorSquare {
@@ -45,47 +45,34 @@ impl PartialEq<MemoryColorSquare> for MemoryColorSquare {
 
 impl MemoryColorSquare {
     fn new(color: Color) -> Self {
-        Self {
-            color,
-            state: Default::default(),
-        }
+        Self { color }
     }
 }
 
+/// Arrange memory colors in a few rows.
 fn memory_color_column<S: AppState>(
-    states: &mut [MemoryColorSquare],
+    memory_color_squares: &VecDeque<MemoryColorSquare>,
     fill_portion: u16,
 ) -> iced::Element<Message<S>> {
-    let mut ret = widget::Column::new();
-    let mut right = states;
-    let mut left;
-    for _ in 0..MEMORY_COLOR_ROWS {
-        log::debug!("right len before split {}", right.len());
-        let split_point = right.len().min(MEMORY_COLOR_COLUMN);
-        let (left_, right_) = right.split_at_mut(split_point);
-        left = left_;
-        right = right_;
-        log::debug!("right len after split {}", right.len());
-
-        if left.len() > 0 {
-            let mut row = widget::Row::new();
-            let remaining_space = MEMORY_COLOR_COLUMN - left.len();
-            for state in left.iter_mut() {
-                row = row.push(ColorSquare::new(
-                    state.color,
-                    Message::ColorPicked,
-                    Message::FinishChangingColor,
-                ));
-            }
-            if remaining_space > 0 {
-                row = row.push(horizontal_space(Length::FillPortion(
-                    remaining_space as u16,
-                )));
-            }
-            ret = ret.push(row)
+    let mut content = Vec::with_capacity(MEMORY_COLOR_ROWS);
+    let mut current_row = Vec::with_capacity(MEMORY_COLOR_COLUMNS);
+    for memory_color_square in memory_color_squares.iter() {
+        if current_row.len() >= MEMORY_COLOR_COLUMNS {
+            // Create a new row
+            content.push(row(current_row).into());
+            current_row = Vec::with_capacity(MEMORY_COLOR_COLUMNS);
         }
+        // Append to row
+        let color_square = ColorSquare::new(
+            memory_color_square.color,
+            Message::ColorPicked,
+            Message::FinishChangingColor,
+        );
+        current_row.push(color_square.into());
     }
-    ret.width(Length::FillPortion(fill_portion)).into()
+    column(content)
+        .width(Length::FillPortion(fill_portion))
+        .into()
 }
 
 impl<S: AppState> EditionTab<S> {
@@ -102,12 +89,7 @@ impl<S: AppState> EditionTab<S> {
         }
     }
 
-    pub fn view(
-        &mut self,
-        ui_size: UiSize,
-        _width: u16,
-        app_state: &S,
-    ) -> iced::Element<Message<S>> {
+    pub fn view(&self, ui_size: UiSize, _width: u16, app_state: &S) -> iced::Element<Message<S>> {
         let roll_target_helices =
             self.get_roll_target_helices(&app_state.get_selection_as_dnaelement());
         let sim_state = &app_state.get_simulation_state();
@@ -136,7 +118,7 @@ impl<S: AppState> EditionTab<S> {
                 iced_native::row![
                     self.color_picker.view(),
                     self.color_picker.color_square(),
-                    memory_color_column(self.memory_color_squares.make_contiguous(), 4),
+                    memory_color_column(&self.memory_color_squares, 4),
                 ]
             } else {
                 iced_native::row![]

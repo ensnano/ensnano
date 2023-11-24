@@ -216,10 +216,10 @@ impl<S: AppState> CurveDescriptorWidget<S> {
         }
     }
 
-    fn view(&mut self) -> Element<Message<S>> {
-        iced_native::widget::Column::with_children(
+    fn view(&self) -> Element<Message<S>> {
+        column(
             self.parameters
-                .iter_mut()
+                .iter()
                 .enumerate()
                 .map(|(param_id, param)| {
                     iced_native::row![
@@ -401,7 +401,7 @@ impl<S: AppState> RevolutionTab<S> {
         })
     }
 
-    pub fn view(&mut self, ui_size: UiSize, app_state: &S) -> iced::Element<Message<S>> {
+    pub fn view(&self, ui_size: UiSize, app_state: &S) -> iced::Element<Message<S>> {
         let desc = self.get_revolution_system(app_state, false);
 
         let shift_buttons = {
@@ -460,9 +460,11 @@ impl<S: AppState> RevolutionTab<S> {
                 )
                 .placeholder("Pick.."),
             ],
-            self.curve_descriptor_widget
-                .as_mut()
-                .map_or(iced_native::column![].into(), |w| w.view()),
+            if let Some(widget) = &self.curve_descriptor_widget {
+                widget.view()
+            } else {
+                iced_native::column![].into()
+            },
             extra_jump(),
             subsection("Revolution parameter", ui_size),
             iced_native::row![
@@ -633,16 +635,17 @@ impl<S: AppState> RevolutionTab<S> {
     }
 
     /// Get the number of shift per turn, updating `self.shift_generator` if needed.
-    fn get_shift_per_turn(&mut self, app_state: &S) -> Option<isize> {
+    fn get_shift_per_turn(&self, app_state: &S) -> Option<isize> {
         self.try_get_shift_per_turn(app_state).or_else(|| {
-            let unrooted_surface = self.get_current_unrooted_surface(app_state)?;
-            let nb_spiral = self
-                .nb_sprial_state_input
-                .get_value()
-                .and_then(InstanciatedParameter::get_uint)?;
-            let half_nb_helix = self.scaling.as_ref()?.nb_helix / 2;
-            self.shift_generator =
-                unrooted_surface.shifts_to_get_n_spirals(half_nb_helix, nb_spiral);
+            // TODO: This update must be done elsewhere.
+            //let unrooted_surface = self.get_current_unrooted_surface(app_state)?;
+            //let nb_spiral = self
+            //    .nb_sprial_state_input
+            //    .get_value()
+            //    .and_then(InstanciatedParameter::get_uint)?;
+            //let half_nb_helix = self.scaling.as_ref()?.nb_helix / 2;
+            //self.shift_generator =
+            //    unrooted_surface.shifts_to_get_n_spirals(half_nb_helix, nb_spiral);
             self.try_get_shift_per_turn(app_state)
         })
     }
