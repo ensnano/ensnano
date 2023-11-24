@@ -353,7 +353,9 @@ impl DesignContent {
                     )
                     .into()
                 }),
-                color_str: format!("{:#08X}", staple_info.color).trim_start_matches("0x").to_string(),
+                color_str: format!("{:#08X}", staple_info.color)
+                    .trim_start_matches("0x")
+                    .to_string(),
                 group_names: staple_info.group_names.clone(),
                 group_names_string: staple_info.group_names.join(" ; "),
                 length_str: staple_info.length.to_string(),

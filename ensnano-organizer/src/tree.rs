@@ -91,7 +91,7 @@ impl<K: PartialEq> OrganizerTree<K> {
                 ..
             } => {
                 if let Some(GroupId(x)) = id {
-                    format!("{name}_{}", format!("{:#0X}", x&0xFFFF).trim_start_matches("0x")).to_string()
+                    format!("{name}_{:0X}", x & 0xFFFF).to_string()
                 } else {
                     name.clone()
                 }

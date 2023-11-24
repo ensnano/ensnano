@@ -18,12 +18,12 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::*;
 use crate::controller::{DownloadStappleError, DownloadStappleOk, StaplesDownloader};
-use rust_xlsxwriter::{Format, Workbook, XlsxError, Color};
+use hex;
+use rust_xlsxwriter::{Color, Format, Workbook, XlsxError};
 use serde::Serialize;
+use std::borrow::Cow;
 use std::io::Write;
 use std::path::PathBuf;
-use hex;
-use std::borrow::Cow;
 
 impl StaplesDownloader for DesignReader {
     fn download_staples(&self) -> Result<DownloadStappleOk, DownloadStappleError> {
@@ -74,7 +74,7 @@ impl StaplesDownloader for DesignReader {
 
         let all_group_names: Vec<String> = self.presenter.get_names_of_all_groups();
         let mut group_map: HashMap<&String, usize> = HashMap::new();
-        for (j, name) in all_group_names.iter().enumerate() {  
+        for (j, name) in all_group_names.iter().enumerate() {
             group_map.insert(name, j);
         }
 
@@ -111,9 +111,9 @@ impl StaplesDownloader for DesignReader {
 
         // Staples are scattered on the sheets according to their plate number
         for (i, stapple) in stapples.iter().enumerate() {
-            let sheet = sheets.entry(stapple.plate).or_insert_with(|| {
-                vec![first_row_content.clone()]
-            });
+            let sheet = sheets
+                .entry(stapple.plate)
+                .or_insert_with(|| vec![first_row_content.clone()]);
             let mut group_vec = Vec::from_iter(all_group_names.iter().map(|_| ""));
             for group_name in stapple.group_names.iter() {
                 if let Some(index) = group_map.get(&group_name) {
@@ -122,90 +122,133 @@ impl StaplesDownloader for DesignReader {
             }
             let mut row: Vec<&str> = vec![
                 &stapple.well,
-                &stapple.name, 
+                &stapple.name,
                 &stapple.sequence,
                 &interval_strs[i],
                 &stapple.length_str,
                 &stapple.domain_decomposition,
                 &stapple.color_str,
-                &stapple.group_names_string, 
+                &stapple.group_names_string,
             ];
             row.extend(group_vec.iter());
             sheet.push(row)
         }
 
+        let threshold_black_white_font_color = (5 * 255) / 2;
+
         // Add one sheet per plate
         for (sheet_id, rows) in sheets.iter() {
-            let mut sheet: &mut rust_xlsxwriter::Worksheet = wb.add_worksheet().set_name(&format!("Plate {sheet_id}")).expect("Excel error: cannot create worksheet"); 
+            let mut sheet: &mut rust_xlsxwriter::Worksheet = wb
+                .add_worksheet()
+                .set_name(&format!("Plate {sheet_id}"))
+                .expect("Excel error: cannot create worksheet");
 
-            for (i,row) in rows.iter().enumerate() {
+            for (i, row) in rows.iter().enumerate() {
                 if i == 0 {
                     for (j, data) in row.iter().enumerate() {
                         let bold = Format::new().set_bold();
-                        sheet.write_with_format(0, j as u16, data.to_string(), &bold).expect("error write cell");
+                        sheet
+                            .write_with_format(0, j as u16, data.to_string(), &bold)
+                            .expect("error write cell");
                     }
                     continue;
                 }
                 // write staple
                 for (j, data) in row.iter().enumerate() {
-                    if j == 4 { // length
+                    if j == 4 {
+                        // length
                         if let Ok(length) = row[j].parse::<f64>() {
-                            sheet.write(i as u32, j as u16, length).expect("error write cell");
+                            sheet
+                                .write(i as u32, j as u16, length)
+                                .expect("error write cell");
                             continue;
                         }
                     }
-                    if j == 6 { // color
+                    if j == 6 {
+                        // color
                         if let Ok(color) = u32::from_str_radix(row[j], 16) {
-                            let (r,g,b) = ((color>>4)&0xFF, (color>>2)&0xFF, color&0xFF);
-                            let luminance = r+b+3*g;
-                            let font_color = if luminance >= 5*255/2 { Color::Black } else { Color::White };
-                            let format = Format::new().set_background_color(Color::RGB(color)).set_font_color(font_color);
-                            sheet.write_with_format(i as u32, j as u16, row[j].to_string(), &format).expect("error write cell");
+                            let (r, g, b) =
+                                ((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF);
+                            let luminance = r + b + 3 * g;
+                            // println!("{color:06X} {luminance} {r:0X} {g:0X} {b:0X} {:06X}", (r<<16) + (g<<8) + b);
+                            let font_color = if luminance >= threshold_black_white_font_color {
+                                Color::Black
+                            } else {
+                                Color::White
+                            };
+                            let format = Format::new()
+                                .set_background_color(Color::RGB(color))
+                                .set_font_color(font_color);
+                            sheet
+                                .write_with_format(i as u32, j as u16, row[j].to_string(), &format)
+                                .expect("error write cell");
                             continue;
                         }
                     }
-                    sheet.write(i as u32, j as u16, row[j].to_string()).expect("error write cell");
+                    sheet
+                        .write(i as u32, j as u16, row[j].to_string())
+                        .expect("error write cell");
                 }
             }
 
             sheet.autofit();
         }
 
-        let mut sheet: &mut rust_xlsxwriter::Worksheet = wb.add_worksheet().set_name(&format!("All staples")).expect("Excel error: cannot create worksheet"); 
+        let mut sheet: &mut rust_xlsxwriter::Worksheet = wb
+            .add_worksheet()
+            .set_name(&format!("All staples"))
+            .expect("Excel error: cannot create worksheet");
         let mut write_once = true;
         let mut all_i = 0;
         for (_, rows) in sheets.iter() {
-            for (i,row) in rows.iter().enumerate() {
+            for (i, row) in rows.iter().enumerate() {
                 if i == 0 {
                     if write_once {
                         for (j, data) in row.iter().enumerate() {
                             let bold = Format::new().set_bold();
-                            sheet.write_with_format(0, j as u16, data.to_string(), &bold).expect("error write cell");
+                            sheet
+                                .write_with_format(0, j as u16, data.to_string(), &bold)
+                                .expect("error write cell");
                         }
                         write_once = false;
                         all_i += 1;
-                    }   
+                    }
                     continue;
                 }
                 // write staple
                 for (j, data) in row.iter().enumerate() {
-                    if j == 4 { // length
+                    if j == 4 {
+                        // length
                         if let Ok(length) = row[j].parse::<f64>() {
-                            sheet.write(all_i, j as u16, length).expect("error write cell");
+                            sheet
+                                .write(all_i, j as u16, length)
+                                .expect("error write cell");
                             continue;
                         }
                     }
-                    if j == 6 { // color
+                    if j == 6 {
+                        // color
                         if let Ok(color) = u32::from_str_radix(row[j], 16) {
-                            let (r,g,b) = ((color>>4)&0xFF, (color>>2)&0xFF, color&0xFF);
-                            let luminance = r+b+3*g;
-                            let font_color = if luminance >= 5*255/2 { Color::Black } else { Color::White };
-                            let format = Format::new().set_background_color(Color::RGB(color)).set_font_color(font_color);
-                            sheet.write_with_format(all_i, j as u16, row[j].to_string(), &format).expect("error write cell");
+                            let (r, g, b) =
+                                ((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF);
+                            let luminance = r + b + 3 * g;
+                            let font_color = if luminance >= threshold_black_white_font_color {
+                                Color::Black
+                            } else {
+                                Color::White
+                            };
+                            let format = Format::new()
+                                .set_background_color(Color::RGB(color))
+                                .set_font_color(font_color);
+                            sheet
+                                .write_with_format(all_i, j as u16, row[j].to_string(), &format)
+                                .expect("error write cell");
                             continue;
                         }
                     }
-                    sheet.write(all_i as u32, j as u16, row[j].to_string()).expect("error write cell");
+                    sheet
+                        .write(all_i as u32, j as u16, row[j].to_string())
+                        .expect("error write cell");
                 }
                 all_i += 1;
             }
