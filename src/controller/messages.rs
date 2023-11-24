@@ -23,16 +23,6 @@ pub const NO_FILE_RECIEVED_OXDNA: &'static str = "OxDNA export canceled";
 pub const NO_FILE_RECIEVED_SCAFFOLD: &'static str = "Scaffold setting canceled";
 pub const NO_FILE_RECIEVED_STAPPLE: &'static str = "Staple export canceled";
 
-pub fn succesfull_oxdna_export_msg<P: AsRef<Path>>(config: P, topo: P) -> String {
-    format!(
-        "Successfully exported to\n\
-             {}\n\
-             {}",
-        config.as_ref().to_string_lossy(),
-        topo.as_ref().to_string_lossy()
-    )
-}
-
 pub fn failed_to_save_msg<D: std::fmt::Debug>(reason: &D) -> String {
     format!("Failed to save {:?}", reason)
 }
@@ -63,7 +53,6 @@ pub const SAVE_BEFORE_RELOAD: &'static str =
     "Do you want to save your changes in an other file before reloading?";
 pub const SAVE_BEFORE_NEW: &'static str =
     "Do you want to save your design before starting a new one?";
-pub const USE_DEFAULT_M13: &'static str = "Use default m13 sequence?";
 
 pub fn optimize_scaffold_position_msg(default_position: usize) -> String {
     format!("Optimize the scaffold position ?\n
@@ -81,7 +70,7 @@ pub fn invalid_sequence_file(first_invalid_char_position: usize) -> String {
 }
 
 use crate::dialog::Filters;
-pub const DESIGN_FILTERS: Filters = &[
+pub const DESIGN_LOAD_FILTER: Filters = &[
     (
         "All supported files",
         &[
@@ -102,7 +91,32 @@ pub const DESIGN_FILTERS: Filters = &[
     ("scadnano files", &["sc"]),
 ];
 
+pub const DESIGN_WRITE_FILTER: Filters = &[("ENSnano files", &[crate::consts::ENS_EXTENSION])];
+
 pub const SEQUENCE_FILTERS: Filters = &[("Text files", &["txt"])];
 
 pub const CHANGING_DNA_PARAMETERS_WARNING: &'static str =
     "Are you sure that you want to change DNA parameters?";
+
+pub const OXDNA_CONFIG_EXTENSTION: &str = "oxdna";
+
+pub const OXDNA_CONFIG_FILTERS: Filters = &[("Oxdna config files", &[OXDNA_CONFIG_EXTENSTION])];
+
+pub const STAPLES_FILTER: Filters = &[("Excel files", &["xlsx"])];
+
+pub const ORIGAMI_FLTER: Filters = &[("Origami files", &[crate::consts::ORIGAMI_EXTENSION])];
+
+pub const PDB_FILTER: Filters = &[("Pdb files", &["pdb"])];
+pub const CADNANO_FILTER: Filters = &[("Cadnano files", &["json"])];
+
+pub const OBJECT3D_FILTERS: Filters = &[
+    ("All supported files", &["gltf", "stl"]),
+    ("Stl files", &["stl"]),
+    ("Gltf files", &["gltf"]),
+];
+
+pub const SVG_FILTERS: Filters = &[("Svg files", &["svg"])];
+
+pub const SET_DESIGN_DIRECTORY_FIRST: &str =
+    "It is not possible to import 3D objects in an unamed design.
+Please save your design first to give it a name";

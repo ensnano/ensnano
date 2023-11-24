@@ -16,7 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-//! This modules defines the `AppState` struct which implements various traits used by the
+//! This module defines the `AppState` struct which implements various traits used by the
 //! different components of ENSnano.
 //!
 //! The role of AppState is to provide information about the global state of the program, for
@@ -24,33 +24,44 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //!
 //! Each component of ENSnano has specific needs and express them via its own `AppState` trait.
 
-use ensnano_design::group_attributes::GroupPivot;
+use ensnano_design::{group_attributes::GroupPivot, BezierPathId};
+use ensnano_exports::{ExportResult, ExportType};
+use ensnano_gui::UiSize;
 use ensnano_interactor::{
-    operation::Operation, ActionMode, CenterOfSelection, Selection, SelectionMode, WidgetBasis,
+    graphics::{Background3D, HBoundDisplay, RenderingMode},
+    UnrootedRevolutionSurfaceDescriptor,
+};
+use ensnano_interactor::{
+    operation::Operation, ActionMode, CenterOfSelection, CheckXoversParameter, Selection,
+    SelectionMode, WidgetBasis,
 };
 
 use std::path::PathBuf;
 use std::sync::{Arc, RwLock};
 mod address_pointer;
 mod design_interactor;
+mod transitions;
 use crate::apply_update;
-use crate::controller::SimulationRequest;
+use crate::controller::{LoadDesignError, SaveDesignError, SimulationRequest};
 use address_pointer::AddressPointer;
-use ensnano_design::Design;
+use ensnano_design::{Design, SavingInformation};
+use ensnano_interactor::consts::APP_NAME;
 use ensnano_interactor::{DesignOperation, RigidBodyConstants, SuggestionParameters};
 use ensnano_organizer::GroupId;
 
 pub use design_interactor::controller::ErrOperation;
 pub use design_interactor::{
-    CopyOperation, DesignReader, InteractorNotification, PastingStatus, ShiftOptimizationResult,
-    ShiftOptimizerReader, SimulationInterface, SimulationReader, SimulationTarget,
-    SimulationUpdate,
+    CopyOperation, DesignReader, InteractorNotification, PastePosition, PastingStatus,
+    ShiftOptimizationResult, ShiftOptimizerReader, SimulationInterface, SimulationReader,
+    SimulationTarget, SimulationUpdate,
 };
 use design_interactor::{DesignInteractor, InteractorResult};
 
 mod impl_app2d;
 mod impl_app3d;
 mod impl_gui;
+
+pub use transitions::{AppStateTransition, OkOperation, TransitionLabel};
 
 /// A structure containing the global state of the program.
 ///
@@ -74,17 +85,42 @@ impl std::fmt::Pointer for AppState {
 
 impl Default for AppState {
     fn default() -> Self {
-        let ret = AppState(Default::default());
-        ret.updated()
+        let mut ret = AppState(Default::default());
+        log::trace!("call from default");
+        // Synchronize all the pointers.
+        // This truns updated_once to true so we must set it back to false afterwards
+        ret = ret.updated();
+        let mut with_forgot_update = ret.0.clone_inner();
+        with_forgot_update.updated_once = false;
+        AppState(AddressPointer::new(with_forgot_update))
+    }
+}
+
+impl AppState {
+    pub fn with_preferred_parameters() -> Result<Self, confy::ConfyError> {
+        let state: AppState_ = AppState_ {
+            parameters: confy::load(APP_NAME, APP_NAME)?,
+            ..Default::default()
+        };
+        let mut ret = AppState(AddressPointer::new(state));
+        log::trace!("call from default");
+        // Synchronize all the pointers.
+        // This truns updated_once to true so we must set it back to false afterwards
+        ret = ret.updated();
+        let mut with_forgot_update = ret.0.clone_inner();
+        with_forgot_update.updated_once = false;
+        Ok(AppState(AddressPointer::new(with_forgot_update)))
     }
 }
 
 impl AppState {
     pub fn with_selection(
         &self,
-        selection: Vec<Selection>,
+        mut selection: Vec<Selection>,
         selected_group: Option<GroupId>,
     ) -> Self {
+        selection.sort();
+        selection.dedup();
         if self.0.selection.selection.content_equal(&selection)
             && selected_group == self.0.selection.selected_group
         {
@@ -119,7 +155,9 @@ impl AppState {
         }
     }
 
-    pub fn with_candidates(&self, candidates: Vec<Selection>) -> Self {
+    pub fn with_candidates(&self, mut candidates: Vec<Selection>) -> Self {
+        candidates.sort();
+        candidates.dedup();
         if self.0.candidates.content_equal(&candidates) {
             self.clone()
         } else {
@@ -137,8 +175,12 @@ impl AppState {
 
     pub fn with_suggestion_parameters(&self, suggestion_parameters: SuggestionParameters) -> Self {
         let mut new_state = (*self.0).clone();
-        new_state.suggestion_parameters = suggestion_parameters;
+        new_state.parameters.suggestion_parameters = suggestion_parameters;
         Self(AddressPointer::new(new_state))
+    }
+
+    pub fn with_ui_size(&self, ui_size: UiSize) -> Self {
+        self.with_updated_parameters(|p| p.ui_size = ui_size)
     }
 
     pub fn with_action_mode(&self, action_mode: ActionMode) -> Self {
@@ -171,6 +213,12 @@ impl AppState {
         }
     }
 
+    pub fn exporting(&self, exporting: bool) -> Self {
+        let mut new_state = (*self.0).clone();
+        new_state.exporting = exporting;
+        Self(AddressPointer::new(new_state))
+    }
+
     pub fn with_toggled_widget_basis(&self) -> Self {
         let mut new_state = (*self.0).clone();
         new_state.widget_basis.toggle();
@@ -190,15 +238,38 @@ impl AppState {
         Self(AddressPointer::new(new_state))
     }
 
-    pub fn import_design(path: &PathBuf) -> Result<Self, design_interactor::ParseDesignError> {
-        let design_interactor = DesignInteractor::new_with_path(path)?;
+    pub fn import_design(mut path: PathBuf) -> Result<Self, LoadDesignError> {
+        let design_interactor = DesignInteractor::new_with_path(&path)?;
+        if path.extension().map(|s| s.to_string_lossy())
+            != Some(crate::consts::ENS_BACKUP_EXTENSION.into())
+        {
+            path.set_extension(crate::consts::ENS_EXTENSION);
+        }
         Ok(Self(AddressPointer::new(AppState_ {
             design: AddressPointer::new(design_interactor),
+            parameters: confy::load(APP_NAME, APP_NAME).unwrap_or_default(),
+            path_to_current_design: Some(path.clone()),
             ..Default::default()
-        })))
+        }))
+        .updated())
+    }
+
+    pub fn save_design(
+        &mut self,
+        path: &PathBuf,
+        saving_info: SavingInformation,
+    ) -> Result<(), SaveDesignError> {
+        self.get_design_reader().save_design(path, saving_info)?;
+        self.0.make_mut().path_to_current_design = Some(path.clone());
+        Ok(())
+    }
+
+    pub fn path_to_current_design(&self) -> Option<&PathBuf> {
+        self.0.path_to_current_design.as_ref()
     }
 
     pub(super) fn update(&mut self) {
+        log::trace!("update");
         apply_update(self, Self::updated)
     }
 
@@ -215,10 +286,16 @@ impl AppState {
     fn updated(self) -> Self {
         let old_self = self.clone();
         let mut interactor = self.0.design.clone_inner();
-        interactor = interactor.with_updated_design_reader(&self.0.suggestion_parameters);
-        let new = self.with_interactor(interactor);
-        if old_self.design_was_modified(&new) {
-            new
+        log::trace!("calling from updated!!");
+        if self
+            .0
+            .design
+            .design_need_update(&self.0.parameters.suggestion_parameters)
+        {
+            log::trace!("design need update");
+            interactor =
+                interactor.with_updated_design_reader(&self.0.parameters.suggestion_parameters);
+            self.with_interactor(interactor)
         } else {
             old_self
         }
@@ -226,6 +303,7 @@ impl AppState {
 
     fn with_interactor(self, interactor: DesignInteractor) -> Self {
         let mut new_state = self.0.clone_inner();
+        new_state.updated_once = true;
         new_state.design = AddressPointer::new(interactor);
         Self(AddressPointer::new(new_state))
     }
@@ -233,7 +311,7 @@ impl AppState {
     pub(super) fn apply_design_op(
         &mut self,
         op: DesignOperation,
-    ) -> Result<Option<Self>, ErrOperation> {
+    ) -> Result<OkOperation, ErrOperation> {
         let result = self.0.design.apply_operation(op);
         self.handle_operation_result(result)
     }
@@ -241,15 +319,17 @@ impl AppState {
     pub(super) fn apply_copy_operation(
         &mut self,
         op: CopyOperation,
-    ) -> Result<Option<Self>, ErrOperation> {
-        let result = self.0.design.apply_copy_operation(op);
+    ) -> Result<OkOperation, ErrOperation> {
+        let self_mut = self.0.make_mut();
+        let design_mut = self_mut.design.make_mut();
+        let result = design_mut.apply_copy_operation(op);
         self.handle_operation_result(result)
     }
 
     pub(super) fn update_pending_operation(
         &mut self,
         op: Arc<dyn Operation>,
-    ) -> Result<Option<Self>, ErrOperation> {
+    ) -> Result<OkOperation, ErrOperation> {
         let result = self.0.design.update_pending_operation(op);
         self.handle_operation_result(result)
     }
@@ -259,7 +339,7 @@ impl AppState {
         parameters: RigidBodyConstants,
         reader: &mut dyn SimulationReader,
         target: SimulationTarget,
-    ) -> Result<Option<Self>, ErrOperation> {
+    ) -> Result<OkOperation, ErrOperation> {
         let result = self.0.design.start_simulation(parameters, reader, target);
         self.handle_operation_result(result)
     }
@@ -267,7 +347,7 @@ impl AppState {
     pub(super) fn update_simulation(
         &mut self,
         request: SimulationRequest,
-    ) -> Result<Option<Self>, ErrOperation> {
+    ) -> Result<OkOperation, ErrOperation> {
         let result = self.0.design.update_simulation(request);
         self.handle_operation_result(result)
     }
@@ -275,18 +355,37 @@ impl AppState {
     fn handle_operation_result(
         &mut self,
         result: Result<InteractorResult, ErrOperation>,
-    ) -> Result<Option<Self>, ErrOperation> {
+    ) -> Result<OkOperation, ErrOperation> {
+        log::trace!("handle operation result");
         match result {
-            Ok(InteractorResult::Push(design)) => {
+            Ok(InteractorResult::Push {
+                interactor: mut design,
+                label,
+            }) => {
+                let new_selection = design.get_next_selection();
                 let ret = Some(self.clone());
-                let new_state = self.clone().with_interactor(design);
+                let mut new_state = self.clone().with_interactor(design);
+                if let Some(selection) = new_selection {
+                    new_state = new_state.with_selection(selection, None);
+                }
                 *self = new_state;
-                Ok(ret)
+                if let Some(state) = ret {
+                    Ok(OkOperation::Undoable {
+                        state,
+                        label: label.into(),
+                    })
+                } else {
+                    Ok(OkOperation::NotUndoable)
+                }
             }
-            Ok(InteractorResult::Replace(design)) => {
-                let new_state = self.clone().with_interactor(design);
+            Ok(InteractorResult::Replace(mut design)) => {
+                let new_selection = design.get_next_selection();
+                let mut new_state = self.clone().with_interactor(design);
+                if let Some(selection) = new_selection {
+                    new_state = new_state.with_selection(selection, None);
+                }
                 *self = new_state;
-                Ok(None)
+                Ok(OkOperation::NotUndoable)
             }
             Err(e) => {
                 log::error!("error {:?}", e);
@@ -301,7 +400,7 @@ impl AppState {
     }
 
     pub fn finish_operation(&mut self) {
-        let pivot = self.0.selection.pivot.read().unwrap().clone();
+        let pivot = *self.0.selection.pivot.read().unwrap();
         log::info!("Setting pivot {:?}", pivot);
         log::info!("was {:?}", self.0.selection.old_pivot.read().unwrap());
         *self.0.selection.old_pivot.write().unwrap() = pivot;
@@ -316,8 +415,8 @@ impl AppState {
         self.0.design.get_design_reader()
     }
 
-    pub fn oxdna_export(&self, target_dir: &PathBuf) -> std::io::Result<(PathBuf, PathBuf)> {
-        self.get_design_reader().oxdna_export(target_dir)
+    pub fn export(&self, export_path: &PathBuf, export_type: ExportType) -> ExportResult {
+        self.get_design_reader().export(export_path, export_type)
     }
 
     pub fn get_selection(&self) -> impl AsRef<[Selection]> {
@@ -330,13 +429,105 @@ impl AppState {
 
     pub(super) fn prepare_for_replacement(&mut self, source: &Self) {
         *self = self.with_candidates(vec![]);
-        *self = self.with_action_mode(source.0.action_mode.clone());
-        *self = self.with_selection_mode(source.0.selection_mode.clone());
-        *self = self.with_suggestion_parameters(source.0.suggestion_parameters.clone());
+        *self = self.with_action_mode(source.0.action_mode);
+        *self = self.with_selection_mode(source.0.selection_mode);
+        *self = self.with_suggestion_parameters(source.0.parameters.suggestion_parameters.clone());
+        *self = self.with_check_xovers_parameters(source.0.parameters.check_xover_paramters);
+        *self = self.with_updated_parameters(|p| *p = source.0.parameters.clone());
     }
 
-    pub(super) fn is_pasting(&self) -> PastingStatus {
-        self.0.design.is_pasting()
+    pub fn with_check_xovers_parameters(
+        &self,
+        check_xover_paramters: CheckXoversParameter,
+    ) -> Self {
+        self.with_updated_parameters(|p| p.check_xover_paramters = check_xover_paramters)
+    }
+
+    pub fn with_follow_stereographic_camera(&self, follow: bool) -> Self {
+        self.with_updated_parameters(|p| p.follow_stereography = follow)
+    }
+
+    pub fn with_show_stereographic_camera(&self, show: bool) -> Self {
+        self.with_updated_parameters(|p| p.show_stereography = show)
+    }
+
+    pub fn with_show_h_bonds(&self, show: HBoundDisplay) -> Self {
+        self.with_updated_parameters(|p| p.show_h_bonds = show)
+    }
+
+    pub fn with_show_bezier_paths(&self, show: bool) -> Self {
+        self.with_updated_parameters(|p| p.show_bezier_paths = show)
+    }
+
+    pub fn with_thick_helices(&self, thick: bool) -> Self {
+        self.with_updated_parameters(|p| p.thick_helices = thick)
+    }
+
+    pub fn set_bezier_revolution_id(&self, id: Option<usize>) -> Self {
+        let mut new_state = (*self.0).clone();
+        new_state.unrooted_surface.bezier_path_id = id.map(|id| BezierPathId(id as u32));
+        Self(AddressPointer::new(new_state))
+    }
+
+    pub fn set_bezier_revolution_radius(&self, radius: f64) -> Self {
+        let mut new_state = (*self.0).clone();
+        new_state.set_surface_revolution_radius(radius);
+        Self(AddressPointer::new(new_state))
+    }
+
+    pub fn set_revolution_axis_position(&self, position: f64) -> Self {
+        let mut new_state = (*self.0).clone();
+        new_state.set_surface_axis_position(position);
+        Self(AddressPointer::new(new_state))
+    }
+
+    pub fn set_unrooted_surface(
+        &self,
+        surface: Option<UnrootedRevolutionSurfaceDescriptor>,
+    ) -> Self {
+        if self.0.unrooted_surface.descriptor.as_ref() != surface.as_ref() {
+            let mut new_state = (*self.0).clone();
+            new_state.set_unrooted_surface(surface);
+            Self(AddressPointer::new(new_state))
+        } else {
+            self.clone()
+        }
+    }
+
+    pub fn with_toggled_thick_helices(&self) -> Self {
+        self.with_updated_parameters(|p| p.thick_helices ^= true)
+    }
+
+    pub fn with_background3d(&self, bg: Background3D) -> Self {
+        self.with_updated_parameters(|p| p.background3d = bg)
+    }
+
+    pub fn with_rendering_mode(&self, rendering_mode: RenderingMode) -> Self {
+        self.with_updated_parameters(|p| p.rendering_mode = rendering_mode)
+    }
+
+    pub fn with_scroll_sensitivity(&self, sensitivity: f32) -> Self {
+        self.with_updated_parameters(|p| p.scroll_sensitivity = sensitivity)
+    }
+
+    pub fn with_inverted_y_scroll(&self, inverted: bool) -> Self {
+        self.with_updated_parameters(|p| p.inverted_y_scroll = inverted)
+    }
+
+    fn with_updated_parameters<F>(&self, update: F) -> Self
+    where
+        F: Fn(&mut AppStateParameters),
+    {
+        let mut new_state = (*self.0).clone();
+        update(&mut new_state.parameters);
+        if let Err(e) = confy::store(APP_NAME, APP_NAME, new_state.parameters.clone()) {
+            log::error!("Could not save preferences {:?}", e);
+        };
+        Self(AddressPointer::new(new_state))
+    }
+
+    pub(super) fn get_pasting_status(&self) -> PastingStatus {
+        self.0.design.get_pasting_status()
     }
 
     pub(super) fn can_iterate_duplication(&self) -> bool {
@@ -346,7 +537,7 @@ impl AppState {
     pub(super) fn optimize_shift(
         &mut self,
         reader: &mut dyn ShiftOptimizerReader,
-    ) -> Result<Option<Self>, ErrOperation> {
+    ) -> Result<OkOperation, ErrOperation> {
         let result = self.0.design.optimize_shift(reader);
         self.handle_operation_result(result)
     }
@@ -355,12 +546,11 @@ impl AppState {
         self.0.design.is_in_stable_state()
     }
 
-    #[must_use]
     pub(super) fn set_visibility_sieve(
         &mut self,
         selection: Vec<Selection>,
         compl: bool,
-    ) -> Result<Option<Self>, ErrOperation> {
+    ) -> Result<OkOperation, ErrOperation> {
         let result = self
             .0
             .design
@@ -371,6 +561,7 @@ impl AppState {
 
     pub fn design_was_modified(&self, other: &Self) -> bool {
         self.0.design.has_different_design_than(&other.0.design)
+            && (self.0.updated_once || other.0.updated_once)
     }
 
     fn get_strand_building_state(&self) -> Option<crate::gui::StrandBuildingStatus> {
@@ -403,7 +594,7 @@ impl AppState {
     }
 
     pub fn get_current_group_id(&self) -> Option<GroupId> {
-        self.0.selection.selected_group.clone()
+        self.0.selection.selected_group
     }
 
     pub fn set_current_group_pivot(&mut self, pivot: GroupPivot) {
@@ -471,6 +662,43 @@ impl AppState {
     }
 }
 
+use serde::{Deserialize, Serialize};
+#[derive(Clone, Serialize, Deserialize)]
+#[serde(default)] // workarround for https://github.com/rust-cli/confy/issues/34
+pub struct AppStateParameters {
+    suggestion_parameters: SuggestionParameters,
+    check_xover_paramters: CheckXoversParameter,
+    follow_stereography: bool,
+    show_stereography: bool,
+    rendering_mode: RenderingMode,
+    background3d: Background3D,
+    thick_helices: bool,
+    scroll_sensitivity: f32,
+    inverted_y_scroll: bool,
+    show_h_bonds: HBoundDisplay,
+    show_bezier_paths: bool,
+    pub ui_size: ensnano_gui::UiSize,
+}
+
+impl Default for AppStateParameters {
+    fn default() -> Self {
+        Self {
+            suggestion_parameters: Default::default(),
+            check_xover_paramters: Default::default(),
+            follow_stereography: Default::default(),
+            show_stereography: Default::default(),
+            rendering_mode: Default::default(),
+            background3d: Default::default(),
+            thick_helices: true,
+            scroll_sensitivity: 0.0,
+            inverted_y_scroll: false,
+            show_h_bonds: HBoundDisplay::No,
+            show_bezier_paths: false,
+            ui_size: ensnano_gui::UiSize::default(),
+        }
+    }
+}
+
 #[derive(Clone, Default)]
 struct AppState_ {
     /// The set of currently selected objects
@@ -478,7 +706,7 @@ struct AppState_ {
     /// The set of objects that are "one click away from beeing selected"
     candidates: AddressPointer<Vec<Selection>>,
     selection_mode: SelectionMode,
-    /// A pointer to the design currently beign eddited. The pointed design is never mutatated.
+    /// A pointer to the design currently beign edited. The pointed design is never mutatated.
     /// Instead, when a modification is requested, the design is cloned and the `design` pointer is
     /// replaced by a pointer to a modified `Design`.
     design: AddressPointer<DesignInteractor>,
@@ -486,8 +714,45 @@ struct AppState_ {
     widget_basis: WidgetBasis,
     strand_on_new_helix: Option<NewHelixStrand>,
     center_of_selection: Option<CenterOfSelection>,
-    suggestion_parameters: SuggestionParameters,
+    updated_once: bool,
+    parameters: AppStateParameters,
     show_insertion_representents: bool,
+    exporting: bool,
+    path_to_current_design: Option<PathBuf>,
+    unrooted_surface: CurrentUnrootedSurface,
+}
+
+#[derive(Clone, Default)]
+struct CurrentUnrootedSurface {
+    descriptor: Option<UnrootedRevolutionSurfaceDescriptor>,
+    bezier_path_id: Option<BezierPathId>,
+    area: Option<f64>,
+}
+
+impl AppState_ {
+    fn set_unrooted_surface(&mut self, surface: Option<UnrootedRevolutionSurfaceDescriptor>) {
+        self.unrooted_surface.area = surface
+            .as_ref()
+            .and_then(|s| s.approx_surface_area(1_000, 1_000));
+        self.unrooted_surface.descriptor = surface;
+    }
+
+    fn set_surface_revolution_radius(&mut self, radius: f64) {
+        use ensnano_interactor::RevolutionSurfaceRadius;
+        let mut new_surface = self.unrooted_surface.descriptor.clone();
+        if let Some(s) = new_surface.as_mut() {
+            s.revolution_radius = RevolutionSurfaceRadius::from_signed_f64(radius);
+        }
+        self.set_unrooted_surface(new_surface);
+    }
+
+    fn set_surface_axis_position(&mut self, position: f64) {
+        let mut new_surface = self.unrooted_surface.descriptor.clone();
+        if let Some(s) = new_surface.as_mut() {
+            s.set_axis_position(position)
+        }
+        self.set_unrooted_surface(new_surface);
+    }
 }
 
 #[derive(Clone, Default)]

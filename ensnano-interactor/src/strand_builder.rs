@@ -16,7 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use ensnano_design::{Axis, Domain, Nucl};
+use ensnano_design::{Axis, Domain, Nucl, OwnedAxis};
 
 use std::cmp::Ordering;
 use ultraviolet::Mat4;
@@ -28,10 +28,10 @@ pub struct StrandBuilder {
     /// The initial position of the moving end
     pub initial_position: isize,
     /// Axis of the support helix on which the domain lies
-    pub axis: Axis,
-    /// The identifier of the domain being eddited
+    pub axis: OwnedAxis,
+    /// The identifier of the domain being edited
     identifier: DomainIdentifier,
-    /// The fixed_end of the domain being eddited, `None` if the domain is new and can go in both
+    /// The fixed_end of the domain being edited, `None` if the domain is new and can go in both
     /// direction
     fixed_end: Option<isize>,
     /// The enventual other strand being modified by the current modification
@@ -39,15 +39,15 @@ pub struct StrandBuilder {
     /// The direction in which the end of neighbour_strand can go, starting from its inital
     /// position
     neighbour_direction: Option<EditDirection>,
-    /// The minimum position to which the eddited domain can go. It corresponds to the eventual
-    /// minimum position of the neighbour_strand or to the other end of the domain being eddited
+    /// The minimum position to which the edited domain can go. It corresponds to the eventual
+    /// minimum position of the neighbour_strand or to the other end of the domain being edited
     min_pos: Option<isize>,
-    /// The maximum position to which the eddited domain can go. It corresponds to the eventual
-    /// maximum position of the neighbour_strand, or to the other end of the domain being eddited
+    /// The maximum position to which the edited domain can go. It corresponds to the eventual
+    /// maximum position of the neighbour_strand, or to the other end of the domain being edited
     max_pos: Option<isize>,
     /// A envtual neighbour that was detached during the movement
     detached_neighbour: Option<NeighbourDescriptor>,
-    /// The id of the design being eddited
+    /// The id of the design being edited
     design_id: u32,
     /// A timestamp used to distinguish between strand building operation initiated at different
     /// moment
@@ -70,7 +70,7 @@ impl StrandBuilder {
     pub fn init_empty(
         identifier: DomainIdentifier,
         nucl: Nucl,
-        axis: Axis,
+        axis: OwnedAxis,
         neighbour: Option<NeighbourDescriptor>,
         de_novo: bool,
     ) -> Self {
@@ -106,7 +106,7 @@ impl StrandBuilder {
         }
     }
 
-    /// Create a strand that will eddit an existing domain. This means that the initial position
+    /// Create a strand that will edit an existing domain. This means that the initial position
     /// corresponds to an end of an existing domain
     /// # Argument
     ///
@@ -116,13 +116,13 @@ impl StrandBuilder {
     ///
     /// * axis: The axis of the helix on which the domain will be created
     ///
-    /// * other_end: The position of the fixed end of the domain that will be eddited
+    /// * other_end: The position of the fixed end of the domain that will be edited
     ///
     /// * neighbour: An evental existing neighbour of the strand being created
     pub fn init_existing(
         identifier: DomainIdentifier,
         nucl: Nucl,
-        axis: Axis,
+        axis: OwnedAxis,
         other_end: Option<isize>,
         neighbour: Option<NeighbourDescriptor>,
         stick: bool,
@@ -360,14 +360,18 @@ impl StrandBuilder {
     /// Convert the axis in the world's coordinate. This function is used at the creation of the
     /// builder.
     pub fn transformed(self, model_matrix: &Mat4) -> Self {
-        let new_axis = self.axis.transformed(model_matrix);
+        let new_axis = self.axis.borrow().transformed(model_matrix).to_owned();
         Self {
             axis: new_axis,
             ..self
         }
     }
 
-    /// Return the identifier of the design being eddited
+    pub fn get_axis<'a>(&'a self) -> Axis<'a> {
+        self.axis.borrow()
+    }
+
+    /// Return the identifier of the design being edited
     pub fn get_design_id(&self) -> u32 {
         self.design_id
     }
@@ -421,7 +425,7 @@ enum EditDirection {
     Positive,
 }
 
-/// Describes a domain being eddited
+/// Describes a domain being edited
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct NeighbourDescriptor {
     pub identifier: DomainIdentifier,

@@ -15,22 +15,26 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use ensnano_design::ultraviolet;
-use ensnano_utils::wgpu;
-use ensnano_utils::winit;
+use ensnano_design::{grid::HelixGridPosition, ultraviolet, BezierVertexId};
+use ensnano_interactor::{
+    graphics::RenderingMode, NewBezierTengentVector, UnrootedRevolutionSurfaceDescriptor,
+};
+use ensnano_utils::{wgpu, winit};
 use std::cell::RefCell;
+use std::path::PathBuf;
 use std::rc::Rc;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use ultraviolet::{Mat4, Rotor3, Vec3};
 
-use ensnano_design::{group_attributes::GroupPivot, Nucl};
+use camera::FiniteVec3;
+use ensnano_design::{grid::GridPosition, group_attributes::GroupPivot, Nucl};
 use ensnano_interactor::{
-    application::{AppId, Application, Notification},
+    application::{AppId, Application, Camera3D, Notification},
     graphics::DrawArea,
     operation::*,
-    ActionMode, CenterOfSelection, DesignOperation, Selection, SelectionMode, StrandBuilder,
-    WidgetBasis,
+    ActionMode, CenterOfSelection, CheckXoversParameter, DesignOperation, Selection, SelectionMode,
+    StrandBuilder, WidgetBasis,
 };
 use ensnano_utils::{instance, PhySize};
 use instance::Instance;
@@ -40,15 +44,14 @@ use winit::event::WindowEvent;
 
 /// Computation of the view and projection matrix.
 mod camera;
-use camera::FiniteVec3;
 /// Display of the scene
 mod view;
+pub use view::{DrawOptions, FogParameters, GridInstance};
 use view::{
     DrawType, HandleDir, HandleOrientation, HandlesDescriptor, LetterInstance,
-    RotationMode as WidgetRotationMode, RotationWidgetDescriptor, RotationWidgetOrientation, View,
-    ViewUpdate,
+    RotationMode as WidgetRotationMode, RotationWidgetDescriptor, RotationWidgetOrientation,
+    Stereography, View, ViewUpdate,
 };
-pub use view::{FogParameters, GridInstance};
 /// Handling of inputs and notifications
 mod controller;
 use controller::{Consequence, Controller, WidgetTarget};
@@ -56,7 +59,7 @@ use controller::{Consequence, Controller, WidgetTarget};
 mod data;
 pub use controller::ClickMode;
 use data::Data;
-pub use data::DesignReader;
+pub use data::{DesignReader, HBond, HalfHBond, SurfaceInfo, SurfacePoint};
 mod element_selector;
 use element_selector::{ElementSelector, SceneElement};
 mod maths_3d;
@@ -64,6 +67,8 @@ mod maths_3d;
 type ViewPtr = Rc<RefCell<View>>;
 type DataPtr<R> = Rc<RefCell<Data<R>>>;
 use std::convert::TryInto;
+
+const PNG_SIZE: u32 = 256 * 10;
 
 /// A structure responsible of the 3D display of the designs
 pub struct Scene<S: AppState> {
@@ -80,6 +85,14 @@ pub struct Scene<S: AppState> {
     element_selector: ElementSelector,
     older_state: S,
     requests: Arc<Mutex<dyn Requests>>,
+    scene_kind: SceneKind,
+    current_camera: Arc<(Camera3D, f32)>,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum SceneKind {
+    Cartesian,
+    Stereographic,
 }
 
 impl<S: AppState> Scene<S> {
@@ -101,8 +114,9 @@ impl<S: AppState> Scene<S> {
         requests: Arc<Mutex<dyn Requests>>,
         encoder: &mut wgpu::CommandEncoder,
         inital_state: S,
+        scene_kind: SceneKind,
     ) -> Self {
-        let update = SceneUpdate::new();
+        let update = SceneUpdate::default();
         let view: ViewPtr = Rc::new(RefCell::new(View::new(
             window_size,
             area.size,
@@ -132,18 +146,21 @@ impl<S: AppState> Scene<S> {
             requests,
             element_selector,
             older_state: inital_state,
+            scene_kind,
+            current_camera: Arc::new((
+                Default::default(),
+                area.size.width as f32 / area.size.height as f32,
+            )),
         }
     }
-
-    /*
-    /// Add a design to be rendered.
-    fn add_design(&mut self, design: Arc<RwLock<Design>>) {
-        self.data.borrow_mut().add_design(design)
-    }*/
 
     /// Remove all designs
     fn clear_design(&mut self) {
         self.data.borrow_mut().clear_designs()
+    }
+
+    fn is_stereographic(&self) -> bool {
+        matches!(self.scene_kind, SceneKind::Stereographic)
     }
 
     /// Input an event to the scene. The controller parse the event and return the consequence that
@@ -170,6 +187,9 @@ impl<S: AppState> Scene<S> {
     }
 
     fn read_consequence(&mut self, consequence: Consequence, app_state: &S) {
+        if !matches!(consequence, Consequence::Nothing) {
+            log::info!("Consequence {:?}", consequence);
+        }
         match consequence {
             Consequence::Nothing => (),
             Consequence::CameraMoved => self.notify(SceneNotification::CameraMoved),
@@ -191,9 +211,32 @@ impl<S: AppState> Scene<S> {
                 self.controller.translate_camera(dx, dy);
                 self.notify(SceneNotification::CameraMoved);
             }
-            Consequence::XoverAtempt(source, target, d_id) => {
-                self.attempt_xover(source, target, d_id);
+            Consequence::XoverAtempt(source, target, d_id, magic) => {
+                self.attempt_xover(source, target, d_id, magic);
                 self.data.borrow_mut().end_free_xover();
+            }
+            Consequence::QuickXoverAttempt { nucl, doubled } => {
+                let suggestions = app_state.get_design_reader().get_suggestions();
+                let mut pair = suggestions
+                    .iter()
+                    .find(|(a, b)| *a == nucl || *b == nucl)
+                    .cloned();
+                if let Some((n1, n2)) = pair {
+                    if doubled {
+                        pair = suggestions
+                            .iter()
+                            .find(|(a, b)| *a == n1.prime5() || *b == n1.prime5())
+                            .cloned();
+                    }
+                    self.requests.lock().unwrap().apply_design_operation(
+                        DesignOperation::MakeSeveralXovers {
+                            xovers: vec![pair.unwrap_or((n1, n2))],
+                            doubled,
+                        },
+                    );
+                } else {
+                    log::error!("No suggested cross over target for nucl {:?}", nucl)
+                }
             }
             Consequence::Translation(dir, x_coord, y_coord, target) => {
                 let translation = self.view.borrow().compute_translation_handle(
@@ -213,23 +256,26 @@ impl<S: AppState> Scene<S> {
                     }
                 }
             }
-            Consequence::HelixTranslated { helix, grid, x, y } => {
-                log::info!("Moving helix {} to grid {} ({} {})", helix, grid, x, y);
+            Consequence::ObjectTranslated { object, grid, x, y } => {
+                log::info!("Moving helix {:?} to grid {:?} ({} {})", object, grid, x, y);
                 self.requests
                     .lock()
                     .unwrap()
-                    .apply_design_operation(DesignOperation::AttachHelix { helix, grid, x, y });
+                    .apply_design_operation(DesignOperation::AttachObject { object, grid, x, y });
             }
             Consequence::MovementEnded => {
                 self.requests.lock().unwrap().suspend_op();
                 self.data.borrow_mut().notify_handle_movement();
                 self.view.borrow_mut().end_movement();
             }
-            Consequence::HelixSelected(h_id) => self
-                .requests
-                .lock()
-                .unwrap()
-                .set_selection(vec![Selection::Helix(0, h_id as u32)], None),
+            Consequence::HelixSelected(helix_id) => self.requests.lock().unwrap().set_selection(
+                vec![Selection::Helix {
+                    design_id: 0,
+                    helix_id,
+                    segment_id: 0,
+                }],
+                None,
+            ),
             Consequence::InitRotation(mode, x, y, target) => {
                 self.view
                     .borrow_mut()
@@ -307,7 +353,9 @@ impl<S: AppState> Scene<S> {
                 self.controller.continuous_tilt(angle);
                 self.notify(SceneNotification::CameraMoved);
             }
-            Consequence::ToggleWidget => self.requests.lock().unwrap().toggle_widget_basis(),
+            Consequence::ToggleWidget => {
+                self.requests.lock().unwrap().toggle_widget_basis();
+            }
             Consequence::BuildEnded => self.requests.lock().unwrap().suspend_op(),
             Consequence::Undo => self.requests.lock().unwrap().undo(),
             Consequence::Redo => self.requests.lock().unwrap().redo(),
@@ -330,9 +378,6 @@ impl<S: AppState> Scene<S> {
                     self.select(element, app_state)
                 }
             }
-            Consequence::InitFreeXover(nucl, d_id, position) => {
-                self.data.borrow_mut().init_free_xover(nucl, position, d_id)
-            }
             Consequence::MoveFreeXover(element, position) => self
                 .data
                 .borrow_mut()
@@ -346,18 +391,42 @@ impl<S: AppState> Scene<S> {
                 x,
                 y,
             } => {
-                self.requests
-                    .lock()
-                    .unwrap()
-                    .update_opperation(Arc::new(GridHelixCreation {
-                        grid_id,
-                        design_id: design_id as usize,
-                        x,
-                        y,
-                        length,
-                        position,
-                    }));
-                self.select(Some(SceneElement::Grid(design_id, grid_id)), app_state);
+                if self.controller.is_building_bezier_curve() {
+                    let point = HelixGridPosition::from_grid_id_x_y(grid_id, x, y);
+                    if let Some((start, end)) = self.controller.add_bezier_point(point) {
+                        self.requests.lock().unwrap().apply_design_operation(
+                            DesignOperation::AddTwoPointsBezier { start, end },
+                        );
+                    } else {
+                        // This is the first point of the bezier curve, select the corresponding
+                        // disc to highlight it.
+                        self.select(
+                            Some(SceneElement::GridCircle(
+                                0,
+                                GridPosition {
+                                    grid: grid_id,
+                                    x,
+                                    y,
+                                },
+                            )),
+                            app_state,
+                        )
+                    }
+                } else {
+                    // build regular grid helix
+                    self.requests
+                        .lock()
+                        .unwrap()
+                        .update_opperation(Arc::new(GridHelixCreation {
+                            grid_id,
+                            design_id: design_id as usize,
+                            x,
+                            y,
+                            length,
+                            position,
+                        }));
+                    self.select(Some(SceneElement::Grid(design_id, grid_id)), app_state);
+                }
             }
             Consequence::PasteCandidate(element) => self.pasting_candidate(element),
             Consequence::Paste(element) => self.attempt_paste(element),
@@ -370,15 +439,142 @@ impl<S: AppState> Scene<S> {
                         .request_center_selection(selection, AppId::Scene);
                 }
             }
-            Consequence::InitBuild(nucl) => self.requests.lock().unwrap().apply_design_operation(
-                DesignOperation::RequestStrandBuilders { nucls: vec![nucl] },
+            Consequence::InitBuild(nucls) => {
+                if let Some(xover_id) = nucls.get(0).cloned().and_then(|n| {
+                    app_state
+                        .get_design_reader()
+                        .get_id_of_xover_involving_nucl(n)
+                }) {
+                    self.requests
+                        .lock()
+                        .unwrap()
+                        .set_selection(vec![Selection::Xover(0, xover_id)], None);
+                }
+                self.requests
+                    .lock()
+                    .unwrap()
+                    .apply_design_operation(DesignOperation::RequestStrandBuilders { nucls });
+            }
+            Consequence::PivotCenter => {
+                self.data.borrow_mut().set_pivot_position(Vec3::zero());
+                self.view
+                    .borrow_mut()
+                    .update(ViewUpdate::FogCenter(Some(Vec3::zero())));
+            }
+            Consequence::CheckXovers => {
+                let xovers = ensnano_interactor::list_of_xover_ids(
+                    app_state.get_selection(),
+                    &app_state.get_design_reader(),
+                );
+                if let Some((_, xovers)) = xovers {
+                    self.requests
+                        .lock()
+                        .unwrap()
+                        .apply_design_operation(DesignOperation::CheckXovers { xovers })
+                }
+            }
+            Consequence::AlignWithStereo => {
+                if !self.is_stereographic() {
+                    let camera = self.data.borrow().get_aligned_camera();
+                    self.on_notify(Notification::TeleportCamera(camera));
+                }
+            }
+            Consequence::CreateBezierVertex { vertex, path } => {
+                if let Some(path) = path {
+                    self.requests.lock().unwrap().apply_design_operation(
+                        DesignOperation::AppendVertexToPath {
+                            path_id: path,
+                            vertex,
+                        },
+                    )
+                } else {
+                    self.requests.lock().unwrap().apply_design_operation(
+                        DesignOperation::CreateBezierPath {
+                            first_vertex: vertex,
+                        },
+                    )
+                }
+            }
+            Consequence::MoveBezierVertex {
+                x,
+                y,
+                path_id,
+                vertex_id,
+            } => {
+                let mut vertices = vec![BezierVertexId { path_id, vertex_id }];
+                if app_state
+                    .get_selection()
+                    .iter()
+                    .any(|s| *s == Selection::BezierVertex(BezierVertexId { path_id, vertex_id }))
+                {
+                    for v in app_state.get_selection().iter().filter_map(|s| {
+                        if let Selection::BezierVertex(v) = s {
+                            Some(v)
+                        } else {
+                            None
+                        }
+                    }) {
+                        vertices.push(*v);
+                    }
+                }
+                self.requests
+                    .lock()
+                    .unwrap()
+                    .update_opperation(Arc::new(TranslateBezierPathVertex { vertices, x, y }))
+            }
+            Consequence::ReleaseBezierVertex => self.requests.lock().unwrap().suspend_op(),
+            Consequence::MoveBezierCorner {
+                plane_id,
+                original_corner_position,
+                fixed_corner_position,
+                moving_corner,
+            } => self.requests.lock().unwrap().update_opperation(Arc::new(
+                TranslateBezierSheetCorner {
+                    plane_id,
+                    origin_moving_corner: original_corner_position,
+                    fixed_corner: fixed_corner_position,
+                    moving_corner,
+                },
+            )),
+            Consequence::ReleaseBezierCorner => self.requests.lock().unwrap().suspend_op(),
+            Consequence::ReleaseBezierTengent => self.requests.lock().unwrap().suspend_op(),
+            Consequence::MoveBezierTengent {
+                vertex_id,
+                tengent_in,
+                full_symetry_other: adjust_other,
+                new_vector,
+            } => self.requests.lock().unwrap().apply_design_operation(
+                DesignOperation::SetVectorOfBezierTengent(NewBezierTengentVector {
+                    full_symetry_other_tengent: adjust_other,
+                    new_vector,
+                    tengent_in,
+                    vertex_id,
+                }),
             ),
+            Consequence::ReverseSurfaceDirection => {
+                self.controller.reverse_surface_direction();
+                self.notify(SceneNotification::CameraMoved);
+            }
+            Consequence::SetRevolutionAxisPosition(r) => {
+                self.requests
+                    .lock()
+                    .unwrap()
+                    .set_revolution_axis_position(r);
+            }
         };
     }
 
-    /// If a nucleotide is selected, and the clicked_pixel corresponds to an other nucleotide,
-    /// request a cross-over between the two nucleotides.
-    fn attempt_xover(&mut self, source: Nucl, target: Nucl, design_id: usize) {
+    /// Request a cross-over between two nucleotides.
+    fn attempt_xover(&mut self, mut source: Nucl, mut target: Nucl, design_id: usize, magic: bool) {
+        if magic {
+            if let Some(opt) = self
+                .older_state
+                .get_design_reader()
+                .get_optimal_xover_arround(source, target)
+            {
+                (source, target) = opt;
+            }
+        }
         self.requests
             .lock()
             .unwrap()
@@ -429,19 +625,29 @@ impl<S: AppState> Scene<S> {
     }
 
     fn attempt_paste(&mut self, element: Option<SceneElement>) {
-        let nucl = self.data.borrow().element_to_nucl(&element, false);
-        self.requests
-            .lock()
-            .unwrap()
-            .attempt_paste(nucl.map(|n| n.0));
+        if let Some(SceneElement::GridCircle(_, gp)) = element {
+            log::info!("Attempt past on {:?}", gp);
+            self.requests.lock().unwrap().attempt_paste_on_grid(gp);
+        } else {
+            let nucl = self.data.borrow().element_to_nucl(&element, false);
+            self.requests
+                .lock()
+                .unwrap()
+                .attempt_paste(nucl.map(|n| n.0));
+        }
     }
 
     fn pasting_candidate(&self, element: Option<SceneElement>) {
-        let nucl = self.data.borrow().element_to_nucl(&element, false);
-        self.requests
-            .lock()
-            .unwrap()
-            .set_paste_candidate(nucl.map(|n| n.0));
+        if let Some(SceneElement::GridCircle(_, gp)) = element {
+            log::info!("Paste candidate on {:?}", gp);
+            self.requests.lock().unwrap().paste_candidate_on_grid(gp);
+        } else {
+            let nucl = self.data.borrow().element_to_nucl(&element, false);
+            self.requests
+                .lock()
+                .unwrap()
+                .set_paste_candidate(nucl.map(|n| n.0));
+        }
     }
 
     fn set_candidate(&mut self, element: Option<SceneElement>, app_state: &S) {
@@ -480,41 +686,55 @@ impl<S: AppState> Scene<S> {
             app_state.get_selection(),
             &reader,
         );
+        log::debug!("grids {:?}", grids);
+        let control_points = ensnano_interactor::extract_control_points(app_state.get_selection());
         let at_most_one_grid = grids.as_ref().map(|g| g.len() <= 1).unwrap_or(false);
 
         let group_id = app_state.get_current_group_id();
 
-        let translation_op: Arc<dyn Operation> =
-            if let Some(helices) = helices.filter(|_| at_most_one_grid) {
-                Arc::new(HelixTranslation {
-                    design_id: 0,
-                    helices,
-                    right: Vec3::unit_x().rotated_by(rotor),
-                    top: Vec3::unit_y().rotated_by(rotor),
-                    dir: Vec3::unit_z().rotated_by(rotor),
-                    x: translation.dot(right),
-                    y: translation.dot(top),
-                    z: translation.dot(dir),
-                    snap: true,
-                    group_id,
-                    replace: false,
-                })
-            } else if let Some(grids) = grids {
-                Arc::new(GridTranslation {
-                    design_id: 0,
-                    grid_ids: grids,
-                    right: Vec3::unit_x().rotated_by(rotor),
-                    top: Vec3::unit_y().rotated_by(rotor),
-                    dir: Vec3::unit_z().rotated_by(rotor),
-                    x: translation.dot(right),
-                    y: translation.dot(top),
-                    z: translation.dot(dir),
-                    group_id,
-                    replace: false,
-                })
-            } else {
-                return;
-            };
+        let translation_op: Arc<dyn Operation> = if !control_points.is_empty() {
+            Arc::new(BezierControlPointTranslation {
+                design_id: 0,
+                control_points,
+                right: Vec3::unit_x().rotated_by(rotor),
+                top: Vec3::unit_y().rotated_by(rotor),
+                dir: Vec3::unit_z().rotated_by(rotor),
+                x: translation.dot(right),
+                y: translation.dot(top),
+                z: translation.dot(dir),
+                snap: true,
+                group_id,
+            })
+        } else if let Some(helices) = helices.filter(|_| at_most_one_grid) {
+            Arc::new(HelixTranslation {
+                design_id: 0,
+                helices,
+                right: Vec3::unit_x().rotated_by(rotor),
+                top: Vec3::unit_y().rotated_by(rotor),
+                dir: Vec3::unit_z().rotated_by(rotor),
+                x: translation.dot(right),
+                y: translation.dot(top),
+                z: translation.dot(dir),
+                snap: true,
+                group_id,
+                replace: false,
+            })
+        } else if let Some(grids) = grids {
+            Arc::new(GridTranslation {
+                design_id: 0,
+                grid_ids: grids,
+                right: Vec3::unit_x().rotated_by(rotor),
+                top: Vec3::unit_y().rotated_by(rotor),
+                dir: Vec3::unit_z().rotated_by(rotor),
+                x: translation.dot(right),
+                y: translation.dot(top),
+                z: translation.dot(dir),
+                group_id,
+                replace: false,
+            })
+        } else {
+            return;
+        };
 
         self.requests
             .lock()
@@ -557,7 +777,7 @@ impl<S: AppState> Scene<S> {
         );
         log::debug!("rotating grids {:?}", grids);
         let group_id = app_state.get_current_group_id();
-        let rotation: Arc<dyn Operation> = if let Some(grid_ids) = grids.filter(|v| v.len() > 0) {
+        let rotation: Arc<dyn Operation> = if let Some(grid_ids) = grids.filter(|v| !v.is_empty()) {
             Arc::new(GridRotation {
                 grid_ids,
                 angle,
@@ -569,8 +789,21 @@ impl<S: AppState> Scene<S> {
             })
         } else {
             match self.data.borrow().get_selected_element(app_state) {
-                Selection::Helix(d_id, h_id) => Arc::new(HelixRotation {
-                    helices: helices.unwrap_or(vec![h_id as usize]),
+                Selection::Helix {
+                    design_id,
+                    helix_id,
+                    ..
+                } => Arc::new(HelixRotation {
+                    helices: helices.unwrap_or_else(|| vec![helix_id]),
+                    angle,
+                    plane,
+                    origin,
+                    design_id: design_id as usize,
+                    group_id,
+                    replace: false,
+                }),
+                Selection::Grid(d_id, g_id) => Arc::new(GridRotation {
+                    grid_ids: vec![g_id],
                     angle,
                     plane,
                     origin,
@@ -578,18 +811,6 @@ impl<S: AppState> Scene<S> {
                     group_id,
                     replace: false,
                 }),
-                Selection::Grid(d_id, g_id) => {
-                    let grid_id = g_id as usize;
-                    Arc::new(GridRotation {
-                        grid_ids: vec![grid_id],
-                        angle,
-                        plane,
-                        origin,
-                        design_id: d_id as usize,
-                        group_id,
-                        replace: false,
-                    })
-                }
                 _ => return,
             }
         };
@@ -615,7 +836,7 @@ impl<S: AppState> Scene<S> {
         }
         self.controller.update_data();
         if self.update.need_update {
-            self.perform_update(dt, &new_state);
+            self.perform_update(dt);
         }
         self.data
             .borrow_mut()
@@ -623,8 +844,9 @@ impl<S: AppState> Scene<S> {
         self.data
             .borrow_mut()
             .update_view(&new_state, &self.older_state);
+        let mut ret = new_state.draw_options_were_updated(&self.older_state);
         self.older_state = new_state;
-        let ret = self.view.borrow().need_redraw();
+        ret |= self.view.borrow().need_redraw();
         if ret {
             log::debug!("Scene requests redraw");
         }
@@ -636,35 +858,42 @@ impl<S: AppState> Scene<S> {
         &mut self,
         encoder: &mut wgpu::CommandEncoder,
         target: &wgpu::TextureView,
-        _app_state: &S,
+        app_state: &S,
     ) {
-        self.view
-            .borrow_mut()
-            .draw(encoder, target, DrawType::Scene, self.area);
+        let is_stereographic = matches!(self.scene_kind, SceneKind::Stereographic);
+        log::trace!("draw scene");
+        self.view.borrow_mut().draw(
+            encoder,
+            target,
+            DrawType::Scene,
+            self.area,
+            is_stereographic,
+            app_state.get_draw_options(),
+        );
     }
 
-    fn perform_update(&mut self, dt: Duration, _app_state: &S) {
+    fn perform_update(&mut self, dt: Duration) {
         if self.update.camera_update {
             self.controller.update_camera(dt);
             self.view.borrow_mut().update(ViewUpdate::Camera);
             self.update.camera_update = false;
+            self.current_camera = Arc::new((
+                self.get_camera(),
+                self.view.borrow().get_projection().borrow().get_ratio(),
+            ))
         }
         self.update.need_update = false;
     }
 
-    /*
-    fn change_selection_mode(&mut self, selection_mode: SelectionMode) {
-        self.data.borrow_mut().change_selection_mode(selection_mode);
-        self.update_handle();
-    }
-
-    fn change_action_mode(&mut self, action_mode: ActionMode) {
-        self.data.borrow_mut().change_action_mode(action_mode);
-        self.update_handle();
-    }*/
-
-    fn change_sensitivity(&mut self, sensitivity: f32) {
-        self.controller.change_sensitivity(sensitivity)
+    fn get_camera(&self) -> Camera3D {
+        let view = self.view.borrow();
+        let cam = view.get_camera();
+        let ret = Camera3D {
+            position: cam.borrow().position,
+            orientation: cam.borrow().rotor,
+            pivot_position: self.data.borrow().get_pivot_position(),
+        };
+        ret
     }
 
     fn set_camera_target(&mut self, target: Vec3, up: Vec3, app_state: &S) {
@@ -682,7 +911,7 @@ impl<S: AppState> Scene<S> {
                 self.data.borrow().get_selected_position()
             })
             .filter(|r| r.x.is_finite() && r.y.is_finite() && r.z.is_finite())
-            .or(Some(Vec3::zero()));
+            .or_else(|| Some(Vec3::zero()));
         self.controller.set_camera_target(target, up, pivot);
         self.fit_design();
     }
@@ -692,7 +921,7 @@ impl<S: AppState> Scene<S> {
             .data
             .borrow()
             .get_pivot_position()
-            .or(self.data.borrow().get_selected_position())
+            .or_else(|| self.data.borrow().get_selected_position())
             .filter(|r| !r.x.is_nan() && !r.y.is_nan() && !r.z.is_nan());
         let pivot = pivot.or_else(|| {
             let element_center = self.element_center(app_state);
@@ -707,9 +936,176 @@ impl<S: AppState> Scene<S> {
         log::info!("pivot {:?}", pivot);
         self.controller.rotate_camera(xz, yz, xy, pivot);
     }
+
+    fn create_png_export_texture(
+        &self,
+        device: &Device,
+        size: wgpu::Extent3d,
+    ) -> (wgpu::Texture, wgpu::TextureView) {
+        let desc = wgpu::TextureDescriptor {
+            size,
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Bgra8UnormSrgb,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT
+                | wgpu::TextureUsages::TEXTURE_BINDING
+                | wgpu::TextureUsages::COPY_SRC,
+            label: Some("desc"),
+        };
+        let texture_view_descriptor = wgpu::TextureViewDescriptor {
+            label: Some("texture_view_descriptor"),
+            format: Some(wgpu::TextureFormat::Bgra8UnormSrgb),
+            dimension: Some(wgpu::TextureViewDimension::D2),
+            aspect: wgpu::TextureAspect::All,
+            base_mip_level: 0,
+            mip_level_count: None,
+            base_array_layer: 0,
+            array_layer_count: None,
+        };
+
+        let texture = device.create_texture(&desc);
+        let view = texture.create_view(&texture_view_descriptor);
+        (texture, view)
+    }
+
+    fn export_png(&self) {
+        use chrono::Utc;
+        let png_name = Utc::now()
+            .format("export_3d_%Y_%m_%d_%H_%M_%S.png")
+            .to_string();
+        let device = self.element_selector.device.as_ref();
+        let queue = self.element_selector.queue.as_ref();
+        println!("export to {png_name}");
+        use ensnano_utils::BufferDimensions;
+        use std::io::Write;
+
+        let ratio = self.view.borrow().get_projection().borrow().get_ratio();
+        let width = if ratio < 1. {
+            (ratio * PNG_SIZE as f32).floor() as u32
+        } else {
+            PNG_SIZE
+        };
+        let height = if ratio < 1. {
+            PNG_SIZE
+        } else {
+            (PNG_SIZE as f32 / ratio).floor() as u32
+        };
+        let size = wgpu::Extent3d {
+            width,
+            height,
+            depth_or_array_layers: 1,
+        };
+
+        let (texture, texture_view) = self.create_png_export_texture(device, size);
+
+        let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
+            label: Some("3D Png export"),
+        });
+
+        let draw_options = DrawOptions {
+            rendering_mode: RenderingMode::Cartoon,
+            ..Default::default()
+        };
+
+        self.view.borrow_mut().draw(
+            &mut encoder,
+            &texture_view,
+            DrawType::Png { width, height },
+            DrawArea {
+                position: PhysicalPosition { x: 0, y: 0 },
+                size: PhySize { width, height },
+            },
+            self.is_stereographic(),
+            draw_options,
+        );
+
+        // create a buffer and fill it with the texture
+        let extent = wgpu::Extent3d {
+            width: size.width,
+            height: size.height,
+            depth_or_array_layers: 1,
+        };
+        let buffer_dimensions =
+            BufferDimensions::new(extent.width as usize, extent.height as usize);
+        let buf_size = buffer_dimensions.padded_bytes_per_row * buffer_dimensions.height;
+        let staging_buffer = device.create_buffer(&wgpu::BufferDescriptor {
+            size: buf_size as u64,
+            usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+            label: Some("staging_buffer"),
+        });
+        let buffer_copy_view = wgpu::ImageCopyBuffer {
+            buffer: &staging_buffer,
+            layout: wgpu::ImageDataLayout {
+                offset: 0,
+                bytes_per_row: (buffer_dimensions.padded_bytes_per_row as u32)
+                    .try_into()
+                    .ok(),
+                rows_per_image: None,
+            },
+        };
+        let origin = wgpu::Origin3d { x: 0, y: 0, z: 0 };
+        let texture_copy_view = wgpu::ImageCopyTexture {
+            texture: &texture,
+            mip_level: 0,
+            origin,
+            aspect: Default::default(),
+        };
+
+        encoder.copy_texture_to_buffer(texture_copy_view, buffer_copy_view, extent);
+        queue.submit(Some(encoder.finish()));
+
+        let buffer_slice = staging_buffer.slice(..);
+        let buffer_future = buffer_slice.map_async(wgpu::MapMode::Read);
+        device.poll(wgpu::Maintain::Wait);
+
+        let pixels = async {
+            if let Ok(()) = buffer_future.await {
+                let pixels_slice = buffer_slice.get_mapped_range();
+                let mut pixels = Vec::with_capacity((size.height * size.width) as usize);
+                for chunck in pixels_slice.chunks(buffer_dimensions.padded_bytes_per_row) {
+                    for chunk in chunck.chunks(4) {
+                        // convert Bgra to Rgba
+                        pixels.push(chunk[2]);
+                        pixels.push(chunk[1]);
+                        pixels.push(chunk[0]);
+                        pixels.push(chunk[3]);
+                    }
+                }
+                drop(pixels_slice);
+                staging_buffer.unmap();
+                pixels
+            } else {
+                panic!("could not read fake texture");
+            }
+        };
+        let pixels = futures::executor::block_on(pixels);
+        let mut png_encoder = png::Encoder::new(
+            std::fs::File::create(png_name).unwrap(),
+            buffer_dimensions.width as u32,
+            buffer_dimensions.height as u32,
+        );
+        png_encoder.set_depth(png::BitDepth::Eight);
+        png_encoder.set_color(png::ColorType::Rgba);
+
+        let mut png_writer = png_encoder
+            .write_header()
+            .unwrap()
+            .into_stream_writer_with_size(buffer_dimensions.unpadded_bytes_per_row)
+            .unwrap();
+
+        for chunk in pixels.chunks(buffer_dimensions.padded_bytes_per_row) {
+            png_writer
+                .write_all(&chunk[..buffer_dimensions.unpadded_bytes_per_row])
+                .unwrap();
+        }
+        png_writer.finish().unwrap();
+    }
 }
 
 /// A structure that stores the element that needs to be updated in a scene
+#[derive(Default)]
 pub struct SceneUpdate {
     pub tube_instances: Option<Vec<Instance>>,
     pub sphere_instances: Option<Vec<Instance>>,
@@ -722,24 +1118,6 @@ pub struct SceneUpdate {
     pub model_matrices: Option<Vec<Mat4>>,
     pub need_update: bool,
     pub camera_update: bool,
-}
-
-impl SceneUpdate {
-    pub fn new() -> Self {
-        Self {
-            tube_instances: None,
-            sphere_instances: None,
-            fake_tube_instances: None,
-            fake_sphere_instances: None,
-            selected_tube: None,
-            selected_sphere: None,
-            candidate_spheres: None,
-            candidate_tubes: None,
-            need_update: false,
-            camera_update: false,
-            model_matrices: None,
-        }
-    }
 }
 
 /// A notification to be given to the scene
@@ -785,25 +1163,31 @@ impl<S: AppState> Scene<S> {
     }
 
     pub fn fog_request(&mut self, fog: FogParameters) {
-        self.view.borrow_mut().update(ViewUpdate::Fog(fog))
+        if !self.is_stereographic() {
+            self.view.borrow_mut().update(ViewUpdate::Fog(fog))
+        }
     }
 }
 
 impl<S: AppState> Application for Scene<S> {
     type AppState = S;
     fn on_notify(&mut self, notification: Notification) {
+        log::info!("scene notified {:?}", notification);
         let older_state = self.older_state.clone();
         match notification {
             Notification::ClearDesigns => self.clear_design(),
             Notification::ToggleText(value) => self.view.borrow_mut().set_draw_letter(value),
             Notification::FitRequest => self.fit_design(),
-            Notification::NewSensitivity(x) => self.change_sensitivity(x),
             Notification::CameraTarget((target, up)) => {
                 self.set_camera_target(target, up, &older_state);
                 self.notify(SceneNotification::CameraMoved);
             }
-            Notification::TeleportCamera(position, orientation) => {
-                self.controller.teleport_camera(position, orientation);
+            Notification::TeleportCamera(camera) => {
+                self.controller
+                    .teleport_camera(camera.position, camera.orientation);
+                if let Some(pivot) = camera.pivot_position {
+                    self.data.borrow_mut().set_pivot_position(pivot);
+                }
                 self.notify(SceneNotification::CameraMoved);
             }
             Notification::CameraRotation(xz, yz, xy) => {
@@ -821,7 +1205,14 @@ impl<S: AppState> Application for Scene<S> {
                     self.data
                         .borrow_mut()
                         .notify_selection(vec![selection].as_slice());
-                    if let Some(position) = self.data.borrow().get_selected_position() {
+                    let surface_info = if let Selection::Nucleotide(_, nt) = selection {
+                        self.data.borrow().get_surface_info_nucl(nt)
+                    } else {
+                        None
+                    };
+                    if let Some(surface_info) = surface_info {
+                        self.controller.set_surface_point(surface_info);
+                    } else if let Some(position) = self.data.borrow().get_selected_position() {
                         self.controller.center_camera(position);
                     }
                     let pivot_element = self.data.borrow().selection_to_element(selection);
@@ -835,14 +1226,28 @@ impl<S: AppState> Application for Scene<S> {
             Notification::ModifersChanged(modifiers) => self.controller.update_modifiers(modifiers),
             Notification::Split2d => (),
             Notification::Redim2dHelices(_) => (),
-            Notification::RenderingMode(mode) => self.view.borrow_mut().rendering_mode(mode),
-            Notification::Background3D(bg) => self.view.borrow_mut().background3d(bg),
             Notification::Fog(fog) => self.fog_request(fog),
             Notification::WindowFocusLost => self.controller.stop_camera_movement(),
+            Notification::NewStereographicCamera(camera_ptr) => {
+                if !self.is_stereographic() {
+                    self.data
+                        .borrow_mut()
+                        .update_stereographic_camera(camera_ptr);
+                    if self.older_state.follow_stereographic_camera() {
+                        let camera = self.data.borrow().get_aligned_camera();
+                        self.on_notify(Notification::TeleportCamera(camera));
+                    }
+                }
+            }
             Notification::FlipSplitViews => (),
             Notification::HorizonAligned => {
                 self.controller.align_horizon();
                 self.notify(SceneNotification::CameraMoved);
+            }
+            Notification::ScreenShot3D => {
+                if !self.is_stereographic() {
+                    self.export_png();
+                }
             }
         }
     }
@@ -853,7 +1258,15 @@ impl<S: AppState> Application for Scene<S> {
         cursor_position: PhysicalPosition<f64>,
         app_state: &S,
     ) -> Option<ensnano_interactor::CursorIcon> {
-        self.input(event, cursor_position, &app_state)
+        self.element_selector
+            .set_stereographic(self.is_stereographic());
+        if self.is_stereographic() {
+            let stereography = self.view.borrow().get_stereography();
+            self.controller.set_setreography(Some(stereography));
+        } else {
+            self.controller.set_setreography(None);
+        }
+        self.input(event, cursor_position, app_state)
     }
 
     fn on_resize(&mut self, window_size: PhySize, area: DrawArea) {
@@ -882,11 +1295,8 @@ impl<S: AppState> Application for Scene<S> {
         Some((position, orientation))
     }
 
-    fn get_camera(&self) -> Option<(Vec3, Rotor3)> {
-        let view = self.view.borrow();
-        let cam = view.get_camera();
-        let ret = Some((cam.borrow().position, cam.borrow().rotor));
-        ret
+    fn get_camera(&self) -> Option<Arc<(Camera3D, f32)>> {
+        Some(self.current_camera.clone())
     }
 
     fn get_current_selection_pivot(&self) -> Option<GroupPivot> {
@@ -898,7 +1308,7 @@ impl<S: AppState> Application for Scene<S> {
     }
 }
 
-pub trait AppState: Clone {
+pub trait AppState: Clone + 'static {
     type DesignReader: DesignReader;
     fn get_selection(&self) -> &[Selection];
     fn get_candidates(&self) -> &[Selection];
@@ -917,11 +1327,28 @@ pub trait AppState: Clone {
     fn get_current_group_pivot(&self) -> Option<ensnano_design::group_attributes::GroupPivot>;
     fn get_current_group_id(&self) -> Option<ensnano_design::GroupId>;
     fn suggestion_parameters_were_updated(&self, other: &Self) -> bool;
+    fn get_check_xover_parameters(&self) -> CheckXoversParameter;
+    fn follow_stereographic_camera(&self) -> bool;
+    fn get_draw_options(&self) -> DrawOptions;
+    fn draw_options_were_updated(&self, other: &Self) -> bool;
+    fn get_scroll_sensitivity(&self) -> f32;
     fn show_insertion_representents(&self) -> bool;
 
     fn insertion_bond_display_was_modified(&self, other: &Self) -> bool {
         self.show_insertion_representents() != other.show_insertion_representents()
     }
+
+    fn show_bezier_paths(&self) -> bool;
+
+    fn get_design_path(&self) -> Option<PathBuf>;
+
+    fn get_selected_bezier_vertex(&self) -> Option<BezierVertexId>;
+
+    fn has_selected_a_bezier_grid(&self) -> bool;
+
+    fn get_revolution_axis_position(&self) -> Option<f64>;
+    fn revolution_bezier_updated(&self, other: &Self) -> bool;
+    fn get_current_unrooted_surface(&self) -> Option<UnrootedRevolutionSurfaceDescriptor>;
 }
 
 pub trait Requests {
@@ -934,6 +1361,8 @@ pub trait Requests {
         selection: Vec<Selection>,
         center_of_selection: Option<CenterOfSelection>,
     );
+    fn paste_candidate_on_grid(&mut self, position: GridPosition);
+    fn attempt_paste_on_grid(&mut self, position: GridPosition);
     fn attempt_paste(&mut self, nucl: Option<Nucl>);
     fn xover_request(&mut self, source: Nucl, target: Nucl, design_id: usize);
     fn suspend_op(&mut self);
@@ -945,4 +1374,5 @@ pub trait Requests {
     fn set_current_group_pivot(&mut self, pivot: GroupPivot);
     fn translate_group_pivot(&mut self, translation: Vec3);
     fn rotate_group_pivot(&mut self, rotation: Rotor3);
+    fn set_revolution_axis_position(&mut self, position: f32);
 }

@@ -16,9 +16,12 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use super::UiSize;
+use super::{Selection, UiSize};
 
-use iced_native::{text_input, Column, Element, Row, Text, TextInput};
+use iced_native::{
+    widget::{slider, text_input, Column, Row, Slider, Text, TextInput},
+    Element,
+};
 use iced_wgpu::Renderer;
 
 pub trait BuilderMessage: Clone + 'static {
@@ -26,13 +29,14 @@ pub trait BuilderMessage: Clone + 'static {
     fn value_submitted(kind: ValueKind) -> Self;
 }
 
-use crate::ultraviolet::{Bivec3, Mat3, Rotor3, Vec3};
+use crate::ultraviolet::{Bivec3, Mat3, Rotor3, Vec2, Vec3};
 
 macro_rules! type_builder {
     ($builder_name:ident, $initializer:tt, $internal:tt, $convert_in:path, $convert_out:path, $($param: ident: $param_type: tt %$formatter:path) , *) => {
         paste! {
             pub struct $builder_name {
                 $(
+                    #[allow(dead_code)]
                     $param: $param_type,
                     [<$param _string>]: String,
                     [<$param _input>]: text_input::State,
@@ -111,7 +115,7 @@ impl DegreeAngleFormater {
 
     fn parse(angle_str: &str) -> Option<f32> {
         angle_str
-            .trim_end_matches("°")
+            .trim_end_matches('°')
             .parse::<f32>()
             .ok()
             .map(f32::to_radians)
@@ -142,6 +146,16 @@ type_builder!(
 );
 
 type_builder!(
+    Vec2Builder,
+    Vec2,
+    Vec2,
+    std::convert::identity,
+    std::convert::identity,
+    x: f32 % FloatFormatter,
+    y: f32 % FloatFormatter
+);
+
+type_builder!(
     DirectionAngleBuilder,
     Rotor3,
     DirectionAngle,
@@ -153,16 +167,27 @@ type_builder!(
     angle: f32 % DegreeAngleFormater
 );
 
+/*type_builder!(
+NbTurnBuilder,
+f32,
+f32,
+std::convert::identity,
+std::convert::identity,
+nb_turn: f32 %*/
+
 #[derive(Clone, Copy, Debug)]
 pub enum ValueKind {
-    GridPosition,
+    HelixGridPosition,
     GridOrientation,
+    BezierVertexPosition,
 }
 
 #[derive(Debug, Clone)]
 pub enum InstanciatedValue {
-    GridPosition(Vec3),
+    HelixGridPosition(Vec3),
     GridOrientation(Rotor3),
+    GridNbTurn(f32),
+    BezierVertexPosition(Vec2),
 }
 
 pub enum GridPositionBuilder {
@@ -171,10 +196,10 @@ pub enum GridPositionBuilder {
 
 impl GridPositionBuilder {
     pub fn new_cartesian(position: Vec3) -> Self {
-        Self::Cartesian(Vec3Builder::new(ValueKind::GridPosition, position))
+        Self::Cartesian(Vec3Builder::new(ValueKind::HelixGridPosition, position))
     }
 
-    fn view<'a, Message: BuilderMessage>(&'a mut self) -> Element<'a, Message, Renderer> {
+    fn view<Message: BuilderMessage>(&mut self) -> Element<Message, Renderer> {
         match self {
             Self::Cartesian(builder) => builder.view(),
         }
@@ -188,7 +213,9 @@ impl GridPositionBuilder {
 
     fn submit_value(&mut self) -> Option<InstanciatedValue> {
         match self {
-            Self::Cartesian(builder) => builder.submit_value().map(InstanciatedValue::GridPosition),
+            Self::Cartesian(builder) => builder
+                .submit_value()
+                .map(InstanciatedValue::HelixGridPosition),
         }
     }
 
@@ -211,7 +238,7 @@ impl GridOrientationBuilder {
         ))
     }
 
-    fn view<'a, Message: BuilderMessage>(&'a mut self) -> Element<'a, Message, Renderer> {
+    fn view<Message: BuilderMessage>(&mut self) -> Element<Message, Renderer> {
         match self {
             Self::DirectionAngle(builder) => builder.view(),
         }
@@ -238,9 +265,66 @@ impl GridOrientationBuilder {
     }
 }
 
+pub struct BezierVertexBuilder {
+    position_builder: Vec2Builder,
+}
+
+impl BezierVertexBuilder {
+    pub fn new(position: Vec2) -> Self {
+        Self {
+            position_builder: Vec2Builder::new(ValueKind::BezierVertexPosition, position),
+        }
+    }
+}
+
+impl<S: AppState> Builder<S> for BezierVertexBuilder {
+    fn view<'a>(
+        &'a mut self,
+        ui_size: UiSize,
+        _selection: &Selection,
+        _app_state: &S,
+    ) -> Element<'a, super::Message<S>, Renderer> {
+        let mut ret = Column::new().width(iced::Length::Fill);
+        let position_builder_view = self.position_builder.view();
+        ret = ret.push(Text::new("Position").size(ui_size.intermediate_text()));
+        ret = ret.push(position_builder_view);
+        ret.into()
+    }
+
+    fn update_str_value(&mut self, value_kind: ValueKind, n: usize, value_str: String) {
+        if let ValueKind::BezierVertexPosition = value_kind {
+            self.position_builder.update_str_value(n, value_str)
+        } else {
+            log::error!(
+                "Unexpected value kind {:?} for BezierVertexBuilder",
+                value_kind
+            )
+        }
+    }
+
+    fn submit_value(&mut self, value_kind: ValueKind) -> Option<InstanciatedValue> {
+        if let ValueKind::BezierVertexPosition = value_kind {
+            self.position_builder
+                .submit_value()
+                .map(InstanciatedValue::BezierVertexPosition)
+        } else {
+            log::error!(
+                "Unexpected value kind {:?} for BezierVertexBuilder",
+                value_kind
+            );
+            None
+        }
+    }
+
+    fn has_keyboard_priority(&self) -> bool {
+        self.position_builder.has_keyboard_priority()
+    }
+}
+
 pub struct GridBuilder {
     position_builder: GridPositionBuilder,
     orientation_builder: GridOrientationBuilder,
+    nb_turn_slider: slider::State,
 }
 
 impl GridBuilder {
@@ -248,12 +332,48 @@ impl GridBuilder {
         Self {
             position_builder: GridPositionBuilder::new_cartesian(position),
             orientation_builder: GridOrientationBuilder::new_direction_angle(orientation),
+            nb_turn_slider: Default::default(),
         }
+    }
+
+    fn nb_turn_row<'a, S: AppState>(
+        slider: &'a mut slider::State,
+        app_state: &S,
+        selection: &Selection,
+    ) -> Option<Element<'a, super::Message<S>, Renderer>> {
+        use crate::consts;
+        if let Selection::Grid(_, g_id) = selection {
+            if let Some(nb_turn) = app_state.get_reader().get_grid_nb_turn(*g_id) {
+                let row = Row::new()
+                    .spacing(consts::NB_TURN_SLIDER_SPACING)
+                    .push(Text::new(format!("{:.2}", nb_turn)))
+                    .push(
+                        Slider::new(
+                            slider,
+                            consts::MIN_NB_TURN..=consts::MAX_NB_TURN,
+                            nb_turn,
+                            |x| {
+                                super::Message::InstanciatedValueSubmitted(
+                                    InstanciatedValue::GridNbTurn(x),
+                                )
+                            },
+                        )
+                        .step(consts::NB_TURN_STEP),
+                    );
+                return Some(row.into());
+            }
+        }
+        None
     }
 }
 
 impl<S: AppState> Builder<S> for GridBuilder {
-    fn view<'a>(&'a mut self, ui_size: UiSize) -> Element<'a, super::Message<S>, Renderer> {
+    fn view<'a>(
+        &'a mut self,
+        ui_size: UiSize,
+        selection: &Selection,
+        app_state: &S,
+    ) -> Element<'a, super::Message<S>, Renderer> {
         let mut ret = Column::new().width(iced::Length::Fill);
         let position_builder_view = self.position_builder.view();
         let orientation_builder_view = self.orientation_builder.view();
@@ -261,20 +381,29 @@ impl<S: AppState> Builder<S> for GridBuilder {
         ret = ret.push(position_builder_view);
         ret = ret.push(Text::new("Orientation").size(ui_size.intermediate_text()));
         ret = ret.push(orientation_builder_view);
+        ret = ret.push(Text::new("Twist").size(ui_size.intermediate_text()));
+        if let Some(row) = Self::nb_turn_row(&mut self.nb_turn_slider, app_state, selection) {
+            ret = ret.push(row)
+        }
         ret.into()
     }
 
     fn update_str_value(&mut self, value_kind: ValueKind, n: usize, value_str: String) {
         match value_kind {
-            ValueKind::GridPosition => self.position_builder.update_str_value(n, value_str),
+            ValueKind::HelixGridPosition => self.position_builder.update_str_value(n, value_str),
             ValueKind::GridOrientation => self.orientation_builder.update_str_value(n, value_str),
+            vk => log::error!("Unexpected value kind for GridBuilder {:?}", vk),
         }
     }
 
     fn submit_value(&mut self, value_kind: ValueKind) -> Option<InstanciatedValue> {
         match value_kind {
-            ValueKind::GridPosition => self.position_builder.submit_value(),
+            ValueKind::HelixGridPosition => self.position_builder.submit_value(),
             ValueKind::GridOrientation => self.orientation_builder.submit_value(),
+            vk => {
+                log::error!("Unexpected value kind for GridBuilder {:?}", vk);
+                None
+            }
         }
     }
 
@@ -287,7 +416,12 @@ impl<S: AppState> Builder<S> for GridBuilder {
 use super::AppState;
 
 pub trait Builder<S: AppState> {
-    fn view<'a>(&'a mut self, ui_size: UiSize) -> Element<'a, super::Message<S>, Renderer>;
+    fn view<'a>(
+        &'a mut self,
+        ui_size: UiSize,
+        selection: &Selection,
+        app_state: &S,
+    ) -> Element<'a, super::Message<S>, Renderer>;
     fn update_str_value(&mut self, value_kind: ValueKind, n: usize, value_str: String);
     fn submit_value(&mut self, value_kind: ValueKind) -> Option<InstanciatedValue>;
     fn has_keyboard_priority(&self) -> bool;

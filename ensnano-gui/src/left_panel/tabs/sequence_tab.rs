@@ -1,3 +1,5 @@
+use ensnano_interactor::StandardSequence;
+
 /*
 ENSnano, a 3d graphical application for DNA nanostructures.
     Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
@@ -21,6 +23,7 @@ pub struct SequenceTab {
     scroll: scrollable::State,
     button_scaffold: button::State,
     button_stapples: button::State,
+    button_origamis: button::State,
     toggle_text_value: bool,
     scaffold_position_str: String,
     scaffold_position: usize,
@@ -28,6 +31,7 @@ pub struct SequenceTab {
     button_selection_from_scaffold: button::State,
     button_selection_to_scaffold: button::State,
     button_show_sequence: button::State,
+    button_optimize_shift: button::State,
 }
 
 macro_rules! add_show_sequence_button {
@@ -116,6 +120,28 @@ macro_rules! add_set_scaffold_sequence_button {
     };
 }
 
+macro_rules! show_current_sequence_name {
+    ($ret: ident, $self: ident, $app_state: ident ) => {
+        let sequence_name = $app_state
+            .get_reader()
+            .get_scaffold_sequence()
+            .map(get_sequence_name)
+            .unwrap_or("None");
+        let message = format!("current sequence: {sequence_name}");
+        $ret = $ret.push(Text::new(message));
+    };
+}
+
+fn get_sequence_name(sequence: &str) -> &'static str {
+    let n = sequence.len();
+    let candidate = StandardSequence::from_length(n);
+    if sequence == candidate.sequence() {
+        candidate.description()
+    } else {
+        "custom"
+    }
+}
+
 macro_rules! add_scaffold_position_input_row {
     ($ret: ident, $self: ident) => {
         let scaffold_position_text = "Starting position";
@@ -136,6 +162,19 @@ macro_rules! add_scaffold_position_input_row {
         $ret = $ret.push(scaffold_row);
     };
 }
+
+macro_rules! add_optimize_scaffold_shift_button {
+    ($ret: ident, $self: ident, $ui_size: ident) => {
+        let button_scaffold = Button::new(
+            &mut $self.button_optimize_shift,
+            iced::Text::new("Optimize starting position"),
+        )
+        .height(Length::Units($ui_size.button()))
+        .on_press(Message::OptimizeScaffoldShiftPressed);
+        $ret = $ret.push(button_scaffold);
+    };
+}
+
 macro_rules! add_scaffold_start_position {
     ($ret: ident, $ui_size: ident, $app_state: ident) => {
         let starting_nucl = $app_state
@@ -172,7 +211,24 @@ macro_rules! add_download_staples_button {
         )
         .height(Length::Units($ui_size.button()))
         .on_press(Message::StapplesRequested);
-        $ret = $ret.push(button_stapples);
+        let button_origamis = Button::new(
+            &mut $self.button_origamis,
+            iced::Text::new("Export Origamis"),
+        )
+        .height(Length::Units($ui_size.button()))
+        .on_press(Message::OrigamisRequested);
+        $ret = $ret.push(button_stapples).push(button_origamis);
+    };
+}
+
+macro_rules! add_rainbow_scaffold_checkbox {
+    ($ret: ident, $ui_size: ident, $app_state: ident) => {
+        $ret = $ret.push(right_checkbox(
+            $app_state.get_reader().rainbow_scaffold(),
+            "Rainbow Scaffold",
+            Message::RainbowScaffold,
+            $ui_size,
+        ));
     };
 }
 
@@ -182,6 +238,7 @@ impl SequenceTab {
             scroll: Default::default(),
             button_stapples: Default::default(),
             button_scaffold: Default::default(),
+            button_origamis: Default::default(),
             toggle_text_value: false,
             scaffold_position_str: "0".to_string(),
             scaffold_position: 0,
@@ -189,6 +246,7 @@ impl SequenceTab {
             button_selection_from_scaffold: Default::default(),
             button_selection_to_scaffold: Default::default(),
             button_show_sequence: Default::default(),
+            button_optimize_shift: Default::default(),
         }
     }
 
@@ -215,10 +273,15 @@ impl SequenceTab {
         add_scaffold_info!(ret, self, ui_size, app_state);
         extra_jump!(ret);
 
+        add_rainbow_scaffold_checkbox!(ret, ui_size, app_state);
+        extra_jump!(ret);
+
         add_set_scaffold_sequence_button!(ret, self, ui_size);
+        show_current_sequence_name!(ret, self, app_state);
         extra_jump!(ret);
         add_scaffold_position_input_row!(ret, self);
 
+        add_optimize_scaffold_shift_button!(ret, self, ui_size);
         add_scaffold_start_position!(ret, ui_size, app_state);
         extra_jump!(ret);
         section!(ret, ui_size, "Staples");

@@ -15,14 +15,14 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use ensnano_design::grid::{Grid, GridDivision, GridType};
 use ensnano_design::ultraviolet;
 use ensnano_utils::wgpu;
-use std::rc::Rc;
-use ultraviolet::{Mat4, Vec2, Vec3};
+use ultraviolet::{Mat4, Vec2, Vec3, Vec4};
 use wgpu::{include_spirv, Device, RenderPass};
 
 use super::{grid_disc::GridDisc, instances_drawer::*, LetterInstance};
+use ensnano_design::grid::{Grid, GridDivision, GridId, GridPosition, GridType};
+use std::collections::BTreeMap;
 
 mod texture;
 
@@ -35,7 +35,7 @@ pub struct GridInstance {
     pub max_y: i32,
     pub color: u32,
     pub design: usize,
-    pub id: usize,
+    pub id: GridId,
     pub fake: bool,
     pub visible: bool,
 }
@@ -88,8 +88,14 @@ impl GridInstance {
     }
 
     fn to_fake(&self) -> Self {
+        let color = match self.id {
+            GridId::FreeGrid(id) => id as u32,
+            GridId::BezierPathGrid(vertex) => {
+                crate::element_selector::bezier_vertex_id(vertex.path_id, vertex.vertex_id)
+            }
+        };
         Self {
-            color: self.id as u32,
+            color,
             fake: true,
             ..self.clone()
         }
@@ -122,11 +128,10 @@ impl GridInstance {
             min_y,
             max_y,
             grid_type,
-            color: Instance::color_from_u32(self.color).truncated(),
+            color: Instance::color_from_au32(self.color),
             inter_helix_gap: self.grid.parameters.inter_helix_gap,
             helix_radius: self.grid.parameters.helix_radius,
             design_id: self.design as u32,
-            _padding: 0,
         }
     }
 
@@ -195,22 +200,21 @@ pub struct GridInstanceRaw {
     pub max_x: f32,           // padding 2
     pub min_y: f32,           // padding 3
     pub max_y: f32,           // padding 0
-    pub color: Vec3,          // padding 3
-    pub grid_type: u32,       // padding 0
-    pub helix_radius: f32,    // padding 1,
-    pub inter_helix_gap: f32, // padding 2,
-    pub design_id: u32,       // padding 3,
-    pub _padding: u32,
+    pub color: Vec4,          // padding 0
+    pub grid_type: u32,       // padding 1
+    pub helix_radius: f32,    // padding 2,
+    pub inter_helix_gap: f32, // padding 3,
+    pub design_id: u32,       // padding 0,
 }
 
 /// A structure that manages the pipepline that draw the grids
 pub struct GridManager {
     /// A possible updates to the instances to be drawn. Must be taken into account before drawing
     /// next frame
-    new_instances: Option<Rc<Vec<GridInstance>>>,
-    instances: Vec<GridInstance>,
-    selected: Vec<(usize, usize)>,
-    candidate: Vec<(usize, usize)>,
+    new_instances: Option<BTreeMap<GridId, GridInstance>>,
+    instances: BTreeMap<GridId, GridInstance>,
+    selected: Vec<(usize, GridId)>,
+    candidate: Vec<(usize, GridId)>,
     drawer: InstanceDrawer<GridInstance>,
     fake_drawer: InstanceDrawer<GridInstance>,
     need_new_colors: bool,
@@ -224,8 +228,8 @@ impl GridManager {
         Self {
             drawer,
             fake_drawer,
-            new_instances: Some(Rc::new(vec![])),
-            instances: vec![],
+            new_instances: Some(Default::default()),
+            instances: Default::default(),
             selected: vec![],
             candidate: vec![],
             need_new_colors: false,
@@ -233,7 +237,7 @@ impl GridManager {
     }
 
     /// Request an update of the set of instances to draw. This update take effects on the next frame
-    pub fn new_instances(&mut self, instances: Rc<Vec<GridInstance>>) {
+    pub fn new_instances(&mut self, instances: BTreeMap<GridId, GridInstance>) {
         self.new_instances = Some(instances)
     }
 
@@ -241,11 +245,12 @@ impl GridManager {
     /// this function, perform the most recent update.
     fn update_instances(&mut self) {
         if let Some(instances) = self.new_instances.take() {
-            self.instances = (*instances).clone();
+            self.instances = instances.clone();
             let fake_instances: Vec<GridInstance> =
-                self.instances.iter().map(GridInstance::to_fake).collect();
+                self.instances.values().map(GridInstance::to_fake).collect();
             if !self.need_new_colors {
-                self.drawer.new_instances((*instances).clone());
+                self.drawer
+                    .new_instances(instances.values().cloned().collect());
             }
             self.fake_drawer.new_instances(fake_instances);
         }
@@ -275,7 +280,7 @@ impl GridManager {
     pub fn intersect(&self, origin: Vec3, direction: Vec3) -> Option<GridIntersection> {
         let mut ret = None;
         let mut depth = std::f32::INFINITY;
-        for g in self.instances.iter() {
+        for g in self.instances.values() {
             if let Some(intersection) = g.ray_intersection(origin, direction) {
                 if intersection.depth < depth {
                     ret = Some(intersection.clone());
@@ -290,25 +295,25 @@ impl GridManager {
         &self,
         origin: Vec3,
         direction: Vec3,
-        grid_id: usize,
+        grid_id: GridId,
     ) -> Option<GridIntersection> {
         self.instances
-            .get(grid_id)
+            .get(&grid_id)
             .and_then(|g| g.ray_intersection(origin, direction))
     }
 
-    pub fn set_candidate_grid(&mut self, grids: Vec<(usize, usize)>) {
+    pub fn set_candidate_grid(&mut self, grids: Vec<(usize, GridId)>) {
         self.need_new_colors = true;
         self.candidate = grids
     }
 
-    pub fn set_selected_grid(&mut self, grids: Vec<(usize, usize)>) {
+    pub fn set_selected_grid(&mut self, grids: Vec<(usize, GridId)>) {
         self.need_new_colors = true;
         self.selected = grids
     }
 
     fn update_colors(&mut self) {
-        for instance in self.instances.iter_mut() {
+        for instance in self.instances.values_mut() {
             if self.selected.contains(&(instance.design, instance.id)) {
                 instance.color = 0xFF_00_00
             } else if self.candidate.contains(&(instance.design, instance.id)) {
@@ -317,7 +322,8 @@ impl GridManager {
                 instance.color = 0x00_00_FF
             }
         }
-        self.drawer.new_instances(self.instances.clone());
+        self.drawer
+            .new_instances(self.instances.values().cloned().collect());
         self.need_new_colors = false;
     }
 }
@@ -326,9 +332,19 @@ impl GridManager {
 pub struct GridIntersection {
     pub depth: f32,
     pub design_id: usize,
-    pub grid_id: usize,
+    pub grid_id: GridId,
     pub x: isize,
     pub y: isize,
+}
+
+impl GridIntersection {
+    pub fn grid_position(&self) -> GridPosition {
+        GridPosition {
+            grid: self.grid_id,
+            x: self.x,
+            y: self.y,
+        }
+    }
 }
 
 #[repr(C)]
@@ -385,10 +401,7 @@ impl RessourceProvider for GridTextures {
             wgpu::BindGroupLayoutEntry {
                 binding: 1,
                 visibility: wgpu::ShaderStages::FRAGMENT,
-                ty: wgpu::BindingType::Sampler {
-                    comparison: false,
-                    filtering: true,
-                },
+                ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
                 count: None,
             },
             wgpu::BindGroupLayoutEntry {
@@ -404,10 +417,7 @@ impl RessourceProvider for GridTextures {
             wgpu::BindGroupLayoutEntry {
                 binding: 3,
                 visibility: wgpu::ShaderStages::FRAGMENT,
-                ty: wgpu::BindingType::Sampler {
-                    comparison: false,
-                    filtering: true,
-                },
+                ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
                 count: None,
             },
         ]

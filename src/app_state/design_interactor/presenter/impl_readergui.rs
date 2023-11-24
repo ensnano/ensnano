@@ -16,7 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use ensnano_design::{elements::DnaElement, CameraId};
+use ensnano_design::{elements::DnaElement, CameraId, Collection};
 
 use super::*;
 use crate::gui::DesignReader as ReaderGui;
@@ -24,16 +24,20 @@ use ensnano_interactor::InsertionPoint;
 use ultraviolet::Rotor3;
 
 impl ReaderGui for DesignReader {
-    fn grid_has_small_spheres(&self, g_id: usize) -> bool {
+    fn grid_has_small_spheres(&self, g_id: GridId) -> bool {
         self.presenter.content.grid_has_small_spheres(g_id)
     }
 
-    fn grid_has_persistent_phantom(&self, g_id: usize) -> bool {
+    fn grid_has_persistent_phantom(&self, g_id: GridId) -> bool {
         self.presenter.content.grid_has_persistent_phantom(g_id)
     }
 
-    fn get_grid_shift(&self, g_id: usize) -> Option<f32> {
+    fn get_grid_shift(&self, g_id: GridId) -> Option<f32> {
         self.presenter.content.get_grid_shift(g_id)
+    }
+
+    fn get_grid_nb_turn(&self, g_id: GridId) -> Option<f32> {
+        self.presenter.content.get_grid_nb_turn(g_id)
     }
 
     fn get_strand_length(&self, s_id: usize) -> Option<usize> {
@@ -72,7 +76,7 @@ impl ReaderGui for DesignReader {
             .strands
             .get(&s_id)
             .and_then(|s| s.name.as_ref().map(|n| n.to_string()))
-            .unwrap_or(String::from("Unamed strand"))
+            .unwrap_or_else(|| String::from("Unamed strand"))
     }
 
     fn get_all_cameras(&self) -> Vec<(CameraId, &str)> {
@@ -89,12 +93,48 @@ impl ReaderGui for DesignReader {
         self.presenter.current_design.get_favourite_camera_id()
     }
 
-    fn get_grid_position_and_orientation(&self, g_id: usize) -> Option<(Vec3, Rotor3)> {
+    fn get_grid_position_and_orientation(&self, g_id: GridId) -> Option<(Vec3, Rotor3)> {
         self.presenter
             .current_design
-            .grids
-            .get(g_id)
+            .free_grids
+            .get_from_g_id(&g_id)
             .map(|g| (g.position, g.orientation))
+    }
+
+    fn xover_length(&self, xover_id: usize) -> Option<(f32, Option<f32>)> {
+        let (n1, n2) = self.presenter.junctions_ids.get_element(xover_id)?;
+        let len_self = self.presenter.get_xover_len(xover_id)?;
+        let neighbour_id = self
+            .presenter
+            .junctions_ids
+            .get_id(&(n1.prime3(), n2.prime5()))
+            .or_else(|| {
+                self.presenter
+                    .junctions_ids
+                    .get_id(&(n1.prime5(), n2.prime3()))
+            })
+            .or_else(|| {
+                self.presenter
+                    .junctions_ids
+                    .get_id(&(n2.prime5(), n1.prime3()))
+            })
+            .or_else(|| {
+                self.presenter
+                    .junctions_ids
+                    .get_id(&(n2.prime5(), n1.prime3()))
+            });
+
+        let neighbour_len = neighbour_id.and_then(|id| self.presenter.get_xover_len(id));
+
+        Some((len_self, neighbour_len))
+    }
+
+    fn get_id_of_xover_involving_nucl(&self, nucl: Nucl) -> Option<usize> {
+        self.presenter.get_id_of_xover_involving_nucl(nucl)
+    }
+
+    fn rainbow_scaffold(&self) -> bool {
+        self.presenter.current_design.rainbow_scaffold
     }
 
     fn get_insertion_length(&self, selection: &Selection) -> Option<usize> {
@@ -105,11 +145,11 @@ impl ReaderGui for DesignReader {
                     .content
                     .identifier_bound
                     .get(&(*n1, *n2))
-                    .or(self.presenter.content.identifier_bound.get(&(*n2, *n1)))?;
+                    .or_else(|| self.presenter.content.identifier_bound.get(&(*n2, *n1)))?;
                 self.presenter
                     .content
                     .insertion_length
-                    .get(&bond_id)
+                    .get(bond_id)
                     .cloned()
                     .or(Some(0))
             }
@@ -120,11 +160,11 @@ impl ReaderGui for DesignReader {
                     .content
                     .identifier_bound
                     .get(&(n1, n2))
-                    .or(self.presenter.content.identifier_bound.get(&(n2, n1)))?;
+                    .or_else(|| self.presenter.content.identifier_bound.get(&(n2, n1)))?;
                 self.presenter
                     .content
                     .insertion_length
-                    .get(&bond_id)
+                    .get(bond_id)
                     .cloned()
                     .or(Some(0))
             }
@@ -140,7 +180,7 @@ impl ReaderGui for DesignReader {
                     self.presenter
                         .content
                         .insertion_length
-                        .get(&nucl_id)
+                        .get(nucl_id)
                         .cloned()
                         .or(Some(0))
                 } else {
@@ -170,16 +210,47 @@ impl ReaderGui for DesignReader {
                         nucl: *nucl,
                         nucl_is_prime5_of_insertion: false,
                     })
-                } else if let Some(_s_id) = self.prime3_of_which_strand(*nucl) {
-                    Some(InsertionPoint {
-                        nucl: *nucl,
-                        nucl_is_prime5_of_insertion: true,
-                    })
                 } else {
-                    None
+                    self.prime3_of_which_strand(*nucl)
+                        .map(|_s_id| InsertionPoint {
+                            nucl: *nucl,
+                            nucl_is_prime5_of_insertion: true,
+                        })
                 }
             }
             _ => None,
         }
+    }
+
+    fn is_bezier_path_cyclic(&self, path_id: ensnano_design::BezierPathId) -> Option<bool> {
+        self.presenter
+            .current_design
+            .bezier_paths
+            .get(&path_id)
+            .map(|p| p.cyclic)
+    }
+
+    fn get_bezier_vertex_position(
+        &self,
+        vertex_id: ensnano_design::BezierVertexId,
+    ) -> Option<ensnano_design::Vec2> {
+        let path = self
+            .presenter
+            .current_design
+            .bezier_paths
+            .get(&vertex_id.path_id)?;
+        path.vertices().get(vertex_id.vertex_id).map(|v| v.position)
+    }
+
+    fn get_scaffold_sequence(&self) -> Option<&str> {
+        self.presenter.current_design.scaffold_sequence.as_deref()
+    }
+
+    fn get_current_length_of_relaxed_shape(&self) -> Option<usize> {
+        self.presenter
+            .current_design
+            .additional_structure
+            .as_ref()
+            .and_then(|s| s.current_length())
     }
 }

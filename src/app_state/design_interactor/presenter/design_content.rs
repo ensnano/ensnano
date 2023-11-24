@@ -20,18 +20,19 @@ use super::*;
 use crate::scene::GridInstance;
 use ahash::RandomState;
 use ensnano_design::elements::DnaElement;
-use ensnano_design::grid::GridPosition;
+use ensnano_design::grid::{GridObject, GridPosition, HelixGridPosition};
 use ensnano_design::*;
 use ensnano_interactor::{
     graphics::{LoopoutBond, LoopoutNucl},
     ObjectType,
 };
+use serde::Serialize;
 use std::borrow::Cow;
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::sync::Arc;
 use ultraviolet::Vec3;
 
-use grid_data::GridManager;
+use ensnano_design::grid::GridData;
 
 mod xover_suggestions;
 use xover_suggestions::XoverSuggestions;
@@ -39,6 +40,7 @@ use xover_suggestions::XoverSuggestions;
 #[derive(Default, Clone)]
 pub struct NuclCollection {
     identifier: HashMap<Nucl, u32, RandomState>,
+    virtual_nucl_map: HashMap<VirtualNucl, Nucl, RandomState>,
 }
 
 impl super::NuclCollection for NuclCollection {
@@ -53,6 +55,10 @@ impl super::NuclCollection for NuclCollection {
     fn iter_nucls<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Nucl> + 'a> {
         Box::new(self.identifier.keys())
     }
+
+    fn virtual_to_real(&self, virtual_nucl: &VirtualNucl) -> Option<&Nucl> {
+        self.virtual_nucl_map.get(virtual_nucl)
+    }
 }
 
 impl NuclCollection {
@@ -64,8 +70,16 @@ impl NuclCollection {
         self.identifier.contains_key(nucl)
     }
 
+    pub fn nb_nucls(&self) -> usize {
+        self.identifier.len()
+    }
+
     fn insert(&mut self, key: Nucl, id: u32) -> Option<u32> {
         self.identifier.insert(key, id)
+    }
+
+    fn insert_virtual(&mut self, virtual_nucl: VirtualNucl, nucl: Nucl) -> Option<Nucl> {
+        self.virtual_nucl_map.insert(virtual_nucl, nucl)
     }
 }
 
@@ -93,7 +107,7 @@ pub(super) struct DesignContent {
     pub prime3_set: Vec<Prime3End>,
     pub elements: Vec<DnaElement>,
     pub suggestions: Vec<(Nucl, Nucl)>,
-    pub(super) grid_manager: GridManager,
+    pub(super) grid_manager: GridData,
     pub loopout_nucls: Vec<LoopoutNucl>,
     pub loopout_bonds: Vec<LoopoutBond>,
     /// Maps bonds identifier to the length of the corresponding insertion.
@@ -101,11 +115,11 @@ pub(super) struct DesignContent {
 }
 
 impl DesignContent {
-    pub(super) fn get_grid_instances(&self) -> Vec<GridInstance> {
+    pub(super) fn get_grid_instances(&self) -> BTreeMap<GridId, GridInstance> {
         self.grid_manager.grid_instances(0)
     }
 
-    pub(super) fn get_helices_on_grid(&self, g_id: usize) -> Option<HashSet<usize>> {
+    pub(super) fn get_helices_on_grid(&self, g_id: GridId) -> Option<HashSet<usize>> {
         self.grid_manager.get_helices_on_grid(g_id)
     }
     /// Return the position of an element.
@@ -127,63 +141,53 @@ impl DesignContent {
         }
     }
 
-    pub(super) fn get_helix_grid_position(&self, h_id: usize) -> Option<GridPosition> {
-        self.grid_manager.helix_to_pos.get(&h_id).cloned()
+    pub(super) fn get_helix_grid_position(&self, h_id: usize) -> Option<HelixGridPosition> {
+        self.grid_manager.get_helix_grid_position(h_id)
     }
 
-    pub(super) fn get_grid_latice_position(&self, g_id: usize, x: isize, y: isize) -> Option<Vec3> {
-        let grid = self.grid_manager.grids.get(g_id)?;
-        Some(grid.position_helix(x, y))
+    pub(super) fn get_grid_latice_position(&self, position: GridPosition) -> Option<Vec3> {
+        let grid = self.grid_manager.grids.get(&position.grid)?;
+        Some(grid.position_helix(position.x, position.y))
     }
 
-    pub(super) fn get_helices_grid_key_coord(&self, g_id: usize) -> Vec<((isize, isize), usize)> {
+    /// Return a list of pairs ((x, y), h_id) of all the used helices on the grid g_id
+    pub(super) fn get_helices_grid_key_coord(&self, g_id: GridId) -> Vec<((isize, isize), usize)> {
+        self.grid_manager.get_helices_grid_key_coord(g_id)
+    }
+
+    pub(super) fn get_used_coordinates_on_grid(&self, g_id: GridId) -> Vec<(isize, isize)> {
+        self.grid_manager.get_used_coordinates_on_grid(g_id)
+    }
+
+    pub(super) fn get_helix_id_at_grid_coord(&self, position: GridPosition) -> Option<usize> {
         self.grid_manager
-            .pos_to_helix
-            .iter()
-            .filter(|t| t.0 .0 == g_id)
-            .map(|t| ((t.0 .1, t.0 .2), *t.1))
-            .collect()
-    }
-
-    pub(super) fn get_used_coordinates_on_grid(&self, g_id: usize) -> Vec<(isize, isize)> {
-        self.grid_manager
-            .pos_to_helix
-            .iter()
-            .filter(|t| t.0 .0 == g_id)
-            .map(|t| (t.0 .1, t.0 .2))
-            .collect()
-    }
-
-    pub(super) fn get_helix_id_at_grid_coord(
-        &self,
-        g_id: usize,
-        x: isize,
-        y: isize,
-    ) -> Option<usize> {
-        self.grid_manager.pos_to_helix(g_id, x, y)
+            .pos_to_object(position)
+            .map(|obj| obj.helix())
     }
 
     pub(super) fn get_persistent_phantom_helices_id(&self) -> HashSet<u32> {
-        self.grid_manager
-            .pos_to_helix
-            .iter()
-            .filter(|(k, _)| !self.grid_manager.no_phantoms.contains(&k.0))
-            .map(|(_, v)| *v as u32)
-            .collect()
+        self.grid_manager.get_persistent_phantom_helices_id()
     }
 
-    pub(super) fn grid_has_small_spheres(&self, g_id: usize) -> bool {
+    pub(super) fn grid_has_small_spheres(&self, g_id: GridId) -> bool {
         self.grid_manager.small_spheres.contains(&g_id)
     }
 
-    pub(super) fn grid_has_persistent_phantom(&self, g_id: usize) -> bool {
+    pub(super) fn grid_has_persistent_phantom(&self, g_id: GridId) -> bool {
         !self.grid_manager.no_phantoms.contains(&g_id)
     }
 
-    pub(super) fn get_grid_shift(&self, g_id: usize) -> Option<f32> {
+    pub(super) fn get_grid_nb_turn(&self, g_id: GridId) -> Option<f32> {
         self.grid_manager
             .grids
-            .get(g_id)
+            .get(&g_id)
+            .and_then(|g| g.grid_type.get_nb_turn().map(|x| x as f32))
+    }
+
+    pub(super) fn get_grid_shift(&self, g_id: GridId) -> Option<f32> {
+        self.grid_manager
+            .grids
+            .get(&g_id)
             .and_then(|g| g.grid_type.get_shift())
     }
 
@@ -208,9 +212,14 @@ impl DesignContent {
         None
     }
 
-    pub(super) fn get_staples(&self, design: &Design) -> Vec<Staple> {
+    pub(super) fn get_grid_object(&self, position: GridPosition) -> Option<GridObject> {
+        self.grid_manager.pos_to_object(position)
+    }
+
+    pub(super) fn get_staples(&self, design: &Design, presenter: &Presenter) -> Vec<Staple> {
         let mut ret = Vec::new();
-        let mut sequences: BTreeMap<(usize, isize, usize, isize), StapleInfo> = Default::default();
+        let mut sequences: BTreeMap<(Vec<String>, usize, isize, usize, isize), StapleInfo> =
+            Default::default();
         let basis_map = self.basis_map.as_ref();
         for (s_id, strand) in design.strands.iter() {
             if strand.length() == 0 || design.scaffold_id == Some(*s_id) {
@@ -219,10 +228,17 @@ impl DesignContent {
             let mut sequence = String::new();
             let mut first = true;
             let mut previous_char_is_basis = None;
+            let mut intervals = StapleIntervals {
+                staple_id: *s_id,
+                intervals: Vec::new(),
+            };
             for domain in &strand.domains {
+                let mut staple_domain = None;
+                let scaffold = design.scaffold_id.and_then(|id| design.strands.get(&id));
                 if !first {
                     sequence.push(' ');
                 }
+                let helices = &design.helices;
                 first = false;
                 if let Domain::HelixDomain(dom) = domain {
                     for position in dom.iter() {
@@ -231,6 +247,7 @@ impl DesignContent {
                             forward: dom.forward,
                             helix: dom.helix,
                         };
+
                         let next_basis = basis_map.get(&nucl);
                         if let Some(basis) = next_basis {
                             if previous_char_is_basis == Some(false) {
@@ -245,14 +262,55 @@ impl DesignContent {
                             sequence.push('?');
                             previous_char_is_basis = Some(false);
                         }
+                        if let Some(virtual_nucl) = Nucl::map_to_virtual_nucl(nucl, helices) {
+                            if let Some(scaffold) = scaffold {
+                                let result = scaffold
+                                    .locate_virtual_nucl(&virtual_nucl.compl(), helices)
+                                    .map(|v| ScaffoldPosition {
+                                        domain_id: v.domain_id,
+                                        scaffold_position: (v.pos_on_strand + scaffold.length()
+                                            - design.scaffold_shift.unwrap_or(0))
+                                            % scaffold.length(),
+                                    });
+                                if staple_domain.is_none() {
+                                    staple_domain = Some(StapleDomain::init(result));
+                                }
+                                let d = staple_domain.take().unwrap();
+                                match d.read_position(result) {
+                                    ReadResult::Continue(d) => staple_domain = Some(d),
+                                    ReadResult::Stop {
+                                        interval,
+                                        new_reader,
+                                    } => {
+                                        intervals.intervals.push(interval);
+                                        staple_domain = Some(new_reader);
+                                    }
+                                }
+                            }
+                        } else {
+                            log::error!("Could not map to virtual nucl");
+                        }
                     }
+                } else if let Domain::Insertion { nb_nucl, .. } = domain {
+                    // Number of nucleotides inserted added
+                    sequence.push_str(&format!("**INSERTION {nb_nucl}**"))
+                }
+                if let Some(d) = staple_domain {
+                    intervals.intervals.push(d.finish())
                 }
             }
+            let group_names = presenter.get_name_of_group_having_strand(*s_id);
             let key = if let Some((prim5, prim3)) = strand.get_5prime().zip(strand.get_3prime()) {
-                (prim5.helix, prim5.position, prim3.helix, prim3.position)
+                (
+                    group_names,
+                    prim5.helix,
+                    prim5.position,
+                    prim3.helix,
+                    prim3.position,
+                )
             } else {
                 log::warn!("WARNING, STAPPLE WITH NO KEY !!!");
-                (0, 0, 0, 0)
+                (vec![], 0, 0, 0, 0)
             };
             sequences.insert(
                 key,
@@ -260,10 +318,15 @@ impl DesignContent {
                     s_id: *s_id,
                     sequence,
                     strand_name: strand.name.clone(),
+                    domain_decomposition: presenter.decompose_length(*s_id),
+                    length: strand.length(),
+                    color: strand.color & 0xFFFFFF,
+                    group_names: presenter.get_name_of_group_having_strand(*s_id),
+                    intervals,
                 },
             );
         }
-        for (n, ((h5, nt5, h3, nt3), staple_info)) in sequences.iter().enumerate() {
+        for (n, ((_, h5, nt5, h3, nt3), staple_info)) in sequences.iter().enumerate() {
             let plate = n / 96 + 1;
             let row = (n % 96) / 8 + 1;
             let column = match (n % 96) % 8 {
@@ -281,13 +344,27 @@ impl DesignContent {
                 plate,
                 well: format!("{}{}", column, row.to_string()),
                 sequence: staple_info.sequence.clone(),
-                name: staple_info.strand_name.clone().unwrap_or_else(|| {
+                name: (if let Some(name) = &staple_info.strand_name {
+                    format!("{name} #{}", staple_info.s_id).into()
+                } else {
                     format!(
-                        "Staple {:04}; 5':h{}:nt{}>3':h{}:nt{}",
+                        "#{:04}; 5':h{}:nt{}>3':h{}:nt{}",
                         staple_info.s_id, *h5, *nt5, *h3, *nt3
                     )
                     .into()
                 }),
+                color_str: format!("{:#08X}", staple_info.color)
+                    .trim_start_matches("0x")
+                    .to_string(),
+                group_names: staple_info.group_names.clone(),
+                group_names_string: staple_info.group_names.join(" ; "),
+                length_str: staple_info.length.to_string(),
+                domain_decomposition: staple_info
+                    .domain_decomposition
+                    .split_once("=")
+                    .map(|split| split.1.to_string())
+                    .unwrap_or(staple_info.domain_decomposition.clone()),
+                intervals: staple_info.intervals.clone(),
             });
         }
         ret
@@ -345,12 +422,29 @@ pub struct Staple {
     pub name: Cow<'static, str>,
     pub sequence: String,
     pub plate: usize,
+    pub color_str: String,
+    pub group_names: Vec<String>,
+    pub group_names_string: String,
+    pub domain_decomposition: String,
+    pub length_str: String,
+    pub intervals: StapleIntervals,
+}
+
+#[derive(Debug, Serialize, Clone)]
+pub struct StapleIntervals {
+    pub staple_id: usize,
+    pub intervals: Vec<(isize, isize)>,
 }
 
 struct StapleInfo {
     s_id: usize,
     sequence: String,
     strand_name: Option<Cow<'static, str>>,
+    color: u32,
+    group_names: Vec<String>,
+    domain_decomposition: String,
+    length: usize,
+    intervals: StapleIntervals,
 }
 
 #[derive(Clone)]
@@ -364,7 +458,6 @@ impl DesignContent {
     pub(super) fn make_hash_maps(
         mut design: Design,
         xover_ids: &JunctionsIds,
-        old_grid_ptr: &mut Option<usize>,
         suggestion_parameters: &SuggestionParameters,
     ) -> (Self, Design, JunctionsIds) {
         let groups = design.groups.clone();
@@ -390,21 +483,36 @@ impl DesignContent {
         let mut suggestion_maker = XoverSuggestions::default();
         let mut insertion_length = HashMap::default();
         xover_ids.agree_on_next_id(&mut new_junctions);
-        let mut grid_manager = GridManager::new_from_design(&design);
-        if *old_grid_ptr != Some(Arc::as_ptr(&design.grids) as usize) {
-            *old_grid_ptr = Some(Arc::as_ptr(&design.grids) as usize);
-            grid_manager.reposition_all_helices(&mut design);
-        }
+        let rainbow_strand = design.scaffold_id.filter(|_| design.rainbow_scaffold);
+        let grid_manager = design.get_updated_grid_data().clone();
+
         for (s_id, strand) in design.strands.iter_mut() {
-            elements.push(elements::DnaElement::Strand { id: *s_id });
+            elements.push(elements::DnaElement::Strand {
+                id: *s_id,
+                length: strand.length(),
+                domain_lengths: strand.domain_lengths(),
+            });
             let parameters = design.parameters.unwrap_or_default();
-            strand.update_insertions(design.helices.as_ref(), &parameters);
+            strand.update_insertions(&design.helices, &parameters);
             let mut strand_position = 0;
             let strand_seq = strand.sequence.as_ref().filter(|s| s.is_ascii());
             let color = strand.color;
             let mut last_xover_junction: Option<&mut DomainJunction> = None;
+            let rainbow_len = if Some(*s_id) == rainbow_strand {
+                strand.length()
+            } else {
+                0
+            };
+            // If the strand is not the rainbow strand, the rainbow iterator will be empty and the
+            // real strand color will be used.
+            let mut rainbow_iterator = (0..rainbow_len).map(|i| {
+                let hsv = color_space::Hsv::new(i as f64 * 360. / rainbow_len as f64, 1., 1.);
+                let rgb = color_space::Rgb::from(hsv);
+                (0xFF << 24) | ((rgb.r as u32) << 16) | ((rgb.g as u32) << 8) | (rgb.b as u32)
+            });
+
             let mut prev_loopout_pos = None;
-            for (i, domain) in strand.domains.iter_mut().enumerate() {
+            for (i, domain) in strand.domains.iter().enumerate() {
                 if let Some((prime5, prime3)) = old_nucl.clone().zip(domain.prime5_end()) {
                     Self::update_junction(
                         &mut new_junctions,
@@ -428,7 +536,7 @@ impl DesignContent {
                 if let Domain::HelixDomain(domain) = domain {
                     let dom_seq = domain.sequence.as_ref().filter(|s| s.is_ascii());
                     for (dom_position, nucl_position) in domain.iter().enumerate() {
-                        let position = design.helices[&domain.helix].space_pos(
+                        let position = design.helices.get(&domain.helix).unwrap().space_pos(
                             design.parameters.as_ref().unwrap(),
                             nucl_position,
                             domain.forward,
@@ -438,11 +546,22 @@ impl DesignContent {
                             forward: domain.forward,
                             helix: domain.helix,
                         };
+                        let virtual_nucl = Nucl::map_to_virtual_nucl(nucl, &design.helices);
+                        if let Some(v_nucl) = virtual_nucl {
+                            let previous = nucl_collection.insert_virtual(v_nucl, nucl);
+                            if previous.is_some() && previous != Some(nucl) {
+                                log::error!("NUCLEOTIDE CONFLICTS: nucls {:?} and {:?} are mapped to the same virtual postition {:?}", previous, nucl, v_nucl);
+                            }
+                        } else {
+                            log::error!("Could not get virtual nucl corresponding to {:?}", nucl);
+                        }
+
                         elements.push(DnaElement::Nucleotide {
                             helix: nucl.helix,
                             position: nucl.position,
                             forward: nucl.forward,
                         });
+                        let color = rainbow_iterator.next().unwrap_or(color);
                         if let Some(prev_pos) = prev_loopout_pos.take() {
                             loopout_bonds.push(LoopoutBond {
                                 position_prime5: prev_pos,
@@ -501,10 +620,12 @@ impl DesignContent {
                     nb_nucl,
                     instanciation,
                     sequence: dom_seq,
+                    ..
                 } = domain
                 {
                     if let Some(instanciation) = instanciation.as_ref() {
                         for (dom_position, pos) in instanciation.as_ref().pos().iter().enumerate() {
+                            let color = rainbow_iterator.next().unwrap_or(color);
                             let basis = dom_seq
                                 .as_ref()
                                 .and_then(|s| s.as_bytes().get(dom_position))
@@ -606,11 +727,13 @@ impl DesignContent {
             old_nucl = None;
             old_nucl_id = None;
         }
-        for g_id in 0..grid_manager.grids.len() {
-            elements.push(DnaElement::Grid {
-                id: g_id,
-                visible: grid_manager.get_visibility(g_id),
-            })
+        for g_id in grid_manager.grids.keys() {
+            if let GridId::FreeGrid(id) = g_id {
+                elements.push(DnaElement::Grid {
+                    id: *id,
+                    visible: grid_manager.get_visibility(*g_id),
+                })
+            }
         }
         for (h_id, h) in design.helices.iter() {
             elements.push(DnaElement::Helix {
@@ -643,6 +766,29 @@ impl DesignContent {
         ret.suggestions = suggestions;
 
         drop(groups);
+
+        if log::log_enabled!(log::Level::Warn) {
+            if let Some(s) = design
+                .scaffold_id
+                .as_ref()
+                .and_then(|s_id| design.strands.get(s_id))
+            {
+                for d in s.domains.iter() {
+                    if let Domain::HelixDomain(interval) = d {
+                        for n in interval.iter() {
+                            let nucl = Nucl {
+                                helix: interval.helix,
+                                position: n,
+                                forward: !interval.forward,
+                            };
+                            if !ret.nucl_collection.contains_nucl(&nucl) {
+                                log::warn!("Missing {nucl}");
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         #[cfg(test)]
         {
@@ -679,10 +825,10 @@ impl DesignContent {
     }
 
     #[allow(dead_code)]
-    pub fn get_shift(&self, g_id: usize) -> Option<f32> {
+    pub fn get_shift(&self, g_id: GridId) -> Option<f32> {
         self.grid_manager
             .grids
-            .get(g_id)
+            .get(&g_id)
             .and_then(|g| g.grid_type.get_shift())
     }
 
@@ -776,4 +922,134 @@ mod tests {
             );
         }
     }
+}
+
+trait GridInstancesMaker {
+    fn grid_instances(&self, design_id: usize) -> BTreeMap<GridId, GridInstance>;
+}
+
+impl GridInstancesMaker for GridData {
+    fn grid_instances(&self, design_id: usize) -> BTreeMap<GridId, GridInstance> {
+        let mut ret = BTreeMap::new();
+        for (g_id, g) in self.grids.iter() {
+            let grid = GridInstance {
+                grid: g.clone(),
+                min_x: -2,
+                max_x: 2,
+                min_y: -2,
+                max_y: 2,
+                color: 0x00_00_FF,
+                design: design_id,
+                id: *g_id,
+                fake: false,
+                visible: !g.invisible,
+            };
+            ret.insert(*g_id, grid);
+        }
+        for grid_position in self.get_all_used_grid_positions() {
+            if let Some(grid) = ret.get_mut(&grid_position.grid) {
+                grid.min_x = grid.min_x.min(grid_position.x as i32 - 2);
+                grid.max_x = grid.max_x.max(grid_position.x as i32 + 2);
+                grid.min_y = grid.min_y.min(grid_position.y as i32 - 2);
+                grid.max_y = grid.max_y.max(grid_position.y as i32 + 2);
+            }
+        }
+        ret
+    }
+}
+
+enum StapleDomain {
+    ScaffoldDomain {
+        domain_id: usize,
+        first_scaffold_position: usize,
+        last_scaffold_position: usize,
+    },
+    OtherDomain {
+        length: usize,
+    },
+}
+
+#[derive(Clone, Copy)]
+struct ScaffoldPosition {
+    domain_id: usize,
+    scaffold_position: usize,
+}
+
+impl StapleDomain {
+    fn init(scaffold_position: Option<ScaffoldPosition>) -> Self {
+        if let Some(pos) = scaffold_position {
+            Self::ScaffoldDomain {
+                domain_id: pos.domain_id,
+                first_scaffold_position: pos.scaffold_position,
+                last_scaffold_position: pos.scaffold_position,
+            }
+        } else {
+            Self::OtherDomain { length: 0 }
+        }
+    }
+
+    fn reset(scaffold_position: Option<ScaffoldPosition>) -> Self {
+        if let Some(pos) = scaffold_position {
+            Self::ScaffoldDomain {
+                domain_id: pos.domain_id,
+                first_scaffold_position: pos.scaffold_position,
+                last_scaffold_position: pos.scaffold_position,
+            }
+        } else {
+            Self::OtherDomain { length: 1 }
+        }
+    }
+
+    fn finish(&self) -> (isize, isize) {
+        match self {
+            Self::OtherDomain { length } => (-1, -(*length as isize)),
+            Self::ScaffoldDomain {
+                first_scaffold_position,
+                last_scaffold_position,
+                ..
+            } => (
+                *first_scaffold_position as isize,
+                *last_scaffold_position as isize,
+            ),
+        }
+    }
+
+    fn read_position(mut self, position: Option<ScaffoldPosition>) -> ReadResult {
+        match &mut self {
+            Self::OtherDomain { length } => {
+                if position.is_none() {
+                    *length += 1;
+                    ReadResult::Continue(self)
+                } else {
+                    ReadResult::Stop {
+                        interval: self.finish(),
+                        new_reader: Self::reset(position),
+                    }
+                }
+            }
+            Self::ScaffoldDomain {
+                domain_id,
+                last_scaffold_position,
+                ..
+            } => {
+                if let Some(pos) = position.filter(|p| p.domain_id == *domain_id) {
+                    *last_scaffold_position = pos.scaffold_position;
+                    ReadResult::Continue(self)
+                } else {
+                    ReadResult::Stop {
+                        interval: self.finish(),
+                        new_reader: Self::reset(position),
+                    }
+                }
+            }
+        }
+    }
+}
+
+enum ReadResult {
+    Continue(StapleDomain),
+    Stop {
+        interval: (isize, isize),
+        new_reader: StapleDomain,
+    },
 }

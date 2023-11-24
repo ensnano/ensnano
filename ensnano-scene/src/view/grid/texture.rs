@@ -381,7 +381,8 @@ fn pipeline(device: &Device) -> wgpu::RenderPipeline {
             mask: !0,
             alpha_to_coverage_enabled: false,
         },
-        label: None,
+        label: Some("Grid texture pipeline"),
+        multiview: None,
     };
 
     device.create_render_pipeline(&desc)

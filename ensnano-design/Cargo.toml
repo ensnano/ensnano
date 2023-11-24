@@ -1,10 +1,25 @@
 [package]
 name = "ensnano_design"
-version = "0.4.1"
+version = "0.5.0"
 authors = ["thenlevy <nicolaspierrelevy@gmail.com>"]
 edition = "2018"
 license = "GPL-3.0-or-later"
 
+#[[bin]]
+#name = "torus_radius"
+#path = "src/torus_radius.rs"
+
+#[[bin]]
+#name = "cocentric_spheres"
+#path = "src/cocentric_spheres.rs"
+
+#[[bin]]
+#name = "interpolated_torus"
+#path = "src/interpolated_torus.rs"
+
+#[[bin]]
+#name = "interpolated_two_balls"
+#path = "src/interpolated_two_ball.rs"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
@@ -16,16 +31,25 @@ serde_json = "1.0.57"
 futures = "0.3.5"
 serde = {version = "1.0.116", features = ["rc"] }
 serde_derive = "1.0.116"
+serde_with = "1.11.0"
 chrono = "0.4"
 simple_excel_writer = "0.1.7"
+rust_xlsxwriter = "0.55.0"
 regex = "1.4.2"
-ahash = "0.6.2"
-mathru = "0.8.4"
+ahash = "0.8.6" # 0.6.2
+mathru = "0.13"
 rand = "0.8.3"
 rand_distr = "0.4.0"
-ordered-float = "2.0"
+ordered-float = {version = "2.0", features = ["serde"]}
 material-icons = "0.1.0"
 ensnano_organizer = { path = "../ensnano-organizer" }
 num_enum = "0.5.1"
 cadnano-format = "0.1.0"
 log = "0.4"
+version-compare = "0.1.0"
+relative-path = "1.7.0"
+pathdiff = "0.2.1"
+chebyshev_polynomials = { git = "https://github.com/thenlevy/chebyshev_polynomials" }
+quadrature = "0.1.2"
+svg = "0.12.0"
+rayon = "1.6.0"

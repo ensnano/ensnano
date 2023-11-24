@@ -15,11 +15,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-//! The [Gui Manager](gui::Gui) handles redraw request on textures that corresponds to regions
+//! The [Gui Manager](Gui) handles redraw request on textures that corresponds to regions
 //! attributed to GUI components and events happening on these regions.
 //!
 //! When a message is emmitted by a Gui component that have consequences that must be forwarded to
-//! other components of the program it is forwarded to the [main](main) function via the
+//! other components of the program it is forwarded to the `main` function via the
 //! [Request](Requests) data structure.
 
 /// Draw the top bar of the GUI
@@ -28,30 +28,41 @@ use ensnano_organizer::GroupId;
 pub use top_bar::TopBar;
 /// Draw the left pannel of the GUI
 pub mod left_panel;
-pub use left_panel::{ColorOverlay, LeftPanel, RigidBodyParametersRequest};
+pub use left_panel::{
+    ColorOverlay, CurveDescriptorBuilder, CurveDescriptorParameter, InstanciatedParameter,
+    LeftPanel, ParameterKind, RevolutionScaling, RigidBodyParametersRequest,
+};
 pub mod status_bar;
 mod ui_size;
 pub use ui_size::*;
 mod material_icons_light;
-pub use ensnano_design::{Camera, CameraId};
-pub use status_bar::{CurentOpState, StrandBuildingStatus};
+pub use ensnano_design::{grid::GridId, Camera, CameraId};
+pub use status_bar::{ClipboardContent, CurentOpState, StrandBuildingStatus};
 mod consts;
+pub use iced;
+pub use iced_graphics;
 
 #[macro_use]
 extern crate paste;
 mod icon;
+extern crate serde;
+extern crate serde_derive;
 
 use status_bar::StatusBar;
 
 use ensnano_design::{
     elements::{DnaAttribute, DnaElement, DnaElementKey},
     grid::GridTypeDescr,
-    ultraviolet, Nucl, Parameters,
+    ultraviolet, BezierPathId, BezierVertexId, Nucl, Parameters,
 };
-use ensnano_interactor::graphics::FogParameters;
 use ensnano_interactor::{
     graphics::{Background3D, DrawArea, ElementType, RenderingMode, SplitMode},
-    InsertionPoint, Selection, SimulationState, SuggestionParameters, WidgetBasis,
+    CheckXoversParameter, InsertionPoint, PastingStatus, Selection, SimulationState,
+    SuggestionParameters, UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
+};
+use ensnano_interactor::{
+    graphics::{FogParameters, HBoundDisplay},
+    RevolutionSurfaceSystemDescriptor,
 };
 use ensnano_interactor::{operation::Operation, ScaffoldInfo};
 use ensnano_interactor::{ActionMode, HyperboloidRequest, RollRequest, SelectionMode};
@@ -62,7 +73,7 @@ use iced_winit::{conversion, program, winit, Debug, Size};
 use std::collections::{BTreeSet, HashMap};
 use std::rc::Rc;
 use std::sync::{Arc, Mutex};
-use ultraviolet::{Rotor3, Vec3};
+use ultraviolet::{Rotor3, Vec2, Vec3};
 use wgpu::Device;
 use winit::{
     dpi::{PhysicalPosition, PhysicalSize},
@@ -106,7 +117,7 @@ pub trait Requests: 'static + Send {
     fn set_scaffold_shift(&mut self, shift: usize);
     /// Change the size of the UI components
     fn set_ui_size(&mut self, size: UiSize);
-    /// Finalize the currently eddited hyperboloid grid
+    /// Finalize the currently edited hyperboloid grid
     fn finalize_hyperboloid(&mut self);
     fn stop_roll_simulation(&mut self);
     fn start_roll_simulation(&mut self, roll_request: RollRequest);
@@ -116,10 +127,11 @@ pub trait Requests: 'static + Send {
     fn update_rigid_helices_simulation(&mut self, parameters: RigidBodyParametersRequest);
     /// Start of Update the rigid grids simulation
     fn update_rigid_grids_simulation(&mut self, parameters: RigidBodyParametersRequest);
+    fn start_twist_simulation(&mut self, grid_id: GridId);
     /// Update the parameters of the current simulation (rigid grids or helices)
     fn update_rigid_body_simulation_parameters(&mut self, parameters: RigidBodyParametersRequest);
     fn create_new_hyperboloid(&mut self, parameters: HyperboloidRequest);
-    /// Update the parameters of the currently eddited hyperboloid grid
+    /// Update the parameters of the currently edited hyperboloid grid
     fn update_current_hyperboloid(&mut self, parameters: HyperboloidRequest);
     fn update_roll_of_selected_helices(&mut self, roll: f32);
     fn update_scroll_sensitivity(&mut self, sensitivity: f32);
@@ -146,7 +158,7 @@ pub trait Requests: 'static + Send {
         keys: BTreeSet<DnaElementKey>,
     );
     fn change_split_mode(&mut self, split_mode: SplitMode);
-    fn export_to_oxdna(&mut self);
+    fn export(&mut self, export_type: ensnano_exports::ExportType);
     /// Split/Unsplit the 2D view
     fn toggle_2d_view_split(&mut self);
     fn undo(&mut self);
@@ -185,13 +197,39 @@ pub trait Requests: 'static + Send {
     fn update_camera(&mut self, cam_id: CameraId);
     fn set_camera_name(&mut self, cam_id: CameraId, name: String);
     fn set_suggestion_parameters(&mut self, param: SuggestionParameters);
-    fn set_grid_position(&mut self, grid_id: usize, position: Vec3);
-    fn set_grid_orientation(&mut self, grid_id: usize, orientation: Rotor3);
+    fn set_grid_position(&mut self, grid_id: GridId, position: Vec3);
+    fn set_grid_orientation(&mut self, grid_id: GridId, orientation: Rotor3);
+    fn toggle_2d(&mut self);
+    fn set_nb_turn(&mut self, grid_id: GridId, nb_turn: f32);
+    fn set_check_xover_parameters(&mut self, paramters: CheckXoversParameter);
+    fn follow_stereographic_camera(&mut self, follow: bool);
+    fn set_show_stereographic_camera(&mut self, show: bool);
+    fn set_show_h_bonds(&mut self, show: HBoundDisplay);
     fn flip_split_views(&mut self);
+    fn set_rainbow_scaffold(&mut self, rainbow: bool);
+    fn set_thick_helices(&mut self, thick: bool);
     fn align_horizon(&mut self);
+    fn download_origamis(&mut self);
     fn set_dna_parameters(&mut self, param: Parameters);
     fn set_expand_insertions(&mut self, expand: bool);
     fn set_insertion_length(&mut self, insertion_point: InsertionPoint, length: usize);
+    fn create_bezier_plane(&mut self);
+    fn turn_path_into_grid(&mut self, path_id: BezierPathId, grid_type: GridTypeDescr);
+    fn set_show_bezier_paths(&mut self, show: bool);
+    fn make_bezier_path_cyclic(&mut self, path_id: BezierPathId, cyclic: bool);
+    fn set_exporting(&mut self, exporting: bool);
+    fn import_3d_object(&mut self);
+    fn set_position_of_bezier_vertex(&mut self, vertex_id: BezierVertexId, position: Vec2);
+    fn optimize_scaffold_shift(&mut self);
+    fn start_revolution_relaxation(&mut self, desc: RevolutionSurfaceSystemDescriptor);
+    fn finish_revolutiion_relaxation(&mut self);
+    fn load_svg(&mut self);
+    fn set_bezier_revolution_radius(&mut self, radius: f64);
+    fn set_bezier_revolution_id(&mut self, id: Option<usize>);
+    fn set_unrooted_surface(&mut self, surface: Option<UnrootedRevolutionSurfaceDescriptor>);
+    /// Make a 3D screenshot
+    fn request_screenshot_3d(&mut self);
+    fn notify_revolution_tab(&mut self);
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -213,7 +251,7 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
         }) = event
         {
             match self {
-                GuiState::StatusBar(state) => {
+                GuiState::StatusBar(_) => {
                     self.queue_status_bar_message(status_bar::Message::TabPressed)
                 }
                 GuiState::TopBar(_) => (),
@@ -266,7 +304,9 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
                     area.position.to_logical(window.scale_factor()),
                 ))
             }
-            GuiState::StatusBar(_) => {}
+            GuiState::StatusBar(ref mut state) => state.queue_message(status_bar::Message::Resize(
+                area.size.to_logical(window.scale_factor()),
+            )),
         }
     }
 
@@ -310,42 +350,27 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
         debug: &Debug,
         mouse_interaction: &mut iced::mouse::Interaction,
     ) {
+        renderer.with_primitives(|backend, primitives| {
+            backend.present(
+                device,
+                staging_belt,
+                encoder,
+                target,
+                primitives,
+                viewport,
+                &debug.overlay(),
+            )
+        });
         match self {
-            GuiState::TopBar(ref state) => {
-                *mouse_interaction = renderer.backend_mut().draw(
-                    device,
-                    staging_belt,
-                    encoder,
-                    target,
-                    viewport,
-                    state.primitive(),
-                    &debug.overlay(),
-                );
-            }
+            GuiState::TopBar(ref state) => *mouse_interaction = state.mouse_interaction(),
             GuiState::LeftPanel(ref state) => {
-                let icon = renderer.backend_mut().draw(
-                    device,
-                    staging_belt,
-                    encoder,
-                    target,
-                    viewport,
-                    state.primitive(),
-                    &debug.overlay(),
-                );
+                let icon = state.mouse_interaction();
                 if icon > *mouse_interaction {
                     *mouse_interaction = icon;
                 }
             }
             GuiState::StatusBar(ref state) => {
-                let icon = renderer.backend_mut().draw(
-                    device,
-                    staging_belt,
-                    encoder,
-                    target,
-                    viewport,
-                    state.primitive(),
-                    &debug.overlay(),
-                );
+                let icon = state.mouse_interaction();
                 if icon > *mouse_interaction {
                     *mouse_interaction = icon;
                 }
@@ -368,28 +393,31 @@ struct GuiElement<R: Requests, S: AppState> {
     debug: Debug,
     redraw: bool,
     element_type: ElementType,
+    renderer: Renderer,
 }
 
 impl<R: Requests, S: AppState> GuiElement<R, S> {
     /// Initialize the top bar gui component
     fn top_bar(
-        renderer: &mut Renderer,
+        mut renderer: Renderer,
         window: &Window,
         multiplexer: &dyn Multiplexer,
         requests: Arc<Mutex<R>>,
+        app_state: top_bar::MainState<S>,
+        ui_size: UiSize,
     ) -> Self {
-        let cursor_position = PhysicalPosition::new(-1., -1.);
         let top_bar_area = multiplexer.get_draw_area(ElementType::TopBar).unwrap();
         let top_bar = TopBar::new(
-            requests.clone(),
+            requests,
             top_bar_area.size.to_logical(window.scale_factor()),
+            app_state,
+            ui_size,
         );
         let mut top_bar_debug = Debug::new();
         let top_bar_state = program::State::new(
             top_bar,
             convert_size(top_bar_area.size),
-            conversion::cursor_position(cursor_position, window.scale_factor()),
-            renderer,
+            &mut renderer,
             &mut top_bar_debug,
         );
         Self {
@@ -397,31 +425,34 @@ impl<R: Requests, S: AppState> GuiElement<R, S> {
             debug: top_bar_debug,
             redraw: true,
             element_type: ElementType::TopBar,
+            renderer,
         }
     }
 
     /// Initialize the left panel gui component
     fn left_panel(
-        renderer: &mut Renderer,
+        mut renderer: Renderer,
         window: &Window,
         multiplexer: &dyn Multiplexer,
         requests: Arc<Mutex<R>>,
         first_time: bool,
+        state: &S,
+        ui_size: UiSize,
     ) -> Self {
-        let cursor_position = PhysicalPosition::new(-1., -1.);
         let left_panel_area = multiplexer.get_draw_area(ElementType::LeftPanel).unwrap();
         let left_panel = LeftPanel::new(
-            requests.clone(),
+            requests,
             left_panel_area.size.to_logical(window.scale_factor()),
             left_panel_area.position.to_logical(window.scale_factor()),
             first_time,
+            state,
+            ui_size,
         );
         let mut left_panel_debug = Debug::new();
         let left_panel_state = program::State::new(
             left_panel,
             convert_size(left_panel_area.size),
-            conversion::cursor_position(cursor_position, window.scale_factor()),
-            renderer,
+            &mut renderer,
             &mut left_panel_debug,
         );
         Self {
@@ -429,24 +460,30 @@ impl<R: Requests, S: AppState> GuiElement<R, S> {
             debug: left_panel_debug,
             redraw: true,
             element_type: ElementType::LeftPanel,
+            renderer,
         }
     }
 
     fn status_bar(
-        renderer: &mut Renderer,
+        mut renderer: Renderer,
         window: &Window,
         multiplexer: &dyn Multiplexer,
         requests: Arc<Mutex<R>>,
+        state: &S,
+        ui_size: UiSize,
     ) -> Self {
-        let cursor_position = PhysicalPosition::new(-1., -1.);
         let status_bar_area = multiplexer.get_draw_area(ElementType::StatusBar).unwrap();
-        let status_bar = StatusBar::new(requests);
+        let status_bar = StatusBar::new(
+            requests,
+            state,
+            status_bar_area.size.to_logical(window.scale_factor()),
+            ui_size,
+        );
         let mut status_bar_debug = Debug::new();
         let status_bar_state = program::State::new(
             status_bar,
             convert_size(status_bar_area.size),
-            conversion::cursor_position(cursor_position, window.scale_factor()),
-            renderer,
+            &mut renderer,
             &mut status_bar_debug,
         );
         Self {
@@ -454,6 +491,7 @@ impl<R: Requests, S: AppState> GuiElement<R, S> {
             debug: status_bar_debug,
             redraw: true,
             element_type: ElementType::StatusBar,
+            renderer,
         }
     }
 
@@ -480,7 +518,6 @@ impl<R: Requests, S: AppState> GuiElement<R, S> {
         &mut self,
         window: &Window,
         multiplexer: &dyn Multiplexer,
-        renderer: &mut Renderer,
         resized: bool,
     ) -> bool {
         let area = multiplexer.get_draw_area(self.element_type).unwrap();
@@ -492,10 +529,10 @@ impl<R: Requests, S: AppState> GuiElement<R, S> {
         if !self.state.is_queue_empty() || resized {
             // We update iced
             self.redraw = true;
-            let _ = self.state.update(
+            self.state.update(
                 convert_size(area.size),
                 conversion::cursor_position(cursor, window.scale_factor()),
-                renderer,
+                &mut self.renderer,
                 &mut self.debug,
             );
             log::debug!("GUI request redraw");
@@ -507,7 +544,6 @@ impl<R: Requests, S: AppState> GuiElement<R, S> {
 
     pub fn render(
         &mut self,
-        renderer: &mut Renderer,
         encoder: &mut wgpu::CommandEncoder,
         device: &Device,
         window: &Window,
@@ -522,7 +558,7 @@ impl<R: Requests, S: AppState> GuiElement<R, S> {
             );
             let target = multiplexer.get_texture_view(self.element_type).unwrap();
             self.state.render(
-                renderer,
+                &mut self.renderer,
                 device,
                 staging_belt,
                 encoder,
@@ -538,9 +574,8 @@ impl<R: Requests, S: AppState> GuiElement<R, S> {
 
 /// The Gui manager.
 pub struct Gui<R: Requests, S: AppState> {
-    /// HashMap mapping [ElementType](ElementType) to a GuiElement
+    /// HashMap mapping [ElementType] to a GuiElement
     elements: HashMap<ElementType, GuiElement<R, S>>,
-    renderer: iced_wgpu::Renderer,
     settings: Settings,
     device: Rc<Device>,
     resized: bool,
@@ -554,35 +589,78 @@ impl<R: Requests, S: AppState> Gui<R, S> {
         window: &Window,
         multiplexer: &dyn Multiplexer,
         requests: Arc<Mutex<R>>,
-        settings: Settings,
+        ui_size: UiSize,
+        state: &S,
+        main_state: MainState,
     ) -> Self {
-        let mut renderer = Renderer::new(Backend::new(
+        let settings = Settings {
+            antialiasing: Some(iced_graphics::Antialiasing::MSAAx4),
+            default_text_size: ui_size.main_text(),
+            default_font: Some(include_bytes!("../../font/ensnano2.ttf")),
+            ..Default::default()
+        };
+
+        let mut elements = HashMap::new();
+
+        let top_bar_renderer = Renderer::new(Backend::new(
             device.as_ref(),
-            settings.clone(),
+            settings,
             ensnano_utils::TEXTURE_FORMAT,
         ));
-        let mut elements = HashMap::new();
+        let top_bar_state = top_bar_main_state(state, main_state);
         elements.insert(
             ElementType::TopBar,
-            GuiElement::top_bar(&mut renderer, window, multiplexer, requests.clone()),
+            GuiElement::top_bar(
+                top_bar_renderer,
+                window,
+                multiplexer,
+                requests.clone(),
+                top_bar_state,
+                ui_size,
+            ),
         );
+        let left_panel_renderer = Renderer::new(Backend::new(
+            device.as_ref(),
+            settings,
+            ensnano_utils::TEXTURE_FORMAT,
+        ));
         elements.insert(
             ElementType::LeftPanel,
-            GuiElement::left_panel(&mut renderer, window, multiplexer, requests.clone(), true),
+            GuiElement::left_panel(
+                left_panel_renderer,
+                window,
+                multiplexer,
+                requests.clone(),
+                true,
+                state,
+                ui_size,
+            ),
         );
+        let status_bar_renderer = Renderer::new(Backend::new(
+            device.as_ref(),
+            settings,
+            ensnano_utils::TEXTURE_FORMAT,
+        ));
+
         elements.insert(
             ElementType::StatusBar,
-            GuiElement::status_bar(&mut renderer, window, multiplexer, requests.clone()),
+            GuiElement::status_bar(
+                status_bar_renderer,
+                window,
+                multiplexer,
+                requests.clone(),
+                state,
+                ui_size,
+            ),
         );
 
         Self {
             settings,
             requests,
             elements,
-            renderer,
             device,
             resized: true,
-            ui_size: Default::default(),
+            ui_size,
         }
     }
 
@@ -651,7 +729,7 @@ impl<R: Requests, S: AppState> Gui<R, S> {
     pub fn fetch_change(&mut self, window: &Window, multiplexer: &dyn Multiplexer) -> bool {
         let mut ret = false;
         for elements in self.elements.values_mut() {
-            ret |= elements.fetch_change(window, multiplexer, &mut self.renderer, false);
+            ret |= elements.fetch_change(window, multiplexer, false);
         }
         ret
     }
@@ -659,50 +737,90 @@ impl<R: Requests, S: AppState> Gui<R, S> {
     /// Ask the gui component to process the event and messages that they that they have recieved.
     pub fn update(&mut self, multiplexer: &dyn Multiplexer, window: &Window) {
         for elements in self.elements.values_mut() {
-            elements.fetch_change(window, multiplexer, &mut self.renderer, self.resized);
+            elements.fetch_change(window, multiplexer, self.resized);
         }
         self.resized = false;
     }
 
-    pub fn new_ui_size(&mut self, ui_size: UiSize, window: &Window, multiplexer: &dyn Multiplexer) {
+    pub fn new_ui_size(
+        &mut self,
+        ui_size: UiSize,
+        window: &Window,
+        multiplexer: &dyn Multiplexer,
+        app_state: &S,
+        main_state: MainState,
+    ) {
         self.set_text_size(ui_size.main_text());
-        self.ui_size = ui_size.clone();
+        self.ui_size = ui_size;
 
-        self.rebuild_gui(window, multiplexer);
+        self.rebuild_gui(window, multiplexer, app_state, main_state);
     }
 
-    pub fn notify_scale_factor_change(&mut self, window: &Window, multiplexer: &dyn Multiplexer) {
+    pub fn notify_scale_factor_change(
+        &mut self,
+        window: &Window,
+        multiplexer: &dyn Multiplexer,
+        app_state: &S,
+        main_state: MainState,
+    ) {
         self.set_text_size(self.ui_size.main_text());
-        self.rebuild_gui(window, multiplexer);
+        self.rebuild_gui(window, multiplexer, app_state, main_state);
     }
 
-    fn rebuild_gui(&mut self, window: &Window, multiplexer: &dyn Multiplexer) {
+    fn rebuild_gui(
+        &mut self,
+        window: &Window,
+        multiplexer: &dyn Multiplexer,
+        state: &S,
+        main_state: MainState,
+    ) {
+        let top_bar_renderer = Renderer::new(Backend::new(
+            self.device.as_ref(),
+            self.settings,
+            ensnano_utils::TEXTURE_FORMAT,
+        ));
         self.elements.insert(
             ElementType::TopBar,
             GuiElement::top_bar(
-                &mut self.renderer,
+                top_bar_renderer,
                 window,
                 multiplexer,
                 self.requests.clone(),
+                top_bar_main_state(state, main_state),
+                self.ui_size,
             ),
         );
+        let left_panel_renderer = Renderer::new(Backend::new(
+            self.device.as_ref(),
+            self.settings,
+            ensnano_utils::TEXTURE_FORMAT,
+        ));
         self.elements.insert(
             ElementType::LeftPanel,
             GuiElement::left_panel(
-                &mut self.renderer,
+                left_panel_renderer,
                 window,
                 multiplexer,
                 self.requests.clone(),
                 false,
+                state,
+                self.ui_size,
             ),
         );
+        let status_bar_renderer = Renderer::new(Backend::new(
+            self.device.as_ref(),
+            self.settings,
+            ensnano_utils::TEXTURE_FORMAT,
+        ));
         self.elements.insert(
             ElementType::StatusBar,
             GuiElement::status_bar(
-                &mut self.renderer,
+                status_bar_renderer,
                 window,
                 multiplexer,
                 self.requests.clone(),
+                state,
+                self.ui_size,
             ),
         );
     }
@@ -710,15 +828,9 @@ impl<R: Requests, S: AppState> Gui<R, S> {
     fn set_text_size(&mut self, text_size: u16) {
         let settings = Settings {
             default_text_size: text_size,
-            ..self.settings.clone()
+            ..self.settings
         };
-        let renderer = Renderer::new(Backend::new(
-            self.device.as_ref(),
-            settings.clone(),
-            ensnano_utils::TEXTURE_FORMAT,
-        ));
         self.settings = settings;
-        self.renderer = renderer;
     }
 
     pub fn render(
@@ -730,9 +842,9 @@ impl<R: Requests, S: AppState> Gui<R, S> {
         mouse_interaction: &mut iced::mouse::Interaction,
     ) {
         *mouse_interaction = Default::default();
-        for element in self.elements.values_mut() {
+        for (element_key, element) in self.elements.iter_mut() {
+            log::trace!("render {:?}", element_key);
             element.render(
-                &mut self.renderer,
                 encoder,
                 self.device.as_ref(),
                 window,
@@ -766,6 +878,7 @@ fn text_btn<'a, M: Clone>(
     Button::new(state, Text::new(text).size(size)).height(Length::Units(ui_size.button()))
 }
 
+#[allow(clippy::needless_lifetimes)]
 fn icon_btn<'a, M: Clone>(
     state: &'a mut button::State,
     icon_char: char,
@@ -813,6 +926,7 @@ mod slider_style {
 }
 
 use std::collections::VecDeque;
+
 /// Message sent to the gui component
 pub struct IcedMessages<S: AppState> {
     left_panel: VecDeque<left_panel::Message<S>>,
@@ -836,6 +950,17 @@ impl<S: AppState> IcedMessages<S> {
             last_main_state: Default::default(),
             redraw: false,
         }
+    }
+
+    pub fn push_message(&mut self, message: String) {
+        self.status_bar
+            .push_back(status_bar::Message::Message(Some(message)));
+    }
+
+    #[allow(dead_code)]
+    pub fn clear_message(&mut self) {
+        self.status_bar
+            .push_back(status_bar::Message::Message(None));
     }
 
     pub fn push_progress(&mut self, progress_name: String, progress: f32) {
@@ -883,17 +1008,11 @@ impl<S: AppState> IcedMessages<S> {
             self.left_panel
                 .push_back(left_panel::Message::NewApplicationState(state.clone()));
             self.top_bar
-                .push_back(top_bar::Message::NewApplicationState(top_bar::MainState {
-                    app_state: state.clone(),
-                    can_undo: main_state.can_undo,
-                    can_redo: main_state.can_redo,
-                    need_save: main_state.need_save,
-                    can_reload: main_state.can_reload,
-                    can_split2d: main_state.can_split2d,
-                    splited_2d: main_state.splited_2d,
-                }));
+                .push_back(top_bar::Message::NewApplicationState(top_bar_main_state(
+                    &state, main_state,
+                )));
             self.status_bar
-                .push_back(status_bar::Message::NewApplicationState(state.clone()));
+                .push_back(status_bar::Message::NewApplicationState(state));
         }
     }
 }
@@ -909,6 +1028,7 @@ pub trait Multiplexer {
 pub trait AppState:
     Default + PartialEq + Clone + 'static + Send + std::fmt::Debug + std::fmt::Pointer
 {
+    const POSSIBLE_CURVES: &'static [CurveDescriptorBuilder<Self>];
     fn get_selection_mode(&self) -> SelectionMode;
     fn get_action_mode(&self) -> ActionMode;
     fn get_build_helix_mode(&self) -> ActionMode;
@@ -928,13 +1048,31 @@ pub trait AppState:
     fn get_strand_building_state(&self) -> Option<StrandBuildingStatus>;
     fn get_selected_group(&self) -> Option<GroupId>;
     fn get_suggestion_parameters(&self) -> &SuggestionParameters;
+    fn get_checked_xovers_parameters(&self) -> CheckXoversParameter;
+    fn follow_stereographic_camera(&self) -> bool;
+    fn show_stereographic_camera(&self) -> bool;
+    fn get_h_bounds_display(&self) -> HBoundDisplay;
+    fn get_scroll_sensitivity(&self) -> f32;
+    fn get_invert_y_scroll(&self) -> bool;
+    fn want_thick_helices(&self) -> bool;
     fn expand_insertions(&self) -> bool;
+    fn get_show_bezier_paths(&self) -> bool;
+    fn get_selected_bezier_path(&self) -> Option<BezierPathId>;
+    fn is_exporting(&self) -> bool;
+    fn is_transitory(&self) -> bool;
+    fn get_current_revoultion_radius(&self) -> Option<f64>;
+    fn get_recommended_scaling_revolution_surface(
+        &self,
+        scaffold_len: usize,
+    ) -> Option<RevolutionScaling>;
+    fn get_clipboard_content(&self) -> ClipboardContent;
+    fn get_pasting_status(&self) -> PastingStatus;
 }
 
 pub trait DesignReader: 'static {
-    fn grid_has_persistent_phantom(&self, g_id: usize) -> bool;
-    fn grid_has_small_spheres(&self, g_id: usize) -> bool;
-    fn get_grid_shift(&self, g_id: usize) -> Option<f32>;
+    fn grid_has_persistent_phantom(&self, g_id: GridId) -> bool;
+    fn grid_has_small_spheres(&self, g_id: GridId) -> bool;
+    fn get_grid_shift(&self, g_id: GridId) -> Option<f32>;
     fn get_strand_length(&self, s_id: usize) -> Option<usize>;
     fn is_id_of_scaffold(&self, s_id: usize) -> bool;
     fn length_decomposition(&self, s_id: usize) -> String;
@@ -944,9 +1082,17 @@ pub trait DesignReader: 'static {
     fn strand_name(&self, s_id: usize) -> String;
     fn get_all_cameras(&self) -> Vec<(CameraId, &str)>;
     fn get_favourite_camera(&self) -> Option<CameraId>;
-    fn get_grid_position_and_orientation(&self, g_id: usize) -> Option<(Vec3, Rotor3)>;
+    fn get_grid_position_and_orientation(&self, g_id: GridId) -> Option<(Vec3, Rotor3)>;
+    fn get_grid_nb_turn(&self, g_id: GridId) -> Option<f32>;
+    fn xover_length(&self, xover_id: usize) -> Option<(f32, Option<f32>)>;
+    fn get_id_of_xover_involving_nucl(&self, nucl: Nucl) -> Option<usize>;
+    fn rainbow_scaffold(&self) -> bool;
     fn get_insertion_length(&self, selection: &Selection) -> Option<usize>;
     fn get_insertion_point(&self, selection: &Selection) -> Option<InsertionPoint>;
+    fn is_bezier_path_cyclic(&self, path_id: BezierPathId) -> Option<bool>;
+    fn get_bezier_vertex_position(&self, vertex_id: BezierVertexId) -> Option<Vec2>;
+    fn get_scaffold_sequence(&self) -> Option<&str>;
+    fn get_current_length_of_relaxed_shape(&self) -> Option<usize>;
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
@@ -956,5 +1102,19 @@ pub struct MainState {
     pub need_save: bool,
     pub can_reload: bool,
     pub can_split2d: bool,
+    pub can_toggle_2d: bool,
     pub splited_2d: bool,
+}
+
+fn top_bar_main_state<S: AppState>(app_state: &S, main_state: MainState) -> top_bar::MainState<S> {
+    top_bar::MainState {
+        app_state: app_state.clone(),
+        can_undo: main_state.can_undo,
+        can_redo: main_state.can_redo,
+        need_save: main_state.need_save,
+        can_reload: main_state.can_reload,
+        can_split2d: main_state.can_split2d,
+        can_toggle_2d: main_state.can_toggle_2d,
+        splited_2d: main_state.splited_2d,
+    }
 }

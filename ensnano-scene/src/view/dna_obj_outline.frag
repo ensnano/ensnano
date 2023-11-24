@@ -22,6 +22,9 @@ layout(set=0, binding=0) uniform Uniform {
 
 
 void main() {
+    if (length(v_normal) < 0.01) {
+        discard;
+    }
     float visibility;
     if (u_make_fog > 0) {
         float dist;
@@ -33,6 +36,10 @@ void main() {
         visibility =  1. - smoothstep(u_fog_length, u_fog_length + u_fog_radius, dist);
     } else {
         visibility = 1.;
+    }
+
+    if (u_make_fog == 3) {
+        visibility = 1. - visibility;
     }
 
     if (visibility < 0.9) {

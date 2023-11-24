@@ -9,12 +9,18 @@ layout(location=2) out vec3 v_position;
 layout(location=3) out vec4 v_id;
 
 
-layout(set=0, binding=0)
+layout(std140, set=0, binding=0)
 uniform Uniforms {
     vec3 u_camera_position;
     mat4 u_view;
     mat4 u_proj;
     mat4 u_inversed_view;
+    vec4 u_padding1;
+    vec3 u_padding2;
+    float u_stereography_radius;
+    mat4 u_stereography_view;
+    float u_aspect_ratio;
+    float u_stereography_zoom;
 };
 
 layout(set=1, binding=0) buffer ModelBlock {
@@ -39,7 +45,7 @@ const float LOW_CRIT = 1. / 0.7;
 const float HIGH_CRIT = 2. / 0.7;
 
 void main() {
-    int model_idx = int(instances[gl_InstanceIndex].id >> 24);
+    int model_idx = 0;
 
     //mat4 model_matrix = model_matrix2[model_idx] * instances[gl_InstanceIndex].model;
     mat4 model_matrix = model_matrix2[model_idx] * instances[gl_InstanceIndex].model;
@@ -71,7 +77,7 @@ void main() {
     }
     vec4 model_space = model_matrix * vec4(a_position * scale, 1.0); 
 
-    if (scale.y < 0.8) {
+    /* if (scale.y < 0.8) {
         float dist = length(u_camera_position - model_space.xyz);
         if (abs(scale.x - scale.y) > 1e-5) {
             scale.yz /= max(1., (dist / 10.));
@@ -79,7 +85,7 @@ void main() {
           scale /= max(1., (dist / 10.));
         }
         model_space = model_matrix * vec4(a_position * scale, 1.0); 
-    }
+    }*/
 
     v_position = model_space.xyz;
     uint id = instances[gl_InstanceIndex].id;
@@ -88,5 +94,18 @@ void main() {
           float((id >> 8) & 0xFF) / 255.,
           float(id & 0xFF) / 255.,
           float((id >> 24) & 0xFF) / 255.);
-    gl_Position = u_proj * u_view * model_space;
+    if (u_stereography_radius > 0.0) {
+        vec4 view_space = u_stereography_view * model_space;
+        view_space /= u_stereography_radius;
+        float dist = length(view_space.xyz);
+        vec3 projected = view_space.xyz / dist;
+        float close_to_pole = 0.0;
+        if (projected.z > (1. - (0.01 / u_stereography_zoom))) {
+            close_to_pole = 1.0;
+        }
+        float z = max(close_to_pole, atan(dist) * 2. / 3.14);
+        gl_Position = vec4(projected.x / (1. - projected.z) / u_stereography_zoom / u_aspect_ratio, projected.y / (1. - projected.z) / u_stereography_zoom, z, 1.);
+    } else {
+        gl_Position = u_proj * u_view * model_space;
+    }
 }

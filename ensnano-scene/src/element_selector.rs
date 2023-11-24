@@ -18,21 +18,25 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use std::rc::Rc;
 
 use super::{Device, DrawArea, DrawType, Queue, ViewPtr};
-use ensnano_interactor::{phantom_helix_decoder, PhantomElement};
+use ensnano_design::grid::{GridId, GridPosition};
+use ensnano_design::{BezierPathId, BezierPlaneId, BezierVertexId};
+use ensnano_interactor::{phantom_helix_decoder, BezierControlPoint, PhantomElement};
 use ensnano_utils as utils;
 use futures::executor;
+use num_enum::IntoPrimitive;
 use std::convert::TryInto;
 use utils::wgpu;
 use utils::winit::dpi::{PhysicalPosition, PhysicalSize};
 use utils::BufferDimensions;
 
 pub struct ElementSelector {
-    device: Rc<Device>,
-    queue: Rc<Queue>,
+    pub device: Rc<Device>,
+    pub queue: Rc<Queue>,
     readers: Vec<SceneReader>,
     window_size: PhysicalSize<u32>,
     view: ViewPtr,
     area: DrawArea,
+    stereographic: bool,
 }
 
 impl ElementSelector {
@@ -56,7 +60,15 @@ impl ElementSelector {
             readers,
             view,
             area,
+            stereographic: false,
         }
+    }
+
+    pub fn set_stereographic(&mut self, stereographic: bool) {
+        if self.stereographic != stereographic {
+            self.readers[0].pixels = None;
+        }
+        self.stereographic = stereographic;
     }
 
     pub fn resize(&mut self, window_size: PhysicalSize<u32>, area: DrawArea) {
@@ -70,7 +82,7 @@ impl ElementSelector {
     ) -> Option<SceneElement> {
         if self.readers[0].pixels.is_none() || self.view.borrow().need_redraw_fake() {
             for i in 0..self.readers.len() {
-                let pixels = self.update_fake_pixels(self.readers[i].draw_type);
+                let pixels = self.update_fake_pixels(self.readers[i].draw_type, self.stereographic);
                 self.readers[i].pixels = Some(pixels)
             }
         }
@@ -106,7 +118,7 @@ impl ElementSelector {
         None
     }
 
-    fn update_fake_pixels(&self, draw_type: DrawType) -> Vec<u8> {
+    fn update_fake_pixels(&self, draw_type: DrawType, stereographic: bool) -> Vec<u8> {
         log::debug!("update fake pixels");
         let size = wgpu::Extent3d {
             width: self.window_size.width,
@@ -120,9 +132,15 @@ impl ElementSelector {
             .device
             .create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
 
-        self.view
-            .borrow_mut()
-            .draw(&mut encoder, &texture_view, draw_type, self.area);
+        self.view.borrow_mut().draw(
+            &mut encoder,
+            &texture_view,
+            draw_type,
+            self.area,
+            stereographic,
+            // The draw options are irrelevant for the fake scene
+            Default::default(),
+        );
 
         // create a buffer and fill it with the texture
         let extent = wgpu::Extent3d {
@@ -221,8 +239,62 @@ pub enum SceneElement {
     DesignElement(u32, u32),
     WidgetElement(u32),
     PhantomElement(PhantomElement),
-    Grid(u32, usize),
-    GridCircle(u32, usize, isize, isize),
+    Grid(u32, GridId),
+    GridCircle(u32, GridPosition),
+    BezierControl {
+        helix_id: usize,
+        bezier_control: BezierControlPoint,
+    },
+    BezierVertex {
+        path_id: BezierPathId,
+        vertex_id: usize,
+    },
+    BezierTengent {
+        path_id: BezierPathId,
+        vertex_id: usize,
+        tengent_in: bool,
+    },
+    PlaneCorner {
+        plane_id: BezierPlaneId,
+        corner_type: CornerType,
+    },
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum CornerType {
+    NorthWest,
+    NorthEast,
+    SouthWest,
+    SouthEast,
+}
+
+impl CornerType {
+    fn from_u32(x: u32) -> Self {
+        match x {
+            0 => Self::NorthWest,
+            1 => Self::NorthEast,
+            2 => Self::SouthWest,
+            _ => Self::SouthEast,
+        }
+    }
+
+    pub fn to_usize(self) -> usize {
+        match self {
+            Self::NorthWest => 0,
+            Self::NorthEast => 1,
+            Self::SouthWest => 2,
+            Self::SouthEast => 3,
+        }
+    }
+
+    pub fn opposite(self) -> Self {
+        match self {
+            Self::NorthEast => Self::SouthWest,
+            Self::NorthWest => Self::SouthEast,
+            Self::SouthEast => Self::NorthWest,
+            Self::SouthWest => Self::NorthEast,
+        }
+    }
 }
 
 impl SceneElement {
@@ -232,7 +304,11 @@ impl SceneElement {
             SceneElement::WidgetElement(_) => None,
             SceneElement::PhantomElement(p) => Some(p.design_id),
             SceneElement::Grid(d, _) => Some(*d),
-            SceneElement::GridCircle(d, _, _, _) => Some(*d),
+            SceneElement::GridCircle(d, _) => Some(*d),
+            SceneElement::BezierControl { .. } => None,
+            SceneElement::BezierVertex { .. } => Some(0),
+            SceneElement::PlaneCorner { .. } => Some(0),
+            SceneElement::BezierTengent { .. } => Some(0),
         }
     }
 
@@ -243,11 +319,53 @@ impl SceneElement {
             _ => false,
         }
     }
+
+    pub fn transform_into_bezier(self) -> Self {
+        if let Self::WidgetElement(id) = self {
+            if let Some((helix_id, bezier_control)) =
+                ensnano_interactor::consts::widget_id_to_bezier(id)
+            {
+                Self::BezierControl {
+                    bezier_control,
+                    helix_id,
+                }
+            } else {
+                self
+            }
+        } else {
+            self
+        }
+    }
+
+    pub fn converted_to_grid_if_disc_on_bezier_grid(self) -> Self {
+        if let Self::GridCircle(
+            d_id,
+            GridPosition {
+                grid: g_id @ GridId::BezierPathGrid(_),
+                ..
+            },
+        ) = self
+        {
+            Self::Grid(d_id, g_id)
+        } else {
+            self
+        }
+    }
 }
 
 struct SceneReader {
     pixels: Option<Vec<u8>>,
     draw_type: DrawType,
+}
+
+#[derive(IntoPrimitive)]
+#[repr(u32)]
+enum ObjType {
+    None = 0xFF,
+    BezierVertex = 0xFE,
+    BezierPlaneCorner = 0xFD,
+    BezierTengentIn = 0xFC,
+    BezierTengentOut = 0xFB,
 }
 
 impl SceneReader {
@@ -272,18 +390,70 @@ impl SceneReader {
             a
         );
         let color = r + g + b;
-        if a == 0xFF {
+        if a == u32::from(ObjType::None) {
             None
         } else {
             match self.draw_type {
-                DrawType::Grid => Some(SceneElement::Grid(a, color as usize)),
-                DrawType::Design => Some(SceneElement::DesignElement(a, color)),
+                DrawType::Grid => {
+                    if a == u32::from(ObjType::BezierVertex) {
+                        let vertex = BezierVertexId {
+                            path_id: BezierPathId(r >> 16),
+                            vertex_id: (g + b) as usize,
+                        };
+                        Some(SceneElement::Grid(0, GridId::BezierPathGrid(vertex)))
+                    } else {
+                        Some(SceneElement::Grid(0, GridId::FreeGrid(color as usize)))
+                    }
+                }
+                DrawType::Design => {
+                    if a == u32::from(ObjType::BezierVertex) {
+                        Some(SceneElement::BezierVertex {
+                            path_id: BezierPathId(r >> 16),
+                            vertex_id: (g + b) as usize,
+                        })
+                    } else if a == u32::from(ObjType::BezierPlaneCorner) {
+                        Some(SceneElement::PlaneCorner {
+                            plane_id: BezierPlaneId(g + b),
+                            corner_type: CornerType::from_u32(r >> 16),
+                        })
+                    } else if a == u32::from(ObjType::BezierTengentIn) {
+                        Some(SceneElement::BezierTengent {
+                            path_id: BezierPathId(r >> 16),
+                            vertex_id: (g + b) as usize,
+                            tengent_in: true,
+                        })
+                    } else if a == u32::from(ObjType::BezierTengentOut) {
+                        Some(SceneElement::BezierTengent {
+                            path_id: BezierPathId(r >> 16),
+                            vertex_id: (g + b) as usize,
+                            tengent_in: false,
+                        })
+                    } else {
+                        Some(SceneElement::DesignElement(a, color))
+                    }
+                }
                 DrawType::Phantom => {
                     Some(SceneElement::PhantomElement(phantom_helix_decoder(color)))
                 }
-                DrawType::Widget => Some(SceneElement::WidgetElement(color)),
+                DrawType::Widget => {
+                    Some(SceneElement::WidgetElement(color).transform_into_bezier())
+                }
                 DrawType::Scene => unreachable!(),
+                DrawType::Png { .. } => unreachable!(),
             }
         }
     }
+}
+
+pub fn bezier_vertex_id(path_id: BezierPathId, vertex_id: usize) -> u32 {
+    (u32::from(ObjType::BezierVertex) << 24) | ((path_id.0) << 16) | (vertex_id as u32)
+}
+
+pub fn bezier_tengent_id(path_id: BezierPathId, vertex_id: usize, tengent_in: bool) -> u32 {
+    let front = if tengent_in {
+        u32::from(ObjType::BezierTengentIn)
+    } else {
+        u32::from(ObjType::BezierTengentOut)
+    };
+    (front << 24) | ((path_id.0) << 16) | (vertex_id as u32)
 }

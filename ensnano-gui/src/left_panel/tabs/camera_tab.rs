@@ -31,6 +31,8 @@ pub struct CameraTab {
     background3d_picklist: pick_list::State<Background3D>,
     pub rendering_mode: RenderingMode,
     rendering_mode_picklist: pick_list::State<RenderingMode>,
+    check_xover_picklist: pick_list::State<CheckXoversParameter>,
+    h_bounds_picklist: pick_list::State<HBoundDisplay>,
 }
 
 impl CameraTab {
@@ -45,6 +47,8 @@ impl CameraTab {
             background3d_picklist: Default::default(),
             rendering_mode: Default::default(),
             rendering_mode_picklist: Default::default(),
+            check_xover_picklist: Default::default(),
+            h_bounds_picklist: Default::default(),
         }
     }
 
@@ -82,6 +86,44 @@ impl CameraTab {
         );
         ret = ret.push(self.fog.view(&ui_size));
 
+        let h_bound_column = Column::new()
+            .push(Text::new("Show H-Bounds").size(ui_size.intermediate_text()))
+            .push(PickList::new(
+                &mut self.h_bounds_picklist,
+                [
+                    HBoundDisplay::No,
+                    HBoundDisplay::Stick,
+                    HBoundDisplay::Ellipsoid,
+                ]
+                .as_slice(),
+                Some(app_state.get_h_bounds_display()),
+                Message::ShowHBonds,
+            ));
+
+        ret = ret.push(h_bound_column);
+
+        ret = ret.push(right_checkbox(
+            app_state.show_stereographic_camera(),
+            "Show stereographic camera",
+            Message::ShowStereographicCamera,
+            ui_size,
+        ));
+
+        ret = ret.push(right_checkbox(
+            app_state.follow_stereographic_camera(),
+            "Follow stereographic camera",
+            Message::FollowStereographicCamera,
+            ui_size,
+        ));
+
+        subsection!(ret, ui_size, "Highlight Xovers");
+        ret = ret.push(PickList::new(
+            &mut self.check_xover_picklist,
+            CheckXoversParameter::ALL,
+            Some(app_state.get_checked_xovers_parameters()),
+            Message::CheckXoversParameter,
+        ));
+
         subsection!(ret, ui_size, "Rendering");
         ret = ret.push(Text::new("Style"));
         ret = ret.push(PickList::new(
@@ -114,6 +156,10 @@ impl CameraTab {
         self.fog.dark = dark
     }
 
+    pub fn fog_reversed(&mut self, reversed: bool) {
+        self.fog.reversed = reversed
+    }
+
     pub fn fog_length(&mut self, length: f32) {
         self.fog.length = length
     }
@@ -140,6 +186,7 @@ struct FogParameters {
     length: f32,
     length_slider: slider::State,
     picklist: pick_list::State<FogChoice>,
+    reversed: bool,
 }
 
 impl FogParameters {
@@ -153,6 +200,7 @@ impl FogParameters {
                     self.visible,
                     self.from_camera,
                     self.dark,
+                    self.reversed,
                 )),
                 Message::FogChoice,
             ));
@@ -211,7 +259,13 @@ impl FogParameters {
     fn request(&self) -> Fog {
         Fog {
             radius: self.radius,
-            fog_kind: FogChoice::from_param(self.visible, self.from_camera, self.dark).fog_kind(),
+            fog_kind: FogChoice::from_param(
+                self.visible,
+                self.from_camera,
+                self.dark,
+                self.reversed,
+            )
+            .fog_kind(),
             length: self.length,
             from_camera: self.from_camera,
             alt_fog_center: None,
@@ -230,6 +284,7 @@ impl Default for FogParameters {
             radius_slider: Default::default(),
             from_camera: true,
             picklist: Default::default(),
+            reversed: false,
         }
     }
 }
@@ -241,6 +296,7 @@ pub enum FogChoice {
     FromPivot,
     DarkFromCamera,
     DarkFromPivot,
+    ReversedFromPivot,
 }
 
 impl Default for FogChoice {
@@ -255,6 +311,7 @@ const ALL_FOG_CHOICE: &'static [FogChoice] = &[
     FogChoice::FromPivot,
     FogChoice::DarkFromCamera,
     FogChoice::DarkFromPivot,
+    FogChoice::ReversedFromPivot,
 ];
 
 impl std::fmt::Display for FogChoice {
@@ -265,21 +322,28 @@ impl std::fmt::Display for FogChoice {
             Self::FromPivot => "From Pivot",
             Self::DarkFromCamera => "Dark from Camera",
             Self::DarkFromPivot => "Dark from Pivot",
+            Self::ReversedFromPivot => "Reversed from Pivot",
         };
         write!(f, "{}", ret)
     }
 }
 
 impl FogChoice {
-    fn from_param(visible: bool, from_camera: bool, dark: bool) -> Self {
+    fn from_param(visible: bool, from_camera: bool, dark: bool, reversed: bool) -> Self {
         Self::None
             .visible(visible)
             .dark(dark)
             .from_camera(from_camera)
+            .reversed(reversed)
     }
 
-    pub fn to_param(&self) -> (bool, bool, bool) {
-        (self.is_visible(), self.is_from_camera(), self.is_dark())
+    pub fn to_param(&self) -> (bool, bool, bool, bool) {
+        (
+            self.is_visible(),
+            self.is_from_camera(),
+            self.is_dark(),
+            self.is_reversed(),
+        )
     }
 
     fn visible(self, visible: bool) -> Self {
@@ -307,6 +371,14 @@ impl FogChoice {
                 Self::DarkFromCamera => Self::DarkFromPivot,
                 _ => self,
             }
+        }
+    }
+
+    fn reversed(self, reversed: bool) -> Self {
+        match (self, reversed) {
+            (Self::FromPivot, true) => Self::ReversedFromPivot,
+            (Self::ReversedFromPivot, false) => Self::FromPivot,
+            _ => self,
         }
     }
 
@@ -338,12 +410,17 @@ impl FogChoice {
         matches!(self, Self::DarkFromCamera | Self::DarkFromPivot)
     }
 
+    fn is_reversed(&self) -> bool {
+        matches!(self, Self::ReversedFromPivot)
+    }
+
     fn fog_kind(&self) -> u32 {
         use ensnano_interactor::graphics::fog_kind;
         match self {
             Self::None => fog_kind::NO_FOG,
             Self::FromCamera | Self::FromPivot => fog_kind::TRANSPARENT_FOG,
             Self::DarkFromPivot | Self::DarkFromCamera => fog_kind::DARK_FOG,
+            Self::ReversedFromPivot => fog_kind::REVERSED_FOG,
         }
     }
 }

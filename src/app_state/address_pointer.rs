@@ -16,11 +16,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-//! A wrapper arround an Arc<T> that uses `Arc::ptr_eq` to test for equality.
+//! A wrapper arround an `Arc<T>` that uses `Arc::ptr_eq` to test for equality.
 
 use std::sync::Arc;
 
-/// A wrapper arround an Arc<T> that uses `Arc::ptr_eq` to test for equality.
+/// A wrapper arround an `Arc<T>` that uses `Arc::ptr_eq` to test for equality.
 #[derive(Default)]
 pub(super) struct AddressPointer<T: Default>(Arc<T>);
 
@@ -72,6 +72,12 @@ impl<T: Default> AddressPointer<T> {
     }
 }
 
+impl<T: Default + Clone> AddressPointer<T> {
+    pub fn make_mut(&mut self) -> &mut T {
+        Arc::make_mut(&mut self.0)
+    }
+}
+
 use std::ops::Deref;
 impl<T: Clone + Default> AddressPointer<T> {
     /// Return a clone of the pointed value.
@@ -90,5 +96,12 @@ impl<T: Default + PartialEq> AddressPointer<T> {
 impl<T: Default> From<Arc<T>> for AddressPointer<T> {
     fn from(arc: Arc<T>) -> Self {
         Self(arc)
+    }
+}
+
+impl<T: Default> std::fmt::Pointer for AddressPointer<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let ptr = Arc::as_ptr(&self.0);
+        std::fmt::Pointer::fmt(&ptr, f)
     }
 }

@@ -17,25 +17,40 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use super::super::DesignReader;
 use super::*;
-use ensnano_interactor::Selection;
+use ensnano_design::{grid::GridId, BezierVertexId};
+use ensnano_interactor::{Selection, SimulationState};
 use iced::{scrollable, Scrollable};
 
 mod value_constructor;
-use value_constructor::{Builder, GridBuilder};
+use value_constructor::{BezierVertexBuilder, Builder, GridBuilder};
 pub use value_constructor::{BuilderMessage, InstanciatedValue, ValueKind};
 
-use ultraviolet::{Rotor3, Vec3};
+use ultraviolet::{Rotor3, Vec2, Vec3};
 pub enum ValueRequest {
-    GridPosition { grid_id: usize, position: Vec3 },
-    GridOrientation { grid_id: usize, orientation: Rotor3 },
+    HelixGridPosition {
+        grid_id: GridId,
+        position: Vec3,
+    },
+    GridOrientation {
+        grid_id: GridId,
+        orientation: Rotor3,
+    },
+    GridNbTurn {
+        grid_id: GridId,
+        nb_turn: f32,
+    },
+    BezierVertexPosition {
+        vertex_id: BezierVertexId,
+        position: Vec2,
+    },
 }
 
 impl ValueRequest {
     fn from_value_and_selection(selection: &Selection, value: InstanciatedValue) -> Option<Self> {
         match value {
-            InstanciatedValue::GridPosition(v) => {
+            InstanciatedValue::HelixGridPosition(v) => {
                 if let Selection::Grid(_, g_id) = selection {
-                    Some(Self::GridPosition {
+                    Some(Self::HelixGridPosition {
                         grid_id: *g_id,
                         position: v,
                     })
@@ -55,12 +70,34 @@ impl ValueRequest {
                     None
                 }
             }
+            InstanciatedValue::GridNbTurn(nb_turn) => {
+                if let Selection::Grid(_, g_id) = selection {
+                    Some(Self::GridNbTurn {
+                        grid_id: *g_id,
+                        nb_turn,
+                    })
+                } else {
+                    log::error!("Recieved value {:?} with selection {:?}", value, selection);
+                    None
+                }
+            }
+            InstanciatedValue::BezierVertexPosition(pos) => {
+                if let Selection::BezierVertex(vertex_id) = selection {
+                    Some(Self::BezierVertexPosition {
+                        vertex_id: *vertex_id,
+                        position: pos,
+                    })
+                } else {
+                    log::error!("Recieved value {:?} with selection {:?}", value, selection);
+                    None
+                }
+            }
         }
     }
 
     pub(super) fn make_request(&self, request: Arc<Mutex<dyn Requests>>) {
         match self {
-            Self::GridPosition { grid_id, position } => request
+            Self::HelixGridPosition { grid_id, position } => request
                 .lock()
                 .unwrap()
                 .set_grid_position(*grid_id, *position),
@@ -71,6 +108,16 @@ impl ValueRequest {
                 .lock()
                 .unwrap()
                 .set_grid_orientation(*grid_id, *orientation),
+            Self::GridNbTurn { grid_id, nb_turn } => {
+                request.lock().unwrap().set_nb_turn(*grid_id, *nb_turn)
+            }
+            Self::BezierVertexPosition {
+                vertex_id,
+                position,
+            } => request
+                .lock()
+                .unwrap()
+                .set_position_of_bezier_vertex(*vertex_id, *position),
         }
     }
 }
@@ -83,9 +130,9 @@ struct InstantiatedBuilder<S: AppState> {
 impl<S: AppState> InstantiatedBuilder<S> {
     /// If a builder can be made from the selection, update the builder and return true. Otherwise,
     /// return false.
-    fn update(&mut self, selection: &Selection, reader: &dyn DesignReader) -> bool {
-        if *selection != self.selection {
-            self.selection = selection.clone();
+    fn update(&mut self, selection: &Selection, reader: &dyn DesignReader, app_state: &S) -> bool {
+        if *selection != self.selection || app_state.is_transitory() {
+            self.selection = *selection;
             if let Some(builder) = Self::new_builder(selection, reader) {
                 self.builder = builder;
                 true
@@ -98,14 +145,10 @@ impl<S: AppState> InstantiatedBuilder<S> {
     }
 
     fn new(selection: &Selection, reader: &dyn DesignReader) -> Option<Self> {
-        if let Some(builder) = Self::new_builder(selection, reader) {
-            Some(Self {
-                builder,
-                selection: selection.clone(),
-            })
-        } else {
-            None
-        }
+        Self::new_builder(selection, reader).map(|builder| Self {
+            builder,
+            selection: *selection,
+        })
     }
 
     fn new_builder(
@@ -118,6 +161,13 @@ impl<S: AppState> InstantiatedBuilder<S> {
                     reader.get_grid_position_and_orientation(*g_id)
                 {
                     Some(Box::new(GridBuilder::new(position, orientation)))
+                } else {
+                    None
+                }
+            }
+            Selection::BezierVertex(vertex_id) => {
+                if let Some(position) = reader.get_bezier_vertex_position(*vertex_id) {
+                    Some(Box::new(BezierVertexBuilder::new(position)))
                 } else {
                     None
                 }
@@ -137,6 +187,7 @@ pub(super) struct ContextualPanel<S: AppState> {
     add_strand_menu: AddStrandMenu,
     strand_name_state: text_input::State,
     builder: Option<InstantiatedBuilder<S>>,
+    twist_button: button::State,
     insertion_length_state: InsertionLengthState,
 }
 
@@ -152,6 +203,7 @@ impl<S: AppState> ContextualPanel<S> {
             add_strand_menu: Default::default(),
             strand_name_state: Default::default(),
             builder: None,
+            twist_button: Default::default(),
             insertion_length_state: Default::default(),
         }
     }
@@ -160,10 +212,15 @@ impl<S: AppState> ContextualPanel<S> {
         self.width = width;
     }
 
-    fn update_builder(&mut self, selection: Option<&Selection>, reader: &dyn DesignReader) {
+    fn update_builder(
+        &mut self,
+        selection: Option<&Selection>,
+        reader: &dyn DesignReader,
+        app_state: &S,
+    ) {
         if let Some(s) = selection {
             if let Some(builder) = &mut self.builder {
-                if !builder.update(s, reader) {
+                if !builder.update(s, reader, app_state) {
                     self.builder = None;
                 }
             } else {
@@ -189,7 +246,18 @@ impl<S: AppState> ContextualPanel<S> {
         self.update_builder(
             Some(selection).filter(|_| nb_selected == 1),
             app_state.get_reader().as_ref(),
+            app_state,
         );
+
+        let xover_len = app_state
+            .get_strand_building_state()
+            .map(|b| b.dragged_nucl)
+            .and_then(|nucl| {
+                log::info!("dragged_nucl: {:?}", nucl);
+                app_state.get_reader().get_id_of_xover_involving_nucl(nucl)
+            })
+            .and_then(|id| app_state.get_reader().xover_length(id));
+
         self.insertion_length_state.update_selection(selection);
         let info_values = values_of_selection(selection, app_state.get_reader().as_ref());
         if self.show_tutorial {
@@ -203,18 +271,18 @@ impl<S: AppState> ContextualPanel<S> {
             column = column.push(link_row(
                 &mut self.ens_nano_website,
                 "http://ens-lyon.fr/ensnano",
-                ui_size.clone(),
+                ui_size,
             ));
-        } else if self.force_help {
+        } else if self.force_help && xover_len.is_none() {
             column = turn_into_help_column(column, ui_size)
         } else if app_state.get_action_mode().is_build() {
             let strand_menu = self.add_strand_menu.view(ui_size, self.width as u16);
             column = column.push(strand_menu);
-        } else if *selection == Selection::Nothing {
+        } else if *selection == Selection::Nothing && xover_len.is_none() {
             column = turn_into_help_column(column, ui_size)
         } else if nb_selected > 1 {
             let help_btn =
-                text_btn(&mut self.help_btn, "Help", ui_size.clone()).on_press(Message::ForceHelp);
+                text_btn(&mut self.help_btn, "Help", ui_size).on_press(Message::ForceHelp);
             column = column.push(
                 Row::new()
                     .width(Length::Fill)
@@ -226,7 +294,7 @@ impl<S: AppState> ContextualPanel<S> {
             column = column.push(Text::new(format!("{} objects selected", nb_selected)));
         } else {
             let help_btn =
-                text_btn(&mut self.help_btn, "Help", ui_size.clone()).on_press(Message::ForceHelp);
+                text_btn(&mut self.help_btn, "Help", ui_size).on_press(Message::ForceHelp);
             column = column.push(
                 Row::new()
                     .width(Length::Fill)
@@ -235,49 +303,84 @@ impl<S: AppState> ContextualPanel<S> {
                     .push(Column::new().width(Length::FillPortion(1)).push(help_btn))
                     .push(iced::Space::with_width(Length::FillPortion(1))),
             );
-            column = column.push(Text::new(selection.info()).size(ui_size.main_text()));
+
+            if !matches!(selection, Selection::Nothing) {
+                column = column.push(Text::new(selection.info()).size(ui_size.main_text()));
+            }
 
             match selection {
-                Selection::Grid(_, _) => {
-                    column = add_grid_content(column, info_values.as_slice(), ui_size.clone())
+                Selection::Grid(_, g_id) => {
+                    let twisting = match app_state.get_simulation_state() {
+                        SimulationState::Twisting { grid_id } if *g_id == grid_id => {
+                            TwistStatus::Twisting
+                        }
+                        SimulationState::None => TwistStatus::CanTwist,
+                        _ => TwistStatus::CannotTwist,
+                    };
+                    column = add_grid_content(
+                        column,
+                        info_values.as_slice(),
+                        ui_size,
+                        &mut self.twist_button,
+                        twisting,
+                    )
                 }
                 Selection::Strand(_, _) => {
                     column = add_strand_content(
                         column,
                         &mut self.strand_name_state,
                         info_values.as_slice(),
-                        ui_size.clone(),
+                        ui_size,
                     )
                 }
                 Selection::Nucleotide(_, _) => {
                     let anchor = info_values[0].clone();
                     column = column.push(Text::new(format!("Anchor {}", anchor)));
                 }
+                Selection::Xover(_, _) => {
+                    if xover_len.is_none() {
+                        if let Some(info) = info_values.get(0) {
+                            column = column.push(Text::new(info));
+                        }
+                        if let Some(info) = info_values.get(1) {
+                            column = column.push(Text::new(info));
+                        }
+                    }
+                }
                 _ => (),
             }
             if let Some(builder) = &mut self.builder {
-                column = column.push(builder.builder.view(ui_size))
+                column = column.push(builder.builder.view(ui_size, selection, app_state))
             }
+        }
 
-            if let Some(len) = app_state.get_reader().get_insertion_length(&selection) {
-                let real_len_string = len.to_string();
-                let text_input_content = self
-                    .insertion_length_state
-                    .input_str
-                    .as_ref()
-                    .unwrap_or(&real_len_string);
-                column = column.push(
-                    Row::new().push(Text::new("Loopout")).push(
-                        TextInput::new(
-                            &mut self.insertion_length_state.state,
-                            "",
-                            text_input_content,
-                            Message::InsertionLengthInput,
-                        )
-                        .on_submit(Message::InsertionLengthSubmitted),
-                    ),
-                );
+        if let Some(info_values) = xover_len.map(|v| fmt_xover_len(Some(v))) {
+            if let Some(info) = info_values.get(0) {
+                column = column.push(Text::new(info));
             }
+            if let Some(info) = info_values.get(1) {
+                column = column.push(Text::new(info));
+            }
+        }
+
+        if let Some(len) = app_state.get_reader().get_insertion_length(selection) {
+            let real_len_string = len.to_string();
+            let text_input_content = self
+                .insertion_length_state
+                .input_str
+                .as_ref()
+                .unwrap_or(&real_len_string);
+            column = column.push(
+                Row::new().push(Text::new("Loopout")).push(
+                    TextInput::new(
+                        &mut self.insertion_length_state.state,
+                        "",
+                        text_input_content,
+                        Message::InsertionLengthInput,
+                    )
+                    .on_submit(Message::InsertionLengthSubmitted),
+                ),
+            );
         }
 
         Scrollable::new(&mut self.scroll).push(column).into()
@@ -369,6 +472,15 @@ impl<S: AppState> ContextualPanel<S> {
         }
     }
 
+    pub fn request_from_value(&mut self, value: InstanciatedValue) -> Option<ValueRequest> {
+        if let Some(b) = &mut self.builder {
+            ValueRequest::from_value_and_selection(&b.selection, value)
+        } else {
+            log::error!("Cannot submit value: No instanciated builder");
+            None
+        }
+    }
+
     pub fn update_insertion_length_input(&mut self, input: String) {
         self.insertion_length_state.input_str = Some(input);
     }
@@ -380,17 +492,35 @@ impl<S: AppState> ContextualPanel<S> {
             .as_ref()
             .and_then(|s| s.parse::<usize>().ok())?;
         Some(InsertionRequest {
-            selection: self.insertion_length_state.selection.clone(),
+            selection: self.insertion_length_state.selection,
             length,
         })
     }
+}
+
+enum TwistStatus {
+    CanTwist,
+    CannotTwist,
+    Twisting,
 }
 
 fn add_grid_content<'a, S: AppState, I: std::ops::Deref<Target = str>>(
     mut column: Column<'a, Message<S>>,
     info_values: &[I],
     ui_size: UiSize,
+    twist_button: &'a mut button::State,
+    twisting: TwistStatus,
 ) -> Column<'a, Message<S>> {
+    let twist_button = match twisting {
+        TwistStatus::Twisting => {
+            text_btn(twist_button, "Stop", ui_size).on_press(Message::StopSimulation)
+        }
+        TwistStatus::CanTwist => {
+            text_btn(twist_button, "Twist", ui_size).on_press(Message::StartTwist)
+        }
+        TwistStatus::CannotTwist => text_btn(twist_button, "Twist", ui_size),
+    };
+    column = column.push(twist_button);
     column = column.push(
         Checkbox::new(
             info_values[0].parse::<bool>().unwrap(),
@@ -418,7 +548,7 @@ fn add_strand_content<'a, S: AppState, I: std::ops::Deref<Target = str>>(
 ) -> Column<'a, Message<S>> {
     let s_id = info_values[2].parse::<usize>().unwrap();
     let name_row = Row::new()
-        .push(Text::new(format!("Name")).size(ui_size.main_text()))
+        .push(Text::new("Name").size(ui_size.main_text()))
         .push(
             TextInput::new(
                 strand_name_state,
@@ -448,6 +578,7 @@ fn bool_to_string(b: bool) -> String {
     }
 }
 
+#[allow(clippy::needless_lifetimes)]
 fn add_help_to_column<'a, M: 'static>(
     mut column: Column<'a, M>,
     help_title: impl Into<String>,
@@ -480,6 +611,7 @@ fn add_help_to_column<'a, M: 'static>(
     column
 }
 
+#[allow(clippy::needless_lifetimes)]
 fn turn_into_help_column<'a, M: 'static>(
     mut column: Column<'a, M>,
     ui_size: UiSize,
@@ -490,11 +622,11 @@ fn turn_into_help_column<'a, M: 'static>(
             .width(Length::Fill)
             .horizontal_alignment(iced::alignment::Horizontal::Center),
     );
-    column = add_help_to_column(column, "3D view", view_3d_help(), ui_size.clone());
+    column = add_help_to_column(column, "3D view", view_3d_help(), ui_size);
     column = column.push(iced::Space::with_height(Length::Units(15)));
-    column = add_help_to_column(column, "2D/3D view", view_2d_3d_help(), ui_size.clone());
+    column = add_help_to_column(column, "2D/3D view", view_2d_3d_help(), ui_size);
     column = column.push(iced::Space::with_height(Length::Units(15)));
-    column = add_help_to_column(column, "2D view", view_2d_help(), ui_size.clone());
+    column = add_help_to_column(column, "2D view", view_2d_help(), ui_size);
     column
 }
 
@@ -523,15 +655,23 @@ fn view_3d_help() -> Vec<(String, String)> {
         (format!("{}", RCLICK), "Set pivot".to_owned()),
         (
             format!("{} Drag", RCLICK),
-            "Rotate camera around pivot".to_owned(),
-        ),
-        (
-            format!("{}+{} Drag", CTRL, MCLICK),
-            "Rotate camera around pivot".to_owned(),
+            "Rotate camera around pivot (preserve the XZ plane)".to_owned(),
         ),
         (
             format!("{}+{} Drag", CTRL, RCLICK),
+            "Rotate camera freely around pivot".to_owned(),
+        ),
+        (
+            format!("{}+{} Drag", ALT, RCLICK),
+            "Rotate camera around pivot (preserve the current horizon plane)".to_owned(),
+        ),
+        (
+            format!("{}+{} Drag", SHIFT, RCLICK),
             "Tilt camera".to_owned(),
+        ),
+        (
+            "⎵ (with cursor over the 3D scene)".to_owned(),
+            "Export the current view in png format".to_owned(),
         ),
         (String::new(), String::new()),
         (format!("{} Drag", LCLICK), "Edit strand".to_owned()),
@@ -610,6 +750,10 @@ fn view_2d_help() -> Vec<(String, String)> {
             format!("{} Drag", LCLICK),
             "Rectangular selection".to_owned(),
         ),
+        (
+            format!("{} Drag, followed by {ALT} before releasing", LCLICK),
+            "PNG export of rectangular area".to_owned(),
+        ),
         (String::new(), String::new()),
         ("On helix numbers".to_owned(), String::new()),
         (format!("{}", LCLICK), "Select helix".to_owned()),
@@ -675,7 +819,7 @@ fn values_of_selection(selection: &Selection, reader: &dyn DesignReader) -> Vec<
                     }
                 })
                 .collect();
-            if let Some(f) = reader.get_grid_shift(*g_id) {
+            if let Some(f) = reader.get_grid_nb_turn(*g_id) {
                 ret.push(f.to_string());
             }
             ret
@@ -693,7 +837,19 @@ fn values_of_selection(selection: &Selection, reader: &dyn DesignReader) -> Vec<
         Selection::Nucleotide(_, nucl) => {
             vec![format!("{}", reader.nucl_is_anchor(*nucl))]
         }
+        Selection::Xover(_, xover_id) => fmt_xover_len(reader.xover_length(*xover_id)),
         _ => Vec::new(),
+    }
+}
+
+fn fmt_xover_len(info: Option<(f32, Option<f32>)>) -> Vec<String> {
+    match info {
+        Some((len_self, Some(len_neighbour))) => vec![
+            format!("length {:.2} nm", len_self),
+            format!("{:.2} nm", len_neighbour),
+        ],
+        Some((len, None)) => vec![format!("length {:.2} nm", len)],
+        None => vec![String::from("Error getting length")],
     }
 }
 
@@ -763,6 +919,7 @@ impl AddStrandMenu {
         self.text_inputs_are_active = show;
     }
 
+    #[allow(clippy::needless_lifetimes)]
     fn view<'a, S: AppState>(&'a mut self, ui_size: UiSize, width: u16) -> Element<'a, Message<S>> {
         let mut ret = Column::new();
         let mut inputs = self.builder_input.iter_mut();
@@ -837,7 +994,7 @@ impl InsertionLengthState {
     fn update_selection(&mut self, selection: &Selection) {
         if selection != &self.selection {
             self.input_str = None;
-            self.selection = selection.clone();
+            self.selection = *selection;
         }
     }
 

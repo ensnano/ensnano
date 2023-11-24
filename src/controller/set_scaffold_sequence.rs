@@ -17,6 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::{dialog, messages, MainState, State, TransitionMessage, YesNo};
+use ensnano_interactor::StandardSequence;
 
 use dialog::PathInput;
 use std::path::Path;
@@ -34,6 +35,13 @@ impl SetScaffoldSequence {
             step: Default::default(),
         }
     }
+
+    pub(super) fn optimize_shift() -> Self {
+        Self {
+            shift: 0,
+            step: Step::OptimizeScaffoldPosition { design_id: 0 },
+        }
+    }
 }
 
 impl Default for Step {
@@ -43,8 +51,8 @@ impl Default for Step {
 }
 
 impl SetScaffoldSequence {
-    fn use_default(shift: usize) -> Self {
-        let sequence = include_str!("p7249-Tilibit.txt").to_string();
+    fn use_default(shift: usize, sequence: StandardSequence) -> Self {
+        let sequence = sequence.sequence().to_string();
         Self {
             step: Step::SetSequence(sequence),
             shift,
@@ -78,7 +86,7 @@ enum Step {
 impl State for SetScaffoldSequence {
     fn make_progress(self: Box<Self>, main_state: &mut dyn MainState) -> Box<dyn State> {
         match self.step {
-            Step::Init => init_set_scaffold_sequence(self.shift),
+            Step::Init => init_set_scaffold_sequence(self.shift, main_state.get_scaffold_length()),
             Step::AskPath { path_input } => ask_path(
                 path_input,
                 self.shift,
@@ -93,10 +101,20 @@ impl State for SetScaffoldSequence {
     }
 }
 
-fn init_set_scaffold_sequence(shift: usize) -> Box<dyn State> {
-    let yes = Box::new(SetScaffoldSequence::use_default(shift));
+fn init_set_scaffold_sequence(shift: usize, scaffold_length: Option<usize>) -> Box<dyn State> {
+    let suggested_sequence = scaffold_length
+        .map(StandardSequence::from_length)
+        .unwrap_or_default();
+    let desc = suggested_sequence.description();
+    let message = format!(
+        "Use {desc} sequence?
+    If you chose no, you will be ask to chose a file containing the scaffold sequence."
+    );
+
+    let yes = Box::new(SetScaffoldSequence::use_default(shift, suggested_sequence));
     let no = Box::new(SetScaffoldSequence::ask_path(shift));
-    Box::new(YesNo::new(messages::USE_DEFAULT_M13, yes, no))
+
+    Box::new(YesNo::new(message, yes, no))
 }
 
 fn ask_path<P: AsRef<Path>>(
@@ -160,15 +178,32 @@ fn set_sequence(
 ) -> Box<dyn State> {
     let result = scaffold_setter.set_scaffold_sequence(sequence, shift);
     match result {
-        Ok(SetScaffoldSequenceOk { default_shift }) => {
-            let message = messages::optimize_scaffold_position_msg(default_shift.unwrap_or(0));
-            let yes = Box::new(SetScaffoldSequence {
-                step: Step::OptimizeScaffoldPosition { design_id: 0 },
-                shift,
-            });
-            let no = Box::new(super::NormalState);
-            Box::new(YesNo::new(message, yes, no))
-        }
+        Ok(SetScaffoldSequenceOk {
+            default_shift,
+            target_scaffold_length,
+        }) => match target_scaffold_length {
+            TargetScaffoldLength::Ok => {
+                let message = messages::optimize_scaffold_position_msg(default_shift.unwrap_or(0));
+                let yes = Box::new(SetScaffoldSequence {
+                    step: Step::OptimizeScaffoldPosition { design_id: 0 },
+                    shift,
+                });
+                let no = Box::new(super::NormalState);
+                Box::new(YesNo::new(message, yes, no))
+            }
+            TargetScaffoldLength::NotOk {
+                design_length,
+                input_scaffold_length,
+            } => TransitionMessage::new(
+                format!(
+                    "Current scaffold length and input sequence length are different.
+                Current scaffold length: {design_length}
+                Input sequence length: {input_scaffold_length}"
+                ),
+                rfd::MessageLevel::Warning,
+                Box::new(super::NormalState),
+            ),
+        },
         Err(err) => TransitionMessage::new(
             format!("{:?}", err),
             rfd::MessageLevel::Error,
@@ -183,6 +218,7 @@ fn optimize_scaffold_position(_design_id: usize, main_state: &mut dyn MainState)
 }
 
 pub trait ScaffoldSetter {
+    fn get_scaffold_length(&self) -> Option<usize>;
     fn set_scaffold_sequence(
         &mut self,
         sequence: String,
@@ -193,6 +229,15 @@ pub trait ScaffoldSetter {
 
 pub struct SetScaffoldSequenceOk {
     pub default_shift: Option<usize>,
+    pub target_scaffold_length: TargetScaffoldLength,
+}
+
+pub enum TargetScaffoldLength {
+    Ok,
+    NotOk {
+        design_length: usize,
+        input_scaffold_length: usize,
+    },
 }
 
 #[derive(Debug)]

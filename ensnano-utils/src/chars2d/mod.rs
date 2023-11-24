@@ -60,7 +60,7 @@ impl CharDrawer {
         globals_layout: &BindGroupLayout,
         character: char,
     ) -> Self {
-        let instances_bg = DynamicBindGroup::new(device.clone(), queue.clone());
+        let instances_bg = DynamicBindGroup::new(device.clone(), queue.clone(), "chars instances");
         let char_texture = Rc::new(Letter::new(character, device.clone(), queue.clone()));
 
         let new_instances = vec![CharInstance {
@@ -171,7 +171,8 @@ impl CharDrawer {
                     mask: !0,
                     alpha_to_coverage_enabled: false,
                 },
-                label: Some("render pipeline"),
+                multiview: None,
+                label: Some("Char drawer render pipeline"),
             })
     }
 }

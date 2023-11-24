@@ -49,22 +49,38 @@ pub struct Parameters {
     pub inclination: f32,
 }
 
-const INTER_CENTER_GAP: f32 = 2.2;
-
 impl Parameters {
+    pub const INTER_CENTER_GAP: f32 =
+        Parameters::OLD_ENSNANO.helix_radius * 2. + Parameters::OLD_ENSNANO.inter_helix_gap;
+
     /// Value used for versions >= 0.4.1.
     /// Taken from "Design Principles for Single-Stranded RNA Origami Structures, Geary & Andersen
     /// 2014
     pub const GEARY_2014_DNA: Parameters = {
         let helix_radius = 0.93;
         Parameters {
-            z_step: 0.34,
+            z_step: 0.332,
             helix_radius,
             bases_per_turn: 10.44,
             groove_angle: 170.4 / 180.0 * std::f32::consts::PI,
             inclination: 0.375,
             // From Paul's paper.
-            inter_helix_gap: INTER_CENTER_GAP - 2. * helix_radius,
+            inter_helix_gap: Self::INTER_CENTER_GAP - 2. * helix_radius,
+        }
+    };
+
+    /// Value used for RNA designs
+    /// Taken from "Design Principles for Single-Stranded RNA Origami Structures, Geary & Andersen
+    /// 2014
+    pub const GEARY_2014_RNA: Parameters = {
+        let helix_radius = 0.87;
+        Parameters {
+            helix_radius,
+            z_step: 0.281,
+            inclination: -0.745,
+            groove_angle: 139.9 / 180.0 * std::f32::consts::PI,
+            bases_per_turn: 11.0,
+            inter_helix_gap: Self::INTER_CENTER_GAP - 2. * helix_radius,
         }
     };
 
@@ -188,7 +204,7 @@ impl ToString for NamedParameter {
     }
 }
 
-pub const NAMED_DNA_PARAMETERS: [NamedParameter; 2] = [
+pub const NAMED_DNA_PARAMETERS: [NamedParameter; 3] = [
     NamedParameter {
         name: "Old ENSnano",
         value: Parameters::OLD_ENSNANO,
@@ -196,6 +212,10 @@ pub const NAMED_DNA_PARAMETERS: [NamedParameter; 2] = [
     NamedParameter {
         name: "Geary 2014",
         value: Parameters::GEARY_2014_DNA,
+    },
+    NamedParameter {
+        name: "Geary 2014 RNA",
+        value: Parameters::GEARY_2014_RNA,
     },
 ];
 

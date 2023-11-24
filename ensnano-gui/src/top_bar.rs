@@ -18,9 +18,12 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::{AppState, UiSize};
 use ensnano_interactor::{ActionMode, SelectionMode};
 use iced::{container, Background, Container};
-use iced_wgpu::Renderer;
+use iced_wgpu;
 use iced_winit::winit::dpi::LogicalSize;
-use iced_winit::{button, Button, Color, Command, Element, Length, Program, Row};
+use iced_winit::{
+    widget::{button, Button, Row},
+    Color, Command, Element, Length, Program,
+};
 use std::collections::BTreeMap;
 use std::sync::{Arc, Mutex};
 
@@ -44,8 +47,11 @@ pub struct TopBar<R: Requests, S: AppState> {
     button_help: button::State,
     button_tutorial: button::State,
     button_reload: button::State,
+    button_toggle_2d: button::State,
     button_new_empty_design: button::State,
+    button_thick_helices: button::State,
     horizon_button: button::State,
+    button_3d_object: button::State,
     requests: Arc<Mutex<R>>,
     logical_size: LogicalSize<f64>,
     action_mode_state: ActionModeState,
@@ -62,6 +68,7 @@ pub struct MainState<S: AppState> {
     pub need_save: bool,
     pub can_reload: bool,
     pub can_split2d: bool,
+    pub can_toggle_2d: bool,
     pub splited_2d: bool,
 }
 
@@ -75,7 +82,7 @@ pub enum Message<S: AppState> {
     Resize(LogicalSize<f64>),
     ToggleView(SplitMode),
     UiSizeChanged(UiSize),
-    OxDNARequested,
+    ExportRequested,
     Split2d,
     NewApplicationState(MainState<S>),
     ForceHelp,
@@ -85,12 +92,20 @@ pub enum Message<S: AppState> {
     ButtonNewEmptyDesignPressed,
     ActionModeChanged(ActionMode),
     SelectionModeChanged(SelectionMode),
+    Toggle2D,
     Reload,
     FlipSplitViews,
+    ThickHelices(bool),
+    Import3D,
 }
 
 impl<R: Requests, S: AppState> TopBar<R, S> {
-    pub fn new(requests: Arc<Mutex<R>>, logical_size: LogicalSize<f64>) -> Self {
+    pub fn new(
+        requests: Arc<Mutex<R>>,
+        logical_size: LogicalSize<f64>,
+        application_state: MainState<S>,
+        ui_size: UiSize,
+    ) -> Self {
         Self {
             button_fit: Default::default(),
             button_add_file: Default::default(),
@@ -109,12 +124,15 @@ impl<R: Requests, S: AppState> TopBar<R, S> {
             button_tutorial: Default::default(),
             button_new_empty_design: Default::default(),
             button_reload: Default::default(),
+            button_toggle_2d: Default::default(),
+            button_thick_helices: Default::default(),
+            button_3d_object: Default::default(),
             requests,
             logical_size,
             action_mode_state: Default::default(),
             selection_mode_state: Default::default(),
-            ui_size: Default::default(),
-            application_state: Default::default(),
+            ui_size,
+            application_state,
         }
     }
 
@@ -128,7 +146,7 @@ impl<R: Requests, S: AppState> TopBar<R, S> {
 }
 
 impl<R: Requests, S: AppState> Program for TopBar<R, S> {
-    type Renderer = Renderer;
+    type Renderer = iced_wgpu::Renderer;
     type Message = Message<S>;
 
     fn update(&mut self, message: Message<S>) -> Command<Message<S>> {
@@ -148,7 +166,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
             Message::Resize(size) => self.resize(size),
             Message::ToggleView(b) => self.requests.lock().unwrap().change_split_mode(b),
             Message::UiSizeChanged(ui_size) => self.ui_size = ui_size,
-            Message::OxDNARequested => self.requests.lock().unwrap().export_to_oxdna(),
+            Message::ExportRequested => self.requests.lock().unwrap().set_exporting(true),
             Message::Split2d => self.requests.lock().unwrap().toggle_2d_view_split(),
             Message::NewApplicationState(state) => self.application_state = state,
             Message::Undo => self.requests.lock().unwrap().undo(),
@@ -180,13 +198,18 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
                     }
                 }
             }
+            Message::Toggle2D => {
+                self.requests.lock().unwrap().toggle_2d();
+            }
             Message::FlipSplitViews => self.requests.lock().unwrap().flip_split_views(),
+            Message::ThickHelices(b) => self.requests.lock().unwrap().set_thick_helices(b),
             Message::AlignHorizon => self.requests.lock().unwrap().align_horizon(),
+            Message::Import3D => self.requests.lock().unwrap().import_3d_object(),
         };
         Command::none()
     }
 
-    fn view(&mut self) -> Element<Message<S>, Renderer> {
+    fn view(&mut self) -> Element<Message<S>, iced_wgpu::Renderer> {
         let build_helix_mode = self.get_build_helix_mode();
         let action_modes = [
             ActionMode::Normal,
@@ -288,14 +311,37 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
         let button_3d = Button::new(&mut self.button_3d, iced::Text::new("3D"))
             .height(Length::Units(self.ui_size.button()))
             .on_press(Message::ToggleView(SplitMode::Scene3D));
+        let button_thick_helices = if self.application_state.app_state.want_thick_helices() {
+            Button::new(
+                &mut self.button_thick_helices,
+                light_icon(LightIcon::Dehaze, self.ui_size),
+            )
+            .on_press(Message::ThickHelices(false))
+        } else {
+            Button::new(
+                &mut self.button_thick_helices,
+                light_icon(LightIcon::Water, self.ui_size),
+            )
+            .on_press(Message::ThickHelices(true))
+        };
         let button_split = Button::new(&mut self.button_split, iced::Text::new("3D+2D"))
             .height(Length::Units(self.ui_size.button()))
             .on_press(Message::ToggleView(SplitMode::Both));
 
-        let button_oxdna = Button::new(&mut self.button_oxdna, iced::Text::new("To OxView"))
-            .height(Length::Units(self.ui_size.button()))
-            .on_press(Message::OxDNARequested);
+        let button_oxdna = Button::new(
+            &mut self.button_oxdna,
+            light_icon(LightIcon::Upload, self.ui_size),
+        )
+        .height(Length::Units(self.ui_size.button()))
+        .on_press(Message::ExportRequested);
         let oxdna_tooltip = button_oxdna;
+
+        let button_3d_import = Button::new(
+            &mut self.button_3d_object,
+            light_icon(LightIcon::Coronavirus, self.ui_size),
+        )
+        .height(Length::Units(self.ui_size.button()))
+        .on_press(Message::Import3D);
 
         let split_icon = if self.application_state.splited_2d {
             LightIcon::BorderOuter
@@ -311,6 +357,14 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
 
         if self.application_state.can_split2d {
             button_split_2d = button_split_2d.on_press(Message::Split2d);
+        }
+
+        let mut button_toggle_2d =
+            Button::new(&mut self.button_toggle_2d, iced::Text::new("Toggle 2D"))
+                .height(Length::Units(self.ui_size.button()));
+
+        if self.application_state.can_toggle_2d {
+            button_toggle_2d = button_toggle_2d.on_press(Message::Toggle2D);
         }
 
         let mut button_flip_split = Button::new(
@@ -378,11 +432,14 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
             .push(button_save)
             .push(button_save_as)
             .push(oxdna_tooltip)
+            .push(button_3d_import)
             .push(iced::Space::with_width(Length::Units(10)))
             .push(button_3d)
+            .push(button_thick_helices)
             .push(button_2d)
             .push(button_split)
             .push(button_split_2d)
+            .push(button_toggle_2d)
             .push(button_flip_split)
             .push(iced::Space::with_width(Length::Units(10)))
             .push(button_fit)
@@ -440,12 +497,6 @@ pub const BACKGROUND: Color = Color::from_rgb(
     0x3F as f32 / 255.0,
 );
 
-#[derive(Clone)]
-struct TopSizeInfo {
-    ui_size: UiSize,
-    height: iced::Length,
-}
-
 struct ToolTipStyle;
 impl iced::container::StyleSheet for ToolTipStyle {
     fn style(&self) -> iced::container::Style {
@@ -461,7 +512,6 @@ struct SelectionModeState {
     pub nucleotide: button::State,
     pub strand: button::State,
     pub helix: button::State,
-    pub grid: button::State,
 }
 
 impl SelectionModeState {
@@ -470,7 +520,6 @@ impl SelectionModeState {
         ret.insert(SelectionMode::Nucleotide, &mut self.nucleotide);
         ret.insert(SelectionMode::Strand, &mut self.strand);
         ret.insert(SelectionMode::Helix, &mut self.helix);
-        ret.insert(SelectionMode::Grid, &mut self.grid);
         ret
     }
 }
@@ -481,9 +530,6 @@ struct ActionModeState {
     pub translate: button::State,
     pub rotate: button::State,
     pub build: button::State,
-    pub cut: button::State,
-    pub add_grid: button::State,
-    pub add_hyperboloid: button::State,
 }
 
 impl ActionModeState {
@@ -502,9 +548,9 @@ impl ActionModeState {
 
 struct ButtonStyle(bool);
 
-impl iced_wgpu::button::StyleSheet for ButtonStyle {
-    fn active(&self) -> iced_wgpu::button::Style {
-        iced_wgpu::button::Style {
+impl iced_native::widget::button::StyleSheet for ButtonStyle {
+    fn active(&self) -> iced_native::widget::button::Style {
+        iced_native::widget::button::Style {
             border_width: if self.0 { 3_f32 } else { 1_f32 },
             border_radius: if self.0 { 3_f32 } else { 2_f32 },
             border_color: if self.0 {
@@ -527,7 +573,7 @@ fn action_mode_btn<'a, S: AppState>(
     fixed_mode: ActionMode,
     button_size: u16,
     axis_aligned: bool,
-) -> Button<'a, Message<S>, Renderer> {
+) -> Button<'a, Message<S>, iced_wgpu::Renderer> {
     let icon_path = if fixed_mode == mode {
         mode.icon_on(axis_aligned)
     } else {
@@ -545,7 +591,7 @@ fn selection_mode_btn<'a, S: AppState>(
     mode: SelectionMode,
     fixed_mode: SelectionMode,
     button_size: u16,
-) -> Button<'a, Message<S>, Renderer> {
+) -> Button<'a, Message<S>, iced_wgpu::Renderer> {
     let icon_path = if fixed_mode == mode {
         mode.icon_on()
     } else {

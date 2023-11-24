@@ -204,10 +204,11 @@ impl RotationWidget {
             projection.clone(),
             x_init,
             y_init,
+            None,
         )?;
         log::debug!("Point clicked {:?}", point_clicked);
         let point_moved =
-            maths_3d::unproject_point_on_plane(origin, normal, camera, projection, x, y)?;
+            maths_3d::unproject_point_on_plane(origin, normal, camera, projection, x, y, None)?;
         log::debug!("Point moved {:?}", point_moved);
         let rotation = Rotor3::from_rotation_between(
             (point_clicked - origin).normalized(),
@@ -245,8 +246,16 @@ pub struct RotationWidgetDescriptor {
     pub origin: Vec3,
     pub orientation: RotationWidgetOrientation,
     pub size: f32,
-    pub only_right: bool,
+    pub available_rotation_axes: AvailableRotationAxes,
     pub colors: HandleColors,
+}
+
+#[derive(Debug, Copy, Clone)]
+pub enum AvailableRotationAxes {
+    All,
+    NoZ,
+    #[allow(dead_code)] // may be used for grid helices
+    OnlyZ,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -266,16 +275,27 @@ impl RotationWidgetDescriptor {
         let dist = (camera.borrow().position - self.origin).mag();
         let (right, up, dir) = self.make_axis();
         let length = self.size * dist * (projection.borrow().get_fovy() / 2.).tan() * 1.1;
-        let filter = if self.only_right { 0f32 } else { 1f32 };
+        let (xy_filter, z_filter) = match self.available_rotation_axes {
+            AvailableRotationAxes::All => (1., 1.),
+            AvailableRotationAxes::NoZ => (1., 0.),
+            AvailableRotationAxes::OnlyZ => (0., 1.),
+        };
         let colors = match self.colors {
             HandleColors::Cym => ensnano_interactor::consts::CYM_HANDLE_COLORS,
             HandleColors::Rgb => ensnano_interactor::consts::RGB_HANDLE_COLORS,
         };
         [
-            Circle::new(self.origin, length, up, dir, colors[0], RIGHT_CIRCLE_ID),
             Circle::new(
                 self.origin,
-                length * filter,
+                length * z_filter,
+                up,
+                dir,
+                colors[0],
+                RIGHT_CIRCLE_ID,
+            ),
+            Circle::new(
+                self.origin,
+                length * xy_filter,
                 right,
                 dir,
                 colors[1],
@@ -283,7 +303,7 @@ impl RotationWidgetDescriptor {
             ),
             Circle::new(
                 self.origin,
-                length * 1.1 * filter,
+                length * 1.1 * xy_filter,
                 right,
                 up,
                 colors[2],

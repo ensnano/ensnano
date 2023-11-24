@@ -94,6 +94,7 @@ pub enum Consequence {
         centers: Vec<Vec2>,
         symmetry: Vec2,
     },
+    PngExport(Vec2, Vec2),
 }
 
 impl<S: AppState> Controller<S> {
@@ -140,11 +141,11 @@ impl<S: AppState> Controller<S> {
         if refit {
             if splited {
                 let (new_top, new_bottom) = old_rectangle_top.splited_vertically();
-                self.camera_top.borrow_mut().fit(new_top);
-                self.camera_bottom.borrow_mut().fit(new_bottom);
+                self.camera_top.borrow_mut().fit_center(new_top);
+                self.camera_bottom.borrow_mut().fit_center(new_bottom);
             } else {
                 let new_top = old_rectangle_top.with_double_height();
-                self.camera_top.borrow_mut().fit(new_top);
+                self.camera_top.borrow_mut().fit_center(new_top);
             }
         }
     }
@@ -190,10 +191,11 @@ impl<S: AppState> Controller<S> {
         }
     }
 
+    #[allow(dead_code)]
     pub fn fit(&mut self) {
         let rectangle = self.data.borrow().get_fit_rectangle();
-        self.camera_top.borrow_mut().fit(rectangle);
-        self.camera_bottom.borrow_mut().fit(rectangle);
+        self.camera_top.borrow_mut().fit_center(rectangle);
+        self.camera_bottom.borrow_mut().fit_center(rectangle);
     }
 
     pub fn input(

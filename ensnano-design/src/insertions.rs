@@ -223,11 +223,7 @@ impl InsertionDescriptor {
 }
 
 impl Strand {
-    pub fn update_insertions(
-        &mut self,
-        helices: &BTreeMap<usize, Arc<Helix>>,
-        parameters: &Parameters,
-    ) {
+    pub fn update_insertions(&mut self, helices: &dyn HelixCollection, parameters: &Parameters) {
         let mut to_be_updated = Vec::new();
         let nb_domain = self.domains.len();
         for (d_prev, ((d_id, d), d_next)) in self.domains.iter().cycle().skip(nb_domain - 1).zip(

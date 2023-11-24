@@ -15,6 +15,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+use ensnano_interactor::{graphics::HBoundDisplay, EquadiffSolvingMethod};
 use ensnano_organizer::{Organizer, OrganizerMessage, OrganizerTree};
 use std::sync::{Arc, Mutex};
 
@@ -25,7 +26,7 @@ use iced::{
 use iced::{container, Background, Column, Container, Row};
 use iced_aw::{TabLabel, Tabs};
 use iced_native::Program;
-use iced_wgpu::{Backend, Renderer};
+use iced_wgpu;
 use iced_winit::winit::{
     dpi::{LogicalPosition, LogicalSize},
     event::ModifiersState,
@@ -34,12 +35,14 @@ use ultraviolet::Vec3;
 
 use ensnano_design::{
     elements::{DnaElement, DnaElementKey},
-    CameraId,
+    BezierPathId, CameraId,
 };
 use ensnano_interactor::{
-    graphics::{Background3D, FogParameters as Fog, RenderingMode},
+    graphics::{Background3D, RenderingMode},
     ActionMode, SelectionConversion, SuggestionParameters,
 };
+
+use ensnano_exports::ExportType;
 
 use super::{
     icon_btn,
@@ -47,7 +50,7 @@ use super::{
         dark_icon as icon, icon_to_char, LightIcon as MaterialIcon, DARK_ICONFONT as ICONFONT,
     },
     slider_style::DesactivatedSlider,
-    text_btn, AppState, DesignReader, OverlayType, Requests, UiSize,
+    text_btn, AppState, FogParameters as Fog, OverlayType, Requests, UiSize,
 };
 
 use ensnano_design::{grid::GridTypeDescr, ultraviolet, NamedParameter};
@@ -59,13 +62,17 @@ use text_input_style::BadValue;
 mod discrete_value;
 use discrete_value::{FactoryId, RequestFactory, Requestable, ValueId};
 mod tabs;
-use crate::consts::*;
+use crate::{consts::*, left_panel::tabs::RevolutionParameterId};
 mod contextual_panel;
-use contextual_panel::{ContextualPanel, ValueKind};
+mod export_menu;
+use contextual_panel::{ContextualPanel, InstanciatedValue, ValueKind};
+use export_menu::ExportMenu;
 
-use ensnano_interactor::HyperboloidRequest;
+use ensnano_interactor::{CheckXoversParameter, HyperboloidRequest, Selection};
+pub use tabs::revolution_tab::*;
 use tabs::{
-    CameraShortcut, CameraTab, EditionTab, GridTab, ParametersTab, SequenceTab, SimulationTab,
+    CameraShortcut, CameraTab, EditionTab, GridTab, ParametersTab, PenTab, SequenceTab,
+    SimulationTab,
 };
 
 pub(super) const ENSNANO_FONT: iced::Font = iced::Font::External {
@@ -94,13 +101,16 @@ pub struct LeftPanel<R: Requests, S: AppState> {
     simulation_tab: SimulationTab<S>,
     sequence_tab: SequenceTab,
     parameters_tab: ParametersTab,
+    pen_tab: PenTab,
+    revolution_tab: RevolutionTab<S>,
     contextual_panel: ContextualPanel<S>,
     camera_shortcut: CameraShortcut,
     application_state: S,
+    exports_menu: ExportMenu,
 }
 
 #[derive(Debug, Clone)]
-pub enum Message<S> {
+pub enum Message<S: AppState> {
     Resized(LogicalSize<f64>, LogicalPosition<f64>),
     #[allow(dead_code)]
     OpenColor,
@@ -140,6 +150,7 @@ pub enum Message<S> {
     UiSizeChanged(UiSize),
     UiSizePicked(UiSize),
     StapplesRequested,
+    OrigamisRequested,
     ToggleText(bool),
     #[allow(dead_code)]
     CleanRequested,
@@ -164,22 +175,54 @@ pub enum Message<S> {
     NewApplicationState(S),
     FogChoice(tabs::FogChoice),
     SetScaffoldSeqButtonPressed,
+    OptimizeScaffoldShiftPressed,
     ResetSimulation,
     EditCameraName(String),
     SubmitCameraName,
     StartEditCameraName(CameraId),
-    SetCameraFavorite(CameraId),
     DeleteCamera(CameraId),
     SelectCamera(CameraId),
     NewCustomCamera,
-    UpdateCamera(CameraId),
     NewSuggestionParameters(SuggestionParameters),
     ContextualValueChanged(ValueKind, usize, String),
     ContextualValueSubmitted(ValueKind),
+    InstanciatedValueSubmitted(InstanciatedValue),
+    CheckXoversParameter(CheckXoversParameter),
+    FollowStereographicCamera(bool),
+    ShowStereographicCamera(bool),
+    ShowHBonds(HBoundDisplay),
+    RainbowScaffold(bool),
+    StopSimulation,
+    FinishRelaxation,
+    StartTwist,
     NewDnaParameters(NamedParameter),
     SetExpandInsertions(bool),
     InsertionLengthInput(String),
     InsertionLengthSubmitted,
+    NewBezierPlane,
+    StartBezierPath,
+    TurnPathIntoGrid {
+        path_id: BezierPathId,
+        grid_type: GridTypeDescr,
+    },
+    SetShowBezierPaths(bool),
+    MakeBezierPathCyclic {
+        path_id: BezierPathId,
+        cyclic: bool,
+    },
+    Export(ExportType),
+    CurveBuilderPicked(CurveDescriptorBuilder<S>),
+    RevolutionEquadiffSolvingMethodPicked(EquadiffSolvingMethod),
+    RevolutionParameterUpdate {
+        parameter_id: RevolutionParameterId,
+        text: String,
+    },
+    InitRevolutionRelaxation,
+    CancelExport,
+    LoadSvgFile,
+    ScreenShot3D,
+    IncrRevolutionShift,
+    DecrRevolutionShift,
 }
 
 impl<S: AppState> contextual_panel::BuilderMessage for Message<S> {
@@ -198,6 +241,8 @@ impl<R: Requests, S: AppState> LeftPanel<R, S> {
         logical_size: LogicalSize<f64>,
         logical_position: LogicalPosition<f64>,
         first_time: bool,
+        state: &S,
+        ui_size: UiSize,
     ) -> Self {
         let selected_tab = if first_time { 0 } else { 5 };
         let mut organizer = Organizer::new();
@@ -211,16 +256,19 @@ impl<R: Requests, S: AppState> LeftPanel<R, S> {
             show_torsion: false,
             selected_tab,
             organizer,
-            ui_size: Default::default(),
+            ui_size,
             grid_tab: GridTab::new(),
             edition_tab: EditionTab::new(),
             camera_tab: CameraTab::new(),
             simulation_tab: SimulationTab::new(),
             sequence_tab: SequenceTab::new(),
-            parameters_tab: ParametersTab::new(),
+            parameters_tab: ParametersTab::new(state),
+            pen_tab: Default::default(),
+            revolution_tab: Default::default(),
             contextual_panel: ContextualPanel::new(logical_size.width as u32),
             camera_shortcut: CameraShortcut::new(),
-            application_state: Default::default(),
+            application_state: state.clone(),
+            exports_menu: Default::default(),
         }
     }
 
@@ -294,11 +342,12 @@ impl<R: Requests, S: AppState> LeftPanel<R, S> {
             || self.organizer.has_keyboard_priority()
             || self.sequence_tab.has_keyboard_priority()
             || self.camera_shortcut.has_keyboard_priority()
+            || self.revolution_tab.has_keyboard_priority()
     }
 }
 
 impl<R: Requests, S: AppState> Program for LeftPanel<R, S> {
-    type Renderer = Renderer;
+    type Renderer = iced_wgpu::Renderer;
     type Message = Message<S>;
 
     fn update(&mut self, message: Message<S>) -> Command<Message<S>> {
@@ -382,16 +431,14 @@ impl<R: Requests, S: AppState> Program for LeftPanel<R, S> {
                 self.camera_shortcut.reset_angles();
             }
             Message::LengthHelicesChanged(length_str) => {
-                let new_strand_parameters =
-                    self.contextual_panel.update_length_str(length_str.clone());
+                let new_strand_parameters = self.contextual_panel.update_length_str(length_str);
                 self.requests
                     .lock()
                     .unwrap()
                     .add_double_strand_on_new_helix(Some(new_strand_parameters))
             }
             Message::PositionHelicesChanged(position_str) => {
-                let new_strand_parameters =
-                    self.contextual_panel.update_pos_str(position_str.clone());
+                let new_strand_parameters = self.contextual_panel.update_pos_str(position_str);
                 self.requests
                     .lock()
                     .unwrap()
@@ -425,10 +472,11 @@ impl<R: Requests, S: AppState> Program for LeftPanel<R, S> {
                 }
             }
             Message::FogChoice(choice) => {
-                let (visble, from_camera, dark) = choice.to_param();
+                let (visble, from_camera, dark, reversed) = choice.to_param();
                 self.camera_tab.fog_camera(from_camera);
                 self.camera_tab.fog_visible(visble);
                 self.camera_tab.fog_dark(dark);
+                self.camera_tab.fog_reversed(reversed);
                 let request = self.camera_tab.get_fog_request();
                 self.requests.lock().unwrap().set_fog_parameters(request);
             }
@@ -581,14 +629,16 @@ impl<R: Requests, S: AppState> Program for LeftPanel<R, S> {
                             .change_action_mode(action_mode);
                     }
                 }
-                if n != 0 {
-                    if self.application_state.is_building_hyperboloid() {
-                        self.requests.lock().unwrap().finalize_hyperboloid();
-                    }
+                if n != 0 && self.application_state.is_building_hyperboloid() {
+                    self.requests.lock().unwrap().finalize_hyperboloid();
                 }
                 if self.selected_tab == 3 && n != 3 {
                     self.simulation_tab
                         .leave_tab(self.requests.clone(), &self.application_state);
+                }
+                if n == 7 {
+                    // Revolution tab
+                    self.requests.lock().unwrap().notify_revolution_tab()
                 }
                 self.selected_tab = n;
             }
@@ -608,6 +658,9 @@ impl<R: Requests, S: AppState> Program for LeftPanel<R, S> {
                     .lock()
                     .unwrap()
                     .set_scaffold_sequence(self.sequence_tab.get_scaffold_shift());
+            }
+            Message::OptimizeScaffoldShiftPressed => {
+                self.requests.lock().unwrap().optimize_scaffold_shift();
             }
             Message::StapplesRequested => self.requests.lock().unwrap().download_stapples(),
             Message::ToggleText(b) => {
@@ -631,7 +684,6 @@ impl<R: Requests, S: AppState> Program for LeftPanel<R, S> {
             Message::Redim2dHelices(b) => self.requests.lock().unwrap().resize_2d_helices(b),
             Message::InvertScroll(b) => {
                 self.requests.lock().unwrap().invert_scroll(b);
-                self.parameters_tab.invert_y_scroll = b;
             }
             Message::CancelHyperboloid => {
                 self.requests.lock().unwrap().cancel_hyperboloid();
@@ -650,17 +702,11 @@ impl<R: Requests, S: AppState> Program for LeftPanel<R, S> {
             }
             Message::SelectScaffold => self.requests.lock().unwrap().set_scaffold_from_selection(),
             Message::RenderingMode(mode) => {
-                self.requests
-                    .lock()
-                    .unwrap()
-                    .change_3d_rendering_mode(mode.clone());
+                self.requests.lock().unwrap().change_3d_rendering_mode(mode);
                 self.camera_tab.rendering_mode = mode;
             }
             Message::Background3D(bg) => {
-                self.requests
-                    .lock()
-                    .unwrap()
-                    .change_3d_background(bg.clone());
+                self.requests.lock().unwrap().change_3d_background(bg);
                 self.camera_tab.background3d = bg;
             }
             Message::ForceHelp => {
@@ -680,6 +726,13 @@ impl<R: Requests, S: AppState> Program for LeftPanel<R, S> {
                     let reader = state.get_reader();
                     self.organizer.update_elements(reader.get_dna_elements());
                     self.contextual_panel.state_updated();
+                    let unrooted_surface = self
+                        .revolution_tab
+                        .get_current_unrooted_surface(&self.application_state);
+                    self.requests
+                        .lock()
+                        .unwrap()
+                        .set_unrooted_surface(unrooted_surface);
                 }
                 if state.selection_was_updated(&self.application_state) {
                     let selected_group = state.get_selected_group();
@@ -690,6 +743,7 @@ impl<R: Requests, S: AppState> Program for LeftPanel<R, S> {
                     self.contextual_panel.state_updated();
                 }
                 self.application_state = state;
+                self.revolution_tab.update(&self.application_state);
             }
             Message::FinishChangingColor => {
                 self.edition_tab.add_color();
@@ -706,11 +760,6 @@ impl<R: Requests, S: AppState> Program for LeftPanel<R, S> {
             Message::StartEditCameraName(camera_id) => {
                 self.camera_shortcut.start_editing(camera_id)
             }
-            Message::SetCameraFavorite(camera_id) => self
-                .requests
-                .lock()
-                .unwrap()
-                .set_favourite_camera(camera_id),
             Message::DeleteCamera(camera_id) => {
                 self.requests.lock().unwrap().delete_camera(camera_id)
             }
@@ -720,9 +769,6 @@ impl<R: Requests, S: AppState> Program for LeftPanel<R, S> {
             Message::NewCustomCamera => {
                 self.requests.lock().unwrap().create_new_camera();
                 self.camera_shortcut.scroll_down()
-            }
-            Message::UpdateCamera(camera_id) => {
-                self.requests.lock().unwrap().update_camera(camera_id)
             }
             Message::NewSuggestionParameters(param) => {
                 self.requests
@@ -738,6 +784,38 @@ impl<R: Requests, S: AppState> Program for LeftPanel<R, S> {
             Message::ContextualValueChanged(kind, n, val) => {
                 self.contextual_panel.update_builder_value(kind, n, val);
             }
+            Message::InstanciatedValueSubmitted(value) => {
+                if let Some(request) = self.contextual_panel.request_from_value(value) {
+                    request.make_request(self.requests.clone())
+                }
+            }
+            Message::CheckXoversParameter(parameters) => self
+                .requests
+                .lock()
+                .unwrap()
+                .set_check_xover_parameters(parameters),
+            Message::FollowStereographicCamera(b) => {
+                self.requests.lock().unwrap().follow_stereographic_camera(b)
+            }
+            Message::ShowStereographicCamera(b) => {
+                self.requests
+                    .lock()
+                    .unwrap()
+                    .set_show_stereographic_camera(b);
+            }
+            Message::ShowHBonds(b) => {
+                self.requests.lock().unwrap().set_show_h_bonds(b);
+            }
+            Message::RainbowScaffold(b) => self.requests.lock().unwrap().set_rainbow_scaffold(b),
+            Message::StopSimulation => self.requests.lock().unwrap().stop_simulations(),
+            Message::StartTwist => {
+                if let Some(Selection::Grid(_, g_id)) =
+                    self.application_state.get_selection().get(0)
+                {
+                    self.requests.lock().unwrap().start_twist_simulation(*g_id)
+                }
+            }
+            Message::OrigamisRequested => self.requests.lock().unwrap().download_origamis(),
             Message::NewDnaParameters(parameters) => self
                 .requests
                 .lock()
@@ -765,57 +843,159 @@ impl<R: Requests, S: AppState> Program for LeftPanel<R, S> {
                     }
                 }
             }
+            Message::NewBezierPlane => {
+                self.requests.lock().unwrap().create_bezier_plane();
+            }
+            Message::StartBezierPath => self
+                .requests
+                .lock()
+                .unwrap()
+                .change_action_mode(ActionMode::EditBezierPath),
+            Message::TurnPathIntoGrid { path_id, grid_type } => {
+                self.requests
+                    .lock()
+                    .unwrap()
+                    .turn_path_into_grid(path_id, grid_type);
+            }
+            Message::SetShowBezierPaths(b) => {
+                self.requests.lock().unwrap().set_show_bezier_paths(b)
+            }
+            Message::MakeBezierPathCyclic { path_id, cyclic } => {
+                self.requests
+                    .lock()
+                    .unwrap()
+                    .make_bezier_path_cyclic(path_id, cyclic);
+            }
+            Message::Export(export_type) => {
+                self.requests.lock().unwrap().export(export_type);
+            }
+            Message::CancelExport => {
+                self.requests.lock().unwrap().set_exporting(false);
+            }
+            Message::CurveBuilderPicked(builder) => {
+                self.revolution_tab.set_builder(builder);
+                let bezier_path_id = self.revolution_tab.get_current_bezier_path_id();
+                self.requests
+                    .lock()
+                    .unwrap()
+                    .set_bezier_revolution_id(bezier_path_id);
+                let unrooted_surface = self
+                    .revolution_tab
+                    .get_current_unrooted_surface(&self.application_state);
+                self.requests
+                    .lock()
+                    .unwrap()
+                    .set_unrooted_surface(unrooted_surface);
+            }
+            Message::RevolutionEquadiffSolvingMethodPicked(method) => {
+                self.revolution_tab.set_method(method);
+            }
+            Message::RevolutionParameterUpdate { parameter_id, text } => {
+                if let RevolutionParameterId::RevolutionRadius = parameter_id {
+                    if let Some(radius) = text.parse::<f64>().ok() {
+                        self.requests
+                            .lock()
+                            .unwrap()
+                            .set_bezier_revolution_radius(radius);
+                    }
+                }
+                self.revolution_tab
+                    .update_builder_parameter(parameter_id, text);
+                let bezier_path_id = self.revolution_tab.get_current_bezier_path_id();
+                self.requests
+                    .lock()
+                    .unwrap()
+                    .set_bezier_revolution_id(bezier_path_id);
+                let unrooted_surface = self
+                    .revolution_tab
+                    .get_current_unrooted_surface(&self.application_state);
+                self.requests
+                    .lock()
+                    .unwrap()
+                    .set_unrooted_surface(unrooted_surface);
+            }
+            Message::InitRevolutionRelaxation => {
+                if let Some(desc) = self
+                    .revolution_tab
+                    .get_revolution_system(&self.application_state, true)
+                {
+                    self.requests
+                        .lock()
+                        .unwrap()
+                        .start_revolution_relaxation(desc);
+                }
+            }
+            Message::FinishRelaxation => self
+                .requests
+                .lock()
+                .unwrap()
+                .finish_revolutiion_relaxation(),
+            Message::LoadSvgFile => self.requests.lock().unwrap().load_svg(),
+            Message::ScreenShot3D => {
+                self.requests.lock().unwrap().request_screenshot_3d();
+            }
+            Message::IncrRevolutionShift => self.revolution_tab.shift_idx += 1,
+            Message::DecrRevolutionShift => self.revolution_tab.shift_idx -= 1,
         };
         Command::none()
     }
 
     fn view(&mut self) -> Element<Message<S>> {
         let width = self.logical_size.cast::<u16>().width;
-        let tabs: Tabs<Message<S>, Backend> = Tabs::new(self.selected_tab, Message::TabSelected)
-            .push(
-                TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::GridOn))),
-                self.grid_tab
-                    .view(self.ui_size.clone(), width, &self.application_state),
-            )
-            .push(
-                TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Edit))),
-                self.edition_tab
-                    .view(self.ui_size.clone(), width, &self.application_state),
-            )
-            .push(
-                TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Videocam))),
-                self.camera_tab
-                    .view(self.ui_size.clone(), &self.application_state),
-            )
-            .push(
-                TabLabel::Icon(ICON_PHYSICAL_ENGINE),
-                self.simulation_tab
-                    .view(self.ui_size.clone(), &self.application_state),
-            )
-            .push(
-                TabLabel::Icon(ICON_ATGC),
-                self.sequence_tab
-                    .view(self.ui_size.clone(), &self.application_state),
-            )
-            .push(
-                TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Settings))),
-                self.parameters_tab
-                    .view(self.ui_size.clone(), &self.application_state),
-            )
-            .text_size(self.ui_size.icon())
-            .text_font(ICONFONT)
-            .icon_font(ENSNANO_FONT)
-            .icon_size(self.ui_size.icon())
-            .tab_bar_height(Length::Units(self.ui_size.button()))
-            .tab_bar_style(TabStyle)
-            .width(Length::Units(width))
-            .height(Length::Fill);
+        let tabs: Tabs<Message<S>, iced_wgpu::Backend> =
+            Tabs::new(self.selected_tab, Message::TabSelected)
+                .push(
+                    TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::GridOn))),
+                    self.grid_tab
+                        .view(self.ui_size, width, &self.application_state),
+                )
+                .push(
+                    TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Edit))),
+                    self.edition_tab
+                        .view(self.ui_size, width, &self.application_state),
+                )
+                .push(
+                    TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Videocam))),
+                    self.camera_tab.view(self.ui_size, &self.application_state),
+                )
+                .push(
+                    TabLabel::Icon(ICON_PHYSICAL_ENGINE),
+                    self.simulation_tab
+                        .view(self.ui_size, &self.application_state),
+                )
+                .push(
+                    TabLabel::Icon(ICON_ATGC),
+                    self.sequence_tab
+                        .view(self.ui_size, &self.application_state),
+                )
+                .push(
+                    TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Settings))),
+                    self.parameters_tab
+                        .view(self.ui_size, &self.application_state),
+                )
+                .push(
+                    TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Draw))),
+                    self.pen_tab.view(self.ui_size, &self.application_state),
+                )
+                .push(
+                    TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::AutoMode))),
+                    self.revolution_tab
+                        .view(self.ui_size, &self.application_state),
+                )
+                .text_size(self.ui_size.icon())
+                .text_font(ICONFONT)
+                .icon_font(ENSNANO_FONT)
+                .icon_size(self.ui_size.icon())
+                .tab_bar_height(Length::Units(self.ui_size.button()))
+                .tab_bar_style(TabStyle)
+                .width(Length::Units(width))
+                .height(Length::Fill);
         let camera_shortcut =
             self.camera_shortcut
-                .view(self.ui_size.clone(), width, &self.application_state);
+                .view(self.ui_size, width, &self.application_state);
         let contextual_menu = self
             .contextual_panel
-            .view(self.ui_size.clone(), &self.application_state);
+            .view(self.ui_size, &self.application_state);
         let selection = self
             .application_state
             .get_selection()
@@ -845,10 +1025,16 @@ impl<R: Requests, S: AppState> Program for LeftPanel<R, S> {
             .view(selection)
             .map(|m| Message::OrganizerMessage(m));
 
+        let first_container = if self.application_state.is_exporting() {
+            Container::new(self.exports_menu.view()).height(Length::FillPortion(2))
+        } else {
+            Container::new(tabs).height(Length::FillPortion(2))
+        };
+
         Container::new(
             Column::new()
                 .width(Length::Fill)
-                .push(Container::new(tabs).height(Length::FillPortion(2)))
+                .push(first_container)
                 .push(iced::Rule::horizontal(5))
                 .push(Container::new(camera_shortcut).height(Length::FillPortion(1)))
                 .push(iced::Rule::horizontal(5))
@@ -913,7 +1099,7 @@ pub enum ColorMessage {
 }
 
 impl<R: Requests> Program for ColorOverlay<R> {
-    type Renderer = Renderer;
+    type Renderer = iced_wgpu::Renderer;
     type Message = ColorMessage;
 
     fn update(&mut self, message: ColorMessage) -> Command<ColorMessage> {
@@ -964,16 +1150,15 @@ impl container::StyleSheet for FloatingStyle {
             border_width: 3_f32,
             border_radius: 3_f32,
             border_color: Color::BLACK,
-            ..container::Style::default()
         }
     }
 }
 
 struct ButtonStyle(bool);
 
-impl iced_wgpu::button::StyleSheet for ButtonStyle {
-    fn active(&self) -> iced_wgpu::button::Style {
-        iced_wgpu::button::Style {
+impl iced_native::widget::button::StyleSheet for ButtonStyle {
+    fn active(&self) -> iced_native::widget::button::Style {
+        iced_native::widget::button::Style {
             border_width: if self.0 { 3_f32 } else { 1_f32 },
             border_radius: if self.0 { 3_f32 } else { 2_f32 },
             border_color: if self.0 {
@@ -1000,9 +1185,9 @@ impl ButtonColor {
     }
 }
 
-impl iced_wgpu::button::StyleSheet for ButtonColor {
-    fn active(&self) -> iced_wgpu::button::Style {
-        iced_wgpu::button::Style {
+impl iced_native::widget::button::StyleSheet for ButtonColor {
+    fn active(&self) -> iced_native::widget::button::Style {
+        iced_native::widget::button::Style {
             background: Some(Background::Color(self.0)),
             //background: Some(Background::Color(BACKGROUND)),
             border_radius: 2.0,
@@ -1013,9 +1198,9 @@ impl iced_wgpu::button::StyleSheet for ButtonColor {
         }
     }
 
-    fn hovered(&self) -> iced_wgpu::button::Style {
+    fn hovered(&self) -> iced_native::widget::button::Style {
         let active = self.active();
-        iced_wgpu::button::Style {
+        iced_native::widget::button::Style {
             background: active.background.map(|background| match background {
                 Background::Color(color) => Background::Color(Color {
                     a: color.a * 0.75,
@@ -1059,9 +1244,9 @@ fn rotation_text(i: usize, ui_size: UiSize) -> Text {
 
 mod text_input_style {
     use iced::{Background, Color};
-    use iced_wgpu::text_input::*;
+    use iced_native::widget::text_input::*;
     pub struct BadValue(pub bool);
-    impl iced_wgpu::text_input::StyleSheet for BadValue {
+    impl iced_native::widget::text_input::StyleSheet for BadValue {
         fn active(&self) -> Style {
             Style {
                 background: Background::Color(Color::WHITE),
@@ -1106,10 +1291,11 @@ impl Requestable for Hyperboloid_ {
             length: values[1],
             shift: values[2],
             radius_shift: values[3],
+            nb_turn: values[4] as f64,
         }
     }
     fn nb_values(&self) -> usize {
-        4
+        5
     }
     fn initial_value(&self, n: usize) -> f32 {
         match n {
@@ -1117,6 +1303,7 @@ impl Requestable for Hyperboloid_ {
             1 => 30f32,
             2 => 0f32,
             3 => 0.2f32,
+            4 => 0.0f32,
             _ => unreachable!(),
         }
     }
@@ -1127,17 +1314,18 @@ impl Requestable for Hyperboloid_ {
             1 => 1f32,
             2 => -PI + 1f32.to_radians(),
             3 => 0.,
+            4 => -5f32,
             _ => unreachable!(),
         }
     }
 
     fn max_val(&self, n: usize) -> f32 {
-        use std::f32::consts::PI;
         match n {
             0 => 60f32,
-            1 => 200f32,
-            2 => PI - 1f32.to_radians(),
+            1 => 1000f32,
+            2 => 2.,
             3 => 1f32,
+            4 => 5f32,
             _ => unreachable!(),
         }
     }
@@ -1145,8 +1333,9 @@ impl Requestable for Hyperboloid_ {
         match n {
             0 => 1f32,
             1 => 1f32,
-            2 => 1f32.to_radians(),
+            2 => 0.01,
             3 => 0.01,
+            4 => 0.05,
             _ => unreachable!(),
         }
     }
@@ -1154,8 +1343,9 @@ impl Requestable for Hyperboloid_ {
         match n {
             0 => String::from("Nb helices"),
             1 => String::from("Strands length"),
-            2 => String::from("Angle shift"),
+            2 => String::from("Shift"),
             3 => String::from("Tube radius"),
+            4 => String::from("nb turn"),
             _ => unreachable!(),
         }
     }
@@ -1165,7 +1355,9 @@ impl Requestable for Hyperboloid_ {
     }
 }
 
-struct ScrollSentivity {}
+struct ScrollSentivity {
+    initial_value: f32,
+}
 
 impl Requestable for ScrollSentivity {
     type Request = f32;
@@ -1177,7 +1369,7 @@ impl Requestable for ScrollSentivity {
     }
     fn initial_value(&self, n: usize) -> f32 {
         if n == 0 {
-            0f32
+            self.initial_value
         } else {
             unreachable!()
         }
@@ -1443,6 +1635,8 @@ fn color_to_u32(color: Color) -> u32 {
     let red = ((color.r * 255.) as u32) << 16;
     let green = ((color.g * 255.) as u32) << 8;
     let blue = (color.b * 255.) as u32;
+
+    #[allow(clippy::let_and_return)]
     let color_u32 = red + green + blue;
     color_u32
 }

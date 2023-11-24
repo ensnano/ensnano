@@ -53,6 +53,11 @@ type ViewPtr = Rc<RefCell<View>>;
 type DataPtr<R> = Rc<RefCell<Data<R>>>;
 type CameraPtr = Rc<RefCell<Camera>>;
 
+const PNG_SIZE: PhySize = PhySize {
+    width: 256 * 32,
+    height: 256 * 10,
+};
+
 /// A Flatscene handles one design at a time
 pub struct FlatScene<S: AppState> {
     /// Handle the data to send to the GPU
@@ -116,10 +121,10 @@ impl<S: AppState> FlatScene<S> {
         let camera_bottom = Rc::new(RefCell::new(Camera::new(globals_bottom, true)));
         camera_top
             .borrow_mut()
-            .init_fit(FitRectangle::INITIAL_RECTANGLE);
+            .fit_top_left(FitRectangle::INITIAL_RECTANGLE);
         camera_bottom
             .borrow_mut()
-            .init_fit(FitRectangle::INITIAL_RECTANGLE);
+            .fit_top_left(FitRectangle::INITIAL_RECTANGLE);
         let view = Rc::new(RefCell::new(View::new(
             self.device.clone(),
             self.queue.clone(),
@@ -140,7 +145,7 @@ impl<S: AppState> FlatScene<S> {
             camera_bottom,
             self.splited,
         );
-        if self.view.len() > 0 {
+        if !self.view.is_empty() {
             self.view[0] = view;
             self.data[0] = data;
             self.controller[0] = controller;
@@ -154,7 +159,8 @@ impl<S: AppState> FlatScene<S> {
     /// Draw the view of the currently selected design
     fn draw_view(&mut self, encoder: &mut wgpu::CommandEncoder, target: &wgpu::TextureView) {
         if let Some(view) = self.view.get(self.selected_design) {
-            view.borrow_mut().draw(encoder, target, self.area);
+            log::trace!("draw flatscene");
+            view.borrow_mut().draw(encoder, target, None, None);
         }
     }
 
@@ -229,7 +235,7 @@ impl<S: AppState> FlatScene<S> {
                             .map(|c| Selection::Nucleotide(0, c.to_real()))
                             .collect()
                     })
-                    .unwrap_or(Vec::new());
+                    .unwrap_or_default();
                 self.data[self.selected_design]
                     .borrow_mut()
                     .set_free_end(free_end);
@@ -278,8 +284,8 @@ impl<S: AppState> FlatScene<S> {
                 .set_paste_candidate(candidate.map(|n| n.to_real())),
             Consequence::NewCandidate(candidate) => {
                 let phantom = candidate.map(|n| PhantomElement {
-                    position: n.position as i32,
-                    helix_id: n.helix.real as u32,
+                    position: n.flat_position.to_real(n.helix.segment_left) as i32,
+                    helix_id: n.helix.segment.helix_idx as u32,
                     forward: n.forward,
                     bound: false,
                     design_id: self.selected_design as u32,
@@ -291,7 +297,7 @@ impl<S: AppState> FlatScene<S> {
                 }) {
                     Some(selection)
                 } else {
-                    phantom.map(|p| Selection::Phantom(p))
+                    phantom.map(Selection::Phantom)
                 };
                 self.requests
                     .lock()
@@ -311,9 +317,11 @@ impl<S: AppState> FlatScene<S> {
                 let nucl2 = self.data[self.selected_design]
                     .borrow()
                     .get_best_suggestion(nucl)
-                    .or(self.data[self.selected_design]
-                        .borrow()
-                        .can_make_auto_xover(nucl));
+                    .or_else(|| {
+                        self.data[self.selected_design]
+                            .borrow()
+                            .can_make_auto_xover(nucl)
+                    });
                 if let Some(nucl2) = nucl2 {
                     self.attempt_xover(nucl, nucl2);
                     if double {
@@ -381,7 +389,10 @@ impl<S: AppState> FlatScene<S> {
                 pivots,
                 translation,
             } => {
-                let pivots = pivots.into_iter().map(|n| n.to_real()).collect();
+                let pivots = pivots
+                    .into_iter()
+                    .map(|n| (n.to_real(), n.helix.segment.segment_idx))
+                    .collect();
                 self.requests.lock().unwrap().apply_design_operation(
                     DesignOperation::SnapHelices {
                         pivots,
@@ -394,7 +405,7 @@ impl<S: AppState> FlatScene<S> {
                 center,
                 angle,
             } => {
-                let helices = helices.into_iter().map(|fh| fh.real).collect();
+                let helices = helices.into_iter().map(|fh| fh.segment.helix_idx).collect();
                 self.requests.lock().unwrap().apply_design_operation(
                     DesignOperation::RotateHelices {
                         helices,
@@ -408,7 +419,7 @@ impl<S: AppState> FlatScene<S> {
                 centers,
                 symmetry,
             } => {
-                let helices = helices.into_iter().map(|fh| fh.real).collect();
+                let helices = helices.into_iter().map(|fh| fh.segment.helix_idx).collect();
                 self.requests.lock().unwrap().apply_design_operation(
                     DesignOperation::ApplySymmetryToHelices {
                         helices,
@@ -447,10 +458,21 @@ impl<S: AppState> FlatScene<S> {
                 .requests
                 .lock()
                 .unwrap()
-                .new_candidates(vec![Selection::Helix(
-                    self.selected_design as u32,
-                    flat_helix.real as u32,
-                )]),
+                .new_candidates(vec![Selection::Helix {
+                    design_id: self.selected_design as u32,
+                    helix_id: flat_helix.segment.helix_idx,
+                    segment_id: flat_helix.segment.segment_idx,
+                }]),
+            Consequence::PngExport(corner1, corner2) => {
+                let glob_png = Globals::from_selection_rectangle(corner1, corner2);
+                use chrono::Utc;
+                let now = Utc::now();
+                let name = now.format("export_2d_%Y_%m_%d_%H_%M_%S.png").to_string();
+                self.export_png(&name, glob_png);
+                self.view[self.selected_design]
+                    .borrow_mut()
+                    .clear_rectangle();
+            }
             _ => (),
         }
     }
@@ -510,13 +532,147 @@ impl<S: AppState> FlatScene<S> {
             .borrow_mut()
             .center_split(n1, n2);
     }
+
+    fn create_png_export_texture(
+        &self,
+        device: &Device,
+        size: wgpu::Extent3d,
+    ) -> (wgpu::Texture, wgpu::TextureView) {
+        let desc = wgpu::TextureDescriptor {
+            size,
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Bgra8UnormSrgb,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT
+                | wgpu::TextureUsages::TEXTURE_BINDING
+                | wgpu::TextureUsages::COPY_SRC,
+            label: Some("desc"),
+        };
+        let texture_view_descriptor = wgpu::TextureViewDescriptor {
+            label: Some("texture_view_descriptor"),
+            format: Some(wgpu::TextureFormat::Bgra8UnormSrgb),
+            dimension: Some(wgpu::TextureViewDimension::D2),
+            aspect: wgpu::TextureAspect::All,
+            base_mip_level: 0,
+            mip_level_count: None,
+            base_array_layer: 0,
+            array_layer_count: None,
+        };
+
+        let texture = device.create_texture(&desc);
+        let view = texture.create_view(&texture_view_descriptor);
+        (texture, view)
+    }
+
+    fn export_png(&self, png_name: &str, glob: Globals) {
+        let device = self.device.as_ref();
+        let queue = self.queue.as_ref();
+        println!("export to {png_name}");
+        use ensnano_utils::BufferDimensions;
+        use std::io::Write;
+
+        let size = wgpu::Extent3d {
+            width: PNG_SIZE.width,
+            height: PNG_SIZE.height,
+            depth_or_array_layers: 1,
+        };
+
+        let (texture, texture_view) = self.create_png_export_texture(device, size);
+
+        let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
+            label: Some("3D Png export"),
+        });
+
+        self.view[0]
+            .borrow_mut()
+            .draw(&mut encoder, &texture_view, Some(PNG_SIZE), Some(glob));
+
+        // create a buffer and fill it with the texture
+        let extent = wgpu::Extent3d {
+            width: size.width,
+            height: size.height,
+            depth_or_array_layers: 1,
+        };
+        let buffer_dimensions =
+            BufferDimensions::new(extent.width as usize, extent.height as usize);
+        let buf_size = buffer_dimensions.padded_bytes_per_row * buffer_dimensions.height;
+        let staging_buffer = device.create_buffer(&wgpu::BufferDescriptor {
+            size: buf_size as u64,
+            usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+            label: Some("staging_buffer"),
+        });
+        let buffer_copy_view = wgpu::ImageCopyBuffer {
+            buffer: &staging_buffer,
+            layout: wgpu::ImageDataLayout {
+                offset: 0,
+                bytes_per_row: (buffer_dimensions.padded_bytes_per_row as u32)
+                    .try_into()
+                    .ok(),
+                rows_per_image: None,
+            },
+        };
+        let origin = wgpu::Origin3d { x: 0, y: 0, z: 0 };
+        let texture_copy_view = wgpu::ImageCopyTexture {
+            texture: &texture,
+            mip_level: 0,
+            origin,
+            aspect: Default::default(),
+        };
+
+        encoder.copy_texture_to_buffer(texture_copy_view, buffer_copy_view, extent);
+        queue.submit(Some(encoder.finish()));
+
+        let buffer_slice = staging_buffer.slice(..);
+        let buffer_future = buffer_slice.map_async(wgpu::MapMode::Read);
+        device.poll(wgpu::Maintain::Wait);
+
+        let pixels = async {
+            if let Ok(()) = buffer_future.await {
+                let pixels_slice = buffer_slice.get_mapped_range();
+                let mut pixels = Vec::with_capacity((size.height * size.width) as usize);
+                for chunck in pixels_slice.chunks(buffer_dimensions.padded_bytes_per_row) {
+                    for chunk in chunck.chunks(4) {
+                        // convert Bgra to Rgba
+                        pixels.push(chunk[2]);
+                        pixels.push(chunk[1]);
+                        pixels.push(chunk[0]);
+                        pixels.push(chunk[3]);
+                    }
+                }
+                drop(pixels_slice);
+                staging_buffer.unmap();
+                pixels
+            } else {
+                panic!("could not read fake texture");
+            }
+        };
+        let pixels = futures::executor::block_on(pixels);
+        let mut png_encoder = png::Encoder::new(
+            std::fs::File::create(png_name).unwrap(),
+            PNG_SIZE.width,
+            PNG_SIZE.height,
+        );
+        png_encoder.set_depth(png::BitDepth::Eight);
+        png_encoder.set_color(png::ColorType::Rgba);
+
+        let mut png_writer = png_encoder
+            .write_header()
+            .unwrap()
+            .into_stream_writer_with_size(buffer_dimensions.unpadded_bytes_per_row)
+            .unwrap();
+
+        png_writer.write_all(pixels.as_slice()).unwrap();
+        png_writer.finish().unwrap();
+    }
 }
 
 impl<S: AppState> Application for FlatScene<S> {
     type AppState = S;
     fn on_notify(&mut self, notification: Notification) {
         match notification {
-            Notification::FitRequest => self.controller[self.selected_design].fit(),
+            Notification::FitRequest => (), // Temporarilly don't fit to make the moebius ring
             Notification::ToggleText(b) => {
                 self.view[self.selected_design].borrow_mut().set_show_sec(b)
             }
@@ -526,8 +682,7 @@ impl<S: AppState> Application for FlatScene<S> {
                 }
             }
             Notification::CameraTarget(_) => (),
-            Notification::NewSensitivity(_) => (),
-            Notification::ClearDesigns => (),
+            Notification::ClearDesigns => self.data[0].borrow_mut().clear_design(),
             Notification::Centering(_, _) => (),
             Notification::CenterSelection(selection, app_id) => {
                 log::info!("2D view centering selection {:?}", selection);
@@ -549,7 +704,7 @@ impl<S: AppState> Application for FlatScene<S> {
             Notification::CameraRotation(_, _, _) => (),
             Notification::ModifersChanged(modifiers) => {
                 for c in self.controller.iter_mut() {
-                    c.update_modifiers(modifiers.clone())
+                    c.update_modifiers(modifiers)
                 }
             }
             Notification::Split2d => self.toggle_split_from_btn(),
@@ -563,13 +718,13 @@ impl<S: AppState> Application for FlatScene<S> {
                     .borrow_mut()
                     .redim_helices(selection)
             }
-            Notification::RenderingMode(_) => (),
-            Notification::Background3D(_) => (),
             Notification::Fog(_) => (),
             Notification::WindowFocusLost => (),
-            Notification::TeleportCamera(_, _) => (),
+            Notification::TeleportCamera(_) => (),
+            Notification::NewStereographicCamera(_) => (),
             Notification::FlipSplitViews => self.controller[0].flip_split_views(),
             Notification::HorizonAligned => (),
+            Notification::ScreenShot3D => (),
         }
     }
 
@@ -635,7 +790,7 @@ pub trait Requests {
     fn attempt_paste(&mut self, nucl: Option<Nucl>);
     fn request_centering_on_nucl(&mut self, nucl: Nucl, design_id: usize);
     fn update_opperation(&mut self, operation: Arc<dyn Operation>);
-    fn set_isometry(&mut self, helix: usize, isometry: Isometry2);
+    fn set_isometry(&mut self, helix: usize, segment_idx: usize, isometry: Isometry2);
     fn set_visibility_helix(&mut self, helix: usize, visibility: bool);
     fn flip_group(&mut self, helix: usize);
     fn suspend_op(&mut self);

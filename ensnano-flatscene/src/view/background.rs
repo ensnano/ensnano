@@ -114,7 +114,8 @@ impl Background {
                 mask: !0,
                 alpha_to_coverage_enabled: false,
             },
-            label: None,
+            label: Some("2D background pipeline"),
+            multiview: None,
         });
         let border_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             layout: Some(&pipeline_layout),
@@ -139,7 +140,8 @@ impl Background {
                 mask: !0,
                 alpha_to_coverage_enabled: false,
             },
-            label: None,
+            label: Some("2D border pipeline"),
+            multiview: None,
         });
 
         Self {
@@ -151,17 +153,21 @@ impl Background {
     }
 
     pub fn draw<'a>(&'a self, render_pass: &mut wgpu::RenderPass<'a>) {
+        log::trace!("Draw 2d background..");
         render_pass.set_pipeline(&self.pipeline);
         render_pass.set_index_buffer(self.ibo.slice(..), wgpu::IndexFormat::Uint16);
         render_pass.set_vertex_buffer(0, self.vbo.slice(..));
         render_pass.draw_indexed(0..6, 0, 0..1);
+        log::trace!("..Done");
     }
 
     pub fn draw_border<'a>(&'a self, render_pass: &mut wgpu::RenderPass<'a>) {
+        log::trace!("Draw 2d border..");
         render_pass.set_pipeline(&self.border_pipeline);
         render_pass.set_index_buffer(self.ibo.slice(..), wgpu::IndexFormat::Uint16);
         render_pass.set_vertex_buffer(0, self.vbo.slice(..));
         render_pass.draw_indexed(0..6, 0, 0..1);
+        log::trace!("..Done");
     }
 }
 

@@ -22,7 +22,7 @@ use lyon::math::Point;
 use lyon::path::Path;
 use lyon::tessellation;
 use lyon::tessellation::{StrokeVertex, StrokeVertexConstructor};
-use ultraviolet::{Mat2, Vec2};
+use ultraviolet::{Mat2, Rotor2, Vec2};
 use wgpu::util::DeviceExt;
 use wgpu::{BindGroupLayout, Buffer, DepthStencilState, RenderPass, RenderPipeline};
 
@@ -43,7 +43,7 @@ impl InsertionDrawer {
         globals: &BindGroupLayout,
         depth_stencil_state: Option<DepthStencilState>,
     ) -> Self {
-        let instances = DynamicBindGroup::new(device.clone(), queue.clone());
+        let instances = DynamicBindGroup::new(device.clone(), queue.clone(), "insertion instances");
         let pipeline = insertion_pipeline(
             device.as_ref(),
             globals,
@@ -125,14 +125,26 @@ pub struct InsertionInstance {
     pub color: [f32; 4],
 }
 
+pub struct InsertionDescriptor {
+    pub position: Vec2,
+    pub depth: f32,
+    pub orientation: Rotor2,
+    pub color: u32,
+    pub symmetry: Vec2,
+}
+
 impl InsertionInstance {
-    pub fn new(position: Vec2, depth: f32, orientation: ultraviolet::Rotor2, color: u32) -> Self {
+    pub fn new(desc: InsertionDescriptor) -> Self {
+        let symmetry_matrix = Mat2::new(
+            desc.symmetry.x * Vec2::unit_x(),
+            desc.symmetry.y * Vec2::unit_y(),
+        );
         Self {
-            position,
-            depth,
+            position: desc.position,
+            depth: desc.depth,
             _pading: 0,
-            orientation: orientation.into_matrix(),
-            color: ensnano_utils::instance::Instance::color_from_u32(color).into(),
+            orientation: desc.orientation.into_matrix() * symmetry_matrix,
+            color: ensnano_utils::instance::Instance::color_from_u32(desc.color).into(),
         }
     }
 }
@@ -216,7 +228,8 @@ fn insertion_pipeline(
             mask: !0,
             alpha_to_coverage_enabled: false,
         },
-        label: None,
+        label: Some("Insertion render pipeline"),
+        multiview: None,
     };
 
     device.create_render_pipeline(&desc)
