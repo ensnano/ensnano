@@ -18,7 +18,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::{AppState, DesactivatedSlider};
 
 use super::Message;
-use iced_native::{widget::helpers::*, Pixels};
+use iced_native::{theme, widget::helpers::*, Pixels};
 use std::collections::BTreeMap;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -60,14 +60,14 @@ pub enum FactoryId {
 impl<R: Requestable> RequestFactory<R> {
     pub fn new(factory_id: FactoryId, requestable: R) -> Self {
         let mut values = BTreeMap::new();
-        for id in 0..requestable.nb_values() {
-            let default = requestable.initial_value(id);
-            let min_val = requestable.min_val(id);
-            let max_val = requestable.max_val(id);
-            let step_val = requestable.step_val(id);
-            let name = requestable.name_val(id);
+        for n in 0..requestable.nb_values() {
+            let default = requestable.initial_value(n);
+            let min_val = requestable.min_val(n);
+            let max_val = requestable.max_val(n);
+            let step_val = requestable.step_val(n);
+            let name = requestable.name_val(n);
             values.insert(
-                ValueId(id),
+                ValueId(n),
                 DiscreteValue::new(
                     default,
                     step_val,
@@ -75,8 +75,8 @@ impl<R: Requestable> RequestFactory<R> {
                     max_val,
                     name,
                     factory_id,
-                    ValueId(id),
-                    requestable.hidden(id),
+                    ValueId(n),
+                    requestable.hidden(n),
                 ),
             );
         }
@@ -86,18 +86,15 @@ impl<R: Requestable> RequestFactory<R> {
         }
     }
 
-    pub fn view<S>(
-        &mut self,
-        active: bool,
-        size: impl Into<Pixels>,
-    ) -> Vec<iced::Element<Message<S>>>
+    pub fn view<S>(&self, active: bool, size: impl Into<Pixels>) -> Vec<iced::Element<Message<S>>>
     where
         S: AppState,
     {
+        let s = size.into();
         self.values
-            .values_mut()
+            .values()
             .filter(|v| !v.hidden)
-            .map(|v| v.view(active, size))
+            .map(|v| v.view(active, s))
             .collect()
     }
 
@@ -130,7 +127,12 @@ impl<R: Requestable> RequestFactory<R> {
     }
 }
 
+/// A DiscreteValue allow the user to chose a numerical value with prescibed constraints.
+///
+/// The value must be chosen in the discrete range between [min_val], [max_val] by increments of
+/// [step].
 struct DiscreteValue {
+    // Current selected value.
     value: f32,
     step: f32,
     min_val: f32,
@@ -164,7 +166,7 @@ impl DiscreteValue {
         }
     }
 
-    fn view<S>(&mut self, active: bool, name_size: impl Into<Pixels>) -> iced::Element<Message<S>>
+    fn view<S>(&self, active: bool, name_size: impl Into<Pixels>) -> iced::Element<Message<S>>
     where
         S: AppState,
     {
@@ -206,21 +208,25 @@ impl DiscreteValue {
 
         let mut name_text = text(self.name.clone()).size(name_size);
 
+        let deactivated_text_color = theme::Text::Color(iced::Color::from_rgb(0.6, 0.6, 0.6));
+        // TODO: It would be nice to have a consistent “deactivated text color”.
+        //       I think the appropriate answer is to use the Style associated type with
+        //       the widget::text::StyleSheet.
+
         if !active {
-            name_text = name_text.style(iced::theme::Text::Color(iced::Color::from_rgb(
-                0.6, 0.6, 0.6,
-            )));
+            name_text = name_text.style(deactivated_text_color);
         }
 
         iced_native::row![
-            // left
+            // On the left: print the name of the parameter being selected.
             iced_native::row![name_text, horizontal_space(iced::Length::Fill),]
                 .align_items(iced::Alignment::Center)
                 .width(iced::Length::FillPortion(8)),
-            // middle
+            // On the middle: print the currently selected value.
             iced_native::row![text(format!("{:.1}", self.value)),]
                 .width(iced::Length::FillPortion(3)),
-            // right
+            // One the right: the buttons and slider that allow to modify the currently selected
+            // value.
             iced_native::row![decr_button, incr_button, horizontal_space(2), slider,]
                 .width(iced::Length::FillPortion(10)),
             //
