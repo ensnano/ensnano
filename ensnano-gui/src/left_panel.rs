@@ -45,7 +45,7 @@ use ensnano_exports::ExportType;
 use super::{
     material_icons_light::{icon_to_char, LightIcon as MaterialIcon, DARK_ICONFONT as ICONFONT},
     slider_style::DesactivatedSlider,
-    AppState, FogParameters as Fog, OverlayType, Requests, UiSize,
+    AppState, FogParameters, OverlayType, Requests, UiSize,
 };
 
 use ensnano_design::{grid::GridTypeDescr, ultraviolet, NamedParameter};
@@ -161,7 +161,7 @@ pub enum Message<S: AppState> {
     Background3D(Background3D),
     OpenLink(&'static str),
     NewApplicationState(S),
-    FogChoice(tabs::FogChoice),
+    FogChoice(tabs::FogChoices),
     SetScaffoldSeqButtonPressed,
     OptimizeScaffoldShiftPressed,
     ResetSimulation,

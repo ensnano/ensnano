@@ -99,11 +99,15 @@ pub mod fog_kind {
     pub const REVERSED_FOG: u32 = 3;
 }
 
+/// Parameters for the Distance Fog effect in the 3D scene.
 #[derive(Debug, Clone)]
 pub struct FogParameters {
-    pub radius: f32,
+    // Softness of the Distance Fog cutoff.
+    pub softness: f32,
+    // Deepness of the Distance Fog.
     pub length: f32,
     pub fog_kind: u32,
+    // Compute Distance Fog from the camera or pivot position.
     pub from_camera: bool,
     pub alt_fog_center: Option<Vec3>,
 }
@@ -111,7 +115,7 @@ pub struct FogParameters {
 impl FogParameters {
     pub fn new() -> Self {
         Self {
-            radius: 10.,
+            softness: 10.,
             length: 10.,
             fog_kind: fog_kind::NO_FOG,
             from_camera: true,

@@ -125,7 +125,7 @@ impl Uniforms {
             proj: projection.borrow().calc_matrix(),
             inversed_view: camera.borrow().calc_matrix().inversed(),
             fog_length: fog.length,
-            fog_radius: fog.radius,
+            fog_radius: fog.softness,
             make_fog,
             fog_from_camera: fog.from_camera as u32,
             fog_alt_center: fog.alt_fog_center.unwrap_or(Vec3::zero()),

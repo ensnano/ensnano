@@ -17,18 +17,19 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::{
-    AppState, CheckXoversParameter, DesactivatedSlider, Fog, HBoundDisplay, Message, UiSize,
+    AppState, CheckXoversParameter, DesactivatedSlider, FogParameters, HBoundDisplay, Message,
+    UiSize,
 };
 use crate::helpers::*;
 use ensnano_interactor::graphics::{
     Background3D, RenderingMode, ALL_BACKGROUND3D, ALL_RENDERING_MODE,
 };
+use iced::theme;
 use iced::Element;
-use iced_native::widget;
 use iced_native::widget::helpers::*;
 
 pub struct CameraTab {
-    fog: FogParameters,
+    fog: FogGuiParameters,
     pub background3d: Background3D,
     pub rendering_mode: RenderingMode,
 }
@@ -41,86 +42,6 @@ impl CameraTab {
             rendering_mode: Default::default(),
         }
     }
-
-    //pub fn view<'a, S, R>(
-    //    &'a mut self,
-    //    ui_size: UiSize,
-    //    app_state: &S,
-    //) -> Element<'a, Message<S>, R>
-    //where
-    //    S: AppState,
-    //    R: Renderer + iced_native::text::Renderer,
-    //    R::Theme: widget::button::StyleSheet
-    //        + widget::checkbox::StyleSheet
-    //        + widget::container::StyleSheet
-    //        + widget::pick_list::StyleSheet
-    //        + widget::scrollable::StyleSheet
-    //        + widget::text::StyleSheet
-    //        + iced::overlay::menu::StyleSheet,
-    //    <R::Theme as iced::overlay::menu::StyleSheet>::Style:
-    //        From<<R::Theme as iced::overlay::menu::StyleSheet>::Style>,
-    //{
-    //    let mut content = widget::Column::new().spacing(5);
-    //    let content = iced_native::column![
-    //        section("Camera", ui_size),
-    //        subsection("Visibility", ui_size),
-    //        text_btn("Toggle Selected Visibility", ui_size.clone())
-    //            .on_press(Message::ToggleVisibility(false)),
-    //        text_btn("Toggle NonSelected Visibility", ui_size.clone())
-    //            .on_press(Message::ToggleVisibility(true)),
-    //        text_btn("Everything visible", ui_size.clone()).on_press(Message::AllVisible),
-    //        self.fog.view(&ui_size),
-    //        subsection("Visibility", ui_size),
-    //        pick_list(
-    //            [
-    //                HBoundDisplay::No,
-    //                HBoundDisplay::Stick,
-    //                HBoundDisplay::Ellipsoid,
-    //            ],
-    //            Some(app_state.get_h_bounds_display()),
-    //            Message::ShowHBonds,
-    //        ),
-    //        right_checkbox(
-    //            app_state.show_stereographic_camera(),
-    //            "Show stereographic camera",
-    //            Message::ShowStereographicCamera,
-    //            ui_size,
-    //        ),
-    //        right_checkbox(
-    //            app_state.follow_stereographic_camera(),
-    //            "Follow stereographic camera",
-    //            Message::FollowStereographicCamera,
-    //            ui_size,
-    //        ),
-    //        subsection("Highlight Xovers", ui_size),
-    //        pick_list(
-    //            CheckXoversParameter::ALL,
-    //            Some(app_state.get_checked_xovers_parameters()),
-    //            Message::CheckXoversParameter,
-    //        ),
-    //        subsection("Rendering", ui_size),
-    //        text("Style"),
-    //        pick_list(
-    //            &ALL_RENDERING_MODE[..],
-    //            Some(self.rendering_mode),
-    //            Message::RenderingMode,
-    //        ),
-    //        text("Background"),
-    //        pick_list(
-    //            &ALL_BACKGROUND3D[..],
-    //            Some(self.background3d),
-    //            Message::Background3D,
-    //        ),
-    //        checkbox(
-    //            app_state.expand_insertions(),
-    //            "Expand insertions",
-    //            Message::SetExpandInsertions,
-    //        ),
-    //    ]
-    //    .spacing(5);
-
-    //    scrollable(content).into()
-    //}
 
     pub fn view<S: AppState>(&self, ui_size: UiSize, app_state: &S) -> Element<Message<S>> {
         let content = iced_native::column![
@@ -185,7 +106,7 @@ impl CameraTab {
     }
 
     pub fn fog_visible(&mut self, visible: bool) {
-        self.fog.visible = visible
+        self.fog.is_activated = visible
     }
 
     pub fn fog_dark(&mut self, dark: bool) {
@@ -193,7 +114,7 @@ impl CameraTab {
     }
 
     pub fn fog_reversed(&mut self, reversed: bool) {
-        self.fog.reversed = reversed
+        self.fog.is_reversed = reversed
     }
 
     pub fn fog_length(&mut self, length: f32) {
@@ -201,68 +122,70 @@ impl CameraTab {
     }
 
     pub fn fog_radius(&mut self, radius: f32) {
-        self.fog.radius = radius
+        self.fog.softness = radius
     }
 
     pub fn fog_camera(&mut self, from_camera: bool) {
         self.fog.from_camera = from_camera;
     }
 
-    pub fn get_fog_request(&self) -> Fog {
+    pub fn get_fog_request(&self) -> FogParameters {
         self.fog.request()
     }
 }
 
-struct FogParameters {
-    visible: bool,
+/// Parameters for the Distance Fog in the 3D view.
+struct FogGuiParameters {
+    // Is the Distance Fog activated or not.
+    is_activated: bool,
+    // Compute Distance Fog from the camera or pivot position.
     from_camera: bool,
+    // Turn object into dark instead of disapearing.
     dark: bool,
-    radius: f32,
+    // Deepness of the Distance Fog.
     length: f32,
-    reversed: bool,
+    // Softness of the Distance Fog cutoff.
+    softness: f32,
+    // Reverse the effect.
+    is_reversed: bool,
 }
 
-impl FogParameters {
+impl FogGuiParameters {
     fn view<S: AppState>(&self, ui_size: UiSize) -> Element<Message<S>> {
-        let radius_text = if self.visible {
+        let deactivated_text_color = theme::Text::Color(iced::Color::from_rgb(0.6, 0.6, 0.6));
+        let radius_text = if self.is_activated {
             text("Radius")
         } else {
-            text("Radius").style(iced::theme::Text::Color(iced::Color::from_rgb(
-                0.6, 0.6, 0.6,
-            )))
+            text("Radius").style(deactivated_text_color)
         };
 
-        let gradient_text = if self.visible {
+        let gradient_text = if self.is_activated {
             text("Softness")
         } else {
-            text("Softness").style(iced::theme::Text::Color(iced::Color::from_rgb(
-                0.6, 0.6, 0.6,
-            )))
+            text("Softness").style(deactivated_text_color)
         };
 
-        let length_slider = if self.visible {
-            widget::Slider::new(0f32..=100f32, self.length, Message::FogLength)
+        let length_slider = if self.is_activated {
+            slider(0f32..=100f32, self.length, Message::FogLength)
         } else {
-            widget::Slider::new(0f32..=100f32, self.length, |_| Message::Nothing)
-                .style(DesactivatedSlider)
+            slider(0f32..=100f32, self.length, |_| Message::Nothing).style(DesactivatedSlider)
         };
 
-        let softness_slider = if self.visible {
-            widget::Slider::new(0f32..=100f32, self.radius, Message::FogRadius)
+        let softness_slider = if self.is_activated {
+            slider(0f32..=100f32, self.softness, Message::FogRadius)
         } else {
-            widget::Slider::new(0f32..=100f32, self.radius, |_| Message::Nothing)
-                .style(DesactivatedSlider)
+            slider(0f32..=100f32, self.softness, |_| Message::Nothing).style(DesactivatedSlider)
         };
 
         iced_native::column![
-            subsection("Fog", ui_size),
+            subsection("Distance Fog", ui_size),
             pick_list(
-                &ALL_FOG_CHOICE[..],
-                Some(FogChoice::from_param(
-                    self.visible,
+                &ALL_FOG_CHOICES[..],
+                Some(FogChoices::from_param(
+                    self.is_activated,
                     self.from_camera,
                     self.dark,
-                    self.reversed,
+                    self.is_reversed,
                 )),
                 Message::FogChoice,
             ),
@@ -272,14 +195,15 @@ impl FogParameters {
         .into()
     }
 
-    fn request(&self) -> Fog {
-        Fog {
-            radius: self.radius,
-            fog_kind: FogChoice::from_param(
-                self.visible,
+    /// Compute Distance Fog parameters from GUI values.
+    fn request(&self) -> FogParameters {
+        FogParameters {
+            softness: self.softness,
+            fog_kind: FogChoices::from_param(
+                self.is_activated,
                 self.from_camera,
                 self.dark,
-                self.reversed,
+                self.is_reversed,
             )
             .fog_kind(),
             length: self.length,
@@ -289,21 +213,21 @@ impl FogParameters {
     }
 }
 
-impl Default for FogParameters {
+impl Default for FogGuiParameters {
     fn default() -> Self {
         Self {
-            visible: false,
+            is_activated: false,
             dark: false,
             length: 10.,
-            radius: 10.,
+            softness: 10.,
             from_camera: true,
-            reversed: false,
+            is_reversed: false,
         }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Copy)]
-pub enum FogChoice {
+pub enum FogChoices {
     None,
     FromCamera,
     FromPivot,
@@ -312,22 +236,22 @@ pub enum FogChoice {
     ReversedFromPivot,
 }
 
-impl Default for FogChoice {
+impl Default for FogChoices {
     fn default() -> Self {
         Self::None
     }
 }
 
-const ALL_FOG_CHOICE: &'static [FogChoice] = &[
-    FogChoice::None,
-    FogChoice::FromCamera,
-    FogChoice::FromPivot,
-    FogChoice::DarkFromCamera,
-    FogChoice::DarkFromPivot,
-    FogChoice::ReversedFromPivot,
+const ALL_FOG_CHOICES: &'static [FogChoices] = &[
+    FogChoices::None,
+    FogChoices::FromCamera,
+    FogChoices::FromPivot,
+    FogChoices::DarkFromCamera,
+    FogChoices::DarkFromPivot,
+    FogChoices::ReversedFromPivot,
 ];
 
-impl std::fmt::Display for FogChoice {
+impl std::fmt::Display for FogChoices {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let ret = match self {
             Self::None => "None",
@@ -341,7 +265,7 @@ impl std::fmt::Display for FogChoice {
     }
 }
 
-impl FogChoice {
+impl FogChoices {
     fn from_param(visible: bool, from_camera: bool, dark: bool, reversed: bool) -> Self {
         Self::None
             .visible(visible)

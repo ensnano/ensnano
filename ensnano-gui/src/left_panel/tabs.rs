@@ -31,7 +31,7 @@ pub use grids_tab::GridTab;
 mod camera_shortcut;
 pub use camera_shortcut::CameraShortcutPanel;
 mod camera_tab;
-pub use camera_tab::{CameraTab, FogChoice};
+pub use camera_tab::{CameraTab, FogChoices};
 mod simulation_tab;
 pub use simulation_tab::SimulationTab;
 mod parameters_tab;
