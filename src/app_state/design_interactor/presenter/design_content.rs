@@ -344,15 +344,18 @@ impl DesignContent {
                 plate,
                 well: format!("{}{}", column, row.to_string()),
                 sequence: staple_info.sequence.clone(),
-                name: staple_info.strand_name.clone().unwrap_or_else(|| {
+                name: (if let Some(name) = &staple_info.strand_name {
+                    format!("{name} #{}", staple_info.s_id).into()
+                } else {
                     format!(
-                        "Staple {:04}; 5':h{}:nt{}>3':h{}:nt{}",
+                        "#{:04}; 5':h{}:nt{}>3':h{}:nt{}",
                         staple_info.s_id, *h5, *nt5, *h3, *nt3
                     )
                     .into()
                 }),
-                color_str: format!("{:#08X}", staple_info.color),
-                groups_name_str: staple_info.group_names.join(" ; "),
+                color_str: format!("{:#08X}", staple_info.color).trim_start_matches("0x").to_string(),
+                group_names: staple_info.group_names.clone(),
+                group_names_string: staple_info.group_names.join(" ; "),
                 length_str: staple_info.length.to_string(),
                 domain_decomposition: staple_info
                     .domain_decomposition
@@ -418,7 +421,8 @@ pub struct Staple {
     pub sequence: String,
     pub plate: usize,
     pub color_str: String,
-    pub groups_name_str: String,
+    pub group_names: Vec<String>,
+    pub group_names_string: String,
     pub domain_decomposition: String,
     pub length_str: String,
     pub intervals: StapleIntervals,

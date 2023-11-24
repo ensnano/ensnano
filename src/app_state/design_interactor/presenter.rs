@@ -405,6 +405,12 @@ impl Presenter {
         .unwrap_or_default()
     }
 
+    fn get_names_of_all_groups(&self) -> Vec<String> {
+        let tree = &self.current_design.organizer_tree.as_ref();
+        tree.map(|t| t.get_names_of_all_groups())
+            .unwrap_or_default()
+    }
+
     pub fn get_strand_domain(&self, s_id: usize, d_id: usize) -> Option<&ensnano_design::Domain> {
         self.current_design
             .strands
