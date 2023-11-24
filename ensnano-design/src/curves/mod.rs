@@ -1139,7 +1139,16 @@ impl InstanciatedCurveDescriptor_ {
             )),
             Self::SphereConcentricCircle(constructor) => Some(Curve::path(
                 constructor.clone().with_parameters(parameters.clone()),
+            )),
             Self::Twist(twist) => Some(Curve::path(twist.clone())),
+            Self::Torus(torus) => Some(Curve::path(torus.clone())),
+            Self::SuperTwist(twist) => Some(Curve::path(twist.clone())),
+            Self::TwistedTorus(_) => None,
+            Self::PiecewiseBezier(_) => None,
+            Self::TranslatedBezierPath {
+                path_curve,
+                translation,
+                initial_frame,
                 legacy,
                 ..
             } => Some(Curve::path(TranslatedPiecewiseBezier {
