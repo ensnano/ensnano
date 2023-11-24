@@ -24,6 +24,10 @@ use iced_native::widget::helpers::*;
 
 const CHECKBOXSPACING: u16 = 5;
 const JUMP_SIZE: f32 = 4.0;
+pub(super) const ENSNANO_FONT: iced::Font = iced::Font::External {
+    name: "EnsNanoFont",
+    bytes: include_bytes!("../../font/ensnano.ttf"),
+};
 const LIGHT_ICONFONT: iced::Font = iced::Font::External {
     name: "IconFontLight",
     bytes: material_icons_light::MATERIAL_ICON_LIGHT,
@@ -72,6 +76,31 @@ pub(crate) fn light_icon_button<'a, Message>(
     ui_size: UiSize,
 ) -> widget::Button<'a, Message> {
     button(light_icon(icon, ui_size)).height(ui_size.button())
+}
+
+pub(crate) fn text_button<'a, Message: Clone>(
+    inner_text: &'a str,
+    ui_size: UiSize,
+) -> widget::Button<'a, Message> {
+    let size = if inner_text.len() > 1 {
+        ui_size.main_text()
+    } else {
+        ui_size.icon()
+    };
+    button(text(inner_text).size(size)).height(ui_size.button())
+}
+
+#[allow(clippy::needless_lifetimes)]
+pub(crate) fn icon_button<'a, Message: Clone>(
+    icon_char: char,
+    ui_size: UiSize,
+) -> widget::Button<'a, Message> {
+    button(
+        text(icon_char.to_string())
+            .font(ENSNANO_FONT)
+            .size(ui_size.icon()),
+    )
+    .height(ui_size.button())
 }
 
 /// Return a checkbox widget with its label placed on the left.

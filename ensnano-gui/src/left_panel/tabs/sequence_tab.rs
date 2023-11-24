@@ -78,9 +78,9 @@ impl SequenceTab {
             // add_show_sequence_button!
             {
                 let button_show_sequence = if self.toggle_text_value {
-                    text_btn("Hide Sequences", ui_size).on_press(Message::ToggleText(false))
+                    text_button("Hide Sequences", ui_size).on_press(Message::ToggleText(false))
                 } else {
-                    text_btn("Show Sequences", ui_size).on_press(Message::ToggleText(true))
+                    text_button("Show Sequences", ui_size).on_press(Message::ToggleText(true))
                 };
                 button_show_sequence
             },
@@ -89,8 +89,8 @@ impl SequenceTab {
             extra_jump(),
             // add_scaffold_from_to_selection_buttons!
             {
-                let mut button_selection_to_scaffold = text_btn("From selection", ui_size);
-                let mut button_selection_from_scaffold = text_btn("Show", ui_size);
+                let mut button_selection_to_scaffold = text_button("From selection", ui_size);
+                let mut button_selection_from_scaffold = text_button("Show", ui_size);
                 if app_state.get_scaffold_info().is_some() {
                     button_selection_from_scaffold =
                         button_selection_from_scaffold.on_press(Message::SelectScaffold);

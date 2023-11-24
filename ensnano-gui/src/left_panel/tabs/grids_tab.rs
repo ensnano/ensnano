@@ -17,8 +17,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::{
-    icon_btn, text_btn, AppState, FactoryId, GridTypeDescr, HyperboloidRequest, Hyperboloid_,
-    Message, RequestFactory, UiSize, ValueId, ICON_HONEYCOMB_GRID, ICON_NANOTUBE, ICON_SQUARE_GRID,
+    AppState, FactoryId, GridTypeDescr, HyperboloidRequest, Hyperboloid_, Message, RequestFactory,
+    UiSize, ValueId, ICON_HONEYCOMB_GRID, ICON_NANOTUBE, ICON_SQUARE_GRID,
 };
 use crate::helpers::*;
 use iced::Element;
@@ -49,9 +49,9 @@ impl GridTab {
             subsection("New Grid", ui_size),
             // add_grid_buttons!
             iced_native::row![
-                icon_btn(ICON_SQUARE_GRID, ui_size)
+                icon_button(ICON_SQUARE_GRID, ui_size)
                     .on_press(Message::NewGrid(GridTypeDescr::Square { twist: None })),
-                icon_btn(ICON_HONEYCOMB_GRID, ui_size)
+                icon_button(ICON_HONEYCOMB_GRID, ui_size)
                     .on_press(Message::NewGrid(GridTypeDescr::Honeycomb { twist: None })),
             ]
             .spacing(5),
@@ -60,13 +60,13 @@ impl GridTab {
             // add_start_cancel_hyperboloid_button!
             if app_state.is_building_hyperboloid() {
                 iced_native::row![
-                    icon_btn(ICON_NANOTUBE, ui_size.clone()).on_press(Message::NewHyperboloid),
-                    text_btn("Finish", ui_size.clone()).on_press(Message::FinalizeHyperboloid),
+                    icon_button(ICON_NANOTUBE, ui_size.clone()).on_press(Message::NewHyperboloid),
+                    text_button("Finish", ui_size.clone()).on_press(Message::FinalizeHyperboloid),
                 ]
                 .spacing(3)
             } else {
                 iced_native::row![
-                    text_btn("Cancel", ui_size.clone()).on_press(Message::CancelHyperboloid)
+                    text_button("Cancel", ui_size.clone()).on_press(Message::CancelHyperboloid)
                 ]
                 .spacing(3)
             },

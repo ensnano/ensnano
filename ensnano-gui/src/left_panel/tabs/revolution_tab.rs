@@ -16,9 +16,13 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use super::*;
 use crate::helpers::*;
-use ensnano_design::{ultraviolet::Rotor3, CurveDescriptor2D};
+use crate::left_panel::Message;
+use crate::{AppState, SimulationState, UiSize};
+use ensnano_design::{
+    ultraviolet::{self, Rotor3, Vec3},
+    CurveDescriptor2D,
+};
 use ensnano_interactor::{
     EquadiffSolvingMethod, RevolutionSimulationParameters, RevolutionSurfaceRadius,
     RevolutionSurfaceSystemDescriptor, RootingParameters, ShiftGenerator,
@@ -27,12 +31,6 @@ use ensnano_interactor::{
 use iced::Element;
 use iced_native::widget;
 use iced_native::widget::helpers::*;
-//use iced_native::widget::{
-//    button::Button,
-//    pick_list::PickList,
-//    scrollable::{self, Scrollable},
-//    text_input::{self, TextInput},
-//};
 
 #[derive(Debug, Clone, Copy)]
 pub enum ParameterKind {
@@ -154,7 +152,7 @@ impl ParameterWidget {
 
     fn input_view<S: AppState>(&self, id: RevolutionParameterId) -> Element<Message<S>> {
         let style = super::BadValue(self.contains_valid_input());
-        TextInput::new("", &self.current_text)
+        text_input("", &self.current_text)
             .on_input(move |s| Message::RevolutionParameterUpdate {
                 parameter_id: id,
                 text: s,
@@ -405,19 +403,18 @@ impl<S: AppState> RevolutionTab<S> {
 
     pub fn view(&mut self, ui_size: UiSize, app_state: &S) -> iced::Element<Message<S>> {
         let desc = self.get_revolution_system(app_state, false);
-        let nb_shift = self.get_shift_per_turn(app_state);
 
-        let mut shift_buttons = [button(text("-")), button(text("+"))];
-        let shift_buttons = if let Some(shift) = self.get_shift_per_turn(app_state) {
-            shift_buttons[0].on_press(Message::DecrRevolutionShift);
-            shift_buttons[1].on_press(Message::IncrRevolutionShift);
-            iced_native::row![
-                shift_buttons[0],
-                shift_buttons[1],
-                text(format!("Nb shift: {shift}"))
-            ]
-        } else {
-            iced_native::row![shift_buttons[0], shift_buttons[1], text("Nb shift: ###")]
+        let shift_buttons = {
+            let buttons = (button(text("-")), button(text("+")));
+            if let Some(shift) = self.get_shift_per_turn(app_state) {
+                iced_native::row![
+                    buttons.0.on_press(Message::DecrRevolutionShift),
+                    buttons.1.on_press(Message::DecrRevolutionShift),
+                    text(format!("Nb shift: {shift}")),
+                ]
+            } else {
+                iced_native::row![buttons.0, buttons.1, text("Nb shift: ###"),]
+            }
         };
 
         let simulation_buttons = if let SimulationState::Relaxing = app_state.get_simulation_state()
@@ -434,7 +431,7 @@ impl<S: AppState> RevolutionTab<S> {
                 button(text("Finish")).on_press(Message::FinishRelaxation),
             ]
         } else {
-            let mut button = Button::new(Text::new("Start"));
+            let mut button = button(text("Start"));
             if let SimulationState::None = app_state.get_simulation_state() {
                 if desc.is_some() {
                     button = button.on_press(Message::InitRevolutionRelaxation);
@@ -734,6 +731,7 @@ impl<S: AppState> RevolutionTab<S> {
     }
 }
 
+#[derive(Clone, Copy)]
 pub struct RevolutionScaling {
     pub nb_helix: usize,
     pub scale: f64,

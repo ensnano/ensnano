@@ -276,7 +276,7 @@ impl<S: AppState> ContextualPanel<S> {
             content = content
                 .push(iced_native::row![
                     horizontal_space(Length::FillPortion(1)),
-                    iced_native::column![text_btn("Help", ui_size).on_press(Message::ForceHelp),]
+                    iced_native::column![text_button("Help", ui_size).on_press(Message::ForceHelp),]
                         .width(Length::FillPortion(1)),
                     horizontal_space(Length::FillPortion(1)),
                 ])
@@ -287,7 +287,7 @@ impl<S: AppState> ContextualPanel<S> {
             content = content.push(
                 iced_native::row![
                     horizontal_space(Length::FillPortion(1)),
-                    iced_native::column![text_btn("Help", ui_size).on_press(Message::ForceHelp),]
+                    iced_native::column![text_button("Help", ui_size).on_press(Message::ForceHelp),]
                         .width(Length::FillPortion(1)),
                     horizontal_space(Length::FillPortion(1)),
                 ]
@@ -488,9 +488,9 @@ fn add_grid_content<S: AppState, I: std::ops::Deref<Target = str>>(
     iced_native::column![
         // twist_button
         match twisting {
-            TwistStatus::Twisting => text_btn("Stop", ui_size).on_press(Message::StopSimulation),
-            TwistStatus::CanTwist => text_btn("Twist", ui_size).on_press(Message::StartTwist),
-            TwistStatus::CannotTwist => text_btn("Twist", ui_size),
+            TwistStatus::Twisting => text_button("Stop", ui_size).on_press(Message::StopSimulation),
+            TwistStatus::CanTwist => text_button("Twist", ui_size).on_press(Message::StartTwist),
+            TwistStatus::CannotTwist => text_button("Twist", ui_size),
         },
         checkbox(
             "Persistent phantoms",
@@ -740,7 +740,7 @@ fn view_2d_help() -> Vec<(String, String)> {
 fn link_row<S: AppState>(link: &'static str, ui_size: UiSize) -> iced::Element<Message<S>> {
     iced_native::row![
         iced_native::column![text(link),].width(Length::FillPortion(3)),
-        iced_native::column![text_btn("Go", ui_size).on_press(Message::OpenLink(link)),]
+        iced_native::column![text_button("Go", ui_size).on_press(Message::OpenLink(link)),]
             .width(Length::FillPortion(1)),
     ]
     .into()

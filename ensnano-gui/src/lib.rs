@@ -895,41 +895,6 @@ fn convert_size_u32(size: PhysicalSize<u32>) -> Size<u32> {
     Size::new(size.width, size.height)
 }
 
-use iced_native::widget;
-use iced_native::widget::helpers::*;
-fn text_btn<'a, M, R>(inner_text: &'a str, ui_size: UiSize) -> widget::Button<'a, M, R>
-where
-    M: Clone,
-    R: iced_native::Renderer + iced_native::text::Renderer,
-    R::Theme: widget::button::StyleSheet + widget::text::StyleSheet,
-{
-    let size = if inner_text.len() > 1 {
-        ui_size.main_text()
-    } else {
-        ui_size.icon()
-    };
-    button(text(inner_text).size(size)).height(ui_size.button())
-}
-
-#[allow(clippy::needless_lifetimes)]
-fn icon_btn<'a, M: Clone, R: iced_native::Renderer>(
-    icon_char: char,
-    ui_size: UiSize,
-) -> widget::Button<'a, M, R>
-where
-    M: Clone,
-    R: iced_native::Renderer + iced_native::text::Renderer,
-    R::Theme: widget::button::StyleSheet + widget::text::StyleSheet,
-    R::Font: From<iced::Font>,
-{
-    button(
-        text(icon_char.to_string())
-            .font(left_panel::ENSNANO_FONT)
-            .size(ui_size.icon()),
-    )
-    .height(ui_size.button())
-}
-
 mod slider_style {
     use iced::widget::slider::{Appearance, Handle, HandleShape, Rail, StyleSheet};
     use iced::Color;
@@ -938,7 +903,7 @@ mod slider_style {
 
     impl StyleSheet for DesactivatedSlider {
         type Style = ();
-        fn active(&self, style: &Self::Style) -> Appearance {
+        fn active(&self, _style: &Self::Style) -> Appearance {
             Appearance {
                 rail: Rail {
                     colors: ([0.6, 0.6, 0.6, 0.5].into(), Color::WHITE),

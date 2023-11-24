@@ -21,7 +21,7 @@ use std::sync::{Arc, Mutex};
 
 use iced::theme;
 use iced_aw::{style::tab_bar, TabLabel, Tabs};
-use iced_native::widget::{container, Button, Column, Container, Text, TextInput};
+use iced_native::widget::{container, Button, Column, Container, Text};
 use iced_native::{Background, Color, Command, Element, Length};
 use iced_wgpu;
 use iced_winit::winit::{
@@ -43,10 +43,9 @@ use ensnano_interactor::{
 use ensnano_exports::ExportType;
 
 use super::{
-    icon_btn,
     material_icons_light::{icon_to_char, LightIcon as MaterialIcon, DARK_ICONFONT as ICONFONT},
     slider_style::DesactivatedSlider,
-    text_btn, AppState, FogParameters as Fog, OverlayType, Requests, UiSize,
+    AppState, FogParameters as Fog, OverlayType, Requests, UiSize,
 };
 
 use ensnano_design::{grid::GridTypeDescr, ultraviolet, NamedParameter};
@@ -69,11 +68,6 @@ pub use tabs::revolution_tab::*;
 use tabs::{
     CameraShortcutPanel, CameraTab, EditionTab, GridTab, ParametersTab, PenTab, SequenceTab,
     SimulationTab,
-};
-
-pub(super) const ENSNANO_FONT: iced::Font = iced::Font::External {
-    name: "EnsNanoFont",
-    bytes: include_bytes!("../../font/ensnano.ttf"),
 };
 
 pub struct LeftPanel<R: Requests, S: AppState> {
@@ -982,7 +976,7 @@ where
                 )
                 .text_size(self.ui_size.icon())
                 .text_font(ICONFONT)
-                .icon_font(ENSNANO_FONT)
+                .icon_font(crate::helpers::ENSNANO_FONT)
                 .icon_size(self.ui_size.icon())
                 .tab_bar_height(Length::Fixed(self.ui_size.button()))
                 //.tab_bar_style(TabStyle)

@@ -15,9 +15,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use super::{
-    icon_btn, AppState, GridTypeDescr, Message, UiSize, ICON_HONEYCOMB_GRID, ICON_SQUARE_GRID,
-};
+use super::{AppState, GridTypeDescr, Message, UiSize, ICON_HONEYCOMB_GRID, ICON_SQUARE_GRID};
 use crate::helpers::*;
 use crate::material_icons_light::LightIcon;
 use iced::Element;
@@ -51,11 +49,11 @@ impl PenTab {
             // add_grid_buttons!
             if let Some(path_id) = app_state.get_selected_bezier_path() {
                 iced_native::row![
-                    icon_btn(ICON_SQUARE_GRID, ui_size).on_press(Message::TurnPathIntoGrid {
+                    icon_button(ICON_SQUARE_GRID, ui_size).on_press(Message::TurnPathIntoGrid {
                         path_id,
                         grid_type: GridTypeDescr::Square { twist: None },
                     }),
-                    icon_btn(ICON_HONEYCOMB_GRID, ui_size).on_press(Message::TurnPathIntoGrid {
+                    icon_button(ICON_HONEYCOMB_GRID, ui_size).on_press(Message::TurnPathIntoGrid {
                         path_id,
                         grid_type: GridTypeDescr::Honeycomb { twist: None },
                     }),

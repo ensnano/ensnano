@@ -105,7 +105,7 @@ impl<S: AppState> SimulationTab<S> {
         if sim_state.is_paused() {
             iced_native::row![
                 go_stop.view(true, false),
-                text_btn("Reset", ui_size).on_press(Message::ResetSimulation),
+                text_button("Reset", ui_size).on_press(Message::ResetSimulation),
             ]
             .spacing(3)
             .into()

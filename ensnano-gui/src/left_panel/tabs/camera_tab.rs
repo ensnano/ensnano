@@ -17,8 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::{
-    text_btn, AppState, CheckXoversParameter, DesactivatedSlider, Fog, HBoundDisplay, Message,
-    UiSize,
+    AppState, CheckXoversParameter, DesactivatedSlider, Fog, HBoundDisplay, Message, UiSize,
 };
 use crate::helpers::*;
 use ensnano_interactor::graphics::{
@@ -127,11 +126,11 @@ impl CameraTab {
         let content = iced_native::column![
             section("Camera", ui_size),
             subsection("Visibility", ui_size),
-            text_btn("Toggle Selected Visibility", ui_size.clone())
+            text_button("Toggle Selected Visibility", ui_size.clone())
                 .on_press(Message::ToggleVisibility(false)),
-            text_btn("Toggle NonSelected Visibility", ui_size.clone())
+            text_button("Toggle NonSelected Visibility", ui_size.clone())
                 .on_press(Message::ToggleVisibility(true)),
-            text_btn("Everything visible", ui_size.clone()).on_press(Message::AllVisible),
+            text_button("Everything visible", ui_size.clone()).on_press(Message::AllVisible),
             self.fog.view(ui_size),
             subsection("Visibility", ui_size),
             pick_list(

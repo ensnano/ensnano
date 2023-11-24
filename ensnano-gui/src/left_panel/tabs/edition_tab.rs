@@ -16,9 +16,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use super::{
-    text_btn, AppState, Color, ColorPicker, ColorSquare, ColorState, DnaElementKey, FactoryId,
-    GoStop, HelixRoll, Length, Message, RequestFactory, RollRequest, SequenceInput, UiSize,
-    ValueId, VecDeque, MEMORY_COLOR_COLUMN, MEMORY_COLOR_ROWS, NB_MEMORY_COLOR,
+    AppState, Color, ColorPicker, ColorSquare, ColorState, DnaElementKey, FactoryId, GoStop,
+    HelixRoll, Length, Message, RequestFactory, RollRequest, SequenceInput, UiSize, ValueId,
+    VecDeque, MEMORY_COLOR_COLUMN, MEMORY_COLOR_ROWS, NB_MEMORY_COLOR,
 };
 use crate::helpers::*;
 use iced_native::widget;
@@ -118,7 +118,7 @@ impl<S: AppState> EditionTab<S> {
         let selection_contains_strand =
             ensnano_interactor::extract_strands_from_selection(app_state.get_selection()).len() > 0;
         let suggestion_parameters = app_state.get_suggestion_parameters().clone();
-        let mut tighten_helices_button = text_btn("Selected", ui_size.clone());
+        let mut tighten_helices_button = text_button("Selected", ui_size.clone());
         if !roll_target_helices.is_empty() {
             tighten_helices_button =
                 tighten_helices_button.on_press(Message::Redim2dHelices(false));
@@ -180,7 +180,7 @@ impl<S: AppState> EditionTab<S> {
             // add_tighten_helices_button!
             iced_native::row![
                 tighten_helices_button,
-                text_btn("All", ui_size).on_press(Message::Redim2dHelices(true)),
+                text_button("All", ui_size).on_press(Message::Redim2dHelices(true)),
             ]
             .spacing(5),
         ]
