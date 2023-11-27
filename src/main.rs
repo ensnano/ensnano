@@ -249,8 +249,11 @@ fn main() {
     let kbd_modifiers = ModifiersState::default();
 
     // Initialize the GPU backend.
-    let gpu = wgpu::Instance::new(BACKEND);
-    let surface = unsafe { gpu.create_surface(&window) };
+    let gpu = wgpu::Instance::new(wgpu::InstanceDescriptor {
+        backends: BACKEND,
+        ..Default::default()
+    });
+    let surface = unsafe { gpu.create_surface(&window) }.unwrap();
     // Initialize WGPU.
     let (device, queue) = futures::executor::block_on(async {
         let adapter = gpu
@@ -278,7 +281,7 @@ fn main() {
     });
 
     if !PANIC_ON_WGPU_ERRORS {
-        device.on_uncaptured_error(|e| log::error!("wgpu error {:?}", e));
+        device.on_uncaptured_error(Box::new(|e| log::error!("wgpu error {:?}", e)));
     }
 
     {
@@ -628,7 +631,7 @@ fn main() {
                     &window,
                     &mut renderer,
                     Theme::Dark, // Use built-in dark theme for now.
-                    &(),         // Dummy style.
+                    &iced_native::renderer::Style::default(),
                 );
                 {
                     let mut messages = messages.lock().unwrap();
@@ -720,7 +723,7 @@ fn main() {
                 overlay_manager.process_event(
                     &mut renderer,
                     Theme::Dark, // Use built-in dark theme for now.
-                    &(),         // Dummy style.
+                    &iced_native::renderer::Style::default(), // TODO: Work on this Style stuff.
                     resized,
                     &multiplexer,
                     &window,
@@ -771,10 +774,7 @@ fn main() {
                         iced_winit::conversion::mouse_interaction(mouse_interaction);
                     main_state.update_cursor(&multiplexer);
                     window.set_cursor_icon(main_state.cursor);
-                    local_pool
-                        .spawner()
-                        .spawn(staging_belt.recall())
-                        .expect("Recall staging buffers");
+                    staging_belt.recall();
 
                     local_pool.run_until_stalled();
                 } else {
@@ -843,9 +843,9 @@ impl OverlayManager {
 
     fn process_event(
         &mut self,
-        renderer: &mut iced_wgpu::Renderer,
-        theme: iced_wgpu::Renderer::Theme,
-        style: &renderer::Style,
+        renderer: &mut iced_graphics::Renderer<iced_wgpu::Backend, iced::Theme>,
+        theme: iced::Theme,
+        style: &iced_native::renderer::Style,
         resized: bool,
         multiplexer: &Multiplexer,
         window: &Window,
@@ -865,7 +865,7 @@ impl OverlayManager {
                             convert_size(PhysicalSize::new(250, 250)),
                             conversion::cursor_position(cursor_position, window.scale_factor()),
                             renderer,
-                            theme,
+                            &theme,
                             style,
                             &mut clipboard,
                             &mut self.color_debug,
@@ -942,9 +942,9 @@ impl OverlayManager {
         &mut self,
         multiplexer: &Multiplexer,
         window: &Window,
-        renderer: &mut iced_wgpu::Renderer,
-        theme: iced_wgpu::Renderer::Theme,
-        style: &renderer::Style,
+        renderer: &mut iced_graphics::Renderer<iced_wgpu::Backend, iced::Theme>,
+        theme: iced::Theme,
+        style: &iced_native::renderer::Style,
     ) -> bool {
         let mut ret = false;
         for (n, overlay) in self.overlay_types.iter().enumerate() {
@@ -963,7 +963,7 @@ impl OverlayManager {
                             convert_size(PhysicalSize::new(250, 250)),
                             conversion::cursor_position(cursor_position, window.scale_factor()),
                             renderer,
-                            theme,
+                            &theme,
                             style,
                             &mut clipboard,
                             &mut self.color_debug,

@@ -256,14 +256,14 @@ impl Multiplexer {
 
         let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("Multiplexer render pass"),
-            color_attachments: &[wgpu::RenderPassColorAttachment {
+            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                 view: attachment,
                 resolve_target,
                 ops: wgpu::Operations {
                     load: wgpu::LoadOp::Clear(clear_color),
                     store: true,
                 },
-            }],
+            })],
             depth_stencil_attachment: None,
         });
         if self.window_size.width > 0 && self.window_size.height > 0 {
@@ -795,21 +795,19 @@ impl Overlay {
 }
 
 fn create_pipeline(device: &Device, bg_layout: &wgpu::BindGroupLayout) -> wgpu::RenderPipeline {
-    let vs_module =
-        &device.create_shader_module(&wgpu::include_spirv!("multiplexer/draw.vert.spv"));
-    let fs_module =
-        &device.create_shader_module(&wgpu::include_spirv!("multiplexer/draw.frag.spv"));
+    let vs_module = &device.create_shader_module(wgpu::include_spirv!("multiplexer/draw.vert.spv"));
+    let fs_module = &device.create_shader_module(wgpu::include_spirv!("multiplexer/draw.frag.spv"));
     let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         bind_group_layouts: &[bg_layout],
         push_constant_ranges: &[],
         label: Some("multiplexer pipeline layout"),
     });
 
-    let targets = &[wgpu::ColorTargetState {
+    let targets = &[Some(wgpu::ColorTargetState {
         format: wgpu::TextureFormat::Bgra8UnormSrgb,
         blend: Some(wgpu::BlendState::REPLACE),
         write_mask: wgpu::ColorWrites::ALL,
-    }];
+    })];
 
     let primitive = wgpu::PrimitiveState {
         topology: wgpu::PrimitiveTopology::TriangleStrip,
