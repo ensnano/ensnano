@@ -450,6 +450,7 @@ pub fn extract_nucls_from_selection(selection: &[Selection]) -> Vec<Nucl> {
     ret
 }
 
+/// Selection modes that can be selected by buttons on the top bar.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum SelectionMode {
     Nucleotide,

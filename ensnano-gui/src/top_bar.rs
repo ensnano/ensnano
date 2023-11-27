@@ -17,12 +17,12 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use super::{AppState, UiSize};
 use ensnano_interactor::{ActionMode, SelectionMode};
-use iced::widget::{container, Container};
 use iced::Background;
+use iced_native::widget::{self, helpers::*};
 use iced_wgpu;
 use iced_winit::winit::dpi::LogicalSize;
 use iced_winit::{
-    widget::{button, Button, Row},
+    widget::{button, Button},
     Color, Command, Element, Length, Program,
 };
 use std::collections::BTreeMap;
@@ -33,26 +33,6 @@ use super::material_icons_light::{dark_icon, light_icon, LightIcon};
 use super::{Requests, SplitMode};
 
 pub struct TopBar<R: Requests, S: AppState> {
-    button_fit: button::State,
-    button_add_file: button::State,
-    button_save_as: button::State,
-    button_save: button::State,
-    button_undo: button::State,
-    button_redo: button::State,
-    button_3d: button::State,
-    button_2d: button::State,
-    button_split: button::State,
-    button_oxdna: button::State,
-    button_split_2d: button::State,
-    button_flip_split: button::State,
-    button_help: button::State,
-    button_tutorial: button::State,
-    button_reload: button::State,
-    button_toggle_2d: button::State,
-    button_new_empty_design: button::State,
-    button_thick_helices: button::State,
-    horizon_button: button::State,
-    button_3d_object: button::State,
     requests: Arc<Mutex<R>>,
     logical_size: LogicalSize<f64>,
     action_mode_state: ActionModeState,
@@ -108,26 +88,6 @@ impl<R: Requests, S: AppState> TopBar<R, S> {
         ui_size: UiSize,
     ) -> Self {
         Self {
-            button_fit: Default::default(),
-            button_add_file: Default::default(),
-            button_save_as: Default::default(),
-            horizon_button: Default::default(),
-            button_save: Default::default(),
-            button_undo: Default::default(),
-            button_redo: Default::default(),
-            button_2d: Default::default(),
-            button_3d: Default::default(),
-            button_split: Default::default(),
-            button_oxdna: Default::default(),
-            button_split_2d: Default::default(),
-            button_flip_split: Default::default(),
-            button_help: Default::default(),
-            button_tutorial: Default::default(),
-            button_new_empty_design: Default::default(),
-            button_reload: Default::default(),
-            button_toggle_2d: Default::default(),
-            button_thick_helices: Default::default(),
-            button_3d_object: Default::default(),
             requests,
             logical_size,
             action_mode_state: Default::default(),
@@ -212,7 +172,8 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
 
     fn view(&self) -> Element<Message<S>, iced_wgpu::Renderer> {
         let build_helix_mode = self.get_build_helix_mode();
-        let action_modes = [
+        // List of action modes to add in the top bar.
+        let action_modes_to_display = [
             ActionMode::Normal,
             ActionMode::Translate,
             ActionMode::Rotate,
@@ -334,94 +295,75 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
 
         let app_state = &self.application_state.app_state;
         let ui_size = self.ui_size.clone();
-        let action_buttons: Vec<Button<Message<S>, _>> = self
-            .action_mode_state
-            .get_states(build_helix_mode)
-            .into_iter()
-            .filter(|(m, _)| action_modes.contains(m))
-            .map(|(mode, state)| {
+        let action_mode_buttons: Vec<_> = action_modes_to_display
+            .iter()
+            .map(|mode| {
                 action_mode_btn(
-                    state,
                     mode,
                     app_state.get_action_mode(),
                     ui_size.button(),
                     app_state.get_widget_basis().is_axis_aligned(),
                 )
+                .into()
             })
             .collect();
 
-        let selection_modes = [
+        // List of selection modes to add to the top bar.
+        let selection_modes_to_display = [
             SelectionMode::Helix,
             SelectionMode::Strand,
             SelectionMode::Nucleotide,
         ];
 
-        let selection_buttons: Vec<_> = self
-            .selection_mode_state
-            .get_states()
-            .into_iter()
-            .filter(|(m, _)| selection_modes.contains(m))
-            .map(|(mode, state)| {
-                selection_mode_btn(
-                    state,
-                    mode,
-                    app_state.get_selection_mode(),
-                    ui_size.button(),
-                )
+        let selection_mode_buttons: Vec<_> = SelectionMode::ALL
+            .iter()
+            .filter(|mode| selection_modes_to_display.contains(mode))
+            .map(|mode| {
+                selection_mode_btn(mode, app_state.get_selection_mode(), ui_size.button()).into()
             })
             .collect();
 
-        let mut buttons = Row::new()
-            .width(Length::Fill)
-            .height(height)
-            .push(button_new_empty_design)
-            .push(button_add_file)
-            .push(button_reload)
-            .push(button_save)
-            .push(button_save_as)
-            .push(oxdna_tooltip)
-            .push(button_3d_import)
-            .push(iced::widget::Space::with_width(10))
-            .push(button_3d)
-            .push(button_thick_helices)
-            .push(button_2d)
-            .push(button_split)
-            .push(button_split_2d)
-            .push(button_toggle_2d)
-            .push(button_flip_split)
-            .push(iced::widget::Space::with_width(10))
-            .push(button_fit)
-            .push(button_horizon)
-            .push(iced::widget::Space::with_width(10))
-            .push(button_undo)
-            .push(button_redo)
-            .push(iced::widget::Space::with_width(10));
+        let buttons = iced_native::row![
+            button_new_empty_design,
+            button_add_file,
+            button_reload,
+            button_save,
+            button_save_as,
+            oxdna_tooltip,
+            button_3d_import,
+            horizontal_space(10),
+            button_3d,
+            button_thick_helices,
+            button_2d,
+            button_split,
+            button_split_2d,
+            button_toggle_2d,
+            button_flip_split,
+            horizontal_space(10),
+            button_fit,
+            button_horizon,
+            horizontal_space(10),
+            button_undo,
+            button_redo,
+            horizontal_space(10),
+            row(action_mode_buttons),
+            horizontal_space(10),
+            row(selection_mode_buttons),
+            horizontal_space(10),
+            button_help,
+            horizontal_space(2),
+            button_tutorial,
+            // ENSnano logo
+            text("\u{e91c}")
+                .width(Length::Fill)
+                .horizontal_alignment(iced::alignment::Horizontal::Right)
+                .vertical_alignment(iced::alignment::Vertical::Center),
+            horizontal_space(10),
+        ]
+        .width(Length::Fill)
+        .height(height);
 
-        for button in action_buttons.into_iter() {
-            buttons = buttons.push(button);
-        }
-
-        buttons = buttons.push(iced::widget::Space::with_width(10));
-
-        for button in selection_buttons.into_iter() {
-            buttons = buttons.push(button);
-        }
-
-        buttons = buttons.push(iced::widget::Space::with_width(10));
-
-        buttons = buttons
-            .push(button_help)
-            .push(iced::widget::Space::with_width(2))
-            .push(button_tutorial)
-            .push(
-                iced::widget::Text::new("\u{e91c}")
-                    .width(Length::Fill)
-                    .horizontal_alignment(iced::alignment::Horizontal::Right)
-                    .vertical_alignment(iced::alignment::Vertical::Center),
-            )
-            .push(iced::widget::Space::with_width(10));
-
-        Container::new(buttons)
+        container(buttons)
             .width(self.logical_size.width as f32)
             .style(TopBarStyle)
             .into()
@@ -430,19 +372,19 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
 
 struct TopBarStyle;
 
-impl container::StyleSheet for TopBarStyle {
+impl widget::container::StyleSheet for TopBarStyle {
     type Style = ();
-    fn appearance(&self, style: &Self::Style) -> container::Appearance {
-        container::Appearance {
+    fn appearance(&self, _style: &Self::Style) -> widget::container::Appearance {
+        widget::container::Appearance {
             background: Some(Background::Color(BACKGROUND)),
             text_color: Some(Color::WHITE),
-            ..container::Appearance::default()
+            ..widget::container::Appearance::default()
         }
     }
 }
 
 impl From<TopBarStyle> for iced::theme::Container {
-    fn from(value: TopBarStyle) -> Self {
+    fn from(_value: TopBarStyle) -> Self {
         Default::default()
     }
 }
@@ -454,10 +396,10 @@ pub const BACKGROUND: Color = Color::from_rgb(
 );
 
 struct ToolTipStyle;
-impl container::StyleSheet for ToolTipStyle {
+impl widget::container::StyleSheet for ToolTipStyle {
     type Style = ();
-    fn appearance(&self, style: &Self::Style) -> container::Appearance {
-        container::Appearance {
+    fn appearance(&self, _style: &Self::Style) -> widget::container::Appearance {
+        widget::container::Appearance {
             text_color: Some(iced::Color::BLACK),
             ..Default::default()
         }
@@ -524,53 +466,50 @@ impl iced_native::widget::button::StyleSheet for ButtonStyle {
 }
 
 impl From<ButtonStyle> for iced::theme::Container {
-    fn from(value: ButtonStyle) -> Self {
+    fn from(_value: ButtonStyle) -> Self {
         Default::default()
     }
 }
 
 impl From<ButtonStyle> for iced::theme::Button {
-    fn from(value: ButtonStyle) -> Self {
+    fn from(_value: ButtonStyle) -> Self {
         Default::default()
     }
 }
 
 use super::icon::{HasIcon, HasIconDependentOnAxis};
-use iced::widget::Image;
 fn action_mode_btn<'a, S: AppState>(
-    state: &'a mut button::State,
-    mode: ActionMode,
-    fixed_mode: ActionMode,
+    mode: &ActionMode,
+    current_action_mode: ActionMode,
     button_size: impl Into<Length>,
     axis_aligned: bool,
 ) -> Button<'a, Message<S>, iced_wgpu::Renderer> {
-    let icon_path = if fixed_mode == mode {
+    let icon_path = if current_action_mode == *mode {
         mode.icon_on(axis_aligned)
     } else {
         mode.icon_off(axis_aligned)
     };
 
-    Button::new(Image::new(icon_path))
-        .on_press(Message::ActionModeChanged(mode))
+    button(image(icon_path))
+        .on_press(Message::ActionModeChanged(mode.clone()))
         //.style(ButtonStyle(fixed_mode == mode))
         // TODO: Reimplement fixed_mode
         .width(button_size)
 }
 
 fn selection_mode_btn<'a, S: AppState>(
-    state: &'a mut button::State,
-    mode: SelectionMode,
-    fixed_mode: SelectionMode,
+    mode: &SelectionMode,
+    current_mode: SelectionMode,
     button_size: impl Into<Length>,
 ) -> Button<'a, Message<S>, iced_wgpu::Renderer> {
-    let icon_path = if fixed_mode == mode {
+    let icon_path = if current_mode == *mode {
         mode.icon_on()
     } else {
         mode.icon_off()
     };
 
-    Button::new(Image::new(icon_path))
-        .on_press(Message::SelectionModeChanged(mode))
+    button(image(icon_path))
+        .on_press(Message::SelectionModeChanged(mode.clone()))
         //.style(ButtonStyle(fixed_mode == mode))
         // TODO: Reimplement fixed_mode
         .width(button_size)
