@@ -208,6 +208,24 @@ impl<S: AppState> ContextualPanel<S> {
         self.width = width;
     }
 
+    pub fn update(&mut self, app_state: &S) {
+        let selection = app_state
+            .get_selection()
+            .get(0)
+            .unwrap_or(&Selection::Nothing);
+        let nb_selected = app_state
+            .get_selection()
+            .iter()
+            .filter(|s| !matches!(s, Selection::Nothing))
+            .count();
+        self.update_builder(
+            Some(selection).filter(|_| nb_selected == 1),
+            app_state.get_reader().as_ref(),
+            app_state,
+        );
+        self.insertion_length_state.update_selection(selection);
+    }
+
     fn update_builder(
         &mut self,
         selection: Option<&Selection>,
@@ -227,7 +245,7 @@ impl<S: AppState> ContextualPanel<S> {
         }
     }
 
-    pub fn view(&mut self, ui_size: UiSize, app_state: &S) -> iced::Element<Message<S>> {
+    pub fn view(&self, ui_size: UiSize, app_state: &S) -> iced::Element<Message<S>> {
         let mut content = Column::new().max_width((self.width - 2) as u16);
         let selection = app_state
             .get_selection()
@@ -239,12 +257,6 @@ impl<S: AppState> ContextualPanel<S> {
             .filter(|s| !matches!(s, Selection::Nothing))
             .count();
 
-        self.update_builder(
-            Some(selection).filter(|_| nb_selected == 1),
-            app_state.get_reader().as_ref(),
-            app_state,
-        );
-
         let xover_len = app_state
             .get_strand_building_state()
             .map(|b| b.dragged_nucl)
@@ -254,7 +266,6 @@ impl<S: AppState> ContextualPanel<S> {
             })
             .and_then(|id| app_state.get_reader().xover_length(id));
 
-        self.insertion_length_state.update_selection(selection);
         let info_values = values_of_selection(selection, app_state.get_reader().as_ref());
         if self.show_tutorial {
             content = content.push(
@@ -308,11 +319,10 @@ impl<S: AppState> ContextualPanel<S> {
                         SimulationState::None => TwistStatus::CanTwist,
                         _ => TwistStatus::CannotTwist,
                     };
-                    content =
-                        content.push(add_grid_content(info_values.as_slice(), ui_size, twisting))
+                    content = content.push(add_grid_content(info_values.clone(), ui_size, twisting))
                 }
                 Selection::Strand(_, _) => {
-                    content = content.push(add_strand_content(info_values.as_slice(), ui_size))
+                    content = content.push(add_strand_content(info_values.clone(), ui_size))
                 }
                 Selection::Nucleotide(_, _) => {
                     let anchor = info_values[0].clone();
@@ -330,7 +340,7 @@ impl<S: AppState> ContextualPanel<S> {
                 }
                 _ => (),
             }
-            if let Some(builder) = &mut self.builder {
+            if let Some(builder) = &self.builder {
                 content = content.push(builder.builder.view(ui_size, selection, app_state))
             }
         }
@@ -480,11 +490,11 @@ enum TwistStatus {
     Twisting,
 }
 
-fn add_grid_content<S: AppState, I: std::ops::Deref<Target = str>>(
-    info_values: &[I],
+fn add_grid_content<'a, S: AppState>(
+    info_values: Vec<String>,
     ui_size: UiSize,
     twisting: TwistStatus,
-) -> iced::Element<Message<S>> {
+) -> iced::Element<'a, Message<S>> {
     iced_native::column![
         // twist_button
         match twisting {
@@ -508,10 +518,10 @@ fn add_grid_content<S: AppState, I: std::ops::Deref<Target = str>>(
     .into()
 }
 
-fn add_strand_content<S: AppState, I: std::ops::Deref<Target = str>>(
-    info_values: &[I],
+fn add_strand_content<'a, S: AppState>(
+    info_values: Vec<String>,
     ui_size: UiSize,
-) -> iced::Element<Message<S>> {
+) -> iced::Element<'a, Message<S>> {
     let s_id = info_values[2].parse::<usize>().unwrap();
     iced_native::column![
         iced_native::row![
@@ -520,11 +530,11 @@ fn add_strand_content<S: AppState, I: std::ops::Deref<Target = str>>(
                 .on_input(move |new_name| { Message::StrandNameChanged(s_id, new_name) })
                 .size(ui_size.main_text()),
         ],
-        text(format!("length {}", info_values[0].deref())).size(ui_size.main_text()),
+        text(format!("length {}", info_values[0])).size(ui_size.main_text()),
         checkbox("Scaffold", info_values[1].parse().unwrap(), move |b| {
             Message::ScaffoldIdSet(s_id, b)
         }),
-        text(info_values[3].deref()).size(ui_size.main_text()),
+        text(info_values[3].as_str()).size(ui_size.main_text()),
     ]
     .into()
 }
@@ -838,6 +848,7 @@ impl AddStrandMenu {
 
     fn has_keyboard_priority(&self) -> bool {
         self.builder_input.iter().any(|s| s.is_focused())
+        // NOTE: It would be nice if builder_input is fetched from the tree directly.
     }
 
     fn get_build_helix_mode(&self) -> ActionMode {
@@ -864,7 +875,7 @@ impl AddStrandMenu {
     #[allow(clippy::needless_lifetimes)]
     fn view<S: AppState>(&self, ui_size: UiSize, width: u16) -> iced::Element<Message<S>> {
         let mut ret = widget::Column::new();
-        let mut inputs = self.builder_input.iter_mut();
+        //let _inputs = self.builder_input.iter_mut();
         let position_input = widget::TextInput::new("Position", &self.pos_str)
             .on_input(Message::PositionHelicesChanged)
             .style(BadValue(self.pos_str == self.helix_pos.to_string()));

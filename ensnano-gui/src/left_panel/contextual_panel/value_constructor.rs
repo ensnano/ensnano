@@ -20,7 +20,7 @@ use super::{Selection, UiSize};
 
 use iced::Element;
 use iced_native::widget::helpers::*;
-use iced_native::widget::{slider, text_input, Column, Row, Slider, Text};
+use iced_native::widget::{slider, text_input, Column};
 use iced_wgpu::Renderer;
 
 pub trait BuilderMessage: Clone + 'static {
@@ -209,7 +209,7 @@ impl GridPositionBuilder {
         Self::Cartesian(Vec3Builder::new(ValueKind::HelixGridPosition, position))
     }
 
-    fn view<Message: BuilderMessage>(&mut self) -> Element<Message, Renderer> {
+    fn view<Message: BuilderMessage>(&self) -> Element<Message, Renderer> {
         match self {
             Self::Cartesian(builder) => builder.view(),
         }
@@ -248,7 +248,7 @@ impl GridOrientationBuilder {
         ))
     }
 
-    fn view<Message: BuilderMessage>(&mut self) -> Element<Message, Renderer> {
+    fn view<Message: BuilderMessage>(&self) -> Element<Message, Renderer> {
         match self {
             Self::DirectionAngle(builder) => builder.view(),
         }
@@ -288,17 +288,18 @@ impl BezierVertexBuilder {
 }
 
 impl<S: AppState> Builder<S> for BezierVertexBuilder {
-    fn view<'a>(
-        &'a mut self,
+    fn view(
+        &self,
         ui_size: UiSize,
         _selection: &Selection,
         _app_state: &S,
-    ) -> Element<'a, super::Message<S>, Renderer> {
-        let mut ret = Column::new().width(iced::Length::Fill);
-        let position_builder_view = self.position_builder.view();
-        ret = ret.push(Text::new("Position").size(ui_size.intermediate_text()));
-        ret = ret.push(position_builder_view);
-        ret.into()
+    ) -> iced::Element<super::Message<S>> {
+        iced_native::column![
+            text("Position").size(ui_size.intermediate_text()),
+            self.position_builder.view(),
+        ]
+        .width(iced::Length::Fill)
+        .into()
     }
 
     fn update_str_value(&mut self, value_kind: ValueKind, n: usize, value_str: String) {
@@ -349,47 +350,49 @@ impl GridBuilder {
     fn nb_turn_row<'a, S: AppState>(
         app_state: &S,
         selection: &Selection,
-    ) -> Option<Element<'a, super::Message<S>, Renderer>> {
+    ) -> Option<iced::Element<'a, super::Message<S>>> {
         use crate::consts;
         if let Selection::Grid(_, g_id) = selection {
             if let Some(nb_turn) = app_state.get_reader().get_grid_nb_turn(*g_id) {
-                let row = Row::new()
-                    .spacing(consts::NB_TURN_SLIDER_SPACING)
-                    .push(Text::new(format!("{:.2}", nb_turn)))
-                    .push(
-                        Slider::new(consts::MIN_NB_TURN..=consts::MAX_NB_TURN, nb_turn, |x| {
-                            super::Message::InstanciatedValueSubmitted(
-                                InstanciatedValue::GridNbTurn(x),
-                            )
-                        })
-                        .step(consts::NB_TURN_STEP),
-                    );
-                return Some(row.into());
+                let row = iced_native::row![
+                    text(format!("{:.2}", nb_turn)),
+                    slider(consts::MIN_NB_TURN..=consts::MAX_NB_TURN, nb_turn, |x| {
+                        super::Message::InstanciatedValueSubmitted(InstanciatedValue::GridNbTurn(x))
+                    })
+                    .step(consts::NB_TURN_STEP),
+                ]
+                .spacing(consts::NB_TURN_SLIDER_SPACING);
+                Some(row.into())
+            } else {
+                None
             }
+        } else {
+            None
         }
-        None
     }
 }
 
 impl<S: AppState> Builder<S> for GridBuilder {
-    fn view<'a>(
-        &'a mut self,
+    fn view(
+        &self,
         ui_size: UiSize,
         selection: &Selection,
         app_state: &S,
-    ) -> Element<'a, super::Message<S>, Renderer> {
-        let mut ret = Column::new().width(iced::Length::Fill);
-        let position_builder_view = self.position_builder.view();
-        let orientation_builder_view = self.orientation_builder.view();
-        ret = ret.push(Text::new("Position").size(ui_size.intermediate_text()));
-        ret = ret.push(position_builder_view);
-        ret = ret.push(Text::new("Orientation").size(ui_size.intermediate_text()));
-        ret = ret.push(orientation_builder_view);
-        ret = ret.push(Text::new("Twist").size(ui_size.intermediate_text()));
-        if let Some(row) = Self::nb_turn_row(app_state, selection) {
-            ret = ret.push(row)
-        }
-        ret.into()
+    ) -> iced::Element<super::Message<S>> {
+        iced_native::column![
+            text("Position").size(ui_size.intermediate_text()),
+            self.position_builder.view(),
+            text("Orientation").size(ui_size.intermediate_text()),
+            self.orientation_builder.view(),
+            text("Twist").size(ui_size.intermediate_text()),
+            if let Some(row) = Self::nb_turn_row(app_state, selection) {
+                row
+            } else {
+                iced_native::row![].into()
+            },
+        ]
+        .width(iced::Length::Fill)
+        .into()
     }
 
     fn update_str_value(&mut self, value_kind: ValueKind, n: usize, value_str: String) {
@@ -421,7 +424,7 @@ use super::AppState;
 
 pub trait Builder<S: AppState> {
     fn view<'a>(
-        &'a mut self,
+        &'a self,
         ui_size: UiSize,
         selection: &Selection,
         app_state: &S,

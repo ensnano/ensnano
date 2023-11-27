@@ -168,14 +168,16 @@ impl CameraShortcutPanel {
             .collect();
     }
 
+    pub fn update<S: AppState>(&mut self, app: &S) {
+        self.set_camera_widget(app);
+    }
+
     pub fn view<S: AppState>(
-        &mut self,
+        &self,
         ui_size: UiSize,
         width: impl Into<Pixels>,
-        app: &S,
+        _app: &S,
     ) -> Element<Message<S>> {
-        self.set_camera_widget(app);
-
         // Create button widget for each predefined target.
         let predefined_orientation_buttons = PREDEFINED_CAMERA_ORIENTATION
             .into_iter()
@@ -232,7 +234,7 @@ impl CameraShortcutPanel {
             // add_camera_widgets!
             widget::Column::with_children(
                 self.camera_widgets
-                    .iter_mut()
+                    .iter()
                     .map(|w| w.view(ui_size).into())
                     .collect()
             )

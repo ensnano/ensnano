@@ -21,7 +21,7 @@ use std::sync::{Arc, Mutex};
 
 use iced::theme;
 use iced_aw::{style::tab_bar, TabLabel, Tabs};
-use iced_native::widget::{container, Button, Column, Container, Text};
+use iced_native::widget::{container, helpers::*, Button, Column, Container, Text};
 use iced_native::{Background, Color, Command, Element, Length};
 use iced_wgpu;
 use iced_winit::winit::{
@@ -344,6 +344,26 @@ where
     type Message = Message<S>;
 
     fn update(&mut self, message: Message<S>) -> Command<Message<S>> {
+        self.camera_shortcut.update(&self.application_state);
+        self.contextual_panel.update(&self.application_state);
+
+        let notify_new_tree =
+            if let Some(tree) = self.application_state.get_reader().get_organizer_tree() {
+                self.organizer.read_tree(tree.as_ref())
+            } else {
+                self.organizer.read_tree(&OrganizerTree::Node {
+                    name: String::from("root"),
+                    childrens: vec![],
+                    expanded: true,
+                    id: None,
+                })
+            };
+        if notify_new_tree {
+            self.requests
+                .lock()
+                .unwrap()
+                .update_organizer_tree(self.organizer.tree())
+        }
         match message {
             Message::SequenceChanged(s) => {
                 self.requests
@@ -979,7 +999,7 @@ where
                 .icon_font(crate::helpers::ENSNANO_FONT)
                 .icon_size(self.ui_size.icon())
                 .tab_bar_height(Length::Fixed(self.ui_size.button()))
-                //.tab_bar_style(TabStyle)
+                //.tab_bar_style(TabStyle) // TODO: Uncomment this
                 .tab_bar_style(Default::default())
                 .width(Length::Fixed(width as f32))
                 .height(Length::Fill);
@@ -989,52 +1009,36 @@ where
         let contextual_menu = self
             .contextual_panel
             .view(self.ui_size, &self.application_state);
+
         let selection = self
             .application_state
             .get_selection()
             .iter()
             .filter_map(|e| DnaElementKey::from_selection(e, 0))
             .collect();
-
-        let notify_new_tree =
-            if let Some(tree) = self.application_state.get_reader().get_organizer_tree() {
-                self.organizer.read_tree(tree.as_ref())
-            } else {
-                self.organizer.read_tree(&OrganizerTree::Node {
-                    name: String::from("root"),
-                    childrens: vec![],
-                    expanded: true,
-                    id: None,
-                })
-            };
-        if notify_new_tree {
-            self.requests
-                .lock()
-                .unwrap()
-                .update_organizer_tree(self.organizer.tree())
-        }
         let organizer = self
             .organizer
             .view(selection)
             .map(|m| Message::OrganizerMessage(m));
 
         let first_container = if self.application_state.is_exporting() {
-            Container::new(self.exports_menu.view()).height(Length::FillPortion(2))
+            container(self.exports_menu.view())
         } else {
-            Container::new(tabs).height(Length::FillPortion(2))
+            container(tabs)
         };
 
-        Container::new(
-            Column::new()
-                .width(Length::Fill)
-                .push(first_container)
-                .push(iced::widget::Rule::horizontal(5))
-                .push(Container::new(camera_shortcut).height(Length::FillPortion(1)))
-                .push(iced::widget::Rule::horizontal(5))
-                .push(Container::new(contextual_menu).height(Length::FillPortion(1)))
-                .push(iced::widget::Rule::horizontal(5))
-                .push(Container::new(organizer).height(Length::FillPortion(2)))
-                .padding(3),
+        container(
+            iced_native::column![
+                first_container.height(Length::FillPortion(2)),
+                horizontal_rule(5),
+                container(camera_shortcut).height(Length::FillPortion(1)),
+                horizontal_rule(5),
+                container(contextual_menu).height(Length::FillPortion(1)),
+                horizontal_rule(5),
+                container(organizer).height(Length::FillPortion(2)),
+            ]
+            .width(Length::Fill)
+            .padding(3),
         )
         .style(TopBarStyle)
         .height(self.logical_size.height as f32)

@@ -173,6 +173,7 @@ impl<R: Requests, S: AppState> StatusBar<R, S> {
     }
 }
 
+// List of Messages that can be send by the status bar.
 #[derive(Clone, Debug)]
 pub enum Message<S: AppState> {
     ValueStrChanged(usize, String),
