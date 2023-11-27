@@ -1059,7 +1059,7 @@ impl container::StyleSheet for TopBarStyle {
 }
 
 impl From<TopBarStyle> for theme::Container {
-    fn from(value: TopBarStyle) -> Self {
+    fn from(_value: TopBarStyle) -> Self {
         Default::default()
     }
 }
@@ -1143,7 +1143,7 @@ impl<R: Requests> Program for ColorOverlay<R> {
 struct FloatingStyle;
 impl container::StyleSheet for FloatingStyle {
     type Style = ();
-    fn appearance(&self, style: &Self::Style) -> container::Appearance {
+    fn appearance(&self, _style: &Self::Style) -> container::Appearance {
         container::Appearance {
             background: Some(Background::Color(BACKGROUND)),
             text_color: Some(Color::WHITE),
@@ -1155,7 +1155,7 @@ impl container::StyleSheet for FloatingStyle {
 }
 
 impl From<FloatingStyle> for theme::Container {
-    fn from(value: FloatingStyle) -> Self {
+    fn from(_value: FloatingStyle) -> Self {
         Default::default()
     }
 }
@@ -1164,7 +1164,7 @@ struct ButtonStyle(bool);
 
 impl iced_native::widget::button::StyleSheet for ButtonStyle {
     type Style = ();
-    fn active(&self, style: &Self::Style) -> iced_native::widget::button::Appearance {
+    fn active(&self, _style: &Self::Style) -> iced_native::widget::button::Appearance {
         iced_native::widget::button::Appearance {
             border_width: if self.0 { 3_f32 } else { 1_f32 },
             border_radius: if self.0 { 3_f32 } else { 2_f32 },
@@ -1198,7 +1198,7 @@ impl ButtonColor {
 
 impl iced_native::widget::button::StyleSheet for ButtonColor {
     type Style = ();
-    fn active(&self, style: &Self::Style) -> iced_native::widget::button::Appearance {
+    fn active(&self, _style: &Self::Style) -> iced_native::widget::button::Appearance {
         iced_native::widget::button::Appearance {
             background: Some(Background::Color(self.background)),
             //background: Some(Background::Color(BACKGROUND)),
@@ -1225,7 +1225,7 @@ impl iced_native::widget::button::StyleSheet for ButtonColor {
 }
 
 impl From<ButtonColor> for iced::theme::Button {
-    fn from(value: ButtonColor) -> Self {
+    fn from(_value: ButtonColor) -> Self {
         Default::default()
     }
 }
@@ -1256,7 +1256,7 @@ mod text_input_style {
     pub struct BadValue(pub bool);
     impl text_input::StyleSheet for BadValue {
         type Style = ();
-        fn active(&self, style: &Self::Style) -> text_input::Appearance {
+        fn active(&self, _style: &Self::Style) -> text_input::Appearance {
             text_input::Appearance {
                 background: Background::Color(Color::WHITE),
                 border_radius: 5.0,
@@ -1273,11 +1273,11 @@ mod text_input_style {
             }
         }
 
-        fn placeholder_color(&self, style: &Self::Style) -> Color {
+        fn placeholder_color(&self, _style: &Self::Style) -> Color {
             Color::from_rgb(0.7, 0.7, 0.7)
         }
 
-        fn value_color(&self, style: &Self::Style) -> Color {
+        fn value_color(&self, _style: &Self::Style) -> Color {
             if self.0 {
                 Color::from_rgb(0.3, 0.3, 0.3)
             } else {
@@ -1289,7 +1289,7 @@ mod text_input_style {
             Color::from_rgb(0.4, 0.4, 0.4) // TODO: Choose an appropriate value for this field
         }
 
-        fn selection_color(&self, style: &Self::Style) -> Color {
+        fn selection_color(&self, _style: &Self::Style) -> Color {
             Color::from_rgb(0.8, 0.8, 1.0)
         }
 
@@ -1302,7 +1302,7 @@ mod text_input_style {
         }
     }
     impl From<BadValue> for iced::theme::TextInput {
-        fn from(value: BadValue) -> Self {
+        fn from(_value: BadValue) -> Self {
             Default::default()
         }
     }

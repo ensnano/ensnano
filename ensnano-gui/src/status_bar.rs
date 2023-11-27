@@ -19,9 +19,10 @@ use super::{AppState, Requests, UiSize};
 use ensnano_interactor::operation::{Operation, ParameterField};
 pub use ensnano_interactor::StrandBuildingStatus;
 use iced::theme;
-use iced::widget::{container, slider, Container};
+use iced::widget::{container, slider};
 use iced::{Background, Length};
 use iced_native::{
+    widget::helpers::*,
     widget::{pick_list, text_input, PickList, TextInput},
     Color,
 };
@@ -137,13 +138,10 @@ impl<R: Requests, S: AppState> StatusBar<R, S> {
         }
     }
 
-    fn view_progress(&mut self) -> Row<Message<S>, iced_wgpu::Renderer> {
-        let row = Row::new();
+    fn view_progress(&self) -> Row<Message<S>, iced_wgpu::Renderer> {
         let progress = self.progress.as_ref().unwrap();
-        row.push(
-            Text::new(format!("{}, {:.1}%", progress.0, progress.1 * 100.))
-                .size(self.ui_size.main_text()),
-        )
+        iced_native::row![text(format!("{}, {:.1}%", progress.0, progress.1 * 100.))
+            .size(self.ui_size.main_text()),]
     }
 
     /* TODO
@@ -193,6 +191,20 @@ impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
     type Renderer = iced_wgpu::Renderer;
 
     fn update(&mut self, message: Message<S>) -> Command<Message<S>> {
+        self.update_operation();
+        if self.progress.is_some() {
+            self.operation = None;
+            self.message = None;
+        } else if let Some(_) = self.app_state.get_strand_building_state() {
+            self.operation = None;
+            self.message = None;
+        } else if let Some(_) = self.message {
+            self.operation = None;
+        } else if let Some(_) = self.operation {
+            log::trace!("operation is some");
+        } else {
+            log::trace!("operation is none");
+        };
         match message {
             Message::ValueStrChanged(n, s) => {
                 if let Some(operation) = self.operation.as_mut() {
@@ -224,7 +236,6 @@ impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
     }
 
     fn view(&self) -> Element<Message<S>, iced_wgpu::Renderer> {
-        self.update_operation();
         let clipboard_text = format!(
             "Clipboard: {}",
             self.app_state.get_clipboard_content().to_string()
@@ -238,41 +249,39 @@ impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
 
         let size = self.logical_size.clone();
         let mut content = if self.progress.is_some() {
-            self.operation = None;
-            self.message = None;
             self.view_progress()
         } else if let Some(building_info) = self.app_state.get_strand_building_state() {
-            self.operation = None;
-            self.message = None;
-            Row::new().push(Text::new(building_info.to_info()).size(self.ui_size.main_text()))
-        } else if let Some(ref message) = self.message {
-            self.operation = None;
-            Row::new().push(Text::new(message).size(self.ui_size.main_text()))
-        } else if let Some(operation) = self.operation.as_mut() {
+            iced_native::row![text(building_info.to_info()).size(self.ui_size.main_text()),]
+        } else if let Some(ref message) = &self.message {
+            iced_native::row![text(message).size(self.ui_size.main_text()),]
+        } else if let Some(operation) = &self.operation {
             log::trace!("operation is some");
             operation.view(self.ui_size)
         } else {
             log::trace!("operation is none");
-            Row::new().into() //TODO
+            iced_native::row![]
         };
 
-        content = Row::new()
-            .push(content)
-            .push(Space::with_width(Length::Fill)) // To right align the clipboard text
-            .push(Text::new(clipboard_text))
-            .push(Space::with_width(5))
-            .align_items(iced_winit::Alignment::End);
+        content = iced_native::row![
+            content,
+            horizontal_space(Length::Fill), // To right align the clipboard text
+            text(clipboard_text),
+            horizontal_space(5),
+        ]
+        .align_items(iced_winit::Alignment::End);
 
-        let pasting_status_row = Row::new()
-            .push(Space::with_width(Length::Fill))
-            .push(Text::new(pasting_text))
-            .push(Space::with_width(5));
+        let pasting_status_row = iced_native::row![
+            horizontal_space(Length::Fill),
+            text(pasting_text),
+            horizontal_space(5),
+        ];
 
         let column = Column::new()
             .push(Space::new(Length::Fill, 3))
             .push(content)
             .push(pasting_status_row);
-        Container::new(column)
+
+        container(column)
             .style(StatusBarStyle)
             .width(size.width as f32)
             .height(Length::Fill)
@@ -293,7 +302,7 @@ impl container::StyleSheet for StatusBarStyle {
 }
 
 impl From<StatusBarStyle> for theme::Container {
-    fn from(value: StatusBarStyle) -> Self {
+    fn from(_value: StatusBarStyle) -> Self {
         Default::default()
     }
 }
@@ -398,7 +407,7 @@ impl OperationInput {
         self.operation = operation;
     }
 
-    fn view<S: AppState>(&mut self, ui_size: UiSize) -> Row<Message<S>, iced_wgpu::Renderer> {
+    fn view<S: AppState>(&self, ui_size: UiSize) -> Row<Message<S>, iced_wgpu::Renderer> {
         let mut row = Row::new();
         let op = self.operation.as_ref();
         row = row.push(Text::new(op.description()).size(ui_size.main_text()));
