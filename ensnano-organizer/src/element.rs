@@ -115,8 +115,8 @@ impl<A: OrganizerAttribute> AttributeDisplayer<A> {
         self.widget = widget;
     }
 
-    pub fn view(&mut self) -> Option<Element<A>> {
-        if let Some(widget) = self.widget.as_mut() {
+    pub fn view(&self) -> Option<Element<A>> {
+        if let Some(widget) = self.widget.as_ref() {
             match widget {
                 AttributeWidget::PickList { choices } => {
                     let mut picklist =
@@ -131,10 +131,8 @@ impl<A: OrganizerAttribute> AttributeDisplayer<A> {
                 AttributeWidget::FlipButton { value_if_pressed } => {
                     let content = match self.attribute.as_ref().map(|a| a.char_repr()) {
                         Some(AttributeDisplay::Icon(c)) => super::icon(c),
-                        Some(AttributeDisplay::Text(s)) => {
-                            Text::new(s.clone()).size(super::ICON_SIZE)
-                        }
-                        _ => Text::new("???"),
+                        Some(AttributeDisplay::Text(s)) => text(s.clone()).size(super::ICON_SIZE),
+                        _ => text("???"),
                     };
                     Some(button(content).on_press(value_if_pressed.clone()).into())
                 }

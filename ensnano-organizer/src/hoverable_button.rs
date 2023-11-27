@@ -54,7 +54,6 @@ where
     content: Element<'a, Message, Renderer>,
     on_hovered_in: Option<Message>,
     on_hovered_out: Option<Message>,
-    state: &'a mut State,
 }
 
 impl<'a, Message, Renderer> HoverableContainer<'a, Message, Renderer>
@@ -64,7 +63,7 @@ where
     Renderer::Theme: StyleSheet,
 {
     /// Creates an empty [Container](iced::widget::container::Container).
-    pub fn new<T>(state: &'a mut State, content: T) -> Self
+    pub fn new<T>(content: T) -> Self
     where
         T: Into<Element<'a, Message, Renderer>>,
     {
@@ -80,7 +79,6 @@ where
             content: content.into(),
             on_hovered_in: None,
             on_hovered_out: None,
-            state,
         }
     }
 
@@ -190,6 +188,10 @@ where
     Renderer: iced_native::Renderer,
     Renderer::Theme: iced_native::widget::container::StyleSheet + StyleSheet,
 {
+    fn state(&self) -> widget::tree::State {
+        widget::tree::State::Some(Box::new(State::default()))
+    }
+
     fn width(&self) -> Length {
         self.width
     }
@@ -213,7 +215,7 @@ where
 
     fn on_event(
         &mut self,
-        state: &mut widget::Tree,
+        tree: &mut widget::Tree,
         event: Event,
         layout: Layout<'_>,
         cursor_position: Point,
@@ -222,7 +224,7 @@ where
         shell: &mut Shell<'_, Message>,
     ) -> event::Status {
         if let event::Status::Captured = self.content.as_widget_mut().on_event(
-            state,
+            tree,
             event.clone(),
             layout.children().next().unwrap(),
             cursor_position,
@@ -233,20 +235,21 @@ where
             event::Status::Captured
         } else {
             if let Event::Mouse(mouse::Event::CursorMoved { .. }) = event {
+                let state = tree.state.downcast_mut::<State>();
                 let bounds = layout.bounds();
                 if bounds.contains(cursor_position) {
-                    if !self.state.is_hovered {
+                    if !state.is_hovered {
                         if let Some(on_hovered_in) = self.on_hovered_in.clone() {
                             shell.publish(on_hovered_in)
                         }
-                        self.state.is_hovered = true;
+                        state.is_hovered = true;
                     }
                 } else {
-                    if self.state.is_hovered {
+                    if state.is_hovered {
                         if let Some(on_hovered_out) = self.on_hovered_out.clone() {
                             shell.publish(on_hovered_out)
                         }
-                        self.state.is_hovered = false;
+                        state.is_hovered = false;
                     }
                 }
             }
