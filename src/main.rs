@@ -249,14 +249,15 @@ fn main() {
     let kbd_modifiers = ModifiersState::default();
 
     // Initialize the GPU backend.
-    let gpu = wgpu::Instance::new(wgpu::InstanceDescriptor {
+    let gpu_instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
         backends: BACKEND,
         ..Default::default()
     });
-    let surface = unsafe { gpu.create_surface(&window) }.unwrap();
-    // Initialize WGPU.
+    // Obtain a WGPU surface.
+    let surface = unsafe { gpu_instance.create_surface(&window) }.unwrap();
+    // Obtain a WGPU adapter.
     let (device, queue) = futures::executor::block_on(async {
-        let adapter = gpu
+        let adapter = gpu_instance
             .request_adapter(&wgpu::RequestAdapterOptions {
                 power_preference: wgpu::PowerPreference::LowPower,
                 compatible_surface: Some(&surface),
@@ -294,9 +295,9 @@ fn main() {
                 format: TEXTURE_FORMAT,
                 width: size.width,
                 height: size.height,
-                present_mode: wgpu::PresentMode::Mailbox,
-                alpha_mode: Default::default(),
-                view_formats: Default::default(),
+                present_mode: wgpu::PresentMode::AutoVsync,
+                alpha_mode: wgpu::CompositeAlphaMode::Auto,
+                view_formats: vec![],
             },
         )
     }
@@ -312,6 +313,7 @@ fn main() {
         default_font: Some(include_bytes!("../font/ensnano2.ttf")),
         ..Default::default()
     };
+    // Initialize the renderer
     let mut renderer =
         iced_wgpu::Renderer::new(iced_wgpu::Backend::new(&device, settings, TEXTURE_FORMAT));
     let device = Rc::new(device);
@@ -319,7 +321,6 @@ fn main() {
     let mut resized = false;
     let mut scale_factor_changed = false;
     let mut staging_belt = wgpu::util::StagingBelt::new(5 * 1024);
-    let mut local_pool = futures::executor::LocalPool::new();
 
     // Initialize the mediator
     let requests = Arc::new(Mutex::new(Requests::default()));
@@ -775,8 +776,6 @@ fn main() {
                     main_state.update_cursor(&multiplexer);
                     window.set_cursor_icon(main_state.cursor);
                     staging_belt.recall();
-
-                    local_pool.run_until_stalled();
                 } else {
                     log::warn!("Error getting next frame, attempt to recreate swap chain");
                     resized = true;
