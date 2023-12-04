@@ -361,12 +361,12 @@ impl Curve {
     }
 
     pub fn axis_pos(&self, n: isize) -> Option<DVec3> {
-        let idx = self.idx_convertsion(n)?;
+        let idx = self.idx_conversion(n)?;
         self.positions_forward.get(idx).cloned()
     }
 
     pub fn nucl_time(&self, n: isize) -> Option<f64> {
-        let idx = self.idx_convertsion(n)?;
+        let idx = self.idx_conversion(n)?;
         self.t_nucl.get(idx).cloned()
     }
 
@@ -375,7 +375,7 @@ impl Curve {
         self.curvature.get(n).cloned()
     }
 
-    pub fn idx_convertsion(&self, n: isize) -> Option<usize> {
+    pub fn idx_conversion(&self, n: isize) -> Option<usize> {
         if n >= 0 {
             Some(n as usize + self.nucl_t0)
         } else {
@@ -401,7 +401,7 @@ impl Curve {
             return self.legacy_nucl_pos(n, forward, theta, parameters);
         }
 
-        let idx = self.idx_convertsion(n)?;
+        let idx = self.idx_conversion(n)?;
         let theta = if let Some(real_theta) = self.geometry.theta_shift(parameters) {
             let base_theta = TAU / parameters.bases_per_turn as f64;
             (base_theta - real_theta) * n as f64 + theta
@@ -456,7 +456,7 @@ impl Curve {
     }
 
     pub fn axis_at_pos(&self, position: isize, forward: bool) -> Option<DMat3> {
-        let idx = self.idx_convertsion(position)?;
+        let idx = self.idx_conversion(position)?;
         let axis = if forward {
             &self.axis_forward
         } else {

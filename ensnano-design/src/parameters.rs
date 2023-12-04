@@ -28,7 +28,7 @@ pub struct Parameters {
     pub z_step: f32,
     /// Radius of a helix, in nanometers.
     pub helix_radius: f32,
-    /// Number of bases per turn in nanometers.
+    /// Number of bases per turn.
     pub bases_per_turn: f32,
     /// Minor groove angle. DNA helices have a "minor groove" and a
     /// "major groove", meaning that two paired nucleotides are not at
@@ -210,11 +210,11 @@ pub const NAMED_DNA_PARAMETERS: [NamedParameter; 3] = [
         value: Parameters::OLD_ENSNANO,
     },
     NamedParameter {
-        name: "Geary 2014",
+        name: "Geary et al 2014",
         value: Parameters::GEARY_2014_DNA,
     },
     NamedParameter {
-        name: "Geary 2014 RNA",
+        name: "Geary et al 2014 RNA",
         value: Parameters::GEARY_2014_RNA,
     },
 ];
