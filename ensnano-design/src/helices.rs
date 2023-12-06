@@ -224,7 +224,7 @@ pub struct Helix {
     pub(super) instanciated_curve: Option<InstanciatedCurve>,
 
     #[serde(default, skip_serializing_if = "f32_is_zero")]
-    delta_bbpt: f32,
+    delta_bppt: f32,
 
     #[serde(default, skip_serializing_if = "isize_is_zero")]
     pub initial_nt_index: isize,
@@ -276,7 +276,7 @@ impl Helix {
             curve: None,
             instanciated_curve: None,
             instanciated_descriptor: None,
-            delta_bbpt: 0.,
+            delta_bppt: 0.,
             initial_nt_index: 0,
             support_helix: None,
             path_id: None,
@@ -359,7 +359,7 @@ impl Helix {
             curve: None,
             instanciated_curve: None,
             instanciated_descriptor: None,
-            delta_bbpt: 0.,
+            delta_bppt: 0.,
             initial_nt_index: 0,
             support_helix: None,
             path_id: None,
@@ -407,7 +407,7 @@ impl Helix {
             curve: None,
             instanciated_curve: None,
             instanciated_descriptor: None,
-            delta_bbpt: 0.,
+            delta_bppt: 0.,
             initial_nt_index: 0,
             support_helix: None,
             path_id: None,
@@ -435,7 +435,7 @@ impl Helix {
             curve: None,
             instanciated_curve: None,
             instanciated_descriptor: None,
-            delta_bbpt: 0.,
+            delta_bppt: 0.,
             initial_nt_index: 0,
             support_helix: None,
             path_id: None,
@@ -456,7 +456,7 @@ impl Helix {
             curve: Some(Arc::new(CurveDescriptor::SphereLikeSpiral(desc))),
             instanciated_curve: None,
             instanciated_descriptor: None,
-            delta_bbpt: 0.,
+            delta_bppt: 0.,
             initial_nt_index: 0,
             support_helix: None,
             path_id: None,
@@ -477,7 +477,7 @@ impl Helix {
             curve: Some(Arc::new(CurveDescriptor::TubeSpiral(desc))),
             instanciated_curve: None,
             instanciated_descriptor: None,
-            delta_bbpt: 0.,
+            delta_bppt: 0.,
             initial_nt_index: 0,
             support_helix: None,
             path_id: None,
@@ -498,7 +498,7 @@ impl Helix {
             curve: Some(Arc::new(desc)),
             instanciated_curve: None,
             instanciated_descriptor: None,
-            delta_bbpt: 0.,
+            delta_bppt: 0.,
             initial_nt_index: 0,
             support_helix: None,
             path_id: None,
@@ -594,7 +594,7 @@ impl Helix {
             curve: Some(Arc::new(constructor)),
             instanciated_curve: None,
             instanciated_descriptor: None,
-            delta_bbpt: 0.,
+            delta_bppt: 0.,
             initial_nt_index: 0,
             support_helix: None,
             path_id: None,
@@ -637,7 +637,7 @@ impl Helix {
             curve,
             instanciated_curve: None,
             instanciated_descriptor: None,
-            delta_bbpt: 0.,
+            delta_bppt: 0.,
             initial_nt_index: 0,
             support_helix: None,
             path_id: Some(path_id),
@@ -656,7 +656,7 @@ impl Helix {
 
     pub fn roll_at_pos(&self, n: isize, cst: &Parameters) -> f32 {
         use std::f32::consts::PI;
-        let bbpt = cst.bases_per_turn + self.delta_bbpt;
+        let bbpt = cst.bases_per_turn + self.delta_bppt;
         let beta = 2. * PI / bbpt;
         self.roll - n as f32 * beta // Beta is positive but helix turn clockwise when n increases
     }
@@ -666,7 +666,7 @@ impl Helix {
         use std::f32::consts::PI;
         // The groove_angle goes from the backward strand to the forward strand
         let shift = if forward { cst.groove_angle } else { 0. };
-        let bbpt = cst.bases_per_turn + self.delta_bbpt;
+        let bbpt = cst.bases_per_turn + self.delta_bppt;
         let beta = 2. * PI / bbpt;
         self.roll
             -n as f32 * beta  // Beta is positive but helix turn clockwise when n increases
@@ -754,7 +754,7 @@ impl Helix {
             curve: None,
             instanciated_curve: None,
             instanciated_descriptor: None,
-            delta_bbpt: 0.,
+            delta_bppt: 0.,
             initial_nt_index: 0,
             support_helix: None,
             path_id: None,

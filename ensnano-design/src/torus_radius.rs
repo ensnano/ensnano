@@ -11,7 +11,7 @@ fn main() {
     };
 
     let mut lower_bound_radius = 10.0;
-    let mut upper_bound_raidus = 40.0;
+    let mut upper_bound_radius = 40.0;
 
     let mut found = false;
 
@@ -20,7 +20,7 @@ fn main() {
     parameters.inter_helix_gap = 1.0;
 
     while !found {
-        let big_radius = (lower_bound_radius + upper_bound_raidus) / 2.;
+        let big_radius = (lower_bound_radius + upper_bound_radius) / 2.;
         let desc = TwistedTorusDescriptor {
             big_radius: big_radius.into(),
             curve: curve.clone(),
@@ -30,7 +30,7 @@ fn main() {
             initial_curvilinear_abscissa: 0f64.into(),
             symetry_per_turn: 3,
         };
-        println!("upper bound {upper_bound_raidus}");
+        println!("upper bound {upper_bound_radius}");
         println!("lower bound {lower_bound_radius}");
         println!("radius {big_radius}");
         let mut cache = Default::default();
@@ -48,7 +48,7 @@ fn main() {
         if nb_points < LEN_SCAFFOLD {
             lower_bound_radius = big_radius;
         } else if nb_points > LEN_SCAFFOLD {
-            upper_bound_raidus = big_radius;
+            upper_bound_radius = big_radius;
         } else {
             found = true
         }
