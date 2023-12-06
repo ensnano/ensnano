@@ -77,7 +77,7 @@ impl ParametersTab {
         ));
 
         extra_jump!(10, ret);
-        section!(ret, ui_size, "P-stick model");
+        section!(ret, ui_size, "DNA/RNA model");
         ret = ret.push(PickList::new(
             &mut self.dna_parameters_picklist,
             &ensnano_design::NAMED_DNA_PARAMETERS[..],
