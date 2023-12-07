@@ -22,7 +22,7 @@ use super::{
 };
 use ensnano_design::{
     grid::{Edge, FreeGridId, GridData, GridId, GridPosition},
-    Helices, HelixCollection, MutStrandAndData, Parameters, Strands, UpToDateDesign,
+    Helices, HelixCollection, HelixParameters, MutStrandAndData, Strands, UpToDateDesign,
 };
 use ultraviolet::Vec3;
 
@@ -498,7 +498,7 @@ impl Controller {
         domains_vec: Vec<Vec<Domain>>,
         helices: &Helices,
         strands: &Strands,
-        parameters: &Parameters,
+        parameters: &HelixParameters,
     ) -> Vec<PastedStrand> {
         let mut pasted_strands = vec![];
         for domains in domains_vec.into_iter() {

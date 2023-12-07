@@ -22,7 +22,7 @@ pub use revolutions::*;
 
 use super::*;
 
-use ensnano_design::{grid::Grid, Parameters};
+use ensnano_design::{grid::Grid, HelixParameters};
 use ensnano_interactor::{RevolutionSurfaceSystemDescriptor, RigidBodyConstants};
 use mathru::algebra::linear::vector::vector::Vector;
 use mathru::analysis::differential_equation::ordinary::{
@@ -65,7 +65,7 @@ struct HelixSystem {
     helices: Vec<RigidHelix>,
     time_span: (f32, f32),
     last_state: Option<Vector<f32>>,
-    parameters: Parameters,
+    parameters: HelixParameters,
     anchors: Vec<(RigidNucl, Vec3)>,
     free_anchors: Vec<(usize, Vec3)>,
     current_time: f32,
@@ -854,7 +854,7 @@ pub struct RigidHelixState {
 #[derive(Debug)]
 struct RigidHelixConstants {
     nb_helices: usize,
-    parameters: Parameters,
+    parameters: HelixParameters,
     free_nucls_ids: HashMap<FreeNucl, usize>,
     roll: Vec<f32>,
     nucl_maps: HashMap<Nucl, FreeNucl>,
@@ -1139,7 +1139,7 @@ fn make_rigid_helix_world_pov_interval(
     design: &Design,
     h_id: usize,
     interval: (isize, isize),
-    parameters: &Parameters,
+    parameters: &HelixParameters,
 ) -> RigidHelix {
     let (x_min, x_max) = &interval;
     let helix = design.helices.get(&h_id).expect("helix");
@@ -1772,7 +1772,7 @@ fn make_rigid_grid(
     presenter: &dyn GridPresenter,
     g_id: GridId,
     intervals: &BTreeMap<usize, (isize, isize)>,
-    parameters: &Parameters,
+    parameters: &HelixParameters,
 ) -> Option<RigidGrid> {
     let helices: Vec<usize> = presenter.get_helices_attached_to_grid(g_id)?;
     let grid = presenter.get_grid(g_id)?;
@@ -1798,7 +1798,7 @@ fn make_rigid_helix_grid_pov(
     presenter: &dyn GridPresenter,
     h_id: usize,
     intervals: &BTreeMap<usize, (isize, isize)>,
-    parameters: &Parameters,
+    parameters: &HelixParameters,
 ) -> Option<RigidHelix> {
     let (x_min, x_max) = intervals.get(&h_id)?;
     let helix = presenter.get_design().helices.get(&h_id)?;

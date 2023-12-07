@@ -82,7 +82,7 @@ pub struct Design {
         rename(serialize = "dna_parameters"),
         alias = "dna_parameters"
     )]
-    pub parameters: Option<Parameters>,
+    pub parameters: Option<HelixParameters>,
 
     /// The strand that is the scaffold if the design is an origami
     #[serde(skip_serializing_if = "Option::is_none", default)]
@@ -222,7 +222,10 @@ impl Design {
     /// Update self if necessary and returns an up-to-date reference to self.
     #[allow(clippy::needless_lifetimes)]
     pub fn get_up_to_date<'a>(&'a mut self) -> UpToDateDesign<'a> {
-        let parameters = self.parameters.as_ref().unwrap_or(&Parameters::DEFAULT);
+        let parameters = self
+            .parameters
+            .as_ref()
+            .unwrap_or(&HelixParameters::DEFAULT);
         if let Some(paths_data) = self.instanciated_paths.as_ref() {
             if let Some(new_data) = paths_data.updated(
                 self.bezier_planes.clone(),
@@ -251,7 +254,10 @@ impl Design {
 
     #[allow(clippy::needless_lifetimes)]
     pub fn get_up_to_date_paths<'a>(&'a mut self) -> &'a BezierPathData {
-        let parameters = self.parameters.as_ref().unwrap_or(&Parameters::DEFAULT);
+        let parameters = self
+            .parameters
+            .as_ref()
+            .unwrap_or(&HelixParameters::DEFAULT);
         if let Some(paths_data) = self.instanciated_paths.as_ref() {
             if let Some(new_data) = paths_data.updated(
                 self.bezier_planes.clone(),
@@ -324,7 +330,7 @@ impl Design {
 
         let parameters = codenano_desgin
             .parameters
-            .map(|p| Parameters::from_codenano(&p))
+            .map(|p| HelixParameters::from_codenano(&p))
             .unwrap_or_default();
 
         Self {
@@ -339,7 +345,7 @@ impl Design {
         Self {
             helices: Default::default(),
             strands: Default::default(),
-            parameters: Some(Parameters::DEFAULT),
+            parameters: Some(HelixParameters::DEFAULT),
             free_grids: Default::default(),
             scaffold_id: None,
             scaffold_sequence: None,
@@ -603,7 +609,7 @@ pub struct MutStrandAndData<'a> {
     pub strands: &'a mut Strands,
     pub grid_data: &'a GridData,
     pub helices: &'a Helices,
-    pub parameters: Parameters,
+    pub parameters: HelixParameters,
 }
 
 pub struct SavingInformation {
@@ -656,7 +662,7 @@ impl Design {
             scaffold_shift: None,
             groups: Default::default(),
             no_phantoms: Default::default(),
-            parameters: Some(Parameters::DEFAULT),
+            parameters: Some(HelixParameters::DEFAULT),
             anchors: Default::default(),
             organizer_tree: None,
             ensnano_version: ensnano_version(),

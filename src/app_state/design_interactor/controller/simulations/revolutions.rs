@@ -29,8 +29,8 @@ use mathru::analysis::differential_equation::ordinary::{
 };
 
 use ensnano_design::{
-    CurveDescriptor, CurveDescriptor2D, DVec3, InterpolationDescriptor, Isometry3,
-    Parameters as DNAParameters, Similarity3,
+    CurveDescriptor, CurveDescriptor2D, DVec3, HelixParameters, InterpolationDescriptor, Isometry3,
+    Similarity3,
 };
 use ensnano_interactor::{
     EquadiffSolvingMethod, RevolutionSimulationParameters, RevolutionSurfaceRadius,
@@ -95,7 +95,7 @@ trait SpringTopology: Send + Sync + 'static {
 
 pub struct RevolutionSurfaceSystem {
     topology: Box<dyn SpringTopology>,
-    dna_parameters: DNAParameters,
+    dna_parameters: HelixParameters,
     last_thetas: Option<Vec<f64>>,
     last_dthetas: Option<Vec<f64>>,
     scaffold_len_target: usize,

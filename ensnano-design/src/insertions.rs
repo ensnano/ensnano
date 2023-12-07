@@ -57,7 +57,7 @@ impl InsertionDescriptor {
         self.edge.prime_3.position
     }
 
-    fn get_circle(&self, parameters: &Parameters) -> Option<CircleArc> {
+    fn get_circle(&self, parameters: &HelixParameters) -> Option<CircleArc> {
         let bisector_origin = (self.edge.prime_5.position + self.edge.prime_3.position) / 2.;
         let mean_of_up_vecs = (self.edge.prime_5.up_vec + self.edge.prime_3.up_vec) / 2.;
         if mean_of_up_vecs.mag() < 1e-3 {
@@ -167,7 +167,7 @@ const FRICTION: f32 = 0.1;
 const MASS_NUCL: f32 = 1.0;
 
 impl InsertionDescriptor {
-    fn instanciate(&self, parameters: &Parameters) -> Vec<Vec3> {
+    fn instanciate(&self, parameters: &HelixParameters) -> Vec<Vec3> {
         let mut rnd = rand::thread_rng();
         let mut ret = Vec::with_capacity(self.nb_nucl);
         let len_0 = parameters.dist_ac();
@@ -223,7 +223,11 @@ impl InsertionDescriptor {
 }
 
 impl Strand {
-    pub fn update_insertions(&mut self, helices: &dyn HelixCollection, parameters: &Parameters) {
+    pub fn update_insertions(
+        &mut self,
+        helices: &dyn HelixCollection,
+        parameters: &HelixParameters,
+    ) {
         let mut to_be_updated = Vec::new();
         let nb_domain = self.domains.len();
         for (d_prev, ((d_id, d), d_next)) in self.domains.iter().cycle().skip(nb_domain - 1).zip(
@@ -259,7 +263,7 @@ impl Strand {
         }
     }
 
-    fn update_insertion(&mut self, d_id: usize, edge: InsertionEdge, parameters: &Parameters) {
+    fn update_insertion(&mut self, d_id: usize, edge: InsertionEdge, parameters: &HelixParameters) {
         if let Some(Domain::Insertion {
             nb_nucl,
             instanciation,

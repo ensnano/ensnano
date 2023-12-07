@@ -16,7 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use crate::Parameters;
+use crate::HelixParameters;
 
 use super::Curved;
 use std::f64::consts::{FRAC_PI_2, PI, TAU};
@@ -49,7 +49,7 @@ fn default_number_of_helices() -> usize {
 }
 
 impl SphereLikeSpiralDescriptor {
-    pub(super) fn with_parameters(self, parameters: Parameters) -> SphereLikeSpiral {
+    pub(super) fn with_parameters(self, parameters: HelixParameters) -> SphereLikeSpiral {
         SphereLikeSpiral {
             theta_0: self.theta_0,
             radius: self.radius,
@@ -64,7 +64,7 @@ impl SphereLikeSpiralDescriptor {
 pub(super) struct SphereLikeSpiral {
     pub theta_0: f64,
     pub radius: f64,
-    pub parameters: Parameters,
+    pub parameters: HelixParameters,
     pub minimum_diameter: Option<f64>,
     pub number_of_helices: usize,
     pub orientation: SphereOrientation,

@@ -250,7 +250,7 @@ impl Curve {
         n: isize,
         forward: bool,
         theta: f64,
-        parameters: &Parameters,
+        parameters: &HelixParameters,
     ) -> Option<DVec3> {
         use std::f64::consts::{PI, TAU};
         let idx = self.idx_conversion(n)?;

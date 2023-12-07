@@ -26,7 +26,7 @@ use ensnano_design::{
     grid::{GridDescriptor, GridId, GridObject, GridTypeDescr, HelixGridPosition, Hyperboloid},
     group_attributes::GroupPivot,
     BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, BezierVertexId,
-    CurveDescriptor2D, Isometry3, Nucl, Parameters,
+    CurveDescriptor2D, HelixParameters, Isometry3, Nucl,
 };
 use serde::{Deserialize, Serialize};
 use ultraviolet::{Isometry2, Rotor3, Vec2, Vec3};
@@ -261,7 +261,7 @@ pub enum DesignOperation {
     },
     SetRainbowScaffold(bool),
     SetDnaParameters {
-        parameters: Parameters,
+        parameters: HelixParameters,
     },
     SetInsertionLength {
         length: usize,

@@ -437,7 +437,7 @@ impl Reader3D for DesignReader {
             .map(|data| data.paths_data.instanciated_paths.as_ref())
     }
 
-    fn get_parameters(&self) -> Parameters {
+    fn get_parameters(&self) -> HelixParameters {
         self.presenter.current_design.parameters.unwrap_or_default()
     }
 

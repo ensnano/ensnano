@@ -19,7 +19,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::AddressPointer;
 use ensnano_design::{
     grid::GridId, group_attributes::GroupAttribute, BezierPathId, BezierPlaneDescriptor, Design,
-    HelixCollection, InstanciatedPiecewiseBezier, Parameters,
+    HelixCollection, HelixParameters, InstanciatedPiecewiseBezier,
 };
 use ensnano_exports::{ExportResult, ExportType};
 use ensnano_interactor::{
@@ -313,7 +313,7 @@ impl DesignInteractor {
         self.controller.get_simulation_state()
     }
 
-    pub(super) fn get_dna_parameters(&self) -> Parameters {
+    pub(super) fn get_dna_parameters(&self) -> HelixParameters {
         self.presenter.current_design.parameters.unwrap_or_default()
     }
 

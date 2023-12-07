@@ -62,9 +62,9 @@ impl OpenSurfaceTopology {
         let total_nb_turn_per_helix = nb_turn_to_reach_t1 + ADDITIONAL_NB_TURN;
 
         let abscissa_on_section_per_turn =
-            nb_helices as f64 * DNAParameters::INTER_CENTER_GAP as f64 * SCALING_ABCISSA;
+            nb_helices as f64 * HelixParameters::INTER_CENTER_GAP as f64 * SCALING_ABCISSA;
 
-        let initial_abscissa = 3. * DNAParameters::INTER_CENTER_GAP as f64 / 2.;
+        let initial_abscissa = 3. * HelixParameters::INTER_CENTER_GAP as f64 / 2.;
         let curve_perimeter = desc.target.surface.curve.perimeter();
         let mut target = RevolutionSurface::new(desc.target);
 
