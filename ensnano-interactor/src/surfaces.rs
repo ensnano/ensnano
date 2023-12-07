@@ -22,7 +22,7 @@ use ultraviolet::{DVec3, Similarity3};
 pub struct RevolutionSurfaceSystemDescriptor {
     pub scaffold_len_target: usize,
     pub target: RootedRevolutionSurface,
-    pub dna_parameters: HelixParameters,
+    pub helix_parameters: HelixParameters,
     pub simulation_parameters: RevolutionSimulationParameters,
 }
 

@@ -683,8 +683,8 @@ pub(super) fn pdb_export(
     mut basis_map: BasisMapper,
     out_path: &PathBuf,
 ) -> Result<(), PdbError> {
-    let parameters = design.parameters.unwrap_or_default();
-    let na_kind = if parameters.name().name.contains("RNA") {
+    let helix_parameters = design.helix_parameters.unwrap_or_default();
+    let na_kind = if helix_parameters.name().name.contains("RNA") {
         NucleicAcidKind::Rna
     } else {
         NucleicAcidKind::Dna
@@ -701,7 +701,7 @@ pub(super) fn pdb_export(
                     let ox_nucl = design.helices.get(&dom.helix).unwrap().ox_dna_nucl(
                         position,
                         dom.forward,
-                        &parameters,
+                        &helix_parameters,
                     );
                     let nucl = Nucl {
                         position,
@@ -727,7 +727,7 @@ pub(super) fn pdb_export(
                         *position,
                         previous_position,
                         insertion_idx,
-                        &parameters,
+                        &helix_parameters,
                     );
                     previous_position = Some(*position);
                     pdb_strand.add_nucl(

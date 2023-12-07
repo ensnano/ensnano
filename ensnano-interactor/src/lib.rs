@@ -260,8 +260,8 @@ pub enum DesignOperation {
         xovers: Vec<usize>,
     },
     SetRainbowScaffold(bool),
-    SetDnaParameters {
-        parameters: HelixParameters,
+    SetGlobalHelixParameters {
+        helix_parameters: HelixParameters,
     },
     SetInsertionLength {
         length: usize,

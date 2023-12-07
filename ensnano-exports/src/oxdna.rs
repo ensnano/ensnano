@@ -121,7 +121,7 @@ pub trait OxDnaHelix {
         &self,
         nucl_idx: isize,
         forward: bool,
-        parameters: &HelixParameters,
+        helix_parameters: &HelixParameters,
     ) -> OxDnaNucl;
 }
 
@@ -130,11 +130,11 @@ impl OxDnaHelix for Helix {
         &self,
         nucl_idx: isize,
         forward: bool,
-        parameters: &HelixParameters,
+        helix_parameters: &HelixParameters,
     ) -> OxDnaNucl {
-        let backbone_position = self.space_pos(parameters, nucl_idx, forward);
+        let backbone_position = self.space_pos(helix_parameters, nucl_idx, forward);
         let a1 = {
-            let other_base = self.space_pos(parameters, nucl_idx, !forward);
+            let other_base = self.space_pos(helix_parameters, nucl_idx, !forward);
             (other_base - backbone_position).normalized()
         };
         let normal = if forward {
@@ -157,14 +157,14 @@ pub fn free_oxdna_nucl(
     pos: Vec3,
     previous_position: Option<Vec3>,
     free_idx: usize,
-    parameters: &HelixParameters,
+    helix_parameters: &HelixParameters,
 ) -> OxDnaNucl {
     let backbone_position = pos;
     let normal = (pos - previous_position.unwrap_or_else(Vec3::zero)).normalized();
     let a1 = {
         let tangent = normal.cross(Vec3::new(-normal.z, normal.x, normal.y));
         let bitangent = normal.cross(tangent);
-        let angle = std::f32::consts::TAU / parameters.bases_per_turn * -(free_idx as f32);
+        let angle = std::f32::consts::TAU / helix_parameters.bases_per_turn * -(free_idx as f32);
         tangent * angle.sin() + bitangent * angle.cos()
     };
     let cm_position = backbone_position * OXDNA_LEN_FACTOR + a1 * BACKBONE_TO_CM;
@@ -184,18 +184,18 @@ pub(super) struct OxDnaMaker<'a> {
     nucls: Vec<OxDnaNucl>,
     basis_map: BasisMapper<'a>,
     nb_strand: usize,
-    parameters: HelixParameters,
+    helix_parameters: HelixParameters,
 }
 
 impl<'a> OxDnaMaker<'a> {
-    pub fn new(basis_map: BasisMapper<'a>, parameters: HelixParameters) -> Self {
+    pub fn new(basis_map: BasisMapper<'a>, helix_parameters: HelixParameters) -> Self {
         Self {
             nucl_id: 0,
             boundaries: Default::default(),
             bounds: Vec::new(),
             nucls: Vec::new(),
             basis_map,
-            parameters,
+            helix_parameters,
             nb_strand: 0,
         }
     }
@@ -270,7 +270,7 @@ impl StrandMaker<'_, '_> {
             position,
             self.previous_position,
             free_idx,
-            &self.context.parameters,
+            &self.context.helix_parameters,
         );
         self.add_ox_nucl(ox_nucl, None)
     }
@@ -289,8 +289,8 @@ impl StrandMaker<'_, '_> {
 }
 
 pub(super) fn to_oxdna(design: &Design, basis_map: BasisMapper) -> (OxDnaConfig, OxDnaTopology) {
-    let parameters = design.parameters.unwrap_or_default();
-    let mut maker = OxDnaMaker::new(basis_map, parameters);
+    let helix_parameters = design.helix_parameters.unwrap_or_default();
+    let mut maker = OxDnaMaker::new(basis_map, helix_parameters);
 
     for (strand_id, s) in design.strands.values().enumerate() {
         let mut strand_maker = maker.new_strand(strand_id);
@@ -301,7 +301,7 @@ pub(super) fn to_oxdna(design: &Design, basis_map: BasisMapper) -> (OxDnaConfig,
                     let ox_nucl = design.helices.get(&dom.helix).unwrap().ox_dna_nucl(
                         position,
                         dom.forward,
-                        &parameters,
+                        &helix_parameters,
                     );
                     let nucl = Nucl {
                         position,

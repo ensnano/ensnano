@@ -55,9 +55,9 @@ impl PhysicalSystem {
         let intervals_map = presenter.get_design().strands.get_intervals();
         let helices: Vec<Helix> = presenter.get_helices().values().cloned().collect();
         let keys: Vec<usize> = presenter.get_helices().keys().cloned().collect();
-        let parameters = presenter
+        let helix_parameters = presenter
             .get_design()
-            .parameters
+            .helix_parameters
             .clone()
             .unwrap_or_default();
         let xovers = presenter.get_xovers_list();
@@ -72,7 +72,7 @@ impl PhysicalSystem {
             helices,
             helix_map,
             xovers,
-            parameters,
+            helix_parameters,
             intervals,
         };
         let interface = Arc::new(Mutex::new(RollInterface::default()));
@@ -102,43 +102,45 @@ impl PhysicalSystem {
     }
 }
 
-fn angle_aoc2(p: &HelixParameters) -> f32 {
-    2. * PI / p.bases_per_turn
+fn angle_aoc2(helix_parameters: &HelixParameters) -> f32 {
+    2. * PI / helix_parameters.bases_per_turn
 }
 
-pub(super) fn dist_ac(p: &HelixParameters) -> f32 {
-    (dist_ac2(p) * dist_ac2(p) + p.z_step * p.z_step).sqrt()
+pub(super) fn dist_ac(helix_parameters: &HelixParameters) -> f32 {
+    (dist_ac2(helix_parameters) * dist_ac2(helix_parameters)
+        + helix_parameters.z_step * helix_parameters.z_step)
+        .sqrt()
 }
 
-fn dist_ac2(p: &HelixParameters) -> f32 {
-    SQRT_2 * (1. - angle_aoc2(p).cos()).sqrt() * p.helix_radius
+fn dist_ac2(helix_parameters: &HelixParameters) -> f32 {
+    SQRT_2 * (1. - angle_aoc2(helix_parameters).cos()).sqrt() * helix_parameters.helix_radius
 }
 
 pub(super) fn cross_over_force(
     me: &Helix,
     other: &Helix,
-    parameters: &HelixParameters,
+    helix_parameters: &HelixParameters,
     n_self: isize,
     b_self: bool,
     n_other: isize,
     b_other: bool,
 ) -> (f32, f32) {
-    let nucl_self = me.space_pos(parameters, n_self, b_self);
-    let nucl_other = other.space_pos(parameters, n_other, b_other);
+    let nucl_self = me.space_pos(helix_parameters, n_self, b_self);
+    let nucl_other = other.space_pos(helix_parameters, n_other, b_other);
 
     let real_dist = (nucl_self - nucl_other).mag();
 
-    let norm = K_SPRING * (real_dist - dist_ac(parameters));
+    let norm = K_SPRING * (real_dist - dist_ac(helix_parameters));
 
     // vec_self is the derivative of the position of self w.r.t. theta
     // postion of self is [0, sin(theta), cos(theta)]
     // so the derivative is [0, cos(theta), -sin(theta)]
 
     let derivative_shift = std::f32::consts::FRAC_PI_2;
-    let vec_self = me.shifted_space_pos(parameters, n_self, b_self, derivative_shift)
-        - me.axis_position(parameters, n_self);
-    let vec_other = other.shifted_space_pos(parameters, n_other, b_other, derivative_shift)
-        - other.axis_position(parameters, n_other);
+    let vec_self = me.shifted_space_pos(helix_parameters, n_self, b_self, derivative_shift)
+        - me.axis_position(helix_parameters, n_self);
+    let vec_other = other.shifted_space_pos(helix_parameters, n_other, b_other, derivative_shift)
+        - other.axis_position(helix_parameters, n_other);
 
     (
         (0..3)
@@ -211,7 +213,7 @@ impl RollSystem {
                 let (delta_1, delta_2) = cross_over_force(
                     me,
                     other,
-                    &data.parameters,
+                    &data.helix_parameters,
                     n1.position,
                     n1.forward,
                     n2.position,
@@ -308,21 +310,21 @@ impl RollSystem {
 fn spring_force(
     me: &Helix,
     other: &Helix,
-    parameters: &HelixParameters,
+    helix_parameters: &HelixParameters,
     n_self: isize,
     b_self: bool,
     n_other: isize,
     b_other: bool,
     time_scale: &mut bool,
 ) -> (Vec3, Vec3) {
-    let nucl_self = me.space_pos(parameters, n_self, b_self);
-    let nucl_other = other.space_pos(parameters, n_other, b_other);
+    let nucl_self = me.space_pos(helix_parameters, n_self, b_self);
+    let nucl_other = other.space_pos(helix_parameters, n_other, b_other);
 
     let real_dist = (nucl_self - nucl_other).mag();
-    if real_dist > dist_ac(parameters) * 10. {
+    if real_dist > dist_ac(helix_parameters) * 10. {
         *time_scale = true;
     }
-    let norm = K_SPRING * (real_dist - dist_ac(parameters)) / real_dist;
+    let norm = K_SPRING * (real_dist - dist_ac(helix_parameters)) / real_dist;
     (
         norm * (nucl_other - nucl_self),
         norm * (nucl_self - nucl_other),
@@ -333,7 +335,7 @@ pub struct DesignData {
     pub helices: Vec<Helix>,
     pub helix_map: HashMap<usize, usize>,
     pub xovers: Vec<(Nucl, Nucl)>,
-    pub parameters: HelixParameters,
+    pub helix_parameters: HelixParameters,
     pub intervals: Vec<Option<(isize, isize)>>,
 }
 

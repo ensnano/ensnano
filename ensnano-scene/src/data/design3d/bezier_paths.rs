@@ -111,7 +111,7 @@ impl<R: DesignReader> Design3D<R> {
                 corners,
                 plane_descritor: desc,
                 plane_id: *plane_id,
-                parameters: self.design.get_parameters(),
+                helix_parameters: self.design.get_parameters(),
                 axis_position: axis_position.filter(|_| first),
             });
             spheres.extend_from_slice(corners_of_sheet(&sheet).as_slice());
@@ -200,13 +200,13 @@ struct SheetDescriptor<'a> {
     corners: [Vec2; 4],
     plane_id: BezierPlaneId,
     plane_descritor: &'a BezierPlaneDescriptor,
-    parameters: HelixParameters,
+    helix_parameters: HelixParameters,
     axis_position: Option<f64>,
 }
 
 fn get_sheet_instance(desc: SheetDescriptor<'_>) -> Sheet2D {
-    let parameters = &desc.parameters;
-    let grad_step = 48.0 * parameters.z_step;
+    let helix_parameters = &desc.helix_parameters;
+    let grad_step = 48.0 * helix_parameters.z_step;
     let delta_corners = grad_step / 5.;
     let corners = &desc.corners;
     let axis_position = desc.axis_position.map(|x| x as f32);
@@ -220,7 +220,7 @@ fn get_sheet_instance(desc: SheetDescriptor<'_>) -> Sheet2D {
         min_y: ((-3. * grad_step).min(corners[0].y - delta_corners) / grad_step).floor()
             * grad_step,
         max_y: ((3. * grad_step).max(corners[3].y + delta_corners) / grad_step).ceil() * grad_step,
-        graduation_unit: 48.0 * parameters.z_step,
+        graduation_unit: 48.0 * helix_parameters.z_step,
         axis_position,
     };
 

@@ -65,7 +65,7 @@ struct HelixSystem {
     helices: Vec<RigidHelix>,
     time_span: (f32, f32),
     last_state: Option<Vector<f32>>,
-    parameters: HelixParameters,
+    helix_parameters: HelixParameters,
     anchors: Vec<(RigidNucl, Vec3)>,
     free_anchors: Vec<(usize, Vec3)>,
     current_time: f32,
@@ -82,7 +82,7 @@ impl HelixSystem {
             roll,
             free_nucls_ids: interval_result.free_nucl_ids,
             nb_helices: interval_result.intervals.len(),
-            parameters: self.parameters.clone(),
+            helix_parameters: self.helix_parameters.clone(),
             nucl_maps: interval_result.nucl_map,
         }
     }
@@ -298,7 +298,7 @@ impl HelixSystem {
                     .rotated_by(orientations[nucl.helix]);
             let mut helix = Helix::new(position, orientations[nucl.helix]);
             helix.roll(self.helices[nucl.helix].roll);
-            helix.space_pos(&self.parameters, nucl.position, nucl.forward)
+            helix.space_pos(&self.helix_parameters, nucl.position, nucl.forward)
         };
         let free_nucl_pos = |n: &usize| positions[*n + self.helices.len()];
 
@@ -391,8 +391,8 @@ impl HelixSystem {
                     positions[n] + self.helices[n].center_to_origin.rotated_by(orientations[n]);
                 let helix = Helix::new(position, orientations[n]);
                 (
-                    helix.axis_position(&self.parameters, self.helices[n].interval.0),
-                    helix.axis_position(&self.parameters, self.helices[n].interval.1),
+                    helix.axis_position(&self.helix_parameters, self.helices[n].interval.0),
+                    helix.axis_position(&self.helix_parameters, self.helices[n].interval.1),
                 )
             })
             .collect();
@@ -854,7 +854,7 @@ pub struct RigidHelixState {
 #[derive(Debug)]
 struct RigidHelixConstants {
     nb_helices: usize,
-    parameters: HelixParameters,
+    helix_parameters: HelixParameters,
     free_nucls_ids: HashMap<FreeNucl, usize>,
     roll: Vec<f32>,
     nucl_maps: HashMap<Nucl, FreeNucl>,
@@ -1015,9 +1015,9 @@ fn make_flexible_helices_system(
     presenter: &dyn HelixPresenter,
     interval_results: &IntervalResult,
 ) -> Result<HelixSystem, ErrOperation> {
-    let parameters = presenter
+    let helix_parameters = presenter
         .get_design()
-        .parameters
+        .helix_parameters
         .clone()
         .unwrap_or_default();
     let mut rigid_helices = Vec::with_capacity(interval_results.helix_map.len());
@@ -1028,7 +1028,7 @@ fn make_flexible_helices_system(
             presenter.get_design(),
             h_id,
             interval,
-            &parameters,
+            &helix_parameters,
         );
         rigid_helix.locked = presenter
             .get_design()
@@ -1124,7 +1124,7 @@ fn make_flexible_helices_system(
         free_nucl_position: interval_results.free_nucl_position.clone(),
         last_state: None,
         time_span,
-        parameters,
+        helix_parameters,
         anchors,
         free_anchors,
         brownian_heap,
@@ -1139,16 +1139,16 @@ fn make_rigid_helix_world_pov_interval(
     design: &Design,
     h_id: usize,
     interval: (isize, isize),
-    parameters: &HelixParameters,
+    helix_parameters: &HelixParameters,
 ) -> RigidHelix {
     let (x_min, x_max) = &interval;
     let helix = design.helices.get(&h_id).expect("helix");
-    let left = helix.axis_position(parameters, *x_min);
-    let right = helix.axis_position(parameters, *x_max);
+    let left = helix.axis_position(helix_parameters, *x_min);
+    let right = helix.axis_position(helix_parameters, *x_max);
     let position = (left + right) / 2.;
-    let position_delta = -(*x_max as f32 * parameters.z_step + *x_min as f32 * parameters.z_step)
-        / 2.
-        * Vec3::unit_x();
+    let position_delta =
+        -(*x_max as f32 * helix_parameters.z_step + *x_min as f32 * helix_parameters.z_step) / 2.
+            * Vec3::unit_x();
     RigidHelix::new_from_world(
         position.y,
         position.z,
@@ -1397,7 +1397,7 @@ impl SimulationUpdate for RigidHelixState {
                     *id,
                     helices[n]
                         .space_pos(
-                            &self.constants.parameters,
+                            &self.constants.helix_parameters,
                             free_nucl.position,
                             free_nucl.forward,
                         )
@@ -1689,9 +1689,9 @@ fn make_grid_system(
     rigid_paramaters: RigidBodyConstants,
 ) -> Result<GridsSystem, ErrOperation> {
     let intervals = presenter.get_design().strands.get_intervals();
-    let parameters = presenter
+    let helix_parameters = presenter
         .get_design()
-        .parameters
+        .helix_parameters
         .clone()
         .unwrap_or_default();
     let mut selected_grids = HashMap::with_capacity(presenter.get_design().free_grids.len());
@@ -1703,7 +1703,7 @@ fn make_grid_system(
         .cloned()
         .map(FreeGridId::to_grid_id)
     {
-        if let Some(rigid_grid) = make_rigid_grid(presenter, g_id, &intervals, &parameters) {
+        if let Some(rigid_grid) = make_rigid_grid(presenter, g_id, &intervals, &helix_parameters) {
             selected_grids.insert(g_id, rigid_grids.len());
             rigid_grids.push(rigid_grid);
         }
@@ -1737,10 +1737,10 @@ fn make_grid_system(
                     let grid2 = presenter
                         .get_grid(g_id2)
                         .ok_or(ErrOperation::GridDoesNotExist(g_id2))?;
-                    let pos1 = (h1.space_pos(&parameters, n1.position, n1.forward)
+                    let pos1 = (h1.space_pos(&helix_parameters, n1.position, n1.forward)
                         - rigid_grids[rigid_id1].center_of_mass)
                         .rotated_by(grid1.orientation.reversed());
-                    let pos2 = (h2.space_pos(&parameters, n2.position, n2.forward)
+                    let pos2 = (h2.space_pos(&helix_parameters, n2.position, n2.forward)
                         - rigid_grids[rigid_id2].center_of_mass)
                         .rotated_by(grid2.orientation.reversed());
                     let application_point1 = ApplicationPoint {
@@ -1772,13 +1772,15 @@ fn make_rigid_grid(
     presenter: &dyn GridPresenter,
     g_id: GridId,
     intervals: &BTreeMap<usize, (isize, isize)>,
-    parameters: &HelixParameters,
+    helix_parameters: &HelixParameters,
 ) -> Option<RigidGrid> {
     let helices: Vec<usize> = presenter.get_helices_attached_to_grid(g_id)?;
     let grid = presenter.get_grid(g_id)?;
     let mut rigid_helices = Vec::with_capacity(helices.len());
     for h in helices {
-        if let Some(rigid_helix) = make_rigid_helix_grid_pov(presenter, h, intervals, parameters) {
+        if let Some(rigid_helix) =
+            make_rigid_helix_grid_pov(presenter, h, intervals, helix_parameters)
+        {
             rigid_helices.push(rigid_helix)
         }
     }
@@ -1798,7 +1800,7 @@ fn make_rigid_helix_grid_pov(
     presenter: &dyn GridPresenter,
     h_id: usize,
     intervals: &BTreeMap<usize, (isize, isize)>,
-    parameters: &HelixParameters,
+    helix_parameters: &HelixParameters,
 ) -> Option<RigidHelix> {
     let (x_min, x_max) = intervals.get(&h_id)?;
     let helix = presenter.get_design().helices.get(&h_id)?;
@@ -1808,8 +1810,8 @@ fn make_rigid_helix_grid_pov(
     Some(RigidHelix::new_from_grid(
         position.y,
         position.z,
-        *x_min as f32 * parameters.z_step,
-        *x_max as f32 * parameters.z_step,
+        *x_min as f32 * helix_parameters.z_step,
+        *x_max as f32 * helix_parameters.z_step,
         helix.roll,
         helix.orientation,
         (*x_min, *x_max),

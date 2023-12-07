@@ -36,7 +36,10 @@ fn default_number_of_helices() -> usize {
 }
 
 impl SphereConcentricCircleDescriptor {
-    pub(super) fn with_parameters(self, parameters: HelixParameters) -> SphereConcentricCircle {
+    pub(super) fn with_helix_parameters(
+        self,
+        helix_parameters: HelixParameters,
+    ) -> SphereConcentricCircle {
         let helix_index = self.helix_index as f64 + self.helix_index_shift.unwrap_or(0.);
         let inter_helix_center_gap = self
             .inter_helix_center_gap
@@ -47,7 +50,7 @@ impl SphereConcentricCircleDescriptor {
         let perimeter = TAU * z_radius;
 
         SphereConcentricCircle {
-            _parameters: parameters,
+            _parameters: helix_parameters,
             radius: self.radius,
             theta_0: self.theta_0,
             helix_index,

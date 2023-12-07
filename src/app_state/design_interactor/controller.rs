@@ -305,9 +305,11 @@ impl Controller {
                 },
                 design,
             )),
-            DesignOperation::SetDnaParameters { parameters } => Ok(self.ok_apply(
+            DesignOperation::SetGlobalHelixParameters {
+                helix_parameters: parameters,
+            } => Ok(self.ok_apply(
                 |_, mut d| {
-                    d.parameters = Some(parameters);
+                    d.helix_parameters = Some(parameters);
                     d
                 },
                 design,
@@ -652,17 +654,18 @@ impl Controller {
             .keys()
             .max()
             .ok_or(ErrOperation::GridDoesNotExist(GridId::FreeGrid(0)))?;
-        let parameters = design.parameters.unwrap_or_default();
-        let (helices, nb_nucl) = hyperboloid.make_helices(&parameters);
+        let helix_parameters = design.helix_parameters.unwrap_or_default();
+        let (helices, nb_nucl) = hyperboloid.make_helices(&helix_parameters);
         let nb_nucl = nb_nucl.min(5000);
         let mut helices_mut = design.helices.make_mut();
         let mut keys = Vec::with_capacity(helices.len());
         for (i, mut h) in helices.into_iter().enumerate() {
-            let origin = hyperboloid.origin_helix(&parameters, i as isize, 0);
+            let origin = hyperboloid.origin_helix(&helix_parameters, i as isize, 0);
             let z_vec = Vec3::unit_z().rotated_by(orientation);
             let y_vec = Vec3::unit_y().rotated_by(orientation);
             h.position = position + origin.x * z_vec + origin.y * y_vec;
-            h.orientation = orientation * hyperboloid.orientation_helix(&parameters, i as isize, 0);
+            h.orientation =
+                orientation * hyperboloid.orientation_helix(&helix_parameters, i as isize, 0);
             if let Some(curve) = h.curve.as_mut() {
                 mutate_in_arc(curve, |c| {
                     if let CurveDescriptor::Twist(twist) = c {
@@ -2207,7 +2210,7 @@ impl Controller {
         let axis = design
             .helices
             .get(&nucl.helix)
-            .map(|h| h.get_axis(&design.parameters.unwrap_or_default()))?;
+            .map(|h| h.get_axis(&design.helix_parameters.unwrap_or_default()))?;
         let desc = design.get_neighbour_nucl(nucl)?;
         let strand_id = desc.identifier.strand;
         let filter =
@@ -2265,7 +2268,7 @@ impl Controller {
         let axis = design
             .helices
             .get(&nucl.helix)
-            .map(|h| h.get_axis(&design.parameters.unwrap_or_default()))?;
+            .map(|h| h.get_axis(&design.helix_parameters.unwrap_or_default()))?;
         Some(StrandBuilder::init_empty(
             DomainIdentifier {
                 strand: new_key,

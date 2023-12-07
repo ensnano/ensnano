@@ -342,13 +342,13 @@ impl Curve {
     pub fn left_extension_to_have_nucl(
         &self,
         nucl: isize,
-        parameters: &HelixParameters,
+        helix_parameters: &HelixParameters,
     ) -> Option<f64> {
         let nucl_min = -(self.nucl_t0 as isize);
         if nucl < nucl_min {
             if let CurveBounds::BiInfinite = self.geometry.bounds() {
                 let objective = (-nucl) as f64
-                    * parameters.z_step as f64
+                    * helix_parameters.z_step as f64
                     * self.geometry.z_step_ratio().unwrap_or(1.);
                 if let Some(t_min) = self.geometry.inverse_curvilinear_abscissa(objective) {
                     return Some(t_min);
@@ -376,16 +376,16 @@ impl Curve {
     pub fn right_extension_to_have_nucl(
         &self,
         nucl: isize,
-        parameters: &HelixParameters,
+        helix_parameters: &HelixParameters,
     ) -> Option<f64> {
         let nucl_max = (self.nb_points() - self.nucl_t0) as isize;
         if nucl >= nucl_max - 1 {
             match self.geometry.bounds() {
                 CurveBounds::BiInfinite | CurveBounds::PositiveInfinite => {
                     let objective = nucl as f64
-                        * parameters.z_step as f64
+                        * helix_parameters.z_step as f64
                         * self.geometry.z_step_ratio().unwrap_or(1.)
-                        + parameters.inclination as f64;
+                        + helix_parameters.inclination as f64;
                     if let Some(t_max) = self.geometry.inverse_curvilinear_abscissa(objective) {
                         return Some(t_max);
                     }

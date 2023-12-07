@@ -250,15 +250,15 @@ impl Curve {
         n: isize,
         forward: bool,
         theta: f64,
-        parameters: &HelixParameters,
+        helix_parameters: &HelixParameters,
     ) -> Option<DVec3> {
         use std::f64::consts::{PI, TAU};
         let idx = self.idx_conversion(n)?;
-        let theta = if let Some(real_theta) = self.geometry.theta_shift(parameters) {
-            let base_theta = TAU / parameters.bases_per_turn as f64;
+        let theta = if let Some(real_theta) = self.geometry.theta_shift(helix_parameters) {
+            let base_theta = TAU / helix_parameters.bases_per_turn as f64;
             (base_theta - real_theta) * n as f64 + theta
         } else if let Some(pos_full_turn) = self.nucl_pos_full_turn {
-            let final_angle = -pos_full_turn as f64 * TAU / parameters.bases_per_turn as f64;
+            let final_angle = -pos_full_turn as f64 * TAU / helix_parameters.bases_per_turn as f64;
             let rem = final_angle.rem_euclid(TAU);
 
             let mut full_delta = -rem - std::f64::consts::FRAC_PI_2;
@@ -284,8 +284,8 @@ impl Curve {
         if let Some(matrix) = axis.get(idx).cloned() {
             let mut ret = matrix
                 * DVec3::new(
-                    -theta.cos() * parameters.helix_radius as f64,
-                    theta.sin() * parameters.helix_radius as f64,
+                    -theta.cos() * helix_parameters.helix_radius as f64,
+                    theta.sin() * helix_parameters.helix_radius as f64,
                     0.0,
                 );
             ret += positions[idx];

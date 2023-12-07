@@ -26,18 +26,18 @@ use ultraviolet::{DVec3, Rotor3, Vec3};
 #[allow(non_snake_case)]
 pub fn nb_turn_per_100_nt_to_omega(
     nb_turn_per_100_nt: f64,
-    parameters: &HelixParameters,
+    helix_parameters: &HelixParameters,
 ) -> Option<f64> {
     if nb_turn_per_100_nt.abs() < 1e-3 {
         return Some(0.0);
     }
-    let Z: f64 = 100.0 * parameters.z_step as f64;
+    let Z: f64 = 100.0 * helix_parameters.z_step as f64;
     use std::f64::consts::TAU;
     Some(TAU * nb_turn_per_100_nt / Z)
 }
 
-pub fn twist_to_omega(twist: f64, parameters: &HelixParameters) -> Option<f64> {
-    nb_turn_per_100_nt_to_omega(twist, parameters)
+pub fn twist_to_omega(twist: f64, helix_parameters: &HelixParameters) -> Option<f64> {
+    nb_turn_per_100_nt_to_omega(twist, helix_parameters)
 }
 
 /// An helicoidal curve

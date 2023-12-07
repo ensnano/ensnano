@@ -314,7 +314,10 @@ impl DesignInteractor {
     }
 
     pub(super) fn get_dna_parameters(&self) -> HelixParameters {
-        self.presenter.current_design.parameters.unwrap_or_default()
+        self.presenter
+            .current_design
+            .helix_parameters
+            .unwrap_or_default()
     }
 
     pub(super) fn is_changing_color(&self) -> bool {

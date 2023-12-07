@@ -492,8 +492,8 @@ impl DesignContent {
                 length: strand.length(),
                 domain_lengths: strand.domain_lengths(),
             });
-            let parameters = design.parameters.unwrap_or_default();
-            strand.update_insertions(&design.helices, &parameters);
+            let helix_parameters = design.helix_parameters.unwrap_or_default();
+            strand.update_insertions(&design.helices, &helix_parameters);
             let mut strand_position = 0;
             let strand_seq = strand.sequence.as_ref().filter(|s| s.is_ascii());
             let color = strand.color;
@@ -537,7 +537,7 @@ impl DesignContent {
                     let dom_seq = domain.sequence.as_ref().filter(|s| s.is_ascii());
                     for (dom_position, nucl_position) in domain.iter().enumerate() {
                         let position = design.helices.get(&domain.helix).unwrap().space_pos(
-                            design.parameters.as_ref().unwrap(),
+                            design.helix_parameters.as_ref().unwrap(),
                             nucl_position,
                             domain.forward,
                         );

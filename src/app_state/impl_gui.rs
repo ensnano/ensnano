@@ -195,8 +195,8 @@ impl GuiState for AppState {
             .as_ref()?
             .curve
             .perimeter();
-        let parameters = self.get_dna_parameters();
-        let area_one_nucl = parameters.z_step * HelixParameters::INTER_CENTER_GAP;
+        let helix_parameters = self.get_dna_parameters();
+        let area_one_nucl = helix_parameters.z_step * HelixParameters::INTER_CENTER_GAP;
         let scaling_factor = (scaffold_len as f64 * area_one_nucl as f64 / area_surface).sqrt();
         let scaled_perimeter = scaling_factor * perimeter_surface;
 

@@ -82,7 +82,7 @@ pub struct Design {
         rename(serialize = "dna_parameters"),
         alias = "dna_parameters"
     )]
-    pub parameters: Option<HelixParameters>,
+    pub helix_parameters: Option<HelixParameters>,
 
     /// The strand that is the scaffold if the design is an origami
     #[serde(skip_serializing_if = "Option::is_none", default)]
@@ -222,15 +222,15 @@ impl Design {
     /// Update self if necessary and returns an up-to-date reference to self.
     #[allow(clippy::needless_lifetimes)]
     pub fn get_up_to_date<'a>(&'a mut self) -> UpToDateDesign<'a> {
-        let parameters = self
-            .parameters
+        let helix_parameters = self
+            .helix_parameters
             .as_ref()
             .unwrap_or(&HelixParameters::DEFAULT);
         if let Some(paths_data) = self.instanciated_paths.as_ref() {
             if let Some(new_data) = paths_data.updated(
                 self.bezier_planes.clone(),
                 self.bezier_paths.clone(),
-                parameters,
+                helix_parameters,
             ) {
                 self.instanciated_paths = Some(new_data);
             }
@@ -238,7 +238,7 @@ impl Design {
             self.instanciated_paths = Some(BezierPathData::new(
                 self.bezier_planes.clone(),
                 self.bezier_paths.clone(),
-                parameters,
+                helix_parameters,
             ));
         }
         if self.needs_update() {
@@ -254,15 +254,15 @@ impl Design {
 
     #[allow(clippy::needless_lifetimes)]
     pub fn get_up_to_date_paths<'a>(&'a mut self) -> &'a BezierPathData {
-        let parameters = self
-            .parameters
+        let helix_parameters = self
+            .helix_parameters
             .as_ref()
             .unwrap_or(&HelixParameters::DEFAULT);
         if let Some(paths_data) = self.instanciated_paths.as_ref() {
             if let Some(new_data) = paths_data.updated(
                 self.bezier_planes.clone(),
                 self.bezier_paths.clone(),
-                parameters,
+                helix_parameters,
             ) {
                 self.instanciated_paths = Some(new_data);
             }
@@ -270,7 +270,7 @@ impl Design {
             self.instanciated_paths = Some(BezierPathData::new(
                 self.bezier_planes.clone(),
                 self.bezier_paths.clone(),
-                parameters,
+                helix_parameters,
             ));
         }
         self.instanciated_paths.as_ref().unwrap()
@@ -328,7 +328,7 @@ impl Design {
             strands.insert(i, Strand::from_codenano(strand));
         }
 
-        let parameters = codenano_desgin
+        let helix_parameters = codenano_desgin
             .parameters
             .map(|p| HelixParameters::from_codenano(&p))
             .unwrap_or_default();
@@ -336,7 +336,7 @@ impl Design {
         Self {
             helices: Helices(Arc::new(helices)),
             strands: Strands(strands),
-            parameters: Some(parameters),
+            helix_parameters: Some(helix_parameters),
             ..Default::default()
         }
     }
@@ -345,7 +345,7 @@ impl Design {
         Self {
             helices: Default::default(),
             strands: Default::default(),
-            parameters: Some(HelixParameters::DEFAULT),
+            helix_parameters: Some(HelixParameters::DEFAULT),
             free_grids: Default::default(),
             scaffold_id: None,
             scaffold_sequence: None,
@@ -397,10 +397,10 @@ impl Design {
         if self.ensnano_version.is_empty() {
             // Version < 0.2.0 had no version identifier, and the DNA parameters where different.
             // The groove_angle was negative, and the roll was going in the opposite direction
-            if let Some(parameters) = self.parameters.as_mut() {
-                parameters.groove_angle *= -1.;
+            if let Some(helix_parameters) = self.helix_parameters.as_mut() {
+                helix_parameters.groove_angle *= -1.;
             } else {
-                self.parameters = Some(Default::default())
+                self.helix_parameters = Some(Default::default())
             }
             mutate_all_helices(self, |h| h.roll *= -1.);
             self.ensnano_version = ensnano_version();
@@ -413,7 +413,7 @@ impl Design {
     pub fn get_pairs_of_close_nucleotides(&self, epsilon: f32) -> Vec<(Nucl, Nucl, Vec3)> {
         let mut ret = Vec::new();
         let mut nucls = Vec::new();
-        let parameters = self.parameters.unwrap_or_default();
+        let helix_parameters = self.helix_parameters.unwrap_or_default();
         for s in self.strands.values() {
             for d in s.domains.iter() {
                 if let Domain::HelixDomain(interval) = d {
@@ -425,7 +425,7 @@ impl Design {
                         };
                         if let Some(h) = self.helices.get(&interval.helix) {
                             let space_position =
-                                h.space_pos(&parameters, nucl.position, nucl.forward);
+                                h.space_pos(&helix_parameters, nucl.position, nucl.forward);
                             nucls.push((nucl, space_position));
                         }
                     }
@@ -518,7 +518,7 @@ impl Design {
     pub fn get_nucl_position(&self, nucl: Nucl) -> Option<Vec3> {
         let helix = self.helices.get(&nucl.helix)?;
         Some(helix.space_pos(
-            &self.parameters.unwrap_or_default(),
+            &self.helix_parameters.unwrap_or_default(),
             nucl.position,
             nucl.forward,
         ))
@@ -549,7 +549,7 @@ impl Design {
         let mut new_helices = self.helices.clone();
         let mut new_helices_mut = new_helices.make_mut();
         let mut replace = false;
-        let parameters = self.parameters.unwrap_or_default();
+        let helix_parameters = self.helix_parameters.unwrap_or_default();
         for (h_id, h) in self.helices.iter() {
             log::debug!("Helix {}", h_id);
             if let Some((n_min, n_max)) =
@@ -557,7 +557,9 @@ impl Design {
             {
                 log::debug!("bounds {} {}", n_min, n_max);
                 if let Some(curve) = h.instanciated_curve.as_ref() {
-                    if let Some(t_min) = curve.curve.left_extension_to_have_nucl(n_min, &parameters)
+                    if let Some(t_min) = curve
+                        .curve
+                        .left_extension_to_have_nucl(n_min, &helix_parameters)
                     {
                         log::debug!("t_min {}", t_min);
                         if let Some(h_mut) = new_helices_mut.get_mut(h_id) {
@@ -568,8 +570,9 @@ impl Design {
                                 .unwrap_or(false);
                         }
                     }
-                    if let Some(t_max) =
-                        curve.curve.right_extension_to_have_nucl(n_max, &parameters)
+                    if let Some(t_max) = curve
+                        .curve
+                        .right_extension_to_have_nucl(n_max, &helix_parameters)
                     {
                         log::debug!("tmax {}", t_max);
                         if let Some(h_mut) = new_helices_mut.get_mut(h_id) {
@@ -598,7 +601,7 @@ impl Design {
             strands: &mut self.strands,
             grid_data: self.instanciated_grid_data.as_ref().unwrap(),
             helices: &self.helices,
-            parameters: self.parameters.unwrap_or_default(),
+            helix_parameters: self.helix_parameters.unwrap_or_default(),
         }
     }
 }
@@ -609,7 +612,7 @@ pub struct MutStrandAndData<'a> {
     pub strands: &'a mut Strands,
     pub grid_data: &'a GridData,
     pub helices: &'a Helices,
-    pub parameters: HelixParameters,
+    pub helix_parameters: HelixParameters,
 }
 
 pub struct SavingInformation {
@@ -662,7 +665,7 @@ impl Design {
             scaffold_shift: None,
             groups: Default::default(),
             no_phantoms: Default::default(),
-            parameters: Some(HelixParameters::DEFAULT),
+            helix_parameters: Some(HelixParameters::DEFAULT),
             anchors: Default::default(),
             organizer_tree: None,
             ensnano_version: ensnano_version(),

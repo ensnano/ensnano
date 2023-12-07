@@ -313,7 +313,9 @@ struct ChangindDnaParameters(HelixParameters);
 
 impl State for ChangindDnaParameters {
     fn make_progress(self: Box<Self>, main_state: &mut dyn MainState) -> Box<dyn State> {
-        main_state.apply_operation(DesignOperation::SetDnaParameters { parameters: self.0 });
+        main_state.apply_operation(DesignOperation::SetGlobalHelixParameters {
+            helix_parameters: self.0,
+        });
         Box::new(NormalState)
     }
 }
