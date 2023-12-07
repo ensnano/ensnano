@@ -288,14 +288,14 @@ impl Instanciable for TubeInstance {
     type Ressource = ();
 
     fn vertices() -> Vec<DnaVertex> {
-        let radius = BOUND_RADIUS;
+        let radius = BOND_RADIUS;
         (0..(2 * NB_RAY_TUBE))
             .map(|i| {
                 let point = i / 2;
                 let side = if i % 2 == 0 { -1. } else { 1. };
                 let theta = (point as f32) * 2. * PI / NB_RAY_TUBE as f32;
                 let position = [
-                    side * BOUND_LENGTH / 2.,
+                    side * BOND_LENGTH / 2.,
                     theta.sin() * radius,
                     theta.cos() * radius,
                 ];
