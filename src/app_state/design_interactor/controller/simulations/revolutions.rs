@@ -95,7 +95,7 @@ trait SpringTopology: Send + Sync + 'static {
 
 pub struct RevolutionSurfaceSystem {
     topology: Box<dyn SpringTopology>,
-    dna_parameters: HelixParameters,
+    helix_parameters: HelixParameters,
     last_thetas: Option<Vec<f64>>,
     last_dthetas: Option<Vec<f64>>,
     scaffold_len_target: usize,
@@ -107,7 +107,7 @@ impl Clone for RevolutionSurfaceSystem {
     fn clone(&self) -> Self {
         Self {
             topology: self.topology.cloned(),
-            dna_parameters: self.dna_parameters,
+            helix_parameters: self.helix_parameters,
             last_thetas: self.last_thetas.clone(),
             last_dthetas: self.last_dthetas.clone(),
             scaffold_len_target: self.scaffold_len_target,
@@ -120,7 +120,7 @@ impl Clone for RevolutionSurfaceSystem {
 impl RevolutionSurfaceSystem {
     pub fn new(desc: RevolutionSurfaceSystemDescriptor) -> Self {
         let scaffold_len_target = desc.scaffold_len_target;
-        let dna_parameters = desc.dna_parameters;
+        let dna_parameters = desc.helix_parameters;
         let simulation_parameters = desc.simulation_parameters.clone();
         let topology: Box<dyn SpringTopology> = if desc.target.curve_is_open() {
             //Box::new(OpenSurfaceTopology::new(desc))
@@ -131,7 +131,7 @@ impl RevolutionSurfaceSystem {
 
         Self {
             topology,
-            dna_parameters,
+            helix_parameters: dna_parameters,
             last_thetas: None,
             last_dthetas: None,
             scaffold_len_target,
@@ -175,13 +175,16 @@ impl RevolutionSurfaceSystem {
         for desc in curve_desc {
             let len = desc.compute_length().unwrap();
             println!("length ~= {:?}", len);
-            println!("length ~= {:?} nt", len / self.dna_parameters.z_step as f64);
-            total_len += (len / self.dna_parameters.z_step as f64).floor() as usize;
+            println!(
+                "length ~= {:?} nt",
+                len / self.helix_parameters.z_step as f64
+            );
+            total_len += (len / self.helix_parameters.z_step as f64).floor() as usize;
         }
 
         println!("total len {total_len}");
         let len_by_sum =
-            (self.total_length(&thetas) / (self.dna_parameters.z_step as f64)).floor() as usize;
+            (self.total_length(&thetas) / (self.helix_parameters.z_step as f64)).floor() as usize;
         println!("total len by sum {len_by_sum}");
         //let rescaling_factor = self.scaffold_len_target as f64 / total_len as f64;
         self.topology
@@ -288,12 +291,12 @@ impl RevolutionSurfaceSystem {
             let revolution_angle = self.topology.revolution_angle_ball(i);
             let z = self.topology.axis(revolution_angle);
 
-            let ri = ((self.dna_parameters.helix_radius as f64
-                + (self.dna_parameters.inter_helix_gap as f64) / 2.)
+            let ri = ((self.helix_parameters.helix_radius as f64
+                + (self.helix_parameters.inter_helix_gap as f64) / 2.)
                 / ui.dot(z))
             .abs();
-            let rj = ((self.dna_parameters.helix_radius as f64
-                + (self.dna_parameters.inter_helix_gap as f64) / 2.)
+            let rj = ((self.helix_parameters.helix_radius as f64
+                + (self.helix_parameters.inter_helix_gap as f64) / 2.)
                 / uj.dot(z))
             .abs();
 
@@ -636,7 +639,7 @@ struct HelicesRouting {
 impl SimulationUpdate for HelicesRouting {
     fn update_design(&self, design: &mut ensnano_design::Design) {
         use ensnano_design::{Domain, DomainJunction, Helix, HelixInterval, Rotor2, Strand, Vec2};
-        let parameters = design.parameters.unwrap_or_default();
+        let helix_parameters = design.helix_parameters.unwrap_or_default();
         let mut helices = design.helices.make_mut();
         let mut strand_to_be_added = Vec::new();
         let Isometry3 {
@@ -659,7 +662,7 @@ impl SimulationUpdate for HelicesRouting {
             };
             if let Some(len_nt) = len.or_else(|| {
                 c.compute_length()
-                    .map(|len| (len / parameters.z_step as f64).floor() as isize)
+                    .map(|len| (len / helix_parameters.z_step as f64).floor() as isize)
             }) {
                 strand_to_be_added.push((h_id, len_nt));
             }

@@ -638,7 +638,7 @@ pub(super) struct TwistedTorus {
     /// The unscaled perimeter of the revolving curve
     perimeter: f64,
     nb_turn_per_helix: usize,
-    parameters: HelixParameters,
+    helix_parameters: HelixParameters,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
@@ -657,11 +657,12 @@ pub struct TwistedTorusDescriptor {
 }
 
 impl TwistedTorus {
-    pub fn new(descriptor: TwistedTorusDescriptor, parameters: &HelixParameters) -> Self {
+    pub fn new(descriptor: TwistedTorusDescriptor, helix_parameters: &HelixParameters) -> Self {
         let instanciated_curve = descriptor.curve.clone().instanciate();
-        let scale =
-            2. * Self::inter_helix_gap(parameters) * descriptor.number_of_helix_per_section as f64
-                / instanciated_curve.perimeter();
+        let scale = 2.
+            * Self::inter_helix_gap(helix_parameters)
+            * descriptor.number_of_helix_per_section as f64
+            / instanciated_curve.perimeter();
         let shift_per_turn = descriptor.helix_index_shift_per_turn;
         let nb_helices = descriptor.number_of_helix_per_section;
         let nb_symetry_per_turn = descriptor.symetry_per_turn;
@@ -695,7 +696,7 @@ impl TwistedTorus {
             perimeter: instanciated_curve.perimeter(),
             instanciated_curve,
             nb_turn_per_helix,
-            parameters: *parameters,
+            helix_parameters: *helix_parameters,
         }
     }
 }
@@ -731,11 +732,11 @@ impl TwistedTorus {
     }
 
     fn get_inter_helix_gap(&self) -> f64 {
-        Self::inter_helix_gap(&self.parameters)
+        Self::inter_helix_gap(&self.helix_parameters)
     }
 
-    fn inter_helix_gap(parameters: &HelixParameters) -> f64 {
-        parameters.helix_radius as f64 + parameters.inter_helix_gap as f64 / 2.
+    fn inter_helix_gap(helix_parameters: &HelixParameters) -> f64 {
+        helix_parameters.helix_radius as f64 + helix_parameters.inter_helix_gap as f64 / 2.
     }
 }
 

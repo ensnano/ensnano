@@ -137,11 +137,15 @@ impl Reader3D for DesignReader {
         on_axis: bool,
     ) -> Option<Vec3> {
         let helix = self.presenter.current_design.helices.get(&nucl.helix)?;
-        let parameters = self.presenter.current_design.parameters.unwrap_or_default();
+        let helix_parameters = self
+            .presenter
+            .current_design
+            .helix_parameters
+            .unwrap_or_default();
         let position = if on_axis {
-            helix.axis_position(&parameters, nucl.position)
+            helix.axis_position(&helix_parameters, nucl.position)
         } else {
-            helix.space_pos(&parameters, nucl.position, nucl.forward)
+            helix.space_pos(&helix_parameters, nucl.position, nucl.forward)
         };
         Some(self.presenter.in_referential(position, referential))
     }
@@ -347,7 +351,7 @@ impl Reader3D for DesignReader {
     fn get_expected_bond_length(&self) -> f32 {
         self.presenter
             .current_design
-            .parameters
+            .helix_parameters
             .unwrap_or_default()
             .dist_ac()
     }
@@ -438,7 +442,10 @@ impl Reader3D for DesignReader {
     }
 
     fn get_parameters(&self) -> HelixParameters {
-        self.presenter.current_design.parameters.unwrap_or_default()
+        self.presenter
+            .current_design
+            .helix_parameters
+            .unwrap_or_default()
     }
 
     fn get_bezier_vertex(
@@ -484,7 +491,11 @@ impl Reader3D for DesignReader {
         let mut opt_pair = (source, target);
         let helix_source = self.presenter.current_design.helices.get(&source.helix)?;
         let helix_target = self.presenter.current_design.helices.get(&target.helix)?;
-        let parameters = self.presenter.current_design.parameters.unwrap_or_default();
+        let helix_parameters = self
+            .presenter
+            .current_design
+            .helix_parameters
+            .unwrap_or_default();
         let mut opt_dist = std::f32::INFINITY;
         for i in -2..2 {
             let source_candidate = Nucl {
@@ -499,12 +510,12 @@ impl Reader3D for DesignReader {
                     };
                     if self.get_id_of_strand_containing_nucl(&target_candidate) == Some(target_id) {
                         let source_pos = helix_source.space_pos(
-                            &parameters,
+                            &helix_parameters,
                             source_candidate.position,
                             source_candidate.forward,
                         );
                         let target_pos = helix_target.space_pos(
-                            &parameters,
+                            &helix_parameters,
                             target_candidate.position,
                             target_candidate.forward,
                         );

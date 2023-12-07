@@ -394,7 +394,7 @@ impl Controller {
             domains_vec,
             data.helices,
             data.strands,
-            &data.parameters,
+            &data.helix_parameters,
         );
         Ok((pasted_strands, duplication_edge))
     }
@@ -498,7 +498,7 @@ impl Controller {
         domains_vec: Vec<Vec<Domain>>,
         helices: &Helices,
         strands: &Strands,
-        parameters: &HelixParameters,
+        helix_parameters: &HelixParameters,
     ) -> Vec<PastedStrand> {
         let mut pasted_strands = vec![];
         for domains in domains_vec.into_iter() {
@@ -507,7 +507,11 @@ impl Controller {
                 if let Domain::HelixDomain(dom) = dom {
                     let helix = helices.get(&dom.helix).unwrap();
                     for position in dom.iter() {
-                        nucl_position.push(helix.space_pos(parameters, position, dom.forward));
+                        nucl_position.push(helix.space_pos(
+                            helix_parameters,
+                            position,
+                            dom.forward,
+                        ));
                     }
                 }
             }

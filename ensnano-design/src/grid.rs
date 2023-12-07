@@ -55,7 +55,7 @@ pub enum GridId {
 pub struct Grid {
     pub position: Vec3,
     pub orientation: Rotor3,
-    pub parameters: HelixParameters,
+    pub helix_parameters: HelixParameters,
     pub grid_type: GridType,
     pub invisible: bool,
 }
@@ -112,13 +112,13 @@ impl GridDescriptor {
         }
     }
 
-    pub fn to_grid(&self, parameters: HelixParameters) -> Grid {
+    pub fn to_grid(&self, helix_parameters: HelixParameters) -> Grid {
         Grid {
             position: self.position,
             orientation: self.orientation,
             invisible: self.invisible,
             grid_type: self.grid_type.to_concrete(),
-            parameters,
+            helix_parameters,
         }
     }
 }
@@ -177,27 +177,27 @@ impl GridDivision for GridType {
         self.clone()
     }
 
-    fn origin_helix(&self, parameters: &HelixParameters, x: isize, y: isize) -> Vec2 {
+    fn origin_helix(&self, helix_parameters: &HelixParameters, x: isize, y: isize) -> Vec2 {
         match self {
-            GridType::Square(grid) => grid.origin_helix(parameters, x, y),
-            GridType::Honeycomb(grid) => grid.origin_helix(parameters, x, y),
-            GridType::Hyperboloid(grid) => grid.origin_helix(parameters, x, y),
+            GridType::Square(grid) => grid.origin_helix(helix_parameters, x, y),
+            GridType::Honeycomb(grid) => grid.origin_helix(helix_parameters, x, y),
+            GridType::Hyperboloid(grid) => grid.origin_helix(helix_parameters, x, y),
         }
     }
 
-    fn orientation_helix(&self, parameters: &HelixParameters, x: isize, y: isize) -> Rotor3 {
+    fn orientation_helix(&self, helix_parameters: &HelixParameters, x: isize, y: isize) -> Rotor3 {
         match self {
-            GridType::Square(grid) => grid.orientation_helix(parameters, x, y),
-            GridType::Honeycomb(grid) => grid.orientation_helix(parameters, x, y),
-            GridType::Hyperboloid(grid) => grid.orientation_helix(parameters, x, y),
+            GridType::Square(grid) => grid.orientation_helix(helix_parameters, x, y),
+            GridType::Honeycomb(grid) => grid.orientation_helix(helix_parameters, x, y),
+            GridType::Hyperboloid(grid) => grid.orientation_helix(helix_parameters, x, y),
         }
     }
 
-    fn interpolate(&self, parameters: &HelixParameters, x: f32, y: f32) -> (isize, isize) {
+    fn interpolate(&self, helix_parameters: &HelixParameters, x: f32, y: f32) -> (isize, isize) {
         match self {
-            GridType::Square(grid) => grid.interpolate(parameters, x, y),
-            GridType::Honeycomb(grid) => grid.interpolate(parameters, x, y),
-            GridType::Hyperboloid(grid) => grid.interpolate(parameters, x, y),
+            GridType::Square(grid) => grid.interpolate(helix_parameters, x, y),
+            GridType::Honeycomb(grid) => grid.interpolate(helix_parameters, x, y),
+            GridType::Hyperboloid(grid) => grid.interpolate(helix_parameters, x, y),
         }
     }
 
@@ -270,11 +270,11 @@ impl GridType {
         }
     }
 
-    pub fn set_shift(&mut self, shift: f32, parameters: &HelixParameters) {
+    pub fn set_shift(&mut self, shift: f32, helix_parameters: &HelixParameters) {
         match self {
             GridType::Square(_) => println!("WARNING changing shif of non hyperboloid grid"),
             GridType::Honeycomb(_) => println!("WARNING changing shif of non hyperboloid grid"),
-            GridType::Hyperboloid(h) => h.modify_shift(shift, parameters),
+            GridType::Hyperboloid(h) => h.modify_shift(shift, helix_parameters),
         }
     }
 }
@@ -283,13 +283,13 @@ impl Grid {
     pub fn new(
         position: Vec3,
         orientation: Rotor3,
-        parameters: HelixParameters,
+        helix_parameters: HelixParameters,
         grid_type: GridType,
     ) -> Self {
         Self {
             position,
             orientation,
-            parameters,
+            helix_parameters,
             grid_type,
             invisible: false,
         }
@@ -343,14 +343,14 @@ impl Grid {
     }
 
     pub fn position_helix(&self, x: isize, y: isize) -> Vec3 {
-        let origin = self.grid_type.origin_helix(&self.parameters, x, y);
+        let origin = self.grid_type.origin_helix(&self.helix_parameters, x, y);
         let z_vec = Vec3::unit_z().rotated_by(self.orientation);
         let y_vec = Vec3::unit_y().rotated_by(self.orientation);
         self.position + origin.x * z_vec + origin.y * y_vec
     }
 
     pub fn position_helix_in_grid_coordinates(&self, x: isize, y: isize) -> Vec3 {
-        let origin = self.grid_type.origin_helix(&self.parameters, x, y);
+        let origin = self.grid_type.origin_helix(&self.helix_parameters, x, y);
         Vec3 {
             x: origin.x,
             y: origin.y,
@@ -359,14 +359,17 @@ impl Grid {
     }
 
     pub fn orientation_helix(&self, x: isize, y: isize) -> Rotor3 {
-        self.orientation * self.grid_type.orientation_helix(&self.parameters, x, y)
+        self.orientation
+            * self
+                .grid_type
+                .orientation_helix(&self.helix_parameters, x, y)
     }
 
     pub fn interpolate_helix(&self, origin: Vec3, axis: Vec3) -> Option<(isize, isize)> {
         let intersection = self.line_intersection(origin, axis)?;
         Some(
             self.grid_type
-                .interpolate(&self.parameters, intersection.x, intersection.y),
+                .interpolate(&self.helix_parameters, intersection.x, intersection.y),
         )
     }
 
@@ -375,25 +378,26 @@ impl Grid {
         helix: &super::Helix,
         g_id: GridId,
     ) -> Option<HelixGridPosition> {
-        if let super::Axis::Line { origin, direction } = helix.get_axis(&self.parameters) {
+        if let super::Axis::Line { origin, direction } = helix.get_axis(&self.helix_parameters) {
             let (x, y) = self.interpolate_helix(origin, direction)?;
             let intersection = self.position_helix(x, y);
             // direction is the vector from the origin of the helix to its first axis position
             let axis_intersection =
                 ((intersection - origin).dot(direction) / direction.mag_sq()).round() as isize;
-            let nucl_intersection = helix.space_pos(&self.parameters, axis_intersection, false);
+            let nucl_intersection =
+                helix.space_pos(&self.helix_parameters, axis_intersection, false);
             let projection_nucl = self.project_point(nucl_intersection);
             let roll = {
                 let x = (projection_nucl - intersection)
                     .dot(Vec3::unit_z().rotated_by(self.orientation))
-                    / -self.parameters.helix_radius;
+                    / -self.helix_parameters.helix_radius;
                 let y = (projection_nucl - intersection)
                     .dot(Vec3::unit_y().rotated_by(self.orientation))
-                    / -self.parameters.helix_radius;
+                    / -self.helix_parameters.helix_radius;
                 x.atan2(y)
                     - std::f32::consts::PI
                     - axis_intersection as f32 * 2. * std::f32::consts::PI
-                        / self.parameters.bases_per_turn
+                        / self.helix_parameters.bases_per_turn
             };
             let roll = (roll + std::f32::consts::PI).rem_euclid(2. * std::f32::consts::PI)
                 - std::f32::consts::PI;
@@ -432,7 +436,7 @@ impl Grid {
             orientation: self.orientation,
             t_min,
             t_max,
-            parameters: self.parameters,
+            helix_parameters: self.helix_parameters,
             grid_center: self.position,
         };
         self.grid_type.curve(x, y, info)
@@ -441,14 +445,19 @@ impl Grid {
 
 pub trait GridDivision {
     /// Maps a vertex of the grid to a coordinate in the plane.
-    fn origin_helix(&self, parameters: &HelixParameters, x: isize, y: isize) -> Vec2;
+    fn origin_helix(&self, helix_parameters: &HelixParameters, x: isize, y: isize) -> Vec2;
     /// Find the vertex in the grid that is the closest to a point in the plane.
-    fn interpolate(&self, parameters: &HelixParameters, x: f32, y: f32) -> (isize, isize);
+    fn interpolate(&self, helix_parameters: &HelixParameters, x: f32, y: f32) -> (isize, isize);
     fn grid_type(&self) -> GridType;
     fn translation_to_edge(&self, x1: isize, y1: isize, x2: isize, y2: isize) -> Edge;
     fn translate_by_edge(&self, x1: isize, y1: isize, edge: Edge) -> Option<(isize, isize)>;
 
-    fn orientation_helix(&self, _parameters: &HelixParameters, _x: isize, _y: isize) -> Rotor3 {
+    fn orientation_helix(
+        &self,
+        _helix_parameters: &HelixParameters,
+        _x: isize,
+        _y: isize,
+    ) -> Rotor3 {
         Rotor3::identity()
     }
 
@@ -462,7 +471,7 @@ pub struct CurveInfo {
     pub t_max: Option<f64>,
     pub position: Vec3,
     pub orientation: Rotor3,
-    pub parameters: HelixParameters,
+    pub helix_parameters: HelixParameters,
     pub grid_center: Vec3,
 }
 
@@ -472,17 +481,19 @@ pub struct SquareGrid {
 }
 
 impl GridDivision for SquareGrid {
-    fn origin_helix(&self, parameters: &HelixParameters, x: isize, y: isize) -> Vec2 {
+    fn origin_helix(&self, helix_parameters: &HelixParameters, x: isize, y: isize) -> Vec2 {
         Vec2::new(
-            x as f32 * (parameters.helix_radius * 2. + parameters.inter_helix_gap),
-            -y as f32 * (parameters.helix_radius * 2. + parameters.inter_helix_gap),
+            x as f32 * (helix_parameters.helix_radius * 2. + helix_parameters.inter_helix_gap),
+            -y as f32 * (helix_parameters.helix_radius * 2. + helix_parameters.inter_helix_gap),
         )
     }
 
-    fn interpolate(&self, parameters: &HelixParameters, x: f32, y: f32) -> (isize, isize) {
+    fn interpolate(&self, helix_parameters: &HelixParameters, x: f32, y: f32) -> (isize, isize) {
         (
-            (x / (parameters.helix_radius * 2. + parameters.inter_helix_gap)).round() as isize,
-            (y / -(parameters.helix_radius * 2. + parameters.inter_helix_gap)).round() as isize,
+            (x / (helix_parameters.helix_radius * 2. + helix_parameters.inter_helix_gap)).round()
+                as isize,
+            (y / -(helix_parameters.helix_radius * 2. + helix_parameters.inter_helix_gap)).round()
+                as isize,
         )
     }
 
@@ -507,8 +518,8 @@ impl GridDivision for SquareGrid {
 
     fn curve(&self, x: isize, y: isize, info: CurveInfo) -> Option<Arc<CurveDescriptor>> {
         let twist = self.twist?;
-        let omega = twist_to_omega(twist, &info.parameters)?;
-        let grid_position = self.origin_helix(&info.parameters, x, y);
+        let omega = twist_to_omega(twist, &info.helix_parameters)?;
+        let grid_position = self.origin_helix(&info.helix_parameters, x, y);
         Some(basic_curve(grid_position, omega, info))
     }
 }
@@ -538,8 +549,8 @@ pub struct HoneyComb {
 }
 
 impl GridDivision for HoneyComb {
-    fn origin_helix(&self, parameters: &HelixParameters, x: isize, y: isize) -> Vec2 {
-        let r = parameters.inter_helix_gap / 2. + parameters.helix_radius;
+    fn origin_helix(&self, helix_parameters: &HelixParameters, x: isize, y: isize) -> Vec2 {
+        let r = helix_parameters.inter_helix_gap / 2. + helix_parameters.helix_radius;
         let upper = -3. * r * y as f32;
         let lower = upper - r;
         Vec2::new(
@@ -552,22 +563,23 @@ impl GridDivision for HoneyComb {
         )
     }
 
-    fn interpolate(&self, parameters: &HelixParameters, x: f32, y: f32) -> (isize, isize) {
-        let r = parameters.inter_helix_gap / 2. + parameters.helix_radius;
+    fn interpolate(&self, helix_parameters: &HelixParameters, x: f32, y: f32) -> (isize, isize) {
+        let r = helix_parameters.inter_helix_gap / 2. + helix_parameters.helix_radius;
         let first_guess = (
             (x / (r * 3f32.sqrt())).round() as isize,
             (y / (-3. * r)).floor() as isize,
         );
 
         let mut ret = first_guess;
-        let mut best_dist = (self.origin_helix(parameters, first_guess.0, first_guess.1)
+        let mut best_dist = (self.origin_helix(helix_parameters, first_guess.0, first_guess.1)
             - Vec2::new(x, y))
         .mag_sq();
         for dx in [-2, -1, 0, 1, 2].iter() {
             for dy in [-2, -1, 0, 1, 2].iter() {
                 let guess = (first_guess.0 + dx, first_guess.1 + dy);
-                let dist =
-                    (self.origin_helix(parameters, guess.0, guess.1) - Vec2::new(x, y)).mag_sq();
+                let dist = (self.origin_helix(helix_parameters, guess.0, guess.1)
+                    - Vec2::new(x, y))
+                .mag_sq();
                 if dist < best_dist {
                     ret = guess;
                     best_dist = dist;
@@ -600,8 +612,8 @@ impl GridDivision for HoneyComb {
 
     fn curve(&self, x: isize, y: isize, info: CurveInfo) -> Option<Arc<CurveDescriptor>> {
         let twist = self.twist?;
-        let omega = twist_to_omega(twist, &info.parameters)?;
-        let grid_position = self.origin_helix(&info.parameters, x, y);
+        let omega = twist_to_omega(twist, &info.helix_parameters)?;
+        let grid_position = self.origin_helix(&info.helix_parameters, x, y);
         Some(basic_curve(grid_position, omega, info))
     }
 }
@@ -710,7 +722,7 @@ pub struct GridData {
     pub grids: BTreeMap<GridId, Grid>,
     object_to_pos: HashMap<GridObject, HelixGridPosition>,
     pos_to_object: HashMap<GridPosition, GridObject>,
-    pub parameters: HelixParameters,
+    pub helix_parameters: HelixParameters,
     pub no_phantoms: Arc<HashSet<GridId>>,
     pub small_spheres: Arc<HashSet<GridId>>,
     center_of_gravity: HashMap<GridId, CenterOfGravity>,
@@ -765,14 +777,14 @@ impl GridData {
         let mut grids = BTreeMap::new();
         let mut object_to_pos = HashMap::new();
         let mut pos_to_object = HashMap::new();
-        let parameters = design.parameters.unwrap_or_default();
+        let helix_parameters = design.helix_parameters.unwrap_or_default();
         let source_grids = design.free_grids.clone();
         let paths_data = design.get_up_to_date_paths().clone();
         for (g_id, desc) in paths_data.grids().into_iter() {
-            grids.insert(g_id, desc.to_grid(parameters));
+            grids.insert(g_id, desc.to_grid(helix_parameters));
         }
         for (g_id, desc) in source_grids.iter() {
-            let grid = desc.to_grid(parameters);
+            let grid = desc.to_grid(helix_parameters);
             grids.insert(GridId::FreeGrid(g_id.0), grid);
         }
         let source_helices = design.helices.clone();
@@ -801,7 +813,7 @@ impl GridData {
             grids,
             object_to_pos,
             pos_to_object,
-            parameters: design.parameters.unwrap_or_default(),
+            helix_parameters: design.helix_parameters.unwrap_or_default(),
             no_phantoms: design.no_phantoms.clone(),
             small_spheres: design.small_spheres.clone(),
             center_of_gravity: Default::default(),
@@ -843,19 +855,19 @@ impl GridData {
                         .add_point(position_from_grid);
                     h.orientation = {
                         let orientation = grid.orientation_helix(grid_position.x, grid_position.y);
-                        let normal =
-                            -self.parameters.helix_radius * Vec3::unit_y().rotated_by(orientation);
-                        let actual = -self.parameters.helix_radius
+                        let normal = -self.helix_parameters.helix_radius
+                            * Vec3::unit_y().rotated_by(orientation);
+                        let actual = -self.helix_parameters.helix_radius
                             * Vec3::unit_y().rotated_by(orientation)
                             * grid_position.roll.cos()
-                            - self.parameters.helix_radius
+                            - self.helix_parameters.helix_radius
                                 * Vec3::unit_z().rotated_by(orientation)
                                 * grid_position.roll.sin();
                         let roll = Rotor3::from_rotation_between(normal, actual);
                         (roll * grid.orientation_helix(grid_position.x, grid_position.y))
                             .normalized()
                     };
-                    if let Axis::Line { direction, .. } = h.get_axis(&self.parameters) {
+                    if let Axis::Line { direction, .. } = h.get_axis(&self.helix_parameters) {
                         h.position -= grid_position.axis_pos as f32 * direction;
                     }
                 }
@@ -923,7 +935,7 @@ impl GridData {
             return Err(ErrOperation::HelixDoesNotExists(h_id));
         }
         let h = h.unwrap();
-        let axis = h.get_axis(&self.parameters);
+        let axis = h.get_axis(&self.helix_parameters);
         if let Some(old_grid_position) = h.grid_position {
             if let Some(g) = self.grids.get(&old_grid_position.grid) {
                 if let Axis::Line { origin, direction } = axis {
@@ -950,7 +962,7 @@ impl GridData {
                                     h.grid_position = candidate_position;
                                     h.position = g
                                         .position_helix(new_grid_position.x, new_grid_position.y)
-                                        - h.get_axis(&self.parameters)
+                                        - h.get_axis(&self.helix_parameters)
                                             .direction()
                                             .unwrap_or_else(Vec3::zero)
                                 } else {
@@ -960,7 +972,7 @@ impl GridData {
                                 h.grid_position = candidate_position;
                                 h.position = g
                                     .position_helix(new_grid_position.x, new_grid_position.y)
-                                    - h.get_axis(&self.parameters)
+                                    - h.get_axis(&self.helix_parameters)
                                         .direction()
                                         .unwrap_or_else(Vec3::zero)
                                         * new_grid_position.axis_pos as f32
@@ -983,12 +995,12 @@ impl GridData {
 
     fn find_grid_for_group(&self, group: &[usize]) -> GridDescriptor {
         use std::f32::consts::FRAC_PI_2;
-        let parameters = self.parameters;
+        let helix_parameters = self.helix_parameters;
         let leader = self.source_helices.get(&group[0]).unwrap();
         let orientation = Rotor3::from_rotation_between(
             Vec3::unit_x(),
             leader
-                .get_axis(&parameters)
+                .get_axis(&helix_parameters)
                 .direction()
                 .unwrap_or_else(Vec3::zero)
                 .normalized(),
@@ -996,7 +1008,7 @@ impl GridData {
         let mut hex_grid = Grid::new(
             leader.position,
             orientation,
-            self.parameters,
+            self.helix_parameters,
             GridType::honneycomb(None),
         );
         let mut best_err = hex_grid.error_group(group, &self.source_helices);
@@ -1009,7 +1021,7 @@ impl GridData {
                     let grid = Grid::new(
                         position,
                         orientation.rotated_by(rotor),
-                        self.parameters,
+                        self.helix_parameters,
                         GridType::honneycomb(None),
                     );
                     let err = grid.error_group(group, &self.source_helices);
@@ -1024,7 +1036,7 @@ impl GridData {
         let mut square_grid = Grid::new(
             leader.position,
             leader.orientation,
-            self.parameters,
+            self.helix_parameters,
             GridType::square(None),
         );
         let mut best_square_err = square_grid.error_group(group, &self.source_helices);
@@ -1034,7 +1046,7 @@ impl GridData {
             let grid = Grid::new(
                 leader.position,
                 orientation.rotated_by(rotor),
-                self.parameters,
+                self.helix_parameters,
                 GridType::square(None),
             );
             let err = grid.error_group(group, &self.source_helices);
@@ -1162,12 +1174,12 @@ impl GridData {
         let grid_end = self.grids.get(&end.grid)?;
         let dumy_start_helix = Helix::new_on_grid(grid_start, start.x, start.y, start.grid);
         let mut start_axis = dumy_start_helix
-            .get_axis(&self.parameters)
+            .get_axis(&self.helix_parameters)
             .direction()
             .unwrap_or_else(Vec3::zero);
         let dumy_end_helix = Helix::new_on_grid(grid_end, end.x, end.y, end.grid);
         let mut end_axis = dumy_end_helix
-            .get_axis(&self.parameters)
+            .get_axis(&self.helix_parameters)
             .direction()
             .unwrap_or_else(Vec3::zero);
         start_axis.normalize();
@@ -1224,7 +1236,7 @@ impl GridApprox for Grid {
         let mut ret = 0f32;
         for h_id in group.iter() {
             let helix = helices.get(h_id).unwrap();
-            let axis = helix.get_axis(&self.parameters);
+            let axis = helix.get_axis(&self.helix_parameters);
             if let Axis::Line { origin, direction } = axis {
                 ret += self.error_helix(origin, direction);
             }
@@ -1414,7 +1426,7 @@ impl GridData {
             .unwrap_or(true)
         {
             if let Some(desc) = helix.instanciated_descriptor.as_ref() {
-                let curve = desc.make_curve(&self.parameters, cached_curve);
+                let curve = desc.make_curve(&self.helix_parameters, cached_curve);
                 curve.update_additional_segments(&mut helix.additonal_isometries);
                 helix.instanciated_curve = Some(InstanciatedCurve {
                     curve,

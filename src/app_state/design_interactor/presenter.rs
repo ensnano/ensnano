@@ -591,11 +591,15 @@ impl DesignReader {
         on_axis: bool,
     ) -> Option<Vec3> {
         let helix = self.presenter.current_design.helices.get(&nucl.helix)?;
-        let parameters = self.presenter.current_design.parameters.unwrap_or_default();
+        let helix_parameters = self
+            .presenter
+            .current_design
+            .helix_parameters
+            .unwrap_or_default();
         let position = if on_axis {
-            helix.axis_position(&parameters, nucl.position)
+            helix.axis_position(&helix_parameters, nucl.position)
         } else {
-            helix.space_pos(&parameters, nucl.position, nucl.forward)
+            helix.space_pos(&helix_parameters, nucl.position, nucl.forward)
         };
         Some(self.presenter.in_referential(position, referential))
     }

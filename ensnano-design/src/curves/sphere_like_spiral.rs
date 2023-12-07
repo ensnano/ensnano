@@ -49,11 +49,14 @@ fn default_number_of_helices() -> usize {
 }
 
 impl SphereLikeSpiralDescriptor {
-    pub(super) fn with_parameters(self, parameters: HelixParameters) -> SphereLikeSpiral {
+    pub(super) fn with_helix_parameters(
+        self,
+        helix_parameters: HelixParameters,
+    ) -> SphereLikeSpiral {
         SphereLikeSpiral {
             theta_0: self.theta_0,
             radius: self.radius,
-            parameters,
+            helix_parameters,
             minimum_diameter: self.minimum_diameter,
             number_of_helices: self.number_of_helices,
             orientation: self.orientation,
@@ -64,7 +67,7 @@ impl SphereLikeSpiralDescriptor {
 pub(super) struct SphereLikeSpiral {
     pub theta_0: f64,
     pub radius: f64,
-    pub parameters: HelixParameters,
+    pub helix_parameters: HelixParameters,
     pub minimum_diameter: Option<f64>,
     pub number_of_helices: usize,
     pub orientation: SphereOrientation,
@@ -74,7 +77,8 @@ impl SphereLikeSpiral {
     fn dist_turn(&self) -> f64 {
         let nb_helices = self.number_of_helices as f64;
         nb_helices
-            * (2. * self.parameters.helix_radius as f64 + self.parameters.inter_helix_gap as f64)
+            * (2. * self.helix_parameters.helix_radius as f64
+                + self.helix_parameters.inter_helix_gap as f64)
     }
 
     fn nb_turn(&self) -> f64 {

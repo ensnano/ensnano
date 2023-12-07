@@ -40,11 +40,11 @@ fn default_number_of_helices() -> usize {
 }
 
 impl TubeSpiralDescritor {
-    pub(super) fn with_parameters(self, parameters: HelixParameters) -> TubeSpiral {
+    pub(super) fn with_helix_parameters(self, helix_parameters: HelixParameters) -> TubeSpiral {
         TubeSpiral {
             theta_0: self.theta_0,
             big_axis: self.big_axis,
-            _parameters: parameters,
+            _parameters: helix_parameters,
             height: self.height,
             number_of_helices: self.number_of_helices,
             small_axis: self.small_axis,
