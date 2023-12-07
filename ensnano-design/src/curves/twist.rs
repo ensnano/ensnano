@@ -19,14 +19,14 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::Curved;
 use crate::{
     utils::{rotor_to_drotor, vec_to_dvec},
-    Parameters,
+    HelixParameters,
 };
 use ultraviolet::{DVec3, Rotor3, Vec3};
 
 #[allow(non_snake_case)]
 pub fn nb_turn_per_100_nt_to_omega(
     nb_turn_per_100_nt: f64,
-    parameters: &Parameters,
+    parameters: &HelixParameters,
 ) -> Option<f64> {
     if nb_turn_per_100_nt.abs() < 1e-3 {
         return Some(0.0);
@@ -36,7 +36,7 @@ pub fn nb_turn_per_100_nt_to_omega(
     Some(TAU * nb_turn_per_100_nt / Z)
 }
 
-pub fn twist_to_omega(twist: f64, parameters: &Parameters) -> Option<f64> {
+pub fn twist_to_omega(twist: f64, parameters: &HelixParameters) -> Option<f64> {
     nb_turn_per_100_nt_to_omega(twist, parameters)
 }
 
@@ -176,7 +176,7 @@ mod tests {
 
     #[test]
     fn correct_curvilinear_abscissa() {
-        let p = Parameters::DEFAULT;
+        let p = HelixParameters::DEFAULT;
         let nb_turn = 0.1234;
         let omega = nb_turn_per_100_nt_to_omega(nb_turn, &p).unwrap();
         let twist = Twist::with_omega(omega);
@@ -198,7 +198,7 @@ mod tests {
     #[allow(non_snake_case)]
     #[test]
     fn nb_turn_per_100_nt_is_correct() {
-        let p = Parameters::DEFAULT;
+        let p = HelixParameters::DEFAULT;
         let nb_turn = 0.1234;
         let omega = nb_turn_per_100_nt_to_omega(nb_turn, &p).unwrap();
         let Z = 100. * p.z_step as f64;
@@ -209,7 +209,7 @@ mod tests {
     #[allow(non_snake_case)]
     #[test]
     fn z_step_ratio_is_correct() {
-        let p = Parameters::DEFAULT;
+        let p = HelixParameters::DEFAULT;
         let Z = 100.0 * p.z_step as f64;
         let nb_turn = 0.1234;
         let omega = nb_turn_per_100_nt_to_omega(nb_turn, &p).unwrap();
@@ -231,7 +231,7 @@ mod tests {
 
     #[allow(non_snake_case)]
     fn roll_adjustment_is_correct(nb_turn: f64) {
-        let p = Parameters::DEFAULT;
+        let p = HelixParameters::DEFAULT;
         let Z = 100.0 * p.z_step as f64;
         let omega = nb_turn_per_100_nt_to_omega(nb_turn, &p).unwrap();
         let mut twist = Twist::with_omega(omega);

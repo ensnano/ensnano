@@ -17,7 +17,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use ensnano_design::grid::{GridDescriptor, GridTypeDescr};
-use ensnano_design::{grid::*, Collection, CurveDescriptor, HelixCollection, Parameters, Twist};
+use ensnano_design::{
+    grid::*, Collection, CurveDescriptor, HelixCollection, HelixParameters, Twist,
+};
 
 use super::roller::{DesignData, RollPresenter, RollSystem};
 use super::{Design, Helix, SimulationReader};
@@ -154,7 +156,7 @@ impl Twister {
 }
 
 impl TwistState {
-    fn set_twist(&mut self, twist: f64, parameters: &Parameters) {
+    fn set_twist(&mut self, twist: f64, parameters: &HelixParameters) {
         let omega = match &mut self.grid.grid_type {
             GridTypeDescr::Hyperboloid {
                 nb_turn_per_100_nt, ..

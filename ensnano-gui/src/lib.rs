@@ -53,7 +53,7 @@ use status_bar::StatusBar;
 use ensnano_design::{
     elements::{DnaAttribute, DnaElement, DnaElementKey},
     grid::GridTypeDescr,
-    ultraviolet, BezierPathId, BezierVertexId, Nucl, Parameters,
+    ultraviolet, BezierPathId, BezierVertexId, HelixParameters, Nucl,
 };
 use ensnano_interactor::{
     graphics::{Background3D, DrawArea, ElementType, RenderingMode, SplitMode},
@@ -210,7 +210,7 @@ pub trait Requests: 'static + Send {
     fn set_thick_helices(&mut self, thick: bool);
     fn align_horizon(&mut self);
     fn download_origamis(&mut self);
-    fn set_dna_parameters(&mut self, param: Parameters);
+    fn set_dna_parameters(&mut self, param: HelixParameters);
     fn set_expand_insertions(&mut self, expand: bool);
     fn set_insertion_length(&mut self, insertion_point: InsertionPoint, length: usize);
     fn create_bezier_plane(&mut self);
@@ -1035,7 +1035,7 @@ pub trait AppState:
     fn has_double_strand_on_new_helix(&self) -> bool;
     fn get_widget_basis(&self) -> WidgetBasis;
     fn get_simulation_state(&self) -> SimulationState;
-    fn get_dna_parameters(&self) -> Parameters;
+    fn get_dna_parameters(&self) -> HelixParameters;
     fn is_building_hyperboloid(&self) -> bool;
     fn get_scaffold_info(&self) -> Option<ScaffoldInfo>;
     fn get_selection(&self) -> &[Selection];

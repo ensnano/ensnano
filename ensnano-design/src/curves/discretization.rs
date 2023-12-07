@@ -339,7 +339,11 @@ impl Curve {
     }
 
     /// Return a value of t_min that would allow self to have nucl
-    pub fn left_extension_to_have_nucl(&self, nucl: isize, parameters: &Parameters) -> Option<f64> {
+    pub fn left_extension_to_have_nucl(
+        &self,
+        nucl: isize,
+        parameters: &HelixParameters,
+    ) -> Option<f64> {
         let nucl_min = -(self.nucl_t0 as isize);
         if nucl < nucl_min {
             if let CurveBounds::BiInfinite = self.geometry.bounds() {
@@ -372,7 +376,7 @@ impl Curve {
     pub fn right_extension_to_have_nucl(
         &self,
         nucl: isize,
-        parameters: &Parameters,
+        parameters: &HelixParameters,
     ) -> Option<f64> {
         let nucl_max = (self.nb_points() - self.nucl_t0) as isize;
         if nucl >= nucl_max - 1 {

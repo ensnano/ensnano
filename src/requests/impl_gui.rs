@@ -422,7 +422,7 @@ impl GuiRequests for Requests {
         self.keep_proceed.push_back(Action::DownloadOrigamiRequest);
     }
 
-    fn set_dna_parameters(&mut self, param: ensnano_design::Parameters) {
+    fn set_dna_parameters(&mut self, param: ensnano_design::HelixParameters) {
         self.keep_proceed.push_back(Action::SetDnaParameters(param));
     }
 

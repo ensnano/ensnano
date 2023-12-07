@@ -29,8 +29,8 @@ use mathru::analysis::differential_equation::ordinary::{
 };
 
 use ensnano_design::{
-    CurveDescriptor, CurveDescriptor2D, DVec3, InterpolationDescriptor, Isometry3,
-    Parameters as DNAParameters, Similarity3,
+    CurveDescriptor, CurveDescriptor2D, DVec3, HelixParameters as DNAParameters,
+    InterpolationDescriptor, Isometry3, Similarity3,
 };
 use ensnano_interactor::{
     EquadiffSolvingMethod, RevolutionSimulationParameters, RevolutionSurfaceRadius,

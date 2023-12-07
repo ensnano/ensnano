@@ -20,7 +20,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! The system consists of linear springs that moves the helices and torsion springs that rotates
 //! them. These springs aim at minimizing the difference between the cross-over length and the
 //! normal distance between two consectives nucleotides.
-use super::{Design, Helix, Nucl, Parameters, SimulationReader};
+use super::{Design, Helix, HelixParameters, Nucl, SimulationReader};
 use std::collections::{BTreeMap, HashMap};
 
 const MASS_HELIX: f32 = 2.;
@@ -102,22 +102,22 @@ impl PhysicalSystem {
     }
 }
 
-fn angle_aoc2(p: &Parameters) -> f32 {
+fn angle_aoc2(p: &HelixParameters) -> f32 {
     2. * PI / p.bases_per_turn
 }
 
-pub(super) fn dist_ac(p: &Parameters) -> f32 {
+pub(super) fn dist_ac(p: &HelixParameters) -> f32 {
     (dist_ac2(p) * dist_ac2(p) + p.z_step * p.z_step).sqrt()
 }
 
-fn dist_ac2(p: &Parameters) -> f32 {
+fn dist_ac2(p: &HelixParameters) -> f32 {
     SQRT_2 * (1. - angle_aoc2(p).cos()).sqrt() * p.helix_radius
 }
 
 pub(super) fn cross_over_force(
     me: &Helix,
     other: &Helix,
-    parameters: &Parameters,
+    parameters: &HelixParameters,
     n_self: isize,
     b_self: bool,
     n_other: isize,
@@ -308,7 +308,7 @@ impl RollSystem {
 fn spring_force(
     me: &Helix,
     other: &Helix,
-    parameters: &Parameters,
+    parameters: &HelixParameters,
     n_self: isize,
     b_self: bool,
     n_other: isize,
@@ -333,7 +333,7 @@ pub struct DesignData {
     pub helices: Vec<Helix>,
     pub helix_map: HashMap<usize, usize>,
     pub xovers: Vec<(Nucl, Nucl)>,
-    pub parameters: Parameters,
+    pub parameters: HelixParameters,
     pub intervals: Vec<Option<(isize, isize)>>,
 }
 

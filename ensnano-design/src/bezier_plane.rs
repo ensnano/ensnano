@@ -18,7 +18,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::collection::HasMap;
 use super::curves::{BezierEndCoordinates, Curve, InstanciatedPiecewiseBezier};
 use super::Collection;
-use super::Parameters;
+use super::HelixParameters;
 use crate::grid::*;
 use crate::utils::rotor_to_drotor;
 use crate::PieceWiseBezierInstantiator;
@@ -492,7 +492,7 @@ impl InstanciatedPath {
     fn new(
         source_planes: BezierPlanes,
         source_path: Arc<BezierPath>,
-        parameters: &Parameters,
+        parameters: &HelixParameters,
     ) -> Self {
         let descriptor_2d =
             path_to_curve_descriptor(source_planes.clone(), source_path.clone(), false);
@@ -519,7 +519,7 @@ impl InstanciatedPath {
         &self,
         source_planes: BezierPlanes,
         source_path: Arc<BezierPath>,
-        parameters: &Parameters,
+        parameters: &HelixParameters,
     ) -> Option<Self> {
         if self.need_update(&source_planes, &source_path) {
             Some(Self::new(source_planes, source_path, parameters))
@@ -579,7 +579,7 @@ impl BezierPathData {
     pub fn new(
         source_planes: BezierPlanes,
         source_paths: BezierPaths,
-        parameters: &Parameters,
+        parameters: &HelixParameters,
     ) -> Self {
         let instanciated_paths: BTreeMap<_, _> = source_paths
             .0
@@ -611,7 +611,7 @@ impl BezierPathData {
         &self,
         source_planes: BezierPlanes,
         source_paths: BezierPaths,
-        parameters: &Parameters,
+        parameters: &HelixParameters,
     ) -> Option<Self> {
         if self.need_update(&source_planes, &source_paths) {
             let instanciated_paths: BTreeMap<_, _> = source_paths

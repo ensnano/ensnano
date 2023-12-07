@@ -16,7 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use super::*;
-use ensnano_design::{Domain, Helix, HelixCollection, Nucl, Parameters};
+use ensnano_design::{Domain, Helix, HelixCollection, HelixParameters, Nucl};
 use std::io::Write;
 use std::mem::ManuallyDrop;
 use std::path::Path;
@@ -117,11 +117,21 @@ struct OxDnaBound {
 }
 
 pub trait OxDnaHelix {
-    fn ox_dna_nucl(&self, nucl_idx: isize, forward: bool, parameters: &Parameters) -> OxDnaNucl;
+    fn ox_dna_nucl(
+        &self,
+        nucl_idx: isize,
+        forward: bool,
+        parameters: &HelixParameters,
+    ) -> OxDnaNucl;
 }
 
 impl OxDnaHelix for Helix {
-    fn ox_dna_nucl(&self, nucl_idx: isize, forward: bool, parameters: &Parameters) -> OxDnaNucl {
+    fn ox_dna_nucl(
+        &self,
+        nucl_idx: isize,
+        forward: bool,
+        parameters: &HelixParameters,
+    ) -> OxDnaNucl {
         let backbone_position = self.space_pos(parameters, nucl_idx, forward);
         let a1 = {
             let other_base = self.space_pos(parameters, nucl_idx, !forward);
@@ -147,7 +157,7 @@ pub fn free_oxdna_nucl(
     pos: Vec3,
     previous_position: Option<Vec3>,
     free_idx: usize,
-    parameters: &Parameters,
+    parameters: &HelixParameters,
 ) -> OxDnaNucl {
     let backbone_position = pos;
     let normal = (pos - previous_position.unwrap_or_else(Vec3::zero)).normalized();
@@ -174,11 +184,11 @@ pub(super) struct OxDnaMaker<'a> {
     nucls: Vec<OxDnaNucl>,
     basis_map: BasisMapper<'a>,
     nb_strand: usize,
-    parameters: Parameters,
+    parameters: HelixParameters,
 }
 
 impl<'a> OxDnaMaker<'a> {
-    pub fn new(basis_map: BasisMapper<'a>, parameters: Parameters) -> Self {
+    pub fn new(basis_map: BasisMapper<'a>, parameters: HelixParameters) -> Self {
         Self {
             nucl_id: 0,
             boundaries: Default::default(),

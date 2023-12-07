@@ -16,7 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use crate::{parameters, Parameters};
+use crate::{parameters, HelixParameters};
 
 use super::Curved;
 use std::f64::consts::{PI, TAU};
@@ -36,11 +36,11 @@ fn default_number_of_helices() -> usize {
 }
 
 impl SphereConcentricCircleDescriptor {
-    pub(super) fn with_parameters(self, parameters: Parameters) -> SphereConcentricCircle {
+    pub(super) fn with_parameters(self, parameters: HelixParameters) -> SphereConcentricCircle {
         let helix_index = self.helix_index as f64 + self.helix_index_shift.unwrap_or(0.);
         let inter_helix_center_gap = self
             .inter_helix_center_gap
-            .unwrap_or(Parameters::INTER_CENTER_GAP as f64);
+            .unwrap_or(HelixParameters::INTER_CENTER_GAP as f64);
         let φ = PI / 2.0 - helix_index * inter_helix_center_gap as f64 / self.radius;
         let z_radius = self.radius * φ.sin();
         let z = self.radius * φ.cos();
@@ -63,7 +63,7 @@ impl SphereConcentricCircleDescriptor {
 }
 
 pub(super) struct SphereConcentricCircle {
-    pub _parameters: Parameters,
+    pub _parameters: HelixParameters,
     pub radius: f64,
     pub theta_0: f64,
     pub helix_index: f64,

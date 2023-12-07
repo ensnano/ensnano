@@ -200,7 +200,7 @@ struct SheetDescriptor<'a> {
     corners: [Vec2; 4],
     plane_id: BezierPlaneId,
     plane_descritor: &'a BezierPlaneDescriptor,
-    parameters: Parameters,
+    parameters: HelixParameters,
     axis_position: Option<f64>,
 }
 

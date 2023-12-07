@@ -26,7 +26,7 @@ use super::{
     curves,
     design_operations::{ErrOperation, MIN_HELICES_TO_MAKE_GRID},
     twist_to_omega, Axis, BezierControlPoint, Collection, Design, Helices, Helix, HelixCollection,
-    Parameters, Twist,
+    HelixParameters, Twist,
 };
 use curves::{
     CurveCache, CurveInstantiator, InstanciatedCurve, InstanciatedCurveDescriptor, PathTimeMaps,
@@ -55,7 +55,7 @@ pub enum GridId {
 pub struct Grid {
     pub position: Vec3,
     pub orientation: Rotor3,
-    pub parameters: Parameters,
+    pub parameters: HelixParameters,
     pub grid_type: GridType,
     pub invisible: bool,
 }
@@ -112,7 +112,7 @@ impl GridDescriptor {
         }
     }
 
-    pub fn to_grid(&self, parameters: Parameters) -> Grid {
+    pub fn to_grid(&self, parameters: HelixParameters) -> Grid {
         Grid {
             position: self.position,
             orientation: self.orientation,
@@ -177,7 +177,7 @@ impl GridDivision for GridType {
         self.clone()
     }
 
-    fn origin_helix(&self, parameters: &Parameters, x: isize, y: isize) -> Vec2 {
+    fn origin_helix(&self, parameters: &HelixParameters, x: isize, y: isize) -> Vec2 {
         match self {
             GridType::Square(grid) => grid.origin_helix(parameters, x, y),
             GridType::Honeycomb(grid) => grid.origin_helix(parameters, x, y),
@@ -185,7 +185,7 @@ impl GridDivision for GridType {
         }
     }
 
-    fn orientation_helix(&self, parameters: &Parameters, x: isize, y: isize) -> Rotor3 {
+    fn orientation_helix(&self, parameters: &HelixParameters, x: isize, y: isize) -> Rotor3 {
         match self {
             GridType::Square(grid) => grid.orientation_helix(parameters, x, y),
             GridType::Honeycomb(grid) => grid.orientation_helix(parameters, x, y),
@@ -193,7 +193,7 @@ impl GridDivision for GridType {
         }
     }
 
-    fn interpolate(&self, parameters: &Parameters, x: f32, y: f32) -> (isize, isize) {
+    fn interpolate(&self, parameters: &HelixParameters, x: f32, y: f32) -> (isize, isize) {
         match self {
             GridType::Square(grid) => grid.interpolate(parameters, x, y),
             GridType::Honeycomb(grid) => grid.interpolate(parameters, x, y),
@@ -270,7 +270,7 @@ impl GridType {
         }
     }
 
-    pub fn set_shift(&mut self, shift: f32, parameters: &Parameters) {
+    pub fn set_shift(&mut self, shift: f32, parameters: &HelixParameters) {
         match self {
             GridType::Square(_) => println!("WARNING changing shif of non hyperboloid grid"),
             GridType::Honeycomb(_) => println!("WARNING changing shif of non hyperboloid grid"),
@@ -283,7 +283,7 @@ impl Grid {
     pub fn new(
         position: Vec3,
         orientation: Rotor3,
-        parameters: Parameters,
+        parameters: HelixParameters,
         grid_type: GridType,
     ) -> Self {
         Self {
@@ -441,14 +441,14 @@ impl Grid {
 
 pub trait GridDivision {
     /// Maps a vertex of the grid to a coordinate in the plane.
-    fn origin_helix(&self, parameters: &Parameters, x: isize, y: isize) -> Vec2;
+    fn origin_helix(&self, parameters: &HelixParameters, x: isize, y: isize) -> Vec2;
     /// Find the vertex in the grid that is the closest to a point in the plane.
-    fn interpolate(&self, parameters: &Parameters, x: f32, y: f32) -> (isize, isize);
+    fn interpolate(&self, parameters: &HelixParameters, x: f32, y: f32) -> (isize, isize);
     fn grid_type(&self) -> GridType;
     fn translation_to_edge(&self, x1: isize, y1: isize, x2: isize, y2: isize) -> Edge;
     fn translate_by_edge(&self, x1: isize, y1: isize, edge: Edge) -> Option<(isize, isize)>;
 
-    fn orientation_helix(&self, _parameters: &Parameters, _x: isize, _y: isize) -> Rotor3 {
+    fn orientation_helix(&self, _parameters: &HelixParameters, _x: isize, _y: isize) -> Rotor3 {
         Rotor3::identity()
     }
 
@@ -462,7 +462,7 @@ pub struct CurveInfo {
     pub t_max: Option<f64>,
     pub position: Vec3,
     pub orientation: Rotor3,
-    pub parameters: Parameters,
+    pub parameters: HelixParameters,
     pub grid_center: Vec3,
 }
 
@@ -472,14 +472,14 @@ pub struct SquareGrid {
 }
 
 impl GridDivision for SquareGrid {
-    fn origin_helix(&self, parameters: &Parameters, x: isize, y: isize) -> Vec2 {
+    fn origin_helix(&self, parameters: &HelixParameters, x: isize, y: isize) -> Vec2 {
         Vec2::new(
             x as f32 * (parameters.helix_radius * 2. + parameters.inter_helix_gap),
             -y as f32 * (parameters.helix_radius * 2. + parameters.inter_helix_gap),
         )
     }
 
-    fn interpolate(&self, parameters: &Parameters, x: f32, y: f32) -> (isize, isize) {
+    fn interpolate(&self, parameters: &HelixParameters, x: f32, y: f32) -> (isize, isize) {
         (
             (x / (parameters.helix_radius * 2. + parameters.inter_helix_gap)).round() as isize,
             (y / -(parameters.helix_radius * 2. + parameters.inter_helix_gap)).round() as isize,
@@ -538,7 +538,7 @@ pub struct HoneyComb {
 }
 
 impl GridDivision for HoneyComb {
-    fn origin_helix(&self, parameters: &Parameters, x: isize, y: isize) -> Vec2 {
+    fn origin_helix(&self, parameters: &HelixParameters, x: isize, y: isize) -> Vec2 {
         let r = parameters.inter_helix_gap / 2. + parameters.helix_radius;
         let upper = -3. * r * y as f32;
         let lower = upper - r;
@@ -552,7 +552,7 @@ impl GridDivision for HoneyComb {
         )
     }
 
-    fn interpolate(&self, parameters: &Parameters, x: f32, y: f32) -> (isize, isize) {
+    fn interpolate(&self, parameters: &HelixParameters, x: f32, y: f32) -> (isize, isize) {
         let r = parameters.inter_helix_gap / 2. + parameters.helix_radius;
         let first_guess = (
             (x / (r * 3f32.sqrt())).round() as isize,
@@ -710,7 +710,7 @@ pub struct GridData {
     pub grids: BTreeMap<GridId, Grid>,
     object_to_pos: HashMap<GridObject, HelixGridPosition>,
     pos_to_object: HashMap<GridPosition, GridObject>,
-    pub parameters: Parameters,
+    pub parameters: HelixParameters,
     pub no_phantoms: Arc<HashSet<GridId>>,
     pub small_spheres: Arc<HashSet<GridId>>,
     center_of_gravity: HashMap<GridId, CenterOfGravity>,

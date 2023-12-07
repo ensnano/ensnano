@@ -27,7 +27,7 @@ use crate::{
     BezierPathData, BezierPathId,
 };
 
-use super::{Helix, Parameters};
+use super::{Helix, HelixParameters};
 use std::sync::Arc;
 mod bezier;
 mod discretization;
@@ -136,7 +136,7 @@ pub trait Curved {
         None
     }
 
-    fn theta_shift(&self, parameters: &Parameters) -> Option<f64> {
+    fn theta_shift(&self, parameters: &HelixParameters) -> Option<f64> {
         if let Some(real_z_ratio) = self.z_step_ratio() {
             let r = parameters.helix_radius as f64;
             let z = parameters.z_step as f64;
@@ -300,7 +300,10 @@ pub struct Curve {
 }
 
 impl Curve {
-    pub fn new<T: Curved + 'static + Sync + Send>(geometry: T, parameters: &Parameters) -> Self {
+    pub fn new<T: Curved + 'static + Sync + Send>(
+        geometry: T,
+        parameters: &HelixParameters,
+    ) -> Self {
         let mut ret = Self {
             geometry: Arc::new(geometry),
             positions_forward: Vec::new(),
@@ -393,7 +396,7 @@ impl Curve {
         n: isize,
         forward: bool,
         theta: f64,
-        parameters: &Parameters,
+        parameters: &HelixParameters,
     ) -> Option<DVec3> {
         use std::f64::consts::{PI, TAU};
 
@@ -672,12 +675,12 @@ impl CurveDescriptor {
 
     pub fn compute_length(&self) -> Option<f64> {
         let desc = InstanciatedCurveDescriptor::try_instanciate(Arc::new(self.clone()))?;
-        desc.instance.try_length(&Parameters::GEARY_2014_DNA)
+        desc.instance.try_length(&HelixParameters::GEARY_2014_DNA)
     }
 
     pub fn path(&self) -> Option<Vec<DVec3>> {
         let desc = InstanciatedCurveDescriptor::try_instanciate(Arc::new(self.clone()))?;
-        desc.instance.try_path(&Parameters::GEARY_2014_DNA)
+        desc.instance.try_path(&HelixParameters::GEARY_2014_DNA)
     }
 }
 
@@ -849,7 +852,11 @@ impl InstanciatedCurveDescriptor {
         }
     }
 
-    pub fn make_curve(&self, parameters: &Parameters, cached_curve: &mut CurveCache) -> Arc<Curve> {
+    pub fn make_curve(
+        &self,
+        parameters: &HelixParameters,
+        cached_curve: &mut CurveCache,
+    ) -> Arc<Curve> {
         InstanciatedCurveDescriptor_::clone(&self.instance).into_curve(parameters, cached_curve)
     }
 
@@ -989,7 +996,7 @@ impl InstanciatedPiecewiseBezierDescriptor {
 }
 
 impl InstanciatedCurveDescriptor_ {
-    pub fn into_curve(self, parameters: &Parameters, cache: &mut CurveCache) -> Arc<Curve> {
+    pub fn into_curve(self, parameters: &HelixParameters, cache: &mut CurveCache) -> Arc<Curve> {
         match self {
             Self::Bezier(constructor) => {
                 Arc::new(Curve::new(constructor.into_bezier(), parameters))
@@ -1046,7 +1053,7 @@ impl InstanciatedCurveDescriptor_ {
         }
     }
 
-    pub fn try_into_curve(&self, parameters: &Parameters) -> Option<Arc<Curve>> {
+    pub fn try_into_curve(&self, parameters: &HelixParameters) -> Option<Arc<Curve>> {
         match self {
             Self::Bezier(constructor) => Some(Arc::new(Curve::new(
                 constructor.clone().into_bezier(),
@@ -1091,7 +1098,7 @@ impl InstanciatedCurveDescriptor_ {
         }
     }
 
-    fn try_length(&self, parameters: &Parameters) -> Option<f64> {
+    fn try_length(&self, parameters: &HelixParameters) -> Option<f64> {
         match self {
             Self::Bezier(constructor) => {
                 Some(Curve::compute_length(constructor.clone().into_bezier()))
@@ -1128,7 +1135,7 @@ impl InstanciatedCurveDescriptor_ {
         }
     }
 
-    fn try_path(&self, parameters: &Parameters) -> Option<Vec<DVec3>> {
+    fn try_path(&self, parameters: &HelixParameters) -> Option<Vec<DVec3>> {
         match self {
             Self::Bezier(constructor) => Some(Curve::path(constructor.clone().into_bezier())),
             Self::SphereLikeSpiral(spiral) => Some(Curve::path(
@@ -1233,7 +1240,7 @@ impl Helix {
         !up_to_date
     }
 
-    pub fn try_update_curve(&mut self, parameters: &Parameters) {
+    pub fn try_update_curve(&mut self, parameters: &HelixParameters) {
         if let Some(curve) = self.curve.as_ref() {
             if let Some(desc) = InstanciatedCurveDescriptor::try_instanciate(curve.clone()) {
                 let desc = Arc::new(desc);
