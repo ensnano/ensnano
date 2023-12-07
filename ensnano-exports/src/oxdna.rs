@@ -91,18 +91,18 @@ impl OxDnaConfig {
 pub struct OxDnaTopology {
     nb_nucl: usize,
     nb_strand: usize,
-    bounds: Vec<OxDnaBound>,
+    bonds: Vec<OxDnaBound>,
 }
 
 impl OxDnaTopology {
     pub fn write<P: AsRef<Path>>(&self, path: P) -> Result<(), std::io::Error> {
         let mut file = std::fs::File::create(path)?;
         writeln!(&mut file, "{} {}", self.nb_nucl, self.nb_strand)?;
-        for bound in self.bounds.iter() {
+        for bond in self.bonds.iter() {
             writeln!(
                 &mut file,
                 "{} {} {} {}",
-                bound.strand_id, bound.base, bound.prime5, bound.prime3
+                bond.strand_id, bond.base, bond.prime5, bond.prime3
             )?;
         }
         Ok(())
@@ -214,7 +214,7 @@ impl<'a> OxDnaMaker<'a> {
 
     pub fn end(self) -> (OxDnaConfig, OxDnaTopology) {
         let topo = OxDnaTopology {
-            bounds: self.bounds,
+            bonds: self.bounds,
             nb_strand: self.nb_strand,
             nb_nucl: self.nucl_id as usize,
         };
