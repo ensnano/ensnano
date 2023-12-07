@@ -69,19 +69,19 @@ impl std::fmt::Display for RenderingMode {
 }
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub enum HBoundDisplay {
+pub enum HBondDisplay {
     No,
     Stick,
     Ellipsoid,
 }
 
-impl Default for HBoundDisplay {
+impl Default for HBondDisplay {
     fn default() -> Self {
         Self::No
     }
 }
 
-impl std::fmt::Display for HBoundDisplay {
+impl std::fmt::Display for HBondDisplay {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let ret = match self {
             Self::No => "No",

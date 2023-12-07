@@ -61,7 +61,7 @@ use ensnano_interactor::{
     SuggestionParameters, UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
 };
 use ensnano_interactor::{
-    graphics::{FogParameters, HBoundDisplay},
+    graphics::{FogParameters, HBondDisplay},
     RevolutionSurfaceSystemDescriptor,
 };
 use ensnano_interactor::{operation::Operation, ScaffoldInfo};
@@ -204,7 +204,7 @@ pub trait Requests: 'static + Send {
     fn set_check_xover_parameters(&mut self, paramters: CheckXoversParameter);
     fn follow_stereographic_camera(&mut self, follow: bool);
     fn set_show_stereographic_camera(&mut self, show: bool);
-    fn set_show_h_bonds(&mut self, show: HBoundDisplay);
+    fn set_show_h_bonds(&mut self, show: HBondDisplay);
     fn flip_split_views(&mut self);
     fn set_rainbow_scaffold(&mut self, rainbow: bool);
     fn set_thick_helices(&mut self, thick: bool);
@@ -1051,7 +1051,7 @@ pub trait AppState:
     fn get_checked_xovers_parameters(&self) -> CheckXoversParameter;
     fn follow_stereographic_camera(&self) -> bool;
     fn show_stereographic_camera(&self) -> bool;
-    fn get_h_bounds_display(&self) -> HBoundDisplay;
+    fn get_h_bonds_display(&self) -> HBondDisplay;
     fn get_scroll_sensitivity(&self) -> f32;
     fn get_invert_y_scroll(&self) -> bool;
     fn want_thick_helices(&self) -> bool;

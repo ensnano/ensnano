@@ -28,7 +28,7 @@ use ensnano_design::{group_attributes::GroupPivot, BezierPathId};
 use ensnano_exports::{ExportResult, ExportType};
 use ensnano_gui::UiSize;
 use ensnano_interactor::{
-    graphics::{Background3D, HBoundDisplay, RenderingMode},
+    graphics::{Background3D, HBondDisplay, RenderingMode},
     UnrootedRevolutionSurfaceDescriptor,
 };
 use ensnano_interactor::{
@@ -451,7 +451,7 @@ impl AppState {
         self.with_updated_parameters(|p| p.show_stereography = show)
     }
 
-    pub fn with_show_h_bonds(&self, show: HBoundDisplay) -> Self {
+    pub fn with_show_h_bonds(&self, show: HBondDisplay) -> Self {
         self.with_updated_parameters(|p| p.show_h_bonds = show)
     }
 
@@ -675,7 +675,7 @@ pub struct AppStateParameters {
     thick_helices: bool,
     scroll_sensitivity: f32,
     inverted_y_scroll: bool,
-    show_h_bonds: HBoundDisplay,
+    show_h_bonds: HBondDisplay,
     show_bezier_paths: bool,
     pub ui_size: ensnano_gui::UiSize,
 }
@@ -692,7 +692,7 @@ impl Default for AppStateParameters {
             thick_helices: true,
             scroll_sensitivity: 0.0,
             inverted_y_scroll: false,
-            show_h_bonds: HBoundDisplay::No,
+            show_h_bonds: HBondDisplay::No,
             show_bezier_paths: false,
             ui_size: ensnano_gui::UiSize::default(),
         }
