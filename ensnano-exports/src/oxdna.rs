@@ -91,7 +91,7 @@ impl OxDnaConfig {
 pub struct OxDnaTopology {
     nb_nucl: usize,
     nb_strand: usize,
-    bonds: Vec<OxDnaBound>,
+    bonds: Vec<OxDnaBond>,
 }
 
 impl OxDnaTopology {
@@ -109,7 +109,7 @@ impl OxDnaTopology {
     }
 }
 
-struct OxDnaBound {
+struct OxDnaBond {
     strand_id: usize,
     base: char,
     prime5: isize,
@@ -180,7 +180,7 @@ pub fn free_oxdna_nucl(
 pub(super) struct OxDnaMaker<'a> {
     nucl_id: isize,
     boundaries: [f32; 3],
-    bounds: Vec<OxDnaBound>,
+    bonds: Vec<OxDnaBond>,
     nucls: Vec<OxDnaNucl>,
     basis_map: BasisMapper<'a>,
     nb_strand: usize,
@@ -192,7 +192,7 @@ impl<'a> OxDnaMaker<'a> {
         Self {
             nucl_id: 0,
             boundaries: Default::default(),
-            bounds: Vec::new(),
+            bonds: Vec::new(),
             nucls: Vec::new(),
             basis_map,
             helix_parameters,
@@ -214,7 +214,7 @@ impl<'a> OxDnaMaker<'a> {
 
     pub fn end(self) -> (OxDnaConfig, OxDnaTopology) {
         let topo = OxDnaTopology {
-            bonds: self.bounds,
+            bonds: self.bonds,
             nb_strand: self.nb_strand,
             nb_nucl: self.nucl_id as usize,
         };
@@ -249,16 +249,16 @@ impl StrandMaker<'_, '_> {
             .as_ref()
             .map(|nucl| self.context.basis_map.get_basis(&nucl, 'T'));
 
-        let bound = OxDnaBound {
+        let bond = OxDnaBond {
             base: base.unwrap_or(super::rand_base()),
             strand_id: self.strand_id,
             prime3: -1,
             prime5: self.prev_nucl.unwrap_or(-1),
         };
-        self.context.bounds.push(bound);
+        self.context.bonds.push(bond);
 
         if let Some(prev) = self.prev_nucl {
-            self.context.bounds.get_mut(prev as usize).unwrap().prime3 = self.context.nucl_id;
+            self.context.bonds.get_mut(prev as usize).unwrap().prime3 = self.context.nucl_id;
         }
 
         self.prev_nucl = Some(self.context.nucl_id);
@@ -278,9 +278,9 @@ impl StrandMaker<'_, '_> {
     // TODO move the strand maker in a wrapper to force the call to end when droping
     pub fn end(self, cyclic: bool) {
         if cyclic {
-            self.context.bounds.iter_mut().last().unwrap().prime3 = self.first_strand_nucl;
+            self.context.bonds.iter_mut().last().unwrap().prime3 = self.first_strand_nucl;
             self.context
-                .bounds
+                .bonds
                 .get_mut(self.first_strand_nucl as usize)
                 .unwrap()
                 .prime5 = self.context.nucl_id - 1;

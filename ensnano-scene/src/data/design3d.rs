@@ -385,7 +385,7 @@ impl<R: DesignReader> Design3D<R> {
     }
 
     /// Return (h bonds instances, ellipoids instances)
-    pub(super) fn get_all_hbond(&self) -> HBoundsInstances {
+    pub(super) fn get_all_hbond(&self) -> HBondsInstances {
         let mut full_h_bonds = Vec::new();
         let mut partial_h_bonds = Vec::new();
         let mut ellipsoids = Vec::new();
@@ -439,7 +439,7 @@ impl<R: DesignReader> Design3D<R> {
             ellipsoids.push(forward_ellipsoid.to_raw_instance());
             full_h_bonds.push(full_bond.to_raw_instance());
         }
-        HBoundsInstances {
+        HBondsInstances {
             partial_h_bonds,
             full_h_bonds,
             ellipsoids,
@@ -492,7 +492,7 @@ impl<R: DesignReader> Design3D<R> {
                 let id = id | self.id << 24;
                 let small = self.design.has_small_spheres_nucl_id(id);
                 let radius = if small {
-                    BOUND_RADIUS / SPHERE_RADIUS
+                    BOND_RADIUS / SPHERE_RADIUS
                 } else {
                     1.
                 };
@@ -1297,7 +1297,7 @@ pub trait DesignReader: 'static + ensnano_interactor::DesignReader {
     fn get_additional_structure(&self) -> Option<&dyn AdditionalStructure>;
 }
 
-pub(super) struct HBoundsInstances {
+pub(super) struct HBondsInstances {
     pub full_h_bonds: Vec<RawDnaInstance>,
     pub partial_h_bonds: Vec<RawDnaInstance>,
     pub ellipsoids: Vec<RawDnaInstance>,
