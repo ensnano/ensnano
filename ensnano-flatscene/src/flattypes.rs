@@ -335,7 +335,7 @@ impl FlatSelection {
                         Self::Nothing
                     }
                 }
-                Selection::Bound(d, n1, n2) => {
+                Selection::Bond(d, n1, n2) => {
                     let n1 = FlatNucl::from_real(n1, id_map);
                     let n2 = FlatNucl::from_real(n2, id_map);
                     if let Some((n1, n2)) = n1.zip(n2) {

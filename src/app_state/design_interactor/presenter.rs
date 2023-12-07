@@ -370,7 +370,7 @@ impl Presenter {
                             false
                         }
                     }
-                    Selection::Bound(_, n1, n2) => *n1 == nucl || *n2 == nucl,
+                    Selection::Bond(_, n1, n2) => *n1 == nucl || *n2 == nucl,
                     Selection::Phantom(e) => e.to_nucl() == nucl,
                     Selection::BezierControlPoint { .. } => false,
                     Selection::BezierTengent { .. } => false,
@@ -455,7 +455,7 @@ impl Presenter {
                 self.junctions_ids
                     .get_element(*xover_id)
                     .as_ref()
-                    .and_then(|bound_id| self.content.identifier_bound.get(bound_id))
+                    .and_then(|bound_id| self.content.identifier_bond.get(bound_id))
             })
             .cloned()
             .collect()
@@ -475,7 +475,7 @@ impl Presenter {
         let mut ret = Vec::new();
         for (n1, n2) in unchecked_pairs {
             if !checked_nucl.contains(&n1.prime3()) && !checked_nucl.contains(&n1.prime5()) {
-                if let Some(id) = self.content.identifier_bound.get(&(n1, n2)) {
+                if let Some(id) = self.content.identifier_bond.get(&(n1, n2)) {
                     ret.push(*id)
                 }
             }
@@ -738,8 +738,8 @@ impl HelixPresenter for Presenter {
         self.current_design.as_ref()
     }
 
-    fn get_all_bounds(&self) -> Vec<(Nucl, Nucl)> {
-        self.content.identifier_bound.keys().cloned().collect()
+    fn get_all_bonds(&self) -> Vec<(Nucl, Nucl)> {
+        self.content.identifier_bond.keys().cloned().collect()
     }
 
     fn get_identifier(&self, nucl: &Nucl) -> Option<u32> {

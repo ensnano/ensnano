@@ -139,13 +139,13 @@ impl ReaderGui for DesignReader {
 
     fn get_insertion_length(&self, selection: &Selection) -> Option<usize> {
         match selection {
-            Selection::Bound(_, n1, n2) => {
+            Selection::Bond(_, n1, n2) => {
                 let bond_id = self
                     .presenter
                     .content
-                    .identifier_bound
+                    .identifier_bond
                     .get(&(*n1, *n2))
-                    .or_else(|| self.presenter.content.identifier_bound.get(&(*n2, *n1)))?;
+                    .or_else(|| self.presenter.content.identifier_bond.get(&(*n2, *n1)))?;
                 self.presenter
                     .content
                     .insertion_length
@@ -158,9 +158,9 @@ impl ReaderGui for DesignReader {
                 let bond_id = self
                     .presenter
                     .content
-                    .identifier_bound
+                    .identifier_bond
                     .get(&(n1, n2))
-                    .or_else(|| self.presenter.content.identifier_bound.get(&(n2, n1)))?;
+                    .or_else(|| self.presenter.content.identifier_bond.get(&(n2, n1)))?;
                 self.presenter
                     .content
                     .insertion_length
@@ -193,7 +193,7 @@ impl ReaderGui for DesignReader {
 
     fn get_insertion_point(&self, selection: &Selection) -> Option<InsertionPoint> {
         match selection {
-            Selection::Bound(_, n1, _n2) => Some(InsertionPoint {
+            Selection::Bond(_, n1, _n2) => Some(InsertionPoint {
                 nucl: *n1,
                 nucl_is_prime5_of_insertion: true,
             }),

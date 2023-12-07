@@ -49,8 +49,8 @@ pub use surfaces::*;
 pub enum ObjectType {
     /// A nucleotide identified by its identifier
     Nucleotide(u32),
-    /// A bound, identified by the identifier of the two nucleotides that it bounds.
-    Bound(u32, u32),
+    /// A bond, identified by the identifier of the two nucleotides that it binds.
+    Bond(u32, u32),
 }
 
 impl ObjectType {
@@ -58,8 +58,8 @@ impl ObjectType {
         matches!(self, ObjectType::Nucleotide(_))
     }
 
-    pub fn is_bound(&self) -> bool {
-        matches!(self, ObjectType::Bound(_, _))
+    pub fn is_bond(&self) -> bool {
+        matches!(self, ObjectType::Bond(_, _))
     }
 
     pub fn same_type(&self, other: Self) -> bool {

@@ -92,7 +92,7 @@ impl Reader3D for DesignReader {
         self.presenter.content.nucleotide.get(&e_id).cloned()
     }
 
-    fn get_all_bound_ids(&self) -> Vec<u32> {
+    fn get_all_bond_ids(&self) -> Vec<u32> {
         self.presenter
             .content
             .nucleotides_involved
@@ -180,10 +180,10 @@ impl Reader3D for DesignReader {
         Some(self.presenter.in_referential(position, referential))
     }
 
-    fn get_identifier_bound(&self, n1: Nucl, n2: Nucl) -> Option<u32> {
+    fn get_identifier_bond(&self, n1: Nucl, n2: Nucl) -> Option<u32> {
         self.presenter
             .content
-            .identifier_bound
+            .identifier_bond
             .get(&(n1, n2))
             .cloned()
     }
@@ -214,8 +214,8 @@ impl Reader3D for DesignReader {
             .map(|t| t.0))
     }
 
-    fn get_all_visible_bound_ids(&self) -> Vec<u32> {
-        self.presenter.content.get_all_visible_bounds(
+    fn get_all_visible_bond_ids(&self) -> Vec<u32> {
+        self.presenter.content.get_all_visible_bonds(
             &self.presenter.current_design,
             &self.presenter.invisible_nucls,
         )
@@ -278,14 +278,14 @@ impl Reader3D for DesignReader {
             .iter()
             .filter(|(_k, n)| n.helix == h_id)
             .map(|t| t.0);
-        let bounds = self
+        let bonds = self
             .presenter
             .content
             .nucleotides_involved
             .iter()
             .filter(|(_k, (n1, n2))| n1.helix == h_id && n2.helix == h_id)
             .map(|t| t.0);
-        nucls.chain(bounds).cloned().collect()
+        nucls.chain(bonds).cloned().collect()
     }
 
     fn get_ids_of_elements_belonging_to_strand(&self, s_id: usize) -> Vec<u32> {
@@ -296,13 +296,13 @@ impl Reader3D for DesignReader {
             .nucleotide
             .keys()
             .filter(belong_to_strand);
-        let bounds = self
+        let bonds = self
             .presenter
             .content
             .nucleotides_involved
             .keys()
             .filter(belong_to_strand);
-        nucls.chain(bounds).cloned().collect()
+        nucls.chain(bonds).cloned().collect()
     }
 
     fn prime5_of_which_strand(&self, nucl: Nucl) -> Option<usize> {

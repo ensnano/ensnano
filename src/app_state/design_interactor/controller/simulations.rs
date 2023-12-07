@@ -1060,7 +1060,7 @@ fn make_flexible_helices_system(
             springs.push((rigid_1, rigid_2));
         }
     }
-    for (n1, n2) in presenter.get_all_bounds() {
+    for (n1, n2) in presenter.get_all_bonds() {
         let free_nucl1 = interval_results.nucl_map[&n1];
         let free_nucl2 = interval_results.nucl_map[&n2];
         if let Some((_, _)) = free_nucl1.helix.zip(free_nucl2.helix) {
@@ -1297,7 +1297,7 @@ fn read_intervals(presenter: &dyn HelixPresenter) -> Result<IntervalResult, ErrO
 pub trait HelixPresenter {
     fn get_xovers_list(&self) -> Vec<(Nucl, Nucl)>;
     fn get_design(&self) -> &Design;
-    fn get_all_bounds(&self) -> Vec<(Nucl, Nucl)>;
+    fn get_all_bonds(&self) -> Vec<(Nucl, Nucl)>;
     fn get_identifier(&self, nucl: &Nucl) -> Option<u32>;
     fn get_space_position(&self, nucl: &Nucl) -> Option<Vec3>;
     fn has_nucl(&self, nucl: &Nucl) -> bool;
