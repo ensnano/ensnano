@@ -87,7 +87,7 @@ impl CameraTab {
         ret = ret.push(self.fog.view(&ui_size));
 
         let h_bound_column = Column::new()
-            .push(Text::new("Show H-Bounds").size(ui_size.intermediate_text()))
+            .push(Text::new("Show H-Bonds").size(ui_size.intermediate_text()))
             .push(PickList::new(
                 &mut self.h_bounds_picklist,
                 [
