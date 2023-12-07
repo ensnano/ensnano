@@ -375,7 +375,7 @@ impl<R: DesignReader> Data<R> {
         let d_id = d_id.unwrap() as usize;
         let mut ret = Vec::new();
         if let Selection::Nucleotide(d_id, nucl) = selection {
-            if !object_type.is_bound() {
+            if !object_type.is_bond() {
                 if let Some(n_id) = self.designs[*d_id as usize].get_identifier_nucl(nucl) {
                     ret.push(SceneElement::DesignElement(*d_id, n_id))
                 } else {
@@ -384,12 +384,12 @@ impl<R: DesignReader> Data<R> {
                         helix_id: nucl.helix as u32,
                         position: nucl.position as i32,
                         forward: nucl.forward,
-                        bound: false,
+                        bond: false,
                     }));
                 }
             }
-        } else if let Selection::Bound(d_id, n1, n2) = selection {
-            if object_type.is_bound() {
+        } else if let Selection::Bond(d_id, n1, n2) = selection {
+            if object_type.is_bond() {
                 if let Some(b_id) = self.designs[*d_id as usize].get_identifier_bound(*n1, *n2) {
                     ret.push(SceneElement::DesignElement(*d_id, b_id))
                 } else {
@@ -398,12 +398,12 @@ impl<R: DesignReader> Data<R> {
                         helix_id: n1.helix as u32,
                         position: n1.position as i32,
                         forward: n1.forward,
-                        bound: true,
+                        bond: true,
                     }));
                 }
             }
         } else if let Selection::Xover(d_id, xover_id) = selection {
-            if object_type.is_bound() {
+            if object_type.is_bond() {
                 if let Some(b_id) =
                     self.designs[*d_id as usize].get_element_identifier_from_xover_id(*xover_id)
                 {
@@ -518,7 +518,7 @@ impl<R: DesignReader> Data<R> {
         let mut ret = Vec::new();
         for selection in selection.iter() {
             for element in self
-                .expand_selection(ObjectType::Bound(0, 0), selection)
+                .expand_selection(ObjectType::Bond(0, 0), selection)
                 .iter()
             {
                 match element {
@@ -608,7 +608,7 @@ impl<R: DesignReader> Data<R> {
         let mut ret = Vec::new();
         for candidate in candidates.iter() {
             for element in self
-                .expand_selection(ObjectType::Bound(0, 0), candidate)
+                .expand_selection(ObjectType::Bond(0, 0), candidate)
                 .iter()
             {
                 match element {
@@ -722,7 +722,7 @@ impl<R: DesignReader> Data<R> {
                 .iter()
                 .cloned()
                 .collect(),
-            Selection::Bound(d_id, n1, n2) => self.designs[*d_id as usize]
+            Selection::Bond(d_id, n1, n2) => self.designs[*d_id as usize]
                 .get_identifier_bound(*n1, *n2)
                 .iter()
                 .cloned()
@@ -1134,16 +1134,16 @@ impl<R: DesignReader> Data<R> {
                         SelectionMode::Strand => Selection::Strand(*design_id, group_id),
                         SelectionMode::Nucleotide => {
                             let nucl = self.designs[*design_id as usize].get_nucl(group_id);
-                            let bound = self.designs[*design_id as usize].get_bound(group_id);
-                            let xover_id = bound.as_ref().and_then(|xover| {
+                            let bond = self.designs[*design_id as usize].get_bond(group_id);
+                            let xover_id = bond.as_ref().and_then(|xover| {
                                 self.designs[*design_id as usize].get_xover_id(xover)
                             });
                             if let Some(nucl) = nucl {
                                 Selection::Nucleotide(*design_id, nucl)
                             } else if let Some(id) = xover_id {
                                 Selection::Xover(*design_id, id)
-                            } else if let Some((n1, n2)) = bound {
-                                Selection::Bound(*design_id, n1, n2)
+                            } else if let Some((n1, n2)) = bond {
+                                Selection::Bond(*design_id, n1, n2)
                             } else {
                                 Selection::Nothing
                             }
@@ -1171,7 +1171,7 @@ impl<R: DesignReader> Data<R> {
                     });
                 helix.unwrap_or(Selection::Grid(*d_id, position.grid))
             }
-            SceneElement::PhantomElement(phantom) if phantom.bound => Selection::Bound(
+            SceneElement::PhantomElement(phantom) if phantom.bond => Selection::Bond(
                 phantom.design_id,
                 phantom.to_nucl(),
                 phantom.to_nucl().left(),
@@ -1217,7 +1217,7 @@ impl<R: DesignReader> Data<R> {
                 let id = self.designs[d_id as usize].get_identifier_nucl(&nucl)?;
                 Some(SceneElement::DesignElement(d_id, id))
             }
-            Selection::Bound(d_id, n1, n2) => {
+            Selection::Bond(d_id, n1, n2) => {
                 let id = self.designs[d_id as usize].get_identifier_bound(n1, n2)?;
                 Some(SceneElement::DesignElement(d_id, id))
             }
@@ -1261,7 +1261,7 @@ impl<R: DesignReader> Data<R> {
                 Selection::Nucleotide(d_id, nucl) => {
                     self.selected_position = self.designs[d_id as usize].get_nucl_position(nucl);
                 }
-                Selection::Bound(d_id, n1, n2) => {
+                Selection::Bond(d_id, n1, n2) => {
                     let pos1 = self.designs[d_id as usize].get_nucl_position(n1);
                     let pos2 = self.designs[d_id as usize].get_nucl_position(n2);
                     self.selected_position = pos1.zip(pos2).map(|(a, b)| (a + b) / 2.);
@@ -1790,7 +1790,7 @@ impl<R: DesignReader> Data<R> {
         center_of_selection: CenterOfSelection,
     ) -> Option<SceneElement> {
         match center_of_selection {
-            CenterOfSelection::Bound(d_id, n1, n2) => self
+            CenterOfSelection::Bond(d_id, n1, n2) => self
                 .designs
                 .get(d_id as usize)
                 .and_then(|d| {
@@ -1849,12 +1849,12 @@ impl<R: DesignReader> Data<R> {
                         design_id: *design_id,
                         helix_id: *helix_id as u32,
                         forward: true,
-                        bound: false,
+                        bond: false,
                         position: 0,
                     }))
                 }
             }
-            Selection::Bound(d_id, n1, n2) => design
+            Selection::Bond(d_id, n1, n2) => design
                 .get_identifier_bound(*n1, *n2)
                 .or_else(|| design.get_identifier_bound(*n2, *n1))
                 .map(|bound_id| SceneElement::DesignElement(*d_id, bound_id)),
@@ -1882,8 +1882,8 @@ impl<R: DesignReader> Data<R> {
     ) -> Option<CenterOfSelection> {
         match element {
             SceneElement::PhantomElement(pe) => {
-                if pe.bound {
-                    Some(CenterOfSelection::Bound(
+                if pe.bond {
+                    Some(CenterOfSelection::Bond(
                         pe.design_id,
                         pe.to_nucl(),
                         pe.to_nucl().prime3(),
@@ -1911,8 +1911,8 @@ impl<R: DesignReader> Data<R> {
                     d.get_nucl(e_id)
                         .map(|n| CenterOfSelection::Nucleotide(d_id, n))
                         .or_else(|| {
-                            d.get_bound(e_id)
-                                .map(|(n1, n2)| CenterOfSelection::Bound(d_id, n1, n2))
+                            d.get_bond(e_id)
+                                .map(|(n1, n2)| CenterOfSelection::Bond(d_id, n1, n2))
                         })
                 })
             }

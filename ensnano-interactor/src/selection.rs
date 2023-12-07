@@ -28,7 +28,7 @@ pub const PHANTOM_RANGE: i32 = 1000;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Selection {
     Nucleotide(u32, Nucl),
-    Bound(u32, Nucl, Nucl),
+    Bond(u32, Nucl, Nucl),
     Xover(u32, usize),
     Design(u32),
     Strand(u32, u32),
@@ -55,7 +55,7 @@ pub enum Selection {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CenterOfSelection {
     Nucleotide(u32, Nucl),
-    Bound(u32, Nucl, Nucl),
+    Bond(u32, Nucl, Nucl),
     HelixGridPosition {
         design: u32,
         grid_id: GridId,
@@ -80,7 +80,7 @@ impl Selection {
     pub fn get_design(&self) -> Option<u32> {
         match self {
             Selection::Design(d) => Some(*d),
-            Selection::Bound(d, _, _) => Some(*d),
+            Selection::Bond(d, _, _) => Some(*d),
             Selection::Strand(d, _) => Some(*d),
             Selection::Helix { design_id, .. } => Some(*design_id as u32),
             Selection::Nucleotide(d, _) => Some(*d),
@@ -113,7 +113,7 @@ impl Selection {
                 let (n1, n2) = reader.get_xover_with_id(*xover_id)?;
                 Some(vec![n1.helix, n2.helix])
             }
-            Self::Bound(_, n1, n2) => Some(vec![n1.helix, n2.helix]),
+            Self::Bond(_, n1, n2) => Some(vec![n1.helix, n2.helix]),
             Self::Nothing => Some(vec![]),
             Self::BezierControlPoint { .. } => None,
             Self::BezierTengent { .. } => None,
@@ -144,7 +144,7 @@ pub fn extract_nucls_and_xover_ends(
     for s in selection.iter() {
         match s {
             Selection::Nucleotide(_, n) => ret.push(*n),
-            Selection::Bound(_, n1, n2) => {
+            Selection::Bond(_, n1, n2) => {
                 ret.push(*n1);
                 ret.push(*n2);
             }
@@ -231,7 +231,7 @@ pub fn list_of_grids(selection: &[Selection]) -> Option<(usize, Vec<GridId>)> {
     Some((design_id as usize, grids))
 }
 
-/// Convert a selection of bounds into a list of cross-overs
+/// Convert a selection of bonds into a list of cross-overs
 pub fn list_of_xover_ids(
     selection: &[Selection],
     reader: &dyn DesignReader,
@@ -240,7 +240,7 @@ pub fn list_of_xover_ids(
     let mut xovers = BTreeSet::new();
     for s in selection.iter() {
         match s {
-            Selection::Bound(d_id, n1, n2) => {
+            Selection::Bond(d_id, n1, n2) => {
                 if *d_id != design_id {
                     return None;
                 }
@@ -260,7 +260,7 @@ pub fn list_of_xover_ids(
     Some((design_id as usize, xovers.into_iter().collect()))
 }
 
-/// Convert a selection of bounds into a list of cross-overs
+/// Convert a selection of bonds into a list of cross-overs
 pub fn list_of_xover_as_nucl_pairs(
     selection: &[Selection],
     reader: &dyn DesignReader,
@@ -269,7 +269,7 @@ pub fn list_of_xover_as_nucl_pairs(
     let mut xovers = BTreeSet::new();
     for s in selection.iter() {
         match s {
-            Selection::Bound(d_id, n1, n2) => {
+            Selection::Bond(d_id, n1, n2) => {
                 if *d_id != design_id {
                     return None;
                 }
@@ -568,8 +568,8 @@ pub fn phantom_helix_encoder_nucl(
     (helix + pos_id) | (design_id << 24)
 }
 
-/// Generate the identifier of a phantom bound
-pub fn phantom_helix_encoder_bound(
+/// Generate the identifier of a phantom bond
+pub fn phantom_helix_encoder_bond(
     design_id: u32,
     helix_id: u32,
     position: i32,
@@ -588,7 +588,7 @@ pub fn phantom_helix_decoder(id: u32) -> PhantomElement {
     let reminder = id & 0xFF_FF_FF;
     let helix_id = reminder / max_pos_id;
     let reminder = reminder % max_pos_id;
-    let bound = reminder & 0b10 > 0;
+    let bond = reminder & 0b10 > 0;
     let forward = reminder % 2 == 0;
     let nucl_id = reminder / 4;
     let position = nucl_id as i32 - PHANTOM_RANGE;
@@ -596,7 +596,7 @@ pub fn phantom_helix_decoder(id: u32) -> PhantomElement {
         design_id,
         helix_id,
         position,
-        bound,
+        bond,
         forward,
     }
 }
@@ -606,7 +606,7 @@ pub struct PhantomElement {
     pub design_id: u32,
     pub helix_id: u32,
     pub position: i32,
-    pub bound: bool,
+    pub bond: bool,
     pub forward: bool,
 }
 
@@ -649,12 +649,12 @@ impl SelectionConversion for DnaElementKey {
                     position: nucl.position,
                     forward: nucl.forward,
                 }),
-                Selection::Bound(_, _, _) => None,
+                Selection::Bond(_, _, _) => None,
                 Selection::Xover(_, xover_id) => Some(Self::CrossOver {
                     xover_id: *xover_id,
                 }),
                 Selection::Phantom(pe) => {
-                    if pe.bound {
+                    if pe.bond {
                         None
                     } else {
                         let nucl = pe.to_nucl();
