@@ -48,7 +48,7 @@ impl<T: Clone> GiveItemNamed<T> for IdHandler<NamedItem<T>> {
     fn get_id_of_one_item_named(self, name: String) -> Option<HandledId> {
         for (k, v) in self.0.iter() {
             if v.0.eq(&name) {
-                return Some(HandledId(k.0));
+                return Some(k.clone());
             }
         }
         return None;
