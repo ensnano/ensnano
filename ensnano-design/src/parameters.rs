@@ -116,6 +116,9 @@ impl HelixParameters {
     pub const GEARY_2014_RNA: HelixParameters =
         parameters_from_p_stick_model!(Self::GEARY_2014_RNA_P_STICK);
 
+    pub const GEARY_2014_RNA2: HelixParameters =
+        parameters_from_p_stick_model_plus_or_minus!(Self::GEARY_2014_RNA_P_STICK);
+
     pub const DEFAULT: Self = Self::GEARY_2014_DNA;
 
     /// Values used in version perior to 0.4.1, taken from the litterature (Wikipedia, Cargo
@@ -249,6 +252,10 @@ pub const NAMED_DNA_PARAMETERS: [NamedParameter; 5] = [
     NamedParameter {
         name: "Geary et al 2014 RNA",
         value: HelixParameters::GEARY_2014_RNA,
+    },
+    NamedParameter {
+        name: "Geary et al 2014 RNA(2)",
+        value: HelixParameters::GEARY_2014_RNA2,
     },
     NamedParameter {
         name: "ENSnano 2021",
