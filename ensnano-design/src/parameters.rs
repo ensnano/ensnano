@@ -62,15 +62,20 @@ macro_rules! parameters_from_p_stick_model {
 
 macro_rules! parameters_from_p_stick_model_plus_or_minus {
     ($p_stick_model: expr) => {
-        HelixParameters {
-            groove_angle: ($p_stick_model).groove_angle
-                - 2.0 * std::f32::consts::PI / ($p_stick_model).bases_per_turn,
-            inclination: (if ($p_stick_model).inclination >= 0.0 {
-                ($p_stick_model).inclination - ($p_stick_model).z_step
-            } else {
-                ($p_stick_model).inclination - ($p_stick_model).z_step
-            }),
-            ..($p_stick_model)
+        if ($p_stick_model).inclination >= 0.0 {
+            HelixParameters {
+                groove_angle: ($p_stick_model).groove_angle
+                    - 2.0 * std::f32::consts::PI / ($p_stick_model).bases_per_turn,
+                inclination: ($p_stick_model).inclination - ($p_stick_model).z_step,
+                ..($p_stick_model)
+            }
+        } else {
+            HelixParameters {
+                groove_angle: ($p_stick_model).groove_angle
+                    + 2.0 * std::f32::consts::PI / ($p_stick_model).bases_per_turn,
+                inclination: ($p_stick_model).inclination + ($p_stick_model).z_step,
+                ..($p_stick_model)
+            }
         }
     };
 }
@@ -244,17 +249,17 @@ impl ToString for NamedParameter {
     }
 }
 
-pub const NAMED_DNA_PARAMETERS: [NamedParameter; 5] = [
+pub const NAMED_DNA_PARAMETERS: [NamedParameter; 6] = [
     NamedParameter {
-        name: "Geary et al 2014 DNA",
+        name: "Geary et al 2014 B-DNA",
         value: HelixParameters::GEARY_2014_DNA,
     },
     NamedParameter {
-        name: "Geary et al 2014 RNA",
+        name: "Geary et al 2014 A-RNA",
         value: HelixParameters::GEARY_2014_RNA,
     },
     NamedParameter {
-        name: "Geary et al 2014 RNA(2)",
+        name: "Geary et al 2014 A-RNA(2)",
         value: HelixParameters::GEARY_2014_RNA2,
     },
     NamedParameter {
@@ -262,11 +267,11 @@ pub const NAMED_DNA_PARAMETERS: [NamedParameter; 5] = [
         value: HelixParameters::ENSNANO_2021,
     },
     NamedParameter {
-        name: "Geary et al 2014 DNA Phosphate balls",
+        name: "Geary et al 2014 B-DNA Phosphate balls",
         value: HelixParameters::GEARY_2014_DNA_P_STICK,
     },
     NamedParameter {
-        name: "Geary et al 2014 RNA Phosphate balls",
+        name: "Geary et al 2014 A-RNA Phosphate balls",
         value: HelixParameters::GEARY_2014_RNA_P_STICK,
     },
 ];
