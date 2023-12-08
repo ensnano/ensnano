@@ -301,7 +301,7 @@ impl<S: AppState> Scene<S> {
                     if rotation.bv.mag() > 1e-3 {
                         match target {
                             WidgetTarget::Object => {
-                                self.rotate_selected_desgin(rotation, origin, positive, app_state);
+                                self.rotate_selected_design(rotation, origin, positive, app_state);
                                 if app_state.get_current_group_id().is_none() {
                                     self.requests.lock().unwrap().rotate_group_pivot(rotation)
                                 }
@@ -750,7 +750,7 @@ impl<S: AppState> Scene<S> {
             .translate_group_pivot(translation);
     }
 
-    fn rotate_selected_desgin(
+    fn rotate_selected_design(
         &mut self,
         rotation: Rotor3,
         origin: Vec3,

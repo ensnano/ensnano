@@ -371,7 +371,7 @@ pub enum IsometryTarget {
     Design,
     /// An helix of the design
     Helices(Vec<usize>, bool),
-    /// A grid of the desgin
+    /// A grid of the design
     Grids(Vec<GridId>),
     /// The pivot of a group
     GroupPivot(GroupId),

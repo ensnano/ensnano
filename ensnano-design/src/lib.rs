@@ -319,18 +319,18 @@ impl Default for Design {
 }
 
 impl Design {
-    pub fn from_codenano<Sl, Dl>(codenano_desgin: &codenano::Design<Sl, Dl>) -> Self {
+    pub fn from_codenano<Sl, Dl>(codenano_design: &codenano::Design<Sl, Dl>) -> Self {
         let mut helices = BTreeMap::new();
-        for (i, helix) in codenano_desgin.helices.iter().enumerate() {
+        for (i, helix) in codenano_design.helices.iter().enumerate() {
             helices.insert(i, Arc::new(Helix::from_codenano(helix)));
         }
 
         let mut strands = BTreeMap::new();
-        for (i, strand) in codenano_desgin.strands.iter().enumerate() {
+        for (i, strand) in codenano_design.strands.iter().enumerate() {
             strands.insert(i, Strand::from_codenano(strand));
         }
 
-        let helix_parameters = codenano_desgin
+        let helix_parameters = codenano_design
             .parameters
             .map(|p| HelixParameters::from_codenano(&p))
             .unwrap_or_default();

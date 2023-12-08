@@ -58,7 +58,7 @@ pub struct Requests {
     pub action_mode: Option<ActionMode>,
     /// A change of the selection mode
     pub selection_mode: Option<SelectionMode>,
-    /// A request to move the camera so that the frustrum fits the desgin
+    /// A request to move the camera so that the frustrum fits the design
     pub fitting: Option<()>,
     /// A request to save the selected design
     pub file_save: Option<()>,

@@ -16,7 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 //! This modules handles internal informations about the scene, such as the selected objects etc..
-//! It also communicates with the desgings to get the position of the objects to draw on the scene.
+//! It also communicates with the designs to get the position of the objects to draw on the scene.
 
 use crate::view::AvailableRotationAxes;
 
