@@ -41,14 +41,14 @@ pub struct IdHandler<T: Clone>(pub(super) Arc<BTreeMap<HandledId, Arc<T>>>);
 // }
 
 pub trait ItemWithName<'a> {
-	fn name(self) -> &'a str;
+    fn name(self) -> &'a str;
 }
 
 impl<'a> ItemWithName<'a> for NamedParameter {
-	fn name(self) -> &'static str {
-		return &self.name;
-	}
-} 
+    fn name(self) -> &'static str {
+        return &self.name;
+    }
+}
 
 pub trait GetIdOfOneItemNamed {
     fn get_id_of_one_item_named(self, name: String) -> Option<HandledId>;
