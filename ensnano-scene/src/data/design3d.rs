@@ -759,7 +759,7 @@ impl<R: DesignReader> Design3D<R> {
             | SceneElement::BezierVertex { .. }
             | SceneElement::GridCircle(_, _)
             | SceneElement::PlaneCorner { .. }
-            | SceneElement::BezierTengent { .. } => None,
+            | SceneElement::BezierTangent { .. } => None,
         }
     }
 

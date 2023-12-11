@@ -104,24 +104,24 @@ impl ToString for BoundedLength {
 
 impl OrganizerElement for DesignElement {
     type Attribute = DnaAttribute;
-    type Key = DnaElementKey;
+    type Key = DesignElementKey;
     type AutoGroup = DnaAutoGroup;
 
-    fn key(&self) -> DnaElementKey {
+    fn key(&self) -> DesignElementKey {
         match self {
-            DesignElement::Grid { id, .. } => DnaElementKey::Grid(*id),
-            DesignElement::Strand { id, .. } => DnaElementKey::Strand(*id),
-            DesignElement::Helix { id, .. } => DnaElementKey::Helix(*id),
+            DesignElement::Grid { id, .. } => DesignElementKey::Grid(*id),
+            DesignElement::Strand { id, .. } => DesignElementKey::Strand(*id),
+            DesignElement::Helix { id, .. } => DesignElementKey::Helix(*id),
             DesignElement::Nucleotide {
                 helix,
                 position,
                 forward,
-            } => DnaElementKey::Nucleotide {
+            } => DesignElementKey::Nucleotide {
                 helix: *helix,
                 position: *position,
                 forward: *forward,
             },
-            DesignElement::CrossOver { xover_id, .. } => DnaElementKey::CrossOver {
+            DesignElement::CrossOver { xover_id, .. } => DesignElementKey::CrossOver {
                 xover_id: *xover_id,
             },
         }
@@ -194,7 +194,7 @@ impl OrganizerElement for DesignElement {
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Debug, Serialize, Deserialize)]
-pub enum DnaElementKey {
+pub enum DesignElementKey {
     Grid(usize),
     Strand(usize),
     Helix(usize),
@@ -210,7 +210,7 @@ pub enum DnaElementKey {
 
 #[derive(Clone, PartialEq, PartialOrd, Ord, Eq, Debug, IntoPrimitive, TryFromPrimitive)]
 #[repr(usize)]
-pub enum DnaElementSection {
+pub enum DesignElementSection {
     Grid,
     Helix,
     Strand,
@@ -218,26 +218,26 @@ pub enum DnaElementSection {
     Nucleotide,
 }
 
-impl ElementKey for DnaElementKey {
-    type Section = DnaElementSection;
+impl ElementKey for DesignElementKey {
+    type Section = DesignElementSection;
 
-    fn name(section: DnaElementSection) -> String {
+    fn name(section: DesignElementSection) -> String {
         match section {
-            DnaElementSection::Grid => "Grid".to_owned(),
-            DnaElementSection::Helix => "Helix".to_owned(),
-            DnaElementSection::Strand => "Strand".to_owned(),
-            DnaElementSection::CrossOver => "CrossOver".to_owned(),
-            DnaElementSection::Nucleotide => "Nucleotide".to_owned(),
+            DesignElementSection::Grid => "Grid".to_owned(),
+            DesignElementSection::Helix => "Helix".to_owned(),
+            DesignElementSection::Strand => "Strand".to_owned(),
+            DesignElementSection::CrossOver => "CrossOver".to_owned(),
+            DesignElementSection::Nucleotide => "Nucleotide".to_owned(),
         }
     }
 
-    fn section(&self) -> DnaElementSection {
+    fn section(&self) -> DesignElementSection {
         match self {
-            Self::Strand(_) => DnaElementSection::Strand,
-            Self::Helix(_) => DnaElementSection::Helix,
-            Self::Nucleotide { .. } => DnaElementSection::Nucleotide,
-            Self::CrossOver { .. } => DnaElementSection::CrossOver,
-            Self::Grid { .. } => DnaElementSection::Grid,
+            Self::Strand(_) => DesignElementSection::Strand,
+            Self::Helix(_) => DesignElementSection::Helix,
+            Self::Nucleotide { .. } => DesignElementSection::Nucleotide,
+            Self::CrossOver { .. } => DesignElementSection::CrossOver,
+            Self::Grid { .. } => DesignElementSection::Grid,
         }
     }
 }

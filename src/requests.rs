@@ -37,7 +37,7 @@ use super::gui::OrganizerTree;
 use super::scene::FogParameters;
 use ensnano_design::grid::{GridId, GridPosition, GridTypeDescr};
 use ensnano_design::{
-    elements::{DnaAttribute, DnaElementKey},
+    elements::{DnaAttribute, DesignElementKey},
     Nucl,
 };
 use ensnano_interactor::{
@@ -97,10 +97,10 @@ pub struct Requests {
     pub rigid_body_parameters: Option<RigidBodyConstants>,
     pub keep_proceed: VecDeque<Action>,
     pub new_shift_hyperboloid: Option<f32>,
-    pub organizer_selection: Option<(Vec<DnaElementKey>, Option<ensnano_organizer::GroupId>, bool)>,
-    pub organizer_candidates: Option<Vec<DnaElementKey>>,
-    pub new_attribute: Option<(DnaAttribute, Vec<DnaElementKey>)>,
-    pub new_tree: Option<OrganizerTree<DnaElementKey>>,
+    pub organizer_selection: Option<(Vec<DesignElementKey>, Option<ensnano_organizer::GroupId>, bool)>,
+    pub organizer_candidates: Option<Vec<DesignElementKey>>,
+    pub new_attribute: Option<(DnaAttribute, Vec<DesignElementKey>)>,
+    pub new_tree: Option<OrganizerTree<DesignElementKey>>,
     pub split2d: Option<()>,
     pub toggle_visibility: Option<bool>,
     pub all_visible: Option<()>,

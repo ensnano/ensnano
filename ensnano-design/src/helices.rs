@@ -530,10 +530,10 @@ impl Helix {
         /*
         let point = match bezier_point {
             BezierControlPoint::PiecewiseBezier(n) => {
-                if let Some(CurveDescriptor::PiecewiseBezier { tengents, .. }) =
+                if let Some(CurveDescriptor::PiecewiseBezier { tangents, .. }) =
                     self.curve.as_mut().map(Arc::make_mut)
                 {
-                    tengents.get_mut(n / 2)
+                    tangents.get_mut(n / 2)
                 } else {
                     None
                 }

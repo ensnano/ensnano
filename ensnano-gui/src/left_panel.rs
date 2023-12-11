@@ -34,7 +34,7 @@ use iced_winit::winit::{
 use ultraviolet::Vec3;
 
 use ensnano_design::{
-    elements::{DesignElement, DnaElementKey},
+    elements::{DesignElement, DesignElementKey},
     BezierPathId, CameraId,
 };
 use ensnano_interactor::{
@@ -290,7 +290,7 @@ impl<R: Requests, S: AppState> LeftPanel<R, S> {
                     .application_state
                     .get_selection()
                     .iter()
-                    .filter_map(|s| DnaElementKey::from_selection(s, 0))
+                    .filter_map(|s| DesignElementKey::from_selection(s, 0))
                     .collect();
                 return self
                     .organizer
@@ -606,7 +606,7 @@ impl<R: Requests, S: AppState> Program for LeftPanel<R, S> {
             }
             Message::MakeGrids => self.requests.lock().unwrap().make_grid_from_selection(),
             Message::RollTargeted(b) => {
-                let selection = self.application_state.get_selection_as_dnaelement();
+                let selection = self.application_state.get_selection_as_designelement();
                 if b {
                     if let Some(simulation_request) = self.edition_tab.get_roll_request(&selection)
                     {
@@ -1000,7 +1000,7 @@ impl<R: Requests, S: AppState> Program for LeftPanel<R, S> {
             .application_state
             .get_selection()
             .iter()
-            .filter_map(|e| DnaElementKey::from_selection(e, 0))
+            .filter_map(|e| DesignElementKey::from_selection(e, 0))
             .collect();
 
         let notify_new_tree =

@@ -388,12 +388,12 @@ impl RevolutionSurfaceSystem {
         let total_nb_segment = self.topology.nb_balls();
 
         for section_idx in 0..total_nb_segment {
-            let tengent = self.dpos_dtheta(section_idx, &system.thetas);
-            let mut acceleration = (system.forces[section_idx].dot(tengent)
+            let tangent = self.dpos_dtheta(section_idx, &system.thetas);
+            let mut acceleration = (system.forces[section_idx].dot(tangent)
                 / self.simulation_parameters.ball_mass
                 - system.d_thetas[section_idx].powi(2)
-                    * self.d2pos_dtheta2(section_idx, &system.thetas).dot(tengent))
-                / tengent.mag_sq();
+                    * self.d2pos_dtheta2(section_idx, &system.thetas).dot(tangent))
+                / tangent.mag_sq();
 
             if acceleration.abs() > MAX_ACCEL {
                 acceleration = acceleration.signum() * MAX_ACCEL;

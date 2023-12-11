@@ -60,7 +60,7 @@ macro_rules! add_scaffold_from_to_selection_buttons {
             button_selection_from_scaffold =
                 button_selection_from_scaffold.on_press(Message::SelectScaffold);
         }
-        let selection = $app_state.get_selection_as_dnaelement();
+        let selection = $app_state.get_selection_as_designelement();
         if let Some(n) = Self::get_candidate_scaffold(&selection) {
             button_selection_to_scaffold =
                 button_selection_to_scaffold.on_press(Message::ScaffoldIdSet(n, true));
@@ -308,9 +308,9 @@ impl SequenceTab {
         self.scaffold_input.is_focused()
     }
 
-    fn get_candidate_scaffold(selection: &[DnaElementKey]) -> Option<usize> {
+    fn get_candidate_scaffold(selection: &[DesignElementKey]) -> Option<usize> {
         if selection.len() == 1 {
-            if let DnaElementKey::Strand(n) = selection[0] {
+            if let DesignElementKey::Strand(n) = selection[0] {
                 Some(n)
             } else {
                 None

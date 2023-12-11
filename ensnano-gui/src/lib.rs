@@ -51,7 +51,7 @@ extern crate serde_derive;
 use status_bar::StatusBar;
 
 use ensnano_design::{
-    elements::{DnaAttribute, DesignElement, DnaElementKey},
+    elements::{DnaAttribute, DesignElement, DesignElementKey},
     grid::GridTypeDescr,
     ultraviolet, BezierPathId, BezierVertexId, HelixParameters, Nucl,
 };
@@ -143,19 +143,19 @@ pub trait Requests: 'static + Send {
     fn perform_camera_rotation(&mut self, xz: f32, yz: f32, xy: f32);
     /// Create a new grid in front of the 3D camera
     fn create_grid(&mut self, grid_type_descriptor: GridTypeDescr);
-    fn set_candidates_keys(&mut self, candidates: Vec<DnaElementKey>);
+    fn set_candidates_keys(&mut self, candidates: Vec<DesignElementKey>);
     fn set_selected_keys(
         &mut self,
-        selection: Vec<DnaElementKey>,
+        selection: Vec<DesignElementKey>,
         group_id: Option<ensnano_organizer::GroupId>,
         new_group: bool,
     );
-    fn update_organizer_tree(&mut self, tree: OrganizerTree<DnaElementKey>);
+    fn update_organizer_tree(&mut self, tree: OrganizerTree<DesignElementKey>);
     /// Update one attribute of several Dna Elements
     fn update_attribute_of_elements(
         &mut self,
         attribute: DnaAttribute,
-        keys: BTreeSet<DnaElementKey>,
+        keys: BTreeSet<DesignElementKey>,
     );
     fn change_split_mode(&mut self, split_mode: SplitMode);
     fn export(&mut self, export_type: ensnano_exports::ExportType);
@@ -1039,7 +1039,7 @@ pub trait AppState:
     fn is_building_hyperboloid(&self) -> bool;
     fn get_scaffold_info(&self) -> Option<ScaffoldInfo>;
     fn get_selection(&self) -> &[Selection];
-    fn get_selection_as_dnaelement(&self) -> Vec<DnaElementKey>;
+    fn get_selection_as_designelement(&self) -> Vec<DesignElementKey>;
     fn can_make_grid(&self) -> bool;
     fn get_reader(&self) -> Box<dyn DesignReader>;
     fn design_was_modified(&self, other: &Self) -> bool;

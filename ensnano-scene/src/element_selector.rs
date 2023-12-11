@@ -249,10 +249,10 @@ pub enum SceneElement {
         path_id: BezierPathId,
         vertex_id: usize,
     },
-    BezierTengent {
+    BezierTangent {
         path_id: BezierPathId,
         vertex_id: usize,
-        tengent_in: bool,
+        tangent_in: bool,
     },
     PlaneCorner {
         plane_id: BezierPlaneId,
@@ -308,7 +308,7 @@ impl SceneElement {
             SceneElement::BezierControl { .. } => None,
             SceneElement::BezierVertex { .. } => Some(0),
             SceneElement::PlaneCorner { .. } => Some(0),
-            SceneElement::BezierTengent { .. } => Some(0),
+            SceneElement::BezierTangent { .. } => Some(0),
         }
     }
 
@@ -364,8 +364,8 @@ enum ObjType {
     None = 0xFF,
     BezierVertex = 0xFE,
     BezierPlaneCorner = 0xFD,
-    BezierTengentIn = 0xFC,
-    BezierTengentOut = 0xFB,
+    BezierTangentIn = 0xFC,
+    BezierTangentOut = 0xFB,
 }
 
 impl SceneReader {
@@ -416,17 +416,17 @@ impl SceneReader {
                             plane_id: BezierPlaneId(g + b),
                             corner_type: CornerType::from_u32(r >> 16),
                         })
-                    } else if a == u32::from(ObjType::BezierTengentIn) {
-                        Some(SceneElement::BezierTengent {
+                    } else if a == u32::from(ObjType::BezierTangentIn) {
+                        Some(SceneElement::BezierTangent {
                             path_id: BezierPathId(r >> 16),
                             vertex_id: (g + b) as usize,
-                            tengent_in: true,
+                            tangent_in: true,
                         })
-                    } else if a == u32::from(ObjType::BezierTengentOut) {
-                        Some(SceneElement::BezierTengent {
+                    } else if a == u32::from(ObjType::BezierTangentOut) {
+                        Some(SceneElement::BezierTangent {
                             path_id: BezierPathId(r >> 16),
                             vertex_id: (g + b) as usize,
-                            tengent_in: false,
+                            tangent_in: false,
                         })
                     } else {
                         Some(SceneElement::DesignElement(a, color))
@@ -449,11 +449,11 @@ pub fn bezier_vertex_id(path_id: BezierPathId, vertex_id: usize) -> u32 {
     (u32::from(ObjType::BezierVertex) << 24) | ((path_id.0) << 16) | (vertex_id as u32)
 }
 
-pub fn bezier_tengent_id(path_id: BezierPathId, vertex_id: usize, tengent_in: bool) -> u32 {
-    let front = if tengent_in {
-        u32::from(ObjType::BezierTengentIn)
+pub fn bezier_tangent_id(path_id: BezierPathId, vertex_id: usize, tangent_in: bool) -> u32 {
+    let front = if tangent_in {
+        u32::from(ObjType::BezierTangentIn)
     } else {
-        u32::from(ObjType::BezierTengentOut)
+        u32::from(ObjType::BezierTangentOut)
     };
     (front << 24) | ((path_id.0) << 16) | (vertex_id as u32)
 }
