@@ -19,7 +19,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::*;
 use crate::scene::GridInstance;
 use ahash::RandomState;
-use ensnano_design::elements::DnaElement;
+use ensnano_design::elements::DesignElement;
 use ensnano_design::grid::{GridObject, GridPosition, HelixGridPosition};
 use ensnano_design::*;
 use ensnano_interactor::{
@@ -105,7 +105,7 @@ pub(super) struct DesignContent {
     pub color: HashMap<u32, u32, RandomState>,
     pub basis_map: Arc<HashMap<Nucl, char, RandomState>>,
     pub prime3_set: Vec<Prime3End>,
-    pub elements: Vec<DnaElement>,
+    pub elements: Vec<DesignElement>,
     pub suggestions: Vec<(Nucl, Nucl)>,
     pub(super) grid_manager: GridData,
     pub loopout_nucls: Vec<LoopoutNucl>,
@@ -487,7 +487,7 @@ impl DesignContent {
         let grid_manager = design.get_updated_grid_data().clone();
 
         for (s_id, strand) in design.strands.iter_mut() {
-            elements.push(elements::DnaElement::Strand {
+            elements.push(elements::DesignElement::Strand {
                 id: *s_id,
                 length: strand.length(),
                 domain_lengths: strand.domain_lengths(),
@@ -522,7 +522,7 @@ impl DesignContent {
                         (prime5, prime3),
                     );
                     if let Some(id) = xover_ids.get_id(&(prime5, prime3)) {
-                        elements.push(DnaElement::CrossOver {
+                        elements.push(DesignElement::CrossOver {
                             xover_id: id,
                             helix5prime: prime5.helix,
                             position5prime: prime5.position,
@@ -556,7 +556,7 @@ impl DesignContent {
                             log::error!("Could not get virtual nucl corresponding to {:?}", nucl);
                         }
 
-                        elements.push(DnaElement::Nucleotide {
+                        elements.push(DesignElement::Nucleotide {
                             helix: nucl.helix,
                             position: nucl.position,
                             forward: nucl.forward,
@@ -691,7 +691,7 @@ impl DesignContent {
                 );
                 let (prime5, prime3) = bond;
                 if let Some(id) = new_junctions.get_id(&(prime5, prime3)) {
-                    elements.push(DnaElement::CrossOver {
+                    elements.push(DesignElement::CrossOver {
                         xover_id: id,
                         helix5prime: prime5.helix,
                         position5prime: prime5.position,
@@ -725,14 +725,14 @@ impl DesignContent {
         }
         for g_id in grid_manager.grids.keys() {
             if let GridId::FreeGrid(id) = g_id {
-                elements.push(DnaElement::Grid {
+                elements.push(DesignElement::Grid {
                     id: *id,
                     visible: grid_manager.get_visibility(*g_id),
                 })
             }
         }
         for (h_id, h) in design.helices.iter() {
-            elements.push(DnaElement::Helix {
+            elements.push(DesignElement::Helix {
                 id: *h_id,
                 group: groups.get(h_id).cloned(),
                 visible: h.visible,

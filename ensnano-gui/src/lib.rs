@@ -51,7 +51,7 @@ extern crate serde_derive;
 use status_bar::StatusBar;
 
 use ensnano_design::{
-    elements::{DnaAttribute, DnaElement, DnaElementKey},
+    elements::{DnaAttribute, DesignElement, DnaElementKey},
     grid::GridTypeDescr,
     ultraviolet, BezierPathId, BezierVertexId, HelixParameters, Nucl,
 };
@@ -1077,7 +1077,7 @@ pub trait DesignReader: 'static {
     fn is_id_of_scaffold(&self, s_id: usize) -> bool;
     fn length_decomposition(&self, s_id: usize) -> String;
     fn nucl_is_anchor(&self, nucl: Nucl) -> bool;
-    fn get_dna_elements(&self) -> &[DnaElement];
+    fn get_dna_elements(&self) -> &[DesignElement];
     fn get_organizer_tree(&self) -> Option<Arc<ensnano_design::EnsnTree>>;
     fn strand_name(&self, s_id: usize) -> String;
     fn get_all_cameras(&self) -> Vec<(CameraId, &str)>;

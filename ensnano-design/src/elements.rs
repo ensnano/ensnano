@@ -22,7 +22,7 @@ use ensnano_organizer::{
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 
 #[derive(Clone, Debug)]
-pub enum DnaElement {
+pub enum DesignElement {
     Grid {
         id: usize,
         visible: bool,
@@ -102,17 +102,17 @@ impl ToString for BoundedLength {
     }
 }
 
-impl OrganizerElement for DnaElement {
+impl OrganizerElement for DesignElement {
     type Attribute = DnaAttribute;
     type Key = DnaElementKey;
     type AutoGroup = DnaAutoGroup;
 
     fn key(&self) -> DnaElementKey {
         match self {
-            DnaElement::Grid { id, .. } => DnaElementKey::Grid(*id),
-            DnaElement::Strand { id, .. } => DnaElementKey::Strand(*id),
-            DnaElement::Helix { id, .. } => DnaElementKey::Helix(*id),
-            DnaElement::Nucleotide {
+            DesignElement::Grid { id, .. } => DnaElementKey::Grid(*id),
+            DesignElement::Strand { id, .. } => DnaElementKey::Strand(*id),
+            DesignElement::Helix { id, .. } => DnaElementKey::Helix(*id),
+            DesignElement::Nucleotide {
                 helix,
                 position,
                 forward,
@@ -121,7 +121,7 @@ impl OrganizerElement for DnaElement {
                 position: *position,
                 forward: *forward,
             },
-            DnaElement::CrossOver { xover_id, .. } => DnaElementKey::CrossOver {
+            DesignElement::CrossOver { xover_id, .. } => DnaElementKey::CrossOver {
                 xover_id: *xover_id,
             },
         }
@@ -129,15 +129,15 @@ impl OrganizerElement for DnaElement {
 
     fn display_name(&self) -> String {
         match self {
-            DnaElement::Grid { id, .. } => format!("Grid {}", id),
-            DnaElement::Strand { id, .. } => format!("Strand {}", id),
-            DnaElement::Helix { id, .. } => format!("Helix {}", id),
-            DnaElement::Nucleotide {
+            DesignElement::Grid { id, .. } => format!("Grid {}", id),
+            DesignElement::Strand { id, .. } => format!("Strand {}", id),
+            DesignElement::Helix { id, .. } => format!("Helix {}", id),
+            DesignElement::Nucleotide {
                 helix,
                 position,
                 forward,
             } => format!("Nucl {}:{}:{}", helix, position, forward),
-            DnaElement::CrossOver {
+            DesignElement::CrossOver {
                 helix5prime,
                 position5prime,
                 forward5prime,
@@ -159,7 +159,7 @@ impl OrganizerElement for DnaElement {
 
     fn attributes(&self) -> Vec<DnaAttribute> {
         match self {
-            DnaElement::Helix {
+            DesignElement::Helix {
                 group,
                 locked_for_simualtions: locked,
                 ..
@@ -167,14 +167,14 @@ impl OrganizerElement for DnaElement {
                 DnaAttribute::XoverGroup(*group),
                 DnaAttribute::LockedForSimulations(*locked),
             ],
-            DnaElement::Grid { visible, .. } => vec![DnaAttribute::Visible(*visible)],
+            DesignElement::Grid { visible, .. } => vec![DnaAttribute::Visible(*visible)],
             _ => vec![],
         }
     }
 
     fn auto_groups(&self) -> Vec<Self::AutoGroup> {
         match self {
-            DnaElement::Strand {
+            DesignElement::Strand {
                 length,
                 domain_lengths,
                 ..

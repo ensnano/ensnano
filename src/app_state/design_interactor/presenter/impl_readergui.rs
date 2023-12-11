@@ -16,7 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use ensnano_design::{elements::DnaElement, CameraId, Collection};
+use ensnano_design::{elements::DesignElement, CameraId, Collection};
 
 use super::*;
 use crate::gui::DesignReader as ReaderGui;
@@ -60,7 +60,7 @@ impl ReaderGui for DesignReader {
         self.presenter.decompose_length(s_id)
     }
 
-    fn get_dna_elements(&self) -> &[DnaElement] {
+    fn get_dna_elements(&self) -> &[DesignElement] {
         self.presenter.content.elements.as_slice()
     }
 

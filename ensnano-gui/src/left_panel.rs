@@ -34,7 +34,7 @@ use iced_winit::winit::{
 use ultraviolet::Vec3;
 
 use ensnano_design::{
-    elements::{DnaElement, DnaElementKey},
+    elements::{DesignElement, DnaElementKey},
     BezierPathId, CameraId,
 };
 use ensnano_interactor::{
@@ -93,7 +93,7 @@ pub struct LeftPanel<R: Requests, S: AppState> {
     #[allow(dead_code)]
     show_torsion: bool,
     selected_tab: usize,
-    organizer: Organizer<DnaElement>,
+    organizer: Organizer<DesignElement>,
     ui_size: UiSize,
     grid_tab: GridTab,
     edition_tab: EditionTab<S>,
@@ -145,7 +145,7 @@ pub enum Message<S: AppState> {
     RigidHelicesSimulation(bool),
     VolumeExclusion(bool),
     TabSelected(usize),
-    OrganizerMessage(OrganizerMessage<DnaElement>),
+    OrganizerMessage(OrganizerMessage<DesignElement>),
     ModifiersChanged(ModifiersState),
     UiSizeChanged(UiSize),
     UiSizePicked(UiSize),
@@ -283,7 +283,7 @@ impl<R: Requests, S: AppState> LeftPanel<R, S> {
         self.organizer.set_width(logical_size.width as u16);
     }
 
-    fn organizer_message(&mut self, m: OrganizerMessage<DnaElement>) -> Option<Message<S>> {
+    fn organizer_message(&mut self, m: OrganizerMessage<DesignElement>) -> Option<Message<S>> {
         match m {
             OrganizerMessage::InternalMessage(m) => {
                 let selection = self
