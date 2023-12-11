@@ -223,6 +223,7 @@ impl DesignContent {
         let basis_map = self.basis_map.as_ref();
         for (s_id, strand) in design.strands.iter() {
             if strand.length() == 0 || design.scaffold_id == Some(*s_id) {
+                // skip zero length staples and scaffold
                 continue;
             }
             let mut sequence = String::new();

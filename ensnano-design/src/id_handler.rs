@@ -137,6 +137,6 @@ mod tests {
 
     #[test]
     fn simple_test_for_Vec() {
-        let v: IdHandler<Vec<i32>> = IdHandler(());
+        let v: IdHandler<Vec<i32>> = IdHandler::new(());
     }
 }
