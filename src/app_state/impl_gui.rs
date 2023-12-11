@@ -18,7 +18,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::*;
 use crate::gui::AppState as GuiState;
-use ensnano_design::{elements::DnaElementKey, HelixParameters};
+use ensnano_design::{elements::DesignElementKey, HelixParameters};
 use ensnano_gui::ClipboardContent;
 use ensnano_interactor::{ScaffoldInfo, SelectionConversion, SimulationState};
 
@@ -53,10 +53,10 @@ impl GuiState for AppState {
         self.selection_content().as_ref()
     }
 
-    fn get_selection_as_dnaelement(&self) -> Vec<DnaElementKey> {
+    fn get_selection_as_designelement(&self) -> Vec<DesignElementKey> {
         self.selection_content()
             .iter()
-            .filter_map(|s| DnaElementKey::from_selection(s, 0))
+            .filter_map(|s| DesignElementKey::from_selection(s, 0))
             .collect()
     }
 

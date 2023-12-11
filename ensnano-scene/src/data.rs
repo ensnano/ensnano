@@ -743,7 +743,7 @@ impl<R: DesignReader> Data<R> {
             }
             Selection::Grid(_, _) => HashSet::new(), // A grid is not made of atomic elements
             Selection::Phantom(_) => HashSet::new(),
-            Selection::BezierTengent { .. } => HashSet::new(),
+            Selection::BezierTangent { .. } => HashSet::new(),
             Selection::BezierVertex(_) => HashSet::new(),
             Selection::Nothing => HashSet::new(),
             Selection::Design(d_id) => self.designs[*d_id as usize].get_all_elements(),
@@ -1097,7 +1097,7 @@ impl<R: DesignReader> Data<R> {
                         set.insert(helix_id as u32, false);
                     }
                     SceneElement::BezierVertex { .. } => (),
-                    SceneElement::BezierTengent { .. } => (),
+                    SceneElement::BezierTangent { .. } => (),
                     SceneElement::PlaneCorner { .. } => (),
                 }
             }
@@ -1202,7 +1202,7 @@ impl<R: DesignReader> Data<R> {
                 })
             }
             SceneElement::WidgetElement(_) => Selection::Nothing,
-            SceneElement::BezierTengent {
+            SceneElement::BezierTangent {
                 path_id, vertex_id, ..
             } => Selection::BezierVertex(BezierVertexId {
                 path_id: *path_id,
@@ -1927,7 +1927,7 @@ impl<R: DesignReader> Data<R> {
             SceneElement::BezierVertex { vertex_id, path_id } => {
                 Some(CenterOfSelection::BezierVertex { path_id, vertex_id })
             }
-            SceneElement::BezierTengent { .. } => None,
+            SceneElement::BezierTangent { .. } => None,
             SceneElement::PlaneCorner { .. } => None,
         }
     }

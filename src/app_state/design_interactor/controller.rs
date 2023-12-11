@@ -19,7 +19,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::{NuclCollection, SimulationUpdate};
 use crate::app_state::AddressPointer;
 use ensnano_design::{
-    elements::{DnaAttribute, DnaElementKey},
+    elements::{DnaAttribute, DesignElementKey},
     grid::{
         Edge, FreeGridId, GridDescriptor, GridId, GridObject, GridPosition, GridTypeDescr,
         HelixGridPosition, Hyperboloid,
@@ -33,7 +33,7 @@ use ensnano_gui::ClipboardContent;
 pub use ensnano_interactor::PastingStatus;
 use ensnano_interactor::{
     operation::{Operation, TranslateBezierPathVertex},
-    BezierControlPoint, HyperboloidOperation, NewBezierTengentVector, SimulationState,
+    BezierControlPoint, HyperboloidOperation, NewBezierTangentVector, SimulationState,
 };
 use ensnano_interactor::{
     BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation, DomainIdentifier,
@@ -349,8 +349,8 @@ impl Controller {
                 |c, d| c.apply_homothethy_on_bezier_plane(d, homothethy),
                 design,
             )),
-            DesignOperation::SetVectorOfBezierTengent(requested_vector) => {
-                self.apply(|c, d| c.set_bezier_tengent(d, requested_vector), design)
+            DesignOperation::SetVectorOfBezierTangent(requested_vector) => {
+                self.apply(|c, d| c.set_bezier_tangent(d, requested_vector), design)
             }
             DesignOperation::MakeBezierPathCyclic { path_id, cyclic } => {
                 self.apply(|c, d| c.make_bezier_path_cyclic(d, path_id, cyclic), design)
@@ -766,7 +766,7 @@ impl Controller {
         &mut self,
         mut design: Design,
         attribute: DnaAttribute,
-        elements: Vec<DnaElementKey>,
+        elements: Vec<DesignElementKey>,
     ) -> Result<Design, ErrOperation> {
         log::info!("updating attribute {:?}, {:?}", attribute, elements);
         for elt in elements.iter() {
@@ -802,15 +802,15 @@ impl Controller {
     fn make_element_visible(
         &self,
         design: &mut Design,
-        element: &DnaElementKey,
+        element: &DesignElementKey,
         visible: bool,
     ) -> Result<(), ErrOperation> {
         match element {
-            DnaElementKey::Helix(helix) => {
+            DesignElementKey::Helix(helix) => {
                 ensnano_design::mutate_one_helix(design, *helix, |h| h.visible = visible)
                     .ok_or(ErrOperation::HelixDoesNotExists(*helix))?;
             }
-            DnaElementKey::Grid(g_id) => {
+            DesignElementKey::Grid(g_id) => {
                 let mut grids_mut = design.free_grids.make_mut();
                 let g_id = ensnano_design::grid::FreeGridId(*g_id);
                 let grid = grids_mut
@@ -827,10 +827,10 @@ impl Controller {
     fn set_xover_group_of_elt(
         &self,
         design: &mut Design,
-        element: &DnaElementKey,
+        element: &DesignElementKey,
         group: Option<bool>,
     ) -> Result<(), ErrOperation> {
-        if let DnaElementKey::Helix(h_id) = element {
+        if let DesignElementKey::Helix(h_id) = element {
             if !design.helices.contains_key(h_id) {
                 return Err(ErrOperation::HelixDoesNotExists(*h_id));
             }
@@ -848,10 +848,10 @@ impl Controller {
     fn set_lock_during_simulation(
         &self,
         design: &mut Design,
-        element: &DnaElementKey,
+        element: &DesignElementKey,
         locked: bool,
     ) -> Result<(), ErrOperation> {
-        if let DnaElementKey::Helix(h_id) = element {
+        if let DesignElementKey::Helix(h_id) = element {
             if !design.helices.contains_key(h_id) {
                 return Err(ErrOperation::HelixDoesNotExists(*h_id));
             }
@@ -1377,11 +1377,11 @@ impl Controller {
                 let vertex = path
                     .get_vertex_mut(vertex_id)
                     .ok_or(ErrOperation::VertexDoesNotExist(path_id, vertex_id))?;
-                let old_tengent_in = vertex.position_in.map(|p| p - vertex.position);
-                let old_tengent_out = vertex.position_out.map(|p| p - vertex.position);
+                let old_tangent_in = vertex.position_in.map(|p| p - vertex.position);
+                let old_tangent_out = vertex.position_out.map(|p| p - vertex.position);
                 vertex.position += translation;
-                vertex.position_out = old_tengent_out.map(|t| vertex.position + t);
-                vertex.position_in = old_tengent_in.map(|t| vertex.position + t);
+                vertex.position_out = old_tangent_out.map(|t| vertex.position + t);
+                vertex.position_in = old_tangent_in.map(|t| vertex.position + t);
                 next_selection.push(Selection::BezierVertex(BezierVertexId {
                     path_id,
                     vertex_id,
@@ -1410,11 +1410,11 @@ impl Controller {
         let vertex = path
             .get_vertex_mut(vertex_id)
             .ok_or(ErrOperation::VertexDoesNotExist(path_id, vertex_id))?;
-        let old_tengent_in = vertex.position_in.map(|p| p - vertex.position);
-        let old_tengent_out = vertex.position_out.map(|p| p - vertex.position);
+        let old_tangent_in = vertex.position_in.map(|p| p - vertex.position);
+        let old_tangent_out = vertex.position_out.map(|p| p - vertex.position);
         vertex.position = position;
-        vertex.position_out = old_tengent_out.map(|t| vertex.position + t);
-        vertex.position_in = old_tengent_in.map(|t| vertex.position + t);
+        vertex.position_out = old_tangent_out.map(|t| vertex.position + t);
+        vertex.position_in = old_tangent_in.map(|t| vertex.position + t);
         drop(new_paths);
         Ok(design)
     }
@@ -1434,10 +1434,10 @@ impl Controller {
         Ok(design)
     }
 
-    fn set_bezier_tengent(
+    fn set_bezier_tangent(
         &mut self,
         mut design: Design,
-        request: NewBezierTengentVector,
+        request: NewBezierTangentVector,
     ) -> Result<Design, ErrOperation> {
         self.update_state_not_design(&design);
 
@@ -1450,9 +1450,9 @@ impl Controller {
         let vertex = path
             .get_vertex_mut(vertex_id)
             .ok_or(ErrOperation::VertexDoesNotExist(path_id, vertex_id))?;
-        if request.tengent_in {
+        if request.tangent_in {
             vertex.position_in = Some(vertex.position + request.new_vector);
-            if request.full_symetry_other_tengent {
+            if request.full_symetry_other_tangent {
                 vertex.position_out = Some(vertex.position - request.new_vector);
             } else {
                 let norm = vertex
@@ -1467,7 +1467,7 @@ impl Controller {
             }
         } else {
             vertex.position_out = Some(vertex.position + request.new_vector);
-            if request.full_symetry_other_tengent {
+            if request.full_symetry_other_tangent {
                 vertex.position_in = Some(vertex.position - request.new_vector);
             } else {
                 let norm = vertex
@@ -2675,15 +2675,15 @@ impl Controller {
             if grid_manager.pos_to_object(end.light()).is_some() {
                 return Err(ErrOperation::GridPositionAlreadyUsed);
             }
-            let (_, tengent) = grid_manager
-                .get_tengents_between_two_points(start.light(), end.light())
+            let (_, tangent) = grid_manager
+                .get_tangents_between_two_points(start.light(), end.light())
                 .ok_or(ErrOperation::GridDoesNotExist(end.grid))?;
-            return self.add_bezier_point(design, obj, end.light(), tengent, true);
+            return self.add_bezier_point(design, obj, end.light(), tangent, true);
         } else if let Some(obj) = grid_manager.pos_to_object(end.light()) {
-            let (tengent, _) = grid_manager
-                .get_tengents_between_two_points(start.light(), end.light())
+            let (tangent, _) = grid_manager
+                .get_tangents_between_two_points(start.light(), end.light())
                 .ok_or(ErrOperation::GridDoesNotExist(end.grid))?;
-            return self.add_bezier_point(design, obj, start.light(), tengent, false);
+            return self.add_bezier_point(design, obj, start.light(), tangent, false);
         }
         let helix = Helix::new_bezier_two_points(grid_manager, start, end)?;
         let mut new_helices = design.helices.make_mut();
@@ -2709,7 +2709,7 @@ impl Controller {
         mut design: Design,
         object: GridObject,
         point: GridPosition,
-        _tengent: Vec3,
+        _tangent: Vec3,
         append: bool,
     ) -> Result<Design, ErrOperation> {
         match object {

@@ -44,7 +44,7 @@ pub enum Selection {
         bezier_control: BezierControlPoint,
     },
     BezierVertex(BezierVertexId),
-    BezierTengent {
+    BezierTangent {
         vertex_id: BezierVertexId,
         inward: bool,
     },
@@ -89,7 +89,7 @@ impl Selection {
             Selection::Nothing => None,
             Selection::BezierControlPoint { .. } => Some(0),
             Selection::Xover(d, _) => Some(*d),
-            Selection::BezierTengent { .. } => Some(0),
+            Selection::BezierTangent { .. } => Some(0),
             Selection::BezierVertex(_) => Some(0),
         }
     }
@@ -116,7 +116,7 @@ impl Selection {
             Self::Bond(_, n1, n2) => Some(vec![n1.helix, n2.helix]),
             Self::Nothing => Some(vec![]),
             Self::BezierControlPoint { .. } => None,
-            Self::BezierTengent { .. } => None,
+            Self::BezierTangent { .. } => None,
             Self::BezierVertex(_) => None,
         }
     }
@@ -635,7 +635,7 @@ pub trait SelectionConversion: Sized {
 }
 
 use ensnano_design::elements::*;
-impl SelectionConversion for DnaElementKey {
+impl SelectionConversion for DesignElementKey {
     fn from_selection(selection: &Selection, d_id: u32) -> Option<Self> {
         if selection.get_design() == Some(d_id) {
             match selection {
@@ -666,9 +666,9 @@ impl SelectionConversion for DnaElementKey {
                     }
                 }
                 Selection::Nothing => None,
-                Selection::BezierControlPoint { .. } => None, //TODO make DNAelement out of these
+                Selection::BezierControlPoint { .. } => None, //TODO make DesignElement out of these
                 Selection::BezierVertex(_) => None,
-                Selection::BezierTengent { .. } => None,
+                Selection::BezierTangent { .. } => None,
             }
         } else {
             None

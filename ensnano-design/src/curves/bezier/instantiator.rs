@@ -19,7 +19,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::*;
 use ultraviolet::Vec2;
 
-const DEFAULT_BEZIER_TENGENT_NORM: f32 = 1. / 3.;
+const DEFAULT_BEZIER_TANGENT_NORM: f32 = 1. / 3.;
 
 pub(crate) trait BezierEndCoordinateUnit:
     std::ops::Add<Self, Output = Self>
@@ -120,10 +120,10 @@ pub(crate) trait PieceWiseBezierInstantiator<T: BezierEndCoordinateUnit> {
                     let pos_to = self.position(idx_to)?;
                     let vector_in = self
                         .vector_in(idx)
-                        .unwrap_or((pos_to - pos_from) * DEFAULT_BEZIER_TENGENT_NORM);
+                        .unwrap_or((pos_to - pos_from) * DEFAULT_BEZIER_TANGENT_NORM);
                     let vector_out = self
                         .vector_out(idx)
-                        .unwrap_or((pos_to - pos_from) * DEFAULT_BEZIER_TENGENT_NORM);
+                        .unwrap_or((pos_to - pos_from) * DEFAULT_BEZIER_TANGENT_NORM);
 
                     Some(T::instanciate_bezier_end(pos, vector_in, vector_out))
                 })

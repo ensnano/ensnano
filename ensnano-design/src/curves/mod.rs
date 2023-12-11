@@ -268,7 +268,7 @@ pub struct SurfaceInfo {
     pub point: SurfacePoint,
     pub section_tangent: Vec2,
     /// A frame where the up vector is normal to the revolution plane, and the right vector is
-    /// tengent to the revolution circle
+    /// tangent to the revolution circle
     pub local_frame: Rotor3,
     pub position: Vec3,
 }
@@ -701,7 +701,7 @@ pub(super) trait CurveInstantiator {
     fn orientation(&self, grid: GridId) -> Rotor3;
     fn source(&self) -> FreeGrids;
     fn source_paths(&self) -> Option<BezierPathData>;
-    fn get_tengents_between_two_points(
+    fn get_tangents_between_two_points(
         &self,
         p0: GridPosition,
         p1: GridPosition,

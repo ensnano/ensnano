@@ -35,8 +35,8 @@ pub mod scadnano;
 pub use ensnano_organizer::{GroupId, OrganizerTree};
 use scadnano::*;
 pub mod elements;
-use elements::DnaElementKey;
-pub type EnsnTree = OrganizerTree<DnaElementKey>;
+use elements::DesignElementKey;
+pub type EnsnTree = OrganizerTree<DesignElementKey>;
 pub mod group_attributes;
 use group_attributes::GroupAttribute;
 
@@ -130,7 +130,7 @@ pub struct Design {
     pub anchors: HashSet<Nucl>,
 
     #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub organizer_tree: Option<Arc<OrganizerTree<DnaElementKey>>>,
+    pub organizer_tree: Option<Arc<OrganizerTree<DesignElementKey>>>,
 
     #[serde(default)]
     pub ensnano_version: String,

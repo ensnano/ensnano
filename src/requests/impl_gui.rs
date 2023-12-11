@@ -184,27 +184,27 @@ impl GuiRequests for Requests {
         self.new_bezier_plane = Some(())
     }
 
-    fn set_candidates_keys(&mut self, candidates: Vec<DnaElementKey>) {
+    fn set_candidates_keys(&mut self, candidates: Vec<DesignElementKey>) {
         self.organizer_candidates = Some(candidates);
     }
 
     fn set_selected_keys(
         &mut self,
-        selection: Vec<DnaElementKey>,
+        selection: Vec<DesignElementKey>,
         group_id: Option<ensnano_organizer::GroupId>,
         new_group: bool,
     ) {
         self.organizer_selection = Some((selection, group_id, new_group));
     }
 
-    fn update_organizer_tree(&mut self, tree: OrganizerTree<DnaElementKey>) {
+    fn update_organizer_tree(&mut self, tree: OrganizerTree<DesignElementKey>) {
         self.new_tree = Some(tree);
     }
 
     fn update_attribute_of_elements(
         &mut self,
         attribute: DnaAttribute,
-        keys: BTreeSet<DnaElementKey>,
+        keys: BTreeSet<DesignElementKey>,
     ) {
         self.new_attribute = Some((attribute, keys.iter().cloned().collect()));
     }

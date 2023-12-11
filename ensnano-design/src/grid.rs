@@ -1165,7 +1165,7 @@ impl GridData {
         self.pos_to_object.keys()
     }
 
-    pub fn get_tengents_between_two_points(
+    pub fn get_tangents_between_two_points(
         &self,
         start: GridPosition,
         end: GridPosition,
@@ -1380,12 +1380,12 @@ impl CurveInstantiator for GridData {
         }
     }
 
-    fn get_tengents_between_two_points(
+    fn get_tangents_between_two_points(
         &self,
         p0: GridPosition,
         p1: GridPosition,
     ) -> Option<(Vec3, Vec3)> {
-        self.get_tengents_between_two_points(p0, p1)
+        self.get_tangents_between_two_points(p0, p1)
     }
 
     fn translate_by_edge(&self, position: GridPosition, edge: Edge) -> Option<GridPosition> {

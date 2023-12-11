@@ -373,7 +373,7 @@ impl Presenter {
                     Selection::Bond(_, n1, n2) => *n1 == nucl || *n2 == nucl,
                     Selection::Phantom(e) => e.to_nucl() == nucl,
                     Selection::BezierControlPoint { .. } => false,
-                    Selection::BezierTengent { .. } => false,
+                    Selection::BezierTangent { .. } => false,
                     Selection::BezierVertex(_) => false,
                 };
         }
@@ -400,7 +400,7 @@ impl Presenter {
     fn get_name_of_group_having_strand(&self, s_id: usize) -> Vec<String> {
         let tree = &self.current_design.organizer_tree.as_ref();
         tree.map(|t| {
-            t.get_names_of_groups_having(&ensnano_design::elements::DnaElementKey::Strand(s_id))
+            t.get_names_of_groups_having(&ensnano_design::elements::DesignElementKey::Strand(s_id))
         })
         .unwrap_or_default()
     }

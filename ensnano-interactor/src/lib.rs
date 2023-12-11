@@ -22,7 +22,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use std::path::PathBuf;
 
 use ensnano_design::{
-    elements::{DnaAttribute, DnaElementKey},
+    elements::{DnaAttribute, DesignElementKey},
     grid::{GridDescriptor, GridId, GridObject, GridTypeDescr, HelixGridPosition, Hyperboloid},
     group_attributes::GroupPivot,
     BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, BezierVertexId,
@@ -165,7 +165,7 @@ pub enum DesignOperation {
     },
     UpdateAttribute {
         attribute: DnaAttribute,
-        elements: Vec<DnaElementKey>,
+        elements: Vec<DesignElementKey>,
     },
     SetSmallSpheres {
         grid_ids: Vec<GridId>,
@@ -215,7 +215,7 @@ pub enum DesignOperation {
         x: isize,
         y: isize,
     },
-    SetOrganizerTree(ensnano_design::OrganizerTree<DnaElementKey>),
+    SetOrganizerTree(ensnano_design::OrganizerTree<DesignElementKey>),
     SetStrandName {
         s_id: usize,
         name: String,
@@ -293,7 +293,7 @@ pub enum DesignOperation {
     ApplyHomothethyOnBezierPlane {
         homothethy: BezierPlaneHomothethy,
     },
-    SetVectorOfBezierTengent(NewBezierTengentVector),
+    SetVectorOfBezierTangent(NewBezierTangentVector),
     MakeBezierPathCyclic {
         path_id: BezierPathId,
         cyclic: bool,
@@ -314,11 +314,11 @@ pub enum DesignOperation {
 }
 
 #[derive(Clone, Debug, Copy)]
-pub struct NewBezierTengentVector {
+pub struct NewBezierTangentVector {
     pub vertex_id: BezierVertexId,
-    /// Wether `new_vector` is the vector of the inward or outward tengent
-    pub tengent_in: bool,
-    pub full_symetry_other_tengent: bool,
+    /// Wether `new_vector` is the vector of the inward or outward tangent
+    pub tangent_in: bool,
+    pub full_symetry_other_tangent: bool,
     pub new_vector: Vec2,
 }
 
