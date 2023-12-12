@@ -26,8 +26,8 @@ pub const MODEL_BINDING_ID: u32 = 3;
 pub const VERTEX_POSITION_ADRESS: u32 = 0;
 pub const VERTEX_NORMAL_ADRESS: u32 = 1;
 
-pub const BOUND_RADIUS: f32 = 0.06;
-pub const BOUND_LENGTH: f32 = 1.;
+pub const BOND_RADIUS: f32 = 0.06;
+pub const BOND_LENGTH: f32 = 1.;
 pub const NB_RAY_TUBE: usize = 12;
 
 pub const SPHERE_RADIUS: f32 = 0.2;
@@ -220,8 +220,8 @@ pub const fn basis_color(basis: char) -> u32 {
 
 pub const BASIS_SCALE: ultraviolet::Vec3 = ultraviolet::Vec3 {
     x: 0.33 / SPHERE_RADIUS,
-    y: BOUND_RADIUS / SPHERE_RADIUS,
-    z: 2. * BOUND_RADIUS / SPHERE_RADIUS,
+    y: BOND_RADIUS / SPHERE_RADIUS,
+    z: 2. * BOND_RADIUS / SPHERE_RADIUS,
 };
 
 pub const BLACK_VEC4: Vec4 = Vec4 {

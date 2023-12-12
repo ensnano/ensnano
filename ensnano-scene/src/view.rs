@@ -94,7 +94,7 @@ static MODEL_BG_ENTRY: &[wgpu::BindGroupLayoutEntry] = &[wgpu::BindGroupLayoutEn
     count: None,
 }];
 
-use ensnano_interactor::graphics::{Background3D, HBoundDisplay, RenderingMode};
+use ensnano_interactor::graphics::{Background3D, HBondDisplay, RenderingMode};
 
 /// An object that handles the communication with the GPU to draw the scene.
 pub struct View {
@@ -145,7 +145,7 @@ pub struct DrawOptions {
     pub background3d: Background3D,
     pub show_stereographic_camera: bool,
     pub thick_helices: bool,
-    pub h_bonds: HBoundDisplay,
+    pub h_bonds: HBondDisplay,
     pub show_bezier_planes: bool,
 }
 
@@ -1210,12 +1210,12 @@ impl DnaDrawers {
         ];
         let mut last_solid_item = 2;
         match draw_options.h_bonds {
-            HBoundDisplay::No => (),
-            HBoundDisplay::Stick => {
+            HBondDisplay::No => (),
+            HBondDisplay::Stick => {
                 ret.insert(last_solid_item + 1, &mut self.hbond);
                 last_solid_item = 3;
             }
-            HBoundDisplay::Ellipsoid => {
+            HBondDisplay::Ellipsoid => {
                 ret.insert(last_solid_item + 1, &mut self.hbond);
                 ret.insert(last_solid_item + 2, &mut self.base_ellipsoid);
                 last_solid_item = 4;
@@ -1226,11 +1226,11 @@ impl DnaDrawers {
             ret.insert(last_solid_item + 2, &mut self.outline_sphere);
             ret.insert(last_solid_item + 3, &mut self.outline_prime3_cones);
             match draw_options.h_bonds {
-                HBoundDisplay::No => (),
-                HBoundDisplay::Stick => {
+                HBondDisplay::No => (),
+                HBondDisplay::Stick => {
                     ret.insert(last_solid_item + 4, &mut self.outline_hbond);
                 }
-                HBoundDisplay::Ellipsoid => {
+                HBondDisplay::Ellipsoid => {
                     ret.insert(last_solid_item + 4, &mut self.outline_hbond);
                     ret.insert(last_solid_item + 5, &mut self.outline_base_ellipsoid);
                 }

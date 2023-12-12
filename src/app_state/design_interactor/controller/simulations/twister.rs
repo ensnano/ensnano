@@ -17,7 +17,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use ensnano_design::grid::{GridDescriptor, GridTypeDescr};
-use ensnano_design::{grid::*, Collection, CurveDescriptor, HelixCollection, Parameters, Twist};
+use ensnano_design::{
+    grid::*, Collection, CurveDescriptor, HelixCollection, HelixParameters, Twist,
+};
 
 use super::roller::{DesignData, RollPresenter, RollSystem};
 use super::{Design, Helix, SimulationReader};
@@ -92,9 +94,9 @@ impl Twister {
             keys.push(key.clone());
             helices.push(helix.clone());
         }
-        let parameters = presenter
+        let helix_parameters = presenter
             .get_design()
-            .parameters
+            .helix_parameters
             .clone()
             .unwrap_or_default();
         let mut xovers = presenter.get_xovers_list();
@@ -115,7 +117,7 @@ impl Twister {
             helices,
             helix_map,
             xovers,
-            parameters,
+            helix_parameters,
             intervals,
         };
 
@@ -154,21 +156,21 @@ impl Twister {
 }
 
 impl TwistState {
-    fn set_twist(&mut self, twist: f64, parameters: &Parameters) {
+    fn set_twist(&mut self, twist: f64, helix_parameters: &HelixParameters) {
         let omega = match &mut self.grid.grid_type {
             GridTypeDescr::Hyperboloid {
                 nb_turn_per_100_nt, ..
             } => {
                 *nb_turn_per_100_nt = twist;
-                ensnano_design::nb_turn_per_100_nt_to_omega(*nb_turn_per_100_nt, parameters)
+                ensnano_design::nb_turn_per_100_nt_to_omega(*nb_turn_per_100_nt, helix_parameters)
             }
             GridTypeDescr::Square { twist: grid_twist } => {
                 *grid_twist = Some(twist);
-                ensnano_design::twist_to_omega(twist, parameters)
+                ensnano_design::twist_to_omega(twist, helix_parameters)
             }
             GridTypeDescr::Honeycomb { twist: grid_twist } => {
                 *grid_twist = Some(twist);
-                ensnano_design::twist_to_omega(twist, parameters)
+                ensnano_design::twist_to_omega(twist, helix_parameters)
             }
         };
 
@@ -206,7 +208,7 @@ impl Twister {
             self.system.best_square_error = err;
             self.system.best_omega = self.system.current_omega;
             self.state
-                .set_twist(self.system.best_omega, &self.data.parameters);
+                .set_twist(self.system.best_omega, &self.data.helix_parameters);
         }
         self.system.current_omega += (MAX_OMEGA - MIN_OMEGA) / (NB_STEP_OMEGA as f64);
         println!("current_omega = {}", self.system.current_omega);
@@ -238,7 +240,7 @@ impl DesignData {
     fn square_xover_constraints(&self) -> f64 {
         use ensnano_design::utils::vec_to_dvec;
         let mut ret = 0.0;
-        let len_0 = super::roller::dist_ac(&self.parameters) as f64;
+        let len_0 = super::roller::dist_ac(&self.helix_parameters) as f64;
         for (n1, n2) in self.xovers.iter() {
             let hid_1 = self.helix_map.get(&n1.helix).unwrap();
             let hid_2 = self.helix_map.get(&n2.helix).unwrap();
@@ -249,9 +251,9 @@ impl DesignData {
                 != self.support_helix_idx(&helix_2).unwrap_or(*hid_2)
             {
                 let pos_1 =
-                    vec_to_dvec(helix_1.space_pos(&self.parameters, n1.position, n1.forward));
+                    vec_to_dvec(helix_1.space_pos(&self.helix_parameters, n1.position, n1.forward));
                 let pos_2 =
-                    vec_to_dvec(helix_2.space_pos(&self.parameters, n2.position, n2.forward));
+                    vec_to_dvec(helix_2.space_pos(&self.helix_parameters, n2.position, n2.forward));
 
                 let len = (pos_1 - pos_2).mag();
 
@@ -274,9 +276,9 @@ impl DesignData {
             if let Some(CurveDescriptor::Twist(Twist { omega, .. })) =
                 h.curve.as_mut().map(Arc::make_mut)
             {
-                *omega = ensnano_design::nb_turn_per_100_nt_to_omega(twist, &self.parameters)
+                *omega = ensnano_design::nb_turn_per_100_nt_to_omega(twist, &self.helix_parameters)
                     .unwrap_or(*omega);
-                h.try_update_curve(&self.parameters);
+                h.try_update_curve(&self.helix_parameters);
             } else {
                 log::error!("Update twist: Wrong kind of curve descriptor");
             }

@@ -3,8 +3,8 @@ members = [ "ensnano-design", "ensnano-interactor", "ensnano-organizer", "ensnan
 
 [package]
 name = "ensnano"
-version = "0.5.0"
-authors = ["thenlevy <nicolaspierrelevy@gmail.com>"]
+version = "0.5.1"
+authors = ["thenlevy <nicolaspierrelevy@gmail.com>", "Nicolas Schabanel <nicolas.schabanel@gmail.com>"]
 edition = "2021"
 license = "GPL-3.0-or-later"
 resolver = "2"
@@ -20,6 +20,7 @@ serde = "1.0.116"
 serde_derive = "1.0.116"
 chrono = "0.4"
 simple_excel_writer = "0.1.7"
+rust_xlsxwriter = "0.55.0"
 regex = "1.4.2"
 mathru = "0.13"
 rand = "0.8.3"
@@ -49,10 +50,13 @@ iced_graphics = "0.8"
 iced_winit = "0.9"
 iced_native = "0.10"
 chebyshev_polynomials = { git = "https://github.com/thenlevy/chebyshev_polynomials" }
+hex = "0.4.3"
+
 
 #[patch.crates-io]
 #iced_aw = { git="https://github.com/iced-rs/iced_aw.git", tag="v0.2.0" }
 #iced_aw = "0.7"
+
 
 
 # [target.'cfg(not(target_env = "msvc"))'.dependencies]

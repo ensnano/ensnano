@@ -16,7 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use crate::Parameters;
+use crate::HelixParameters;
 
 use super::Curved;
 use std::f64::consts::{PI, TAU};
@@ -40,11 +40,11 @@ fn default_number_of_helices() -> usize {
 }
 
 impl TubeSpiralDescritor {
-    pub(super) fn with_parameters(self, parameters: Parameters) -> TubeSpiral {
+    pub(super) fn with_helix_parameters(self, helix_parameters: HelixParameters) -> TubeSpiral {
         TubeSpiral {
             theta_0: self.theta_0,
             big_axis: self.big_axis,
-            _parameters: parameters,
+            _parameters: helix_parameters,
             height: self.height,
             number_of_helices: self.number_of_helices,
             small_axis: self.small_axis,
@@ -65,7 +65,7 @@ impl TubeSpiralDescritor {
 pub(super) struct TubeSpiral {
     pub theta_0: f64,
     pub big_axis: f64,
-    pub _parameters: Parameters,
+    pub _parameters: HelixParameters,
     pub height: f64,
     pub number_of_helices: usize,
     pub small_axis: f64,
@@ -77,7 +77,7 @@ pub(super) struct TubeSpiral {
 impl TubeSpiral {
     fn dist_turn(&self) -> f64 {
         let nb_helices = self.number_of_helices as f64;
-        nb_helices * Parameters::INTER_CENTER_GAP as f64 / self.inclination().cos()
+        nb_helices * HelixParameters::INTER_CENTER_GAP as f64 / self.inclination().cos()
     }
 
     fn nb_turn(&self) -> f64 {
@@ -93,7 +93,7 @@ impl TubeSpiral {
             // the correct result is the perimeter of the polygon inscribed in the helix
             let slice_width = self.perimeter / 2. / PI * (PI / nb_helices).sin();
 
-            (Parameters::INTER_CENTER_GAP as f64 / 2. / slice_width).asin()
+            (HelixParameters::INTER_CENTER_GAP as f64 / 2. / slice_width).asin()
         }
     }
 

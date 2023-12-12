@@ -22,11 +22,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use std::path::PathBuf;
 
 use ensnano_design::{
-    elements::{DnaAttribute, DnaElementKey},
+    elements::{DnaAttribute, DesignElementKey},
     grid::{GridDescriptor, GridId, GridObject, GridTypeDescr, HelixGridPosition, Hyperboloid},
     group_attributes::GroupPivot,
     BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, BezierVertexId,
-    CurveDescriptor2D, Isometry3, Nucl, Parameters,
+    CurveDescriptor2D, HelixParameters, Isometry3, Nucl,
 };
 use serde::{Deserialize, Serialize};
 use ultraviolet::{Isometry2, Rotor3, Vec2, Vec3};
@@ -49,8 +49,8 @@ pub use surfaces::*;
 pub enum ObjectType {
     /// A nucleotide identified by its identifier
     Nucleotide(u32),
-    /// A bound, identified by the identifier of the two nucleotides that it bounds.
-    Bound(u32, u32),
+    /// A bond, identified by the identifier of the two nucleotides that it binds.
+    Bond(u32, u32),
 }
 
 impl ObjectType {
@@ -58,8 +58,8 @@ impl ObjectType {
         matches!(self, ObjectType::Nucleotide(_))
     }
 
-    pub fn is_bound(&self) -> bool {
-        matches!(self, ObjectType::Bound(_, _))
+    pub fn is_bond(&self) -> bool {
+        matches!(self, ObjectType::Bond(_, _))
     }
 
     pub fn same_type(&self, other: Self) -> bool {
@@ -165,7 +165,7 @@ pub enum DesignOperation {
     },
     UpdateAttribute {
         attribute: DnaAttribute,
-        elements: Vec<DnaElementKey>,
+        elements: Vec<DesignElementKey>,
     },
     SetSmallSpheres {
         grid_ids: Vec<GridId>,
@@ -215,7 +215,7 @@ pub enum DesignOperation {
         x: isize,
         y: isize,
     },
-    SetOrganizerTree(ensnano_design::OrganizerTree<DnaElementKey>),
+    SetOrganizerTree(ensnano_design::OrganizerTree<DesignElementKey>),
     SetStrandName {
         s_id: usize,
         name: String,
@@ -260,8 +260,8 @@ pub enum DesignOperation {
         xovers: Vec<usize>,
     },
     SetRainbowScaffold(bool),
-    SetDnaParameters {
-        parameters: Parameters,
+    SetGlobalHelixParameters {
+        helix_parameters: HelixParameters,
     },
     SetInsertionLength {
         length: usize,
@@ -293,7 +293,7 @@ pub enum DesignOperation {
     ApplyHomothethyOnBezierPlane {
         homothethy: BezierPlaneHomothethy,
     },
-    SetVectorOfBezierTengent(NewBezierTengentVector),
+    SetVectorOfBezierTangent(NewBezierTangentVector),
     MakeBezierPathCyclic {
         path_id: BezierPathId,
         cyclic: bool,
@@ -314,11 +314,11 @@ pub enum DesignOperation {
 }
 
 #[derive(Clone, Debug, Copy)]
-pub struct NewBezierTengentVector {
+pub struct NewBezierTangentVector {
     pub vertex_id: BezierVertexId,
-    /// Wether `new_vector` is the vector of the inward or outward tengent
-    pub tengent_in: bool,
-    pub full_symetry_other_tengent: bool,
+    /// Wether `new_vector` is the vector of the inward or outward tangent
+    pub tangent_in: bool,
+    pub full_symetry_other_tangent: bool,
     pub new_vector: Vec2,
 }
 
@@ -371,7 +371,7 @@ pub enum IsometryTarget {
     Design,
     /// An helix of the design
     Helices(Vec<usize>, bool),
-    /// A grid of the desgin
+    /// A grid of the design
     Grids(Vec<GridId>),
     /// The pivot of a group
     GroupPivot(GroupId),
@@ -659,7 +659,8 @@ pub struct BezierPlaneHomothethy {
 #[derive(Debug, Clone, Copy)]
 /// One of the standard scaffold sequence shipped with ENSnano
 pub enum StandardSequence {
-    P7259,
+    P4844,
+    P7249,
     P7560,
     P8064,
     PUC19,
@@ -668,7 +669,8 @@ pub enum StandardSequence {
 impl StandardSequence {
     pub fn description(&self) -> &'static str {
         match self {
-            Self::P7259 => "m13 p7259",
+            Self::P4844 => "m13 p4844",
+            Self::P7249 => "m13 p7249",
             Self::P7560 => "m13 p7560",
             Self::P8064 => "m13 p8064",
             Self::PUC19 => "pUC19 (2686 nt)",
@@ -677,7 +679,8 @@ impl StandardSequence {
 
     pub fn sequence(&self) -> &'static str {
         match self {
-            Self::P7259 => include_str!("../p7249-Tilibit.txt"),
+            Self::P4844 => include_str!("../p4844-Tilibit.txt"),
+            Self::P7249 => include_str!("../p7249-Tilibit.txt"),
             Self::P7560 => include_str!("../p7560.txt"),
             Self::P8064 => include_str!("../m13-p8064.txt"),
             Self::PUC19 => include_str!("../pUC19.txt"),
@@ -688,7 +691,7 @@ impl StandardSequence {
     pub fn from_length(n: usize) -> Self {
         let mut best_score = isize::MAX;
         let mut ret = Self::default();
-        for candidate in [Self::P7259, Self::P7560, Self::P8064] {
+        for candidate in [Self::P4844, Self::P7249, Self::P7560, Self::P8064] {
             let score = (candidate.sequence().len() as isize - (n as isize)).abs();
             if score < best_score {
                 best_score = score;
@@ -701,6 +704,6 @@ impl StandardSequence {
 
 impl Default for StandardSequence {
     fn default() -> Self {
-        Self::P7259
+        Self::P7249
     }
 }

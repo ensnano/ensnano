@@ -27,10 +27,11 @@ use crate::{
     BezierPathData, BezierPathId,
 };
 
-use super::{Helix, Parameters};
+use super::{Helix, HelixParameters};
 use std::sync::Arc;
 mod bezier;
 mod discretization;
+mod legacy;
 mod revolution;
 mod sphere_concentric_circle;
 mod sphere_like_spiral;
@@ -135,12 +136,12 @@ pub trait Curved {
         None
     }
 
-    fn theta_shift(&self, parameters: &Parameters) -> Option<f64> {
+    fn theta_shift(&self, helix_parameters: &HelixParameters) -> Option<f64> {
         if let Some(real_z_ratio) = self.z_step_ratio() {
-            let r = parameters.helix_radius as f64;
-            let z = parameters.z_step as f64;
+            let r = helix_parameters.helix_radius as f64;
+            let z = helix_parameters.z_step as f64;
             let real_z = z * real_z_ratio;
-            let d1 = parameters.dist_ac() as f64;
+            let d1 = helix_parameters.dist_ac() as f64;
             let cos_ret = 1.0 - (d1 * d1 - real_z * real_z) / (r * r * 2.0);
             if cos_ret.abs() > 1.0 {
                 None
@@ -235,6 +236,10 @@ pub trait Curved {
     fn pre_compute_polynomials(&self) -> bool {
         false
     }
+
+    fn legacy(&self) -> bool {
+        false
+    }
 }
 
 /// The bounds of the curve. This describe the interval in which t can be taken
@@ -263,7 +268,7 @@ pub struct SurfaceInfo {
     pub point: SurfacePoint,
     pub section_tangent: Vec2,
     /// A frame where the up vector is normal to the revolution plane, and the right vector is
-    /// tengent to the revolution circle
+    /// tangent to the revolution circle
     pub local_frame: Rotor3,
     pub position: Vec3,
 }
@@ -295,7 +300,10 @@ pub struct Curve {
 }
 
 impl Curve {
-    pub fn new<T: Curved + 'static + Sync + Send>(geometry: T, parameters: &Parameters) -> Self {
+    pub fn new<T: Curved + 'static + Sync + Send>(
+        geometry: T,
+        helix_parameters: &HelixParameters,
+    ) -> Self {
         let mut ret = Self {
             geometry: Arc::new(geometry),
             positions_forward: Vec::new(),
@@ -309,8 +317,9 @@ impl Curve {
             additional_segment_left: Vec::new(),
             abscissa_converter: None,
         };
-        let len_segment = ret.geometry.z_step_ratio().unwrap_or(1.0) * parameters.z_step as f64;
-        ret.discretize(len_segment, parameters.inclination as f64);
+        let len_segment =
+            ret.geometry.z_step_ratio().unwrap_or(1.0) * helix_parameters.z_step as f64;
+        ret.discretize(len_segment, helix_parameters.inclination as f64);
         ret
     }
 
@@ -356,12 +365,12 @@ impl Curve {
     }
 
     pub fn axis_pos(&self, n: isize) -> Option<DVec3> {
-        let idx = self.idx_convertsion(n)?;
+        let idx = self.idx_conversion(n)?;
         self.positions_forward.get(idx).cloned()
     }
 
     pub fn nucl_time(&self, n: isize) -> Option<f64> {
-        let idx = self.idx_convertsion(n)?;
+        let idx = self.idx_conversion(n)?;
         self.t_nucl.get(idx).cloned()
     }
 
@@ -370,7 +379,7 @@ impl Curve {
         self.curvature.get(n).cloned()
     }
 
-    pub fn idx_convertsion(&self, n: isize) -> Option<usize> {
+    pub fn idx_conversion(&self, n: isize) -> Option<usize> {
         if n >= 0 {
             Some(n as usize + self.nucl_t0)
         } else {
@@ -388,12 +397,17 @@ impl Curve {
         n: isize,
         forward: bool,
         theta: f64,
-        parameters: &Parameters,
+        helix_parameters: &HelixParameters,
     ) -> Option<DVec3> {
         use std::f64::consts::{PI, TAU};
-        let idx = self.idx_convertsion(n)?;
-        let theta = if let Some(real_theta) = self.geometry.theta_shift(parameters) {
-            let base_theta = TAU / parameters.bases_per_turn as f64;
+
+        if self.geometry.legacy() {
+            return self.legacy_nucl_pos(n, forward, theta, helix_parameters);
+        }
+
+        let idx = self.idx_conversion(n)?;
+        let theta = if let Some(real_theta) = self.geometry.theta_shift(helix_parameters) {
+            let base_theta = TAU / helix_parameters.bases_per_turn as f64;
             (base_theta - real_theta) * n as f64 + theta
         } else if let Some(pos_full_turn) = self.nucl_pos_full_turn {
             let additional_angle = self
@@ -407,8 +421,8 @@ impl Curve {
                     y.atan2(x)
                 })
                 .unwrap_or(0.);
-            let final_angle =
-                pos_full_turn as f64 * TAU / -parameters.bases_per_turn as f64 + additional_angle;
+            let final_angle = pos_full_turn as f64 * TAU / -helix_parameters.bases_per_turn as f64
+                + additional_angle;
             let rem = final_angle.rem_euclid(TAU);
 
             let mut full_delta = -rem;
@@ -434,8 +448,8 @@ impl Curve {
         if let Some(matrix) = axis.get(idx).cloned() {
             let mut ret = matrix
                 * DVec3::new(
-                    -theta.cos() * parameters.helix_radius as f64,
-                    theta.sin() * parameters.helix_radius as f64,
+                    -theta.cos() * helix_parameters.helix_radius as f64,
+                    theta.sin() * helix_parameters.helix_radius as f64,
                     0.0,
                 );
             ret += positions[idx];
@@ -446,7 +460,7 @@ impl Curve {
     }
 
     pub fn axis_at_pos(&self, position: isize, forward: bool) -> Option<DMat3> {
-        let idx = self.idx_convertsion(position)?;
+        let idx = self.idx_conversion(position)?;
         let axis = if forward {
             &self.axis_forward
         } else {
@@ -547,9 +561,15 @@ pub enum CurveDescriptor {
     TranslatedPath {
         path_id: BezierPathId,
         translation: Vec3,
+        #[serde(default, skip_serializing_if = "is_false")]
+        legacy: bool,
     },
     SuperTwist(SuperTwist),
     InterpolatedCurve(InterpolatedCurveDescriptor),
+}
+
+fn is_false(b: &bool) -> bool {
+    !b
 }
 
 const NO_BEZIER: &[BezierEnd] = &[];
@@ -656,12 +676,12 @@ impl CurveDescriptor {
 
     pub fn compute_length(&self) -> Option<f64> {
         let desc = InstanciatedCurveDescriptor::try_instanciate(Arc::new(self.clone()))?;
-        desc.instance.try_length(&Parameters::GEARY_2014_DNA)
+        desc.instance.try_length(&HelixParameters::GEARY_2014_DNA)
     }
 
     pub fn path(&self) -> Option<Vec<DVec3>> {
         let desc = InstanciatedCurveDescriptor::try_instanciate(Arc::new(self.clone()))?;
-        desc.instance.try_path(&Parameters::GEARY_2014_DNA)
+        desc.instance.try_path(&HelixParameters::GEARY_2014_DNA)
     }
 }
 
@@ -681,7 +701,7 @@ pub(super) trait CurveInstantiator {
     fn orientation(&self, grid: GridId) -> Rotor3;
     fn source(&self) -> FreeGrids;
     fn source_paths(&self) -> Option<BezierPathData>;
-    fn get_tengents_between_two_points(
+    fn get_tangents_between_two_points(
         &self,
         p0: GridPosition,
         p1: GridPosition,
@@ -726,9 +746,12 @@ impl InstanciatedCurveDescriptor {
             CurveDescriptor::TranslatedPath {
                 path_id,
                 translation,
+                legacy,
             } => grid_reader
                 .source_paths()
-                .and_then(|paths| Self::instanciate_translated_path(*path_id, *translation, paths))
+                .and_then(|paths| {
+                    Self::instanciate_translated_path(*path_id, *translation, paths, *legacy)
+                })
                 .unwrap_or_else(|| {
                     let instanciated = InstanciatedPiecewiseBezierDescriptor::instanciate(
                         &[],
@@ -752,6 +775,7 @@ impl InstanciatedCurveDescriptor {
         path_id: BezierPathId,
         translation: Vec3,
         source_path: BezierPathData,
+        legacy: bool,
     ) -> Option<InstanciatedCurveDescriptor_> {
         source_path
             .instanciated_paths
@@ -763,6 +787,7 @@ impl InstanciatedCurveDescriptor {
                     initial_frame: frame,
                     translation: vec_to_dvec(translation),
                     paths_data: source_path.clone(),
+                    legacy,
                 },
             )
     }
@@ -828,8 +853,13 @@ impl InstanciatedCurveDescriptor {
         }
     }
 
-    pub fn make_curve(&self, parameters: &Parameters, cached_curve: &mut CurveCache) -> Arc<Curve> {
-        InstanciatedCurveDescriptor_::clone(&self.instance).into_curve(parameters, cached_curve)
+    pub fn make_curve(
+        &self,
+        helix_parameters: &HelixParameters,
+        cached_curve: &mut CurveCache,
+    ) -> Arc<Curve> {
+        InstanciatedCurveDescriptor_::clone(&self.instance)
+            .into_curve(helix_parameters, cached_curve)
     }
 
     pub fn get_bezier_controls(&self) -> Option<CubicBezierConstructor> {
@@ -887,6 +917,7 @@ enum InstanciatedCurveDescriptor_ {
         translation: DVec3,
         initial_frame: DMat3,
         paths_data: BezierPathData,
+        legacy: bool,
     },
     InterpolatedCurve(InterpolatedCurveDescriptor),
 }
@@ -967,33 +998,37 @@ impl InstanciatedPiecewiseBezierDescriptor {
 }
 
 impl InstanciatedCurveDescriptor_ {
-    pub fn into_curve(self, parameters: &Parameters, cache: &mut CurveCache) -> Arc<Curve> {
+    pub fn into_curve(
+        self,
+        helix_parameters: &HelixParameters,
+        cache: &mut CurveCache,
+    ) -> Arc<Curve> {
         match self {
             Self::Bezier(constructor) => {
-                Arc::new(Curve::new(constructor.into_bezier(), parameters))
+                Arc::new(Curve::new(constructor.into_bezier(), helix_parameters))
             }
             Self::SphereLikeSpiral(spiral) => Arc::new(Curve::new(
-                spiral.with_parameters(parameters.clone()),
-                parameters,
+                spiral.with_helix_parameters(helix_parameters.clone()),
+                helix_parameters,
             )),
             Self::TubeSpiral(spiral) => Arc::new(Curve::new(
-                spiral.with_parameters(parameters.clone()),
-                parameters,
+                spiral.with_helix_parameters(helix_parameters.clone()),
+                helix_parameters,
             )),
             Self::SphereConcentricCircle(constructor) => Arc::new(Curve::new(
-                constructor.with_parameters(parameters.clone()),
-                parameters,
+                constructor.with_helix_parameters(helix_parameters.clone()),
+                helix_parameters,
             )),
-            Self::Twist(twist) => Arc::new(Curve::new(twist, parameters)),
-            Self::Torus(torus) => Arc::new(Curve::new(torus, parameters)),
-            Self::SuperTwist(twist) => Arc::new(Curve::new(twist, parameters)),
+            Self::Twist(twist) => Arc::new(Curve::new(twist, helix_parameters)),
+            Self::Torus(torus) => Arc::new(Curve::new(torus, helix_parameters)),
+            Self::SuperTwist(twist) => Arc::new(Curve::new(twist, helix_parameters)),
             Self::TwistedTorus(ref desc) => {
                 if let Some(curve) = cache.0.get(desc) {
                     curve.clone()
                 } else {
                     let ret = Arc::new(Curve::new(
-                        TwistedTorus::new(desc.clone(), parameters),
-                        parameters,
+                        TwistedTorus::new(desc.clone(), helix_parameters),
+                        helix_parameters,
                     ));
                     println!("Number of nucleotides {}", ret.nb_points());
                     cache.0.insert(desc.clone(), ret.clone());
@@ -1001,83 +1036,91 @@ impl InstanciatedCurveDescriptor_ {
                 }
             }
             Self::PiecewiseBezier(instanciated_descriptor) => {
-                Arc::new(Curve::new(instanciated_descriptor.desc, parameters))
+                Arc::new(Curve::new(instanciated_descriptor.desc, helix_parameters))
             }
             Self::TranslatedBezierPath {
                 path_curve,
                 translation,
                 initial_frame,
+                legacy,
                 ..
             } => Arc::new(Curve::new(
                 TranslatedPiecewiseBezier {
-                    original_curve: path_curve.clone(),
+                    original_curve: path_curve,
                     translation,
                     initial_frame,
+                    legacy,
                 },
-                parameters,
+                helix_parameters,
             )),
             Self::InterpolatedCurve(desc) => {
-                Arc::new(Curve::new(desc.instanciate(true), parameters))
+                Arc::new(Curve::new(desc.instanciate(true), helix_parameters))
             }
         }
     }
 
-    pub fn try_into_curve(&self, parameters: &Parameters) -> Option<Arc<Curve>> {
+    pub fn try_into_curve(&self, helix_parameters: &HelixParameters) -> Option<Arc<Curve>> {
         match self {
             Self::Bezier(constructor) => Some(Arc::new(Curve::new(
                 constructor.clone().into_bezier(),
-                parameters,
+                helix_parameters,
             ))),
             Self::SphereLikeSpiral(spiral) => Some(Arc::new(Curve::new(
-                spiral.clone().with_parameters(parameters.clone()),
-                parameters,
+                spiral.clone().with_helix_parameters(*helix_parameters),
+                helix_parameters,
             ))),
             Self::TubeSpiral(spiral) => Some(Arc::new(Curve::new(
-                spiral.clone().with_parameters(parameters.clone()),
-                parameters,
+                spiral.clone().with_helix_parameters(*helix_parameters),
+                helix_parameters,
             ))),
             Self::SphereConcentricCircle(constructor) => Some(Arc::new(Curve::new(
-                constructor.clone().with_parameters(parameters.clone()),
-                parameters,
+                constructor
+                    .clone()
+                    .with_helix_parameters(helix_parameters.clone()),
+                helix_parameters,
             ))),
-            Self::Twist(twist) => Some(Arc::new(Curve::new(twist.clone(), parameters))),
-            Self::Torus(torus) => Some(Arc::new(Curve::new(torus.clone(), parameters))),
-            Self::SuperTwist(twist) => Some(Arc::new(Curve::new(twist.clone(), parameters))),
+            Self::Twist(twist) => Some(Arc::new(Curve::new(twist.clone(), helix_parameters))),
+            Self::Torus(torus) => Some(Arc::new(Curve::new(torus.clone(), helix_parameters))),
+            Self::SuperTwist(twist) => Some(Arc::new(Curve::new(twist.clone(), helix_parameters))),
             Self::TwistedTorus(_) => None,
             Self::PiecewiseBezier(_) => None,
             Self::TranslatedBezierPath {
                 path_curve,
                 translation,
                 initial_frame,
+                legacy,
                 ..
             } => Some(Arc::new(Curve::new(
                 TranslatedPiecewiseBezier {
                     original_curve: path_curve.clone(),
                     translation: *translation,
                     initial_frame: *initial_frame,
+                    legacy: *legacy,
                 },
-                parameters,
+                helix_parameters,
             ))),
             Self::InterpolatedCurve(desc) => Some(Arc::new(Curve::new(
                 desc.clone().instanciate(true),
-                parameters,
+                helix_parameters,
             ))),
         }
     }
 
-    fn try_length(&self, parameters: &Parameters) -> Option<f64> {
+    fn try_length(&self, helix_parameters: &HelixParameters) -> Option<f64> {
         match self {
             Self::Bezier(constructor) => {
                 Some(Curve::compute_length(constructor.clone().into_bezier()))
             }
             Self::SphereLikeSpiral(spiral) => Some(Curve::compute_length(
-                spiral.clone().with_parameters(parameters.clone()),
+                spiral.clone().with_helix_parameters(*helix_parameters),
             )),
             Self::TubeSpiral(spiral) => Some(Curve::compute_length(
-                spiral.clone().with_parameters(parameters.clone()),
+                spiral.clone().with_helix_parameters(*helix_parameters),
             )),
             Self::SphereConcentricCircle(constructor) => Some(Curve::compute_length(
-                constructor.clone().with_parameters(parameters.clone()),
+                constructor
+                    .clone()
+                    .with_helix_parameters(helix_parameters.clone()),
             )),
             Self::Twist(twist) => Some(Curve::compute_length(twist.clone())),
             Self::Torus(torus) => Some(Curve::compute_length(torus.clone())),
@@ -1088,11 +1131,13 @@ impl InstanciatedCurveDescriptor_ {
                 path_curve,
                 translation,
                 initial_frame,
+                legacy,
                 ..
             } => Some(Curve::compute_length(TranslatedPiecewiseBezier {
                 original_curve: path_curve.clone(),
                 translation: *translation,
                 initial_frame: *initial_frame,
+                legacy: *legacy,
             })),
             Self::InterpolatedCurve(desc) => {
                 Some(Curve::compute_length(desc.clone().instanciate(true)))
@@ -1100,17 +1145,23 @@ impl InstanciatedCurveDescriptor_ {
         }
     }
 
-    fn try_path(&self, parameters: &Parameters) -> Option<Vec<DVec3>> {
+    fn try_path(&self, helix_parameters: &HelixParameters) -> Option<Vec<DVec3>> {
         match self {
             Self::Bezier(constructor) => Some(Curve::path(constructor.clone().into_bezier())),
             Self::SphereLikeSpiral(spiral) => Some(Curve::path(
-                spiral.clone().with_parameters(parameters.clone()),
+                spiral
+                    .clone()
+                    .with_helix_parameters(helix_parameters.clone()),
             )),
             Self::TubeSpiral(spiral) => Some(Curve::path(
-                spiral.clone().with_parameters(parameters.clone()),
+                spiral
+                    .clone()
+                    .with_helix_parameters(helix_parameters.clone()),
             )),
             Self::SphereConcentricCircle(constructor) => Some(Curve::path(
-                constructor.clone().with_parameters(parameters.clone()),
+                constructor
+                    .clone()
+                    .with_helix_parameters(helix_parameters.clone()),
             )),
             Self::Twist(twist) => Some(Curve::path(twist.clone())),
             Self::Torus(torus) => Some(Curve::path(torus.clone())),
@@ -1121,11 +1172,13 @@ impl InstanciatedCurveDescriptor_ {
                 path_curve,
                 translation,
                 initial_frame,
+                legacy,
                 ..
             } => Some(Curve::path(TranslatedPiecewiseBezier {
                 original_curve: path_curve.clone(),
                 translation: *translation,
                 initial_frame: *initial_frame,
+                legacy: *legacy,
             })),
             Self::InterpolatedCurve(desc) => Some(Curve::path(desc.clone().instanciate(false))),
         }
@@ -1199,19 +1252,16 @@ impl Helix {
             .instanciated_curve
             .as_ref()
             .map(|c| Arc::as_ptr(&c.source))
-            == self
-                .instanciated_descriptor
-                .as_ref()
-                .map(|target| Arc::as_ptr(&target));
+            == self.instanciated_descriptor.as_ref().map(Arc::as_ptr);
         !up_to_date
     }
 
-    pub fn try_update_curve(&mut self, parameters: &Parameters) {
+    pub fn try_update_curve(&mut self, helix_parameters: &HelixParameters) {
         if let Some(curve) = self.curve.as_ref() {
             if let Some(desc) = InstanciatedCurveDescriptor::try_instanciate(curve.clone()) {
                 let desc = Arc::new(desc);
                 self.instanciated_descriptor = Some(desc.clone());
-                if let Some(curve) = desc.as_ref().instance.try_into_curve(parameters) {
+                if let Some(curve) = desc.as_ref().instance.try_into_curve(helix_parameters) {
                     self.instanciated_curve = Some(InstanciatedCurve {
                         curve,
                         source: desc,

@@ -18,7 +18,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::collection::HasMap;
 use super::curves::{BezierEndCoordinates, Curve, InstanciatedPiecewiseBezier};
 use super::Collection;
-use super::Parameters;
+use super::HelixParameters;
 use crate::grid::*;
 use crate::utils::rotor_to_drotor;
 use crate::PieceWiseBezierInstantiator;
@@ -492,7 +492,7 @@ impl InstanciatedPath {
     fn new(
         source_planes: BezierPlanes,
         source_path: Arc<BezierPath>,
-        parameters: &Parameters,
+        helix_parameters: &HelixParameters,
     ) -> Self {
         let descriptor_2d =
             path_to_curve_descriptor(source_planes.clone(), source_path.clone(), false);
@@ -504,7 +504,7 @@ impl InstanciatedPath {
         let curve_2d = descriptor_2d
             .clone()
             .filter(|d| d.ends.len() >= 2) // Do not try to create a curve if there is only one vertex
-            .map(|desc| Curve::new(desc, parameters));
+            .map(|desc| Curve::new(desc, helix_parameters));
         Self {
             source_planes,
             source_path,
@@ -519,10 +519,10 @@ impl InstanciatedPath {
         &self,
         source_planes: BezierPlanes,
         source_path: Arc<BezierPath>,
-        parameters: &Parameters,
+        helix_parameters: &HelixParameters,
     ) -> Option<Self> {
         if self.need_update(&source_planes, &source_path) {
-            Some(Self::new(source_planes, source_path, parameters))
+            Some(Self::new(source_planes, source_path, helix_parameters))
         } else {
             None
         }
@@ -579,7 +579,7 @@ impl BezierPathData {
     pub fn new(
         source_planes: BezierPlanes,
         source_paths: BezierPaths,
-        parameters: &Parameters,
+        helix_parameters: &HelixParameters,
     ) -> Self {
         let instanciated_paths: BTreeMap<_, _> = source_paths
             .0
@@ -590,7 +590,7 @@ impl BezierPathData {
                     Arc::new(InstanciatedPath::new(
                         source_planes.clone(),
                         path.clone(),
-                        parameters,
+                        helix_parameters,
                     )),
                 )
             })
@@ -611,7 +611,7 @@ impl BezierPathData {
         &self,
         source_planes: BezierPlanes,
         source_paths: BezierPaths,
-        parameters: &Parameters,
+        helix_parameters: &HelixParameters,
     ) -> Option<Self> {
         if self.need_update(&source_planes, &source_paths) {
             let instanciated_paths: BTreeMap<_, _> = source_paths
@@ -619,14 +619,14 @@ impl BezierPathData {
                 .iter()
                 .map(|(id, source_path)| {
                     let path = if let Some(path) = self.instanciated_paths.get(id) {
-                        path.updated(source_planes.clone(), source_path.clone(), parameters)
+                        path.updated(source_planes.clone(), source_path.clone(), helix_parameters)
                             .map(Arc::new)
                             .unwrap_or_else(|| path.clone())
                     } else {
                         Arc::new(InstanciatedPath::new(
                             source_planes.clone(),
                             source_path.clone(),
-                            parameters,
+                            helix_parameters,
                         ))
                     };
                     (*id, path)

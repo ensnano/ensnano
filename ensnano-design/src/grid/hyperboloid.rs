@@ -50,22 +50,22 @@ pub struct Hyperboloid {
 }
 
 impl GridDivision for Hyperboloid {
-    fn origin_helix(&self, parameters: &Parameters, x: isize, _y: isize) -> Vec2 {
+    fn origin_helix(&self, helix_parameters: &HelixParameters, x: isize, _y: isize) -> Vec2 {
         let i = x % (self.radius as isize);
-        let left_helix = self.origin(i, parameters);
-        let right_helix = self.destination(i, parameters);
+        let left_helix = self.origin(i, helix_parameters);
+        let right_helix = self.destination(i, helix_parameters);
         let origin = (right_helix + left_helix) / 2.;
         Vec2::new(origin.z, origin.y)
     }
 
-    fn orientation_helix(&self, parameters: &Parameters, x: isize, _y: isize) -> Rotor3 {
+    fn orientation_helix(&self, helix_parameters: &HelixParameters, x: isize, _y: isize) -> Rotor3 {
         let i = x % (self.radius as isize);
-        let origin = self.origin(i, parameters);
-        let dest = self.destination(i, parameters);
+        let origin = self.origin(i, helix_parameters);
+        let dest = self.destination(i, helix_parameters);
         Rotor3::from_rotation_between(Vec3::unit_x(), (dest - origin).normalized())
     }
 
-    fn interpolate(&self, _parameters: &Parameters, x: f32, y: f32) -> (isize, isize) {
+    fn interpolate(&self, _helix_parameters: &HelixParameters, x: f32, y: f32) -> (isize, isize) {
         use std::f32::consts::PI;
         let angle = PI / self.radius as f32;
         let plane_angle = y.atan2(x);
@@ -117,11 +117,11 @@ impl GridDivision for Hyperboloid {
 }
 
 impl Hyperboloid {
-    pub fn make_helices(&self, parameters: &Parameters) -> (Vec<Helix>, usize) {
+    pub fn make_helices(&self, helix_parameters: &HelixParameters) -> (Vec<Helix>, usize) {
         let mut ret = Vec::with_capacity(self.radius);
         for i in 0..self.radius {
-            let left_helix = self.origin(i as isize, parameters);
-            let right_helix = self.destination(i as isize, parameters);
+            let left_helix = self.origin(i as isize, helix_parameters);
+            let right_helix = self.destination(i as isize, helix_parameters);
             let origin = (left_helix + right_helix) / 2.;
             let orientation = Rotor3::from_rotation_between(
                 Vec3::unit_x(),
@@ -137,7 +137,7 @@ impl Hyperboloid {
                     t_min: None,
                     t_max: None,
                     orientation,
-                    parameters: parameters.clone(),
+                    helix_parameters: helix_parameters.clone(),
                     grid_center: origin,
                 },
             );
@@ -150,8 +150,8 @@ impl Hyperboloid {
         (ret, self.length as usize)
     }
 
-    pub fn modify_shift(&mut self, new_shift: f32, parameters: &Parameters) {
-        let grid_radius = self.radius(parameters);
+    pub fn modify_shift(&mut self, new_shift: f32, helix_parameters: &HelixParameters) {
+        let grid_radius = self.radius(helix_parameters);
         self.shift = new_shift;
         if self.forced_radius.is_none() {
             self.forced_radius = Some(grid_radius);
@@ -171,12 +171,12 @@ impl Hyperboloid {
 
     /// Return the radii of the sheet so that the helices respectively fits perfectly at the center of the
     /// hyperboloid or at the extremity of the hyperboloid
-    fn sheet_radii(&self, parameters: &Parameters) -> (f32, f32) {
+    fn sheet_radii(&self, helix_parameters: &HelixParameters) -> (f32, f32) {
         // First determine the radius in the center of the hyperboloid.
         use std::f32::consts::PI;
         let angle = PI / self.radius as f32;
         let center_radius =
-            (parameters.helix_radius + parameters.inter_helix_gap / 2.) / angle.sin();
+            (helix_parameters.helix_radius + helix_parameters.inter_helix_gap / 2.) / angle.sin();
 
         // Let R be the radius on the sheets, delta be self.shift and r be the radius of at the
         // center. Then for a point at R( cos(theta), sin(theta), 0) joining a point at R(cos(theta
@@ -191,18 +191,18 @@ impl Hyperboloid {
     }
 
     /// Return true iff the grid supporting self contains the point (x, y)
-    pub fn contains_point(&self, parameters: &Parameters, x: f32, y: f32) -> bool {
-        let r = self.grid_radius(parameters);
+    pub fn contains_point(&self, helix_parameters: &HelixParameters, x: f32, y: f32) -> bool {
+        let r = self.grid_radius(helix_parameters);
         x.abs() <= r && y.abs() <= r
     }
 
-    fn radius(&self, parameters: &Parameters) -> f32 {
-        self.sheet_radii(parameters).0
+    fn radius(&self, helix_parameters: &HelixParameters) -> f32 {
+        self.sheet_radii(helix_parameters).0
     }
 
     #[allow(dead_code)] // TODO re-implement twisted structure
-    fn curve(&self, n: usize, parameters: &Parameters, omega: f64) -> Twist {
-        let radius = self.sheet_radii(parameters).1;
+    fn curve(&self, n: usize, helix_parameters: &HelixParameters, omega: f64) -> Twist {
+        let radius = self.sheet_radii(helix_parameters).1;
         let angle = std::f64::consts::TAU / self.radius as f64;
         Twist {
             theta0: n as f64 * angle,
@@ -215,29 +215,31 @@ impl Hyperboloid {
         }
     }
 
-    pub fn grid_radius(&self, parameters: &Parameters) -> f32 {
-        let grid_radius = self.radius(parameters);
+    pub fn grid_radius(&self, helix_parameters: &HelixParameters) -> f32 {
+        let grid_radius = self.radius(helix_parameters);
         let r = grid_radius / 2. * (2. + 2. * self.shift.cos()).sqrt();
-        self.forced_radius.unwrap_or(r) + parameters.helix_radius + parameters.inter_helix_gap / 2.
+        self.forced_radius.unwrap_or(r)
+            + helix_parameters.helix_radius
+            + helix_parameters.inter_helix_gap / 2.
     }
 
-    fn origin(&self, i: isize, parameters: &Parameters) -> Vec3 {
+    fn origin(&self, i: isize, helix_parameters: &HelixParameters) -> Vec3 {
         use std::f32::consts::PI;
         let angle = PI / self.radius as f32;
-        let grid_radius = self.radius(parameters);
+        let grid_radius = self.radius(helix_parameters);
         let i = i % (self.radius as isize);
         let theta = 2. * i as f32 * angle;
         Vec3::new(0., grid_radius * theta.sin(), grid_radius * theta.cos())
     }
 
-    fn destination(&self, i: isize, parameters: &Parameters) -> Vec3 {
+    fn destination(&self, i: isize, helix_parameters: &HelixParameters) -> Vec3 {
         use std::f32::consts::PI;
         let angle = PI / self.radius as f32;
-        let grid_radius = self.radius(parameters);
+        let grid_radius = self.radius(helix_parameters);
         let i = i % (self.radius as isize);
         let theta = 2. * i as f32 * angle + self.shift;
         Vec3::new(
-            self.length * parameters.z_step,
+            self.length * helix_parameters.z_step,
             grid_radius * theta.sin(),
             grid_radius * theta.cos(),
         )

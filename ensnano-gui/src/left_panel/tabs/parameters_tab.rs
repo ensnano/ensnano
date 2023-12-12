@@ -67,7 +67,7 @@ impl ParametersTab {
                 ui_size.clone(),
             ),
             jump_by(10),
-            section("P-stick model", ui_size),
+            section("DNA/RNA model", ui_size),
             pick_list(
                 &ensnano_design::NAMED_DNA_PARAMETERS[..],
                 Some(app_state.get_dna_parameters().name().clone()),

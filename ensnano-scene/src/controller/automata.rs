@@ -188,15 +188,15 @@ impl<S: AppState> ControllerState<S> for NormalState {
                         ))),
                         consequences: Consequence::Nothing,
                     };
-                } else if let Some(SceneElement::BezierTengent {
+                } else if let Some(SceneElement::BezierTangent {
                     path_id,
                     vertex_id,
-                    tengent_in,
+                    tangent_in,
                 }) = element
                 {
                     if let Some(vertex) = context.get_bezier_vertex(path_id, vertex_id) {
                         let click_info = ClickInfo::new(MouseButton::Left, context.cursor_position);
-                        let current_tengent_position = context
+                        let current_tangent_position = context
                             .get_current_cursor_intersection_with_bezier_plane(vertex.plane_id)
                             .map(|i| i.position())
                             .unwrap_or_else(|| {
@@ -206,14 +206,14 @@ impl<S: AppState> ControllerState<S> for NormalState {
                                 );
                                 Vec2::unit_x()
                             });
-                        let new_state = dragging_state::moving_bezier_tengent(
+                        let new_state = dragging_state::moving_bezier_tangent(
                             click_info,
-                            MovingBezierTengent {
+                            MovingBezierTangent {
                                 plane_id: vertex.plane_id,
                                 vertex_id: BezierVertexId { path_id, vertex_id },
                                 vertex_position_on_plane: vertex.position,
-                                tengent_in,
-                                tengent_vector: (current_tengent_position - vertex.position),
+                                tangent_in,
+                                tangent_vector: (current_tangent_position - vertex.position),
                             },
                         );
                         return Transition {

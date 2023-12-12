@@ -16,8 +16,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use super::{
-    AppState, Color, ColorPicker, ColorSquare, DnaElementKey, FactoryId, GoStop, HelixRoll, Length,
-    Message, RequestFactory, RollRequest, SequenceInput, UiSize, ValueId, VecDeque,
+    AppState, Color, ColorPicker, ColorSquare, DesignElementKey, FactoryId, GoStop, HelixRoll,
+    Length, Message, RequestFactory, RollRequest, SequenceInput, UiSize, ValueId, VecDeque,
     MEMORY_COLOR_COLUMNS, MEMORY_COLOR_ROWS, NB_MEMORY_COLOR,
 };
 use crate::helpers::*;
@@ -91,7 +91,7 @@ impl<S: AppState> EditionTab<S> {
 
     pub fn view(&self, ui_size: UiSize, _width: u16, app_state: &S) -> iced::Element<Message<S>> {
         let roll_target_helices =
-            self.get_roll_target_helices(&app_state.get_selection_as_dnaelement());
+            self.get_roll_target_helices(&app_state.get_selection_as_designelement());
         let sim_state = &app_state.get_simulation_state();
         let roll_target_active = sim_state.is_rolling() || roll_target_helices.len() > 0;
         let selection_contains_strand =
@@ -168,10 +168,10 @@ impl<S: AppState> EditionTab<S> {
         scrollable(content).into()
     }
 
-    fn get_roll_target_helices(&self, selection: &[DnaElementKey]) -> Vec<usize> {
+    fn get_roll_target_helices(&self, selection: &[DesignElementKey]) -> Vec<usize> {
         let mut ret = vec![];
         for s in selection.iter() {
-            if let DnaElementKey::Helix(h) = s {
+            if let DesignElementKey::Helix(h) = s {
                 ret.push(*h)
             }
         }
@@ -188,7 +188,7 @@ impl<S: AppState> EditionTab<S> {
             .update_request(value_id, value, request);
     }
 
-    pub fn get_roll_request(&mut self, selection: &[DnaElementKey]) -> Option<RollRequest> {
+    pub fn get_roll_request(&mut self, selection: &[DesignElementKey]) -> Option<RollRequest> {
         let roll_target_helices = self.get_roll_target_helices(selection);
         if roll_target_helices.len() > 0 {
             Some(RollRequest {

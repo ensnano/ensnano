@@ -22,7 +22,7 @@ use super::download_intervals::DownloadIntervals;
 use super::messages::CHANGING_DNA_PARAMETERS_WARNING;
 use super::*;
 use ensnano_design::group_attributes::GroupPivot;
-use ensnano_design::{grid::GridId, Parameters};
+use ensnano_design::{grid::GridId, HelixParameters};
 use ensnano_interactor::{
     graphics::FogParameters, HyperboloidOperation, RevolutionSurfaceSystemDescriptor,
 };
@@ -309,11 +309,13 @@ impl State for NormalState {
     }
 }
 
-struct ChangindDnaParameters(Parameters);
+struct ChangindDnaParameters(HelixParameters);
 
 impl State for ChangindDnaParameters {
     fn make_progress(self: Box<Self>, main_state: &mut dyn MainState) -> Box<dyn State> {
-        main_state.apply_operation(DesignOperation::SetDnaParameters { parameters: self.0 });
+        main_state.apply_operation(DesignOperation::SetGlobalHelixParameters {
+            helix_parameters: self.0,
+        });
         Box::new(NormalState)
     }
 }
@@ -510,7 +512,7 @@ pub enum Action {
     },
     FlipSplitViews,
     Twist(GridId),
-    SetDnaParameters(Parameters),
+    SetDnaParameters(HelixParameters),
     SetExpandInsertions(bool),
     AddBezierPlane,
     SetExporting(bool),

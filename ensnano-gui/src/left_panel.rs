@@ -15,7 +15,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use ensnano_interactor::{graphics::HBoundDisplay, EquadiffSolvingMethod};
+use ensnano_interactor::{graphics::HBondDisplay, EquadiffSolvingMethod};
 use ensnano_organizer::{Organizer, OrganizerMessage, OrganizerTree};
 use std::sync::{Arc, Mutex};
 
@@ -32,7 +32,7 @@ use iced_winit::Program;
 use ultraviolet::Vec3;
 
 use ensnano_design::{
-    elements::{DnaElement, DnaElementKey},
+    elements::{DesignElement, DesignElementKey},
     BezierPathId, CameraId,
 };
 use ensnano_interactor::{
@@ -80,7 +80,7 @@ pub struct LeftPanel<R: Requests, S: AppState> {
     #[allow(dead_code)]
     show_torsion: bool,
     selected_tab: usize,
-    organizer: Organizer<DnaElement>,
+    organizer: Organizer<DesignElement>,
     ui_size: UiSize,
     grid_tab: GridTab,
     edition_tab: EditionTab<S>,
@@ -133,7 +133,7 @@ pub enum Message<S: AppState> {
     RigidHelicesSimulation(bool),
     VolumeExclusion(bool),
     TabSelected(usize),
-    OrganizerMessage(OrganizerMessage<DnaElement>),
+    OrganizerMessage(OrganizerMessage<DesignElement>),
     ModifiersChanged(ModifiersState),
     UiSizeChanged(UiSize),
     UiSizePicked(UiSize),
@@ -178,7 +178,7 @@ pub enum Message<S: AppState> {
     CheckXoversParameter(CheckXoversParameter),
     FollowStereographicCamera(bool),
     ShowStereographicCamera(bool),
-    ShowHBonds(HBoundDisplay),
+    ShowHBonds(HBondDisplay),
     RainbowScaffold(bool),
     StopSimulation,
     FinishRelaxation,
@@ -272,14 +272,14 @@ impl<R: Requests, S: AppState> LeftPanel<R, S> {
         self.organizer.set_width(logical_size.width as u16);
     }
 
-    fn organizer_message(&mut self, m: OrganizerMessage<DnaElement>) -> Option<Message<S>> {
+    fn organizer_message(&mut self, m: OrganizerMessage<DesignElement>) -> Option<Message<S>> {
         match m {
             OrganizerMessage::InternalMessage(m) => {
                 let selection = self
                     .application_state
                     .get_selection()
                     .iter()
-                    .filter_map(|s| DnaElementKey::from_selection(s, 0))
+                    .filter_map(|s| DesignElementKey::from_selection(s, 0))
                     .collect();
                 return self
                     .organizer
@@ -619,7 +619,7 @@ where
             }
             Message::MakeGrids => self.requests.lock().unwrap().make_grid_from_selection(),
             Message::RollTargeted(b) => {
-                let selection = self.application_state.get_selection_as_dnaelement();
+                let selection = self.application_state.get_selection_as_designelement();
                 if b {
                     if let Some(simulation_request) = self.edition_tab.get_roll_request(&selection)
                     {
@@ -1014,7 +1014,7 @@ where
             .application_state
             .get_selection()
             .iter()
-            .filter_map(|e| DnaElementKey::from_selection(e, 0))
+            .filter_map(|e| DesignElementKey::from_selection(e, 0))
             .collect();
         let organizer = self
             .organizer

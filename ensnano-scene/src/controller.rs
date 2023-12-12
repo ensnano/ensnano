@@ -144,10 +144,10 @@ pub enum Consequence {
         fixed_corner_position: Vec2,
     },
     ReleaseBezierCorner,
-    ReleaseBezierTengent,
-    MoveBezierTengent {
+    ReleaseBezierTangent,
+    MoveBezierTangent {
         vertex_id: BezierVertexId,
-        tengent_in: bool,
+        tangent_in: bool,
         full_symetry_other: bool,
         new_vector: Vec2,
     },

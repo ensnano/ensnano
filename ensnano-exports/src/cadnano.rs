@@ -104,10 +104,10 @@ fn get_grid_type(grids: &GridData) -> Result<GridType, CadnanoError> {
     Ok(ret.unwrap_or(GridType::Square))
 }
 
-fn get_cadnano_bonds(design: &Design, grids: &GridData) -> Result<CadnanoBounds, CadnanoError> {
+fn get_cadnano_bonds(design: &Design, grids: &GridData) -> Result<CadnanoBonds, CadnanoError> {
     let ensnano_bonds = get_ensnano_bonds(design);
     let grid_type = get_grid_type(grids)?;
-    Ok(ensnano_bonds.convert_to_cadnanobounds(grid_type))
+    Ok(ensnano_bonds.convert_to_cadnanobonds(grid_type))
 }
 
 fn init_cadnano_exporter(design: &Design) -> Result<CadnanoExporter, CadnanoError> {
@@ -176,14 +176,14 @@ struct EnsnanoBonds {
     max_helix_idx: usize,
 }
 
-struct CadnanoBounds {
+struct CadnanoBonds {
     shift: isize,
     max_nt_pos: usize,
     max_helix_idx: usize,
 }
 
 impl EnsnanoBonds {
-    fn convert_to_cadnanobounds(self, grid_type: GridType) -> CadnanoBounds {
+    fn convert_to_cadnanobonds(self, grid_type: GridType) -> CadnanoBonds {
         let max_nt_pos = {
             let value = self.max_nt_pos - self.min_nt_pos;
             match grid_type {
@@ -192,7 +192,7 @@ impl EnsnanoBonds {
             }
         };
 
-        CadnanoBounds {
+        CadnanoBonds {
             shift: self.min_nt_pos,
             max_nt_pos,
             max_helix_idx: self.max_helix_idx,
@@ -218,7 +218,7 @@ enum GridType {
 
 struct CadnanoExporter {
     helices: HashMap<usize, CadnanoHelix>,
-    bonds: CadnanoBounds,
+    bonds: CadnanoBonds,
 }
 
 impl CadnanoExporter {

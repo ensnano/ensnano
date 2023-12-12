@@ -754,25 +754,25 @@ impl DraggingTransitionTable for MovingBezierCorner {
 
 dragging_state_constructor_with_state!(moving_bezier_corner, MovingBezierCorner);
 
-/// The user is moving a tengent on a BezierPath.
+/// The user is moving a tangent on a BezierPath.
 ///
 /// If the ctrl key is pressed, moving the cursor changes the orientation of the grids, otherwise
-/// it changes the length of the tengent.
-pub(super) struct MovingBezierTengent {
+/// it changes the length of the tangent.
+pub(super) struct MovingBezierTangent {
     pub plane_id: BezierPlaneId,
     pub vertex_id: BezierVertexId,
     pub vertex_position_on_plane: Vec2,
-    pub tengent_in: bool,
-    pub tengent_vector: Vec2,
+    pub tangent_in: bool,
+    pub tangent_vector: Vec2,
 }
 
-impl DraggingTransitionTable for MovingBezierTengent {
+impl DraggingTransitionTable for MovingBezierTangent {
     fn description() -> &'static str {
-        "Moving Bezier Tengent"
+        "Moving Bezier Tangent"
     }
 
     fn on_button_released(&self) -> Option<Consequence> {
-        Some(Consequence::ReleaseBezierTengent)
+        Some(Consequence::ReleaseBezierTangent)
     }
 
     fn on_cursor_moved<S: AppState>(
@@ -782,28 +782,28 @@ impl DraggingTransitionTable for MovingBezierTengent {
         let translate_only = cursor.context.get_modifiers().shift();
         let full_symetry_other = cursor.context.get_modifiers().alt();
 
-        let new_tengent = if translate_only {
+        let new_tangent = if translate_only {
             // Change the norm without changing the angle
             cursor
                 .context
                 .get_current_cursor_intersection_with_bezier_plane(self.plane_id)
                 .map(|cursor_proj| {
                     let new_norm = (cursor_proj.position() - self.vertex_position_on_plane).mag();
-                    self.tengent_vector.normalized() * new_norm
+                    self.tangent_vector.normalized() * new_norm
                 })
         } else {
-            // Move the tengent freely
+            // Move the tangent freely
             cursor
                 .context
                 .get_current_cursor_intersection_with_bezier_plane(self.plane_id)
                 .map(|cursor_proj| cursor_proj.position() - self.vertex_position_on_plane)
         };
 
-        new_tengent.map(|t| {
-            self.tengent_vector = t;
-            Consequence::MoveBezierTengent {
+        new_tangent.map(|t| {
+            self.tangent_vector = t;
+            Consequence::MoveBezierTangent {
                 vertex_id: self.vertex_id,
-                tengent_in: self.tengent_in,
+                tangent_in: self.tangent_in,
                 full_symetry_other,
                 new_vector: t,
             }
@@ -813,7 +813,7 @@ impl DraggingTransitionTable for MovingBezierTengent {
     no_csq_leaving_or_entering!();
 }
 
-dragging_state_constructor_with_state!(moving_bezier_tengent, MovingBezierTengent);
+dragging_state_constructor_with_state!(moving_bezier_tangent, MovingBezierTangent);
 
 pub(super) struct MovingRevolutionRadius {
     pub plane_id: BezierPlaneId,

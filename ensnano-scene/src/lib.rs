@@ -17,7 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use ensnano_design::{grid::HelixGridPosition, ultraviolet, BezierVertexId};
 use ensnano_interactor::{
-    graphics::RenderingMode, NewBezierTengentVector, UnrootedRevolutionSurfaceDescriptor,
+    graphics::RenderingMode, NewBezierTangentVector, UnrootedRevolutionSurfaceDescriptor,
 };
 use ensnano_utils::{wgpu, winit};
 use std::cell::RefCell;
@@ -301,7 +301,7 @@ impl<S: AppState> Scene<S> {
                     if rotation.bv.mag() > 1e-3 {
                         match target {
                             WidgetTarget::Object => {
-                                self.rotate_selected_desgin(rotation, origin, positive, app_state);
+                                self.rotate_selected_design(rotation, origin, positive, app_state);
                                 if app_state.get_current_group_id().is_none() {
                                     self.requests.lock().unwrap().rotate_group_pivot(rotation)
                                 }
@@ -537,17 +537,17 @@ impl<S: AppState> Scene<S> {
                 },
             )),
             Consequence::ReleaseBezierCorner => self.requests.lock().unwrap().suspend_op(),
-            Consequence::ReleaseBezierTengent => self.requests.lock().unwrap().suspend_op(),
-            Consequence::MoveBezierTengent {
+            Consequence::ReleaseBezierTangent => self.requests.lock().unwrap().suspend_op(),
+            Consequence::MoveBezierTangent {
                 vertex_id,
-                tengent_in,
+                tangent_in,
                 full_symetry_other: adjust_other,
                 new_vector,
             } => self.requests.lock().unwrap().apply_design_operation(
-                DesignOperation::SetVectorOfBezierTengent(NewBezierTengentVector {
-                    full_symetry_other_tengent: adjust_other,
+                DesignOperation::SetVectorOfBezierTangent(NewBezierTangentVector {
+                    full_symetry_other_tangent: adjust_other,
                     new_vector,
-                    tengent_in,
+                    tangent_in,
                     vertex_id,
                 }),
             ),
@@ -750,7 +750,7 @@ impl<S: AppState> Scene<S> {
             .translate_group_pivot(translation);
     }
 
-    fn rotate_selected_desgin(
+    fn rotate_selected_design(
         &mut self,
         rotation: Rotor3,
         origin: Vec3,

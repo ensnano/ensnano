@@ -22,7 +22,7 @@ use ultraviolet::{DVec3, Similarity3};
 pub struct RevolutionSurfaceSystemDescriptor {
     pub scaffold_len_target: usize,
     pub target: RootedRevolutionSurface,
-    pub dna_parameters: Parameters,
+    pub helix_parameters: HelixParameters,
     pub simulation_parameters: RevolutionSimulationParameters,
 }
 
@@ -50,7 +50,7 @@ pub struct RootingParameters {
     pub nb_helix_per_half_section: usize,
     pub shift_per_turn: isize,
     pub junction_smoothening: f64,
-    pub dna_parameters: Parameters,
+    pub dna_parameters: HelixParameters,
 }
 
 impl UnrootedRevolutionSurfaceDescriptor {
@@ -67,7 +67,7 @@ impl UnrootedRevolutionSurfaceDescriptor {
         };
         let scale = rooting_parameters.nb_helix_per_half_section as f64
             * 2.
-            * Parameters::INTER_CENTER_GAP as f64
+            * HelixParameters::INTER_CENTER_GAP as f64
             / self.curve.perimeter();
         area_radius_0 *= scale;
         area_per_radius_unit *= scale;

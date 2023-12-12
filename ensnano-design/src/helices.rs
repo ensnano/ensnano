@@ -25,7 +25,7 @@ use super::{
     grid::{Grid, GridData, HelixGridPosition},
     scadnano::*,
     utils::*,
-    BezierPathId, Nucl, Parameters,
+    BezierPathId, HelixParameters, Nucl,
 };
 use std::collections::BTreeMap;
 use std::sync::Arc;
@@ -224,7 +224,7 @@ pub struct Helix {
     pub(super) instanciated_curve: Option<InstanciatedCurve>,
 
     #[serde(default, skip_serializing_if = "f32_is_zero")]
-    delta_bbpt: f32,
+    delta_bppt: f32,
 
     #[serde(default, skip_serializing_if = "isize_is_zero")]
     pub initial_nt_index: isize,
@@ -276,7 +276,7 @@ impl Helix {
             curve: None,
             instanciated_curve: None,
             instanciated_descriptor: None,
-            delta_bbpt: 0.,
+            delta_bppt: 0.,
             initial_nt_index: 0,
             support_helix: None,
             path_id: None,
@@ -359,7 +359,7 @@ impl Helix {
             curve: None,
             instanciated_curve: None,
             instanciated_descriptor: None,
-            delta_bbpt: 0.,
+            delta_bppt: 0.,
             initial_nt_index: 0,
             support_helix: None,
             path_id: None,
@@ -407,7 +407,7 @@ impl Helix {
             curve: None,
             instanciated_curve: None,
             instanciated_descriptor: None,
-            delta_bbpt: 0.,
+            delta_bppt: 0.,
             initial_nt_index: 0,
             support_helix: None,
             path_id: None,
@@ -435,7 +435,7 @@ impl Helix {
             curve: None,
             instanciated_curve: None,
             instanciated_descriptor: None,
-            delta_bbpt: 0.,
+            delta_bppt: 0.,
             initial_nt_index: 0,
             support_helix: None,
             path_id: None,
@@ -456,7 +456,7 @@ impl Helix {
             curve: Some(Arc::new(CurveDescriptor::SphereLikeSpiral(desc))),
             instanciated_curve: None,
             instanciated_descriptor: None,
-            delta_bbpt: 0.,
+            delta_bppt: 0.,
             initial_nt_index: 0,
             support_helix: None,
             path_id: None,
@@ -477,7 +477,7 @@ impl Helix {
             curve: Some(Arc::new(CurveDescriptor::TubeSpiral(desc))),
             instanciated_curve: None,
             instanciated_descriptor: None,
-            delta_bbpt: 0.,
+            delta_bppt: 0.,
             initial_nt_index: 0,
             support_helix: None,
             path_id: None,
@@ -498,7 +498,7 @@ impl Helix {
             curve: Some(Arc::new(desc)),
             instanciated_curve: None,
             instanciated_descriptor: None,
-            delta_bbpt: 0.,
+            delta_bppt: 0.,
             initial_nt_index: 0,
             support_helix: None,
             path_id: None,
@@ -530,10 +530,10 @@ impl Helix {
         /*
         let point = match bezier_point {
             BezierControlPoint::PiecewiseBezier(n) => {
-                if let Some(CurveDescriptor::PiecewiseBezier { tengents, .. }) =
+                if let Some(CurveDescriptor::PiecewiseBezier { tangents, .. }) =
                     self.curve.as_mut().map(Arc::make_mut)
                 {
-                    tengents.get_mut(n / 2)
+                    tangents.get_mut(n / 2)
                 } else {
                     None
                 }
@@ -594,7 +594,7 @@ impl Helix {
             curve: Some(Arc::new(constructor)),
             instanciated_curve: None,
             instanciated_descriptor: None,
-            delta_bbpt: 0.,
+            delta_bppt: 0.,
             initial_nt_index: 0,
             support_helix: None,
             path_id: None,
@@ -620,6 +620,7 @@ impl Helix {
             .map(|translation| CurveDescriptor::TranslatedPath {
                 path_id,
                 translation,
+                legacy: false,
             })
             .map(Arc::new);
 
@@ -636,7 +637,7 @@ impl Helix {
             curve,
             instanciated_curve: None,
             instanciated_descriptor: None,
-            delta_bbpt: 0.,
+            delta_bppt: 0.,
             initial_nt_index: 0,
             support_helix: None,
             path_id: Some(path_id),
@@ -653,19 +654,19 @@ impl Helix {
             .unwrap_or(0)
     }
 
-    pub fn roll_at_pos(&self, n: isize, cst: &Parameters) -> f32 {
+    pub fn roll_at_pos(&self, n: isize, cst: &HelixParameters) -> f32 {
         use std::f32::consts::PI;
-        let bbpt = cst.bases_per_turn + self.delta_bbpt;
+        let bbpt = cst.bases_per_turn + self.delta_bppt;
         let beta = 2. * PI / bbpt;
         self.roll - n as f32 * beta // Beta is positive but helix turn clockwise when n increases
     }
 
     /// Angle of base number `n` around this helix.
-    pub fn theta(&self, n: isize, forward: bool, cst: &Parameters) -> f32 {
+    pub fn theta(&self, n: isize, forward: bool, cst: &HelixParameters) -> f32 {
         use std::f32::consts::PI;
         // The groove_angle goes from the backward strand to the forward strand
         let shift = if forward { cst.groove_angle } else { 0. };
-        let bbpt = cst.bases_per_turn + self.delta_bbpt;
+        let bbpt = cst.bases_per_turn + self.delta_bppt;
         let beta = 2. * PI / bbpt;
         self.roll
             -n as f32 * beta  // Beta is positive but helix turn clockwise when n increases
@@ -675,7 +676,7 @@ impl Helix {
     }
 
     /// 3D position of a nucleotide on this helix. `n` is the position along the axis, and `forward` is true iff the 5' to 3' direction of the strand containing that nucleotide runs in the same direction as the axis of the helix.
-    pub fn space_pos(&self, p: &Parameters, n: isize, forward: bool) -> Vec3 {
+    pub fn space_pos(&self, p: &HelixParameters, n: isize, forward: bool) -> Vec3 {
         self.shifted_space_pos(p, n, forward, 0.0)
     }
 
@@ -689,7 +690,13 @@ impl Helix {
             .unwrap_or_else(|| Vec3::unit_x().rotated_by(self.orientation))
     }
 
-    fn theta_n_to_space_pos(&self, p: &Parameters, n: isize, theta: f32, forward: bool) -> Vec3 {
+    fn theta_n_to_space_pos(
+        &self,
+        p: &HelixParameters,
+        n: isize,
+        theta: f32,
+        forward: bool,
+    ) -> Vec3 {
         let mut ret;
         if let Some(curve) = self.instanciated_curve.as_ref() {
             if let Some(point) = curve
@@ -725,14 +732,20 @@ impl Helix {
         ret
     }
 
-    pub fn shifted_space_pos(&self, p: &Parameters, n: isize, forward: bool, shift: f32) -> Vec3 {
+    pub fn shifted_space_pos(
+        &self,
+        p: &HelixParameters,
+        n: isize,
+        forward: bool,
+        shift: f32,
+    ) -> Vec3 {
         let n = self.initial_nt_index + n;
         let theta = self.theta(n, forward, p) + shift;
         self.theta_n_to_space_pos(p, n, theta, forward)
     }
 
     ///Return an helix that makes an ideal cross-over with self at postion n
-    pub fn ideal_neighbour(&self, n: isize, forward: bool, p: &Parameters) -> Helix {
+    pub fn ideal_neighbour(&self, n: isize, forward: bool, p: &HelixParameters) -> Helix {
         let other_helix_pos = self.position_ideal_neighbour(n, forward, p);
         let mut new_helix = self.detatched_copy_at(other_helix_pos);
         self.adjust_theta_neighbour(n, forward, &mut new_helix, p);
@@ -753,14 +766,14 @@ impl Helix {
             curve: None,
             instanciated_curve: None,
             instanciated_descriptor: None,
-            delta_bbpt: 0.,
+            delta_bppt: 0.,
             initial_nt_index: 0,
             support_helix: None,
             path_id: None,
         }
     }
 
-    fn position_ideal_neighbour(&self, n: isize, forward: bool, p: &Parameters) -> Vec3 {
+    fn position_ideal_neighbour(&self, n: isize, forward: bool, p: &HelixParameters) -> Vec3 {
         let axis_pos = self.axis_position(p, n);
         let my_nucl_pos = self.space_pos(p, n, forward);
         let direction = (my_nucl_pos - axis_pos).normalized();
@@ -775,14 +788,14 @@ impl Helix {
         n: isize,
         forward: bool,
         new_helix: &mut Helix,
-        p: &Parameters,
+        p: &HelixParameters,
     ) {
         let theta_current = new_helix.theta(0, forward, p);
         let theta_obj = self.theta(n, forward, p) + std::f32::consts::PI;
         new_helix.roll = theta_obj - theta_current;
     }
 
-    pub fn get_axis<'a>(&'a self, p: &Parameters) -> Axis<'a> {
+    pub fn get_axis<'a>(&'a self, p: &HelixParameters) -> Axis<'a> {
         if let Some(curve) = self.instanciated_curve.as_ref() {
             let shift = self.initial_nt_index;
             let points = curve.as_ref().points();
@@ -809,7 +822,7 @@ impl Helix {
         }
     }
 
-    pub fn axis_position(&self, p: &Parameters, n: isize) -> Vec3 {
+    pub fn axis_position(&self, p: &HelixParameters, n: isize) -> Vec3 {
         let n = n + self.initial_nt_index;
         if let Some(curve) = self.instanciated_curve.as_ref().map(|s| &s.curve) {
             if let Some(point) = curve.axis_pos(n).map(dvec_to_vec) {

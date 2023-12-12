@@ -17,7 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::{
-    AppState, CheckXoversParameter, DesactivatedSlider, FogParameters, HBoundDisplay, Message,
+    AppState, CheckXoversParameter, DesactivatedSlider, FogParameters, HBondDisplay, Message,
     UiSize,
 };
 use crate::helpers::*;
@@ -56,11 +56,11 @@ impl CameraTab {
             subsection("Visibility", ui_size),
             pick_list(
                 vec![
-                    HBoundDisplay::No,
-                    HBoundDisplay::Stick,
-                    HBoundDisplay::Ellipsoid,
+                    HBondDisplay::No,
+                    HBondDisplay::Stick,
+                    HBondDisplay::Ellipsoid,
                 ],
-                Some(app_state.get_h_bounds_display()),
+                Some(app_state.get_h_bonds_display()),
                 Message::ShowHBonds,
             ),
             right_checkbox(
