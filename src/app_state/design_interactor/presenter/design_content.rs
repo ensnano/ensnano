@@ -488,7 +488,7 @@ impl DesignContent {
         let grid_manager = design.get_updated_grid_data().clone();
 
         for (s_id, strand) in design.strands.iter_mut() {
-            elements.push(elements::DesignElement::Strand {
+            elements.push(elements::DesignElement::StrandElement {
                 id: *s_id,
                 length: strand.length(),
                 domain_lengths: strand.domain_lengths(),
@@ -523,7 +523,7 @@ impl DesignContent {
                         (prime5, prime3),
                     );
                     if let Some(id) = xover_ids.get_id(&(prime5, prime3)) {
-                        elements.push(DesignElement::CrossOver {
+                        elements.push(DesignElement::CrossOverElement {
                             xover_id: id,
                             helix5prime: prime5.helix,
                             position5prime: prime5.position,
@@ -557,7 +557,7 @@ impl DesignContent {
                             log::error!("Could not get virtual nucl corresponding to {:?}", nucl);
                         }
 
-                        elements.push(DesignElement::Nucleotide {
+                        elements.push(DesignElement::NucleotideElement {
                             helix: nucl.helix,
                             position: nucl.position,
                             forward: nucl.forward,
@@ -692,7 +692,7 @@ impl DesignContent {
                 );
                 let (prime5, prime3) = bond;
                 if let Some(id) = new_junctions.get_id(&(prime5, prime3)) {
-                    elements.push(DesignElement::CrossOver {
+                    elements.push(DesignElement::CrossOverElement {
                         xover_id: id,
                         helix5prime: prime5.helix,
                         position5prime: prime5.position,
@@ -733,7 +733,7 @@ impl DesignContent {
             }
         }
         for (h_id, h) in design.helices.iter() {
-            elements.push(DesignElement::Helix {
+            elements.push(DesignElement::HelixElement {
                 id: *h_id,
                 group: groups.get(h_id).cloned(),
                 visible: h.visible,
