@@ -24,6 +24,9 @@ use std::collections::BTreeMap;
 use std::sync::Arc;
 mod formating;
 
+extern crate serde_hex;
+use serde_hex::{SerHex,StrictPfx};
+
 /// A collection of strands, that maps strand identifier to strands.
 ///
 /// It contains all the information about the "topology of the design".  Information about
@@ -250,7 +253,7 @@ pub struct Strand {
     pub cyclic: bool,
     /// Colour of this strand. If skipped, a default colour will be
     /// chosen automatically.
-    #[serde(default)]
+    #[serde(default)] // with = "SerHex", 
     pub color: u32,
     /// A name of the strand, used for strand export. If the name is `None`, the exported strand
     /// will be given a name corresponding to the position of its 5' nucleotide

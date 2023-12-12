@@ -23,7 +23,7 @@ use num_enum::{IntoPrimitive, TryFromPrimitive};
 
 #[derive(Clone, Debug)]
 pub enum DesignElement {
-    Grid {
+    GridElement {
         id: usize,
         visible: bool,
     },
@@ -109,7 +109,7 @@ impl OrganizerElement for DesignElement {
 
     fn key(&self) -> DesignElementKey {
         match self {
-            DesignElement::Grid { id, .. } => DesignElementKey::Grid(*id),
+            DesignElement::GridElement { id, .. } => DesignElementKey::Grid(*id),
             DesignElement::Strand { id, .. } => DesignElementKey::Strand(*id),
             DesignElement::Helix { id, .. } => DesignElementKey::Helix(*id),
             DesignElement::Nucleotide {
@@ -129,7 +129,7 @@ impl OrganizerElement for DesignElement {
 
     fn display_name(&self) -> String {
         match self {
-            DesignElement::Grid { id, .. } => format!("Grid {}", id),
+            DesignElement::GridElement { id, .. } => format!("Grid {}", id),
             DesignElement::Strand { id, .. } => format!("Strand {}", id),
             DesignElement::Helix { id, .. } => format!("Helix {}", id),
             DesignElement::Nucleotide {
@@ -167,7 +167,7 @@ impl OrganizerElement for DesignElement {
                 DnaAttribute::XoverGroup(*group),
                 DnaAttribute::LockedForSimulations(*locked),
             ],
-            DesignElement::Grid { visible, .. } => vec![DnaAttribute::Visible(*visible)],
+            DesignElement::GridElement { visible, .. } => vec![DnaAttribute::Visible(*visible)],
             _ => vec![],
         }
     }

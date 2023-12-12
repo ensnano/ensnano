@@ -726,7 +726,7 @@ impl DesignContent {
         }
         for g_id in grid_manager.grids.keys() {
             if let GridId::FreeGrid(id) = g_id {
-                elements.push(DesignElement::Grid {
+                elements.push(DesignElement::GridElement {
                     id: *id,
                     visible: grid_manager.get_visibility(*g_id),
                 })
