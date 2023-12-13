@@ -929,6 +929,7 @@ enum InstanciatedCurveDescriptor_ {
         legacy: bool,
     },
     InterpolatedCurve(InterpolatedCurveDescriptor),
+    Chebyshev(PolynomialCoordinates_),
 }
 
 /// An instanciation of a PiecewiseBezier descriptor where reference to grid positions in the
@@ -1064,7 +1065,8 @@ impl InstanciatedCurveDescriptor_ {
             )),
             Self::InterpolatedCurve(desc) => {
                 Arc::new(Curve::new(desc.instanciate(true), helix_parameters))
-            }
+            },
+            Self::Chebyshev(coordinates) => Arc::new(Curve::new(coordinates, helix_parameters)),
         }
     }
 
@@ -1112,6 +1114,9 @@ impl InstanciatedCurveDescriptor_ {
                 desc.clone().instanciate(true),
                 helix_parameters,
             ))),
+            Self::Chebyshev(coordinates) => {
+                Some(Arc::new(Curve::new(coordinates.clone(), helix_parameters)))
+            },
         }
     }
 
@@ -1150,7 +1155,8 @@ impl InstanciatedCurveDescriptor_ {
             })),
             Self::InterpolatedCurve(desc) => {
                 Some(Curve::compute_length(desc.clone().instanciate(true)))
-            }
+            },
+            Self::Chebyshev(coord) => Some(Curve::compute_length(coord.clone())),
         }
     }
 
@@ -1190,6 +1196,7 @@ impl InstanciatedCurveDescriptor_ {
                 legacy: *legacy,
             })),
             Self::InterpolatedCurve(desc) => Some(Curve::path(desc.clone().instanciate(false))),
+            Self::Chebyshev(coordinates) => Some(Curve::path(coordinates.clone())),
         }
     }
 
