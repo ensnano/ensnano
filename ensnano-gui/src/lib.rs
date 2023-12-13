@@ -51,7 +51,7 @@ extern crate serde_derive;
 use status_bar::StatusBar;
 
 use ensnano_design::{
-    elements::{DnaAttribute, DesignElement, DesignElementKey},
+    elements::{DesignElement, DesignElementKey, DnaAttribute},
     grid::GridTypeDescr,
     ultraviolet, BezierPathId, BezierVertexId, HelixParameters, Nucl,
 };
