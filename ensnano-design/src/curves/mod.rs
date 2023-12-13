@@ -22,6 +22,7 @@ const EPSILON: f64 = 1e-6;
 /// To compute curvilinear abcissa over long distances
 const DELTA_MAX: f64 = 256.0;
 use crate::{
+    curves::chebyshev::{PolynomialCoordinates, PolynomialCoordinates_},
     grid::{Edge, GridPosition},
     utils::vec_to_dvec,
     BezierPathData, BezierPathId,
@@ -30,6 +31,7 @@ use crate::{
 use super::{Helix, HelixParameters};
 use std::sync::Arc;
 mod bezier;
+mod chebyshev;
 mod discretization;
 mod legacy;
 mod revolution;
@@ -566,6 +568,7 @@ pub enum CurveDescriptor {
     },
     SuperTwist(SuperTwist),
     InterpolatedCurve(InterpolatedCurveDescriptor),
+    Chebyshev(PolynomialCoordinates),
 }
 
 fn is_false(b: &bool) -> bool {
@@ -764,6 +767,9 @@ impl InstanciatedCurveDescriptor {
             CurveDescriptor::InterpolatedCurve(desc) => {
                 InstanciatedCurveDescriptor_::InterpolatedCurve(desc.clone())
             }
+            CurveDescriptor::Chebyshev(coord) => {
+                InstanciatedCurveDescriptor_::Chebyshev(coord.clone().instanciated())
+            }
         };
         Self {
             source: desc,
@@ -817,6 +823,9 @@ impl InstanciatedCurveDescriptor {
             CurveDescriptor::InterpolatedCurve(desc) => Some(
                 InstanciatedCurveDescriptor_::InterpolatedCurve(desc.clone()),
             ),
+            CurveDescriptor::Chebyshev(coord) => Some(InstanciatedCurveDescriptor_::Chebyshev(
+                coord.clone().instanciated(),
+            )),
         };
         instance.map(|instance| Self {
             source: desc.clone(),
@@ -1267,6 +1276,32 @@ impl Helix {
                         source: desc,
                     })
                 }
+            }
+        }
+    }
+}
+
+// #[derive(Serialize, Deserialize, Debug, Clone)]
+// pub enum InterpolationDescriptor {
+//     PointsValues {
+//         points: Vec<f64>,
+//         values: Vec<f64>,
+//     },
+//     Chebyshev {
+//         coeffs: Vec<f64>,
+//         interval: [f64; 2],
+//     },
+// }
+
+impl InterpolationDescriptor {
+    pub fn instanciated(self) -> chebyshev_polynomials::ChebyshevPolynomial {
+        match self {
+            InterpolationDescriptor::PointsValues { points, values } => {
+                let points_values = points.into_iter().zip(values.into_iter()).collect();
+                chebyshev_polynomials::interpolate_points(points_values, 1e-4)
+            }
+            InterpolationDescriptor::Chebyshev { coeffs, interval } => {
+                chebyshev_polynomials::ChebyshevPolynomial::from_coeffs_interval(coeffs, interval)
             }
         }
     }
