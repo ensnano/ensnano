@@ -1065,7 +1065,7 @@ impl InstanciatedCurveDescriptor_ {
             )),
             Self::InterpolatedCurve(desc) => {
                 Arc::new(Curve::new(desc.instanciate(true), helix_parameters))
-            },
+            }
             Self::Chebyshev(coordinates) => Arc::new(Curve::new(coordinates, helix_parameters)),
         }
     }
@@ -1116,7 +1116,7 @@ impl InstanciatedCurveDescriptor_ {
             ))),
             Self::Chebyshev(coordinates) => {
                 Some(Arc::new(Curve::new(coordinates.clone(), helix_parameters)))
-            },
+            }
         }
     }
 
@@ -1155,7 +1155,7 @@ impl InstanciatedCurveDescriptor_ {
             })),
             Self::InterpolatedCurve(desc) => {
                 Some(Curve::compute_length(desc.clone().instanciate(true)))
-            },
+            }
             Self::Chebyshev(coord) => Some(Curve::compute_length(coord.clone())),
         }
     }

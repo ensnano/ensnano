@@ -19,7 +19,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::{NuclCollection, SimulationUpdate};
 use crate::app_state::AddressPointer;
 use ensnano_design::{
-    elements::{DnaAttribute, DesignElementKey},
+    elements::{DesignElementKey, DnaAttribute},
     grid::{
         Edge, FreeGridId, GridDescriptor, GridId, GridObject, GridPosition, GridTypeDescr,
         HelixGridPosition, Hyperboloid,
