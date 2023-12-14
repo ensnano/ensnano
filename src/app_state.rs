@@ -432,7 +432,7 @@ impl AppState {
         *self = self.with_action_mode(source.0.action_mode);
         *self = self.with_selection_mode(source.0.selection_mode);
         *self = self.with_suggestion_parameters(source.0.parameters.suggestion_parameters.clone());
-        *self = self.with_check_xovers_parameters(source.0.parameters.check_xover_paramters);
+        *self = self.with_check_xovers_parameters(source.0.parameters.check_xover_parameters);
         *self = self.with_updated_parameters(|p| *p = source.0.parameters.clone());
     }
 
@@ -440,7 +440,7 @@ impl AppState {
         &self,
         check_xover_paramters: CheckXoversParameter,
     ) -> Self {
-        self.with_updated_parameters(|p| p.check_xover_paramters = check_xover_paramters)
+        self.with_updated_parameters(|p| p.check_xover_parameters = check_xover_paramters)
     }
 
     pub fn with_follow_stereographic_camera(&self, follow: bool) -> Self {
@@ -667,7 +667,7 @@ use serde::{Deserialize, Serialize};
 #[serde(default)] // workarround for https://github.com/rust-cli/confy/issues/34
 pub struct AppStateParameters {
     suggestion_parameters: SuggestionParameters,
-    check_xover_paramters: CheckXoversParameter,
+    check_xover_parameters: CheckXoversParameter,
     follow_stereography: bool,
     show_stereography: bool,
     rendering_mode: RenderingMode,
@@ -684,7 +684,7 @@ impl Default for AppStateParameters {
     fn default() -> Self {
         Self {
             suggestion_parameters: Default::default(),
-            check_xover_paramters: Default::default(),
+            check_xover_parameters: Default::default(),
             follow_stereography: Default::default(),
             show_stereography: Default::default(),
             rendering_mode: Default::default(),
