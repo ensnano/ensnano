@@ -19,21 +19,21 @@ use super::*;
 use crate::HasMap;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
-/// Named datastructure
 pub struct NamedItem<T: Clone>(pub String, pub T);
 
 #[derive(
     Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Default, Hash,
 )]
 /// Generic Identifier
-pub struct HandledId(pub usize);
+pub struct Id(pub usize);
 
 #[derive(Debug, Clone, Deserialize, Serialize, Default)]
-/// Collection of free grids descriptor
-pub struct IdHandler<T: Clone>(pub(super) Arc<BTreeMap<HandledId, Arc<T>>>);
+
+/// Collection of items with ids
+pub struct IdHandler<T: Clone>(pub(super) Arc<BTreeMap<Id, Arc<T>>>);
 
 // impl<T> HasMap for IdHandler<T>  where T: Clone {
-//     type Key = HandledId;
+//     type Key = Id;
 //     type Item = T;
 //     fn get_map(&self) -> &BTreeMap<Self::Key, Arc<Self::Item>> {
 //         &self.0
@@ -41,21 +41,21 @@ pub struct IdHandler<T: Clone>(pub(super) Arc<BTreeMap<HandledId, Arc<T>>>);
 // }
 
 pub trait ItemWithName<'a> {
-    fn name(self) -> &'a str;
+    fn get_name(self) -> &'a str;
 }
 
 impl<'a> ItemWithName<'a> for NamedParameter {
-    fn name(self) -> &'static str {
+    fn get_name(self) -> &'static str {
         return &self.name;
     }
 }
 
 pub trait GetIdOfOneItemNamed {
-    fn get_id_of_one_item_named(self, name: String) -> Option<HandledId>;
+    fn get_id_of_one_item_named(self, name: String) -> Option<Id>;
 }
 
 impl<T: Clone> GetIdOfOneItemNamed for IdHandler<NamedItem<T>> {
-    fn get_id_of_one_item_named(self, name: String) -> Option<HandledId> {
+    fn get_id_of_one_item_named(self, name: String) -> Option<Id> {
         for (k, v) in self.0.iter() {
             if v.0.eq(&name) {
                 return Some(k.clone());
@@ -65,10 +65,7 @@ impl<T: Clone> GetIdOfOneItemNamed for IdHandler<NamedItem<T>> {
     }
 }
 
-impl<T> IdHandler<T>
-where
-    T: Clone,
-{
+impl<T: Clone> IdHandler<T> {
     pub fn make_mut(&mut self) -> IdHandlerMut<T> {
         IdHandlerMut {
             new_map: BTreeMap::clone(&self.0),
@@ -80,7 +77,7 @@ where
         Self(Arc::new(
             vec.into_iter()
                 .enumerate()
-                .map(|(id, item)| (HandledId(id), Arc::new(item)))
+                .map(|(id, item)| (Id(id), Arc::new(item)))
                 .collect(),
         ))
     }
@@ -95,29 +92,29 @@ where
     T: Clone,
 {
     source: &'a mut IdHandler<T>,
-    new_map: BTreeMap<HandledId, Arc<T>>,
+    new_map: BTreeMap<Id, Arc<T>>,
 }
 
 impl<'a, T> IdHandlerMut<'a, T>
 where
     T: Clone,
 {
-    pub fn push(&mut self, item: T) -> HandledId {
+    pub fn push(&mut self, item: T) -> Id {
         let new_key = self
             .new_map
             .keys()
             .max()
-            .map(|m| HandledId(m.0 + 1))
+            .map(|m| Id(m.0 + 1))
             .unwrap_or_default();
         self.new_map.insert(new_key, Arc::new(item));
-        HandledId(new_key.0)
+        Id(new_key.0)
     }
 
-    pub fn get_mut(&mut self, id: &HandledId) -> Option<&mut T> {
+    pub fn get_mut(&mut self, id: &Id) -> Option<&mut T> {
         self.new_map.get_mut(&id).map(Arc::make_mut)
     }
 
-    pub fn remove(&mut self, id: &HandledId) -> Option<Arc<T>> {
+    pub fn remove(&mut self, id: &Id) -> Option<Arc<T>> {
         self.new_map.remove(&id)
     }
 }
@@ -133,10 +130,58 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::IdHandler;
+    use super::*;
+    use crate::HelixParameters;
+    use crate::NamedParameter;
 
     #[test]
     fn simple_test_for_Vec() {
-        let v: IdHandler<Vec<i32>> = IdHandler::new(());
+        //let v: IdHandler<Vec<i32>> = IdHandler::new(());
+        println!("Coucou!");
+        //bla
+    }
+
+    #[test]
+    fn get_name_from_itemwithname_for_namedparameter() {
+        let my_parameter = NamedParameter {
+            name: "My Parameter Name",
+            value: HelixParameters {
+                z_step: 0.,
+                helix_radius: 0.,
+                bases_per_turn: 0.,
+                groove_angle: 0.,
+                inter_helix_gap: 0.,
+                inclination: 0.,
+            },
+        };
+        assert_eq!("My Parameter Name", my_parameter.get_name())
+    }
+    #[test]
+    fn get_id_of_named_if_it_exists() {
+        let cat1 = NamedItem(String::from("Otto"), "cat");
+        let cat2 = NamedItem(String::from("Duchesse"), "cat");
+        let dog = NamedItem(String::from("Otto"), "dog");
+        let mut my_collection = BTreeMap::from([(Id(1), Arc::new(cat1)), (Id(2), Arc::new(cat2))]);
+        my_collection.insert(Id(101), Arc::new(dog));
+        let my_arced_collection = Arc::new(my_collection);
+        let my_ided_collection = IdHandler(my_arced_collection);
+        assert_eq!(
+            Id(1),
+            my_ided_collection
+                .get_id_of_one_item_named(String::from("Otto"))
+                .unwrap()
+        );
+    }
+
+    #[test]
+    fn get_id_of_named_if_does_not_exist() {
+        let cat1 = NamedItem(String::from("Otto"), "cat");
+        let my_collection = BTreeMap::from([(Id(1), Arc::new(cat1))]);
+        let my_arced_collection = Arc::new(my_collection);
+        let my_ided_collection = IdHandler(my_arced_collection);
+        assert_eq!(
+            None,
+            my_ided_collection.get_id_of_one_item_named(String::from("Chachat"))
+        );
     }
 }
