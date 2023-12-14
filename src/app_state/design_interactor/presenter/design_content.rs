@@ -536,7 +536,7 @@ impl DesignContent {
                 }
                 if let Domain::HelixDomain(domain) = domain {
                     let dom_seq = domain.sequence.as_ref().filter(|s| s.is_ascii());
-        
+
                     for (dom_position, nucl_position) in domain.iter().enumerate() {
                         let position = design.helices.get(&domain.helix).unwrap().space_pos(
                             design.helix_parameters.as_ref().unwrap(),
