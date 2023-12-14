@@ -1,10 +1,12 @@
 // shader.frag
 #version 450
 
+// Set input arguments.
 layout(location=0) in vec2 v_coords;
 layout(location=1) in float v_angle;
 layout(location=2) in vec4 v_color;
 
+// Set ouput values.
 layout(location=0) out vec4 f_color;
 
 

@@ -240,6 +240,7 @@ pub enum OverlayType {
     Color,
 }
 
+// The state of each Gui Elements.
 enum GuiState<R: Requests, S: AppState> {
     TopBar(iced_winit::program::State<TopBar<R, S>>),
     LeftPanel(iced_winit::program::State<LeftPanel<R, S>>),
@@ -603,7 +604,9 @@ impl<R: Requests, S: AppState> GuiElement<R, S> {
     }
 }
 
-/// The Gui manager.
+/// The manager of the graphical user interface.
+///
+/// The manager contains a [GuiElement] for each [ElementType] (top_bar, left_panel, etc…)
 pub struct Gui<R: Requests, S: AppState> {
     /// HashMap mapping [ElementType] to a GuiElement
     elements: HashMap<ElementType, GuiElement<R, S>>,

@@ -15,6 +15,14 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+//! Draw 2D circles
+//!
+//! This module uses custom shaders defined in the [_Standard Portable Intermediate Representation
+//! V_](https://en.wikipedia.org/wiki/Standard_Portable_Intermediate_Representation) (SPIR-V) format.
+//!
+//! These shaders are defined in the .vert and .frag files, that must be compiled into the
+//! .vert.spv and .frag.spv files with
+//! [glslc](https://man.archlinux.org/man/extra/shaderc/glslc.1.en).
 use iced_wgpu::wgpu;
 use std::rc::Rc;
 use ultraviolet::Vec2;

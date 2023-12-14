@@ -85,7 +85,7 @@ impl<'a, E: super::OrganizerElement> Widget<OrganizerMessage<E>, Renderer>
 
     fn on_event(
         &mut self,
-        state: &mut iced_native::widget::tree::Tree,
+        tree: &mut iced_native::widget::tree::Tree,
         event: Event,
         layout: Layout<'_>,
         cursor_position: Point,
@@ -96,7 +96,7 @@ impl<'a, E: super::OrganizerElement> Widget<OrganizerMessage<E>, Renderer>
         use iced::mouse;
         use iced::mouse::Event as MouseEvent;
         let status = self.content.on_event(
-            state,
+            tree,
             event.clone(),
             layout.children().next().unwrap(),
             cursor_position,
@@ -123,7 +123,7 @@ impl<'a, E: super::OrganizerElement> Widget<OrganizerMessage<E>, Renderer>
 
     fn draw(
         &self,
-        state: &widget::Tree,
+        tree: &widget::Tree,
         renderer: &mut Renderer,
         theme: &iced_native::Theme,
         style: &Style,
@@ -132,7 +132,7 @@ impl<'a, E: super::OrganizerElement> Widget<OrganizerMessage<E>, Renderer>
         viewport: &Rectangle,
     ) {
         self.content.draw(
-            state,
+            tree,
             renderer,
             theme,
             style,
@@ -144,11 +144,14 @@ impl<'a, E: super::OrganizerElement> Widget<OrganizerMessage<E>, Renderer>
 
     fn overlay<'b>(
         &'b mut self,
-        state: &'b mut widget::Tree,
+        tree: &'b mut widget::Tree,
         layout: Layout<'_>,
         renderer: &Renderer,
     ) -> Option<overlay::Element<'_, OrganizerMessage<E>, Renderer>> {
-        self.content
-            .overlay(state, layout.children().next().unwrap(), renderer)
+        self.content.overlay(
+            &mut tree.children[0],
+            layout.children().next().unwrap(),
+            renderer,
+        )
     }
 }

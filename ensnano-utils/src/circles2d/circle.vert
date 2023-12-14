@@ -1,5 +1,6 @@
 #version 450
 
+// Set output values.
 layout(location=0) out vec2 v_coords;
 layout(location=1) out float v_angle;
 layout(location=2) out vec4 v_color;
