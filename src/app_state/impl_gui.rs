@@ -123,7 +123,7 @@ impl GuiState for AppState {
     }
 
     fn get_checked_xovers_parameters(&self) -> CheckXoversParameter {
-        self.0.parameters.check_xover_paramters
+        self.0.parameters.check_xover_parameters
     }
 
     fn follow_stereographic_camera(&self) -> bool {
