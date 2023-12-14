@@ -96,7 +96,7 @@ pub(super) struct DesignContent {
     /// Maps a Nucl object to its identifier
     pub nucl_collection: Arc<NuclCollection>,
     /// Maps a pair of nucleotide forming a bound to the identifier of the bound
-    pub identifier_bound: HashMap<(Nucl, Nucl), u32, RandomState>,
+    pub identifier_bond: HashMap<(Nucl, Nucl), u32, RandomState>,
     /// Maps the identifier of a element to the identifier of the strands to which it belongs
     pub strand_map: HashMap<u32, usize, RandomState>,
     /// Maps the identifier of a element to the identifier of the helix to which it belongs
@@ -390,7 +390,7 @@ impl DesignContent {
             .collect()
     }
 
-    pub fn get_all_visible_bounds(
+    pub fn get_all_visible_bonds(
         &self,
         design: &Design,
         invisible_nucls: &HashSet<Nucl>,
@@ -464,7 +464,7 @@ impl DesignContent {
         let mut object_type = HashMap::default();
         let mut space_position = HashMap::default();
         let mut nucl_collection = NuclCollection::default();
-        let mut identifier_bound = HashMap::default();
+        let mut identifier_bond = HashMap::default();
         let mut nucleotides_involved = HashMap::default();
         let mut nucleotide = HashMap::default();
         let mut strand_map = HashMap::default();
@@ -576,7 +576,7 @@ impl DesignContent {
                             let bound = (old_nucl, nucl);
                             object_type
                                 .insert(bound_id, ObjectType::Bond(old_nucl_id.unwrap(), id));
-                            identifier_bound.insert(bound, bound_id);
+                            identifier_bond.insert(bound, bound_id);
                             nucleotides_involved.insert(bound_id, bound);
                             color_map.insert(bound_id, color);
                             strand_map.insert(bound_id, *s_id);
@@ -679,7 +679,7 @@ impl DesignContent {
                     bound_id,
                     ObjectType::Bond(old_nucl_id.unwrap(), *prime5_id),
                 );
-                identifier_bound.insert(bound, bound_id);
+                identifier_bond.insert(bound, bound_id);
                 nucleotides_involved.insert(bound_id, bound);
                 color_map.insert(bound_id, color);
                 strand_map.insert(bound_id, *s_id);
@@ -748,7 +748,7 @@ impl DesignContent {
             nucleotide,
             nucleotides_involved,
             nucl_collection: Arc::new(nucl_collection),
-            identifier_bound,
+            identifier_bond,
             strand_map,
             space_position,
             color: color_map,
