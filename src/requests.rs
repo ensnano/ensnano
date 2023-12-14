@@ -28,7 +28,7 @@ mod poll;
 use super::gui::UiSize;
 use super::*;
 use ensnano_interactor::{application::AppId, RollRequest, Selection};
-use ensnano_interactor::{graphics::HBoundDisplay, UnrootedRevolutionSurfaceDescriptor};
+use ensnano_interactor::{graphics::HBondDisplay, UnrootedRevolutionSurfaceDescriptor};
 use ensnano_interactor::{CenterOfSelection, CheckXoversParameter};
 pub(crate) use poll::poll_all;
 use ultraviolet::Vec3;
@@ -37,7 +37,7 @@ use super::gui::OrganizerTree;
 use super::scene::FogParameters;
 use ensnano_design::grid::{GridId, GridPosition, GridTypeDescr};
 use ensnano_design::{
-    elements::{DnaAttribute, DnaElementKey},
+    elements::{DesignElementKey, DnaAttribute},
     Nucl,
 };
 use ensnano_interactor::{
@@ -58,7 +58,7 @@ pub struct Requests {
     pub action_mode: Option<ActionMode>,
     /// A change of the selection mode
     pub selection_mode: Option<SelectionMode>,
-    /// A request to move the camera so that the frustrum fits the desgin
+    /// A request to move the camera so that the frustrum fits the design
     pub fitting: Option<()>,
     /// A request to save the selected design
     pub file_save: Option<()>,
@@ -97,10 +97,14 @@ pub struct Requests {
     pub rigid_body_parameters: Option<RigidBodyConstants>,
     pub keep_proceed: VecDeque<Action>,
     pub new_shift_hyperboloid: Option<f32>,
-    pub organizer_selection: Option<(Vec<DnaElementKey>, Option<ensnano_organizer::GroupId>, bool)>,
-    pub organizer_candidates: Option<Vec<DnaElementKey>>,
-    pub new_attribute: Option<(DnaAttribute, Vec<DnaElementKey>)>,
-    pub new_tree: Option<OrganizerTree<DnaElementKey>>,
+    pub organizer_selection: Option<(
+        Vec<DesignElementKey>,
+        Option<ensnano_organizer::GroupId>,
+        bool,
+    )>,
+    pub organizer_candidates: Option<Vec<DesignElementKey>>,
+    pub new_attribute: Option<(DnaAttribute, Vec<DesignElementKey>)>,
+    pub new_tree: Option<OrganizerTree<DesignElementKey>>,
     pub split2d: Option<()>,
     pub toggle_visibility: Option<bool>,
     pub all_visible: Option<()>,
@@ -132,7 +136,7 @@ pub struct Requests {
     pub check_xover_parameters: Option<CheckXoversParameter>,
     pub follow_stereographic_camera: Option<bool>,
     pub set_show_stereographic_camera: Option<bool>,
-    pub set_show_h_bonds: Option<HBoundDisplay>,
+    pub set_show_h_bonds: Option<HBondDisplay>,
     pub set_show_bezier_paths: Option<bool>,
     pub set_invert_y_scroll: Option<bool>,
     pub set_thick_helices: Option<bool>,

@@ -626,7 +626,7 @@ impl<S: AppState> RevolutionTab<S> {
                 .scaffold_len_target
                 .get_value()
                 .and_then(InstanciatedParameter::get_uint)?,
-            dna_parameters: app_state.get_dna_parameters(),
+            helix_parameters: app_state.get_dna_parameters(),
             simulation_parameters,
         };
 

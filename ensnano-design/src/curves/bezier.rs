@@ -366,7 +366,7 @@ impl InstanciatedPiecewiseBezier {
 ///
 /// Let (p_i, c-_i, c+_i)_{0 <= i < n} be the end points, the curve is defined on [0, n] by
 /// C(t) = B_i({t}) where i = 1 -  ⌊t⌋ and {t} = t - ⌊t⌋ and B_i is the bezier curve with extremities
-/// p_i and p_{i + 1} and whose tengents at positions p_i and p_{i +1} is proportional to c+_i and
+/// p_i and p_{i + 1} and whose tangents at positions p_i and p_{i +1} is proportional to c+_i and
 /// c-_{i+1}
 ///
 /// Note that c-_0 and c+_{n - 1} are never used

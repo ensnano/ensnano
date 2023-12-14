@@ -52,8 +52,10 @@ iced_native = "0.5.1"
 chebyshev_polynomials = { git = "https://github.com/thenlevy/chebyshev_polynomials" }
 hex = "0.4.3"
 
+
 [patch.crates-io]
 iced_aw = { git="https://github.com/iced-rs/iced_aw.git", tag="v0.2.0" }
+
 
 
 # [target.'cfg(not(target_env = "msvc"))'.dependencies]

@@ -51,9 +51,9 @@ extern crate serde_derive;
 use status_bar::StatusBar;
 
 use ensnano_design::{
-    elements::{DnaAttribute, DnaElement, DnaElementKey},
+    elements::{DesignElement, DesignElementKey, DnaAttribute},
     grid::GridTypeDescr,
-    ultraviolet, BezierPathId, BezierVertexId, Nucl, Parameters,
+    ultraviolet, BezierPathId, BezierVertexId, HelixParameters, Nucl,
 };
 use ensnano_interactor::{
     graphics::{Background3D, DrawArea, ElementType, RenderingMode, SplitMode},
@@ -61,7 +61,7 @@ use ensnano_interactor::{
     SuggestionParameters, UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
 };
 use ensnano_interactor::{
-    graphics::{FogParameters, HBoundDisplay},
+    graphics::{FogParameters, HBondDisplay},
     RevolutionSurfaceSystemDescriptor,
 };
 use ensnano_interactor::{operation::Operation, ScaffoldInfo};
@@ -143,19 +143,19 @@ pub trait Requests: 'static + Send {
     fn perform_camera_rotation(&mut self, xz: f32, yz: f32, xy: f32);
     /// Create a new grid in front of the 3D camera
     fn create_grid(&mut self, grid_type_descriptor: GridTypeDescr);
-    fn set_candidates_keys(&mut self, candidates: Vec<DnaElementKey>);
+    fn set_candidates_keys(&mut self, candidates: Vec<DesignElementKey>);
     fn set_selected_keys(
         &mut self,
-        selection: Vec<DnaElementKey>,
+        selection: Vec<DesignElementKey>,
         group_id: Option<ensnano_organizer::GroupId>,
         new_group: bool,
     );
-    fn update_organizer_tree(&mut self, tree: OrganizerTree<DnaElementKey>);
+    fn update_organizer_tree(&mut self, tree: OrganizerTree<DesignElementKey>);
     /// Update one attribute of several Dna Elements
     fn update_attribute_of_elements(
         &mut self,
         attribute: DnaAttribute,
-        keys: BTreeSet<DnaElementKey>,
+        keys: BTreeSet<DesignElementKey>,
     );
     fn change_split_mode(&mut self, split_mode: SplitMode);
     fn export(&mut self, export_type: ensnano_exports::ExportType);
@@ -204,13 +204,13 @@ pub trait Requests: 'static + Send {
     fn set_check_xover_parameters(&mut self, paramters: CheckXoversParameter);
     fn follow_stereographic_camera(&mut self, follow: bool);
     fn set_show_stereographic_camera(&mut self, show: bool);
-    fn set_show_h_bonds(&mut self, show: HBoundDisplay);
+    fn set_show_h_bonds(&mut self, show: HBondDisplay);
     fn flip_split_views(&mut self);
     fn set_rainbow_scaffold(&mut self, rainbow: bool);
     fn set_thick_helices(&mut self, thick: bool);
     fn align_horizon(&mut self);
     fn download_origamis(&mut self);
-    fn set_dna_parameters(&mut self, param: Parameters);
+    fn set_dna_parameters(&mut self, param: HelixParameters);
     fn set_expand_insertions(&mut self, expand: bool);
     fn set_insertion_length(&mut self, insertion_point: InsertionPoint, length: usize);
     fn create_bezier_plane(&mut self);
@@ -1035,11 +1035,11 @@ pub trait AppState:
     fn has_double_strand_on_new_helix(&self) -> bool;
     fn get_widget_basis(&self) -> WidgetBasis;
     fn get_simulation_state(&self) -> SimulationState;
-    fn get_dna_parameters(&self) -> Parameters;
+    fn get_dna_parameters(&self) -> HelixParameters;
     fn is_building_hyperboloid(&self) -> bool;
     fn get_scaffold_info(&self) -> Option<ScaffoldInfo>;
     fn get_selection(&self) -> &[Selection];
-    fn get_selection_as_dnaelement(&self) -> Vec<DnaElementKey>;
+    fn get_selection_as_designelement(&self) -> Vec<DesignElementKey>;
     fn can_make_grid(&self) -> bool;
     fn get_reader(&self) -> Box<dyn DesignReader>;
     fn design_was_modified(&self, other: &Self) -> bool;
@@ -1051,7 +1051,7 @@ pub trait AppState:
     fn get_checked_xovers_parameters(&self) -> CheckXoversParameter;
     fn follow_stereographic_camera(&self) -> bool;
     fn show_stereographic_camera(&self) -> bool;
-    fn get_h_bounds_display(&self) -> HBoundDisplay;
+    fn get_h_bonds_display(&self) -> HBondDisplay;
     fn get_scroll_sensitivity(&self) -> f32;
     fn get_invert_y_scroll(&self) -> bool;
     fn want_thick_helices(&self) -> bool;
@@ -1077,7 +1077,7 @@ pub trait DesignReader: 'static {
     fn is_id_of_scaffold(&self, s_id: usize) -> bool;
     fn length_decomposition(&self, s_id: usize) -> String;
     fn nucl_is_anchor(&self, nucl: Nucl) -> bool;
-    fn get_dna_elements(&self) -> &[DnaElement];
+    fn get_dna_elements(&self) -> &[DesignElement];
     fn get_organizer_tree(&self) -> Option<Arc<ensnano_design::EnsnTree>>;
     fn strand_name(&self, s_id: usize) -> String;
     fn get_all_cameras(&self) -> Vec<(CameraId, &str)>;

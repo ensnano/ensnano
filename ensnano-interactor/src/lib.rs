@@ -22,11 +22,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use std::path::PathBuf;
 
 use ensnano_design::{
-    elements::{DnaAttribute, DnaElementKey},
+    elements::{DesignElementKey, DnaAttribute},
     grid::{GridDescriptor, GridId, GridObject, GridTypeDescr, HelixGridPosition, Hyperboloid},
     group_attributes::GroupPivot,
     BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, BezierVertexId,
-    CurveDescriptor2D, Isometry3, Nucl, Parameters,
+    CurveDescriptor2D, HelixParameters, Isometry3, Nucl,
 };
 use serde::{Deserialize, Serialize};
 use ultraviolet::{Isometry2, Rotor3, Vec2, Vec3};
@@ -49,8 +49,8 @@ pub use surfaces::*;
 pub enum ObjectType {
     /// A nucleotide identified by its identifier
     Nucleotide(u32),
-    /// A bound, identified by the identifier of the two nucleotides that it bounds.
-    Bound(u32, u32),
+    /// A bond, identified by the identifier of the two nucleotides that it binds.
+    Bond(u32, u32),
 }
 
 impl ObjectType {
@@ -58,8 +58,8 @@ impl ObjectType {
         matches!(self, ObjectType::Nucleotide(_))
     }
 
-    pub fn is_bound(&self) -> bool {
-        matches!(self, ObjectType::Bound(_, _))
+    pub fn is_bond(&self) -> bool {
+        matches!(self, ObjectType::Bond(_, _))
     }
 
     pub fn same_type(&self, other: Self) -> bool {
@@ -165,7 +165,7 @@ pub enum DesignOperation {
     },
     UpdateAttribute {
         attribute: DnaAttribute,
-        elements: Vec<DnaElementKey>,
+        elements: Vec<DesignElementKey>,
     },
     SetSmallSpheres {
         grid_ids: Vec<GridId>,
@@ -215,7 +215,7 @@ pub enum DesignOperation {
         x: isize,
         y: isize,
     },
-    SetOrganizerTree(ensnano_design::OrganizerTree<DnaElementKey>),
+    SetOrganizerTree(ensnano_design::OrganizerTree<DesignElementKey>),
     SetStrandName {
         s_id: usize,
         name: String,
@@ -260,8 +260,8 @@ pub enum DesignOperation {
         xovers: Vec<usize>,
     },
     SetRainbowScaffold(bool),
-    SetDnaParameters {
-        parameters: Parameters,
+    SetGlobalHelixParameters {
+        helix_parameters: HelixParameters,
     },
     SetInsertionLength {
         length: usize,
@@ -293,7 +293,7 @@ pub enum DesignOperation {
     ApplyHomothethyOnBezierPlane {
         homothethy: BezierPlaneHomothethy,
     },
-    SetVectorOfBezierTengent(NewBezierTengentVector),
+    SetVectorOfBezierTangent(NewBezierTangentVector),
     MakeBezierPathCyclic {
         path_id: BezierPathId,
         cyclic: bool,
@@ -314,11 +314,11 @@ pub enum DesignOperation {
 }
 
 #[derive(Clone, Debug, Copy)]
-pub struct NewBezierTengentVector {
+pub struct NewBezierTangentVector {
     pub vertex_id: BezierVertexId,
-    /// Wether `new_vector` is the vector of the inward or outward tengent
-    pub tengent_in: bool,
-    pub full_symetry_other_tengent: bool,
+    /// Wether `new_vector` is the vector of the inward or outward tangent
+    pub tangent_in: bool,
+    pub full_symetry_other_tangent: bool,
     pub new_vector: Vec2,
 }
 
@@ -371,7 +371,7 @@ pub enum IsometryTarget {
     Design,
     /// An helix of the design
     Helices(Vec<usize>, bool),
-    /// A grid of the desgin
+    /// A grid of the design
     Grids(Vec<GridId>),
     /// The pivot of a group
     GroupPivot(GroupId),

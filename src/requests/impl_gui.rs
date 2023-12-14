@@ -130,8 +130,8 @@ impl GuiRequests for Requests {
     }
 
     fn update_rigid_helices_simulation(&mut self, parameters: RigidBodyParametersRequest) {
-        let rigid_body_paramters = rigid_parameters(parameters);
-        self.rigid_helices_simulation = Some(rigid_body_paramters);
+        let rigid_body_parameters = rigid_parameters(parameters);
+        self.rigid_helices_simulation = Some(rigid_body_parameters);
     }
 
     fn update_rigid_grids_simulation(&mut self, parameters: RigidBodyParametersRequest) {
@@ -184,27 +184,27 @@ impl GuiRequests for Requests {
         self.new_bezier_plane = Some(())
     }
 
-    fn set_candidates_keys(&mut self, candidates: Vec<DnaElementKey>) {
+    fn set_candidates_keys(&mut self, candidates: Vec<DesignElementKey>) {
         self.organizer_candidates = Some(candidates);
     }
 
     fn set_selected_keys(
         &mut self,
-        selection: Vec<DnaElementKey>,
+        selection: Vec<DesignElementKey>,
         group_id: Option<ensnano_organizer::GroupId>,
         new_group: bool,
     ) {
         self.organizer_selection = Some((selection, group_id, new_group));
     }
 
-    fn update_organizer_tree(&mut self, tree: OrganizerTree<DnaElementKey>) {
+    fn update_organizer_tree(&mut self, tree: OrganizerTree<DesignElementKey>) {
         self.new_tree = Some(tree);
     }
 
     fn update_attribute_of_elements(
         &mut self,
         attribute: DnaAttribute,
-        keys: BTreeSet<DnaElementKey>,
+        keys: BTreeSet<DesignElementKey>,
     ) {
         self.new_attribute = Some((attribute, keys.iter().cloned().collect()));
     }
@@ -376,8 +376,8 @@ impl GuiRequests for Requests {
             }))
     }
 
-    fn set_check_xover_parameters(&mut self, paramters: CheckXoversParameter) {
-        self.check_xover_parameters = Some(paramters);
+    fn set_check_xover_parameters(&mut self, parameters: CheckXoversParameter) {
+        self.check_xover_parameters = Some(parameters);
     }
 
     fn follow_stereographic_camera(&mut self, follow: bool) {
@@ -398,7 +398,7 @@ impl GuiRequests for Requests {
         self.set_show_stereographic_camera = Some(show);
     }
 
-    fn set_show_h_bonds(&mut self, show: HBoundDisplay) {
+    fn set_show_h_bonds(&mut self, show: HBondDisplay) {
         self.set_show_h_bonds = Some(show);
     }
 
@@ -422,7 +422,7 @@ impl GuiRequests for Requests {
         self.keep_proceed.push_back(Action::DownloadOrigamiRequest);
     }
 
-    fn set_dna_parameters(&mut self, param: ensnano_design::Parameters) {
+    fn set_dna_parameters(&mut self, param: ensnano_design::HelixParameters) {
         self.keep_proceed.push_back(Action::SetDnaParameters(param));
     }
 
