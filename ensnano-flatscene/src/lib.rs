@@ -287,7 +287,7 @@ impl<S: AppState> FlatScene<S> {
                     position: n.flat_position.to_real(n.helix.segment_left) as i32,
                     helix_id: n.helix.segment.helix_idx as u32,
                     forward: n.forward,
-                    bound: false,
+                    bond: false,
                     design_id: self.selected_design as u32,
                 });
                 let candidate = if let Some(selection) = phantom.and_then(|p| {

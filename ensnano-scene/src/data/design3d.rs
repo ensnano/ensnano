@@ -25,14 +25,14 @@ use ensnano_design::grid::{GridId, GridObject, GridPosition};
 use ensnano_design::{grid::HelixGridPosition, Nucl};
 use ensnano_design::{
     AdditionalStructure, BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex,
-    Collection, CubicBezierConstructor, CurveDescriptor, External3DObjects, InstanciatedPath,
-    Parameters,
+    Collection, CubicBezierConstructor, CurveDescriptor, External3DObjects, HelixParameters,
+    InstanciatedPath,
 };
 pub use ensnano_design::{SurfaceInfo, SurfacePoint};
 use ensnano_interactor::consts::*;
 use ensnano_interactor::{
     graphics::{LoopoutBond, LoopoutNucl},
-    phantom_helix_encoder_bound, phantom_helix_encoder_nucl, BezierControlPoint, ObjectType,
+    phantom_helix_encoder_bond, phantom_helix_encoder_nucl, BezierControlPoint, ObjectType,
     PhantomElement, Referential, PHANTOM_RANGE,
 };
 use ensnano_utils::instance::Instance;
@@ -197,7 +197,7 @@ impl<R: DesignReader> Design3D<R> {
     }
 
     pub fn get_cones_raw(&self, show_insertion_representents: bool) -> Vec<RawDnaInstance> {
-        let mut ids = self.design.get_all_visible_bound_ids();
+        let mut ids = self.design.get_all_visible_bond_ids();
         if !show_insertion_representents {
             ids.retain(|id| self.design.get_insertion_length(*id) == 0);
         }
@@ -211,14 +211,14 @@ impl<R: DesignReader> Design3D<R> {
 
     /// Return the list of tube instances to be displayed to represent the design
     pub fn get_tubes_raw(&self, show_insertion_representents: bool) -> Rc<Vec<RawDnaInstance>> {
-        let mut ids = self.design.get_all_visible_bound_ids();
+        let mut ids = self.design.get_all_visible_bond_ids();
         if !show_insertion_representents {
             ids.retain(|id| self.design.get_insertion_length(*id) == 0);
         }
         let expected_length = if self.thick_helices {
             self.design.get_expected_bond_length()
         } else {
-            Parameters::INTER_CENTER_GAP
+            HelixParameters::INTER_CENTER_GAP
         };
         let mut ret: Vec<_> = self
             .id_to_raw_instances(ids)
@@ -289,7 +289,7 @@ impl<R: DesignReader> Design3D<R> {
             || matches!(kind, Some(ObjectType::Nucleotide(_)))
         {
             let instanciable = match kind {
-                Some(ObjectType::Bound(id1, id2)) => {
+                Some(ObjectType::Bond(id1, id2)) => {
                     let pos1 = self
                         .get_graphic_element_position(&SceneElement::DesignElement(self.id, id1))
                         .unwrap_or(f32::NAN * Vec3::unit_x());
@@ -367,7 +367,7 @@ impl<R: DesignReader> Design3D<R> {
 
     fn make_checked_xover_instance(&self, id: u32, checked: bool) -> Option<RawDnaInstance> {
         let referential = Referential::Model;
-        if let Some(ObjectType::Bound(n1, n2)) = self.get_object_type(id) {
+        if let Some(ObjectType::Bond(n1, n2)) = self.get_object_type(id) {
             let pos1 = self.get_design_element_position(n1, referential)?;
             let pos2 = self.get_design_element_position(n2, referential)?;
             Some(create_check_bound(pos1, pos2, checked))
@@ -385,7 +385,7 @@ impl<R: DesignReader> Design3D<R> {
     }
 
     /// Return (h bonds instances, ellipoids instances)
-    pub(super) fn get_all_hbond(&self) -> HBoundsInstances {
+    pub(super) fn get_all_hbond(&self) -> HBondsInstances {
         let mut full_h_bonds = Vec::new();
         let mut partial_h_bonds = Vec::new();
         let mut ellipsoids = Vec::new();
@@ -439,7 +439,7 @@ impl<R: DesignReader> Design3D<R> {
             ellipsoids.push(forward_ellipsoid.to_raw_instance());
             full_h_bonds.push(full_bond.to_raw_instance());
         }
-        HBoundsInstances {
+        HBondsInstances {
             partial_h_bonds,
             full_h_bonds,
             ellipsoids,
@@ -454,7 +454,7 @@ impl<R: DesignReader> Design3D<R> {
         let kind = self.get_object_type(id)?;
 
         match kind {
-            ObjectType::Bound(id1, id2) => {
+            ObjectType::Bond(id1, id2) => {
                 let pos1 =
                     self.get_graphic_element_position(&SceneElement::DesignElement(self.id, id1))?;
                 let pos2 =
@@ -474,7 +474,7 @@ impl<R: DesignReader> Design3D<R> {
     pub fn make_raw_instance(&self, id: u32) -> Option<RawDnaInstance> {
         let kind = self.get_object_type(id)?;
         let raw_instance = match kind {
-            ObjectType::Bound(id1, id2) => {
+            ObjectType::Bond(id1, id2) => {
                 let pos1 =
                     self.get_graphic_element_position(&SceneElement::DesignElement(self.id, id1))?;
                 let pos2 =
@@ -492,7 +492,7 @@ impl<R: DesignReader> Design3D<R> {
                 let id = id | self.id << 24;
                 let small = self.design.has_small_spheres_nucl_id(id);
                 let radius = if small {
-                    BOUND_RADIUS / SPHERE_RADIUS
+                    BOND_RADIUS / SPHERE_RADIUS
                 } else {
                     1.
                 };
@@ -584,7 +584,7 @@ impl<R: DesignReader> Design3D<R> {
         let helix_id = phantom_element.helix_id;
         let i = phantom_element.position;
         let forward = phantom_element.forward;
-        if phantom_element.bound {
+        if phantom_element.bond {
             let nucl_1 =
                 self.design
                     .get_position_of_nucl_on_helix(nucl, Referential::Model, false)?;
@@ -593,7 +593,7 @@ impl<R: DesignReader> Design3D<R> {
                 Referential::Model,
                 false,
             )?;
-            let id = phantom_helix_encoder_bound(self.id, helix_id, i, forward);
+            let id = phantom_helix_encoder_bond(self.id, helix_id, i, forward);
             Some(create_dna_bound(nucl_1, nucl_2, color, id, true).to_raw_instance())
         } else {
             let nucl_coord =
@@ -625,7 +625,7 @@ impl<R: DesignReader> Design3D<R> {
             position: i as isize,
             forward,
         };
-        if phantom_element.bound {
+        if phantom_element.bond {
             let nucl_1 = self
                 .design
                 .get_position_of_nucl_on_helix(nucl, referential, on_axis)?;
@@ -684,7 +684,7 @@ impl<R: DesignReader> Design3D<R> {
                         .to_raw_instance(),
                     );
                     if let Some(coord) = previous_nucl {
-                        let id = phantom_helix_encoder_bound(self.id, *helix_id, i, *forward);
+                        let id = phantom_helix_encoder_bond(self.id, *helix_id, i, *forward);
                         tubes.push(
                             create_dna_bound(nucl_coord, coord, color, id, true)
                                 .with_radius(0.6)
@@ -702,8 +702,8 @@ impl<R: DesignReader> Design3D<R> {
         self.design.get_object_type(id)
     }
 
-    pub fn get_bound(&self, id: u32) -> Option<(Nucl, Nucl)> {
-        if let Some(ObjectType::Bound(n1, n2)) = self.get_object_type(id) {
+    pub fn get_bond(&self, id: u32) -> Option<(Nucl, Nucl)> {
+        if let Some(ObjectType::Bond(n1, n2)) = self.get_object_type(id) {
             self.get_nucl(n1).zip(self.get_nucl(n2))
         } else {
             None
@@ -759,7 +759,7 @@ impl<R: DesignReader> Design3D<R> {
             | SceneElement::BezierVertex { .. }
             | SceneElement::GridCircle(_, _)
             | SceneElement::PlaneCorner { .. }
-            | SceneElement::BezierTengent { .. } => None,
+            | SceneElement::BezierTangent { .. } => None,
         }
     }
 
@@ -921,7 +921,7 @@ impl<R: DesignReader> Design3D<R> {
         for x in self.design.get_all_nucl_ids().iter() {
             ret.insert(*x);
         }
-        for x in self.design.get_all_bound_ids().iter() {
+        for x in self.design.get_all_bond_ids().iter() {
             ret.insert(*x);
         }
         ret
@@ -962,13 +962,13 @@ impl<R: DesignReader> Design3D<R> {
     }
 
     pub fn get_identifier_bound(&self, n1: Nucl, n2: Nucl) -> Option<u32> {
-        self.design.get_identifier_bound(n1, n2)
+        self.design.get_identifier_bond(n1, n2)
     }
 
     pub fn get_element_identifier_from_xover_id(&self, xover_id: usize) -> Option<u32> {
         self.design
             .get_xover_with_id(xover_id)
-            .and_then(|(n1, n2)| self.design.get_identifier_bound(n1, n2))
+            .and_then(|(n1, n2)| self.design.get_identifier_bond(n1, n2))
     }
 
     pub fn get_xover_id(&self, xover: &(Nucl, Nucl)) -> Option<usize> {
@@ -1214,9 +1214,9 @@ pub trait DesignReader: 'static + ensnano_interactor::DesignReader {
     /// Return the identifier of all the visible nucleotides
     fn get_all_visible_nucl_ids(&self) -> Vec<u32>;
     /// Return the identifier of all the visible bounds
-    fn get_all_visible_bound_ids(&self) -> Vec<u32>;
+    fn get_all_visible_bond_ids(&self) -> Vec<u32>;
     fn get_all_nucl_ids(&self) -> Vec<u32>;
-    fn get_all_bound_ids(&self) -> Vec<u32>;
+    fn get_all_bond_ids(&self) -> Vec<u32>;
     fn get_pasted_position(&self) -> Vec<(Vec<Vec3>, bool)>;
     /// If e_id is the identifier of a nucleotide, return the position on which the
     /// nucleotide's symbols must be displayed
@@ -1249,9 +1249,9 @@ pub trait DesignReader: 'static + ensnano_interactor::DesignReader {
     fn get_helix_basis(&self, h_id: u32) -> Option<Rotor3>;
     fn get_basis(&self) -> Rotor3;
     fn get_identifier_nucl(&self, nucl: &Nucl) -> Option<u32>;
-    fn get_identifier_bound(&self, n1: Nucl, n2: Nucl) -> Option<u32>;
+    fn get_identifier_bond(&self, n1: Nucl, n2: Nucl) -> Option<u32>;
     fn get_nucl_with_id(&self, e_id: u32) -> Option<Nucl>;
-    /// Return the nucleotide with id e_id or the 5' end of the bound with id e_id
+    /// Return the nucleotide with id e_id or the 5' end of the bond with id e_id
     fn get_nucl_with_id_relaxed(&self, e_id: u32) -> Option<Nucl>;
     fn can_start_builder_at(&self, nucl: &Nucl) -> bool;
     fn get_grid_instances(&self) -> BTreeMap<GridId, GridInstance>;
@@ -1285,7 +1285,7 @@ pub trait DesignReader: 'static + ensnano_interactor::DesignReader {
     fn get_bezier_planes(
         &self,
     ) -> &dyn Collection<Item = BezierPlaneDescriptor, Key = BezierPlaneId>;
-    fn get_parameters(&self) -> Parameters;
+    fn get_parameters(&self) -> HelixParameters;
     fn get_bezier_paths(&self) -> Option<&BTreeMap<BezierPathId, Arc<InstanciatedPath>>>;
     fn get_bezier_vertex(&self, path_id: BezierPathId, vertex_id: usize) -> Option<BezierVertex>;
     fn get_corners_of_plane(&self, plane_id: BezierPlaneId) -> [Vec2; 4];
@@ -1297,7 +1297,7 @@ pub trait DesignReader: 'static + ensnano_interactor::DesignReader {
     fn get_additional_structure(&self) -> Option<&dyn AdditionalStructure>;
 }
 
-pub(super) struct HBoundsInstances {
+pub(super) struct HBondsInstances {
     pub full_h_bonds: Vec<RawDnaInstance>,
     pub partial_h_bonds: Vec<RawDnaInstance>,
     pub ellipsoids: Vec<RawDnaInstance>,

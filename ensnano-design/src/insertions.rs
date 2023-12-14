@@ -57,7 +57,7 @@ impl InsertionDescriptor {
         self.edge.prime_3.position
     }
 
-    fn get_circle(&self, parameters: &Parameters) -> Option<CircleArc> {
+    fn get_circle(&self, helix_parameters: &HelixParameters) -> Option<CircleArc> {
         let bisector_origin = (self.edge.prime_5.position + self.edge.prime_3.position) / 2.;
         let mean_of_up_vecs = (self.edge.prime_5.up_vec + self.edge.prime_3.up_vec) / 2.;
         if mean_of_up_vecs.mag() < 1e-3 {
@@ -70,7 +70,7 @@ impl InsertionDescriptor {
                         .normalized()
                         .dot(edge_direction.normalized())))
             .normalized();
-            let objective_len = parameters.dist_ac() * self.nb_nucl as f32;
+            let objective_len = helix_parameters.dist_ac() * self.nb_nucl as f32;
             if objective_len < edge_direction.mag() {
                 None
             } else {
@@ -82,7 +82,7 @@ impl InsertionDescriptor {
                 } else {
                     let a = 0.0;
                     let b = 10. * d;
-                    if cord_length(a, b, false, self.nb_nucl) > parameters.dist_ac() {
+                    if cord_length(a, b, false, self.nb_nucl) > helix_parameters.dist_ac() {
                         // the objective_len is very close to the length of the straight line
                         // between the to exremities
                         return None;
@@ -91,7 +91,7 @@ impl InsertionDescriptor {
                 };
                 let mut c = (b + a) / 2.;
                 while b - a > 1e-3 {
-                    if (cord_length(d, c, increasing, self.nb_nucl) > parameters.dist_ac())
+                    if (cord_length(d, c, increasing, self.nb_nucl) > helix_parameters.dist_ac())
                         == increasing
                     {
                         // decrease the length
@@ -167,17 +167,17 @@ const FRICTION: f32 = 0.1;
 const MASS_NUCL: f32 = 1.0;
 
 impl InsertionDescriptor {
-    fn instanciate(&self, parameters: &Parameters) -> Vec<Vec3> {
+    fn instanciate(&self, helix_parameters: &HelixParameters) -> Vec<Vec3> {
         let mut rnd = rand::thread_rng();
         let mut ret = Vec::with_capacity(self.nb_nucl);
-        let len_0 = parameters.dist_ac();
+        let len_0 = helix_parameters.dist_ac();
 
-        let circle_arc = self.get_circle(parameters);
+        let circle_arc = self.get_circle(helix_parameters);
         for i in 0..self.nb_nucl {
             let gx: f32 = rnd.sample(StandardNormal);
             let gy: f32 = rnd.sample(StandardNormal);
             let gz: f32 = rnd.sample(StandardNormal);
-            let rand_vec = Vec3::new(gx, gy, gz) * parameters.dist_ac() / 3f32.sqrt() / 10.0;
+            let rand_vec = Vec3::new(gx, gy, gz) * helix_parameters.dist_ac() / 3f32.sqrt() / 10.0;
             let t = ((i + 1) as f32) / ((self.nb_nucl + 1) as f32);
             let initial_pos = if let Some(arc) = circle_arc.as_ref() {
                 arc.position(t) + rand_vec
@@ -223,7 +223,11 @@ impl InsertionDescriptor {
 }
 
 impl Strand {
-    pub fn update_insertions(&mut self, helices: &dyn HelixCollection, parameters: &Parameters) {
+    pub fn update_insertions(
+        &mut self,
+        helices: &dyn HelixCollection,
+        helix_parameters: &HelixParameters,
+    ) {
         let mut to_be_updated = Vec::new();
         let nb_domain = self.domains.len();
         for (d_prev, ((d_id, d), d_next)) in self.domains.iter().cycle().skip(nb_domain - 1).zip(
@@ -235,13 +239,15 @@ impl Strand {
             if let Domain::Insertion { .. } = d {
                 if let Some((prime_5, prime_3)) = d_prev.prime3_end().zip(d_next.prime5_end()) {
                     let prime_5 = helices.get(&prime_5.helix).map(|h| {
-                        let position = h.space_pos(parameters, prime_5.position, prime_5.forward);
-                        let up_vec = position - h.axis_position(parameters, prime_5.position);
+                        let position =
+                            h.space_pos(helix_parameters, prime_5.position, prime_5.forward);
+                        let up_vec = position - h.axis_position(helix_parameters, prime_5.position);
                         InsertionEnd { position, up_vec }
                     });
                     let prime_3 = helices.get(&prime_3.helix).map(|h| {
-                        let position = h.space_pos(parameters, prime_3.position, prime_3.forward);
-                        let up_vec = position - h.axis_position(parameters, prime_3.position);
+                        let position =
+                            h.space_pos(helix_parameters, prime_3.position, prime_3.forward);
+                        let up_vec = position - h.axis_position(helix_parameters, prime_3.position);
                         InsertionEnd { position, up_vec }
                     });
                     if let Some((prime_5, prime_3)) = prime_5.zip(prime_3) {
@@ -255,11 +261,16 @@ impl Strand {
             }
         }
         for (d_id, edge) in to_be_updated.into_iter() {
-            self.update_insertion(d_id, edge, parameters);
+            self.update_insertion(d_id, edge, helix_parameters);
         }
     }
 
-    fn update_insertion(&mut self, d_id: usize, edge: InsertionEdge, parameters: &Parameters) {
+    fn update_insertion(
+        &mut self,
+        d_id: usize,
+        edge: InsertionEdge,
+        helix_parameters: &HelixParameters,
+    ) {
         if let Some(Domain::Insertion {
             nb_nucl,
             instanciation,
@@ -276,7 +287,7 @@ impl Strand {
                 .unwrap_or(false);
             if !up_to_date {
                 *instanciation = Some(Arc::new(InstanciatedInsertion {
-                    instanciation: descriptor.instanciate(parameters),
+                    instanciation: descriptor.instanciate(helix_parameters),
                     descriptor,
                 }))
             }

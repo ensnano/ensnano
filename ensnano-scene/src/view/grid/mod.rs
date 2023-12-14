@@ -48,7 +48,7 @@ impl GridInstance {
             position,
             orientation,
             model_id,
-            radius: 1.1 * self.grid.parameters.helix_radius,
+            radius: 1.1 * self.grid.helix_parameters.helix_radius,
             color,
         };
         (
@@ -105,10 +105,10 @@ impl GridInstance {
         use ensnano_utils::instance::Instance;
         let (min_x, min_y, max_x, max_y);
         if let GridType::Hyperboloid(ref h) = self.grid.grid_type {
-            min_x = -h.grid_radius(&self.grid.parameters);
-            max_x = h.grid_radius(&self.grid.parameters);
-            min_y = -h.grid_radius(&self.grid.parameters);
-            max_y = h.grid_radius(&self.grid.parameters);
+            min_x = -h.grid_radius(&self.grid.helix_parameters);
+            max_x = h.grid_radius(&self.grid.helix_parameters);
+            min_y = -h.grid_radius(&self.grid.helix_parameters);
+            max_y = h.grid_radius(&self.grid.helix_parameters);
         } else {
             min_x = self.min_x as f32;
             max_x = self.max_x as f32;
@@ -129,8 +129,8 @@ impl GridInstance {
             max_y,
             grid_type,
             color: Instance::color_from_au32(self.color),
-            inter_helix_gap: self.grid.parameters.inter_helix_gap,
-            helix_radius: self.grid.parameters.helix_radius,
+            inter_helix_gap: self.grid.helix_parameters.inter_helix_gap,
+            helix_radius: self.grid.helix_parameters.helix_radius,
             design_id: self.design as u32,
         }
     }
@@ -149,7 +149,10 @@ impl GridInstance {
             (vec.dot(x_dir), vec.dot(y_dir))
         };
         if self.contains_point(x, y) {
-            let (x, y) = self.grid.grid_type.interpolate(&self.grid.parameters, x, y);
+            let (x, y) = self
+                .grid
+                .grid_type
+                .interpolate(&self.grid.helix_parameters, x, y);
 
             Some(GridIntersection {
                 depth: ret,
@@ -166,13 +169,13 @@ impl GridInstance {
     fn convert_coord(&self, x: f32, y: f32) -> (f32, f32) {
         match self.grid.grid_type {
             GridType::Square(_) => {
-                let r =
-                    self.grid.parameters.helix_radius * 2. + self.grid.parameters.inter_helix_gap;
+                let r = self.grid.helix_parameters.helix_radius * 2.
+                    + self.grid.helix_parameters.inter_helix_gap;
                 (x / r, y / r)
             }
             GridType::Honeycomb(_) => {
-                let r =
-                    self.grid.parameters.helix_radius * 2. + self.grid.parameters.inter_helix_gap;
+                let r = self.grid.helix_parameters.helix_radius * 2.
+                    + self.grid.helix_parameters.inter_helix_gap;
                 (x * 2. / (3f32.sqrt() * r), (y - r / 2.) * 2. / (3. * r))
             }
             GridType::Hyperboloid(_) => unreachable!(),
@@ -181,7 +184,7 @@ impl GridInstance {
 
     fn contains_point(&self, x: f32, y: f32) -> bool {
         if let GridType::Hyperboloid(ref h) = self.grid.grid_type {
-            h.contains_point(&self.grid.parameters, x, y)
+            h.contains_point(&self.grid.helix_parameters, x, y)
         } else {
             let (x, y) = self.convert_coord(x, y);
             x >= self.min_x as f32 - 0.025

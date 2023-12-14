@@ -86,7 +86,7 @@ fn memory_color_column<'a, S: AppState>(
 }
 macro_rules! add_roll_slider {
     ($ret:ident, $self:ident, $app_state: ident, $ui_size: ident) => {
-        let selection = $app_state.get_selection_as_dnaelement();
+        let selection = $app_state.get_selection_as_designelement();
         let roll_target_helices = $self.get_roll_target_helices(&selection);
 
         for view in $self
@@ -205,7 +205,7 @@ impl<S: AppState> EditionTab<S> {
         app_state: &S,
     ) -> Element<'a, Message<S>> {
         let mut ret = Column::new().spacing(5);
-        let selection = app_state.get_selection_as_dnaelement();
+        let selection = app_state.get_selection_as_designelement();
         let roll_target_helices = self.get_roll_target_helices(&selection);
         section!(ret, ui_size, "Edition");
         add_roll_slider!(ret, self, app_state, ui_size);
@@ -227,10 +227,10 @@ impl<S: AppState> EditionTab<S> {
         Scrollable::new(&mut self.scroll).push(ret).into()
     }
 
-    fn get_roll_target_helices(&self, selection: &[DnaElementKey]) -> Vec<usize> {
+    fn get_roll_target_helices(&self, selection: &[DesignElementKey]) -> Vec<usize> {
         let mut ret = vec![];
         for s in selection.iter() {
-            if let DnaElementKey::Helix(h) = s {
+            if let DesignElementKey::Helix(h) = s {
                 ret.push(*h)
             }
         }
@@ -247,7 +247,7 @@ impl<S: AppState> EditionTab<S> {
             .update_request(value_id, value, request);
     }
 
-    pub fn get_roll_request(&mut self, selection: &[DnaElementKey]) -> Option<RollRequest> {
+    pub fn get_roll_request(&mut self, selection: &[DesignElementKey]) -> Option<RollRequest> {
         let roll_target_helices = self.get_roll_target_helices(selection);
         if roll_target_helices.len() > 0 {
             Some(RollRequest {

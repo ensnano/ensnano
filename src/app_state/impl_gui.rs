@@ -18,7 +18,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::*;
 use crate::gui::AppState as GuiState;
-use ensnano_design::{elements::DnaElementKey, Parameters};
+use ensnano_design::{elements::DesignElementKey, HelixParameters};
 use ensnano_gui::ClipboardContent;
 use ensnano_interactor::{ScaffoldInfo, SelectionConversion, SimulationState};
 
@@ -45,7 +45,7 @@ impl GuiState for AppState {
         self.0.design.get_simulation_state()
     }
 
-    fn get_dna_parameters(&self) -> Parameters {
+    fn get_dna_parameters(&self) -> HelixParameters {
         self.0.design.get_dna_parameters()
     }
 
@@ -53,10 +53,10 @@ impl GuiState for AppState {
         self.selection_content().as_ref()
     }
 
-    fn get_selection_as_dnaelement(&self) -> Vec<DnaElementKey> {
+    fn get_selection_as_designelement(&self) -> Vec<DesignElementKey> {
         self.selection_content()
             .iter()
-            .filter_map(|s| DnaElementKey::from_selection(s, 0))
+            .filter_map(|s| DesignElementKey::from_selection(s, 0))
             .collect()
     }
 
@@ -123,7 +123,7 @@ impl GuiState for AppState {
     }
 
     fn get_checked_xovers_parameters(&self) -> CheckXoversParameter {
-        self.0.parameters.check_xover_paramters
+        self.0.parameters.check_xover_parameters
     }
 
     fn follow_stereographic_camera(&self) -> bool {
@@ -134,7 +134,7 @@ impl GuiState for AppState {
         self.0.parameters.show_stereography
     }
 
-    fn get_h_bounds_display(&self) -> HBoundDisplay {
+    fn get_h_bonds_display(&self) -> HBondDisplay {
         self.0.parameters.show_h_bonds
     }
 
@@ -195,15 +195,15 @@ impl GuiState for AppState {
             .as_ref()?
             .curve
             .perimeter();
-        let parameters = self.get_dna_parameters();
-        let area_one_nucl = parameters.z_step * Parameters::INTER_CENTER_GAP;
+        let helix_parameters = self.get_dna_parameters();
+        let area_one_nucl = helix_parameters.z_step * HelixParameters::INTER_CENTER_GAP;
         let scaling_factor = (scaffold_len as f64 * area_one_nucl as f64 / area_surface).sqrt();
         let scaled_perimeter = scaling_factor * perimeter_surface;
 
         // We use floor instead of round, because it works better to increase the revolution radius
         // to gain more nucleotide rather than diminishing it.
         let half_number_helix =
-            (scaled_perimeter / 2. / Parameters::INTER_CENTER_GAP as f64).floor() as usize;
+            (scaled_perimeter / 2. / HelixParameters::INTER_CENTER_GAP as f64).floor() as usize;
 
         Some(ensnano_gui::RevolutionScaling {
             nb_helix: half_number_helix * 2,

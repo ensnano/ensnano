@@ -14,7 +14,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
+ */
+
 //! `ensnano` is a software for designing 3D DNA nanostructures.
 //!
 //! # Organization of the software
@@ -25,7 +26,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //!
 //! ## Drawing process
 //!
-//! On each redraw request, the [main] funtion generates a new frame, and ask the
+//! On each redraw request, the [main] function generates a new frame, and asks the
 //! [Multiplexer](multiplexer) to draw on a view of that texture.
 //!
 //! The [Multiplexer](multiplexer) knows how the window is devided into several regions. For each
@@ -36,17 +37,17 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //!
 //! ## Handling of events
 //!
-//! The Global state of the program is encoded in an automata defined in the
-//! [controller] module. This global state determines weither inputs are handled
+//! The Global state of the program is encoded in an automaton defined in the
+//! [controller] module. This global state determines wether inputs are handled
 //! normally or if the program should wait for the user to interact with dialog windows.
 //!
-//! When the Global automata is in NormalState, events are forwarded to the
+//! When the Global automaton is in NormalState, events are forwarded to the
 //! [Multiplexer](multiplexer) which decides what application should handle the event. This is
 //! usually the application displayed in the active region (the region under the cursor). Special
 //! events like resizing of the window are handled by the multiplexer.
 //!
 //! When GUIs handle an event. They recieve a reference to the state of the main program. This
-//! state is encoded in the [AppState] data structure. Each GUI components
+//! state is encoded in the [AppState] data structure. Each GUI component
 //! needs to be able to recieve some specific information about the state of the program to handle
 //! events and to draw their views. Theese needs are encoded in traits. GUI component typically
 //! defines their own `AppState` trait that must be implemented by the concrete `AppState` type.
@@ -1482,7 +1483,7 @@ impl MainState {
         self.modify_state(|s| s.with_show_stereographic_camera(show), None)
     }
 
-    fn set_show_h_bonds(&mut self, show: ensnano_interactor::graphics::HBoundDisplay) {
+    fn set_show_h_bonds(&mut self, show: ensnano_interactor::graphics::HBondDisplay) {
         self.modify_state(|s| s.with_show_h_bonds(show), None)
     }
 

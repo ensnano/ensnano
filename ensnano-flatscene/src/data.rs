@@ -128,7 +128,7 @@ impl<R: DesignReader> Data<R> {
                 Selection::Strand(_, s_id) if !new_state.is_changing_color() => {
                     selected_strands.insert(*s_id as usize);
                 }
-                Selection::Bound(_, n1, n2) => {
+                Selection::Bond(_, n1, n2) => {
                     selected_xovers.insert((*n1, *n2));
                 }
                 Selection::Xover(_, xover_id) => {
@@ -165,7 +165,7 @@ impl<R: DesignReader> Data<R> {
                 Selection::Strand(_, s_id) => {
                     candidate_strands.insert(*s_id as usize);
                 }
-                Selection::Bound(_, n1, n2) => {
+                Selection::Bond(_, n1, n2) => {
                     candidate_xovers.insert((*n1, *n2));
                 }
                 Selection::Xover(_, xover_id) => {

@@ -32,7 +32,7 @@ pub struct CameraTab {
     pub rendering_mode: RenderingMode,
     rendering_mode_picklist: pick_list::State<RenderingMode>,
     check_xover_picklist: pick_list::State<CheckXoversParameter>,
-    h_bounds_picklist: pick_list::State<HBoundDisplay>,
+    h_bonds_picklist: pick_list::State<HBondDisplay>,
 }
 
 impl CameraTab {
@@ -48,7 +48,7 @@ impl CameraTab {
             rendering_mode: Default::default(),
             rendering_mode_picklist: Default::default(),
             check_xover_picklist: Default::default(),
-            h_bounds_picklist: Default::default(),
+            h_bonds_picklist: Default::default(),
         }
     }
 
@@ -86,21 +86,21 @@ impl CameraTab {
         );
         ret = ret.push(self.fog.view(&ui_size));
 
-        let h_bound_column = Column::new()
-            .push(Text::new("Show H-Bounds").size(ui_size.intermediate_text()))
+        let h_bond_column = Column::new()
+            .push(Text::new("Show H-Bonds").size(ui_size.intermediate_text()))
             .push(PickList::new(
-                &mut self.h_bounds_picklist,
+                &mut self.h_bonds_picklist,
                 [
-                    HBoundDisplay::No,
-                    HBoundDisplay::Stick,
-                    HBoundDisplay::Ellipsoid,
+                    HBondDisplay::No,
+                    HBondDisplay::Stick,
+                    HBondDisplay::Ellipsoid,
                 ]
                 .as_slice(),
-                Some(app_state.get_h_bounds_display()),
+                Some(app_state.get_h_bonds_display()),
                 Message::ShowHBonds,
             ));
 
-        ret = ret.push(h_bound_column);
+        ret = ret.push(h_bond_column);
 
         ret = ret.push(right_checkbox(
             app_state.show_stereographic_camera(),

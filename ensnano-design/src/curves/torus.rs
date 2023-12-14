@@ -16,7 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use crate::{InstanciatedPiecewiseBezier, Parameters};
+use crate::{HelixParameters, InstanciatedPiecewiseBezier};
 
 use super::Curved;
 use std::sync::Arc;
@@ -25,8 +25,8 @@ use ultraviolet::{DVec2, DVec3, Isometry3, Rotor3};
 use ordered_float::OrderedFloat;
 use std::f64::consts::TAU;
 
-const INTER_HELIX_GAP: f64 = crate::Parameters::DEFAULT.helix_radius as f64
-    + crate::Parameters::DEFAULT.inter_helix_gap as f64 / 2.;
+const INTER_HELIX_GAP: f64 = crate::HelixParameters::DEFAULT.helix_radius as f64
+    + crate::HelixParameters::DEFAULT.inter_helix_gap as f64 / 2.;
 
 const NB_STEPS: usize = 10_000_000;
 
@@ -638,7 +638,7 @@ pub(super) struct TwistedTorus {
     /// The unscaled perimeter of the revolving curve
     perimeter: f64,
     nb_turn_per_helix: usize,
-    parameters: Parameters,
+    helix_parameters: HelixParameters,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
@@ -657,11 +657,12 @@ pub struct TwistedTorusDescriptor {
 }
 
 impl TwistedTorus {
-    pub fn new(descriptor: TwistedTorusDescriptor, parameters: &Parameters) -> Self {
+    pub fn new(descriptor: TwistedTorusDescriptor, helix_parameters: &HelixParameters) -> Self {
         let instanciated_curve = descriptor.curve.clone().instanciate();
-        let scale =
-            2. * Self::inter_helix_gap(parameters) * descriptor.number_of_helix_per_section as f64
-                / instanciated_curve.perimeter();
+        let scale = 2.
+            * Self::inter_helix_gap(helix_parameters)
+            * descriptor.number_of_helix_per_section as f64
+            / instanciated_curve.perimeter();
         let shift_per_turn = descriptor.helix_index_shift_per_turn;
         let nb_helices = descriptor.number_of_helix_per_section;
         let nb_symetry_per_turn = descriptor.symetry_per_turn;
@@ -695,7 +696,7 @@ impl TwistedTorus {
             perimeter: instanciated_curve.perimeter(),
             instanciated_curve,
             nb_turn_per_helix,
-            parameters: *parameters,
+            helix_parameters: *helix_parameters,
         }
     }
 }
@@ -731,11 +732,11 @@ impl TwistedTorus {
     }
 
     fn get_inter_helix_gap(&self) -> f64 {
-        Self::inter_helix_gap(&self.parameters)
+        Self::inter_helix_gap(&self.helix_parameters)
     }
 
-    fn inter_helix_gap(parameters: &Parameters) -> f64 {
-        parameters.helix_radius as f64 + parameters.inter_helix_gap as f64 / 2.
+    fn inter_helix_gap(helix_parameters: &HelixParameters) -> f64 {
+        helix_parameters.helix_radius as f64 + helix_parameters.inter_helix_gap as f64 / 2.
     }
 }
 

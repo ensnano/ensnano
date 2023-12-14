@@ -22,7 +22,7 @@ use std::f32::consts::{PI, SQRT_2, TAU};
 
 /// DNA geometric parameters.
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
-pub struct Parameters {
+pub struct HelixParameters {
     /// Distance between two consecutive bases along the axis of a
     /// helix, in nanometers.
     pub z_step: f32,
@@ -50,42 +50,46 @@ pub struct Parameters {
 }
 
 macro_rules! parameters_from_p_stick_model {
-    ($p_stick_model: expr) => { 
-        Parameters {
-            groove_angle: ($p_stick_model).groove_angle - 2.0 * std::f32::consts::PI / ($p_stick_model).bases_per_turn,
+    ($p_stick_model: expr) => {
+        HelixParameters {
+            groove_angle: ($p_stick_model).groove_angle
+                - 2.0 * std::f32::consts::PI / ($p_stick_model).bases_per_turn,
             inclination: ($p_stick_model).inclination - ($p_stick_model).z_step,
             ..($p_stick_model)
         }
-    }
+    };
 }
 
 macro_rules! parameters_from_p_stick_model_plus_or_minus {
-    ($p_stick_model: expr) => { 
-        Parameters {
-            groove_angle: ($p_stick_model).groove_angle - 2.0 * std::f32::consts::PI / ($p_stick_model).bases_per_turn,
-            inclination: 
-                (if ($p_stick_model).inclination >= 0.0 {
-                    ($p_stick_model).inclination - ($p_stick_model).z_step
-                } else {
-                    ($p_stick_model).inclination - ($p_stick_model).z_step
-                }),
-            ..($p_stick_model)
+    ($p_stick_model: expr) => {
+        if ($p_stick_model).inclination >= 0.0 {
+            HelixParameters {
+                groove_angle: ($p_stick_model).groove_angle
+                    - 2.0 * std::f32::consts::PI / ($p_stick_model).bases_per_turn,
+                inclination: ($p_stick_model).inclination - ($p_stick_model).z_step,
+                ..($p_stick_model)
+            }
+        } else {
+            HelixParameters {
+                groove_angle: ($p_stick_model).groove_angle
+                    + 2.0 * std::f32::consts::PI / ($p_stick_model).bases_per_turn,
+                inclination: ($p_stick_model).inclination + ($p_stick_model).z_step,
+                ..($p_stick_model)
+            }
         }
-    }
+    };
 }
 
-
-impl Parameters {
-
-    pub const INTER_CENTER_GAP: f32 =
-        Parameters::ENSNANO_2021.helix_radius * 2. + Parameters::ENSNANO_2021.inter_helix_gap;
+impl HelixParameters {
+    pub const INTER_CENTER_GAP: f32 = HelixParameters::ENSNANO_2021.helix_radius * 2.
+        + HelixParameters::ENSNANO_2021.inter_helix_gap;
 
     /// Value used for versions >= 0.4.1.
     /// Taken from "Design Principles for Single-Stranded RNA Origami Structures, Geary & Andersen
     /// 2014
-    pub const GEARY_2014_DNA_P_STICK: Parameters = {
+    pub const GEARY_2014_DNA_P_STICK: HelixParameters = {
         let helix_radius = 0.93;
-        Parameters {
+        HelixParameters {
             z_step: 0.332,
             helix_radius,
             bases_per_turn: 10.44,
@@ -96,15 +100,15 @@ impl Parameters {
         }
     };
 
-
-    pub const GEARY_2014_DNA: Parameters = parameters_from_p_stick_model!(Self::GEARY_2014_DNA_P_STICK);
+    pub const GEARY_2014_DNA: HelixParameters =
+        parameters_from_p_stick_model!(Self::GEARY_2014_DNA_P_STICK);
 
     /// Value used for RNA designs
     /// Taken from "Design Principles for Single-Stranded RNA Origami Structures, Geary & Andersen
     /// 2014
-    pub const GEARY_2014_RNA_P_STICK: Parameters = {
+    pub const GEARY_2014_RNA_P_STICK: HelixParameters = {
         let helix_radius = 0.87;
-        Parameters {
+        HelixParameters {
             helix_radius,
             z_step: 0.281,
             inclination: -0.745,
@@ -114,13 +118,17 @@ impl Parameters {
         }
     };
 
-    pub const GEARY_2014_RNA: Parameters = parameters_from_p_stick_model!(Self::GEARY_2014_RNA_P_STICK);
+    pub const GEARY_2014_RNA: HelixParameters =
+        parameters_from_p_stick_model!(Self::GEARY_2014_RNA_P_STICK);
+
+    pub const GEARY_2014_RNA2: HelixParameters =
+        parameters_from_p_stick_model_plus_or_minus!(Self::GEARY_2014_RNA_P_STICK);
 
     pub const DEFAULT: Self = Self::GEARY_2014_DNA;
 
     /// Values used in version perior to 0.4.1, taken from the litterature (Wikipedia, Cargo
     /// sorting paper, Woo 2011).
-    pub const ENSNANO_2021: Parameters = Parameters {
+    pub const ENSNANO_2021: HelixParameters = HelixParameters {
         // z-step and helix radius from: Wikipedia
         z_step: 0.332,
         helix_radius: 1.,
@@ -152,7 +160,12 @@ impl Parameters {
         writeln!(&mut ret, "  Rise: {:.3} nm", self.z_step).unwrap_or_default();
         writeln!(&mut ret, "  Inclination {:.3} nm", self.inclination).unwrap_or_default();
         writeln!(&mut ret, "  Helicity: {:.2} bp", self.bases_per_turn).unwrap_or_default();
-        writeln!(&mut ret, "  Minor groove: {:.1}°", self.groove_angle.to_degrees()).unwrap_or_default();
+        writeln!(
+            &mut ret,
+            "  Minor groove: {:.1}°",
+            self.groove_angle.to_degrees()
+        )
+        .unwrap_or_default();
         writeln!(
             &mut ret,
             "  Inter helix gap: {:.2} nm",
@@ -164,13 +177,13 @@ impl Parameters {
     }
 }
 
-impl std::default::Default for Parameters {
+impl std::default::Default for HelixParameters {
     fn default() -> Self {
         Self::DEFAULT
     }
 }
 
-impl Parameters {
+impl HelixParameters {
     /// The angle AOC_2 where
     ///
     /// * A is a base on the helix
@@ -227,7 +240,7 @@ impl Parameters {
 #[derive(Clone, Debug)]
 pub struct NamedParameter {
     pub name: &'static str,
-    pub value: Parameters,
+    pub value: HelixParameters,
 }
 
 impl ToString for NamedParameter {
@@ -236,26 +249,30 @@ impl ToString for NamedParameter {
     }
 }
 
-pub const NAMED_DNA_PARAMETERS: [NamedParameter; 5] = [
+pub const NAMED_DNA_PARAMETERS: [NamedParameter; 6] = [
     NamedParameter {
-        name: "Geary et al 2014 DNA",
-        value: Parameters::GEARY_2014_DNA,
+        name: "Geary et al 2014 B-DNA",
+        value: HelixParameters::GEARY_2014_DNA,
     },
     NamedParameter {
-        name: "Geary et al 2014 RNA",
-        value: Parameters::GEARY_2014_RNA,
+        name: "Geary et al 2014 A-RNA",
+        value: HelixParameters::GEARY_2014_RNA,
+    },
+    NamedParameter {
+        name: "Geary et al 2014 A-RNA(2)",
+        value: HelixParameters::GEARY_2014_RNA2,
     },
     NamedParameter {
         name: "ENSnano 2021",
-        value: Parameters::ENSNANO_2021,
+        value: HelixParameters::ENSNANO_2021,
     },
     NamedParameter {
-        name: "Geary et al 2014 DNA Phosphate balls",
-        value: Parameters::GEARY_2014_DNA_P_STICK,
+        name: "Geary et al 2014 B-DNA Phosphate balls",
+        value: HelixParameters::GEARY_2014_DNA_P_STICK,
     },
     NamedParameter {
-        name: "Geary et al 2014 RNA Phosphate balls",
-        value: Parameters::GEARY_2014_RNA_P_STICK,
+        name: "Geary et al 2014 A-RNA Phosphate balls",
+        value: HelixParameters::GEARY_2014_RNA_P_STICK,
     },
 ];
 
@@ -275,7 +292,7 @@ mod tests {
 
     #[test]
     fn dist_ac_is_correct() {
-        let p = Parameters::DEFAULT;
+        let p = HelixParameters::DEFAULT;
 
         let h = Helix::new(Vec3::zero(), Rotor3::identity());
         let n1 = h.space_pos(&p, 0, true);
