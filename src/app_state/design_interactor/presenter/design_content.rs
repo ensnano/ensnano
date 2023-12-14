@@ -455,7 +455,7 @@ pub struct Prime3End {
 }
 
 impl DesignContent {
-    /// Update all the hash maps
+    /// Update all the hash maps - called after every edit operation
     pub(super) fn make_hash_maps(
         mut design: Design,
         xover_ids: &JunctionsIds,
@@ -536,13 +536,14 @@ impl DesignContent {
                 }
                 if let Domain::HelixDomain(domain) = domain {
                     let dom_seq = domain.sequence.as_ref().filter(|s| s.is_ascii());
+        
                     for (dom_position, nucl_position) in domain.iter().enumerate() {
                         let position = design.helices.get(&domain.helix).unwrap().space_pos(
                             design.helix_parameters.as_ref().unwrap(),
                             nucl_position,
                             domain.forward,
                         );
-                        let nucl = Nucl {
+                        let nucl: Nucl = Nucl {
                             position: nucl_position,
                             forward: domain.forward,
                             helix: domain.helix,
