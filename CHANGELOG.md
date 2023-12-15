@@ -5,6 +5,7 @@
 - Fixed a lot of typos
 - Adding new curve functionality
 - (Even) better DNA and RNA double-helix parameters and representation
+- Better xlsx export of staple (including colors and groups)
 
 ## 0.5.0
 - Introduce curved DNA strands in ENSnano
