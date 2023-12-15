@@ -30,7 +30,7 @@ pub struct Id(pub usize);
 #[derive(Debug, Clone, Deserialize, Serialize, Default)]
 
 /// Collection of items with ids
-pub struct IdHandler<T: Clone>(pub(super) Arc<BTreeMap<Id, Arc<T>>>);
+pub struct IdManager<T: Clone>(pub(super) Arc<BTreeMap<Id, Arc<T>>>);
 
 // impl<T> HasMap for IdHandler<T>  where T: Clone {
 //     type Key = Id;
@@ -50,11 +50,12 @@ impl<'a> ItemWithName<'a> for NamedParameter {
     }
 }
 
-pub trait GetIdOfOneItemNamed {
+pub trait IdHandlerForNamedItems {
     fn get_id_of_one_item_named(self, name: String) -> Option<Id>;
+    fn get_name_by_id(self, id: Id) -> Option<String>;
 }
 
-impl<T: Clone> GetIdOfOneItemNamed for IdHandler<NamedItem<T>> {
+impl<T: Clone> IdHandlerForNamedItems for IdManager<NamedItem<T>> {
     fn get_id_of_one_item_named(self, name: String) -> Option<Id> {
         for (k, v) in self.0.iter() {
             if v.0.eq(&name) {
@@ -63,9 +64,13 @@ impl<T: Clone> GetIdOfOneItemNamed for IdHandler<NamedItem<T>> {
         }
         return None;
     }
+
+    fn get_name_by_id(self, id: Id) -> Option<String> {
+        self.0.get(&id).map(|item| item.0.clone())
+    }
 }
 
-impl<T: Clone> IdHandler<T> {
+impl<T: Clone> IdManager<T> {
     pub fn make_mut(&mut self) -> IdHandlerMut<T> {
         IdHandlerMut {
             new_map: BTreeMap::clone(&self.0),
@@ -87,18 +92,12 @@ impl<T: Clone> IdHandler<T> {
     }
 }
 
-pub struct IdHandlerMut<'a, T>
-where
-    T: Clone,
-{
-    source: &'a mut IdHandler<T>,
+pub struct IdHandlerMut<'a, T: Clone> {
+    source: &'a mut IdManager<T>,
     new_map: BTreeMap<Id, Arc<T>>,
 }
 
-impl<'a, T> IdHandlerMut<'a, T>
-where
-    T: Clone,
-{
+impl<'a, T: Clone> IdHandlerMut<'a, T> {
     pub fn push(&mut self, item: T) -> Id {
         let new_key = self
             .new_map
@@ -124,7 +123,7 @@ where
     T: Clone,
 {
     fn drop(&mut self) {
-        *self.source = IdHandler(Arc::new(std::mem::take(&mut self.new_map)))
+        *self.source = IdManager(Arc::new(std::mem::take(&mut self.new_map)))
     }
 }
 
@@ -164,7 +163,7 @@ mod tests {
         let mut my_collection = BTreeMap::from([(Id(1), Arc::new(cat1)), (Id(2), Arc::new(cat2))]);
         my_collection.insert(Id(101), Arc::new(dog));
         let my_arced_collection = Arc::new(my_collection);
-        let my_ided_collection = IdHandler(my_arced_collection);
+        let my_ided_collection = IdManager(my_arced_collection);
         assert_eq!(
             Id(1),
             my_ided_collection
@@ -178,10 +177,30 @@ mod tests {
         let cat1 = NamedItem(String::from("Otto"), "cat");
         let my_collection = BTreeMap::from([(Id(1), Arc::new(cat1))]);
         let my_arced_collection = Arc::new(my_collection);
-        let my_ided_collection = IdHandler(my_arced_collection);
+        let my_ided_collection = IdManager(my_arced_collection);
         assert_eq!(
             None,
             my_ided_collection.get_id_of_one_item_named(String::from("Chachat"))
         );
+    }
+    #[test]
+    fn get_name_if_exists() {
+        let cat1 = NamedItem(String::from("Otto"), "cat");
+        let my_collection = BTreeMap::from([(Id(1), Arc::new(cat1))]);
+        let my_arced_collection = Arc::new(my_collection);
+        let my_ided_collection = IdManager(my_arced_collection);
+        assert_eq!(
+            Some(String::from("Otto")),
+            my_ided_collection.get_name_by_id(Id(1))
+        );
+    }
+
+    #[test]
+    fn get_name_if_does_not_exist() {
+        let cat1 = NamedItem(String::from("Otto"), "cat");
+        let my_collection = BTreeMap::from([(Id(1), Arc::new(cat1))]);
+        let my_arced_collection = Arc::new(my_collection);
+        let my_ided_collection = IdManager(my_arced_collection);
+        assert_eq!(None, my_ided_collection.get_name_by_id(Id(2)));
     }
 }
