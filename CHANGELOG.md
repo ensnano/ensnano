@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.1
+
+- Fixed a lot of typos
+- Adding new curve functionality
+- (Even) better DNA and RNA double-helix parameters and representation
+
 ## 0.5.0
 - Introduce curved DNA strands in ENSnano
 - Add a new DNA parmaters: inclination, and make it possible to change the DNA paramters
