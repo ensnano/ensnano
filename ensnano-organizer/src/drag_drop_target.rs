@@ -18,7 +18,7 @@ pub(super) struct DragDropTarget<'a, Message, K, E> {
     max_height: f32,
     horizontal_alignment: Alignment,
     vertical_alignment: Alignment,
-    content: iced::widget::Container<'a, Message>,
+    content: Element<'a, Message>,
     identifier: Identifier<K, E>,
 }
 
@@ -36,16 +36,9 @@ impl<'a, Message, K, E> DragDropTarget<'a, Message, K, E> {
             max_height: f32::MAX,
             horizontal_alignment: Alignment::Start,
             vertical_alignment: Alignment::Start,
-            content: iced::widget::Container::new(content).width(Length::Fill),
+            content: content.into(),
             identifier,
         }
-    }
-
-    /// Sets the width of the [`Container`] contained in self.
-    pub fn width(mut self, width: Length) -> Self {
-        self.width = width.clone();
-        self.content = self.content.width(width);
-        self
     }
 }
 
@@ -74,7 +67,7 @@ impl<'a, E: super::OrganizerElement> Widget<OrganizerMessage<E>, Renderer>
             .height(self.height)
             .pad(padding);
 
-        let mut content = self.content.layout(renderer, &limits.loose());
+        let mut content = self.content.as_widget().layout(renderer, &limits.loose());
         let size = limits.resolve(content.size());
 
         content.move_to(Point::new(self.padding as f32, self.padding as f32));
@@ -85,7 +78,7 @@ impl<'a, E: super::OrganizerElement> Widget<OrganizerMessage<E>, Renderer>
 
     fn on_event(
         &mut self,
-        tree: &mut iced_native::widget::tree::Tree,
+        tree: &mut widget::Tree,
         event: Event,
         layout: Layout<'_>,
         cursor_position: Point,
@@ -95,8 +88,8 @@ impl<'a, E: super::OrganizerElement> Widget<OrganizerMessage<E>, Renderer>
     ) -> event::Status {
         use iced::mouse;
         use iced::mouse::Event as MouseEvent;
-        let status = self.content.on_event(
-            tree,
+        let status = self.content.as_widget_mut().on_event(
+            &mut tree.children[0],
             event.clone(),
             layout.children().next().unwrap(),
             cursor_position,
@@ -131,8 +124,8 @@ impl<'a, E: super::OrganizerElement> Widget<OrganizerMessage<E>, Renderer>
         cursor_position: Point,
         viewport: &Rectangle,
     ) {
-        self.content.draw(
-            tree,
+        self.content.as_widget().draw(
+            &tree.children[0],
             renderer,
             theme,
             style,
@@ -148,7 +141,7 @@ impl<'a, E: super::OrganizerElement> Widget<OrganizerMessage<E>, Renderer>
         layout: Layout<'_>,
         renderer: &Renderer,
     ) -> Option<overlay::Element<'_, OrganizerMessage<E>, Renderer>> {
-        self.content.overlay(
+        self.content.as_widget_mut().overlay(
             &mut tree.children[0],
             layout.children().next().unwrap(),
             renderer,

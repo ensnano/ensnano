@@ -1,10 +1,9 @@
-use iced::Element;
+use iced::{Element, Length};
 pub use iced_aw::Icon;
 use iced_native::keyboard::Modifiers;
 use iced_native::theme as iced_theme;
 use iced_native::widget::{
-    button, helpers::*, text_input, tooltip, Button, Column, Container, Row, Scrollable, Space,
-    Text, Tooltip,
+    button, helpers::*, text_input, tooltip, Button, Column, Container, Row, Space, Text,
 };
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::convert::TryInto;
@@ -890,14 +889,12 @@ impl<E: OrganizerElement> Section<E> {
 /// A data structure whose view displays information about an element.
 struct ElementView<E: OrganizerElement + 'static> {
     attribute_displayers: Vec<AttributeDisplayer<E::Attribute>>,
-    hovering_state: hoverable_button::State,
 }
 
 impl<E: OrganizerElement> ElementView<E> {
     fn new() -> Self {
         Self {
             attribute_displayers: vec![AttributeDisplayer::new(); E::all_repr().len()],
-            hovering_state: Default::default(),
         }
     }
     fn view(
@@ -946,7 +943,7 @@ impl<E: OrganizerElement> ElementView<E> {
                 .on_hovered_in(OrganizerMessage::key_hovered(element.key(), true))
                 .on_hovered_out(OrganizerMessage::key_hovered(element.key(), false))
         }
-        DragDropTarget::new(button, identifier).width(iced::Length::Fill)
+        DragDropTarget::new(container(button).width(Length::Fill), identifier)
     }
 
     fn update_attributes(&mut self, attributes: &[Option<E::Attribute>]) {
@@ -1090,7 +1087,10 @@ impl<E: OrganizerElement> NodeView<E> {
         .on_hovered_out(OrganizerMessage::node_hovered(id.clone(), false))
         .width(iced::Length::Fill)
         .style(button_theme);
-        DragDropTarget::new(button, Identifier::Group { id: id.clone() }).width(iced::Length::Fill)
+        DragDropTarget::new(
+            container(button).width(Length::Fill),
+            Identifier::Group { id: id.clone() },
+        )
     }
 
     fn update_attributes(&mut self, attributes: &[Option<E::Attribute>]) {
