@@ -61,7 +61,7 @@ but there should be a tutorial on the internet for any combination of those.
 Clone the repository:
 
 ```Shell
-git clone https://github.com/thenlevy/ensnano.git
+git clone https://github.com/ensnano/ensnano.git
 ```
 
 Then run ENSnano with:
