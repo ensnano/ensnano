@@ -36,6 +36,8 @@ impl DesignInteractor {
         println!("Design read");
         design.strands.remove_empty_domains();
 
+/* 
+        /// vvv added
         let mut new_grids = design.free_grids.make_mut();
         for (k, g) in new_grids.iter() {
 
@@ -46,6 +48,8 @@ impl DesignInteractor {
         grid.position = position;
         drop(new_grids);
         Ok(design)
+        /// ^^^ Added 
+*/
 
         for s in design.strands.values_mut() {
             s.read_junctions(&mut xover_ids, true);

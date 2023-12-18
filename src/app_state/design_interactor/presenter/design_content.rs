@@ -89,7 +89,7 @@ pub(super) struct DesignContent {
     pub object_type: HashMap<u32, ObjectType, RandomState>,
     /// Maps identifier of nucleotide to Nucleotide objects
     pub nucleotide: HashMap<u32, Nucl, RandomState>,
-    /// Maps identifier of bounds to the pair of nucleotides involved in the bound
+    /// Maps identifier of bonds to the pair of nucleotides involved in the bond
     pub nucleotides_involved: HashMap<u32, (Nucl, Nucl), RandomState>,
     /// Maps identifier of element to their position in the Model's coordinates
     pub space_position: HashMap<u32, [f32; 3], RandomState>,

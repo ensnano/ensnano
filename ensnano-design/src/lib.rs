@@ -242,6 +242,7 @@ impl Design {
             ));
         }
         if self.needs_update() {
+            println!("Need updating!");
             let grid_data = GridData::new_by_updating_design(self);
             self.instanciated_grid_data = Some(grid_data);
         }
