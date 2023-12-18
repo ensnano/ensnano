@@ -19,7 +19,6 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::*;
 use crate::helpers::*;
 use iced_native::widget;
-use iced_native::widget::helpers::*;
 
 pub struct SimulationTab<S: AppState> {
     rigid_body_factory: RequestFactory<RigidBodyFactory>,

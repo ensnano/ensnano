@@ -645,7 +645,7 @@ impl PdbStrand<'_> {
     pub fn write(self) -> Result<(), PdbError> {
         let mut nucls_strs = Vec::with_capacity(self.nucleotides.len());
 
-        let mut pdb_formatter = ManuallyDrop::into_inner(self.pdb_formater);
+        let pdb_formatter = ManuallyDrop::into_inner(self.pdb_formater);
 
         let chain_id = ((pdb_formatter.current_strand_id % 26) as u8 + b'A') as char;
 

@@ -19,8 +19,8 @@ use ensnano_interactor::StandardSequence;
 
 use super::*;
 use crate::helpers::*;
+use iced::Element;
 use iced_native::widget;
-use iced_native::widget::helpers::*;
 
 pub struct SequenceTab {
     toggle_text_value: bool,
@@ -61,7 +61,7 @@ impl SequenceTab {
         }
     }
 
-    pub fn view<S: AppState>(&self, ui_size: UiSize, app_state: &S) -> iced::Element<Message<S>> {
+    pub fn view<S: AppState>(&self, ui_size: UiSize, app_state: &S) -> Element<Message<S>> {
         // TODO: This update should happen, but somewhere else in the code.
         //       I think it must happen inside LeftPanel::update
         //

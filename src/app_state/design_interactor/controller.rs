@@ -19,7 +19,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::{NuclCollection, SimulationUpdate};
 use crate::app_state::AddressPointer;
 use ensnano_design::{
-    elements::{DnaAttribute, DesignElementKey},
+    elements::{DesignElementKey, DnaAttribute},
     grid::{
         Edge, FreeGridId, GridDescriptor, GridId, GridObject, GridPosition, GridTypeDescr,
         HelixGridPosition, Hyperboloid,
@@ -707,7 +707,7 @@ impl Controller {
     ) -> Result<Design, ErrOperation> {
         let mut helices_mut = design.helices.make_mut();
         for h in helices.iter() {
-            if let Some(mut helix) = helices_mut.get_mut(h) {
+            if let Some(helix) = helices_mut.get_mut(h) {
                 helix.roll = roll;
             } else {
                 return Err(ErrOperation::HelixDoesNotExists(*h));

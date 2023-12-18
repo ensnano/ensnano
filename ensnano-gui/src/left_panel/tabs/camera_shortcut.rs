@@ -179,8 +179,7 @@ impl CameraShortcutPanel {
         _app: &S,
     ) -> Element<Message<S>> {
         // Create button widget for each predefined target.
-        let predefined_orientation_buttons = PREDEFINED_CAMERA_ORIENTATION
-            .into_iter()
+        let predefined_orientation_buttons = IntoIterator::into_iter(PREDEFINED_CAMERA_ORIENTATION)
             .map(|c| {
                 button(text(c.name).size(ui_size.main_text()))
                     .on_press(c.message())

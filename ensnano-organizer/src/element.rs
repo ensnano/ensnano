@@ -1,4 +1,3 @@
-use iced::widget::Text;
 use iced::Element;
 use iced::{Background, Color};
 use iced_native::widget::{self, helpers::*};

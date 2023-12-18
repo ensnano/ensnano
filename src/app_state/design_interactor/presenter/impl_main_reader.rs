@@ -138,7 +138,7 @@ impl StaplesDownloader for DesignReader {
 
         // Add one sheet per plate
         for (sheet_id, rows) in sheets.iter() {
-            let mut sheet: &mut rust_xlsxwriter::Worksheet = wb
+            let sheet: &mut rust_xlsxwriter::Worksheet = wb
                 .add_worksheet()
                 .set_name(&format!("Plate {sheet_id}"))
                 .expect("Excel error: cannot create worksheet");
@@ -154,7 +154,7 @@ impl StaplesDownloader for DesignReader {
                     continue;
                 }
                 // write staple
-                for (j, data) in row.iter().enumerate() {
+                for (j, _) in row.iter().enumerate() {
                     if j == 4 {
                         // length
                         if let Ok(length) = row[j].parse::<f64>() {
@@ -194,7 +194,7 @@ impl StaplesDownloader for DesignReader {
             sheet.autofit();
         }
 
-        let mut sheet: &mut rust_xlsxwriter::Worksheet = wb
+        let sheet: &mut rust_xlsxwriter::Worksheet = wb
             .add_worksheet()
             .set_name(&format!("All staples"))
             .expect("Excel error: cannot create worksheet");
@@ -216,7 +216,7 @@ impl StaplesDownloader for DesignReader {
                     continue;
                 }
                 // write staple
-                for (j, data) in row.iter().enumerate() {
+                for (j, _) in row.iter().enumerate() {
                     if j == 4 {
                         // length
                         if let Ok(length) = row[j].parse::<f64>() {

@@ -57,7 +57,7 @@ use text_input_style::BadValue;
 mod discrete_value;
 use discrete_value::{FactoryId, RequestFactory, Requestable, ValueId};
 mod tabs;
-use crate::{consts::*, left_panel::tabs::RevolutionParameterId};
+use crate::consts::*;
 mod contextual_panel;
 mod export_menu;
 use contextual_panel::{ContextualPanel, InstanciatedValue, ValueKind};
@@ -658,7 +658,7 @@ where
             Message::OrganizerMessage(m) => {
                 let next_message = self.organizer_message(m);
                 if let Some(message) = next_message {
-                    self.update(message);
+                    let _ = self.update(message);
                 }
             }
             Message::ModifiersChanged(modifiers) => self

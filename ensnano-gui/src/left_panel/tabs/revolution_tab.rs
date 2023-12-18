@@ -285,14 +285,12 @@ pub(crate) struct RevolutionTab<S: AppState> {
     time_span: ParameterWidget,
     simulation_step: ParameterWidget,
     equadiff_method: EquadiffSolvingMethod,
-    scroll_state: widget::scrollable::State,
 }
 
 impl<S: AppState> Default for RevolutionTab<S> {
     fn default() -> Self {
         let init_parameter = RevolutionSimulationParameters::default();
         Self {
-            scroll_state: Default::default(),
             curve_descriptor_widget: None,
             half_turn_count: ParameterWidget::new(InstanciatedParameter::Int(0)),
             radius_input: ParameterWidget::new(InstanciatedParameter::Float(0.)),

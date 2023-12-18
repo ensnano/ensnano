@@ -553,7 +553,7 @@ mod input_color {
     }
 
     impl From<InputValueState> for theme::TextInput {
-        fn from(value: InputValueState) -> Self {
+        fn from(_value: InputValueState) -> Self {
             Default::default()
             // Maybe this is not correct. I wrote this to make it compile.
         }

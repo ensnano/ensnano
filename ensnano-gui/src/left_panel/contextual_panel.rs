@@ -21,7 +21,6 @@ use crate::helpers::*;
 use ensnano_design::{grid::GridId, BezierVertexId};
 use ensnano_interactor::{Selection, SimulationState};
 use iced_native::widget;
-use iced_native::widget::helpers::*;
 
 mod value_constructor;
 use value_constructor::{BezierVertexBuilder, Builder, GridBuilder};
