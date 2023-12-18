@@ -50,12 +50,12 @@ impl<'a> ItemWithName<'a> for NamedParameter {
     }
 }
 
-pub trait IdHandlerForNamedItems {
+pub trait IdManagerForNamedItems {
     fn get_id_of_one_item_named(self, name: String) -> Option<Id>;
     fn get_name_by_id(self, id: Id) -> Option<String>;
 }
 
-impl<T: Clone> IdHandlerForNamedItems for IdManager<NamedItem<T>> {
+impl<T: Clone> IdManagerForNamedItems for IdManager<NamedItem<T>> {
     fn get_id_of_one_item_named(self, name: String) -> Option<Id> {
         for (k, v) in self.0.iter() {
             if v.0.eq(&name) {
@@ -71,8 +71,8 @@ impl<T: Clone> IdHandlerForNamedItems for IdManager<NamedItem<T>> {
 }
 
 impl<T: Clone> IdManager<T> {
-    pub fn make_mut(&mut self) -> IdHandlerMut<T> {
-        IdHandlerMut {
+    pub fn make_mut(&mut self) -> IdManagerMut<T> {
+        IdManagerMut {
             new_map: BTreeMap::clone(&self.0),
             source: self,
         }
@@ -92,12 +92,12 @@ impl<T: Clone> IdManager<T> {
     }
 }
 
-pub struct IdHandlerMut<'a, T: Clone> {
+pub struct IdManagerMut<'a, T: Clone> {
     source: &'a mut IdManager<T>,
     new_map: BTreeMap<Id, Arc<T>>,
 }
 
-impl<'a, T: Clone> IdHandlerMut<'a, T> {
+impl<'a, T: Clone> IdManagerMut<'a, T> {
     pub fn push(&mut self, item: T) -> Id {
         let new_key = self
             .new_map
@@ -118,7 +118,7 @@ impl<'a, T: Clone> IdHandlerMut<'a, T> {
     }
 }
 
-impl<'a, T> Drop for IdHandlerMut<'a, T>
+impl<'a, T> Drop for IdManagerMut<'a, T>
 where
     T: Clone,
 {
@@ -132,13 +132,6 @@ mod tests {
     use super::*;
     use crate::HelixParameters;
     use crate::NamedParameter;
-
-    #[test]
-    fn simple_test_for_Vec() {
-        //let v: IdHandler<Vec<i32>> = IdHandler::new(());
-        println!("Coucou!");
-        //bla
-    }
 
     #[test]
     fn get_name_from_itemwithname_for_namedparameter() {
