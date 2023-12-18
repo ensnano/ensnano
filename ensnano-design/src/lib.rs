@@ -67,6 +67,8 @@ mod insertions;
 mod tests;
 pub use external_3d_objects::*;
 
+mod id_manager;
+
 /// The `ensnano` Design structure.
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Design {

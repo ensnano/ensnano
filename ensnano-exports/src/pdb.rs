@@ -241,8 +241,8 @@ impl PdbNucleotide {
         {
             let serial_number = (*nb_atom % MAX_ATOM_SERIAL_NUMBER) + 1;
             lines.push(
-                a.format_with_paramters(
-                    AtomFormatParamter {
+                a.format_with_parameters(
+                    AtomFormatParameter {
                         serial_number,
                         chain_id,
                         residue_idx: self.residue_idx,
@@ -443,16 +443,16 @@ pub enum PdbError {
 const OCCUPENCY: f32 = 1.0;
 const TEMPERATURE_FACTOR: f32 = 1.0;
 
-struct AtomFormatParamter {
+struct AtomFormatParameter {
     serial_number: usize,
     residue_idx: usize,
     chain_id: char,
 }
 
 impl PdbAtom {
-    fn format_with_paramters(
+    fn format_with_parameters(
         &self,
-        parameters: AtomFormatParamter,
+        parameters: AtomFormatParameter,
         residue_type: ResidueType,
     ) -> Result<String, std::fmt::Error> {
         let copy = Self {
