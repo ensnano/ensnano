@@ -580,7 +580,7 @@ impl AppState {
                     prime5,
                     prime3,
                     nt_length,
-                    nm_length: param.z_step * nt_length as f32,
+                    nm_length: param.rise * nt_length as f32,
                     dragged_nucl: b.moving_end,
                 })
             } else {

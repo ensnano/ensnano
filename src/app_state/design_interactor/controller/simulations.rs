@@ -1147,7 +1147,7 @@ fn make_rigid_helix_world_pov_interval(
     let right = helix.axis_position(helix_parameters, *x_max);
     let position = (left + right) / 2.;
     let position_delta =
-        -(*x_max as f32 * helix_parameters.z_step + *x_min as f32 * helix_parameters.z_step) / 2.
+        -(*x_max as f32 * helix_parameters.rise + *x_min as f32 * helix_parameters.rise) / 2.
             * Vec3::unit_x();
     RigidHelix::new_from_world(
         position.y,
@@ -1810,8 +1810,8 @@ fn make_rigid_helix_grid_pov(
     Some(RigidHelix::new_from_grid(
         position.y,
         position.z,
-        *x_min as f32 * helix_parameters.z_step,
-        *x_max as f32 * helix_parameters.z_step,
+        *x_min as f32 * helix_parameters.rise,
+        *x_max as f32 * helix_parameters.rise,
         helix.roll,
         helix.orientation,
         (*x_min, *x_max),

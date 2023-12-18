@@ -239,7 +239,7 @@ impl Hyperboloid {
         let i = i % (self.radius as isize);
         let theta = 2. * i as f32 * angle + self.shift;
         Vec3::new(
-            self.length * helix_parameters.z_step,
+            self.length * helix_parameters.rise,
             grid_radius * theta.sin(),
             grid_radius * theta.cos(),
         )

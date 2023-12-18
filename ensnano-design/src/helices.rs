@@ -713,7 +713,7 @@ impl Helix {
             } else {
                 let delta_inclination = if forward { 0.0 } else { p.inclination };
                 ret = Vec3::new(
-                    n as f32 * p.z_step + delta_inclination,
+                    n as f32 * p.rise + delta_inclination,
                     theta.sin() * p.helix_radius,
                     theta.cos() * p.helix_radius,
                 );
@@ -721,7 +721,7 @@ impl Helix {
         } else {
             let delta_inclination = if forward { 0.0 } else { p.inclination };
             ret = Vec3::new(
-                n as f32 * p.z_step + delta_inclination,
+                n as f32 * p.rise + delta_inclination,
                 theta.sin() * p.helix_radius,
                 theta.cos() * p.helix_radius,
             );
@@ -834,7 +834,7 @@ impl Helix {
                 return point.rotated_by(orientation) + position;
             }
         }
-        let mut ret = Vec3::new(n as f32 * p.z_step, 0., 0.);
+        let mut ret = Vec3::new(n as f32 * p.rise, 0., 0.);
 
         ret = self.rotate_point(ret);
         ret += self.position;
