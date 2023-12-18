@@ -536,7 +536,7 @@ impl DesignContent {
                 }
                 if let Domain::HelixDomain(domain) = domain {
                     let dom_seq = domain.sequence.as_ref().filter(|s| s.is_ascii());
-        
+
                     for (dom_position, nucl_position) in domain.iter().enumerate() {
                         let position = design.helices.get(&domain.helix).unwrap().space_pos(
                             design.helix_parameters.as_ref().unwrap(),
@@ -677,10 +677,7 @@ impl DesignContent {
                 }
                 id += 1;
                 let bound = (old_nucl.unwrap(), nucl);
-                object_type.insert(
-                    bound_id,
-                    ObjectType::Bond(old_nucl_id.unwrap(), *prime5_id),
-                );
+                object_type.insert(bound_id, ObjectType::Bond(old_nucl_id.unwrap(), *prime5_id));
                 identifier_bond.insert(bound, bound_id);
                 nucleotides_involved.insert(bound_id, bound);
                 color_map.insert(bound_id, color);
@@ -742,7 +739,7 @@ impl DesignContent {
                 id: *h_id,
                 group: groups.get(h_id).cloned(),
                 visible: h.visible,
-                locked_for_simualtions: h.locked_for_simulations,
+                locked_for_simulations: h.locked_for_simulations,
             });
         }
         let mut ret = Self {

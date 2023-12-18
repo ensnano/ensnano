@@ -67,8 +67,6 @@ mod insertions;
 mod tests;
 pub use external_3d_objects::*;
 
-mod id_manager;
-
 /// The `ensnano` Design structure.
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Design {
@@ -537,6 +535,7 @@ impl Design {
                 true
             };
             if need_update {
+                println!("blop");
                 let updated_data = GridData::new_by_updating_design(self);
                 self.instanciated_grid_data = Some(updated_data);
             }

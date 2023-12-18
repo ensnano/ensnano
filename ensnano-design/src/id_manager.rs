@@ -196,4 +196,31 @@ mod tests {
         let my_ided_collection = IdManager(my_arced_collection);
         assert_eq!(None, my_ided_collection.get_name_by_id(Id(2)));
     }
+
+    #[test]
+    fn make_mut_and_push() {
+        let cat = NamedItem(String::from("Snowball"), "cat");
+        let mut my_ided_collection =
+            IdManager(Arc::new(BTreeMap::from([(Id(100), Arc::new(cat))])));
+        {
+            let mut my_mut_ided_collection = my_ided_collection.make_mut();
+            my_mut_ided_collection.push(NamedItem(String::from("Ember"), "dog"));
+        }
+        assert_eq!("IdManager({Id(100): NamedItem(\"Snowball\", \"cat\"), Id(101): NamedItem(\"Ember\", \"dog\")})", format!("{:?}", my_ided_collection));
+    }
+
+    #[test]
+    fn make_mut_and_remove() {
+        let cat = NamedItem(String::from("Snowball"), "cat");
+        let mut my_ided_collection = IdManager(Arc::new(BTreeMap::from([
+            (Id(100), Arc::new(cat.clone())),
+            (Id(20), Arc::new(cat)),
+        ])));
+        {
+            let mut my_mut_ided_collection = my_ided_collection.make_mut();
+            my_mut_ided_collection.remove(&Id(20));
+            my_mut_ided_collection.remove(&Id(100));
+        }
+        assert_eq!("IdManager({})", format!("{:?}", my_ided_collection));
+    }
 }
