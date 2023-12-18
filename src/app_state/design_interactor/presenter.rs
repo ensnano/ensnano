@@ -52,7 +52,7 @@ use std::collections::{BTreeMap, HashSet};
 /// structures, the strucutres are updated before returning the design reader.
 pub(super) struct Presenter {
     pub current_design: AddressPointer<Design>,
-    current_suggestion_paramters: SuggestionParameters,
+    current_suggestion_parameters: SuggestionParameters,
     model_matrix: AddressPointer<Mat4>,
     content: AddressPointer<DesignContent>,
     pub junctions_ids: AddressPointer<JunctionsIds>,
@@ -65,7 +65,7 @@ impl Default for Presenter {
     fn default() -> Self {
         Self {
             current_design: Default::default(),
-            current_suggestion_paramters: Default::default(),
+            current_suggestion_parameters: Default::default(),
             model_matrix: AddressPointer::new(Mat4::identity()),
             content: Default::default(),
             junctions_ids: Default::default(),
@@ -104,7 +104,7 @@ impl Presenter {
         suggestion_parameters: &SuggestionParameters,
     ) -> Self {
         if self.current_design != design
-            || &self.current_suggestion_paramters != suggestion_parameters
+            || &self.current_suggestion_parameters != suggestion_parameters
         {
             self.read_design(design, suggestion_parameters);
             self.read_scaffold_seq();
@@ -128,7 +128,7 @@ impl Presenter {
         let design = AddressPointer::new(design);
         let mut ret = Self {
             current_design: design.clone(),
-            current_suggestion_paramters: suggestion_parameters,
+            current_suggestion_parameters: suggestion_parameters,
             content: AddressPointer::new(content),
             model_matrix: AddressPointer::new(model_matrix),
             junctions_ids: AddressPointer::new(junctions_ids),
@@ -166,7 +166,7 @@ impl Presenter {
         log::trace!("Presenter design <- {:p}", self.current_design);
         self.content = AddressPointer::new(content);
         self.junctions_ids = AddressPointer::new(new_junctions_ids);
-        self.current_suggestion_paramters = suggestion_parameters.clone();
+        self.current_suggestion_parameters = suggestion_parameters.clone();
     }
 
     pub(super) fn has_different_model_matrix_than(&self, other: &Self) -> bool {
@@ -537,7 +537,7 @@ pub(super) fn design_need_update(
         design.show_address();
     }
     presenter.current_design != *design
-        || &presenter.current_suggestion_paramters != suggestion_parameters
+        || &presenter.current_suggestion_parameters != suggestion_parameters
 }
 
 pub(super) fn update_presenter(
