@@ -36,20 +36,20 @@ impl DesignInteractor {
         println!("Design read");
         design.strands.remove_empty_domains();
 
-/* 
-        /// vvv added
-        let mut new_grids = design.free_grids.make_mut();
-        for (k, g) in new_grids.iter() {
+        /*
+                /// vvv added
+                let mut new_grids = design.free_grids.make_mut();
+                for (k, g) in new_grids.iter() {
 
-        }
-        let grid = new_grids
-            .get_mut(&ensnano_design::grid::FreeGridId(id))
-            .ok_or(ErrOperation::GridDoesNotExist(grid_id))?;
-        grid.position = position;
-        drop(new_grids);
-        Ok(design)
-        /// ^^^ Added 
-*/
+                }
+                let grid = new_grids
+                    .get_mut(&ensnano_design::grid::FreeGridId(id))
+                    .ok_or(ErrOperation::GridDoesNotExist(grid_id))?;
+                grid.position = position;
+                drop(new_grids);
+                Ok(design)
+                /// ^^^ Added
+        */
 
         for s in design.strands.values_mut() {
             s.read_junctions(&mut xover_ids, true);
