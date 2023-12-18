@@ -675,10 +675,7 @@ impl DesignContent {
                 }
                 id += 1;
                 let bound = (old_nucl.unwrap(), nucl);
-                object_type.insert(
-                    bound_id,
-                    ObjectType::Bond(old_nucl_id.unwrap(), *prime5_id),
-                );
+                object_type.insert(bound_id, ObjectType::Bond(old_nucl_id.unwrap(), *prime5_id));
                 identifier_bond.insert(bound, bound_id);
                 nucleotides_involved.insert(bound_id, bound);
                 color_map.insert(bound_id, color);

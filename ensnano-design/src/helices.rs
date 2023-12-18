@@ -184,6 +184,10 @@ pub struct Helix {
     /// Orientation of the helix
     pub orientation: Rotor3,
 
+    /// Helix Parameters of the helix
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub helix_parameters: Option<HelixParameters>,
+
     /// Indicate wether the helix should be displayed in the 3D view.
     #[serde(default = "default_visibility", skip_serializing_if = "bool::clone")]
     pub visible: bool,
@@ -266,6 +270,7 @@ impl Helix {
         Self {
             position,
             orientation,
+            helix_parameters: None,
             grid_position: None,
             isometry2d: None,
             additonal_isometries: Vec::new(),
@@ -343,6 +348,7 @@ impl Helix {
         Ok(Self {
             position: Vec3::zero(),
             orientation: Rotor3::identity(),
+            helix_parameters: None,
             grid_position: Some(HelixGridPosition {
                 grid: GridId::FreeGrid(*grid_id),
                 x,
@@ -397,6 +403,7 @@ impl Helix {
         Self {
             position: origin,
             orientation,
+            helix_parameters: None,
             isometry2d: None,
             additonal_isometries: Vec::new(),
             symmetry: Vec2::one(),
@@ -418,6 +425,7 @@ impl Helix {
         let position = grid.position_helix(x, y);
         Self {
             position,
+            helix_parameters: Some(grid.helix_parameters),
             orientation: grid.orientation,
             isometry2d: None,
             additonal_isometries: Vec::new(),
@@ -446,6 +454,7 @@ impl Helix {
         Self {
             position: Vec3::zero(),
             orientation: Rotor3::identity(),
+            helix_parameters: None,
             isometry2d: None,
             additonal_isometries: Vec::new(),
             symmetry: Vec2::one(),
@@ -467,6 +476,7 @@ impl Helix {
         Self {
             position: Vec3::zero(),
             orientation: Rotor3::identity(),
+            helix_parameters: None,
             isometry2d: None,
             additonal_isometries: Vec::new(),
             symmetry: Vec2::one(),
@@ -488,6 +498,7 @@ impl Helix {
         Self {
             position: Vec3::zero(),
             orientation: Rotor3::identity(),
+            helix_parameters: None,
             isometry2d: None,
             additonal_isometries: Vec::new(),
             symmetry: Vec2::one(),
@@ -584,6 +595,7 @@ impl Helix {
         let mut ret = Self {
             position,
             orientation: Rotor3::identity(),
+            helix_parameters: Some(grid_manager.helix_parameters),
             isometry2d: None,
             additonal_isometries: Vec::new(),
             symmetry: Vec2::one(),
@@ -627,6 +639,7 @@ impl Helix {
         let mut ret = Self {
             position: Vec3::zero(),
             orientation: Rotor3::identity(),
+            helix_parameters: None,
             isometry2d: None,
             additonal_isometries: Vec::new(),
             symmetry: Vec2::one(),
@@ -656,7 +669,11 @@ impl Helix {
 
     pub fn roll_at_pos(&self, n: isize, cst: &HelixParameters) -> f32 {
         use std::f32::consts::PI;
-        let bbpt = cst.bases_per_turn + self.delta_bppt;
+        let bpt = match self.helix_parameters {
+            None => cst.bases_per_turn,
+            Some(p) => p.bases_per_turn,
+        };
+        let bbpt = bpt + self.delta_bppt;
         let beta = 2. * PI / bbpt;
         self.roll - n as f32 * beta // Beta is positive but helix turn clockwise when n increases
     }
@@ -666,7 +683,11 @@ impl Helix {
         use std::f32::consts::PI;
         // The groove_angle goes from the backward strand to the forward strand
         let shift = if forward { cst.groove_angle } else { 0. };
-        let bbpt = cst.bases_per_turn + self.delta_bppt;
+        let bpt = match self.helix_parameters {
+            None => cst.bases_per_turn,
+            Some(p) => p.bases_per_turn,
+        };
+        let bbpt = bpt + self.delta_bppt;
         let beta = 2. * PI / bbpt;
         self.roll
             -n as f32 * beta  // Beta is positive but helix turn clockwise when n increases
@@ -677,7 +698,11 @@ impl Helix {
 
     /// 3D position of a nucleotide on this helix. `n` is the position along the axis, and `forward` is true iff the 5' to 3' direction of the strand containing that nucleotide runs in the same direction as the axis of the helix.
     pub fn space_pos(&self, p: &HelixParameters, n: isize, forward: bool) -> Vec3 {
-        self.shifted_space_pos(p, n, forward, 0.0)
+        let p = match self.helix_parameters {
+            None => p.clone(),
+            Some(hp) => hp.clone(),
+        };
+        self.shifted_space_pos(&p, n, forward, 0.0)
     }
 
     pub fn normal_at_pos(&self, n: isize, forward: bool) -> Vec3 {
@@ -698,10 +723,14 @@ impl Helix {
         forward: bool,
     ) -> Vec3 {
         let mut ret;
+        let p = match self.helix_parameters {
+            None => p.clone(),
+            Some(hp) => hp.clone(),
+        };
         if let Some(curve) = self.instanciated_curve.as_ref() {
             if let Some(point) = curve
                 .as_ref()
-                .nucl_pos(n, forward, theta as f64, p)
+                .nucl_pos(n, forward, theta as f64, &p)
                 .map(dvec_to_vec)
             {
                 let (position, orientation) = if curve.as_ref().has_its_own_encoded_frame() {
@@ -739,16 +768,24 @@ impl Helix {
         forward: bool,
         shift: f32,
     ) -> Vec3 {
+        let p = match self.helix_parameters {
+            None => p.clone(),
+            Some(hp) => hp.clone(),
+        };
         let n = self.initial_nt_index + n;
-        let theta = self.theta(n, forward, p) + shift;
-        self.theta_n_to_space_pos(p, n, theta, forward)
+        let theta = self.theta(n, forward, &p) + shift;
+        self.theta_n_to_space_pos(&p, n, theta, forward)
     }
 
     ///Return an helix that makes an ideal cross-over with self at postion n
     pub fn ideal_neighbour(&self, n: isize, forward: bool, p: &HelixParameters) -> Helix {
-        let other_helix_pos = self.position_ideal_neighbour(n, forward, p);
+        let p = match self.helix_parameters {
+            None => p.clone(),
+            Some(hp) => hp.clone(),
+        };
+        let other_helix_pos = self.position_ideal_neighbour(n, forward, &p);
         let mut new_helix = self.detatched_copy_at(other_helix_pos);
-        self.adjust_theta_neighbour(n, forward, &mut new_helix, p);
+        self.adjust_theta_neighbour(n, forward, &mut new_helix, &p);
         new_helix
     }
 
@@ -756,6 +793,7 @@ impl Helix {
         Helix {
             position,
             orientation: self.orientation,
+            helix_parameters: None,
             grid_position: None,
             roll: 0.,
             visible: true,
@@ -774,8 +812,12 @@ impl Helix {
     }
 
     fn position_ideal_neighbour(&self, n: isize, forward: bool, p: &HelixParameters) -> Vec3 {
-        let axis_pos = self.axis_position(p, n);
-        let my_nucl_pos = self.space_pos(p, n, forward);
+        let p = match self.helix_parameters {
+            None => p.clone(),
+            Some(hp) => hp.clone(),
+        };
+        let axis_pos = self.axis_position(&p, n);
+        let my_nucl_pos = self.space_pos(&p, n, forward);
         let direction = (my_nucl_pos - axis_pos).normalized();
 
         #[allow(clippy::let_and_return)]
@@ -790,8 +832,12 @@ impl Helix {
         new_helix: &mut Helix,
         p: &HelixParameters,
     ) {
-        let theta_current = new_helix.theta(0, forward, p);
-        let theta_obj = self.theta(n, forward, p) + std::f32::consts::PI;
+        let p = match self.helix_parameters {
+            None => p.clone(),
+            Some(hp) => hp.clone(),
+        };
+        let theta_current = new_helix.theta(0, forward, &p);
+        let theta_obj = self.theta(n, forward, &p) + std::f32::consts::PI;
         new_helix.roll = theta_obj - theta_current;
     }
 
@@ -815,9 +861,13 @@ impl Helix {
                 orientation,
             }
         } else {
+            let p = match self.helix_parameters {
+                None => p.clone(),
+                Some(hp) => hp.clone(),
+            };
             Axis::Line {
                 origin: self.position,
-                direction: self.axis_position(p, 1) - self.position,
+                direction: self.axis_position(&p, 1) - self.position,
             }
         }
     }
@@ -834,6 +884,10 @@ impl Helix {
                 return point.rotated_by(orientation) + position;
             }
         }
+        let p = match self.helix_parameters {
+            None => p.clone(),
+            Some(hp) => hp.clone(),
+        };
         let mut ret = Vec3::new(n as f32 * p.z_step, 0., 0.);
 
         ret = self.rotate_point(ret);
