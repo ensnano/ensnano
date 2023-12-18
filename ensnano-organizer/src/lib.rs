@@ -845,9 +845,7 @@ impl<E: OrganizerElement> Section<E> {
         let title_row = self
             .view
             .view(theme, &self.name, self.id.clone(), self.expanded, false);
-        let mut content = Column::new()
-            .spacing(LEVELS_SPACING)
-            .push(Element::new(title_row));
+        let mut content = Column::new().spacing(LEVELS_SPACING).push(title_row);
         if self.expanded {
             for (e_id, e) in self.elements.iter() {
                 content = content.push(iced_native::row![
@@ -1009,7 +1007,11 @@ impl<E: OrganizerElement> NodeView<E> {
         id: NodeId<E::AutoGroup>,
         expanded: bool,
         selected: bool,
-    ) -> DragDropTarget<OrganizerMessage<E>, E::Key, E::AutoGroup> {
+    ) -> Element<
+        '_,
+        OrganizerMessage<E>,
+        iced_graphics::renderer::Renderer<iced_wgpu::Backend, iced::Theme>,
+    > {
         let level = get_group_id(&id).map(|v| v.len()).unwrap_or(0);
         let title_row = match &self.state {
             GroupState::Iddle { .. } => {
@@ -1091,6 +1093,7 @@ impl<E: OrganizerElement> NodeView<E> {
             container(button).width(Length::Fill),
             Identifier::Group { id: id.clone() },
         )
+        .into()
     }
 
     fn update_attributes(&mut self, attributes: &[Option<E::Attribute>]) {
@@ -1158,9 +1161,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                 };
                 let selected = selected_nodes.contains(&id);
                 let title_row = view.view(theme, name, id.clone(), *expanded, selected);
-                let mut ret = Column::new()
-                    .spacing(LEVELS_SPACING)
-                    .push(Element::new(title_row));
+                let mut ret = Column::new().spacing(LEVELS_SPACING).push(title_row);
                 if *expanded {
                     for c in childrens.iter() {
                         ret = ret.push(

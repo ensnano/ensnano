@@ -764,7 +764,17 @@ fn main() {
                             .create_view(&wgpu::TextureViewDescriptor::default()),
                         &window,
                     );
-                    //overlay_manager.render(&device, &mut staging_belt, &mut encoder, &frame.output.view, &multiplexer, &window, &mut renderer);
+                    overlay_manager.render(
+                        &device,
+                        &mut staging_belt,
+                        &mut encoder,
+                        &frame
+                            .texture
+                            .create_view(&wgpu::TextureViewDescriptor::default()),
+                        &multiplexer,
+                        &window,
+                        &mut renderer,
+                    );
 
                     // Then we submit the work
                     staging_belt.finish();

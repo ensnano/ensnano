@@ -189,7 +189,10 @@ where
     Renderer::Theme: iced_native::widget::container::StyleSheet + StyleSheet,
 {
     fn state(&self) -> widget::tree::State {
-        widget::tree::State::Some(Box::new(State::default()))
+        widget::tree::State::new(State::default())
+    }
+    fn children(&self) -> Vec<widget::Tree> {
+        vec![widget::tree::Tree::new(&self.content)]
     }
 
     fn width(&self) -> Length {
@@ -224,7 +227,7 @@ where
         shell: &mut Shell<'_, Message>,
     ) -> event::Status {
         if let event::Status::Captured = self.content.as_widget_mut().on_event(
-            tree,
+            &mut tree.children[0],
             event.clone(),
             layout.children().next().unwrap(),
             cursor_position,
@@ -259,14 +262,14 @@ where
 
     fn mouse_interaction(
         &self,
-        state: &widget::Tree,
+        tree: &widget::Tree,
         layout: Layout<'_>,
         cursor_position: Point,
         viewport: &Rectangle,
         renderer: &Renderer,
     ) -> mouse::Interaction {
         self.content.as_widget().mouse_interaction(
-            state,
+            &tree.children[0],
             layout.children().next().unwrap(),
             cursor_position,
             viewport,
@@ -303,13 +306,15 @@ where
 
     fn overlay<'b>(
         &'b mut self,
-        state: &'b mut widget::Tree,
+        tree: &'b mut widget::Tree,
         layout: Layout<'_>,
         renderer: &Renderer,
     ) -> Option<overlay::Element<'_, Message, Renderer>> {
-        self.content
-            .as_widget_mut()
-            .overlay(state, layout.children().next().unwrap(), renderer)
+        self.content.as_widget_mut().overlay(
+            &mut tree.children[0],
+            layout.children().next().unwrap(),
+            renderer,
+        )
     }
 }
 

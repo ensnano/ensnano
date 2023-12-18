@@ -196,11 +196,14 @@ impl CircleDrawer {
                     entry_point: "main",
                     buffers: &[],
                 },
-                fragment: Some(wgpu::FragmentState {
-                    module: &fragment_module,
-                    entry_point: "main",
-                    targets,
-                }),
+                //fragment: Some(wgpu::FragmentState {
+                //    module: &fragment_module,
+                //    entry_point: "main",
+                //    targets,
+                //}),
+                fragment: None,
+                // TODO: I have deactivated the fragment shader for now.
+                //       Please review the shader to make it work again.
                 primitive,
                 depth_stencil: Some(wgpu::DepthStencilState {
                     format: Texture::DEPTH_FORMAT,
