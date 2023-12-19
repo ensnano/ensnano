@@ -37,6 +37,7 @@ mod legacy;
 mod revolution;
 mod sphere_concentric_circle;
 mod sphere_like_spiral;
+mod spiral_cylinder;
 mod supertwist;
 mod time_nucl_map;
 mod torus;
@@ -54,6 +55,7 @@ pub use bezier::{
 pub use revolution::{InterpolatedCurveDescriptor, InterpolationDescriptor};
 pub use sphere_concentric_circle::SphereConcentricCircleDescriptor;
 pub use sphere_like_spiral::{SphereLikeSpiralDescriptor, SphereOrientation};
+pub use spiral_cylinder::SpiralCylinderDescriptor;
 use std::collections::HashMap;
 pub use supertwist::SuperTwist;
 pub use time_nucl_map::AbscissaConverter;
@@ -61,7 +63,7 @@ pub(crate) use time_nucl_map::{PathTimeMaps, RevolutionCurveTimeMaps};
 use torus::TwistedTorus;
 pub use torus::{CurveDescriptor2D, TwistedTorusDescriptor};
 pub use torus::{PointOnSurface, Torus};
-pub use tube_spiral::TubeSpiralDescritor;
+pub use tube_spiral::TubeSpiralDescriptor;
 pub use twist::{nb_turn_per_100_nt_to_omega, twist_to_omega, Twist};
 
 const EPSILON_DERIVATIVE: f64 = 1e-6;
@@ -547,8 +549,9 @@ fn perpendicular_basis(point: DVec3) -> DMat3 {
 pub enum CurveDescriptor {
     Bezier(CubicBezierConstructor),
     SphereLikeSpiral(SphereLikeSpiralDescriptor),
-    TubeSpiral(TubeSpiralDescritor),
-    (SphereConcentricCircleDescriptor),
+    SpiralCylinder(SpiralCylinderDescriptor),
+    TubeSpiral(TubeSpiralDescriptor),
+    SphereConcentricCircle(SphereConcentricCircleDescriptor),
     Twist(Twist),
     Torus(Torus),
     TwistedTorus(TwistedTorusDescriptor),
@@ -724,8 +727,9 @@ impl InstanciatedCurveDescriptor {
             }
             CurveDescriptor::TubeSpiral(t) => InstanciatedCurveDescriptor_::TubeSpiral(t.clone()),
             CurveDescriptor::SphereConcentricCircle(t) => {
-                InstanciatedCurveDescriptor_::(t.clone())
+                InstanciatedCurveDescriptor_::SphereConcentricCircle(t.clone())
             }
+            CurveDescriptor::SpiralCylinder(t) => InstanciatedCurveDescriptor_::SpiralCylinder(t.clone()),
             CurveDescriptor::Twist(t) => InstanciatedCurveDescriptor_::Twist(t.clone()),
             CurveDescriptor::Torus(t) => InstanciatedCurveDescriptor_::Torus(t.clone()),
             CurveDescriptor::SuperTwist(t) => InstanciatedCurveDescriptor_::SuperTwist(t.clone()),
@@ -809,6 +813,9 @@ impl InstanciatedCurveDescriptor {
             CurveDescriptor::SphereConcentricCircle(s) => Some(
                 InstanciatedCurveDescriptor_::SphereConcentricCircle(s.clone()),
             ),
+            CurveDescriptor::SpiralCylinder(s) => Some(
+                InstanciatedCurveDescriptor_::SpiralCylinder(s.clone()),
+            ),            
             CurveDescriptor::Twist(t) => Some(InstanciatedCurveDescriptor_::Twist(t.clone())),
             CurveDescriptor::Torus(t) => Some(InstanciatedCurveDescriptor_::Torus(t.clone())),
             CurveDescriptor::SuperTwist(t) => {
@@ -913,8 +920,9 @@ impl InstanciatedCurveDescriptor {
 enum InstanciatedCurveDescriptor_ {
     Bezier(CubicBezierConstructor),
     SphereLikeSpiral(SphereLikeSpiralDescriptor),
-    TubeSpiral(TubeSpiralDescritor),
+    TubeSpiral(TubeSpiralDescriptor),
     SphereConcentricCircle(SphereConcentricCircleDescriptor),
+    SpiralCylinder(SpiralCylinderDescriptor),
     Twist(Twist),
     Torus(Torus),
     SuperTwist(SuperTwist),
@@ -1024,6 +1032,10 @@ impl InstanciatedCurveDescriptor_ {
                 spiral.with_helix_parameters(helix_parameters.clone()),
                 helix_parameters,
             )),
+            Self::SpiralCylinder(spiral) => Arc::new(Curve::new(
+                spiral.with_helix_parameters(helix_parameters.clone()),
+                helix_parameters,
+            )),
             Self::SphereConcentricCircle(constructor) => Arc::new(Curve::new(
                 constructor.with_helix_parameters(helix_parameters.clone()),
                 helix_parameters,
@@ -1083,6 +1095,10 @@ impl InstanciatedCurveDescriptor_ {
                 spiral.clone().with_helix_parameters(*helix_parameters),
                 helix_parameters,
             ))),
+            Self::SpiralCylinder(spiral) => Some(Arc::new(Curve::new(
+                spiral.clone().with_helix_parameters(*helix_parameters),
+                helix_parameters,
+            ))),            
             Self::SphereConcentricCircle(constructor) => Some(Arc::new(Curve::new(
                 constructor
                     .clone()
@@ -1130,6 +1146,9 @@ impl InstanciatedCurveDescriptor_ {
             Self::TubeSpiral(spiral) => Some(Curve::compute_length(
                 spiral.clone().with_helix_parameters(*helix_parameters),
             )),
+            Self::SpiralCylinder(spiral) => Some(Curve::compute_length(
+                spiral.clone().with_helix_parameters(*helix_parameters),
+            )),
             Self::SphereConcentricCircle(constructor) => Some(Curve::compute_length(
                 constructor
                     .clone()
@@ -1168,6 +1187,11 @@ impl InstanciatedCurveDescriptor_ {
                     .with_helix_parameters(helix_parameters.clone()),
             )),
             Self::TubeSpiral(spiral) => Some(Curve::path(
+                spiral
+                    .clone()
+                    .with_helix_parameters(helix_parameters.clone()),
+            )),
+            Self::SpiralCylinder(spiral) => Some(Curve::path(
                 spiral
                     .clone()
                     .with_helix_parameters(helix_parameters.clone()),
