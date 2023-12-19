@@ -25,7 +25,8 @@ use std::f32::consts::{PI, SQRT_2, TAU};
 pub struct HelixParameters {
     /// Distance between two consecutive bases along the axis of a
     /// helix, in nanometers.
-    pub z_step: f32,
+    #[serde(alias = "z_step")]
+    pub rise: f32,
     /// Radius of a helix, in nanometers.
     pub helix_radius: f32,
     /// Number of bases per turn.
@@ -54,7 +55,7 @@ macro_rules! parameters_from_p_stick_model {
         HelixParameters {
             groove_angle: ($p_stick_model).groove_angle
                 - 2.0 * std::f32::consts::PI / ($p_stick_model).bases_per_turn,
-            inclination: ($p_stick_model).inclination - ($p_stick_model).z_step,
+            inclination: ($p_stick_model).inclination - ($p_stick_model).rise,
             ..($p_stick_model)
         }
     };
@@ -66,14 +67,14 @@ macro_rules! parameters_from_p_stick_model_plus_or_minus {
             HelixParameters {
                 groove_angle: ($p_stick_model).groove_angle
                     - 2.0 * std::f32::consts::PI / ($p_stick_model).bases_per_turn,
-                inclination: ($p_stick_model).inclination - ($p_stick_model).z_step,
+                inclination: ($p_stick_model).inclination - ($p_stick_model).rise,
                 ..($p_stick_model)
             }
         } else {
             HelixParameters {
                 groove_angle: ($p_stick_model).groove_angle
                     + 2.0 * std::f32::consts::PI / ($p_stick_model).bases_per_turn,
-                inclination: ($p_stick_model).inclination + ($p_stick_model).z_step,
+                inclination: ($p_stick_model).inclination + ($p_stick_model).rise,
                 ..($p_stick_model)
             }
         }
@@ -90,7 +91,7 @@ impl HelixParameters {
     pub const GEARY_2014_DNA_P_STICK: HelixParameters = {
         let helix_radius = 0.93;
         HelixParameters {
-            z_step: 0.332,
+            rise: 0.332,
             helix_radius,
             bases_per_turn: 10.44,
             groove_angle: 170.4 / 180.0 * std::f32::consts::PI,
@@ -110,7 +111,7 @@ impl HelixParameters {
         let helix_radius = 0.87;
         HelixParameters {
             helix_radius,
-            z_step: 0.281,
+            rise: 0.281,
             inclination: -0.745,
             groove_angle: 139.9 / 180.0 * std::f32::consts::PI,
             bases_per_turn: 11.0,
@@ -130,7 +131,7 @@ impl HelixParameters {
     /// sorting paper, Woo 2011).
     pub const ENSNANO_2021: HelixParameters = HelixParameters {
         // z-step and helix radius from: Wikipedia
-        z_step: 0.332,
+        rise: 0.332,
         helix_radius: 1.,
         // bases per turn from Woo Rothemund (Nature Chemistry).
         bases_per_turn: 10.44,
@@ -144,7 +145,7 @@ impl HelixParameters {
 
     pub fn from_codenano(codenano_param: &codenano::Parameters) -> Self {
         Self {
-            z_step: codenano_param.z_step as f32,
+            rise: codenano_param.rise as f32,
             helix_radius: codenano_param.helix_radius as f32,
             bases_per_turn: codenano_param.bases_per_turn as f32,
             groove_angle: codenano_param.groove_angle as f32,
@@ -157,7 +158,7 @@ impl HelixParameters {
         use std::fmt::Write;
         let mut ret = String::new();
         writeln!(&mut ret, "  Radius: {:.3} nm", self.helix_radius).unwrap_or_default();
-        writeln!(&mut ret, "  Rise: {:.3} nm", self.z_step).unwrap_or_default();
+        writeln!(&mut ret, "  Rise: {:.3} nm", self.rise).unwrap_or_default();
         writeln!(&mut ret, "  Inclination {:.3} nm", self.inclination).unwrap_or_default();
         writeln!(&mut ret, "  Helicity: {:.2} bp", self.bases_per_turn).unwrap_or_default();
         writeln!(
@@ -200,7 +201,7 @@ impl HelixParameters {
     /// * A is a base on the helix
     /// * C is the 3' neighbour of A
     pub fn dist_ac(&self) -> f32 {
-        (self.dist_ac2() * self.dist_ac2() + self.z_step * self.z_step).sqrt()
+        (self.dist_ac2() * self.dist_ac2() + self.rise * self.rise).sqrt()
     }
 
     /// The distance |AC_2| where
@@ -232,7 +233,7 @@ impl HelixParameters {
             + (self.helix_radius - other.helix_radius).abs()
             + (self.inter_helix_gap - other.inter_helix_gap).abs()
             + (self.groove_angle - other.groove_angle).abs()
-            + (self.z_step - other.z_step).abs()
+            + (self.rise - other.rise).abs()
             + (self.bases_per_turn - other.bases_per_turn).abs()
     }
 }
