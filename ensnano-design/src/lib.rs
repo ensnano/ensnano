@@ -535,7 +535,6 @@ impl Design {
                 true
             };
             if need_update {
-                println!("blop");
                 let updated_data = GridData::new_by_updating_design(self);
                 self.instanciated_grid_data = Some(updated_data);
             }
