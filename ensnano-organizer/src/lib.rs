@@ -591,7 +591,7 @@ impl<E: OrganizerElement> Organizer<E> {
         let groups = self.groups.iter().filter_map(|g| g.tree()).collect();
         OrganizerTree::Node {
             name: "root".to_owned(),
-            childrens: groups,
+            children: groups,
             expanded: true,
             id: None,
         }
@@ -601,8 +601,8 @@ impl<E: OrganizerElement> Organizer<E> {
     pub fn read_tree(&mut self, tree: &OrganizerTree<E::Key>) -> bool {
         if self.last_read_tree != tree {
             self.last_read_tree = tree;
-            if let OrganizerTree::Node { childrens, .. } = tree {
-                self.groups = childrens
+            if let OrganizerTree::Node { children, .. } = tree {
+                self.groups = children
                     .iter()
                     .map(|g| {
                         GroupContent::read_tree(g, &mut self.rng_thread, &mut self.must_update_tree)
@@ -734,7 +734,7 @@ impl<E: OrganizerElement> Organizer<E> {
                     id: NodeId::TreeId(vec![]),
                     name: String::from("new group"),
                     expanded: false,
-                    childrens: vec![c2, c1],
+                    children: vec![c2, c1],
                     view: NodeView::new(),
                     attributes: vec![None; E::all_repr().len()],
                     elements_below: BTreeSet::new(),
@@ -1147,7 +1147,7 @@ enum GroupContent<E: OrganizerElement> {
         name: String,
         expanded: bool,
         view: NodeView<E>,
-        childrens: Vec<GroupContent<E>>,
+        children: Vec<GroupContent<E>>,
         attributes: Vec<Option<E::Attribute>>,
         elements_below: BTreeSet<E::Key>,
         group_id: GroupId,
@@ -1181,7 +1181,7 @@ impl<E: OrganizerElement> GroupContent<E> {
             Self::Node {
                 name,
                 expanded,
-                childrens,
+                children,
                 view,
                 id,
                 ..
@@ -1197,7 +1197,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                     .spacing(LEVELS_SPACING)
                     .push(Element::new(title_row));
                 if *expanded {
-                    for c in childrens.iter_mut() {
+                    for c in children.iter_mut() {
                         ret = ret.push(
                             Row::new().push(tabulation()).push(
                                 c.view(theme, sections, selection, selected_nodes)
@@ -1258,11 +1258,11 @@ impl<E: OrganizerElement> GroupContent<E> {
             },
             OrganizerTree::Node {
                 name,
-                childrens: content,
+                children: content,
                 expanded,
                 id,
             } => {
-                let childrens = content
+                let children = content
                     .iter()
                     .map(|c| Self::read_tree(c, rng, must_update_tree))
                     .collect();
@@ -1273,7 +1273,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                     rng.gen()
                 });
                 Self::Node {
-                    childrens,
+                    children,
                     id: NodeId::TreeId(vec![]),
                     name: name.clone(),
                     expanded: *expanded,
@@ -1292,7 +1292,7 @@ impl<E: OrganizerElement> GroupContent<E> {
         id: NodeId<E::AutoGroup>,
         rng: &mut ThreadRng,
     ) -> Self {
-        let childrens = content
+        let children = content
             .into_iter()
             .enumerate()
             .map(|(i, e)| {
@@ -1309,7 +1309,7 @@ impl<E: OrganizerElement> GroupContent<E> {
         let group_id = rng.gen();
         Self::Node {
             id,
-            childrens,
+            children,
             name,
             expanded: false,
             view: NodeView::new(),
@@ -1325,7 +1325,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                 Self::Leaf { .. } => {
                     println!("ERROR ACCESSING A LEAF WITHOUT EXHAUSTING ID");
                 }
-                Self::Node { childrens, .. } => childrens[id[0]].start_editing(&id[1..]),
+                Self::Node { children, .. } => children[id[0]].start_editing(&id[1..]),
                 Self::Placeholder => unreachable!("Expanding a Placeholder"),
             }
         } else {
@@ -1345,7 +1345,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                 Self::Leaf { .. } => {
                     println!("ERROR ACCESSING A LEAF WITHOUT EXHAUSTING ID");
                 }
-                Self::Node { childrens, .. } => childrens[id[0]].stop_editing(&id[1..]),
+                Self::Node { children, .. } => children[id[0]].stop_editing(&id[1..]),
                 Self::Placeholder => unreachable!("Expanding a Placeholder"),
             }
         } else {
@@ -1367,7 +1367,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                 Self::Leaf { .. } => {
                     println!("ERROR ACCESSING A LEAF WITHOUT EXHAUSTING ID");
                 }
-                Self::Node { childrens, .. } => childrens[id[0]].edit_name(&id[1..], name),
+                Self::Node { children, .. } => children[id[0]].edit_name(&id[1..], name),
                 Self::Placeholder => unreachable!("Expanding a Placeholder"),
             }
         } else {
@@ -1391,7 +1391,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                 Self::Leaf { .. } => {
                     println!("ERROR ACCESSING A LEAF WITHOUT EXHAUSTING ID");
                 }
-                Self::Node { childrens, .. } => childrens[id[0]].expand(&id[1..], expanded),
+                Self::Node { children, .. } => children[id[0]].expand(&id[1..], expanded),
                 Self::Placeholder => unreachable!("Expanding a Placeholder"),
             }
         } else {
@@ -1426,12 +1426,12 @@ impl<E: OrganizerElement> GroupContent<E> {
             Self::Leaf { id: id_ref, .. } => *id_ref = id,
             Self::Node {
                 id: id_ref,
-                childrens,
+                children,
                 group_id,
                 ..
             } => {
-                childrens.retain(|c| !c.is_placeholder());
-                for (i, c) in childrens.iter_mut().enumerate() {
+                children.retain(|c| !c.is_placeholder());
+                for (i, c) in children.iter_mut().enumerate() {
                     let mut id_child = id.clone();
                     id_child.push(i);
                     c.recompute_id(id_child, map);
@@ -1445,11 +1445,11 @@ impl<E: OrganizerElement> GroupContent<E> {
 
     fn pop_id(&mut self, id: &[usize]) -> Option<Self> {
         match self {
-            Self::Node { childrens, .. } => {
+            Self::Node { children, .. } => {
                 if id.len() > 1 {
-                    childrens.get_mut(id[0]).and_then(|c| c.pop_id(&id[1..]))
+                    children.get_mut(id[0]).and_then(|c| c.pop_id(&id[1..]))
                 } else {
-                    childrens
+                    children
                         .get_mut(id[0])
                         .map(|c| std::mem::replace(c, Self::Placeholder))
                 }
@@ -1460,11 +1460,11 @@ impl<E: OrganizerElement> GroupContent<E> {
 
     fn replace_id(&mut self, id: &[usize], content: Self) {
         match self {
-            Self::Node { childrens, .. } => {
+            Self::Node { children, .. } => {
                 if id.len() > 1 {
-                    childrens[id[0]].replace_id(&id[1..], content)
+                    children[id[0]].replace_id(&id[1..], content)
                 } else {
-                    childrens[id[0]] = content
+                    children[id[0]] = content
                 }
             }
             Self::Leaf { .. } => unreachable!("Replace Id on Leaf"),
@@ -1479,13 +1479,13 @@ impl<E: OrganizerElement> GroupContent<E> {
             false
         };
         match self {
-            Self::Node { childrens, .. } => {
+            Self::Node { children, .. } => {
                 if id.len() > 1 {
-                    childrens[id[0]].add_at_id(&id[1..], content, from_top)
+                    children[id[0]].add_at_id(&id[1..], content, from_top)
                 } else {
                     let insertion_point = if from_top { id[0] + 1 } else { id[0] };
                     if !content_key {
-                        childrens.insert(insertion_point, content);
+                        children.insert(insertion_point, content);
                     }
                 }
             }
@@ -1497,12 +1497,12 @@ impl<E: OrganizerElement> GroupContent<E> {
     fn add_key_at(&mut self, key: E::Key, id: &[usize]) {
         let has_key = self.has_key_no_rec(&key);
         match self {
-            Self::Node { childrens, .. } => {
+            Self::Node { children, .. } => {
                 if id.len() > 1 {
-                    childrens[id[0]].add_key_at(key, &id[1..])
+                    children[id[0]].add_key_at(key, &id[1..])
                 } else if !has_key {
                     let leaf = Self::leaf(key, vec![]);
-                    childrens.insert(id[0], leaf);
+                    children.insert(id[0], leaf);
                 }
             }
             Self::Leaf { .. } => unreachable!("Add key at Id on Leaf"),
@@ -1512,7 +1512,7 @@ impl<E: OrganizerElement> GroupContent<E> {
 
     fn has_key_no_rec(&self, key: &E::Key) -> bool {
         match self {
-            Self::Node { childrens, .. } => childrens.iter().any(|c| c.is_leaf_key(key)),
+            Self::Node { children, .. } => children.iter().any(|c| c.is_leaf_key(key)),
             _ => false,
         }
     }
@@ -1542,7 +1542,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                 view.update_attributes(attributes);
             }
             Self::Node {
-                childrens,
+                children,
                 attributes,
                 elements_below,
                 view,
@@ -1551,13 +1551,13 @@ impl<E: OrganizerElement> GroupContent<E> {
             } => {
                 *elements_below = BTreeSet::new();
                 *attributes = vec![None; E::all_repr().len()];
-                for c in childrens.iter_mut() {
+                for c in children.iter_mut() {
                     c.update_attributes(sections);
                     for elt in c.get_all_elements_below().iter() {
                         elements_below.insert(elt.clone());
                     }
                 }
-                let attr_children: Vec<_> = childrens
+                let attr_children: Vec<_> = children
                     .iter()
                     //.filter(|c| c.expanded())
                     .map(|c| c.get_attributes().as_slice())
@@ -1616,11 +1616,11 @@ impl<E: OrganizerElement> GroupContent<E> {
 
     fn get_group<'a, 'b>(&'a self, id: &'b [usize]) -> Option<&'a Self> {
         match self {
-            Self::Node { childrens, .. } => {
+            Self::Node { children, .. } => {
                 if id.len() > 1 {
-                    childrens[id[0]].get_group(&id[1..])
+                    children[id[0]].get_group(&id[1..])
                 } else {
-                    childrens.get(id[0])
+                    children.get(id[0])
                 }
             }
             Self::Leaf { .. } => None,
@@ -1632,15 +1632,15 @@ impl<E: OrganizerElement> GroupContent<E> {
         match self {
             Self::Node {
                 name,
-                childrens,
+                children,
                 expanded,
                 group_id,
                 ..
             } => {
-                let childrens = childrens.iter().filter_map(Self::tree).collect();
+                let children = children.iter().filter_map(Self::tree).collect();
                 Some(OrganizerTree::Node {
                     name: name.clone(),
-                    childrens,
+                    children,
                     expanded: *expanded,
                     id: Some(*group_id),
                 })
@@ -1674,9 +1674,9 @@ impl<E: OrganizerElement> GroupContent<E> {
         let (ret, id) = match self {
             Self::Placeholder => (false, fake_id),
             Self::Leaf { element, id, .. } => (!elements.contains(element), id),
-            Self::Node { childrens, id, .. } => {
+            Self::Node { children, id, .. } => {
                 let mut _ret = true;
-                for c in childrens.iter() {
+                for c in children.iter() {
                     _ret &= c.delete_useless_leaves(ids_to_remove, elements);
                 }
                 // Decomment this to also remove empty groups (ret, id)
