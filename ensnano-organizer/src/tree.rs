@@ -24,6 +24,7 @@ pub enum OrganizerTree<K> {
     Leaf(K),
     Node {
         name: String,
+        #[serde(alias = "childrens")]
         children: Vec<OrganizerTree<K>>,
         expanded: bool,
         #[serde(default)]
@@ -37,10 +38,7 @@ impl<K: PartialEq> OrganizerTree<K> {
         match self {
             Self::Leaf(_) => (),
             Self::Node {
-                name,
-                children,
-                id,
-                ..
+                name, children, id, ..
             } => {
                 let rename: String = self.get_name_copy_with_id();
                 for c in children {
@@ -65,10 +63,7 @@ impl<K: PartialEq> OrganizerTree<K> {
         match self {
             Self::Leaf(_) => (),
             Self::Node {
-                name,
-                children,
-                id,
-                ..
+                name, children, id, ..
             } => {
                 let _ = ret.push(self.get_name_copy_with_id());
                 for c in children {
@@ -85,10 +80,7 @@ impl<K: PartialEq> OrganizerTree<K> {
         match self {
             Self::Leaf(_) => "".to_string(),
             Self::Node {
-                name,
-                children,
-                id,
-                ..
+                name, children, id, ..
             } => {
                 if let Some(GroupId(x)) = id {
                     format!("{name}_{:0X}", x & 0xFFFF).to_string()
@@ -114,6 +106,7 @@ enum NewOrganizerTree<K> {
     Leaf(K),
     Node {
         name: String,
+        #[serde(alias = "childrens")]
         children: Vec<OrganizerTree<K>>,
         expanded: bool,
         #[serde(default)]

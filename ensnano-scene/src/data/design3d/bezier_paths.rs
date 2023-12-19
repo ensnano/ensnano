@@ -206,7 +206,7 @@ struct SheetDescriptor<'a> {
 
 fn get_sheet_instance(desc: SheetDescriptor<'_>) -> Sheet2D {
     let helix_parameters = &desc.helix_parameters;
-    let grad_step = 48.0 * helix_parameters.z_step;
+    let grad_step = 48.0 * helix_parameters.rise;
     let delta_corners = grad_step / 5.;
     let corners = &desc.corners;
     let axis_position = desc.axis_position.map(|x| x as f32);
@@ -220,7 +220,7 @@ fn get_sheet_instance(desc: SheetDescriptor<'_>) -> Sheet2D {
         min_y: ((-3. * grad_step).min(corners[0].y - delta_corners) / grad_step).floor()
             * grad_step,
         max_y: ((3. * grad_step).max(corners[3].y + delta_corners) / grad_step).ceil() * grad_step,
-        graduation_unit: 48.0 * helix_parameters.z_step,
+        graduation_unit: 48.0 * helix_parameters.rise,
         axis_position,
     };
 

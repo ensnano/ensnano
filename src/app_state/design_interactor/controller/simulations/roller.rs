@@ -108,7 +108,7 @@ fn angle_aoc2(helix_parameters: &HelixParameters) -> f32 {
 
 pub(super) fn dist_ac(helix_parameters: &HelixParameters) -> f32 {
     (dist_ac2(helix_parameters) * dist_ac2(helix_parameters)
-        + helix_parameters.z_step * helix_parameters.z_step)
+        + helix_parameters.rise * helix_parameters.rise)
         .sqrt()
 }
 
