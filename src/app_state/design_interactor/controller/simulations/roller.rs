@@ -288,7 +288,6 @@ impl RollSystem {
                         // update the roll the same way as the support helix
                         data.helices[i].roll(self.speed[*h] * dt);
                     } else {
-                        println!("Speed of {i}: {}", self.speed[i]);
                         data.helices[i].roll(self.speed[i] * dt);
                     }
                 }
