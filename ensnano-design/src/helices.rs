@@ -747,12 +747,12 @@ impl Helix {
     ///Return an helix that makes an ideal cross-over with self at postion n
     pub fn ideal_neighbour(&self, n: isize, forward: bool, p: &HelixParameters) -> Helix {
         let other_helix_pos = self.position_ideal_neighbour(n, forward, p);
-        let mut new_helix = self.detatched_copy_at(other_helix_pos);
+        let mut new_helix = self.detached_copy_at(other_helix_pos);
         self.adjust_theta_neighbour(n, forward, &mut new_helix, p);
         new_helix
     }
 
-    fn detatched_copy_at(&self, position: Vec3) -> Helix {
+    fn detached_copy_at(&self, position: Vec3) -> Helix {
         Helix {
             position,
             orientation: self.orientation,

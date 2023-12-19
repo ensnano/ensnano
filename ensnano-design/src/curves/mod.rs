@@ -548,7 +548,7 @@ pub enum CurveDescriptor {
     Bezier(CubicBezierConstructor),
     SphereLikeSpiral(SphereLikeSpiralDescriptor),
     TubeSpiral(TubeSpiralDescritor),
-    SphereConcentricCircle(SphereConcentricCircleDescriptor),
+    (SphereConcentricCircleDescriptor),
     Twist(Twist),
     Torus(Torus),
     TwistedTorus(TwistedTorusDescriptor),
@@ -724,7 +724,7 @@ impl InstanciatedCurveDescriptor {
             }
             CurveDescriptor::TubeSpiral(t) => InstanciatedCurveDescriptor_::TubeSpiral(t.clone()),
             CurveDescriptor::SphereConcentricCircle(t) => {
-                InstanciatedCurveDescriptor_::SphereConcentricCircle(t.clone())
+                InstanciatedCurveDescriptor_::(t.clone())
             }
             CurveDescriptor::Twist(t) => InstanciatedCurveDescriptor_::Twist(t.clone()),
             CurveDescriptor::Torus(t) => InstanciatedCurveDescriptor_::Torus(t.clone()),
