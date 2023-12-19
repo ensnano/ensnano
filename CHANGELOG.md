@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.1.1
+
+- Changes in the file format, older files can still be read and will be automatically converted to the new file format when saved.
+
 ## 0.5.1
 
 - Fixed a lot of typos
