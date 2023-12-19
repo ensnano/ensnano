@@ -1599,8 +1599,8 @@ impl MainState {
         self.modify_state(|s| s.with_inverted_y_scroll(inverted), None)
     }
 
-    fn gui_state(&self, multiplexer: &Multiplexer) -> gui::MainState {
-        gui::MainState {
+    fn gui_state(&self, multiplexer: &Multiplexer) -> gui::TopBarState {
+        gui::TopBarState {
             can_undo: !self.undo_stack.is_empty(),
             can_redo: !self.redo_stack.is_empty(),
             need_save: self.need_save(),

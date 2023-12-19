@@ -21,7 +21,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! the selection mode, modify the layout of the window, etc.
 //!
 //! Drawing the top bar, and triggering events from it is handled here.
-use super::{AppState, UiSize};
+use super::{AppState, TopBarState, UiSize};
+// NOTE: I would like to rename AppState to ApplicationState, and name AppState the structures that
+//       implement it.
 use ensnano_interactor::{ActionMode, SelectionMode};
 use iced::{Background, Color, Element, Length};
 use iced_native::widget::{self, helpers::*};
@@ -41,22 +43,10 @@ pub struct TopBar<R: Requests, S: AppState> {
     requests: Arc<Mutex<R>>,
     logical_size: LogicalSize<f64>,
     ui_size: UiSize,
-    application_state: TopBarState<S>,
-}
-
-/// State of a top bar.
-#[derive(Debug, Default, Clone)]
-pub struct TopBarState<S: AppState> {
-    pub app_state: S,
-    // Wether the Undo operation is possible.
-    pub can_undo: bool,
-    // Wether the Redo operation is possible.
-    pub can_redo: bool,
-    pub need_save: bool,
-    pub can_reload: bool,
-    pub can_split2d: bool,
-    pub can_toggle_2d: bool,
-    pub splited_2d: bool,
+    /// State of the whole application.
+    app_state: S,
+    /// More local state stuff.
+    state: TopBarState,
 }
 
 #[derive(Debug, Clone)]
@@ -73,7 +63,8 @@ pub enum Message<S: AppState> {
     UiSizeChanged(UiSize),
     ExportRequested,
     Split2d,
-    NewApplicationState(TopBarState<S>),
+    // Receive an new application state.
+    NewApplicationState(S),
     ForceHelp,
     ShowTutorial,
     Undo,
@@ -92,14 +83,16 @@ impl<R: Requests, S: AppState> TopBar<R, S> {
     pub fn new(
         requests: Arc<Mutex<R>>,
         logical_size: LogicalSize<f64>,
-        application_state: TopBarState<S>,
+        app_state: S,
+        state: TopBarState,
         ui_size: UiSize,
     ) -> Self {
         Self {
             requests,
             logical_size,
             ui_size,
-            application_state,
+            app_state,
+            state,
         }
     }
 
@@ -109,7 +102,7 @@ impl<R: Requests, S: AppState> TopBar<R, S> {
     }
 
     fn get_build_helix_mode(&self) -> ActionMode {
-        self.application_state.app_state.get_build_helix_mode()
+        self.app_state.get_build_helix_mode()
     }
 }
 
@@ -136,7 +129,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
             Message::UiSizeChanged(ui_size) => self.ui_size = ui_size,
             Message::ExportRequested => self.requests.lock().unwrap().set_exporting(true),
             Message::Split2d => self.requests.lock().unwrap().toggle_2d_view_split(),
-            Message::NewApplicationState(state) => self.application_state = state,
+            Message::NewApplicationState(app_state) => self.app_state = app_state,
             Message::Undo => self.requests.lock().unwrap().undo(),
             Message::Redo => self.requests.lock().unwrap().redo(),
             Message::ForceHelp => self.requests.lock().unwrap().force_help(),
@@ -144,7 +137,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
             Message::ButtonNewEmptyDesignPressed => self.requests.lock().unwrap().new_design(),
             Message::Reload => self.requests.lock().unwrap().reload_file(),
             Message::SelectionModeChanged(selection_mode) => {
-                if selection_mode != self.application_state.app_state.get_selection_mode() {
+                if selection_mode != self.app_state.get_selection_mode() {
                     self.requests
                         .lock()
                         .unwrap()
@@ -152,7 +145,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
                 }
             }
             Message::ActionModeChanged(action_mode) => {
-                if self.application_state.app_state.get_action_mode() != action_mode {
+                if self.app_state.get_action_mode() != action_mode {
                     self.requests
                         .lock()
                         .unwrap()
@@ -177,7 +170,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
         Command::none()
     }
 
-    fn view(&self) -> Element<Message<S>, iced_wgpu::Renderer> {
+    fn view(&self) -> Element<Message<S>, Self::Renderer> {
         let build_helix_mode = self.get_build_helix_mode();
         // List of action modes to add in the top bar.
         let action_modes_to_display = [
@@ -202,7 +195,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
 
         let mut button_reload = button(light_icon(LightIcon::RestorePage, self.ui_size));
 
-        if self.application_state.can_reload {
+        if self.state.can_reload {
             button_reload = button_reload.on_press(Message::Reload);
         }
 
@@ -214,7 +207,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
             "Save As..",
             Some(save_message),
         );*/
-        let button_save = if self.application_state.need_save {
+        let button_save = if self.state.need_save {
             button(dark_icon(LightIcon::Save, self.ui_size.clone()))
                 .on_press(Message::FileSaveRequested)
         } else {
@@ -222,7 +215,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
                 .on_press(Message::FileSaveRequested)
         };
 
-        let button_save_as = if self.application_state.need_save {
+        let button_save_as = if self.state.need_save {
             button(dark_icon(LightIcon::DriveFileMove, self.ui_size.clone()))
                 .on_press(Message::SaveAsRequested)
         } else {
@@ -231,12 +224,12 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
         };
 
         let mut button_undo = button(dark_icon(LightIcon::Undo, self.ui_size.clone()));
-        if self.application_state.can_undo {
+        if self.state.can_undo {
             button_undo = button_undo.on_press(Message::Undo)
         }
 
         let mut button_redo = button(dark_icon(LightIcon::Redo, self.ui_size.clone()));
-        if self.application_state.can_redo {
+        if self.state.can_redo {
             button_redo = button_redo.on_press(Message::Redo)
         }
 
@@ -246,7 +239,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
         let button_3d = button(text("3D"))
             .height(self.ui_size.button())
             .on_press(Message::ToggleView(SplitMode::Scene3D));
-        let button_thick_helices = if self.application_state.app_state.want_thick_helices() {
+        let button_thick_helices = if self.app_state.want_thick_helices() {
             button(light_icon(LightIcon::Dehaze, self.ui_size))
                 .on_press(Message::ThickHelices(false))
         } else {
@@ -265,7 +258,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
             .height(self.ui_size.button())
             .on_press(Message::Import3D);
 
-        let split_icon = if self.application_state.splited_2d {
+        let split_icon = if self.state.splited_2d {
             LightIcon::BorderOuter
         } else {
             LightIcon::BorderHorizontal
@@ -274,19 +267,19 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
         let mut button_split_2d =
             button(light_icon(split_icon, self.ui_size)).height(self.ui_size.button());
 
-        if self.application_state.can_split2d {
+        if self.state.can_split2d {
             button_split_2d = button_split_2d.on_press(Message::Split2d);
         }
 
         let mut button_toggle_2d = button(text("Toggle 2D")).height(self.ui_size.button());
 
-        if self.application_state.can_toggle_2d {
+        if self.state.can_toggle_2d {
             button_toggle_2d = button_toggle_2d.on_press(Message::Toggle2D);
         }
 
         let mut button_flip_split =
             button(light_icon(LightIcon::SwapVert, self.ui_size)).height(self.ui_size.button());
-        if self.application_state.splited_2d {
+        if self.state.splited_2d {
             button_flip_split = button_flip_split.on_press(Message::FlipSplitViews);
         }
 
@@ -298,16 +291,15 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
             .height(self.ui_size.button())
             .on_press(Message::ShowTutorial);
 
-        let app_state = &self.application_state.app_state;
         let ui_size = self.ui_size.clone();
         let action_mode_buttons: Vec<_> = action_modes_to_display
             .iter()
             .map(|mode| {
                 action_mode_btn(
                     mode,
-                    app_state.get_action_mode(),
+                    self.app_state.get_action_mode(),
                     ui_size.button(),
-                    app_state.get_widget_basis().is_axis_aligned(),
+                    self.app_state.get_widget_basis().is_axis_aligned(),
                 )
                 .into()
             })
@@ -324,7 +316,8 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
             .iter()
             .filter(|mode| selection_modes_to_display.contains(mode))
             .map(|mode| {
-                selection_mode_btn(mode, app_state.get_selection_mode(), ui_size.button()).into()
+                selection_mode_btn(mode, self.app_state.get_selection_mode(), ui_size.button())
+                    .into()
             })
             .collect();
 

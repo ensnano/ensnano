@@ -432,7 +432,8 @@ impl<R: Requests, S: AppState> GuiElement<R, S> {
         window: &Window,
         multiplexer: &dyn Multiplexer,
         requests: Arc<Mutex<R>>,
-        app_state: top_bar::TopBarState<S>,
+        app_state: S,
+        top_bar_state: TopBarState,
         ui_size: UiSize,
     ) -> Self {
         let top_bar_area = multiplexer.get_draw_area(ElementType::TopBar).unwrap();
@@ -440,6 +441,7 @@ impl<R: Requests, S: AppState> GuiElement<R, S> {
             requests,
             top_bar_area.size.to_logical(window.scale_factor()),
             app_state,
+            top_bar_state,
             ui_size,
         );
         let mut top_bar_debug = Debug::new();
@@ -624,7 +626,7 @@ impl<R: Requests, S: AppState> Gui<R, S> {
         requests: Arc<Mutex<R>>,
         ui_size: UiSize,
         state: &S,
-        main_state: MainState,
+        top_bar_state: TopBarState,
     ) -> Self {
         let settings = Settings {
             antialiasing: Some(iced_graphics::Antialiasing::MSAAx4),
@@ -640,7 +642,6 @@ impl<R: Requests, S: AppState> Gui<R, S> {
             settings,
             ensnano_utils::TEXTURE_FORMAT,
         ));
-        let top_bar_state = top_bar_main_state(state, main_state);
         elements.insert(
             ElementType::TopBar,
             GuiElement::top_bar(
@@ -648,6 +649,7 @@ impl<R: Requests, S: AppState> Gui<R, S> {
                 window,
                 multiplexer,
                 requests.clone(),
+                state.clone(),
                 top_bar_state,
                 ui_size,
             ),
@@ -781,12 +783,12 @@ impl<R: Requests, S: AppState> Gui<R, S> {
         window: &Window,
         multiplexer: &dyn Multiplexer,
         app_state: &S,
-        main_state: MainState,
+        top_bar_state: TopBarState,
     ) {
         self.set_text_size(ui_size.main_text());
         self.ui_size = ui_size;
 
-        self.rebuild_gui(window, multiplexer, app_state, main_state);
+        self.rebuild_gui(window, multiplexer, app_state, top_bar_state);
     }
 
     pub fn notify_scale_factor_change(
@@ -794,10 +796,10 @@ impl<R: Requests, S: AppState> Gui<R, S> {
         window: &Window,
         multiplexer: &dyn Multiplexer,
         app_state: &S,
-        main_state: MainState,
+        top_bar_state: TopBarState,
     ) {
         self.set_text_size(self.ui_size.main_text());
-        self.rebuild_gui(window, multiplexer, app_state, main_state);
+        self.rebuild_gui(window, multiplexer, app_state, top_bar_state);
     }
 
     fn rebuild_gui(
@@ -805,7 +807,7 @@ impl<R: Requests, S: AppState> Gui<R, S> {
         window: &Window,
         multiplexer: &dyn Multiplexer,
         state: &S,
-        main_state: MainState,
+        top_bar_state: TopBarState,
     ) {
         let top_bar_renderer = Renderer::new(Backend::new(
             self.device.as_ref(),
@@ -819,7 +821,8 @@ impl<R: Requests, S: AppState> Gui<R, S> {
                 window,
                 multiplexer,
                 self.requests.clone(),
-                top_bar_main_state(state, main_state),
+                state.clone(),
+                top_bar_state,
                 self.ui_size,
             ),
         );
@@ -948,7 +951,7 @@ pub struct IcedMessages<S: AppState> {
     _color_overlay: VecDeque<left_panel::ColorMessage>,
     status_bar: VecDeque<status_bar::Message<S>>,
     application_state: S,
-    last_main_state: MainState,
+    last_topbar_state: TopBarState,
     redraw: bool,
 }
 
@@ -961,7 +964,7 @@ impl<S: AppState> IcedMessages<S> {
             _color_overlay: VecDeque::new(),
             status_bar: VecDeque::new(),
             application_state: Default::default(),
-            last_main_state: Default::default(),
+            last_topbar_state: Default::default(),
             redraw: false,
         }
     }
@@ -1012,19 +1015,17 @@ impl<S: AppState> IcedMessages<S> {
         self.left_panel.push_back(left_panel::Message::ForceHelp);
     }
 
-    pub fn push_application_state(&mut self, state: S, main_state: MainState) {
+    pub fn push_application_state(&mut self, state: S, top_bar_state: TopBarState) {
         log::trace!("Old ptr {:p}, new ptr {:p}", state, self.application_state);
         self.application_state = state.clone();
-        self.redraw |= main_state != self.last_main_state;
-        self.last_main_state = main_state.clone();
+        self.redraw |= top_bar_state != self.last_topbar_state;
+        self.last_topbar_state = top_bar_state.clone();
         let must_update = self.application_state != state || self.redraw;
         if must_update {
             self.left_panel
                 .push_back(left_panel::Message::NewApplicationState(state.clone()));
             self.top_bar
-                .push_back(top_bar::Message::NewApplicationState(top_bar_main_state(
-                    &state, main_state,
-                )));
+                .push_back(top_bar::Message::NewApplicationState(state.clone()));
             self.status_bar
                 .push_back(status_bar::Message::NewApplicationState(state));
         }
@@ -1109,9 +1110,12 @@ pub trait DesignReader: 'static {
     fn get_current_length_of_relaxed_shape(&self) -> Option<usize>;
 }
 
+/// Some main application state, mostly related with top bar buttons.
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
-pub struct MainState {
+pub struct TopBarState {
+    /// Wether the Undo operation is possible.
     pub can_undo: bool,
+    /// Wether the Redo operation is possible.
     pub can_redo: bool,
     pub need_save: bool,
     pub can_reload: bool,
@@ -1119,19 +1123,5 @@ pub struct MainState {
     pub can_toggle_2d: bool,
     pub splited_2d: bool,
 }
-
-fn top_bar_main_state<S: AppState>(
-    app_state: &S,
-    main_state: MainState,
-) -> top_bar::TopBarState<S> {
-    top_bar::TopBarState {
-        app_state: app_state.clone(),
-        can_undo: main_state.can_undo,
-        can_redo: main_state.can_redo,
-        need_save: main_state.need_save,
-        can_reload: main_state.can_reload,
-        can_split2d: main_state.can_split2d,
-        can_toggle_2d: main_state.can_toggle_2d,
-        splited_2d: main_state.splited_2d,
-    }
-}
+// NOTE: This was called “MainState”. I am not sure that “TopBarState” is the best name for this.
+//       Maybe this would be more like a “GuiState”.
