@@ -125,10 +125,12 @@ impl<'a> BasisMapper<'a> {
         if let Some(c) = self.map.and_then(|m| m.get(nucl)) {
             *c
         } else if let Some(c) = self.map.and_then(|m| m.get(&nucl.compl())) {
+            // get the basis as the complement letter of the complement nucleotide if there are no letter at the nucl
             compl(*c, compl_a)
         } else if let Some(c) = self.alternative.get(nucl) {
             *c
         } else {
+            // assign random letters for export to oxdna or pdb if none
             let base = rand_base();
             self.alternative.insert(nucl.clone(), base);
             self.alternative.insert(nucl.compl(), compl(base, compl_a));

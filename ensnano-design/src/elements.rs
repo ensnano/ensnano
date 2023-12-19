@@ -36,7 +36,7 @@ pub enum DesignElement {
         id: usize,
         group: Option<bool>,
         visible: bool,
-        locked_for_simualtions: bool,
+        locked_for_simulations: bool,
     },
     NucleotideElement {
         helix: usize,
@@ -161,7 +161,7 @@ impl OrganizerElement for DesignElement {
         match self {
             DesignElement::HelixElement {
                 group,
-                locked_for_simualtions: locked,
+                locked_for_simulations: locked,
                 ..
             } => vec![
                 DnaAttribute::XoverGroup(*group),

@@ -55,6 +55,8 @@ pub use collection::{Collection, HasMap};
 mod parameters;
 pub use parameters::*;
 
+mod id_manager;
+
 /// Re-export ultraviolet for linear algebra
 pub use ultraviolet::*;
 
@@ -533,6 +535,7 @@ impl Design {
                 true
             };
             if need_update {
+                println!("blop");
                 let updated_data = GridData::new_by_updating_design(self);
                 self.instanciated_grid_data = Some(updated_data);
             }

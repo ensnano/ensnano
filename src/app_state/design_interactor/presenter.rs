@@ -136,6 +136,7 @@ impl Presenter {
             invisible_nucls: Default::default(),
             bonds: Default::default(),
         };
+        // Strand sequence are not read
         ret.read_scaffold_seq();
         ret.collect_h_bonds();
         (ret, design)
