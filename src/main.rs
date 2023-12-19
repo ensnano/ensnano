@@ -632,8 +632,8 @@ fn main() {
                     &multiplexer,
                     &window,
                     &mut renderer,
-                    Theme::Dark, // Use built-in dark theme for now.
-                    &iced_native::renderer::Style::default(),
+                    Default::default(),  // Use default theme for now.
+                    &Default::default(), // Use default style for now.
                 );
                 {
                     let mut messages = messages.lock().unwrap();
@@ -724,8 +724,8 @@ fn main() {
 
                 overlay_manager.process_event(
                     &mut renderer,
-                    Theme::Dark, // Use built-in dark theme for now.
-                    &iced_native::renderer::Style::default(), // TODO: Work on this Style stuff.
+                    Default::default(),  // Use default theme for now.
+                    &Default::default(), // Use default style for now.
                     resized,
                     &multiplexer,
                     &window,

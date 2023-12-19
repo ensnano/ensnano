@@ -625,7 +625,7 @@ impl<R: Requests, S: AppState> Gui<R, S> {
         multiplexer: &dyn Multiplexer,
         requests: Arc<Mutex<R>>,
         ui_size: UiSize,
-        state: &S,
+        global_state: &S,
         top_bar_state: TopBarState,
     ) -> Self {
         let settings = Settings {
@@ -649,7 +649,7 @@ impl<R: Requests, S: AppState> Gui<R, S> {
                 window,
                 multiplexer,
                 requests.clone(),
-                state.clone(),
+                global_state.clone(),
                 top_bar_state,
                 ui_size,
             ),
@@ -667,7 +667,7 @@ impl<R: Requests, S: AppState> Gui<R, S> {
                 multiplexer,
                 requests.clone(),
                 true,
-                state,
+                global_state,
                 ui_size,
             ),
         );
@@ -684,7 +684,7 @@ impl<R: Requests, S: AppState> Gui<R, S> {
                 window,
                 multiplexer,
                 requests.clone(),
-                state,
+                global_state,
                 ui_size,
             ),
         );

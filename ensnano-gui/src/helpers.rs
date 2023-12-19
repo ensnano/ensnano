@@ -44,7 +44,7 @@ pub(crate) fn subsection<'a>(title: &'a str, ui_size: UiSize) -> widget::Text<'a
 }
 
 /// Add vertical space of [JUMP_SIZE] amount
-pub(crate) fn extra_jump() -> iced::widget::Space {
+pub(crate) fn extra_jump() -> widget::Space {
     jump_by(JUMP_SIZE)
 }
 
