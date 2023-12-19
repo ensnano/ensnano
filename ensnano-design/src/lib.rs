@@ -55,6 +55,8 @@ pub use collection::{Collection, HasMap};
 mod parameters;
 pub use parameters::*;
 
+mod id_manager;
+
 /// Re-export ultraviolet for linear algebra
 pub use ultraviolet::*;
 
@@ -64,8 +66,6 @@ mod insertions;
 #[cfg(test)]
 mod tests;
 pub use external_3d_objects::*;
-
-mod id_handler;
 
 /// The `ensnano` Design structure.
 #[derive(Serialize, Deserialize, Clone)]
@@ -535,6 +535,7 @@ impl Design {
                 true
             };
             if need_update {
+                println!("blop");
                 let updated_data = GridData::new_by_updating_design(self);
                 self.instanciated_grid_data = Some(updated_data);
             }
