@@ -282,36 +282,37 @@ impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
             .push(pasting_status_row);
 
         container(column)
-            .style(StatusBarStyle)
+            //.style(StatusBarStyle)
+            .style(theme::Container::Box)
             .width(size.width as f32)
             .height(Length::Fill)
             .into()
     }
 }
 
-struct StatusBarStyle;
-impl container::StyleSheet for StatusBarStyle {
-    type Style = ();
-    fn appearance(&self, _style: &Self::Style) -> container::Appearance {
-        container::Appearance {
-            background: Some(Background::Color(BACKGROUND)),
-            text_color: Some(Color::WHITE),
-            ..container::Appearance::default()
-        }
-    }
-}
-
-impl From<StatusBarStyle> for theme::Container {
-    fn from(_value: StatusBarStyle) -> Self {
-        Default::default()
-    }
-}
-
-pub const BACKGROUND: Color = Color::from_rgb(
-    0x12 as f32 / 255.0,
-    0x12 as f32 / 255.0,
-    0x30 as f32 / 255.0,
-);
+//struct StatusBarStyle;
+//impl container::StyleSheet for StatusBarStyle {
+//    type Style = ();
+//    fn appearance(&self, _style: &Self::Style) -> container::Appearance {
+//        container::Appearance {
+//            background: Some(Background::Color(BACKGROUND)),
+//            text_color: Some(Color::WHITE),
+//            ..container::Appearance::default()
+//        }
+//    }
+//}
+//
+//impl From<StatusBarStyle> for theme::Container {
+//    fn from(_value: StatusBarStyle) -> Self {
+//        Default::default()
+//    }
+//}
+//
+//pub const BACKGROUND: Color = Color::from_rgb(
+//    0x12 as f32 / 255.0,
+//    0x12 as f32 / 255.0,
+//    0x30 as f32 / 255.0,
+//);
 
 pub struct CurentOpState {
     pub current_operation: Arc<dyn Operation>,

@@ -37,7 +37,7 @@ impl PenTab {
             .map(|p| format!("{:?}", p))
             .unwrap_or_else(|| "None".to_string());
 
-        iced_native::column![
+        let content = iced_native::column![
             section("Bezier Planes", ui_size),
             light_icon_button(LightIcon::FileOpen, ui_size).on_press(Message::LoadSvgFile),
             // add_buttons!
@@ -82,7 +82,7 @@ impl PenTab {
                 Message::SetShowBezierPaths,
             ),
         ]
-        .spacing(5)
-        .into()
+        .spacing(5);
+        content.into()
     }
 }

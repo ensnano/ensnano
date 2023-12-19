@@ -89,7 +89,7 @@ impl<S: AppState> EditionTab<S> {
         }
     }
 
-    pub fn view(&self, ui_size: UiSize, _width: u16, app_state: &S) -> iced::Element<Message<S>> {
+    pub fn view(&self, ui_size: UiSize, app_state: &S) -> iced::Element<Message<S>> {
         let roll_target_helices =
             self.get_roll_target_helices(&app_state.get_selection_as_designelement());
         let sim_state = &app_state.get_simulation_state();

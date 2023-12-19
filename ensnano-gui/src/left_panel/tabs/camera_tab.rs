@@ -24,8 +24,7 @@ use crate::helpers::*;
 use ensnano_interactor::graphics::{
     Background3D, RenderingMode, ALL_BACKGROUND3D, ALL_RENDERING_MODE,
 };
-use iced::theme;
-use iced::Element;
+use iced::{theme, Element};
 use iced_native::widget::helpers::*;
 
 pub struct CameraTab {

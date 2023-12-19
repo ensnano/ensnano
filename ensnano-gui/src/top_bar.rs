@@ -25,7 +25,7 @@ use super::{AppState, TopBarState, UiSize};
 // NOTE: I would like to rename AppState to ApplicationState, and name AppState the structures that
 //       implement it.
 use ensnano_interactor::{ActionMode, SelectionMode};
-use iced::{Background, Color, Element, Length};
+use iced::{theme, Background, Color, Element, Length};
 use iced_native::widget::{self, helpers::*};
 use iced_native::{Command, Program};
 use iced_wgpu;
@@ -362,35 +362,36 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
 
         container(buttons)
             .width(self.logical_size.width as f32)
-            .style(TopBarStyle)
+            //.style(TopBarStyle)
+            .style(theme::Container::Box)
             .into()
     }
 }
 
-struct TopBarStyle;
-
-impl widget::container::StyleSheet for TopBarStyle {
-    type Style = ();
-    fn appearance(&self, _style: &Self::Style) -> widget::container::Appearance {
-        widget::container::Appearance {
-            background: Some(Background::Color(BACKGROUND)),
-            text_color: Some(Color::WHITE),
-            ..widget::container::Appearance::default()
-        }
-    }
-}
-
-impl From<TopBarStyle> for iced::theme::Container {
-    fn from(_value: TopBarStyle) -> Self {
-        Default::default()
-    }
-}
-
-pub const BACKGROUND: Color = Color::from_rgb(
-    0x36 as f32 / 255.0,
-    0x39 as f32 / 255.0,
-    0x3F as f32 / 255.0,
-);
+//struct TopBarStyle;
+//
+//impl widget::container::StyleSheet for TopBarStyle {
+//    type Style = ();
+//    fn appearance(&self, _style: &Self::Style) -> widget::container::Appearance {
+//        widget::container::Appearance {
+//            background: Some(Background::Color(BACKGROUND)),
+//            text_color: Some(Color::WHITE),
+//            ..widget::container::Appearance::default()
+//        }
+//    }
+//}
+//
+//impl From<TopBarStyle> for iced::theme::Container {
+//    fn from(_value: TopBarStyle) -> Self {
+//        Default::default()
+//    }
+//}
+//
+//pub const BACKGROUND: Color = Color::from_rgb(
+//    0x36 as f32 / 255.0,
+//    0x39 as f32 / 255.0,
+//    0x3F as f32 / 255.0,
+//);
 
 struct ToolTipStyle;
 impl widget::container::StyleSheet for ToolTipStyle {
@@ -403,76 +404,76 @@ impl widget::container::StyleSheet for ToolTipStyle {
     }
 }
 
-#[derive(Default, Debug, Clone)]
-struct SelectionModeState {
-    pub nucleotide: button::State,
-    pub strand: button::State,
-    pub helix: button::State,
-}
+//#[derive(Default, Debug, Clone)]
+//struct SelectionModeState {
+//    pub nucleotide: button::State,
+//    pub strand: button::State,
+//    pub helix: button::State,
+//}
+//
+//impl SelectionModeState {
+//    fn get_states<'a>(&'a mut self) -> BTreeMap<SelectionMode, &'a mut button::State> {
+//        let mut ret = BTreeMap::new();
+//        ret.insert(SelectionMode::Nucleotide, &mut self.nucleotide);
+//        ret.insert(SelectionMode::Strand, &mut self.strand);
+//        ret.insert(SelectionMode::Helix, &mut self.helix);
+//        ret
+//    }
+//}
+//
+//#[derive(Default, Debug, Clone)]
+//struct ActionModeState {
+//    pub select: button::State,
+//    pub translate: button::State,
+//    pub rotate: button::State,
+//    pub build: button::State,
+//}
+//
+//impl ActionModeState {
+//    fn get_states<'a>(
+//        &'a mut self,
+//        build_helix_mode: ActionMode,
+//    ) -> BTreeMap<ActionMode, &'a mut button::State> {
+//        let mut ret = BTreeMap::new();
+//        ret.insert(ActionMode::Normal, &mut self.select);
+//        ret.insert(ActionMode::Translate, &mut self.translate);
+//        ret.insert(ActionMode::Rotate, &mut self.rotate);
+//        ret.insert(build_helix_mode, &mut self.build);
+//        ret
+//    }
+//}
 
-impl SelectionModeState {
-    fn get_states<'a>(&'a mut self) -> BTreeMap<SelectionMode, &'a mut button::State> {
-        let mut ret = BTreeMap::new();
-        ret.insert(SelectionMode::Nucleotide, &mut self.nucleotide);
-        ret.insert(SelectionMode::Strand, &mut self.strand);
-        ret.insert(SelectionMode::Helix, &mut self.helix);
-        ret
-    }
-}
+//struct ButtonStyle(bool);
+//
+//impl iced_native::widget::button::StyleSheet for ButtonStyle {
+//    type Style = ();
+//    fn active(&self, _style: &Self::Style) -> iced_native::widget::button::Appearance {
+//        iced_native::widget::button::Appearance {
+//            border_width: if self.0 { 3_f32 } else { 1_f32 },
+//            border_radius: if self.0 { 3_f32 } else { 2_f32 },
+//            border_color: if self.0 {
+//                Color::BLACK
+//            } else {
+//                [0.7, 0.7, 0.7].into()
+//            },
+//            background: Some(Background::Color([0.87, 0.87, 0.87].into())),
+//            //background: Some(Background::Color(BACKGROUND)),
+//            ..Default::default()
+//        }
+//    }
+//}
 
-#[derive(Default, Debug, Clone)]
-struct ActionModeState {
-    pub select: button::State,
-    pub translate: button::State,
-    pub rotate: button::State,
-    pub build: button::State,
-}
-
-impl ActionModeState {
-    fn get_states<'a>(
-        &'a mut self,
-        build_helix_mode: ActionMode,
-    ) -> BTreeMap<ActionMode, &'a mut button::State> {
-        let mut ret = BTreeMap::new();
-        ret.insert(ActionMode::Normal, &mut self.select);
-        ret.insert(ActionMode::Translate, &mut self.translate);
-        ret.insert(ActionMode::Rotate, &mut self.rotate);
-        ret.insert(build_helix_mode, &mut self.build);
-        ret
-    }
-}
-
-struct ButtonStyle(bool);
-
-impl iced_native::widget::button::StyleSheet for ButtonStyle {
-    type Style = ();
-    fn active(&self, _style: &Self::Style) -> iced_native::widget::button::Appearance {
-        iced_native::widget::button::Appearance {
-            border_width: if self.0 { 3_f32 } else { 1_f32 },
-            border_radius: if self.0 { 3_f32 } else { 2_f32 },
-            border_color: if self.0 {
-                Color::BLACK
-            } else {
-                [0.7, 0.7, 0.7].into()
-            },
-            background: Some(Background::Color([0.87, 0.87, 0.87].into())),
-            //background: Some(Background::Color(BACKGROUND)),
-            ..Default::default()
-        }
-    }
-}
-
-impl From<ButtonStyle> for iced::theme::Container {
-    fn from(_value: ButtonStyle) -> Self {
-        Default::default()
-    }
-}
-
-impl From<ButtonStyle> for iced::theme::Button {
-    fn from(_value: ButtonStyle) -> Self {
-        Default::default()
-    }
-}
+//impl From<ButtonStyle> for iced::theme::Container {
+//    fn from(_value: ButtonStyle) -> Self {
+//        Default::default()
+//    }
+//}
+//
+//impl From<ButtonStyle> for iced::theme::Button {
+//    fn from(_value: ButtonStyle) -> Self {
+//        Default::default()
+//    }
+//}
 
 use super::icon::{HasIcon, HasIconDependentOnAxis};
 fn action_mode_btn<'a, S: AppState>(

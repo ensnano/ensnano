@@ -28,7 +28,7 @@ use ensnano_interactor::{
     RevolutionSurfaceSystemDescriptor, RootingParameters, ShiftGenerator,
     UnrootedRevolutionSurfaceDescriptor,
 };
-use iced::Element;
+use iced::{theme, Element};
 use iced_native::widget;
 use iced_native::widget::helpers::*;
 
@@ -217,7 +217,7 @@ impl<S: AppState> CurveDescriptorWidget<S> {
     }
 
     fn view(&self) -> Element<Message<S>> {
-        column(
+        container(column(
             self.parameters
                 .iter()
                 .enumerate()
@@ -231,7 +231,8 @@ impl<S: AppState> CurveDescriptorWidget<S> {
                     .into()
                 })
                 .collect(),
-        )
+        ))
+        .style(theme::Container::Box)
         .into()
     }
 

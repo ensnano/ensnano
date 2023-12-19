@@ -335,7 +335,6 @@ impl<S: AppState> Builder<S> for BezierVertexBuilder {
 pub struct GridBuilder {
     position_builder: GridPositionBuilder,
     orientation_builder: GridOrientationBuilder,
-    nb_turn_slider: slider::State,
 }
 
 impl GridBuilder {
@@ -343,7 +342,6 @@ impl GridBuilder {
         Self {
             position_builder: GridPositionBuilder::new_cartesian(position),
             orientation_builder: GridOrientationBuilder::new_direction_angle(orientation),
-            nb_turn_slider: Default::default(),
         }
     }
 

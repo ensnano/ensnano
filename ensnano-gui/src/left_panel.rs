@@ -19,10 +19,10 @@ use ensnano_interactor::{graphics::HBondDisplay, EquadiffSolvingMethod};
 use ensnano_organizer::{Organizer, OrganizerMessage, OrganizerTree};
 use std::sync::{Arc, Mutex};
 
-use iced::theme;
-use iced_aw::{style::tab_bar, TabLabel, Tabs};
+use iced_aw::native::{TabLabel, Tabs};
+use iced_aw::style::tab_bar;
 use iced_native::widget::{container, helpers::*, Button, Column, Container, Text};
-use iced_native::{Background, Color, Command, Element, Length};
+use iced_native::{theme, Background, Color, Command, Element, Length};
 use iced_wgpu;
 use iced_winit::winit::{
     dpi::{LogicalPosition, LogicalSize},
@@ -340,7 +340,7 @@ where
     R: Requests,
     S: AppState,
 {
-    type Renderer = iced_graphics::Renderer<iced_wgpu::Backend, iced_native::theme::Theme>;
+    type Renderer = iced_wgpu::Renderer;
     type Message = Message<S>;
 
     fn update(&mut self, message: Message<S>) -> Command<Message<S>> {
@@ -955,57 +955,102 @@ where
 
     fn view(&self) -> Element<Message<S>, Self::Renderer> {
         let width = self.logical_size.cast::<u16>().width;
-        let tabs: Tabs<Message<S>, iced_wgpu::Backend, iced_native::theme::Theme> =
-            Tabs::new(self.selected_tab, Message::TabSelected)
-                .push(
+        let tabs: Tabs<Message<S>, Self::Renderer> = Tabs::with_tabs(
+            self.selected_tab,
+            // NOTE: The style, height and width values are necessary to clear the tab when
+            //       switching to a new tab.
+            vec![
+                (
                     TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::GridOn))),
-                    self.grid_tab.view(self.ui_size, &self.application_state),
-                )
-                .push(
+                    container(self.grid_tab.view(self.ui_size, &self.application_state))
+                        .style(theme::Container::Box)
+                        .height(Length::Fill)
+                        .width(Length::Fill)
+                        .into(),
+                ),
+                (
                     TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Edit))),
-                    self.edition_tab
-                        .view(self.ui_size, width, &self.application_state),
-                )
-                .push(
+                    container(self.edition_tab.view(self.ui_size, &self.application_state))
+                        .style(theme::Container::Box)
+                        .height(Length::Fill)
+                        .width(Length::Fill)
+                        .into(),
+                ),
+                (
                     TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Videocam))),
-                    self.camera_tab.view(self.ui_size, &self.application_state),
-                )
-                .push(
+                    container(self.camera_tab.view(self.ui_size, &self.application_state))
+                        .style(theme::Container::Box)
+                        .height(Length::Fill)
+                        .width(Length::Fill)
+                        .into(),
+                ),
+                (
                     TabLabel::Icon(ICON_PHYSICAL_ENGINE),
-                    self.simulation_tab
-                        .view(self.ui_size, &self.application_state),
-                )
-                .push(
+                    container(
+                        self.simulation_tab
+                            .view(self.ui_size, &self.application_state),
+                    )
+                    .style(theme::Container::Box)
+                    .height(Length::Fill)
+                    .width(Length::Fill)
+                    .into(),
+                ),
+                (
                     TabLabel::Icon(ICON_ATGC),
-                    self.sequence_tab
-                        .view(self.ui_size, &self.application_state),
-                )
-                .push(
+                    container(
+                        self.sequence_tab
+                            .view(self.ui_size, &self.application_state),
+                    )
+                    .style(theme::Container::Box)
+                    .height(Length::Fill)
+                    .width(Length::Fill)
+                    .into(),
+                ),
+                (
                     TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Settings))),
-                    self.parameters_tab
-                        .view(self.ui_size, &self.application_state),
-                )
-                .push(
+                    container(
+                        self.parameters_tab
+                            .view(self.ui_size, &self.application_state),
+                    )
+                    .style(theme::Container::Box)
+                    .height(Length::Fill)
+                    .width(Length::Fill)
+                    .into(),
+                ),
+                (
                     TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Draw))),
-                    self.pen_tab.view(self.ui_size, &self.application_state),
-                )
-                .push(
+                    container(self.pen_tab.view(self.ui_size, &self.application_state))
+                        .style(theme::Container::Box)
+                        .height(Length::Fill)
+                        .width(Length::Fill)
+                        .into(),
+                ),
+                (
                     TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::AutoMode))),
-                    self.revolution_tab
-                        .view(self.ui_size, &self.application_state),
-                )
-                .text_size(self.ui_size.icon())
-                .text_font(ICONFONT)
-                .icon_font(crate::helpers::ENSNANO_FONT)
-                .icon_size(self.ui_size.icon())
-                .tab_bar_height(Length::Fixed(self.ui_size.button()))
-                //.tab_bar_style(TabStyle) // TODO: Uncomment this
-                .tab_bar_style(Default::default())
-                .width(Length::Fixed(width as f32))
-                .height(Length::Fill);
-        let camera_shortcut =
-            self.camera_shortcut
-                .view(self.ui_size, width, &self.application_state);
+                    container(
+                        self.revolution_tab
+                            .view(self.ui_size, &self.application_state),
+                    )
+                    .style(theme::Container::Box)
+                    .height(Length::Fill)
+                    .width(Length::Fill)
+                    .into(),
+                ),
+            ],
+            Message::TabSelected,
+        )
+        .text_size(self.ui_size.icon())
+        .text_font(ICONFONT)
+        .icon_font(crate::helpers::ENSNANO_FONT)
+        .icon_size(self.ui_size.icon())
+        .tab_bar_height(Length::Fixed(self.ui_size.button()))
+        //.tab_bar_style(TabStyle) // TODO: Uncomment this
+        //.tab_bar_style(Default::default())
+        .width(Length::Fixed(width as f32))
+        .height(Length::Fill);
+        let camera_shortcut = self
+            .camera_shortcut
+            .view(self.ui_size, &self.application_state);
         let contextual_menu = self
             .contextual_panel
             .view(self.ui_size, &self.application_state);
@@ -1031,39 +1076,45 @@ where
             iced_native::column![
                 first_container.height(Length::FillPortion(2)),
                 horizontal_rule(5),
-                container(camera_shortcut).height(Length::FillPortion(1)),
+                container(camera_shortcut)
+                    .style(theme::Container::Box)
+                    .height(Length::FillPortion(1)),
                 horizontal_rule(5),
-                container(contextual_menu).height(Length::FillPortion(1)),
+                container(contextual_menu)
+                    .style(theme::Container::Box)
+                    .height(Length::FillPortion(1)),
                 horizontal_rule(5),
-                container(organizer).height(Length::FillPortion(2)),
+                container(organizer)
+                    .style(theme::Container::Box)
+                    .height(Length::FillPortion(2)),
             ]
             .width(Length::Fill)
             .padding(3),
         )
-        .style(TopBarStyle)
+        //.style(TopBarStyle)
         .height(self.logical_size.height as f32)
         .into()
     }
 }
 
-struct TopBarStyle;
-impl container::StyleSheet for TopBarStyle {
-    type Style = ();
-    fn appearance(&self, _style: &Self::Style) -> container::Appearance {
-        container::Appearance {
-            background: Some(Background::Color(BACKGROUND)),
-            text_color: Some(Color::WHITE),
-            ..container::Appearance::default()
-        }
-    }
-}
-
-impl From<TopBarStyle> for theme::Container {
-    fn from(_value: TopBarStyle) -> Self {
-        Default::default()
-    }
-}
-
+//struct TopBarStyle;
+//impl container::StyleSheet for TopBarStyle {
+//    type Style = ();
+//    fn appearance(&self, _style: &Self::Style) -> container::Appearance {
+//        container::Appearance {
+//            background: Some(Background::Color(BACKGROUND)),
+//            text_color: Some(Color::WHITE),
+//            ..container::Appearance::default()
+//        }
+//    }
+//}
+//
+//impl From<TopBarStyle> for theme::Container {
+//    fn from(_value: TopBarStyle) -> Self {
+//        Default::default()
+//    }
+//}
+//
 pub const BACKGROUND: Color = Color::from_rgb(
     0x23 as f32 / 255.0,
     0x27 as f32 / 255.0,
@@ -1134,7 +1185,7 @@ impl<R: Requests> Program for ColorOverlay<R> {
             .push(Button::new(Text::new("Close")).on_press(ColorMessage::Closed));
 
         Container::new(widget)
-            .style(FloatingStyle)
+            //.style(FloatingStyle)
             .height(Length::Fill)
             .into()
     }
@@ -1613,35 +1664,35 @@ impl Requestable for RigidBodyFactory {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
-struct TabStyle;
-
-impl tab_bar::StyleSheet for TabStyle {
-    type Style = ();
-    fn active(&self, _style: Self::Style, is_active: bool) -> tab_bar::Appearance {
-        tab_bar::Appearance {
-            background: None,
-            border_color: None,
-            border_width: 0.0,
-            tab_label_background: if !is_active {
-                Background::Color([0.9, 0.9, 0.9].into())
-            } else {
-                Background::Color([0.6, 0.6, 0.6].into())
-            },
-            tab_label_border_color: [0.7, 0.7, 0.7].into(),
-            tab_label_border_width: 1.0,
-            icon_color: Color::BLACK,
-            text_color: Color::BLACK,
-        }
-    }
-
-    fn hovered(&self, _style: Self::Style, is_active: bool) -> tab_bar::Appearance {
-        tab_bar::Appearance {
-            tab_label_background: Background::Color([0.6, 0.6, 0.6].into()),
-            ..self.active(_style, is_active)
-        }
-    }
-}
+//#[derive(Clone, Copy, Debug)]
+//struct TabStyle;
+//
+//impl tab_bar::StyleSheet for TabStyle {
+//    type Style = ();
+//    fn active(&self, _style: Self::Style, is_active: bool) -> tab_bar::Appearance {
+//        tab_bar::Appearance {
+//            background: None,
+//            border_color: None,
+//            border_width: 0.0,
+//            tab_label_background: if !is_active {
+//                Background::Color([0.9, 0.9, 0.9].into())
+//            } else {
+//                Background::Color([0.6, 0.6, 0.6].into())
+//            },
+//            tab_label_border_color: [0.7, 0.7, 0.7].into(),
+//            tab_label_border_width: 1.0,
+//            icon_color: Color::BLACK,
+//            text_color: Color::WHITE,
+//        }
+//    }
+//
+//    fn hovered(&self, _style: Self::Style, is_active: bool) -> tab_bar::Appearance {
+//        tab_bar::Appearance {
+//            tab_label_background: Background::Color([0.6, 0.6, 0.6].into()),
+//            ..self.active(_style, is_active)
+//        }
+//    }
+//}
 
 fn color_to_u32(color: Color) -> u32 {
     let red = ((color.r * 255.) as u32) << 16;

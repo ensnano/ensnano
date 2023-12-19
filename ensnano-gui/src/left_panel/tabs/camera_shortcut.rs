@@ -21,7 +21,7 @@ use crate::{material_icons_light::LightIcon, CameraId};
 use iced::{Element, Length};
 use iced_native::widget;
 use iced_native::widget::helpers::*;
-use iced_native::{column, row, Pixels};
+use iced_native::{column, row};
 
 /// A named camera orientation.
 ///
@@ -76,6 +76,17 @@ const PREDEFINED_CAMERA_ORIENTATION: [NamedCameraPosition; 6] = [
         up: Vec3::new(0., 0., -1.),
     },
 ];
+
+/// Turn a NamedCameraPosition into a button.
+fn named_camera_to_button<'a, S: AppState>(
+    position: &NamedCameraPosition,
+    ui_size: UiSize,
+) -> Element<'a, Message<S>> {
+    button(text(position.name).size(ui_size.main_text()))
+        .on_press(position.message())
+        .width(2.0 * ui_size.button()) // Twice the button's height.
+        .into()
+}
 
 pub struct CameraShortcutPanel {
     // Camera angles
@@ -172,21 +183,8 @@ impl CameraShortcutPanel {
         self.set_camera_widget(app);
     }
 
-    pub fn view<S: AppState>(
-        &self,
-        ui_size: UiSize,
-        width: impl Into<Pixels>,
-        _app: &S,
-    ) -> Element<Message<S>> {
+    pub fn view<S: AppState>(&self, ui_size: UiSize, _app: &S) -> Element<Message<S>> {
         // Create button widget for each predefined target.
-        let predefined_orientation_buttons = IntoIterator::into_iter(PREDEFINED_CAMERA_ORIENTATION)
-            .map(|c| {
-                button(text(c.name).size(ui_size.main_text()))
-                    .on_press(c.message())
-                    .width(2.0 * ui_size.button()) // Twice the button's height.
-                    .into()
-            })
-            .collect();
 
         let rotate_buttons = (0..6)
             .into_iter()
@@ -213,12 +211,30 @@ impl CameraShortcutPanel {
         let content = column![
             section("Camera", ui_size),
             // add_target_buttons!
-            row(predefined_orientation_buttons),
+            row![
+                column![
+                    named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[0], ui_size),
+                    named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[1], ui_size),
+                ]
+                .spacing(5),
+                column![
+                    named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[2], ui_size),
+                    named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[3], ui_size),
+                ]
+                .spacing(5),
+                column![
+                    named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[4], ui_size),
+                    named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[5], ui_size),
+                ]
+                .spacing(5),
+            ]
+            .spacing(5),
+            //row(predefined_orientation_buttons),
             // Nicolas Levy did some intermediate splitting (see commented code above), that is not
             // reimplemented for now.
             // add_rotate_buttons!
             text("Rotate Camera"),
-            row(rotate_buttons),
+            row(rotate_buttons).spacing(5),
             // Idem.
             // add_screenshot_button!
             text("Screenshot"),
@@ -239,11 +255,8 @@ impl CameraShortcutPanel {
             )
         ];
 
-        let scrollbar_properties = widget::scrollable::Properties::new().width(width);
-
-        scrollable(content)
-            .vertical_scroll(scrollbar_properties)
-            .into()
+        scrollable(content).into()
+        // NOTE: Background and size are handled in left_panel.rs
     }
 
     pub fn scroll_down(&mut self) {
