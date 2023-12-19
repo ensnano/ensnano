@@ -132,16 +132,16 @@ pub trait Curved {
         None
     }
 
-    /// If the z_step along the curve is not the same than for straight helices, this method should
+    /// If the rise along the curve is not the same than for straight helices, this method should
     /// be overriden
-    fn z_step_ratio(&self) -> Option<f64> {
+    fn rise_ratio(&self) -> Option<f64> {
         None
     }
 
     fn theta_shift(&self, helix_parameters: &HelixParameters) -> Option<f64> {
-        if let Some(real_z_ratio) = self.z_step_ratio() {
+        if let Some(real_z_ratio) = self.rise_ratio() {
             let r = helix_parameters.helix_radius as f64;
-            let z = helix_parameters.z_step as f64;
+            let z = helix_parameters.rise as f64;
             let real_z = z * real_z_ratio;
             let d1 = helix_parameters.dist_ac() as f64;
             let cos_ret = 1.0 - (d1 * d1 - real_z * real_z) / (r * r * 2.0);
@@ -319,8 +319,7 @@ impl Curve {
             additional_segment_left: Vec::new(),
             abscissa_converter: None,
         };
-        let len_segment =
-            ret.geometry.z_step_ratio().unwrap_or(1.0) * helix_parameters.z_step as f64;
+        let len_segment = ret.geometry.rise_ratio().unwrap_or(1.0) * helix_parameters.rise as f64;
         ret.discretize(len_segment, helix_parameters.inclination as f64);
         ret
     }

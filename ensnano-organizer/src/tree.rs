@@ -24,7 +24,8 @@ pub enum OrganizerTree<K> {
     Leaf(K),
     Node {
         name: String,
-        childrens: Vec<OrganizerTree<K>>,
+        #[serde(alias = "childrens")]
+        children: Vec<OrganizerTree<K>>,
         expanded: bool,
         #[serde(default)]
         id: Option<GroupId>,
@@ -37,13 +38,10 @@ impl<K: PartialEq> OrganizerTree<K> {
         match self {
             Self::Leaf(_) => (),
             Self::Node {
-                name,
-                childrens,
-                id,
-                ..
+                name, children, id, ..
             } => {
                 let rename: String = self.get_name_copy_with_id();
-                for c in childrens {
+                for c in children {
                     match c {
                         Self::Leaf(k) if k == element => ret.push(rename.clone()),
                         Self::Leaf(_) => (),
@@ -65,13 +63,10 @@ impl<K: PartialEq> OrganizerTree<K> {
         match self {
             Self::Leaf(_) => (),
             Self::Node {
-                name,
-                childrens,
-                id,
-                ..
+                name, children, id, ..
             } => {
                 let _ = ret.push(self.get_name_copy_with_id());
-                for c in childrens {
+                for c in children {
                     let extention = c.get_names_of_all_groups();
                     ret.extend(extention);
                 }
@@ -85,10 +80,7 @@ impl<K: PartialEq> OrganizerTree<K> {
         match self {
             Self::Leaf(_) => "".to_string(),
             Self::Node {
-                name,
-                childrens,
-                id,
-                ..
+                name, children, id, ..
             } => {
                 if let Some(GroupId(x)) = id {
                     format!("{name}_{:0X}", x & 0xFFFF).to_string()
@@ -114,7 +106,8 @@ enum NewOrganizerTree<K> {
     Leaf(K),
     Node {
         name: String,
-        childrens: Vec<OrganizerTree<K>>,
+        #[serde(alias = "childrens")]
+        children: Vec<OrganizerTree<K>>,
         expanded: bool,
         #[serde(default)]
         id: Option<GroupId>,
@@ -125,9 +118,9 @@ impl<K> OldOrganizerTree<K> {
     fn to_new(self) -> OrganizerTree<K> {
         match self {
             Self::Leaf(k) => OrganizerTree::Leaf(k),
-            Self::Node(name, childrens) => OrganizerTree::Node {
+            Self::Node(name, children) => OrganizerTree::Node {
                 name,
-                childrens,
+                children,
                 expanded: false,
                 id: None,
             },
@@ -141,12 +134,12 @@ impl<K> NewOrganizerTree<K> {
             Self::Leaf(k) => OrganizerTree::Leaf(k),
             Self::Node {
                 name,
-                childrens,
+                children,
                 expanded,
                 id,
             } => OrganizerTree::Node {
                 name,
-                childrens,
+                children,
                 expanded,
                 id,
             },

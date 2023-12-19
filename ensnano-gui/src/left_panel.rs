@@ -1009,7 +1009,7 @@ impl<R: Requests, S: AppState> Program for LeftPanel<R, S> {
             } else {
                 self.organizer.read_tree(&OrganizerTree::Node {
                     name: String::from("root"),
-                    childrens: vec![],
+                    children: vec![],
                     expanded: true,
                     id: None,
                 })
