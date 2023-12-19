@@ -24,7 +24,6 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 pub mod helpers;
 
-/// Draw the top bar of the GUI
 pub mod top_bar;
 use ensnano_organizer::GroupId;
 pub use top_bar::TopBar;
@@ -433,7 +432,7 @@ impl<R: Requests, S: AppState> GuiElement<R, S> {
         window: &Window,
         multiplexer: &dyn Multiplexer,
         requests: Arc<Mutex<R>>,
-        app_state: top_bar::MainState<S>,
+        app_state: top_bar::TopBarState<S>,
         ui_size: UiSize,
     ) -> Self {
         let top_bar_area = multiplexer.get_draw_area(ElementType::TopBar).unwrap();
@@ -1121,8 +1120,11 @@ pub struct MainState {
     pub splited_2d: bool,
 }
 
-fn top_bar_main_state<S: AppState>(app_state: &S, main_state: MainState) -> top_bar::MainState<S> {
-    top_bar::MainState {
+fn top_bar_main_state<S: AppState>(
+    app_state: &S,
+    main_state: MainState,
+) -> top_bar::TopBarState<S> {
+    top_bar::TopBarState {
         app_state: app_state.clone(),
         can_undo: main_state.can_undo,
         can_redo: main_state.can_redo,

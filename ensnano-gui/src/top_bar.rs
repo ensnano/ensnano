@@ -15,36 +15,42 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+//! Implementation of the top bar part of the GUI.
+//!
+//! The top bar consist of a row of buttons that covers various actions: load/save a model, change
+//! the selection mode, modify the layout of the window, etc.
+//!
+//! Drawing the top bar, and triggering events from it is handled here.
 use super::{AppState, UiSize};
 use ensnano_interactor::{ActionMode, SelectionMode};
-use iced::Background;
+use iced::{Background, Color, Element, Length};
 use iced_native::widget::{self, helpers::*};
+use iced_native::{Command, Program};
 use iced_wgpu;
 use iced_winit::winit::dpi::LogicalSize;
-use iced_winit::{
-    widget::{button, Button},
-    Color, Command, Element, Length, Program,
-};
-use std::collections::BTreeMap;
+//use std::collections::BTreeMap;
 use std::sync::{Arc, Mutex};
 
 use super::material_icons_light::{dark_icon, light_icon, LightIcon};
 
 use super::{Requests, SplitMode};
 
+/// Top bar object
 pub struct TopBar<R: Requests, S: AppState> {
+    /// ENSnano request to which forwards messages.
     requests: Arc<Mutex<R>>,
     logical_size: LogicalSize<f64>,
-    action_mode_state: ActionModeState,
-    selection_mode_state: SelectionModeState,
     ui_size: UiSize,
-    application_state: MainState<S>,
+    application_state: TopBarState<S>,
 }
 
+/// State of a top bar.
 #[derive(Debug, Default, Clone)]
-pub struct MainState<S: AppState> {
+pub struct TopBarState<S: AppState> {
     pub app_state: S,
+    // Wether the Undo operation is possible.
     pub can_undo: bool,
+    // Wether the Redo operation is possible.
     pub can_redo: bool,
     pub need_save: bool,
     pub can_reload: bool,
@@ -58,14 +64,16 @@ pub enum Message<S: AppState> {
     SceneFitRequested,
     AlignHorizon,
     OpenFileButtonPressed,
+    /// Request to save file, e.g. clicked on “Save” button
     FileSaveRequested,
+    /// Request to save file as, e.g. clicked on “Save As” button
     SaveAsRequested,
     Resize(LogicalSize<f64>),
     ToggleView(SplitMode),
     UiSizeChanged(UiSize),
     ExportRequested,
     Split2d,
-    NewApplicationState(MainState<S>),
+    NewApplicationState(TopBarState<S>),
     ForceHelp,
     ShowTutorial,
     Undo,
@@ -84,19 +92,18 @@ impl<R: Requests, S: AppState> TopBar<R, S> {
     pub fn new(
         requests: Arc<Mutex<R>>,
         logical_size: LogicalSize<f64>,
-        application_state: MainState<S>,
+        application_state: TopBarState<S>,
         ui_size: UiSize,
     ) -> Self {
         Self {
             requests,
             logical_size,
-            action_mode_state: Default::default(),
-            selection_mode_state: Default::default(),
             ui_size,
             application_state,
         }
     }
 
+    // Set the top bar to `logical_size`.
     pub fn resize(&mut self, logical_size: LogicalSize<f64>) {
         self.logical_size = logical_size;
     }
@@ -118,11 +125,11 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
             Message::OpenFileButtonPressed => {
                 self.requests.lock().unwrap().open_file();
             }
-            Message::SaveAsRequested => {
-                self.requests.lock().unwrap().save_as();
-            }
             Message::FileSaveRequested => {
                 self.requests.lock().unwrap().save();
+            }
+            Message::SaveAsRequested => {
+                self.requests.lock().unwrap().save_as();
             }
             Message::Resize(size) => self.resize(size),
             Message::ToggleView(b) => self.requests.lock().unwrap().change_split_mode(b),
@@ -180,27 +187,25 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
             build_helix_mode.clone(),
         ];
         let height = self.logical_size.cast::<f32>().height;
-        let button_fit = Button::new(light_icon(LightIcon::ViewInAr, self.ui_size))
+        let button_fit = button(light_icon(LightIcon::ViewInAr, self.ui_size))
             .on_press(Message::SceneFitRequested)
             .height(Length::Fixed(height));
 
-        let button_horizon = Button::new(light_icon(LightIcon::WbTwilight, self.ui_size))
-            .on_press(Message::AlignHorizon);
+        let button_horizon =
+            button(light_icon(LightIcon::WbTwilight, self.ui_size)).on_press(Message::AlignHorizon);
 
-        let button_new_empty_design =
-            Button::new(light_icon(LightIcon::InsertDriveFile, self.ui_size))
-                .on_press(Message::ButtonNewEmptyDesignPressed);
+        let button_new_empty_design = button(light_icon(LightIcon::InsertDriveFile, self.ui_size))
+            .on_press(Message::ButtonNewEmptyDesignPressed);
 
-        let button_add_file = Button::new(light_icon(LightIcon::FolderOpen, self.ui_size))
+        let button_add_file = button(light_icon(LightIcon::FolderOpen, self.ui_size))
             .on_press(Message::OpenFileButtonPressed);
 
-        let mut button_reload = Button::new(light_icon(LightIcon::RestorePage, self.ui_size));
+        let mut button_reload = button(light_icon(LightIcon::RestorePage, self.ui_size));
 
         if self.application_state.can_reload {
             button_reload = button_reload.on_press(Message::Reload);
         }
 
-        let save_message = Message::FileSaveRequested;
         /*
         let button_save = bottom_tooltip_icon_btn(
             &mut self.button_save,
@@ -210,52 +215,53 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
             Some(save_message),
         );*/
         let button_save = if self.application_state.need_save {
-            Button::new(dark_icon(LightIcon::Save, self.ui_size.clone())).on_press(save_message)
+            button(dark_icon(LightIcon::Save, self.ui_size.clone()))
+                .on_press(Message::FileSaveRequested)
         } else {
-            Button::new(light_icon(LightIcon::Save, self.ui_size.clone())).on_press(save_message)
+            button(light_icon(LightIcon::Save, self.ui_size.clone()))
+                .on_press(Message::FileSaveRequested)
         };
 
         let button_save_as = if self.application_state.need_save {
-            Button::new(dark_icon(LightIcon::DriveFileMove, self.ui_size.clone()))
+            button(dark_icon(LightIcon::DriveFileMove, self.ui_size.clone()))
                 .on_press(Message::SaveAsRequested)
         } else {
-            Button::new(light_icon(LightIcon::DriveFileMove, self.ui_size.clone()))
+            button(light_icon(LightIcon::DriveFileMove, self.ui_size.clone()))
                 .on_press(Message::SaveAsRequested)
         };
 
-        let mut button_undo = Button::new(dark_icon(LightIcon::Undo, self.ui_size.clone()));
+        let mut button_undo = button(dark_icon(LightIcon::Undo, self.ui_size.clone()));
         if self.application_state.can_undo {
             button_undo = button_undo.on_press(Message::Undo)
         }
 
-        let mut button_redo = Button::new(dark_icon(LightIcon::Redo, self.ui_size.clone()));
+        let mut button_redo = button(dark_icon(LightIcon::Redo, self.ui_size.clone()));
         if self.application_state.can_redo {
             button_redo = button_redo.on_press(Message::Redo)
         }
 
-        let button_2d = Button::new(iced::widget::Text::new("2D"))
+        let button_2d = button(text("2D"))
             .height(self.ui_size.button())
             .on_press(Message::ToggleView(SplitMode::Flat));
-        let button_3d = Button::new(iced::widget::Text::new("3D"))
+        let button_3d = button(text("3D"))
             .height(self.ui_size.button())
             .on_press(Message::ToggleView(SplitMode::Scene3D));
         let button_thick_helices = if self.application_state.app_state.want_thick_helices() {
-            Button::new(light_icon(LightIcon::Dehaze, self.ui_size))
+            button(light_icon(LightIcon::Dehaze, self.ui_size))
                 .on_press(Message::ThickHelices(false))
         } else {
-            Button::new(light_icon(LightIcon::Water, self.ui_size))
-                .on_press(Message::ThickHelices(true))
+            button(light_icon(LightIcon::Water, self.ui_size)).on_press(Message::ThickHelices(true))
         };
-        let button_split = Button::new(iced::widget::Text::new("3D+2D"))
+        let button_split = button(text("3D+2D"))
             .height(self.ui_size.button())
             .on_press(Message::ToggleView(SplitMode::Both));
 
-        let button_oxdna = Button::new(light_icon(LightIcon::Upload, self.ui_size))
+        let button_oxdna = button(light_icon(LightIcon::Upload, self.ui_size))
             .height(self.ui_size.button())
             .on_press(Message::ExportRequested);
         let oxdna_tooltip = button_oxdna;
 
-        let button_3d_import = Button::new(light_icon(LightIcon::Coronavirus, self.ui_size))
+        let button_3d_import = button(light_icon(LightIcon::Coronavirus, self.ui_size))
             .height(self.ui_size.button())
             .on_press(Message::Import3D);
 
@@ -266,30 +272,29 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
         };
 
         let mut button_split_2d =
-            Button::new(light_icon(split_icon, self.ui_size)).height(self.ui_size.button());
+            button(light_icon(split_icon, self.ui_size)).height(self.ui_size.button());
 
         if self.application_state.can_split2d {
             button_split_2d = button_split_2d.on_press(Message::Split2d);
         }
 
-        let mut button_toggle_2d =
-            Button::new(iced::widget::Text::new("Toggle 2D")).height(self.ui_size.button());
+        let mut button_toggle_2d = button(text("Toggle 2D")).height(self.ui_size.button());
 
         if self.application_state.can_toggle_2d {
             button_toggle_2d = button_toggle_2d.on_press(Message::Toggle2D);
         }
 
-        let mut button_flip_split = Button::new(light_icon(LightIcon::SwapVert, self.ui_size))
-            .height(self.ui_size.button());
+        let mut button_flip_split =
+            button(light_icon(LightIcon::SwapVert, self.ui_size)).height(self.ui_size.button());
         if self.application_state.splited_2d {
             button_flip_split = button_flip_split.on_press(Message::FlipSplitViews);
         }
 
-        let button_help = Button::new(iced::widget::Text::new("Help"))
+        let button_help = button(text("Help"))
             .height(self.ui_size.button())
             .on_press(Message::ForceHelp);
 
-        let button_tutorial = Button::new(iced::widget::Text::new("Tutorials"))
+        let button_tutorial = button(text("Tutorials"))
             .height(self.ui_size.button())
             .on_press(Message::ShowTutorial);
 
@@ -324,42 +329,41 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
             .collect();
 
         let buttons = iced_native::row![
-            button_new_empty_design,
-            button_add_file,
-            button_reload,
-            button_save,
-            button_save_as,
-            oxdna_tooltip,
-            button_3d_import,
-            horizontal_space(10),
-            button_3d,
-            button_thick_helices,
-            button_2d,
-            button_split,
-            button_split_2d,
-            button_toggle_2d,
-            button_flip_split,
-            horizontal_space(10),
-            button_fit,
-            button_horizon,
-            horizontal_space(10),
-            button_undo,
-            button_redo,
-            horizontal_space(10),
+            // “File” group
+            iced_native::row![
+                button_new_empty_design,
+                button_add_file,
+                button_reload,
+                button_save,
+                button_save_as,
+                oxdna_tooltip,
+                button_3d_import,
+            ],
+            // “View” group
+            iced_native::row![
+                button_3d,
+                button_thick_helices,
+                button_2d,
+                button_split,
+                button_split_2d,
+                button_toggle_2d,
+                button_flip_split,
+            ],
+            iced_native::row![button_fit, button_horizon,],
+            // “Edition” group
+            iced_native::row![button_undo, button_redo,],
+            // “Action” group
             row(action_mode_buttons),
-            horizontal_space(10),
+            // “Selection” group
             row(selection_mode_buttons),
-            horizontal_space(10),
-            button_help,
-            horizontal_space(2),
-            button_tutorial,
-            // ENSnano logo
+            iced_native::row![button_help, button_tutorial,].spacing(2),
+            // ENSnano logo, placed on the right.
             text("\u{e91c}")
                 .width(Length::Fill)
                 .horizontal_alignment(iced::alignment::Horizontal::Right)
                 .vertical_alignment(iced::alignment::Vertical::Center),
-            horizontal_space(10),
         ]
+        .spacing(10) // Space between button groups.
         .width(Length::Fill)
         .height(height);
 
@@ -483,7 +487,7 @@ fn action_mode_btn<'a, S: AppState>(
     current_action_mode: ActionMode,
     button_size: impl Into<Length>,
     axis_aligned: bool,
-) -> Button<'a, Message<S>, iced_wgpu::Renderer> {
+) -> widget::Button<'a, Message<S>, iced_wgpu::Renderer> {
     let icon_path = if current_action_mode == *mode {
         mode.icon_on(axis_aligned)
     } else {
@@ -501,7 +505,7 @@ fn selection_mode_btn<'a, S: AppState>(
     mode: &SelectionMode,
     current_mode: SelectionMode,
     button_size: impl Into<Length>,
-) -> Button<'a, Message<S>, iced_wgpu::Renderer> {
+) -> widget::Button<'a, Message<S>, iced_wgpu::Renderer> {
     let icon_path = if current_mode == *mode {
         mode.icon_on()
     } else {
