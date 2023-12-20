@@ -27,7 +27,7 @@ const MASS_HELIX: f32 = 2.;
 const K_SPRING: f32 = 1000.;
 const FRICTION: f32 = 100.;
 
-const SYNC_ROLLS_INSTEAD_OF_COPY_ROLLS: bool = true;
+const SYNC_ROLLS_INSTEAD_OF_COPY_ROLLS: bool = false; // false is ENSnano default
 
 use std::f32::consts::{PI, SQRT_2};
 use std::sync::{Arc, Mutex, Weak};
