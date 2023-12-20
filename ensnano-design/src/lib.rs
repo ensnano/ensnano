@@ -55,6 +55,8 @@ pub use collection::{Collection, HasMap};
 mod parameters;
 pub use parameters::*;
 
+mod id_manager;
+
 /// Re-export ultraviolet for linear algebra
 pub use ultraviolet::*;
 

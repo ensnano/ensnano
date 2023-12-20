@@ -89,7 +89,7 @@ pub(super) struct DesignContent {
     pub object_type: HashMap<u32, ObjectType, RandomState>,
     /// Maps identifier of nucleotide to Nucleotide objects
     pub nucleotide: HashMap<u32, Nucl, RandomState>,
-    /// Maps identifier of bounds to the pair of nucleotides involved in the bound
+    /// Maps identifier of bonds to the pair of nucleotides involved in the bond
     pub nucleotides_involved: HashMap<u32, (Nucl, Nucl), RandomState>,
     /// Maps identifier of element to their position in the Model's coordinates
     pub space_position: HashMap<u32, [f32; 3], RandomState>,
@@ -223,6 +223,7 @@ impl DesignContent {
         let basis_map = self.basis_map.as_ref();
         for (s_id, strand) in design.strands.iter() {
             if strand.length() == 0 || design.scaffold_id == Some(*s_id) {
+                // skip zero length staples and scaffold
                 continue;
             }
             let mut sequence = String::new();
@@ -454,7 +455,7 @@ pub struct Prime3End {
 }
 
 impl DesignContent {
-    /// Update all the hash maps
+    /// Update all the hash maps - called after every edit operation
     pub(super) fn make_hash_maps(
         mut design: Design,
         xover_ids: &JunctionsIds,
@@ -535,13 +536,14 @@ impl DesignContent {
                 }
                 if let Domain::HelixDomain(domain) = domain {
                     let dom_seq = domain.sequence.as_ref().filter(|s| s.is_ascii());
+
                     for (dom_position, nucl_position) in domain.iter().enumerate() {
                         let position = design.helices.get(&domain.helix).unwrap().space_pos(
                             design.helix_parameters.as_ref().unwrap(),
                             nucl_position,
                             domain.forward,
                         );
-                        let nucl = Nucl {
+                        let nucl: Nucl = Nucl {
                             position: nucl_position,
                             forward: domain.forward,
                             helix: domain.helix,
@@ -737,7 +739,7 @@ impl DesignContent {
                 id: *h_id,
                 group: groups.get(h_id).cloned(),
                 visible: h.visible,
-                locked_for_simualtions: h.locked_for_simulations,
+                locked_for_simulations: h.locked_for_simulations,
             });
         }
         let mut ret = Self {

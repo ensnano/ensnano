@@ -1241,6 +1241,7 @@ mod tests {
             .apply_design_op(DesignOperation::AddGrid(GridDescriptor {
                 position: Vec3::zero(),
                 orientation: Rotor3::identity(),
+                helix_parameters: None,
                 grid_type: ensnano_design::grid::GridTypeDescr::Square { twist: None },
                 invisible: false,
                 bezier_vertex: None,
@@ -1260,6 +1261,7 @@ mod tests {
             .apply_design_op(DesignOperation::AddGrid(GridDescriptor {
                 position: Vec3::zero(),
                 orientation: Rotor3::identity(),
+                helix_parameters: None,
                 grid_type: ensnano_design::grid::GridTypeDescr::Square { twist: None },
                 invisible: false,
                 bezier_vertex: None,
@@ -1287,6 +1289,7 @@ mod tests {
             .apply_design_op(DesignOperation::AddGrid(GridDescriptor {
                 position: Vec3::zero(),
                 orientation: Rotor3::identity(),
+                helix_parameters: None,
                 grid_type: ensnano_design::grid::GridTypeDescr::Square { twist: None },
                 invisible: false,
                 bezier_vertex: None,

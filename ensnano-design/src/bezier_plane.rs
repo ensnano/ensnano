@@ -687,6 +687,7 @@ impl BezierPathData {
                             let desc = GridDescriptor {
                                 invisible: false,
                                 grid_type,
+                                helix_parameters: None,
                                 orientation: self.orientation_vertex(vertex_id)?,
                                 position: self.position_vertex_2d(vertex_id)? + v.grid_translation,
                                 bezier_vertex: Some(vertex_id),
