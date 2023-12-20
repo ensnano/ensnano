@@ -79,7 +79,7 @@ pub(super) struct SpiralCylinder {
 	pub inter_helix_axis_gap: f64,
 	pub helix_index: usize,
 	pub rise_per_turn: f64, // computed by SpiralCylinderDescriptor
-    pub d_curvilinear_abscissa: f64, // computed by SpiralCylinderDescriptor
+    pub d_curvilinear_abscissa: f64, // computed by SpiralCylinderDescriptor: derivative of the curvilinear abscissa by t 
 }
 
 impl SpiralCylinder {
