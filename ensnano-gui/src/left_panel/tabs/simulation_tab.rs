@@ -187,15 +187,12 @@ impl PhysicalSimulation {
         running: bool,
     ) -> iced::Element<Message<S>> {
         let button_str = if running { "Stop" } else { name };
-        let mut button = button(text(button_str)).style(
-            // TODO: Reimplement the colored buttons.
-            //       Tried these values :
-            // ButtonColor::red_green(running)  // Not working
-            // iced::theme::Button::Custom(Box::new(ButtonColor::red_green(running)))
-            //       … but that does not work.
-            //       My guess is to use the Style associated type in the StyleSheet.
-            iced::theme::Button::Positive,
-        );
+        let mut button = button(text(button_str));
+        button = if running {
+            button.style(theme::Button::Destructive)
+        } else {
+            button.style(theme::Button::Positive)
+        };
         if active {
             button = button.on_press(Message::SimRequest);
         }

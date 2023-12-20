@@ -1231,56 +1231,6 @@ impl iced_native::widget::button::StyleSheet for ButtonStyle {
     }
 }
 
-struct ButtonColor {
-    background: iced::Color,
-}
-
-impl ButtonColor {
-    fn red_green(active: bool) -> Self {
-        Self {
-            background: if active {
-                iced::Color::from_rgb(1., 0., 0.)
-            } else {
-                iced::Color::from_rgb(0., 1., 0.)
-            },
-        }
-    }
-}
-
-impl iced_native::widget::button::StyleSheet for ButtonColor {
-    type Style = ();
-    fn active(&self, _style: &Self::Style) -> iced_native::widget::button::Appearance {
-        iced_native::widget::button::Appearance {
-            background: Some(Background::Color(self.background)),
-            //background: Some(Background::Color(BACKGROUND)),
-            border_radius: 2.0,
-            border_width: 1.0,
-            border_color: [0.7, 0.7, 0.7].into(),
-            text_color: Color::BLACK,
-            ..Default::default()
-        }
-    }
-
-    fn hovered(&self, style: &Self::Style) -> iced_native::widget::button::Appearance {
-        let active = self.active(style);
-        iced_native::widget::button::Appearance {
-            background: active.background.map(|background| match background {
-                Background::Color(color) => Background::Color(Color {
-                    a: color.a * 0.75,
-                    ..color
-                }),
-            }),
-            ..active
-        }
-    }
-}
-
-impl From<ButtonColor> for iced::theme::Button {
-    fn from(_value: ButtonColor) -> Self {
-        Default::default()
-    }
-}
-
 /// Generate the message that request rotation.
 fn rotation_message<S: AppState>(i: usize, _xz: isize, _yz: isize, _xy: isize) -> Message<S> {
     let angle_xz = match i {
