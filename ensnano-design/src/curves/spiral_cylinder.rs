@@ -29,9 +29,9 @@ pub struct SpiralCylinderDescriptor {
     pub number_of_turns: f64,
     #[serde(default = "default_number_of_helices")]
     pub number_of_helices: usize,
-	pub helix_index: usize,
+    pub helix_index: usize,
     #[serde(skip_serializing_if = "Option::is_none", default)]
-	pub inter_helix_axis_gap: Option<f64>,
+    pub inter_helix_axis_gap: Option<f64>,
 }
 
 fn default_number_of_helices() -> usize {
@@ -40,34 +40,35 @@ fn default_number_of_helices() -> usize {
 
 impl SpiralCylinderDescriptor {
     pub(super) fn with_helix_parameters(self, helix_parameters: HelixParameters) -> SpiralCylinder {
-		let inter_helix_axis_gap = 
-			if let Some(ihg) = self.inter_helix_axis_gap {
-				ihg
-			} else {
-				helix_parameters.inter_helix_axis_gap() as f64
-			};
-		let rise_per_turn = self.rise_per_turn(inter_helix_axis_gap);
+        let inter_helix_axis_gap = if let Some(ihg) = self.inter_helix_axis_gap {
+            ihg
+        } else {
+            helix_parameters.inter_helix_axis_gap() as f64
+        };
+        let rise_per_turn = self.rise_per_turn(inter_helix_axis_gap);
         let rt = self.radius * TAU;
-        let d_curvilinear_abscissa = (rt * rt  + rise_per_turn * rise_per_turn).sqrt();
+        let d_curvilinear_abscissa = (rt * rt + rise_per_turn * rise_per_turn).sqrt();
         SpiralCylinder {
             theta_0: self.theta_0,
             radius: self.radius,
             _parameters: helix_parameters,
             number_of_turns: self.number_of_turns,
             number_of_helices: self.number_of_helices,
-			helix_index: self.helix_index % self.number_of_helices,
-			inter_helix_axis_gap,
-			rise_per_turn,
+            helix_index: self.helix_index % self.number_of_helices,
+            inter_helix_axis_gap,
+            rise_per_turn,
             d_curvilinear_abscissa,
         }
     }
 
-	fn rise_per_turn(&self, inter_helix_axis_gap: f64) -> f64 {
-		let slope = self.number_of_helices as f64 * inter_helix_axis_gap / TAU / self.radius;
-		assert!(slope < 1.0, "Radius for spiral_cylider is too small wtr inter helix axis gap");
+    fn rise_per_turn(&self, inter_helix_axis_gap: f64) -> f64 {
+        let slope = self.number_of_helices as f64 * inter_helix_axis_gap / TAU / self.radius;
+        assert!(
+            slope < 1.0,
+            "Radius for spiral_cylider is too small wtr inter helix axis gap"
+        );
         return self.number_of_helices as f64 * inter_helix_axis_gap / (1.0 - slope * slope).sqrt();
     }
-
 }
 
 pub(super) struct SpiralCylinder {
@@ -76,10 +77,10 @@ pub(super) struct SpiralCylinder {
     pub number_of_turns: f64,
     pub _parameters: HelixParameters,
     pub number_of_helices: usize,
-	pub inter_helix_axis_gap: f64,
-	pub helix_index: usize,
-	pub rise_per_turn: f64, // computed by SpiralCylinderDescriptor
-    pub d_curvilinear_abscissa: f64, // computed by SpiralCylinderDescriptor: derivative of the curvilinear abscissa by t 
+    pub inter_helix_axis_gap: f64,
+    pub helix_index: usize,
+    pub rise_per_turn: f64,          // computed by SpiralCylinderDescriptor
+    pub d_curvilinear_abscissa: f64, // computed by SpiralCylinderDescriptor: derivative of the curvilinear abscissa by t
 }
 
 impl SpiralCylinder {
@@ -89,7 +90,6 @@ impl SpiralCylinder {
 }
 
 impl Curved for SpiralCylinder {
-
     fn t_max(&self) -> f64 {
         self.number_of_turns + 1.0
     }
@@ -144,5 +144,4 @@ impl Curved for SpiralCylinder {
     fn inverse_curvilinear_abscissa(&self, _x: f64) -> Option<f64> {
         Some(_x / self.d_curvilinear_abscissa + self.t_min())
     }
-
 }

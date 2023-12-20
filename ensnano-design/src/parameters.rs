@@ -151,16 +151,15 @@ impl HelixParameters {
         let helix_diameter = 2.75; // nm
         let helix_radius = helix_diameter / 2.0; // nm
         HelixParameters {
-            rise: 0.34, // nm
-            helix_radius, // nm
-            bases_per_turn: 11.9, // bp per turn
+            rise: 0.34,                                         // nm
+            helix_radius,                                       // nm
+            bases_per_turn: 11.9,                               // bp per turn
             groove_angle: 120.0 / 180.0 * std::f32::consts::PI, // rad
-            inclination: 0.0, // nm
+            inclination: 0.0,                                   // nm
             // From Paul's paper.
             inter_helix_gap: 0.70, // nm
         }
     };
-
 
     pub fn from_codenano(codenano_param: &codenano::Parameters) -> Self {
         Self {
@@ -297,7 +296,7 @@ pub const NAMED_DNA_PARAMETERS: [NamedParameter; 7] = [
     NamedParameter {
         name: "Triplex DNA Helix with 2 helices",
         value: HelixParameters::TRIPLEX_DNA_TWO_HELICES,
-    }
+    },
 ];
 
 impl PartialEq for NamedParameter {

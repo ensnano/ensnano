@@ -729,7 +729,9 @@ impl InstanciatedCurveDescriptor {
             CurveDescriptor::SphereConcentricCircle(t) => {
                 InstanciatedCurveDescriptor_::SphereConcentricCircle(t.clone())
             }
-            CurveDescriptor::SpiralCylinder(t) => InstanciatedCurveDescriptor_::SpiralCylinder(t.clone()),
+            CurveDescriptor::SpiralCylinder(t) => {
+                InstanciatedCurveDescriptor_::SpiralCylinder(t.clone())
+            }
             CurveDescriptor::Twist(t) => InstanciatedCurveDescriptor_::Twist(t.clone()),
             CurveDescriptor::Torus(t) => InstanciatedCurveDescriptor_::Torus(t.clone()),
             CurveDescriptor::SuperTwist(t) => InstanciatedCurveDescriptor_::SuperTwist(t.clone()),
@@ -813,9 +815,9 @@ impl InstanciatedCurveDescriptor {
             CurveDescriptor::SphereConcentricCircle(s) => Some(
                 InstanciatedCurveDescriptor_::SphereConcentricCircle(s.clone()),
             ),
-            CurveDescriptor::SpiralCylinder(s) => Some(
-                InstanciatedCurveDescriptor_::SpiralCylinder(s.clone()),
-            ),            
+            CurveDescriptor::SpiralCylinder(s) => {
+                Some(InstanciatedCurveDescriptor_::SpiralCylinder(s.clone()))
+            }
             CurveDescriptor::Twist(t) => Some(InstanciatedCurveDescriptor_::Twist(t.clone())),
             CurveDescriptor::Torus(t) => Some(InstanciatedCurveDescriptor_::Torus(t.clone())),
             CurveDescriptor::SuperTwist(t) => {
@@ -1098,7 +1100,7 @@ impl InstanciatedCurveDescriptor_ {
             Self::SpiralCylinder(spiral) => Some(Arc::new(Curve::new(
                 spiral.clone().with_helix_parameters(*helix_parameters),
                 helix_parameters,
-            ))),            
+            ))),
             Self::SphereConcentricCircle(constructor) => Some(Arc::new(Curve::new(
                 constructor
                     .clone()
