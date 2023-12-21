@@ -29,10 +29,6 @@ pub(super) const ENSNANO_FONT: iced::Font = iced::Font::External {
     name: "EnsNanoFont",
     bytes: include_bytes!("../../font/ensnano.ttf"),
 };
-const LIGHT_ICONFONT: iced::Font = iced::Font::External {
-    name: "IconFontLight",
-    bytes: material_icons_light::MATERIAL_ICON_LIGHT,
-};
 
 /// Add vertical space of [JUMP_SIZE] amount
 pub fn extra_jump() -> widget::Space {
@@ -65,18 +61,21 @@ pub fn rotation_text<'a>(i: usize, ui_size: UiSize) -> widget::Text<'a> {
         _ => material_icons_light::dark_icon(LightIcon::Redo, ui_size),
     }
 }
-/// Return a text widget containing an icon in the light theme.
-pub fn light_icon<'a>(icon: LightIcon, ui_size: UiSize) -> widget::Text<'a> {
-    text(format!("{}", material_icons_light::icon_to_char(icon)))
-        .font(LIGHT_ICONFONT)
-        .size(ui_size.icon())
-}
+
 /// Return a button containing an icon in the light theme.
 pub fn light_icon_button<'a, Message>(
-    icon: LightIcon,
+    icon: material_icons_light::LightIcon,
     ui_size: UiSize,
 ) -> widget::Button<'a, Message> {
-    button(light_icon(icon, ui_size)).height(ui_size.button())
+    button(material_icons_light::light_icon(icon, ui_size)).height(ui_size.button())
+}
+
+/// Return a button containing an icon in the light theme.
+pub fn dark_icon_button<'a, Message>(
+    icon: material_icons_light::LightIcon,
+    ui_size: UiSize,
+) -> widget::Button<'a, Message> {
+    button(material_icons_light::dark_icon(icon, ui_size)).height(ui_size.button())
 }
 
 /// Return a text button.

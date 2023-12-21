@@ -1089,9 +1089,9 @@ where
                     .height(Length::FillPortion(2)),
             ]
             .width(Length::Fill)
-            .padding(3),
+            .padding(1),
         )
-        //.style(TopBarStyle)
+        .style(theme::Container::Box)
         .height(self.logical_size.height as f32)
         .into()
     }

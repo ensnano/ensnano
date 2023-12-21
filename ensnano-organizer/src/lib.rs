@@ -273,20 +273,19 @@ impl<E: OrganizerElement> Organizer<E> {
             ]);
         }
         for s in self.sections.iter() {
-            content = content.push(
-                Row::new().push(tabulation()).push(
-                    s.view(&self.theme, &selection)
-                        .width(iced::Length::FillPortion(8)),
-                ),
-            )
+            content = content.push(iced_native::row![
+                tabulation(),
+                s.view(&self.theme, &selection)
+                    .width(iced::Length::FillPortion(8))
+            ])
         }
+
         for s in self.auto_groups.values() {
-            content = content.push(
-                Row::new().push(tabulation()).push(
-                    s.view(&self.theme, &selection)
-                        .width(iced::Length::FillPortion(8)),
-                ),
-            )
+            content = content.push(iced_native::row![
+                tabulation(),
+                s.view(&self.theme, &selection)
+                    .width(iced::Length::FillPortion(8))
+            ])
         }
         let mut new_group_button = button(text("New Group"));
         if !selection.is_empty() {
@@ -850,15 +849,9 @@ impl<E: OrganizerElement> Section<E> {
             for (e_id, e) in self.elements.iter() {
                 content = content.push(iced_native::row![
                     tabulation(),
-                    container(Element::new(e.view(
-                        theme,
-                        &self.content[e_id],
-                        selection,
-                        None,
-                    )))
-                    .style(theme.level(1))
-                    .width(iced::Length::FillPortion(8)),
-                    // TODO: Try to remove Element::new and use .into() ?
+                    container(e.view(theme, &self.content[e_id], selection, None,))
+                        .style(theme.level(1))
+                        .width(iced::Length::FillPortion(8)),
                 ])
             }
         }
