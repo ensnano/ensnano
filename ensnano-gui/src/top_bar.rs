@@ -362,36 +362,10 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
 
         container(buttons)
             .width(self.logical_size.width as f32)
-            //.style(TopBarStyle)
             .style(theme::Container::Box)
             .into()
     }
 }
-
-//struct TopBarStyle;
-//
-//impl widget::container::StyleSheet for TopBarStyle {
-//    type Style = ();
-//    fn appearance(&self, _style: &Self::Style) -> widget::container::Appearance {
-//        widget::container::Appearance {
-//            background: Some(Background::Color(BACKGROUND)),
-//            text_color: Some(Color::WHITE),
-//            ..widget::container::Appearance::default()
-//        }
-//    }
-//}
-//
-//impl From<TopBarStyle> for iced::theme::Container {
-//    fn from(_value: TopBarStyle) -> Self {
-//        Default::default()
-//    }
-//}
-//
-//pub const BACKGROUND: Color = Color::from_rgb(
-//    0x36 as f32 / 255.0,
-//    0x39 as f32 / 255.0,
-//    0x3F as f32 / 255.0,
-//);
 
 struct ToolTipStyle;
 impl widget::container::StyleSheet for ToolTipStyle {

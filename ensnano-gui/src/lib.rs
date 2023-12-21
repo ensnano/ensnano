@@ -22,6 +22,12 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! other components of the program it is forwarded to the `main` function via the
 //! [Request](Requests) data structure.
 
+// NOTE: BACKGROUND VALUES
+//       Here are some background colors that I have removed for the moment
+//       * Top Bar:    0x36393F
+//       * Left Panel: 0x23272A  Slightly darker than above.
+//       * Status Bar: 0x121230  More blueish.
+
 pub mod helpers;
 
 pub mod top_bar;

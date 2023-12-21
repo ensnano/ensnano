@@ -1044,8 +1044,6 @@ where
         .icon_font(crate::helpers::ENSNANO_FONT)
         .icon_size(self.ui_size.icon())
         .tab_bar_height(Length::Fixed(self.ui_size.button()))
-        //.tab_bar_style(TabStyle) // TODO: Uncomment this
-        //.tab_bar_style(Default::default())
         .width(Length::Fixed(width as f32))
         .height(Length::Fill);
         let camera_shortcut = self
@@ -1097,29 +1095,12 @@ where
     }
 }
 
-//struct TopBarStyle;
-//impl container::StyleSheet for TopBarStyle {
-//    type Style = ();
-//    fn appearance(&self, _style: &Self::Style) -> container::Appearance {
-//        container::Appearance {
-//            background: Some(Background::Color(BACKGROUND)),
-//            text_color: Some(Color::WHITE),
-//            ..container::Appearance::default()
-//        }
-//    }
-//}
-//
-//impl From<TopBarStyle> for theme::Container {
-//    fn from(_value: TopBarStyle) -> Self {
-//        Default::default()
-//    }
-//}
-//
 pub const BACKGROUND: Color = Color::from_rgb(
     0x23 as f32 / 255.0,
     0x27 as f32 / 255.0,
     0x2A as f32 / 255.0,
 );
+// TODO: This const becomes undesirable…
 
 pub struct ColorOverlay<R: Requests> {
     logical_size: LogicalSize<f64>,
