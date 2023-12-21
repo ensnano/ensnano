@@ -114,6 +114,14 @@ or, if you are compiling from source, use a DirectX12 renderer with
 cargo run --release --features="dx12_only log_after_renderer_setup"
 ```
 
+## Compiling shaders
+
+There is a small makefile devoted to the compilation of shaders:
+
+```Shell
+make
+```
+
 # Third-party licenses
 
 The licenses of the dependencies are listed in `thirdparties/license.html`
