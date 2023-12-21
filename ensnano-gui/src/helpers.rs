@@ -80,18 +80,11 @@ pub fn light_icon_button<'a, Message>(
 }
 
 /// Return a text button.
-///
-/// WARNING: If the length of `inner_text` is 1, then it is assumed to represent an icon.
-pub fn text_button<'a, Message: Clone>(
-    inner_text: &'a str,
+pub fn text_button<'a, Message>(
+    label: impl ToString,
     ui_size: UiSize,
 ) -> widget::Button<'a, Message> {
-    let size = if inner_text.len() > 1 {
-        ui_size.main_text()
-    } else {
-        ui_size.icon()
-    };
-    button(text(inner_text).size(size)).height(ui_size.button())
+    button(text(label).size(ui_size.main_text())).height(ui_size.button())
 }
 
 /// A button containing an icon.
