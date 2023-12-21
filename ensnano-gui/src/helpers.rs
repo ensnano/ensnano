@@ -16,10 +16,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 //! Additional Iced view helpers for ENSnano.
+//!
+//! Repetitive, complex widgets are factored here.
 use super::UiSize;
 use crate::material_icons_light::{self, LightIcon};
-use iced::widget;
-use iced::Length;
+use iced::{theme, widget, Length};
 use iced_native::widget::helpers::*;
 
 const CHECKBOXSPACING: u16 = 5;
@@ -33,28 +34,28 @@ const LIGHT_ICONFONT: iced::Font = iced::Font::External {
     bytes: material_icons_light::MATERIAL_ICON_LIGHT,
 };
 
-/// Section title widget
-pub(crate) fn section<'a>(title: &'a str, ui_size: UiSize) -> widget::Text<'a> {
-    text(title).size(ui_size.head_text())
-}
-
-/// Section subtitle widget
-pub(crate) fn subsection<'a>(title: &'a str, ui_size: UiSize) -> widget::Text<'a> {
-    text(title).size(ui_size.intermediate_text())
-}
-
 /// Add vertical space of [JUMP_SIZE] amount
-pub(crate) fn extra_jump() -> widget::Space {
+pub fn extra_jump() -> widget::Space {
     jump_by(JUMP_SIZE)
 }
 
 /// Add vertical space of specified amount.
-pub(crate) fn jump_by(amount: impl Into<Length>) -> widget::Space {
+pub fn jump_by(amount: impl Into<Length>) -> widget::Space {
     vertical_space(amount)
 }
 
+/// Section title widget
+pub fn section<'a>(title: impl ToString, ui_size: UiSize) -> widget::Text<'a> {
+    text(title).size(ui_size.head_text())
+}
+
+/// Section subtitle widget
+pub fn subsection<'a>(title: impl ToString, ui_size: UiSize) -> widget::Text<'a> {
+    text(title).size(ui_size.intermediate_text())
+}
+
 /// Return a text widget containing the rotation arrow.
-pub(crate) fn rotation_text<'a>(i: usize, ui_size: UiSize) -> widget::Text<'a> {
+pub fn rotation_text<'a>(i: usize, ui_size: UiSize) -> widget::Text<'a> {
     match i {
         0 => material_icons_light::dark_icon(LightIcon::ArrowBack, ui_size),
         1 => material_icons_light::dark_icon(LightIcon::ArrowForward, ui_size),
@@ -65,20 +66,23 @@ pub(crate) fn rotation_text<'a>(i: usize, ui_size: UiSize) -> widget::Text<'a> {
     }
 }
 /// Return a text widget containing an icon in the light theme.
-pub(crate) fn light_icon<'a>(icon: LightIcon, ui_size: UiSize) -> widget::Text<'a> {
+pub fn light_icon<'a>(icon: LightIcon, ui_size: UiSize) -> widget::Text<'a> {
     text(format!("{}", material_icons_light::icon_to_char(icon)))
         .font(LIGHT_ICONFONT)
         .size(ui_size.icon())
 }
 /// Return a button containing an icon in the light theme.
-pub(crate) fn light_icon_button<'a, Message>(
+pub fn light_icon_button<'a, Message>(
     icon: LightIcon,
     ui_size: UiSize,
 ) -> widget::Button<'a, Message> {
     button(light_icon(icon, ui_size)).height(ui_size.button())
 }
 
-pub(crate) fn text_button<'a, Message: Clone>(
+/// Return a text button.
+///
+/// WARNING: If the length of `inner_text` is 1, then it is assumed to represent an icon.
+pub fn text_button<'a, Message: Clone>(
     inner_text: &'a str,
     ui_size: UiSize,
 ) -> widget::Button<'a, Message> {
@@ -90,8 +94,8 @@ pub(crate) fn text_button<'a, Message: Clone>(
     button(text(inner_text).size(size)).height(ui_size.button())
 }
 
-#[allow(clippy::needless_lifetimes)]
-pub(crate) fn icon_button<'a, Message: Clone>(
+/// A button containing an icon.
+pub fn icon_button<'a, Message: Clone>(
     icon_char: char,
     ui_size: UiSize,
 ) -> widget::Button<'a, Message> {
@@ -104,7 +108,7 @@ pub(crate) fn icon_button<'a, Message: Clone>(
 }
 
 /// Return a checkbox widget with its label placed on the left.
-pub(crate) fn right_checkbox<'a, Message: 'a>(
+pub fn right_checkbox<'a, Message: 'a>(
     is_checked: bool,
     label: impl ToString,
     f: impl Fn(bool) -> Message + 'a,

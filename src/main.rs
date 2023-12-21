@@ -93,7 +93,6 @@ use ensnano_interactor::{
     CenterOfSelection, CursorIcon, DesignOperation, DesignReader, RigidBodyConstants,
     SuggestionParameters,
 };
-use iced_native::theme::Theme;
 use iced_native::Event as IcedEvent;
 use iced_wgpu::{wgpu, Settings, Viewport};
 use iced_winit::winit::event::VirtualKeyCode;
