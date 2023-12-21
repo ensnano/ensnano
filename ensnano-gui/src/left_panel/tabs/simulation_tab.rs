@@ -58,7 +58,7 @@ impl<S: AppState> SimulationTab<S> {
 
     pub fn view(&self, ui_size: UiSize, app_state: &S) -> iced::Element<Message<S>> {
         let sim_state = &app_state.get_simulation_state();
-        let grid_active = sim_state.is_none() || sim_state.simulating_grid();
+        let rigid_grid_is_active = sim_state.is_none() || sim_state.simulating_grid();
         let roll_active = sim_state.is_none() || sim_state.is_rolling();
 
         let volume_exclusion = self.rigid_body_factory.requestable.volume_exclusion;
@@ -68,8 +68,16 @@ impl<S: AppState> SimulationTab<S> {
             section("Simulation (Beta)", ui_size),
             self.physical_simulation
                 .view(&ui_size, "Roll", roll_active, sim_state.is_rolling(),),
-            self.rigid_grid_button
-                .view(grid_active, sim_state.simulating_grid()),
+            start_stop_button(
+                "Rigid Grids",
+                ui_size,
+                if rigid_grid_is_active {
+                    Some(Message::RigidGridSimulation)
+                } else {
+                    None
+                },
+                sim_state.simulating_grid()
+            ),
             Self::helix_btns(&self.rigid_helices_button, app_state, ui_size.clone(),),
             subsection("Parameters for helices simulation", ui_size),
             widget::Column::with_children(self.rigid_body_factory.view(true, ui_size.main_text())),

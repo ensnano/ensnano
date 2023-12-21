@@ -100,6 +100,33 @@ pub fn icon_button<'a, Message: Clone>(
     .height(ui_size.button())
 }
 
+/// Return a button that starts, then stops something.
+pub fn start_stop_button<'a, Message, F>(
+    label: impl ToString,
+    ui_size: UiSize,
+    start_stop_switch: Option<F>,
+    is_started: bool,
+) -> widget::Button<'a, Message>
+where
+    F: 'static + Fn(bool) -> Message,
+{
+    let mut start_stop_button = text_button(label, ui_size);
+    // NOTE: In the previous version of the start_stop_button (i.g. GoStop),
+    //       the label was replaced by “Stop”, whereas here only the color changes.
+    //       It may be a good idea tho visually reintroduce the current state, via
+    //       logos such as: ⏵ ⏸ ⏺ ⏹
+    start_stop_button = if is_started {
+        start_stop_button.style(theme::Button::Destructive)
+    } else {
+        start_stop_button.style(theme::Button::Positive)
+    };
+    if let Some(send_start_stop_message) = start_stop_switch {
+        start_stop_button = start_stop_button.on_press(send_start_stop_message(!is_started));
+        // The action is to reverset the state.
+    }
+    start_stop_button
+}
+
 /// Return a checkbox widget with its label placed on the left.
 pub fn right_checkbox<'a, Message: 'a>(
     is_checked: bool,

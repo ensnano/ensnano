@@ -129,7 +129,9 @@ pub enum Message<S: AppState> {
     NewHyperboloid,
     FinalizeHyperboloid,
     RollTargeted(bool),
+    /// Start or Stop Rigid Grid simulation.
     RigidGridSimulation(bool),
+    /// Start or Stop Rigid Helices simulation.
     RigidHelicesSimulation(bool),
     VolumeExclusion(bool),
     TabSelected(usize),
