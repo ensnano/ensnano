@@ -106,10 +106,11 @@ pub fn right_checkbox<'a, Message: 'a>(
     label: impl ToString,
     f: impl Fn(bool) -> Message + 'a,
     ui_size: UiSize,
-) -> iced::widget::Row<'a, Message> {
+) -> widget::Row<'a, Message> {
     iced_native::row![
         text(label),
         checkbox("", is_checked, f).size(ui_size.checkbox()),
     ]
     .spacing(CHECKBOXSPACING)
+    // TODO: CHECKBOXSPACING should be integrated to ui_size.
 }
