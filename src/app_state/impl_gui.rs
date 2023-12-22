@@ -123,7 +123,7 @@ impl GuiState for AppState {
     }
 
     fn get_checked_xovers_parameters(&self) -> CheckXoversParameter {
-        self.0.parameters.check_xover_paramters
+        self.0.parameters.check_xover_parameters
     }
 
     fn follow_stereographic_camera(&self) -> bool {
@@ -196,7 +196,7 @@ impl GuiState for AppState {
             .curve
             .perimeter();
         let helix_parameters = self.get_dna_parameters();
-        let area_one_nucl = helix_parameters.z_step * HelixParameters::INTER_CENTER_GAP;
+        let area_one_nucl = helix_parameters.rise * helix_parameters.inter_helix_axis_gap();
         let scaling_factor = (scaffold_len as f64 * area_one_nucl as f64 / area_surface).sqrt();
         let scaled_perimeter = scaling_factor * perimeter_surface;
 

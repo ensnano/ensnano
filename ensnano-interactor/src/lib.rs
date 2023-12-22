@@ -22,7 +22,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use std::path::PathBuf;
 
 use ensnano_design::{
-    elements::{DnaAttribute, DesignElementKey},
+    elements::{DesignElementKey, DnaAttribute},
     grid::{GridDescriptor, GridId, GridObject, GridTypeDescr, HelixGridPosition, Hyperboloid},
     group_attributes::GroupPivot,
     BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, BezierVertexId,

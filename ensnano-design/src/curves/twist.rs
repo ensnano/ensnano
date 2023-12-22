@@ -31,7 +31,7 @@ pub fn nb_turn_per_100_nt_to_omega(
     if nb_turn_per_100_nt.abs() < 1e-3 {
         return Some(0.0);
     }
-    let Z: f64 = 100.0 * helix_parameters.z_step as f64;
+    let Z: f64 = 100.0 * helix_parameters.rise as f64;
     use std::f64::consts::TAU;
     Some(TAU * nb_turn_per_100_nt / Z)
 }
@@ -143,7 +143,7 @@ impl Curved for Twist {
         }
     }
 
-    fn z_step_ratio(&self) -> Option<f64> {
+    fn rise_ratio(&self) -> Option<f64> {
         /*
         if self.omega.abs() < 1e-5 {
             None
@@ -201,16 +201,16 @@ mod tests {
         let p = HelixParameters::DEFAULT;
         let nb_turn = 0.1234;
         let omega = nb_turn_per_100_nt_to_omega(nb_turn, &p).unwrap();
-        let Z = 100. * p.z_step as f64;
+        let Z = 100. * p.rise as f64;
         assert!(((omega * Z) - (std::f64::consts::TAU * nb_turn)).abs() < 1e-5)
     }
 
     #[ignore = "need fix"]
     #[allow(non_snake_case)]
     #[test]
-    fn z_step_ratio_is_correct() {
+    fn rise_ratio_is_correct() {
         let p = HelixParameters::DEFAULT;
-        let Z = 100.0 * p.z_step as f64;
+        let Z = 100.0 * p.rise as f64;
         let nb_turn = 0.1234;
         let omega = nb_turn_per_100_nt_to_omega(nb_turn, &p).unwrap();
         let mut twist = Twist::with_omega(omega);
@@ -232,14 +232,14 @@ mod tests {
     #[allow(non_snake_case)]
     fn roll_adjustment_is_correct(nb_turn: f64) {
         let p = HelixParameters::DEFAULT;
-        let Z = 100.0 * p.z_step as f64;
+        let Z = 100.0 * p.rise as f64;
         let omega = nb_turn_per_100_nt_to_omega(nb_turn, &p).unwrap();
         let mut twist = Twist::with_omega(omega);
         twist.t_max = Some(Z);
         let descriptor = super::super::InstanciatedCurveDescriptor_::Twist(twist.clone());
         let curve = descriptor.try_into_curve(&p).unwrap();
         println!("abscissa {:?}", twist.curvilinear_abscissa(Z));
-        println!("z ratio {:?}", twist.z_step_ratio());
+        println!("z ratio {:?}", twist.rise_ratio());
         assert!(twist.theta_shift(&p).is_some());
         let flat_helix = Helix::new(Vec3::zero(), Rotor3::identity());
         let theta_99 = flat_helix.theta(99, true, &p);

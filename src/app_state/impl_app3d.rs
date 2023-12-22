@@ -110,7 +110,7 @@ impl App3D for AppState {
     }
 
     fn get_check_xover_parameters(&self) -> CheckXoversParameter {
-        self.0.parameters.check_xover_paramters
+        self.0.parameters.check_xover_parameters
     }
 
     fn follow_stereographic_camera(&self) -> bool {

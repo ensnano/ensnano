@@ -175,16 +175,13 @@ impl RevolutionSurfaceSystem {
         for desc in curve_desc {
             let len = desc.compute_length().unwrap();
             println!("length ~= {:?}", len);
-            println!(
-                "length ~= {:?} nt",
-                len / self.helix_parameters.z_step as f64
-            );
-            total_len += (len / self.helix_parameters.z_step as f64).floor() as usize;
+            println!("length ~= {:?} nt", len / self.helix_parameters.rise as f64);
+            total_len += (len / self.helix_parameters.rise as f64).floor() as usize;
         }
 
         println!("total len {total_len}");
         let len_by_sum =
-            (self.total_length(&thetas) / (self.helix_parameters.z_step as f64)).floor() as usize;
+            (self.total_length(&thetas) / (self.helix_parameters.rise as f64)).floor() as usize;
         println!("total len by sum {len_by_sum}");
         //let rescaling_factor = self.scaffold_len_target as f64 / total_len as f64;
         self.topology
@@ -662,7 +659,7 @@ impl SimulationUpdate for HelicesRouting {
             };
             if let Some(len_nt) = len.or_else(|| {
                 c.compute_length()
-                    .map(|len| (len / helix_parameters.z_step as f64).floor() as isize)
+                    .map(|len| (len / helix_parameters.rise as f64).floor() as isize)
             }) {
                 strand_to_be_added.push((h_id, len_nt));
             }

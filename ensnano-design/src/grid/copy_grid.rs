@@ -104,6 +104,7 @@ impl Design {
 
             let new_grid = GridDescriptor {
                 position: source_grid.position - base_position,
+                helix_parameters: None,
                 orientation: base_orientation.reversed() * source_grid.orientation,
                 grid_type: source_grid.grid_type,
                 invisible: false,

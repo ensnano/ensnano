@@ -22,6 +22,7 @@ const EPSILON: f64 = 1e-6;
 /// To compute curvilinear abcissa over long distances
 const DELTA_MAX: f64 = 256.0;
 use crate::{
+    curves::chebyshev::{PolynomialCoordinates, PolynomialCoordinates_},
     grid::{Edge, GridPosition},
     utils::vec_to_dvec,
     BezierPathData, BezierPathId,
@@ -30,11 +31,13 @@ use crate::{
 use super::{Helix, HelixParameters};
 use std::sync::Arc;
 mod bezier;
+mod chebyshev;
 mod discretization;
 mod legacy;
 mod revolution;
 mod sphere_concentric_circle;
 mod sphere_like_spiral;
+mod spiral_cylinder;
 mod supertwist;
 mod time_nucl_map;
 mod torus;
@@ -52,6 +55,7 @@ pub use bezier::{
 pub use revolution::{InterpolatedCurveDescriptor, InterpolationDescriptor};
 pub use sphere_concentric_circle::SphereConcentricCircleDescriptor;
 pub use sphere_like_spiral::{SphereLikeSpiralDescriptor, SphereOrientation};
+pub use spiral_cylinder::SpiralCylinderDescriptor;
 use std::collections::HashMap;
 pub use supertwist::SuperTwist;
 pub use time_nucl_map::AbscissaConverter;
@@ -59,7 +63,7 @@ pub(crate) use time_nucl_map::{PathTimeMaps, RevolutionCurveTimeMaps};
 use torus::TwistedTorus;
 pub use torus::{CurveDescriptor2D, TwistedTorusDescriptor};
 pub use torus::{PointOnSurface, Torus};
-pub use tube_spiral::TubeSpiralDescritor;
+pub use tube_spiral::TubeSpiralDescriptor;
 pub use twist::{nb_turn_per_100_nt_to_omega, twist_to_omega, Twist};
 
 const EPSILON_DERIVATIVE: f64 = 1e-6;
@@ -130,16 +134,16 @@ pub trait Curved {
         None
     }
 
-    /// If the z_step along the curve is not the same than for straight helices, this method should
+    /// If the rise along the curve is not the same than for straight helices, this method should
     /// be overriden
-    fn z_step_ratio(&self) -> Option<f64> {
+    fn rise_ratio(&self) -> Option<f64> {
         None
     }
 
     fn theta_shift(&self, helix_parameters: &HelixParameters) -> Option<f64> {
-        if let Some(real_z_ratio) = self.z_step_ratio() {
+        if let Some(real_z_ratio) = self.rise_ratio() {
             let r = helix_parameters.helix_radius as f64;
-            let z = helix_parameters.z_step as f64;
+            let z = helix_parameters.rise as f64;
             let real_z = z * real_z_ratio;
             let d1 = helix_parameters.dist_ac() as f64;
             let cos_ret = 1.0 - (d1 * d1 - real_z * real_z) / (r * r * 2.0);
@@ -317,8 +321,7 @@ impl Curve {
             additional_segment_left: Vec::new(),
             abscissa_converter: None,
         };
-        let len_segment =
-            ret.geometry.z_step_ratio().unwrap_or(1.0) * helix_parameters.z_step as f64;
+        let len_segment = ret.geometry.rise_ratio().unwrap_or(1.0) * helix_parameters.rise as f64;
         ret.discretize(len_segment, helix_parameters.inclination as f64);
         ret
     }
@@ -546,7 +549,8 @@ fn perpendicular_basis(point: DVec3) -> DMat3 {
 pub enum CurveDescriptor {
     Bezier(CubicBezierConstructor),
     SphereLikeSpiral(SphereLikeSpiralDescriptor),
-    TubeSpiral(TubeSpiralDescritor),
+    SpiralCylinder(SpiralCylinderDescriptor),
+    TubeSpiral(TubeSpiralDescriptor),
     SphereConcentricCircle(SphereConcentricCircleDescriptor),
     Twist(Twist),
     Torus(Torus),
@@ -566,6 +570,7 @@ pub enum CurveDescriptor {
     },
     SuperTwist(SuperTwist),
     InterpolatedCurve(InterpolatedCurveDescriptor),
+    Chebyshev(PolynomialCoordinates),
 }
 
 fn is_false(b: &bool) -> bool {
@@ -724,6 +729,9 @@ impl InstanciatedCurveDescriptor {
             CurveDescriptor::SphereConcentricCircle(t) => {
                 InstanciatedCurveDescriptor_::SphereConcentricCircle(t.clone())
             }
+            CurveDescriptor::SpiralCylinder(t) => {
+                InstanciatedCurveDescriptor_::SpiralCylinder(t.clone())
+            }
             CurveDescriptor::Twist(t) => InstanciatedCurveDescriptor_::Twist(t.clone()),
             CurveDescriptor::Torus(t) => InstanciatedCurveDescriptor_::Torus(t.clone()),
             CurveDescriptor::SuperTwist(t) => InstanciatedCurveDescriptor_::SuperTwist(t.clone()),
@@ -763,6 +771,9 @@ impl InstanciatedCurveDescriptor {
                 }),
             CurveDescriptor::InterpolatedCurve(desc) => {
                 InstanciatedCurveDescriptor_::InterpolatedCurve(desc.clone())
+            }
+            CurveDescriptor::Chebyshev(coord) => {
+                InstanciatedCurveDescriptor_::Chebyshev(coord.clone().instanciated())
             }
         };
         Self {
@@ -804,6 +815,9 @@ impl InstanciatedCurveDescriptor {
             CurveDescriptor::SphereConcentricCircle(s) => Some(
                 InstanciatedCurveDescriptor_::SphereConcentricCircle(s.clone()),
             ),
+            CurveDescriptor::SpiralCylinder(s) => {
+                Some(InstanciatedCurveDescriptor_::SpiralCylinder(s.clone()))
+            }
             CurveDescriptor::Twist(t) => Some(InstanciatedCurveDescriptor_::Twist(t.clone())),
             CurveDescriptor::Torus(t) => Some(InstanciatedCurveDescriptor_::Torus(t.clone())),
             CurveDescriptor::SuperTwist(t) => {
@@ -817,6 +831,9 @@ impl InstanciatedCurveDescriptor {
             CurveDescriptor::InterpolatedCurve(desc) => Some(
                 InstanciatedCurveDescriptor_::InterpolatedCurve(desc.clone()),
             ),
+            CurveDescriptor::Chebyshev(coord) => Some(InstanciatedCurveDescriptor_::Chebyshev(
+                coord.clone().instanciated(),
+            )),
         };
         instance.map(|instance| Self {
             source: desc.clone(),
@@ -905,8 +922,9 @@ impl InstanciatedCurveDescriptor {
 enum InstanciatedCurveDescriptor_ {
     Bezier(CubicBezierConstructor),
     SphereLikeSpiral(SphereLikeSpiralDescriptor),
-    TubeSpiral(TubeSpiralDescritor),
+    TubeSpiral(TubeSpiralDescriptor),
     SphereConcentricCircle(SphereConcentricCircleDescriptor),
+    SpiralCylinder(SpiralCylinderDescriptor),
     Twist(Twist),
     Torus(Torus),
     SuperTwist(SuperTwist),
@@ -920,6 +938,7 @@ enum InstanciatedCurveDescriptor_ {
         legacy: bool,
     },
     InterpolatedCurve(InterpolatedCurveDescriptor),
+    Chebyshev(PolynomialCoordinates_),
 }
 
 /// An instanciation of a PiecewiseBezier descriptor where reference to grid positions in the
@@ -1015,6 +1034,10 @@ impl InstanciatedCurveDescriptor_ {
                 spiral.with_helix_parameters(helix_parameters.clone()),
                 helix_parameters,
             )),
+            Self::SpiralCylinder(spiral) => Arc::new(Curve::new(
+                spiral.with_helix_parameters(helix_parameters.clone()),
+                helix_parameters,
+            )),
             Self::SphereConcentricCircle(constructor) => Arc::new(Curve::new(
                 constructor.with_helix_parameters(helix_parameters.clone()),
                 helix_parameters,
@@ -1056,6 +1079,7 @@ impl InstanciatedCurveDescriptor_ {
             Self::InterpolatedCurve(desc) => {
                 Arc::new(Curve::new(desc.instanciate(true), helix_parameters))
             }
+            Self::Chebyshev(coordinates) => Arc::new(Curve::new(coordinates, helix_parameters)),
         }
     }
 
@@ -1070,6 +1094,10 @@ impl InstanciatedCurveDescriptor_ {
                 helix_parameters,
             ))),
             Self::TubeSpiral(spiral) => Some(Arc::new(Curve::new(
+                spiral.clone().with_helix_parameters(*helix_parameters),
+                helix_parameters,
+            ))),
+            Self::SpiralCylinder(spiral) => Some(Arc::new(Curve::new(
                 spiral.clone().with_helix_parameters(*helix_parameters),
                 helix_parameters,
             ))),
@@ -1103,6 +1131,9 @@ impl InstanciatedCurveDescriptor_ {
                 desc.clone().instanciate(true),
                 helix_parameters,
             ))),
+            Self::Chebyshev(coordinates) => {
+                Some(Arc::new(Curve::new(coordinates.clone(), helix_parameters)))
+            }
         }
     }
 
@@ -1115,6 +1146,9 @@ impl InstanciatedCurveDescriptor_ {
                 spiral.clone().with_helix_parameters(*helix_parameters),
             )),
             Self::TubeSpiral(spiral) => Some(Curve::compute_length(
+                spiral.clone().with_helix_parameters(*helix_parameters),
+            )),
+            Self::SpiralCylinder(spiral) => Some(Curve::compute_length(
                 spiral.clone().with_helix_parameters(*helix_parameters),
             )),
             Self::SphereConcentricCircle(constructor) => Some(Curve::compute_length(
@@ -1142,6 +1176,7 @@ impl InstanciatedCurveDescriptor_ {
             Self::InterpolatedCurve(desc) => {
                 Some(Curve::compute_length(desc.clone().instanciate(true)))
             }
+            Self::Chebyshev(coord) => Some(Curve::compute_length(coord.clone())),
         }
     }
 
@@ -1154,6 +1189,11 @@ impl InstanciatedCurveDescriptor_ {
                     .with_helix_parameters(helix_parameters.clone()),
             )),
             Self::TubeSpiral(spiral) => Some(Curve::path(
+                spiral
+                    .clone()
+                    .with_helix_parameters(helix_parameters.clone()),
+            )),
+            Self::SpiralCylinder(spiral) => Some(Curve::path(
                 spiral
                     .clone()
                     .with_helix_parameters(helix_parameters.clone()),
@@ -1181,6 +1221,7 @@ impl InstanciatedCurveDescriptor_ {
                 legacy: *legacy,
             })),
             Self::InterpolatedCurve(desc) => Some(Curve::path(desc.clone().instanciate(false))),
+            Self::Chebyshev(coordinates) => Some(Curve::path(coordinates.clone())),
         }
     }
 
@@ -1267,6 +1308,32 @@ impl Helix {
                         source: desc,
                     })
                 }
+            }
+        }
+    }
+}
+
+// #[derive(Serialize, Deserialize, Debug, Clone)]
+// pub enum InterpolationDescriptor {
+//     PointsValues {
+//         points: Vec<f64>,
+//         values: Vec<f64>,
+//     },
+//     Chebyshev {
+//         coeffs: Vec<f64>,
+//         interval: [f64; 2],
+//     },
+// }
+
+impl InterpolationDescriptor {
+    pub fn instanciated(self) -> chebyshev_polynomials::ChebyshevPolynomial {
+        match self {
+            InterpolationDescriptor::PointsValues { points, values } => {
+                let points_values = points.into_iter().zip(values.into_iter()).collect();
+                chebyshev_polynomials::interpolate_points(points_values, 1e-4)
+            }
+            InterpolationDescriptor::Chebyshev { coeffs, interval } => {
+                chebyshev_polynomials::ChebyshevPolynomial::from_coeffs_interval(coeffs, interval)
             }
         }
     }

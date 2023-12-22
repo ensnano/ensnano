@@ -127,7 +127,7 @@ pub fn load_stl<P: AsRef<Path>>(path: P) -> Result<StlMesh, ErrStl> {
         for v in t.vertices() {
             vertices.push(ModelVertex {
                 color: color.clone(),
-                position: v,
+                position: [v[0] / 10., v[1] / 10., v[2] / 10.], // scale by 10 Å = 1 nm
                 normal: normal.into(),
             });
         }

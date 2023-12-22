@@ -348,8 +348,8 @@ impl Curve {
         if nucl < nucl_min {
             if let CurveBounds::BiInfinite = self.geometry.bounds() {
                 let objective = (-nucl) as f64
-                    * helix_parameters.z_step as f64
-                    * self.geometry.z_step_ratio().unwrap_or(1.);
+                    * helix_parameters.rise as f64
+                    * self.geometry.rise_ratio().unwrap_or(1.);
                 if let Some(t_min) = self.geometry.inverse_curvilinear_abscissa(objective) {
                     return Some(t_min);
                 }
@@ -383,8 +383,8 @@ impl Curve {
             match self.geometry.bounds() {
                 CurveBounds::BiInfinite | CurveBounds::PositiveInfinite => {
                     let objective = nucl as f64
-                        * helix_parameters.z_step as f64
-                        * self.geometry.z_step_ratio().unwrap_or(1.)
+                        * helix_parameters.rise as f64
+                        * self.geometry.rise_ratio().unwrap_or(1.)
                         + helix_parameters.inclination as f64;
                     if let Some(t_max) = self.geometry.inverse_curvilinear_abscissa(objective) {
                         return Some(t_max);

@@ -130,8 +130,8 @@ impl GuiRequests for Requests {
     }
 
     fn update_rigid_helices_simulation(&mut self, parameters: RigidBodyParametersRequest) {
-        let rigid_body_paramters = rigid_parameters(parameters);
-        self.rigid_helices_simulation = Some(rigid_body_paramters);
+        let rigid_body_parameters = rigid_parameters(parameters);
+        self.rigid_helices_simulation = Some(rigid_body_parameters);
     }
 
     fn update_rigid_grids_simulation(&mut self, parameters: RigidBodyParametersRequest) {
@@ -376,8 +376,8 @@ impl GuiRequests for Requests {
             }))
     }
 
-    fn set_check_xover_parameters(&mut self, paramters: CheckXoversParameter) {
-        self.check_xover_parameters = Some(paramters);
+    fn set_check_xover_parameters(&mut self, parameters: CheckXoversParameter) {
+        self.check_xover_parameters = Some(parameters);
     }
 
     fn follow_stereographic_camera(&mut self, follow: bool) {

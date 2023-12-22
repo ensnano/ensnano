@@ -1061,6 +1061,24 @@ where
             .iter()
             .filter_map(|e| DesignElementKey::from_selection(e, 0))
             .collect();
+
+        let notify_new_tree =
+            if let Some(tree) = self.application_state.get_reader().get_organizer_tree() {
+                self.organizer.read_tree(tree.as_ref())
+            } else {
+                self.organizer.read_tree(&OrganizerTree::Node {
+                    name: String::from("root"),
+                    children: vec![],
+                    expanded: true,
+                    id: None,
+                })
+            };
+        if notify_new_tree {
+            self.requests
+                .lock()
+                .unwrap()
+                .update_organizer_tree(self.organizer.tree())
+        }
         let organizer = self
             .organizer
             .view(selection)

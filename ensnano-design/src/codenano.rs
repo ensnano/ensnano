@@ -295,7 +295,8 @@ impl Iterator for DomainIter {
 pub struct Parameters {
     /// Distance between two consecutive bases along the axis of a
     /// helix, in nanometers.
-    pub z_step: f64,
+    #[serde(alias = "z_step")]
+    pub rise: f64,
     /// Radius of a helix, in nanometers.
     pub helix_radius: f64,
     /// Number of bases per turn in nanometers.
@@ -323,7 +324,7 @@ impl Parameters {
         // Single-molecule portrait of DNA and RNA double helices,
         // J. Ricardo Arias-Gonzalez, Integrative Biology, Royal
         // Society of Chemistry, 2014, vol. 6, p.904
-        z_step: 0.332,
+        rise: 0.332,
         helix_radius: 1.,
         // bases per turn from Woo Rothemund (Nature Chemistry).
         bases_per_turn: 10.44,
@@ -426,7 +427,7 @@ impl Helix {
     pub fn space_pos(&self, p: &Parameters, n: isize, forward: bool) -> [f64; 3] {
         let theta = self.theta(n, forward, p);
         let mut ret = [
-            n as f64 * p.z_step,
+            n as f64 * p.rise,
             -theta.cos() * p.helix_radius,
             -theta.sin() * p.helix_radius,
         ];
@@ -476,7 +477,7 @@ impl Helix {
     /// 3D position of the projection of the nucleotide on its helix.
     /// `n` is the position along the axis.
     pub fn axis_pos(&self, p: &Parameters, n: isize) -> DVec3 {
-        let mut ret = [n as f64 * p.z_step, 0., 0.];
+        let mut ret = [n as f64 * p.rise, 0., 0.];
 
         ret = self.rotate_point(ret);
 

@@ -390,7 +390,7 @@ impl<R: DesignReader> Data<R> {
             }
         } else if let Selection::Bond(d_id, n1, n2) = selection {
             if object_type.is_bond() {
-                if let Some(b_id) = self.designs[*d_id as usize].get_identifier_bound(*n1, *n2) {
+                if let Some(b_id) = self.designs[*d_id as usize].get_identifier_bond(*n1, *n2) {
                     ret.push(SceneElement::DesignElement(*d_id, b_id))
                 } else {
                     ret.push(SceneElement::PhantomElement(PhantomElement {
@@ -723,7 +723,7 @@ impl<R: DesignReader> Data<R> {
                 .cloned()
                 .collect(),
             Selection::Bond(d_id, n1, n2) => self.designs[*d_id as usize]
-                .get_identifier_bound(*n1, *n2)
+                .get_identifier_bond(*n1, *n2)
                 .iter()
                 .cloned()
                 .collect(),
@@ -1218,12 +1218,12 @@ impl<R: DesignReader> Data<R> {
                 Some(SceneElement::DesignElement(d_id, id))
             }
             Selection::Bond(d_id, n1, n2) => {
-                let id = self.designs[d_id as usize].get_identifier_bound(n1, n2)?;
+                let id = self.designs[d_id as usize].get_identifier_bond(n1, n2)?;
                 Some(SceneElement::DesignElement(d_id, id))
             }
             Selection::Xover(d_id, xover_id) => {
                 let (n1, n2) = self.designs[d_id as usize].get_xover_with_id(xover_id)?;
-                let id = self.designs[d_id as usize].get_identifier_bound(n1, n2)?;
+                let id = self.designs[d_id as usize].get_identifier_bond(n1, n2)?;
                 Some(SceneElement::DesignElement(d_id, id))
             }
             _ => None,
@@ -1794,8 +1794,8 @@ impl<R: DesignReader> Data<R> {
                 .designs
                 .get(d_id as usize)
                 .and_then(|d| {
-                    d.get_identifier_bound(n1, n2)
-                        .or_else(|| d.get_identifier_bound(n2, n1))
+                    d.get_identifier_bond(n1, n2)
+                        .or_else(|| d.get_identifier_bond(n2, n1))
                 })
                 .map(|id| SceneElement::DesignElement(d_id, id)),
             CenterOfSelection::Nucleotide(d_id, n1) => self
@@ -1855,8 +1855,8 @@ impl<R: DesignReader> Data<R> {
                 }
             }
             Selection::Bond(d_id, n1, n2) => design
-                .get_identifier_bound(*n1, *n2)
-                .or_else(|| design.get_identifier_bound(*n2, *n1))
+                .get_identifier_bond(*n1, *n2)
+                .or_else(|| design.get_identifier_bond(*n2, *n1))
                 .map(|bound_id| SceneElement::DesignElement(*d_id, bound_id)),
             Selection::Nucleotide(d_id, nucl) => design
                 .get_identifier_nucl(nucl)

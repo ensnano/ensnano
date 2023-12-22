@@ -8,7 +8,7 @@ const LEN_SCAFFOLD: usize = 8064;
 const PARAMETERS: Parameters = Parameters::GEARY_2014_DNA;
 const NANOTUBE_LENGTH: usize = 30;
 const NB_NANOTUBE: usize = 10;
-const DELTA_RADIUS: f64 = NANOTUBE_LENGTH as f64 * PARAMETERS.z_step as f64;
+const DELTA_RADIUS: f64 = NANOTUBE_LENGTH as f64 * PARAMETERS.rise as f64;
 
 /// Volume exclusion radius
 const H: f32 = PARAMETERS.helix_radius + PARAMETERS.inter_helix_gap / 2.;

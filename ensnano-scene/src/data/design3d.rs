@@ -961,7 +961,7 @@ impl<R: DesignReader> Design3D<R> {
         self.design.get_identifier_nucl(nucl)
     }
 
-    pub fn get_identifier_bound(&self, n1: Nucl, n2: Nucl) -> Option<u32> {
+    pub fn get_identifier_bond(&self, n1: Nucl, n2: Nucl) -> Option<u32> {
         self.design.get_identifier_bond(n1, n2)
     }
 
