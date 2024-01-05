@@ -795,7 +795,7 @@ impl GridData {
             } else {
                 HelixParameters::GEARY_2014_RNA
             };
-            let grid = desc.to_grid(hp); 
+            let grid = desc.to_grid(hp);
             */
             let grid = desc.to_grid(helix_parameters);
             grids.insert(GridId::FreeGrid(g_id.0), grid);
