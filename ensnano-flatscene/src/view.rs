@@ -499,7 +499,7 @@ impl View {
         self.camera_top.borrow_mut().zoom_closer();
         self.was_updated = true;
         match selection {
-            FlatSelection::Bound(_, n1, n2) => {
+            FlatSelection::Bond(_, n1, n2) => {
                 self.helices[n1.helix].make_visible(n1.flat_position, self.camera_top.clone());
                 let world_pos_1 = self.helices[n1.helix].get_nucl_position(&n1, Shift::No);
                 let world_pos_2 = self.helices[n2.helix].get_nucl_position(&n2, Shift::No);

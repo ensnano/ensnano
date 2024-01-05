@@ -145,7 +145,7 @@ impl<R: DesignReader> Design3D<R> {
                 .to_raw_instance();
                 spheres.push(sphere);
                 if let Some(prev) = previous_postion {
-                    let tube = create_dna_bound(prev, *position, color, 0, true);
+                    let tube = create_dna_bond(prev, *position, color, 0, true);
                     tubes.push(tube.to_raw_instance());
                 }
                 previous_postion = Some(*position);
@@ -204,7 +204,7 @@ impl<R: DesignReader> Design3D<R> {
         let filter = |_n: &Nucl| true;
         let vec: Vec<_> = ids
             .iter()
-            .flat_map(|id| self.make_cone_from_bound(*id, &filter))
+            .flat_map(|id| self.make_cone_from_bond(*id, &filter))
             .collect();
         vec
     }
@@ -228,7 +228,7 @@ impl<R: DesignReader> Design3D<R> {
         if !show_insertion_representents {
             for loopout_bond in self.design.get_all_loopout_bonds() {
                 ret.push(
-                    create_dna_bound(
+                    create_dna_bond(
                         loopout_bond.position_prime5,
                         loopout_bond.position_prime3,
                         loopout_bond.color,
@@ -248,7 +248,7 @@ impl<R: DesignReader> Design3D<R> {
                 let pos_left = transformation.transform_vec(positions[me]);
                 let pos_right = transformation.transform_vec(positions[next]);
                 ret.push(
-                    create_dna_bound(pos_left, pos_right, REGULAR_H_BOND_COLOR, u32::MAX, false)
+                    create_dna_bond(pos_left, pos_right, REGULAR_H_BOND_COLOR, u32::MAX, false)
                         .to_raw_instance(),
                 )
             }
@@ -256,7 +256,7 @@ impl<R: DesignReader> Design3D<R> {
                 let pos_left = transformation.transform_vec(positions[me]);
                 let pos_right = transformation.transform_vec(positions[other]);
                 ret.push(
-                    create_dna_bound(pos_left, pos_right, COLOR_GUANINE, u32::MAX, false)
+                    create_dna_bond(pos_left, pos_right, COLOR_GUANINE, u32::MAX, false)
                         .to_raw_instance(),
                 )
             }
@@ -297,7 +297,7 @@ impl<R: DesignReader> Design3D<R> {
                         .get_graphic_element_position(&SceneElement::DesignElement(self.id, id2))
                         .unwrap_or(f32::NAN * Vec3::unit_x());
                     let id = id | self.id << 24;
-                    create_dna_bound(pos1, pos2, color, id, true)
+                    create_dna_bond(pos1, pos2, color, id, true)
                         .with_radius(radius)
                         .to_raw_instance()
                 }
@@ -332,7 +332,7 @@ impl<R: DesignReader> Design3D<R> {
                 .filter(|lb| lb.repr_bond_identifier == id)
             {
                 ret.push(
-                    create_dna_bound(
+                    create_dna_bond(
                         loopout_bond.position_prime5,
                         loopout_bond.position_prime3,
                         color,
@@ -370,7 +370,7 @@ impl<R: DesignReader> Design3D<R> {
         if let Some(ObjectType::Bond(n1, n2)) = self.get_object_type(id) {
             let pos1 = self.get_design_element_position(n1, referential)?;
             let pos2 = self.get_design_element_position(n2, referential)?;
-            Some(create_check_bound(pos1, pos2, checked))
+            Some(create_check_bond(pos1, pos2, checked))
         } else {
             None
         }
@@ -390,21 +390,21 @@ impl<R: DesignReader> Design3D<R> {
         let mut partial_h_bonds = Vec::new();
         let mut ellipsoids = Vec::new();
         for hbond in self.design.get_all_h_bonds() {
-            let forward_bond = create_dna_bound(
+            let forward_bond = create_dna_bond(
                 hbond.forward.backbone,
                 hbond.forward.center_of_mass,
                 hbond.forward.backbone_color,
                 0,
                 false,
             );
-            let backward_bond = create_dna_bound(
+            let backward_bond = create_dna_bond(
                 hbond.backward.backbone,
                 hbond.backward.center_of_mass,
                 hbond.backward.backbone_color,
                 0,
                 false,
             );
-            let full_bond = create_dna_bound(
+            let full_bond = create_dna_bond(
                 hbond.backward.backbone,
                 hbond.forward.backbone,
                 REGULAR_H_BOND_COLOR,
@@ -446,7 +446,7 @@ impl<R: DesignReader> Design3D<R> {
         }
     }
 
-    fn make_cone_from_bound(
+    fn make_cone_from_bond(
         &self,
         id: u32,
         filter: &dyn Fn(&Nucl) -> bool,
@@ -481,7 +481,7 @@ impl<R: DesignReader> Design3D<R> {
                     self.get_graphic_element_position(&SceneElement::DesignElement(self.id, id2))?;
                 let color = self.get_color(id).unwrap_or(0);
                 let id = id | self.id << 24;
-                let tube = create_dna_bound(pos1, pos2, color, id, false);
+                let tube = create_dna_bond(pos1, pos2, color, id, false);
                 tube.to_raw_instance()
             }
             ObjectType::Nucleotide(id) => {
@@ -561,7 +561,7 @@ impl<R: DesignReader> Design3D<R> {
                 !self.thick_helices,
             );
             if let Some((position1, position2)) = nucl_1.zip(nucl_2) {
-                let instance = create_dna_bound(position1, position2, SUGGESTION_COLOR, 0, true)
+                let instance = create_dna_bond(position1, position2, SUGGESTION_COLOR, 0, true)
                     .to_raw_instance();
                 ret.push(instance);
             }
@@ -594,7 +594,7 @@ impl<R: DesignReader> Design3D<R> {
                 false,
             )?;
             let id = phantom_helix_encoder_bond(self.id, helix_id, i, forward);
-            Some(create_dna_bound(nucl_1, nucl_2, color, id, true).to_raw_instance())
+            Some(create_dna_bond(nucl_1, nucl_2, color, id, true).to_raw_instance())
         } else {
             let nucl_coord =
                 self.design
@@ -686,7 +686,7 @@ impl<R: DesignReader> Design3D<R> {
                     if let Some(coord) = previous_nucl {
                         let id = phantom_helix_encoder_bond(self.id, *helix_id, i, *forward);
                         tubes.push(
-                            create_dna_bound(nucl_coord, coord, color, id, true)
+                            create_dna_bond(nucl_coord, coord, color, id, true)
                                 .with_radius(0.6)
                                 .to_raw_instance(),
                         );
@@ -1091,7 +1091,7 @@ impl<R: DesignReader> Design3D<R> {
     }
 
     pub fn free_xover_tube(pos1: Vec3, pos2: Vec3) -> RawDnaInstance {
-        create_dna_bound(pos1, pos2, FREE_XOVER_COLOR, 0, true).to_raw_instance()
+        create_dna_bond(pos1, pos2, FREE_XOVER_COLOR, 0, true).to_raw_instance()
     }
 
     pub fn has_nucl(&self, nucl: &Nucl) -> bool {
@@ -1132,13 +1132,7 @@ impl<R: DesignReader> Design3D<R> {
     }
 }
 
-fn create_dna_bound(
-    source: Vec3,
-    dest: Vec3,
-    color: u32,
-    id: u32,
-    use_alpha: bool,
-) -> TubeInstance {
+fn create_dna_bond(source: Vec3, dest: Vec3, color: u32, id: u32, use_alpha: bool) -> TubeInstance {
     let color = if use_alpha {
         Instance::color_from_au32(color)
     } else {
@@ -1158,7 +1152,7 @@ fn create_dna_bound(
     }
 }
 
-fn create_check_bound(source: Vec3, dest: Vec3, checked: bool) -> RawDnaInstance {
+fn create_check_bond(source: Vec3, dest: Vec3, checked: bool) -> RawDnaInstance {
     let radius = (source - dest).mag() / 2. / SPHERE_RADIUS;
     let position = (source + dest) / 2.;
     let color = if checked {
