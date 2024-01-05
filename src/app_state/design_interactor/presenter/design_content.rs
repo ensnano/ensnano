@@ -95,7 +95,7 @@ pub(super) struct DesignContent {
     pub space_position: HashMap<u32, [f32; 3], RandomState>,
     /// Maps a Nucl object to its identifier
     pub nucl_collection: Arc<NuclCollection>,
-    /// Maps a pair of nucleotide forming a bound to the identifier of the bound
+    /// Maps a pair of nucleotide forming a bond to the identifier of the bond
     pub identifier_bond: HashMap<(Nucl, Nucl), u32, RandomState>,
     /// Maps the identifier of a element to the identifier of the strands to which it belongs
     pub strand_map: HashMap<u32, usize, RandomState>,
@@ -124,8 +124,8 @@ impl DesignContent {
     }
     /// Return the position of an element.
     /// If the element is a nucleotide, return the center of the nucleotide.
-    /// If the element is a bound, return the middle of the segment between the two nucleotides
-    /// involved in the bound.
+    /// If the element is a bond, return the middle of the segment between the two nucleotides
+    /// involved in the bond.
     pub(super) fn get_element_position(&self, id: u32) -> Option<Vec3> {
         if let Some(object_type) = self.object_type.get(&id) {
             match object_type {
@@ -396,16 +396,16 @@ impl DesignContent {
         design: &Design,
         invisible_nucls: &HashSet<Nucl>,
     ) -> Vec<u32> {
-        let check_visiblity = |&(_, bound): &(&u32, &(Nucl, Nucl))| {
-            !(invisible_nucls.contains(&bound.0) && invisible_nucls.contains(&bound.1))
+        let check_visiblity = |&(_, bond): &(&u32, &(Nucl, Nucl))| {
+            !(invisible_nucls.contains(&bond.0) && invisible_nucls.contains(&bond.1))
                 && (design
                     .helices
-                    .get(&bound.0.helix)
+                    .get(&bond.0.helix)
                     .map(|h| h.visible)
                     .unwrap_or_default()
                     || design
                         .helices
-                        .get(&bound.1.helix)
+                        .get(&bond.1.helix)
                         .map(|h| h.visible)
                         .unwrap_or_default())
         };
@@ -573,16 +573,15 @@ impl DesignContent {
                             });
                         }
                         nucl_id = if let Some(old_nucl) = old_nucl {
-                            let bound_id = id;
+                            let bond_id = id;
                             id += 1;
-                            let bound = (old_nucl, nucl);
-                            object_type
-                                .insert(bound_id, ObjectType::Bond(old_nucl_id.unwrap(), id));
-                            identifier_bond.insert(bound, bound_id);
-                            nucleotides_involved.insert(bound_id, bound);
-                            color_map.insert(bound_id, color);
-                            strand_map.insert(bound_id, *s_id);
-                            helix_map.insert(bound_id, nucl.helix);
+                            let bond = (old_nucl, nucl);
+                            object_type.insert(bond_id, ObjectType::Bond(old_nucl_id.unwrap(), id));
+                            identifier_bond.insert(bond, bond_id);
+                            nucleotides_involved.insert(bond_id, bond);
+                            color_map.insert(bond_id, color);
+                            strand_map.insert(bond_id, *s_id);
+                            helix_map.insert(bond_id, nucl.helix);
                             id
                         } else {
                             id
@@ -664,7 +663,7 @@ impl DesignContent {
             if strand.cyclic {
                 let nucl = strand.get_5prime().unwrap();
                 let prime5_id = nucl_collection.get_identifier(&nucl).unwrap();
-                let bound_id = id;
+                let bond_id = id;
                 if let Some((prev_pos, position)) =
                     prev_loopout_pos.take().zip(space_position.get(&prime5_id))
                 {
@@ -676,23 +675,23 @@ impl DesignContent {
                     });
                 }
                 id += 1;
-                let bound = (old_nucl.unwrap(), nucl);
-                object_type.insert(bound_id, ObjectType::Bond(old_nucl_id.unwrap(), *prime5_id));
-                identifier_bond.insert(bound, bound_id);
-                nucleotides_involved.insert(bound_id, bound);
-                color_map.insert(bound_id, color);
-                strand_map.insert(bound_id, *s_id);
-                helix_map.insert(bound_id, nucl.helix);
-                log::debug!("adding {:?}, {:?}", bound.0, bound.1);
+                let bond = (old_nucl.unwrap(), nucl);
+                object_type.insert(bond_id, ObjectType::Bond(old_nucl_id.unwrap(), *prime5_id));
+                identifier_bond.insert(bond, bond_id);
+                nucleotides_involved.insert(bond_id, bond);
+                color_map.insert(bond_id, color);
+                strand_map.insert(bond_id, *s_id);
+                helix_map.insert(bond_id, nucl.helix);
+                log::debug!("adding {:?}, {:?}", bond.0, bond.1);
                 Self::update_junction(
                     &mut new_junctions,
                     strand
                         .junctions
                         .last_mut()
                         .expect("Broke Invariant [LastXoverJunction]"),
-                    (bound.0, bound.1),
+                    (bond.0, bond.1),
                 );
-                let (prime5, prime3) = bound;
+                let (prime5, prime3) = bond;
                 if let Some(id) = new_junctions.get_id(&(prime5, prime3)) {
                     elements.push(DesignElement::CrossOverElement {
                         xover_id: id,
@@ -799,12 +798,12 @@ impl DesignContent {
     fn update_junction(
         new_xover_ids: &mut JunctionsIds,
         junction: &mut DomainJunction,
-        bound: (Nucl, Nucl),
+        bond: (Nucl, Nucl),
     ) {
-        let is_xover = bound.0.prime3() != bound.1;
+        let is_xover = bond.0.prime3() != bond.1;
         match junction {
             DomainJunction::Adjacent if is_xover => {
-                let id = new_xover_ids.insert(bound);
+                let id = new_xover_ids.insert(bond);
                 *junction = DomainJunction::IdentifiedXover(id);
             }
             DomainJunction::UnindentifiedXover | DomainJunction::IdentifiedXover(_)
@@ -813,11 +812,11 @@ impl DesignContent {
                 *junction = DomainJunction::Adjacent;
             }
             DomainJunction::UnindentifiedXover => {
-                let id = new_xover_ids.insert(bound);
+                let id = new_xover_ids.insert(bond);
                 *junction = DomainJunction::IdentifiedXover(id);
             }
             DomainJunction::IdentifiedXover(id) => {
-                new_xover_ids.insert_at(bound, *id);
+                new_xover_ids.insert_at(bond, *id);
             }
             _ => (),
         }

@@ -262,7 +262,7 @@ impl View {
         );
         let grid_manager = GridManager::new(grid_drawer, fake_grid_drawer);
 
-        log::info!("Create disc  drawer");
+        log::info!("Create disc drawer");
         let disc_drawer = InstanceDrawer::new(
             device.clone(),
             queue.clone(),
