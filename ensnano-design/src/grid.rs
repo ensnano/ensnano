@@ -789,13 +789,15 @@ impl GridData {
             grids.insert(g_id, desc.to_grid(helix_parameters));
         }
         for (g_id, desc) in source_grids.iter() {
-            // odd even helix_parameters experiment
+            /* // odd even helix_parameters experiment
             let hp = if g_id.0 % 2 == 0 {
                 HelixParameters::GEARY_2014_DNA
             } else {
                 HelixParameters::GEARY_2014_RNA
             };
-            let grid = desc.to_grid(hp); //(helix_parameters);
+            let grid = desc.to_grid(hp); 
+            */
+            let grid = desc.to_grid(helix_parameters);
             grids.insert(GridId::FreeGrid(g_id.0), grid);
         }
         let source_helices = design.helices.clone();
