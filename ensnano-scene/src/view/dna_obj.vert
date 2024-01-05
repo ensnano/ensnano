@@ -41,8 +41,9 @@ buffer InstancesBlock {
     readonly Instances instances[];
 };
 
-const float LOW_CRIT = 1. / 0.7;
-const float HIGH_CRIT = 2. / 0.7;
+// expected_length is 0.64 nm for DNA
+const float LOW_CRIT = 1. / 0.7; // bond starts getting grey if length > expected_length / 0.7, i.e. if 42% too high
+const float HIGH_CRIT = 2. / 0.7; // bond gets black if length > 2*expected_length /0.7, i.e. if 185% too high
 
 void main() {
     int model_idx = 0;
@@ -64,9 +65,10 @@ void main() {
     v_color = instances[gl_InstanceIndex].color;
     vec3 scale = instances[gl_InstanceIndex].scale;
     float expected_length = instances[gl_InstanceIndex].expected_length;
+    // Change the color of the bond depending on its length if exceed the expected length
     if (expected_length > 0.) {
-        if (scale.x > expected_length * LOW_CRIT) {
-           scale.y *= 1.3;
+        if (scale.x > expected_length * LOW_CRIT) { // scale.x is the length of the tube for tube
+           scale.y *= 1.3; // make the bond radius larger if the length is too large
            scale.z *= 1.3;
            float shade = smoothstep(expected_length * LOW_CRIT, expected_length * HIGH_CRIT, scale.x);
            float grey = 0.25 - 0.25 * shade;
@@ -75,6 +77,7 @@ void main() {
            }
         } 
     }
+
     vec4 model_space = model_matrix * vec4(a_position * scale, 1.0); 
 
     /* if (scale.y < 0.8) {
