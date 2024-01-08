@@ -16,10 +16,31 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use super::*;
-use crate::HasMap;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
-pub struct NamedItem<T: Clone>(pub String, pub T);
+pub struct NamedItem<'a, T>(pub &'a str, pub T);
+
+pub trait ItemWithName<'a> {
+    fn get_name(&self) -> &'a str;
+}
+
+/*impl<'a> ItemWithName<'a> for NamedParameter {
+    fn get_name(self) -> &'static str {
+        return &self.name;
+    }
+}*/
+
+impl<'a, T> ItemWithName<'a> for NamedItem<'a, T> {
+    fn get_name(&self) -> &'a str {
+        return &self.0;
+    }
+}
+
+impl<'a, T> ItemWithName<'a> for Arc<NamedItem<'a, T>> {
+    fn get_name(&self) -> &'a str {
+        return &self.0;
+    }
+}
 
 #[derive(
     Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Default, Hash,
@@ -32,42 +53,9 @@ pub struct Id(pub usize);
 /// Collection of items with ids
 pub struct IdManager<T: Clone>(pub(super) Arc<BTreeMap<Id, Arc<T>>>);
 
-// impl<T> HasMap for IdHandler<T>  where T: Clone {
-//     type Key = Id;
-//     type Item = T;
-//     fn get_map(&self) -> &BTreeMap<Self::Key, Arc<Self::Item>> {
-//         &self.0
-//     }
-// }
-
-pub trait ItemWithName<'a> {
-    fn get_name(self) -> &'a str;
-}
-
-impl<'a> ItemWithName<'a> for NamedParameter {
-    fn get_name(self) -> &'static str {
-        return &self.name;
-    }
-}
-
-pub trait IdManagerForNamedItems {
-    fn get_id_of_one_item_named(self, name: String) -> Option<Id>;
-    fn get_name_by_id(self, id: Id) -> Option<String>;
-}
-
-impl<T: Clone> IdManagerForNamedItems for IdManager<NamedItem<T>> {
-    fn get_id_of_one_item_named(self, name: String) -> Option<Id> {
-        for (k, v) in self.0.iter() {
-            if v.0.eq(&name) {
-                return Some(k.clone());
-            }
-        }
-        return None;
-    }
-
-    fn get_name_by_id(self, id: Id) -> Option<String> {
-        self.0.get(&id).map(|item| item.0.clone())
-    }
+enum IdManagerError<'a> {
+    NoItemWithSuchId(Id),
+    NoItemWithSuchName(&'a str),
 }
 
 impl<T: Clone> IdManager<T> {
@@ -127,70 +115,111 @@ where
     }
 }
 
+pub trait IdManagerForNamedItems<'a> {
+    fn get_id_of_one_item_named(self, name: &str) -> Option<Id>;
+    fn get_name_by_id(self, id: Id) -> Option<&'a str>;
+}
+
+impl<'a, T: Clone> IdManagerForNamedItems<'a> for IdManager<NamedItem<'a, T>> {
+    fn get_id_of_one_item_named(self, name: &str) -> Option<Id> {
+        for (k, v) in self.0.iter() {
+            if v.0.eq(name) {
+                return Some(k.clone());
+            }
+        }
+        return None;
+    }
+
+    fn get_name_by_id(self, id: Id) -> Option<&'a str> {
+        self.0.get(&id).map(|item| item.get_name())
+    }
+}
+
+pub trait IdManagerMutForNamedItems {
+    fn rename_by_id(self, id: Id, name: &str) -> Option<()>;
+}
+impl<T: Clone> IdManagerMutForNamedItems for IdManagerMut<'_, NamedItem<'_, T>> {
+    fn rename_by_id(self, id: Id, name: &str) -> Option<()> {
+        None
+        /*match self.new_map.get_mut(&id) {
+            Some(item) => {
+                (*item).0 = name;
+                Some(())
+            }
+            _ => None,
+        } */
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::HelixParameters;
     use crate::NamedParameter;
 
+    /*
+        #[test]
+        fn get_name_from_itemwithname_for_namedparameter() {
+            let my_parameter = NamedParameter {
+                name: "My Parameter Name",
+                value: HelixParameters {
+                    rise: 0.,
+                    helix_radius: 0.,
+                    bases_per_turn: 0.,
+                    groove_angle: 0.,
+                    inter_helix_gap: 0.,
+                    inclination: 0.,
+                },
+            };
+            assert_eq!("My Parameter Name", my_parameter.get_name())
+    }*/
     #[test]
-    fn get_name_from_itemwithname_for_namedparameter() {
-        let my_parameter = NamedParameter {
-            name: "My Parameter Name",
-            value: HelixParameters {
-                z_step: 0.,
-                helix_radius: 0.,
-                bases_per_turn: 0.,
-                groove_angle: 0.,
-                inter_helix_gap: 0.,
-                inclination: 0.,
-            },
-        };
-        assert_eq!("My Parameter Name", my_parameter.get_name())
+    fn get_name_of_nameditem() {
+        let cat = NamedItem("Otto", "cat");
+        let name = cat.get_name();
+        assert_eq!("Otto", name);
+    }
+    #[test]
+    fn get_name_of_arced_nameditem() {
+        let cat = NamedItem("Otto", Arc::new("cat"));
+        let name = cat.get_name();
+        assert_eq!("Otto", name);
     }
     #[test]
     fn get_id_of_named_if_it_exists() {
-        let cat1 = NamedItem(String::from("Otto"), "cat");
-        let cat2 = NamedItem(String::from("Duchesse"), "cat");
-        let dog = NamedItem(String::from("Otto"), "dog");
+        let cat1 = NamedItem("Otto", "cat");
+        let cat2 = NamedItem("Duchesse", "cat");
+        let dog = NamedItem("Otto", "dog");
         let mut my_collection = BTreeMap::from([(Id(1), Arc::new(cat1)), (Id(2), Arc::new(cat2))]);
         my_collection.insert(Id(101), Arc::new(dog));
         let my_arced_collection = Arc::new(my_collection);
         let my_ided_collection = IdManager(my_arced_collection);
         assert_eq!(
             Id(1),
-            my_ided_collection
-                .get_id_of_one_item_named(String::from("Otto"))
-                .unwrap()
+            my_ided_collection.get_id_of_one_item_named("Otto").unwrap()
         );
     }
 
     #[test]
     fn get_id_of_named_if_does_not_exist() {
-        let cat1 = NamedItem(String::from("Otto"), "cat");
+        let cat1 = NamedItem("Otto", "cat");
         let my_collection = BTreeMap::from([(Id(1), Arc::new(cat1))]);
         let my_arced_collection = Arc::new(my_collection);
         let my_ided_collection = IdManager(my_arced_collection);
-        assert_eq!(
-            None,
-            my_ided_collection.get_id_of_one_item_named(String::from("Chachat"))
-        );
+        assert_eq!(None, my_ided_collection.get_id_of_one_item_named("Chachat"));
     }
     #[test]
     fn get_name_if_exists() {
-        let cat1 = NamedItem(String::from("Otto"), "cat");
+        let cat1 = NamedItem("Otto", "cat");
         let my_collection = BTreeMap::from([(Id(1), Arc::new(cat1))]);
         let my_arced_collection = Arc::new(my_collection);
         let my_ided_collection = IdManager(my_arced_collection);
-        assert_eq!(
-            Some(String::from("Otto")),
-            my_ided_collection.get_name_by_id(Id(1))
-        );
+        assert_eq!(Some("Otto"), my_ided_collection.get_name_by_id(Id(1)));
     }
 
     #[test]
     fn get_name_if_does_not_exist() {
-        let cat1 = NamedItem(String::from("Otto"), "cat");
+        let cat1 = NamedItem("Otto", "cat");
         let my_collection = BTreeMap::from([(Id(1), Arc::new(cat1))]);
         let my_arced_collection = Arc::new(my_collection);
         let my_ided_collection = IdManager(my_arced_collection);
@@ -199,19 +228,19 @@ mod tests {
 
     #[test]
     fn make_mut_and_push() {
-        let cat = NamedItem(String::from("Snowball"), "cat");
+        let cat = NamedItem("Snowball", "cat");
         let mut my_ided_collection =
             IdManager(Arc::new(BTreeMap::from([(Id(100), Arc::new(cat))])));
         {
             let mut my_mut_ided_collection = my_ided_collection.make_mut();
-            my_mut_ided_collection.push(NamedItem(String::from("Ember"), "dog"));
+            my_mut_ided_collection.push(NamedItem("Ember", "dog"));
         }
         assert_eq!("IdManager({Id(100): NamedItem(\"Snowball\", \"cat\"), Id(101): NamedItem(\"Ember\", \"dog\")})", format!("{:?}", my_ided_collection));
     }
 
     #[test]
     fn make_mut_and_remove() {
-        let cat = NamedItem(String::from("Snowball"), "cat");
+        let cat = NamedItem("Snowball", "cat");
         let mut my_ided_collection = IdManager(Arc::new(BTreeMap::from([
             (Id(100), Arc::new(cat.clone())),
             (Id(20), Arc::new(cat)),
