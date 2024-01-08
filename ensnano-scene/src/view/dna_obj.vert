@@ -41,7 +41,7 @@ buffer InstancesBlock {
     readonly Instances instances[];
 };
 
-// expected_length is 0.64 nm for DNA
+// expected_length is 0.64 nm for DNA if normal view and 2.65 if axis view
 const float LOW_CRIT = 1. / 0.7; // bond starts getting grey if length > expected_length / 0.7, i.e. if 42% too high
 const float HIGH_CRIT = 2. / 0.7; // bond gets black if length > 2*expected_length /0.7, i.e. if 185% too high
 
