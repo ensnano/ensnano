@@ -8,20 +8,26 @@ RELEASE_OPT= #--features=log_after_renderer_setup
 SIGNATURE=Developer ID Application: Nicolas Schabanel (2KPHSEF9U9)
 ICON_APP=app-icons/ENSnano
 
-SHADERS_DIR=ensnano-scene/src/view
-SHADERS_SUBDIR=${SHADERS_DIR}/grid
+SHADER_SCENE=ensnano-scene/src/view
+SHADERS_GRID=${SHADER_SCENE}/grid
+SHADERS_CIRCLE2D=ensnano-utils/src/circles2d
+SHADERS_CHARS2D=ensnano-utils/src/chars2d
+SHADERS_MULTIPLEXER=src/multiplexer
+SHADERS_FLATSCENE=ensnano-flatscene/src/view
 
-VERTEX_SHARDERS= ${SHADERS_DIR}/
+SHADERS= ${SHADER_SCENE}/direction_cube.frag.spv ${SHADER_SCENE}/grid_disc.vert.spv ${SHADER_SCENE}/direction_cube.vert.spv ${SHADER_SCENE}/letter.frag.spv ${SHADER_SCENE}/dna_obj.frag.spv ${SHADER_SCENE}/letter.vert.spv ${SHADER_SCENE}/dna_obj.vert.spv ${SHADER_SCENE}/plane.frag.spv ${SHADER_SCENE}/dna_obj_fake.frag.spv ${SHADER_SCENE}/plane.vert.spv ${SHADER_SCENE}/dna_obj_outline.frag.spv ${SHADER_SCENE}/sheet_2d.frag.spv ${SHADER_SCENE}/dna_obj_outline.vert.spv ${SHADER_SCENE}/sheet_2d.vert.spv ${SHADER_SCENE}/gltf_obj.frag.spv ${SHADER_SCENE}/skybox.frag.spv ${SHADER_SCENE}/gltf_obj.vert.spv ${SHADER_SCENE}/skybox.vert.spv ${SHADER_SCENE}/grid_disc.frag.spv ${SHADERS_GRID}/grid.frag.spv ${SHADERS_GRID}/grid.vert.spv ${SHADERS_GRID}/texture.frag.spv ${SHADERS_GRID}/texture.vert.spv ${SHADERS_MULTIPLEXER}/draw.frag.spv ${SHADERS_MULTIPLEXER}/draw.vert.spv ${SHADERS_CIRCLE2D}/circle.frag.spv ${SHADERS_CIRCLE2D}/circle.vert.spv ${SHADERS_CIRCLE2D}/rotation_widget.frag.spv ${SHADERS_CHARS2D}/chars.frag.spv ${SHADERS_CHARS2D}/chars.vert.spv ${SHADERS_FLATSCENE}/border.frag.spv ${SHADERS_FLATSCENE}/rectangle.vert.spv ${SHADERS_FLATSCENE}/background.vert.spv ${SHADERS_FLATSCENE}/strand.frag.spv ${SHADERS_FLATSCENE}/insertion.vert.spv ${SHADERS_FLATSCENE}/grid.vert.spv ${SHADERS_FLATSCENE}/grid.frag.spv ${SHADERS_FLATSCENE}/strand.vert.spv ${SHADERS_FLATSCENE}/background.frag.spv ${SHADERS_FLATSCENE}/rectangle.frag.spv ${SHADERS_FLATSCENE}/border.vert.spv
+# must rename plan_vert.spv plane_frag.spv viewborder.frag.spv
 
-FRAGMENT_SHARDERS= ${SHADERS_DIR}/direction_cube.frag.spv ${SHADERS_DIR}/grid_disc.vert.spv ${SHADERS_DIR}/direction_cube.vert.spv ${SHADERS_DIR}/letter.frag.spv ${SHADERS_DIR}/dna_obj.frag.spv ${SHADERS_DIR}/letter.vert.spv ${SHADERS_DIR}/dna_obj.vert.spv ${SHADERS_DIR}/plane_frag.spv ${SHADERS_DIR}/dna_obj_fake.frag.spv ${SHADERS_DIR}/plane_vert.spv ${SHADERS_DIR}/dna_obj_outline.frag.spv ${SHADERS_DIR}/sheet_2d.frag.spv ${SHADERS_DIR}/dna_obj_outline.vert.spv ${SHADERS_DIR}/sheet_2d.vert.spv ${SHADERS_DIR}/gltf_obj.frag.spv ${SHADERS_DIR}/skybox.frag.spv ${SHADERS_DIR}/gltf_obj.vert.spv ${SHADERS_DIR}/skybox.vert.spv ${SHADERS_DIR}/grid_disc.frag.spv
+shaders: ${SHADERS}
+	@echo Shaders compilation: Done, you should \"cargo clean\" to propagate the changes.
 
-shaders: ${FRAGMENT_SHARDERS}
-	@echo Done
+clean-shaders:
+	rm ${SHADERS}
 
 %.frag.spv: %.frag
-	@glslang -V $< -o $@
+	glslang -V $< -o $@
 
-%.vert.spv: %.frag
+%.vert.spv: %.vert
 	glslang -V $< -o $@
 
 touch: 
