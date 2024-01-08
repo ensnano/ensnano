@@ -217,7 +217,7 @@ impl<R: DesignReader> Design3D<R> {
         }
         let expected_length = if self.thick_helices {
             // normal representation of an helix
-            self.design.get_expected_bond_length() 
+            self.design.get_expected_bond_length()
         } else {
             // axis representation of an helix
             HelixParameters::INTER_CENTER_GAP
