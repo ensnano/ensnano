@@ -151,10 +151,10 @@ impl<D: Drawable> Drawer<D> {
     ) -> RenderPipeline {
         let vertex_module = self
             .device
-            .create_shader_module(&include_spirv!("plane_vert.spv"));
+            .create_shader_module(&include_spirv!("plane.vert.spv"));
         let fragment_module = self
             .device
-            .create_shader_module(&include_spirv!("plane_frag.spv"));
+            .create_shader_module(&include_spirv!("plane.frag.spv"));
         let render_pipeline_layout =
             self.device
                 .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
