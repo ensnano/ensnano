@@ -862,7 +862,7 @@ impl FromStr for DrawingAttribute {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Default, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct DrawingStyle {
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub sphere_radius: Option<f32>,
@@ -876,6 +876,19 @@ pub struct DrawingStyle {
     pub bond_color: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub double_helix_as_cylinder_color: Option<u32>,
+}
+
+impl Default for DrawingStyle {
+    fn default() -> Self {
+        DrawingStyle {
+            sphere_radius: None,
+            bond_radius: None,
+            double_helix_as_cylinder_radius: None,
+            sphere_color: None,
+            bond_color: None,
+            double_helix_as_cylinder_color: None,
+        }
+    }
 }
 
 impl DrawingStyle {
