@@ -496,9 +496,8 @@ impl<R: DesignReader> Design3D<R> {
         }
         if length < critical_length_high {
             let x = (length - critical_length_low) / (critical_length_high - critical_length_low);
-            let g = 0.25 - 0.25 * x;
-            let grey = (g * 255.0).floor() as u32;
-            return Some(grey << 16 | grey << 8 | grey);
+            let grey = 0.25 - 0.25 * x;
+            return Some(Instance::grey_u32_color_from_f32(grey));
         }
         return Some(0x_00_00_00);
     }
