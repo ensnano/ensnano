@@ -19,7 +19,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! All other format supported by ensnano are converted into this format and run-time manipulation
 //! of designs are performed on an `ensnano::Design` structure
 use std::collections::{BTreeMap, HashMap, HashSet};
+use std::str::FromStr;
 use std::sync::Arc;
+
+use regex::Regex;
 
 #[macro_use]
 extern crate serde_derive;
@@ -806,5 +809,56 @@ impl Nucl {
 impl std::fmt::Display for Nucl {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "({}, {}, {})", self.helix, self.position, self.forward)
+    }
+}
+
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub enum DrawingAttribute {
+    SphereRadius(f32),
+    BondRadius(f32),
+    SphereColor(u32), // with alpha
+    BondColor(u32),   // with alpha
+    DoubleHelixAsCylinderRadius(f32),
+    DoubleHelixAsCylinderColor(u32), // with alpha
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub struct ParsePointError;
+
+impl FromStr for DrawingAttribute {
+    type Err = ParsePointError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let s = s.trim();
+        let re_hexa = Regex::new(r"([0-9a-fA-F])+").unwrap();
+        let re_f32 = Regex::new(r"\d+(\.\d*)?").unwrap();
+        if let Some(some_float) = re_f32.find(s) {
+            let value = f32::from_str(some_float.as_str()).unwrap();
+            if s.starts_with("%sr") || s.starts_with("SphereRadius") {
+                return Ok(Self::SphereRadius(value));
+            }
+            if s.starts_with("%br") || s.starts_with("BondRadius") {
+                return Ok(Self::BondRadius(value));
+            }
+            if s.starts_with("%hr") || s.starts_with("DoubleHelixAsCylinderRadius") {
+                return Ok(Self::DoubleHelixAsCylinderRadius(value));
+            }
+        }
+
+        if let Some(arg) = s.split("(").collect::<Vec<&str>>().get(1) {
+            if let Some(some_hexa) = re_hexa.find(arg) {
+                let value = u32::from_str_radix(some_hexa.as_str(), 16).unwrap();
+                if s.starts_with("%sc") || s.starts_with("SphereColor") {
+                    return Ok(Self::SphereColor(value));
+                }
+                if s.starts_with("%bc") || s.starts_with("BondColor") {
+                    return Ok(Self::BondColor(value));
+                }
+                if s.starts_with("%hc") || s.starts_with("DoubleHelixAsCylinderColor") {
+                    return Ok(Self::DoubleHelixAsCylinderColor(value));
+                }
+            }
+        }
+        return Err(ParsePointError);
     }
 }

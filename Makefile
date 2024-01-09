@@ -1,3 +1,4 @@
+VULKAN_SHADER_COMPILER=glslang -V
 EXE=ensnano
 MACOS_BIN=target/x86_64-apple-darwin/release/${EXE}
 WINDOWS_BIN=target/x86_64-pc-windows-gnu/release/${EXE}
@@ -25,10 +26,10 @@ clean-shaders:
 	rm ${SHADERS}
 
 %.frag.spv: %.frag
-	glslang -V $< -o $@
+	${VULKAN_SHADER_COMPILER} $< -o $@
 
 %.vert.spv: %.vert
-	glslang -V $< -o $@
+	${VULKAN_SHADER_COMPILER} $< -o $@
 
 touch: 
 	touch src

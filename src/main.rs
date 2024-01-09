@@ -108,6 +108,9 @@ use winit::{
     window::Window,
 };
 
+use ensnano_design::DrawingAttribute;
+use std::str::FromStr;
+
 #[allow(unused_imports)]
 #[macro_use]
 extern crate pretty_env_logger;
