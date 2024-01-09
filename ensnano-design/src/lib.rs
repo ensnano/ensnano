@@ -19,10 +19,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! All other format supported by ensnano are converted into this format and run-time manipulation
 //! of designs are performed on an `ensnano::Design` structure
 use std::collections::{BTreeMap, HashMap, HashSet};
-use std::str::FromStr;
 use std::sync::Arc;
 
 use regex::Regex;
+use std::str::FromStr;
 
 #[macro_use]
 extern crate serde_derive;
@@ -71,6 +71,7 @@ mod tests;
 pub use external_3d_objects::*;
 
 /// The `ensnano` Design structure.
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Design {
     /// The collection of all helices used in this design. Helices have a
     /// position and an orientation in 3D.
@@ -891,7 +892,7 @@ impl Default for DrawingStyle {
     }
 }
 
-impl DrawingStyle {
+impl From<Vec<DrawingAttribute>> for DrawingStyle {
     fn from(attributes: Vec<DrawingAttribute>) -> Self {
         let mut ret = DrawingStyle::default();
         for att in attributes {
@@ -905,5 +906,19 @@ impl DrawingStyle {
             }
         }
         return ret 
+    }
+}
+
+impl DrawingStyle {
+    fn with_attribute(&self, att: DrawingAttribute) -> Self {
+        match att {
+            DrawingAttribute::SphereRadius(r) => DrawingStyle { sphere_radius: Some(r), ..*self },
+            DrawingAttribute::BondRadius(r) => DrawingStyle { bond_radius: Some(r), ..*self },
+            DrawingAttribute::DoubleHelixAsCylinderRadius(r) => DrawingStyle { double_helix_as_cylinder_radius: Some(r), ..*self },
+            DrawingAttribute::SphereColor(c) => DrawingStyle { sphere_color: Some(c), ..*self },
+            DrawingAttribute::BondColor(c) => DrawingStyle { bond_color: Some(c), ..*self },
+            DrawingAttribute::DoubleHelixAsCylinderColor(c) => DrawingStyle { double_helix_as_cylinder_color: Some(c), ..*self },
+        }
+
     }
 }
