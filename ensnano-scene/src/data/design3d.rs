@@ -78,8 +78,8 @@ impl<R: DesignReader> Design3D<R> {
 
     /// Return the list of raw sphere instances to be displayed to represent the design
     pub fn get_spheres_raw(&self, show_insertion_representents: bool) -> Rc<Vec<RawDnaInstance>> {
-        let ids = self.design.get_all_visible_nucl_ids();
-        let mut ret = self.id_to_raw_instances(ids);
+        let visible_nucls_ids = self.design.get_all_visible_nucl_ids();
+        let mut ret = self.id_to_raw_instances(visible_nucls_ids);
         if !show_insertion_representents {
             for loopout_nucl in self.design.get_all_loopout_nucl() {
                 ret.push(
@@ -474,7 +474,11 @@ impl<R: DesignReader> Design3D<R> {
 
     /// Auxilary function that computes the length-adjusted color of a bond
     /// return None if color does not need to be adjusted
-    pub fn length_adjusted_color_for_bond(&self, id1: u32, id2: u32) -> Option<u32> {
+    pub fn length_adjusted_color_and_radius_for_bond(
+        &self,
+        id1: u32,
+        id2: u32,
+    ) -> Option<(u32, f32)> {
         let real_pos1 = self
             .get_element_position(
                 &SceneElement::DesignElement(self.id, id1),
@@ -488,18 +492,18 @@ impl<R: DesignReader> Design3D<R> {
             )
             .unwrap_or(f32::NAN * Vec3::unit_x());
         let length = (real_pos2 - real_pos1).mag();
-        let expected_length = self.design.get_expected_bond_length();
+        let expected_length = self.design.get_expected_bond_length(); // SHOULD DEPEND ON THE HELIX_MODEL OF THE STRAND -> SHOULD BE MODIFIED LATER
         let critical_length_low = expected_length / 0.7; // TO BE MADE A CONSTANT IN CONST.RS
-        let critical_length_high = 2.0 * critical_length_low;
+        let critical_length_high = 2.0 * critical_length_low; // TO BE MADE A CONSTANT IN CONST.RS
         if length < critical_length_low {
             return None;
         }
         if length < critical_length_high {
             let x = (length - critical_length_low) / (critical_length_high - critical_length_low);
             let grey = 0.25 - 0.25 * x;
-            return Some(Instance::grey_u32_color_from_f32(grey));
+            return Some((Instance::grey_u32_color_from_f32(grey), 1.3));
         }
-        return Some(0x_00_00_00);
+        return Some((0x_00_00_00, 1.3));
     }
 
     /// Convert return an instance representing the object with identifier `id`
@@ -514,10 +518,10 @@ impl<R: DesignReader> Design3D<R> {
                 let color = self.get_color(id).unwrap_or(0);
                 let id = id | self.id << 24;
                 // Adjust the color and rafius of the bond according to the REAL length of the bond
-                let color = self
-                    .length_adjusted_color_for_bond(id1, id2)
-                    .unwrap_or(color);
-                let tube = create_dna_bond(pos1, pos2, color, id, false);
+                let (color, radius) = self
+                    .length_adjusted_color_and_radius_for_bond(id1, id2)
+                    .unwrap_or((color, 1.0));
+                let tube = create_dna_bond(pos1, pos2, color, id, false).with_radius(radius);
                 tube.to_raw_instance()
             }
             ObjectType::Nucleotide(id) => {
