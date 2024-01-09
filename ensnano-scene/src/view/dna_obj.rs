@@ -84,6 +84,12 @@ pub struct SphereInstance {
     pub radius: f32,
 }
 
+impl SphereInstance {
+    pub fn with_radius(self, radius: f32) -> Self {
+        Self { radius, ..self }
+    }
+}
+
 impl Instanciable for SphereInstance {
     type Vertex = DnaVertex;
     type RawInstance = RawDnaInstance;

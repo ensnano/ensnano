@@ -128,7 +128,7 @@ impl<R: DesignReader> Design3D<R> {
         let mut tubes = Vec::new();
         let positions = self.design.get_pasted_position();
         for (positions, pastable) in positions {
-            let mut previous_postion = None;
+            let mut previous_position = None;
             let color = if pastable {
                 CANDIDATE_COLOR
             } else {
@@ -144,11 +144,11 @@ impl<R: DesignReader> Design3D<R> {
                 }
                 .to_raw_instance();
                 spheres.push(sphere);
-                if let Some(prev) = previous_postion {
+                if let Some(prev) = previous_position {
                     let tube = create_dna_bond(prev, *position, color, 0, true);
                     tubes.push(tube.to_raw_instance());
                 }
-                previous_postion = Some(*position);
+                previous_position = Some(*position);
             }
         }
         (spheres, tubes)
@@ -211,9 +211,9 @@ impl<R: DesignReader> Design3D<R> {
 
     /// Return the list of tube instances to be displayed to represent the design
     pub fn get_tubes_raw(&self, show_insertion_representents: bool) -> Rc<Vec<RawDnaInstance>> {
-        let mut ids = self.design.get_all_visible_bond_ids();
+        let mut visible_bonds_ids = self.design.get_all_visible_bond_ids();
         if !show_insertion_representents {
-            ids.retain(|id| self.design.get_insertion_length(*id) == 0);
+            visible_bonds_ids.retain(|id| self.design.get_insertion_length(*id) == 0);
         }
         let expected_length = if self.thick_helices {
             // normal representation of an helix
@@ -223,7 +223,7 @@ impl<R: DesignReader> Design3D<R> {
             HelixParameters::INTER_CENTER_GAP
         };
         let mut ret: Vec<_> = self
-            .id_to_raw_instances(ids)
+            .id_to_raw_instances(visible_bonds_ids)
             .into_iter()
             .map(|x| x.with_expected_length(expected_length))
             .collect();

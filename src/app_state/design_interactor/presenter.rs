@@ -576,7 +576,7 @@ pub(super) fn apply_simulation_update(
     );
     let mut new_content = new_presenter.content.clone_inner();
     let mut returned_presenter = new_presenter.clone_inner();
-    new_content.read_simualtion_update(update.as_ref());
+    new_content.read_simulation_update(update.as_ref());
     returned_presenter.content = AddressPointer::new(new_content);
     returned_presenter.apply_simulation_update(update);
     (AddressPointer::new(returned_presenter), returned_design)
