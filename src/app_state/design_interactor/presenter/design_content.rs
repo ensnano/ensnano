@@ -396,7 +396,7 @@ impl DesignContent {
         design: &Design,
         invisible_nucls: &HashSet<Nucl>,
     ) -> Vec<u32> {
-        let check_visiblity = |&(_, bond): &(&u32, &(Nucl, Nucl))| {
+        let check_visibility = |&(_, bond): &(&u32, &(Nucl, Nucl))| {
             !(invisible_nucls.contains(&bond.0) && invisible_nucls.contains(&bond.1))
                 && (design
                     .helices
@@ -411,7 +411,7 @@ impl DesignContent {
         };
         self.nucleotides_involved
             .iter()
-            .filter(check_visiblity)
+            .filter(check_visibility)
             .map(|t| *t.0)
             .collect()
     }
@@ -579,7 +579,7 @@ impl DesignContent {
                             object_type.insert(bond_id, ObjectType::Bond(old_nucl_id.unwrap(), id));
                             identifier_bond.insert(bond, bond_id);
                             nucleotides_involved.insert(bond_id, bond);
-                            color_map.insert(bond_id, color);
+                            color_map.insert(bond_id, color); // color given to the bond
                             strand_map.insert(bond_id, *s_id);
                             helix_map.insert(bond_id, nucl.helix);
                             id
