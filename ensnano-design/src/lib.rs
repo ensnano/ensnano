@@ -71,7 +71,6 @@ mod tests;
 pub use external_3d_objects::*;
 
 /// The `ensnano` Design structure.
-#[derive(Serialize, Deserialize, Clone)]
 pub struct Design {
     /// The collection of all helices used in this design. Helices have a
     /// position and an orientation in 3D.
@@ -860,5 +859,38 @@ impl FromStr for DrawingAttribute {
             }
         }
         return Err(ParsePointError);
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Default, Debug)]
+pub struct DrawingStyle {
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub sphere_radius: Option<f32>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub bond_radius: Option<f32>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub double_helix_as_cylinder_radius: Option<f32>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub sphere_color: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub bond_color: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub double_helix_as_cylinder_color: Option<u32>,
+}
+
+impl DrawingStyle {
+    fn from(attributes: Vec<DrawingAttribute>) -> Self {
+        let mut ret = DrawingStyle::default();
+        for att in attributes {
+            match att {
+                DrawingAttribute::SphereRadius(r) => ret.sphere_radius = Some(r),
+                DrawingAttribute::BondRadius(r) => ret.bond_radius = Some(r),
+                DrawingAttribute::DoubleHelixAsCylinderRadius(r) => ret.double_helix_as_cylinder_radius = Some(r),
+                DrawingAttribute::SphereColor(c) => ret.sphere_color = Some(c),
+                DrawingAttribute::BondColor(c) => ret.bond_color = Some(c),
+                DrawingAttribute::DoubleHelixAsCylinderColor(c) => ret.double_helix_as_cylinder_color = Some(c),
+            }
+        }
+        return ret 
     }
 }
