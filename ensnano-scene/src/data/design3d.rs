@@ -45,20 +45,20 @@ mod bezier_paths;
 
 /// An object that handles the 3d graphcial representation of a `Design`
 pub struct Design3D<R: DesignReader> {
-    design: R,
+    design_reader: R,
     id: u32,
     symbol_map: HashMap<char, usize>,
     pub thick_helices: bool,
 }
 
 impl<R: DesignReader> Design3D<R> {
-    pub fn new(design: R, id: u32) -> Self {
+    pub fn new(design_reader: R, id: u32) -> Self {
         let mut symbol_map = HashMap::new();
         for (s_id, s) in PRINTABLE_CHARS.iter().enumerate() {
             symbol_map.insert(*s, s_id);
         }
         Self {
-            design,
+            design_reader,
             id,
             symbol_map,
             thick_helices: true,
@@ -78,10 +78,10 @@ impl<R: DesignReader> Design3D<R> {
 
     /// Return the list of raw sphere instances to be displayed to represent the design
     pub fn get_spheres_raw(&self, show_insertion_representents: bool) -> Rc<Vec<RawDnaInstance>> {
-        let visible_nucls_ids = self.design.get_all_visible_nucl_ids();
+        let visible_nucls_ids = self.design_reader.get_all_visible_nucl_ids();
         let mut ret = self.id_to_raw_instances(visible_nucls_ids);
         if !show_insertion_representents {
-            for loopout_nucl in self.design.get_all_loopout_nucl() {
+            for loopout_nucl in self.design_reader.get_all_loopout_nucl() {
                 ret.push(
                     SphereInstance {
                         position: loopout_nucl.position,
@@ -93,7 +93,7 @@ impl<R: DesignReader> Design3D<R> {
                 );
             }
         }
-        if let Some(additional_structure) = self.design.get_additional_structure() {
+        if let Some(additional_structure) = self.design_reader.get_additional_structure() {
             let transformation = additional_structure.frame();
             for p in additional_structure.position() {
                 ret.push(
@@ -126,7 +126,7 @@ impl<R: DesignReader> Design3D<R> {
     pub fn get_pasted_strand(&self) -> (Vec<RawDnaInstance>, Vec<RawDnaInstance>) {
         let mut spheres = Vec::new();
         let mut tubes = Vec::new();
-        let positions = self.design.get_pasted_position();
+        let positions = self.design_reader.get_pasted_position();
         for (positions, pastable) in positions {
             let mut previous_position = None;
             let color = if pastable {
@@ -158,11 +158,11 @@ impl<R: DesignReader> Design3D<R> {
         &self,
         show_insertion_representents: bool,
     ) -> Vec<Vec<LetterInstance>> {
-        let ids = self.design.get_all_nucl_ids();
+        let ids = self.design_reader.get_all_nucl_ids();
         let mut vecs = vec![Vec::new(); NB_PRINTABLE_CHARS];
         for id in ids {
-            let pos = self.design.get_symbol_position(id);
-            let symbol = self.design.get_symbol(id);
+            let pos = self.design_reader.get_symbol_position(id);
+            let symbol = self.design_reader.get_symbol(id);
             if let Some((pos, symbol)) = pos.zip(symbol) {
                 if let Some(id) = self.symbol_map.get(&symbol) {
                     let instance = LetterInstance {
@@ -177,7 +177,7 @@ impl<R: DesignReader> Design3D<R> {
             }
         }
         if !show_insertion_representents {
-            for loopout_nucl in self.design.get_all_loopout_nucl() {
+            for loopout_nucl in self.design_reader.get_all_loopout_nucl() {
                 if let Some(symbol) = loopout_nucl.basis {
                     let pos = loopout_nucl.position;
                     if let Some(id) = self.symbol_map.get(&symbol) {
@@ -197,9 +197,9 @@ impl<R: DesignReader> Design3D<R> {
     }
 
     pub fn get_cones_raw(&self, show_insertion_representents: bool) -> Vec<RawDnaInstance> {
-        let mut ids = self.design.get_all_visible_bond_ids();
+        let mut ids = self.design_reader.get_all_visible_bond_ids();
         if !show_insertion_representents {
-            ids.retain(|id| self.design.get_insertion_length(*id) == 0);
+            ids.retain(|id| self.design_reader.get_insertion_length(*id) == 0);
         }
         let filter = |_n: &Nucl| true;
         let vec: Vec<_> = ids
@@ -211,13 +211,13 @@ impl<R: DesignReader> Design3D<R> {
 
     /// Return the list of tube instances to be displayed to represent the design
     pub fn get_tubes_raw(&self, show_insertion_representents: bool) -> Rc<Vec<RawDnaInstance>> {
-        let mut visible_bonds_ids = self.design.get_all_visible_bond_ids();
+        let mut visible_bonds_ids = self.design_reader.get_all_visible_bond_ids();
         if !show_insertion_representents {
-            visible_bonds_ids.retain(|id| self.design.get_insertion_length(*id) == 0);
+            visible_bonds_ids.retain(|id| self.design_reader.get_insertion_length(*id) == 0);
         }
         let expected_length = if self.thick_helices {
             // normal representation of an helix
-            self.design.get_expected_bond_length()
+            self.design_reader.get_expected_bond_length()
         } else {
             // axis representation of an helix
             HelixParameters::INTER_CENTER_GAP
@@ -225,10 +225,10 @@ impl<R: DesignReader> Design3D<R> {
         let mut ret: Vec<_> = self
             .id_to_raw_instances(visible_bonds_ids)
             .into_iter()
-            .map(|x| x.with_expected_length(expected_length))
+            .map(|x| x.with_expected_length(expected_length)) // inutile désormais
             .collect();
         if !show_insertion_representents {
-            for loopout_bond in self.design.get_all_loopout_bonds() {
+            for loopout_bond in self.design_reader.get_all_loopout_bonds() {
                 ret.push(
                     create_dna_bond(
                         loopout_bond.position_prime5,
@@ -243,7 +243,7 @@ impl<R: DesignReader> Design3D<R> {
             }
         }
 
-        if let Some(additional_structure) = self.design.get_additional_structure() {
+        if let Some(additional_structure) = self.design_reader.get_additional_structure() {
             let transformation = additional_structure.frame();
             let positions = additional_structure.position();
             for (me, next) in additional_structure.right().into_iter() {
@@ -267,11 +267,11 @@ impl<R: DesignReader> Design3D<R> {
     }
 
     pub fn get_model_matrix(&self) -> Mat4 {
-        self.design.get_model_matrix()
+        self.design_reader.get_model_matrix()
     }
 
     pub fn get_bezier_grid_used_by_helix(&self, h_id: usize) -> Vec<GridId> {
-        self.design.get_bezier_grid_used_by_helix(h_id)
+        self.design_reader.get_bezier_grid_used_by_helix(h_id)
     }
 
     /// Convert return an instance representing the object with identifier `id` and custom
@@ -287,7 +287,7 @@ impl<R: DesignReader> Design3D<R> {
 
         let mut ret = Vec::new();
         if expand_with.is_none()
-            || self.design.get_insertion_length(id) == 0
+            || self.design_reader.get_insertion_length(id) == 0
             || matches!(kind, Some(ObjectType::Nucleotide(_)))
         {
             let instanciable = match kind {
@@ -309,7 +309,7 @@ impl<R: DesignReader> Design3D<R> {
                         .unwrap_or(f32::NAN * Vec3::unit_x());
                     let id = id | self.id << 24;
                     let color = Instance::color_from_au32(color);
-                    let small = self.design.has_small_spheres_nucl_id(id);
+                    let small = self.design_reader.has_small_spheres_nucl_id(id);
                     if radius > 1.01 && small {
                         radius *= 2.5;
                     }
@@ -328,7 +328,7 @@ impl<R: DesignReader> Design3D<R> {
         }
         if let Some(ExpandWith::Tubes) = expand_with {
             for loopout_bond in self
-                .design
+                .design_reader
                 .get_all_loopout_bonds()
                 .iter()
                 .filter(|lb| lb.repr_bond_identifier == id)
@@ -348,7 +348,7 @@ impl<R: DesignReader> Design3D<R> {
         }
         if let Some(ExpandWith::Spheres) = expand_with {
             for loopout_nucl in self
-                .design
+                .design_reader
                 .get_all_loopout_nucl()
                 .iter()
                 .filter(|ln| ln.repr_bond_identifier == id)
@@ -379,7 +379,7 @@ impl<R: DesignReader> Design3D<R> {
     }
 
     pub fn get_all_checked_xover_instance(&self, checked: bool) -> Vec<RawDnaInstance> {
-        self.design
+        self.design_reader
             .get_checked_xovers_ids(checked)
             .into_iter()
             .filter_map(|id| self.make_checked_xover_instance(id, checked))
@@ -391,7 +391,7 @@ impl<R: DesignReader> Design3D<R> {
         let mut full_h_bonds = Vec::new();
         let mut partial_h_bonds = Vec::new();
         let mut ellipsoids = Vec::new();
-        for hbond in self.design.get_all_h_bonds() {
+        for hbond in self.design_reader.get_all_h_bonds() {
             let forward_bond = create_dna_bond(
                 hbond.forward.backbone,
                 hbond.forward.center_of_mass,
@@ -462,7 +462,7 @@ impl<R: DesignReader> Design3D<R> {
                 let pos2 =
                     self.get_graphic_element_position(&SceneElement::DesignElement(self.id, id2))?;
 
-                self.design.get_nucl_with_id(id1).filter(filter)?;
+                self.design_reader.get_nucl_with_id(id1).filter(filter)?;
 
                 let color = self.get_color(id).unwrap_or(0);
                 let cone = create_prime3_cone(pos1, pos2, color);
@@ -492,7 +492,7 @@ impl<R: DesignReader> Design3D<R> {
             )
             .unwrap_or(f32::NAN * Vec3::unit_x());
         let length = (real_pos2 - real_pos1).mag();
-        let expected_length = self.design.get_expected_bond_length(); // SHOULD DEPEND ON THE HELIX_MODEL OF THE STRAND -> SHOULD BE MODIFIED LATER
+        let expected_length = self.design_reader.get_expected_bond_length(); // SHOULD DEPEND ON THE HELIX_MODEL OF THE STRAND -> SHOULD BE MODIFIED LATER
         let critical_length_low = expected_length / 0.7; // TO BE MADE A CONSTANT IN CONST.RS
         let critical_length_high = 2.0 * critical_length_low; // TO BE MADE A CONSTANT IN CONST.RS
         if length < critical_length_low {
@@ -530,7 +530,7 @@ impl<R: DesignReader> Design3D<R> {
                 let color = self.get_color(id)?;
                 let color = Instance::color_from_u32(color);
                 let id = id | self.id << 24;
-                let small = self.design.has_small_spheres_nucl_id(id);
+                let small = self.design_reader.has_small_spheres_nucl_id(id);
                 let radius = if small {
                     BOND_RADIUS / SPHERE_RADIUS
                 } else {
@@ -549,15 +549,15 @@ impl<R: DesignReader> Design3D<R> {
     }
 
     pub fn get_suggested_spheres(&self) -> Vec<RawDnaInstance> {
-        let suggestion = self.design.get_suggestions();
+        let suggestion = self.design_reader.get_suggestions();
         let mut ret = vec![];
         for (n1, n2) in suggestion {
-            let nucl_1 = self.design.get_position_of_nucl_on_helix(
+            let nucl_1 = self.design_reader.get_position_of_nucl_on_helix(
                 n1,
                 Referential::Model,
                 !self.thick_helices,
             );
-            let nucl_2 = self.design.get_position_of_nucl_on_helix(
+            let nucl_2 = self.design_reader.get_position_of_nucl_on_helix(
                 n2,
                 Referential::Model,
                 !self.thick_helices,
@@ -587,15 +587,15 @@ impl<R: DesignReader> Design3D<R> {
     }
 
     pub fn get_suggested_tubes(&self) -> Vec<RawDnaInstance> {
-        let suggestion = self.design.get_suggestions();
+        let suggestion = self.design_reader.get_suggestions();
         let mut ret = vec![];
         for (n1, n2) in suggestion {
-            let nucl_1 = self.design.get_position_of_nucl_on_helix(
+            let nucl_1 = self.design_reader.get_position_of_nucl_on_helix(
                 n1,
                 Referential::Model,
                 !self.thick_helices,
             );
-            let nucl_2 = self.design.get_position_of_nucl_on_helix(
+            let nucl_2 = self.design_reader.get_position_of_nucl_on_helix(
                 n2,
                 Referential::Model,
                 !self.thick_helices,
@@ -625,10 +625,12 @@ impl<R: DesignReader> Design3D<R> {
         let i = phantom_element.position;
         let forward = phantom_element.forward;
         if phantom_element.bond {
-            let nucl_1 =
-                self.design
-                    .get_position_of_nucl_on_helix(nucl, Referential::Model, false)?;
-            let nucl_2 = self.design.get_position_of_nucl_on_helix(
+            let nucl_1 = self.design_reader.get_position_of_nucl_on_helix(
+                nucl,
+                Referential::Model,
+                false,
+            )?;
+            let nucl_2 = self.design_reader.get_position_of_nucl_on_helix(
                 nucl.left(),
                 Referential::Model,
                 false,
@@ -636,9 +638,11 @@ impl<R: DesignReader> Design3D<R> {
             let id = phantom_helix_encoder_bond(self.id, helix_id, i, forward);
             Some(create_dna_bond(nucl_1, nucl_2, color, id, true).to_raw_instance())
         } else {
-            let nucl_coord =
-                self.design
-                    .get_position_of_nucl_on_helix(nucl, Referential::Model, false)?;
+            let nucl_coord = self.design_reader.get_position_of_nucl_on_helix(
+                nucl,
+                Referential::Model,
+                false,
+            )?;
             let id = phantom_helix_encoder_nucl(self.id, helix_id, i, forward);
             let instance = SphereInstance {
                 color: Instance::color_from_au32(color),
@@ -666,15 +670,17 @@ impl<R: DesignReader> Design3D<R> {
             forward,
         };
         if phantom_element.bond {
-            let nucl_1 = self
-                .design
-                .get_position_of_nucl_on_helix(nucl, referential, on_axis)?;
-            let nucl_2 =
-                self.design
-                    .get_position_of_nucl_on_helix(nucl.left(), referential, on_axis)?;
+            let nucl_1 =
+                self.design_reader
+                    .get_position_of_nucl_on_helix(nucl, referential, on_axis)?;
+            let nucl_2 = self.design_reader.get_position_of_nucl_on_helix(
+                nucl.left(),
+                referential,
+                on_axis,
+            )?;
             Some((nucl_1 + nucl_2) / 2.)
         } else {
-            self.design
+            self.design_reader
                 .get_position_of_nucl_on_helix(nucl, referential, on_axis)
         }
     }
@@ -694,12 +700,12 @@ impl<R: DesignReader> Design3D<R> {
             for forward in [false, true].iter() {
                 let mut previous_nucl = None;
                 let range = self
-                    .design
+                    .design_reader
                     .get_curve_range(*helix_id as usize)
                     .unwrap_or(-range_phantom..=range_phantom);
                 for i in range {
                     let i = i as i32;
-                    let nucl_coord = self.design.get_position_of_nucl_on_helix(
+                    let nucl_coord = self.design_reader.get_position_of_nucl_on_helix(
                         Nucl {
                             helix: *helix_id as usize,
                             position: i as isize,
@@ -739,7 +745,7 @@ impl<R: DesignReader> Design3D<R> {
     }
 
     fn get_object_type(&self, id: u32) -> Option<ObjectType> {
-        self.design.get_object_type(id)
+        self.design_reader.get_object_type(id)
     }
 
     pub fn get_bond(&self, id: u32) -> Option<(Nucl, Nucl)> {
@@ -762,9 +768,9 @@ impl<R: DesignReader> Design3D<R> {
             SceneElement::PhantomElement(phantom) => {
                 self.get_phantom_element_position(phantom, referential, false)
             }
-            SceneElement::Grid(_, g_id) => self.design.get_grid_position(*g_id),
+            SceneElement::Grid(_, g_id) => self.design_reader.get_grid_position(*g_id),
             SceneElement::GridCircle(_, position) => {
-                self.design.get_grid_latice_position(*position)
+                self.design_reader.get_grid_latice_position(*position)
             }
             SceneElement::BezierVertex { path_id, vertex_id } => {
                 self.get_bezier_vertex_position(*path_id, *vertex_id)
@@ -804,7 +810,7 @@ impl<R: DesignReader> Design3D<R> {
     }
 
     pub fn get_design_element_position(&self, id: u32, referential: Referential) -> Option<Vec3> {
-        self.design.get_element_position(id, referential)
+        self.design_reader.get_element_position(id, referential)
     }
 
     pub fn get_design_element_axis_position(
@@ -812,11 +818,12 @@ impl<R: DesignReader> Design3D<R> {
         id: u32,
         referential: Referential,
     ) -> Option<Vec3> {
-        self.design.get_element_axis_position(id, referential)
+        self.design_reader
+            .get_element_axis_position(id, referential)
     }
 
     fn get_color(&self, id: u32) -> Option<u32> {
-        self.design.get_color(id)
+        self.design_reader.get_color(id)
     }
 
     /// Return the middle point of `self` in the world coordinates
@@ -827,7 +834,7 @@ impl<R: DesignReader> Design3D<R> {
             (boundaries[2] + boundaries[3]) as f32 / 2.,
             (boundaries[4] + boundaries[5]) as f32 / 2.,
         );
-        self.design.get_model_matrix().transform_vec3(middle)
+        self.design_reader.get_model_matrix().transform_vec3(middle)
     }
 
     fn boundaries(&self) -> [f32; 6] {
@@ -838,10 +845,10 @@ impl<R: DesignReader> Design3D<R> {
         let mut max_y = std::f32::NEG_INFINITY;
         let mut max_z = std::f32::NEG_INFINITY;
 
-        let ids = self.design.get_all_nucl_ids();
+        let ids = self.design_reader.get_all_nucl_ids();
         for id in ids {
             let coord: [f32; 3] = self
-                .design
+                .design_reader
                 .get_element_position(id, Referential::World)
                 .unwrap()
                 .into();
@@ -902,7 +909,7 @@ impl<R: DesignReader> Design3D<R> {
         let mut ret = Vec::new();
         for (grid_id, grid) in self.get_grid().iter() {
             if self
-                .design
+                .design_reader
                 .get_helices_on_grid(*grid_id)
                 .map(|s| s.is_empty())
                 .unwrap_or(false)
@@ -929,10 +936,13 @@ impl<R: DesignReader> Design3D<R> {
     }
 
     fn get_all_points(&self) -> Vec<Vec3> {
-        let ids = self.design.get_all_nucl_ids();
+        let ids = self.design_reader.get_all_nucl_ids();
         let mut ret: Vec<Vec3> = ids
             .iter()
-            .filter_map(|id| self.design.get_element_position(*id, Referential::World))
+            .filter_map(|id| {
+                self.design_reader
+                    .get_element_position(*id, Referential::World)
+            })
             .collect();
         ret.extend(self.get_all_naked_grids_corners().into_iter());
         ret
@@ -958,65 +968,65 @@ impl<R: DesignReader> Design3D<R> {
 
     pub fn get_all_elements(&self) -> HashSet<u32> {
         let mut ret = HashSet::new();
-        for x in self.design.get_all_nucl_ids().iter() {
+        for x in self.design_reader.get_all_nucl_ids().iter() {
             ret.insert(*x);
         }
-        for x in self.design.get_all_bond_ids().iter() {
+        for x in self.design_reader.get_all_bond_ids().iter() {
             ret.insert(*x);
         }
         ret
     }
 
     pub fn get_strand(&self, element_id: u32) -> Option<usize> {
-        self.design.get_id_of_strand_containing(element_id)
+        self.design_reader.get_id_of_strand_containing(element_id)
     }
 
     pub fn get_helix(&self, element_id: u32) -> Option<usize> {
-        self.design.get_id_of_helix_containing(element_id)
+        self.design_reader.get_id_of_helix_containing(element_id)
     }
 
     pub fn get_strand_elements(&self, strand_id: u32) -> HashSet<u32> {
-        self.design
+        self.design_reader
             .get_ids_of_elements_belonging_to_strand(strand_id as usize)
             .into_iter()
             .collect()
     }
 
     pub fn get_element_type(&self, e_id: u32) -> Option<ObjectType> {
-        self.design.get_object_type(e_id)
+        self.design_reader.get_object_type(e_id)
     }
 
     pub fn get_helix_elements(&self, helix_id: u32) -> HashSet<u32> {
-        self.design
+        self.design_reader
             .get_ids_of_elements_belonging_to_helix(helix_id as usize)
             .into_iter()
             .collect()
     }
 
     pub fn get_helix_basis(&self, h_id: u32) -> Option<Rotor3> {
-        self.design.get_helix_basis(h_id)
+        self.design_reader.get_helix_basis(h_id)
     }
 
     pub fn get_identifier_nucl(&self, nucl: &Nucl) -> Option<u32> {
-        self.design.get_identifier_nucl(nucl)
+        self.design_reader.get_identifier_nucl(nucl)
     }
 
     pub fn get_identifier_bond(&self, n1: Nucl, n2: Nucl) -> Option<u32> {
-        self.design.get_identifier_bond(n1, n2)
+        self.design_reader.get_identifier_bond(n1, n2)
     }
 
     pub fn get_element_identifier_from_xover_id(&self, xover_id: usize) -> Option<u32> {
-        self.design
+        self.design_reader
             .get_xover_with_id(xover_id)
-            .and_then(|(n1, n2)| self.design.get_identifier_bond(n1, n2))
+            .and_then(|(n1, n2)| self.design_reader.get_identifier_bond(n1, n2))
     }
 
     pub fn get_xover_id(&self, xover: &(Nucl, Nucl)) -> Option<usize> {
-        self.design.get_xover_id(xover)
+        self.design_reader.get_xover_id(xover)
     }
 
     pub fn get_xover_with_id(&self, xover_id: usize) -> Option<(Nucl, Nucl)> {
-        self.design.get_xover_with_id(xover_id)
+        self.design_reader.get_xover_with_id(xover_id)
     }
 
     pub fn can_start_builder(&self, element: &SceneElement) -> Option<Nucl> {
@@ -1030,8 +1040,8 @@ impl<R: DesignReader> Design3D<R> {
     }
 
     fn can_start_builder_on_element(&self, e_id: u32) -> Option<Nucl> {
-        let nucl = self.design.get_nucl_with_id(e_id);
-        nucl.filter(|n| self.design.can_start_builder_at(n))
+        let nucl = self.design_reader.get_nucl_with_id(e_id);
+        nucl.filter(|n| self.design_reader.can_start_builder_at(n))
     }
 
     fn can_start_builder_on_phantom(&self, phantom_element: &PhantomElement) -> Option<Nucl> {
@@ -1040,7 +1050,7 @@ impl<R: DesignReader> Design3D<R> {
             position: phantom_element.position as isize,
             forward: phantom_element.forward,
         };
-        if self.design.can_start_builder_at(&nucl) {
+        if self.design_reader.can_start_builder_at(&nucl) {
             Some(nucl)
         } else {
             None
@@ -1048,55 +1058,55 @@ impl<R: DesignReader> Design3D<R> {
     }
 
     pub fn get_grid(&self) -> BTreeMap<GridId, GridInstance> {
-        self.design.get_grid_instances()
+        self.design_reader.get_grid_instances()
     }
 
     pub fn get_helices_grid(&self, g_id: GridId) -> Option<HashSet<usize>> {
-        self.design.get_helices_on_grid(g_id)
+        self.design_reader.get_helices_on_grid(g_id)
     }
 
     pub fn get_helices_grid_coord(&self, g_id: GridId) -> Vec<(isize, isize)> {
-        self.design
+        self.design_reader
             .get_used_coordinates_on_grid(g_id)
             .unwrap_or_default()
     }
 
     pub fn get_helices_grid_key_coord(&self, g_id: GridId) -> Vec<((isize, isize), usize)> {
-        self.design
+        self.design_reader
             .get_helices_grid_key_coord(g_id)
             .unwrap_or_default()
     }
 
     pub fn get_helix_grid(&self, position: GridPosition) -> Option<u32> {
-        self.design.get_helix_id_at_grid_coord(position)
+        self.design_reader.get_helix_id_at_grid_coord(position)
     }
 
     pub fn get_grid_object(&self, position: GridPosition) -> Option<GridObject> {
-        self.design.get_grid_object(position)
+        self.design_reader.get_grid_object(position)
     }
 
     pub fn get_persistent_phantom_helices(&self) -> HashSet<u32> {
-        self.design.get_persistent_phantom_helices_id()
+        self.design_reader.get_persistent_phantom_helices_id()
     }
 
     pub fn get_grid_basis(&self, g_id: GridId) -> Option<Rotor3> {
-        self.design.get_grid_basis(g_id)
+        self.design_reader.get_grid_basis(g_id)
     }
 
     pub fn get_nucl(&self, e_id: u32) -> Option<Nucl> {
-        self.design.get_nucl_with_id(e_id)
+        self.design_reader.get_nucl_with_id(e_id)
     }
 
     pub fn get_nucl_relax(&self, e_id: u32) -> Option<Nucl> {
-        self.design.get_nucl_with_id_relaxed(e_id)
+        self.design_reader.get_nucl_with_id_relaxed(e_id)
     }
 
     pub fn get_helix_grid_position(&self, h_id: u32) -> Option<HelixGridPosition> {
-        self.design.get_helix_grid_position(h_id)
+        self.design_reader.get_helix_grid_position(h_id)
     }
 
     pub fn get_nucl_position(&self, nucl: Nucl) -> Option<Vec3> {
-        self.design
+        self.design_reader
             .get_position_of_nucl_on_helix(nucl, Referential::World, false)
     }
 
@@ -1135,18 +1145,18 @@ impl<R: DesignReader> Design3D<R> {
     }
 
     pub fn has_nucl(&self, nucl: &Nucl) -> bool {
-        self.design.get_identifier_nucl(nucl).is_some()
+        self.design_reader.get_identifier_nucl(nucl).is_some()
     }
 
     pub fn both_prime3(&self, nucl1: Nucl, nucl2: Nucl) -> bool {
-        let prime3_1 = self.design.prime3_of_which_strand(nucl1);
-        let prime3_2 = self.design.prime3_of_which_strand(nucl2);
+        let prime3_1 = self.design_reader.prime3_of_which_strand(nucl1);
+        let prime3_2 = self.design_reader.prime3_of_which_strand(nucl2);
         prime3_1.and(prime3_2).is_some()
     }
 
     pub fn both_prime5(&self, nucl1: Nucl, nucl2: Nucl) -> bool {
-        let prime5_1 = self.design.prime5_of_which_strand(nucl1);
-        let prime5_2 = self.design.prime5_of_which_strand(nucl2);
+        let prime5_1 = self.design_reader.prime5_of_which_strand(nucl1);
+        let prime5_2 = self.design_reader.prime5_of_which_strand(nucl2);
         prime5_1.and(prime5_2).is_some()
     }
 
@@ -1155,7 +1165,7 @@ impl<R: DesignReader> Design3D<R> {
         if !self.thick_helices {
             return vec![];
         }
-        let cones = self.design.get_all_prime3_nucl();
+        let cones = self.design_reader.get_all_prime3_nucl();
         let mut ret = Vec::with_capacity(cones.len());
         for c in cones {
             ret.push(create_prime3_cone(c.0, c.1, c.2));
@@ -1164,11 +1174,11 @@ impl<R: DesignReader> Design3D<R> {
     }
 
     pub fn get_surface_info_nucl(&self, nucl: Nucl) -> Option<SurfaceInfo> {
-        self.design.get_surface_info_nucl(nucl)
+        self.design_reader.get_surface_info_nucl(nucl)
     }
 
     pub fn get_surface_info(&self, point: SurfacePoint) -> Option<SurfaceInfo> {
-        self.design.get_surface_info(point)
+        self.design_reader.get_surface_info(point)
     }
 }
 

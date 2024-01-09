@@ -120,8 +120,8 @@ impl<R: DesignReader> Data<R> {
     }
 
     /// Add a new design to be drawn
-    pub fn update_design(&mut self, design: R) {
-        self.designs[0] = Design3D::new(design, 0);
+    pub fn update_design_reader(&mut self, design_reader: R) {
+        self.designs[0] = Design3D::new(design_reader, 0);
     }
 
     /// Remove all designs to be drawn

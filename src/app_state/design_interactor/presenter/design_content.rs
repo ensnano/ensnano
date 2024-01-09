@@ -580,8 +580,8 @@ impl DesignContent {
                             identifier_bond.insert(bond, bond_id);
                             nucleotides_involved.insert(bond_id, bond);
                             color_map.insert(bond_id, color); // color given to the bond
-                            strand_map.insert(bond_id, *s_id);
-                            helix_map.insert(bond_id, nucl.helix);
+                            strand_map.insert(bond_id, *s_id); // get strand_id from bond_id
+                            helix_map.insert(bond_id, nucl.helix); // get helix_id from bond_id
                             id
                         } else {
                             id
@@ -590,9 +590,9 @@ impl DesignContent {
                         object_type.insert(nucl_id, ObjectType::Nucleotide(nucl_id));
                         nucleotide.insert(nucl_id, nucl);
                         nucl_collection.insert(nucl, nucl_id);
-                        strand_map.insert(nucl_id, *s_id);
+                        strand_map.insert(nucl_id, *s_id); // get the strand_id from the nucl_id
                         color_map.insert(nucl_id, color);
-                        helix_map.insert(nucl_id, nucl.helix);
+                        helix_map.insert(nucl_id, nucl.helix); // get helix_id from bond_id
                         let basis = dom_seq
                             .as_ref()
                             .and_then(|s| s.as_bytes().get(dom_position))
@@ -680,7 +680,7 @@ impl DesignContent {
                 identifier_bond.insert(bond, bond_id);
                 nucleotides_involved.insert(bond_id, bond);
                 color_map.insert(bond_id, color);
-                strand_map.insert(bond_id, *s_id);
+                strand_map.insert(bond_id, *s_id); // match bond_id to strand_id
                 helix_map.insert(bond_id, nucl.helix);
                 log::debug!("adding {:?}, {:?}", bond.0, bond.1);
                 Self::update_junction(

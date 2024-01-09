@@ -25,7 +25,7 @@ impl<R: DesignReader> Design3D<R> {
     pub fn get_bezier_elements(&self, h_id: usize) -> (Vec<RawDnaInstance>, Vec<RawDnaInstance>) {
         let mut spheres = Vec::new();
         let mut tubes = Vec::new();
-        if let Some(constructor) = self.design.get_cubic_bezier_controls(h_id) {
+        if let Some(constructor) = self.design_reader.get_cubic_bezier_controls(h_id) {
             log::info!("got control");
             for (control_point, position) in constructor.iter() {
                 spheres.push(make_bezier_controll(
@@ -44,7 +44,7 @@ impl<R: DesignReader> Design3D<R> {
             ));
             tubes.push(make_bezier_squelton(constructor.control2, constructor.end));
             (spheres, tubes)
-        } else if let Some(controls) = self.design.get_piecewise_bezier_controls(h_id) {
+        } else if let Some(controls) = self.design_reader.get_piecewise_bezier_controls(h_id) {
             let mut iter = controls.into_iter().enumerate();
             while let Some(((n1, c1), (n2, c2))) = iter.next().zip(iter.next()) {
                 spheres.push(make_bezier_controll(
@@ -66,7 +66,7 @@ impl<R: DesignReader> Design3D<R> {
     }
 
     pub fn get_control_point(&self, helix_id: usize, control: BezierControlPoint) -> Option<Vec3> {
-        self.design
+        self.design_reader
             .get_position_of_bezier_control(helix_id, control)
     }
 
@@ -83,11 +83,11 @@ impl<R: DesignReader> Design3D<R> {
         match bezier_control {
             BezierControlPoint::CubicBezier(_) => None,
             BezierControlPoint::PiecewiseBezier(n) => {
-                let descriptor = self.design.get_curve_descriptor(h_id)?;
+                let descriptor = self.design_reader.get_curve_descriptor(h_id)?;
                 if let CurveDescriptor::PiecewiseBezier { points, .. } = descriptor {
                     // There are two control points per bezier grid position
                     let g_id = points.get(n / 2).map(|point| point.position.grid)?;
-                    let grid_orientation = self.design.get_grid_basis(g_id)?;
+                    let grid_orientation = self.design_reader.get_grid_basis(g_id)?;
                     Some(grid_orientation)
                 } else {
                     None
@@ -105,13 +105,13 @@ impl<R: DesignReader> Design3D<R> {
         let axis_position = app_state.get_revolution_axis_position();
 
         let mut first = true;
-        for (plane_id, desc) in self.design.get_bezier_planes().iter() {
-            let corners = self.design.get_corners_of_plane(*plane_id);
+        for (plane_id, desc) in self.design_reader.get_bezier_planes().iter() {
+            let corners = self.design_reader.get_corners_of_plane(*plane_id);
             let sheet = get_sheet_instance(SheetDescriptor {
                 corners,
                 plane_descritor: desc,
                 plane_id: *plane_id,
-                helix_parameters: self.design.get_parameters(),
+                helix_parameters: self.design_reader.get_parameters(),
                 axis_position: axis_position.filter(|_| first),
             });
             spheres.extend_from_slice(corners_of_sheet(&sheet).as_slice());
@@ -126,7 +126,7 @@ impl<R: DesignReader> Design3D<R> {
         path_id: BezierPathId,
         vertex_id: usize,
     ) -> Option<Vec3> {
-        self.design
+        self.design_reader
             .get_bezier_paths()
             .and_then(|m| m.get(&path_id))
             .and_then(|p| p.bezier_controls().get(vertex_id))
@@ -140,7 +140,7 @@ impl<R: DesignReader> Design3D<R> {
         let mut spheres = Vec::new();
         let mut tubes = Vec::new();
         let selection = app_state.get_selection();
-        if let Some(paths) = self.design.get_bezier_paths() {
+        if let Some(paths) = self.design_reader.get_bezier_paths() {
             for (path_id, path) in paths.iter() {
                 for (vertex_id, coordinates) in path.bezier_controls().iter().enumerate() {
                     add_raw_instances_representing_bezier_vertex(
