@@ -64,8 +64,9 @@ void main() {
     v_normal = normal_matrix * a_normal;
     v_color = instances[gl_InstanceIndex].color;
     vec3 scale = instances[gl_InstanceIndex].scale;
+/*
+    // Change the color of the bond depending on its length if it exceeds the expected length
     float expected_length = instances[gl_InstanceIndex].expected_length;
-    // Change the color of the bond depending on its length if exceed the expected length
     if (expected_length > 0.) {
         if (scale.x > expected_length * LOW_CRIT) { // scale.x is the length of the tube for tube
            scale.y *= 1.3; // make the bond radius larger if the length is too large
@@ -77,6 +78,7 @@ void main() {
            }
         } 
     }
+*/
 
     vec4 model_space = model_matrix * vec4(a_position * scale, 1.0); 
 

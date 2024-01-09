@@ -472,6 +472,37 @@ impl<R: DesignReader> Design3D<R> {
         }
     }
 
+    /// Auxilary function that computes the length-adjusted color of a bond
+    /// return None if color does not need to be adjusted
+    pub fn length_adjusted_color_for_bond(&self, id1: u32, id2: u32) -> Option<u32> {
+        let real_pos1 = self
+            .get_element_position(
+                &SceneElement::DesignElement(self.id, id1),
+                Referential::World,
+            )
+            .unwrap_or(f32::NAN * Vec3::unit_x());
+        let real_pos2 = self
+            .get_element_position(
+                &SceneElement::DesignElement(self.id, id2),
+                Referential::World,
+            )
+            .unwrap_or(f32::NAN * Vec3::unit_x());
+        let length = (real_pos2 - real_pos1).mag();
+        let expected_length = self.design.get_expected_bond_length();
+        let critical_length_low = expected_length / 0.7; // TO BE MADE A CONSTANT IN CONST.RS
+        let critical_length_high = 2.0 * critical_length_low;
+        if length < critical_length_low {
+            return None;
+        }
+        if length < critical_length_high {
+            let x = (length - critical_length_low) / (critical_length_high - critical_length_low);
+            let g = 0.25 - 0.25 * x;
+            let grey = (g * 255.0).floor() as u32;
+            return Some(grey << 16 | grey << 8 | grey);
+        }
+        return Some(0x_00_00_00);
+    }
+
     /// Convert return an instance representing the object with identifier `id`
     pub fn make_raw_instance(&self, id: u32) -> Option<RawDnaInstance> {
         let kind = self.get_object_type(id)?;
@@ -483,6 +514,10 @@ impl<R: DesignReader> Design3D<R> {
                     self.get_graphic_element_position(&SceneElement::DesignElement(self.id, id2))?;
                 let color = self.get_color(id).unwrap_or(0);
                 let id = id | self.id << 24;
+                // Adjust the color and rafius of the bond according to the REAL length of the bond
+                let color = self
+                    .length_adjusted_color_for_bond(id1, id2)
+                    .unwrap_or(color);
                 let tube = create_dna_bond(pos1, pos2, color, id, false);
                 tube.to_raw_instance()
             }
