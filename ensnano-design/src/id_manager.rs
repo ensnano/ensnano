@@ -1,3 +1,7 @@
+use core::fmt;
+use std::ops::Deref;
+use std::os::unix::prelude::OsStringExt;
+
 /*
 ENSnano, a 3d graphical application for DNA nanostructures.
     Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
@@ -17,69 +21,75 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use super::*;
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
-pub struct NamedItem<'a, T>(pub &'a str, pub T);
-
-pub trait ItemWithName<'a> {
-    fn get_name(&self) -> &'a str;
-}
-
-/*impl<'a> ItemWithName<'a> for NamedParameter {
-    fn get_name(self) -> &'static str {
-        return &self.name;
-    }
-}*/
-
-impl<'a, T> ItemWithName<'a> for NamedItem<'a, T> {
-    fn get_name(&self) -> &'a str {
-        return &self.0;
-    }
-}
-
-impl<'a, T> ItemWithName<'a> for Arc<NamedItem<'a, T>> {
-    fn get_name(&self) -> &'a str {
-        return &self.0;
-    }
-}
-
 #[derive(
     Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Default, Hash,
 )]
 /// Generic Identifier
 pub struct Id(pub usize);
 
+impl fmt::Display for Id {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
 #[derive(Debug, Clone)] //, Deserialize, Serialize, Default)]
 /// Collection of items with ids
-struct IdCollection<T: Clone>(pub(super) Arc<BTreeMap<Id, Arc<T>>>);
+struct IdCollectionInner<T: Clone>(BTreeMap<Id, Arc<T>>);
 
-enum IdManagerError<'a> {
+struct IdCollection<T: Clone>(pub(super) Arc<IdCollectionInner<T>>);
+
+pub struct IdCollectionMut<'a, T: Clone> {
+    source: &'a mut IdCollection<T>,
+    new_map: IdCollectionInner<T>,
+}
+
+enum CollectionError<'a> {
     NoItemWithSuchId(Id),
     NoItemWithSuchName(&'a str),
 }
 
-impl<T: Clone> IdCollection<T> {
-    pub fn make_mut(&mut self) -> IdCollectionMut<T> {
-        IdCollectionMut {
-            new_map: BTreeMap::clone(&self.0),
-            source: self,
-        }
-    }
-    pub fn from_vec(vec: Vec<T>) -> Self {
-        Self(Arc::new(
+impl<T: Clone> IdCollectionInner<T> {
+    fn from_vec(vec: Vec<T>) -> Self {
+        Self(
             vec.into_iter()
                 .enumerate()
                 .map(|(id, item)| (Id(id), Arc::new(item)))
                 .collect(),
-        ))
+        )
     }
+
+    fn push(&mut self, item: T) -> Id {
+        let new_key = (self.0)
+            .keys()
+            .max()
+            .map(|id| Id(id.0 + 1))
+            .unwrap_or_default();
+        (self.0).insert(new_key, Arc::new(item));
+        new_key
+    }
+
+    fn remove(&mut self, id: &Id) -> Result<Arc<T>, CollectionError> {
+        (self.0)
+            .remove(&id)
+            .ok_or(CollectionError::NoItemWithSuchId(Id(id.0)))
+    }
+}
+/*
+impl<T: Clone> IdCollection<T> {
+    pub fn make_mut(&mut self) -> IdCollectionMut<T> {
+        IdCollectionMut {
+            new_map: IdCollectionInner(BTreeMap::clone((&self).0)), // TODO: regarder dans helices
+            source: self,
+        }
+    }
+    pub fn from_vec(vec: Vec<T>) -> Self {
+        Self(Arc::new(IdCollectionInner::from_vec(vec)))
+    }
+
     pub fn ptr_eq(&self, other: &Self) -> bool {
         Arc::ptr_eq(&self.0, &other.0)
     }
-}
-
-pub struct IdCollectionMut<'a, T: Clone> {
-    source: &'a mut IdCollection<T>,
-    new_map: BTreeMap<Id, Arc<T>>,
 }
 
 impl<'a, T: Clone> IdCollectionMut<'a, T> {
@@ -114,55 +124,141 @@ where
     }
 }
 
-#[derive(Debug, Clone)] //, Deserialize, Serialize, Default)]
-/// Collection of named items with ids and additional UNIQUE names given to items in function of their names
-pub struct IdCollectionWithNames<'a, T: Clone> {
-    id_collection: IdCollection<NamedItem<'a, T>>,
-    unique_names: BTreeMap<Id, (&'a str, Id)>,
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Default, Hash)]
+///Item decorated with a name
+pub struct NamedItem<'a, T>(&'a str, T);
+
+pub trait ItemWithName<'a> {
+    fn get_name(&self) -> &'a str;
 }
 
-// in progress
-impl<'a, T: Clone> From<IdCollection<NamedItem<'a, T>>> for IdCollectionWithNames<'a, T> {
-    fn from(id_collection: IdCollection<NamedItem<'a, T>>) -> Self {
-        let mut unique_names = BTreeMap::new();
-        /*for (item_id, NamedItem(item_name, item)) in id_collection.iter() {
-            let name_index = unique_names
-                .into_iter()
-                .filter(|(_, (name, _))| *name == item_name)
-                .collect()
-                .len();
-            unique_names.insert(item_id, (item_name, name_index));
-        }*/
-        IdCollectionWithNames {
-            id_collection: id_collection.clone(),
-            unique_names,
-        }
+/*impl<'a> ItemWithName<'a> for NamedParameter {
+    fn get_name(self) -> &'static str {
+        return &self.name;
+    }
+}*/
+
+impl<'a, T> ItemWithName<'a> for NamedItem<'a, T> {
+    fn get_name(&self) -> &'a str {
+        self.0
     }
 }
 
-pub trait IdManagerForNamedItems<'a> {
-    /// Returns the id of one item with the given name if it exists
-    fn get_id_by_name(self, name: &str) -> Option<Id>;
-    fn get_name_by_id(self, id: Id) -> Option<&'a str>;
+impl<'a, T> ItemWithName<'a> for Arc<NamedItem<'a, T>> {
+    fn get_name(&self) -> &'a str {
+        self.0
+    }
 }
 
-impl<'a, T: Clone> IdManagerForNamedItems<'a> for IdCollection<NamedItem<'a, T>> {
-    fn get_id_by_name(self, name: &str) -> Option<Id> {
-        for (k, v) in self.0.iter() {
-            if v.0.eq(name) {
-                return Some(k.clone());
+#[derive(Debug, Clone)]
+struct UniqueName<'a> {
+    name: &'a str,
+    index: Id,
+}
+
+impl<'a> UniqueName<'a> {
+    fn unique_name_string(&'a self) -> String {
+        match &self.index {
+            Id(0) => self.name.to_string(),
+            _ => format!("{}_{}", self.name, self.index),
+        }
+    }
+    fn name_string(&'a self) -> String {
+        self.name.to_string()
+    }
+}
+
+#[derive(Debug, Clone)] //, Deserialize, Serialize, Default)]
+
+pub struct CollectionWithNames<'a, T: Clone>(pub(super) Arc<CollectionWithNamesInner<'a, T>>);
+
+/// Collection of named items with ids and additional UNIQUE names given to items in function of their names
+struct CollectionWithNamesInner<'a, T: Clone> {
+    id_collection: IdCollectionInner<NamedItem<'a, T>>,
+    unique_names: BTreeMap<Id, UniqueName<'a>>,
+}
+
+impl<'a, T: Clone> CollectionWithNames<'a, T> {
+    fn get_unique_name(&self, id: Id) -> Option<String> {
+        self.unique_names
+            .get(&id)
+            .map(|uname| uname.unique_name_string())
+    }
+    fn get_name(&self, id: Id) -> Option<String> {
+        self.unique_names
+            .get(&id)
+            .map(|uname| format!("{}", uname.name_string()))
+    }
+    fn find_id_by_name(&self, name: &str) -> Option<Id> {
+        for (id, uname) in self.unique_names.iter() {
+            if uname.name.eq(name) {
+                return Some(id.clone());
             }
         }
         return None;
     }
+    fn from_vec(vec: Vec<NamedItem<'a, T>>) -> Self {
+        let id_collection = IdCollection::from_vec(vec);
+        CollectionWithNames::from(id_collection)
+    }
 
-    fn get_name_by_id(self, id: Id) -> Option<&'a str> {
-        self.0.get(&id).map(|item| item.get_name())
+    fn push(&mut self, item: NamedItem<'a, T>) {
+        let item_id = self.id_collection.make_mut().push(item.clone());
+        let item_name = item.get_name().clone();
+        let name_index = self
+            .unique_names
+            .clone()
+            .into_iter()
+            .filter(|(_, uname)| uname.name == item_name)
+            .collect::<Vec<_>>()
+            .len();
+        self.unique_names.insert(
+            Id(item_id.0),
+            UniqueName {
+                name: item_name,
+                index: Id(name_index),
+            },
+        );
+    }
+    fn rename(&mut self, id: &Id, new_name: &'c str) -> Result<(), IdManagerError> {
+        match self.id_collection.get_mut(id) {
+            Some(item) => {
+                item.0 = name;
+                Ok(())
+            }
+            _ => Err(IdManagerError::NoItemWithSuchId(Id(id.0))),
+        }
+    }
+}
+
+impl<'a, T: Clone> From<IdCollection<NamedItem<'a, T>>> for CollectionWithNames<'a, T> {
+    fn from(id_collection: IdCollection<NamedItem<'a, T>>) -> Self {
+        let mut unique_names: BTreeMap<Id, UniqueName> = BTreeMap::new();
+        for (item_id, arc_item) in id_collection.0.iter() {
+            let item_name = arc_item.0;
+            let name_index = unique_names
+                .clone()
+                .into_iter()
+                .filter(|(_, uname)| uname.name == item_name)
+                .collect::<Vec<_>>()
+                .len();
+            unique_names.insert(
+                Id(item_id.0),
+                UniqueName {
+                    name: item_name,
+                    index: Id(name_index),
+                },
+            );
+        }
+        CollectionWithNames {
+            id_collection: id_collection.clone(),
+            unique_names: unique_names.clone(),
+        }
     }
 }
 
 pub trait IdManagerMutForNamedItems<'a, 'b, 'c> {
-    fn rename_by_id(&mut self, id: &Id, name: &'c str) -> Result<(), IdManagerError>;
+    fn rename(&mut self, id: &Id, name: &'c str) -> Result<(), IdManagerError>;
 }
 
 impl<'a, 'b, 'c, T: Clone> IdManagerMutForNamedItems<'a, 'b, 'c>
@@ -170,7 +266,7 @@ impl<'a, 'b, 'c, T: Clone> IdManagerMutForNamedItems<'a, 'b, 'c>
 where
     'c: 'b,
 {
-    fn rename_by_id(&mut self, id: &Id, name: &'c str) -> Result<(), IdManagerError> {
+    fn rename(&mut self, id: &Id, name: &'c str) -> Result<(), IdManagerError> {
         match self.get_mut(id) {
             Some(item) => {
                 item.0 = name;
@@ -217,88 +313,105 @@ mod tests {
     }
     #[test]
     fn from_vec() {
-        let myvec = vec![NamedItem("Bouftou", "mob")];
-        let my_ided_collection = IdCollection::from_vec(myvec);
+        let collection = vec![NamedItem("Bouftou", "mob")];
+        let collection = IdCollection::from_vec(myvec);
         assert_eq!(
             "IdCollection({Id(0): NamedItem(\"Bouftou\", \"mob\")})",
-            format!("{:?}", my_ided_collection)
+            format!("{:?}", collection)
         );
-    }
-    #[test]
-    fn get_id_of_named_if_it_exists() {
-        let cat1 = NamedItem("Otto", "cat");
-        let cat2 = NamedItem("Duchesse", "cat");
-        let dog = NamedItem("Otto", "dog");
-        let my_ided_collection = IdCollection::from_vec(vec![cat1, cat2, dog]);
-        assert_eq!(Id(0), my_ided_collection.get_id_by_name("Otto").unwrap());
-    }
-
-    #[test]
-    fn get_id_of_named_if_does_not_exist() {
-        let cat1 = NamedItem("Otto", "cat");
-        let my_ided_collection = IdCollection::from_vec(vec![cat1]);
-        assert_eq!(None, my_ided_collection.get_id_by_name("Chachat"));
-    }
-    #[test]
-    fn get_name_if_exists() {
-        let cat1 = NamedItem("Otto", "cat");
-        let my_ided_collection = IdCollection::from_vec(vec![cat1]);
-        assert_eq!(Some("Otto"), my_ided_collection.get_name_by_id(Id(0)));
-    }
-
-    #[test]
-    fn get_name_if_does_not_exist() {
-        let cat1 = NamedItem("Otto", "cat");
-        let my_ided_collection = IdCollection::from_vec(vec![cat1]);
-        assert_eq!(None, my_ided_collection.get_name_by_id(Id(2)));
     }
 
     #[test]
     fn make_mut_and_push() {
         let cat = NamedItem("Snowball", "cat");
-        let mut my_ided_collection = IdCollection::from_vec(vec![cat]);
+        let mut collection = IdCollection::from_vec(vec![cat]);
         {
-            let mut my_mut_ided_collection = my_ided_collection.make_mut();
-            my_mut_ided_collection.push(NamedItem("Ember", "dog"));
+            let mut collection = collection.make_mut();
+            collection.push(NamedItem("Ember", "dog"));
         }
-        assert_eq!("IdCollection({Id(0): NamedItem(\"Snowball\", \"cat\"), Id(1): NamedItem(\"Ember\", \"dog\")})", format!("{:?}", my_ided_collection));
+        assert_eq!("IdCollection({Id(0): NamedItem(\"Snowball\", \"cat\"), Id(1): NamedItem(\"Ember\", \"dog\")})", format!("{:?}", collection));
     }
 
     #[test]
     fn make_mut_and_remove() {
         let cat = NamedItem("Snowball", "cat");
-        let mut my_ided_collection = IdCollection::from_vec(vec![cat.clone(), cat]);
+        let mut collection = IdCollection::from_vec(vec![cat.clone(), cat]);
         {
-            let mut my_mut_ided_collection = my_ided_collection.make_mut();
-            my_mut_ided_collection.remove(&Id(0));
-            my_mut_ided_collection.remove(&Id(1));
+            let mut collection = collection.make_mut();
+            collection.remove(&Id(0));
+            collection.remove(&Id(1));
         }
-        assert_eq!("IdCollection({})", format!("{:?}", my_ided_collection));
+        assert_eq!("IdCollection({})", format!("{:?}", collection));
     }
 
     #[test]
     fn make_mut_and_rename() {
         let cat = NamedItem("Snowball", "cat");
-        let mut my_ided_collection = IdCollection::from_vec(vec![cat.clone(), cat]);
+        let mut collection = IdCollection::from_vec(vec![cat.clone(), cat]);
         {
-            let mut my_mut_ided_collection = my_ided_collection.make_mut();
-            my_mut_ided_collection.rename_by_id(&Id(0), "Bouboule");
+            let mut collection = collection.make_mut();
+            collection.rename(&Id(0), "Bouboule");
         }
         assert_eq!(
             "IdCollection({Id(0): NamedItem(\"Bouboule\", \"cat\"), Id(1): NamedItem(\"Snowball\", \"cat\")})"
 ,
-            format!("{:?}", my_ided_collection)
+            format!("{:?}", collection)
         );
     }
 
     #[test]
     fn rename_when_id_not_found() {
         let cat = NamedItem("Snowball", "cat");
-        let mut my_ided_collection = IdCollection::from_vec(vec![cat.clone(), cat]);
+        let mut collection = IdCollection::from_vec(vec![cat.clone(), cat]);
 
-        let mut my_mut_ided_collection = my_ided_collection.make_mut();
-        assert!(my_mut_ided_collection
-            .rename_by_id(&Id(100), "Bouboule")
-            .is_err());
+        let mut collection = collection.make_mut();
+        assert!(collection.rename(&Id(100), "Bouboule").is_err());
+    }
+
+    #[test]
+    fn id_collection_with_unique_names_from() {
+        let cat = NamedItem("Pushok", ());
+
+        let collection = IdCollection::from_vec(vec![cat.clone(), cat]);
+        let collection = CollectionWithNames::from(collection);
+        assert_eq!(
+            "{Id(0): UniqueName { name: \"Pushok\", index: Id(0) }, Id(1): UniqueName { name: \"Pushok\", index: Id(1) }}"
+,
+            format!("{:?}", collection.unique_names)
+        );
+    }
+
+    #[test]
+    fn get_name_and_unique_name() {
+        let cat = NamedItem("Pushok", ());
+        let collection = IdCollection::from_vec(vec![cat.clone(), cat.clone()]);
+        let collection = CollectionWithNames::from(collection);
+        assert_eq!(
+            "Some(\"Pushok_1\")",
+            format!("{:?}", collection.get_unique_name(Id(1)))
+        );
+        assert_eq!("None", format!("{:?}", collection.get_unique_name(Id(2))));
+        assert_eq!(
+            "Some(\"Pushok\")",
+            format!("{:?}", collection.get_name(Id(1)))
+        );
+        assert_eq!("None", format!("{:?}", collection.get_name(Id(2))));
+    }
+
+    #[test]
+    fn id_by_name() {
+        let cat = NamedItem("Pushok", ());
+        let collection = CollectionWithNames::from_vec(vec![cat]);
+        assert_eq!(Some(Id(0)), collection.find_id_by_name("Pushok"));
+    }
+    #[test]
+    fn push() {
+        let mut collection = CollectionWithNames::from_vec(vec![]);
+        collection.push(NamedItem("Bob", ()));
+        collection.push(NamedItem("Alice", ()));
+        collection.push(NamedItem("Bob", ()));
+        assert_eq!("Bob", collection.get_unique_name(Id(0)).unwrap().as_str());
+        assert_eq!("Bob_1", collection.get_unique_name(Id(2)).unwrap().as_str());
     }
 }
+*/
