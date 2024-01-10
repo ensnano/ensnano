@@ -112,6 +112,8 @@ pub(super) struct DesignContent {
     pub loopout_bonds: Vec<LoopoutBond>,
     /// Maps bonds identifier to the length of the corresponding insertion.
     pub insertion_length: HashMap<u32, usize, RandomState>,
+    /// Maps identifiers to drawingstyles
+    pub drawing_styles: HashMap<u32, DrawingStyle, RandomState>,
 }
 
 impl DesignContent {
@@ -415,6 +417,11 @@ impl DesignContent {
             .map(|t| *t.0)
             .collect()
     }
+
+    pub fn get_drawing_style(&self, id: u32) -> DrawingStyle {
+        let style = DrawingStyle::default();
+        return style;
+    }
 }
 
 #[derive(Debug)]
@@ -483,6 +490,7 @@ impl DesignContent {
         let mut new_junctions: JunctionsIds = Default::default();
         let mut suggestion_maker = XoverSuggestions::default();
         let mut insertion_length = HashMap::default();
+        let mut drawing_styles = HashMap::default();
         xover_ids.agree_on_next_id(&mut new_junctions);
         let rainbow_strand = design.scaffold_id.filter(|_| design.rainbow_scaffold);
         let grid_manager = design.get_updated_grid_data().clone();
@@ -759,6 +767,7 @@ impl DesignContent {
             loopout_bonds,
             loopout_nucls,
             insertion_length,
+            drawing_styles,
         };
         let suggestions = suggestion_maker.get_suggestions(&design, suggestion_parameters);
         ret.suggestions = suggestions;

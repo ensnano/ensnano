@@ -919,6 +919,42 @@ impl DrawingStyle {
             DrawingAttribute::BondColor(c) => DrawingStyle { bond_color: Some(c), ..*self },
             DrawingAttribute::DoubleHelixAsCylinderColor(c) => DrawingStyle { double_helix_as_cylinder_color: Some(c), ..*self },
         }
+    }
 
+    fn attributes(&self) -> Vec<DrawingAttribute> {
+        let mut atts = Vec::new();
+        
+        if let Some(r) = self.sphere_radius { atts.push(DrawingAttribute::SphereRadius(r)) }
+        if let Some(r) = self.bond_radius { atts.push(DrawingAttribute::BondRadius(r)) }
+        if let Some(r) = self.double_helix_as_cylinder_radius { atts.push(DrawingAttribute::DoubleHelixAsCylinderRadius(r)) }
+        
+        if let Some(c) = self.sphere_color { atts.push(DrawingAttribute::SphereColor(c)) }
+        if let Some(c) = self.bond_color { atts.push(DrawingAttribute::BondColor(c)) }
+        if let Some(c) = self.double_helix_as_cylinder_color { atts.push(DrawingAttribute::DoubleHelixAsCylinderColor(c)) }
+        
+        return atts;
+    }
+
+    fn with_attribute_if_not_set(&self, att: DrawingAttribute) -> Self {
+        match att {
+            DrawingAttribute::SphereRadius(r) => DrawingStyle { 
+                sphere_radius: Some(self.sphere_radius.unwrap_or(r)), 
+                ..*self },
+            DrawingAttribute::BondRadius(r) => DrawingStyle { 
+                bond_radius: Some(self.bond_radius.unwrap_or(r)), 
+                ..*self },
+            DrawingAttribute::DoubleHelixAsCylinderRadius(r) => DrawingStyle { 
+                double_helix_as_cylinder_radius: Some(self.double_helix_as_cylinder_radius.unwrap_or(r)),
+                ..*self },
+            DrawingAttribute::SphereColor(c) => DrawingStyle { 
+                sphere_color: Some(self.sphere_color.unwrap_or(c)),
+                ..*self },
+            DrawingAttribute::BondColor(c) => DrawingStyle { 
+                bond_color: Some(self.bond_color.unwrap_or(c)), 
+                ..*self },
+            DrawingAttribute::DoubleHelixAsCylinderColor(c) => DrawingStyle { 
+                double_helix_as_cylinder_color: Some(self.double_helix_as_cylinder_color.unwrap_or(c)),
+                ..*self },
+        }
     }
 }
