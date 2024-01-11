@@ -88,7 +88,7 @@ impl<R: DesignReader> Design3D<R> {
                         position: loopout_nucl.position,
                         color: Instance::color_from_u32(loopout_nucl.color),
                         id: loopout_nucl.repr_bond_identifier,
-                        radius: 1.,
+                        radius: SPHERE_RADIUS,
                     }
                     .to_raw_instance(),
                 );
@@ -102,7 +102,7 @@ impl<R: DesignReader> Design3D<R> {
                         position: transformation.transform_vec(p),
                         color: Instance::color_from_u32(SURFACE_PIVOT_SPHERE_COLOR),
                         id: u32::MAX,
-                        radius: 1.,
+                        radius: SPHERE_RADIUS,
                     }
                     .to_raw_instance(),
                 );
@@ -114,7 +114,7 @@ impl<R: DesignReader> Design3D<R> {
                             position: transformation.transform_vec(p),
                             color: Instance::color_from_u32(PIVOT_SPHERE_COLOR),
                             id: u32::MAX,
-                            radius: 1.,
+                            radius: SPHERE_RADIUS,
                         }
                         .to_raw_instance(),
                     );
@@ -141,7 +141,7 @@ impl<R: DesignReader> Design3D<R> {
                     position: *position,
                     color: color_vec4,
                     id: 0,
-                    radius: 1.,
+                    radius: SPHERE_RADIUS,
                 }
                 .to_raw_instance();
                 spheres.push(sphere);
@@ -311,10 +311,10 @@ impl<R: DesignReader> Design3D<R> {
                     let id = id | self.id << 24;
                     let color = Instance::color_from_au32(color);
                     let small = self.design_reader.has_small_spheres_nucl_id(id);
-                    if radius > 1.01 && small {
-                        radius *= 2.5;
-                    }
-                    radius = if small { radius / 3.5 } else { radius };
+                    // if radius > 1.01 && small {
+                    //     radius *= 2.5;
+                    // }
+                    // radius = if small { radius / 3.5 } else { radius };
                     SphereInstance {
                         position,
                         radius,
@@ -420,7 +420,7 @@ impl<R: DesignReader> Design3D<R> {
                 sphere: SphereInstance {
                     position: hbond.forward.center_of_mass,
                     color: Instance::color_from_u32(basis_color(hbond.forward.base.unwrap_or('?'))),
-                    radius: 1.,
+                    radius: SPHERE_RADIUS,
                     id: 0,
                 },
             };
@@ -432,7 +432,7 @@ impl<R: DesignReader> Design3D<R> {
                     color: Instance::color_from_u32(basis_color(
                         hbond.backward.base.unwrap_or('?'),
                     )),
-                    radius: 1.,
+                    radius: SPHERE_RADIUS,
                     id: 0,
                 },
             };
@@ -522,7 +522,7 @@ impl<R: DesignReader> Design3D<R> {
                 let (color, radius) = self
                     .length_adjusted_color_and_radius_for_bond(id1, id2)
                     .unwrap_or((color, 1.0));
-                let radius = radius * self.get_radius(id).unwrap_or(1.0);
+                let radius = self.get_radius(id).unwrap_or(BOND_RADIUS);
                 let tube = create_dna_bond(pos1, pos2, color, id, false).with_radius(radius);
                 tube.to_raw_instance()
             }
@@ -534,11 +534,11 @@ impl<R: DesignReader> Design3D<R> {
                 let id = id | self.id << 24;
                 let small = self.design_reader.has_small_spheres_nucl_id(id);
                 let radius = if small {
-                    BOND_RADIUS / SPHERE_RADIUS // so that it's radius is the BOND_RADIUS as radius in shader is SPHERE_RADIUS
+                    BOND_RADIUS  // so that it's radius is the BOND_RADIUS as radius in shader is SPHERE_RADIUS
                 } else {
-                    1.
+                    SPHERE_RADIUS
                 };
-                let radius = radius * self.get_radius(id).unwrap_or(1.0);
+                let radius = self.get_radius(id).unwrap_or(SPHERE_RADIUS);
                 let sphere = SphereInstance {
                     position,
                     color,
@@ -570,7 +570,7 @@ impl<R: DesignReader> Design3D<R> {
                     color: Instance::color_from_au32(SUGGESTION_COLOR),
                     position,
                     id: 0,
-                    radius: SELECT_SCALE_FACTOR,
+                    radius: SELECT_SCALE_FACTOR * SPHERE_RADIUS,
                 }
                 .to_raw_instance();
                 ret.push(instance);
@@ -580,7 +580,7 @@ impl<R: DesignReader> Design3D<R> {
                     color: Instance::color_from_au32(SUGGESTION_COLOR),
                     position,
                     id: 0,
-                    radius: SELECT_SCALE_FACTOR,
+                    radius: SELECT_SCALE_FACTOR * SPHERE_RADIUS,
                 }
                 .to_raw_instance();
                 ret.push(instance);
@@ -727,8 +727,8 @@ impl<R: DesignReader> Design3D<R> {
                         SphereInstance {
                             position: nucl_coord,
                             color: Instance::color_from_au32(color),
-                            id,
-                            radius: 0.6,
+                            id, 
+                            radius: 0.6 * SPHERE_RADIUS, // TO BE PUT IN CONST.RS
                         }
                         .to_raw_instance(),
                     );
@@ -736,7 +736,7 @@ impl<R: DesignReader> Design3D<R> {
                         let id = phantom_helix_encoder_bond(self.id, *helix_id, i, *forward);
                         tubes.push(
                             create_dna_bond(nucl_coord, coord, color, id, true)
-                                .with_radius(0.6)
+                                .with_radius(0.6 * BOND_RADIUS) // TO BE PUT IN CONST.RS
                                 .to_raw_instance(),
                         );
                     }
@@ -1121,7 +1121,7 @@ impl<R: DesignReader> Design3D<R> {
         SphereInstance {
             position,
             id: 0,
-            radius: PIVOT_SCALE_FACTOR,
+            radius: PIVOT_SCALE_FACTOR * SPHERE_RADIUS,
             color: Instance::color_from_au32(PIVOT_SPHERE_COLOR),
         }
         .to_raw_instance()
@@ -1131,7 +1131,7 @@ impl<R: DesignReader> Design3D<R> {
         SphereInstance {
             position,
             id: 0,
-            radius: 1.2 * SELECT_SCALE_FACTOR,
+            radius: 1.2 * SELECT_SCALE_FACTOR * SPHERE_RADIUS,
             color: Instance::color_from_au32(SURFACE_PIVOT_SPHERE_COLOR),
         }
         .to_raw_instance()
@@ -1141,7 +1141,7 @@ impl<R: DesignReader> Design3D<R> {
         SphereInstance {
             position,
             id: 0,
-            radius: FREE_XOVER_SCALE_FACTOR,
+            radius: FREE_XOVER_SCALE_FACTOR * SPHERE_RADIUS,
             color: Instance::color_from_au32(FREE_XOVER_COLOR),
         }
         .to_raw_instance()
@@ -1204,13 +1204,13 @@ fn create_dna_bond(source: Vec3, dest: Vec3, color: u32, id: u32, use_alpha: boo
         color,
         rotor,
         id,
-        radius: 1.,
+        radius: BOND_RADIUS,
         length,
     }
 }
 
 fn create_check_bond(source: Vec3, dest: Vec3, checked: bool) -> RawDnaInstance {
-    let radius = (source - dest).mag() / 2. / SPHERE_RADIUS;
+    let radius = (source - dest).mag() / 2.;
     let position = (source + dest) / 2.;
     let color = if checked {
         Instance::color_from_au32(CHECKED_XOVER_COLOR)

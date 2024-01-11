@@ -22,10 +22,12 @@ use ahash::RandomState;
 use ensnano_design::elements::{DesignElement, DesignElementKey};
 use ensnano_design::grid::{GridObject, GridPosition, HelixGridPosition, GridId};
 use ensnano_design::*;
+use ensnano_interactor::consts::{SPHERE_RADIUS, BOND_RADIUS};
 use ensnano_interactor::{
     graphics::{LoopoutBond, LoopoutNucl},
     ObjectType,
 };
+use ensnano_utils::clic_counter::ClicCounter;
 use iced::slider::draw;
 use serde::Serialize;
 use std::borrow::Cow;
@@ -486,7 +488,8 @@ impl DesignContent {
         let mut letter_map = HashMap::default();
         let mut loopout_bonds = Vec::new();
         let mut loopout_nucls = Vec::new();
-        let mut id = 0u32;
+        let mut id_TMP = 0u32;
+        let mut id_clic_counter = ClicCounter::new();
         let mut nucl_id;
         let mut old_nucl: Option<Nucl> = None;
         let mut old_nucl_id: Option<u32> = None;
@@ -593,8 +596,8 @@ impl DesignContent {
                             }
                         }
                     }
-                    let bond_radius = domain_style.bond_radius.unwrap_or(1.0);
-                    let nucl_radius = domain_style.sphere_radius.unwrap_or(1.0);
+                    let bond_radius = domain_style.bond_radius.unwrap_or(BOND_RADIUS);
+                    let nucl_radius = domain_style.sphere_radius.unwrap_or(SPHERE_RADIUS);
                     prev_style = domain_style;
                     // sequence
                     let dom_seq = domain.sequence.as_ref().filter(|s| s.is_ascii());
@@ -632,25 +635,25 @@ impl DesignContent {
                                 position_prime5: prev_pos,
                                 position_prime3: position.into(),
                                 color: bond_color,
-                                repr_bond_identifier: id,
+                                repr_bond_identifier: id_TMP,
                             });
                         }
                         nucl_id = if let Some(old_nucl) = old_nucl {
-                            let bond_id = id;
-                            id += 1;
+                            let bond_id = id_TMP;
+                            id_TMP += 1;
                             let bond = (old_nucl, nucl);
-                            object_type.insert(bond_id, ObjectType::Bond(old_nucl_id.unwrap(), id));
+                            object_type.insert(bond_id, ObjectType::Bond(old_nucl_id.unwrap(), id_TMP));
                             identifier_bond.insert(bond, bond_id);
                             nucleotides_involved.insert(bond_id, bond);
                             color_map.insert(bond_id, bond_color); // color given to the bond
                             radius_map.insert(bond_id, bond_radius); // radius given to the bond
                             strand_map.insert(bond_id, *s_id); // get strand_id from bond_id
                             helix_map.insert(bond_id, nucl.helix); // get helix_id from bond_id
-                            id
+                            id_TMP
                         } else {
-                            id
+                            id_TMP
                         };
-                        id += 1;
+                        id_TMP += 1;
                         object_type.insert(nucl_id, ObjectType::Nucleotide(nucl_id));
                         nucleotide.insert(nucl_id, nucl);
                         nucl_collection.insert(nucl, nucl_id);
@@ -703,7 +706,7 @@ impl DesignContent {
                             loopout_nucls.push(LoopoutNucl {
                                 position: *pos,
                                 color,
-                                repr_bond_identifier: id,
+                                repr_bond_identifier: id_TMP,
                                 basis: basis.and_then(|b| b.clone().try_into().ok()),
                             });
                             if let Some(prev_pos) =
@@ -714,21 +717,21 @@ impl DesignContent {
                                     position_prime5: prev_pos,
                                     position_prime3: *pos,
                                     color,
-                                    repr_bond_identifier: id,
+                                    repr_bond_identifier: id_TMP,
                                 });
                             }
                             prev_loopout_pos = Some(*pos);
                             strand_position += 1;
                         }
                     }
-                    insertion_length.insert(id, *nb_nucl);
+                    insertion_length.insert(id_TMP, *nb_nucl);
                     last_xover_junction = Some(&mut strand.junctions[i]);
                 }
             }
             if strand.cyclic {
                 let nucl = strand.get_5prime().unwrap();
                 let prime5_id = nucl_collection.get_identifier(&nucl).unwrap();
-                let bond_id = id;
+                let bond_id = id_TMP;
                 if let Some((prev_pos, position)) =
                     prev_loopout_pos.take().zip(space_position.get(&prime5_id))
                 {
@@ -736,16 +739,16 @@ impl DesignContent {
                         position_prime5: prev_pos,
                         position_prime3: position.into(),
                         color: strand_color,
-                        repr_bond_identifier: id,
+                        repr_bond_identifier: id_TMP,
                     });
                 }
-                id += 1;
+                id_TMP += 1;
                 let bond = (old_nucl.unwrap(), nucl);
                 object_type.insert(bond_id, ObjectType::Bond(old_nucl_id.unwrap(), *prime5_id));
                 identifier_bond.insert(bond, bond_id);
                 nucleotides_involved.insert(bond_id, bond);
                 color_map.insert(bond_id, strand_color);
-                radius_map.insert(bond_id, prev_style.bond_radius.unwrap_or(1.0)); // radius given to the bond
+                radius_map.insert(bond_id, prev_style.bond_radius.unwrap_or(BOND_RADIUS)); // radius given to the bond
                 strand_map.insert(bond_id, *s_id); // match bond_id to strand_id
                 helix_map.insert(bond_id, nucl.helix);
                 log::debug!("adding {:?}, {:?}", bond.0, bond.1);
@@ -771,16 +774,16 @@ impl DesignContent {
                     });
                 }
             } else {
-                if let Some(len) = insertion_length.remove(&id) {
-                    insertion_length.insert(id - 1, len);
+                if let Some(len) = insertion_length.remove(&id_TMP) {
+                    insertion_length.insert(id_TMP - 1, len);
                     for loopout_nucl in loopout_nucls.iter_mut() {
-                        if loopout_nucl.repr_bond_identifier == id {
-                            loopout_nucl.repr_bond_identifier = id - 1;
+                        if loopout_nucl.repr_bond_identifier == id_TMP {
+                            loopout_nucl.repr_bond_identifier = id_TMP - 1;
                         }
                     }
                     for loopout_bond in loopout_bonds.iter_mut() {
-                        if loopout_bond.repr_bond_identifier == id {
-                            loopout_bond.repr_bond_identifier = id - 1;
+                        if loopout_bond.repr_bond_identifier == id_TMP {
+                            loopout_bond.repr_bond_identifier = id_TMP - 1;
                         }
                     }
                 }

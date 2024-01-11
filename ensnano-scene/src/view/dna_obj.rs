@@ -81,7 +81,7 @@ pub struct SphereInstance {
     pub position: Vec3,
     pub color: Vec4,
     pub id: u32,
-    pub radius: f32,
+    pub radius: f32, // nm
 }
 
 impl SphereInstance {
@@ -103,7 +103,7 @@ impl Instanciable for SphereInstance {
         for i in 0..=NB_STACK_SPHERE {
             // 0..=x means that x is included
             let stack_angle = PI / 2. - (i as f32) * stack_step;
-            let radius = SPHERE_RADIUS;
+            let radius = 1.; // SPHERE_RADIUS;
             let xy = radius * stack_angle.cos();
             let z = radius * stack_angle.sin();
 
@@ -294,14 +294,14 @@ impl Instanciable for TubeInstance {
     type Ressource = ();
 
     fn vertices() -> Vec<DnaVertex> {
-        let radius = BOND_RADIUS;
+        let radius = 1.; // BOND_RADIUS;
         (0..(2 * NB_RAY_TUBE))
             .map(|i| {
                 let point = i / 2;
                 let side = if i % 2 == 0 { -1. } else { 1. };
                 let theta = (point as f32) * 2. * PI / NB_RAY_TUBE as f32;
                 let position = [
-                    side * BOND_LENGTH / 2.,
+                    side / 2., //* BOND_LENGTH / 2.,
                     theta.sin() * radius,
                     theta.cos() * radius,
                 ];
@@ -508,7 +508,7 @@ impl Instanciable for Ellipsoid {
         let mut ret = self.sphere.to_raw_instance();
         let model = Mat4::from_translation(self.sphere.position)
             * self.orientation.into_matrix().into_homogeneous();
-        ret.scale = self.scale;
+        ret.scale *= self.scale;
         ret.model = model;
         ret.inversed_model = model.inversed();
         ret

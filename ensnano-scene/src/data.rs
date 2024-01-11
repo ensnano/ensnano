@@ -481,7 +481,7 @@ impl<R: DesignReader> Data<R> {
                         let instances = self.designs[*d_id as usize].make_instance(
                             *id,
                             SELECTED_COLOR,
-                            SELECT_SCALE_FACTOR,
+                            SELECT_SCALE_FACTOR * SPHERE_RADIUS,
                             Some(design3d::ExpandWith::Spheres)
                                 .filter(|_| !app_state.show_insertion_representents()),
                         );
@@ -495,7 +495,7 @@ impl<R: DesignReader> Data<R> {
                                 d.make_instance_phantom(
                                     phantom_element,
                                     SELECTED_COLOR,
-                                    SELECT_SCALE_FACTOR,
+                                    SELECT_SCALE_FACTOR * SPHERE_RADIUS,
                                 )
                             })
                         {
@@ -526,7 +526,7 @@ impl<R: DesignReader> Data<R> {
                         let instance = self.designs[*d_id as usize].make_instance(
                             *id,
                             SELECTED_COLOR,
-                            SELECT_SCALE_FACTOR,
+                            SELECT_SCALE_FACTOR * BOND_RADIUS,
                             Some(design3d::ExpandWith::Tubes)
                                 .filter(|_| !app_state.show_insertion_representents()),
                         );
@@ -540,7 +540,7 @@ impl<R: DesignReader> Data<R> {
                                 d.make_instance_phantom(
                                     phantom_element,
                                     SELECTED_COLOR,
-                                    SELECT_SCALE_FACTOR,
+                                    SELECT_SCALE_FACTOR * BOND_RADIUS,
                                 )
                             })
                         {
@@ -571,7 +571,7 @@ impl<R: DesignReader> Data<R> {
                         let instances = self.designs[*d_id as usize].make_instance(
                             *id,
                             CANDIDATE_COLOR,
-                            CANDIDATE_SCALE_FACTOR,
+                            CANDIDATE_SCALE_FACTOR * SPHERE_RADIUS,
                             Some(design3d::ExpandWith::Spheres)
                                 .filter(|_| !app_state.show_insertion_representents()),
                         );
@@ -585,7 +585,7 @@ impl<R: DesignReader> Data<R> {
                                 d.make_instance_phantom(
                                     phantom_element,
                                     CANDIDATE_COLOR,
-                                    CANDIDATE_SCALE_FACTOR,
+                                    CANDIDATE_SCALE_FACTOR * SPHERE_RADIUS,
                                 )
                             })
                         {
@@ -616,7 +616,7 @@ impl<R: DesignReader> Data<R> {
                         let instances = self.designs[*d_id as usize].make_instance(
                             *id,
                             CANDIDATE_COLOR,
-                            CANDIDATE_SCALE_FACTOR,
+                            CANDIDATE_SCALE_FACTOR * BOND_RADIUS,
                             Some(design3d::ExpandWith::Tubes)
                                 .filter(|_| !app_state.show_insertion_representents()),
                         );
@@ -630,7 +630,7 @@ impl<R: DesignReader> Data<R> {
                                 d.make_instance_phantom(
                                     phantom_element,
                                     CANDIDATE_COLOR,
-                                    CANDIDATE_SCALE_FACTOR,
+                                    CANDIDATE_SCALE_FACTOR * BOND_RADIUS,
                                 )
                             })
                         {

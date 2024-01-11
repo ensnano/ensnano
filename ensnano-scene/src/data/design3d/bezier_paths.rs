@@ -164,7 +164,7 @@ impl<R: DesignReader> Design3D<R> {
                             position: Vec3::new(point.x as f32, point.y as f32, point.z as f32),
                             color: [1., 0., 0., 1.].into(),
                             id: 0,
-                            radius: 2.0,
+                            radius: 2.0 * SPHERE_RADIUS,
                         }
                         .to_raw_instance(),
                     );
@@ -246,7 +246,7 @@ fn sheet_corner_instance(corner_desc: BezierSheetCornerDesc<'_>) -> RawDnaInstan
             corner_desc.sheet.plane_id.0.to_be_bytes()[3],
         ]),
         position,
-        radius: BEZIER_SHEET_CORNER_RADIUS,
+        radius: BEZIER_SHEET_CORNER_RADIUS * SPHERE_RADIUS,
     }
     .to_raw_instance()
 }
@@ -262,7 +262,7 @@ fn make_bezier_controll(
         position,
         id,
         color: Instance::color_from_au32(color),
-        radius: BEZIER_CONTROL_RADIUS,
+        radius: BEZIER_CONTROL_RADIUS * SPHERE_RADIUS,
     }
     .to_raw_instance()
 }
@@ -277,7 +277,7 @@ fn make_bezier_squelton(source: Vec3, dest: Vec3) -> RawDnaInstance {
         color: Instance::color_from_u32(0),
         id: 0,
         rotor,
-        radius: BEZIER_SQUELETON_RADIUS,
+        radius: BEZIER_SQUELETON_RADIUS * BOND_RADIUS,
         length,
     }
     .to_raw_instance()
@@ -313,7 +313,7 @@ fn add_raw_instances_representing_bezier_vertex(
             position: vertex.coordinates.position,
             color,
             id: crate::element_selector::bezier_vertex_id(vertex.id.path_id, vertex.id.vertex_id),
-            radius: 10.0,
+            radius: 10.0 * SPHERE_RADIUS,
         }
         .to_raw_instance(),
     );
@@ -326,7 +326,7 @@ fn add_raw_instances_representing_bezier_vertex(
                 vertex.id.vertex_id,
                 false,
             ),
-            radius: 5.0,
+            radius: 5.0 * SPHERE_RADIUS,
         }
         .to_raw_instance(),
     );
@@ -339,7 +339,7 @@ fn add_raw_instances_representing_bezier_vertex(
                 vertex.id.vertex_id,
                 true,
             ),
-            radius: 5.0,
+            radius: 5.0 * SPHERE_RADIUS,
         }
         .to_raw_instance(),
     );
