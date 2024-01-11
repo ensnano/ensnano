@@ -112,7 +112,7 @@ impl Reader2D for DesignReader {
     }
 
     fn get_basis_map(&self) -> Arc<HashMap<Nucl, char, RandomState>> {
-        self.presenter.content.basis_map.clone()
+        self.presenter.content.letter_map.clone()
     }
 
     fn get_group_map(&self) -> Arc<BTreeMap<usize, bool>> {

@@ -863,7 +863,7 @@ impl FromStr for DrawingAttribute {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Copy)]
 pub struct DrawingStyle {
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub sphere_radius: Option<f32>,
@@ -897,12 +897,18 @@ impl From<Vec<DrawingAttribute>> for DrawingStyle {
         let mut ret = DrawingStyle::default();
         for att in attributes {
             match att {
-                DrawingAttribute::SphereRadius(r) => ret.sphere_radius = Some(r),
-                DrawingAttribute::BondRadius(r) => ret.bond_radius = Some(r),
-                DrawingAttribute::DoubleHelixAsCylinderRadius(r) => ret.double_helix_as_cylinder_radius = Some(r),
-                DrawingAttribute::SphereColor(c) => ret.sphere_color = Some(c),
-                DrawingAttribute::BondColor(c) => ret.bond_color = Some(c),
-                DrawingAttribute::DoubleHelixAsCylinderColor(c) => ret.double_helix_as_cylinder_color = Some(c),
+                DrawingAttribute::SphereRadius(r) => 
+                    ret.sphere_radius = Some(ret.sphere_radius.unwrap_or(r)),
+                DrawingAttribute::BondRadius(r) => 
+                    ret.bond_radius = Some(ret.bond_radius.unwrap_or(r)),
+                DrawingAttribute::DoubleHelixAsCylinderRadius(r) => 
+                    ret.double_helix_as_cylinder_radius = Some(ret.double_helix_as_cylinder_radius.unwrap_or(r)),
+                DrawingAttribute::SphereColor(c) => 
+                    ret.sphere_color = Some(ret.sphere_color.unwrap_or(c)),
+                DrawingAttribute::BondColor(c) => 
+                    ret.bond_color = Some(ret.bond_color.unwrap_or(c)),
+                DrawingAttribute::DoubleHelixAsCylinderColor(c) => 
+                    ret.double_helix_as_cylinder_color = Some(ret.double_helix_as_cylinder_color.unwrap_or(c)),
             }
         }
         return ret 
@@ -910,7 +916,7 @@ impl From<Vec<DrawingAttribute>> for DrawingStyle {
 }
 
 impl DrawingStyle {
-    fn with_attribute(&self, att: DrawingAttribute) -> Self {
+    pub fn with_attribute(&self, att: DrawingAttribute) -> Self {
         match att {
             DrawingAttribute::SphereRadius(r) => DrawingStyle { sphere_radius: Some(r), ..*self },
             DrawingAttribute::BondRadius(r) => DrawingStyle { bond_radius: Some(r), ..*self },
@@ -921,7 +927,7 @@ impl DrawingStyle {
         }
     }
 
-    fn attributes(&self) -> Vec<DrawingAttribute> {
+    pub fn attributes(&self) -> Vec<DrawingAttribute> {
         let mut atts = Vec::new();
         
         if let Some(r) = self.sphere_radius { atts.push(DrawingAttribute::SphereRadius(r)) }
@@ -935,7 +941,7 @@ impl DrawingStyle {
         return atts;
     }
 
-    fn with_attribute_if_not_set(&self, att: DrawingAttribute) -> Self {
+    pub fn complete_with_attribute(&self, att: DrawingAttribute) -> Self {
         match att {
             DrawingAttribute::SphereRadius(r) => DrawingStyle { 
                 sphere_radius: Some(self.sphere_radius.unwrap_or(r)), 
@@ -956,5 +962,24 @@ impl DrawingStyle {
                 double_helix_as_cylinder_color: Some(self.double_helix_as_cylinder_color.unwrap_or(c)),
                 ..*self },
         }
+    }
+
+    pub fn complete_with_attributes(&self, attributes: Vec<DrawingAttribute>) -> Self {
+        let mut style = *self;
+        for att in attributes {
+            style = style.complete_with_attribute(att);
+        }
+        return style.clone();
+    }
+
+    pub fn complete_with(&self, other: &Self) -> Self {
+        return DrawingStyle {
+            sphere_radius: self.sphere_radius.or(other.sphere_radius),
+            bond_radius: self.bond_radius.or(other.bond_radius),
+            double_helix_as_cylinder_radius: self.double_helix_as_cylinder_radius.or(other.double_helix_as_cylinder_radius),
+            sphere_color: self.sphere_color.or(other.sphere_color),
+            bond_color: self.bond_color.or(other.bond_color),
+            double_helix_as_cylinder_color: self.double_helix_as_cylinder_color.or(other.double_helix_as_cylinder_color),
+        };
     }
 }

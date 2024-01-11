@@ -32,7 +32,11 @@ use crate::scene::{DesignReader as Reader3D, GridInstance, SurfaceInfo};
 
 impl Reader3D for DesignReader {
     fn get_color(&self, e_id: u32) -> Option<u32> {
-        self.presenter.content.color.get(&e_id).cloned()
+        self.presenter.content.color_map.get(&e_id).cloned()
+    }
+
+    fn get_radius(&self, e_id: u32) -> Option<f32> {
+        self.presenter.content.radius_map.get(&e_id).cloned()
     }
 
     fn get_basis(&self) -> Rotor3 {
@@ -44,7 +48,7 @@ impl Reader3D for DesignReader {
             .content
             .nucleotide
             .get(&e_id)
-            .and_then(|nucl| self.presenter.content.basis_map.get(nucl))
+            .and_then(|nucl| self.presenter.content.letter_map.get(nucl))
             .cloned()
     }
 

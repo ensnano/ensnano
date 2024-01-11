@@ -43,7 +43,8 @@ use ultraviolet::{Mat4, Rotor3, Vec2, Vec3};
 
 mod bezier_paths;
 
-/// An object that handles the 3d graphcial representation of a `Design`
+
+/// An object that handles the 3d graphical representation of a `Design`
 pub struct Design3D<R: DesignReader> {
     design_reader: R,
     id: u32,
@@ -521,6 +522,7 @@ impl<R: DesignReader> Design3D<R> {
                 let (color, radius) = self
                     .length_adjusted_color_and_radius_for_bond(id1, id2)
                     .unwrap_or((color, 1.0));
+                let radius = radius * self.get_radius(id).unwrap_or(1.0);
                 let tube = create_dna_bond(pos1, pos2, color, id, false).with_radius(radius);
                 tube.to_raw_instance()
             }
@@ -532,10 +534,11 @@ impl<R: DesignReader> Design3D<R> {
                 let id = id | self.id << 24;
                 let small = self.design_reader.has_small_spheres_nucl_id(id);
                 let radius = if small {
-                    BOND_RADIUS / SPHERE_RADIUS
+                    BOND_RADIUS / SPHERE_RADIUS // so that it's radius is the BOND_RADIUS as radius in shader is SPHERE_RADIUS
                 } else {
                     1.
                 };
+                let radius = radius * self.get_radius(id).unwrap_or(1.0);
                 let sphere = SphereInstance {
                     position,
                     color,
@@ -824,6 +827,10 @@ impl<R: DesignReader> Design3D<R> {
 
     fn get_color(&self, id: u32) -> Option<u32> {
         self.design_reader.get_color(id)
+    }
+
+    fn get_radius(&self, id: u32) -> Option<f32> {
+        self.design_reader.get_radius(id)
     }
 
     /// Return the middle point of `self` in the world coordinates
@@ -1286,6 +1293,7 @@ pub trait DesignReader: 'static + ensnano_interactor::DesignReader {
     fn get_element_position(&self, e_id: u32, referential: Referential) -> Option<Vec3>;
     fn get_element_axis_position(&self, id: u32, referential: Referential) -> Option<Vec3>;
     fn get_color(&self, e_id: u32) -> Option<u32>;
+    fn get_radius(&self, e_id: u32) -> Option<f32>;
     fn get_id_of_strand_containing(&self, e_id: u32) -> Option<usize>;
     fn get_id_of_helix_containing(&self, e_id: u32) -> Option<usize>;
     fn get_ids_of_elements_belonging_to_strand(&self, s_id: usize) -> Vec<u32>;

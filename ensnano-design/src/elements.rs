@@ -193,7 +193,7 @@ impl OrganizerElement for DesignElement {
     }
 }
 
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Debug, Serialize, Deserialize, Hash, Copy)]
 pub enum DesignElementKey {
     Grid(usize),
     Strand(usize),

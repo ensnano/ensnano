@@ -19,16 +19,18 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::*;
 use crate::scene::GridInstance;
 use ahash::RandomState;
-use ensnano_design::elements::DesignElement;
-use ensnano_design::grid::{GridObject, GridPosition, HelixGridPosition};
+use ensnano_design::elements::{DesignElement, DesignElementKey};
+use ensnano_design::grid::{GridObject, GridPosition, HelixGridPosition, GridId};
 use ensnano_design::*;
 use ensnano_interactor::{
     graphics::{LoopoutBond, LoopoutNucl},
     ObjectType,
 };
+use iced::slider::draw;
 use serde::Serialize;
 use std::borrow::Cow;
 use std::collections::{BTreeMap, HashMap, HashSet};
+use std::str::FromStr;
 use std::sync::Arc;
 use ultraviolet::Vec3;
 
@@ -102,8 +104,10 @@ pub(super) struct DesignContent {
     /// Maps the identifier of a element to the identifier of the helix to which it belongs
     pub helix_map: HashMap<u32, usize, RandomState>,
     /// Maps the identifier of an element to its color
-    pub color: HashMap<u32, u32, RandomState>,
-    pub basis_map: Arc<HashMap<Nucl, char, RandomState>>,
+    pub color_map: HashMap<u32, u32, RandomState>,
+    /// Maps the identifier of an element to its radius
+    pub radius_map: HashMap<u32, f32, RandomState>,
+    pub letter_map: Arc<HashMap<Nucl, char, RandomState>>,
     pub prime3_set: Vec<Prime3End>,
     pub elements: Vec<DesignElement>,
     pub suggestions: Vec<(Nucl, Nucl)>,
@@ -113,7 +117,7 @@ pub(super) struct DesignContent {
     /// Maps bonds identifier to the length of the corresponding insertion.
     pub insertion_length: HashMap<u32, usize, RandomState>,
     /// Maps identifiers to drawingstyles
-    pub drawing_styles: HashMap<u32, DrawingStyle, RandomState>,
+    pub drawing_styles: HashMap<DesignElementKey, DrawingStyle, RandomState>,
 }
 
 impl DesignContent {
@@ -194,7 +198,7 @@ impl DesignContent {
     }
 
     pub(super) fn get_stapple_mismatch(&self, design: &Design) -> Option<Nucl> {
-        let basis_map = self.basis_map.as_ref();
+        let basis_map = self.letter_map.as_ref();
         for strand in design.strands.values() {
             for domain in &strand.domains {
                 if let Domain::HelixDomain(dom) = domain {
@@ -222,7 +226,7 @@ impl DesignContent {
         let mut ret = Vec::new();
         let mut sequences: BTreeMap<(Vec<String>, usize, isize, usize, isize), StapleInfo> =
             Default::default();
-        let basis_map = self.basis_map.as_ref();
+        let basis_map = self.letter_map.as_ref();
         for (s_id, strand) in design.strands.iter() {
             if strand.length() == 0 || design.scaffold_id == Some(*s_id) {
                 // skip zero length staples and scaffold
@@ -477,8 +481,9 @@ impl DesignContent {
         let mut nucleotide = HashMap::default();
         let mut strand_map = HashMap::default();
         let mut color_map = HashMap::default();
+        let mut radius_map = HashMap::default();
         let mut helix_map = HashMap::default();
-        let mut basis_map = HashMap::default();
+        let mut letter_map = HashMap::default();
         let mut loopout_bonds = Vec::new();
         let mut loopout_nucls = Vec::new();
         let mut id = 0u32;
@@ -495,9 +500,28 @@ impl DesignContent {
         let rainbow_strand = design.scaffold_id.filter(|_| design.rainbow_scaffold);
         let grid_manager = design.get_updated_grid_data().clone();
 
+        // Build drawing style map from organizer tree
+        if let Some(ref t) = design.organizer_tree { 
+            let prefix = "style:"; // PREFIX SHOULD BELONG TO CONST.RS
+            let h = t.get_hashmap_to_all_groupnames_with_prefix(prefix);
+            for (e, names) in h {
+                let drawing_attributes = names.iter()
+                .map(|x| x.split(&[' ', ',', ':'][..]).collect::<Vec<&str>>().iter()
+                    .map(|x| DrawingAttribute::from_str(x))
+                    .filter(|x| x.is_ok())
+                    .map(|x| x.unwrap())
+                    .collect::<Vec<DrawingAttribute>>())
+                .flatten()
+                .collect::<Vec<DrawingAttribute>>();
+                let mut style = DrawingStyle::from(drawing_attributes);
+                drawing_styles.insert(e, style);
+            }
+        }
+
+        // Scanning strands
         for (s_id, strand) in design.strands.iter_mut() {
             elements.push(elements::DesignElement::StrandElement {
-                id: *s_id,
+                id: *s_id, // the key in design.strands btreemap
                 length: strand.length(),
                 domain_lengths: strand.domain_lengths(),
             });
@@ -505,7 +529,7 @@ impl DesignContent {
             strand.update_insertions(&design.helices, &parameters);
             let mut strand_position = 0;
             let strand_seq = strand.sequence.as_ref().filter(|s| s.is_ascii());
-            let color = strand.color;
+            let strand_color = strand.color;
             let mut last_xover_junction: Option<&mut DomainJunction> = None;
             let rainbow_len = if Some(*s_id) == rainbow_strand {
                 strand.length()
@@ -520,7 +544,18 @@ impl DesignContent {
                 (0xFF << 24) | ((rgb.r as u32) << 16) | ((rgb.g as u32) << 8) | (rgb.b as u32)
             });
 
+            // compute strand style
+            let strand_style = drawing_styles
+                .get(&DesignElementKey::Strand(*s_id))
+                .unwrap_or(&DrawingStyle::default())
+                .clone()
+                .complete_with_attributes(vec![
+                    DrawingAttribute::SphereColor(strand_color), // strand color gets after color in strand style
+                    DrawingAttribute::BondColor(strand_color), // strand color gets after color in strand style
+                    ]);                
+
             let mut prev_loopout_pos = None;
+            let mut prev_style = strand_style;
             for (i, domain) in strand.domains.iter().enumerate() {
                 if let Some((prime5, prime3)) = old_nucl.clone().zip(domain.prime5_end()) {
                     Self::update_junction(
@@ -531,6 +566,7 @@ impl DesignContent {
                         (prime5, prime3),
                     );
                     if let Some(id) = xover_ids.get_id(&(prime5, prime3)) {
+                        // THIS IS A XOVER INTERNAL -> take action
                         elements.push(DesignElement::CrossOverElement {
                             xover_id: id,
                             helix5prime: prime5.helix,
@@ -539,10 +575,28 @@ impl DesignContent {
                             helix3prime: prime3.helix,
                             position3prime: prime3.position,
                             forward3prime: prime3.forward,
-                        });
+                        }); 
                     }
                 }
                 if let Domain::HelixDomain(domain) = domain {
+                    // domain style
+                    let mut domain_style = strand_style;
+                    // - domain style completed with helix style
+                    if let Some(helix_style) = drawing_styles.get(&DesignElementKey::Helix(domain.helix)) {
+                        domain_style = domain_style.complete_with(helix_style);
+                    }
+                    // - domain style completed with grid style if there is a grid
+                    if let Some(grid_position) = grid_manager.get_helix_grid_position(domain.helix) {
+                        if let GridId::FreeGrid(h_id) = grid_position.grid {
+                            if let Some(grid_style) = drawing_styles.get(&DesignElementKey::Grid(h_id)) {
+                                domain_style = domain_style.complete_with(grid_style);
+                            }
+                        }
+                    }
+                    let bond_radius = domain_style.bond_radius.unwrap_or(1.0);
+                    let nucl_radius = domain_style.sphere_radius.unwrap_or(1.0);
+                    prev_style = domain_style;
+                    // sequence
                     let dom_seq = domain.sequence.as_ref().filter(|s| s.is_ascii());
 
                     for (dom_position, nucl_position) in domain.iter().enumerate() {
@@ -571,12 +625,13 @@ impl DesignContent {
                             position: nucl.position,
                             forward: nucl.forward,
                         });
-                        let color = rainbow_iterator.next().unwrap_or(color);
+                        let bond_color = rainbow_iterator.next().unwrap_or(domain_style.bond_color.unwrap());
+                        let nucl_color = rainbow_iterator.next().unwrap_or(domain_style.sphere_color.unwrap());
                         if let Some(prev_pos) = prev_loopout_pos.take() {
                             loopout_bonds.push(LoopoutBond {
                                 position_prime5: prev_pos,
                                 position_prime3: position.into(),
-                                color,
+                                color: bond_color,
                                 repr_bond_identifier: id,
                             });
                         }
@@ -587,7 +642,8 @@ impl DesignContent {
                             object_type.insert(bond_id, ObjectType::Bond(old_nucl_id.unwrap(), id));
                             identifier_bond.insert(bond, bond_id);
                             nucleotides_involved.insert(bond_id, bond);
-                            color_map.insert(bond_id, color); // color given to the bond
+                            color_map.insert(bond_id, bond_color); // color given to the bond
+                            radius_map.insert(bond_id, bond_radius); // radius given to the bond
                             strand_map.insert(bond_id, *s_id); // get strand_id from bond_id
                             helix_map.insert(bond_id, nucl.helix); // get helix_id from bond_id
                             id
@@ -599,9 +655,10 @@ impl DesignContent {
                         nucleotide.insert(nucl_id, nucl);
                         nucl_collection.insert(nucl, nucl_id);
                         strand_map.insert(nucl_id, *s_id); // get the strand_id from the nucl_id
-                        color_map.insert(nucl_id, color);
+                        color_map.insert(nucl_id, nucl_color);
+                        radius_map.insert(nucl_id, nucl_radius); // radius given to the bond
                         helix_map.insert(nucl_id, nucl.helix); // get helix_id from bond_id
-                        let basis = dom_seq
+                        let letter = dom_seq
                             .as_ref()
                             .and_then(|s| s.as_bytes().get(dom_position))
                             .or_else(|| {
@@ -609,10 +666,10 @@ impl DesignContent {
                                     .as_ref()
                                     .and_then(|s| s.as_bytes().get(strand_position))
                             });
-                        if let Some(basis) = basis {
-                            basis_map.insert(nucl, *basis as char);
+                        if let Some(letter) = letter {
+                            letter_map.insert(nucl, *letter as char);
                         } else {
-                            basis_map.remove(&nucl);
+                            letter_map.remove(&nucl);
                         }
                         strand_position += 1;
                         suggestion_maker.add_nucl(nucl, position, groups.as_ref());
@@ -634,7 +691,7 @@ impl DesignContent {
                 {
                     if let Some(instanciation) = instanciation.as_ref() {
                         for (dom_position, pos) in instanciation.as_ref().pos().iter().enumerate() {
-                            let color = rainbow_iterator.next().unwrap_or(color);
+                            let color = rainbow_iterator.next().unwrap_or(strand_color);
                             let basis = dom_seq
                                 .as_ref()
                                 .and_then(|s| s.as_bytes().get(dom_position))
@@ -678,7 +735,7 @@ impl DesignContent {
                     loopout_bonds.push(LoopoutBond {
                         position_prime5: prev_pos,
                         position_prime3: position.into(),
-                        color,
+                        color: strand_color,
                         repr_bond_identifier: id,
                     });
                 }
@@ -687,7 +744,8 @@ impl DesignContent {
                 object_type.insert(bond_id, ObjectType::Bond(old_nucl_id.unwrap(), *prime5_id));
                 identifier_bond.insert(bond, bond_id);
                 nucleotides_involved.insert(bond_id, bond);
-                color_map.insert(bond_id, color);
+                color_map.insert(bond_id, strand_color);
+                radius_map.insert(bond_id, prev_style.bond_radius.unwrap_or(1.0)); // radius given to the bond
                 strand_map.insert(bond_id, *s_id); // match bond_id to strand_id
                 helix_map.insert(bond_id, nucl.helix);
                 log::debug!("adding {:?}, {:?}", bond.0, bond.1);
@@ -701,6 +759,7 @@ impl DesignContent {
                 );
                 let (prime5, prime3) = bond;
                 if let Some(id) = new_junctions.get_id(&(prime5, prime3)) {
+                    // Final XOVER DE strand cyclic
                     elements.push(DesignElement::CrossOverElement {
                         xover_id: id,
                         helix5prime: prime5.helix,
@@ -757,9 +816,10 @@ impl DesignContent {
             identifier_bond,
             strand_map,
             space_position,
-            color: color_map,
+            color_map,
+            radius_map,
             helix_map,
-            basis_map: Arc::new(basis_map),
+            letter_map: Arc::new(letter_map),
             prime3_set,
             elements,
             grid_manager,
@@ -809,7 +869,7 @@ impl DesignContent {
         junction: &mut DomainJunction,
         bond: (Nucl, Nucl),
     ) {
-        let is_xover = bond.0.prime3() != bond.1;
+        let is_xover = bond.0.prime3() != bond.1; // if different from the next in the strand
         match junction {
             DomainJunction::Adjacent if is_xover => {
                 let id = new_xover_ids.insert(bond);

@@ -35,6 +35,8 @@ pub mod obj_loader;
 pub mod text;
 pub mod texture;
 
+pub mod clic_counter;
+
 pub type PhySize = PhysicalSize<u32>;
 pub const TEXTURE_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Bgra8UnormSrgb;
 
