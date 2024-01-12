@@ -628,8 +628,9 @@ impl DesignContent {
                             position: nucl.position,
                             forward: nucl.forward,
                         });
-                        let bond_color = rainbow_iterator.next().unwrap_or(domain_style.bond_color.unwrap());
-                        let nucl_color = rainbow_iterator.next().unwrap_or(domain_style.sphere_color.unwrap());
+                        let rainbow_color = rainbow_iterator.next();
+                        let bond_color = rainbow_color.unwrap_or(domain_style.bond_color.unwrap());
+                        let nucl_color = rainbow_color.unwrap_or(domain_style.sphere_color.unwrap());
                         if let Some(prev_pos) = prev_loopout_pos.take() {
                             loopout_bonds.push(LoopoutBond {
                                 position_prime5: prev_pos,

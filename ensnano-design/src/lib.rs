@@ -877,6 +877,17 @@ pub struct DrawingStyle {
     pub bond_color: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub double_helix_as_cylinder_color: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub nucleotide_color: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub nucleotide_radius: Option<f32>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub xover_color: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub xover_radius: Option<f32>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub rainbow_strand: Option<bool
+    >,
 }
 
 impl Default for DrawingStyle {
