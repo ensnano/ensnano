@@ -138,7 +138,7 @@ mod tests {
         let my_parameter = NamedParameter {
             name: "My Parameter Name",
             value: HelixParameters {
-                z_step: 0.,
+                rise: 0.,
                 helix_radius: 0.,
                 bases_per_turn: 0.,
                 groove_angle: 0.,

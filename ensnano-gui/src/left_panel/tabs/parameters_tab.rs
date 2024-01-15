@@ -76,7 +76,7 @@ impl ParametersTab {
             iced_native::column![
                 text(format!("  Radius: {:.3} nm", dna_params.helix_radius)),
                 text(format!("  Radius: {:.3} nm", dna_params.helix_radius)),
-                text(format!("  Rise: {:.3} nm", dna_params.z_step)),
+                text(format!("  Rise: {:.3} nm", dna_params.rise)),
                 text(format!("  Inclination {:.3} nm", dna_params.inclination)),
                 text(format!("  Helicity: {:.2} bp", dna_params.bases_per_turn)),
                 text(format!(
