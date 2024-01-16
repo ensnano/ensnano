@@ -820,6 +820,7 @@ pub enum DrawingAttribute {
     BondColor(u32),   // with alpha
     DoubleHelixAsCylinderRadius(f32),
     DoubleHelixAsCylinderColor(u32), // with alpha
+    RainbowStrand(bool),
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -830,35 +831,44 @@ impl FromStr for DrawingAttribute {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let s = s.trim();
-        let re_hexa = Regex::new(r"([0-9a-fA-F])+").unwrap();
+
+        if s.starts_with("%rs") {
+            return Ok(Self::RainbowStrand(true));
+        }
+        if s.starts_with("%nors") {
+            return Ok(Self::RainbowStrand(false));
+        }
+
         let re_f32 = Regex::new(r"\d+(\.\d*)?").unwrap();
         if let Some(some_float) = re_f32.find(s) {
             let value = f32::from_str(some_float.as_str()).unwrap();
-            if s.starts_with("%sr") || s.starts_with("SphereRadius") {
-                return Ok(Self::SphereRadius(value));
+            if s.starts_with("%sr") {
+                return Ok(Self::SphereRadius(value / 10.)); // radius given in Å but stored in nm
             }
-            if s.starts_with("%br") || s.starts_with("BondRadius") {
-                return Ok(Self::BondRadius(value));
+            if s.starts_with("%br") {
+                return Ok(Self::BondRadius(value / 10.)); // radius given in Å but stored in nm
             }
-            if s.starts_with("%hr") || s.starts_with("DoubleHelixAsCylinderRadius") {
-                return Ok(Self::DoubleHelixAsCylinderRadius(value));
+            if s.starts_with("%hr") {
+                return Ok(Self::DoubleHelixAsCylinderRadius(value / 10.)); // radius given in Å but stored in nm
             }
         }
 
+        let re_hexa = Regex::new(r"([0-9a-fA-F])+").unwrap();
         if let Some(arg) = s.split("(").collect::<Vec<&str>>().get(1) {
             if let Some(some_hexa) = re_hexa.find(arg) {
                 let value = u32::from_str_radix(some_hexa.as_str(), 16).unwrap();
-                if s.starts_with("%sc") || s.starts_with("SphereColor") {
+                if s.starts_with("%sc") {
                     return Ok(Self::SphereColor(value));
                 }
-                if s.starts_with("%bc") || s.starts_with("BondColor") {
+                if s.starts_with("%bc") {
                     return Ok(Self::BondColor(value));
                 }
-                if s.starts_with("%hc") || s.starts_with("DoubleHelixAsCylinderColor") {
+                if s.starts_with("%hc") {
                     return Ok(Self::DoubleHelixAsCylinderColor(value));
                 }
             }
         }
+
         return Err(ParsePointError);
     }
 }
@@ -878,16 +888,7 @@ pub struct DrawingStyle {
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub double_helix_as_cylinder_color: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub nucleotide_color: Option<u32>,
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub nucleotide_radius: Option<f32>,
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub xover_color: Option<u32>,
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub xover_radius: Option<f32>,
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub rainbow_strand: Option<bool
-    >,
+    pub rainbow_strand: Option<bool>,
 }
 
 impl Default for DrawingStyle {
@@ -899,6 +900,7 @@ impl Default for DrawingStyle {
             sphere_color: None,
             bond_color: None,
             double_helix_as_cylinder_color: None,
+            rainbow_strand: None,
         }
     }
 }
@@ -909,17 +911,19 @@ impl From<Vec<DrawingAttribute>> for DrawingStyle {
         for att in attributes {
             match att {
                 DrawingAttribute::SphereRadius(r) => 
-                    ret.sphere_radius = Some(ret.sphere_radius.unwrap_or(r)),
+                    ret.sphere_radius = ret.sphere_radius.or(Some(r)),
                 DrawingAttribute::BondRadius(r) => 
-                    ret.bond_radius = Some(ret.bond_radius.unwrap_or(r)),
+                    ret.bond_radius = ret.bond_radius.or(Some(r)),
                 DrawingAttribute::DoubleHelixAsCylinderRadius(r) => 
-                    ret.double_helix_as_cylinder_radius = Some(ret.double_helix_as_cylinder_radius.unwrap_or(r)),
+                    ret.double_helix_as_cylinder_radius = ret.double_helix_as_cylinder_radius.or(Some(r)),
                 DrawingAttribute::SphereColor(c) => 
-                    ret.sphere_color = Some(ret.sphere_color.unwrap_or(c)),
+                    ret.sphere_color = ret.sphere_color.or(Some(c)),
                 DrawingAttribute::BondColor(c) => 
-                    ret.bond_color = Some(ret.bond_color.unwrap_or(c)),
-                DrawingAttribute::DoubleHelixAsCylinderColor(c) => 
-                    ret.double_helix_as_cylinder_color = Some(ret.double_helix_as_cylinder_color.unwrap_or(c)),
+                    ret.bond_color = ret.bond_color.or(Some(c)),
+                    DrawingAttribute::DoubleHelixAsCylinderColor(c) => 
+                    ret.double_helix_as_cylinder_color = ret.double_helix_as_cylinder_color.or(Some(c)),
+                DrawingAttribute::RainbowStrand(b) => 
+                    ret.rainbow_strand = ret.rainbow_strand.or(Some(b)),
             }
         }
         return ret 
@@ -935,6 +939,7 @@ impl DrawingStyle {
             DrawingAttribute::SphereColor(c) => DrawingStyle { sphere_color: Some(c), ..*self },
             DrawingAttribute::BondColor(c) => DrawingStyle { bond_color: Some(c), ..*self },
             DrawingAttribute::DoubleHelixAsCylinderColor(c) => DrawingStyle { double_helix_as_cylinder_color: Some(c), ..*self },
+            DrawingAttribute::RainbowStrand(b) => DrawingStyle { rainbow_strand: Some(b), ..*self },
         }
     }
 
@@ -949,30 +954,35 @@ impl DrawingStyle {
         if let Some(c) = self.bond_color { atts.push(DrawingAttribute::BondColor(c)) }
         if let Some(c) = self.double_helix_as_cylinder_color { atts.push(DrawingAttribute::DoubleHelixAsCylinderColor(c)) }
         
+        if let Some(b) = self.rainbow_strand { atts.push(DrawingAttribute::RainbowStrand(b)) }
+
         return atts;
     }
 
     pub fn complete_with_attribute(&self, att: DrawingAttribute) -> Self {
         match att {
             DrawingAttribute::SphereRadius(r) => DrawingStyle { 
-                sphere_radius: Some(self.sphere_radius.unwrap_or(r)), 
+                sphere_radius: self.sphere_radius.or(Some(r)), 
                 ..*self },
             DrawingAttribute::BondRadius(r) => DrawingStyle { 
-                bond_radius: Some(self.bond_radius.unwrap_or(r)), 
+                bond_radius: self.bond_radius.or(Some(r)), 
                 ..*self },
             DrawingAttribute::DoubleHelixAsCylinderRadius(r) => DrawingStyle { 
-                double_helix_as_cylinder_radius: Some(self.double_helix_as_cylinder_radius.unwrap_or(r)),
+                double_helix_as_cylinder_radius: self.double_helix_as_cylinder_radius.or(Some(r)),
                 ..*self },
             DrawingAttribute::SphereColor(c) => DrawingStyle { 
-                sphere_color: Some(self.sphere_color.unwrap_or(c)),
+                sphere_color: self.sphere_color.or(Some(c)),
                 ..*self },
             DrawingAttribute::BondColor(c) => DrawingStyle { 
-                bond_color: Some(self.bond_color.unwrap_or(c)), 
+                bond_color: self.bond_color.or(Some(c)), 
                 ..*self },
             DrawingAttribute::DoubleHelixAsCylinderColor(c) => DrawingStyle { 
-                double_helix_as_cylinder_color: Some(self.double_helix_as_cylinder_color.unwrap_or(c)),
+                double_helix_as_cylinder_color: self.double_helix_as_cylinder_color.or(Some(c)),
                 ..*self },
-        }
+            DrawingAttribute::RainbowStrand(b) => DrawingStyle { 
+                    rainbow_strand: self.rainbow_strand.or(Some(b)),
+                    ..*self },
+            }
     }
 
     pub fn complete_with_attributes(&self, attributes: Vec<DrawingAttribute>) -> Self {
@@ -991,6 +1001,7 @@ impl DrawingStyle {
             sphere_color: self.sphere_color.or(other.sphere_color),
             bond_color: self.bond_color.or(other.bond_color),
             double_helix_as_cylinder_color: self.double_helix_as_cylinder_color.or(other.double_helix_as_cylinder_color),
+            rainbow_strand: self.rainbow_strand.or(other.rainbow_strand),
         };
     }
 }

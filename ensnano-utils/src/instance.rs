@@ -45,7 +45,7 @@ impl Instance {
 
     pub fn grey_au32_color_from_f32(grey: f32, alpha: f32) -> u32 {
         let a = (alpha * 255.).round() as u32;
-        return Self::grey_u32_color_from_f32(grey) << 8 | a;
+        return Self::grey_u32_color_from_f32(grey) | a<<24;
     }
 
     pub fn color_from_u32(color: u32) -> Vec4 {

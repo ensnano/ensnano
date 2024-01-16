@@ -97,6 +97,8 @@ pub(super) struct DesignContent {
     pub nucleotides_involved: HashMap<u32, (Nucl, Nucl), RandomState>,
     /// Maps identifier of element to their position in the Model's coordinates
     pub space_position: HashMap<u32, [f32; 3], RandomState>,
+    /// Maps identifier of nucl element to their axis position in the Model's coordinates
+    pub axis_space_position: HashMap<u32, [f32; 3], RandomState>,
     /// Maps a Nucl object to its identifier
     pub nucl_collection: Arc<NuclCollection>,
     /// Maps a pair of nucleotide forming a bond to the identifier of the bond
@@ -477,6 +479,7 @@ impl DesignContent {
         let groups = design.groups.clone();
         let mut object_type = HashMap::default();
         let mut space_position = HashMap::default();
+        let mut axis_space_position = HashMap::default();
         let mut nucl_collection = NuclCollection::default();
         let mut identifier_bond = HashMap::default();
         let mut nucleotides_involved = HashMap::default();
@@ -533,8 +536,18 @@ impl DesignContent {
             let mut strand_position = 0;
             let strand_seq = strand.sequence.as_ref().filter(|s| s.is_ascii());
             let strand_color = strand.color;
-            let mut last_xover_junction: Option<&mut DomainJunction> = None;
-            let rainbow_len = if Some(*s_id) == rainbow_strand {
+
+            // compute strand style
+            let strand_style = drawing_styles
+                .get(&DesignElementKey::Strand(*s_id))
+                .unwrap_or(&DrawingStyle::default())
+                .clone()
+                .complete_with_attributes(vec![
+                    DrawingAttribute::SphereColor(strand_color), // strand color gets after color in strand style
+                    DrawingAttribute::BondColor(strand_color), // strand color gets after color in strand style
+                    ]);                
+
+            let rainbow_len = if Some(*s_id) == rainbow_strand || Some(true) == strand_style.rainbow_strand {
                 strand.length()
             } else {
                 0
@@ -547,16 +560,7 @@ impl DesignContent {
                 (0xFF << 24) | ((rgb.r as u32) << 16) | ((rgb.g as u32) << 8) | (rgb.b as u32)
             });
 
-            // compute strand style
-            let strand_style = drawing_styles
-                .get(&DesignElementKey::Strand(*s_id))
-                .unwrap_or(&DrawingStyle::default())
-                .clone()
-                .complete_with_attributes(vec![
-                    DrawingAttribute::SphereColor(strand_color), // strand color gets after color in strand style
-                    DrawingAttribute::BondColor(strand_color), // strand color gets after color in strand style
-                    ]);                
-
+            let mut last_xover_junction: Option<&mut DomainJunction> = None;
             let mut prev_loopout_pos = None;
             let mut prev_style = strand_style;
             for (i, domain) in strand.domains.iter().enumerate() {
@@ -603,6 +607,14 @@ impl DesignContent {
                     let dom_seq = domain.sequence.as_ref().filter(|s| s.is_ascii());
 
                     for (dom_position, nucl_position) in domain.iter().enumerate() {
+                        let axis_position = {
+                            let p = design.helices.get(&domain.helix).unwrap().axis_position(
+                            design.helix_parameters.as_ref().unwrap(),
+                            nucl_position,
+                            // domain.forward, // NE TIENT PAS COMPTE DE L'INCLINAISON!!
+                            ); 
+                            [p.x as f32, p.y as f32, p.z as f32, ]
+                        };
                         let position = design.helices.get(&domain.helix).unwrap().space_pos(
                             design.helix_parameters.as_ref().unwrap(),
                             nucl_position,
@@ -679,6 +691,7 @@ impl DesignContent {
                         suggestion_maker.add_nucl(nucl, position, groups.as_ref());
                         let position = [position[0] as f32, position[1] as f32, position[2] as f32];
                         space_position.insert(nucl_id, position);
+                        axis_space_position.insert(nucl_id, axis_position);
                         old_nucl = Some(nucl);
                         old_nucl_id = Some(nucl_id);
                     }
@@ -820,6 +833,7 @@ impl DesignContent {
             identifier_bond,
             strand_map,
             space_position,
+            axis_space_position,
             color_map,
             radius_map,
             helix_map,

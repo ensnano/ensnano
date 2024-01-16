@@ -187,6 +187,7 @@ impl InsertionDescriptor {
             ret.push(initial_pos);
         }
 
+        //mini simulateur de ressorts !!
         let mut speed = vec![Vec3::zero(); self.nb_nucl];
         for _ in 0..NB_STEP {
             let mut forces: Vec<Vec3> = speed.iter().map(|s| -*s * FRICTION / MASS_NUCL).collect();
@@ -230,11 +231,11 @@ impl Strand {
     ) {
         let mut to_be_updated = Vec::new();
         let nb_domain = self.domains.len();
-        for (d_prev, ((d_id, d), d_next)) in self.domains.iter().cycle().skip(nb_domain - 1).zip(
+        for (d_prev, ((d_id, d), d_next)) in self.domains.iter().cycle().skip(nb_domain - 1).zip( // previous domain
             self.domains
                 .iter()
-                .enumerate()
-                .zip(self.domains.iter().cycle().skip(1)),
+                .enumerate() // domain index plus domain
+                .zip(self.domains.iter().cycle().skip(1)), // next domain
         ) {
             if let Domain::Insertion { .. } = d {
                 if let Some((prime_5, prime_3)) = d_prev.prime3_end().zip(d_next.prime5_end()) {
