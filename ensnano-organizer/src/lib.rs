@@ -1118,7 +1118,7 @@ impl<E: OrganizerElement> NodeView<E> {
                     )
                     .push(Space::with_width(iced::Length::Fill));
                 row = row.push(
-                    Button::new(add_to_group_button, edit_icon())// TODO: change icon later !!!
+                    Button::new(add_to_group_button, add_icon())// TODO: change icon later !!!
                         .on_press(OrganizerMessage::add_selection_to_group(id.clone())),
                 );
                 row = row.push(
