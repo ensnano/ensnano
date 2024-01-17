@@ -27,8 +27,9 @@ use drag_drop_target::*;
 
 use hoverable_button::HoverableContainer;
 
-const LEVEL0_SPACING: u16 = 3;
-const LEVELS_SPACING: u16 = 2;
+const LEVEL0_V_SPACING: u16 = 3;
+const LEVELS_V_SPACING: u16 = 2;
+const H_SPACING_IN_UNITS: u16 = 10;
 const ICON_SIZE: u16 = 10;
 
 #[derive(Clone, Debug)]
@@ -270,7 +271,7 @@ impl<E: OrganizerElement> Organizer<E> {
         self.hovered_in = None;
         let mut ret = Scrollable::new(&mut self.scroll_state)
             .width(self.width)
-            .spacing(LEVEL0_SPACING);
+            .spacing(LEVEL0_V_SPACING);
         for c in self.groups.iter_mut() {
             ret = ret.push(
                 Row::new().push(tabulation()).push(
@@ -895,7 +896,7 @@ impl<E: OrganizerElement> Section<E> {
             .view
             .view(theme, &self.name, self.id.clone(), self.expanded, false);
         let mut ret = Column::new()
-            .spacing(LEVELS_SPACING)
+            .spacing(LEVELS_V_SPACING)
             .push(Element::new(title_row));
         if self.expanded {
             for (e_id, e) in self.elements.iter_mut() {
@@ -1258,7 +1259,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                 let selected = selected_nodes.contains(&id);
                 let title_row = view.view(theme, name, id.clone(), *expanded, selected);
                 let mut ret = Column::new()
-                    .spacing(LEVELS_SPACING)
+                    .spacing(LEVELS_V_SPACING)
                     .push(Element::new(title_row));
                 if *expanded {
                     for c in children.iter_mut() {
@@ -1282,7 +1283,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                 };
                 if let Some(element) = get_element(sections, element) {
                     Column::new()
-                        .spacing(LEVELS_SPACING)
+                        .spacing(LEVELS_V_SPACING)
                         .push(Element::new(view.view(
                             theme,
                             element,
@@ -1855,7 +1856,7 @@ const ICONS: iced::Font = iced::Font::External {
 };
 
 fn tabulation() -> Space {
-    Space::with_width(iced::Length::Units(3))
+    Space::with_width(iced::Length::Units(H_SPACING_IN_UNITS))
 }
 
 fn merge_attributes<T: Ord + Clone + std::fmt::Debug>(
