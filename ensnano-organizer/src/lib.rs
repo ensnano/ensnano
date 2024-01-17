@@ -27,9 +27,11 @@ use drag_drop_target::*;
 
 use hoverable_button::HoverableContainer;
 
-const LEVEL0_SPACING: u16 = 3;
-const LEVELS_SPACING: u16 = 2;
+const LEVEL0_V_SPACING: u16 = 3;
+const LEVELS_V_SPACING: u16 = 2;
+const H_SPACING_IN_UNITS: u16 = 15;
 const ICON_SIZE: u16 = 10;
+const UPPER_DOMAIN_LENGTH_BOUND: usize = 100;
 
 #[derive(Clone, Debug)]
 pub enum OrganizerMessage<E: OrganizerElement> {
@@ -270,7 +272,7 @@ impl<E: OrganizerElement> Organizer<E> {
         self.hovered_in = None;
         let mut ret = Scrollable::new(&mut self.scroll_state)
             .width(self.width)
-            .spacing(LEVEL0_SPACING);
+            .spacing(LEVEL0_V_SPACING);
         for c in self.groups.iter_mut() {
             ret = ret.push(
                 Row::new().push(tabulation()).push(
@@ -834,11 +836,32 @@ impl<E: OrganizerElement> Organizer<E> {
             g.content.clear();
             g.elements.clear();
         }
+        //second-last element actually
+        let mut min_max_domain_lengths: Vec<(usize, usize)> = elements
+            .clone()
+            .iter()
+            .map(|e| e.min_max_domain_length_if_strand())
+            .into_iter()
+            .flatten()
+            .collect::<Vec<(usize, usize)>>();
+        min_max_domain_lengths.sort_by_key(|(_, lmax)| lmax.clone());
+        let upper_domain_length_bounds: (usize, usize) = match min_max_domain_lengths.len() {
+            0 => (
+                UPPER_DOMAIN_LENGTH_BOUND.clone(),
+                UPPER_DOMAIN_LENGTH_BOUND.clone(),
+            ),
+            1 => min_max_domain_lengths[0],
+            n => {
+                let last = min_max_domain_lengths[n - 1];
+                let before_last = min_max_domain_lengths[n - 2];
+                ((before_last.1).max(last.0 - 1) + 1, last.1.clone()) // in reality, it is not the first length....
+            }
+        };
         for e in elements.iter() {
             let key = e.key();
             let section_id: usize = key.section().into();
             self.sections[section_id].add_element(e.clone());
-            for g in e.auto_groups() {
+            for g in e.auto_groups(upper_domain_length_bounds) {
                 self.auto_groups
                     .entry(g.clone())
                     .or_insert_with(|| Section::new(NodeId::AutoGroupId(g.clone()), g.to_string()))
@@ -846,6 +869,7 @@ impl<E: OrganizerElement> Organizer<E> {
             }
         }
         self.auto_groups.retain(|_, g| g.elements.len() > 0);
+
         let ret = self.delete_useless_leaves(elements.iter().map(|e| e.key()).collect());
         self.update_attributes();
         ret
@@ -895,7 +919,7 @@ impl<E: OrganizerElement> Section<E> {
             .view
             .view(theme, &self.name, self.id.clone(), self.expanded, false);
         let mut ret = Column::new()
-            .spacing(LEVELS_SPACING)
+            .spacing(LEVELS_V_SPACING)
             .push(Element::new(title_row));
         if self.expanded {
             for (e_id, e) in self.elements.iter_mut() {
@@ -1258,7 +1282,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                 let selected = selected_nodes.contains(&id);
                 let title_row = view.view(theme, name, id.clone(), *expanded, selected);
                 let mut ret = Column::new()
-                    .spacing(LEVELS_SPACING)
+                    .spacing(LEVELS_V_SPACING)
                     .push(Element::new(title_row));
                 if *expanded {
                     for c in children.iter_mut() {
@@ -1282,7 +1306,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                 };
                 if let Some(element) = get_element(sections, element) {
                     Column::new()
-                        .spacing(LEVELS_SPACING)
+                        .spacing(LEVELS_V_SPACING)
                         .push(Element::new(view.view(
                             theme,
                             element,
@@ -1855,7 +1879,7 @@ const ICONS: iced::Font = iced::Font::External {
 };
 
 fn tabulation() -> Space {
-    Space::with_width(iced::Length::Units(3))
+    Space::with_width(iced::Length::Units(H_SPACING_IN_UNITS))
 }
 
 fn merge_attributes<T: Ord + Clone + std::fmt::Debug>(

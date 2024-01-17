@@ -63,10 +63,13 @@ pub enum DnaAutoGroup {
 impl ToString for DnaAutoGroup {
     fn to_string(&self) -> String {
         match self {
-            Self::StrandWithLength(length) => format!("Strand with length {}", length.to_string()),
-            Self::StrandWithDomainOfLength(length) => {
-                format!("Strand with a domain of length {}", length.to_string())
-            }
+            Self::StrandWithLength(length) => format!("Strands with length {}", length.to_string()),
+            Self::StrandWithDomainOfLength(length) => match length {
+                BoundedLength::Last(_, _) => {
+                    format!("Strand with domains of lengths {}", length.to_string())
+                }
+                _ => format!("Strands with a domain of length {}", length.to_string()),
+            },
         }
     }
 }
@@ -77,13 +80,20 @@ const SHORT: usize = 4;
 pub enum BoundedLength {
     Short,
     Between(usize),
-    Long,
+    Long(usize),
+    Last(usize, usize),
 }
 
-impl From<usize> for BoundedLength {
-    fn from(n: usize) -> Self {
-        if n > LONG {
-            Self::Long
+impl From<(usize, (usize, usize))> for BoundedLength {
+    fn from(n_bounds: (usize, (usize, usize))) -> Self {
+        let n = n_bounds.0;
+        let (last_lengths_min, last_lengths_max) = n_bounds.1;
+        if n >= last_lengths_min {
+            if last_lengths_min == last_lengths_max {
+                Self::Long(last_lengths_min)
+            } else {
+                Self::Last(last_lengths_min, last_lengths_max)
+            }
         } else if n < SHORT {
             Self::Short
         } else {
@@ -95,7 +105,8 @@ impl From<usize> for BoundedLength {
 impl ToString for BoundedLength {
     fn to_string(&self) -> String {
         match self {
-            Self::Long => format!("> {LONG}"),
+            Self::Last(ll_min, ll_max) => format!("≥ {ll_min} (max {ll_max})"),
+            Self::Long(m) => format!("> {m}"),
             Self::Short => format!("< {SHORT}"),
             Self::Between(n) => format!("= {n}"),
         }
@@ -172,19 +183,37 @@ impl OrganizerElement for DesignElement {
         }
     }
 
-    fn auto_groups(&self) -> Vec<Self::AutoGroup> {
+    fn min_max_domain_length_if_strand(&self) -> Option<(usize, usize)> {
+        match self {
+            DesignElement::StrandElement { domain_lengths, .. } => match (
+                domain_lengths.clone().iter().min().copied(),
+                domain_lengths.clone().iter().max().copied(),
+            ) {
+                (Some(nmin), Some(nmax)) => Some((nmin, nmax)),
+                _ => None,
+            },
+
+            _ => None,
+        }
+    }
+
+    fn auto_groups(&self, last_domain_length_bounds: (usize, usize)) -> Vec<Self::AutoGroup> {
         match self {
             DesignElement::StrandElement {
                 length,
                 domain_lengths,
                 ..
             } => {
-                let mut ret = vec![DnaAutoGroup::StrandWithLength((*length).into())];
+                let mut ret = vec![DnaAutoGroup::StrandWithLength(
+                    (*length, (LONG, LONG)).into(),
+                )];
                 let mut lengths = domain_lengths.clone();
                 lengths.sort();
                 lengths.dedup();
                 for len in lengths {
-                    ret.push(DnaAutoGroup::StrandWithDomainOfLength((len).into()))
+                    ret.push(DnaAutoGroup::StrandWithDomainOfLength(
+                        (len, last_domain_length_bounds).into(),
+                    ))
                 }
                 ret
             }

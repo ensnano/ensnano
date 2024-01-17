@@ -41,8 +41,8 @@ pub trait OrganizerElement: Clone + std::fmt::Debug + 'static {
     fn all_repr() -> &'static [<Self::Attribute as OrganizerAttribute>::Repr] {
         Self::Attribute::all_repr()
     }
-
-    fn auto_groups(&self) -> Vec<Self::AutoGroup>;
+    fn min_max_domain_length_if_strand(&self) -> Option<(usize, usize)>;
+    fn auto_groups(&self, upper_domain_length_bounds: (usize, usize)) -> Vec<Self::AutoGroup>;
 }
 
 pub trait OrganizerAttributeRepr:
