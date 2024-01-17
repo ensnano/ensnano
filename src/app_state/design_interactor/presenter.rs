@@ -56,7 +56,7 @@ pub(super) struct Presenter {
     model_matrix: AddressPointer<Mat4>,
     content: AddressPointer<DesignContent>,
     pub junctions_ids: AddressPointer<JunctionsIds>,
-    visibility_sive: Option<VisibilitySieve>,
+    visibility_sieve: Option<VisibilitySieve>,
     invisible_nucls: HashSet<Nucl>,
     bonds: AddressPointer<Vec<HBond>>,
 }
@@ -69,7 +69,7 @@ impl Default for Presenter {
             model_matrix: AddressPointer::new(Mat4::identity()),
             content: Default::default(),
             junctions_ids: Default::default(),
-            visibility_sive: None,
+            visibility_sieve: None,
             invisible_nucls: Default::default(),
             bonds: Default::default(),
         }
@@ -132,7 +132,7 @@ impl Presenter {
             content: AddressPointer::new(content),
             model_matrix: AddressPointer::new(model_matrix),
             junctions_ids: AddressPointer::new(junctions_ids),
-            visibility_sive: None,
+            visibility_sieve: None,
             invisible_nucls: Default::default(),
             bonds: Default::default(),
         };
@@ -323,7 +323,7 @@ impl Presenter {
             selection,
             compl,
             visible,
-        }) = self.visibility_sive.as_ref()
+        }) = self.visibility_sieve.as_ref()
         {
             for nucl in self.content.nucleotide.values() {
                 if self.selection_contains_nucl(selection, *nucl) != *compl {
@@ -436,10 +436,10 @@ impl Presenter {
 
     pub fn set_visibility_sieve(&mut self, selection: Vec<Selection>, compl: bool) {
         if selection.is_empty() {
-            self.visibility_sive = None;
+            self.visibility_sieve = None;
         } else {
             let visible = !self.whole_selection_is_visible(&selection, compl);
-            self.visibility_sive = Some(VisibilitySieve {
+            self.visibility_sieve = Some(VisibilitySieve {
                 selection,
                 compl,
                 visible,

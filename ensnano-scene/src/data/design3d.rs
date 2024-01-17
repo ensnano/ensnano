@@ -225,9 +225,10 @@ impl<R: DesignReader> Design3D<R> {
         };
         let mut ret: Vec<_> = self
             .id_to_raw_instances(visible_bonds_ids)
-            .into_iter()
-            .map(|x| x.with_expected_length(expected_length)) // inutile désormais
-            .collect();
+            // .into_iter()
+            // .map(|x| x.with_expected_length(expected_length)) // inutile désormais
+            // .collect()
+            ;
         if !show_insertion_representents {
             for loopout_bond in self.design_reader.get_all_loopout_bonds() {
                 ret.push(
@@ -239,7 +240,7 @@ impl<R: DesignReader> Design3D<R> {
                         false,
                     )
                     .to_raw_instance()
-                    .with_expected_length(expected_length),
+                    // .with_expected_length(expected_length),
                 )
             }
         }
@@ -502,9 +503,9 @@ impl<R: DesignReader> Design3D<R> {
         if length < critical_length_high {
             let x = (length - critical_length_low) / (critical_length_high - critical_length_low);
             let grey = 0.25 - 0.25 * x;
-            return Some((Instance::grey_u32_color_from_f32(grey), 1.3));
+            return Some((Instance::grey_u32_color_from_f32(grey), 1.0));
         }
-        return Some((0x_00_00_00, 1.3));
+        return Some((0x_00_00_00, 1.0));
     }
 
     /// Convert return an instance representing the object with identifier `id`
