@@ -63,7 +63,7 @@ pub struct RawDnaInstance {
     pub scale: Vec3,
     pub id: u32,
     pub inversed_model: Mat4,
-    pub expected_length: f32,
+    pub expected_length: f32, // used to modify the color of bonds in the dna_obj vertex shader
     _padding: [f32; 3],
 }
 
@@ -82,6 +82,12 @@ pub struct SphereInstance {
     pub color: Vec4,
     pub id: u32,
     pub radius: f32,
+}
+
+impl SphereInstance {
+    pub fn with_radius(self, radius: f32) -> Self {
+        Self { radius, ..self }
+    }
 }
 
 impl Instanciable for SphereInstance {
@@ -343,7 +349,7 @@ impl Instanciable for TubeInstance {
         RawDnaInstance {
             model,
             color: self.color,
-            scale: Vec3::new(self.length, self.radius, self.radius),
+            scale: Vec3::new(self.length, self.radius, self.radius), // scale.x is the length of the tube
             id: self.id,
             inversed_model: model.inversed(),
             expected_length: 0.,

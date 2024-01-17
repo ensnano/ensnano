@@ -134,6 +134,12 @@ impl<E: OrganizerElement> OrganizerMessage<E> {
         Self::InternalMessage(InternalMessage(OrganizerMessage_::ElementSelected { key }))
     }
 
+    fn add_selection_to_group(id: NodeId<E::AutoGroup>) -> Self {
+        Self::InternalMessage(InternalMessage(OrganizerMessage_::AddSelectionToGroup {
+            id,
+        }))
+    }
+
     fn new_group() -> Self {
         Self::InternalMessage(InternalMessage(OrganizerMessage_::NewGroup))
     }
@@ -182,6 +188,9 @@ enum OrganizerMessage_<E: OrganizerElement> {
         name: String,
     },
     NewGroup,
+    AddSelectionToGroup {
+        id: NodeId<E::AutoGroup>,
+    },
     Delete {
         id: NodeId<E::AutoGroup>,
     },
@@ -305,6 +314,35 @@ impl<E: OrganizerElement> Organizer<E> {
         Container::new(column).style(self.theme.level(0)).into()
     }
 
+    fn add_content_to_group(
+        &mut self,
+        id: &NodeId<E::AutoGroup>,
+        content: Vec<E::Key>,
+    ) -> Option<()> {
+        if let Some(id_local) = get_group_id(id) {
+            let ret;
+            if id_local.len() < 2 {
+                if self.groups.len() > id_local[0] {
+                    self.groups[id_local[0]].add_content(&id_local[1..], id, content);
+                    ret = Some(());
+                } else {
+                    ret = None;
+                }
+            } else {
+                ret = self
+                    .groups
+                    .get_mut(id_local[0])
+                    .and_then(|c| c.add_content(&id_local[1..], id, content));
+            }
+            if ret.is_some() {
+                self.recompute_id()
+            }
+            ret
+        } else {
+            None
+        }
+    }
+
     pub fn push_content(&mut self, content: Vec<E::Key>, group_name: String) -> GroupId {
         let id = NodeId::TreeId(vec![self.groups.len()]);
         let new_group = GroupContent::new(content, group_name, id.clone(), &mut self.rng_thread);
@@ -361,6 +399,17 @@ impl<E: OrganizerElement> Organizer<E> {
                     new_selection.into_iter().collect(),
                     None,
                 ));
+            }
+            OrganizerMessage_::AddSelectionToGroup { id } => {
+                log::info!("Add selection to group with id {:?}", id);
+                if let Some(group_id) = self.get_group(id).and_then(|g| g.get_group_id()) {
+                    let _ = self.add_content_to_group(id, selection.iter().cloned().collect());
+                    return Some(OrganizerMessage::NewTree(self.tree()));
+                } else {
+                    log::error!("Could not get group id");
+                }
+
+                // TODO: fill in what to do
             }
             OrganizerMessage_::NewGroup => {
                 let new_group_id = self.push_content(
@@ -984,6 +1033,7 @@ impl<E: OrganizerElement> NodeView<E> {
             title_button_state: Default::default(),
             title_button_hovering_state: Default::default(),
             state: GroupState::Iddle {
+                add_to_group_button: Default::default(),
                 edit_button: Default::default(),
                 delete_button: Default::default(),
             },
@@ -1005,6 +1055,7 @@ impl<E: OrganizerElement> NodeView<E> {
         log::info!("reached view");
         self.state = GroupState::Editing {
             input: text_input::State::focused(),
+            add_to_group_button: Default::default(),
             delete_button: Default::default(),
             edit_button: Default::default(),
         };
@@ -1015,6 +1066,7 @@ impl<E: OrganizerElement> NodeView<E> {
 
     fn stop_editing(&mut self) {
         self.state = GroupState::Iddle {
+            add_to_group_button: Default::default(),
             edit_button: Default::default(),
             delete_button: Default::default(),
         };
@@ -1031,6 +1083,7 @@ impl<E: OrganizerElement> NodeView<E> {
         let level = get_group_id(&id).map(|v| v.len()).unwrap_or(0);
         let title_row = match &mut self.state {
             GroupState::Iddle {
+                add_to_group_button,
                 edit_button,
                 delete_button,
             } => {
@@ -1042,6 +1095,11 @@ impl<E: OrganizerElement> NodeView<E> {
                 row = row
                     .push(Text::new(name.clone()))
                     .push(Space::with_width(iced::Length::Fill));
+
+                row = row.push(
+                    Button::new(add_to_group_button, plus_icon())// TODO: change icon later !!!
+                        .on_press(OrganizerMessage::add_selection_to_group(id.clone())),
+                );
 
                 row = row.push(
                     Button::new(edit_button, edit_icon())
@@ -1065,6 +1123,7 @@ impl<E: OrganizerElement> NodeView<E> {
             }
             GroupState::Editing {
                 input,
+                add_to_group_button,
                 delete_button,
                 edit_button,
             } => {
@@ -1081,7 +1140,10 @@ impl<E: OrganizerElement> NodeView<E> {
                         .on_submit(OrganizerMessage::stop_edit()),
                     )
                     .push(Space::with_width(iced::Length::Fill));
-
+                row = row.push(
+                    Button::new(add_to_group_button, plus_icon())// TODO: change icon later !!!
+                        .on_press(OrganizerMessage::add_selection_to_group(id.clone())),
+                );
                 row = row.push(
                     Button::new(edit_button, edit_icon()).on_press(OrganizerMessage::stop_edit()),
                 );
@@ -1157,11 +1219,13 @@ enum GroupContent<E: OrganizerElement> {
 
 pub enum GroupState {
     Iddle {
+        add_to_group_button: button::State,
         edit_button: button::State,
         delete_button: button::State,
     },
     Editing {
         input: text_input::State,
+        add_to_group_button: button::State,
         delete_button: button::State,
         edit_button: button::State,
     },
@@ -1316,6 +1380,58 @@ impl<E: OrganizerElement> GroupContent<E> {
             attributes: vec![None; E::all_repr().len()],
             elements_below: BTreeSet::new(),
             group_id,
+        }
+    }
+
+    /// Add content to an existing group
+    fn add_content(
+        &mut self,
+        id_local: &[usize],
+        id: &NodeId<E::AutoGroup>,
+        content: Vec<E::Key>,
+    ) -> Option<()> {
+        match self {
+            Self::Leaf { .. } => {
+                println!("Impossible to add content to leaf");
+                None
+            }
+            Self::Placeholder => unreachable!("Expanding a Placeholder"),
+            Self::Node {
+                children,
+                id: my_id,
+                ..
+            } => {
+                if !id_local.is_empty() {
+                    children
+                        .get_mut(id_local[0])
+                        .and_then(|c| c.add_content(&id_local[1..], &id, content))
+                } else {
+                    let children_content: Vec<E::Key> = children
+                        .iter()
+                        .map(|e| match e {
+                            Self::Leaf { element, .. } => Some(element.clone()),
+                            _ => None,
+                        })
+                        .flatten()
+                        .collect();
+                    let content: Vec<E::Key> = content
+                        .into_iter()
+                        .filter(|e| !children_content.contains(&e))
+                        .collect();
+                    let new_leaves = content.into_iter().enumerate().map(|(i, e)| {
+                        let mut id = my_id.clone();
+                        id.push(i);
+                        Self::Leaf {
+                            id,
+                            element: e.clone(),
+                            view: ElementView::new(),
+                            attributes: vec![None; E::all_repr().len()],
+                        }
+                    });
+                    children.extend(new_leaves);
+                    Some(())
+                }
+            }
         }
     }
 
@@ -1710,6 +1826,13 @@ where
     } else {
         icon(Icon::CaretRight.into())
     }
+}
+
+fn plus_icon<R: Renderer>() -> Text<R>
+where
+    <R as iced_native::text::Renderer>::Font: From<iced::Font>,
+{
+    icon(Icon::Plus.into())
 }
 
 fn edit_icon<R: Renderer>() -> Text<R>

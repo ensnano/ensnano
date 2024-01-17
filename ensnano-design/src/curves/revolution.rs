@@ -69,7 +69,7 @@ impl InterpolatedCurveDescriptor {
             init_revolution_angle: self.revolution_angle_init.unwrap_or(0.),
             nb_turn: self.nb_turn.unwrap_or(1.),
             known_number_of_helices_in_shape: self.known_number_of_helices_in_shape,
-            knwon_helix_id_in_shape: self.known_helix_id_in_shape,
+            known_helix_id_in_shape: self.known_helix_id_in_shape,
             objective_nb_nt: self.objective_number_of_nts,
             full_turn_at_nt: self.full_turn_at_nt,
         };
@@ -262,7 +262,7 @@ pub(super) struct Revolution {
     init_revolution_angle: f64,
     nb_turn: f64,
     known_number_of_helices_in_shape: Option<usize>,
-    knwon_helix_id_in_shape: Option<usize>,
+    known_helix_id_in_shape: Option<usize>,
     objective_nb_nt: Option<usize>,
     full_turn_at_nt: Option<isize>,
 }
@@ -490,7 +490,7 @@ impl Curved for Revolution {
 
     fn additional_isometry(&self, segment_idx: usize) -> Option<Isometry2> {
         self.known_number_of_helices_in_shape
-            .zip(self.knwon_helix_id_in_shape)
+            .zip(self.known_helix_id_in_shape)
             .map(|(nb_helices, h_id)| Isometry2 {
                 translation: (h_id as f32 + (segment_idx + 1) as f32 * nb_helices as f32)
                     * 5.

@@ -300,10 +300,12 @@ mod tests {
             assert_eq!("My Parameter Name", my_parameter.get_name())
     }*/
     #[test]
+
     fn get_name_of_nameditem() {
         let cat = NamedItem("Otto", "cat");
         let name = cat.get_name();
         assert_eq!("Otto", name);
+
     }
     #[test]
     fn get_name_of_arced_nameditem() {
