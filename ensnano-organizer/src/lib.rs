@@ -854,13 +854,9 @@ impl<E: OrganizerElement> Organizer<E> {
             n => {
                 let last = min_max_domain_lengths[n - 1];
                 let before_last = min_max_domain_lengths[n - 2];
-                ((before_last.1).max(last.0), last.1.clone())
+                ((before_last.1).max(last.0 - 1) + 1, last.1.clone()) // in reality, it is not the first length....
             }
         };
-        println!(
-            "Upper_domain_length_bounds = {} {}",
-            upper_domain_length_bounds.0, upper_domain_length_bounds.1
-        ); //DEBUG
         for e in elements.iter() {
             let key = e.key();
             let section_id: usize = key.section().into();

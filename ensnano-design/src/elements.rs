@@ -65,8 +65,8 @@ impl ToString for DnaAutoGroup {
         match self {
             Self::StrandWithLength(length) => format!("Strands with length {}", length.to_string()),
             Self::StrandWithDomainOfLength(length) => match length {
-                BoundedLength::Long(_) => {
-                    format!("Strand with domains of length {}", length.to_string())
+                BoundedLength::Last(_, _) => {
+                    format!("Strand with domains of lengths {}", length.to_string())
                 }
                 _ => format!("Strands with a domain of length {}", length.to_string()),
             },
@@ -105,7 +105,7 @@ impl From<(usize, (usize, usize))> for BoundedLength {
 impl ToString for BoundedLength {
     fn to_string(&self) -> String {
         match self {
-            Self::Last(ll_min, ll_max) => format!("= {ll_min} ... {ll_max}"),
+            Self::Last(ll_min, ll_max) => format!("≥ {ll_min} (max {ll_max})"),
             Self::Long(m) => format!("> {m}"),
             Self::Short => format!("< {SHORT}"),
             Self::Between(n) => format!("= {n}"),
