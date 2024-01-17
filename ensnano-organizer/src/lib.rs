@@ -29,8 +29,9 @@ use hoverable_button::HoverableContainer;
 
 const LEVEL0_V_SPACING: u16 = 3;
 const LEVELS_V_SPACING: u16 = 2;
-const H_SPACING_IN_UNITS: u16 = 10;
+const H_SPACING_IN_UNITS: u16 = 15;
 const ICON_SIZE: u16 = 10;
+const UPPER_DOMAIN_LENGTH_BOUND: usize = 100;
 
 #[derive(Clone, Debug)]
 pub enum OrganizerMessage<E: OrganizerElement> {
@@ -835,11 +836,36 @@ impl<E: OrganizerElement> Organizer<E> {
             g.content.clear();
             g.elements.clear();
         }
+        //second-last element actually
+        let mut min_max_domain_lengths: Vec<(usize, usize)> = elements
+            .clone()
+            .iter()
+            .map(|e| e.min_max_domain_length_if_strand())
+            .into_iter()
+            .flatten()
+            .collect::<Vec<(usize, usize)>>();
+        min_max_domain_lengths.sort_by_key(|(_, lmax)| lmax.clone());
+        let upper_domain_length_bounds: (usize, usize) = match min_max_domain_lengths.len() {
+            0 => (
+                UPPER_DOMAIN_LENGTH_BOUND.clone(),
+                UPPER_DOMAIN_LENGTH_BOUND.clone(),
+            ),
+            1 => min_max_domain_lengths[0],
+            n => {
+                let last = min_max_domain_lengths[n - 1];
+                let before_last = min_max_domain_lengths[n - 2];
+                ((before_last.1).max(last.0), last.1.clone())
+            }
+        };
+        println!(
+            "Upper_domain_length_bounds = {} {}",
+            upper_domain_length_bounds.0, upper_domain_length_bounds.1
+        ); //DEBUG
         for e in elements.iter() {
             let key = e.key();
             let section_id: usize = key.section().into();
             self.sections[section_id].add_element(e.clone());
-            for g in e.auto_groups() {
+            for g in e.auto_groups(upper_domain_length_bounds) {
                 self.auto_groups
                     .entry(g.clone())
                     .or_insert_with(|| Section::new(NodeId::AutoGroupId(g.clone()), g.to_string()))
@@ -847,6 +873,7 @@ impl<E: OrganizerElement> Organizer<E> {
             }
         }
         self.auto_groups.retain(|_, g| g.elements.len() > 0);
+
         let ret = self.delete_useless_leaves(elements.iter().map(|e| e.key()).collect());
         self.update_attributes();
         ret
