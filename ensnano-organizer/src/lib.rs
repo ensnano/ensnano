@@ -314,9 +314,32 @@ impl<E: OrganizerElement> Organizer<E> {
         Container::new(column).style(self.theme.level(0)).into()
     }
 
-    fn add_content_to_group(&mut self, id: &NodeId<E::AutoGroup>, content: Vec<E::Key>) {
-        if let Some(id) = get_group_id(id) {
-            self.groups[id[0]].add_content(content);
+    fn add_content_to_group(
+        &mut self,
+        id: &NodeId<E::AutoGroup>,
+        content: Vec<E::Key>,
+    ) -> Option<()> {
+        if let Some(id_local) = get_group_id(id) {
+            let ret;
+            if id_local.len() < 2 {
+                if self.groups.len() > id_local[0] {
+                    self.groups[id_local[0]].add_content(&id_local[1..], id, content);
+                    ret = Some(());
+                } else {
+                    ret = None;
+                }
+            } else {
+                ret = self
+                    .groups
+                    .get_mut(id_local[0])
+                    .and_then(|c| c.add_content(&id_local[1..], id, content));
+            }
+            if ret.is_some() {
+                self.recompute_id()
+            }
+            ret
+        } else {
+            None
         }
     }
 
@@ -1074,7 +1097,7 @@ impl<E: OrganizerElement> NodeView<E> {
                     .push(Space::with_width(iced::Length::Fill));
 
                 row = row.push(
-                    Button::new(add_to_group_button, add_icon())// TODO: change icon later !!!
+                    Button::new(add_to_group_button, plus_icon())// TODO: change icon later !!!
                         .on_press(OrganizerMessage::add_selection_to_group(id.clone())),
                 );
 
@@ -1118,7 +1141,7 @@ impl<E: OrganizerElement> NodeView<E> {
                     )
                     .push(Space::with_width(iced::Length::Fill));
                 row = row.push(
-                    Button::new(add_to_group_button, add_icon())// TODO: change icon later !!!
+                    Button::new(add_to_group_button, plus_icon())// TODO: change icon later !!!
                         .on_press(OrganizerMessage::add_selection_to_group(id.clone())),
                 );
                 row = row.push(
@@ -1361,37 +1384,53 @@ impl<E: OrganizerElement> GroupContent<E> {
     }
 
     /// Add content to an existing group
-    fn add_content(&mut self, content: Vec<E::Key>) {
-        // TODO; remove repetitions
+    fn add_content(
+        &mut self,
+        id_local: &[usize],
+        id: &NodeId<E::AutoGroup>,
+        content: Vec<E::Key>,
+    ) -> Option<()> {
         match self {
             Self::Leaf { .. } => {
                 println!("Impossible to add content to leaf");
+                None
             }
             Self::Placeholder => unreachable!("Expanding a Placeholder"),
-            Self::Node { children, id, .. } => {
-                let children_content: Vec<E::Key> = children
-                    .iter()
-                    .map(|e| match e {
-                        Self::Leaf { element, .. } => Some(element.clone()),
-                        _ => None,
-                    })
-                    .flatten()
-                    .collect();
-                let content: Vec<E::Key> = content
-                    .into_iter()
-                    .filter(|e| !children_content.contains(&e))
-                    .collect();
-                let new_leaves = content.into_iter().enumerate().map(|(i, e)| {
-                    let mut id = id.clone();
-                    id.push(i);
-                    Self::Leaf {
-                        id,
-                        element: e.clone(),
-                        view: ElementView::new(),
-                        attributes: vec![None; E::all_repr().len()],
-                    }
-                });
-                children.extend(new_leaves)
+            Self::Node {
+                children,
+                id: my_id,
+                ..
+            } => {
+                if !id_local.is_empty() {
+                    children
+                        .get_mut(id_local[0])
+                        .and_then(|c| c.add_content(&id_local[1..], &id, content))
+                } else {
+                    let children_content: Vec<E::Key> = children
+                        .iter()
+                        .map(|e| match e {
+                            Self::Leaf { element, .. } => Some(element.clone()),
+                            _ => None,
+                        })
+                        .flatten()
+                        .collect();
+                    let content: Vec<E::Key> = content
+                        .into_iter()
+                        .filter(|e| !children_content.contains(&e))
+                        .collect();
+                    let new_leaves = content.into_iter().enumerate().map(|(i, e)| {
+                        let mut id = my_id.clone();
+                        id.push(i);
+                        Self::Leaf {
+                            id,
+                            element: e.clone(),
+                            view: ElementView::new(),
+                            attributes: vec![None; E::all_repr().len()],
+                        }
+                    });
+                    children.extend(new_leaves);
+                    Some(())
+                }
             }
         }
     }
@@ -1789,7 +1828,7 @@ where
     }
 }
 
-fn add_icon<R: Renderer>() -> Text<R>
+fn plus_icon<R: Renderer>() -> Text<R>
 where
     <R as iced_native::text::Renderer>::Font: From<iced::Font>,
 {
