@@ -111,6 +111,9 @@ pub(super) struct DesignContent {
     pub color_map: HashMap<u32, u32, RandomState>,
     /// Maps the identifier of an element to its radius
     pub radius_map: HashMap<u32, f32, RandomState>,
+    /// Maps the identifier of a bond element to its helix radius (if ≠ None)
+    pub helix_radius_map: HashMap<u32, f32, RandomState>,
+    pub helix_color_map: HashMap<u32, u32, RandomState>,
     pub letter_map: Arc<HashMap<Nucl, char, RandomState>>,
     pub prime3_set: Vec<Prime3End>,
     pub elements: Vec<DesignElement>,
@@ -143,6 +146,21 @@ impl DesignContent {
                 ObjectType::Bond(e1, e2) => {
                     let a = self.space_position.get(e1)?;
                     let b = self.space_position.get(e2)?;
+                    Some((Vec3::from(*a) + Vec3::from(*b)) / 2.)
+                }
+            }
+        } else {
+            None
+        }
+    }
+
+    pub(super) fn get_axis_element_position(&self, id: u32) -> Option<Vec3> {
+        if let Some(object_type) = self.object_type.get(&id) {
+            match object_type {
+                ObjectType::Nucleotide(id) => self.axis_space_position.get(&id).map(|x| x.into()),
+                ObjectType::Bond(e1, e2) => {
+                    let a = self.axis_space_position.get(e1)?;
+                    let b = self.axis_space_position.get(e2)?;
                     Some((Vec3::from(*a) + Vec3::from(*b)) / 2.)
                 }
             }
@@ -487,6 +505,8 @@ impl DesignContent {
         let mut strand_map = HashMap::default();
         let mut color_map = HashMap::default();
         let mut radius_map = HashMap::default();
+        let mut helix_radius_map = HashMap::default();
+        let mut helix_color_map = HashMap::default();
         let mut helix_map = HashMap::default();
         let mut letter_map = HashMap::default();
         let mut loopout_bonds = Vec::new();
@@ -837,6 +857,8 @@ impl DesignContent {
             color_map,
             radius_map,
             helix_map,
+            helix_radius_map,
+            helix_color_map,
             letter_map: Arc::new(letter_map),
             prime3_set,
             elements,
