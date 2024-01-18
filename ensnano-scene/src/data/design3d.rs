@@ -542,8 +542,9 @@ impl<R: DesignReader> Design3D<R> {
                     self.get_graphic_element_axis_position(&SceneElement::DesignElement(self.id, id1))?;
                 let pos2 =
                     self.get_graphic_element_axis_position(&SceneElement::DesignElement(self.id, id2))?;
-                let color = self.get_color(id).unwrap_or(HELIX_CYLINDER_COLOR);
-                let id = id | self.id << 24;
+                    let color = self.get_color(id).unwrap_or(HELIX_CYLINDER_COLOR);
+                    let color = Instance::unclear_color_from_u32(color);
+                    let id = id | self.id << 24;
                 // Adjust the color and rafius of the bond according to the REAL length of the bond
                 let radius = self.get_radius(id).unwrap_or(HELIX_CYLINDER_RADIUS);
                 let tube = create_dna_bond(pos1, pos2, color, id, true).with_radius(radius);
@@ -553,7 +554,7 @@ impl<R: DesignReader> Design3D<R> {
                 let position =
                     self.get_graphic_element_position(&SceneElement::DesignElement(self.id, id))?;
                 let color = self.get_color(id)?;
-                let color = Instance::unclear_color_from_u32(color);
+                let color = Instance::color_from_u32(color);
                 let id = id | self.id << 24;
                 // let small = self.design_reader.has_small_spheres_nucl_id(id);
                 // let radius = if small {
