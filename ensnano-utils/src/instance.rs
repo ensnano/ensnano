@@ -45,7 +45,7 @@ impl Instance {
 
     pub fn grey_au32_color_from_f32(grey: f32, alpha: f32) -> u32 {
         let a = (alpha * 255.).round() as u32;
-        return Self::grey_u32_color_from_f32(grey) | a<<24;
+        return Self::grey_u32_color_from_f32(grey) | a << 24;
     }
 
     pub fn color_from_u32(color: u32) -> Vec4 {
@@ -57,6 +57,19 @@ impl Instance {
             green as f32 / 255.,
             blue as f32 / 255.,
             1.,
+        )
+    }
+
+    pub fn unclear_color_from_u32(color: u32) -> Vec4 {
+        let red = (color & 0xFF0000) >> 16;
+        let green = (color & 0x00FF00) >> 8;
+        let blue = color & 0x0000FF;
+        let alpha = (color & 0xFF000000) >> 24;
+        Vec4::new(
+            red as f32 / 255.,
+            green as f32 / 255.,
+            blue as f32 / 255.,
+            if alpha == 0 { 1. } else { alpha as f32 / 255. },
         )
     }
 

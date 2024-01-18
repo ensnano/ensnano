@@ -51,6 +51,8 @@ pub enum ObjectType {
     Nucleotide(u32),
     /// A bond, identified by the identifier of the two nucleotides that it binds.
     Bond(u32, u32),
+    /// A Helix cylinder, identified by the identifier of the two nucleotides at its ends.
+    HelixCylinder(u32, u32),
 }
 
 impl ObjectType {
@@ -62,8 +64,16 @@ impl ObjectType {
         matches!(self, ObjectType::Bond(_, _))
     }
 
+    pub fn is_helix_cylinder(&self) -> bool {
+        matches!(self, ObjectType::HelixCylinder(_, _))
+    }
+
     pub fn same_type(&self, other: Self) -> bool {
-        self.is_nucl() == other.is_nucl()
+        match self {
+            Self::Nucleotide(_) => match other { Self::Nucleotide(_) => true, _ => false, },
+            Self::Bond(_, _) => match other { Self::Bond(_, _) => true, _ => false, },
+            Self::HelixCylinder(_, _) => match other { Self::HelixCylinder(_, _) => true, _ => false, },
+        }
     }
 }
 

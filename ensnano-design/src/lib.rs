@@ -856,7 +856,7 @@ impl FromStr for DrawingAttribute {
         let re_hexa = Regex::new(r"([0-9a-fA-F])+").unwrap();
         if let Some(arg) = s.split("(").collect::<Vec<&str>>().get(1) {
             if let Some(some_hexa) = re_hexa.find(arg) {
-                let value = u32::from_str_radix(some_hexa.as_str(), 16).unwrap();
+                let value = u32::from_str_radix(some_hexa.as_str(), 16).unwrap_or(0xFF_FF_FF_FF);
                 if s.starts_with("%sc") {
                     return Ok(Self::SphereColor(value));
                 }
@@ -891,7 +891,7 @@ pub struct DrawingStyle {
     pub rainbow_strand: Option<bool>,
 }
 
-impl Default for DrawingStyle {
+impl std::default::Default for DrawingStyle {
     fn default() -> Self {
         DrawingStyle {
             sphere_radius: None,
@@ -910,79 +910,122 @@ impl From<Vec<DrawingAttribute>> for DrawingStyle {
         let mut ret = DrawingStyle::default();
         for att in attributes {
             match att {
-                DrawingAttribute::SphereRadius(r) => 
-                    ret.sphere_radius = ret.sphere_radius.or(Some(r)),
-                DrawingAttribute::BondRadius(r) => 
-                    ret.bond_radius = ret.bond_radius.or(Some(r)),
-                DrawingAttribute::DoubleHelixAsCylinderRadius(r) => 
-                    ret.helix_as_cylinder_radius = ret.helix_as_cylinder_radius.or(Some(r)),
-                DrawingAttribute::SphereColor(c) => 
-                    ret.sphere_color = ret.sphere_color.or(Some(c)),
-                DrawingAttribute::BondColor(c) => 
-                    ret.bond_color = ret.bond_color.or(Some(c)),
-                    DrawingAttribute::DoubleHelixAsCylinderColor(c) => 
-                    ret.helix_as_cylinder_color = ret.helix_as_cylinder_color.or(Some(c)),
-                DrawingAttribute::RainbowStrand(b) => 
-                    ret.rainbow_strand = ret.rainbow_strand.or(Some(b)),
+                DrawingAttribute::SphereRadius(r) => {
+                    ret.sphere_radius = ret.sphere_radius.or(Some(r))
+                }
+                DrawingAttribute::BondRadius(r) => ret.bond_radius = ret.bond_radius.or(Some(r)),
+                DrawingAttribute::DoubleHelixAsCylinderRadius(r) => {
+                    ret.helix_as_cylinder_radius = ret.helix_as_cylinder_radius.or(Some(r))
+                }
+                DrawingAttribute::SphereColor(c) => ret.sphere_color = ret.sphere_color.or(Some(c)),
+                DrawingAttribute::BondColor(c) => ret.bond_color = ret.bond_color.or(Some(c)),
+                DrawingAttribute::DoubleHelixAsCylinderColor(c) => {
+                    ret.helix_as_cylinder_color = ret.helix_as_cylinder_color.or(Some(c))
+                }
+                DrawingAttribute::RainbowStrand(b) => {
+                    ret.rainbow_strand = ret.rainbow_strand.or(Some(b))
+                }
             }
         }
-        return ret 
+        return ret;
     }
 }
 
 impl DrawingStyle {
     pub fn with_attribute(&self, att: DrawingAttribute) -> Self {
         match att {
-            DrawingAttribute::SphereRadius(r) => DrawingStyle { sphere_radius: Some(r), ..*self },
-            DrawingAttribute::BondRadius(r) => DrawingStyle { bond_radius: Some(r), ..*self },
-            DrawingAttribute::DoubleHelixAsCylinderRadius(r) => DrawingStyle { helix_as_cylinder_radius: Some(r), ..*self },
-            DrawingAttribute::SphereColor(c) => DrawingStyle { sphere_color: Some(c), ..*self },
-            DrawingAttribute::BondColor(c) => DrawingStyle { bond_color: Some(c), ..*self },
-            DrawingAttribute::DoubleHelixAsCylinderColor(c) => DrawingStyle { helix_as_cylinder_color: Some(c), ..*self },
-            DrawingAttribute::RainbowStrand(b) => DrawingStyle { rainbow_strand: Some(b), ..*self },
+            DrawingAttribute::SphereRadius(r) => DrawingStyle {
+                sphere_radius: Some(r),
+                ..*self
+            },
+            DrawingAttribute::BondRadius(r) => DrawingStyle {
+                bond_radius: Some(r),
+                ..*self
+            },
+            DrawingAttribute::DoubleHelixAsCylinderRadius(r) => DrawingStyle {
+                helix_as_cylinder_radius: Some(r),
+                ..*self
+            },
+            DrawingAttribute::SphereColor(c) => DrawingStyle {
+                sphere_color: Some(c),
+                ..*self
+            },
+            DrawingAttribute::BondColor(c) => DrawingStyle {
+                bond_color: Some(c),
+                ..*self
+            },
+            DrawingAttribute::DoubleHelixAsCylinderColor(c) => DrawingStyle {
+                helix_as_cylinder_color: Some(c),
+                ..*self
+            },
+            DrawingAttribute::RainbowStrand(b) => DrawingStyle {
+                rainbow_strand: Some(b),
+                ..*self
+            },
         }
     }
 
     pub fn attributes(&self) -> Vec<DrawingAttribute> {
         let mut atts = Vec::new();
-        
-        if let Some(r) = self.sphere_radius { atts.push(DrawingAttribute::SphereRadius(r)) }
-        if let Some(r) = self.bond_radius { atts.push(DrawingAttribute::BondRadius(r)) }
-        if let Some(r) = self.helix_as_cylinder_radius { atts.push(DrawingAttribute::DoubleHelixAsCylinderRadius(r)) }
-        
-        if let Some(c) = self.sphere_color { atts.push(DrawingAttribute::SphereColor(c)) }
-        if let Some(c) = self.bond_color { atts.push(DrawingAttribute::BondColor(c)) }
-        if let Some(c) = self.helix_as_cylinder_color { atts.push(DrawingAttribute::DoubleHelixAsCylinderColor(c)) }
-        
-        if let Some(b) = self.rainbow_strand { atts.push(DrawingAttribute::RainbowStrand(b)) }
+
+        if let Some(r) = self.sphere_radius {
+            atts.push(DrawingAttribute::SphereRadius(r))
+        }
+        if let Some(r) = self.bond_radius {
+            atts.push(DrawingAttribute::BondRadius(r))
+        }
+        if let Some(r) = self.helix_as_cylinder_radius {
+            atts.push(DrawingAttribute::DoubleHelixAsCylinderRadius(r))
+        }
+
+        if let Some(c) = self.sphere_color {
+            atts.push(DrawingAttribute::SphereColor(c))
+        }
+        if let Some(c) = self.bond_color {
+            atts.push(DrawingAttribute::BondColor(c))
+        }
+        if let Some(c) = self.helix_as_cylinder_color {
+            atts.push(DrawingAttribute::DoubleHelixAsCylinderColor(c))
+        }
+
+        if let Some(b) = self.rainbow_strand {
+            atts.push(DrawingAttribute::RainbowStrand(b))
+        }
 
         return atts;
     }
 
     pub fn complete_with_attribute(&self, att: DrawingAttribute) -> Self {
         match att {
-            DrawingAttribute::SphereRadius(r) => DrawingStyle { 
-                sphere_radius: self.sphere_radius.or(Some(r)), 
-                ..*self },
-            DrawingAttribute::BondRadius(r) => DrawingStyle { 
-                bond_radius: self.bond_radius.or(Some(r)), 
-                ..*self },
-            DrawingAttribute::DoubleHelixAsCylinderRadius(r) => DrawingStyle { 
+            DrawingAttribute::SphereRadius(r) => DrawingStyle {
+                sphere_radius: self.sphere_radius.or(Some(r)),
+                ..*self
+            },
+            DrawingAttribute::BondRadius(r) => DrawingStyle {
+                bond_radius: self.bond_radius.or(Some(r)),
+                ..*self
+            },
+            DrawingAttribute::DoubleHelixAsCylinderRadius(r) => DrawingStyle {
                 helix_as_cylinder_radius: self.helix_as_cylinder_radius.or(Some(r)),
-                ..*self },
-            DrawingAttribute::SphereColor(c) => DrawingStyle { 
+                ..*self
+            },
+            DrawingAttribute::SphereColor(c) => DrawingStyle {
                 sphere_color: self.sphere_color.or(Some(c)),
-                ..*self },
-            DrawingAttribute::BondColor(c) => DrawingStyle { 
-                bond_color: self.bond_color.or(Some(c)), 
-                ..*self },
-            DrawingAttribute::DoubleHelixAsCylinderColor(c) => DrawingStyle { 
+                ..*self
+            },
+            DrawingAttribute::BondColor(c) => DrawingStyle {
+                bond_color: self.bond_color.or(Some(c)),
+                ..*self
+            },
+            DrawingAttribute::DoubleHelixAsCylinderColor(c) => DrawingStyle {
                 helix_as_cylinder_color: self.helix_as_cylinder_color.or(Some(c)),
-                ..*self },
-            DrawingAttribute::RainbowStrand(b) => DrawingStyle { 
-                    rainbow_strand: self.rainbow_strand.or(Some(b)),
-                    ..*self },
-            }
+                ..*self
+            },
+            DrawingAttribute::RainbowStrand(b) => DrawingStyle {
+                rainbow_strand: self.rainbow_strand.or(Some(b)),
+                ..*self
+            },
+        }
     }
 
     pub fn complete_with_attributes(&self, attributes: Vec<DrawingAttribute>) -> Self {
@@ -997,10 +1040,14 @@ impl DrawingStyle {
         return DrawingStyle {
             sphere_radius: self.sphere_radius.or(other.sphere_radius),
             bond_radius: self.bond_radius.or(other.bond_radius),
-            helix_as_cylinder_radius: self.helix_as_cylinder_radius.or(other.helix_as_cylinder_radius),
+            helix_as_cylinder_radius: self
+                .helix_as_cylinder_radius
+                .or(other.helix_as_cylinder_radius),
             sphere_color: self.sphere_color.or(other.sphere_color),
             bond_color: self.bond_color.or(other.bond_color),
-            helix_as_cylinder_color: self.helix_as_cylinder_color.or(other.helix_as_cylinder_color),
+            helix_as_cylinder_color: self
+                .helix_as_cylinder_color
+                .or(other.helix_as_cylinder_color),
             rainbow_strand: self.rainbow_strand.or(other.rainbow_strand),
         };
     }

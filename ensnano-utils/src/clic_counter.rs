@@ -16,37 +16,34 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-
 #[derive(Clone, Debug)]
 pub struct ClicCounter {
-	value: u32,
+    value: u32,
 }
 
 impl ClicCounter {
     pub fn new() -> Self {
-        Self {
-			value: 0,
-		}
+        Self { value: 0 }
     }
 
-	pub fn set(&mut self, value: u32) {
-		self.value = value
-	}
+    pub fn set(&mut self, value: u32) {
+        self.value = value
+    }
 
-	pub fn next_value(&mut self) -> u32 {
-		let ret = self.value;
-		self.value += 1;
-		return ret;
-	}
+    pub fn next(&mut self) -> u32 {
+        let ret = self.value;
+        self.value += 1;
+        return ret;
+    }
 
-	pub fn count(&self) -> u32 {
-		return self.value;
-	}
+    pub fn count(&self) -> u32 {
+        return self.value;
+    }
 
-	pub fn last_value(&self) -> Option<u32> {
-		if self.value > 0 {
-			return Some(self.value - 1);
-		} 
-		return None;
-	}
+    pub fn last(&self) -> Option<u32> {
+        if self.value > 0 {
+            return Some(self.value - 1);
+        }
+        return None;
+    }
 }

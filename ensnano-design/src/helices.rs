@@ -868,10 +868,7 @@ impl Helix {
                 orientation,
             }
         } else {
-            let p = match self.helix_parameters {
-                None => p.clone(),
-                Some(hp) => hp.clone(),
-            };
+            let p = self.helix_parameters.unwrap_or(*p).clone();
             Axis::Line {
                 origin: self.position,
                 direction: self.axis_position(&p, 1) - self.position,
@@ -892,10 +889,7 @@ impl Helix {
                 return point.rotated_by(orientation) + position;
             }
         }
-        let p = match self.helix_parameters {
-            None => p.clone(),
-            Some(hp) => hp.clone(),
-        };
+        let p = self.helix_parameters.unwrap_or(*p).clone();
         let mut ret = Vec3::new(n as f32 * p.rise, 0., 0.);
 
         ret = self.rotate_point(ret);

@@ -231,7 +231,8 @@ impl Strand {
     ) {
         let mut to_be_updated = Vec::new();
         let nb_domain = self.domains.len();
-        for (d_prev, ((d_id, d), d_next)) in self.domains.iter().cycle().skip(nb_domain - 1).zip( // previous domain
+        for (d_prev, ((d_id, d), d_next)) in self.domains.iter().cycle().skip(nb_domain - 1).zip(
+            // previous domain
             self.domains
                 .iter()
                 .enumerate() // domain index plus domain

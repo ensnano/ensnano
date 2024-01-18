@@ -30,6 +30,9 @@ pub const BOND_RADIUS: f32 = 0.06;
 pub const BOND_LENGTH: f32 = 1.;
 pub const NB_RAY_TUBE: usize = 12;
 
+pub const HELIX_CYLINDER_RADIUS: f32 = 0.9;
+pub const HELIX_CYLINDER_COLOR: u32 = 0x88_CC_CC_CC;
+
 pub const SPHERE_RADIUS: f32 = 0.2;
 pub const NB_STACK_SPHERE: u16 = 12;
 pub const NB_SECTOR_SPHERE: u16 = 12;

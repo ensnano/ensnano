@@ -16,10 +16,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use std::collections::HashSet;
 use std::collections::hash_map::RandomState;
-use std::hash::Hash;
 use std::collections::HashMap;
+use std::collections::HashSet;
+use std::hash::Hash;
 
 use serde::Deserialize;
 #[derive(Clone, Debug, Serialize)]
@@ -96,8 +96,11 @@ impl<K: PartialEq> OrganizerTree<K> {
 }
 
 /// Hashmap
-impl<K: Eq+Hash+Copy> OrganizerTree<K> {
-    pub fn get_hashmap_to_all_groupnames_with_prefix(&self, prefix: &str) -> HashMap<K, Vec<&str>, RandomState> {
+impl<K: Eq + Hash + Copy> OrganizerTree<K> {
+    pub fn get_hashmap_to_all_groupnames_with_prefix(
+        &self,
+        prefix: &str,
+    ) -> HashMap<K, Vec<&str>, RandomState> {
         let mut hashmap = HashMap::new();
 
         match self {
@@ -108,23 +111,29 @@ impl<K: Eq+Hash+Copy> OrganizerTree<K> {
                 for c in children {
                     match c {
                         Self::Leaf(e) => {
-                            let mut e_names: Vec<&str> = hashmap.get(e).map(|x:&Vec<&str>| x.clone()).unwrap_or(Vec::new());
+                            let mut e_names: Vec<&str> = hashmap
+                                .get(e)
+                                .map(|x: &Vec<&str>| x.clone())
+                                .unwrap_or(Vec::new());
                             if has_prefix {
                                 e_names.push(trimmed_name.clone());
                             }
-                            hashmap.insert(*e, e_names);                                
-                        },
+                            hashmap.insert(*e, e_names);
+                        }
                         _ => {
                             let c_hashmap = c.get_hashmap_to_all_groupnames_with_prefix(prefix);
                             for (e, e_names) in c_hashmap {
-                                let mut new_e_names: Vec<&str> = hashmap.get(&e).map(|x:&Vec<&str>| x.clone()).unwrap_or(Vec::new());
+                                let mut new_e_names: Vec<&str> = hashmap
+                                    .get(&e)
+                                    .map(|x: &Vec<&str>| x.clone())
+                                    .unwrap_or(Vec::new());
                                 new_e_names.extend(e_names);
                                 if has_prefix {
                                     new_e_names.push(trimmed_name.clone());
                                 }
                                 hashmap.insert(e, new_e_names);
                             }
-                        },
+                        }
                     }
                 }
             }
