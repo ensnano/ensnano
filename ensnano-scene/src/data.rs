@@ -485,7 +485,7 @@ impl<R: DesignReader> Data<R> {
                             Some(design3d::ExpandWith::Spheres)
                                 .filter(|_| !app_state.show_insertion_representents()),
                         );
-                        ret.extend(instances)
+                        ret.extend(instances.iter())
                     }
                     SceneElement::PhantomElement(phantom_element) => {
                         if let Some(instance) = self
@@ -1388,6 +1388,7 @@ impl<R: DesignReader> Data<R> {
     fn update_instances<S: AppState>(&mut self, app_state: &S) {
         let mut spheres = Vec::with_capacity(10_000);
         let mut tubes = Vec::with_capacity(10_000);
+        let mut tube_lids = Vec::with_capacity(10_000);
         let mut suggested_spheres = Vec::with_capacity(1000);
         let mut suggested_tubes = Vec::with_capacity(1000);
         let mut pasted_spheres = Vec::with_capacity(1000);
@@ -1407,7 +1408,11 @@ impl<R: DesignReader> Data<R> {
                 .get_tubes_raw(app_state.show_insertion_representents())
                 .iter()
             {
-                tubes.push(*tube);
+                if tube.mesh == Mesh::TubeLid.to_u32() {
+                    tube_lids.push(*tube);
+                } else { 
+                   tubes.push(*tube);
+                }
             }
             if app_state.show_bezier_paths() {
                 let (bezier_spheres, bezier_tubes) = design.get_bezier_paths_elements(app_state);
@@ -1448,6 +1453,9 @@ impl<R: DesignReader> Data<R> {
         self.view
             .borrow_mut()
             .update(ViewUpdate::RawDna(Mesh::Tube, Rc::new(tubes)));
+        self.view
+            .borrow_mut()
+            .update(ViewUpdate::RawDna(Mesh::TubeLid, Rc::new(tube_lids)));
         self.view
             .borrow_mut()
             .update(ViewUpdate::RawDna(Mesh::Sphere, Rc::new(spheres)));

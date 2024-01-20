@@ -452,7 +452,7 @@ impl DesignContent {
         self.nucleotides_involved
             .iter()
             .filter(check_visibility)
-            .map(|t| { println!("{:?}",t); *t.0 })
+            .map(|t| *t.0)
             .collect()
     }
 
