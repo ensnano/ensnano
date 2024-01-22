@@ -60,25 +60,27 @@ impl Vertexable for DnaVertex {
 #[repr(C)]
 #[derive(Clone, Debug, Copy, bytemuck::Zeroable, bytemuck::Pod)]
 pub struct RawDnaInstance {
-    // must be aligned on 4 times f32
+    // must be aligned on 4 times f32 module 8 ?
     pub model: Mat4,
     pub color: Vec4,
     pub scale: Vec3,
     pub id: u32,
     pub inversed_model: Mat4,
-    pub expected_length: f32, // used to modify the color of bonds in the dna_obj vertex shader -> now obsolete
+    // pub expected_length: f32, // used to modify the color of bonds in the dna_obj vertex shader -> now obsolete
     pub mesh: u32, // 32bits did not exist before -> ADD OPTIONAL VECTOR NEXT AND PREV FOR SLICED TUBES
-    _padding: [u32; 2], // [f32; 3]
+    pub prev: Vec3, // previous bond direction assuming the current tube is aligned with X axis 
+    pub next: Vec3, // next bond direction assuming the current tube is aligned with X axis
+    _padding: [u32; 5], // [u32; 2], // [f32; 3]
 }
 
-impl RawDnaInstance {
-    pub fn with_expected_length(self, expected_length: f32) -> Self {
-        Self {
-            expected_length,
-            ..self
-        }
-    }
-}
+// impl RawDnaInstance {
+//     pub fn with_expected_length(self, expected_length: f32) -> Self {
+//         Self {
+//             expected_length,
+//             ..self
+//         }
+//     }
+// }
 
 pub struct SphereInstance {
     /// The position in space
@@ -163,9 +165,10 @@ impl Instanciable for SphereInstance {
             scale: Vec3::new(self.radius, self.radius, self.radius),
             id: self.id,
             inversed_model: model.inversed(),
-            expected_length: 0.,
             mesh: super::Mesh::Sphere.to_u32(),
-            _padding: [0; 2], //[0.; 3],
+            prev: Vec3::zero(),
+            next: Vec3::zero(),
+            _padding: [0; 5], //[0; 2], //[0.; 3],
         }
     }
 
@@ -272,9 +275,10 @@ impl Instanciable for StereographicSphereAndPlane {
             scale,
             id: 0,
             inversed_model: model.inversed(),
-            expected_length: 0.,
             mesh: super::Mesh::StereographicSphere.to_u32(),
-            _padding: [0; 2], //[0.; 3],
+            prev: Vec3::zero(),
+            next: Vec3::zero(),
+            _padding: [0; 5], // _padding: [0; 2], //[0.; 3],
         }
     }
 }
@@ -354,9 +358,10 @@ impl Instanciable for TubeInstance {
             scale: Vec3::new(self.length, self.radius, self.radius), // scale.x is the length of the tube
             id: self.id,
             inversed_model: model.inversed(),
-            expected_length: 0.,
             mesh: super::Mesh::Tube.to_u32(),
-            _padding: [0; 2], //[0.; 3],
+            prev: Vec3::zero(),
+            next: Vec3::zero(),
+            _padding: [0; 5], // _padding: [0; 2], //[0.; 3],
         }
     }
 }
@@ -442,9 +447,10 @@ impl Instanciable for TubeLidInstance {
             scale: Vec3::new(1.0, self.radius, self.radius),
             id: self.id,
             inversed_model: model.inversed(),
-            expected_length: 0.,
             mesh: super::Mesh::TubeLid.to_u32(),
-            _padding: [0; 2], //[0.; 3],
+            prev: Vec3::zero(),
+            next: Vec3::zero(),
+            _padding: [0; 5], // _padding: [0; 2], //[0.; 3],
         }
     }
 }
@@ -541,9 +547,10 @@ impl Instanciable for SlicedTubeInstance {
             scale: Vec3::new(1.0, self.radius, self.radius),
             id: self.id,
             inversed_model: model.inversed(),
-            expected_length: 0.,
             mesh: super::Mesh::SlicedTube.to_u32(),
-            _padding: [0; 2], //[0.; 3],
+            prev: Vec3::zero(),
+            next: Vec3::zero(),
+            _padding: [0; 5], // _padding: [0; 2], //[0.; 3],
         }
     }
 }
@@ -644,9 +651,10 @@ impl Instanciable for ConeInstance {
             scale: Vec3::new(self.length, self.radius, self.radius),
             id: self.id,
             inversed_model: model.inversed(),
-            expected_length: 0.,
             mesh: super::Mesh::Prime3Cone.to_u32(),
-            _padding: [0; 2], //[0.; 3],
+            prev: Vec3::zero(),
+            next: Vec3::zero(),
+            _padding: [0; 5], // _padding: [0; 2], //[0.; 3],
         }
     }
 }

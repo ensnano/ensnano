@@ -33,7 +33,9 @@ struct Instances {
     vec3 scale;
     uint id;
     mat4 inversed_model;
-    float expected_length;
+    uint mesh;
+    vec3 prev;
+    vec3 next;
 };
 
 layout(std430, set=2, binding=0) 

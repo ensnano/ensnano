@@ -1120,6 +1120,7 @@ impl Mesh {
             Mesh::Tube => 2,
             Mesh::TubeLid => 3,
             Mesh::SlicedTube => 4,
+            Mesh::PivotSphere => 5,
             _ => 0,
         }
     }
