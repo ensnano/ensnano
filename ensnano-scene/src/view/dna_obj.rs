@@ -68,7 +68,7 @@ pub struct RawDnaInstance {
     pub inversed_model: Mat4,
     // pub expected_length: f32, // used to modify the color of bonds in the dna_obj vertex shader -> now obsolete
     pub mesh: u32, // 32bits did not exist before -> ADD OPTIONAL VECTOR NEXT AND PREV FOR SLICED TUBES
-    pub prev: Vec3, // previous bond direction assuming the current tube is aligned with X axis 
+    pub prev: Vec3, // previous bond direction assuming the current tube is aligned with X axis
     pub next: Vec3, // next bond direction assuming the current tube is aligned with X axis
     _padding: [u32; 5], // [u32; 2], // [f32; 3]
 }
@@ -489,28 +489,34 @@ impl Instanciable for SlicedTubeInstance {
             })
             .collect();
 
-        let circle_tangents: Vec<[f32; 3]> = (0..NB_RAY_TUBE)
+        let circle_normal: Vec<[f32; 3]> = (0..NB_RAY_TUBE)
             .map(|i| {
                 let φ = i as f32 / NB_RAY_TUBE as f32 * 2. * std::f32::consts::PI;
-                [0., φ.cos(), -φ.sin()]
+                [0., φ.sin(), φ.cos()]
             })
             .collect();
 
-        zip(circle, circle_tangents)
+        zip(circle, circle_normal)
             .map(|(p, q)| {
                 DnaVertex {
                     position: p,
                     normal: q,
-                } // beware here the normal encodes the tangent!
+                } // the normal are used to deduce the tangents
             })
             .collect()
     }
 
     fn indices() -> Vec<u16> {
-        (0..NB_RAY_TUBE)
-            .map(|i| [0, i as u16 + 1, i as u16 + 2])
+        let _NB_RAY_TUBE = NB_RAY_TUBE as u16;
+        let left = (0.._NB_RAY_TUBE)
+            .map(|i| [i, i + _NB_RAY_TUBE, i + _NB_RAY_TUBE + 1])
             .flatten()
-            .collect()
+            .collect::<Vec<u16>>();
+        let right = (0.._NB_RAY_TUBE)
+            .map(|i| [i, i + _NB_RAY_TUBE, i + _NB_RAY_TUBE + 1])
+            .flatten()
+            .collect::<Vec<u16>>();
+        [left, right].into_iter().flatten().collect::<Vec<u16>>()
     }
 
     fn primitive_topology() -> wgpu::PrimitiveTopology {
@@ -518,7 +524,7 @@ impl Instanciable for SlicedTubeInstance {
     }
 
     fn vertex_module(device: &wgpu::Device) -> wgpu::ShaderModule {
-        device.create_shader_module(&wgpu::include_spirv!("dna_obj.vert.spv"))
+        device.create_shader_module(&wgpu::include_spirv!("sliced_tube.vert.spv"))
     }
 
     fn fragment_module(device: &wgpu::Device) -> wgpu::ShaderModule {
