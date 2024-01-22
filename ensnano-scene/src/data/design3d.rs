@@ -17,8 +17,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use super::super::maths_3d::{Basis3D, UnalignedBoundaries};
 use super::super::view::{
-    ConeInstance, Ellipsoid, Instanciable, RawDnaInstance, Sheet2D, SphereInstance, TubeInstance,
-    TubeLidInstance, SlicedTubeInstance,
+    ConeInstance, Ellipsoid, Instanciable, RawDnaInstance, Sheet2D, SlicedTubeInstance,
+    SphereInstance, TubeInstance, TubeLidInstance,
 };
 use super::super::GridInstance;
 use super::{ultraviolet, LetterInstance, SceneElement};
@@ -316,7 +316,8 @@ impl<R: DesignReader> Design3D<R> {
                         ))
                         .unwrap_or(f32::NAN * Vec3::unit_x());
                     let id = id | self.id << 24;
-                    let (lid1, tube, lid2) = create_helix_cylinder(pos1, pos2, radius, color, id, true);
+                    let (lid1, tube, lid2) =
+                        create_helix_cylinder(pos1, pos2, radius, color, id, true);
                     // println!("Lid1: {:?}\nTube: {:?}\nLid2: {:?}", lid1.position, tube.position, lid2.position);
                     vec![
                         lid1.to_raw_instance(),

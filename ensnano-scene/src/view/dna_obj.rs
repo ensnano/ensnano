@@ -304,18 +304,21 @@ impl Instanciable for TubeInstance {
     type Ressource = ();
 
     fn vertices() -> Vec<DnaVertex> {
-        let radius = 1.; // BOND_RADIUS;
         (0..(2 * NB_RAY_TUBE))
             .map(|i| {
                 let point = i / 2;
                 let side = if i % 2 == 0 { -0.5 } else { 0.5 };
                 let theta = (point as f32) * 2. * PI / NB_RAY_TUBE as f32;
-                let position = [side, theta.sin() * radius, theta.cos() * radius];
+                let position = [side, theta.sin(), theta.cos()];
 
                 let normal = [0., theta.sin(), theta.cos()];
                 DnaVertex { position, normal }
             })
             .collect()
+    }
+
+    fn primitive_topology() -> wgpu::PrimitiveTopology {
+        wgpu::PrimitiveTopology::TriangleStrip
     }
 
     fn indices() -> Vec<u16> {
@@ -343,10 +346,6 @@ impl Instanciable for TubeInstance {
 
     fn outline_fragment_module(device: &wgpu::Device) -> Option<wgpu::ShaderModule> {
         Some(device.create_shader_module(&wgpu::include_spirv!("dna_obj_outline.frag.spv")))
-    }
-
-    fn primitive_topology() -> wgpu::PrimitiveTopology {
-        wgpu::PrimitiveTopology::TriangleStrip
     }
 
     fn to_raw_instance(&self) -> RawDnaInstance {
@@ -479,7 +478,7 @@ impl Instanciable for SlicedTubeInstance {
         // Precomputation of the cos and sin
         let circle: Vec<[f32; 3]> = (0..3 * NB_RAY_TUBE)
             .map(|i| {
-                let φ = i as f32 / NB_RAY_TUBE as f32 * 2. * std::f32::consts::PI;
+                let φ = (i % NB_RAY_TUBE) as f32 / NB_RAY_TUBE as f32 * 2. * std::f32::consts::PI;
                 let x = match i / NB_RAY_TUBE {
                     0 => -0.5,
                     1 => 0.,
@@ -489,9 +488,9 @@ impl Instanciable for SlicedTubeInstance {
             })
             .collect();
 
-        let circle_normal: Vec<[f32; 3]> = (0..NB_RAY_TUBE)
+        let circle_normal: Vec<[f32; 3]> = (0..3 * NB_RAY_TUBE)
             .map(|i| {
-                let φ = i as f32 / NB_RAY_TUBE as f32 * 2. * std::f32::consts::PI;
+                let φ = (i % NB_RAY_TUBE) as f32 / NB_RAY_TUBE as f32 * 2. * std::f32::consts::PI;
                 [0., φ.sin(), φ.cos()]
             })
             .collect();
@@ -506,25 +505,29 @@ impl Instanciable for SlicedTubeInstance {
             .collect()
     }
 
+    fn primitive_topology() -> wgpu::PrimitiveTopology {
+        wgpu::PrimitiveTopology::TriangleStrip
+    }
+
     fn indices() -> Vec<u16> {
-        println!("sliced!");
         let _NB_RAY_TUBE = NB_RAY_TUBE as u16;
         let left = (0.._NB_RAY_TUBE)
             .map(|i| [i, i + _NB_RAY_TUBE])
             .flatten()
             .collect::<Vec<u16>>();
-        let right = (0.._NB_RAY_TUBE)
-            .map(|i| [i + _NB_RAY_TUBE, i + 2 * _NB_RAY_TUBE])
+        let right = (_NB_RAY_TUBE..2 * _NB_RAY_TUBE)
+            .map(|i| [i, i + _NB_RAY_TUBE])
             .flatten()
             .collect::<Vec<u16>>();
-        let out = [left, vec![0, _NB_RAY_TUBE], right,  vec![_NB_RAY_TUBE, 2*_NB_RAY_TUBE],].into_iter().flatten().collect::<Vec<u16>>();
-        println!("{:?}", out);
-        out
-    //    vec! [0,_NB_RAY_TUBE, _NB_RAY_TUBE+1]
-    }
-
-    fn primitive_topology() -> wgpu::PrimitiveTopology {
-        wgpu::PrimitiveTopology::TriangleList
+        [
+            left,
+            vec![0, _NB_RAY_TUBE],
+            right,
+            vec![_NB_RAY_TUBE, 2 * _NB_RAY_TUBE],
+        ]
+        .into_iter()
+        .flatten()
+        .collect::<Vec<u16>>()
     }
 
     fn vertex_module(device: &wgpu::Device) -> wgpu::ShaderModule {
