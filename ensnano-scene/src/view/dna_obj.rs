@@ -480,7 +480,7 @@ impl Instanciable for SlicedTubeInstance {
         let circle: Vec<[f32; 3]> = (0..3 * NB_RAY_TUBE)
             .map(|i| {
                 let φ = i as f32 / NB_RAY_TUBE as f32 * 2. * std::f32::consts::PI;
-                let x = match (i / NB_RAY_TUBE) {
+                let x = match i / NB_RAY_TUBE {
                     0 => -0.5,
                     1 => 0.,
                     _ => 0.5,
@@ -507,16 +507,20 @@ impl Instanciable for SlicedTubeInstance {
     }
 
     fn indices() -> Vec<u16> {
+        println!("sliced!");
         let _NB_RAY_TUBE = NB_RAY_TUBE as u16;
         let left = (0.._NB_RAY_TUBE)
-            .map(|i| [i, i + _NB_RAY_TUBE, i + _NB_RAY_TUBE + 1])
+            .map(|i| [i, i + _NB_RAY_TUBE])
             .flatten()
             .collect::<Vec<u16>>();
         let right = (0.._NB_RAY_TUBE)
-            .map(|i| [i, i + _NB_RAY_TUBE, i + _NB_RAY_TUBE + 1])
+            .map(|i| [i + _NB_RAY_TUBE, i + 2 * _NB_RAY_TUBE])
             .flatten()
             .collect::<Vec<u16>>();
-        [left, right].into_iter().flatten().collect::<Vec<u16>>()
+        let out = [left, vec![0, _NB_RAY_TUBE], right,  vec![_NB_RAY_TUBE, 2*_NB_RAY_TUBE],].into_iter().flatten().collect::<Vec<u16>>();
+        println!("{:?}", out);
+        out
+    //    vec! [0,_NB_RAY_TUBE, _NB_RAY_TUBE+1]
     }
 
     fn primitive_topology() -> wgpu::PrimitiveTopology {
@@ -550,7 +554,7 @@ impl Instanciable for SlicedTubeInstance {
         RawDnaInstance {
             model,
             color: self.color,
-            scale: Vec3::new(1.0, self.radius, self.radius),
+            scale: Vec3::new(self.length, self.radius, self.radius),
             id: self.id,
             inversed_model: model.inversed(),
             mesh: super::Mesh::SlicedTube.to_u32(),

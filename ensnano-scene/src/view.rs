@@ -1209,7 +1209,7 @@ impl DnaDrawers {
             &mut self.sphere,
             &mut self.tube,
             &mut self.tube_lid,
-            // &mut self.sliced_tube,
+            &mut self.sliced_tube,
             &mut self.prime3_cones,
             &mut self.candidate_sphere,
             &mut self.candidate_tube,

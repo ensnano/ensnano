@@ -18,7 +18,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::super::maths_3d::{Basis3D, UnalignedBoundaries};
 use super::super::view::{
     ConeInstance, Ellipsoid, Instanciable, RawDnaInstance, Sheet2D, SphereInstance, TubeInstance,
-    TubeLidInstance,
+    TubeLidInstance, SlicedTubeInstance,
 };
 use super::super::GridInstance;
 use super::{ultraviolet, LetterInstance, SceneElement};
@@ -316,12 +316,12 @@ impl<R: DesignReader> Design3D<R> {
                         ))
                         .unwrap_or(f32::NAN * Vec3::unit_x());
                     let id = id | self.id << 24;
-                    let (lid1, tube, lid2) = create_helix_cylinder(pos1, pos2, color, id, true);
+                    let (lid1, tube, lid2) = create_helix_cylinder(pos1, pos2, radius, color, id, true);
                     // println!("Lid1: {:?}\nTube: {:?}\nLid2: {:?}", lid1.position, tube.position, lid2.position);
                     vec![
-                        lid1.with_radius(radius).to_raw_instance(),
-                        tube.with_radius(radius).to_raw_instance(),
-                        lid2.with_radius(radius).to_raw_instance(),
+                        lid1.to_raw_instance(),
+                        tube.to_raw_instance(),
+                        lid2.to_raw_instance(),
                     ]
                 }
                 Some(ObjectType::Nucleotide(id)) => {
@@ -558,12 +558,12 @@ impl<R: DesignReader> Design3D<R> {
                 let id = id | self.id << 24;
                 // Adjust the color and rafius of the bond according to the REAL length of the bond
                 let radius = self.get_radius(id).unwrap_or(HELIX_CYLINDER_RADIUS);
-                let (lid1, tube, lid2) = create_helix_cylinder(pos1, pos2, color, id, true);
+                let (lid1, tube, lid2) = create_helix_cylinder(pos1, pos2, radius, color, id, true);
                 // println!("Lid1: {:?}\nTube: {:?}\nLid2: {:?}", lid1.position, tube.position, lid2.position);
                 vec![
-                    lid1.with_radius(radius).to_raw_instance(),
-                    tube.with_radius(radius).to_raw_instance(),
-                    lid2.with_radius(radius).to_raw_instance(),
+                    lid1.to_raw_instance(),
+                    tube.to_raw_instance(),
+                    lid2.to_raw_instance(),
                 ]
             }
             ObjectType::Nucleotide(id) => {
@@ -1256,10 +1256,11 @@ fn create_dna_bond(source: Vec3, dest: Vec3, color: u32, id: u32, use_alpha: boo
 fn create_helix_cylinder(
     source: Vec3,
     dest: Vec3,
+    radius: f32,
     color: u32,
     id: u32,
     use_alpha: bool,
-) -> (TubeLidInstance, TubeInstance, TubeLidInstance) {
+) -> (TubeLidInstance, SlicedTubeInstance, TubeLidInstance) {
     let color = if use_alpha {
         Instance::color_from_au32(color)
     } else {
@@ -1276,22 +1277,24 @@ fn create_helix_cylinder(
             color,
             rotor: rotor2,
             id,
-            radius: BOND_RADIUS,
+            radius: radius,
         },
-        TubeInstance {
+        SlicedTubeInstance {
             position,
             color,
             rotor,
             id,
-            radius: BOND_RADIUS,
+            radius,
             length,
+            prev: Vec3::zero(),
+            next: Vec3::zero(),
         },
         TubeLidInstance {
             position: dest,
             color,
             rotor,
             id,
-            radius: BOND_RADIUS,
+            radius: radius,
         },
     )
 }

@@ -1389,6 +1389,7 @@ impl<R: DesignReader> Data<R> {
         let mut spheres = Vec::with_capacity(10_000);
         let mut tubes = Vec::with_capacity(10_000);
         let mut tube_lids = Vec::with_capacity(10_000);
+        let mut sliced_tubes = Vec::with_capacity(10_000);
         let mut suggested_spheres = Vec::with_capacity(1000);
         let mut suggested_tubes = Vec::with_capacity(1000);
         let mut pasted_spheres = Vec::with_capacity(1000);
@@ -1410,6 +1411,8 @@ impl<R: DesignReader> Data<R> {
             {
                 if tube.mesh == Mesh::TubeLid.to_u32() {
                     tube_lids.push(*tube);
+                } else if tube.mesh == Mesh::SlicedTube.to_u32() {
+                    sliced_tubes.push(*tube); 
                 } else {
                     tubes.push(*tube);
                 }
@@ -1456,6 +1459,9 @@ impl<R: DesignReader> Data<R> {
         self.view
             .borrow_mut()
             .update(ViewUpdate::RawDna(Mesh::TubeLid, Rc::new(tube_lids)));
+        self.view
+            .borrow_mut()
+            .update(ViewUpdate::RawDna(Mesh::SlicedTube, Rc::new(sliced_tubes)));
         self.view
             .borrow_mut()
             .update(ViewUpdate::RawDna(Mesh::Sphere, Rc::new(spheres)));
