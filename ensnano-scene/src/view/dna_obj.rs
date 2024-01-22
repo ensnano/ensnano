@@ -20,9 +20,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::instances_drawer::{Instanciable, Vertexable};
 use ensnano_design::ultraviolet;
 use ensnano_interactor::consts::*;
-use ensnano_utils::{wgpu, mesh::Mesh};
+use ensnano_utils::{mesh::Mesh, wgpu};
 use std::f32::consts::PI;
 use ultraviolet::{Mat4, Rotor3, Vec3, Vec4};
+
+use std::iter::zip;
 
 /// The vertex type for the meshes used to draw DNA.
 #[repr(C)]
@@ -65,7 +67,7 @@ pub struct RawDnaInstance {
     pub id: u32,
     pub inversed_model: Mat4,
     pub expected_length: f32, // used to modify the color of bonds in the dna_obj vertex shader -> now obsolete
-    pub mesh: u32, // 32bits did not exist before
+    pub mesh: u32, // 32bits did not exist before -> ADD OPTIONAL VECTOR NEXT AND PREV FOR SLICED TUBES
     _padding: [u32; 2], // [f32; 3]
 }
 
@@ -302,13 +304,9 @@ impl Instanciable for TubeInstance {
         (0..(2 * NB_RAY_TUBE))
             .map(|i| {
                 let point = i / 2;
-                let side = if i % 2 == 0 { -1. } else { 1. };
+                let side = if i % 2 == 0 { -0.5 } else { 0.5 };
                 let theta = (point as f32) * 2. * PI / NB_RAY_TUBE as f32;
-                let position = [
-                    side / 2., //* BOND_LENGTH / 2.,
-                    theta.sin() * radius,
-                    theta.cos() * radius,
-                ];
+                let position = [side, theta.sin() * radius, theta.cos() * radius];
 
                 let normal = [0., theta.sin(), theta.cos()];
                 DnaVertex { position, normal }
@@ -388,22 +386,27 @@ impl Instanciable for TubeLidInstance {
 
     fn vertices() -> Vec<DnaVertex> {
         let normal = [1., 0., 0.];
-        (-1..(NB_RAY_TUBE as isize + 1)).map(|i| {
-            if i < 0 { 
-                DnaVertex { position: [0., 0., 0.], normal }
-            } else {
-                let φ = i as f32 / NB_RAY_TUBE as f32 * 2. * std::f32::consts::PI;
-                let position = [ 0., φ.sin(), φ.cos(), ];                
-                DnaVertex { position, normal }
-            }
-        }).collect()
+        (-1..(NB_RAY_TUBE as isize + 1))
+            .map(|i| {
+                if i < 0 {
+                    DnaVertex {
+                        position: [0., 0., 0.],
+                        normal,
+                    }
+                } else {
+                    let φ = i as f32 / NB_RAY_TUBE as f32 * 2. * std::f32::consts::PI;
+                    let position = [0., φ.sin(), φ.cos()];
+                    DnaVertex { position, normal }
+                }
+            })
+            .collect()
     }
 
     fn indices() -> Vec<u16> {
-        (0..NB_RAY_TUBE).map(|i| {
-            [0, i as u16 + 1, i as u16 + 2]
-        }).flatten()
-        .collect()
+        (0..NB_RAY_TUBE)
+            .map(|i| [0, i as u16 + 1, i as u16 + 2])
+            .flatten()
+            .collect()
     }
 
     fn primitive_topology() -> wgpu::PrimitiveTopology {
@@ -447,6 +450,105 @@ impl Instanciable for TubeLidInstance {
 }
 
 impl DnaObject for TubeLidInstance {}
+
+/// SLICED TUBE INSTANCE
+
+pub struct SlicedTubeInstance {
+    pub position: Vec3,
+    pub rotor: Rotor3,
+    pub color: Vec4,
+    pub id: u32,
+    pub radius: f32,
+    pub length: f32,
+    pub prev: Vec3, // direction of the previous cylinder - Zero if does not exist
+    pub next: Vec3, // direction of the next cylinder - Zero if does not exist
+}
+
+impl Instanciable for SlicedTubeInstance {
+    type Vertex = DnaVertex;
+    type RawInstance = RawDnaInstance;
+    type Ressource = ();
+
+    fn vertices() -> Vec<DnaVertex> {
+        // Precomputation of the cos and sin
+        let circle: Vec<[f32; 3]> = (0..3 * NB_RAY_TUBE)
+            .map(|i| {
+                let φ = i as f32 / NB_RAY_TUBE as f32 * 2. * std::f32::consts::PI;
+                let x = match (i / NB_RAY_TUBE) {
+                    0 => -0.5,
+                    1 => 0.,
+                    _ => 0.5,
+                };
+                [x, φ.sin(), φ.cos()]
+            })
+            .collect();
+
+        let circle_tangents: Vec<[f32; 3]> = (0..NB_RAY_TUBE)
+            .map(|i| {
+                let φ = i as f32 / NB_RAY_TUBE as f32 * 2. * std::f32::consts::PI;
+                [0., φ.cos(), -φ.sin()]
+            })
+            .collect();
+
+        zip(circle, circle_tangents)
+            .map(|(p, q)| {
+                DnaVertex {
+                    position: p,
+                    normal: q,
+                } // beware here the normal encodes the tangent!
+            })
+            .collect()
+    }
+
+    fn indices() -> Vec<u16> {
+        (0..NB_RAY_TUBE)
+            .map(|i| [0, i as u16 + 1, i as u16 + 2])
+            .flatten()
+            .collect()
+    }
+
+    fn primitive_topology() -> wgpu::PrimitiveTopology {
+        wgpu::PrimitiveTopology::TriangleList
+    }
+
+    fn vertex_module(device: &wgpu::Device) -> wgpu::ShaderModule {
+        device.create_shader_module(&wgpu::include_spirv!("dna_obj.vert.spv"))
+    }
+
+    fn fragment_module(device: &wgpu::Device) -> wgpu::ShaderModule {
+        device.create_shader_module(&wgpu::include_spirv!("dna_obj.frag.spv"))
+    }
+
+    fn fake_fragment_module(device: &wgpu::Device) -> Option<wgpu::ShaderModule> {
+        Some(device.create_shader_module(&wgpu::include_spirv!("dna_obj_fake.frag.spv")))
+    }
+
+    fn outline_vertex_module(device: &wgpu::Device) -> Option<wgpu::ShaderModule> {
+        Some(device.create_shader_module(&wgpu::include_spirv!("dna_obj_outline.vert.spv")))
+    }
+
+    fn outline_fragment_module(device: &wgpu::Device) -> Option<wgpu::ShaderModule> {
+        Some(device.create_shader_module(&wgpu::include_spirv!("dna_obj_outline.frag.spv")))
+    }
+
+    fn to_raw_instance(&self) -> RawDnaInstance {
+        let model =
+            Mat4::from_translation(self.position) * self.rotor.into_matrix().into_homogeneous();
+
+        RawDnaInstance {
+            model,
+            color: self.color,
+            scale: Vec3::new(1.0, self.radius, self.radius),
+            id: self.id,
+            inversed_model: model.inversed(),
+            expected_length: 0.,
+            mesh: super::Mesh::SlicedTube.to_u32(),
+            _padding: [0; 2], //[0.; 3],
+        }
+    }
+}
+
+impl DnaObject for SlicedTubeInstance {}
 
 /// CONE INSTANCE
 pub struct ConeInstance {

@@ -70,9 +70,18 @@ impl ObjectType {
 
     pub fn same_type(&self, other: Self) -> bool {
         match self {
-            Self::Nucleotide(_) => match other { Self::Nucleotide(_) => true, _ => false, },
-            Self::Bond(_, _) => match other { Self::Bond(_, _) => true, _ => false, },
-            Self::HelixCylinder(_, _) => match other { Self::HelixCylinder(_, _) => true, _ => false, },
+            Self::Nucleotide(_) => match other {
+                Self::Nucleotide(_) => true,
+                _ => false,
+            },
+            Self::Bond(_, _) => match other {
+                Self::Bond(_, _) => true,
+                _ => false,
+            },
+            Self::HelixCylinder(_, _) => match other {
+                Self::HelixCylinder(_, _) => true,
+                _ => false,
+            },
         }
     }
 }

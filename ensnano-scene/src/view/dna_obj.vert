@@ -82,6 +82,12 @@ void main() {
     }
 */
 
+    // vec3 pos = a_position * scale;
+    // if (gl_VertexIndex % 2 == 0) {
+    //     pos = pos + vec3((gl_VertexIndex % 4)/10., 0., 0.);
+    // }
+    // vec4 model_space = model_matrix * vec4(pos, 1.0); 
+
     vec4 model_space = model_matrix * vec4(a_position * scale, 1.0); 
 
     /* if (scale.y < 0.8) {

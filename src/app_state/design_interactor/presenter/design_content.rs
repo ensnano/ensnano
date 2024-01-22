@@ -22,15 +22,17 @@ use ahash::RandomState;
 use ensnano_design::elements::{DesignElement, DesignElementKey};
 use ensnano_design::grid::{GridId, GridObject, GridPosition, HelixGridPosition};
 use ensnano_design::*;
-use ensnano_interactor::consts::{BOND_RADIUS, SPHERE_RADIUS, HELIX_CYLINDER_COLOR, HELIX_CYLINDER_RADIUS};
+use ensnano_interactor::consts::{
+    BOND_RADIUS, HELIX_CYLINDER_COLOR, HELIX_CYLINDER_RADIUS, SPHERE_RADIUS,
+};
 use ensnano_interactor::{
     graphics::{LoopoutBond, LoopoutNucl},
     ObjectType,
 };
 use ensnano_utils::clic_counter::ClicCounter;
 use futures::stream::LocalBoxStream;
-use iced::Element;
 use iced::slider::draw;
+use iced::Element;
 use serde::Serialize;
 use std::borrow::Cow;
 use std::collections::{BTreeMap, HashMap, HashSet};
@@ -953,7 +955,9 @@ impl DesignContent {
                             b.push((current_start.unwrap(), l_i + 1));
                             current_start = Some(i);
                         }
-                        None => { current_start = Some(i); }
+                        None => {
+                            current_start = Some(i);
+                        }
                         _ => {}
                     }
                     last_i = Some(i);
@@ -965,41 +969,45 @@ impl DesignContent {
             }
 
             id_clic_counter.set(id_TMP);
-            for(h, a) in hash_intervals {
-                let mut helix_style = drawing_styles.get(&DesignElementKey::Helix(h)).unwrap_or(&DrawingStyle::default()).clone();
-                if let Some(grid_position) = grid_manager.get_helix_grid_position(h)
-                {
+            for (h, a) in hash_intervals {
+                let mut helix_style = drawing_styles
+                    .get(&DesignElementKey::Helix(h))
+                    .unwrap_or(&DrawingStyle::default())
+                    .clone();
+                if let Some(grid_position) = grid_manager.get_helix_grid_position(h) {
                     if let GridId::FreeGrid(h) = grid_position.grid {
-                        if let Some(grid_style) =
-                            drawing_styles.get(&DesignElementKey::Grid(h))
-                        {
+                        if let Some(grid_style) = drawing_styles.get(&DesignElementKey::Grid(h)) {
                             helix_style = helix_style.complete_with(grid_style);
                         }
                     }
                 }
-                let radius = helix_style.helix_as_cylinder_radius.unwrap_or(HELIX_CYLINDER_RADIUS);
-                let color = helix_style.helix_as_cylinder_color.unwrap_or(HELIX_CYLINDER_COLOR);
+                let radius = helix_style
+                    .helix_as_cylinder_radius
+                    .unwrap_or(HELIX_CYLINDER_RADIUS);
+                let color = helix_style
+                    .helix_as_cylinder_color
+                    .unwrap_or(HELIX_CYLINDER_COLOR);
                 for (i, j) in a {
-                        let bond_id = id_clic_counter.next();
-                        let n_i = Nucl {
-                            helix: h,
-                            position: i,
-                            forward: true,
-                        };
-                        let n_i_id = nucl_collection.get_identifier(&n_i).unwrap();
-                        let n_j = Nucl {
-                            helix: h,
-                            position: j-1,
-                            forward: true,
-                        };
-                        let n_j_id = nucl_collection.get_identifier(&n_j).unwrap();
-                        object_type.insert(bond_id, ObjectType::HelixCylinder(*n_i_id, *n_j_id));
-                        radius_map.insert(bond_id, radius);
-                        color_map.insert(bond_id, color);
-                        nucleotides_involved.insert(bond_id, (n_i, n_j));
-                    }
+                    let bond_id = id_clic_counter.next();
+                    let n_i = Nucl {
+                        helix: h,
+                        position: i,
+                        forward: true,
+                    };
+                    let n_i_id = nucl_collection.get_identifier(&n_i).unwrap();
+                    let n_j = Nucl {
+                        helix: h,
+                        position: j - 1,
+                        forward: true,
+                    };
+                    let n_j_id = nucl_collection.get_identifier(&n_j).unwrap();
+                    object_type.insert(bond_id, ObjectType::HelixCylinder(*n_i_id, *n_j_id));
+                    radius_map.insert(bond_id, radius);
+                    color_map.insert(bond_id, color);
+                    nucleotides_involved.insert(bond_id, (n_i, n_j));
                 }
             }
+        }
 
         // Output
         let mut ret = Self {

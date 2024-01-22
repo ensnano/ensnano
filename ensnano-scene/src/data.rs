@@ -1410,8 +1410,8 @@ impl<R: DesignReader> Data<R> {
             {
                 if tube.mesh == Mesh::TubeLid.to_u32() {
                     tube_lids.push(*tube);
-                } else { 
-                   tubes.push(*tube);
+                } else {
+                    tubes.push(*tube);
                 }
             }
             if app_state.show_bezier_paths() {

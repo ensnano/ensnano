@@ -61,14 +61,14 @@ impl Instance {
     }
 
     pub fn add_alpha_to_clear_color_u32(color: u32) -> u32 {
-        let alpha = (color & 0xFF_00_00_00)>>24;
+        let alpha = (color & 0xFF_00_00_00) >> 24;
         if alpha == 0 {
             color | 0xFF_00_00_00
         } else {
             color
         }
     }
-    
+
     pub fn unclear_color_from_u32(color: u32) -> Vec4 {
         let red = (color & 0xFF0000) >> 16;
         let green = (color & 0x00FF00) >> 8;

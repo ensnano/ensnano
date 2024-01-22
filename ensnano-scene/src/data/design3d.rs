@@ -306,10 +306,14 @@ impl<R: DesignReader> Design3D<R> {
                 }
                 Some(ObjectType::HelixCylinder(id1, id2)) => {
                     let pos1 = self
-                        .get_graphic_element_axis_position(&SceneElement::DesignElement(self.id, id1))
+                        .get_graphic_element_axis_position(&SceneElement::DesignElement(
+                            self.id, id1,
+                        ))
                         .unwrap_or(f32::NAN * Vec3::unit_x());
                     let pos2 = self
-                        .get_graphic_element_axis_position(&SceneElement::DesignElement(self.id, id2))
+                        .get_graphic_element_axis_position(&SceneElement::DesignElement(
+                            self.id, id2,
+                        ))
                         .unwrap_or(f32::NAN * Vec3::unit_x());
                     let id = id | self.id << 24;
                     let (lid1, tube, lid2) = create_helix_cylinder(pos1, pos2, color, id, true);
@@ -332,12 +336,12 @@ impl<R: DesignReader> Design3D<R> {
                     // }
                     // radius = if small { radius / 3.5 } else { radius };
                     vec![SphereInstance {
-                            position,
-                            radius,
-                            color,
-                            id,
-                        }
-                        .to_raw_instance()]
+                        position,
+                        radius,
+                        color,
+                        id,
+                    }
+                    .to_raw_instance()]
                 }
                 _ => vec![],
             };
@@ -543,13 +547,15 @@ impl<R: DesignReader> Design3D<R> {
                 vec![tube.to_raw_instance()]
             }
             ObjectType::HelixCylinder(id1, id2) => {
-                let pos1 =
-                    self.get_graphic_element_axis_position(&SceneElement::DesignElement(self.id, id1))?;
-                let pos2 =
-                    self.get_graphic_element_axis_position(&SceneElement::DesignElement(self.id, id2))?;
-                    let color = self.get_color(id).unwrap_or(HELIX_CYLINDER_COLOR);
-                    let color = Instance::add_alpha_to_clear_color_u32(color);
-                    let id = id | self.id << 24;
+                let pos1 = self.get_graphic_element_axis_position(&SceneElement::DesignElement(
+                    self.id, id1,
+                ))?;
+                let pos2 = self.get_graphic_element_axis_position(&SceneElement::DesignElement(
+                    self.id, id2,
+                ))?;
+                let color = self.get_color(id).unwrap_or(HELIX_CYLINDER_COLOR);
+                let color = Instance::add_alpha_to_clear_color_u32(color);
+                let id = id | self.id << 24;
                 // Adjust the color and rafius of the bond according to the REAL length of the bond
                 let radius = self.get_radius(id).unwrap_or(HELIX_CYLINDER_RADIUS);
                 let (lid1, tube, lid2) = create_helix_cylinder(pos1, pos2, color, id, true);
@@ -1247,7 +1253,13 @@ fn create_dna_bond(source: Vec3, dest: Vec3, color: u32, id: u32, use_alpha: boo
     }
 }
 
-fn create_helix_cylinder(source: Vec3, dest: Vec3, color: u32, id: u32, use_alpha: bool) -> (TubeLidInstance, TubeInstance, TubeLidInstance) {
+fn create_helix_cylinder(
+    source: Vec3,
+    dest: Vec3,
+    color: u32,
+    id: u32,
+    use_alpha: bool,
+) -> (TubeLidInstance, TubeInstance, TubeLidInstance) {
     let color = if use_alpha {
         Instance::color_from_au32(color)
     } else {
@@ -1258,28 +1270,29 @@ fn create_helix_cylinder(source: Vec3, dest: Vec3, color: u32, id: u32, use_alph
     let position = (dest + source) / 2.;
     let length = (dest - source).mag();
 
-    (TubeLidInstance {
-        position: source,
-        color,
-        rotor: rotor2,
-        id,
-        radius: BOND_RADIUS,
-    }, 
-    TubeInstance {
+    (
+        TubeLidInstance {
+            position: source,
+            color,
+            rotor: rotor2,
+            id,
+            radius: BOND_RADIUS,
+        },
+        TubeInstance {
             position,
             color,
             rotor,
             id,
             radius: BOND_RADIUS,
             length,
-    }, 
-    TubeLidInstance {
-        position: dest,
-        color,
-        rotor,
-        id,
-        radius: BOND_RADIUS,
-    }, 
+        },
+        TubeLidInstance {
+            position: dest,
+            color,
+            rotor,
+            id,
+            radius: BOND_RADIUS,
+        },
     )
 }
 

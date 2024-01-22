@@ -20,7 +20,7 @@ SHADERS= ${SHADER_SCENE}/direction_cube.frag.spv ${SHADER_SCENE}/grid_disc.vert.
 # must rename plan_vert.spv plane_frag.spv viewborder.frag.spv
 
 shaders: ${SHADERS}
-	@echo Shaders compilation: Done, you should \"cargo clean\" to propagate the changes.
+	@echo Shaders compilation: Done.
 
 clean-shaders:
 	rm ${SHADERS}
