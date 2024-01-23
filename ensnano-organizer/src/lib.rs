@@ -213,9 +213,11 @@ pub struct Organizer<E: OrganizerElement> {
 }
 
 impl<E: OrganizerElement> Organizer<E> {
+    /// Create a new organizer object with default sections.
     pub fn new() -> Self {
         let rng = rand::thread_rng();
-        let mut sections = Vec::new();
+        let mut sections = Vec::new(); // Hold sections that will be added to [Organizer]..
+
         let mut i = 0usize;
         let mut section: Result<<E::Key as ElementKey>::Section, _> = i.try_into();
         while let Ok(s) = section {
@@ -259,7 +261,7 @@ impl<E: OrganizerElement> Organizer<E> {
     pub fn view(&self, selection: BTreeSet<E::Key>) -> Element<OrganizerMessage<E>> {
         //self.hovered_in = None;
         // TODO: This comment probably break some functionnality…
-        let mut content = Row::new();
+        let mut content = Column::new();
         for c in self.groups.iter() {
             content = content.push(iced_native::row![
                 tabulation(),
@@ -811,6 +813,7 @@ impl<E: OrganizerElement> Organizer<E> {
     }
 }
 
+/// An organizer section.
 struct Section<E: OrganizerElement> {
     content: BTreeMap<E::Key, E>,
     id: NodeId<E::AutoGroup>,
@@ -1008,16 +1011,13 @@ impl<E: OrganizerElement> NodeView<E> {
         let level = get_group_id(&id).map(|v| v.len()).unwrap_or(0);
         let title_row = match &self.state {
             GroupState::Iddle { .. } => {
-                let mut row = Row::new(); // TODO: try to use the new row! macro.
-                row = row.push(
+                let mut row = iced_native::row![
                     button(expand_icon(expanded))
                         .on_press(OrganizerMessage::expand(id.clone(), !expanded)),
-                );
-                row = row
-                    .push(text(name.clone()))
-                    .push(horizontal_space(iced::Length::Fill));
-
-                row = row.push(button(edit_icon()).on_press(OrganizerMessage::edit(id.clone())));
+                    text(name),
+                    horizontal_space(iced::Length::Fill),
+                    button(edit_icon()).on_press(OrganizerMessage::edit(id.clone())),
+                ];
 
                 for ad in self.attribute_displayers.iter() {
                     if let Some(view) = ad.view() {
@@ -1034,8 +1034,6 @@ impl<E: OrganizerElement> NodeView<E> {
                 row
             }
             GroupState::Editing { .. } => {
-                let name = name.clone();
-
                 let mut row = iced_native::row![
                     button(expand_icon(expanded))
                         .on_press(OrganizerMessage::expand(id.clone(), !expanded)),
@@ -1043,9 +1041,9 @@ impl<E: OrganizerElement> NodeView<E> {
                         .on_input(|s| { OrganizerMessage::name_input(s) })
                         .on_submit(OrganizerMessage::stop_edit()),
                     horizontal_space(iced::Length::Fill),
+                    button(edit_icon()).on_press(OrganizerMessage::stop_edit()),
                 ];
 
-                row = row.push(button(edit_icon()).on_press(OrganizerMessage::stop_edit()));
                 for ad in self.attribute_displayers.iter() {
                     if let Some(view) = ad.view() {
                         let id = id.clone();
@@ -1063,7 +1061,7 @@ impl<E: OrganizerElement> NodeView<E> {
                 iced_native::row![
                     button(expand_icon(expanded))
                         .on_press(OrganizerMessage::expand(id.clone(), !expanded)),
-                    text(name.clone()),
+                    text(name),
                 ]
             }
         };

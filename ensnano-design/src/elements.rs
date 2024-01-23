@@ -21,6 +21,7 @@ use ensnano_organizer::{
 };
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 
+/// Actual implementation of the OrganizerElement for the LeftPanel.
 #[derive(Clone, Debug)]
 pub enum DesignElement {
     GridElement {
@@ -208,6 +209,10 @@ pub enum DesignElementKey {
     },
 }
 
+/// Default sections of the DesignElement
+///
+/// NOTE: This enum derives TryFromPrimitive. This allow to get the section from an usize with the
+///       method .try_into().
 #[derive(Clone, PartialEq, PartialOrd, Ord, Eq, Debug, IntoPrimitive, TryFromPrimitive)]
 #[repr(usize)]
 pub enum DesignElementSection {

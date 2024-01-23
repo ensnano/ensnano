@@ -179,7 +179,6 @@ impl<S: AppState> InstantiatedBuilder<S> {
 }
 
 pub(super) struct ContextualPanel<S: AppState> {
-    //scroll: widget::scrollable::State,
     width: u32,
     pub force_help: bool,
     pub show_tutorial: bool,
@@ -192,7 +191,6 @@ pub(super) struct ContextualPanel<S: AppState> {
 impl<S: AppState> ContextualPanel<S> {
     pub fn new(width: u32) -> Self {
         Self {
-            //scroll: Default::default(),
             width,
             force_help: false,
             show_tutorial: false,

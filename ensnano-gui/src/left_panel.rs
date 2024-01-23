@@ -80,6 +80,7 @@ pub struct LeftPanel<R: Requests, S: AppState> {
     #[allow(dead_code)]
     show_torsion: bool,
     selected_tab: usize,
+    /// Provide an organized view of the object being edited.
     organizer: Organizer<DesignElement>,
     ui_size: UiSize,
     grid_tab: GridTab,
