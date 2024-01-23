@@ -27,10 +27,11 @@ use drag_drop_target::*;
 
 use hoverable_button::HoverableContainer;
 
-//const LEVEL0_SPACING: u16 = 3;
-// We should consider how we handle vertical spacing.
-const LEVELS_SPACING: u16 = 2;
+const LEVEL0_V_SPACING: u16 = 3;
+const LEVELS_V_SPACING: u16 = 2;
+const H_SPACING_IN_UNITS: u16 = 15;
 const ICON_SIZE: u16 = 10;
+const UPPER_DOMAIN_LENGTH_BOUND: usize = 100;
 
 #[derive(Clone, Debug)]
 pub enum OrganizerMessage<E: OrganizerElement> {
@@ -135,6 +136,12 @@ impl<E: OrganizerElement> OrganizerMessage<E> {
         Self::InternalMessage(InternalMessage(OrganizerMessage_::ElementSelected { key }))
     }
 
+    fn add_selection_to_group(id: NodeId<E::AutoGroup>) -> Self {
+        Self::InternalMessage(InternalMessage(OrganizerMessage_::AddSelectionToGroup {
+            id,
+        }))
+    }
+
     fn new_group() -> Self {
         Self::InternalMessage(InternalMessage(OrganizerMessage_::NewGroup))
     }
@@ -183,6 +190,9 @@ enum OrganizerMessage_<E: OrganizerElement> {
         name: String,
     },
     NewGroup,
+    AddSelectionToGroup {
+        id: NodeId<E::AutoGroup>,
+    },
     Delete {
         id: NodeId<E::AutoGroup>,
     },
@@ -300,10 +310,39 @@ impl<E: OrganizerElement> Organizer<E> {
                 "Create new_group from selection",
                 tooltip::Position::FollowCursor,
             )],
-            scrollable(content),
+            scrollable(content).width(self.width)
         ])
         .style(self.theme.level(0))
         .into()
+    }
+
+    fn add_content_to_group(
+        &mut self,
+        id: &NodeId<E::AutoGroup>,
+        content: Vec<E::Key>,
+    ) -> Option<()> {
+        if let Some(id_local) = get_group_id(id) {
+            let ret;
+            if id_local.len() < 2 {
+                if self.groups.len() > id_local[0] {
+                    self.groups[id_local[0]].add_content(&id_local[1..], id, content);
+                    ret = Some(());
+                } else {
+                    ret = None;
+                }
+            } else {
+                ret = self
+                    .groups
+                    .get_mut(id_local[0])
+                    .and_then(|c| c.add_content(&id_local[1..], id, content));
+            }
+            if ret.is_some() {
+                self.recompute_id()
+            }
+            ret
+        } else {
+            None
+        }
     }
 
     pub fn push_content(&mut self, content: Vec<E::Key>, group_name: String) -> GroupId {
@@ -362,6 +401,17 @@ impl<E: OrganizerElement> Organizer<E> {
                     new_selection.into_iter().collect(),
                     None,
                 ));
+            }
+            OrganizerMessage_::AddSelectionToGroup { id } => {
+                log::info!("Add selection to group with id {:?}", id);
+                if let Some(group_id) = self.get_group(id).and_then(|g| g.get_group_id()) {
+                    let _ = self.add_content_to_group(id, selection.iter().cloned().collect());
+                    return Some(OrganizerMessage::NewTree(self.tree()));
+                } else {
+                    log::error!("Could not get group id");
+                }
+
+                // TODO: fill in what to do
             }
             OrganizerMessage_::NewGroup => {
                 let new_group_id = self.push_content(
@@ -786,11 +836,32 @@ impl<E: OrganizerElement> Organizer<E> {
             g.content.clear();
             g.elements.clear();
         }
+        //second-last element actually
+        let mut min_max_domain_lengths: Vec<(usize, usize)> = elements
+            .clone()
+            .iter()
+            .map(|e| e.min_max_domain_length_if_strand())
+            .into_iter()
+            .flatten()
+            .collect::<Vec<(usize, usize)>>();
+        min_max_domain_lengths.sort_by_key(|(_, lmax)| lmax.clone());
+        let upper_domain_length_bounds: (usize, usize) = match min_max_domain_lengths.len() {
+            0 => (
+                UPPER_DOMAIN_LENGTH_BOUND.clone(),
+                UPPER_DOMAIN_LENGTH_BOUND.clone(),
+            ),
+            1 => min_max_domain_lengths[0],
+            n => {
+                let last = min_max_domain_lengths[n - 1];
+                let before_last = min_max_domain_lengths[n - 2];
+                ((before_last.1).max(last.0 - 1) + 1, last.1.clone()) // in reality, it is not the first length....
+            }
+        };
         for e in elements.iter() {
             let key = e.key();
             let section_id: usize = key.section().into();
             self.sections[section_id].add_element(e.clone());
-            for g in e.auto_groups() {
+            for g in e.auto_groups(upper_domain_length_bounds) {
                 self.auto_groups
                     .entry(g.clone())
                     .or_insert_with(|| Section::new(NodeId::AutoGroupId(g.clone()), g.to_string()))
@@ -798,6 +869,7 @@ impl<E: OrganizerElement> Organizer<E> {
             }
         }
         self.auto_groups.retain(|_, g| g.elements.len() > 0);
+
         let ret = self.delete_useless_leaves(elements.iter().map(|e| e.key()).collect());
         self.update_attributes();
         ret
@@ -847,7 +919,7 @@ impl<E: OrganizerElement> Section<E> {
         let title_row = self
             .view
             .view(theme, &self.name, self.id.clone(), self.expanded, false);
-        let mut content = Column::new().spacing(LEVELS_SPACING).push(title_row);
+        let mut content = Column::new().spacing(LEVELS_V_SPACING).push(title_row);
         if self.expanded {
             for (e_id, e) in self.elements.iter() {
                 content = content.push(iced_native::row![
@@ -963,6 +1035,7 @@ impl<E: OrganizerElement> NodeView<E> {
     fn new() -> Self {
         Self {
             state: GroupState::Iddle {
+                add_to_group_button: Default::default(),
                 edit_button: Default::default(),
                 delete_button: Default::default(),
             },
@@ -981,6 +1054,7 @@ impl<E: OrganizerElement> NodeView<E> {
         log::info!("reached view");
         self.state = GroupState::Editing {
             input: text_input::State::focused(),
+            add_to_group_button: Default::default(),
             delete_button: Default::default(),
             edit_button: Default::default(),
         };
@@ -991,6 +1065,7 @@ impl<E: OrganizerElement> NodeView<E> {
 
     fn stop_editing(&mut self) {
         self.state = GroupState::Iddle {
+            add_to_group_button: Default::default(),
             edit_button: Default::default(),
             delete_button: Default::default(),
         };
@@ -1016,6 +1091,8 @@ impl<E: OrganizerElement> NodeView<E> {
                         .on_press(OrganizerMessage::expand(id.clone(), !expanded)),
                     text(name),
                     horizontal_space(iced::Length::Fill),
+                    button(plus_icon())
+                        .on_press(OrganizerMessage::add_selection_to_group(id.clone())), // TODO: change icon later !!!
                     button(edit_icon()).on_press(OrganizerMessage::edit(id.clone())),
                 ];
 
@@ -1041,9 +1118,10 @@ impl<E: OrganizerElement> NodeView<E> {
                         .on_input(|s| { OrganizerMessage::name_input(s) })
                         .on_submit(OrganizerMessage::stop_edit()),
                     horizontal_space(iced::Length::Fill),
+                    button(plus_icon())
+                        .on_press(OrganizerMessage::add_selection_to_group(id.clone())), // TODO: change icon later !!!
                     button(edit_icon()).on_press(OrganizerMessage::stop_edit()),
                 ];
-
                 for ad in self.attribute_displayers.iter() {
                     if let Some(view) = ad.view() {
                         let id = id.clone();
@@ -1057,13 +1135,11 @@ impl<E: OrganizerElement> NodeView<E> {
                 );
                 row
             }
-            GroupState::NotEditable => {
-                iced_native::row![
-                    button(expand_icon(expanded))
-                        .on_press(OrganizerMessage::expand(id.clone(), !expanded)),
-                    text(name),
-                ]
-            }
+            GroupState::NotEditable => iced_native::row![
+                button(expand_icon(expanded))
+                    .on_press(OrganizerMessage::expand(id.clone(), !expanded)),
+                text(name),
+            ],
         };
         let button_theme = if selected {
             theme.level_selected(level)
@@ -1116,11 +1192,13 @@ enum GroupContent<E: OrganizerElement> {
 
 pub enum GroupState {
     Iddle {
+        add_to_group_button: button::State,
         edit_button: button::State,
         delete_button: button::State,
     },
     Editing {
         input: text_input::State,
+        add_to_group_button: button::State,
         delete_button: button::State,
         edit_button: button::State,
     },
@@ -1152,7 +1230,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                 };
                 let selected = selected_nodes.contains(&id);
                 let title_row = view.view(theme, name, id.clone(), *expanded, selected);
-                let mut ret = Column::new().spacing(LEVELS_SPACING).push(title_row);
+                let mut ret = Column::new().spacing(LEVELS_V_SPACING).push(title_row);
                 if *expanded {
                     for c in children.iter() {
                         ret = ret.push(
@@ -1175,7 +1253,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                 };
                 if let Some(element) = get_element(sections, element) {
                     Column::new()
-                        .spacing(LEVELS_SPACING)
+                        .spacing(LEVELS_V_SPACING)
                         .push(Element::new(view.view(
                             theme,
                             element,
@@ -1273,6 +1351,58 @@ impl<E: OrganizerElement> GroupContent<E> {
             attributes: vec![None; E::all_repr().len()],
             elements_below: BTreeSet::new(),
             group_id,
+        }
+    }
+
+    /// Add content to an existing group
+    fn add_content(
+        &mut self,
+        id_local: &[usize],
+        id: &NodeId<E::AutoGroup>,
+        content: Vec<E::Key>,
+    ) -> Option<()> {
+        match self {
+            Self::Leaf { .. } => {
+                println!("Impossible to add content to leaf");
+                None
+            }
+            Self::Placeholder => unreachable!("Expanding a Placeholder"),
+            Self::Node {
+                children,
+                id: my_id,
+                ..
+            } => {
+                if !id_local.is_empty() {
+                    children
+                        .get_mut(id_local[0])
+                        .and_then(|c| c.add_content(&id_local[1..], &id, content))
+                } else {
+                    let children_content: Vec<E::Key> = children
+                        .iter()
+                        .map(|e| match e {
+                            Self::Leaf { element, .. } => Some(element.clone()),
+                            _ => None,
+                        })
+                        .flatten()
+                        .collect();
+                    let content: Vec<E::Key> = content
+                        .into_iter()
+                        .filter(|e| !children_content.contains(&e))
+                        .collect();
+                    let new_leaves = content.into_iter().enumerate().map(|(i, e)| {
+                        let mut id = my_id.clone();
+                        id.push(i);
+                        Self::Leaf {
+                            id,
+                            element: e.clone(),
+                            view: ElementView::new(),
+                            attributes: vec![None; E::all_repr().len()],
+                        }
+                    });
+                    children.extend(new_leaves);
+                    Some(())
+                }
+            }
         }
     }
 
@@ -1673,6 +1803,15 @@ where
     }
 }
 
+fn plus_icon<'a, Renderer>() -> Text<'a, Renderer>
+where
+    Renderer: iced_native::Renderer + iced_native::text::Renderer,
+    Renderer::Font: From<iced::Font>,
+    Renderer::Theme: iced_native::widget::text::StyleSheet,
+{
+    icon(Icon::Plus.into())
+}
+
 fn edit_icon<'a, Renderer>() -> Text<'a, Renderer>
 where
     Renderer: iced_native::Renderer + iced_native::text::Renderer,
@@ -1697,7 +1836,7 @@ const ICONS: iced::Font = iced::Font::External {
 };
 
 fn tabulation() -> Space {
-    Space::with_width(3.0)
+    Space::with_width(H_SPACING_IN_UNITS)
 }
 
 fn merge_attributes<T: Ord + Clone + std::fmt::Debug>(

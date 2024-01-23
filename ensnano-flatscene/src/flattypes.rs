@@ -314,7 +314,7 @@ impl FlatNucl {
 
 pub enum FlatSelection {
     Nucleotide(usize, FlatNucl),
-    Bound(usize, FlatNucl, FlatNucl),
+    Bond(usize, FlatNucl, FlatNucl),
     Xover(usize, usize),
     Design(usize),
     Strand(usize, usize),
@@ -339,7 +339,7 @@ impl FlatSelection {
                     let n1 = FlatNucl::from_real(n1, id_map);
                     let n2 = FlatNucl::from_real(n2, id_map);
                     if let Some((n1, n2)) = n1.zip(n2) {
-                        Self::Bound(*d as usize, n1, n2)
+                        Self::Bond(*d as usize, n1, n2)
                     } else {
                         Self::Nothing
                     }

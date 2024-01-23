@@ -407,6 +407,7 @@ impl GuiRequests for Requests {
     }
 
     fn set_thick_helices(&mut self, thick: bool) {
+        // thick helices = normal helices; thin helices = only axis
         self.set_thick_helices = Some(thick)
     }
 

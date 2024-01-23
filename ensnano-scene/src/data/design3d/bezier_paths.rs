@@ -344,7 +344,7 @@ fn add_raw_instances_representing_bezier_vertex(
         .to_raw_instance(),
     );
     tubes.push(
-        create_dna_bound(
+        create_dna_bond(
             vertex.coordinates.position,
             vertex.coordinates.position + vertex.coordinates.vector_out,
             0,
@@ -354,7 +354,7 @@ fn add_raw_instances_representing_bezier_vertex(
         .to_raw_instance(),
     );
     tubes.push(
-        create_dna_bound(
+        create_dna_bond(
             vertex.coordinates.position,
             vertex.coordinates.position - vertex.coordinates.vector_in,
             0,

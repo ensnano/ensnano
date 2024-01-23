@@ -1020,7 +1020,7 @@ impl<R: DesignReader> Data<R> {
                 let flat_1 = FlatNucl::from_real(&n1, self.id_map());
                 let flat_2 = FlatNucl::from_real(&n2, self.id_map());
                 if let Some((flat_1, flat_2)) = flat_1.zip(flat_2) {
-                    FlatSelection::Bound(d_id, flat_1, flat_2)
+                    FlatSelection::Bond(d_id, flat_1, flat_2)
                 } else {
                     FlatSelection::Nothing
                 }

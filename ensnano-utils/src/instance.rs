@@ -38,6 +38,16 @@ pub struct InstanceRaw {
 }
 
 impl Instance {
+    pub fn grey_u32_color_from_f32(grey: f32) -> u32 {
+        let g = (grey * 255.).round() as u32;
+        return g << 16 | g << 8 | g;
+    }
+
+    pub fn grey_au32_color_from_f32(grey: f32, alpha: f32) -> u32 {
+        let a = (alpha * 255.).round() as u32;
+        return Self::grey_u32_color_from_f32(grey) << 8 | a;
+    }
+
     pub fn color_from_u32(color: u32) -> Vec4 {
         let red = (color & 0xFF0000) >> 16;
         let green = (color & 0x00FF00) >> 8;

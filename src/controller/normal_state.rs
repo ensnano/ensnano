@@ -343,7 +343,7 @@ impl NormalState {
                 grid_type: descr,
                 position,
                 orientation,
-                helix_parameters: Some(HelixParameters::GEARY_2014_RNA), // c'est ici
+                helix_parameters: None, // Some(HelixParameters::GEARY_2014_RNA), // c'est ici
                 invisible: false,
                 bezier_vertex: None,
             }))
