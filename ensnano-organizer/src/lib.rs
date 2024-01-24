@@ -404,7 +404,7 @@ impl<E: OrganizerElement> Organizer<E> {
             }
             OrganizerMessage_::AddSelectionToGroup { id } => {
                 log::info!("Add selection to group with id {:?}", id);
-                if let Some(group_id) = self.get_group(id).and_then(|g| g.get_group_id()) {
+                if let Some(_) = self.get_group(id).and_then(|g| g.get_group_id()) {
                     let _ = self.add_content_to_group(id, selection.iter().cloned().collect());
                     return Some(OrganizerMessage::NewTree(self.tree()));
                 } else {
@@ -838,7 +838,6 @@ impl<E: OrganizerElement> Organizer<E> {
         }
         //second-last element actually
         let mut min_max_domain_lengths: Vec<(usize, usize)> = elements
-            .clone()
             .iter()
             .map(|e| e.min_max_domain_length_if_strand())
             .into_iter()

@@ -20,7 +20,6 @@ use ensnano_organizer::{Organizer, OrganizerMessage, OrganizerTree};
 use std::sync::{Arc, Mutex};
 
 use iced_aw::native::{TabLabel, Tabs};
-use iced_aw::style::tab_bar;
 use iced_native::widget::{container, helpers::*, Button, Column, Container, Text};
 use iced_native::{theme, Background, Color, Command, Element, Length};
 use iced_wgpu;

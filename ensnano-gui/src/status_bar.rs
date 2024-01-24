@@ -20,11 +20,10 @@ use ensnano_interactor::operation::{Operation, ParameterField};
 pub use ensnano_interactor::StrandBuildingStatus;
 use iced::theme;
 use iced::widget::{container, slider};
-use iced::{Background, Length};
+use iced::Length;
 use iced_native::{
     widget::helpers::*,
     widget::{pick_list, text_input, PickList, TextInput},
-    Color,
 };
 use iced_winit::{
     widget::{Column, Row, Space, Text},

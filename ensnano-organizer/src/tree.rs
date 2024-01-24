@@ -16,8 +16,6 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use std::collections::HashSet;
-
 use serde::Deserialize;
 #[derive(Clone, Debug, Serialize)]
 pub enum OrganizerTree<K> {
@@ -37,9 +35,7 @@ impl<K: PartialEq> OrganizerTree<K> {
         let mut ret = Vec::new();
         match self {
             Self::Leaf(_) => (),
-            Self::Node {
-                name, children, id, ..
-            } => {
+            Self::Node { children, .. } => {
                 let rename: String = self.get_name_copy_with_id();
                 for c in children {
                     match c {
@@ -62,9 +58,7 @@ impl<K: PartialEq> OrganizerTree<K> {
         let mut ret = Vec::new();
         match self {
             Self::Leaf(_) => (),
-            Self::Node {
-                name, children, id, ..
-            } => {
+            Self::Node { children, .. } => {
                 let _ = ret.push(self.get_name_copy_with_id());
                 for c in children {
                     let extention = c.get_names_of_all_groups();
@@ -79,9 +73,7 @@ impl<K: PartialEq> OrganizerTree<K> {
     pub fn get_name_copy_with_id(&self) -> String {
         match self {
             Self::Leaf(_) => "".to_string(),
-            Self::Node {
-                name, children, id, ..
-            } => {
+            Self::Node { name, id, .. } => {
                 if let Some(GroupId(x)) = id {
                     format!("{name}_{:0X}", x & 0xFFFF).to_string()
                 } else {

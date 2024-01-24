@@ -33,7 +33,7 @@ impl State {
         State::default()
     }
 }
-/// NOTE: Consider to delete state sto follow the “stateless” paradigm of iced.
+/// NOTE: Consider to delete state to follow the “stateless” paradigm of iced.
 
 /// An `iced_native::Container` that emits a message when hovered.
 #[allow(missing_debug_implementations)]
