@@ -554,6 +554,8 @@ impl<R: Requests, S: AppState> GuiElement<R, S> {
     fn fetch_change(
         &mut self,
         window: &Window,
+        theme: &iced::Theme,
+        style: &iced_native::renderer::Style,
         multiplexer: &dyn Multiplexer,
         resized: bool,
     ) -> bool {
@@ -570,8 +572,8 @@ impl<R: Requests, S: AppState> GuiElement<R, S> {
                 convert_size(area.size),
                 conversion::cursor_position(cursor, window.scale_factor()),
                 &mut self.renderer,
-                &Default::default(),
-                &Default::default(),
+                theme,
+                style,
                 &mut self.debug,
             );
             log::debug!("GUI request redraw");
@@ -767,18 +769,30 @@ impl<R: Requests, S: AppState> Gui<R, S> {
     }
 
     /// Ask the gui component to process the event that they have recieved
-    pub fn fetch_change(&mut self, window: &Window, multiplexer: &dyn Multiplexer) -> bool {
+    pub fn fetch_change(
+        &mut self,
+        window: &Window,
+        theme: &iced::Theme,
+        style: &iced_native::renderer::Style,
+        multiplexer: &dyn Multiplexer,
+    ) -> bool {
         let mut ret = false;
         for elements in self.elements.values_mut() {
-            ret |= elements.fetch_change(window, multiplexer, false);
+            ret |= elements.fetch_change(window, theme, style, multiplexer, false);
         }
         ret
     }
 
     /// Ask the gui component to process the event and messages that they that they have recieved.
-    pub fn update(&mut self, multiplexer: &dyn Multiplexer, window: &Window) {
+    pub fn update(
+        &mut self,
+        multiplexer: &dyn Multiplexer,
+        theme: &iced::Theme,
+        style: &iced_native::renderer::Style,
+        window: &Window,
+    ) {
         for elements in self.elements.values_mut() {
-            elements.fetch_change(window, multiplexer, self.resized);
+            elements.fetch_change(window, theme, style, multiplexer, self.resized);
         }
         self.resized = false;
     }

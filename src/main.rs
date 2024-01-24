@@ -197,6 +197,10 @@ const BACKEND: wgpu::Backends = wgpu::Backends::DX12;
 /// TODO: Make a feature that would set this constant to `false`.
 const PANIC_ON_WGPU_ERRORS: bool = true;
 
+/// Iced theme
+//const GUI_THEME: iced::Theme = iced::Theme::Light;
+const GUI_THEME: iced::Theme = iced::Theme::Dark;
+
 /// Main function. Runs the event loop and holds the framebuffer.
 ///
 /// # Intialization
@@ -557,7 +561,7 @@ fn main() {
                 scale_factor_changed |= multiplexer.check_scale_factor(&window);
                 let mut redraw = resized || scale_factor_changed;
                 redraw |= main_state.update_cursor(&multiplexer);
-                redraw |= gui.fetch_change(&window, &multiplexer);
+                redraw |= gui.fetch_change(&window, &GUI_THEME, &Default::default(), &multiplexer);
 
                 // When there is no more event to deal with
                 requests::poll_all(requests.lock().unwrap(), &mut main_state);
@@ -631,7 +635,7 @@ fn main() {
                     &multiplexer,
                     &window,
                     &mut renderer,
-                    Default::default(),  // Use default theme for now.
+                    GUI_THEME,
                     &Default::default(), // Use default style for now.
                 );
                 {
@@ -719,11 +723,11 @@ fn main() {
                 // Get viewports from the partition
 
                 // If there are events pending
-                gui.update(&multiplexer, &window);
+                gui.update(&multiplexer, &GUI_THEME, &Default::default(), &window);
 
                 overlay_manager.process_event(
                     &mut renderer,
-                    Default::default(),  // Use default theme for now.
+                    GUI_THEME,
                     &Default::default(), // Use default style for now.
                     resized,
                     &multiplexer,

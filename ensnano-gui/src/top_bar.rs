@@ -372,7 +372,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
             .width(self.logical_size.width as f32)
             .style(theme::Container::Box)
             .padding(Padding::from([1, 0])) // HACK: A small padding allow tooltip messages to
-            //                                       disapear properly.
+            //                                       disappear properly.
             .into()
     }
 }
