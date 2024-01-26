@@ -1195,25 +1195,25 @@ impl From<FloatingStyle> for theme::Container {
     }
 }
 
-struct ButtonStyle(bool);
-
-impl iced_native::widget::button::StyleSheet for ButtonStyle {
-    type Style = ();
-    fn active(&self, _style: &Self::Style) -> iced_native::widget::button::Appearance {
-        iced_native::widget::button::Appearance {
-            border_width: if self.0 { 3_f32 } else { 1_f32 },
-            border_radius: if self.0 { 3_f32 } else { 2_f32 },
-            border_color: if self.0 {
-                Color::BLACK
-            } else {
-                [0.7, 0.7, 0.7].into()
-            },
-            background: Some(Background::Color([0.87, 0.87, 0.87].into())),
-            //background: Some(Background::Color(BACKGROUND)),
-            ..Default::default()
-        }
-    }
-}
+//struct ButtonStyle(bool);
+//
+//impl iced_native::widget::button::StyleSheet for ButtonStyle {
+//    type Style = ();
+//    fn active(&self, _style: &Self::Style) -> iced_native::widget::button::Appearance {
+//        iced_native::widget::button::Appearance {
+//            border_width: if self.0 { 3_f32 } else { 1_f32 },
+//            border_radius: if self.0 { 3_f32 } else { 2_f32 },
+//            border_color: if self.0 {
+//                Color::BLACK
+//            } else {
+//                [0.7, 0.7, 0.7].into()
+//            },
+//            background: Some(Background::Color([0.87, 0.87, 0.87].into())),
+//            //background: Some(Background::Color(BACKGROUND)),
+//            ..Default::default()
+//        }
+//    }
+//}
 
 /// Generate the message that request rotation.
 fn rotation_message<S: AppState>(i: usize, _xz: isize, _yz: isize, _xy: isize) -> Message<S> {

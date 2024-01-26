@@ -377,17 +377,6 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
     }
 }
 
-struct ToolTipStyle;
-impl widget::container::StyleSheet for ToolTipStyle {
-    type Style = ();
-    fn appearance(&self, _style: &Self::Style) -> widget::container::Appearance {
-        widget::container::Appearance {
-            text_color: Some(iced::Color::BLACK),
-            ..Default::default()
-        }
-    }
-}
-
 //#[derive(Default, Debug, Clone)]
 //struct SelectionModeState {
 //    pub nucleotide: button::State,

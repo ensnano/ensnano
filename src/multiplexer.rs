@@ -131,17 +131,17 @@ impl Multiplexer {
         ui_size: UiSize,
     ) -> Self {
         let mut layout = LayoutTree::new();
-        let top_pannel_prop =
+        let top_pannel_proportion =
             exact_proportion(ui_size.top_bar() * scale_factor, window_size.height as f64);
         let top_bar_split = 0;
-        let (top_bar, scene) = layout.hsplit(0, top_pannel_prop, false);
+        let (top_bar, scene) = layout.hsplit(0, top_pannel_proportion, false);
         let left_pannel_prop = proportion(
             0.2,
             MAX_LEFT_PANNEL_WIDTH * scale_factor,
             window_size.width as f64,
         );
         let (left_pannel, scene) = layout.vsplit(scene, left_pannel_prop, true);
-        let scene_height = (1. - top_pannel_prop) * window_size.height as f64;
+        let scene_height = (1. - top_pannel_proportion) * window_size.height as f64;
         let status_bar_prop = exact_proportion(MAX_STATUS_BAR_HEIGHT * scale_factor, scene_height);
         let status_bar_split = scene;
         let (scene, status_bar) = layout.hsplit(scene, 1. - status_bar_prop, false);

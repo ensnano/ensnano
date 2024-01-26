@@ -59,8 +59,8 @@ enum LayoutNode {
         right: f64,
         bottom: f64,
         left_proportion: f64,
-        l_child: Rc<RefCell<LayoutNode>>,
-        r_child: Rc<RefCell<LayoutNode>>,
+        left_child: Rc<RefCell<LayoutNode>>,
+        right_child: Rc<RefCell<LayoutNode>>,
         resizable: Option<usize>,
     },
 
@@ -71,8 +71,8 @@ enum LayoutNode {
         right: f64,
         bottom: f64,
         top_proportion: f64,
-        t_child: Rc<RefCell<LayoutNode>>,
-        b_child: Rc<RefCell<LayoutNode>>,
+        top_child: Rc<RefCell<LayoutNode>>,
+        bottom_child: Rc<RefCell<LayoutNode>>,
         resizable: Option<usize>,
     },
 }
@@ -95,13 +95,13 @@ pub struct LayoutTree {
     /// The root node of the LayoutTree.
     root: LayoutNodePtr,
     /// An array mapping area identifier to leaves of the LayoutTree.
-    area: Vec<LayoutNodePtr>,
+    areas: Vec<LayoutNodePtr>,
     /// An array mapping area identifier to ElementType.
-    element_type: Vec<ElementType>,
+    element_types: Vec<ElementType>,
     /// A HashMap mapping element types to area identifer.
-    area_identifer: HashMap<ElementType, usize>,
+    area_identifers: HashMap<ElementType, usize>,
     /// An array mapping area to their parent node.
-    parent: Vec<usize>,
+    parents: Vec<usize>,
 }
 
 impl LayoutTree {
@@ -117,16 +117,15 @@ impl LayoutTree {
             bottom: 1.,
             identifier: 0,
         }));
-        let mut area = Vec::new();
-        area.push(root.clone());
+        let area = vec![Rc::clone(&root)];
         let element_type = vec![ElementType::Unattributed];
         let area_identifer = HashMap::new();
         Self {
             root,
-            area,
-            element_type,
-            area_identifer,
-            parent: vec![0],
+            areas: area,
+            element_types: element_type,
+            area_identifers: area_identifer,
+            parents: vec![0],
         }
     }
 
@@ -150,21 +149,23 @@ impl LayoutTree {
         left_proportion: f64,
         resizable: bool,
     ) -> (usize, usize) {
-        let left_ident = self.area.len();
-        let right_ident = self.area.len() + 1;
-        let (left, right) = {
-            let mut area = self.area[parent_ident].borrow_mut();
+        // Define identifiers for the new subareas.
+        let left_ident = self.areas.len();
+        let right_ident = self.areas.len() + 1;
+        // Split and store subareas.
+        let (left_area, right_area) = {
+            let mut area = self.areas[parent_ident].borrow_mut();
             area.vsplit(left_proportion, left_ident, right_ident, resizable)
         };
-        self.area.push(left);
-        self.area.push(right);
-        self.parent.push(parent_ident);
-        self.parent.push(parent_ident);
-        self.element_type.push(ElementType::Unattributed);
-        self.element_type.push(ElementType::Unattributed);
-        let old_element = self.element_type[parent_ident];
-        self.area_identifer.remove(&old_element);
-        self.element_type[parent_ident] = ElementType::Unattributed;
+        self.areas.push(left_area);
+        self.areas.push(right_area);
+        self.parents.push(parent_ident);
+        self.parents.push(parent_ident);
+        self.element_types.push(ElementType::Unattributed);
+        self.element_types.push(ElementType::Unattributed);
+        let parent_element_type = self.element_types[parent_ident];
+        self.area_identifers.remove(&parent_element_type);
+        self.element_types[parent_ident] = ElementType::Unattributed;
         (left_ident, right_ident)
     }
 
@@ -189,44 +190,46 @@ impl LayoutTree {
         top_proportion: f64,
         resizable: bool,
     ) -> (usize, usize) {
-        let top_ident = self.area.len();
-        let bottom_ident = self.area.len() + 1;
-        let (top, bottom) = {
-            let mut area = self.area[parent_ident].borrow_mut();
+        // Define identifiers for the new subareas.
+        let top_ident = self.areas.len();
+        let bottom_ident = self.areas.len() + 1;
+        // Split and store subareas.
+        let (top_area, bottom_area) = {
+            let mut area = self.areas[parent_ident].borrow_mut();
             area.hsplit(top_proportion, top_ident, bottom_ident, resizable)
         };
-        self.area.push(top);
-        self.area.push(bottom);
-        self.parent.push(parent_ident);
-        self.parent.push(parent_ident);
-        self.element_type.push(ElementType::Unattributed);
-        self.element_type.push(ElementType::Unattributed);
-        let old_element = self.element_type[parent_ident];
-        self.area_identifer.remove(&old_element);
-        self.element_type[parent_ident] = ElementType::Unattributed;
+        self.areas.push(top_area);
+        self.areas.push(bottom_area);
+        self.parents.push(parent_ident);
+        self.parents.push(parent_ident);
+        self.element_types.push(ElementType::Unattributed);
+        self.element_types.push(ElementType::Unattributed);
+        let parent_element_type = self.element_types[parent_ident];
+        self.area_identifers.remove(&parent_element_type);
+        self.element_types[parent_ident] = ElementType::Unattributed;
         (top_ident, bottom_ident)
     }
 
     /// Undo a split by deleting the leaf with type `old_leaf` and its sibling and giving their parent the type
     /// `new_leaf`.
     pub fn merge(&mut self, old_leaf: ElementType, new_leaf: ElementType) {
-        let area_id = *self
-            .area_identifer
+        let area_ident = *self
+            .area_identifers
             .get(&old_leaf)
             .expect("Try to get the area of an element that was not given one");
-        let parent_id = self.parent[area_id];
-        let childs = self.area[parent_id].borrow_mut().merge(parent_id);
-        let old_brother = self.element_type[childs.1];
-        self.area_identifer.remove(&old_leaf);
-        self.area_identifer.remove(&old_brother);
-        self.attribute_element(parent_id, new_leaf);
+        let parent_ident = self.parents[area_ident];
+        let childs = self.areas[parent_ident].borrow_mut().merge(parent_ident);
+        let old_brother = self.element_types[childs.1];
+        self.area_identifers.remove(&old_leaf);
+        self.area_identifers.remove(&old_brother);
+        self.attribute_element(parent_ident, new_leaf);
     }
 
     /// Get the Element owning the pixel `(x, y)`
     pub(super) fn get_area_pixel(&self, x: f64, y: f64) -> PixelRegion {
         let identifier = self.root.borrow().get_area_pixel(x, y);
         if let PixelRegion::Area(identifier) = identifier {
-            PixelRegion::Element(self.element_type[identifier])
+            PixelRegion::Element(self.element_types[identifier])
         } else {
             identifier
         }
@@ -234,8 +237,8 @@ impl LayoutTree {
 
     /// Return the boundaries of the area attributed to an element
     pub fn get_area(&self, element: ElementType) -> Option<(f64, f64, f64, f64)> {
-        let area_id = *self.area_identifer.get(&element)?;
-        match *self.area[area_id].borrow() {
+        let area_id = *self.area_identifers.get(&element)?;
+        match *self.areas[area_id].borrow() {
             LayoutNode::Area {
                 left,
                 top,
@@ -248,19 +251,19 @@ impl LayoutTree {
     }
 
     pub fn get_area_id(&self, element: ElementType) -> Option<usize> {
-        self.area_identifer.get(&element).cloned()
+        self.area_identifers.get(&element).cloned()
     }
 
     /// Attribute an element_type to an area.
-    pub fn attribute_element(&mut self, area: usize, element_type: ElementType) {
-        let old_element = self.element_type[area];
-        self.area_identifer.remove(&old_element);
-        self.element_type[area] = element_type;
-        self.area_identifer.insert(element_type, area);
+    pub fn attribute_element(&mut self, area_ident: usize, element_type: ElementType) {
+        let old_element = self.element_types[area_ident];
+        self.area_identifers.remove(&old_element);
+        self.element_types[area_ident] = element_type;
+        self.area_identifers.insert(element_type, area_ident);
     }
 
     pub fn resize(&mut self, node_id: usize, new_prop: f64) {
-        self.area[node_id].borrow_mut().resize(new_prop)
+        self.areas[node_id].borrow_mut().resize(new_prop)
     }
 
     pub fn resize_click(
@@ -270,17 +273,17 @@ impl LayoutTree {
         clicked_position: &PhysicalPosition<f64>,
         old_proportion: f64,
     ) {
-        self.area[node_id]
+        self.areas[node_id]
             .borrow_mut()
             .resize_click(position, clicked_position, old_proportion);
         if log::log_enabled!(log::Level::Debug) {
             log::debug!("node {} resized", node_id);
-            log::debug!("{:#?}", self.area[node_id]);
+            log::debug!("{:#?}", self.areas[node_id]);
         }
     }
 
     pub fn get_proportion(&self, region: usize) -> Option<f64> {
-        self.area.get(region).and_then(|a| a.borrow().proportion())
+        self.areas.get(region).and_then(|a| a.borrow().proportion())
     }
 
     pub fn log_tree(&self) {
@@ -340,14 +343,14 @@ impl LayoutNode {
                     left: *left,
                     right: *right,
                     top_proportion,
-                    t_child: top_area.clone(),
-                    b_child: bottom_area.clone(),
+                    top_child: Rc::clone(&top_area),
+                    bottom_child: Rc::clone(&bottom_area),
                     resizable: Some(*identifier).filter(|_| resizable),
                 };
                 (top_area, bottom_area)
             }
             _ => {
-                panic!("splitting a node");
+                panic!("You should not be splitting a HSplit of VSplit node.");
             }
         }
     }
@@ -404,14 +407,14 @@ impl LayoutNode {
                     right: *right,
                     bottom: *bottom,
                     left_proportion,
-                    l_child: left_area.clone(),
-                    r_child: right_area.clone(),
+                    left_child: Rc::clone(&left_area),
+                    right_child: Rc::clone(&right_area),
                     resizable: Some(*identifier).filter(|_| resizable),
                 };
                 (left_area, right_area)
             }
             _ => {
-                panic!("splitting a node");
+                panic!("You should not be splitting a HSplit of VSplit node.");
             }
         }
     }
@@ -425,10 +428,12 @@ impl LayoutNode {
     /// merged children.
     ///
     pub fn merge(&mut self, ident: usize) -> (usize, usize) {
-        let ret;
+        let merged_node;
         let new_self = match self {
             LayoutNode::VSplit {
-                l_child, r_child, ..
+                left_child: l_child,
+                right_child: r_child,
+                ..
             } => match (l_child.borrow().clone(), r_child.borrow().clone()) {
                 (
                     LayoutNode::Area {
@@ -444,7 +449,7 @@ impl LayoutNode {
                         ..
                     },
                 ) => {
-                    ret = (c1, c2);
+                    merged_node = (c1, c2);
                     LayoutNode::Area {
                         left,
                         top,
@@ -453,10 +458,12 @@ impl LayoutNode {
                         identifier: ident,
                     }
                 }
-                _ => panic!("merge"),
+                _ => panic!("You cannot merge non-Area nodes."),
             },
             LayoutNode::HSplit {
-                t_child, b_child, ..
+                top_child: t_child,
+                bottom_child: b_child,
+                ..
             } => match (t_child.borrow().clone(), b_child.borrow().clone()) {
                 (
                     LayoutNode::Area {
@@ -472,7 +479,7 @@ impl LayoutNode {
                         ..
                     },
                 ) => {
-                    ret = (c1, c2);
+                    merged_node = (c1, c2);
                     LayoutNode::Area {
                         left,
                         top,
@@ -481,12 +488,12 @@ impl LayoutNode {
                         identifier: ident,
                     }
                 }
-                _ => panic!("merge"),
+                _ => panic!("You cannot merge non-Area nodes."),
             },
-            _ => panic!("merging a leaf"),
+            _ => panic!("You cannot merge an Area."),
         };
         *self = new_self;
-        ret
+        merged_node
     }
 
     /// Return the identifier of the leaf owning pixel `(x, y)`
@@ -497,8 +504,8 @@ impl LayoutNode {
                 left,
                 right,
                 left_proportion,
-                l_child,
-                r_child,
+                left_child: l_child,
+                right_child: r_child,
                 resizable,
                 ..
             } => {
@@ -519,8 +526,8 @@ impl LayoutNode {
                 top,
                 bottom,
                 top_proportion,
-                t_child,
-                b_child,
+                top_child: t_child,
+                bottom_child: b_child,
                 resizable,
                 ..
             } => {
@@ -575,8 +582,8 @@ impl LayoutNode {
                 right,
                 bottom,
                 left_proportion,
-                l_child,
-                r_child,
+                left_child: l_child,
+                right_child: r_child,
                 ..
             } => {
                 let separation = *left + new_proportion * (*right - *left);
@@ -594,8 +601,8 @@ impl LayoutNode {
                 right,
                 bottom,
                 top_proportion,
-                t_child,
-                b_child,
+                top_child: t_child,
+                bottom_child: b_child,
                 ..
             } => {
                 let separation = *top + new_proportion * (*bottom - *top);
@@ -620,8 +627,8 @@ impl LayoutNode {
                 right,
                 bottom,
                 top_proportion,
-                t_child: c1,
-                b_child: c2,
+                top_child: c1,
+                bottom_child: c2,
                 ..
             } => {
                 let separation = new_top + *top_proportion * (new_bottom - new_top);
@@ -640,8 +647,8 @@ impl LayoutNode {
                 right,
                 bottom,
                 left_proportion,
-                l_child: c1,
-                r_child: c2,
+                left_child: c1,
+                right_child: c2,
                 ..
             } => {
                 let separation = new_left + *left_proportion * (new_right - new_left);
