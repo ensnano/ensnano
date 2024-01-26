@@ -15,7 +15,14 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-//! Manage the repartition of the window in different parts.
+//! Manage the layout of the window in different areas.
+//!
+//! The layout is a tree-like structure. A [LayoutNode] can be one of the three following variants:
+//!
+//! * [LayoutNode::Area] — represents an actual —or drawable— region.
+//! * [LayoutNode::VSplit] — represents a region divided vertically between two subregions.
+//! * [LayoutNode::HSplit] — represents a region divided horizontally between two subregions.
+//!
 use super::PhysicalPosition;
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -28,16 +35,10 @@ const RESIZE_REGION_WIDTH: f64 = 0.001;
 
 /// Node of a [LayoutTree], representing a region of the window.
 ///
-/// There are tree variants of Nodes :
-///
-/// * [Area](self::LayoutNode::Area) represents an actual —or drawable— region.
-/// * [VSplit](self::LayoutNode::VSplit) represents a region divided vertically between two
-/// subregions.
-/// * [HSplit](self::LayoutNode::HSplit) represents a region divided horizontally between two
-/// subregions.
-///
 /// Each variant contains four attributes (`left`, `top`, `right`, `bottom`) that represent the
-/// positions of the boundaries of the aera, expressed as a fraction between 0. and 1.
+/// positions of the boundaries of the area, expressed as a fraction between 0.0 and 1.0
+///
+/// To learn more about recursive data structures in Rust, see [here](https://rust-leipzig.github.io/architecture/2016/12/20/idiomatic-trees-in-rust/)
 ///
 #[derive(Clone, Debug)]
 enum LayoutNode {
@@ -76,7 +77,7 @@ enum LayoutNode {
     },
 }
 
-/// A pointrer to a [LayoutNode].
+/// A pointer to a [LayoutNode].
 ///
 type LayoutNodePtr = Rc<RefCell<LayoutNode>>;
 
@@ -106,7 +107,7 @@ pub struct LayoutTree {
 impl LayoutTree {
     /// Create a new layout tree with a single area in it.
     ///
-    /// Note — The identifier of the aera is `0`.
+    /// Note — The identifier of the area is `0`.
     ///
     pub fn new() -> Self {
         let root = Rc::new(RefCell::new(LayoutNode::Area {
@@ -133,7 +134,7 @@ impl LayoutTree {
     ///
     /// Arguments:
     ///
-    /// * `parent_ident` — the idenfier of the area being split.
+    /// * `parent_ident` — the identifier of the area being split.
     /// * `left_proportion` — the proportion of the initial area attributed to the left part.
     ///
     /// Return value:
@@ -206,7 +207,7 @@ impl LayoutTree {
         (top_ident, bottom_ident)
     }
 
-    /// Undo a split by deleting the leaf with type `old_leaf` and its sibiling and giving their parent the type
+    /// Undo a split by deleting the leaf with type `old_leaf` and its sibling and giving their parent the type
     /// `new_leaf`.
     pub fn merge(&mut self, old_leaf: ElementType, new_leaf: ElementType) {
         let area_id = *self
@@ -293,7 +294,7 @@ impl LayoutNode {
     /// Arguments:
     ///
     /// * `top_proportion` — the proportion of the initial area attributed to the top area. It must
-    /// be between 0. and 1.
+    /// be between 0.0 and 1.0
     /// * `top_ident` — identifier given to the top area.
     /// * `bottom_ident` — identifier given to the bottom area.
     ///
