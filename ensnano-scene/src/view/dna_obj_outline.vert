@@ -35,6 +35,7 @@ struct Instances {
     uint mesh;
     vec3 prev;
     vec3 next;
+    uint nb_ray_tube;
 };
 
 layout(std430, set=2, binding=0) 

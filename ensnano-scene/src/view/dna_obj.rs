@@ -70,8 +70,8 @@ pub struct RawDnaInstance {
     pub mesh: u32, // 32bits did not exist before -> ADD OPTIONAL VECTOR NEXT AND PREV FOR SLICED TUBES
     pub prev: Vec3, // previous bond direction assuming the current tube is aligned with X axis
     pub next: Vec3, // next bond direction assuming the current tube is aligned with X axis
-    pub nb_ray_tube: u32, // the number of ray to determine on which three faces is the vertex in the sliced tube shader 
-    _padding: [u32; 4], // [u32; 2], // [f32; 3]
+    pub nb_ray_tube: u32, // the number of ray to determine on which three faces is the vertex in the sliced tube shader
+    _padding: [u32; 4],   // [u32; 2], // [f32; 3]
 }
 
 // impl RawDnaInstance {
