@@ -70,7 +70,8 @@ pub struct RawDnaInstance {
     pub mesh: u32, // 32bits did not exist before -> ADD OPTIONAL VECTOR NEXT AND PREV FOR SLICED TUBES
     pub prev: Vec3, // previous bond direction assuming the current tube is aligned with X axis
     pub next: Vec3, // next bond direction assuming the current tube is aligned with X axis
-    _padding: [u32; 5], // [u32; 2], // [f32; 3]
+    pub nb_ray_tube: u32, // the number of ray to determine on which three faces is the vertex in the sliced tube shader 
+    _padding: [u32; 4], // [u32; 2], // [f32; 3]
 }
 
 // impl RawDnaInstance {
@@ -168,7 +169,8 @@ impl Instanciable for SphereInstance {
             mesh: super::Mesh::Sphere.to_u32(),
             prev: Vec3::zero(),
             next: Vec3::zero(),
-            _padding: [0; 5], //[0; 2], //[0.; 3],
+            nb_ray_tube: 0,
+            _padding: [0; 4], //[0; 2], //[0.; 3],
         }
     }
 
@@ -278,7 +280,8 @@ impl Instanciable for StereographicSphereAndPlane {
             mesh: super::Mesh::StereographicSphere.to_u32(),
             prev: Vec3::zero(),
             next: Vec3::zero(),
-            _padding: [0; 5], // _padding: [0; 2], //[0.; 3],
+            nb_ray_tube: 0,
+            _padding: [0; 4], // _padding: [0; 2], //[0.; 3],
         }
     }
 }
@@ -360,7 +363,8 @@ impl Instanciable for TubeInstance {
             mesh: super::Mesh::Tube.to_u32(),
             prev: Vec3::zero(),
             next: Vec3::zero(),
-            _padding: [0; 5], // _padding: [0; 2], //[0.; 3],
+            nb_ray_tube: 0,
+            _padding: [0; 4], // _padding: [0; 2], //[0.; 3],
         }
     }
 }
@@ -449,7 +453,8 @@ impl Instanciable for TubeLidInstance {
             mesh: super::Mesh::TubeLid.to_u32(),
             prev: Vec3::zero(),
             next: Vec3::zero(),
-            _padding: [0; 5], // _padding: [0; 2], //[0.; 3],
+            nb_ray_tube: 0,
+            _padding: [0; 4], // _padding: [0; 2], //[0.; 3],
         }
     }
 }
@@ -561,9 +566,10 @@ impl Instanciable for SlicedTubeInstance {
             id: self.id,
             inversed_model: model.inversed(),
             mesh: super::Mesh::SlicedTube.to_u32(),
-            prev: Vec3::zero(),
-            next: Vec3::zero(),
-            _padding: [0; 5], // _padding: [0; 2], //[0.; 3],
+            prev: self.prev,
+            next: self.next,
+            nb_ray_tube: NB_RAY_TUBE as u32,
+            _padding: [0; 4], // _padding: [0; 2], //[0.; 3],
         }
     }
 }
@@ -667,7 +673,8 @@ impl Instanciable for ConeInstance {
             mesh: super::Mesh::Prime3Cone.to_u32(),
             prev: Vec3::zero(),
             next: Vec3::zero(),
-            _padding: [0; 5], // _padding: [0; 2], //[0.; 3],
+            nb_ray_tube: 0,
+            _padding: [0; 4], // _padding: [0; 2], //[0.; 3],
         }
     }
 }
