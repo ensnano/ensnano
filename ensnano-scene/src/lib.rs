@@ -106,12 +106,12 @@ impl<S: AppState> Scene<S> {
     /// * `window_size` the *Physical* size of the window in which the application is displayed
     ///
     /// * `area` the limits, in *physical* size of the area on which the scene is displayed
-    pub fn new(
+    pub fn new<R: 'static + Requests>(
         device: Rc<Device>,
         queue: Rc<Queue>,
         window_size: PhySize,
         area: DrawArea,
-        requests: Arc<Mutex<dyn Requests>>,
+        requests: Arc<Mutex<R>>,
         encoder: &mut wgpu::CommandEncoder,
         inital_state: S,
         scene_kind: SceneKind,
