@@ -51,7 +51,7 @@ impl ParametersTab {
             subsection("Font size", ui_size),
             pick_list(
                 &super::super::super::ALL_UI_SIZES[..],
-                Some(ui_size.clone()),
+                Some(ui_size),
                 Message::UiSizePicked,
             ),
             extra_jump(),
@@ -64,7 +64,7 @@ impl ParametersTab {
                 app_state.get_invert_y_scroll(),
                 "Inverse direction",
                 Message::InvertScroll,
-                ui_size.clone(),
+                ui_size,
             ),
             jump_by(10),
             section("DNA/RNA model", ui_size),

@@ -299,14 +299,13 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
         let button_tutorial =
             text_button("Tutorials", self.ui_size).on_press(Message::ShowTutorial);
 
-        let ui_size = self.ui_size.clone();
         let action_mode_buttons: Vec<_> = action_modes_to_display
             .iter()
             .map(|mode| {
                 action_mode_btn(
                     mode,
                     self.app_state.get_action_mode(),
-                    ui_size.button(),
+                    self.ui_size.button(),
                     self.app_state.get_widget_basis().is_axis_aligned(),
                 )
                 .into()
@@ -324,8 +323,12 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
             .iter()
             .filter(|mode| selection_modes_to_display.contains(mode))
             .map(|mode| {
-                selection_mode_btn(mode, self.app_state.get_selection_mode(), ui_size.button())
-                    .into()
+                selection_mode_btn(
+                    mode,
+                    self.app_state.get_selection_mode(),
+                    self.ui_size.button(),
+                )
+                .into()
             })
             .collect();
 

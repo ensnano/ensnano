@@ -55,13 +55,17 @@ impl GridTab {
             // add_start_cancel_hyperboloid_button!
             if app_state.is_building_hyperboloid() {
                 iced_native::row![
-                    text_button("Cancel", ui_size.clone()).on_press(Message::CancelHyperboloid),
-                    text_button("Finish", ui_size.clone()).on_press(Message::FinalizeHyperboloid),
+                    text_button("Cancel", ui_size)
+                        .on_press(Message::CancelHyperboloid)
+                        .style(iced::theme::Button::Destructive),
+                    text_button("Finish", ui_size)
+                        .on_press(Message::FinalizeHyperboloid)
+                        .style(iced::theme::Button::Positive),
                 ]
                 .spacing(3)
             } else {
                 iced_native::row![
-                    icon_button(ICON_NANOTUBE, ui_size.clone()).on_press(Message::NewHyperboloid),
+                    icon_button(ICON_NANOTUBE, ui_size).on_press(Message::NewHyperboloid),
                 ]
                 .spacing(3)
             },

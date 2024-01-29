@@ -78,7 +78,7 @@ impl<S: AppState> SimulationTab<S> {
                 },
                 sim_state.simulating_grid()
             ),
-            Self::helix_btns(&self.rigid_helices_button, app_state, ui_size.clone(),),
+            Self::helix_btns(&self.rigid_helices_button, app_state, ui_size,),
             subsection("Parameters for helices simulation", ui_size),
             widget::Column::with_children(self.rigid_body_factory.view(true, ui_size.main_text())),
             right_checkbox(

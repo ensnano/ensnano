@@ -46,11 +46,11 @@ impl CameraTab {
         let content = iced_native::column![
             section("Camera", ui_size),
             subsection("Visibility", ui_size),
-            text_button("Toggle Selected Visibility", ui_size.clone())
+            text_button("Toggle Selected Visibility", ui_size)
                 .on_press(Message::ToggleVisibility(false)),
-            text_button("Toggle NonSelected Visibility", ui_size.clone())
+            text_button("Toggle NonSelected Visibility", ui_size)
                 .on_press(Message::ToggleVisibility(true)),
-            text_button("Everything visible", ui_size.clone()).on_press(Message::AllVisible),
+            text_button("Everything visible", ui_size).on_press(Message::AllVisible),
             self.fog.view(ui_size),
             subsection("Visibility", ui_size),
             pick_list(

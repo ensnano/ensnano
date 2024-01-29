@@ -97,7 +97,7 @@ impl<S: AppState> EditionTab<S> {
         let selection_contains_strand =
             ensnano_interactor::extract_strands_from_selection(app_state.get_selection()).len() > 0;
         let suggestion_parameters = app_state.get_suggestion_parameters().clone();
-        let mut tighten_helices_button = text_button("Selected", ui_size.clone());
+        let mut tighten_helices_button = text_button("Selected", ui_size);
         if !roll_target_helices.is_empty() {
             tighten_helices_button =
                 tighten_helices_button.on_press(Message::Redim2dHelices(false));
