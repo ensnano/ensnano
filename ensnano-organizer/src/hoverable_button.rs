@@ -1,25 +1,64 @@
-//! Allow widgets to emmit messages when hovered
+//! Allow widgets to emit messages when hovered
 //!
-//! A [`HoverableContainer`] is an `iced_native::Container` that produces a messages when hovered.
+//! A [`HoverableContainer`] is an widget that produces a messages when hovered or unhovered.
+//!
+//! This widget is greatly inspired by
+//!
+//!    https://giesch.dev/iced-hoverable/
 
-// This file is manifestly a copy-paste of the iced_native::widget::container source code
-//
-//    https://docs.rs/iced_native/0.9.1/src/iced_native/widget/container.rs.html
-
-use iced_native::alignment::{self, Alignment};
+use iced::{overlay, Padding};
 use iced_native::event::{self, Event};
 use iced_native::layout;
-use iced_native::mouse;
-use iced_native::overlay;
 use iced_native::renderer;
-use iced_native::widget::{self};
-use iced_native::{
-    Background, Clipboard, Color, Element, Layout, Length, Padding, Point, Rectangle, Shell, Widget,
-};
+use iced_native::widget::tree::{self, Tree};
+use iced_native::{Clipboard, Element, Layout, Length, Point, Rectangle, Shell, Widget};
 
-pub use iced_style::container::{Appearance, StyleSheet};
+/// A widget that emits a message when hovered.
+pub struct HoverableContainer<'a, Message, Renderer>
+where
+    Renderer: iced_native::Renderer,
+{
+    padding: Padding,
+    content: Element<'a, Message, Renderer>,
+    on_hover: Option<Message>,
+    on_unhover: Option<Message>,
+}
 
-use std::u32;
+impl<'a, Message, Renderer> HoverableContainer<'a, Message, Renderer>
+where
+    Renderer: iced_native::Renderer,
+{
+    const WIDTH: Length = Length::Shrink;
+    const HEIGHT: Length = Length::Shrink;
+
+    /// Creates a new [HoverableContainer] with the given content.
+    pub fn new(content: impl Into<Element<'a, Message, Renderer>>) -> Self {
+        HoverableContainer {
+            padding: Padding::ZERO,
+            content: content.into(),
+            on_hover: None,
+            on_unhover: None,
+        }
+    }
+
+    /// Sets the [`Padding`] of the content.
+    pub fn padding<P: Into<Padding>>(mut self, padding: P) -> Self {
+        self.padding = padding.into();
+        self
+    }
+
+    /// Sets the message that will be produced when the content is hovered.
+    pub fn on_hover(mut self, message: Message) -> Self {
+        self.on_hover = Some(message);
+        self
+    }
+
+    /// Sets the message that will be produced when the content is unhovered.
+    pub fn on_unhover(mut self, message: Message) -> Self {
+        self.on_unhover = Some(message);
+        self
+    }
+}
 
 /// The local state of an [`HoverableContainer`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -27,198 +66,28 @@ pub struct State {
     is_hovered: bool,
 }
 
-impl State {
-    /// Creates a new [`State`].
-    pub fn new() -> State {
-        State::default()
-    }
-}
-/// NOTE: Consider to delete state to follow the “stateless” paradigm of iced.
-
-/// An `iced_native::Container` that emits a message when hovered.
-#[allow(missing_debug_implementations)]
-pub struct HoverableContainer<'a, Message, Renderer>
-where
-    Message: Clone,
-    Renderer: iced_native::Renderer,
-    Renderer::Theme: StyleSheet,
-{
-    padding: Padding,
-    width: Length,
-    height: Length,
-    max_width: u32,
-    max_height: u32,
-    horizontal_alignment: alignment::Horizontal,
-    vertical_alignment: alignment::Vertical,
-    style: <Renderer::Theme as widget::container::StyleSheet>::Style,
-    content: Element<'a, Message, Renderer>,
-    on_hovered_in: Option<Message>,
-    on_hovered_out: Option<Message>,
-}
-
-impl<'a, Message, Renderer> HoverableContainer<'a, Message, Renderer>
-where
-    Message: Clone,
-    Renderer: iced_native::Renderer,
-    Renderer::Theme: StyleSheet,
-{
-    /// Creates an empty [Container](iced::widget::container::Container).
-    pub fn new<T>(content: T) -> Self
-    where
-        T: Into<Element<'a, Message, Renderer>>,
-    {
-        HoverableContainer {
-            padding: Padding::ZERO,
-            width: Length::Shrink,
-            height: Length::Shrink,
-            max_width: u32::MAX,
-            max_height: u32::MAX,
-            horizontal_alignment: alignment::Horizontal::Left,
-            vertical_alignment: alignment::Vertical::Top,
-            style: Default::default(),
-            content: content.into(),
-            on_hovered_in: None,
-            on_hovered_out: None,
-        }
-    }
-
-    /// Sets the [`Padding`] of the [Container](iced::widget::container::Container).
-    pub fn padding<P: Into<Padding>>(mut self, padding: P) -> Self {
-        self.padding = padding.into();
-        self
-    }
-
-    /// Sets the width of the [Container](iced::widget::container::Container).
-    pub fn width(mut self, width: Length) -> Self {
-        self.width = width;
-        self
-    }
-
-    /// Sets the height of the [Container](iced::widget::container::Container).
-    pub fn height(mut self, height: Length) -> Self {
-        self.height = height;
-        self
-    }
-
-    /// Sets the maximum width of the [Container](iced::widget::container::Container).
-    pub fn max_width(mut self, max_width: u32) -> Self {
-        self.max_width = max_width;
-        self
-    }
-
-    /// Sets the maximum height of the [Container](iced::widget::container::Container) in pixels.
-    pub fn max_height(mut self, max_height: u32) -> Self {
-        self.max_height = max_height;
-        self
-    }
-
-    /// Sets the content alignment for the horizontal axis of the [Container](iced::widget::container::Container).
-    pub fn align_x(mut self, alignment: alignment::Horizontal) -> Self {
-        self.horizontal_alignment = alignment;
-        self
-    }
-
-    /// Sets the content alignment for the vertical axis of the [Container](iced::widget::container::Container).
-    pub fn align_y(mut self, alignment: alignment::Vertical) -> Self {
-        self.vertical_alignment = alignment;
-        self
-    }
-
-    /// Centers the contents in the horizontal axis of the [Container](iced::widget::container::Container).
-    pub fn center_x(mut self) -> Self {
-        self.horizontal_alignment = alignment::Horizontal::Center;
-        self
-    }
-
-    /// Centers the contents in the vertical axis of the [Container](iced::widget::container::Container).
-    pub fn center_y(mut self) -> Self {
-        self.vertical_alignment = alignment::Vertical::Center;
-        self
-    }
-
-    /// Set the appearance of the [Container](iced::widget::container::Container).
-    pub fn style(
-        mut self,
-        style: impl Into<<Renderer::Theme as iced_native::widget::container::StyleSheet>::Style>,
-    ) -> Self {
-        self.style = style.into();
-        self
-    }
-
-    pub fn on_hovered_in(mut self, message: Message) -> Self {
-        self.on_hovered_in = Some(message);
-        self
-    }
-
-    pub fn on_hovered_out(mut self, message: Message) -> Self {
-        self.on_hovered_out = Some(message);
-        self
-    }
-}
-
-/// Computes the layout of a [Container](iced::widget::container::Container).
-pub fn layout<Renderer>(
-    renderer: &Renderer,
-    limits: &layout::Limits,
-    width: Length,
-    height: Length,
-    padding: Padding,
-    horizontal_alignment: alignment::Horizontal,
-    vertical_alignment: alignment::Vertical,
-    layout_content: impl FnOnce(&Renderer, &layout::Limits) -> layout::Node,
-) -> layout::Node {
-    let limits = limits.loose().width(width).height(height).pad(padding);
-
-    let mut content = layout_content(renderer, &limits.loose());
-    let size = limits.resolve(content.size());
-
-    content.move_to(Point::new(padding.left.into(), padding.top.into()));
-    content.align(
-        Alignment::from(horizontal_alignment),
-        Alignment::from(vertical_alignment),
-        size,
-    );
-
-    layout::Node::with_children(size.pad(padding), vec![content])
-}
-
 impl<'a, Message, Renderer> Widget<Message, Renderer> for HoverableContainer<'a, Message, Renderer>
 where
-    Message: Clone,
+    Message: 'a + Clone,
     Renderer: iced_native::Renderer,
-    Renderer::Theme: iced_native::widget::container::StyleSheet + StyleSheet,
 {
-    fn state(&self) -> widget::tree::State {
-        widget::tree::State::new(State::default())
+    fn tag(&self) -> tree::Tag {
+        tree::Tag::of::<State>()
     }
-    fn children(&self) -> Vec<widget::Tree> {
-        vec![widget::tree::Tree::new(&self.content)]
+    fn state(&self) -> tree::State {
+        tree::State::new(State::default())
     }
-
-    fn width(&self) -> Length {
-        self.width
-    }
-
-    fn height(&self) -> Length {
-        self.height
+    fn children(&self) -> Vec<Tree> {
+        vec![Tree::new(&self.content)]
     }
 
-    fn layout(&self, renderer: &Renderer, limits: &layout::Limits) -> layout::Node {
-        layout(
-            renderer,
-            limits,
-            self.width,
-            self.height,
-            self.padding,
-            self.horizontal_alignment,
-            self.vertical_alignment,
-            |renderer, limits| self.content.as_widget().layout(renderer, limits),
-        )
+    fn diff(&self, tree: &mut tree::Tree) {
+        tree.diff_children(std::slice::from_ref(&self.content));
     }
 
     fn on_event(
         &mut self,
-        tree: &mut widget::Tree,
+        tree: &mut Tree,
         event: Event,
         layout: Layout<'_>,
         cursor_position: Point,
@@ -228,48 +97,117 @@ where
     ) -> event::Status {
         if let event::Status::Captured = self.content.as_widget_mut().on_event(
             &mut tree.children[0],
-            event.clone(),
+            event,
             layout.children().next().unwrap(),
             cursor_position,
             renderer,
             clipboard,
             shell,
         ) {
-            event::Status::Captured
-        } else {
-            if let Event::Mouse(mouse::Event::CursorMoved { .. }) = event {
-                let state = tree.state.downcast_mut::<State>();
-                let bounds = layout.bounds();
-                if bounds.contains(cursor_position) {
-                    if !state.is_hovered {
-                        if let Some(on_hovered_in) = self.on_hovered_in.clone() {
-                            shell.publish(on_hovered_in)
-                        }
-                        state.is_hovered = true;
-                    }
-                } else {
-                    if state.is_hovered {
-                        if let Some(on_hovered_out) = self.on_hovered_out.clone() {
-                            shell.publish(on_hovered_out)
-                        }
-                        state.is_hovered = false;
-                    }
+            return event::Status::Captured;
+        }
+        let mut state = tree.state.downcast_mut::<State>();
+        let was_hovered = state.is_hovered;
+        let now_hovered = layout.bounds().contains(cursor_position);
+        match (was_hovered, now_hovered) {
+            (true, true) => {}
+            (false, false) => {}
+            (true, false) => {
+                // exited hover
+                state.is_hovered = now_hovered;
+                if let Some(on_unhover) = &self.on_unhover {
+                    shell.publish(on_unhover.clone());
                 }
             }
-            event::Status::Ignored
+            (false, true) => {
+                // entered hover
+                state.is_hovered = now_hovered;
+                if let Some(on_hover) = &self.on_hover {
+                    shell.publish(on_hover.clone());
+                }
+            }
         }
+
+        //if let Event::Mouse(mouse::Event::CursorMoved { .. }) = event {
+        //    let bounds = layout.bounds();
+        //    if bounds.contains(cursor_position) {
+        //        if !state.is_hovered {
+        //            if let Some(on_hovered_in) = self.on_hovered_in.clone() {
+        //                shell.publish(on_hovered_in)
+        //            }
+        //            state.is_hovered = true;
+        //        }
+        //    } else {
+        //        if state.is_hovered {
+        //            if let Some(on_hovered_out) = self.on_hovered_out.clone() {
+        //                shell.publish(on_hovered_out)
+        //            }
+        //            state.is_hovered = false;
+        //        }
+        //    }
+        //}
+        event::Status::Ignored
+    }
+
+    fn layout(&self, renderer: &Renderer, limits: &layout::Limits) -> layout::Node {
+        let limits = limits
+            .width(Self::WIDTH)
+            .height(Self::HEIGHT)
+            .pad(self.padding);
+
+        let mut content_layout = self.content.as_widget().layout(renderer, &limits);
+        content_layout.move_to(Point::new(
+            self.padding.left.into(),
+            self.padding.top.into(),
+        ));
+
+        let size = limits.resolve(content_layout.size()).pad(self.padding);
+
+        layout::Node::with_children(size, vec![content_layout])
+    }
+
+    fn width(&self) -> Length {
+        Self::WIDTH
+    }
+
+    fn height(&self) -> Length {
+        Self::HEIGHT
+    }
+
+    fn draw(
+        &self,
+        state: &Tree,
+        renderer: &mut Renderer,
+        theme: &<Renderer as iced_native::Renderer>::Theme,
+        style: &renderer::Style,
+        layout: Layout<'_>,
+        cursor_position: Point,
+        _viewport: &Rectangle,
+    ) {
+        let bounds = layout.bounds();
+        let content_layout = layout.children().next().unwrap();
+
+        self.content.as_widget().draw(
+            &state.children[0],
+            renderer,
+            theme,
+            style,
+            content_layout,
+            cursor_position,
+            &bounds,
+        );
     }
 
     fn mouse_interaction(
         &self,
-        tree: &widget::Tree,
+        state: &Tree,
         layout: Layout<'_>,
         cursor_position: Point,
         viewport: &Rectangle,
         renderer: &Renderer,
-    ) -> mouse::Interaction {
+    ) -> iced_native::mouse::Interaction {
         self.content.as_widget().mouse_interaction(
-            &tree.children[0],
+            &state.children[0],
             layout.children().next().unwrap(),
             cursor_position,
             viewport,
@@ -277,36 +215,9 @@ where
         )
     }
 
-    fn draw(
-        &self,
-        tree: &widget::Tree,
-        renderer: &mut Renderer,
-        theme: &Renderer::Theme,
-        renderer_style: &renderer::Style,
-        layout: Layout<'_>,
-        cursor_position: Point,
-        viewport: &Rectangle,
-    ) {
-        let style = theme.appearance(&self.style);
-
-        draw_background(renderer, &style, layout.bounds());
-
-        self.content.as_widget().draw(
-            &tree.children[0],
-            renderer,
-            theme,
-            &renderer::Style {
-                text_color: style.text_color.unwrap_or(renderer_style.text_color),
-            },
-            layout.children().next().unwrap(),
-            cursor_position,
-            viewport,
-        );
-    }
-
     fn overlay<'b>(
         &'b mut self,
-        tree: &'b mut widget::Tree,
+        tree: &'b mut Tree,
         layout: Layout<'_>,
         renderer: &Renderer,
     ) -> Option<overlay::Element<'_, Message, Renderer>> {
@@ -318,36 +229,13 @@ where
     }
 }
 
-/// Draws the background of a
-/// [Container](iced::widget::container::Container) given its [Appearance] and its `bounds`.
-pub fn draw_background<Renderer>(renderer: &mut Renderer, style: &Appearance, bounds: Rectangle)
-where
-    Renderer: iced_native::Renderer,
-{
-    if style.background.is_some() || style.border_width > 0.0 {
-        renderer.fill_quad(
-            renderer::Quad {
-                bounds,
-                border_radius: style.border_radius.into(),
-                border_width: style.border_width,
-                border_color: style.border_color,
-            },
-            style
-                .background
-                .unwrap_or(Background::Color(Color::TRANSPARENT)),
-        );
-    }
-}
-
 impl<'a, Message, Renderer> From<HoverableContainer<'a, Message, Renderer>>
     for Element<'a, Message, Renderer>
 where
-    Message: 'a,
-    Message: Clone,
+    Message: 'a + Clone,
     Renderer: 'a + iced_native::Renderer,
-    Renderer::Theme: StyleSheet,
 {
-    fn from(column: HoverableContainer<'a, Message, Renderer>) -> Element<'a, Message, Renderer> {
-        Element::new(column)
+    fn from(value: HoverableContainer<'a, Message, Renderer>) -> Element<'a, Message, Renderer> {
+        Element::new(value)
     }
 }

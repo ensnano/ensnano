@@ -12,9 +12,9 @@ use std::convert::TryInto;
 extern crate serde_derive;
 extern crate serde;
 
-mod drag_drop_target;
+pub mod drag_drop_target;
 pub mod element;
-mod hoverable_button;
+pub mod hoverable_button;
 pub mod theme;
 mod tree;
 
@@ -53,7 +53,7 @@ pub struct InternalMessage<E: OrganizerElement>(OrganizerMessage_<E>);
 
 type TreeId = Vec<usize>;
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
-enum NodeId<AutoGroupId> {
+pub enum NodeId<AutoGroupId> {
     TreeId(TreeId),
     SectionId(usize),
     AutoGroupId(AutoGroupId),
@@ -146,11 +146,11 @@ impl<E: OrganizerElement> OrganizerMessage<E> {
         Self::InternalMessage(InternalMessage(OrganizerMessage_::NewGroup))
     }
 
-    fn dragging(key: Identifier<E::Key, E::AutoGroup>) -> Self {
+    fn dragging(key: DragIdentifier<E::Key, E::AutoGroup>) -> Self {
         Self::InternalMessage(InternalMessage(OrganizerMessage_::Dragging(key)))
     }
 
-    fn drag_dropped(key: Identifier<E::Key, E::AutoGroup>) -> Self {
+    fn drag_dropped(key: DragIdentifier<E::Key, E::AutoGroup>) -> Self {
         Self::InternalMessage(InternalMessage(OrganizerMessage_::DragDropped(key)))
     }
 
@@ -196,8 +196,8 @@ enum OrganizerMessage_<E: OrganizerElement> {
     Delete {
         id: NodeId<E::AutoGroup>,
     },
-    DragDropped(Identifier<E::Key, E::AutoGroup>),
-    Dragging(Identifier<E::Key, E::AutoGroup>),
+    DragDropped(DragIdentifier<E::Key, E::AutoGroup>),
+    Dragging(DragIdentifier<E::Key, E::AutoGroup>),
     AttributeSelected {
         attribute: E::Attribute,
         id: NodeId<E::AutoGroup>,
@@ -215,7 +215,7 @@ pub struct Organizer<E: OrganizerElement> {
     editing: Option<GroupId>,
     modifiers: Modifiers,
     selected_nodes: BTreeSet<NodeId<E::AutoGroup>>,
-    dragging: BTreeSet<Identifier<E::Key, E::AutoGroup>>,
+    dragging: BTreeSet<DragIdentifier<E::Key, E::AutoGroup>>,
     hovered_in: Option<NodeId<E::AutoGroup>>,
     last_read_tree: *const OrganizerTree<E::Key>,
     must_update_tree: bool,
@@ -270,7 +270,7 @@ impl<E: OrganizerElement> Organizer<E> {
 
     pub fn view(&self, selection: BTreeSet<E::Key>) -> Element<OrganizerMessage<E>> {
         //self.hovered_in = None;
-        // TODO: This comment probably break some functionnality…
+        // TODO: This comment probably break some functionality…
         let mut content = Column::new();
         for c in self.groups.iter() {
             content = content.push(iced_native::row![
@@ -756,14 +756,15 @@ impl<E: OrganizerElement> Organizer<E> {
         }
     }
 
-    fn drag_drop(&mut self, k: &Identifier<E::Key, E::AutoGroup>) {
+    /// Action performed when dragged content is dropped.
+    fn drag_drop(&mut self, k: &DragIdentifier<E::Key, E::AutoGroup>) {
         match k {
-            Identifier::Group { id: id_dest } => {
+            DragIdentifier::Group { id: id_dest } => {
                 if let Some(identifer) = self.dragging.iter().next().cloned() {
                     match identifer {
                         id if id == k.clone() => (),
-                        Identifier::Group { id } => self.move_id(&id, id_dest),
-                        Identifier::Section { key } => {
+                        DragIdentifier::Group { id } => self.move_id(&id, id_dest),
+                        DragIdentifier::Section { key } => {
                             if let Some(id) = get_group_id(id_dest) {
                                 self.add_key_at(key, id)
                             }
@@ -964,18 +965,19 @@ impl<E: OrganizerElement> ElementView<E> {
     }
     fn view(
         &self,
-        theme: &Theme,
+        _theme: &Theme,
         element: &E,
         selection: &BTreeSet<E::Key>,
         deletable: Option<NodeId<E::AutoGroup>>,
-    ) -> DragDropTarget<OrganizerMessage<E>, E::Key, E::AutoGroup> {
+    ) -> DragDropTarget<OrganizerMessage<E>, iced_wgpu::Renderer, E::Key, E::AutoGroup> {
         let selected = selection.contains(&element.key());
-        let mut content = Row::new()
-            .push(Text::new(element.display_name()))
-            .push(Space::with_width(iced::Length::Fill));
+        let mut content = iced_native::row![
+            text(element.display_name()),
+            horizontal_space(iced::Length::Fill),
+        ];
         let identifier = match deletable.as_ref() {
-            Some(id) => Identifier::Group { id: id.clone() },
-            None => Identifier::Section {
+            Some(id) => DragIdentifier::Group { id: id.clone() },
+            None => DragIdentifier::Section {
                 key: element.key().clone(),
             },
         };
@@ -984,29 +986,30 @@ impl<E: OrganizerElement> ElementView<E> {
                 let mut elt = BTreeSet::new();
                 elt.insert(element.key());
                 let elt_key = element.key();
-                content = content.push(
-                    view.map(move |m| OrganizerMessage::NewAttribute(m, vec![elt_key.clone()])),
-                )
+                content =
+                    content.push(view.map(move |m| {
+                        OrganizerMessage::<E>::NewAttribute(m, vec![elt_key.clone()])
+                    }))
             }
         }
         if let Some(id) = deletable.clone() {
             content = content
-                .push(Button::new(icon(Icon::Trash.into())).on_press(OrganizerMessage::delete(id)));
+                .push(button(icon(Icon::Trash.into())).on_press(OrganizerMessage::delete(id)));
         }
         let mut button = HoverableContainer::new(
-            Button::new(content)
+            button(content)
                 .on_press(OrganizerMessage::element_selected(element.key().clone()))
-                .width(iced::Length::Fill)
-                .style(iced_theme::Button::from(theme.selected(selected))),
+                .width(iced::Length::Fill),
+            //.style(iced_theme::Button::from(theme.selected(selected)))
         );
         if let Some(id) = deletable {
             button = button
-                .on_hovered_in(OrganizerMessage::node_hovered(id.clone(), true))
-                .on_hovered_out(OrganizerMessage::node_hovered(id, false))
+                .on_hover(OrganizerMessage::node_hovered(id.clone(), true))
+                .on_unhover(OrganizerMessage::node_hovered(id, false))
         } else {
             button = button
-                .on_hovered_in(OrganizerMessage::key_hovered(element.key(), true))
-                .on_hovered_out(OrganizerMessage::key_hovered(element.key(), false))
+                .on_hover(OrganizerMessage::key_hovered(element.key(), true))
+                .on_unhover(OrganizerMessage::key_hovered(element.key(), false))
         }
         DragDropTarget::new(container(button).width(Length::Fill), identifier)
     }
@@ -1077,17 +1080,14 @@ impl<E: OrganizerElement> NodeView<E> {
         id: NodeId<E::AutoGroup>,
         expanded: bool,
         selected: bool,
-    ) -> Element<
-        '_,
-        OrganizerMessage<E>,
-        iced_graphics::renderer::Renderer<iced_wgpu::Backend, iced::Theme>,
-    > {
+    ) -> Element<'_, OrganizerMessage<E>, iced_graphics::Renderer<iced_wgpu::Backend, iced::Theme>>
+    {
         let level = get_group_id(&id).map(|v| v.len()).unwrap_or(0);
         let title_row = match &self.state {
             GroupState::Iddle { .. } => {
                 let mut row = iced_native::row![
                     button(expand_icon(expanded))
-                        .on_press(OrganizerMessage::expand(id.clone(), !expanded)),
+                        .on_press(OrganizerMessage::<E>::expand(id.clone(), !expanded)),
                     text(name),
                     horizontal_space(iced::Length::Fill),
                     button(plus_icon())
@@ -1148,16 +1148,15 @@ impl<E: OrganizerElement> NodeView<E> {
         let button = HoverableContainer::new(
             button(title_row)
                 .on_press(OrganizerMessage::node_selected(id.clone()))
-                .width(iced::Length::Fill)
-                .style(iced_theme::Button::from(button_theme)),
+                .width(iced::Length::Fill),
+            //.style(iced_theme::Button::from(button_theme))
         )
-        .on_hovered_in(OrganizerMessage::node_hovered(id.clone(), true))
-        .on_hovered_out(OrganizerMessage::node_hovered(id.clone(), false))
-        .width(iced::Length::Fill)
-        .style(button_theme);
+        .on_hover(OrganizerMessage::node_hovered(id.clone(), true))
+        .on_unhover(OrganizerMessage::node_hovered(id.clone(), false));
+        //.style(button_theme)
         DragDropTarget::new(
             container(button).width(Length::Fill),
-            Identifier::Group { id: id.clone() },
+            DragIdentifier::Group { id: id.clone() },
         )
         .into()
     }

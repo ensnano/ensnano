@@ -1,91 +1,96 @@
-use iced::Element;
-use iced_native::{
-    event, layout, overlay, renderer::Style, widget, Alignment, Clipboard, Event, Layout, Length,
-    Point, Rectangle, Shell, Widget,
-};
+//! Allow your users to drag and drop widgets.
+use iced::{overlay, Padding};
+use iced_native::event::{self, Event};
+use iced_native::layout;
+use iced_native::renderer;
+use iced_native::widget::tree::{self, Tree};
+use iced_native::{Clipboard, Element, Layout, Length, Point, Rectangle, Shell, Widget};
 
+use super::OrganizerMessage;
+
+/// Identifier for drag-drop widgets.
 #[derive(Debug, Clone, PartialOrd, PartialEq, Eq, Ord)]
-pub(super) enum Identifier<K, AutoGroup> {
+pub enum DragIdentifier<K, AutoGroup> {
     Group { id: super::NodeId<AutoGroup> },
     Section { key: K },
 }
 
-pub(super) struct DragDropTarget<'a, Message, K, E> {
-    padding: u16,
-    width: Length,
-    height: Length,
-    max_width: f32,
-    max_height: f32,
-    horizontal_alignment: Alignment,
-    vertical_alignment: Alignment,
-    content: Element<'a, Message>,
-    identifier: Identifier<K, E>,
+/// An widget that can be dragged.
+pub struct DragDropTarget<'a, Message, Renderer, K, E> {
+    padding: Padding,
+    content: Element<'a, Message, Renderer>,
+    identifier: DragIdentifier<K, E>,
 }
 
-impl<'a, Message, K, E> DragDropTarget<'a, Message, K, E> {
-    /// Creates an empty [`DragDropTarget`].
-    pub fn new(content: impl Into<Element<'a, Message>>, identifier: Identifier<K, E>) -> Self {
+impl<'a, Message, Renderer, K, E> DragDropTarget<'a, Message, Renderer, K, E> {
+    const WIDTH: Length = Length::Shrink;
+    const HEIGHT: Length = Length::Shrink;
+
+    /// Creates a new [`DragDropTarget`] with the given content and identifier.
+    pub fn new(
+        content: impl Into<Element<'a, Message, Renderer>>,
+        identifier: DragIdentifier<K, E>,
+    ) -> Self {
         Self {
-            padding: 0,
-            width: Length::Shrink,
-            height: Length::Shrink,
-            max_width: f32::MAX,
-            max_height: f32::MAX,
-            horizontal_alignment: Alignment::Start,
-            vertical_alignment: Alignment::Start,
+            padding: Padding::ZERO,
             content: content.into(),
             identifier,
         }
     }
+
+    /// Sets the [`Padding`] of the content.
+    pub fn padding<P: Into<Padding>>(mut self, padding: P) -> Self {
+        self.padding = padding.into();
+        self
+    }
 }
 
-use super::OrganizerMessage;
-use iced::Theme;
-use iced_graphics::Renderer;
-use iced_wgpu::Backend;
-
-impl<'a, E: super::OrganizerElement> Widget<OrganizerMessage<E>, Renderer<Backend, Theme>>
-    for DragDropTarget<'a, OrganizerMessage<E>, E::Key, E::AutoGroup>
+impl<'a, E, Renderer> Widget<OrganizerMessage<E>, Renderer>
+    for DragDropTarget<'a, OrganizerMessage<E>, Renderer, E::Key, E::AutoGroup>
+where
+    E: super::OrganizerElement,
+    Renderer: iced_native::Renderer,
 {
-    fn children(&self) -> Vec<widget::Tree> {
-        vec![widget::tree::Tree::new(&self.content)]
+    fn children(&self) -> Vec<Tree> {
+        vec![Tree::new(&self.content)]
+    }
+
+    fn diff(&self, tree: &mut tree::Tree) {
+        tree.diff_children(std::slice::from_ref(&self.content));
     }
 
     fn width(&self) -> Length {
-        self.width
+        Self::WIDTH
     }
 
     fn height(&self) -> Length {
-        self.height
+        Self::HEIGHT
     }
 
-    fn layout(&self, renderer: &Renderer<Backend, Theme>, limits: &layout::Limits) -> layout::Node {
-        let padding = iced_native::Padding::from(self.padding);
-
+    fn layout(&self, renderer: &Renderer, limits: &layout::Limits) -> layout::Node {
         let limits = limits
-            .loose()
-            .max_width(self.max_width)
-            .max_height(self.max_height)
-            .width(self.width)
-            .height(self.height)
-            .pad(padding);
+            .width(Self::WIDTH)
+            .height(Self::HEIGHT)
+            .pad(self.padding);
 
-        let mut content = self.content.as_widget().layout(renderer, &limits.loose());
-        let size = limits.resolve(content.size());
+        let mut content_layout = self.content.as_widget().layout(renderer, &limits);
+        content_layout.move_to(Point::new(
+            self.padding.left.into(),
+            self.padding.top.into(),
+        ));
 
-        content.move_to(Point::new(self.padding as f32, self.padding as f32));
-        content.align(self.horizontal_alignment, self.vertical_alignment, size);
+        let size = limits.resolve(content_layout.size()).pad(self.padding);
 
-        layout::Node::with_children(size.pad(padding), vec![content])
+        layout::Node::with_children(size, vec![content_layout])
     }
 
     fn on_event(
         &mut self,
-        tree: &mut widget::Tree,
+        tree: &mut Tree,
         event: Event,
         layout: Layout<'_>,
         cursor_position: Point,
-        renderer: &Renderer<Backend, Theme>,
+        renderer: &Renderer,
         clipboard: &mut dyn Clipboard,
         shell: &mut Shell<OrganizerMessage<E>>,
     ) -> event::Status {
@@ -119,10 +124,10 @@ impl<'a, E: super::OrganizerElement> Widget<OrganizerMessage<E>, Renderer<Backen
 
     fn draw(
         &self,
-        tree: &widget::Tree,
-        renderer: &mut Renderer<Backend, Theme>,
-        theme: &Theme,
-        style: &Style,
+        tree: &Tree,
+        renderer: &mut Renderer,
+        theme: &Renderer::Theme,
+        style: &renderer::Style,
         layout: Layout<'_>,
         cursor_position: Point,
         viewport: &Rectangle,
@@ -140,10 +145,10 @@ impl<'a, E: super::OrganizerElement> Widget<OrganizerMessage<E>, Renderer<Backen
 
     fn overlay<'b>(
         &'b mut self,
-        tree: &'b mut widget::Tree,
+        tree: &'b mut Tree,
         layout: Layout<'_>,
-        renderer: &Renderer<Backend, Theme>,
-    ) -> Option<overlay::Element<'_, OrganizerMessage<E>, Renderer<Backend, Theme>>> {
+        renderer: &Renderer,
+    ) -> Option<overlay::Element<'_, OrganizerMessage<E>, Renderer>> {
         self.content.as_widget_mut().overlay(
             &mut tree.children[0],
             layout.children().next().unwrap(),
@@ -152,13 +157,15 @@ impl<'a, E: super::OrganizerElement> Widget<OrganizerMessage<E>, Renderer<Backen
     }
 }
 
-impl<'a, E: super::OrganizerElement>
-    From<DragDropTarget<'a, OrganizerMessage<E>, E::Key, E::AutoGroup>>
-    for Element<'a, OrganizerMessage<E>, Renderer<Backend, Theme>>
+impl<'a, E, Renderer> From<DragDropTarget<'a, OrganizerMessage<E>, Renderer, E::Key, E::AutoGroup>>
+    for Element<'a, OrganizerMessage<E>, Renderer>
+where
+    E: super::OrganizerElement,
+    Renderer: 'a + iced_native::Renderer,
 {
     fn from(
-        value: DragDropTarget<'a, OrganizerMessage<E>, E::Key, E::AutoGroup>,
-    ) -> Element<'a, OrganizerMessage<E>, Renderer<Backend, Theme>> {
+        value: DragDropTarget<'a, OrganizerMessage<E>, Renderer, E::Key, E::AutoGroup>,
+    ) -> Element<'a, OrganizerMessage<E>, Renderer> {
         Element::new(value)
     }
 }
