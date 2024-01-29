@@ -379,7 +379,7 @@ where
             }
             Message::SequenceFileRequested => {
                 let dialog = rfd::AsyncFileDialog::new().pick_file();
-                let requests = self.requests.clone();
+                let requests = Arc::clone(&self.requests);
                 std::thread::spawn(move || {
                     let save_op = async move {
                         let file = dialog.await;
@@ -649,7 +649,7 @@ where
                 }
                 if self.selected_tab == 3 && n != 3 {
                     self.simulation_tab
-                        .leave_tab(self.requests.clone(), &self.application_state);
+                        .leave_tab(Arc::clone(&self.requests), &self.application_state);
                 }
                 if n == 7 {
                     // Revolution tab
@@ -705,15 +705,15 @@ where
             }
             Message::SelectionValueChanged(n, s) => {
                 self.contextual_panel
-                    .selection_value_changed(n, s, self.requests.clone());
+                    .selection_value_changed(n, s, Arc::clone(&self.requests));
             }
             Message::SetSmallSpheres(b) => {
                 self.contextual_panel
-                    .set_small_sphere(b, self.requests.clone());
+                    .set_small_sphere(b, Arc::clone(&self.requests));
             }
             Message::ScaffoldIdSet(n, b) => {
                 self.contextual_panel
-                    .scaffold_id_set(n, b, self.requests.clone());
+                    .scaffold_id_set(n, b, Arc::clone(&self.requests));
             }
             Message::SelectScaffold => self.requests.lock().unwrap().set_scaffold_from_selection(),
             Message::RenderingMode(mode) => {
@@ -793,7 +793,7 @@ where
             }
             Message::ContextualValueSubmitted(kind) => {
                 if let Some(request) = self.contextual_panel.submit_value(kind) {
-                    request.make_request(self.requests.clone())
+                    request.make_request(Arc::clone(&self.requests))
                 }
             }
             Message::ContextualValueChanged(kind, n, val) => {
@@ -801,7 +801,7 @@ where
             }
             Message::InstanciatedValueSubmitted(value) => {
                 if let Some(request) = self.contextual_panel.request_from_value(value) {
-                    request.make_request(self.requests.clone())
+                    request.make_request(Arc::clone(&self.requests))
                 }
             }
             Message::CheckXoversParameter(parameters) => self

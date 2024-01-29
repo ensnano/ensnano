@@ -96,7 +96,7 @@ impl ValueRequest {
         }
     }
 
-    pub(super) fn make_request(&self, request: Arc<Mutex<dyn Requests>>) {
+    pub(super) fn make_request<R: Requests>(&self, request: Arc<Mutex<R>>) {
         match self {
             Self::HelixGridPosition { grid_id, position } => request
                 .lock()

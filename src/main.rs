@@ -335,8 +335,8 @@ fn main() {
     let mut multiplexer = Multiplexer::new(
         window.inner_size(),
         window.scale_factor(),
-        device.clone(),
-        requests.clone(),
+        Rc::clone(&device),
+        Arc::clone(&requests),
         ui_size,
     );
     multiplexer.change_split(SplitMode::Both);
@@ -348,8 +348,8 @@ fn main() {
         device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
     let scene_area = multiplexer.get_element_area(ElementType::Scene).unwrap();
     let scene = Arc::new(Mutex::new(Scene::new(
-        device.clone(),
-        queue.clone(),
+        Rc::clone(&device),
+        Rc::clone(&queue),
         window.inner_size(),
         scene_area,
         requests.clone(),
@@ -358,8 +358,8 @@ fn main() {
         scene::SceneKind::Cartesian,
     )));
     let stereographic_scene = Arc::new(Mutex::new(Scene::new(
-        device.clone(),
-        queue.clone(),
+        Rc::clone(&device),
+        Rc::clone(&queue),
         window.inner_size(),
         scene_area,
         requests.clone(),
@@ -373,8 +373,8 @@ fn main() {
     scheduler.add_application(stereographic_scene.clone(), ElementType::StereographicScene);
 
     let flat_scene = Arc::new(Mutex::new(FlatScene::new(
-        device.clone(),
-        queue.clone(),
+        Rc::clone(&device),
+        Rc::clone(&queue),
         window.inner_size(),
         scene_area,
         requests.clone(),
@@ -391,7 +391,7 @@ fn main() {
     let mut main_state = MainState::new(main_state_constructor);
 
     let mut gui = gui::Gui::new(
-        device.clone(),
+        Rc::clone(&device),
         &window,
         &multiplexer,
         requests.clone(),
