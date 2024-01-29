@@ -70,7 +70,7 @@ pub struct FlatScene<S: AppState> {
     area: DrawArea,
     /// The size of the window on which the flatscene is displayed
     window_size: PhySize,
-    /// The identifer of the design being drawn
+    /// The identifier of the design being drawn
     selected_design: usize,
     device: Rc<Device>,
     queue: Rc<Queue>,

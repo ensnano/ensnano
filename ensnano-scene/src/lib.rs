@@ -76,7 +76,7 @@ pub struct Scene<S: AppState> {
     update: SceneUpdate,
     /// The Object that handles the drawing to the 3d texture
     view: ViewPtr,
-    /// The Object thant handles the designs data
+    /// The Object that handles the designs data
     data: DataPtr<S::DesignReader>,
     /// The Object that handles input and notifications
     controller: Controller<S>,
