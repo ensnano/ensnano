@@ -69,6 +69,20 @@ void main() {
     v_normal = normal_matrix * a_normal;
     v_color = instances[gl_InstanceIndex].color;
     vec3 scale = instances[gl_InstanceIndex].scale;
+
+    vec3 position = a_position * scale;
+    vec3 normal = a_normal;
+
+    if (gl_VertexID < nb_ray_tube) {
+        // left face -> compute intersection with prev
+    } else if (gl_VertexID >= 2*nb_ray_tube) {
+        // right face -> compute intersection with next
+
+
+    } else {
+        // middle face - rien à changer
+    }
+
 /*
     // Change the color of the bond depending on its length if it exceeds the expected length
     float expected_length = instances[gl_InstanceIndex].expected_length;
