@@ -208,12 +208,12 @@ impl Curve {
 
 
         // Affiche la curvature
-        let radii = curvature.clone().into_iter().map(|c| 1./c).collect::<Vec<f64>>();
-        let mut min_radius = 1e30;
-        for r in &radii {
-            if *r < min_radius { min_radius = r.clone(); }
-        }
-        println!("Curvature radius:\n\t{:?}\n\tMinimum radius: {}", radii, min_radius);
+        // let radii = curvature.clone().into_iter().map(|c| 1./c).collect::<Vec<f64>>();
+        // let mut min_radius = 1e30;
+        // for r in &radii {
+        //     if *r < min_radius { min_radius = r.clone(); }
+        // }
+        // println!("Curvature radius:\n\t{:?}\n\tMinimum radius: {}", radii, min_radius);
 
         self.curvature = curvature;
 
