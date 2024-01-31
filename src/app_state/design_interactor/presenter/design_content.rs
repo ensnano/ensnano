@@ -35,10 +35,11 @@ use iced::slider::draw;
 use iced::Element;
 use serde::Serialize;
 use std::borrow::Cow;
+use std::clone;
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::str::FromStr;
 use std::sync::Arc;
-use ultraviolet::Vec3;
+use ultraviolet::{Vec3, Rotor3};
 
 use ensnano_design::grid::GridData;
 
@@ -721,6 +722,9 @@ impl DesignContent {
                         color_map.insert(nucl_id, nucl_color);
                         radius_map.insert(nucl_id, nucl_radius); // radius given to the bond
                         helix_map.insert(nucl_id, nucl.helix); // get helix_id from bond_id
+                        
+                        
+
                         let letter = dom_seq
                             .as_ref()
                             .and_then(|s| s.as_bytes().get(dom_position))
@@ -741,6 +745,22 @@ impl DesignContent {
                         axis_space_position.insert(nucl_id, axis_position);
                         old_nucl = Some(nucl);
                         old_nucl_id = Some(nucl_id);
+
+                        // Clone - hacked
+                        let clone_nucl_id = id_TMP;
+                        id_TMP += 1; 
+                        object_type.insert(clone_nucl_id, ObjectType::Nucleotide(clone_nucl_id));
+                        nucleotide.insert(clone_nucl_id, nucl);
+                        strand_map.insert(clone_nucl_id, *s_id); // get the strand_id from the nucl_id
+                        color_map.insert(clone_nucl_id, (nucl_color & 0xFFFFFF) | (((nucl_color>>24) / 2)<<24));
+                        radius_map.insert(clone_nucl_id, nucl_radius*0.5); // radius given to the bond
+                        helix_map.insert(clone_nucl_id, nucl.helix); // get helix_id from bond_id
+                        let clone_translation = Vec3::new(5., 6., 7.);
+                        let clone_rotor = Rotor3::from_rotation_between(Vec3::new(1.0,0.,0.), Vec3::new(0., 0., 1.));
+                        let nucl_posi = Vec3::new(position[0], position[1], position[2]);
+                        let clone_posi = clone_translation + nucl_posi.rotated_by(clone_rotor);
+                        space_position.insert(clone_nucl_id, [clone_posi[0], clone_posi[1], clone_posi[2]]);
+
                     }
                     if strand.junctions.len() <= i {
                         log::debug!("{:?}", strand.junctions);
