@@ -86,7 +86,7 @@ impl<R: DesignReader> Design3D<R> {
                 ret.push(
                     SphereInstance {
                         position: loopout_nucl.position,
-                        color: Instance::color_from_u32(loopout_nucl.color),
+                        color: Instance::unclear_color_from_u32(loopout_nucl.color),
                         id: loopout_nucl.repr_bond_identifier,
                         radius: SPHERE_RADIUS,
                     }
@@ -100,7 +100,7 @@ impl<R: DesignReader> Design3D<R> {
                 ret.push(
                     SphereInstance {
                         position: transformation.transform_vec(p),
-                        color: Instance::color_from_u32(SURFACE_PIVOT_SPHERE_COLOR),
+                        color: Instance::unclear_color_from_u32(SURFACE_PIVOT_SPHERE_COLOR),
                         id: u32::MAX,
                         radius: SPHERE_RADIUS,
                     }
@@ -112,7 +112,7 @@ impl<R: DesignReader> Design3D<R> {
                     ret.push(
                         SphereInstance {
                             position: transformation.transform_vec(p),
-                            color: Instance::color_from_u32(PIVOT_SPHERE_COLOR),
+                            color: Instance::unclear_color_from_u32(PIVOT_SPHERE_COLOR),
                             id: u32::MAX,
                             radius: SPHERE_RADIUS,
                         }
@@ -440,7 +440,7 @@ impl<R: DesignReader> Design3D<R> {
                 scale: BASIS_SCALE,
                 sphere: SphereInstance {
                     position: hbond.forward.center_of_mass,
-                    color: Instance::color_from_u32(basis_color(hbond.forward.base.unwrap_or('?'))),
+                    color: Instance::unclear_color_from_u32(basis_color(hbond.forward.base.unwrap_or('?'))),
                     radius: SPHERE_RADIUS,
                     id: 0,
                 },
@@ -450,7 +450,7 @@ impl<R: DesignReader> Design3D<R> {
                 scale: BASIS_SCALE,
                 sphere: SphereInstance {
                     position: hbond.backward.center_of_mass,
-                    color: Instance::color_from_u32(basis_color(
+                    color: Instance::unclear_color_from_u32(basis_color(
                         hbond.backward.base.unwrap_or('?'),
                     )),
                     radius: SPHERE_RADIUS,
@@ -571,7 +571,7 @@ impl<R: DesignReader> Design3D<R> {
                 let position =
                     self.get_graphic_element_position(&SceneElement::DesignElement(self.id, id))?;
                 let color = self.get_color(id)?;
-                let color = Instance::color_from_u32(color);
+                let color = Instance::unclear_color_from_u32(color);
                 let id = id | self.id << 24;
                 // let small = self.design_reader.has_small_spheres_nucl_id(id);
                 // let radius = if small {
@@ -1238,7 +1238,7 @@ fn create_dna_bond(source: Vec3, dest: Vec3, color: u32, id: u32, use_alpha: boo
     let color = if use_alpha {
         Instance::color_from_au32(color)
     } else {
-        Instance::color_from_u32(color)
+        Instance::unclear_color_from_u32(color)
     };
     let rotor = Rotor3::from_rotation_between(Vec3::unit_x(), (dest - source).normalized());
     let position = (dest + source) / 2.;
@@ -1265,7 +1265,7 @@ fn create_helix_cylinder(
     let color = if use_alpha {
         Instance::color_from_au32(color)
     } else {
-        Instance::color_from_u32(color)
+        Instance::unclear_color_from_u32(color)
     };
     let rotor = Rotor3::from_rotation_between(Vec3::unit_x(), (dest - source).normalized());
     let rotor2 = Rotor3::from_rotation_between(Vec3::unit_x(), (source - dest).normalized());

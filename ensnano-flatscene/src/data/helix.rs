@@ -220,7 +220,7 @@ impl Helix {
         rotation[0] *= self.isometry.symmetry.x;
         rotation[1] *= self.isometry.symmetry.y;
         HelixModel {
-            color: Instance::color_from_u32(self.color),
+            color: Instance::unclear_color_from_u32(self.color),
             position: self.isometry.translation,
             rotation,
             z_index: self.z_index,

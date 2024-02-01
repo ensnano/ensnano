@@ -238,7 +238,7 @@ fn sheet_corner_instance(corner_desc: BezierSheetCornerDesc<'_>) -> RawDnaInstan
         .sheet
         .space_position_of_point2d(corner_desc.corner_position);
     SphereInstance {
-        color: Instance::color_from_u32(BEZIER_SHEET_CORNER_COLOR),
+        color: Instance::unclear_color_from_u32(BEZIER_SHEET_CORNER_COLOR),
         id: u32::from_be_bytes([
             0xFD,
             corner_desc.corner_id as u8,
@@ -274,7 +274,7 @@ fn make_bezier_squelton(source: Vec3, dest: Vec3) -> RawDnaInstance {
 
     TubeInstance {
         position,
-        color: Instance::color_from_u32(0),
+        color: Instance::unclear_color_from_u32(0),
         id: 0,
         rotor,
         radius: BEZIER_SQUELETON_RADIUS * BOND_RADIUS,
@@ -320,7 +320,7 @@ fn add_raw_instances_representing_bezier_vertex(
     spheres.push(
         SphereInstance {
             position: vertex.coordinates.position + vertex.coordinates.vector_out,
-            color: Instance::color_from_u32(BEZIER_CONTROL1_COLOR),
+            color: Instance::unclear_color_from_u32(BEZIER_CONTROL1_COLOR),
             id: crate::element_selector::bezier_tangent_id(
                 vertex.id.path_id,
                 vertex.id.vertex_id,
@@ -333,7 +333,7 @@ fn add_raw_instances_representing_bezier_vertex(
     spheres.push(
         SphereInstance {
             position: vertex.coordinates.position - vertex.coordinates.vector_in,
-            color: Instance::color_from_u32(BEZIER_CONTROL1_COLOR),
+            color: Instance::unclear_color_from_u32(BEZIER_CONTROL1_COLOR),
             id: crate::element_selector::bezier_tangent_id(
                 vertex.id.path_id,
                 vertex.id.vertex_id,
