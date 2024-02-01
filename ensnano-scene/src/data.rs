@@ -1941,6 +1941,10 @@ impl<R: DesignReader> Data<R> {
             .get(0)
             .and_then(|d| d.get_surface_info_nucl(nucl))
     }
+
+    pub fn get_stl_information(&self) -> Vec<bool> {
+        vec![]
+    }
 }
 
 pub(super) trait WantWidget: Sized + 'static {
