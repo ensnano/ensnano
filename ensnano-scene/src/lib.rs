@@ -1102,6 +1102,10 @@ impl<S: AppState> Scene<S> {
         }
         png_writer.finish().unwrap();
     }
+
+    pub fn get_stl_information(&self) -> Vec<bool> {
+        self.data.borrow().get_stl_information()
+    }
 }
 
 /// A structure that stores the element that needs to be updated in a scene
