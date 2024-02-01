@@ -75,10 +75,12 @@ fn read_mesh(mesh_data: &gltf::Mesh, datas: &[gltf::buffer::Data]) -> Result<Glt
     };
     let indices = reader.read_indices().unwrap().into_u32().collect();
 
+    // println!("I'm here !!");
     let vertices: Vec<ModelVertex> = vertex_positions
         .zip(vertex_normals.zip(vertex_colors))
         .map(|(position, (normal, color))| ModelVertex {
             position,
+            // position: [5.0*position[0], 5.0*position[1], 5.0*position[2], ], // HUGLY HARDCODING OF STL UPSCALING BY 5.0
             normal,
             color,
         })
