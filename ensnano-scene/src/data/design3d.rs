@@ -1318,7 +1318,7 @@ fn create_check_bond(source: Vec3, dest: Vec3, checked: bool) -> RawDnaInstance 
 }
 
 fn create_prime3_cone(source: Vec3, dest: Vec3, color: u32) -> RawDnaInstance {
-    let color = Instance::color_from_u32(color);
+    let color = Instance::unclear_color_from_u32(color);
     let rotor = Rotor3::from_rotation_between(Vec3::unit_x(), (dest - source).normalized());
     let length = 1. / 3. * (dest - source).mag();
     let position = (3. * source + 2. * dest) / 5.;
