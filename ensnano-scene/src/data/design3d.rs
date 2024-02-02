@@ -440,7 +440,9 @@ impl<R: DesignReader> Design3D<R> {
                 scale: BASIS_SCALE,
                 sphere: SphereInstance {
                     position: hbond.forward.center_of_mass,
-                    color: Instance::unclear_color_from_u32(basis_color(hbond.forward.base.unwrap_or('?'))),
+                    color: Instance::unclear_color_from_u32(basis_color(
+                        hbond.forward.base.unwrap_or('?'),
+                    )),
                     radius: SPHERE_RADIUS,
                     id: 0,
                 },

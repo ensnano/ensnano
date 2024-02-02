@@ -206,7 +206,6 @@ impl Curve {
         self.axis_forward = axis_forward;
         self.positions_forward = points_forward;
 
-
         // Affiche la curvature
         // let radii = curvature.clone().into_iter().map(|c| 1./c).collect::<Vec<f64>>();
         // let mut min_radius = 1e30;
@@ -216,7 +215,6 @@ impl Curve {
         // println!("Curvature radius:\n\t{:?}\n\tMinimum radius: {}", radii, min_radius);
 
         self.curvature = curvature;
-
 
         self.t_nucl = Arc::new(t_nucl);
         if self.geometry.is_time_maps_singleton() {

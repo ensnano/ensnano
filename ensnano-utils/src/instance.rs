@@ -72,7 +72,7 @@ impl Instance {
     pub fn color_au32_with_alpha_scaled_by(color: u32, alpha_scale: f32) -> u32 {
         let alpha = (color & 0xFF_00_00_00) >> 24;
         let alpha = (alpha as f32 * alpha_scale).round().max(0.).min(255.) as u32;
-        return (color & 0xFF_FF_FF) | (alpha << 24)
+        return (color & 0xFF_FF_FF) | (alpha << 24);
     }
 
     pub fn unclear_color_from_u32(color: u32) -> Vec4 {
