@@ -1018,23 +1018,14 @@ impl DesignContent {
             }
 
             // Clone - hacked version
-            // Cloned Nucleotide
-
-            // let clone_transfo = vec![vec![
-            //     Isometry3DescriptorItem::RotateXYByAround(180., Vec3::zero()),
-            //     Isometry3DescriptorItem::RotateZXByAround(27., Vec3::zero()),
-            //     Isometry3DescriptorItem::TranslateBy(Vec3::new(0., -38., 0.)),
-            // ]];
-
-            // design.clone_isometries = Some(clone_transfo);
-
             if let Some(ref clone_isometries_descriptors) = design.clone_isometries {
                 let clone_transformations = clone_isometries_descriptors
                     .iter()
                     .map(|d| Isometry3::from_descriptor(d))
                     .collect::<Vec<Isometry3>>();
 
-                for isometry3 in clone_transformations {
+            // Cloned Nucleotide
+            for isometry3 in clone_transformations {
                     let mut nucleotides_clones = HashMap::new();
                     for (nucl, nucl_id) in nucl_collection.identifier.iter() {
                         let clone_nucl_id = id_TMP;
