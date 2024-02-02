@@ -54,6 +54,8 @@ mod collection;
 pub mod design_operations;
 pub mod utils;
 pub use collection::{Collection, HasMap};
+pub mod isometry3_descriptor;
+pub use isometry3_descriptor::Isometry3Descriptor;
 
 mod parameters;
 pub use parameters::*;
@@ -177,6 +179,9 @@ pub struct Design {
 
     #[serde(skip)]
     pub additional_structure: Option<Arc<dyn AdditionalStructure>>,
+
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub clone_isometries: Option<Vec<Isometry3Descriptor>>,
 }
 
 pub trait AdditionalStructure: Send + Sync {
@@ -375,6 +380,7 @@ impl Design {
             instanciated_paths: None,
             external_3d_objects: Default::default(),
             additional_structure: None,
+            clone_isometries: Some(Vec::new()),
         }
     }
 

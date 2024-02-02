@@ -19,11 +19,12 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::*;
 use crate::scene::GridInstance;
 use ahash::RandomState;
+use cadnano_format::color;
 use ensnano_design::elements::{DesignElement, DesignElementKey};
 use ensnano_design::grid::{GridId, GridObject, GridPosition, HelixGridPosition};
 use ensnano_design::*;
 use ensnano_interactor::consts::{
-    BOND_RADIUS, HELIX_CYLINDER_COLOR, HELIX_CYLINDER_RADIUS, SPHERE_RADIUS,
+    BOND_RADIUS, CLONE_OPACITY, HELIX_CYLINDER_COLOR, HELIX_CYLINDER_RADIUS, SPHERE_RADIUS,
 };
 use ensnano_interactor::{
     graphics::{LoopoutBond, LoopoutNucl},
@@ -35,15 +36,22 @@ use iced::slider::draw;
 use iced::Element;
 use serde::Serialize;
 use std::borrow::Cow;
+use std::clone;
 use std::collections::{BTreeMap, HashMap, HashSet};
+use std::f32::consts::PI;
 use std::str::FromStr;
 use std::sync::Arc;
-use ultraviolet::Vec3;
+use ultraviolet::{Rotor3, Vec3};
 
 use ensnano_design::grid::GridData;
 
 mod xover_suggestions;
 use xover_suggestions::XoverSuggestions;
+
+use ensnano_design::isometry3_descriptor::{
+    Isometry3Descriptor, Isometry3DescriptorItem, Isometry3MissingMethods,
+};
+use ensnano_utils::instance::Instance;
 
 #[derive(Default, Clone)]
 pub struct NuclCollection {
@@ -721,6 +729,7 @@ impl DesignContent {
                         color_map.insert(nucl_id, nucl_color);
                         radius_map.insert(nucl_id, nucl_radius); // radius given to the bond
                         helix_map.insert(nucl_id, nucl.helix); // get helix_id from bond_id
+
                         let letter = dom_seq
                             .as_ref()
                             .and_then(|s| s.as_bytes().get(dom_position))
@@ -1005,6 +1014,83 @@ impl DesignContent {
                     radius_map.insert(bond_id, radius);
                     color_map.insert(bond_id, color);
                     nucleotides_involved.insert(bond_id, (n_i, n_j));
+                }
+            }
+
+            // Clone - hacked version
+            // Cloned Nucleotide
+
+            // let clone_transfo = vec![vec![
+            //     Isometry3DescriptorItem::RotateXYByAround(180., Vec3::zero()),
+            //     Isometry3DescriptorItem::RotateZXByAround(27., Vec3::zero()),
+            //     Isometry3DescriptorItem::TranslateBy(Vec3::new(0., -38., 0.)),
+            // ]];
+
+            // design.clone_isometries = Some(clone_transfo);
+
+            if let Some(ref clone_isometries_descriptors) = design.clone_isometries {
+                let clone_transformations = clone_isometries_descriptors
+                    .iter()
+                    .map(|d| Isometry3::from_descriptor(d))
+                    .collect::<Vec<Isometry3>>();
+
+                for isometry3 in clone_transformations {
+                    let mut nucleotides_clones = HashMap::new();
+                    for (nucl, nucl_id) in nucl_collection.identifier.iter() {
+                        let clone_nucl_id = id_TMP;
+                        nucleotides_clones.insert(nucl, clone_nucl_id);
+                        id_TMP += 1;
+                        let nucl_color = color_map.get(nucl_id).unwrap_or(&0);
+                        let nucl_radius = radius_map.get(nucl_id).unwrap_or(&0.);
+                        let s_id = strand_map.get(nucl_id).unwrap_or(&0);
+                        let position = space_position.get(nucl_id).unwrap_or(&[0f32; 3]);
+                        let axis_position = axis_space_position.get(nucl_id).unwrap_or(&[0f32; 3]);
+                        object_type.insert(clone_nucl_id, ObjectType::Nucleotide(clone_nucl_id));
+                        nucleotide.insert(clone_nucl_id, nucl.clone());
+                        strand_map.insert(clone_nucl_id, s_id.clone()); // get the strand_id from the nucl_id
+                        color_map.insert(
+                            clone_nucl_id,
+                            Instance::color_au32_with_alpha_scaled_by(*nucl_color, CLONE_OPACITY),
+                        );
+                        radius_map.insert(clone_nucl_id, *nucl_radius); // radius given to the bond
+                        helix_map.insert(clone_nucl_id, nucl.helix); // get helix_id from bond_id
+
+                        let nucl_posi = Vec3::new(position[0], position[1], position[2]);
+                        let clone_posi = isometry3.translation.clone()
+                            + nucl_posi.rotated_by(isometry3.rotation);
+                        space_position
+                            .insert(clone_nucl_id, [clone_posi[0], clone_posi[1], clone_posi[2]]);
+
+                        let nucl_axis_posi =
+                            Vec3::new(axis_position[0], axis_position[1], axis_position[2]);
+                        let clone_axis_posi = isometry3.translation.clone()
+                            + nucl_axis_posi.rotated_by(isometry3.rotation);
+                        axis_space_position.insert(
+                            clone_nucl_id,
+                            [clone_axis_posi[0], clone_axis_posi[1], clone_axis_posi[2]],
+                        );
+                    }
+                    // Cloned bonds
+                    for (bond, bond_id) in &identifier_bond {
+                        let clone_bond_id = id_TMP;
+                        id_TMP += 1;
+                        let nucl_1_id = nucleotides_clones.get(&bond.0).unwrap();
+                        let nucl_1 = nucleotide.get(nucl_1_id).unwrap();
+                        let nucl_2_id = nucleotides_clones.get(&bond.1).unwrap();
+                        let nucl_2 = nucleotide.get(nucl_2_id).unwrap();
+                        let bond_color = color_map.get(&bond_id).unwrap();
+                        let clone_bond_color =
+                            Instance::color_au32_with_alpha_scaled_by(*bond_color, CLONE_OPACITY);
+                        let bond_radius = radius_map.get(&bond_id).unwrap();
+                        let strand_id = strand_map.get(&bond_id).unwrap();
+                        let helix_id = helix_map.get(&bond_id).unwrap();
+                        object_type.insert(clone_bond_id, ObjectType::Bond(*nucl_1_id, *nucl_2_id));
+                        nucleotides_involved.insert(clone_bond_id, (*nucl_1, *nucl_2));
+                        color_map.insert(clone_bond_id, clone_bond_color);
+                        radius_map.insert(clone_bond_id, *bond_radius); // radius given to the bond
+                        strand_map.insert(clone_bond_id, *strand_id); // match bond_id to strand_id
+                        helix_map.insert(clone_bond_id, *helix_id);
+                    }
                 }
             }
         }
