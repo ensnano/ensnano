@@ -44,7 +44,7 @@ pub const SELECT_SCALE_FACTOR: f32 = 1. + 2. * (CANDIDATE_SCALE_FACTOR - 1.);
 pub const PIVOT_SCALE_FACTOR: f32 = 1.2 * SELECT_SCALE_FACTOR;
 pub const FREE_XOVER_SCALE_FACTOR: f32 = 1.25 * SELECT_SCALE_FACTOR;
 
-pub const CLONE_OPACITY: f32 = 0.8;
+pub const CLONE_OPACITY: f32 = 0.7;
 
 pub const RIGHT_HANDLE_ID: u32 = 0;
 pub const UP_HANDLE_ID: u32 = 1;

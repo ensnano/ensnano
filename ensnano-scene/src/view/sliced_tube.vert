@@ -70,8 +70,8 @@ void main() {
     v_color = instances[gl_InstanceIndex].color;
     vec3 scale = instances[gl_InstanceIndex].scale;
 
-    vec3 position = a_position * scale;
-    vec3 normal = a_normal;
+    // vec3 position = a_position * scale;
+    // vec3 normal = a_normal;
 
     // if (gl_VertexID < nb_ray_tube) {
     //     // left face -> compute intersection with prev

@@ -1,3 +1,5 @@
+use crate::rotor_utils::SafeRotor;
+
 /*
 ENSnano, a 3d graphical application for DNA nanostructures.
     Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
@@ -38,6 +40,7 @@ use ensnano_interactor::{
 };
 use ensnano_utils::instance::Instance;
 use std::collections::{BTreeMap, HashMap, HashSet};
+use std::f32::consts::PI;
 use std::rc::Rc;
 use std::sync::Arc;
 use ultraviolet::{Mat4, Rotor3, Vec2, Vec3};
@@ -1269,10 +1272,11 @@ fn create_helix_cylinder(
     } else {
         Instance::unclear_color_from_u32(color)
     };
-    let rotor = Rotor3::from_rotation_between(Vec3::unit_x(), (dest - source).normalized());
-    let rotor2 = Rotor3::from_rotation_between(Vec3::unit_x(), (source - dest).normalized());
-    let position = (dest + source) / 2.;
     let length = (dest - source).mag();
+    let u = (dest - source).normalized();
+    let rotor = Rotor3::safe_from_rotation_from_unit_x_to(u);
+    let rotor2 = Rotor3::safe_from_rotation_to_unit_x_from(u);
+    let position = (dest + source) / 2.;
 
     (
         TubeLidInstance {

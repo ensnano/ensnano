@@ -977,7 +977,9 @@ impl DesignContent {
                 hash_intervals.insert(h, b);
             }
 
+            // DO NOT USE id_TMP beyond this point
             id_clic_counter.set(id_TMP);
+            // USE id_clic_counter
             for (h, a) in hash_intervals {
                 let mut helix_style = drawing_styles
                     .get(&DesignElementKey::Helix(h))
@@ -1024,13 +1026,12 @@ impl DesignContent {
                     .map(|d| Isometry3::from_descriptor(d))
                     .collect::<Vec<Isometry3>>();
 
-            // Cloned Nucleotide
-            for isometry3 in clone_transformations {
+                // Cloned Nucleotide
+                for isometry3 in clone_transformations {
                     let mut nucleotides_clones = HashMap::new();
                     for (nucl, nucl_id) in nucl_collection.identifier.iter() {
-                        let clone_nucl_id = id_TMP;
+                        let clone_nucl_id = id_clic_counter.next();
                         nucleotides_clones.insert(nucl, clone_nucl_id);
-                        id_TMP += 1;
                         let nucl_color = color_map.get(nucl_id).unwrap_or(&0);
                         let nucl_radius = radius_map.get(nucl_id).unwrap_or(&0.);
                         let s_id = strand_map.get(nucl_id).unwrap_or(&0);
@@ -1063,8 +1064,7 @@ impl DesignContent {
                     }
                     // Cloned bonds
                     for (bond, bond_id) in &identifier_bond {
-                        let clone_bond_id = id_TMP;
-                        id_TMP += 1;
+                        let clone_bond_id = id_clic_counter.next();
                         let nucl_1_id = nucleotides_clones.get(&bond.0).unwrap();
                         let nucl_1 = nucleotide.get(nucl_1_id).unwrap();
                         let nucl_2_id = nucleotides_clones.get(&bond.1).unwrap();
