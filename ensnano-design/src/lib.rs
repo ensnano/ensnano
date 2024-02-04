@@ -827,6 +827,7 @@ pub enum DrawingAttribute {
     DoubleHelixAsCylinderRadius(f32),
     DoubleHelixAsCylinderColor(u32), // with alpha
     RainbowStrand(bool),
+    XoverColoring(bool),
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -843,6 +844,12 @@ impl FromStr for DrawingAttribute {
         }
         if s.starts_with("%nors") {
             return Ok(Self::RainbowStrand(false));
+        }
+        if s.starts_with("%noxc") {
+            return Ok(Self::XoverColoring(false));
+        }
+        if s.starts_with("%xc") {
+            return Ok(Self::XoverColoring(true));
         }
 
         let re_f32 = Regex::new(r"\d+(\.\d*)?").unwrap();
@@ -895,6 +902,8 @@ pub struct DrawingStyle {
     pub helix_as_cylinder_color: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub rainbow_strand: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub xover_coloring: Option<bool>,
 }
 
 impl std::default::Default for DrawingStyle {
@@ -907,6 +916,7 @@ impl std::default::Default for DrawingStyle {
             bond_color: None,
             helix_as_cylinder_color: None,
             rainbow_strand: None,
+            xover_coloring: None,
         }
     }
 }
@@ -930,6 +940,9 @@ impl From<Vec<DrawingAttribute>> for DrawingStyle {
                 }
                 DrawingAttribute::RainbowStrand(b) => {
                     ret.rainbow_strand = ret.rainbow_strand.or(Some(b))
+                }
+                DrawingAttribute::XoverColoring(b) => {
+                    ret.xover_coloring = ret.xover_coloring.or(Some(b))
                 }
             }
         }
@@ -968,6 +981,10 @@ impl DrawingStyle {
                 rainbow_strand: Some(b),
                 ..*self
             },
+            DrawingAttribute::XoverColoring(b) => DrawingStyle {
+                xover_coloring: Some(b),
+                ..*self
+            },
         }
     }
 
@@ -996,6 +1013,10 @@ impl DrawingStyle {
 
         if let Some(b) = self.rainbow_strand {
             atts.push(DrawingAttribute::RainbowStrand(b))
+        }
+
+        if let Some(b) = self.xover_coloring {
+            atts.push(DrawingAttribute::XoverColoring(b))
         }
 
         return atts;
@@ -1031,6 +1052,10 @@ impl DrawingStyle {
                 rainbow_strand: self.rainbow_strand.or(Some(b)),
                 ..*self
             },
+            DrawingAttribute::XoverColoring(b) => DrawingStyle {
+                xover_coloring: self.xover_coloring.or(Some(b)),
+                ..*self
+            },
         }
     }
 
@@ -1055,6 +1080,7 @@ impl DrawingStyle {
                 .helix_as_cylinder_color
                 .or(other.helix_as_cylinder_color),
             rainbow_strand: self.rainbow_strand.or(other.rainbow_strand),
+            xover_coloring: self.xover_coloring.or(other.rainbow_strand),
         };
     }
 }

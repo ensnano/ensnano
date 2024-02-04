@@ -49,7 +49,7 @@ mod bezier_paths;
 
 /// An object that handles the 3d graphical representation of a `Design`
 pub struct Design3D<R: DesignReader> {
-    design_reader: R,
+    pub design_reader: R,
     id: u32,
     symbol_map: HashMap<char, usize>,
     pub thick_helices: bool,
@@ -545,9 +545,13 @@ impl<R: DesignReader> Design3D<R> {
                 let color = self.get_color(id).unwrap_or(0x00_00_00);
                 let id = id | self.id << 24;
                 // Adjust the color and rafius of the bond according to the REAL length of the bond
-                let (color, radius) = self
-                    .length_adjusted_color_and_radius_for_bond(id1, id2)
-                    .unwrap_or((color, 1.0));
+                let xover_coloring = self.get_xover_coloring(id).unwrap_or(true);
+                let (color, radius) = (if xover_coloring {
+                    self.length_adjusted_color_and_radius_for_bond(id1, id2)
+                } else {
+                    None
+                })
+                .unwrap_or((color, 1.0));
                 let radius = radius * self.get_radius(id).unwrap_or(BOND_RADIUS);
                 let tube = create_dna_bond(pos1, pos2, color, id, false).with_radius(radius);
                 vec![tube.to_raw_instance()]
@@ -883,6 +887,10 @@ impl<R: DesignReader> Design3D<R> {
         self.design_reader.get_radius(id)
     }
 
+    fn get_xover_coloring(&self, id: u32) -> Option<bool> {
+        self.design_reader.get_xover_coloring(id)
+    }
+
     /// Return the middle point of `self` in the world coordinates
     pub fn middle_point(&self) -> Vec3 {
         let boundaries = self.boundaries();
@@ -1167,11 +1175,11 @@ impl<R: DesignReader> Design3D<R> {
             .get_position_of_nucl_on_helix(nucl, Referential::World, false)
     }
 
-    pub fn pivot_sphere(position: Vec3) -> RawDnaInstance {
+    pub fn pivot_sphere(position: Vec3, radius: f32) -> RawDnaInstance {
         SphereInstance {
             position,
             id: 0,
-            radius: PIVOT_SCALE_FACTOR * SPHERE_RADIUS,
+            radius: PIVOT_SCALE_FACTOR * radius,
             color: Instance::color_from_au32(PIVOT_SPHERE_COLOR),
         }
         .to_raw_instance()
@@ -1275,7 +1283,7 @@ fn create_helix_cylinder(
     let length = (dest - source).mag();
     let u = (dest - source).normalized();
     let rotor = Rotor3::safe_from_rotation_from_unit_x_to(u);
-    let rotor2 = Rotor3::safe_from_rotation_to_unit_x_from(u);
+    let rotor2 = Rotor3::safe_from_rotation_from_unit_x_to(-u);
     let position = (dest + source) / 2.;
 
     (
@@ -1284,7 +1292,7 @@ fn create_helix_cylinder(
             color,
             rotor: rotor2,
             id,
-            radius: radius,
+            radius,
         },
         SlicedTubeInstance {
             position,
@@ -1301,7 +1309,7 @@ fn create_helix_cylinder(
             color,
             rotor,
             id,
-            radius: radius,
+            radius,
         },
     )
 }
@@ -1391,6 +1399,7 @@ pub trait DesignReader: 'static + ensnano_interactor::DesignReader {
     fn get_element_axis_position(&self, id: u32, referential: Referential) -> Option<Vec3>;
     fn get_color(&self, e_id: u32) -> Option<u32>;
     fn get_radius(&self, e_id: u32) -> Option<f32>;
+    fn get_xover_coloring(&self, e_id: u32) -> Option<bool>;
     fn get_id_of_strand_containing(&self, e_id: u32) -> Option<usize>;
     fn get_id_of_helix_containing(&self, e_id: u32) -> Option<usize>;
     fn get_ids_of_elements_belonging_to_strand(&self, s_id: usize) -> Vec<u32>;

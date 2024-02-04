@@ -137,6 +137,8 @@ pub(super) struct DesignContent {
     pub insertion_length: HashMap<u32, usize, RandomState>,
     /// Maps identifiers to drawingstyles
     pub drawing_styles: HashMap<DesignElementKey, DrawingStyle, RandomState>,
+    /// Maps identifiers to drawingstyles
+    pub xover_coloring_map: HashMap<u32, bool, RandomState>,
 }
 
 impl DesignContent {
@@ -544,6 +546,8 @@ impl DesignContent {
         let mut suggestion_maker = XoverSuggestions::default();
         let mut insertion_length = HashMap::default();
         let mut drawing_styles = HashMap::default();
+        let mut xover_coloring_map = HashMap::default();
+
         xover_ids.agree_on_next_id(&mut new_junctions);
         let rainbow_strand = design.scaffold_id.filter(|_| design.rainbow_scaffold);
         let grid_manager = design.get_updated_grid_data().clone();
@@ -611,6 +615,7 @@ impl DesignContent {
             let mut last_xover_junction: Option<&mut DomainJunction> = None;
             let mut prev_loopout_pos = None;
             let mut prev_style = strand_style;
+            let bond_coloring = strand_style.xover_coloring.unwrap_or(true);
             for (i, domain) in strand.domains.iter().enumerate() {
                 if let Some((prime5, prime3)) = old_nucl.clone().zip(domain.prime5_end()) {
                     Self::update_junction(
@@ -717,6 +722,7 @@ impl DesignContent {
                             radius_map.insert(bond_id, bond_radius); // radius given to the bond
                             strand_map.insert(bond_id, *s_id); // get strand_id from bond_id
                             helix_map.insert(bond_id, nucl.helix); // get helix_id from bond_id
+                            xover_coloring_map.insert(bond_id, bond_coloring);
                             id_TMP
                         } else {
                             id_TMP
@@ -821,6 +827,7 @@ impl DesignContent {
                 radius_map.insert(bond_id, prev_style.bond_radius.unwrap_or(BOND_RADIUS)); // radius given to the bond
                 strand_map.insert(bond_id, *s_id); // match bond_id to strand_id
                 helix_map.insert(bond_id, nucl.helix);
+                xover_coloring_map.insert(bond_id, bond_coloring);
                 log::debug!("adding {:?}, {:?}", bond.0, bond.1);
                 Self::update_junction(
                     &mut new_junctions,
@@ -980,6 +987,7 @@ impl DesignContent {
             // DO NOT USE id_TMP beyond this point
             id_clic_counter.set(id_TMP);
             // USE id_clic_counter
+            let mut helix_cylinders = Vec::new();
             for (h, a) in hash_intervals {
                 let mut helix_style = drawing_styles
                     .get(&DesignElementKey::Helix(h))
@@ -1016,6 +1024,8 @@ impl DesignContent {
                     radius_map.insert(bond_id, radius);
                     color_map.insert(bond_id, color);
                     nucleotides_involved.insert(bond_id, (n_i, n_j));
+                    helix_map.insert(bond_id, h);
+                    helix_cylinders.push(bond_id);
                 }
             }
 
@@ -1075,11 +1085,33 @@ impl DesignContent {
                         let bond_radius = radius_map.get(&bond_id).unwrap();
                         let strand_id = strand_map.get(&bond_id).unwrap();
                         let helix_id = helix_map.get(&bond_id).unwrap();
+                        let xover_coloring = xover_coloring_map.get(&bond_id).unwrap();
                         object_type.insert(clone_bond_id, ObjectType::Bond(*nucl_1_id, *nucl_2_id));
                         nucleotides_involved.insert(clone_bond_id, (*nucl_1, *nucl_2));
                         color_map.insert(clone_bond_id, clone_bond_color);
                         radius_map.insert(clone_bond_id, *bond_radius); // radius given to the bond
                         strand_map.insert(clone_bond_id, *strand_id); // match bond_id to strand_id
+                        helix_map.insert(clone_bond_id, *helix_id);
+                        xover_coloring_map.insert(clone_bond_id, *xover_coloring);
+                    }
+                    // Cloned cylinders
+                    for bond_id in &helix_cylinders {
+                        let clone_bond_id = id_clic_counter.next();
+                        let (nucl_1, nucl_2) = nucleotides_involved.get(bond_id).unwrap();
+                        let clone_nucl_1_id = nucleotides_clones.get(nucl_1).unwrap();
+                        let clone_nucl_2_id = nucleotides_clones.get(nucl_2).unwrap();
+                        let bond_color = color_map.get(&bond_id).unwrap();
+                        let clone_bond_color =
+                            Instance::color_au32_with_alpha_scaled_by(*bond_color, CLONE_OPACITY);
+                        let bond_radius = radius_map.get(bond_id).unwrap();
+                        let helix_id = helix_map.get(bond_id).unwrap();
+                        object_type.insert(
+                            clone_bond_id,
+                            ObjectType::HelixCylinder(*clone_nucl_1_id, *clone_nucl_2_id),
+                        );
+                        nucleotides_involved.insert(clone_bond_id, (*nucl_1, *nucl_2));
+                        color_map.insert(clone_bond_id, clone_bond_color);
+                        radius_map.insert(clone_bond_id, *bond_radius); // radius given to the bond
                         helix_map.insert(clone_bond_id, *helix_id);
                     }
                 }
@@ -1110,6 +1142,7 @@ impl DesignContent {
             loopout_nucls,
             insertion_length,
             drawing_styles,
+            xover_coloring_map,
         };
         let suggestions = suggestion_maker.get_suggestions(&design, suggestion_parameters);
         ret.suggestions = suggestions;

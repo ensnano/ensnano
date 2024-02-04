@@ -481,7 +481,11 @@ impl<R: DesignReader> Data<R> {
                         let instances = self.designs[*d_id as usize].make_instance(
                             *id,
                             SELECTED_COLOR,
-                            SELECT_SCALE_FACTOR * SPHERE_RADIUS,
+                            SELECT_SCALE_FACTOR
+                                * self.designs[*d_id as usize]
+                                    .design_reader
+                                    .get_radius(*id)
+                                    .unwrap(),
                             Some(design3d::ExpandWith::Spheres)
                                 .filter(|_| !app_state.show_insertion_representents()),
                         );
@@ -526,7 +530,11 @@ impl<R: DesignReader> Data<R> {
                         let instance = self.designs[*d_id as usize].make_instance(
                             *id,
                             SELECTED_COLOR,
-                            SELECT_SCALE_FACTOR * BOND_RADIUS,
+                            SELECT_SCALE_FACTOR
+                                * self.designs[*d_id as usize]
+                                    .design_reader
+                                    .get_radius(*id)
+                                    .unwrap(),
                             Some(design3d::ExpandWith::Tubes)
                                 .filter(|_| !app_state.show_insertion_representents()),
                         );
@@ -571,7 +579,11 @@ impl<R: DesignReader> Data<R> {
                         let instances = self.designs[*d_id as usize].make_instance(
                             *id,
                             CANDIDATE_COLOR,
-                            CANDIDATE_SCALE_FACTOR * SPHERE_RADIUS,
+                            CANDIDATE_SCALE_FACTOR
+                                * self.designs[*d_id as usize]
+                                    .design_reader
+                                    .get_radius(*id)
+                                    .unwrap(),
                             Some(design3d::ExpandWith::Spheres)
                                 .filter(|_| !app_state.show_insertion_representents()),
                         );
@@ -616,7 +628,11 @@ impl<R: DesignReader> Data<R> {
                         let instances = self.designs[*d_id as usize].make_instance(
                             *id,
                             CANDIDATE_COLOR,
-                            CANDIDATE_SCALE_FACTOR * BOND_RADIUS,
+                            CANDIDATE_SCALE_FACTOR
+                                * self.designs[*d_id as usize]
+                                    .design_reader
+                                    .get_radius(*id)
+                                    .unwrap(),
                             Some(design3d::ExpandWith::Tubes)
                                 .filter(|_| !app_state.show_insertion_representents()),
                         );
@@ -1320,7 +1336,22 @@ impl<R: DesignReader> Data<R> {
     fn update_pivot(&mut self) {
         let mut spheres = vec![];
         if let Some(pivot) = self.pivot_position {
-            spheres.push(Design3D::<R>::pivot_sphere(pivot));
+            let radius = {
+                if let Some(element) = self.pivot_element {
+                    if let SceneElement::DesignElement(d_id, e_id) = element {
+                        self.designs[d_id as usize]
+                            .design_reader
+                            .get_radius(e_id)
+                            .unwrap_or(SPHERE_RADIUS)
+                            .max(SPHERE_RADIUS)
+                    } else {
+                        SPHERE_RADIUS
+                    }
+                } else {
+                    SPHERE_RADIUS
+                }
+            };
+            spheres.push(Design3D::<R>::pivot_sphere(pivot, radius));
         }
         if let Some(position) = self.surface_pivot_position {
             spheres.push(Design3D::<R>::surface_pivot_sphere(position));
