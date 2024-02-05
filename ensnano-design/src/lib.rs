@@ -836,6 +836,15 @@ pub struct ParsePointError;
 impl FromStr for DrawingAttribute {
     type Err = ParsePointError;
 
+    /// Parse a DrawingAttribute:
+    /// - %rs / %nors for RainbowStrand(true / false) - default = false
+    /// - %xc / %noxc for XoverColoring(true / false) - default = true
+    /// - %sr(r) for SphereRadius(r)
+    /// - %sc(HHHHHHHH) for SphereColor(0xHHHHHHHH)
+    /// - %br(r) for BondRadius(r)
+    /// - %bc(HHHHHHHH) for BondColor(0xHHHHHHHH)
+    /// - %hr(r) for DoubleHelixAsCylinderRadius(r)
+    /// - %hc(HHHHHHHH) for DoubleHelixAsCylinderColor(0xHHHHHHHH)
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let s = s.trim();
 
