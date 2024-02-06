@@ -284,25 +284,24 @@ impl<R: DesignReader> Design3D<R> {
     }).collect::<Vec<Vec3>>();
 
         let mut point = Vec3::zero();
-        println!("{:?}", points);
         for ((prev, p) , next) in points.iter().cycle().skip(n).zip(&points).zip(points.iter().cycle().skip(1)) {
             let position = point + *p / 2.; 
             let rotor = Rotor3::from_rotation_between(Vec3::unit_x(), *p);
             let model =
             Mat4::from_translation(position) * rotor.into_matrix().into_homogeneous(); // translation à position et rotation dans la bonne position u_x -> axe du tube
+            let rotor2 = Rotor3::from_rotation_between(*p,Vec3::unit_x());
 
             ret.push(SlicedTubeInstance {
                 position: position,
                 rotor: rotor,
-                color: Vec4::new(1.,1.,1.,0.),
+                color: Vec4::new(1.,1.,0.,1.),
                 id: 100_000,
                 radius: 0.3,
                 length: p.mag(),
-                prev: *prev, 
-                next: *next,
+                prev: prev, //.rotated_by(rotor), 
+                next: next, //.rotated_by(rotor),
             }.to_raw_instance());
             point += *p;
-            println!("{:?}", point);
         }
         println!("{:?}", ret);
         Rc::new(ret)
