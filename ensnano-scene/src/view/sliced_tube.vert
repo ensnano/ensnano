@@ -89,23 +89,26 @@ void main() {
     if (l_prev > epsilon && gl_VertexIndex < u_nb_ray_tube) {
         // left face -> compute intersection with prev
         prev /= l_prev; 
-        vec3 bisector = normalize(-vec_x - prev); 
-        vec3 perp_vec = cross(-vec_x, prev);
+        // compute the normal to the intersection plane
+        vec3 bisector = normalize(prev - vec_x); 
+        vec3 perp_vec = normalize(cross(prev, vec_x));
         vec3 plane_normal = normalize(cross(bisector, perp_vec));
+        // project the point on the intersection plane
         position.x -= (plane_normal.y * position.y + plane_normal.z * position.z) / plane_normal.x; 
+        // compute the normal by projecting the tangent on the intersection plane and taking the cross product to get a normal in the plane and perpendicular to the tangent
         vec3 tangent = vec3(0., a_normal.z, -a_normal.y);
         tangent.x = -(plane_normal.y * tangent.y + plane_normal.z * tangent.z) / plane_normal.x;
-        v_normal = cross(plane_normal,tangent);
+        v_normal = -normalize(cross(plane_normal,tangent));
     } else if (l_next > epsilon && gl_VertexIndex >= 2 * u_nb_ray_tube) {
         // right face -> compute intersection with next
         next /= l_next;
         vec3 bisector = normalize(vec_x - next); 
-        vec3 perp_vec = cross(vec_x, next);
+        vec3 perp_vec = normalize(cross(vec_x, next));
         vec3 plane_normal = normalize(cross(bisector, perp_vec));
         position.x -= (plane_normal.y * position.y + plane_normal.z * position.z) / plane_normal.x; 
         vec3 tangent = vec3(0., -a_normal.z, a_normal.y);
         tangent.x = -(plane_normal.y * tangent.y + plane_normal.z * tangent.z) / plane_normal.x;
-        v_normal = cross(plane_normal,tangent);
+        v_normal = normalize(cross(plane_normal,tangent));
     }
     // } else {
     //     // middle face - rien à changer
