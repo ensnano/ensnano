@@ -208,13 +208,8 @@ impl DiscreteValue {
 
         let mut name_text = text(self.name.clone()).size(name_size);
 
-        let deactivated_text_color = theme::Text::Color(iced::Color::from_rgb(0.6, 0.6, 0.6));
-        // TODO: It would be nice to have a consistent “deactivated text color”.
-        //       I think the appropriate answer is to use the Style associated type with
-        //       the widget::text::StyleSheet.
-
         if !active {
-            name_text = name_text.style(deactivated_text_color);
+            name_text = name_text.style(super::super::consts::innactive_color());
         }
 
         iced_native::row![
