@@ -965,7 +965,6 @@ where
                 (
                     TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::GridOn))),
                     container(self.grid_tab.view(self.ui_size, &self.application_state))
-                        .style(theme::Container::Box)
                         .height(Length::Fill)
                         .width(Length::Fill)
                         .into(),
@@ -973,7 +972,6 @@ where
                 (
                     TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Edit))),
                     container(self.edition_tab.view(self.ui_size, &self.application_state))
-                        .style(theme::Container::Box)
                         .height(Length::Fill)
                         .width(Length::Fill)
                         .into(),
@@ -981,7 +979,6 @@ where
                 (
                     TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Videocam))),
                     container(self.camera_tab.view(self.ui_size, &self.application_state))
-                        .style(theme::Container::Box)
                         .height(Length::Fill)
                         .width(Length::Fill)
                         .into(),
@@ -992,7 +989,6 @@ where
                         self.simulation_tab
                             .view(self.ui_size, &self.application_state),
                     )
-                    .style(theme::Container::Box)
                     .height(Length::Fill)
                     .width(Length::Fill)
                     .into(),
@@ -1003,7 +999,6 @@ where
                         self.sequence_tab
                             .view(self.ui_size, &self.application_state),
                     )
-                    .style(theme::Container::Box)
                     .height(Length::Fill)
                     .width(Length::Fill)
                     .into(),
@@ -1014,7 +1009,6 @@ where
                         self.parameters_tab
                             .view(self.ui_size, &self.application_state),
                     )
-                    .style(theme::Container::Box)
                     .height(Length::Fill)
                     .width(Length::Fill)
                     .into(),
@@ -1022,7 +1016,6 @@ where
                 (
                     TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Draw))),
                     container(self.pen_tab.view(self.ui_size, &self.application_state))
-                        .style(theme::Container::Box)
                         .height(Length::Fill)
                         .width(Length::Fill)
                         .into(),
@@ -1033,7 +1026,6 @@ where
                         self.revolution_tab
                             .view(self.ui_size, &self.application_state),
                     )
-                    .style(theme::Container::Box)
                     .height(Length::Fill)
                     .width(Length::Fill)
                     .into(),
@@ -1077,22 +1069,16 @@ where
             iced_native::column![
                 first_container.height(Length::FillPortion(2)),
                 horizontal_rule(5),
-                container(camera_shortcut)
-                    .style(theme::Container::Box)
-                    .height(Length::FillPortion(1)),
+                container(camera_shortcut).height(Length::FillPortion(1)),
                 horizontal_rule(5),
-                container(contextual_menu)
-                    .style(theme::Container::Box)
-                    .height(Length::FillPortion(1)),
+                container(contextual_menu).height(Length::FillPortion(1)),
                 horizontal_rule(5),
-                container(organizer)
-                    .style(theme::Container::Box)
-                    .height(Length::FillPortion(2)),
+                container(organizer).height(Length::FillPortion(2)),
             ]
             .width(Length::Fill)
             .padding(1),
         )
-        .style(theme::Container::Box)
+        .style(crate::theme::GuiBackground)
         .height(self.logical_size.height as f32)
         .into()
     }

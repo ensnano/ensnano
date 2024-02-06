@@ -372,8 +372,8 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
         .height(height);
 
         container(buttons)
-            .width(self.logical_size.width as f32)
-            .style(theme::Container::Box)
+            .width(self.logical_size.width as f32 + 2.0)
+            .style(crate::theme::GuiBackground)
             .padding(Padding::from([1, 0])) // HACK: A small padding allow tooltip messages to
             //                                       disappear properly.
             .into()
