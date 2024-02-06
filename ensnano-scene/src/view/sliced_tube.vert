@@ -53,6 +53,7 @@ const float HIGH_CRIT = 2. / 0.7; // bond gets black if length > 2*expected_leng
 
 void main() {
     int model_idx = 0;
+    float epsilon = 1e-5;
 
     //mat4 model_matrix = model_matrix2[model_idx] * instances[gl_InstanceIndex].model;
     mat4 model_matrix = model_matrix2[model_idx] * instances[gl_InstanceIndex].model;
@@ -67,70 +68,53 @@ void main() {
     Currently we are combining the view matrix and projection matrix before we draw,
     so we'd have to pass those in separately. We'd also have to transform our 
     light's position using something like view_matrix * model_matrix * */
-    v_normal = normal_matrix * a_normal;
+    v_normal = a_normal;
     v_color = instances[gl_InstanceIndex].color;
     vec3 scale = instances[gl_InstanceIndex].scale;
 
-    // vec3 position = a_position * scale;
-    // vec3 normal = a_normal;
+    vec3 position = a_position * scale;
+    vec3 normal = a_normal;
 
-    // if (gl_VertexID < nb_ray_tube) {
-    //     // left face -> compute intersection with prev
-    // } else if (gl_VertexID >= 2*nb_ray_tube) {
-    //     // right face -> compute intersection with next
+    // vec3 _next = vec3(1., 1., 1.);
+    // vec3 _prev = vec3(0., 1., 0.);
 
+    // in the referential of the tube
+    vec3 prev = instances[gl_InstanceIndex].prev;
+    vec3 next = instances[gl_InstanceIndex].next;
 
+    float l_prev = length(prev);
+    float l_next = length(next);
+    vec3 vec_x = vec3(1., 0., 0.);
+
+    if (l_prev > epsilon && gl_VertexIndex < u_nb_ray_tube) {
+        // left face -> compute intersection with prev
+        prev /= l_prev; 
+        vec3 bisector = normalize(-vec_x - prev); 
+        vec3 perp_vec = cross(-vec_x, prev);
+        vec3 plane_normal = normalize(cross(bisector, perp_vec));
+        position.x -= (plane_normal.y * position.y + plane_normal.z * position.z) / plane_normal.x; 
+        vec3 tangent = vec3(0., a_normal.z, -a_normal.y);
+        tangent.x = -(plane_normal.y * tangent.y + plane_normal.z * tangent.z) / plane_normal.x;
+        v_normal = cross(plane_normal,tangent);
+    } else if (l_next > epsilon && gl_VertexIndex >= 2 * u_nb_ray_tube) {
+        // right face -> compute intersection with next
+        next /= l_next;
+        vec3 bisector = normalize(vec_x - next); 
+        vec3 perp_vec = cross(vec_x, next);
+        vec3 plane_normal = normalize(cross(bisector, perp_vec));
+        position.x -= (plane_normal.y * position.y + plane_normal.z * position.z) / plane_normal.x; 
+        vec3 tangent = vec3(0., -a_normal.z, a_normal.y);
+        tangent.x = -(plane_normal.y * tangent.y + plane_normal.z * tangent.z) / plane_normal.x;
+        v_normal = cross(plane_normal,tangent);
+    }
     // } else {
     //     // middle face - rien à changer
     // }
 
-/*
-    // Change the color of the bond depending on its length if it exceeds the expected length
-    float expected_length = instances[gl_InstanceIndex].expected_length;
-    if (expected_length > 0.) {
-        if (scale.x > expected_length * LOW_CRIT) { // scale.x is the length of the tube for tube
-           scale.y *= 1.3; // make the bond radius larger if the length is too large
-           scale.z *= 1.3;
-           float shade = smoothstep(expected_length * LOW_CRIT, expected_length * HIGH_CRIT, scale.x);
-           float grey = 0.25 - 0.25 * shade;
-           if (v_color.w > 0.99) {
-               v_color = vec4(grey, grey, grey, 1.);
-           }
-        } 
-    }
-*/
-
-    // vec3 pos = a_position * scale;
-    // if (gl_VertexIndex % 2 == 0) {
-    //     pos = pos + vec3((gl_VertexIndex % 4)/10., 0., 0.);
-    // }
-    // vec4 model_space = model_matrix * vec4(pos, 1.0); 
-
-    vec3 position = a_position * scale;
-
-    // vec3 _next = normalize(vec3(1., 1., 1.));
-    // vec3 _prev = normalize(vec3(-1., -1., -1.));
-
-    // if (2* u_nb_ray_tube <= gl_VertexIndex) { //} && gl_VertexIndex < 2*nb_ray_tube) {
-    //     v_color = vec4(1.,1.,0.,1.);
-    // }
-
 
     vec4 model_space = model_matrix * vec4(position, 1.0); 
-
-    /* if (scale.y < 0.8) {
-        float dist = length(u_camera_position - model_space.xyz);
-        if (abs(scale.x - scale.y) > 1e-5) {
-            scale.yz /= max(1., (dist / 10.));
-        } else {
-          scale /= max(1., (dist / 10.));
-        }
-        model_space = model_matrix * vec4(a_position * scale, 1.0); 
-    }*/
-
     v_position = model_space.xyz;
-
-
+    v_normal = normal_matrix * v_normal;
 
     uint id = instances[gl_InstanceIndex].id;
     v_id = vec4(
