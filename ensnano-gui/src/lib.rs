@@ -332,7 +332,7 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
         size: iced::Size,
         cursor_position: iced::Point,
         renderer: &mut Renderer,
-        theme: &<Renderer as iced_native::renderer::Renderer>::Theme,
+        theme: &<Renderer as iced_native::Renderer>::Theme,
         style: &iced_native::renderer::Style,
         debug: &mut Debug,
     ) {

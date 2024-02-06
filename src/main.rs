@@ -561,7 +561,14 @@ fn main() {
                 scale_factor_changed |= multiplexer.check_scale_factor(&window);
                 let mut redraw = resized || scale_factor_changed;
                 redraw |= main_state.update_cursor(&multiplexer);
-                redraw |= gui.fetch_change(&window, &GUI_THEME, &Default::default(), &multiplexer);
+                redraw |= gui.fetch_change(
+                    &window,
+                    &GUI_THEME,
+                    &iced_native::renderer::Style {
+                        text_color: GUI_THEME.palette().text,
+                    },
+                    &multiplexer,
+                );
 
                 // When there is no more event to deal with
                 requests::poll_all(requests.lock().unwrap(), &mut main_state);
@@ -723,7 +730,14 @@ fn main() {
                 // Get viewports from the partition
 
                 // If there are events pending
-                gui.update(&multiplexer, &GUI_THEME, &Default::default(), &window);
+                gui.update(
+                    &multiplexer,
+                    &GUI_THEME,
+                    &iced_native::renderer::Style {
+                        text_color: GUI_THEME.palette().text,
+                    },
+                    &window,
+                );
 
                 overlay_manager.process_event(
                     &mut renderer,
