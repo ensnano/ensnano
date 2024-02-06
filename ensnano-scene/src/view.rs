@@ -61,8 +61,8 @@ use super::maths_3d::{self, distance_to_cursor_with_penalty};
 use bindgroup_manager::{DynamicBindGroup, UniformBindGroup};
 use direction_cube::*;
 pub use dna_obj::{
-    ConeInstance, DnaObject, Ellipsoid, RawDnaInstance, SphereInstance,
-    StereographicSphereAndPlane, TubeInstance,
+    ConeInstance, DnaObject, Ellipsoid, RawDnaInstance, SlicedTubeInstance, SphereInstance,
+    StereographicSphereAndPlane, TubeInstance, TubeLidInstance,
 };
 use drawable::{Drawable, Drawer, Vertex};
 pub use grid::{GridInstance, GridIntersection};
@@ -1058,6 +1058,8 @@ pub enum ViewUpdate {
 pub enum Mesh {
     Sphere,
     Tube,
+    TubeLid,
+    SlicedTube,
     OutlineSphere,
     OutlineTube,
     FakeSphere,
@@ -1111,11 +1113,24 @@ impl Mesh {
             _ => None,
         }
     }
+
+    pub fn to_u32(&self) -> u32 {
+        match self {
+            Mesh::Sphere => 1,
+            Mesh::Tube => 2,
+            Mesh::TubeLid => 3,
+            Mesh::SlicedTube => 4,
+            Mesh::PivotSphere => 5,
+            _ => 0,
+        }
+    }
 }
 
 struct DnaDrawers {
     sphere: InstanceDrawer<SphereInstance>,
     tube: InstanceDrawer<TubeInstance>,
+    tube_lid: InstanceDrawer<TubeLidInstance>,
+    sliced_tube: InstanceDrawer<SlicedTubeInstance>,
     outline_sphere: InstanceDrawer<SphereInstance>,
     outline_tube: InstanceDrawer<TubeInstance>,
     candidate_sphere: InstanceDrawer<SphereInstance>,
@@ -1152,6 +1167,8 @@ impl DnaDrawers {
         match key {
             Mesh::Sphere => &mut self.sphere,
             Mesh::Tube => &mut self.tube,
+            Mesh::TubeLid => &mut self.tube_lid,
+            Mesh::SlicedTube => &mut self.sliced_tube,
             Mesh::OutlineSphere => &mut self.outline_sphere,
             Mesh::OutlineTube => &mut self.outline_tube,
             Mesh::CandidateSphere => &mut self.candidate_sphere,
@@ -1191,6 +1208,8 @@ impl DnaDrawers {
         let mut ret: Vec<&mut dyn RawDrawer<RawInstance = RawDnaInstance>> = vec![
             &mut self.sphere,
             &mut self.tube,
+            &mut self.tube_lid,
+            &mut self.sliced_tube,
             &mut self.prime3_cones,
             &mut self.candidate_sphere,
             &mut self.candidate_tube,
@@ -1283,6 +1302,24 @@ impl DnaDrawers {
                 (),
                 false,
                 "tube",
+            ),
+            tube_lid: InstanceDrawer::new(
+                device.clone(),
+                queue.clone(),
+                viewer_desc,
+                model_desc,
+                (),
+                false,
+                "tube lid",
+            ),
+            sliced_tube: InstanceDrawer::new(
+                device.clone(),
+                queue.clone(),
+                viewer_desc,
+                model_desc,
+                (),
+                false,
+                "sliced tube",
             ),
             hbond: InstanceDrawer::new(
                 device.clone(),

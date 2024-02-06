@@ -35,6 +35,8 @@ pub mod obj_loader;
 pub mod text;
 pub mod texture;
 
+pub mod clic_counter;
+
 pub type PhySize = PhysicalSize<u32>;
 pub const TEXTURE_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Bgra8UnormSrgb;
 
@@ -82,6 +84,7 @@ pub fn hsv_color(hue: f64, saturation: f64, value: f64) -> u32 {
 }
 
 pub fn new_color(color_idx: &mut usize) -> u32 {
+    // Fibonachi hue coloring scheme
     let color = {
         let hue = (*color_idx as f64 * (1. + 5f64.sqrt()) / 2.).fract() * 360.;
         let saturation = (*color_idx as f64 * 7. * (1. + 5f64.sqrt() / 2.)).fract() * 0.25 + 0.75;

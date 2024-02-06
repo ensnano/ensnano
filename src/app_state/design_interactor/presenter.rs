@@ -56,7 +56,7 @@ pub(super) struct Presenter {
     model_matrix: AddressPointer<Mat4>,
     content: AddressPointer<DesignContent>,
     pub junctions_ids: AddressPointer<JunctionsIds>,
-    visibility_sive: Option<VisibilitySieve>,
+    visibility_sieve: Option<VisibilitySieve>,
     invisible_nucls: HashSet<Nucl>,
     bonds: AddressPointer<Vec<HBond>>,
 }
@@ -69,7 +69,7 @@ impl Default for Presenter {
             model_matrix: AddressPointer::new(Mat4::identity()),
             content: Default::default(),
             junctions_ids: Default::default(),
-            visibility_sive: None,
+            visibility_sieve: None,
             invisible_nucls: Default::default(),
             bonds: Default::default(),
         }
@@ -132,7 +132,7 @@ impl Presenter {
             content: AddressPointer::new(content),
             model_matrix: AddressPointer::new(model_matrix),
             junctions_ids: AddressPointer::new(junctions_ids),
-            visibility_sive: None,
+            visibility_sieve: None,
             invisible_nucls: Default::default(),
             bonds: Default::default(),
         };
@@ -195,7 +195,7 @@ impl Presenter {
                 .skip(nb_skip)
                 .take(length)
         }) {
-            let mut basis_map = HashMap::clone(self.content.basis_map.as_ref());
+            let mut basis_map = HashMap::clone(self.content.letter_map.as_ref());
             let mut ran_out = false;
             if let Some(strand) = self
                 .current_design
@@ -243,7 +243,7 @@ impl Presenter {
                 }
             }
             let mut new_content = self.content.clone_inner();
-            new_content.basis_map = Arc::new(basis_map);
+            new_content.letter_map = Arc::new(basis_map);
             self.content = AddressPointer::new(new_content);
         }
     }
@@ -301,15 +301,15 @@ impl Presenter {
         let forward_half = HalfHBond {
             backbone: pos_forward,
             center_of_mass: pos_forward + 2. * a1 * ensnano_exports::oxdna::BACKBONE_TO_CM,
-            base: self.content.basis_map.get(&forward_nucl).cloned(),
-            backbone_color: self.content.color.get(&forward_id).cloned()?,
+            base: self.content.letter_map.get(&forward_nucl).cloned(),
+            backbone_color: self.content.color_map.get(&forward_id).cloned()?,
         };
 
         let backward_half = HalfHBond {
             backbone: pos_backward,
             center_of_mass: pos_backward - 2. * a1 * ensnano_exports::oxdna::BACKBONE_TO_CM,
-            base: self.content.basis_map.get(&backward_nucl).cloned(),
-            backbone_color: self.content.color.get(&backward_id).cloned()?,
+            base: self.content.letter_map.get(&backward_nucl).cloned(),
+            backbone_color: self.content.color_map.get(&backward_id).cloned()?,
         };
         Some(HBond {
             forward: forward_half,
@@ -323,7 +323,7 @@ impl Presenter {
             selection,
             compl,
             visible,
-        }) = self.visibility_sive.as_ref()
+        }) = self.visibility_sieve.as_ref()
         {
             for nucl in self.content.nucleotide.values() {
                 if self.selection_contains_nucl(selection, *nucl) != *compl {
@@ -436,10 +436,10 @@ impl Presenter {
 
     pub fn set_visibility_sieve(&mut self, selection: Vec<Selection>, compl: bool) {
         if selection.is_empty() {
-            self.visibility_sive = None;
+            self.visibility_sieve = None;
         } else {
             let visible = !self.whole_selection_is_visible(&selection, compl);
-            self.visibility_sive = Some(VisibilitySieve {
+            self.visibility_sieve = Some(VisibilitySieve {
                 selection,
                 compl,
                 visible,
@@ -511,7 +511,7 @@ impl Presenter {
         ensnano_exports::export(
             &self.current_design,
             export_type,
-            Some(self.content.basis_map.as_ref()),
+            Some(self.content.letter_map.as_ref()),
             export_path,
         )
     }

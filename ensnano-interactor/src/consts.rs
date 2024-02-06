@@ -30,6 +30,9 @@ pub const BOND_RADIUS: f32 = 0.06;
 pub const BOND_LENGTH: f32 = 1.;
 pub const NB_RAY_TUBE: usize = 12;
 
+pub const HELIX_CYLINDER_RADIUS: f32 = 0.9;
+pub const HELIX_CYLINDER_COLOR: u32 = 0x88_CC_CC_CC;
+
 pub const SPHERE_RADIUS: f32 = 0.2;
 pub const NB_STACK_SPHERE: u16 = 12;
 pub const NB_SECTOR_SPHERE: u16 = 12;
@@ -40,6 +43,8 @@ pub const CANDIDATE_SCALE_FACTOR: f32 = 1.3;
 pub const SELECT_SCALE_FACTOR: f32 = 1. + 2. * (CANDIDATE_SCALE_FACTOR - 1.);
 pub const PIVOT_SCALE_FACTOR: f32 = 1.2 * SELECT_SCALE_FACTOR;
 pub const FREE_XOVER_SCALE_FACTOR: f32 = 1.25 * SELECT_SCALE_FACTOR;
+
+pub const CLONE_OPACITY: f32 = 0.7;
 
 pub const RIGHT_HANDLE_ID: u32 = 0;
 pub const UP_HANDLE_ID: u32 = 1;

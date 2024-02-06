@@ -51,6 +51,7 @@ iced_winit = "0.9"
 iced_native = "0.10"
 chebyshev_polynomials = { git = "https://github.com/thenlevy/chebyshev_polynomials" }
 hex = "0.4.3"
+pod-enum = "0.1.0"
 
 
 #[patch.crates-io]

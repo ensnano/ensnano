@@ -17,6 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use super::camera::{CameraPtr, ProjectionPtr};
 use ensnano_design::ultraviolet::{Mat4, Rotor3, Vec3, Vec4};
+use ensnano_interactor::consts::NB_RAY_TUBE;
 pub use ensnano_interactor::graphics::FogParameters;
 
 #[repr(C)] // We need this for Rust to store our data correctly for the shaders
@@ -37,8 +38,9 @@ pub struct Uniforms {
     pub stereography_radius: f32, // 0
     pub stereography_view: Mat4,  // 0
     pub aspect_ratio: f32,        // 1
-    pub stereography_zoom: f32,
-    pub _padding: [f32; 2],
+    pub stereography_zoom: f32,   // 2
+    pub nb_ray_tube: u32,         // 3
+    pub _padding: [f32; 1],
 }
 
 #[derive(Clone, Debug)]
@@ -98,6 +100,7 @@ impl Uniforms {
             stereography_view,
             aspect_ratio: projection.borrow().get_ratio(),
             stereography_zoom: projection.borrow().stereographic_zoom,
+            nb_ray_tube: NB_RAY_TUBE as u32,
             _padding: Default::default(),
         }
     }
@@ -133,6 +136,7 @@ impl Uniforms {
             stereography_radius,
             aspect_ratio: projection.borrow().get_ratio(),
             stereography_zoom: projection.borrow().stereographic_zoom,
+            nb_ray_tube: NB_RAY_TUBE as u32,
             _padding: Default::default(),
         }
     }

@@ -25,7 +25,7 @@ impl<R: DesignReader> Design3D<R> {
     pub fn get_bezier_elements(&self, h_id: usize) -> (Vec<RawDnaInstance>, Vec<RawDnaInstance>) {
         let mut spheres = Vec::new();
         let mut tubes = Vec::new();
-        if let Some(constructor) = self.design.get_cubic_bezier_controls(h_id) {
+        if let Some(constructor) = self.design_reader.get_cubic_bezier_controls(h_id) {
             log::info!("got control");
             for (control_point, position) in constructor.iter() {
                 spheres.push(make_bezier_controll(
@@ -44,7 +44,7 @@ impl<R: DesignReader> Design3D<R> {
             ));
             tubes.push(make_bezier_squelton(constructor.control2, constructor.end));
             (spheres, tubes)
-        } else if let Some(controls) = self.design.get_piecewise_bezier_controls(h_id) {
+        } else if let Some(controls) = self.design_reader.get_piecewise_bezier_controls(h_id) {
             let mut iter = controls.into_iter().enumerate();
             while let Some(((n1, c1), (n2, c2))) = iter.next().zip(iter.next()) {
                 spheres.push(make_bezier_controll(
@@ -66,7 +66,7 @@ impl<R: DesignReader> Design3D<R> {
     }
 
     pub fn get_control_point(&self, helix_id: usize, control: BezierControlPoint) -> Option<Vec3> {
-        self.design
+        self.design_reader
             .get_position_of_bezier_control(helix_id, control)
     }
 
@@ -83,11 +83,11 @@ impl<R: DesignReader> Design3D<R> {
         match bezier_control {
             BezierControlPoint::CubicBezier(_) => None,
             BezierControlPoint::PiecewiseBezier(n) => {
-                let descriptor = self.design.get_curve_descriptor(h_id)?;
+                let descriptor = self.design_reader.get_curve_descriptor(h_id)?;
                 if let CurveDescriptor::PiecewiseBezier { points, .. } = descriptor {
                     // There are two control points per bezier grid position
                     let g_id = points.get(n / 2).map(|point| point.position.grid)?;
-                    let grid_orientation = self.design.get_grid_basis(g_id)?;
+                    let grid_orientation = self.design_reader.get_grid_basis(g_id)?;
                     Some(grid_orientation)
                 } else {
                     None
@@ -105,13 +105,13 @@ impl<R: DesignReader> Design3D<R> {
         let axis_position = app_state.get_revolution_axis_position();
 
         let mut first = true;
-        for (plane_id, desc) in self.design.get_bezier_planes().iter() {
-            let corners = self.design.get_corners_of_plane(*plane_id);
+        for (plane_id, desc) in self.design_reader.get_bezier_planes().iter() {
+            let corners = self.design_reader.get_corners_of_plane(*plane_id);
             let sheet = get_sheet_instance(SheetDescriptor {
                 corners,
                 plane_descritor: desc,
                 plane_id: *plane_id,
-                helix_parameters: self.design.get_parameters(),
+                helix_parameters: self.design_reader.get_parameters(),
                 axis_position: axis_position.filter(|_| first),
             });
             spheres.extend_from_slice(corners_of_sheet(&sheet).as_slice());
@@ -126,7 +126,7 @@ impl<R: DesignReader> Design3D<R> {
         path_id: BezierPathId,
         vertex_id: usize,
     ) -> Option<Vec3> {
-        self.design
+        self.design_reader
             .get_bezier_paths()
             .and_then(|m| m.get(&path_id))
             .and_then(|p| p.bezier_controls().get(vertex_id))
@@ -140,7 +140,7 @@ impl<R: DesignReader> Design3D<R> {
         let mut spheres = Vec::new();
         let mut tubes = Vec::new();
         let selection = app_state.get_selection();
-        if let Some(paths) = self.design.get_bezier_paths() {
+        if let Some(paths) = self.design_reader.get_bezier_paths() {
             for (path_id, path) in paths.iter() {
                 for (vertex_id, coordinates) in path.bezier_controls().iter().enumerate() {
                     add_raw_instances_representing_bezier_vertex(
@@ -164,7 +164,7 @@ impl<R: DesignReader> Design3D<R> {
                             position: Vec3::new(point.x as f32, point.y as f32, point.z as f32),
                             color: [1., 0., 0., 1.].into(),
                             id: 0,
-                            radius: 2.0,
+                            radius: 2.0 * SPHERE_RADIUS,
                         }
                         .to_raw_instance(),
                     );
@@ -238,7 +238,7 @@ fn sheet_corner_instance(corner_desc: BezierSheetCornerDesc<'_>) -> RawDnaInstan
         .sheet
         .space_position_of_point2d(corner_desc.corner_position);
     SphereInstance {
-        color: Instance::color_from_u32(BEZIER_SHEET_CORNER_COLOR),
+        color: Instance::unclear_color_from_u32(BEZIER_SHEET_CORNER_COLOR),
         id: u32::from_be_bytes([
             0xFD,
             corner_desc.corner_id as u8,
@@ -246,7 +246,7 @@ fn sheet_corner_instance(corner_desc: BezierSheetCornerDesc<'_>) -> RawDnaInstan
             corner_desc.sheet.plane_id.0.to_be_bytes()[3],
         ]),
         position,
-        radius: BEZIER_SHEET_CORNER_RADIUS,
+        radius: BEZIER_SHEET_CORNER_RADIUS * SPHERE_RADIUS,
     }
     .to_raw_instance()
 }
@@ -262,7 +262,7 @@ fn make_bezier_controll(
         position,
         id,
         color: Instance::color_from_au32(color),
-        radius: BEZIER_CONTROL_RADIUS,
+        radius: BEZIER_CONTROL_RADIUS * SPHERE_RADIUS,
     }
     .to_raw_instance()
 }
@@ -274,10 +274,10 @@ fn make_bezier_squelton(source: Vec3, dest: Vec3) -> RawDnaInstance {
 
     TubeInstance {
         position,
-        color: Instance::color_from_u32(0),
+        color: Instance::unclear_color_from_u32(0),
         id: 0,
         rotor,
-        radius: BEZIER_SQUELETON_RADIUS,
+        radius: BEZIER_SQUELETON_RADIUS * BOND_RADIUS,
         length,
     }
     .to_raw_instance()
@@ -313,33 +313,33 @@ fn add_raw_instances_representing_bezier_vertex(
             position: vertex.coordinates.position,
             color,
             id: crate::element_selector::bezier_vertex_id(vertex.id.path_id, vertex.id.vertex_id),
-            radius: 10.0,
+            radius: 10.0 * SPHERE_RADIUS,
         }
         .to_raw_instance(),
     );
     spheres.push(
         SphereInstance {
             position: vertex.coordinates.position + vertex.coordinates.vector_out,
-            color: Instance::color_from_u32(BEZIER_CONTROL1_COLOR),
+            color: Instance::unclear_color_from_u32(BEZIER_CONTROL1_COLOR),
             id: crate::element_selector::bezier_tangent_id(
                 vertex.id.path_id,
                 vertex.id.vertex_id,
                 false,
             ),
-            radius: 5.0,
+            radius: 5.0 * SPHERE_RADIUS,
         }
         .to_raw_instance(),
     );
     spheres.push(
         SphereInstance {
             position: vertex.coordinates.position - vertex.coordinates.vector_in,
-            color: Instance::color_from_u32(BEZIER_CONTROL1_COLOR),
+            color: Instance::unclear_color_from_u32(BEZIER_CONTROL1_COLOR),
             id: crate::element_selector::bezier_tangent_id(
                 vertex.id.path_id,
                 vertex.id.vertex_id,
                 true,
             ),
-            radius: 5.0,
+            radius: 5.0 * SPHERE_RADIUS,
         }
         .to_raw_instance(),
     );

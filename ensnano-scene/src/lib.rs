@@ -68,6 +68,9 @@ type ViewPtr = Rc<RefCell<View>>;
 type DataPtr<R> = Rc<RefCell<Data<R>>>;
 use std::convert::TryInto;
 
+// Rotor utils: safe rotor between
+mod rotor_utils;
+
 const PNG_SIZE: u32 = 256 * 10;
 
 /// A structure responsible of the 3D display of the designs
@@ -840,7 +843,7 @@ impl<S: AppState> Scene<S> {
         }
         self.data
             .borrow_mut()
-            .update_design(new_state.get_design_reader());
+            .update_design_reader(new_state.get_design_reader());
         self.data
             .borrow_mut()
             .update_view(&new_state, &self.older_state);
