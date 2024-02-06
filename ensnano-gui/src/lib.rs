@@ -29,6 +29,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //       * Status Bar: 0x121230  More blueish.
 
 pub mod helpers;
+pub mod theme;
 
 pub mod top_bar;
 use ensnano_organizer::GroupId;

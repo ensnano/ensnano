@@ -85,6 +85,7 @@ use std::time::{Duration, Instant};
 use controller::{ChannelReader, ChannelReaderUpdate, SimulationRequest};
 use ensnano_design::{grid::GridId, Camera};
 use ensnano_exports::{ExportResult, ExportType};
+use ensnano_gui::theme;
 use ensnano_interactor::{
     application::{Application, Notification},
     RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor,
@@ -196,15 +197,6 @@ const BACKEND: wgpu::Backends = wgpu::Backends::DX12;
 ///
 /// TODO: Make a feature that would set this constant to `false`.
 const PANIC_ON_WGPU_ERRORS: bool = true;
-
-/// Iced theme
-const GUI_PALETTE: iced::theme::Palette = iced::theme::Palette {
-    background: iced::Color::from_rgb(0.1, 0.1, 0.1),
-    text: iced::Color::WHITE,
-    primary: iced::Color::from_rgb(0.2, 0.2, 0.3),
-    success: iced::Color::from_rgb(0.5, 1.0, 0.5),
-    danger: iced::Color::from_rgb(1.0, 5.0, 0.5),
-};
 
 /// Main function. Runs the event loop and holds the framebuffer.
 ///
@@ -330,6 +322,8 @@ fn main() {
     let mut resized = false;
     let mut scale_factor_changed = false;
     let mut staging_belt = wgpu::util::StagingBelt::new(5 * 1024);
+
+    let gui_theme = theme::gui_theme();
 
     // Initialize the mediator
     let requests = Arc::new(Mutex::new(Requests::default()));
@@ -568,10 +562,8 @@ fn main() {
                 redraw |= main_state.update_cursor(&multiplexer);
                 redraw |= gui.fetch_change(
                     &window,
-                    &iced::Theme::custom(GUI_PALETTE),
-                    &iced_native::renderer::Style {
-                        text_color: GUI_PALETTE.text,
-                    },
+                    &gui_theme,
+                    &theme::gui_style(&gui_theme),
                     &multiplexer,
                 );
 
@@ -647,10 +639,8 @@ fn main() {
                     &multiplexer,
                     &window,
                     &mut renderer,
-                    &iced::Theme::custom(GUI_PALETTE),
-                    &iced_native::renderer::Style {
-                        text_color: GUI_PALETTE.text,
-                    },
+                    &gui_theme,
+                    &theme::gui_style(&gui_theme),
                 );
                 {
                     let mut messages = messages.lock().unwrap();
@@ -739,19 +729,15 @@ fn main() {
                 // If there are events pending
                 gui.update(
                     &multiplexer,
-                    &iced::Theme::custom(GUI_PALETTE),
-                    &iced_native::renderer::Style {
-                        text_color: GUI_PALETTE.text,
-                    },
+                    &gui_theme,
+                    &theme::gui_style(&gui_theme),
                     &window,
                 );
 
                 overlay_manager.process_event(
                     &mut renderer,
-                    &iced::Theme::custom(GUI_PALETTE),
-                    &iced_native::renderer::Style {
-                        text_color: GUI_PALETTE.text,
-                    },
+                    &gui_theme,
+                    &theme::gui_style(&gui_theme),
                     resized,
                     &multiplexer,
                     &window,
