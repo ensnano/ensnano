@@ -198,8 +198,13 @@ const BACKEND: wgpu::Backends = wgpu::Backends::DX12;
 const PANIC_ON_WGPU_ERRORS: bool = true;
 
 /// Iced theme
-//const GUI_THEME: iced::Theme = iced::Theme::Light;
-const GUI_THEME: iced::Theme = iced::Theme::Dark;
+const GUI_PALETTE: iced::theme::Palette = iced::theme::Palette {
+    background: iced::Color::from_rgb(0.1, 0.1, 0.1),
+    text: iced::Color::WHITE,
+    primary: iced::Color::from_rgb(0.2, 0.2, 0.3),
+    success: iced::Color::from_rgb(0.5, 1.0, 0.5),
+    danger: iced::Color::from_rgb(1.0, 5.0, 0.5),
+};
 
 /// Main function. Runs the event loop and holds the framebuffer.
 ///
@@ -563,9 +568,9 @@ fn main() {
                 redraw |= main_state.update_cursor(&multiplexer);
                 redraw |= gui.fetch_change(
                     &window,
-                    &GUI_THEME,
+                    &iced::Theme::custom(GUI_PALETTE),
                     &iced_native::renderer::Style {
-                        text_color: GUI_THEME.palette().text,
+                        text_color: GUI_PALETTE.text,
                     },
                     &multiplexer,
                 );
@@ -642,8 +647,10 @@ fn main() {
                     &multiplexer,
                     &window,
                     &mut renderer,
-                    GUI_THEME,
-                    &Default::default(), // Use default style for now.
+                    &iced::Theme::custom(GUI_PALETTE),
+                    &iced_native::renderer::Style {
+                        text_color: GUI_PALETTE.text,
+                    },
                 );
                 {
                     let mut messages = messages.lock().unwrap();
@@ -732,17 +739,19 @@ fn main() {
                 // If there are events pending
                 gui.update(
                     &multiplexer,
-                    &GUI_THEME,
+                    &iced::Theme::custom(GUI_PALETTE),
                     &iced_native::renderer::Style {
-                        text_color: GUI_THEME.palette().text,
+                        text_color: GUI_PALETTE.text,
                     },
                     &window,
                 );
 
                 overlay_manager.process_event(
                     &mut renderer,
-                    GUI_THEME,
-                    &Default::default(), // Use default style for now.
+                    &iced::Theme::custom(GUI_PALETTE),
+                    &iced_native::renderer::Style {
+                        text_color: GUI_PALETTE.text,
+                    },
                     resized,
                     &multiplexer,
                     &window,
@@ -871,7 +880,7 @@ impl OverlayManager {
     fn process_event(
         &mut self,
         renderer: &mut iced_graphics::Renderer<iced_wgpu::Backend, iced::Theme>,
-        theme: iced::Theme,
+        theme: &iced::Theme,
         style: &iced_native::renderer::Style,
         resized: bool,
         multiplexer: &Multiplexer,
@@ -892,7 +901,7 @@ impl OverlayManager {
                             convert_size(PhysicalSize::new(250, 250)),
                             conversion::cursor_position(cursor_position, window.scale_factor()),
                             renderer,
-                            &theme,
+                            theme,
                             style,
                             &mut clipboard,
                             &mut self.color_debug,
@@ -970,7 +979,7 @@ impl OverlayManager {
         multiplexer: &Multiplexer,
         window: &Window,
         renderer: &mut iced_graphics::Renderer<iced_wgpu::Backend, iced::Theme>,
-        theme: iced::Theme,
+        theme: &iced::Theme,
         style: &iced_native::renderer::Style,
     ) -> bool {
         let mut ret = false;
@@ -990,7 +999,7 @@ impl OverlayManager {
                             convert_size(PhysicalSize::new(250, 250)),
                             conversion::cursor_position(cursor_position, window.scale_factor()),
                             renderer,
-                            &theme,
+                            theme,
                             style,
                             &mut clipboard,
                             &mut self.color_debug,
