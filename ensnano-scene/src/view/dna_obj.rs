@@ -61,17 +61,19 @@ impl Vertexable for DnaVertex {
 #[derive(Clone, Debug, Copy, bytemuck::Zeroable, bytemuck::Pod)]
 pub struct RawDnaInstance {
     // must be aligned on 4 times f32 module 8 ?
-    pub model: Mat4,
-    pub color: Vec4,
-    pub scale: Vec3,
-    pub id: u32,
-    pub inversed_model: Mat4,
+    pub model: Mat4,           // 0
+    pub color: Vec4,           // 0
+    pub scale: Vec3,           // 3
+    pub id: u32,               // 0
+    pub inversed_model: Mat4,  // 0
     // pub expected_length: f32, // used to modify the color of bonds in the dna_obj vertex shader -> now obsolete
-    pub mesh: u32, // 32bits did not exist before -> ADD OPTIONAL VECTOR NEXT AND PREV FOR SLICED TUBES
-    pub prev: Vec3, // previous bond direction assuming the current tube is aligned with X axis
-    pub next: Vec3, // next bond direction assuming the current tube is aligned with X axis
-    pub nb_ray_tube: u32, // the number of ray to determine on which three faces is the vertex in the sliced tube shader
-    _padding: [u32; 4],   // [u32; 2], // [f32; 3]
+    // previous bond direction assuming the current tube is aligned with X axis
+    pub prev: Vec3,            // 3          
+    // 32bits did not exist before -> ADD OPTIONAL VECTOR NEXT AND PREV FOR SLICED TUBES
+    pub mesh: u32,             // 0
+    // next bond direction assuming the current tube is aligned with X axis
+    pub next: Vec3,            // 3
+    _padding: [f32; 1],   
 }
 
 // impl RawDnaInstance {
@@ -161,7 +163,7 @@ impl Instanciable for SphereInstance {
     fn to_raw_instance(&self) -> RawDnaInstance {
         let model = Mat4::from_translation(self.position);
         RawDnaInstance {
-            model,
+            model, // translation vers position
             color: self.color,
             scale: Vec3::new(self.radius, self.radius, self.radius),
             id: self.id,
@@ -169,8 +171,7 @@ impl Instanciable for SphereInstance {
             mesh: super::Mesh::Sphere.to_u32(),
             prev: Vec3::zero(),
             next: Vec3::zero(),
-            nb_ray_tube: 0,
-            _padding: [0; 4], //[0; 2], //[0.; 3],
+            _padding: Default::default(),
         }
     }
 
@@ -280,8 +281,7 @@ impl Instanciable for StereographicSphereAndPlane {
             mesh: super::Mesh::StereographicSphere.to_u32(),
             prev: Vec3::zero(),
             next: Vec3::zero(),
-            nb_ray_tube: 0,
-            _padding: [0; 4], // _padding: [0; 2], //[0.; 3],
+            _padding: Default::default(),
         }
     }
 }
@@ -353,7 +353,7 @@ impl Instanciable for TubeInstance {
 
     fn to_raw_instance(&self) -> RawDnaInstance {
         let model =
-            Mat4::from_translation(self.position) * self.rotor.into_matrix().into_homogeneous();
+            Mat4::from_translation(self.position) * self.rotor.into_matrix().into_homogeneous(); // translation à position et rotation dans la bonne position u_x -> axe du tube
         RawDnaInstance {
             model,
             color: self.color,
@@ -363,8 +363,7 @@ impl Instanciable for TubeInstance {
             mesh: super::Mesh::Tube.to_u32(),
             prev: Vec3::zero(),
             next: Vec3::zero(),
-            nb_ray_tube: 0,
-            _padding: [0; 4], // _padding: [0; 2], //[0.; 3],
+            _padding: Default::default(),
         }
     }
 }
@@ -453,8 +452,7 @@ impl Instanciable for TubeLidInstance {
             mesh: super::Mesh::TubeLid.to_u32(),
             prev: Vec3::zero(),
             next: Vec3::zero(),
-            nb_ray_tube: 0,
-            _padding: [0; 4], // _padding: [0; 2], //[0.; 3],
+            _padding: Default::default(),
         }
     }
 }
@@ -570,8 +568,7 @@ impl Instanciable for SlicedTubeInstance {
             mesh: super::Mesh::SlicedTube.to_u32(),
             prev: self.prev,
             next: self.next,
-            nb_ray_tube: NB_RAY_TUBE as u32,
-            _padding: [0; 4], // _padding: [0; 2], //[0.; 3],
+            _padding: Default::default(),
         }
     }
 }
@@ -675,8 +672,7 @@ impl Instanciable for ConeInstance {
             mesh: super::Mesh::Prime3Cone.to_u32(),
             prev: Vec3::zero(),
             next: Vec3::zero(),
-            nb_ray_tube: 0,
-            _padding: [0; 4], // _padding: [0; 2], //[0.; 3],
+            _padding: Default::default(),
         }
     }
 }

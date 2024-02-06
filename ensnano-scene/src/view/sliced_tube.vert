@@ -21,6 +21,7 @@ uniform Uniforms {
     mat4 u_stereography_view;
     float u_aspect_ratio;
     float u_stereography_zoom;
+    uint u_nb_ray_tube;
 };
 
 layout(set=1, binding=0) buffer ModelBlock {
@@ -28,15 +29,15 @@ layout(set=1, binding=0) buffer ModelBlock {
 };
 
 struct Instances {
-    mat4 model;
+    mat4 model; // translation to position + rotation to align u_x to the axis of the tube
     vec4 color;
     vec3 scale;
     uint id;
     mat4 inversed_model;
-    uint mesh;
     vec3 prev;
+    uint mesh;
     vec3 next;
-    uint nb_ray_tube;
+    float _padding;
 };
 
 layout(std430, set=2, binding=0) 
@@ -105,7 +106,17 @@ void main() {
     // }
     // vec4 model_space = model_matrix * vec4(pos, 1.0); 
 
-    vec4 model_space = model_matrix * vec4(a_position * scale, 1.0); 
+    vec3 position = a_position * scale;
+
+    vec3 _next = normalize(vec3(1., 1., 1.));
+    vec3 _prev = normalize(vec3(-1., -1., -1.));
+
+    if (2* u_nb_ray_tube <= gl_VertexIndex) { //} && gl_VertexIndex < 2*nb_ray_tube) {
+        v_color = vec4(1.,1.,0.,1.);
+    }
+
+
+    vec4 model_space = model_matrix * vec4(position, 1.0); 
 
     /* if (scale.y < 0.8) {
         float dist = length(u_camera_position - model_space.xyz);
@@ -118,6 +129,9 @@ void main() {
     }*/
 
     v_position = model_space.xyz;
+
+
+
     uint id = instances[gl_InstanceIndex].id;
     v_id = vec4(
           float((id >> 16) & 0xFF) / 255.,
