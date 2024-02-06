@@ -108,12 +108,12 @@ void main() {
 
     vec3 position = a_position * scale;
 
-    vec3 _next = normalize(vec3(1., 1., 1.));
-    vec3 _prev = normalize(vec3(-1., -1., -1.));
+    // vec3 _next = normalize(vec3(1., 1., 1.));
+    // vec3 _prev = normalize(vec3(-1., -1., -1.));
 
-    if (2* u_nb_ray_tube <= gl_VertexIndex) { //} && gl_VertexIndex < 2*nb_ray_tube) {
-        v_color = vec4(1.,1.,0.,1.);
-    }
+    // if (2* u_nb_ray_tube <= gl_VertexIndex) { //} && gl_VertexIndex < 2*nb_ray_tube) {
+    //     v_color = vec4(1.,1.,0.,1.);
+    // }
 
 
     vec4 model_space = model_matrix * vec4(position, 1.0); 
