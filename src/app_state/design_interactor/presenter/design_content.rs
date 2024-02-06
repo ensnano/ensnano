@@ -32,7 +32,7 @@ use ensnano_interactor::{
 };
 use ensnano_utils::clic_counter::ClicCounter;
 use futures::stream::LocalBoxStream;
-use iced::slider::draw;
+use iced::widget::slider::draw;
 use iced::Element;
 use serde::Serialize;
 use std::borrow::Cow;
