@@ -43,7 +43,8 @@ use std::collections::{BTreeMap, HashMap, HashSet};
 use std::f32::consts::PI;
 use std::rc::Rc;
 use std::sync::Arc;
-use ultraviolet::{Mat4, Rotor3, Vec2, Vec3};
+use std::iter::Zip;
+use ultraviolet::{Mat4, Rotor3, Vec2, Vec3, Vec4};
 
 mod bezier_paths;
 
@@ -267,6 +268,43 @@ impl<R: DesignReader> Design3D<R> {
                 )
             }
         }
+
+        // extra tubes to test sliced_tubes
+        let n = 10;
+        let b = 0.2f32;
+        let r = 0.6f32;
+        let points = (0..n+1).map(|i| 
+            match i {
+                0 =>  Vec3::zero(),
+                10 =>  Vec3::zero(),
+                _ => Vec3::new(
+                    1., 
+                    r*((i as f32 * b).cos()), 
+                    r*((i as f32 * b).sin())),
+    }).collect::<Vec<Vec3>>();
+
+        let mut point = Vec3::zero();
+        println!("{:?}", points);
+        for ((prev, p) , next) in points.iter().cycle().skip(n).zip(&points).zip(points.iter().cycle().skip(1)) {
+            let position = point + *p / 2.; 
+            let rotor = Rotor3::from_rotation_between(Vec3::unit_x(), *p);
+            let model =
+            Mat4::from_translation(position) * rotor.into_matrix().into_homogeneous(); // translation à position et rotation dans la bonne position u_x -> axe du tube
+
+            ret.push(SlicedTubeInstance {
+                position: position,
+                rotor: rotor,
+                color: Vec4::new(1.,1.,1.,0.),
+                id: 100_000,
+                radius: 0.3,
+                length: p.mag(),
+                prev: *prev, 
+                next: *next,
+            }.to_raw_instance());
+            point += *p;
+            println!("{:?}", point);
+        }
+        println!("{:?}", ret);
         Rc::new(ret)
     }
 
