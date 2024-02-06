@@ -91,7 +91,7 @@ void main() {
         prev /= l_prev; 
         // compute the normal to the intersection plane
         vec3 bisector = normalize(prev - vec_x); 
-        vec3 perp_vec = normalize(cross(prev, vec_x));
+        vec3 perp_vec = cross(prev, vec_x);
         vec3 plane_normal = normalize(cross(bisector, perp_vec));
         // project the point on the intersection plane
         position.x -= (plane_normal.y * position.y + plane_normal.z * position.z) / plane_normal.x; 
@@ -103,7 +103,7 @@ void main() {
         // right face -> compute intersection with next
         next /= l_next;
         vec3 bisector = normalize(vec_x - next); 
-        vec3 perp_vec = normalize(cross(vec_x, next));
+        vec3 perp_vec = cross(vec_x, next);
         vec3 plane_normal = normalize(cross(bisector, perp_vec));
         position.x -= (plane_normal.y * position.y + plane_normal.z * position.z) / plane_normal.x; 
         vec3 tangent = vec3(0., -a_normal.z, a_normal.y);

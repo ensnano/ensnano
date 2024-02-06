@@ -273,14 +273,22 @@ impl<R: DesignReader> Design3D<R> {
         let n = 50;
         let b = 7.*PI/(n as f32);
         let r = 3.0f32;
+
+        use rand::Rng;
+
+        let mut rng = rand::thread_rng();
+
         let points = (0..n+1).map(|i| 
             match i {
                 0 =>  Vec3::zero(),
                 50 =>  Vec3::zero(),
-                _ => Vec3::new(
+                _ => {
+                    let a = PI * 2. * rng.gen::<f32>(); /// i as f32 * b;
+                    Vec3::new(
                     0.5, 
-                    r*((i as f32 * b).cos()), 
-                    r*((i as f32 * b).sin())),
+                    r*(a.cos()), 
+                    r*(a.sin()))
+                },
     }).collect::<Vec<Vec3>>();
 
         let mut point = Vec3::zero();
@@ -291,9 +299,11 @@ impl<R: DesignReader> Design3D<R> {
             let position = point + *p / 2.;
             let q = p.normalized(); 
             let rotor = Rotor3::from_rotation_between(Vec3::unit_x(), q);
+
+            let rotor = Rotor3::safe_from_rotation_from_unit_x_to(q);
             let model =
             Mat4::from_translation(position) * rotor.into_matrix().into_homogeneous(); // translation à position et rotation dans la bonne position u_x -> axe du tube
-            let rotor2 = Rotor3::from_rotation_between(q,Vec3::unit_x());
+            let rotor2 = Rotor3::safe_from_rotation_to_unit_x_from(q);
 
             ret.push(SlicedTubeInstance {
                 position: position,
