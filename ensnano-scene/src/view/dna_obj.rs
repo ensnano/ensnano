@@ -61,19 +61,19 @@ impl Vertexable for DnaVertex {
 #[derive(Clone, Debug, Copy, bytemuck::Zeroable, bytemuck::Pod)]
 pub struct RawDnaInstance {
     // must be aligned on 4 times f32 module 8 ?
-    pub model: Mat4,           // 0
-    pub color: Vec4,           // 0
-    pub scale: Vec3,           // 3
-    pub id: u32,               // 0
-    pub inversed_model: Mat4,  // 0
+    pub model: Mat4,          // 0
+    pub color: Vec4,          // 0
+    pub scale: Vec3,          // 3
+    pub id: u32,              // 0
+    pub inversed_model: Mat4, // 0
     // pub expected_length: f32, // used to modify the color of bonds in the dna_obj vertex shader -> now obsolete
     // previous bond direction assuming the current tube is aligned with X axis
-    pub prev: Vec3,            // 3          
+    pub prev: Vec3, // 3
     // 32bits did not exist before -> ADD OPTIONAL VECTOR NEXT AND PREV FOR SLICED TUBES
-    pub mesh: u32,             // 0
+    pub mesh: u32, // 0
     // next bond direction assuming the current tube is aligned with X axis
-    pub next: Vec3,            // 3
-    _padding: [f32; 1],   
+    pub next: Vec3, // 3
+    _padding: [f32; 1],
 }
 
 // impl RawDnaInstance {
@@ -421,23 +421,23 @@ impl Instanciable for TubeLidInstance {
     }
 
     fn vertex_module(device: &wgpu::Device) -> wgpu::ShaderModule {
-        device.create_shader_module(&wgpu::include_spirv!("dna_obj.vert.spv"))
+        device.create_shader_module(wgpu::include_spirv!("dna_obj.vert.spv"))
     }
 
     fn fragment_module(device: &wgpu::Device) -> wgpu::ShaderModule {
-        device.create_shader_module(&wgpu::include_spirv!("dna_obj.frag.spv"))
+        device.create_shader_module(wgpu::include_spirv!("dna_obj.frag.spv"))
     }
 
     fn fake_fragment_module(device: &wgpu::Device) -> Option<wgpu::ShaderModule> {
-        Some(device.create_shader_module(&wgpu::include_spirv!("dna_obj_fake.frag.spv")))
+        Some(device.create_shader_module(wgpu::include_spirv!("dna_obj_fake.frag.spv")))
     }
 
     fn outline_vertex_module(device: &wgpu::Device) -> Option<wgpu::ShaderModule> {
-        Some(device.create_shader_module(&wgpu::include_spirv!("dna_obj_outline.vert.spv")))
+        Some(device.create_shader_module(wgpu::include_spirv!("dna_obj_outline.vert.spv")))
     }
 
     fn outline_fragment_module(device: &wgpu::Device) -> Option<wgpu::ShaderModule> {
-        Some(device.create_shader_module(&wgpu::include_spirv!("dna_obj_outline.frag.spv")))
+        Some(device.create_shader_module(wgpu::include_spirv!("dna_obj_outline.frag.spv")))
     }
 
     fn to_raw_instance(&self) -> RawDnaInstance {
@@ -534,11 +534,11 @@ impl Instanciable for SlicedTubeInstance {
     }
 
     fn vertex_module(device: &wgpu::Device) -> wgpu::ShaderModule {
-        device.create_shader_module(&wgpu::include_spirv!("sliced_tube.vert.spv"))
+        device.create_shader_module(wgpu::include_spirv!("sliced_tube.vert.spv"))
     }
 
     fn fragment_module(device: &wgpu::Device) -> wgpu::ShaderModule {
-        device.create_shader_module(&wgpu::include_spirv!("dna_obj.frag.spv"))
+        device.create_shader_module(wgpu::include_spirv!("dna_obj.frag.spv"))
     }
 
     fn fake_fragment_module(device: &wgpu::Device) -> Option<wgpu::ShaderModule> {
@@ -548,11 +548,11 @@ impl Instanciable for SlicedTubeInstance {
     }
 
     fn outline_vertex_module(device: &wgpu::Device) -> Option<wgpu::ShaderModule> {
-        Some(device.create_shader_module(&wgpu::include_spirv!("dna_obj_outline.vert.spv")))
+        Some(device.create_shader_module(wgpu::include_spirv!("dna_obj_outline.vert.spv")))
     }
 
     fn outline_fragment_module(device: &wgpu::Device) -> Option<wgpu::ShaderModule> {
-        Some(device.create_shader_module(&wgpu::include_spirv!("dna_obj_outline.frag.spv")))
+        Some(device.create_shader_module(wgpu::include_spirv!("dna_obj_outline.frag.spv")))
     }
 
     fn to_raw_instance(&self) -> RawDnaInstance {
