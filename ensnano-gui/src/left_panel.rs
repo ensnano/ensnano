@@ -1084,13 +1084,6 @@ where
     }
 }
 
-pub const BACKGROUND: Color = Color::from_rgb(
-    0x23 as f32 / 255.0,
-    0x27 as f32 / 255.0,
-    0x2A as f32 / 255.0,
-);
-// TODO: This const becomes undesirable…
-
 pub struct ColorOverlay<R: Requests> {
     logical_size: LogicalSize<f64>,
     color_picker: ColorPicker,

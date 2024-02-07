@@ -191,7 +191,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
         let button_new_empty_design = tooltip(
             light_icon_button(LightIcon::InsertDriveFile, self.ui_size)
                 .on_press(Message::ButtonNewEmptyDesignPressed),
-            "Start a new empty design.",
+            "Start a new design.",
             widget::tooltip::Position::FollowCursor,
         )
         .style(theme::Container::Box);

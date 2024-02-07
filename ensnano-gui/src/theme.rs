@@ -12,7 +12,7 @@ pub const GUI_PALETTE: Palette = Palette {
     text: Color::WHITE,
     primary: Color::from_rgb(0.2, 0.2, 0.3),
     success: Color::from_rgb(0.5, 1.0, 0.5),
-    danger: Color::from_rgb(1.0, 5.0, 0.5),
+    danger: Color::from_rgb(1.0, 0.5, 0.5),
 };
 
 pub fn gui_theme() -> Theme {
