@@ -1,4 +1,3 @@
-
 /*
 ENSnano, a 3d graphical application for DNA nanostructures.
     Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
@@ -16,7 +15,6 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use crate::rotor_utils::SafeRotor;
 use super::super::maths_3d::{Basis3D, UnalignedBoundaries};
 use super::super::view::{
     ConeInstance, Ellipsoid, Instanciable, RawDnaInstance, Sheet2D, SlicedTubeInstance,
@@ -24,6 +22,7 @@ use super::super::view::{
 };
 use super::super::GridInstance;
 use super::{ultraviolet, LetterInstance, SceneElement};
+use crate::rotor_utils::SafeRotor;
 use ensnano_design::grid::{GridId, GridObject, GridPosition};
 use ensnano_design::{grid::HelixGridPosition, Nucl};
 use ensnano_design::{
@@ -41,9 +40,9 @@ use ensnano_interactor::{
 use ensnano_utils::instance::Instance;
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::f32::consts::PI;
+use std::iter::Zip;
 use std::rc::Rc;
 use std::sync::Arc;
-use std::iter::Zip;
 use ultraviolet::{Mat4, Rotor3, Vec2, Vec3, Vec4};
 
 mod bezier_paths;
@@ -269,54 +268,54 @@ impl<R: DesignReader> Design3D<R> {
             }
         }
 
-    //     // extra tubes to test sliced_tubes
-    //     let n = 50;
-    //     let b = 7.*PI/(n as f32);
-    //     let r = 3.0f32;
+        //     // extra tubes to test sliced_tubes
+        //     let n = 50;
+        //     let b = 7.*PI/(n as f32);
+        //     let r = 3.0f32;
 
-    //     use rand::Rng;
+        //     use rand::Rng;
 
-    //     let mut rng = rand::thread_rng();
+        //     let mut rng = rand::thread_rng();
 
-    //     let points = (0..n+1).map(|i| 
-    //         match i {
-    //             0 =>  Vec3::zero(),
-    //             50 =>  Vec3::zero(),
-    //             _ => {
-    //                 let a = PI * 2. * rng.gen::<f32>(); /// i as f32 * b;
-    //                 Vec3::new(
-    //                 0.5, 
-    //                 r*(a.cos()), 
-    //                 r*(a.sin()))
-    //             },
-    // }).collect::<Vec<Vec3>>();
+        //     let points = (0..n+1).map(|i|
+        //         match i {
+        //             0 =>  Vec3::zero(),
+        //             50 =>  Vec3::zero(),
+        //             _ => {
+        //                 let a = PI * 2. * rng.gen::<f32>(); /// i as f32 * b;
+        //                 Vec3::new(
+        //                 0.5,
+        //                 r*(a.cos()),
+        //                 r*(a.sin()))
+        //             },
+        // }).collect::<Vec<Vec3>>();
 
-    //     let mut point = Vec3::zero();
-    //     for ((prev, p) , next) in points.iter().cycle().skip(n).zip(&points).zip(points.iter().cycle().skip(1)) {
-    //         // println!("Prev: {:?}", *prev);
-    //         // println!("Curr: {:?}", *p);
-    //         // println!("Next: {:?}", *next);
-    //         let position = point + *p / 2.;
-    //         let q = p.normalized(); 
-    //         let rotor = Rotor3::from_rotation_between(Vec3::unit_x(), q);
+        //     let mut point = Vec3::zero();
+        //     for ((prev, p) , next) in points.iter().cycle().skip(n).zip(&points).zip(points.iter().cycle().skip(1)) {
+        //         // println!("Prev: {:?}", *prev);
+        //         // println!("Curr: {:?}", *p);
+        //         // println!("Next: {:?}", *next);
+        //         let position = point + *p / 2.;
+        //         let q = p.normalized();
+        //         let rotor = Rotor3::from_rotation_between(Vec3::unit_x(), q);
 
-    //         let rotor = Rotor3::safe_from_rotation_from_unit_x_to(q);
-    //         let model =
-    //         Mat4::from_translation(position) * rotor.into_matrix().into_homogeneous(); // translation à position et rotation dans la bonne position u_x -> axe du tube
-    //         let rotor2 = Rotor3::safe_from_rotation_to_unit_x_from(q);
+        //         let rotor = Rotor3::safe_from_rotation_from_unit_x_to(q);
+        //         let model =
+        //         Mat4::from_translation(position) * rotor.into_matrix().into_homogeneous(); // translation à position et rotation dans la bonne position u_x -> axe du tube
+        //         let rotor2 = Rotor3::safe_from_rotation_to_unit_x_from(q);
 
-    //         ret.push(SlicedTubeInstance {
-    //             position: position,
-    //             rotor: rotor,
-    //             color: Vec4::new(1.,0.,0.,1.), //RGBA
-    //             id: 100_000,
-    //             radius: 0.3,
-    //             length: p.mag(),
-    //             prev: prev.rotated_by(rotor2), 
-    //             next: next.rotated_by(rotor2),
-    //         }.to_raw_instance());
-    //         point += *p;
-    //     }
+        //         ret.push(SlicedTubeInstance {
+        //             position: position,
+        //             rotor: rotor,
+        //             color: Vec4::new(1.,0.,0.,1.), //RGBA
+        //             id: 100_000,
+        //             radius: 0.3,
+        //             length: p.mag(),
+        //             prev: prev.rotated_by(rotor2),
+        //             next: next.rotated_by(rotor2),
+        //         }.to_raw_instance());
+        //         point += *p;
+        //     }
         Rc::new(ret)
     }
 
