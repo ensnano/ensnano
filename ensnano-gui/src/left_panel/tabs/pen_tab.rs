@@ -39,13 +39,18 @@ impl PenTab {
 
         let content = iced_native::column![
             section("Bezier Planes", ui_size),
-            light_icon_button(LightIcon::FileOpen, ui_size).on_press(Message::LoadSvgFile),
-            // add_buttons!
-            iced_native::row![
-                light_icon_button(NEW_BEZIER_PLANE_ICON, ui_size).on_press(Message::NewBezierPlane),
-                light_icon_button(EDIT_BEZIER_PATH_ICON, ui_size)
-                    .on_press(Message::StartBezierPath),
-            ],
+            iced_native::column![
+                light_icon_button(LightIcon::FileOpen, ui_size).on_press(Message::LoadSvgFile),
+                // add_buttons!
+                iced_native::row![
+                    light_icon_button(NEW_BEZIER_PLANE_ICON, ui_size)
+                        .on_press(Message::NewBezierPlane),
+                    light_icon_button(EDIT_BEZIER_PATH_ICON, ui_size)
+                        .on_press(Message::StartBezierPath),
+                ]
+                .spacing(ui_size.button_pad()),
+            ]
+            .spacing(ui_size.button_pad()),
             // add_grid_buttons!
             if let Some(path_id) = app_state.get_selected_bezier_path() {
                 iced_native::row![

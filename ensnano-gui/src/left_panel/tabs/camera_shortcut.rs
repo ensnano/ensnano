@@ -216,25 +216,25 @@ impl CameraShortcutPanel {
                     named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[0], ui_size),
                     named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[1], ui_size),
                 ]
-                .spacing(5),
+                .spacing(ui_size.button_pad()),
                 column![
                     named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[2], ui_size),
                     named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[3], ui_size),
                 ]
-                .spacing(5),
+                .spacing(ui_size.button_pad()),
                 column![
                     named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[4], ui_size),
                     named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[5], ui_size),
                 ]
-                .spacing(5),
+                .spacing(ui_size.button_pad()),
             ]
-            .spacing(5),
+            .spacing(ui_size.button_pad()),
             //row(predefined_orientation_buttons),
             // Nicolas Levy did some intermediate splitting (see commented code above), that is not
             // reimplemented for now.
             // add_rotate_buttons!
             text("Rotate Camera"),
-            row(rotate_buttons).spacing(5),
+            row(rotate_buttons).spacing(ui_size.button_pad()),
             // Idem.
             // add_screenshot_button!
             text("Screenshot"),

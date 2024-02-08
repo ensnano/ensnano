@@ -99,11 +99,8 @@ impl SequenceTab {
                     button_selection_to_scaffold =
                         button_selection_to_scaffold.on_press(Message::ScaffoldIdSet(n, true));
                 }
-                iced_native::row![
-                    button_selection_to_scaffold,
-                    horizontal_space(5),
-                    button_selection_from_scaffold,
-                ]
+                iced_native::row![button_selection_to_scaffold, button_selection_from_scaffold,]
+                    .spacing(ui_size.button_pad())
             },
             extra_jump(),
             // add_scaffold_info!
@@ -193,12 +190,15 @@ impl SequenceTab {
             section("Staples", ui_size),
             extra_jump(),
             // add_download_staples_button!
-            button(text("Export Staples"))
-                .height(ui_size.button())
-                .on_press(Message::StapplesRequested),
-            button(text("Export Origamis"))
-                .height(ui_size.button())
-                .on_press(Message::OrigamisRequested),
+            iced_native::column![
+                button(text("Export Staples"))
+                    .height(ui_size.button())
+                    .on_press(Message::StapplesRequested),
+                button(text("Export Origamis"))
+                    .height(ui_size.button())
+                    .on_press(Message::OrigamisRequested),
+            ]
+            .spacing(ui_size.button_pad()),
         ];
         scrollable(content).into()
     }
