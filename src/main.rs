@@ -393,13 +393,13 @@ fn main() {
         Rc::clone(&device),
         &window,
         &multiplexer,
-        requests.clone(),
+        Arc::clone(&requests),
         ui_size,
         &main_state.app_state,
         Default::default(),
     );
 
-    let mut overlay_manager = OverlayManager::new(requests.clone(), &window, &mut renderer);
+    let mut overlay_manager = OverlayManager::new(Arc::clone(&requests), &window, &mut renderer);
 
     // Run event loop
     let mut last_render_time = std::time::Instant::now();
