@@ -139,6 +139,7 @@ pub(super) struct DesignContent {
     pub drawing_styles: HashMap<DesignElementKey, DrawingStyle, RandomState>,
     /// Maps identifiers to drawingstyles
     pub xover_coloring_map: HashMap<u32, bool, RandomState>,
+    pub clone_transformations: Vec<Isometry3>,
 }
 
 impl DesignContent {
@@ -1051,7 +1052,7 @@ impl DesignContent {
             }
 
             // Cloned Nucleotide
-            for isometry3 in clone_transformations {
+            for isometry3 in &clone_transformations {
                 let mut nucleotides_clones = HashMap::new();
                 for (nucl, nucl_id) in nucl_collection.identifier.iter() {
                     let clone_nucl_id = id_clic_counter.next();
@@ -1156,6 +1157,7 @@ impl DesignContent {
             insertion_length,
             drawing_styles,
             xover_coloring_map,
+            clone_transformations,
         };
         let suggestions = suggestion_maker.get_suggestions(&design, suggestion_parameters);
         ret.suggestions = suggestions;
