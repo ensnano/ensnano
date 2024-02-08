@@ -55,7 +55,7 @@ impl SausageRosary {
                 .map(|(prev, point)| *point - *prev)
                 .collect::<Vec<Vec3>>();
             vecs.iter()
-               .zip(vecs.iter().cycle().skip(1))
+                .zip(vecs.iter().cycle().skip(1))
                 .zip(vecs.iter().cycle().skip(2))
                 .zip(self.positions.iter().cycle().skip(1))
                 .zip(self.positions.iter().cycle().skip(2))

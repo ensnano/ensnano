@@ -24,6 +24,9 @@ use std::sync::Arc;
 use regex::Regex;
 use std::str::FromStr;
 
+mod material_colors;
+use material_colors::MaterialColor;
+
 #[macro_use]
 extern crate serde_derive;
 extern crate serde;
@@ -840,55 +843,45 @@ impl FromStr for DrawingAttribute {
     /// - %rs / %nors for RainbowStrand(true / false) - default = false
     /// - %xc / %noxc for XoverColoring(true / false) - default = true
     /// - %sr(r) for SphereRadius(r)
-    /// - %sc(HHHHHHHH) for SphereColor(0xHHHHHHHH)
+    /// - %sc(HHHHHHHH) for SphereColor(0xHHHHHHHH) or HHHHHH = a material color
     /// - %br(r) for BondRadius(r)
     /// - %bc(HHHHHHHH) for BondColor(0xHHHHHHHH)
     /// - %hr(r) for DoubleHelixAsCylinderRadius(r)
     /// - %hc(HHHHHHHH) for DoubleHelixAsCylinderColor(0xHHHHHHHH)
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let s = s.trim();
+        let parsed = s.split(&['%', ' ', ',', ')', '(']).filter(|x| x.len() > 0).collect::<Vec<&str>>();
 
-        if s.starts_with("%rs") {
-            return Ok(Self::RainbowStrand(true));
-        }
-        if s.starts_with("%nors") {
-            return Ok(Self::RainbowStrand(false));
-        }
-        if s.starts_with("%noxc") {
-            return Ok(Self::XoverColoring(false));
-        }
-        if s.starts_with("%xc") {
-            return Ok(Self::XoverColoring(true));
-        }
-
-        let re_f32 = Regex::new(r"\d+(\.\d*)?").unwrap();
-        if let Some(some_float) = re_f32.find(s) {
-            let value = f32::from_str(some_float.as_str()).unwrap();
-            if s.starts_with("%sr") {
-                return Ok(Self::SphereRadius(value / 10.)); // radius given in Å but stored in nm
-            }
-            if s.starts_with("%br") {
-                return Ok(Self::BondRadius(value / 10.)); // radius given in Å but stored in nm
-            }
-            if s.starts_with("%hr") {
-                return Ok(Self::DoubleHelixAsCylinderRadius(value / 10.)); // radius given in Å but stored in nm
-            }
-        }
-
-        let re_hexa = Regex::new(r"([0-9a-fA-F])+").unwrap();
-        if let Some(arg) = s.split("(").collect::<Vec<&str>>().get(1) {
-            if let Some(some_hexa) = re_hexa.find(arg) {
-                let value = u32::from_str_radix(some_hexa.as_str(), 16).unwrap_or(0xFF_FF_FF_FF);
-                if s.starts_with("%sc") {
-                    return Ok(Self::SphereColor(value));
+        match parsed.len() {
+            1 => match parsed[0] {
+                "rs" => return Ok(Self::RainbowStrand(true)),
+                "nors" => return Ok(Self::RainbowStrand(false)),
+                "noxc" => return Ok(Self::XoverColoring(false)),
+                "xc" => return Ok(Self::XoverColoring(true)),
+                _ => (),
+            },
+            2 => {
+                if let Ok(value) = f32::from_str(parsed[1]) {
+                    match parsed[0] {
+                        "sr" => return Ok(Self::SphereRadius(value / 10.)), // radius given in Å but stored in nm
+                        "br" => return Ok(Self::BondRadius(value / 10.)), // radius given in Å but stored in nm
+                        "hr" => return Ok(Self::DoubleHelixAsCylinderRadius(value / 10.)), // radius given in Å but stored in nm
+                        _ => (),
+                    }
                 }
-                if s.starts_with("%bc") {
-                    return Ok(Self::BondColor(value));
+                let mut color = 0xFF_FF_FF_FF;
+                if let Ok(value) = MaterialColor::from_str(parsed[1]) {
+                    color = value as u32;
+                } else if let Ok(value) = u32::from_str_radix(parsed[1], 16) {
+                    color = value;
                 }
-                if s.starts_with("%hc") {
-                    return Ok(Self::DoubleHelixAsCylinderColor(value));
+                match parsed[0] {
+                    "sc" => return Ok(Self::SphereColor(color)),
+                    "bc" => return Ok(Self::BondColor(color)),
+                    "hc" => return Ok(Self::DoubleHelixAsCylinderColor(color)),
+                    _ => (),
                 }
             }
+            _ => (),
         }
 
         return Err(ParsePointError);

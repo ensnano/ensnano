@@ -563,9 +563,7 @@ impl DesignContent {
                 let drawing_attributes = names
                     .iter()
                     .map(|x| {
-                        x.split(&[' ', ',', ':'][..])
-                            .collect::<Vec<&str>>()
-                            .iter()
+                        x.split(&[' ', ':'])
                             .map(|x| DrawingAttribute::from_str(x))
                             .filter(|x| x.is_ok())
                             .map(|x| x.unwrap())
