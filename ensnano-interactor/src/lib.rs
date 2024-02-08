@@ -45,6 +45,8 @@ mod operation_labels;
 mod surfaces;
 pub use surfaces::*;
 
+mod material_colors;
+
 #[derive(Clone, Copy, Eq, PartialEq)]
 pub enum ObjectType {
     /// A nucleotide identified by its identifier
