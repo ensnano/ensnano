@@ -428,7 +428,7 @@ impl View {
                 if let Some(_mesh) = mesh.to_fake() {
                     let mut instances = instances.as_ref().clone();
                     for i in instances.iter_mut() {
-                        if i.scale.z <= 1. && mesh != Mesh::SlicedTube {
+                        if i.scale.z <= ensnano_interactor::consts::MIN_RADIUS_FOR_FAKE_UPSCALING {
                             i.scale *= ensnano_interactor::consts::SELECT_SCALE_FACTOR;
                         }
                     }
