@@ -7,7 +7,7 @@ layout(location=0) out vec4 v_color;
 layout(location=1) out vec3 v_normal;
 layout(location=2) out vec3 v_position;
 layout(location=3) out vec4 v_id;
-
+layout(location=4) out uint v_discard_fake;
 
 layout(std140, set=0, binding=0)
 uniform Uniforms {
@@ -55,6 +55,7 @@ void main() {
     int model_idx = 0;
     float epsilon = 1e-5;
 
+
     //mat4 model_matrix = model_matrix2[model_idx] * instances[gl_InstanceIndex].model;
     mat4 model_matrix = model_matrix2[model_idx] * instances[gl_InstanceIndex].model;
     mat4 inversed_model_matrix = instances[gl_InstanceIndex].inversed_model;
@@ -74,6 +75,13 @@ void main() {
 
     vec3 position = a_position * scale;
     vec3 normal = a_normal;
+
+    if (instances[gl_InstanceIndex].mesh == 4 && v_color.w < 0.6) {
+        v_discard_fake = 1;
+    } else {
+        v_discard_fake = 0;
+    }
+
 
     // vec3 _next = vec3(1., 1., 1.);
     // vec3 _prev = vec3(0., 1., 0.);
