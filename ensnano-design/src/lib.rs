@@ -859,7 +859,7 @@ impl FromStr for DrawingAttribute {
                 "xc" => return Ok(Self::XoverColoring(true)),
                 _ => (),
             },
-            2 => {
+            2 | 3 => {
                 if let Ok(value) = f32::from_str(parsed[1]) {
                     match parsed[0] {
                         "sr" => return Ok(Self::SphereRadius(value / 10.)), // radius given in Å but stored in nm
@@ -874,6 +874,13 @@ impl FromStr for DrawingAttribute {
                 } else if let Ok(value) = u32::from_str_radix(parsed[1], 16) {
                     color = value;
                 }
+                if parsed.len() > 2 {
+                    if let Ok(alpha) = f32::from_str(parsed[2]) {
+                        let alpha = (alpha * 255.).min(255.).max(0.).round() as u32;
+                        color = (color & 0xFF_FF_FF) | (alpha << 24);
+                    }
+                }
+
                 match parsed[0] {
                     "sc" => return Ok(Self::SphereColor(color)),
                     "bc" => return Ok(Self::BondColor(color)),
