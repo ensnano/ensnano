@@ -5,6 +5,7 @@ layout(location=0) in vec4 v_color;
 layout(location=1) in vec3 v_normal;
 layout(location=2) in vec3 v_position;
 layout(location=3) in vec4 v_id;
+// flat layout(location=4) in uint v_discard_fake;
 
 layout(location=0) out vec4 f_color;
 
@@ -22,6 +23,11 @@ layout(set=0, binding=0) uniform Uniform {
 
 void main() {
     float visibility;
+
+    // if (v_discard_fake > 0) {
+    //     discard;
+    // }
+
     if (u_make_fog > 0) {
         float dist;
         if (u_fog_from_cam > 0) {

@@ -543,8 +543,8 @@ impl Instanciable for SlicedTubeInstance {
 
     fn fake_fragment_module(device: &wgpu::Device) -> Option<wgpu::ShaderModule> {
         // Helix tube are not selectable
-        None
-        // Some(device.create_shader_module(&wgpu::include_spirv!("dna_obj_fake.frag.spv")))
+        // None
+        Some(device.create_shader_module(&wgpu::include_spirv!("dna_obj_fake.frag.spv")))
     }
 
     fn outline_vertex_module(device: &wgpu::Device) -> Option<wgpu::ShaderModule> {

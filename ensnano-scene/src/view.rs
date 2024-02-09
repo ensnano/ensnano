@@ -425,20 +425,20 @@ impl View {
                 self.dna_drawers
                     .get_mut(mesh)
                     .new_instances_raw(instances.as_ref());
-                if let Some(mesh) = mesh.to_fake() {
+                if let Some(_mesh) = mesh.to_fake() {
                     let mut instances = instances.as_ref().clone();
                     for i in instances.iter_mut() {
-                        if i.scale.z <= 1. {
+                        if i.scale.z <= 1. && mesh != Mesh::SlicedTube {
                             i.scale *= ensnano_interactor::consts::SELECT_SCALE_FACTOR;
                         }
                     }
                     self.dna_drawers
-                        .get_mut(mesh)
+                        .get_mut(_mesh)
                         .new_instances_raw(instances.as_ref());
                 }
-                if let Some(mesh) = mesh.to_outline() {
+                if let Some(_mesh) = mesh.to_outline() {
                     self.dna_drawers
-                        .get_mut(mesh)
+                        .get_mut(_mesh)
                         .new_instances_raw(instances.as_ref());
                 }
             }
@@ -1096,6 +1096,7 @@ impl Mesh {
         match self {
             Self::Sphere => Some(Self::FakeSphere),
             Self::Tube => Some(Self::FakeTube),
+            Self::SlicedTube => Some(Self::FakeTube),
             Self::PhantomSphere => Some(Self::FakePhantomSphere),
             Self::PhantomTube => Some(Self::FakePhantomTube),
             Self::BezierControll => Some(Self::FakeBezierControl),
