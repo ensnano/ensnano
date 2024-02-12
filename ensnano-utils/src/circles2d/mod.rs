@@ -18,7 +18,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use iced_wgpu::wgpu;
 use std::rc::Rc;
 use ultraviolet::Vec2;
-use wgpu::{include_spirv, BindGroupLayout, Device, Queue, RenderPass, RenderPipeline};
+use wgpu::{BindGroupLayout, Device, Queue, RenderPass, RenderPipeline};
 
 use crate::bindgroup_manager::DynamicBindGroup;
 use crate::texture::Texture;
@@ -145,15 +145,15 @@ impl CircleDrawer {
     ) -> RenderPipeline {
         let vertex_module = self
             .device
-            .create_shader_module(&include_spirv!("circle.vert.spv"));
+            .create_shader_module(&wgpu::include_spirv!("circle.vert.spv"));
 
         let fragment_module = match circle_kind {
             CircleKind::FullCircle => self
                 .device
-                .create_shader_module(&include_spirv!("circle.frag.spv")),
+                .create_shader_module(&wgpu::include_spirv!("circle.frag.spv")),
             CircleKind::RotationWidget => self
                 .device
-                .create_shader_module(&include_spirv!("rotation_widget.frag.spv")),
+                .create_shader_module(&wgpu::include_spirv!("rotation_widget.frag.spv")),
         };
 
         let render_pipeline_layout =

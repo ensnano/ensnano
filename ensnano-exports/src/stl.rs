@@ -11,12 +11,12 @@
 //!     REAL32[3] – Vertex 3                  - 12 bytes
 //!     UINT16    – Attribute byte count      -  2 bytes
 
-use std::fs::File;
+use std::io;
 use std::io::Write;
-use std::path::Path;
 
 use ensnano_design::ultraviolet::{Vec3, Vec4};
-use ensnano_interactor::graphics::LoopoutNucl;
+use ensnano_design::Design;
+//use ensnano_interactor::graphics::LoopoutNucl;
 use ensnano_scene::view::{Instanciable, SphereInstance};
 use ensnano_scene::AppState;
 use ensnano_scene::Scene;
@@ -27,7 +27,28 @@ use ensnano_scene::Scene;
     }
 }*/
 
-fn save_stl_from_scene<S: AppState>(path: &str, scene: Scene<S>) -> Result<(), io::Error> {
+#[derive(Debug)]
+pub enum StlError {
+    IOError(std::io::Error),
+}
+
+pub fn stl_bytes_export(centers: Vec<Vec3>) -> Result<Vec<u8>, StlError> {
+    let triangles: Vec<StlTriangle> = centers
+        .iter()
+        .map(|c| sphere_center_to_stl_triangles(*c))
+        .flatten()
+        .collect();
+    let mut bytes: Vec<u8> = vec![0; 80]; // header numer of triangles
+    let mut triangles_number: u32 = triangles.len() as u32;
+    let triangle_number = triangles_number.to_le_bytes();
+    bytes.extend_from_slice(&triangle_number[0..]);
+    for t in triangles {
+        bytes.append(&mut triangle_to_bytes(t));
+    }
+    Ok(bytes)
+}
+
+pub fn save_stl_from_scene<S: AppState>(path: &str, scene: Scene<S>) -> Result<(), io::Error> {
     let centers = scene.get_nucl_centers_for_stl();
     let all_triangles = centers
         .iter()
@@ -70,7 +91,7 @@ fn sphere_center_to_stl_triangles(c: Vec3) -> Vec<StlTriangle> {
 //                 v.position[2] + t[2],
 //             ]
 //         })
-//         .collect();
+//         .colect();
 //     vertices_indices_to_stl_triangles(
 //         translated_vertices,
 //         SphereInstance::indices()

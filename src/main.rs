@@ -1651,6 +1651,7 @@ impl<'a> MainStateInteface for MainStateView<'a> {
     }
 
     fn export(&mut self, path: &PathBuf, export_type: ExportType) -> ExportResult {
+        println!("export from main");
         let ret = self.main_state.app_state.export(path, export_type);
         self.set_exporting(false);
         ret

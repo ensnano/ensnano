@@ -465,11 +465,11 @@ impl State for Exporting {
         } else {
             let candidate_name = main_state.get_current_file_name().map(|p| {
                 let mut ret = p.to_owned();
-                ret.set_extension(export_extenstion(self.export_type));
+                ret.set_extension(export_extenstion(self.export_type.clone()));
                 ret
             });
             let getter = dialog::get_file_to_write(
-                export_filters(self.export_type),
+                export_filters(self.export_type.clone()),
                 main_state.get_current_design_directory(),
                 candidate_name,
             );
@@ -485,6 +485,7 @@ fn export_extenstion(export_type: ExportType) -> &'static str {
         ExportType::Pdb => "pdb",
         ExportType::Cadnano => "json",
         ExportType::Cando => "cndo",
+        ExportType::Stl(_) => "stl",
     }
 }
 
@@ -494,5 +495,6 @@ fn export_filters(export_type: ExportType) -> &'static Filters {
         ExportType::Pdb => &messages::PDB_FILTER,
         ExportType::Cadnano => &messages::CADNANO_FILTER,
         ExportType::Cando => todo!(),
+        ExportType::Stl(_) => &messages::STL_FILTER,
     }
 }

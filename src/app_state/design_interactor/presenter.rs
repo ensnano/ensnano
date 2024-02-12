@@ -31,7 +31,7 @@ use ultraviolet::Mat4;
 
 use crate::utils::id_generator::IdGenerator;
 type JunctionsIds = IdGenerator<(Nucl, Nucl)>;
-mod design_content;
+pub mod design_content;
 mod impl_main_reader;
 mod impl_reader2d;
 mod impl_reader3d;
@@ -508,9 +508,27 @@ impl Presenter {
     }
 
     pub fn export(&self, export_path: &PathBuf, export_type: ExportType) -> ExportResult {
+        println!(
+            "  export : if stl export add centers {} {}",
+            self.content.loopout_nucls.len(),
+            self.content.nucleotide.keys().len()
+        ); // get_element_position(&self, id: u32)
+        let et = match export_type.clone() {
+            ExportType::Stl(_) => ExportType::Stl(
+                self.content
+                    .clone()
+                    .nucleotide
+                    .keys()
+                    .map(|n| self.content.get_element_position(*n).unwrap())
+                    .collect(),
+            ),
+
+            _ => export_type,
+        };
+
         ensnano_exports::export(
             &self.current_design,
-            export_type,
+            et,
             Some(self.content.letter_map.as_ref()),
             export_path,
         )

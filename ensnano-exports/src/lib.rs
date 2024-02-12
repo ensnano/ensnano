@@ -17,26 +17,31 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 //! Exports utilities from ENSnano to other file formats used in DNA nanotechnologies
 
+use ensnano_interactor::graphics::LoopoutBond;
 use strum::Display;
 
 pub mod cadnano;
 pub mod cando;
 pub mod oxdna;
 pub mod pdb;
+pub mod stl;
 use cadnano::CadnanoError;
 use cando::CanDoError;
+use ensnano_design::ultraviolet::{Vec3, Vec4};
 use ensnano_design::{ultraviolet, Design, Nucl};
 use pdb::PdbError;
 use std::collections::HashMap;
 use std::path::PathBuf;
+use stl::StlError;
 
 /// The file formats to which an export is implemented
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Display)]
+#[derive(Debug, Clone, PartialEq, Display)]
 pub enum ExportType {
     Cadnano,
     Cando,
     Pdb,
     Oxdna,
+    Stl(Vec<Vec3>),
 }
 
 /// A value returned by the export functions when exports was successfull.
@@ -50,6 +55,7 @@ pub enum ExportSuccess {
         topology: PathBuf,
         configuration: PathBuf,
     },
+    Stl(PathBuf),
 }
 
 const SUCCESSFUL_EXPORT_MSG_PREFIX: &str = "Succussfully exported to";
@@ -70,6 +76,7 @@ impl ExportSuccess {
                 configuration.to_string_lossy(),
                 topology.to_string_lossy()
             ),
+            Self::Stl(p) => format!("{SUCCESSFUL_EXPORT_MSG_PREFIX}\n{}", p.to_string_lossy()),
         }
     }
 }
@@ -80,6 +87,7 @@ pub enum ExportError {
     CandoConversion(CanDoError),
     PdbConversion(PdbError),
     IOError(std::io::Error),
+    StlConversion(StlError),
     NotImplemented,
 }
 
@@ -96,6 +104,11 @@ impl From<CanDoError> for ExportError {
 impl From<PdbError> for ExportError {
     fn from(e: PdbError) -> Self {
         Self::PdbConversion(e)
+    }
+}
+impl From<StlError> for ExportError {
+    fn from(e: StlError) -> Self {
+        Self::StlConversion(e)
     }
 }
 impl From<std::io::Error> for ExportError {
@@ -223,6 +236,14 @@ pub fn export(
             let mut out_file = std::fs::File::create(export_path)?;
             use std::io::Write;
             writeln!(&mut out_file, "{cadnano_content}")?;
+            Ok(ExportSuccess::Cadnano(export_path.clone()))
+        }
+        ExportType::Stl(centers) => {
+            println!("   STL export final step, centers len = {}", centers.len());
+            let stl_bytes = stl::stl_bytes_export(centers)?;
+            let mut out_file = std::fs::File::create(export_path)?;
+            use std::io::Write;
+            out_file.write_all(&stl_bytes)?;
             Ok(ExportSuccess::Cadnano(export_path.clone()))
         }
         _ => Err(ExportError::NotImplemented),
