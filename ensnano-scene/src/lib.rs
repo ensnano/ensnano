@@ -68,6 +68,9 @@ type ViewPtr = Rc<RefCell<View>>;
 type DataPtr<R> = Rc<RefCell<Data<R>>>;
 use std::convert::TryInto;
 
+// Rotor utils: safe rotor between
+mod rotor_utils;
+
 const PNG_SIZE: u32 = 256 * 10;
 
 /// A structure responsible of the 3D display of the designs

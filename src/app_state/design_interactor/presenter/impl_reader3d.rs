@@ -39,6 +39,14 @@ impl Reader3D for DesignReader {
         self.presenter.content.radius_map.get(&e_id).cloned()
     }
 
+    fn get_xover_coloring(&self, e_id: u32) -> Option<bool> {
+        self.presenter
+            .content
+            .xover_coloring_map
+            .get(&e_id)
+            .cloned()
+    }
+
     fn get_basis(&self) -> Rotor3 {
         self.presenter.model_matrix.extract_rotation()
     }
@@ -226,6 +234,12 @@ impl Reader3D for DesignReader {
     }
 
     fn get_element_axis_position(&self, e_id: u32, referential: Referential) -> Option<Vec3> {
+        if let Some(pos) = self.presenter.content.axis_space_position.get(&e_id) {
+            return Some(
+                self.presenter
+                    .in_referential(Vec3::new(pos[0], pos[1], pos[2]), referential),
+            );
+        }
         if let Some(nucl) = self.get_nucl_with_id(e_id) {
             self.get_position_of_nucl_on_helix(nucl, referential, true)
         } else if let Some((n1, n2)) = self.presenter.content.nucleotides_involved.get(&e_id) {

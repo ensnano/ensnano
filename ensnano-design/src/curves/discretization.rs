@@ -205,7 +205,17 @@ impl Curve {
         self.positions_backward = points_backward;
         self.axis_forward = axis_forward;
         self.positions_forward = points_forward;
+
+        // Affiche la curvature
+        // let radii = curvature.clone().into_iter().map(|c| 1./c).collect::<Vec<f64>>();
+        // let mut min_radius = 1e30;
+        // for r in &radii {
+        //     if *r < min_radius { min_radius = r.clone(); }
+        // }
+        // println!("Curvature radius:\n\t{:?}\n\tMinimum radius: {}", radii, min_radius);
+
         self.curvature = curvature;
+
         self.t_nucl = Arc::new(t_nucl);
         if self.geometry.is_time_maps_singleton() {
             self.abscissa_converter = AbscissaConverter::from_single_map(self.t_nucl.clone());
