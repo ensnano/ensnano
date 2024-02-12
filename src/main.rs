@@ -85,6 +85,7 @@ use std::time::{Duration, Instant};
 use controller::{ChannelReader, ChannelReaderUpdate, SimulationRequest};
 use ensnano_design::{grid::GridId, Camera};
 use ensnano_exports::{ExportResult, ExportType};
+use ensnano_gui::theme;
 use ensnano_interactor::{
     application::{Application, Notification},
     RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor,
@@ -196,10 +197,6 @@ const BACKEND: wgpu::Backends = wgpu::Backends::DX12;
 ///
 /// TODO: Make a feature that would set this constant to `false`.
 const PANIC_ON_WGPU_ERRORS: bool = true;
-
-/// Iced theme
-//const GUI_THEME: iced::Theme = iced::Theme::Light;
-const GUI_THEME: iced::Theme = iced::Theme::Dark;
 
 /// Main function. Runs the event loop and holds the framebuffer.
 ///
@@ -325,6 +322,8 @@ fn main() {
     let mut resized = false;
     let mut scale_factor_changed = false;
     let mut staging_belt = wgpu::util::StagingBelt::new(5 * 1024);
+
+    let gui_theme = theme::gui_theme();
 
     // Initialize the mediator
     let requests = Arc::new(Mutex::new(Requests::default()));
@@ -563,10 +562,8 @@ fn main() {
                 redraw |= main_state.update_cursor(&multiplexer);
                 redraw |= gui.fetch_change(
                     &window,
-                    &GUI_THEME,
-                    &iced_native::renderer::Style {
-                        text_color: GUI_THEME.palette().text,
-                    },
+                    &gui_theme,
+                    &theme::gui_style(&gui_theme),
                     &multiplexer,
                 );
 
@@ -642,8 +639,8 @@ fn main() {
                     &multiplexer,
                     &window,
                     &mut renderer,
-                    GUI_THEME,
-                    &Default::default(), // Use default style for now.
+                    &gui_theme,
+                    &theme::gui_style(&gui_theme),
                 );
                 {
                     let mut messages = messages.lock().unwrap();
@@ -732,17 +729,15 @@ fn main() {
                 // If there are events pending
                 gui.update(
                     &multiplexer,
-                    &GUI_THEME,
-                    &iced_native::renderer::Style {
-                        text_color: GUI_THEME.palette().text,
-                    },
+                    &gui_theme,
+                    &theme::gui_style(&gui_theme),
                     &window,
                 );
 
                 overlay_manager.process_event(
                     &mut renderer,
-                    GUI_THEME,
-                    &Default::default(), // Use default style for now.
+                    &gui_theme,
+                    &theme::gui_style(&gui_theme),
                     resized,
                     &multiplexer,
                     &window,
@@ -871,7 +866,7 @@ impl OverlayManager {
     fn process_event(
         &mut self,
         renderer: &mut iced_graphics::Renderer<iced_wgpu::Backend, iced::Theme>,
-        theme: iced::Theme,
+        theme: &iced::Theme,
         style: &iced_native::renderer::Style,
         resized: bool,
         multiplexer: &Multiplexer,
@@ -892,7 +887,7 @@ impl OverlayManager {
                             convert_size(PhysicalSize::new(250, 250)),
                             conversion::cursor_position(cursor_position, window.scale_factor()),
                             renderer,
-                            &theme,
+                            theme,
                             style,
                             &mut clipboard,
                             &mut self.color_debug,
@@ -970,7 +965,7 @@ impl OverlayManager {
         multiplexer: &Multiplexer,
         window: &Window,
         renderer: &mut iced_graphics::Renderer<iced_wgpu::Backend, iced::Theme>,
-        theme: iced::Theme,
+        theme: &iced::Theme,
         style: &iced_native::renderer::Style,
     ) -> bool {
         let mut ret = false;
@@ -990,7 +985,7 @@ impl OverlayManager {
                             convert_size(PhysicalSize::new(250, 250)),
                             conversion::cursor_position(cursor_position, window.scale_factor()),
                             renderer,
-                            &theme,
+                            theme,
                             style,
                             &mut clipboard,
                             &mut self.color_debug,

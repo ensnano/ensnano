@@ -169,7 +169,7 @@ impl<S: AppState> EditionTab<S> {
                 tighten_helices_button,
                 text_button("All", ui_size).on_press(Message::Redim2dHelices(true)),
             ]
-            .spacing(5),
+            .spacing(ui_size.button_pad()),
         ]
         .spacing(5);
 

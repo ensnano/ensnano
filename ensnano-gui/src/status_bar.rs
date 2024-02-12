@@ -26,7 +26,7 @@ use iced_native::{
     widget::{pick_list, text_input, PickList, TextInput},
 };
 use iced_winit::{
-    widget::{Column, Row, Space, Text},
+    widget::{Row, Space, Text},
     winit, Command, Element, Program,
 };
 use std::collections::HashMap;
@@ -275,13 +275,11 @@ impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
             horizontal_space(5),
         ];
 
-        let column = Column::new()
-            .push(Space::new(Length::Fill, 3))
-            .push(content)
-            .push(pasting_status_row);
+        let column =
+            iced_native::column![Space::new(Length::Fill, 3), content, pasting_status_row,];
 
         container(column)
-            .style(theme::Container::Box)
+            .style(crate::theme::GuiBackground)
             .width(size.width as f32)
             .height(Length::Fill)
             .into()

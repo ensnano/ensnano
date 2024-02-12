@@ -191,7 +191,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
         let button_new_empty_design = tooltip(
             light_icon_button(LightIcon::InsertDriveFile, self.ui_size)
                 .on_press(Message::ButtonNewEmptyDesignPressed),
-            "Start a new empty design.",
+            "Start a new design.",
             widget::tooltip::Position::FollowCursor,
         )
         .style(theme::Container::Box);
@@ -342,7 +342,8 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
                 button_save_as,
                 oxdna_tooltip,
                 button_3d_import,
-            ],
+            ]
+            .spacing(self.ui_size.button_pad()),
             // “View” group
             iced_native::row![
                 button_3d,
@@ -352,30 +353,31 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
                 button_split_2d,
                 button_toggle_2d,
                 button_flip_split,
-            ],
-            iced_native::row![button_fit, button_horizon,],
+            ]
+            .spacing(self.ui_size.button_pad()),
+            iced_native::row![button_fit, button_horizon,].spacing(self.ui_size.button_pad()),
             // “Edition” group
-            iced_native::row![button_undo, button_redo,],
+            iced_native::row![button_undo, button_redo,].spacing(self.ui_size.button_pad()),
             // “Action” group
-            row(action_mode_buttons),
+            row(action_mode_buttons).spacing(self.ui_size.button_pad()),
             // “Selection” group
-            row(selection_mode_buttons),
-            iced_native::row![button_help, button_tutorial,].spacing(2),
+            row(selection_mode_buttons).spacing(self.ui_size.button_pad()),
+            iced_native::row![button_help, button_tutorial,].spacing(self.ui_size.button_pad()),
             // ENSnano logo, placed on the right.
             text("\u{e91c}")
                 .width(Length::Fill)
                 .horizontal_alignment(iced::alignment::Horizontal::Right)
                 .vertical_alignment(iced::alignment::Vertical::Center),
         ]
-        .spacing(10) // Space between button groups.
+        .spacing(self.ui_size.button_group_pad())
         .width(Length::Fill)
         .height(height);
 
         container(buttons)
             .width(self.logical_size.width as f32)
-            .style(theme::Container::Box)
-            .padding(Padding::from([1, 0])) // HACK: A small padding allow tooltip messages to
-            //                                       disappear properly.
+            .style(crate::theme::GuiBackground)
+            // HACK: A small padding allow tooltip messages to disappear properly.
+            .padding(Padding::from([self.ui_size.button_pad(), 0.0]))
             .into()
     }
 }

@@ -23,6 +23,7 @@ use super::{
 use crate::helpers::*;
 use iced::Element;
 use iced_native::widget::helpers::*;
+use iced_native::{column, row};
 
 pub struct GridTab {
     hyperboloid_factory: RequestFactory<Hyperboloid_>,
@@ -39,22 +40,22 @@ impl GridTab {
     where
         S: AppState,
     {
-        let content = iced_native::column![
+        let content = column![
             section("Grids", ui_size),
             subsection("New Grid", ui_size),
             // add_grid_buttons!
-            iced_native::row![
+            row![
                 icon_button(ICON_SQUARE_GRID, ui_size)
                     .on_press(Message::NewGrid(GridTypeDescr::Square { twist: None })),
                 icon_button(ICON_HONEYCOMB_GRID, ui_size)
                     .on_press(Message::NewGrid(GridTypeDescr::Honeycomb { twist: None })),
             ]
-            .spacing(5),
+            .spacing(ui_size.button_pad()),
             extra_jump(),
             subsection("New nanotube", ui_size),
             // add_start_cancel_hyperboloid_button!
             if app_state.is_building_hyperboloid() {
-                iced_native::row![
+                row![
                     text_button("Cancel", ui_size)
                         .on_press(Message::CancelHyperboloid)
                         .style(iced::theme::Button::Destructive),
@@ -62,12 +63,10 @@ impl GridTab {
                         .on_press(Message::FinalizeHyperboloid)
                         .style(iced::theme::Button::Positive),
                 ]
-                .spacing(3)
+                .spacing(ui_size.button_pad())
             } else {
-                iced_native::row![
-                    icon_button(ICON_NANOTUBE, ui_size).on_press(Message::NewHyperboloid),
-                ]
-                .spacing(3)
+                row![icon_button(ICON_NANOTUBE, ui_size).on_press(Message::NewHyperboloid),]
+                    .spacing(ui_size.button_pad())
             },
             // add hyperboloid sliders!
             iced_native::widget::Column::with_children(

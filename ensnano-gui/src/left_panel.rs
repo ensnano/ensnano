@@ -965,7 +965,6 @@ where
                 (
                     TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::GridOn))),
                     container(self.grid_tab.view(self.ui_size, &self.application_state))
-                        .style(theme::Container::Box)
                         .height(Length::Fill)
                         .width(Length::Fill)
                         .into(),
@@ -973,7 +972,6 @@ where
                 (
                     TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Edit))),
                     container(self.edition_tab.view(self.ui_size, &self.application_state))
-                        .style(theme::Container::Box)
                         .height(Length::Fill)
                         .width(Length::Fill)
                         .into(),
@@ -981,7 +979,6 @@ where
                 (
                     TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Videocam))),
                     container(self.camera_tab.view(self.ui_size, &self.application_state))
-                        .style(theme::Container::Box)
                         .height(Length::Fill)
                         .width(Length::Fill)
                         .into(),
@@ -992,7 +989,6 @@ where
                         self.simulation_tab
                             .view(self.ui_size, &self.application_state),
                     )
-                    .style(theme::Container::Box)
                     .height(Length::Fill)
                     .width(Length::Fill)
                     .into(),
@@ -1003,7 +999,6 @@ where
                         self.sequence_tab
                             .view(self.ui_size, &self.application_state),
                     )
-                    .style(theme::Container::Box)
                     .height(Length::Fill)
                     .width(Length::Fill)
                     .into(),
@@ -1014,7 +1009,6 @@ where
                         self.parameters_tab
                             .view(self.ui_size, &self.application_state),
                     )
-                    .style(theme::Container::Box)
                     .height(Length::Fill)
                     .width(Length::Fill)
                     .into(),
@@ -1022,7 +1016,6 @@ where
                 (
                     TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Draw))),
                     container(self.pen_tab.view(self.ui_size, &self.application_state))
-                        .style(theme::Container::Box)
                         .height(Length::Fill)
                         .width(Length::Fill)
                         .into(),
@@ -1033,7 +1026,6 @@ where
                         self.revolution_tab
                             .view(self.ui_size, &self.application_state),
                     )
-                    .style(theme::Container::Box)
                     .height(Length::Fill)
                     .width(Length::Fill)
                     .into(),
@@ -1077,33 +1069,20 @@ where
             iced_native::column![
                 first_container.height(Length::FillPortion(2)),
                 horizontal_rule(5),
-                container(camera_shortcut)
-                    .style(theme::Container::Box)
-                    .height(Length::FillPortion(1)),
+                container(camera_shortcut).height(Length::FillPortion(1)),
                 horizontal_rule(5),
-                container(contextual_menu)
-                    .style(theme::Container::Box)
-                    .height(Length::FillPortion(1)),
+                container(contextual_menu).height(Length::FillPortion(1)),
                 horizontal_rule(5),
-                container(organizer)
-                    .style(theme::Container::Box)
-                    .height(Length::FillPortion(2)),
+                container(organizer).height(Length::FillPortion(2)),
             ]
             .width(Length::Fill)
             .padding(1),
         )
-        .style(theme::Container::Box)
+        .style(crate::theme::GuiBackground)
         .height(self.logical_size.height as f32)
         .into()
     }
 }
-
-pub const BACKGROUND: Color = Color::from_rgb(
-    0x23 as f32 / 255.0,
-    0x27 as f32 / 255.0,
-    0x2A as f32 / 255.0,
-);
-// TODO: This const becomes undesirable…
 
 pub struct ColorOverlay<R: Requests> {
     logical_size: LogicalSize<f64>,
@@ -1174,46 +1153,6 @@ impl<R: Requests> Program for ColorOverlay<R> {
             .into()
     }
 }
-
-struct FloatingStyle;
-impl container::StyleSheet for FloatingStyle {
-    type Style = ();
-    fn appearance(&self, _style: &Self::Style) -> container::Appearance {
-        container::Appearance {
-            background: Some(Background::Color(BACKGROUND)),
-            text_color: Some(Color::WHITE),
-            border_width: 3_f32,
-            border_radius: 3_f32,
-            border_color: Color::BLACK,
-        }
-    }
-}
-
-impl From<FloatingStyle> for theme::Container {
-    fn from(_value: FloatingStyle) -> Self {
-        Default::default()
-    }
-}
-
-//struct ButtonStyle(bool);
-//
-//impl iced_native::widget::button::StyleSheet for ButtonStyle {
-//    type Style = ();
-//    fn active(&self, _style: &Self::Style) -> iced_native::widget::button::Appearance {
-//        iced_native::widget::button::Appearance {
-//            border_width: if self.0 { 3_f32 } else { 1_f32 },
-//            border_radius: if self.0 { 3_f32 } else { 2_f32 },
-//            border_color: if self.0 {
-//                Color::BLACK
-//            } else {
-//                [0.7, 0.7, 0.7].into()
-//            },
-//            background: Some(Background::Color([0.87, 0.87, 0.87].into())),
-//            //background: Some(Background::Color(BACKGROUND)),
-//            ..Default::default()
-//        }
-//    }
-//}
 
 /// Generate the message that request rotation.
 fn rotation_message<S: AppState>(i: usize, _xz: isize, _yz: isize, _xy: isize) -> Message<S> {
@@ -1598,36 +1537,7 @@ impl Requestable for RigidBodyFactory {
     }
 }
 
-//#[derive(Clone, Copy, Debug)]
-//struct TabStyle;
-//
-//impl tab_bar::StyleSheet for TabStyle {
-//    type Style = ();
-//    fn active(&self, _style: Self::Style, is_active: bool) -> tab_bar::Appearance {
-//        tab_bar::Appearance {
-//            background: None,
-//            border_color: None,
-//            border_width: 0.0,
-//            tab_label_background: if !is_active {
-//                Background::Color([0.9, 0.9, 0.9].into())
-//            } else {
-//                Background::Color([0.6, 0.6, 0.6].into())
-//            },
-//            tab_label_border_color: [0.7, 0.7, 0.7].into(),
-//            tab_label_border_width: 1.0,
-//            icon_color: Color::BLACK,
-//            text_color: Color::WHITE,
-//        }
-//    }
-//
-//    fn hovered(&self, _style: Self::Style, is_active: bool) -> tab_bar::Appearance {
-//        tab_bar::Appearance {
-//            tab_label_background: Background::Color([0.6, 0.6, 0.6].into()),
-//            ..self.active(_style, is_active)
-//        }
-//    }
-//}
-
+/// Encodes a color into a u32.
 fn color_to_u32(color: Color) -> u32 {
     let red = ((color.r * 255.) as u32) << 16;
     let green = ((color.g * 255.) as u32) << 8;
