@@ -34,7 +34,7 @@ use std::sync::Arc;
 
 use ensnano_design::grid::GridObject;
 use ensnano_design::{BezierVertexId, Collection};
-use ensnano_interactor::graphics::HBondDisplay;
+use ensnano_interactor::graphics::{HBondDisplay, LoopoutNucl};
 use ultraviolet::{Rotor3, Vec3};
 
 use super::view::Mesh;
@@ -1987,8 +1987,17 @@ impl<R: DesignReader> Data<R> {
             .and_then(|d| d.get_surface_info_nucl(nucl))
     }
 
-    pub fn get_stl_information(&self) -> Vec<bool> {
-        vec![]
+    pub fn get_nucl_centers(&self) -> Vec<Vec3> {
+        match self.designs.get(0) {
+            // which design???
+            Some(d) => d
+                .design_reader
+                .get_all_loopout_nucl()
+                .iter()
+                .map(|nucl| nucl.position)
+                .collect(),
+            None => vec![],
+        }
     }
 }
 

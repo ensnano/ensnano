@@ -16,6 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use ensnano_design::{grid::HelixGridPosition, ultraviolet, BezierVertexId};
+use ensnano_interactor::graphics::LoopoutBond;
 use ensnano_interactor::{
     graphics::RenderingMode, NewBezierTangentVector, UnrootedRevolutionSurfaceDescriptor,
 };
@@ -29,6 +30,7 @@ use ultraviolet::{Mat4, Rotor3, Vec3};
 
 use camera::FiniteVec3;
 use ensnano_design::{grid::GridPosition, group_attributes::GroupPivot, Nucl};
+use ensnano_interactor::graphics::LoopoutNucl;
 use ensnano_interactor::{
     application::{AppId, Application, Camera3D, Notification},
     graphics::DrawArea,
@@ -45,7 +47,7 @@ use winit::event::WindowEvent;
 /// Computation of the view and projection matrix.
 mod camera;
 /// Display of the scene
-mod view;
+pub mod view;
 pub use view::{DrawOptions, FogParameters, GridInstance};
 use view::{
     DrawType, HandleDir, HandleOrientation, HandlesDescriptor, LetterInstance,
@@ -1106,8 +1108,8 @@ impl<S: AppState> Scene<S> {
         png_writer.finish().unwrap();
     }
 
-    pub fn get_stl_information(&self) -> Vec<bool> {
-        self.data.borrow().get_stl_information()
+    pub fn get_nucl_centers_for_stl(&self) -> Vec<Vec3> {
+        self.data.borrow().get_nucl_centers()
     }
 }
 
