@@ -1,3 +1,5 @@
+use crate::rotor_utils::SafeRotor;
+
 /*
 ENSnano, a 3d graphical application for DNA nanostructures.
     Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
@@ -17,7 +19,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use super::super::maths_3d::{Basis3D, UnalignedBoundaries};
 use super::super::view::{
-    ConeInstance, Ellipsoid, Instanciable, RawDnaInstance, Sheet2D, SphereInstance, TubeInstance,
+    ConeInstance, Ellipsoid, Instanciable, RawDnaInstance, Sheet2D, SlicedTubeInstance,
+    SphereInstance, TubeInstance, TubeLidInstance,
 };
 use super::super::GridInstance;
 use super::{ultraviolet, LetterInstance, SceneElement};
@@ -37,6 +40,7 @@ use ensnano_interactor::{
 };
 use ensnano_utils::instance::Instance;
 use std::collections::{BTreeMap, HashMap, HashSet};
+use std::f32::consts::PI;
 use std::rc::Rc;
 use std::sync::Arc;
 use ultraviolet::{Mat4, Rotor3, Vec2, Vec3};
@@ -45,7 +49,7 @@ mod bezier_paths;
 
 /// An object that handles the 3d graphical representation of a `Design`
 pub struct Design3D<R: DesignReader> {
-    design_reader: R,
+    pub design_reader: R,
     id: u32,
     symbol_map: HashMap<char, usize>,
     pub thick_helices: bool,
@@ -69,8 +73,8 @@ impl<R: DesignReader> Design3D<R> {
     pub fn id_to_raw_instances(&self, ids: Vec<u32>) -> Vec<RawDnaInstance> {
         let mut ret = Vec::new();
         for id in ids.iter() {
-            if let Some(instance) = self.make_raw_instance(*id) {
-                ret.push(instance)
+            if let Some(instances) = self.make_raw_instances(*id) {
+                ret.extend(instances)
             }
         }
         ret
@@ -85,7 +89,7 @@ impl<R: DesignReader> Design3D<R> {
                 ret.push(
                     SphereInstance {
                         position: loopout_nucl.position,
-                        color: Instance::color_from_u32(loopout_nucl.color),
+                        color: Instance::unclear_color_from_u32(loopout_nucl.color),
                         id: loopout_nucl.repr_bond_identifier,
                         radius: SPHERE_RADIUS,
                     }
@@ -99,7 +103,7 @@ impl<R: DesignReader> Design3D<R> {
                 ret.push(
                     SphereInstance {
                         position: transformation.transform_vec(p),
-                        color: Instance::color_from_u32(SURFACE_PIVOT_SPHERE_COLOR),
+                        color: Instance::unclear_color_from_u32(SURFACE_PIVOT_SPHERE_COLOR),
                         id: u32::MAX,
                         radius: SPHERE_RADIUS,
                     }
@@ -111,7 +115,7 @@ impl<R: DesignReader> Design3D<R> {
                     ret.push(
                         SphereInstance {
                             position: transformation.transform_vec(p),
-                            color: Instance::color_from_u32(PIVOT_SPHERE_COLOR),
+                            color: Instance::unclear_color_from_u32(PIVOT_SPHERE_COLOR),
                             id: u32::MAX,
                             radius: SPHERE_RADIUS,
                         }
@@ -290,7 +294,7 @@ impl<R: DesignReader> Design3D<R> {
             || self.design_reader.get_insertion_length(id) == 0
             || matches!(kind, Some(ObjectType::Nucleotide(_)))
         {
-            let instanciable = match kind {
+            let instanciables = match kind {
                 Some(ObjectType::Bond(id1, id2)) => {
                     let pos1 = self
                         .get_graphic_element_position(&SceneElement::DesignElement(self.id, id1))
@@ -299,21 +303,30 @@ impl<R: DesignReader> Design3D<R> {
                         .get_graphic_element_position(&SceneElement::DesignElement(self.id, id2))
                         .unwrap_or(f32::NAN * Vec3::unit_x());
                     let id = id | self.id << 24;
-                    create_dna_bond(pos1, pos2, color, id, true)
+                    vec![create_dna_bond(pos1, pos2, color, id, true)
                         .with_radius(radius)
-                        .to_raw_instance()
+                        .to_raw_instance()]
                 }
                 Some(ObjectType::HelixCylinder(id1, id2)) => {
                     let pos1 = self
-                        .get_graphic_element_axis_position(&SceneElement::DesignElement(self.id, id1))
+                        .get_graphic_element_axis_position(&SceneElement::DesignElement(
+                            self.id, id1,
+                        ))
                         .unwrap_or(f32::NAN * Vec3::unit_x());
                     let pos2 = self
-                        .get_graphic_element_axis_position(&SceneElement::DesignElement(self.id, id2))
+                        .get_graphic_element_axis_position(&SceneElement::DesignElement(
+                            self.id, id2,
+                        ))
                         .unwrap_or(f32::NAN * Vec3::unit_x());
                     let id = id | self.id << 24;
-                    create_helix_cylinder(pos1, pos2, color, id, true)
-                        .with_radius(radius)
-                        .to_raw_instance()
+                    let (lid1, tube, lid2) =
+                        create_helix_cylinder(pos1, pos2, radius, color, id, true);
+                    // println!("Lid1: {:?}\nTube: {:?}\nLid2: {:?}", lid1.position, tube.position, lid2.position);
+                    vec![
+                        lid1.to_raw_instance(),
+                        tube.to_raw_instance(),
+                        lid2.to_raw_instance(),
+                    ]
                 }
                 Some(ObjectType::Nucleotide(id)) => {
                     let position = self
@@ -326,17 +339,17 @@ impl<R: DesignReader> Design3D<R> {
                     //     radius *= 2.5;
                     // }
                     // radius = if small { radius / 3.5 } else { radius };
-                    SphereInstance {
+                    vec![SphereInstance {
                         position,
                         radius,
                         color,
                         id,
                     }
-                    .to_raw_instance()
+                    .to_raw_instance()]
                 }
-                _ => return vec![],
+                _ => vec![],
             };
-            ret.push(instanciable);
+            ret.extend(instanciables.iter());
         }
         if let Some(ExpandWith::Tubes) = expand_with {
             for loopout_bond in self
@@ -430,7 +443,9 @@ impl<R: DesignReader> Design3D<R> {
                 scale: BASIS_SCALE,
                 sphere: SphereInstance {
                     position: hbond.forward.center_of_mass,
-                    color: Instance::color_from_u32(basis_color(hbond.forward.base.unwrap_or('?'))),
+                    color: Instance::unclear_color_from_u32(basis_color(
+                        hbond.forward.base.unwrap_or('?'),
+                    )),
                     radius: SPHERE_RADIUS,
                     id: 0,
                 },
@@ -440,7 +455,7 @@ impl<R: DesignReader> Design3D<R> {
                 scale: BASIS_SCALE,
                 sphere: SphereInstance {
                     position: hbond.backward.center_of_mass,
-                    color: Instance::color_from_u32(basis_color(
+                    color: Instance::unclear_color_from_u32(basis_color(
                         hbond.backward.base.unwrap_or('?'),
                     )),
                     radius: SPHERE_RADIUS,
@@ -519,9 +534,9 @@ impl<R: DesignReader> Design3D<R> {
     }
 
     /// Convert return an instance representing the object with identifier `id`
-    pub fn make_raw_instance(&self, id: u32) -> Option<RawDnaInstance> {
+    pub fn make_raw_instances(&self, id: u32) -> Option<Vec<RawDnaInstance>> {
         let kind = self.get_object_type(id)?;
-        let raw_instance = match kind {
+        let raw_instances = match kind {
             ObjectType::Bond(id1, id2) => {
                 let pos1 =
                     self.get_graphic_element_position(&SceneElement::DesignElement(self.id, id1))?;
@@ -530,31 +545,42 @@ impl<R: DesignReader> Design3D<R> {
                 let color = self.get_color(id).unwrap_or(0x00_00_00);
                 let id = id | self.id << 24;
                 // Adjust the color and rafius of the bond according to the REAL length of the bond
-                let (color, radius) = self
-                    .length_adjusted_color_and_radius_for_bond(id1, id2)
-                    .unwrap_or((color, 1.0));
+                let xover_coloring = self.get_xover_coloring(id).unwrap_or(true);
+                let (color, radius) = (if xover_coloring {
+                    self.length_adjusted_color_and_radius_for_bond(id1, id2)
+                } else {
+                    None
+                })
+                .unwrap_or((color, 1.0));
                 let radius = radius * self.get_radius(id).unwrap_or(BOND_RADIUS);
                 let tube = create_dna_bond(pos1, pos2, color, id, false).with_radius(radius);
-                tube.to_raw_instance()
+                vec![tube.to_raw_instance()]
             }
             ObjectType::HelixCylinder(id1, id2) => {
-                let pos1 =
-                    self.get_graphic_element_axis_position(&SceneElement::DesignElement(self.id, id1))?;
-                let pos2 =
-                    self.get_graphic_element_axis_position(&SceneElement::DesignElement(self.id, id2))?;
-                    let color = self.get_color(id).unwrap_or(HELIX_CYLINDER_COLOR);
-                    let color = Instance::unclear_color_from_u32(color);
-                    let id = id | self.id << 24;
+                let pos1 = self.get_graphic_element_axis_position(&SceneElement::DesignElement(
+                    self.id, id1,
+                ))?;
+                let pos2 = self.get_graphic_element_axis_position(&SceneElement::DesignElement(
+                    self.id, id2,
+                ))?;
+                let color = self.get_color(id).unwrap_or(HELIX_CYLINDER_COLOR);
+                let color = Instance::add_alpha_to_clear_color_u32(color);
+                let id = id | self.id << 24;
                 // Adjust the color and rafius of the bond according to the REAL length of the bond
                 let radius = self.get_radius(id).unwrap_or(HELIX_CYLINDER_RADIUS);
-                let tube = create_dna_bond(pos1, pos2, color, id, true).with_radius(radius);
-                tube.to_raw_instance()
+                let (lid1, tube, lid2) = create_helix_cylinder(pos1, pos2, radius, color, id, true);
+                // println!("Lid1: {:?}\nTube: {:?}\nLid2: {:?}", lid1.position, tube.position, lid2.position);
+                vec![
+                    lid1.to_raw_instance(),
+                    tube.to_raw_instance(),
+                    lid2.to_raw_instance(),
+                ]
             }
             ObjectType::Nucleotide(id) => {
                 let position =
                     self.get_graphic_element_position(&SceneElement::DesignElement(self.id, id))?;
                 let color = self.get_color(id)?;
-                let color = Instance::color_from_u32(color);
+                let color = Instance::unclear_color_from_u32(color);
                 let id = id | self.id << 24;
                 // let small = self.design_reader.has_small_spheres_nucl_id(id);
                 // let radius = if small {
@@ -569,10 +595,10 @@ impl<R: DesignReader> Design3D<R> {
                     id,
                     radius,
                 };
-                sphere.to_raw_instance()
+                vec![sphere.to_raw_instance()]
             }
         };
-        Some(raw_instance)
+        Some(raw_instances)
     }
 
     pub fn get_suggested_spheres(&self) -> Vec<RawDnaInstance> {
@@ -861,6 +887,10 @@ impl<R: DesignReader> Design3D<R> {
         self.design_reader.get_radius(id)
     }
 
+    fn get_xover_coloring(&self, id: u32) -> Option<bool> {
+        self.design_reader.get_xover_coloring(id)
+    }
+
     /// Return the middle point of `self` in the world coordinates
     pub fn middle_point(&self) -> Vec3 {
         let boundaries = self.boundaries();
@@ -1145,11 +1175,11 @@ impl<R: DesignReader> Design3D<R> {
             .get_position_of_nucl_on_helix(nucl, Referential::World, false)
     }
 
-    pub fn pivot_sphere(position: Vec3) -> RawDnaInstance {
+    pub fn pivot_sphere(position: Vec3, radius: f32) -> RawDnaInstance {
         SphereInstance {
             position,
             id: 0,
-            radius: PIVOT_SCALE_FACTOR * SPHERE_RADIUS,
+            radius: PIVOT_SCALE_FACTOR * radius,
             color: Instance::color_from_au32(PIVOT_SPHERE_COLOR),
         }
         .to_raw_instance()
@@ -1221,7 +1251,7 @@ fn create_dna_bond(source: Vec3, dest: Vec3, color: u32, id: u32, use_alpha: boo
     let color = if use_alpha {
         Instance::color_from_au32(color)
     } else {
-        Instance::color_from_u32(color)
+        Instance::unclear_color_from_u32(color)
     };
     let rotor = Rotor3::from_rotation_between(Vec3::unit_x(), (dest - source).normalized());
     let position = (dest + source) / 2.;
@@ -1237,26 +1267,52 @@ fn create_dna_bond(source: Vec3, dest: Vec3, color: u32, id: u32, use_alpha: boo
     }
 }
 
-fn create_helix_cylinder(source: Vec3, dest: Vec3, color: u32, id: u32, use_alpha: bool) -> TubeInstance {
+fn create_helix_cylinder(
+    source: Vec3,
+    dest: Vec3,
+    radius: f32,
+    color: u32,
+    id: u32,
+    use_alpha: bool,
+) -> (TubeLidInstance, SlicedTubeInstance, TubeLidInstance) {
     let color = if use_alpha {
         Instance::color_from_au32(color)
     } else {
-        Instance::color_from_u32(color)
+        Instance::unclear_color_from_u32(color)
     };
-    let rotor = Rotor3::from_rotation_between(Vec3::unit_x(), (dest - source).normalized());
-    let position = (dest + source) / 2.;
     let length = (dest - source).mag();
+    let u = (dest - source).normalized();
+    let rotor = Rotor3::safe_from_rotation_from_unit_x_to(u);
+    let rotor2 = Rotor3::safe_from_rotation_from_unit_x_to(-u);
+    let position = (dest + source) / 2.;
 
-    TubeInstance {
-        position,
-        color,
-        rotor,
-        id,
-        radius: BOND_RADIUS,
-        length,
-    }
+    (
+        TubeLidInstance {
+            position: source,
+            color,
+            rotor: rotor2,
+            id,
+            radius,
+        },
+        SlicedTubeInstance {
+            position,
+            color,
+            rotor,
+            id,
+            radius,
+            length,
+            prev: Vec3::zero(),
+            next: Vec3::zero(),
+        },
+        TubeLidInstance {
+            position: dest,
+            color,
+            rotor,
+            id,
+            radius,
+        },
+    )
 }
-
 
 fn create_check_bond(source: Vec3, dest: Vec3, checked: bool) -> RawDnaInstance {
     let radius = (source - dest).mag() / 2.;
@@ -1276,7 +1332,7 @@ fn create_check_bond(source: Vec3, dest: Vec3, checked: bool) -> RawDnaInstance 
 }
 
 fn create_prime3_cone(source: Vec3, dest: Vec3, color: u32) -> RawDnaInstance {
-    let color = Instance::color_from_u32(color);
+    let color = Instance::unclear_color_from_u32(color);
     let rotor = Rotor3::from_rotation_between(Vec3::unit_x(), (dest - source).normalized());
     let length = 1. / 3. * (dest - source).mag();
     let position = (3. * source + 2. * dest) / 5.;
@@ -1343,6 +1399,7 @@ pub trait DesignReader: 'static + ensnano_interactor::DesignReader {
     fn get_element_axis_position(&self, id: u32, referential: Referential) -> Option<Vec3>;
     fn get_color(&self, e_id: u32) -> Option<u32>;
     fn get_radius(&self, e_id: u32) -> Option<f32>;
+    fn get_xover_coloring(&self, e_id: u32) -> Option<bool>;
     fn get_id_of_strand_containing(&self, e_id: u32) -> Option<usize>;
     fn get_id_of_helix_containing(&self, e_id: u32) -> Option<usize>;
     fn get_ids_of_elements_belonging_to_strand(&self, s_id: usize) -> Vec<u32>;

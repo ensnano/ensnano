@@ -21,6 +21,7 @@ uniform Uniforms {
     mat4 u_stereography_view;
     float u_aspect_ratio;
     float u_stereography_zoom;
+    uint u_nb_ray_tube;
 };
 
 layout(set=1, binding=0) buffer ModelBlock {
@@ -33,7 +34,9 @@ struct Instances {
     vec3 scale;
     uint id;
     mat4 inversed_model;
-    float expected_length;
+    vec3 prev;
+    uint mesh;
+    vec3 next;
 };
 
 layout(std430, set=2, binding=0) 
@@ -81,6 +84,12 @@ void main() {
         } 
     }
 */
+
+    // vec3 pos = a_position * scale;
+    // if (gl_VertexIndex % 2 == 0) {
+    //     pos = pos + vec3((gl_VertexIndex % 4)/10., 0., 0.);
+    // }
+    // vec4 model_space = model_matrix * vec4(pos, 1.0); 
 
     vec4 model_space = model_matrix * vec4(a_position * scale, 1.0); 
 

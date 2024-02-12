@@ -9,7 +9,7 @@ layout(location=2) out vec3 v_position;
 layout(location=3) out vec4 v_id;
 
 
-layout(set=0, binding=0)
+layout(std140, set=0, binding=0)
 uniform Uniforms {
     vec3 u_camera_position;
     mat4 u_view;
@@ -20,6 +20,7 @@ uniform Uniforms {
     float u_stereography_radius;
     mat4 u_stereography_view;
     float u_aspect_ratio;
+    float u_stereography_zoom;
     uint u_nb_ray_tube;
 };
 
@@ -28,14 +29,15 @@ layout(set=1, binding=0) buffer ModelBlock {
 };
 
 struct Instances {
-    mat4 model;
+    mat4 model; // translation to position + rotation to align u_x to the axis of the tube
     vec4 color;
     vec3 scale;
     uint id;
-    mat4 model_inversed;
+    mat4 inversed_model;
     vec3 prev;
     uint mesh;
     vec3 next;
+    float _padding;
 };
 
 layout(std430, set=2, binding=0) 
@@ -43,15 +45,18 @@ buffer InstancesBlock {
     readonly Instances instances[];
 };
 
-const float LOW_CRIT = 1.01;
-const float HIGH_CRIT = 1.4;
+/*
+// expected_length is 0.64 nm for DNA if normal view and 2.65 if axis view
+const float LOW_CRIT = 1. / 0.7; // bond starts getting grey if length > expected_length / 0.7, i.e. if 42% too high
+const float HIGH_CRIT = 2. / 0.7; // bond gets black if length > 2*expected_length /0.7, i.e. if 185% too high
+*/
 
 void main() {
-    int model_idx = int(instances[gl_InstanceIndex].id >> 24);
+    int model_idx = 0;
 
     //mat4 model_matrix = model_matrix2[model_idx] * instances[gl_InstanceIndex].model;
     mat4 model_matrix = model_matrix2[model_idx] * instances[gl_InstanceIndex].model;
-    mat4 inversed_model_matrix = instances[gl_InstanceIndex].model_inversed;
+    mat4 inversed_model_matrix = instances[gl_InstanceIndex].inversed_model;
     mat3 normal_matrix = mat3(transpose(inversed_model_matrix));
 
     /*Note: I'm currently doing things in world space .
@@ -65,48 +70,85 @@ void main() {
     v_normal = normal_matrix * a_normal;
     v_color = instances[gl_InstanceIndex].color;
     vec3 scale = instances[gl_InstanceIndex].scale;
-    vec3 outline = vec3(1.2);
-    if (scale.x > LOW_CRIT && abs(scale.x - scale.y) > 1e-5) {
-       scale.y *= 1.3;
-       scale.z *= 1.3;
-       float shade = smoothstep(LOW_CRIT, HIGH_CRIT, scale.x);
-       float grey = 0.25 - 0.25 * shade;
-       outline.x = 1.;
-       if (v_color.w > 0.99) {
-           v_color = vec4(grey, grey, grey, 1.);
-       }
-    } 
-    vec4 model_space = model_matrix * vec4((a_position + v_normal * 0.02) * scale * outline, 1.0); 
 
-    if (scale.y < 0.8) {
+    // vec3 position = a_position * scale;
+    // vec3 normal = a_normal;
+
+    // if (gl_VertexID < nb_ray_tube) {
+    //     // left face -> compute intersection with prev
+    // } else if (gl_VertexID >= 2*nb_ray_tube) {
+    //     // right face -> compute intersection with next
+
+
+    // } else {
+    //     // middle face - rien à changer
+    // }
+
+/*
+    // Change the color of the bond depending on its length if it exceeds the expected length
+    float expected_length = instances[gl_InstanceIndex].expected_length;
+    if (expected_length > 0.) {
+        if (scale.x > expected_length * LOW_CRIT) { // scale.x is the length of the tube for tube
+           scale.y *= 1.3; // make the bond radius larger if the length is too large
+           scale.z *= 1.3;
+           float shade = smoothstep(expected_length * LOW_CRIT, expected_length * HIGH_CRIT, scale.x);
+           float grey = 0.25 - 0.25 * shade;
+           if (v_color.w > 0.99) {
+               v_color = vec4(grey, grey, grey, 1.);
+           }
+        } 
+    }
+*/
+
+    // vec3 pos = a_position * scale;
+    // if (gl_VertexIndex % 2 == 0) {
+    //     pos = pos + vec3((gl_VertexIndex % 4)/10., 0., 0.);
+    // }
+    // vec4 model_space = model_matrix * vec4(pos, 1.0); 
+
+    vec3 position = a_position * scale;
+
+    // vec3 _next = normalize(vec3(1., 1., 1.));
+    // vec3 _prev = normalize(vec3(-1., -1., -1.));
+
+    // if (2* u_nb_ray_tube <= gl_VertexIndex) { //} && gl_VertexIndex < 2*nb_ray_tube) {
+    //     v_color = vec4(1.,1.,0.,1.);
+    // }
+
+
+    vec4 model_space = model_matrix * vec4(position, 1.0); 
+
+    /* if (scale.y < 0.8) {
         float dist = length(u_camera_position - model_space.xyz);
         if (abs(scale.x - scale.y) > 1e-5) {
             scale.yz /= max(1., (dist / 10.));
         } else {
           scale /= max(1., (dist / 10.));
         }
-        model_space = model_matrix * vec4((a_position + v_normal * 0.02) * scale * outline, 1.0); 
-    }
+        model_space = model_matrix * vec4(a_position * scale, 1.0); 
+    }*/
 
     v_position = model_space.xyz;
+
+
+
     uint id = instances[gl_InstanceIndex].id;
     v_id = vec4(
           float((id >> 16) & 0xFF) / 255.,
           float((id >> 8) & 0xFF) / 255.,
           float(id & 0xFF) / 255.,
           float((id >> 24) & 0xFF) / 255.);
-    gl_Position = u_proj * u_view * model_space;
     if (u_stereography_radius > 0.0) {
         vec4 view_space = u_stereography_view * model_space;
         view_space /= u_stereography_radius;
         float dist = length(view_space.xyz);
         vec3 projected = view_space.xyz / dist;
         float close_to_pole = 0.0;
-        if (projected.z > 0.99) {
+        if (projected.z > (1. - (0.01 / u_stereography_zoom))) {
             close_to_pole = 1.0;
         }
         float z = max(close_to_pole, atan(dist) * 2. / 3.14);
-        gl_Position = vec4(projected.x / (1. - projected.z) / 3. / u_aspect_ratio, projected.y / (1. - projected.z) / 3., z, 1.);
+        gl_Position = vec4(projected.x / (1. - projected.z) / u_stereography_zoom / u_aspect_ratio, projected.y / (1. - projected.z) / u_stereography_zoom, z, 1.);
     } else {
         gl_Position = u_proj * u_view * model_space;
     }
