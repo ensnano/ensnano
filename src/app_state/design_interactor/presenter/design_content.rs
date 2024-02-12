@@ -539,7 +539,7 @@ impl DesignContent {
         let mut id_TMP = 0u32;
         let mut id_clic_counter = ClicCounter::new();
         let mut nucl_id;
-        let mut old_nucl: Option<Nucl> = None;
+        let mut prev_nucl: Option<Nucl> = None;
         let mut old_nucl_id: Option<u32> = None;
         let mut elements = Vec::new();
         let mut prime3_set = Vec::new();
@@ -549,8 +549,9 @@ impl DesignContent {
         let mut drawing_styles = HashMap::default();
         let mut xover_coloring_map = HashMap::default();
         let mut clone_transformations = Vec::new();
+        let mut clone_variables: HashMap<String,f32> = HashMap::new();
 
-        xover_ids.agree_on_next_id(&mut new_junctions);
+        xover_ids.copy_next_id_to(&mut new_junctions);
         let rainbow_strand = design.scaffold_id.filter(|_| design.rainbow_scaffold);
         let grid_manager = design.get_updated_grid_data().clone();
 
@@ -575,12 +576,32 @@ impl DesignContent {
                 drawing_styles.insert(e, style);
             }
 
+            // collect all the variables defined in the organizer tree
+            let all_group_names = t.get_names_of_all_groups_without_id();
+            let clone_variables_declaration = &all_group_names
+                .iter()
+                .filter(|g| g.starts_with("vars:"))
+                .map(|x| 
+                    x[5..].split(&[' ', ','])
+                    .filter(|y| *y != ""))
+                .flatten()
+                .collect::<Vec<&str>>();
+            println!("{:?}", clone_variables_declaration);
+            for x in clone_variables_declaration {
+                let _s = x.split('=').filter(|y| *y != "").collect::<Vec<&str>>();
+                if _s.len() == 2 {
+                    if let Ok(value) = f32::from_str(_s[1]) {
+                        clone_variables.insert(_s[0].to_string(), value);
+                    }
+                }
+            };
+            println!("{:?}", clone_variables);
+
             // collect cloning operations from the organizer tree - these are globally applied regardless of the content of the groups
-            clone_transformations = t
-                .get_names_of_all_groups()
+            clone_transformations = all_group_names
                 .iter()
                 .filter(|g| g.starts_with("clone:"))
-                .map(|s| Isometry3::from_str(&s[6..]))
+                .map(|s| Isometry3::from_str_with_variables(&s[6..], Some(&clone_variables)))
                 .collect::<Vec<Isometry3>>();
         }
 
@@ -626,7 +647,7 @@ impl DesignContent {
             let mut prev_style = strand_style;
             let bond_coloring = strand_style.xover_coloring.unwrap_or(true);
             for (i, domain) in strand.domains.iter().enumerate() {
-                if let Some((prime5, prime3)) = old_nucl.clone().zip(domain.prime5_end()) {
+                if let Some((prime5, prime3)) = prev_nucl.clone().zip(domain.prime5_end()) {
                     Self::update_junction(
                         &mut new_junctions,
                         *last_xover_junction
@@ -719,7 +740,7 @@ impl DesignContent {
                                 repr_bond_identifier: id_TMP,
                             });
                         }
-                        nucl_id = if let Some(old_nucl) = old_nucl {
+                        nucl_id = if let Some(old_nucl) = prev_nucl {
                             let bond_id = id_TMP;
                             id_TMP += 1;
                             let bond = (old_nucl, nucl);
@@ -763,7 +784,7 @@ impl DesignContent {
                         let position = [position[0] as f32, position[1] as f32, position[2] as f32];
                         space_position.insert(nucl_id, position);
                         axis_space_position.insert(nucl_id, axis_position);
-                        old_nucl = Some(nucl);
+                        prev_nucl = Some(nucl);
                         old_nucl_id = Some(nucl_id);
                     }
                     if strand.junctions.len() <= i {
@@ -828,7 +849,7 @@ impl DesignContent {
                     });
                 }
                 id_TMP += 1;
-                let bond = (old_nucl.unwrap(), nucl);
+                let bond = (prev_nucl.unwrap(), nucl);
                 object_type.insert(bond_id, ObjectType::Bond(old_nucl_id.unwrap(), *prime5_id));
                 identifier_bond.insert(bond, bond_id);
                 nucleotides_involved.insert(bond_id, bond);
@@ -873,12 +894,12 @@ impl DesignContent {
                         }
                     }
                 }
-                if let Some(nucl) = old_nucl {
+                if let Some(nucl) = prev_nucl {
                     let color = strand.color;
                     prime3_set.push(Prime3End { nucl, color });
                 }
             }
-            old_nucl = None;
+            prev_nucl = None;
             old_nucl_id = None;
         }
         for g_id in grid_manager.grids.keys() {

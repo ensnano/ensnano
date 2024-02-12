@@ -79,6 +79,35 @@ impl<K: PartialEq> OrganizerTree<K> {
         ret
     }
 
+    pub fn get_names_of_all_groups_without_id(&self) -> Vec<String> {
+        let mut ret = Vec::new();
+        match self {
+            Self::Leaf(_) => (),
+            Self::Node {
+                name, children, id, ..
+            } => {
+                if let Some(name) = self.get_name_copy() {
+                    ret.push(name);
+                }
+                for c in children {
+                    let extention = c.get_names_of_all_groups_without_id();
+                    ret.extend(extention);
+                }
+            }
+        }
+        ret.dedup();
+        ret
+    }
+
+    pub fn get_name_copy(&self) -> Option<String> {
+        match self {
+            Self::Leaf(_) => None,
+            Self::Node {
+                name,..
+            } => Some(name.clone())
+        }
+    }
+
     pub fn get_name_copy_with_id(&self) -> String {
         match self {
             Self::Leaf(_) => "".to_string(),
