@@ -577,7 +577,7 @@ impl DesignContent {
                 drawing_styles.insert(e, style);
             }
 
-            // collect all the variables defined in the organizer tree
+            // collect all the variables defined in the organizer tree - these variables can only be used in the cloning transformations
             let all_group_names = t.get_names_of_all_groups_without_id();
             let clone_variables_declaration = &all_group_names
                 .iter()
