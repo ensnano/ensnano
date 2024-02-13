@@ -210,6 +210,7 @@ pub enum Message<S: AppState> {
     InitRevolutionRelaxation,
     CancelExport,
     LoadSvgFile,
+    ScreenShot2D,
     ScreenShot3D,
     IncrRevolutionShift,
     DecrRevolutionShift,
@@ -946,6 +947,9 @@ where
                 .unwrap()
                 .finish_revolutiion_relaxation(),
             Message::LoadSvgFile => self.requests.lock().unwrap().load_svg(),
+            Message::ScreenShot2D => {
+                self.requests.lock().unwrap().request_screenshot_2d();
+            }
             Message::ScreenShot3D => {
                 self.requests.lock().unwrap().request_screenshot_3d();
             }
