@@ -1989,7 +1989,7 @@ impl Controller {
         let mut drawing_styles = HashMap::<DesignElementKey, DrawingStyle>::default();
 
         if let Some(ref t) = design.organizer_tree {
-            // Read drawing style
+            // Read drawing style -> this should be a function on its own, the exact same code is used in design-content
             let prefix = "style:"; // PREFIX SHOULD BELONG TO CONST.RS
             let h = t.get_hashmap_to_all_groupnames_with_prefix(prefix);
             for (e, names) in h {
@@ -2010,6 +2010,7 @@ impl Controller {
         }
 
         for (s_id, strand) in design.strands.iter_mut() {
+            // recoloring only concerns the non-scaffold strands
             if Some(*s_id) != design.scaffold_id {
                 // Compute strand drawing style
                 let strand_style = drawing_styles
