@@ -20,10 +20,11 @@ use mathru::algebra::abstr::Identity;
 use std::f32::consts::PI;
 use ultraviolet::*;
 
-use regex::Regex;
 use std::str::FromStr;
 
-use crate::ParsePointError;
+use std::collections::HashMap;
+
+use crate::drawing_style::ParsePointError;
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug)]
 pub enum Isometry3DescriptorItem {
@@ -44,6 +45,10 @@ pub enum Isometry3DescriptorItem {
 
 pub trait Parsef32s {
     fn parse_f32s_separated_by_commas_parenthesis_or_space(s: &str) -> Vec<f32>;
+    fn parse_f32s_separated_by_commas_parenthesis_or_space_with_variables(
+        s: &str,
+        variables: Option<&HashMap<String, f32>>,
+    ) -> Vec<f32>;
 }
 
 impl Parsef32s for Isometry3DescriptorItem {
@@ -56,17 +61,41 @@ impl Parsef32s for Isometry3DescriptorItem {
                 ret.push(f);
             }
         }
+        return ret;
+    }
 
+    fn parse_f32s_separated_by_commas_parenthesis_or_space_with_variables(
+        s: &str,
+        variables: Option<&HashMap<String, f32>>,
+    ) -> Vec<f32> {
+        let s = s.split(&[',', '(', ')', ' ']);
+        let mut ret = Vec::new();
+        for t in s {
+            let t = t.trim();
+            if let Ok(f) = f32::from_str(t) {
+                ret.push(f);
+            } else if let Some(variables) = variables {
+                let parsed_t = t
+                    .split(&[' ', '*'])
+                    .filter(|s| *s != "")
+                    .collect::<Vec<&str>>();
+                if parsed_t.len() == 2 {
+                    if let Ok(value) = f32::from_str(parsed_t[0]) {
+                        if let Some(v) = variables.get(parsed_t[1]) {
+                            ret.push(value * v);
+                        }
+                    }
+                }
+            }
+        }
         return ret;
     }
 }
 
-impl FromStr for Isometry3DescriptorItem {
-    type Err = ParsePointError;
-
+impl Isometry3DescriptorItem {
     /// Parse an Isometry3DescriptorItem:
     /// - %id for Identity
-    /// - %tr(xx,yy,zz) for Translation(Vec3::new(xx,yy,zz))
+    /// - %tr(xx,yy,zz) for Translation(Vec3::new(xx,yy,zz)) where xx,yy,zz can be f32'*'variable_name where variable_name is in variables
     /// - %tX(xx) for TranslationX(xx)
     /// - %tY(yy) for TranslationY(yy)
     /// - %tZ(zz) for TranslationZ(zz)
@@ -78,28 +107,43 @@ impl FromStr for Isometry3DescriptorItem {
     /// - %rotYZ(a) for RotateYZBy(a)
     /// - %rotZX(a,xc,yc,zc) for RotateZXByAround(a,Vec3::new(xc,yc,zc))
     /// - %rotZX(a) for RotateZXBy(a)
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    fn from_str_with_variables(
+        s: &str,
+        variables: Option<&HashMap<String, f32>>,
+    ) -> Result<Self, ParsePointError> {
         let s = s.trim();
 
         if s.starts_with("%id") {
             return Ok(Self::Identity);
         } else if s.starts_with("%tr(") {
-            let args = Self::parse_f32s_separated_by_commas_parenthesis_or_space(&s[4..]);
+            let args = Self::parse_f32s_separated_by_commas_parenthesis_or_space_with_variables(
+                &s[4..],
+                variables,
+            );
             if args.len() == 3 {
                 return Ok(Self::TranslateBy(Vec3::new(args[0], args[1], args[2])));
             }
         } else if s.starts_with("%tX(") {
-            let args = Self::parse_f32s_separated_by_commas_parenthesis_or_space(&s[4..]);
+            let args = Self::parse_f32s_separated_by_commas_parenthesis_or_space_with_variables(
+                &s[4..],
+                variables,
+            );
             if args.len() == 1 {
                 return Ok(Self::TranslateX(args[0]));
             }
         } else if s.starts_with("%tY(") {
-            let args = Self::parse_f32s_separated_by_commas_parenthesis_or_space(&s[4..]);
+            let args = Self::parse_f32s_separated_by_commas_parenthesis_or_space_with_variables(
+                &s[4..],
+                variables,
+            );
             if args.len() == 1 {
                 return Ok(Self::TranslateY(args[0]));
             }
         } else if s.starts_with("%tZ(") {
-            let args = Self::parse_f32s_separated_by_commas_parenthesis_or_space(&s[4..]);
+            let args = Self::parse_f32s_separated_by_commas_parenthesis_or_space_with_variables(
+                &s[4..],
+                variables,
+            );
             if args.len() == 1 {
                 return Ok(Self::TranslateZ(args[0]));
             }
@@ -162,6 +206,14 @@ impl FromStr for Isometry3DescriptorItem {
     }
 }
 
+impl FromStr for Isometry3DescriptorItem {
+    type Err = ParsePointError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        return Self::from_str_with_variables(s, None);
+    }
+}
+
 pub type Isometry3Descriptor = Vec<Isometry3DescriptorItem>;
 
 pub trait Isometry3MissingMethods {
@@ -173,6 +225,7 @@ pub trait Isometry3MissingMethods {
     fn rotation_xy_by_around(degree: f32, c: Vec3) -> Isometry3;
     fn composed_with(&self, iso2: Isometry3) -> Isometry3;
     fn from_str(s: &str) -> Isometry3;
+    fn from_str_with_variables(s: &str, variables: Option<&HashMap<String, f32>>) -> Isometry3;
 }
 
 impl Isometry3MissingMethods for Isometry3 {
@@ -294,6 +347,19 @@ impl Isometry3MissingMethods for Isometry3 {
         let descr = s
             .split(&[' ', ')'])
             .map(|x| Isometry3DescriptorItem::from_str(x))
+            .filter(|x| x.is_ok())
+            .map(|x| x.unwrap())
+            .collect::<Vec<Isometry3DescriptorItem>>();
+
+        println!("{:?}", descr);
+
+        return Isometry3::from_descriptor(&descr);
+    }
+
+    fn from_str_with_variables(s: &str, variables: Option<&HashMap<String, f32>>) -> Isometry3 {
+        let descr = s
+            .split(&[' ', ')'])
+            .map(|x| Isometry3DescriptorItem::from_str_with_variables(x, variables))
             .filter(|x| x.is_ok())
             .map(|x| x.unwrap())
             .collect::<Vec<Isometry3DescriptorItem>>();

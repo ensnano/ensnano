@@ -160,7 +160,7 @@ impl InstanciatedInsertion {
     }
 }
 
-const NB_STEP: usize = 1000;
+const NB_STEP: usize = 1_000;
 const DT_STEP: f32 = 1e-2;
 const K_SPRING: f32 = 1.0;
 const FRICTION: f32 = 0.1;

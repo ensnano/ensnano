@@ -37,6 +37,8 @@ pub mod texture;
 
 pub mod clic_counter;
 
+use rand::Rng;
+
 pub type PhySize = PhysicalSize<u32>;
 pub const TEXTURE_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Bgra8UnormSrgb;
 
@@ -93,6 +95,34 @@ pub fn new_color(color_idx: &mut usize) -> u32 {
     };
     *color_idx += 1;
     color
+}
+
+pub fn random_color_with_shade(shade: u32) -> u32 {
+    // generate a random color around the shade
+    let h_range = 0.1;
+    let s_range = 0.2;
+    let b_range = 0.2;
+
+    let (a, r, g, b) = (
+        shade & 0xFF_00_00_00,
+        (shade & 0xFF0000) >> 16,
+        (shade & 0x00FF00) >> 8,
+        shade & 0x0000FF,
+    );
+    let shade = color_space::Hsv::from(color_space::Rgb::new(r as f64, g as f64, b as f64));
+    // randomly modify the shade
+    let mut rng = rand::thread_rng();
+    let hue = (shade.h / 360. + h_range * (2. * rng.gen::<f64>() - 1.)).fract() * 360.;
+    let saturation = (shade.s.min(1. - s_range) + s_range * (2. * rng.gen::<f64>() - 1.))
+        .min(1.)
+        .max(0.);
+    let value = (shade.v.min(1. - b_range) + b_range * (2. * rng.gen::<f64>() - 1.))
+        .min(1.)
+        .max(0.);
+
+    let color = (hsv_color(hue, saturation, value) & 0xFF_FF_FF) | a;
+
+    return color;
 }
 
 #[repr(C)]
