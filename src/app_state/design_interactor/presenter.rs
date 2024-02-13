@@ -23,6 +23,7 @@ use super::*;
 use ensnano_design::{
     BezierPathId, Extremity, HelixCollection, InstanciatedPiecewiseBezier, Nucl, VirtualNucl,
 };
+use ensnano_exports::stl::StlObject;
 use ensnano_interactor::{
     application::Camera3D, NeighbourDescriptor, NeighbourDescriptorGiver, ScaffoldInfo, Selection,
     SuggestionParameters,
@@ -507,21 +508,58 @@ impl Presenter {
             .map(|t| t.0)
     }
 
+    fn get_stl_info(&self) -> Vec<StlObject> {
+        let res: Vec<StlObject> = self
+            .content
+            .object_type
+            .clone()
+            .iter()
+            .map(|(obj_id, t)| match t {
+                ObjectType::Nucleotide(nucl_id) => {
+                    StlObject::Sphere(ensnano_exports::stl::StlSphere {
+                        center: self
+                            .content
+                            .get_element_position(*nucl_id)
+                            .unwrap_or_default(),
+                        scale: self
+                            .content
+                            .radius_map
+                            .get(&nucl_id)
+                            .unwrap_or(&0.0)
+                            .to_owned(),
+                    })
+                }
+                ObjectType::HelixCylinder(id1, id2) => {
+                    StlObject::HelixTube(ensnano_exports::stl::StlTube {
+                        from: self.content.get_element_position(*id1).unwrap_or_default(),
+                        to: self.content.get_element_position(*id2).unwrap_or_default(),
+                        scale_r: self
+                            .content
+                            .radius_map
+                            .get(obj_id)
+                            .unwrap_or(&0.0)
+                            .to_owned(),
+                    })
+                }
+                ObjectType::Bond(id1, id2) => StlObject::BondTube(ensnano_exports::stl::StlTube {
+                    from: self.content.get_element_position(*id1).unwrap_or_default(),
+                    to: self.content.get_element_position(*id2).unwrap_or_default(),
+                    scale_r: self
+                        .content
+                        .radius_map
+                        .get(obj_id)
+                        .unwrap_or(&0.0)
+                        .to_owned(),
+                }),
+            })
+            .collect();
+        println!("  export : if stl export add centers {} ", res.len()); // get_element_position(&self, id: u32)
+        res
+    }
+
     pub fn export(&self, export_path: &PathBuf, export_type: ExportType) -> ExportResult {
-        println!(
-            "  export : if stl export add centers {} {}",
-            self.content.loopout_nucls.len(),
-            self.content.nucleotide.keys().len()
-        ); // get_element_position(&self, id: u32)
         let et = match export_type.clone() {
-            ExportType::Stl(_) => ExportType::Stl(
-                self.content
-                    .clone()
-                    .nucleotide
-                    .keys()
-                    .map(|n| self.content.get_element_position(*n).unwrap())
-                    .collect(),
-            ),
+            ExportType::Stl(_) => ExportType::Stl(self.get_stl_info()),
 
             _ => export_type,
         };
@@ -600,7 +638,7 @@ pub(super) fn apply_simulation_update(
     (AddressPointer::new(returned_presenter), returned_design)
 }
 
-use ensnano_interactor::Referential;
+use ensnano_interactor::{ObjectType, Referential};
 use ultraviolet::Vec3;
 impl DesignReader {
     pub(super) fn get_position_of_nucl_on_helix(

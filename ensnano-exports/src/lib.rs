@@ -32,7 +32,7 @@ use ensnano_design::{ultraviolet, Design, Nucl};
 use pdb::PdbError;
 use std::collections::HashMap;
 use std::path::PathBuf;
-use stl::StlError;
+use stl::{StlError, StlObject};
 
 /// The file formats to which an export is implemented
 #[derive(Debug, Clone, PartialEq, Display)]
@@ -41,7 +41,7 @@ pub enum ExportType {
     Cando,
     Pdb,
     Oxdna,
-    Stl(Vec<Vec3>),
+    Stl(Vec<StlObject>),
 }
 
 /// A value returned by the export functions when exports was successfull.
