@@ -24,7 +24,7 @@ use std::str::FromStr;
 
 use std::collections::HashMap;
 
-use crate::{ParsePointError};
+use crate::drawing_style::ParsePointError;
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug)]
 pub enum Isometry3DescriptorItem {
@@ -45,7 +45,10 @@ pub enum Isometry3DescriptorItem {
 
 pub trait Parsef32s {
     fn parse_f32s_separated_by_commas_parenthesis_or_space(s: &str) -> Vec<f32>;
-    fn parse_f32s_separated_by_commas_parenthesis_or_space_with_variables(s: &str, variables: Option<&HashMap<String, f32>>) -> Vec<f32>;
+    fn parse_f32s_separated_by_commas_parenthesis_or_space_with_variables(
+        s: &str,
+        variables: Option<&HashMap<String, f32>>,
+    ) -> Vec<f32>;
 }
 
 impl Parsef32s for Isometry3DescriptorItem {
@@ -61,7 +64,10 @@ impl Parsef32s for Isometry3DescriptorItem {
         return ret;
     }
 
-    fn parse_f32s_separated_by_commas_parenthesis_or_space_with_variables(s: &str, variables: Option<&HashMap<String, f32>>) -> Vec<f32> {
+    fn parse_f32s_separated_by_commas_parenthesis_or_space_with_variables(
+        s: &str,
+        variables: Option<&HashMap<String, f32>>,
+    ) -> Vec<f32> {
         let s = s.split(&[',', '(', ')', ' ']);
         let mut ret = Vec::new();
         for t in s {
@@ -69,7 +75,10 @@ impl Parsef32s for Isometry3DescriptorItem {
             if let Ok(f) = f32::from_str(t) {
                 ret.push(f);
             } else if let Some(variables) = variables {
-                let parsed_t = t.split(&[' ','*']).filter(|s| *s != "").collect::<Vec<&str>>();
+                let parsed_t = t
+                    .split(&[' ', '*'])
+                    .filter(|s| *s != "")
+                    .collect::<Vec<&str>>();
                 if parsed_t.len() == 2 {
                     if let Ok(value) = f32::from_str(parsed_t[0]) {
                         if let Some(v) = variables.get(parsed_t[1]) {
@@ -83,9 +92,7 @@ impl Parsef32s for Isometry3DescriptorItem {
     }
 }
 
-
 impl Isometry3DescriptorItem {
-
     /// Parse an Isometry3DescriptorItem:
     /// - %id for Identity
     /// - %tr(xx,yy,zz) for Translation(Vec3::new(xx,yy,zz)) where xx,yy,zz can be f32'*'variable_name where variable_name is in variables
@@ -100,28 +107,43 @@ impl Isometry3DescriptorItem {
     /// - %rotYZ(a) for RotateYZBy(a)
     /// - %rotZX(a,xc,yc,zc) for RotateZXByAround(a,Vec3::new(xc,yc,zc))
     /// - %rotZX(a) for RotateZXBy(a)
-    fn from_str_with_variables(s: &str, variables: Option<&HashMap<String, f32>>) -> Result<Self, ParsePointError> {
+    fn from_str_with_variables(
+        s: &str,
+        variables: Option<&HashMap<String, f32>>,
+    ) -> Result<Self, ParsePointError> {
         let s = s.trim();
 
         if s.starts_with("%id") {
             return Ok(Self::Identity);
         } else if s.starts_with("%tr(") {
-            let args = Self::parse_f32s_separated_by_commas_parenthesis_or_space_with_variables(&s[4..], variables);
+            let args = Self::parse_f32s_separated_by_commas_parenthesis_or_space_with_variables(
+                &s[4..],
+                variables,
+            );
             if args.len() == 3 {
                 return Ok(Self::TranslateBy(Vec3::new(args[0], args[1], args[2])));
             }
         } else if s.starts_with("%tX(") {
-            let args = Self::parse_f32s_separated_by_commas_parenthesis_or_space_with_variables(&s[4..], variables);
+            let args = Self::parse_f32s_separated_by_commas_parenthesis_or_space_with_variables(
+                &s[4..],
+                variables,
+            );
             if args.len() == 1 {
                 return Ok(Self::TranslateX(args[0]));
             }
         } else if s.starts_with("%tY(") {
-            let args = Self::parse_f32s_separated_by_commas_parenthesis_or_space_with_variables(&s[4..], variables);
+            let args = Self::parse_f32s_separated_by_commas_parenthesis_or_space_with_variables(
+                &s[4..],
+                variables,
+            );
             if args.len() == 1 {
                 return Ok(Self::TranslateY(args[0]));
             }
         } else if s.starts_with("%tZ(") {
-            let args = Self::parse_f32s_separated_by_commas_parenthesis_or_space_with_variables(&s[4..], variables);
+            let args = Self::parse_f32s_separated_by_commas_parenthesis_or_space_with_variables(
+                &s[4..],
+                variables,
+            );
             if args.len() == 1 {
                 return Ok(Self::TranslateZ(args[0]));
             }

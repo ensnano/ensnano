@@ -7,7 +7,7 @@ layout(location=0) out vec4 v_color;
 layout(location=1) out vec3 v_normal;
 layout(location=2) out vec3 v_position;
 layout(location=3) out vec4 v_id;
-flat layout(location=4) out uint v_discard_fake; // NS DID NOT MANAGE TO MAKE IT WORK WITH THE PIPELINE
+flat layout(location=4) out uint v_discard_fake; 
 
 
 layout(std140, set=0, binding=0)

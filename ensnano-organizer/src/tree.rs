@@ -102,9 +102,7 @@ impl<K: PartialEq> OrganizerTree<K> {
     pub fn get_name_copy(&self) -> Option<String> {
         match self {
             Self::Leaf(_) => None,
-            Self::Node {
-                name,..
-            } => Some(name.clone())
+            Self::Node { name, .. } => Some(name.clone()),
         }
     }
 
