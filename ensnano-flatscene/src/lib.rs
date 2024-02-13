@@ -581,7 +581,7 @@ impl<S: AppState> FlatScene<S> {
         let (texture, texture_view) = self.create_png_export_texture(device, size);
 
         let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-            label: Some("3D Png export"),
+            label: Some("2D PNG export"),
         });
 
         self.view[0]
@@ -724,6 +724,15 @@ impl<S: AppState> Application for FlatScene<S> {
             Notification::NewStereographicCamera(_) => (),
             Notification::FlipSplitViews => self.controller[0].flip_split_views(),
             Notification::HorizonAligned => (),
+            Notification::ScreenShot2D => {
+                use chrono::Utc;
+                let png_name = Utc::now()
+                    .format("export_2d_%Y_%m_%d_%H_%M_%S.png")
+                    .to_string();
+                let resolution = [self.area.size.width as f32, self.area.size.height as f32];
+                // NOTE: Done that to make it work. Not sure this is appropriate.
+                self.export_png(&png_name, Globals::default(resolution));
+            }
             Notification::ScreenShot3D => (),
             Notification::StlExport => (),
         }

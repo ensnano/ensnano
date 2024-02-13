@@ -227,7 +227,9 @@ pub trait Requests: 'static + Send {
     fn set_bezier_revolution_radius(&mut self, radius: f64);
     fn set_bezier_revolution_id(&mut self, id: Option<usize>);
     fn set_unrooted_surface(&mut self, surface: Option<UnrootedRevolutionSurfaceDescriptor>);
-    /// Make a 3D screenshot
+    /// Make a screenshot of the 2D flatscene.
+    fn request_screenshot_2d(&mut self);
+    /// Make a screenshot of the 3D scene.
     fn request_screenshot_3d(&mut self);
     fn notify_revolution_tab(&mut self);
     fn request_stl_export(&mut self);
