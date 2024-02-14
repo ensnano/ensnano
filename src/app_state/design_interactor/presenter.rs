@@ -24,10 +24,12 @@ use ensnano_design::{
     BezierPathId, Extremity, HelixCollection, InstanciatedPiecewiseBezier, Nucl, VirtualNucl,
 };
 use ensnano_exports::stl::StlObject;
+use ensnano_interactor::consts::BOND_RADIUS;
 use ensnano_interactor::{
     application::Camera3D, NeighbourDescriptor, NeighbourDescriptorGiver, ScaffoldInfo, Selection,
     SuggestionParameters,
 };
+use ensnano_scene::view::RawDnaInstance;
 use ultraviolet::Mat4;
 
 use crate::utils::id_generator::IdGenerator;
@@ -509,7 +511,7 @@ impl Presenter {
     }
 
     fn get_stl_info(&self) -> Vec<StlObject> {
-        let res: Vec<StlObject> = self
+        let mut res: Vec<StlObject> = self
             .content
             .object_type
             .clone()
@@ -531,8 +533,14 @@ impl Presenter {
                 }
                 ObjectType::HelixCylinder(id1, id2) => {
                     StlObject::HelixTube(ensnano_exports::stl::StlTube {
-                        from: self.content.get_element_position(*id1).unwrap_or_default(),
-                        to: self.content.get_element_position(*id2).unwrap_or_default(),
+                        from: self
+                            .content
+                            .get_axis_element_position(*id1)
+                            .unwrap_or_default(),
+                        to: self
+                            .content
+                            .get_axis_element_position(*id2)
+                            .unwrap_or_default(),
                         scale_r: self
                             .content
                             .radius_map
@@ -553,7 +561,18 @@ impl Presenter {
                 }),
             })
             .collect();
-        println!("  export : if stl export add centers {} ", res.len()); // get_element_position(&self, id: u32)
+        let mut stl_hbonds: &[HBond] = self.bonds.as_ref();
+        let mut stl_hbonds: Vec<StlObject> = stl_hbonds
+            .iter()
+            .map(|hb| {
+                StlObject::HBondTube(ensnano_exports::stl::StlTube {
+                    from: hb.backward.backbone,
+                    to: hb.forward.backbone,
+                    scale_r: BOND_RADIUS, // TODO should depend of design
+                })
+            })
+            .collect();
+        res.append(&mut stl_hbonds);
         res
     }
 

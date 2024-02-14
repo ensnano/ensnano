@@ -17,7 +17,7 @@ use std::io::Write;
 use ensnano_design::ultraviolet::{Rotor3, Vec3, Vec4};
 use ensnano_design::Design;
 //use ensnano_interactor::graphics::LoopoutNucl;
-use ensnano_scene::view::{Instanciable, SphereInstance, TubeInstance};
+use ensnano_scene::view::{Instanciable, RawDnaInstance, SphereInstance, TubeInstance};
 use ensnano_scene::AppState;
 use ensnano_scene::Scene;
 
@@ -48,92 +48,158 @@ pub enum StlObject {
     Sphere(StlSphere),
     HelixTube(StlTube),
     BondTube(StlTube),
+    HBondTube(StlTube),
+}
+
+trait StlProcessing {
+    fn to_stl_triangles(&self) -> Vec<StlTriangle> {
+        vertices_indices_to_stl_triangles(self.transformed_vertices(), self.triangle_list_indices())
+    }
+    fn transformed_vertices(&self) -> Vec<[f32; 3]>;
+    fn triangle_list_indices(&self) -> Vec<usize>;
+}
+
+impl StlProcessing for RawDnaInstance {
+    fn transformed_vertices(&self) -> Vec<[f32; 3]> {
+        let vertices = match self.mesh {
+            1 => SphereInstance::vertices(),
+            _ => TubeInstance::vertices(),
+        };
+        let model = self.model;
+        let scale = self.scale;
+        vertices
+            .iter()
+            .map(|v| Vec3::from(v.position) * scale)
+            .map(|v| [v[0], v[1], v[2]])
+            .collect()
+    }
+
+    fn triangle_list_indices(&self) -> Vec<usize> {
+        let indices = match self.mesh {
+            1 => SphereInstance::indices(),
+            _ => {
+                let mut triangle_from_strip_indices = vec![];
+                let n = TubeInstance::indices().len();
+                for i in (0..n - 2) {
+                    triangle_from_strip_indices.push(TubeInstance::indices()[i]);
+                    triangle_from_strip_indices.push(TubeInstance::indices()[i + 1]);
+                    triangle_from_strip_indices.push(TubeInstance::indices()[i + 2]);
+                }
+                triangle_from_strip_indices
+            }
+        };
+        indices.iter().map(|&x| x as usize).collect()
+    }
+}
+
+impl StlProcessing for StlObject {
+    fn triangle_list_indices(&self) -> Vec<usize> {
+        let indices = match self {
+            StlObject::Sphere(_) => SphereInstance::indices(),
+            StlObject::BondTube(_) | StlObject::HelixTube(_) | StlObject::HBondTube(_) => {
+                let mut triangle_from_strip_indices = vec![];
+                let n = TubeInstance::indices().len();
+                for i in (0..n - 2) {
+                    triangle_from_strip_indices.push(TubeInstance::indices()[i]);
+                    triangle_from_strip_indices.push(TubeInstance::indices()[i + 1]);
+                    triangle_from_strip_indices.push(TubeInstance::indices()[i + 2]);
+                }
+                triangle_from_strip_indices
+            }
+        };
+        indices.iter().map(|&x| x as usize).collect()
+    }
+    fn transformed_vertices(&self) -> Vec<[f32; 3]> {
+        match self {
+            StlObject::Sphere(s) => SphereInstance::vertices()
+                .clone()
+                .iter()
+                .map(|v| {
+                    [
+                        v.position[0] * s.scale + s.center[0],
+                        v.position[1] * s.scale + s.center[1],
+                        v.position[2] * s.scale + s.center[2],
+                    ]
+                })
+                .collect(),
+            StlObject::BondTube(t) | StlObject::HelixTube(t) | StlObject::HBondTube(t) => {
+                TubeInstance::vertices()
+                    .clone()
+                    .iter()
+                    .map(|v| {
+                        let center = (t.from + t.to) / 2.0;
+                        let rot = Rotor3::from_rotation_between(
+                            Vec3 {
+                                x: 1.0,
+                                y: 0.0,
+                                z: 0.0,
+                            }
+                            .normalized(),
+                            (t.to - t.from).normalized(),
+                        );
+                        let scale_l = (t.to - t.from).mag();
+                        let v = [
+                            v.position[0] * scale_l,
+                            v.position[1] * t.scale_r,
+                            v.position[2] * t.scale_r,
+                        ];
+                        let v = Vec3::from(v).rotated_by(rot);
+                        [center[0] + v[0], center[1] + v[1], center[2] + v[2]]
+                    })
+                    .collect()
+            }
+        }
+    }
+}
+
+pub fn stl_bytes_export_from_raw(raw_instances: Vec<RawDnaInstance>) -> Result<Vec<u8>, StlError> {
+    let triangles: Vec<StlTriangle> = raw_instances
+        .iter()
+        .flat_map(|raw_inst| raw_inst.to_stl_triangles())
+        .collect();
+    let mut bytes: Vec<u8> = vec![0; 80]; // header numer of triangles
+    let triangles_number: u32 = triangles.len() as u32;
+    let triangle_number = triangles_number.to_le_bytes();
+    bytes.extend_from_slice(&triangle_number[0..]);
+    for t in triangles {
+        bytes.append(&mut t.to_bytes());
+    }
+    Ok(bytes)
 }
 
 pub fn stl_bytes_export(stl_objects: Vec<StlObject>) -> Result<Vec<u8>, StlError> {
     let triangles: Vec<StlTriangle> = stl_objects
         .iter()
-        .map(|stl_obj| stl_obj_to_triangles(stl_obj.clone()))
-        .flatten()
+        .flat_map(|stl_obj| stl_obj.to_stl_triangles())
         .collect();
     let mut bytes: Vec<u8> = vec![0; 80]; // header numer of triangles
-    let mut triangles_number: u32 = triangles.len() as u32;
+    let triangles_number: u32 = triangles.len() as u32;
     let triangle_number = triangles_number.to_le_bytes();
     bytes.extend_from_slice(&triangle_number[0..]);
     for t in triangles {
-        bytes.append(&mut triangle_to_bytes(t));
+        bytes.append(&mut t.to_bytes());
     }
     Ok(bytes)
 }
 
-fn stl_tube_to_triangles(t: StlTube) -> Vec<StlTriangle> {
-    let transformed_vertices: Vec<[f32; 3]> = TubeInstance::vertices()
-        .clone()
-        .iter()
-        .map(|v| {
-            let center = (t.from + t.to) / 2.0;
-            let rot = Rotor3::from_rotation_between(
-                Vec3 {
-                    x: 1.0,
-                    y: 0.0,
-                    z: 0.0,
-                }
-                .normalized(),
-                (t.to - t.from).normalized(),
-            );
-            let v = [
-                v.position[0],
-                v.position[1] * t.scale_r,
-                v.position[2] * t.scale_r,
-            ];
-            let v = Vec3::from(v).rotated_by(rot);
-            [center[0] + v[0], center[1] + v[1], center[2] + v[2]]
-        })
-        .collect();
-    // println!("{:?}", transformed_vertices);
-    //println!("{:?}", TubeInstance::indices());
-    let mut triangle_from_strip_indices = vec![];
-    let n = TubeInstance::indices().len();
-    for i in (0..n - 2) {
-        triangle_from_strip_indices.push(TubeInstance::indices()[i]);
-        triangle_from_strip_indices.push(TubeInstance::indices()[i + 1]);
-        triangle_from_strip_indices.push(TubeInstance::indices()[i + 2]);
-    }
-    vertices_indices_to_stl_triangles(
-        transformed_vertices,
-        triangle_from_strip_indices
-            .iter()
-            .map(|x| usize::from(*x))
-            .collect(),
-    )
+#[derive(Debug, Copy, Clone)]
+struct StlTriangle {
+    normal: [f32; 3],
+    v1: [f32; 3],
+    v2: [f32; 3],
+    v3: [f32; 3],
 }
 
-fn stl_sphere_to_triangles(s: StlSphere) -> Vec<StlTriangle> {
-    let transformed_vertices: Vec<[f32; 3]> = SphereInstance::vertices()
-        .clone()
-        .iter()
-        .map(|v| {
-            [
-                v.position[0] * s.scale + s.center[0],
-                v.position[1] * s.scale + s.center[1],
-                v.position[2] * s.scale + s.center[2],
-            ]
-        })
-        .collect();
-    vertices_indices_to_stl_triangles(
-        transformed_vertices,
-        SphereInstance::indices()
-            .iter()
-            .map(|x| usize::from(*x))
-            .collect(),
-    )
-}
-
-fn stl_obj_to_triangles(o: StlObject) -> Vec<StlTriangle> {
-    match o {
-        StlObject::Sphere(s) => stl_sphere_to_triangles(s),
-        StlObject::HelixTube(t) => stl_tube_to_triangles(t),
-        StlObject::BondTube(t) => stl_tube_to_triangles(t),
+impl StlTriangle {
+    fn to_bytes(self) -> Vec<u8> {
+        let mut result = self.normal.to_vec();
+        result.extend(self.v1.to_vec());
+        result.extend(self.v2.to_vec());
+        result.extend(self.v3.to_vec());
+        let mut result: Vec<u8> = result.iter().map(|x| x.to_le_bytes()).flatten().collect();
+        result.push(0); // attribute bytes
+        result.push(0);
+        result
     }
 }
 
@@ -154,44 +220,25 @@ fn vertices_indices_to_stl_triangles(
     result
 }
 
-#[derive(Debug, Copy, Clone)]
-struct StlTriangle {
-    normal: [f32; 3],
-    v1: [f32; 3],
-    v2: [f32; 3],
-    v3: [f32; 3],
-}
-
-fn triangle_to_bytes(t: StlTriangle) -> Vec<u8> {
-    let mut result = t.normal.to_vec();
-    result.extend(t.v1.to_vec());
-    result.extend(t.v2.to_vec());
-    result.extend(t.v3.to_vec());
-    let mut result: Vec<u8> = result.iter().map(|x| x.to_le_bytes()).flatten().collect();
-    result.push(0); // attribute bytes
-    result.push(0);
-    result
-}
-
-fn stl_bytes_from_triangles(path: &str, triangles: Vec<StlTriangle>) -> Result<(), io::Error> {
-    let mut out_file = std::fs::File::create(path)?;
-    let mut bytes: Vec<u8> = vec![0; 80]; // header numer of triangles
-    let mut triangles_number: u32 = triangles.len() as u32;
-    let triangle_number = triangles_number.to_le_bytes();
-    bytes.extend_from_slice(&triangle_number[0..]);
-    for t in triangles {
-        bytes.append(&mut triangle_to_bytes(t));
-    }
-    out_file.write_all(&bytes)?;
-    Ok(())
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn stl_file_from_triangles(path: &str, triangles: Vec<StlTriangle>) -> Result<(), io::Error> {
+        let mut out_file = std::fs::File::create(path)?;
+        let mut bytes: Vec<u8> = vec![0; 80]; // header numer of triangles
+        let mut triangles_number: u32 = triangles.len() as u32;
+        let triangle_number = triangles_number.to_le_bytes();
+        bytes.extend_from_slice(&triangle_number[0..]);
+        for t in triangles {
+            bytes.append(&mut t.to_bytes());
+        }
+        out_file.write_all(&bytes)?;
+        Ok(())
+    }
     #[test]
     fn empty_stl_test() {
-        assert!(stl_bytes_from_triangles("blop.stl", vec![]).is_ok());
+        assert!(stl_file_from_triangles("blop.stl", vec![]).is_ok());
     }
 
     #[test]
@@ -208,7 +255,7 @@ mod tests {
             v2: [0., 1., 0.],
             v3: [0., 0., 2.],
         };
-        assert!(stl_bytes_from_triangles("blop_triangle.stl", vec![t, t2]).is_ok());
+        assert!(stl_file_from_triangles("blop_triangle.stl", vec![t, t2]).is_ok());
     }
 
     #[test]
@@ -225,33 +272,39 @@ mod tests {
             "[0.0, 1.0, 0.0]"
         );
     }
-    fn stl_file_from_triangles(path: &str, triangles: Vec<StlTriangle>) -> Result<(), io::Error> {
-        let mut out_file = std::fs::File::create(path)?;
-        let mut bytes: Vec<u8> = vec![0; 80]; // header numer of triangles
-        let mut triangles_number: u32 = triangles.len() as u32;
-        let triangle_number = triangles_number.to_le_bytes();
-        bytes.extend_from_slice(&triangle_number[0..]);
-        for t in triangles {
-            bytes.append(&mut triangle_to_bytes(t));
-        }
-        out_file.write_all(&bytes)?;
-        Ok(())
-    }
 
     #[test]
     fn stl_tube() {
-        let mut t = stl_tube_to_triangles(StlTube {
+        let mut t = StlObject::BondTube(StlTube {
             from: Vec3::from([0., 0., 0.]),
             to: Vec3::from([0., 0., 2.]),
             scale_r: 0.4,
-        });
-        t.append(&mut stl_tube_to_triangles(StlTube {
-            from: Vec3::from([2., 3., 4.]),
-            to: Vec3::from([1., 3., 2.]),
-            scale_r: 0.2,
-        }));
+        })
+        .to_stl_triangles();
+        t.append(
+            &mut StlObject::HelixTube(StlTube {
+                from: Vec3::from([2., 3., 4.]),
+                to: Vec3::from([1., 3., 2.]),
+                scale_r: 0.2,
+            })
+            .to_stl_triangles(),
+        );
         assert!(stl_file_from_triangles("tubes.stl", t).is_ok())
     }
+
+    // fn stl_raw() {
+    //     let rawi = RawDnaInstance {
+    //         model: Mat4::identity(),
+    //         scale: Vec3::from([1.0, 1.0, 2.3]),
+    //         color: Vec4::zero(),
+    //         id: 1,
+    //         inversed_model: Mat4::identity(),
+    //         prev: Vec3::zero(),
+    //         mesh: 1,
+    //         next: Vec3::zero(),
+    //     };
+    //     assert!(stl_file_from_triangles("raw.stl", rawi.to_stl_triangles()))
+    // }
 
     // #[test]
     // fn lots_of_centers_to_stl() {

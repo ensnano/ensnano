@@ -18,6 +18,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! Exports utilities from ENSnano to other file formats used in DNA nanotechnologies
 
 use ensnano_interactor::graphics::LoopoutBond;
+use ensnano_scene::view::RawDnaInstance;
 use strum::Display;
 
 pub mod cadnano;
@@ -35,7 +36,7 @@ use std::path::PathBuf;
 use stl::{StlError, StlObject};
 
 /// The file formats to which an export is implemented
-#[derive(Debug, Clone, PartialEq, Display)]
+#[derive(Debug, Clone, Display)]
 pub enum ExportType {
     Cadnano,
     Cando,
@@ -238,9 +239,12 @@ pub fn export(
             writeln!(&mut out_file, "{cadnano_content}")?;
             Ok(ExportSuccess::Cadnano(export_path.clone()))
         }
-        ExportType::Stl(centers) => {
-            println!("   STL export final step, centers len = {}", centers.len());
-            let stl_bytes = stl::stl_bytes_export(centers)?;
+        ExportType::Stl(stl_objects) => {
+            println!(
+                "   STL export final step, centers len = {}",
+                stl_objects.len()
+            );
+            let stl_bytes = stl::stl_bytes_export(stl_objects)?;
             let mut out_file = std::fs::File::create(export_path)?;
             use std::io::Write;
             out_file.write_all(&stl_bytes)?;

@@ -416,7 +416,6 @@ impl AppState {
     }
 
     pub fn export(&self, export_path: &PathBuf, export_type: ExportType) -> ExportResult {
-        println!(" export from appstate");
         self.get_design_reader().export(export_path, export_type)
     }
 
