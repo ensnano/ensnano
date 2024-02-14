@@ -120,7 +120,7 @@ impl<S: AppState> Scene<S> {
         area: DrawArea,
         requests: Arc<Mutex<dyn Requests>>,
         encoder: &mut wgpu::CommandEncoder,
-        inital_state: S,
+        initial_state: S,
         scene_kind: SceneKind,
     ) -> Self {
         let update = SceneUpdate::default();
@@ -132,7 +132,7 @@ impl<S: AppState> Scene<S> {
             encoder,
         )));
         let data: DataPtr<S::DesignReader> = Rc::new(RefCell::new(Data::new(
-            inital_state.get_design_reader(),
+            initial_state.get_design_reader(),
             view.clone(),
         )));
         let controller: Controller<S> =
@@ -152,7 +152,7 @@ impl<S: AppState> Scene<S> {
             area,
             requests,
             element_selector,
-            older_state: inital_state,
+            older_state: initial_state,
             scene_kind,
             current_camera: Arc::new((
                 Default::default(),
