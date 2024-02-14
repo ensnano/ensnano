@@ -418,7 +418,6 @@ impl DesignReader {
     }
 
     pub fn export(&self, export_path: &PathBuf, export_type: ExportType) -> ExportResult {
-        println!(" export from presenter");
         self.presenter.export(export_path, export_type)
     }
 

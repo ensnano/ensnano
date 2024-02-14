@@ -240,10 +240,6 @@ pub fn export(
             Ok(ExportSuccess::Cadnano(export_path.clone()))
         }
         ExportType::Stl(stl_objects) => {
-            println!(
-                "   STL export final step, centers len = {}",
-                stl_objects.len()
-            );
             let stl_bytes = stl::stl_bytes_export(stl_objects)?;
             let mut out_file = std::fs::File::create(export_path)?;
             use std::io::Write;
