@@ -71,6 +71,8 @@ use std::convert::TryInto;
 // Rotor utils: safe rotor between
 mod rotor_utils;
 
+mod sausage_rosary;
+
 const PNG_SIZE: u32 = 256 * 10;
 
 /// A structure responsible of the 3D display of the designs
