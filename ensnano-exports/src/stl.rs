@@ -60,6 +60,15 @@ trait StlProcessing {
 }
 
 impl StlProcessing for RawDnaInstance {
+    fn to_stl_triangles(&self) -> Vec<StlTriangle> {
+        match self.scale.z {
+            0.0 => vec![],
+            _ => vertices_indices_to_stl_triangles(
+                self.transformed_vertices(),
+                self.triangle_list_indices(),
+            ),
+        }
+    }
     fn transformed_vertices(&self) -> Vec<[f32; 3]> {
         let vertices = match self.mesh {
             1 => SphereInstance::vertices(),
@@ -93,6 +102,26 @@ impl StlProcessing for RawDnaInstance {
 }
 
 impl StlProcessing for StlObject {
+    fn to_stl_triangles(&self) -> Vec<StlTriangle> {
+        match self {
+            StlObject::Sphere(s) => match s.scale {
+                0.0 => vec![],
+                _ => vertices_indices_to_stl_triangles(
+                    self.transformed_vertices(),
+                    self.triangle_list_indices(),
+                ),
+            },
+            StlObject::BondTube(t) | StlObject::HelixTube(t) | StlObject::HBondTube(t) => {
+                match t.scale_r {
+                    0.0 => vec![],
+                    _ => vertices_indices_to_stl_triangles(
+                        self.transformed_vertices(),
+                        self.triangle_list_indices(),
+                    ),
+                }
+            }
+        }
+    }
     fn triangle_list_indices(&self) -> Vec<usize> {
         let indices = match self {
             StlObject::Sphere(_) => SphereInstance::indices(),
