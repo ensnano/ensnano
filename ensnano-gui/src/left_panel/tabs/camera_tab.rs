@@ -23,7 +23,7 @@ use ensnano_interactor::graphics::{
     Background3D, RenderingMode, ALL_BACKGROUND3D, ALL_RENDERING_MODE,
 };
 use iced::Element;
-use iced_native::widget::helpers::*;
+use iced_native::{alignment, column, row, widget::helpers::*, Length};
 
 pub struct CameraTab {
     fog: FogGuiParameters,
@@ -41,28 +41,33 @@ impl CameraTab {
     }
 
     pub fn view<S: AppState>(&self, ui_size: UiSize, app_state: &S) -> Element<Message<S>> {
-        let content = iced_native::column![
+        let content = column![
             section("Camera", ui_size),
             subsection("Visibility", ui_size),
-            iced_native::column![
-                text_button("Toggle Selected Visibility", ui_size)
-                    .on_press(Message::ToggleVisibility(false)),
-                text_button("Toggle NonSelected Visibility", ui_size)
+            row![
+                text_button("Toggle Selected", ui_size).on_press(Message::ToggleVisibility(false)),
+                text_button("Toggle Non-selected", ui_size)
                     .on_press(Message::ToggleVisibility(true)),
-                text_button("Everything visible", ui_size).on_press(Message::AllVisible),
+                text_button("All visible", ui_size).on_press(Message::AllVisible),
             ]
+            .width(Length::Fill)
             .spacing(ui_size.button_pad()),
             self.fog.view(ui_size),
-            subsection("Visibility", ui_size),
-            pick_list(
-                vec![
-                    HBondDisplay::No,
-                    HBondDisplay::Stick,
-                    HBondDisplay::Ellipsoid,
-                ],
-                Some(app_state.get_h_bonds_display()),
-                Message::ShowHBonds,
-            ),
+            extra_jump(),
+            row![
+                subsection("Visibility", ui_size),
+                pick_list(
+                    vec![
+                        HBondDisplay::No,
+                        HBondDisplay::Stick,
+                        HBondDisplay::Ellipsoid,
+                    ],
+                    Some(app_state.get_h_bonds_display()),
+                    Message::ShowHBonds,
+                ),
+            ]
+            .align_items(alignment::Alignment::Center)
+            .spacing(5),
             right_checkbox(
                 app_state.show_stereographic_camera(),
                 "Show stereographic camera",
@@ -75,25 +80,43 @@ impl CameraTab {
                 Message::FollowStereographicCamera,
                 ui_size,
             ),
-            subsection("Highlight Xovers", ui_size),
-            pick_list(
-                CheckXoversParameter::ALL,
-                Some(app_state.get_checked_xovers_parameters()),
-                Message::CheckXoversParameter,
-            ),
+            extra_jump(),
+            row![
+                subsection("Highlight Xovers", ui_size),
+                pick_list(
+                    CheckXoversParameter::ALL,
+                    Some(app_state.get_checked_xovers_parameters()),
+                    Message::CheckXoversParameter,
+                ),
+            ]
+            .align_items(alignment::Alignment::Center)
+            .spacing(5),
+            extra_jump(),
             subsection("Rendering", ui_size),
-            text("Style"),
-            pick_list(
-                &ALL_RENDERING_MODE[..],
-                Some(self.rendering_mode),
-                Message::RenderingMode,
-            ),
-            text("Background"),
-            pick_list(
-                &ALL_BACKGROUND3D[..],
-                Some(self.background3d),
-                Message::Background3D,
-            ),
+            row![
+                row![
+                    text("Style"),
+                    pick_list(
+                        &ALL_RENDERING_MODE[..],
+                        Some(self.rendering_mode),
+                        Message::RenderingMode,
+                    ),
+                ]
+                .align_items(alignment::Alignment::Center)
+                .spacing(5)
+                .width(Length::FillPortion(1)),
+                row![
+                    text("Background"),
+                    pick_list(
+                        &ALL_BACKGROUND3D[..],
+                        Some(self.background3d),
+                        Message::Background3D,
+                    ),
+                ]
+                .align_items(alignment::Alignment::Center)
+                .spacing(5)
+                .width(Length::FillPortion(1)),
+            ],
             checkbox(
                 "Expand insertions",
                 app_state.expand_insertions(),
@@ -178,24 +201,30 @@ impl FogGuiParameters {
         };
 
         // Hand method to
-        let label_width = 50.0f32;
+        let label_width = 65.0f32;
 
-        iced_native::column![
-            subsection("Distance Fog", ui_size),
-            pick_list(
-                &ALL_FOG_CHOICES[..],
-                Some(FogChoices::from_param(
-                    self.is_activated,
-                    self.from_camera,
-                    self.dark,
-                    self.is_reversed,
-                )),
-                Message::FogChoice,
-            )
-            .padding(ui_size.button_pad()),
-            iced_native::row![radius_text.width(label_width), length_slider,].spacing(5),
-            iced_native::row![gradient_text.width(label_width), softness_slider,].spacing(5),
+        column![
+            extra_jump(),
+            row![
+                subsection("Distance Fog", ui_size),
+                pick_list(
+                    &ALL_FOG_CHOICES[..],
+                    Some(FogChoices::from_param(
+                        self.is_activated,
+                        self.from_camera,
+                        self.dark,
+                        self.is_reversed,
+                    )),
+                    Message::FogChoice,
+                )
+                .padding(ui_size.button_pad()),
+            ]
+            .align_items(alignment::Alignment::Center)
+            .spacing(5),
+            row![radius_text.width(label_width), length_slider,].spacing(5),
+            row![gradient_text.width(label_width), softness_slider,].spacing(5),
         ]
+        .spacing(5)
         .into()
     }
 
