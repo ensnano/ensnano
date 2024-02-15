@@ -42,6 +42,11 @@ use rand::Rng;
 pub type PhySize = PhysicalSize<u32>;
 pub const TEXTURE_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Bgra8UnormSrgb;
 
+use ensnano_interactor::consts::{
+    RANDOM_COLOR_SHADE_HUE_RANGE, RANDOM_COLOR_SHADE_SATURATION_RANGE,
+    RANDOM_COLOR_SHADE_VALUE_RANGE,
+};
+
 pub fn create_buffer_with_data(
     device: &wgpu::Device,
     data: &[u8],
@@ -97,11 +102,11 @@ pub fn new_color(color_idx: &mut usize) -> u32 {
     color
 }
 
-pub fn random_color_with_shade(shade: u32) -> u32 {
+pub fn random_color_with_shade(shade: u32, hue_range: Option<f64>) -> u32 {
     // generate a random color around the shade
-    let h_range = 0.1;
-    let s_range = 0.2;
-    let b_range = 0.2;
+    let h_range = hue_range.unwrap_or(RANDOM_COLOR_SHADE_HUE_RANGE);
+    let s_range = RANDOM_COLOR_SHADE_SATURATION_RANGE;
+    let v_range = RANDOM_COLOR_SHADE_VALUE_RANGE;
 
     let (a, r, g, b) = (
         shade & 0xFF_00_00_00,
@@ -116,7 +121,7 @@ pub fn random_color_with_shade(shade: u32) -> u32 {
     let saturation = (shade.s.min(1. - s_range) + s_range * (2. * rng.gen::<f64>() - 1.))
         .min(1.)
         .max(0.);
-    let value = (shade.v.min(1. - b_range) + b_range * (2. * rng.gen::<f64>() - 1.))
+    let value = (shade.v.min(1. - v_range) + v_range * (2. * rng.gen::<f64>() - 1.))
         .min(1.)
         .max(0.);
 

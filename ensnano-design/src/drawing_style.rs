@@ -29,7 +29,7 @@ pub enum DrawingAttribute {
     DoubleHelixAsCylinderColor(u32), // with alpha
     RainbowStrand(bool),
     XoverColoring(bool),
-    ColorShade(u32),
+    ColorShade(u32, Option<f64>),
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -61,7 +61,7 @@ impl FromStr for DrawingAttribute {
                 "xc" => return Ok(Self::XoverColoring(true)),
                 _ => (),
             },
-            2 | 3 => {
+            2..=4 => {
                 if let Ok(value) = f32::from_str(parsed[1]) {
                     match parsed[0] {
                         "sr" => return Ok(Self::SphereRadius(value / 10.)), // radius given in Å but stored in nm
@@ -71,6 +71,7 @@ impl FromStr for DrawingAttribute {
                     }
                 }
                 let mut color = 0xFF_FF_FF_FF;
+                let mut hue_range = None;
                 if let Ok(value) = MaterialColor::from_str(parsed[1]) {
                     color = value as u32;
                 } else if let Ok(value) = u32::from_str_radix(parsed[1], 16) {
@@ -80,6 +81,11 @@ impl FromStr for DrawingAttribute {
                     if let Ok(alpha) = f32::from_str(parsed[2]) {
                         let alpha = (alpha * 255.).min(255.).max(0.).round() as u32;
                         color = (color & 0xFF_FF_FF) | (alpha << 24);
+                        if parsed.len() > 3 {
+                            if let Ok(h_range) = f64::from_str(parsed[3]) {
+                                hue_range = Some(h_range);
+                            }
+                        }
                     }
                 }
 
@@ -87,7 +93,7 @@ impl FromStr for DrawingAttribute {
                     "sc" => return Ok(Self::SphereColor(color)),
                     "bc" => return Ok(Self::BondColor(color)),
                     "hc" => return Ok(Self::DoubleHelixAsCylinderColor(color)),
-                    "cs" => return Ok(Self::ColorShade(color)),
+                    "cs" => return Ok(Self::ColorShade(color, hue_range)),
                     _ => (),
                 }
             }
@@ -118,6 +124,8 @@ pub struct DrawingStyle {
     pub xover_coloring: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub color_shade: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub hue_range: Option<f64>,
 }
 
 impl std::default::Default for DrawingStyle {
@@ -132,6 +140,7 @@ impl std::default::Default for DrawingStyle {
             rainbow_strand: None,
             xover_coloring: None,
             color_shade: None,
+            hue_range: None,
         }
     }
 }
@@ -159,7 +168,10 @@ impl From<Vec<DrawingAttribute>> for DrawingStyle {
                 DrawingAttribute::XoverColoring(b) => {
                     ret.xover_coloring = ret.xover_coloring.or(Some(b))
                 }
-                DrawingAttribute::ColorShade(c) => ret.color_shade = ret.color_shade.or(Some(c)),
+                DrawingAttribute::ColorShade(c, hue_range) => {
+                    ret.color_shade = ret.color_shade.or(Some(c));
+                    ret.hue_range = ret.hue_range.or(hue_range);
+                }
             }
         }
         return ret;
@@ -201,8 +213,9 @@ impl DrawingStyle {
                 xover_coloring: Some(b),
                 ..*self
             },
-            DrawingAttribute::ColorShade(c) => DrawingStyle {
+            DrawingAttribute::ColorShade(c, hue_range) => DrawingStyle {
                 color_shade: Some(c),
+                hue_range,
                 ..*self
             },
         }
@@ -240,7 +253,7 @@ impl DrawingStyle {
         }
 
         if let Some(c) = self.color_shade {
-            atts.push(DrawingAttribute::ColorShade(c))
+            atts.push(DrawingAttribute::ColorShade(c, self.hue_range))
         }
 
         return atts;
@@ -280,8 +293,9 @@ impl DrawingStyle {
                 xover_coloring: self.xover_coloring.or(Some(b)),
                 ..*self
             },
-            DrawingAttribute::ColorShade(c) => DrawingStyle {
+            DrawingAttribute::ColorShade(c, hue_range) => DrawingStyle {
                 color_shade: self.color_shade.or(Some(c)),
+                hue_range,
                 ..*self
             },
         }
@@ -310,6 +324,7 @@ impl DrawingStyle {
             rainbow_strand: self.rainbow_strand.or(other.rainbow_strand),
             xover_coloring: self.xover_coloring.or(other.xover_coloring),
             color_shade: self.color_shade.or(other.color_shade),
+            hue_range: self.hue_range.or(other.hue_range),
         };
     }
 }

@@ -61,7 +61,7 @@ pub(super) struct Presenter {
     pub junctions_ids: AddressPointer<JunctionsIds>,
     visibility_sieve: Option<VisibilitySieve>,
     invisible_nucls: HashSet<Nucl>,
-    bonds: AddressPointer<Vec<HBond>>,
+    h_bonds: AddressPointer<Vec<HBond>>,
 }
 
 impl Default for Presenter {
@@ -74,7 +74,7 @@ impl Default for Presenter {
             junctions_ids: Default::default(),
             visibility_sieve: None,
             invisible_nucls: Default::default(),
-            bonds: Default::default(),
+            h_bonds: Default::default(),
         }
     }
 }
@@ -137,7 +137,7 @@ impl Presenter {
             junctions_ids: AddressPointer::new(junctions_ids),
             visibility_sieve: None,
             invisible_nucls: Default::default(),
-            bonds: Default::default(),
+            h_bonds: Default::default(),
         };
         // Strand sequence are not read
         ret.read_scaffold_seq();
@@ -253,7 +253,7 @@ impl Presenter {
 
     fn collect_h_bonds(&mut self) {
         let nucl_collection = self.content.nucl_collection.as_ref();
-        let mut bonds = Vec::with_capacity(nucl_collection.nb_nucls());
+        let mut h_bonds = Vec::with_capacity(nucl_collection.nb_nucls());
         for (forward_nucl, virtual_nucl_forward, forward_id) in nucl_collection
             .iter_nucls_ids()
             .filter(|(n, _)| n.forward)
@@ -268,12 +268,12 @@ impl Presenter {
                     if let Some(bond) =
                         self.h_bond(forward_id, *backward_id, forward_nucl, *backward_nucl)
                     {
-                        bonds.push(bond);
+                        h_bonds.push(bond);
                     }
                 }
             }
         }
-        self.bonds = AddressPointer::new(bonds);
+        self.h_bonds = AddressPointer::new(h_bonds);
     }
 
     fn h_bond(
@@ -514,7 +514,7 @@ impl Presenter {
         let mut res: Vec<StlObject> = self
             .content
             .object_type
-            .clone()
+            // .clone()
             .iter()
             .map(|(obj_id, t)| match t {
                 ObjectType::Nucleotide(nucl_id) => {
@@ -561,7 +561,7 @@ impl Presenter {
                 }),
             })
             .collect();
-        let mut stl_hbonds: &[HBond] = self.bonds.as_ref();
+        let mut stl_hbonds: &[HBond] = self.h_bonds.as_ref();
         let mut stl_hbonds: Vec<StlObject> = stl_hbonds
             .iter()
             .map(|hb| {

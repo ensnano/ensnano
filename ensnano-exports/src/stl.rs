@@ -69,6 +69,7 @@ impl StlProcessing for RawDnaInstance {
             ),
         }
     }
+
     fn transformed_vertices(&self) -> Vec<[f32; 3]> {
         let vertices = match self.mesh {
             1 => SphereInstance::vertices(),

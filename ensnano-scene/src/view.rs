@@ -51,7 +51,7 @@ mod grid;
 mod grid_disc;
 /// A HandleDrawer draws the widget for translating objects
 mod handle_drawer;
-mod instances_drawer;
+pub mod instances_drawer;
 mod letter;
 /// A RotationWidget draws the widget for rotating objects
 mod rotation_widget;
