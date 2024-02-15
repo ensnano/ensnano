@@ -26,6 +26,7 @@ pub struct ExportMenu {
     button_oxdna: button::State,
     button_pdb: button::State,
     button_cadnano: button::State,
+    button_stl: button::State,
 }
 
 impl ExportMenu {
@@ -46,6 +47,10 @@ impl ExportMenu {
             .push(
                 Button::new(&mut self.button_cadnano, Text::new("Cadnano"))
                     .on_press(Message::Export(ExportType::Cadnano)),
+            )
+            .push(
+                Button::new(&mut self.button_stl, Text::new("Stl"))
+                    .on_press(Message::Export(ExportType::Stl(vec![]))),
             );
 
         Scrollable::new(&mut self.scroll).push(ret).into()

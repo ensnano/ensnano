@@ -42,7 +42,7 @@ mod uniforms;
 use uniforms::Uniforms;
 pub use uniforms::{FogParameters, Stereography};
 mod direction_cube;
-mod dna_obj;
+pub mod dna_obj;
 /// This modules defines a trait for drawing widget made of several meshes.
 mod drawable;
 mod gltf_drawer;
