@@ -177,6 +177,9 @@ impl FogGuiParameters {
                 .style(theme::DeactivatedSlider)
         };
 
+        // Hand method to
+        let label_width = 50.0f32;
+
         iced_native::column![
             subsection("Distance Fog", ui_size),
             pick_list(
@@ -188,9 +191,10 @@ impl FogGuiParameters {
                     self.is_reversed,
                 )),
                 Message::FogChoice,
-            ),
-            iced_native::row![radius_text, length_slider,].spacing(5),
-            iced_native::row![gradient_text, softness_slider,].spacing(5),
+            )
+            .padding(ui_size.button_pad()),
+            iced_native::row![radius_text.width(label_width), length_slider,].spacing(5),
+            iced_native::row![gradient_text.width(label_width), softness_slider,].spacing(5),
         ]
         .into()
     }
