@@ -626,6 +626,7 @@ impl DesignContent {
                     DrawingAttribute::BondColor(strand_color), // strand color gets after color in strand style
                 ]);
 
+            // Compute the length for rainbow coloring
             let rainbow_len =
                 if Some(*s_id) == rainbow_strand || Some(true) == strand_style.rainbow_strand {
                     strand.length()
@@ -643,7 +644,7 @@ impl DesignContent {
             // Iter on the domains of the strand
             let mut last_xover_junction: Option<&mut DomainJunction> = None;
             let mut prev_loopout_pos = None;
-            let mut prev_style = strand_style; // style of the previous domain, only used for cyclic strand oustide the domain loop
+            let mut prev_style = strand_style; // style of the previous domain, only used for cyclic strand outside the domain loop
             let bond_coloring = strand_style.xover_coloring.unwrap_or(true);
             for (i, domain) in strand.domains.iter().enumerate() {
                 // Update junctions if xover or not

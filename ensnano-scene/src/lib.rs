@@ -16,6 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use ensnano_design::{grid::HelixGridPosition, ultraviolet, BezierVertexId};
+use ensnano_interactor::graphics::LoopoutBond;
 use ensnano_interactor::{
     graphics::RenderingMode, NewBezierTangentVector, UnrootedRevolutionSurfaceDescriptor,
 };
@@ -29,6 +30,7 @@ use ultraviolet::{Mat4, Rotor3, Vec3};
 
 use camera::FiniteVec3;
 use ensnano_design::{grid::GridPosition, group_attributes::GroupPivot, Nucl};
+use ensnano_interactor::graphics::LoopoutNucl;
 use ensnano_interactor::{
     application::{AppId, Application, Camera3D, Notification},
     graphics::DrawArea,
@@ -45,7 +47,7 @@ use winit::event::WindowEvent;
 /// Computation of the view and projection matrix.
 mod camera;
 /// Display of the scene
-mod view;
+pub mod view;
 pub use view::{DrawOptions, FogParameters, GridInstance};
 use view::{
     DrawType, HandleDir, HandleOrientation, HandlesDescriptor, LetterInstance,
@@ -118,7 +120,7 @@ impl<S: AppState> Scene<S> {
         area: DrawArea,
         requests: Arc<Mutex<dyn Requests>>,
         encoder: &mut wgpu::CommandEncoder,
-        inital_state: S,
+        initial_state: S,
         scene_kind: SceneKind,
     ) -> Self {
         let update = SceneUpdate::default();
@@ -130,7 +132,7 @@ impl<S: AppState> Scene<S> {
             encoder,
         )));
         let data: DataPtr<S::DesignReader> = Rc::new(RefCell::new(Data::new(
-            inital_state.get_design_reader(),
+            initial_state.get_design_reader(),
             view.clone(),
         )));
         let controller: Controller<S> =
@@ -150,7 +152,7 @@ impl<S: AppState> Scene<S> {
             area,
             requests,
             element_selector,
-            older_state: inital_state,
+            older_state: initial_state,
             scene_kind,
             current_camera: Arc::new((
                 Default::default(),

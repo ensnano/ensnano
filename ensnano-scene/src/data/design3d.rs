@@ -464,7 +464,7 @@ impl<R: DesignReader> Design3D<R> {
     }
 
     /// Return (h bonds instances, ellipoids instances)
-    pub(super) fn get_all_hbond(&self) -> HBondsInstances {
+    pub(super) fn get_all_h_bonds(&self) -> HBondsInstances {
         let mut full_h_bonds = Vec::new();
         let mut partial_h_bonds = Vec::new();
         let mut ellipsoids = Vec::new();

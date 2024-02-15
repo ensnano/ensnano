@@ -34,7 +34,7 @@ use std::sync::Arc;
 
 use ensnano_design::grid::GridObject;
 use ensnano_design::{BezierVertexId, Collection};
-use ensnano_interactor::graphics::HBondDisplay;
+use ensnano_interactor::graphics::{HBondDisplay, LoopoutNucl};
 use ultraviolet::{Rotor3, Vec3};
 
 use super::view::Mesh;
@@ -1516,7 +1516,7 @@ impl<R: DesignReader> Data<R> {
         self.view
             .borrow_mut()
             .update(ViewUpdate::RawDna(Mesh::Prime3Cone, Rc::new(cones)));
-        let bonds = self.designs[0].get_all_hbond();
+        let bonds = self.designs[0].get_all_h_bonds();
         if app_state.get_draw_options().h_bonds == HBondDisplay::Ellipsoid {
             self.view.borrow_mut().update(ViewUpdate::RawDna(
                 Mesh::HBond,
@@ -1985,6 +1985,10 @@ impl<R: DesignReader> Data<R> {
         self.designs
             .get(0)
             .and_then(|d| d.get_surface_info_nucl(nucl))
+    }
+
+    pub fn get_stl_information(&self) -> Vec<bool> {
+        vec![]
     }
 }
 

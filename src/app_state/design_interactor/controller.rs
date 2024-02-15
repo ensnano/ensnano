@@ -2019,7 +2019,7 @@ impl Controller {
                     .clone();
 
                 let color = if let Some(shade) = strand_style.color_shade {
-                    crate::utils::random_color_with_shade(shade)
+                    crate::utils::random_color_with_shade(shade, strand_style.hue_range)
                 } else {
                     crate::utils::new_color(&mut self.color_idx)
                 };
