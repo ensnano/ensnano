@@ -18,10 +18,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use std::collections::hash_map::RandomState;
 use std::collections::HashMap;
-use std::collections::HashSet;
 use std::hash::Hash;
 
 use serde::Deserialize;
+
+/// A tree-like structure that references and organize all the data being edited.
 #[derive(Clone, Debug, Serialize)]
 pub enum OrganizerTree<K> {
     Leaf(K),
@@ -110,7 +111,7 @@ impl<K: Eq + Hash + Copy> OrganizerTree<K> {
                                 .map(|x: &Vec<&str>| x.clone())
                                 .unwrap_or(Vec::new());
                             if has_prefix {
-                                e_names.push(trimmed_name.clone());
+                                e_names.push(trimmed_name);
                             }
                             hashmap.insert(*e, e_names);
                         }
@@ -123,7 +124,7 @@ impl<K: Eq + Hash + Copy> OrganizerTree<K> {
                                     .unwrap_or(Vec::new());
                                 new_e_names.extend(e_names);
                                 if has_prefix {
-                                    new_e_names.push(trimmed_name.clone());
+                                    new_e_names.push(trimmed_name);
                                 }
                                 hashmap.insert(e, new_e_names);
                             }
@@ -136,8 +137,8 @@ impl<K: Eq + Hash + Copy> OrganizerTree<K> {
     }
 }
 
-// For compatibility reasons, we need to implement Deserialize ourselved for OrganizerTree.
-// We want to be able to accept both the old format (pre 0.3.0) and the current format.
+// NOTE: For compatibility reasons, we need to implement Deserialize ourselves for OrganizerTree.
+//       We want to be able to accept both the old format (pre 0.3.0) and the current format.
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 enum OldOrganizerTree<K> {

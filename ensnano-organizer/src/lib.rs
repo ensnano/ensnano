@@ -204,7 +204,14 @@ enum OrganizerMessage_<E: OrganizerElement> {
     },
 }
 
-/// Provide an organized view of the object being edited.
+/// Provide an tree-like view of the object being edited.
+///
+/// There are three kind of elements:
+///
+/// 1. _Groups_ — User-defined groups of elements.
+/// 2. _Sections_ — Objects organized by category.
+/// 3. _Auto Groups_ — Automatically generated groups of elements.
+///
 pub struct Organizer<E: OrganizerElement> {
     rng_thread: ThreadRng,
     groups: Vec<GroupContent<E>>,
