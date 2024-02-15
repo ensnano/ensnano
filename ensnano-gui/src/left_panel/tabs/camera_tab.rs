@@ -16,15 +16,13 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use super::{
-    AppState, CheckXoversParameter, DesactivatedSlider, FogParameters, HBondDisplay, Message,
-    UiSize,
-};
+use super::{AppState, CheckXoversParameter, FogParameters, HBondDisplay, Message, UiSize};
 use crate::helpers::*;
+use crate::theme;
 use ensnano_interactor::graphics::{
     Background3D, RenderingMode, ALL_BACKGROUND3D, ALL_RENDERING_MODE,
 };
-use iced::{theme, Element};
+use iced::Element;
 use iced_native::widget::helpers::*;
 
 pub struct CameraTab {
@@ -154,29 +152,29 @@ struct FogGuiParameters {
 
 impl FogGuiParameters {
     fn view<S: AppState>(&self, ui_size: UiSize) -> Element<Message<S>> {
-        let deactivated_text_color = theme::Text::Color(iced::Color::from_rgb(0.6, 0.6, 0.6));
         let radius_text = if self.is_activated {
             text("Radius")
         } else {
-            text("Radius").style(deactivated_text_color)
+            text("Radius").style(theme::disabled_text())
         };
 
         let gradient_text = if self.is_activated {
             text("Softness")
         } else {
-            text("Softness").style(deactivated_text_color)
+            text("Softness").style(theme::disabled_text())
         };
 
         let length_slider = if self.is_activated {
             slider(0f32..=100f32, self.length, Message::FogLength)
         } else {
-            slider(0f32..=100f32, self.length, |_| Message::Nothing).style(DesactivatedSlider)
+            slider(0f32..=100f32, self.length, |_| Message::Nothing).style(theme::DeactivatedSlider)
         };
 
         let softness_slider = if self.is_activated {
             slider(0f32..=100f32, self.softness, Message::FogRadius)
         } else {
-            slider(0f32..=100f32, self.softness, |_| Message::Nothing).style(DesactivatedSlider)
+            slider(0f32..=100f32, self.softness, |_| Message::Nothing)
+                .style(theme::DeactivatedSlider)
         };
 
         iced_native::column![

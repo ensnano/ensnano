@@ -21,7 +21,7 @@ use std::sync::{Arc, Mutex};
 
 use iced_aw::native::{TabLabel, Tabs};
 use iced_native::widget::{container, helpers::*, Button, Column, Container, Text};
-use iced_native::{theme, Background, Color, Command, Element, Length};
+use iced_native::{theme, Color, Command, Element, Length};
 use iced_wgpu;
 use iced_winit::winit::{
     dpi::{LogicalPosition, LogicalSize},
@@ -43,7 +43,6 @@ use ensnano_exports::ExportType;
 
 use super::{
     material_icons_light::{icon_to_char, LightIcon as MaterialIcon, DARK_ICONFONT as ICONFONT},
-    slider_style::DesactivatedSlider,
     AppState, FogParameters, OverlayType, Requests, UiSize,
 };
 

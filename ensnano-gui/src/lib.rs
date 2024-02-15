@@ -923,48 +923,6 @@ fn convert_size_u32(size: PhysicalSize<u32>) -> Size<u32> {
     Size::new(size.width, size.height)
 }
 
-mod slider_style {
-    use iced::widget::slider::{Appearance, Handle, HandleShape, Rail, StyleSheet};
-    use iced::Color;
-
-    pub struct DesactivatedSlider;
-
-    impl StyleSheet for DesactivatedSlider {
-        type Style = ();
-        fn active(&self, _style: &Self::Style) -> Appearance {
-            Appearance {
-                rail: Rail {
-                    colors: ([0.6, 0.6, 0.6, 0.5].into(), Color::WHITE),
-                    width: 8.0,
-                },
-                handle: Handle {
-                    shape: HandleShape::Rectangle {
-                        width: 8,
-                        border_radius: 4.0,
-                    },
-                    color: Color::from_rgb(0.65, 0.65, 0.65),
-                    border_color: Color::from_rgb(0.6, 0.6, 0.6),
-                    border_width: 1.0,
-                },
-            }
-        }
-
-        fn hovered(&self, style: &Self::Style) -> Appearance {
-            self.active(style)
-        }
-
-        fn dragging(&self, style: &Self::Style) -> Appearance {
-            self.active(style)
-        }
-    }
-
-    impl From<DesactivatedSlider> for iced::theme::Slider {
-        fn from(_value: DesactivatedSlider) -> Self {
-            Default::default()
-        }
-    }
-}
-
 use std::collections::VecDeque;
 
 /// Message sent to the gui component
