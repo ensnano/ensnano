@@ -1309,6 +1309,36 @@ impl<R: DesignReader> Data<R> {
         self.candidate_element = None;
     }
 
+    pub fn get_all_raw_instances<S: AppState>(&self, app_state: &S) -> Vec<RawDnaInstance> {
+        let mut instances = vec![];
+        let show_insertion_representents = app_state.show_insertion_representents();
+        for design in self.designs.iter() {
+            for sphere in design.get_spheres_raw(show_insertion_representents).iter() {
+                instances.push(*sphere);
+            }
+            for tube in design.get_tubes_raw(show_insertion_representents).iter() {
+                instances.push(*tube);
+            }
+            for cone in design.get_cones_raw(show_insertion_representents) {
+                instances.push(cone);
+            }
+            if app_state.get_draw_options().h_bonds != HBondDisplay::No {
+                for h_bond in design.get_all_h_bonds().full_h_bonds {
+                    instances.push(h_bond);
+                }
+                for h_bond in design.get_all_h_bonds().partial_h_bonds {
+                    instances.push(h_bond); // not sure if needed
+                }
+                if app_state.get_draw_options().h_bonds == HBondDisplay::Ellipsoid {
+                    for h_bond in design.get_all_h_bonds().ellipsoids {
+                        instances.push(h_bond); // not sure if needed
+                    }
+                }
+            }
+        }
+        instances
+    }
+
     /// Notify the view that the instances of candidates have changed
     fn update_candidate<S: AppState>(&mut self, candidates: &[Selection], app_state: &S) {
         self.view.borrow_mut().update(ViewUpdate::RawDna(
