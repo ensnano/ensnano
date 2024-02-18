@@ -40,9 +40,9 @@ pub struct Uniforms {
     pub aspect_ratio: f32,        // 1
     pub stereography_zoom: f32,   // 2
     pub nb_ray_tube: u32,         // 3
-    pub is_cut: u32, // 0
-    pub cut_normal: Vec3, // 3
-    pub cut_value: f32, // 0
+    pub is_cut: u32,              // 0
+    pub cut_normal: Vec3,         // 3
+    pub cut_value: f32,           // 0
     pub _padding: [f32; 4],
 }
 

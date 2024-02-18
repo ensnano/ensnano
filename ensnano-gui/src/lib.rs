@@ -230,6 +230,7 @@ pub trait Requests: 'static + Send {
     /// Make a 3D screenshot
     fn request_screenshot_3d(&mut self);
     fn notify_revolution_tab(&mut self);
+    fn request_stl_export(&mut self);
 }
 
 #[derive(Clone, Debug, PartialEq)]

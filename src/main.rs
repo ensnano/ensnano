@@ -1744,7 +1744,7 @@ impl<'a> MainStateInteface for MainStateView<'a> {
     }
 
     fn notify_apps(&mut self, notification: Notification) {
-        log::info!("Notiffy apps {:?}", notification);
+        log::info!("Notify apps {:?}", notification);
         for app in self.main_state.applications.values_mut() {
             app.lock().unwrap().on_notify(notification.clone())
         }

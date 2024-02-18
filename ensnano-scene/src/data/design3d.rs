@@ -535,7 +535,7 @@ impl<R: DesignReader> Design3D<R> {
         let kind = self.get_object_type(id)?;
 
         match kind {
-            ObjectType::Bond(id1, id2)  | ObjectType::SlicedBond(_, id1, id2, _) => {
+            ObjectType::Bond(id1, id2) | ObjectType::SlicedBond(_, id1, id2, _) => {
                 let pos1 =
                     self.get_graphic_element_position(&SceneElement::DesignElement(self.id, id1))?;
                 let pos2 =
@@ -663,7 +663,7 @@ impl<R: DesignReader> Design3D<R> {
                     };
                     let mut instances = vec![sliced_tube.to_raw_instance()];
                     if prev_nucl_id == nucl1_id {
-                        // add lid            
+                        // add lid
                         let lid_left = TubeLidInstance {
                             position: pos1,
                             color,
@@ -674,7 +674,7 @@ impl<R: DesignReader> Design3D<R> {
                         instances.push(lid_left.to_raw_instance());
                     }
                     if next_nucl_id == nucl2_id {
-                        // add lid            
+                        // add lid
                         let lid_right = TubeLidInstance {
                             position: pos2,
                             color,
@@ -1592,6 +1592,7 @@ pub trait DesignReader: 'static + ensnano_interactor::DesignReader {
     fn get_xover_coloring(&self, e_id: u32) -> Option<bool>;
     fn get_id_of_strand_containing(&self, e_id: u32) -> Option<usize>;
     fn get_id_of_helix_containing(&self, e_id: u32) -> Option<usize>;
+    fn get_ids_of_all_helices(&self) -> Vec<u32>;
     fn get_ids_of_elements_belonging_to_strand(&self, s_id: usize) -> Vec<u32>;
     fn get_ids_of_elements_belonging_to_helix(&self, h_id: usize) -> Vec<u32>;
     fn get_helix_basis(&self, h_id: u32) -> Option<Rotor3>;

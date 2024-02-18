@@ -725,6 +725,7 @@ impl<S: AppState> Application for FlatScene<S> {
             Notification::FlipSplitViews => self.controller[0].flip_split_views(),
             Notification::HorizonAligned => (),
             Notification::ScreenShot3D => (),
+            Notification::StlExport => (),
         }
     }
 

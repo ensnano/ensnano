@@ -485,7 +485,6 @@ fn export_extenstion(export_type: ExportType) -> &'static str {
         ExportType::Pdb => "pdb",
         ExportType::Cadnano => "json",
         ExportType::Cando => "cndo",
-        ExportType::Stl(_) => "stl",
     }
 }
 
@@ -495,6 +494,5 @@ fn export_filters(export_type: ExportType) -> &'static Filters {
         ExportType::Pdb => &messages::PDB_FILTER,
         ExportType::Cadnano => &messages::CADNANO_FILTER,
         ExportType::Cando => todo!(),
-        ExportType::Stl(_) => &messages::STL_FILTER,
     }
 }
