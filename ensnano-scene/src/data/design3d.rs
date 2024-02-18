@@ -535,16 +535,19 @@ impl<R: DesignReader> Design3D<R> {
         let kind = self.get_object_type(id)?;
 
         match kind {
-            ObjectType::Bond(id1, id2) | ObjectType::SlicedBond(_, id1, id2, _) => {
+            ObjectType::Bond(id1, id2) | ObjectType::SlicedBond(_, id1, id2, _)
+                if self.get_with_cones(id).unwrap_or(true) =>
+            {
                 let pos1 =
                     self.get_graphic_element_position(&SceneElement::DesignElement(self.id, id1))?;
                 let pos2 =
                     self.get_graphic_element_position(&SceneElement::DesignElement(self.id, id2))?;
-
+                let radius = self.get_radius(id).unwrap_or(BOND_RADIUS);
+                let cone_radius = (1.5 * radius).max(0.75 * SPHERE_RADIUS);
                 self.design_reader.get_nucl_with_id(id1).filter(filter)?;
 
                 let color = self.get_color(id).unwrap_or(0);
-                let cone = create_prime3_cone(pos1, pos2, color);
+                let cone = create_prime3_cone(pos1, pos2, color, cone_radius);
                 Some(cone)
             }
             _ => None,
@@ -1077,6 +1080,10 @@ impl<R: DesignReader> Design3D<R> {
         self.design_reader.get_radius(id)
     }
 
+    fn get_with_cones(&self, id: u32) -> Option<bool> {
+        self.design_reader.get_with_cones(id)
+    }
+
     fn get_xover_coloring(&self, id: u32) -> Option<bool> {
         self.design_reader.get_xover_coloring(id)
     }
@@ -1423,7 +1430,7 @@ impl<R: DesignReader> Design3D<R> {
         let cones = self.design_reader.get_all_prime3_nucl();
         let mut ret = Vec::with_capacity(cones.len());
         for c in cones {
-            ret.push(create_prime3_cone(c.0, c.1, c.2));
+            ret.push(create_prime3_cone(c.0, c.1, c.2, 1.));
         }
         ret
     }
@@ -1521,10 +1528,11 @@ fn create_check_bond(source: Vec3, dest: Vec3, checked: bool) -> RawDnaInstance 
     .to_raw_instance()
 }
 
-fn create_prime3_cone(source: Vec3, dest: Vec3, color: u32) -> RawDnaInstance {
+fn create_prime3_cone(source: Vec3, dest: Vec3, color: u32, radius: f32) -> RawDnaInstance {
     let color = Instance::unclear_color_from_u32(color);
     let rotor = Rotor3::from_rotation_between(Vec3::unit_x(), (dest - source).normalized());
-    let length = 1. / 3. * (dest - source).mag();
+    let radius = radius;
+    let length = (2. * radius).max(1. / 3. * (dest - source).mag());
     let position = (3. * source + 2. * dest) / 5.;
     ConeInstance {
         position,
@@ -1532,7 +1540,7 @@ fn create_prime3_cone(source: Vec3, dest: Vec3, color: u32) -> RawDnaInstance {
         rotor,
         color,
         id: 0,
-        radius: 1.5 * SPHERE_RADIUS,
+        radius,
     }
     .to_raw_instance()
 }
@@ -1590,6 +1598,7 @@ pub trait DesignReader: 'static + ensnano_interactor::DesignReader {
     fn get_color(&self, e_id: u32) -> Option<u32>;
     fn get_radius(&self, e_id: u32) -> Option<f32>;
     fn get_xover_coloring(&self, e_id: u32) -> Option<bool>;
+    fn get_with_cones(&self, e_id: u32) -> Option<bool>;
     fn get_id_of_strand_containing(&self, e_id: u32) -> Option<usize>;
     fn get_id_of_helix_containing(&self, e_id: u32) -> Option<usize>;
     fn get_ids_of_all_helices(&self) -> Vec<u32>;

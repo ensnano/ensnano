@@ -47,6 +47,10 @@ impl Reader3D for DesignReader {
             .cloned()
     }
 
+    fn get_with_cones(&self, e_id: u32) -> Option<bool> {
+        self.presenter.content.with_cones_map.get(&e_id).cloned()
+    }
+
     fn get_basis(&self) -> Rotor3 {
         self.presenter.model_matrix.extract_rotation()
     }

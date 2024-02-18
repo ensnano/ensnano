@@ -37,6 +37,7 @@ pub enum DrawingAttribute {
     RainbowStrand(bool),
     XoverColoring(bool),
     ColorShade(u32, Option<f64>),
+    WithCones(bool),
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -55,6 +56,7 @@ impl FromStr for DrawingAttribute {
     /// - %hr(r) for DoubleHelixAsCylinderRadius(r)
     /// - %hc(HHHHHHHH) for DoubleHelixAsCylinderColor(0xHHHHHHHH)
     /// - %rh(HHHHHHHH) for DoubleHelixAsCylinderColor(Rainbow)
+    /// - %wc / %noc for WithCones(true / false) - default = true
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let parsed = s
             .split(&['%', ' ', ',', ')', '('])
@@ -66,6 +68,8 @@ impl FromStr for DrawingAttribute {
                 "rs" => return Ok(Self::RainbowStrand(true)),
                 "nors" => return Ok(Self::RainbowStrand(false)),
                 "noxc" => return Ok(Self::XoverColoring(false)),
+                "wc" => return Ok(Self::WithCones(true)),
+                "noc" => return Ok(Self::WithCones(false)),
                 "xc" => return Ok(Self::XoverColoring(true)),
                 "rh" => return Ok(Self::DoubleHelixAsCylinderColor(ColorType::Rainbow)), // IGNORED FOR NOW
                 _ => (),
@@ -135,6 +139,8 @@ pub struct DrawingStyle {
     pub color_shade: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub hue_range: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub with_cones: Option<bool>,
 }
 
 impl std::default::Default for DrawingStyle {
@@ -150,6 +156,7 @@ impl std::default::Default for DrawingStyle {
             xover_coloring: None,
             color_shade: None,
             hue_range: None,
+            with_cones: None,
         }
     }
 }
@@ -177,6 +184,7 @@ impl From<Vec<DrawingAttribute>> for DrawingStyle {
                 DrawingAttribute::XoverColoring(b) => {
                     ret.xover_coloring = ret.xover_coloring.or(Some(b))
                 }
+                DrawingAttribute::WithCones(b) => ret.with_cones = ret.with_cones.or(Some(b)),
                 DrawingAttribute::ColorShade(c, hue_range) => {
                     ret.color_shade = ret.color_shade.or(Some(c));
                     ret.hue_range = ret.hue_range.or(hue_range);
@@ -220,6 +228,10 @@ impl DrawingStyle {
             },
             DrawingAttribute::XoverColoring(b) => DrawingStyle {
                 xover_coloring: Some(b),
+                ..*self
+            },
+            DrawingAttribute::WithCones(b) => DrawingStyle {
+                with_cones: Some(b),
                 ..*self
             },
             DrawingAttribute::ColorShade(c, hue_range) => DrawingStyle {
@@ -302,6 +314,10 @@ impl DrawingStyle {
                 xover_coloring: self.xover_coloring.or(Some(b)),
                 ..*self
             },
+            DrawingAttribute::WithCones(b) => DrawingStyle {
+                with_cones: self.with_cones.or(Some(b)),
+                ..*self
+            },
             DrawingAttribute::ColorShade(c, hue_range) => DrawingStyle {
                 color_shade: self.color_shade.or(Some(c)),
                 hue_range,
@@ -332,6 +348,7 @@ impl DrawingStyle {
                 .or(other.helix_as_cylinder_color),
             rainbow_strand: self.rainbow_strand.or(other.rainbow_strand),
             xover_coloring: self.xover_coloring.or(other.xover_coloring),
+            with_cones: self.with_cones.or(other.with_cones),
             color_shade: self.color_shade.or(other.color_shade),
             hue_range: self.hue_range.or(other.hue_range),
         };

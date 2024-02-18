@@ -141,6 +141,7 @@ pub(super) struct DesignContent {
     /// Maps identifiers to drawingstyles
     pub xover_coloring_map: HashMap<u32, bool, RandomState>,
     pub clone_transformations: Vec<Isometry3>,
+    pub with_cones_map: HashMap<u32, bool, RandomState>,
 }
 
 impl DesignContent {
@@ -545,6 +546,7 @@ impl DesignContent {
         let mut helix_color_map = HashMap::default();
         let mut helix_map = HashMap::default();
         let mut letter_map = HashMap::default();
+        let mut with_cones_map = HashMap::default();
         let mut loopout_bonds = Vec::new();
         let mut loopout_nucls = Vec::new();
         let mut id_TMP = 0u32;
@@ -775,6 +777,9 @@ impl DesignContent {
                             strand_map.insert(bond_id, *s_id); // get strand_id from bond_id
                             helix_map.insert(bond_id, nucl.helix); // get helix_id from bond_id
                             xover_coloring_map.insert(bond_id, bond_coloring);
+                            if Some(false) == strand_style.with_cones {
+                                with_cones_map.insert(bond_id, false);
+                            }
                             id_TMP
                         } else {
                             id_TMP
@@ -881,6 +886,10 @@ impl DesignContent {
                 strand_map.insert(bond_id, *s_id); // match bond_id to strand_id
                 helix_map.insert(bond_id, nucl.helix);
                 xover_coloring_map.insert(bond_id, bond_coloring);
+                if Some(false) == strand_style.with_cones {
+                    with_cones_map.insert(bond_id, false);
+                }
+
                 log::debug!("adding {:?}, {:?}", bond.0, bond.1);
                 Self::update_junction(
                     &mut new_junctions,
@@ -1269,6 +1278,7 @@ impl DesignContent {
             drawing_styles,
             xover_coloring_map,
             clone_transformations,
+            with_cones_map,
         };
         let suggestions = suggestion_maker.get_suggestions(&design, suggestion_parameters);
         ret.suggestions = suggestions;
