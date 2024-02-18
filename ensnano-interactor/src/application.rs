@@ -107,6 +107,7 @@ pub enum Notification {
     FlipSplitViews,
     HorizonAligned,
     ScreenShot3D,
+    StlExport,
 }
 
 #[derive(PartialEq, Debug, Clone, Copy)]

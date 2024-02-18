@@ -1122,6 +1122,8 @@ impl Mesh {
             Mesh::TubeLid => 3,
             Mesh::SlicedTube => 4,
             Mesh::PivotSphere => 5,
+            Mesh::Prime3Cone => 6,
+            Mesh::BaseEllipsoid => 7,
             _ => 0,
         }
     }

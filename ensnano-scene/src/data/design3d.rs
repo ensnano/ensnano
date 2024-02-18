@@ -1514,6 +1514,7 @@ pub trait DesignReader: 'static + ensnano_interactor::DesignReader {
     fn get_xover_coloring(&self, e_id: u32) -> Option<bool>;
     fn get_id_of_strand_containing(&self, e_id: u32) -> Option<usize>;
     fn get_id_of_helix_containing(&self, e_id: u32) -> Option<usize>;
+    fn get_ids_of_all_helices(&self) -> Vec<u32>;
     fn get_ids_of_elements_belonging_to_strand(&self, s_id: usize) -> Vec<u32>;
     fn get_ids_of_elements_belonging_to_helix(&self, h_id: usize) -> Vec<u32>;
     fn get_helix_basis(&self, h_id: u32) -> Option<Rotor3>;

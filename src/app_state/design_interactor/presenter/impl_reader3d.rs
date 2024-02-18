@@ -251,6 +251,15 @@ impl Reader3D for DesignReader {
         }
     }
 
+    fn get_ids_of_all_helices(&self) -> Vec<u32> {
+        self.presenter
+            .content
+            .helix_map
+            .keys()
+            .map(|&k| k)
+            .collect()
+    }
+
     fn get_id_of_helix_containing(&self, e_id: u32) -> Option<usize> {
         if let Some(nucl) = self.get_nucl_with_id(e_id) {
             Some(nucl.helix)
