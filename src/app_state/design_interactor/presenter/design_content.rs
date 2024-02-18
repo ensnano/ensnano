@@ -20,7 +20,7 @@ use super::*;
 use crate::scene::GridInstance;
 use ahash::RandomState;
 use cadnano_format::color;
-use ensnano_design::drawing_style::{DrawingAttribute, DrawingStyle};
+use ensnano_design::drawing_style::{ColorType, DrawingAttribute, DrawingStyle};
 use ensnano_design::elements::{DesignElement, DesignElementKey};
 use ensnano_design::grid::{GridId, GridObject, GridPosition, HelixGridPosition};
 use ensnano_design::*;
@@ -169,6 +169,11 @@ impl DesignContent {
                     let b = self.axis_space_position.get(e2)?;
                     Some((Vec3::from(*a) + Vec3::from(*b)) / 2.)
                 }
+                ObjectType::SlicedBond(_, e1, e2, _) => {
+                    let a = self.space_position.get(e1)?;
+                    let b = self.space_position.get(e2)?;
+                    Some((Vec3::from(*a) + Vec3::from(*b)) / 2.)
+                }
             }
         } else {
             None
@@ -185,6 +190,11 @@ impl DesignContent {
                     Some((Vec3::from(*a) + Vec3::from(*b)) / 2.)
                 }
                 ObjectType::HelixCylinder(e1, e2) => {
+                    let a = self.axis_space_position.get(e1)?;
+                    let b = self.axis_space_position.get(e2)?;
+                    Some((Vec3::from(*a) + Vec3::from(*b)) / 2.)
+                }
+                ObjectType::SlicedBond(_, e1, e2, _) => {
                     let a = self.axis_space_position.get(e1)?;
                     let b = self.axis_space_position.get(e2)?;
                     Some((Vec3::from(*a) + Vec3::from(*b)) / 2.)
@@ -641,6 +651,9 @@ impl DesignContent {
                 (0xFF << 24) | ((rgb.r as u32) << 16) | ((rgb.g as u32) << 8) | (rgb.b as u32)
             });
 
+            // the sequence of bond ids
+            let mut bond_ids_sequence = Vec::new();
+
             // Iter on the domains of the strand
             let mut last_xover_junction: Option<&mut DomainJunction> = None;
             let mut prev_loopout_pos = None;
@@ -753,7 +766,8 @@ impl DesignContent {
                             id_TMP += 1;
                             let bond = (prev_nucl, nucl);
                             object_type
-                                .insert(bond_id, ObjectType::Bond(prev_nucl_id.unwrap(), id_TMP));
+                                .insert(bond_id, ObjectType::Bond(prev_nucl_id.unwrap(), id_TMP)); // To be overwritten by a sliced bond later
+                            bond_ids_sequence.push(bond_id);
                             identifier_bond.insert(bond, bond_id);
                             nucleotides_involved.insert(bond_id, bond);
                             color_map.insert(bond_id, bond_color); // color given to the bond
@@ -858,7 +872,8 @@ impl DesignContent {
                 }
                 id_TMP += 1;
                 let bond = (prev_nucl.unwrap(), nucl);
-                object_type.insert(bond_id, ObjectType::Bond(prev_nucl_id.unwrap(), *prime5_id));
+                object_type.insert(bond_id, ObjectType::Bond(prev_nucl_id.unwrap(), *prime5_id)); // to be overwritten by a sliced bond later
+                bond_ids_sequence.push(bond_id);
                 identifier_bond.insert(bond, bond_id);
                 nucleotides_involved.insert(bond_id, bond);
                 color_map.insert(bond_id, strand_color);
@@ -907,9 +922,70 @@ impl DesignContent {
                     prime3_set.push(Prime3End { nucl, color });
                 }
             }
+
+            // Set the sliced bonds properly by adding the prev and next nucleotides
+            let nucl1_ids = bond_ids_sequence
+                .iter()
+                .map(|x| {
+                    let ObjectType::Bond(id1, _) = object_type.get(x).unwrap() else {
+                        panic!("The bond is not a bond");
+                    };
+                    *id1
+                })
+                .collect::<Vec<u32>>();
+            let nucl2_ids = bond_ids_sequence
+                .iter()
+                .map(|x| {
+                    let ObjectType::Bond(_, id2) = object_type.get(x).unwrap() else {
+                        panic!("The bond is not a bond");
+                    };
+                    *id2
+                })
+                .collect::<Vec<u32>>();
+            if bond_ids_sequence.len() > 0 {
+                let n = bond_ids_sequence.len();
+                for ((prev_id, bond_id), next_id) in nucl1_ids
+                    .iter()
+                    .cycle()
+                    .skip(n - 1)
+                    .zip(bond_ids_sequence.clone())
+                    .zip(nucl2_ids.iter().cycle().skip(1))
+                {
+                    let ObjectType::Bond(id1, id2) = object_type.get(&bond_id).unwrap() else {
+                        panic!("The bond is not a bond");
+                    };
+
+                    object_type.insert(
+                        bond_id,
+                        ObjectType::SlicedBond(*prev_id, *id1, *id2, *next_id),
+                    );
+                }
+                if !strand.cyclic {
+                    // modify the first bond to repeat the first nucl_id
+                    let first_id = bond_ids_sequence[0];
+                    let ObjectType::SlicedBond(_, id1, id2, next_id) =
+                        object_type.get(&first_id).unwrap()
+                    else {
+                        panic!("The sliced bond is not a sliced bond");
+                    };
+                    object_type
+                        .insert(first_id, ObjectType::SlicedBond(*id1, *id1, *id2, *next_id));
+                    // modify the last bond to repeat the second nucl_id
+                    let last_id = bond_ids_sequence[n - 1];
+                    let ObjectType::SlicedBond(prev_id, id1, id2, _) =
+                        object_type.get(&last_id).unwrap()
+                    else {
+                        panic!("The sliced bond is not a sliced bond");
+                    };
+                    object_type.insert(last_id, ObjectType::SlicedBond(*prev_id, *id1, *id2, *id2));
+                }
+            }
+            // next iteration
             prev_nucl = None;
             prev_nucl_id = None;
-        }
+        } // Scanning strands
+
+        // Scanning grids
         for g_id in grid_manager.grids.keys() {
             if let GridId::FreeGrid(id) = g_id {
                 elements.push(DesignElement::GridElement {
@@ -918,6 +994,7 @@ impl DesignContent {
                 })
             }
         }
+
         for (h_id, h) in design.helices.iter() {
             elements.push(DesignElement::HelixElement {
                 id: *h_id,
@@ -1041,9 +1118,16 @@ impl DesignContent {
                 let radius = helix_style
                     .helix_as_cylinder_radius
                     .unwrap_or(HELIX_CYLINDER_RADIUS);
-                let color = helix_style
-                    .helix_as_cylinder_color
-                    .unwrap_or(HELIX_CYLINDER_COLOR);
+                let color =
+                    helix_style
+                        .helix_as_cylinder_color
+                        .map_or(HELIX_CYLINDER_COLOR, |ct| {
+                            if let ColorType::Color(c) = ct {
+                                c
+                            } else {
+                                HELIX_CYLINDER_COLOR
+                            }
+                        });
                 for (i, j) in a {
                     let bond_id = id_clic_counter.next();
                     let n_i = Nucl {

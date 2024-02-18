@@ -518,7 +518,7 @@ impl Presenter {
             .iter()
             .map(|(obj_id, t)| match t {
                 ObjectType::Nucleotide(nucl_id) => {
-                    StlObject::Sphere(ensnano_exports::stl::StlSphere {
+                    Some(StlObject::Sphere(ensnano_exports::stl::StlSphere {
                         center: self
                             .content
                             .get_element_position(*nucl_id)
@@ -529,10 +529,10 @@ impl Presenter {
                             .get(&nucl_id)
                             .unwrap_or(&0.0)
                             .to_owned(),
-                    })
+                    }))
                 }
                 ObjectType::HelixCylinder(id1, id2) => {
-                    StlObject::HelixTube(ensnano_exports::stl::StlTube {
+                    Some(StlObject::HelixTube(ensnano_exports::stl::StlTube {
                         from: self
                             .content
                             .get_axis_element_position(*id1)
@@ -547,19 +547,27 @@ impl Presenter {
                             .get(obj_id)
                             .unwrap_or(&0.0)
                             .to_owned(),
-                    })
+                    }))
                 }
-                ObjectType::Bond(id1, id2) => StlObject::BondTube(ensnano_exports::stl::StlTube {
-                    from: self.content.get_element_position(*id1).unwrap_or_default(),
-                    to: self.content.get_element_position(*id2).unwrap_or_default(),
-                    scale_r: self
-                        .content
-                        .radius_map
-                        .get(obj_id)
-                        .unwrap_or(&0.0)
-                        .to_owned(),
-                }),
+                ObjectType::SlicedBond(_, _, _, _) => {
+                    // TO BE IMPLEMENTED LATER
+                    None // the only reason where there are Some everywhere...
+                }
+                ObjectType::Bond(id1, id2) => {
+                    Some(StlObject::BondTube(ensnano_exports::stl::StlTube {
+                        from: self.content.get_element_position(*id1).unwrap_or_default(),
+                        to: self.content.get_element_position(*id2).unwrap_or_default(),
+                        scale_r: self
+                            .content
+                            .radius_map
+                            .get(obj_id)
+                            .unwrap_or(&0.0)
+                            .to_owned(),
+                    }))
+                }
             })
+            .filter(|x| !x.is_none())
+            .map(|x| x.unwrap())
             .collect();
         let mut stl_hbonds: &[HBond] = self.h_bonds.as_ref();
         let mut stl_hbonds: Vec<StlObject> = stl_hbonds
