@@ -17,16 +17,23 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use crate::MaterialColor;
+use env_logger::fmt::Color;
 use std::str::FromStr;
+
+#[derive(Serialize, PartialEq, Deserialize, Clone, Debug, Copy)]
+pub enum ColorType {
+    Color(u32),
+    Rainbow, // IGNORED FOR NOW -> Later you can add an argument to tell which kind of rainbow you want
+}
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum DrawingAttribute {
     SphereRadius(f32),
     BondRadius(f32),
-    SphereColor(u32), // with alpha
-    BondColor(u32),   // with alpha
+    SphereColor(u32), // with alpha -> to be replaced with ColorType
+    BondColor(u32),   // with alpha -> to be replaced with ColorType
     DoubleHelixAsCylinderRadius(f32),
-    DoubleHelixAsCylinderColor(u32), // with alpha
+    DoubleHelixAsCylinderColor(ColorType), // with alpha
     RainbowStrand(bool),
     XoverColoring(bool),
     ColorShade(u32, Option<f64>),
@@ -47,6 +54,7 @@ impl FromStr for DrawingAttribute {
     /// - %bc(HHHHHHHH) for BondColor(0xHHHHHHHH)
     /// - %hr(r) for DoubleHelixAsCylinderRadius(r)
     /// - %hc(HHHHHHHH) for DoubleHelixAsCylinderColor(0xHHHHHHHH)
+    /// - %rh(HHHHHHHH) for DoubleHelixAsCylinderColor(Rainbow)
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let parsed = s
             .split(&['%', ' ', ',', ')', '('])
@@ -59,6 +67,7 @@ impl FromStr for DrawingAttribute {
                 "nors" => return Ok(Self::RainbowStrand(false)),
                 "noxc" => return Ok(Self::XoverColoring(false)),
                 "xc" => return Ok(Self::XoverColoring(true)),
+                "rh" => return Ok(Self::DoubleHelixAsCylinderColor(ColorType::Rainbow)), // IGNORED FOR NOW
                 _ => (),
             },
             2..=4 => {
@@ -92,7 +101,7 @@ impl FromStr for DrawingAttribute {
                 match parsed[0] {
                     "sc" => return Ok(Self::SphereColor(color)),
                     "bc" => return Ok(Self::BondColor(color)),
-                    "hc" => return Ok(Self::DoubleHelixAsCylinderColor(color)),
+                    "hc" => return Ok(Self::DoubleHelixAsCylinderColor(ColorType::Color(color))),
                     "cs" => return Ok(Self::ColorShade(color, hue_range)),
                     _ => (),
                 }
@@ -117,7 +126,7 @@ pub struct DrawingStyle {
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub bond_color: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub helix_as_cylinder_color: Option<u32>,
+    pub helix_as_cylinder_color: Option<ColorType>,
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub rainbow_strand: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none", default)]

@@ -351,8 +351,6 @@ impl Isometry3MissingMethods for Isometry3 {
             .map(|x| x.unwrap())
             .collect::<Vec<Isometry3DescriptorItem>>();
 
-        println!("{:?}", descr);
-
         return Isometry3::from_descriptor(&descr);
     }
 
