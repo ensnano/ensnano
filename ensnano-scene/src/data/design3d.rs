@@ -535,7 +535,7 @@ impl<R: DesignReader> Design3D<R> {
         let kind = self.get_object_type(id)?;
 
         match kind {
-            ObjectType::Bond(id1, id2) => {
+            ObjectType::Bond(id1, id2)  | ObjectType::SlicedBond(_, id1, id2, _) => {
                 let pos1 =
                     self.get_graphic_element_position(&SceneElement::DesignElement(self.id, id1))?;
                 let pos2 =
