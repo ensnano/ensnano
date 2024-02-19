@@ -463,10 +463,11 @@ impl DesignContent {
     ) -> Vec<u32> {
         let check_visibility = |&(id, bond): &(&u32, &(Nucl, Nucl))| {
             if self.object_type.get(id).unwrap().is_helix_cylinder() {
-                !(invisible_nucls.contains(&bond.0) 
-                && invisible_nucls.contains(&bond.0.compl()) 
-                && invisible_nucls.contains(&bond.1)
-                && invisible_nucls.contains(&bond.1.compl()))
+                return true
+                // !(invisible_nucls.contains(&bond.0) 
+                // && invisible_nucls.contains(&bond.0.compl()) 
+                // && invisible_nucls.contains(&bond.1)
+                // && invisible_nucls.contains(&bond.1.compl()))
                 // let visible = design.helices.get(&bond.0.helix).unwrap().visible; 
                 // visible // Apparently this return always true has the field .visible of an helix is never used... 
             } else {
