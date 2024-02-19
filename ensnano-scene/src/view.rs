@@ -19,6 +19,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! frame to be displayed, or on a "fake texture" that is used to map pixels to objects.
 
 use self::gltf_drawer::Object3DDrawer;
+use int_enum::IntEnum;
 
 use super::camera;
 use crate::{DrawArea, PhySize};
@@ -1054,41 +1055,42 @@ pub enum ViewUpdate {
     UnrootedSurface(Option<UnrootedRevolutionSurfaceDescriptor>),
 }
 
-#[derive(Eq, PartialEq, Debug, Copy, Clone, Hash)]
+#[derive(Eq, PartialEq, Debug, Copy, Clone, Hash, IntEnum)]
+#[repr(u32)]
 pub enum Mesh {
-    Sphere,
-    Tube,
-    TubeLid,
-    SlicedTube,
-    OutlineSphere,
-    OutlineTube,
-    FakeSphere,
-    FakeTube,
-    CandidateSphere,
-    CandidateTube,
-    SelectedSphere,
-    SelectedTube,
-    PhantomSphere,
-    PhantomTube,
-    FakePhantomTube,
-    FakePhantomSphere,
-    SuggestionSphere,
-    SuggestionTube,
-    PastedSphere,
-    PastedTube,
-    PivotSphere,
-    XoverSphere,
-    XoverTube,
-    Prime3Cone,
-    Prime3ConeOutline,
-    BezierControll,
-    BezierSqueleton,
-    FakeBezierControl,
-    StereographicSphere,
-    BaseEllipsoid,
-    EllipsoidOutline,
-    HBond,
-    HBondOutline,
+    Sphere = 1,
+    Tube = 2,
+    TubeLid = 3,
+    SlicedTube = 4,
+    OutlineSphere = 5,
+    OutlineTube = 6,
+    FakeSphere = 7,
+    FakeTube = 8,
+    CandidateSphere = 9,
+    CandidateTube = 10,
+    SelectedSphere = 11,
+    SelectedTube = 12,
+    PhantomSphere = 13,
+    PhantomTube = 14,
+    FakePhantomTube = 15,
+    FakePhantomSphere = 16,
+    SuggestionSphere = 17,
+    SuggestionTube = 18,
+    PastedSphere = 19,
+    PastedTube = 20,
+    PivotSphere = 21,
+    XoverSphere = 22,
+    XoverTube = 23,
+    Prime3Cone = 24,
+    Prime3ConeOutline = 25,
+    BezierControll = 26,
+    BezierSqueleton = 27,
+    FakeBezierControl = 28,
+    StereographicSphere = 29,
+    BaseEllipsoid = 30,
+    EllipsoidOutline = 31,
+    HBond = 32,
+    HBondOutline = 33,
 }
 
 impl Mesh {
@@ -1115,18 +1117,19 @@ impl Mesh {
         }
     }
 
-    pub fn to_u32(&self) -> u32 {
-        match self {
-            Mesh::Sphere => 1,
-            Mesh::Tube => 2,
-            Mesh::TubeLid => 3,
-            Mesh::SlicedTube => 4,
-            Mesh::PivotSphere => 5,
-            Mesh::Prime3Cone => 6,
-            Mesh::BaseEllipsoid => 7,
-            _ => 0,
-        }
-    }
+    // FOR MEMORY
+    // pub fn to_u32(&self) -> u32 {
+    //     match self {
+    //         Mesh::Sphere => 1,
+    //         Mesh::Tube => 2,
+    //         Mesh::TubeLid => 3,
+    //         Mesh::SlicedTube => 4,
+    //         Mesh::PivotSphere => 5,
+    //         Mesh::Prime3Cone => 6,
+    //         Mesh::BaseEllipsoid => 7,
+    //         _ => 0,
+    //     }
+    // }
 }
 
 struct DnaDrawers {

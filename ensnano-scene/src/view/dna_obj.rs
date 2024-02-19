@@ -31,7 +31,7 @@ use std::iter::zip;
 #[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct DnaVertex {
     pub position: [f32; 3],
-    normal: [f32; 3],
+    pub normal: [f32; 3],
 }
 
 pub trait DnaObject:
@@ -168,7 +168,7 @@ impl Instanciable for SphereInstance {
             scale: Vec3::new(self.radius, self.radius, self.radius),
             id: self.id,
             inversed_model: model.inversed(),
-            mesh: super::Mesh::Sphere.to_u32(),
+            mesh: super::Mesh::Sphere as u32,
             prev: Vec3::zero(),
             next: Vec3::zero(),
             _padding: Default::default(),
@@ -278,7 +278,7 @@ impl Instanciable for StereographicSphereAndPlane {
             scale,
             id: 0,
             inversed_model: model.inversed(),
-            mesh: super::Mesh::StereographicSphere.to_u32(),
+            mesh: super::Mesh::StereographicSphere as u32,
             prev: Vec3::zero(),
             next: Vec3::zero(),
             _padding: Default::default(),
@@ -360,7 +360,7 @@ impl Instanciable for TubeInstance {
             scale: Vec3::new(self.length, self.radius, self.radius), // scale.x is the length of the tube
             id: self.id,
             inversed_model: model.inversed(),
-            mesh: super::Mesh::Tube.to_u32(),
+            mesh: super::Mesh::Tube as u32,
             prev: Vec3::zero(),
             next: Vec3::zero(),
             _padding: Default::default(),
@@ -449,7 +449,7 @@ impl Instanciable for TubeLidInstance {
             scale: Vec3::new(1.0, self.radius, self.radius),
             id: self.id,
             inversed_model: model.inversed(),
-            mesh: super::Mesh::TubeLid.to_u32(),
+            mesh: super::Mesh::TubeLid as u32,
             prev: Vec3::zero(),
             next: Vec3::zero(),
             _padding: Default::default(),
@@ -564,7 +564,7 @@ impl Instanciable for SlicedTubeInstance {
             scale: Vec3::new(self.length, self.radius, self.radius),
             id: self.id,
             inversed_model: model.inversed(),
-            mesh: super::Mesh::SlicedTube.to_u32(),
+            mesh: super::Mesh::SlicedTube as u32,
             prev: self.prev,
             next: self.next,
             _padding: Default::default(),
@@ -668,7 +668,7 @@ impl Instanciable for ConeInstance {
             scale: Vec3::new(self.length, self.radius, self.radius),
             id: self.id,
             inversed_model: model.inversed(),
-            mesh: super::Mesh::Prime3Cone.to_u32(),
+            mesh: super::Mesh::Prime3Cone as u32,
             prev: Vec3::zero(),
             next: Vec3::zero(),
             _padding: Default::default(),
