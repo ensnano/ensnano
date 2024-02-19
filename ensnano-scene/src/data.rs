@@ -1470,9 +1470,9 @@ impl<R: DesignReader> Data<R> {
                 .get_tubes_raw(app_state.show_insertion_representents())
                 .iter()
             {
-                if tube.mesh == Mesh::TubeLid.to_u32() {
+                if tube.mesh == Mesh::TubeLid as u32 {
                     tube_lids.push(*tube);
-                } else if tube.mesh == Mesh::SlicedTube.to_u32() {
+                } else if tube.mesh == Mesh::SlicedTube as u32 {
                     sliced_tubes.push(*tube);
                 } else {
                     tubes.push(*tube);
