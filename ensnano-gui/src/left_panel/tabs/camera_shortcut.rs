@@ -144,12 +144,12 @@ macro_rules! add_stl_export_button {
     ($ret: ident, $self: ident, $ui_size: ident, $width: ident) => {
         let stl_export_button = Button::new(
             &mut $self.stl_export_button,
-            Text::new("stl").size($ui_size.main_text()),
+            Text::new("   STL").size($ui_size.main_text()),
         )
         .on_press(Message::StlExport)
-        .width(Length::Units($ui_size.button()));
+        .width(Length::Units(2 * $ui_size.button()));
 
-        $ret = $ret.push(Text::new("Stl export"));
+        $ret = $ret.push(Text::new("STL export"));
         $ret = $ret.spacing(5).push(stl_export_button);
     };
 }

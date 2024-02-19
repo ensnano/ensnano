@@ -1117,7 +1117,7 @@ impl<S: AppState> Scene<S> {
         let file_name = Utc::now()
             .format("export_stl_%Y_%m_%d_%H_%M_%S.stl")
             .to_string();
-        println!("Stl export to {file_name}");
+        println!("STL export to {file_name}");
         let raw_instances = self.data.borrow().get_all_raw_instances(app_state);
         let stl_bytes = stl::stl_bytes_export(raw_instances).unwrap();
         let mut out_file = std::fs::File::create(file_name).unwrap();
