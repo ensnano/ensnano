@@ -256,7 +256,7 @@ impl CameraShortcutPanel {
                         .spacing(ui_size.button_pad()),
                     ]
                     .align_items(Alignment::Center)
-                    .width(Length::FillPortion(8)),
+                    .width(Length::FillPortion(6)),
                     // add_rotate_buttons!
                     column![
                         subsection("Rotation", ui_size)
@@ -267,7 +267,7 @@ impl CameraShortcutPanel {
                         // Idem.
                     ]
                     .align_items(Alignment::Center)
-                    .width(Length::FillPortion(5)),
+                    .width(Length::FillPortion(3)),
                     // add_screenshot_button!
                     column![
                         material_icons_light::dark_icon(LightIcon::PhotoCamera, ui_size)
@@ -280,7 +280,7 @@ impl CameraShortcutPanel {
                         .spacing(ui_size.button_pad()),
                     ]
                     .align_items(Alignment::Center)
-                    .width(Length::FillPortion(3)),
+                    .width(Length::FillPortion(1)),
                 ],
             ],
             column![

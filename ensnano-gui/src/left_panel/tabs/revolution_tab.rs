@@ -31,6 +31,7 @@ use ensnano_interactor::{
 use iced::{theme, Element};
 use iced_native::widget;
 use iced_native::widget::helpers::*;
+use iced_native::{alignment::Alignment, column, row};
 
 #[derive(Debug, Clone, Copy)]
 pub enum ParameterKind {
@@ -439,108 +440,126 @@ impl<S: AppState> RevolutionTab<S> {
             iced_native::column![button]
         };
 
-        iced_native::column![
+        column![
             section("Revolution Surfaces", ui_size),
             checkbox(
                 "Show bezier paths",
                 app_state.get_show_bezier_paths(),
                 Message::SetShowBezierPaths,
             ),
-            subsection("Section parameters", ui_size),
-            iced_native::row![
-                text("Curve type"),
-                pick_list(
-                    S::POSSIBLE_CURVES,
-                    self.curve_descriptor_widget
-                        .as_ref()
-                        .map(|w| w.builder.clone()),
-                    //|curve| Message::CurveBuilderPicked(curve),
-                    Message::CurveBuilderPicked,
-                )
-                .placeholder("Pick.."),
+            column![
+                extra_jump(),
+                subsection("Section parameters", ui_size),
+                row![
+                    text("Curve type"),
+                    pick_list(
+                        S::POSSIBLE_CURVES,
+                        self.curve_descriptor_widget
+                            .as_ref()
+                            .map(|w| w.builder.clone()),
+                        //|curve| Message::CurveBuilderPicked(curve),
+                        Message::CurveBuilderPicked,
+                    )
+                    .placeholder("Pick.."),
+                ]
+                .align_items(Alignment::Center),
+                if let Some(widget) = &self.curve_descriptor_widget {
+                    widget.view()
+                } else {
+                    column![].into()
+                },
             ],
-            if let Some(widget) = &self.curve_descriptor_widget {
-                widget.view()
-            } else {
-                iced_native::column![].into()
-            },
-            extra_jump(),
-            subsection("Revolution parameter", ui_size),
-            iced_native::row![
-                text("Nb Half Turns"),
-                self.half_turn_count
-                    .input_view(RevolutionParameterId::HalfTurnCount),
+            column![
+                extra_jump(),
+                subsection("Revolution parameters", ui_size),
+                row![
+                    text("Nb Half Turns"),
+                    self.half_turn_count
+                        .input_view(RevolutionParameterId::HalfTurnCount),
+                ]
+                .align_items(Alignment::Center),
+                text(self.scaling.map_or(
+                    "Nb helix: ###".into(),
+                    |RevolutionScaling { nb_helix, .. }| format!("Nb helix: {nb_helix}")
+                )),
+                row![
+                    text("Nb spiral"),
+                    self.nb_sprial_state_input
+                        .input_view(RevolutionParameterId::NbSpiral),
+                ]
+                .align_items(Alignment::Center),
+                shift_buttons,
+                row![
+                    text("Revolution Radius"),
+                    self.radius_input
+                        .input_view(RevolutionParameterId::RevolutionRadius),
+                ]
+                .align_items(Alignment::Center),
             ],
-            text(self.scaling.map_or(
-                "Nb helix: ###".into(),
-                |RevolutionScaling { nb_helix, .. }| format!("Nb helix: {nb_helix}")
-            )),
-            iced_native::row![
-                text("Nb spiral"),
-                self.nb_sprial_state_input
-                    .input_view(RevolutionParameterId::NbSpiral),
+            column![
+                extra_jump(),
+                subsection("Discretization parameters", ui_size),
+                row![
+                    text("Nb section per segments"),
+                    self.nb_section_per_segment_input
+                        .input_view(RevolutionParameterId::NbSectionPerSegment),
+                ]
+                .align_items(Alignment::Center),
+                row![
+                    text("Target length"),
+                    self.scaffold_len_target
+                        .input_view(RevolutionParameterId::ScaffoldLenTarget),
+                ]
+                .align_items(Alignment::Center),
             ],
-            shift_buttons,
-            iced_native::row![
-                text("Revolution Radius"),
-                self.radius_input
-                    .input_view(RevolutionParameterId::RevolutionRadius),
+            column![
+                extra_jump(),
+                subsection("Simulation parameters", ui_size),
+                iced_native::row![
+                    text("Spring Stiffness"),
+                    self.spring_stiffness
+                        .input_view(RevolutionParameterId::SpringStiffness),
+                ],
+                iced_native::row![
+                    text("Torsion Stiffness"),
+                    self.torsion_stiffness
+                        .input_view(RevolutionParameterId::TorsionStiffness),
+                ],
+                iced_native::row![
+                    text("Fluid Friction"),
+                    self.fluid_friction
+                        .input_view(RevolutionParameterId::FluidFriction),
+                ],
+                iced_native::row![
+                    text("Ball Mass"),
+                    self.ball_mass.input_view(RevolutionParameterId::BallMass),
+                ],
+                iced_native::row![
+                    text("Solving Method"),
+                    pick_list(
+                        EquadiffSolvingMethod::ALL_METHODS,
+                        Some(self.equadiff_method),
+                        // |method| Message::RevolutionEquadiffSolvingMethodPicked(method),
+                        Message::RevolutionEquadiffSolvingMethodPicked,
+                    ),
+                ],
+                iced_native::row![
+                    text("Tie Span"),
+                    self.time_span.input_view(RevolutionParameterId::TimeSpan),
+                ],
+                iced_native::row![
+                    text("Simulation Step"),
+                    self.simulation_step
+                        .input_view(RevolutionParameterId::SimulationStep),
+                ],
             ],
-            extra_jump(),
-            subsection("Discretization parameters", ui_size),
-            iced_native::row![
-                text("Nb section per segments"),
-                self.nb_section_per_segment_input
-                    .input_view(RevolutionParameterId::NbSectionPerSegment),
+            column![
+                extra_jump(),
+                section("Relaxation computation", ui_size),
+                simulation_buttons,
             ],
-            iced_native::row![
-                text("Target length"),
-                self.scaffold_len_target
-                    .input_view(RevolutionParameterId::ScaffoldLenTarget),
-            ],
-            extra_jump(),
-            subsection("Simulation parameters", ui_size),
-            iced_native::row![
-                text("Spring Stiffness"),
-                self.spring_stiffness
-                    .input_view(RevolutionParameterId::SpringStiffness),
-            ],
-            iced_native::row![
-                text("Torsion Stiffness"),
-                self.torsion_stiffness
-                    .input_view(RevolutionParameterId::TorsionStiffness),
-            ],
-            iced_native::row![
-                text("Fluid Friction"),
-                self.fluid_friction
-                    .input_view(RevolutionParameterId::FluidFriction),
-            ],
-            iced_native::row![
-                text("Ball Mass"),
-                self.ball_mass.input_view(RevolutionParameterId::BallMass),
-            ],
-            iced_native::row![
-                text("Solving Method"),
-                pick_list(
-                    EquadiffSolvingMethod::ALL_METHODS,
-                    Some(self.equadiff_method),
-                    // |method| Message::RevolutionEquadiffSolvingMethodPicked(method),
-                    Message::RevolutionEquadiffSolvingMethodPicked,
-                ),
-            ],
-            iced_native::row![
-                text("Tie Span"),
-                self.time_span.input_view(RevolutionParameterId::TimeSpan),
-            ],
-            iced_native::row![
-                text("Simulation Step"),
-                self.simulation_step
-                    .input_view(RevolutionParameterId::SimulationStep),
-            ],
-            extra_jump(),
-            section("Relaxation computation", ui_size),
-            simulation_buttons,
         ]
+        .spacing(5)
         .into()
 
         //let mut ret = widget::scrollable::Scrollable::new(&mut self.scroll_state);

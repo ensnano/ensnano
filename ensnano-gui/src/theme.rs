@@ -4,7 +4,7 @@
 
 use iced::{theme, theme::Palette, Background, Color, Theme};
 use iced_native::renderer::Style;
-use iced_native::widget::{container, slider};
+use iced_native::widget::{container, slider, text_input};
 
 /// Color palette
 pub const GUI_PALETTE: Palette = Palette {
