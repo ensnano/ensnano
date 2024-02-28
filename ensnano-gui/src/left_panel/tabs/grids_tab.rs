@@ -21,7 +21,7 @@ use super::{
     UiSize, ValueId, ICON_HONEYCOMB_GRID, ICON_NANOTUBE, ICON_SQUARE_GRID,
 };
 use crate::helpers::*;
-use iced::Element;
+use iced::{Element, Length};
 use iced_native::widget::helpers::*;
 use iced_native::{column, row};
 
@@ -86,7 +86,7 @@ impl GridTab {
             text("Select ≥4 unattached helices").size(ui_size.main_text()),
         ]
         .spacing(5);
-        scrollable(content).into()
+        scrollable(content).width(Length::Fill).into()
     }
 
     pub fn new_hyperboloid(&mut self, requests: &mut Option<HyperboloidRequest>) {

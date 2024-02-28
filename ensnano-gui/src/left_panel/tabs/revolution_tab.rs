@@ -28,7 +28,7 @@ use ensnano_interactor::{
     RevolutionSurfaceSystemDescriptor, RootingParameters, ShiftGenerator,
     UnrootedRevolutionSurfaceDescriptor,
 };
-use iced::{theme, Element};
+use iced::{theme, Element, Length};
 use iced_native::widget;
 use iced_native::widget::helpers::*;
 use iced_native::{alignment::Alignment, column, row};
@@ -217,23 +217,25 @@ impl<S: AppState> CurveDescriptorWidget<S> {
         }
     }
 
-    fn view(&self) -> Element<Message<S>> {
+    fn view(&self, ui_size: UiSize) -> Element<Message<S>> {
         container(column(
             self.parameters
                 .iter()
                 .enumerate()
                 .map(|(param_id, param)| {
-                    iced_native::row![
+                    row![
+                        horizontal_space(ui_size.checkbox_spacing()),
                         text(param.0),
+                        horizontal_space(ui_size.checkbox_spacing()),
                         param
                             .1
                             .input_view(RevolutionParameterId::SectionParameter(param_id))
                     ]
+                    .align_items(Alignment::Center)
                     .into()
                 })
                 .collect(),
         ))
-        .style(theme::Container::Box)
         .into()
     }
 
@@ -407,13 +409,19 @@ impl<S: AppState> RevolutionTab<S> {
         let shift_buttons = {
             let buttons = (button(text("-")), button(text("+")));
             if let Some(shift) = self.get_shift_per_turn(app_state) {
-                iced_native::row![
+                row![
                     buttons.0.on_press(Message::DecrRevolutionShift),
                     buttons.1.on_press(Message::DecrRevolutionShift),
+                    horizontal_space(ui_size.checkbox_spacing()),
                     text(format!("Nb shift: {shift}")),
                 ]
             } else {
-                iced_native::row![buttons.0, buttons.1, text("Nb shift: ###"),]
+                row![
+                    buttons.0,
+                    buttons.1,
+                    horizontal_space(ui_size.checkbox_spacing()),
+                    text("Nb shift: ###"),
+                ]
             }
         };
 
@@ -440,7 +448,7 @@ impl<S: AppState> RevolutionTab<S> {
             iced_native::column![button]
         };
 
-        column![
+        let content = column![
             section("Revolution Surfaces", ui_size),
             checkbox(
                 "Show bezier paths",
@@ -452,19 +460,19 @@ impl<S: AppState> RevolutionTab<S> {
                 subsection("Section parameters", ui_size),
                 row![
                     text("Curve type"),
+                    horizontal_space(ui_size.checkbox_spacing()),
                     pick_list(
                         S::POSSIBLE_CURVES,
                         self.curve_descriptor_widget
                             .as_ref()
                             .map(|w| w.builder.clone()),
-                        //|curve| Message::CurveBuilderPicked(curve),
                         Message::CurveBuilderPicked,
                     )
                     .placeholder("Pick.."),
                 ]
                 .align_items(Alignment::Center),
                 if let Some(widget) = &self.curve_descriptor_widget {
-                    widget.view()
+                    widget.view(ui_size)
                 } else {
                     column![].into()
                 },
@@ -474,6 +482,7 @@ impl<S: AppState> RevolutionTab<S> {
                 subsection("Revolution parameters", ui_size),
                 row![
                     text("Nb Half Turns"),
+                    horizontal_space(ui_size.checkbox_spacing()),
                     self.half_turn_count
                         .input_view(RevolutionParameterId::HalfTurnCount),
                 ]
@@ -484,6 +493,7 @@ impl<S: AppState> RevolutionTab<S> {
                 )),
                 row![
                     text("Nb spiral"),
+                    horizontal_space(ui_size.checkbox_spacing()),
                     self.nb_sprial_state_input
                         .input_view(RevolutionParameterId::NbSpiral),
                 ]
@@ -491,76 +501,95 @@ impl<S: AppState> RevolutionTab<S> {
                 shift_buttons,
                 row![
                     text("Revolution Radius"),
+                    horizontal_space(ui_size.checkbox_spacing()),
                     self.radius_input
                         .input_view(RevolutionParameterId::RevolutionRadius),
                 ]
                 .align_items(Alignment::Center),
-            ],
+            ]
+            .spacing(2),
             column![
                 extra_jump(),
                 subsection("Discretization parameters", ui_size),
                 row![
                     text("Nb section per segments"),
+                    horizontal_space(ui_size.checkbox_spacing()),
                     self.nb_section_per_segment_input
                         .input_view(RevolutionParameterId::NbSectionPerSegment),
                 ]
                 .align_items(Alignment::Center),
                 row![
                     text("Target length"),
+                    horizontal_space(ui_size.checkbox_spacing()),
                     self.scaffold_len_target
                         .input_view(RevolutionParameterId::ScaffoldLenTarget),
                 ]
                 .align_items(Alignment::Center),
-            ],
+            ]
+            .spacing(2),
             column![
                 extra_jump(),
                 subsection("Simulation parameters", ui_size),
-                iced_native::row![
+                row![
                     text("Spring Stiffness"),
+                    horizontal_space(ui_size.checkbox_spacing()),
                     self.spring_stiffness
                         .input_view(RevolutionParameterId::SpringStiffness),
-                ],
-                iced_native::row![
+                ]
+                .align_items(Alignment::Center),
+                row![
                     text("Torsion Stiffness"),
+                    horizontal_space(ui_size.checkbox_spacing()),
                     self.torsion_stiffness
                         .input_view(RevolutionParameterId::TorsionStiffness),
-                ],
-                iced_native::row![
+                ]
+                .align_items(Alignment::Center),
+                row![
                     text("Fluid Friction"),
+                    horizontal_space(ui_size.checkbox_spacing()),
                     self.fluid_friction
                         .input_view(RevolutionParameterId::FluidFriction),
-                ],
-                iced_native::row![
+                ]
+                .align_items(Alignment::Center),
+                row![
                     text("Ball Mass"),
+                    horizontal_space(ui_size.checkbox_spacing()),
                     self.ball_mass.input_view(RevolutionParameterId::BallMass),
-                ],
-                iced_native::row![
+                ]
+                .align_items(Alignment::Center),
+                row![
                     text("Solving Method"),
                     pick_list(
                         EquadiffSolvingMethod::ALL_METHODS,
                         Some(self.equadiff_method),
-                        // |method| Message::RevolutionEquadiffSolvingMethodPicked(method),
                         Message::RevolutionEquadiffSolvingMethodPicked,
                     ),
-                ],
-                iced_native::row![
+                ]
+                .align_items(Alignment::Center),
+                row![
                     text("Tie Span"),
+                    horizontal_space(ui_size.checkbox_spacing()),
                     self.time_span.input_view(RevolutionParameterId::TimeSpan),
-                ],
-                iced_native::row![
+                ]
+                .align_items(Alignment::Center),
+                row![
                     text("Simulation Step"),
+                    horizontal_space(ui_size.checkbox_spacing()),
                     self.simulation_step
                         .input_view(RevolutionParameterId::SimulationStep),
-                ],
-            ],
+                ]
+                .align_items(Alignment::Center),
+            ]
+            .spacing(2),
             column![
                 extra_jump(),
                 section("Relaxation computation", ui_size),
                 simulation_buttons,
             ],
         ]
-        .spacing(5)
-        .into()
+        .spacing(5);
+
+        scrollable(content).width(Length::Fill).into()
 
         //let mut ret = widget::scrollable::Scrollable::new(&mut self.scroll_state);
 

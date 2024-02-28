@@ -23,7 +23,6 @@ use crate::material_icons_light::{self, LightIcon};
 use iced::{theme, widget, Length};
 use iced_native::widget::helpers::*;
 
-const CHECKBOXSPACING: u16 = 5;
 const JUMP_SIZE: f32 = 4.0;
 pub(super) const ENSNANO_FONT: iced::Font = iced::Font::External {
     name: "EnsNanoFont",
@@ -137,6 +136,5 @@ pub fn right_checkbox<'a, Message: 'a>(
         text(label),
         checkbox("", is_checked, f).size(ui_size.checkbox()),
     ]
-    .spacing(CHECKBOXSPACING)
-    // TODO: CHECKBOXSPACING should be integrated to ui_size.
+    .spacing(ui_size.checkbox_spacing())
 }

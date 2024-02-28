@@ -21,7 +21,7 @@ use crate::helpers::*;
 use crate::theme::BadValue;
 use ensnano_design::{grid::GridId, BezierVertexId};
 use ensnano_interactor::{Selection, SimulationState};
-use iced_native::widget;
+use iced_native::{alignment, column, row, theme, widget};
 
 mod value_constructor;
 use value_constructor::{BezierVertexBuilder, Builder, GridBuilder};
@@ -244,7 +244,6 @@ impl<S: AppState> ContextualPanel<S> {
     }
 
     pub fn view(&self, ui_size: UiSize, app_state: &S) -> iced::Element<Message<S>> {
-        let mut content = Column::new().max_width((self.width - 2) as u16);
         let selection = app_state
             .get_selection()
             .get(0)
@@ -265,38 +264,45 @@ impl<S: AppState> ContextualPanel<S> {
             .and_then(|id| app_state.get_reader().xover_length(id));
 
         let info_values = values_of_selection(selection, app_state.get_reader().as_ref());
-        if self.show_tutorial {
-            content = content.push(
-                text("Tutorials")
-                    .size(ui_size.head_text())
+        let mut content: iced::widget::Column<Message<S>> = if self.show_tutorial {
+            let link = "http://ens-lyon.fr/ensnano";
+            column![
+                section("Tutorials", ui_size)
                     .width(Length::Fill)
-                    .horizontal_alignment(iced::alignment::Horizontal::Center),
-            );
-            content = content.push(text("ENSnano website"));
-            content = content.push(link_row("http://ens-lyon.fr/ensnano", ui_size));
+                    .horizontal_alignment(alignment::Horizontal::Center),
+                extra_jump(),
+                subsection("ENSnano website", ui_size),
+                row![
+                    text(link),
+                    horizontal_space(Length::Fill),
+                    text_button("Go", ui_size).on_press(Message::OpenLink(link)),
+                ],
+            ]
         } else if self.force_help && xover_len.is_none() {
-            content = content.push(turn_into_help_column(ui_size))
+            turn_into_help_column(ui_size)
         } else if app_state.get_action_mode().is_build() {
-            let strand_menu = self.add_strand_menu.view(ui_size, self.width as u16);
-            content = content.push(strand_menu);
+            self.add_strand_menu.view(ui_size, self.width as u16)
         } else if *selection == Selection::Nothing && xover_len.is_none() {
-            content = content.push(turn_into_help_column(ui_size))
+            turn_into_help_column(ui_size)
         } else if nb_selected > 1 {
-            content = content
-                .push(iced_native::row![
+            column![
+                row![
                     horizontal_space(Length::FillPortion(1)),
-                    iced_native::column![text_button("Help", ui_size).on_press(Message::ForceHelp),]
+                    column![text_button("Help", ui_size).on_press(Message::ForceHelp),]
                         .width(Length::FillPortion(1)),
                     horizontal_space(Length::FillPortion(1)),
-                ])
-                .width(Length::Fill)
-                .align_items(iced::Alignment::Center);
-            content = content.push(Text::new(format!("{} objects selected", nb_selected)));
+                ],
+                text(format!("{} objects selected", nb_selected)),
+            ]
+            .width(Length::Fill)
+            .align_items(iced::Alignment::Center)
         } else {
-            content = content.push(
-                iced_native::row![
+            // Print information about selection.
+            let mut column = widget::Column::new();
+            column = column.push(
+                row![
                     horizontal_space(Length::FillPortion(1)),
-                    iced_native::column![text_button("Help", ui_size).on_press(Message::ForceHelp),]
+                    column![text_button("Help", ui_size).on_press(Message::ForceHelp),]
                         .width(Length::FillPortion(1)),
                     horizontal_space(Length::FillPortion(1)),
                 ]
@@ -305,7 +311,7 @@ impl<S: AppState> ContextualPanel<S> {
             );
 
             if !matches!(selection, Selection::Nothing) {
-                content = content.push(text(selection.info()).size(ui_size.main_text()));
+                column = column.push(text(selection.info()).size(ui_size.main_text()));
             }
 
             match selection {
@@ -317,31 +323,32 @@ impl<S: AppState> ContextualPanel<S> {
                         SimulationState::None => TwistStatus::CanTwist,
                         _ => TwistStatus::CannotTwist,
                     };
-                    content = content.push(add_grid_content(info_values.clone(), ui_size, twisting))
+                    column = column.push(add_grid_content(info_values.clone(), ui_size, twisting))
                 }
                 Selection::Strand(_, _) => {
-                    content = content.push(add_strand_content(info_values.clone(), ui_size))
+                    column = column.push(add_strand_content(info_values.clone(), ui_size))
                 }
                 Selection::Nucleotide(_, _) => {
                     let anchor = info_values[0].clone();
-                    content = content.push(text(format!("Anchor {}", anchor)));
+                    column = column.push(text(format!("Anchor {}", anchor)));
                 }
                 Selection::Xover(_, _) => {
                     if xover_len.is_none() {
                         if let Some(info) = info_values.get(0) {
-                            content = content.push(text(info));
+                            column = column.push(text(info));
                         }
                         if let Some(info) = info_values.get(1) {
-                            content = content.push(text(info));
+                            column = column.push(text(info));
                         }
                     }
                 }
                 _ => (),
             }
             if let Some(builder) = &self.builder {
-                content = content.push(builder.builder.view(ui_size, selection, app_state))
+                column = column.push(builder.builder.view(ui_size, selection, app_state))
             }
-        }
+            column.into()
+        };
 
         if let Some(info_values) = xover_len.map(|v| fmt_xover_len(Some(v))) {
             if let Some(info) = info_values.get(0) {
@@ -359,7 +366,7 @@ impl<S: AppState> ContextualPanel<S> {
                 .input_str
                 .as_ref()
                 .unwrap_or(&real_len_string);
-            content = content.push(iced_native::row![
+            content = content.push(row![
                 text("Loopout"),
                 text_input("", text_input_content)
                     .on_input(Message::InsertionLengthInput)
@@ -367,7 +374,7 @@ impl<S: AppState> ContextualPanel<S> {
             ]);
         }
 
-        scrollable(content).into()
+        scrollable(content.max_width((self.width - 2) as u16)).into()
     }
 
     pub fn selection_value_changed<R: Requests>(
@@ -574,19 +581,17 @@ fn add_help_to_column<'a, S: AppState>(
     content.into()
 }
 
-fn turn_into_help_column<'a, S: AppState>(ui_size: UiSize) -> iced::Element<'a, Message<S>> {
-    iced_native::column![
-        text("Help")
-            .size(ui_size.head_text())
+fn turn_into_help_column<'a, S: AppState>(ui_size: UiSize) -> iced::widget::Column<'a, Message<S>> {
+    column![
+        section("Help", ui_size)
             .width(Length::Fill)
-            .horizontal_alignment(iced::alignment::Horizontal::Center),
+            .horizontal_alignment(alignment::Horizontal::Center),
         add_help_to_column("3D view", view_3d_help(), ui_size),
         horizontal_space(15),
         add_help_to_column("2D/3D view", view_2d_3d_help(), ui_size),
         horizontal_space(15),
         add_help_to_column("2D view", view_2d_help(), ui_size),
     ]
-    .into()
 }
 
 fn view_3d_help() -> Vec<(String, String)> {
@@ -871,55 +876,40 @@ impl AddStrandMenu {
     }
 
     #[allow(clippy::needless_lifetimes)]
-    fn view<S: AppState>(&self, ui_size: UiSize, width: u16) -> iced::Element<Message<S>> {
-        let mut ret = widget::Column::new();
+    fn view<S: AppState>(&self, ui_size: UiSize, width: u16) -> iced::widget::Column<Message<S>> {
         //let _inputs = self.builder_input.iter_mut();
-        let position_input = widget::TextInput::new("Position", &self.pos_str)
-            .on_input(Message::PositionHelicesChanged)
-            .style(BadValue(self.pos_str == self.helix_pos.to_string()));
 
-        let length_input = widget::TextInput::new("Length", &self.length_str)
-            .on_input(Message::LengthHelicesChanged)
-            .style(BadValue(self.length_str == self.helix_length.to_string()));
-
-        ret = ret.push(right_checkbox(
-            self.text_inputs_are_active,
-            "Add double strand on helix",
-            Message::AddDoubleStrandHelix,
-            ui_size,
-        ));
-        let color_white = Color::WHITE;
-        let color_gray = Color {
-            r: 0.6,
-            g: 0.6,
-            b: 0.6,
-            a: 1.0,
-        };
         let color_choose_strand_start_length = if self.text_inputs_are_active {
-            color_white
+            theme::Text::Color(crate::theme::GUI_PALETTE.text)
         } else {
-            color_gray
+            crate::theme::disabled_text()
         };
-        let row = widget::Row::new()
-            .push(
-                widget::Column::new()
-                    .push(
-                        Text::new("Starting nt")
-                            .style(iced::theme::Text::Color(color_choose_strand_start_length)),
-                    )
-                    .push(position_input)
-                    .width(width / 2),
-            )
-            .push(
-                widget::Column::new()
-                    .push(
-                        Text::new("Length (nt)")
-                            .style(iced::theme::Text::Color(color_choose_strand_start_length)),
-                    )
-                    .push(length_input),
-            );
-        ret = ret.push(row);
-        ret.into()
+
+        column![
+            right_checkbox(
+                self.text_inputs_are_active,
+                "Add double strand on helix",
+                Message::AddDoubleStrandHelix,
+                ui_size,
+            ),
+            row![
+                column![
+                    text("Starting nt").style(color_choose_strand_start_length),
+                    // position_input
+                    text_input("Position", &self.pos_str)
+                        .on_input(Message::PositionHelicesChanged)
+                        .style(BadValue(self.pos_str == self.helix_pos.to_string())),
+                ]
+                .width(width / 2),
+                column![
+                    text("Length (nt)").style(color_choose_strand_start_length),
+                    // length_input
+                    text_input("Length", &self.length_str)
+                        .on_input(Message::LengthHelicesChanged)
+                        .style(BadValue(self.length_str == self.helix_length.to_string())),
+                ],
+            ]
+        ]
     }
 }
 
