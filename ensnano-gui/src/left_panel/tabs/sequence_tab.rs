@@ -19,6 +19,7 @@ use ensnano_interactor::StandardSequence;
 
 use super::*;
 use crate::helpers::*;
+use crate::theme::BadValue;
 use iced::Element;
 use iced_native::widget;
 

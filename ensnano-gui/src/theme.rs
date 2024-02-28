@@ -94,3 +94,60 @@ impl From<DeactivatedSlider> for theme::Slider {
         Default::default()
     }
 }
+
+// A TextInput that changes appareance when the contained value is bad.
+pub struct BadValue(pub bool);
+
+impl text_input::StyleSheet for BadValue {
+    type Style = iced::Theme;
+
+    fn active(&self, _style: &Self::Style) -> text_input::Appearance {
+        text_input::Appearance {
+            background: Background::Color(Color::WHITE),
+            border_radius: 5.0,
+            border_color: Color::from_rgb(0.7, 0.7, 0.7),
+            border_width: Default::default(),
+            icon_color: Default::default(), // TODO:Choose an appropriate value for this field.
+        }
+    }
+
+    fn focused(&self, style: &Self::Style) -> text_input::Appearance {
+        text_input::Appearance {
+            border_color: Color::from_rgb(0.5, 0.5, 0.5),
+            ..self.active(style)
+        }
+    }
+
+    fn placeholder_color(&self, _style: &Self::Style) -> Color {
+        Color::from_rgb(0.7, 0.7, 0.7)
+    }
+
+    fn value_color(&self, _style: &Self::Style) -> Color {
+        if self.0 {
+            Color::from_rgb(0.3, 0.3, 0.3)
+        } else {
+            Color::from_rgb(1., 0.3, 0.3)
+        }
+    }
+
+    fn disabled_color(&self, _style: &Self::Style) -> Color {
+        Color::from_rgb(0.4, 0.4, 0.4) // TODO: Choose an appropriate value for this field
+    }
+
+    fn selection_color(&self, _style: &Self::Style) -> Color {
+        Color::from_rgb(0.8, 0.8, 1.0)
+    }
+
+    fn disabled(&self, style: &Self::Style) -> text_input::Appearance {
+        text_input::Appearance {
+            // TODO: Choose an appropriate value for this field
+            border_color: Color::from_rgb(0.4, 0.4, 0.4),
+            ..self.active(style)
+        }
+    }
+}
+impl From<BadValue> for iced::theme::TextInput {
+    fn from(_: BadValue) -> Self {
+        Default::default()
+    }
+}

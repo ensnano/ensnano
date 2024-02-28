@@ -151,7 +151,7 @@ impl ParameterWidget {
     }
 
     fn input_view<S: AppState>(&self, id: RevolutionParameterId) -> Element<Message<S>> {
-        let style = super::BadValue(self.contains_valid_input());
+        let style = crate::theme::BadValue(self.contains_valid_input());
         text_input("", &self.current_text)
             .on_input(move |s| Message::RevolutionParameterUpdate {
                 parameter_id: id,
