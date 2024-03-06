@@ -411,7 +411,7 @@ impl Instanciable for TubeLidInstance {
 
     fn indices() -> Vec<u16> {
         (0..NB_RAY_TUBE)
-            .map(|i| [0, i as u16 + 1, i as u16 + 2])
+            .map(|i| [0, i as u16 + 2, i as u16 + 1])
             .flatten()
             .collect()
     }
@@ -629,8 +629,8 @@ impl Instanciable for ConeInstance {
             ret.push((2 * i + 1) % nb_point);
             ret.push((2 * i + 2) % nb_point);
             ret.push((2 * i) % nb_point + nb_point);
-            ret.push((2 * i + 1) % nb_point + nb_point);
             ret.push((2 * i + 2) % nb_point + nb_point);
+            ret.push((2 * i + 1) % nb_point + nb_point);
         }
         ret
     }
