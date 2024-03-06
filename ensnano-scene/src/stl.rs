@@ -242,9 +242,9 @@ fn vertices_indices_to_stl_triangles(
         );
         let normal = vertices_normal[indices[i + 1]].1;
         // ( // average of normals gives worse results:
-            // Vec3::from(vertices_normal[indices[i]].1) 
-            // + Vec3::from(vertices_normal[indices[i + 1]].1)
-            // + Vec3::from(vertices_normal[indices[i + 2]].1)
+        // Vec3::from(vertices_normal[indices[i]].1)
+        // + Vec3::from(vertices_normal[indices[i + 1]].1)
+        // + Vec3::from(vertices_normal[indices[i + 2]].1)
         // ).normalized();
         result.push(StlTriangle { normal, v1, v2, v3 });
     }
