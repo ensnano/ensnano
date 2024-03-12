@@ -85,6 +85,10 @@ impl UiSize {
         }
     }
 
+    pub fn checkbox_spacing(&self) -> u16 {
+        5
+    }
+
     /// Height of a button.
     pub fn button(&self) -> f32 {
         self.icon() + 8.0

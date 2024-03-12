@@ -204,7 +204,14 @@ enum OrganizerMessage_<E: OrganizerElement> {
     },
 }
 
-/// Provide an organized view of the object being edited.
+/// Provide an tree-like view of the object being edited.
+///
+/// There are three kind of elements:
+///
+/// 1. _Groups_ — User-defined groups of elements.
+/// 2. _Sections_ — Objects organized by category.
+/// 3. _Auto Groups_ — Automatically generated groups of elements.
+///
 pub struct Organizer<E: OrganizerElement> {
     rng_thread: ThreadRng,
     groups: Vec<GroupContent<E>>,
@@ -270,8 +277,8 @@ impl<E: OrganizerElement> Organizer<E> {
 
     pub fn view(&self, selection: BTreeSet<E::Key>) -> Element<OrganizerMessage<E>> {
         //self.hovered_in = None;
-        // TODO: This comment probably break some functionality…
-        let mut content = Column::new();
+        // TODO: This comment may break some functionality. Not observed so far.
+        let mut content = Column::new().spacing(5.0f32); // TODO: Find a way to use `ui_size` here.
         for c in self.groups.iter() {
             content = content.push(iced_native::row![
                 tabulation(),
@@ -303,15 +310,19 @@ impl<E: OrganizerElement> Organizer<E> {
         if !selection.is_empty() {
             new_group_button = new_group_button.on_press(OrganizerMessage::new_group());
         }
-        container(iced_native::column![
-            // Title row
-            iced_native::row![tooltip(
-                new_group_button,
-                "Create new_group from selection",
-                tooltip::Position::FollowCursor,
-            )],
-            scrollable(content).width(self.width)
-        ])
+        container(
+            iced_native::column![
+                // Title row
+                iced_native::row![tooltip(
+                    new_group_button,
+                    "Create new_group from selection",
+                    tooltip::Position::FollowCursor,
+                )
+                .style(iced_theme::Container::Box)],
+                scrollable(content).width(self.width)
+            ]
+            .spacing(5.0f32), // TODO: Find a way to use `ui_size` here.
+        )
         .style(self.theme.level(0))
         .into()
     }

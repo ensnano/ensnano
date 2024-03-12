@@ -17,11 +17,14 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use super::{rotation_message, AppState, Message, UiSize, Vec3};
 use crate::helpers::*;
-use crate::{material_icons_light::LightIcon, CameraId};
+use crate::{
+    material_icons_light::{self, LightIcon},
+    CameraId,
+};
 use iced::{Element, Length};
 use iced_native::widget;
 use iced_native::widget::helpers::*;
-use iced_native::{column, row};
+use iced_native::{alignment, column, row, Alignment};
 
 /// A named camera orientation.
 ///
@@ -84,6 +87,7 @@ fn named_camera_to_button<'a, S: AppState>(
 ) -> Element<'a, Message<S>> {
     button(text(position.name).size(ui_size.main_text()))
         .on_press(position.message())
+        .height(ui_size.button())
         .width(2.0 * ui_size.button()) // Twice the button's height.
         .into()
 }
@@ -186,15 +190,27 @@ impl CameraShortcutPanel {
     pub fn view<S: AppState>(&self, ui_size: UiSize, _app: &S) -> Element<Message<S>> {
         // Create button widget for each predefined target.
 
-        let rotate_buttons = (0..6)
-            .into_iter()
-            .map(|i| {
-                button(rotation_text(i, ui_size))
-                    .on_press(rotation_message(i, self.xz, self.yz, self.xy))
-                    .width(ui_size.button())
-                    .into()
-            })
-            .collect();
+        let rotate_buttons = column![
+            row(IntoIterator::into_iter([4, 2, 5])
+                .map(|i| {
+                    button(rotation_text(i, ui_size))
+                        .on_press(rotation_message(i, self.xz, self.yz, self.xy))
+                        .width(ui_size.button())
+                        .into()
+                })
+                .collect())
+            .spacing(ui_size.button_pad()),
+            row(IntoIterator::into_iter([0, 3, 1])
+                .map(|i| {
+                    button(rotation_text(i, ui_size))
+                        .on_press(rotation_message(i, self.xz, self.yz, self.xy))
+                        .width(ui_size.button())
+                        .into()
+                })
+                .collect())
+            .spacing(ui_size.button_pad()),
+        ]
+        .spacing(ui_size.button_pad());
 
         //let mut ret = Column::new();
         //while rotate_buttons.len() > 0 {
@@ -209,51 +225,84 @@ impl CameraShortcutPanel {
         //}
 
         let content = column![
-            section("Camera", ui_size),
-            // add_target_buttons!
-            row![
-                column![
-                    named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[0], ui_size),
-                    named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[1], ui_size),
-                ]
-                .spacing(ui_size.button_pad()),
-                column![
-                    named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[2], ui_size),
-                    named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[3], ui_size),
-                ]
-                .spacing(ui_size.button_pad()),
-                column![
-                    named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[4], ui_size),
-                    named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[5], ui_size),
-                ]
-                .spacing(ui_size.button_pad()),
+            column![
+                section("Camera", ui_size)
+                    .width(Length::Fill)
+                    .horizontal_alignment(alignment::Horizontal::Center),
+                row![
+                    // add_target_buttons!
+                    column![
+                        subsection("Fixed", ui_size)
+                            .height(ui_size.button())
+                            .horizontal_alignment(alignment::Horizontal::Center),
+                        extra_jump(),
+                        row![
+                            column![
+                                named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[0], ui_size),
+                                named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[1], ui_size),
+                            ]
+                            .spacing(ui_size.button_pad()),
+                            column![
+                                named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[2], ui_size),
+                                named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[3], ui_size),
+                            ]
+                            .spacing(ui_size.button_pad()),
+                            column![
+                                named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[4], ui_size),
+                                named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[5], ui_size),
+                            ]
+                            .spacing(ui_size.button_pad()),
+                        ]
+                        .spacing(ui_size.button_pad()),
+                    ]
+                    .align_items(Alignment::Center)
+                    .width(Length::FillPortion(6)),
+                    // add_rotate_buttons!
+                    column![
+                        subsection("Rotation", ui_size)
+                            .height(ui_size.button())
+                            .horizontal_alignment(alignment::Horizontal::Center),
+                        extra_jump(),
+                        rotate_buttons,
+                        // Idem.
+                    ]
+                    .align_items(Alignment::Center)
+                    .width(Length::FillPortion(3)),
+                    // add_screenshot_button!
+                    column![
+                        material_icons_light::dark_icon(LightIcon::PhotoCamera, ui_size)
+                            .height(ui_size.button()),
+                        extra_jump(),
+                        column![
+                            text_button("2D", ui_size).on_press(Message::ScreenShot2D),
+                            text_button("3D", ui_size).on_press(Message::ScreenShot3D),
+                        ]
+                        .spacing(ui_size.button_pad()),
+                    ]
+                    .align_items(Alignment::Center)
+                    .width(Length::FillPortion(1)),
+                ],
+            ],
+            column![
+                // add_custom_camera_row!
+                row![
+                    section("Custom cameras", ui_size),
+                    horizontal_space(ui_size.button_pad()),
+                    light_icon_button(LightIcon::AddAPhoto, ui_size)
+                        .on_press(Message::NewCustomCamera),
+                ],
+                // add_camera_widgets!
+                widget::Column::with_children(
+                    self.camera_widgets
+                        .iter()
+                        .map(|w| w.view(ui_size).into())
+                        .collect()
+                )
             ]
-            .spacing(ui_size.button_pad()),
-            //row(predefined_orientation_buttons),
-            // Nicolas Levy did some intermediate splitting (see commented code above), that is not
-            // reimplemented for now.
-            // add_rotate_buttons!
-            text("Rotate Camera"),
-            row(rotate_buttons).spacing(ui_size.button_pad()),
-            // Idem.
-            // add_screenshot_button!
-            text("Screenshot"),
-            jump_by(5),
-            button(text("3D").size(ui_size.main_text()))
-                .on_press(Message::ScreenShot3D)
-                .width(ui_size.button()),
-            // add_custom_camera_row!
-            section("Custom cameras", ui_size),
-            horizontal_space(Length::Fill),
-            light_icon_button(LightIcon::AddAPhoto, ui_size).on_press(Message::NewCustomCamera),
-            // add_camera_widgets!
-            widget::Column::with_children(
-                self.camera_widgets
-                    .iter()
-                    .map(|w| w.view(ui_size).into())
-                    .collect()
-            )
-        ];
+            .align_items(Alignment::Center)
+            .width(Length::Fill),
+        ]
+        .spacing(20.0);
 
         scrollable(content).into()
         // NOTE: Background and size are handled in left_panel.rs

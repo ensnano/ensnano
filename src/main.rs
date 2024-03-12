@@ -75,6 +75,19 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //!  permitted by the current state of the program. For example an error is returned if the user
 //!  try to modify the design durring a simulation.
 //!
+//!  # Developpement detail
+//!
+//!  ## [wgpu::PresentMode] compatibility experience
+//!
+//!  The choice of this parameter makes the application to crash at startup, depending on the
+//!  environment. Here is a small return of experience.
+//!
+//!      | PresentMode | Linux (x86) | MacOs (x86) |
+//!      |-------------|-------------|-------------|
+//!      | AutoVsync   | Yes         | Yes         |
+//!      | Immediate   | No          | Yes         |
+//!      | Mailbox     | Yes         | No          |
+//!
 use std::collections::{HashMap, VecDeque};
 use std::env;
 use std::path::{Path, PathBuf};
@@ -393,13 +406,13 @@ fn main() {
         Rc::clone(&device),
         &window,
         &multiplexer,
-        requests.clone(),
+        Arc::clone(&requests),
         ui_size,
         &main_state.app_state,
         Default::default(),
     );
 
-    let mut overlay_manager = OverlayManager::new(requests.clone(), &window, &mut renderer);
+    let mut overlay_manager = OverlayManager::new(Arc::clone(&requests), &window, &mut renderer);
 
     // Run event loop
     let mut last_render_time = std::time::Instant::now();
@@ -684,7 +697,7 @@ fn main() {
                             format: TEXTURE_FORMAT,
                             width: window_size.width,
                             height: window_size.height,
-                            present_mode: wgpu::PresentMode::Mailbox,
+                            present_mode: wgpu::PresentMode::AutoVsync,
                             alpha_mode: Default::default(),
                             view_formats: Default::default(),
                         },
@@ -716,7 +729,7 @@ fn main() {
                             format: TEXTURE_FORMAT,
                             width: window_size.width,
                             height: window_size.height,
-                            present_mode: wgpu::PresentMode::Mailbox,
+                            present_mode: wgpu::PresentMode::AutoVsync,
                             alpha_mode: Default::default(),
                             view_formats: Default::default(),
                         },

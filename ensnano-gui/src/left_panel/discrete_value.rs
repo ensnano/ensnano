@@ -15,10 +15,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use super::{AppState, DesactivatedSlider};
+use super::AppState;
+use crate::theme;
 
 use super::Message;
-use iced_native::{theme, widget::helpers::*, Pixels};
+use iced_native::{widget::helpers::*, Pixels};
 use std::collections::BTreeMap;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -203,7 +204,7 @@ impl DiscreteValue {
             slider(self.min_val..=self.max_val, self.value, |_| {
                 Message::Nothing
             })
-            .style(DesactivatedSlider)
+            .style(theme::DeactivatedSlider)
         };
 
         let mut name_text = text(self.name.clone()).size(name_size);

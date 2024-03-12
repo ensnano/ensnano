@@ -4,7 +4,7 @@
 
 use iced::{theme, theme::Palette, Background, Color, Theme};
 use iced_native::renderer::Style;
-use iced_native::widget::container;
+use iced_native::widget::{container, slider, text_input};
 
 /// Color palette
 pub const GUI_PALETTE: Palette = Palette {
@@ -25,7 +25,11 @@ pub fn gui_style(theme: &Theme) -> Style {
     }
 }
 
-/// Custom styleSheet for the background of top_bar, status_bar, and left_pannel.
+pub fn disabled_text() -> theme::Text {
+    theme::Text::Color(iced::Color::from_rgb(0.6, 0.6, 0.6))
+}
+
+/// Custom StyleSheet for the background of top_bar, status_bar, and left_pannel.
 #[derive(Default)]
 pub struct GuiBackground;
 
@@ -48,5 +52,102 @@ impl container::StyleSheet for GuiBackground {
 impl From<GuiBackground> for theme::Container {
     fn from(_: GuiBackground) -> Self {
         Self::Custom(Box::new(GuiBackground))
+    }
+}
+
+/// Custom StyleSheet for disabled sliders.
+#[derive(Default)]
+pub struct DeactivatedSlider;
+
+impl slider::StyleSheet for DeactivatedSlider {
+    type Style = iced::Theme;
+
+    fn active(&self, _style: &Self::Style) -> slider::Appearance {
+        slider::Appearance {
+            rail: slider::Rail {
+                colors: ([0.6, 0.6, 0.6, 0.5].into(), Color::WHITE),
+                width: 8.0,
+            },
+            handle: slider::Handle {
+                shape: slider::HandleShape::Rectangle {
+                    width: 8,
+                    border_radius: 4.0,
+                },
+                color: Color::from_rgb(0.65, 0.65, 0.65),
+                border_color: Color::from_rgb(0.6, 0.6, 0.6),
+                border_width: 1.0,
+            },
+        }
+    }
+
+    fn hovered(&self, style: &Self::Style) -> slider::Appearance {
+        self.active(style)
+    }
+
+    fn dragging(&self, style: &Self::Style) -> slider::Appearance {
+        self.active(style)
+    }
+}
+
+impl From<DeactivatedSlider> for theme::Slider {
+    fn from(_: DeactivatedSlider) -> Self {
+        Default::default()
+    }
+}
+
+// A TextInput that changes appareance when the contained value is bad.
+pub struct BadValue(pub bool);
+
+impl text_input::StyleSheet for BadValue {
+    type Style = iced::Theme;
+
+    fn active(&self, _style: &Self::Style) -> text_input::Appearance {
+        text_input::Appearance {
+            background: Background::Color(Color::WHITE),
+            border_radius: 5.0,
+            border_color: Color::from_rgb(0.7, 0.7, 0.7),
+            border_width: Default::default(),
+            icon_color: Default::default(), // TODO:Choose an appropriate value for this field.
+        }
+    }
+
+    fn focused(&self, style: &Self::Style) -> text_input::Appearance {
+        text_input::Appearance {
+            border_color: Color::from_rgb(0.5, 0.5, 0.5),
+            ..self.active(style)
+        }
+    }
+
+    fn placeholder_color(&self, _style: &Self::Style) -> Color {
+        Color::from_rgb(0.7, 0.7, 0.7)
+    }
+
+    fn value_color(&self, _style: &Self::Style) -> Color {
+        if self.0 {
+            Color::from_rgb(0.3, 0.3, 0.3)
+        } else {
+            Color::from_rgb(1., 0.3, 0.3)
+        }
+    }
+
+    fn disabled_color(&self, _style: &Self::Style) -> Color {
+        Color::from_rgb(0.4, 0.4, 0.4) // TODO: Choose an appropriate value for this field
+    }
+
+    fn selection_color(&self, _style: &Self::Style) -> Color {
+        Color::from_rgb(0.8, 0.8, 1.0)
+    }
+
+    fn disabled(&self, style: &Self::Style) -> text_input::Appearance {
+        text_input::Appearance {
+            // TODO: Choose an appropriate value for this field
+            border_color: Color::from_rgb(0.4, 0.4, 0.4),
+            ..self.active(style)
+        }
+    }
+}
+impl From<BadValue> for iced::theme::TextInput {
+    fn from(_: BadValue) -> Self {
+        Default::default()
     }
 }

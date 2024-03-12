@@ -504,6 +504,11 @@ impl GuiRequests for Requests {
         self.new_bezier_revolution_radius = Some(radius);
     }
 
+    fn request_screenshot_2d(&mut self) {
+        self.keep_proceed
+            .push_back(Action::NotifyApps(Notification::ScreenShot2D))
+    }
+
     fn request_screenshot_3d(&mut self) {
         self.keep_proceed
             .push_back(Action::NotifyApps(Notification::ScreenShot3D))

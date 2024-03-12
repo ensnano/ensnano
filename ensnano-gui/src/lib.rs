@@ -236,7 +236,9 @@ pub trait Requests: 'static + Send {
     fn set_bezier_revolution_radius(&mut self, radius: f64);
     fn set_bezier_revolution_id(&mut self, id: Option<usize>);
     fn set_unrooted_surface(&mut self, surface: Option<UnrootedRevolutionSurfaceDescriptor>);
-    /// Make a 3D screenshot
+    /// Make a screenshot of the 2D flatscene.
+    fn request_screenshot_2d(&mut self);
+    /// Make a screenshot of the 3D scene.
     fn request_screenshot_3d(&mut self);
     fn notify_revolution_tab(&mut self);
 }
@@ -919,48 +921,6 @@ fn convert_size(size: PhysicalSize<u32>) -> Size<f32> {
 
 fn convert_size_u32(size: PhysicalSize<u32>) -> Size<u32> {
     Size::new(size.width, size.height)
-}
-
-mod slider_style {
-    use iced::widget::slider::{Appearance, Handle, HandleShape, Rail, StyleSheet};
-    use iced::Color;
-
-    pub struct DesactivatedSlider;
-
-    impl StyleSheet for DesactivatedSlider {
-        type Style = ();
-        fn active(&self, _style: &Self::Style) -> Appearance {
-            Appearance {
-                rail: Rail {
-                    colors: ([0.6, 0.6, 0.6, 0.5].into(), Color::WHITE),
-                    width: 8.0,
-                },
-                handle: Handle {
-                    shape: HandleShape::Rectangle {
-                        width: 8,
-                        border_radius: 4.0,
-                    },
-                    color: Color::from_rgb(0.65, 0.65, 0.65),
-                    border_color: Color::from_rgb(0.6, 0.6, 0.6),
-                    border_width: 1.0,
-                },
-            }
-        }
-
-        fn hovered(&self, style: &Self::Style) -> Appearance {
-            self.active(style)
-        }
-
-        fn dragging(&self, style: &Self::Style) -> Appearance {
-            self.active(style)
-        }
-    }
-
-    impl From<DesactivatedSlider> for iced::theme::Slider {
-        fn from(_value: DesactivatedSlider) -> Self {
-            Default::default()
-        }
-    }
 }
 
 use std::collections::VecDeque;

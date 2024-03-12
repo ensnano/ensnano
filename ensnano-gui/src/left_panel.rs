@@ -21,7 +21,7 @@ use std::sync::{Arc, Mutex};
 
 use iced_aw::native::{TabLabel, Tabs};
 use iced_native::widget::{container, helpers::*, Button, Column, Container, Text};
-use iced_native::{theme, Background, Color, Command, Element, Length};
+use iced_native::{theme, Color, Command, Element, Length};
 use iced_wgpu;
 use iced_winit::winit::{
     dpi::{LogicalPosition, LogicalSize},
@@ -43,7 +43,6 @@ use ensnano_exports::ExportType;
 
 use super::{
     material_icons_light::{icon_to_char, LightIcon as MaterialIcon, DARK_ICONFONT as ICONFONT},
-    slider_style::DesactivatedSlider,
     AppState, FogParameters, OverlayType, Requests, UiSize,
 };
 
@@ -52,7 +51,6 @@ mod color_picker;
 use color_picker::ColorPicker;
 mod sequence_input;
 use sequence_input::SequenceInput;
-use text_input_style::BadValue;
 mod discrete_value;
 use discrete_value::{FactoryId, RequestFactory, Requestable, ValueId};
 mod tabs;
@@ -210,6 +208,7 @@ pub enum Message<S: AppState> {
     InitRevolutionRelaxation,
     CancelExport,
     LoadSvgFile,
+    ScreenShot2D,
     ScreenShot3D,
     IncrRevolutionShift,
     DecrRevolutionShift,
@@ -946,6 +945,9 @@ where
                 .unwrap()
                 .finish_revolutiion_relaxation(),
             Message::LoadSvgFile => self.requests.lock().unwrap().load_svg(),
+            Message::ScreenShot2D => {
+                self.requests.lock().unwrap().request_screenshot_2d();
+            }
             Message::ScreenShot3D => {
                 self.requests.lock().unwrap().request_screenshot_3d();
             }
@@ -1172,64 +1174,6 @@ fn rotation_message<S: AppState>(i: usize, _xz: isize, _yz: isize, _xy: isize) -
         _ => 0f32,
     };
     Message::RotateCam(angle_xz, angle_yz, angle_xy)
-}
-
-mod text_input_style {
-    use iced::{Background, Color};
-    use iced_native::widget::text_input;
-    pub struct BadValue(pub bool);
-    impl text_input::StyleSheet for BadValue {
-        type Style = ();
-        fn active(&self, _style: &Self::Style) -> text_input::Appearance {
-            text_input::Appearance {
-                background: Background::Color(Color::WHITE),
-                border_radius: 5.0,
-                border_color: Color::from_rgb(0.7, 0.7, 0.7),
-                border_width: Default::default(),
-                icon_color: Default::default(), // TODO:Choose an appropriate value for this field.
-            }
-        }
-
-        fn focused(&self, style: &Self::Style) -> text_input::Appearance {
-            text_input::Appearance {
-                border_color: Color::from_rgb(0.5, 0.5, 0.5),
-                ..self.active(style)
-            }
-        }
-
-        fn placeholder_color(&self, _style: &Self::Style) -> Color {
-            Color::from_rgb(0.7, 0.7, 0.7)
-        }
-
-        fn value_color(&self, _style: &Self::Style) -> Color {
-            if self.0 {
-                Color::from_rgb(0.3, 0.3, 0.3)
-            } else {
-                Color::from_rgb(1., 0.3, 0.3)
-            }
-        }
-
-        fn disabled_color(&self, _style: &Self::Style) -> Color {
-            Color::from_rgb(0.4, 0.4, 0.4) // TODO: Choose an appropriate value for this field
-        }
-
-        fn selection_color(&self, _style: &Self::Style) -> Color {
-            Color::from_rgb(0.8, 0.8, 1.0)
-        }
-
-        fn disabled(&self, style: &Self::Style) -> text_input::Appearance {
-            text_input::Appearance {
-                // TODO: Choose an appropriate value for this field
-                border_color: Color::from_rgb(0.4, 0.4, 0.4),
-                ..self.active(style)
-            }
-        }
-    }
-    impl From<BadValue> for iced::theme::TextInput {
-        fn from(_value: BadValue) -> Self {
-            Default::default()
-        }
-    }
 }
 
 pub struct Hyperboloid_ {}

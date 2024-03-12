@@ -1254,6 +1254,7 @@ impl<S: AppState> Application for Scene<S> {
                 self.controller.align_horizon();
                 self.notify(SceneNotification::CameraMoved);
             }
+            Notification::ScreenShot2D => (),
             Notification::ScreenShot3D => {
                 if !self.is_stereographic() {
                     self.export_png();
