@@ -140,6 +140,20 @@ macro_rules! add_screenshot_button {
     };
 }
 
+macro_rules! add_stl_export_button {
+    ($ret: ident, $self: ident, $ui_size: ident, $width: ident) => {
+        let stl_export_button = Button::new(
+            &mut $self.stl_export_button,
+            Text::new("   STL").size($ui_size.main_text()),
+        )
+        .on_press(Message::StlExport)
+        .width(Length::Units(2 * $ui_size.button()));
+
+        $ret = $ret.push(Text::new("STL export"));
+        $ret = $ret.spacing(5).push(stl_export_button);
+    };
+}
+
 macro_rules! add_custom_camera_row {
     ($ret: ident, $self: ident, $ui_size: ident) => {
         let new_camera_button =
@@ -185,6 +199,7 @@ pub struct CameraShortcut {
     new_camera_button: button::State,
     camera_widget_states: Vec<CameraWidgetState>,
     screenshot_button: button::State,
+    stl_export_button: button::State,
 }
 
 impl CameraShortcut {
@@ -202,6 +217,7 @@ impl CameraShortcut {
             new_camera_button: Default::default(),
             camera_widget_states: vec![],
             screenshot_button: Default::default(),
+            stl_export_button: Default::default(),
         }
     }
 
@@ -284,6 +300,8 @@ impl CameraShortcut {
         add_rotate_buttons!(ret, self, ui_size, width);
 
         add_screenshot_button!(ret, self, ui_size, width);
+
+        add_stl_export_button!(ret, self, ui_size, width);
 
         add_custom_camera_row!(ret, self, ui_size);
 

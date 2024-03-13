@@ -34,7 +34,7 @@ use std::sync::Arc;
 
 use ensnano_design::grid::GridObject;
 use ensnano_design::{BezierVertexId, Collection};
-use ensnano_interactor::graphics::HBondDisplay;
+use ensnano_interactor::graphics::{HBondDisplay, LoopoutNucl};
 use ultraviolet::{Rotor3, Vec3};
 
 use super::view::Mesh;
@@ -120,8 +120,8 @@ impl<R: DesignReader> Data<R> {
     }
 
     /// Add a new design to be drawn
-    pub fn update_design(&mut self, design: R) {
-        self.designs[0] = Design3D::new(design, 0);
+    pub fn update_design_reader(&mut self, design_reader: R) {
+        self.designs[0] = Design3D::new(design_reader, 0);
     }
 
     /// Remove all designs to be drawn
@@ -481,11 +481,15 @@ impl<R: DesignReader> Data<R> {
                         let instances = self.designs[*d_id as usize].make_instance(
                             *id,
                             SELECTED_COLOR,
-                            SELECT_SCALE_FACTOR,
+                            SELECT_SCALE_FACTOR
+                                * self.designs[*d_id as usize]
+                                    .design_reader
+                                    .get_radius(*id)
+                                    .unwrap(),
                             Some(design3d::ExpandWith::Spheres)
                                 .filter(|_| !app_state.show_insertion_representents()),
                         );
-                        ret.extend(instances)
+                        ret.extend(instances.iter())
                     }
                     SceneElement::PhantomElement(phantom_element) => {
                         if let Some(instance) = self
@@ -495,7 +499,7 @@ impl<R: DesignReader> Data<R> {
                                 d.make_instance_phantom(
                                     phantom_element,
                                     SELECTED_COLOR,
-                                    SELECT_SCALE_FACTOR,
+                                    SELECT_SCALE_FACTOR * SPHERE_RADIUS,
                                 )
                             })
                         {
@@ -526,7 +530,11 @@ impl<R: DesignReader> Data<R> {
                         let instance = self.designs[*d_id as usize].make_instance(
                             *id,
                             SELECTED_COLOR,
-                            SELECT_SCALE_FACTOR,
+                            SELECT_SCALE_FACTOR
+                                * self.designs[*d_id as usize]
+                                    .design_reader
+                                    .get_radius(*id)
+                                    .unwrap(),
                             Some(design3d::ExpandWith::Tubes)
                                 .filter(|_| !app_state.show_insertion_representents()),
                         );
@@ -540,7 +548,7 @@ impl<R: DesignReader> Data<R> {
                                 d.make_instance_phantom(
                                     phantom_element,
                                     SELECTED_COLOR,
-                                    SELECT_SCALE_FACTOR,
+                                    SELECT_SCALE_FACTOR * BOND_RADIUS,
                                 )
                             })
                         {
@@ -571,7 +579,11 @@ impl<R: DesignReader> Data<R> {
                         let instances = self.designs[*d_id as usize].make_instance(
                             *id,
                             CANDIDATE_COLOR,
-                            CANDIDATE_SCALE_FACTOR,
+                            CANDIDATE_SCALE_FACTOR
+                                * self.designs[*d_id as usize]
+                                    .design_reader
+                                    .get_radius(*id)
+                                    .unwrap(),
                             Some(design3d::ExpandWith::Spheres)
                                 .filter(|_| !app_state.show_insertion_representents()),
                         );
@@ -585,7 +597,7 @@ impl<R: DesignReader> Data<R> {
                                 d.make_instance_phantom(
                                     phantom_element,
                                     CANDIDATE_COLOR,
-                                    CANDIDATE_SCALE_FACTOR,
+                                    CANDIDATE_SCALE_FACTOR * SPHERE_RADIUS,
                                 )
                             })
                         {
@@ -616,7 +628,11 @@ impl<R: DesignReader> Data<R> {
                         let instances = self.designs[*d_id as usize].make_instance(
                             *id,
                             CANDIDATE_COLOR,
-                            CANDIDATE_SCALE_FACTOR,
+                            CANDIDATE_SCALE_FACTOR
+                                * self.designs[*d_id as usize]
+                                    .design_reader
+                                    .get_radius(*id)
+                                    .unwrap(),
                             Some(design3d::ExpandWith::Tubes)
                                 .filter(|_| !app_state.show_insertion_representents()),
                         );
@@ -630,7 +646,7 @@ impl<R: DesignReader> Data<R> {
                                 d.make_instance_phantom(
                                     phantom_element,
                                     CANDIDATE_COLOR,
-                                    CANDIDATE_SCALE_FACTOR,
+                                    CANDIDATE_SCALE_FACTOR * BOND_RADIUS,
                                 )
                             })
                         {
@@ -1293,6 +1309,36 @@ impl<R: DesignReader> Data<R> {
         self.candidate_element = None;
     }
 
+    pub fn get_all_raw_instances<S: AppState>(&self, app_state: &S) -> Vec<RawDnaInstance> {
+        let mut instances = vec![];
+        let show_insertion_representents = app_state.show_insertion_representents();
+        for design in self.designs.iter() {
+            for sphere in design.get_spheres_raw(show_insertion_representents).iter() {
+                instances.push(*sphere);
+            }
+            for tube in design.get_tubes_raw(show_insertion_representents).iter() {
+                instances.push(*tube);
+            }
+            for cone in design.get_cones_raw(show_insertion_representents) {
+                instances.push(cone);
+            }
+            if app_state.get_draw_options().h_bonds != HBondDisplay::No {
+                for h_bond in design.get_all_h_bonds().full_h_bonds {
+                    instances.push(h_bond);
+                }
+                for h_bond in design.get_all_h_bonds().partial_h_bonds {
+                    instances.push(h_bond); // not sure if needed
+                }
+                if app_state.get_draw_options().h_bonds == HBondDisplay::Ellipsoid {
+                    for h_bond in design.get_all_h_bonds().ellipsoids {
+                        instances.push(h_bond); // not sure if needed
+                    }
+                }
+            }
+        }
+        instances
+    }
+
     /// Notify the view that the instances of candidates have changed
     fn update_candidate<S: AppState>(&mut self, candidates: &[Selection], app_state: &S) {
         self.view.borrow_mut().update(ViewUpdate::RawDna(
@@ -1320,7 +1366,22 @@ impl<R: DesignReader> Data<R> {
     fn update_pivot(&mut self) {
         let mut spheres = vec![];
         if let Some(pivot) = self.pivot_position {
-            spheres.push(Design3D::<R>::pivot_sphere(pivot));
+            let radius = {
+                if let Some(element) = self.pivot_element {
+                    if let SceneElement::DesignElement(d_id, e_id) = element {
+                        self.designs[d_id as usize]
+                            .design_reader
+                            .get_radius(e_id)
+                            .unwrap_or(SPHERE_RADIUS)
+                            .max(SPHERE_RADIUS)
+                    } else {
+                        SPHERE_RADIUS
+                    }
+                } else {
+                    SPHERE_RADIUS
+                }
+            };
+            spheres.push(Design3D::<R>::pivot_sphere(pivot, radius));
         }
         if let Some(position) = self.surface_pivot_position {
             spheres.push(Design3D::<R>::surface_pivot_sphere(position));
@@ -1388,6 +1449,8 @@ impl<R: DesignReader> Data<R> {
     fn update_instances<S: AppState>(&mut self, app_state: &S) {
         let mut spheres = Vec::with_capacity(10_000);
         let mut tubes = Vec::with_capacity(10_000);
+        let mut tube_lids = Vec::with_capacity(10_000);
+        let mut sliced_tubes = Vec::with_capacity(10_000);
         let mut suggested_spheres = Vec::with_capacity(1000);
         let mut suggested_tubes = Vec::with_capacity(1000);
         let mut pasted_spheres = Vec::with_capacity(1000);
@@ -1407,7 +1470,13 @@ impl<R: DesignReader> Data<R> {
                 .get_tubes_raw(app_state.show_insertion_representents())
                 .iter()
             {
-                tubes.push(*tube);
+                if tube.mesh == Mesh::TubeLid as u32 {
+                    tube_lids.push(*tube);
+                } else if tube.mesh == Mesh::SlicedTube as u32 {
+                    sliced_tubes.push(*tube);
+                } else {
+                    tubes.push(*tube);
+                }
             }
             if app_state.show_bezier_paths() {
                 let (bezier_spheres, bezier_tubes) = design.get_bezier_paths_elements(app_state);
@@ -1450,6 +1519,12 @@ impl<R: DesignReader> Data<R> {
             .update(ViewUpdate::RawDna(Mesh::Tube, Rc::new(tubes)));
         self.view
             .borrow_mut()
+            .update(ViewUpdate::RawDna(Mesh::TubeLid, Rc::new(tube_lids)));
+        self.view
+            .borrow_mut()
+            .update(ViewUpdate::RawDna(Mesh::SlicedTube, Rc::new(sliced_tubes)));
+        self.view
+            .borrow_mut()
             .update(ViewUpdate::RawDna(Mesh::Sphere, Rc::new(spheres)));
         self.view.borrow_mut().update(ViewUpdate::RawDna(
             Mesh::SuggestionSphere,
@@ -1471,7 +1546,7 @@ impl<R: DesignReader> Data<R> {
         self.view
             .borrow_mut()
             .update(ViewUpdate::RawDna(Mesh::Prime3Cone, Rc::new(cones)));
-        let bonds = self.designs[0].get_all_hbond();
+        let bonds = self.designs[0].get_all_h_bonds();
         if app_state.get_draw_options().h_bonds == HBondDisplay::Ellipsoid {
             self.view.borrow_mut().update(ViewUpdate::RawDna(
                 Mesh::HBond,
@@ -1940,6 +2015,10 @@ impl<R: DesignReader> Data<R> {
         self.designs
             .get(0)
             .and_then(|d| d.get_surface_info_nucl(nucl))
+    }
+
+    pub fn get_stl_information(&self) -> Vec<bool> {
+        vec![]
     }
 }
 

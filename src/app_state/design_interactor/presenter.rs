@@ -23,15 +23,17 @@ use super::*;
 use ensnano_design::{
     BezierPathId, Extremity, HelixCollection, InstanciatedPiecewiseBezier, Nucl, VirtualNucl,
 };
+
 use ensnano_interactor::{
     application::Camera3D, NeighbourDescriptor, NeighbourDescriptorGiver, ScaffoldInfo, Selection,
     SuggestionParameters,
 };
+
 use ultraviolet::Mat4;
 
 use crate::utils::id_generator::IdGenerator;
 type JunctionsIds = IdGenerator<(Nucl, Nucl)>;
-mod design_content;
+pub mod design_content;
 mod impl_main_reader;
 mod impl_reader2d;
 mod impl_reader3d;
@@ -56,9 +58,9 @@ pub(super) struct Presenter {
     model_matrix: AddressPointer<Mat4>,
     content: AddressPointer<DesignContent>,
     pub junctions_ids: AddressPointer<JunctionsIds>,
-    visibility_sive: Option<VisibilitySieve>,
+    visibility_sieve: Option<VisibilitySieve>,
     invisible_nucls: HashSet<Nucl>,
-    bonds: AddressPointer<Vec<HBond>>,
+    h_bonds: AddressPointer<Vec<HBond>>,
 }
 
 impl Default for Presenter {
@@ -69,9 +71,9 @@ impl Default for Presenter {
             model_matrix: AddressPointer::new(Mat4::identity()),
             content: Default::default(),
             junctions_ids: Default::default(),
-            visibility_sive: None,
+            visibility_sieve: None,
             invisible_nucls: Default::default(),
-            bonds: Default::default(),
+            h_bonds: Default::default(),
         }
     }
 }
@@ -132,9 +134,9 @@ impl Presenter {
             content: AddressPointer::new(content),
             model_matrix: AddressPointer::new(model_matrix),
             junctions_ids: AddressPointer::new(junctions_ids),
-            visibility_sive: None,
+            visibility_sieve: None,
             invisible_nucls: Default::default(),
-            bonds: Default::default(),
+            h_bonds: Default::default(),
         };
         // Strand sequence are not read
         ret.read_scaffold_seq();
@@ -195,7 +197,7 @@ impl Presenter {
                 .skip(nb_skip)
                 .take(length)
         }) {
-            let mut basis_map = HashMap::clone(self.content.basis_map.as_ref());
+            let mut basis_map = HashMap::clone(self.content.letter_map.as_ref());
             let mut ran_out = false;
             if let Some(strand) = self
                 .current_design
@@ -243,14 +245,14 @@ impl Presenter {
                 }
             }
             let mut new_content = self.content.clone_inner();
-            new_content.basis_map = Arc::new(basis_map);
+            new_content.letter_map = Arc::new(basis_map);
             self.content = AddressPointer::new(new_content);
         }
     }
 
     fn collect_h_bonds(&mut self) {
         let nucl_collection = self.content.nucl_collection.as_ref();
-        let mut bonds = Vec::with_capacity(nucl_collection.nb_nucls());
+        let mut h_bonds = Vec::with_capacity(nucl_collection.nb_nucls());
         for (forward_nucl, virtual_nucl_forward, forward_id) in nucl_collection
             .iter_nucls_ids()
             .filter(|(n, _)| n.forward)
@@ -265,12 +267,12 @@ impl Presenter {
                     if let Some(bond) =
                         self.h_bond(forward_id, *backward_id, forward_nucl, *backward_nucl)
                     {
-                        bonds.push(bond);
+                        h_bonds.push(bond);
                     }
                 }
             }
         }
-        self.bonds = AddressPointer::new(bonds);
+        self.h_bonds = AddressPointer::new(h_bonds);
     }
 
     fn h_bond(
@@ -301,15 +303,15 @@ impl Presenter {
         let forward_half = HalfHBond {
             backbone: pos_forward,
             center_of_mass: pos_forward + 2. * a1 * ensnano_exports::oxdna::BACKBONE_TO_CM,
-            base: self.content.basis_map.get(&forward_nucl).cloned(),
-            backbone_color: self.content.color.get(&forward_id).cloned()?,
+            base: self.content.letter_map.get(&forward_nucl).cloned(),
+            backbone_color: self.content.color_map.get(&forward_id).cloned()?,
         };
 
         let backward_half = HalfHBond {
             backbone: pos_backward,
             center_of_mass: pos_backward - 2. * a1 * ensnano_exports::oxdna::BACKBONE_TO_CM,
-            base: self.content.basis_map.get(&backward_nucl).cloned(),
-            backbone_color: self.content.color.get(&backward_id).cloned()?,
+            base: self.content.letter_map.get(&backward_nucl).cloned(),
+            backbone_color: self.content.color_map.get(&backward_id).cloned()?,
         };
         Some(HBond {
             forward: forward_half,
@@ -323,7 +325,7 @@ impl Presenter {
             selection,
             compl,
             visible,
-        }) = self.visibility_sive.as_ref()
+        }) = self.visibility_sieve.as_ref()
         {
             for nucl in self.content.nucleotide.values() {
                 if self.selection_contains_nucl(selection, *nucl) != *compl {
@@ -436,10 +438,10 @@ impl Presenter {
 
     pub fn set_visibility_sieve(&mut self, selection: Vec<Selection>, compl: bool) {
         if selection.is_empty() {
-            self.visibility_sive = None;
+            self.visibility_sieve = None;
         } else {
             let visible = !self.whole_selection_is_visible(&selection, compl);
-            self.visibility_sive = Some(VisibilitySieve {
+            self.visibility_sieve = Some(VisibilitySieve {
                 selection,
                 compl,
                 visible,
@@ -511,7 +513,7 @@ impl Presenter {
         ensnano_exports::export(
             &self.current_design,
             export_type,
-            Some(self.content.basis_map.as_ref()),
+            Some(self.content.letter_map.as_ref()),
             export_path,
         )
     }
@@ -582,7 +584,7 @@ pub(super) fn apply_simulation_update(
     (AddressPointer::new(returned_presenter), returned_design)
 }
 
-use ensnano_interactor::Referential;
+use ensnano_interactor::{ObjectType, Referential};
 use ultraviolet::Vec3;
 impl DesignReader {
     pub(super) fn get_position_of_nucl_on_helix(

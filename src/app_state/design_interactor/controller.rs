@@ -19,6 +19,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::{NuclCollection, SimulationUpdate};
 use crate::app_state::AddressPointer;
 use ensnano_design::{
+    drawing_style::{DrawingAttribute, DrawingStyle},
     elements::{DesignElementKey, DnaAttribute},
     grid::{
         Edge, FreeGridId, GridDescriptor, GridId, GridObject, GridPosition, GridTypeDescr,
@@ -52,6 +53,8 @@ use self::simulations::{
     TwistInterface,
 };
 
+use std::collections::HashMap;
+
 use ultraviolet::{Isometry2, Rotor3, Vec2, Vec3};
 
 mod clipboard;
@@ -68,6 +71,8 @@ pub use simulations::{
 };
 
 mod update_insertion_length;
+
+use std::str::FromStr;
 
 #[derive(Clone, Default)]
 pub(super) struct Controller {
@@ -112,7 +117,9 @@ impl Controller {
         log::debug!("applicable");
         let label = operation.label();
         let mut ret = match operation {
-            DesignOperation::RecolorStaples => Ok(self.ok_apply(Self::recolor_stapples, design)),
+            DesignOperation::RecolorStaples => {
+                Ok(self.ok_apply(Self::fancy_recolor_stapples, design))
+            }
             DesignOperation::SetScaffoldSequence { sequence, shift } => Ok(self.ok_apply(
                 |ctrl, design| ctrl.set_scaffold_sequence(design, sequence, shift),
                 design,
@@ -1971,7 +1978,52 @@ impl Controller {
     fn recolor_stapples(&mut self, mut design: Design) -> Design {
         for (s_id, strand) in design.strands.iter_mut() {
             if Some(*s_id) != design.scaffold_id {
-                let color = crate::utils::new_color(&mut self.color_idx);
+                let color = crate::utils::colors::new_color(&mut self.color_idx);
+                strand.color = color;
+            }
+        }
+        design
+    }
+
+    fn fancy_recolor_stapples(&mut self, mut design: Design) -> Design {
+        let mut drawing_styles = HashMap::<DesignElementKey, DrawingStyle>::default();
+
+        if let Some(ref t) = design.organizer_tree {
+            // Read drawing style -> this should be a function on its own, the exact same code is used in design-content
+            let prefix = "style:"; // PREFIX SHOULD BELONG TO CONST.RS
+            let h = t.get_hashmap_to_all_groupnames_with_prefix(prefix);
+            for (e, names) in h {
+                let drawing_attributes = names
+                    .iter()
+                    .map(|x| {
+                        x.split(&[' ', ':'])
+                            .map(|x| DrawingAttribute::from_str(x))
+                            .filter(|x| x.is_ok())
+                            .map(|x| x.unwrap())
+                            .collect::<Vec<DrawingAttribute>>()
+                    })
+                    .flatten()
+                    .collect::<Vec<DrawingAttribute>>();
+                let mut style = DrawingStyle::from(drawing_attributes);
+                drawing_styles.insert(e, style);
+            }
+        }
+
+        for (s_id, strand) in design.strands.iter_mut() {
+            // recoloring only concerns the non-scaffold strands
+            if Some(*s_id) != design.scaffold_id {
+                // Compute strand drawing style
+                let strand_style = drawing_styles
+                    .get(&DesignElementKey::Strand(*s_id))
+                    .unwrap_or(&DrawingStyle::default())
+                    .clone();
+
+                let color = if let Some(shade) = strand_style.color_shade {
+                    crate::utils::colors::random_color_with_shade(shade, strand_style.hue_range)
+                } else {
+                    crate::utils::colors::new_color(&mut self.color_idx)
+                };
+
                 strand.color = color;
             }
         }
@@ -2284,7 +2336,7 @@ impl Controller {
 
     fn init_strand(&mut self, design: &mut Design, nucl: Nucl) -> usize {
         let s_id = design.strands.keys().max().map(|n| n + 1).unwrap_or(0);
-        let color = crate::utils::new_color(&mut self.color_idx);
+        let color = crate::utils::colors::new_color(&mut self.color_idx);
         design.strands.insert(
             s_id,
             Strand::init(nucl.helix, nucl.position, nucl.forward, color),
@@ -2304,7 +2356,7 @@ impl Controller {
         } else {
             0
         };
-        let color = crate::utils::new_color(&mut self.color_idx);
+        let color = crate::utils::colors::new_color(&mut self.color_idx);
         design
             .strands
             .insert(new_key, Strand::init(helix, position, forward, color));

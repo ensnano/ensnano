@@ -112,7 +112,7 @@ impl Reader2D for DesignReader {
     }
 
     fn get_basis_map(&self) -> Arc<HashMap<Nucl, char, RandomState>> {
-        self.presenter.content.basis_map.clone()
+        self.presenter.content.letter_map.clone()
     }
 
     fn get_group_map(&self) -> Arc<BTreeMap<usize, bool>> {
@@ -226,7 +226,7 @@ impl Reader2D for DesignReader {
         self.presenter.content.nucl_collection.clone()
     }
 
-    fn get_abcissa_converter(&self, h_id: usize) -> ensnano_design::AbscissaConverter {
+    fn get_abscissa_converter(&self, h_id: usize) -> ensnano_design::AbscissaConverter {
         self.presenter
             .current_design
             .try_get_up_to_date()

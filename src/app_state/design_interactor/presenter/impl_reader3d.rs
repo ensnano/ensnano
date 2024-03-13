@@ -32,7 +32,23 @@ use crate::scene::{DesignReader as Reader3D, GridInstance, SurfaceInfo};
 
 impl Reader3D for DesignReader {
     fn get_color(&self, e_id: u32) -> Option<u32> {
-        self.presenter.content.color.get(&e_id).cloned()
+        self.presenter.content.color_map.get(&e_id).cloned()
+    }
+
+    fn get_radius(&self, e_id: u32) -> Option<f32> {
+        self.presenter.content.radius_map.get(&e_id).cloned()
+    }
+
+    fn get_xover_coloring(&self, e_id: u32) -> Option<bool> {
+        self.presenter
+            .content
+            .xover_coloring_map
+            .get(&e_id)
+            .cloned()
+    }
+
+    fn get_with_cones(&self, e_id: u32) -> Option<bool> {
+        self.presenter.content.with_cones_map.get(&e_id).cloned()
     }
 
     fn get_basis(&self) -> Rotor3 {
@@ -44,7 +60,7 @@ impl Reader3D for DesignReader {
             .content
             .nucleotide
             .get(&e_id)
-            .and_then(|nucl| self.presenter.content.basis_map.get(nucl))
+            .and_then(|nucl| self.presenter.content.letter_map.get(nucl))
             .cloned()
     }
 
@@ -222,6 +238,12 @@ impl Reader3D for DesignReader {
     }
 
     fn get_element_axis_position(&self, e_id: u32, referential: Referential) -> Option<Vec3> {
+        if let Some(pos) = self.presenter.content.axis_space_position.get(&e_id) {
+            return Some(
+                self.presenter
+                    .in_referential(Vec3::new(pos[0], pos[1], pos[2]), referential),
+            );
+        }
         if let Some(nucl) = self.get_nucl_with_id(e_id) {
             self.get_position_of_nucl_on_helix(nucl, referential, true)
         } else if let Some((n1, n2)) = self.presenter.content.nucleotides_involved.get(&e_id) {
@@ -231,6 +253,15 @@ impl Reader3D for DesignReader {
         } else {
             None
         }
+    }
+
+    fn get_ids_of_all_helices(&self) -> Vec<u32> {
+        self.presenter
+            .content
+            .helix_map
+            .keys()
+            .map(|&k| k)
+            .collect()
     }
 
     fn get_id_of_helix_containing(&self, e_id: u32) -> Option<usize> {
@@ -357,7 +388,7 @@ impl Reader3D for DesignReader {
     }
 
     fn get_all_h_bonds(&self) -> &[HBond] {
-        self.presenter.bonds.as_ref()
+        self.presenter.h_bonds.as_ref()
     }
 
     fn get_position_of_bezier_control(

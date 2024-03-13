@@ -698,10 +698,13 @@ impl Helix {
 
     /// 3D position of a nucleotide on this helix. `n` is the position along the axis, and `forward` is true iff the 5' to 3' direction of the strand containing that nucleotide runs in the same direction as the axis of the helix.
     pub fn space_pos(&self, p: &HelixParameters, n: isize, forward: bool) -> Vec3 {
-        let p = match self.helix_parameters {
+        let p = self.helix_parameters.unwrap_or(*p).clone();
+        /*
+        match self.helix_parameters {
             None => p.clone(),
             Some(hp) => hp.clone(),
         };
+        */
         self.shifted_space_pos(&p, n, forward, 0.0)
     }
 
@@ -723,10 +726,13 @@ impl Helix {
         forward: bool,
     ) -> Vec3 {
         let mut ret;
-        let p = match self.helix_parameters {
+        let p = self.helix_parameters.unwrap_or(*p).clone();
+        /*
+        match self.helix_parameters {
             None => p.clone(),
             Some(hp) => hp.clone(),
         };
+        */
         if let Some(curve) = self.instanciated_curve.as_ref() {
             if let Some(point) = curve
                 .as_ref()
@@ -734,7 +740,7 @@ impl Helix {
                 .map(dvec_to_vec)
             {
                 let (position, orientation) = if curve.as_ref().has_its_own_encoded_frame() {
-                    (Vec3::zero(), Rotor3::identity())
+                    (Vec3::zero(), Rotor3::identity()) // position and orientation ignored
                 } else {
                     (self.position, self.orientation)
                 };
@@ -768,10 +774,11 @@ impl Helix {
         forward: bool,
         shift: f32,
     ) -> Vec3 {
-        let p = match self.helix_parameters {
-            None => p.clone(),
-            Some(hp) => hp.clone(),
-        };
+        let p = self.helix_parameters.unwrap_or(*p).clone();
+        //  match self.helix_parameters {
+        //     None => p.clone(),
+        //     Some(hp) => hp.clone(),
+        // };
         let n = self.initial_nt_index + n;
         let theta = self.theta(n, forward, &p) + shift;
         self.theta_n_to_space_pos(&p, n, theta, forward)
@@ -861,10 +868,7 @@ impl Helix {
                 orientation,
             }
         } else {
-            let p = match self.helix_parameters {
-                None => p.clone(),
-                Some(hp) => hp.clone(),
-            };
+            let p = self.helix_parameters.unwrap_or(*p).clone();
             Axis::Line {
                 origin: self.position,
                 direction: self.axis_position(&p, 1) - self.position,
@@ -873,6 +877,7 @@ impl Helix {
     }
 
     pub fn axis_position(&self, p: &HelixParameters, n: isize) -> Vec3 {
+        // Attention, ne tient pas compte de l'inclinaison !!!
         let n = n + self.initial_nt_index;
         if let Some(curve) = self.instanciated_curve.as_ref().map(|s| &s.curve) {
             if let Some(point) = curve.axis_pos(n).map(dvec_to_vec) {
@@ -884,10 +889,7 @@ impl Helix {
                 return point.rotated_by(orientation) + position;
             }
         }
-        let p = match self.helix_parameters {
-            None => p.clone(),
-            Some(hp) => hp.clone(),
-        };
+        let p = self.helix_parameters.unwrap_or(*p).clone();
         let mut ret = Vec3::new(n as f32 * p.rise, 0., 0.);
 
         ret = self.rotate_point(ret);

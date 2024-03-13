@@ -19,6 +19,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! frame to be displayed, or on a "fake texture" that is used to map pixels to objects.
 
 use self::gltf_drawer::Object3DDrawer;
+use int_enum::IntEnum;
 
 use super::camera;
 use crate::{DrawArea, PhySize};
@@ -42,7 +43,7 @@ mod uniforms;
 use uniforms::Uniforms;
 pub use uniforms::{FogParameters, Stereography};
 mod direction_cube;
-mod dna_obj;
+pub mod dna_obj;
 /// This modules defines a trait for drawing widget made of several meshes.
 mod drawable;
 mod gltf_drawer;
@@ -51,7 +52,7 @@ mod grid;
 mod grid_disc;
 /// A HandleDrawer draws the widget for translating objects
 mod handle_drawer;
-mod instances_drawer;
+pub mod instances_drawer;
 mod letter;
 /// A RotationWidget draws the widget for rotating objects
 mod rotation_widget;
@@ -61,8 +62,8 @@ use super::maths_3d::{self, distance_to_cursor_with_penalty};
 use bindgroup_manager::{DynamicBindGroup, UniformBindGroup};
 use direction_cube::*;
 pub use dna_obj::{
-    ConeInstance, DnaObject, Ellipsoid, RawDnaInstance, SphereInstance,
-    StereographicSphereAndPlane, TubeInstance,
+    ConeInstance, DnaObject, Ellipsoid, RawDnaInstance, SlicedTubeInstance, SphereInstance,
+    StereographicSphereAndPlane, TubeInstance, TubeLidInstance,
 };
 use drawable::{Drawable, Drawer, Vertex};
 pub use grid::{GridInstance, GridIntersection};
@@ -425,20 +426,20 @@ impl View {
                 self.dna_drawers
                     .get_mut(mesh)
                     .new_instances_raw(instances.as_ref());
-                if let Some(mesh) = mesh.to_fake() {
+                if let Some(_mesh) = mesh.to_fake() {
                     let mut instances = instances.as_ref().clone();
                     for i in instances.iter_mut() {
-                        if i.scale.z <= 1. {
+                        if i.scale.z <= ensnano_interactor::consts::MIN_RADIUS_FOR_FAKE_UPSCALING {
                             i.scale *= ensnano_interactor::consts::SELECT_SCALE_FACTOR;
                         }
                     }
                     self.dna_drawers
-                        .get_mut(mesh)
+                        .get_mut(_mesh)
                         .new_instances_raw(instances.as_ref());
                 }
-                if let Some(mesh) = mesh.to_outline() {
+                if let Some(_mesh) = mesh.to_outline() {
                     self.dna_drawers
-                        .get_mut(mesh)
+                        .get_mut(_mesh)
                         .new_instances_raw(instances.as_ref());
                 }
             }
@@ -1054,39 +1055,42 @@ pub enum ViewUpdate {
     UnrootedSurface(Option<UnrootedRevolutionSurfaceDescriptor>),
 }
 
-#[derive(Eq, PartialEq, Debug, Copy, Clone, Hash)]
+#[derive(Eq, PartialEq, Debug, Copy, Clone, Hash, IntEnum)]
+#[repr(u32)]
 pub enum Mesh {
-    Sphere,
-    Tube,
-    OutlineSphere,
-    OutlineTube,
-    FakeSphere,
-    FakeTube,
-    CandidateSphere,
-    CandidateTube,
-    SelectedSphere,
-    SelectedTube,
-    PhantomSphere,
-    PhantomTube,
-    FakePhantomTube,
-    FakePhantomSphere,
-    SuggestionSphere,
-    SuggestionTube,
-    PastedSphere,
-    PastedTube,
-    PivotSphere,
-    XoverSphere,
-    XoverTube,
-    Prime3Cone,
-    Prime3ConeOutline,
-    BezierControll,
-    BezierSqueleton,
-    FakeBezierControl,
-    StereographicSphere,
-    BaseEllipsoid,
-    EllipsoidOutline,
-    HBond,
-    HBondOutline,
+    Sphere = 1,
+    Tube = 2,
+    TubeLid = 3,
+    SlicedTube = 4,
+    OutlineSphere = 5,
+    OutlineTube = 6,
+    FakeSphere = 7,
+    FakeTube = 8,
+    CandidateSphere = 9,
+    CandidateTube = 10,
+    SelectedSphere = 11,
+    SelectedTube = 12,
+    PhantomSphere = 13,
+    PhantomTube = 14,
+    FakePhantomTube = 15,
+    FakePhantomSphere = 16,
+    SuggestionSphere = 17,
+    SuggestionTube = 18,
+    PastedSphere = 19,
+    PastedTube = 20,
+    PivotSphere = 21,
+    XoverSphere = 22,
+    XoverTube = 23,
+    Prime3Cone = 24,
+    Prime3ConeOutline = 25,
+    BezierControll = 26,
+    BezierSqueleton = 27,
+    FakeBezierControl = 28,
+    StereographicSphere = 29,
+    BaseEllipsoid = 30,
+    EllipsoidOutline = 31,
+    HBond = 32,
+    HBondOutline = 33,
 }
 
 impl Mesh {
@@ -1094,6 +1098,7 @@ impl Mesh {
         match self {
             Self::Sphere => Some(Self::FakeSphere),
             Self::Tube => Some(Self::FakeTube),
+            Self::SlicedTube => Some(Self::FakeTube),
             Self::PhantomSphere => Some(Self::FakePhantomSphere),
             Self::PhantomTube => Some(Self::FakePhantomTube),
             Self::BezierControll => Some(Self::FakeBezierControl),
@@ -1111,11 +1116,27 @@ impl Mesh {
             _ => None,
         }
     }
+
+    // FOR MEMORY
+    // pub fn to_u32(&self) -> u32 {
+    //     match self {
+    //         Mesh::Sphere => 1,
+    //         Mesh::Tube => 2,
+    //         Mesh::TubeLid => 3,
+    //         Mesh::SlicedTube => 4,
+    //         Mesh::PivotSphere => 5,
+    //         Mesh::Prime3Cone => 6,
+    //         Mesh::BaseEllipsoid => 7,
+    //         _ => 0,
+    //     }
+    // }
 }
 
 struct DnaDrawers {
     sphere: InstanceDrawer<SphereInstance>,
     tube: InstanceDrawer<TubeInstance>,
+    tube_lid: InstanceDrawer<TubeLidInstance>,
+    sliced_tube: InstanceDrawer<SlicedTubeInstance>,
     outline_sphere: InstanceDrawer<SphereInstance>,
     outline_tube: InstanceDrawer<TubeInstance>,
     candidate_sphere: InstanceDrawer<SphereInstance>,
@@ -1152,6 +1173,8 @@ impl DnaDrawers {
         match key {
             Mesh::Sphere => &mut self.sphere,
             Mesh::Tube => &mut self.tube,
+            Mesh::TubeLid => &mut self.tube_lid,
+            Mesh::SlicedTube => &mut self.sliced_tube,
             Mesh::OutlineSphere => &mut self.outline_sphere,
             Mesh::OutlineTube => &mut self.outline_tube,
             Mesh::CandidateSphere => &mut self.candidate_sphere,
@@ -1191,6 +1214,8 @@ impl DnaDrawers {
         let mut ret: Vec<&mut dyn RawDrawer<RawInstance = RawDnaInstance>> = vec![
             &mut self.sphere,
             &mut self.tube,
+            &mut self.tube_lid,
+            &mut self.sliced_tube,
             &mut self.prime3_cones,
             &mut self.candidate_sphere,
             &mut self.candidate_tube,
@@ -1283,6 +1308,24 @@ impl DnaDrawers {
                 (),
                 false,
                 "tube",
+            ),
+            tube_lid: InstanceDrawer::new(
+                device.clone(),
+                queue.clone(),
+                viewer_desc,
+                model_desc,
+                (),
+                false,
+                "tube lid",
+            ),
+            sliced_tube: InstanceDrawer::new(
+                device.clone(),
+                queue.clone(),
+                viewer_desc,
+                model_desc,
+                (),
+                false,
+                "sliced tube",
             ),
             hbond: InstanceDrawer::new(
                 device.clone(),

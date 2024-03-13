@@ -516,6 +516,11 @@ impl GuiRequests for Requests {
     fn notify_revolution_tab(&mut self) {
         self.switched_to_revolution_tab = Some(());
     }
+
+    fn request_stl_export(&mut self) {
+        self.keep_proceed
+            .push_back(Action::NotifyApps(Notification::StlExport))
+    }
 }
 
 fn rigid_parameters(parameters: RigidBodyParametersRequest) -> RigidBodyConstants {

@@ -139,8 +139,8 @@ impl HelixTimeMap {
 
 #[derive(Clone, Debug)]
 enum AbscissaConverter_ {
-    Real(HelixTimeMap),
-    Fake(f64),
+    TimeMap(HelixTimeMap),
+    Linear(f64),
 }
 
 #[derive(Clone, Debug)]
@@ -148,29 +148,34 @@ pub struct AbscissaConverter(AbscissaConverter_);
 
 impl Default for AbscissaConverter {
     fn default() -> Self {
-        Self(AbscissaConverter_::Fake(1.))
+        Self(AbscissaConverter_::Linear(1.))
     }
+
 }
 
 impl AbscissaConverter {
+    pub fn linear(factor: f64) -> Self {
+        Self(AbscissaConverter_::Linear(factor))
+    }
+
     pub fn x_to_nucl_conversion(&self, x: f64) -> f64 {
         match &self.0 {
-            AbscissaConverter_::Real(time_map) => time_map.x_to_nucl_conversion(x),
-            AbscissaConverter_::Fake(normalisation_time) => x / normalisation_time,
+            AbscissaConverter_::TimeMap(time_map) => time_map.x_to_nucl_conversion(x),
+            AbscissaConverter_::Linear(normalisation_time) => x * normalisation_time,
         }
     }
 
     pub fn nucl_to_x_convertion(&self, n: isize) -> f64 {
         match &self.0 {
-            AbscissaConverter_::Real(time_map) => time_map.nucl_to_x_convertion(n),
-            AbscissaConverter_::Fake(normalisation_time) => n as f64 / normalisation_time,
+            AbscissaConverter_::TimeMap(time_map) => time_map.nucl_to_x_convertion(n),
+            AbscissaConverter_::Linear(normalisation_time) => n as f64 / normalisation_time,
         }
     }
 
     pub fn x_conversion(&self, x: f64) -> f64 {
         match &self.0 {
-            AbscissaConverter_::Real(time_map) => time_map.x_conversion(x),
-            AbscissaConverter_::Fake(normalisation_time) => x / normalisation_time,
+            AbscissaConverter_::TimeMap(time_map) => time_map.x_conversion(x),
+            AbscissaConverter_::Linear(normalisation_time) => x / normalisation_time,
         }
     }
 
@@ -181,7 +186,7 @@ impl AbscissaConverter {
 
         let square_per_time = HelixTimeMap::square_per_time_for_time_map(time_points.as_slice());
         log::info!("square per time = {square_per_time}");
-        Some(Self(AbscissaConverter_::Real(HelixTimeMap {
+        Some(Self(AbscissaConverter_::TimeMap(HelixTimeMap {
             square_per_time,
             nb_negative_nucl: 0,
             nucl_time: time_points,
@@ -209,7 +214,7 @@ impl RevolutionCurveTimeMaps {
 
         for (_, h) in helices
             .iter()
-            .filter(|(_, h)| h.get_revolution_curve_desc() == Some(curve))
+            .filter(|(_, h)| h.get_revolution_curve_descriptor() == Some(curve))
         {
             if let Some(curve) = h.instanciated_curve.as_ref() {
                 let mut positions = vec![0];
@@ -235,7 +240,7 @@ impl RevolutionCurveTimeMaps {
 
         for (h_id, h) in helices
             .iter()
-            .filter(|(_, h)| h.get_revolution_curve_desc() == Some(&curve))
+            .filter(|(_, h)| h.get_revolution_curve_descriptor() == Some(&curve))
         {
             if let Some(curve) = h.instanciated_curve.as_ref() {
                 let nucl_time = Vec::clone(curve.curve.t_nucl.as_ref());
@@ -257,9 +262,9 @@ impl RevolutionCurveTimeMaps {
 
     pub fn get_abscissa_converter(&self, h_id: usize) -> AbscissaConverter {
         if let Some(map) = self.time_maps.get(&h_id) {
-            AbscissaConverter(AbscissaConverter_::Real(map.clone()))
+            AbscissaConverter(AbscissaConverter_::TimeMap(map.clone()))
         } else {
-            AbscissaConverter(AbscissaConverter_::Fake(self.length_normalisation))
+            AbscissaConverter(AbscissaConverter_::Linear(self.length_normalisation))
         }
     }
 }
@@ -297,9 +302,9 @@ impl PathTimeMaps {
 
     pub fn get_abscissa_converter(&self, h_id: usize) -> AbscissaConverter {
         if let Some(map) = self.time_maps.get(&h_id) {
-            AbscissaConverter(AbscissaConverter_::Real(map.clone()))
+            AbscissaConverter(AbscissaConverter_::TimeMap(map.clone()))
         } else {
-            AbscissaConverter(AbscissaConverter_::Fake(self.length_normalisation))
+            AbscissaConverter(AbscissaConverter_::Linear(self.length_normalisation))
         }
     }
 }

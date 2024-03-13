@@ -6,7 +6,7 @@ edition = "2018"
 license = "GPL-3.0-or-later"
 
 [dependencies]
-iced_wgpu = "0.5.1"
+iced_wgpu = {version = "0.5.1",  features = ["spirv"]}
 iced_winit = "0.4.0"
 bytemuck = "1.2.0"
 color_space = "0.5.2"
@@ -18,3 +18,4 @@ fontdue = "0.6.4"
 ahash = "0.8.6" # "0.6.2"
 gltf = "0.16.0"
 nom_stl = "0.2.2"
+rand = "0.8.5"

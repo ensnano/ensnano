@@ -1226,7 +1226,7 @@ impl GridData {
                     .map(|map| map.get_abscissa_converter(h_id))
             })
             .or_else(|| {
-                helix.get_revolution_curve_desc().and_then(|key| {
+                helix.get_revolution_curve_descriptor().and_then(|key| {
                     self.revolution_curve_time_maps
                         .get(key)
                         .map(|m| m.get_abscissa_converter(h_id))

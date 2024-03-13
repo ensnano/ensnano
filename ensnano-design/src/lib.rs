@@ -21,6 +21,12 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::sync::Arc;
 
+use regex::Regex;
+use std::str::FromStr;
+
+mod material_colors;
+use material_colors::MaterialColor;
+
 #[macro_use]
 extern crate serde_derive;
 extern crate serde;
@@ -51,11 +57,15 @@ mod collection;
 pub mod design_operations;
 pub mod utils;
 pub use collection::{Collection, HasMap};
+pub mod isometry3_descriptor;
+pub use isometry3_descriptor::Isometry3Descriptor;
 
 mod parameters;
 pub use parameters::*;
 
 mod id_manager;
+
+pub mod drawing_style;
 
 /// Re-export ultraviolet for linear algebra
 pub use ultraviolet::*;
@@ -66,6 +76,8 @@ mod insertions;
 #[cfg(test)]
 mod tests;
 pub use external_3d_objects::*;
+
+mod isograph;
 
 /// The `ensnano` Design structure.
 #[derive(Serialize, Deserialize, Clone)]
@@ -174,6 +186,9 @@ pub struct Design {
 
     #[serde(skip)]
     pub additional_structure: Option<Arc<dyn AdditionalStructure>>,
+
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub clone_isometries: Option<Vec<Isometry3Descriptor>>,
 }
 
 pub trait AdditionalStructure: Send + Sync {
@@ -372,6 +387,7 @@ impl Design {
             instanciated_paths: None,
             external_3d_objects: Default::default(),
             additional_structure: None,
+            clone_isometries: Some(Vec::new()),
         }
     }
 

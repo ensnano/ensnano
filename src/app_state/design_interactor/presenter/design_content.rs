@@ -19,27 +19,44 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::*;
 use crate::scene::GridInstance;
 use ahash::RandomState;
-use ensnano_design::elements::DesignElement;
-use ensnano_design::grid::{GridObject, GridPosition, HelixGridPosition};
+use cadnano_format::color;
+use ensnano_design::drawing_style::{ColorType, DrawingAttribute, DrawingStyle};
+use ensnano_design::elements::{DesignElement, DesignElementKey};
+use ensnano_design::grid::{GridId, GridObject, GridPosition, HelixGridPosition};
 use ensnano_design::*;
+use ensnano_interactor::consts::{
+    BOND_RADIUS, CLONE_OPACITY, HELIX_CYLINDER_COLOR, HELIX_CYLINDER_RADIUS, SPHERE_RADIUS,
+};
 use ensnano_interactor::{
     graphics::{LoopoutBond, LoopoutNucl},
     ObjectType,
 };
+use ensnano_utils::clic_counter::ClicCounter;
+use futures::stream::LocalBoxStream;
+use iced::slider::draw;
+use iced::Element;
 use serde::Serialize;
 use std::borrow::Cow;
+use std::clone;
 use std::collections::{BTreeMap, HashMap, HashSet};
+use std::f32::consts::PI;
+use std::str::FromStr;
 use std::sync::Arc;
-use ultraviolet::Vec3;
+use ultraviolet::{Rotor3, Vec3};
 
 use ensnano_design::grid::GridData;
 
 mod xover_suggestions;
 use xover_suggestions::XoverSuggestions;
 
+use ensnano_design::isometry3_descriptor::{
+    Isometry3Descriptor, Isometry3DescriptorItem, Isometry3MissingMethods,
+};
+use ensnano_utils::instance::Instance;
+
 #[derive(Default, Clone)]
 pub struct NuclCollection {
-    identifier: HashMap<Nucl, u32, RandomState>,
+    identifier: BTreeMap<Nucl, u32>, //HashMap<Nucl, u32, RandomState>,
     virtual_nucl_map: HashMap<VirtualNucl, Nucl, RandomState>,
 }
 
@@ -93,6 +110,8 @@ pub(super) struct DesignContent {
     pub nucleotides_involved: HashMap<u32, (Nucl, Nucl), RandomState>,
     /// Maps identifier of element to their position in the Model's coordinates
     pub space_position: HashMap<u32, [f32; 3], RandomState>,
+    /// Maps identifier of nucl element to their axis position in the Model's coordinates
+    pub axis_space_position: HashMap<u32, [f32; 3], RandomState>,
     /// Maps a Nucl object to its identifier
     pub nucl_collection: Arc<NuclCollection>,
     /// Maps a pair of nucleotide forming a bond to the identifier of the bond
@@ -102,8 +121,13 @@ pub(super) struct DesignContent {
     /// Maps the identifier of a element to the identifier of the helix to which it belongs
     pub helix_map: HashMap<u32, usize, RandomState>,
     /// Maps the identifier of an element to its color
-    pub color: HashMap<u32, u32, RandomState>,
-    pub basis_map: Arc<HashMap<Nucl, char, RandomState>>,
+    pub color_map: HashMap<u32, u32, RandomState>,
+    /// Maps the identifier of an element to its radius
+    pub radius_map: HashMap<u32, f32, RandomState>,
+    /// Maps the identifier of a bond element to its helix radius (if ≠ None)
+    pub helix_radius_map: HashMap<u32, f32, RandomState>,
+    pub helix_color_map: HashMap<u32, u32, RandomState>,
+    pub letter_map: Arc<HashMap<Nucl, char, RandomState>>,
     pub prime3_set: Vec<Prime3End>,
     pub elements: Vec<DesignElement>,
     pub suggestions: Vec<(Nucl, Nucl)>,
@@ -112,6 +136,12 @@ pub(super) struct DesignContent {
     pub loopout_bonds: Vec<LoopoutBond>,
     /// Maps bonds identifier to the length of the corresponding insertion.
     pub insertion_length: HashMap<u32, usize, RandomState>,
+    /// Maps identifiers to drawingstyles
+    pub drawing_styles: HashMap<DesignElementKey, DrawingStyle, RandomState>,
+    /// Maps identifiers to drawingstyles
+    pub xover_coloring_map: HashMap<u32, bool, RandomState>,
+    pub clone_transformations: Vec<Isometry3>,
+    pub with_cones_map: HashMap<u32, bool, RandomState>,
 }
 
 impl DesignContent {
@@ -133,6 +163,41 @@ impl DesignContent {
                 ObjectType::Bond(e1, e2) => {
                     let a = self.space_position.get(e1)?;
                     let b = self.space_position.get(e2)?;
+                    Some((Vec3::from(*a) + Vec3::from(*b)) / 2.)
+                }
+                ObjectType::HelixCylinder(e1, e2) => {
+                    let a = self.axis_space_position.get(e1)?;
+                    let b = self.axis_space_position.get(e2)?;
+                    Some((Vec3::from(*a) + Vec3::from(*b)) / 2.)
+                }
+                ObjectType::SlicedBond(_, e1, e2, _) => {
+                    let a = self.space_position.get(e1)?;
+                    let b = self.space_position.get(e2)?;
+                    Some((Vec3::from(*a) + Vec3::from(*b)) / 2.)
+                }
+            }
+        } else {
+            None
+        }
+    }
+
+    pub(super) fn get_axis_element_position(&self, id: u32) -> Option<Vec3> {
+        if let Some(object_type) = self.object_type.get(&id) {
+            match object_type {
+                ObjectType::Nucleotide(id) => self.axis_space_position.get(&id).map(|x| x.into()),
+                ObjectType::Bond(e1, e2) => {
+                    let a = self.axis_space_position.get(e1)?;
+                    let b = self.axis_space_position.get(e2)?;
+                    Some((Vec3::from(*a) + Vec3::from(*b)) / 2.)
+                }
+                ObjectType::HelixCylinder(e1, e2) => {
+                    let a = self.axis_space_position.get(e1)?;
+                    let b = self.axis_space_position.get(e2)?;
+                    Some((Vec3::from(*a) + Vec3::from(*b)) / 2.)
+                }
+                ObjectType::SlicedBond(_, e1, e2, _) => {
+                    let a = self.axis_space_position.get(e1)?;
+                    let b = self.axis_space_position.get(e2)?;
                     Some((Vec3::from(*a) + Vec3::from(*b)) / 2.)
                 }
             }
@@ -192,7 +257,7 @@ impl DesignContent {
     }
 
     pub(super) fn get_stapple_mismatch(&self, design: &Design) -> Option<Nucl> {
-        let basis_map = self.basis_map.as_ref();
+        let basis_map = self.letter_map.as_ref();
         for strand in design.strands.values() {
             for domain in &strand.domains {
                 if let Domain::HelixDomain(dom) = domain {
@@ -220,7 +285,7 @@ impl DesignContent {
         let mut ret = Vec::new();
         let mut sequences: BTreeMap<(Vec<String>, usize, isize, usize, isize), StapleInfo> =
             Default::default();
-        let basis_map = self.basis_map.as_ref();
+        let basis_map = self.letter_map.as_ref();
         for (s_id, strand) in design.strands.iter() {
             if strand.length() == 0 || design.scaffold_id == Some(*s_id) {
                 // skip zero length staples and scaffold
@@ -396,24 +461,39 @@ impl DesignContent {
         design: &Design,
         invisible_nucls: &HashSet<Nucl>,
     ) -> Vec<u32> {
-        let check_visibility = |&(_, bond): &(&u32, &(Nucl, Nucl))| {
-            !(invisible_nucls.contains(&bond.0) && invisible_nucls.contains(&bond.1))
-                && (design
-                    .helices
-                    .get(&bond.0.helix)
-                    .map(|h| h.visible)
-                    .unwrap_or_default()
-                    || design
+        let check_visibility = |&(id, bond): &(&u32, &(Nucl, Nucl))| {
+            if self.object_type.get(id).unwrap().is_helix_cylinder() {
+                return true;
+                // !(invisible_nucls.contains(&bond.0)
+                // && invisible_nucls.contains(&bond.0.compl())
+                // && invisible_nucls.contains(&bond.1)
+                // && invisible_nucls.contains(&bond.1.compl()))
+                // let visible = design.helices.get(&bond.0.helix).unwrap().visible;
+                // visible // Apparently this return always true has the field .visible of an helix is never used...
+            } else {
+                !(invisible_nucls.contains(&bond.0) && invisible_nucls.contains(&bond.1))
+                    && (design
                         .helices
-                        .get(&bond.1.helix)
+                        .get(&bond.0.helix)
                         .map(|h| h.visible)
-                        .unwrap_or_default())
+                        .unwrap_or_default()
+                        || design
+                            .helices
+                            .get(&bond.1.helix)
+                            .map(|h| h.visible)
+                            .unwrap_or_default())
+            }
         };
         self.nucleotides_involved
             .iter()
             .filter(check_visibility)
             .map(|t| *t.0)
             .collect()
+    }
+
+    pub fn get_drawing_style(&self, id: u32) -> DrawingStyle {
+        let style = DrawingStyle::default();
+        return style;
     }
 }
 
@@ -464,32 +544,91 @@ impl DesignContent {
         let groups = design.groups.clone();
         let mut object_type = HashMap::default();
         let mut space_position = HashMap::default();
+        let mut axis_space_position = HashMap::default();
         let mut nucl_collection = NuclCollection::default();
         let mut identifier_bond = HashMap::default();
         let mut nucleotides_involved = HashMap::default();
         let mut nucleotide = HashMap::default();
         let mut strand_map = HashMap::default();
         let mut color_map = HashMap::default();
+        let mut radius_map = HashMap::default();
+        let mut helix_radius_map = HashMap::default();
+        let mut helix_color_map = HashMap::default();
         let mut helix_map = HashMap::default();
-        let mut basis_map = HashMap::default();
+        let mut letter_map = HashMap::default();
+        let mut with_cones_map = HashMap::default();
         let mut loopout_bonds = Vec::new();
         let mut loopout_nucls = Vec::new();
-        let mut id = 0u32;
+        let mut id_TMP = 0u32;
+        let mut id_clic_counter = ClicCounter::new();
         let mut nucl_id;
-        let mut old_nucl: Option<Nucl> = None;
-        let mut old_nucl_id: Option<u32> = None;
+        let mut prev_nucl: Option<Nucl> = None;
+        let mut prev_nucl_id: Option<u32> = None;
         let mut elements = Vec::new();
         let mut prime3_set = Vec::new();
         let mut new_junctions: JunctionsIds = Default::default();
         let mut suggestion_maker = XoverSuggestions::default();
         let mut insertion_length = HashMap::default();
-        xover_ids.agree_on_next_id(&mut new_junctions);
+        let mut drawing_styles = HashMap::default();
+        let mut xover_coloring_map = HashMap::default();
+        let mut clone_transformations = Vec::new();
+        let mut clone_variables: HashMap<String, f32> = HashMap::new();
+
+        xover_ids.copy_next_id_to(&mut new_junctions);
         let rainbow_strand = design.scaffold_id.filter(|_| design.rainbow_scaffold);
         let grid_manager = design.get_updated_grid_data().clone();
 
+        // Build drawing style map from organizer tree
+        if let Some(ref t) = design.organizer_tree {
+            // Read drawing style
+            let prefix = "style:"; // PREFIX SHOULD BELONG TO CONST.RS
+            let h = t.get_hashmap_to_all_groupnames_with_prefix(prefix);
+            for (e, names) in h {
+                let drawing_attributes = names
+                    .iter()
+                    .map(|x| {
+                        x.split(&[' ', ':'])
+                            .map(|x| DrawingAttribute::from_str(x))
+                            .filter(|x| x.is_ok())
+                            .map(|x| x.unwrap())
+                            .collect::<Vec<DrawingAttribute>>()
+                    })
+                    .flatten()
+                    .collect::<Vec<DrawingAttribute>>();
+                let mut style = DrawingStyle::from(drawing_attributes);
+                drawing_styles.insert(e, style);
+            }
+
+            // collect all the variables defined in the organizer tree - these variables can only be used in the cloning transformations
+            let all_group_names = t.get_names_of_all_groups_without_id();
+            let clone_variables_declaration = &all_group_names
+                .iter()
+                .filter(|g| g.starts_with("vars:"))
+                .map(|x| x[5..].split(&[' ', ',']).filter(|y| *y != ""))
+                .flatten()
+                .collect::<Vec<&str>>();
+            println!("{:?}", clone_variables_declaration);
+            for x in clone_variables_declaration {
+                let _s = x.split('=').filter(|y| *y != "").collect::<Vec<&str>>();
+                if _s.len() == 2 {
+                    if let Ok(value) = f32::from_str(_s[1]) {
+                        clone_variables.insert(_s[0].to_string(), value);
+                    }
+                }
+            }
+
+            // collect cloning operations from the organizer tree - these are globally applied regardless of the content of the groups
+            clone_transformations = all_group_names
+                .iter()
+                .filter(|g| g.starts_with("clone:"))
+                .map(|s| Isometry3::from_str_with_variables(&s[6..], Some(&clone_variables)))
+                .collect::<Vec<Isometry3>>();
+        }
+
+        // Scanning strands
         for (s_id, strand) in design.strands.iter_mut() {
             elements.push(elements::DesignElement::StrandElement {
-                id: *s_id,
+                id: *s_id, // the key in design.strands btreemap
                 length: strand.length(),
                 domain_lengths: strand.domain_lengths(),
             });
@@ -497,13 +636,25 @@ impl DesignContent {
             strand.update_insertions(&design.helices, &parameters);
             let mut strand_position = 0;
             let strand_seq = strand.sequence.as_ref().filter(|s| s.is_ascii());
-            let color = strand.color;
-            let mut last_xover_junction: Option<&mut DomainJunction> = None;
-            let rainbow_len = if Some(*s_id) == rainbow_strand {
-                strand.length()
-            } else {
-                0
-            };
+            let strand_color = strand.color;
+
+            // Compute strand drawing style
+            let strand_style = drawing_styles
+                .get(&DesignElementKey::Strand(*s_id))
+                .unwrap_or(&DrawingStyle::default())
+                .clone()
+                .complete_with_attributes(vec![
+                    DrawingAttribute::SphereColor(strand_color), // strand color gets after color in strand style
+                    DrawingAttribute::BondColor(strand_color), // strand color gets after color in strand style
+                ]);
+
+            // Compute the length for rainbow coloring
+            let rainbow_len =
+                if Some(*s_id) == rainbow_strand || Some(true) == strand_style.rainbow_strand {
+                    strand.length()
+                } else {
+                    0
+                };
             // If the strand is not the rainbow strand, the rainbow iterator will be empty and the
             // real strand color will be used.
             let mut rainbow_iterator = (0..rainbow_len).map(|i| {
@@ -512,9 +663,17 @@ impl DesignContent {
                 (0xFF << 24) | ((rgb.r as u32) << 16) | ((rgb.g as u32) << 8) | (rgb.b as u32)
             });
 
+            // the sequence of bond ids
+            let mut bond_ids_sequence = Vec::new();
+
+            // Iter on the domains of the strand
+            let mut last_xover_junction: Option<&mut DomainJunction> = None;
             let mut prev_loopout_pos = None;
+            let mut prev_style = strand_style; // style of the previous domain, only used for cyclic strand outside the domain loop
+            let bond_coloring = strand_style.xover_coloring.unwrap_or(true);
             for (i, domain) in strand.domains.iter().enumerate() {
-                if let Some((prime5, prime3)) = old_nucl.clone().zip(domain.prime5_end()) {
+                // Update junctions if xover or not
+                if let Some((prime5, prime3)) = prev_nucl.clone().zip(domain.prime5_end()) {
                     Self::update_junction(
                         &mut new_junctions,
                         *last_xover_junction
@@ -523,6 +682,7 @@ impl DesignContent {
                         (prime5, prime3),
                     );
                     if let Some(id) = xover_ids.get_id(&(prime5, prime3)) {
+                        // THIS IS A XOVER INTERNAL -> take action
                         elements.push(DesignElement::CrossOverElement {
                             xover_id: id,
                             helix5prime: prime5.helix,
@@ -534,10 +694,46 @@ impl DesignContent {
                         });
                     }
                 }
+
+                // Real domain or Insertion
                 if let Domain::HelixDomain(domain) = domain {
+                    // Real helix domain
+                    // Compute domain style
+                    let mut domain_style = strand_style;
+                    // - domain style completed with helix style
+                    if let Some(helix_style) =
+                        drawing_styles.get(&DesignElementKey::Helix(domain.helix))
+                    {
+                        domain_style = domain_style.complete_with(helix_style);
+                    }
+                    // - domain style completed with grid style if there is a grid
+                    if let Some(grid_position) = grid_manager.get_helix_grid_position(domain.helix)
+                    {
+                        if let GridId::FreeGrid(h_id) = grid_position.grid {
+                            if let Some(grid_style) =
+                                drawing_styles.get(&DesignElementKey::Grid(h_id))
+                            {
+                                domain_style = domain_style.complete_with(grid_style);
+                            }
+                        }
+                    }
+                    // Get the drawing parameters
+                    let bond_radius = domain_style.bond_radius.unwrap_or(BOND_RADIUS);
+                    let nucl_radius = domain_style.sphere_radius.unwrap_or(SPHERE_RADIUS);
+                    prev_style = domain_style;
+                    // Get the sequence if any
                     let dom_seq = domain.sequence.as_ref().filter(|s| s.is_ascii());
 
+                    // Iterate along the domain
                     for (dom_position, nucl_position) in domain.iter().enumerate() {
+                        let axis_position = {
+                            let p = design.helices.get(&domain.helix).unwrap().axis_position(
+                                design.helix_parameters.as_ref().unwrap(),
+                                nucl_position,
+                                // domain.forward, // NE TIENT PAS COMPTE DE L'INCLINAISON!!
+                            );
+                            [p.x as f32, p.y as f32, p.z as f32]
+                        };
                         let position = design.helices.get(&domain.helix).unwrap().space_pos(
                             design.helix_parameters.as_ref().unwrap(),
                             nucl_position,
@@ -552,7 +748,7 @@ impl DesignContent {
                         if let Some(v_nucl) = virtual_nucl {
                             let previous = nucl_collection.insert_virtual(v_nucl, nucl);
                             if previous.is_some() && previous != Some(nucl) {
-                                log::error!("NUCLEOTIDE CONFLICTS: nucls {:?} and {:?} are mapped to the same virtual postition {:?}", previous, nucl, v_nucl);
+                                log::error!("NUCLEOTIDE CONFLICTS: nucls {:?} and {:?} are mapped to the same virtual position {:?}", previous, nucl, v_nucl);
                             }
                         } else {
                             log::error!("Could not get virtual nucl corresponding to {:?}", nucl);
@@ -563,37 +759,51 @@ impl DesignContent {
                             position: nucl.position,
                             forward: nucl.forward,
                         });
-                        let color = rainbow_iterator.next().unwrap_or(color);
+
+                        let rainbow_color = rainbow_iterator.next();
+                        let bond_color = rainbow_color.unwrap_or(domain_style.bond_color.unwrap());
+
+                        let nucl_color =
+                            rainbow_color.unwrap_or(domain_style.sphere_color.unwrap());
                         if let Some(prev_pos) = prev_loopout_pos.take() {
                             loopout_bonds.push(LoopoutBond {
                                 position_prime5: prev_pos,
                                 position_prime3: position.into(),
-                                color,
-                                repr_bond_identifier: id,
+                                color: bond_color,
+                                repr_bond_identifier: id_TMP,
                             });
                         }
-                        nucl_id = if let Some(old_nucl) = old_nucl {
-                            let bond_id = id;
-                            id += 1;
-                            let bond = (old_nucl, nucl);
-                            object_type.insert(bond_id, ObjectType::Bond(old_nucl_id.unwrap(), id));
+                        nucl_id = if let Some(prev_nucl) = prev_nucl {
+                            let bond_id = id_TMP;
+                            id_TMP += 1;
+                            let bond = (prev_nucl, nucl);
+                            object_type
+                                .insert(bond_id, ObjectType::Bond(prev_nucl_id.unwrap(), id_TMP)); // To be overwritten by a sliced bond later
+                            bond_ids_sequence.push(bond_id);
                             identifier_bond.insert(bond, bond_id);
                             nucleotides_involved.insert(bond_id, bond);
-                            color_map.insert(bond_id, color); // color given to the bond
-                            strand_map.insert(bond_id, *s_id);
-                            helix_map.insert(bond_id, nucl.helix);
-                            id
+                            color_map.insert(bond_id, bond_color); // color given to the bond
+                            radius_map.insert(bond_id, bond_radius); // radius given to the bond
+                            strand_map.insert(bond_id, *s_id); // get strand_id from bond_id
+                            helix_map.insert(bond_id, nucl.helix); // get helix_id from bond_id
+                            xover_coloring_map.insert(bond_id, bond_coloring);
+                            if Some(false) == strand_style.with_cones {
+                                with_cones_map.insert(bond_id, false);
+                            }
+                            id_TMP
                         } else {
-                            id
+                            id_TMP
                         };
-                        id += 1;
+                        id_TMP += 1;
                         object_type.insert(nucl_id, ObjectType::Nucleotide(nucl_id));
                         nucleotide.insert(nucl_id, nucl);
                         nucl_collection.insert(nucl, nucl_id);
-                        strand_map.insert(nucl_id, *s_id);
-                        color_map.insert(nucl_id, color);
-                        helix_map.insert(nucl_id, nucl.helix);
-                        let basis = dom_seq
+                        strand_map.insert(nucl_id, *s_id); // get the strand_id from the nucl_id
+                        color_map.insert(nucl_id, nucl_color);
+                        radius_map.insert(nucl_id, nucl_radius); // radius given to the bond
+                        helix_map.insert(nucl_id, nucl.helix); // get helix_id from bond_id
+
+                        let letter = dom_seq
                             .as_ref()
                             .and_then(|s| s.as_bytes().get(dom_position))
                             .or_else(|| {
@@ -601,17 +811,18 @@ impl DesignContent {
                                     .as_ref()
                                     .and_then(|s| s.as_bytes().get(strand_position))
                             });
-                        if let Some(basis) = basis {
-                            basis_map.insert(nucl, *basis as char);
+                        if let Some(letter) = letter {
+                            letter_map.insert(nucl, *letter as char);
                         } else {
-                            basis_map.remove(&nucl);
+                            letter_map.remove(&nucl);
                         }
                         strand_position += 1;
                         suggestion_maker.add_nucl(nucl, position, groups.as_ref());
                         let position = [position[0] as f32, position[1] as f32, position[2] as f32];
                         space_position.insert(nucl_id, position);
-                        old_nucl = Some(nucl);
-                        old_nucl_id = Some(nucl_id);
+                        axis_space_position.insert(nucl_id, axis_position);
+                        prev_nucl = Some(nucl);
+                        prev_nucl_id = Some(nucl_id);
                     }
                     if strand.junctions.len() <= i {
                         log::debug!("{:?}", strand.junctions);
@@ -626,7 +837,7 @@ impl DesignContent {
                 {
                     if let Some(instanciation) = instanciation.as_ref() {
                         for (dom_position, pos) in instanciation.as_ref().pos().iter().enumerate() {
-                            let color = rainbow_iterator.next().unwrap_or(color);
+                            let color = rainbow_iterator.next().unwrap_or(strand_color);
                             let basis = dom_seq
                                 .as_ref()
                                 .and_then(|s| s.as_bytes().get(dom_position))
@@ -638,50 +849,57 @@ impl DesignContent {
                             loopout_nucls.push(LoopoutNucl {
                                 position: *pos,
                                 color,
-                                repr_bond_identifier: id,
+                                repr_bond_identifier: id_TMP,
                                 basis: basis.and_then(|b| b.clone().try_into().ok()),
                             });
                             if let Some(prev_pos) =
-                                prev_loopout_pos.take().or(old_nucl_id
+                                prev_loopout_pos.take().or(prev_nucl_id
                                     .and_then(|id| space_position.get(&id).map(Vec3::from)))
                             {
                                 loopout_bonds.push(LoopoutBond {
                                     position_prime5: prev_pos,
                                     position_prime3: *pos,
                                     color,
-                                    repr_bond_identifier: id,
+                                    repr_bond_identifier: id_TMP,
                                 });
                             }
                             prev_loopout_pos = Some(*pos);
                             strand_position += 1;
                         }
                     }
-                    insertion_length.insert(id, *nb_nucl);
+                    insertion_length.insert(id_TMP, *nb_nucl);
                     last_xover_junction = Some(&mut strand.junctions[i]);
                 }
             }
             if strand.cyclic {
                 let nucl = strand.get_5prime().unwrap();
                 let prime5_id = nucl_collection.get_identifier(&nucl).unwrap();
-                let bond_id = id;
+                let bond_id = id_TMP;
                 if let Some((prev_pos, position)) =
                     prev_loopout_pos.take().zip(space_position.get(&prime5_id))
                 {
                     loopout_bonds.push(LoopoutBond {
                         position_prime5: prev_pos,
                         position_prime3: position.into(),
-                        color,
-                        repr_bond_identifier: id,
+                        color: strand_color,
+                        repr_bond_identifier: id_TMP,
                     });
                 }
-                id += 1;
-                let bond = (old_nucl.unwrap(), nucl);
-                object_type.insert(bond_id, ObjectType::Bond(old_nucl_id.unwrap(), *prime5_id));
+                id_TMP += 1;
+                let bond = (prev_nucl.unwrap(), nucl);
+                object_type.insert(bond_id, ObjectType::Bond(prev_nucl_id.unwrap(), *prime5_id)); // to be overwritten by a sliced bond later
+                bond_ids_sequence.push(bond_id);
                 identifier_bond.insert(bond, bond_id);
                 nucleotides_involved.insert(bond_id, bond);
-                color_map.insert(bond_id, color);
-                strand_map.insert(bond_id, *s_id);
+                color_map.insert(bond_id, strand_color);
+                radius_map.insert(bond_id, prev_style.bond_radius.unwrap_or(BOND_RADIUS)); // radius given to the bond
+                strand_map.insert(bond_id, *s_id); // match bond_id to strand_id
                 helix_map.insert(bond_id, nucl.helix);
+                xover_coloring_map.insert(bond_id, bond_coloring);
+                if Some(false) == strand_style.with_cones {
+                    with_cones_map.insert(bond_id, false);
+                }
+
                 log::debug!("adding {:?}, {:?}", bond.0, bond.1);
                 Self::update_junction(
                     &mut new_junctions,
@@ -693,6 +911,7 @@ impl DesignContent {
                 );
                 let (prime5, prime3) = bond;
                 if let Some(id) = new_junctions.get_id(&(prime5, prime3)) {
+                    // Final XOVER DE strand cyclic
                     elements.push(DesignElement::CrossOverElement {
                         xover_id: id,
                         helix5prime: prime5.helix,
@@ -704,27 +923,88 @@ impl DesignContent {
                     });
                 }
             } else {
-                if let Some(len) = insertion_length.remove(&id) {
-                    insertion_length.insert(id - 1, len);
+                if let Some(len) = insertion_length.remove(&id_TMP) {
+                    insertion_length.insert(id_TMP - 1, len);
                     for loopout_nucl in loopout_nucls.iter_mut() {
-                        if loopout_nucl.repr_bond_identifier == id {
-                            loopout_nucl.repr_bond_identifier = id - 1;
+                        if loopout_nucl.repr_bond_identifier == id_TMP {
+                            loopout_nucl.repr_bond_identifier = id_TMP - 1;
                         }
                     }
                     for loopout_bond in loopout_bonds.iter_mut() {
-                        if loopout_bond.repr_bond_identifier == id {
-                            loopout_bond.repr_bond_identifier = id - 1;
+                        if loopout_bond.repr_bond_identifier == id_TMP {
+                            loopout_bond.repr_bond_identifier = id_TMP - 1;
                         }
                     }
                 }
-                if let Some(nucl) = old_nucl {
+                if let Some(nucl) = prev_nucl {
                     let color = strand.color;
                     prime3_set.push(Prime3End { nucl, color });
                 }
             }
-            old_nucl = None;
-            old_nucl_id = None;
-        }
+
+            // Set the sliced bonds properly by adding the prev and next nucleotides
+            let nucl1_ids = bond_ids_sequence
+                .iter()
+                .map(|x| {
+                    let ObjectType::Bond(id1, _) = object_type.get(x).unwrap() else {
+                        panic!("The bond is not a bond");
+                    };
+                    *id1
+                })
+                .collect::<Vec<u32>>();
+            let nucl2_ids = bond_ids_sequence
+                .iter()
+                .map(|x| {
+                    let ObjectType::Bond(_, id2) = object_type.get(x).unwrap() else {
+                        panic!("The bond is not a bond");
+                    };
+                    *id2
+                })
+                .collect::<Vec<u32>>();
+            if bond_ids_sequence.len() > 0 {
+                let n = bond_ids_sequence.len();
+                for ((prev_id, bond_id), next_id) in nucl1_ids
+                    .iter()
+                    .cycle()
+                    .skip(n - 1)
+                    .zip(bond_ids_sequence.clone())
+                    .zip(nucl2_ids.iter().cycle().skip(1))
+                {
+                    let ObjectType::Bond(id1, id2) = object_type.get(&bond_id).unwrap() else {
+                        panic!("The bond is not a bond");
+                    };
+
+                    object_type.insert(
+                        bond_id,
+                        ObjectType::SlicedBond(*prev_id, *id1, *id2, *next_id),
+                    );
+                }
+                if !strand.cyclic {
+                    // modify the first bond to repeat the first nucl_id
+                    let first_id = bond_ids_sequence[0];
+                    let ObjectType::SlicedBond(_, id1, id2, next_id) =
+                        object_type.get(&first_id).unwrap()
+                    else {
+                        panic!("The sliced bond is not a sliced bond");
+                    };
+                    object_type
+                        .insert(first_id, ObjectType::SlicedBond(*id1, *id1, *id2, *next_id));
+                    // modify the last bond to repeat the second nucl_id
+                    let last_id = bond_ids_sequence[n - 1];
+                    let ObjectType::SlicedBond(prev_id, id1, id2, _) =
+                        object_type.get(&last_id).unwrap()
+                    else {
+                        panic!("The sliced bond is not a sliced bond");
+                    };
+                    object_type.insert(last_id, ObjectType::SlicedBond(*prev_id, *id1, *id2, *id2));
+                }
+            }
+            // next iteration
+            prev_nucl = None;
+            prev_nucl_id = None;
+        } // Scanning strands
+
+        // Scanning grids
         for g_id in grid_manager.grids.keys() {
             if let GridId::FreeGrid(id) = g_id {
                 elements.push(DesignElement::GridElement {
@@ -733,6 +1013,7 @@ impl DesignContent {
                 })
             }
         }
+
         for (h_id, h) in design.helices.iter() {
             elements.push(DesignElement::HelixElement {
                 id: *h_id,
@@ -741,6 +1022,247 @@ impl DesignContent {
                 locked_for_simulations: h.locked_for_simulations,
             });
         }
+
+        // Make the helices tubes
+        if nucl_collection.identifier.len() > 0 {
+            let all_nt = nucl_collection
+                .identifier
+                .keys()
+                .map(|x| x.clone())
+                .collect::<Vec<Nucl>>();
+
+            let all_forward_nt = all_nt
+                .iter()
+                .filter(|x| x.forward)
+                .map(|x| (x.helix, x.position))
+                .collect::<Vec<(usize, isize)>>();
+
+            let all_backward_nt = all_nt
+                .iter()
+                .filter(|x| !x.forward)
+                .map(|x| (x.helix, x.position))
+                .rev()
+                .collect::<Vec<(usize, isize)>>();
+
+            let mut hash_f = BTreeMap::new();
+            for (h, i) in all_forward_nt.into_iter() {
+                let mut a = hash_f.get(&h).unwrap_or(&Vec::<isize>::new()).clone();
+                a.push(i);
+                hash_f.insert(h, a);
+            }
+            let mut hash_b = BTreeMap::new();
+            for (h, i) in all_backward_nt.into_iter() {
+                let mut a = hash_b.get(&h).unwrap_or(&Vec::<isize>::new()).clone();
+                a.push(i);
+                hash_b.insert(h, a);
+            }
+            let mut hash_intersection = HashMap::<usize, Vec<isize>>::new();
+            for (h, f) in hash_f {
+                if let Some(b) = hash_b.get(&h) {
+                    let mut inter = Vec::new();
+                    let mut i_f = f.into_iter();
+                    let mut i_b = b.into_iter();
+                    let mut last_f = i_f.next();
+                    let mut s_f = 0isize;
+                    let mut last_b = i_b.next();
+                    let mut s_b = 0isize;
+                    while !last_b.is_none() && !last_f.is_none() {
+                        while let (Some(l_f), Some(l_b)) = (last_f, last_b) {
+                            if l_f >= *l_b {
+                                break;
+                            }
+                            last_f = i_f.next();
+                        }
+                        while let (Some(l_f), Some(l_b)) = (last_f, last_b) {
+                            if *l_b >= l_f {
+                                break;
+                            }
+                            last_b = i_b.next();
+                        }
+                        while let (Some(l_f), Some(l_b)) = (last_f, last_b) {
+                            if (l_f != *l_b) {
+                                break;
+                            }
+                            inter.push(*l_b);
+                            last_f = i_f.next();
+                            last_b = i_b.next();
+                        }
+                    }
+                    if inter.len() > 0 {
+                        hash_intersection.insert(h, inter);
+                    }
+                }
+            }
+
+            let mut hash_intervals = HashMap::<usize, Vec<(isize, isize)>>::new();
+            for (h, a) in hash_intersection {
+                let mut b = Vec::new();
+                let mut last_i = None;
+                let mut current_start = None;
+                for i in a.into_iter() {
+                    match last_i {
+                        Some(l_i) if l_i + 1 < i => {
+                            b.push((current_start.unwrap(), l_i + 1));
+                            current_start = Some(i);
+                        }
+                        None => {
+                            current_start = Some(i);
+                        }
+                        _ => {}
+                    }
+                    last_i = Some(i);
+                }
+                if let Some(l_i) = last_i {
+                    b.push((current_start.unwrap(), l_i + 1));
+                }
+                hash_intervals.insert(h, b);
+            }
+
+            // DO NOT USE id_TMP beyond this point
+            id_clic_counter.set(id_TMP);
+            // USE id_clic_counter
+            let mut helix_cylinders = Vec::new();
+            for (h, a) in hash_intervals {
+                let mut helix_style = drawing_styles
+                    .get(&DesignElementKey::Helix(h))
+                    .unwrap_or(&DrawingStyle::default())
+                    .clone();
+                if let Some(grid_position) = grid_manager.get_helix_grid_position(h) {
+                    if let GridId::FreeGrid(h) = grid_position.grid {
+                        if let Some(grid_style) = drawing_styles.get(&DesignElementKey::Grid(h)) {
+                            helix_style = helix_style.complete_with(grid_style);
+                        }
+                    }
+                }
+                let radius = helix_style
+                    .helix_as_cylinder_radius
+                    .unwrap_or(HELIX_CYLINDER_RADIUS);
+                let color =
+                    helix_style
+                        .helix_as_cylinder_color
+                        .map_or(HELIX_CYLINDER_COLOR, |ct| {
+                            if let ColorType::Color(c) = ct {
+                                c
+                            } else {
+                                HELIX_CYLINDER_COLOR
+                            }
+                        });
+                for (i, j) in a {
+                    let bond_id = id_clic_counter.next();
+                    let n_i = Nucl {
+                        helix: h,
+                        position: i,
+                        forward: true,
+                    };
+                    let n_i_id = nucl_collection.get_identifier(&n_i).unwrap();
+                    let n_j = Nucl {
+                        helix: h,
+                        position: j - 1,
+                        forward: true,
+                    };
+                    let n_j_id = nucl_collection.get_identifier(&n_j).unwrap();
+                    object_type.insert(bond_id, ObjectType::HelixCylinder(*n_i_id, *n_j_id));
+                    radius_map.insert(bond_id, radius);
+                    color_map.insert(bond_id, color);
+                    nucleotides_involved.insert(bond_id, (n_i, n_j));
+                    helix_map.insert(bond_id, h);
+                    helix_cylinders.push(bond_id);
+                }
+            }
+
+            // Clone - hacked version
+            // Get the clone transformations from the file
+            if let Some(ref clone_isometries_descriptors) = design.clone_isometries {
+                clone_transformations.extend(
+                    clone_isometries_descriptors
+                        .iter()
+                        .map(|d| Isometry3::from_descriptor(d))
+                        .collect::<Vec<Isometry3>>(),
+                );
+            }
+
+            // Cloned Nucleotide
+            for isometry3 in &clone_transformations {
+                let mut nucleotides_clones = HashMap::new();
+                for (nucl, nucl_id) in nucl_collection.identifier.iter() {
+                    let clone_nucl_id = id_clic_counter.next();
+                    nucleotides_clones.insert(nucl, clone_nucl_id);
+                    let nucl_color = color_map.get(nucl_id).unwrap_or(&0);
+                    let nucl_radius = radius_map.get(nucl_id).unwrap_or(&0.);
+                    let s_id = strand_map.get(nucl_id).unwrap_or(&0);
+                    let position = space_position.get(nucl_id).unwrap_or(&[0f32; 3]);
+                    let axis_position = axis_space_position.get(nucl_id).unwrap_or(&[0f32; 3]);
+                    object_type.insert(clone_nucl_id, ObjectType::Nucleotide(clone_nucl_id));
+                    nucleotide.insert(clone_nucl_id, nucl.clone());
+                    strand_map.insert(clone_nucl_id, s_id.clone()); // get the strand_id from the nucl_id
+                    color_map.insert(
+                        clone_nucl_id,
+                        Instance::color_au32_with_alpha_scaled_by(*nucl_color, CLONE_OPACITY),
+                    );
+                    radius_map.insert(clone_nucl_id, *nucl_radius); // radius given to the bond
+                    helix_map.insert(clone_nucl_id, nucl.helix); // get helix_id from bond_id
+
+                    let nucl_posi = Vec3::new(position[0], position[1], position[2]);
+                    let clone_posi =
+                        isometry3.translation.clone() + nucl_posi.rotated_by(isometry3.rotation);
+                    space_position
+                        .insert(clone_nucl_id, [clone_posi[0], clone_posi[1], clone_posi[2]]);
+
+                    let nucl_axis_posi =
+                        Vec3::new(axis_position[0], axis_position[1], axis_position[2]);
+                    let clone_axis_posi = isometry3.translation.clone()
+                        + nucl_axis_posi.rotated_by(isometry3.rotation);
+                    axis_space_position.insert(
+                        clone_nucl_id,
+                        [clone_axis_posi[0], clone_axis_posi[1], clone_axis_posi[2]],
+                    );
+                }
+                // Cloned bonds
+                for (bond, bond_id) in &identifier_bond {
+                    let clone_bond_id = id_clic_counter.next();
+                    let nucl_1_id = nucleotides_clones.get(&bond.0).unwrap();
+                    let nucl_1 = nucleotide.get(nucl_1_id).unwrap();
+                    let nucl_2_id = nucleotides_clones.get(&bond.1).unwrap();
+                    let nucl_2 = nucleotide.get(nucl_2_id).unwrap();
+                    let bond_color = color_map.get(&bond_id).unwrap();
+                    let clone_bond_color =
+                        Instance::color_au32_with_alpha_scaled_by(*bond_color, CLONE_OPACITY);
+                    let bond_radius = radius_map.get(&bond_id).unwrap();
+                    let strand_id = strand_map.get(&bond_id).unwrap();
+                    let helix_id = helix_map.get(&bond_id).unwrap();
+                    let xover_coloring = xover_coloring_map.get(&bond_id).unwrap();
+                    object_type.insert(clone_bond_id, ObjectType::Bond(*nucl_1_id, *nucl_2_id));
+                    nucleotides_involved.insert(clone_bond_id, (*nucl_1, *nucl_2));
+                    color_map.insert(clone_bond_id, clone_bond_color);
+                    radius_map.insert(clone_bond_id, *bond_radius); // radius given to the bond
+                    strand_map.insert(clone_bond_id, *strand_id); // match bond_id to strand_id
+                    helix_map.insert(clone_bond_id, *helix_id);
+                    xover_coloring_map.insert(clone_bond_id, *xover_coloring);
+                }
+                // Cloned cylinders
+                for bond_id in &helix_cylinders {
+                    let clone_bond_id = id_clic_counter.next();
+                    let (nucl_1, nucl_2) = nucleotides_involved.get(bond_id).unwrap();
+                    let clone_nucl_1_id = nucleotides_clones.get(nucl_1).unwrap();
+                    let clone_nucl_2_id = nucleotides_clones.get(nucl_2).unwrap();
+                    let bond_color = color_map.get(&bond_id).unwrap();
+                    let clone_bond_color =
+                        Instance::color_au32_with_alpha_scaled_by(*bond_color, CLONE_OPACITY);
+                    let bond_radius = radius_map.get(bond_id).unwrap();
+                    let helix_id = helix_map.get(bond_id).unwrap();
+                    object_type.insert(
+                        clone_bond_id,
+                        ObjectType::HelixCylinder(*clone_nucl_1_id, *clone_nucl_2_id),
+                    );
+                    nucleotides_involved.insert(clone_bond_id, (*nucl_1, *nucl_2));
+                    color_map.insert(clone_bond_id, clone_bond_color);
+                    radius_map.insert(clone_bond_id, *bond_radius); // radius given to the bond
+                    helix_map.insert(clone_bond_id, *helix_id);
+                }
+            }
+        }
+
+        // Output
         let mut ret = Self {
             object_type,
             nucleotide,
@@ -749,9 +1271,13 @@ impl DesignContent {
             identifier_bond,
             strand_map,
             space_position,
-            color: color_map,
+            axis_space_position,
+            color_map,
+            radius_map,
             helix_map,
-            basis_map: Arc::new(basis_map),
+            helix_radius_map,
+            helix_color_map,
+            letter_map: Arc::new(letter_map),
             prime3_set,
             elements,
             grid_manager,
@@ -759,6 +1285,10 @@ impl DesignContent {
             loopout_bonds,
             loopout_nucls,
             insertion_length,
+            drawing_styles,
+            xover_coloring_map,
+            clone_transformations,
+            with_cones_map,
         };
         let suggestions = suggestion_maker.get_suggestions(&design, suggestion_parameters);
         ret.suggestions = suggestions;
@@ -800,7 +1330,7 @@ impl DesignContent {
         junction: &mut DomainJunction,
         bond: (Nucl, Nucl),
     ) {
-        let is_xover = bond.0.prime3() != bond.1;
+        let is_xover = bond.0.prime3() != bond.1; // true if different from the next in the strand
         match junction {
             DomainJunction::Adjacent if is_xover => {
                 let id = new_xover_ids.insert(bond);

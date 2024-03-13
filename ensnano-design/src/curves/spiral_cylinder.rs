@@ -65,7 +65,7 @@ impl SpiralCylinderDescriptor {
         let slope = self.number_of_helices as f64 * inter_helix_axis_gap / TAU / self.radius;
         assert!(
             slope < 1.0,
-            "Radius for spiral_cylider is too small wtr inter helix axis gap"
+            "Radius for spiral_cylinder is too small wtr inter helix axis gap"
         );
         return self.number_of_helices as f64 * inter_helix_axis_gap / (1.0 - slope * slope).sqrt();
     }
