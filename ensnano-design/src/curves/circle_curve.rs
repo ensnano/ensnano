@@ -28,7 +28,7 @@ pub struct CircleCurve {
     pub radius: f64,
     pub z: f64,
     pub perimeter: f64,
-	pub abscissa_converter_factor: Option<f64>,
+    pub abscissa_converter_factor: Option<f64>,
 }
 
 impl CircleCurve {
@@ -117,13 +117,15 @@ impl Curved for CircleCurve {
 
     fn t_max(&self) -> f64 {
         1.
-	}
+    }
 
     fn t_min(&self) -> f64 {
         0.
     }
 
-	fn abscissa_converter(&self) -> Option<crate::AbscissaConverter> {
-		return Some(crate::AbscissaConverter::linear(self.abscissa_converter_factor.unwrap_or(1.)));
-	}
+    fn abscissa_converter(&self) -> Option<crate::AbscissaConverter> {
+        return Some(crate::AbscissaConverter::linear(
+            self.abscissa_converter_factor.unwrap_or(1.),
+        ));
+    }
 }

@@ -16,52 +16,50 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-
-use ultraviolet::{Vec2};
 use std::f32::consts::PI;
+use ultraviolet::Vec2;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum IsoPoint {
-	Move(usize, f32),
-	Origin,
+    Move(usize, f32),
+    Origin,
 }
 
 impl Default for IsoPoint {
-	fn default() -> Self {
-		Self::Origin
-	}
+    fn default() -> Self {
+        Self::Origin
+    }
 }
 
 #[derive(Debug, Default, Serialize, Deserialize, Clone)]
 pub struct IsoGraph {
-	pub points: Vec<IsoPoint>,
-	pub coords: Vec<Vec2>,
+    pub points: Vec<IsoPoint>,
+    pub coords: Vec<Vec2>,
 }
 
 impl IsoGraph {
-	pub fn new() -> Self {
-		IsoGraph::default()
-	}
+    pub fn new() -> Self {
+        IsoGraph::default()
+    }
 
-	pub fn from(points: Vec<IsoPoint>) -> Self {
-		let mut g = IsoGraph::new();
-		g.points = points.clone();
-		g.compute_coords();
-		g
-	}
+    pub fn from(points: Vec<IsoPoint>) -> Self {
+        let mut g = IsoGraph::new();
+        g.points = points.clone();
+        g.compute_coords();
+        g
+    }
 
-	pub fn compute_coords(&mut self) {
-		let mut coords = Vec::new();
-		for p in &self.points {
-			coords.push(match p {
-				IsoPoint::Origin => Vec2::new(0., 0.),
-				IsoPoint::Move(i, angle) => {
-					let a = *angle * PI / 180.;
-					coords[*i] + Vec2::new(a.cos(), a.sin())
-				},
-			});
-		}
-		self.coords = coords;
-	}
+    pub fn compute_coords(&mut self) {
+        let mut coords = Vec::new();
+        for p in &self.points {
+            coords.push(match p {
+                IsoPoint::Origin => Vec2::new(0., 0.),
+                IsoPoint::Move(i, angle) => {
+                    let a = *angle * PI / 180.;
+                    coords[*i] + Vec2::new(a.cos(), a.sin())
+                }
+            });
+        }
+        self.coords = coords;
+    }
 }
-

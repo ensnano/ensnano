@@ -150,7 +150,6 @@ impl Default for AbscissaConverter {
     fn default() -> Self {
         Self(AbscissaConverter_::Linear(1.))
     }
-
 }
 
 impl AbscissaConverter {
