@@ -128,7 +128,7 @@ impl Hyperboloid {
                 (right_helix - left_helix).normalized(),
             );
             let mut helix = Helix::new(origin, orientation);
-            helix.curve = <Self as GridDivision>::curve(
+            helix.curve_descriptor = <Self as GridDivision>::curve(
                 self,
                 i as isize,
                 0,

@@ -86,7 +86,7 @@ pub fn attach_object_to_grid(
             }
             GridObject::BezierPoint { n, .. } => {
                 let desc: Option<&mut CurveDescriptor> =
-                    if let Some(desc) = helix_ref.curve.as_mut() {
+                    if let Some(desc) = helix_ref.curve_descriptor.as_mut() {
                         Some(Arc::make_mut(desc))
                     } else {
                         None

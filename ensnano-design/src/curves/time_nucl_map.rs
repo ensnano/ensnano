@@ -140,7 +140,7 @@ impl HelixTimeMap {
 #[derive(Clone, Debug)]
 enum AbscissaConverter_ {
     TimeMap(HelixTimeMap),
-    Fixed(f64),
+    Linear(f64),
 }
 
 #[derive(Clone, Debug)]
@@ -148,29 +148,34 @@ pub struct AbscissaConverter(AbscissaConverter_);
 
 impl Default for AbscissaConverter {
     fn default() -> Self {
-        Self(AbscissaConverter_::Fixed(1.))
+        Self(AbscissaConverter_::Linear(1.))
     }
+
 }
 
 impl AbscissaConverter {
+    pub fn linear(factor: f64) -> Self {
+        Self(AbscissaConverter_::Linear(factor))
+    }
+
     pub fn x_to_nucl_conversion(&self, x: f64) -> f64 {
         match &self.0 {
             AbscissaConverter_::TimeMap(time_map) => time_map.x_to_nucl_conversion(x),
-            AbscissaConverter_::Fixed(normalisation_time) => x / normalisation_time,
+            AbscissaConverter_::Linear(normalisation_time) => x / normalisation_time,
         }
     }
 
     pub fn nucl_to_x_convertion(&self, n: isize) -> f64 {
         match &self.0 {
             AbscissaConverter_::TimeMap(time_map) => time_map.nucl_to_x_convertion(n),
-            AbscissaConverter_::Fixed(normalisation_time) => n as f64 / normalisation_time,
+            AbscissaConverter_::Linear(normalisation_time) => n as f64 / normalisation_time,
         }
     }
 
     pub fn x_conversion(&self, x: f64) -> f64 {
         match &self.0 {
             AbscissaConverter_::TimeMap(time_map) => time_map.x_conversion(x),
-            AbscissaConverter_::Fixed(normalisation_time) => x / normalisation_time,
+            AbscissaConverter_::Linear(normalisation_time) => x / normalisation_time,
         }
     }
 
@@ -209,7 +214,7 @@ impl RevolutionCurveTimeMaps {
 
         for (_, h) in helices
             .iter()
-            .filter(|(_, h)| h.get_revolution_curve_desc() == Some(curve))
+            .filter(|(_, h)| h.get_revolution_curve_descriptor() == Some(curve))
         {
             if let Some(curve) = h.instanciated_curve.as_ref() {
                 let mut positions = vec![0];
@@ -235,7 +240,7 @@ impl RevolutionCurveTimeMaps {
 
         for (h_id, h) in helices
             .iter()
-            .filter(|(_, h)| h.get_revolution_curve_desc() == Some(&curve))
+            .filter(|(_, h)| h.get_revolution_curve_descriptor() == Some(&curve))
         {
             if let Some(curve) = h.instanciated_curve.as_ref() {
                 let nucl_time = Vec::clone(curve.curve.t_nucl.as_ref());
@@ -259,7 +264,7 @@ impl RevolutionCurveTimeMaps {
         if let Some(map) = self.time_maps.get(&h_id) {
             AbscissaConverter(AbscissaConverter_::TimeMap(map.clone()))
         } else {
-            AbscissaConverter(AbscissaConverter_::Fixed(self.length_normalisation))
+            AbscissaConverter(AbscissaConverter_::Linear(self.length_normalisation))
         }
     }
 }
@@ -299,7 +304,7 @@ impl PathTimeMaps {
         if let Some(map) = self.time_maps.get(&h_id) {
             AbscissaConverter(AbscissaConverter_::TimeMap(map.clone()))
         } else {
-            AbscissaConverter(AbscissaConverter_::Fixed(self.length_normalisation))
+            AbscissaConverter(AbscissaConverter_::Linear(self.length_normalisation))
         }
     }
 }

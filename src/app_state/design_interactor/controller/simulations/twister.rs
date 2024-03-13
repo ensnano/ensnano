@@ -177,7 +177,7 @@ impl TwistState {
         if let Some(new_omega) = omega {
             for h in self.helices.values_mut() {
                 if let Some(CurveDescriptor::Twist(Twist { omega, .. })) =
-                    h.curve.as_mut().map(Arc::make_mut)
+                    h.curve_descriptor.as_mut().map(Arc::make_mut)
                 {
                     *omega = new_omega;
                     // no need to update the curve because the helices here are not used to make
@@ -274,7 +274,7 @@ impl DesignData {
     fn update_twist(&mut self, twist: f64) {
         for h in self.helices.iter_mut() {
             if let Some(CurveDescriptor::Twist(Twist { omega, .. })) =
-                h.curve.as_mut().map(Arc::make_mut)
+                h.curve_descriptor.as_mut().map(Arc::make_mut)
             {
                 *omega = ensnano_design::nb_turn_per_100_nt_to_omega(twist, &self.helix_parameters)
                     .unwrap_or(*omega);

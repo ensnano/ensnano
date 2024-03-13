@@ -20,15 +20,17 @@ use crate::{parameters, HelixParameters};
 
 use super::Curved;
 use std::f64::consts::{PI, TAU};
-use ultraviolet::{DRotor3, DVec3};
+use ultraviolet::{DRotor3, DVec3, Vec3};
+use super::circle_curve::CircleCurve;
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct TorusConcentricCircleDescriptor {
     pub radius: f64,
-    pub theta_0: f64,
-	pub nb_helices: u32,
-	pub helix_index: i32, // 0 is the equator, negative for below the equator, positive above
+	pub number_of_helices: u32, // determine the radius together with inter_helix_center_gap
+	pub helix_index: i32, // 0 is the equator, modulo nb_helices, clockwise
+    #[serde(skip_serializing_if = "Option::is_none", default)]
     pub helix_index_shift: Option<f64>, // -0.5 if you want to center the equator between the helices
+    #[serde(skip_serializing_if = "Option::is_none", default)]
     pub inter_helix_center_gap: Option<f64>, // in nm, by default 2.65nm
 }
 
@@ -39,136 +41,29 @@ fn default_number_of_helices() -> usize {
 impl TorusConcentricCircleDescriptor {
     pub(super) fn with_helix_parameters(
         self,
-        helix_parameters: HelixParameters,
-    ) -> TorusConcentricCircle {
-        let helix_index = self.helix_index as f64 + self.helix_index_shift.unwrap_or(0.);
-        let inter_helix_center_gap = self
-            .inter_helix_center_gap
-            .unwrap_or(HelixParameters::INTER_CENTER_GAP as f64);
-        let φ = PI / 2.0 - helix_index * inter_helix_center_gap as f64 / self.radius;
-        let z_radius = self.radius * φ.sin();
-        let z = self.radius * φ.cos();
-        let perimeter = TAU * z_radius;
+        helix_parameters: &HelixParameters,
+    ) -> CircleCurve {
+		let inter_helix_center_gap = self.inter_helix_center_gap.unwrap_or(helix_parameters.inter_helix_axis_gap() as f64);
+		let inter_helix_angle = TAU / (self.number_of_helices as f64);
+		let section_radius = inter_helix_center_gap / 2. / (inter_helix_angle / 2.).sin();
+		let φ = inter_helix_angle * (self.number_of_helices as f64 + self.helix_index_shift.unwrap_or(0.));
+		let circle_radius = self.radius - section_radius * φ.cos();
+		let z = section_radius * φ.sin();
+        let perimeter = TAU * circle_radius;
+		let abscissa_converter_factor = Some(circle_radius / (self.radius - section_radius));
 
-        TorusConcentricCircle {
-            _parameters: helix_parameters,
-            radius: self.radius,
-            theta_0: self.theta_0,
-            helix_index,
-            inter_helix_center_gap,
-            perimeter,
-            φ,
-            z_radius,
+		let mut circle_helix_parameters = helix_parameters.clone();
+		circle_helix_parameters.inter_helix_gap = inter_helix_center_gap as f32;
+
+		println!("outputing the curve");
+		
+		CircleCurve {
+            _parameters: circle_helix_parameters,
+            radius: circle_radius,
             z,
-            t_min: 0.,
-            t_max: 1.,
+            perimeter,
+			abscissa_converter_factor,
         }
     }
 }
 
-pub(super) struct TorusConcentricCircle {
-    pub _parameters: HelixParameters,
-    pub radius: f64,
-    pub theta_0: f64,
-    pub helix_index: f64,
-    pub inter_helix_center_gap: f64,
-    pub perimeter: f64,
-    pub φ: f64,
-    pub z_radius: f64,
-    pub z: f64,
-    pub t_min: f64,
-    pub t_max: f64,
-}
-
-impl TorusConcentricCircle {
-    fn theta(&self, t: f64) -> f64 {
-        t * TAU + self.theta_0
-    }
-
-    pub(super) fn last_theta(&self) -> f64 {
-        self.theta(1.)
-    }
-
-    pub(super) fn t_min(&self) -> f64 {
-        0.
-    }
-
-    pub(super) fn t_max(&self) -> f64 {
-        1.
-    }
-}
-
-impl Curved for TorusConcentricCircle {
-    fn position(&self, t: f64) -> DVec3 {
-        let theta = self.theta(t);
-        DVec3 {
-            x: self.z_radius * theta.cos(),
-            y: self.z_radius * theta.sin(),
-            z: self.z,
-        }
-    }
-
-    fn speed(&self, t: f64) -> DVec3 {
-        let theta = self.theta(t);
-
-        let x = -self.z_radius * TAU * theta.sin();
-
-        let y = self.z_radius * TAU * theta.cos();
-
-        let z = 0.0;
-
-        DVec3 { x, y, z }
-    }
-
-    fn acceleration(&self, t: f64) -> DVec3 {
-        let theta = self.theta(t);
-
-        let x = -self.z_radius * TAU * TAU * theta.cos();
-
-        let y = -self.z_radius * TAU * TAU * theta.sin();
-
-        let z = 0.;
-
-        DVec3 { x, y, z }
-    }
-
-    fn curvilinear_abscissa(&self, _t: f64) -> Option<f64> {
-        Some(self.z_radius * TAU * _t)
-    }
-
-    fn inverse_curvilinear_abscissa(&self, _x: f64) -> Option<f64> {
-        Some(_x / TAU / self.z_radius)
-    }
-
-    fn bounds(&self) -> super::CurveBounds {
-        super::CurveBounds::Finite
-    }
-
-    // fn subdivision_for_t(&self, t: f64) -> Option<usize> {
-    //     None
-    // }
-
-    // fn is_time_maps_singleton(&self) -> bool {
-    //     true
-    // }
-
-    fn first_theta(&self) -> Option<f64> {
-        Some(self.theta_0)
-    }
-
-    fn last_theta(&self) -> Option<f64> {
-        Some(self.last_theta())
-    }
-
-    fn full_turn_at_t(&self) -> Option<f64> {
-        Some(self.t_max())
-    }
-
-    fn t_max(&self) -> f64 {
-        self.t_max
-    }
-
-    fn t_min(&self) -> f64 {
-        self.t_min
-    }
-}

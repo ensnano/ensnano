@@ -43,6 +43,9 @@ mod time_nucl_map;
 mod torus;
 mod tube_spiral;
 mod twist;
+mod torus_concentric_circle;
+mod circle_curve;
+
 use super::GridId;
 use crate::grid::*;
 pub use bezier::InstanciatedPiecewiseBezier;
@@ -55,6 +58,8 @@ pub use bezier::{
 pub use revolution::{InterpolatedCurveDescriptor, InterpolationDescriptor};
 pub use sphere_concentric_circle::SphereConcentricCircleDescriptor;
 pub use sphere_like_spiral::{SphereLikeSpiralDescriptor, SphereOrientation};
+pub use torus_concentric_circle::TorusConcentricCircleDescriptor;
+pub use circle_curve::CircleCurve;
 pub use spiral_cylinder::SpiralCylinderDescriptor;
 use std::collections::HashMap;
 pub use supertwist::SuperTwist;
@@ -244,6 +249,11 @@ pub trait Curved {
     fn legacy(&self) -> bool {
         false
     }
+
+    fn abscissa_converter(&self) -> Option<AbscissaConverter> {
+        return None;
+    }
+
 }
 
 /// The bounds of the curve. This describe the interval in which t can be taken
@@ -308,6 +318,7 @@ impl Curve {
         geometry: T,
         helix_parameters: &HelixParameters,
     ) -> Self {
+        let abscissa_converter = geometry.abscissa_converter().clone();
         let mut ret = Self {
             geometry: Arc::new(geometry),
             positions_forward: Vec::new(),
@@ -319,7 +330,7 @@ impl Curve {
             t_nucl: Arc::new(Vec::new()),
             nucl_pos_full_turn: None,
             additional_segment_left: Vec::new(),
-            abscissa_converter: None,
+            abscissa_converter: abscissa_converter,
         };
         let len_segment = ret.geometry.rise_ratio().unwrap_or(1.0) * helix_parameters.rise as f64;
         ret.discretize(len_segment, helix_parameters.inclination as f64);
@@ -554,6 +565,7 @@ pub enum CurveDescriptor {
     SphereConcentricCircle(SphereConcentricCircleDescriptor),
     Twist(Twist),
     Torus(Torus),
+    TorusConcentricCircle(TorusConcentricCircleDescriptor),
     TwistedTorus(TwistedTorusDescriptor),
     PiecewiseBezier {
         #[serde(skip_serializing_if = "Option::is_none", default)]
@@ -734,6 +746,7 @@ impl InstanciatedCurveDescriptor {
             }
             CurveDescriptor::Twist(t) => InstanciatedCurveDescriptor_::Twist(t.clone()),
             CurveDescriptor::Torus(t) => InstanciatedCurveDescriptor_::Torus(t.clone()),
+            CurveDescriptor::TorusConcentricCircle(t) => InstanciatedCurveDescriptor_::TorusConcentricCircle(t.clone()),
             CurveDescriptor::SuperTwist(t) => InstanciatedCurveDescriptor_::SuperTwist(t.clone()),
             CurveDescriptor::TwistedTorus(t) => {
                 InstanciatedCurveDescriptor_::TwistedTorus(t.clone())
@@ -820,6 +833,7 @@ impl InstanciatedCurveDescriptor {
             }
             CurveDescriptor::Twist(t) => Some(InstanciatedCurveDescriptor_::Twist(t.clone())),
             CurveDescriptor::Torus(t) => Some(InstanciatedCurveDescriptor_::Torus(t.clone())),
+            CurveDescriptor::TorusConcentricCircle(t) => Some(InstanciatedCurveDescriptor_::TorusConcentricCircle(t.clone())),
             CurveDescriptor::SuperTwist(t) => {
                 Some(InstanciatedCurveDescriptor_::SuperTwist(t.clone()))
             }
@@ -927,6 +941,7 @@ enum InstanciatedCurveDescriptor_ {
     SpiralCylinder(SpiralCylinderDescriptor),
     Twist(Twist),
     Torus(Torus),
+    TorusConcentricCircle(TorusConcentricCircleDescriptor),
     SuperTwist(SuperTwist),
     TwistedTorus(TwistedTorusDescriptor),
     PiecewiseBezier(InstanciatedPiecewiseBezierDescriptor),
@@ -1044,6 +1059,7 @@ impl InstanciatedCurveDescriptor_ {
             )),
             Self::Twist(twist) => Arc::new(Curve::new(twist, helix_parameters)),
             Self::Torus(torus) => Arc::new(Curve::new(torus, helix_parameters)),
+            Self::TorusConcentricCircle(torus) => Arc::new(Curve::new(torus.with_helix_parameters(helix_parameters), helix_parameters)),
             Self::SuperTwist(twist) => Arc::new(Curve::new(twist, helix_parameters)),
             Self::TwistedTorus(ref desc) => {
                 if let Some(curve) = cache.0.get(desc) {
@@ -1109,6 +1125,7 @@ impl InstanciatedCurveDescriptor_ {
             ))),
             Self::Twist(twist) => Some(Arc::new(Curve::new(twist.clone(), helix_parameters))),
             Self::Torus(torus) => Some(Arc::new(Curve::new(torus.clone(), helix_parameters))),
+            Self::TorusConcentricCircle(torus) => Some(Arc::new(Curve::new(torus.clone().with_helix_parameters(helix_parameters), helix_parameters))),
             Self::SuperTwist(twist) => Some(Arc::new(Curve::new(twist.clone(), helix_parameters))),
             Self::TwistedTorus(_) => None,
             Self::PiecewiseBezier(_) => None,
@@ -1158,6 +1175,7 @@ impl InstanciatedCurveDescriptor_ {
             )),
             Self::Twist(twist) => Some(Curve::compute_length(twist.clone())),
             Self::Torus(torus) => Some(Curve::compute_length(torus.clone())),
+            Self::TorusConcentricCircle(torus) => Some(Curve::compute_length(torus.clone().with_helix_parameters(helix_parameters))),
             Self::SuperTwist(twist) => Some(Curve::compute_length(twist.clone())),
             Self::TwistedTorus(_) => None,
             Self::PiecewiseBezier(_) => None,
@@ -1205,6 +1223,7 @@ impl InstanciatedCurveDescriptor_ {
             )),
             Self::Twist(twist) => Some(Curve::path(twist.clone())),
             Self::Torus(torus) => Some(Curve::path(torus.clone())),
+            Self::TorusConcentricCircle(torus) => Some(Curve::path(torus.clone().with_helix_parameters(helix_parameters))),
             Self::SuperTwist(twist) => Some(Curve::path(twist.clone())),
             Self::TwistedTorus(_) => None,
             Self::PiecewiseBezier(_) => None,
@@ -1266,7 +1285,7 @@ impl Helix {
         grid_data: &FreeGrids,
         paths_data: &BezierPathData,
     ) -> bool {
-        if let Some(current_desc) = self.curve.as_ref() {
+        if let Some(current_desc) = self.curve_descriptor.as_ref() {
             self.instanciated_descriptor
                 .as_ref()
                 .filter(|desc| desc.is_up_to_date(current_desc, grid_data, paths_data))
@@ -1298,7 +1317,7 @@ impl Helix {
     }
 
     pub fn try_update_curve(&mut self, helix_parameters: &HelixParameters) {
-        if let Some(curve) = self.curve.as_ref() {
+        if let Some(curve) = self.curve_descriptor.as_ref() {
             if let Some(desc) = InstanciatedCurveDescriptor::try_instanciate(curve.clone()) {
                 let desc = Arc::new(desc);
                 self.instanciated_descriptor = Some(desc.clone());

@@ -219,7 +219,7 @@ pub struct Helix {
     pub roll: f32,
 
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub curve: Option<Arc<CurveDescriptor>>,
+    pub curve_descriptor: Option<Arc<CurveDescriptor>>,
 
     #[serde(default, skip)]
     pub(super) instanciated_descriptor: Option<Arc<InstanciatedCurveDescriptor>>,
@@ -278,7 +278,7 @@ impl Helix {
             visible: true,
             roll: 0f32,
             locked_for_simulations: false,
-            curve: None,
+            curve_descriptor: None,
             instanciated_curve: None,
             instanciated_descriptor: None,
             delta_bppt: 0.,
@@ -362,7 +362,7 @@ impl Helix {
             additonal_isometries: Vec::new(),
             symmetry: Vec2::one(),
             locked_for_simulations: false,
-            curve: None,
+            curve_descriptor: None,
             instanciated_curve: None,
             instanciated_descriptor: None,
             delta_bppt: 0.,
@@ -379,11 +379,11 @@ impl Helix {
             .as_ref()
             .and_then(|gp| grid_data.translate_by_edge(gp, &edge));
         let new_curve_descriptor = self
-            .curve
+            .curve_descriptor
             .as_ref()
             .and_then(|c| c.translate(edge, grid_data));
 
-        if self.curve.is_some() != new_curve_descriptor.is_some() {
+        if self.curve_descriptor.is_some() != new_curve_descriptor.is_some() {
             None
         } else {
             Some(Self {
@@ -391,7 +391,7 @@ impl Helix {
                 instanciated_descriptor: None,
                 grid_position,
                 isometry2d: None,
-                curve: new_curve_descriptor.map(Arc::new),
+                curve_descriptor: new_curve_descriptor.map(Arc::new),
                 ..self.clone()
             })
         }
@@ -411,7 +411,7 @@ impl Helix {
             visible: true,
             roll: 0f32,
             locked_for_simulations: false,
-            curve: None,
+            curve_descriptor: None,
             instanciated_curve: None,
             instanciated_descriptor: None,
             delta_bppt: 0.,
@@ -440,7 +440,7 @@ impl Helix {
             visible: true,
             roll: 0f32,
             locked_for_simulations: false,
-            curve: None,
+            curve_descriptor: None,
             instanciated_curve: None,
             instanciated_descriptor: None,
             delta_bppt: 0.,
@@ -462,7 +462,7 @@ impl Helix {
             visible: true,
             roll: 0f32,
             locked_for_simulations: false,
-            curve: Some(Arc::new(CurveDescriptor::SphereLikeSpiral(desc))),
+            curve_descriptor: Some(Arc::new(CurveDescriptor::SphereLikeSpiral(desc))),
             instanciated_curve: None,
             instanciated_descriptor: None,
             delta_bppt: 0.,
@@ -484,7 +484,7 @@ impl Helix {
             visible: true,
             roll: 0f32,
             locked_for_simulations: false,
-            curve: Some(Arc::new(CurveDescriptor::TubeSpiral(desc))),
+            curve_descriptor: Some(Arc::new(CurveDescriptor::TubeSpiral(desc))),
             instanciated_curve: None,
             instanciated_descriptor: None,
             delta_bppt: 0.,
@@ -506,7 +506,7 @@ impl Helix {
             visible: true,
             roll: 0f32,
             locked_for_simulations: false,
-            curve: Some(Arc::new(desc)),
+            curve_descriptor: Some(Arc::new(desc)),
             instanciated_curve: None,
             instanciated_descriptor: None,
             delta_bppt: 0.,
@@ -517,7 +517,7 @@ impl Helix {
     }
 
     pub fn piecewise_bezier_points(&self) -> Option<Vec<Vec3>> {
-        if let Some(CurveDescriptor::PiecewiseBezier { .. }) = self.curve.as_ref().map(Arc::as_ref)
+        if let Some(CurveDescriptor::PiecewiseBezier { .. }) = self.curve_descriptor.as_ref().map(Arc::as_ref)
         {
             Some(self.bezier_points())
         } else {
@@ -526,7 +526,7 @@ impl Helix {
     }
 
     pub fn cubic_bezier_points(&self) -> Option<Vec<Vec3>> {
-        if let Some(CurveDescriptor::Bezier(_)) = self.curve.as_ref().map(Arc::as_ref) {
+        if let Some(CurveDescriptor::Bezier(_)) = self.curve_descriptor.as_ref().map(Arc::as_ref) {
             Some(self.bezier_points())
         } else {
             None
@@ -603,7 +603,7 @@ impl Helix {
             visible: true,
             roll: 0f32,
             locked_for_simulations: false,
-            curve: Some(Arc::new(constructor)),
+            curve_descriptor: Some(Arc::new(constructor)),
             instanciated_curve: None,
             instanciated_descriptor: None,
             delta_bppt: 0.,
@@ -647,7 +647,7 @@ impl Helix {
             visible: true,
             roll: 0f32,
             locked_for_simulations: false,
-            curve,
+            curve_descriptor: curve,
             instanciated_curve: None,
             instanciated_descriptor: None,
             delta_bppt: 0.,
@@ -808,7 +808,7 @@ impl Helix {
             additonal_isometries: Vec::new(),
             symmetry: Vec2::one(),
             locked_for_simulations: false,
-            curve: None,
+            curve_descriptor: None,
             instanciated_curve: None,
             instanciated_descriptor: None,
             delta_bppt: 0.,

@@ -673,7 +673,7 @@ impl Controller {
             h.position = position + origin.x * z_vec + origin.y * y_vec;
             h.orientation =
                 orientation * hyperboloid.orientation_helix(&helix_parameters, i as isize, 0);
-            if let Some(curve) = h.curve.as_mut() {
+            if let Some(curve) = h.curve_descriptor.as_mut() {
                 mutate_in_arc(curve, |c| {
                     if let CurveDescriptor::Twist(twist) = c {
                         twist.orientation = orientation;
@@ -2771,7 +2771,7 @@ impl Controller {
                     .get_mut(&helix_id)
                     .ok_or(ErrOperation::HelixDoesNotExists(helix_id))?;
                 let desc: Option<&mut CurveDescriptor> =
-                    if let Some(desc) = helix_ref.curve.as_mut() {
+                    if let Some(desc) = helix_ref.curve_descriptor.as_mut() {
                         Some(Arc::make_mut(desc))
                     } else {
                         None

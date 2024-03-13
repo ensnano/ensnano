@@ -439,7 +439,7 @@ impl Reader3D for DesignReader {
         helix: usize,
     ) -> Option<ensnano_design::CubicBezierConstructor> {
         let helix = self.presenter.current_design.helices.get(&helix)?;
-        if let Some(CurveDescriptor::Bezier(constructor)) = helix.curve.as_ref().map(Arc::as_ref) {
+        if let Some(CurveDescriptor::Bezier(constructor)) = helix.curve_descriptor.as_ref().map(Arc::as_ref) {
             Some(constructor.clone())
         } else {
             None
@@ -453,7 +453,7 @@ impl Reader3D for DesignReader {
 
     fn get_curve_descriptor(&self, helix: usize) -> Option<&CurveDescriptor> {
         let helix = self.presenter.current_design.helices.get(&helix)?;
-        helix.curve.as_ref().map(Arc::as_ref)
+        helix.curve_descriptor.as_ref().map(Arc::as_ref)
     }
 
     fn get_bezier_planes(
@@ -565,7 +565,7 @@ impl Reader3D for DesignReader {
     fn get_bezier_grid_used_by_helix(&self, h_id: usize) -> Vec<GridId> {
         let helix = self.presenter.current_design.helices.get(&h_id);
         if let Some(CurveDescriptor::TranslatedPath { path_id, .. }) =
-            helix.and_then(|h| h.curve.as_ref().map(Arc::as_ref))
+            helix.and_then(|h| h.curve_descriptor.as_ref().map(Arc::as_ref))
         {
             if let Some(path) = self.presenter.current_design.bezier_paths.get(path_id) {
                 (0..(path.vertices().len()))
