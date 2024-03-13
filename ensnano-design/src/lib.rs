@@ -405,7 +405,7 @@ impl Design {
         {
             // For legacy reason, the version of curved design must be set to a value >= 0.5.0
             for h in self.helices.values() {
-                if h.curve_descriptor.is_some() {
+                if h.curve.is_some() {
                     self.ensnano_version = "0.5.0".to_owned();
                     break;
                 }
@@ -582,7 +582,7 @@ impl Design {
                         log::debug!("t_min {}", t_min);
                         if let Some(h_mut) = new_helices_mut.get_mut(h_id) {
                             replace |= h_mut
-                                .curve_descriptor
+                                .curve
                                 .as_mut()
                                 .map(|c| Arc::make_mut(c).set_t_min(t_min))
                                 .unwrap_or(false);
@@ -595,7 +595,7 @@ impl Design {
                         log::debug!("tmax {}", t_max);
                         if let Some(h_mut) = new_helices_mut.get_mut(h_id) {
                             replace |= h_mut
-                                .curve_descriptor
+                                .curve
                                 .as_mut()
                                 .map(|c| Arc::make_mut(c).set_t_max(t_max))
                                 .unwrap_or(false);

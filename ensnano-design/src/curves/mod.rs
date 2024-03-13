@@ -1285,7 +1285,7 @@ impl Helix {
         grid_data: &FreeGrids,
         paths_data: &BezierPathData,
     ) -> bool {
-        if let Some(current_desc) = self.curve_descriptor.as_ref() {
+        if let Some(current_desc) = self.curve.as_ref() {
             self.instanciated_descriptor
                 .as_ref()
                 .filter(|desc| desc.is_up_to_date(current_desc, grid_data, paths_data))
@@ -1317,7 +1317,7 @@ impl Helix {
     }
 
     pub fn try_update_curve(&mut self, helix_parameters: &HelixParameters) {
-        if let Some(curve) = self.curve_descriptor.as_ref() {
+        if let Some(curve) = self.curve.as_ref() {
             if let Some(desc) = InstanciatedCurveDescriptor::try_instanciate(curve.clone()) {
                 let desc = Arc::new(desc);
                 self.instanciated_descriptor = Some(desc.clone());

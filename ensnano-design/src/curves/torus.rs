@@ -785,7 +785,7 @@ impl crate::Helix {
     pub fn get_revolution_curve_descriptor(&self) -> Option<&CurveDescriptor2D> {
         if let Some(crate::CurveDescriptor::TwistedTorus(TwistedTorusDescriptor {
             curve, ..
-        })) = self.curve_descriptor.as_ref().map(Arc::as_ref)
+        })) = self.curve.as_ref().map(Arc::as_ref)
         {
             Some(curve)
         } else {

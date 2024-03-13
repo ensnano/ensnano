@@ -161,7 +161,7 @@ impl AbscissaConverter {
     pub fn x_to_nucl_conversion(&self, x: f64) -> f64 {
         match &self.0 {
             AbscissaConverter_::TimeMap(time_map) => time_map.x_to_nucl_conversion(x),
-            AbscissaConverter_::Linear(normalisation_time) => x / normalisation_time,
+            AbscissaConverter_::Linear(normalisation_time) => x * normalisation_time,
         }
     }
 

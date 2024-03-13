@@ -806,7 +806,7 @@ impl GridData {
                 object_to_pos.insert(GridObject::Helix(*h_id), grid_position);
                 pos_to_object.insert(grid_position.light(), GridObject::Helix(*h_id));
             }
-            if let Some(curve) = h.curve_descriptor.as_ref() {
+            if let Some(curve) = h.curve.as_ref() {
                 for (n, position) in curve.grid_positions_involved().enumerate() {
                     object_to_pos.insert(
                         GridObject::BezierPoint { n, helix_id: *h_id },
@@ -889,8 +889,8 @@ impl GridData {
         for h in helices_mut.values_mut() {
             if let Some(grid_position) = h.grid_position {
                 if let Some(grid) = self.grids.get(&grid_position.grid) {
-                    let t_min = h.curve_descriptor.as_ref().and_then(|c| c.t_min());
-                    let t_max = h.curve_descriptor.as_ref().and_then(|c| c.t_max());
+                    let t_min = h.curve.as_ref().and_then(|c| c.t_min());
+                    let t_max = h.curve.as_ref().and_then(|c| c.t_max());
                     let center_of_gravity = self
                         .center_of_gravity
                         .get(&grid_position.grid)
@@ -903,7 +903,7 @@ impl GridData {
                         center_of_gravity,
                     ) {
                         log::info!("setting curve");
-                        h.curve_descriptor = Some(curve)
+                        h.curve = Some(curve)
                     }
                 }
             }
@@ -1415,7 +1415,7 @@ impl CurveInstantiator for GridData {
 
 impl GridData {
     fn update_instanciated_curve_descriptor(&self, helix: &mut Helix) {
-        if let Some(curve) = helix.curve_descriptor.clone() {
+        if let Some(curve) = helix.curve.clone() {
             helix.instanciated_descriptor = Some(Arc::new(
                 InstanciatedCurveDescriptor::instanciate(curve, self),
             ))
@@ -1478,7 +1478,7 @@ impl GridData {
         match control_point.1 {
             BezierControlPoint::PiecewiseBezier(n) => {
                 let grid_id = if let Some(CurveDescriptor::PiecewiseBezier { points, .. }) =
-                    helix.curve_descriptor.as_ref().map(Arc::as_ref)
+                    helix.curve.as_ref().map(Arc::as_ref)
                 {
                     points.get(n / 2)
                 } else {

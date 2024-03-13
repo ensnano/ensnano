@@ -46,17 +46,15 @@ impl TorusConcentricCircleDescriptor {
 		let inter_helix_center_gap = self.inter_helix_center_gap.unwrap_or(helix_parameters.inter_helix_axis_gap() as f64);
 		let inter_helix_angle = TAU / (self.number_of_helices as f64);
 		let section_radius = inter_helix_center_gap / 2. / (inter_helix_angle / 2.).sin();
-		let φ = inter_helix_angle * (self.number_of_helices as f64 + self.helix_index_shift.unwrap_or(0.));
+		let φ = inter_helix_angle * (self.helix_index as f64 + self.helix_index_shift.unwrap_or(0.));
 		let circle_radius = self.radius - section_radius * φ.cos();
 		let z = section_radius * φ.sin();
         let perimeter = TAU * circle_radius;
-		let abscissa_converter_factor = Some(circle_radius / (self.radius - section_radius));
+		let abscissa_converter_factor = Some(circle_radius / (self.radius + section_radius)); // better <= 1 
 
 		let mut circle_helix_parameters = helix_parameters.clone();
 		circle_helix_parameters.inter_helix_gap = inter_helix_center_gap as f32;
 
-		println!("outputing the curve");
-		
 		CircleCurve {
             _parameters: circle_helix_parameters,
             radius: circle_radius,
