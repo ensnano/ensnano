@@ -248,6 +248,7 @@ impl<S: AppState> ContextualPanel<S> {
             .get_selection()
             .get(0)
             .unwrap_or(&Selection::Nothing);
+
         let nb_selected = app_state
             .get_selection()
             .iter()

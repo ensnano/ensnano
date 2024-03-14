@@ -120,7 +120,7 @@ impl SequenceTab {
                 };
                 let mut length_text = text(length_text);
                 if app_state.get_scaffold_info().is_none() {
-                    length_text = length_text.style(iced::theme::Text::Color(innactive_color()))
+                    length_text = length_text.style(crate::theme::disabled_text())
                 }
                 iced_native::column![text(scaffold_text).size(ui_size.main_text()), length_text,]
             },
@@ -183,7 +183,7 @@ impl SequenceTab {
                 };
                 let mut nucl_text = text(nucl_text).size(ui_size.main_text());
                 if starting_nucl.is_none() {
-                    nucl_text = nucl_text.style(iced::theme::Text::Color(innactive_color()))
+                    nucl_text = nucl_text.style(crate::theme::disabled_text())
                 }
                 nucl_text
             },
