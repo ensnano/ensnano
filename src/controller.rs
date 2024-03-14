@@ -52,13 +52,13 @@ use dialog::MustAckMessage;
 use std::borrow::Cow;
 
 pub struct Controller {
+    /// The sate of the windows
     state: Box<dyn State + 'static>,
 }
 
 impl Controller {
     pub fn new() -> Self {
         Self {
-            /// The sate of the windows
             state: Box::new(NormalState),
         }
     }

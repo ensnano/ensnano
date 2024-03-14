@@ -25,7 +25,7 @@ pub struct ColorPicker {
     hsv_value: f64,
 }
 
-pub use color_square::{ColorSquare, ColorSquareState as ColorState};
+pub use color_square::ColorSquare;
 use hue_column::HueColumn;
 use light_sat_square::LightSatSquare;
 

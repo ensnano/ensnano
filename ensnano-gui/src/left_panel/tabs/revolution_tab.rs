@@ -18,6 +18,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use crate::helpers::*;
 use crate::left_panel::Message;
+use crate::theme;
 use crate::{AppState, SimulationState, UiSize};
 use ensnano_design::{
     ultraviolet::{self, Rotor3, Vec3},
@@ -28,7 +29,7 @@ use ensnano_interactor::{
     RevolutionSurfaceSystemDescriptor, RootingParameters, ShiftGenerator,
     UnrootedRevolutionSurfaceDescriptor,
 };
-use iced::{theme, Element, Length};
+use iced::{Element, Length};
 use iced_native::widget;
 use iced_native::widget::helpers::*;
 use iced_native::{alignment::Alignment, column, row};
@@ -152,7 +153,7 @@ impl ParameterWidget {
     }
 
     fn input_view<S: AppState>(&self, id: RevolutionParameterId) -> Element<Message<S>> {
-        let style = crate::theme::BadValue(self.contains_valid_input());
+        let style = theme::BadValue(self.contains_valid_input());
         text_input("", &self.current_text)
             .on_input(move |s| Message::RevolutionParameterUpdate {
                 parameter_id: id,
