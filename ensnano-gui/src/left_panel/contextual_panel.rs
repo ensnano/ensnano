@@ -265,6 +265,9 @@ impl<S: AppState> ContextualPanel<S> {
             .and_then(|id| app_state.get_reader().xover_length(id));
 
         let info_values = values_of_selection(selection, app_state.get_reader().as_ref());
+
+        // NOTE: The brancing below determines what is viewed in the contextual panel.
+        //
         let mut content: iced::widget::Column<Message<S>> = if self.show_tutorial {
             let link = "http://ens-lyon.fr/ensnano";
             column![
@@ -286,19 +289,13 @@ impl<S: AppState> ContextualPanel<S> {
         } else if *selection == Selection::Nothing && xover_len.is_none() {
             turn_into_help_column(ui_size)
         } else if nb_selected > 1 {
-            column![
-                row![
-                    horizontal_space(Length::FillPortion(1)),
-                    column![text_button("Help", ui_size).on_press(Message::ForceHelp),]
-                        .width(Length::FillPortion(1)),
-                    horizontal_space(Length::FillPortion(1)),
-                ],
-                text(format!("{} objects selected", nb_selected)),
-            ]
-            .width(Length::Fill)
-            .align_items(iced::Alignment::Center)
+            // NOTE: When the number of objects selectet is greater than one,
+            //       we only print the number of object selected.
+            column![text(format!("{} objects selected", nb_selected)),]
+                .width(Length::Fill)
+                .align_items(iced::Alignment::Center)
         } else {
-            // Print information about selection.
+            // NOTE: Print information about selection.
             let mut column = widget::Column::new();
             column = column.push(
                 row![
@@ -376,6 +373,7 @@ impl<S: AppState> ContextualPanel<S> {
         }
 
         scrollable(content.max_width((self.width - 2) as u16)).into()
+        // NOTE: I don't really understand why there is a “- 2” here.
     }
 
     pub fn selection_value_changed<R: Requests>(
