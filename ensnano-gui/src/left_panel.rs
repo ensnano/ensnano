@@ -199,6 +199,7 @@ pub enum Message<S: AppState> {
         cyclic: bool,
     },
     Export(ExportType),
+    StlExport,
     CurveBuilderPicked(CurveDescriptorBuilder<S>),
     RevolutionEquadiffSolvingMethodPicked(EquadiffSolvingMethod),
     RevolutionParameterUpdate {
@@ -880,9 +881,8 @@ where
                     .unwrap()
                     .make_bezier_path_cyclic(path_id, cyclic);
             }
-            Message::Export(export_type) => {
-                self.requests.lock().unwrap().export(export_type);
-            }
+            Message::Export(export_type) => self.requests.lock().unwrap().export(export_type),
+
             Message::CancelExport => {
                 self.requests.lock().unwrap().set_exporting(false);
             }
@@ -945,6 +945,9 @@ where
                 .unwrap()
                 .finish_revolutiion_relaxation(),
             Message::LoadSvgFile => self.requests.lock().unwrap().load_svg(),
+            Message::StlExport => {
+                self.requests.lock().unwrap().request_stl_export();
+            }
             Message::ScreenShot2D => {
                 self.requests.lock().unwrap().request_screenshot_2d();
             }

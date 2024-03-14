@@ -741,6 +741,7 @@ impl<S: AppState> Application for FlatScene<S> {
                 self.export_png(&png_name, Globals::default(resolution));
             }
             Notification::ScreenShot3D => (),
+            Notification::StlExport => (),
         }
     }
 

@@ -7,6 +7,7 @@ layout(location=0) out vec4 v_color;
 layout(location=1) out vec3 v_normal;
 layout(location=2) out vec3 v_position;
 layout(location=3) out vec4 v_id;
+flat layout(location=4) out uint v_discard_fake; 
 
 
 layout(std140, set=0, binding=0)
@@ -92,6 +93,12 @@ void main() {
     // vec4 model_space = model_matrix * vec4(pos, 1.0); 
 
     vec4 model_space = model_matrix * vec4(a_position * scale, 1.0); 
+
+    if (instances[gl_InstanceIndex].mesh == 4 && v_color.w < 0.6) {
+        v_discard_fake = 1;
+    } else {
+        v_discard_fake = 0;
+    }
 
     /* if (scale.y < 0.8) {
         float dist = length(u_camera_position - model_space.xyz);

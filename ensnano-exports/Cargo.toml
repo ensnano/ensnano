@@ -6,7 +6,9 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+ensnano_interactor = { path = "../ensnano-interactor" }
 ensnano_design = { path = "../ensnano-design" }
+ensnano_scene = { path = "../ensnano-scene" }
 ensnano_utils = { path = "../ensnano-utils" }
 ahash = "0.8.6" # "0.6.2"
 rand = "0.8.3"

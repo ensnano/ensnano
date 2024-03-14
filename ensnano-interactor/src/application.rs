@@ -108,6 +108,7 @@ pub enum Notification {
     HorizonAligned,
     ScreenShot2D,
     ScreenShot3D,
+    StlExport,
 }
 
 #[derive(PartialEq, Debug, Clone, Copy)]

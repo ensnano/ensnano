@@ -30,8 +30,8 @@ use std::iter::zip;
 #[repr(C)]
 #[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct DnaVertex {
-    position: [f32; 3],
-    normal: [f32; 3],
+    pub position: [f32; 3],
+    pub normal: [f32; 3],
 }
 
 pub trait DnaObject:
@@ -168,7 +168,7 @@ impl Instanciable for SphereInstance {
             scale: Vec3::new(self.radius, self.radius, self.radius),
             id: self.id,
             inversed_model: model.inversed(),
-            mesh: super::Mesh::Sphere.to_u32(),
+            mesh: super::Mesh::Sphere as u32,
             prev: Vec3::zero(),
             next: Vec3::zero(),
             _padding: Default::default(),
@@ -278,7 +278,7 @@ impl Instanciable for StereographicSphereAndPlane {
             scale,
             id: 0,
             inversed_model: model.inversed(),
-            mesh: super::Mesh::StereographicSphere.to_u32(),
+            mesh: super::Mesh::StereographicSphere as u32,
             prev: Vec3::zero(),
             next: Vec3::zero(),
             _padding: Default::default(),
@@ -360,7 +360,7 @@ impl Instanciable for TubeInstance {
             scale: Vec3::new(self.length, self.radius, self.radius), // scale.x is the length of the tube
             id: self.id,
             inversed_model: model.inversed(),
-            mesh: super::Mesh::Tube.to_u32(),
+            mesh: super::Mesh::Tube as u32,
             prev: Vec3::zero(),
             next: Vec3::zero(),
             _padding: Default::default(),
@@ -411,7 +411,7 @@ impl Instanciable for TubeLidInstance {
 
     fn indices() -> Vec<u16> {
         (0..NB_RAY_TUBE)
-            .map(|i| [0, i as u16 + 1, i as u16 + 2])
+            .map(|i| [0, i as u16 + 2, i as u16 + 1])
             .flatten()
             .collect()
     }
@@ -449,7 +449,7 @@ impl Instanciable for TubeLidInstance {
             scale: Vec3::new(1.0, self.radius, self.radius),
             id: self.id,
             inversed_model: model.inversed(),
-            mesh: super::Mesh::TubeLid.to_u32(),
+            mesh: super::Mesh::TubeLid as u32,
             prev: Vec3::zero(),
             next: Vec3::zero(),
             _padding: Default::default(),
@@ -542,9 +542,8 @@ impl Instanciable for SlicedTubeInstance {
     }
 
     fn fake_fragment_module(device: &wgpu::Device) -> Option<wgpu::ShaderModule> {
-        // Helix tube are not selectable
-        None
-        // Some(device.create_shader_module(&wgpu::include_spirv!("dna_obj_fake.frag.spv")))
+        // note that currently fake sliced tube points to faketube... to be changed
+        Some(device.create_shader_module(wgpu::include_spirv!("dna_obj_fake.frag.spv")))
     }
 
     fn outline_vertex_module(device: &wgpu::Device) -> Option<wgpu::ShaderModule> {
@@ -565,7 +564,7 @@ impl Instanciable for SlicedTubeInstance {
             scale: Vec3::new(self.length, self.radius, self.radius),
             id: self.id,
             inversed_model: model.inversed(),
-            mesh: super::Mesh::SlicedTube.to_u32(),
+            mesh: super::Mesh::SlicedTube as u32,
             prev: self.prev,
             next: self.next,
             _padding: Default::default(),
@@ -591,7 +590,7 @@ impl Instanciable for ConeInstance {
     type Ressource = ();
 
     fn vertices() -> Vec<DnaVertex> {
-        let radius = 1. / 2.;
+        let radius = 1.;
         let mut ret: Vec<DnaVertex> = (0..(2 * NB_RAY_TUBE))
             .map(|i| {
                 let point = i / 2 + i % 2;
@@ -615,7 +614,7 @@ impl Instanciable for ConeInstance {
             let height = if i % 2 == 0 { radius } else { 0. };
             let theta = (point as f32) * 2. * PI / NB_RAY_TUBE as f32;
             let position = [0., theta.sin() * height, theta.cos() * height];
-            let normal = [0., 0., 0.];
+            let normal = [1., 0., 0.];
             ret.push(DnaVertex { position, normal });
         }
 
@@ -630,8 +629,8 @@ impl Instanciable for ConeInstance {
             ret.push((2 * i + 1) % nb_point);
             ret.push((2 * i + 2) % nb_point);
             ret.push((2 * i) % nb_point + nb_point);
-            ret.push((2 * i + 1) % nb_point + nb_point);
             ret.push((2 * i + 2) % nb_point + nb_point);
+            ret.push((2 * i + 1) % nb_point + nb_point);
         }
         ret
     }
@@ -669,7 +668,7 @@ impl Instanciable for ConeInstance {
             scale: Vec3::new(self.length, self.radius, self.radius),
             id: self.id,
             inversed_model: model.inversed(),
-            mesh: super::Mesh::Prime3Cone.to_u32(),
+            mesh: super::Mesh::Prime3Cone as u32,
             prev: Vec3::zero(),
             next: Vec3::zero(),
             _padding: Default::default(),

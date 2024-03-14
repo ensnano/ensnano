@@ -182,8 +182,11 @@ impl MeshGenerator for UnrootedRevolutionSurfaceDescriptor {
                                 self.curve.normal_of_surface(&surface_point),
                             ));
 
-                            let vertex_color =
-                                ensnano_utils::hsv_color(revolution_angle.to_degrees(), 0.7, 0.7);
+                            let vertex_color = ensnano_utils::colors::hsv_color(
+                                revolution_angle.to_degrees(),
+                                0.7,
+                                0.7,
+                            );
                             let color =
                                 ensnano_utils::instance::Instance::color_from_u32(vertex_color);
 

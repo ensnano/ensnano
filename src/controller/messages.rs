@@ -109,6 +109,8 @@ pub const ORIGAMI_FLTER: Filters = &[("Origami files", &[crate::consts::ORIGAMI_
 pub const PDB_FILTER: Filters = &[("Pdb files", &["pdb"])];
 pub const CADNANO_FILTER: Filters = &[("Cadnano files", &["json"])];
 
+pub const STL_FILTER: Filters = &[("Stl files", &["stl"])];
+
 pub const OBJECT3D_FILTERS: Filters = &[
     ("All supported files", &["gltf", "stl"]),
     ("Stl files", &["stl"]),

@@ -283,6 +283,17 @@ impl CameraShortcutPanel {
                         .spacing(ui_size.button_pad()),
                     ]
                     .align_items(Alignment::Center),
+                    horizontal_space(2.0 * ui_size.button_pad()),
+                    // add_stl_export_button!
+                    column![
+                        extra_jump(),
+                        column![text_button("STL", ui_size)
+                            .width(2.0 * ui_size.button())
+                            .height(ui_size.button())
+                            .on_press(Message::StlExport),]
+                        .spacing(ui_size.button_pad()),
+                    ]
+                    .align_items(Alignment::End),
                     horizontal_space(ui_size.button_pad()),
                 ]
                 .align_items(Alignment::Center),

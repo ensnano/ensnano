@@ -34,7 +34,7 @@ use std::sync::Arc;
 
 use ensnano_design::grid::GridObject;
 use ensnano_design::{BezierVertexId, Collection};
-use ensnano_interactor::graphics::HBondDisplay;
+use ensnano_interactor::graphics::{HBondDisplay, LoopoutNucl};
 use ultraviolet::{Rotor3, Vec3};
 
 use super::view::Mesh;
@@ -1309,6 +1309,36 @@ impl<R: DesignReader> Data<R> {
         self.candidate_element = None;
     }
 
+    pub fn get_all_raw_instances<S: AppState>(&self, app_state: &S) -> Vec<RawDnaInstance> {
+        let mut instances = vec![];
+        let show_insertion_representents = app_state.show_insertion_representents();
+        for design in self.designs.iter() {
+            for sphere in design.get_spheres_raw(show_insertion_representents).iter() {
+                instances.push(*sphere);
+            }
+            for tube in design.get_tubes_raw(show_insertion_representents).iter() {
+                instances.push(*tube);
+            }
+            for cone in design.get_cones_raw(show_insertion_representents) {
+                instances.push(cone);
+            }
+            if app_state.get_draw_options().h_bonds != HBondDisplay::No {
+                for h_bond in design.get_all_h_bonds().full_h_bonds {
+                    instances.push(h_bond);
+                }
+                for h_bond in design.get_all_h_bonds().partial_h_bonds {
+                    instances.push(h_bond); // not sure if needed
+                }
+                if app_state.get_draw_options().h_bonds == HBondDisplay::Ellipsoid {
+                    for h_bond in design.get_all_h_bonds().ellipsoids {
+                        instances.push(h_bond); // not sure if needed
+                    }
+                }
+            }
+        }
+        instances
+    }
+
     /// Notify the view that the instances of candidates have changed
     fn update_candidate<S: AppState>(&mut self, candidates: &[Selection], app_state: &S) {
         self.view.borrow_mut().update(ViewUpdate::RawDna(
@@ -1440,9 +1470,9 @@ impl<R: DesignReader> Data<R> {
                 .get_tubes_raw(app_state.show_insertion_representents())
                 .iter()
             {
-                if tube.mesh == Mesh::TubeLid.to_u32() {
+                if tube.mesh == Mesh::TubeLid as u32 {
                     tube_lids.push(*tube);
-                } else if tube.mesh == Mesh::SlicedTube.to_u32() {
+                } else if tube.mesh == Mesh::SlicedTube as u32 {
                     sliced_tubes.push(*tube);
                 } else {
                     tubes.push(*tube);
@@ -1516,7 +1546,7 @@ impl<R: DesignReader> Data<R> {
         self.view
             .borrow_mut()
             .update(ViewUpdate::RawDna(Mesh::Prime3Cone, Rc::new(cones)));
-        let bonds = self.designs[0].get_all_hbond();
+        let bonds = self.designs[0].get_all_h_bonds();
         if app_state.get_draw_options().h_bonds == HBondDisplay::Ellipsoid {
             self.view.borrow_mut().update(ViewUpdate::RawDna(
                 Mesh::HBond,
@@ -1985,6 +2015,10 @@ impl<R: DesignReader> Data<R> {
         self.designs
             .get(0)
             .and_then(|d| d.get_surface_info_nucl(nucl))
+    }
+
+    pub fn get_stl_information(&self) -> Vec<bool> {
+        vec![]
     }
 }
 

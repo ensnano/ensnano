@@ -21,7 +21,7 @@ use ensnano_interactor::consts::NB_RAY_TUBE;
 pub use ensnano_interactor::graphics::FogParameters;
 
 #[repr(C)] // We need this for Rust to store our data correctly for the shaders
-#[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)] // This is so we can store this in a buffer
+#[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable, Default)] // This is so we can store this in a buffer
 /// Hold informations relative to camera: The camera position and the Projection,
 /// and View matrices.
 pub struct Uniforms {
@@ -40,7 +40,10 @@ pub struct Uniforms {
     pub aspect_ratio: f32,        // 1
     pub stereography_zoom: f32,   // 2
     pub nb_ray_tube: u32,         // 3
-    pub _padding: [f32; 1],
+    pub is_cut: u32,              // 0
+    pub cut_normal: Vec3,         // 3
+    pub cut_value: f32,           // 0
+    pub _padding: [f32; 4],
 }
 
 #[derive(Clone, Debug)]
@@ -101,6 +104,9 @@ impl Uniforms {
             aspect_ratio: projection.borrow().get_ratio(),
             stereography_zoom: projection.borrow().stereographic_zoom,
             nb_ray_tube: NB_RAY_TUBE as u32,
+            is_cut: 0,
+            cut_normal: Vec3::zero(),
+            cut_value: 0.,
             _padding: Default::default(),
         }
     }
@@ -137,6 +143,9 @@ impl Uniforms {
             aspect_ratio: projection.borrow().get_ratio(),
             stereography_zoom: projection.borrow().stereographic_zoom,
             nb_ray_tube: NB_RAY_TUBE as u32,
+            is_cut: 0,
+            cut_normal: Vec3::zero(),
+            cut_value: 0.,
             _padding: Default::default(),
         }
     }

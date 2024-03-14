@@ -54,3 +54,5 @@ chebyshev_polynomials = { git = "https://github.com/thenlevy/chebyshev_polynomia
 quadrature = "0.1.2"
 svg = "0.12.0"
 rayon = "1.6.0"
+strum = "0.26"
+strum_macros = "0.26"

@@ -16,6 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use ensnano_design::{grid::HelixGridPosition, ultraviolet, BezierVertexId};
+use ensnano_interactor::graphics::LoopoutBond;
 use ensnano_interactor::{
     graphics::RenderingMode, NewBezierTangentVector, UnrootedRevolutionSurfaceDescriptor,
 };
@@ -29,6 +30,7 @@ use ultraviolet::{Mat4, Rotor3, Vec3};
 
 use camera::FiniteVec3;
 use ensnano_design::{grid::GridPosition, group_attributes::GroupPivot, Nucl};
+use ensnano_interactor::graphics::LoopoutNucl;
 use ensnano_interactor::{
     application::{AppId, Application, Camera3D, Notification},
     graphics::DrawArea,
@@ -42,10 +44,12 @@ use wgpu::{Device, Queue};
 use winit::dpi::PhysicalPosition;
 use winit::event::WindowEvent;
 
+mod stl;
+
 /// Computation of the view and projection matrix.
 mod camera;
 /// Display of the scene
-mod view;
+pub mod view;
 pub use view::{DrawOptions, FogParameters, GridInstance};
 use view::{
     DrawType, HandleDir, HandleOrientation, HandlesDescriptor, LetterInstance,
@@ -70,6 +74,8 @@ use std::convert::TryInto;
 
 // Rotor utils: safe rotor between
 mod rotor_utils;
+
+mod sausage_rosary;
 
 const PNG_SIZE: u32 = 256 * 10;
 
@@ -116,7 +122,7 @@ impl<S: AppState> Scene<S> {
         area: DrawArea,
         requests: Arc<Mutex<R>>,
         encoder: &mut wgpu::CommandEncoder,
-        inital_state: S,
+        initial_state: S,
         scene_kind: SceneKind,
     ) -> Self {
         let update = SceneUpdate::default();
@@ -128,7 +134,7 @@ impl<S: AppState> Scene<S> {
             encoder,
         )));
         let data: DataPtr<S::DesignReader> = Rc::new(RefCell::new(Data::new(
-            inital_state.get_design_reader(),
+            initial_state.get_design_reader(),
             view.clone(),
         )));
         let controller: Controller<S> =
@@ -148,7 +154,7 @@ impl<S: AppState> Scene<S> {
             area,
             requests,
             element_selector,
-            older_state: inital_state,
+            older_state: initial_state,
             scene_kind,
             current_camera: Arc::new((
                 Default::default(),
@@ -1112,6 +1118,19 @@ impl<S: AppState> Scene<S> {
         }
         png_writer.finish().unwrap();
     }
+
+    fn export_stl(&self, app_state: &S) {
+        use chrono::Utc;
+        let file_name = Utc::now()
+            .format("export_stl_%Y_%m_%d_%H_%M_%S.stl")
+            .to_string();
+        println!("STL export to {file_name}");
+        let raw_instances = self.data.borrow().get_all_raw_instances(app_state);
+        let stl_bytes = stl::stl_bytes_export(raw_instances).unwrap();
+        let mut out_file = std::fs::File::create(file_name).unwrap();
+        use std::io::Write;
+        out_file.write_all(&stl_bytes);
+    }
 }
 
 /// A structure that stores the element that needs to be updated in a scene
@@ -1258,6 +1277,11 @@ impl<S: AppState> Application for Scene<S> {
             Notification::ScreenShot3D => {
                 if !self.is_stereographic() {
                     self.export_png();
+                }
+            }
+            Notification::StlExport => {
+                if !self.is_stereographic() {
+                    self.export_stl(&self.older_state);
                 }
             }
         }
