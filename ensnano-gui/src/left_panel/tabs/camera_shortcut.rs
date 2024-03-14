@@ -226,10 +226,9 @@ impl CameraShortcutPanel {
 
         let content = column![
             column![
-                section("Camera", ui_size)
-                    .width(Length::Fill)
-                    .horizontal_alignment(alignment::Horizontal::Center),
+                section("Camera", ui_size),
                 row![
+                    horizontal_space(ui_size.button_pad()),
                     // add_target_buttons!
                     column![
                         subsection("Fixed", ui_size)
@@ -255,8 +254,8 @@ impl CameraShortcutPanel {
                         ]
                         .spacing(ui_size.button_pad()),
                     ]
-                    .align_items(Alignment::Center)
-                    .width(Length::FillPortion(6)),
+                    .align_items(Alignment::Center),
+                    horizontal_space(2.0 * ui_size.button_pad()),
                     // add_rotate_buttons!
                     column![
                         subsection("Rotation", ui_size)
@@ -266,23 +265,29 @@ impl CameraShortcutPanel {
                         rotate_buttons,
                         // Idem.
                     ]
-                    .align_items(Alignment::Center)
-                    .width(Length::FillPortion(3)),
+                    .align_items(Alignment::Center),
+                    horizontal_space(2.0 * ui_size.button_pad()),
                     // add_screenshot_button!
                     column![
                         material_icons_light::dark_icon(LightIcon::PhotoCamera, ui_size)
                             .height(ui_size.button()),
                         extra_jump(),
                         column![
-                            text_button("2D", ui_size).on_press(Message::ScreenShot2D),
-                            text_button("3D", ui_size).on_press(Message::ScreenShot3D),
+                            text_button("2D", ui_size)
+                                .height(ui_size.button())
+                                .on_press(Message::ScreenShot2D),
+                            text_button("3D", ui_size)
+                                .height(ui_size.button())
+                                .on_press(Message::ScreenShot3D),
                         ]
                         .spacing(ui_size.button_pad()),
                     ]
-                    .align_items(Alignment::Center)
-                    .width(Length::FillPortion(1)),
-                ],
-            ],
+                    .align_items(Alignment::Center),
+                    horizontal_space(ui_size.button_pad()),
+                ]
+                .align_items(Alignment::Center),
+            ]
+            .align_items(Alignment::Center),
             column![
                 // add_custom_camera_row!
                 row![
@@ -302,6 +307,7 @@ impl CameraShortcutPanel {
             .align_items(Alignment::Center)
             .width(Length::Fill),
         ]
+        .align_items(Alignment::Center)
         .spacing(20.0);
 
         scrollable(content).into()

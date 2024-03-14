@@ -556,28 +556,54 @@ fn add_help_to_column<'a, S: AppState>(
     help: Vec<(String, String)>,
     ui_size: UiSize,
 ) -> iced::Element<'a, Message<S>> {
-    let mut content = widget::Column::new();
-    content = content.push(text(help_title).size(ui_size.intermediate_text()));
-    for (l, r) in help {
-        if l.is_empty() {
-            content = content.push(horizontal_space(10));
-        } else if r.is_empty() {
-            content = content.push(
-                text(l)
-                    .width(Length::Fill)
-                    .horizontal_alignment(iced::alignment::Horizontal::Center),
-            );
-        } else {
-            content = content.push(iced_native::row![
-                text(l)
-                    .width(Length::FillPortion(5))
-                    .horizontal_alignment(iced::alignment::Horizontal::Right),
-                horizontal_space(Length::FillPortion(1)),
-                text(r).width(Length::FillPortion(5)),
-            ]);
-        }
-    }
-    content.into()
+    column![
+        subsection(help_title, ui_size),
+        column(
+            help.iter()
+                .map(|(l, r)| {
+                    if l.is_empty() {
+                        row![horizontal_space(10)]
+                    } else if r.is_empty() {
+                        row![text(l)
+                            .width(Length::Fill)
+                            .horizontal_alignment(alignment::Horizontal::Center)]
+                    } else {
+                        row![
+                            text(l)
+                                .width(Length::FillPortion(5))
+                                .horizontal_alignment(alignment::Horizontal::Right),
+                            horizontal_space(Length::FillPortion(1)),
+                            text(r).width(Length::FillPortion(5)),
+                        ]
+                    }
+                    .into()
+                })
+                .collect()
+        ),
+    ]
+    .into()
+    //let mut content = widget::Column::new();
+    //content = content.push(text(help_title).size(ui_size.intermediate_text()));
+    //for (l, r) in help {
+    //    if l.is_empty() {
+    //        content = content.push(horizontal_space(10));
+    //    } else if r.is_empty() {
+    //        content = content.push(
+    //            text(l)
+    //                .width(Length::Fill)
+    //                .horizontal_alignment(alignment::Horizontal::Center),
+    //        );
+    //    } else {
+    //        content = content.push(row![
+    //            text(l)
+    //                .width(Length::FillPortion(5))
+    //                .horizontal_alignment(alignment::Horizontal::Right),
+    //            horizontal_space(Length::FillPortion(1)),
+    //            text(r).width(Length::FillPortion(5)),
+    //        ]);
+    //    }
+    //}
+    //content.into()
 }
 
 fn turn_into_help_column<'a, S: AppState>(ui_size: UiSize) -> iced::widget::Column<'a, Message<S>> {
