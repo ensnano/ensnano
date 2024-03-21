@@ -1,7 +1,7 @@
 //! Customize the theme of ENSnano
 use iced::theme;
-use iced::widget::{button, container};
-use iced::Color;
+use iced::widget::{button, container, pick_list};
+use iced::{border::Radius, Background, Border, Color, Shadow, Vector};
 
 #[derive(Debug, Clone, Copy)]
 struct ColorGradient {
@@ -68,7 +68,7 @@ impl ColorGradient {
 }
 
 /// “Parent” theme
-pub struct Theme {
+pub struct OrganizerTheme {
     gradient: ColorGradient,
     text_color: Color,
     border_color: Color,
@@ -77,7 +77,7 @@ pub struct Theme {
 
 /// “Level” theme
 #[derive(Debug, Copy, Clone)]
-pub(super) struct ThemeLevel {
+pub(super) struct OrganizerThemeLevel {
     gradient: ColorGradient,
     text_color: Color,
     border_color: Color,
@@ -86,7 +86,7 @@ pub(super) struct ThemeLevel {
 }
 
 /// “Selection” theme
-pub(super) struct ThemeSelection {
+pub(super) struct OrganizerThemeSelection {
     selected: bool,
     text_color: Color,
     selected_color: Color,
@@ -94,89 +94,113 @@ pub(super) struct ThemeSelection {
 }
 
 /// Implements the [Button](button::Button) style sheet for [ThemeSelection]
-impl button::StyleSheet for ThemeSelection {
+impl button::StyleSheet for OrganizerThemeSelection {
     type Style = ();
     //type Style = iced_style::theme::Button;
     // I think the good way to do it is to implement a custom Style.
 
     fn active(&self, _style: &Self::Style) -> button::Appearance {
-        let border_width = if self.selected { 4. } else { 0. };
-        let text_color = if self.selected {
-            self.selected_color
-        } else {
-            self.text_color
-        };
         button::Appearance {
-            shadow_offset: iced::Vector::new(0., 0.),
+            shadow_offset: Vector::new(0., 0.),
             background: None,
-            border_radius: 0.,
-            border_width,
-            border_color: self.border_color,
-            text_color,
+            text_color: if self.selected {
+                self.selected_color
+            } else {
+                self.text_color
+            },
+            border: Border {
+                color: self.border_color,
+                width: if self.selected { 4. } else { 0. },
+                radius: Radius::from(0),
+            },
+            shadow: Shadow {
+                color: self.border_color,
+                offset: Vector::new(0., 0.),
+                blur_radius: 0.,
+            },
+            // TODO: Check on these values.
         }
     }
     fn hovered(&self, style: &Self::Style) -> button::Appearance {
         button::Appearance {
-            border_width: self.active(style).border_width + 1.,
+            border: Border {
+                width: self.active(style).border.width + 1.,
+                ..self.active(style).border
+            },
             ..self.active(style)
         }
     }
 
     fn pressed(&self, style: &Self::Style) -> button::Appearance {
         button::Appearance {
-            border_width: self.active(style).border_width + 1.,
+            border: Border {
+                width: self.active(style).border.width + 1.,
+                ..self.active(style).border
+            },
             ..self.active(style)
         }
     }
 }
 
-impl From<ThemeSelection> for theme::Button {
-    fn from(_: ThemeSelection) -> Self {
+impl From<OrganizerThemeSelection> for theme::Button {
+    fn from(_: OrganizerThemeSelection) -> Self {
         Default::default()
     }
 }
 
 /// Implements the [Button](button::Button) style sheet for [ThemeLevel]
-impl button::StyleSheet for ThemeLevel {
+impl button::StyleSheet for OrganizerThemeLevel {
     type Style = ();
     //type Style = iced_style::theme::Button;
     // I think the good way to do it is to implement a custom Style.
 
     fn active(&self, _style: &Self::Style) -> button::Appearance {
-        let border_width = if self.selected { 4. } else { 0. };
         button::Appearance {
             shadow_offset: iced::Vector::new(0., 0.),
             background: None,
-            border_radius: 0.,
-            border_width,
-            border_color: self.border_color,
             text_color: self.text_color,
+            border: Border {
+                color: self.border_color,
+                width: if self.selected { 4. } else { 0. },
+                radius: Radius::from(0),
+            },
+            shadow: Shadow {
+                color: self.border_color,
+                offset: Vector::new(0., 0.),
+                blur_radius: 0.,
+            },
+            // TODO: Check on these values.
         }
     }
     fn hovered(&self, style: &Self::Style) -> button::Appearance {
-        let border_width = if self.selected { 5. } else { 1. };
         button::Appearance {
-            border_width,
+            border: Border {
+                width: if self.selected { 5. } else { 1. },
+                ..self.active(style).border
+            },
             ..self.active(style)
         }
     }
 
     fn pressed(&self, style: &Self::Style) -> button::Appearance {
         button::Appearance {
-            border_width: 1.,
+            border: Border {
+                width: 1.,
+                ..self.active(style).border
+            },
             ..self.active(style)
         }
     }
 }
 
-impl From<ThemeLevel> for theme::Button {
-    fn from(_: ThemeLevel) -> Self {
+impl From<OrganizerThemeLevel> for theme::Button {
+    fn from(_: OrganizerThemeLevel) -> Self {
         Default::default()
     }
 }
 
 /// Implements the [Container](container::Container) style sheet for [ThemeLevel]
-impl container::StyleSheet for ThemeLevel {
+impl container::StyleSheet for OrganizerThemeLevel {
     type Style = ();
     //type Style = iced_style::theme::Container;
     // I think the good way to do it is to implement a custom Style.
@@ -191,15 +215,15 @@ impl container::StyleSheet for ThemeLevel {
     }
 }
 
-impl From<ThemeLevel> for theme::Container {
-    fn from(_: ThemeLevel) -> Self {
+impl From<OrganizerThemeLevel> for theme::Container {
+    fn from(_: OrganizerThemeLevel) -> Self {
         Default::default()
     }
 }
 
-impl Theme {
-    pub(super) fn level(&self, n: usize) -> ThemeLevel {
-        ThemeLevel {
+impl OrganizerTheme {
+    pub(super) fn level(&self, n: usize) -> OrganizerThemeLevel {
+        OrganizerThemeLevel {
             gradient: self.gradient.clone(),
             text_color: self.text_color.clone(),
             border_color: self.border_color.clone(),
@@ -208,8 +232,8 @@ impl Theme {
         }
     }
 
-    pub(super) fn level_selected(&self, n: usize) -> ThemeLevel {
-        ThemeLevel {
+    pub(super) fn level_selected(&self, n: usize) -> OrganizerThemeLevel {
+        OrganizerThemeLevel {
             gradient: self.gradient.clone(),
             text_color: self.text_color.clone(),
             border_color: self.border_color.clone(),
@@ -218,8 +242,8 @@ impl Theme {
         }
     }
 
-    pub(super) fn selected(&self, selected: bool) -> ThemeSelection {
-        ThemeSelection {
+    pub(super) fn selected(&self, selected: bool) -> OrganizerThemeSelection {
+        OrganizerThemeSelection {
             selected,
             text_color: self.text_color.clone(),
             selected_color: self.border_color.clone(),
@@ -243,5 +267,51 @@ impl Theme {
             border_color: Color::from_rgb8(0x83, 0x1a, 0x1a),
             max_level: 5,
         }
+    }
+}
+
+/// An [pick_list::Appearance] where there is no icon.
+///
+pub struct NoIcon;
+
+impl pick_list::StyleSheet for NoIcon {
+    type Style = ();
+    //type Style = iced_style::theme::PickList;
+    // I think the good way to do it is to implement a custom Style.
+
+    // TODO: Check the `handle_color` value on the UI in both active and hovered.
+
+    fn active(&self, _style: &Self::Style) -> pick_list::Appearance {
+        pick_list::Appearance {
+            text_color: Color::BLACK,
+            placeholder_color: [0.4, 0.4, 0.4].into(),
+            handle_color: Color::BLACK,
+            background: Background::Color([0.87, 0.87, 0.87].into()),
+            border: Border {
+                color: [0.7, 0.7, 0.7].into(),
+                width: 1.0,
+                radius: Radius::from(0),
+            },
+        }
+    }
+
+    fn hovered(&self, _style: &Self::Style) -> pick_list::Appearance {
+        pick_list::Appearance {
+            text_color: Color::BLACK,
+            placeholder_color: [0.4, 0.4, 0.4].into(),
+            handle_color: Color::BLACK,
+            background: Background::Color([0.87, 0.87, 0.87].into()),
+            border: Border {
+                color: [0.7, 0.7, 0.7].into(),
+                width: 1.0,
+                radius: Radius::from(0),
+            },
+        }
+    }
+}
+
+impl From<NoIcon> for theme::PickList {
+    fn from(_: NoIcon) -> Self {
+        Default::default()
     }
 }

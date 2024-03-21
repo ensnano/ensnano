@@ -1,10 +1,9 @@
+use iced::advanced;
+use iced::alignment::Horizontal as HorizontalAlignment;
+use iced::keyboard::Modifiers;
+use iced::window::Icon;
 use iced::{Element, Length};
-pub use iced_aw::Icon;
-use iced_native::keyboard::Modifiers;
-use iced_native::theme as iced_theme;
-use iced_native::widget::{
-    button, helpers::*, text_input, tooltip, Button, Column, Container, Row, Space, Text,
-};
+use iced_widget::{renderer::Renderer, *};
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::convert::TryInto;
 
@@ -20,7 +19,7 @@ mod tree;
 
 pub use element::*;
 use rand::{rngs::ThreadRng, Rng};
-use theme::Theme;
+use theme::OrganizerTheme;
 pub use tree::{GroupId, OrganizerTree};
 
 use drag_drop_target::*;
@@ -217,7 +216,7 @@ pub struct Organizer<E: OrganizerElement> {
     groups: Vec<GroupContent<E>>,
     sections: Vec<Section<E>>,
     auto_groups: BTreeMap<E::AutoGroup, Section<E>>,
-    theme: Theme,
+    theme: OrganizerTheme,
     width: u16,
     editing: Option<GroupId>,
     modifiers: Modifiers,
@@ -249,7 +248,7 @@ impl<E: OrganizerElement> Organizer<E> {
             groups: vec![],
             sections,
             auto_groups: Default::default(),
-            theme: Theme::grey(),
+            theme: OrganizerTheme::grey(),
             width: 300,
             editing: None,
             modifiers: Modifiers::default(),
@@ -280,7 +279,7 @@ impl<E: OrganizerElement> Organizer<E> {
         // TODO: This comment may break some functionality. Not observed so far.
         let mut content = Column::new().spacing(5.0f32); // TODO: Find a way to use `ui_size` here.
         for c in self.groups.iter() {
-            content = content.push(iced_native::row![
+            content = content.push(row![
                 tabulation(),
                 c.view(
                     &self.theme,
@@ -292,7 +291,7 @@ impl<E: OrganizerElement> Organizer<E> {
             ]);
         }
         for s in self.sections.iter() {
-            content = content.push(iced_native::row![
+            content = content.push(row![
                 tabulation(),
                 s.view(&self.theme, &selection)
                     .width(iced::Length::FillPortion(8))
@@ -300,7 +299,7 @@ impl<E: OrganizerElement> Organizer<E> {
         }
 
         for s in self.auto_groups.values() {
-            content = content.push(iced_native::row![
+            content = content.push(row![
                 tabulation(),
                 s.view(&self.theme, &selection)
                     .width(iced::Length::FillPortion(8))
@@ -311,14 +310,14 @@ impl<E: OrganizerElement> Organizer<E> {
             new_group_button = new_group_button.on_press(OrganizerMessage::new_group());
         }
         container(
-            iced_native::column![
+            iced_widget::column![
                 // Title row
-                iced_native::row![tooltip(
+                row![tooltip(
                     new_group_button,
                     "Create new_group from selection",
                     tooltip::Position::FollowCursor,
                 )
-                .style(iced_theme::Container::Box)],
+                .style(style::theme::Container::Box)],
                 scrollable(content).width(self.width)
             ]
             .spacing(5.0f32), // TODO: Find a way to use `ui_size` here.
@@ -924,16 +923,16 @@ impl<E: OrganizerElement> Section<E> {
 
     fn view(
         &self,
-        theme: &Theme,
+        theme: &OrganizerTheme,
         selection: &BTreeSet<E::Key>,
-    ) -> Container<OrganizerMessage<E>, iced_wgpu::Renderer> {
+    ) -> Container<'_, OrganizerMessage<E>, Theme, Renderer> {
         let title_row = self
             .view
             .view(theme, &self.name, self.id.clone(), self.expanded, false);
         let mut content = Column::new().spacing(LEVELS_V_SPACING).push(title_row);
         if self.expanded {
             for (e_id, e) in self.elements.iter() {
-                content = content.push(iced_native::row![
+                content = content.push(row![
                     tabulation(),
                     container(e.view(theme, &self.content[e_id], selection, None,))
                         .style(theme.level(1))
@@ -976,16 +975,13 @@ impl<E: OrganizerElement> ElementView<E> {
     }
     fn view(
         &self,
-        _theme: &Theme,
+        _theme: &OrganizerTheme,
         element: &E,
         selection: &BTreeSet<E::Key>,
         deletable: Option<NodeId<E::AutoGroup>>,
-    ) -> DragDropTarget<OrganizerMessage<E>, iced_wgpu::Renderer, E::Key, E::AutoGroup> {
+    ) -> DragDropTarget<OrganizerMessage<E>, Theme, Renderer, E::Key, E::AutoGroup> {
         let selected = selection.contains(&element.key());
-        let mut content = iced_native::row![
-            text(element.display_name()),
-            horizontal_space(iced::Length::Fill),
-        ];
+        let mut content = row![text(element.display_name()), horizontal_space(),];
         let identifier = match deletable.as_ref() {
             Some(id) => DragIdentifier::Group { id: id.clone() },
             None => DragIdentifier::Section {
@@ -1086,21 +1082,20 @@ impl<E: OrganizerElement> NodeView<E> {
 
     fn view(
         &self,
-        theme: &Theme,
+        theme: &OrganizerTheme,
         name: &String,
         id: NodeId<E::AutoGroup>,
         expanded: bool,
         selected: bool,
-    ) -> Element<'_, OrganizerMessage<E>, iced_graphics::Renderer<iced_wgpu::Backend, iced::Theme>>
-    {
+    ) -> Element<'_, OrganizerMessage<E>, Theme, Renderer> {
         let level = get_group_id(&id).map(|v| v.len()).unwrap_or(0);
         let title_row = match &self.state {
             GroupState::Iddle { .. } => {
-                let mut row = iced_native::row![
+                let mut row = row![
                     button(expand_icon(expanded))
                         .on_press(OrganizerMessage::<E>::expand(id.clone(), !expanded)),
                     text(name),
-                    horizontal_space(iced::Length::Fill),
+                    horizontal_space(),
                     button(plus_icon())
                         .on_press(OrganizerMessage::add_selection_to_group(id.clone())), // TODO: change icon later !!!
                     button(edit_icon()).on_press(OrganizerMessage::edit(id.clone())),
@@ -1121,13 +1116,13 @@ impl<E: OrganizerElement> NodeView<E> {
                 row
             }
             GroupState::Editing { .. } => {
-                let mut row = iced_native::row![
+                let mut row = row![
                     button(expand_icon(expanded))
                         .on_press(OrganizerMessage::expand(id.clone(), !expanded)),
                     text_input("New group name...", &name)
                         .on_input(|s| { OrganizerMessage::name_input(s) })
                         .on_submit(OrganizerMessage::stop_edit()),
-                    horizontal_space(iced::Length::Fill),
+                    horizontal_space(),
                     button(plus_icon())
                         .on_press(OrganizerMessage::add_selection_to_group(id.clone())), // TODO: change icon later !!!
                     button(edit_icon()).on_press(OrganizerMessage::stop_edit()),
@@ -1145,7 +1140,7 @@ impl<E: OrganizerElement> NodeView<E> {
                 );
                 row
             }
-            GroupState::NotEditable => iced_native::row![
+            GroupState::NotEditable => row![
                 button(expand_icon(expanded))
                     .on_press(OrganizerMessage::expand(id.clone(), !expanded)),
                 text(name),
@@ -1217,11 +1212,11 @@ pub enum GroupState {
 impl<E: OrganizerElement> GroupContent<E> {
     fn view(
         &self,
-        theme: &Theme,
+        theme: &OrganizerTheme,
         sections: &[Section<E>],
         selection: &BTreeSet<E::Key>,
         selected_nodes: &BTreeSet<NodeId<E::AutoGroup>>,
-    ) -> Container<OrganizerMessage<E>, iced_wgpu::Renderer> {
+    ) -> Container<OrganizerMessage<E>, Theme, Renderer> {
         let level;
         let colummn = match self {
             Self::Node {
@@ -1786,24 +1781,23 @@ impl<E: OrganizerElement> GroupContent<E> {
     }
 }
 
-fn icon<'a, Renderer>(unicode: char) -> Text<'a, Renderer>
+fn icon<'a, Renderer>(unicode: char) -> Text<'a, Theme, Renderer>
 where
-    Renderer: iced_native::Renderer + iced_native::text::Renderer,
-    Renderer::Font: From<iced::Font>,
-    Renderer::Theme: iced_native::widget::text::StyleSheet,
+    Renderer: advanced::text::Renderer,
+    //<Renderer as advanced::Renderer>::Theme: text::StyleSheet,
+    <Renderer as advanced::text::Renderer>::Font: From<iced::Font>,
 {
-    use iced::alignment::Horizontal as HorizontalAlignment;
     Text::new(unicode.to_string())
         .font(ICONS)
         .size(ICON_SIZE)
         .horizontal_alignment(HorizontalAlignment::Center)
 }
 
-fn expand_icon<'a, Renderer>(expanded: bool) -> Text<'a, Renderer>
+fn expand_icon<'a, Renderer>(expanded: bool) -> Text<'a, Theme, Renderer>
 where
-    Renderer: iced_native::Renderer + iced_native::text::Renderer,
-    Renderer::Font: From<iced::Font>,
-    Renderer::Theme: iced_native::widget::text::StyleSheet,
+    Renderer: advanced::text::Renderer,
+    //<Renderer as advanced::Renderer>::Theme: text::StyleSheet,
+    <Renderer as advanced::text::Renderer>::Font: From<iced::Font>,
 {
     if expanded {
         icon(Icon::CaretDown.into())
@@ -1812,29 +1806,29 @@ where
     }
 }
 
-fn plus_icon<'a, Renderer>() -> Text<'a, Renderer>
+fn plus_icon<'a, Renderer>() -> Text<'a, Theme, Renderer>
 where
-    Renderer: iced_native::Renderer + iced_native::text::Renderer,
-    Renderer::Font: From<iced::Font>,
-    Renderer::Theme: iced_native::widget::text::StyleSheet,
+    Renderer: advanced::text::Renderer,
+    //<Renderer as advanced::Renderer>::Theme: text::StyleSheet,
+    <Renderer as advanced::text::Renderer>::Font: From<iced::Font>,
 {
     icon(Icon::Plus.into())
 }
 
-fn edit_icon<'a, Renderer>() -> Text<'a, Renderer>
+fn edit_icon<'a, Renderer>() -> Text<'a, Theme, Renderer>
 where
-    Renderer: iced_native::Renderer + iced_native::text::Renderer,
-    Renderer::Font: From<iced::Font>,
-    Renderer::Theme: iced_native::widget::text::StyleSheet,
+    Renderer: advanced::text::Renderer,
+    //<Renderer as advanced::Renderer>::Theme: text::StyleSheet,
+    <Renderer as advanced::text::Renderer>::Font: From<iced::Font>,
 {
     icon(Icon::VectorPen.into())
 }
 
-fn _delete_icon<'a, Renderer>() -> Text<'a, Renderer>
+fn _delete_icon<'a, Renderer>() -> Text<'a, Theme, Renderer>
 where
-    Renderer: iced_native::Renderer + iced_native::text::Renderer,
-    Renderer::Font: From<iced::Font>,
-    Renderer::Theme: iced_native::widget::text::StyleSheet,
+    Renderer: advanced::text::Renderer,
+    //<Renderer as advanced::Renderer>::Theme: text::StyleSheet,
+    <Renderer as advanced::text::Renderer>::Font: From<iced::Font>,
 {
     icon('\u{E806}')
 }

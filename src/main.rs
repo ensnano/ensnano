@@ -107,13 +107,16 @@ use ensnano_interactor::{
     CenterOfSelection, CursorIcon, DesignOperation, DesignReader, RigidBodyConstants,
     SuggestionParameters,
 };
+use iced_futures::futures;
+use iced_graphics::Viewport;
 use iced_native::Event as IcedEvent;
-use iced_wgpu::{wgpu, Settings, Viewport};
+use iced_native::{program, Debug, Size};
+use iced_wgpu::wgpu::Queue;
+use iced_wgpu::{wgpu, Settings};
 use iced_winit::winit::event::VirtualKeyCode;
-use iced_winit::{conversion, futures, program, winit, Debug, Size};
+use iced_winit::{conversion, winit};
 
 use app_state::AppStateParameters;
-use futures::task::SpawnExt;
 use ultraviolet::{Rotor3, Vec3};
 use winit::{
     dpi::{PhysicalPosition, PhysicalSize},
@@ -328,8 +331,12 @@ fn main() {
         ..Default::default()
     };
     // Initialize the renderer
-    let mut renderer =
-        iced_wgpu::Renderer::new(iced_wgpu::Backend::new(&device, settings, TEXTURE_FORMAT));
+    let mut renderer = iced_wgpu::Renderer::new(iced_wgpu::Backend::new(
+        &device,
+        &queue,
+        settings,
+        TEXTURE_FORMAT,
+    ));
     let device = Rc::new(device);
     let queue = Rc::new(queue);
     let mut resized = false;
@@ -833,7 +840,7 @@ impl OverlayManager {
     pub fn new(
         requests: Arc<Mutex<Requests>>,
         window: &Window,
-        renderer: &mut iced_wgpu::Renderer,
+        renderer: &mut iced_wgpu::Renderer<iced::Theme>,
     ) -> Self {
         let color = ColorOverlay::new(
             requests,
@@ -915,12 +922,13 @@ impl OverlayManager {
     fn render(
         &self,
         device: &wgpu::Device,
-        staging_belt: &mut wgpu::util::StagingBelt,
+        queue: &wgpu::Queue,
+        staging_belt: &mut iced_wgpu::wgpu::util::StagingBelt,
         encoder: &mut wgpu::CommandEncoder,
         target: &wgpu::TextureView,
         multiplexer: &Multiplexer,
         window: &Window,
-        renderer: &mut iced_wgpu::Renderer,
+        renderer: &mut iced_wgpu::Renderer<iced::Theme>,
     ) {
         for overlay_type in self.overlay_types.iter() {
             match overlay_type {
@@ -932,6 +940,7 @@ impl OverlayManager {
                     renderer.with_primitives(|backend, primitives| {
                         backend.present(
                             device,
+                            queue,
                             staging_belt,
                             encoder,
                             target,
