@@ -99,7 +99,7 @@ where
         ) {
             return event::Status::Captured;
         }
-        let mut state = tree.state.downcast_mut::<State>();
+        let state = tree.state.downcast_mut::<State>();
         let was_hovered = state.is_hovered;
         let now_hovered = cursor_position.is_over(layout.bounds());
         match (was_hovered, now_hovered) {
@@ -151,11 +151,14 @@ where
         let Size { width, height } = self.size();
         let limits = limits.width(width).height(height).shrink(self.padding);
 
-        let mut content_layout = self.content.as_widget().layout(state, renderer, &limits);
-        content_layout.move_to(Point::new(
-            self.padding.left.into(),
-            self.padding.top.into(),
-        ));
+        let content_layout = self
+            .content
+            .as_widget()
+            .layout(state, renderer, &limits)
+            .move_to(Point::new(
+                self.padding.left.into(),
+                self.padding.top.into(),
+            ));
 
         let size = limits
             .resolve(width, height, content_layout.size())
@@ -232,7 +235,8 @@ impl<'a, Message, Theme, Renderer> From<HoverableContainer<'a, Message, Theme, R
     for Element<'a, Message, Theme, Renderer>
 where
     Message: 'a + Clone,
-    Renderer: renderer::Renderer,
+    Theme: 'a,
+    Renderer: 'a + renderer::Renderer,
 {
     fn from(
         value: HoverableContainer<'a, Message, Theme, Renderer>,

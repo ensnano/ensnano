@@ -71,11 +71,14 @@ where
         let Size { width, height } = self.size();
         let limits = limits.width(width).height(height).shrink(self.padding);
 
-        let mut content_layout = self.content.as_widget().layout(tree, renderer, &limits);
-        content_layout.move_to(Point::new(
-            self.padding.left.into(),
-            self.padding.top.into(),
-        ));
+        let content_layout = self
+            .content
+            .as_widget()
+            .layout(tree, renderer, &limits)
+            .move_to(Point::new(
+                self.padding.left.into(),
+                self.padding.top.into(),
+            ));
 
         let size = limits
             .resolve(width, height, content_layout.size())
@@ -164,7 +167,8 @@ impl<'a, E, Theme, Renderer>
     for Element<'a, OrganizerMessage<E>, Theme, Renderer>
 where
     E: super::OrganizerElement,
-    Renderer: renderer::Renderer,
+    Theme: 'a,
+    Renderer: 'a + renderer::Renderer,
 {
     fn from(
         value: DragDropTarget<'a, OrganizerMessage<E>, Theme, Renderer, E::Key, E::AutoGroup>,
