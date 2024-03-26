@@ -16,9 +16,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use ensnano_organizer::{
-    AttributeDisplay, AttributeWidget, ElementKey, Icon, OrganizerAttribute,
-    OrganizerAttributeRepr, OrganizerElement,
+    AttributeDisplay, AttributeWidget, ElementKey, OrganizerAttribute, OrganizerAttributeRepr,
+    OrganizerElement,
 };
+use iced_aw::graphics::icons::BootstrapIcon;
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 
 /// Actual implementation of the OrganizerElement for the LeftPanel.
@@ -339,9 +340,9 @@ impl OrganizerAttribute for DnaAttribute {
         match self {
             DnaAttribute::Visible(b) => {
                 let c = if *b {
-                    Icon::EyeFill.into()
+                    BootstrapIcon::EyeFill.into()
                 } else {
-                    Icon::EyeSlash.into()
+                    BootstrapIcon::EyeSlash.into()
                 };
                 AttributeDisplay::Icon(c)
             }
@@ -352,9 +353,9 @@ impl OrganizerAttribute for DnaAttribute {
             },
             DnaAttribute::LockedForSimulations(b) => {
                 let c = if *b {
-                    Icon::Lock.into()
+                    BootstrapIcon::Lock.into()
                 } else {
-                    Icon::Unlock.into()
+                    BootstrapIcon::Unlock.into()
                 };
                 AttributeDisplay::Icon(c)
             }

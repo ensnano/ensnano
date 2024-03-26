@@ -6,8 +6,8 @@ edition = "2018"
 license = "GPL-3.0-or-later"
 
 [dependencies]
-iced_wgpu = "0.11"
-iced_winit = "0.10"
+iced_wgpu = "0.12"
+iced_winit = "0.12"
 bytemuck = "1.2.0"
 color_space = "0.5.2"
 ultraviolet = { git = "https://github.com/termhn/ultraviolet", rev = "b2fb29e" , features = ["bytemuck", "f64", "serde"] }
@@ -19,3 +19,4 @@ ahash = "0.8.6" # "0.6.2"
 gltf = "0.16.0"
 nom_stl = "0.2.2"
 rand = "0.8.5"
+wgpu = { version = "0.19", features = ["spirv"] }
