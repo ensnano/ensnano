@@ -159,7 +159,7 @@ impl Reader3D for DesignReader {
             .helix_parameters
             .unwrap_or_default();
         let position = if on_axis {
-            helix.axis_position(&helix_parameters, nucl.position)
+            helix.axis_position(&helix_parameters, nucl.position, nucl.forward)
         } else {
             helix.space_pos(&helix_parameters, nucl.position, nucl.forward)
         };

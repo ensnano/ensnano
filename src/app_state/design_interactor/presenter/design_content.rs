@@ -730,7 +730,7 @@ impl DesignContent {
                             let p = design.helices.get(&domain.helix).unwrap().axis_position(
                                 design.helix_parameters.as_ref().unwrap(),
                                 nucl_position,
-                                // domain.forward, // NE TIENT PAS COMPTE DE L'INCLINAISON!!
+                                domain.forward,
                             );
                             [p.x as f32, p.y as f32, p.z as f32]
                         };

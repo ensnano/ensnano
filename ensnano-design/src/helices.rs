@@ -823,7 +823,7 @@ impl Helix {
             None => p.clone(),
             Some(hp) => hp.clone(),
         };
-        let axis_pos = self.axis_position(&p, n);
+        let axis_pos = self.axis_position(&p, n, forward);
         let my_nucl_pos = self.space_pos(&p, n, forward);
         let direction = (my_nucl_pos - axis_pos).normalized();
 
@@ -871,16 +871,16 @@ impl Helix {
             let p = self.helix_parameters.unwrap_or(*p).clone();
             Axis::Line {
                 origin: self.position,
-                direction: self.axis_position(&p, 1) - self.position,
+                direction: self.axis_position(&p, 1, true) - self.position,
             }
         }
     }
 
-    pub fn axis_position(&self, p: &HelixParameters, n: isize) -> Vec3 {
+    pub fn axis_position(&self, p: &HelixParameters, n: isize, forward: bool) -> Vec3 {
         // Attention, ne tient pas compte de l'inclinaison !!!
         let n = n + self.initial_nt_index;
         if let Some(curve) = self.instanciated_curve.as_ref().map(|s| &s.curve) {
-            if let Some(point) = curve.axis_pos(n).map(dvec_to_vec) {
+            if let Some(point) = curve.axis_pos(n, forward).map(dvec_to_vec) {
                 let (position, orientation) = if curve.as_ref().has_its_own_encoded_frame() {
                     (Vec3::zero(), Rotor3::identity())
                 } else {

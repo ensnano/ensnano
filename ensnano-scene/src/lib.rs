@@ -882,16 +882,16 @@ impl<S: AppState> Scene<S> {
     }
 
     fn perform_update(&mut self, dt: Duration) {
+        self.update.need_update = false; // moved first to avoid concurrency issue
         if self.update.camera_update {
+            self.update.camera_update = false; // moved first to avoid concurrency issue
             self.controller.update_camera(dt);
             self.view.borrow_mut().update(ViewUpdate::Camera);
-            self.update.camera_update = false;
             self.current_camera = Arc::new((
                 self.get_camera(),
                 self.view.borrow().get_projection().borrow().get_ratio(),
             ))
         }
-        self.update.need_update = false;
     }
 
     fn get_camera(&self) -> Camera3D {

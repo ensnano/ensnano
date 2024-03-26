@@ -38,6 +38,7 @@ pub enum DrawingAttribute {
     XoverColoring(bool),
     ColorShade(u32, Option<f64>),
     WithCones(bool),
+    OnAxis(bool),
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -57,6 +58,7 @@ impl FromStr for DrawingAttribute {
     /// - %hc(HHHHHHHH) for DoubleHelixAsCylinderColor(0xHHHHHHHH)
     /// - %rh(HHHHHHHH) for DoubleHelixAsCylinderColor(Rainbow)
     /// - %wc / %noc for WithCones(true / false) - default = true
+    /// - %onaxis / %noaxis for OnAxis(true / false) - default = false
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let parsed = s
             .split(&['%', ' ', ',', ')', '('])
@@ -72,6 +74,8 @@ impl FromStr for DrawingAttribute {
                 "noc" => return Ok(Self::WithCones(false)),
                 "xc" => return Ok(Self::XoverColoring(true)),
                 "rh" => return Ok(Self::DoubleHelixAsCylinderColor(ColorType::Rainbow)), // IGNORED FOR NOW
+                "onaxis" => return Ok(Self::OnAxis(true)),
+                "noaxis" => return Ok(Self::OnAxis(false)),
                 _ => (),
             },
             2..=4 => {
@@ -141,6 +145,8 @@ pub struct DrawingStyle {
     pub hue_range: Option<f64>,
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub with_cones: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub on_axis: Option<bool>,
 }
 
 impl std::default::Default for DrawingStyle {
@@ -157,6 +163,7 @@ impl std::default::Default for DrawingStyle {
             color_shade: None,
             hue_range: None,
             with_cones: None,
+            on_axis: None,
         }
     }
 }
@@ -189,6 +196,7 @@ impl From<Vec<DrawingAttribute>> for DrawingStyle {
                     ret.color_shade = ret.color_shade.or(Some(c));
                     ret.hue_range = ret.hue_range.or(hue_range);
                 }
+                DrawingAttribute::OnAxis(b) => ret.on_axis = ret.on_axis.or(Some(b)),
             }
         }
         return ret;
@@ -239,6 +247,10 @@ impl DrawingStyle {
                 hue_range,
                 ..*self
             },
+            DrawingAttribute::OnAxis(b) => DrawingStyle {
+                on_axis: Some(b),
+                ..*self
+            },
         }
     }
 
@@ -275,6 +287,10 @@ impl DrawingStyle {
 
         if let Some(c) = self.color_shade {
             atts.push(DrawingAttribute::ColorShade(c, self.hue_range))
+        }
+
+        if let Some(b) = self.on_axis {
+            atts.push(DrawingAttribute::OnAxis(b))
         }
 
         return atts;
@@ -323,6 +339,10 @@ impl DrawingStyle {
                 hue_range,
                 ..*self
             },
+            DrawingAttribute::OnAxis(b) => DrawingStyle {
+                on_axis: self.on_axis.or(Some(b)),
+                ..*self
+            },
         }
     }
 
@@ -351,6 +371,7 @@ impl DrawingStyle {
             with_cones: self.with_cones.or(other.with_cones),
             color_shade: self.color_shade.or(other.color_shade),
             hue_range: self.hue_range.or(other.hue_range),
+            on_axis: self.on_axis.or(other.on_axis),
         };
     }
 }
