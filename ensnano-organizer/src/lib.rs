@@ -2,6 +2,7 @@ use iced::advanced;
 use iced::alignment::Horizontal as HorizontalAlignment;
 use iced::keyboard::Modifiers;
 use iced::{Element, Length};
+use iced_aw::graphics::icons::{icon_to_string, BootstrapIcon, BOOTSTRAP_FONT};
 use iced_widget::{renderer::Renderer, *};
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::convert::TryInto;
@@ -91,7 +92,6 @@ enum _Message<E: OrganizerElement> {
         attribute: E::Attribute,
         id: NodeId<E::AutoGroup>,
     },
-    FontLoaded(Result<(), iced::font::Error>),
 }
 
 type TreeId = Vec<usize>;
@@ -196,10 +196,6 @@ impl<E: OrganizerElement> OrganizerMessage<E> {
             id,
         }))
     }
-
-    fn font_loaded(result: Result<(), iced::font::Error>) -> Self {
-        Self::InternalMessage(InternalMessage(_Message::FontLoaded(result)))
-    }
 }
 
 /// Provide an tree-like view of the object being edited.
@@ -242,11 +238,6 @@ impl<E: OrganizerElement> Organizer<E> {
             i += 1;
             section = i.try_into();
         }
-        // NOTE: Load font.
-        let _ = iced::command::Command::batch(vec![iced::font::load(
-            include_bytes!("../icons/bootstrap-icons.ttf").as_slice(),
-        )
-        .map(|result| OrganizerMessage::<E>::font_loaded(result))]);
         Self {
             rng_thread: rng,
             groups: vec![],
@@ -455,11 +446,6 @@ impl<E: OrganizerElement> Organizer<E> {
             _Message::AttributeSelected { attribute, id } => {
                 let keys = self.get_keys_below(id);
                 return Some(OrganizerMessage::NewAttribute(attribute.clone(), keys));
-            }
-            _Message::FontLoaded(result) => {
-                if let Err(error) = result {
-                    log::error!("Couldn't load font. error={:?}", error);
-                }
             }
         }
         None
@@ -1007,7 +993,8 @@ impl<E: OrganizerElement> ElementView<E> {
             }
         }
         if let Some(id) = deletable.clone() {
-            content = content.push(button(icon(TRASH_ICON)).on_press(OrganizerMessage::delete(id)));
+            content = content
+                .push(button(icon(BootstrapIcon::Trash)).on_press(OrganizerMessage::delete(id)));
         }
         let mut button = HoverableContainer::new(
             button(content)
@@ -1116,8 +1103,10 @@ impl<E: OrganizerElement> NodeView<E> {
                     }
                 }
 
-                row = row
-                    .push(button(icon(TRASH_ICON)).on_press(OrganizerMessage::delete(id.clone())));
+                row = row.push(
+                    button(icon(BootstrapIcon::Trash))
+                        .on_press(OrganizerMessage::delete(id.clone())),
+                );
                 row
             }
             GroupState::Editing { .. } => {
@@ -1140,8 +1129,10 @@ impl<E: OrganizerElement> NodeView<E> {
                         )
                     }
                 }
-                row = row
-                    .push(button(icon(TRASH_ICON)).on_press(OrganizerMessage::delete(id.clone())));
+                row = row.push(
+                    button(icon(BootstrapIcon::Trash))
+                        .on_press(OrganizerMessage::delete(id.clone())),
+                );
                 row
             }
             GroupState::NotEditable => row![
@@ -1785,14 +1776,14 @@ impl<E: OrganizerElement> GroupContent<E> {
     }
 }
 
-fn icon<'a, Renderer>(unicode: char) -> Text<'a, Theme, Renderer>
+fn icon<'a, Renderer>(icon: BootstrapIcon) -> Text<'a, Theme, Renderer>
 where
     Renderer: advanced::text::Renderer,
     //<Renderer as advanced::Renderer>::Theme: text::StyleSheet,
     <Renderer as advanced::text::Renderer>::Font: From<iced::Font>,
 {
-    Text::new(unicode.to_string())
-        .font(ICONS)
+    Text::new(icon_to_string(icon))
+        .font(BOOTSTRAP_FONT)
         .size(ICON_SIZE)
         .horizontal_alignment(HorizontalAlignment::Center)
 }
@@ -1804,9 +1795,9 @@ where
     <Renderer as advanced::text::Renderer>::Font: From<iced::Font>,
 {
     if expanded {
-        icon(CARET_DOWN)
+        icon(BootstrapIcon::CaretDown)
     } else {
-        icon(CARET_RIGHT)
+        icon(BootstrapIcon::CaretRight)
     }
 }
 
@@ -1816,7 +1807,7 @@ where
     //<Renderer as advanced::Renderer>::Theme: text::StyleSheet,
     <Renderer as advanced::text::Renderer>::Font: From<iced::Font>,
 {
-    icon(PLUS)
+    icon(BootstrapIcon::Plus)
 }
 
 fn edit_icon<'a, Renderer>() -> Text<'a, Theme, Renderer>
@@ -1825,7 +1816,7 @@ where
     //<Renderer as advanced::Renderer>::Theme: text::StyleSheet,
     <Renderer as advanced::text::Renderer>::Font: From<iced::Font>,
 {
-    icon(VECTOR_PEN)
+    icon(BootstrapIcon::VectorPen)
 }
 
 fn _delete_icon<'a, Renderer>() -> Text<'a, Theme, Renderer>
@@ -1834,28 +1825,18 @@ where
     //<Renderer as advanced::Renderer>::Theme: text::StyleSheet,
     <Renderer as advanced::text::Renderer>::Font: From<iced::Font>,
 {
-    icon('\u{E806}')
+    //icon('\u{E806}')
+    icon(BootstrapIcon::TrashFill)
+    // TODO: Check what was \u{E806}, or remove this function.
 }
 
-// Custom fonts became much harder to use since iced 0.10. See:
+// NOTE: Custom fonts became much harder to use since iced 0.10. See:
 //
-//     https://github.com/iced-rs/iced/discussions/1988
-//     https://github.com/fmonniot/pathfinder-wotr-editor/commit/c86fb9a5d2b77b63f284026de3c269fb798dc9ef#diff-42cb6807ad74b3e201c5a7ca98b911c5fa08380e942be6e4ac5807f8377f87fcR106-R116
+//         https://github.com/iced-rs/iced/discussions/1988
+//         https://github.com/fmonniot/pathfinder-wotr-editor/commit/c86fb9a5d2b77b63f284026de3c269fb798dc9ef#diff-42cb6807ad74b3e201c5a7ca98b911c5fa08380e942be6e4ac5807f8377f87fcR106-R116
 //
-const ICONS: iced::Font = iced::Font {
-    family: iced::font::Family::Name("Icons"),
-    weight: iced::font::Weight::Medium,
-    stretch: iced::font::Stretch::Normal,
-    style: iced::font::Style::Normal,
-};
-const TRASH_ICON: char = '\u{F56B}';
-const CARET_DOWN: char = '\u{F21A}';
-const CARET_RIGHT: char = '\u{F222}';
-const PLUS: char = '\u{F4A5}';
-const VECTOR_PEN: char = '\u{F58D}';
-// TODO: This is a poor's man solution to use icons! In iced <0.10, we could
-//       select character by their names directly. I don't know how to do
-//       the same thing with the new font handling.
+// NOTE: Icon font used to be loaded by hand, but now the bootstrap icons
+//       are included in iced_aw, so we use them directly.
 
 fn tabulation() -> Space {
     Space::with_width(H_SPACING_IN_UNITS)

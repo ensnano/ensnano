@@ -61,7 +61,7 @@ pub trait OrganizerAttribute: Clone + Debug + 'static + Ord + Display {
 }
 
 pub enum AttributeDisplay {
-    Icon(char),
+    Icon(crate::BootstrapIcon),
     Text(String),
 }
 
@@ -114,14 +114,16 @@ impl<A: OrganizerAttribute> AttributeDisplayer<A> {
                     if let Some(AttributeDisplay::Icon(_)) =
                         self.attribute.as_ref().map(|a| a.char_repr())
                     {
-                        picklist = picklist.font(super::ICONS).text_size(super::ICON_SIZE);
+                        picklist = picklist
+                            .font(crate::BOOTSTRAP_FONT)
+                            .text_size(crate::ICON_SIZE);
                     }
                     Some(picklist.into())
                 }
                 AttributeWidget::FlipButton { value_if_pressed } => {
                     let content = match self.attribute.as_ref().map(|a| a.char_repr()) {
-                        Some(AttributeDisplay::Icon(c)) => super::icon(c),
-                        Some(AttributeDisplay::Text(s)) => text(s.clone()).size(super::ICON_SIZE),
+                        Some(AttributeDisplay::Icon(c)) => crate::icon(c),
+                        Some(AttributeDisplay::Text(s)) => text(s.clone()).size(crate::ICON_SIZE),
                         _ => text("???"),
                     };
                     Some(button(content).on_press(value_if_pressed.clone()).into())
