@@ -118,7 +118,7 @@ impl Controller {
         let label = operation.label();
         let mut ret = match operation {
             DesignOperation::RecolorStaples => {
-                Ok(self.ok_apply(Self::fancy_recolor_stapples, design))
+                Ok(self.ok_apply(Self::fancy_recolor_staples, design))
             }
             DesignOperation::SetScaffoldSequence { sequence, shift } => Ok(self.ok_apply(
                 |ctrl, design| ctrl.set_scaffold_sequence(design, sequence, shift),
@@ -1978,7 +1978,7 @@ impl From<ensnano_design::SvgImportError> for ErrOperation {
 }
 
 impl Controller {
-    fn recolor_stapples(&mut self, mut design: Design) -> Design {
+    fn recolor_staples(&mut self, mut design: Design) -> Design {
         for (s_id, strand) in design.strands.iter_mut() {
             if Some(*s_id) != design.scaffold_id {
                 let color = crate::utils::colors::new_color(&mut self.color_idx);
@@ -1988,7 +1988,7 @@ impl Controller {
         design
     }
 
-    fn fancy_recolor_stapples(&mut self, mut design: Design) -> Design {
+    fn fancy_recolor_staples(&mut self, mut design: Design) -> Design {
         let mut drawing_styles = HashMap::<DesignElementKey, DrawingStyle>::default();
 
         if let Some(ref t) = design.organizer_tree {

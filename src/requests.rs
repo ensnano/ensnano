@@ -79,7 +79,7 @@ pub struct Requests {
     pub camera_target: Option<(Vec3, Vec3)>,
     pub small_spheres: Option<bool>,
     pub set_scaffold_id: Option<Option<usize>>,
-    pub recolor_stapples: Option<()>,
+    pub recolor_staples: Option<()>,
     pub roll_request: Option<RollRequest>,
     pub show_torsion_request: Option<bool>,
     pub fog: Option<FogParameters>,

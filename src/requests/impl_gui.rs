@@ -92,7 +92,7 @@ impl GuiRequests for Requests {
         self.toggle_text = Some(visible);
     }
 
-    fn download_stapples(&mut self) {
+    fn download_staples(&mut self) {
         self.keep_proceed.push_back(Action::DownloadStaplesRequest)
     }
 

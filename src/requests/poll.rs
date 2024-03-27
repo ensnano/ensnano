@@ -101,7 +101,7 @@ pub(crate) fn poll_all<R: DerefMut<Target = Requests>>(
         )))
     }
 
-    if requests.recolor_stapples.take().is_some() {
+    if requests.recolor_staples.take().is_some() {
         main_state.push_action(Action::DesignOperation(DesignOperation::RecolorStaples))
     }
 

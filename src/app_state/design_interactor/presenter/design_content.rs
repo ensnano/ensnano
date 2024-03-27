@@ -265,7 +265,7 @@ impl DesignContent {
             .and_then(|g| g.grid_type.get_shift())
     }
 
-    pub(super) fn get_stapple_mismatch(&self, design: &Design) -> Option<Nucl> {
+    pub(super) fn get_staple_mismatch(&self, design: &Design) -> Option<Nucl> {
         let basis_map = self.letter_map.as_ref();
         for strand in design.strands.values() {
             for domain in &strand.domains {
@@ -384,7 +384,7 @@ impl DesignContent {
                     prim3.position,
                 )
             } else {
-                log::warn!("WARNING, STAPPLE WITH NO KEY !!!");
+                log::warn!("WARNING, STAPLE WITH NO KEY !!!");
                 (vec![], 0, 0, 0, 0)
             };
             sequences.insert(
