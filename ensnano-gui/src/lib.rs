@@ -1055,7 +1055,7 @@ pub trait AppState:
     fn get_h_bonds_display(&self) -> HBondDisplay;
     fn get_scroll_sensitivity(&self) -> f32;
     fn get_invert_y_scroll(&self) -> bool;
-    fn want_thick_helices(&self) -> bool;
+    fn want_all_helices_on_axis(&self) -> bool;
     fn expand_insertions(&self) -> bool;
     fn get_show_bezier_paths(&self) -> bool;
     fn get_selected_bezier_path(&self) -> Option<BezierPathId>;

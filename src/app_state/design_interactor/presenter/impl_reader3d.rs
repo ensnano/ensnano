@@ -159,7 +159,7 @@ impl Reader3D for DesignReader {
             .helix_parameters
             .unwrap_or_default();
         let position = if on_axis {
-            helix.axis_position(&helix_parameters, nucl.position)
+            helix.axis_position(&helix_parameters, nucl.position, nucl.forward)
         } else {
             helix.space_pos(&helix_parameters, nucl.position, nucl.forward)
         };
@@ -193,6 +193,11 @@ impl Reader3D for DesignReader {
 
     fn get_element_position(&self, e_id: u32, referential: Referential) -> Option<Vec3> {
         let position = self.presenter.content.get_element_position(e_id)?;
+        Some(self.presenter.in_referential(position, referential))
+    }
+
+    fn get_element_graphic_position(&self, e_id: u32, referential: Referential) -> Option<Vec3> {
+        let position = self.presenter.content.get_element_graphic_position(e_id)?;
         Some(self.presenter.in_referential(position, referential))
     }
 

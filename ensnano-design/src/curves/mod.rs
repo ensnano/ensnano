@@ -377,9 +377,13 @@ impl Curve {
         self.positions_backward.len()
     }
 
-    pub fn axis_pos(&self, n: isize) -> Option<DVec3> {
+    pub fn axis_pos(&self, n: isize, forward: bool) -> Option<DVec3> {
         let idx = self.idx_conversion(n)?;
-        self.positions_forward.get(idx).cloned()
+        if forward {
+            return self.positions_forward.get(idx).cloned();
+        } else {
+            return self.positions_backward.get(idx).cloned();
+        }
     }
 
     pub fn nucl_time(&self, n: isize) -> Option<f64> {

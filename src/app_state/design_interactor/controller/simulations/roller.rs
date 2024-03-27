@@ -140,9 +140,9 @@ pub(super) fn cross_over_force(
 
     let derivative_shift = std::f32::consts::FRAC_PI_2;
     let vec_self = me.shifted_space_pos(helix_parameters, n_self, b_self, derivative_shift)
-        - me.axis_position(helix_parameters, n_self);
+        - me.axis_position(helix_parameters, n_self, b_self);
     let vec_other = other.shifted_space_pos(helix_parameters, n_other, b_other, derivative_shift)
-        - other.axis_position(helix_parameters, n_other);
+        - other.axis_position(helix_parameters, n_other, b_other);
 
     (
         (0..3)

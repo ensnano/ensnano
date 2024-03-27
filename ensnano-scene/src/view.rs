@@ -138,6 +138,9 @@ pub struct View {
     external_objects_drawer: Object3DDrawer,
     stereography: Stereography,
     sheets_drawer: InstanceDrawer<Sheet2D>,
+    /// Cutting plane
+    cut_plane_normal: Vec3,
+    cut_plane_dot_value: Option<f32>,
 }
 
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
@@ -145,7 +148,7 @@ pub struct DrawOptions {
     pub rendering_mode: RenderingMode,
     pub background3d: Background3D,
     pub show_stereographic_camera: bool,
-    pub thick_helices: bool,
+    pub all_helices_on_axis: bool,
     pub h_bonds: HBondDisplay,
     pub show_bezier_planes: bool,
 }
@@ -319,6 +322,9 @@ impl View {
             "2d sheets",
         );
 
+        let cut_plane_normal = Vec3::unit_x();
+        let cut_plane_dot_value = None::<f32>;
+
         Self {
             camera,
             projection,
@@ -347,6 +353,8 @@ impl View {
             external_objects_drawer,
             stereography,
             sheets_drawer,
+            cut_plane_normal,
+            cut_plane_dot_value,
         }
     }
 
@@ -454,16 +462,20 @@ impl View {
                 .external_objects_drawer
                 .update_objects(objects, &self.viewer.get_layout_desc()),
             ViewUpdate::UnrootedSurface(surface) => {
-                let is_update = self
+                let is_updated = self
                     .external_objects_drawer
                     .update_desired_revolution_shape(
                         surface,
                         self.device.as_ref(),
                         &self.viewer.get_layout_desc(),
                     );
-                if !is_update {
+                if !is_updated {
                     self.need_redraw = needed_redraw;
                 }
+            }
+            ViewUpdate::CutPlane(normal, dot_value) => {
+                self.update_cut_plane(normal, dot_value);
+                self.need_redraw = true;
             }
         }
     }
@@ -474,6 +486,14 @@ impl View {
 
     pub fn need_redraw(&self) -> bool {
         self.need_redraw | self.redraw_twice
+    }
+
+    /// update cut plane
+    pub fn update_cut_plane(&mut self, normal: Vec3, dot_value: f32) {
+        println!(
+            "Update cut plane to: normal: <{},{},{}> dot: {dot_value}",
+            normal.x, normal.y, normal.z
+        );
     }
 
     /// Draw the scene
@@ -1053,6 +1073,8 @@ pub enum ViewUpdate {
     BezierSheets(Vec<Sheet2D>),
     External3DObjects(ExternalObjects),
     UnrootedSurface(Option<UnrootedRevolutionSurfaceDescriptor>),
+    /// The cutting plane has been modified: normal and dot product
+    CutPlane(Vec3, f32),
 }
 
 #[derive(Eq, PartialEq, Debug, Copy, Clone, Hash, IntEnum)]

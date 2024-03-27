@@ -105,7 +105,7 @@ impl Uniforms {
             stereography_zoom: projection.borrow().stereographic_zoom,
             nb_ray_tube: NB_RAY_TUBE as u32,
             is_cut: 0,
-            cut_normal: Vec3::zero(),
+            cut_normal: Vec3::unit_x(),
             cut_value: 0.,
             _padding: Default::default(),
         }
@@ -144,7 +144,7 @@ impl Uniforms {
             stereography_zoom: projection.borrow().stereographic_zoom,
             nb_ray_tube: NB_RAY_TUBE as u32,
             is_cut: 0,
-            cut_normal: Vec3::zero(),
+            cut_normal: Vec3::unit_x(),
             cut_value: 0.,
             _padding: Default::default(),
         }

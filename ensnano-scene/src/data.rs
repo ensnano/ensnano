@@ -150,7 +150,7 @@ impl<R: DesignReader> Data<R> {
             || app_state.revolution_bezier_updated(older_app_state)
         {
             for d in self.designs.iter_mut() {
-                d.thick_helices = app_state.get_draw_options().thick_helices;
+                d.all_helices_on_axis = app_state.get_draw_options().all_helices_on_axis;
             }
             self.update_instances(app_state);
         }

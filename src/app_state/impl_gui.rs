@@ -146,8 +146,8 @@ impl GuiState for AppState {
         self.0.parameters.inverted_y_scroll
     }
 
-    fn want_thick_helices(&self) -> bool {
-        self.0.parameters.thick_helices
+    fn want_all_helices_on_axis(&self) -> bool {
+        self.0.parameters.all_helices_on_axis
     }
 
     fn expand_insertions(&self) -> bool {
