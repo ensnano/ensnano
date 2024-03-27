@@ -56,14 +56,14 @@ impl Curve {
             .as_ref()
             .map(|p| p.curvilinear_abcsissa.evaluate(self.geometry.t_max()))
             .unwrap_or_else(|| {
-                self.length_by_descretisation(self.geometry.t_min(), self.geometry.t_max(), nb_step)
+                self.length_by_discretisation(self.geometry.t_min(), self.geometry.t_max(), nb_step)
             });
         let nb_points = (len / nucl_rise) as usize;
         let small_step = 0.1 / (nb_step as f64);
         log::info!("small step = {small_step}");
         log::info!(
             "len = {}",
-            self.length_by_descretisation(self.geometry.t_min(), self.geometry.t_max(), nb_step)
+            self.length_by_discretisation(self.geometry.t_min(), self.geometry.t_max(), nb_step)
         );
 
         self.adjust_rise(&mut nucl_rise, polynomials.as_ref());
@@ -234,7 +234,7 @@ impl Curve {
             let synchronization_length = polynomials
                 .map(|p| p.curvilinear_abcsissa.evaluate(last_t))
                 .unwrap_or_else(|| {
-                    self.length_by_descretisation(self.geometry.t_min(), last_t, nb_step)
+                    self.length_by_discretisation(self.geometry.t_min(), last_t, nb_step)
                 });
 
             if let Some(n) = self.geometry.objective_nb_nt() {
@@ -275,7 +275,7 @@ impl Curve {
         }
     }
 
-    pub fn length_by_descretisation(&self, t0: f64, t1: f64, nb_step: usize) -> f64 {
+    pub fn length_by_discretisation(&self, t0: f64, t1: f64, nb_step: usize) -> f64 {
         if t0 > t1 {
             log::error!(
                 "Bad parameters ofr length by descritisation: \n t0 {} \n t1 {} \n nb_step {}",
@@ -366,7 +366,7 @@ impl Curve {
                 let mut delta = 1.0;
                 while delta < DELTA_MAX {
                     let new_tmin = self.geometry.t_min() - delta;
-                    if self.length_by_descretisation(new_tmin, 0.0, NB_DISCRETISATION_STEP / 100)
+                    if self.length_by_discretisation(new_tmin, 0.0, NB_DISCRETISATION_STEP / 100)
                         > objective
                     {
                         return Some(new_tmin);
@@ -402,7 +402,7 @@ impl Curve {
                     let mut delta = 1.0;
                     while delta < DELTA_MAX {
                         let new_tmax = self.geometry.t_max() + delta;
-                        if self.length_by_descretisation(
+                        if self.length_by_discretisation(
                             0.0,
                             new_tmax,
                             NB_DISCRETISATION_STEP / 100,

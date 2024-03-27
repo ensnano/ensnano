@@ -311,7 +311,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
         let button_3d = Button::new(&mut self.button_3d, iced::Text::new("3D"))
             .height(Length::Units(self.ui_size.button()))
             .on_press(Message::ToggleView(SplitMode::Scene3D));
-        let button_thick_helices = if self.application_state.app_state.want_thick_helices() {
+        let button_thick_helices = if self.application_state.app_state.want_all_helices_on_axis() {
             Button::new(
                 &mut self.button_thick_helices,
                 light_icon(LightIcon::Dehaze, self.ui_size),

@@ -112,6 +112,8 @@ pub(super) struct DesignContent {
     pub space_position: HashMap<u32, [f32; 3], RandomState>,
     /// Maps identifier of nucl element to their axis position in the Model's coordinates
     pub axis_space_position: HashMap<u32, [f32; 3], RandomState>,
+    /// Maps identifier of nucl element to whether the element is on axis or not in the Model's coordinates
+    pub on_axis: HashMap<u32, bool, RandomState>,
     /// Maps a Nucl object to its identifier
     pub nucl_collection: Arc<NuclCollection>,
     /// Maps a pair of nucleotide forming a bond to the identifier of the bond
@@ -181,7 +183,14 @@ impl DesignContent {
         }
     }
 
-    pub(super) fn get_axis_element_position(&self, id: u32) -> Option<Vec3> {
+    pub(super) fn get_element_graphic_position(&self, id: u32) -> Option<Vec3> {
+        if let Some(true) = self.on_axis.get(&id) {
+            return self.get_element_axis_position(id);
+        }
+        return self.get_element_position(id);
+    }
+
+    pub(super) fn get_element_axis_position(&self, id: u32) -> Option<Vec3> {
         if let Some(object_type) = self.object_type.get(&id) {
             match object_type {
                 ObjectType::Nucleotide(id) => self.axis_space_position.get(&id).map(|x| x.into()),
@@ -545,6 +554,7 @@ impl DesignContent {
         let mut object_type = HashMap::default();
         let mut space_position = HashMap::default();
         let mut axis_space_position = HashMap::default();
+        let mut on_axis = HashMap::default();
         let mut nucl_collection = NuclCollection::default();
         let mut identifier_bond = HashMap::default();
         let mut nucleotides_involved = HashMap::default();
@@ -671,6 +681,8 @@ impl DesignContent {
             let mut prev_loopout_pos = None;
             let mut prev_style = strand_style; // style of the previous domain, only used for cyclic strand outside the domain loop
             let bond_coloring = strand_style.xover_coloring.unwrap_or(true);
+
+            let strand_on_axis = strand_style.on_axis.unwrap_or(false);
             for (i, domain) in strand.domains.iter().enumerate() {
                 // Update junctions if xover or not
                 if let Some((prime5, prime3)) = prev_nucl.clone().zip(domain.prime5_end()) {
@@ -821,6 +833,9 @@ impl DesignContent {
                         let position = [position[0] as f32, position[1] as f32, position[2] as f32];
                         space_position.insert(nucl_id, position);
                         axis_space_position.insert(nucl_id, axis_position);
+                        if strand_on_axis {
+                            on_axis.insert(nucl_id, true);
+                        }
                         prev_nucl = Some(nucl);
                         prev_nucl_id = Some(nucl_id);
                     }
@@ -1216,6 +1231,9 @@ impl DesignContent {
                         clone_nucl_id,
                         [clone_axis_posi[0], clone_axis_posi[1], clone_axis_posi[2]],
                     );
+                    if let Some(o) = on_axis.get(&nucl_id) {
+                        on_axis.insert(clone_nucl_id, *o);
+                    }
                 }
                 // Cloned bonds
                 for (bond, bond_id) in &identifier_bond {
@@ -1238,6 +1256,9 @@ impl DesignContent {
                     strand_map.insert(clone_bond_id, *strand_id); // match bond_id to strand_id
                     helix_map.insert(clone_bond_id, *helix_id);
                     xover_coloring_map.insert(clone_bond_id, *xover_coloring);
+                    if let Some(o) = on_axis.get(&bond_id) {
+                        on_axis.insert(clone_bond_id, *o);
+                    }
                 }
                 // Cloned cylinders
                 for bond_id in &helix_cylinders {
@@ -1272,6 +1293,7 @@ impl DesignContent {
             strand_map,
             space_position,
             axis_space_position,
+            on_axis,
             color_map,
             radius_map,
             helix_map,

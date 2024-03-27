@@ -524,7 +524,7 @@ impl Multiplexer {
                         )
                     }
                     VirtualKeyCode::X => {
-                        self.requests.lock().unwrap().toggle_thick_helices = Some(());
+                        self.requests.lock().unwrap().toggle_all_helices_on_axis = Some(());
                     }
                     VirtualKeyCode::Z if ctrl(&self.modifiers) => {
                         if self.modifiers.shift() {

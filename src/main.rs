@@ -1492,7 +1492,7 @@ impl MainState {
     }
 
     fn set_thick_helices(&mut self, thick: bool) {
-        self.modify_state(|s| s.with_thick_helices(thick), None)
+        self.modify_state(|s| s.all_helices_on_axis(thick), None)
     }
 
     fn set_bezier_revolution_id(&mut self, id: Option<usize>) {
@@ -1542,8 +1542,8 @@ impl MainState {
             })
     }
 
-    fn toggle_thick_helices(&mut self) {
-        self.modify_state(|s| s.with_toggled_thick_helices(), None)
+    fn toggle_all_helices_on_axis(&mut self) {
+        self.modify_state(|s| s.with_toggled_all_helices_on_axis(), None)
     }
 
     fn set_background_3d(&mut self, bg: ensnano_interactor::graphics::Background3D) {

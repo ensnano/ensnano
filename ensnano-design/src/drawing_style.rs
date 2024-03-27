@@ -58,7 +58,7 @@ impl FromStr for DrawingAttribute {
     /// - %hc(HHHHHHHH) for DoubleHelixAsCylinderColor(0xHHHHHHHH)
     /// - %rh(HHHHHHHH) for DoubleHelixAsCylinderColor(Rainbow)
     /// - %wc / %noc for WithCones(true / false) - default = true
-    /// - %onaxis / %noaxis for OnAxis(true / false) - default = false
+    /// - %onaxis / %offaxis for OnAxis(true / false) - default = false
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let parsed = s
             .split(&['%', ' ', ',', ')', '('])
@@ -75,7 +75,7 @@ impl FromStr for DrawingAttribute {
                 "xc" => return Ok(Self::XoverColoring(true)),
                 "rh" => return Ok(Self::DoubleHelixAsCylinderColor(ColorType::Rainbow)), // IGNORED FOR NOW
                 "onaxis" => return Ok(Self::OnAxis(true)),
-                "noaxis" => return Ok(Self::OnAxis(false)),
+                "offaxis" => return Ok(Self::OnAxis(false)),
                 _ => (),
             },
             2..=4 => {

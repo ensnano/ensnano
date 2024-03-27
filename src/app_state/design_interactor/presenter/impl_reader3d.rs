@@ -196,6 +196,11 @@ impl Reader3D for DesignReader {
         Some(self.presenter.in_referential(position, referential))
     }
 
+    fn get_element_graphic_position(&self, e_id: u32, referential: Referential) -> Option<Vec3> {
+        let position = self.presenter.content.get_element_graphic_position(e_id)?;
+        Some(self.presenter.in_referential(position, referential))
+    }
+
     fn get_identifier_bond(&self, n1: Nucl, n2: Nucl) -> Option<u32> {
         self.presenter
             .content

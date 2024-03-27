@@ -55,7 +55,8 @@ pub struct Design3D<R: DesignReader> {
     pub design_reader: R,
     id: u32,
     symbol_map: HashMap<char, usize>,
-    pub thick_helices: bool,
+    /// indicate if all helices must be on axis (helices_off_axis = false)
+    pub all_helices_on_axis: bool,
 }
 
 impl<R: DesignReader> Design3D<R> {
@@ -68,7 +69,7 @@ impl<R: DesignReader> Design3D<R> {
             design_reader,
             id,
             symbol_map,
-            thick_helices: true,
+            all_helices_on_axis: false,
         }
     }
 
@@ -801,12 +802,12 @@ impl<R: DesignReader> Design3D<R> {
             let nucl_1 = self.design_reader.get_position_of_nucl_on_helix(
                 n1,
                 Referential::Model,
-                !self.thick_helices,
+                self.all_helices_on_axis,
             );
             let nucl_2 = self.design_reader.get_position_of_nucl_on_helix(
                 n2,
                 Referential::Model,
-                !self.thick_helices,
+                self.all_helices_on_axis,
             );
             if let Some(position) = nucl_1 {
                 let instance = SphereInstance {
@@ -839,12 +840,12 @@ impl<R: DesignReader> Design3D<R> {
             let nucl_1 = self.design_reader.get_position_of_nucl_on_helix(
                 n1,
                 Referential::Model,
-                !self.thick_helices,
+                self.all_helices_on_axis,
             );
             let nucl_2 = self.design_reader.get_position_of_nucl_on_helix(
                 n2,
                 Referential::Model,
-                !self.thick_helices,
+                self.all_helices_on_axis,
             );
             if let Some((position1, position2)) = nucl_1.zip(nucl_2) {
                 let instance = create_dna_bond(position1, position2, SUGGESTION_COLOR, 0, true)
@@ -1026,8 +1027,8 @@ impl<R: DesignReader> Design3D<R> {
     }
 
     fn get_graphic_element_position(&self, element: &SceneElement) -> Option<Vec3> {
-        if self.thick_helices {
-            self.get_element_position(element, Referential::World)
+        if !self.all_helices_on_axis {
+            self.get_element_graphic_position(element, Referential::World)
         } else {
             self.get_element_axis_position(element, Referential::World)
         }
@@ -1059,8 +1060,39 @@ impl<R: DesignReader> Design3D<R> {
         }
     }
 
+    pub fn get_element_graphic_position(
+        &self,
+        element: &SceneElement,
+        referential: Referential,
+    ) -> Option<Vec3> {
+        match element {
+            SceneElement::DesignElement(_, e_id) => {
+                self.get_design_element_graphic_position(*e_id, referential)
+            }
+            SceneElement::PhantomElement(phantom) => {
+                self.get_phantom_element_position(phantom, referential, true)
+            }
+            SceneElement::WidgetElement(_)
+            | SceneElement::Grid(_, _)
+            | SceneElement::BezierControl { .. }
+            | SceneElement::BezierVertex { .. }
+            | SceneElement::GridCircle(_, _)
+            | SceneElement::PlaneCorner { .. }
+            | SceneElement::BezierTangent { .. } => None,
+        }
+    }
+
     pub fn get_design_element_position(&self, id: u32, referential: Referential) -> Option<Vec3> {
         self.design_reader.get_element_position(id, referential)
+    }
+
+    pub fn get_design_element_graphic_position(
+        &self,
+        id: u32,
+        referential: Referential,
+    ) -> Option<Vec3> {
+        self.design_reader
+            .get_element_graphic_position(id, referential)
     }
 
     pub fn get_design_element_axis_position(
@@ -1424,7 +1456,7 @@ impl<R: DesignReader> Design3D<R> {
 
     #[allow(dead_code)]
     pub fn get_all_prime3_cone(&self) -> Vec<RawDnaInstance> {
-        if !self.thick_helices {
+        if self.all_helices_on_axis {
             return vec![];
         }
         let cones = self.design_reader.get_all_prime3_nucl();
@@ -1595,6 +1627,7 @@ pub trait DesignReader: 'static + ensnano_interactor::DesignReader {
     fn get_grid_latice_position(&self, position: GridPosition) -> Option<Vec3>;
     fn get_element_position(&self, e_id: u32, referential: Referential) -> Option<Vec3>;
     fn get_element_axis_position(&self, id: u32, referential: Referential) -> Option<Vec3>;
+    fn get_element_graphic_position(&self, id: u32, referential: Referential) -> Option<Vec3>;
     fn get_color(&self, e_id: u32) -> Option<u32>;
     fn get_radius(&self, e_id: u32) -> Option<f32>;
     fn get_xover_coloring(&self, e_id: u32) -> Option<bool>;

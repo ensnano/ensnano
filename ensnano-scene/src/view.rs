@@ -148,7 +148,7 @@ pub struct DrawOptions {
     pub rendering_mode: RenderingMode,
     pub background3d: Background3D,
     pub show_stereographic_camera: bool,
-    pub thick_helices: bool,
+    pub all_helices_on_axis: bool,
     pub h_bonds: HBondDisplay,
     pub show_bezier_planes: bool,
 }
