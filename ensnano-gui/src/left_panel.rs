@@ -19,15 +19,15 @@ use ensnano_interactor::{graphics::HBondDisplay, EquadiffSolvingMethod};
 use ensnano_organizer::{Organizer, OrganizerMessage, OrganizerTree};
 use std::sync::{Arc, Mutex};
 
+use iced::{theme, Color, Command, Element, Length};
 use iced_aw::native::{TabLabel, Tabs};
-use iced_native::widget::{container, helpers::*, Button, Column, Container, Text};
-use iced_native::{theme, Color, Command, Element, Length};
+use iced_runtime::Program;
 use iced_wgpu;
+use iced_widget::*;
 use iced_winit::winit::{
     dpi::{LogicalPosition, LogicalSize},
-    event::ModifiersState,
+    keyboard::ModifiersState,
 };
-use iced_winit::Program;
 use ultraviolet::Vec3;
 
 use ensnano_design::{
@@ -343,6 +343,7 @@ where
     S: AppState,
 {
     type Renderer = iced_wgpu::Renderer;
+    type Theme = iced::Theme;
     type Message = Message<S>;
 
     fn update(&mut self, message: Message<S>) -> Command<Message<S>> {
@@ -1071,7 +1072,7 @@ where
         };
 
         container(
-            iced_native::column![
+            self::column![
                 first_container.height(Length::FillPortion(2)),
                 horizontal_rule(5),
                 container(camera_shortcut).height(Length::FillPortion(1)),
@@ -1121,6 +1122,7 @@ pub enum ColorMessage {
 
 impl<R: Requests> Program for ColorOverlay<R> {
     type Renderer = iced_wgpu::Renderer;
+    type Theme = iced::Theme;
     type Message = ColorMessage;
 
     fn update(&mut self, message: ColorMessage) -> Command<ColorMessage> {

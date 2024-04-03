@@ -76,9 +76,11 @@ use ensnano_interactor::{
 use ensnano_interactor::{operation::Operation, ScaffoldInfo};
 use ensnano_interactor::{ActionMode, HyperboloidRequest, RollRequest, SelectionMode};
 pub use ensnano_organizer::OrganizerTree;
-use iced_native::Event;
-use iced_wgpu::{wgpu, Backend, Renderer, Settings, Viewport};
-use iced_winit::{conversion, program, winit, Debug, Size};
+use iced::{event::Event, keyboard, Size};
+use iced_graphics::Viewport;
+use iced_runtime::{program, Debug};
+use iced_wgpu::{wgpu, Backend, Renderer, Settings};
+use iced_winit::{conversion, winit};
 use std::collections::{BTreeSet, HashMap};
 use std::rc::Rc;
 use std::sync::{Arc, Mutex};
@@ -86,7 +88,7 @@ use ultraviolet::{Rotor3, Vec2, Vec3};
 use wgpu::Device;
 use winit::{
     dpi::{PhysicalPosition, PhysicalSize},
-    event::ModifiersState,
+    keyboard::ModifiersState,
     window::Window,
 };
 
@@ -251,15 +253,15 @@ pub enum OverlayType {
 
 // The state of each Gui Elements.
 enum GuiState<R: Requests, S: AppState> {
-    TopBar(iced_winit::program::State<TopBar<R, S>>),
-    LeftPanel(iced_winit::program::State<LeftPanel<R, S>>),
-    StatusBar(iced_winit::program::State<StatusBar<R, S>>),
+    TopBar(program::State<TopBar<R, S>>),
+    LeftPanel(program::State<LeftPanel<R, S>>),
+    StatusBar(program::State<StatusBar<R, S>>),
 }
 
 impl<R: Requests, S: AppState> GuiState<R, S> {
     fn queue_event(&mut self, event: Event) {
         if let Event::Keyboard(iced::keyboard::Event::KeyPressed {
-            key_code: iced::keyboard::KeyCode::Tab,
+            key: keyboard::Key::Named(keyboard::key::Named::Tab),
             ..
         }) = event
         {
@@ -334,46 +336,22 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
     fn update(
         &mut self,
         size: iced::Size,
-        cursor_position: iced::Point,
+        cursor: iced::Point,
         renderer: &mut Renderer,
-        theme: &<Renderer as iced_native::Renderer>::Theme,
-        style: &iced_native::renderer::Style,
+        theme: &<Renderer as iced_runtime::Renderer>::Theme,
+        style: &iced_runtime::renderer::Style,
         debug: &mut Debug,
     ) {
-        let mut clipboard = iced_native::clipboard::Null;
+        let mut clipboard = iced_runtime::clipboard::Null;
         match self {
             GuiState::TopBar(state) => {
-                state.update(
-                    size,
-                    cursor_position,
-                    renderer,
-                    theme,
-                    style,
-                    &mut clipboard,
-                    debug,
-                );
+                state.update(size, cursor, renderer, theme, style, &mut clipboard, debug);
             }
             GuiState::LeftPanel(state) => {
-                state.update(
-                    size,
-                    cursor_position,
-                    renderer,
-                    theme,
-                    style,
-                    &mut clipboard,
-                    debug,
-                );
+                state.update(size, cursor, renderer, theme, style, &mut clipboard, debug);
             }
             GuiState::StatusBar(state) => {
-                state.update(
-                    size,
-                    cursor_position,
-                    renderer,
-                    theme,
-                    style,
-                    &mut clipboard,
-                    debug,
-                );
+                state.update(size, cursor, renderer, theme, style, &mut clipboard, debug);
             }
         }
     }
@@ -559,7 +537,7 @@ impl<R: Requests, S: AppState> GuiElement<R, S> {
         &mut self,
         window: &Window,
         theme: &iced::Theme,
-        style: &iced_native::renderer::Style,
+        style: &iced_runtime::renderer::Style,
         multiplexer: &dyn Multiplexer,
         resized: bool,
     ) -> bool {
@@ -712,24 +690,24 @@ impl<R: Requests, S: AppState> Gui<R, S> {
     }
 
     /// Forward an event to the appropriate gui component
-    pub fn forward_event(&mut self, area: ElementType, event: iced_native::Event) {
+    pub fn forward_event(&mut self, area: ElementType, event: iced_runtime::Event) {
         self.elements.get_mut(&area).unwrap().forward_event(event);
     }
 
     /// Clear the foccus of all components of the GUI
     pub fn clear_foccus(&mut self) {
         for elt in self.elements.values_mut() {
-            use iced_native::mouse::Event;
-            elt.forward_event(iced_native::Event::Mouse(Event::CursorMoved {
+            use iced_runtime::mouse::Event;
+            elt.forward_event(iced_runtime::Event::Mouse(Event::CursorMoved {
                 position: [-1., -1.].into(),
             }));
-            elt.forward_event(iced_native::Event::Mouse(Event::ButtonPressed(
-                iced_native::mouse::Button::Left,
+            elt.forward_event(iced_runtime::Event::Mouse(Event::ButtonPressed(
+                iced_runtime::mouse::Button::Left,
             )))
         }
     }
 
-    pub fn forward_event_all(&mut self, event: iced_native::Event) {
+    pub fn forward_event_all(&mut self, event: iced_runtime::Event) {
         for e in self.elements.values_mut() {
             e.forward_event(event.clone())
         }
@@ -777,7 +755,7 @@ impl<R: Requests, S: AppState> Gui<R, S> {
         &mut self,
         window: &Window,
         theme: &iced::Theme,
-        style: &iced_native::renderer::Style,
+        style: &iced_runtime::renderer::Style,
         multiplexer: &dyn Multiplexer,
     ) -> bool {
         let mut ret = false;
@@ -792,7 +770,7 @@ impl<R: Requests, S: AppState> Gui<R, S> {
         &mut self,
         multiplexer: &dyn Multiplexer,
         theme: &iced::Theme,
-        style: &iced_native::renderer::Style,
+        style: &iced_runtime::renderer::Style,
         window: &Window,
     ) {
         for elements in self.elements.values_mut() {

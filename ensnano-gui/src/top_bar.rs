@@ -27,9 +27,9 @@ use super::{AppState, TopBarState, UiSize};
 use crate::helpers::*;
 use ensnano_interactor::{ActionMode, SelectionMode};
 use iced::{theme, Element, Length, Padding};
-use iced_native::widget::{self, helpers::*};
-use iced_native::{Command, Program};
+use iced_runtime::{Command, Program};
 use iced_wgpu;
+use iced_widget::*;
 use iced_winit::winit::dpi::LogicalSize;
 //use std::collections::BTreeMap;
 use std::sync::{Arc, Mutex};
@@ -109,6 +109,7 @@ impl<R: Requests, S: AppState> TopBar<R, S> {
 
 impl<R: Requests, S: AppState> Program for TopBar<R, S> {
     type Renderer = iced_wgpu::Renderer;
+    type Theme = iced::Theme;
     type Message = Message<S>;
 
     fn update(&mut self, message: Message<S>) -> Command<Message<S>> {
@@ -192,7 +193,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
             light_icon_button(LightIcon::InsertDriveFile, self.ui_size)
                 .on_press(Message::ButtonNewEmptyDesignPressed),
             "Start a new design.",
-            widget::tooltip::Position::FollowCursor,
+            tooltip::Position::FollowCursor,
         )
         .style(theme::Container::Box);
 
@@ -200,7 +201,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
             light_icon_button(LightIcon::FolderOpen, self.ui_size)
                 .on_press(Message::OpenFileButtonPressed),
             "Add file.",
-            widget::tooltip::Position::FollowCursor,
+            tooltip::Position::FollowCursor,
         )
         .style(theme::Container::Box);
 
@@ -245,7 +246,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
         let button_2d = tooltip(
             text_button("2D", self.ui_size).on_press(Message::ToggleView(SplitMode::Flat)),
             "Switch to flatscene only view",
-            widget::tooltip::Position::FollowCursor,
+            tooltip::Position::FollowCursor,
         )
         .style(theme::Container::Box);
         let button_3d =
@@ -259,7 +260,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
         let button_split = tooltip(
             text_button("3D+2D", self.ui_size).on_press(Message::ToggleView(SplitMode::Both)),
             "Switch to both flat and 3d view",
-            widget::tooltip::Position::FollowCursor,
+            tooltip::Position::FollowCursor,
         )
         .style(theme::Container::Box);
 
@@ -332,9 +333,9 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
             })
             .collect();
 
-        let buttons = iced_native::row![
+        let buttons = row![
             // “File” group
-            iced_native::row![
+            row![
                 button_new_empty_design,
                 button_add_file,
                 button_reload,
@@ -345,7 +346,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
             ]
             .spacing(self.ui_size.button_pad()),
             // “View” group
-            iced_native::row![
+            row![
                 button_3d,
                 button_thick_helices,
                 button_2d,
@@ -355,14 +356,14 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
                 button_flip_split,
             ]
             .spacing(self.ui_size.button_pad()),
-            iced_native::row![button_fit, button_horizon,].spacing(self.ui_size.button_pad()),
+            row![button_fit, button_horizon,].spacing(self.ui_size.button_pad()),
             // “Edition” group
-            iced_native::row![button_undo, button_redo,].spacing(self.ui_size.button_pad()),
+            row![button_undo, button_redo,].spacing(self.ui_size.button_pad()),
             // “Action” group
             row(action_mode_buttons).spacing(self.ui_size.button_pad()),
             // “Selection” group
             row(selection_mode_buttons).spacing(self.ui_size.button_pad()),
-            iced_native::row![button_help, button_tutorial,].spacing(self.ui_size.button_pad()),
+            row![button_help, button_tutorial,].spacing(self.ui_size.button_pad()),
             // ENSnano logo, placed on the right.
             text("\u{e91c}")
                 .width(Length::Fill)
@@ -459,7 +460,7 @@ fn action_mode_btn<'a, S: AppState>(
     current_action_mode: ActionMode,
     button_size: impl Into<Length>,
     axis_aligned: bool,
-) -> widget::Button<'a, Message<S>, iced_wgpu::Renderer> {
+) -> Button<'a, Message<S>, iced_wgpu::Renderer> {
     let icon_path = if current_action_mode == *mode {
         mode.icon_on(axis_aligned)
     } else {
@@ -477,7 +478,7 @@ fn selection_mode_btn<'a, S: AppState>(
     mode: &SelectionMode,
     current_mode: SelectionMode,
     button_size: impl Into<Length>,
-) -> widget::Button<'a, Message<S>, iced_wgpu::Renderer> {
+) -> Button<'a, Message<S>, iced_wgpu::Renderer> {
     let icon_path = if current_mode == *mode {
         mode.icon_on()
     } else {

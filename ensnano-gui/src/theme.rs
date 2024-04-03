@@ -2,9 +2,9 @@
 //!
 //! The theme of the GUI is defined here
 
-use iced::{theme, theme::Palette, Background, Color, Theme};
-use iced_native::renderer::Style;
-use iced_native::widget::{container, slider, text_input};
+use iced::{theme, theme::Palette, Background, Border, Color, Theme};
+//use iced_graphics::renderer::Style;
+use iced_widget::{container, slider, text_input};
 
 /// Color palette
 pub const GUI_PALETTE: Palette = Palette {
@@ -16,7 +16,7 @@ pub const GUI_PALETTE: Palette = Palette {
 };
 
 pub fn gui_theme() -> Theme {
-    Theme::custom(GUI_PALETTE)
+    Theme::custom("ENSnano UI Theme".to_string(), GUI_PALETTE)
 }
 
 pub fn gui_style(theme: &Theme) -> Style {
@@ -41,9 +41,12 @@ impl container::StyleSheet for GuiBackground {
         container::Appearance {
             text_color: None,
             background: Some(Background::from(GUI_PALETTE.background)),
-            border_radius: 0.0,
-            border_width: 0.0,
-            border_color: Color::TRANSPARENT,
+            border: Border {
+                color: Color::TRANSPARENT,
+                width: 0.0,
+                radius: 0.0,
+            },
+            shadow: None,
         }
     }
 }
@@ -67,6 +70,7 @@ impl slider::StyleSheet for DeactivatedSlider {
             rail: slider::Rail {
                 colors: ([0.6, 0.6, 0.6, 0.5].into(), Color::WHITE),
                 width: 8.0,
+                border_radius: 1.0,
             },
             handle: slider::Handle {
                 shape: slider::HandleShape::Rectangle {
@@ -104,16 +108,21 @@ impl text_input::StyleSheet for BadValue {
     fn active(&self, _style: &Self::Style) -> text_input::Appearance {
         text_input::Appearance {
             background: Background::Color(Color::WHITE),
-            border_radius: 5.0,
-            border_color: Color::from_rgb(0.7, 0.7, 0.7),
-            border_width: Default::default(),
+            border: Border {
+                color: Color::from_rgb(0.7, 0.7, 0.7),
+                width: Default::default(),
+                radius: 5.0,
+            },
             icon_color: Default::default(), // TODO:Choose an appropriate value for this field.
         }
     }
 
     fn focused(&self, style: &Self::Style) -> text_input::Appearance {
         text_input::Appearance {
-            border_color: Color::from_rgb(0.5, 0.5, 0.5),
+            border: Border {
+                color: Color::from_rgb(0.5, 0.5, 0.5),
+                ..self.active(style).border
+            },
             ..self.active(style)
         }
     }
@@ -141,7 +150,10 @@ impl text_input::StyleSheet for BadValue {
     fn disabled(&self, style: &Self::Style) -> text_input::Appearance {
         text_input::Appearance {
             // TODO: Choose an appropriate value for this field
-            border_color: Color::from_rgb(0.4, 0.4, 0.4),
+            border: Border {
+                color: Color::from_rgb(0.4, 0.4, 0.4),
+                ..self.active(style).border
+            },
             ..self.active(style)
         }
     }

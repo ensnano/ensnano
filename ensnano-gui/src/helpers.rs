@@ -20,11 +20,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! Repetitive, complex widgets are factored here.
 use super::UiSize;
 use crate::material_icons_light::{self, LightIcon};
-use iced::{theme, widget, Length};
-use iced_native::widget::helpers::*;
+use iced::{theme, widget, Font, Length};
+use iced_widget::*;
 
 const JUMP_SIZE: f32 = 4.0;
-pub(super) const ENSNANO_FONT: iced::Font = iced::Font::External {
+pub(super) const ENSNANO_FONT: Font = Font::External {
     name: "EnsNanoFont",
     bytes: include_bytes!("../../font/ensnano.ttf"),
 };
@@ -35,8 +35,8 @@ pub fn extra_jump() -> widget::Space {
 }
 
 /// Add vertical space of specified amount.
-pub fn jump_by(amount: impl Into<Length>) -> widget::Space {
-    vertical_space(amount)
+pub fn jump_by(amount: impl Into<Length>) -> Space {
+    Space::with_height(amount)
 }
 
 /// Section title widget

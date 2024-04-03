@@ -18,16 +18,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::{AppState, Requests, UiSize};
 use ensnano_interactor::operation::{Operation, ParameterField};
 pub use ensnano_interactor::StrandBuildingStatus;
-use iced::widget::{container, slider};
-use iced::Length;
-use iced_native::{
-    widget::helpers::*,
-    widget::{pick_list, text_input, PickList, TextInput},
-};
-use iced_winit::{
-    widget::{Row, Space, Text},
-    winit, Command, Element, Program,
-};
+use iced::{Alignment, Element, Length};
+use iced_runtime::{Command, Program};
+use iced_widget::*;
+use iced_winit::winit;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use winit::dpi::LogicalSize;
@@ -36,7 +30,7 @@ const GOLD_ORANGE: iced::Color = iced::Color::from_rgb(0.84, 0.57, 0.20);
 
 #[derive(Debug)]
 enum StatusParameter {
-    Value(text_input::State),
+    Value(text_input::State<iced_graphics::text::Paragraph>),
     Choice(pick_list::State<String>),
 }
 
@@ -138,7 +132,7 @@ impl<R: Requests, S: AppState> StatusBar<R, S> {
 
     fn view_progress(&self) -> Row<Message<S>, iced_wgpu::Renderer> {
         let progress = self.progress.as_ref().unwrap();
-        iced_native::row![text(format!("{}, {:.1}%", progress.0, progress.1 * 100.))
+        row![text(format!("{}, {:.1}%", progress.0, progress.1 * 100.))
             .size(self.ui_size.main_text()),]
     }
 
@@ -186,6 +180,7 @@ pub enum Message<S: AppState> {
 
 impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
     type Message = Message<S>;
+    type Theme = iced::Theme;
     type Renderer = iced_wgpu::Renderer;
 
     fn update(&mut self, message: Message<S>) -> Command<Message<S>> {
@@ -249,35 +244,31 @@ impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
         let mut content = if self.progress.is_some() {
             self.view_progress()
         } else if let Some(building_info) = self.app_state.get_strand_building_state() {
-            iced_native::row![text(building_info.to_info()).size(self.ui_size.main_text()),]
+            row![text(building_info.to_info()).size(self.ui_size.main_text()),]
         } else if let Some(ref message) = &self.message {
-            iced_native::row![text(message).size(self.ui_size.main_text()),]
+            row![text(message).size(self.ui_size.main_text()),]
         } else if let Some(operation) = &self.operation {
             log::trace!("operation is some");
             operation.view(self.ui_size)
         } else {
             log::trace!("operation is none");
-            iced_native::row![]
+            row![]
         };
 
-        content = iced_native::row![
+        content = row![
             content,
-            horizontal_space(Length::Fill), // To right align the clipboard text
+            horizontal_space(), // To right align the clipboard text
             text(clipboard_text),
-            horizontal_space(5),
+            Space::with_width(5),
         ]
-        .align_items(iced_winit::Alignment::End);
+        .align_items(Alignment::End);
 
-        let pasting_status_row = iced_native::row![
-            horizontal_space(Length::Fill),
-            text(pasting_text),
-            horizontal_space(5),
-        ];
+        let pasting_status_row =
+            row![horizontal_space(), text(pasting_text), Space::with_width(5),];
 
-        let column =
-            iced_native::column![Space::new(Length::Fill, 3), content, pasting_status_row,];
+        let content = self::column![Space::new(Length::Fill, 3), content, pasting_status_row,];
 
-        container(column)
+        container(content)
             .style(crate::theme::GuiBackground)
             .width(size.width as f32)
             .height(Length::Fill)
@@ -467,8 +458,8 @@ impl OperationInput {
 
 mod input_color {
     use iced::theme;
-    use iced::{Background, Color};
-    use iced_native::widget::text_input::*;
+    use iced::{Background, Border, Color};
+    use iced_widget::text_input::*;
 
     pub enum InputValueState {
         Normal,
@@ -481,16 +472,21 @@ mod input_color {
         fn active(&self, _style: &Self::Style) -> Appearance {
             Appearance {
                 background: Background::Color(Color::WHITE),
-                border_radius: 5.0,
-                border_width: 1.0,
-                border_color: Color::from_rgb(0.7, 0.7, 0.7),
+                border: Border {
+                    color: Color::from_rgb(0.7, 0.7, 0.7),
+                    width: 1.0,
+                    radius: 5.0,
+                },
                 icon_color: Default::default(), // TODO:Choose an appropriate value for this field.
             }
         }
 
         fn focused(&self, style: &Self::Style) -> Appearance {
             Appearance {
-                border_color: Color::from_rgb(0.5, 0.5, 0.5),
+                border: Border {
+                    color: Color::from_rgb(0.5, 0.5, 0.5),
+                    ..self.active(style).border
+                },
                 ..self.active(style)
             }
         }
@@ -518,7 +514,10 @@ mod input_color {
         fn disabled(&self, style: &Self::Style) -> Appearance {
             Appearance {
                 // TODO: Choose an appropriate value for this field
-                border_color: Color::from_rgb(0.4, 0.4, 0.4),
+                border: Border {
+                    color: Color::from_rgb(0.4, 0.4, 0.4),
+                    ..self.active(style).border
+                },
                 ..self.active(style)
             }
         }

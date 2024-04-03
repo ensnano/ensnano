@@ -12,6 +12,7 @@ iced_graphics = "0.12"
 iced_runtime = "0.12"
 iced_winit = "0.12"
 iced_wgpu = "0.12"
+iced_widget = "0.12"
 wgpu = { version = "0.19", features = ["spirv"] }
 ensnano_design = { path = "../ensnano-design" }
 ensnano_interactor = { path = "../ensnano-interactor" }

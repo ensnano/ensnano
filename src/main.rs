@@ -138,7 +138,7 @@ extern crate pretty_env_logger;
 // static GLOBAL: Jemalloc = Jemalloc;
 
 /// An interface to use iced_aw's Bootstrap icons.
-pub mod icons;
+//pub mod icons;
 
 /// Design handling
 //mod design;
@@ -838,7 +838,7 @@ fn main() {
 }
 
 pub struct OverlayManager {
-    color_state: iced_native::program::State<ColorOverlay<Requests>>,
+    color_state: iced_runtime::program::State<ColorOverlay<Requests>>,
     color_debug: Debug,
     overlay_types: Vec<OverlayType>,
     overlays: Vec<Overlay>,
@@ -895,7 +895,7 @@ impl OverlayManager {
         &mut self,
         renderer: &mut iced_graphics::Renderer<iced_wgpu::Backend, iced::Theme>,
         theme: &iced::Theme,
-        style: &iced_native::renderer::Style,
+        style: &iced_runtime::renderer::Style,
         resized: bool,
         multiplexer: &Multiplexer,
         window: &Window,
@@ -907,7 +907,7 @@ impl OverlayManager {
             } else {
                 PhysicalPosition::new(-1., -1.)
             };
-            let mut clipboard = iced_native::clipboard::Null;
+            let mut clipboard = iced_runtime::clipboard::Null;
             match overlay {
                 OverlayType::Color => {
                     if !self.color_state.is_queue_empty() || resized {
@@ -997,7 +997,7 @@ impl OverlayManager {
         window: &Window,
         renderer: &mut iced_graphics::Renderer<iced_wgpu::Backend, iced::Theme>,
         theme: &iced::Theme,
-        style: &iced_native::renderer::Style,
+        style: &iced_runtime::renderer::Style,
     ) -> bool {
         let mut ret = false;
         for (n, overlay) in self.overlay_types.iter().enumerate() {
@@ -1007,7 +1007,7 @@ impl OverlayManager {
             } else {
                 PhysicalPosition::new(-1., -1.)
             };
-            let mut clipboard = iced_native::clipboard::Null;
+            let mut clipboard = iced_runtime::clipboard::Null;
             match overlay {
                 OverlayType::Color => {
                     if !self.color_state.is_queue_empty() {
