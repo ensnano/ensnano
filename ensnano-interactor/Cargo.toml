@@ -29,7 +29,7 @@ num_enum = "0.5.1"
 open = "1"
 ensnano_design = { path = "../ensnano-design" }
 ensnano_organizer = { path = "../ensnano-organizer" }
-iced_wgpu = "0.11"
-iced_winit = "0.10"
+iced_wgpu = "0.12"
+iced_winit = "0.12"
 log = "0.4"
 rayon = "1.6.0"

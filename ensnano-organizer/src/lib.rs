@@ -2,7 +2,7 @@ use iced::advanced;
 use iced::alignment::Horizontal as HorizontalAlignment;
 use iced::keyboard::Modifiers;
 use iced::{Element, Length};
-use iced_aw::graphics::icons::{icon_to_string, BootstrapIcon, BOOTSTRAP_FONT};
+pub use iced_aw::graphics::icons::{icon_to_string, BootstrapIcon, BOOTSTRAP_FONT};
 use iced_widget::{renderer::Renderer, *};
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::convert::TryInto;

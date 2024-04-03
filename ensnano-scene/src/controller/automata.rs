@@ -26,6 +26,7 @@ use ensnano_design::{
 use ensnano_interactor::{ActionMode, CursorIcon};
 use std::borrow::Cow;
 use std::cell::RefCell;
+use winit::event::{ElementState, MouseButton};
 
 use super::AppState;
 
@@ -133,7 +134,7 @@ impl<S: AppState> ControllerState<S> for NormalState {
                 state: ElementState::Pressed,
                 button: MouseButton::Left,
                 ..
-            } if context.get_modifiers().alt() => {
+            } if context.get_modifiers().alt_key() => {
                 let click_info = ClickInfo::new(MouseButton::Left, context.cursor_position);
                 let clicked_nucl = context
                     .get_element_under_cursor()
@@ -220,9 +221,8 @@ impl<S: AppState> ControllerState<S> for NormalState {
                             new_state: Some(Box::new(new_state)),
                             consequences: Consequence::Nothing,
                         };
-                    } else {
-                        log::error!("Could not get vertex {:?}, {vertex_id}", path_id)
                     }
+                    log::error!("Could not get vertex {:?}, {vertex_id}", path_id)
                 }
                 match element {
                     Some(SceneElement::GridCircle(d_id, grid_position)) => {
@@ -246,8 +246,8 @@ impl<S: AppState> ControllerState<S> for NormalState {
                                 consequences: Consequence::Nothing,
                             }
                         } else {
-                            let adding =
-                                context.get_modifiers().shift() || ctrl(context.get_modifiers());
+                            let adding = context.get_modifiers().shift_key()
+                                || ctrl(context.get_modifiers());
                             let new_state = PointAndClicking::selecting(
                                 context.cursor_position,
                                 element,
@@ -302,7 +302,7 @@ impl<S: AppState> ControllerState<S> for NormalState {
                                     }
                                 }
                             } else {
-                                let adding = context.get_modifiers().shift()
+                                let adding = context.get_modifiers().shift_key()
                                     || ctrl(context.get_modifiers());
                                 let new_state = PointAndClicking::selecting(
                                     context.cursor_position,
@@ -347,7 +347,7 @@ impl<S: AppState> ControllerState<S> for NormalState {
                                     consequences: Consequence::HelixSelected(obj.helix()),
                                 }
                             } else {
-                                let adding = context.get_modifiers().shift()
+                                let adding = context.get_modifiers().shift_key()
                                     || ctrl(context.get_modifiers());
 
                                 let selected_element = clicked_element
@@ -366,7 +366,7 @@ impl<S: AppState> ControllerState<S> for NormalState {
                     }
                     Some(SceneElement::WidgetElement(widget_id)) => {
                         let normalized_cursor_position = context.normalized_cursor_position();
-                        let translation_target = if context.get_modifiers().shift() {
+                        let translation_target = if context.get_modifiers().shift_key() {
                             WidgetTarget::Pivot
                         } else {
                             WidgetTarget::Object
@@ -390,7 +390,7 @@ impl<S: AppState> ControllerState<S> for NormalState {
                                 }
                             }
                             RIGHT_CIRCLE_ID | FRONT_CIRCLE_ID | UP_CIRCLE_ID => {
-                                let target = if context.get_modifiers().shift() {
+                                let target = if context.get_modifiers().shift_key() {
                                     WidgetTarget::Pivot
                                 } else {
                                     WidgetTarget::Object
@@ -422,7 +422,7 @@ impl<S: AppState> ControllerState<S> for NormalState {
                         if let Some(nucl) = context.element_to_nucl(&element, true) {
                             Transition::consequence(Consequence::QuickXoverAttempt {
                                 nucl,
-                                doubled: context.get_modifiers().shift(),
+                                doubled: context.get_modifiers().shift_key(),
                             })
                         } else {
                             Transition::nothing()
@@ -455,8 +455,8 @@ impl<S: AppState> ControllerState<S> for NormalState {
                                 },
                             }
                         } else {
-                            let adding =
-                                context.get_modifiers().shift() || ctrl(context.get_modifiers());
+                            let adding = context.get_modifiers().shift_key()
+                                || ctrl(context.get_modifiers());
                             let new_state = PointAndClicking::selecting(
                                 context.cursor_position,
                                 element,
@@ -484,7 +484,7 @@ impl<S: AppState> ControllerState<S> for NormalState {
                     }
                     _ => {
                         let adding =
-                            context.get_modifiers().shift() || ctrl(context.get_modifiers());
+                            context.get_modifiers().shift_key() || ctrl(context.get_modifiers());
                         let new_state =
                             PointAndClicking::selecting(context.cursor_position, element, adding);
                         Transition {
@@ -532,7 +532,7 @@ impl<S: AppState> ControllerState<S> for NormalState {
                     new_state: Some(Box::new(PointAndClicking::setting_pivot(
                         context.cursor_position,
                         element,
-                        context.get_modifiers().shift(),
+                        context.get_modifiers().shift_key(),
                     ))),
                     consequences: Consequence::Nothing,
                 }
@@ -567,16 +567,16 @@ struct BuildingHelix {
 
 fn ctrl(modifiers: &ModifiersState) -> bool {
     if cfg!(target_os = "macos") {
-        modifiers.logo()
+        modifiers.super_key()
     } else {
-        modifiers.ctrl()
+        modifiers.control_key()
     }
 }
 
 fn other_ctrl(modifiers: &ModifiersState) -> bool {
     if cfg!(target_os = "macos") {
-        modifiers.ctrl()
+        modifiers.control_key()
     } else {
-        modifiers.logo()
+        modifiers.super_key()
     }
 }

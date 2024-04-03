@@ -107,21 +107,22 @@ use ensnano_interactor::{
     CenterOfSelection, CursorIcon, DesignOperation, DesignReader, RigidBodyConstants,
     SuggestionParameters,
 };
+use iced::Event as IcedEvent;
+use iced::Size;
 use iced_futures::futures;
 use iced_graphics::Viewport;
-use iced_native::Event as IcedEvent;
-use iced_native::{program, Debug, Size};
+use iced_runtime::{program, Debug};
 use iced_wgpu::wgpu::Queue;
 use iced_wgpu::{wgpu, Settings};
-use iced_winit::winit::event::VirtualKeyCode;
 use iced_winit::{conversion, winit};
 
 use app_state::AppStateParameters;
 use ultraviolet::{Rotor3, Vec3};
 use winit::{
     dpi::{PhysicalPosition, PhysicalSize},
-    event::{Event, ModifiersState, WindowEvent},
+    event::{Event, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
+    keyboard::{KeyCode, ModifiersState},
     window::Window,
 };
 
@@ -291,8 +292,8 @@ fn main() {
         adapter
             .request_device(
                 &wgpu::DeviceDescriptor {
-                    features: wgpu::Features::empty(),
-                    limits: wgpu::Limits::default(),
+                    required_features: wgpu::Features::empty(),
+                    required_limits: wgpu::Limits::default(),
                     label: None,
                 },
                 None,
@@ -316,6 +317,7 @@ fn main() {
                 width: size.width,
                 height: size.height,
                 present_mode: wgpu::PresentMode::AutoVsync,
+                desired_maximum_frame_latency: 2,
                 alpha_mode: wgpu::CompositeAlphaMode::Auto,
                 view_formats: vec![],
             },
@@ -334,12 +336,11 @@ fn main() {
         ..Default::default()
     };
     // Initialize the renderer
-    let mut renderer = iced_wgpu::Renderer::new(iced_wgpu::Backend::new(
-        &device,
-        &queue,
-        settings,
-        TEXTURE_FORMAT,
-    ));
+    let mut renderer = iced_wgpu::Renderer::new(
+        iced_wgpu::Backend::new(&device, &queue, settings, TEXTURE_FORMAT),
+        settings.default_font,
+        settings.default_text_size,
+    );
     let device = Rc::new(device);
     let queue = Rc::new(queue);
     let mut resized = false;
@@ -496,11 +497,9 @@ fn main() {
                 main_state_view.notify_apps(Notification::ModifersChanged(modifiers));
             }
             Event::WindowEvent {
-                event: WindowEvent::KeyboardInput { input, .. },
+                event: WindowEvent::KeyboardInput { event, .. },
                 ..
-            } if input.virtual_keycode == Some(VirtualKeyCode::Escape)
-                && window.fullscreen().is_some() =>
-            {
+            } if event.logicak_key == KeyCode::Escape && window.fullscreen().is_some() => {
                 window.set_fullscreen(None)
             }
             Event::WindowEvent {
@@ -514,6 +513,7 @@ fn main() {
                 if let Event::WindowEvent { event, .. } = event {
                     if let Some(event) = event.to_static() {
                         let event = iced_winit::conversion::window_event(
+                            window.id(),
                             &event,
                             window.scale_factor(),
                             kbd_modifiers,
@@ -547,6 +547,7 @@ fn main() {
                         match area {
                             area if area.is_gui() => {
                                 let event = iced_winit::conversion::window_event(
+                                    window.id(),
                                     &event,
                                     window.scale_factor(),
                                     kbd_modifiers,
@@ -557,6 +558,7 @@ fn main() {
                             }
                             ElementType::Overlay(n) => {
                                 let event = iced_winit::conversion::window_event(
+                                    window.id(),
                                     &event,
                                     window.scale_factor(),
                                     kbd_modifiers,
@@ -708,6 +710,7 @@ fn main() {
                             width: window_size.width,
                             height: window_size.height,
                             present_mode: wgpu::PresentMode::AutoVsync,
+                            desired_maximum_frame_latency: 2,
                             alpha_mode: Default::default(),
                             view_formats: Default::default(),
                         },
@@ -740,6 +743,7 @@ fn main() {
                             width: window_size.width,
                             height: window_size.height,
                             present_mode: wgpu::PresentMode::AutoVsync,
+                            desired_maximum_frame_latency: 2,
                             alpha_mode: Default::default(),
                             view_formats: Default::default(),
                         },
@@ -801,6 +805,7 @@ fn main() {
                     );
                     overlay_manager.render(
                         &device,
+                        &queue,
                         &mut staging_belt,
                         &mut encoder,
                         &frame
@@ -946,6 +951,7 @@ impl OverlayManager {
                             queue,
                             staging_belt,
                             encoder,
+                            None, // TODO: Examine what clear_color is.
                             target,
                             primitives,
                             &color_viewport,

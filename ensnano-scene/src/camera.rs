@@ -26,6 +26,7 @@ use std::time::Duration;
 use ultraviolet::{Mat3, Mat4, Rotor3, Vec3};
 use winit::dpi::PhysicalPosition;
 use winit::event::*;
+use winit::keyboard::{KeyCode, ModifiersState};
 
 const DEFAULT_DIST_TO_SURFACE: f32 = 20.;
 const SURFACE_ABSCISSA_FACTOR: f64 = 1.;
@@ -322,30 +323,30 @@ impl CameraController {
         }
     }
 
-    pub fn process_keyboard(&mut self, key: VirtualKeyCode, state: ElementState) -> bool {
+    pub fn process_keyboard(&mut self, key: KeyCode, state: ElementState) -> bool {
         let amount = if state == ElementState::Pressed {
             1.0
         } else {
             0.0
         };
         match key {
-            VirtualKeyCode::Up => {
+            KeyCode::ArrowUp => {
                 self.amount_up = amount;
                 true
             }
-            VirtualKeyCode::Down => {
+            KeyCode::ArrowDown => {
                 self.amount_down = amount;
                 true
             }
-            VirtualKeyCode::Left => {
+            KeyCode::ArrowLeft => {
                 self.amount_left = amount;
                 true
             }
-            VirtualKeyCode::Right => {
+            KeyCode::ArrowRight => {
                 self.amount_right = amount;
                 true
             }
-            VirtualKeyCode::H if amount > 0. => {
+            KeyCode::KeyH if amount > 0. => {
                 self.rotate_camera_around(
                     FRAC_PI_2 / 20.,
                     0.,
@@ -354,7 +355,7 @@ impl CameraController {
                 self.cam0 = self.camera.borrow().clone();
                 true
             }
-            VirtualKeyCode::L if amount > 0. => {
+            KeyCode::KeyL if amount > 0. => {
                 self.rotate_camera_around(
                     -FRAC_PI_2 / 20.,
                     0.,
@@ -363,7 +364,7 @@ impl CameraController {
                 self.cam0 = self.camera.borrow().clone();
                 true
             }
-            VirtualKeyCode::J if amount > 0. => {
+            KeyCode::KeyJ if amount > 0. => {
                 self.rotate_camera_around(
                     0.,
                     FRAC_PI_2 / 20.,
@@ -372,7 +373,7 @@ impl CameraController {
                 self.cam0 = self.camera.borrow().clone();
                 true
             }
-            VirtualKeyCode::K if amount > 0. => {
+            KeyCode::KeyK if amount > 0. => {
                 self.rotate_camera_around(
                     0.,
                     -FRAC_PI_2 / 20.,
@@ -542,33 +543,33 @@ impl CameraController {
         let up_vec = self.camera.borrow().up_vec();
         let forward_vec = self.camera.borrow().direction();
 
-        let (amount_right, amount_roll_right, amount_rotate_right) = if modifier.shift() {
+        let (amount_right, amount_roll_right, amount_rotate_right) = if modifier.shift_key() {
             (0., 0., self.amount_right)
-        } else if modifier.alt() {
+        } else if modifier.alt_key() {
             (0., self.amount_right, 0.)
         } else {
             (self.amount_right, 0., 0.)
         };
 
-        let (amount_left, amount_roll_left, amount_rotate_left) = if modifier.shift() {
+        let (amount_left, amount_roll_left, amount_rotate_left) = if modifier.shift_key() {
             (0., 0., self.amount_left)
-        } else if modifier.alt() {
+        } else if modifier.alt_key() {
             (0., self.amount_left, 0.)
         } else {
             (self.amount_left, 0., 0.)
         };
 
-        let (amount_up, amount_forward, amount_rotate_up) = if modifier.alt() {
+        let (amount_up, amount_forward, amount_rotate_up) = if modifier.alt_key() {
             (0., 0., self.amount_up)
-        } else if modifier.shift() {
+        } else if modifier.shift_key() {
             (0., self.amount_up, 0.)
         } else {
             (self.amount_up, 0., 0.)
         };
 
-        let (amount_down, amount_backward, amount_rotate_down) = if modifier.alt() {
+        let (amount_down, amount_backward, amount_rotate_down) = if modifier.alt_key() {
             (0., 0., self.amount_down)
-        } else if modifier.shift() {
+        } else if modifier.shift_key() {
             (0., self.amount_down, 0.)
         } else {
             (self.amount_down, 0., 0.)

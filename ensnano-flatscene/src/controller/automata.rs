@@ -20,7 +20,10 @@ use super::super::view::CircleInstance;
 use super::super::{FlatHelix, FlatNucl};
 use super::*;
 use ensnano_interactor::CursorIcon;
+use ensnano_utils::winit;
 use std::time::Instant;
+use winit::event::MouseButton;
+use winit::keyboard::{Key, ModifiersState, NamedKey};
 
 const WHEEL_RADIUS: f32 = 1.5;
 use ensnano_interactor::consts::*;
@@ -92,7 +95,7 @@ impl<S: AppState> ControllerState<S> for NormalState {
                 button: MouseButton::Left,
                 state: ElementState::Pressed,
                 ..
-            } if controller.modifiers.alt() => Transition {
+            } if controller.modifiers.alt_key() => Transition {
                 new_state: Some(Box::new(MovingCamera {
                     mouse_position: self.mouse_position,
                     clicked_position_screen: self.mouse_position,
@@ -204,7 +207,7 @@ impl<S: AppState> ControllerState<S> for NormalState {
                             new_state: Some(Box::new(FollowingSuggestion {
                                 nucl,
                                 mouse_position: self.mouse_position,
-                                double: controller.modifiers.shift(),
+                                double: controller.modifiers.shift_key(),
                                 button: MouseButton::Left,
                             })),
                             consequences: Consequence::Nothing,
@@ -230,7 +233,7 @@ impl<S: AppState> ControllerState<S> for NormalState {
                                 new_state: Some(Box::new(Cutting {
                                     nucl,
                                     mouse_position: self.mouse_position,
-                                    whole_strand: controller.modifiers.shift(),
+                                    whole_strand: controller.modifiers.shift_key(),
                                 })),
                                 consequences: Consequence::Nothing,
                             }
@@ -301,13 +304,13 @@ impl<S: AppState> ControllerState<S> for NormalState {
                             new_state: Some(Box::new(FlipVisibility {
                                 mouse_position: self.mouse_position,
                                 helix: translation_pivot.helix,
-                                apply_to_other: controller.modifiers.alt(),
+                                apply_to_other: controller.modifiers.alt_key(),
                             })),
                             consequences: Consequence::Nothing,
                         }
                     }
                     ClickResult::CircleWidget { translation_pivot }
-                        if controller.modifiers.alt() =>
+                        if controller.modifiers.alt_key() =>
                     {
                         Transition {
                             new_state: Some(Box::new(FlipGroup {
@@ -332,7 +335,7 @@ impl<S: AppState> ControllerState<S> for NormalState {
                                     self.mouse_position.x as f32,
                                     self.mouse_position.y as f32,
                                 );
-                            let selection = if controller.modifiers.shift() {
+                            let selection = if controller.modifiers.shift_key() {
                                 controller.data.borrow_mut().add_helix_selection(
                                     click_result,
                                     &controller.get_camera(position.y),
@@ -593,7 +596,7 @@ impl<S: AppState> ControllerState<S> for MovingCamera {
                     .process_mouse(mouse_dx, mouse_dy);
                 if let Some(other_camera) = controller
                     .get_other_camera(self.clicked_position_screen.y)
-                    .filter(|_| controller.modifiers.shift())
+                    .filter(|_| controller.modifiers.shift_key())
                 {
                     other_camera.borrow_mut().translate_by_vec(x, y);
                 }
@@ -665,7 +668,7 @@ impl<S: AppState> ControllerState<S> for ReleasedPivot {
                 button: MouseButton::Left,
                 state: ElementState::Pressed,
                 ..
-            } if controller.modifiers.alt() => Transition {
+            } if controller.modifiers.alt_key() => Transition {
                 new_state: Some(Box::new(MovingCamera {
                     mouse_position: self.mouse_position,
                     clicked_position_screen: self.mouse_position,
@@ -697,12 +700,12 @@ impl<S: AppState> ControllerState<S> for ReleasedPivot {
                             new_state: Some(Box::new(FlipVisibility {
                                 mouse_position: self.mouse_position,
                                 helix: translation_pivot.helix,
-                                apply_to_other: controller.modifiers.alt(),
+                                apply_to_other: controller.modifiers.alt_key(),
                             })),
                             consequences: Consequence::Nothing,
                         }
                     }
-                    ClickResult::CircleWidget { .. } if controller.modifiers.shift() => {
+                    ClickResult::CircleWidget { .. } if controller.modifiers.shift_key() => {
                         Transition {
                             new_state: Some(Box::new(AddCirclePivot {
                                 translation_pivots: self.translation_pivots.clone(),
@@ -725,7 +728,7 @@ impl<S: AppState> ControllerState<S> for ReleasedPivot {
                             new_state: Some(Box::new(FollowingSuggestion {
                                 nucl,
                                 mouse_position: self.mouse_position,
-                                double: controller.modifiers.shift(),
+                                double: controller.modifiers.shift_key(),
                                 button: MouseButton::Left,
                             })),
                             consequences: Consequence::Nothing,
@@ -751,7 +754,7 @@ impl<S: AppState> ControllerState<S> for ReleasedPivot {
                                 new_state: Some(Box::new(Cutting {
                                     nucl,
                                     mouse_position: self.mouse_position,
-                                    whole_strand: controller.modifiers.shift(),
+                                    whole_strand: controller.modifiers.shift_key(),
                                 })),
                                 consequences: Consequence::Nothing,
                             }
@@ -970,15 +973,17 @@ impl<S: AppState> ControllerState<S> for ReleasedPivot {
                 }
             }
             WindowEvent::KeyboardInput {
-                input:
-                    KeyboardInput {
-                        virtual_keycode: Some(key),
+                event:
+                    KeyEvent {
+                        logical_key,
                         state: ElementState::Pressed,
                         ..
                     },
                 ..
-            } => match *key {
-                VirtualKeyCode::Left | VirtualKeyCode::Right if ctrl(&controller.modifiers) => {
+            } => match *logical_key {
+                Key::Named(NamedKey::ArrowLeft) | Key::Named(NamedKey::ArrowRight)
+                    if ctrl(&controller.modifiers) =>
+                {
                     let csq = Consequence::Symmetry {
                         centers: self.rotation_pivots.clone(),
                         helices: self
@@ -991,7 +996,9 @@ impl<S: AppState> ControllerState<S> for ReleasedPivot {
                     };
                     Transition::consequence(csq)
                 }
-                VirtualKeyCode::Up | VirtualKeyCode::Down if ctrl(&controller.modifiers) => {
+                Key::Named(NamedKey::ArrowUp) | Key::Named(NamedKey::ArrowDown)
+                    if ctrl(&controller.modifiers) =>
+                {
                     let csq = Consequence::Symmetry {
                         centers: self.rotation_pivots.clone(),
                         helices: self
@@ -2579,7 +2586,7 @@ impl<S: AppState> ControllerState<S> for DraggingSelection {
                 button: MouseButton::Left,
                 state: ElementState::Released,
                 ..
-            } if controller.modifiers.alt() => {
+            } if controller.modifiers.alt_key() => {
                 let corner1_world = controller
                     .get_camera(position.y)
                     .borrow()
@@ -2618,7 +2625,7 @@ impl<S: AppState> ControllerState<S> for DraggingSelection {
                         corner1_world.into(),
                         corner2_world.into(),
                         &controller.get_camera(position.y),
-                        controller.modifiers.shift(),
+                        controller.modifiers.shift_key(),
                         app_state,
                     ))
                 } else {
@@ -2723,7 +2730,7 @@ impl<S: AppState> ControllerState<S> for AddClick {
                         .borrow()
                         .get_click(x, y, &controller.get_camera(position.y));
                 if let ClickResult::CircleWidget { .. } = click {
-                    let selection = if controller.modifiers.shift() {
+                    let selection = if controller.modifiers.shift_key() {
                         controller.data.borrow_mut().add_helix_selection(
                             click,
                             &controller.get_camera(position.y),
@@ -2793,7 +2800,7 @@ impl<S: AppState> ControllerState<S> for DoubleClicking {
                 })),
                 consequences: Consequence::AddClick(
                     self.click_result.clone(),
-                    controller.modifiers.shift(),
+                    controller.modifiers.shift_key(),
                 ),
             }
         } else {
@@ -2849,7 +2856,7 @@ impl<S: AppState> ControllerState<S> for DoubleClicking {
                         })),
                         consequences: Consequence::AddClick(
                             self.click_result.clone(),
-                            controller.modifiers.shift(),
+                            controller.modifiers.shift_key(),
                         ),
                     }
                 } else {
@@ -2911,7 +2918,7 @@ impl<S: AppState> ControllerState<S> for AddCirclePivot {
                         .borrow()
                         .get_click(x, y, &controller.get_camera(position.y));
                 if click == self.click_result {
-                    let selection = if controller.modifiers.shift() {
+                    let selection = if controller.modifiers.shift_key() {
                         controller.data.borrow_mut().add_helix_selection(
                             click,
                             &controller.get_camera(position.y),
@@ -3144,8 +3151,8 @@ fn position_difference(a: PhysicalPosition<f64>, b: PhysicalPosition<f64>) -> f6
 
 pub(super) fn ctrl(modifiers: &ModifiersState) -> bool {
     if cfg!(target_os = "macos") {
-        modifiers.logo()
+        modifiers.super_key()
     } else {
-        modifiers.ctrl()
+        modifiers.control_key()
     }
 }

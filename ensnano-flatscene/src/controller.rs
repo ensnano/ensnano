@@ -28,9 +28,12 @@ use super::{
 };
 
 use ensnano_design::ultraviolet;
-use ensnano_utils::winit::event::*;
+use ensnano_utils::winit;
+//use ensnano_utils::winit::event::*;
 use std::cell::RefCell;
 use ultraviolet::Vec2;
+use winit::event::{ElementState, KeyEvent};
+use winit::keyboard::{Key, ModifiersState, NamedKey};
 
 mod automata;
 use automata::{ctrl, ControllerState, NormalState, Transition};
@@ -247,9 +250,9 @@ impl<S: AppState> Controller<S> {
 
     pub fn process_keyboard(&self, event: &WindowEvent) {
         if let WindowEvent::KeyboardInput {
-            input:
-                KeyboardInput {
-                    virtual_keycode: Some(key),
+            event:
+                KeyEvent {
+                    logical_key,
                     state: ElementState::Pressed,
                     ..
                 },
@@ -257,23 +260,27 @@ impl<S: AppState> Controller<S> {
         } = event
         {
             let camera = self.get_camera(self.mouse_position.y);
-            match *key {
-                VirtualKeyCode::Left if self.modifiers.alt() => {
+            match logical_key.as_ref() {
+                Key::Named(NamedKey::ArrowLeft) if self.modifiers.alt_key() => {
                     camera.borrow_mut().tilt_left();
                 }
-                VirtualKeyCode::Right if self.modifiers.alt() => {
+                Key::Named(NamedKey::ArrowRight) if self.modifiers.alt_key() => {
                     camera.borrow_mut().tilt_right();
                 }
-                VirtualKeyCode::Left | VirtualKeyCode::Right if ctrl(&self.modifiers) => {
+                Key::Named(NamedKey::ArrowLeft) | Key::Named(NamedKey::ArrowRight)
+                    if ctrl(&self.modifiers) =>
+                {
                     camera.borrow_mut().apply_symettry_x()
                 }
-                VirtualKeyCode::Up | VirtualKeyCode::Down if ctrl(&self.modifiers) => {
+                Key::Named(NamedKey::ArrowUp) | Key::Named(NamedKey::ArrowDown)
+                    if ctrl(&self.modifiers) =>
+                {
                     camera.borrow_mut().apply_symettry_y()
                 }
-                VirtualKeyCode::J => {
+                Key::Character("J") => {
                     self.data.borrow_mut().move_helix_backward();
                 }
-                VirtualKeyCode::K => {
+                Key::Character("K") => {
                     self.data.borrow_mut().move_helix_forward();
                 }
                 _ => (),

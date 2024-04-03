@@ -15,11 +15,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+use ensnano_organizer::BootstrapIcon; // This is actually from iced_aw.
 use ensnano_organizer::{
     AttributeDisplay, AttributeWidget, ElementKey, OrganizerAttribute, OrganizerAttributeRepr,
     OrganizerElement,
 };
-use iced_aw::graphics::icons::BootstrapIcon;
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 
 /// Actual implementation of the OrganizerElement for the LeftPanel.

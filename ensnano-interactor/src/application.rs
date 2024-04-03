@@ -28,7 +28,8 @@ use ultraviolet::{Rotor3, Vec3};
 pub use winit::window::CursorIcon;
 use winit::{
     dpi::{PhysicalPosition, PhysicalSize},
-    event::{ModifiersState, WindowEvent},
+    event::WindowEvent,
+    keyboard::ModifiersState,
 };
 
 #[derive(Clone, Debug)]
