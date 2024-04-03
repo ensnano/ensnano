@@ -587,20 +587,26 @@ impl View {
                     resolve_target,
                     ops: wgpu::Operations {
                         load: wgpu::LoadOp::Clear(clear_color),
-                        store: true,
+                        store: wgpu::StoreOp::Store,
                     },
                 })],
                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
                     view: &depth_attachement.view,
                     depth_ops: Some(wgpu::Operations {
                         load: wgpu::LoadOp::Clear(1.),
-                        store: true,
+                        store: wgpu::StoreOp::Store,
                     }),
                     stencil_ops: Some(wgpu::Operations {
                         load: wgpu::LoadOp::Clear(0),
-                        store: true,
+                        store: wgpu::StoreOp::Store,
                     }),
                 }),
+                // TODO: New attributes comming with iced 0.12 (1/3)
+                //       So far I don't know which value put in here, so I stick to
+                //       the most simple. Please, the one who knows, set an appropriate
+                //       value here and after.
+                timestamp_writes: None,
+                occlusion_query_set: None,
             });
             if draw_type != DrawType::Scene {
                 render_pass.set_viewport(
@@ -758,20 +764,23 @@ impl View {
                     resolve_target,
                     ops: wgpu::Operations {
                         load: wgpu::LoadOp::Load,
-                        store: true,
+                        store: wgpu::StoreOp::Store,
                     },
                 })],
                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
                     view: &depth_attachement.view,
                     depth_ops: Some(wgpu::Operations {
                         load: wgpu::LoadOp::Clear(1.),
-                        store: true,
+                        store: wgpu::StoreOp::Store,
                     }),
                     stencil_ops: Some(wgpu::Operations {
                         load: wgpu::LoadOp::Clear(0),
-                        store: true,
+                        store: wgpu::StoreOp::Store,
                     }),
                 }),
+                // TODO: New attributes comming with iced 0.12 (2/3)
+                timestamp_writes: None,
+                occlusion_query_set: None,
             });
             render_pass.set_viewport(
                 area.size.width as f32 / 20.,
@@ -801,7 +810,7 @@ impl View {
                     resolve_target,
                     ops: wgpu::Operations {
                         load: wgpu::LoadOp::Clear(clear_color),
-                        store: true,
+                        store: wgpu::StoreOp::Store,
                     },
                 })],
                 // Reuse previous depth_stencil_attachment
@@ -809,13 +818,16 @@ impl View {
                     view: &depth_attachement.view,
                     depth_ops: Some(wgpu::Operations {
                         load: wgpu::LoadOp::Load,
-                        store: true,
+                        store: wgpu::StoreOp::Store,
                     }),
                     stencil_ops: Some(wgpu::Operations {
                         load: wgpu::LoadOp::Load,
-                        store: true,
+                        store: wgpu::StoreOp::Store,
                     }),
                 }),
+                // TODO: New attributes comming with iced 0.12 (3/3)
+                timestamp_writes: None,
+                occlusion_query_set: None,
             });
             render_pass.set_viewport(
                 area.position.x as f32,
