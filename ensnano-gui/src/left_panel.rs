@@ -221,6 +221,7 @@ pub enum Message<S: AppState> {
     InitRevolutionRelaxation,
     CancelExport,
     LoadSvgFile,
+    ScreenShot2D,
     ScreenShot3D,
     IncrRevolutionShift,
     DecrRevolutionShift,
@@ -933,6 +934,9 @@ impl<R: Requests, S: AppState> Program for LeftPanel<R, S> {
             Message::LoadSvgFile => self.requests.lock().unwrap().load_svg(),
             Message::StlExport => {
                 self.requests.lock().unwrap().request_stl_export();
+            }
+            Message::ScreenShot2D => {
+                self.requests.lock().unwrap().request_screenshot_2d();
             }
             Message::ScreenShot3D => {
                 self.requests.lock().unwrap().request_screenshot_3d();
