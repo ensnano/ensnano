@@ -41,7 +41,7 @@ use wgpu::{Device, Queue};
 /// A `Uniform` is a structure that manages view and projection matrices.
 mod uniforms;
 use uniforms::Uniforms;
-pub use uniforms::{FogParameters, Stereography};
+pub use uniforms::{FogParameters, Stereography, CutPlaneParameters};
 mod direction_cube;
 pub mod dna_obj;
 /// This modules defines a trait for drawing widget made of several meshes.
@@ -139,8 +139,7 @@ pub struct View {
     stereography: Stereography,
     sheets_drawer: InstanceDrawer<Sheet2D>,
     /// Cutting plane
-    cut_plane_normal: Vec3,
-    cut_plane_dot_value: Option<f32>,
+    cut_plane_parameters: Option<CutPlaneParameters>,
 }
 
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
@@ -322,8 +321,7 @@ impl View {
             "2d sheets",
         );
 
-        let cut_plane_normal = Vec3::unit_x();
-        let cut_plane_dot_value = None::<f32>;
+        let cut_plane_parameters = None::<CutPlaneParameters>;
 
         Self {
             camera,
@@ -353,8 +351,7 @@ impl View {
             external_objects_drawer,
             stereography,
             sheets_drawer,
-            cut_plane_normal,
-            cut_plane_dot_value,
+            cut_plane_parameters,
         }
     }
 
@@ -364,6 +361,7 @@ impl View {
             self.projection.clone(),
             &self.fog_parameters,
             None,
+            &self.cut_plane_parameters,
         ));
         self.stereographic_viewer
             .update(&Uniforms::from_view_proj_fog(
@@ -371,6 +369,7 @@ impl View {
                 self.projection.clone(),
                 &self.fog_parameters,
                 Some(&self.stereography),
+                &self.cut_plane_parameters,
             ));
     }
 

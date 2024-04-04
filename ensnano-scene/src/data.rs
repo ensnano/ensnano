@@ -415,7 +415,7 @@ impl<R: DesignReader> Data<R> {
             for elt in group.iter() {
                 if self.designs[d_id]
                     .get_element_type(*elt)
-                    .map(|elt| elt.same_type(object_type))
+                    .map(|elt| elt.same_type(&object_type))
                     .unwrap_or(false)
                 {
                     ret.push(SceneElement::DesignElement(d_id as u32, *elt));

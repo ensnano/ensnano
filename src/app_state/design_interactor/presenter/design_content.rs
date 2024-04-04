@@ -53,6 +53,7 @@ use ensnano_design::isometry3_descriptor::{
     Isometry3Descriptor, Isometry3DescriptorItem, Isometry3MissingMethods,
 };
 use ensnano_utils::instance::Instance;
+use ensnano_utils::colors;
 
 #[derive(Default, Clone)]
 pub struct NuclCollection {
@@ -162,19 +163,16 @@ impl DesignContent {
         if let Some(object_type) = self.object_type.get(&id) {
             match object_type {
                 ObjectType::Nucleotide(id) => self.space_position.get(&id).map(|x| x.into()),
-                ObjectType::Bond(e1, e2) => {
+                ObjectType::Bond(e1, e2)
+                | ObjectType::SlicedBond(_, e1, e2, _) => {
                     let a = self.space_position.get(e1)?;
                     let b = self.space_position.get(e2)?;
                     Some((Vec3::from(*a) + Vec3::from(*b)) / 2.)
                 }
-                ObjectType::HelixCylinder(e1, e2) => {
+                ObjectType::HelixCylinder(e1, e2) 
+                | ObjectType::ColoredHelixCylinder(e1, e2, _) => {
                     let a = self.axis_space_position.get(e1)?;
                     let b = self.axis_space_position.get(e2)?;
-                    Some((Vec3::from(*a) + Vec3::from(*b)) / 2.)
-                }
-                ObjectType::SlicedBond(_, e1, e2, _) => {
-                    let a = self.space_position.get(e1)?;
-                    let b = self.space_position.get(e2)?;
                     Some((Vec3::from(*a) + Vec3::from(*b)) / 2.)
                 }
             }
@@ -194,17 +192,10 @@ impl DesignContent {
         if let Some(object_type) = self.object_type.get(&id) {
             match object_type {
                 ObjectType::Nucleotide(id) => self.axis_space_position.get(&id).map(|x| x.into()),
-                ObjectType::Bond(e1, e2) => {
-                    let a = self.axis_space_position.get(e1)?;
-                    let b = self.axis_space_position.get(e2)?;
-                    Some((Vec3::from(*a) + Vec3::from(*b)) / 2.)
-                }
-                ObjectType::HelixCylinder(e1, e2) => {
-                    let a = self.axis_space_position.get(e1)?;
-                    let b = self.axis_space_position.get(e2)?;
-                    Some((Vec3::from(*a) + Vec3::from(*b)) / 2.)
-                }
-                ObjectType::SlicedBond(_, e1, e2, _) => {
+                ObjectType::Bond(e1, e2)
+                | ObjectType::HelixCylinder(e1, e2) 
+                | ObjectType::ColoredHelixCylinder(e1, e2, _)
+                | ObjectType::SlicedBond(_, e1, e2, _) => {
                     let a = self.axis_space_position.get(e1)?;
                     let b = self.axis_space_position.get(e2)?;
                     Some((Vec3::from(*a) + Vec3::from(*b)) / 2.)
@@ -669,8 +660,10 @@ impl DesignContent {
             // real strand color will be used.
             let mut rainbow_iterator = (0..rainbow_len).map(|i| {
                 let hsv = color_space::Hsv::new(i as f64 * 360. / rainbow_len as f64, 1., 1.);
+                let hsv = color_space::Hsv::new(i as f64 * 360. / rainbow_len as f64, 1., 1.);
                 let rgb = color_space::Rgb::from(hsv);
                 (0xFF << 24) | ((rgb.r as u32) << 16) | ((rgb.g as u32) << 8) | (rgb.b as u32)
+                // colors::purple_to_blue_gradient_color(i as f32 / rainbow_len as f32)
             });
 
             // the sequence of bond ids

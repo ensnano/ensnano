@@ -690,7 +690,8 @@ impl<R: DesignReader> Design3D<R> {
                     }
                     instances
                 }
-                ObjectType::HelixCylinder(id1, id2) => {
+                ObjectType::HelixCylinder(id1, id2) 
+                | ObjectType::ColoredHelixCylinder(id1, id2, _) => {
                     let h_id = self.design_reader.get_id_of_helix_containing(id1).unwrap();
 
                     if self.design_reader.get_curve_descriptor(h_id).is_none() {
@@ -723,6 +724,9 @@ impl<R: DesignReader> Design3D<R> {
 
                         let nucl1 = self.design_reader.get_nucl_with_id(id1).unwrap();
                         let nucl2 = self.design_reader.get_nucl_with_id(id2).unwrap();
+                        let pos1 = self.design_reader.get_element_axis_position(id1, Referential::World).unwrap();
+                        let pos2 = self.design_reader.get_element_axis_position(id2, Referential::World).unwrap();
+                        let is_cyclic = (pos2 - pos1).mag() <= 1.1 * HelixParameters::DEFAULT.rise;
                         // REQUIRE: nucl1 and nucl2 are on the forward strand and in increasing order
                         assert_eq!(
                             nucl1.helix, nucl2.helix,
@@ -756,7 +760,7 @@ impl<R: DesignReader> Design3D<R> {
                         let color = |_| -> u32 { color.clone() };
                         let (tubes, lids) = SausageRosary {
                             positions,
-                            is_cyclic: false,
+                            is_cyclic,
                         }
                         .to_raw_dna_instances(color, radius, id);
                         let mut rosary = tubes

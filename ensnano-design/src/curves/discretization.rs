@@ -20,6 +20,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::*;
 use chebyshev_polynomials::ChebyshevPolynomial;
+use ultraviolet::DRotor3;
 
 /// The number of points used in the iterative version of the discretization algorithm.
 const NB_DISCRETISATION_STEP: usize = 100_000;
@@ -85,7 +86,8 @@ impl Curve {
         let mut axis_backward = Vec::with_capacity(nb_points + 1);
         let mut curvature = Vec::with_capacity(nb_points + 1);
         let mut t = self.geometry.t_min();
-        let mut current_axis = self.itterative_axis(t, None);
+        let mut current_axis = self.iterative_axis(t, None);
+        // let mut current_axis = self.iterative_rotated_axis(t, None);
 
         let mut current_segment = 0;
 
@@ -158,13 +160,13 @@ impl Curve {
             {
                 t = t_x;
                 current_abcissa = next_point_abscissa;
-                current_axis = self.itterative_axis(t, Some(&current_axis));
+                current_axis = self.iterative_axis(t, Some(&current_axis));
                 p = self.point_at_t(t, &current_axis);
             } else {
                 while current_abcissa < next_point_abscissa {
                     t += small_step;
 
-                    current_axis = self.itterative_axis(t, Some(&current_axis));
+                    current_axis = self.iterative_axis(t, Some(&current_axis));
 
                     let q = self.point_at_t(t, &current_axis);
 
@@ -207,12 +209,14 @@ impl Curve {
         self.positions_forward = points_forward;
 
         // Affiche la curvature
-        // let radii = curvature.clone().into_iter().map(|c| 1./c).collect::<Vec<f64>>();
-        // let mut min_radius = 1e30;
-        // for r in &radii {
-        //     if *r < min_radius { min_radius = r.clone(); }
-        // }
-        // println!("Curvature radius:\n\t{:?}\n\tMinimum radius: {}", radii, min_radius);
+        println!("lengths: t_nucl {} & curvature {}", t_nucl.len(), curvature.len());
+        let radii = curvature.clone().into_iter().map(|c| 1./c).collect::<Vec<f64>>();
+        let t_radii = t_nucl.clone().into_iter().zip(radii).collect::<Vec<(f64, f64)>>();
+        let mut min_radius = 1e30;
+        for (_, r) in &t_radii {
+            if *r < min_radius { min_radius = r.clone(); }
+        }
+        println!("Curvature radius:\n\t{:?}\n\tMinimum radius: {}", t_radii, min_radius);
 
         self.curvature = curvature;
 
@@ -293,12 +297,12 @@ impl Curve {
             log::info!("length by curvilinear_abscissa = {ret}");
             return x1 - x0;
         }
-        let mut current_axis = self.itterative_axis(t0, None);
+        let mut current_axis = self.iterative_axis(t0, None);
         let mut p = self.point_at_t(t0, &current_axis);
         let mut len = 0f64;
         for i in 1..=nb_step {
             let t = t0 + (i as f64) / (nb_step as f64) * (t1 - t0);
-            current_axis = self.itterative_axis(t, Some(&current_axis));
+            current_axis = self.iterative_axis(t, Some(&current_axis));
             let q = self.point_at_t(t, &current_axis);
             len += (q - p).mag();
             p = q;
@@ -328,7 +332,15 @@ impl Curve {
         ret
     }
 
-    fn itterative_axis(&self, t: f64, previous: Option<&DMat3>) -> DMat3 {
+    /// Allow to select the iterative axis computation method
+    #[inline(always)]
+    fn iterative_axis(&self, t: f64, previous: Option<&DMat3>) -> DMat3 {
+        self.iterative_axis_original(t, previous)
+        // self.iterative_rotated_axis(t, previous)
+    }
+
+    #[allow(dead_code)]
+    fn iterative_axis_original(&self, t: f64, previous: Option<&DMat3>) -> DMat3 {
         let speed = self.geometry.speed(t);
         if speed.mag_sq() < EPSILON {
             let acceleration = self.geometry.acceleration(t);
@@ -344,7 +356,30 @@ impl Curve {
             DMat3::new(right, up, forward)
         } else {
             let previous = perpendicular_basis(speed);
-            self.itterative_axis(t, Some(&previous))
+            self.iterative_axis_original(t, Some(&previous))
+        }
+    }
+
+    #[allow(dead_code)]
+    fn iterative_rotated_axis(&self, t: f64, previous: Option<&DMat3>) -> DMat3 {
+        let speed = self.geometry.speed(t);
+        if speed.mag_sq() < EPSILON {
+            let acceleration = self.geometry.acceleration(t);
+            let mat = perpendicular_basis(acceleration);
+            return DMat3::new(mat.cols[2], mat.cols[1], mat.cols[0]);
+        }
+
+        if let Some(previous) = previous {
+            let prev_forward = previous.cols[2];
+            let forward = speed.normalized();
+            let rotor = DRotor3::from_rotation_between(prev_forward, forward);
+            let up = previous.cols[1].rotated_by(rotor);
+            let right = previous.cols[0].rotated_by(rotor);
+            
+            DMat3::new(right, up, forward)
+        } else {
+            let previous = perpendicular_basis(speed);
+            self.iterative_rotated_axis(t, Some(&previous))
         }
     }
 
@@ -425,8 +460,8 @@ impl Curve {
         self.geometry.pre_compute_polynomials().then(|| {
             let mut t = self.geometry.t_min();
             let mut abscissa = 0.;
-            let mut current_axis = self.itterative_axis(t, None);
-            current_axis = self.itterative_axis(t, Some(&current_axis));
+            let mut current_axis = self.iterative_axis(t, None);
+            current_axis = self.iterative_axis(t, Some(&current_axis));
             let mut p = self.point_at_t(t, &current_axis);
 
             let mut ts = vec![t];
@@ -437,7 +472,7 @@ impl Curve {
             let nb_step = NB_DISCRETISATION_STEP / 10;
             for i in 1..=nb_step {
                 t = t0 + (i as f64) / (nb_step as f64) * (t1 - t0);
-                current_axis = self.itterative_axis(t, Some(&current_axis));
+                current_axis = self.iterative_axis(t, Some(&current_axis));
                 let q = self.point_at_t(t, &current_axis);
                 abscissa += (p - q).mag();
                 ts.push(t);
