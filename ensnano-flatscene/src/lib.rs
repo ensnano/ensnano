@@ -16,6 +16,20 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 //! This module handles the 2D view
+//!
+//! # Coordinate systems
+//!
+//! The 2D view uses three different coordinate systems:
+//!
+//! 1. **screen coordinates**: in this system, (0, 0) corresponds to the top left (or bottom left?)
+//!    corner of the view, and (x_res, y_res) corresponds to the bottom right (or top right?) of the
+//!    view, where x_res and y_res are the screen resolution of the view.
+//!
+//! 2. **normalized screen coordinates**: it is similar to the screen coordinates, except that the
+//!    bottom right (or top right?) corner has coordinate (1, 1).
+//!
+//! 3. **world coordinates**: this is the absolute coordinate system in which elements are
+//!    positionned.
 
 use ensnano_design::Nucl;
 use ensnano_interactor::{
@@ -36,12 +50,12 @@ use wgpu::{Device, Queue};
 use winit::dpi::PhysicalPosition;
 use winit::event::WindowEvent;
 
-use ensnano_utils::camera2d as camera;
+use ensnano_utils::camera2d;
 mod controller;
 mod data;
 mod flattypes;
 mod view;
-use camera::{Camera, FitRectangle, Globals};
+pub use camera2d::{Camera2D, FitRectangle};
 use controller::Controller;
 use data::Data;
 pub use data::{DesignReader, NuclCollection};
@@ -51,30 +65,33 @@ use view::View;
 
 type ViewPtr = Rc<RefCell<View>>;
 type DataPtr<R> = Rc<RefCell<Data<R>>>;
-type CameraPtr = Rc<RefCell<Camera>>;
+type CameraPtr = Rc<RefCell<Camera2D>>;
 
 const PNG_SIZE: PhySize = PhySize {
     width: 256 * 32,
-    height: 256 * 10,
+    height: 256 * 32,
 };
 
 /// A Flatscene handles one design at a time
 pub struct FlatScene<S: AppState> {
-    /// Handle the data to send to the GPU
+    /// Handle the data to send to the GPU.
     view: Vec<ViewPtr>,
-    /// Handle the data representing the design
+    /// Handle the data representing the design.
     data: Vec<DataPtr<S::Reader>>,
-    /// Handle the inputs
+    /// Handle inputs.
     controller: Vec<Controller<S>>,
-    /// The area on which the flatscene is displayed
+    /// The area on which the flatscene is displayed.
     area: DrawArea,
-    /// The size of the window on which the flatscene is displayed
+    /// The size of the window on which the flatscene is displayed.
     window_size: PhySize,
-    /// The identifer of the design being drawn
+    /// The identifer of the design being drawn.
     selected_design: usize,
+    /// Graphics device.
     device: Rc<Device>,
+    /// Command queue on the graphics device.
     queue: Rc<Queue>,
     last_update: Instant,
+    /// Wether the flatscene is split in two.
     splited: bool,
     old_state: S,
     requests: Arc<Mutex<dyn Requests>>,
@@ -107,18 +124,23 @@ impl<S: AppState> FlatScene<S> {
         ret
     }
 
-    /// Add a design to the scene. This creates a new `View`, a new `Data` and a new `Controller`
+    /// Add a design to the scene.
+    ///
+    /// This creates a new `View`, a new `Data` and a new `Controller`
     fn add_design(&mut self, reader: S::Reader, requests: Arc<Mutex<dyn Requests>>) {
         let height = if self.splited {
             self.area.size.height as f32 / 2.
         } else {
             self.area.size.height as f32
         };
-        let globals_top = Globals::default([self.area.size.width as f32, height]);
-        let globals_bottom = Globals::default([self.area.size.width as f32, height]);
 
-        let camera_top = Rc::new(RefCell::new(Camera::new(globals_top, false)));
-        let camera_bottom = Rc::new(RefCell::new(Camera::new(globals_bottom, true)));
+        // Allocate resources even if the screen is not splited.
+        let globals_top = camera2d::Globals::from_resolution([self.area.size.width as f32, height]);
+        let globals_bottom =
+            camera2d::Globals::from_resolution([self.area.size.width as f32, height]);
+
+        let camera_top = Rc::new(RefCell::new(Camera2D::new(globals_top, false)));
+        let camera_bottom = Rc::new(RefCell::new(Camera2D::new(globals_bottom, true)));
         camera_top
             .borrow_mut()
             .fit_top_left(FitRectangle::INITIAL_RECTANGLE);
@@ -464,7 +486,7 @@ impl<S: AppState> FlatScene<S> {
                     segment_id: flat_helix.segment.segment_idx,
                 }]),
             Consequence::PngExport(corner1, corner2) => {
-                let glob_png = Globals::from_selection_rectangle(corner1, corner2);
+                let glob_png = camera2d::Globals::from_selection_rectangle(corner1, corner2);
                 use chrono::Utc;
                 let now = Utc::now();
                 let name = now.format("export_2d_%Y_%m_%d_%H_%M_%S.png").to_string();
@@ -565,7 +587,7 @@ impl<S: AppState> FlatScene<S> {
         (texture, view)
     }
 
-    fn export_png(&self, png_name: &str, glob: Globals) {
+    fn export_png(&self, png_name: &str, glob: camera2d::Globals) {
         let device = self.device.as_ref();
         let queue = self.queue.as_ref();
         println!("export to {png_name}");
@@ -731,7 +753,7 @@ impl<S: AppState> Application for FlatScene<S> {
                     .to_string();
                 let resolution = [self.area.size.width as f32, self.area.size.height as f32];
                 // NOTE: Done that to make it work. Not sure this is appropriate.
-                self.export_png(&png_name, Globals::default(resolution));
+                self.export_png(&png_name, camera2d::Globals::default(resolution));
             }
             Notification::ScreenShot3D => (),
             Notification::StlExport => (),

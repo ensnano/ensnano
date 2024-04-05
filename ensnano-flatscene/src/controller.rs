@@ -15,10 +15,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-//! The `Controller` struct handles the event that happens on the drawing area of the scene.
+//! The [Controller] struct handles the event that happens on the drawing area of the scene.
 //!
-//! The `Controller` is internally implemented as a finite automata that transitions when a event
-//! happens. In addition to the transistion in the automat, a `Consequence` is returned to the
+//! The [Controller] is internally implemented as a finite automata that transitions when a event
+//! happens. In addition to the transition in the automata, a [Consequence] is returned to the
 //! scene, that describes the consequences that the input must have on the view or the data held by
 //! the scene.
 use super::data::{ClickResult, FreeEnd};
@@ -265,10 +265,10 @@ impl<S: AppState> Controller<S> {
                     camera.borrow_mut().tilt_right();
                 }
                 VirtualKeyCode::Left | VirtualKeyCode::Right if ctrl(&self.modifiers) => {
-                    camera.borrow_mut().apply_symettry_x()
+                    camera.borrow_mut().apply_symmetry_x()
                 }
                 VirtualKeyCode::Up | VirtualKeyCode::Down if ctrl(&self.modifiers) => {
-                    camera.borrow_mut().apply_symettry_y()
+                    camera.borrow_mut().apply_symmetry_y()
                 }
                 VirtualKeyCode::J => {
                     self.data.borrow_mut().move_helix_backward();
