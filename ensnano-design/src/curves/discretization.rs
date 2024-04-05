@@ -209,14 +209,31 @@ impl Curve {
         self.positions_forward = points_forward;
 
         // Affiche la curvature
-        println!("lengths: t_nucl {} & curvature {}", t_nucl.len(), curvature.len());
-        let radii = curvature.clone().into_iter().map(|c| 1./c).collect::<Vec<f64>>();
-        let t_radii = t_nucl.clone().into_iter().zip(radii).collect::<Vec<(f64, f64)>>();
+        println!(
+            "lengths: t_nucl {} & curvature {}",
+            t_nucl.len(),
+            curvature.len()
+        );
+        let radii = curvature
+            .clone()
+            .into_iter()
+            .map(|c| 1. / c)
+            .collect::<Vec<f64>>();
+        let t_radii = t_nucl
+            .clone()
+            .into_iter()
+            .zip(radii)
+            .collect::<Vec<(f64, f64)>>();
         let mut min_radius = 1e30;
         for (_, r) in &t_radii {
-            if *r < min_radius { min_radius = r.clone(); }
+            if *r < min_radius {
+                min_radius = r.clone();
+            }
         }
-        println!("Curvature radius:\n\t{:?}\n\tMinimum radius: {}", t_radii, min_radius);
+        println!(
+            "Curvature radius:\n\t{:?}\n\tMinimum radius: {}",
+            t_radii, min_radius
+        );
 
         self.curvature = curvature;
 
@@ -375,7 +392,7 @@ impl Curve {
             let rotor = DRotor3::from_rotation_between(prev_forward, forward);
             let up = previous.cols[1].rotated_by(rotor);
             let right = previous.cols[0].rotated_by(rotor);
-            
+
             DMat3::new(right, up, forward)
         } else {
             let previous = perpendicular_basis(speed);

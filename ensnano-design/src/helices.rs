@@ -718,6 +718,12 @@ impl Helix {
             .unwrap_or_else(|| Vec3::unit_x().rotated_by(self.orientation))
     }
 
+    pub fn curvature_at_pos(&self, n: isize) -> Option<f64> {
+        self.instanciated_curve
+            .as_ref()
+            .and_then(|c| c.curve.curvature_at_pos(n))
+    }
+
     fn theta_n_to_space_pos(
         &self,
         p: &HelixParameters,

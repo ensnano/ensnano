@@ -68,20 +68,19 @@ pub fn random_color_with_shade(shade: u32, hue_range: Option<f64>) -> u32 {
     return color;
 }
 
-
 // Give a color given a set of (t_i,h_i) where t_i is increasing from 0 to 1 such that for t_i ≤ t ≤ t_i+1, the hue is the linera interpolation of h_i and h_i+1 - h is considered modulo 360
 
 pub const PURPLE_TO_BLUE_GRADIENT: [(f32, f32); 7] = [
-    (0.,    -56.), // purple
-    (0.2,   0.), // red
-    (0.4,   54.), // yellow
-    (0.55,   100.), // green
-    (0.7,   176.), // cyan
-    (0.8,   202.), // blue
-    (1.,   242.), // dark blue
+    (0., -56.),   // purple
+    (0.2, 0.),    // red
+    (0.4, 54.),   // yellow
+    (0.55, 100.), // green
+    (0.7, 176.),  // cyan
+    (0.8, 202.),  // blue
+    (1., 242.),   // dark blue
 ];
 
-pub fn gradient_color(t: f32, t_hues: &[(f32,f32)]) -> u32 {
+pub fn gradient_color(t: f32, t_hues: &[(f32, f32)]) -> u32 {
     assert!(t_hues.len() > 0, "/!\\ Empty gradient description");
     if t <= t_hues[0].0 {
         return hsv_color((t_hues[0].1 as f64).rem_euclid(360.), 1., 1.);
@@ -89,7 +88,7 @@ pub fn gradient_color(t: f32, t_hues: &[(f32,f32)]) -> u32 {
     for ((t0, h0), (t1, h1)) in t_hues.iter().zip(t_hues.iter().skip(1)) {
         if *t0 <= t && t <= *t1 {
             let hue = (h0 + (h1 - h0) * (t - t0) / (t1 - t0)).rem_euclid(360.);
-            return hsv_color(hue as f64, 1., 1.)
+            return hsv_color(hue as f64, 1., 1.);
         }
     }
     return hsv_color((t_hues.last().unwrap().1 as f64).rem_euclid(360.), 1., 1.);
@@ -102,5 +101,5 @@ pub fn purple_to_blue_gradient_color(t: f32) -> u32 {
 
 #[inline(always)]
 pub fn purple_to_blue_gradient_color_in_range(t: f32, t_min: f32, t_max: f32) -> u32 {
-    purple_to_blue_gradient_color((t - t_min) / (t_min - t_max))
+    purple_to_blue_gradient_color((t - t_min) / (t_max - t_min))
 }

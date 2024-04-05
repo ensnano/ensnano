@@ -18,8 +18,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::camera::{CameraPtr, ProjectionPtr};
 use ensnano_design::ultraviolet::{Mat4, Rotor3, Vec3, Vec4};
 use ensnano_interactor::consts::NB_RAY_TUBE;
-pub use ensnano_interactor::graphics::FogParameters;
 pub use ensnano_interactor::graphics::CutPlaneParameters;
+pub use ensnano_interactor::graphics::FogParameters;
 
 #[repr(C)] // We need this for Rust to store our data correctly for the shaders
 #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable, Default)] // This is so we can store this in a buffer
@@ -43,7 +43,7 @@ pub struct Uniforms {
     pub nb_ray_tube: u32,         // 3
     pub is_cut: u32,              // 0
     pub cut_normal: Vec3,         // 3
-    pub cut_dot_value: f32,           // 0
+    pub cut_dot_value: f32,       // 0
     pub _padding: [f32; 4],
 }
 
@@ -130,13 +130,12 @@ impl Uniforms {
         if !fog.from_camera && fog.alt_fog_center.is_none() {
             make_fog = ensnano_interactor::graphics::fog_kind::NO_FOG;
         }
-        let (is_cut, cut_normal, cut_dot_value) = 
-        if let Some(cut_param) = cut {
+        let (is_cut, cut_normal, cut_dot_value) = if let Some(cut_param) = cut {
             (1, cut_param.normal, cut_param.dot_value)
         } else {
             (0, Vec3::zero(), 0.)
         };
-        
+
         Self {
             camera_position: camera.borrow().position.into_homogeneous_point(),
             view: camera.borrow().calc_matrix(),

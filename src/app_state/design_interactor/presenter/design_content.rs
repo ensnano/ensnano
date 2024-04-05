@@ -52,8 +52,8 @@ use xover_suggestions::XoverSuggestions;
 use ensnano_design::isometry3_descriptor::{
     Isometry3Descriptor, Isometry3DescriptorItem, Isometry3MissingMethods,
 };
-use ensnano_utils::instance::Instance;
 use ensnano_utils::colors;
+use ensnano_utils::instance::Instance;
 
 #[derive(Default, Clone)]
 pub struct NuclCollection {
@@ -163,14 +163,12 @@ impl DesignContent {
         if let Some(object_type) = self.object_type.get(&id) {
             match object_type {
                 ObjectType::Nucleotide(id) => self.space_position.get(&id).map(|x| x.into()),
-                ObjectType::Bond(e1, e2)
-                | ObjectType::SlicedBond(_, e1, e2, _) => {
+                ObjectType::Bond(e1, e2) | ObjectType::SlicedBond(_, e1, e2, _) => {
                     let a = self.space_position.get(e1)?;
                     let b = self.space_position.get(e2)?;
                     Some((Vec3::from(*a) + Vec3::from(*b)) / 2.)
                 }
-                ObjectType::HelixCylinder(e1, e2) 
-                | ObjectType::ColoredHelixCylinder(e1, e2, _) => {
+                ObjectType::HelixCylinder(e1, e2) | ObjectType::ColoredHelixCylinder(e1, e2, _) => {
                     let a = self.axis_space_position.get(e1)?;
                     let b = self.axis_space_position.get(e2)?;
                     Some((Vec3::from(*a) + Vec3::from(*b)) / 2.)
@@ -193,7 +191,7 @@ impl DesignContent {
             match object_type {
                 ObjectType::Nucleotide(id) => self.axis_space_position.get(&id).map(|x| x.into()),
                 ObjectType::Bond(e1, e2)
-                | ObjectType::HelixCylinder(e1, e2) 
+                | ObjectType::HelixCylinder(e1, e2)
                 | ObjectType::ColoredHelixCylinder(e1, e2, _)
                 | ObjectType::SlicedBond(_, e1, e2, _) => {
                     let a = self.axis_space_position.get(e1)?;
@@ -1169,7 +1167,31 @@ impl DesignContent {
                         forward: true,
                     };
                     let n_j_id = nucl_collection.get_identifier(&n_j).unwrap();
-                    object_type.insert(bond_id, ObjectType::HelixCylinder(*n_i_id, *n_j_id));
+                    let helix = design.helices.get(&h).unwrap();
+                    if helix.curve.is_none() || helix_style.curvature.is_none() {
+                        object_type.insert(bond_id, ObjectType::HelixCylinder(*n_i_id, *n_j_id));
+                    } else {
+                        let (r_min, r_max) = helix_style.curvature.unwrap();
+                        let colors = (i..=j)
+                            .map(|n| {
+                                let n = if n == j { i } else { n };
+                                if let Some(curvature) = helix.curvature_at_pos(n) {
+                                    let radius = 1. / curvature;
+                                    colors::purple_to_blue_gradient_color_in_range(
+                                        radius as f32,
+                                        r_min,
+                                        r_max,
+                                    )
+                                } else {
+                                    color
+                                }
+                            })
+                            .collect::<Vec<u32>>();
+                        object_type.insert(
+                            bond_id,
+                            ObjectType::ColoredHelixCylinder(*n_i_id, *n_j_id, colors),
+                        );
+                    }
                     radius_map.insert(bond_id, radius);
                     color_map.insert(bond_id, color);
                     nucleotides_involved.insert(bond_id, (n_i, n_j));

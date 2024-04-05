@@ -41,7 +41,7 @@ use wgpu::{Device, Queue};
 /// A `Uniform` is a structure that manages view and projection matrices.
 mod uniforms;
 use uniforms::Uniforms;
-pub use uniforms::{FogParameters, Stereography, CutPlaneParameters};
+pub use uniforms::{CutPlaneParameters, FogParameters, Stereography};
 mod direction_cube;
 pub mod dna_obj;
 /// This modules defines a trait for drawing widget made of several meshes.

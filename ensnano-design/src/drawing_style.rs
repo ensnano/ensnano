@@ -60,7 +60,7 @@ impl FromStr for DrawingAttribute {
     /// - %rh(HHHHHHHH) for DoubleHelixAsCylinderColor(Rainbow)
     /// - %wc / %noc for WithCones(true / false) - default = true
     /// - %onaxis / %offaxis for OnAxis(true / false) - default = false
-    /// - %cc(r_min, r_max) - show the curvature radius using Purple to Blue gradient the helix cylinder for radius within the range r_min..r_max
+    /// - %cv(r_min, r_max) - show the curvature radius using Purple to Blue gradient the helix cylinder for radius within the range r_min..r_max
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let parsed = s
             .split(&['%', ' ', ',', ')', '('])
@@ -68,8 +68,8 @@ impl FromStr for DrawingAttribute {
             .collect::<Vec<&str>>();
 
         let len = parsed.len();
-        if len <= 0 { 
-            return Err(ParsePointError); 
+        if len <= 0 {
+            return Err(ParsePointError);
         }
 
         match parsed[0] {
@@ -121,10 +121,10 @@ impl FromStr for DrawingAttribute {
                     _ => (),
                 }
             }
-            "cc" if len == 3 => {
+            "cv" if len == 3 => {
                 if let Ok(r_min) = f32::from_str(parsed[1]) {
                     if let Ok(r_max) = f32::from_str(parsed[2]) {
-                        return Ok(Self::Curvature(r_min, r_max))
+                        return Ok(Self::Curvature(r_min, r_max));
                     }
                 }
             }
@@ -161,7 +161,7 @@ pub struct DrawingStyle {
     pub with_cones: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub on_axis: Option<bool>,
-    /// (r_min, r_max) display curvature on the helix cylinder with a gradient for radius from r_min to r_max 
+    /// (r_min, r_max) display curvature on the helix cylinder with a gradient for radius from r_min to r_max
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub curvature: Option<(f32, f32)>,
 }
@@ -215,7 +215,9 @@ impl From<Vec<DrawingAttribute>> for DrawingStyle {
                     ret.hue_range = ret.hue_range.or(hue_range);
                 }
                 DrawingAttribute::OnAxis(b) => ret.on_axis = ret.on_axis.or(Some(b)),
-                DrawingAttribute::Curvature(r_min, r_max) => ret.curvature = ret.curvature.or(Some((r_min, r_max))),
+                DrawingAttribute::Curvature(r_min, r_max) => {
+                    ret.curvature = ret.curvature.or(Some((r_min, r_max)))
+                }
             }
         }
         return ret;
@@ -370,7 +372,7 @@ impl DrawingStyle {
                 on_axis: self.on_axis.or(Some(b)),
                 ..*self
             },
-            DrawingAttribute::Curvature(r_min, r_max ) => DrawingStyle {
+            DrawingAttribute::Curvature(r_min, r_max) => DrawingStyle {
                 curvature: self.curvature.or(Some((r_min, r_max))),
                 ..*self
             },
