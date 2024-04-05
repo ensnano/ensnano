@@ -67,6 +67,7 @@ type ViewPtr = Rc<RefCell<View>>;
 type DataPtr<R> = Rc<RefCell<Data<R>>>;
 type CameraPtr = Rc<RefCell<Camera2D>>;
 
+/// Size of the PNG export.
 const PNG_SIZE: PhySize = PhySize {
     width: 256 * 32,
     height: 256 * 32,
@@ -490,7 +491,7 @@ impl<S: AppState> FlatScene<S> {
                 use chrono::Utc;
                 let now = Utc::now();
                 let name = now.format("export_2d_%Y_%m_%d_%H_%M_%S.png").to_string();
-                self.export_png(&name, glob_png);
+                self.export_png(&name, PNG_SIZE, glob_png);
                 self.view[self.selected_design]
                     .borrow_mut()
                     .clear_rectangle();
@@ -587,16 +588,18 @@ impl<S: AppState> FlatScene<S> {
         (texture, view)
     }
 
-    fn export_png(&self, png_name: &str, glob: camera2d::Globals) {
+    /// Export the scene into a PNG file.
+    fn export_png(&self, png_name: &str, png_size: PhySize, glob: camera2d::Globals) {
         let device = self.device.as_ref();
         let queue = self.queue.as_ref();
-        println!("export to {png_name}");
+
+        log::info!("export to {png_name}");
         use ensnano_utils::BufferDimensions;
         use std::io::Write;
 
         let size = wgpu::Extent3d {
-            width: PNG_SIZE.width,
-            height: PNG_SIZE.height,
+            width: png_size.width,
+            height: png_size.width,
             depth_or_array_layers: 1,
         };
 
@@ -608,14 +611,11 @@ impl<S: AppState> FlatScene<S> {
 
         self.view[0]
             .borrow_mut()
-            .draw(&mut encoder, &texture_view, Some(PNG_SIZE), Some(glob));
+            .draw(&mut encoder, &texture_view, Some(png_size), Some(glob));
 
         // create a buffer and fill it with the texture
-        let extent = wgpu::Extent3d {
-            width: size.width,
-            height: size.height,
-            depth_or_array_layers: 1,
-        };
+        let extent = size.clone();
+
         let buffer_dimensions =
             BufferDimensions::new(extent.width as usize, extent.height as usize);
         let buf_size = buffer_dimensions.padded_bytes_per_row * buffer_dimensions.height;
@@ -673,8 +673,8 @@ impl<S: AppState> FlatScene<S> {
         let pixels = futures::executor::block_on(pixels);
         let mut png_encoder = png::Encoder::new(
             std::fs::File::create(png_name).unwrap(),
-            PNG_SIZE.width,
-            PNG_SIZE.height,
+            png_size.width,
+            png_size.width,
         );
         png_encoder.set_depth(png::BitDepth::Eight);
         png_encoder.set_color(png::ColorType::Rgba);
@@ -747,15 +747,16 @@ impl<S: AppState> Application for FlatScene<S> {
             Notification::FlipSplitViews => self.controller[0].flip_split_views(),
             Notification::HorizonAligned => (),
             Notification::ScreenShot2D => {
+                // NOTE: When flatscene is split, return the whole view.
+                let mut png_camera = Camera2D::from_resolution(PNG_SIZE.into(), false);
+                png_camera.fit_center(self.data[0].borrow().get_fit_rectangle());
                 use chrono::Utc;
                 let png_name = Utc::now()
                     .format("export_2d_%Y_%m_%d_%H_%M_%S.png")
                     .to_string();
-                let resolution = [self.area.size.width as f32, self.area.size.height as f32];
-                // NOTE: Done that to make it work. Not sure this is appropriate.
-                self.export_png(&png_name, camera2d::Globals::default(resolution));
+                self.export_png(&png_name, PNG_SIZE, png_camera.get_globals().to_owned());
             }
-            Notification::ScreenShot3D => (),
+            Notification::ScreenShot3D => (), // Nothing to do in the flatscene.
             Notification::StlExport => (),
         }
     }
