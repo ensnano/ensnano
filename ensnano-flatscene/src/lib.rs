@@ -750,6 +750,7 @@ impl<S: AppState> Application for FlatScene<S> {
                 // NOTE: When flatscene is split, return the whole view.
                 let mut png_camera = Camera2D::from_resolution(PNG_SIZE.into(), false);
                 png_camera.fit_center(self.data[0].borrow().get_fit_rectangle());
+                png_camera.zoom_out();
                 use chrono::Utc;
                 let png_name = Utc::now()
                     .format("export_2d_%Y_%m_%d_%H_%M_%S.png")
