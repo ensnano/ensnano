@@ -110,8 +110,8 @@ pub trait Requests: 'static + Send {
     fn toggle_widget_basis(&mut self);
     /// Show/hide the DNA sequences
     fn set_dna_sequences_visibility(&mut self, visible: bool);
-    /// Download the stapples as an xlsx file
-    fn download_stapples(&mut self);
+    /// Download the staples as an xlsx file
+    fn download_staples(&mut self);
     fn set_selected_strand_sequence(&mut self, sequence: String);
     fn set_scaffold_sequence(&mut self, shift: usize);
     fn set_scaffold_shift(&mut self, shift: usize);

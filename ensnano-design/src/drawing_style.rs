@@ -39,6 +39,7 @@ pub enum DrawingAttribute {
     ColorShade(u32, Option<f64>),
     WithCones(bool),
     OnAxis(bool),
+    Curvature(f32, f32),
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -59,26 +60,29 @@ impl FromStr for DrawingAttribute {
     /// - %rh(HHHHHHHH) for DoubleHelixAsCylinderColor(Rainbow)
     /// - %wc / %noc for WithCones(true / false) - default = true
     /// - %onaxis / %offaxis for OnAxis(true / false) - default = false
+    /// - %cv(r_min, r_max) - show the curvature radius using Purple to Blue gradient the helix cylinder for radius within the range r_min..r_max
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let parsed = s
             .split(&['%', ' ', ',', ')', '('])
             .filter(|x| x.len() > 0)
             .collect::<Vec<&str>>();
 
-        match parsed.len() {
-            1 => match parsed[0] {
-                "rs" => return Ok(Self::RainbowStrand(true)),
-                "nors" => return Ok(Self::RainbowStrand(false)),
-                "noxc" => return Ok(Self::XoverColoring(false)),
-                "wc" => return Ok(Self::WithCones(true)),
-                "noc" => return Ok(Self::WithCones(false)),
-                "xc" => return Ok(Self::XoverColoring(true)),
-                "rh" => return Ok(Self::DoubleHelixAsCylinderColor(ColorType::Rainbow)), // IGNORED FOR NOW
-                "onaxis" => return Ok(Self::OnAxis(true)),
-                "offaxis" => return Ok(Self::OnAxis(false)),
-                _ => (),
-            },
-            2..=4 => {
+        let len = parsed.len();
+        if len <= 0 {
+            return Err(ParsePointError);
+        }
+
+        match parsed[0] {
+            "rs" => return Ok(Self::RainbowStrand(true)),
+            "nors" => return Ok(Self::RainbowStrand(false)),
+            "noxc" => return Ok(Self::XoverColoring(false)),
+            "wc" => return Ok(Self::WithCones(true)),
+            "noc" => return Ok(Self::WithCones(false)),
+            "xc" => return Ok(Self::XoverColoring(true)),
+            "rh" => return Ok(Self::DoubleHelixAsCylinderColor(ColorType::Rainbow)), // IGNORED FOR NOW
+            "onaxis" => return Ok(Self::OnAxis(true)),
+            "offaxis" => return Ok(Self::OnAxis(false)),
+            "sr" | "br" | "hr" if len == 2 => {
                 if let Ok(value) = f32::from_str(parsed[1]) {
                     match parsed[0] {
                         "sr" => return Ok(Self::SphereRadius(value / 10.)), // radius given in Å but stored in nm
@@ -87,6 +91,8 @@ impl FromStr for DrawingAttribute {
                         _ => (),
                     }
                 }
+            }
+            "sc" | "bc" | "hc" | "cs" if len >= 2 && len <= 4 => {
                 let mut color = 0xFF_FF_FF_FF;
                 let mut hue_range = None;
                 if let Ok(value) = MaterialColor::from_str(parsed[1]) {
@@ -94,7 +100,8 @@ impl FromStr for DrawingAttribute {
                 } else if let Ok(value) = u32::from_str_radix(parsed[1], 16) {
                     color = value;
                 }
-                if parsed.len() > 2 {
+
+                if len > 2 {
                     if let Ok(alpha) = f32::from_str(parsed[2]) {
                         let alpha = (alpha * 255.).min(255.).max(0.).round() as u32;
                         color = (color & 0xFF_FF_FF) | (alpha << 24);
@@ -112,6 +119,13 @@ impl FromStr for DrawingAttribute {
                     "hc" => return Ok(Self::DoubleHelixAsCylinderColor(ColorType::Color(color))),
                     "cs" => return Ok(Self::ColorShade(color, hue_range)),
                     _ => (),
+                }
+            }
+            "cv" if len == 3 => {
+                if let Ok(r_min) = f32::from_str(parsed[1]) {
+                    if let Ok(r_max) = f32::from_str(parsed[2]) {
+                        return Ok(Self::Curvature(r_min, r_max));
+                    }
                 }
             }
             _ => (),
@@ -147,6 +161,9 @@ pub struct DrawingStyle {
     pub with_cones: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub on_axis: Option<bool>,
+    /// (r_min, r_max) display curvature on the helix cylinder with a gradient for radius from r_min to r_max
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub curvature: Option<(f32, f32)>,
 }
 
 impl std::default::Default for DrawingStyle {
@@ -164,6 +181,7 @@ impl std::default::Default for DrawingStyle {
             hue_range: None,
             with_cones: None,
             on_axis: None,
+            curvature: None,
         }
     }
 }
@@ -197,6 +215,9 @@ impl From<Vec<DrawingAttribute>> for DrawingStyle {
                     ret.hue_range = ret.hue_range.or(hue_range);
                 }
                 DrawingAttribute::OnAxis(b) => ret.on_axis = ret.on_axis.or(Some(b)),
+                DrawingAttribute::Curvature(r_min, r_max) => {
+                    ret.curvature = ret.curvature.or(Some((r_min, r_max)))
+                }
             }
         }
         return ret;
@@ -251,6 +272,10 @@ impl DrawingStyle {
                 on_axis: Some(b),
                 ..*self
             },
+            DrawingAttribute::Curvature(r_min, r_max) => DrawingStyle {
+                curvature: Some((r_min, r_max)),
+                ..*self
+            },
         }
     }
 
@@ -291,6 +316,10 @@ impl DrawingStyle {
 
         if let Some(b) = self.on_axis {
             atts.push(DrawingAttribute::OnAxis(b))
+        }
+
+        if let Some((r_min, r_max)) = self.curvature {
+            atts.push(DrawingAttribute::Curvature(r_min, r_max))
         }
 
         return atts;
@@ -343,6 +372,10 @@ impl DrawingStyle {
                 on_axis: self.on_axis.or(Some(b)),
                 ..*self
             },
+            DrawingAttribute::Curvature(r_min, r_max) => DrawingStyle {
+                curvature: self.curvature.or(Some((r_min, r_max))),
+                ..*self
+            },
         }
     }
 
@@ -372,6 +405,7 @@ impl DrawingStyle {
             color_shade: self.color_shade.or(other.color_shade),
             hue_range: self.hue_range.or(other.hue_range),
             on_axis: self.on_axis.or(other.on_axis),
+            curvature: self.curvature.or(other.curvature),
         };
     }
 }

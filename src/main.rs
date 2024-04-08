@@ -100,6 +100,7 @@ use iced_winit::{conversion, futures, program, winit, Debug, Size};
 
 use app_state::AppStateParameters;
 use futures::task::SpawnExt;
+use rand::random;
 use ultraviolet::{Rotor3, Vec3};
 use winit::{
     dpi::{PhysicalPosition, PhysicalSize},
@@ -1087,6 +1088,7 @@ impl MainState {
     }
 
     fn update(&mut self) {
+        // Appelé continuement
         log::trace!("call from main state");
         if let Some(camera_ptr) = self
             .applications

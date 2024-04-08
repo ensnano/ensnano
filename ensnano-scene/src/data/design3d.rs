@@ -24,6 +24,7 @@ use super::super::GridInstance;
 use super::{ultraviolet, LetterInstance, SceneElement};
 use crate::rotor_utils::SafeRotor;
 use crate::sausage_rosary::SausageRosary;
+use crate::view::PlainRectangleInstance;
 use ensnano_design::grid::{GridId, GridObject, GridPosition};
 use ensnano_design::{grid::HelixGridPosition, Nucl};
 use ensnano_design::{
@@ -215,6 +216,28 @@ impl<R: DesignReader> Design3D<R> {
             .flat_map(|id| self.make_cone_from_bond(*id, &filter))
             .collect();
         vec
+    }
+
+    pub fn get_scalebar_plain_rectangles_raw(&self) -> Vec<RawDnaInstance> {
+        let n = 1000;
+        if let Some((r_min, r_max, gradient)) = self.design_reader.get_scalebar() {
+            let vec = (0..n)
+                .map(|i| -> RawDnaInstance {
+                    let r = r_min + i as f32 * (r_max - r_min) / n as f32;
+                    PlainRectangleInstance {
+                        position: Vec3::new(0.85, -0.5 + i as f32 / n as f32, 0.),
+                        color: Instance::unclear_color_from_u32(gradient(r, r_min, r_max)),
+                        width: 0.1,
+                        height: 1. / n as f32,
+                        id: 0,
+                    }
+                    .to_raw_instance()
+                })
+                .collect::<Vec<RawDnaInstance>>();
+            vec
+        } else {
+            vec![]
+        }
     }
 
     /// Return the list of tube instances to be displayed to represent the design
@@ -592,206 +615,220 @@ impl<R: DesignReader> Design3D<R> {
     /// Convert return an instance representing the object with identifier `id`
     pub fn make_raw_instances(&self, id: u32) -> Option<Vec<RawDnaInstance>> {
         let kind = self.get_object_type(id)?;
-        let raw_instances =
-            match kind {
-                ObjectType::Bond(id1, id2) => {
-                    let pos1 = self
-                        .get_graphic_element_position(&SceneElement::DesignElement(self.id, id1))?;
-                    let pos2 = self
-                        .get_graphic_element_position(&SceneElement::DesignElement(self.id, id2))?;
-                    let color = self.get_color(id).unwrap_or(0x00_00_00);
-                    let id = id | self.id << 24;
-                    // Adjust the color and rafius of the bond according to the REAL length of the bond
-                    let xover_coloring = self.get_xover_coloring(id).unwrap_or(true);
-                    let (color, radius_scale) = (if xover_coloring {
-                        self.length_adjusted_color_and_radius_for_bond(id1, id2)
-                    } else {
-                        None
-                    })
-                    .unwrap_or((color, 1.0));
-                    let radius = radius_scale * self.get_radius(id).unwrap_or(BOND_RADIUS);
-                    let tube = create_dna_bond(pos1, pos2, color, id, false).with_radius(radius);
-                    vec![tube.to_raw_instance()]
+        let raw_instances = match kind {
+            ObjectType::Bond(id1, id2) => {
+                let pos1 =
+                    self.get_graphic_element_position(&SceneElement::DesignElement(self.id, id1))?;
+                let pos2 =
+                    self.get_graphic_element_position(&SceneElement::DesignElement(self.id, id2))?;
+                let color = self.get_color(id).unwrap_or(0x00_00_00);
+                let id = id | self.id << 24;
+                // Adjust the color and rafius of the bond according to the REAL length of the bond
+                let xover_coloring = self.get_xover_coloring(id).unwrap_or(true);
+                let (color, radius_scale) = (if xover_coloring {
+                    self.length_adjusted_color_and_radius_for_bond(id1, id2)
+                } else {
+                    None
+                })
+                .unwrap_or((color, 1.0));
+                let radius = radius_scale * self.get_radius(id).unwrap_or(BOND_RADIUS);
+                let tube = create_dna_bond(pos1, pos2, color, id, false).with_radius(radius);
+                vec![tube.to_raw_instance()]
+            }
+            ObjectType::SlicedBond(prev_nucl_id, nucl1_id, nucl2_id, next_nucl_id) => {
+                let pos1 = self.get_graphic_element_position(&SceneElement::DesignElement(
+                    self.id, nucl1_id,
+                ))?;
+                let pos2 = self.get_graphic_element_position(&SceneElement::DesignElement(
+                    self.id, nucl2_id,
+                ))?;
+
+                let prev = if prev_nucl_id != nucl1_id {
+                    let pos0 = self.get_graphic_element_position(&SceneElement::DesignElement(
+                        self.id,
+                        prev_nucl_id,
+                    ))?;
+                    pos1 - pos0
+                } else {
+                    Vec3::zero()
+                };
+                let next = if next_nucl_id != nucl2_id {
+                    let pos3 = self.get_graphic_element_position(&SceneElement::DesignElement(
+                        self.id,
+                        next_nucl_id,
+                    ))?;
+                    pos3 - pos2
+                } else {
+                    Vec3::zero()
+                };
+                let position = (pos1 + pos2) / 2.;
+                let current = pos2 - pos1;
+                let normalized = current.normalized();
+                let rotor = Rotor3::safe_from_rotation_from_unit_x_to(normalized);
+                let rotor_inv = Rotor3::safe_from_rotation_to_unit_x_from(normalized);
+
+                let color = self.get_color(id).unwrap_or(0x00_00_00);
+                let id = id | self.id << 24;
+                // Adjust the color and rafius of the bond according to the REAL length of the bond
+                let xover_coloring = self.get_xover_coloring(id).unwrap_or(true);
+                let (color, radius_scale) = (if xover_coloring {
+                    self.length_adjusted_color_and_radius_for_bond(nucl1_id, nucl2_id)
+                } else {
+                    None
+                })
+                .unwrap_or((color, 1.0));
+                let radius = radius_scale * self.get_radius(id).unwrap_or(BOND_RADIUS);
+                let color = Instance::unclear_color_from_u32(color);
+                let sliced_tube = SlicedTubeInstance {
+                    position,
+                    rotor,
+                    color,
+                    id,
+                    radius,
+                    length: current.mag(),
+                    prev: prev.rotated_by(rotor_inv),
+                    next: next.rotated_by(rotor_inv),
+                };
+                let mut instances = vec![sliced_tube.to_raw_instance()];
+                if prev_nucl_id == nucl1_id {
+                    // add lid
+                    let lid_left = TubeLidInstance {
+                        position: pos1,
+                        color,
+                        rotor: Rotor3::safe_from_rotation_from_unit_x_to(-normalized),
+                        id,
+                        radius,
+                    };
+                    instances.push(lid_left.to_raw_instance());
                 }
-                ObjectType::SlicedBond(prev_nucl_id, nucl1_id, nucl2_id, next_nucl_id) => {
-                    let pos1 = self.get_graphic_element_position(&SceneElement::DesignElement(
-                        self.id, nucl1_id,
-                    ))?;
-                    let pos2 = self.get_graphic_element_position(&SceneElement::DesignElement(
-                        self.id, nucl2_id,
-                    ))?;
-
-                    let prev = if prev_nucl_id != nucl1_id {
-                        let pos0 = self.get_graphic_element_position(
-                            &SceneElement::DesignElement(self.id, prev_nucl_id),
-                        )?;
-                        pos1 - pos0
-                    } else {
-                        Vec3::zero()
-                    };
-                    let next = if next_nucl_id != nucl2_id {
-                        let pos3 = self.get_graphic_element_position(
-                            &SceneElement::DesignElement(self.id, next_nucl_id),
-                        )?;
-                        pos3 - pos2
-                    } else {
-                        Vec3::zero()
-                    };
-                    let position = (pos1 + pos2) / 2.;
-                    let current = pos2 - pos1;
-                    let normalized = current.normalized();
-                    let rotor = Rotor3::safe_from_rotation_from_unit_x_to(normalized);
-                    let rotor_inv = Rotor3::safe_from_rotation_to_unit_x_from(normalized);
-
-                    let color = self.get_color(id).unwrap_or(0x00_00_00);
-                    let id = id | self.id << 24;
-                    // Adjust the color and rafius of the bond according to the REAL length of the bond
-                    let xover_coloring = self.get_xover_coloring(id).unwrap_or(true);
-                    let (color, radius_scale) = (if xover_coloring {
-                        self.length_adjusted_color_and_radius_for_bond(nucl1_id, nucl2_id)
-                    } else {
-                        None
-                    })
-                    .unwrap_or((color, 1.0));
-                    let radius = radius_scale * self.get_radius(id).unwrap_or(BOND_RADIUS);
-                    let color = Instance::unclear_color_from_u32(color);
-                    let sliced_tube = SlicedTubeInstance {
-                        position,
+                if next_nucl_id == nucl2_id {
+                    // add lid
+                    let lid_right = TubeLidInstance {
+                        position: pos2,
+                        color,
                         rotor,
-                        color,
                         id,
                         radius,
-                        length: current.mag(),
-                        prev: prev.rotated_by(rotor_inv),
-                        next: next.rotated_by(rotor_inv),
                     };
-                    let mut instances = vec![sliced_tube.to_raw_instance()];
-                    if prev_nucl_id == nucl1_id {
-                        // add lid
-                        let lid_left = TubeLidInstance {
-                            position: pos1,
-                            color,
-                            rotor: Rotor3::safe_from_rotation_from_unit_x_to(-normalized),
-                            id,
-                            radius,
-                        };
-                        instances.push(lid_left.to_raw_instance());
-                    }
-                    if next_nucl_id == nucl2_id {
-                        // add lid
-                        let lid_right = TubeLidInstance {
-                            position: pos2,
-                            color,
-                            rotor,
-                            id,
-                            radius,
-                        };
-                        instances.push(lid_right.to_raw_instance());
-                    }
-                    instances
+                    instances.push(lid_right.to_raw_instance());
                 }
-                ObjectType::HelixCylinder(id1, id2) => {
-                    let h_id = self.design_reader.get_id_of_helix_containing(id1).unwrap();
+                instances
+            }
+            ObjectType::HelixCylinder(id1, id2) | ObjectType::ColoredHelixCylinder(id1, id2, _) => {
+                let h_id = self.design_reader.get_id_of_helix_containing(id1).unwrap();
 
-                    if self.design_reader.get_curve_descriptor(h_id).is_none() {
-                        // straight helix
+                if self.design_reader.get_curve_descriptor(h_id).is_none() {
+                    // straight helix
 
-                        let pos1 = self.get_graphic_element_axis_position(
-                            &SceneElement::DesignElement(self.id, id1),
-                        )?;
-                        let pos2 = self.get_graphic_element_axis_position(
-                            &SceneElement::DesignElement(self.id, id2),
-                        )?;
-                        let color = self.get_color(id).unwrap_or(HELIX_CYLINDER_COLOR);
-                        let color = Instance::add_alpha_to_clear_color_u32(color);
-                        let id = id | self.id << 24;
-                        // Adjust the color and rafius of the bond according to the REAL length of the bond
-                        let radius = self.get_radius(id).unwrap_or(HELIX_CYLINDER_RADIUS);
-                        let (lid1, tube, lid2) =
-                            create_helix_cylinder(pos1, pos2, radius, color, id, true);
-                        // println!("Lid1: {:?}\nTube: {:?}\nLid2: {:?}", lid1.position, tube.position, lid2.position);
-                        vec![
-                            lid1.to_raw_instance(),
-                            tube.to_raw_instance(),
-                            lid2.to_raw_instance(),
-                        ]
-                    } else {
-                        // curved helix
-                        let color = self.get_color(id).unwrap_or(HELIX_CYLINDER_COLOR);
-                        let id = id | self.id << 24;
-                        let radius = self.get_radius(id).unwrap_or(HELIX_CYLINDER_RADIUS);
-
-                        let nucl1 = self.design_reader.get_nucl_with_id(id1).unwrap();
-                        let nucl2 = self.design_reader.get_nucl_with_id(id2).unwrap();
-                        // REQUIRE: nucl1 and nucl2 are on the forward strand and in increasing order
-                        assert_eq!(
-                            nucl1.helix, nucl2.helix,
-                            "Helix cylinder accross different helices"
-                        );
-                        assert!(
-                            nucl1.forward && nucl2.forward,
-                            "Helix cylinder: nucleotides not along forward strand"
-                        );
-                        assert!(
-                            nucl1.position <= nucl2.position,
-                            "Helix cylinder: nucleotides in decreasing order"
-                        );
-                        let positions = (nucl1.position..=nucl2.position)
-                            .map(|i| {
-                                let nucl_id = self
-                                    .get_identifier_nucl(&Nucl {
-                                        helix: nucl1.helix,
-                                        forward: true,
-                                        position: i,
-                                    })
-                                    .unwrap();
-                                self.get_element_axis_position(
-                                    &DesignElement(self.id, nucl_id),
-                                    Referential::World,
-                                )
-                                .unwrap()
-                            })
-                            .collect::<Vec<Vec3>>();
-                        // println!("{:?}", positions);
-                        let color = |_| -> u32 { color.clone() };
-                        let (tubes, lids) = SausageRosary {
-                            positions,
-                            is_cyclic: false,
-                        }
-                        .to_raw_dna_instances(color, radius, id);
-                        let mut rosary = tubes
-                            .into_iter()
-                            .map(|t| t.to_raw_instance())
-                            .collect::<Vec<RawDnaInstance>>();
-                        if let Some(lids) = lids {
-                            rosary.push(lids.0.to_raw_instance());
-                            rosary.push(lids.1.to_raw_instance());
-                        }
-                        return Some(rosary);
-                    }
-                }
-                ObjectType::Nucleotide(id) => {
-                    let position = self
-                        .get_graphic_element_position(&SceneElement::DesignElement(self.id, id))?;
-                    let color = self.get_color(id)?;
-                    let color = Instance::unclear_color_from_u32(color);
+                    let pos1 = self.get_graphic_element_axis_position(
+                        &SceneElement::DesignElement(self.id, id1),
+                    )?;
+                    let pos2 = self.get_graphic_element_axis_position(
+                        &SceneElement::DesignElement(self.id, id2),
+                    )?;
+                    let color = self.get_color(id).unwrap_or(HELIX_CYLINDER_COLOR);
+                    let color = Instance::add_alpha_to_clear_color_u32(color);
                     let id = id | self.id << 24;
-                    // let small = self.design_reader.has_small_spheres_nucl_id(id);
-                    // let radius = if small {
-                    //     BOND_RADIUS  // so that it's radius is the BOND_RADIUS as radius in shader is SPHERE_RADIUS
-                    // } else {
-                    //     SPHERE_RADIUS
-                    // };
-                    let radius = self.get_radius(id).unwrap_or(SPHERE_RADIUS);
-                    let sphere = SphereInstance {
-                        position,
-                        color,
-                        id,
-                        radius,
+                    // Adjust the color and rafius of the bond according to the REAL length of the bond
+                    let radius = self.get_radius(id).unwrap_or(HELIX_CYLINDER_RADIUS);
+                    let (lid1, tube, lid2) =
+                        create_helix_cylinder(pos1, pos2, radius, color, id, true);
+                    // println!("Lid1: {:?}\nTube: {:?}\nLid2: {:?}", lid1.position, tube.position, lid2.position);
+                    vec![
+                        lid1.to_raw_instance(),
+                        tube.to_raw_instance(),
+                        lid2.to_raw_instance(),
+                    ]
+                } else {
+                    // curved helix
+                    let color = self.get_color(id).unwrap_or(HELIX_CYLINDER_COLOR);
+                    let id = id | self.id << 24;
+                    let radius = self.get_radius(id).unwrap_or(HELIX_CYLINDER_RADIUS);
+
+                    let nucl1 = self.design_reader.get_nucl_with_id(id1).unwrap();
+                    let nucl2 = self.design_reader.get_nucl_with_id(id2).unwrap();
+                    let pos1 = self
+                        .design_reader
+                        .get_element_axis_position(id1, Referential::World)
+                        .unwrap();
+                    let pos2 = self
+                        .design_reader
+                        .get_element_axis_position(id2, Referential::World)
+                        .unwrap();
+                    let is_cyclic = (pos2 - pos1).mag() <= 1.1 * HelixParameters::DEFAULT.rise;
+                    // REQUIRE: nucl1 and nucl2 are on the forward strand and in increasing order
+                    assert_eq!(
+                        nucl1.helix, nucl2.helix,
+                        "Helix cylinder accross different helices"
+                    );
+                    assert!(
+                        nucl1.forward && nucl2.forward,
+                        "Helix cylinder: nucleotides not along forward strand"
+                    );
+                    assert!(
+                        nucl1.position <= nucl2.position,
+                        "Helix cylinder: nucleotides in decreasing order"
+                    );
+                    let positions = (nucl1.position..=nucl2.position)
+                        .map(|i| {
+                            let nucl_id = self
+                                .get_identifier_nucl(&Nucl {
+                                    helix: nucl1.helix,
+                                    forward: true,
+                                    position: i,
+                                })
+                                .unwrap();
+                            self.get_element_axis_position(
+                                &DesignElement(self.id, nucl_id),
+                                Referential::World,
+                            )
+                            .unwrap()
+                        })
+                        .collect::<Vec<Vec3>>();
+                    // println!("{:?}", positions);
+                    let colors = match kind {
+                        ObjectType::ColoredHelixCylinder(_, _, colors) => colors.clone(),
+                        _ => vec![],
                     };
-                    vec![sphere.to_raw_instance()]
+                    let color = |i| -> u32 { *(colors.get(i).unwrap_or(&color)) };
+                    let (tubes, lids) = SausageRosary {
+                        positions,
+                        is_cyclic,
+                    }
+                    .to_raw_dna_instances(color, radius, id);
+                    let mut rosary = tubes
+                        .into_iter()
+                        .map(|t| t.to_raw_instance())
+                        .collect::<Vec<RawDnaInstance>>();
+                    if let Some(lids) = lids {
+                        rosary.push(lids.0.to_raw_instance());
+                        rosary.push(lids.1.to_raw_instance());
+                    }
+                    return Some(rosary);
                 }
-            };
+            }
+            ObjectType::Nucleotide(id) => {
+                let position =
+                    self.get_graphic_element_position(&SceneElement::DesignElement(self.id, id))?;
+                let color = self.get_color(id)?;
+                let color = Instance::unclear_color_from_u32(color);
+                let id = id | self.id << 24;
+                // let small = self.design_reader.has_small_spheres_nucl_id(id);
+                // let radius = if small {
+                //     BOND_RADIUS  // so that it's radius is the BOND_RADIUS as radius in shader is SPHERE_RADIUS
+                // } else {
+                //     SPHERE_RADIUS
+                // };
+                let radius = self.get_radius(id).unwrap_or(SPHERE_RADIUS);
+                let sphere = SphereInstance {
+                    position,
+                    color,
+                    id,
+                    radius,
+                };
+                vec![sphere.to_raw_instance()]
+            }
+        };
         Some(raw_instances)
     }
 
@@ -1611,6 +1648,7 @@ pub trait DesignReader: 'static + ensnano_interactor::DesignReader {
     /// nucleotide.
     fn get_symbol(&self, e_id: u32) -> Option<char>;
     fn get_model_matrix(&self) -> Mat4;
+    fn get_scalebar(&self) -> Option<(f32, f32, fn(f32, f32, f32) -> u32)>;
     /// Return true iff e_id is the identifier of a nucleotide that must be displayed with a
     /// smaller size
     fn has_small_spheres_nucl_id(&self, e_id: u32) -> bool;

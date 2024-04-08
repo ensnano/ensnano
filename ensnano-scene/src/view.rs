@@ -41,7 +41,7 @@ use wgpu::{Device, Queue};
 /// A `Uniform` is a structure that manages view and projection matrices.
 mod uniforms;
 use uniforms::Uniforms;
-pub use uniforms::{FogParameters, Stereography};
+pub use uniforms::{CutPlaneParameters, FogParameters, Stereography};
 mod direction_cube;
 pub mod dna_obj;
 /// This modules defines a trait for drawing widget made of several meshes.
@@ -62,8 +62,8 @@ use super::maths_3d::{self, distance_to_cursor_with_penalty};
 use bindgroup_manager::{DynamicBindGroup, UniformBindGroup};
 use direction_cube::*;
 pub use dna_obj::{
-    ConeInstance, DnaObject, Ellipsoid, RawDnaInstance, SlicedTubeInstance, SphereInstance,
-    StereographicSphereAndPlane, TubeInstance, TubeLidInstance,
+    ConeInstance, DnaObject, Ellipsoid, PlainRectangleInstance, RawDnaInstance, SlicedTubeInstance,
+    SphereInstance, StereographicSphereAndPlane, TubeInstance, TubeLidInstance,
 };
 use drawable::{Drawable, Drawer, Vertex};
 pub use grid::{GridInstance, GridIntersection};
@@ -139,8 +139,7 @@ pub struct View {
     stereography: Stereography,
     sheets_drawer: InstanceDrawer<Sheet2D>,
     /// Cutting plane
-    cut_plane_normal: Vec3,
-    cut_plane_dot_value: Option<f32>,
+    cut_plane_parameters: Option<CutPlaneParameters>,
 }
 
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
@@ -322,8 +321,7 @@ impl View {
             "2d sheets",
         );
 
-        let cut_plane_normal = Vec3::unit_x();
-        let cut_plane_dot_value = None::<f32>;
+        let cut_plane_parameters = None::<CutPlaneParameters>;
 
         Self {
             camera,
@@ -353,8 +351,7 @@ impl View {
             external_objects_drawer,
             stereography,
             sheets_drawer,
-            cut_plane_normal,
-            cut_plane_dot_value,
+            cut_plane_parameters,
         }
     }
 
@@ -364,6 +361,7 @@ impl View {
             self.projection.clone(),
             &self.fog_parameters,
             None,
+            &self.cut_plane_parameters,
         ));
         self.stereographic_viewer
             .update(&Uniforms::from_view_proj_fog(
@@ -371,6 +369,7 @@ impl View {
                 self.projection.clone(),
                 &self.fog_parameters,
                 Some(&self.stereography),
+                &self.cut_plane_parameters,
             ));
     }
 
@@ -1113,6 +1112,7 @@ pub enum Mesh {
     EllipsoidOutline = 31,
     HBond = 32,
     HBondOutline = 33,
+    PlainRectangle = 34,
 }
 
 impl Mesh {
@@ -1159,6 +1159,7 @@ struct DnaDrawers {
     tube: InstanceDrawer<TubeInstance>,
     tube_lid: InstanceDrawer<TubeLidInstance>,
     sliced_tube: InstanceDrawer<SlicedTubeInstance>,
+    plain_rectangle: InstanceDrawer<PlainRectangleInstance>,
     outline_sphere: InstanceDrawer<SphereInstance>,
     outline_tube: InstanceDrawer<TubeInstance>,
     candidate_sphere: InstanceDrawer<SphereInstance>,
@@ -1197,6 +1198,7 @@ impl DnaDrawers {
             Mesh::Tube => &mut self.tube,
             Mesh::TubeLid => &mut self.tube_lid,
             Mesh::SlicedTube => &mut self.sliced_tube,
+            Mesh::PlainRectangle => &mut self.plain_rectangle,
             Mesh::OutlineSphere => &mut self.outline_sphere,
             Mesh::OutlineTube => &mut self.outline_tube,
             Mesh::CandidateSphere => &mut self.candidate_sphere,
@@ -1238,6 +1240,7 @@ impl DnaDrawers {
             &mut self.tube,
             &mut self.tube_lid,
             &mut self.sliced_tube,
+            &mut self.plain_rectangle,
             &mut self.prime3_cones,
             &mut self.candidate_sphere,
             &mut self.candidate_tube,
@@ -1348,6 +1351,15 @@ impl DnaDrawers {
                 (),
                 false,
                 "sliced tube",
+            ),
+            plain_rectangle: InstanceDrawer::new(
+                device.clone(),
+                queue.clone(),
+                viewer_desc,
+                model_desc,
+                (),
+                false,
+                "plain rectangle",
             ),
             hbond: InstanceDrawer::new(
                 device.clone(),

@@ -149,7 +149,7 @@ pub enum Message<S: AppState> {
     ModifiersChanged(ModifiersState),
     UiSizeChanged(UiSize),
     UiSizePicked(UiSize),
-    StapplesRequested,
+    StaplesRequested,
     OrigamisRequested,
     ToggleText(bool),
     #[allow(dead_code)]
@@ -664,7 +664,7 @@ impl<R: Requests, S: AppState> Program for LeftPanel<R, S> {
             Message::OptimizeScaffoldShiftPressed => {
                 self.requests.lock().unwrap().optimize_scaffold_shift();
             }
-            Message::StapplesRequested => self.requests.lock().unwrap().download_stapples(),
+            Message::StaplesRequested => self.requests.lock().unwrap().download_staples(),
             Message::ToggleText(b) => {
                 self.requests
                     .lock()

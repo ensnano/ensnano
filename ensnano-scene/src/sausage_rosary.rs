@@ -57,8 +57,8 @@ impl SausageRosary {
             vecs.iter()
                 .zip(vecs.iter().cycle().skip(1))
                 .zip(vecs.iter().cycle().skip(2))
+                .zip(self.positions.iter())
                 .zip(self.positions.iter().cycle().skip(1))
-                .zip(self.positions.iter().cycle().skip(2))
                 .map(|((((prev, cur), next), p1), p2)| (*prev, *cur, *next, *p1, *p2))
                 .collect::<Vec<(Vec3, Vec3, Vec3, Vec3, Vec3)>>()
         } else {

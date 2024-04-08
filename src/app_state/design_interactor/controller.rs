@@ -118,7 +118,7 @@ impl Controller {
         let label = operation.label();
         let mut ret = match operation {
             DesignOperation::RecolorStaples => {
-                Ok(self.ok_apply(Self::fancy_recolor_stapples, design))
+                Ok(self.ok_apply(Self::fancy_recolor_staples, design))
             }
             DesignOperation::SetScaffoldSequence { sequence, shift } => Ok(self.ok_apply(
                 |ctrl, design| ctrl.set_scaffold_sequence(design, sequence, shift),
@@ -172,7 +172,7 @@ impl Controller {
                 self.apply(|c, d| c.apply_translation(d, translation), design)
             }
             DesignOperation::Rotation(rotation) => {
-                self.apply(|c, d| c.apply_rotattion(d, rotation), design)
+                self.apply(|c, d| c.apply_rotation(d, rotation), design)
             }
             DesignOperation::RequestStrandBuilders { nucls } => {
                 self.apply(|c, d| c.request_strand_builders(d, nucls), design)
@@ -246,13 +246,16 @@ impl Controller {
             DesignOperation::AttachObject { object, grid, x, y } => {
                 self.apply(|c, d| c.attach_object(d, object, grid, x, y), design)
             }
-            DesignOperation::SetOrganizerTree(tree) => Ok(self.ok_apply(
-                |_, mut d| {
-                    d.organizer_tree = Some(Arc::new(tree));
-                    d
-                },
-                design,
-            )),
+            DesignOperation::SetOrganizerTree(tree) => {
+                println!("Tree op {}", rand::random::<u8>());
+                Ok(self.ok_apply(
+                    |_, mut d| {
+                        d.organizer_tree = Some(Arc::new(tree));
+                        d
+                    },
+                    design,
+                ))
+            }
             DesignOperation::SetStrandName { s_id, name } => {
                 self.apply(|c, d| c.change_strand_name(d, s_id, name), design)
             }
@@ -1701,7 +1704,7 @@ impl Controller {
         Ok(design)
     }
 
-    fn apply_rotattion(
+    fn apply_rotation(
         &mut self,
         design: Design,
         rotation: DesignRotation,
@@ -1975,7 +1978,7 @@ impl From<ensnano_design::SvgImportError> for ErrOperation {
 }
 
 impl Controller {
-    fn recolor_stapples(&mut self, mut design: Design) -> Design {
+    fn recolor_staples(&mut self, mut design: Design) -> Design {
         for (s_id, strand) in design.strands.iter_mut() {
             if Some(*s_id) != design.scaffold_id {
                 let color = crate::utils::colors::new_color(&mut self.color_idx);
@@ -1985,7 +1988,7 @@ impl Controller {
         design
     }
 
-    fn fancy_recolor_stapples(&mut self, mut design: Design) -> Design {
+    fn fancy_recolor_staples(&mut self, mut design: Design) -> Design {
         let mut drawing_styles = HashMap::<DesignElementKey, DrawingStyle>::default();
 
         if let Some(ref t) = design.organizer_tree {

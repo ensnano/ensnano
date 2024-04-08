@@ -486,6 +486,11 @@ impl Curve {
         axis.get(idx).cloned()
     }
 
+    pub fn curvature_at_pos(&self, position: isize) -> Option<f64> {
+        let idx = self.idx_conversion(position)?;
+        self.curvature.get(idx).cloned()
+    }
+
     pub fn points(&self) -> &[DVec3] {
         &self.positions_forward
     }

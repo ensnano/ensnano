@@ -107,7 +107,7 @@ pub struct Design {
     pub scaffold_sequence: Option<String>,
 
     /// The shifting of the scaffold if the design is an origami. This is used to reduce the number
-    /// of anti-patern in the stapples sequences
+    /// of anti-patern in the staples sequences
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub scaffold_shift: Option<usize>,
 

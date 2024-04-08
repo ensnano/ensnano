@@ -22,7 +22,7 @@ use super::*;
 pub struct SequenceTab {
     scroll: scrollable::State,
     button_scaffold: button::State,
-    button_stapples: button::State,
+    button_staples: button::State,
     button_origamis: button::State,
     toggle_text_value: bool,
     scaffold_position_str: String,
@@ -205,19 +205,17 @@ macro_rules! add_scaffold_start_position {
 
 macro_rules! add_download_staples_button {
     ($ret: ident, $self: ident, $ui_size: ident) => {
-        let button_stapples = Button::new(
-            &mut $self.button_stapples,
-            iced::Text::new("Export Staples"),
-        )
-        .height(Length::Units($ui_size.button()))
-        .on_press(Message::StapplesRequested);
+        let button_staples =
+            Button::new(&mut $self.button_staples, iced::Text::new("Export Staples"))
+                .height(Length::Units($ui_size.button()))
+                .on_press(Message::StaplesRequested);
         let button_origamis = Button::new(
             &mut $self.button_origamis,
             iced::Text::new("Export Origamis"),
         )
         .height(Length::Units($ui_size.button()))
         .on_press(Message::OrigamisRequested);
-        $ret = $ret.push(button_stapples).push(button_origamis);
+        $ret = $ret.push(button_staples).push(button_origamis);
     };
 }
 
@@ -236,7 +234,7 @@ impl SequenceTab {
     pub fn new() -> Self {
         Self {
             scroll: Default::default(),
-            button_stapples: Default::default(),
+            button_staples: Default::default(),
             button_scaffold: Default::default(),
             button_origamis: Default::default(),
             toggle_text_value: false,

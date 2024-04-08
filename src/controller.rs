@@ -22,7 +22,7 @@ use crate::PastePosition;
 mod download_intervals;
 mod download_staples;
 use download_staples::*;
-pub use download_staples::{DownloadStappleError, DownloadStappleOk, StaplesDownloader};
+pub use download_staples::{DownloadStapleError, DownloadStapleOk, StaplesDownloader};
 mod quit;
 use ensnano_design::grid::GridId;
 use ensnano_design::group_attributes::GroupPivot;
