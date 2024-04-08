@@ -17,22 +17,24 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 //! This modules defines a 2D camera for the FlatScene.
 //!
-//! The `Globals` struct contains the value that must be send to the GPU to compute the view
-//! matrix. The `Camera` struct modifies a `Globals` attribute and perform some view <-> world
+//! The [Globals] struct contains the value that must be send to the GPU to compute the view
+//! matrix. The [Camera2D] struct modifies a [Globals] attribute and perform some view <-> world
 //! coordinate conversion.
 
 use ensnano_design::{Rotor2, Vec2};
-use ensnano_interactor::consts::*;
-use iced_winit::winit;
-use winit::{dpi::PhysicalPosition, event::MouseScrollDelta};
-pub struct Camera {
+use ensnano_interactor::consts::MAX_ZOOM_2D;
+use iced_winit::winit::{dpi::PhysicalPosition, event::MouseScrollDelta};
+
+/// A 2D camera for the FlatScene.
+pub struct Camera2D {
     globals: Globals,
     was_updated: bool,
     old_globals: Globals,
+    /// Indicates whether this camera represents the bottom pane.
     pub bottom: bool,
 }
 
-impl Camera {
+impl Camera2D {
     pub fn new(globals: Globals, bottom: bool) -> Self {
         Self {
             old_globals: globals,
@@ -42,6 +44,16 @@ impl Camera {
         }
     }
 
+    pub fn from_resolution(resolution: [f32; 2], bottom: bool) -> Self {
+        Camera2D::new(Globals::from_resolution(resolution), bottom)
+    }
+}
+
+/// Movement mechanism.
+///
+/// The movement can be decomposed in multiple steps.
+///
+impl Camera2D {
     /// Return true if the globals have been modified since the last time `self.get_update()` was
     /// called.
     pub fn was_updated(&self) -> bool {
@@ -52,12 +64,12 @@ impl Camera {
         self.globals.symetry.x * self.globals.symetry.y * -1.0
     }
 
-    pub fn apply_symettry_x(&mut self) {
+    pub fn apply_symmetry_x(&mut self) {
         self.globals.symetry.x *= -1.0;
         self.end_movement();
     }
 
-    pub fn apply_symettry_y(&mut self) {
+    pub fn apply_symmetry_y(&mut self) {
         self.globals.symetry.y *= -1.0;
         self.end_movement();
     }
@@ -134,14 +146,14 @@ impl Camera {
         self.globals.zoom = self.globals.zoom.max(MAX_ZOOM_2D / 2.);
     }
 
-    /// Descrete zoom on the scene
+    /// Discrete zoom on the scene
     #[allow(dead_code)]
     pub fn zoom_in(&mut self) {
         self.globals.zoom *= 1.25;
         self.was_updated = true;
     }
 
-    /// Descrete zoom out of the scene
+    /// Discrete zoom out of the scene
     #[allow(dead_code)]
     pub fn zoom_out(&mut self) {
         self.globals.zoom *= 0.8;
@@ -312,6 +324,7 @@ impl Camera {
     }
 }
 
+/// Values that must be send to the GPU to compute the view.
 #[repr(C)]
 #[derive(Debug, Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct Globals {
@@ -323,7 +336,7 @@ pub struct Globals {
 }
 
 impl Globals {
-    pub fn default(resolution: [f32; 2]) -> Self {
+    pub fn from_resolution(resolution: [f32; 2]) -> Self {
         Self {
             resolution,
             scroll_offset: [10.0, 40.0],
@@ -361,6 +374,7 @@ pub struct FitRectangle {
     pub max_y: Option<f32>,
 }
 
+/// A tool to find the view that fit the content.
 impl FitRectangle {
     /// The rectangle that the 2D camera look at when starting the software.
     pub const INITIAL_RECTANGLE: Self = Self {
