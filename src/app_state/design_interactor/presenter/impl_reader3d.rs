@@ -242,6 +242,10 @@ impl Reader3D for DesignReader {
         )
     }
 
+    fn get_scalebar(&self) -> Option<(f32, f32, fn(f32, f32, f32) -> u32)> {
+        self.presenter.content.scalebar.clone()
+    }
+
     fn get_element_axis_position(&self, e_id: u32, referential: Referential) -> Option<Vec3> {
         if let Some(pos) = self.presenter.content.axis_space_position.get(&e_id) {
             return Some(

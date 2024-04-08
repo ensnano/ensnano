@@ -63,7 +63,7 @@ use bindgroup_manager::{DynamicBindGroup, UniformBindGroup};
 use direction_cube::*;
 pub use dna_obj::{
     ConeInstance, DnaObject, Ellipsoid, RawDnaInstance, SlicedTubeInstance, SphereInstance,
-    StereographicSphereAndPlane, TubeInstance, TubeLidInstance,
+    StereographicSphereAndPlane, TubeInstance, TubeLidInstance, PlainRectangleInstance,
 };
 use drawable::{Drawable, Drawer, Vertex};
 pub use grid::{GridInstance, GridIntersection};
@@ -1112,6 +1112,7 @@ pub enum Mesh {
     EllipsoidOutline = 31,
     HBond = 32,
     HBondOutline = 33,
+    PlainRectangle = 34,
 }
 
 impl Mesh {
@@ -1158,6 +1159,7 @@ struct DnaDrawers {
     tube: InstanceDrawer<TubeInstance>,
     tube_lid: InstanceDrawer<TubeLidInstance>,
     sliced_tube: InstanceDrawer<SlicedTubeInstance>,
+    plain_rectangle: InstanceDrawer<PlainRectangleInstance>,
     outline_sphere: InstanceDrawer<SphereInstance>,
     outline_tube: InstanceDrawer<TubeInstance>,
     candidate_sphere: InstanceDrawer<SphereInstance>,
@@ -1196,6 +1198,7 @@ impl DnaDrawers {
             Mesh::Tube => &mut self.tube,
             Mesh::TubeLid => &mut self.tube_lid,
             Mesh::SlicedTube => &mut self.sliced_tube,
+            Mesh::PlainRectangle => &mut self.plain_rectangle,
             Mesh::OutlineSphere => &mut self.outline_sphere,
             Mesh::OutlineTube => &mut self.outline_tube,
             Mesh::CandidateSphere => &mut self.candidate_sphere,
@@ -1237,6 +1240,7 @@ impl DnaDrawers {
             &mut self.tube,
             &mut self.tube_lid,
             &mut self.sliced_tube,
+            &mut self.plain_rectangle,
             &mut self.prime3_cones,
             &mut self.candidate_sphere,
             &mut self.candidate_tube,
@@ -1347,6 +1351,15 @@ impl DnaDrawers {
                 (),
                 false,
                 "sliced tube",
+            ),
+            plain_rectangle: InstanceDrawer::new(
+                device.clone(),
+                queue.clone(),
+                viewer_desc,
+                model_desc,
+                (),
+                false,
+                "plain rectangle",
             ),
             hbond: InstanceDrawer::new(
                 device.clone(),

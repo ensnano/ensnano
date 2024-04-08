@@ -145,6 +145,8 @@ pub(super) struct DesignContent {
     pub xover_coloring_map: HashMap<u32, bool, RandomState>,
     pub clone_transformations: Vec<Isometry3>,
     pub with_cones_map: HashMap<u32, bool, RandomState>,
+    // min value, max value and rainow function(t, min, max)->color
+    pub scalebar: Option<(f32, f32, fn(f32, f32, f32) -> u32)>, 
 }
 
 impl DesignContent {
@@ -489,7 +491,9 @@ impl DesignContent {
             .collect()
     }
 
+    /// NOT IMPLEMENTED YET
     pub fn get_drawing_style(&self, id: u32) -> DrawingStyle {
+        println!("get_drawing_style not implemented yet!");
         let style = DrawingStyle::default();
         return style;
     }
@@ -572,6 +576,7 @@ impl DesignContent {
         let mut xover_coloring_map = HashMap::default();
         let mut clone_transformations = Vec::new();
         let mut clone_variables: HashMap<String, f32> = HashMap::new();
+        let mut scalebar: Option<(f32, f32, fn(f32, f32, f32) -> u32)> = None;
 
         xover_ids.copy_next_id_to(&mut new_junctions);
         let rainbow_strand = design.scaffold_id.filter(|_| design.rainbow_scaffold);
@@ -1126,6 +1131,7 @@ impl DesignContent {
 
             // DO NOT USE id_TMP beyond this point
             id_clic_counter.set(id_TMP);
+            
             // USE id_clic_counter
             let mut helix_cylinders = Vec::new();
             for (h, a) in hash_intervals {
@@ -1172,6 +1178,8 @@ impl DesignContent {
                         object_type.insert(bond_id, ObjectType::HelixCylinder(*n_i_id, *n_j_id));
                     } else {
                         let (r_min, r_max) = helix_style.curvature.unwrap();
+                        scalebar = Some((r_min, r_max, colors::purple_to_blue_gradient_color_in_range));
+
                         let colors = (i..=j)
                             .map(|n| {
                                 let n = if n == j { i } else { n };
@@ -1326,6 +1334,7 @@ impl DesignContent {
             xover_coloring_map,
             clone_transformations,
             with_cones_map,
+            scalebar,
         };
         let suggestions = suggestion_maker.get_suggestions(&design, suggestion_parameters);
         ret.suggestions = suggestions;

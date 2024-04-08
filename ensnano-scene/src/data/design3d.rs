@@ -24,6 +24,7 @@ use super::super::GridInstance;
 use super::{ultraviolet, LetterInstance, SceneElement};
 use crate::rotor_utils::SafeRotor;
 use crate::sausage_rosary::SausageRosary;
+use crate::view::PlainRectangleInstance;
 use ensnano_design::grid::{GridId, GridObject, GridPosition};
 use ensnano_design::{grid::HelixGridPosition, Nucl};
 use ensnano_design::{
@@ -215,6 +216,26 @@ impl<R: DesignReader> Design3D<R> {
             .flat_map(|id| self.make_cone_from_bond(*id, &filter))
             .collect();
         vec
+    }
+
+    pub fn get_scalebar_plain_rectangles_raw(&self) -> Vec<RawDnaInstance> {
+        let n = 1000;
+        if let Some((r_min, r_max, gradient)) = self.design_reader.get_scalebar() {
+            let vec = (0..n).map(|i| -> RawDnaInstance {
+                let r = r_min + i as f32 * (r_max - r_min) / n as f32;
+                PlainRectangleInstance {
+                    position: Vec3::new (0.75,-0.5 + i as f32 / n as f32, 0.),
+                    color: Instance::unclear_color_from_u32(gradient(r, r_min, r_max)),
+                    width: 0.2,
+                    height: 2. / n as f32,
+                    id: 0,
+                }.to_raw_instance()
+            }).collect::<Vec<RawDnaInstance>>();
+            println!("{} rectangles generated", vec.len());
+            vec
+        } else {
+            vec![]
+        }
     }
 
     /// Return the list of tube instances to be displayed to represent the design
@@ -804,7 +825,7 @@ impl<R: DesignReader> Design3D<R> {
                     radius,
                 };
                 vec![sphere.to_raw_instance()]
-            }
+            },
         };
         Some(raw_instances)
     }
@@ -1625,6 +1646,7 @@ pub trait DesignReader: 'static + ensnano_interactor::DesignReader {
     /// nucleotide.
     fn get_symbol(&self, e_id: u32) -> Option<char>;
     fn get_model_matrix(&self) -> Mat4;
+    fn get_scalebar(&self) -> Option<(f32, f32, fn(f32, f32, f32) -> u32)>;
     /// Return true iff e_id is the identifier of a nucleotide that must be displayed with a
     /// smaller size
     fn has_small_spheres_nucl_id(&self, e_id: u32) -> bool;

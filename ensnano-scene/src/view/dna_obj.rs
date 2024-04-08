@@ -85,7 +85,7 @@ pub struct RawDnaInstance {
 //     }
 // }
 
-pub struct PlainRectangle {
+pub struct PlainRectangleInstance {
     /// The position in space
     pub position: Vec3,
     pub color: Vec4,
@@ -94,23 +94,23 @@ pub struct PlainRectangle {
     pub height: f32,
 }
 
-impl PlainRectangle {
+impl PlainRectangleInstance {
     pub fn with_size(self: Self, width: f32, height: f32) -> Self {
         Self { width, height, ..self }
     }
 }
 
-impl Instanciable for PlainRectangle {
+impl Instanciable for PlainRectangleInstance {
     type Vertex = DnaVertex;
     type RawInstance = RawDnaInstance;
     type Ressource = ();
 
     fn vertices() -> Vec<DnaVertex> {
         let vertices = vec![
-            DnaVertex { position: [0., 0., 0.], normal: [0., 1., 0.] },
-            DnaVertex { position: [0., 0., 1.], normal: [0., 1., 0.] },
-            DnaVertex { position: [1., 0., 1.], normal: [0., 1., 0.] },
-            DnaVertex { position: [1., 0., 0.], normal: [0., 1., 0.] },
+            DnaVertex { position: [0., 0., 0.], normal: [0., 0., -1.] },
+            DnaVertex { position: [0., 1., 0.], normal: [0., 0., -1.] },
+            DnaVertex { position: [1., 1., 0.], normal: [0., 0., -1.] },
+            DnaVertex { position: [1., 0., 0.], normal: [0., 0., -1.] },
         ];
 
         vertices
@@ -121,19 +121,19 @@ impl Instanciable for PlainRectangle {
         indices
     }
 
-    fn primitive_topology() -> wgpu::PrimitiveTopology {
+    fn primitive_topology() -> wgpu::PrimitiveTopology { 
         wgpu::PrimitiveTopology::TriangleStrip
     }
 
     fn to_raw_instance(&self) -> RawDnaInstance {
         let model = Mat4::from_translation(self.position);
         RawDnaInstance {
-            model, // translation vers position
+            model, // translation to position
             color: self.color,
-            scale: Vec3::new(self.width, 1., self.height),
+            scale: Vec3::new(self.width, self.height, 1.),
             id: self.id,
             inversed_model: model.inversed(),
-            mesh: super::Mesh::Sphere as u32,
+            mesh: super::Mesh::PlainRectangle as u32,
             prev: Vec3::zero(),
             next: Vec3::zero(),
             _padding: Default::default(),
@@ -161,7 +161,7 @@ impl Instanciable for PlainRectangle {
     }
 }
 
-impl DnaObject for PlainRectangle {}
+impl DnaObject for PlainRectangleInstance {}
 
 pub struct SphereInstance {
     /// The position in space

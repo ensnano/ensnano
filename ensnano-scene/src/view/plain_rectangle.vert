@@ -67,68 +67,20 @@ void main() {
     Currently we are combining the view matrix and projection matrix before we draw,
     so we'd have to pass those in separately. We'd also have to transform our 
     light's position using something like view_matrix * model_matrix * */
-    v_normal = normal_matrix * a_normal;
+    v_normal = vec3(0,0,-1);
     v_color = instances[gl_InstanceIndex].color;
     vec3 scale = instances[gl_InstanceIndex].scale;
-/*
-    // Change the color of the bond depending on its length if it exceeds the expected length
-    float expected_length = instances[gl_InstanceIndex].expected_length;
-    if (expected_length > 0.) {
-        if (scale.x > expected_length * LOW_CRIT) { // scale.x is the length of the tube for tube
-           scale.y *= 1.3; // make the bond radius larger if the length is too large
-           scale.z *= 1.3;
-           float shade = smoothstep(expected_length * LOW_CRIT, expected_length * HIGH_CRIT, scale.x);
-           float grey = 0.25 - 0.25 * shade;
-           if (v_color.w > 0.99) {
-               v_color = vec4(grey, grey, grey, 1.);
-           }
-        } 
-    }
-*/
-
-    // vec3 pos = a_position * scale;
-    // if (gl_VertexIndex % 2 == 0) {
-    //     pos = pos + vec3((gl_VertexIndex % 4)/10., 0., 0.);
-    // }
-    // vec4 model_space = model_matrix * vec4(pos, 1.0); 
 
     vec4 model_space = model_matrix * vec4(a_position * scale, 1.0); 
 
-    if (instances[gl_InstanceIndex].mesh == 4 && v_color.w < 0.6) {
-        v_discard_fake = 1;
-    } else {
-        v_discard_fake = 0;
-    }
-
-    /* if (scale.y < 0.8) {
-        float dist = length(u_camera_position - model_space.xyz);
-        if (abs(scale.x - scale.y) > 1e-5) {
-            scale.yz /= max(1., (dist / 10.));
-        } else {
-          scale /= max(1., (dist / 10.));
-        }
-        model_space = model_matrix * vec4(a_position * scale, 1.0); 
-    }*/
-
+    v_discard_fake = 1;
+    
     v_position = model_space.xyz;
+	gl_Position = vec4(v_position.xyz, 1.);
     uint id = instances[gl_InstanceIndex].id;
     v_id = vec4(
           float((id >> 16) & 0xFF) / 255.,
           float((id >> 8) & 0xFF) / 255.,
           float(id & 0xFF) / 255.,
           float((id >> 24) & 0xFF) / 255.);
-    if (u_stereography_radius > 0.0) {
-        vec4 view_space = u_stereography_view * model_space;
-        view_space /= u_stereography_radius;
-        float dist = length(view_space.xyz);
-        vec3 projected = view_space.xyz / dist;
-        float close_to_pole = 0.0;
-        if (projected.z > (1. - (0.01 / u_stereography_zoom))) {
-            close_to_pole = 1.0;
-        }
-        float z = max(close_to_pole, atan(dist) * 2. / 3.14);
-        gl_Position = vec4(projected.x / (1. - projected.z) / u_stereography_zoom / u_aspect_ratio, projected.y / (1. - projected.z) / u_stereography_zoom, z, 1.);
-    } else {
-        gl_Position = u_proj * u_view * model_space;
-    }
 }

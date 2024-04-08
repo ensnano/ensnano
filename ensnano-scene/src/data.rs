@@ -1451,6 +1451,7 @@ impl<R: DesignReader> Data<R> {
         let mut tubes = Vec::with_capacity(10_000);
         let mut tube_lids = Vec::with_capacity(10_000);
         let mut sliced_tubes = Vec::with_capacity(10_000);
+        let mut plain_rectangles = Vec::with_capacity(1_000);
         let mut suggested_spheres = Vec::with_capacity(1000);
         let mut suggested_tubes = Vec::with_capacity(1000);
         let mut pasted_spheres = Vec::with_capacity(1000);
@@ -1478,6 +1479,10 @@ impl<R: DesignReader> Data<R> {
                     tubes.push(*tube);
                 }
             }
+            
+            // scalebar
+            plain_rectangles.extend(design.get_scalebar_plain_rectangles_raw());
+            
             if app_state.show_bezier_paths() {
                 let (bezier_spheres, bezier_tubes) = design.get_bezier_paths_elements(app_state);
                 spheres.extend(bezier_spheres);
@@ -1523,6 +1528,9 @@ impl<R: DesignReader> Data<R> {
         self.view
             .borrow_mut()
             .update(ViewUpdate::RawDna(Mesh::SlicedTube, Rc::new(sliced_tubes)));
+        self.view
+            .borrow_mut()
+            .update(ViewUpdate::RawDna(Mesh::PlainRectangle, Rc::new(plain_rectangles)));
         self.view
             .borrow_mut()
             .update(ViewUpdate::RawDna(Mesh::Sphere, Rc::new(spheres)));
