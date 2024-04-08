@@ -487,7 +487,7 @@ impl<S: AppState> FlatScene<S> {
                     segment_id: flat_helix.segment.segment_idx,
                 }]),
             Consequence::PngExport(corner1, corner2) => {
-                let glob_png = camera2d::Globals::from_selection_rectangle(corner1, corner2);
+                let glob_png = camera2d::Globals::from_corners(corner1, corner2);
                 use chrono::Utc;
                 let now = Utc::now();
                 let name = now.format("export_2d_%Y_%m_%d_%H_%M_%S.png").to_string();
@@ -594,12 +594,14 @@ impl<S: AppState> FlatScene<S> {
         let queue = self.queue.as_ref();
 
         log::info!("export to {png_name}");
+        log::debug!("dimensions: {}x{}", png_size.width, png_size.height);
+        log::debug!("glob: {:?}", glob);
         use ensnano_utils::BufferDimensions;
         use std::io::Write;
 
         let size = wgpu::Extent3d {
             width: png_size.width,
-            height: png_size.width,
+            height: png_size.height,
             depth_or_array_layers: 1,
         };
 
@@ -751,6 +753,11 @@ impl<S: AppState> Application for FlatScene<S> {
                 let mut png_camera = Camera2D::from_resolution(PNG_SIZE.into(), false);
                 png_camera.fit_center(self.data[0].borrow().get_fit_rectangle());
                 png_camera.zoom_out();
+                let rectangle = self.data[0].borrow().get_fit_rectangle();
+                let glob_png = camera2d::Globals::from_corners(
+                    rectangle.top_left().into(),
+                    rectangle.bottom_right().into(),
+                );
                 use chrono::Utc;
                 let png_name = Utc::now()
                     .format("export_2d_%Y_%m_%d_%H_%M_%S.png")
