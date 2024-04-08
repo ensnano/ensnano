@@ -146,7 +146,7 @@ pub(super) struct DesignContent {
     pub clone_transformations: Vec<Isometry3>,
     pub with_cones_map: HashMap<u32, bool, RandomState>,
     // min value, max value and rainow function(t, min, max)->color
-    pub scalebar: Option<(f32, f32, fn(f32, f32, f32) -> u32)>, 
+    pub scalebar: Option<(f32, f32, fn(f32, f32, f32) -> u32)>,
 }
 
 impl DesignContent {
@@ -1131,7 +1131,7 @@ impl DesignContent {
 
             // DO NOT USE id_TMP beyond this point
             id_clic_counter.set(id_TMP);
-            
+
             // USE id_clic_counter
             let mut helix_cylinders = Vec::new();
             for (h, a) in hash_intervals {
@@ -1178,7 +1178,8 @@ impl DesignContent {
                         object_type.insert(bond_id, ObjectType::HelixCylinder(*n_i_id, *n_j_id));
                     } else {
                         let (r_min, r_max) = helix_style.curvature.unwrap();
-                        scalebar = Some((r_min, r_max, colors::purple_to_blue_gradient_color_in_range));
+                        scalebar =
+                            Some((r_min, r_max, colors::purple_to_blue_gradient_color_in_range));
 
                         let colors = (i..=j)
                             .map(|n| {

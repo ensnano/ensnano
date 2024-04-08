@@ -96,7 +96,11 @@ pub struct PlainRectangleInstance {
 
 impl PlainRectangleInstance {
     pub fn with_size(self: Self, width: f32, height: f32) -> Self {
-        Self { width, height, ..self }
+        Self {
+            width,
+            height,
+            ..self
+        }
     }
 }
 
@@ -107,10 +111,22 @@ impl Instanciable for PlainRectangleInstance {
 
     fn vertices() -> Vec<DnaVertex> {
         let vertices = vec![
-            DnaVertex { position: [0., 0., 0.], normal: [0., 0., -1.] },
-            DnaVertex { position: [0., 1., 0.], normal: [0., 0., -1.] },
-            DnaVertex { position: [1., 1., 0.], normal: [0., 0., -1.] },
-            DnaVertex { position: [1., 0., 0.], normal: [0., 0., -1.] },
+            DnaVertex {
+                position: [0., 0., 0.],
+                normal: [0., 0., -1.],
+            },
+            DnaVertex {
+                position: [0., 1., 0.],
+                normal: [0., 0., -1.],
+            },
+            DnaVertex {
+                position: [1., 1., 0.],
+                normal: [0., 0., -1.],
+            },
+            DnaVertex {
+                position: [1., 0., 0.],
+                normal: [0., 0., -1.],
+            },
         ];
 
         vertices
@@ -121,7 +137,7 @@ impl Instanciable for PlainRectangleInstance {
         indices
     }
 
-    fn primitive_topology() -> wgpu::PrimitiveTopology { 
+    fn primitive_topology() -> wgpu::PrimitiveTopology {
         wgpu::PrimitiveTopology::TriangleStrip
     }
 

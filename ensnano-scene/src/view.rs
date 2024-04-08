@@ -62,8 +62,8 @@ use super::maths_3d::{self, distance_to_cursor_with_penalty};
 use bindgroup_manager::{DynamicBindGroup, UniformBindGroup};
 use direction_cube::*;
 pub use dna_obj::{
-    ConeInstance, DnaObject, Ellipsoid, RawDnaInstance, SlicedTubeInstance, SphereInstance,
-    StereographicSphereAndPlane, TubeInstance, TubeLidInstance, PlainRectangleInstance,
+    ConeInstance, DnaObject, Ellipsoid, PlainRectangleInstance, RawDnaInstance, SlicedTubeInstance,
+    SphereInstance, StereographicSphereAndPlane, TubeInstance, TubeLidInstance,
 };
 use drawable::{Drawable, Drawer, Vertex};
 pub use grid::{GridInstance, GridIntersection};

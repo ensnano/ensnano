@@ -221,17 +221,19 @@ impl<R: DesignReader> Design3D<R> {
     pub fn get_scalebar_plain_rectangles_raw(&self) -> Vec<RawDnaInstance> {
         let n = 1000;
         if let Some((r_min, r_max, gradient)) = self.design_reader.get_scalebar() {
-            let vec = (0..n).map(|i| -> RawDnaInstance {
-                let r = r_min + i as f32 * (r_max - r_min) / n as f32;
-                PlainRectangleInstance {
-                    position: Vec3::new (0.75,-0.5 + i as f32 / n as f32, 0.),
-                    color: Instance::unclear_color_from_u32(gradient(r, r_min, r_max)),
-                    width: 0.2,
-                    height: 2. / n as f32,
-                    id: 0,
-                }.to_raw_instance()
-            }).collect::<Vec<RawDnaInstance>>();
-            println!("{} rectangles generated", vec.len());
+            let vec = (0..n)
+                .map(|i| -> RawDnaInstance {
+                    let r = r_min + i as f32 * (r_max - r_min) / n as f32;
+                    PlainRectangleInstance {
+                        position: Vec3::new(0.75, -0.5 + i as f32 / n as f32, 0.),
+                        color: Instance::unclear_color_from_u32(gradient(r, r_min, r_max)),
+                        width: 0.2,
+                        height: 1. / n as f32,
+                        id: 0,
+                    }
+                    .to_raw_instance()
+                })
+                .collect::<Vec<RawDnaInstance>>();
             vec
         } else {
             vec![]
@@ -825,7 +827,7 @@ impl<R: DesignReader> Design3D<R> {
                     radius,
                 };
                 vec![sphere.to_raw_instance()]
-            },
+            }
         };
         Some(raw_instances)
     }
