@@ -70,14 +70,15 @@ pub fn random_color_with_shade(shade: u32, hue_range: Option<f64>) -> u32 {
 
 // Give a color given a set of (t_i,h_i) where t_i is increasing from 0 to 1 such that for t_i ≤ t ≤ t_i+1, the hue is the linera interpolation of h_i and h_i+1 - h is considered modulo 360
 
-pub const PURPLE_TO_BLUE_GRADIENT: [(f32, f32); 7] = [
-    (0., -56.),   // purple
-    (0.2, 0.),    // red
-    (0.4, 54.),   // yellow
-    (0.55, 100.), // green
-    (0.7, 176.),  // cyan
-    (0.8, 202.),  // blue
-    (1., 242.),   // dark blue
+pub const PURPLE_TO_BLUE_GRADIENT: [(f32, f32); 8] = [
+    (0., -56.),  // purple
+    (0.1, 0.),   // red
+    (0.25, 27.), // orange
+    (0.35, 54.), // yellow
+    (0.5, 100.), // green
+    (0.7, 176.), // cyan
+    (0.8, 202.), // blue
+    (1., 242.),  // dark blue
 ];
 
 pub fn gradient_color(t: f32, t_hues: &[(f32, f32)]) -> u32 {

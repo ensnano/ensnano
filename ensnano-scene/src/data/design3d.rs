@@ -225,9 +225,9 @@ impl<R: DesignReader> Design3D<R> {
                 .map(|i| -> RawDnaInstance {
                     let r = r_min + i as f32 * (r_max - r_min) / n as f32;
                     PlainRectangleInstance {
-                        position: Vec3::new(0.75, -0.5 + i as f32 / n as f32, 0.),
+                        position: Vec3::new(0.85, -0.5 + i as f32 / n as f32, 0.),
                         color: Instance::unclear_color_from_u32(gradient(r, r_min, r_max)),
-                        width: 0.2,
+                        width: 0.1,
                         height: 1. / n as f32,
                         id: 0,
                     }

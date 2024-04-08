@@ -225,14 +225,18 @@ impl Curve {
             .zip(radii)
             .collect::<Vec<(f64, f64)>>();
         let mut min_radius = 1e30;
+        let mut max_radius = 0.;
         for (_, r) in &t_radii {
             if *r < min_radius {
                 min_radius = r.clone();
             }
+            if *r > max_radius {
+                max_radius = r.clone();
+            }
         }
         println!(
-            "Curvature radius:\n\t{:?}\n\tMinimum radius: {}",
-            t_radii, min_radius
+            "Curvature radius:\n\t{:?}\n\tMinimum radius: {}\n\tMaximum radius: {}",
+            t_radii, min_radius, max_radius
         );
 
         self.curvature = curvature;

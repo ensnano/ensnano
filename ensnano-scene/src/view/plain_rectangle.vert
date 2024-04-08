@@ -73,6 +73,11 @@ void main() {
 
     vec4 model_space = model_matrix * vec4(a_position * scale, 1.0); 
 
+	// y is in -0.5..0.5
+	// float a = - (0.5 + model_space.y) * 2. * 3.141592653589793;
+	// float r = 0.15*(2.*model_space.x + 4.*model_space.y);
+	// model_space =  vec4(r * cos(a), r * sin(a), 0., 1.);
+
     v_discard_fake = 1;
     
     v_position = model_space.xyz;
