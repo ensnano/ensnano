@@ -85,6 +85,84 @@ pub struct RawDnaInstance {
 //     }
 // }
 
+pub struct PlainRectangle {
+    /// The position in space
+    pub position: Vec3,
+    pub color: Vec4,
+    pub id: u32,
+    pub width: f32,
+    pub height: f32,
+}
+
+impl PlainRectangle {
+    pub fn with_size(self: Self, width: f32, height: f32) -> Self {
+        Self { width, height, ..self }
+    }
+}
+
+impl Instanciable for PlainRectangle {
+    type Vertex = DnaVertex;
+    type RawInstance = RawDnaInstance;
+    type Ressource = ();
+
+    fn vertices() -> Vec<DnaVertex> {
+        let vertices = vec![
+            DnaVertex { position: [0., 0., 0.], normal: [0., 1., 0.] },
+            DnaVertex { position: [0., 0., 1.], normal: [0., 1., 0.] },
+            DnaVertex { position: [1., 0., 1.], normal: [0., 1., 0.] },
+            DnaVertex { position: [1., 0., 0.], normal: [0., 1., 0.] },
+        ];
+
+        vertices
+    }
+
+    fn indices() -> Vec<u16> {
+        let mut indices = vec![0, 1, 2, 3];
+        indices
+    }
+
+    fn primitive_topology() -> wgpu::PrimitiveTopology {
+        wgpu::PrimitiveTopology::TriangleStrip
+    }
+
+    fn to_raw_instance(&self) -> RawDnaInstance {
+        let model = Mat4::from_translation(self.position);
+        RawDnaInstance {
+            model, // translation vers position
+            color: self.color,
+            scale: Vec3::new(self.width, 1., self.height),
+            id: self.id,
+            inversed_model: model.inversed(),
+            mesh: super::Mesh::Sphere as u32,
+            prev: Vec3::zero(),
+            next: Vec3::zero(),
+            _padding: Default::default(),
+        }
+    }
+
+    fn vertex_module(device: &wgpu::Device) -> wgpu::ShaderModule {
+        device.create_shader_module(&wgpu::include_spirv!("plain_rectangle.vert.spv"))
+    }
+
+    fn fragment_module(device: &wgpu::Device) -> wgpu::ShaderModule {
+        device.create_shader_module(&wgpu::include_spirv!("plain_rectangle.frag.spv"))
+    }
+
+    fn fake_fragment_module(device: &wgpu::Device) -> Option<wgpu::ShaderModule> {
+        None
+    }
+
+    fn outline_vertex_module(device: &wgpu::Device) -> Option<wgpu::ShaderModule> {
+        Some(device.create_shader_module(&wgpu::include_spirv!("plain_rectangle.vert.spv")))
+    }
+
+    fn outline_fragment_module(device: &wgpu::Device) -> Option<wgpu::ShaderModule> {
+        Some(device.create_shader_module(&wgpu::include_spirv!("plain_rectangle.frag.spv")))
+    }
+}
+
+impl DnaObject for PlainRectangle {}
+
 pub struct SphereInstance {
     /// The position in space
     pub position: Vec3,
