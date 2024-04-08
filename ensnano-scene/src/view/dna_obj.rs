@@ -120,11 +120,11 @@ impl Instanciable for PlainRectangleInstance {
                 normal: [0., 0., -1.],
             },
             DnaVertex {
-                position: [1., 1., 0.],
+                position: [1., 0., 0.],
                 normal: [0., 0., -1.],
             },
             DnaVertex {
-                position: [1., 0., 0.],
+                position: [1., 1., 0.],
                 normal: [0., 0., -1.],
             },
         ];
