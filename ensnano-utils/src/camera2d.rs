@@ -368,8 +368,16 @@ impl Globals {
         }
     }
 
-    pub fn from_corners(top_left: Vec2, bottom_right: Vec2) -> Self {
-        Self::from_resolution_and_corners([256. * 32., 256. * 10.], top_left, bottom_right)
+    pub fn from_corners<F>(top_left: Vec2, bottom_right: Vec2, compute_resolution: F) -> Self
+    where
+        F: Fn([f32; 2]) -> [f32; 2],
+    {
+        log::debug!("Corners: {:?}, {:?}", top_left, bottom_right);
+        let size = [
+            (bottom_right.x - top_left.x).abs(),
+            (bottom_right.y - top_left.y).abs(),
+        ];
+        Self::from_resolution_and_corners(compute_resolution(size), top_left, bottom_right)
     }
 }
 
@@ -397,20 +405,19 @@ impl FitRectangle {
         }
     }
     /// Add a new point to include into the [FitRectangle].
-    pub fn add_point(&self, point: impl Into<[f32; 2]>) -> Self {
+    pub fn add_point(&mut self, point: impl Into<[f32; 2]>) -> Self {
         let [x, y] = point.into();
-        Self {
-            x_min: f32::min(self.x_min, x),
-            x_max: f32::max(self.x_max, x),
-            y_min: f32::min(self.y_min, y),
-            y_max: f32::max(self.y_max, y),
-        }
+        self.x_min = f32::min(self.x_min, x);
+        self.x_max = f32::max(self.x_max, x);
+        self.y_min = f32::min(self.y_min, y);
+        self.y_max = f32::max(self.y_max, y);
+        *self
     }
     pub fn from_points(points: impl IntoIterator<Item = [f32; 2]>) -> Option<Self> {
         let mut points = points.into_iter();
         if let Some(point) = points.next() {
-            let rect = Self::from_point(point);
-            for point in points.into_iter() {
+            let mut rect = Self::from_point(point);
+            for point in points {
                 rect.add_point(point);
             }
             Some(rect)
