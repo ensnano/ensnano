@@ -155,7 +155,7 @@ pub enum CurveDescriptor2D {
         smooth_ceil: OrderedFloat<f64>,
     },
     Bezier(InstanciatedPiecewiseBezier),
-    Parrabola {
+    Parabola {
         speed: OrderedFloat<f64>,
     },
 }
@@ -163,7 +163,7 @@ pub enum CurveDescriptor2D {
 impl CurveDescriptor2D {
     pub fn is_open(&self) -> bool {
         match self {
-            Self::Parrabola { .. } => true,
+            Self::Parabola { .. } => true,
             Self::Ellipse { .. } => false,
             Self::TwoBalls { .. } => false,
             Self::Bezier(bezier) => !bezier.cyclic,
@@ -263,7 +263,7 @@ impl CurveDescriptor2D {
                 }
                 position(t)
             }
-            Self::Parrabola { speed } => {
+            Self::Parabola { speed } => {
                 let speed = f64::from(*speed);
                 DVec2 {
                     x: t,
@@ -409,7 +409,7 @@ impl CurveDescriptor2D {
             }
             Self::TwoBalls { radius_extern, .. } => (*radius_extern).into(),
             Self::Bezier(curve) => curve.max_x(),
-            Self::Parrabola { .. } => 0.,
+            Self::Parabola { .. } => 0.,
         }
     }
 
@@ -425,7 +425,7 @@ impl CurveDescriptor2D {
             }
             Self::TwoBalls { .. } => 0.,
             Self::Bezier(curve) => curve.min_x(),
-            Self::Parrabola { .. } => 0.,
+            Self::Parabola { .. } => 0.,
         }
     }
 }
