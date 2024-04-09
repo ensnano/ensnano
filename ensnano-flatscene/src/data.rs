@@ -642,14 +642,19 @@ impl<R: DesignReader> Data<R> {
     }
 
     pub fn get_fit_rectangle(&self) -> FitRectangle {
-        let mut ret = FitRectangle::new();
-        for h in self.helices.iter() {
-            let left = h.get_pivot(h.get_flat_left());
-            ret.add_point(Vec2::new(left.x, left.y));
-            let right = h.get_pivot(h.get_flat_right());
-            ret.add_point(Vec2::new(right.x, right.y));
-        }
-        ret
+        FitRectangle::from_points(
+            self.helices
+                .iter()
+                .map(|h| {
+                    [
+                        h.get_pivot(h.get_flat_left()),
+                        h.get_pivot(h.get_flat_right()),
+                    ]
+                })
+                .flatten()
+                .map(|v| v.into()),
+        )
+        .unwrap()
     }
 
     pub fn is_xover_end(&self, nucl: &FlatNucl) -> Option<bool> {

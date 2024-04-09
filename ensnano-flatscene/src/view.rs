@@ -584,6 +584,12 @@ impl View {
         self.was_updated = true;
     }
 
+    /// Draw `target` using encoder.
+    ///
+    /// # Arguments
+    ///
+    /// [png_size]: Export resolution; use area's size if None.
+    ///
     pub fn draw(
         &mut self,
         encoder: &mut wgpu::CommandEncoder,

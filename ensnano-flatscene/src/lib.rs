@@ -67,11 +67,16 @@ type ViewPtr = Rc<RefCell<View>>;
 type DataPtr<R> = Rc<RefCell<Data<R>>>;
 type CameraPtr = Rc<RefCell<Camera2D>>;
 
-/// Size of the PNG export.
-const PNG_SIZE: PhySize = PhySize {
-    width: 256 * 32,
-    height: 256 * 32,
-};
+fn png_resolution([w, h]: [f32; 2]) -> [f32; 2] {
+    // Maximum width or height re of a png export.
+    let max_size = 2f32.powi(13);
+    let align_size = |x: f32| 2f32.powf(x.log2().ceil());
+    if w >= h {
+        [max_size, align_size(max_size / w * h)]
+    } else {
+        [align_size(max_size / h * w), max_size]
+    }
+}
 
 /// A Flatscene handles one design at a time
 pub struct FlatScene<S: AppState> {
@@ -487,11 +492,11 @@ impl<S: AppState> FlatScene<S> {
                     segment_id: flat_helix.segment.segment_idx,
                 }]),
             Consequence::PngExport(corner1, corner2) => {
-                let glob_png = camera2d::Globals::from_selection_rectangle(corner1, corner2);
+                let glob_png = camera2d::Globals::from_corners(corner1, corner2, png_resolution);
                 use chrono::Utc;
                 let now = Utc::now();
                 let name = now.format("export_2d_%Y_%m_%d_%H_%M_%S.png").to_string();
-                self.export_png(&name, PNG_SIZE, glob_png);
+                self.export_png(&name, glob_png);
                 self.view[self.selected_design]
                     .borrow_mut()
                     .clear_rectangle();
@@ -589,7 +594,7 @@ impl<S: AppState> FlatScene<S> {
     }
 
     /// Export the scene into a PNG file.
-    fn export_png(&self, png_name: &str, png_size: PhySize, glob: camera2d::Globals) {
+    fn export_png(&self, png_name: &str, glob: camera2d::Globals) {
         let device = self.device.as_ref();
         let queue = self.queue.as_ref();
 
@@ -597,9 +602,11 @@ impl<S: AppState> FlatScene<S> {
         use ensnano_utils::BufferDimensions;
         use std::io::Write;
 
+        let png_size = PhySize::from(glob.resolution);
+
         let size = wgpu::Extent3d {
             width: png_size.width,
-            height: png_size.width,
+            height: png_size.height,
             depth_or_array_layers: 1,
         };
 
@@ -618,9 +625,8 @@ impl<S: AppState> FlatScene<S> {
 
         let buffer_dimensions =
             BufferDimensions::new(extent.width as usize, extent.height as usize);
-        let buf_size = buffer_dimensions.padded_bytes_per_row * buffer_dimensions.height;
         let staging_buffer = device.create_buffer(&wgpu::BufferDescriptor {
-            size: buf_size as u64,
+            size: buffer_dimensions.buffer_size() as u64,
             usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: false,
             label: Some("staging_buffer"),
@@ -674,7 +680,7 @@ impl<S: AppState> FlatScene<S> {
         let mut png_encoder = png::Encoder::new(
             std::fs::File::create(png_name).unwrap(),
             png_size.width,
-            png_size.width,
+            png_size.height,
         );
         png_encoder.set_depth(png::BitDepth::Eight);
         png_encoder.set_color(png::ColorType::Rgba);
@@ -748,14 +754,17 @@ impl<S: AppState> Application for FlatScene<S> {
             Notification::HorizonAligned => (),
             Notification::ScreenShot2D => {
                 // NOTE: When flatscene is split, return the whole view.
-                let mut png_camera = Camera2D::from_resolution(PNG_SIZE.into(), false);
-                png_camera.fit_center(self.data[0].borrow().get_fit_rectangle());
-                png_camera.zoom_out();
+                let rectangle = self.data[0].borrow().get_fit_rectangle();
+                let glob_png = camera2d::Globals::from_corners(
+                    rectangle.top_left().into(),
+                    rectangle.bottom_right().into(),
+                    png_resolution,
+                );
                 use chrono::Utc;
                 let png_name = Utc::now()
                     .format("export_2d_%Y_%m_%d_%H_%M_%S.png")
                     .to_string();
-                self.export_png(&png_name, PNG_SIZE, png_camera.get_globals().to_owned());
+                self.export_png(&png_name, glob_png);
             }
             Notification::ScreenShot3D => (), // Nothing to do in the flatscene.
             Notification::StlExport => (),

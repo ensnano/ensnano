@@ -140,11 +140,11 @@ impl<S: AppState> Controller<S> {
         self.update_globals();
         if refit {
             if splited {
-                let (new_top, new_bottom) = old_rectangle_top.splited_vertically();
+                let (new_top, new_bottom) = old_rectangle_top.split_vertically();
                 self.camera_top.borrow_mut().fit_center(new_top);
                 self.camera_bottom.borrow_mut().fit_center(new_bottom);
             } else {
-                let new_top = old_rectangle_top.with_double_height();
+                let new_top = old_rectangle_top.double_height();
                 self.camera_top.borrow_mut().fit_center(new_top);
             }
         }
