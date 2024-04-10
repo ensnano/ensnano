@@ -209,35 +209,35 @@ impl Curve {
         self.positions_forward = points_forward;
 
         // Affiche la curvature
-        println!(
-            "lengths: t_nucl {} & curvature {}",
-            t_nucl.len(),
-            curvature.len()
-        );
-        let radii = curvature
-            .clone()
-            .into_iter()
-            .map(|c| 1. / c)
-            .collect::<Vec<f64>>();
-        let t_radii = t_nucl
-            .clone()
-            .into_iter()
-            .zip(radii)
-            .collect::<Vec<(f64, f64)>>();
-        let mut min_radius = 1e30;
-        let mut max_radius = 0.;
-        for (_, r) in &t_radii {
-            if *r < min_radius {
-                min_radius = r.clone();
-            }
-            if *r > max_radius {
-                max_radius = r.clone();
-            }
-        }
-        println!(
-            "Curvature radius:\n\t{:?}\n\tMinimum radius: {}\n\tMaximum radius: {}",
-            t_radii, min_radius, max_radius
-        );
+        // println!(
+        //     "lengths: t_nucl {} & curvature {}",
+        //     t_nucl.len(),
+        //     curvature.len()
+        // );
+        // let radii = curvature
+        //     .clone()
+        //     .into_iter()
+        //     .map(|c| 1. / c)
+        //     .collect::<Vec<f64>>();
+        // let t_radii = t_nucl
+        //     .clone()
+        //     .into_iter()
+        //     .zip(radii)
+        //     .collect::<Vec<(f64, f64)>>();
+        // let mut min_radius = 1e30;
+        // let mut max_radius = 0.;
+        // for (_, r) in &t_radii {
+        //     if *r < min_radius {
+        //         min_radius = r.clone();
+        //     }
+        //     if *r > max_radius {
+        //         max_radius = r.clone();
+        //     }
+        // }
+        // println!(
+        //     "Curvature radius:\n\t{:?}\n\tMinimum radius: {}\n\tMaximum radius: {}",
+        //     t_radii, min_radius, max_radius
+        // );
 
         self.curvature = curvature;
 
