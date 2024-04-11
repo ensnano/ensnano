@@ -2113,7 +2113,7 @@ impl Controller {
                     let position = old_pos + translation;
                     let position = Vec2::new(position.x.round(), position.y.round());
                     let isometry = if *segment_idx > 0 {
-                        h.additonal_isometries
+                        h.additional_isometries
                             .get_mut(segment_idx - 1)
                             .and_then(|i| i.additional_isometry.as_mut())
                     } else {
@@ -2144,7 +2144,7 @@ impl Controller {
             }
         } else if let Some(i) = new_helices
             .get_mut(&h_id)
-            .and_then(|h| h.additonal_isometries.get_mut(segment - 1))
+            .and_then(|h| h.additional_isometries.get_mut(segment - 1))
         {
             i.additional_isometry = Some(isometry);
         }
@@ -3476,7 +3476,7 @@ impl Controller {
 fn nucl_pos_2d(helices: &Helices, nucl: &Nucl, segment: usize) -> Option<Vec2> {
     let isometry = helices.get(&nucl.helix).and_then(|h| {
         if segment > 0 {
-            h.additonal_isometries
+            h.additional_isometries
                 .get(segment - 1)
                 .and_then(|i| (i.additional_isometry.or(h.isometry2d)))
         } else {

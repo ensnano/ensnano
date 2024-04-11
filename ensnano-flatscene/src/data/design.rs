@@ -239,7 +239,7 @@ impl<R: DesignReader> Design2d<R> {
             {
                 self.known_helices.insert(*h_id, helix);
                 let segments: Vec<isize> =
-                    helix.additonal_isometries.iter().map(|i| i.left).collect();
+                    helix.additional_isometries.iter().map(|i| i.left).collect();
                 let nb_segments = segments.len();
                 self.id_map.insert_segments(*h_id, segments);
                 for segment_idx in 0..=nb_segments {

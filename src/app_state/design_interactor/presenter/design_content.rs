@@ -1297,7 +1297,7 @@ impl DesignContent {
                     let helix_id = helix_map.get(bond_id).unwrap();
                     object_type.insert(
                         clone_bond_id,
-                        ObjectType::HelixCylinder(*clone_nucl_1_id, *clone_nucl_2_id),
+                        ObjectType::HelixCylinder(*clone_nucl_1_id, *clone_nucl_2_id), // SHOULD REMEMBER THE CLONING NUMBER -> have a map that maps a nucl to the array of its clones and use it when displaying the helix cylinder for real
                     );
                     nucleotides_involved.insert(clone_bond_id, (*nucl_1, *nucl_2));
                     color_map.insert(clone_bond_id, clone_bond_color);

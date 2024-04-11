@@ -218,7 +218,7 @@ impl RevolutionCurveTimeMaps {
             if let Some(curve) = h.instanciated_curve.as_ref() {
                 let mut positions = vec![0];
                 for next_left in h
-                    .additonal_isometries
+                    .additional_isometries
                     .iter()
                     .map(|s| s.left)
                     .filter(|left| *left < curve.curve.t_nucl.len() as isize)

@@ -124,6 +124,9 @@ pub const STEREOGRAPHIC_SPHERE_RADIUS: f32 = 2.;
 
 pub const MAX_ZOOM_2D: f32 = 50.0;
 
+pub const EXPORT_2D_MAX_SIZE: f32 = 300.;
+pub const EXPORT_2D_MARGIN: f32 = 10.;
+
 pub const CIRCLE2D_GREY: u32 = 0xFF_4D4D4D;
 pub const CIRCLE2D_BLUE: u32 = 0xFF_036992;
 pub const CIRCLE2D_RED: u32 = 0xFF_920303;

@@ -40,7 +40,7 @@ impl Reader2D for DesignReader {
                 .current_design
                 .helices
                 .get(&h_id)
-                .and_then(|h| h.additonal_isometries.get(segment_idx - 1))
+                .and_then(|h| h.additional_isometries.get(segment_idx - 1))
                 .and_then(|i| i.additional_isometry)
         }
     }
@@ -61,7 +61,7 @@ impl Reader2D for DesignReader {
                 .current_design
                 .helices
                 .get(&h_id)
-                .and_then(|h| h.additonal_isometries.get(segment_idx - 1))
+                .and_then(|h| h.additional_isometries.get(segment_idx - 1))
                 .and_then(|i| i.additional_symmetry)
         }
     }
@@ -251,7 +251,7 @@ fn split_domain_into_helices_segment(
 ) -> Vec<Nucl> {
     let helix = helices.get(&domain.helix);
     let empty = vec![];
-    let additional_segments = helix.map(|h| &h.additonal_isometries).unwrap_or(&empty);
+    let additional_segments = helix.map(|h| &h.additional_isometries).unwrap_or(&empty);
     let mut ret = Vec::new();
 
     let intermediate_positions: Vec<isize> = additional_segments

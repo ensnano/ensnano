@@ -61,16 +61,16 @@ impl Camera2D {
     }
 
     fn rotation_sign(&self) -> f32 {
-        self.globals.symetry.x * self.globals.symetry.y * -1.0
+        self.globals.symmetry.x * self.globals.symmetry.y * -1.0
     }
 
     pub fn apply_symmetry_x(&mut self) {
-        self.globals.symetry.x *= -1.0;
+        self.globals.symmetry.x *= -1.0;
         self.end_movement();
     }
 
     pub fn apply_symmetry_y(&mut self) {
-        self.globals.symetry.y *= -1.0;
+        self.globals.symmetry.y *= -1.0;
         self.end_movement();
     }
 
@@ -186,8 +186,8 @@ impl Camera2D {
     /// Convert a *vector* in screen coordinate to a vector in world coordinate. (Does not apply
     /// the translation)
     fn transform_vec(&self, mut x: f32, mut y: f32) -> (f32, f32) {
-        x *= self.globals.symetry.x;
-        y *= self.globals.symetry.y;
+        x *= self.globals.symmetry.x;
+        y *= self.globals.symmetry.y;
         let vec = Vec2::new(
             self.globals.resolution[0] * x / self.globals.zoom,
             self.globals.resolution[1] * y / self.globals.zoom,
@@ -240,8 +240,8 @@ impl Camera2D {
         )
         .rotated_by(self.rotation());
         let coord_ndc = Vec2::new(
-            temp.x * 2. * self.globals.zoom / self.globals.resolution[0] * self.globals.symetry.x,
-            temp.y * 2. * self.globals.zoom / self.globals.resolution[1] * self.globals.symetry.y,
+            temp.x * 2. * self.globals.zoom / self.globals.resolution[0] * self.globals.symmetry.x,
+            temp.y * 2. * self.globals.zoom / self.globals.resolution[1] * self.globals.symmetry.y,
         );
         ((coord_ndc.x + 1.) / 2., (coord_ndc.y + 1.) / 2.)
     }
@@ -334,7 +334,7 @@ pub struct Globals {
     pub scroll_offset: [f32; 2],
     pub zoom: f32,
     pub tilt: f32,
-    pub symetry: Vec2,
+    pub symmetry: Vec2,
 }
 
 impl Globals {
@@ -354,7 +354,7 @@ impl Globals {
                 resolution[1] / (top_left.y - bottom_right.y).abs(),
             ),
             tilt: 0.0,
-            symetry: [1., 1.].into(),
+            symmetry: [1., 1.].into(),
         }
     }
 
@@ -364,7 +364,7 @@ impl Globals {
             scroll_offset: [10.0, 40.0],
             zoom: 16.0,
             tilt: 0.0,
-            symetry: [1., 1.].into(),
+            symmetry: [1., 1.].into(),
         }
     }
 

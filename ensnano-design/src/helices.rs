@@ -206,8 +206,12 @@ pub struct Helix {
     pub isometry2d: Option<Isometry2>,
 
     /// Additional segments for representing the helix in 2d
-    #[serde(skip_serializing_if = "Vec::is_empty", default)]
-    pub additonal_isometries: Vec<AdditionalHelix2D>,
+    #[serde(
+        skip_serializing_if = "Vec::is_empty",
+        default,
+        alias = "additonal_isometries"
+    )]
+    pub additional_isometries: Vec<AdditionalHelix2D>,
 
     #[serde(default = "Vec2::one")]
     /// Symmetry applied inside the representation of the helix in 2d
@@ -273,7 +277,7 @@ impl Helix {
             helix_parameters: None,
             grid_position: None,
             isometry2d: None,
-            additonal_isometries: Vec::new(),
+            additional_isometries: Vec::new(),
             symmetry: Vec2::one(),
             visible: true,
             roll: 0f32,
@@ -359,7 +363,7 @@ impl Helix {
             visible: true,
             roll: 0f32,
             isometry2d: Some(isometry2d),
-            additonal_isometries: Vec::new(),
+            additional_isometries: Vec::new(),
             symmetry: Vec2::one(),
             locked_for_simulations: false,
             curve: None,
@@ -405,7 +409,7 @@ impl Helix {
             orientation,
             helix_parameters: None,
             isometry2d: None,
-            additonal_isometries: Vec::new(),
+            additional_isometries: Vec::new(),
             symmetry: Vec2::one(),
             grid_position: None,
             visible: true,
@@ -428,7 +432,7 @@ impl Helix {
             helix_parameters: Some(grid.helix_parameters),
             orientation: grid.orientation,
             isometry2d: None,
-            additonal_isometries: Vec::new(),
+            additional_isometries: Vec::new(),
             symmetry: Vec2::one(),
             grid_position: Some(HelixGridPosition {
                 grid: g_id,
@@ -456,7 +460,7 @@ impl Helix {
             orientation: Rotor3::identity(),
             helix_parameters: None,
             isometry2d: None,
-            additonal_isometries: Vec::new(),
+            additional_isometries: Vec::new(),
             symmetry: Vec2::one(),
             grid_position: None,
             visible: true,
@@ -478,7 +482,7 @@ impl Helix {
             orientation: Rotor3::identity(),
             helix_parameters: None,
             isometry2d: None,
-            additonal_isometries: Vec::new(),
+            additional_isometries: Vec::new(),
             symmetry: Vec2::one(),
             grid_position: None,
             visible: true,
@@ -500,7 +504,7 @@ impl Helix {
             orientation: Rotor3::identity(),
             helix_parameters: None,
             isometry2d: None,
-            additonal_isometries: Vec::new(),
+            additional_isometries: Vec::new(),
             symmetry: Vec2::one(),
             grid_position: None,
             visible: true,
@@ -597,7 +601,7 @@ impl Helix {
             orientation: Rotor3::identity(),
             helix_parameters: Some(grid_manager.helix_parameters),
             isometry2d: None,
-            additonal_isometries: Vec::new(),
+            additional_isometries: Vec::new(),
             symmetry: Vec2::one(),
             grid_position: Some(grid_pos_start),
             visible: true,
@@ -641,7 +645,7 @@ impl Helix {
             orientation: Rotor3::identity(),
             helix_parameters: None,
             isometry2d: None,
-            additonal_isometries: Vec::new(),
+            additional_isometries: Vec::new(),
             symmetry: Vec2::one(),
             grid_position: Some(grid_pos),
             visible: true,
@@ -811,7 +815,7 @@ impl Helix {
             roll: 0.,
             visible: true,
             isometry2d: None,
-            additonal_isometries: Vec::new(),
+            additional_isometries: Vec::new(),
             symmetry: Vec2::one(),
             locked_for_simulations: false,
             curve: None,

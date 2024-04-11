@@ -34,6 +34,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use ensnano_design::Nucl;
 use ensnano_interactor::{
     application::{AppId, Application, Duration, Notification},
+    consts::{EXPORT_2D_MARGIN, EXPORT_2D_MAX_SIZE},
     graphics::DrawArea,
     operation::*,
     ActionMode, DesignOperation, PhantomElement, Selection, SelectionMode, StrandBuilder,
@@ -42,6 +43,7 @@ use ensnano_interactor::{
 use ensnano_utils::wgpu;
 use ensnano_utils::winit;
 use ensnano_utils::PhySize;
+use lyon::geom::euclid::rect;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -755,16 +757,42 @@ impl<S: AppState> Application for FlatScene<S> {
             Notification::ScreenShot2D => {
                 // NOTE: When flatscene is split, return the whole view.
                 let rectangle = self.data[0].borrow().get_fit_rectangle();
-                let glob_png = camera2d::Globals::from_corners(
-                    rectangle.top_left().into(),
-                    rectangle.bottom_right().into(),
-                    png_resolution,
-                );
-                use chrono::Utc;
-                let png_name = Utc::now()
-                    .format("export_2d_%Y_%m_%d_%H_%M_%S.png")
-                    .to_string();
-                self.export_png(&png_name, glob_png);
+                let w = rectangle.width() + 2. * EXPORT_2D_MARGIN;
+                let h = rectangle.height() + 2. * EXPORT_2D_MARGIN;
+                let w_cuts = (w / EXPORT_2D_MAX_SIZE).ceil() as u32;
+                let h_cuts = (h / EXPORT_2D_MAX_SIZE).ceil() as u32;
+                let [x0, y0] = rectangle.top_left();
+                for i in 0..w_cuts {
+                    for j in 0..h_cuts {
+                        let glob_png = camera2d::Globals::from_corners(
+                            [
+                                x0 - EXPORT_2D_MARGIN + i as f32 * w / w_cuts as f32,
+                                y0 + EXPORT_2D_MARGIN - j as f32 * h / h_cuts as f32,
+                            ]
+                            .into(),
+                            [
+                                x0 - EXPORT_2D_MARGIN + (i + 1) as f32 * w / w_cuts as f32,
+                                y0 + EXPORT_2D_MARGIN - (j + 1) as f32 * h / h_cuts as f32,
+                            ]
+                            .into(),
+                            png_resolution,
+                        );
+                        use chrono::Utc;
+                        let png_name = format!(
+                            "{}-{}x{}.png",
+                            Utc::now().format("export_2d_%Y_%m_%d_%H_%M_%S"),
+                            i + 1,
+                            j + 1
+                        )
+                        .to_string();
+                        self.export_png(&png_name, glob_png);
+                        println!(
+                            "File {png_name} saved [{}/{}]",
+                            i * h_cuts + j + 1,
+                            w_cuts * h_cuts
+                        );
+                    }
+                }
             }
             Notification::ScreenShot3D => (), // Nothing to do in the flatscene.
             Notification::StlExport => (),
