@@ -22,6 +22,8 @@ use super::*;
 use chebyshev_polynomials::ChebyshevPolynomial;
 use ultraviolet::DRotor3;
 
+use crate::consts::{IterativeFrameAlgorithm,ITERATIVE_AXIS_ALGORITHM};
+
 /// The number of points used in the iterative version of the discretization algorithm.
 const NB_DISCRETISATION_STEP: usize = 100_000;
 
@@ -356,8 +358,10 @@ impl Curve {
     /// Allow to select the iterative axis computation method
     #[inline(always)]
     fn iterative_axis(&self, t: f64, previous: Option<&DMat3>) -> DMat3 {
-        self.iterative_axis_original(t, previous)
-        // self.iterative_rotated_axis(t, previous)
+        match ITERATIVE_AXIS_ALGORITHM {
+            IterativeFrameAlgorithm::Original => self.iterative_axis_original(t, previous),
+            IterativeFrameAlgorithm::Rotation => self.iterative_rotated_axis(t, previous),
+        }
     }
 
     #[allow(dead_code)]
