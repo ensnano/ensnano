@@ -133,7 +133,7 @@ pub enum Message<S: AppState> {
     FogRadius(f32),
     FogLength(f32),
     SimRequest,
-    DescreteValue {
+    DiscreteValue {
         factory_id: FactoryId,
         value_id: ValueId,
         value: f32,
@@ -482,7 +482,7 @@ impl<R: Requests, S: AppState> Program for LeftPanel<R, S> {
                 let request = self.camera_tab.get_fog_request();
                 self.requests.lock().unwrap().set_fog_parameters(request);
             }
-            Message::DescreteValue {
+            Message::DiscreteValue {
                 factory_id,
                 value_id,
                 value,

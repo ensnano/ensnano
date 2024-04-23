@@ -17,7 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 pub enum IterativeFrameAlgorithm {
-    Original,
-    Rotation,
+    Original, // by Nicolas Levy
+    Rotation, // by Nicolas Schabanel
 }
-pub const ITERATIVE_AXIS_ALGORITHM: IterativeFrameAlgorithm = IterativeFrameAlgorithm::Original; // use original iterative frame algorihm or tangent-rotation-based
+pub const _AXIS_ALGORITHM: IterativeFrameAlgorithm = IterativeFrameAlgorithm::Original; // use original iterative frame algorihm or tangent-rotation-based
