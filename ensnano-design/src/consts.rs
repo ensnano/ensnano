@@ -20,4 +20,4 @@ pub enum IterativeFrameAlgorithm {
     Original, // by Nicolas Levy
     Rotation, // by Nicolas Schabanel
 }
-pub const _AXIS_ALGORITHM: IterativeFrameAlgorithm = IterativeFrameAlgorithm::Original; // use original iterative frame algorihm or tangent-rotation-based
+pub const ITERATIVE_AXIS_ALGORITHM: IterativeFrameAlgorithm = IterativeFrameAlgorithm::Original; // use original iterative frame algorihm or tangent-rotation-based
