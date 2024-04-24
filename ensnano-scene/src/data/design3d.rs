@@ -81,7 +81,6 @@ impl<R: DesignReader> Design3D<R> {
             if let Some(instances) = self.make_raw_instances(*id) {
                 ret.extend(instances)
             }
-            println!("length: {}", ret.len());
         }
         ret
     }
@@ -637,7 +636,6 @@ impl<R: DesignReader> Design3D<R> {
                 vec![tube.to_raw_instance()]
             }
             ObjectType::SlicedBond(prev_nucl_id, nucl1_id, nucl2_id, next_nucl_id) => {
-                println!("({prev_nucl_id}){nucl1_id}--{nucl2_id}({next_nucl_id})");
                 let pos1 = self.get_graphic_element_position(&SceneElement::DesignElement(
                     self.id, nucl1_id,
                 ))?;
@@ -668,11 +666,6 @@ impl<R: DesignReader> Design3D<R> {
                 let normalized = current.normalized();
                 let rotor = Rotor3::safe_from_rotation_from_unit_x_to(normalized);
                 let rotor_inv = Rotor3::safe_from_rotation_to_unit_x_from(normalized);
-
-                println!("{:?} {:?} {:?} {:?} {:?}", prev, pos1, current, pos2, next);
-                println!("{:?}", prev.rotated_by(rotor_inv)); //rotor);
-                println!("{:?}", next.rotated_by(rotor_inv)); //rotor_inv);
-
                 let color = self.get_color(id).unwrap_or(0x00_00_00);
                 let id = id | self.id << 24;
                 // Adjust the color and rafius of the bond according to the REAL length of the bond
