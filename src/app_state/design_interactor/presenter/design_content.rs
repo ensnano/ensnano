@@ -997,7 +997,7 @@ impl DesignContent {
                     let ObjectType::SlicedBond(_, id1, id2, next_id) =
                         object_type.get(&first_id).unwrap()
                     else {
-                        panic!("The sliced bond is not a sliced bond");
+                        unreachable!("The sliced bond is not a sliced bond");
                     };
                     object_type
                         .insert(first_id, ObjectType::SlicedBond(*id1, *id1, *id2, *next_id));
@@ -1006,7 +1006,7 @@ impl DesignContent {
                     let ObjectType::SlicedBond(prev_id, id1, id2, _) =
                         object_type.get(&last_id).unwrap()
                     else {
-                        panic!("The sliced bond is not a sliced bond");
+                        unreachable!("The sliced bond is not a sliced bond");
                     };
                     object_type.insert(last_id, ObjectType::SlicedBond(*prev_id, *id1, *id2, *id2));
                 }
