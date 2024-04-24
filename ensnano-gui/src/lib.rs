@@ -49,6 +49,7 @@ pub use ensnano_design::{grid::GridId, Camera, CameraId};
 pub use status_bar::{ClipboardContent, CurentOpState, StrandBuildingStatus};
 mod consts;
 pub use iced;
+use iced::{advanced::clipboard, advanced::mouse, event};
 pub use iced_graphics;
 
 #[macro_use]
@@ -85,7 +86,7 @@ use std::collections::{BTreeSet, HashMap};
 use std::rc::Rc;
 use std::sync::{Arc, Mutex};
 use ultraviolet::{Rotor3, Vec2, Vec3};
-use wgpu::Device;
+use wgpu::{Device, Queue};
 use winit::{
     dpi::{PhysicalPosition, PhysicalSize},
     keyboard::ModifiersState,
@@ -338,11 +339,11 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
         size: iced::Size,
         cursor: iced::Point,
         renderer: &mut Renderer,
-        theme: &<Renderer as iced_runtime::Renderer>::Theme,
-        style: &iced_runtime::renderer::Style,
+        theme: &iced::Theme,
+        style: &iced::advanced::renderer::Style,
         debug: &mut Debug,
     ) {
-        let mut clipboard = iced_runtime::clipboard::Null;
+        let mut clipboard = clipboard::Null;
         match self {
             GuiState::TopBar(state) => {
                 state.update(size, cursor, renderer, theme, style, &mut clipboard, debug);
@@ -360,19 +361,25 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
         &mut self,
         renderer: &mut Renderer,
         device: &Device,
-        staging_belt: &mut wgpu::util::StagingBelt,
+        queue: &Queue,
         encoder: &mut wgpu::CommandEncoder,
-        target: &wgpu::TextureView,
+        clear_color: Option<iced::Color>,
+        //staging_belt: &mut wgpu::util::StagingBelt,
+        format: &wgpu::TextureFormat,
+        frame: &wgpu::TextureView,
         viewport: &iced_graphics::Viewport,
         debug: &Debug,
-        mouse_interaction: &mut iced::mouse::Interaction,
+        mouse_interaction: &mut mouse::Interaction,
     ) {
         renderer.with_primitives(|backend, primitives| {
             backend.present(
                 device,
-                staging_belt,
+                queue,
                 encoder,
-                target,
+                clear_color,
+                //staging_belt,
+                format,
+                frame,
                 primitives,
                 viewport,
                 &debug.overlay(),
@@ -537,7 +544,7 @@ impl<R: Requests, S: AppState> GuiElement<R, S> {
         &mut self,
         window: &Window,
         theme: &iced::Theme,
-        style: &iced_runtime::renderer::Style,
+        style: &iced::advanced::renderer::Style,
         multiplexer: &dyn Multiplexer,
         resized: bool,
     ) -> bool {
@@ -567,11 +574,13 @@ impl<R: Requests, S: AppState> GuiElement<R, S> {
 
     pub fn render(
         &mut self,
-        encoder: &mut wgpu::CommandEncoder,
         device: &Device,
+        queue: &Queue,
+        encoder: &mut wgpu::CommandEncoder,
+        clear_color: Option<iced::Color>,
         window: &Window,
         multiplexer: &dyn Multiplexer,
-        staging_belt: &mut wgpu::util::StagingBelt,
+        //staging_belt: &mut wgpu::util::StagingBelt,
         mouse_interaction: &mut iced::mouse::Interaction,
     ) {
         if self.redraw {
@@ -579,13 +588,17 @@ impl<R: Requests, S: AppState> GuiElement<R, S> {
                 convert_size_u32(multiplexer.get_draw_area(self.element_type).unwrap().size),
                 window.scale_factor(),
             );
-            let target = multiplexer.get_texture_view(self.element_type).unwrap();
+            let format = multiplexer.get_texture_format(self.element_type).unwrap();
+            let frame = multiplexer.get_texture_view(self.element_type).unwrap();
             self.state.render(
                 &mut self.renderer,
                 device,
-                staging_belt,
+                queue,
+                //staging_belt,
                 encoder,
-                target,
+                clear_color,
+                format,
+                frame,
                 &viewport,
                 &self.debug,
                 mouse_interaction,
@@ -603,6 +616,7 @@ pub struct Gui<R: Requests, S: AppState> {
     elements: HashMap<ElementType, GuiElement<R, S>>,
     settings: Settings,
     device: Rc<Device>,
+    queue: Rc<Queue>,
     resized: bool,
     requests: Arc<Mutex<R>>,
     ui_size: UiSize,
@@ -611,6 +625,7 @@ pub struct Gui<R: Requests, S: AppState> {
 impl<R: Requests, S: AppState> Gui<R, S> {
     pub fn new(
         device: Rc<Device>,
+        queue: Rc<Queue>,
         window: &Window,
         multiplexer: &dyn Multiplexer,
         requests: Arc<Mutex<R>>,
@@ -627,11 +642,16 @@ impl<R: Requests, S: AppState> Gui<R, S> {
 
         let mut elements = HashMap::new();
 
-        let top_bar_renderer = Renderer::new(Backend::new(
-            device.as_ref(),
-            settings,
-            ensnano_utils::TEXTURE_FORMAT,
-        ));
+        let top_bar_renderer = Renderer::new(
+            Backend::new(
+                device.as_ref(),
+                queue.as_ref(),
+                settings,
+                ensnano_utils::TEXTURE_FORMAT,
+            ),
+            settings.default_font,
+            settings.default_text_size,
+        );
         elements.insert(
             ElementType::TopBar,
             GuiElement::top_bar(
@@ -644,11 +664,16 @@ impl<R: Requests, S: AppState> Gui<R, S> {
                 ui_size,
             ),
         );
-        let left_panel_renderer = Renderer::new(Backend::new(
-            device.as_ref(),
-            settings,
-            ensnano_utils::TEXTURE_FORMAT,
-        ));
+        let left_panel_renderer = Renderer::new(
+            Backend::new(
+                device.as_ref(),
+                queue.as_ref(),
+                settings,
+                ensnano_utils::TEXTURE_FORMAT,
+            ),
+            settings.default_font,
+            settings.default_text_size,
+        );
         elements.insert(
             ElementType::LeftPanel,
             GuiElement::left_panel(
@@ -661,11 +686,16 @@ impl<R: Requests, S: AppState> Gui<R, S> {
                 ui_size,
             ),
         );
-        let status_bar_renderer = Renderer::new(Backend::new(
-            device.as_ref(),
-            settings,
-            ensnano_utils::TEXTURE_FORMAT,
-        ));
+        let status_bar_renderer = Renderer::new(
+            Backend::new(
+                device.as_ref(),
+                queue.as_ref(),
+                settings,
+                ensnano_utils::TEXTURE_FORMAT,
+            ),
+            settings.default_font,
+            settings.default_text_size,
+        );
 
         elements.insert(
             ElementType::StatusBar,
@@ -684,30 +714,31 @@ impl<R: Requests, S: AppState> Gui<R, S> {
             requests,
             elements,
             device,
+            queue,
             resized: true,
             ui_size,
         }
     }
 
     /// Forward an event to the appropriate gui component
-    pub fn forward_event(&mut self, area: ElementType, event: iced_runtime::Event) {
+    pub fn forward_event(&mut self, area: ElementType, event: event::Event) {
         self.elements.get_mut(&area).unwrap().forward_event(event);
     }
 
     /// Clear the foccus of all components of the GUI
     pub fn clear_foccus(&mut self) {
         for elt in self.elements.values_mut() {
-            use iced_runtime::mouse::Event;
-            elt.forward_event(iced_runtime::Event::Mouse(Event::CursorMoved {
+            use iced::advanced::mouse::Event;
+            elt.forward_event(event::Event::Mouse(Event::CursorMoved {
                 position: [-1., -1.].into(),
             }));
-            elt.forward_event(iced_runtime::Event::Mouse(Event::ButtonPressed(
-                iced_runtime::mouse::Button::Left,
+            elt.forward_event(event::Event::Mouse(Event::ButtonPressed(
+                mouse::Button::Left,
             )))
         }
     }
 
-    pub fn forward_event_all(&mut self, event: iced_runtime::Event) {
+    pub fn forward_event_all(&mut self, event: event::Event) {
         for e in self.elements.values_mut() {
             e.forward_event(event.clone())
         }
@@ -755,7 +786,7 @@ impl<R: Requests, S: AppState> Gui<R, S> {
         &mut self,
         window: &Window,
         theme: &iced::Theme,
-        style: &iced_runtime::renderer::Style,
+        style: &iced::advanced::renderer::Style,
         multiplexer: &dyn Multiplexer,
     ) -> bool {
         let mut ret = false;
@@ -770,7 +801,7 @@ impl<R: Requests, S: AppState> Gui<R, S> {
         &mut self,
         multiplexer: &dyn Multiplexer,
         theme: &iced::Theme,
-        style: &iced_runtime::renderer::Style,
+        style: &iced::advanced::renderer::Style,
         window: &Window,
     ) {
         for elements in self.elements.values_mut() {
@@ -811,11 +842,16 @@ impl<R: Requests, S: AppState> Gui<R, S> {
         state: &S,
         top_bar_state: TopBarState,
     ) {
-        let top_bar_renderer = Renderer::new(Backend::new(
-            self.device.as_ref(),
-            self.settings,
-            ensnano_utils::TEXTURE_FORMAT,
-        ));
+        let top_bar_renderer = Renderer::new(
+            Backend::new(
+                self.device.as_ref(),
+                self.queue.as_ref(),
+                self.settings,
+                ensnano_utils::TEXTURE_FORMAT,
+            ),
+            self.settings.default_font,
+            self.settings.default_text_size,
+        );
         self.elements.insert(
             ElementType::TopBar,
             GuiElement::top_bar(
@@ -828,11 +864,16 @@ impl<R: Requests, S: AppState> Gui<R, S> {
                 self.ui_size,
             ),
         );
-        let left_panel_renderer = Renderer::new(Backend::new(
-            self.device.as_ref(),
-            self.settings,
-            ensnano_utils::TEXTURE_FORMAT,
-        ));
+        let left_panel_renderer = Renderer::new(
+            Backend::new(
+                self.device.as_ref(),
+                self.queue.as_ref(),
+                self.settings,
+                ensnano_utils::TEXTURE_FORMAT,
+            ),
+            self.settings.default_font,
+            self.settings.default_text_size,
+        );
         self.elements.insert(
             ElementType::LeftPanel,
             GuiElement::left_panel(
@@ -845,11 +886,16 @@ impl<R: Requests, S: AppState> Gui<R, S> {
                 self.ui_size,
             ),
         );
-        let status_bar_renderer = Renderer::new(Backend::new(
-            self.device.as_ref(),
-            self.settings,
-            ensnano_utils::TEXTURE_FORMAT,
-        ));
+        let status_bar_renderer = Renderer::new(
+            Backend::new(
+                self.device.as_ref(),
+                self.queue.as_ref(),
+                self.settings,
+                ensnano_utils::TEXTURE_FORMAT,
+            ),
+            self.settings.default_font,
+            self.settings.default_text_size,
+        );
         self.elements.insert(
             ElementType::StatusBar,
             GuiElement::status_bar(
@@ -874,20 +920,23 @@ impl<R: Requests, S: AppState> Gui<R, S> {
     pub fn render(
         &mut self,
         encoder: &mut wgpu::CommandEncoder,
+        clear_color: Option<iced::Color>,
         window: &Window,
         multiplexer: &dyn Multiplexer,
-        staging_belt: &mut wgpu::util::StagingBelt,
+        //staging_belt: &mut wgpu::util::StagingBelt,
         mouse_interaction: &mut iced::mouse::Interaction,
     ) {
         *mouse_interaction = Default::default();
         for (element_key, element) in self.elements.iter_mut() {
             log::trace!("render {:?}", element_key);
             element.render(
-                encoder,
                 self.device.as_ref(),
+                self.queue.as_ref(),
+                encoder,
+                clear_color,
                 window,
                 multiplexer,
-                staging_belt,
+                //staging_belt,
                 mouse_interaction,
             )
         }

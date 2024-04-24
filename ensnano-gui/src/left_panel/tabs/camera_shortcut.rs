@@ -21,10 +21,7 @@ use crate::{
     material_icons_light::{self, LightIcon},
     CameraId,
 };
-use iced::{Element, Length};
-use iced_native::widget;
-use iced_native::widget::helpers::*;
-use iced_native::{alignment, column, row, Alignment};
+use iced::{alignment::Horizontal, Alignment, Element, Length};
 
 /// A named camera orientation.
 ///
@@ -97,7 +94,7 @@ pub struct CameraShortcutPanel {
     xz: isize,
     yz: isize,
     xy: isize,
-    scroll_state: widget::scrollable::State,
+    scroll_state: scrollable::State,
     camera_input_name: Option<String>,
     camera_being_edited: Option<CameraId>,
     camera_widgets: Vec<CameraWidget>,
@@ -190,7 +187,7 @@ impl CameraShortcutPanel {
     pub fn view<S: AppState>(&self, ui_size: UiSize, _app: &S) -> Element<Message<S>> {
         // Create button widget for each predefined target.
 
-        let rotate_buttons = column![
+        let rotate_buttons = self::column![
             row(IntoIterator::into_iter([4, 2, 5])
                 .map(|i| {
                     button(rotation_text(i, ui_size))
@@ -224,29 +221,29 @@ impl CameraShortcutPanel {
         //    ret = ret.spacing(5).push(row)
         //}
 
-        let content = column![
-            column![
+        let content = self::column![
+            self::column![
                 section("Camera", ui_size),
                 row![
-                    horizontal_space(ui_size.button_pad()),
+                    Space::with_width(ui_size.button_pad()),
                     // add_target_buttons!
-                    column![
+                    self::column![
                         subsection("Fixed", ui_size)
                             .height(ui_size.button())
-                            .horizontal_alignment(alignment::Horizontal::Center),
+                            .horizontal_alignment(Horizontal::Center),
                         extra_jump(),
                         row![
-                            column![
+                            self::column![
                                 named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[0], ui_size),
                                 named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[1], ui_size),
                             ]
                             .spacing(ui_size.button_pad()),
-                            column![
+                            self::column![
                                 named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[2], ui_size),
                                 named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[3], ui_size),
                             ]
                             .spacing(ui_size.button_pad()),
-                            column![
+                            self::column![
                                 named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[4], ui_size),
                                 named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[5], ui_size),
                             ]
@@ -255,24 +252,24 @@ impl CameraShortcutPanel {
                         .spacing(ui_size.button_pad()),
                     ]
                     .align_items(Alignment::Center),
-                    horizontal_space(2.0 * ui_size.button_pad()),
+                    Space::with_width(2.0 * ui_size.button_pad()),
                     // add_rotate_buttons!
-                    column![
+                    self::column![
                         subsection("Rotation", ui_size)
                             .height(ui_size.button())
-                            .horizontal_alignment(alignment::Horizontal::Center),
+                            .horizontal_alignment(Horizontal::Center),
                         extra_jump(),
                         rotate_buttons,
                         // Idem.
                     ]
                     .align_items(Alignment::Center),
-                    horizontal_space(2.0 * ui_size.button_pad()),
+                    Space::with_width(2.0 * ui_size.button_pad()),
                     // add_screenshot_button!
-                    column![
+                    self::column![
                         material_icons_light::dark_icon(LightIcon::PhotoCamera, ui_size)
                             .height(ui_size.button()),
                         extra_jump(),
-                        column![
+                        self::column![
                             text_button("2D", ui_size)
                                 .height(ui_size.button())
                                 .on_press(Message::ScreenShot2D),
@@ -283,32 +280,32 @@ impl CameraShortcutPanel {
                         .spacing(ui_size.button_pad()),
                     ]
                     .align_items(Alignment::Center),
-                    horizontal_space(2.0 * ui_size.button_pad()),
+                    Space::with_width(2.0 * ui_size.button_pad()),
                     // add_stl_export_button!
-                    column![
+                    self::column![
                         extra_jump(),
-                        column![text_button("STL", ui_size)
+                        self::column![text_button("STL", ui_size)
                             .width(2.0 * ui_size.button())
                             .height(ui_size.button())
                             .on_press(Message::StlExport),]
                         .spacing(ui_size.button_pad()),
                     ]
                     .align_items(Alignment::End),
-                    horizontal_space(ui_size.button_pad()),
+                    Space::with_width(ui_size.button_pad()),
                 ]
                 .align_items(Alignment::Center),
             ]
             .align_items(Alignment::Center),
-            column![
+            self::column![
                 // add_custom_camera_row!
                 row![
                     section("Custom cameras", ui_size),
-                    horizontal_space(ui_size.button_pad()),
+                    Space::with_width(ui_size.button_pad()),
                     light_icon_button(LightIcon::AddAPhoto, ui_size)
                         .on_press(Message::NewCustomCamera),
                 ],
                 // add_camera_widgets!
-                widget::Column::with_children(
+                Column::with_children(
                     self.camera_widgets
                         .iter()
                         .map(|w| w.view(ui_size).into())
@@ -326,8 +323,7 @@ impl CameraShortcutPanel {
     }
 
     pub fn scroll_down(&mut self) {
-        self.scroll_state
-            .snap_to(widget::operation::scrollable::RelativeOffset::END);
+        self.scroll_state.snap_to(scrollable::RelativeOffset::END);
     }
 }
 
@@ -364,12 +360,12 @@ impl CameraWidget {
 
         row![
             name_field,
-            horizontal_space(3),
+            Space::with_width(3),
             // edit button
             light_icon_button(LightIcon::Edit, ui_size)
                 .on_press(Message::<S>::StartEditCameraName(self.camera_id)),
             //
-            horizontal_space(Length::Fill),
+            Space::with_width(Length::Fill),
             //select camera button
             light_icon_button(LightIcon::Visibility, ui_size)
                 .on_press(Message::<S>::SelectCamera(self.camera_id)),
@@ -386,5 +382,5 @@ struct CameraWidgetState {
     //select_camera_btn: widget::button::State,
     //edit_name_btn: widget::button::State,
     //delete_btn: widget::button::State,
-    name_input: widget::text_input::State,
+    name_input: text_input::State<iced_graphics::text::Paragraph>,
 }

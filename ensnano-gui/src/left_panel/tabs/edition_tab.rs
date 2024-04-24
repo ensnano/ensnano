@@ -21,8 +21,6 @@ use super::{
     MEMORY_COLOR_COLUMNS, MEMORY_COLOR_ROWS, NB_MEMORY_COLOR,
 };
 use crate::helpers::*;
-use iced_native::widget;
-use iced_native::widget::helpers::*;
 
 pub struct EditionTab<S: AppState> {
     helix_roll_factory: RequestFactory<HelixRoll>,
@@ -103,10 +101,10 @@ impl<S: AppState> EditionTab<S> {
                 tighten_helices_button.on_press(Message::Redim2dHelices(false));
         }
 
-        let content = iced_native::column![
+        let content = self::column![
             section("Edition", ui_size),
             // add_roll_slider!
-            widget::Column::with_children(
+            Column::with_children(
                 self.helix_roll_factory
                     .view(roll_target_helices.len() >= 1, ui_size.intermediate_text())
             ),
@@ -123,13 +121,13 @@ impl<S: AppState> EditionTab<S> {
             ),
             // add_color_square!
             if selection_contains_strand {
-                iced_native::row![
+                row![
                     self.color_picker.view(),
                     self.color_picker.color_square(),
                     memory_color_column(&self.memory_color_squares, 4),
                 ]
             } else {
-                iced_native::row![]
+                row![]
             },
             subsection("Suggestions Parameters", ui_size),
             // add_suggestion_parameters_checkboxes!
@@ -165,7 +163,7 @@ impl<S: AppState> EditionTab<S> {
             ),
             subsection("Tighten 2D helices", ui_size),
             // add_tighten_helices_button!
-            iced_native::row![
+            row![
                 tighten_helices_button,
                 text_button("All", ui_size).on_press(Message::Redim2dHelices(true)),
             ]

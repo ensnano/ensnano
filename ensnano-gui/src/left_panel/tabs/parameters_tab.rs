@@ -19,7 +19,6 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::{AppState, FactoryId, Message, RequestFactory, ScrollSensitivity, UiSize, ValueId};
 use crate::helpers::*;
 use iced::Element;
-use iced_native::{column, row, widget::helpers::*};
 
 pub struct ParametersTab {
     scroll_sensitivity_factory: RequestFactory<ScrollSensitivity>,
@@ -45,7 +44,7 @@ impl ParametersTab {
     {
         let dna_params = &app_state.get_dna_parameters();
 
-        let content = column![
+        let content = self::column![
             section("Parameters", ui_size),
             extra_jump(),
             subsection("Font size", ui_size),
@@ -73,7 +72,7 @@ impl ParametersTab {
                 Some(app_state.get_dna_parameters().name().clone()),
                 Message::NewDnaParameters,
             ),
-            column![
+            self::column![
                 text(format!("  Radius: {:.3} nm", dna_params.helix_radius)),
                 text(format!("  Radius: {:.3} nm", dna_params.helix_radius)),
                 text(format!("  Rise: {:.3} nm", dna_params.rise)),

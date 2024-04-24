@@ -18,7 +18,6 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::*;
 use crate::helpers::*;
-use iced_native::widget;
 
 pub struct SimulationTab<S: AppState> {
     rigid_body_factory: RequestFactory<RigidBodyFactory>,
@@ -64,9 +63,9 @@ impl<S: AppState> SimulationTab<S> {
         let volume_exclusion = self.rigid_body_factory.requestable.volume_exclusion;
         let brownian_motion = self.rigid_body_factory.requestable.brownian_motion;
 
-        let content = iced_native::column![
+        let content = self::column![
             section("Simulation (Beta)", ui_size),
-            iced_native::column![
+            self::column![
                 self.physical_simulation.view(
                     &ui_size,
                     "Roll",
@@ -87,7 +86,7 @@ impl<S: AppState> SimulationTab<S> {
             ]
             .spacing(ui_size.button_pad()),
             subsection("Parameters for helices simulation", ui_size),
-            widget::Column::with_children(self.rigid_body_factory.view(true, ui_size.main_text())),
+            Column::with_children(self.rigid_body_factory.view(true, ui_size.main_text())),
             right_checkbox(
                 volume_exclusion,
                 "Volume exclusion",
@@ -100,7 +99,7 @@ impl<S: AppState> SimulationTab<S> {
                 Message::BrownianMotion,
                 ui_size,
             ),
-            widget::Column::with_children(
+            Column::with_children(
                 self.brownian_factory
                     .view(brownian_motion, ui_size.main_text())
             ),
@@ -117,7 +116,7 @@ impl<S: AppState> SimulationTab<S> {
     ) -> iced::Element<'a, Message<S>> {
         let sim_state = app_state.get_simulation_state();
         if sim_state.is_paused() {
-            iced_native::row![
+            row![
                 go_stop.view(true, false),
                 text_button("Reset", ui_size).on_press(Message::ResetSimulation),
             ]
@@ -211,7 +210,7 @@ impl PhysicalSimulation {
         if active {
             button = button.on_press(Message::SimRequest);
         }
-        iced_native::row![button].into()
+        row![button].into()
     }
 
     fn request(&self) -> RollRequest {

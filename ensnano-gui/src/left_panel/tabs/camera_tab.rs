@@ -22,8 +22,7 @@ use crate::theme;
 use ensnano_interactor::graphics::{
     Background3D, RenderingMode, ALL_BACKGROUND3D, ALL_RENDERING_MODE,
 };
-use iced::Element;
-use iced_native::{alignment, column, row, widget::helpers::*, Length};
+use iced::{Alignment, Element, Length};
 
 pub struct CameraTab {
     fog: FogGuiParameters,
@@ -41,7 +40,7 @@ impl CameraTab {
     }
 
     pub fn view<S: AppState>(&self, ui_size: UiSize, app_state: &S) -> Element<Message<S>> {
-        let content = column![
+        let content = self::column![
             section("Camera", ui_size),
             subsection("Visibility", ui_size),
             row![
@@ -66,7 +65,7 @@ impl CameraTab {
                     Message::ShowHBonds,
                 ),
             ]
-            .align_items(alignment::Alignment::Center)
+            .align_items(Alignment::Center)
             .spacing(5),
             right_checkbox(
                 app_state.show_stereographic_camera(),
@@ -89,7 +88,7 @@ impl CameraTab {
                     Message::CheckXoversParameter,
                 ),
             ]
-            .align_items(alignment::Alignment::Center)
+            .align_items(Alignment::Center)
             .spacing(5),
             extra_jump(),
             subsection("Rendering", ui_size),
@@ -102,7 +101,7 @@ impl CameraTab {
                         Message::RenderingMode,
                     ),
                 ]
-                .align_items(alignment::Alignment::Center)
+                .align_items(Alignment::Center)
                 .spacing(5)
                 .width(Length::FillPortion(1)),
                 row![
@@ -113,15 +112,12 @@ impl CameraTab {
                         Message::Background3D,
                     ),
                 ]
-                .align_items(alignment::Alignment::Center)
+                .align_items(Alignment::Center)
                 .spacing(5)
                 .width(Length::FillPortion(1)),
             ],
-            checkbox(
-                "Expand insertions",
-                app_state.expand_insertions(),
-                Message::SetExpandInsertions,
-            ),
+            checkbox("Expand insertions", app_state.expand_insertions())
+                .on_toggle(Message::SetExpandInsertions),
         ]
         .spacing(5);
 
@@ -203,7 +199,7 @@ impl FogGuiParameters {
         // Hand method to
         let label_width = 65.0f32;
 
-        column![
+        self::column![
             extra_jump(),
             row![
                 subsection("Distance Fog", ui_size),
@@ -219,7 +215,7 @@ impl FogGuiParameters {
                 )
                 .padding(ui_size.button_pad()),
             ]
-            .align_items(alignment::Alignment::Center)
+            .align_items(Alignment::Center)
             .spacing(5),
             row![radius_text.width(label_width), length_slider,].spacing(5),
             row![gradient_text.width(label_width), softness_slider,].spacing(5),

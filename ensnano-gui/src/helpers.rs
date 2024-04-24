@@ -20,8 +20,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! Repetitive, complex widgets are factored here.
 use super::UiSize;
 use crate::material_icons_light::{self, LightIcon};
-use iced::{theme, widget, Font, Length};
-use iced_widget::*;
+use iced::{Font, Length};
+pub use iced_widget::*;
 
 const JUMP_SIZE: f32 = 4.0;
 pub(super) const ENSNANO_FONT: Font = Font::External {
@@ -30,7 +30,7 @@ pub(super) const ENSNANO_FONT: Font = Font::External {
 };
 
 /// Add vertical space of [JUMP_SIZE] amount
-pub fn extra_jump() -> widget::Space {
+pub fn extra_jump() -> Space {
     jump_by(JUMP_SIZE)
 }
 
@@ -40,17 +40,17 @@ pub fn jump_by(amount: impl Into<Length>) -> Space {
 }
 
 /// Section title widget
-pub fn section<'a>(title: impl ToString, ui_size: UiSize) -> widget::Text<'a> {
+pub fn section<'a>(title: impl ToString, ui_size: UiSize) -> Text<'a> {
     text(title).size(ui_size.head_text())
 }
 
 /// Section subtitle widget
-pub fn subsection<'a>(title: impl ToString, ui_size: UiSize) -> widget::Text<'a> {
+pub fn subsection<'a>(title: impl ToString, ui_size: UiSize) -> Text<'a> {
     text(title).size(ui_size.intermediate_text())
 }
 
 /// Return a text widget containing the rotation arrow.
-pub fn rotation_text<'a>(i: usize, ui_size: UiSize) -> widget::Text<'a> {
+pub fn rotation_text<'a>(i: usize, ui_size: UiSize) -> Text<'a> {
     match i {
         0 => material_icons_light::dark_icon(LightIcon::ArrowBack, ui_size),
         1 => material_icons_light::dark_icon(LightIcon::ArrowForward, ui_size),
@@ -65,7 +65,7 @@ pub fn rotation_text<'a>(i: usize, ui_size: UiSize) -> widget::Text<'a> {
 pub fn light_icon_button<'a, Message>(
     icon: material_icons_light::LightIcon,
     ui_size: UiSize,
-) -> widget::Button<'a, Message> {
+) -> Button<'a, Message> {
     button(material_icons_light::light_icon(icon, ui_size)).height(ui_size.button())
 }
 
@@ -73,23 +73,17 @@ pub fn light_icon_button<'a, Message>(
 pub fn dark_icon_button<'a, Message>(
     icon: material_icons_light::LightIcon,
     ui_size: UiSize,
-) -> widget::Button<'a, Message> {
+) -> Button<'a, Message> {
     button(material_icons_light::dark_icon(icon, ui_size)).height(ui_size.button())
 }
 
 /// Return a text button.
-pub fn text_button<'a, Message>(
-    label: impl ToString,
-    ui_size: UiSize,
-) -> widget::Button<'a, Message> {
+pub fn text_button<'a, Message>(label: impl ToString, ui_size: UiSize) -> Button<'a, Message> {
     button(text(label).size(ui_size.main_text())).height(ui_size.button())
 }
 
 /// A button containing an icon.
-pub fn icon_button<'a, Message: Clone>(
-    icon_char: char,
-    ui_size: UiSize,
-) -> widget::Button<'a, Message> {
+pub fn icon_button<'a, Message: Clone>(icon_char: char, ui_size: UiSize) -> Button<'a, Message> {
     button(
         text(icon_char.to_string())
             .font(ENSNANO_FONT)
@@ -104,7 +98,7 @@ pub fn start_stop_button<'a, Message, F>(
     ui_size: UiSize,
     start_stop_switch: Option<F>,
     is_started: bool,
-) -> widget::Button<'a, Message>
+) -> Button<'a, Message>
 where
     F: 'static + Fn(bool) -> Message,
 {
@@ -129,12 +123,14 @@ where
 pub fn right_checkbox<'a, Message: 'a>(
     is_checked: bool,
     label: impl ToString,
-    f: impl Fn(bool) -> Message + 'a,
+    toggle_message: impl Fn(bool) -> Message + 'a,
     ui_size: UiSize,
-) -> widget::Row<'a, Message> {
-    iced_native::row![
+) -> Row<'a, Message> {
+    row![
         text(label),
-        checkbox("", is_checked, f).size(ui_size.checkbox()),
+        checkbox("", is_checked)
+            .on_toggle(toggle_message)
+            .size(ui_size.checkbox()),
     ]
     .spacing(ui_size.checkbox_spacing())
 }

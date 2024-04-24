@@ -19,7 +19,6 @@ use super::{AppState, GridTypeDescr, Message, UiSize, ICON_HONEYCOMB_GRID, ICON_
 use crate::helpers::*;
 use crate::material_icons_light::LightIcon;
 use iced::Element;
-use iced_native::widget::helpers::*;
 
 const NEW_BEZIER_PLANE_ICON: LightIcon = LightIcon::HistoryEdu;
 const EDIT_BEZIER_PATH_ICON: LightIcon = LightIcon::LinearScale;
@@ -37,12 +36,12 @@ impl PenTab {
             .map(|p| format!("{:?}", p))
             .unwrap_or_else(|| "None".to_string());
 
-        let content = iced_native::column![
+        let content = self::column![
             section("Bezier Planes", ui_size),
-            iced_native::column![
+            self::column![
                 light_icon_button(LightIcon::FileOpen, ui_size).on_press(Message::LoadSvgFile),
                 // add_buttons!
-                iced_native::row![
+                row![
                     light_icon_button(NEW_BEZIER_PLANE_ICON, ui_size)
                         .on_press(Message::NewBezierPlane),
                     light_icon_button(EDIT_BEZIER_PATH_ICON, ui_size)
@@ -53,7 +52,7 @@ impl PenTab {
             .spacing(ui_size.button_pad()),
             // add_grid_buttons!
             if let Some(path_id) = app_state.get_selected_bezier_path() {
-                iced_native::row![
+                row![
                     icon_button(ICON_SQUARE_GRID, ui_size).on_press(Message::TurnPathIntoGrid {
                         path_id,
                         grid_type: GridTypeDescr::Square { twist: None },
@@ -65,27 +64,24 @@ impl PenTab {
                 ]
                 .spacing(5)
             } else {
-                iced_native::row![] // Yes, an empty row…
+                row![] // Yes, an empty row…
             },
             text(format!("Selected path {path_txt}")),
             if let Some(b) =
                 selected_path_id.and_then(|p_id| app_state.get_reader().is_bezier_path_cyclic(p_id))
             {
-                iced_native::row![checkbox("Cyclic", b, move |cyclic| {
+                row![checkbox("Cyclic", b).on_toggle(move |cyclic| {
                     Message::MakeBezierPathCyclic {
                         path_id: selected_path_id.unwrap(),
                         cyclic,
                     }
                 })]
             } else {
-                iced_native::row![] // This is trickery to always return the same object.
+                row![] // This is trickery to always return the same object.
             },
             extra_jump(),
-            checkbox(
-                "Show bezier paths",
-                app_state.get_show_bezier_paths(),
-                Message::SetShowBezierPaths,
-            ),
+            checkbox("Show bezier paths", app_state.get_show_bezier_paths())
+                .on_toggle(Message::SetShowBezierPaths,),
         ]
         .spacing(5);
         content.into()

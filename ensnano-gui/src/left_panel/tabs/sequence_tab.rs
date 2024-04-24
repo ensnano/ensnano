@@ -17,17 +17,16 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use ensnano_interactor::StandardSequence;
 
-use super::*;
+use super::{AppState, DesignElementKey, Message, UiSize};
 use crate::helpers::*;
 use crate::theme::BadValue;
-use iced::Element;
-use iced_native::widget;
+use iced::{Element, Length};
 
 pub struct SequenceTab {
     toggle_text_value: bool,
     scaffold_position_str: String,
     scaffold_position: usize,
-    scaffold_input: widget::text_input::State,
+    scaffold_input: text_input::State<iced_graphics::text::Paragraph>,
 }
 
 macro_rules! scaffold_length_fmt {
@@ -72,7 +71,7 @@ impl SequenceTab {
         //    }
         //}
 
-        let content = iced_native::column![
+        let content = self::column![
             section("Sequence", ui_size),
             extra_jump(),
             // add_show_sequence_button!
@@ -100,7 +99,7 @@ impl SequenceTab {
                     button_selection_to_scaffold =
                         button_selection_to_scaffold.on_press(Message::ScaffoldIdSet(n, true));
                 }
-                iced_native::row![button_selection_to_scaffold, button_selection_from_scaffold,]
+                row![button_selection_to_scaffold, button_selection_from_scaffold,]
                     .spacing(ui_size.button_pad())
             },
             extra_jump(),
@@ -122,7 +121,7 @@ impl SequenceTab {
                 if app_state.get_scaffold_info().is_none() {
                     length_text = length_text.style(crate::theme::disabled_text())
                 }
-                iced_native::column![text(scaffold_text).size(ui_size.main_text()), length_text,]
+                self::column![text(scaffold_text).size(ui_size.main_text()), length_text,]
             },
             extra_jump(),
             // add_rainbow_scaffold_checkbox!
@@ -148,7 +147,7 @@ impl SequenceTab {
             },
             extra_jump(),
             // add_scaffold_position_input_row!
-            iced_native::row![
+            row![
                 text("Starting position").width(Length::FillPortion(2)),
                 text_input("Scaffold position", &self.scaffold_position_str)
                     .on_input(Message::ScaffoldPositionInput,)
@@ -191,7 +190,7 @@ impl SequenceTab {
             section("Staples", ui_size),
             extra_jump(),
             // add_download_staples_button!
-            iced_native::column![
+            self::column![
                 button(text("Export Staples"))
                     .height(ui_size.button())
                     .on_press(Message::StapplesRequested),

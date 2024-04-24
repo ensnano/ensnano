@@ -18,9 +18,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::{Selection, UiSize};
 
+use crate::helpers::*;
 use iced::Element;
-use iced_native::widget::helpers::*;
-use iced_native::widget::{slider, text_input, Column};
 use iced_wgpu::Renderer;
 
 pub trait BuilderMessage: Clone + 'static {
@@ -38,7 +37,7 @@ macro_rules! type_builder {
                     #[allow(dead_code)]
                     $param: $param_type,
                     [<$param _string>]: String,
-                    [<$param _input>]: text_input::State,
+                    [<$param _input>]: text_input::State<iced_graphics::text::Paragraph>,
                 )*
                     value_to_modify: ValueKind,
             }
@@ -81,9 +80,9 @@ macro_rules! type_builder {
                     //    ret = ret.push(row)
                     //}
                     for i in 0..Self::PARAMETER_NAMES.len() {
-                        ret = ret.push(iced_native::row![
+                        ret = ret.push(row![
                             text(Self::PARAMETER_NAMES[i]),
-                            horizontal_space(5),
+                            Space::with_width(5),
                             text_input("", str_values[i])
                                 .on_input(move |string| Message::value_changed(value_to_modify, i, string))
                                 .on_submit(Message::value_submitted(value_to_modify))
@@ -294,7 +293,7 @@ impl<S: AppState> Builder<S> for BezierVertexBuilder {
         _selection: &Selection,
         _app_state: &S,
     ) -> iced::Element<super::Message<S>> {
-        iced_native::column![
+        self::column![
             text("Position").size(ui_size.intermediate_text()),
             self.position_builder.view(),
         ]
@@ -352,7 +351,7 @@ impl GridBuilder {
         use crate::consts;
         if let Selection::Grid(_, g_id) = selection {
             if let Some(nb_turn) = app_state.get_reader().get_grid_nb_turn(*g_id) {
-                let row = iced_native::row![
+                let row = row![
                     text(format!("{:.2}", nb_turn)),
                     slider(consts::MIN_NB_TURN..=consts::MAX_NB_TURN, nb_turn, |x| {
                         super::Message::InstanciatedValueSubmitted(InstanciatedValue::GridNbTurn(x))
@@ -377,7 +376,7 @@ impl<S: AppState> Builder<S> for GridBuilder {
         selection: &Selection,
         app_state: &S,
     ) -> iced::Element<super::Message<S>> {
-        iced_native::column![
+        self::column![
             text("Position").size(ui_size.intermediate_text()),
             self.position_builder.view(),
             text("Orientation").size(ui_size.intermediate_text()),
@@ -386,7 +385,7 @@ impl<S: AppState> Builder<S> for GridBuilder {
             if let Some(row) = Self::nb_turn_row(app_state, selection) {
                 row
             } else {
-                iced_native::row![].into()
+                row![].into()
             },
         ]
         .width(iced::Length::Fill)

@@ -16,12 +16,12 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use super::{AppState, Message};
+use crate::helpers::*;
 use iced::Element;
-use iced_native::{row, widget, widget::helpers::*};
 
 pub struct SequenceInput {
     #[allow(dead_code)]
-    text_input_state: widget::text_input::State,
+    text_input_state: text_input::State<iced_graphics::text::Paragraph>,
     sequence: String,
 }
 
@@ -39,7 +39,7 @@ impl SequenceInput {
         S: AppState,
     {
         row![
-            horizontal_space(5),
+            Space::with_width(5),
             text_input("Sequence", &self.sequence).on_input(Message::SequenceChanged,),
             button(text("Load File")).on_press(Message::SequenceFileRequested),
         ]

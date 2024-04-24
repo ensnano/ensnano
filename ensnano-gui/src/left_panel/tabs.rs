@@ -60,7 +60,7 @@ impl<S: AppState> GoStop<S> {
     }
 
     fn view(&self, active: bool, running: bool) -> iced::Element<Message<S>> {
-        use iced_native::widget::helpers::*;
+        use crate::helpers::*;
         let button_str = if running {
             "Stop".to_owned()
         } else {
@@ -72,6 +72,6 @@ impl<S: AppState> GoStop<S> {
         if active {
             button = button.on_press((self.on_press)(!running));
         }
-        iced::widget::row![button].into()
+        row![button].into()
     }
 }

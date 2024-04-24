@@ -22,8 +22,6 @@ use super::{
 };
 use crate::helpers::*;
 use iced::{Element, Length};
-use iced_native::widget::helpers::*;
-use iced_native::{column, row};
 
 pub struct GridTab {
     hyperboloid_factory: RequestFactory<Hyperboloid_>,
@@ -40,7 +38,7 @@ impl GridTab {
     where
         S: AppState,
     {
-        let content = column![
+        let content = self::column![
             section("Grids", ui_size),
             subsection("New Grid", ui_size),
             // add_grid_buttons!
@@ -69,7 +67,7 @@ impl GridTab {
                     .spacing(ui_size.button_pad())
             },
             // add hyperboloid sliders!
-            iced_native::widget::Column::with_children(
+            Column::with_children(
                 self.hyperboloid_factory
                     .view(app_state.is_building_hyperboloid(), ui_size.main_text()),
             ),

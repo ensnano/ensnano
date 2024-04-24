@@ -2,8 +2,8 @@
 //!
 //! The theme of the GUI is defined here
 
+use iced::advanced::renderer::Style;
 use iced::{theme, theme::Palette, Background, Border, Color, Theme};
-//use iced_graphics::renderer::Style;
 use iced_widget::{container, slider, text_input};
 
 /// Color palette

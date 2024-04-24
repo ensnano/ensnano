@@ -17,8 +17,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::{AppState, ExportType, Message};
+use crate::helpers::*;
 use iced::Element;
-use iced_native::widget::helpers::*;
 
 #[derive(Default)]
 pub struct ExportMenu {}
@@ -28,7 +28,7 @@ impl ExportMenu {
     where
         S: AppState,
     {
-        let content = iced_native::column![
+        let content = self::column![
             button(text("Cancel")).on_press(Message::CancelExport),
             button(text("Oxdna")).on_press(Message::Export(ExportType::Oxdna)),
             button(text("Pdb")).on_press(Message::Export(ExportType::Pdb)),

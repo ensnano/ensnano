@@ -16,7 +16,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use super::{AppState, ColorMessage, Message};
-use iced_native::Color;
+use crate::helpers::*;
+use iced::Color;
 
 pub struct ColorPicker {
     color: Color,
@@ -70,7 +71,7 @@ impl ColorPicker {
     where
         S: AppState,
     {
-        iced_native::row![
+        row![
             HueColumn::new(Message::HueChanged),
             LightSatSquare::new(
                 self.hue as f64,
@@ -91,7 +92,7 @@ impl ColorPicker {
     }
 
     pub fn new_view(&self) -> iced::Element<ColorMessage> {
-        iced_native::row![
+        row![
             HueColumn::new(ColorMessage::HueChanged,),
             LightSatSquare::new(
                 self.hue as f64,
@@ -106,14 +107,18 @@ impl ColorPicker {
 
 /// A Iced Widget to select Hue.
 mod hue_column {
-    use iced_graphics::{
-        renderer::{Renderer, Style},
-        triangle::{ColoredVertex2D, Mesh2D},
-        Primitive, Rectangle,
+    use iced::{
+        advanced::{
+            layout, mouse, renderer::Style, widget, Clipboard, Layout, Renderer as RendererTrait,
+            Shell, Widget,
+        },
+        event::Event,
+        Length, Point, Size, Vector,
     };
-    use iced_native::{
-        layout, mouse, widget, Clipboard, Event, Layout, Length, Point, Renderer as RendererTrait,
-        Shell, Size, Vector, Widget,
+    use iced_graphics::{
+        mesh::{ColoredVertex2D, Mesh2D},
+        renderer::Renderer,
+        Primitive, Rectangle,
     };
 
     use color_space::{Hsv, Rgb};
