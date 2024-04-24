@@ -112,14 +112,17 @@ mod hue_column {
             layout, mouse, renderer::Style, widget, Clipboard, Layout, Renderer as RendererTrait,
             Shell, Widget,
         },
-        event::Event,
-        Length, Point, Size, Vector,
+        event,
+        mouse::Cursor,
+        Length, Point, Rectangle, Size, Vector,
     };
     use iced_graphics::{
-        mesh::{ColoredVertex2D, Mesh2D},
+        color::pack,
+        mesh::{Indexed, Mesh, SolidVertex2D},
         renderer::Renderer,
-        Primitive, Rectangle,
+        Primitive,
     };
+    use iced_wgpu as wgpu;
 
     use color_space::{Hsv, Rgb};
 
@@ -145,43 +148,36 @@ mod hue_column {
         }
     }
 
-    impl<'a, Message, Backend, Theme> Widget<Message, Renderer<Backend, Theme>>
-        for HueColumn<'a, Message>
-    where
-        Backend: iced_graphics::Backend,
-    {
+    impl<'a, Message, Theme> Widget<Message, Theme, wgpu::Renderer> for HueColumn<'a, Message> {
         fn state(&self) -> widget::tree::State {
             widget::tree::State::Some(Box::new(HueColumnState::default()))
         }
-        fn width(&self) -> Length {
-            Length::FillPortion(1)
-        }
-
-        fn height(&self) -> Length {
-            Length::Shrink
+        fn size(&self) -> Size<Length> {
+            Size {
+                width: Length::FillPortion(1),
+                height: Length::Shrink,
+            }
         }
 
         fn layout(
             &self,
-            _renderer: &Renderer<Backend, Theme>,
+            _tree: &mut widget::Tree,
+            _renderer: &Renderer<wgpu::Backend>,
             limits: &layout::Limits,
         ) -> layout::Node {
-            let size = limits
-                .width(Length::Fill)
-                .height(Length::Fill)
-                .resolve(Size::ZERO);
+            let size = limits.resolve(Length::Fill, Length::Fill, Size::ZERO);
 
             layout::Node::new(Size::new(size.width, 4. * size.width))
         }
 
         fn draw(
             &self,
-            _state: &widget::Tree,
-            renderer: &mut Renderer<Backend, Theme>,
+            _tree: &widget::Tree,
+            renderer: &mut wgpu::Renderer,
             _theme: &Theme,
             _style: &Style,
             layout: Layout<'_>,
-            _cursor_position: Point,
+            _cursor: Cursor,
             _viewport: &Rectangle,
         ) {
             let b = layout.bounds();
@@ -196,17 +192,17 @@ mod hue_column {
             for i in 0..=nb_row {
                 let hsv = Hsv::new(i as f64 / nb_row as f64 * 360., 1., 1.);
                 let rgb = Rgb::from(hsv);
-                let color = [
+                let color = pack([
                     rgb.r as f32 / 255.,
                     rgb.g as f32 / 255.,
                     rgb.b as f32 / 255.,
                     1.,
-                ];
-                vertices.push(ColoredVertex2D {
+                ]);
+                vertices.push(SolidVertex2D {
                     position: [0., y_max * (i as f32 / nb_row as f32)],
                     color,
                 });
-                vertices.push(ColoredVertex2D {
+                vertices.push(SolidVertex2D {
                     position: [x_max, y_max * (i as f32 / nb_row as f32)],
                     color,
                 });
@@ -220,70 +216,75 @@ mod hue_column {
                 }
             }
 
+            let mesh = wgpu::primitive::Custom::Mesh(Mesh::Solid {
+                buffers: Indexed { vertices, indices },
+                size: b.size(),
+            });
+
             renderer.with_translation(Vector::new(b.x, b.y), |renderer| {
-                renderer.draw_primitive(Primitive::SolidMesh {
-                    size: b.size(),
-                    buffers: Mesh2D { vertices, indices },
-                })
+                renderer.draw_primitive(Primitive::Custom(mesh))
             });
         }
 
         fn on_event(
             &mut self,
             tree: &mut widget::Tree,
-            event: Event,
+            event: event::Event,
             layout: Layout<'_>,
-            cursor_position: Point,
-            _renderer: &Renderer<Backend, Theme>,
+            cursor: Cursor,
+            _renderer: &wgpu::Renderer,
             _clipboard: &mut dyn Clipboard,
             shell: &mut Shell<'_, Message>,
-        ) -> iced_native::event::Status {
-            let mut change = || {
+            _viewport: &Rectangle,
+        ) -> event::Status {
+            let mut change = |Point { x: _, y }| {
                 let bounds = layout.bounds();
-                if cursor_position.y <= bounds.y {
+                if y <= bounds.y {
                     shell.publish((self.on_slide)(0.));
-                } else if cursor_position.y >= bounds.y + bounds.height {
+                } else if y >= bounds.y + bounds.height {
                     shell.publish((self.on_slide)(360.));
                 } else {
-                    let percent = (cursor_position.y - bounds.y) / bounds.height;
-                    let value = percent * 360.;
+                    let percent = (y - bounds.y) / bounds.height;
+                    let value: f32 = percent * 360.;
                     shell.publish((self.on_slide)(value.into()));
                 }
             };
 
-            if let Event::Mouse(mouse_event) = event {
+            if let event::Event::Mouse(mouse_event) = event {
                 let state = tree.state.downcast_mut::<HueColumnState>();
                 match mouse_event {
                     mouse::Event::ButtonPressed(mouse::Button::Left) => {
-                        if layout.bounds().contains(cursor_position) {
-                            change();
+                        if let Some(position) = cursor.position() {
+                            change(position);
                             state.is_dragging = true;
                         }
-                        iced_native::event::Status::Captured
+                        event::Status::Captured
                     }
                     mouse::Event::ButtonReleased(mouse::Button::Left) => {
                         if state.is_dragging {
                             state.is_dragging = false;
                         }
-                        iced_native::event::Status::Captured
+                        event::Status::Captured
                     }
-                    mouse::Event::CursorMoved { .. } => {
+                    mouse::Event::CursorMoved { position } => {
                         if state.is_dragging {
-                            change();
-                            iced_native::event::Status::Captured
+                            change(position);
+                            event::Status::Captured
                         } else {
-                            iced_native::event::Status::Ignored
+                            event::Status::Ignored
                         }
                     }
-                    _ => iced_native::event::Status::Ignored,
+                    _ => event::Status::Ignored,
                 }
             } else {
-                iced_native::event::Status::Ignored
+                // Not a mouse event.
+                event::Status::Ignored
             }
         }
     }
 
-    impl<'a, Message> From<HueColumn<'a, Message>> for iced::Element<'a, Message>
+    impl<'a, Message, Theme> From<HueColumn<'a, Message>>
+        for iced::Element<'a, Message, Theme, wgpu::Renderer>
     where
         Message: 'a + Clone,
     {
@@ -295,15 +296,22 @@ mod hue_column {
 
 /// A widget to select Lightness and Saturation values.
 mod light_sat_square {
+    use iced::{
+        advanced::{
+            layout, mouse, renderer::Style, widget, Clipboard, Layout, Renderer as RendererTrait,
+            Shell, Widget,
+        },
+        event,
+        mouse::Cursor,
+        Length, Point, Rectangle, Size, Vector,
+    };
     use iced_graphics::{
-        renderer::{Renderer, Style},
-        triangle::{ColoredVertex2D, Mesh2D},
-        Primitive, Rectangle,
+        color::pack,
+        mesh::{Indexed, Mesh, SolidVertex2D},
+        renderer::Renderer,
+        Primitive,
     };
-    use iced_native::{
-        layout, mouse, widget, Clipboard, Event, Layout, Length, Point, Renderer as RendererTrait,
-        Shell, Size, Vector, Widget,
-    };
+    use iced_wgpu as wgpu;
 
     use color_space::{Hsv, Rgb};
 
@@ -344,32 +352,27 @@ mod light_sat_square {
         }
     }
 
-    impl<'a, Message, Backend, Theme> Widget<Message, Renderer<Backend, Theme>>
-        for LightSatSquare<'a, Message>
+    impl<'a, Message, Theme> Widget<Message, Theme, wgpu::Renderer> for LightSatSquare<'a, Message>
     where
         Message: Clone + 'a,
-        Backend: iced_graphics::Backend,
     {
         fn state(&self) -> widget::tree::State {
             widget::tree::State::Some(Box::new(LightSatState::default()))
         }
-        fn width(&self) -> Length {
-            Length::FillPortion(4)
-        }
-
-        fn height(&self) -> Length {
-            Length::Shrink
+        fn size(&self) -> Size<Length> {
+            Size {
+                width: Length::FillPortion(4),
+                height: Length::Shrink,
+            }
         }
 
         fn layout(
             &self,
-            _renderer: &Renderer<Backend, Theme>,
+            _tree: &mut widget::Tree,
+            _renderer: &wgpu::Renderer,
             limits: &layout::Limits,
         ) -> layout::Node {
-            let size = limits
-                .width(Length::Fill)
-                .height(Length::Fill)
-                .resolve(Size::ZERO);
+            let size = limits.resolve(Length::Fill, Length::Fill, Size::ZERO);
 
             layout::Node::new(Size::new(size.width, size.width))
         }
@@ -377,11 +380,11 @@ mod light_sat_square {
         fn draw(
             &self,
             _state: &widget::Tree,
-            renderer: &mut Renderer<Backend, Theme>,
+            renderer: &mut wgpu::Renderer,
             _theme: &Theme,
             _style: &Style,
             layout: Layout<'_>,
-            _cursor_position: Point,
+            _cursor: Cursor,
             _viewport: &Rectangle,
         ) {
             let b = layout.bounds();
@@ -398,8 +401,8 @@ mod light_sat_square {
                 let value = 1. - (i as f64 / nb_row as f64);
                 for j in 0..nb_column {
                     let sat = 1. - (j as f64 / nb_column as f64);
-                    let color = hsv_to_linear(self.hue, sat, value);
-                    vertices.push(ColoredVertex2D {
+                    let color = pack(hsv_to_linear(self.hue, sat, value));
+                    vertices.push(SolidVertex2D {
                         position: [
                             x_max * (j as f32 / nb_column as f32),
                             y_max * (i as f32 / nb_row as f32),
@@ -417,40 +420,43 @@ mod light_sat_square {
                 }
             }
 
+            let mesh = wgpu::primitive::Custom::Mesh(Mesh::Solid {
+                size: b.size(),
+                buffers: Indexed { vertices, indices },
+            });
+
             renderer.with_translation(Vector::new(b.x, b.y), |renderer| {
-                renderer.draw_primitive(Primitive::SolidMesh {
-                    size: b.size(),
-                    buffers: Mesh2D { vertices, indices },
-                })
+                renderer.draw_primitive(Primitive::Custom(mesh))
             });
         }
 
         fn on_event(
             &mut self,
             tree: &mut widget::Tree,
-            event: Event,
+            event: event::Event,
             layout: Layout<'_>,
-            cursor_position: Point,
-            _renderer: &Renderer<Backend, Theme>,
+            cursor: Cursor,
+            _renderer: &Renderer<wgpu::Backend>,
             _clipboard: &mut dyn Clipboard,
             shell: &mut Shell<'_, Message>,
-        ) -> iced_native::event::Status {
-            let mut change = || {
+            _viewport: &Rectangle,
+        ) -> event::Status {
+            let mut change = |Point { x, y }| {
                 let bounds = layout.bounds();
-                let percent_x = if cursor_position.x <= bounds.x {
+                let percent_x = if x <= bounds.x {
                     0.
-                } else if cursor_position.x >= bounds.x + bounds.width {
+                } else if x >= bounds.x + bounds.width {
                     1.
                 } else {
-                    f64::from(cursor_position.x - bounds.x) / f64::from(bounds.width)
+                    f64::from(x - bounds.x) / f64::from(bounds.width)
                 };
 
-                let percent_y = if cursor_position.y <= bounds.y {
+                let percent_y = if y <= bounds.y {
                     0.
-                } else if cursor_position.y >= bounds.y + bounds.height {
+                } else if y >= bounds.y + bounds.height {
                     1.
                 } else {
-                    f64::from(cursor_position.y - bounds.y) / f64::from(bounds.height)
+                    f64::from(y - bounds.y) / f64::from(bounds.height)
                 };
 
                 let saturation = 1. - percent_x;
@@ -458,16 +464,16 @@ mod light_sat_square {
                 shell.publish((self.on_slide)(saturation, value));
             };
 
-            if let Event::Mouse(mouse_event) = event {
+            if let event::Event::Mouse(mouse_event) = event {
                 let state = tree.state.downcast_mut::<LightSatState>();
                 match mouse_event {
                     mouse::Event::ButtonPressed(mouse::Button::Left) => {
-                        if layout.bounds().contains(cursor_position) {
-                            change();
+                        if let Some(position) = cursor.position() {
+                            change(position);
                             state.is_dragging = true;
-                            iced_native::event::Status::Captured
+                            event::Status::Captured
                         } else {
-                            iced_native::event::Status::Ignored
+                            event::Status::Ignored
                         }
                     }
                     mouse::Event::ButtonReleased(mouse::Button::Left) => {
@@ -475,23 +481,24 @@ mod light_sat_square {
                             state.is_dragging = false;
                         }
                         shell.publish(self.on_finish.clone());
-                        iced_native::event::Status::Captured
+                        event::Status::Captured
                     }
-                    mouse::Event::CursorMoved { .. } => {
+                    mouse::Event::CursorMoved { position } => {
                         if state.is_dragging {
-                            change();
+                            change(position);
                         }
-                        iced_native::event::Status::Captured
+                        event::Status::Captured
                     }
-                    _ => iced_native::event::Status::Ignored,
+                    _ => event::Status::Ignored,
                 }
             } else {
-                iced_native::event::Status::Ignored
+                event::Status::Ignored
             }
         }
     }
 
-    impl<'a, Message> From<LightSatSquare<'a, Message>> for iced::Element<'a, Message>
+    impl<'a, Message, Theme> From<LightSatSquare<'a, Message>>
+        for iced::Element<'a, Message, Theme, wgpu::Renderer>
     where
         Message: Clone + 'a,
     {
@@ -504,15 +511,21 @@ mod light_sat_square {
 /// A widget to Visualize selected color.
 mod color_square {
     use super::Color;
+    use iced::{
+        advanced::{
+            layout, mouse, renderer::Style, widget, Clipboard, Layout, Renderer as RendererTrait,
+            Shell, Widget,
+        },
+        event,
+        mouse::Cursor,
+        Length, Rectangle, Size, Vector,
+    };
     use iced_graphics::{
-        renderer::{Renderer, Style},
-        triangle::{ColoredVertex2D, Mesh2D},
-        Primitive, Rectangle,
+        color::pack,
+        mesh::{Indexed, Mesh, SolidVertex2D},
+        Primitive,
     };
-    use iced_native::{
-        layout, mouse, widget, Clipboard, Event, Layout, Length, Point, Renderer as RendererTrait,
-        Shell, Size, Vector, Widget,
-    };
+    use iced_wgpu as wgpu;
 
     /// The State of a [ColorSquare]
     #[derive(Default, Clone, Eq, PartialEq)]
@@ -542,129 +555,133 @@ mod color_square {
         }
     }
 
-    impl<'a, Message, Backend, Theme> Widget<Message, Renderer<Backend, Theme>>
-        for ColorSquare<'a, Message>
+    impl<'a, Message, Theme> Widget<Message, Theme, wgpu::Renderer> for ColorSquare<'a, Message>
     where
         Message: Clone + 'a,
-        Backend: iced_graphics::Backend,
     {
         fn state(&self) -> widget::tree::State {
             widget::tree::State::Some(Box::new(ColorSquareState::default()))
         }
-        fn width(&self) -> Length {
-            Length::FillPortion(1)
-        }
-
-        fn height(&self) -> Length {
-            Length::FillPortion(1)
+        fn size(&self) -> Size<Length> {
+            Size {
+                width: Length::FillPortion(1),
+                height: Length::FillPortion(1),
+            }
         }
 
         fn layout(
             &self,
-            _renderer: &Renderer<Backend, Theme>,
+            _tree: &mut widget::Tree,
+            _renderer: &wgpu::Renderer,
             limits: &layout::Limits,
         ) -> layout::Node {
-            let size = limits
-                .width(Length::Fill)
-                .height(Length::Fill)
-                .resolve(Size::ZERO);
+            let size = limits.resolve(Length::Fill, Length::Fill, Size::ZERO);
 
             layout::Node::new(Size::new(size.width, size.width))
         }
 
         fn draw(
             &self,
-            _state: &widget::Tree,
-            renderer: &mut Renderer<Backend, Theme>,
+            _tree: &widget::Tree,
+            renderer: &mut wgpu::Renderer,
             _theme: &Theme,
             _style: &Style,
             layout: Layout<'_>,
-            _cursor_position: Point,
+            _cursor: Cursor,
             _viewport: &Rectangle,
         ) {
             let b = layout.bounds();
             let x_max = b.width;
             let y_max = b.height;
-            let dummy_color = [1.0, 0.0, 0.0, 1.0]; // TODO: Find an appropriate color.
-                                                    // The primitiver API changed. It now ask for
-                                                    // some color. I do not now which one to choose now.
+            let dummy_color = pack([1.0, 0.0, 0.0, 1.0]);
+            // TODO: Find an appropriate color.
+            // The primitiver API changed. It now ask for
+            // some color. I do not now which one to choose now.
             let vertices = vec![
-                ColoredVertex2D {
+                SolidVertex2D {
                     position: [0., 0.],
                     color: dummy_color,
                 },
-                ColoredVertex2D {
+                SolidVertex2D {
                     position: [0., y_max],
                     color: dummy_color,
                 },
-                ColoredVertex2D {
+                SolidVertex2D {
                     position: [x_max, 0.],
                     color: dummy_color,
                 },
-                ColoredVertex2D {
+                SolidVertex2D {
                     position: [x_max, y_max],
                     color: dummy_color,
                 },
             ];
             let indices = vec![0, 1, 2, 1, 2, 3];
 
+            let mesh = wgpu::primitive::Custom::Mesh(Mesh::Solid {
+                buffers: Indexed { vertices, indices },
+                size: b.size(),
+            });
+
             renderer.with_translation(Vector::new(b.x, b.y), |renderer| {
-                renderer.draw_primitive(Primitive::SolidMesh {
-                    buffers: Mesh2D { vertices, indices },
-                    size: b.size(),
-                })
+                //renderer.draw_primitive(Primitive::SolidMesh {
+                //    buffers: Indexed { vertices, indices },
+                //    size: b.size(),
+                //})
+                renderer.draw_primitive(Primitive::Custom(mesh))
             });
         }
 
         fn on_event(
             &mut self,
             tree: &mut widget::Tree,
-            event: Event,
+            event: event::Event,
             layout: Layout<'_>,
-            cursor_position: Point,
-            _renderer: &Renderer<Backend, Theme>,
+            cursor: Cursor,
+            _renderer: &wgpu::Renderer,
             _clipboard: &mut dyn Clipboard,
             shell: &mut Shell<'_, Message>,
-        ) -> iced_native::event::Status {
-            if let Event::Mouse(mouse_event) = event {
+            _viewport: &Rectangle,
+        ) -> event::Status {
+            if let event::Event::Mouse(mouse_event) = event {
                 let state = tree.state.downcast_mut::<ColorSquareState>();
                 match mouse_event {
                     mouse::Event::ButtonPressed(mouse::Button::Left) => {
-                        if layout.bounds().contains(cursor_position) {
+                        if cursor.is_over(layout.bounds()) {
                             state.clicked = true;
                             shell.publish((self.on_click)(self.color));
-                            iced_native::event::Status::Captured
+                            event::Status::Captured
                         } else {
-                            iced_native::event::Status::Ignored
+                            event::Status::Ignored
                         }
                     }
                     mouse::Event::ButtonReleased(mouse::Button::Left) if state.clicked => {
-                        if layout.bounds().contains(cursor_position) {
+                        if cursor.is_over(layout.bounds()) {
                             state.clicked = false;
                             shell.publish(self.on_release.clone());
-                            iced_native::event::Status::Captured
+                            event::Status::Captured
                         } else {
-                            iced_native::event::Status::Ignored
+                            event::Status::Ignored
                         }
                     }
                     mouse::Event::CursorMoved { .. } if state.clicked => {
-                        if layout.bounds().contains(cursor_position) {
-                            iced_native::event::Status::Ignored
+                        if cursor.is_over(layout.bounds()) {
+                            event::Status::Ignored
                         } else {
                             state.clicked = false;
                             shell.publish(self.on_release.clone());
-                            iced_native::event::Status::Captured
+                            event::Status::Captured
                         }
                     }
-                    _ => iced_native::event::Status::Ignored,
+                    _ => event::Status::Ignored,
                 }
             } else {
-                iced_native::event::Status::Ignored
+                event::Status::Ignored
             }
         }
     }
 
-    impl<'a, Message> From<ColorSquare<'a, Message>> for iced::Element<'a, Message>
+    impl<'a, Message, Theme> From<ColorSquare<'a, Message>>
+        for iced::Element<'a, Message, Theme, wgpu::Renderer>
     where
         Message: Clone + 'a,
     {

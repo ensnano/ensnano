@@ -29,7 +29,6 @@ use ensnano_interactor::{ActionMode, SelectionMode};
 use iced::{theme, Element, Length, Padding};
 use iced_runtime::{Command, Program};
 use iced_wgpu;
-use iced_widget::*;
 use iced_winit::winit::dpi::LogicalSize;
 //use std::collections::BTreeMap;
 use std::sync::{Arc, Mutex};
@@ -112,7 +111,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
     type Theme = iced::Theme;
     type Message = Message<S>;
 
-    fn update(&mut self, message: Message<S>) -> Command<Message<S>> {
+    fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         match message {
             Message::SceneFitRequested => {
                 self.requests.lock().unwrap().fit_design_in_scenes();
@@ -172,7 +171,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
         Command::none()
     }
 
-    fn view(&self) -> Element<Message<S>, Self::Renderer> {
+    fn view(&self) -> Element<Self::Message, Self::Theme, Self::Renderer> {
         let build_helix_mode = self.get_build_helix_mode();
         // List of action modes to add in the top bar.
         let action_modes_to_display = [
@@ -460,7 +459,7 @@ fn action_mode_btn<'a, S: AppState>(
     current_action_mode: ActionMode,
     button_size: impl Into<Length>,
     axis_aligned: bool,
-) -> Button<'a, Message<S>, iced_wgpu::Renderer> {
+) -> Button<'a, Message<S>, Theme, iced_wgpu::Renderer> {
     let icon_path = if current_action_mode == *mode {
         mode.icon_on(axis_aligned)
     } else {
@@ -478,7 +477,7 @@ fn selection_mode_btn<'a, S: AppState>(
     mode: &SelectionMode,
     current_mode: SelectionMode,
     button_size: impl Into<Length>,
-) -> Button<'a, Message<S>, iced_wgpu::Renderer> {
+) -> Button<'a, Message<S>, Theme, iced_wgpu::Renderer> {
     let icon_path = if current_mode == *mode {
         mode.icon_on()
     } else {

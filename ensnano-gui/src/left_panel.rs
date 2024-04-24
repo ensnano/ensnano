@@ -961,7 +961,7 @@ where
         Command::none()
     }
 
-    fn view(&self) -> Element<Message<S>, Self::Renderer> {
+    fn view(&self) -> Element<Self::Message, Self::Theme, Self::Renderer> {
         let width = self.logical_size.cast::<u16>().width;
         let tabs: Tabs<Message<S>, Self::Renderer> = Tabs::with_tabs(
             self.selected_tab,
@@ -1125,7 +1125,7 @@ impl<R: Requests> Program for ColorOverlay<R> {
     type Theme = iced::Theme;
     type Message = ColorMessage;
 
-    fn update(&mut self, message: ColorMessage) -> Command<ColorMessage> {
+    fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         match message {
             ColorMessage::HsvSatValueChanged(_sat, _value) => {}
             ColorMessage::HueChanged(x) => self.color_picker.change_hue(x as f64),
@@ -1143,7 +1143,7 @@ impl<R: Requests> Program for ColorOverlay<R> {
         Command::none()
     }
 
-    fn view(&self) -> Element<ColorMessage, Self::Renderer> {
+    fn view(&self) -> Element<Self::Message, Self::Theme, Self::Renderer> {
         let width = self.logical_size.cast::<u16>().width;
 
         let widget = Column::new()

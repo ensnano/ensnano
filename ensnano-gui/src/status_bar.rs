@@ -19,6 +19,7 @@ use super::{AppState, Requests, UiSize};
 use ensnano_interactor::operation::{Operation, ParameterField};
 pub use ensnano_interactor::StrandBuildingStatus;
 use iced::{Alignment, Element, Length};
+use iced_graphics::text::Paragraph;
 use iced_runtime::{Command, Program};
 use iced_widget::*;
 use iced_winit::winit;
@@ -30,19 +31,19 @@ const GOLD_ORANGE: iced::Color = iced::Color::from_rgb(0.84, 0.57, 0.20);
 
 #[derive(Debug)]
 enum StatusParameter {
-    Value(text_input::State<iced_graphics::text::Paragraph>),
-    Choice(pick_list::State<String>),
+    Value(text_input::State<Paragraph>),
+    Choice(pick_list::State<Paragraph>),
 }
 
 impl StatusParameter {
-    fn get_value(&mut self) -> &mut text_input::State {
+    fn get_value(&mut self) -> &mut text_input::State<Paragraph> {
         match self {
             StatusParameter::Value(ref mut state) => state,
             _ => panic!("wrong status parameter variant"),
         }
     }
 
-    fn get_choice(&mut self) -> &mut pick_list::State<String> {
+    fn get_choice(&mut self) -> &mut pick_list::State<Paragraph> {
         match self {
             StatusParameter::Choice(ref mut state) => state,
             _ => panic!("wrong status parameter variant"),
@@ -183,7 +184,7 @@ impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
     type Theme = iced::Theme;
     type Renderer = iced_wgpu::Renderer;
 
-    fn update(&mut self, message: Message<S>) -> Command<Message<S>> {
+    fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         self.update_operation();
         if self.progress.is_some() {
             self.operation = None;
@@ -228,7 +229,7 @@ impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
         Command::none()
     }
 
-    fn view(&self) -> Element<Message<S>, iced_wgpu::Renderer> {
+    fn view(&self) -> Element<Self::Message, Self::Theme, Self::Renderer> {
         let clipboard_text = format!(
             "Clipboard: {}",
             self.app_state.get_clipboard_content().to_string()
