@@ -17,20 +17,20 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::*;
+use ahash::RandomState;
 use ensnano_design::{
     grid::{GridId, GridObject, GridPosition, HelixGridPosition},
-    BezierPlaneDescriptor, BezierPlaneId, BezierVertexId, Collection, CurveDescriptor, Nucl, Domain,
+    BezierPlaneDescriptor, BezierPlaneId, BezierVertexId, Collection, CurveDescriptor, Domain,
+    Nucl,
 };
 use ensnano_interactor::{
     graphics::{LoopoutBond, LoopoutNucl},
     BezierControlPoint, ObjectType, Referential,
 };
 use std::collections::HashSet;
-use ahash::RandomState;
 use ultraviolet::{Mat4, Rotor3, Vec2, Vec3};
 
 use crate::scene::{DesignReader as Reader3D, GridInstance, SurfaceInfo};
-
 
 impl Reader3D for DesignReader {
     fn get_color(&self, e_id: u32) -> Option<u32> {
@@ -617,7 +617,7 @@ impl Reader3D for DesignReader {
             .map(Arc::as_ref)
     }
 
-    fn get_nucleotides_positions_by_strands(&self) -> HashMap<usize, Vec<[f32;3]>> {
+    fn get_nucleotides_positions_by_strands(&self) -> HashMap<usize, Vec<[f32; 3]>> {
         let mut nucl_pos = HashMap::new();
         let design = self.presenter.current_design.as_ref();
         let content = self.presenter.content.as_ref();
@@ -636,18 +636,21 @@ impl Reader3D for DesignReader {
                             forward: domain.forward,
                             helix: domain.helix,
                         };
-                        let nucl_id = content.nucl_collection.get_identifier(&nucl).unwrap_or_else(||
-                            unreachable!("nucleotide does not belong to the design content!"));
+                        let nucl_id = content
+                            .nucl_collection
+                            .get_identifier(&nucl)
+                            .unwrap_or_else(|| {
+                                unreachable!("nucleotide does not belong to the design content!")
+                            });
                         let position = content.space_position.get(nucl_id).unwrap().clone();
                         pos_seq.push(position);
                     }
-                } 
+                }
             }
             nucl_pos.insert(*s_id, pos_seq);
         }
         return nucl_pos;
     }
-
 }
 
 #[cfg(test)]

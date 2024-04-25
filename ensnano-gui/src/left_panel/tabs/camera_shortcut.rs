@@ -170,7 +170,7 @@ macro_rules! add_nucleotides_positons_export_button {
     ($ret: ident, $self: ident, $ui_size: ident, $width: ident) => {
         let nucleotides_positions_export_button = Button::new(
             &mut $self.save_nucleotide_positions_button,
-            Text::new("   Nucl").size($ui_size.main_text()),
+            Text::new(" Nucl").size($ui_size.main_text()),
         )
         .on_press(Message::SaveNucleotidesPositions)
         .width(Length::Units(2 * $ui_size.button()));

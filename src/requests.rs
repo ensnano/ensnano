@@ -62,6 +62,7 @@ pub struct Requests {
     pub fitting: Option<()>,
     /// A request to save the selected design
     pub file_save: Option<()>,
+    pub save_nucleotides_positions_by_strand: Option<HashMap<usize, Vec<[f32;3]>>>,
     /// A request to change the color of the selcted strand
     pub strand_color_change: Option<u32>,
     /// A request to change the sequence of the selected strand
