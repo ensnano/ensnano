@@ -1124,6 +1124,19 @@ impl<S: AppState> Scene<S> {
         use std::io::Write;
         out_file.write_all(&stl_bytes);
     }
+
+    fn export_nucleotides_positions(&self, app_state: &S) {
+        use chrono::Utc;
+        let file_name = Utc::now()
+            .format("export_nucleotides_positions_%Y_%m_%d_%H_%M_%S.py")
+            .to_string();
+        println!("Nucleotides positions export to {file_name}");
+        // let raw_instances = self.data.borrow().get_all_raw_instances(app_state);
+        // let stl_bytes = stl::stl_bytes_export(raw_instances).unwrap();
+        // let mut out_file = std::fs::File::create(file_name).unwrap();
+        // use std::io::Write;
+        // out_file.write_all(&stl_bytes);        
+    }
 }
 
 /// A structure that stores the element that needs to be updated in a scene
@@ -1270,6 +1283,11 @@ impl<S: AppState> Application for Scene<S> {
             Notification::ScreenShot3D => {
                 if !self.is_stereographic() {
                     self.export_png();
+                }
+            }
+            Notification::SaveNucleotidesPositions => {
+                if !self.is_stereographic() {
+                    self.export_nucleotides_positions(&self.older_state);
                 }
             }
             Notification::StlExport => {

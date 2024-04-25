@@ -1441,7 +1441,8 @@ impl GridData {
             .unwrap_or(true)
         {
             if let Some(desc) = helix.instanciated_descriptor.as_ref() {
-                let curve = desc.make_curve(&self.helix_parameters, cached_curve);
+                let hp = helix.helix_parameters.unwrap_or(self.helix_parameters);
+                let curve = desc.make_curve(&hp, cached_curve);
                 curve.update_additional_segments(&mut helix.additional_isometries);
                 helix.instanciated_curve = Some(InstanciatedCurve {
                     curve,

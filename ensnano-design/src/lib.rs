@@ -34,8 +34,8 @@ pub use bezier_plane::*;
 pub use ultraviolet;
 use ultraviolet::{Rotor3, Vec3};
 
-pub mod consts;
 pub mod codenano;
+pub mod consts;
 pub mod grid;
 use grid::{FreeGrids, GridData, GridDescriptor, GridId};
 pub mod scadnano;
