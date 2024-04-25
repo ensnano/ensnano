@@ -1136,7 +1136,6 @@ impl<S: AppState> Scene<S> {
 
     fn export_nucleotides_positions(&self, filename: Option<Arc<Path>>) {
         use chrono::Utc;
-        println!("Got filename: {:?}", filename);
         let suffix = format!("-{ITERATIVE_AXIS_ALGORITHM}.json").to_string();
         let file_name = Utc::now()
             .format("export_nucleotides_positions-%Y_%m_%d-%H_%M_%S-%6f")

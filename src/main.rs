@@ -1922,9 +1922,8 @@ impl<'a> MainStateInterface for MainStateView<'a> {
         self.main_state.get_current_file_name()
     }
 
-    fn save_nucleotides_positions_by_strand(&mut self, nucl_pos: StdHashMap<usize, Vec<[f32; 3]>>) {
+    fn save_nucleotides_positions_by_strand(&mut self) {
         if let Some(filename) = self.get_current_file_name() {
-            println!("Here is the path: {:?}", filename);
             self.main_state.push_action(Action::NotifyApps(
                 Notification::SaveNucleotidesPositions(Some(Arc::from(filename))),
             ));

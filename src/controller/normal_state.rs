@@ -298,8 +298,8 @@ impl State for NormalState {
                     main_state.set_exporting(exporting);
                     self
                 }
-                Action::SaveNucleotidesPositionsByStrand(nucl_pos) => {
-                    main_state.save_nucleotides_positions_by_strand(nucl_pos);
+                Action::SaveNucleotidesPositionsByStrand => {
+                    main_state.save_nucleotides_positions_by_strand();
                     self
                 }
                 Action::OptimizeShift => Box::new(SetScaffoldSequence::optimize_shift()),
@@ -500,7 +500,7 @@ pub enum Action {
     DeleteSelection,
     ScaffoldToSelection,
     /// Save the nucleotides 3D positions by strand as a json file in the design directory
-    SaveNucleotidesPositionsByStrand(HashMap<usize, Vec<[f32; 3]>>),
+    SaveNucleotidesPositionsByStrand,
     /// Remove empty domains and merge consecutive domains
     CleanDesign,
     SuspendOp,
