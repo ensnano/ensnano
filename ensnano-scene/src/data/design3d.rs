@@ -1633,7 +1633,7 @@ pub(super) enum ExpandWith {
     Tubes,
 }
 
-// Array of (strand number, array of 3D space position of the nucleotides) 
+// Array of (strand number, array of 3D space position of the nucleotides)
 
 pub trait DesignReader: 'static + ensnano_interactor::DesignReader {
     /// Return the identifier of all the visible nucleotides
@@ -1726,7 +1726,7 @@ pub trait DesignReader: 'static + ensnano_interactor::DesignReader {
     fn get_surface_info_nucl(&self, nucl: Nucl) -> Option<SurfaceInfo>;
     fn get_surface_info(&self, point: SurfacePoint) -> Option<SurfaceInfo>;
     fn get_additional_structure(&self) -> Option<&dyn AdditionalStructure>;
-    fn get_nucleotides_positions_by_strands(&self) -> HashMap<usize, Vec<[f32;3]>, RandomState>;
+    fn get_nucleotides_positions_by_strands(&self) -> HashMap<usize, Vec<[f32; 3]>, RandomState>;
 }
 
 pub(super) struct HBondsInstances {

@@ -15,6 +15,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+use std::path::Path;
+
+use ensnano_design::consts::ITERATIVE_AXIS_ALGORITHM;
 use ensnano_design::{grid::HelixGridPosition, ultraviolet, BezierVertexId};
 use ensnano_interactor::graphics::LoopoutBond;
 use ensnano_interactor::{
@@ -1131,12 +1134,24 @@ impl<S: AppState> Scene<S> {
         println!("Export failed!");
     }
 
-    fn export_nucleotides_positions(&self) {
+    fn export_nucleotides_positions(&self, filename: Option<Arc<Path>>) {
         use chrono::Utc;
+        let suffix = format!("-{ITERATIVE_AXIS_ALGORITHM}.json").to_string();
         let file_name = Utc::now()
-            .format("export_nucleotides_positions-%Y_%m_%d-%H_%M_%S-%6f.json")
+            .format("export_nucleotides_positions-%Y_%m_%d-%H_%M_%S-%6f")
             .to_string();
-        println!("Nucleotides positions export to {file_name}");
+        let file_name = file_name + &suffix;
+        let file_name = if let Some(path) = filename {
+            let f = format!(
+                "{}-{}",
+                path.file_stem().unwrap().to_str().unwrap(),
+                file_name
+            );
+            path.with_file_name(f)
+        } else {
+            PathBuf::from(file_name)
+        };
+        println!("Nucleotides positions export to {:?}", file_name);
         if let Some(nucl_pos) = self.data.borrow().get_nucleotides_positions_by_strands() {
             let data = serde_json::to_string(&nucl_pos).unwrap();
             if let Ok(mut out_file) = std::fs::File::create(file_name) {
@@ -1295,13 +1310,15 @@ impl<S: AppState> Application for Scene<S> {
                     self.export_png();
                 }
             }
-            Notification::SaveNucleotidesPositions => {
+            Notification::SaveNucleotidesPositions(filename) => {
                 if !self.is_stereographic() {
-                    self.export_nucleotides_positions();
+                    // avoid exporting twice
+                    self.export_nucleotides_positions(filename);
                 }
             }
             Notification::StlExport => {
                 if !self.is_stereographic() {
+                    // avoid exporting twice
                     self.export_stl(&self.older_state);
                 }
             }
@@ -1318,9 +1335,9 @@ impl<S: AppState> Application for Scene<S> {
             .set_stereographic(self.is_stereographic());
         if self.is_stereographic() {
             let stereography = self.view.borrow().get_stereography();
-            self.controller.set_setreography(Some(stereography));
+            self.controller.set_stereography(Some(stereography));
         } else {
-            self.controller.set_setreography(None);
+            self.controller.set_stereography(None);
         }
         self.input(event, cursor_position, app_state)
     }

@@ -516,7 +516,14 @@ impl GuiRequests for Requests {
 
     fn request_save_nucleotides_positions(&mut self) {
         self.keep_proceed
-            .push_back(Action::NotifyApps(Notification::SaveNucleotidesPositions))
+            .push_back(Action::SaveNucleotidesPositionsByStrand);
+    }
+
+    fn request_save_nucleotides_positions_to(&mut self, filename: Option<Arc<std::path::Path>>) {
+        self.keep_proceed
+            .push_back(Action::NotifyApps(Notification::SaveNucleotidesPositions(
+                filename,
+            )))
     }
 
     fn set_unrooted_surface(&mut self, surface: Option<UnrootedRevolutionSurfaceDescriptor>) {

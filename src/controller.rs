@@ -21,8 +21,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use crate::PastePosition;
 mod download_intervals;
 mod download_staples;
+use ahash::HashMap;
 use download_staples::*;
 pub use download_staples::{DownloadStapleError, DownloadStapleOk, StaplesDownloader};
+use std::collections::HashMap as StdHashMap;
 mod quit;
 use ensnano_design::grid::GridId;
 use ensnano_design::group_attributes::GroupPivot;
@@ -245,6 +247,7 @@ pub(crate) trait MainState: ScaffoldSetter {
     fn set_exporting(&mut self, exporting: bool);
     fn load_3d_object(&mut self, path: PathBuf);
     fn load_svg(&mut self, path: PathBuf);
+    fn save_nucleotides_positions_by_strand(&mut self);
 }
 
 pub enum LoadDesignError {

@@ -22,6 +22,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! other components of the program it is forwarded to the `main` function via the
 //! [Request](Requests) data structure.
 
+use std::path::{Path, PathBuf};
+
 /// Draw the top bar of the GUI
 pub mod top_bar;
 use ensnano_organizer::GroupId;
@@ -232,6 +234,7 @@ pub trait Requests: 'static + Send {
     /// Make a screenshot of the 3D scene.
     fn request_screenshot_3d(&mut self);
     fn request_save_nucleotides_positions(&mut self);
+    fn request_save_nucleotides_positions_to(&mut self, filename: Option<Arc<Path>>);
     fn notify_revolution_tab(&mut self);
     fn request_stl_export(&mut self);
 }

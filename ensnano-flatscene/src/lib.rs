@@ -795,7 +795,7 @@ impl<S: AppState> Application for FlatScene<S> {
                 }
             }
             Notification::ScreenShot3D => (), // Nothing to do in the flatscene.
-            Notification::SaveNucleotidesPositions => (), // Nothing to do in the flatscene.
+            Notification::SaveNucleotidesPositions(_) => (), // Nothing to do in the flatscene.
             Notification::StlExport => (),
         }
     }
