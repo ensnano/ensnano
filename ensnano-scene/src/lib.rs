@@ -1134,14 +1134,14 @@ impl<S: AppState> Scene<S> {
         println!("Export failed!");
     }
 
-    fn export_nucleotides_positions(&self, filename: Option<Arc<Path>>) {
+    fn export_nucleotides_positions(&self, design_filename: Option<Arc<Path>>) {
         use chrono::Utc;
         let suffix = format!("-{ITERATIVE_AXIS_ALGORITHM}.json").to_string();
         let file_name = Utc::now()
             .format("export_nucleotides_positions-%Y_%m_%d-%H_%M_%S-%6f")
             .to_string();
         let file_name = file_name + &suffix;
-        let file_name = if let Some(path) = filename {
+        let file_name = if let Some(path) = design_filename {
             let f = format!(
                 "{}-{}",
                 path.file_stem().unwrap().to_str().unwrap(),

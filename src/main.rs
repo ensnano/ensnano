@@ -1922,15 +1922,15 @@ impl<'a> MainStateInterface for MainStateView<'a> {
         self.main_state.get_current_file_name()
     }
 
-    fn save_nucleotides_positions_by_strand(&mut self) {
+    fn get_design_path_and_notify(&mut self, notificator: fn(Option<Arc<Path>>) -> Notification) {
         if let Some(filename) = self.get_current_file_name() {
             self.main_state.push_action(Action::NotifyApps(
-                Notification::SaveNucleotidesPositions(Some(Arc::from(filename))),
+                notificator(Some(Arc::from(filename))),
             ));
         } else {
             println!("No directory yet");
             self.main_state.push_action(Action::NotifyApps(
-                Notification::SaveNucleotidesPositions(None),
+                notificator(None),
             ));
         }
     }

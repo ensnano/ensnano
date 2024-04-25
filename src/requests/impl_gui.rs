@@ -516,7 +516,7 @@ impl GuiRequests for Requests {
 
     fn request_save_nucleotides_positions(&mut self) {
         self.keep_proceed
-            .push_back(Action::SaveNucleotidesPositionsByStrand);
+            .push_back(Action::GetDesignPathAndNotify(|path| { Notification::SaveNucleotidesPositions(path)}));
     }
 
     fn request_save_nucleotides_positions_to(&mut self, filename: Option<Arc<std::path::Path>>) {

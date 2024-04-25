@@ -25,6 +25,7 @@ use ahash::HashMap;
 use download_staples::*;
 pub use download_staples::{DownloadStapleError, DownloadStapleOk, StaplesDownloader};
 use std::collections::HashMap as StdHashMap;
+use std::sync::Arc;
 mod quit;
 use ensnano_design::grid::GridId;
 use ensnano_design::group_attributes::GroupPivot;
@@ -247,7 +248,7 @@ pub(crate) trait MainState: ScaffoldSetter {
     fn set_exporting(&mut self, exporting: bool);
     fn load_3d_object(&mut self, path: PathBuf);
     fn load_svg(&mut self, path: PathBuf);
-    fn save_nucleotides_positions_by_strand(&mut self);
+    fn get_design_path_and_notify(&mut self, notificator: fn (Option<Arc<Path>>) -> Notification);
 }
 
 pub enum LoadDesignError {

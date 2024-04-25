@@ -27,6 +27,7 @@ use ensnano_interactor::{
     graphics::FogParameters, HyperboloidOperation, RevolutionSurfaceSystemDescriptor,
 };
 use std::collections::HashMap;
+use std::sync::Arc;
 
 /// User is interacting with graphical components.
 pub(super) struct NormalState;
@@ -298,8 +299,8 @@ impl State for NormalState {
                     main_state.set_exporting(exporting);
                     self
                 }
-                Action::SaveNucleotidesPositionsByStrand => {
-                    main_state.save_nucleotides_positions_by_strand();
+                Action::GetDesignPathAndNotify(notificator) => {
+                    main_state.get_design_path_and_notify(notificator);
                     self
                 }
                 Action::OptimizeShift => Box::new(SetScaffoldSequence::optimize_shift()),
@@ -500,7 +501,7 @@ pub enum Action {
     DeleteSelection,
     ScaffoldToSelection,
     /// Save the nucleotides 3D positions by strand as a json file in the design directory
-    SaveNucleotidesPositionsByStrand,
+    GetDesignPathAndNotify(fn (Option<Arc<Path>>) -> Notification),
     /// Remove empty domains and merge consecutive domains
     CleanDesign,
     SuspendOp,
