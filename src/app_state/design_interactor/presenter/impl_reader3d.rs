@@ -19,16 +19,18 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::*;
 use ensnano_design::{
     grid::{GridId, GridObject, GridPosition, HelixGridPosition},
-    BezierPlaneDescriptor, BezierPlaneId, BezierVertexId, Collection, CurveDescriptor, Nucl,
+    BezierPlaneDescriptor, BezierPlaneId, BezierVertexId, Collection, CurveDescriptor, Nucl, Domain,
 };
 use ensnano_interactor::{
     graphics::{LoopoutBond, LoopoutNucl},
     BezierControlPoint, ObjectType, Referential,
 };
 use std::collections::HashSet;
+use ahash::RandomState;
 use ultraviolet::{Mat4, Rotor3, Vec2, Vec3};
 
 use crate::scene::{DesignReader as Reader3D, GridInstance, SurfaceInfo};
+
 
 impl Reader3D for DesignReader {
     fn get_color(&self, e_id: u32) -> Option<u32> {
@@ -614,6 +616,38 @@ impl Reader3D for DesignReader {
             .as_ref()
             .map(Arc::as_ref)
     }
+
+    fn get_nucleotides_positions_by_strands(&self) -> HashMap<usize, Vec<[f32;3]>> {
+        let mut nucl_pos = HashMap::new();
+        let design = self.presenter.current_design.as_ref();
+        let content = self.presenter.content.as_ref();
+
+        // Scanning strands
+        for (s_id, strand) in design.strands.iter() {
+            let mut pos_seq = Vec::new();
+            for (i, domain) in strand.domains.iter().enumerate() {
+                // Real domain or Insertion
+                if let Domain::HelixDomain(domain) = domain {
+                    // Real helix domain
+                    // Iterate along the domain
+                    for (dom_position, nucl_position) in domain.iter().enumerate() {
+                        let nucl: Nucl = Nucl {
+                            position: nucl_position,
+                            forward: domain.forward,
+                            helix: domain.helix,
+                        };
+                        let nucl_id = content.nucl_collection.get_identifier(&nucl).unwrap_or_else(||
+                            unreachable!("nucleotide does not belong to the design content!"));
+                        let position = content.space_position.get(nucl_id).unwrap().clone();
+                        pos_seq.push(position);
+                    }
+                } 
+            }
+            nucl_pos.insert(*s_id, pos_seq);
+        }
+        return nucl_pos;
+    }
+
 }
 
 #[cfg(test)]

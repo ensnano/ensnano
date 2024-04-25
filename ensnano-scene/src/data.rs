@@ -29,6 +29,7 @@ use super::{
 };
 use std::cell::RefCell;
 use std::collections::{BTreeMap, HashMap, HashSet};
+use std::hash::RandomState;
 use std::rc::Rc;
 use std::sync::Arc;
 
@@ -1339,6 +1340,10 @@ impl<R: DesignReader> Data<R> {
         instances
     }
 
+    pub fn get_nucleotides_positions_by_strands(&self) -> Option<HashMap<usize, Vec<[f32;3]>>> {
+        return Some(self.designs.get(0)?.design_reader.get_nucleotides_positions_by_strands());
+    }
+
     /// Notify the view that the instances of candidates have changed
     fn update_candidate<S: AppState>(&mut self, candidates: &[Selection], app_state: &S) {
         self.view.borrow_mut().update(ViewUpdate::RawDna(
@@ -2153,6 +2158,7 @@ impl<R: DesignReader> ControllerData for Data<R> {
     fn notify_camera_movement(&mut self, camera: &crate::camera::CameraController) {
         self.update_surface_pivot(camera.get_current_surface_pivot())
     }
+
 }
 
 #[derive(Debug, Clone, PartialOrd, PartialEq)]

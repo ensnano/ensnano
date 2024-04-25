@@ -46,6 +46,9 @@ use winit::event::WindowEvent;
 
 mod stl;
 
+use serde::{Deserialize, Serialize};
+use serde_json::Result;
+
 /// Computation of the view and projection matrix.
 mod camera;
 /// Display of the scene
@@ -1120,22 +1123,29 @@ impl<S: AppState> Scene<S> {
         println!("STL export to {file_name}");
         let raw_instances = self.data.borrow().get_all_raw_instances(app_state);
         let stl_bytes = stl::stl_bytes_export(raw_instances).unwrap();
-        let mut out_file = std::fs::File::create(file_name).unwrap();
-        use std::io::Write;
-        out_file.write_all(&stl_bytes);
+        if let Ok(mut out_file) = std::fs::File::create(file_name) {
+            use std::io::Write;
+            out_file.write_all(&stl_bytes);
+            return;
+        }
+        println!("Export failed!");
     }
 
-    fn export_nucleotides_positions(&self, app_state: &S) {
+    fn export_nucleotides_positions(&self) {
         use chrono::Utc;
         let file_name = Utc::now()
-            .format("export_nucleotides_positions_%Y_%m_%d_%H_%M_%S.py")
+            .format("export_nucleotides_positions_%Y_%m_%d_%H_%M_%S.json")
             .to_string();
         println!("Nucleotides positions export to {file_name}");
-        // let raw_instances = self.data.borrow().get_all_raw_instances(app_state);
-        // let stl_bytes = stl::stl_bytes_export(raw_instances).unwrap();
-        // let mut out_file = std::fs::File::create(file_name).unwrap();
-        // use std::io::Write;
-        // out_file.write_all(&stl_bytes);        
+        if let Some(nucl_pos) = self.data.borrow().get_nucleotides_positions_by_strands() {
+            let data = serde_json::to_string(&nucl_pos).unwrap();
+            if let Ok(mut out_file) = std::fs::File::create(file_name) {
+                use std::io::Write;
+                out_file.write_all(data.as_bytes());
+                return;
+            }
+        }
+        println!("Export failed!");
     }
 }
 
@@ -1287,7 +1297,7 @@ impl<S: AppState> Application for Scene<S> {
             }
             Notification::SaveNucleotidesPositions => {
                 if !self.is_stereographic() {
-                    self.export_nucleotides_positions(&self.older_state);
+                    self.export_nucleotides_positions();
                 }
             }
             Notification::StlExport => {
