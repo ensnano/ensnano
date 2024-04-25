@@ -1118,7 +1118,7 @@ impl<S: AppState> Scene<S> {
     fn export_stl(&self, app_state: &S) {
         use chrono::Utc;
         let file_name = Utc::now()
-            .format("export_stl_%Y_%m_%d_%H_%M_%S.stl")
+            .format("export_stl-%Y_%m_%d-%H_%M_%S.stl")
             .to_string();
         println!("STL export to {file_name}");
         let raw_instances = self.data.borrow().get_all_raw_instances(app_state);
@@ -1134,7 +1134,7 @@ impl<S: AppState> Scene<S> {
     fn export_nucleotides_positions(&self) {
         use chrono::Utc;
         let file_name = Utc::now()
-            .format("export_nucleotides_positions_%Y_%m_%d_%H_%M_%S.json")
+            .format("export_nucleotides_positions-%Y_%m_%d-%H_%M_%S-%6f.json")
             .to_string();
         println!("Nucleotides positions export to {file_name}");
         if let Some(nucl_pos) = self.data.borrow().get_nucleotides_positions_by_strands() {
