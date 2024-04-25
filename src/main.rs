@@ -164,7 +164,7 @@ use multiplexer::{Multiplexer, Overlay};
 use scene::Scene;
 use utils::{PhySize, TEXTURE_FORMAT};
 
-use std::collections::{HashMap as StdHashMap};
+use std::collections::HashMap as StdHashMap;
 
 fn convert_size(size: PhySize) -> Size<f32> {
     Size::new(size.width as f32, size.height as f32)
@@ -1922,13 +1922,17 @@ impl<'a> MainStateInterface for MainStateView<'a> {
         self.main_state.get_current_file_name()
     }
 
-    fn save_nucleotides_positions_by_strand(&mut self, nucl_pos: StdHashMap<usize, Vec<[f32;3]>>) {
+    fn save_nucleotides_positions_by_strand(&mut self, nucl_pos: StdHashMap<usize, Vec<[f32; 3]>>) {
         if let Some(filename) = self.get_current_file_name() {
             println!("Here is the path: {:?}", filename);
-            self.main_state.push_action(Action::NotifyApps(Notification::SaveNucleotidesPositions(Some(Arc::from(filename)))));
+            self.main_state.push_action(Action::NotifyApps(
+                Notification::SaveNucleotidesPositions(Some(Arc::from(filename))),
+            ));
         } else {
             println!("No directory yet");
-            self.main_state.push_action(Action::NotifyApps(Notification::SaveNucleotidesPositions(None)));
+            self.main_state.push_action(Action::NotifyApps(
+                Notification::SaveNucleotidesPositions(None),
+            ));
         }
     }
 

@@ -52,10 +52,6 @@ impl GuiRequests for Requests {
         self.select_scaffold = Some(())
     }
 
-    fn save_nucleotides_positions_by_strand(&mut self, nucl_pos: HashMap<usize, Vec<[f32;3]>>) {
-        self.save_nucleotides_positions_by_strand = Some(nucl_pos);
-    }
-
     fn cancel_hyperboloid(&mut self) {
         self.cancel_hyperboloid = Some(())
     }
@@ -519,14 +515,16 @@ impl GuiRequests for Requests {
     }
 
     fn request_save_nucleotides_positions(&mut self) {
-        self.keep_proceed.push_back(Action::SaveNucleotidesPositionsByStrand(HashMap::new()));
+        self.keep_proceed
+            .push_back(Action::SaveNucleotidesPositionsByStrand(HashMap::new()));
     }
 
     fn request_save_nucleotides_positions_to(&mut self, filename: Option<Arc<std::path::Path>>) {
         self.keep_proceed
-            .push_back(Action::NotifyApps(Notification::SaveNucleotidesPositions(filename)))
+            .push_back(Action::NotifyApps(Notification::SaveNucleotidesPositions(
+                filename,
+            )))
     }
-
 
     fn set_unrooted_surface(&mut self, surface: Option<UnrootedRevolutionSurfaceDescriptor>) {
         self.new_unrooted_surface = Some(surface);

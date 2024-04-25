@@ -237,12 +237,6 @@ pub(crate) fn poll_all<R: DerefMut<Target = Requests>>(
         main_state.push_action(Action::ScaffoldToSelection)
     }
 
-    if let Some(nucl_pos) = requests.save_nucleotides_positions_by_strand.take() {
-        println!("Action: save nucl pos");
-        main_state.push_action(Action::SaveNucleotidesPositionsByStrand(nucl_pos));
-    }
-
-
     if let Some(n) = requests.scaffold_shift.take() {
         main_state.push_action(Action::DesignOperation(DesignOperation::SetScaffoldShift(
             n,

@@ -1143,12 +1143,16 @@ impl<S: AppState> Scene<S> {
             .to_string();
         let file_name = file_name + &suffix;
         let file_name = if let Some(path) = filename {
-            let f = format!("{}-{}", path.file_stem().unwrap().to_str().unwrap(), file_name);
+            let f = format!(
+                "{}-{}",
+                path.file_stem().unwrap().to_str().unwrap(),
+                file_name
+            );
             path.with_file_name(f)
         } else {
             PathBuf::from(file_name)
         };
-        println!("Nucleotides positions export to {:?}",file_name);
+        println!("Nucleotides positions export to {:?}", file_name);
         if let Some(nucl_pos) = self.data.borrow().get_nucleotides_positions_by_strands() {
             let data = serde_json::to_string(&nucl_pos).unwrap();
             if let Ok(mut out_file) = std::fs::File::create(file_name) {
@@ -1308,10 +1312,16 @@ impl<S: AppState> Application for Scene<S> {
                 }
             }
             Notification::SaveNucleotidesPositions(filename) => {
-                self.export_nucleotides_positions(filename);
+                if !self.is_stereographic() {
+                    // avoid exporting twice
+                    self.export_nucleotides_positions(filename);
+                }
             }
             Notification::StlExport => {
-                self.export_stl(&self.older_state);
+                if !self.is_stereographic() {
+                    // avoid exporting twice
+                    self.export_stl(&self.older_state);
+                }
             }
         }
     }

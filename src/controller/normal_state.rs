@@ -500,7 +500,7 @@ pub enum Action {
     DeleteSelection,
     ScaffoldToSelection,
     /// Save the nucleotides 3D positions by strand as a json file in the design directory
-    SaveNucleotidesPositionsByStrand(HashMap<usize,Vec<[f32;3]>>),
+    SaveNucleotidesPositionsByStrand(HashMap<usize, Vec<[f32; 3]>>),
     /// Remove empty domains and merge consecutive domains
     CleanDesign,
     SuspendOp,

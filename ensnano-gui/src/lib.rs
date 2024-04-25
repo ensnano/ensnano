@@ -22,7 +22,6 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! other components of the program it is forwarded to the `main` function via the
 //! [Request](Requests) data structure.
 
-
 use std::path::{Path, PathBuf};
 
 /// Draw the top bar of the GUI
@@ -118,8 +117,6 @@ pub trait Requests: 'static + Send {
     fn set_selected_strand_sequence(&mut self, sequence: String);
     fn set_scaffold_sequence(&mut self, shift: usize);
     fn set_scaffold_shift(&mut self, shift: usize);
-    /// save_nucleotides_positions_by_strand
-    fn save_nucleotides_positions_by_strand(&mut self, nucl_pos: HashMap<usize, Vec<[f32;3]>>);
     /// Change the size of the UI components
     fn set_ui_size(&mut self, size: UiSize);
     /// Finalize the currently edited hyperboloid grid
