@@ -223,6 +223,7 @@ pub enum Message<S: AppState> {
     LoadSvgFile,
     ScreenShot2D,
     ScreenShot3D,
+    SaveNucleotidesPositions,
     IncrRevolutionShift,
     DecrRevolutionShift,
 }
@@ -940,6 +941,9 @@ impl<R: Requests, S: AppState> Program for LeftPanel<R, S> {
             }
             Message::ScreenShot3D => {
                 self.requests.lock().unwrap().request_screenshot_3d();
+            }
+            Message::SaveNucleotidesPositions => {
+                self.requests.lock().unwrap().request_save_nucleotides_positions();
             }
             Message::IncrRevolutionShift => self.revolution_tab.shift_idx += 1,
             Message::DecrRevolutionShift => self.revolution_tab.shift_idx -= 1,

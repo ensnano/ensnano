@@ -514,6 +514,11 @@ impl GuiRequests for Requests {
             .push_back(Action::NotifyApps(Notification::ScreenShot3D))
     }
 
+    fn request_save_nucleotides_positions(&mut self) {
+        self.keep_proceed
+            .push_back(Action::NotifyApps(Notification::SaveNucleotidesPositions))
+    }
+
     fn set_unrooted_surface(&mut self, surface: Option<UnrootedRevolutionSurfaceDescriptor>) {
         self.new_unrooted_surface = Some(surface);
     }

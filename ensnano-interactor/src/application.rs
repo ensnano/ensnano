@@ -108,6 +108,7 @@ pub enum Notification {
     HorizonAligned,
     ScreenShot2D,
     ScreenShot3D,
+    SaveNucleotidesPositions,
     StlExport,
 }
 

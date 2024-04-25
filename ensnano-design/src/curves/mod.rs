@@ -1343,7 +1343,9 @@ impl Helix {
             if let Some(desc) = InstanciatedCurveDescriptor::try_instanciate(curve.clone()) {
                 let desc = Arc::new(desc);
                 self.instanciated_descriptor = Some(desc.clone());
-                if let Some(curve) = desc.as_ref().instance.try_into_curve(helix_parameters) {
+                let hp = &(self.helix_parameters.unwrap_or(*helix_parameters));
+                // println!("helix: {} nm {} bpt", hp.rise, hp.bases_per_turn);
+                if let Some(curve) = desc.as_ref().instance.try_into_curve(hp) {
                     self.instanciated_curve = Some(InstanciatedCurve {
                         curve,
                         source: desc,
