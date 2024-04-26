@@ -26,6 +26,6 @@ pub enum IterativeFrameAlgorithm {
 
 pub const ITERATIVE_AXIS_ALGORITHM: IterativeFrameAlgorithm =
     // either use original iterative frame algorihm
-    IterativeFrameAlgorithm::Original;
+    // IterativeFrameAlgorithm::Original;
     // or use tangent-rotation-based frame algorithm
-    // IterativeFrameAlgorithm::Rotation;
+    IterativeFrameAlgorithm::Rotation;
