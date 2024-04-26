@@ -1495,8 +1495,8 @@ impl MainState {
         self.modify_state(|s| s.with_show_bezier_paths(show), None)
     }
 
-    fn set_thick_helices(&mut self, thick: bool) {
-        self.modify_state(|s| s.all_helices_on_axis(thick), None)
+    fn set_all_helices_on_axis(&mut self, off_axis: bool) {
+        self.modify_state(|s| s.all_helices_on_axis(off_axis), None)
     }
 
     fn set_bezier_revolution_id(&mut self, id: Option<usize>) {
@@ -1924,14 +1924,12 @@ impl<'a> MainStateInterface for MainStateView<'a> {
 
     fn get_design_path_and_notify(&mut self, notificator: fn(Option<Arc<Path>>) -> Notification) {
         if let Some(filename) = self.get_current_file_name() {
-            self.main_state.push_action(Action::NotifyApps(
-                notificator(Some(Arc::from(filename))),
-            ));
+            self.main_state
+                .push_action(Action::NotifyApps(notificator(Some(Arc::from(filename)))));
         } else {
-            println!("No directory yet");
-            self.main_state.push_action(Action::NotifyApps(
-                notificator(None),
-            ));
+            println!("Design has not been saved yet");
+            self.main_state
+                .push_action(Action::NotifyApps(notificator(None)));
         }
     }
 

@@ -31,7 +31,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! 3. **world coordinates**: this is the absolute coordinate system in which elements are
 //!    positionned.
 
-use ensnano_design::Nucl;
+use ensnano_design::{consts::ITERATIVE_AXIS_ALGORITHM, Nucl};
 use ensnano_interactor::{
     application::{AppId, Application, Duration, Notification},
     consts::{EXPORT_2D_MARGIN, EXPORT_2D_MAX_SIZE},
@@ -40,12 +40,14 @@ use ensnano_interactor::{
     ActionMode, DesignOperation, PhantomElement, Selection, SelectionMode, StrandBuilder,
     StrandBuildingStatus,
 };
+use ensnano_utils::filename;
 use ensnano_utils::wgpu;
 use ensnano_utils::winit;
 use ensnano_utils::PhySize;
 use lyon::geom::euclid::rect;
 use std::cell::RefCell;
 use std::collections::HashMap;
+use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use std::sync::{Arc, Mutex};
 use wgpu::{Device, Queue};
@@ -493,12 +495,18 @@ impl<S: AppState> FlatScene<S> {
                     helix_id: flat_helix.segment.helix_idx,
                     segment_id: flat_helix.segment.segment_idx,
                 }]),
+            /// OBSOLETE ?
             Consequence::PngExport(corner1, corner2) => {
+                println!("I'd like to know how you got there !");
                 let glob_png = camera2d::Globals::from_corners(corner1, corner2, png_resolution);
-                use chrono::Utc;
-                let now = Utc::now();
-                let name = now.format("export_2d_%Y_%m_%d_%H_%M_%S.png").to_string();
-                self.export_png(&name, glob_png);
+                let path = filename::derive_path_with_prefix_and_time_stamp_and_suffix(
+                    Some(Arc::from(PathBuf::new())),
+                    Some("export_2d"),
+                    Some(format!("{ITERATIVE_AXIS_ALGORITHM}").as_str()),
+                    Some("png"),
+                );
+                println!("2D PNG export to {:?}", path);
+                self.export_2d_png(path, glob_png);
                 self.view[self.selected_design]
                     .borrow_mut()
                     .clear_rectangle();
@@ -596,11 +604,11 @@ impl<S: AppState> FlatScene<S> {
     }
 
     /// Export the scene into a PNG file.
-    fn export_png(&self, png_name: &str, glob: camera2d::Globals) {
+    fn export_2d_png(&self, path: PathBuf, glob: camera2d::Globals) {
         let device = self.device.as_ref();
         let queue = self.queue.as_ref();
 
-        log::info!("export to {png_name}");
+        log::info!("2D PNG export to {:?}", path);
         use ensnano_utils::BufferDimensions;
         use std::io::Write;
 
@@ -679,22 +687,22 @@ impl<S: AppState> FlatScene<S> {
             }
         };
         let pixels = futures::executor::block_on(pixels);
-        let mut png_encoder = png::Encoder::new(
-            std::fs::File::create(png_name).unwrap(),
-            png_size.width,
-            png_size.height,
-        );
-        png_encoder.set_depth(png::BitDepth::Eight);
-        png_encoder.set_color(png::ColorType::Rgba);
+        if let Ok(f_out) = std::fs::File::create(path) {
+            let mut png_encoder = png::Encoder::new(f_out, png_size.width, png_size.height);
+            png_encoder.set_depth(png::BitDepth::Eight);
+            png_encoder.set_color(png::ColorType::Rgba);
 
-        let mut png_writer = png_encoder
-            .write_header()
-            .unwrap()
-            .into_stream_writer_with_size(buffer_dimensions.unpadded_bytes_per_row)
-            .unwrap();
+            let mut png_writer = png_encoder
+                .write_header()
+                .unwrap()
+                .into_stream_writer_with_size(buffer_dimensions.unpadded_bytes_per_row)
+                .unwrap();
 
-        png_writer.write_all(pixels.as_slice()).unwrap();
-        png_writer.finish().unwrap();
+            png_writer.write_all(pixels.as_slice()).unwrap();
+            png_writer.finish().unwrap();
+            return;
+        }
+        println!("Export failed! Consider saving the design first.");
     }
 }
 
@@ -754,7 +762,7 @@ impl<S: AppState> Application for FlatScene<S> {
             Notification::NewStereographicCamera(_) => (),
             Notification::FlipSplitViews => self.controller[0].flip_split_views(),
             Notification::HorizonAligned => (),
-            Notification::ScreenShot2D => {
+            Notification::ScreenShot2D(design_path) => {
                 // NOTE: When flatscene is split, return the whole view.
                 let rectangle = self.data[0].borrow().get_fit_rectangle();
                 let w = rectangle.width() + 2. * EXPORT_2D_MARGIN;
@@ -777,26 +785,28 @@ impl<S: AppState> Application for FlatScene<S> {
                             .into(),
                             png_resolution,
                         );
-                        use chrono::Utc;
-                        let png_name = format!(
-                            "{}-{}x{}.png",
-                            Utc::now().format("export_2d_%Y_%m_%d_%H_%M_%S"),
-                            i + 1,
-                            j + 1
-                        )
-                        .to_string();
-                        self.export_png(&png_name, glob_png);
+                        let path = filename::derive_path_with_prefix_and_time_stamp_and_suffix(
+                            design_path.clone(),
+                            Some("export_2d"),
+                            Some(
+                                format!("{ITERATIVE_AXIS_ALGORITHM}-{}x{}", i + 1, j + 1).as_str(),
+                            ),
+                            Some("png"),
+                        );
+                        println!("2D PNG export to {:?}", path);
+                        self.export_2d_png(path.clone(), glob_png);
                         println!(
-                            "File {png_name} saved [{}/{}]",
+                            "File {:?} saved [{}/{}]",
+                            path.file_stem().unwrap(),
                             i * h_cuts + j + 1,
                             w_cuts * h_cuts
                         );
                     }
                 }
             }
-            Notification::ScreenShot3D => (), // Nothing to do in the flatscene.
+            Notification::ScreenShot3D(_) => (), // Nothing to do in the flatscene.
             Notification::SaveNucleotidesPositions(_) => (), // Nothing to do in the flatscene.
-            Notification::StlExport => (),
+            Notification::StlExport(_) => (),
         }
     }
 

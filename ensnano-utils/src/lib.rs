@@ -39,6 +39,8 @@ pub mod clic_counter;
 
 pub mod colors;
 
+pub mod filename;
+
 pub type PhySize = PhysicalSize<u32>;
 pub const TEXTURE_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Bgra8UnormSrgb;
 

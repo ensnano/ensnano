@@ -209,7 +209,7 @@ pub trait Requests: 'static + Send {
     fn set_show_h_bonds(&mut self, show: HBondDisplay);
     fn flip_split_views(&mut self);
     fn set_rainbow_scaffold(&mut self, rainbow: bool);
-    fn set_thick_helices(&mut self, thick: bool);
+    fn set_all_helices_on_axis(&mut self, thick: bool);
     fn align_horizon(&mut self);
     fn download_origamis(&mut self);
     fn set_dna_parameters(&mut self, param: HelixParameters);
@@ -234,7 +234,6 @@ pub trait Requests: 'static + Send {
     /// Make a screenshot of the 3D scene.
     fn request_screenshot_3d(&mut self);
     fn request_save_nucleotides_positions(&mut self);
-    fn request_save_nucleotides_positions_to(&mut self, filename: Option<Arc<Path>>);
     fn notify_revolution_tab(&mut self);
     fn request_stl_export(&mut self);
 }

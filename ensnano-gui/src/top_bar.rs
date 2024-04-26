@@ -202,7 +202,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
                 self.requests.lock().unwrap().toggle_2d();
             }
             Message::FlipSplitViews => self.requests.lock().unwrap().flip_split_views(),
-            Message::ThickHelices(b) => self.requests.lock().unwrap().set_thick_helices(b),
+            Message::ThickHelices(b) => self.requests.lock().unwrap().set_all_helices_on_axis(b),
             Message::AlignHorizon => self.requests.lock().unwrap().align_horizon(),
             Message::Import3D => self.requests.lock().unwrap().import_3d_object(),
         };

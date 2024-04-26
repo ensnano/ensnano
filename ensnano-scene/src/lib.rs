@@ -23,7 +23,7 @@ use ensnano_interactor::graphics::LoopoutBond;
 use ensnano_interactor::{
     graphics::RenderingMode, NewBezierTangentVector, UnrootedRevolutionSurfaceDescriptor,
 };
-use ensnano_utils::{wgpu, winit};
+use ensnano_utils::{filename, wgpu, winit};
 use std::cell::RefCell;
 use std::path::PathBuf;
 use std::rc::Rc;
@@ -984,14 +984,16 @@ impl<S: AppState> Scene<S> {
         (texture, view)
     }
 
-    fn export_png(&self) {
-        use chrono::Utc;
-        let png_name = Utc::now()
-            .format("export_3d_%Y_%m_%d_%H_%M_%S.png")
-            .to_string();
+    fn export_3d_png(&self, design_path: Option<Arc<Path>>) {
+        let path = filename::derive_path_with_prefix_and_time_stamp_and_suffix(
+            design_path,
+            Some("export_3d"),
+            Some(format!("{ITERATIVE_AXIS_ALGORITHM}").as_str()),
+            Some("png"),
+        );
+        println!("3D PNG export to {:?}", path);
         let device = self.element_selector.device.as_ref();
         let queue = self.element_selector.queue.as_ref();
-        println!("export to {png_name}");
         use ensnano_utils::BufferDimensions;
         use std::io::Write;
 
@@ -1015,7 +1017,7 @@ impl<S: AppState> Scene<S> {
         let (texture, texture_view) = self.create_png_export_texture(device, size);
 
         let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-            label: Some("3D Png export"),
+            label: Some("3D PNG export"),
         });
 
         let draw_options = DrawOptions {
@@ -1096,37 +1098,43 @@ impl<S: AppState> Scene<S> {
             }
         };
         let pixels = futures::executor::block_on(pixels);
-        let mut png_encoder = png::Encoder::new(
-            std::fs::File::create(png_name).unwrap(),
-            buffer_dimensions.width as u32,
-            buffer_dimensions.height as u32,
-        );
-        png_encoder.set_depth(png::BitDepth::Eight);
-        png_encoder.set_color(png::ColorType::Rgba);
+        if let Ok(f_out) = std::fs::File::create(path) {
+            let mut png_encoder = png::Encoder::new(
+                f_out,
+                buffer_dimensions.width as u32,
+                buffer_dimensions.height as u32,
+            );
+            png_encoder.set_depth(png::BitDepth::Eight);
+            png_encoder.set_color(png::ColorType::Rgba);
 
-        let mut png_writer = png_encoder
-            .write_header()
-            .unwrap()
-            .into_stream_writer_with_size(buffer_dimensions.unpadded_bytes_per_row)
-            .unwrap();
-
-        for chunk in pixels.chunks(buffer_dimensions.padded_bytes_per_row) {
-            png_writer
-                .write_all(&chunk[..buffer_dimensions.unpadded_bytes_per_row])
+            let mut png_writer = png_encoder
+                .write_header()
+                .unwrap()
+                .into_stream_writer_with_size(buffer_dimensions.unpadded_bytes_per_row)
                 .unwrap();
+
+            for chunk in pixels.chunks(buffer_dimensions.padded_bytes_per_row) {
+                png_writer
+                    .write_all(&chunk[..buffer_dimensions.unpadded_bytes_per_row])
+                    .unwrap();
+            }
+            png_writer.finish().unwrap();
+            return;
         }
-        png_writer.finish().unwrap();
+        println!("PNG export failed! Save our design first");
     }
 
-    fn export_stl(&self, app_state: &S) {
-        use chrono::Utc;
-        let file_name = Utc::now()
-            .format("export_stl-%Y_%m_%d-%H_%M_%S.stl")
-            .to_string();
-        println!("STL export to {file_name}");
+    fn export_stl(&self, design_path: Option<Arc<Path>>, app_state: &S) {
+        let path = filename::derive_path_with_prefix_and_time_stamp_and_suffix(
+            design_path,
+            Some("export_stl"),
+            Some(format!("{ITERATIVE_AXIS_ALGORITHM}").as_str()),
+            Some("stl"),
+        );
+        println!("STL export to {:?}", path);
         let raw_instances = self.data.borrow().get_all_raw_instances(app_state);
         let stl_bytes = stl::stl_bytes_export(raw_instances).unwrap();
-        if let Ok(mut out_file) = std::fs::File::create(file_name) {
+        if let Ok(mut out_file) = std::fs::File::create(path) {
             use std::io::Write;
             out_file.write_all(&stl_bytes);
             return;
@@ -1134,27 +1142,17 @@ impl<S: AppState> Scene<S> {
         println!("Export failed!");
     }
 
-    fn export_nucleotides_positions(&self, design_filename: Option<Arc<Path>>) {
-        use chrono::Utc;
-        let suffix = format!("-{ITERATIVE_AXIS_ALGORITHM}.json").to_string();
-        let file_name = Utc::now()
-            .format("export_nucleotides_positions-%Y_%m_%d-%H_%M_%S-%6f")
-            .to_string();
-        let file_name = file_name + &suffix;
-        let file_name = if let Some(path) = design_filename {
-            let f = format!(
-                "{}-{}",
-                path.file_stem().unwrap().to_str().unwrap(),
-                file_name
-            );
-            path.with_file_name(f)
-        } else {
-            PathBuf::from(file_name)
-        };
-        println!("Nucleotides positions export to {:?}", file_name);
+    fn export_nucleotides_positions(&self, design_path: Option<Arc<Path>>) {
+        let path = filename::derive_path_with_prefix_and_time_stamp_and_suffix(
+            design_path,
+            Some("nucleotide_positions"),
+            Some(format!("{ITERATIVE_AXIS_ALGORITHM}").as_str()),
+            Some("json"),
+        );
+        println!("Nucleotides positions export to {:?}", path);
         if let Some(nucl_pos) = self.data.borrow().get_nucleotides_positions_by_strands() {
             let data = serde_json::to_string(&nucl_pos).unwrap();
-            if let Ok(mut out_file) = std::fs::File::create(file_name) {
+            if let Ok(mut out_file) = std::fs::File::create(path) {
                 use std::io::Write;
                 out_file.write_all(data.as_bytes());
                 return;
@@ -1304,22 +1302,22 @@ impl<S: AppState> Application for Scene<S> {
                 self.controller.align_horizon();
                 self.notify(SceneNotification::CameraMoved);
             }
-            Notification::ScreenShot2D => (),
-            Notification::ScreenShot3D => {
+            Notification::ScreenShot2D(_) => (),
+            Notification::ScreenShot3D(design_path) => {
                 if !self.is_stereographic() {
-                    self.export_png();
+                    self.export_3d_png(design_path);
                 }
             }
-            Notification::SaveNucleotidesPositions(filename) => {
+            Notification::SaveNucleotidesPositions(design_path) => {
                 if !self.is_stereographic() {
                     // avoid exporting twice
-                    self.export_nucleotides_positions(filename);
+                    self.export_nucleotides_positions(design_path);
                 }
             }
-            Notification::StlExport => {
+            Notification::StlExport(design_path) => {
                 if !self.is_stereographic() {
                     // avoid exporting twice
-                    self.export_stl(&self.older_state);
+                    self.export_stl(design_path, &self.older_state);
                 }
             }
         }

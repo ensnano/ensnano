@@ -108,10 +108,10 @@ pub enum Notification {
     NewStereographicCamera(Arc<(Camera3D, f32)>),
     FlipSplitViews,
     HorizonAligned,
-    ScreenShot2D,
-    ScreenShot3D,
+    ScreenShot2D(Option<Arc<Path>>),
+    ScreenShot3D(Option<Arc<Path>>),
     SaveNucleotidesPositions(Option<Arc<Path>>),
-    StlExport,
+    StlExport(Option<Arc<Path>>),
 }
 
 #[derive(PartialEq, Debug, Clone, Copy)]

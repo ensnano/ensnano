@@ -248,7 +248,7 @@ pub(crate) trait MainState: ScaffoldSetter {
     fn set_exporting(&mut self, exporting: bool);
     fn load_3d_object(&mut self, path: PathBuf);
     fn load_svg(&mut self, path: PathBuf);
-    fn get_design_path_and_notify(&mut self, notificator: fn (Option<Arc<Path>>) -> Notification);
+    fn get_design_path_and_notify(&mut self, notificator: fn(Option<Arc<Path>>) -> Notification);
 }
 
 pub enum LoadDesignError {

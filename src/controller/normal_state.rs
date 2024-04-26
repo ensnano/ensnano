@@ -501,7 +501,7 @@ pub enum Action {
     DeleteSelection,
     ScaffoldToSelection,
     /// Save the nucleotides 3D positions by strand as a json file in the design directory
-    GetDesignPathAndNotify(fn (Option<Arc<Path>>) -> Notification),
+    GetDesignPathAndNotify(fn(Option<Arc<Path>>) -> Notification),
     /// Remove empty domains and merge consecutive domains
     CleanDesign,
     SuspendOp,

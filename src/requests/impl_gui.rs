@@ -406,9 +406,9 @@ impl GuiRequests for Requests {
         self.set_show_bezier_paths = Some(show);
     }
 
-    fn set_thick_helices(&mut self, thick: bool) {
+    fn set_all_helices_on_axis(&mut self, off_axis: bool) {
         // thick helices = normal helices; thin helices = only axis
-        self.set_thick_helices = Some(thick)
+        self.set_all_helices_on_axis = Some(off_axis)
     }
 
     fn start_twist_simulation(&mut self, grid_id: GridId) {
@@ -506,24 +506,27 @@ impl GuiRequests for Requests {
 
     fn request_screenshot_2d(&mut self) {
         self.keep_proceed
-            .push_back(Action::NotifyApps(Notification::ScreenShot2D))
+            .push_back(Action::GetDesignPathAndNotify(|path| {
+                Notification::ScreenShot2D(path)
+            }));
+        // self.keep_proceed
+        //     .push_back(Action::NotifyApps(Notification::ScreenShot2D))
     }
 
     fn request_screenshot_3d(&mut self) {
         self.keep_proceed
-            .push_back(Action::NotifyApps(Notification::ScreenShot3D))
+            .push_back(Action::GetDesignPathAndNotify(|path| {
+                Notification::ScreenShot3D(path)
+            }));
+        // self.keep_proceed
+        // .push_back(Action::NotifyApps(Notification::ScreenShot3D))
     }
 
     fn request_save_nucleotides_positions(&mut self) {
         self.keep_proceed
-            .push_back(Action::GetDesignPathAndNotify(|path| { Notification::SaveNucleotidesPositions(path)}));
-    }
-
-    fn request_save_nucleotides_positions_to(&mut self, filename: Option<Arc<std::path::Path>>) {
-        self.keep_proceed
-            .push_back(Action::NotifyApps(Notification::SaveNucleotidesPositions(
-                filename,
-            )))
+            .push_back(Action::GetDesignPathAndNotify(|path| {
+                Notification::SaveNucleotidesPositions(path)
+            }));
     }
 
     fn set_unrooted_surface(&mut self, surface: Option<UnrootedRevolutionSurfaceDescriptor>) {
@@ -536,7 +539,11 @@ impl GuiRequests for Requests {
 
     fn request_stl_export(&mut self) {
         self.keep_proceed
-            .push_back(Action::NotifyApps(Notification::StlExport))
+            .push_back(Action::GetDesignPathAndNotify(|path| {
+                Notification::StlExport(path)
+            }));
+        // self.keep_proceed
+        //     .push_back(Action::NotifyApps(Notification::StlExport))
     }
 }
 
