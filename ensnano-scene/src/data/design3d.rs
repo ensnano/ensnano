@@ -42,7 +42,7 @@ use ensnano_interactor::{
 use ensnano_utils::instance::Instance;
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::f32::consts::PI;
-use std::hash::RandomState;
+use std::collections::hash_map::RandomState;
 use std::iter::Zip;
 use std::rc::Rc;
 use std::sync::Arc;
