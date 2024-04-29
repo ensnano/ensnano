@@ -16,7 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use chrono::Utc;
+use chrono::{Local, Utc};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
@@ -29,7 +29,7 @@ pub fn derive_path_with_prefix_and_time_stamp_and_suffix(
     suffix: Option<&str>,
     extension: Option<&str>,
 ) -> PathBuf {
-    let time_stamp = Utc::now().format("%Y_%m_%d-%H_%M_%S-%6f").to_string();
+    let time_stamp = Local::now().format("%Y_%m_%d-%H_%M_%S-%6f").to_string();
     let prefix = prefix.unwrap_or(DEFAULT_FILE_PREFIX);
     let suffix = if let Some(suf) = suffix {
         format!("-{suf}")

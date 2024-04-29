@@ -57,7 +57,7 @@ impl Curve {
         };
         let len = polynomials
             .as_ref()
-            .map(|p| p.curvilinear_abcsissa.evaluate(self.geometry.t_max()))
+            .map(|p| p.curvilinear_abscissa.evaluate(self.geometry.t_max()))
             .unwrap_or_else(|| {
                 self.length_by_discretisation(self.geometry.t_min(), self.geometry.t_max(), nb_step)
             });
@@ -259,7 +259,7 @@ impl Curve {
         };
         if let Some(last_t) = self.geometry.full_turn_at_t() {
             let synchronization_length = polynomials
-                .map(|p| p.curvilinear_abcsissa.evaluate(last_t))
+                .map(|p| p.curvilinear_abscissa.evaluate(last_t))
                 .unwrap_or_else(|| {
                     self.length_by_discretisation(self.geometry.t_min(), last_t, nb_step)
                 });
@@ -359,6 +359,13 @@ impl Curve {
     #[inline(always)]
     fn iterative_axis(&self, t: f64, previous: Option<&DMat3>) -> DMat3 {
         match ITERATIVE_AXIS_ALGORITHM {
+            IterativeFrameAlgorithm::BasedOnGeometry => {
+                if self.geometry.use_original_iterative_frame_algorithm() {
+                    self.iterative_axis_original(t, previous)
+                } else {
+                    self.iterative_rotated_axis(t, previous)
+                }
+            }
             IterativeFrameAlgorithm::Original => self.iterative_axis_original(t, previous),
             IterativeFrameAlgorithm::Rotation => self.iterative_rotated_axis(t, previous),
         }
@@ -524,7 +531,7 @@ impl Curve {
             let inverse_abcsissa = chebyshev_polynomials::interpolate_points(abscissa_t, 1e-4);
 
             PreComputedPolynomials {
-                curvilinear_abcsissa,
+                curvilinear_abscissa: curvilinear_abcsissa,
                 inverse_abscissa: inverse_abcsissa,
             }
         })
@@ -533,7 +540,7 @@ impl Curve {
 
 /// Polynomials computed at the start of the discretization procedure
 struct PreComputedPolynomials {
-    curvilinear_abcsissa: ChebyshevPolynomial,
+    curvilinear_abscissa: ChebyshevPolynomial,
     inverse_abscissa: ChebyshevPolynomial,
 }
 

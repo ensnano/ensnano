@@ -20,12 +20,13 @@ use strum_macros::Display;
 
 #[derive(Display)]
 pub enum IterativeFrameAlgorithm {
-    Original, // by Nicolas Levy
-    Rotation, // by Nicolas Schabanel
+    Original,        // by Nicolas Levy
+    Rotation,        // by Nicolas Schabanel
+    BasedOnGeometry, // impose by the file format
 }
 
 pub const ITERATIVE_AXIS_ALGORITHM: IterativeFrameAlgorithm =
     // either use original iterative frame algorihm
     // IterativeFrameAlgorithm::Original;
     // or use tangent-rotation-based frame algorithm
-    IterativeFrameAlgorithm::Rotation;
+    IterativeFrameAlgorithm::BasedOnGeometry;

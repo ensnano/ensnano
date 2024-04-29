@@ -253,6 +253,10 @@ pub trait Curved {
     fn abscissa_converter(&self) -> Option<AbscissaConverter> {
         return None;
     }
+    /// Choose the iterative frame algorithm used to discretize
+    fn use_original_iterative_frame_algorithm(&self) -> bool {
+        false
+    }
 }
 
 /// The bounds of the curve. This describe the interval in which t can be taken
