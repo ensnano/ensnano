@@ -305,7 +305,7 @@ impl Curve {
     pub fn length_by_discretisation(&self, t0: f64, t1: f64, nb_step: usize) -> f64 {
         if t0 > t1 {
             log::error!(
-                "Bad parameters ofr length by descritisation: \n t0 {} \n t1 {} \n nb_step {}",
+                "Bad parameters or length for discritisation: \n t0 {} \n t1 {} \n nb_step {}",
                 t0,
                 t1,
                 nb_step
@@ -470,7 +470,7 @@ impl Curve {
                     while delta < DELTA_MAX {
                         let new_tmax = self.geometry.t_max() + delta;
                         if self.length_by_discretisation(
-                            0.0,
+                           0.0, // should not it be self.geometry.t_min() ??? MAY BE NOT BECAUSE BIINFINITE
                             new_tmax,
                             NB_DISCRETISATION_STEP / 100,
                         ) > objective
@@ -527,12 +527,12 @@ impl Curve {
             // (1) This allows the interpolation to run much quicker with very little impact on
             // precision.
 
-            let curvilinear_abcsissa = chebyshev_polynomials::interpolate_points(t_abscissa, 1e-4);
-            let inverse_abcsissa = chebyshev_polynomials::interpolate_points(abscissa_t, 1e-4);
+            let curvilinear_abscissa = chebyshev_polynomials::interpolate_points(t_abscissa, 1e-4);
+            let inverse_abscissa = chebyshev_polynomials::interpolate_points(abscissa_t, 1e-4);
 
             PreComputedPolynomials {
-                curvilinear_abscissa: curvilinear_abcsissa,
-                inverse_abscissa: inverse_abcsissa,
+                curvilinear_abscissa,
+                inverse_abscissa,
             }
         })
     }
