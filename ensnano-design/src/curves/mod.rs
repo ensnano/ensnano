@@ -1007,7 +1007,7 @@ impl<'a, 'b> PieceWiseBezierInstantiator<Vec3> for PieceWiseBezierInstantiator_<
         None
     }
 
-    fn cyclic(&self) -> bool {
+    fn is_cyclic(&self) -> bool {
         false
     }
 }
@@ -1032,7 +1032,7 @@ impl InstanciatedPiecewiseBezierDescriptor {
                 ends: vec![],
                 t_min: None,
                 t_max: None,
-                cyclic: false,
+                is_cyclic: false,
                 id: rng.gen(),
                 discretize_quickly: false,
             });

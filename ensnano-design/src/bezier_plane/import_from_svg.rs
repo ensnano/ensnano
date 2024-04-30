@@ -111,7 +111,7 @@ impl PathBuilder {
     fn close(self) -> BezierPath {
         BezierPath {
             vertices: self.vertices,
-            cyclic: true,
+            is_cyclic: true,
             grid_type: None,
         }
     }
@@ -119,7 +119,7 @@ impl PathBuilder {
     fn finish(self) -> BezierPath {
         BezierPath {
             vertices: self.vertices,
-            cyclic: false,
+            is_cyclic: false,
             grid_type: None,
         }
     }

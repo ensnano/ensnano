@@ -1439,7 +1439,7 @@ impl Controller {
         let path = new_paths
             .get_mut(&path_id)
             .ok_or(ErrOperation::PathDoesNotExist(path_id))?;
-        path.cyclic = cyclic;
+        path.is_cyclic = cyclic;
         drop(new_paths);
         Ok(design)
     }
@@ -2464,7 +2464,7 @@ impl Controller {
 
         let strand = strands.remove(&id).expect("strand");
         let name = strand.name.clone();
-        if strand.cyclic {
+        if strand.is_cyclic {
             let new_strand = Self::break_cycle(strand.clone(), *nucl, force_end);
             strands.insert(id, new_strand);
             //self.clean_domains_one_strand(id);
@@ -2577,7 +2577,7 @@ impl Controller {
             domains: prim5_domains,
             color: strand.color,
             junctions: prime5_junctions,
-            cyclic: false,
+            is_cyclic: false,
             sequence: seq_prim5,
             name: name.clone(),
         };
@@ -2585,7 +2585,7 @@ impl Controller {
         let mut strand_3prime = Strand {
             domains: prim3_domains,
             color: strand.color,
-            cyclic: false,
+            is_cyclic: false,
             junctions: prime3_junctions,
             sequence: seq_prim3,
             name,
@@ -2672,7 +2672,7 @@ impl Controller {
         junctions.push(DomainJunction::Prime3);
 
         strand.domains = new_domains;
-        strand.cyclic = false;
+        strand.is_cyclic = false;
         strand.junctions = junctions;
         strand
     }
@@ -2898,7 +2898,7 @@ impl Controller {
                 color: strand5prime.color,
                 sequence,
                 junctions,
-                cyclic: false,
+                is_cyclic: false,
                 name,
             };
             new_strand.merge_consecutive_domains();
@@ -2919,7 +2919,7 @@ impl Controller {
         strands
             .get_mut(&strand_id)
             .ok_or(ErrOperation::StrandDoesNotExist(strand_id))?
-            .cyclic = cyclic;
+            .is_cyclic = cyclic;
 
         let strand = strands
             .get_mut(&strand_id)
@@ -3037,7 +3037,7 @@ impl Controller {
         let was_cyclic = strands
             .get(&target_strand)
             .ok_or(ErrOperation::StrandDoesNotExist(target_strand))?
-            .cyclic;
+            .is_cyclic;
         //println!("half1 {}, ; half0 {}", new_id, target_strand);
         Self::split_strand(strands, &nucl, Some(target_3prime), color_idx)?;
         //println!("splitted");
@@ -3251,7 +3251,7 @@ impl Controller {
                             true,
                             &mut self.color_idx,
                         )?;
-                    } else if source.cyclic {
+                    } else if source.is_cyclic {
                         Self::split_strand(
                             strands,
                             &source_nucl,

@@ -627,6 +627,7 @@ impl Reader3D for DesignReader {
         // Scanning strands
         for (s_id, strand) in design.strands.iter() {
             let mut pos_seq = Vec::new();
+            let mut curvatures = Vec::new();
             for (i, domain) in strand.domains.iter().enumerate() {
                 // Real domain or Insertion
                 if let Domain::HelixDomain(domain) = domain {
@@ -646,12 +647,14 @@ impl Reader3D for DesignReader {
                             });
                         let position = content.space_position.get(nucl_id).unwrap().clone();
                         pos_seq.push(position);
+                        curvatures.push(design.helices.get(&domain.helix).unwrap().curvature_at_pos(nucl_position).unwrap_or(0.0)); 
                     }
                 }
             }
             nucl_pos.insert(*s_id, StrandNucleotidesPositions {
                 positions: pos_seq,
-                is_cyclic: strand.cyclic,
+                is_cyclic: strand.is_cyclic,
+                curvatures,
             });
         }
         return nucl_pos;

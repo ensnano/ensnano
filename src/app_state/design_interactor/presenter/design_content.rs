@@ -883,7 +883,7 @@ impl DesignContent {
                     last_xover_junction = Some(&mut strand.junctions[i]);
                 }
             }
-            if strand.cyclic {
+            if strand.is_cyclic {
                 let nucl = strand.get_5prime().unwrap();
                 let prime5_id = nucl_collection.get_identifier(&nucl).unwrap();
                 let bond_id = id_TMP;
@@ -991,7 +991,7 @@ impl DesignContent {
                         ObjectType::SlicedBond(*prev_id, *id1, *id2, *next_id),
                     );
                 }
-                if !strand.cyclic {
+                if !strand.is_cyclic {
                     // modify the first bond to repeat the first nucl_id
                     let first_id = bond_ids_sequence[0];
                     let ObjectType::SlicedBond(_, id1, id2, next_id) =
@@ -1427,7 +1427,7 @@ mod tests {
             for s in design.strands.values() {
                 let mut expected_prime5: Option<Nucl> = None;
                 let mut expected_prime5_domain: Option<usize> = None;
-                let nb_taken = if s.cyclic {
+                let nb_taken = if s.is_cyclic {
                     2 * s.domains.len()
                 } else {
                     s.domains.len()

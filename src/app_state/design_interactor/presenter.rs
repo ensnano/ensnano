@@ -609,7 +609,7 @@ impl DesignReader {
 
     pub(super) fn prime5_of_which_strand(&self, nucl: Nucl) -> Option<usize> {
         for (s_id, s) in self.presenter.current_design.strands.iter() {
-            if !s.cyclic && s.get_5prime() == Some(nucl) {
+            if !s.is_cyclic && s.get_5prime() == Some(nucl) {
                 return Some(*s_id);
             }
         }
@@ -618,7 +618,7 @@ impl DesignReader {
 
     pub(super) fn prime3_of_which_strand(&self, nucl: Nucl) -> Option<usize> {
         for (s_id, s) in self.presenter.current_design.strands.iter() {
-            if !s.cyclic && s.get_3prime() == Some(nucl) {
+            if !s.is_cyclic && s.get_3prime() == Some(nucl) {
                 return Some(*s_id);
             }
         }

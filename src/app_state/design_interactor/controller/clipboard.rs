@@ -601,7 +601,7 @@ impl Controller {
                     color,
                     junctions,
                     sequence: None,
-                    cyclic: false,
+                    is_cyclic: false,
                     name: None,
                 };
                 let strand_id = if let Some(n) = design.strands.keys().max() {

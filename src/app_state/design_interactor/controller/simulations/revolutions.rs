@@ -694,7 +694,7 @@ impl SimulationUpdate for HelicesRouting {
                     domains: vec![domain],
                     junctions: vec![DomainJunction::Prime3],
                     name: None,
-                    cyclic: false,
+                    is_cyclic: false,
                     sequence: None,
                 });
             }

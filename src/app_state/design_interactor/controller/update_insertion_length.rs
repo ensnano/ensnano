@@ -36,7 +36,7 @@ impl Controller {
             .get_mut(&s_id)
             .ok_or(ErrOperation::StrandDoesNotExist(s_id))?;
 
-        let cyclic = strand_mut.cyclic;
+        let cyclic = strand_mut.is_cyclic;
         if cyclic {
             let prime3 = strand_mut
                 .get_3prime()
@@ -151,7 +151,7 @@ fn get_insertion_length_mut<'a>(
 ) -> Option<InsertionMut<'a>> {
     let mut insertion_id: Option<usize> = None;
     let domains_iterator: Box<dyn Iterator<Item = ((usize, &Domain), (usize, &Domain))>> =
-        if strand.cyclic {
+        if strand.is_cyclic {
             Box::new(
                 strand
                     .domains

@@ -75,7 +75,7 @@ impl Reader2D for DesignReader {
                 ret.extend(split_domain_into_helices_segment(domain, helices));
             }
         }
-        if strand.cyclic {
+        if strand.is_cyclic {
             ret.push(ret[0])
         }
         Some(ret)
