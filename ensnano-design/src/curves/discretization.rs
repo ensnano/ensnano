@@ -470,7 +470,7 @@ impl Curve {
                     while delta < DELTA_MAX {
                         let new_tmax = self.geometry.t_max() + delta;
                         if self.length_by_discretisation(
-                           0.0, // should not it be self.geometry.t_min() ??? MAY BE NOT BECAUSE BIINFINITE
+                            0.0, // should not it be self.geometry.t_min() ??? MAY BE NOT BECAUSE BIINFINITE
                             new_tmax,
                             NB_DISCRETISATION_STEP / 100,
                         ) > objective

@@ -288,7 +288,7 @@ impl State for NormalState {
                 }
                 Action::SetDnaParameters(param) => Box::new(YesNo::new(
                     CHANGING_DNA_PARAMETERS_WARNING,
-                    Box::new(ChangindDnaParameters(param)),
+                    Box::new(ChangingDnaParameters(param)),
                     self,
                 )),
                 Action::SetExpandInsertions(b) => {
@@ -316,9 +316,9 @@ impl State for NormalState {
     }
 }
 
-struct ChangindDnaParameters(HelixParameters);
+struct ChangingDnaParameters(HelixParameters);
 
-impl State for ChangindDnaParameters {
+impl State for ChangingDnaParameters {
     fn make_progress(self: Box<Self>, main_state: &mut dyn MainState) -> Box<dyn State> {
         main_state.apply_operation(DesignOperation::SetGlobalHelixParameters {
             helix_parameters: self.0,

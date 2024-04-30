@@ -49,6 +49,8 @@ use ensnano_interactor::{
     SelectionMode,
 };
 
+use ensnano_utils::StrandNucleotidesPositions;
+
 use super::AppState;
 
 type ViewPtr = Rc<RefCell<View>>;
@@ -1340,7 +1342,7 @@ impl<R: DesignReader> Data<R> {
         instances
     }
 
-    pub fn get_nucleotides_positions_by_strands(&self) -> Option<HashMap<usize, Vec<[f32; 3]>>> {
+    pub fn get_nucleotides_positions_by_strands(&self) -> Option<HashMap<usize, StrandNucleotidesPositions>> {
         return Some(
             self.designs
                 .get(0)?

@@ -32,6 +32,8 @@ use ultraviolet::{Mat4, Rotor3, Vec2, Vec3};
 
 use crate::scene::{DesignReader as Reader3D, GridInstance, SurfaceInfo};
 
+use ensnano_utils::StrandNucleotidesPositions;
+
 impl Reader3D for DesignReader {
     fn get_color(&self, e_id: u32) -> Option<u32> {
         self.presenter.content.color_map.get(&e_id).cloned()
@@ -617,7 +619,7 @@ impl Reader3D for DesignReader {
             .map(Arc::as_ref)
     }
 
-    fn get_nucleotides_positions_by_strands(&self) -> HashMap<usize, Vec<[f32; 3]>> {
+    fn get_nucleotides_positions_by_strands(&self) -> HashMap<usize, StrandNucleotidesPositions> {
         let mut nucl_pos = HashMap::new();
         let design = self.presenter.current_design.as_ref();
         let content = self.presenter.content.as_ref();
@@ -647,7 +649,10 @@ impl Reader3D for DesignReader {
                     }
                 }
             }
-            nucl_pos.insert(*s_id, pos_seq);
+            nucl_pos.insert(*s_id, StrandNucleotidesPositions {
+                positions: pos_seq,
+                is_cyclic: strand.cyclic,
+            });
         }
         return nucl_pos;
     }

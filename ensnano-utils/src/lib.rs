@@ -21,6 +21,7 @@ pub use iced_winit;
 pub use iced_winit::winit;
 use wgpu::util::{BufferInitDescriptor, DeviceExt};
 pub use winit::dpi::{PhysicalPosition, PhysicalSize, Pixel};
+use serde::{Serialize, Deserialize};
 
 pub mod bindgroup_manager;
 pub mod camera2d;
@@ -43,6 +44,13 @@ pub mod filename;
 
 pub type PhySize = PhysicalSize<u32>;
 pub const TEXTURE_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Bgra8UnormSrgb;
+
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct StrandNucleotidesPositions {
+    pub is_cyclic: bool,
+    pub positions: Vec<[f32; 3]>,
+}
 
 pub fn create_buffer_with_data(
     device: &wgpu::Device,

@@ -51,6 +51,9 @@ use ultraviolet::{Mat4, Rotor3, Vec2, Vec3, Vec4};
 mod bezier_paths;
 
 use crate::SceneElement::DesignElement;
+use serde::{Serialize, Deserialize};
+
+use ensnano_utils::StrandNucleotidesPositions;
 
 /// An object that handles the 3d graphical representation of a `Design`
 pub struct Design3D<R: DesignReader> {
@@ -1633,6 +1636,7 @@ pub(super) enum ExpandWith {
     Tubes,
 }
 
+
 // Array of (strand number, array of 3D space position of the nucleotides)
 
 pub trait DesignReader: 'static + ensnano_interactor::DesignReader {
@@ -1726,7 +1730,7 @@ pub trait DesignReader: 'static + ensnano_interactor::DesignReader {
     fn get_surface_info_nucl(&self, nucl: Nucl) -> Option<SurfaceInfo>;
     fn get_surface_info(&self, point: SurfacePoint) -> Option<SurfaceInfo>;
     fn get_additional_structure(&self) -> Option<&dyn AdditionalStructure>;
-    fn get_nucleotides_positions_by_strands(&self) -> HashMap<usize, Vec<[f32; 3]>, RandomState>;
+    fn get_nucleotides_positions_by_strands(&self) -> HashMap<usize, StrandNucleotidesPositions, RandomState>;
 }
 
 pub(super) struct HBondsInstances {
