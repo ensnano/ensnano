@@ -413,8 +413,12 @@ fn main() {
 
     let mut main_state = MainState::new(main_state_constructor);
 
+    let _ = ensnano_gui::load_fonts();
+    let _ = ensnano_gui::load_fonts2();
+
     let mut gui = gui::Gui::new(
         Rc::clone(&device),
+        Rc::clone(&queue),
         &window,
         &multiplexer,
         Arc::clone(&requests),
@@ -499,7 +503,7 @@ fn main() {
             Event::WindowEvent {
                 event: WindowEvent::KeyboardInput { event, .. },
                 ..
-            } if event.logicak_key == KeyCode::Escape && window.fullscreen().is_some() => {
+            } if event.logical_key == KeyCode::Escape && window.fullscreen().is_some() => {
                 window.set_fullscreen(None)
             }
             Event::WindowEvent {
@@ -901,7 +905,7 @@ impl OverlayManager {
         window: &Window,
     ) {
         for (n, overlay) in self.overlay_types.iter().enumerate() {
-            let cursor_position = if multiplexer.foccused_element() == Some(ElementType::Overlay(n))
+            let cursor_position = if multiplexer.focused_element() == Some(ElementType::Overlay(n))
             {
                 multiplexer.get_cursor_position()
             } else {
@@ -1001,7 +1005,7 @@ impl OverlayManager {
     ) -> bool {
         let mut ret = false;
         for (n, overlay) in self.overlay_types.iter().enumerate() {
-            let cursor_position = if multiplexer.foccused_element() == Some(ElementType::Overlay(n))
+            let cursor_position = if multiplexer.focused_element() == Some(ElementType::Overlay(n))
             {
                 multiplexer.get_cursor_position()
             } else {
@@ -1116,7 +1120,7 @@ impl MainState {
         // Usefull to remember to finish hyperboloid before trying to edit
         if self.app_state.is_building_hyperboloid()
             && multiplexer
-                .foccused_element()
+                .focused_element()
                 .map(|e| e.is_scene())
                 .unwrap_or(false)
         {

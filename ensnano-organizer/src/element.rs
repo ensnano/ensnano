@@ -102,7 +102,13 @@ impl<A: OrganizerAttribute> AttributeDisplayer<A> {
         self.widget = widget;
     }
 
-    pub fn view(&self) -> Option<Element<A>> {
+    pub fn view<'a, Theme, Renderer>(&self) -> Option<Element<'a, A, Theme, Renderer>>
+    where
+        Theme: iced_widget::pick_list::StyleSheet
+            + iced_widget::scrollable::StyleSheet
+            + iced::overlay::menu::StyleSheet,
+        Renderer: iced::advanced::Renderer + iced::advanced::text::Renderer,
+    {
         use iced_widget::*; // NOTE: This is a trick to avoid a conflict between core and
                             //       iced_core.
 

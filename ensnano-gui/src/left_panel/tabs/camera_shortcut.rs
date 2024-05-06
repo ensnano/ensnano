@@ -184,7 +184,14 @@ impl CameraShortcutPanel {
         self.set_camera_widget(app);
     }
 
-    pub fn view<S: AppState>(&self, ui_size: UiSize, _app: &S) -> Element<Message<S>> {
+    pub fn view<State, Theme, Renderer>(
+        &self,
+        ui_size: UiSize,
+        _app: &State,
+    ) -> Element<Message<State>, Theme, Renderer>
+    where
+        State: AppState,
+    {
         // Create button widget for each predefined target.
 
         let rotate_buttons = self::column![

@@ -24,10 +24,18 @@ use iced::{Font, Length};
 pub use iced_widget::*;
 
 const JUMP_SIZE: f32 = 4.0;
-pub(super) const ENSNANO_FONT: Font = Font::External {
-    name: "EnsNanoFont",
-    bytes: include_bytes!("../../font/ensnano.ttf"),
-};
+//pub(super) const ENSNANO_FONT: Font = Font::External {
+//    name: "EnsNanoFont",
+//    bytes: include_bytes!("../../font/ensnano.ttf"),
+//};
+pub(super) const ENSNANO_FONT: Font = Font::with_name("EnsNanoFont");
+
+pub fn load_fonts2() -> iced::Command<Result<(), iced::font::Error>> {
+    let command = iced::Command::batch(vec![iced::font::load(
+        include_bytes!("../../font/ensnano.ttf").as_slice(),
+    )]);
+    command
+}
 
 /// Add vertical space of [JUMP_SIZE] amount
 pub fn extra_jump() -> Space {
@@ -62,23 +70,38 @@ pub fn rotation_text<'a>(i: usize, ui_size: UiSize) -> Text<'a> {
 }
 
 /// Return a button containing an icon in the light theme.
-pub fn light_icon_button<'a, Message>(
+pub fn light_icon_button<'a, Message, Theme, Renderer>(
     icon: material_icons_light::LightIcon,
     ui_size: UiSize,
-) -> Button<'a, Message> {
+) -> Button<'a, Message, Theme, Renderer>
+where
+    Theme: button::StyleSheet,
+    Renderer: iced::advanced::Renderer,
+{
     button(material_icons_light::light_icon(icon, ui_size)).height(ui_size.button())
 }
 
 /// Return a button containing an icon in the light theme.
-pub fn dark_icon_button<'a, Message>(
+pub fn dark_icon_button<'a, Message, Theme, Renderer>(
     icon: material_icons_light::LightIcon,
     ui_size: UiSize,
-) -> Button<'a, Message> {
+) -> Button<'a, Message, Theme, Renderer>
+where
+    Theme: button::StyleSheet,
+    Renderer: iced::advanced::Renderer,
+{
     button(material_icons_light::dark_icon(icon, ui_size)).height(ui_size.button())
 }
 
 /// Return a text button.
-pub fn text_button<'a, Message>(label: impl ToString, ui_size: UiSize) -> Button<'a, Message> {
+pub fn text_button<'a, Message, Theme, Renderer>(
+    label: impl ToString,
+    ui_size: UiSize,
+) -> Button<'a, Message, Theme, Renderer>
+where
+    Theme: button::StyleSheet + text::StyleSheet,
+    Renderer: iced::advanced::Renderer + iced::advanced::text::Renderer,
+{
     button(text(label).size(ui_size.main_text())).height(ui_size.button())
 }
 
@@ -93,14 +116,16 @@ pub fn icon_button<'a, Message: Clone>(icon_char: char, ui_size: UiSize) -> Butt
 }
 
 /// Return a button that starts, then stops something.
-pub fn start_stop_button<'a, Message, F>(
+pub fn start_stop_button<'a, F, Message, Theme, Renderer>(
     label: impl ToString,
     ui_size: UiSize,
     start_stop_switch: Option<F>,
     is_started: bool,
-) -> Button<'a, Message>
+) -> Button<'a, Message, Theme, Renderer>
 where
     F: 'static + Fn(bool) -> Message,
+    Theme: button::StyleSheet + text::StyleSheet,
+    Renderer: iced::advanced::Renderer + iced::advanced::text::Renderer,
 {
     let mut start_stop_button = text_button(label, ui_size);
     // NOTE: In the previous version of the start_stop_button (i.g. GoStop),

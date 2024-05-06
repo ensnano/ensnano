@@ -337,7 +337,7 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
     fn update(
         &mut self,
         size: iced::Size,
-        cursor: iced::Point,
+        cursor: iced::mouse::Cursor,
         renderer: &mut Renderer,
         theme: &iced::Theme,
         style: &iced::advanced::renderer::Style,
@@ -365,7 +365,7 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
         encoder: &mut wgpu::CommandEncoder,
         clear_color: Option<iced::Color>,
         //staging_belt: &mut wgpu::util::StagingBelt,
-        format: &wgpu::TextureFormat,
+        format: wgpu::TextureFormat,
         frame: &wgpu::TextureView,
         viewport: &iced_graphics::Viewport,
         debug: &Debug,
@@ -549,17 +549,21 @@ impl<R: Requests, S: AppState> GuiElement<R, S> {
         resized: bool,
     ) -> bool {
         let area = multiplexer.get_draw_area(self.element_type).unwrap();
-        let cursor = if multiplexer.foccused_element() == Some(self.element_type) {
-            multiplexer.get_cursor_position()
+        let cursor = if multiplexer.focused_element() == Some(self.element_type) {
+            let point = conversion::cursor_position(
+                multiplexer.get_cursor_position(),
+                window.scale_factor(),
+            );
+            iced::mouse::Cursor::Available(point)
         } else {
-            PhysicalPosition::new(-1., -1.)
+            iced::mouse::Cursor::Unavailable
         };
         if !self.state.is_queue_empty() || resized {
             // We update iced
             self.redraw = true;
             self.state.update(
                 convert_size(area.size),
-                conversion::cursor_position(cursor, window.scale_factor()),
+                cursor,
                 &mut self.renderer,
                 theme,
                 style,
@@ -622,6 +626,13 @@ pub struct Gui<R: Requests, S: AppState> {
     ui_size: UiSize,
 }
 
+const ENSNANO_FONT: iced::Font = iced::Font {
+    family: iced::font::Family::Name("Ensnano"),
+    weight: iced::font::Weight::Medium,
+    stretch: iced::font::Stretch::Normal,
+    style: iced::font::Style::Normal,
+};
+
 impl<R: Requests, S: AppState> Gui<R, S> {
     pub fn new(
         device: Rc<Device>,
@@ -633,10 +644,11 @@ impl<R: Requests, S: AppState> Gui<R, S> {
         global_state: &S,
         top_bar_state: TopBarState,
     ) -> Self {
+        //let default_font = iced::font::load(include_bytes!("../../font/ensnano2.ttf"));
         let settings = Settings {
             antialiasing: Some(iced_graphics::Antialiasing::MSAAx4),
-            default_text_size: ui_size.main_text(),
-            default_font: Some(include_bytes!("../../font/ensnano2.ttf")),
+            default_font: ENSNANO_FONT,
+            default_text_size: iced::Pixels(ui_size.main_text()),
             ..Default::default()
         };
 
@@ -911,7 +923,7 @@ impl<R: Requests, S: AppState> Gui<R, S> {
 
     fn set_text_size(&mut self, text_size: f32) {
         let settings = Settings {
-            default_text_size: text_size,
+            default_text_size: iced::Pixels(text_size),
             ..self.settings
         };
         self.settings = settings;
@@ -942,6 +954,10 @@ impl<R: Requests, S: AppState> Gui<R, S> {
         }
     }
 }
+
+// NOTE: It would be nice to implement `From<PhysicalSize>`,
+//       but Rust wouldn't allow it for types defined outside
+//       the crate.
 
 fn convert_size(size: PhysicalSize<u32>) -> Size<f32> {
     Size::new(size.width as f32, size.height as f32)
@@ -1044,7 +1060,7 @@ impl<S: AppState> IcedMessages<S> {
 /// An object mapping ElementType to DrawArea
 pub trait Multiplexer {
     fn get_draw_area(&self, element_type: ElementType) -> Option<DrawArea>;
-    fn foccused_element(&self) -> Option<ElementType>;
+    fn focused_element(&self) -> Option<ElementType>;
     fn get_cursor_position(&self) -> PhysicalPosition<f64>;
     fn get_texture_view(&self, element_type: ElementType) -> Option<&wgpu::TextureView>;
 }

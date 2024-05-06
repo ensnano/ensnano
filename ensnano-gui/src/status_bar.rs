@@ -95,10 +95,10 @@ pub struct StatusBar<R: Requests, S: AppState> {
     logical_size: LogicalSize<f64>,
 }
 
-impl<R: Requests, S: AppState> StatusBar<R, S> {
+impl<R: Requests, State: AppState> StatusBar<R, State> {
     pub fn new(
         requests: Arc<Mutex<R>>,
-        state: &S,
+        state: &State,
         logical_size: LogicalSize<f64>,
         ui_size: UiSize,
     ) -> Self {
@@ -131,7 +131,7 @@ impl<R: Requests, S: AppState> StatusBar<R, S> {
         }
     }
 
-    fn view_progress(&self) -> Row<Message<S>, iced_wgpu::Renderer> {
+    fn view_progress(&self) -> Row<Message<State>, iced::Theme, iced_wgpu::Renderer> {
         let progress = self.progress.as_ref().unwrap();
         row![text(format!("{}, {:.1}%", progress.0, progress.1 * 100.))
             .size(self.ui_size.main_text()),]
@@ -371,7 +371,10 @@ impl OperationInput {
         self.operation = operation;
     }
 
-    fn view<S: AppState>(&self, ui_size: UiSize) -> Row<Message<S>, iced_wgpu::Renderer> {
+    fn view<S: AppState>(
+        &self,
+        ui_size: UiSize,
+    ) -> Row<Message<S>, iced::Theme, iced_wgpu::Renderer> {
         let mut row = Row::new();
         let op = self.operation.as_ref();
         row = row.push(Text::new(op.description()).size(ui_size.main_text()));
@@ -476,7 +479,7 @@ mod input_color {
                 border: Border {
                     color: Color::from_rgb(0.7, 0.7, 0.7),
                     width: 1.0,
-                    radius: 5.0,
+                    radius: 5.0.into(),
                 },
                 icon_color: Default::default(), // TODO:Choose an appropriate value for this field.
             }

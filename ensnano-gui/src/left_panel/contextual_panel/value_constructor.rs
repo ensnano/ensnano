@@ -63,7 +63,7 @@ macro_rules! type_builder {
                     }
                 }
 
-                fn view<'a ,Message: BuilderMessage>(&self) -> Element<Message> {
+                fn view<'a ,Message: BuilderMessage>(&self) -> Element<Message, Theme, Renderer> {
                     let str_values = [$(& self.[<$param _string>],)*];
                     //let states = vec![$(&mut self.[<$param _input>],)*];
                     let mut ret = Column::new().width(iced::Length::Fill).align_items(iced::Alignment::End);
@@ -208,7 +208,7 @@ impl GridPositionBuilder {
         Self::Cartesian(Vec3Builder::new(ValueKind::HelixGridPosition, position))
     }
 
-    fn view<Message: BuilderMessage>(&self) -> Element<Message, Renderer> {
+    fn view<Message: BuilderMessage>(&self) -> Element<Message, Theme, Renderer> {
         match self {
             Self::Cartesian(builder) => builder.view(),
         }
@@ -247,7 +247,7 @@ impl GridOrientationBuilder {
         ))
     }
 
-    fn view<Message: BuilderMessage>(&self) -> Element<Message, Renderer> {
+    fn view<Message: BuilderMessage>(&self) -> Element<Message, Theme, Renderer> {
         match self {
             Self::DirectionAngle(builder) => builder.view(),
         }
@@ -286,13 +286,17 @@ impl BezierVertexBuilder {
     }
 }
 
-impl<S: AppState> Builder<S> for BezierVertexBuilder {
+impl<State, Theme, Renderer> Builder<State, Theme, Renderer> for BezierVertexBuilder
+where
+    State: AppState,
+    Renderer: iced::advanced::Renderer,
+{
     fn view(
         &self,
         ui_size: UiSize,
         _selection: &Selection,
-        _app_state: &S,
-    ) -> iced::Element<super::Message<S>> {
+        _app_state: &State,
+    ) -> iced::Element<super::Message<State>, Theme, Renderer> {
         self::column![
             text("Position").size(ui_size.intermediate_text()),
             self.position_builder.view(),
@@ -369,13 +373,17 @@ impl GridBuilder {
     }
 }
 
-impl<S: AppState> Builder<S> for GridBuilder {
+impl<State, Theme, Renderer> Builder<State, Theme, Renderer> for GridBuilder
+where
+    State: AppState,
+    Renderer: iced::advanced::Renderer,
+{
     fn view(
         &self,
         ui_size: UiSize,
         selection: &Selection,
-        app_state: &S,
-    ) -> iced::Element<super::Message<S>> {
+        app_state: &State,
+    ) -> iced::Element<super::Message<State>, Theme, Renderer> {
         self::column![
             text("Position").size(ui_size.intermediate_text()),
             self.position_builder.view(),
@@ -419,13 +427,17 @@ impl<S: AppState> Builder<S> for GridBuilder {
 
 use super::AppState;
 
-pub trait Builder<S: AppState> {
+pub trait Builder<State, Theme, Renderer>
+where
+    State: AppState,
+    Renderer: iced::advanced::Renderer,
+{
     fn view<'a>(
         &'a self,
         ui_size: UiSize,
         selection: &Selection,
-        app_state: &S,
-    ) -> Element<'a, super::Message<S>, Renderer>;
+        app_state: &State,
+    ) -> Element<'a, super::Message<State>, Theme, Renderer>;
     fn update_str_value(&mut self, value_kind: ValueKind, n: usize, value_str: String);
     fn submit_value(&mut self, value_kind: ValueKind) -> Option<InstanciatedValue>;
     fn has_keyboard_priority(&self) -> bool;

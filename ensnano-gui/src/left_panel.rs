@@ -42,7 +42,9 @@ use ensnano_interactor::{
 use ensnano_exports::ExportType;
 
 use super::{
-    material_icons_light::{icon_to_char, LightIcon as MaterialIcon, DARK_ICONFONT as ICONFONT},
+    material_icons_light::{
+        icon_to_char, LightIcon as MaterialIcon, MATERIAL_ICONS_DARK as ICONFONT,
+    },
     AppState, FogParameters, OverlayType, Requests, UiSize,
 };
 
@@ -963,12 +965,14 @@ where
 
     fn view(&self) -> Element<Self::Message, Self::Theme, Self::Renderer> {
         let width = self.logical_size.cast::<u16>().width;
-        let tabs: Tabs<Message<S>, Self::Renderer> = Tabs::with_tabs(
-            self.selected_tab,
+        //let tabs: Tabs<Message<S>, _, Self::Theme, Self::Renderer> = Tabs::with_tabs(
+        let tabs = Tabs::new_with_tabs(
+            //self.selected_tab,
             // NOTE: The style, height and width values are necessary to clear the tab when
             //       switching to a new tab.
             vec![
                 (
+                    0,
                     TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::GridOn))),
                     container(self.grid_tab.view(self.ui_size, &self.application_state))
                         .height(Length::Fill)
@@ -976,6 +980,7 @@ where
                         .into(),
                 ),
                 (
+                    1,
                     TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Edit))),
                     container(self.edition_tab.view(self.ui_size, &self.application_state))
                         .height(Length::Fill)
@@ -983,6 +988,7 @@ where
                         .into(),
                 ),
                 (
+                    2,
                     TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Videocam))),
                     container(self.camera_tab.view(self.ui_size, &self.application_state))
                         .height(Length::Fill)
@@ -990,6 +996,7 @@ where
                         .into(),
                 ),
                 (
+                    3,
                     TabLabel::Icon(ICON_PHYSICAL_ENGINE),
                     container(
                         self.simulation_tab
@@ -1000,6 +1007,7 @@ where
                     .into(),
                 ),
                 (
+                    4,
                     TabLabel::Icon(ICON_ATGC),
                     container(
                         self.sequence_tab
@@ -1010,6 +1018,7 @@ where
                     .into(),
                 ),
                 (
+                    5,
                     TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Settings))),
                     container(
                         self.parameters_tab
@@ -1020,6 +1029,7 @@ where
                     .into(),
                 ),
                 (
+                    6,
                     TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Draw))),
                     container(self.pen_tab.view(self.ui_size, &self.application_state))
                         .height(Length::Fill)
@@ -1027,6 +1037,7 @@ where
                         .into(),
                 ),
                 (
+                    7,
                     TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::AutoMode))),
                     container(
                         self.revolution_tab
@@ -1073,13 +1084,13 @@ where
 
         container(
             self::column![
-                first_container.height(Length::FillPortion(2)),
+                //first_container.height(Length::FillPortion(2)),
                 horizontal_rule(5),
                 container(camera_shortcut).height(Length::FillPortion(1)),
                 horizontal_rule(5),
                 container(contextual_menu).height(Length::FillPortion(1)),
                 horizontal_rule(5),
-                container(organizer).height(Length::FillPortion(2)),
+                //container(organizer).height(Length::FillPortion(2)),
             ]
             .width(Length::Fill)
             .padding(1),

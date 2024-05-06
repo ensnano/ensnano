@@ -67,9 +67,9 @@ impl ColorPicker {
         self.hsv_value = hsv_value
     }
 
-    pub fn view<S>(&self) -> iced::Element<Message<S>>
+    pub fn view<State>(&self) -> iced::Element<Message<State>, iced::Theme, iced_wgpu::Renderer>
     where
-        S: AppState,
+        State: AppState,
     {
         row![
             HueColumn::new(Message::HueChanged),
@@ -83,7 +83,7 @@ impl ColorPicker {
         .into()
     }
 
-    pub fn color_square<'a, S: AppState>(&self) -> ColorSquare<'a, Message<S>> {
+    pub fn color_square<'a, State: AppState>(&self) -> ColorSquare<'a, Message<State>> {
         ColorSquare::new(
             self.color,
             Message::ColorPicked,
@@ -91,7 +91,7 @@ impl ColorPicker {
         )
     }
 
-    pub fn new_view(&self) -> iced::Element<ColorMessage> {
+    pub fn new_view(&self) -> iced::Element<ColorMessage, iced::Theme, iced_wgpu::Renderer> {
         row![
             HueColumn::new(ColorMessage::HueChanged,),
             LightSatSquare::new(
@@ -135,6 +135,8 @@ mod hue_column {
     /// A HueColumn Widget.
     pub struct HueColumn<'a, Message> {
         on_slide: Box<dyn Fn(f64) -> Message + 'a>,
+        // TODO: Mimic iced like in Checkbox: Option<Box<…>>, then a method to set something else
+        //       than None.
     }
 
     impl<'a, Message> HueColumn<'a, Message> {
@@ -336,7 +338,10 @@ mod light_sat_square {
     pub struct LightSatSquare<'a, Message: Clone> {
         hue: f64,
         on_slide: Box<dyn Fn(f64, f64) -> Message + 'a>,
+        // TODO: Mimic iced like in Checkbox: Option<Box<…>>, then a method to set something else
+        //       than None.
         on_finish: Message,
+        // TODO: Mimic iced like in Button: Option<…>, then a method to set something else than None.
     }
 
     impl<'a, Message: Clone> LightSatSquare<'a, Message> {
@@ -534,14 +539,23 @@ mod color_square {
     }
 
     /// A ColorSquare Widget
-    pub struct ColorSquare<'a, Message: Clone> {
+    pub struct ColorSquare<'a, Message>
+    where
+        Message: Clone,
+    {
         //state: &'a mut State,
         color: Color,
         on_click: Box<dyn Fn(Color) -> Message + 'a>,
+        // TODO: Mimic iced like in Checkbox: Option<Box<…>>, then a method to set something else
+        //       than None.
         on_release: Message,
+        // TODO: Mimic iced like in Button: Option<…>, then a method to set something else than None.
     }
 
-    impl<'a, Message: Clone> ColorSquare<'a, Message> {
+    impl<'a, Message> ColorSquare<'a, Message>
+    where
+        Message: Clone,
+    {
         pub fn new<F>(color: Color, on_click: F, on_release: Message) -> Self
         where
             F: 'static + Fn(Color) -> Message + 'a,

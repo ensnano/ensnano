@@ -124,15 +124,28 @@ impl ValueRequest {
     }
 }
 
-struct InstantiatedBuilder<S: AppState> {
+struct InstantiatedBuilder<State>
+where
+    State: AppState,
+    Renderer: iced::advanced::Renderer,
+{
     selection: Selection,
-    builder: Box<dyn Builder<S>>,
+    builder: Box<dyn Builder<State, Theme, Renderer>>,
 }
 
-impl<S: AppState> InstantiatedBuilder<S> {
+impl<State> InstantiatedBuilder<State>
+where
+    State: AppState,
+    //Renderer: iced::advanced::Renderer,
+{
     /// If a builder can be made from the selection, update the builder and return true. Otherwise,
     /// return false.
-    fn update(&mut self, selection: &Selection, reader: &dyn DesignReader, app_state: &S) -> bool {
+    fn update(
+        &mut self,
+        selection: &Selection,
+        reader: &dyn DesignReader,
+        app_state: &State,
+    ) -> bool {
         if *selection != self.selection || app_state.is_transitory() {
             self.selection = *selection;
             if let Some(builder) = Self::new_builder(selection, reader) {
@@ -156,7 +169,7 @@ impl<S: AppState> InstantiatedBuilder<S> {
     fn new_builder(
         selection: &Selection,
         reader: &dyn DesignReader,
-    ) -> Option<Box<dyn Builder<S>>> {
+    ) -> Option<Box<dyn Builder<State, Theme, Renderer>>> {
         match selection {
             Selection::Grid(_, g_id) => {
                 if let Some((position, orientation)) =
@@ -179,17 +192,23 @@ impl<S: AppState> InstantiatedBuilder<S> {
     }
 }
 
-pub(super) struct ContextualPanel<S: AppState> {
+pub(super) struct ContextualPanel<State>
+where
+    State: AppState,
+{
     width: u32,
     pub force_help: bool,
     pub show_tutorial: bool,
     add_strand_menu: AddStrandMenu,
     strand_name_state: text_input::State<iced_graphics::text::Paragraph>,
-    builder: Option<InstantiatedBuilder<S>>,
+    builder: Option<InstantiatedBuilder<State>>,
     insertion_length_state: InsertionLengthState,
 }
 
-impl<S: AppState> ContextualPanel<S> {
+impl<State> ContextualPanel<State>
+where
+    State: AppState,
+{
     pub fn new(width: u32) -> Self {
         Self {
             width,
@@ -206,7 +225,7 @@ impl<S: AppState> ContextualPanel<S> {
         self.width = width;
     }
 
-    pub fn update(&mut self, app_state: &S) {
+    pub fn update(&mut self, app_state: &State) {
         let selection = app_state
             .get_selection()
             .get(0)
@@ -228,7 +247,7 @@ impl<S: AppState> ContextualPanel<S> {
         &mut self,
         selection: Option<&Selection>,
         reader: &dyn DesignReader,
-        app_state: &S,
+        app_state: &State,
     ) {
         if let Some(s) = selection {
             if let Some(builder) = &mut self.builder {
@@ -243,7 +262,11 @@ impl<S: AppState> ContextualPanel<S> {
         }
     }
 
-    pub fn view(&self, ui_size: UiSize, app_state: &S) -> iced::Element<Message<S>> {
+    pub fn view(
+        &self,
+        ui_size: UiSize,
+        app_state: &State,
+    ) -> iced::Element<Message<State>, iced::Theme, iced_wgpu::Renderer> {
         let selection = app_state
             .get_selection()
             .get(0)
@@ -268,7 +291,9 @@ impl<S: AppState> ContextualPanel<S> {
 
         // NOTE: The brancing below determines what is viewed in the contextual panel.
         //
-        let mut content: iced::widget::Column<Message<S>> = if self.show_tutorial {
+        let mut content: iced::widget::Column<Message<State>, Theme, Renderer> = if self
+            .show_tutorial
+        {
             let link = "http://ens-lyon.fr/ensnano";
             self::column![
                 section("Tutorials", ui_size)
@@ -494,11 +519,11 @@ enum TwistStatus {
     Twisting,
 }
 
-fn add_grid_content<'a, S: AppState>(
+fn add_grid_content<'a, State: AppState>(
     info_values: Vec<String>,
     ui_size: UiSize,
     twisting: TwistStatus,
-) -> iced::Element<'a, Message<S>> {
+) -> iced::Element<'a, Message<State>> {
     self::column![
         // twist_button
         match twisting {
@@ -521,10 +546,10 @@ fn add_grid_content<'a, S: AppState>(
     .into()
 }
 
-fn add_strand_content<'a, S: AppState>(
+fn add_strand_content<'a, State: AppState>(
     info_values: Vec<String>,
     ui_size: UiSize,
-) -> iced::Element<'a, Message<S>> {
+) -> iced::Element<'a, Message<State>> {
     let s_id = info_values[2].parse::<usize>().unwrap();
     self::column![
         row![
@@ -549,37 +574,37 @@ fn bool_to_string(b: bool) -> String {
     }
 }
 
-fn add_help_to_column<'a, S: AppState>(
+fn add_help_to_column<'a, State, Theme, Renderer>(
     help_title: impl ToString,
     help: Vec<(String, String)>,
     ui_size: UiSize,
-) -> iced::Element<'a, Message<S>> {
-    self::column![
-        subsection(help_title, ui_size),
-        column(
-            help.iter()
-                .map(|(l, r)| {
-                    if l.is_empty() {
-                        row![Space::with_width(10)]
-                    } else if r.is_empty() {
-                        row![text(l)
-                            .width(Length::Fill)
-                            .horizontal_alignment(Horizontal::Center)]
-                    } else {
-                        row![
-                            text(l)
-                                .width(Length::FillPortion(5))
-                                .horizontal_alignment(Horizontal::Right),
-                            Space::with_width(Length::FillPortion(1)),
-                            text(r).width(Length::FillPortion(5)),
-                        ]
-                    }
-                    .into()
-                })
-                .collect()
-        ),
-    ]
-    .into()
+) -> Column<'a, Message<State>, Theme, Renderer>
+where
+    State: AppState,
+    Renderer: iced::advanced::Renderer,
+{
+    self::column![column(
+        help.iter()
+            .map(|(l, r)| {
+                if l.is_empty() {
+                    row![Space::with_width(10)]
+                } else if r.is_empty() {
+                    row![text(l)
+                        .width(Length::Fill)
+                        .horizontal_alignment(Horizontal::Center)]
+                } else {
+                    row![
+                        text(l)
+                            .width(Length::FillPortion(5))
+                            .horizontal_alignment(Horizontal::Right),
+                        Space::with_width(Length::FillPortion(1)),
+                        text(r).width(Length::FillPortion(5)),
+                    ]
+                }
+                .into()
+            })
+            .collect::<Column<'a, Message<State>, Theme, Renderer>>()
+    ),]
     //let mut content = widget::Column::new();
     //content = content.push(text(help_title).size(ui_size.intermediate_text()));
     //for (l, r) in help {
@@ -604,7 +629,13 @@ fn add_help_to_column<'a, S: AppState>(
     //content.into()
 }
 
-fn turn_into_help_column<'a, S: AppState>(ui_size: UiSize) -> iced::widget::Column<'a, Message<S>> {
+fn turn_into_help_column<'a, State, Theme, Renderer>(
+    ui_size: UiSize,
+) -> Column<'a, Message<State>, Theme, Renderer>
+where
+    State: AppState,
+    Renderer: iced::advanced::Renderer,
+{
     self::column![
         section("Help", ui_size)
             .width(Length::Fill)
@@ -773,7 +804,7 @@ fn view_2d_help() -> Vec<(String, String)> {
     ]
 }
 
-fn link_row<S: AppState>(link: &'static str, ui_size: UiSize) -> iced::Element<Message<S>> {
+fn link_row<State: AppState>(link: &'static str, ui_size: UiSize) -> iced::Element<Message<State>> {
     row![
         self::column![text(link),].width(Length::FillPortion(3)),
         self::column![text_button("Go", ui_size).on_press(Message::OpenLink(link)),]
@@ -899,7 +930,11 @@ impl AddStrandMenu {
     }
 
     #[allow(clippy::needless_lifetimes)]
-    fn view<S: AppState>(&self, ui_size: UiSize, width: u16) -> iced::widget::Column<Message<S>> {
+    fn view<State: AppState>(
+        &self,
+        ui_size: UiSize,
+        width: u16,
+    ) -> iced::widget::Column<Message<State>> {
         //let _inputs = self.builder_input.iter_mut();
 
         let color_choose_strand_start_length = if self.text_inputs_are_active {

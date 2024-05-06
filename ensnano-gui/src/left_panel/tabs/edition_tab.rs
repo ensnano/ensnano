@@ -48,10 +48,10 @@ impl MemoryColorSquare {
 }
 
 /// Arrange memory colors in a few rows.
-fn memory_color_column<S: AppState>(
+fn memory_color_column<State: AppState>(
     memory_color_squares: &VecDeque<MemoryColorSquare>,
     fill_portion: u16,
-) -> iced::Element<Message<S>> {
+) -> iced::Element<Message<State>, iced::Theme, iced_wgpu::Renderer> {
     let mut content = Vec::with_capacity(MEMORY_COLOR_ROWS);
     let mut current_row = Vec::with_capacity(MEMORY_COLOR_COLUMNS);
     for memory_color_square in memory_color_squares.iter() {
@@ -87,7 +87,11 @@ impl<S: AppState> EditionTab<S> {
         }
     }
 
-    pub fn view(&self, ui_size: UiSize, app_state: &S) -> iced::Element<Message<S>> {
+    pub fn view(
+        &self,
+        ui_size: UiSize,
+        app_state: &S,
+    ) -> iced::Element<Message<S>, Theme, Renderer> {
         let roll_target_helices =
             self.get_roll_target_helices(&app_state.get_selection_as_designelement());
         let sim_state = &app_state.get_simulation_state();

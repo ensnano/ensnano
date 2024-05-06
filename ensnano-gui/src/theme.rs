@@ -3,7 +3,7 @@
 //! The theme of the GUI is defined here
 
 use iced::advanced::renderer::Style;
-use iced::{theme, theme::Palette, Background, Border, Color, Theme};
+use iced::{border::Radius, theme, theme::Palette, Background, Border, Color, Theme};
 use iced_widget::{container, slider, text_input};
 
 /// Color palette
@@ -44,9 +44,9 @@ impl container::StyleSheet for GuiBackground {
             border: Border {
                 color: Color::TRANSPARENT,
                 width: 0.0,
-                radius: 0.0,
+                radius: Radius::from(0.0),
             },
-            shadow: None,
+            shadow: Default::default(),
         }
     }
 }
@@ -70,12 +70,12 @@ impl slider::StyleSheet for DeactivatedSlider {
             rail: slider::Rail {
                 colors: ([0.6, 0.6, 0.6, 0.5].into(), Color::WHITE),
                 width: 8.0,
-                border_radius: 1.0,
+                border_radius: Radius::from(1.0),
             },
             handle: slider::Handle {
                 shape: slider::HandleShape::Rectangle {
                     width: 8,
-                    border_radius: 4.0,
+                    border_radius: Radius::from(4.0),
                 },
                 color: Color::from_rgb(0.65, 0.65, 0.65),
                 border_color: Color::from_rgb(0.6, 0.6, 0.6),
@@ -111,7 +111,7 @@ impl text_input::StyleSheet for BadValue {
             border: Border {
                 color: Color::from_rgb(0.7, 0.7, 0.7),
                 width: Default::default(),
-                radius: 5.0,
+                radius: Radius::from(5.0),
             },
             icon_color: Default::default(), // TODO:Choose an appropriate value for this field.
         }

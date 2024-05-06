@@ -744,8 +744,8 @@ impl Multiplexer {
         self.cursor_position
     }
 
-    /// Return the foccused element
-    pub fn foccused_element(&self) -> Option<ElementType> {
+    /// Return the focused element
+    pub fn focused_element(&self) -> Option<ElementType> {
         self.focus
     }
 
@@ -901,8 +901,8 @@ impl GuiMultiplexer for Multiplexer {
         self.get_cursor_position()
     }
 
-    fn foccused_element(&self) -> Option<ElementType> {
-        self.foccused_element()
+    fn focused_element(&self) -> Option<ElementType> {
+        self.focused_element()
     }
 }
 

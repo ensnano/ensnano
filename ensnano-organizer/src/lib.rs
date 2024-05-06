@@ -269,7 +269,17 @@ impl<E: OrganizerElement> Organizer<E> {
         self.width = width;
     }
 
-    pub fn view(&self, selection: BTreeSet<E::Key>) -> Element<OrganizerMessage<E>> {
+    pub fn view<'a, Theme, Renderer>(
+        &self,
+        selection: BTreeSet<E::Key>,
+    ) -> Container<'a, OrganizerMessage<E>, Theme, Renderer>
+    where
+        Theme: container::StyleSheet + button::StyleSheet + text::StyleSheet + 'a,
+        Renderer: iced::advanced::Renderer + iced::advanced::text::Renderer + 'a,
+        <Theme as iced_widget::container::StyleSheet>::Style: From<iced::theme::Container>,
+        <Theme as iced_widget::container::StyleSheet>::Style:
+            From<crate::theme::OrganizerThemeLevel>,
+    {
         //self.hovered_in = None;
         // TODO: This comment may break some functionality. Not observed so far.
         let mut content = Column::new().spacing(5.0f32); // TODO: Find a way to use `ui_size` here.
@@ -313,12 +323,12 @@ impl<E: OrganizerElement> Organizer<E> {
                     tooltip::Position::FollowCursor,
                 )
                 .style(style::theme::Container::Box)],
-                scrollable(content).width(self.width)
+                //scrollable(content).width(self.width)
+                // TODO: Uncomment me.
             ]
             .spacing(5.0f32), // TODO: Find a way to use `ui_size` here.
         )
         .style(self.theme.level(0))
-        .into()
     }
 
     fn add_content_to_group(
@@ -914,11 +924,15 @@ impl<E: OrganizerElement> Section<E> {
         self.expanded = expanded
     }
 
-    fn view(
+    fn view<'a, Theme, Renderer>(
         &self,
         theme: &OrganizerTheme,
         selection: &BTreeSet<E::Key>,
-    ) -> Container<'_, OrganizerMessage<E>, Theme, Renderer> {
+    ) -> Container<'a, OrganizerMessage<E>, Theme, Renderer>
+    where
+        Theme: container::StyleSheet,
+        Renderer: iced::advanced::Renderer,
+    {
         let title_row = self
             .view
             .view(theme, &self.name, self.id.clone(), self.expanded, false);
@@ -966,7 +980,7 @@ impl<E: OrganizerElement> ElementView<E> {
             attribute_displayers: vec![AttributeDisplayer::new(); E::all_repr().len()],
         }
     }
-    fn view(
+    fn view<Theme, Renderer>(
         &self,
         _theme: &OrganizerTheme,
         element: &E,
