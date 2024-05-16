@@ -27,13 +27,29 @@ pub fn load_fonts() -> iced::Command<Result<(), iced::font::Error>> {
     command
 }
 
-pub fn light_icon<'a>(icon: LightIcon, ui_size: UiSize) -> iced::widget::Text<'a> {
+pub fn light_icon<'a, Theme, Renderer>(
+    icon: LightIcon,
+    ui_size: UiSize,
+) -> iced::widget::Text<'a, Theme, Renderer>
+where
+    Theme: iced::widget::text::StyleSheet,
+    Renderer: iced::advanced::Renderer + iced::advanced::text::Renderer,
+    <Renderer as iced::advanced::text::Renderer>::Font: From<iced::Font>,
+{
     iced::widget::Text::new(format!("{}", icon_to_char(icon)))
         .font(MATERIAL_ICONS_LIGHT)
         .size(ui_size.icon())
 }
 
-pub fn dark_icon<'a>(icon: LightIcon, ui_size: UiSize) -> iced::widget::Text<'a> {
+pub fn dark_icon<'a, Theme, Renderer>(
+    icon: LightIcon,
+    ui_size: UiSize,
+) -> iced::widget::Text<'a, Theme, Renderer>
+where
+    Theme: iced::widget::text::StyleSheet,
+    Renderer: iced::advanced::Renderer + iced::advanced::text::Renderer,
+    <Renderer as iced::advanced::text::Renderer>::Font: From<iced::Font>,
+{
     iced::widget::Text::new(format!("{}", icon_to_char(icon)))
         .font(MATERIAL_ICONS_DARK)
         .size(ui_size.icon())

@@ -592,7 +592,6 @@ impl<R: Requests, S: AppState> GuiElement<R, S> {
                 convert_size_u32(multiplexer.get_draw_area(self.element_type).unwrap().size),
                 window.scale_factor(),
             );
-            let format = multiplexer.get_texture_format(self.element_type).unwrap();
             let frame = multiplexer.get_texture_view(self.element_type).unwrap();
             self.state.render(
                 &mut self.renderer,
@@ -601,7 +600,8 @@ impl<R: Requests, S: AppState> GuiElement<R, S> {
                 //staging_belt,
                 encoder,
                 clear_color,
-                format,
+                ensnano_utils::TEXTURE_FORMAT,
+                // NOTE: Maybe we should put the format above.
                 frame,
                 &viewport,
                 &self.debug,

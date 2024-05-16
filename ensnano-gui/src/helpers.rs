@@ -48,12 +48,26 @@ pub fn jump_by(amount: impl Into<Length>) -> Space {
 }
 
 /// Section title widget
-pub fn section<'a>(title: impl ToString, ui_size: UiSize) -> Text<'a> {
+pub fn section<'a, Theme, Renderer>(
+    title: impl ToString,
+    ui_size: UiSize,
+) -> Text<'a, Theme, Renderer>
+where
+    Theme: text::StyleSheet,
+    Renderer: iced::advanced::text::Renderer,
+{
     text(title).size(ui_size.head_text())
 }
 
 /// Section subtitle widget
-pub fn subsection<'a>(title: impl ToString, ui_size: UiSize) -> Text<'a> {
+pub fn subsection<'a, Theme, Renderer>(
+    title: impl ToString,
+    ui_size: UiSize,
+) -> Text<'a, Theme, Renderer>
+where
+    Theme: text::StyleSheet,
+    Renderer: iced::advanced::text::Renderer,
+{
     text(title).size(ui_size.intermediate_text())
 }
 
@@ -75,8 +89,9 @@ pub fn light_icon_button<'a, Message, Theme, Renderer>(
     ui_size: UiSize,
 ) -> Button<'a, Message, Theme, Renderer>
 where
-    Theme: button::StyleSheet,
-    Renderer: iced::advanced::Renderer,
+    Theme: button::StyleSheet + text::StyleSheet,
+    Renderer: iced::advanced::text::Renderer,
+    <Renderer as iced::advanced::text::Renderer>::Font: From<iced::Font>,
 {
     button(material_icons_light::light_icon(icon, ui_size)).height(ui_size.button())
 }
@@ -87,8 +102,9 @@ pub fn dark_icon_button<'a, Message, Theme, Renderer>(
     ui_size: UiSize,
 ) -> Button<'a, Message, Theme, Renderer>
 where
-    Theme: button::StyleSheet,
-    Renderer: iced::advanced::Renderer,
+    Theme: button::StyleSheet + text::StyleSheet,
+    Renderer: iced::advanced::text::Renderer,
+    <Renderer as iced::advanced::text::Renderer>::Font: From<iced::Font>,
 {
     button(material_icons_light::dark_icon(icon, ui_size)).height(ui_size.button())
 }
@@ -100,7 +116,7 @@ pub fn text_button<'a, Message, Theme, Renderer>(
 ) -> Button<'a, Message, Theme, Renderer>
 where
     Theme: button::StyleSheet + text::StyleSheet,
-    Renderer: iced::advanced::Renderer + iced::advanced::text::Renderer,
+    Renderer: iced::advanced::text::Renderer,
 {
     button(text(label).size(ui_size.main_text())).height(ui_size.button())
 }
@@ -125,18 +141,20 @@ pub fn start_stop_button<'a, F, Message, Theme, Renderer>(
 where
     F: 'static + Fn(bool) -> Message,
     Theme: button::StyleSheet + text::StyleSheet,
-    Renderer: iced::advanced::Renderer + iced::advanced::text::Renderer,
+    <Theme as iced_widget::button::StyleSheet>::Style: From<iced::theme::Button>,
+    Renderer: iced::advanced::text::Renderer,
+    <Renderer as iced::advanced::text::Renderer>::Font: From<iced::Font>,
 {
-    let mut start_stop_button = text_button(label, ui_size);
+    let style = if is_started {
+        theme::Button::Destructive
+    } else {
+        theme::Button::Positive
+    };
+    let mut start_stop_button = text_button(label, ui_size).style(style);
     // NOTE: In the previous version of the start_stop_button (i.g. GoStop),
     //       the label was replaced by “Stop”, whereas here only the color changes.
     //       It may be a good idea tho visually reintroduce the current state, via
     //       logos such as: ⏵ ⏸ ⏺ ⏹
-    start_stop_button = if is_started {
-        start_stop_button.style(theme::Button::Destructive)
-    } else {
-        start_stop_button.style(theme::Button::Positive)
-    };
     if let Some(send_start_stop_message) = start_stop_switch {
         start_stop_button = start_stop_button.on_press(send_start_stop_message(!is_started));
         // The action is to reverset the state.
@@ -145,12 +163,17 @@ where
 }
 
 /// Return a checkbox widget with its label placed on the left.
-pub fn right_checkbox<'a, Message: 'a>(
+pub fn right_checkbox<'a, Message, Theme, Renderer>(
     is_checked: bool,
     label: impl ToString,
     toggle_message: impl Fn(bool) -> Message + 'a,
     ui_size: UiSize,
-) -> Row<'a, Message> {
+) -> Row<'a, Message, Theme, Renderer>
+where
+    Message: 'a,
+    Theme: text::StyleSheet + checkbox::StyleSheet,
+    Renderer: iced::advanced::text::Renderer,
+{
     row![
         text(label),
         checkbox("", is_checked)

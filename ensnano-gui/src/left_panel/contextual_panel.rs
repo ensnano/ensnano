@@ -262,11 +262,16 @@ where
         }
     }
 
-    pub fn view(
+    pub fn view<Theme, Renderer>(
         &self,
         ui_size: UiSize,
         app_state: &State,
-    ) -> iced::Element<Message<State>, iced::Theme, iced_wgpu::Renderer> {
+    ) -> iced::Element<Message<State>, Theme, Renderer>
+    where
+        Theme:
+            text::StyleSheet + text_input::StyleSheet + button::StyleSheet + container::StyleSheet,
+        Renderer: iced::advanced::Renderer + iced::advanced::text::Renderer,
+    {
         let selection = app_state
             .get_selection()
             .get(0)
@@ -583,28 +588,29 @@ where
     State: AppState,
     Renderer: iced::advanced::Renderer,
 {
-    self::column![column(
-        help.iter()
-            .map(|(l, r)| {
-                if l.is_empty() {
-                    row![Space::with_width(10)]
-                } else if r.is_empty() {
-                    row![text(l)
-                        .width(Length::Fill)
-                        .horizontal_alignment(Horizontal::Center)]
-                } else {
-                    row![
-                        text(l)
-                            .width(Length::FillPortion(5))
-                            .horizontal_alignment(Horizontal::Right),
-                        Space::with_width(Length::FillPortion(1)),
-                        text(r).width(Length::FillPortion(5)),
-                    ]
-                }
-                .into()
-            })
-            .collect::<Column<'a, Message<State>, Theme, Renderer>>()
-    ),]
+    //self::column![column(
+    //    help.iter()
+    //        .map(|(l, r)| {
+    //            if l.is_empty() {
+    //                row![Space::with_width(10)]
+    //            } else if r.is_empty() {
+    //                row![text(l)
+    //                    .width(Length::Fill)
+    //                    .horizontal_alignment(Horizontal::Center)]
+    //            } else {
+    //                row![
+    //                    text(l)
+    //                        .width(Length::FillPortion(5))
+    //                        .horizontal_alignment(Horizontal::Right),
+    //                    Space::with_width(Length::FillPortion(1)),
+    //                    text(r).width(Length::FillPortion(5)),
+    //                ]
+    //            }
+    //            .into()
+    //        })
+    //        .collect::<Column<'a, Message<State>, Theme, Renderer>>()
+    //),]
+
     //let mut content = widget::Column::new();
     //content = content.push(text(help_title).size(ui_size.intermediate_text()));
     //for (l, r) in help {
@@ -627,6 +633,7 @@ where
     //    }
     //}
     //content.into()
+    self::column![]
 }
 
 fn turn_into_help_column<'a, State, Theme, Renderer>(
@@ -634,7 +641,8 @@ fn turn_into_help_column<'a, State, Theme, Renderer>(
 ) -> Column<'a, Message<State>, Theme, Renderer>
 where
     State: AppState,
-    Renderer: iced::advanced::Renderer,
+    Theme: text::StyleSheet,
+    Renderer: iced::advanced::text::Renderer,
 {
     self::column![
         section("Help", ui_size)
@@ -930,11 +938,14 @@ impl AddStrandMenu {
     }
 
     #[allow(clippy::needless_lifetimes)]
-    fn view<State: AppState>(
+    fn view<State, Theme, Renderer>(
         &self,
         ui_size: UiSize,
         width: u16,
-    ) -> iced::widget::Column<Message<State>> {
+    ) -> iced::widget::Column<Message<State>, Theme, Renderer>
+    where
+        State: AppState,
+    {
         //let _inputs = self.builder_input.iter_mut();
 
         let color_choose_strand_start_length = if self.text_inputs_are_active {

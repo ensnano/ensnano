@@ -1064,17 +1064,17 @@ where
             .contextual_panel
             .view(self.ui_size, &self.application_state);
 
-        let selection = self
-            .application_state
-            .get_selection()
-            .iter()
-            .filter_map(|e| DesignElementKey::from_selection(e, 0))
-            .collect();
+        //let selection = self
+        //    .application_state
+        //    .get_selection()
+        //    .iter()
+        //    .filter_map(|e| DesignElementKey::from_selection(e, 0))
+        //    .collect();
 
-        let organizer = self
-            .organizer
-            .view(selection)
-            .map(|m| Message::OrganizerMessage(m));
+        //let organizer = self
+        //    .organizer
+        //    .view(selection)
+        //    .map(|m| Message::OrganizerMessage(m));
 
         let first_container = if self.application_state.is_exporting() {
             container(self.exports_menu.view())
