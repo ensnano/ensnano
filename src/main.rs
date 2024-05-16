@@ -207,9 +207,9 @@ const EARLY_LOG: bool = false;
 /// On some windows machine, only the DX12 backends will work. So the `dx12_only` feature forces
 /// its use.
 #[cfg(not(feature = "dx12_only"))]
-const BACKEND: wgpu::Backends = wgpu::Backends::PRIMARY;
+const DEFAULT_BACKEND: wgpu::Backends = wgpu::Backends::PRIMARY;
 #[cfg(feature = "dx12_only")]
-const BACKEND: wgpu::Backends = wgpu::Backends::DX12;
+const DEFAULT_BACKEND: wgpu::Backends = wgpu::Backends::DX12;
 
 /// Determine if wgpu errors should panic.
 ///
@@ -259,9 +259,16 @@ fn main() {
 
     // Initialize winit. Create an event_loop and a window.
     let event_loop = EventLoop::new();
-    let window = winit::window::Window::new(&event_loop).unwrap();
+    let window = winit::window::Window::new(&event_loop)?;
+
     let mut windows_title = String::from("ENSnano");
     window.set_title("ENSnano");
+    // NOTE: Why we don't use window.title() ? Because this method dosen't
+    //       work on linux (both X11 and Wayland). See:
+    //
+    // https://docs.rs/winit/latest/winit/window/struct.Window.html#platform-specific-41
+
+    // Set the minimal size of the window.
     window.set_min_inner_size(Some(PhySize::new(100, 100)));
 
     log::info!("scale factor {}", window.scale_factor());
@@ -271,7 +278,7 @@ fn main() {
 
     // Initialize the GPU backend.
     let gpu_instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-        backends: BACKEND,
+        backends: DEFAULT_BACKEND,
         ..Default::default()
     });
     // Obtain a WGPU surface.
