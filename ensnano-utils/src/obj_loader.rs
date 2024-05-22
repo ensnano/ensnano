@@ -23,6 +23,8 @@ use super::wgpu;
 const OBJ_VERTEX_ARRAY: [wgpu::VertexAttribute; 3] =
     wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3, 2 => Float32x4];
 
+const DEFAULT_STL_COLOR: [f32;4] = [0., 0.5, 1., 0.9];
+
 #[repr(C)]
 #[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct ModelVertex {
@@ -117,7 +119,7 @@ pub fn load_stl<P: AsRef<Path>>(path: P) -> Result<StlMesh, ErrStl> {
     use std::fs::File;
     use std::io::BufReader;
     use ultraviolet::Vec3;
-    let color = [0.55, 0.20, 0.25, 1.];
+    let color = DEFAULT_STL_COLOR; //[0.55, 0.20, 0.25, 1.];
     let file = File::open(path).map_err(|e| ErrStl::FileErr(e))?;
     let mut stl_buff = BufReader::new(&file);
     let mesh = nom_stl::parse_stl(&mut stl_buff).map_err(|e| ErrStl::StlParseErr(e))?;

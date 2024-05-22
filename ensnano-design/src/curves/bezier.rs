@@ -266,6 +266,7 @@ pub struct InstanciatedPiecewiseBezier {
     pub ends: Vec<BezierEndCoordinates>,
     pub t_min: Option<f64>,
     pub t_max: Option<f64>,
+    #[serde(alias = "cyclic")]
     pub is_cyclic: bool,
     /// An identifier of the PiecewiseBezier generated at random.
     pub id: u64,
