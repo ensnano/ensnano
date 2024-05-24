@@ -1284,6 +1284,9 @@ impl DesignContent {
                     if let Some(o) = on_axis.get(&bond_id) {
                         on_axis.insert(clone_bond_id, *o);
                     }
+                    if let Some(wc) = with_cones_map.get(&bond_id) {
+                        with_cones_map.insert(clone_bond_id, *wc);
+                    }
                 }
                 // Cloned cylinders
                 for bond_id in &helix_cylinders {
