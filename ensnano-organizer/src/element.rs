@@ -66,9 +66,9 @@ pub enum AttributeDisplay {
 }
 
 #[derive(Clone)]
-pub enum AttributeWidget<E: OrganizerAttribute> {
-    PickList { choices: &'static [E] },
-    FlipButton { value_if_pressed: E },
+pub enum AttributeWidget<A: OrganizerAttribute> {
+    PickList { choices: &'static [A] },
+    FlipButton { value_if_pressed: A },
 }
 
 #[derive(Default, Clone)]
@@ -78,7 +78,7 @@ pub(crate) struct AttributeDisplayer<A: OrganizerAttribute> {
     attribute: Option<A>,
 }
 
-impl<A: OrganizerAttribute> AttributeDisplayer<A> {
+impl<Attrib: OrganizerAttribute> AttributeDisplayer<Attrib> {
     pub fn new() -> Self {
         Self {
             being_modified: false,
@@ -87,12 +87,12 @@ impl<A: OrganizerAttribute> AttributeDisplayer<A> {
         }
     }
 
-    pub fn update_attribute(&mut self, attribute: Option<A>) {
+    pub fn update_attribute(&mut self, attribute: Option<Attrib>) {
         self.update_widget(attribute.as_ref().map(|a| a.widget()));
         self.attribute = attribute;
     }
 
-    pub fn update_widget(&mut self, widget: Option<AttributeWidget<A>>) {
+    pub fn update_widget(&mut self, widget: Option<AttributeWidget<Attrib>>) {
         // If the widget is no longer a picklist, reset self.being_modified
         if let Some(AttributeWidget::PickList { .. }) = widget {
             ()
@@ -102,41 +102,46 @@ impl<A: OrganizerAttribute> AttributeDisplayer<A> {
         self.widget = widget;
     }
 
-    pub fn view<'a, Theme, Renderer>(&self) -> Option<Element<'a, A, Theme, Renderer>>
+    pub fn view<'a, Theme, Renderer>(&self) -> Option<Element<'a, Attrib, Theme, Renderer>>
     where
         Theme: iced_widget::pick_list::StyleSheet
             + iced_widget::scrollable::StyleSheet
             + iced::overlay::menu::StyleSheet,
+        <Theme as iced::overlay::menu::StyleSheet>::Style:
+            From<<Theme as iced_widget::pick_list::StyleSheet>::Style>,
         Renderer: iced::advanced::Renderer + iced::advanced::text::Renderer,
     {
         use iced_widget::*; // NOTE: This is a trick to avoid a conflict between core and
                             //       iced_core.
 
-        if let Some(widget) = self.widget.as_ref() {
-            match widget {
-                AttributeWidget::PickList { choices } => {
-                    let mut picklist = pick_list(*choices, self.attribute.clone(), |a| a)
-                        .style(crate::theme::NoIcon);
-                    if let Some(AttributeDisplay::Icon(_)) =
-                        self.attribute.as_ref().map(|a| a.char_repr())
-                    {
-                        picklist = picklist
-                            .font(crate::BOOTSTRAP_FONT)
-                            .text_size(crate::ICON_SIZE);
-                    }
-                    Some(picklist.into())
-                }
-                AttributeWidget::FlipButton { value_if_pressed } => {
-                    let content = match self.attribute.as_ref().map(|a| a.char_repr()) {
-                        Some(AttributeDisplay::Icon(c)) => crate::icon(c),
-                        Some(AttributeDisplay::Text(s)) => text(s.clone()).size(crate::ICON_SIZE),
-                        _ => text("???"),
-                    };
-                    Some(button(content).on_press(value_if_pressed.clone()).into())
-                }
-            }
-        } else {
-            None
-        }
+        //if let Some(widget) = self.widget.as_ref() {
+        //    match widget {
+        //        AttributeWidget::PickList { choices } => {
+        //            let mut picklist = pick_list(*choices, self.attribute.clone(), |a| a)
+        //                //.style(crate::theme::NoIcon)
+        //            ;
+        //            if let Some(AttributeDisplay::Icon(_)) =
+        //                self.attribute.as_ref().map(|a| a.char_repr())
+        //            {
+        //                picklist = picklist
+        //                    //.font(crate::BOOTSTRAP_FONT)
+        //                    .text_size(crate::ICON_SIZE);
+        //            }
+        //            Some(picklist.into())
+        //        }
+        //        AttributeWidget::FlipButton { value_if_pressed } => {
+        //            let content = match self.attribute.as_ref().map(|a| a.char_repr()) {
+        //                Some(AttributeDisplay::Icon(c)) => crate::icon(c),
+        //                Some(AttributeDisplay::Text(s)) => text(s.clone()).size(crate::ICON_SIZE),
+        //                _ => text("???"),
+        //            };
+        //            Some(button(content).on_press(value_if_pressed.clone()).into())
+        //        }
+        //    }
+        //} else {
+        //    None
+        //}
+        //TODO: REACTIVATE ME!
+        None
     }
 }

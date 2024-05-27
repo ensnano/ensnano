@@ -215,7 +215,11 @@ impl<S: AppState> CurveDescriptorWidget<S> {
         }
     }
 
-    fn view(&self, ui_size: UiSize) -> Element<Message<S>> {
+    fn view<Theme, Renderer>(&self, ui_size: UiSize) -> Element<Message<S>, Theme, Renderer>
+    where
+        Theme: container::StyleSheet + text::StyleSheet,
+        Renderer: iced::advanced::Renderer + iced::advanced::text::Renderer,
+    {
         container(column(
             self.parameters
                 .iter()
@@ -225,14 +229,15 @@ impl<S: AppState> CurveDescriptorWidget<S> {
                         Space::with_width(ui_size.checkbox_spacing()),
                         text(param.0),
                         Space::with_width(ui_size.checkbox_spacing()),
-                        param
-                            .1
-                            .input_view(RevolutionParameterId::SectionParameter(param_id))
+                        //param
+                        //    .1
+                        //    .input_view(RevolutionParameterId::SectionParameter(param_id))
+                        //TODO: REACTIVATE ME!
                     ]
                     .align_items(Alignment::Center)
                     .into()
                 })
-                .collect(),
+                .collect::<Vec<_>>(),
         ))
         .into()
     }

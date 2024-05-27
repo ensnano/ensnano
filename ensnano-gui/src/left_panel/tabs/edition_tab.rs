@@ -87,11 +87,15 @@ impl<S: AppState> EditionTab<S> {
         }
     }
 
-    pub fn view(
+    pub fn view<Theme, Renderer>(
         &self,
         ui_size: UiSize,
         app_state: &S,
-    ) -> iced::Element<Message<S>, Theme, Renderer> {
+    ) -> iced::Element<Message<S>, Theme, Renderer>
+    where
+        Theme: iced_widget::scrollable::StyleSheet + iced_widget::text::StyleSheet,
+        Renderer: iced::advanced::Renderer + iced::advanced::text::Renderer,
+    {
         let roll_target_helices =
             self.get_roll_target_helices(&app_state.get_selection_as_designelement());
         let sim_state = &app_state.get_simulation_state();
@@ -99,79 +103,79 @@ impl<S: AppState> EditionTab<S> {
         let selection_contains_strand =
             ensnano_interactor::extract_strands_from_selection(app_state.get_selection()).len() > 0;
         let suggestion_parameters = app_state.get_suggestion_parameters().clone();
-        let mut tighten_helices_button = text_button("Selected", ui_size);
-        if !roll_target_helices.is_empty() {
-            tighten_helices_button =
-                tighten_helices_button.on_press(Message::Redim2dHelices(false));
-        }
+        //let mut tighten_helices_button = text_button("Selected", ui_size);
+        //if !roll_target_helices.is_empty() {
+        //    tighten_helices_button =
+        //        tighten_helices_button.on_press(Message::Redim2dHelices(false));
+        //}
 
         let content = self::column![
             section("Edition", ui_size),
             // add_roll_slider!
-            Column::with_children(
-                self.helix_roll_factory
-                    .view(roll_target_helices.len() >= 1, ui_size.intermediate_text())
-            ),
-            // add_autoroll_button!
-            start_stop_button(
-                "Autoroll selected helices",
-                ui_size,
-                if autoroll_is_active {
-                    Some(Message::RollTargeted)
-                } else {
-                    None
-                },
-                sim_state.is_rolling()
-            ),
-            // add_color_square!
-            if selection_contains_strand {
-                row![
-                    self.color_picker.view(),
-                    self.color_picker.color_square(),
-                    memory_color_column(&self.memory_color_squares, 4),
-                ]
-            } else {
-                row![]
-            },
-            subsection("Suggestions Parameters", ui_size),
-            // add_suggestion_parameters_checkboxes!
-            right_checkbox(
-                suggestion_parameters.include_scaffold,
-                "Include scaffold",
-                move |b| {
-                    Message::NewSuggestionParameters(suggestion_parameters.with_include_scaffod(b))
-                },
-                ui_size,
-            ),
-            right_checkbox(
-                suggestion_parameters.include_intra_strand,
-                "Intra strand suggestions",
-                move |b| Message::NewSuggestionParameters(
-                    suggestion_parameters.with_intra_strand(b)
-                ),
-                ui_size,
-            ),
-            right_checkbox(
-                suggestion_parameters.include_xover_ends,
-                "Include Xover ends",
-                move |b| Message::NewSuggestionParameters(suggestion_parameters.with_xover_ends(b)),
-                ui_size,
-            ),
-            right_checkbox(
-                suggestion_parameters.ignore_groups,
-                "All helices",
-                move |b| Message::NewSuggestionParameters(
-                    suggestion_parameters.with_ignore_groups(b)
-                ),
-                ui_size,
-            ),
-            subsection("Tighten 2D helices", ui_size),
-            // add_tighten_helices_button!
-            row![
-                tighten_helices_button,
-                text_button("All", ui_size).on_press(Message::Redim2dHelices(true)),
-            ]
-            .spacing(ui_size.button_pad()),
+            //Column::with_children(
+            //    self.helix_roll_factory
+            //        .view(roll_target_helices.len() >= 1, ui_size.intermediate_text())
+            //),
+            //// add_autoroll_button!
+            //start_stop_button(
+            //    "Autoroll selected helices",
+            //    ui_size,
+            //    if autoroll_is_active {
+            //        Some(Message::RollTargeted)
+            //    } else {
+            //        None
+            //    },
+            //    sim_state.is_rolling()
+            //),
+            //// add_color_square!
+            //if selection_contains_strand {
+            //    row![
+            //        self.color_picker.view(),
+            //        self.color_picker.color_square(),
+            //        memory_color_column(&self.memory_color_squares, 4),
+            //    ]
+            //} else {
+            //    row![]
+            //},
+            //subsection("Suggestions Parameters", ui_size),
+            //// add_suggestion_parameters_checkboxes!
+            //right_checkbox(
+            //    suggestion_parameters.include_scaffold,
+            //    "Include scaffold",
+            //    move |b| {
+            //        Message::NewSuggestionParameters(suggestion_parameters.with_include_scaffod(b))
+            //    },
+            //    ui_size,
+            //),
+            //right_checkbox(
+            //    suggestion_parameters.include_intra_strand,
+            //    "Intra strand suggestions",
+            //    move |b| Message::NewSuggestionParameters(
+            //        suggestion_parameters.with_intra_strand(b)
+            //    ),
+            //    ui_size,
+            //),
+            //right_checkbox(
+            //    suggestion_parameters.include_xover_ends,
+            //    "Include Xover ends",
+            //    move |b| Message::NewSuggestionParameters(suggestion_parameters.with_xover_ends(b)),
+            //    ui_size,
+            //),
+            //right_checkbox(
+            //    suggestion_parameters.ignore_groups,
+            //    "All helices",
+            //    move |b| Message::NewSuggestionParameters(
+            //        suggestion_parameters.with_ignore_groups(b)
+            //    ),
+            //    ui_size,
+            //),
+            //subsection("Tighten 2D helices", ui_size),
+            //// add_tighten_helices_button!
+            //row![
+            //    tighten_helices_button,
+            //    text_button("All", ui_size).on_press(Message::Redim2dHelices(true)),
+            //]
+            //.spacing(ui_size.button_pad()),
         ]
         .spacing(5);
 

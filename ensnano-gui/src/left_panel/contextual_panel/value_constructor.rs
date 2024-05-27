@@ -289,7 +289,8 @@ impl BezierVertexBuilder {
 impl<State, Theme, Renderer> Builder<State, Theme, Renderer> for BezierVertexBuilder
 where
     State: AppState,
-    Renderer: iced::advanced::Renderer,
+    Theme: text::StyleSheet,
+    Renderer: iced::advanced::Renderer + iced::advanced::text::Renderer,
 {
     fn view(
         &self,
@@ -299,7 +300,7 @@ where
     ) -> iced::Element<super::Message<State>, Theme, Renderer> {
         self::column![
             text("Position").size(ui_size.intermediate_text()),
-            self.position_builder.view(),
+            //self.position_builder.view(),
         ]
         .width(iced::Length::Fill)
         .into()
@@ -376,7 +377,8 @@ impl GridBuilder {
 impl<State, Theme, Renderer> Builder<State, Theme, Renderer> for GridBuilder
 where
     State: AppState,
-    Renderer: iced::advanced::Renderer,
+    Theme: text::StyleSheet,
+    Renderer: iced::advanced::Renderer + iced::advanced::text::Renderer,
 {
     fn view(
         &self,
@@ -386,15 +388,18 @@ where
     ) -> iced::Element<super::Message<State>, Theme, Renderer> {
         self::column![
             text("Position").size(ui_size.intermediate_text()),
-            self.position_builder.view(),
+            //self.position_builder.view(),
+            //TODO: REACTIVATE ME!
             text("Orientation").size(ui_size.intermediate_text()),
-            self.orientation_builder.view(),
+            //self.orientation_builder.view(),
+            //TODO: REACTIVATE ME!
             text("Twist").size(ui_size.intermediate_text()),
-            if let Some(row) = Self::nb_turn_row(app_state, selection) {
-                row
-            } else {
-                row![].into()
-            },
+            //if let Some(row) = Self::nb_turn_row(app_state, selection) {
+            //    row
+            //} else {
+            //    row![].into()
+            //},
+            //TODO: REACTIVATE ME!
         ]
         .width(iced::Length::Fill)
         .into()

@@ -33,10 +33,17 @@ impl GridTab {
             hyperboloid_factory: RequestFactory::new(FactoryId::Hyperboloid, Hyperboloid_ {}),
         }
     }
+}
 
-    pub fn view<S>(&self, ui_size: UiSize, app_state: &S) -> Element<Message<S>, Theme, Renderer>
+impl GridTab {
+    pub fn view<S, Theme, Renderer>(
+        &self,
+        ui_size: UiSize,
+        app_state: &S,
+    ) -> Element<Message<S>, Theme, Renderer>
     where
         S: AppState,
+        Theme: iced_widget::scrollable::StyleSheet,
         Renderer: iced::advanced::Renderer,
     {
         let content = self::column![
@@ -45,7 +52,7 @@ impl GridTab {
             // add_grid_buttons!
             row![
                 icon_button(ICON_SQUARE_GRID, ui_size)
-                    .on_press(Message::NewGrid(GridTypeDescr::Square { twist: None })),
+                    .on_press(Message::<S>::NewGrid(GridTypeDescr::Square { twist: None })),
                 icon_button(ICON_HONEYCOMB_GRID, ui_size)
                     .on_press(Message::NewGrid(GridTypeDescr::Honeycomb { twist: None })),
             ]
@@ -85,7 +92,9 @@ impl GridTab {
             text("Select ≥4 unattached helices").size(ui_size.main_text()),
         ]
         .spacing(5);
-        scrollable(content).width(Length::Fill).into()
+        //scrollable(content).width(Length::Fill).into()
+        //TODO: REACTIVATE ME!
+        scrollable(row![]).into()
     }
 
     pub fn new_hyperboloid(&mut self, requests: &mut Option<HyperboloidRequest>) {

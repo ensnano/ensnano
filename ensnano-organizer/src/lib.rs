@@ -923,31 +923,36 @@ impl<E: OrganizerElement> Section<E> {
     fn expand(&mut self, expanded: bool) {
         self.expanded = expanded
     }
+}
 
+impl<E: OrganizerElement> Section<E> {
     fn view<'a, Theme, Renderer>(
         &self,
         theme: &OrganizerTheme,
         selection: &BTreeSet<E::Key>,
     ) -> Container<'a, OrganizerMessage<E>, Theme, Renderer>
     where
-        Theme: container::StyleSheet,
-        Renderer: iced::advanced::Renderer,
+        Theme: container::StyleSheet + 'a,
+        Renderer: iced::advanced::Renderer + 'a,
     {
-        let title_row = self
-            .view
-            .view(theme, &self.name, self.id.clone(), self.expanded, false);
-        let mut content = Column::new().spacing(LEVELS_V_SPACING).push(title_row);
-        if self.expanded {
-            for (e_id, e) in self.elements.iter() {
-                content = content.push(row![
-                    tabulation(),
-                    container(e.view(theme, &self.content[e_id], selection, None,))
-                        .style(theme.level(1))
-                        .width(iced::Length::FillPortion(8)),
-                ])
-            }
-        }
-        container(content).style(theme.level(0))
+        //let title_row = self
+        //    .view
+        //    .view(theme, &self.name, self.id.clone(), self.expanded, false);
+        //let mut content = Column::new().spacing(LEVELS_V_SPACING).push(title_row);
+        //if self.expanded {
+        //    for (e_id, e) in self.elements.iter() {
+        //        content = content.push(row![
+        //            tabulation(),
+        //            container(e.view(theme, &self.content[e_id], selection, None,))
+        //                .style(theme.level(1))
+        //                .width(iced::Length::FillPortion(8)),
+        //        ])
+        //    }
+        //}
+        //container(content)
+        //.style(theme.level(0))
+        //TODO: REACTIVATE ME!
+        container(row![])
     }
 
     fn add_element(&mut self, element: E) {
@@ -980,52 +985,58 @@ impl<E: OrganizerElement> ElementView<E> {
             attribute_displayers: vec![AttributeDisplayer::new(); E::all_repr().len()],
         }
     }
-    fn view<Theme, Renderer>(
+    fn view<'a, Theme, Renderer>(
         &self,
         _theme: &OrganizerTheme,
         element: &E,
         selection: &BTreeSet<E::Key>,
         deletable: Option<NodeId<E::AutoGroup>>,
-    ) -> DragDropTarget<OrganizerMessage<E>, Theme, Renderer, E::Key, E::AutoGroup> {
-        let selected = selection.contains(&element.key());
-        let mut content = row![text(element.display_name()), horizontal_space(),];
+    ) -> DragDropTarget<'a, OrganizerMessage<E>, Theme, Renderer, E::Key, E::AutoGroup>
+    where
+        Theme: 'a,
+        Renderer: iced::advanced::Renderer + 'a,
+    {
+        //let selected = selection.contains(&element.key());
+        //let mut content = row![text(element.display_name()), horizontal_space(),];
         let identifier = match deletable.as_ref() {
             Some(id) => DragIdentifier::Group { id: id.clone() },
             None => DragIdentifier::Section {
                 key: element.key().clone(),
             },
         };
-        for ad in self.attribute_displayers.iter() {
-            if let Some(view) = ad.view() {
-                let mut elt = BTreeSet::new();
-                elt.insert(element.key());
-                let elt_key = element.key();
-                content =
-                    content.push(view.map(move |m| {
-                        OrganizerMessage::<E>::NewAttribute(m, vec![elt_key.clone()])
-                    }))
-            }
-        }
-        if let Some(id) = deletable.clone() {
-            content = content
-                .push(button(icon(BootstrapIcon::Trash)).on_press(OrganizerMessage::delete(id)));
-        }
-        let mut button = HoverableContainer::new(
-            button(content)
-                .on_press(OrganizerMessage::element_selected(element.key().clone()))
-                .width(iced::Length::Fill),
-            //.style(iced_theme::Button::from(theme.selected(selected)))
-        );
-        if let Some(id) = deletable {
-            button = button
-                .on_hover(OrganizerMessage::node_hovered(id.clone(), true))
-                .on_unhover(OrganizerMessage::node_hovered(id, false))
-        } else {
-            button = button
-                .on_hover(OrganizerMessage::key_hovered(element.key(), true))
-                .on_unhover(OrganizerMessage::key_hovered(element.key(), false))
-        }
-        DragDropTarget::new(container(button).width(Length::Fill), identifier)
+        //for ad in self.attribute_displayers.iter() {
+        //    if let Some(view) = ad.view() {
+        //        let mut elt = BTreeSet::new();
+        //        elt.insert(element.key());
+        //        let elt_key = element.key();
+        //        content =
+        //            content.push(view.map(move |m| {
+        //                OrganizerMessage::<E>::NewAttribute(m, vec![elt_key.clone()])
+        //            }))
+        //    }
+        //}
+        //if let Some(id) = deletable.clone() {
+        //    content = content
+        //        .push(button(icon(BootstrapIcon::Trash)).on_press(OrganizerMessage::delete(id)));
+        //}
+        //let mut button = HoverableContainer::new(
+        //    button(content)
+        //        .on_press(OrganizerMessage::element_selected(element.key().clone()))
+        //        .width(iced::Length::Fill),
+        //    //.style(iced_theme::Button::from(theme.selected(selected)))
+        //);
+        //if let Some(id) = deletable {
+        //    button = button
+        //        .on_hover(OrganizerMessage::node_hovered(id.clone(), true))
+        //        .on_unhover(OrganizerMessage::node_hovered(id, false))
+        //} else {
+        //    button = button
+        //        .on_hover(OrganizerMessage::key_hovered(element.key(), true))
+        //        .on_unhover(OrganizerMessage::key_hovered(element.key(), false))
+        //}
+        //DragDropTarget::new(container(button).width(Length::Fill), identifier)
+        //TODO: REACTIVATE ME!
+        DragDropTarget::new(row![], identifier)
     }
 
     fn update_attributes(&mut self, attributes: &[Option<E::Attribute>]) {

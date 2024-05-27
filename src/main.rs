@@ -261,6 +261,8 @@ fn main() {
     let event_loop = EventLoop::new();
     let window = winit::window::Window::new(&event_loop)?;
 
+    let window = Arc::new(window);
+
     let mut windows_title = String::from("ENSnano");
     window.set_title("ENSnano");
     // NOTE: Why we don't use window.title() ? Because this method dosen't
@@ -277,36 +279,55 @@ fn main() {
     let kbd_modifiers = ModifiersState::default();
 
     // Initialize the GPU backend.
+    let backend = wgpu::util::backend_bits_from_env().unwrap_or(DEFAULT_BACKEND);
     let gpu_instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-        backends: DEFAULT_BACKEND,
+        backends: backend,
         ..Default::default()
     });
     // Obtain a WGPU surface.
-    let surface = unsafe { gpu_instance.create_surface(&window) }.unwrap();
+    let surface = gpu_instance.create_surface(window.clone())?;
+
     // Obtain a WGPU adapter.
-    let (device, queue) = futures::executor::block_on(async {
-        let adapter = gpu_instance
-            .request_adapter(&wgpu::RequestAdapterOptions {
-                power_preference: wgpu::PowerPreference::LowPower,
-                compatible_surface: Some(&surface),
-                force_fallback_adapter: false,
-            })
+    let (format, _adapter, device, queue) = futures::executor::block_on(async {
+        let adapter = wgpu::util::initialize_adapter_from_env_or_default(
+            &gpu_instance,
+            Some(&surface),
+            )
             .await
             .expect("Could not get adapter\n\
                      This might be because gpu drivers are missing.\n\
                      You need Vulkan, Metal (for MacOS) or DirectX (for Windows) drivers to run this software");
 
-        adapter
+        let adapter_features = adapter.features();
+
+        let needed_limits = wgpu::Limits::default();
+
+        let capabilities = surface.get_capabilities(&adapter);
+
+        let (device, queue) = adapter
             .request_device(
                 &wgpu::DeviceDescriptor {
-                    required_features: wgpu::Features::empty(),
-                    required_limits: wgpu::Limits::default(),
                     label: None,
+                    required_features: adapter_features & wgpu::Features::default(),
+                    required_limits: needed_limits,
                 },
                 None,
             )
             .await
-            .expect("Request device")
+            .expect("Could not request device nor queue");
+
+        (
+            capabilities
+                .formats
+                .iter()
+                .copied()
+                .find(wgpu::TextureFormat::is_srgb)
+                .or_else(|| capabilities.formats.first().copied())
+                .expect("Get preferred format"),
+            adapter,
+            device,
+            queue,
+        )
     });
 
     if !PANIC_ON_WGPU_ERRORS {
@@ -314,15 +335,15 @@ fn main() {
     }
 
     {
-        let size = window.inner_size();
+        let physical_size = window.inner_size();
 
         surface.configure(
             &device,
             &wgpu::SurfaceConfiguration {
                 usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-                format: TEXTURE_FORMAT,
-                width: size.width,
-                height: size.height,
+                format,
+                width: physical_size.width,
+                height: physical_size.height,
                 present_mode: wgpu::PresentMode::AutoVsync,
                 desired_maximum_frame_latency: 2,
                 alpha_mode: wgpu::CompositeAlphaMode::Auto,
@@ -344,7 +365,7 @@ fn main() {
     };
     // Initialize the renderer
     let mut renderer = iced_wgpu::Renderer::new(
-        iced_wgpu::Backend::new(&device, &queue, settings, TEXTURE_FORMAT),
+        iced_wgpu::Backend::new(&device, &queue, settings, format),
         settings.default_font,
         settings.default_text_size,
     );
