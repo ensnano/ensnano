@@ -494,9 +494,11 @@ fn main() {
         .unwrap()
         .push_application_state(main_state.get_app_state(), last_gui_state.1.clone());
 
-    event_loop.run(move |event, _, control_flow| {
+    event_loop.run(move |event, window_target| {
         // Wait for event or redraw a frame every 33 ms (30 frame per seconds)
-        *control_flow = ControlFlow::WaitUntil(Instant::now() + Duration::from_millis(33));
+        window_target.set_control_flow(ControlFlow::WaitUntil(
+            Instant::now() + Duration::from_millis(33),
+        ));
 
         let mut main_state_view = MainStateView {
             main_state: &mut main_state,
