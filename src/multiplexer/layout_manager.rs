@@ -28,7 +28,7 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-use super::ElementType;
+use super::GuiComponentType;
 
 /// Half-width of a “resize region”.
 const RESIZE_REGION_WIDTH: f64 = 0.001;
@@ -97,9 +97,9 @@ pub struct LayoutTree {
     /// An array mapping area identifier to leaves of the LayoutTree.
     areas: Vec<LayoutNodePtr>,
     /// An array mapping area identifier to ElementType.
-    element_types: Vec<ElementType>,
+    element_types: Vec<GuiComponentType>,
     /// A HashMap mapping element types to area identifer.
-    area_identifers: HashMap<ElementType, usize>,
+    area_identifers: HashMap<GuiComponentType, usize>,
     /// An array mapping area to their parent node.
     parents: Vec<usize>,
 }
@@ -118,7 +118,7 @@ impl LayoutTree {
             identifier: 0,
         }));
         let area = vec![Rc::clone(&root)];
-        let element_type = vec![ElementType::Unattributed];
+        let element_type = vec![GuiComponentType::Unattributed];
         let area_identifer = HashMap::new();
         Self {
             root,
@@ -161,11 +161,11 @@ impl LayoutTree {
         self.areas.push(right_area);
         self.parents.push(parent_ident);
         self.parents.push(parent_ident);
-        self.element_types.push(ElementType::Unattributed);
-        self.element_types.push(ElementType::Unattributed);
+        self.element_types.push(GuiComponentType::Unattributed);
+        self.element_types.push(GuiComponentType::Unattributed);
         let parent_element_type = self.element_types[parent_ident];
         self.area_identifers.remove(&parent_element_type);
-        self.element_types[parent_ident] = ElementType::Unattributed;
+        self.element_types[parent_ident] = GuiComponentType::Unattributed;
         (left_ident, right_ident)
     }
 
@@ -202,17 +202,17 @@ impl LayoutTree {
         self.areas.push(bottom_area);
         self.parents.push(parent_ident);
         self.parents.push(parent_ident);
-        self.element_types.push(ElementType::Unattributed);
-        self.element_types.push(ElementType::Unattributed);
+        self.element_types.push(GuiComponentType::Unattributed);
+        self.element_types.push(GuiComponentType::Unattributed);
         let parent_element_type = self.element_types[parent_ident];
         self.area_identifers.remove(&parent_element_type);
-        self.element_types[parent_ident] = ElementType::Unattributed;
+        self.element_types[parent_ident] = GuiComponentType::Unattributed;
         (top_ident, bottom_ident)
     }
 
     /// Undo a split by deleting the leaf with type `old_leaf` and its sibling and giving their parent the type
     /// `new_leaf`.
-    pub fn merge(&mut self, old_leaf: ElementType, new_leaf: ElementType) {
+    pub fn merge(&mut self, old_leaf: GuiComponentType, new_leaf: GuiComponentType) {
         let area_ident = *self
             .area_identifers
             .get(&old_leaf)
@@ -236,7 +236,7 @@ impl LayoutTree {
     }
 
     /// Return the boundaries of the area attributed to an element
-    pub fn get_area(&self, element: ElementType) -> Option<(f64, f64, f64, f64)> {
+    pub fn get_area(&self, element: GuiComponentType) -> Option<(f64, f64, f64, f64)> {
         let area_id = *self.area_identifers.get(&element)?;
         match *self.areas[area_id].borrow() {
             LayoutNode::Area {
@@ -250,12 +250,12 @@ impl LayoutTree {
         }
     }
 
-    pub fn get_area_id(&self, element: ElementType) -> Option<usize> {
+    pub fn get_area_id(&self, element: GuiComponentType) -> Option<usize> {
         self.area_identifers.get(&element).cloned()
     }
 
     /// Attribute an element_type to an area.
-    pub fn attribute_element(&mut self, area_ident: usize, element_type: ElementType) {
+    pub fn attribute_element(&mut self, area_ident: usize, element_type: GuiComponentType) {
         let old_element = self.element_types[area_ident];
         self.area_identifers.remove(&old_element);
         self.element_types[area_ident] = element_type;
@@ -691,7 +691,7 @@ impl LayoutNode {
 #[derive(Debug)]
 pub(super) enum PixelRegion {
     /// The pixel is on a region attributed to a certain element
-    Element(ElementType),
+    Element(GuiComponentType),
     /// The pixel is on a region where clicking must resize a pannel
     Resize(usize),
     /// The pixel is on a given area

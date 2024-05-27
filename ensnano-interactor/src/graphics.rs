@@ -144,7 +144,7 @@ pub struct DrawArea {
 
 /// The different elements represented on the scene. Each element is instanciated once.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
-pub enum ElementType {
+pub enum GuiComponentType {
     /// The top menu bar
     TopBar,
     /// The 3D scene
@@ -164,17 +164,24 @@ pub enum ElementType {
     StereographicScene,
 }
 
-impl ElementType {
-    pub fn is_gui(&self) -> bool {
+/// GUI component types are grouped by category.
+impl GuiComponentType {
+    /// A panel is filled with buttons, menus, and other dialogs.
+    pub fn is_panel(&self) -> bool {
         match self {
-            ElementType::TopBar | ElementType::LeftPanel | ElementType::StatusBar => true,
+            GuiComponentType::TopBar
+            | GuiComponentType::LeftPanel
+            | GuiComponentType::StatusBar => true,
             _ => false,
         }
     }
 
+    /// A scene represent a view to the DNA.
     pub fn is_scene(&self) -> bool {
         match self {
-            ElementType::StereographicScene | ElementType::Scene | ElementType::FlatScene => true,
+            GuiComponentType::StereographicScene
+            | GuiComponentType::Scene
+            | GuiComponentType::FlatScene => true,
             _ => false,
         }
     }

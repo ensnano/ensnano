@@ -150,7 +150,7 @@ use ensnano_interactor::consts;
 mod multiplexer;
 use ensnano_flatscene as flatscene;
 use ensnano_interactor::{
-    graphics::{ElementType, SplitMode},
+    graphics::{GuiComponentType, SplitMode},
     operation::Operation,
     ActionMode, CheckXoversParameter, Selection, SelectionMode,
 };
@@ -397,7 +397,9 @@ fn main() {
     // The `encoder` encodes a series of GPU operations.
     let mut encoder =
         device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
-    let scene_area = multiplexer.get_element_area(ElementType::Scene).unwrap();
+    let scene_area = multiplexer
+        .get_element_area(GuiComponentType::Scene)
+        .unwrap();
     let scene = Arc::new(Mutex::new(Scene::new(
         Rc::clone(&device),
         Rc::clone(&queue),
@@ -420,8 +422,11 @@ fn main() {
     )));
 
     queue.submit(Some(encoder.finish()));
-    scheduler.add_application(scene.clone(), ElementType::Scene);
-    scheduler.add_application(stereographic_scene.clone(), ElementType::StereographicScene);
+    scheduler.add_application(scene.clone(), GuiComponentType::Scene);
+    scheduler.add_application(
+        stereographic_scene.clone(),
+        GuiComponentType::StereographicScene,
+    );
 
     let flat_scene = Arc::new(Mutex::new(FlatScene::new(
         Rc::clone(&device),
@@ -431,7 +436,7 @@ fn main() {
         requests.clone(),
         Default::default(),
     )));
-    scheduler.add_application(flat_scene.clone(), ElementType::FlatScene);
+    scheduler.add_application(flat_scene.clone(), GuiComponentType::FlatScene);
 
     // Initialize the UI
     //
@@ -461,13 +466,15 @@ fn main() {
     let mut last_render_time = std::time::Instant::now();
     let mut mouse_interaction = iced::mouse::Interaction::Pointer;
 
-    main_state.applications.insert(ElementType::Scene, scene);
     main_state
         .applications
-        .insert(ElementType::FlatScene, flat_scene);
+        .insert(GuiComponentType::Scene, scene);
     main_state
         .applications
-        .insert(ElementType::StereographicScene, stereographic_scene);
+        .insert(GuiComponentType::FlatScene, flat_scene);
+    main_state
+        .applications
+        .insert(GuiComponentType::StereographicScene, stereographic_scene);
 
     // Add a design to the scene if one was given as a command line arguement
     if path.is_some() {
@@ -579,7 +586,7 @@ fn main() {
                         }
                         main_state.applications_cursor = None;
                         match area {
-                            area if area.is_gui() => {
+                            area if area.is_panel() => {
                                 let event = iced_winit::conversion::window_event(
                                     window.id(),
                                     &event,
@@ -590,7 +597,7 @@ fn main() {
                                     gui.forward_event(area, event);
                                 }
                             }
-                            ElementType::Overlay(n) => {
+                            GuiComponentType::Overlay(n) => {
                                 let event = iced_winit::conversion::window_event(
                                     window.id(),
                                     &event,
@@ -935,12 +942,12 @@ impl OverlayManager {
         window: &Window,
     ) {
         for (n, overlay) in self.overlay_types.iter().enumerate() {
-            let cursor_position = if multiplexer.focused_element() == Some(ElementType::Overlay(n))
-            {
-                multiplexer.get_cursor_position()
-            } else {
-                PhysicalPosition::new(-1., -1.)
-            };
+            let cursor_position =
+                if multiplexer.focused_element() == Some(GuiComponentType::Overlay(n)) {
+                    multiplexer.get_cursor_position()
+                } else {
+                    PhysicalPosition::new(-1., -1.)
+                };
             let mut clipboard = iced_runtime::clipboard::Null;
             match overlay {
                 OverlayType::Color => {
@@ -1035,12 +1042,12 @@ impl OverlayManager {
     ) -> bool {
         let mut ret = false;
         for (n, overlay) in self.overlay_types.iter().enumerate() {
-            let cursor_position = if multiplexer.focused_element() == Some(ElementType::Overlay(n))
-            {
-                multiplexer.get_cursor_position()
-            } else {
-                PhysicalPosition::new(-1., -1.)
-            };
+            let cursor_position =
+                if multiplexer.focused_element() == Some(GuiComponentType::Overlay(n)) {
+                    multiplexer.get_cursor_position()
+                } else {
+                    PhysicalPosition::new(-1., -1.)
+                };
             let mut clipboard = iced_runtime::clipboard::Null;
             match overlay {
                 OverlayType::Color => {
@@ -1091,8 +1098,8 @@ pub(crate) struct MainState {
     redo_stack: Vec<AppStateTransition>,
     channel_reader: ChannelReader,
     messages: Arc<Mutex<IcedMessages<AppState>>>,
-    applications: HashMap<ElementType, Arc<Mutex<dyn Application<AppState = AppState>>>>,
-    focused_element: Option<ElementType>,
+    applications: HashMap<GuiComponentType, Arc<Mutex<dyn Application<AppState = AppState>>>>,
+    focused_element: Option<GuiComponentType>,
     last_saved_state: AppState,
 
     /// The name of the file containing the current design.
@@ -1204,11 +1211,11 @@ impl MainState {
         log::trace!("call from main state");
         if let Some(camera_ptr) = self
             .applications
-            .get(&ElementType::StereographicScene)
+            .get(&GuiComponentType::StereographicScene)
             .and_then(|s| s.lock().unwrap().get_camera())
         {
             self.applications
-                .get(&ElementType::Scene)
+                .get(&GuiComponentType::Scene)
                 .unwrap()
                 .lock()
                 .unwrap()
@@ -1225,7 +1232,7 @@ impl MainState {
         use scene::AppState;
         let scene_pivot = self
             .applications
-            .get(&ElementType::Scene)
+            .get(&GuiComponentType::Scene)
             .and_then(|app| app.lock().unwrap().get_current_selection_pivot());
         if let Some(pivot) = self.app_state.get_current_group_pivot().or(scene_pivot) {
             self.apply_operation(DesignOperation::SetGroupPivot { group_id, pivot })
@@ -1485,7 +1492,7 @@ impl MainState {
     fn save_design(&mut self, path: &PathBuf) -> Result<(), SaveDesignError> {
         let camera = self
             .applications
-            .get(&ElementType::Scene)
+            .get(&GuiComponentType::Scene)
             .and_then(|s| s.lock().unwrap().get_camera())
             .map(|camera| Camera {
                 id: Default::default(),
@@ -1507,7 +1514,7 @@ impl MainState {
     fn save_backup(&mut self) -> Result<(), SaveDesignError> {
         let camera = self
             .applications
-            .get(&ElementType::Scene)
+            .get(&GuiComponentType::Scene)
             .and_then(|s| s.lock().unwrap().get_camera())
             .map(|camera| Camera {
                 id: Default::default(),
@@ -1642,7 +1649,7 @@ impl MainState {
 
     fn get_grid_creation_position(&self) -> Option<(Vec3, Rotor3)> {
         self.applications
-            .get(&ElementType::Scene)
+            .get(&GuiComponentType::Scene)
             .and_then(|s| s.lock().unwrap().get_position_for_new_grid())
     }
 
@@ -1682,20 +1689,20 @@ impl MainState {
             can_redo: !self.redo_stack.is_empty(),
             need_save: self.need_save(),
             can_reload: self.get_current_file_name().is_some(),
-            can_split2d: multiplexer.is_showing(&ElementType::FlatScene),
+            can_split2d: multiplexer.is_showing(&GuiComponentType::FlatScene),
             splited_2d: self
                 .applications
-                .get(&ElementType::FlatScene)
+                .get(&GuiComponentType::FlatScene)
                 .map(|app| app.lock().unwrap().is_splited())
                 .unwrap_or(false),
-            can_toggle_2d: multiplexer.is_showing(&ElementType::FlatScene)
-                || multiplexer.is_showing(&ElementType::StereographicScene),
+            can_toggle_2d: multiplexer.is_showing(&GuiComponentType::FlatScene)
+                || multiplexer.is_showing(&GuiComponentType::StereographicScene),
         }
     }
 
     fn get_camera_3d(&self) -> ensnano_interactor::application::Camera3D {
         self.applications
-            .get(&ElementType::Scene)
+            .get(&GuiComponentType::Scene)
             .expect("Could not get scene element")
             .lock()
             .unwrap()
@@ -1708,7 +1715,7 @@ impl MainState {
 
     fn set_camera_3d(&self, camera: ensnano_interactor::application::Camera3D) {
         self.applications
-            .get(&ElementType::Scene)
+            .get(&GuiComponentType::Scene)
             .expect("Could not get scene element")
             .lock()
             .unwrap()
@@ -2071,7 +2078,7 @@ impl<'a> MainStateInteface for MainStateView<'a> {
         if let Some(camera) = self
             .main_state
             .applications
-            .get(&ElementType::Scene)
+            .get(&GuiComponentType::Scene)
             .and_then(|s| s.lock().unwrap().get_camera())
         {
             self.main_state
@@ -2098,7 +2105,7 @@ impl<'a> MainStateInteface for MainStateView<'a> {
         if let Some(camera) = self
             .main_state
             .applications
-            .get(&ElementType::Scene)
+            .get(&GuiComponentType::Scene)
             .and_then(|s| s.lock().unwrap().get_camera())
         {
             self.main_state

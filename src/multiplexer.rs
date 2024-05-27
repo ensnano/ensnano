@@ -48,7 +48,7 @@ use winit::{
 };
 
 mod layout_manager;
-use ensnano_interactor::graphics::{DrawArea, ElementType, SplitMode};
+use ensnano_interactor::graphics::{DrawArea, GuiComponentType, SplitMode};
 use layout_manager::{LayoutTree, PixelRegion};
 
 /// A structure that handles the division of the window into different `DrawArea`.
@@ -62,7 +62,7 @@ pub struct Multiplexer {
     /// The object mapping pixels to drawing areas.
     layout: LayoutTree,
     /// The element on which the mouse cursor is currently on.
-    focus: Option<ElementType>,
+    focus: Option<GuiComponentType>,
     /// The *physical* position of the cursor on the focus area.
     cursor_position: PhysicalPosition<f64>,
     /// The area that are drawn on top of the application.
@@ -95,8 +95,8 @@ pub struct Multiplexer {
     modifiers: ModifiersState,
     ui_size: UiSize,
     pub icon: Option<CursorIcon>,
-    element_3d: ElementType,
-    element_2d: ElementType,
+    element_3d: GuiComponentType,
+    element_2d: GuiComponentType,
 }
 
 /// Maximum width of the left pannel.
@@ -146,10 +146,10 @@ impl Multiplexer {
         let status_bar_split = scene;
         let (scene, status_bar) = layout.hsplit(scene, 1. - status_bar_prop, false);
         //let (scene, grid_panel) = layout_manager.hsplit(scene, 0.8);
-        layout.attribute_element(top_bar, ElementType::TopBar);
-        layout.attribute_element(scene, ElementType::Scene);
-        layout.attribute_element(status_bar, ElementType::StatusBar);
-        layout.attribute_element(left_pannel, ElementType::LeftPanel);
+        layout.attribute_element(top_bar, GuiComponentType::TopBar);
+        layout.attribute_element(scene, GuiComponentType::Scene);
+        layout.attribute_element(status_bar, GuiComponentType::StatusBar);
+        layout.attribute_element(left_pannel, GuiComponentType::LeftPanel);
         //layout_manager.attribute_element(grid_panel, ElementType::GridPanel);
         let mut ret = Self {
             window_size,
@@ -178,44 +178,52 @@ impl Multiplexer {
             modifiers: ModifiersState::empty(),
             ui_size,
             icon: None,
-            element_2d: ElementType::FlatScene,
-            element_3d: ElementType::Scene,
+            element_2d: GuiComponentType::FlatScene,
+            element_3d: GuiComponentType::Scene,
         };
         ret.generate_textures();
         ret
     }
 
     /// Return a view of the texture on which the element must be rendered
-    pub fn get_texture_view(&self, element_type: ElementType) -> Option<&wgpu::TextureView> {
+    pub fn get_texture_view(&self, element_type: GuiComponentType) -> Option<&wgpu::TextureView> {
         match element_type {
-            ElementType::StereographicScene => self
+            GuiComponentType::StereographicScene => self
                 .stereographic_scene_texture
                 .as_ref()
                 .map(|t| &t.texture.view),
-            ElementType::Scene => self.scene_texture.as_ref().map(|t| &t.texture.view),
-            ElementType::LeftPanel => self.left_pannel_texture.as_ref().map(|t| &t.texture.view),
-            ElementType::TopBar => self.top_bar_texture.as_ref().map(|t| &t.texture.view),
-            ElementType::Overlay(n) => Some(&self.overlays_textures[n].texture.view),
-            ElementType::GridPanel => self.grid_panel_texture.as_ref().map(|t| &t.texture.view),
-            ElementType::FlatScene => self.flat_scene_texture.as_ref().map(|t| &t.texture.view),
-            ElementType::StatusBar => self.status_bar_texture.as_ref().map(|t| &t.texture.view),
-            ElementType::Unattributed => unreachable!(),
+            GuiComponentType::Scene => self.scene_texture.as_ref().map(|t| &t.texture.view),
+            GuiComponentType::LeftPanel => {
+                self.left_pannel_texture.as_ref().map(|t| &t.texture.view)
+            }
+            GuiComponentType::TopBar => self.top_bar_texture.as_ref().map(|t| &t.texture.view),
+            GuiComponentType::Overlay(n) => Some(&self.overlays_textures[n].texture.view),
+            GuiComponentType::GridPanel => {
+                self.grid_panel_texture.as_ref().map(|t| &t.texture.view)
+            }
+            GuiComponentType::FlatScene => {
+                self.flat_scene_texture.as_ref().map(|t| &t.texture.view)
+            }
+            GuiComponentType::StatusBar => {
+                self.status_bar_texture.as_ref().map(|t| &t.texture.view)
+            }
+            GuiComponentType::Unattributed => unreachable!(),
         }
     }
 
-    fn get_texture_size(&self, element_type: ElementType) -> Option<DrawArea> {
+    fn get_texture_size(&self, element_type: GuiComponentType) -> Option<DrawArea> {
         match element_type {
-            ElementType::Scene => self.scene_texture.as_ref().map(|t| t.area),
-            ElementType::LeftPanel => self.left_pannel_texture.as_ref().map(|t| t.area),
-            ElementType::TopBar => self.top_bar_texture.as_ref().map(|t| t.area),
-            ElementType::Overlay(n) => Some(self.overlays_textures[n].area),
-            ElementType::GridPanel => self.grid_panel_texture.as_ref().map(|t| t.area),
-            ElementType::FlatScene => self.flat_scene_texture.as_ref().map(|t| t.area),
-            ElementType::StatusBar => self.status_bar_texture.as_ref().map(|t| t.area),
-            ElementType::StereographicScene => {
+            GuiComponentType::Scene => self.scene_texture.as_ref().map(|t| t.area),
+            GuiComponentType::LeftPanel => self.left_pannel_texture.as_ref().map(|t| t.area),
+            GuiComponentType::TopBar => self.top_bar_texture.as_ref().map(|t| t.area),
+            GuiComponentType::Overlay(n) => Some(self.overlays_textures[n].area),
+            GuiComponentType::GridPanel => self.grid_panel_texture.as_ref().map(|t| t.area),
+            GuiComponentType::FlatScene => self.flat_scene_texture.as_ref().map(|t| t.area),
+            GuiComponentType::StatusBar => self.status_bar_texture.as_ref().map(|t| t.area),
+            GuiComponentType::StereographicScene => {
                 self.stereographic_scene_texture.as_ref().map(|t| t.area)
             }
-            ElementType::Unattributed => unreachable!(),
+            GuiComponentType::Unattributed => unreachable!(),
         }
     }
 
@@ -268,13 +276,13 @@ impl Multiplexer {
         });
         if self.window_size.width > 0 && self.window_size.height > 0 {
             for element in [
-                ElementType::TopBar,
-                ElementType::LeftPanel,
-                ElementType::GridPanel,
-                ElementType::Scene,
-                ElementType::FlatScene,
-                ElementType::StereographicScene,
-                ElementType::StatusBar,
+                GuiComponentType::TopBar,
+                GuiComponentType::LeftPanel,
+                GuiComponentType::GridPanel,
+                GuiComponentType::Scene,
+                GuiComponentType::FlatScene,
+                GuiComponentType::StereographicScene,
+                GuiComponentType::StatusBar,
             ]
             .iter()
             {
@@ -306,10 +314,10 @@ impl Multiplexer {
         }
     }
 
-    fn get_bind_group(&self, element_type: &ElementType) -> &wgpu::BindGroup {
+    fn get_bind_group(&self, element_type: &GuiComponentType) -> &wgpu::BindGroup {
         match element_type {
-            ElementType::TopBar => &self.top_bar_texture.as_ref().unwrap().texture.bind_group,
-            ElementType::LeftPanel => {
+            GuiComponentType::TopBar => &self.top_bar_texture.as_ref().unwrap().texture.bind_group,
+            GuiComponentType::LeftPanel => {
                 &self
                     .left_pannel_texture
                     .as_ref()
@@ -317,12 +325,18 @@ impl Multiplexer {
                     .texture
                     .bind_group
             }
-            ElementType::Scene => &self.scene_texture.as_ref().unwrap().texture.bind_group,
-            ElementType::FlatScene => &self.flat_scene_texture.as_ref().unwrap().texture.bind_group,
-            ElementType::GridPanel => &self.grid_panel_texture.as_ref().unwrap().texture.bind_group,
-            ElementType::Overlay(n) => &self.overlays_textures[*n].texture.bind_group,
-            ElementType::StatusBar => &self.status_bar_texture.as_ref().unwrap().texture.bind_group,
-            ElementType::StereographicScene => {
+            GuiComponentType::Scene => &self.scene_texture.as_ref().unwrap().texture.bind_group,
+            GuiComponentType::FlatScene => {
+                &self.flat_scene_texture.as_ref().unwrap().texture.bind_group
+            }
+            GuiComponentType::GridPanel => {
+                &self.grid_panel_texture.as_ref().unwrap().texture.bind_group
+            }
+            GuiComponentType::Overlay(n) => &self.overlays_textures[*n].texture.bind_group,
+            GuiComponentType::StatusBar => {
+                &self.status_bar_texture.as_ref().unwrap().texture.bind_group
+            }
+            GuiComponentType::StereographicScene => {
                 &self
                     .stereographic_scene_texture
                     .as_ref()
@@ -330,13 +344,13 @@ impl Multiplexer {
                     .texture
                     .bind_group
             }
-            ElementType::Unattributed => unreachable!(),
+            GuiComponentType::Unattributed => unreachable!(),
         }
     }
 
     /// Return the drawing area attributed to an element.
-    pub fn get_draw_area(&self, element_type: ElementType) -> Option<DrawArea> {
-        use ElementType::Overlay;
+    pub fn get_draw_area(&self, element_type: GuiComponentType) -> Option<DrawArea> {
+        use GuiComponentType::Overlay;
         let (position, size) = if let Overlay(n) = element_type {
             (self.overlays[n].position, self.overlays[n].size)
         } else {
@@ -375,7 +389,7 @@ impl Multiplexer {
         mut event: WindowEvent<'static>,
         resized: &mut bool,
         scale_factor_changed: &mut bool,
-    ) -> Option<(WindowEvent<'static>, ElementType)> {
+    ) -> Option<(WindowEvent<'static>, GuiComponentType)> {
         let mut captured = false;
         match &mut event {
             WindowEvent::CursorMoved { position, .. } => match &mut self.state {
@@ -622,7 +636,7 @@ impl Multiplexer {
                     SplitMode::Flat => self.element_2d,
                     SplitMode::Both => unreachable!(),
                 };
-                self.layout.merge(ElementType::Scene, new_type);
+                self.layout.merge(GuiComponentType::Scene, new_type);
             }
             SplitMode::Scene3D | SplitMode::Flat => {
                 let id = self
@@ -650,10 +664,10 @@ impl Multiplexer {
             self.layout.log_tree();
         }
         let old_element_2d = self.element_2d;
-        if self.element_2d == ElementType::FlatScene {
-            self.element_2d = ElementType::StereographicScene;
+        if self.element_2d == GuiComponentType::FlatScene {
+            self.element_2d = GuiComponentType::StereographicScene;
         } else {
-            self.element_2d = ElementType::FlatScene;
+            self.element_2d = GuiComponentType::FlatScene;
         }
         if let Some(id) = self.layout.get_area_id(old_element_2d) {
             self.layout.attribute_element(id, self.element_2d)
@@ -688,7 +702,7 @@ impl Multiplexer {
         ret
     }
 
-    fn texture(&mut self, element_type: ElementType) -> Option<MultiplexerTexture> {
+    fn texture(&mut self, element_type: GuiComponentType) -> Option<MultiplexerTexture> {
         log::info!("texture of {:?}", element_type);
         let area = self.get_draw_area(element_type)?;
         log::info!("area = {:?}", area);
@@ -697,13 +711,13 @@ impl Multiplexer {
     }
 
     pub fn generate_textures(&mut self) {
-        self.scene_texture = self.texture(ElementType::Scene);
-        self.top_bar_texture = self.texture(ElementType::TopBar);
-        self.left_pannel_texture = self.texture(ElementType::LeftPanel);
-        self.grid_panel_texture = self.texture(ElementType::GridPanel);
-        self.flat_scene_texture = self.texture(ElementType::FlatScene);
-        self.status_bar_texture = self.texture(ElementType::StatusBar);
-        self.stereographic_scene_texture = self.texture(ElementType::StereographicScene);
+        self.scene_texture = self.texture(GuiComponentType::Scene);
+        self.top_bar_texture = self.texture(GuiComponentType::TopBar);
+        self.left_pannel_texture = self.texture(GuiComponentType::LeftPanel);
+        self.grid_panel_texture = self.texture(GuiComponentType::GridPanel);
+        self.flat_scene_texture = self.texture(GuiComponentType::FlatScene);
+        self.status_bar_texture = self.texture(GuiComponentType::StatusBar);
+        self.stereographic_scene_texture = self.texture(GuiComponentType::StereographicScene);
 
         self.overlays_textures.clear();
         for overlay in self.overlays.iter() {
@@ -725,7 +739,7 @@ impl Multiplexer {
         let pixel_u32 = pixel.cast::<u32>();
         for (n, overlay) in self.overlays.iter().enumerate() {
             if overlay.contains_pixel(pixel_u32) {
-                return PixelRegion::Element(ElementType::Overlay(n));
+                return PixelRegion::Element(GuiComponentType::Overlay(n));
             }
         }
         self.layout.get_area_pixel(
@@ -735,7 +749,7 @@ impl Multiplexer {
     }
 
     /// Get the drawing area attributed to an element.
-    pub fn get_element_area(&self, element: ElementType) -> Option<DrawArea> {
+    pub fn get_element_area(&self, element: GuiComponentType) -> Option<DrawArea> {
         self.get_draw_area(element)
     }
 
@@ -745,7 +759,7 @@ impl Multiplexer {
     }
 
     /// Return the focused element
-    pub fn focused_element(&self) -> Option<ElementType> {
+    pub fn focused_element(&self) -> Option<GuiComponentType> {
         self.focus
     }
 
@@ -765,9 +779,11 @@ impl Multiplexer {
         }
     }
 
-    pub fn is_showing(&self, area: &ElementType) -> bool {
+    pub fn is_showing(&self, area: &GuiComponentType) -> bool {
         match area {
-            ElementType::LeftPanel | ElementType::TopBar | ElementType::StatusBar => true,
+            GuiComponentType::LeftPanel
+            | GuiComponentType::TopBar
+            | GuiComponentType::StatusBar => true,
             t if *t == self.element_3d => {
                 self.split_mode == SplitMode::Scene3D || self.split_mode == SplitMode::Both
             }
@@ -864,7 +880,7 @@ enum State {
     },
     Interacting {
         mouse_position: PhysicalPosition<f64>,
-        element: ElementType,
+        element: GuiComponentType,
     },
 }
 
@@ -889,11 +905,11 @@ fn ctrl(modifiers: &ModifiersState) -> bool {
 use crate::gui::Multiplexer as GuiMultiplexer;
 
 impl GuiMultiplexer for Multiplexer {
-    fn get_draw_area(&self, element_type: ElementType) -> Option<DrawArea> {
+    fn get_draw_area(&self, element_type: GuiComponentType) -> Option<DrawArea> {
         self.get_texture_size(element_type)
     }
 
-    fn get_texture_view(&self, element_type: ElementType) -> Option<&wgpu::TextureView> {
+    fn get_texture_view(&self, element_type: GuiComponentType) -> Option<&wgpu::TextureView> {
         self.get_texture_view(element_type)
     }
 
@@ -901,7 +917,7 @@ impl GuiMultiplexer for Multiplexer {
         self.get_cursor_position()
     }
 
-    fn focused_element(&self) -> Option<ElementType> {
+    fn focused_element(&self) -> Option<GuiComponentType> {
         self.focused_element()
     }
 }

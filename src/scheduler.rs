@@ -18,7 +18,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::{AppState, Multiplexer};
 use ensnano_interactor::application::Application;
-use ensnano_interactor::graphics::ElementType;
+use ensnano_interactor::graphics::GuiComponentType;
 use iced_wgpu::wgpu;
 use iced_winit::winit::{
     dpi::{PhysicalPosition, PhysicalSize},
@@ -30,8 +30,8 @@ use std::time::Duration;
 
 /// The scheduler is responsible for running the different applications
 pub struct Scheduler {
-    applications: HashMap<ElementType, Arc<Mutex<dyn Application<AppState = AppState>>>>,
-    needs_redraw: Vec<ElementType>,
+    applications: HashMap<GuiComponentType, Arc<Mutex<dyn Application<AppState = AppState>>>>,
+    needs_redraw: Vec<GuiComponentType>,
 }
 
 impl Scheduler {
@@ -45,7 +45,7 @@ impl Scheduler {
     pub fn add_application(
         &mut self,
         application: Arc<Mutex<dyn Application<AppState = AppState>>>,
-        element_type: ElementType,
+        element_type: GuiComponentType,
     ) {
         self.applications.insert(element_type, application);
     }
@@ -54,7 +54,7 @@ impl Scheduler {
     pub fn forward_event(
         &mut self,
         event: &WindowEvent,
-        area: ElementType,
+        area: GuiComponentType,
         cursor_position: PhysicalPosition<f64>,
         app_state: AppState,
     ) -> Option<ensnano_interactor::CursorIcon> {

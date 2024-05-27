@@ -66,7 +66,7 @@ use ensnano_design::{
     ultraviolet, BezierPathId, BezierVertexId, HelixParameters, Nucl,
 };
 use ensnano_interactor::{
-    graphics::{Background3D, DrawArea, ElementType, RenderingMode, SplitMode},
+    graphics::{Background3D, DrawArea, GuiComponentType, RenderingMode, SplitMode},
     CheckXoversParameter, InsertionPoint, PastingStatus, Selection, SimulationState,
     SuggestionParameters, UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
 };
@@ -416,7 +416,7 @@ struct GuiElement<R: Requests, S: AppState> {
     state: GuiState<R, S>,
     debug: Debug,
     redraw: bool,
-    element_type: ElementType,
+    element_type: GuiComponentType,
     renderer: Renderer,
 }
 
@@ -431,7 +431,7 @@ impl<R: Requests, S: AppState> GuiElement<R, S> {
         top_bar_state: TopBarState,
         ui_size: UiSize,
     ) -> Self {
-        let top_bar_area = multiplexer.get_draw_area(ElementType::TopBar).unwrap();
+        let top_bar_area = multiplexer.get_draw_area(GuiComponentType::TopBar).unwrap();
         let top_bar = TopBar::new(
             requests,
             top_bar_area.size.to_logical(window.scale_factor()),
@@ -450,7 +450,7 @@ impl<R: Requests, S: AppState> GuiElement<R, S> {
             state: GuiState::TopBar(top_bar_state),
             debug: top_bar_debug,
             redraw: true,
-            element_type: ElementType::TopBar,
+            element_type: GuiComponentType::TopBar,
             renderer,
         }
     }
@@ -465,7 +465,9 @@ impl<R: Requests, S: AppState> GuiElement<R, S> {
         state: &S,
         ui_size: UiSize,
     ) -> Self {
-        let left_panel_area = multiplexer.get_draw_area(ElementType::LeftPanel).unwrap();
+        let left_panel_area = multiplexer
+            .get_draw_area(GuiComponentType::LeftPanel)
+            .unwrap();
         let left_panel = LeftPanel::new(
             requests,
             left_panel_area.size.to_logical(window.scale_factor()),
@@ -485,7 +487,7 @@ impl<R: Requests, S: AppState> GuiElement<R, S> {
             state: GuiState::LeftPanel(left_panel_state),
             debug: left_panel_debug,
             redraw: true,
-            element_type: ElementType::LeftPanel,
+            element_type: GuiComponentType::LeftPanel,
             renderer,
         }
     }
@@ -498,7 +500,9 @@ impl<R: Requests, S: AppState> GuiElement<R, S> {
         state: &S,
         ui_size: UiSize,
     ) -> Self {
-        let status_bar_area = multiplexer.get_draw_area(ElementType::StatusBar).unwrap();
+        let status_bar_area = multiplexer
+            .get_draw_area(GuiComponentType::StatusBar)
+            .unwrap();
         let status_bar = StatusBar::new(
             requests,
             state,
@@ -516,7 +520,7 @@ impl<R: Requests, S: AppState> GuiElement<R, S> {
             state: GuiState::StatusBar(status_bar_state),
             debug: status_bar_debug,
             redraw: true,
-            element_type: ElementType::StatusBar,
+            element_type: GuiComponentType::StatusBar,
             renderer,
         }
     }
@@ -617,7 +621,7 @@ impl<R: Requests, S: AppState> GuiElement<R, S> {
 /// The manager contains a [GuiElement] for each [ElementType] (top_bar, left_panel, etc…)
 pub struct Gui<R: Requests, S: AppState> {
     /// HashMap mapping [ElementType] to a GuiElement
-    elements: HashMap<ElementType, GuiElement<R, S>>,
+    elements: HashMap<GuiComponentType, GuiElement<R, S>>,
     settings: Settings,
     device: Rc<Device>,
     queue: Rc<Queue>,
@@ -665,7 +669,7 @@ impl<R: Requests, S: AppState> Gui<R, S> {
             settings.default_text_size,
         );
         elements.insert(
-            ElementType::TopBar,
+            GuiComponentType::TopBar,
             GuiElement::top_bar(
                 top_bar_renderer,
                 window,
@@ -687,7 +691,7 @@ impl<R: Requests, S: AppState> Gui<R, S> {
             settings.default_text_size,
         );
         elements.insert(
-            ElementType::LeftPanel,
+            GuiComponentType::LeftPanel,
             GuiElement::left_panel(
                 left_panel_renderer,
                 window,
@@ -710,7 +714,7 @@ impl<R: Requests, S: AppState> Gui<R, S> {
         );
 
         elements.insert(
-            ElementType::StatusBar,
+            GuiComponentType::StatusBar,
             GuiElement::status_bar(
                 status_bar_renderer,
                 window,
@@ -733,7 +737,7 @@ impl<R: Requests, S: AppState> Gui<R, S> {
     }
 
     /// Forward an event to the appropriate gui component
-    pub fn forward_event(&mut self, area: ElementType, event: event::Event) {
+    pub fn forward_event(&mut self, area: GuiComponentType, event: event::Event) {
         self.elements.get_mut(&area).unwrap().forward_event(event);
     }
 
@@ -764,21 +768,21 @@ impl<R: Requests, S: AppState> Gui<R, S> {
     pub fn forward_messages(&mut self, messages: &mut IcedMessages<S>) {
         for m in messages.top_bar.drain(..) {
             self.elements
-                .get_mut(&ElementType::TopBar)
+                .get_mut(&GuiComponentType::TopBar)
                 .unwrap()
                 .get_state()
                 .queue_top_bar_message(m);
         }
         for m in messages.left_panel.drain(..) {
             self.elements
-                .get_mut(&ElementType::LeftPanel)
+                .get_mut(&GuiComponentType::LeftPanel)
                 .unwrap()
                 .get_state()
                 .queue_left_panel_message(m);
         }
         for m in messages.status_bar.drain(..) {
             self.elements
-                .get_mut(&ElementType::StatusBar)
+                .get_mut(&GuiComponentType::StatusBar)
                 .unwrap()
                 .get_state()
                 .queue_status_bar_message(m);
@@ -865,7 +869,7 @@ impl<R: Requests, S: AppState> Gui<R, S> {
             self.settings.default_text_size,
         );
         self.elements.insert(
-            ElementType::TopBar,
+            GuiComponentType::TopBar,
             GuiElement::top_bar(
                 top_bar_renderer,
                 window,
@@ -887,7 +891,7 @@ impl<R: Requests, S: AppState> Gui<R, S> {
             self.settings.default_text_size,
         );
         self.elements.insert(
-            ElementType::LeftPanel,
+            GuiComponentType::LeftPanel,
             GuiElement::left_panel(
                 left_panel_renderer,
                 window,
@@ -909,7 +913,7 @@ impl<R: Requests, S: AppState> Gui<R, S> {
             self.settings.default_text_size,
         );
         self.elements.insert(
-            ElementType::StatusBar,
+            GuiComponentType::StatusBar,
             GuiElement::status_bar(
                 status_bar_renderer,
                 window,
@@ -1059,10 +1063,10 @@ impl<S: AppState> IcedMessages<S> {
 
 /// An object mapping ElementType to DrawArea
 pub trait Multiplexer {
-    fn get_draw_area(&self, element_type: ElementType) -> Option<DrawArea>;
-    fn focused_element(&self) -> Option<ElementType>;
+    fn get_draw_area(&self, element_type: GuiComponentType) -> Option<DrawArea>;
+    fn focused_element(&self) -> Option<GuiComponentType>;
     fn get_cursor_position(&self) -> PhysicalPosition<f64>;
-    fn get_texture_view(&self, element_type: ElementType) -> Option<&wgpu::TextureView>;
+    fn get_texture_view(&self, element_type: GuiComponentType) -> Option<&wgpu::TextureView>;
 }
 
 pub trait AppState:
