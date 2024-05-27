@@ -36,15 +36,13 @@ impl GridTab {
 }
 
 impl GridTab {
-    pub fn view<S, Theme, Renderer>(
+    pub fn view<S>(
         &self,
         ui_size: UiSize,
         app_state: &S,
-    ) -> Element<Message<S>, Theme, Renderer>
+    ) -> Element<Message<S>, crate::Theme, crate::Renderer>
     where
         S: AppState,
-        Theme: iced_widget::scrollable::StyleSheet,
-        Renderer: iced::advanced::Renderer,
     {
         let content = self::column![
             section("Grids", ui_size),

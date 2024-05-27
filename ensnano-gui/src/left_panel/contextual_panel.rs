@@ -127,10 +127,9 @@ impl ValueRequest {
 struct InstantiatedBuilder<State>
 where
     State: AppState,
-    Renderer: iced::advanced::Renderer,
 {
     selection: Selection,
-    builder: Box<dyn Builder<State, Theme, Renderer>>,
+    builder: Box<dyn Builder<State>>,
 }
 
 impl<State> InstantiatedBuilder<State>
@@ -169,7 +168,7 @@ where
     fn new_builder(
         selection: &Selection,
         reader: &dyn DesignReader,
-    ) -> Option<Box<dyn Builder<State, Theme, Renderer>>> {
+    ) -> Option<Box<dyn Builder<State>>> {
         match selection {
             Selection::Grid(_, g_id) => {
                 if let Some((position, orientation)) =
@@ -262,19 +261,11 @@ where
         }
     }
 
-    pub fn view<Theme, Renderer>(
+    pub fn view(
         &self,
         ui_size: UiSize,
         app_state: &State,
-    ) -> iced::Element<Message<State>, Theme, Renderer>
-    where
-        Theme: text::StyleSheet
-            + text_input::StyleSheet
-            + button::StyleSheet
-            + container::StyleSheet
-            + scrollable::StyleSheet,
-        Renderer: iced::advanced::Renderer + iced::advanced::text::Renderer,
-    {
+    ) -> iced::Element<Message<State>, crate::Theme, crate::Renderer> {
         let selection = app_state
             .get_selection()
             .get(0)
@@ -299,89 +290,92 @@ where
 
         // NOTE: The brancing below determines what is viewed in the contextual panel.
         //
-        let mut content: iced::widget::Column<Message<State>, Theme, Renderer> =
-            if self.show_tutorial {
-                let link = "http://ens-lyon.fr/ensnano";
-                self::column![
-                    section("Tutorials", ui_size)
-                        .width(Length::Fill)
-                        .horizontal_alignment(Horizontal::Center),
-                    extra_jump(),
-                    subsection("ENSnano website", ui_size),
-                    row![
-                        text(link),
-                        Space::with_width(Length::Fill),
-                        text_button("Go", ui_size).on_press(Message::OpenLink(link)),
-                    ],
+        let mut content = if self.show_tutorial {
+            let link = "http://ens-lyon.fr/ensnano";
+            self::column![
+                section("Tutorials", ui_size)
+                    .width(Length::Fill)
+                    .horizontal_alignment(Horizontal::Center),
+                extra_jump(),
+                subsection("ENSnano website", ui_size),
+                row![
+                    text(link),
+                    Space::with_width(Length::Fill),
+                    text_button("Go", ui_size).on_press(Message::OpenLink(link)),
+                ],
+            ]
+        } else if self.force_help && xover_len.is_none() {
+            //turn_into_help_column(ui_size)
+            //TODO: REACTIVATE ME!
+            self::column![]
+        } else if app_state.get_action_mode().is_build() {
+            //self.add_strand_menu.view(ui_size, self.width as u16)
+            //TODO: REACTIVATE ME!
+            self::column![]
+        } else if *selection == Selection::Nothing && xover_len.is_none() {
+            //turn_into_help_column(ui_size)
+            //TODO: REACTIVATE ME!
+            self::column![]
+        } else if nb_selected > 1 {
+            // NOTE: When the number of objects selectet is greater than one,
+            //       we only print the number of object selected.
+            self::column![text(format!("{} objects selected", nb_selected)),]
+                .width(Length::Fill)
+                .align_items(iced::Alignment::Center)
+        } else {
+            // NOTE: Print information about selection.
+            let mut column = Column::new();
+            column = column.push(
+                row![
+                    Space::with_width(Length::FillPortion(1)),
+                    self::column![text_button("Help", ui_size).on_press(Message::ForceHelp),]
+                        .width(Length::FillPortion(1)),
+                    Space::with_width(Length::FillPortion(1)),
                 ]
-            } else if self.force_help && xover_len.is_none() {
-                turn_into_help_column(ui_size)
-            } else if app_state.get_action_mode().is_build() {
-                //self.add_strand_menu.view(ui_size, self.width as u16)
-                //TODO: REACTIVATE ME!
-                self::column![]
-            } else if *selection == Selection::Nothing && xover_len.is_none() {
-                turn_into_help_column(ui_size)
-            } else if nb_selected > 1 {
-                // NOTE: When the number of objects selectet is greater than one,
-                //       we only print the number of object selected.
-                self::column![text(format!("{} objects selected", nb_selected)),]
-                    .width(Length::Fill)
-                    .align_items(iced::Alignment::Center)
-            } else {
-                // NOTE: Print information about selection.
-                let mut column = Column::new();
-                column = column.push(
-                    row![
-                        Space::with_width(Length::FillPortion(1)),
-                        self::column![text_button("Help", ui_size).on_press(Message::ForceHelp),]
-                            .width(Length::FillPortion(1)),
-                        Space::with_width(Length::FillPortion(1)),
-                    ]
-                    .width(Length::Fill)
-                    .align_items(iced::Alignment::Center),
-                );
+                .width(Length::Fill)
+                .align_items(iced::Alignment::Center),
+            );
 
-                if !matches!(selection, Selection::Nothing) {
-                    column = column.push(text(selection.info()).size(ui_size.main_text()));
-                }
+            if !matches!(selection, Selection::Nothing) {
+                column = column.push(text(selection.info()).size(ui_size.main_text()));
+            }
 
-                //match selection {
-                //    Selection::Grid(_, g_id) => {
-                //        let twisting = match app_state.get_simulation_state() {
-                //            SimulationState::Twisting { grid_id } if *g_id == grid_id => {
-                //                TwistStatus::Twisting
-                //            }
-                //            SimulationState::None => TwistStatus::CanTwist,
-                //            _ => TwistStatus::CannotTwist,
-                //        };
-                //        column = column.push(add_grid_content(info_values.clone(), ui_size, twisting))
-                //    }
-                //    Selection::Strand(_, _) => {
-                //        column = column.push(add_strand_content(info_values.clone(), ui_size))
-                //    }
-                //    Selection::Nucleotide(_, _) => {
-                //        let anchor = info_values[0].clone();
-                //        column = column.push(text(format!("Anchor {}", anchor)));
-                //    }
-                //    Selection::Xover(_, _) => {
-                //        if xover_len.is_none() {
-                //            if let Some(info) = info_values.get(0) {
-                //                column = column.push(text(info));
-                //            }
-                //            if let Some(info) = info_values.get(1) {
-                //                column = column.push(text(info));
-                //            }
-                //        }
-                //    }
-                //    _ => (),
-                //}
-                //if let Some(builder) = &self.builder {
-                //    column = column.push(builder.builder.view(ui_size, selection, app_state))
-                //}
-                //TODO: REACTIVATE ME!
-                column.into()
-            };
+            //match selection {
+            //    Selection::Grid(_, g_id) => {
+            //        let twisting = match app_state.get_simulation_state() {
+            //            SimulationState::Twisting { grid_id } if *g_id == grid_id => {
+            //                TwistStatus::Twisting
+            //            }
+            //            SimulationState::None => TwistStatus::CanTwist,
+            //            _ => TwistStatus::CannotTwist,
+            //        };
+            //        column = column.push(add_grid_content(info_values.clone(), ui_size, twisting))
+            //    }
+            //    Selection::Strand(_, _) => {
+            //        column = column.push(add_strand_content(info_values.clone(), ui_size))
+            //    }
+            //    Selection::Nucleotide(_, _) => {
+            //        let anchor = info_values[0].clone();
+            //        column = column.push(text(format!("Anchor {}", anchor)));
+            //    }
+            //    Selection::Xover(_, _) => {
+            //        if xover_len.is_none() {
+            //            if let Some(info) = info_values.get(0) {
+            //                column = column.push(text(info));
+            //            }
+            //            if let Some(info) = info_values.get(1) {
+            //                column = column.push(text(info));
+            //            }
+            //        }
+            //    }
+            //    _ => (),
+            //}
+            //if let Some(builder) = &self.builder {
+            //    column = column.push(builder.builder.view(ui_size, selection, app_state))
+            //}
+            //TODO: REACTIVATE ME!
+            column
+        };
 
         if let Some(info_values) = xover_len.map(|v| fmt_xover_len(Some(v))) {
             if let Some(info) = info_values.get(0) {
@@ -646,8 +640,8 @@ fn turn_into_help_column<'a, State, Theme, Renderer>(
 ) -> Column<'a, Message<State>, Theme, Renderer>
 where
     State: AppState,
-    Theme: text::StyleSheet,
-    Renderer: iced::advanced::text::Renderer,
+    Theme: text::StyleSheet + 'a,
+    Renderer: iced::advanced::text::Renderer + 'a,
 {
     self::column![
         section("Help", ui_size)
@@ -943,15 +937,15 @@ impl AddStrandMenu {
     }
 
     #[allow(clippy::needless_lifetimes)]
-    fn view<State, Theme, Renderer>(
+    fn view<'a, State, Theme, Renderer>(
         &self,
         ui_size: UiSize,
         width: u16,
-    ) -> iced::widget::Column<Message<State>, Theme, Renderer>
+    ) -> iced::widget::Column<'a, Message<State>, Theme, Renderer>
     where
         State: AppState,
-        Theme: checkbox::StyleSheet + text::StyleSheet + text_input::StyleSheet,
-        Renderer: iced::advanced::Renderer + iced::advanced::text::Renderer,
+        Theme: checkbox::StyleSheet + text::StyleSheet + text_input::StyleSheet + 'a,
+        Renderer: iced::advanced::Renderer + iced::advanced::text::Renderer + 'a,
     {
         //let _inputs = self.builder_input.iter_mut();
 

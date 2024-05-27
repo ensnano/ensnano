@@ -3,7 +3,8 @@
 //! The theme of the GUI is defined here
 
 use iced::advanced::renderer::Style;
-use iced::{border::Radius, theme, theme::Palette, Background, Border, Color, Theme};
+pub use iced::Theme;
+use iced::{border::Radius, theme, theme::Palette, Background, Border, Color};
 use iced_widget::{container, slider, text_input};
 
 /// Color palette

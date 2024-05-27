@@ -344,8 +344,8 @@ where
     R: Requests,
     S: AppState,
 {
-    type Renderer = iced_wgpu::Renderer;
-    type Theme = iced::Theme;
+    type Theme = crate::Theme;
+    type Renderer = crate::Renderer;
     type Message = Message<S>;
 
     fn update(&mut self, message: Message<S>) -> Command<Message<S>> {

@@ -108,8 +108,8 @@ impl<R: Requests, S: AppState> TopBar<R, S> {
 
 impl<R: Requests, S: AppState> Program for TopBar<R, S> {
     type Message = Message<S>;
-    type Theme = iced::Theme;
-    type Renderer = iced_wgpu::Renderer;
+    type Theme = crate::Theme;
+    type Renderer = crate::Renderer;
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         match message {
@@ -469,17 +469,17 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
 //}
 
 use super::icon::{HasIcon, HasIconDependentOnAxis};
-fn action_mode_btn<'a, State, Theme, Renderer>(
+fn action_mode_btn<'a, State>(
     mode: &ActionMode,
     current_action_mode: ActionMode,
     button_size: impl Into<Length>,
     axis_aligned: bool,
-) -> Button<'a, Message<State>, Theme, Renderer>
+) -> Button<'a, Message<State>, crate::Theme, crate::Renderer>
 where
     State: AppState,
-    Theme: button::StyleSheet,
-    Renderer: iced::advanced::Renderer + iced::advanced::image::Renderer,
-    <Renderer as iced::advanced::image::Renderer>::Handle: From<image::Handle>,
+    //Theme: button::StyleSheet,
+    //Renderer: iced::advanced::Renderer + iced::advanced::image::Renderer,
+    //<Renderer as iced::advanced::image::Renderer>::Handle: From<image::Handle>,
 {
     let icon_path = if current_action_mode == *mode {
         mode.icon_on(axis_aligned)

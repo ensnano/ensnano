@@ -55,7 +55,11 @@ impl<S: AppState> SimulationTab<S> {
         }
     }
 
-    pub fn view(&self, ui_size: UiSize, app_state: &S) -> iced::Element<Message<S>> {
+    pub fn view(
+        &self,
+        ui_size: UiSize,
+        app_state: &S,
+    ) -> iced::Element<Message<S>, crate::Theme, crate::Renderer> {
         let sim_state = &app_state.get_simulation_state();
         let rigid_grid_is_active = sim_state.is_none() || sim_state.simulating_grid();
         let roll_active = sim_state.is_none() || sim_state.is_rolling();
@@ -66,12 +70,13 @@ impl<S: AppState> SimulationTab<S> {
         let content = self::column![
             section("Simulation (Beta)", ui_size),
             self::column![
-                self.physical_simulation.view(
-                    &ui_size,
-                    "Roll",
-                    roll_active,
-                    sim_state.is_rolling(),
-                ),
+                //self.physical_simulation.view(
+                //    &ui_size,
+                //    "Roll",
+                //    roll_active,
+                //    sim_state.is_rolling(),
+                //),
+                // TODO: REACTIVATE ME!
                 start_stop_button(
                     "Rigid Grids",
                     ui_size,
@@ -82,11 +87,13 @@ impl<S: AppState> SimulationTab<S> {
                     },
                     sim_state.simulating_grid()
                 ),
-                Self::helix_btns(&self.rigid_helices_button, app_state, ui_size,),
+                //Self::helix_btns(&self.rigid_helices_button, app_state, ui_size,),
+                // TODO: REACTIVATE ME!
             ]
             .spacing(ui_size.button_pad()),
             subsection("Parameters for helices simulation", ui_size),
-            Column::with_children(self.rigid_body_factory.view(true, ui_size.main_text())),
+            //Column::with_children(self.rigid_body_factory.view(true, ui_size.main_text())),
+            // TODO: REACTIVATE ME!
             right_checkbox(
                 volume_exclusion,
                 "Volume exclusion",
@@ -99,10 +106,11 @@ impl<S: AppState> SimulationTab<S> {
                 Message::BrownianMotion,
                 ui_size,
             ),
-            Column::with_children(
-                self.brownian_factory
-                    .view(brownian_motion, ui_size.main_text())
-            ),
+            //Column::with_children(
+            //    self.brownian_factory
+            //        .view(brownian_motion, ui_size.main_text())
+            //),
+            // TODO: REACTIVATE ME!
         ]
         .spacing(5);
 

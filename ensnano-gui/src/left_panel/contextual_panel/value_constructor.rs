@@ -286,18 +286,16 @@ impl BezierVertexBuilder {
     }
 }
 
-impl<State, Theme, Renderer> Builder<State, Theme, Renderer> for BezierVertexBuilder
+impl<State> Builder<State> for BezierVertexBuilder
 where
     State: AppState,
-    Theme: text::StyleSheet,
-    Renderer: iced::advanced::Renderer + iced::advanced::text::Renderer,
 {
     fn view(
         &self,
         ui_size: UiSize,
         _selection: &Selection,
         _app_state: &State,
-    ) -> iced::Element<super::Message<State>, Theme, Renderer> {
+    ) -> iced::Element<super::Message<State>, crate::Theme, crate::Renderer> {
         self::column![
             text("Position").size(ui_size.intermediate_text()),
             //self.position_builder.view(),
@@ -374,18 +372,16 @@ impl GridBuilder {
     }
 }
 
-impl<State, Theme, Renderer> Builder<State, Theme, Renderer> for GridBuilder
+impl<State> Builder<State> for GridBuilder
 where
     State: AppState,
-    Theme: text::StyleSheet,
-    Renderer: iced::advanced::Renderer + iced::advanced::text::Renderer,
 {
     fn view(
         &self,
         ui_size: UiSize,
         selection: &Selection,
         app_state: &State,
-    ) -> iced::Element<super::Message<State>, Theme, Renderer> {
+    ) -> iced::Element<super::Message<State>, crate::Theme, crate::Renderer> {
         self::column![
             text("Position").size(ui_size.intermediate_text()),
             //self.position_builder.view(),
@@ -432,17 +428,16 @@ where
 
 use super::AppState;
 
-pub trait Builder<State, Theme, Renderer>
+pub trait Builder<State>
 where
     State: AppState,
-    Renderer: iced::advanced::Renderer,
 {
     fn view<'a>(
         &'a self,
         ui_size: UiSize,
         selection: &Selection,
         app_state: &State,
-    ) -> Element<'a, super::Message<State>, Theme, Renderer>;
+    ) -> Element<'a, super::Message<State>, crate::Theme, crate::Renderer>;
     fn update_str_value(&mut self, value_kind: ValueKind, n: usize, value_str: String);
     fn submit_value(&mut self, value_kind: ValueKind) -> Option<InstanciatedValue>;
     fn has_keyboard_priority(&self) -> bool;

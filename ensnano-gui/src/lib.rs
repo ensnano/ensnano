@@ -30,6 +30,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 pub mod helpers;
 pub mod theme;
+pub use theme::Theme;
 
 pub mod top_bar;
 use ensnano_organizer::GroupId;
@@ -80,7 +81,7 @@ pub use ensnano_organizer::OrganizerTree;
 use iced::{event::Event, keyboard, Size};
 use iced_graphics::Viewport;
 use iced_runtime::{program, Debug};
-use iced_wgpu::{wgpu, Backend, Renderer, Settings};
+use iced_wgpu::{wgpu, Backend, Renderer};
 use iced_winit::{conversion, winit};
 use std::collections::{BTreeSet, HashMap};
 use std::rc::Rc;
@@ -412,7 +413,7 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
 }
 
 /// A Gui component.
-struct GuiElement<R: Requests, S: AppState> {
+struct GuiComponent<R: Requests, S: AppState> {
     state: GuiState<R, S>,
     debug: Debug,
     redraw: bool,
@@ -420,7 +421,7 @@ struct GuiElement<R: Requests, S: AppState> {
     renderer: Renderer,
 }
 
-impl<R: Requests, S: AppState> GuiElement<R, S> {
+impl<R: Requests, S: AppState> GuiComponent<R, S> {
     /// Initialize the top bar gui component
     fn top_bar(
         mut renderer: Renderer,
@@ -618,12 +619,15 @@ impl<R: Requests, S: AppState> GuiElement<R, S> {
 
 /// The manager of the graphical user interface.
 ///
-/// The manager contains a [GuiElement] for each [ElementType] (top_bar, left_panel, etc…)
+/// The manager contains a [GuiComponent] for each [GuiComponentType] (top_bar, left_panel, etc…)
 pub struct Gui<R: Requests, S: AppState> {
-    /// HashMap mapping [ElementType] to a GuiElement
-    elements: HashMap<GuiComponentType, GuiElement<R, S>>,
-    settings: Settings,
+    /// HashMap mapping [GuiComponentType] to a [GuiComponent]
+    components: HashMap<GuiComponentType, GuiComponent<R, S>>,
+    /// WGPU Settings
+    wgpu_settings: iced_wgpu::Settings,
+    /// WGPU device
     device: Rc<Device>,
+    /// WGPU queue
     queue: Rc<Queue>,
     resized: bool,
     requests: Arc<Mutex<R>>,
@@ -637,7 +641,7 @@ const ENSNANO_FONT: iced::Font = iced::Font {
     style: iced::font::Style::Normal,
 };
 
-impl<R: Requests, S: AppState> Gui<R, S> {
+impl<R: Requests, State: AppState> Gui<R, State> {
     pub fn new(
         device: Rc<Device>,
         queue: Rc<Queue>,
@@ -645,33 +649,32 @@ impl<R: Requests, S: AppState> Gui<R, S> {
         multiplexer: &dyn Multiplexer,
         requests: Arc<Mutex<R>>,
         ui_size: UiSize,
-        global_state: &S,
+        global_state: &State,
         top_bar_state: TopBarState,
     ) -> Self {
         //let default_font = iced::font::load(include_bytes!("../../font/ensnano2.ttf"));
-        let settings = Settings {
+        let wgpu_settings = iced_wgpu::Settings {
             antialiasing: Some(iced_graphics::Antialiasing::MSAAx4),
             default_font: ENSNANO_FONT,
             default_text_size: iced::Pixels(ui_size.main_text()),
             ..Default::default()
         };
 
-        let mut elements = HashMap::new();
+        let mut components = HashMap::new();
 
-        let top_bar_renderer = Renderer::new(
-            Backend::new(
-                device.as_ref(),
-                queue.as_ref(),
-                settings,
-                ensnano_utils::TEXTURE_FORMAT,
-            ),
-            settings.default_font,
-            settings.default_text_size,
-        );
-        elements.insert(
+        components.insert(
             GuiComponentType::TopBar,
-            GuiElement::top_bar(
-                top_bar_renderer,
+            GuiComponent::top_bar(
+                Renderer::new(
+                    Backend::new(
+                        device.as_ref(),
+                        queue.as_ref(),
+                        wgpu_settings,
+                        ensnano_utils::TEXTURE_FORMAT,
+                    ),
+                    wgpu_settings.default_font,
+                    wgpu_settings.default_text_size,
+                ),
                 window,
                 multiplexer,
                 Arc::clone(&requests),
@@ -680,20 +683,19 @@ impl<R: Requests, S: AppState> Gui<R, S> {
                 ui_size,
             ),
         );
-        let left_panel_renderer = Renderer::new(
-            Backend::new(
-                device.as_ref(),
-                queue.as_ref(),
-                settings,
-                ensnano_utils::TEXTURE_FORMAT,
-            ),
-            settings.default_font,
-            settings.default_text_size,
-        );
-        elements.insert(
+        components.insert(
             GuiComponentType::LeftPanel,
-            GuiElement::left_panel(
-                left_panel_renderer,
+            GuiComponent::left_panel(
+                Renderer::new(
+                    Backend::new(
+                        device.as_ref(),
+                        queue.as_ref(),
+                        wgpu_settings,
+                        ensnano_utils::TEXTURE_FORMAT,
+                    ),
+                    wgpu_settings.default_font,
+                    wgpu_settings.default_text_size,
+                ),
                 window,
                 multiplexer,
                 Arc::clone(&requests),
@@ -702,21 +704,19 @@ impl<R: Requests, S: AppState> Gui<R, S> {
                 ui_size,
             ),
         );
-        let status_bar_renderer = Renderer::new(
-            Backend::new(
-                device.as_ref(),
-                queue.as_ref(),
-                settings,
-                ensnano_utils::TEXTURE_FORMAT,
-            ),
-            settings.default_font,
-            settings.default_text_size,
-        );
-
-        elements.insert(
+        components.insert(
             GuiComponentType::StatusBar,
-            GuiElement::status_bar(
-                status_bar_renderer,
+            GuiComponent::status_bar(
+                Renderer::new(
+                    Backend::new(
+                        device.as_ref(),
+                        queue.as_ref(),
+                        wgpu_settings,
+                        ensnano_utils::TEXTURE_FORMAT,
+                    ),
+                    wgpu_settings.default_font,
+                    wgpu_settings.default_text_size,
+                ),
                 window,
                 multiplexer,
                 Arc::clone(&requests),
@@ -726,9 +726,9 @@ impl<R: Requests, S: AppState> Gui<R, S> {
         );
 
         Self {
-            settings,
+            wgpu_settings,
             requests,
-            elements,
+            components,
             device,
             queue,
             resized: true,
@@ -738,12 +738,12 @@ impl<R: Requests, S: AppState> Gui<R, S> {
 
     /// Forward an event to the appropriate gui component
     pub fn forward_event(&mut self, area: GuiComponentType, event: event::Event) {
-        self.elements.get_mut(&area).unwrap().forward_event(event);
+        self.components.get_mut(&area).unwrap().forward_event(event);
     }
 
     /// Clear the foccus of all components of the GUI
     pub fn clear_foccus(&mut self) {
-        for elt in self.elements.values_mut() {
+        for elt in self.components.values_mut() {
             use iced::advanced::mouse::Event;
             elt.forward_event(event::Event::Mouse(Event::CursorMoved {
                 position: [-1., -1.].into(),
@@ -755,33 +755,33 @@ impl<R: Requests, S: AppState> Gui<R, S> {
     }
 
     pub fn forward_event_all(&mut self, event: event::Event) {
-        for e in self.elements.values_mut() {
+        for e in self.components.values_mut() {
             e.forward_event(event.clone())
         }
     }
 
     pub fn has_keyboard_priority(&self) -> bool {
-        self.elements.values().any(|e| e.has_keyboard_priority())
+        self.components.values().any(|e| e.has_keyboard_priority())
     }
 
     /// Forward a message to the appropriate gui component
-    pub fn forward_messages(&mut self, messages: &mut IcedMessages<S>) {
+    pub fn forward_messages(&mut self, messages: &mut IcedMessages<State>) {
         for m in messages.top_bar.drain(..) {
-            self.elements
+            self.components
                 .get_mut(&GuiComponentType::TopBar)
                 .unwrap()
                 .get_state()
                 .queue_top_bar_message(m);
         }
         for m in messages.left_panel.drain(..) {
-            self.elements
+            self.components
                 .get_mut(&GuiComponentType::LeftPanel)
                 .unwrap()
                 .get_state()
                 .queue_left_panel_message(m);
         }
         for m in messages.status_bar.drain(..) {
-            self.elements
+            self.components
                 .get_mut(&GuiComponentType::StatusBar)
                 .unwrap()
                 .get_state()
@@ -791,7 +791,7 @@ impl<R: Requests, S: AppState> Gui<R, S> {
 
     /// Get the new size of each gui component from the multiplexer and forwards them.
     pub fn resize(&mut self, multiplexer: &dyn Multiplexer, window: &Window) {
-        for element in self.elements.values_mut() {
+        for element in self.components.values_mut() {
             element.resize(window, multiplexer)
         }
         self.resized = true;
@@ -806,13 +806,13 @@ impl<R: Requests, S: AppState> Gui<R, S> {
         multiplexer: &dyn Multiplexer,
     ) -> bool {
         let mut ret = false;
-        for elements in self.elements.values_mut() {
+        for elements in self.components.values_mut() {
             ret |= elements.fetch_change(window, theme, style, multiplexer, false);
         }
         ret
     }
 
-    /// Ask the gui component to process the event and messages that they that they have recieved.
+    /// Ask the gui component to process the event and messages that they have recieved.
     pub fn update(
         &mut self,
         multiplexer: &dyn Multiplexer,
@@ -820,7 +820,7 @@ impl<R: Requests, S: AppState> Gui<R, S> {
         style: &iced::advanced::renderer::Style,
         window: &Window,
     ) {
-        for elements in self.elements.values_mut() {
+        for elements in self.components.values_mut() {
             elements.fetch_change(window, theme, style, multiplexer, self.resized);
         }
         self.resized = false;
@@ -831,7 +831,7 @@ impl<R: Requests, S: AppState> Gui<R, S> {
         ui_size: UiSize,
         window: &Window,
         multiplexer: &dyn Multiplexer,
-        app_state: &S,
+        app_state: &State,
         top_bar_state: TopBarState,
     ) {
         self.set_text_size(ui_size.main_text());
@@ -844,7 +844,7 @@ impl<R: Requests, S: AppState> Gui<R, S> {
         &mut self,
         window: &Window,
         multiplexer: &dyn Multiplexer,
-        app_state: &S,
+        app_state: &State,
         top_bar_state: TopBarState,
     ) {
         self.set_text_size(self.ui_size.main_text());
@@ -855,23 +855,23 @@ impl<R: Requests, S: AppState> Gui<R, S> {
         &mut self,
         window: &Window,
         multiplexer: &dyn Multiplexer,
-        state: &S,
+        state: &State,
         top_bar_state: TopBarState,
     ) {
-        let top_bar_renderer = Renderer::new(
-            Backend::new(
-                self.device.as_ref(),
-                self.queue.as_ref(),
-                self.settings,
-                ensnano_utils::TEXTURE_FORMAT,
-            ),
-            self.settings.default_font,
-            self.settings.default_text_size,
-        );
-        self.elements.insert(
+        //TODO: Merge this with the ::new() method ?
+        self.components.insert(
             GuiComponentType::TopBar,
-            GuiElement::top_bar(
-                top_bar_renderer,
+            GuiComponent::top_bar(
+                Renderer::new(
+                    Backend::new(
+                        self.device.as_ref(),
+                        self.queue.as_ref(),
+                        self.wgpu_settings,
+                        ensnano_utils::TEXTURE_FORMAT,
+                    ),
+                    self.wgpu_settings.default_font,
+                    self.wgpu_settings.default_text_size,
+                ),
                 window,
                 multiplexer,
                 Arc::clone(&self.requests),
@@ -880,20 +880,19 @@ impl<R: Requests, S: AppState> Gui<R, S> {
                 self.ui_size,
             ),
         );
-        let left_panel_renderer = Renderer::new(
-            Backend::new(
-                self.device.as_ref(),
-                self.queue.as_ref(),
-                self.settings,
-                ensnano_utils::TEXTURE_FORMAT,
-            ),
-            self.settings.default_font,
-            self.settings.default_text_size,
-        );
-        self.elements.insert(
+        self.components.insert(
             GuiComponentType::LeftPanel,
-            GuiElement::left_panel(
-                left_panel_renderer,
+            GuiComponent::left_panel(
+                Renderer::new(
+                    Backend::new(
+                        self.device.as_ref(),
+                        self.queue.as_ref(),
+                        self.wgpu_settings,
+                        ensnano_utils::TEXTURE_FORMAT,
+                    ),
+                    self.wgpu_settings.default_font,
+                    self.wgpu_settings.default_text_size,
+                ),
                 window,
                 multiplexer,
                 Arc::clone(&self.requests),
@@ -902,20 +901,19 @@ impl<R: Requests, S: AppState> Gui<R, S> {
                 self.ui_size,
             ),
         );
-        let status_bar_renderer = Renderer::new(
-            Backend::new(
-                self.device.as_ref(),
-                self.queue.as_ref(),
-                self.settings,
-                ensnano_utils::TEXTURE_FORMAT,
-            ),
-            self.settings.default_font,
-            self.settings.default_text_size,
-        );
-        self.elements.insert(
+        self.components.insert(
             GuiComponentType::StatusBar,
-            GuiElement::status_bar(
-                status_bar_renderer,
+            GuiComponent::status_bar(
+                Renderer::new(
+                    Backend::new(
+                        self.device.as_ref(),
+                        self.queue.as_ref(),
+                        self.wgpu_settings,
+                        ensnano_utils::TEXTURE_FORMAT,
+                    ),
+                    self.wgpu_settings.default_font,
+                    self.wgpu_settings.default_text_size,
+                ),
                 window,
                 multiplexer,
                 Arc::clone(&self.requests),
@@ -926,11 +924,11 @@ impl<R: Requests, S: AppState> Gui<R, S> {
     }
 
     fn set_text_size(&mut self, text_size: f32) {
-        let settings = Settings {
+        let settings = iced_wgpu::Settings {
             default_text_size: iced::Pixels(text_size),
-            ..self.settings
+            ..self.wgpu_settings
         };
-        self.settings = settings;
+        self.wgpu_settings = settings;
     }
 
     pub fn render(
@@ -943,7 +941,7 @@ impl<R: Requests, S: AppState> Gui<R, S> {
         mouse_interaction: &mut iced::mouse::Interaction,
     ) {
         *mouse_interaction = Default::default();
-        for (element_key, element) in self.elements.iter_mut() {
+        for (element_key, element) in self.components.iter_mut() {
             log::trace!("render {:?}", element_key);
             element.render(
                 self.device.as_ref(),

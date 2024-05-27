@@ -61,7 +61,11 @@ impl SequenceTab {
         }
     }
 
-    pub fn view<S: AppState>(&self, ui_size: UiSize, app_state: &S) -> Element<Message<S>> {
+    pub fn view<S: AppState>(
+        &self,
+        ui_size: UiSize,
+        app_state: &S,
+    ) -> Element<Message<S>, crate::Theme, crate::Renderer> {
         // TODO: This update should happen, but somewhere else in the code.
         //       I think it must happen inside LeftPanel::update
         //

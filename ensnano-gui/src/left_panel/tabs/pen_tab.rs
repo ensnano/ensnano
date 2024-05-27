@@ -27,7 +27,11 @@ const EDIT_BEZIER_PATH_ICON: LightIcon = LightIcon::LinearScale;
 pub struct PenTab {}
 
 impl PenTab {
-    pub fn view<S>(&self, ui_size: UiSize, app_state: &S) -> Element<Message<S>>
+    pub fn view<S>(
+        &self,
+        ui_size: UiSize,
+        app_state: &S,
+    ) -> Element<Message<S>, crate::Theme, crate::Renderer>
     where
         S: AppState,
     {

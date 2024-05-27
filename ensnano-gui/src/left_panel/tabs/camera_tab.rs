@@ -39,7 +39,11 @@ impl CameraTab {
         }
     }
 
-    pub fn view<S: AppState>(&self, ui_size: UiSize, app_state: &S) -> Element<Message<S>> {
+    pub fn view<S: AppState>(
+        &self,
+        ui_size: UiSize,
+        app_state: &S,
+    ) -> Element<Message<S>, crate::Theme, crate::Renderer> {
         let content = self::column![
             section("Camera", ui_size),
             subsection("Visibility", ui_size),
@@ -51,7 +55,8 @@ impl CameraTab {
             ]
             .width(Length::Fill)
             .spacing(ui_size.button_pad()),
-            self.fog.view(ui_size),
+            //self.fog.view(ui_size),
+            //TODO: REACTIVATE ME!
             extra_jump(),
             row![
                 subsection("Visibility", ui_size),

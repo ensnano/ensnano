@@ -89,8 +89,8 @@ pub fn light_icon_button<'a, Message, Theme, Renderer>(
     ui_size: UiSize,
 ) -> Button<'a, Message, Theme, Renderer>
 where
-    Theme: button::StyleSheet + text::StyleSheet,
-    Renderer: iced::advanced::text::Renderer,
+    Theme: button::StyleSheet + text::StyleSheet + 'a,
+    Renderer: iced::advanced::text::Renderer + 'a,
     <Renderer as iced::advanced::text::Renderer>::Font: From<iced::Font>,
 {
     button(material_icons_light::light_icon(icon, ui_size)).height(ui_size.button())
@@ -102,8 +102,8 @@ pub fn dark_icon_button<'a, Message, Theme, Renderer>(
     ui_size: UiSize,
 ) -> Button<'a, Message, Theme, Renderer>
 where
-    Theme: button::StyleSheet + text::StyleSheet,
-    Renderer: iced::advanced::text::Renderer,
+    Theme: button::StyleSheet + text::StyleSheet + 'a,
+    Renderer: iced::advanced::text::Renderer + 'a,
     <Renderer as iced::advanced::text::Renderer>::Font: From<iced::Font>,
 {
     button(material_icons_light::dark_icon(icon, ui_size)).height(ui_size.button())
@@ -115,14 +115,23 @@ pub fn text_button<'a, Message, Theme, Renderer>(
     ui_size: UiSize,
 ) -> Button<'a, Message, Theme, Renderer>
 where
-    Theme: button::StyleSheet + text::StyleSheet,
-    Renderer: iced::advanced::text::Renderer,
+    Theme: button::StyleSheet + text::StyleSheet + 'a,
+    Renderer: iced::advanced::text::Renderer + 'a,
 {
     button(text(label).size(ui_size.main_text())).height(ui_size.button())
 }
 
 /// A button containing an icon.
-pub fn icon_button<'a, Message: Clone>(icon_char: char, ui_size: UiSize) -> Button<'a, Message> {
+pub fn icon_button<'a, Message, Theme, Renderer>(
+    icon_char: char,
+    ui_size: UiSize,
+) -> Button<'a, Message, Theme, Renderer>
+where
+    Message: Clone,
+    Theme: button::StyleSheet + iced_widget::text::StyleSheet + 'a,
+    Renderer: iced::advanced::Renderer + iced::advanced::text::Renderer + 'a,
+    <Renderer as iced::advanced::text::Renderer>::Font: From<iced::Font>,
+{
     button(
         text(icon_char.to_string())
             .font(ENSNANO_FONT)
@@ -140,9 +149,9 @@ pub fn start_stop_button<'a, F, Message, Theme, Renderer>(
 ) -> Button<'a, Message, Theme, Renderer>
 where
     F: 'static + Fn(bool) -> Message,
-    Theme: button::StyleSheet + text::StyleSheet,
+    Theme: button::StyleSheet + text::StyleSheet + 'a,
     <Theme as iced_widget::button::StyleSheet>::Style: From<iced::theme::Button>,
-    Renderer: iced::advanced::text::Renderer,
+    Renderer: iced::advanced::text::Renderer + 'a,
     <Renderer as iced::advanced::text::Renderer>::Font: From<iced::Font>,
 {
     let style = if is_started {
@@ -171,8 +180,8 @@ pub fn right_checkbox<'a, Message, Theme, Renderer>(
 ) -> Row<'a, Message, Theme, Renderer>
 where
     Message: 'a,
-    Theme: text::StyleSheet + checkbox::StyleSheet,
-    Renderer: iced::advanced::text::Renderer,
+    Theme: text::StyleSheet + checkbox::StyleSheet + 'a,
+    Renderer: iced::advanced::text::Renderer + 'a,
 {
     row![
         text(label),

@@ -24,13 +24,9 @@ use iced::Element;
 pub struct ExportMenu {}
 
 impl ExportMenu {
-    pub fn view<'a, State, Theme, Renderer>(
-        &'a self,
-    ) -> Element<'a, Message<State>, Theme, Renderer>
+    pub fn view<'a, State>(&'a self) -> Element<'a, Message<State>, crate::Theme, crate::Renderer>
     where
         State: AppState,
-        Theme: button::StyleSheet + scrollable::StyleSheet + text::StyleSheet,
-        Renderer: iced::advanced::Renderer + iced::advanced::text::Renderer,
     {
         let content = self::column![
             button(text("Cancel")).on_press(Message::CancelExport),

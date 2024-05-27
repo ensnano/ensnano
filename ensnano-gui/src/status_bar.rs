@@ -181,8 +181,8 @@ pub enum Message<S: AppState> {
 
 impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
     type Message = Message<S>;
-    type Theme = iced::Theme;
-    type Renderer = iced_wgpu::Renderer;
+    type Theme = crate::Theme;
+    type Renderer = crate::Renderer;
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         self.update_operation();

@@ -38,7 +38,11 @@ impl ParametersTab {
         }
     }
 
-    pub fn view<S>(&self, ui_size: UiSize, app_state: &S) -> Element<Message<S>>
+    pub fn view<S>(
+        &self,
+        ui_size: UiSize,
+        app_state: &S,
+    ) -> Element<Message<S>, crate::Theme, crate::Renderer>
     where
         S: AppState,
     {
@@ -55,10 +59,11 @@ impl ParametersTab {
             ),
             extra_jump(),
             subsection("Scrolling", ui_size),
-            column(
-                self.scroll_sensitivity_factory
-                    .view(true, ui_size.main_text())
-            ),
+            //column(
+            //    self.scroll_sensitivity_factory
+            //        .view(true, ui_size.main_text())
+            //),
+            //TODO: REACTIVATE ME!
             right_checkbox(
                 app_state.get_invert_y_scroll(),
                 "Inverse direction",
