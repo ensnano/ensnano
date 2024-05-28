@@ -25,7 +25,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! When an event is recieved by the window, the multiplexer is in charge of forwarding it to the
 //! appropriate application, GUI component, or overlay. The multiplexer also handles some events
 //! directly, like resizing events or keyboard input that should be handled independently of the
-//! foccussed region.
+//! focused region.
 //!
 //!
 //!
@@ -87,6 +87,7 @@ pub struct Multiplexer {
     top_bar_split: usize,
     /// The pointer to the node that separtate the status bar from the scene.
     status_bar_split: usize,
+    /// The WGPU device.
     device: Rc<Device>,
     pipeline: Option<wgpu::RenderPipeline>,
     split_mode: SplitMode,
@@ -868,6 +869,7 @@ fn exact_proportion(size: f64, length: f64) -> f64 {
     size / length
 }
 
+/// Multiplexer state
 enum State {
     Resizing {
         mouse_position: PhysicalPosition<f64>,
