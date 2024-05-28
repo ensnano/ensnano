@@ -37,13 +37,13 @@ use crate::PhySize;
 use ensnano_interactor::{ActionMode, SelectionMode};
 use iced_wgpu::wgpu;
 use iced_winit::winit;
-use iced_winit::winit::event::*;
 use std::rc::Rc;
 use std::sync::{Arc, Mutex};
 use wgpu::Device;
 use winit::{
     dpi::{PhysicalPosition, PhysicalSize},
-    event::{ElementState, WindowEvent},
+    event::{ElementState, KeyEvent, WindowEvent},
+    keyboard::{Key, KeyLocation, ModifiersState, NamedKey},
     window::CursorIcon,
 };
 
@@ -114,14 +114,17 @@ impl Multiplexer {
     /// ```text
     ///     ┌───────────────────────────┐
     ///     │          top bar          │
-    ///     ├────────┬──────────────────┤
-    ///     │        │                  │
-    ///     │  left  │      scene       │
-    ///     │ pannel │                  │
-    ///     │        │                  │
-    ///     │        ├──────────────────┤
-    ///     │        │    status bar    │
-    ///     └────────┴──────────────────┘
+    ///     ├───────────────────────────┤
+    ///     │┌────────┬────────────────┐│
+    ///     ││        │┌──────────────┐││
+    ///     ││  left  ││              │││
+    ///     ││ pannel ││     scene    │││
+    ///     ││        ││              │││
+    ///     ││        │├──────────────┤││
+    ///     ││        ││  status bar  │││
+    ///     ││        │└──────────────┘││
+    ///     │└────────┴────────────────┘│
+    ///     └───────────────────────────┘
     /// ```
     ///
     pub fn new(
@@ -132,26 +135,33 @@ impl Multiplexer {
         ui_size: UiSize,
     ) -> Self {
         let mut layout = LayoutTree::new();
-        let top_pannel_proportion =
+
+        // The top bar are.
+        let top_bar_proportion =
             exact_proportion(ui_size.top_bar() * scale_factor, window_size.height as f64);
         let top_bar_split = 0;
-        let (top_bar, scene) = layout.hsplit(0, top_pannel_proportion, false);
-        let left_pannel_prop = proportion(
+        let (top_bar, scene) = layout.hsplit(0, top_bar_proportion, false);
+
+        // The left pannel area.
+        let left_panel_proportion = proportion(
             0.2,
             MAX_LEFT_PANNEL_WIDTH * scale_factor,
             window_size.width as f64,
         );
-        let (left_pannel, scene) = layout.vsplit(scene, left_pannel_prop, true);
-        let scene_height = (1. - top_pannel_proportion) * window_size.height as f64;
+        let (left_pannel, scene) = layout.vsplit(scene, left_panel_proportion, true);
+
+        // The status bar area.
+        let scene_height = (1. - top_bar_proportion) * window_size.height as f64;
         let status_bar_prop = exact_proportion(MAX_STATUS_BAR_HEIGHT * scale_factor, scene_height);
         let status_bar_split = scene;
         let (scene, status_bar) = layout.hsplit(scene, 1. - status_bar_prop, false);
-        //let (scene, grid_panel) = layout_manager.hsplit(scene, 0.8);
+
+        // Add GUI component types to areas.
         layout.attribute_element(top_bar, GuiComponentType::TopBar);
         layout.attribute_element(scene, GuiComponentType::Scene);
         layout.attribute_element(status_bar, GuiComponentType::StatusBar);
         layout.attribute_element(left_pannel, GuiComponentType::LeftPanel);
-        //layout_manager.attribute_element(grid_panel, ElementType::GridPanel);
+
         let mut ret = Self {
             window_size,
             scale_factor,
@@ -274,6 +284,8 @@ impl Multiplexer {
                 },
             })],
             depth_stencil_attachment: None,
+            timestamp_writes: None,    //TODO: Think of an appropriate value!
+            occlusion_query_set: None, //TODO: Think of an appropriate value!
         });
         if self.window_size.width > 0 && self.window_size.height > 0 {
             for element in [
@@ -387,10 +399,10 @@ impl Multiplexer {
     /// Forwards event to the elment on which they happen.
     pub fn event(
         &mut self,
-        mut event: WindowEvent<'static>,
+        mut event: WindowEvent,
         resized: &mut bool,
         scale_factor_changed: &mut bool,
-    ) -> Option<(WindowEvent<'static>, GuiComponentType)> {
+    ) -> Option<(WindowEvent, GuiComponentType)> {
         let mut captured = false;
         match &mut event {
             WindowEvent::CursorMoved { position, .. } => match &mut self.state {
@@ -461,12 +473,12 @@ impl Multiplexer {
                     self.generate_textures();
                 }
             }
-            WindowEvent::ScaleFactorChanged {
+            WindowEvent::ScaleFactorChanded {
                 scale_factor,
-                new_inner_size,
+                inner_size_writer,
             } => {
                 self.scale_factor = *scale_factor;
-                self.window_size = **new_inner_size;
+                self.window_size = *inner_size_writer.new_inner_size;
                 self.resize(self.window_size, self.scale_factor);
                 *resized = true;
                 *scale_factor_changed = true;
@@ -518,99 +530,104 @@ impl Multiplexer {
                 }
             }
             WindowEvent::KeyboardInput {
-                input:
-                    KeyboardInput {
-                        virtual_keycode: Some(key),
+                event:
+                    KeyEvent {
+                        logical_key,
+                        location,
                         state: ElementState::Pressed,
                         ..
                     },
                 ..
             } => {
                 captured = true;
-                match *key {
-                    VirtualKeyCode::Escape => {
+                match logical_key.as_ref() {
+                    Key::Named(NamedKey::Escape) => {
                         self.requests.lock().unwrap().action_mode = Some(ActionMode::Normal)
                     }
-                    VirtualKeyCode::X if self.modifiers.alt() => {
+                    Key::Character("X") if self.modifiers.alt_key() => {
                         self.requests.lock().unwrap().keep_proceed.push_back(
                             Action::MakeAllSuggestedXover {
                                 doubled: self.modifiers.shift(),
                             },
                         )
                     }
-                    VirtualKeyCode::X => {
+                    Key::Character("X") => {
                         self.requests.lock().unwrap().toggle_thick_helices = Some(());
                     }
-                    VirtualKeyCode::Z if ctrl(&self.modifiers) => {
-                        if self.modifiers.shift() {
+                    Key::Character("Z") if control_key(&self.modifiers) => {
+                        if self.modifiers.shift_key() {
                             self.requests.lock().unwrap().redo = Some(())
                         } else {
                             self.requests.lock().unwrap().undo = Some(());
                         }
                     }
-                    VirtualKeyCode::R if ctrl(&self.modifiers) => {
+                    Key::Character("R") if control_key(&self.modifiers) => {
                         self.requests.lock().unwrap().redo = Some(());
                     }
-                    VirtualKeyCode::C if ctrl(&self.modifiers) => {
+                    Key::Character("C") if control_key(&self.modifiers) => {
                         self.requests.lock().unwrap().copy = Some(());
                     }
-                    VirtualKeyCode::V if ctrl(&self.modifiers) => {
+                    Key::Character("V") if control_key(&self.modifiers) => {
                         self.requests.lock().unwrap().paste = Some(());
                     }
-                    VirtualKeyCode::J if ctrl(&self.modifiers) => {
+                    Key::Character("J") if control_key(&self.modifiers) => {
                         self.requests.lock().unwrap().duplication = Some(());
                     }
-                    VirtualKeyCode::L if ctrl(&self.modifiers) => {
+                    Key::Character("L") if control_key(&self.modifiers) => {
                         self.requests.lock().unwrap().anchor = Some(());
                     }
-                    VirtualKeyCode::R if !ctrl(&self.modifiers) => {
+                    Key::Character("R") if !control_key(&self.modifiers) => {
                         self.requests.lock().unwrap().action_mode = Some(ActionMode::Rotate)
                     }
-                    VirtualKeyCode::T => {
+                    Key::Character("T") => {
                         self.requests.lock().unwrap().action_mode = Some(ActionMode::Translate)
                     }
-                    VirtualKeyCode::N => {
+                    Key::Character("N") => {
                         self.requests.lock().unwrap().selection_mode =
                             Some(SelectionMode::Nucleotide)
                     }
-                    VirtualKeyCode::H => {
+                    Key::Character("H") => {
                         self.requests.lock().unwrap().selection_mode = Some(SelectionMode::Helix)
                     }
-                    VirtualKeyCode::S if ctrl(&self.modifiers) => {
+                    Key::Character("S") if control_key(&self.modifiers) => {
                         self.requests.lock().unwrap().save_shortcut = Some(());
                     }
-                    VirtualKeyCode::O if ctrl(&self.modifiers) => {
+                    Key::Character("O") if control_key(&self.modifiers) => {
                         self.requests
                             .lock()
                             .unwrap()
                             .keep_proceed
                             .push_back(Action::LoadDesign(None));
                     }
-                    VirtualKeyCode::Q if ctrl(&self.modifiers) && cfg!(target_os = "macos") => {
+                    Key::Character("Q")
+                        if control_key(&self.modifiers) && cfg!(target_os = "macos") =>
+                    {
                         self.requests
                             .lock()
                             .unwrap()
                             .keep_proceed
                             .push_back(Action::Exit);
                     }
-                    keycode if keycode_to_num(keycode).is_some() => {
-                        let n_camera = keycode_to_num(keycode).unwrap();
-                        self.requests
-                            .lock()
-                            .unwrap()
-                            .keep_proceed
-                            .push_back(Action::SelectFavoriteCamera(n_camera));
-                    }
-                    VirtualKeyCode::S => {
+                    Key::Character("S") => {
                         self.requests.lock().unwrap().selection_mode = Some(SelectionMode::Strand)
                     }
-                    VirtualKeyCode::K => {
+                    Key::Character("K") => {
                         self.requests.lock().unwrap().recolor_stapples = Some(());
                     }
-                    VirtualKeyCode::Delete | VirtualKeyCode::Back => {
+                    Key::Named(NamedKey::Delete) | Key::Named(NamedKey::Backspace) => {
                         self.requests.lock().unwrap().delete_selection = Some(());
                     }
-                    _ => captured = false,
+                    _ => {
+                        if let Some(num) = keycode_to_num(logical_key, location) {
+                            self.requests
+                                .lock()
+                                .unwrap()
+                                .keep_proceed
+                                .push_back(Action::SelectFavoriteCamera(num));
+                        } else {
+                            captured = false
+                        }
+                    }
                 }
             }
             _ => {}
@@ -896,11 +913,12 @@ impl State {
     }
 }
 
-fn ctrl(modifiers: &ModifiersState) -> bool {
+/// MaxOS, Windows and Linux compatible modifier key.
+fn control_key(modifiers: &ModifiersState) -> bool {
     if cfg!(target_os = "macos") {
-        modifiers.logo()
+        modifiers.super_key() // ❖ or ⌘
     } else {
-        modifiers.ctrl()
+        modifiers.control_key() // Ctrl
     }
 }
 
@@ -924,20 +942,38 @@ impl GuiMultiplexer for Multiplexer {
     }
 }
 
-fn keycode_to_num(keycode: VirtualKeyCode) -> Option<u32> {
-    if keycode as u32 >= VirtualKeyCode::Key1 as u32
-        && keycode as u32 <= VirtualKeyCode::Key0 as u32
-    {
-        Some(keycode as u32 - VirtualKeyCode::Key1 as u32)
-    } else if keycode == VirtualKeyCode::Numpad0 {
-        Some(9)
-    } else if keycode as u32 >= VirtualKeyCode::Numpad1 as u32
-        && keycode as u32 <= VirtualKeyCode::Numpad9 as u32
-    {
-        Some(keycode as u32 - VirtualKeyCode::Numpad1 as u32)
-    } else {
-        None
+fn keycode_to_num(key: Key, location: KeyLocation) -> Option<u32> {
+    match key {
+        // NOTE: We make no distinction on the key location here.
+        //       Specifiy it if you need to.
+        Key::Character(char) => match char {
+            "0" => Some(0),
+            "1" => Some(1),
+            "2" => Some(2),
+            "3" => Some(3),
+            "4" => Some(4),
+            "5" => Some(5),
+            "6" => Some(6),
+            "7" => Some(7),
+            "8" => Some(8),
+            "9" => Some(9),
+            _ => None,
+        },
+        _ => None,
     }
+    //if keycode as u32 >= VirtualKeyCode::Key1 as u32
+    //    && keycode as u32 <= VirtualKeyCode::Key0 as u32
+    //{
+    //    Some(keycode as u32 - VirtualKeyCode::Key1 as u32)
+    //} else if keycode == VirtualKeyCode::Numpad0 {
+    //    Some(9)
+    //} else if keycode as u32 >= VirtualKeyCode::Numpad1 as u32
+    //    && keycode as u32 <= VirtualKeyCode::Numpad9 as u32
+    //{
+    //    Some(keycode as u32 - VirtualKeyCode::Numpad1 as u32)
+    //} else {
+    //    None
+    //}
 }
 
 struct MultiplexerTexture {
