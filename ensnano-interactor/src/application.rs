@@ -28,8 +28,7 @@ use ultraviolet::{Rotor3, Vec3};
 pub use winit::window::CursorIcon;
 use winit::{
     dpi::{PhysicalPosition, PhysicalSize},
-    event::WindowEvent,
-    keyboard::ModifiersState,
+    event::{Modifiers, WindowEvent},
 };
 
 #[derive(Clone, Debug)]
@@ -99,7 +98,7 @@ pub enum Notification {
     Centering(Nucl, usize),
     CenterSelection(Selection, AppId),
     ShowTorsion(bool),
-    ModifersChanged(ModifiersState),
+    ModifersChanged(Modifiers),
     Split2d,
     Redim2dHelices(bool),
     Fog(FogParameters),

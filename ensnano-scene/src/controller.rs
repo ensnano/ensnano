@@ -31,7 +31,7 @@ use ensnano_utils::winit;
 use std::cell::RefCell;
 use std::ops::Deref;
 use ultraviolet::{Rotor3, Vec2, Vec3};
-use winit::event::{ElementState, KeyEvent};
+use winit::event::{ElementState, KeyEvent, Modifiers};
 use winit::keyboard::{Key, ModifiersState, NamedKey, PhysicalKey};
 
 use super::AppState;
@@ -66,7 +66,7 @@ pub struct Controller<S: AppState> {
     /// The size of the drawing area
     area_size: PhySize,
     /// The current modifiers
-    current_modifiers: ModifiersState,
+    current_modifiers_state: ModifiersState,
     /// The effect that dragging the mouse has
     click_mode: ClickMode,
     state: State<S>,
@@ -186,7 +186,7 @@ impl<S: AppState> Controller<S> {
             camera_controller,
             window_size,
             area_size,
-            current_modifiers: ModifiersState::empty(),
+            current_modifiers_state: ModifiersState::empty(),
             click_mode: ClickMode::TranslateCam,
             state: automata::initial_state(),
             stereography: None,
@@ -198,10 +198,10 @@ impl<S: AppState> Controller<S> {
         self.stereography = stereography;
     }
 
-    pub fn update_modifiers(&mut self, modifiers: ModifiersState) {
+    pub fn update_modifiers(&mut self, modifiers: Modifiers) {
         log::info!("New modifiers {:?}", modifiers);
-        self.current_modifiers = modifiers;
-        if !modifiers.shift_key() {
+        self.current_modifiers_state = modifiers.state();
+        if !self.current_modifiers_state.shift_key() {
             self.bezier_curve_origin = None;
         }
     }
@@ -254,7 +254,7 @@ impl<S: AppState> Controller<S> {
 
     fn handles_color_system(&self) -> HandleColors {
         self.state.borrow().handles_color_system().unwrap_or(
-            if self.current_modifiers.shift_key() {
+            if self.current_modifiers_state.shift_key() {
                 HandleColors::Cym
             } else {
                 HandleColors::Rgb
@@ -280,7 +280,7 @@ impl<S: AppState> Controller<S> {
         } else if let WindowEvent::MouseWheel { delta, .. } = event {
             let mouse_x = position.x / self.area_size.width as f64;
             let mouse_y = position.y / self.area_size.height as f64;
-            if ctrl(&self.current_modifiers) {
+            if ctrl(&self.current_modifiers_state) {
                 self.camera_controller.update_stereographic_zoom(delta);
                 Transition::consequence(Consequence::CameraMoved)
             /*} else if self.current_modifiers.shift_key() {
@@ -353,12 +353,12 @@ impl<S: AppState> Controller<S> {
                 }
                 Key::Character("c") if *state == ElementState::Pressed => Consequence::CheckXovers,
                 Key::Character("z")
-                    if ctrl(&self.current_modifiers) && *state == ElementState::Pressed =>
+                    if ctrl(&self.current_modifiers_state) && *state == ElementState::Pressed =>
                 {
                     Consequence::Undo
                 }
                 Key::Character("r")
-                    if ctrl(&self.current_modifiers) && *state == ElementState::Pressed =>
+                    if ctrl(&self.current_modifiers_state) && *state == ElementState::Pressed =>
                 {
                     Consequence::Redo
                 }
@@ -410,11 +410,11 @@ impl<S: AppState> Controller<S> {
             TransistionConsequence::InitCameraMovement { translation, nucl } => {
                 if let Some(info) = nucl
                     .and_then(|n| self.data.borrow().get_surface_info_nucl(n))
-                    .filter(|_| self.current_modifiers.shift_key())
+                    .filter(|_| self.current_modifiers_state.shift_key())
                 {
                     self.camera_controller.set_surface_point_if_unset(info);
                 }
-                self.init_movement(translation && self.current_modifiers.shift_key())
+                self.init_movement(translation && self.current_modifiers_state.shift_key())
             }
             TransistionConsequence::EndCameraMovement => self.end_movement(),
             TransistionConsequence::InitFreeXover(nucl, d_id, position) => {
@@ -449,7 +449,7 @@ impl<S: AppState> Controller<S> {
         self.camera_controller.update_camera(
             dt,
             self.click_mode,
-            &self.current_modifiers,
+            &self.current_modifiers_state,
             self.data.borrow().deref(),
         );
         self.data
@@ -474,9 +474,9 @@ impl<S: AppState> Controller<S> {
 
     fn init_movement(&mut self, along_surface: bool) {
         self.camera_controller.init_movement(along_surface);
-        if !ctrl(&self.current_modifiers) {
+        if !ctrl(&self.current_modifiers_state) {
             self.camera_controller
-                .init_constrained_rotation(!self.current_modifiers.alt_key())
+                .init_constrained_rotation(!self.current_modifiers_state.alt_key())
         }
     }
 
@@ -525,7 +525,7 @@ impl<S: AppState> Controller<S> {
     }
 
     pub fn is_building_bezier_curve(&self) -> bool {
-        self.current_modifiers.shift_key()
+        self.current_modifiers_state.shift_key()
     }
 
     /// Set the origin or destination of the two point bezier helix being built.

@@ -711,7 +711,7 @@ impl<S: AppState> Application for FlatScene<S> {
             Notification::CameraRotation(_, _, _) => (),
             Notification::ModifersChanged(modifiers) => {
                 for c in self.controller.iter_mut() {
-                    c.update_modifiers(modifiers)
+                    c.update_modifiers(modifiers.state())
                 }
             }
             Notification::Split2d => self.toggle_split_from_btn(),

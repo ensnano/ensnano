@@ -172,7 +172,7 @@ impl<'a, S: AppState> EventContext<'a, S> {
 
     /// Return a reference to the current ModifiersState
     pub fn get_modifiers(&self) -> &ModifiersState {
-        &self.controller.current_modifiers
+        &self.controller.current_modifiers_state
     }
 
     pub fn is_editing_bezier_path(&self) -> bool {

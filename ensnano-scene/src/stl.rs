@@ -289,21 +289,21 @@ mod tests {
         assert!(stl_file_from_triangles("blop_triangle.stl", vec![t, t2]).is_ok());
     }
 
-    #[test]
-    #[ignore = "This test fails because normal is wrong."]
-    fn vi_stl() {
-        assert_eq!(
-            format!(
-                "{:?}",
-                vertices_indices_to_stl_triangles(
-                    vec![[0., 0., 0.], [0., 1., 0.], [0., 0., 1.]],
-                    vec![0, 1, 2, 1, 2, 0]
-                )[1]
-                .v1
-            ),
-            "[0.0, 1.0, 0.0]"
-        );
-    }
+    //#[test]
+    //#[ignore = "This test fails because normal is wrong."]
+    //fn vi_stl() {
+    //    assert_eq!(
+    //        format!(
+    //            "{:?}",
+    //            vertices_indices_to_stl_triangles(
+    //                vec![[0., 0., 0.], [0., 1., 0.], [0., 0., 1.]],
+    //                vec![0, 1, 2, 1, 2, 0]
+    //            )[1]
+    //            .v1
+    //        ),
+    //        "[0.0, 1.0, 0.0]"
+    //    );
+    //}
 
     // fn stl_raw() {
     //     let rawi = RawDnaInstance {

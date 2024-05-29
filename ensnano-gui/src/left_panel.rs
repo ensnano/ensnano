@@ -26,7 +26,7 @@ use iced_wgpu;
 use iced_widget::*;
 use iced_winit::winit::{
     dpi::{LogicalPosition, LogicalSize},
-    keyboard::ModifiersState,
+    event::Modifiers,
 };
 use ultraviolet::Vec3;
 
@@ -136,7 +136,7 @@ pub enum Message<S: AppState> {
     VolumeExclusion(bool),
     TabSelected(usize),
     OrganizerMessage(OrganizerMessage<DesignElement>),
-    ModifiersChanged(ModifiersState),
+    ModifiersChanged(Modifiers),
     UiSizeChanged(UiSize),
     UiSizePicked(UiSize),
     StapplesRequested,
@@ -668,7 +668,7 @@ where
             }
             Message::ModifiersChanged(modifiers) => self
                 .organizer
-                .new_modifiers(iced_winit::conversion::modifiers(modifiers)),
+                .new_modifiers(iced_winit::conversion::modifiers(modifiers.state())),
             Message::UiSizePicked(ui_size) => self.requests.lock().unwrap().set_ui_size(ui_size),
             Message::UiSizeChanged(ui_size) => self.ui_size = ui_size,
             Message::SetScaffoldSeqButtonPressed => {

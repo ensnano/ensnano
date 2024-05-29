@@ -42,7 +42,7 @@ use std::sync::{Arc, Mutex};
 use wgpu::Device;
 use winit::{
     dpi::{PhysicalPosition, PhysicalSize},
-    event::{ElementState, KeyEvent, WindowEvent},
+    event::{ElementState, KeyEvent, Modifiers, WindowEvent},
     keyboard::{Key, KeyLocation, ModifiersState, NamedKey},
     window::CursorIcon,
 };
@@ -93,7 +93,7 @@ pub struct Multiplexer {
     split_mode: SplitMode,
     requests: Arc<Mutex<Requests>>,
     state: State,
-    modifiers: ModifiersState,
+    modifiers_state: ModifiersState,
     ui_size: UiSize,
     pub icon: Option<CursorIcon>,
     element_3d: GuiComponentType,
@@ -186,7 +186,7 @@ impl Multiplexer {
             state: State::Normal {
                 mouse_position: PhysicalPosition::new(-1., -1.),
             },
-            modifiers: ModifiersState::empty(),
+            modifiers_state: ModifiersState::empty(),
             ui_size,
             icon: None,
             element_2d: GuiComponentType::FlatScene,
@@ -238,8 +238,8 @@ impl Multiplexer {
         }
     }
 
-    pub fn update_modifiers(&mut self, modifiers: ModifiersState) {
-        self.modifiers = modifiers
+    pub fn update_modifiers(&mut self, modifiers: Modifiers) {
+        self.modifiers_state = modifiers.state()
     }
 
     pub fn draw(
@@ -280,7 +280,7 @@ impl Multiplexer {
                 resolve_target,
                 ops: wgpu::Operations {
                     load: wgpu::LoadOp::Clear(clear_color),
-                    store: true,
+                    store: wgpu::StoreOp::Store,
                 },
             })],
             depth_stencil_attachment: None,
@@ -473,12 +473,16 @@ impl Multiplexer {
                     self.generate_textures();
                 }
             }
-            WindowEvent::ScaleFactorChanded {
+            WindowEvent::ScaleFactorChanged {
                 scale_factor,
                 inner_size_writer,
             } => {
                 self.scale_factor = *scale_factor;
-                self.window_size = *inner_size_writer.new_inner_size;
+                //self.window_size = **new_inner_size;
+                //TODO: The WindowEvent used to provide [new_inner_size], that we use to
+                //      update self.windows_size. This is now longer possible, and I
+                //      don't know where to get the new size.
+                //      Please, check and fix the self.window_size value.
                 self.resize(self.window_size, self.scale_factor);
                 *resized = true;
                 *scale_factor_changed = true;
@@ -544,39 +548,39 @@ impl Multiplexer {
                     Key::Named(NamedKey::Escape) => {
                         self.requests.lock().unwrap().action_mode = Some(ActionMode::Normal)
                     }
-                    Key::Character("X") if self.modifiers.alt_key() => {
+                    Key::Character("X") if self.modifiers_state.alt_key() => {
                         self.requests.lock().unwrap().keep_proceed.push_back(
                             Action::MakeAllSuggestedXover {
-                                doubled: self.modifiers.shift(),
+                                doubled: self.modifiers_state.shift_key(),
                             },
                         )
                     }
                     Key::Character("X") => {
                         self.requests.lock().unwrap().toggle_thick_helices = Some(());
                     }
-                    Key::Character("Z") if control_key(&self.modifiers) => {
-                        if self.modifiers.shift_key() {
+                    Key::Character("Z") if control_key(&self.modifiers_state) => {
+                        if self.modifiers_state.shift_key() {
                             self.requests.lock().unwrap().redo = Some(())
                         } else {
                             self.requests.lock().unwrap().undo = Some(());
                         }
                     }
-                    Key::Character("R") if control_key(&self.modifiers) => {
+                    Key::Character("R") if control_key(&self.modifiers_state) => {
                         self.requests.lock().unwrap().redo = Some(());
                     }
-                    Key::Character("C") if control_key(&self.modifiers) => {
+                    Key::Character("C") if control_key(&self.modifiers_state) => {
                         self.requests.lock().unwrap().copy = Some(());
                     }
-                    Key::Character("V") if control_key(&self.modifiers) => {
+                    Key::Character("V") if control_key(&self.modifiers_state) => {
                         self.requests.lock().unwrap().paste = Some(());
                     }
-                    Key::Character("J") if control_key(&self.modifiers) => {
+                    Key::Character("J") if control_key(&self.modifiers_state) => {
                         self.requests.lock().unwrap().duplication = Some(());
                     }
-                    Key::Character("L") if control_key(&self.modifiers) => {
+                    Key::Character("L") if control_key(&self.modifiers_state) => {
                         self.requests.lock().unwrap().anchor = Some(());
                     }
-                    Key::Character("R") if !control_key(&self.modifiers) => {
+                    Key::Character("R") if !control_key(&self.modifiers_state) => {
                         self.requests.lock().unwrap().action_mode = Some(ActionMode::Rotate)
                     }
                     Key::Character("T") => {
@@ -589,10 +593,10 @@ impl Multiplexer {
                     Key::Character("H") => {
                         self.requests.lock().unwrap().selection_mode = Some(SelectionMode::Helix)
                     }
-                    Key::Character("S") if control_key(&self.modifiers) => {
+                    Key::Character("S") if control_key(&self.modifiers_state) => {
                         self.requests.lock().unwrap().save_shortcut = Some(());
                     }
-                    Key::Character("O") if control_key(&self.modifiers) => {
+                    Key::Character("O") if control_key(&self.modifiers_state) => {
                         self.requests
                             .lock()
                             .unwrap()
@@ -600,7 +604,7 @@ impl Multiplexer {
                             .push_back(Action::LoadDesign(None));
                     }
                     Key::Character("Q")
-                        if control_key(&self.modifiers) && cfg!(target_os = "macos") =>
+                        if control_key(&self.modifiers_state) && cfg!(target_os = "macos") =>
                     {
                         self.requests
                             .lock()
@@ -942,11 +946,11 @@ impl GuiMultiplexer for Multiplexer {
     }
 }
 
-fn keycode_to_num(key: Key, location: KeyLocation) -> Option<u32> {
+fn keycode_to_num(key: &Key, location: &KeyLocation) -> Option<u32> {
     match key {
         // NOTE: We make no distinction on the key location here.
         //       Specifiy it if you need to.
-        Key::Character(char) => match char {
+        Key::Character(char) => match char.as_str() {
             "0" => Some(0),
             "1" => Some(1),
             "2" => Some(2),

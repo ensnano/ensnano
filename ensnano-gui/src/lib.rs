@@ -90,7 +90,7 @@ use ultraviolet::{Rotor3, Vec2, Vec3};
 use wgpu::{Device, Queue};
 use winit::{
     dpi::{PhysicalPosition, PhysicalSize},
-    keyboard::ModifiersState,
+    event::Modifiers,
     window::Window,
 };
 
@@ -1020,7 +1020,7 @@ impl<S: AppState> IcedMessages<S> {
             .push_back(status_bar::Message::Progress(None))
     }
 
-    pub fn update_modifiers(&mut self, modifiers: ModifiersState) {
+    pub fn update_modifiers(&mut self, modifiers: Modifiers) {
         self.left_panel
             .push_back(left_panel::Message::ModifiersChanged(modifiers))
     }

@@ -245,7 +245,7 @@ const PANIC_ON_WGPU_ERRORS: bool = true;
 /// * Finally, a redraw is requested.
 ///
 ///
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     if EARLY_LOG {
         pretty_env_logger::init();
     }
@@ -258,7 +258,7 @@ fn main() {
     };
 
     // Initialize winit. Create an event_loop and a window.
-    let event_loop = EventLoop::new();
+    let event_loop = EventLoop::new()?;
     let window = winit::window::Window::new(&event_loop)?;
 
     let window = Arc::new(window);
@@ -359,8 +359,9 @@ fn main() {
 
     let settings = Settings {
         antialiasing: Some(iced_graphics::Antialiasing::MSAAx4),
-        default_text_size: ui_size.main_text(),
-        default_font: Some(include_bytes!("../font/ensnano2.ttf")),
+        default_text_size: ui_size.main_text().into(),
+        default_font: ensnano_gui::helpers::ENSNANO_FONT,
+        //default_font: Some(include_bytes!("../font/ensnano2.ttf")),
         ..Default::default()
     };
     // Initialize the renderer
@@ -446,8 +447,8 @@ fn main() {
 
     let mut main_state = MainState::new(main_state_constructor);
 
-    let _ = ensnano_gui::load_fonts();
-    let _ = ensnano_gui::load_fonts2();
+    //let _ = ensnano_gui::material_icons_light::load_fonts();
+    let _ = ensnano_gui::helpers::load_fonts2();
 
     let mut gui = gui::Gui::new(
         Rc::clone(&device),
@@ -509,7 +510,7 @@ fn main() {
 
         let mut main_state_view = MainStateView {
             main_state: &mut main_state,
-            control_flow,
+            window_target: &mut window_target,
             multiplexer: &mut multiplexer,
             gui: &mut gui,
             scheduler: &mut scheduler,
@@ -638,7 +639,7 @@ fn main() {
 
                 let mut main_state_view = MainStateView {
                     main_state: &mut main_state,
-                    control_flow,
+                    window_target: &mut window_target,
                     multiplexer: &mut multiplexer,
                     gui: &mut gui,
                     scheduler: &mut scheduler,
@@ -875,11 +876,12 @@ fn main() {
             }
             _ => {}
         }
-    })
+    });
+    Ok(())
 }
 
 pub struct OverlayManager {
-    color_state: iced_runtime::program::State<ColorOverlay<Requests>>,
+    color_state: program::State<ColorOverlay<Requests>>,
     color_debug: Debug,
     overlay_types: Vec<OverlayType>,
     overlays: Vec<Overlay>,
@@ -889,7 +891,7 @@ impl OverlayManager {
     pub fn new(
         requests: Arc<Mutex<Requests>>,
         window: &Window,
-        renderer: &mut iced_wgpu::Renderer<iced::Theme>,
+        renderer: &mut iced_wgpu::Renderer,
     ) -> Self {
         let color = ColorOverlay::new(
             requests,
@@ -934,9 +936,9 @@ impl OverlayManager {
 
     fn process_event(
         &mut self,
-        renderer: &mut iced_graphics::Renderer<iced_wgpu::Backend, iced::Theme>,
+        renderer: &mut iced_graphics::Renderer<iced_wgpu::Backend>,
         theme: &iced::Theme,
-        style: &iced_runtime::renderer::Style,
+        style: &iced::advanced::renderer::Style,
         resized: bool,
         multiplexer: &Multiplexer,
         window: &Window,
@@ -948,7 +950,7 @@ impl OverlayManager {
                 } else {
                     PhysicalPosition::new(-1., -1.)
                 };
-            let mut clipboard = iced_runtime::clipboard::Null;
+            let mut clipboard = iced::advanced::clipboard::Null;
             match overlay {
                 OverlayType::Color => {
                     if !self.color_state.is_queue_empty() || resized {
@@ -977,7 +979,7 @@ impl OverlayManager {
         target: &wgpu::TextureView,
         multiplexer: &Multiplexer,
         window: &Window,
-        renderer: &mut iced_wgpu::Renderer<iced::Theme>,
+        renderer: &mut iced_wgpu::Renderer,
     ) {
         for overlay_type in self.overlay_types.iter() {
             match overlay_type {
@@ -1036,26 +1038,29 @@ impl OverlayManager {
         &mut self,
         multiplexer: &Multiplexer,
         window: &Window,
-        renderer: &mut iced_graphics::Renderer<iced_wgpu::Backend, iced::Theme>,
+        renderer: &mut iced_graphics::Renderer<iced_wgpu::Backend>,
         theme: &iced::Theme,
-        style: &iced_runtime::renderer::Style,
+        style: &iced::advanced::renderer::Style,
     ) -> bool {
         let mut ret = false;
         for (n, overlay) in self.overlay_types.iter().enumerate() {
-            let cursor_position =
-                if multiplexer.focused_element() == Some(GuiComponentType::Overlay(n)) {
-                    multiplexer.get_cursor_position()
-                } else {
-                    PhysicalPosition::new(-1., -1.)
-                };
-            let mut clipboard = iced_runtime::clipboard::Null;
+            let cursor = if multiplexer.focused_element() == Some(GuiComponentType::Overlay(n)) {
+                let point = conversion::cursor_position(
+                    multiplexer.get_cursor_position(),
+                    window.scale_factor(),
+                );
+                iced::mouse::Cursor::Available(point)
+            } else {
+                iced::mouse::Cursor::Unavailable
+            };
+            let mut clipboard = iced::advanced::clipboard::Null;
             match overlay {
                 OverlayType::Color => {
                     if !self.color_state.is_queue_empty() {
                         ret = true;
                         let _ = self.color_state.update(
                             convert_size(PhysicalSize::new(250, 250)),
-                            conversion::cursor_position(cursor_position, window.scale_factor()),
+                            cursor,
                             renderer,
                             theme,
                             style,
@@ -1726,7 +1731,7 @@ impl MainState {
 /// A temporary view of the main state and the control flow.
 struct MainStateView<'a> {
     main_state: &'a mut MainState,
-    control_flow: &'a mut ControlFlow,
+    window_target: &'a mut EventLoopWindowTarget,
     multiplexer: &'a mut Multiplexer,
     scheduler: &'a mut Scheduler,
     gui: &'a mut Gui<Requests, AppState>,
@@ -1763,7 +1768,7 @@ impl<'a> MainStateInteface for MainStateView<'a> {
     }
 
     fn exit_control_flow(&mut self) {
-        *self.control_flow = ControlFlow::Exit
+        *self.window_target.exit()
     }
 
     fn new_design(&mut self) {

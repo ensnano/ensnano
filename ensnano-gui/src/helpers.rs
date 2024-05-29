@@ -28,7 +28,7 @@ const JUMP_SIZE: f32 = 4.0;
 //    name: "EnsNanoFont",
 //    bytes: include_bytes!("../../font/ensnano.ttf"),
 //};
-pub(super) const ENSNANO_FONT: Font = Font::with_name("EnsNanoFont");
+pub const ENSNANO_FONT: Font = Font::with_name("EnsNanoFont");
 
 pub fn load_fonts2() -> iced::Command<Result<(), iced::font::Error>> {
     let command = iced::Command::batch(vec![iced::font::load(
