@@ -70,13 +70,12 @@ impl<S: AppState> SimulationTab<S> {
         let content = self::column![
             section("Simulation (Beta)", ui_size),
             self::column![
-                //self.physical_simulation.view(
-                //    &ui_size,
-                //    "Roll",
-                //    roll_active,
-                //    sim_state.is_rolling(),
-                //),
-                // TODO: REACTIVATE ME!
+                self.physical_simulation.view(
+                    &ui_size,
+                    "Roll",
+                    roll_active,
+                    sim_state.is_rolling(),
+                ),
                 start_stop_button(
                     "Rigid Grids",
                     ui_size,
@@ -87,13 +86,11 @@ impl<S: AppState> SimulationTab<S> {
                     },
                     sim_state.simulating_grid()
                 ),
-                //Self::helix_btns(&self.rigid_helices_button, app_state, ui_size,),
-                // TODO: REACTIVATE ME!
+                Self::helix_btns(&self.rigid_helices_button, app_state, ui_size,),
             ]
             .spacing(ui_size.button_pad()),
             subsection("Parameters for helices simulation", ui_size),
-            //Column::with_children(self.rigid_body_factory.view(true, ui_size.main_text())),
-            // TODO: REACTIVATE ME!
+            Column::with_children(self.rigid_body_factory.view(true, ui_size.main_text())),
             right_checkbox(
                 volume_exclusion,
                 "Volume exclusion",
@@ -106,11 +103,10 @@ impl<S: AppState> SimulationTab<S> {
                 Message::BrownianMotion,
                 ui_size,
             ),
-            //Column::with_children(
-            //    self.brownian_factory
-            //        .view(brownian_motion, ui_size.main_text())
-            //),
-            // TODO: REACTIVATE ME!
+            Column::with_children(
+                self.brownian_factory
+                    .view(brownian_motion, ui_size.main_text())
+            ),
         ]
         .spacing(5);
 
@@ -121,7 +117,7 @@ impl<S: AppState> SimulationTab<S> {
         go_stop: &'a GoStop<S>,
         app_state: &S,
         ui_size: UiSize,
-    ) -> iced::Element<'a, Message<S>> {
+    ) -> iced::Element<'a, Message<S>, crate::Theme, crate::Renderer> {
         let sim_state = app_state.get_simulation_state();
         if sim_state.is_paused() {
             row![
@@ -201,13 +197,13 @@ impl<S: AppState> SimulationTab<S> {
 struct PhysicalSimulation {}
 
 impl PhysicalSimulation {
-    fn view<'b, S: AppState>(
+    fn view<'b, State: AppState>(
         &self,
         _ui_size: &'b UiSize,
         name: &'static str,
         active: bool,
         running: bool,
-    ) -> iced::Element<Message<S>> {
+    ) -> iced::Element<Message<State>, crate::Theme, crate::Renderer> {
         let button_str = if running { "Stop" } else { name };
         let mut button = button(text(button_str));
         button = if running {

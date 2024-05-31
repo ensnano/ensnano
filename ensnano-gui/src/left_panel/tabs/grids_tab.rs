@@ -90,9 +90,7 @@ impl GridTab {
             text("Select ≥4 unattached helices").size(ui_size.main_text()),
         ]
         .spacing(5);
-        //scrollable(content).width(Length::Fill).into()
-        //TODO: REACTIVATE ME!
-        scrollable(row![]).into()
+        scrollable(content).width(Length::Fill).into()
     }
 
     pub fn new_hyperboloid(&mut self, requests: &mut Option<HyperboloidRequest>) {

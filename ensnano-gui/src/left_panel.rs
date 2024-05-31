@@ -22,7 +22,6 @@ use std::sync::{Arc, Mutex};
 use iced::{theme, Color, Command, Element, Length};
 use iced_aw::native::{TabLabel, Tabs};
 use iced_runtime::Program;
-use iced_wgpu;
 use iced_widget::*;
 use iced_winit::winit::{
     dpi::{LogicalPosition, LogicalSize},
@@ -1133,8 +1132,8 @@ pub enum ColorMessage {
 }
 
 impl<R: Requests> Program for ColorOverlay<R> {
-    type Renderer = iced_wgpu::Renderer;
-    type Theme = iced::Theme;
+    type Renderer = crate::Renderer;
+    type Theme = crate::Theme;
     type Message = ColorMessage;
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
@@ -1168,13 +1167,19 @@ impl<R: Requests> Program for ColorOverlay<R> {
 
         Container::new(widget)
             //.style(FloatingStyle)
+            // TODO: Maybe reimplement style.
             .height(Length::Fill)
             .into()
     }
 }
 
 /// Generate the message that request rotation.
-fn rotation_message<S: AppState>(i: usize, _xz: isize, _yz: isize, _xy: isize) -> Message<S> {
+fn rotation_message<State: AppState>(
+    i: usize,
+    _xz: isize,
+    _yz: isize,
+    _xy: isize,
+) -> Message<State> {
     let angle_xz = match i {
         0 => 15f32.to_radians(),
         1 => -15f32.to_radians(),

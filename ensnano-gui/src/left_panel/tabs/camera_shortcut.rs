@@ -78,10 +78,10 @@ const PREDEFINED_CAMERA_ORIENTATION: [NamedCameraPosition; 6] = [
 ];
 
 /// Turn a NamedCameraPosition into a button.
-fn named_camera_to_button<'a, S: AppState>(
+fn named_camera_to_button<'a, State: AppState>(
     position: &NamedCameraPosition,
     ui_size: UiSize,
-) -> Element<'a, Message<S>> {
+) -> Element<'a, Message<State>, crate::Theme, crate::Renderer> {
     button(text(position.name).size(ui_size.main_text()))
         .on_press(position.message())
         .height(ui_size.button())
@@ -175,7 +175,11 @@ impl CameraShortcutPanel {
                 } else {
                     cam.1
                 };
-                CameraWidget::new(name.to_string(), being_edited, cam.0)
+                CameraWidget {
+                    name: name.to_string(),
+                    being_edited,
+                    camera_id: cam.0,
+                }
             })
             .collect();
     }
@@ -184,37 +188,30 @@ impl CameraShortcutPanel {
         self.set_camera_widget(app);
     }
 
-    pub fn view<State>(
+    pub fn view<State: AppState>(
         &self,
         ui_size: UiSize,
         _app: &State,
-    ) -> Element<Message<State>, crate::Theme, crate::Renderer>
-    where
-        State: AppState,
-    {
+    ) -> Element<Message<State>, crate::Theme, crate::Renderer> {
         // Create button widget for each predefined target.
 
-        //let rotate_buttons = self::column![
-        //    row(IntoIterator::into_iter([4, 2, 5])
-        //        .map(|i| {
-        //            button(rotation_text(i, ui_size))
-        //                .on_press(rotation_message(i, self.xz, self.yz, self.xy))
-        //                .width(ui_size.button())
-        //                .into()
-        //        })
-        //        .collect())
-        //    .spacing(ui_size.button_pad()),
-        //    row(IntoIterator::into_iter([0, 3, 1])
-        //        .map(|i| {
-        //            button(rotation_text(i, ui_size))
-        //                .on_press(rotation_message(i, self.xz, self.yz, self.xy))
-        //                .width(ui_size.button())
-        //                .into()
-        //        })
-        //        .collect())
-        //    .spacing(ui_size.button_pad()),
-        //]
-        //.spacing(ui_size.button_pad());
+        let rotate_buttons: Column<Message<State>, crate::Theme, crate::Renderer> = self::column![
+            row(IntoIterator::into_iter([4, 2, 5]).map(|i| {
+                button(rotation_text(i, ui_size))
+                    .on_press(rotation_message(i, self.xz, self.yz, self.xy))
+                    .width(ui_size.button())
+                    .into()
+            }))
+            .spacing(ui_size.button_pad()),
+            row(IntoIterator::into_iter([0, 3, 1]).map(|i| {
+                button(rotation_text(i, ui_size))
+                    .on_press(rotation_message(i, self.xz, self.yz, self.xy))
+                    .width(ui_size.button())
+                    .into()
+            }))
+            .spacing(ui_size.button_pad()),
+        ]
+        .spacing(ui_size.button_pad());
 
         //let mut ret = Column::new();
         //while rotate_buttons.len() > 0 {
@@ -239,25 +236,24 @@ impl CameraShortcutPanel {
                             .height(ui_size.button())
                             .horizontal_alignment(Horizontal::Center),
                         extra_jump(),
-                        //row![
-                        //    self::column![
-                        //        named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[0], ui_size),
-                        //        named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[1], ui_size),
-                        //    ]
-                        //    .spacing(ui_size.button_pad()),
-                        //    self::column![
-                        //        named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[2], ui_size),
-                        //        named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[3], ui_size),
-                        //    ]
-                        //    .spacing(ui_size.button_pad()),
-                        //    self::column![
-                        //        named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[4], ui_size),
-                        //        named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[5], ui_size),
-                        //    ]
-                        //    .spacing(ui_size.button_pad()),
-                        //]
-                        //.spacing(ui_size.button_pad()),
-                        //TODO: REACTIVATE ME!
+                        row![
+                            self::column![
+                                named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[0], ui_size),
+                                named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[1], ui_size),
+                            ]
+                            .spacing(ui_size.button_pad()),
+                            self::column![
+                                named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[2], ui_size),
+                                named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[3], ui_size),
+                            ]
+                            .spacing(ui_size.button_pad()),
+                            self::column![
+                                named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[4], ui_size),
+                                named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[5], ui_size),
+                            ]
+                            .spacing(ui_size.button_pad()),
+                        ]
+                        .spacing(ui_size.button_pad()),
                     ]
                     .align_items(Alignment::Center),
                     Space::with_width(2.0 * ui_size.button_pad()),
@@ -267,9 +263,7 @@ impl CameraShortcutPanel {
                             .height(ui_size.button())
                             .horizontal_alignment(Horizontal::Center),
                         extra_jump(),
-                        //rotate_buttons,
-                        //TODO: REACTIVATE ME!
-                        // Idem.
+                        rotate_buttons,
                     ]
                     .align_items(Alignment::Center),
                     Space::with_width(2.0 * ui_size.button_pad()),
@@ -314,13 +308,7 @@ impl CameraShortcutPanel {
                         .on_press(Message::NewCustomCamera),
                 ],
                 // add_camera_widgets!
-                //Column::with_children(
-                //    self.camera_widgets
-                //        .iter()
-                //        .map(|w| w.view(ui_size).into())
-                //        .collect()
-                //)
-                //TODO: REACTIVATE ME!
+                Column::with_children(self.camera_widgets.iter().map(|w| w.view(ui_size)))
             ]
             .align_items(Alignment::Center)
             .width(Length::Fill),
@@ -339,30 +327,23 @@ impl CameraShortcutPanel {
 
 // Custom camera editor.
 struct CameraWidget {
-    // Name of the custom camera orientation
+    // Name of the custom camera orientation.
     name: String,
     // Wether the name is being edited.
     being_edited: bool,
+    // Camera id.
     camera_id: CameraId,
 }
 
 impl CameraWidget {
-    fn new(name: String, being_edited: bool, camera_id: CameraId) -> Self {
-        Self {
-            name,
-            being_edited,
-            camera_id,
-        }
-    }
-
-    fn view<S>(&self, ui_size: UiSize) -> Element<Message<S>>
-    where
-        S: AppState,
-    {
-        let name_field: Element<Message<S>> = if self.being_edited {
+    fn view<State: AppState>(
+        &self,
+        ui_size: UiSize,
+    ) -> Element<Message<State>, crate::Theme, crate::Renderer> {
+        let name_field: Element<_, _, _> = if self.being_edited {
             text_input("Camera name", &self.name)
                 .on_input(Message::EditCameraName)
-                .on_submit(Message::<S>::SubmitCameraName)
+                .on_submit(Message::<State>::SubmitCameraName)
                 .into()
         } else {
             text(&self.name).into()
@@ -373,15 +354,15 @@ impl CameraWidget {
             Space::with_width(3),
             // edit button
             light_icon_button(LightIcon::Edit, ui_size)
-                .on_press(Message::<S>::StartEditCameraName(self.camera_id)),
+                .on_press(Message::<State>::StartEditCameraName(self.camera_id)),
             //
             Space::with_width(Length::Fill),
             //select camera button
             light_icon_button(LightIcon::Visibility, ui_size)
-                .on_press(Message::<S>::SelectCamera(self.camera_id)),
+                .on_press(Message::<State>::SelectCamera(self.camera_id)),
             // delete button
             light_icon_button(LightIcon::Delete, ui_size)
-                .on_press(Message::<S>::DeleteCamera(self.camera_id)),
+                .on_press(Message::<State>::DeleteCamera(self.camera_id)),
         ]
         .into()
     }

@@ -350,7 +350,7 @@ impl GridBuilder {
     fn nb_turn_row<'a, S: AppState>(
         app_state: &S,
         selection: &Selection,
-    ) -> Option<iced::Element<'a, super::Message<S>>> {
+    ) -> Option<iced::Element<'a, super::Message<S>, crate::Theme, crate::Renderer>> {
         use crate::consts;
         if let Selection::Grid(_, g_id) = selection {
             if let Some(nb_turn) = app_state.get_reader().get_grid_nb_turn(*g_id) {
@@ -384,18 +384,15 @@ where
     ) -> iced::Element<super::Message<State>, crate::Theme, crate::Renderer> {
         self::column![
             text("Position").size(ui_size.intermediate_text()),
-            //self.position_builder.view(),
-            //TODO: REACTIVATE ME!
+            self.position_builder.view(),
             text("Orientation").size(ui_size.intermediate_text()),
-            //self.orientation_builder.view(),
-            //TODO: REACTIVATE ME!
+            self.orientation_builder.view(),
             text("Twist").size(ui_size.intermediate_text()),
-            //if let Some(row) = Self::nb_turn_row(app_state, selection) {
-            //    row
-            //} else {
-            //    row![].into()
-            //},
-            //TODO: REACTIVATE ME!
+            if let Some(row) = Self::nb_turn_row(app_state, selection) {
+                row
+            } else {
+                row![].into()
+            },
         ]
         .width(iced::Length::Fill)
         .into()

@@ -39,11 +39,11 @@ impl CameraTab {
         }
     }
 
-    pub fn view<S: AppState>(
+    pub fn view<State: AppState>(
         &self,
         ui_size: UiSize,
-        app_state: &S,
-    ) -> Element<Message<S>, crate::Theme, crate::Renderer> {
+        app_state: &State,
+    ) -> Element<Message<State>, crate::Theme, crate::Renderer> {
         let content = self::column![
             section("Camera", ui_size),
             subsection("Visibility", ui_size),
@@ -55,8 +55,7 @@ impl CameraTab {
             ]
             .width(Length::Fill)
             .spacing(ui_size.button_pad()),
-            //self.fog.view(ui_size),
-            //TODO: REACTIVATE ME!
+            self.fog.view(ui_size),
             extra_jump(),
             row![
                 subsection("Visibility", ui_size),
@@ -175,7 +174,10 @@ struct FogGuiParameters {
 }
 
 impl FogGuiParameters {
-    fn view<S: AppState>(&self, ui_size: UiSize) -> Element<Message<S>> {
+    fn view<State: AppState>(
+        &self,
+        ui_size: UiSize,
+    ) -> Element<Message<State>, crate::Theme, crate::Renderer> {
         let radius_text = if self.is_activated {
             text("Radius")
         } else {

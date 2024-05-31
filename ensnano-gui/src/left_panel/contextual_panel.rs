@@ -305,17 +305,11 @@ where
                 ],
             ]
         } else if self.force_help && xover_len.is_none() {
-            //turn_into_help_column(ui_size)
-            //TODO: REACTIVATE ME!
-            self::column![]
+            turn_into_help_column(ui_size)
         } else if app_state.get_action_mode().is_build() {
-            //self.add_strand_menu.view(ui_size, self.width as u16)
-            //TODO: REACTIVATE ME!
-            self::column![]
+            self.add_strand_menu.view(ui_size, self.width as u16)
         } else if *selection == Selection::Nothing && xover_len.is_none() {
-            //turn_into_help_column(ui_size)
-            //TODO: REACTIVATE ME!
-            self::column![]
+            turn_into_help_column(ui_size)
         } else if nb_selected > 1 {
             // NOTE: When the number of objects selectet is greater than one,
             //       we only print the number of object selected.
@@ -340,40 +334,39 @@ where
                 column = column.push(text(selection.info()).size(ui_size.main_text()));
             }
 
-            //match selection {
-            //    Selection::Grid(_, g_id) => {
-            //        let twisting = match app_state.get_simulation_state() {
-            //            SimulationState::Twisting { grid_id } if *g_id == grid_id => {
-            //                TwistStatus::Twisting
-            //            }
-            //            SimulationState::None => TwistStatus::CanTwist,
-            //            _ => TwistStatus::CannotTwist,
-            //        };
-            //        column = column.push(add_grid_content(info_values.clone(), ui_size, twisting))
-            //    }
-            //    Selection::Strand(_, _) => {
-            //        column = column.push(add_strand_content(info_values.clone(), ui_size))
-            //    }
-            //    Selection::Nucleotide(_, _) => {
-            //        let anchor = info_values[0].clone();
-            //        column = column.push(text(format!("Anchor {}", anchor)));
-            //    }
-            //    Selection::Xover(_, _) => {
-            //        if xover_len.is_none() {
-            //            if let Some(info) = info_values.get(0) {
-            //                column = column.push(text(info));
-            //            }
-            //            if let Some(info) = info_values.get(1) {
-            //                column = column.push(text(info));
-            //            }
-            //        }
-            //    }
-            //    _ => (),
-            //}
-            //if let Some(builder) = &self.builder {
-            //    column = column.push(builder.builder.view(ui_size, selection, app_state))
-            //}
-            //TODO: REACTIVATE ME!
+            match selection {
+                Selection::Grid(_, g_id) => {
+                    let twisting = match app_state.get_simulation_state() {
+                        SimulationState::Twisting { grid_id } if *g_id == grid_id => {
+                            TwistStatus::Twisting
+                        }
+                        SimulationState::None => TwistStatus::CanTwist,
+                        _ => TwistStatus::CannotTwist,
+                    };
+                    column = column.push(add_grid_content(info_values.clone(), ui_size, twisting))
+                }
+                Selection::Strand(_, _) => {
+                    column = column.push(add_strand_content(info_values.clone(), ui_size))
+                }
+                Selection::Nucleotide(_, _) => {
+                    let anchor = info_values[0].clone();
+                    column = column.push(text(format!("Anchor {}", anchor)));
+                }
+                Selection::Xover(_, _) => {
+                    if xover_len.is_none() {
+                        if let Some(info) = info_values.get(0) {
+                            column = column.push(text(info));
+                        }
+                        if let Some(info) = info_values.get(1) {
+                            column = column.push(text(info));
+                        }
+                    }
+                }
+                _ => (),
+            }
+            if let Some(builder) = &self.builder {
+                column = column.push(builder.builder.view(ui_size, selection, app_state))
+            }
             column
         };
 
@@ -527,7 +520,7 @@ fn add_grid_content<'a, State: AppState>(
     info_values: Vec<String>,
     ui_size: UiSize,
     twisting: TwistStatus,
-) -> iced::Element<'a, Message<State>> {
+) -> iced::Element<'a, Message<State>, crate::Theme, crate::Renderer> {
     self::column![
         // twist_button
         match twisting {
@@ -553,7 +546,7 @@ fn add_grid_content<'a, State: AppState>(
 fn add_strand_content<'a, State: AppState>(
     info_values: Vec<String>,
     ui_size: UiSize,
-) -> iced::Element<'a, Message<State>> {
+) -> iced::Element<'a, Message<State>, crate::Theme, crate::Renderer> {
     let s_id = info_values[2].parse::<usize>().unwrap();
     self::column![
         row![
@@ -578,71 +571,37 @@ fn bool_to_string(b: bool) -> String {
     }
 }
 
-fn add_help_to_column<'a, State, Theme, Renderer>(
+fn add_help_to_column<'a, State: AppState>(
     help_title: impl ToString,
     help: Vec<(String, String)>,
     ui_size: UiSize,
-) -> Column<'a, Message<State>, Theme, Renderer>
-where
-    State: AppState,
-    Renderer: iced::advanced::Renderer,
-{
-    //self::column![column(
-    //    help.iter()
-    //        .map(|(l, r)| {
-    //            if l.is_empty() {
-    //                row![Space::with_width(10)]
-    //            } else if r.is_empty() {
-    //                row![text(l)
-    //                    .width(Length::Fill)
-    //                    .horizontal_alignment(Horizontal::Center)]
-    //            } else {
-    //                row![
-    //                    text(l)
-    //                        .width(Length::FillPortion(5))
-    //                        .horizontal_alignment(Horizontal::Right),
-    //                    Space::with_width(Length::FillPortion(1)),
-    //                    text(r).width(Length::FillPortion(5)),
-    //                ]
-    //            }
-    //            .into()
-    //        })
-    //        .collect::<Column<'a, Message<State>, Theme, Renderer>>()
-    //),]
-
-    //let mut content = widget::Column::new();
-    //content = content.push(text(help_title).size(ui_size.intermediate_text()));
-    //for (l, r) in help {
-    //    if l.is_empty() {
-    //        content = content.push(Space::with_width(10));
-    //    } else if r.is_empty() {
-    //        content = content.push(
-    //            text(l)
-    //                .width(Length::Fill)
-    //                .horizontal_alignment(alignment::Horizontal::Center),
-    //        );
-    //    } else {
-    //        content = content.push(row![
-    //            text(l)
-    //                .width(Length::FillPortion(5))
-    //                .horizontal_alignment(alignment::Horizontal::Right),
-    //            Space::with_width(Length::FillPortion(1)),
-    //            text(r).width(Length::FillPortion(5)),
-    //        ]);
-    //    }
-    //}
-    //content.into()
-    self::column![]
+) -> Column<'a, Message<State>, crate::Theme, crate::Renderer> {
+    self::column![
+        text(help_title).size(ui_size.intermediate_text()),
+        column(help.iter().map(|(l, r)| {
+            if l.is_empty() {
+                row![Space::with_width(10)]
+            } else if r.is_empty() {
+                row![text(l)
+                    .width(Length::Fill)
+                    .horizontal_alignment(Horizontal::Center)]
+            } else {
+                row![
+                    text(l)
+                        .width(Length::FillPortion(5))
+                        .horizontal_alignment(Horizontal::Right),
+                    Space::with_width(Length::FillPortion(1)),
+                    text(r).width(Length::FillPortion(5)),
+                ]
+            }
+            .into()
+        })),
+    ]
 }
 
-fn turn_into_help_column<'a, State, Theme, Renderer>(
+fn turn_into_help_column<'a, State: AppState>(
     ui_size: UiSize,
-) -> Column<'a, Message<State>, Theme, Renderer>
-where
-    State: AppState,
-    Theme: text::StyleSheet + 'a,
-    Renderer: iced::advanced::text::Renderer + 'a,
-{
+) -> Column<'a, Message<State>, crate::Theme, crate::Renderer> {
     self::column![
         section("Help", ui_size)
             .width(Length::Fill)

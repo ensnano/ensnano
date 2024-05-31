@@ -108,11 +108,10 @@ impl<S: AppState> EditionTab<S> {
         let content = self::column![
             section("Edition", ui_size),
             // add_roll_slider!
-            //Column::with_children(
-            //    self.helix_roll_factory
-            //        .view(roll_target_helices.len() >= 1, ui_size.intermediate_text())
-            //),
-            //TODO: REACTIVATE ME!
+            Column::with_children(
+                self.helix_roll_factory
+                    .view(roll_target_helices.len() >= 1, ui_size.intermediate_text())
+            ),
             // add_autoroll_button!
             start_stop_button(
                 "Autoroll selected helices",

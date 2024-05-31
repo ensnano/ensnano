@@ -27,14 +27,11 @@ const EDIT_BEZIER_PATH_ICON: LightIcon = LightIcon::LinearScale;
 pub struct PenTab {}
 
 impl PenTab {
-    pub fn view<S>(
+    pub fn view<State: AppState>(
         &self,
         ui_size: UiSize,
-        app_state: &S,
-    ) -> Element<Message<S>, crate::Theme, crate::Renderer>
-    where
-        S: AppState,
-    {
+        app_state: &State,
+    ) -> Element<Message<State>, crate::Theme, crate::Renderer> {
         let selected_path_id = app_state.get_selected_bezier_path();
         let path_txt = selected_path_id
             .map(|p| format!("{:?}", p))

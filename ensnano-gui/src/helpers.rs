@@ -72,7 +72,12 @@ where
 }
 
 /// Return a text widget containing the rotation arrow.
-pub fn rotation_text<'a>(i: usize, ui_size: UiSize) -> Text<'a> {
+pub fn rotation_text<'a, Theme, Renderer>(i: usize, ui_size: UiSize) -> Text<'a, Theme, Renderer>
+where
+    Theme: text::StyleSheet,
+    Renderer: iced::advanced::text::Renderer,
+    <Renderer as iced::advanced::text::Renderer>::Font: From<iced::Font>,
+{
     match i {
         0 => material_icons_light::dark_icon(LightIcon::ArrowBack, ui_size),
         1 => material_icons_light::dark_icon(LightIcon::ArrowForward, ui_size),

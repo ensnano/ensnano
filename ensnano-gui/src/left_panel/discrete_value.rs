@@ -88,10 +88,11 @@ impl<R: Requestable> RequestFactory<R> {
         }
     }
 
-    pub fn view<S>(&self, active: bool, size: impl Into<Pixels>) -> Vec<iced::Element<Message<S>>>
-    where
-        S: AppState,
-    {
+    pub fn view<State: AppState>(
+        &self,
+        active: bool,
+        size: impl Into<Pixels>,
+    ) -> Vec<iced::Element<Message<State>, crate::Theme, crate::Renderer>> {
         let s = size.into();
         self.values
             .values()
@@ -168,10 +169,11 @@ impl DiscreteValue {
         }
     }
 
-    fn view<S>(&self, active: bool, name_size: impl Into<Pixels>) -> iced::Element<Message<S>>
-    where
-        S: AppState,
-    {
+    fn view<State: AppState>(
+        &self,
+        active: bool,
+        name_size: impl Into<Pixels>,
+    ) -> iced::Element<Message<State>, crate::Theme, crate::Renderer> {
         let decr_button = if active && self.value - self.step >= self.min_val {
             button(text("-")).on_press(Message::DescreteValue {
                 factory_id: self.owner_id,

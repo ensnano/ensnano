@@ -43,15 +43,15 @@ pub use pen_tab::PenTab;
 pub(super) mod revolution_tab;
 pub use revolution_tab::*;
 
-struct GoStop<S: AppState> {
+struct GoStop<State: AppState> {
     pub name: String,
-    on_press: Box<dyn Fn(bool) -> Message<S>>,
+    on_press: Box<dyn Fn(bool) -> Message<State>>,
 }
 
-impl<S: AppState> GoStop<S> {
+impl<State: AppState> GoStop<State> {
     fn new<F>(name: String, on_press: F) -> Self
     where
-        F: 'static + Fn(bool) -> Message<S>,
+        F: 'static + Fn(bool) -> Message<State>,
     {
         Self {
             name,
@@ -59,7 +59,11 @@ impl<S: AppState> GoStop<S> {
         }
     }
 
-    fn view(&self, active: bool, running: bool) -> iced::Element<Message<S>> {
+    fn view(
+        &self,
+        active: bool,
+        running: bool,
+    ) -> iced::Element<Message<State>, crate::Theme, crate::Renderer> {
         use crate::helpers::*;
         let button_str = if running {
             "Stop".to_owned()

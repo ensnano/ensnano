@@ -38,14 +38,11 @@ impl ParametersTab {
         }
     }
 
-    pub fn view<S>(
+    pub fn view<State: AppState>(
         &self,
         ui_size: UiSize,
-        app_state: &S,
-    ) -> Element<Message<S>, crate::Theme, crate::Renderer>
-    where
-        S: AppState,
-    {
+        app_state: &State,
+    ) -> Element<Message<State>, crate::Theme, crate::Renderer> {
         let dna_params = &app_state.get_dna_parameters();
 
         let content = self::column![
@@ -59,11 +56,10 @@ impl ParametersTab {
             ),
             extra_jump(),
             subsection("Scrolling", ui_size),
-            //column(
-            //    self.scroll_sensitivity_factory
-            //        .view(true, ui_size.main_text())
-            //),
-            //TODO: REACTIVATE ME!
+            column(
+                self.scroll_sensitivity_factory
+                    .view(true, ui_size.main_text())
+            ),
             right_checkbox(
                 app_state.get_invert_y_scroll(),
                 "Inverse direction",
