@@ -937,7 +937,6 @@ impl<R: Requests, State: AppState> Gui<R, State> {
         clear_color: Option<iced::Color>,
         window: &Window,
         multiplexer: &dyn Multiplexer,
-        //staging_belt: &mut wgpu::util::StagingBelt,
         mouse_interaction: &mut iced::mouse::Interaction,
     ) {
         *mouse_interaction = Default::default();

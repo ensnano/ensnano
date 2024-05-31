@@ -112,7 +112,6 @@ use iced::Size;
 use iced_futures::futures;
 use iced_graphics::Viewport;
 use iced_runtime::{program, Debug};
-use iced_wgpu::wgpu::Queue;
 use iced_wgpu::{wgpu, Settings};
 use iced_winit::{conversion, winit};
 
@@ -520,8 +519,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         match window_event {
             Event::WindowEvent {
-                window_id,
                 event: window_event,
+                ..
             } => match window_event {
                 WindowEvent::CloseRequested => {
                     main_state_view
@@ -675,7 +674,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         overlay_manager.render(
                             &device,
                             &queue,
-                            &mut staging_belt,
                             &mut encoder,
                             frame.texture.format(),
                             &frame
@@ -875,7 +873,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
             _ => {}
         }
-    });
+    })?;
+
     Ok(())
 }
 
@@ -976,7 +975,6 @@ impl OverlayManager {
         &self,
         device: &wgpu::Device,
         queue: &wgpu::Queue,
-        staging_belt: &mut iced_wgpu::wgpu::util::StagingBelt,
         encoder: &mut wgpu::CommandEncoder,
         format: wgpu::TextureFormat,
         target: &wgpu::TextureView,
@@ -995,7 +993,6 @@ impl OverlayManager {
                         backend.present(
                             device,
                             queue,
-                            //staging_belt,
                             encoder,
                             None, // TODO: Examine what clear_color is.
                             format,

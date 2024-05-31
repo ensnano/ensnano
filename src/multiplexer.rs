@@ -473,10 +473,7 @@ impl Multiplexer {
                     self.generate_textures();
                 }
             }
-            WindowEvent::ScaleFactorChanged {
-                scale_factor,
-                inner_size_writer,
-            } => {
+            WindowEvent::ScaleFactorChanged { scale_factor, .. } => {
                 self.scale_factor = *scale_factor;
                 //self.window_size = **new_inner_size;
                 //TODO: The WindowEvent used to provide [new_inner_size], that we use to
@@ -946,7 +943,7 @@ impl GuiMultiplexer for Multiplexer {
     }
 }
 
-fn keycode_to_num(key: &Key, location: &KeyLocation) -> Option<u32> {
+fn keycode_to_num(key: &Key, _location: &KeyLocation) -> Option<u32> {
     match key {
         // NOTE: We make no distinction on the key location here.
         //       Specifiy it if you need to.
