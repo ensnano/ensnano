@@ -88,6 +88,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //!      | Immediate   | No          | Yes         |
 //!      | Mailbox     | Yes         | No          |
 //!
+use std::borrow::Cow;
 use std::collections::{HashMap, VecDeque};
 use std::env;
 use std::path::{Path, PathBuf};
@@ -107,6 +108,7 @@ use ensnano_interactor::{
     CenterOfSelection, CursorIcon, DesignOperation, DesignReader, RigidBodyConstants,
     SuggestionParameters,
 };
+use iced::advanced::text::Renderer;
 use iced::Event as IcedEvent;
 use iced::Size;
 use iced_futures::futures;
@@ -360,15 +362,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         antialiasing: Some(iced_graphics::Antialiasing::MSAAx4),
         default_text_size: ui_size.main_text().into(),
         default_font: ensnano_gui::helpers::ENSNANO_FONT,
-        //default_font: Some(include_bytes!("../font/ensnano2.ttf")),
         ..Default::default()
     };
     // Initialize the renderer
-    let mut renderer = iced_wgpu::Renderer::new(
+    let mut overlay_renderer = iced_wgpu::Renderer::new(
         iced_wgpu::Backend::new(&device, &queue, settings, format),
         settings.default_font,
         settings.default_text_size,
     );
+    ensnano_gui::load_fonts(&mut overlay_renderer);
     let device = Rc::new(device);
     let queue = Rc::new(queue);
     let mut resized = false;
@@ -447,7 +449,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut main_state = MainState::new(main_state_constructor);
 
     //let _ = ensnano_gui::material_icons_light::load_fonts();
-    let _ = ensnano_gui::helpers::load_fonts2();
+    //let _ = ensnano_gui::helpers::load_fonts2();
 
     let mut gui = gui::Gui::new(
         Rc::clone(&device),
@@ -460,7 +462,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Default::default(),
     );
 
-    let mut overlay_manager = OverlayManager::new(Arc::clone(&requests), &window, &mut renderer);
+    let mut overlay_manager =
+        OverlayManager::new(Arc::clone(&requests), &window, &mut overlay_renderer);
 
     // Run event loop
     let mut last_render_time = std::time::Instant::now();
@@ -627,7 +630,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     );
 
                     overlay_manager.process_event(
-                        &mut renderer,
+                        &mut overlay_renderer,
                         &gui_theme,
                         &theme::gui_style(&gui_theme),
                         resized,
@@ -681,7 +684,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 .create_view(&wgpu::TextureViewDescriptor::default()),
                             &multiplexer,
                             &window,
-                            &mut renderer,
+                            &mut overlay_renderer,
                         );
 
                         // Then we submit the work
@@ -840,7 +843,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let _overlay_change = overlay_manager.fetch_change(
                     &multiplexer,
                     &window,
-                    &mut renderer,
+                    &mut overlay_renderer,
                     &gui_theme,
                     &theme::gui_style(&gui_theme),
                 );

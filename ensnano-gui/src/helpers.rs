@@ -24,18 +24,16 @@ use iced::{Font, Length};
 pub use iced_widget::*;
 
 const JUMP_SIZE: f32 = 4.0;
-//pub(super) const ENSNANO_FONT: Font = Font::External {
-//    name: "EnsNanoFont",
-//    bytes: include_bytes!("../../font/ensnano.ttf"),
-//};
-pub const ENSNANO_FONT: Font = Font::with_name("EnsNanoFont");
 
-pub fn load_fonts2() -> iced::Command<Result<(), iced::font::Error>> {
-    let command = iced::Command::batch(vec![iced::font::load(
-        include_bytes!("../../font/ensnano.ttf").as_slice(),
-    )]);
-    command
-}
+pub const ENSNANO_FONT_BYTES: &[u8] = include_bytes!("../../font/ensnano2.ttf");
+pub const ENSNANO_FONT: Font = Font::with_name("Inter Regular");
+//pub const ENSNANO_FONT: Font = Font {
+//    //family: font::Family::Name("Inter"),
+//    family: font::Family::SansSerif,
+//    weight: font::Weight::Normal,
+//    stretch: font::Stretch::Normal,
+//    style: font::Style::Normal,
+//};
 
 /// Add vertical space of [JUMP_SIZE] amount
 pub fn extra_jump() -> Space {
@@ -55,8 +53,9 @@ pub fn section<'a, Theme, Renderer>(
 where
     Theme: text::StyleSheet,
     Renderer: iced::advanced::text::Renderer,
+    <Renderer as iced::advanced::text::Renderer>::Font: From<iced::Font>,
 {
-    text(title).size(ui_size.head_text())
+    text(title).size(ui_size.head_text()).font(ENSNANO_FONT)
 }
 
 /// Section subtitle widget
@@ -67,8 +66,11 @@ pub fn subsection<'a, Theme, Renderer>(
 where
     Theme: text::StyleSheet,
     Renderer: iced::advanced::text::Renderer,
+    <Renderer as iced::advanced::text::Renderer>::Font: From<iced::Font>,
 {
-    text(title).size(ui_size.intermediate_text())
+    text(title)
+        .size(ui_size.intermediate_text())
+        .font(ENSNANO_FONT)
 }
 
 /// Return a text widget containing the rotation arrow.
@@ -122,8 +124,9 @@ pub fn text_button<'a, Message, Theme, Renderer>(
 where
     Theme: button::StyleSheet + text::StyleSheet + 'a,
     Renderer: iced::advanced::text::Renderer + 'a,
+    <Renderer as iced::advanced::text::Renderer>::Font: From<iced::Font>,
 {
-    button(text(label).size(ui_size.main_text())).height(ui_size.button())
+    button(text(label).font(ENSNANO_FONT).size(ui_size.main_text())).height(ui_size.button())
 }
 
 /// A button containing an icon.

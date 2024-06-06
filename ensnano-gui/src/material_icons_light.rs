@@ -1,31 +1,14 @@
 #![allow(dead_code)]
 
 use super::UiSize;
-use iced::{font, Font};
-//pub const MATERIAL_ICON_LIGHT: &[u8] =
-//    include_bytes!("../../font/MaterialIconsOutlined-Regular.otf");
+use iced::Font;
 
-//pub const MATERIAL_ICON_DARK: &[u8] = include_bytes!("../../font/MaterialIcons-Regular.ttf");
+pub const MATERIAL_ICONS_LIGHT_BYTES: &[u8] =
+    include_bytes!("../../font/MaterialIconsOutlined-Regular.otf");
+pub const MATERIAL_ICONS_DARK_BYTES: &[u8] = include_bytes!("../../font/MaterialIcons-Regular.ttf");
 
-//const LIGHT_ICONFONT: iced::Font = iced::Font::External {
-//    name: "IconFontLight",
-//    bytes: MATERIAL_ICON_LIGHT,
-//};
 pub const MATERIAL_ICONS_LIGHT: Font = Font::with_name("Material Icons Outlined");
-
-//pub const DARK_ICONFONT: iced::Font = iced::Font::External {
-//    name: "IconFontDark",
-//    bytes: MATERIAL_ICON_DARK,
-//};
 pub const MATERIAL_ICONS_DARK: Font = Font::with_name("Material Icons");
-
-pub fn load_fonts() -> iced::Command<Result<(), iced::font::Error>> {
-    let command = iced::Command::batch(vec![
-        font::load(include_bytes!("../../font/MaterialIconsOutlined-Regular.otf").as_slice()),
-        font::load(include_bytes!("../../font/MaterialIcons-Regular.ttf").as_slice()),
-    ]);
-    command
-}
 
 pub fn light_icon<'a, Theme, Renderer>(
     icon: LightIcon,

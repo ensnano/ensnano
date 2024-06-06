@@ -28,6 +28,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //       * Left Panel: 0x23272A  Slightly darker than above.
 //       * Status Bar: 0x121230  More blueish.
 
+use std::borrow::Cow;
+
 pub mod helpers;
 pub mod theme;
 pub use theme::Theme;
@@ -621,8 +623,6 @@ impl<R: Requests, S: AppState> GuiComponent<R, S> {
 ///
 /// The manager contains a [GuiComponent] for each [GuiComponentType] (top_bar, left_panel, etc…)
 pub struct Gui<R: Requests, S: AppState> {
-    /// HashMap mapping [GuiComponentType] to a [GuiComponent]
-    components: HashMap<GuiComponentType, GuiComponent<R, S>>,
     /// WGPU Settings
     wgpu_settings: iced_wgpu::Settings,
     /// WGPU device
@@ -632,14 +632,9 @@ pub struct Gui<R: Requests, S: AppState> {
     resized: bool,
     requests: Arc<Mutex<R>>,
     ui_size: UiSize,
+    /// [GuiComponent] mapped by [GuiComponentType]
+    components: HashMap<GuiComponentType, GuiComponent<R, S>>,
 }
-
-const ENSNANO_FONT: iced::Font = iced::Font {
-    family: iced::font::Family::Name("Ensnano"),
-    weight: iced::font::Weight::Medium,
-    stretch: iced::font::Stretch::Normal,
-    style: iced::font::Style::Normal,
-};
 
 impl<R: Requests, State: AppState> Gui<R, State> {
     pub fn new(
@@ -652,88 +647,109 @@ impl<R: Requests, State: AppState> Gui<R, State> {
         global_state: &State,
         top_bar_state: TopBarState,
     ) -> Self {
-        //let default_font = iced::font::load(include_bytes!("../../font/ensnano2.ttf"));
         let wgpu_settings = iced_wgpu::Settings {
             antialiasing: Some(iced_graphics::Antialiasing::MSAAx4),
-            default_font: ENSNANO_FONT,
+            default_font: crate::helpers::ENSNANO_FONT,
             default_text_size: iced::Pixels(ui_size.main_text()),
             ..Default::default()
         };
 
-        let mut components = HashMap::new();
+        let mut gui = Self {
+            wgpu_settings,
+            device,
+            queue,
+            resized: true,
+            requests,
+            ui_size,
+            components: HashMap::new(),
+        };
 
-        components.insert(
+        gui.rebuild_gui(window, multiplexer, global_state, top_bar_state);
+
+        gui
+    }
+
+    /// Rebuild GUI components.
+    ///
+    /// Recreate renderers.
+    ///
+    /// WARN: Attributes device, queue, requests, ui_size, and wgpu_settings must be set
+    ///       beforehand.
+    ///
+    fn rebuild_gui(
+        &mut self,
+        window: &Window,
+        multiplexer: &dyn Multiplexer,
+        state: &State,
+        top_bar_state: TopBarState,
+    ) {
+        let mut top_bar_renderer = Renderer::new(
+            Backend::new(
+                self.device.as_ref(),
+                self.queue.as_ref(),
+                self.wgpu_settings,
+                ensnano_utils::TEXTURE_FORMAT,
+            ),
+            self.wgpu_settings.default_font,
+            self.wgpu_settings.default_text_size,
+        );
+        crate::load_fonts(&mut top_bar_renderer);
+        self.components.insert(
             GuiComponentType::TopBar,
             GuiComponent::top_bar(
-                Renderer::new(
-                    Backend::new(
-                        device.as_ref(),
-                        queue.as_ref(),
-                        wgpu_settings,
-                        ensnano_utils::TEXTURE_FORMAT,
-                    ),
-                    wgpu_settings.default_font,
-                    wgpu_settings.default_text_size,
-                ),
+                top_bar_renderer,
                 window,
                 multiplexer,
-                Arc::clone(&requests),
-                global_state.clone(),
+                Arc::clone(&self.requests),
+                state.clone(),
                 top_bar_state,
-                ui_size,
+                self.ui_size,
             ),
         );
-        components.insert(
+
+        let mut left_panel_renderer = Renderer::new(
+            Backend::new(
+                self.device.as_ref(),
+                self.queue.as_ref(),
+                self.wgpu_settings,
+                ensnano_utils::TEXTURE_FORMAT,
+            ),
+            self.wgpu_settings.default_font,
+            self.wgpu_settings.default_text_size,
+        );
+        crate::load_fonts(&mut left_panel_renderer);
+        self.components.insert(
             GuiComponentType::LeftPanel,
             GuiComponent::left_panel(
-                Renderer::new(
-                    Backend::new(
-                        device.as_ref(),
-                        queue.as_ref(),
-                        wgpu_settings,
-                        ensnano_utils::TEXTURE_FORMAT,
-                    ),
-                    wgpu_settings.default_font,
-                    wgpu_settings.default_text_size,
-                ),
+                left_panel_renderer,
                 window,
                 multiplexer,
-                Arc::clone(&requests),
-                true,
-                global_state,
-                ui_size,
+                Arc::clone(&self.requests),
+                self.components.contains_key(&GuiComponentType::LeftPanel),
+                state,
+                self.ui_size,
             ),
         );
-        components.insert(
+        self.components.insert(
             GuiComponentType::StatusBar,
             GuiComponent::status_bar(
                 Renderer::new(
                     Backend::new(
-                        device.as_ref(),
-                        queue.as_ref(),
-                        wgpu_settings,
+                        self.device.as_ref(),
+                        self.queue.as_ref(),
+                        self.wgpu_settings,
                         ensnano_utils::TEXTURE_FORMAT,
                     ),
-                    wgpu_settings.default_font,
-                    wgpu_settings.default_text_size,
+                    self.wgpu_settings.default_font,
+                    self.wgpu_settings.default_text_size,
                 ),
                 window,
                 multiplexer,
-                Arc::clone(&requests),
-                global_state,
-                ui_size,
+                Arc::clone(&self.requests),
+                state,
+                self.ui_size,
             ),
         );
-
-        Self {
-            wgpu_settings,
-            requests,
-            components,
-            device,
-            queue,
-            resized: true,
-            ui_size,
-        }
     }
 
     /// Forward an event to the appropriate gui component
@@ -849,78 +865,6 @@ impl<R: Requests, State: AppState> Gui<R, State> {
     ) {
         self.set_text_size(self.ui_size.main_text());
         self.rebuild_gui(window, multiplexer, app_state, top_bar_state);
-    }
-
-    fn rebuild_gui(
-        &mut self,
-        window: &Window,
-        multiplexer: &dyn Multiplexer,
-        state: &State,
-        top_bar_state: TopBarState,
-    ) {
-        //TODO: Merge this with the ::new() method ?
-        self.components.insert(
-            GuiComponentType::TopBar,
-            GuiComponent::top_bar(
-                Renderer::new(
-                    Backend::new(
-                        self.device.as_ref(),
-                        self.queue.as_ref(),
-                        self.wgpu_settings,
-                        ensnano_utils::TEXTURE_FORMAT,
-                    ),
-                    self.wgpu_settings.default_font,
-                    self.wgpu_settings.default_text_size,
-                ),
-                window,
-                multiplexer,
-                Arc::clone(&self.requests),
-                state.clone(),
-                top_bar_state,
-                self.ui_size,
-            ),
-        );
-        self.components.insert(
-            GuiComponentType::LeftPanel,
-            GuiComponent::left_panel(
-                Renderer::new(
-                    Backend::new(
-                        self.device.as_ref(),
-                        self.queue.as_ref(),
-                        self.wgpu_settings,
-                        ensnano_utils::TEXTURE_FORMAT,
-                    ),
-                    self.wgpu_settings.default_font,
-                    self.wgpu_settings.default_text_size,
-                ),
-                window,
-                multiplexer,
-                Arc::clone(&self.requests),
-                false,
-                state,
-                self.ui_size,
-            ),
-        );
-        self.components.insert(
-            GuiComponentType::StatusBar,
-            GuiComponent::status_bar(
-                Renderer::new(
-                    Backend::new(
-                        self.device.as_ref(),
-                        self.queue.as_ref(),
-                        self.wgpu_settings,
-                        ensnano_utils::TEXTURE_FORMAT,
-                    ),
-                    self.wgpu_settings.default_font,
-                    self.wgpu_settings.default_text_size,
-                ),
-                window,
-                multiplexer,
-                Arc::clone(&self.requests),
-                state,
-                self.ui_size,
-            ),
-        );
     }
 
     fn set_text_size(&mut self, text_size: f32) {
@@ -1151,3 +1095,31 @@ pub struct TopBarState {
 }
 // NOTE: This was called “MainState”. I am not sure that “TopBarState” is the best name for this.
 //       Maybe this would be more like a “GuiState”.
+
+/// Load custom font for ENSnano GUI.
+pub fn load_fonts(renderer: &mut Renderer)
+where
+    Renderer: iced::advanced::text::Renderer,
+{
+    use iced::advanced::text::Renderer;
+    let fonts = [
+        material_icons_light::MATERIAL_ICONS_LIGHT_BYTES,
+        material_icons_light::MATERIAL_ICONS_DARK_BYTES,
+        helpers::ENSNANO_FONT_BYTES,
+    ];
+    for font in fonts {
+        renderer.load_font(Cow::from(font));
+    }
+}
+
+// NOTE: Custom fonts became much harder to use since iced 0.10. See:
+//
+//         https://github.com/iced-rs/iced/discussions/1988
+//         https://github.com/fmonniot/pathfinder-wotr-editor/commit/c86fb9a5d2b77b63f284026de3c269fb798dc9ef#diff-42cb6807ad74b3e201c5a7ca98b911c5fa08380e942be6e4ac5807f8377f87fcR106-R116
+//
+// NOTE: Icon font used to be loaded by hand, but now the bootstrap icons
+//       are included in iced_aw, so we use them directly.
+//
+// NOTE: Other help from forums
+//
+//        https://github.com/BillyDM/iced_baseview/issues/39
