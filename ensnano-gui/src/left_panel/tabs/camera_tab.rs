@@ -15,31 +15,73 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+use iced_aw::TabLabel;
+use std::marker::PhantomData;
 
+use super::tabs::GuiTab;
 use super::{AppState, CheckXoversParameter, FogParameters, HBondDisplay, Message, UiSize};
 use crate::helpers::*;
+use crate::material_icons_light::{icon_to_char, LightIcon};
 use crate::theme;
 use ensnano_interactor::graphics::{
     Background3D, RenderingMode, ALL_BACKGROUND3D, ALL_RENDERING_MODE,
 };
 use iced::{Alignment, Element, Length};
 
-pub struct CameraTab {
+pub struct CameraTab<State: AppState> {
     fog: FogGuiParameters,
     pub background3d: Background3D,
     pub rendering_mode: RenderingMode,
+    _state_type: PhantomData<State>,
 }
 
-impl CameraTab {
+impl<State: AppState> CameraTab<State> {
     pub fn new() -> Self {
         Self {
             fog: Default::default(),
             background3d: Default::default(),
             rendering_mode: Default::default(),
+            _state_type: PhantomData,
         }
     }
 
-    pub fn view<State: AppState>(
+    pub fn fog_visible(&mut self, visible: bool) {
+        self.fog.is_activated = visible
+    }
+
+    pub fn fog_dark(&mut self, dark: bool) {
+        self.fog.dark = dark
+    }
+
+    pub fn fog_reversed(&mut self, reversed: bool) {
+        self.fog.is_reversed = reversed
+    }
+
+    pub fn fog_length(&mut self, length: f32) {
+        self.fog.length = length
+    }
+
+    pub fn fog_radius(&mut self, radius: f32) {
+        self.fog.softness = radius
+    }
+
+    pub fn fog_camera(&mut self, from_camera: bool) {
+        self.fog.from_camera = from_camera;
+    }
+
+    pub fn get_fog_request(&self) -> FogParameters {
+        self.fog.request()
+    }
+}
+
+impl<State: AppState> GuiTab<State> for CameraTab<State> {
+    type Message = Message<State>;
+
+    fn label(&self) -> TabLabel {
+        TabLabel::Text(format!("{}", icon_to_char(LightIcon::Videocam)))
+    }
+
+    fn content(
         &self,
         ui_size: UiSize,
         app_state: &State,
@@ -126,34 +168,6 @@ impl CameraTab {
         .spacing(5);
 
         scrollable(content).into()
-    }
-
-    pub fn fog_visible(&mut self, visible: bool) {
-        self.fog.is_activated = visible
-    }
-
-    pub fn fog_dark(&mut self, dark: bool) {
-        self.fog.dark = dark
-    }
-
-    pub fn fog_reversed(&mut self, reversed: bool) {
-        self.fog.is_reversed = reversed
-    }
-
-    pub fn fog_length(&mut self, length: f32) {
-        self.fog.length = length
-    }
-
-    pub fn fog_radius(&mut self, radius: f32) {
-        self.fog.softness = radius
-    }
-
-    pub fn fog_camera(&mut self, from_camera: bool) {
-        self.fog.from_camera = from_camera;
-    }
-
-    pub fn get_fog_request(&self) -> FogParameters {
-        self.fog.request()
     }
 }
 

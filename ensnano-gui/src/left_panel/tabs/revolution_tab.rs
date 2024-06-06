@@ -16,8 +16,13 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+use iced::{Alignment, Element, Length};
+use iced_aw::TabLabel;
+
+use super::tabs::GuiTab;
 use crate::helpers::*;
 use crate::left_panel::Message;
+use crate::material_icons_light::{icon_to_char, LightIcon};
 use crate::theme;
 use crate::{AppState, SimulationState, UiSize};
 use ensnano_design::{
@@ -29,7 +34,6 @@ use ensnano_interactor::{
     RevolutionSurfaceSystemDescriptor, RootingParameters, ShiftGenerator,
     UnrootedRevolutionSurfaceDescriptor,
 };
-use iced::{Alignment, Element, Length};
 
 #[derive(Debug, Clone, Copy)]
 pub enum ParameterKind {
@@ -272,8 +276,8 @@ impl<S: AppState> CurveDescriptorWidget<S> {
     }
 }
 
-pub(crate) struct RevolutionTab<S: AppState> {
-    curve_descriptor_widget: Option<CurveDescriptorWidget<S>>,
+pub(crate) struct RevolutionTab<State: AppState> {
+    curve_descriptor_widget: Option<CurveDescriptorWidget<State>>,
     half_turn_count: ParameterWidget,
     radius_input: ParameterWidget,
     scaling: Option<RevolutionScaling>,
@@ -292,7 +296,7 @@ pub(crate) struct RevolutionTab<S: AppState> {
     equadiff_method: EquadiffSolvingMethod,
 }
 
-impl<S: AppState> Default for RevolutionTab<S> {
+impl<State: AppState> Default for RevolutionTab<State> {
     fn default() -> Self {
         let init_parameter = RevolutionSimulationParameters::default();
         Self {
@@ -326,8 +330,8 @@ impl<S: AppState> Default for RevolutionTab<S> {
     }
 }
 
-impl<S: AppState> RevolutionTab<S> {
-    pub fn set_builder(&mut self, builder: CurveDescriptorBuilder<S>) {
+impl<State: AppState> RevolutionTab<State> {
+    pub fn set_builder(&mut self, builder: CurveDescriptorBuilder<State>) {
         if self.curve_descriptor_widget.as_ref().map(|w| w.curve_name) != Some(builder.curve_name) {
             self.curve_descriptor_widget = Some(CurveDescriptorWidget::new(builder))
         }
@@ -373,7 +377,7 @@ impl<S: AppState> RevolutionTab<S> {
 
     pub fn get_current_unrooted_surface(
         &self,
-        app_state: &S,
+        app_state: &State,
     ) -> Option<UnrootedRevolutionSurfaceDescriptor> {
         let curve = self
             .curve_descriptor_widget
@@ -404,11 +408,167 @@ impl<S: AppState> RevolutionTab<S> {
         })
     }
 
-    pub fn view(
+    pub fn has_keyboard_priority(&self) -> bool {
+        self.curve_descriptor_widget
+            .as_ref()
+            .map(CurveDescriptorWidget::has_keyboard_priority)
+            .unwrap_or(false)
+            || self.radius_input.has_keyboard_priority()
+            || self.nb_section_per_segment_input.has_keyboard_priority()
+            || self.half_turn_count.has_keyboard_priority()
+            || self.scaffold_len_target.has_keyboard_priority()
+            || self.nb_sprial_state_input.has_keyboard_priority()
+            || self.spring_stiffness.has_keyboard_priority()
+            || self.torsion_stiffness.has_keyboard_priority()
+            || self.fluid_friction.has_keyboard_priority()
+            || self.ball_mass.has_keyboard_priority()
+            || self.time_span.has_keyboard_priority()
+            || self.simulation_step.has_keyboard_priority()
+    }
+
+    pub fn get_revolution_system(
+        &self,
+        app_state: &State,
+        compute_area: bool,
+    ) -> Option<RevolutionSurfaceSystemDescriptor> {
+        let unrooted_surface = self.get_current_unrooted_surface(app_state)?;
+
+        let rooting_parameters = RootingParameters {
+            dna_parameters: app_state.get_dna_parameters(),
+            nb_helix_per_half_section: self.scaling.as_ref()?.nb_helix / 2,
+            shift_per_turn: self.try_get_shift_per_turn(app_state)?,
+            junction_smoothening: 0.,
+        };
+
+        let surface_descriptor = unrooted_surface.rooted(rooting_parameters, compute_area);
+
+        let simulation_parameters = self.get_simulation_parameters()?;
+
+        let system = RevolutionSurfaceSystemDescriptor {
+            target: surface_descriptor,
+            scaffold_len_target: self
+                .scaffold_len_target
+                .get_value()
+                .and_then(InstanciatedParameter::get_uint)?,
+            helix_parameters: app_state.get_dna_parameters(),
+            simulation_parameters,
+        };
+
+        Some(system)
+    }
+
+    /// Get the number of shift per turn, updating `self.shift_generator` if needed.
+    fn get_shift_per_turn(&self, app_state: &State) -> Option<isize> {
+        self.try_get_shift_per_turn(app_state).or_else(|| {
+            // TODO: This update must be done elsewhere.
+            //let unrooted_surface = self.get_current_unrooted_surface(app_state)?;
+            //let nb_spiral = self
+            //    .nb_sprial_state_input
+            //    .get_value()
+            //    .and_then(InstanciatedParameter::get_uint)?;
+            //let half_nb_helix = self.scaling.as_ref()?.nb_helix / 2;
+            //self.shift_generator =
+            //    unrooted_surface.shifts_to_get_n_spirals(half_nb_helix, nb_spiral);
+            self.try_get_shift_per_turn(app_state)
+        })
+    }
+
+    /// Return the number of shift per turn if `self.shift_generator` if up-to-date, and `None`
+    /// otherwise.
+    fn try_get_shift_per_turn(&self, app_state: &State) -> Option<isize> {
+        let unrooted_surface = self.get_current_unrooted_surface(app_state)?;
+        let nb_spiral = self
+            .nb_sprial_state_input
+            .get_value()
+            .and_then(InstanciatedParameter::get_uint)?;
+        let half_nb_helix = self.scaling.as_ref()?.nb_helix / 2;
+        self.shift_generator
+            .as_ref()
+            .and_then(|g| g.ith_value(self.shift_idx, nb_spiral, &unrooted_surface, half_nb_helix))
+    }
+
+    fn get_simulation_parameters(&self) -> Option<RevolutionSimulationParameters> {
+        let nb_section_per_segment = self
+            .nb_section_per_segment_input
+            .get_value()
+            .and_then(InstanciatedParameter::get_uint)?;
+        let spring_stiffness = self
+            .spring_stiffness
+            .get_value()
+            .and_then(InstanciatedParameter::get_float)?;
+        let torsion_stiffness = self
+            .torsion_stiffness
+            .get_value()
+            .and_then(InstanciatedParameter::get_float)?;
+        let fluid_friction = self
+            .fluid_friction
+            .get_value()
+            .and_then(InstanciatedParameter::get_float)?;
+        let ball_mass = self
+            .ball_mass
+            .get_value()
+            .and_then(InstanciatedParameter::get_float)?;
+        let time_span = self
+            .time_span
+            .get_value()
+            .and_then(InstanciatedParameter::get_float)?;
+        let simulation_step = self
+            .simulation_step
+            .get_value()
+            .and_then(InstanciatedParameter::get_float)?;
+        let method = self.equadiff_method;
+
+        let rescaling = self.scaling.as_ref()?.scale;
+
+        Some(RevolutionSimulationParameters {
+            nb_section_per_segment,
+            spring_stiffness,
+            torsion_stiffness,
+            fluid_friction,
+            ball_mass,
+            simulation_step,
+            time_span,
+            method,
+            rescaling,
+        })
+    }
+
+    pub fn modifying_radius(&self) -> bool {
+        self.radius_input.state.is_focused()
+    }
+
+    pub fn update(&mut self, app_state: &State) {
+        if let Some(r) = app_state.get_current_revoultion_radius() {
+            if !self.modifying_radius() {
+                self.update_builder_parameter(
+                    RevolutionParameterId::RevolutionRadius,
+                    format!("{:.3}", r),
+                )
+            }
+        }
+
+        self.scaling = self
+            .scaffold_len_target
+            .get_value()
+            .and_then(InstanciatedParameter::get_uint)
+            .and_then(|len_scaffold| {
+                app_state.get_recommended_scaling_revolution_surface(len_scaffold)
+            });
+    }
+}
+
+impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
+    type Message = Message<State>;
+
+    fn label(&self) -> TabLabel {
+        TabLabel::Text(format!("{}", icon_to_char(LightIcon::AutoMode)))
+    }
+
+    fn content(
         &self,
         ui_size: UiSize,
-        app_state: &S,
-    ) -> iced::Element<Message<S>, crate::Theme, crate::Renderer> {
+        app_state: &State,
+    ) -> iced::Element<Self::Message, crate::Theme, crate::Renderer> {
         let desc = self.get_revolution_system(app_state, false);
 
         let shift_buttons = {
@@ -464,7 +624,7 @@ impl<S: AppState> RevolutionTab<S> {
                     text("Curve type"),
                     Space::with_width(ui_size.checkbox_spacing()),
                     pick_list(
-                        S::POSSIBLE_CURVES,
+                        State::POSSIBLE_CURVES,
                         self.curve_descriptor_widget
                             .as_ref()
                             .map(|w| w.builder.clone()),
@@ -632,154 +792,6 @@ impl<S: AppState> RevolutionTab<S> {
         //    ret = ret.push(button);
         //}
         //ret.into()
-    }
-
-    pub fn has_keyboard_priority(&self) -> bool {
-        self.curve_descriptor_widget
-            .as_ref()
-            .map(CurveDescriptorWidget::has_keyboard_priority)
-            .unwrap_or(false)
-            || self.radius_input.has_keyboard_priority()
-            || self.nb_section_per_segment_input.has_keyboard_priority()
-            || self.half_turn_count.has_keyboard_priority()
-            || self.scaffold_len_target.has_keyboard_priority()
-            || self.nb_sprial_state_input.has_keyboard_priority()
-            || self.spring_stiffness.has_keyboard_priority()
-            || self.torsion_stiffness.has_keyboard_priority()
-            || self.fluid_friction.has_keyboard_priority()
-            || self.ball_mass.has_keyboard_priority()
-            || self.time_span.has_keyboard_priority()
-            || self.simulation_step.has_keyboard_priority()
-    }
-
-    pub fn get_revolution_system(
-        &self,
-        app_state: &S,
-        compute_area: bool,
-    ) -> Option<RevolutionSurfaceSystemDescriptor> {
-        let unrooted_surface = self.get_current_unrooted_surface(app_state)?;
-
-        let rooting_parameters = RootingParameters {
-            dna_parameters: app_state.get_dna_parameters(),
-            nb_helix_per_half_section: self.scaling.as_ref()?.nb_helix / 2,
-            shift_per_turn: self.try_get_shift_per_turn(app_state)?,
-            junction_smoothening: 0.,
-        };
-
-        let surface_descriptor = unrooted_surface.rooted(rooting_parameters, compute_area);
-
-        let simulation_parameters = self.get_simulation_parameters()?;
-
-        let system = RevolutionSurfaceSystemDescriptor {
-            target: surface_descriptor,
-            scaffold_len_target: self
-                .scaffold_len_target
-                .get_value()
-                .and_then(InstanciatedParameter::get_uint)?,
-            helix_parameters: app_state.get_dna_parameters(),
-            simulation_parameters,
-        };
-
-        Some(system)
-    }
-
-    /// Get the number of shift per turn, updating `self.shift_generator` if needed.
-    fn get_shift_per_turn(&self, app_state: &S) -> Option<isize> {
-        self.try_get_shift_per_turn(app_state).or_else(|| {
-            // TODO: This update must be done elsewhere.
-            //let unrooted_surface = self.get_current_unrooted_surface(app_state)?;
-            //let nb_spiral = self
-            //    .nb_sprial_state_input
-            //    .get_value()
-            //    .and_then(InstanciatedParameter::get_uint)?;
-            //let half_nb_helix = self.scaling.as_ref()?.nb_helix / 2;
-            //self.shift_generator =
-            //    unrooted_surface.shifts_to_get_n_spirals(half_nb_helix, nb_spiral);
-            self.try_get_shift_per_turn(app_state)
-        })
-    }
-
-    /// Return the number of shift per turn if `self.shift_generator` if up-to-date, and `None`
-    /// otherwise.
-    fn try_get_shift_per_turn(&self, app_state: &S) -> Option<isize> {
-        let unrooted_surface = self.get_current_unrooted_surface(app_state)?;
-        let nb_spiral = self
-            .nb_sprial_state_input
-            .get_value()
-            .and_then(InstanciatedParameter::get_uint)?;
-        let half_nb_helix = self.scaling.as_ref()?.nb_helix / 2;
-        self.shift_generator
-            .as_ref()
-            .and_then(|g| g.ith_value(self.shift_idx, nb_spiral, &unrooted_surface, half_nb_helix))
-    }
-
-    fn get_simulation_parameters(&self) -> Option<RevolutionSimulationParameters> {
-        let nb_section_per_segment = self
-            .nb_section_per_segment_input
-            .get_value()
-            .and_then(InstanciatedParameter::get_uint)?;
-        let spring_stiffness = self
-            .spring_stiffness
-            .get_value()
-            .and_then(InstanciatedParameter::get_float)?;
-        let torsion_stiffness = self
-            .torsion_stiffness
-            .get_value()
-            .and_then(InstanciatedParameter::get_float)?;
-        let fluid_friction = self
-            .fluid_friction
-            .get_value()
-            .and_then(InstanciatedParameter::get_float)?;
-        let ball_mass = self
-            .ball_mass
-            .get_value()
-            .and_then(InstanciatedParameter::get_float)?;
-        let time_span = self
-            .time_span
-            .get_value()
-            .and_then(InstanciatedParameter::get_float)?;
-        let simulation_step = self
-            .simulation_step
-            .get_value()
-            .and_then(InstanciatedParameter::get_float)?;
-        let method = self.equadiff_method;
-
-        let rescaling = self.scaling.as_ref()?.scale;
-
-        Some(RevolutionSimulationParameters {
-            nb_section_per_segment,
-            spring_stiffness,
-            torsion_stiffness,
-            fluid_friction,
-            ball_mass,
-            simulation_step,
-            time_span,
-            method,
-            rescaling,
-        })
-    }
-
-    pub fn modifying_radius(&self) -> bool {
-        self.radius_input.state.is_focused()
-    }
-
-    pub fn update(&mut self, app_state: &S) {
-        if let Some(r) = app_state.get_current_revoultion_radius() {
-            if !self.modifying_radius() {
-                self.update_builder_parameter(
-                    RevolutionParameterId::RevolutionRadius,
-                    format!("{:.3}", r),
-                )
-            }
-        }
-
-        self.scaling = self
-            .scaffold_len_target
-            .get_value()
-            .and_then(InstanciatedParameter::get_uint)
-            .and_then(|len_scaffold| {
-                app_state.get_recommended_scaling_revolution_surface(len_scaffold)
-            });
     }
 }
 

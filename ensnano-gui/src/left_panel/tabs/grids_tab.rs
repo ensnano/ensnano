@@ -15,42 +15,68 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+use std::marker::PhantomData;
 
+use iced::{Element, Length};
+use iced_aw::TabLabel;
+
+use super::tabs::GuiTab;
 use super::{
     AppState, FactoryId, GridTypeDescr, HyperboloidRequest, Hyperboloid_, Message, RequestFactory,
     UiSize, ValueId, ICON_HONEYCOMB_GRID, ICON_NANOTUBE, ICON_SQUARE_GRID,
 };
 use crate::helpers::*;
-use iced::{Element, Length};
+use crate::material_icons_light::{icon_to_char, LightIcon};
 
-pub struct GridTab {
+pub struct GridTab<State: AppState> {
     hyperboloid_factory: RequestFactory<Hyperboloid_>,
+    _state_type: PhantomData<State>,
 }
 
-impl GridTab {
+impl<State: AppState> GridTab<State> {
     pub fn new() -> Self {
         Self {
             hyperboloid_factory: RequestFactory::new(FactoryId::Hyperboloid, Hyperboloid_ {}),
+            _state_type: PhantomData,
         }
+    }
+
+    pub fn new_hyperboloid(&mut self, requests: &mut Option<HyperboloidRequest>) {
+        self.hyperboloid_factory = RequestFactory::new(FactoryId::Hyperboloid, Hyperboloid_ {});
+        self.hyperboloid_factory.make_request(requests);
+    }
+
+    pub fn update_hyperboloid_request(
+        &mut self,
+        value_id: ValueId,
+        value: f32,
+        request: &mut Option<HyperboloidRequest>,
+    ) {
+        self.hyperboloid_factory
+            .update_request(value_id, value, request);
     }
 }
 
-impl GridTab {
-    pub fn view<S>(
+impl<State: AppState> GuiTab<State> for GridTab<State> {
+    type Message = Message<State>;
+
+    fn label(&self) -> TabLabel {
+        TabLabel::Text(format!("{}", icon_to_char(LightIcon::GridOn)))
+    }
+
+    fn content(
         &self,
         ui_size: UiSize,
-        app_state: &S,
-    ) -> Element<Message<S>, crate::Theme, crate::Renderer>
-    where
-        S: AppState,
-    {
+        app_state: &State,
+    ) -> Element<Self::Message, crate::Theme, crate::Renderer> {
         let content = self::column![
             section("Grids", ui_size),
             subsection("New Grid", ui_size),
             // add_grid_buttons!
             row![
-                icon_button(ICON_SQUARE_GRID, ui_size)
-                    .on_press(Message::<S>::NewGrid(GridTypeDescr::Square { twist: None })),
+                icon_button(ICON_SQUARE_GRID, ui_size).on_press(Message::<State>::NewGrid(
+                    GridTypeDescr::Square { twist: None }
+                )),
                 icon_button(ICON_HONEYCOMB_GRID, ui_size)
                     .on_press(Message::NewGrid(GridTypeDescr::Honeycomb { twist: None })),
             ]
@@ -91,20 +117,5 @@ impl GridTab {
         ]
         .spacing(5);
         scrollable(content).width(Length::Fill).into()
-    }
-
-    pub fn new_hyperboloid(&mut self, requests: &mut Option<HyperboloidRequest>) {
-        self.hyperboloid_factory = RequestFactory::new(FactoryId::Hyperboloid, Hyperboloid_ {});
-        self.hyperboloid_factory.make_request(requests);
-    }
-
-    pub fn update_hyperboloid_request(
-        &mut self,
-        value_id: ValueId,
-        value: f32,
-        request: &mut Option<HyperboloidRequest>,
-    ) {
-        self.hyperboloid_factory
-            .update_request(value_id, value, request);
     }
 }

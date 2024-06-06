@@ -250,7 +250,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
             button_redo = button_redo.on_press(Message::Redo)
         }
 
-        let button_2d: Tooltip<'_, Self::Message, Self::Theme, Self::Renderer> = tooltip(
+        let button_2d = tooltip(
             text_button("2D", self.ui_size).on_press(Message::ToggleView(SplitMode::Flat)),
             "Switch to flatscene only view",
             tooltip::Position::FollowCursor,

@@ -15,18 +15,24 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+use std::marker::PhantomData;
+
+use iced::{Element, Length};
+use iced_aw::TabLabel;
+
 use ensnano_interactor::StandardSequence;
 
+use super::tabs::GuiTab;
 use super::{AppState, DesignElementKey, Message, UiSize};
 use crate::helpers::*;
 use crate::theme::BadValue;
-use iced::{Element, Length};
 
-pub struct SequenceTab {
+pub struct SequenceTab<State: AppState> {
     toggle_text_value: bool,
     scaffold_position_str: String,
     scaffold_position: usize,
     scaffold_input: text_input::State<iced_graphics::text::Paragraph>,
+    _state_type: PhantomData<State>,
 }
 
 macro_rules! scaffold_length_fmt {
@@ -51,21 +57,64 @@ fn get_sequence_name(sequence: &str) -> &'static str {
     }
 }
 
-impl SequenceTab {
+impl<State: AppState> SequenceTab<State> {
     pub fn new() -> Self {
         Self {
             toggle_text_value: false,
             scaffold_position_str: "0".to_string(),
             scaffold_position: 0,
             scaffold_input: Default::default(),
+            _state_type: PhantomData,
         }
     }
 
-    pub fn view<S: AppState>(
+    pub fn toggle_text_value(&mut self, b: bool) {
+        self.toggle_text_value = b;
+    }
+
+    pub fn update_pos_str(&mut self, position_str: String) -> Option<usize> {
+        self.scaffold_position_str = position_str;
+        if let Ok(pos) = self.scaffold_position_str.parse::<usize>() {
+            self.scaffold_position = pos;
+            Some(pos)
+        } else {
+            None
+        }
+    }
+
+    pub fn has_keyboard_priority(&self) -> bool {
+        self.scaffold_input.is_focused()
+    }
+
+    fn get_candidate_scaffold(selection: &[DesignElementKey]) -> Option<usize> {
+        if selection.len() == 1 {
+            if let DesignElementKey::Strand(n) = selection[0] {
+                Some(n)
+            } else {
+                None
+            }
+        } else {
+            None
+        }
+    }
+
+    pub fn get_scaffold_shift(&self) -> usize {
+        self.scaffold_position
+    }
+}
+
+impl<State: AppState> GuiTab<State> for SequenceTab<State> {
+    type Message = Message<State>;
+
+    fn label(&self) -> TabLabel {
+        TabLabel::Icon(crate::consts::ICON_ATGC)
+    }
+
+    fn content(
         &self,
         ui_size: UiSize,
-        app_state: &S,
-    ) -> Element<Message<S>, crate::Theme, crate::Renderer> {
+        app_state: &State,
+    ) -> Element<Self::Message, crate::Theme, crate::Renderer> {
         // TODO: This update should happen, but somewhere else in the code.
         //       I think it must happen inside LeftPanel::update
         //
@@ -205,39 +254,5 @@ impl SequenceTab {
             .spacing(ui_size.button_pad()),
         ];
         scrollable(content).into()
-    }
-
-    pub fn toggle_text_value(&mut self, b: bool) {
-        self.toggle_text_value = b;
-    }
-
-    pub fn update_pos_str(&mut self, position_str: String) -> Option<usize> {
-        self.scaffold_position_str = position_str;
-        if let Ok(pos) = self.scaffold_position_str.parse::<usize>() {
-            self.scaffold_position = pos;
-            Some(pos)
-        } else {
-            None
-        }
-    }
-
-    pub fn has_keyboard_priority(&self) -> bool {
-        self.scaffold_input.is_focused()
-    }
-
-    fn get_candidate_scaffold(selection: &[DesignElementKey]) -> Option<usize> {
-        if selection.len() == 1 {
-            if let DesignElementKey::Strand(n) = selection[0] {
-                Some(n)
-            } else {
-                None
-            }
-        } else {
-            None
-        }
-    }
-
-    pub fn get_scaffold_shift(&self) -> usize {
-        self.scaffold_position
     }
 }

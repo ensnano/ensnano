@@ -15,17 +15,24 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+use std::marker::PhantomData;
+
+use iced_aw::TabLabel;
+
+use super::tabs::GuiTab;
 
 use super::{AppState, FactoryId, Message, RequestFactory, ScrollSensitivity, UiSize, ValueId};
 use crate::helpers::*;
+use crate::material_icons_light::{icon_to_char, LightIcon};
 use iced::Element;
 
-pub struct ParametersTab {
+pub struct ParametersTab<State: AppState> {
     scroll_sensitivity_factory: RequestFactory<ScrollSensitivity>,
     pub invert_y_scroll: bool,
+    _state_type: PhantomData<State>,
 }
 
-impl ParametersTab {
+impl<State: AppState> ParametersTab<State> {
     pub fn new<S: AppState>(app_state: &S) -> Self {
         Self {
             scroll_sensitivity_factory: RequestFactory::new(
@@ -35,14 +42,33 @@ impl ParametersTab {
                 },
             ),
             invert_y_scroll: false,
+            _state_type: PhantomData,
         }
     }
 
-    pub fn view<State: AppState>(
+    pub fn update_scroll_request(
+        &mut self,
+        value_id: ValueId,
+        value: f32,
+        request: &mut Option<f32>,
+    ) {
+        self.scroll_sensitivity_factory
+            .update_request(value_id, value, request);
+    }
+}
+
+impl<State: AppState> GuiTab<State> for ParametersTab<State> {
+    type Message = Message<State>;
+
+    fn label(&self) -> TabLabel {
+        TabLabel::Text(format!("{}", icon_to_char(LightIcon::Settings)))
+    }
+
+    fn content(
         &self,
         ui_size: UiSize,
         app_state: &State,
-    ) -> Element<Message<State>, crate::Theme, crate::Renderer> {
+    ) -> Element<Self::Message, crate::Theme, crate::Renderer> {
         let dna_params = &app_state.get_dna_parameters();
 
         let content = self::column![
@@ -106,15 +132,5 @@ impl ParametersTab {
             text("GPLv3"),
         ];
         scrollable(content).into()
-    }
-
-    pub fn update_scroll_request(
-        &mut self,
-        value_id: ValueId,
-        value: f32,
-        request: &mut Option<f32>,
-    ) {
-        self.scroll_sensitivity_factory
-            .update_request(value_id, value, request);
     }
 }

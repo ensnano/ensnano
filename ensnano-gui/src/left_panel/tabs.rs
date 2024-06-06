@@ -41,7 +41,41 @@ pub use sequence_tab::SequenceTab;
 mod pen_tab;
 pub use pen_tab::PenTab;
 pub(super) mod revolution_tab;
-pub use revolution_tab::*;
+
+#[derive(Clone, PartialEq, Eq, Debug)]
+pub enum TabId {
+    Grid,
+    Edition,
+    Camera,
+    Simulation,
+    Sequence,
+    Parameters,
+    Pen,
+    Revolution,
+}
+
+pub trait GuiTab<State: AppState> {
+    type Message;
+
+    fn label(&self) -> TabLabel;
+
+    fn view(
+        &self,
+        ui_size: UiSize,
+        app_state: &State,
+    ) -> Element<'_, Self::Message, crate::Theme, crate::Renderer> {
+        container(self.content(ui_size, app_state))
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .into()
+    }
+
+    fn content(
+        &self,
+        ui_size: UiSize,
+        app_state: &State,
+    ) -> Element<'_, Self::Message, crate::Theme, crate::Renderer>;
+}
 
 struct GoStop<State: AppState> {
     pub name: String,

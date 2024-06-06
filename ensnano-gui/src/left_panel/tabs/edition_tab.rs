@@ -15,19 +15,25 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+use iced_aw::TabLabel;
+use std::marker::PhantomData;
+
+use super::tabs::GuiTab;
 use super::{
     AppState, Color, ColorPicker, ColorSquare, DesignElementKey, FactoryId, GoStop, HelixRoll,
     Length, Message, RequestFactory, RollRequest, SequenceInput, UiSize, ValueId, VecDeque,
     MEMORY_COLOR_COLUMNS, MEMORY_COLOR_ROWS, NB_MEMORY_COLOR,
 };
 use crate::helpers::*;
+use crate::material_icons_light::{icon_to_char, LightIcon};
 
-pub struct EditionTab<S: AppState> {
+pub struct EditionTab<State: AppState> {
     helix_roll_factory: RequestFactory<HelixRoll>,
     color_picker: ColorPicker,
     _sequence_input: SequenceInput,
-    roll_target_btn: GoStop<S>,
+    //roll_target_btn: GoStop<State>,
     memory_color_squares: VecDeque<MemoryColorSquare>,
+    _state_type: PhantomData<State>,
 }
 
 /// An entry of the stack of last picked colors.
@@ -73,25 +79,92 @@ fn memory_color_column<State: AppState>(
         .into()
 }
 
-impl<S: AppState> EditionTab<S> {
+impl<State: AppState> EditionTab<State> {
     pub fn new() -> Self {
         Self {
             helix_roll_factory: RequestFactory::new(FactoryId::HelixRoll, HelixRoll {}),
             color_picker: ColorPicker::new(),
             _sequence_input: SequenceInput::new(),
-            roll_target_btn: GoStop::new(
-                "Autoroll selected helices".to_owned(),
-                Message::RollTargeted,
-            ),
+            //roll_target_btn: GoStop::new(
+            //    "Autoroll selected helices".to_owned(),
+            //    Message::RollTargeted,
+            //),
             memory_color_squares: VecDeque::new(),
+            _state_type: PhantomData,
         }
     }
 
-    pub fn view(
+    fn get_roll_target_helices(&self, selection: &[DesignElementKey]) -> Vec<usize> {
+        let mut ret = vec![];
+        for s in selection.iter() {
+            if let DesignElementKey::Helix(h) = s {
+                ret.push(*h)
+            }
+        }
+        ret
+    }
+
+    pub fn update_roll_request(
+        &mut self,
+        value_id: ValueId,
+        value: f32,
+        request: &mut Option<f32>,
+    ) {
+        self.helix_roll_factory
+            .update_request(value_id, value, request);
+    }
+
+    pub fn get_roll_request(&mut self, selection: &[DesignElementKey]) -> Option<RollRequest> {
+        let roll_target_helices = self.get_roll_target_helices(selection);
+        if roll_target_helices.len() > 0 {
+            Some(RollRequest {
+                roll: true,
+                springs: false,
+                target_helices: Some(roll_target_helices.clone()),
+            })
+        } else {
+            None
+        }
+    }
+
+    pub fn strand_color_change(&mut self) -> u32 {
+        let color = self.color_picker.update_color();
+        super::color_to_u32(color)
+    }
+
+    pub fn change_sat_value(&mut self, sat: f64, hsv_value: f64) {
+        self.color_picker.set_hsv_value(hsv_value);
+        self.color_picker.set_saturation(sat);
+    }
+
+    pub fn change_hue(&mut self, hue: f64) {
+        self.color_picker.change_hue(hue)
+    }
+
+    pub fn add_color(&mut self) {
+        let color = self.color_picker.update_color();
+        let memory_color = MemoryColorSquare::new(color);
+        if !self.memory_color_squares.contains(&memory_color) {
+            log::info!("adding color");
+            self.memory_color_squares.push_front(memory_color);
+            self.memory_color_squares.truncate(NB_MEMORY_COLOR);
+            log::info!("color len {}", self.memory_color_squares.len());
+        }
+    }
+}
+
+impl<State: AppState> GuiTab<State> for EditionTab<State> {
+    type Message = Message<State>;
+
+    fn label(&self) -> TabLabel {
+        TabLabel::Text(format!("{}", icon_to_char(LightIcon::Edit)))
+    }
+
+    fn content(
         &self,
         ui_size: UiSize,
-        app_state: &S,
-    ) -> iced::Element<Message<S>, crate::Theme, crate::Renderer> {
+        app_state: &State,
+    ) -> iced::Element<Self::Message, crate::Theme, crate::Renderer> {
         let roll_target_helices =
             self.get_roll_target_helices(&app_state.get_selection_as_designelement());
         let sim_state = &app_state.get_simulation_state();
@@ -176,63 +249,5 @@ impl<S: AppState> EditionTab<S> {
         .spacing(5);
 
         scrollable(content).into()
-    }
-
-    fn get_roll_target_helices(&self, selection: &[DesignElementKey]) -> Vec<usize> {
-        let mut ret = vec![];
-        for s in selection.iter() {
-            if let DesignElementKey::Helix(h) = s {
-                ret.push(*h)
-            }
-        }
-        ret
-    }
-
-    pub fn update_roll_request(
-        &mut self,
-        value_id: ValueId,
-        value: f32,
-        request: &mut Option<f32>,
-    ) {
-        self.helix_roll_factory
-            .update_request(value_id, value, request);
-    }
-
-    pub fn get_roll_request(&mut self, selection: &[DesignElementKey]) -> Option<RollRequest> {
-        let roll_target_helices = self.get_roll_target_helices(selection);
-        if roll_target_helices.len() > 0 {
-            Some(RollRequest {
-                roll: true,
-                springs: false,
-                target_helices: Some(roll_target_helices.clone()),
-            })
-        } else {
-            None
-        }
-    }
-
-    pub fn strand_color_change(&mut self) -> u32 {
-        let color = self.color_picker.update_color();
-        super::color_to_u32(color)
-    }
-
-    pub fn change_sat_value(&mut self, sat: f64, hsv_value: f64) {
-        self.color_picker.set_hsv_value(hsv_value);
-        self.color_picker.set_saturation(sat);
-    }
-
-    pub fn change_hue(&mut self, hue: f64) {
-        self.color_picker.change_hue(hue)
-    }
-
-    pub fn add_color(&mut self) {
-        let color = self.color_picker.update_color();
-        let memory_color = MemoryColorSquare::new(color);
-        if !self.memory_color_squares.contains(&memory_color) {
-            log::info!("adding color");
-            self.memory_color_squares.push_front(memory_color);
-            self.memory_color_squares.truncate(NB_MEMORY_COLOR);
-            log::info!("color len {}", self.memory_color_squares.len());
-        }
     }
 }
