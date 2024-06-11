@@ -82,10 +82,13 @@ fn named_camera_to_button<'a, State: AppState>(
     position: &NamedCameraPosition,
     ui_size: UiSize,
 ) -> Element<'a, Message<State>, crate::Theme, crate::Renderer> {
-    button(text(position.name).size(ui_size.main_text()))
+    //button(text(position.name).size(ui_size.main_text()))
+    //    .on_press(position.message())
+    //    .height(ui_size.button())
+    //    .width(2.0 * ui_size.button()) // Twice the button's height.
+    //    .into()
+    button(text(position.name))
         .on_press(position.message())
-        .height(ui_size.button())
-        .width(2.0 * ui_size.button()) // Twice the button's height.
         .into()
 }
 

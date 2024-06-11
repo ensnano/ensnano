@@ -1015,7 +1015,7 @@ where
             .tab_bar_position(TabBarPosition::Top)
             .icon_font(ICONFONT)
             .icon_size(self.ui_size.icon())
-            .text_font(crate::helpers::ENSNANO_FONT)
+            .text_font(crate::fonts::ENSNANO_FONT)
             .tab_bar_height(Length::Fixed(self.ui_size.button()))
             .width(Length::Fixed(width as f32))
             .height(Length::Fill);

@@ -380,7 +380,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
             row![button_help, button_tutorial,].spacing(self.ui_size.button_pad()),
             // ENSnano logo, placed on the right.
             text("\u{e91c}")
-                .font(crate::helpers::ENSNANO_FONT)
+                .font(crate::fonts::ENSNANO_FONT)
                 .width(Length::Fill)
                 .horizontal_alignment(iced::alignment::Horizontal::Right)
                 .vertical_alignment(iced::alignment::Vertical::Center),

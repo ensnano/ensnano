@@ -15,25 +15,13 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-//! Additional Iced view helpers for ENSnano.
-//!
-//! Repetitive, complex widgets are factored here.
 use super::UiSize;
+use crate::fonts::ENSNANO_FONT;
 use crate::material_icons_light::{self, LightIcon};
-use iced::{Font, Length};
+use iced::Length;
 pub use iced_widget::*;
 
 const JUMP_SIZE: f32 = 4.0;
-
-pub const ENSNANO_FONT_BYTES: &[u8] = include_bytes!("../../font/ensnano2.ttf");
-pub const ENSNANO_FONT: Font = Font::with_name("Inter Regular");
-//pub const ENSNANO_FONT: Font = Font {
-//    //family: font::Family::Name("Inter"),
-//    family: font::Family::SansSerif,
-//    weight: font::Weight::Normal,
-//    stretch: font::Stretch::Normal,
-//    style: font::Style::Normal,
-//};
 
 /// Add vertical space of [JUMP_SIZE] amount
 pub fn extra_jump() -> Space {

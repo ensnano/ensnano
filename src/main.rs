@@ -361,7 +361,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let settings = Settings {
         antialiasing: Some(iced_graphics::Antialiasing::MSAAx4),
         default_text_size: ui_size.main_text().into(),
-        default_font: ensnano_gui::helpers::ENSNANO_FONT,
+        default_font: ensnano_gui::fonts::ENSNANO_FONT,
         ..Default::default()
     };
     // Initialize the renderer
@@ -370,7 +370,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         settings.default_font,
         settings.default_text_size,
     );
-    ensnano_gui::load_fonts(&mut overlay_renderer);
+    ensnano_gui::fonts::load_fonts(&mut overlay_renderer);
     let device = Rc::new(device);
     let queue = Rc::new(queue);
     let mut resized = false;

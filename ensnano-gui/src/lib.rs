@@ -28,8 +28,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //       * Left Panel: 0x23272A  Slightly darker than above.
 //       * Status Bar: 0x121230  More blueish.
 
-use std::borrow::Cow;
-
+pub mod fonts;
 pub mod helpers;
 pub mod theme;
 pub use theme::Theme;
@@ -649,7 +648,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
     ) -> Self {
         let wgpu_settings = iced_wgpu::Settings {
             antialiasing: Some(iced_graphics::Antialiasing::MSAAx4),
-            default_font: crate::helpers::ENSNANO_FONT,
+            default_font: crate::fonts::ENSNANO_FONT,
             default_text_size: iced::Pixels(ui_size.main_text()),
             ..Default::default()
         };
@@ -693,7 +692,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
             self.wgpu_settings.default_font,
             self.wgpu_settings.default_text_size,
         );
-        crate::load_fonts(&mut top_bar_renderer);
+        crate::fonts::load_fonts(&mut top_bar_renderer);
         self.components.insert(
             GuiComponentType::TopBar,
             GuiComponent::top_bar(
@@ -717,7 +716,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
             self.wgpu_settings.default_font,
             self.wgpu_settings.default_text_size,
         );
-        crate::load_fonts(&mut left_panel_renderer);
+        crate::fonts::load_fonts(&mut left_panel_renderer);
         self.components.insert(
             GuiComponentType::LeftPanel,
             GuiComponent::left_panel(
@@ -1095,31 +1094,3 @@ pub struct TopBarState {
 }
 // NOTE: This was called “MainState”. I am not sure that “TopBarState” is the best name for this.
 //       Maybe this would be more like a “GuiState”.
-
-/// Load custom font for ENSnano GUI.
-pub fn load_fonts(renderer: &mut Renderer)
-where
-    Renderer: iced::advanced::text::Renderer,
-{
-    use iced::advanced::text::Renderer;
-    let fonts = [
-        material_icons_light::MATERIAL_ICONS_LIGHT_BYTES,
-        material_icons_light::MATERIAL_ICONS_DARK_BYTES,
-        helpers::ENSNANO_FONT_BYTES,
-    ];
-    for font in fonts {
-        renderer.load_font(Cow::from(font));
-    }
-}
-
-// NOTE: Custom fonts became much harder to use since iced 0.10. See:
-//
-//         https://github.com/iced-rs/iced/discussions/1988
-//         https://github.com/fmonniot/pathfinder-wotr-editor/commit/c86fb9a5d2b77b63f284026de3c269fb798dc9ef#diff-42cb6807ad74b3e201c5a7ca98b911c5fa08380e942be6e4ac5807f8377f87fcR106-R116
-//
-// NOTE: Icon font used to be loaded by hand, but now the bootstrap icons
-//       are included in iced_aw, so we use them directly.
-//
-// NOTE: Other help from forums
-//
-//        https://github.com/BillyDM/iced_baseview/issues/39
