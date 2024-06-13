@@ -548,7 +548,7 @@ impl Curve {
     }
 }
 
-fn perpendicular_basis(point: DVec3) -> DMat3 {
+pub fn perpendicular_basis(point: DVec3) -> DMat3 {
     let norm = point.mag();
 
     if norm < EPSILON {

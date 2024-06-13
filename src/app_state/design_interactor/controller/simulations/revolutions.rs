@@ -586,20 +586,31 @@ impl ensnano_design::AdditionalStructure for RevolutionSurfaceSystem {
             .collect()
     }
 
-    fn nt_path(&self) -> Option<Vec<ultraviolet::Vec3>> {
+    fn nt_paths(&self) -> Option<Vec<Vec<ultraviolet::Vec3>>> {
         let mut ret = Vec::new();
         let curve_desc = self.to_curve_desc(false)?;
         for desc in curve_desc {
             let nts = desc.path()?;
-            ret.extend(nts.into_iter().map(ensnano_design::utils::dvec_to_vec));
+            ret.push(
+                nts.into_iter()
+                    .map(ensnano_design::utils::dvec_to_vec)
+                    .collect::<Vec<ultraviolet::Vec3>>(),
+            );
         }
 
-        for n in 0..1000 {
-            ret.push(ensnano_design::utils::dvec_to_vec(
-                self.topology
-                    .surface_position(-std::f64::consts::FRAC_PI_2, n as f64 / 1000.),
+        let number_of_steps = 1000;
+
+        // The section at -PI/2
+        let mut section = Vec::new();
+        for n in 0..number_of_steps {
+            section.push(ensnano_design::utils::dvec_to_vec(
+                self.topology.surface_position(
+                    -std::f64::consts::FRAC_PI_2,
+                    n as f64 / number_of_steps as f64,
+                ),
             ));
         }
+        ret.push(section);
 
         Some(ret)
     }

@@ -23,7 +23,7 @@ use super::wgpu;
 const OBJ_VERTEX_ARRAY: [wgpu::VertexAttribute; 3] =
     wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3, 2 => Float32x4];
 
-const DEFAULT_STL_COLOR: [f32;4] = [0., 0.5, 1., 0.9];
+const DEFAULT_STL_COLOR: [f32; 4] = [0., 0.5, 1., 0.9];
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
