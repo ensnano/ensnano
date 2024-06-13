@@ -322,7 +322,7 @@ impl<R: DesignReader> Design3D<R> {
                     let pos_right = transformation.transform_vec(positions[next]);
                     ret.push(
                         create_dna_bond(pos_left, pos_right, REGULAR_H_BOND_COLOR, u32::MAX, false)
-                            .with_radius(SPHERE_RADIUS)
+                            .with_radius(1.5 * SPHERE_RADIUS)
                             .to_raw_instance(),
                     )
                 }
@@ -334,6 +334,8 @@ impl<R: DesignReader> Design3D<R> {
             let SPRING_RADIUS = 2. * SPHERE_RADIUS;
             let SPRING_THICKNESS = SPRING_RADIUS / 4.;
             let alpha = NB_COILS as f32 * TAU / NB_STEPS as f32;
+            let xx = (0..NB_COILS).map(|i| SPRING_RADIUS * (i as f32 * alpha).cos()).collect::<Vec<f32>>();
+            let yy = (0..NB_COILS).map(|i| SPRING_RADIUS * (i as f32 * alpha).sin()).collect::<Vec<f32>>();
             if draw_springs {
                 for (me, other) in additional_structure.next().into_iter() {
                     let pos_left = transformation.transform_vec(positions[me]);
@@ -350,11 +352,11 @@ impl<R: DesignReader> Design3D<R> {
                         .normalized();
                     let x_vec = y_vec.cross(z_vec);
                     let positions = (0..NB_STEPS)
-                        .map(|i: i32| {
+                        .map(|i| {
                             (pos_left
                                 + i as f32 / NB_STEPS as f32 * (pos_right - pos_left)
-                                + SPRING_RADIUS * (i as f32 * alpha).cos() * x_vec
-                                + SPRING_RADIUS * (i as f32 * alpha).sin() * y_vec)
+                                + xx[i%NB_COILS] * x_vec
+                                + yy[i%NB_COILS] * y_vec)
                         })
                         .collect();
                     let (sliced_tubes, _) = SausageRosary {
