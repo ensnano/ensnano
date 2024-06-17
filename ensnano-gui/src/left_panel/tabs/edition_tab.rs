@@ -25,7 +25,6 @@ use super::{
     MEMORY_COLOR_COLUMNS, MEMORY_COLOR_ROWS, NB_MEMORY_COLOR,
 };
 use crate::helpers::*;
-use crate::material_icons_light::{icon_to_char, MaterialIcon};
 
 pub struct EditionTab<State: AppState> {
     helix_roll_factory: RequestFactory<HelixRoll>,

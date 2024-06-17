@@ -22,7 +22,6 @@ use iced_aw::TabLabel;
 use super::tabs::GuiTab;
 use crate::helpers::*;
 use crate::left_panel::Message;
-use crate::material_icons_light::{icon_to_char, MaterialIcon};
 use crate::theme;
 use crate::{AppState, SimulationState, UiSize};
 use ensnano_design::{

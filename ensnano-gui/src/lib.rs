@@ -46,7 +46,7 @@ pub use left_panel::{
 pub mod status_bar;
 mod ui_size;
 pub use ui_size::*;
-mod material_icons_light;
+mod material_icons;
 pub use ensnano_design::{grid::GridId, Camera, CameraId};
 pub use status_bar::{ClipboardContent, CurentOpState, StrandBuildingStatus};
 mod consts;

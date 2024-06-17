@@ -16,8 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use super::{rotation_message, AppState, Message, UiSize, Vec3};
-use crate::helpers::*;
-use crate::{material_icons_light::MaterialIcon, CameraId};
+use crate::{helpers::*, CameraId};
 use iced::{alignment::Horizontal, Alignment, Element, Length};
 
 /// A named camera orientation.

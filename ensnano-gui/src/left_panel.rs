@@ -41,8 +41,7 @@ use ensnano_interactor::{
 use ensnano_exports::ExportType;
 
 use super::{
-    material_icons_light::MATERIAL_ICONS_DARK as ICONFONT, AppState, FogParameters, OverlayType,
-    Requests, UiSize,
+    material_icons::MATERIAL_ICONS_DARK, AppState, FogParameters, OverlayType, Requests, UiSize,
 };
 
 use ensnano_design::{grid::GridTypeDescr, ultraviolet, NamedParameter};
@@ -1013,7 +1012,7 @@ where
             )
             .set_active_tab(&self.active_tab)
             .tab_bar_position(TabBarPosition::Top)
-            .icon_font(ICONFONT)
+            .icon_font(MATERIAL_ICONS_DARK)
             .icon_size(self.ui_size.icon())
             .text_font(crate::fonts::ENSNANO_FONT)
             .tab_bar_height(Length::Fixed(self.ui_size.button()))

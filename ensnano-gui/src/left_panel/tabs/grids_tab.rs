@@ -26,7 +26,6 @@ use super::{
     UiSize, ValueId, ICON_HONEYCOMB_GRID, ICON_NANOTUBE, ICON_SQUARE_GRID,
 };
 use crate::helpers::*;
-use crate::material_icons_light::{icon_to_char, MaterialIcon};
 
 pub struct GridTab<State: AppState> {
     hyperboloid_factory: RequestFactory<Hyperboloid_>,

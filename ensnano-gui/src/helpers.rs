@@ -17,8 +17,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use super::UiSize;
 use crate::fonts::ENSNANO_FONT;
-use crate::material_icons_light;
-pub use crate::material_icons_light::{MaterialIcon, MaterialIconStyle};
+use crate::material_icons;
+pub use crate::material_icons::{icon_to_char, MaterialIcon, MaterialIconStyle};
 use iced::{
     advanced,
     alignment::{Alignment, Horizontal, Vertical},
@@ -88,10 +88,10 @@ where
     Renderer: advanced::Renderer + advanced::text::Renderer,
     <Renderer as advanced::text::Renderer>::Font: From<Font>,
 {
-    text(material_icons_light::icon_to_char(icon))
+    text(icon_to_char(icon))
         .font(match style {
-            MaterialIconStyle::Light => material_icons_light::MATERIAL_ICONS_LIGHT,
-            MaterialIconStyle::Dark => material_icons_light::MATERIAL_ICONS_DARK,
+            MaterialIconStyle::Light => material_icons::MATERIAL_ICONS_LIGHT,
+            MaterialIconStyle::Dark => material_icons::MATERIAL_ICONS_DARK,
         })
         .size(ui_size.icon())
 }
