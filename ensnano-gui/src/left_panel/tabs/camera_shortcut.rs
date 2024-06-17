@@ -17,10 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use super::{rotation_message, AppState, Message, UiSize, Vec3};
 use crate::helpers::*;
-use crate::{
-    material_icons_light::{self, LightIcon},
-    CameraId,
-};
+use crate::{material_icons_light::MaterialIcon, CameraId};
 use iced::{alignment::Horizontal, Alignment, Element, Length};
 
 /// A named camera orientation.
@@ -87,7 +84,7 @@ fn named_camera_to_button<'a, State: AppState>(
     //    .height(ui_size.button())
     //    .width(2.0 * ui_size.button()) // Twice the button's height.
     //    .into()
-    button(text(position.name))
+    fixed_text_button(position.name, 2.0, ui_size)
         .on_press(position.message())
         .into()
 }
@@ -200,21 +197,19 @@ impl CameraShortcutPanel {
 
         let rotate_buttons: Column<Message<State>, crate::Theme, crate::Renderer> = self::column![
             row(IntoIterator::into_iter([4, 2, 5]).map(|i| {
-                button(rotation_text(i, ui_size))
+                rotation_icon_button(i, ui_size)
                     .on_press(rotation_message(i, self.xz, self.yz, self.xy))
-                    .width(ui_size.button())
                     .into()
             }))
-            .spacing(ui_size.button_pad()),
+            .spacing(ui_size.button_spacing()),
             row(IntoIterator::into_iter([0, 3, 1]).map(|i| {
-                button(rotation_text(i, ui_size))
+                rotation_icon_button(i, ui_size)
                     .on_press(rotation_message(i, self.xz, self.yz, self.xy))
-                    .width(ui_size.button())
                     .into()
             }))
-            .spacing(ui_size.button_pad()),
+            .spacing(ui_size.button_spacing()),
         ]
-        .spacing(ui_size.button_pad());
+        .spacing(ui_size.button_spacing());
 
         //let mut ret = Column::new();
         //while rotate_buttons.len() > 0 {
@@ -232,7 +227,7 @@ impl CameraShortcutPanel {
             self::column![
                 section("Camera", ui_size),
                 row![
-                    Space::with_width(ui_size.button_pad()),
+                    Space::with_width(ui_size.button_spacing()),
                     // add_target_buttons!
                     self::column![
                         subsection("Fixed", ui_size)
@@ -244,22 +239,22 @@ impl CameraShortcutPanel {
                                 named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[0], ui_size),
                                 named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[1], ui_size),
                             ]
-                            .spacing(ui_size.button_pad()),
+                            .spacing(ui_size.button_spacing()),
                             self::column![
                                 named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[2], ui_size),
                                 named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[3], ui_size),
                             ]
-                            .spacing(ui_size.button_pad()),
+                            .spacing(ui_size.button_spacing()),
                             self::column![
                                 named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[4], ui_size),
                                 named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[5], ui_size),
                             ]
-                            .spacing(ui_size.button_pad()),
+                            .spacing(ui_size.button_spacing()),
                         ]
-                        .spacing(ui_size.button_pad()),
+                        .spacing(ui_size.button_spacing()),
                     ]
                     .align_items(Alignment::Center),
-                    Space::with_width(2.0 * ui_size.button_pad()),
+                    Space::with_width(2.0 * ui_size.button_spacing()),
                     // add_rotate_buttons!
                     self::column![
                         subsection("Rotation", ui_size)
@@ -269,35 +264,33 @@ impl CameraShortcutPanel {
                         rotate_buttons,
                     ]
                     .align_items(Alignment::Center),
-                    Space::with_width(2.0 * ui_size.button_pad()),
+                    Space::with_width(2.0 * ui_size.button_spacing()),
                     // add_screenshot_button!
                     self::column![
-                        material_icons_light::dark_icon(LightIcon::PhotoCamera, ui_size)
+                        material_icon(MaterialIcon::PhotoCamera, MaterialIconStyle::Dark, ui_size)
                             .height(ui_size.button()),
                         extra_jump(),
                         self::column![
-                            text_button("2D", ui_size)
-                                .height(ui_size.button())
-                                .on_press(Message::ScreenShot2D),
-                            text_button("3D", ui_size)
-                                .height(ui_size.button())
-                                .on_press(Message::ScreenShot3D),
+                            fixed_text_button("2D", 1.0, ui_size).on_press(Message::ScreenShot2D),
+                            fixed_text_button("3D", 1.0, ui_size).on_press(Message::ScreenShot3D),
                         ]
-                        .spacing(ui_size.button_pad()),
+                        .spacing(ui_size.button_spacing()),
                     ]
                     .align_items(Alignment::Center),
-                    Space::with_width(2.0 * ui_size.button_pad()),
+                    Space::with_width(2.0 * ui_size.button_spacing()),
                     // add_stl_export_button!
                     self::column![
+                        Space::with_height(ui_size.button()),
                         extra_jump(),
-                        self::column![text_button("STL", ui_size)
-                            .width(2.0 * ui_size.button())
-                            .height(ui_size.button())
-                            .on_press(Message::StlExport),]
-                        .spacing(ui_size.button_pad()),
+                        self::column![
+                            fixed_text_button("STL", 2.0, ui_size).on_press(Message::StlExport),
+                            // NOTE: Trick to align the STL button on the first row.
+                            Space::with_height(ui_size.button() + 2.0 * ui_size.button_pad()),
+                        ]
+                        .spacing(ui_size.button_spacing()),
                     ]
                     .align_items(Alignment::End),
-                    Space::with_width(ui_size.button_pad()),
+                    Space::with_width(ui_size.button_spacing()),
                 ]
                 .align_items(Alignment::Center),
             ]
@@ -306,9 +299,13 @@ impl CameraShortcutPanel {
                 // add_custom_camera_row!
                 row![
                     section("Custom cameras", ui_size),
-                    Space::with_width(ui_size.button_pad()),
-                    light_icon_button(LightIcon::AddAPhoto, ui_size)
-                        .on_press(Message::NewCustomCamera),
+                    Space::with_width(ui_size.button_spacing()),
+                    material_icon_button(
+                        MaterialIcon::AddAPhoto,
+                        MaterialIconStyle::Light,
+                        ui_size
+                    )
+                    .on_press(Message::NewCustomCamera),
                 ],
                 // add_camera_widgets!
                 Column::with_children(self.camera_widgets.iter().map(|w| w.view(ui_size)))
@@ -356,15 +353,15 @@ impl CameraWidget {
             name_field,
             Space::with_width(3),
             // edit button
-            light_icon_button(LightIcon::Edit, ui_size)
+            material_icon_button(MaterialIcon::Edit, MaterialIconStyle::Light, ui_size)
                 .on_press(Message::<State>::StartEditCameraName(self.camera_id)),
             //
             Space::with_width(Length::Fill),
             //select camera button
-            light_icon_button(LightIcon::Visibility, ui_size)
+            material_icon_button(MaterialIcon::Visibility, MaterialIconStyle::Light, ui_size)
                 .on_press(Message::<State>::SelectCamera(self.camera_id)),
             // delete button
-            light_icon_button(LightIcon::Delete, ui_size)
+            material_icon_button(MaterialIcon::Delete, MaterialIconStyle::Light, ui_size)
                 .on_press(Message::<State>::DeleteCamera(self.camera_id)),
         ]
         .into()

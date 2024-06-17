@@ -153,7 +153,7 @@ impl<State: AppState> GuiTab<State> for SequenceTab<State> {
                         button_selection_to_scaffold.on_press(Message::ScaffoldIdSet(n, true));
                 }
                 row![button_selection_to_scaffold, button_selection_from_scaffold,]
-                    .spacing(ui_size.button_pad())
+                    .spacing(ui_size.button_spacing())
             },
             extra_jump(),
             // add_scaffold_info!
@@ -186,8 +186,7 @@ impl<State: AppState> GuiTab<State> for SequenceTab<State> {
             ),
             extra_jump(),
             // add_set_scaffold_sequence_button!
-            button(text("Set scaffold sequence"))
-                .height(ui_size.button())
+            text_button("Set scaffold sequence", ui_size)
                 .on_press(Message::SetScaffoldSeqButtonPressed),
             // show_current_sequence_name!
             {
@@ -210,8 +209,7 @@ impl<State: AppState> GuiTab<State> for SequenceTab<State> {
                     .width(iced::Length::FillPortion(1)),
             ],
             // add_optimize_scaffold_shift_button!
-            button(text("Optimize starting position"))
-                .height(ui_size.button())
+            text_button("Optimize starting position", ui_size)
                 .on_press(Message::OptimizeScaffoldShiftPressed),
             // add_scaffold_start_position!
             {
@@ -244,14 +242,10 @@ impl<State: AppState> GuiTab<State> for SequenceTab<State> {
             extra_jump(),
             // add_download_staples_button!
             self::column![
-                button(text("Export Staples"))
-                    .height(ui_size.button())
-                    .on_press(Message::StapplesRequested),
-                button(text("Export Origamis"))
-                    .height(ui_size.button())
-                    .on_press(Message::OrigamisRequested),
+                text_button("Export Staples", ui_size).on_press(Message::StapplesRequested),
+                text_button("Export Origamis", ui_size).on_press(Message::OrigamisRequested),
             ]
-            .spacing(ui_size.button_pad()),
+            .spacing(ui_size.button_spacing()),
         ];
         scrollable(content).into()
     }

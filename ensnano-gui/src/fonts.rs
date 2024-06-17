@@ -29,11 +29,13 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //        https://github.com/BillyDM/iced_baseview/issues/39
 use std::borrow::Cow;
 
-use crate::material_icons_light::{self, LightIcon};
+use crate::material_icons_light;
 use iced::{advanced::text, Font};
 
 pub const ENSNANO_FONT_BYTES: &[u8] = include_bytes!("../../font/ensnano2.ttf");
 pub const ENSNANO_FONT: Font = Font::with_name("Ensnano");
+
+// https://rsms.me/inter
 
 /// Load custom font for ENSnano GUI.
 pub fn load_fonts(renderer: &mut impl text::Renderer) {

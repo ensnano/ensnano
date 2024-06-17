@@ -11,7 +11,7 @@ pub const MATERIAL_ICONS_LIGHT: Font = Font::with_name("Material Icons Outlined"
 pub const MATERIAL_ICONS_DARK: Font = Font::with_name("Material Icons");
 
 pub fn light_icon<'a, Theme, Renderer>(
-    icon: LightIcon,
+    icon: MaterialIcon,
     ui_size: UiSize,
 ) -> iced::widget::Text<'a, Theme, Renderer>
 where
@@ -19,13 +19,12 @@ where
     Renderer: iced::advanced::Renderer + iced::advanced::text::Renderer,
     <Renderer as iced::advanced::text::Renderer>::Font: From<iced::Font>,
 {
-    iced::widget::Text::new(format!("{}", icon_to_char(icon)))
-        .font(MATERIAL_ICONS_LIGHT)
-        .size(ui_size.icon())
+    iced::widget::text(icon_to_char(icon)).font(MATERIAL_ICONS_LIGHT)
+    //.size(ui_size.icon())
 }
 
 pub fn dark_icon<'a, Theme, Renderer>(
-    icon: LightIcon,
+    icon: MaterialIcon,
     ui_size: UiSize,
 ) -> iced::widget::Text<'a, Theme, Renderer>
 where
@@ -33,12 +32,17 @@ where
     Renderer: iced::advanced::Renderer + iced::advanced::text::Renderer,
     <Renderer as iced::advanced::text::Renderer>::Font: From<iced::Font>,
 {
-    iced::widget::Text::new(format!("{}", icon_to_char(icon)))
+    iced::widget::text(icon_to_char(icon))
         .font(MATERIAL_ICONS_DARK)
         .size(ui_size.icon())
 }
 
-pub enum LightIcon {
+pub enum MaterialIconStyle {
+    Light,
+    Dark,
+}
+
+pub enum MaterialIcon {
     _10K,
     _10Mp,
     _11Mp,
@@ -2236,8 +2240,8 @@ pub enum LightIcon {
     ZoomOutMap,
 }
 
-pub fn icon_to_char(icon: LightIcon) -> char {
-    use LightIcon::*;
+pub fn icon_to_char(icon: MaterialIcon) -> char {
+    use MaterialIcon::*;
     match icon {
         _10K => '\u{e951}',
         _10Mp => '\u{e952}',

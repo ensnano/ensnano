@@ -21,7 +21,7 @@ use std::marker::PhantomData;
 use super::tabs::GuiTab;
 use super::{AppState, CheckXoversParameter, FogParameters, HBondDisplay, Message, UiSize};
 use crate::helpers::*;
-use crate::material_icons_light::{icon_to_char, LightIcon};
+use crate::material_icons_light::{icon_to_char, MaterialIcon};
 use crate::theme;
 use ensnano_interactor::graphics::{
     Background3D, RenderingMode, ALL_BACKGROUND3D, ALL_RENDERING_MODE,
@@ -78,7 +78,7 @@ impl<State: AppState> GuiTab<State> for CameraTab<State> {
     type Message = Message<State>;
 
     fn label(&self) -> TabLabel {
-        TabLabel::Text(format!("{}", icon_to_char(LightIcon::Videocam)))
+        TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Videocam)))
     }
 
     fn content(
@@ -96,7 +96,7 @@ impl<State: AppState> GuiTab<State> for CameraTab<State> {
                 text_button("All visible", ui_size).on_press(Message::AllVisible),
             ]
             .width(Length::Fill)
-            .spacing(ui_size.button_pad()),
+            .spacing(ui_size.button_spacing()),
             self.fog.view(ui_size),
             extra_jump(),
             row![
@@ -234,7 +234,7 @@ impl FogGuiParameters {
                     )),
                     Message::FogChoice,
                 )
-                .padding(ui_size.button_pad()),
+                .padding(ui_size.button_spacing()),
             ]
             .align_items(Alignment::Center)
             .spacing(5),

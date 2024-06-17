@@ -26,7 +26,7 @@ use super::{
     UiSize, ValueId, ICON_HONEYCOMB_GRID, ICON_NANOTUBE, ICON_SQUARE_GRID,
 };
 use crate::helpers::*;
-use crate::material_icons_light::{icon_to_char, LightIcon};
+use crate::material_icons_light::{icon_to_char, MaterialIcon};
 
 pub struct GridTab<State: AppState> {
     hyperboloid_factory: RequestFactory<Hyperboloid_>,
@@ -61,7 +61,7 @@ impl<State: AppState> GuiTab<State> for GridTab<State> {
     type Message = Message<State>;
 
     fn label(&self) -> TabLabel {
-        TabLabel::Text(format!("{}", icon_to_char(LightIcon::GridOn)))
+        TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::GridOn)))
     }
 
     fn content(
@@ -80,7 +80,7 @@ impl<State: AppState> GuiTab<State> for GridTab<State> {
                 icon_button(ICON_HONEYCOMB_GRID, ui_size)
                     .on_press(Message::NewGrid(GridTypeDescr::Honeycomb { twist: None })),
             ]
-            .spacing(ui_size.button_pad()),
+            .spacing(ui_size.button_spacing()),
             extra_jump(),
             subsection("New nanotube", ui_size),
             // add_start_cancel_hyperboloid_button!
@@ -93,10 +93,10 @@ impl<State: AppState> GuiTab<State> for GridTab<State> {
                         .on_press(Message::FinalizeHyperboloid)
                         .style(iced::theme::Button::Positive),
                 ]
-                .spacing(ui_size.button_pad())
+                .spacing(ui_size.button_spacing())
             } else {
                 row![icon_button(ICON_NANOTUBE, ui_size).on_press(Message::NewHyperboloid),]
-                    .spacing(ui_size.button_pad())
+                    .spacing(ui_size.button_spacing())
             },
             // add hyperboloid sliders!
             Column::with_children(
@@ -106,14 +106,13 @@ impl<State: AppState> GuiTab<State> for GridTab<State> {
             extra_jump(),
             subsection("Guess grid", ui_size),
             // add_guess_grid_button!
-            if app_state.can_make_grid() {
-                button(text("From Selection"))
-                    .height(ui_size.button())
-                    .on_press(Message::MakeGrids)
-            } else {
-                button(text("From Selection")).height(ui_size.button())
-            },
-            text("Select ≥4 unattached helices").size(ui_size.main_text()),
+            tooltip(
+                text_button("From Selection", ui_size)
+                    .on_press_maybe(app_state.can_make_grid().then_some(Message::MakeGrids)),
+                text("Select ≥4 unattached helices").size(ui_size.main_text()),
+                tooltip::Position::FollowCursor,
+            )
+            .style(theme::Container::Box),
         ]
         .spacing(5);
         scrollable(content).width(Length::Fill).into()

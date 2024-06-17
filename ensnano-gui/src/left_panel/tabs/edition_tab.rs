@@ -25,7 +25,7 @@ use super::{
     MEMORY_COLOR_COLUMNS, MEMORY_COLOR_ROWS, NB_MEMORY_COLOR,
 };
 use crate::helpers::*;
-use crate::material_icons_light::{icon_to_char, LightIcon};
+use crate::material_icons_light::{icon_to_char, MaterialIcon};
 
 pub struct EditionTab<State: AppState> {
     helix_roll_factory: RequestFactory<HelixRoll>,
@@ -157,7 +157,7 @@ impl<State: AppState> GuiTab<State> for EditionTab<State> {
     type Message = Message<State>;
 
     fn label(&self) -> TabLabel {
-        TabLabel::Text(format!("{}", icon_to_char(LightIcon::Edit)))
+        TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Edit)))
     }
 
     fn content(
@@ -181,7 +181,7 @@ impl<State: AppState> GuiTab<State> for EditionTab<State> {
         let content = self::column![
             section("Edition", ui_size),
             // add_roll_slider!
-            Column::with_children(
+            column(
                 self.helix_roll_factory
                     .view(roll_target_helices.len() >= 1, ui_size.intermediate_text())
             ),
@@ -244,7 +244,7 @@ impl<State: AppState> GuiTab<State> for EditionTab<State> {
                 tighten_helices_button,
                 text_button("All", ui_size).on_press(Message::Redim2dHelices(true)),
             ]
-            .spacing(ui_size.button_pad()),
+            .spacing(ui_size.button_spacing()),
         ]
         .spacing(5);
 

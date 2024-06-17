@@ -22,7 +22,7 @@ use iced_aw::TabLabel;
 use super::tabs::GuiTab;
 use crate::helpers::*;
 use crate::left_panel::Message;
-use crate::material_icons_light::{icon_to_char, LightIcon};
+use crate::material_icons_light::{icon_to_char, MaterialIcon};
 use crate::theme;
 use crate::{AppState, SimulationState, UiSize};
 use ensnano_design::{
@@ -561,7 +561,7 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
     type Message = Message<State>;
 
     fn label(&self) -> TabLabel {
-        TabLabel::Text(format!("{}", icon_to_char(LightIcon::AutoMode)))
+        TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::AutoMode)))
     }
 
     fn content(
@@ -593,7 +593,7 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
         let simulation_buttons = if let SimulationState::Relaxing = app_state.get_simulation_state()
         {
             self::column![
-                button(text("Abort")).on_press(Message::StopSimulation),
+                text_button("Abort", ui_size).on_press(Message::StopSimulation),
                 jump_by(2),
                 text(
                     app_state
@@ -601,10 +601,10 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
                         .get_current_length_of_relaxed_shape()
                         .map_or("".into(), |l| format!("Current total length: {l}"))
                 ),
-                button(text("Finish")).on_press(Message::FinishRelaxation),
+                text_button("Finish", ui_size).on_press(Message::FinishRelaxation),
             ]
         } else {
-            let mut button = button(text("Start"));
+            let mut button = text_button("Start", ui_size);
             if let SimulationState::None = app_state.get_simulation_state() {
                 if desc.is_some() {
                     button = button.on_press(Message::InitRevolutionRelaxation);

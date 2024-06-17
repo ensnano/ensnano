@@ -159,12 +159,8 @@ impl<State: AppState> GuiTab<State> for SimulationTab<State> {
         let content = self::column![
             section("Simulation (Beta)", ui_size),
             self::column![
-                self.physical_simulation.view(
-                    &ui_size,
-                    "Roll",
-                    roll_active,
-                    sim_state.is_rolling(),
-                ),
+                self.physical_simulation
+                    .view(ui_size, "Roll", roll_active, sim_state.is_rolling(),),
                 start_stop_button(
                     "Rigid Grids",
                     ui_size,
@@ -177,7 +173,7 @@ impl<State: AppState> GuiTab<State> for SimulationTab<State> {
                 ),
                 Self::helix_btns(&self.rigid_helices_button, app_state, ui_size,),
             ]
-            .spacing(ui_size.button_pad()),
+            .spacing(ui_size.button_spacing()),
             subsection("Parameters for helices simulation", ui_size),
             Column::with_children(self.rigid_body_factory.view(true, ui_size.main_text())),
             right_checkbox(
@@ -209,13 +205,13 @@ struct PhysicalSimulation {}
 impl PhysicalSimulation {
     fn view<'b, State: AppState>(
         &self,
-        _ui_size: &'b UiSize,
+        ui_size: UiSize,
         name: &'static str,
         active: bool,
         running: bool,
     ) -> iced::Element<Message<State>, crate::Theme, crate::Renderer> {
         let button_str = if running { "Stop" } else { name };
-        let mut button = button(text(button_str));
+        let mut button = text_button(button_str, ui_size);
         button = if running {
             button.style(theme::Button::Destructive)
         } else {

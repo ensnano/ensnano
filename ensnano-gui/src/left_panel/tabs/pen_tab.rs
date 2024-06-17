@@ -23,10 +23,10 @@ use iced_aw::TabLabel;
 use super::tabs::GuiTab;
 use super::{AppState, GridTypeDescr, Message, UiSize, ICON_HONEYCOMB_GRID, ICON_SQUARE_GRID};
 use crate::helpers::*;
-use crate::material_icons_light::{icon_to_char, LightIcon};
+use crate::material_icons_light::{icon_to_char, MaterialIcon};
 
-const NEW_BEZIER_PLANE_ICON: LightIcon = LightIcon::HistoryEdu;
-const EDIT_BEZIER_PATH_ICON: LightIcon = LightIcon::LinearScale;
+const NEW_BEZIER_PLANE_ICON: MaterialIcon = MaterialIcon::HistoryEdu;
+const EDIT_BEZIER_PATH_ICON: MaterialIcon = MaterialIcon::LinearScale;
 
 #[derive(Default)]
 pub struct PenTab<State: AppState> {
@@ -37,7 +37,7 @@ impl<State: AppState> GuiTab<State> for PenTab<State> {
     type Message = Message<State>;
 
     fn label(&self) -> TabLabel {
-        TabLabel::Text(format!("{}", icon_to_char(LightIcon::Draw)))
+        TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Draw)))
     }
 
     fn content(
@@ -53,17 +53,18 @@ impl<State: AppState> GuiTab<State> for PenTab<State> {
         let content = self::column![
             section("Bezier Planes", ui_size),
             self::column![
-                light_icon_button(LightIcon::FileOpen, ui_size).on_press(Message::LoadSvgFile),
+                material_icon_button(MaterialIcon::FileOpen, MaterialIconStyle::Light, ui_size)
+                    .on_press(Message::LoadSvgFile),
                 // add_buttons!
                 row![
-                    light_icon_button(NEW_BEZIER_PLANE_ICON, ui_size)
+                    material_icon_button(NEW_BEZIER_PLANE_ICON, MaterialIconStyle::Light, ui_size)
                         .on_press(Message::NewBezierPlane),
-                    light_icon_button(EDIT_BEZIER_PATH_ICON, ui_size)
+                    material_icon_button(EDIT_BEZIER_PATH_ICON, MaterialIconStyle::Light, ui_size)
                         .on_press(Message::StartBezierPath),
                 ]
-                .spacing(ui_size.button_pad()),
+                .spacing(ui_size.button_spacing()),
             ]
-            .spacing(ui_size.button_pad()),
+            .spacing(ui_size.button_spacing()),
             // add_grid_buttons!
             if let Some(path_id) = app_state.get_selected_bezier_path() {
                 row![
