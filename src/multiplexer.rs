@@ -137,8 +137,10 @@ impl Multiplexer {
         let mut layout = LayoutTree::new();
 
         // The top bar are.
-        let top_bar_proportion =
-            exact_proportion(ui_size.top_bar() * scale_factor, window_size.height as f64);
+        let top_bar_proportion = exact_proportion(
+            ui_size.top_bar_height() * scale_factor,
+            window_size.height as f64,
+        );
         let top_bar_split = 0;
         let (top_bar, scene) = layout.hsplit(0, top_bar_proportion, false);
 
@@ -710,7 +712,7 @@ impl Multiplexer {
     pub fn resize(&mut self, window_size: PhySize, scale_factor: f64) -> bool {
         let ret = self.window_size != window_size;
         let top_pannel_prop = exact_proportion(
-            self.ui_size.top_bar() * scale_factor,
+            self.ui_size.top_bar_height() * scale_factor,
             window_size.height as f64,
         );
         let scene_height = (1. - top_pannel_prop) * window_size.height as f64;

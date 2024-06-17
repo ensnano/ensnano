@@ -1015,7 +1015,7 @@ where
             .icon_font(MATERIAL_ICONS_DARK)
             .icon_size(self.ui_size.icon())
             .text_font(crate::fonts::ENSNANO_FONT)
-            .tab_bar_height(Length::Fixed(self.ui_size.button()))
+            .tab_bar_height(Length::Fixed(self.ui_size.tab_bar_height()))
             .width(Length::Fixed(width as f32))
             .height(Length::Fill);
         // NOTE: The style, height and width values are necessary to clear the tab when

@@ -110,9 +110,15 @@ impl UiSize {
     }
 
     /// The full height of the top_bar
-    pub fn top_bar(&self) -> f64 {
+    pub fn top_bar_height(&self) -> f64 {
         (self.button() + 2.0 * self.button_pad() + 2.0 * self.button_spacing()) as f64
-        // NOTE: We need this additional 10.0, but I don't understand why.
+    }
+
+    /// The full height of the tab_bar
+    pub fn tab_bar_height(&self) -> f32 {
+        (self.icon() + 25.0) as f32
+        // TODO: This 25.0 is not satisfying. Someday I should find some way to compute
+        // the minimum value to fit all icons.
     }
 }
 
