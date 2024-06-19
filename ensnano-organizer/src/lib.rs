@@ -3,7 +3,7 @@ use iced::alignment::Horizontal as HorizontalAlignment;
 use iced::keyboard::Modifiers;
 use iced::{Element, Length};
 pub use iced_aw::graphics::icons::{icon_to_string, BootstrapIcon, BOOTSTRAP_FONT};
-use iced_widget::{renderer::Renderer, *};
+use iced_widget::*;
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::convert::TryInto;
 
@@ -269,29 +269,22 @@ impl<E: OrganizerElement> Organizer<E> {
         self.width = width;
     }
 
-    pub fn view<'a, Theme, Renderer>(
+    pub fn view<'a>(
         &self,
         selection: BTreeSet<E::Key>,
-    ) -> Container<'a, OrganizerMessage<E>, Theme, Renderer>
-    where
-        Theme: container::StyleSheet + button::StyleSheet + text::StyleSheet + 'a,
-        Renderer: iced::advanced::Renderer + iced::advanced::text::Renderer + 'a,
-        <Theme as iced_widget::container::StyleSheet>::Style: From<iced::theme::Container>,
-        <Theme as iced_widget::container::StyleSheet>::Style:
-            From<crate::theme::OrganizerThemeLevel>,
-    {
+    ) -> Element<'a, OrganizerMessage<E>, iced::Theme, iced::Renderer> {
         //self.hovered_in = None;
         // TODO: This comment may break some functionality. Not observed so far.
         let mut content = Column::new().spacing(5.0f32); // TODO: Find a way to use `ui_size` here.
         for c in self.groups.iter() {
             content = content.push(row![
                 tabulation(),
-                c.view(
+                container(c.view(
                     &self.theme,
                     &self.sections,
                     &selection,
                     &self.selected_nodes,
-                )
+                ))
                 .width(iced::Length::FillPortion(8)),
             ]);
         }
@@ -329,6 +322,7 @@ impl<E: OrganizerElement> Organizer<E> {
             .spacing(5.0f32), // TODO: Find a way to use `ui_size` here.
         )
         .style(self.theme.level(0))
+        .into()
     }
 
     fn add_content_to_group(
@@ -1105,7 +1099,7 @@ impl<E: OrganizerElement> NodeView<E> {
         id: NodeId<E::AutoGroup>,
         expanded: bool,
         selected: bool,
-    ) -> Element<'_, OrganizerMessage<E>, Theme, Renderer> {
+    ) -> Element<'_, OrganizerMessage<E>, iced::Theme, iced::Renderer> {
         let level = get_group_id(&id).map(|v| v.len()).unwrap_or(0);
         let title_row = match &self.state {
             GroupState::Iddle { .. } => {
@@ -1236,8 +1230,8 @@ impl<E: OrganizerElement> GroupContent<E> {
         sections: &[Section<E>],
         selection: &BTreeSet<E::Key>,
         selected_nodes: &BTreeSet<NodeId<E::AutoGroup>>,
-    ) -> Container<OrganizerMessage<E>, Theme, Renderer> {
-        let level;
+    ) -> Element<OrganizerMessage<E>, iced::Theme, iced::Renderer> {
+        let level; // Need this variable at this level.
         let colummn = match self {
             Self::Node {
                 name,
@@ -1254,18 +1248,18 @@ impl<E: OrganizerElement> GroupContent<E> {
                 };
                 let selected = selected_nodes.contains(&id);
                 let title_row = view.view(theme, name, id.clone(), *expanded, selected);
-                let mut ret = Column::new().spacing(LEVELS_V_SPACING).push(title_row);
+                let mut col = self::column![title_row].spacing(LEVELS_V_SPACING);
                 if *expanded {
                     for c in children.iter() {
-                        ret = ret.push(
-                            Row::new().push(tabulation()).push(
-                                c.view(theme, sections, selection, selected_nodes)
-                                    .width(iced::Length::FillPortion(8)),
-                            ),
-                        )
+                        let r = row![
+                            tabulation(),
+                            container(c.view(theme, sections, selection, selected_nodes))
+                                .width(iced::Length::FillPortion(8))
+                        ];
+                        col = col.push(r)
                     }
                 }
-                ret
+                col
             }
             Self::Leaf {
                 view, element, id, ..
@@ -1291,7 +1285,7 @@ impl<E: OrganizerElement> GroupContent<E> {
             }
             Self::Placeholder => unreachable!("Viewing a placeholder"),
         };
-        Container::new(colummn).style(theme.level(level))
+        Container::new(colummn).style(theme.level(level)).into()
     }
 
     fn leaf(key: E::Key, id: Vec<usize>) -> Self {
@@ -1804,7 +1798,6 @@ impl<E: OrganizerElement> GroupContent<E> {
 fn icon<'a, Renderer>(icon: BootstrapIcon) -> Text<'a, Theme, Renderer>
 where
     Renderer: advanced::text::Renderer,
-    //<Renderer as advanced::Renderer>::Theme: text::StyleSheet,
     <Renderer as advanced::text::Renderer>::Font: From<iced::Font>,
 {
     Text::new(icon_to_string(icon))
@@ -1816,7 +1809,6 @@ where
 fn expand_icon<'a, Renderer>(expanded: bool) -> Text<'a, Theme, Renderer>
 where
     Renderer: advanced::text::Renderer,
-    //<Renderer as advanced::Renderer>::Theme: text::StyleSheet,
     <Renderer as advanced::text::Renderer>::Font: From<iced::Font>,
 {
     if expanded {
@@ -1829,7 +1821,6 @@ where
 fn plus_icon<'a, Renderer>() -> Text<'a, Theme, Renderer>
 where
     Renderer: advanced::text::Renderer,
-    //<Renderer as advanced::Renderer>::Theme: text::StyleSheet,
     <Renderer as advanced::text::Renderer>::Font: From<iced::Font>,
 {
     icon(BootstrapIcon::Plus)
@@ -1838,7 +1829,6 @@ where
 fn edit_icon<'a, Renderer>() -> Text<'a, Theme, Renderer>
 where
     Renderer: advanced::text::Renderer,
-    //<Renderer as advanced::Renderer>::Theme: text::StyleSheet,
     <Renderer as advanced::text::Renderer>::Font: From<iced::Font>,
 {
     icon(BootstrapIcon::VectorPen)
@@ -1847,7 +1837,6 @@ where
 fn _delete_icon<'a, Renderer>() -> Text<'a, Theme, Renderer>
 where
     Renderer: advanced::text::Renderer,
-    //<Renderer as advanced::Renderer>::Theme: text::StyleSheet,
     <Renderer as advanced::text::Renderer>::Font: From<iced::Font>,
 {
     //icon('\u{E806}')

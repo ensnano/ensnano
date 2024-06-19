@@ -254,11 +254,11 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
         )
         .on_press(Message::SaveAsRequested);
 
-        let button_undo =
+        let button_undo: Button<'_, Self::Message, Self::Theme, Self::Renderer> =
             material_icon_button(MaterialIcon::Undo, MaterialIconStyle::Dark, self.ui_size)
                 .on_press_maybe(self.state.can_undo.then_some(Message::Undo));
 
-        let button_redo =
+        let button_redo: Button<'_, Self::Message, Self::Theme, Self::Renderer> =
             material_icon_button(MaterialIcon::Redo, MaterialIconStyle::Dark, self.ui_size)
                 .on_press_maybe(self.state.can_redo.then_some(Message::Redo));
 
@@ -385,11 +385,11 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
             .spacing(self.ui_size.button_spacing()),
             row![button_fit, button_horizon,].spacing(self.ui_size.button_spacing()),
             // “Edition” group
-            row![button_undo, button_redo,].spacing(self.ui_size.button_spacing()),
+            //row![button_undo, button_redo,].spacing(self.ui_size.button_spacing()),
             // “Action” group
-            row(action_mode_buttons).spacing(self.ui_size.button_spacing()),
+            Row::from_vec(action_mode_buttons).spacing(self.ui_size.button_spacing()),
             // “Selection” group
-            row(selection_mode_buttons).spacing(self.ui_size.button_spacing()),
+            Row::from_vec(selection_mode_buttons).spacing(self.ui_size.button_spacing()),
             row![button_help, button_tutorial,].spacing(self.ui_size.button_spacing()),
             // ENSnano logo, placed on the right.
             text("\u{e91c}")
@@ -516,7 +516,7 @@ fn selection_mode_btn<'a, S: AppState>(
     mode: &SelectionMode,
     current_mode: SelectionMode,
     ui_size: UiSize,
-) -> Button<'a, Message<S>, Theme, iced_wgpu::Renderer> {
+) -> Button<'a, Message<S>, crate::Theme, crate::Renderer> {
     let icon_path = if current_mode == *mode {
         mode.icon_on()
     } else {

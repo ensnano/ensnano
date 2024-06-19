@@ -12,7 +12,7 @@ pub const MATERIAL_ICONS_DARK: Font = Font::with_name("Material Icons");
 
 pub fn light_icon<'a, Theme, Renderer>(
     icon: MaterialIcon,
-    ui_size: UiSize,
+    _ui_size: UiSize,
 ) -> iced::widget::Text<'a, Theme, Renderer>
 where
     Theme: iced::widget::text::StyleSheet,

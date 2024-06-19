@@ -67,7 +67,7 @@ impl ColorPicker {
         self.hsv_value = hsv_value
     }
 
-    pub fn view<State>(&self) -> iced::Element<Message<State>, iced::Theme, iced_wgpu::Renderer>
+    pub fn view<State>(&self) -> iced::Element<Message<State>, crate::Theme, crate::Renderer>
     where
         State: AppState,
     {
@@ -91,7 +91,7 @@ impl ColorPicker {
         )
     }
 
-    pub fn new_view(&self) -> iced::Element<ColorMessage, iced::Theme, iced_wgpu::Renderer> {
+    pub fn new_view(&self) -> iced::Element<ColorMessage, crate::Theme, crate::Renderer> {
         row![
             HueColumn::new(ColorMessage::HueChanged,),
             LightSatSquare::new(
@@ -114,12 +114,11 @@ mod hue_column {
         },
         event,
         mouse::Cursor,
-        Length, Point, Rectangle, Size, Vector,
+        Length, Point, Rectangle, Renderer, Size, Vector,
     };
     use iced_graphics::{
         color::pack,
         mesh::{Indexed, Mesh, SolidVertex2D},
-        renderer::Renderer,
         Primitive,
     };
     use iced_wgpu as wgpu;
@@ -150,7 +149,7 @@ mod hue_column {
         }
     }
 
-    impl<'a, Message, Theme> Widget<Message, Theme, wgpu::Renderer> for HueColumn<'a, Message> {
+    impl<'a, Message> Widget<Message, crate::Theme, crate::Renderer> for HueColumn<'a, Message> {
         fn state(&self) -> widget::tree::State {
             widget::tree::State::Some(Box::new(HueColumnState::default()))
         }
@@ -164,7 +163,7 @@ mod hue_column {
         fn layout(
             &self,
             _tree: &mut widget::Tree,
-            _renderer: &Renderer<wgpu::Backend>,
+            _renderer: &crate::Renderer,
             limits: &layout::Limits,
         ) -> layout::Node {
             let size = limits.resolve(Length::Fill, Length::Fill, Size::ZERO);
@@ -175,8 +174,8 @@ mod hue_column {
         fn draw(
             &self,
             _tree: &widget::Tree,
-            renderer: &mut wgpu::Renderer,
-            _theme: &Theme,
+            renderer: &mut crate::Renderer,
+            _theme: &crate::Theme,
             _style: &Style,
             layout: Layout<'_>,
             _cursor: Cursor,
@@ -223,9 +222,13 @@ mod hue_column {
                 size: b.size(),
             });
 
-            renderer.with_translation(Vector::new(b.x, b.y), |renderer| {
-                renderer.draw_primitive(Primitive::Custom(mesh))
-            });
+            match renderer {
+                Renderer::Wgpu(wgpu_renderer) => wgpu_renderer
+                    .with_translation(Vector::new(b.x, b.y), |renderer| {
+                        renderer.draw_primitive(Primitive::Custom(mesh))
+                    }),
+                _ => panic!("Unhandled renderer"),
+            };
         }
 
         fn on_event(
@@ -234,7 +237,7 @@ mod hue_column {
             event: event::Event,
             layout: Layout<'_>,
             cursor: Cursor,
-            _renderer: &wgpu::Renderer,
+            _renderer: &crate::Renderer,
             _clipboard: &mut dyn Clipboard,
             shell: &mut Shell<'_, Message>,
             _viewport: &Rectangle,
@@ -285,8 +288,8 @@ mod hue_column {
         }
     }
 
-    impl<'a, Message, Theme> From<HueColumn<'a, Message>>
-        for iced::Element<'a, Message, Theme, wgpu::Renderer>
+    impl<'a, Message> From<HueColumn<'a, Message>>
+        for iced::Element<'a, Message, crate::Theme, crate::Renderer>
     where
         Message: 'a + Clone,
     {
@@ -305,12 +308,11 @@ mod light_sat_square {
         },
         event,
         mouse::Cursor,
-        Length, Point, Rectangle, Size, Vector,
+        Length, Point, Rectangle, Renderer, Size, Vector,
     };
     use iced_graphics::{
         color::pack,
         mesh::{Indexed, Mesh, SolidVertex2D},
-        renderer::Renderer,
         Primitive,
     };
     use iced_wgpu as wgpu;
@@ -357,7 +359,7 @@ mod light_sat_square {
         }
     }
 
-    impl<'a, Message, Theme> Widget<Message, Theme, wgpu::Renderer> for LightSatSquare<'a, Message>
+    impl<'a, Message, Theme> Widget<Message, Theme, crate::Renderer> for LightSatSquare<'a, Message>
     where
         Message: Clone + 'a,
     {
@@ -374,7 +376,7 @@ mod light_sat_square {
         fn layout(
             &self,
             _tree: &mut widget::Tree,
-            _renderer: &wgpu::Renderer,
+            _renderer: &crate::Renderer,
             limits: &layout::Limits,
         ) -> layout::Node {
             let size = limits.resolve(Length::Fill, Length::Fill, Size::ZERO);
@@ -385,7 +387,7 @@ mod light_sat_square {
         fn draw(
             &self,
             _state: &widget::Tree,
-            renderer: &mut wgpu::Renderer,
+            renderer: &mut crate::Renderer,
             _theme: &Theme,
             _style: &Style,
             layout: Layout<'_>,
@@ -430,9 +432,13 @@ mod light_sat_square {
                 buffers: Indexed { vertices, indices },
             });
 
-            renderer.with_translation(Vector::new(b.x, b.y), |renderer| {
-                renderer.draw_primitive(Primitive::Custom(mesh))
-            });
+            match renderer {
+                Renderer::Wgpu(wgpu_renderer) => wgpu_renderer
+                    .with_translation(Vector::new(b.x, b.y), |renderer| {
+                        renderer.draw_primitive(Primitive::Custom(mesh))
+                    }),
+                _ => panic!("Unhandled renderer"),
+            };
         }
 
         fn on_event(
@@ -441,7 +447,7 @@ mod light_sat_square {
             event: event::Event,
             layout: Layout<'_>,
             cursor: Cursor,
-            _renderer: &Renderer<wgpu::Backend>,
+            _renderer: &crate::Renderer,
             _clipboard: &mut dyn Clipboard,
             shell: &mut Shell<'_, Message>,
             _viewport: &Rectangle,
@@ -503,7 +509,7 @@ mod light_sat_square {
     }
 
     impl<'a, Message, Theme> From<LightSatSquare<'a, Message>>
-        for iced::Element<'a, Message, Theme, wgpu::Renderer>
+        for iced::Element<'a, Message, Theme, crate::Renderer>
     where
         Message: Clone + 'a,
     {
@@ -569,7 +575,7 @@ mod color_square {
         }
     }
 
-    impl<'a, Message, Theme> Widget<Message, Theme, wgpu::Renderer> for ColorSquare<'a, Message>
+    impl<'a, Message, Theme> Widget<Message, Theme, crate::Renderer> for ColorSquare<'a, Message>
     where
         Message: Clone + 'a,
     {
@@ -586,7 +592,7 @@ mod color_square {
         fn layout(
             &self,
             _tree: &mut widget::Tree,
-            _renderer: &wgpu::Renderer,
+            _renderer: &crate::Renderer,
             limits: &layout::Limits,
         ) -> layout::Node {
             let size = limits.resolve(Length::Fill, Length::Fill, Size::ZERO);
@@ -597,7 +603,7 @@ mod color_square {
         fn draw(
             &self,
             _tree: &widget::Tree,
-            renderer: &mut wgpu::Renderer,
+            renderer: &mut crate::Renderer,
             _theme: &Theme,
             _style: &Style,
             layout: Layout<'_>,
@@ -636,13 +642,18 @@ mod color_square {
                 size: b.size(),
             });
 
-            renderer.with_translation(Vector::new(b.x, b.y), |renderer| {
-                //renderer.draw_primitive(Primitive::SolidMesh {
-                //    buffers: Indexed { vertices, indices },
-                //    size: b.size(),
-                //})
-                renderer.draw_primitive(Primitive::Custom(mesh))
-            });
+            match renderer {
+                iced::Renderer::Wgpu(wgpu_renderer) => {
+                    wgpu_renderer.with_translation(Vector::new(b.x, b.y), |renderer| {
+                        //renderer.draw_primitive(Primitive::SolidMesh {
+                        //    buffers: Indexed { vertices, indices },
+                        //    size: b.size(),
+                        //})
+                        renderer.draw_primitive(Primitive::Custom(mesh))
+                    })
+                }
+                _ => panic!("Unhandled renderer."),
+            };
         }
 
         fn on_event(
@@ -651,7 +662,7 @@ mod color_square {
             event: event::Event,
             layout: Layout<'_>,
             cursor: Cursor,
-            _renderer: &wgpu::Renderer,
+            _renderer: &crate::Renderer,
             _clipboard: &mut dyn Clipboard,
             shell: &mut Shell<'_, Message>,
             _viewport: &Rectangle,
@@ -694,8 +705,8 @@ mod color_square {
         }
     }
 
-    impl<'a, Message, Theme> From<ColorSquare<'a, Message>>
-        for iced::Element<'a, Message, Theme, wgpu::Renderer>
+    impl<'a, Message> From<ColorSquare<'a, Message>>
+        for iced::Element<'a, Message, crate::Theme, crate::Renderer>
     where
         Message: Clone + 'a,
     {

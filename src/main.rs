@@ -365,11 +365,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         ..Default::default()
     };
     // Initialize the renderer
-    let mut overlay_renderer = iced_wgpu::Renderer::new(
+    let mut overlay_renderer = iced::Renderer::Wgpu(iced_wgpu::Renderer::new(
         iced_wgpu::Backend::new(&device, &queue, settings, format),
         settings.default_font,
         settings.default_text_size,
-    );
+    ));
     ensnano_gui::fonts::load_fonts(&mut overlay_renderer);
     let device = Rc::new(device);
     let queue = Rc::new(queue);
@@ -892,7 +892,7 @@ impl OverlayManager {
     pub fn new(
         requests: Arc<Mutex<Requests>>,
         window: &Window,
-        renderer: &mut iced_wgpu::Renderer,
+        renderer: &mut iced::Renderer,
     ) -> Self {
         let color = ColorOverlay::new(
             requests,
@@ -937,7 +937,7 @@ impl OverlayManager {
 
     fn process_event(
         &mut self,
-        renderer: &mut iced_graphics::Renderer<iced_wgpu::Backend>,
+        renderer: &mut iced::Renderer,
         theme: &iced::Theme,
         style: &iced::advanced::renderer::Style,
         resized: bool,
@@ -983,7 +983,7 @@ impl OverlayManager {
         target: &wgpu::TextureView,
         multiplexer: &Multiplexer,
         window: &Window,
-        renderer: &mut iced_wgpu::Renderer,
+        renderer: &mut iced::Renderer,
     ) {
         for overlay_type in self.overlay_types.iter() {
             match overlay_type {
@@ -992,19 +992,24 @@ impl OverlayManager {
                         convert_size_u32(multiplexer.window_size),
                         window.scale_factor(),
                     );
-                    renderer.with_primitives(|backend, primitives| {
-                        backend.present(
-                            device,
-                            queue,
-                            encoder,
-                            None, // TODO: Examine what clear_color is.
-                            format,
-                            target,
-                            primitives,
-                            &color_viewport,
-                            &self.color_debug.overlay(),
-                        )
-                    });
+                    match renderer {
+                        iced::Renderer::Wgpu(wgpu_renderer) => {
+                            wgpu_renderer.with_primitives(|backend, primitives| {
+                                backend.present(
+                                    device,
+                                    queue,
+                                    encoder,
+                                    None, // TODO: Examine what clear_color is.
+                                    format,
+                                    target,
+                                    primitives,
+                                    &color_viewport,
+                                    &self.color_debug.overlay(),
+                                )
+                            })
+                        }
+                        _ => panic!("Unhandled renderer"),
+                    };
                 }
             }
         }
@@ -1042,7 +1047,7 @@ impl OverlayManager {
         &mut self,
         multiplexer: &Multiplexer,
         window: &Window,
-        renderer: &mut iced_graphics::Renderer<iced_wgpu::Backend>,
+        renderer: &mut iced::Renderer,
         theme: &iced::Theme,
         style: &iced::advanced::renderer::Style,
     ) -> bool {

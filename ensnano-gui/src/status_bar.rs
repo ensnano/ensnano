@@ -131,7 +131,7 @@ impl<R: Requests, State: AppState> StatusBar<R, State> {
         }
     }
 
-    fn view_progress(&self) -> Row<Message<State>, iced::Theme, iced_wgpu::Renderer> {
+    fn view_progress(&self) -> Row<Message<State>, iced::Theme, iced::Renderer> {
         let progress = self.progress.as_ref().unwrap();
         row![text(format!("{}, {:.1}%", progress.0, progress.1 * 100.))
             .size(self.ui_size.main_text()),]
@@ -181,8 +181,8 @@ pub enum Message<S: AppState> {
 
 impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
     type Message = Message<S>;
-    type Theme = crate::Theme;
-    type Renderer = crate::Renderer;
+    type Theme = iced::Theme;
+    type Renderer = iced::Renderer;
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         self.update_operation();
@@ -371,10 +371,7 @@ impl OperationInput {
         self.operation = operation;
     }
 
-    fn view<S: AppState>(
-        &self,
-        ui_size: UiSize,
-    ) -> Row<Message<S>, iced::Theme, iced_wgpu::Renderer> {
+    fn view<S: AppState>(&self, ui_size: UiSize) -> Row<Message<S>, iced::Theme, iced::Renderer> {
         let mut row = Row::new();
         let op = self.operation.as_ref();
         row = row.push(Text::new(op.description()).size(ui_size.main_text()));

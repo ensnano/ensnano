@@ -276,6 +276,7 @@ impl<R: Requests, S: AppState> LeftPanel<R, S> {
         self.organizer.set_width(logical_size.width as u16);
     }
 
+    /// Recieves an [OrganizerMessage] and convert it into a LeftPanel [Message].
     fn organizer_message(&mut self, m: OrganizerMessage<DesignElement>) -> Option<Message<S>> {
         match m {
             OrganizerMessage::InternalMessage(m) => {
@@ -1028,17 +1029,17 @@ where
             .contextual_panel
             .view(self.ui_size, &self.application_state);
 
-        //let selection = self
-        //    .application_state
-        //    .get_selection()
-        //    .iter()
-        //    .filter_map(|e| DesignElementKey::from_selection(e, 0))
-        //    .collect();
+        let selection: std::collections::BTreeSet<DesignElementKey> = self
+            .application_state
+            .get_selection()
+            .iter()
+            .filter_map(|e| DesignElementKey::from_selection(e, 0))
+            .collect();
 
-        //let organizer = self
-        //    .organizer
-        //    .view(selection)
-        //    .map(|m| Message::OrganizerMessage(m));
+        let organizer = self
+            .organizer
+            .view(selection)
+            .map(|m| Message::OrganizerMessage(m));
 
         let first_container = if self.application_state.is_exporting() {
             container(self.exports_menu.view())
@@ -1054,8 +1055,7 @@ where
                 horizontal_rule(5),
                 container(contextual_menu).height(Length::FillPortion(1)),
                 horizontal_rule(5),
-                //container(organizer).height(Length::FillPortion(2)),
-                // TODO: REACTIVATE ME!
+                container(organizer).height(Length::FillPortion(2)),
             ]
             .width(Length::Fill)
             .padding(1),

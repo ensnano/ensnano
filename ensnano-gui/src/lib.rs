@@ -79,10 +79,10 @@ use ensnano_interactor::{
 use ensnano_interactor::{operation::Operation, ScaffoldInfo};
 use ensnano_interactor::{ActionMode, HyperboloidRequest, RollRequest, SelectionMode};
 pub use ensnano_organizer::OrganizerTree;
-use iced::{event::Event, keyboard, Size};
+use iced::{event::Event, keyboard, Renderer, Size};
 use iced_graphics::Viewport;
 use iced_runtime::{program, Debug};
-use iced_wgpu::{wgpu, Backend, Renderer};
+use iced_wgpu::{wgpu, Backend};
 use iced_winit::{conversion, winit};
 use std::collections::{BTreeSet, HashMap};
 use std::rc::Rc;
@@ -373,20 +373,25 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
         debug: &Debug,
         mouse_interaction: &mut mouse::Interaction,
     ) {
-        renderer.with_primitives(|backend, primitives| {
-            backend.present(
-                device,
-                queue,
-                encoder,
-                clear_color,
-                //staging_belt,
-                format,
-                frame,
-                primitives,
-                viewport,
-                &debug.overlay(),
-            )
-        });
+        match renderer {
+            Renderer::Wgpu(wgpu_renderer) => {
+                wgpu_renderer.with_primitives(|backend, primitives| {
+                    backend.present(
+                        device,
+                        queue,
+                        encoder,
+                        clear_color,
+                        //staging_belt,
+                        format,
+                        frame,
+                        primitives,
+                        viewport,
+                        &debug.overlay(),
+                    )
+                })
+            }
+            _ => panic!("Unhandled renderer"),
+        };
         match self {
             GuiState::TopBar(ref state) => *mouse_interaction = state.mouse_interaction(),
             GuiState::LeftPanel(ref state) => {
@@ -682,7 +687,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
         state: &State,
         top_bar_state: TopBarState,
     ) {
-        let mut top_bar_renderer = Renderer::new(
+        let mut top_bar_renderer = Renderer::Wgpu(iced_wgpu::Renderer::new(
             Backend::new(
                 self.device.as_ref(),
                 self.queue.as_ref(),
@@ -691,7 +696,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
             ),
             self.wgpu_settings.default_font,
             self.wgpu_settings.default_text_size,
-        );
+        ));
         crate::fonts::load_fonts(&mut top_bar_renderer);
         self.components.insert(
             GuiComponentType::TopBar,
@@ -706,7 +711,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
             ),
         );
 
-        let mut left_panel_renderer = Renderer::new(
+        let mut left_panel_renderer = Renderer::Wgpu(iced_wgpu::Renderer::new(
             Backend::new(
                 self.device.as_ref(),
                 self.queue.as_ref(),
@@ -715,7 +720,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
             ),
             self.wgpu_settings.default_font,
             self.wgpu_settings.default_text_size,
-        );
+        ));
         crate::fonts::load_fonts(&mut left_panel_renderer);
         self.components.insert(
             GuiComponentType::LeftPanel,
@@ -732,7 +737,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
         self.components.insert(
             GuiComponentType::StatusBar,
             GuiComponent::status_bar(
-                Renderer::new(
+                Renderer::Wgpu(iced_wgpu::Renderer::new(
                     Backend::new(
                         self.device.as_ref(),
                         self.queue.as_ref(),
@@ -741,7 +746,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
                     ),
                     self.wgpu_settings.default_font,
                     self.wgpu_settings.default_text_size,
-                ),
+                )),
                 window,
                 multiplexer,
                 Arc::clone(&self.requests),

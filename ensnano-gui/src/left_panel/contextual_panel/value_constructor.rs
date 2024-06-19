@@ -20,7 +20,6 @@ use super::{Selection, UiSize};
 
 use crate::helpers::*;
 use iced::Element;
-use iced_wgpu::Renderer;
 
 pub trait BuilderMessage: Clone + 'static {
     fn value_changed(kind: ValueKind, n: usize, value: String) -> Self;
