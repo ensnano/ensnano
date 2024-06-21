@@ -15,117 +15,33 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+use iced_aw::TabLabel;
+use std::marker::PhantomData;
 
+use super::tabs::GuiTab;
 use super::{AppState, CheckXoversParameter, FogParameters, HBondDisplay, Message, UiSize};
 use crate::helpers::*;
 use crate::theme;
 use ensnano_interactor::graphics::{
     Background3D, RenderingMode, ALL_BACKGROUND3D, ALL_RENDERING_MODE,
 };
-use iced::Element;
-use iced_native::{alignment, column, row, widget::helpers::*, Length};
+use iced::{Alignment, Element, Length};
 
-pub struct CameraTab {
+pub struct CameraTab<State: AppState> {
     fog: FogGuiParameters,
     pub background3d: Background3D,
     pub rendering_mode: RenderingMode,
+    _state_type: PhantomData<State>,
 }
 
-impl CameraTab {
+impl<State: AppState> CameraTab<State> {
     pub fn new() -> Self {
         Self {
             fog: Default::default(),
             background3d: Default::default(),
             rendering_mode: Default::default(),
+            _state_type: PhantomData,
         }
-    }
-
-    pub fn view<S: AppState>(&self, ui_size: UiSize, app_state: &S) -> Element<Message<S>> {
-        let content = column![
-            section("Camera", ui_size),
-            subsection("Visibility", ui_size),
-            row![
-                text_button("Toggle Selected", ui_size).on_press(Message::ToggleVisibility(false)),
-                text_button("Toggle Non-selected", ui_size)
-                    .on_press(Message::ToggleVisibility(true)),
-                text_button("All visible", ui_size).on_press(Message::AllVisible),
-            ]
-            .width(Length::Fill)
-            .spacing(ui_size.button_pad()),
-            self.fog.view(ui_size),
-            extra_jump(),
-            row![
-                subsection("Visibility", ui_size),
-                pick_list(
-                    vec![
-                        HBondDisplay::No,
-                        HBondDisplay::Stick,
-                        HBondDisplay::Ellipsoid,
-                    ],
-                    Some(app_state.get_h_bonds_display()),
-                    Message::ShowHBonds,
-                ),
-            ]
-            .align_items(alignment::Alignment::Center)
-            .spacing(5),
-            right_checkbox(
-                app_state.show_stereographic_camera(),
-                "Show stereographic camera",
-                Message::ShowStereographicCamera,
-                ui_size,
-            ),
-            right_checkbox(
-                app_state.follow_stereographic_camera(),
-                "Follow stereographic camera",
-                Message::FollowStereographicCamera,
-                ui_size,
-            ),
-            extra_jump(),
-            row![
-                subsection("Highlight Xovers", ui_size),
-                pick_list(
-                    CheckXoversParameter::ALL,
-                    Some(app_state.get_checked_xovers_parameters()),
-                    Message::CheckXoversParameter,
-                ),
-            ]
-            .align_items(alignment::Alignment::Center)
-            .spacing(5),
-            extra_jump(),
-            subsection("Rendering", ui_size),
-            row![
-                row![
-                    text("Style"),
-                    pick_list(
-                        &ALL_RENDERING_MODE[..],
-                        Some(self.rendering_mode),
-                        Message::RenderingMode,
-                    ),
-                ]
-                .align_items(alignment::Alignment::Center)
-                .spacing(5)
-                .width(Length::FillPortion(1)),
-                row![
-                    text("Background"),
-                    pick_list(
-                        &ALL_BACKGROUND3D[..],
-                        Some(self.background3d),
-                        Message::Background3D,
-                    ),
-                ]
-                .align_items(alignment::Alignment::Center)
-                .spacing(5)
-                .width(Length::FillPortion(1)),
-            ],
-            checkbox(
-                "Expand insertions",
-                app_state.expand_insertions(),
-                Message::SetExpandInsertions,
-            ),
-        ]
-        .spacing(5);
-
-        scrollable(content).into()
     }
 
     pub fn fog_visible(&mut self, visible: bool) {
@@ -157,6 +73,103 @@ impl CameraTab {
     }
 }
 
+impl<State: AppState> GuiTab<State> for CameraTab<State> {
+    type Message = Message<State>;
+
+    fn label(&self) -> TabLabel {
+        TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Videocam)))
+    }
+
+    fn content(
+        &self,
+        ui_size: UiSize,
+        app_state: &State,
+    ) -> Element<Message<State>, crate::Theme, crate::Renderer> {
+        let content = self::column![
+            section("Camera", ui_size),
+            subsection("Visibility", ui_size),
+            row![
+                text_button("Toggle Selected", ui_size).on_press(Message::ToggleVisibility(false)),
+                text_button("Toggle Non-selected", ui_size)
+                    .on_press(Message::ToggleVisibility(true)),
+                text_button("All visible", ui_size).on_press(Message::AllVisible),
+            ]
+            .width(Length::Fill)
+            .spacing(ui_size.button_spacing()),
+            self.fog.view(ui_size),
+            extra_jump(),
+            row![
+                subsection("Visibility", ui_size),
+                pick_list(
+                    vec![
+                        HBondDisplay::No,
+                        HBondDisplay::Stick,
+                        HBondDisplay::Ellipsoid,
+                    ],
+                    Some(app_state.get_h_bonds_display()),
+                    Message::ShowHBonds,
+                ),
+            ]
+            .align_items(Alignment::Center)
+            .spacing(5),
+            right_checkbox(
+                app_state.show_stereographic_camera(),
+                "Show stereographic camera",
+                Message::ShowStereographicCamera,
+                ui_size,
+            ),
+            right_checkbox(
+                app_state.follow_stereographic_camera(),
+                "Follow stereographic camera",
+                Message::FollowStereographicCamera,
+                ui_size,
+            ),
+            extra_jump(),
+            row![
+                subsection("Highlight Xovers", ui_size),
+                pick_list(
+                    CheckXoversParameter::ALL,
+                    Some(app_state.get_checked_xovers_parameters()),
+                    Message::CheckXoversParameter,
+                ),
+            ]
+            .align_items(Alignment::Center)
+            .spacing(5),
+            extra_jump(),
+            subsection("Rendering", ui_size),
+            row![
+                row![
+                    text("Style"),
+                    pick_list(
+                        &ALL_RENDERING_MODE[..],
+                        Some(self.rendering_mode),
+                        Message::RenderingMode,
+                    ),
+                ]
+                .align_items(Alignment::Center)
+                .spacing(5)
+                .width(Length::FillPortion(1)),
+                row![
+                    text("Background"),
+                    pick_list(
+                        &ALL_BACKGROUND3D[..],
+                        Some(self.background3d),
+                        Message::Background3D,
+                    ),
+                ]
+                .align_items(Alignment::Center)
+                .spacing(5)
+                .width(Length::FillPortion(1)),
+            ],
+            checkbox("Expand insertions", app_state.expand_insertions())
+                .on_toggle(Message::SetExpandInsertions),
+        ]
+        .spacing(5);
+
+        scrollable(content).into()
+    }
+}
+
 /// Parameters for the Distance Fog in the 3D view.
 struct FogGuiParameters {
     // Is the Distance Fog activated or not.
@@ -174,7 +187,10 @@ struct FogGuiParameters {
 }
 
 impl FogGuiParameters {
-    fn view<S: AppState>(&self, ui_size: UiSize) -> Element<Message<S>> {
+    fn view<State: AppState>(
+        &self,
+        ui_size: UiSize,
+    ) -> Element<Message<State>, crate::Theme, crate::Renderer> {
         let radius_text = if self.is_activated {
             text("Radius")
         } else {
@@ -203,7 +219,7 @@ impl FogGuiParameters {
         // Hand method to
         let label_width = 65.0f32;
 
-        column![
+        self::column![
             extra_jump(),
             row![
                 subsection("Distance Fog", ui_size),
@@ -217,9 +233,9 @@ impl FogGuiParameters {
                     )),
                     Message::FogChoice,
                 )
-                .padding(ui_size.button_pad()),
+                .padding(ui_size.button_spacing()),
             ]
-            .align_items(alignment::Alignment::Center)
+            .align_items(Alignment::Center)
             .spacing(5),
             row![radius_text.width(label_width), length_slider,].spacing(5),
             row![gradient_text.width(label_width), softness_slider,].spacing(5),

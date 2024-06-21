@@ -204,7 +204,7 @@ impl HandlesDrawer {
     }
 
     pub fn set_selected(&mut self, selected_id: Option<u32>) -> bool {
-        let selected_id = selected_id;
+        //let selected_id = selected_id;
         let new_selection = match selected_id {
             Some(RIGHT_HANDLE_ID) => Some(0),
             Some(UP_HANDLE_ID) => Some(1),

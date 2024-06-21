@@ -223,7 +223,7 @@ impl<S: AppState> ControllerState<S> for PointAndClicking<S> {
             log::info!("Some long hold state");
             let now = Instant::now();
             if (now - self.clicked_date) > LONG_HOLDING_TIME
-                || other_ctrl(&controller.current_modifiers)
+                || other_ctrl(&controller.current_modifiers_state)
             {
                 if let Some(new_state) = transition(self.get_click_info(self.clicked_position)) {
                     return Transition {

@@ -15,21 +15,24 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+use iced_aw::TabLabel;
+use std::marker::PhantomData;
+
+use super::tabs::GuiTab;
 use super::{
     AppState, Color, ColorPicker, ColorSquare, DesignElementKey, FactoryId, GoStop, HelixRoll,
     Length, Message, RequestFactory, RollRequest, SequenceInput, UiSize, ValueId, VecDeque,
     MEMORY_COLOR_COLUMNS, MEMORY_COLOR_ROWS, NB_MEMORY_COLOR,
 };
 use crate::helpers::*;
-use iced_native::widget;
-use iced_native::widget::helpers::*;
 
-pub struct EditionTab<S: AppState> {
+pub struct EditionTab<State: AppState> {
     helix_roll_factory: RequestFactory<HelixRoll>,
     color_picker: ColorPicker,
     _sequence_input: SequenceInput,
-    roll_target_btn: GoStop<S>,
+    //roll_target_btn: GoStop<State>,
     memory_color_squares: VecDeque<MemoryColorSquare>,
+    _state_type: PhantomData<State>,
 }
 
 /// An entry of the stack of last picked colors.
@@ -50,10 +53,10 @@ impl MemoryColorSquare {
 }
 
 /// Arrange memory colors in a few rows.
-fn memory_color_column<S: AppState>(
+fn memory_color_column<State: AppState>(
     memory_color_squares: &VecDeque<MemoryColorSquare>,
     fill_portion: u16,
-) -> iced::Element<Message<S>> {
+) -> iced::Element<Message<State>, crate::Theme, crate::Renderer> {
     let mut content = Vec::with_capacity(MEMORY_COLOR_ROWS);
     let mut current_row = Vec::with_capacity(MEMORY_COLOR_COLUMNS);
     for memory_color_square in memory_color_squares.iter() {
@@ -75,105 +78,19 @@ fn memory_color_column<S: AppState>(
         .into()
 }
 
-impl<S: AppState> EditionTab<S> {
+impl<State: AppState> EditionTab<State> {
     pub fn new() -> Self {
         Self {
             helix_roll_factory: RequestFactory::new(FactoryId::HelixRoll, HelixRoll {}),
             color_picker: ColorPicker::new(),
             _sequence_input: SequenceInput::new(),
-            roll_target_btn: GoStop::new(
-                "Autoroll selected helices".to_owned(),
-                Message::RollTargeted,
-            ),
+            //roll_target_btn: GoStop::new(
+            //    "Autoroll selected helices".to_owned(),
+            //    Message::RollTargeted,
+            //),
             memory_color_squares: VecDeque::new(),
+            _state_type: PhantomData,
         }
-    }
-
-    pub fn view(&self, ui_size: UiSize, app_state: &S) -> iced::Element<Message<S>> {
-        let roll_target_helices =
-            self.get_roll_target_helices(&app_state.get_selection_as_designelement());
-        let sim_state = &app_state.get_simulation_state();
-        let autoroll_is_active = sim_state.is_rolling() || roll_target_helices.len() > 0;
-        let selection_contains_strand =
-            ensnano_interactor::extract_strands_from_selection(app_state.get_selection()).len() > 0;
-        let suggestion_parameters = app_state.get_suggestion_parameters().clone();
-        let mut tighten_helices_button = text_button("Selected", ui_size);
-        if !roll_target_helices.is_empty() {
-            tighten_helices_button =
-                tighten_helices_button.on_press(Message::Redim2dHelices(false));
-        }
-
-        let content = iced_native::column![
-            section("Edition", ui_size),
-            // add_roll_slider!
-            widget::Column::with_children(
-                self.helix_roll_factory
-                    .view(roll_target_helices.len() >= 1, ui_size.intermediate_text())
-            ),
-            // add_autoroll_button!
-            start_stop_button(
-                "Autoroll selected helices",
-                ui_size,
-                if autoroll_is_active {
-                    Some(Message::RollTargeted)
-                } else {
-                    None
-                },
-                sim_state.is_rolling()
-            ),
-            // add_color_square!
-            if selection_contains_strand {
-                iced_native::row![
-                    self.color_picker.view(),
-                    self.color_picker.color_square(),
-                    memory_color_column(&self.memory_color_squares, 4),
-                ]
-            } else {
-                iced_native::row![]
-            },
-            subsection("Suggestions Parameters", ui_size),
-            // add_suggestion_parameters_checkboxes!
-            right_checkbox(
-                suggestion_parameters.include_scaffold,
-                "Include scaffold",
-                move |b| {
-                    Message::NewSuggestionParameters(suggestion_parameters.with_include_scaffod(b))
-                },
-                ui_size,
-            ),
-            right_checkbox(
-                suggestion_parameters.include_intra_strand,
-                "Intra strand suggestions",
-                move |b| Message::NewSuggestionParameters(
-                    suggestion_parameters.with_intra_strand(b)
-                ),
-                ui_size,
-            ),
-            right_checkbox(
-                suggestion_parameters.include_xover_ends,
-                "Include Xover ends",
-                move |b| Message::NewSuggestionParameters(suggestion_parameters.with_xover_ends(b)),
-                ui_size,
-            ),
-            right_checkbox(
-                suggestion_parameters.ignore_groups,
-                "All helices",
-                move |b| Message::NewSuggestionParameters(
-                    suggestion_parameters.with_ignore_groups(b)
-                ),
-                ui_size,
-            ),
-            subsection("Tighten 2D helices", ui_size),
-            // add_tighten_helices_button!
-            iced_native::row![
-                tighten_helices_button,
-                text_button("All", ui_size).on_press(Message::Redim2dHelices(true)),
-            ]
-            .spacing(ui_size.button_pad()),
-        ]
-        .spacing(5);
-
-        scrollable(content).into()
     }
 
     fn get_roll_target_helices(&self, selection: &[DesignElementKey]) -> Vec<usize> {
@@ -232,5 +149,104 @@ impl<S: AppState> EditionTab<S> {
             self.memory_color_squares.truncate(NB_MEMORY_COLOR);
             log::info!("color len {}", self.memory_color_squares.len());
         }
+    }
+}
+
+impl<State: AppState> GuiTab<State> for EditionTab<State> {
+    type Message = Message<State>;
+
+    fn label(&self) -> TabLabel {
+        TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Edit)))
+    }
+
+    fn content(
+        &self,
+        ui_size: UiSize,
+        app_state: &State,
+    ) -> iced::Element<Self::Message, crate::Theme, crate::Renderer> {
+        let roll_target_helices =
+            self.get_roll_target_helices(&app_state.get_selection_as_designelement());
+        let sim_state = &app_state.get_simulation_state();
+        let autoroll_is_active = sim_state.is_rolling() || roll_target_helices.len() > 0;
+        let selection_contains_strand =
+            ensnano_interactor::extract_strands_from_selection(app_state.get_selection()).len() > 0;
+        let suggestion_parameters = app_state.get_suggestion_parameters().clone();
+        let mut tighten_helices_button = text_button("Selected", ui_size);
+        if !roll_target_helices.is_empty() {
+            tighten_helices_button =
+                tighten_helices_button.on_press(Message::Redim2dHelices(false));
+        }
+
+        let content = self::column![
+            section("Edition", ui_size),
+            // add_roll_slider!
+            column(
+                self.helix_roll_factory
+                    .view(roll_target_helices.len() >= 1, ui_size.intermediate_text())
+            ),
+            // add_autoroll_button!
+            start_stop_button(
+                "Autoroll selected helices",
+                ui_size,
+                if autoroll_is_active {
+                    Some(Message::RollTargeted)
+                } else {
+                    None
+                },
+                sim_state.is_rolling()
+            ),
+            // add_color_square!
+            if selection_contains_strand {
+                row![
+                    self.color_picker.view(),
+                    self.color_picker.color_square(),
+                    memory_color_column(&self.memory_color_squares, 4),
+                ]
+            } else {
+                row![]
+            },
+            subsection("Suggestions Parameters", ui_size),
+            // add_suggestion_parameters_checkboxes!
+            right_checkbox(
+                suggestion_parameters.include_scaffold,
+                "Include scaffold",
+                move |b| {
+                    Message::NewSuggestionParameters(suggestion_parameters.with_include_scaffod(b))
+                },
+                ui_size,
+            ),
+            right_checkbox(
+                suggestion_parameters.include_intra_strand,
+                "Intra strand suggestions",
+                move |b| Message::NewSuggestionParameters(
+                    suggestion_parameters.with_intra_strand(b)
+                ),
+                ui_size,
+            ),
+            right_checkbox(
+                suggestion_parameters.include_xover_ends,
+                "Include Xover ends",
+                move |b| Message::NewSuggestionParameters(suggestion_parameters.with_xover_ends(b)),
+                ui_size,
+            ),
+            right_checkbox(
+                suggestion_parameters.ignore_groups,
+                "All helices",
+                move |b| Message::NewSuggestionParameters(
+                    suggestion_parameters.with_ignore_groups(b)
+                ),
+                ui_size,
+            ),
+            subsection("Tighten 2D helices", ui_size),
+            // add_tighten_helices_button!
+            row![
+                tighten_helices_button,
+                text_button("All", ui_size).on_press(Message::Redim2dHelices(true)),
+            ]
+            .spacing(ui_size.button_spacing()),
+        ]
+        .spacing(5);
+
+        scrollable(content).into()
     }
 }

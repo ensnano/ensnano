@@ -687,7 +687,7 @@ impl SimulationUpdate for HelicesRouting {
                     forward,
                     sequence: None,
                 });
-                let color = ensnano_utils::new_color(&mut now_s);
+                let color = ensnano_utils::colors::new_color(&mut now_s);
 
                 strands.push(Strand {
                     color,

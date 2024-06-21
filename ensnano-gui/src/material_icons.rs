@@ -1,34 +1,48 @@
 #![allow(dead_code)]
 
 use super::UiSize;
-pub const MATERIAL_ICON_LIGHT: &[u8] =
+use iced::Font;
+
+pub const MATERIAL_ICONS_LIGHT_BYTES: &[u8] =
     include_bytes!("../../font/MaterialIconsOutlined-Regular.otf");
+pub const MATERIAL_ICONS_DARK_BYTES: &[u8] = include_bytes!("../../font/MaterialIcons-Regular.ttf");
 
-pub const MATERIAL_ICON_DARK: &[u8] = include_bytes!("../../font/MaterialIcons-Regular.ttf");
+pub const MATERIAL_ICONS_LIGHT: Font = Font::with_name("Material Icons Outlined");
+pub const MATERIAL_ICONS_DARK: Font = Font::with_name("Material Icons");
 
-const LIGHT_ICONFONT: iced::Font = iced::Font::External {
-    name: "IconFontLight",
-    bytes: MATERIAL_ICON_LIGHT,
-};
+pub fn light_icon<'a, Theme, Renderer>(
+    icon: MaterialIcon,
+    _ui_size: UiSize,
+) -> iced::widget::Text<'a, Theme, Renderer>
+where
+    Theme: iced::widget::text::StyleSheet,
+    Renderer: iced::advanced::Renderer + iced::advanced::text::Renderer,
+    <Renderer as iced::advanced::text::Renderer>::Font: From<iced::Font>,
+{
+    iced::widget::text(icon_to_char(icon)).font(MATERIAL_ICONS_LIGHT)
+    //.size(ui_size.icon())
+}
 
-pub const DARK_ICONFONT: iced::Font = iced::Font::External {
-    name: "IconFontDark",
-    bytes: MATERIAL_ICON_DARK,
-};
-
-pub fn light_icon<'a>(icon: LightIcon, ui_size: UiSize) -> iced::widget::Text<'a> {
-    iced::widget::Text::new(format!("{}", icon_to_char(icon)))
-        .font(LIGHT_ICONFONT)
+pub fn dark_icon<'a, Theme, Renderer>(
+    icon: MaterialIcon,
+    ui_size: UiSize,
+) -> iced::widget::Text<'a, Theme, Renderer>
+where
+    Theme: iced::widget::text::StyleSheet,
+    Renderer: iced::advanced::Renderer + iced::advanced::text::Renderer,
+    <Renderer as iced::advanced::text::Renderer>::Font: From<iced::Font>,
+{
+    iced::widget::text(icon_to_char(icon))
+        .font(MATERIAL_ICONS_DARK)
         .size(ui_size.icon())
 }
 
-pub fn dark_icon<'a>(icon: LightIcon, ui_size: UiSize) -> iced::widget::Text<'a> {
-    iced::widget::Text::new(format!("{}", icon_to_char(icon)))
-        .font(DARK_ICONFONT)
-        .size(ui_size.icon())
+pub enum MaterialIconStyle {
+    Light,
+    Dark,
 }
 
-pub enum LightIcon {
+pub enum MaterialIcon {
     _10K,
     _10Mp,
     _11Mp,
@@ -2226,8 +2240,8 @@ pub enum LightIcon {
     ZoomOutMap,
 }
 
-pub fn icon_to_char(icon: LightIcon) -> char {
-    use LightIcon::*;
+pub fn icon_to_char(icon: MaterialIcon) -> char {
+    use MaterialIcon::*;
     match icon {
         _10K => '\u{e951}',
         _10Mp => '\u{e952}',

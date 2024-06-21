@@ -19,15 +19,14 @@ use ensnano_interactor::{graphics::HBondDisplay, EquadiffSolvingMethod};
 use ensnano_organizer::{Organizer, OrganizerMessage, OrganizerTree};
 use std::sync::{Arc, Mutex};
 
-use iced_aw::native::{TabLabel, Tabs};
-use iced_native::widget::{container, helpers::*, Button, Column, Container, Text};
-use iced_native::{theme, Color, Command, Element, Length};
-use iced_wgpu;
+use iced::{theme, Color, Command, Element, Length};
+use iced_aw::native::{TabBarPosition, TabLabel, Tabs};
+use iced_runtime::Program;
+use iced_widget::*;
 use iced_winit::winit::{
     dpi::{LogicalPosition, LogicalSize},
-    event::ModifiersState,
+    event::Modifiers,
 };
-use iced_winit::Program;
 use ultraviolet::Vec3;
 
 use ensnano_design::{
@@ -42,8 +41,7 @@ use ensnano_interactor::{
 use ensnano_exports::ExportType;
 
 use super::{
-    material_icons_light::{icon_to_char, LightIcon as MaterialIcon, DARK_ICONFONT as ICONFONT},
-    AppState, FogParameters, OverlayType, Requests, UiSize,
+    material_icons::MATERIAL_ICONS_DARK, AppState, FogParameters, OverlayType, Requests, UiSize,
 };
 
 use ensnano_design::{grid::GridTypeDescr, ultraviolet, NamedParameter};
@@ -63,8 +61,8 @@ use export_menu::ExportMenu;
 use ensnano_interactor::{CheckXoversParameter, HyperboloidRequest, Selection};
 pub use tabs::revolution_tab::*;
 use tabs::{
-    CameraShortcutPanel, CameraTab, EditionTab, GridTab, ParametersTab, PenTab, SequenceTab,
-    SimulationTab,
+    CameraShortcutPanel, CameraTab, EditionTab, GridTab, GuiTab, ParametersTab, PenTab,
+    SequenceTab, SimulationTab, TabId,
 };
 
 pub struct LeftPanel<R: Requests, S: AppState> {
@@ -76,17 +74,17 @@ pub struct LeftPanel<R: Requests, S: AppState> {
     requests: Arc<Mutex<R>>,
     #[allow(dead_code)]
     show_torsion: bool,
-    selected_tab: usize,
+    active_tab: TabId,
     /// Provide an organized view of the object being edited.
     organizer: Organizer<DesignElement>,
     ui_size: UiSize,
-    grid_tab: GridTab,
+    grid_tab: GridTab<S>,
     edition_tab: EditionTab<S>,
-    camera_tab: CameraTab,
+    camera_tab: CameraTab<S>,
     simulation_tab: SimulationTab<S>,
-    sequence_tab: SequenceTab,
-    parameters_tab: ParametersTab,
-    pen_tab: PenTab,
+    sequence_tab: SequenceTab<S>,
+    parameters_tab: ParametersTab<S>,
+    pen_tab: PenTab<S>,
     revolution_tab: RevolutionTab<S>,
     contextual_panel: ContextualPanel<S>,
     camera_shortcut: CameraShortcutPanel,
@@ -96,6 +94,7 @@ pub struct LeftPanel<R: Requests, S: AppState> {
 
 #[derive(Debug, Clone)]
 pub enum Message<S: AppState> {
+    FontLoaded(Result<(), iced::font::Error>),
     Resized(LogicalSize<f64>, LogicalPosition<f64>),
     #[allow(dead_code)]
     OpenColor,
@@ -132,9 +131,9 @@ pub enum Message<S: AppState> {
     /// Start or Stop Rigid Helices simulation.
     RigidHelicesSimulation(bool),
     VolumeExclusion(bool),
-    TabSelected(usize),
+    TabSelected(TabId),
     OrganizerMessage(OrganizerMessage<DesignElement>),
-    ModifiersChanged(ModifiersState),
+    ModifiersChanged(Modifiers),
     UiSizeChanged(UiSize),
     UiSizePicked(UiSize),
     StapplesRequested,
@@ -199,6 +198,7 @@ pub enum Message<S: AppState> {
         cyclic: bool,
     },
     Export(ExportType),
+    StlExport,
     CurveBuilderPicked(CurveDescriptorBuilder<S>),
     RevolutionEquadiffSolvingMethodPicked(EquadiffSolvingMethod),
     RevolutionParameterUpdate {
@@ -234,7 +234,6 @@ impl<R: Requests, S: AppState> LeftPanel<R, S> {
         state: &S,
         ui_size: UiSize,
     ) -> Self {
-        let selected_tab = if first_time { 0 } else { 5 };
         let mut organizer = Organizer::new();
         organizer.set_width(logical_size.width as u16);
         Self {
@@ -243,7 +242,11 @@ impl<R: Requests, S: AppState> LeftPanel<R, S> {
             sequence_input: SequenceInput::new(),
             requests,
             show_torsion: false,
-            selected_tab,
+            active_tab: if first_time {
+                TabId::Grid
+            } else {
+                TabId::Sequence
+            },
             organizer,
             ui_size,
             grid_tab: GridTab::new(),
@@ -273,6 +276,7 @@ impl<R: Requests, S: AppState> LeftPanel<R, S> {
         self.organizer.set_width(logical_size.width as u16);
     }
 
+    /// Recieves an [OrganizerMessage] and convert it into a LeftPanel [Message].
     fn organizer_message(&mut self, m: OrganizerMessage<DesignElement>) -> Option<Message<S>> {
         match m {
             OrganizerMessage::InternalMessage(m) => {
@@ -341,7 +345,8 @@ where
     R: Requests,
     S: AppState,
 {
-    type Renderer = iced_wgpu::Renderer;
+    type Theme = crate::Theme;
+    type Renderer = crate::Renderer;
     type Message = Message<S>;
 
     fn update(&mut self, message: Message<S>) -> Command<Message<S>> {
@@ -366,6 +371,7 @@ where
                 .update_organizer_tree(self.organizer.tree())
         }
         match message {
+            Message::FontLoaded(_) => {}
             Message::SequenceChanged(s) => {
                 self.requests
                     .lock()
@@ -633,9 +639,9 @@ where
                     self.requests.lock().unwrap().stop_roll_simulation();
                 }
             }
-            Message::TabSelected(n) => {
+            Message::TabSelected(tab_id) => {
                 if let ActionMode::BuildHelix { .. } = self.application_state.get_action_mode() {
-                    if n != 0 {
+                    if tab_id != TabId::Grid {
                         let action_mode = ActionMode::Normal;
                         self.requests
                             .lock()
@@ -643,18 +649,17 @@ where
                             .change_action_mode(action_mode);
                     }
                 }
-                if n != 0 && self.application_state.is_building_hyperboloid() {
+                if tab_id != TabId::Grid && self.application_state.is_building_hyperboloid() {
                     self.requests.lock().unwrap().finalize_hyperboloid();
                 }
-                if self.selected_tab == 3 && n != 3 {
+                if self.active_tab == TabId::Revolution && tab_id != TabId::Revolution {
                     self.simulation_tab
                         .leave_tab(Arc::clone(&self.requests), &self.application_state);
                 }
-                if n == 7 {
-                    // Revolution tab
+                if tab_id == TabId::Revolution {
                     self.requests.lock().unwrap().notify_revolution_tab()
                 }
-                self.selected_tab = n;
+                self.active_tab = tab_id;
             }
             Message::OrganizerMessage(m) => {
                 let next_message = self.organizer_message(m);
@@ -664,7 +669,7 @@ where
             }
             Message::ModifiersChanged(modifiers) => self
                 .organizer
-                .new_modifiers(iced_winit::conversion::modifiers(modifiers)),
+                .new_modifiers(iced_winit::conversion::modifiers(modifiers.state())),
             Message::UiSizePicked(ui_size) => self.requests.lock().unwrap().set_ui_size(ui_size),
             Message::UiSizeChanged(ui_size) => self.ui_size = ui_size,
             Message::SetScaffoldSeqButtonPressed => {
@@ -880,9 +885,8 @@ where
                     .unwrap()
                     .make_bezier_path_cyclic(path_id, cyclic);
             }
-            Message::Export(export_type) => {
-                self.requests.lock().unwrap().export(export_type);
-            }
+            Message::Export(export_type) => self.requests.lock().unwrap().export(export_type),
+
             Message::CancelExport => {
                 self.requests.lock().unwrap().set_exporting(false);
             }
@@ -945,6 +949,9 @@ where
                 .unwrap()
                 .finish_revolutiion_relaxation(),
             Message::LoadSvgFile => self.requests.lock().unwrap().load_svg(),
+            Message::StlExport => {
+                self.requests.lock().unwrap().request_stl_export();
+            }
             Message::ScreenShot2D => {
                 self.requests.lock().unwrap().request_screenshot_2d();
             }
@@ -957,91 +964,64 @@ where
         Command::none()
     }
 
-    fn view(&self) -> Element<Message<S>, Self::Renderer> {
+    fn view(&self) -> Element<Self::Message, Self::Theme, Self::Renderer> {
         let width = self.logical_size.cast::<u16>().width;
-        let tabs: Tabs<Message<S>, Self::Renderer> = Tabs::with_tabs(
-            self.selected_tab,
-            // NOTE: The style, height and width values are necessary to clear the tab when
-            //       switching to a new tab.
-            vec![
-                (
-                    TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::GridOn))),
-                    container(self.grid_tab.view(self.ui_size, &self.application_state))
-                        .height(Length::Fill)
-                        .width(Length::Fill)
-                        .into(),
-                ),
-                (
-                    TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Edit))),
-                    container(self.edition_tab.view(self.ui_size, &self.application_state))
-                        .height(Length::Fill)
-                        .width(Length::Fill)
-                        .into(),
-                ),
-                (
-                    TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Videocam))),
-                    container(self.camera_tab.view(self.ui_size, &self.application_state))
-                        .height(Length::Fill)
-                        .width(Length::Fill)
-                        .into(),
-                ),
-                (
-                    TabLabel::Icon(ICON_PHYSICAL_ENGINE),
-                    container(
-                        self.simulation_tab
-                            .view(self.ui_size, &self.application_state),
-                    )
-                    .height(Length::Fill)
-                    .width(Length::Fill)
-                    .into(),
-                ),
-                (
-                    TabLabel::Icon(ICON_ATGC),
-                    container(
-                        self.sequence_tab
-                            .view(self.ui_size, &self.application_state),
-                    )
-                    .height(Length::Fill)
-                    .width(Length::Fill)
-                    .into(),
-                ),
-                (
-                    TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Settings))),
-                    container(
-                        self.parameters_tab
-                            .view(self.ui_size, &self.application_state),
-                    )
-                    .height(Length::Fill)
-                    .width(Length::Fill)
-                    .into(),
-                ),
-                (
-                    TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Draw))),
-                    container(self.pen_tab.view(self.ui_size, &self.application_state))
-                        .height(Length::Fill)
-                        .width(Length::Fill)
-                        .into(),
-                ),
-                (
-                    TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::AutoMode))),
-                    container(
-                        self.revolution_tab
-                            .view(self.ui_size, &self.application_state),
-                    )
-                    .height(Length::Fill)
-                    .width(Length::Fill)
-                    .into(),
-                ),
-            ],
-            Message::TabSelected,
-        )
-        .text_size(self.ui_size.icon())
-        .text_font(ICONFONT)
-        .icon_font(crate::helpers::ENSNANO_FONT)
-        .icon_size(self.ui_size.icon())
-        .tab_bar_height(Length::Fixed(self.ui_size.button()))
-        .width(Length::Fixed(width as f32))
-        .height(Length::Fill);
+        let tabs = Tabs::new(Message::TabSelected)
+            .push(
+                TabId::Grid,
+                self.grid_tab.label(),
+                self.grid_tab.view(self.ui_size, &self.application_state),
+            )
+            .push(
+                TabId::Edition,
+                self.edition_tab.label(),
+                self.edition_tab.view(self.ui_size, &self.application_state),
+            )
+            .push(
+                TabId::Camera,
+                self.camera_tab.label(),
+                self.camera_tab.view(self.ui_size, &self.application_state),
+            )
+            .push(
+                TabId::Simulation,
+                self.simulation_tab.label(),
+                self.simulation_tab
+                    .view(self.ui_size, &self.application_state),
+            )
+            .push(
+                TabId::Sequence,
+                self.sequence_tab.label(),
+                self.sequence_tab
+                    .view(self.ui_size, &self.application_state),
+            )
+            .push(
+                TabId::Parameters,
+                self.parameters_tab.label(),
+                self.parameters_tab
+                    .view(self.ui_size, &self.application_state),
+            )
+            .push(
+                TabId::Pen,
+                self.pen_tab.label(),
+                self.pen_tab.view(self.ui_size, &self.application_state),
+            )
+            .push(
+                TabId::Revolution,
+                self.revolution_tab.label(),
+                self.revolution_tab
+                    .view(self.ui_size, &self.application_state),
+            )
+            .set_active_tab(&self.active_tab)
+            .tab_bar_position(TabBarPosition::Top)
+            .icon_font(MATERIAL_ICONS_DARK)
+            .icon_size(self.ui_size.icon())
+            .text_font(crate::fonts::ENSNANO_FONT)
+            .tab_bar_height(Length::Fixed(self.ui_size.tab_bar_height()))
+            .width(Length::Fixed(width as f32))
+            .height(Length::Fill);
+        // NOTE: The style, height and width values are necessary to clear the tab when
+        //       switching to a new tab.
+        //
         let camera_shortcut = self
             .camera_shortcut
             .view(self.ui_size, &self.application_state);
@@ -1049,7 +1029,7 @@ where
             .contextual_panel
             .view(self.ui_size, &self.application_state);
 
-        let selection = self
+        let selection: std::collections::BTreeSet<DesignElementKey> = self
             .application_state
             .get_selection()
             .iter()
@@ -1068,7 +1048,7 @@ where
         };
 
         container(
-            iced_native::column![
+            self::column![
                 first_container.height(Length::FillPortion(2)),
                 horizontal_rule(5),
                 container(camera_shortcut).height(Length::FillPortion(1)),
@@ -1117,10 +1097,11 @@ pub enum ColorMessage {
 }
 
 impl<R: Requests> Program for ColorOverlay<R> {
-    type Renderer = iced_wgpu::Renderer;
+    type Renderer = crate::Renderer;
+    type Theme = crate::Theme;
     type Message = ColorMessage;
 
-    fn update(&mut self, message: ColorMessage) -> Command<ColorMessage> {
+    fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         match message {
             ColorMessage::HsvSatValueChanged(_sat, _value) => {}
             ColorMessage::HueChanged(x) => self.color_picker.change_hue(x as f64),
@@ -1138,7 +1119,7 @@ impl<R: Requests> Program for ColorOverlay<R> {
         Command::none()
     }
 
-    fn view(&self) -> Element<ColorMessage, Self::Renderer> {
+    fn view(&self) -> Element<Self::Message, Self::Theme, Self::Renderer> {
         let width = self.logical_size.cast::<u16>().width;
 
         let widget = Column::new()
@@ -1151,13 +1132,19 @@ impl<R: Requests> Program for ColorOverlay<R> {
 
         Container::new(widget)
             //.style(FloatingStyle)
+            // TODO: Maybe reimplement style.
             .height(Length::Fill)
             .into()
     }
 }
 
 /// Generate the message that request rotation.
-fn rotation_message<S: AppState>(i: usize, _xz: isize, _yz: isize, _xy: isize) -> Message<S> {
+fn rotation_message<State: AppState>(
+    i: usize,
+    _xz: isize,
+    _yz: isize,
+    _xy: isize,
+) -> Message<State> {
     let angle_xz = match i {
         0 => 15f32.to_radians(),
         1 => -15f32.to_radians(),

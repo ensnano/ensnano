@@ -91,20 +91,34 @@ impl UiSize {
 
     /// Height of a button.
     pub fn button(&self) -> f32 {
-        self.icon() + 8.0
+        self.icon() + 6.0
     }
 
-    // Padding between buttons
+    /// Padding around button content.
     pub fn button_pad(&self) -> f32 {
+        5.0 // This is the iced default.
+    }
+
+    /// Minimum space around buttons.
+    pub fn button_spacing(&self) -> f32 {
         5.0
     }
 
-    pub fn button_group_pad(&self) -> f32 {
+    /// Larger space between button groups.
+    pub fn button_group_spacing(&self) -> f32 {
         20.0
     }
 
-    pub fn top_bar(&self) -> f64 {
-        (self.button() + 2.0 * self.button_pad()) as f64
+    /// The full height of the top_bar
+    pub fn top_bar_height(&self) -> f64 {
+        (self.button() + 2.0 * self.button_pad() + 2.0 * self.button_spacing()) as f64
+    }
+
+    /// The full height of the tab_bar
+    pub fn tab_bar_height(&self) -> f32 {
+        (self.icon() + 25.0) as f32
+        // TODO: This 25.0 is not satisfying. Someday I should find some way to compute
+        // the minimum value to fit all icons.
     }
 }
 

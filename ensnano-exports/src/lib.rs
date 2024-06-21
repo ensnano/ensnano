@@ -25,13 +25,14 @@ pub mod oxdna;
 pub mod pdb;
 use cadnano::CadnanoError;
 use cando::CanDoError;
+use ensnano_design::ultraviolet::{Vec3, Vec4};
 use ensnano_design::{ultraviolet, Design, Nucl};
 use pdb::PdbError;
 use std::collections::HashMap;
 use std::path::PathBuf;
 
 /// The file formats to which an export is implemented
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Display)]
+#[derive(Debug, Clone, Display)]
 pub enum ExportType {
     Cadnano,
     Cando,
@@ -80,6 +81,7 @@ pub enum ExportError {
     CandoConversion(CanDoError),
     PdbConversion(PdbError),
     IOError(std::io::Error),
+
     NotImplemented,
 }
 
@@ -98,6 +100,7 @@ impl From<PdbError> for ExportError {
         Self::PdbConversion(e)
     }
 }
+
 impl From<std::io::Error> for ExportError {
     fn from(e: std::io::Error) -> Self {
         Self::IOError(e)
@@ -225,6 +228,7 @@ pub fn export(
             writeln!(&mut out_file, "{cadnano_content}")?;
             Ok(ExportSuccess::Cadnano(export_path.clone()))
         }
+
         _ => Err(ExportError::NotImplemented),
     }
 }

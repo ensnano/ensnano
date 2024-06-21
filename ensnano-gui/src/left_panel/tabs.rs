@@ -41,17 +41,51 @@ pub use sequence_tab::SequenceTab;
 mod pen_tab;
 pub use pen_tab::PenTab;
 pub(super) mod revolution_tab;
-pub use revolution_tab::*;
 
-struct GoStop<S: AppState> {
-    pub name: String,
-    on_press: Box<dyn Fn(bool) -> Message<S>>,
+#[derive(Clone, PartialEq, Eq, Debug)]
+pub enum TabId {
+    Grid,
+    Edition,
+    Camera,
+    Simulation,
+    Sequence,
+    Parameters,
+    Pen,
+    Revolution,
 }
 
-impl<S: AppState> GoStop<S> {
+pub trait GuiTab<State: AppState> {
+    type Message;
+
+    fn label(&self) -> TabLabel;
+
+    fn view(
+        &self,
+        ui_size: UiSize,
+        app_state: &State,
+    ) -> Element<'_, Self::Message, crate::Theme, crate::Renderer> {
+        container(self.content(ui_size, app_state))
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .into()
+    }
+
+    fn content(
+        &self,
+        ui_size: UiSize,
+        app_state: &State,
+    ) -> Element<'_, Self::Message, crate::Theme, crate::Renderer>;
+}
+
+struct GoStop<State: AppState> {
+    pub name: String,
+    on_press: Box<dyn Fn(bool) -> Message<State>>,
+}
+
+impl<State: AppState> GoStop<State> {
     fn new<F>(name: String, on_press: F) -> Self
     where
-        F: 'static + Fn(bool) -> Message<S>,
+        F: 'static + Fn(bool) -> Message<State>,
     {
         Self {
             name,
@@ -59,8 +93,12 @@ impl<S: AppState> GoStop<S> {
         }
     }
 
-    fn view(&self, active: bool, running: bool) -> iced::Element<Message<S>> {
-        use iced_native::widget::helpers::*;
+    fn view(
+        &self,
+        active: bool,
+        running: bool,
+    ) -> iced::Element<Message<State>, crate::Theme, crate::Renderer> {
+        use crate::helpers::*;
         let button_str = if running {
             "Stop".to_owned()
         } else {
@@ -72,6 +110,6 @@ impl<S: AppState> GoStop<S> {
         if active {
             button = button.on_press((self.on_press)(!running));
         }
-        iced::widget::row![button].into()
+        row![button].into()
     }
 }

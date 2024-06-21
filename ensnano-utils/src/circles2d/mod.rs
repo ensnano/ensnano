@@ -23,7 +23,6 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! These shaders are defined in the .vert and .frag files, that must be compiled into the
 //! .vert.spv and .frag.spv files with
 //! [glslc](https://man.archlinux.org/man/extra/shaderc/glslc.1.en).
-use iced_wgpu::wgpu;
 use std::rc::Rc;
 use ultraviolet::Vec2;
 use wgpu::{include_spirv, BindGroupLayout, Device, Queue, RenderPass, RenderPipeline};

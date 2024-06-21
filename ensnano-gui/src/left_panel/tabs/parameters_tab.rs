@@ -15,18 +15,23 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+use std::marker::PhantomData;
+
+use iced_aw::TabLabel;
+
+use super::tabs::GuiTab;
 
 use super::{AppState, FactoryId, Message, RequestFactory, ScrollSensitivity, UiSize, ValueId};
 use crate::helpers::*;
 use iced::Element;
-use iced_native::{column, row, widget::helpers::*};
 
-pub struct ParametersTab {
+pub struct ParametersTab<State: AppState> {
     scroll_sensitivity_factory: RequestFactory<ScrollSensitivity>,
     pub invert_y_scroll: bool,
+    _state_type: PhantomData<State>,
 }
 
-impl ParametersTab {
+impl<State: AppState> ParametersTab<State> {
     pub fn new<S: AppState>(app_state: &S) -> Self {
         Self {
             scroll_sensitivity_factory: RequestFactory::new(
@@ -36,16 +41,36 @@ impl ParametersTab {
                 },
             ),
             invert_y_scroll: false,
+            _state_type: PhantomData,
         }
     }
 
-    pub fn view<S>(&self, ui_size: UiSize, app_state: &S) -> Element<Message<S>>
-    where
-        S: AppState,
-    {
+    pub fn update_scroll_request(
+        &mut self,
+        value_id: ValueId,
+        value: f32,
+        request: &mut Option<f32>,
+    ) {
+        self.scroll_sensitivity_factory
+            .update_request(value_id, value, request);
+    }
+}
+
+impl<State: AppState> GuiTab<State> for ParametersTab<State> {
+    type Message = Message<State>;
+
+    fn label(&self) -> TabLabel {
+        TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Settings)))
+    }
+
+    fn content(
+        &self,
+        ui_size: UiSize,
+        app_state: &State,
+    ) -> Element<Self::Message, crate::Theme, crate::Renderer> {
         let dna_params = &app_state.get_dna_parameters();
 
-        let content = column![
+        let content = self::column![
             section("Parameters", ui_size),
             extra_jump(),
             subsection("Font size", ui_size),
@@ -73,7 +98,7 @@ impl ParametersTab {
                 Some(app_state.get_dna_parameters().name().clone()),
                 Message::NewDnaParameters,
             ),
-            column![
+            self::column![
                 text(format!("  Radius: {:.3} nm", dna_params.helix_radius)),
                 text(format!("  Radius: {:.3} nm", dna_params.helix_radius)),
                 text(format!("  Rise: {:.3} nm", dna_params.rise)),
@@ -106,15 +131,5 @@ impl ParametersTab {
             text("GPLv3"),
         ];
         scrollable(content).into()
-    }
-
-    pub fn update_scroll_request(
-        &mut self,
-        value_id: ValueId,
-        value: f32,
-        request: &mut Option<f32>,
-    ) {
-        self.scroll_sensitivity_factory
-            .update_request(value_id, value, request);
     }
 }

@@ -21,7 +21,7 @@ use crate::helpers::*;
 use crate::theme::BadValue;
 use ensnano_design::{grid::GridId, BezierVertexId};
 use ensnano_interactor::{Selection, SimulationState};
-use iced_native::{alignment, column, row, theme, widget};
+use iced::alignment::Horizontal;
 
 mod value_constructor;
 use value_constructor::{BezierVertexBuilder, Builder, GridBuilder};
@@ -124,15 +124,27 @@ impl ValueRequest {
     }
 }
 
-struct InstantiatedBuilder<S: AppState> {
+struct InstantiatedBuilder<State>
+where
+    State: AppState,
+{
     selection: Selection,
-    builder: Box<dyn Builder<S>>,
+    builder: Box<dyn Builder<State>>,
 }
 
-impl<S: AppState> InstantiatedBuilder<S> {
+impl<State> InstantiatedBuilder<State>
+where
+    State: AppState,
+    //Renderer: iced::advanced::Renderer,
+{
     /// If a builder can be made from the selection, update the builder and return true. Otherwise,
     /// return false.
-    fn update(&mut self, selection: &Selection, reader: &dyn DesignReader, app_state: &S) -> bool {
+    fn update(
+        &mut self,
+        selection: &Selection,
+        reader: &dyn DesignReader,
+        app_state: &State,
+    ) -> bool {
         if *selection != self.selection || app_state.is_transitory() {
             self.selection = *selection;
             if let Some(builder) = Self::new_builder(selection, reader) {
@@ -156,7 +168,7 @@ impl<S: AppState> InstantiatedBuilder<S> {
     fn new_builder(
         selection: &Selection,
         reader: &dyn DesignReader,
-    ) -> Option<Box<dyn Builder<S>>> {
+    ) -> Option<Box<dyn Builder<State>>> {
         match selection {
             Selection::Grid(_, g_id) => {
                 if let Some((position, orientation)) =
@@ -179,17 +191,23 @@ impl<S: AppState> InstantiatedBuilder<S> {
     }
 }
 
-pub(super) struct ContextualPanel<S: AppState> {
+pub(super) struct ContextualPanel<State>
+where
+    State: AppState,
+{
     width: u32,
     pub force_help: bool,
     pub show_tutorial: bool,
     add_strand_menu: AddStrandMenu,
-    strand_name_state: widget::text_input::State,
-    builder: Option<InstantiatedBuilder<S>>,
+    strand_name_state: text_input::State<iced_graphics::text::Paragraph>,
+    builder: Option<InstantiatedBuilder<State>>,
     insertion_length_state: InsertionLengthState,
 }
 
-impl<S: AppState> ContextualPanel<S> {
+impl<State> ContextualPanel<State>
+where
+    State: AppState,
+{
     pub fn new(width: u32) -> Self {
         Self {
             width,
@@ -206,7 +224,7 @@ impl<S: AppState> ContextualPanel<S> {
         self.width = width;
     }
 
-    pub fn update(&mut self, app_state: &S) {
+    pub fn update(&mut self, app_state: &State) {
         let selection = app_state
             .get_selection()
             .get(0)
@@ -228,7 +246,7 @@ impl<S: AppState> ContextualPanel<S> {
         &mut self,
         selection: Option<&Selection>,
         reader: &dyn DesignReader,
-        app_state: &S,
+        app_state: &State,
     ) {
         if let Some(s) = selection {
             if let Some(builder) = &mut self.builder {
@@ -243,11 +261,16 @@ impl<S: AppState> ContextualPanel<S> {
         }
     }
 
-    pub fn view(&self, ui_size: UiSize, app_state: &S) -> iced::Element<Message<S>> {
+    pub fn view(
+        &self,
+        ui_size: UiSize,
+        app_state: &State,
+    ) -> iced::Element<Message<State>, crate::Theme, crate::Renderer> {
         let selection = app_state
             .get_selection()
             .get(0)
             .unwrap_or(&Selection::Nothing);
+
         let nb_selected = app_state
             .get_selection()
             .iter()
@@ -264,17 +287,20 @@ impl<S: AppState> ContextualPanel<S> {
             .and_then(|id| app_state.get_reader().xover_length(id));
 
         let info_values = values_of_selection(selection, app_state.get_reader().as_ref());
-        let mut content: iced::widget::Column<Message<S>> = if self.show_tutorial {
+
+        // NOTE: The brancing below determines what is viewed in the contextual panel.
+        //
+        let mut content = if self.show_tutorial {
             let link = "http://ens-lyon.fr/ensnano";
-            column![
+            self::column![
                 section("Tutorials", ui_size)
                     .width(Length::Fill)
-                    .horizontal_alignment(alignment::Horizontal::Center),
+                    .horizontal_alignment(Horizontal::Center),
                 extra_jump(),
                 subsection("ENSnano website", ui_size),
                 row![
                     text(link),
-                    horizontal_space(Length::Fill),
+                    Space::with_width(Length::Fill),
                     text_button("Go", ui_size).on_press(Message::OpenLink(link)),
                 ],
             ]
@@ -285,26 +311,20 @@ impl<S: AppState> ContextualPanel<S> {
         } else if *selection == Selection::Nothing && xover_len.is_none() {
             turn_into_help_column(ui_size)
         } else if nb_selected > 1 {
-            column![
-                row![
-                    horizontal_space(Length::FillPortion(1)),
-                    column![text_button("Help", ui_size).on_press(Message::ForceHelp),]
-                        .width(Length::FillPortion(1)),
-                    horizontal_space(Length::FillPortion(1)),
-                ],
-                text(format!("{} objects selected", nb_selected)),
-            ]
-            .width(Length::Fill)
-            .align_items(iced::Alignment::Center)
+            // NOTE: When the number of objects selectet is greater than one,
+            //       we only print the number of object selected.
+            self::column![text(format!("{} objects selected", nb_selected)),]
+                .width(Length::Fill)
+                .align_items(iced::Alignment::Center)
         } else {
-            // Print information about selection.
-            let mut column = widget::Column::new();
+            // NOTE: Print information about selection.
+            let mut column = Column::new();
             column = column.push(
                 row![
-                    horizontal_space(Length::FillPortion(1)),
-                    column![text_button("Help", ui_size).on_press(Message::ForceHelp),]
+                    Space::with_width(Length::FillPortion(1)),
+                    self::column![text_button("Help", ui_size).on_press(Message::ForceHelp),]
                         .width(Length::FillPortion(1)),
-                    horizontal_space(Length::FillPortion(1)),
+                    Space::with_width(Length::FillPortion(1)),
                 ]
                 .width(Length::Fill)
                 .align_items(iced::Alignment::Center),
@@ -347,7 +367,7 @@ impl<S: AppState> ContextualPanel<S> {
             if let Some(builder) = &self.builder {
                 column = column.push(builder.builder.view(ui_size, selection, app_state))
             }
-            column.into()
+            column
         };
 
         if let Some(info_values) = xover_len.map(|v| fmt_xover_len(Some(v))) {
@@ -375,6 +395,7 @@ impl<S: AppState> ContextualPanel<S> {
         }
 
         scrollable(content.max_width((self.width - 2) as u16)).into()
+        // NOTE: I don't really understand why there is a “- 2” here.
     }
 
     pub fn selection_value_changed<R: Requests>(
@@ -495,12 +516,12 @@ enum TwistStatus {
     Twisting,
 }
 
-fn add_grid_content<'a, S: AppState>(
+fn add_grid_content<'a, State: AppState>(
     info_values: Vec<String>,
     ui_size: UiSize,
     twisting: TwistStatus,
-) -> iced::Element<'a, Message<S>> {
-    iced_native::column![
+) -> iced::Element<'a, Message<State>, crate::Theme, crate::Renderer> {
+    self::column![
         // twist_button
         match twisting {
             TwistStatus::Twisting => text_button("Stop", ui_size).on_press(Message::StopSimulation),
@@ -509,36 +530,34 @@ fn add_grid_content<'a, S: AppState>(
         },
         checkbox(
             "Persistent phantoms",
-            info_values[0].parse::<bool>().unwrap(),
-            |b| Message::SelectionValueChanged(0, bool_to_string(b)),
+            info_values[0].parse::<bool>().unwrap()
         )
+        .on_toggle(|b| Message::SelectionValueChanged(0, bool_to_string(b)),)
         .size(ui_size.checkbox())
         .text_size(ui_size.main_text()),
-        checkbox("No sphere", info_values[1].parse::<bool>().unwrap(), |b| {
-            Message::SetSmallSpheres(b)
-        })
-        .size(ui_size.checkbox())
-        .text_size(ui_size.main_text()),
+        checkbox("No sphere", info_values[1].parse::<bool>().unwrap())
+            .on_toggle(|b| { Message::SetSmallSpheres(b) })
+            .size(ui_size.checkbox())
+            .text_size(ui_size.main_text()),
     ]
     .into()
 }
 
-fn add_strand_content<'a, S: AppState>(
+fn add_strand_content<'a, State: AppState>(
     info_values: Vec<String>,
     ui_size: UiSize,
-) -> iced::Element<'a, Message<S>> {
+) -> iced::Element<'a, Message<State>, crate::Theme, crate::Renderer> {
     let s_id = info_values[2].parse::<usize>().unwrap();
-    iced_native::column![
-        iced_native::row![
+    self::column![
+        row![
             text("Name").size(ui_size.main_text()),
             text_input("Name", &info_values[4])
                 .on_input(move |new_name| { Message::StrandNameChanged(s_id, new_name) })
                 .size(ui_size.main_text()),
         ],
         text(format!("length {}", info_values[0])).size(ui_size.main_text()),
-        checkbox("Scaffold", info_values[1].parse().unwrap(), move |b| {
-            Message::ScaffoldIdSet(s_id, b)
-        }),
+        checkbox("Scaffold", info_values[1].parse().unwrap())
+            .on_toggle(move |b| { Message::ScaffoldIdSet(s_id, b) }),
         text(info_values[3].as_str()).size(ui_size.main_text()),
     ]
     .into()
@@ -552,44 +571,45 @@ fn bool_to_string(b: bool) -> String {
     }
 }
 
-fn add_help_to_column<'a, S: AppState>(
+fn add_help_to_column<'a, State: AppState>(
     help_title: impl ToString,
     help: Vec<(String, String)>,
     ui_size: UiSize,
-) -> iced::Element<'a, Message<S>> {
-    let mut content = widget::Column::new();
-    content = content.push(text(help_title).size(ui_size.intermediate_text()));
-    for (l, r) in help {
-        if l.is_empty() {
-            content = content.push(horizontal_space(10));
-        } else if r.is_empty() {
-            content = content.push(
-                text(l)
+) -> Column<'a, Message<State>, crate::Theme, crate::Renderer> {
+    self::column![
+        text(help_title).size(ui_size.intermediate_text()),
+        column(help.iter().map(|(l, r)| {
+            if l.is_empty() {
+                row![Space::with_width(10)]
+            } else if r.is_empty() {
+                row![text(l)
                     .width(Length::Fill)
-                    .horizontal_alignment(iced::alignment::Horizontal::Center),
-            );
-        } else {
-            content = content.push(iced_native::row![
-                text(l)
-                    .width(Length::FillPortion(5))
-                    .horizontal_alignment(iced::alignment::Horizontal::Right),
-                horizontal_space(Length::FillPortion(1)),
-                text(r).width(Length::FillPortion(5)),
-            ]);
-        }
-    }
-    content.into()
+                    .horizontal_alignment(Horizontal::Center)]
+            } else {
+                row![
+                    text(l)
+                        .width(Length::FillPortion(5))
+                        .horizontal_alignment(Horizontal::Right),
+                    Space::with_width(Length::FillPortion(1)),
+                    text(r).width(Length::FillPortion(5)),
+                ]
+            }
+            .into()
+        })),
+    ]
 }
 
-fn turn_into_help_column<'a, S: AppState>(ui_size: UiSize) -> iced::widget::Column<'a, Message<S>> {
-    column![
+fn turn_into_help_column<'a, State: AppState>(
+    ui_size: UiSize,
+) -> Column<'a, Message<State>, crate::Theme, crate::Renderer> {
+    self::column![
         section("Help", ui_size)
             .width(Length::Fill)
-            .horizontal_alignment(alignment::Horizontal::Center),
+            .horizontal_alignment(Horizontal::Center),
         add_help_to_column("3D view", view_3d_help(), ui_size),
-        horizontal_space(15),
+        Space::with_width(15),
         add_help_to_column("2D/3D view", view_2d_3d_help(), ui_size),
-        horizontal_space(15),
+        Space::with_width(15),
         add_help_to_column("2D view", view_2d_help(), ui_size),
     ]
 }
@@ -750,10 +770,10 @@ fn view_2d_help() -> Vec<(String, String)> {
     ]
 }
 
-fn link_row<S: AppState>(link: &'static str, ui_size: UiSize) -> iced::Element<Message<S>> {
-    iced_native::row![
-        iced_native::column![text(link),].width(Length::FillPortion(3)),
-        iced_native::column![text_button("Go", ui_size).on_press(Message::OpenLink(link)),]
+fn link_row<State: AppState>(link: &'static str, ui_size: UiSize) -> iced::Element<Message<State>> {
+    row![
+        self::column![text(link),].width(Length::FillPortion(3)),
+        self::column![text_button("Go", ui_size).on_press(Message::OpenLink(link)),]
             .width(Length::FillPortion(1)),
     ]
     .into()
@@ -814,7 +834,7 @@ struct AddStrandMenu {
     pos_str: String,
     length_str: String,
     text_inputs_are_active: bool,
-    builder_input: [widget::text_input::State; 2],
+    builder_input: [text_input::State<iced_graphics::text::Paragraph>; 2],
 }
 
 impl Default for AddStrandMenu {
@@ -876,7 +896,16 @@ impl AddStrandMenu {
     }
 
     #[allow(clippy::needless_lifetimes)]
-    fn view<S: AppState>(&self, ui_size: UiSize, width: u16) -> iced::widget::Column<Message<S>> {
+    fn view<'a, State, Theme, Renderer>(
+        &self,
+        ui_size: UiSize,
+        width: u16,
+    ) -> iced::widget::Column<'a, Message<State>, Theme, Renderer>
+    where
+        State: AppState,
+        Theme: checkbox::StyleSheet + text::StyleSheet + text_input::StyleSheet + 'a,
+        Renderer: iced::advanced::Renderer + iced::advanced::text::Renderer + 'a,
+    {
         //let _inputs = self.builder_input.iter_mut();
 
         let color_choose_strand_start_length = if self.text_inputs_are_active {
@@ -885,7 +914,7 @@ impl AddStrandMenu {
             crate::theme::disabled_text()
         };
 
-        column![
+        self::column![
             right_checkbox(
                 self.text_inputs_are_active,
                 "Add double strand on helix",
@@ -893,20 +922,19 @@ impl AddStrandMenu {
                 ui_size,
             ),
             row![
-                column![
-                    text("Starting nt").style(color_choose_strand_start_length),
+                self::column![
+                    //text("Starting nt").style(color_choose_strand_start_length),
+                    text("Starting nt"),
                     // position_input
-                    text_input("Position", &self.pos_str)
-                        .on_input(Message::PositionHelicesChanged)
-                        .style(BadValue(self.pos_str == self.helix_pos.to_string())),
+                    text_input("Position", &self.pos_str).on_input(Message::PositionHelicesChanged), //.style(BadValue(self.pos_str == self.helix_pos.to_string()))
                 ]
                 .width(width / 2),
-                column![
-                    text("Length (nt)").style(color_choose_strand_start_length),
+                self::column![
+                    text("Length (nt)"),
+                    //.style(color_choose_strand_start_length),
                     // length_input
-                    text_input("Length", &self.length_str)
-                        .on_input(Message::LengthHelicesChanged)
-                        .style(BadValue(self.length_str == self.helix_length.to_string())),
+                    text_input("Length", &self.length_str).on_input(Message::LengthHelicesChanged),
+                    //.style(BadValue(self.length_str == self.helix_length.to_string())),
                 ],
             ]
         ]
@@ -914,7 +942,7 @@ impl AddStrandMenu {
 }
 
 struct InsertionLengthState {
-    state: widget::text_input::State,
+    state: text_input::State<iced_graphics::text::Paragraph>,
     selection: Selection,
     input_str: Option<String>,
 }

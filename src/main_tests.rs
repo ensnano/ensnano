@@ -80,7 +80,7 @@ fn new_state() -> MainState {
     let constructor = MainStateConstructor { messages };
     let mut ret = MainState::new(constructor);
     ret.applications
-        .insert(ElementType::Scene, Arc::new(Mutex::new(DummyScene {})));
+        .insert(GuiComponentType::Scene, Arc::new(Mutex::new(DummyScene {})));
     ret
 }
 

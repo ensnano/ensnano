@@ -41,6 +41,7 @@ pub const NB_SECTOR_CIRCLE: u16 = 36;
 
 pub const CANDIDATE_SCALE_FACTOR: f32 = 1.3;
 pub const SELECT_SCALE_FACTOR: f32 = 1. + 2. * (CANDIDATE_SCALE_FACTOR - 1.);
+pub const MIN_RADIUS_FOR_FAKE_UPSCALING: f32 = 0.5;
 pub const PIVOT_SCALE_FACTOR: f32 = 1.2 * SELECT_SCALE_FACTOR;
 pub const FREE_XOVER_SCALE_FACTOR: f32 = 1.25 * SELECT_SCALE_FACTOR;
 
@@ -212,6 +213,10 @@ pub const COLOR_GUANINE: u32 = 0x00_00CC00;
 pub const COLOR_CYTOSINE: u32 = 0x00_CC00CC;
 pub const UNKONW_BASE_COLOR: u32 = 0x00_77_88_99;
 pub const REGULAR_H_BOND_COLOR: u32 = 0x_29_26_26;
+
+pub const RANDOM_COLOR_SHADE_HUE_RANGE: f64 = 0.1;
+pub const RANDOM_COLOR_SHADE_SATURATION_RANGE: f64 = 0.2;
+pub const RANDOM_COLOR_SHADE_VALUE_RANGE: f64 = 0.2;
 
 pub const fn basis_color(basis: char) -> u32 {
     match basis {

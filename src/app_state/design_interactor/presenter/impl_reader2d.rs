@@ -226,7 +226,7 @@ impl Reader2D for DesignReader {
         self.presenter.content.nucl_collection.clone()
     }
 
-    fn get_abcissa_converter(&self, h_id: usize) -> ensnano_design::AbscissaConverter {
+    fn get_abscissa_converter(&self, h_id: usize) -> ensnano_design::AbscissaConverter {
         self.presenter
             .current_design
             .try_get_up_to_date()

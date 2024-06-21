@@ -19,7 +19,8 @@ use super::AppState;
 use crate::theme;
 
 use super::Message;
-use iced_native::{widget::helpers::*, Pixels};
+use crate::helpers::*;
+use iced::{Alignment, Length, Pixels};
 use std::collections::BTreeMap;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -87,10 +88,11 @@ impl<R: Requestable> RequestFactory<R> {
         }
     }
 
-    pub fn view<S>(&self, active: bool, size: impl Into<Pixels>) -> Vec<iced::Element<Message<S>>>
-    where
-        S: AppState,
-    {
+    pub fn view<State: AppState>(
+        &self,
+        active: bool,
+        size: impl Into<Pixels>,
+    ) -> Vec<iced::Element<Message<State>, crate::Theme, crate::Renderer>> {
         let s = size.into();
         self.values
             .values()
@@ -167,10 +169,11 @@ impl DiscreteValue {
         }
     }
 
-    fn view<S>(&self, active: bool, name_size: impl Into<Pixels>) -> iced::Element<Message<S>>
-    where
-        S: AppState,
-    {
+    fn view<State: AppState>(
+        &self,
+        active: bool,
+        name_size: impl Into<Pixels>,
+    ) -> iced::Element<Message<State>, crate::Theme, crate::Renderer> {
         let decr_button = if active && self.value - self.step >= self.min_val {
             button(text("-")).on_press(Message::DescreteValue {
                 factory_id: self.owner_id,
@@ -210,25 +213,24 @@ impl DiscreteValue {
         let mut name_text = text(self.name.clone()).size(name_size);
 
         if !active {
-            name_text = name_text.style(super::super::consts::innactive_color());
+            name_text = name_text.style(crate::theme::disabled_text());
         }
 
-        iced_native::row![
+        row![
             // On the left: print the name of the parameter being selected.
-            iced_native::row![name_text, horizontal_space(iced::Length::Fill),]
-                .align_items(iced::Alignment::Center)
-                .width(iced::Length::FillPortion(8)),
+            row![name_text, Space::with_width(iced::Length::Fill),]
+                .align_items(Alignment::Center)
+                .width(Length::FillPortion(8)),
             // On the middle: print the currently selected value.
-            iced_native::row![text(format!("{:.1}", self.value)),]
-                .width(iced::Length::FillPortion(3)),
+            row![text(format!("{:.1}", self.value)),].width(Length::FillPortion(3)),
             // One the right: the buttons and slider that allow to modify the currently selected
             // value.
-            iced_native::row![decr_button, incr_button, horizontal_space(2), slider,]
-                .width(iced::Length::FillPortion(10)),
+            row![decr_button, incr_button, Space::with_width(2), slider,]
+                .width(Length::FillPortion(10)),
             //
-            horizontal_space(iced::Length::FillPortion(1)),
+            Space::with_width(Length::FillPortion(1)),
         ]
-        .align_items(iced::Alignment::Center)
+        .align_items(Alignment::Center)
         .into()
     }
 

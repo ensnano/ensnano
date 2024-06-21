@@ -47,6 +47,10 @@ impl Reader3D for DesignReader {
             .cloned()
     }
 
+    fn get_with_cones(&self, e_id: u32) -> Option<bool> {
+        self.presenter.content.with_cones_map.get(&e_id).cloned()
+    }
+
     fn get_basis(&self) -> Rotor3 {
         self.presenter.model_matrix.extract_rotation()
     }
@@ -251,6 +255,15 @@ impl Reader3D for DesignReader {
         }
     }
 
+    fn get_ids_of_all_helices(&self) -> Vec<u32> {
+        self.presenter
+            .content
+            .helix_map
+            .keys()
+            .map(|&k| k)
+            .collect()
+    }
+
     fn get_id_of_helix_containing(&self, e_id: u32) -> Option<usize> {
         if let Some(nucl) = self.get_nucl_with_id(e_id) {
             Some(nucl.helix)
@@ -375,7 +388,7 @@ impl Reader3D for DesignReader {
     }
 
     fn get_all_h_bonds(&self) -> &[HBond] {
-        self.presenter.bonds.as_ref()
+        self.presenter.h_bonds.as_ref()
     }
 
     fn get_position_of_bezier_control(

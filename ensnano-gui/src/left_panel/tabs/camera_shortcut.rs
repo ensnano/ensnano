@@ -16,15 +16,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use super::{rotation_message, AppState, Message, UiSize, Vec3};
-use crate::helpers::*;
-use crate::{
-    material_icons_light::{self, LightIcon},
-    CameraId,
-};
-use iced::{Element, Length};
-use iced_native::widget;
-use iced_native::widget::helpers::*;
-use iced_native::{alignment, column, row, Alignment};
+use crate::{helpers::*, CameraId};
+use iced::{alignment::Horizontal, Alignment, Element, Length};
 
 /// A named camera orientation.
 ///
@@ -81,14 +74,17 @@ const PREDEFINED_CAMERA_ORIENTATION: [NamedCameraPosition; 6] = [
 ];
 
 /// Turn a NamedCameraPosition into a button.
-fn named_camera_to_button<'a, S: AppState>(
+fn named_camera_to_button<'a, State: AppState>(
     position: &NamedCameraPosition,
     ui_size: UiSize,
-) -> Element<'a, Message<S>> {
-    button(text(position.name).size(ui_size.main_text()))
+) -> Element<'a, Message<State>, crate::Theme, crate::Renderer> {
+    //button(text(position.name).size(ui_size.main_text()))
+    //    .on_press(position.message())
+    //    .height(ui_size.button())
+    //    .width(2.0 * ui_size.button()) // Twice the button's height.
+    //    .into()
+    fixed_text_button(position.name, 2.0, ui_size)
         .on_press(position.message())
-        .height(ui_size.button())
-        .width(2.0 * ui_size.button()) // Twice the button's height.
         .into()
 }
 
@@ -97,7 +93,7 @@ pub struct CameraShortcutPanel {
     xz: isize,
     yz: isize,
     xy: isize,
-    scroll_state: widget::scrollable::State,
+    scroll_state: scrollable::State,
     camera_input_name: Option<String>,
     camera_being_edited: Option<CameraId>,
     camera_widgets: Vec<CameraWidget>,
@@ -178,7 +174,11 @@ impl CameraShortcutPanel {
                 } else {
                     cam.1
                 };
-                CameraWidget::new(name.to_string(), being_edited, cam.0)
+                CameraWidget {
+                    name: name.to_string(),
+                    being_edited,
+                    camera_id: cam.0,
+                }
             })
             .collect();
     }
@@ -187,30 +187,28 @@ impl CameraShortcutPanel {
         self.set_camera_widget(app);
     }
 
-    pub fn view<S: AppState>(&self, ui_size: UiSize, _app: &S) -> Element<Message<S>> {
+    pub fn view<State: AppState>(
+        &self,
+        ui_size: UiSize,
+        _app: &State,
+    ) -> Element<Message<State>, crate::Theme, crate::Renderer> {
         // Create button widget for each predefined target.
 
-        let rotate_buttons = column![
-            row(IntoIterator::into_iter([4, 2, 5])
-                .map(|i| {
-                    button(rotation_text(i, ui_size))
-                        .on_press(rotation_message(i, self.xz, self.yz, self.xy))
-                        .width(ui_size.button())
-                        .into()
-                })
-                .collect())
-            .spacing(ui_size.button_pad()),
-            row(IntoIterator::into_iter([0, 3, 1])
-                .map(|i| {
-                    button(rotation_text(i, ui_size))
-                        .on_press(rotation_message(i, self.xz, self.yz, self.xy))
-                        .width(ui_size.button())
-                        .into()
-                })
-                .collect())
-            .spacing(ui_size.button_pad()),
+        let rotate_buttons: Column<Message<State>, crate::Theme, crate::Renderer> = self::column![
+            row(IntoIterator::into_iter([4, 2, 5]).map(|i| {
+                rotation_icon_button(i, ui_size)
+                    .on_press(rotation_message(i, self.xz, self.yz, self.xy))
+                    .into()
+            }))
+            .spacing(ui_size.button_spacing()),
+            row(IntoIterator::into_iter([0, 3, 1]).map(|i| {
+                rotation_icon_button(i, ui_size)
+                    .on_press(rotation_message(i, self.xz, self.yz, self.xy))
+                    .into()
+            }))
+            .spacing(ui_size.button_spacing()),
         ]
-        .spacing(ui_size.button_pad());
+        .spacing(ui_size.button_spacing());
 
         //let mut ret = Column::new();
         //while rotate_buttons.len() > 0 {
@@ -224,84 +222,97 @@ impl CameraShortcutPanel {
         //    ret = ret.spacing(5).push(row)
         //}
 
-        let content = column![
-            column![
-                section("Camera", ui_size)
-                    .width(Length::Fill)
-                    .horizontal_alignment(alignment::Horizontal::Center),
+        let content = self::column![
+            self::column![
+                section("Camera", ui_size),
                 row![
+                    Space::with_width(ui_size.button_spacing()),
                     // add_target_buttons!
-                    column![
+                    self::column![
                         subsection("Fixed", ui_size)
                             .height(ui_size.button())
-                            .horizontal_alignment(alignment::Horizontal::Center),
+                            .horizontal_alignment(Horizontal::Center),
                         extra_jump(),
                         row![
-                            column![
+                            self::column![
                                 named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[0], ui_size),
                                 named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[1], ui_size),
                             ]
-                            .spacing(ui_size.button_pad()),
-                            column![
+                            .spacing(ui_size.button_spacing()),
+                            self::column![
                                 named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[2], ui_size),
                                 named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[3], ui_size),
                             ]
-                            .spacing(ui_size.button_pad()),
-                            column![
+                            .spacing(ui_size.button_spacing()),
+                            self::column![
                                 named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[4], ui_size),
                                 named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[5], ui_size),
                             ]
-                            .spacing(ui_size.button_pad()),
+                            .spacing(ui_size.button_spacing()),
                         ]
-                        .spacing(ui_size.button_pad()),
+                        .spacing(ui_size.button_spacing()),
                     ]
-                    .align_items(Alignment::Center)
-                    .width(Length::FillPortion(6)),
+                    .align_items(Alignment::Center),
+                    Space::with_width(2.0 * ui_size.button_spacing()),
                     // add_rotate_buttons!
-                    column![
+                    self::column![
                         subsection("Rotation", ui_size)
                             .height(ui_size.button())
-                            .horizontal_alignment(alignment::Horizontal::Center),
+                            .horizontal_alignment(Horizontal::Center),
                         extra_jump(),
                         rotate_buttons,
-                        // Idem.
                     ]
-                    .align_items(Alignment::Center)
-                    .width(Length::FillPortion(3)),
+                    .align_items(Alignment::Center),
+                    Space::with_width(2.0 * ui_size.button_spacing()),
                     // add_screenshot_button!
-                    column![
-                        material_icons_light::dark_icon(LightIcon::PhotoCamera, ui_size)
+                    self::column![
+                        material_icon(MaterialIcon::PhotoCamera, MaterialIconStyle::Dark, ui_size)
                             .height(ui_size.button()),
                         extra_jump(),
-                        column![
-                            text_button("2D", ui_size).on_press(Message::ScreenShot2D),
-                            text_button("3D", ui_size).on_press(Message::ScreenShot3D),
+                        self::column![
+                            fixed_text_button("2D", 1.0, ui_size).on_press(Message::ScreenShot2D),
+                            fixed_text_button("3D", 1.0, ui_size).on_press(Message::ScreenShot3D),
                         ]
-                        .spacing(ui_size.button_pad()),
+                        .spacing(ui_size.button_spacing()),
                     ]
-                    .align_items(Alignment::Center)
-                    .width(Length::FillPortion(1)),
-                ],
-            ],
-            column![
+                    .align_items(Alignment::Center),
+                    Space::with_width(2.0 * ui_size.button_spacing()),
+                    // add_stl_export_button!
+                    self::column![
+                        Space::with_height(ui_size.button()),
+                        extra_jump(),
+                        self::column![
+                            fixed_text_button("STL", 2.0, ui_size).on_press(Message::StlExport),
+                            // NOTE: Trick to align the STL button on the first row.
+                            Space::with_height(ui_size.button() + 2.0 * ui_size.button_pad()),
+                        ]
+                        .spacing(ui_size.button_spacing()),
+                    ]
+                    .align_items(Alignment::End),
+                    Space::with_width(ui_size.button_spacing()),
+                ]
+                .align_items(Alignment::Center),
+            ]
+            .align_items(Alignment::Center),
+            self::column![
                 // add_custom_camera_row!
                 row![
                     section("Custom cameras", ui_size),
-                    horizontal_space(ui_size.button_pad()),
-                    light_icon_button(LightIcon::AddAPhoto, ui_size)
-                        .on_press(Message::NewCustomCamera),
+                    Space::with_width(ui_size.button_spacing()),
+                    material_icon_button(
+                        MaterialIcon::AddAPhoto,
+                        MaterialIconStyle::Light,
+                        ui_size
+                    )
+                    .on_press(Message::NewCustomCamera),
                 ],
                 // add_camera_widgets!
-                widget::Column::with_children(
-                    self.camera_widgets
-                        .iter()
-                        .map(|w| w.view(ui_size).into())
-                        .collect()
-                )
+                Column::with_children(self.camera_widgets.iter().map(|w| w.view(ui_size)))
             ]
             .align_items(Alignment::Center)
             .width(Length::Fill),
         ]
+        .align_items(Alignment::Center)
         .spacing(20.0);
 
         scrollable(content).into()
@@ -309,37 +320,29 @@ impl CameraShortcutPanel {
     }
 
     pub fn scroll_down(&mut self) {
-        self.scroll_state
-            .snap_to(widget::operation::scrollable::RelativeOffset::END);
+        self.scroll_state.snap_to(scrollable::RelativeOffset::END);
     }
 }
 
 // Custom camera editor.
 struct CameraWidget {
-    // Name of the custom camera orientation
+    // Name of the custom camera orientation.
     name: String,
     // Wether the name is being edited.
     being_edited: bool,
+    // Camera id.
     camera_id: CameraId,
 }
 
 impl CameraWidget {
-    fn new(name: String, being_edited: bool, camera_id: CameraId) -> Self {
-        Self {
-            name,
-            being_edited,
-            camera_id,
-        }
-    }
-
-    fn view<S>(&self, ui_size: UiSize) -> Element<Message<S>>
-    where
-        S: AppState,
-    {
-        let name_field: Element<Message<S>> = if self.being_edited {
+    fn view<State: AppState>(
+        &self,
+        ui_size: UiSize,
+    ) -> Element<Message<State>, crate::Theme, crate::Renderer> {
+        let name_field: Element<_, _, _> = if self.being_edited {
             text_input("Camera name", &self.name)
                 .on_input(Message::EditCameraName)
-                .on_submit(Message::<S>::SubmitCameraName)
+                .on_submit(Message::<State>::SubmitCameraName)
                 .into()
         } else {
             text(&self.name).into()
@@ -347,18 +350,18 @@ impl CameraWidget {
 
         row![
             name_field,
-            horizontal_space(3),
+            Space::with_width(3),
             // edit button
-            light_icon_button(LightIcon::Edit, ui_size)
-                .on_press(Message::<S>::StartEditCameraName(self.camera_id)),
+            material_icon_button(MaterialIcon::Edit, MaterialIconStyle::Light, ui_size)
+                .on_press(Message::<State>::StartEditCameraName(self.camera_id)),
             //
-            horizontal_space(Length::Fill),
+            Space::with_width(Length::Fill),
             //select camera button
-            light_icon_button(LightIcon::Visibility, ui_size)
-                .on_press(Message::<S>::SelectCamera(self.camera_id)),
+            material_icon_button(MaterialIcon::Visibility, MaterialIconStyle::Light, ui_size)
+                .on_press(Message::<State>::SelectCamera(self.camera_id)),
             // delete button
-            light_icon_button(LightIcon::Delete, ui_size)
-                .on_press(Message::<S>::DeleteCamera(self.camera_id)),
+            material_icon_button(MaterialIcon::Delete, MaterialIconStyle::Light, ui_size)
+                .on_press(Message::<State>::DeleteCamera(self.camera_id)),
         ]
         .into()
     }
@@ -369,5 +372,5 @@ struct CameraWidgetState {
     //select_camera_btn: widget::button::State,
     //edit_name_btn: widget::button::State,
     //delete_btn: widget::button::State,
-    name_input: widget::text_input::State,
+    name_input: text_input::State<iced_graphics::text::Paragraph>,
 }

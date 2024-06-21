@@ -15,78 +15,29 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+use std::marker::PhantomData;
 
+use iced::{Element, Length};
+use iced_aw::TabLabel;
+
+use super::tabs::GuiTab;
 use super::{
     AppState, FactoryId, GridTypeDescr, HyperboloidRequest, Hyperboloid_, Message, RequestFactory,
     UiSize, ValueId, ICON_HONEYCOMB_GRID, ICON_NANOTUBE, ICON_SQUARE_GRID,
 };
 use crate::helpers::*;
-use iced::{Element, Length};
-use iced_native::widget::helpers::*;
-use iced_native::{column, row};
 
-pub struct GridTab {
+pub struct GridTab<State: AppState> {
     hyperboloid_factory: RequestFactory<Hyperboloid_>,
+    _state_type: PhantomData<State>,
 }
 
-impl GridTab {
+impl<State: AppState> GridTab<State> {
     pub fn new() -> Self {
         Self {
             hyperboloid_factory: RequestFactory::new(FactoryId::Hyperboloid, Hyperboloid_ {}),
+            _state_type: PhantomData,
         }
-    }
-
-    pub fn view<S>(&self, ui_size: UiSize, app_state: &S) -> Element<Message<S>>
-    where
-        S: AppState,
-    {
-        let content = column![
-            section("Grids", ui_size),
-            subsection("New Grid", ui_size),
-            // add_grid_buttons!
-            row![
-                icon_button(ICON_SQUARE_GRID, ui_size)
-                    .on_press(Message::NewGrid(GridTypeDescr::Square { twist: None })),
-                icon_button(ICON_HONEYCOMB_GRID, ui_size)
-                    .on_press(Message::NewGrid(GridTypeDescr::Honeycomb { twist: None })),
-            ]
-            .spacing(ui_size.button_pad()),
-            extra_jump(),
-            subsection("New nanotube", ui_size),
-            // add_start_cancel_hyperboloid_button!
-            if app_state.is_building_hyperboloid() {
-                row![
-                    text_button("Cancel", ui_size)
-                        .on_press(Message::CancelHyperboloid)
-                        .style(iced::theme::Button::Destructive),
-                    text_button("Finish", ui_size)
-                        .on_press(Message::FinalizeHyperboloid)
-                        .style(iced::theme::Button::Positive),
-                ]
-                .spacing(ui_size.button_pad())
-            } else {
-                row![icon_button(ICON_NANOTUBE, ui_size).on_press(Message::NewHyperboloid),]
-                    .spacing(ui_size.button_pad())
-            },
-            // add hyperboloid sliders!
-            iced_native::widget::Column::with_children(
-                self.hyperboloid_factory
-                    .view(app_state.is_building_hyperboloid(), ui_size.main_text()),
-            ),
-            extra_jump(),
-            subsection("Guess grid", ui_size),
-            // add_guess_grid_button!
-            if app_state.can_make_grid() {
-                button(text("From Selection"))
-                    .height(ui_size.button())
-                    .on_press(Message::MakeGrids)
-            } else {
-                button(text("From Selection")).height(ui_size.button())
-            },
-            text("Select ≥4 unattached helices").size(ui_size.main_text()),
-        ]
-        .spacing(5);
-        scrollable(content).width(Length::Fill).into()
     }
 
     pub fn new_hyperboloid(&mut self, requests: &mut Option<HyperboloidRequest>) {
@@ -102,5 +53,67 @@ impl GridTab {
     ) {
         self.hyperboloid_factory
             .update_request(value_id, value, request);
+    }
+}
+
+impl<State: AppState> GuiTab<State> for GridTab<State> {
+    type Message = Message<State>;
+
+    fn label(&self) -> TabLabel {
+        TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::GridOn)))
+    }
+
+    fn content(
+        &self,
+        ui_size: UiSize,
+        app_state: &State,
+    ) -> Element<Self::Message, crate::Theme, crate::Renderer> {
+        let content = self::column![
+            section("Grids", ui_size),
+            subsection("New Grid", ui_size),
+            // add_grid_buttons!
+            row![
+                icon_button(ICON_SQUARE_GRID, ui_size).on_press(Message::<State>::NewGrid(
+                    GridTypeDescr::Square { twist: None }
+                )),
+                icon_button(ICON_HONEYCOMB_GRID, ui_size)
+                    .on_press(Message::NewGrid(GridTypeDescr::Honeycomb { twist: None })),
+            ]
+            .spacing(ui_size.button_spacing()),
+            extra_jump(),
+            subsection("New nanotube", ui_size),
+            // add_start_cancel_hyperboloid_button!
+            if app_state.is_building_hyperboloid() {
+                row![
+                    text_button("Cancel", ui_size)
+                        .on_press(Message::CancelHyperboloid)
+                        .style(iced::theme::Button::Destructive),
+                    text_button("Finish", ui_size)
+                        .on_press(Message::FinalizeHyperboloid)
+                        .style(iced::theme::Button::Positive),
+                ]
+                .spacing(ui_size.button_spacing())
+            } else {
+                row![icon_button(ICON_NANOTUBE, ui_size).on_press(Message::NewHyperboloid),]
+                    .spacing(ui_size.button_spacing())
+            },
+            // add hyperboloid sliders!
+            Column::with_children(
+                self.hyperboloid_factory
+                    .view(app_state.is_building_hyperboloid(), ui_size.main_text()),
+            ),
+            extra_jump(),
+            subsection("Guess grid", ui_size),
+            // add_guess_grid_button!
+            tooltip(
+                text_button("From Selection", ui_size)
+                    .on_press_maybe(app_state.can_make_grid().then_some(Message::MakeGrids)),
+                text("Select ≥4 unattached helices").size(ui_size.main_text()),
+                tooltip::Position::FollowCursor,
+            )
+            .style(theme::Container::Box),
+        ]
+        .spacing(5);
+        scrollable(content).width(Length::Fill).into()
     }
 }

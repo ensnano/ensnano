@@ -13,7 +13,7 @@ resolver = "2"
 
 [dependencies]
 ultraviolet = { git = "https://github.com/termhn/ultraviolet", rev = "b2fb29e" , features = ["bytemuck", "f64", "serde"] }
-env_logger = "0.7"
+env_logger = "0.11"
 serde_json = "1.0.57"
 futures = "0.3.5"
 serde = "1.0.116"
@@ -44,11 +44,14 @@ ahash = "0.8.6"
 color_space = "0.5.2"
 confy = {git = "https://github.com/rust-cli/confy", rev = "64282241313", default-features=false, features=["yaml_conf"]}
 version-compare = "0.1.0"
-iced_wgpu = "0.10"
-iced = "0.9"
-iced_graphics = "0.8"
-iced_winit = "0.9"
-iced_native = "0.10"
+iced = "0.12"
+iced_futures = "0.12"
+iced_graphics = "0.12"
+iced_runtime = "0.12"
+iced_wgpu = "0.12"
+iced_widget = "0.12"
+iced_winit = "0.12"
+iced_aw = "0.8"
 chebyshev_polynomials = { git = "https://github.com/thenlevy/chebyshev_polynomials" }
 hex = "0.4.3"
 pod-enum = "0.1.0"

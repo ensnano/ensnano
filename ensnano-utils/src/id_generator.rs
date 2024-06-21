@@ -112,7 +112,7 @@ impl<K: Eq + Hash + Clone> IdGenerator<K> {
         self.elements.clone().into_iter().collect()
     }
 
-    pub fn agree_on_next_id(&self, next: &mut Self) {
+    pub fn copy_next_id_to(&self, next: &mut Self) {
         next.next_id = self.next_id;
     }
 }

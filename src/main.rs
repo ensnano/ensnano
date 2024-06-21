@@ -88,6 +88,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //!      | Immediate   | No          | Yes         |
 //!      | Mailbox     | Yes         | No          |
 //!
+use std::borrow::Cow;
 use std::collections::{HashMap, VecDeque};
 use std::env;
 use std::path::{Path, PathBuf};
@@ -107,18 +108,22 @@ use ensnano_interactor::{
     CenterOfSelection, CursorIcon, DesignOperation, DesignReader, RigidBodyConstants,
     SuggestionParameters,
 };
-use iced_native::Event as IcedEvent;
-use iced_wgpu::{wgpu, Settings, Viewport};
-use iced_winit::winit::event::VirtualKeyCode;
-use iced_winit::{conversion, futures, program, winit, Debug, Size};
+use iced::advanced::text::Renderer;
+use iced::Event as IcedEvent;
+use iced::Size;
+use iced_futures::futures;
+use iced_graphics::Viewport;
+use iced_runtime::{program, Debug};
+use iced_wgpu::{wgpu, Settings};
+use iced_winit::{conversion, winit};
 
 use app_state::AppStateParameters;
-use futures::task::SpawnExt;
 use ultraviolet::{Rotor3, Vec3};
 use winit::{
     dpi::{PhysicalPosition, PhysicalSize},
-    event::{Event, ModifiersState, WindowEvent},
-    event_loop::{ControlFlow, EventLoop},
+    event::{Event, WindowEvent},
+    event_loop::{ControlFlow, EventLoop, EventLoopWindowTarget},
+    keyboard::{Key, ModifiersState, NamedKey},
     window::Window,
 };
 
@@ -133,6 +138,9 @@ extern crate pretty_env_logger;
 // #[global_allocator]
 // static GLOBAL: Jemalloc = Jemalloc;
 
+/// An interface to use iced_aw's Bootstrap icons.
+//pub mod icons;
+
 /// Design handling
 //mod design;
 /// Graphical interface drawing
@@ -143,7 +151,7 @@ use ensnano_interactor::consts;
 mod multiplexer;
 use ensnano_flatscene as flatscene;
 use ensnano_interactor::{
-    graphics::{ElementType, SplitMode},
+    graphics::{GuiComponentType, SplitMode},
     operation::Operation,
     ActionMode, CheckXoversParameter, Selection, SelectionMode,
 };
@@ -200,9 +208,9 @@ const EARLY_LOG: bool = false;
 /// On some windows machine, only the DX12 backends will work. So the `dx12_only` feature forces
 /// its use.
 #[cfg(not(feature = "dx12_only"))]
-const BACKEND: wgpu::Backends = wgpu::Backends::PRIMARY;
+const DEFAULT_BACKEND: wgpu::Backends = wgpu::Backends::PRIMARY;
 #[cfg(feature = "dx12_only")]
-const BACKEND: wgpu::Backends = wgpu::Backends::DX12;
+const DEFAULT_BACKEND: wgpu::Backends = wgpu::Backends::DX12;
 
 /// Determine if wgpu errors should panic.
 ///
@@ -238,7 +246,7 @@ const PANIC_ON_WGPU_ERRORS: bool = true;
 /// * Finally, a redraw is requested.
 ///
 ///
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     if EARLY_LOG {
         pretty_env_logger::init();
     }
@@ -251,10 +259,19 @@ fn main() {
     };
 
     // Initialize winit. Create an event_loop and a window.
-    let event_loop = EventLoop::new();
-    let window = winit::window::Window::new(&event_loop).unwrap();
+    let event_loop = EventLoop::new()?;
+    let window = winit::window::Window::new(&event_loop)?;
+
+    let window = Arc::new(window);
+
     let mut windows_title = String::from("ENSnano");
     window.set_title("ENSnano");
+    // NOTE: Why we don't use window.title() ? Because this method dosen't
+    //       work on linux (both X11 and Wayland). See:
+    //
+    // https://docs.rs/winit/latest/winit/window/struct.Window.html#platform-specific-41
+
+    // Set the minimal size of the window.
     window.set_min_inner_size(Some(PhySize::new(100, 100)));
 
     log::info!("scale factor {}", window.scale_factor());
@@ -263,36 +280,55 @@ fn main() {
     let kbd_modifiers = ModifiersState::default();
 
     // Initialize the GPU backend.
+    let backend = wgpu::util::backend_bits_from_env().unwrap_or(DEFAULT_BACKEND);
     let gpu_instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-        backends: BACKEND,
+        backends: backend,
         ..Default::default()
     });
     // Obtain a WGPU surface.
-    let surface = unsafe { gpu_instance.create_surface(&window) }.unwrap();
+    let surface = gpu_instance.create_surface(window.clone())?;
+
     // Obtain a WGPU adapter.
-    let (device, queue) = futures::executor::block_on(async {
-        let adapter = gpu_instance
-            .request_adapter(&wgpu::RequestAdapterOptions {
-                power_preference: wgpu::PowerPreference::LowPower,
-                compatible_surface: Some(&surface),
-                force_fallback_adapter: false,
-            })
+    let (format, _adapter, device, queue) = futures::executor::block_on(async {
+        let adapter = wgpu::util::initialize_adapter_from_env_or_default(
+            &gpu_instance,
+            Some(&surface),
+            )
             .await
             .expect("Could not get adapter\n\
                      This might be because gpu drivers are missing.\n\
                      You need Vulkan, Metal (for MacOS) or DirectX (for Windows) drivers to run this software");
 
-        adapter
+        let adapter_features = adapter.features();
+
+        let needed_limits = wgpu::Limits::default();
+
+        let capabilities = surface.get_capabilities(&adapter);
+
+        let (device, queue) = adapter
             .request_device(
                 &wgpu::DeviceDescriptor {
-                    features: wgpu::Features::empty(),
-                    limits: wgpu::Limits::default(),
                     label: None,
+                    required_features: adapter_features & wgpu::Features::default(),
+                    required_limits: needed_limits,
                 },
                 None,
             )
             .await
-            .expect("Request device")
+            .expect("Could not request device nor queue");
+
+        (
+            capabilities
+                .formats
+                .iter()
+                .copied()
+                .find(wgpu::TextureFormat::is_srgb)
+                .or_else(|| capabilities.formats.first().copied())
+                .expect("Get preferred format"),
+            adapter,
+            device,
+            queue,
+        )
     });
 
     if !PANIC_ON_WGPU_ERRORS {
@@ -300,16 +336,17 @@ fn main() {
     }
 
     {
-        let size = window.inner_size();
+        let physical_size = window.inner_size();
 
         surface.configure(
             &device,
             &wgpu::SurfaceConfiguration {
                 usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-                format: TEXTURE_FORMAT,
-                width: size.width,
-                height: size.height,
+                format,
+                width: physical_size.width,
+                height: physical_size.height,
                 present_mode: wgpu::PresentMode::AutoVsync,
+                desired_maximum_frame_latency: 2,
                 alpha_mode: wgpu::CompositeAlphaMode::Auto,
                 view_formats: vec![],
             },
@@ -323,13 +360,17 @@ fn main() {
 
     let settings = Settings {
         antialiasing: Some(iced_graphics::Antialiasing::MSAAx4),
-        default_text_size: ui_size.main_text(),
-        default_font: Some(include_bytes!("../font/ensnano2.ttf")),
+        default_text_size: ui_size.main_text().into(),
+        default_font: ensnano_gui::fonts::ENSNANO_FONT,
         ..Default::default()
     };
     // Initialize the renderer
-    let mut renderer =
-        iced_wgpu::Renderer::new(iced_wgpu::Backend::new(&device, settings, TEXTURE_FORMAT));
+    let mut overlay_renderer = iced::Renderer::Wgpu(iced_wgpu::Renderer::new(
+        iced_wgpu::Backend::new(&device, &queue, settings, format),
+        settings.default_font,
+        settings.default_text_size,
+    ));
+    ensnano_gui::fonts::load_fonts(&mut overlay_renderer);
     let device = Rc::new(device);
     let queue = Rc::new(queue);
     let mut resized = false;
@@ -358,7 +399,9 @@ fn main() {
     // The `encoder` encodes a series of GPU operations.
     let mut encoder =
         device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
-    let scene_area = multiplexer.get_element_area(ElementType::Scene).unwrap();
+    let scene_area = multiplexer
+        .get_element_area(GuiComponentType::Scene)
+        .unwrap();
     let scene = Arc::new(Mutex::new(Scene::new(
         Rc::clone(&device),
         Rc::clone(&queue),
@@ -381,8 +424,11 @@ fn main() {
     )));
 
     queue.submit(Some(encoder.finish()));
-    scheduler.add_application(scene.clone(), ElementType::Scene);
-    scheduler.add_application(stereographic_scene.clone(), ElementType::StereographicScene);
+    scheduler.add_application(scene.clone(), GuiComponentType::Scene);
+    scheduler.add_application(
+        stereographic_scene.clone(),
+        GuiComponentType::StereographicScene,
+    );
 
     let flat_scene = Arc::new(Mutex::new(FlatScene::new(
         Rc::clone(&device),
@@ -392,7 +438,7 @@ fn main() {
         requests.clone(),
         Default::default(),
     )));
-    scheduler.add_application(flat_scene.clone(), ElementType::FlatScene);
+    scheduler.add_application(flat_scene.clone(), GuiComponentType::FlatScene);
 
     // Initialize the UI
     //
@@ -402,8 +448,12 @@ fn main() {
 
     let mut main_state = MainState::new(main_state_constructor);
 
+    //let _ = ensnano_gui::material_icons_light::load_fonts();
+    //let _ = ensnano_gui::helpers::load_fonts2();
+
     let mut gui = gui::Gui::new(
         Rc::clone(&device),
+        Rc::clone(&queue),
         &window,
         &multiplexer,
         Arc::clone(&requests),
@@ -412,19 +462,22 @@ fn main() {
         Default::default(),
     );
 
-    let mut overlay_manager = OverlayManager::new(Arc::clone(&requests), &window, &mut renderer);
+    let mut overlay_manager =
+        OverlayManager::new(Arc::clone(&requests), &window, &mut overlay_renderer);
 
     // Run event loop
     let mut last_render_time = std::time::Instant::now();
     let mut mouse_interaction = iced::mouse::Interaction::Pointer;
 
-    main_state.applications.insert(ElementType::Scene, scene);
     main_state
         .applications
-        .insert(ElementType::FlatScene, flat_scene);
+        .insert(GuiComponentType::Scene, scene);
     main_state
         .applications
-        .insert(ElementType::StereographicScene, stereographic_scene);
+        .insert(GuiComponentType::FlatScene, flat_scene);
+    main_state
+        .applications
+        .insert(GuiComponentType::StereographicScene, stereographic_scene);
 
     // Add a design to the scene if one was given as a command line arguement
     if path.is_some() {
@@ -451,13 +504,15 @@ fn main() {
         .unwrap()
         .push_application_state(main_state.get_app_state(), last_gui_state.1.clone());
 
-    event_loop.run(move |event, _, control_flow| {
+    event_loop.run(move |window_event, window_target| {
         // Wait for event or redraw a frame every 33 ms (30 frame per seconds)
-        *control_flow = ControlFlow::WaitUntil(Instant::now() + Duration::from_millis(33));
+        window_target.set_control_flow(ControlFlow::WaitUntil(
+            Instant::now() + Duration::from_millis(33),
+        ));
 
         let mut main_state_view = MainStateView {
             main_state: &mut main_state,
-            control_flow,
+            window_target: &window_target,
             multiplexer: &mut multiplexer,
             gui: &mut gui,
             scheduler: &mut scheduler,
@@ -465,60 +520,195 @@ fn main() {
             resized: false,
         };
 
-        match event {
+        match window_event {
             Event::WindowEvent {
-                event: WindowEvent::CloseRequested,
+                event: window_event,
                 ..
-            } => main_state_view
-                .main_state
-                .pending_actions
-                .push_back(Action::Exit),
-            Event::WindowEvent {
-                event: WindowEvent::Focused(false),
-                ..
-            } => main_state_view.notify_apps(Notification::WindowFocusLost),
-            Event::WindowEvent {
-                event: WindowEvent::ModifiersChanged(modifiers),
-                ..
-            } => {
-                main_state_view.multiplexer.update_modifiers(modifiers);
-                messages.lock().unwrap().update_modifiers(modifiers);
-                main_state_view.notify_apps(Notification::ModifersChanged(modifiers));
-            }
-            Event::WindowEvent {
-                event: WindowEvent::KeyboardInput { input, .. },
-                ..
-            } if input.virtual_keycode == Some(VirtualKeyCode::Escape)
-                && window.fullscreen().is_some() =>
-            {
-                window.set_fullscreen(None)
-            }
-            Event::WindowEvent {
-                event: WindowEvent::KeyboardInput { .. },
-                ..
-            }
-            | Event::WindowEvent {
-                event: WindowEvent::ReceivedCharacter(_),
-                ..
-            } if gui.has_keyboard_priority() => {
-                if let Event::WindowEvent { event, .. } = event {
-                    if let Some(event) = event.to_static() {
-                        let event = iced_winit::conversion::window_event(
-                            &event,
-                            window.scale_factor(),
-                            kbd_modifiers,
+            } => match window_event {
+                WindowEvent::CloseRequested => {
+                    main_state_view
+                        .main_state
+                        .pending_actions
+                        .push_back(Action::Exit);
+                }
+
+                WindowEvent::Focused(false) => {
+                    main_state_view.notify_apps(Notification::WindowFocusLost);
+                }
+
+                WindowEvent::ModifiersChanged(modifiers) => {
+                    main_state_view.multiplexer.update_modifiers(modifiers);
+                    messages.lock().unwrap().update_modifiers(modifiers);
+                    main_state_view.notify_apps(Notification::ModifersChanged(modifiers));
+                }
+
+                WindowEvent::KeyboardInput {
+                    event: key_event, ..
+                } if (key_event.logical_key == Key::Named(NamedKey::Escape)
+                    && window.fullscreen().is_some()) =>
+                {
+                    window.set_fullscreen(None)
+                }
+
+                WindowEvent::KeyboardInput { .. } if gui.has_keyboard_priority() => {
+                    iced_winit::conversion::window_event(
+                        iced::window::Id::MAIN,
+                        // NOTE: Used to be window.id(). It seems dirty,
+                        //       but the same is done in iced/examples/integration
+                        window_event,
+                        window.scale_factor(),
+                        kbd_modifiers,
+                    )
+                    .map(|e| gui.forward_event_all(e));
+                }
+
+                WindowEvent::RedrawRequested
+                    if window.inner_size().width > 0 && window.inner_size().height > 0 =>
+                {
+                    if resized {
+                        multiplexer.generate_textures();
+                        scheduler.forward_new_size(window.inner_size(), &multiplexer);
+                        let window_size = window.inner_size();
+
+                        surface.configure(
+                            &device,
+                            &wgpu::SurfaceConfiguration {
+                                usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+                                format: TEXTURE_FORMAT,
+                                width: window_size.width,
+                                height: window_size.height,
+                                present_mode: wgpu::PresentMode::AutoVsync,
+                                desired_maximum_frame_latency: 2,
+                                alpha_mode: Default::default(),
+                                view_formats: Default::default(),
+                            },
                         );
-                        if let Some(event) = event {
-                            gui.forward_event_all(event);
+
+                        gui.resize(&multiplexer, &window);
+                        log::trace!(
+                            "Will draw on texture of size {}x {}",
+                            window_size.width,
+                            window_size.height
+                        );
+                    }
+                    if scale_factor_changed {
+                        multiplexer.generate_textures();
+                        gui.notify_scale_factor_change(
+                            &window,
+                            &multiplexer,
+                            &main_state.app_state,
+                            main_state.gui_state(&multiplexer),
+                        );
+                        log::info!("Notified of scale factor change: {}", window.scale_factor());
+                        scheduler.forward_new_size(window.inner_size(), &multiplexer);
+                        let window_size = window.inner_size();
+
+                        surface.configure(
+                            &device,
+                            &wgpu::SurfaceConfiguration {
+                                usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+                                format: TEXTURE_FORMAT,
+                                width: window_size.width,
+                                height: window_size.height,
+                                present_mode: wgpu::PresentMode::AutoVsync,
+                                desired_maximum_frame_latency: 2,
+                                alpha_mode: Default::default(),
+                                view_formats: Default::default(),
+                            },
+                        );
+
+                        gui.resize(&multiplexer, &window);
+                    }
+                    // Get viewports from the partition
+
+                    // If there are events pending
+                    gui.update(
+                        &multiplexer,
+                        &gui_theme,
+                        &theme::gui_style(&gui_theme),
+                        &window,
+                    );
+
+                    overlay_manager.process_event(
+                        &mut overlay_renderer,
+                        &gui_theme,
+                        &theme::gui_style(&gui_theme),
+                        resized,
+                        &multiplexer,
+                        &window,
+                    );
+
+                    resized = false;
+                    scale_factor_changed = false;
+
+                    if let Ok(frame) = surface.get_current_texture() {
+                        let mut encoder =
+                            device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
+                                label: None,
+                            });
+
+                        // We draw the applications first
+                        let now = std::time::Instant::now();
+                        let dt = now - last_render_time;
+                        scheduler.draw_apps(&mut encoder, &multiplexer, dt);
+
+                        gui.render(
+                            &mut encoder,
+                            None, // TODO: See if another value of clear_color is more appropriate.
+                            &window,
+                            &multiplexer,
+                            //&mut staging_belt,
+                            &mut mouse_interaction,
+                        );
+
+                        if multiplexer.resize(window.inner_size(), window.scale_factor()) {
+                            resized = true;
+                            window.request_redraw();
+                            return;
                         }
+                        log::trace!("window size {:?}", window.inner_size());
+                        multiplexer.draw(
+                            &mut encoder,
+                            &frame
+                                .texture
+                                .create_view(&wgpu::TextureViewDescriptor::default()),
+                            &window,
+                        );
+                        overlay_manager.render(
+                            &device,
+                            &queue,
+                            &mut encoder,
+                            frame.texture.format(),
+                            &frame
+                                .texture
+                                .create_view(&wgpu::TextureViewDescriptor::default()),
+                            &multiplexer,
+                            &window,
+                            &mut overlay_renderer,
+                        );
+
+                        // Then we submit the work
+                        staging_belt.finish();
+                        queue.submit(Some(encoder.finish()));
+                        frame.present();
+
+                        // And update the mouse cursor
+                        main_state.gui_cursor =
+                            iced_winit::conversion::mouse_interaction(mouse_interaction);
+                        main_state.update_cursor(&multiplexer);
+                        window.set_cursor_icon(main_state.cursor);
+                        staging_belt.recall();
+                    } else {
+                        log::warn!("Error getting next frame, attempt to recreate swap chain");
+                        resized = true;
                     }
                 }
-            }
-            Event::WindowEvent { event, .. } => {
-                //let modifiers = multiplexer.modifiers();
-                if let Some(event) = event.to_static() {
+
+                _ => {
+                    //let modifiers = multiplexer.modifiers();
                     // Feed the event to the multiplexer
-                    let event = multiplexer.event(event, &mut resized, &mut scale_factor_changed);
+                    let event =
+                        multiplexer.event(window_event, &mut resized, &mut scale_factor_changed);
 
                     if let Some((event, area)) = event {
                         // pass the event to the area on which it happenened
@@ -535,25 +725,27 @@ fn main() {
                         }
                         main_state.applications_cursor = None;
                         match area {
-                            area if area.is_gui() => {
-                                let event = iced_winit::conversion::window_event(
-                                    &event,
+                            area if area.is_panel() => {
+                                iced_winit::conversion::window_event(
+                                    iced::window::Id::MAIN,
+                                    // NOTE: Used to be window.id(). It seems dirty,
+                                    //       but the same is done in iced/examples/integration
+                                    event,
                                     window.scale_factor(),
                                     kbd_modifiers,
-                                );
-                                if let Some(event) = event {
-                                    gui.forward_event(area, event);
-                                }
+                                )
+                                .map(|e| gui.forward_event(area, e));
                             }
-                            ElementType::Overlay(n) => {
-                                let event = iced_winit::conversion::window_event(
-                                    &event,
+                            GuiComponentType::Overlay(n) => {
+                                iced_winit::conversion::window_event(
+                                    iced::window::Id::MAIN,
+                                    // NOTE: Used to be window.id(). It seems dirty,
+                                    //       but the same is done in iced/examples/integration
+                                    event,
                                     window.scale_factor(),
                                     kbd_modifiers,
-                                );
-                                if let Some(event) = event {
-                                    overlay_manager.forward_event(event, n);
-                                }
+                                )
+                                .map(|e| overlay_manager.forward_event(e, n));
                             }
                             area if area.is_scene() => {
                                 let cursor_position = multiplexer.get_cursor_position();
@@ -568,8 +760,8 @@ fn main() {
                         }
                     }
                 }
-            }
-            Event::MainEventsCleared => {
+            },
+            Event::AboutToWait => {
                 scale_factor_changed |= multiplexer.check_scale_factor(&window);
                 let mut redraw = resized || scale_factor_changed;
                 redraw |= main_state.update_cursor(&multiplexer);
@@ -585,7 +777,7 @@ fn main() {
 
                 let mut main_state_view = MainStateView {
                     main_state: &mut main_state,
-                    control_flow,
+                    window_target: &window_target,
                     multiplexer: &mut multiplexer,
                     gui: &mut gui,
                     scheduler: &mut scheduler,
@@ -651,7 +843,7 @@ fn main() {
                 let _overlay_change = overlay_manager.fetch_change(
                     &multiplexer,
                     &window,
-                    &mut renderer,
+                    &mut overlay_renderer,
                     &gui_theme,
                     &theme::gui_style(&gui_theme),
                 );
@@ -682,148 +874,15 @@ fn main() {
                     window.request_redraw();
                 }
             }
-            Event::RedrawRequested(_)
-                if window.inner_size().width > 0 && window.inner_size().height > 0 =>
-            {
-                if resized {
-                    multiplexer.generate_textures();
-                    scheduler.forward_new_size(window.inner_size(), &multiplexer);
-                    let window_size = window.inner_size();
-
-                    surface.configure(
-                        &device,
-                        &wgpu::SurfaceConfiguration {
-                            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-                            format: TEXTURE_FORMAT,
-                            width: window_size.width,
-                            height: window_size.height,
-                            present_mode: wgpu::PresentMode::AutoVsync,
-                            alpha_mode: Default::default(),
-                            view_formats: Default::default(),
-                        },
-                    );
-
-                    gui.resize(&multiplexer, &window);
-                    log::trace!(
-                        "Will draw on texture of size {}x {}",
-                        window_size.width,
-                        window_size.height
-                    );
-                }
-                if scale_factor_changed {
-                    multiplexer.generate_textures();
-                    gui.notify_scale_factor_change(
-                        &window,
-                        &multiplexer,
-                        &main_state.app_state,
-                        main_state.gui_state(&multiplexer),
-                    );
-                    log::info!("Notified of scale factor change: {}", window.scale_factor());
-                    scheduler.forward_new_size(window.inner_size(), &multiplexer);
-                    let window_size = window.inner_size();
-
-                    surface.configure(
-                        &device,
-                        &wgpu::SurfaceConfiguration {
-                            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-                            format: TEXTURE_FORMAT,
-                            width: window_size.width,
-                            height: window_size.height,
-                            present_mode: wgpu::PresentMode::AutoVsync,
-                            alpha_mode: Default::default(),
-                            view_formats: Default::default(),
-                        },
-                    );
-
-                    gui.resize(&multiplexer, &window);
-                }
-                // Get viewports from the partition
-
-                // If there are events pending
-                gui.update(
-                    &multiplexer,
-                    &gui_theme,
-                    &theme::gui_style(&gui_theme),
-                    &window,
-                );
-
-                overlay_manager.process_event(
-                    &mut renderer,
-                    &gui_theme,
-                    &theme::gui_style(&gui_theme),
-                    resized,
-                    &multiplexer,
-                    &window,
-                );
-
-                resized = false;
-                scale_factor_changed = false;
-
-                if let Ok(frame) = surface.get_current_texture() {
-                    let mut encoder = device
-                        .create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
-
-                    // We draw the applications first
-                    let now = std::time::Instant::now();
-                    let dt = now - last_render_time;
-                    scheduler.draw_apps(&mut encoder, &multiplexer, dt);
-
-                    gui.render(
-                        &mut encoder,
-                        &window,
-                        &multiplexer,
-                        &mut staging_belt,
-                        &mut mouse_interaction,
-                    );
-
-                    if multiplexer.resize(window.inner_size(), window.scale_factor()) {
-                        resized = true;
-                        window.request_redraw();
-                        return;
-                    }
-                    log::trace!("window size {:?}", window.inner_size());
-                    multiplexer.draw(
-                        &mut encoder,
-                        &frame
-                            .texture
-                            .create_view(&wgpu::TextureViewDescriptor::default()),
-                        &window,
-                    );
-                    overlay_manager.render(
-                        &device,
-                        &mut staging_belt,
-                        &mut encoder,
-                        &frame
-                            .texture
-                            .create_view(&wgpu::TextureViewDescriptor::default()),
-                        &multiplexer,
-                        &window,
-                        &mut renderer,
-                    );
-
-                    // Then we submit the work
-                    staging_belt.finish();
-                    queue.submit(Some(encoder.finish()));
-                    frame.present();
-
-                    // And update the mouse cursor
-                    main_state.gui_cursor =
-                        iced_winit::conversion::mouse_interaction(mouse_interaction);
-                    main_state.update_cursor(&multiplexer);
-                    window.set_cursor_icon(main_state.cursor);
-                    staging_belt.recall();
-                } else {
-                    log::warn!("Error getting next frame, attempt to recreate swap chain");
-                    resized = true;
-                }
-            }
             _ => {}
         }
-    })
+    })?;
+
+    Ok(())
 }
 
 pub struct OverlayManager {
-    color_state: iced_native::program::State<ColorOverlay<Requests>>,
+    color_state: program::State<ColorOverlay<Requests>>,
     color_debug: Debug,
     overlay_types: Vec<OverlayType>,
     overlays: Vec<Overlay>,
@@ -833,7 +892,7 @@ impl OverlayManager {
     pub fn new(
         requests: Arc<Mutex<Requests>>,
         window: &Window,
-        renderer: &mut iced_wgpu::Renderer,
+        renderer: &mut iced::Renderer,
     ) -> Self {
         let color = ColorOverlay::new(
             requests,
@@ -878,27 +937,30 @@ impl OverlayManager {
 
     fn process_event(
         &mut self,
-        renderer: &mut iced_graphics::Renderer<iced_wgpu::Backend, iced::Theme>,
+        renderer: &mut iced::Renderer,
         theme: &iced::Theme,
-        style: &iced_native::renderer::Style,
+        style: &iced::advanced::renderer::Style,
         resized: bool,
         multiplexer: &Multiplexer,
         window: &Window,
     ) {
         for (n, overlay) in self.overlay_types.iter().enumerate() {
-            let cursor_position = if multiplexer.foccused_element() == Some(ElementType::Overlay(n))
-            {
-                multiplexer.get_cursor_position()
+            let cursor = if multiplexer.focused_element() == Some(GuiComponentType::Overlay(n)) {
+                let point = conversion::cursor_position(
+                    multiplexer.get_cursor_position(),
+                    window.scale_factor(),
+                );
+                iced::mouse::Cursor::Available(point)
             } else {
-                PhysicalPosition::new(-1., -1.)
+                iced::mouse::Cursor::Unavailable
             };
-            let mut clipboard = iced_native::clipboard::Null;
+            let mut clipboard = iced::advanced::clipboard::Null;
             match overlay {
                 OverlayType::Color => {
                     if !self.color_state.is_queue_empty() || resized {
                         let _ = self.color_state.update(
                             convert_size(PhysicalSize::new(250, 250)),
-                            conversion::cursor_position(cursor_position, window.scale_factor()),
+                            cursor,
                             renderer,
                             theme,
                             style,
@@ -915,12 +977,13 @@ impl OverlayManager {
     fn render(
         &self,
         device: &wgpu::Device,
-        staging_belt: &mut wgpu::util::StagingBelt,
+        queue: &wgpu::Queue,
         encoder: &mut wgpu::CommandEncoder,
+        format: wgpu::TextureFormat,
         target: &wgpu::TextureView,
         multiplexer: &Multiplexer,
         window: &Window,
-        renderer: &mut iced_wgpu::Renderer,
+        renderer: &mut iced::Renderer,
     ) {
         for overlay_type in self.overlay_types.iter() {
             match overlay_type {
@@ -929,17 +992,24 @@ impl OverlayManager {
                         convert_size_u32(multiplexer.window_size),
                         window.scale_factor(),
                     );
-                    renderer.with_primitives(|backend, primitives| {
-                        backend.present(
-                            device,
-                            staging_belt,
-                            encoder,
-                            target,
-                            primitives,
-                            &color_viewport,
-                            &self.color_debug.overlay(),
-                        )
-                    });
+                    match renderer {
+                        iced::Renderer::Wgpu(wgpu_renderer) => {
+                            wgpu_renderer.with_primitives(|backend, primitives| {
+                                backend.present(
+                                    device,
+                                    queue,
+                                    encoder,
+                                    None, // TODO: Examine what clear_color is.
+                                    format,
+                                    target,
+                                    primitives,
+                                    &color_viewport,
+                                    &self.color_debug.overlay(),
+                                )
+                            })
+                        }
+                        _ => panic!("Unhandled renderer"),
+                    };
                 }
             }
         }
@@ -977,26 +1047,29 @@ impl OverlayManager {
         &mut self,
         multiplexer: &Multiplexer,
         window: &Window,
-        renderer: &mut iced_graphics::Renderer<iced_wgpu::Backend, iced::Theme>,
+        renderer: &mut iced::Renderer,
         theme: &iced::Theme,
-        style: &iced_native::renderer::Style,
+        style: &iced::advanced::renderer::Style,
     ) -> bool {
         let mut ret = false;
         for (n, overlay) in self.overlay_types.iter().enumerate() {
-            let cursor_position = if multiplexer.foccused_element() == Some(ElementType::Overlay(n))
-            {
-                multiplexer.get_cursor_position()
+            let cursor = if multiplexer.focused_element() == Some(GuiComponentType::Overlay(n)) {
+                let point = conversion::cursor_position(
+                    multiplexer.get_cursor_position(),
+                    window.scale_factor(),
+                );
+                iced::mouse::Cursor::Available(point)
             } else {
-                PhysicalPosition::new(-1., -1.)
+                iced::mouse::Cursor::Unavailable
             };
-            let mut clipboard = iced_native::clipboard::Null;
+            let mut clipboard = iced::advanced::clipboard::Null;
             match overlay {
                 OverlayType::Color => {
                     if !self.color_state.is_queue_empty() {
                         ret = true;
                         let _ = self.color_state.update(
                             convert_size(PhysicalSize::new(250, 250)),
-                            conversion::cursor_position(cursor_position, window.scale_factor()),
+                            cursor,
                             renderer,
                             theme,
                             style,
@@ -1039,8 +1112,8 @@ pub(crate) struct MainState {
     redo_stack: Vec<AppStateTransition>,
     channel_reader: ChannelReader,
     messages: Arc<Mutex<IcedMessages<AppState>>>,
-    applications: HashMap<ElementType, Arc<Mutex<dyn Application<AppState = AppState>>>>,
-    focused_element: Option<ElementType>,
+    applications: HashMap<GuiComponentType, Arc<Mutex<dyn Application<AppState = AppState>>>>,
+    focused_element: Option<GuiComponentType>,
     last_saved_state: AppState,
 
     /// The name of the file containing the current design.
@@ -1098,7 +1171,7 @@ impl MainState {
         // Usefull to remember to finish hyperboloid before trying to edit
         if self.app_state.is_building_hyperboloid()
             && multiplexer
-                .foccused_element()
+                .focused_element()
                 .map(|e| e.is_scene())
                 .unwrap_or(false)
         {
@@ -1152,11 +1225,11 @@ impl MainState {
         log::trace!("call from main state");
         if let Some(camera_ptr) = self
             .applications
-            .get(&ElementType::StereographicScene)
+            .get(&GuiComponentType::StereographicScene)
             .and_then(|s| s.lock().unwrap().get_camera())
         {
             self.applications
-                .get(&ElementType::Scene)
+                .get(&GuiComponentType::Scene)
                 .unwrap()
                 .lock()
                 .unwrap()
@@ -1173,7 +1246,7 @@ impl MainState {
         use scene::AppState;
         let scene_pivot = self
             .applications
-            .get(&ElementType::Scene)
+            .get(&GuiComponentType::Scene)
             .and_then(|app| app.lock().unwrap().get_current_selection_pivot());
         if let Some(pivot) = self.app_state.get_current_group_pivot().or(scene_pivot) {
             self.apply_operation(DesignOperation::SetGroupPivot { group_id, pivot })
@@ -1433,7 +1506,7 @@ impl MainState {
     fn save_design(&mut self, path: &PathBuf) -> Result<(), SaveDesignError> {
         let camera = self
             .applications
-            .get(&ElementType::Scene)
+            .get(&GuiComponentType::Scene)
             .and_then(|s| s.lock().unwrap().get_camera())
             .map(|camera| Camera {
                 id: Default::default(),
@@ -1455,7 +1528,7 @@ impl MainState {
     fn save_backup(&mut self) -> Result<(), SaveDesignError> {
         let camera = self
             .applications
-            .get(&ElementType::Scene)
+            .get(&GuiComponentType::Scene)
             .and_then(|s| s.lock().unwrap().get_camera())
             .map(|camera| Camera {
                 id: Default::default(),
@@ -1590,7 +1663,7 @@ impl MainState {
 
     fn get_grid_creation_position(&self) -> Option<(Vec3, Rotor3)> {
         self.applications
-            .get(&ElementType::Scene)
+            .get(&GuiComponentType::Scene)
             .and_then(|s| s.lock().unwrap().get_position_for_new_grid())
     }
 
@@ -1630,20 +1703,20 @@ impl MainState {
             can_redo: !self.redo_stack.is_empty(),
             need_save: self.need_save(),
             can_reload: self.get_current_file_name().is_some(),
-            can_split2d: multiplexer.is_showing(&ElementType::FlatScene),
+            can_split2d: multiplexer.is_showing(&GuiComponentType::FlatScene),
             splited_2d: self
                 .applications
-                .get(&ElementType::FlatScene)
+                .get(&GuiComponentType::FlatScene)
                 .map(|app| app.lock().unwrap().is_splited())
                 .unwrap_or(false),
-            can_toggle_2d: multiplexer.is_showing(&ElementType::FlatScene)
-                || multiplexer.is_showing(&ElementType::StereographicScene),
+            can_toggle_2d: multiplexer.is_showing(&GuiComponentType::FlatScene)
+                || multiplexer.is_showing(&GuiComponentType::StereographicScene),
         }
     }
 
     fn get_camera_3d(&self) -> ensnano_interactor::application::Camera3D {
         self.applications
-            .get(&ElementType::Scene)
+            .get(&GuiComponentType::Scene)
             .expect("Could not get scene element")
             .lock()
             .unwrap()
@@ -1656,7 +1729,7 @@ impl MainState {
 
     fn set_camera_3d(&self, camera: ensnano_interactor::application::Camera3D) {
         self.applications
-            .get(&ElementType::Scene)
+            .get(&GuiComponentType::Scene)
             .expect("Could not get scene element")
             .lock()
             .unwrap()
@@ -1667,7 +1740,7 @@ impl MainState {
 /// A temporary view of the main state and the control flow.
 struct MainStateView<'a> {
     main_state: &'a mut MainState,
-    control_flow: &'a mut ControlFlow,
+    window_target: &'a EventLoopWindowTarget<()>,
     multiplexer: &'a mut Multiplexer,
     scheduler: &'a mut Scheduler,
     gui: &'a mut Gui<Requests, AppState>,
@@ -1704,7 +1777,7 @@ impl<'a> MainStateInteface for MainStateView<'a> {
     }
 
     fn exit_control_flow(&mut self) {
-        *self.control_flow = ControlFlow::Exit
+        self.window_target.exit()
     }
 
     fn new_design(&mut self) {
@@ -1806,7 +1879,7 @@ impl<'a> MainStateInteface for MainStateView<'a> {
     }
 
     fn notify_apps(&mut self, notification: Notification) {
-        log::info!("Notiffy apps {:?}", notification);
+        log::info!("Notify apps {:?}", notification);
         for app in self.main_state.applications.values_mut() {
             app.lock().unwrap().on_notify(notification.clone())
         }
@@ -2019,7 +2092,7 @@ impl<'a> MainStateInteface for MainStateView<'a> {
         if let Some(camera) = self
             .main_state
             .applications
-            .get(&ElementType::Scene)
+            .get(&GuiComponentType::Scene)
             .and_then(|s| s.lock().unwrap().get_camera())
         {
             self.main_state
@@ -2046,7 +2119,7 @@ impl<'a> MainStateInteface for MainStateView<'a> {
         if let Some(camera) = self
             .main_state
             .applications
-            .get(&ElementType::Scene)
+            .get(&GuiComponentType::Scene)
             .and_then(|s| s.lock().unwrap().get_camera())
         {
             self.main_state

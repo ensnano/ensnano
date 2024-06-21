@@ -404,7 +404,7 @@ impl DraggingTransitionTable for MakingXover {
         self.current_xover = cursor
             .context
             .attempt_xover(&self.origin.scene_element, &self.target_element);
-        self.magic_xover = cursor.context.get_modifiers().shift();
+        self.magic_xover = cursor.context.get_modifiers().shift_key();
         Some(Consequence::MoveFreeXover(element, projected_position))
     }
 
@@ -779,8 +779,8 @@ impl DraggingTransitionTable for MovingBezierTangent {
         &mut self,
         cursor: DraggedCursor<'_, '_, S>,
     ) -> Option<Consequence> {
-        let translate_only = cursor.context.get_modifiers().shift();
-        let full_symetry_other = cursor.context.get_modifiers().alt();
+        let translate_only = cursor.context.get_modifiers().shift_key();
+        let full_symetry_other = cursor.context.get_modifiers().alt_key();
 
         let new_tangent = if translate_only {
             // Change the norm without changing the angle
