@@ -39,7 +39,7 @@ use ensnano_interactor::{
     phantom_helix_encoder_bond, phantom_helix_encoder_nucl, BezierControlPoint, ObjectType,
     PhantomElement, Referential, PHANTOM_RANGE,
 };
-use ensnano_utils::colors::{self, new_color};
+use ensnano_utils::colors::{self, new_color, purple_to_blue_gradient_color};
 use ensnano_utils::instance::Instance;
 use std::collections::hash_map::RandomState;
 use std::collections::{BTreeMap, HashMap, HashSet};
@@ -333,16 +333,20 @@ impl<R: DesignReader> Design3D<R> {
             let NB_STEPS = 10 * NB_COILS;
             let SPRING_RADIUS = 2. * SPHERE_RADIUS;
             let SPRING_THICKNESS = SPRING_RADIUS / 4.;
+            let MIN_SPRING_LENGTH = 2.65 / 1.5;
+            let MAX_SPRING_LENGTH = 2.65 * 1.5;
             let alpha = NB_COILS as f32 * TAU / NB_STEPS as f32;
             let xx = (0..NB_COILS).map(|i| SPRING_RADIUS * (i as f32 * alpha).cos()).collect::<Vec<f32>>();
             let yy = (0..NB_COILS).map(|i| SPRING_RADIUS * (i as f32 * alpha).sin()).collect::<Vec<f32>>();
             if draw_springs {
+                // println!("drawing springs...");
                 for (me, other) in additional_structure.next().into_iter() {
                     let pos_left = transformation.transform_vec(positions[me]);
                     let pos_right = transformation.transform_vec(positions[other]);
 
                     // create a spring with 10 coils between them
-                    let z_vec = (pos_right - pos_left).normalized();
+                    let uv = pos_right - pos_left;
+                    let z_vec = uv.normalized();
                     let y_vec = z_vec
                         .cross(if z_vec.x.abs() > 0.5 {
                             Vec3::unit_y()
@@ -354,22 +358,24 @@ impl<R: DesignReader> Design3D<R> {
                     let positions = (0..NB_STEPS)
                         .map(|i| {
                             (pos_left
-                                + i as f32 / NB_STEPS as f32 * (pos_right - pos_left)
+                                + i as f32 / NB_STEPS as f32 * uv
                                 + xx[i%NB_COILS] * x_vec
                                 + yy[i%NB_COILS] * y_vec)
                         })
                         .collect();
+                    let color = ensnano_utils::colors::purple_to_blue_gradient_color_in_range(uv.mag(), MIN_SPRING_LENGTH, MAX_SPRING_LENGTH);
                     let (sliced_tubes, _) = SausageRosary {
                         positions,
                         is_cyclic: false,
                     }
                     .to_raw_dna_instances(
-                        { |_| 0x00FF00 },
+                        { |_| color },
                         SPRING_THICKNESS,
                         u32::MAX,
                     );
                     ret.extend(sliced_tubes.into_iter().map(|s| s.to_raw_instance()));
                 }
+                // println!("drawing springs... Done");
             }
         }
 
