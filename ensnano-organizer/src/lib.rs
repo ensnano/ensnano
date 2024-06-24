@@ -1,5 +1,5 @@
 use iced::advanced;
-use iced::alignment::Horizontal as HorizontalAlignment;
+use iced::alignment;
 use iced::keyboard::Modifiers;
 use iced::{Element, Length};
 pub use iced_aw::graphics::icons::{icon_to_string, BootstrapIcon, BOOTSTRAP_FONT};
@@ -971,58 +971,58 @@ impl<E: OrganizerElement> ElementView<E> {
             attribute_displayers: vec![AttributeDisplayer::new(); E::all_repr().len()],
         }
     }
-    fn view<'a, Theme, Renderer>(
+    fn view<'a>(
         &self,
         _theme: &OrganizerTheme,
         element: &E,
         selection: &BTreeSet<E::Key>,
         deletable: Option<NodeId<E::AutoGroup>>,
-    ) -> DragDropTarget<'a, OrganizerMessage<E>, Theme, Renderer, E::Key, E::AutoGroup>
+    ) -> DragDropTarget<'a, OrganizerMessage<E>, crate::Theme, crate::Renderer, E::Key, E::AutoGroup>
     where
         Theme: 'a,
         Renderer: iced::advanced::Renderer + 'a,
     {
-        //let selected = selection.contains(&element.key());
-        //let mut content = row![text(element.display_name()), horizontal_space(),];
+        let selected = selection.contains(&element.key());
+
+        let mut content = row![text(element.display_name()), horizontal_space(),];
+        // [DragIdentifier::Group] are deletable, [DragIdentifier::Section] are not.
         let identifier = match deletable.as_ref() {
             Some(id) => DragIdentifier::Group { id: id.clone() },
             None => DragIdentifier::Section {
                 key: element.key().clone(),
             },
         };
-        //for ad in self.attribute_displayers.iter() {
-        //    if let Some(view) = ad.view() {
-        //        let mut elt = BTreeSet::new();
-        //        elt.insert(element.key());
-        //        let elt_key = element.key();
-        //        content =
-        //            content.push(view.map(move |m| {
-        //                OrganizerMessage::<E>::NewAttribute(m, vec![elt_key.clone()])
-        //            }))
-        //    }
-        //}
-        //if let Some(id) = deletable.clone() {
-        //    content = content
-        //        .push(button(icon(BootstrapIcon::Trash)).on_press(OrganizerMessage::delete(id)));
-        //}
-        //let mut button = HoverableContainer::new(
-        //    button(content)
-        //        .on_press(OrganizerMessage::element_selected(element.key().clone()))
-        //        .width(iced::Length::Fill),
-        //    //.style(iced_theme::Button::from(theme.selected(selected)))
-        //);
-        //if let Some(id) = deletable {
-        //    button = button
-        //        .on_hover(OrganizerMessage::node_hovered(id.clone(), true))
-        //        .on_unhover(OrganizerMessage::node_hovered(id, false))
-        //} else {
-        //    button = button
-        //        .on_hover(OrganizerMessage::key_hovered(element.key(), true))
-        //        .on_unhover(OrganizerMessage::key_hovered(element.key(), false))
-        //}
-        //DragDropTarget::new(container(button).width(Length::Fill), identifier)
-        //TODO: REACTIVATE ME!
-        DragDropTarget::new(row![], identifier)
+        for ad in self.attribute_displayers.iter() {
+            if let Some(view) = ad.view() {
+                let mut elt = BTreeSet::new();
+                elt.insert(element.key());
+                let elt_key = element.key();
+                content =
+                    content.push(view.map(move |m| {
+                        OrganizerMessage::<E>::NewAttribute(m, vec![elt_key.clone()])
+                    }))
+            }
+        }
+        if let Some(id) = deletable.clone() {
+            content = content
+                .push(button(icon(BootstrapIcon::Trash)).on_press(OrganizerMessage::delete(id)));
+        }
+        let mut content = HoverableContainer::new(
+            button(content)
+                .on_press(OrganizerMessage::element_selected(element.key().clone()))
+                .width(iced::Length::Fill),
+            //.style(iced_theme::Button::from(theme.selected(selected)))
+        );
+        if let Some(id) = deletable {
+            content = content
+                .on_hover(OrganizerMessage::node_hovered(id.clone(), true))
+                .on_unhover(OrganizerMessage::node_hovered(id, false))
+        } else {
+            content = content
+                .on_hover(OrganizerMessage::key_hovered(element.key(), true))
+                .on_unhover(OrganizerMessage::key_hovered(element.key(), false))
+        }
+        DragDropTarget::new(container(content).width(Length::Fill), identifier)
     }
 
     fn update_attributes(&mut self, attributes: &[Option<E::Attribute>]) {
@@ -1047,11 +1047,7 @@ struct NodeView<E: OrganizerElement> {
 impl<E: OrganizerElement> NodeView<E> {
     fn new() -> Self {
         Self {
-            state: GroupState::Idle {
-                add_to_group_button: Default::default(),
-                edit_button: Default::default(),
-                delete_button: Default::default(),
-            },
+            state: GroupState::Idle,
             attribute_displayers: vec![AttributeDisplayer::new(); E::all_repr().len()],
         }
     }
@@ -1067,9 +1063,6 @@ impl<E: OrganizerElement> NodeView<E> {
         log::info!("reached view");
         self.state = GroupState::Editing {
             input: text_input::State::focused(),
-            add_to_group_button: Default::default(),
-            delete_button: Default::default(),
-            edit_button: Default::default(),
         };
         if let GroupState::Editing { input, .. } = &mut self.state {
             input.select_all()
@@ -1077,11 +1070,7 @@ impl<E: OrganizerElement> NodeView<E> {
     }
 
     fn stop_editing(&mut self) {
-        self.state = GroupState::Idle {
-            add_to_group_button: Default::default(),
-            edit_button: Default::default(),
-            delete_button: Default::default(),
-        };
+        self.state = GroupState::Idle;
     }
 
     fn view(
@@ -1098,7 +1087,9 @@ impl<E: OrganizerElement> NodeView<E> {
                 let mut row: Row<'_, _, crate::Theme, crate::Renderer> = row![
                     button(expand_icon(expanded))
                         .on_press(OrganizerMessage::<E>::expand(id.clone(), !expanded)),
+                    Space::with_width(5.0),
                     text(name),
+                    //text_input("", name), // TODO: IDEA: Custom style to show editable.
                     horizontal_space(),
                     button(plus_icon())
                         .on_press(OrganizerMessage::add_selection_to_group(id.clone())), // TODO: change icon later !!!
@@ -1124,6 +1115,7 @@ impl<E: OrganizerElement> NodeView<E> {
                 let mut row = row![
                     button(expand_icon(expanded))
                         .on_press(OrganizerMessage::expand(id.clone(), !expanded)),
+                    Space::with_width(5.0),
                     text_input("New group name...", &name)
                         .on_input(|s| { OrganizerMessage::name_input(s) })
                         .on_submit(OrganizerMessage::stop_edit()),
@@ -1149,6 +1141,7 @@ impl<E: OrganizerElement> NodeView<E> {
             GroupState::NotEditable => row![
                 button(expand_icon(expanded))
                     .on_press(OrganizerMessage::expand(id.clone(), !expanded)),
+                Space::with_width(5.0),
                 text(name),
             ],
         };
@@ -1204,16 +1197,9 @@ enum GroupContent<E: OrganizerElement> {
 }
 
 pub enum GroupState {
-    Idle {
-        add_to_group_button: button::State,
-        edit_button: button::State,
-        delete_button: button::State,
-    },
+    Idle,
     Editing {
         input: text_input::State<iced_graphics::text::Paragraph>,
-        add_to_group_button: button::State,
-        delete_button: button::State,
-        edit_button: button::State,
     },
     NotEditable,
 }
@@ -1799,7 +1785,8 @@ where
     Text::new(icon_to_string(icon))
         .font(BOOTSTRAP_FONT)
         .size(ICON_SIZE)
-        .horizontal_alignment(HorizontalAlignment::Center)
+        .horizontal_alignment(alignment::Horizontal::Center)
+        .vertical_alignment(alignment::Vertical::Center)
 }
 
 fn expand_icon<'a, Theme, Renderer>(expanded: bool) -> Text<'a, Theme, Renderer>

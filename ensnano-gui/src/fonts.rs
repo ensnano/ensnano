@@ -40,6 +40,7 @@ pub const ENSNANO_FONT: Font = Font::with_name("Ensnano");
 /// Load custom font for ENSnano GUI.
 pub fn load_fonts(renderer: &mut impl text::Renderer) {
     let fonts = [
+        iced_aw::BOOTSTRAP_FONT_BYTES,
         material_icons::MATERIAL_ICONS_LIGHT_BYTES,
         material_icons::MATERIAL_ICONS_DARK_BYTES,
         crate::fonts::ENSNANO_FONT_BYTES,
