@@ -3,7 +3,7 @@ use iced::advanced::layout::{self, Layout};
 use iced::advanced::renderer;
 use iced::advanced::widget::{self, Widget};
 use iced::advanced::{mouse, Clipboard, Shell};
-use iced::{event, overlay, Element, Length, Padding, Point, Rectangle, Size, Vector};
+use iced::{alignment, event, overlay, Element, Length, Padding, Rectangle, Size, Vector};
 
 use super::OrganizerMessage;
 
@@ -15,8 +15,9 @@ pub enum DragIdentifier<K, AutoGroup> {
 }
 
 /// An widget that can be dragged.
+///
+/// There is no [Padding], [Size] for this widget. It sticks around its content.
 pub struct DragDropTarget<'a, Message, Theme, Renderer, K, E> {
-    padding: Padding,
     content: Element<'a, Message, Theme, Renderer>,
     identifier: DragIdentifier<K, E>,
 }
@@ -28,16 +29,9 @@ impl<'a, Message, Theme, Renderer, K, E> DragDropTarget<'a, Message, Theme, Rend
         identifier: DragIdentifier<K, E>,
     ) -> Self {
         Self {
-            padding: Padding::ZERO,
             content: content.into(),
             identifier,
         }
-    }
-
-    /// Sets the [`Padding`] of the content.
-    pub fn padding<P: Into<Padding>>(mut self, padding: P) -> Self {
-        self.padding = padding.into();
-        self
     }
 }
 
@@ -47,12 +41,20 @@ where
     E: super::OrganizerElement,
     Renderer: renderer::Renderer,
 {
+    fn tag(&self) -> widget::tree::Tag {
+        self.content.as_widget().tag()
+    }
+
+    fn state(&self) -> widget::tree::State {
+        self.content.as_widget().state()
+    }
+
     fn children(&self) -> Vec<widget::Tree> {
-        vec![widget::Tree::new(&self.content)]
+        self.content.as_widget().children()
     }
 
     fn diff(&self, tree: &mut widget::Tree) {
-        tree.diff_children(std::slice::from_ref(&self.content));
+        self.content.as_widget().diff(tree)
     }
 
     fn size(&self) -> Size<Length> {
@@ -68,23 +70,17 @@ where
         renderer: &Renderer,
         limits: &layout::Limits,
     ) -> layout::Node {
-        let Size { width, height } = self.size();
-        let limits = limits.width(width).height(height).shrink(self.padding);
-
-        let content_layout = self
-            .content
-            .as_widget()
-            .layout(tree, renderer, &limits)
-            .move_to(Point::new(
-                self.padding.left.into(),
-                self.padding.top.into(),
-            ));
-
-        let size = limits
-            .resolve(width, height, content_layout.size())
-            .expand(self.padding);
-
-        layout::Node::with_children(size, vec![content_layout])
+        iced_widget::container::layout(
+            limits,
+            Length::Shrink,
+            Length::Shrink,
+            f32::INFINITY,
+            f32::INFINITY,
+            Padding::ZERO,
+            alignment::Horizontal::Left,
+            alignment::Vertical::Top,
+            |limits| self.content.as_widget().layout(tree, renderer, limits),
+        )
     }
 
     fn on_event(
@@ -99,7 +95,7 @@ where
         viewport: &Rectangle,
     ) -> event::Status {
         let status = self.content.as_widget_mut().on_event(
-            &mut tree.children[0],
+            tree,
             event.clone(),
             layout.children().next().unwrap(),
             cursor_position,
@@ -136,7 +132,7 @@ where
         viewport: &Rectangle,
     ) {
         self.content.as_widget().draw(
-            &tree.children[0],
+            tree,
             renderer,
             theme,
             style,
@@ -152,9 +148,9 @@ where
         layout: Layout<'_>,
         renderer: &Renderer,
         translation: Vector,
-    ) -> Option<overlay::Element<'_, OrganizerMessage<E>, Theme, Renderer>> {
+    ) -> Option<overlay::Element<'b, OrganizerMessage<E>, Theme, Renderer>> {
         self.content.as_widget_mut().overlay(
-            &mut tree.children[0],
+            tree,
             layout.children().next().unwrap(),
             renderer,
             translation,

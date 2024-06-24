@@ -270,7 +270,7 @@ impl<E: OrganizerElement> Organizer<E> {
     }
 
     pub fn view<'a>(
-        &self,
+        &'a self,
         selection: BTreeSet<E::Key>,
     ) -> Element<'a, OrganizerMessage<E>, iced::Theme, iced::Renderer> {
         //self.hovered_in = None;
@@ -308,7 +308,7 @@ impl<E: OrganizerElement> Organizer<E> {
             new_group_button = new_group_button.on_press(OrganizerMessage::new_group());
         }
         container(
-            iced_widget::column![
+            self::column![
                 // Title row
                 row![tooltip(
                     new_group_button,
@@ -316,8 +316,7 @@ impl<E: OrganizerElement> Organizer<E> {
                     tooltip::Position::FollowCursor,
                 )
                 .style(style::theme::Container::Box)],
-                //scrollable(content).width(self.width)
-                // TODO: Uncomment me.
+                scrollable(content).width(self.width)
             ]
             .spacing(5.0f32), // TODO: Find a way to use `ui_size` here.
         )
@@ -920,33 +919,26 @@ impl<E: OrganizerElement> Section<E> {
 }
 
 impl<E: OrganizerElement> Section<E> {
-    fn view<'a, Theme, Renderer>(
+    fn view(
         &self,
         theme: &OrganizerTheme,
         selection: &BTreeSet<E::Key>,
-    ) -> Container<'a, OrganizerMessage<E>, Theme, Renderer>
-    where
-        Theme: container::StyleSheet + 'a,
-        Renderer: iced::advanced::Renderer + 'a,
-    {
-        //let title_row = self
-        //    .view
-        //    .view(theme, &self.name, self.id.clone(), self.expanded, false);
-        //let mut content = Column::new().spacing(LEVELS_V_SPACING).push(title_row);
-        //if self.expanded {
-        //    for (e_id, e) in self.elements.iter() {
-        //        content = content.push(row![
-        //            tabulation(),
-        //            container(e.view(theme, &self.content[e_id], selection, None,))
-        //                .style(theme.level(1))
-        //                .width(iced::Length::FillPortion(8)),
-        //        ])
-        //    }
-        //}
-        //container(content)
-        //.style(theme.level(0))
-        //TODO: REACTIVATE ME!
-        container(row![])
+    ) -> Container<'_, OrganizerMessage<E>, crate::Theme, crate::Renderer> {
+        let title_row = self
+            .view
+            .view(theme, &self.name, self.id.clone(), self.expanded, false);
+        let mut content = Column::new().spacing(LEVELS_V_SPACING).push(title_row);
+        if self.expanded {
+            for (e_id, e) in self.elements.iter() {
+                content = content.push(row![
+                    tabulation(),
+                    container(e.view(theme, &self.content[e_id], selection, None,))
+                        .style(theme.level(1))
+                        .width(iced::Length::FillPortion(8)),
+                ])
+            }
+        }
+        container(content).style(theme.level(0))
     }
 
     fn add_element(&mut self, element: E) {
@@ -1099,11 +1091,11 @@ impl<E: OrganizerElement> NodeView<E> {
         id: NodeId<E::AutoGroup>,
         expanded: bool,
         selected: bool,
-    ) -> Element<'_, OrganizerMessage<E>, iced::Theme, iced::Renderer> {
+    ) -> Element<'_, OrganizerMessage<E>, crate::Theme, crate::Renderer> {
         let level = get_group_id(&id).map(|v| v.len()).unwrap_or(0);
         let title_row = match &self.state {
             GroupState::Iddle { .. } => {
-                let mut row = row![
+                let mut row: Row<'_, _, crate::Theme, crate::Renderer> = row![
                     button(expand_icon(expanded))
                         .on_press(OrganizerMessage::<E>::expand(id.clone(), !expanded)),
                     text(name),
@@ -1165,20 +1157,23 @@ impl<E: OrganizerElement> NodeView<E> {
         } else {
             theme.level(level)
         };
-        let button = HoverableContainer::new(
-            button(title_row)
-                .on_press(OrganizerMessage::node_selected(id.clone()))
-                .width(iced::Length::Fill),
+        let title_button = button(title_row)
+            .on_press(OrganizerMessage::node_selected(id.clone()))
+            .width(iced::Length::Fill);
+        let title_button = HoverableContainer::new(
+            title_button,
             //.style(iced_theme::Button::from(button_theme))
+            //TODO: REACTIVATE ME!
         )
         .on_hover(OrganizerMessage::node_hovered(id.clone(), true))
         .on_unhover(OrganizerMessage::node_hovered(id.clone(), false));
         //.style(button_theme)
-        DragDropTarget::new(
-            container(button).width(Length::Fill),
+        //TODO: REACTIVATE ME!
+        let title_button = DragDropTarget::new(
+            container(title_button).width(Length::Fill),
             DragIdentifier::Group { id: id.clone() },
-        )
-        .into()
+        );
+        container(title_button).into()
     }
 
     fn update_attributes(&mut self, attributes: &[Option<E::Attribute>]) {
@@ -1719,7 +1714,7 @@ impl<E: OrganizerElement> GroupContent<E> {
         }
     }
 
-    fn get_group<'a, 'b>(&'a self, id: &'b [usize]) -> Option<&'a Self> {
+    fn get_group(&self, id: &[usize]) -> Option<&Self> {
         match self {
             Self::Node { children, .. } => {
                 if id.len() > 1 {
@@ -1795,8 +1790,9 @@ impl<E: OrganizerElement> GroupContent<E> {
     }
 }
 
-fn icon<'a, Renderer>(icon: BootstrapIcon) -> Text<'a, Theme, Renderer>
+fn icon<'a, Theme, Renderer>(icon: BootstrapIcon) -> Text<'a, Theme, Renderer>
 where
+    Theme: text::StyleSheet,
     Renderer: advanced::text::Renderer,
     <Renderer as advanced::text::Renderer>::Font: From<iced::Font>,
 {
@@ -1806,8 +1802,9 @@ where
         .horizontal_alignment(HorizontalAlignment::Center)
 }
 
-fn expand_icon<'a, Renderer>(expanded: bool) -> Text<'a, Theme, Renderer>
+fn expand_icon<'a, Theme, Renderer>(expanded: bool) -> Text<'a, Theme, Renderer>
 where
+    Theme: text::StyleSheet,
     Renderer: advanced::text::Renderer,
     <Renderer as advanced::text::Renderer>::Font: From<iced::Font>,
 {
@@ -1818,24 +1815,27 @@ where
     }
 }
 
-fn plus_icon<'a, Renderer>() -> Text<'a, Theme, Renderer>
+fn plus_icon<'a, Theme, Renderer>() -> Text<'a, Theme, Renderer>
 where
+    Theme: text::StyleSheet,
     Renderer: advanced::text::Renderer,
     <Renderer as advanced::text::Renderer>::Font: From<iced::Font>,
 {
     icon(BootstrapIcon::Plus)
 }
 
-fn edit_icon<'a, Renderer>() -> Text<'a, Theme, Renderer>
+fn edit_icon<'a, Theme, Renderer>() -> Text<'a, Theme, Renderer>
 where
+    Theme: text::StyleSheet,
     Renderer: advanced::text::Renderer,
     <Renderer as advanced::text::Renderer>::Font: From<iced::Font>,
 {
     icon(BootstrapIcon::VectorPen)
 }
 
-fn _delete_icon<'a, Renderer>() -> Text<'a, Theme, Renderer>
+fn _delete_icon<'a, Theme, Renderer>() -> Text<'a, Theme, Renderer>
 where
+    Theme: text::StyleSheet,
     Renderer: advanced::text::Renderer,
     <Renderer as advanced::text::Renderer>::Font: From<iced::Font>,
 {
@@ -1843,14 +1843,6 @@ where
     icon(BootstrapIcon::TrashFill)
     // TODO: Check what was \u{E806}, or remove this function.
 }
-
-// NOTE: Custom fonts became much harder to use since iced 0.10. See:
-//
-//         https://github.com/iced-rs/iced/discussions/1988
-//         https://github.com/fmonniot/pathfinder-wotr-editor/commit/c86fb9a5d2b77b63f284026de3c269fb798dc9ef#diff-42cb6807ad74b3e201c5a7ca98b911c5fa08380e942be6e4ac5807f8377f87fcR106-R116
-//
-// NOTE: Icon font used to be loaded by hand, but now the bootstrap icons
-//       are included in iced_aw, so we use them directly.
 
 fn tabulation() -> Space {
     Space::with_width(H_SPACING_IN_UNITS)

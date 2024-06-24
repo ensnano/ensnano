@@ -5,6 +5,10 @@
 //! This widget is greatly inspired by
 //!
 //!    https://giesch.dev/iced-hoverable/
+//!
+//! see also
+//!
+//!    https://docs.rs/iced_widget/0.12.1/src/iced_widget/container.rs.html
 
 use iced::advanced::layout::{self, Layout};
 use iced::advanced::renderer;
@@ -13,7 +17,7 @@ use iced::advanced::{mouse, Clipboard, Shell};
 use iced::{event, overlay, Element, Length, Padding, Point, Rectangle, Size, Vector};
 
 /// A widget that emits a message when hovered.
-pub struct HoverableContainer<'a, Message, Theme, Renderer> {
+pub struct HoverableContainer<'a, Message, Theme = crate::Theme, Renderer = crate::Renderer> {
     padding: Padding,
     content: Element<'a, Message, Theme, Renderer>,
     on_hover: Option<Message>,
@@ -144,7 +148,7 @@ where
 
     fn layout(
         &self,
-        state: &mut widget::Tree,
+        tree: &mut widget::Tree,
         renderer: &Renderer,
         limits: &layout::Limits,
     ) -> layout::Node {
@@ -154,7 +158,7 @@ where
         let content_layout = self
             .content
             .as_widget()
-            .layout(state, renderer, &limits)
+            .layout(&mut tree.children[0], renderer, &limits)
             .move_to(Point::new(
                 self.padding.left.into(),
                 self.padding.top.into(),
@@ -176,7 +180,7 @@ where
 
     fn draw(
         &self,
-        state: &widget::Tree,
+        tree: &widget::Tree,
         renderer: &mut Renderer,
         theme: &Theme,
         style: &renderer::Style,
@@ -188,7 +192,7 @@ where
         let content_layout = layout.children().next().unwrap();
 
         self.content.as_widget().draw(
-            &state.children[0],
+            &tree.children[0],
             renderer,
             theme,
             style,
@@ -200,14 +204,14 @@ where
 
     fn mouse_interaction(
         &self,
-        state: &widget::Tree,
+        tree: &widget::Tree,
         layout: Layout<'_>,
         cursor_position: mouse::Cursor,
         viewport: &Rectangle,
         renderer: &Renderer,
     ) -> mouse::Interaction {
         self.content.as_widget().mouse_interaction(
-            &state.children[0],
+            &tree.children[0],
             layout.children().next().unwrap(),
             cursor_position,
             viewport,
@@ -221,7 +225,7 @@ where
         layout: Layout<'_>,
         renderer: &Renderer,
         translation: Vector,
-    ) -> Option<overlay::Element<'_, Message, Theme, Renderer>> {
+    ) -> Option<overlay::Element<'b, Message, Theme, Renderer>> {
         self.content.as_widget_mut().overlay(
             &mut tree.children[0],
             layout.children().next().unwrap(),
