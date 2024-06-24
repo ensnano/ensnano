@@ -1047,7 +1047,7 @@ struct NodeView<E: OrganizerElement> {
 impl<E: OrganizerElement> NodeView<E> {
     fn new() -> Self {
         Self {
-            state: GroupState::Iddle {
+            state: GroupState::Idle {
                 add_to_group_button: Default::default(),
                 edit_button: Default::default(),
                 delete_button: Default::default(),
@@ -1077,7 +1077,7 @@ impl<E: OrganizerElement> NodeView<E> {
     }
 
     fn stop_editing(&mut self) {
-        self.state = GroupState::Iddle {
+        self.state = GroupState::Idle {
             add_to_group_button: Default::default(),
             edit_button: Default::default(),
             delete_button: Default::default(),
@@ -1094,7 +1094,7 @@ impl<E: OrganizerElement> NodeView<E> {
     ) -> Element<'_, OrganizerMessage<E>, crate::Theme, crate::Renderer> {
         let level = get_group_id(&id).map(|v| v.len()).unwrap_or(0);
         let title_row = match &self.state {
-            GroupState::Iddle { .. } => {
+            GroupState::Idle { .. } => {
                 let mut row: Row<'_, _, crate::Theme, crate::Renderer> = row![
                     button(expand_icon(expanded))
                         .on_press(OrganizerMessage::<E>::expand(id.clone(), !expanded)),
@@ -1204,7 +1204,7 @@ enum GroupContent<E: OrganizerElement> {
 }
 
 pub enum GroupState {
-    Iddle {
+    Idle {
         add_to_group_button: button::State,
         edit_button: button::State,
         delete_button: button::State,
