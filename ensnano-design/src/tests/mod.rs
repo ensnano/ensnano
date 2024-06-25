@@ -71,7 +71,7 @@ fn sanitize_domains_scadnano() {
     assert_eq!(ensnano_design.strands.len(), 1);
     let strand = ensnano_design.strands.values().next().unwrap();
     assert_eq!(strand.domains.len(), 3);
-    assert!(strand.cyclic);
+    assert!(strand.is_cyclic);
     let sane_domains = sanitize_domains(strand.domains.as_slice(), true);
     assert_sane_domains_non_cyclic(sane_domains.as_slice());
     assert_sane_domains_cyclic(sane_domains.as_slice());
@@ -164,7 +164,7 @@ fn correct_sanetization() {
 #[test]
 fn correct_sanetization_cyclic() {
     let mut strand = strand_with_insertion();
-    strand.cyclic = true;
+    strand.is_cyclic = true;
     let sane_domains = sanitize_domains(&strand.domains, true);
     assert_eq!(
         sane_domains.iter().map(|d| d.length()).collect::<Vec<_>>(),
@@ -175,7 +175,7 @@ fn correct_sanetization_cyclic() {
 #[test]
 fn correct_sanetization_cyclic_pathological() {
     let mut strand = strand_with_insertion();
-    strand.cyclic = true;
+    strand.is_cyclic = true;
     let add_prime5 = 123;
     strand.domains.insert(0, Domain::new_insertion(add_prime5));
     let add_prime3 = 9874;
@@ -194,7 +194,7 @@ fn correct_sanetization_cyclic_pathological() {
 #[test]
 fn correct_sanetization_cyclic_insertion_5prime() {
     let mut strand = strand_with_insertion();
-    strand.cyclic = true;
+    strand.is_cyclic = true;
     let insertion_prime5 = 17;
     strand
         .domains
@@ -209,7 +209,7 @@ fn correct_sanetization_cyclic_insertion_5prime() {
 #[test]
 fn correct_sanetization_cyclic_insertion_3prime() {
     let mut strand = strand_with_insertion();
-    strand.cyclic = true;
+    strand.is_cyclic = true;
     let insertion_prime3 = 17;
     strand.domains.push(Domain::new_insertion(insertion_prime3));
     let sane_domains = sanitize_domains(&strand.domains, true);
@@ -222,7 +222,7 @@ fn correct_sanetization_cyclic_insertion_3prime() {
 #[test]
 fn correct_sanetization_cyclic_insertion_3prime_5prime() {
     let mut strand = strand_with_insertion();
-    strand.cyclic = true;
+    strand.is_cyclic = true;
     let insertion_prime5 = 12;
     let insertion_prime3 = 17;
     strand
@@ -390,7 +390,7 @@ fn correct_insertion_cyclic_prime5() {
     strand.domains.insert(0, Domain::new_insertion(4));
     let sane_domains = sanitize_domains(strand.domains.as_slice(), true);
     strand.domains = sane_domains;
-    strand.cyclic = true;
+    strand.is_cyclic = true;
     let insertion_points = strand.insertion_points();
     assert_eq!(
         insertion_points,
@@ -441,7 +441,7 @@ fn correct_insertion_cyclic_prime3() {
     strand.domains.push(Domain::new_insertion(4));
     let sane_domains = sanitize_domains(strand.domains.as_slice(), true);
     strand.domains = sane_domains;
-    strand.cyclic = true;
+    strand.is_cyclic = true;
     let insertion_points = strand.insertion_points();
     assert_eq!(
         insertion_points,
@@ -493,7 +493,7 @@ fn correct_insertion_cyclic_prime5_prime3() {
     strand.domains.push(Domain::new_insertion(4));
     let sane_domains = sanitize_domains(strand.domains.as_slice(), true);
     strand.domains = sane_domains;
-    strand.cyclic = true;
+    strand.is_cyclic = true;
     let insertion_points = strand.insertion_points();
     assert_eq!(
         insertion_points,
@@ -541,7 +541,7 @@ fn correct_insertion_cyclic_prime5_prime3() {
 #[test]
 fn correct_junction_cyclic_pathological() {
     let mut strand = strand_with_insertion();
-    strand.cyclic = true;
+    strand.is_cyclic = true;
     let insertion_prime5 = 12;
     let insertion_prime3 = 17;
     strand
@@ -549,7 +549,7 @@ fn correct_junction_cyclic_pathological() {
         .insert(0, Domain::new_insertion(insertion_prime5));
     strand.domains.push(Domain::new_insertion(insertion_prime3));
     let sane_domains = sanitize_domains(&strand.domains, true);
-    let junctions = read_junctions(sane_domains.as_slice(), strand.cyclic);
+    let junctions = read_junctions(sane_domains.as_slice(), strand.is_cyclic);
     assert_eq!(
         junctions,
         vec![
@@ -566,7 +566,7 @@ fn correct_junction_cyclic_pathological() {
 #[test]
 fn test_insertion_left_to_right() {
     let mut strand = strand_with_insertion();
-    let domains = sanitize_domains(&strand.domains, strand.cyclic);
+    let domains = sanitize_domains(&strand.domains, strand.is_cyclic);
     strand.domains = domains;
     let first_insertion = 1552;
     strand.add_insertion_at_nucl(
@@ -598,7 +598,7 @@ fn test_insertion_left_to_right() {
 #[test]
 fn test_insertion_right_to_left() {
     let mut strand = strand_with_insertion();
-    let domains = sanitize_domains(&strand.domains, strand.cyclic);
+    let domains = sanitize_domains(&strand.domains, strand.is_cyclic);
     strand.domains = domains;
     let first_insertion = 1552;
 

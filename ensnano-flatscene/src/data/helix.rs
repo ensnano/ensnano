@@ -763,7 +763,7 @@ impl Helix {
         let size_pos = 1.4;
         let circle = self.get_circle(camera, groups);
         let rotation = camera.borrow().rotation().reversed();
-        let symetry = camera.borrow().get_globals().symetry;
+        let symetry = camera.borrow().get_globals().symmetry;
         if let Some(circle) = circle {
             let text = self.real_id.to_string();
             let sentence = Sentence {

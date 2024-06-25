@@ -43,7 +43,7 @@ pub fn cadnano_export(design: &Design) -> Result<String, CadnanoError> {
                 }
             }
         }
-        strand.finish(s.cyclic, s.color)?;
+        strand.finish(s.is_cyclic, s.color)?;
     }
 
     let mut helices: Vec<_> = exporter.helices.values().map(|h| h.clone()).collect();

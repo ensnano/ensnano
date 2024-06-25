@@ -17,9 +17,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::*;
+use ahash::RandomState;
 use ensnano_design::{
     grid::{GridId, GridObject, GridPosition, HelixGridPosition},
-    BezierPlaneDescriptor, BezierPlaneId, BezierVertexId, Collection, CurveDescriptor, Nucl,
+    BezierPlaneDescriptor, BezierPlaneId, BezierVertexId, Collection, CurveDescriptor, Domain,
+    Nucl,
 };
 use ensnano_interactor::{
     graphics::{LoopoutBond, LoopoutNucl},
@@ -29,6 +31,8 @@ use std::collections::HashSet;
 use ultraviolet::{Mat4, Rotor3, Vec2, Vec3};
 
 use crate::scene::{DesignReader as Reader3D, GridInstance, SurfaceInfo};
+
+use ensnano_utils::StrandNucleotidesPositions;
 
 impl Reader3D for DesignReader {
     fn get_color(&self, e_id: u32) -> Option<u32> {
@@ -159,7 +163,7 @@ impl Reader3D for DesignReader {
             .helix_parameters
             .unwrap_or_default();
         let position = if on_axis {
-            helix.axis_position(&helix_parameters, nucl.position)
+            helix.axis_position(&helix_parameters, nucl.position, nucl.forward)
         } else {
             helix.space_pos(&helix_parameters, nucl.position, nucl.forward)
         };
@@ -193,6 +197,11 @@ impl Reader3D for DesignReader {
 
     fn get_element_position(&self, e_id: u32, referential: Referential) -> Option<Vec3> {
         let position = self.presenter.content.get_element_position(e_id)?;
+        Some(self.presenter.in_referential(position, referential))
+    }
+
+    fn get_element_graphic_position(&self, e_id: u32, referential: Referential) -> Option<Vec3> {
+        let position = self.presenter.content.get_element_graphic_position(e_id)?;
         Some(self.presenter.in_referential(position, referential))
     }
 
@@ -235,6 +244,10 @@ impl Reader3D for DesignReader {
             &self.presenter.current_design,
             &self.presenter.invisible_nucls,
         )
+    }
+
+    fn get_scalebar(&self) -> Option<(f32, f32, fn(f32, f32, f32) -> u32)> {
+        self.presenter.content.scalebar.clone()
     }
 
     fn get_element_axis_position(&self, e_id: u32, referential: Referential) -> Option<Vec3> {
@@ -604,6 +617,57 @@ impl Reader3D for DesignReader {
             .additional_structure
             .as_ref()
             .map(Arc::as_ref)
+    }
+
+    fn get_nucleotides_positions_by_strands(&self) -> HashMap<usize, StrandNucleotidesPositions> {
+        let mut nucl_pos = HashMap::new();
+        let design = self.presenter.current_design.as_ref();
+        let content = self.presenter.content.as_ref();
+
+        // Scanning strands
+        for (s_id, strand) in design.strands.iter() {
+            let mut pos_seq = Vec::new();
+            let mut curvatures = Vec::new();
+            for (i, domain) in strand.domains.iter().enumerate() {
+                // Real domain or Insertion
+                if let Domain::HelixDomain(domain) = domain {
+                    // Real helix domain
+                    // Iterate along the domain
+                    for (dom_position, nucl_position) in domain.iter().enumerate() {
+                        let nucl: Nucl = Nucl {
+                            position: nucl_position,
+                            forward: domain.forward,
+                            helix: domain.helix,
+                        };
+                        let nucl_id = content
+                            .nucl_collection
+                            .get_identifier(&nucl)
+                            .unwrap_or_else(|| {
+                                unreachable!("nucleotide does not belong to the design content!")
+                            });
+                        let position = content.space_position.get(nucl_id).unwrap().clone();
+                        pos_seq.push(position);
+                        curvatures.push(
+                            design
+                                .helices
+                                .get(&domain.helix)
+                                .unwrap()
+                                .curvature_at_pos(nucl_position)
+                                .unwrap_or(0.0),
+                        );
+                    }
+                }
+            }
+            nucl_pos.insert(
+                *s_id,
+                StrandNucleotidesPositions {
+                    positions: pos_seq,
+                    is_cyclic: strand.is_cyclic,
+                    curvatures,
+                },
+            );
+        }
+        return nucl_pos;
     }
 }
 

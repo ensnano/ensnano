@@ -222,7 +222,7 @@ impl Design {
             sequence: source_strand.sequence.clone(),
             color: source_strand.color,
             junctions: new_junctions,
-            cyclic: source_strand.cyclic,
+            is_cyclic: source_strand.is_cyclic,
             name: source_strand
                 .name
                 .as_ref()

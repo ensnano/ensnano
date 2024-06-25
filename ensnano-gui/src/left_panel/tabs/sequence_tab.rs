@@ -242,7 +242,7 @@ impl<State: AppState> GuiTab<State> for SequenceTab<State> {
             extra_jump(),
             // add_download_staples_button!
             self::column![
-                text_button("Export Staples", ui_size).on_press(Message::StapplesRequested),
+                text_button("Export Staples", ui_size).on_press(Message::StaplesRequested),
                 text_button("Export Origamis", ui_size).on_press(Message::OrigamisRequested),
             ]
             .spacing(ui_size.button_spacing()),

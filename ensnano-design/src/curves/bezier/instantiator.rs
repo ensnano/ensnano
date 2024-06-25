@@ -94,25 +94,26 @@ pub(crate) trait PieceWiseBezierInstantiator<T: BezierEndCoordinateUnit> {
     fn position(&self, i: usize) -> Option<T>;
     fn vector_in(&self, i: usize) -> Option<T>;
     fn vector_out(&self, i: usize) -> Option<T>;
-    fn cyclic(&self) -> bool;
+    fn is_cyclic(&self) -> bool;
 
     fn instantiate(&self) -> Option<InstanciatedPiecewiseBezier> {
         use rand::prelude::*;
         let descriptor = if self.nb_vertices() > 2 {
             let n = self.nb_vertices();
-            let idx_iterator: Box<dyn Iterator<Item = ((usize, usize), usize)>> = if self.cyclic() {
-                Box::new(
-                    (0..n)
-                        .cycle()
-                        .skip(n - 1)
-                        .zip((0..n).cycle().take(n + 1))
-                        .zip((0..n).cycle().skip(1)),
-                )
-            } else {
-                // iterate from 0 to n-1 and add manually the first and last vertices
-                // afterwards
-                Box::new((0..n).zip((0..n).skip(1)).zip((0..n).skip(2)))
-            };
+            let idx_iterator: Box<dyn Iterator<Item = ((usize, usize), usize)>> =
+                if self.is_cyclic() {
+                    Box::new(
+                        (0..n)
+                            .cycle()
+                            .skip(n - 1)
+                            .zip((0..n).cycle().take(n + 1))
+                            .zip((0..n).cycle().skip(1)),
+                    )
+                } else {
+                    // iterate from 0 to n-1 and add manually the first and last vertices
+                    // afterwards
+                    Box::new((0..n).zip((0..n).skip(1)).zip((0..n).skip(2)))
+                };
             let mut bezier_points: Vec<_> = idx_iterator
                 .filter_map(|((idx_from, idx), idx_to)| {
                     let pos_from = self.position(idx_from)?;
@@ -128,7 +129,7 @@ pub(crate) trait PieceWiseBezierInstantiator<T: BezierEndCoordinateUnit> {
                     Some(T::instanciate_bezier_end(pos, vector_in, vector_out))
                 })
                 .collect();
-            if !self.cyclic() {
+            if !self.is_cyclic() {
                 // Add manually the first and last vertices
                 let first_point = {
                     let second_point = bezier_points.get(0)?;
@@ -187,7 +188,7 @@ pub(crate) trait PieceWiseBezierInstantiator<T: BezierEndCoordinateUnit> {
             None
         }?;
         let mut rng = rand::thread_rng();
-        let t_max = if self.cyclic() {
+        let t_max = if self.is_cyclic() {
             Some(descriptor.len() as f64)
         } else {
             Some(descriptor.len() as f64 - 1.)
@@ -196,7 +197,7 @@ pub(crate) trait PieceWiseBezierInstantiator<T: BezierEndCoordinateUnit> {
             t_min: None,
             t_max,
             ends: descriptor,
-            cyclic: self.cyclic(),
+            is_cyclic: self.is_cyclic(),
             id: rng.gen(),
             discretize_quickly: false,
         })

@@ -101,7 +101,7 @@ pub(crate) fn poll_all<R: DerefMut<Target = Requests>>(
         )))
     }
 
-    if requests.recolor_stapples.take().is_some() {
+    if requests.recolor_staples.take().is_some() {
         main_state.push_action(Action::DesignOperation(DesignOperation::RecolorStaples))
     }
 
@@ -358,12 +358,12 @@ pub(crate) fn poll_all<R: DerefMut<Target = Requests>>(
         main_state.set_show_bezier_paths(b);
     }
 
-    if let Some(b) = requests.set_thick_helices.take() {
-        main_state.set_thick_helices(b);
+    if let Some(b) = requests.set_all_helices_on_axis.take() {
+        main_state.set_all_helices_on_axis(b);
     }
 
-    if let Some(()) = requests.toggle_thick_helices.take() {
-        main_state.toggle_thick_helices();
+    if let Some(()) = requests.toggle_all_helices_on_axis.take() {
+        main_state.toggle_all_helices_on_axis();
     }
 
     if let Some(id) = requests.new_bezier_revolution_id.take() {

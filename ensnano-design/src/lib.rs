@@ -35,6 +35,7 @@ pub use ultraviolet;
 use ultraviolet::{Rotor3, Vec3};
 
 pub mod codenano;
+pub mod consts;
 pub mod grid;
 use grid::{FreeGrids, GridData, GridDescriptor, GridId};
 pub mod scadnano;
@@ -107,7 +108,7 @@ pub struct Design {
     pub scaffold_sequence: Option<String>,
 
     /// The shifting of the scaffold if the design is an origami. This is used to reduce the number
-    /// of anti-patern in the stapples sequences
+    /// of anti-patern in the staples sequences
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub scaffold_shift: Option<usize>,
 
@@ -196,7 +197,7 @@ pub trait AdditionalStructure: Send + Sync {
     fn position(&self) -> Vec<Vec3>;
     fn right(&self) -> Vec<(usize, usize)>;
     fn next(&self) -> Vec<(usize, usize)>;
-    fn nt_path(&self) -> Option<Vec<Vec3>>;
+    fn nt_paths(&self) -> Option<Vec<Vec<Vec3>>>;
     fn current_length(&self) -> Option<usize>;
 }
 

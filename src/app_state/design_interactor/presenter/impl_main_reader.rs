@@ -17,7 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::*;
-use crate::controller::{DownloadStappleError, DownloadStappleOk, StaplesDownloader};
+use crate::controller::{DownloadStapleError, DownloadStapleOk, StaplesDownloader};
 use hex;
 use rust_xlsxwriter::{Color, Format, Workbook, XlsxError};
 use serde::Serialize;
@@ -26,19 +26,19 @@ use std::io::Write;
 use std::path::PathBuf;
 
 impl StaplesDownloader for DesignReader {
-    fn download_staples(&self) -> Result<DownloadStappleOk, DownloadStappleError> {
+    fn download_staples(&self) -> Result<DownloadStapleOk, DownloadStapleError> {
         let mut warnings = Vec::new();
         if self.presenter.current_design.scaffold_id.is_none() {
-            return Err(DownloadStappleError::NoScaffoldSet);
+            return Err(DownloadStapleError::NoScaffoldSet);
         }
         if self.presenter.current_design.scaffold_sequence.is_none() {
-            return Err(DownloadStappleError::ScaffoldSequenceNotSet);
+            return Err(DownloadStapleError::ScaffoldSequenceNotSet);
         }
 
         if let Some(nucl) = self
             .presenter
             .content
-            .get_stapple_mismatch(self.presenter.current_design.as_ref())
+            .get_staple_mismatch(self.presenter.current_design.as_ref())
         {
             warnings.push(warn_all_staples_not_paired(nucl));
         }
@@ -66,7 +66,7 @@ impl StaplesDownloader for DesignReader {
         if scaffold_length != sequence_length {
             warnings.push(warn_scaffold_seq_mismatch(scaffold_length, sequence_length));
         }
-        Ok(DownloadStappleOk { warnings })
+        Ok(DownloadStapleOk { warnings })
     }
 
     fn write_staples_xlsx(&self, xlsx_path: &PathBuf) {
@@ -78,7 +78,7 @@ impl StaplesDownloader for DesignReader {
             group_map.insert(name, j);
         }
 
-        let stapples = self
+        let staples = self
             .presenter
             .content
             .get_staples(&self.presenter.current_design, &self.presenter);
@@ -86,10 +86,10 @@ impl StaplesDownloader for DesignReader {
         let mut wb = Workbook::new(); //create(xlsx_path.to_str().unwrap());
         let mut sheets: BTreeMap<usize, Vec<Vec<&str>>> = BTreeMap::new();
 
-        let interval_strs: Vec<_> = stapples
+        let interval_strs: Vec<_> = staples
             .iter()
-            .map(|stapple| {
-                if let Ok(s) = serde_json::to_string(&stapple.intervals.intervals) {
+            .map(|staple| {
+                if let Ok(s) = serde_json::to_string(&staple.intervals.intervals) {
                     s
                 } else {
                     String::from("error getting domains")
@@ -110,25 +110,25 @@ impl StaplesDownloader for DesignReader {
         first_row_content.extend(all_group_names.iter().map(|s| &**s));
 
         // Staples are scattered on the sheets according to their plate number
-        for (i, stapple) in stapples.iter().enumerate() {
+        for (i, staple) in staples.iter().enumerate() {
             let sheet = sheets
-                .entry(stapple.plate)
+                .entry(staple.plate)
                 .or_insert_with(|| vec![first_row_content.clone()]);
             let mut group_vec = Vec::from_iter(all_group_names.iter().map(|_| ""));
-            for group_name in stapple.group_names.iter() {
+            for group_name in staple.group_names.iter() {
                 if let Some(index) = group_map.get(&group_name) {
                     group_vec[*index] = &group_name.as_str();
                 }
             }
             let mut row: Vec<&str> = vec![
-                &stapple.well,
-                &stapple.name,
-                &stapple.sequence,
+                &staple.well,
+                &staple.name,
+                &staple.sequence,
                 &interval_strs[i],
-                &stapple.length_str,
-                &stapple.domain_decomposition,
-                &stapple.color_str,
-                &stapple.group_names_string,
+                &staple.length_str,
+                &staple.domain_decomposition,
+                &staple.color_str,
+                &staple.group_names_string,
             ];
             row.extend(group_vec.iter());
             sheet.push(row)
@@ -262,7 +262,7 @@ impl StaplesDownloader for DesignReader {
     }
 
     fn write_intervals(&self, origami_path: &PathBuf) {
-        let stapples = self
+        let staples = self
             .presenter
             .content
             .get_staples(&self.presenter.current_design, &self.presenter);
@@ -273,7 +273,7 @@ impl StaplesDownloader for DesignReader {
                 .scaffold_sequence
                 .clone()
                 .unwrap_or("NO SEQUENCE".to_string()),
-            intervals: stapples
+            intervals: staples
                 .iter()
                 .map(|s| (s.intervals.staple_id, s.intervals.intervals.clone()))
                 .collect(),

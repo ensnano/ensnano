@@ -278,13 +278,14 @@ impl CameraShortcutPanel {
                     .align_items(Alignment::Center),
                     Space::with_width(2.0 * ui_size.button_spacing()),
                     // add_stl_export_button!
+                    // add_nucleotides_positions_export_button!
                     self::column![
                         Space::with_height(ui_size.button()),
                         extra_jump(),
                         self::column![
                             fixed_text_button("STL", 2.0, ui_size).on_press(Message::StlExport),
-                            // NOTE: Trick to align the STL button on the first row.
-                            Space::with_height(ui_size.button() + 2.0 * ui_size.button_pad()),
+                            fixed_text_button("Nucl", 2.0, ui_size)
+                                .on_press(Message::SaveNucleotidesPositions),
                         ]
                         .spacing(ui_size.button_spacing()),
                     ]

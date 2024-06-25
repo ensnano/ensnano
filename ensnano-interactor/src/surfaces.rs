@@ -562,6 +562,7 @@ impl RootedRevolutionSurface {
             known_helix_id_in_shape: None,
             objective_number_of_nts,
             full_turn_at_nt: None,
+            use_original_iterative_frame_algorithm: None,
         }
     }
 

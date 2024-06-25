@@ -25,6 +25,7 @@ use ultraviolet::{Rotor3, Vec3};
 
 use crate::Collection;
 
+const DEFAULT_OPACITY: f32 = 1.0;
 const DEFAULT_COLOR: u32 = 0xdb5530; // orange/red
 
 /// An external object to be drawn in the scene
@@ -54,7 +55,7 @@ impl External3DObject {
             .and_then(|rel_path| RelativePathBuf::from_path(rel_path).ok())
         {
             Some(Self {
-                opacity: 1.,
+                opacity: DEFAULT_OPACITY,
                 color: DEFAULT_COLOR,
                 position: Vec3::zero(),
                 orientation: Rotor3::identity(),

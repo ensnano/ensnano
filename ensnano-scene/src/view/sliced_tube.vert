@@ -94,7 +94,7 @@ void main() {
     float l_next = length(next);
     vec3 vec_x = vec3(1., 0., 0.);
 
-    if (l_prev > epsilon && gl_VertexIndex < u_nb_ray_tube) {
+    if (l_prev > epsilon && abs(prev.y) + abs(prev.z) > epsilon && gl_VertexIndex < u_nb_ray_tube) {
         // left face -> compute intersection with prev
         prev /= l_prev; 
         // compute the normal to the intersection plane
@@ -107,7 +107,7 @@ void main() {
         vec3 tangent = vec3(0., a_normal.z, -a_normal.y);
         tangent.x = -(plane_normal.y * tangent.y + plane_normal.z * tangent.z) / plane_normal.x;
         v_normal = -normalize(cross(plane_normal,tangent));
-    } else if (l_next > epsilon && gl_VertexIndex >= 2 * u_nb_ray_tube) {
+    } else if (l_next > epsilon && abs(next.y) + abs(next.z) > epsilon  && gl_VertexIndex >= 2 * u_nb_ray_tube) {
         // right face -> compute intersection with next
         next /= l_next;
         vec3 bisector = normalize(vec_x - next); 

@@ -126,7 +126,7 @@ fn empty_selections_dont_pollute_undo_stack() {
 }
 
 #[test]
-fn recolor_stapple_undoable() {
+fn recolor_staple_undoable() {
     let mut state = new_state();
     state.apply_operation(DesignOperation::RecolorStaples);
     assert!(!state.undo_stack.is_empty())

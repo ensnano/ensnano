@@ -29,6 +29,7 @@ use super::{
 };
 use std::cell::RefCell;
 use std::collections::{BTreeMap, HashMap, HashSet};
+// use std::hash::RandomState;
 use std::rc::Rc;
 use std::sync::Arc;
 
@@ -47,6 +48,8 @@ use ensnano_interactor::{
     ActionMode, CenterOfSelection, ObjectType, PhantomElement, Referential, Selection,
     SelectionMode,
 };
+
+use ensnano_utils::StrandNucleotidesPositions;
 
 use super::AppState;
 
@@ -150,7 +153,7 @@ impl<R: DesignReader> Data<R> {
             || app_state.revolution_bezier_updated(older_app_state)
         {
             for d in self.designs.iter_mut() {
-                d.thick_helices = app_state.get_draw_options().thick_helices;
+                d.all_helices_on_axis = app_state.get_draw_options().all_helices_on_axis;
             }
             self.update_instances(app_state);
         }
@@ -415,7 +418,7 @@ impl<R: DesignReader> Data<R> {
             for elt in group.iter() {
                 if self.designs[d_id]
                     .get_element_type(*elt)
-                    .map(|elt| elt.same_type(object_type))
+                    .map(|elt| elt.same_type(&object_type))
                     .unwrap_or(false)
                 {
                     ret.push(SceneElement::DesignElement(d_id as u32, *elt));
@@ -1339,6 +1342,17 @@ impl<R: DesignReader> Data<R> {
         instances
     }
 
+    pub fn get_nucleotides_positions_by_strands(
+        &self,
+    ) -> Option<HashMap<usize, StrandNucleotidesPositions>> {
+        return Some(
+            self.designs
+                .get(0)?
+                .design_reader
+                .get_nucleotides_positions_by_strands(),
+        );
+    }
+
     /// Notify the view that the instances of candidates have changed
     fn update_candidate<S: AppState>(&mut self, candidates: &[Selection], app_state: &S) {
         self.view.borrow_mut().update(ViewUpdate::RawDna(
@@ -1451,6 +1465,7 @@ impl<R: DesignReader> Data<R> {
         let mut tubes = Vec::with_capacity(10_000);
         let mut tube_lids = Vec::with_capacity(10_000);
         let mut sliced_tubes = Vec::with_capacity(10_000);
+        let mut plain_rectangles = Vec::with_capacity(1_000);
         let mut suggested_spheres = Vec::with_capacity(1000);
         let mut suggested_tubes = Vec::with_capacity(1000);
         let mut pasted_spheres = Vec::with_capacity(1000);
@@ -1478,6 +1493,10 @@ impl<R: DesignReader> Data<R> {
                     tubes.push(*tube);
                 }
             }
+
+            // scalebar
+            plain_rectangles.extend(design.get_scalebar_plain_rectangles_raw());
+
             if app_state.show_bezier_paths() {
                 let (bezier_spheres, bezier_tubes) = design.get_bezier_paths_elements(app_state);
                 spheres.extend(bezier_spheres);
@@ -1523,6 +1542,10 @@ impl<R: DesignReader> Data<R> {
         self.view
             .borrow_mut()
             .update(ViewUpdate::RawDna(Mesh::SlicedTube, Rc::new(sliced_tubes)));
+        self.view.borrow_mut().update(ViewUpdate::RawDna(
+            Mesh::PlainRectangle,
+            Rc::new(plain_rectangles),
+        ));
         self.view
             .borrow_mut()
             .update(ViewUpdate::RawDna(Mesh::Sphere, Rc::new(spheres)));

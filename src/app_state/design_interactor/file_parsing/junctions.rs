@@ -35,9 +35,9 @@ impl StrandJunction for Strand {
     fn read_junctions(&mut self, xover_ids: &mut IdGenerator<(Nucl, Nucl)>, identified: bool) {
         //TODO check validity of self.junctions
         if self.junctions.is_empty() {
-            let sane_domains = sanitize_domains(&self.domains, self.cyclic);
+            let sane_domains = sanitize_domains(&self.domains, self.is_cyclic);
             self.domains = sane_domains;
-            let junctions = read_junctions(&self.domains, self.cyclic);
+            let junctions = read_junctions(&self.domains, self.is_cyclic);
             self.junctions = junctions;
         }
         if self.domains.is_empty() {
@@ -47,7 +47,7 @@ impl StrandJunction for Strand {
         for i in 0..(self.domains.len()) {
             let current = &self.domains[i];
             let next = if i == self.domains.len() - 1 {
-                if self.cyclic {
+                if self.is_cyclic {
                     &self.domains[0]
                 } else {
                     break;

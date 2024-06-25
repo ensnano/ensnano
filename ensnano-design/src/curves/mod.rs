@@ -253,6 +253,10 @@ pub trait Curved {
     fn abscissa_converter(&self) -> Option<AbscissaConverter> {
         return None;
     }
+    /// Choose the iterative frame algorithm used to discretize
+    fn use_original_iterative_frame_algorithm(&self) -> bool {
+        false
+    }
 }
 
 /// The bounds of the curve. This describe the interval in which t can be taken
@@ -377,9 +381,13 @@ impl Curve {
         self.positions_backward.len()
     }
 
-    pub fn axis_pos(&self, n: isize) -> Option<DVec3> {
+    pub fn axis_pos(&self, n: isize, forward: bool) -> Option<DVec3> {
         let idx = self.idx_conversion(n)?;
-        self.positions_forward.get(idx).cloned()
+        if forward {
+            return self.positions_forward.get(idx).cloned();
+        } else {
+            return self.positions_backward.get(idx).cloned();
+        }
     }
 
     pub fn nucl_time(&self, n: isize) -> Option<f64> {
@@ -482,6 +490,11 @@ impl Curve {
         axis.get(idx).cloned()
     }
 
+    pub fn curvature_at_pos(&self, position: isize) -> Option<f64> {
+        let idx = self.idx_conversion(position)?;
+        self.curvature.get(idx).cloned()
+    }
+
     pub fn points(&self) -> &[DVec3] {
         &self.positions_forward
     }
@@ -535,7 +548,7 @@ impl Curve {
     }
 }
 
-fn perpendicular_basis(point: DVec3) -> DMat3 {
+pub fn perpendicular_basis(point: DVec3) -> DMat3 {
     let norm = point.mag();
 
     if norm < EPSILON {
@@ -994,7 +1007,7 @@ impl<'a, 'b> PieceWiseBezierInstantiator<Vec3> for PieceWiseBezierInstantiator_<
         None
     }
 
-    fn cyclic(&self) -> bool {
+    fn is_cyclic(&self) -> bool {
         false
     }
 }
@@ -1019,7 +1032,7 @@ impl InstanciatedPiecewiseBezierDescriptor {
                 ends: vec![],
                 t_min: None,
                 t_max: None,
-                cyclic: false,
+                is_cyclic: false,
                 id: rng.gen(),
                 discretize_quickly: false,
             });
@@ -1334,7 +1347,9 @@ impl Helix {
             if let Some(desc) = InstanciatedCurveDescriptor::try_instanciate(curve.clone()) {
                 let desc = Arc::new(desc);
                 self.instanciated_descriptor = Some(desc.clone());
-                if let Some(curve) = desc.as_ref().instance.try_into_curve(helix_parameters) {
+                let hp = &(self.helix_parameters.unwrap_or(*helix_parameters));
+                println!("helix: {} nm {} bpt", hp.rise, hp.bases_per_turn);
+                if let Some(curve) = desc.as_ref().instance.try_into_curve(hp) {
                     self.instanciated_curve = Some(InstanciatedCurve {
                         curve,
                         source: desc,

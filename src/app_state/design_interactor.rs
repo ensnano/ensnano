@@ -1683,8 +1683,8 @@ mod tests {
             .apply_design_op(DesignOperation::SetScaffoldId(Some(s_id)))
             .unwrap();
         app_state.update();
-        let stapples = app_state.get_design_reader().presenter.get_staples();
-        for s in stapples.iter() {
+        let staples = app_state.get_design_reader().presenter.get_staples();
+        for s in staples.iter() {
             if s.name.contains("5':h1:nt7") {
                 assert_eq!(s.sequence, "CCAA TTTT")
             } else if s.name.contains("5':h2:nt0") {
@@ -1715,8 +1715,8 @@ mod tests {
             .apply_design_op(DesignOperation::SetScaffoldId(Some(s_id)))
             .unwrap();
         app_state.update();
-        let stapples = app_state.get_design_reader().presenter.get_staples();
-        for s in stapples.iter() {
+        let staples = app_state.get_design_reader().presenter.get_staples();
+        for s in staples.iter() {
             if s.name.contains("5':h1:nt7") {
                 assert_eq!(s.sequence, "AGGT TCCA")
             } else if s.name.contains("5':h2:nt0") {

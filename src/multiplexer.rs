@@ -555,7 +555,7 @@ impl Multiplexer {
                         )
                     }
                     Key::Character("X") => {
-                        self.requests.lock().unwrap().toggle_thick_helices = Some(());
+                        self.requests.lock().unwrap().toggle_all_helices_on_axis = Some(());
                     }
                     Key::Character("Z") if control_key(&self.modifiers_state) => {
                         if self.modifiers_state.shift_key() {
@@ -615,7 +615,7 @@ impl Multiplexer {
                         self.requests.lock().unwrap().selection_mode = Some(SelectionMode::Strand)
                     }
                     Key::Character("K") => {
-                        self.requests.lock().unwrap().recolor_stapples = Some(());
+                        self.requests.lock().unwrap().recolor_staples = Some(());
                     }
                     Key::Named(NamedKey::Delete) | Key::Named(NamedKey::Backspace) => {
                         self.requests.lock().unwrap().delete_selection = Some(());

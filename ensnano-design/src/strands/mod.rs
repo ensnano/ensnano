@@ -83,9 +83,9 @@ impl Strands {
     /// Return the strand end status of nucl
     pub fn is_strand_end(&self, nucl: &Nucl) -> Extremity {
         for s in self.0.values() {
-            if !s.cyclic && s.get_5prime() == Some(*nucl) {
+            if !s.is_cyclic && s.get_5prime() == Some(*nucl) {
                 return Extremity::Prime5;
-            } else if !s.cyclic && s.get_3prime() == Some(*nucl) {
+            } else if !s.is_cyclic && s.get_3prime() == Some(*nucl) {
                 return Extremity::Prime3;
             }
         }
@@ -249,8 +249,8 @@ pub struct Strand {
     pub sequence: Option<Cow<'static, str>>,
     /// Is this sequence cyclic? Can be skipped (and defaults to
     /// `false`) in the serialization.
-    #[serde(skip_serializing_if = "is_false", default)]
-    pub cyclic: bool,
+    #[serde(skip_serializing_if = "is_false", default, alias = "cyclic")]
+    pub is_cyclic: bool,
     /// Colour of this strand. If skipped, a default colour will be
     /// chosen automatically.
     #[serde(default)] // with = "SerHex",
@@ -352,7 +352,7 @@ impl Strand {
         Self {
             domains: sane_domains,
             sequence: codenano_strand.sequence.clone(),
-            cyclic: codenano_strand.cyclic,
+            is_cyclic: codenano_strand.cyclic,
             junctions: juctions,
             color: codenano_strand
                 .color
@@ -385,7 +385,7 @@ impl Strand {
         Ok(Self {
             domains: sane_domains,
             color,
-            cyclic,
+            is_cyclic: cyclic,
             junctions,
             sequence,
             ..Default::default()
@@ -405,7 +405,7 @@ impl Strand {
         Self {
             domains: sane_domains,
             sequence: None,
-            cyclic: false,
+            is_cyclic: false,
             junctions,
             color,
             ..Default::default()
@@ -482,7 +482,7 @@ impl Strand {
                 _ => (),
             }
         }
-        if self.cyclic && self.domains.len() > 1 {
+        if self.is_cyclic && self.domains.len() > 1 {
             let dom1 = &self.domains[self.domains.len() - 1];
             let dom2 = &self.domains[0];
             match (dom1, dom2) {
@@ -594,7 +594,7 @@ impl Strand {
 
     pub fn insertion_points(&self) -> Vec<(Option<Nucl>, Option<Nucl>)> {
         let mut ret = Vec::new();
-        let mut prev_prime3 = if self.cyclic {
+        let mut prev_prime3 = if self.is_cyclic {
             self.domains.last().and_then(|d| d.prime3_end())
         } else {
             None
@@ -607,7 +607,7 @@ impl Strand {
             }
         }
         if let Some(Domain::Insertion { .. }) = self.domains.last() {
-            if self.cyclic {
+            if self.is_cyclic {
                 ret.push((
                     prev_prime3,
                     self.domains.first().and_then(|d| d.prime5_end()),
@@ -657,7 +657,7 @@ impl Strand {
         let mut len = 0;
         for (mut d_id, d) in self.domains.iter().enumerate() {
             if let Some(n) = d.has_virtual_nucl(nucl, helices) {
-                if self.cyclic
+                if self.is_cyclic
                     && d_id == self.domains.len() - 1
                     && d.prime3_end().map(|n| n.prime3()) == self.domains[0].prime5_end()
                 {

@@ -175,7 +175,7 @@ impl DiscreteValue {
         name_size: impl Into<Pixels>,
     ) -> iced::Element<Message<State>, crate::Theme, crate::Renderer> {
         let decr_button = if active && self.value - self.step >= self.min_val {
-            button(text("-")).on_press(Message::DescreteValue {
+            button(text("-")).on_press(Message::DiscreteValue {
                 factory_id: self.owner_id,
                 value_id: self.value_id,
                 value: self.value - self.step,
@@ -184,7 +184,7 @@ impl DiscreteValue {
             button(text("-"))
         };
         let incr_button = if active && self.value + self.step <= self.max_val {
-            button(text("+")).on_press(Message::DescreteValue {
+            button(text("+")).on_press(Message::DiscreteValue {
                 factory_id: self.owner_id,
                 value_id: self.value_id,
                 value: self.value + self.step,
@@ -196,7 +196,7 @@ impl DiscreteValue {
         let value_id = self.value_id.clone();
         let slider = if active {
             slider(self.min_val..=self.max_val, self.value, move |value| {
-                Message::DescreteValue {
+                Message::DiscreteValue {
                     factory_id,
                     value_id,
                     value,

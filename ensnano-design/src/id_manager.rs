@@ -1,6 +1,5 @@
 use core::fmt;
 use std::ops::Deref;
-use std::os::unix::prelude::OsStringExt;
 
 /*
 ENSnano, a 3d graphical application for DNA nanostructures.

@@ -28,7 +28,7 @@ pub const VERTEX_NORMAL_ADRESS: u32 = 1;
 
 pub const BOND_RADIUS: f32 = 0.06;
 pub const BOND_LENGTH: f32 = 1.;
-pub const NB_RAY_TUBE: usize = 12;
+pub const NB_RAY_TUBE: usize = 17;
 
 pub const HELIX_CYLINDER_RADIUS: f32 = 0.9;
 pub const HELIX_CYLINDER_COLOR: u32 = 0x88_CC_CC_CC;
@@ -123,6 +123,9 @@ pub const STEREOGRAPHIC_SPHERE_COLOR: u32 = 0xDD_2F_4F_4F; // Slate grey
 pub const STEREOGRAPHIC_SPHERE_RADIUS: f32 = 2.;
 
 pub const MAX_ZOOM_2D: f32 = 50.0;
+
+pub const EXPORT_2D_MAX_SIZE: f32 = 300.;
+pub const EXPORT_2D_MARGIN: f32 = 10.;
 
 pub const CIRCLE2D_GREY: u32 = 0xFF_4D4D4D;
 pub const CIRCLE2D_BLUE: u32 = 0xFF_036992;

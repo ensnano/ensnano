@@ -48,6 +48,10 @@ pub struct InterpolatedCurveDescriptor {
     // There is currently no way to set this value through the GUI.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub full_turn_at_nt: Option<isize>,
+
+    /// Choose the iterative frame algorithm used to discretize
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub use_original_iterative_frame_algorithm: Option<bool>,
 }
 
 impl InterpolatedCurveDescriptor {
@@ -72,6 +76,8 @@ impl InterpolatedCurveDescriptor {
             known_helix_id_in_shape: self.known_helix_id_in_shape,
             objective_nb_nt: self.objective_number_of_nts,
             full_turn_at_nt: self.full_turn_at_nt,
+            use_original_iterative_frame_algorithm_value: self
+                .use_original_iterative_frame_algorithm,
         };
         if init_interpolators {
             ret.init_interpolators();
@@ -265,6 +271,7 @@ pub(super) struct Revolution {
     known_helix_id_in_shape: Option<usize>,
     objective_nb_nt: Option<usize>,
     full_turn_at_nt: Option<isize>,
+    use_original_iterative_frame_algorithm_value: Option<bool>,
 }
 
 const NB_POINT_INTERPOLATION: usize = 100_000;
@@ -505,5 +512,10 @@ impl Curved for Revolution {
 
     fn nucl_pos_full_turn(&self) -> Option<isize> {
         self.full_turn_at_nt
+    }
+
+    fn use_original_iterative_frame_algorithm(&self) -> bool {
+        self.use_original_iterative_frame_algorithm_value
+            .unwrap_or(false)
     }
 }

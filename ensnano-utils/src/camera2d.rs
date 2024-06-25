@@ -17,22 +17,24 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 //! This modules defines a 2D camera for the FlatScene.
 //!
-//! The `Globals` struct contains the value that must be send to the GPU to compute the view
-//! matrix. The `Camera` struct modifies a `Globals` attribute and perform some view <-> world
+//! The [Globals] struct contains the value that must be send to the GPU to compute the view
+//! matrix. The [Camera2D] struct modifies a [Globals] attribute and perform some view <-> world
 //! coordinate conversion.
 
 use ensnano_design::{Rotor2, Vec2};
-use ensnano_interactor::consts::*;
-use iced_winit::winit;
-use winit::{dpi::PhysicalPosition, event::MouseScrollDelta};
-pub struct Camera {
+use ensnano_interactor::consts::MAX_ZOOM_2D;
+use iced_winit::winit::{dpi::PhysicalPosition, event::MouseScrollDelta};
+
+/// A 2D camera for the FlatScene.
+pub struct Camera2D {
     globals: Globals,
     was_updated: bool,
     old_globals: Globals,
+    /// Indicates whether this camera represents the bottom pane.
     pub bottom: bool,
 }
 
-impl Camera {
+impl Camera2D {
     pub fn new(globals: Globals, bottom: bool) -> Self {
         Self {
             old_globals: globals,
@@ -42,6 +44,16 @@ impl Camera {
         }
     }
 
+    pub fn from_resolution(resolution: [f32; 2], bottom: bool) -> Self {
+        Camera2D::new(Globals::from_resolution(resolution), bottom)
+    }
+}
+
+/// Movement mechanism.
+///
+/// The movement can be decomposed in multiple steps.
+///
+impl Camera2D {
     /// Return true if the globals have been modified since the last time `self.get_update()` was
     /// called.
     pub fn was_updated(&self) -> bool {
@@ -49,16 +61,16 @@ impl Camera {
     }
 
     fn rotation_sign(&self) -> f32 {
-        self.globals.symetry.x * self.globals.symetry.y * -1.0
+        self.globals.symmetry.x * self.globals.symmetry.y * -1.0
     }
 
-    pub fn apply_symettry_x(&mut self) {
-        self.globals.symetry.x *= -1.0;
+    pub fn apply_symmetry_x(&mut self) {
+        self.globals.symmetry.x *= -1.0;
         self.end_movement();
     }
 
-    pub fn apply_symettry_y(&mut self) {
-        self.globals.symetry.y *= -1.0;
+    pub fn apply_symmetry_y(&mut self) {
+        self.globals.symmetry.y *= -1.0;
         self.end_movement();
     }
 
@@ -134,14 +146,14 @@ impl Camera {
         self.globals.zoom = self.globals.zoom.max(MAX_ZOOM_2D / 2.);
     }
 
-    /// Descrete zoom on the scene
+    /// Discrete zoom on the scene
     #[allow(dead_code)]
     pub fn zoom_in(&mut self) {
         self.globals.zoom *= 1.25;
         self.was_updated = true;
     }
 
-    /// Descrete zoom out of the scene
+    /// Discrete zoom out of the scene
     #[allow(dead_code)]
     pub fn zoom_out(&mut self) {
         self.globals.zoom *= 0.8;
@@ -174,8 +186,8 @@ impl Camera {
     /// Convert a *vector* in screen coordinate to a vector in world coordinate. (Does not apply
     /// the translation)
     fn transform_vec(&self, mut x: f32, mut y: f32) -> (f32, f32) {
-        x *= self.globals.symetry.x;
-        y *= self.globals.symetry.y;
+        x *= self.globals.symmetry.x;
+        y *= self.globals.symmetry.y;
         let vec = Vec2::new(
             self.globals.resolution[0] * x / self.globals.zoom,
             self.globals.resolution[1] * y / self.globals.zoom,
@@ -228,8 +240,8 @@ impl Camera {
         )
         .rotated_by(self.rotation());
         let coord_ndc = Vec2::new(
-            temp.x * 2. * self.globals.zoom / self.globals.resolution[0] * self.globals.symetry.x,
-            temp.y * 2. * self.globals.zoom / self.globals.resolution[1] * self.globals.symetry.y,
+            temp.x * 2. * self.globals.zoom / self.globals.resolution[0] * self.globals.symmetry.x,
+            temp.y * 2. * self.globals.zoom / self.globals.resolution[1] * self.globals.symmetry.y,
         );
         ((coord_ndc.x + 1.) / 2., (coord_ndc.y + 1.) / 2.)
     }
@@ -239,13 +251,14 @@ impl Camera {
     ///
     /// The camera's view will be centered on `rectangle`'s center.
     pub fn fit_center(&mut self, mut rectangle: FitRectangle) {
-        rectangle.finish();
-        rectangle.adjust_height(1.1);
+        rectangle
+            .ensure_min_size([20., 35.], [0.25, 0.14285715])
+            .adjust_height(1.1, 0.5);
 
         // Pick the largest zoom factor that makes it possible to see the whole width and the
         // whole height of the rectangle.
-        let zoom_x = self.globals.resolution[0] / rectangle.width().unwrap();
-        let zoom_y = self.globals.resolution[1] / rectangle.height().unwrap();
+        let zoom_x = self.globals.resolution[0] / rectangle.width();
+        let zoom_y = self.globals.resolution[1] / rectangle.height();
         if zoom_x < zoom_y {
             self.globals.zoom = zoom_x;
         } else {
@@ -253,7 +266,7 @@ impl Camera {
         }
 
         // Center the view of the camera on the center of the rectangle.
-        let (center_x, center_y) = rectangle.center().unwrap();
+        let [center_x, center_y] = rectangle.center();
         self.globals.scroll_offset[0] = center_x;
         self.globals.scroll_offset[1] = center_y;
 
@@ -265,20 +278,21 @@ impl Camera {
     ///
     /// The camera's top left corner will match `rectangle`'s top left corner.
     pub fn fit_top_left(&mut self, mut rectangle: FitRectangle) {
-        rectangle.finish();
-        rectangle.adjust_height(1.1);
-        let zoom_x = self.globals.resolution[0] / rectangle.width().unwrap();
-        let zoom_y = self.globals.resolution[1] / rectangle.height().unwrap();
+        rectangle
+            .ensure_min_size([20., 35.], [0.25, 0.14285715])
+            .adjust_height(1.1, 0.5);
+        let zoom_x = self.globals.resolution[0] / rectangle.width();
+        let zoom_y = self.globals.resolution[1] / rectangle.height();
         let mut excess_height = 0.;
         if zoom_x < zoom_y {
             self.globals.zoom = zoom_x;
 
             let seen_height = self.globals.resolution[1] / zoom_x;
-            excess_height = seen_height - rectangle.height().unwrap_or(0.);
+            excess_height = seen_height - rectangle.height();
         } else {
             self.globals.zoom = zoom_y;
         }
-        let (center_x, center_y) = rectangle.center().unwrap();
+        let [center_x, center_y] = rectangle.center();
         self.globals.scroll_offset[0] = center_x;
         self.globals.scroll_offset[1] = center_y + excess_height / 2.;
         self.was_updated = true;
@@ -298,10 +312,10 @@ impl Camera {
         let bottom_right: Vec2 = self.norm_screen_to_world(1., 1.).into();
 
         FitRectangle {
-            min_x: Some(top_left.x),
-            min_y: Some(top_left.y),
-            max_x: Some(bottom_right.x),
-            max_y: Some(bottom_right.y),
+            x_min: top_left.x,
+            x_max: bottom_right.x,
+            y_min: top_left.y,
+            y_max: bottom_right.y,
         }
     }
 
@@ -312,6 +326,7 @@ impl Camera {
     }
 }
 
+/// Values that must be send to the GPU to compute the view.
 #[repr(C)]
 #[derive(Debug, Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct Globals {
@@ -319,187 +334,193 @@ pub struct Globals {
     pub scroll_offset: [f32; 2],
     pub zoom: f32,
     pub tilt: f32,
-    pub symetry: Vec2,
+    pub symmetry: Vec2,
 }
 
 impl Globals {
-    pub fn default(resolution: [f32; 2]) -> Self {
-        Self {
-            resolution,
-            scroll_offset: [10.0, 40.0],
-            zoom: 16.0,
-            tilt: 0.0,
-            symetry: [1., 1.].into(),
-        }
-    }
-
-    pub fn from_selection_rectangle(top_left: Vec2, bottom_right: Vec2) -> Self {
-        let width = 256. * 32.;
-        let height = 256. * 10.;
-        let resolution = [width, height];
-        let zoom_x = resolution[0] / (top_left.x - bottom_right.x).abs();
-        let zoom_y = resolution[1] / (top_left.y - bottom_right.y).abs();
-        let zoom = if zoom_x < zoom_y { zoom_x } else { zoom_y };
+    pub fn from_resolution_and_corners(
+        resolution: [f32; 2],
+        top_left: Vec2,
+        bottom_right: Vec2,
+    ) -> Self {
         Self {
             resolution,
             scroll_offset: [
                 (top_left.x + bottom_right.x) / 2.,
                 (top_left.y + bottom_right.y) / 2.,
             ],
-            zoom,
+            zoom: f32::min(
+                resolution[0] / (top_left.x - bottom_right.x).abs(),
+                resolution[1] / (top_left.y - bottom_right.y).abs(),
+            ),
             tilt: 0.0,
-            symetry: [1., 1.].into(),
+            symmetry: [1., 1.].into(),
         }
+    }
+
+    pub fn from_resolution(resolution: [f32; 2]) -> Self {
+        Self {
+            resolution,
+            scroll_offset: [10.0, 40.0],
+            zoom: 16.0,
+            tilt: 0.0,
+            symmetry: [1., 1.].into(),
+        }
+    }
+
+    pub fn from_corners<F>(top_left: Vec2, bottom_right: Vec2, compute_resolution: F) -> Self
+    where
+        F: Fn([f32; 2]) -> [f32; 2],
+    {
+        log::debug!("Corners: {:?}, {:?}", top_left, bottom_right);
+        let size = [
+            (bottom_right.x - top_left.x).abs(),
+            (bottom_right.y - top_left.y).abs(),
+        ];
+        Self::from_resolution_and_corners(compute_resolution(size), top_left, bottom_right)
     }
 }
 
-#[derive(Debug, Clone, Copy, Default)]
+/// A structure to compute appropriate vews of the flat scene.
+#[derive(Debug, Clone, Copy)]
 pub struct FitRectangle {
-    pub min_x: Option<f32>,
-    pub max_x: Option<f32>,
-    pub min_y: Option<f32>,
-    pub max_y: Option<f32>,
+    x_min: f32,
+    x_max: f32,
+    y_min: f32,
+    y_max: f32,
 }
 
+/// Creation and basic fitting methods.
 impl FitRectangle {
-    /// The rectangle that the 2D camera look at when starting the software.
-    pub const INITIAL_RECTANGLE: Self = Self {
-        min_x: Some(-7.),
-        max_x: Some(50.),
-        min_y: Some(-4.),
-        max_y: Some(8.),
-    };
+    /// Create a new [FitRectangle] that fits only `point`.
+    ///
+    /// Use as a starting point, to add new points.
+    pub fn from_point(point: impl Into<[f32; 2]>) -> Self {
+        let [x, y] = point.into();
+        Self {
+            x_min: x,
+            x_max: x,
+            y_min: y,
+            y_max: y,
+        }
+    }
+    /// Add a new point to include into the [FitRectangle].
+    pub fn add_point(&mut self, point: impl Into<[f32; 2]>) -> Self {
+        let [x, y] = point.into();
+        self.x_min = f32::min(self.x_min, x);
+        self.x_max = f32::max(self.x_max, x);
+        self.y_min = f32::min(self.y_min, y);
+        self.y_max = f32::max(self.y_max, y);
+        *self
+    }
+    pub fn from_points(points: impl IntoIterator<Item = [f32; 2]>) -> Option<Self> {
+        let mut points = points.into_iter();
+        if let Some(point) = points.next() {
+            let mut rect = Self::from_point(point);
+            for point in points {
+                rect.add_point(point);
+            }
+            Some(rect)
+        } else {
+            None
+        }
+    }
+}
 
-    pub fn new() -> Self {
-        Default::default()
+/// Introspection.
+impl FitRectangle {
+    pub fn width(&self) -> f32 {
+        self.x_max - self.x_min
+    }
+    pub fn height(&self) -> f32 {
+        self.y_max - self.y_min
+    }
+    pub fn center(&self) -> [f32; 2] {
+        [
+            (self.x_min + self.x_max) / 2.,
+            (self.y_min + self.y_max) / 2.,
+        ]
+    }
+    pub fn top_left(&self) -> [f32; 2] {
+        [self.x_min, self.y_max]
     }
 
-    /// Adjust the corners of self so that self contains `point`
-    pub fn add_point(&mut self, point: ultraviolet::Vec2) {
-        self.min_x = self.min_x.map(|x| x.min(point.x)).or(Some(point.x));
-        self.max_x = self.max_x.map(|x| x.max(point.x)).or(Some(point.x));
-        self.min_y = self.min_y.map(|y| y.min(point.y)).or(Some(point.y));
-        self.max_y = self.max_y.map(|y| y.max(point.y)).or(Some(point.y));
+    pub fn bottom_right(&self) -> [f32; 2] {
+        [self.x_max, self.y_min]
     }
+}
 
-    /// If `self` does not contain a rectangle with width Self::min_width and height
-    /// `Self::min_height`, adjust the dimensions of `self` while preserving the center of mass
-    pub fn finish(&mut self) {
-        let width = self.width().unwrap_or(0.);
-        let height = self.height().unwrap_or(0.);
-
-        if width <= Self::min_width() {
-            let diff = Self::min_width() - width;
-            self.min_x = self.min_x.map(|x| x - diff / 4.).or(Some(-5.));
-            self.max_x = self.max_x.map(|x| x + 3. * diff / 4.).or(Some(15.))
+/// Special methods.
+impl FitRectangle {
+    /// Ensure a minimal rectangle size.
+    ///
+    /// If the width or height must be increased, use the given center of mass.
+    fn ensure_min_size(
+        mut self,
+        [min_width, min_height]: [f32; 2],
+        [x_center, y_center]: [f32; 2],
+    ) -> Self {
+        if self.width() <= min_width {
+            let diff = min_width - self.width();
+            self.x_min -= diff * x_center;
+            self.x_max += diff * (1.0 - x_center);
         }
-
-        if height <= Self::min_height() {
-            let diff = Self::min_height() - height;
-            self.min_y = self.min_y.map(|y| y - diff / 7.).or(Some(-5.));
-            self.max_y = self.max_y.map(|y| y + 6. * diff / 7.).or(Some(30.));
+        if self.height() <= min_height {
+            let diff = min_height - self.height();
+            self.y_min -= diff * y_center;
+            self.y_max += diff * (1.0 - y_center);
         }
+        self
     }
 
     /// Multiply the height of a rectangle by `factor` while preserving it's center of mass
-    pub fn adjust_height(&mut self, factor: f32) {
-        let height = self.height().unwrap_or(0.);
-        let delta = (factor - 1.) / 2.;
-        self.min_y.as_mut().map(|y| *y -= delta * height);
-        self.max_y.as_mut().map(|y| *y += delta * height);
-    }
-
-    fn width(&self) -> Option<f32> {
-        let max_x = self.max_x?;
-        let min_x = self.min_x?;
-        Some(max_x - min_x)
-    }
-
-    fn height(&self) -> Option<f32> {
-        let max_y = self.max_y?;
-        let min_y = self.min_y?;
-        Some(max_y - min_y)
-    }
-
-    fn center(&self) -> Option<(f32, f32)> {
-        let max_x = self.max_x?;
-        let min_x = self.min_x?;
-        let max_y = self.max_y?;
-        let min_y = self.min_y?;
-        Some(((max_x + min_x) / 2., (max_y + min_y) / 2.))
-    }
-
-    fn min_width() -> f32 {
-        20f32
-    }
-
-    fn min_height() -> f32 {
-        35f32
-    }
-
-    pub fn splited_vertically(mut self) -> (Self, Self) {
-        self.finish();
-        let mut top = self.clone();
-        let mut bottom = self.clone();
-
-        let middle = Some((self.max_y.unwrap() + self.min_y.unwrap()) / 2.);
-        top.max_y = middle.clone();
-        bottom.min_y = middle.clone();
-        (top, bottom)
-    }
-
-    pub fn with_double_height(mut self) -> Self {
-        self.finish();
-        let height = self.height().unwrap();
-        self.max_y = Some(self.min_y.unwrap() + height * 2.);
+    fn adjust_height(mut self, factor: f32, y_center: f32) -> Self {
+        self.y_min -= factor * y_center;
+        self.y_max += factor * (1.0 - y_center);
         self
     }
 }
 
-#[cfg(test)]
-mod test {
-    use super::*;
-
-    #[test]
-    fn empty_rectangle() {
-        let rect = FitRectangle::new();
-        assert!(rect.width().is_none());
-        assert!(rect.height().is_none());
+/// Needed by controller.
+impl FitRectangle {
+    pub fn split_vertically(self) -> (Self, Self) {
+        self.ensure_min_size([20., 35.], [0.25, 0.14285715]);
+        let Self {
+            x_min,
+            x_max,
+            y_min,
+            y_max,
+        } = self;
+        let y_mid = (y_min + y_max) / 2.0;
+        (
+            Self {
+                x_min,
+                x_max,
+                y_min: y_mid,
+                y_max,
+            },
+            Self {
+                x_min,
+                x_max,
+                y_min,
+                y_max: y_mid,
+            },
+        )
     }
 
-    #[test]
-    fn minimum_height_after_finish() {
-        let mut rect = FitRectangle::new();
-        rect.finish();
-        let height = rect.height().unwrap();
-        assert!(height >= FitRectangle::min_height())
+    pub fn double_height(mut self) -> Self {
+        self.ensure_min_size([20., 35.], [0.25, 0.14285715]);
+        self.y_max += 2.0 * self.height();
+        self
     }
+}
 
-    #[test]
-    fn minimum_width_after_finish() {
-        let mut rect = FitRectangle::new();
-        rect.finish();
-        let width = rect.width().unwrap();
-        assert!(width >= FitRectangle::min_width())
-    }
-
-    #[test]
-    fn correct_width() {
-        let mut rect = FitRectangle::new();
-        rect.add_point(Vec2::new(-3., 4.));
-        rect.add_point(Vec2::new(-2., 5.));
-        rect.add_point(Vec2::new(-1., -2.));
-        let width = rect.width().unwrap();
-        assert!((width - (2.)).abs() < 1e-5);
-    }
-
-    #[test]
-    fn correct_height() {
-        let mut rect = FitRectangle::new();
-        rect.add_point(Vec2::new(-3., 4.));
-        rect.add_point(Vec2::new(-2., 5.));
-        rect.add_point(Vec2::new(-1., -2.));
-        let height = rect.height().unwrap();
-        assert!((height - 7.).abs() < 1e-5);
-    }
+impl FitRectangle {
+    /// An initial rectangle to give to the software at startup.
+    pub const INITIAL_RECTANGLE: Self = Self {
+        x_min: -7.,
+        x_max: 50.,
+        y_min: -4.,
+        y_max: 8.,
+    };
 }

@@ -117,7 +117,7 @@ pub enum Message<S: AppState> {
     FogRadius(f32),
     FogLength(f32),
     SimRequest,
-    DescreteValue {
+    DiscreteValue {
         factory_id: FactoryId,
         value_id: ValueId,
         value: f32,
@@ -135,7 +135,7 @@ pub enum Message<S: AppState> {
     ModifiersChanged(Modifiers),
     UiSizeChanged(UiSize),
     UiSizePicked(UiSize),
-    StapplesRequested,
+    StaplesRequested,
     OrigamisRequested,
     ToggleText(bool),
     #[allow(dead_code)]
@@ -209,6 +209,7 @@ pub enum Message<S: AppState> {
     LoadSvgFile,
     ScreenShot2D,
     ScreenShot3D,
+    SaveNucleotidesPositions,
     IncrRevolutionShift,
     DecrRevolutionShift,
 }
@@ -499,7 +500,7 @@ where
                 let request = self.camera_tab.get_fog_request();
                 self.requests.lock().unwrap().set_fog_parameters(request);
             }
-            Message::DescreteValue {
+            Message::DiscreteValue {
                 factory_id,
                 value_id,
                 value,
@@ -680,7 +681,7 @@ where
             Message::OptimizeScaffoldShiftPressed => {
                 self.requests.lock().unwrap().optimize_scaffold_shift();
             }
-            Message::StapplesRequested => self.requests.lock().unwrap().download_stapples(),
+            Message::StaplesRequested => self.requests.lock().unwrap().download_staples(),
             Message::ToggleText(b) => {
                 self.requests
                     .lock()
@@ -956,6 +957,12 @@ where
             }
             Message::ScreenShot3D => {
                 self.requests.lock().unwrap().request_screenshot_3d();
+            }
+            Message::SaveNucleotidesPositions => {
+                self.requests
+                    .lock()
+                    .unwrap()
+                    .request_save_nucleotides_positions();
             }
             Message::IncrRevolutionShift => self.revolution_tab.shift_idx += 1,
             Message::DecrRevolutionShift => self.revolution_tab.shift_idx -= 1,

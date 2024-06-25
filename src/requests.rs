@@ -62,7 +62,7 @@ pub struct Requests {
     pub fitting: Option<()>,
     /// A request to save the selected design
     pub file_save: Option<()>,
-    /// A request to change the color of the selcted strand
+    /// A request to change the color of the selected strand
     pub strand_color_change: Option<u32>,
     /// A request to change the sequence of the selected strand
     pub sequence_change: Option<String>,
@@ -79,7 +79,7 @@ pub struct Requests {
     pub camera_target: Option<(Vec3, Vec3)>,
     pub small_spheres: Option<bool>,
     pub set_scaffold_id: Option<Option<usize>>,
-    pub recolor_stapples: Option<()>,
+    pub recolor_staples: Option<()>,
     pub roll_request: Option<RollRequest>,
     pub show_torsion_request: Option<bool>,
     pub fog: Option<FogParameters>,
@@ -139,8 +139,8 @@ pub struct Requests {
     pub set_show_h_bonds: Option<HBondDisplay>,
     pub set_show_bezier_paths: Option<bool>,
     pub set_invert_y_scroll: Option<bool>,
-    pub set_thick_helices: Option<bool>,
-    pub toggle_thick_helices: Option<()>,
+    pub set_all_helices_on_axis: Option<bool>,
+    pub toggle_all_helices_on_axis: Option<()>,
     pub twist_simulation: Option<GridId>,
     pub horizon_targeted: Option<()>,
     pub new_bezier_revolution_id: Option<Option<usize>>,

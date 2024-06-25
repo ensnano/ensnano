@@ -162,7 +162,8 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
                 self.requests.lock().unwrap().toggle_2d();
             }
             Message::FlipSplitViews => self.requests.lock().unwrap().flip_split_views(),
-            Message::ThickHelices(b) => self.requests.lock().unwrap().set_thick_helices(b),
+            Message::ThickHelices(b) => self.requests.lock().unwrap().set_all_helices_on_axis(b),
+            // TODO: Consider rename message ThickHelices → AllHelicesOnAxis
             Message::AlignHorizon => self.requests.lock().unwrap().align_horizon(),
             Message::Import3D => self.requests.lock().unwrap().import_3d_object(),
         };
@@ -271,7 +272,9 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
         .style(theme::Container::Box);
         let button_3d: Button<'_, _, _, _> = fixed_text_button("3D", 1.0, self.ui_size)
             .on_press(Message::ToggleView(SplitMode::Scene3D));
-        let button_thick_helices: Button<'_, _, _, _> = if self.app_state.want_thick_helices() {
+        // TODO: Consider rename thick_helices → all_helices_on_axis
+        let button_thick_helices: Button<'_, _, _, _> = if self.app_state.want_all_helices_on_axis()
+        {
             material_icon_button(MaterialIcon::Dehaze, MaterialIconStyle::Light, self.ui_size)
                 .on_press(Message::ThickHelices(false))
         } else {

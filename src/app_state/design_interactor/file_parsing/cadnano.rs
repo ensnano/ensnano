@@ -134,7 +134,7 @@ fn make_strand(
         domains: Vec::new(),
         sequence: None,
         junctions: Vec::new(),
-        cyclic,
+        is_cyclic: cyclic,
         color: crate::consts::SCAFFOLD_COLOR,
         name: None,
     };

@@ -45,7 +45,7 @@ mod operation_labels;
 mod surfaces;
 pub use surfaces::*;
 
-#[derive(Clone, Copy, Eq, PartialEq, Debug)]
+#[derive(Clone, Eq, PartialEq, Debug)]
 pub enum ObjectType {
     /// A nucleotide identified by its identifier
     Nucleotide(u32),
@@ -55,6 +55,8 @@ pub enum ObjectType {
     SlicedBond(u32, u32, u32, u32),
     /// A Helix cylinder, identified by the identifier of the two nucleotides at its ends.
     HelixCylinder(u32, u32),
+    /// A Helix cylinder, identified by the identifier of the two nucleotides at its ends, together with the list of the colors of the slices.
+    ColoredHelixCylinder(u32, u32, Vec<u32>),
 }
 
 impl ObjectType {
@@ -70,11 +72,15 @@ impl ObjectType {
         matches!(self, ObjectType::HelixCylinder(_, _))
     }
 
+    pub fn is_colored_helix_cylinder(&self) -> bool {
+        matches!(self, ObjectType::ColoredHelixCylinder(_, _, _))
+    }
+
     pub fn is_sliced_bond(&self) -> bool {
         matches!(self, ObjectType::SlicedBond(_, _, _, _))
     }
 
-    pub fn same_type(&self, other: Self) -> bool {
+    pub fn same_type(&self, other: &Self) -> bool {
         match self {
             Self::Nucleotide(_) => match other {
                 Self::Nucleotide(_) => true,
@@ -86,6 +92,10 @@ impl ObjectType {
             },
             Self::HelixCylinder(_, _) => match other {
                 Self::HelixCylinder(_, _) => true,
+                _ => false,
+            },
+            Self::ColoredHelixCylinder(_, _, _) => match other {
+                Self::ColoredHelixCylinder(_, _, _) => true,
                 _ => false,
             },
             Self::SlicedBond(_, _, _, _) => match other {

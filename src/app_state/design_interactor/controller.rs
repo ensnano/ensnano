@@ -118,7 +118,7 @@ impl Controller {
         let label = operation.label();
         let mut ret = match operation {
             DesignOperation::RecolorStaples => {
-                Ok(self.ok_apply(Self::fancy_recolor_stapples, design))
+                Ok(self.ok_apply(Self::fancy_recolor_staples, design))
             }
             DesignOperation::SetScaffoldSequence { sequence, shift } => Ok(self.ok_apply(
                 |ctrl, design| ctrl.set_scaffold_sequence(design, sequence, shift),
@@ -172,7 +172,7 @@ impl Controller {
                 self.apply(|c, d| c.apply_translation(d, translation), design)
             }
             DesignOperation::Rotation(rotation) => {
-                self.apply(|c, d| c.apply_rotattion(d, rotation), design)
+                self.apply(|c, d| c.apply_rotation(d, rotation), design)
             }
             DesignOperation::RequestStrandBuilders { nucls } => {
                 self.apply(|c, d| c.request_strand_builders(d, nucls), design)
@@ -246,13 +246,16 @@ impl Controller {
             DesignOperation::AttachObject { object, grid, x, y } => {
                 self.apply(|c, d| c.attach_object(d, object, grid, x, y), design)
             }
-            DesignOperation::SetOrganizerTree(tree) => Ok(self.ok_apply(
-                |_, mut d| {
-                    d.organizer_tree = Some(Arc::new(tree));
-                    d
-                },
-                design,
-            )),
+            DesignOperation::SetOrganizerTree(tree) => {
+                println!("Tree op {}", rand::random::<u8>());
+                Ok(self.ok_apply(
+                    |_, mut d| {
+                        d.organizer_tree = Some(Arc::new(tree));
+                        d
+                    },
+                    design,
+                ))
+            }
             DesignOperation::SetStrandName { s_id, name } => {
                 self.apply(|c, d| c.change_strand_name(d, s_id, name), design)
             }
@@ -1436,7 +1439,7 @@ impl Controller {
         let path = new_paths
             .get_mut(&path_id)
             .ok_or(ErrOperation::PathDoesNotExist(path_id))?;
-        path.cyclic = cyclic;
+        path.is_cyclic = cyclic;
         drop(new_paths);
         Ok(design)
     }
@@ -1701,7 +1704,7 @@ impl Controller {
         Ok(design)
     }
 
-    fn apply_rotattion(
+    fn apply_rotation(
         &mut self,
         design: Design,
         rotation: DesignRotation,
@@ -1975,7 +1978,7 @@ impl From<ensnano_design::SvgImportError> for ErrOperation {
 }
 
 impl Controller {
-    fn recolor_stapples(&mut self, mut design: Design) -> Design {
+    fn recolor_staples(&mut self, mut design: Design) -> Design {
         for (s_id, strand) in design.strands.iter_mut() {
             if Some(*s_id) != design.scaffold_id {
                 let color = crate::utils::colors::new_color(&mut self.color_idx);
@@ -1985,7 +1988,7 @@ impl Controller {
         design
     }
 
-    fn fancy_recolor_stapples(&mut self, mut design: Design) -> Design {
+    fn fancy_recolor_staples(&mut self, mut design: Design) -> Design {
         let mut drawing_styles = HashMap::<DesignElementKey, DrawingStyle>::default();
 
         if let Some(ref t) = design.organizer_tree {
@@ -2110,7 +2113,7 @@ impl Controller {
                     let position = old_pos + translation;
                     let position = Vec2::new(position.x.round(), position.y.round());
                     let isometry = if *segment_idx > 0 {
-                        h.additonal_isometries
+                        h.additional_isometries
                             .get_mut(segment_idx - 1)
                             .and_then(|i| i.additional_isometry.as_mut())
                     } else {
@@ -2141,7 +2144,7 @@ impl Controller {
             }
         } else if let Some(i) = new_helices
             .get_mut(&h_id)
-            .and_then(|h| h.additonal_isometries.get_mut(segment - 1))
+            .and_then(|h| h.additional_isometries.get_mut(segment - 1))
         {
             i.additional_isometry = Some(isometry);
         }
@@ -2461,7 +2464,7 @@ impl Controller {
 
         let strand = strands.remove(&id).expect("strand");
         let name = strand.name.clone();
-        if strand.cyclic {
+        if strand.is_cyclic {
             let new_strand = Self::break_cycle(strand.clone(), *nucl, force_end);
             strands.insert(id, new_strand);
             //self.clean_domains_one_strand(id);
@@ -2574,7 +2577,7 @@ impl Controller {
             domains: prim5_domains,
             color: strand.color,
             junctions: prime5_junctions,
-            cyclic: false,
+            is_cyclic: false,
             sequence: seq_prim5,
             name: name.clone(),
         };
@@ -2582,7 +2585,7 @@ impl Controller {
         let mut strand_3prime = Strand {
             domains: prim3_domains,
             color: strand.color,
-            cyclic: false,
+            is_cyclic: false,
             junctions: prime3_junctions,
             sequence: seq_prim3,
             name,
@@ -2669,7 +2672,7 @@ impl Controller {
         junctions.push(DomainJunction::Prime3);
 
         strand.domains = new_domains;
-        strand.cyclic = false;
+        strand.is_cyclic = false;
         strand.junctions = junctions;
         strand
     }
@@ -2895,7 +2898,7 @@ impl Controller {
                 color: strand5prime.color,
                 sequence,
                 junctions,
-                cyclic: false,
+                is_cyclic: false,
                 name,
             };
             new_strand.merge_consecutive_domains();
@@ -2916,7 +2919,7 @@ impl Controller {
         strands
             .get_mut(&strand_id)
             .ok_or(ErrOperation::StrandDoesNotExist(strand_id))?
-            .cyclic = cyclic;
+            .is_cyclic = cyclic;
 
         let strand = strands
             .get_mut(&strand_id)
@@ -3034,7 +3037,7 @@ impl Controller {
         let was_cyclic = strands
             .get(&target_strand)
             .ok_or(ErrOperation::StrandDoesNotExist(target_strand))?
-            .cyclic;
+            .is_cyclic;
         //println!("half1 {}, ; half0 {}", new_id, target_strand);
         Self::split_strand(strands, &nucl, Some(target_3prime), color_idx)?;
         //println!("splitted");
@@ -3248,7 +3251,7 @@ impl Controller {
                             true,
                             &mut self.color_idx,
                         )?;
-                    } else if source.cyclic {
+                    } else if source.is_cyclic {
                         Self::split_strand(
                             strands,
                             &source_nucl,
@@ -3473,7 +3476,7 @@ impl Controller {
 fn nucl_pos_2d(helices: &Helices, nucl: &Nucl, segment: usize) -> Option<Vec2> {
     let isometry = helices.get(&nucl.helix).and_then(|h| {
         if segment > 0 {
-            h.additonal_isometries
+            h.additional_isometries
                 .get(segment - 1)
                 .and_then(|i| (i.additional_isometry.or(h.isometry2d)))
         } else {

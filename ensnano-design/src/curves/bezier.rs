@@ -266,7 +266,8 @@ pub struct InstanciatedPiecewiseBezier {
     pub ends: Vec<BezierEndCoordinates>,
     pub t_min: Option<f64>,
     pub t_max: Option<f64>,
-    pub cyclic: bool,
+    #[serde(alias = "cyclic")]
+    pub is_cyclic: bool,
     /// An identifier of the PiecewiseBezier generated at random.
     pub id: u64,
     #[serde(default, skip_serializing_if = "is_false")]
@@ -303,7 +304,7 @@ impl InstanciatedPiecewiseBezier {
     /// Return the index of the bezier curve that determines the position associated to time `t`.
     fn t_to_segment_time(&self, t: f64) -> SegmentTime {
         if t < 0.0 {
-            if self.cyclic {
+            if self.is_cyclic {
                 let t = t.rem_euclid(self.ends.len() as f64);
                 self.t_to_segment_time(t)
             } else {
@@ -314,7 +315,7 @@ impl InstanciatedPiecewiseBezier {
             }
         } else {
             let (segment, time);
-            if self.cyclic && !self.ends.is_empty() {
+            if self.is_cyclic && !self.ends.is_empty() {
                 segment = t.floor() as usize;
                 time = t.fract();
             } else {
@@ -338,7 +339,7 @@ impl InstanciatedPiecewiseBezier {
     }
 
     pub fn max_x(&self) -> f64 {
-        let i_max = if self.cyclic {
+        let i_max = if self.is_cyclic {
             self.ends.len()
         } else {
             self.ends.len() - 1
@@ -350,7 +351,7 @@ impl InstanciatedPiecewiseBezier {
     }
 
     pub fn min_x(&self) -> f64 {
-        let i_max = if self.cyclic {
+        let i_max = if self.is_cyclic {
             self.ends.len()
         } else {
             self.ends.len() - 1
@@ -399,7 +400,7 @@ struct SegmentTime {
 
 impl super::Curved for InstanciatedPiecewiseBezier {
     fn t_max(&self) -> f64 {
-        let n = if self.cyclic {
+        let n = if self.is_cyclic {
             self.ends.len() as f64
         } else {
             self.ends.len() as f64 - 1.0
@@ -471,7 +472,7 @@ impl super::Curved for TranslatedPiecewiseBezier {
     }
 
     fn t_max(&self) -> f64 {
-        if self.original_curve.cyclic {
+        if self.original_curve.is_cyclic {
             self.original_curve.t_max() + 2.
         } else {
             self.original_curve.t_max() + 1.
@@ -491,7 +492,7 @@ impl super::Curved for TranslatedPiecewiseBezier {
     }
 
     fn full_turn_at_t(&self) -> Option<f64> {
-        if self.original_curve.cyclic {
+        if self.original_curve.is_cyclic {
             Some(self.original_curve.ends.len() as f64)
         } else {
             Some(self.original_curve.ends.len() as f64 - 1.)

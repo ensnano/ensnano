@@ -243,13 +243,15 @@ impl Strand {
                     let prime_5 = helices.get(&prime_5.helix).map(|h| {
                         let position =
                             h.space_pos(helix_parameters, prime_5.position, prime_5.forward);
-                        let up_vec = position - h.axis_position(helix_parameters, prime_5.position);
+                        let up_vec = position
+                            - h.axis_position(helix_parameters, prime_5.position, prime_5.forward);
                         InsertionEnd { position, up_vec }
                     });
                     let prime_3 = helices.get(&prime_3.helix).map(|h| {
                         let position =
                             h.space_pos(helix_parameters, prime_3.position, prime_3.forward);
-                        let up_vec = position - h.axis_position(helix_parameters, prime_3.position);
+                        let up_vec = position
+                            - h.axis_position(helix_parameters, prime_3.position, prime_3.forward);
                         InsertionEnd { position, up_vec }
                     });
                     if let Some((prime_5, prime_3)) = prime_5.zip(prime_3) {
