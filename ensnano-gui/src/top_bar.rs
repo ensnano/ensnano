@@ -28,9 +28,7 @@ use crate::helpers::*;
 use ensnano_interactor::{ActionMode, SelectionMode};
 use iced::{theme, Element, Length, Padding};
 use iced_runtime::{Command, Program};
-use iced_wgpu;
 use iced_winit::winit::dpi::LogicalSize;
-//use std::collections::BTreeMap;
 use std::sync::{Arc, Mutex};
 
 use super::{Requests, SplitMode};
@@ -179,7 +177,6 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
             ActionMode::Rotate,
             build_helix_mode.clone(),
         ];
-        let height = self.ui_size.button();
         let button_fit = material_icon_button(
             MaterialIcon::ViewInAr,
             MaterialIconStyle::Light,
@@ -388,7 +385,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
             .spacing(self.ui_size.button_spacing()),
             row![button_fit, button_horizon,].spacing(self.ui_size.button_spacing()),
             // “Edition” group
-            //row![button_undo, button_redo,].spacing(self.ui_size.button_spacing()),
+            row![button_undo, button_redo,].spacing(self.ui_size.button_spacing()),
             // “Action” group
             Row::from_vec(action_mode_buttons).spacing(self.ui_size.button_spacing()),
             // “Selection” group
@@ -493,7 +490,7 @@ use super::icon::{HasIcon, HasIconDependentOnAxis};
 fn action_mode_btn<'a, State>(
     mode: &ActionMode,
     current_action_mode: ActionMode,
-    button_size: impl Into<Length>,
+    _button_size: impl Into<Length>,
     axis_aligned: bool,
     ui_size: UiSize,
 ) -> Button<'a, Message<State>, crate::Theme, crate::Renderer>

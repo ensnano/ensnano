@@ -250,7 +250,7 @@ impl Camera2D {
     /// account the "black stripes" that surround the 2D view.
     ///
     /// The camera's view will be centered on `rectangle`'s center.
-    pub fn fit_center(&mut self, mut rectangle: FitRectangle) {
+    pub fn fit_center(&mut self, rectangle: FitRectangle) {
         rectangle
             .ensure_min_size([20., 35.], [0.25, 0.14285715])
             .adjust_height(1.1, 0.5);
@@ -277,7 +277,7 @@ impl Camera2D {
     /// Set the globals parameters to ensure that the whole rectangle is visible.
     ///
     /// The camera's top left corner will match `rectangle`'s top left corner.
-    pub fn fit_top_left(&mut self, mut rectangle: FitRectangle) {
+    pub fn fit_top_left(&mut self, rectangle: FitRectangle) {
         rectangle
             .ensure_min_size([20., 35.], [0.25, 0.14285715])
             .adjust_height(1.1, 0.5);

@@ -20,7 +20,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::instances_drawer::{Instanciable, Vertexable};
 use ensnano_design::ultraviolet;
 use ensnano_interactor::consts::*;
-use ensnano_utils::{mesh::Mesh, wgpu};
+use ensnano_utils::wgpu;
 use std::f32::consts::PI;
 use ultraviolet::{Mat4, Rotor3, Vec3, Vec4};
 
@@ -133,8 +133,7 @@ impl Instanciable for PlainRectangleInstance {
     }
 
     fn indices() -> Vec<u16> {
-        let mut indices = vec![0, 1, 2, 3];
-        indices
+        vec![0, 1, 2, 3]
     }
 
     fn primitive_topology() -> wgpu::PrimitiveTopology {
@@ -164,7 +163,7 @@ impl Instanciable for PlainRectangleInstance {
         device.create_shader_module(wgpu::include_spirv!("plain_rectangle.frag.spv"))
     }
 
-    fn fake_fragment_module(device: &wgpu::Device) -> Option<wgpu::ShaderModule> {
+    fn fake_fragment_module(_device: &wgpu::Device) -> Option<wgpu::ShaderModule> {
         None
     }
 
@@ -607,20 +606,20 @@ impl Instanciable for SlicedTubeInstance {
     }
 
     fn indices() -> Vec<u16> {
-        let _NB_RAY_TUBE = NB_RAY_TUBE as u16;
-        let left = (0.._NB_RAY_TUBE)
-            .map(|i| [i, i + _NB_RAY_TUBE])
+        let nb_ray_tube = NB_RAY_TUBE as u16;
+        let left = (0..nb_ray_tube)
+            .map(|i| [i, i + nb_ray_tube])
             .flatten()
             .collect::<Vec<u16>>();
-        let right = (_NB_RAY_TUBE..2 * _NB_RAY_TUBE)
-            .map(|i| [i, i + _NB_RAY_TUBE])
+        let right = (nb_ray_tube..2 * nb_ray_tube)
+            .map(|i| [i, i + nb_ray_tube])
             .flatten()
             .collect::<Vec<u16>>();
         [
             left,
-            vec![0, _NB_RAY_TUBE],
+            vec![0, nb_ray_tube],
             right,
-            vec![_NB_RAY_TUBE, 2 * _NB_RAY_TUBE],
+            vec![nb_ray_tube, 2 * nb_ray_tube],
         ]
         .into_iter()
         .flatten()

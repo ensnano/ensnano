@@ -15,45 +15,43 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use std::path::Path;
-
-use ensnano_design::consts::ITERATIVE_AXIS_ALGORITHM;
-use ensnano_design::{grid::HelixGridPosition, ultraviolet, BezierVertexId};
-use ensnano_interactor::graphics::LoopoutBond;
-use ensnano_interactor::{
-    graphics::RenderingMode, NewBezierTangentVector, UnrootedRevolutionSurfaceDescriptor,
+use std::{
+    cell::RefCell,
+    fs,
+    io::Write as _,
+    path::{Path, PathBuf},
+    rc::Rc,
+    sync::{Arc, Mutex},
+    time::Duration,
 };
-use ensnano_utils::{filename, wgpu, winit};
-use std::cell::RefCell;
-use std::path::PathBuf;
-use std::rc::Rc;
-use std::sync::{Arc, Mutex};
-use std::time::Duration;
+
 use ultraviolet::{Mat4, Rotor3, Vec3};
 
-use camera::FiniteVec3;
-use ensnano_design::{grid::GridPosition, group_attributes::GroupPivot, Nucl};
-use ensnano_interactor::graphics::LoopoutNucl;
+use ensnano_design::{
+    consts::ITERATIVE_AXIS_ALGORITHM, grid::GridPosition, grid::HelixGridPosition,
+    group_attributes::GroupPivot, ultraviolet, BezierVertexId, Nucl,
+};
 use ensnano_interactor::{
     application::{AppId, Application, Camera3D, Notification},
     graphics::DrawArea,
     operation::*,
-    ActionMode, CenterOfSelection, CheckXoversParameter, DesignOperation, Selection, SelectionMode,
-    StrandBuilder, WidgetBasis,
+    ActionMode, CenterOfSelection, CheckXoversParameter, DesignOperation, NewBezierTangentVector,
+    Selection, SelectionMode, StrandBuilder, UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
 };
-use ensnano_utils::{instance, PhySize};
-use instance::Instance;
-use wgpu::{Device, Queue};
-use winit::dpi::PhysicalPosition;
-use winit::event::WindowEvent;
+use ensnano_utils::{
+    filename,
+    instance::Instance,
+    wgpu::{self, Device, Queue},
+    winit::{dpi::PhysicalPosition, event::WindowEvent},
+    PhySize,
+};
 
 mod stl;
 
-use serde::{Deserialize, Serialize};
-use serde_json::Result;
-
 /// Computation of the view and projection matrix.
 mod camera;
+use camera::FiniteVec3;
+
 /// Display of the scene
 pub mod view;
 pub use view::{DrawOptions, FogParameters, GridInstance};
@@ -1142,10 +1140,10 @@ impl<S: AppState> Scene<S> {
         println!("STL export to {:?}", path);
         let raw_instances = self.data.borrow().get_all_raw_instances(app_state);
         let stl_bytes = stl::stl_bytes_export(raw_instances).unwrap();
-        if let Ok(mut out_file) = std::fs::File::create(path) {
-            use std::io::Write;
-            out_file.write_all(&stl_bytes);
-            return;
+        if let Ok(mut out_file) = fs::File::create(path) {
+            if out_file.write_all(&stl_bytes).is_ok() {
+                return;
+            }
         }
         println!("Export failed!");
     }
@@ -1160,10 +1158,10 @@ impl<S: AppState> Scene<S> {
         println!("Nucleotides positions export to {:?}", path);
         if let Some(nucl_pos) = self.data.borrow().get_nucleotides_positions_by_strands() {
             let data = serde_json::to_string(&nucl_pos).unwrap();
-            if let Ok(mut out_file) = std::fs::File::create(path) {
-                use std::io::Write;
-                out_file.write_all(data.as_bytes());
-                return;
+            if let Ok(mut out_file) = fs::File::create(path) {
+                if out_file.write_all(data.as_bytes()).is_ok() {
+                    return;
+                }
             }
         }
         println!("Export failed!");

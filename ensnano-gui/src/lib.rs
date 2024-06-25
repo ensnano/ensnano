@@ -28,8 +28,6 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //       * Left Panel: 0x23272A  Slightly darker than above.
 //       * Status Bar: 0x121230  More blueish.
 
-use std::path::{Path, PathBuf};
-
 pub mod fonts;
 pub mod helpers;
 pub mod theme;

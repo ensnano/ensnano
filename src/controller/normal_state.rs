@@ -26,7 +26,6 @@ use ensnano_design::{grid::GridId, HelixParameters};
 use ensnano_interactor::{
     graphics::FogParameters, HyperboloidOperation, RevolutionSurfaceSystemDescriptor,
 };
-use std::collections::HashMap;
 use std::sync::Arc;
 
 /// User is interacting with graphical components.

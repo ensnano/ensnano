@@ -40,7 +40,7 @@ use ensnano_interactor::{
 
 use ensnano_exports::ExportType;
 
-use super::{material_icons, AppState, FogParameters, OverlayType, Requests, UiSize};
+use super::{AppState, FogParameters, OverlayType, Requests, UiSize};
 use crate::fonts;
 
 use ensnano_design::{grid::GridTypeDescr, ultraviolet, NamedParameter};

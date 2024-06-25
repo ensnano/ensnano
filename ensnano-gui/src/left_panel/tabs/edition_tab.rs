@@ -20,16 +20,16 @@ use std::marker::PhantomData;
 
 use super::tabs::GuiTab;
 use super::{
-    AppState, Color, ColorPicker, ColorSquare, DesignElementKey, FactoryId, GoStop, HelixRoll,
-    Length, Message, RequestFactory, RollRequest, SequenceInput, UiSize, ValueId, VecDeque,
-    MEMORY_COLOR_COLUMNS, MEMORY_COLOR_ROWS, NB_MEMORY_COLOR,
+    AppState, Color, ColorPicker, ColorSquare, DesignElementKey, FactoryId, HelixRoll, Length,
+    Message, RequestFactory, RollRequest, UiSize, ValueId, VecDeque, MEMORY_COLOR_COLUMNS,
+    MEMORY_COLOR_ROWS, NB_MEMORY_COLOR,
 };
 use crate::helpers::*;
 
 pub struct EditionTab<State: AppState> {
     helix_roll_factory: RequestFactory<HelixRoll>,
     color_picker: ColorPicker,
-    _sequence_input: SequenceInput,
+    //_sequence_input: SequenceInput,
     //roll_target_btn: GoStop<State>,
     memory_color_squares: VecDeque<MemoryColorSquare>,
     _state_type: PhantomData<State>,
@@ -83,7 +83,7 @@ impl<State: AppState> EditionTab<State> {
         Self {
             helix_roll_factory: RequestFactory::new(FactoryId::HelixRoll, HelixRoll {}),
             color_picker: ColorPicker::new(),
-            _sequence_input: SequenceInput::new(),
+            //_sequence_input: SequenceInput::new(),
             //roll_target_btn: GoStop::new(
             //    "Autoroll selected helices".to_owned(),
             //    Message::RollTargeted,

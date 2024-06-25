@@ -21,10 +21,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use crate::PastePosition;
 mod download_intervals;
 mod download_staples;
-use ahash::HashMap;
 use download_staples::*;
 pub use download_staples::{DownloadStapleError, DownloadStapleOk, StaplesDownloader};
-use std::collections::HashMap as StdHashMap;
 use std::sync::Arc;
 mod quit;
 use ensnano_design::grid::GridId;

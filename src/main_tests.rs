@@ -47,17 +47,17 @@ impl Application for DummyScene {
 
     fn on_event(
         &mut self,
-        event: &WindowEvent,
-        position: PhysicalPosition<f64>,
-        app_state: &Self::AppState,
+        _event: &WindowEvent,
+        _position: PhysicalPosition<f64>,
+        _app_state: &Self::AppState,
     ) -> Option<CursorIcon> {
         None
     }
 
     fn on_resize(
         &mut self,
-        window_size: PhysicalSize<u32>,
-        area: ensnano_interactor::graphics::DrawArea,
+        _window_size: PhysicalSize<u32>,
+        _area: ensnano_interactor::graphics::DrawArea,
     ) {
         ()
     }
@@ -91,10 +91,7 @@ fn undoable_selection() {
     state.update_selection(selection_1.clone(), None);
     state.update_selection(vec![], None);
     state.undo();
-    assert_eq!(
-        state.app_state.get_selection().as_ref().clone(),
-        selection_1
-    );
+    assert_eq!(state.app_state.get_selection().as_ref(), selection_1);
 }
 
 #[test]
@@ -103,12 +100,9 @@ fn redoable_selection() {
     let selection_1 = vec![Selection::Strand(0, 0), Selection::Strand(0, 1)];
     state.update_selection(selection_1.clone(), None);
     state.undo();
-    assert_eq!(state.app_state.get_selection().as_ref().clone(), vec![]);
+    assert_eq!(state.app_state.get_selection().as_ref(), vec![]);
     state.redo();
-    assert_eq!(
-        state.app_state.get_selection().as_ref().clone(),
-        selection_1
-    );
+    assert_eq!(state.app_state.get_selection().as_ref(), selection_1);
 }
 
 #[test]
@@ -119,10 +113,7 @@ fn empty_selections_dont_pollute_undo_stack() {
     state.update_selection(vec![], None);
     state.update_selection(vec![], None);
     state.undo();
-    assert_eq!(
-        state.app_state.get_selection().as_ref().clone(),
-        selection_1
-    );
+    assert_eq!(state.app_state.get_selection().as_ref(), selection_1);
 }
 
 #[test]

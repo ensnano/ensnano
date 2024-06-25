@@ -88,7 +88,6 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //!      | Immediate   | No          | Yes         |
 //!      | Mailbox     | Yes         | No          |
 //!
-use std::borrow::Cow;
 use std::collections::{HashMap, VecDeque};
 use std::env;
 use std::path::{Path, PathBuf};
@@ -108,7 +107,6 @@ use ensnano_interactor::{
     CenterOfSelection, CursorIcon, DesignOperation, DesignReader, RigidBodyConstants,
     SuggestionParameters,
 };
-use iced::advanced::text::Renderer;
 use iced::Event as IcedEvent;
 use iced::Size;
 use iced_futures::futures;
@@ -118,8 +116,6 @@ use iced_wgpu::{wgpu, Settings};
 use iced_winit::{conversion, winit};
 
 use app_state::AppStateParameters;
-use futures::task::SpawnExt;
-use rand::random;
 use ultraviolet::{Rotor3, Vec3};
 use winit::{
     dpi::{PhysicalPosition, PhysicalSize},
@@ -186,8 +182,6 @@ use gui::{ColorOverlay, Gui, IcedMessages, OverlayType, UiSize};
 use multiplexer::{Multiplexer, Overlay};
 use scene::Scene;
 use utils::{PhySize, TEXTURE_FORMAT};
-
-use std::collections::HashMap as StdHashMap;
 
 fn convert_size(size: PhySize) -> Size<f32> {
     Size::new(size.width as f32, size.height as f32)
