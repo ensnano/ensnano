@@ -13,7 +13,7 @@ extern crate serde;
 
 pub mod drag_drop_target;
 pub mod element;
-pub mod hoverable_button;
+pub mod hoverable_container;
 pub mod theme;
 mod tree;
 
@@ -24,7 +24,7 @@ pub use tree::{GroupId, OrganizerTree};
 
 use drag_drop_target::*;
 
-use hoverable_button::HoverableContainer;
+use hoverable_container::HoverableContainer;
 
 const LEVEL0_V_SPACING: u16 = 3;
 const LEVELS_V_SPACING: u16 = 2;
