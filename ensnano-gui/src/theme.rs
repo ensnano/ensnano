@@ -4,7 +4,11 @@
 
 use iced::advanced::renderer::Style;
 pub use iced::Theme;
-use iced::{border::Radius, theme, theme::Palette, Background, Border, Color};
+use iced::{
+    border::Radius,
+    theme::{self, Palette},
+    Background, Border, Color,
+};
 use iced_widget::{container, slider, text_input};
 
 /// Color palette
@@ -26,9 +30,11 @@ pub fn gui_style(theme: &Theme) -> Style {
     }
 }
 
-pub fn disabled_text() -> theme::Text {
-    theme::Text::Color(iced::Color::from_rgb(0.6, 0.6, 0.6))
-}
+pub const DISABLED_TEXT: theme::Text = theme::Text::Color(Color::from_rgb(
+    0.6 * GUI_PALETTE.text.r,
+    0.6 * GUI_PALETTE.text.g,
+    0.6 * GUI_PALETTE.text.b,
+));
 
 /// Custom StyleSheet for the background of top_bar, status_bar, and left_pannel.
 #[derive(Default)]

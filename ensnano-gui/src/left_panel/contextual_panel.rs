@@ -911,7 +911,7 @@ impl AddStrandMenu {
         let color_choose_strand_start_length = if self.text_inputs_are_active {
             theme::Text::Color(crate::theme::GUI_PALETTE.text)
         } else {
-            crate::theme::disabled_text()
+            crate::theme::DISABLED_TEXT
         };
 
         self::column![

@@ -21,7 +21,6 @@ use std::marker::PhantomData;
 use super::tabs::GuiTab;
 use super::{AppState, CheckXoversParameter, FogParameters, HBondDisplay, Message, UiSize};
 use crate::helpers::*;
-use crate::theme;
 use ensnano_interactor::graphics::{
     Background3D, RenderingMode, ALL_BACKGROUND3D, ALL_RENDERING_MODE,
 };
@@ -194,26 +193,27 @@ impl FogGuiParameters {
         let radius_text = if self.is_activated {
             text("Radius")
         } else {
-            text("Radius").style(theme::disabled_text())
+            text("Radius").style(crate::theme::DISABLED_TEXT)
         };
 
         let gradient_text = if self.is_activated {
             text("Softness")
         } else {
-            text("Softness").style(theme::disabled_text())
+            text("Softness").style(crate::theme::DISABLED_TEXT)
         };
 
         let length_slider = if self.is_activated {
             slider(0f32..=100f32, self.length, Message::FogLength)
         } else {
-            slider(0f32..=100f32, self.length, |_| Message::Nothing).style(theme::DeactivatedSlider)
+            slider(0f32..=100f32, self.length, |_| Message::Nothing)
+                .style(crate::theme::DeactivatedSlider)
         };
 
         let softness_slider = if self.is_activated {
             slider(0f32..=100f32, self.softness, Message::FogRadius)
         } else {
             slider(0f32..=100f32, self.softness, |_| Message::Nothing)
-                .style(theme::DeactivatedSlider)
+                .style(crate::theme::DeactivatedSlider)
         };
 
         // Hand method to

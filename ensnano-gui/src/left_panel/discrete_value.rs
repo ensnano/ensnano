@@ -213,7 +213,7 @@ impl DiscreteValue {
         let mut name_text = text(self.name.clone()).size(name_size);
 
         if !active {
-            name_text = name_text.style(crate::theme::disabled_text());
+            name_text = name_text.style(crate::theme::DISABLED_TEXT);
         }
 
         row![
