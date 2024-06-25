@@ -32,7 +32,11 @@ use std::borrow::Cow;
 use crate::material_icons;
 use iced::{advanced::text, Font};
 
-pub const ENSNANO_FONT_BYTES: &[u8] = include_bytes!("../../font/ensnano2.ttf");
+const ENSNANO_FONT_BYTES: &[u8] = include_bytes!("../../font/ensnano2.ttf");
+
+// NOTE: We export here all fonts used in ENSnano.
+pub use iced_aw::BOOTSTRAP_FONT;
+pub use material_icons::{MATERIAL_ICONS_DARK, MATERIAL_ICONS_LIGHT};
 pub const ENSNANO_FONT: Font = Font::with_name("Ensnano");
 
 // https://rsms.me/inter

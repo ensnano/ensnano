@@ -40,9 +40,8 @@ use ensnano_interactor::{
 
 use ensnano_exports::ExportType;
 
-use super::{
-    material_icons::MATERIAL_ICONS_DARK, AppState, FogParameters, OverlayType, Requests, UiSize,
-};
+use super::{material_icons, AppState, FogParameters, OverlayType, Requests, UiSize};
+use crate::fonts;
 
 use ensnano_design::{grid::GridTypeDescr, ultraviolet, NamedParameter};
 mod color_picker;
@@ -1013,9 +1012,9 @@ where
             )
             .set_active_tab(&self.active_tab)
             .tab_bar_position(TabBarPosition::Top)
-            .icon_font(MATERIAL_ICONS_DARK)
+            .icon_font(fonts::ENSNANO_FONT)
             .icon_size(self.ui_size.icon())
-            .text_font(crate::fonts::ENSNANO_FONT)
+            .text_font(fonts::MATERIAL_ICONS_DARK)
             .tab_bar_height(Length::Fixed(self.ui_size.tab_bar_height()))
             .width(Length::Fixed(width as f32))
             .height(Length::Fill);
