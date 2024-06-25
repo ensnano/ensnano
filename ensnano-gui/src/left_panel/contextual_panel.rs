@@ -896,16 +896,11 @@ impl AddStrandMenu {
     }
 
     #[allow(clippy::needless_lifetimes)]
-    fn view<'a, State, Theme, Renderer>(
+    fn view<'a, State: AppState>(
         &self,
         ui_size: UiSize,
         width: u16,
-    ) -> iced::widget::Column<'a, Message<State>, Theme, Renderer>
-    where
-        State: AppState,
-        Theme: checkbox::StyleSheet + text::StyleSheet + text_input::StyleSheet + 'a,
-        Renderer: iced::advanced::Renderer + iced::advanced::text::Renderer + 'a,
-    {
+    ) -> iced::widget::Column<'a, Message<State>, crate::Theme, crate::Renderer> {
         //let _inputs = self.builder_input.iter_mut();
 
         let color_choose_strand_start_length = if self.text_inputs_are_active {
@@ -923,18 +918,19 @@ impl AddStrandMenu {
             ),
             row![
                 self::column![
-                    //text("Starting nt").style(color_choose_strand_start_length),
-                    text("Starting nt"),
+                    text("Starting nt").style(color_choose_strand_start_length),
                     // position_input
-                    text_input("Position", &self.pos_str).on_input(Message::PositionHelicesChanged), //.style(BadValue(self.pos_str == self.helix_pos.to_string()))
+                    text_input("Position", &self.pos_str)
+                        .on_input(Message::PositionHelicesChanged)
+                        .style(BadValue(self.pos_str == self.helix_pos.to_string()))
                 ]
                 .width(width / 2),
                 self::column![
-                    text("Length (nt)"),
-                    //.style(color_choose_strand_start_length),
+                    text("Length (nt)").style(color_choose_strand_start_length),
                     // length_input
-                    text_input("Length", &self.length_str).on_input(Message::LengthHelicesChanged),
-                    //.style(BadValue(self.length_str == self.helix_length.to_string())),
+                    text_input("Length", &self.length_str)
+                        .on_input(Message::LengthHelicesChanged)
+                        .style(BadValue(self.length_str == self.helix_length.to_string())),
                 ],
             ]
         ]

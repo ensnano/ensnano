@@ -156,14 +156,13 @@ impl ParameterWidget {
         &self,
         id: RevolutionParameterId,
     ) -> Element<Message<State>, crate::Theme, crate::Renderer> {
-        let style = theme::BadValue(self.contains_valid_input());
         text_input("", &self.current_text)
             .on_input(move |s| Message::RevolutionParameterUpdate {
                 parameter_id: id,
                 text: s,
             })
             .width(50)
-            .style(style)
+            .style(theme::BadValue(self.contains_valid_input()))
             .into()
     }
 
