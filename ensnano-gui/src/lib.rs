@@ -367,14 +367,12 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
         queue: &Queue,
         encoder: &mut wgpu::CommandEncoder,
         clear_color: Option<iced::Color>,
-        //staging_belt: &mut wgpu::util::StagingBelt,
         format: wgpu::TextureFormat,
         frame: &wgpu::TextureView,
         viewport: &iced_graphics::Viewport,
         debug: &Debug,
         mouse_interaction: &mut mouse::Interaction,
     ) {
-        // TODO: Remove staging_belt
         match renderer {
             Renderer::Wgpu(wgpu_renderer) => {
                 wgpu_renderer.with_primitives(|backend, primitives| {
@@ -383,7 +381,6 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
                         queue,
                         encoder,
                         clear_color,
-                        //staging_belt,
                         format,
                         frame,
                         primitives,
@@ -597,10 +594,8 @@ impl<R: Requests, S: AppState> GuiComponent<R, S> {
         clear_color: Option<iced::Color>,
         window: &Window,
         multiplexer: &dyn Multiplexer,
-        //staging_belt: &mut wgpu::util::StagingBelt,
         mouse_interaction: &mut iced::mouse::Interaction,
     ) {
-        // TODO: Remove staging_belt
         if self.redraw {
             let viewport = Viewport::with_physical_size(
                 convert_size_u32(multiplexer.get_draw_area(self.element_type).unwrap().size),
@@ -611,7 +606,6 @@ impl<R: Requests, S: AppState> GuiComponent<R, S> {
                 &mut self.renderer,
                 device,
                 queue,
-                //staging_belt,
                 encoder,
                 clear_color,
                 ensnano_utils::TEXTURE_FORMAT,
@@ -900,7 +894,6 @@ impl<R: Requests, State: AppState> Gui<R, State> {
                 clear_color,
                 window,
                 multiplexer,
-                //staging_belt,
                 mouse_interaction,
             )
         }

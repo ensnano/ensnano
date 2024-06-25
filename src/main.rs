@@ -373,7 +373,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let queue = Rc::new(queue);
     let mut resized = false;
     let mut scale_factor_changed = false;
-    let mut staging_belt = wgpu::util::StagingBelt::new(5 * 1024);
 
     let gui_theme = theme::gui_theme();
 
@@ -655,7 +654,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             None, // TODO: See if another value of clear_color is more appropriate.
                             &window,
                             &multiplexer,
-                            //&mut staging_belt,
                             &mut mouse_interaction,
                         );
 
@@ -686,7 +684,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         );
 
                         // Then we submit the work
-                        staging_belt.finish();
                         queue.submit(Some(encoder.finish()));
                         frame.present();
 
@@ -695,7 +692,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             iced_winit::conversion::mouse_interaction(mouse_interaction);
                         main_state.update_cursor(&multiplexer);
                         window.set_cursor_icon(main_state.cursor);
-                        staging_belt.recall();
                     } else {
                         log::warn!("Error getting next frame, attempt to recreate swap chain");
                         resized = true;
