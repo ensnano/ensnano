@@ -28,9 +28,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //       * Left Panel: 0x23272A  Slightly darker than above.
 //       * Status Bar: 0x121230  More blueish.
 
-pub mod fonts;
 pub mod helpers;
 pub mod theme;
+use ensnano_iced::fonts;
 pub use theme::Theme;
 
 pub mod top_bar;
@@ -45,10 +45,9 @@ pub use left_panel::{
 /// Draw the status bar
 pub mod status_bar;
 mod ui_size;
-pub use ui_size::*;
-mod material_icons;
 pub use ensnano_design::{grid::GridId, Camera, CameraId};
 pub use status_bar::{ClipboardContent, CurentOpState, StrandBuildingStatus};
+pub use ui_size::*;
 mod consts;
 pub use iced;
 use iced::{advanced::clipboard, advanced::mouse, event};

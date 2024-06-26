@@ -20,6 +20,8 @@ use std::marker::PhantomData;
 use iced::{Element, Length};
 use iced_aw::TabLabel;
 
+use ensnano_iced::fonts::{icon_to_char, MaterialIcon};
+
 use super::tabs::GuiTab;
 use super::{
     AppState, FactoryId, GridTypeDescr, HyperboloidRequest, Hyperboloid_, Message, RequestFactory,

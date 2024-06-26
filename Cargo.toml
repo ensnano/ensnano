@@ -1,5 +1,5 @@
 [workspace]
-members = [ "ensnano-design", "ensnano-interactor", "ensnano-organizer", "ensnano-scene", "ensnano-flatscene", "ensnano-gui", "ensnano-utils", "ensnano-exports"]
+members = [ "ensnano-design", "ensnano-iced", "ensnano-interactor", "ensnano-organizer", "ensnano-scene", "ensnano-flatscene", "ensnano-gui", "ensnano-utils", "ensnano-exports", "ensnano-iced"]
 
 [package]
 name = "ensnano"
@@ -31,6 +31,7 @@ ensnano_organizer = { path = "ensnano-organizer" }
 num_enum = "0.5.1"
 cadnano-format = "0.1.0"
 ensnano_design = { path = "ensnano-design" }
+ensnano_iced = { path = "ensnano-iced" }
 ensnano_interactor = { path = "ensnano-interactor" }
 ensnano_scene = { path = "ensnano-scene" }
 ensnano_flatscene = { path = "ensnano-flatscene" }

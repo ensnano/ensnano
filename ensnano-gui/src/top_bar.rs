@@ -25,6 +25,7 @@ use super::{AppState, TopBarState, UiSize};
 // NOTE: I would like to rename AppState to ApplicationState, and name AppState the structures that
 //       implement it.
 use crate::helpers::*;
+use ensnano_iced::fonts::{MaterialIcon, MaterialIconStyle};
 use ensnano_interactor::{ActionMode, SelectionMode};
 use iced::{theme, Element, Length, Padding};
 use iced_runtime::{Command, Program};

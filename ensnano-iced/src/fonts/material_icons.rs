@@ -1,41 +1,14 @@
 #![allow(dead_code)]
 
-use super::UiSize;
 use iced::Font;
 
 pub const MATERIAL_ICONS_LIGHT_BYTES: &[u8] =
-    include_bytes!("../../font/MaterialIconsOutlined-Regular.otf");
-pub const MATERIAL_ICONS_DARK_BYTES: &[u8] = include_bytes!("../../font/MaterialIcons-Regular.ttf");
+    include_bytes!("../../../font/MaterialIconsOutlined-Regular.otf");
+pub const MATERIAL_ICONS_DARK_BYTES: &[u8] =
+    include_bytes!("../../../font/MaterialIcons-Regular.ttf");
 
 pub const MATERIAL_ICONS_LIGHT: Font = Font::with_name("Material Icons Outlined");
 pub const MATERIAL_ICONS_DARK: Font = Font::with_name("Material Icons");
-
-pub fn light_icon<'a, Theme, Renderer>(
-    icon: MaterialIcon,
-    _ui_size: UiSize,
-) -> iced::widget::Text<'a, Theme, Renderer>
-where
-    Theme: iced::widget::text::StyleSheet,
-    Renderer: iced::advanced::Renderer + iced::advanced::text::Renderer,
-    <Renderer as iced::advanced::text::Renderer>::Font: From<iced::Font>,
-{
-    iced::widget::text(icon_to_char(icon)).font(MATERIAL_ICONS_LIGHT)
-    //.size(ui_size.icon())
-}
-
-pub fn dark_icon<'a, Theme, Renderer>(
-    icon: MaterialIcon,
-    ui_size: UiSize,
-) -> iced::widget::Text<'a, Theme, Renderer>
-where
-    Theme: iced::widget::text::StyleSheet,
-    Renderer: iced::advanced::Renderer + iced::advanced::text::Renderer,
-    <Renderer as iced::advanced::text::Renderer>::Font: From<iced::Font>,
-{
-    iced::widget::text(icon_to_char(icon))
-        .font(MATERIAL_ICONS_DARK)
-        .size(ui_size.icon())
-}
 
 pub enum MaterialIconStyle {
     Light,

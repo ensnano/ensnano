@@ -23,6 +23,7 @@ use super::tabs::GuiTab;
 
 use super::{AppState, FactoryId, Message, RequestFactory, ScrollSensitivity, UiSize, ValueId};
 use crate::helpers::*;
+use ensnano_iced::fonts::{icon_to_char, MaterialIcon};
 use iced::Element;
 
 pub struct ParametersTab<State: AppState> {

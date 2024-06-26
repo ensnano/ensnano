@@ -29,15 +29,18 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //        https://github.com/BillyDM/iced_baseview/issues/39
 use std::borrow::Cow;
 
-use crate::material_icons;
-use iced::{advanced::text, Font};
+pub mod material_icons;
 
 const ENSNANO_FONT_BYTES: &[u8] = include_bytes!("../../font/ensnano2.ttf");
 
 // NOTE: We export here all fonts used in ENSnano.
 pub use iced_aw::BOOTSTRAP_FONT;
-pub use material_icons::{MATERIAL_ICONS_DARK, MATERIAL_ICONS_LIGHT};
 pub const ENSNANO_FONT: Font = Font::with_name("Ensnano");
+pub use material_icons::{
+    icon_to_char, MaterialIcon, MaterialIconStyle, MATERIAL_ICONS_DARK, MATERIAL_ICONS_LIGHT,
+};
+
+use iced::{advanced::text, Font};
 
 // https://rsms.me/inter
 
@@ -52,4 +55,30 @@ pub fn load_fonts(renderer: &mut impl text::Renderer) {
     for font in fonts {
         renderer.load_font(Cow::from(font));
     }
+}
+
+pub fn light_icon<'a, Theme, Renderer>(
+    icon: MaterialIcon,
+    //ui_size: UiSize,
+) -> iced::widget::Text<'a, Theme, Renderer>
+where
+    Theme: iced::widget::text::StyleSheet,
+    Renderer: iced::advanced::Renderer + iced::advanced::text::Renderer,
+    <Renderer as iced::advanced::text::Renderer>::Font: From<iced::Font>,
+{
+    iced::widget::text(icon_to_char(icon)).font(MATERIAL_ICONS_LIGHT)
+    //.size(ui_size.icon())
+}
+
+pub fn dark_icon<'a, Theme, Renderer>(
+    icon: MaterialIcon,
+    //ui_size: UiSize,
+) -> iced::widget::Text<'a, Theme, Renderer>
+where
+    Theme: iced::widget::text::StyleSheet,
+    Renderer: iced::advanced::Renderer + iced::advanced::text::Renderer,
+    <Renderer as iced::advanced::text::Renderer>::Font: From<iced::Font>,
+{
+    iced::widget::text(icon_to_char(icon)).font(MATERIAL_ICONS_DARK)
+    //.size(ui_size.icon())
 }

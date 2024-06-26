@@ -21,6 +21,7 @@ use std::marker::PhantomData;
 use super::tabs::GuiTab;
 use super::{AppState, CheckXoversParameter, FogParameters, HBondDisplay, Message, UiSize};
 use crate::helpers::*;
+use ensnano_iced::fonts::{icon_to_char, MaterialIcon};
 use ensnano_interactor::graphics::{
     Background3D, RenderingMode, ALL_BACKGROUND3D, ALL_RENDERING_MODE,
 };

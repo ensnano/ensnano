@@ -23,6 +23,7 @@ use iced_aw::TabLabel;
 use super::tabs::GuiTab;
 use super::{AppState, GridTypeDescr, Message, UiSize, ICON_HONEYCOMB_GRID, ICON_SQUARE_GRID};
 use crate::helpers::*;
+use ensnano_iced::fonts::{icon_to_char, MaterialIcon, MaterialIconStyle};
 
 const NEW_BEZIER_PLANE_ICON: MaterialIcon = MaterialIcon::HistoryEdu;
 const EDIT_BEZIER_PATH_ICON: MaterialIcon = MaterialIcon::LinearScale;

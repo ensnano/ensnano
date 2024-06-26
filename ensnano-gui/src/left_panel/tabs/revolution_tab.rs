@@ -28,6 +28,7 @@ use ensnano_design::{
     ultraviolet::{self, Rotor3, Vec3},
     CurveDescriptor2D,
 };
+use ensnano_iced::fonts::{icon_to_char, MaterialIcon};
 use ensnano_interactor::{
     EquadiffSolvingMethod, RevolutionSimulationParameters, RevolutionSurfaceRadius,
     RevolutionSurfaceSystemDescriptor, RootingParameters, ShiftGenerator,
