@@ -20,7 +20,7 @@ use serde_derive::{Deserialize, Serialize};
 pub const ALL_UI_SIZES: [UiSize; 3] = [UiSize::Small, UiSize::Medium, UiSize::Large];
 
 /// Size handler of the GUI
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, Copy)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum UiSize {
     Small,
     Medium,

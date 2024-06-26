@@ -1144,31 +1144,6 @@ impl<R: Requests> Program for ColorOverlay<R> {
     }
 }
 
-/// Generate the message that request rotation.
-fn rotation_message<State: AppState>(
-    i: usize,
-    _xz: isize,
-    _yz: isize,
-    _xy: isize,
-) -> Message<State> {
-    let angle_xz = match i {
-        0 => 15f32.to_radians(),
-        1 => -15f32.to_radians(),
-        _ => 0f32,
-    };
-    let angle_yz = match i {
-        2 => -15f32.to_radians(),
-        3 => 15f32.to_radians(),
-        _ => 0f32,
-    };
-    let angle_xy = match i {
-        4 => 15f32.to_radians(),
-        5 => -15f32.to_radians(),
-        _ => 0f32,
-    };
-    Message::RotateCam(angle_xz, angle_yz, angle_xy)
-}
-
 pub struct Hyperboloid_ {}
 
 impl Requestable for Hyperboloid_ {

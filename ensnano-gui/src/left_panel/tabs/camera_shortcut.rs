@@ -15,7 +15,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use super::{rotation_message, AppState, Message, UiSize, Vec3};
+use super::{AppState, Message, UiSize, Vec3};
 use crate::{helpers::*, CameraId};
 use iced::{alignment::Horizontal, Alignment, Element, Length};
 
@@ -33,8 +33,8 @@ struct NamedCameraPosition {
 }
 
 impl NamedCameraPosition {
-    /// Generate message to set camera to desired position.
-    fn message<S: AppState>(&self) -> Message<S> {
+    /// Generate a message to to ENSnano to set camera to desired position.
+    fn message<State: AppState>(&self) -> Message<State> {
         Message::FixPoint(self.direction, self.up)
     }
 }
@@ -78,15 +78,97 @@ fn named_camera_to_button<'a, State: AppState>(
     position: &NamedCameraPosition,
     ui_size: UiSize,
 ) -> Element<'a, Message<State>, crate::Theme, crate::Renderer> {
-    //button(text(position.name).size(ui_size.main_text()))
-    //    .on_press(position.message())
-    //    .height(ui_size.button())
-    //    .width(2.0 * ui_size.button()) // Twice the button's height.
-    //    .into()
     fixed_text_button(position.name, 2.0, ui_size)
         .on_press(position.message())
         .into()
 }
+
+/// Generate the message that request rotation.
+fn rotation_message<State: AppState>(
+    i: usize,
+    _xz: isize,
+    _yz: isize,
+    _xy: isize,
+) -> Message<State> {
+    let angle_xz = match i {
+        0 => 15f32.to_radians(),
+        1 => -15f32.to_radians(),
+        _ => 0f32,
+    };
+    let angle_yz = match i {
+        2 => -15f32.to_radians(),
+        3 => 15f32.to_radians(),
+        _ => 0f32,
+    };
+    let angle_xy = match i {
+        4 => 15f32.to_radians(),
+        5 => -15f32.to_radians(),
+        _ => 0f32,
+    };
+    Message::RotateCam(angle_xz, angle_yz, angle_xy)
+}
+
+// Custom camera editor.
+struct CameraWidget {
+    // Name of the custom camera orientation.
+    name: String,
+    // Wether the name is being edited.
+    being_edited: bool,
+    // An id for this camera.
+    camera_id: CameraId,
+}
+
+impl CameraWidget {
+    fn view<State: AppState>(
+        &self,
+        ui_size: UiSize,
+    ) -> Element<Message<State>, crate::Theme, crate::Renderer> {
+        let name_field: Element<_, _, _> = if self.being_edited {
+            text_input("Camera name", &self.name)
+                .on_input(Message::EditCameraName)
+                .on_submit(Message::<State>::SubmitCameraName)
+                .into()
+        } else {
+            text(&self.name).into()
+        };
+
+        row![
+            name_field,
+            Space::with_width(3),
+            // edit button
+            material_icon_button(MaterialIcon::Edit, MaterialIconStyle::Light, ui_size)
+                .on_press(Message::<State>::StartEditCameraName(self.camera_id)),
+            //
+            Space::with_width(Length::Fill),
+            //select camera button
+            material_icon_button(MaterialIcon::Visibility, MaterialIconStyle::Light, ui_size)
+                .on_press(Message::<State>::SelectCamera(self.camera_id)),
+            // delete button
+            material_icon_button(MaterialIcon::Delete, MaterialIconStyle::Light, ui_size)
+                .on_press(Message::<State>::DeleteCamera(self.camera_id)),
+        ]
+        .into()
+    }
+}
+
+#[derive(Debug, Clone, Default)]
+struct CameraWidgetState {
+    name_input: text_input::State<iced_graphics::text::Paragraph>,
+}
+
+// NOTE: Messages used here:
+//                            Message::FixPoint(direction, up),
+//                            Message::RotateCam(angle_xz, angle_yz, angle_xy)
+//                            Message::ScreenShot2D,
+//                            Message::ScreenShot3D,
+//                            Message::StlExport,
+//                            Message::SaveNucleotidesPositions,
+//                            Message::NewCustomCamera,
+//                            Message::EditCameraName
+//                            Message::SubmitCameraName
+//                            Message::StartEditCameraName(camera_id),
+//                            Message::SelectCamera(camera_id),
+//                            Message::DeleteCamera(camera_id),
 
 pub struct CameraShortcutPanel {
     // Camera angles
@@ -159,7 +241,7 @@ impl CameraShortcutPanel {
             .any(|s| s.name_input.is_focused())
     }
 
-    fn set_camera_widget<S: AppState>(&mut self, app: &S) {
+    fn set_camera_widget<State: AppState>(&mut self, app: &State) {
         self.camera_widgets = app
             .get_reader()
             .get_all_cameras()
@@ -183,15 +265,38 @@ impl CameraShortcutPanel {
             .collect();
     }
 
-    pub fn update<S: AppState>(&mut self, app: &S) {
-        self.set_camera_widget(app);
+    pub fn scroll_down(&mut self) {
+        self.scroll_state.snap_to(scrollable::RelativeOffset::END);
+    }
+}
+
+// TODO: Implement the Component trait.
+//
+//impl<State> Component<Message<State>, crate::Theme, crate::Renderer> for CameraShortcutPanel
+//where
+//    State: AppState,
+//{
+//    type State = (UiSize, State);
+//    type Event = ();
+//
+//    fn update(&mut self, state: &mut Self::State, _: Self::Event) -> Option<Message<State>> {
+//        let (_, app_state) = state;
+//        self.set_camera_widget(app_state);
+//        None
+//    }
+impl CameraShortcutPanel {
+    pub fn update<State: AppState>(&mut self, app_state: &State) {
+        self.set_camera_widget(app_state);
     }
 
     pub fn view<State: AppState>(
         &self,
         ui_size: UiSize,
-        _app: &State,
-    ) -> Element<Message<State>, crate::Theme, crate::Renderer> {
+        _state: &State,
+    ) -> Element<'_, Message<State>> {
+        //let (ui_size, _) = state;
+        //let ui_size = ui_size.to_owned();
+
         // Create button widget for each predefined target.
 
         let rotate_buttons: Column<Message<State>, crate::Theme, crate::Renderer> = self::column![
@@ -221,6 +326,8 @@ impl CameraShortcutPanel {
         //    }
         //    ret = ret.spacing(5).push(row)
         //}
+        // TODO: Reimplement this with:
+        //  https://docs.rs/iced/latest/iced/advanced/layout/flex/index.html
 
         let content = self::column![
             self::column![
@@ -319,59 +426,4 @@ impl CameraShortcutPanel {
         scrollable(content).into()
         // NOTE: Background and size are handled in left_panel.rs
     }
-
-    pub fn scroll_down(&mut self) {
-        self.scroll_state.snap_to(scrollable::RelativeOffset::END);
-    }
-}
-
-// Custom camera editor.
-struct CameraWidget {
-    // Name of the custom camera orientation.
-    name: String,
-    // Wether the name is being edited.
-    being_edited: bool,
-    // Camera id.
-    camera_id: CameraId,
-}
-
-impl CameraWidget {
-    fn view<State: AppState>(
-        &self,
-        ui_size: UiSize,
-    ) -> Element<Message<State>, crate::Theme, crate::Renderer> {
-        let name_field: Element<_, _, _> = if self.being_edited {
-            text_input("Camera name", &self.name)
-                .on_input(Message::EditCameraName)
-                .on_submit(Message::<State>::SubmitCameraName)
-                .into()
-        } else {
-            text(&self.name).into()
-        };
-
-        row![
-            name_field,
-            Space::with_width(3),
-            // edit button
-            material_icon_button(MaterialIcon::Edit, MaterialIconStyle::Light, ui_size)
-                .on_press(Message::<State>::StartEditCameraName(self.camera_id)),
-            //
-            Space::with_width(Length::Fill),
-            //select camera button
-            material_icon_button(MaterialIcon::Visibility, MaterialIconStyle::Light, ui_size)
-                .on_press(Message::<State>::SelectCamera(self.camera_id)),
-            // delete button
-            material_icon_button(MaterialIcon::Delete, MaterialIconStyle::Light, ui_size)
-                .on_press(Message::<State>::DeleteCamera(self.camera_id)),
-        ]
-        .into()
-    }
-}
-
-#[derive(Debug, Clone, Default)]
-struct CameraWidgetState {
-    //select_camera_btn: widget::button::State,
-    //edit_name_btn: widget::button::State,
-    //delete_btn: widget::button::State,
-    name_input: text_input::State<iced_graphics::text::Paragraph>,
 }
