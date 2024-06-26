@@ -3,15 +3,15 @@
 //! The theme of the GUI is defined here
 use std::rc::Rc;
 
-use iced::advanced::renderer::Style;
 pub use iced::Theme;
 use iced::{
+    advanced::renderer::Style,
     border::Radius,
     theme::{self, Palette},
+    widget::{container, slider, text_input},
     Background, Border, Color,
 };
 use iced_aw::native::tab_bar;
-use iced_widget::{container, slider, text_input};
 
 /// Color palette
 pub const GUI_PALETTE: Palette = Palette {

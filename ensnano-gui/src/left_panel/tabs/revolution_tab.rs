@@ -16,19 +16,20 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use iced::{Alignment, Element, Length};
-use iced_aw::TabLabel;
-
 use super::{keyboard_priority, tabs::GuiTab};
-use crate::helpers::*;
 use crate::left_panel::Message;
-use crate::theme;
-use crate::{AppState, SimulationState, UiSize};
+use crate::{AppState, SimulationState};
 use ensnano_design::{
     ultraviolet::{self, Rotor3, Vec3},
     CurveDescriptor2D,
 };
-use ensnano_iced::fonts::{icon_to_char, MaterialIcon};
+use ensnano_iced::{
+    fonts::{icon_to_char, MaterialIcon},
+    helpers::*,
+    iced::{Alignment, Element, Length},
+    iced_aw::TabLabel,
+    theme, UiSize,
+};
 use ensnano_interactor::{
     EquadiffSolvingMethod, RevolutionSimulationParameters, RevolutionSurfaceRadius,
     RevolutionSurfaceSystemDescriptor, RootingParameters, ShiftGenerator,
@@ -154,7 +155,7 @@ impl ParameterWidget {
     fn input_view<State: AppState>(
         &self,
         id: RevolutionParameterId,
-    ) -> Element<Message<State>, crate::Theme, crate::Renderer> {
+    ) -> Element<Message<State>, ensnano_iced::Theme, crate::Renderer> {
         keyboard_priority(
             text_input("", &self.current_text)
                 .on_input(move |s| Message::RevolutionParameterUpdate {
@@ -219,7 +220,7 @@ impl<S: AppState> CurveDescriptorWidget<S> {
         }
     }
 
-    fn view(&self, ui_size: UiSize) -> Element<Message<S>, crate::Theme, crate::Renderer> {
+    fn view(&self, ui_size: UiSize) -> Element<Message<S>, ensnano_iced::Theme, crate::Renderer> {
         container(column(
             self.parameters
                 .iter()
@@ -543,7 +544,7 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
         &self,
         ui_size: UiSize,
         app_state: &State,
-    ) -> iced::Element<Self::Message, crate::Theme, crate::Renderer> {
+    ) -> iced::Element<Self::Message, ensnano_iced::Theme, crate::Renderer> {
         let desc = self.get_revolution_system(app_state, false);
 
         let shift_buttons = {

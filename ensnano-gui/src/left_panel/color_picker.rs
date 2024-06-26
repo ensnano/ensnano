@@ -16,8 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use super::{AppState, ColorMessage, Message};
-use crate::helpers::*;
-use iced::Color;
+use ensnano_iced::{helpers::*, iced::Color};
 
 pub struct ColorPicker {
     color: Color,
@@ -67,7 +66,7 @@ impl ColorPicker {
         self.hsv_value = hsv_value
     }
 
-    pub fn view<State>(&self) -> iced::Element<Message<State>, crate::Theme, crate::Renderer>
+    pub fn view<State>(&self) -> iced::Element<Message<State>, ensnano_iced::Theme, crate::Renderer>
     where
         State: AppState,
     {
@@ -91,7 +90,7 @@ impl ColorPicker {
         )
     }
 
-    pub fn new_view(&self) -> iced::Element<ColorMessage, crate::Theme, crate::Renderer> {
+    pub fn new_view(&self) -> iced::Element<ColorMessage, ensnano_iced::Theme, crate::Renderer> {
         row![
             HueColumn::new(ColorMessage::HueChanged,),
             LightSatSquare::new(
@@ -149,7 +148,7 @@ mod hue_column {
         }
     }
 
-    impl<'a, Message> Widget<Message, crate::Theme, crate::Renderer> for HueColumn<'a, Message> {
+    impl<'a, Message> Widget<Message, ensnano_iced::Theme, crate::Renderer> for HueColumn<'a, Message> {
         fn state(&self) -> widget::tree::State {
             widget::tree::State::Some(Box::new(HueColumnState::default()))
         }
@@ -175,7 +174,7 @@ mod hue_column {
             &self,
             _tree: &widget::Tree,
             renderer: &mut crate::Renderer,
-            _theme: &crate::Theme,
+            _theme: &ensnano_iced::Theme,
             _style: &Style,
             layout: Layout<'_>,
             _cursor: Cursor,
@@ -289,7 +288,7 @@ mod hue_column {
     }
 
     impl<'a, Message> From<HueColumn<'a, Message>>
-        for iced::Element<'a, Message, crate::Theme, crate::Renderer>
+        for iced::Element<'a, Message, ensnano_iced::Theme, crate::Renderer>
     where
         Message: 'a + Clone,
     {
@@ -575,7 +574,7 @@ mod color_square {
         }
     }
 
-    impl<'a, Message, Theme> Widget<Message, Theme, crate::Renderer> for ColorSquare<'a, Message>
+    impl<'a, Message> Widget<Message, ensnano_iced::Theme, crate::Renderer> for ColorSquare<'a, Message>
     where
         Message: Clone + 'a,
     {
@@ -604,7 +603,7 @@ mod color_square {
             &self,
             _tree: &widget::Tree,
             renderer: &mut crate::Renderer,
-            _theme: &Theme,
+            _theme: &ensnano_iced::Theme,
             _style: &Style,
             layout: Layout<'_>,
             _cursor: Cursor,
@@ -706,7 +705,7 @@ mod color_square {
     }
 
     impl<'a, Message> From<ColorSquare<'a, Message>>
-        for iced::Element<'a, Message, crate::Theme, crate::Renderer>
+        for iced::Element<'a, Message, ensnano_iced::Theme, crate::Renderer>
     where
         Message: Clone + 'a,
     {

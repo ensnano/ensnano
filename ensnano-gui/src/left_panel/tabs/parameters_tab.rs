@@ -17,14 +17,16 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use std::marker::PhantomData;
 
-use iced_aw::TabLabel;
-
 use super::tabs::GuiTab;
 
 use super::{AppState, FactoryId, Message, RequestFactory, ScrollSensitivity, UiSize, ValueId};
-use crate::helpers::*;
-use ensnano_iced::fonts::{icon_to_char, MaterialIcon};
-use iced::Element;
+
+use ensnano_iced::{
+    fonts::{icon_to_char, MaterialIcon},
+    helpers::*,
+    iced::Element,
+    iced_aw::TabLabel,
+};
 
 pub struct ParametersTab<State: AppState> {
     scroll_sensitivity_factory: RequestFactory<ScrollSensitivity>,
@@ -68,7 +70,7 @@ impl<State: AppState> GuiTab<State> for ParametersTab<State> {
         &self,
         ui_size: UiSize,
         app_state: &State,
-    ) -> Element<Self::Message, crate::Theme, crate::Renderer> {
+    ) -> Element<Self::Message, ensnano_iced::Theme, crate::Renderer> {
         let dna_params = &app_state.get_dna_parameters();
 
         let content = self::column![
@@ -76,7 +78,7 @@ impl<State: AppState> GuiTab<State> for ParametersTab<State> {
             extra_jump(),
             subsection("Font size", ui_size),
             pick_list(
-                &super::super::super::ALL_UI_SIZES[..],
+                &ensnano_iced::ALL_UI_SIZES[..],
                 Some(ui_size),
                 Message::UiSizePicked,
             ),

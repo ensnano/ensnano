@@ -25,8 +25,8 @@ mod impl_gui;
 mod impl_scene;
 mod poll;
 
-use super::gui::UiSize;
 use super::*;
+use ensnano_iced::UiSize;
 use ensnano_interactor::{application::AppId, RollRequest, Selection};
 use ensnano_interactor::{graphics::HBondDisplay, UnrootedRevolutionSurfaceDescriptor};
 use ensnano_interactor::{CenterOfSelection, CheckXoversParameter};

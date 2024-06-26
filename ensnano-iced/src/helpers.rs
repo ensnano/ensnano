@@ -15,15 +15,16 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use super::UiSize;
-use crate::fonts::ENSNANO_FONT;
-use ensnano_iced::fonts::{icon_to_char, material_icons, MaterialIcon, MaterialIconStyle};
+use crate::{
+    fonts::{icon_to_char, material_icons, MaterialIcon, MaterialIconStyle, ENSNANO_FONT},
+    UiSize,
+};
+pub use iced::widget::*;
 use iced::{
     advanced,
     alignment::{Alignment, Horizontal, Vertical},
     Font, Length,
 };
-pub use iced_widget::*;
 
 ///
 /// SPACING FUNCTIONS.
@@ -215,7 +216,7 @@ where
 
 /// A button containing an icon.
 pub fn image_button<'a, Message, Theme, Renderer, Handle>(
-    image: iced_widget::Image<Handle>,
+    image: Image<Handle>,
     ui_size: UiSize,
 ) -> Button<'a, Message, Theme, Renderer>
 where

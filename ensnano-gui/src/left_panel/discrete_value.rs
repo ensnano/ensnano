@@ -16,11 +16,13 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use super::AppState;
-use crate::theme;
 
 use super::Message;
-use crate::helpers::*;
-use iced::{Alignment, Length, Pixels};
+use ensnano_iced::{
+    helpers::*,
+    iced::{Alignment, Length, Pixels},
+    theme,
+};
 use std::collections::BTreeMap;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -92,7 +94,7 @@ impl<R: Requestable> RequestFactory<R> {
         &self,
         active: bool,
         size: impl Into<Pixels>,
-    ) -> Vec<iced::Element<Message<State>, crate::Theme, crate::Renderer>> {
+    ) -> Vec<iced::Element<Message<State>, ensnano_iced::Theme, crate::Renderer>> {
         let s = size.into();
         self.values
             .values()
@@ -173,7 +175,7 @@ impl DiscreteValue {
         &self,
         active: bool,
         name_size: impl Into<Pixels>,
-    ) -> iced::Element<Message<State>, crate::Theme, crate::Renderer> {
+    ) -> iced::Element<Message<State>, ensnano_iced::Theme, crate::Renderer> {
         let decr_button = if active && self.value - self.step >= self.min_val {
             button(text("-")).on_press(Message::DiscreteValue {
                 factory_id: self.owner_id,
@@ -213,7 +215,7 @@ impl DiscreteValue {
         let mut name_text = text(self.name.clone()).size(name_size);
 
         if !active {
-            name_text = name_text.style(crate::theme::DISABLED_TEXT);
+            name_text = name_text.style(theme::DISABLED_TEXT);
         }
 
         row![

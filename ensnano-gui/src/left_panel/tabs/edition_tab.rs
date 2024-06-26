@@ -15,8 +15,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use ensnano_iced::fonts::{icon_to_char, MaterialIcon};
-use iced_aw::TabLabel;
+use ensnano_iced::{
+    fonts::{icon_to_char, MaterialIcon},
+    helpers::*,
+    iced_aw::TabLabel,
+};
 use std::marker::PhantomData;
 
 use super::tabs::GuiTab;
@@ -25,7 +28,6 @@ use super::{
     Message, RequestFactory, RollRequest, UiSize, ValueId, VecDeque, MEMORY_COLOR_COLUMNS,
     MEMORY_COLOR_ROWS, NB_MEMORY_COLOR,
 };
-use crate::helpers::*;
 
 pub struct EditionTab<State: AppState> {
     helix_roll_factory: RequestFactory<HelixRoll>,
@@ -57,7 +59,7 @@ impl MemoryColorSquare {
 fn memory_color_column<State: AppState>(
     memory_color_squares: &VecDeque<MemoryColorSquare>,
     fill_portion: u16,
-) -> iced::Element<Message<State>, crate::Theme, crate::Renderer> {
+) -> iced::Element<Message<State>, ensnano_iced::Theme, crate::Renderer> {
     let mut content = Vec::with_capacity(MEMORY_COLOR_ROWS);
     let mut current_row = Vec::with_capacity(MEMORY_COLOR_COLUMNS);
     for memory_color_square in memory_color_squares.iter() {
@@ -164,7 +166,7 @@ impl<State: AppState> GuiTab<State> for EditionTab<State> {
         &self,
         ui_size: UiSize,
         app_state: &State,
-    ) -> iced::Element<Self::Message, crate::Theme, crate::Renderer> {
+    ) -> iced::Element<Self::Message, ensnano_iced::Theme, crate::Renderer> {
         let roll_target_helices =
             self.get_roll_target_helices(&app_state.get_selection_as_designelement());
         let sim_state = &app_state.get_simulation_state();

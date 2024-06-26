@@ -15,12 +15,15 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+use ensnano_iced::{
+    iced::{theme, Color, Command, Element, Length},
+    iced_aw::native::{TabBarPosition, TabLabel, Tabs},
+    UiSize,
+};
 use ensnano_interactor::{graphics::HBondDisplay, EquadiffSolvingMethod};
 use ensnano_organizer::{Organizer, OrganizerMessage, OrganizerTree};
 use std::sync::{Arc, Mutex};
 
-use iced::{theme, Color, Command, Element, Length};
-use iced_aw::native::{TabBarPosition, TabLabel, Tabs};
 use iced_runtime::Program;
 use iced_widget::*;
 use iced_winit::winit::{
@@ -40,7 +43,7 @@ use ensnano_interactor::{
 
 use ensnano_exports::ExportType;
 
-use super::{AppState, FogParameters, OverlayType, Requests, UiSize};
+use super::{AppState, FogParameters, OverlayType, Requests};
 use crate::fonts;
 
 use ensnano_design::{grid::GridTypeDescr, ultraviolet, NamedParameter};
@@ -345,7 +348,7 @@ where
     R: Requests,
     S: AppState,
 {
-    type Theme = crate::Theme;
+    type Theme = ensnano_iced::Theme;
     type Renderer = crate::Renderer;
     type Message = Message<S>;
 
@@ -1039,7 +1042,7 @@ where
             .icon_size(self.ui_size.icon())
             .text_font(fonts::MATERIAL_ICONS_DARK)
             .tab_bar_height(Length::Fixed(self.ui_size.tab_bar_height()))
-            .tab_bar_style(crate::theme::GuiBackground.into())
+            .tab_bar_style(ensnano_iced::theme::GuiBackground.into())
             .width(Length::Fixed(width as f32))
             .height(Length::Fill);
         // NOTE: The style, height and width values are necessary to clear the tab when
@@ -1083,7 +1086,7 @@ where
             .width(Length::Fill)
             .padding(1),
         )
-        .style(crate::theme::GuiBackground)
+        .style(ensnano_iced::theme::GuiBackground)
         .height(self.logical_size.height as f32)
         .into()
     }
@@ -1121,7 +1124,7 @@ pub enum ColorMessage {
 
 impl<R: Requests> Program for ColorOverlay<R> {
     type Renderer = crate::Renderer;
-    type Theme = crate::Theme;
+    type Theme = ensnano_iced::Theme;
     type Message = ColorMessage;
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {

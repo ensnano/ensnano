@@ -98,8 +98,7 @@ use std::time::{Duration, Instant};
 use controller::{ChannelReader, ChannelReaderUpdate, SimulationRequest};
 use ensnano_design::{grid::GridId, Camera};
 use ensnano_exports::{ExportResult, ExportType};
-use ensnano_gui::theme;
-use ensnano_iced::fonts;
+use ensnano_iced::{fonts, iced::Event as IcedEvent, iced::Size, theme, UiSize};
 use ensnano_interactor::{
     application::{Application, Notification},
     RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor,
@@ -108,8 +107,6 @@ use ensnano_interactor::{
     CenterOfSelection, CursorIcon, DesignOperation, DesignReader, RigidBodyConstants,
     SuggestionParameters,
 };
-use iced::Event as IcedEvent;
-use iced::Size;
 use iced_futures::futures;
 use iced_graphics::Viewport;
 use iced_runtime::{program, Debug};
@@ -179,7 +176,7 @@ pub use requests::Requests;
 mod dialog;
 
 use flatscene::FlatScene;
-use gui::{ColorOverlay, Gui, IcedMessages, OverlayType, UiSize};
+use gui::{ColorOverlay, Gui, IcedMessages, OverlayType};
 use multiplexer::{Multiplexer, Overlay};
 use scene::Scene;
 use utils::{PhySize, TEXTURE_FORMAT};

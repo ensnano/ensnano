@@ -67,7 +67,7 @@ pub trait GuiTab<State: AppState> {
         &self,
         ui_size: UiSize,
         app_state: &State,
-    ) -> Element<'_, Self::Message, crate::Theme, crate::Renderer> {
+    ) -> Element<'_, Self::Message, ensnano_iced::Theme, crate::Renderer> {
         container(self.content(ui_size, app_state))
             .width(Length::Fill)
             .height(Length::Fill)
@@ -78,7 +78,7 @@ pub trait GuiTab<State: AppState> {
         &self,
         ui_size: UiSize,
         app_state: &State,
-    ) -> Element<'_, Self::Message, crate::Theme, crate::Renderer>;
+    ) -> Element<'_, Self::Message, ensnano_iced::Theme, crate::Renderer>;
 }
 
 struct GoStop<State: AppState> {
@@ -101,8 +101,8 @@ impl<State: AppState> GoStop<State> {
         &self,
         active: bool,
         running: bool,
-    ) -> iced::Element<Message<State>, crate::Theme, crate::Renderer> {
-        use crate::helpers::*;
+    ) -> iced::Element<Message<State>, ensnano_iced::Theme, crate::Renderer> {
+        use ensnano_iced::helpers::*;
         let button_str = if running {
             "Stop".to_owned()
         } else {

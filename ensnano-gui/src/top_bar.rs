@@ -21,13 +21,16 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! the selection mode, modify the layout of the window, etc.
 //!
 //! Drawing the top bar, and triggering events from it is handled here.
-use super::{AppState, TopBarState, UiSize};
+use super::{AppState, TopBarState};
 // NOTE: I would like to rename AppState to ApplicationState, and name AppState the structures that
 //       implement it.
-use crate::helpers::*;
-use ensnano_iced::fonts::{MaterialIcon, MaterialIconStyle};
+use ensnano_iced::{
+    fonts::{MaterialIcon, MaterialIconStyle},
+    helpers::*,
+    iced::{self, Element, Length, Padding},
+    UiSize,
+};
 use ensnano_interactor::{ActionMode, SelectionMode};
-use iced::{theme, Element, Length, Padding};
 use iced_runtime::{Command, Program};
 use iced_winit::winit::dpi::LogicalSize;
 use std::sync::{Arc, Mutex};
@@ -107,7 +110,7 @@ impl<R: Requests, S: AppState> TopBar<R, S> {
 
 impl<R: Requests, S: AppState> Program for TopBar<R, S> {
     type Message = Message<S>;
-    type Theme = crate::Theme;
+    type Theme = ensnano_iced::Theme;
     type Renderer = crate::Renderer;
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
@@ -409,7 +412,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
 
         container(bar)
             .width(self.logical_size.width as f32)
-            .style(crate::theme::GuiBackground)
+            .style(ensnano_iced::theme::GuiBackground)
             // HACK: A small padding allow tooltip messages to disappear properly.
             .padding(Padding::from([
                 self.ui_size.button_spacing(),
@@ -499,7 +502,7 @@ fn action_mode_btn<'a, State>(
     _button_size: impl Into<Length>,
     axis_aligned: bool,
     ui_size: UiSize,
-) -> Button<'a, Message<State>, crate::Theme, crate::Renderer>
+) -> Button<'a, Message<State>, ensnano_iced::Theme, crate::Renderer>
 where
     State: AppState,
 {
@@ -519,7 +522,7 @@ fn selection_mode_btn<'a, S: AppState>(
     mode: &SelectionMode,
     current_mode: SelectionMode,
     ui_size: UiSize,
-) -> Button<'a, Message<S>, crate::Theme, crate::Renderer> {
+) -> Button<'a, Message<S>, ensnano_iced::Theme, crate::Renderer> {
     let icon_path = if current_mode == *mode {
         mode.icon_on()
     } else {

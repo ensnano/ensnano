@@ -17,17 +17,18 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use std::marker::PhantomData;
 
-use iced::{Element, Length};
-use iced_aw::TabLabel;
-
-use ensnano_iced::fonts::{icon_to_char, MaterialIcon};
+use ensnano_iced::{
+    fonts::{icon_to_char, MaterialIcon},
+    helpers::*,
+    iced::{Element, Length},
+    iced_aw::TabLabel,
+};
 
 use super::tabs::GuiTab;
 use super::{
     AppState, FactoryId, GridTypeDescr, HyperboloidRequest, Hyperboloid_, Message, RequestFactory,
     UiSize, ValueId, ICON_HONEYCOMB_GRID, ICON_NANOTUBE, ICON_SQUARE_GRID,
 };
-use crate::helpers::*;
 
 pub struct GridTab<State: AppState> {
     hyperboloid_factory: RequestFactory<Hyperboloid_>,
@@ -69,7 +70,7 @@ impl<State: AppState> GuiTab<State> for GridTab<State> {
         &self,
         ui_size: UiSize,
         app_state: &State,
-    ) -> Element<Self::Message, crate::Theme, crate::Renderer> {
+    ) -> Element<Self::Message, ensnano_iced::Theme, crate::Renderer> {
         let content = self::column![
             section("Grids", ui_size),
             subsection("New Grid", ui_size),

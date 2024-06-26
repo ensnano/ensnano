@@ -9,3 +9,5 @@ resolver = "2"
 [dependencies]
 iced = { version = "0.12", features = ["advanced", "image"] }
 iced_aw = "0.8"
+serde_derive = "1.0.116"
+serde = "1.0.116"

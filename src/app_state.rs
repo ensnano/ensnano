@@ -26,7 +26,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use ensnano_design::{group_attributes::GroupPivot, BezierPathId};
 use ensnano_exports::{ExportResult, ExportType};
-use ensnano_gui::UiSize;
+use ensnano_iced::UiSize;
 use ensnano_interactor::{
     graphics::{Background3D, HBondDisplay, RenderingMode},
     UnrootedRevolutionSurfaceDescriptor,
@@ -677,7 +677,7 @@ pub struct AppStateParameters {
     inverted_y_scroll: bool,
     show_h_bonds: HBondDisplay,
     show_bezier_paths: bool,
-    pub ui_size: ensnano_gui::UiSize,
+    pub ui_size: UiSize,
 }
 
 impl Default for AppStateParameters {
@@ -694,7 +694,7 @@ impl Default for AppStateParameters {
             inverted_y_scroll: false,
             show_h_bonds: HBondDisplay::No,
             show_bezier_paths: false,
-            ui_size: ensnano_gui::UiSize::default(),
+            ui_size: Default::default(),
         }
     }
 }

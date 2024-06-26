@@ -17,13 +17,14 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use std::marker::PhantomData;
 
-use iced::Element;
-use iced_aw::TabLabel;
-
 use super::tabs::GuiTab;
 use super::{AppState, GridTypeDescr, Message, UiSize, ICON_HONEYCOMB_GRID, ICON_SQUARE_GRID};
-use crate::helpers::*;
-use ensnano_iced::fonts::{icon_to_char, MaterialIcon, MaterialIconStyle};
+use ensnano_iced::{
+    fonts::{icon_to_char, MaterialIcon, MaterialIconStyle},
+    helpers::*,
+    iced::Element,
+    iced_aw::TabLabel,
+};
 
 const NEW_BEZIER_PLANE_ICON: MaterialIcon = MaterialIcon::HistoryEdu;
 const EDIT_BEZIER_PATH_ICON: MaterialIcon = MaterialIcon::LinearScale;
@@ -44,7 +45,7 @@ impl<State: AppState> GuiTab<State> for PenTab<State> {
         &self,
         ui_size: UiSize,
         app_state: &State,
-    ) -> Element<Self::Message, crate::Theme, crate::Renderer> {
+    ) -> Element<Self::Message, ensnano_iced::Theme, crate::Renderer> {
         let selected_path_id = app_state.get_selected_bezier_path();
         let path_txt = selected_path_id
             .map(|p| format!("{:?}", p))

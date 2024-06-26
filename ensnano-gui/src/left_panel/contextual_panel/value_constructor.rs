@@ -18,8 +18,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::{Selection, UiSize};
 
-use crate::helpers::*;
-use iced::Element;
+use ensnano_iced::{helpers::*, iced::Element};
 
 pub trait BuilderMessage: Clone + 'static {
     fn value_changed(kind: ValueKind, n: usize, value: String) -> Self;
@@ -294,7 +293,7 @@ where
         ui_size: UiSize,
         _selection: &Selection,
         _app_state: &State,
-    ) -> iced::Element<super::Message<State>, crate::Theme, crate::Renderer> {
+    ) -> iced::Element<super::Message<State>, ensnano_iced::Theme, crate::Renderer> {
         self::column![
             text("Position").size(ui_size.intermediate_text()),
             //self.position_builder.view(),
@@ -349,7 +348,7 @@ impl GridBuilder {
     fn nb_turn_row<'a, S: AppState>(
         app_state: &S,
         selection: &Selection,
-    ) -> Option<iced::Element<'a, super::Message<S>, crate::Theme, crate::Renderer>> {
+    ) -> Option<iced::Element<'a, super::Message<S>, ensnano_iced::Theme, crate::Renderer>> {
         use crate::consts;
         if let Selection::Grid(_, g_id) = selection {
             if let Some(nb_turn) = app_state.get_reader().get_grid_nb_turn(*g_id) {
@@ -380,7 +379,7 @@ where
         ui_size: UiSize,
         selection: &Selection,
         app_state: &State,
-    ) -> iced::Element<super::Message<State>, crate::Theme, crate::Renderer> {
+    ) -> iced::Element<super::Message<State>, ensnano_iced::Theme, crate::Renderer> {
         self::column![
             text("Position").size(ui_size.intermediate_text()),
             self.position_builder.view(),
@@ -433,7 +432,7 @@ where
         ui_size: UiSize,
         selection: &Selection,
         app_state: &State,
-    ) -> Element<'a, super::Message<State>, crate::Theme, crate::Renderer>;
+    ) -> Element<'a, super::Message<State>, ensnano_iced::Theme, crate::Renderer>;
     fn update_str_value(&mut self, value_kind: ValueKind, n: usize, value_str: String);
     fn submit_value(&mut self, value_kind: ValueKind) -> Option<InstanciatedValue>;
     fn has_keyboard_priority(&self) -> bool;

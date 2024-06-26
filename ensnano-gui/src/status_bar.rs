@@ -15,10 +15,13 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use super::{AppState, Requests, UiSize};
+use super::{AppState, Requests};
+use ensnano_iced::{
+    iced::{Alignment, Element, Length},
+    UiSize,
+};
 use ensnano_interactor::operation::{Operation, ParameterField};
 pub use ensnano_interactor::StrandBuildingStatus;
-use iced::{Alignment, Element, Length};
 use iced_graphics::text::Paragraph;
 use iced_runtime::{Command, Program};
 use iced_widget::*;
@@ -270,7 +273,7 @@ impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
         let content = self::column![Space::new(Length::Fill, 3), content, pasting_status_row,];
 
         container(content)
-            .style(crate::theme::GuiBackground)
+            .style(ensnano_iced::theme::GuiBackground)
             .width(size.width as f32)
             .height(Length::Fill)
             .into()

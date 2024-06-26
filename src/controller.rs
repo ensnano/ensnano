@@ -48,8 +48,9 @@ use normal_state::NormalState;
 use std::path::{Path, PathBuf};
 
 use super::dialog;
-use super::{gui::UiSize, OverlayType, SplitMode};
+use super::{OverlayType, SplitMode};
 use dialog::MustAckMessage;
+use ensnano_iced::UiSize;
 use std::borrow::Cow;
 
 pub struct Controller {

@@ -28,10 +28,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //       * Left Panel: 0x23272A  Slightly darker than above.
 //       * Status Bar: 0x121230  More blueish.
 
-pub mod helpers;
-pub mod theme;
 use ensnano_iced::fonts;
-pub use theme::Theme;
 
 pub mod top_bar;
 use ensnano_organizer::GroupId;
@@ -44,10 +41,8 @@ pub use left_panel::{
 };
 /// Draw the status bar
 pub mod status_bar;
-mod ui_size;
 pub use ensnano_design::{grid::GridId, Camera, CameraId};
 pub use status_bar::{ClipboardContent, CurentOpState, StrandBuildingStatus};
-pub use ui_size::*;
 mod consts;
 pub use iced;
 use iced::{advanced::clipboard, advanced::mouse, event};
@@ -56,8 +51,6 @@ pub use iced_graphics;
 #[macro_use]
 extern crate paste;
 mod icon;
-extern crate serde;
-extern crate serde_derive;
 
 use status_bar::StatusBar;
 
@@ -129,7 +122,7 @@ pub trait Requests: 'static + Send {
     fn set_scaffold_sequence(&mut self, shift: usize);
     fn set_scaffold_shift(&mut self, shift: usize);
     /// Change the size of the UI components
-    fn set_ui_size(&mut self, size: UiSize);
+    fn set_ui_size(&mut self, size: ensnano_iced::UiSize);
     /// Finalize the currently edited hyperboloid grid
     fn finalize_hyperboloid(&mut self);
     fn stop_roll_simulation(&mut self);
@@ -436,7 +429,7 @@ impl<R: Requests, S: AppState> GuiComponent<R, S> {
         requests: Arc<Mutex<R>>,
         app_state: S,
         top_bar_state: TopBarState,
-        ui_size: UiSize,
+        ui_size: ensnano_iced::UiSize,
     ) -> Self {
         let top_bar_area = multiplexer.get_draw_area(GuiComponentType::TopBar).unwrap();
         let top_bar = TopBar::new(
@@ -470,7 +463,7 @@ impl<R: Requests, S: AppState> GuiComponent<R, S> {
         requests: Arc<Mutex<R>>,
         first_time: bool,
         state: &S,
-        ui_size: UiSize,
+        ui_size: ensnano_iced::UiSize,
     ) -> Self {
         let left_panel_area = multiplexer
             .get_draw_area(GuiComponentType::LeftPanel)
@@ -505,7 +498,7 @@ impl<R: Requests, S: AppState> GuiComponent<R, S> {
         multiplexer: &dyn Multiplexer,
         requests: Arc<Mutex<R>>,
         state: &S,
-        ui_size: UiSize,
+        ui_size: ensnano_iced::UiSize,
     ) -> Self {
         let status_bar_area = multiplexer
             .get_draw_area(GuiComponentType::StatusBar)
@@ -633,7 +626,7 @@ pub struct Gui<R: Requests, S: AppState> {
     queue: Rc<Queue>,
     resized: bool,
     requests: Arc<Mutex<R>>,
-    ui_size: UiSize,
+    ui_size: ensnano_iced::UiSize,
     /// [GuiComponent] mapped by [GuiComponentType]
     components: HashMap<GuiComponentType, GuiComponent<R, S>>,
 }
@@ -645,7 +638,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
         window: &Window,
         multiplexer: &dyn Multiplexer,
         requests: Arc<Mutex<R>>,
-        ui_size: UiSize,
+        ui_size: ensnano_iced::UiSize,
         global_state: &State,
         top_bar_state: TopBarState,
     ) -> Self {
@@ -846,7 +839,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
 
     pub fn new_ui_size(
         &mut self,
-        ui_size: UiSize,
+        ui_size: ensnano_iced::UiSize,
         window: &Window,
         multiplexer: &dyn Multiplexer,
         app_state: &State,
@@ -969,7 +962,7 @@ impl<S: AppState> IcedMessages<S> {
             .push_back(left_panel::Message::ModifiersChanged(modifiers))
     }
 
-    pub fn new_ui_size(&mut self, ui_size: UiSize) {
+    pub fn new_ui_size(&mut self, ui_size: ensnano_iced::UiSize) {
         self.left_panel
             .push_back(left_panel::Message::UiSizeChanged(ui_size));
         self.top_bar

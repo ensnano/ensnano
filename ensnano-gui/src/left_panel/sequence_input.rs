@@ -16,8 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use super::{AppState, Message};
-use crate::helpers::*;
-use iced::Element;
+use ensnano_iced::{helpers::*, iced::Element};
 
 pub struct SequenceInput {
     #[allow(dead_code)]

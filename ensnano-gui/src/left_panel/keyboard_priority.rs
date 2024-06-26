@@ -45,7 +45,7 @@ use iced_graphics::text::Paragraph;
 /// .on_priority(Message::SetKeyboardPriority(true))
 /// .on_unpriority(Message::SetKeyboardPriority(false));
 /// ```
-pub struct KeyboardPriority<'a, Message, Theme = crate::Theme, Renderer = crate::Renderer> {
+pub struct KeyboardPriority<'a, Message, Theme = ensnano_iced::Theme, Renderer = crate::Renderer> {
     padding: Padding,
     width: Length,
     height: Length,

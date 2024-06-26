@@ -17,16 +17,17 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use std::marker::PhantomData;
 
-use iced::{Element, Length};
-use iced_aw::TabLabel;
-
 use ensnano_interactor::StandardSequence;
 
 use super::keyboard_priority;
 use super::tabs::GuiTab;
 use super::{AppState, DesignElementKey, Message, UiSize};
-use crate::helpers::*;
-use crate::theme::BadValue;
+use ensnano_iced::{
+    helpers::*,
+    iced::{Element, Length},
+    iced_aw::TabLabel,
+    theme,
+};
 
 pub struct SequenceTab<State: AppState> {
     toggle_text_value: bool,
@@ -109,7 +110,7 @@ impl<State: AppState> GuiTab<State> for SequenceTab<State> {
         &self,
         ui_size: UiSize,
         app_state: &State,
-    ) -> Element<Self::Message, crate::Theme, crate::Renderer> {
+    ) -> Element<Self::Message, ensnano_iced::Theme, crate::Renderer> {
         // TODO: This update should happen, but somewhere else in the code.
         //       I think it must happen inside LeftPanel::update
         //
@@ -167,7 +168,7 @@ impl<State: AppState> GuiTab<State> for SequenceTab<State> {
                 };
                 let mut length_text = text(length_text);
                 if app_state.get_scaffold_info().is_none() {
-                    length_text = length_text.style(crate::theme::DISABLED_TEXT)
+                    length_text = length_text.style(theme::DISABLED_TEXT)
                 }
                 self::column![text(scaffold_text).size(ui_size.main_text()), length_text,]
             },
@@ -199,7 +200,7 @@ impl<State: AppState> GuiTab<State> for SequenceTab<State> {
                 keyboard_priority(
                     text_input("Scaffold position", &self.scaffold_position_str)
                         .on_input(Message::ScaffoldPositionInput,)
-                        .style(BadValue(
+                        .style(theme::BadValue(
                             self.scaffold_position_str == self.scaffold_position.to_string(),
                         ))
                 )
@@ -232,7 +233,7 @@ impl<State: AppState> GuiTab<State> for SequenceTab<State> {
                 };
                 let mut nucl_text = text(nucl_text).size(ui_size.main_text());
                 if starting_nucl.is_none() {
-                    nucl_text = nucl_text.style(crate::theme::DISABLED_TEXT)
+                    nucl_text = nucl_text.style(theme::DISABLED_TEXT)
                 }
                 nucl_text
             },

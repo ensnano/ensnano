@@ -17,11 +17,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use super::super::DesignReader;
 use super::*;
-use crate::helpers::*;
-use crate::theme::BadValue;
 use ensnano_design::{grid::GridId, BezierVertexId};
+use ensnano_iced::{helpers::*, iced::alignment::Horizontal, theme};
 use ensnano_interactor::{Selection, SimulationState};
-use iced::alignment::Horizontal;
 
 mod value_constructor;
 use value_constructor::{BezierVertexBuilder, Builder, GridBuilder};
@@ -263,7 +261,7 @@ where
         &self,
         ui_size: UiSize,
         app_state: &State,
-    ) -> iced::Element<Message<State>, crate::Theme, crate::Renderer> {
+    ) -> iced::Element<Message<State>, ensnano_iced::Theme, crate::Renderer> {
         let selection = app_state
             .get_selection()
             .get(0)
@@ -519,7 +517,7 @@ fn add_grid_content<'a, State: AppState>(
     info_values: Vec<String>,
     ui_size: UiSize,
     twisting: TwistStatus,
-) -> iced::Element<'a, Message<State>, crate::Theme, crate::Renderer> {
+) -> iced::Element<'a, Message<State>, ensnano_iced::Theme, crate::Renderer> {
     self::column![
         // twist_button
         match twisting {
@@ -545,7 +543,7 @@ fn add_grid_content<'a, State: AppState>(
 fn add_strand_content<'a, State: AppState>(
     info_values: Vec<String>,
     ui_size: UiSize,
-) -> iced::Element<'a, Message<State>, crate::Theme, crate::Renderer> {
+) -> iced::Element<'a, Message<State>, ensnano_iced::Theme, crate::Renderer> {
     let s_id = info_values[2].parse::<usize>().unwrap();
     self::column![
         row![
@@ -574,7 +572,7 @@ fn add_help_to_column<'a, State: AppState>(
     help_title: impl ToString,
     help: Vec<(String, String)>,
     ui_size: UiSize,
-) -> Column<'a, Message<State>, crate::Theme, crate::Renderer> {
+) -> Column<'a, Message<State>, ensnano_iced::Theme, crate::Renderer> {
     self::column![
         text(help_title).size(ui_size.intermediate_text()),
         column(help.iter().map(|(l, r)| {
@@ -600,7 +598,7 @@ fn add_help_to_column<'a, State: AppState>(
 
 fn turn_into_help_column<'a, State: AppState>(
     ui_size: UiSize,
-) -> Column<'a, Message<State>, crate::Theme, crate::Renderer> {
+) -> Column<'a, Message<State>, ensnano_iced::Theme, crate::Renderer> {
     self::column![
         section("Help", ui_size)
             .width(Length::Fill)
@@ -892,11 +890,11 @@ impl AddStrandMenu {
         &self,
         ui_size: UiSize,
         width: u16,
-    ) -> iced::widget::Column<'a, Message<State>, crate::Theme, crate::Renderer> {
+    ) -> iced::widget::Column<'a, Message<State>, ensnano_iced::Theme, crate::Renderer> {
         let color_choose_strand_start_length = if self.text_inputs_are_active {
-            theme::Text::Color(crate::theme::GUI_PALETTE.text)
+            iced::theme::Text::Color(theme::GUI_PALETTE.text)
         } else {
-            crate::theme::DISABLED_TEXT
+            theme::DISABLED_TEXT
         };
 
         self::column![
@@ -913,7 +911,7 @@ impl AddStrandMenu {
                     keyboard_priority(
                         text_input("Position", &self.pos_str)
                             .on_input(Message::PositionHelicesChanged)
-                            .style(BadValue(self.pos_str == self.helix_pos.to_string()))
+                            .style(theme::BadValue(self.pos_str == self.helix_pos.to_string()))
                     )
                     .on_priority(Message::SetKeyboardPriority(true))
                     .on_unpriority(Message::SetKeyboardPriority(false)),
@@ -925,7 +923,9 @@ impl AddStrandMenu {
                     keyboard_priority(
                         text_input("Length", &self.length_str)
                             .on_input(Message::LengthHelicesChanged)
-                            .style(BadValue(self.length_str == self.helix_length.to_string()))
+                            .style(theme::BadValue(
+                                self.length_str == self.helix_length.to_string()
+                            ))
                     )
                     .on_priority(Message::SetKeyboardPriority(true))
                     .on_unpriority(Message::SetKeyboardPriority(false)),

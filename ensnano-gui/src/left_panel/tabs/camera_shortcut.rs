@@ -15,10 +15,14 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use super::{keyboard_priority, AppState, Message, UiSize, Vec3};
-use crate::{helpers::*, CameraId};
-use ensnano_iced::fonts::{MaterialIcon, MaterialIconStyle};
-use iced::{alignment::Horizontal, Alignment, Element, Length};
+use super::{keyboard_priority, AppState, Message, Vec3};
+use crate::CameraId;
+use ensnano_iced::{
+    fonts::{MaterialIcon, MaterialIconStyle},
+    helpers::*,
+    iced::{alignment::Horizontal, Alignment, Element, Length},
+    UiSize,
+};
 
 /// A named camera orientation.
 ///
@@ -78,7 +82,7 @@ const PREDEFINED_CAMERA_ORIENTATION: [NamedCameraPosition; 6] = [
 fn named_camera_to_button<'a, State: AppState>(
     position: &NamedCameraPosition,
     ui_size: UiSize,
-) -> Element<'a, Message<State>, crate::Theme, crate::Renderer> {
+) -> Element<'a, Message<State>, ensnano_iced::Theme, crate::Renderer> {
     fixed_text_button(position.name, 2.0, ui_size)
         .on_press(position.message())
         .into()
@@ -123,7 +127,7 @@ impl CameraWidget {
     fn view<State: AppState>(
         &self,
         ui_size: UiSize,
-    ) -> Element<Message<State>, crate::Theme, crate::Renderer> {
+    ) -> Element<Message<State>, ensnano_iced::Theme, crate::Renderer> {
         let name_field: Element<_, _, _> = if self.being_edited {
             keyboard_priority(
                 text_input("Camera name", &self.name)
@@ -263,7 +267,7 @@ impl CameraShortcutPanel {
 
 // TODO: Implement the Component trait.
 //
-//impl<State> Component<Message<State>, crate::Theme, crate::Renderer> for CameraShortcutPanel
+//impl<State> Component<Message<State>, ensnano_iced::Theme, crate::Renderer> for CameraShortcutPanel
 //where
 //    State: AppState,
 //{
@@ -290,21 +294,22 @@ impl CameraShortcutPanel {
 
         // Create button widget for each predefined target.
 
-        let rotate_buttons: Column<Message<State>, crate::Theme, crate::Renderer> = self::column![
-            row(IntoIterator::into_iter([4, 2, 5]).map(|i| {
-                rotation_icon_button(i, ui_size)
-                    .on_press(rotation_message(i, self.xz, self.yz, self.xy))
-                    .into()
-            }))
-            .spacing(ui_size.button_spacing()),
-            row(IntoIterator::into_iter([0, 3, 1]).map(|i| {
-                rotation_icon_button(i, ui_size)
-                    .on_press(rotation_message(i, self.xz, self.yz, self.xy))
-                    .into()
-            }))
-            .spacing(ui_size.button_spacing()),
-        ]
-        .spacing(ui_size.button_spacing());
+        let rotate_buttons: Column<Message<State>, ensnano_iced::Theme, crate::Renderer> =
+            self::column![
+                row(IntoIterator::into_iter([4, 2, 5]).map(|i| {
+                    rotation_icon_button(i, ui_size)
+                        .on_press(rotation_message(i, self.xz, self.yz, self.xy))
+                        .into()
+                }))
+                .spacing(ui_size.button_spacing()),
+                row(IntoIterator::into_iter([0, 3, 1]).map(|i| {
+                    rotation_icon_button(i, ui_size)
+                        .on_press(rotation_message(i, self.xz, self.yz, self.xy))
+                        .into()
+                }))
+                .spacing(ui_size.button_spacing()),
+            ]
+            .spacing(ui_size.button_spacing());
 
         //let mut ret = Column::new();
         //while rotate_buttons.len() > 0 {
