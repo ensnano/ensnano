@@ -155,7 +155,7 @@ impl ParameterWidget {
     fn input_view<State: AppState>(
         &self,
         id: RevolutionParameterId,
-    ) -> Element<Message<State>, ensnano_iced::Theme, crate::Renderer> {
+    ) -> Element<Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer> {
         keyboard_priority(
             text_input("", &self.current_text)
                 .on_input(move |s| Message::RevolutionParameterUpdate {
@@ -220,7 +220,10 @@ impl<S: AppState> CurveDescriptorWidget<S> {
         }
     }
 
-    fn view(&self, ui_size: UiSize) -> Element<Message<S>, ensnano_iced::Theme, crate::Renderer> {
+    fn view(
+        &self,
+        ui_size: UiSize,
+    ) -> Element<Message<S>, ensnano_iced::Theme, ensnano_iced::Renderer> {
         container(column(
             self.parameters
                 .iter()
@@ -544,7 +547,7 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
         &self,
         ui_size: UiSize,
         app_state: &State,
-    ) -> iced::Element<Self::Message, ensnano_iced::Theme, crate::Renderer> {
+    ) -> ensnano_iced::Element<Self::Message, ensnano_iced::Theme, ensnano_iced::Renderer> {
         let desc = self.get_revolution_system(app_state, false);
 
         let shift_buttons = {

@@ -42,6 +42,9 @@ mod pen_tab;
 pub use pen_tab::PenTab;
 pub(super) mod revolution_tab;
 
+pub use gostop::*;
+// TODO: Move gostop to widgets.
+
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub enum TabId {
     Grid,
@@ -67,7 +70,7 @@ pub trait GuiTab<State: AppState> {
         &self,
         ui_size: UiSize,
         app_state: &State,
-    ) -> Element<'_, Self::Message, ensnano_iced::Theme, crate::Renderer> {
+    ) -> ensnano_iced::Element<'_, Self::Message, ensnano_iced::Theme, ensnano_iced::Renderer> {
         container(self.content(ui_size, app_state))
             .width(Length::Fill)
             .height(Length::Fill)
@@ -78,42 +81,47 @@ pub trait GuiTab<State: AppState> {
         &self,
         ui_size: UiSize,
         app_state: &State,
-    ) -> Element<'_, Self::Message, ensnano_iced::Theme, crate::Renderer>;
+    ) -> ensnano_iced::Element<'_, Self::Message, ensnano_iced::Theme, ensnano_iced::Renderer>;
 }
 
-struct GoStop<State: AppState> {
-    pub name: String,
-    on_press: Box<dyn Fn(bool) -> Message<State>>,
-}
+mod gostop {
+    // TODO: Turn this into a widget
+    use super::{AppState, Message};
+    use ensnano_iced::{helpers::*, iced, Element, Renderer, Theme};
 
-impl<State: AppState> GoStop<State> {
-    fn new<F>(name: String, on_press: F) -> Self
-    where
-        F: 'static + Fn(bool) -> Message<State>,
-    {
-        Self {
-            name,
-            on_press: Box::new(on_press),
-        }
+    pub struct GoStop<State: AppState> {
+        pub name: String,
+        on_press: Box<dyn Fn(bool) -> Message<State>>,
     }
 
-    fn view(
-        &self,
-        active: bool,
-        running: bool,
-    ) -> iced::Element<Message<State>, ensnano_iced::Theme, crate::Renderer> {
-        use ensnano_iced::helpers::*;
-        let button_str = if running {
-            "Stop".to_owned()
-        } else {
-            self.name.clone()
-        };
-        //let mut button = button(text(button_str)).style(ButtonColor::red_green(running));
-        let mut button = button(text(button_str)).style(iced::theme::Button::Positive);
-        // This is a dirty fix to compile.
-        if active {
-            button = button.on_press((self.on_press)(!running));
+    impl<State: AppState> GoStop<State> {
+        pub fn new<F>(name: String, on_press: F) -> Self
+        where
+            F: 'static + Fn(bool) -> Message<State>,
+        {
+            Self {
+                name,
+                on_press: Box::new(on_press),
+            }
         }
-        row![button].into()
+
+        pub fn view(
+            &self,
+            active: bool,
+            running: bool,
+        ) -> Element<Message<State>, Theme, Renderer> {
+            let button_str = if running {
+                "Stop".to_owned()
+            } else {
+                self.name.clone()
+            };
+            //let mut button = button(text(button_str)).style(ButtonColor::red_green(running));
+            let mut button = button(text(button_str)).style(iced::theme::Button::Positive);
+            // This is a dirty fix to compile.
+            if active {
+                button = button.on_press((self.on_press)(!running));
+            }
+            row![button].into()
+        }
     }
 }

@@ -204,7 +204,7 @@ impl<State: AppState> GuiTab<State> for SequenceTab<State> {
                             self.scaffold_position_str == self.scaffold_position.to_string(),
                         ))
                 )
-                .width(iced::Length::FillPortion(1))
+                .width(Length::FillPortion(1))
                 .on_priority(Message::SetKeyboardPriority(true))
                 .on_unpriority(Message::SetKeyboardPriority(false)),
             ],

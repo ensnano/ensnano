@@ -18,7 +18,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::super::DesignReader;
 use super::*;
 use ensnano_design::{grid::GridId, BezierVertexId};
-use ensnano_iced::{helpers::*, iced::alignment::Horizontal, theme};
+use ensnano_iced::{
+    helpers::*,
+    iced::{self, alignment::Horizontal, Alignment},
+    theme,
+};
 use ensnano_interactor::{Selection, SimulationState};
 
 mod value_constructor;
@@ -261,7 +265,7 @@ where
         &self,
         ui_size: UiSize,
         app_state: &State,
-    ) -> iced::Element<Message<State>, ensnano_iced::Theme, crate::Renderer> {
+    ) -> ensnano_iced::Element<Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer> {
         let selection = app_state
             .get_selection()
             .get(0)
@@ -311,7 +315,7 @@ where
             //       we only print the number of object selected.
             self::column![text(format!("{} objects selected", nb_selected)),]
                 .width(Length::Fill)
-                .align_items(iced::Alignment::Center)
+                .align_items(Alignment::Center)
         } else {
             // NOTE: Print information about selection.
             let mut column = Column::new();
@@ -323,7 +327,7 @@ where
                     Space::with_width(Length::FillPortion(1)),
                 ]
                 .width(Length::Fill)
-                .align_items(iced::Alignment::Center),
+                .align_items(Alignment::Center),
             );
 
             if !matches!(selection, Selection::Nothing) {
@@ -517,7 +521,7 @@ fn add_grid_content<'a, State: AppState>(
     info_values: Vec<String>,
     ui_size: UiSize,
     twisting: TwistStatus,
-) -> iced::Element<'a, Message<State>, ensnano_iced::Theme, crate::Renderer> {
+) -> ensnano_iced::Element<'a, Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer> {
     self::column![
         // twist_button
         match twisting {
@@ -543,7 +547,7 @@ fn add_grid_content<'a, State: AppState>(
 fn add_strand_content<'a, State: AppState>(
     info_values: Vec<String>,
     ui_size: UiSize,
-) -> iced::Element<'a, Message<State>, ensnano_iced::Theme, crate::Renderer> {
+) -> ensnano_iced::Element<'a, Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer> {
     let s_id = info_values[2].parse::<usize>().unwrap();
     self::column![
         row![
@@ -572,7 +576,7 @@ fn add_help_to_column<'a, State: AppState>(
     help_title: impl ToString,
     help: Vec<(String, String)>,
     ui_size: UiSize,
-) -> Column<'a, Message<State>, ensnano_iced::Theme, crate::Renderer> {
+) -> Column<'a, Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer> {
     self::column![
         text(help_title).size(ui_size.intermediate_text()),
         column(help.iter().map(|(l, r)| {
@@ -598,7 +602,7 @@ fn add_help_to_column<'a, State: AppState>(
 
 fn turn_into_help_column<'a, State: AppState>(
     ui_size: UiSize,
-) -> Column<'a, Message<State>, ensnano_iced::Theme, crate::Renderer> {
+) -> Column<'a, Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer> {
     self::column![
         section("Help", ui_size)
             .width(Length::Fill)
@@ -767,7 +771,10 @@ fn view_2d_help() -> Vec<(String, String)> {
     ]
 }
 
-fn link_row<State: AppState>(link: &'static str, ui_size: UiSize) -> iced::Element<Message<State>> {
+fn link_row<State: AppState>(
+    link: &'static str,
+    ui_size: UiSize,
+) -> ensnano_iced::Element<Message<State>> {
     row![
         self::column![text(link),].width(Length::FillPortion(3)),
         self::column![text_button("Go", ui_size).on_press(Message::OpenLink(link)),]
@@ -890,7 +897,7 @@ impl AddStrandMenu {
         &self,
         ui_size: UiSize,
         width: u16,
-    ) -> iced::widget::Column<'a, Message<State>, ensnano_iced::Theme, crate::Renderer> {
+    ) -> iced::widget::Column<'a, Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer> {
         let color_choose_strand_start_length = if self.text_inputs_are_active {
             iced::theme::Text::Color(theme::GUI_PALETTE.text)
         } else {

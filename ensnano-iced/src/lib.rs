@@ -1,4 +1,5 @@
 pub use iced;
+pub use iced::{Element, Renderer};
 pub use iced_aw;
 
 pub mod fonts;

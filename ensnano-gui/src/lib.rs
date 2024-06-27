@@ -22,13 +22,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! other components of the program it is forwarded to the `main` function via the
 //! [Request](Requests) data structure.
 
-// NOTE: BACKGROUND VALUES
-//       Here are some background colors that I have removed for the moment
-//       * Top Bar:    0x36393F
-//       * Left Panel: 0x23272A  Slightly darker than above.
-//       * Status Bar: 0x121230  More blueish.
-
-use ensnano_iced::fonts;
+pub use ensnano_iced::iced;
+use ensnano_iced::{
+    fonts,
+    iced::{advanced::clipboard, advanced::mouse, event},
+};
 
 pub mod top_bar;
 use ensnano_organizer::GroupId;
@@ -44,8 +42,6 @@ pub mod status_bar;
 pub use ensnano_design::{grid::GridId, Camera, CameraId};
 pub use status_bar::{ClipboardContent, CurentOpState, StrandBuildingStatus};
 mod consts;
-pub use iced;
-use iced::{advanced::clipboard, advanced::mouse, event};
 pub use iced_graphics;
 
 #[macro_use]

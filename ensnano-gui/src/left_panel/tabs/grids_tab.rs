@@ -20,7 +20,7 @@ use std::marker::PhantomData;
 use ensnano_iced::{
     fonts::{icon_to_char, MaterialIcon},
     helpers::*,
-    iced::{Element, Length},
+    iced::{self, Element, Length},
     iced_aw::TabLabel,
 };
 

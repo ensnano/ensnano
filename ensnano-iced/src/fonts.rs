@@ -40,17 +40,22 @@ pub use material_icons::{
     icon_to_char, MaterialIcon, MaterialIconStyle, MATERIAL_ICONS_DARK, MATERIAL_ICONS_LIGHT,
 };
 
-use iced::{advanced::text, Font};
+pub use iced::{font::Error, Font};
+
+use iced::{
+    advanced,
+    widget::{text, Text},
+};
 
 // https://rsms.me/inter
 
 /// Load custom font for ENSnano GUI.
-pub fn load_fonts(renderer: &mut impl text::Renderer) {
+pub fn load_fonts(renderer: &mut impl advanced::text::Renderer) {
     let fonts = [
         iced_aw::BOOTSTRAP_FONT_BYTES,
         material_icons::MATERIAL_ICONS_LIGHT_BYTES,
         material_icons::MATERIAL_ICONS_DARK_BYTES,
-        crate::fonts::ENSNANO_FONT_BYTES,
+        ENSNANO_FONT_BYTES,
     ];
     for font in fonts {
         renderer.load_font(Cow::from(font));
@@ -60,25 +65,25 @@ pub fn load_fonts(renderer: &mut impl text::Renderer) {
 pub fn light_icon<'a, Theme, Renderer>(
     icon: MaterialIcon,
     //ui_size: UiSize,
-) -> iced::widget::Text<'a, Theme, Renderer>
+) -> Text<'a, Theme, Renderer>
 where
-    Theme: iced::widget::text::StyleSheet,
-    Renderer: iced::advanced::Renderer + iced::advanced::text::Renderer,
-    <Renderer as iced::advanced::text::Renderer>::Font: From<iced::Font>,
+    Theme: text::StyleSheet,
+    Renderer: advanced::Renderer + advanced::text::Renderer,
+    <Renderer as advanced::text::Renderer>::Font: From<Font>,
 {
-    iced::widget::text(icon_to_char(icon)).font(MATERIAL_ICONS_LIGHT)
+    text(icon_to_char(icon)).font(MATERIAL_ICONS_LIGHT)
     //.size(ui_size.icon())
 }
 
 pub fn dark_icon<'a, Theme, Renderer>(
     icon: MaterialIcon,
     //ui_size: UiSize,
-) -> iced::widget::Text<'a, Theme, Renderer>
+) -> Text<'a, Theme, Renderer>
 where
-    Theme: iced::widget::text::StyleSheet,
-    Renderer: iced::advanced::Renderer + iced::advanced::text::Renderer,
-    <Renderer as iced::advanced::text::Renderer>::Font: From<iced::Font>,
+    Theme: text::StyleSheet,
+    Renderer: advanced::Renderer + advanced::text::Renderer,
+    <Renderer as advanced::text::Renderer>::Font: From<Font>,
 {
-    iced::widget::text(icon_to_char(icon)).font(MATERIAL_ICONS_DARK)
+    text(icon_to_char(icon)).font(MATERIAL_ICONS_DARK)
     //.size(ui_size.icon())
 }

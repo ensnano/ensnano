@@ -15,7 +15,6 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use iced_aw::TabLabel;
 use std::marker::PhantomData;
 
 use super::tabs::GuiTab;
@@ -24,6 +23,7 @@ use ensnano_iced::{
     fonts::{icon_to_char, MaterialIcon},
     helpers::*,
     iced::{Alignment, Element, Length},
+    iced_aw::TabLabel,
 };
 use ensnano_interactor::graphics::{
     Background3D, RenderingMode, ALL_BACKGROUND3D, ALL_RENDERING_MODE,
@@ -86,7 +86,7 @@ impl<State: AppState> GuiTab<State> for CameraTab<State> {
         &self,
         ui_size: UiSize,
         app_state: &State,
-    ) -> Element<Message<State>, ensnano_iced::Theme, crate::Renderer> {
+    ) -> Element<Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer> {
         let content = self::column![
             section("Camera", ui_size),
             subsection("Visibility", ui_size),
@@ -192,7 +192,7 @@ impl FogGuiParameters {
     fn view<State: AppState>(
         &self,
         ui_size: UiSize,
-    ) -> Element<Message<State>, ensnano_iced::Theme, crate::Renderer> {
+    ) -> Element<Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer> {
         let radius_text = if self.is_activated {
             text("Radius")
         } else {

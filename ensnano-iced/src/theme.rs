@@ -131,11 +131,14 @@ impl slider::StyleSheet for DeactivatedSlider {
 
 impl From<DeactivatedSlider> for theme::Slider {
     fn from(_: DeactivatedSlider) -> Self {
-        Default::default()
+        Self::Custom(Box::new(DeactivatedSlider))
     }
 }
 
 // A TextInput that changes appareance when the contained value is bad.
+//
+// A `true` value means bad.
+//
 pub struct BadValue(pub bool);
 
 impl text_input::StyleSheet for BadValue {
@@ -194,8 +197,8 @@ impl text_input::StyleSheet for BadValue {
         }
     }
 }
-impl From<BadValue> for iced::theme::TextInput {
+impl From<BadValue> for theme::TextInput {
     fn from(_: BadValue) -> Self {
-        Default::default()
+        Self::Custom(Box::new(BadValue(true)))
     }
 }

@@ -94,7 +94,7 @@ impl<R: Requestable> RequestFactory<R> {
         &self,
         active: bool,
         size: impl Into<Pixels>,
-    ) -> Vec<iced::Element<Message<State>, ensnano_iced::Theme, crate::Renderer>> {
+    ) -> Vec<ensnano_iced::Element<Message<State>, ensnano_iced::Theme, crate::Renderer>> {
         let s = size.into();
         self.values
             .values()
@@ -175,7 +175,7 @@ impl DiscreteValue {
         &self,
         active: bool,
         name_size: impl Into<Pixels>,
-    ) -> iced::Element<Message<State>, ensnano_iced::Theme, crate::Renderer> {
+    ) -> ensnano_iced::Element<Message<State>, ensnano_iced::Theme, crate::Renderer> {
         let decr_button = if active && self.value - self.step >= self.min_val {
             button(text("-")).on_press(Message::DiscreteValue {
                 factory_id: self.owner_id,
@@ -220,7 +220,7 @@ impl DiscreteValue {
 
         row![
             // On the left: print the name of the parameter being selected.
-            row![name_text, Space::with_width(iced::Length::Fill),]
+            row![name_text, Space::with_width(Length::Fill),]
                 .align_items(Alignment::Center)
                 .width(Length::FillPortion(8)),
             // On the middle: print the currently selected value.

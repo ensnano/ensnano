@@ -17,7 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use super::{AppState, Requests};
 use ensnano_iced::{
-    iced::{Alignment, Element, Length},
+    iced::{Alignment, Color, Element, Length},
     UiSize,
 };
 use ensnano_interactor::operation::{Operation, ParameterField};
@@ -30,7 +30,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use winit::dpi::LogicalSize;
 
-const GOLD_ORANGE: iced::Color = iced::Color::from_rgb(0.84, 0.57, 0.20);
+const GOLD_ORANGE: Color = Color::from_rgb(0.84, 0.57, 0.20);
 
 #[derive(Debug)]
 enum StatusParameter {
@@ -134,7 +134,7 @@ impl<R: Requests, State: AppState> StatusBar<R, State> {
         }
     }
 
-    fn view_progress(&self) -> Row<Message<State>, iced::Theme, iced::Renderer> {
+    fn view_progress(&self) -> Row<Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer> {
         let progress = self.progress.as_ref().unwrap();
         row![text(format!("{}, {:.1}%", progress.0, progress.1 * 100.))
             .size(self.ui_size.main_text()),]
@@ -184,8 +184,8 @@ pub enum Message<S: AppState> {
 
 impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
     type Message = Message<S>;
-    type Theme = iced::Theme;
-    type Renderer = iced::Renderer;
+    type Theme = ensnano_iced::Theme;
+    type Renderer = ensnano_iced::Renderer;
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         self.update_operation();
@@ -374,7 +374,10 @@ impl OperationInput {
         self.operation = operation;
     }
 
-    fn view<S: AppState>(&self, ui_size: UiSize) -> Row<Message<S>, iced::Theme, iced::Renderer> {
+    fn view<S: AppState>(
+        &self,
+        ui_size: UiSize,
+    ) -> Row<Message<S>, ensnano_iced::Theme, ensnano_iced::Renderer> {
         let mut row = Row::new();
         let op = self.operation.as_ref();
         row = row.push(Text::new(op.description()).size(ui_size.main_text()));
@@ -461,9 +464,8 @@ impl OperationInput {
 }
 
 mod input_color {
-    use iced::theme;
-    use iced::{Background, Border, Color};
-    use iced_widget::text_input::*;
+    // TODO: Move this in ensnano_iced.
+    use ensnano_iced::iced::{theme, widget::text_input::*, Background, Border, Color};
 
     pub enum InputValueState {
         Normal,

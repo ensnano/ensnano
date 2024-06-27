@@ -16,12 +16,16 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 //! Gives text_input widgets priority to handle keyboard event.
-use iced::advanced::layout::{self, Layout};
-use iced::advanced::renderer;
-use iced::advanced::widget::{self, Widget};
-use iced::advanced::{mouse, Clipboard, Shell};
-use iced::{
-    event, overlay, widget::text_input, Element, Length, Padding, Point, Rectangle, Size, Vector,
+use ensnano_iced::iced::{
+    advanced::{
+        layout::{self, Layout},
+        renderer,
+        widget::{self, Widget},
+        {mouse, Clipboard, Shell},
+    },
+    event, overlay,
+    widget::text_input,
+    Element, Length, Padding, Point, Rectangle, Size, Vector,
 };
 use iced_graphics::text::Paragraph;
 

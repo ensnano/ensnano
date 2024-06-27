@@ -117,7 +117,8 @@ impl<State: AppState> SimulationTab<State> {
         go_stop: &'a GoStop<State>,
         app_state: &State,
         ui_size: UiSize,
-    ) -> iced::Element<'a, Message<State>, ensnano_iced::Theme, crate::Renderer> {
+    ) -> ensnano_iced::Element<'a, Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer>
+    {
         let sim_state = app_state.get_simulation_state();
         if sim_state.is_paused() {
             row![
@@ -146,7 +147,7 @@ impl<State: AppState> GuiTab<State> for SimulationTab<State> {
         &self,
         ui_size: UiSize,
         app_state: &State,
-    ) -> iced::Element<Self::Message, ensnano_iced::Theme, crate::Renderer> {
+    ) -> ensnano_iced::Element<Self::Message, ensnano_iced::Theme, ensnano_iced::Renderer> {
         let sim_state = &app_state.get_simulation_state();
         let rigid_grid_is_active = sim_state.is_none() || sim_state.simulating_grid();
         let roll_active = sim_state.is_none() || sim_state.is_rolling();
@@ -207,7 +208,7 @@ impl PhysicalSimulation {
         name: &'static str,
         active: bool,
         running: bool,
-    ) -> iced::Element<Message<State>, ensnano_iced::Theme, crate::Renderer> {
+    ) -> ensnano_iced::Element<Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer> {
         let button_str = if running { "Stop" } else { name };
         let mut button = text_button(button_str, ui_size);
         button = if running {
