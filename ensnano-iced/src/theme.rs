@@ -3,11 +3,10 @@
 //! The theme of the GUI is defined here
 use std::rc::Rc;
 
-pub use iced::Theme;
+pub use iced::theme::*;
 use iced::{
     advanced::renderer::Style,
     border::Radius,
-    theme::{self, Palette},
     widget::{container, slider, text_input},
     Background, Border, Color,
 };
@@ -32,7 +31,7 @@ pub fn gui_style(theme: &Theme) -> Style {
     }
 }
 
-pub const DISABLED_TEXT: theme::Text = theme::Text::Color(Color::from_rgb(
+pub const DISABLED_TEXT: Text = Text::Color(Color::from_rgb(
     0.6 * GUI_PALETTE.text.r,
     0.6 * GUI_PALETTE.text.g,
     0.6 * GUI_PALETTE.text.b,
@@ -44,7 +43,7 @@ pub struct GuiBackground;
 
 // Implement the style sheet using GUI_PALETTE
 impl container::StyleSheet for GuiBackground {
-    type Style = iced::Theme;
+    type Style = Theme;
 
     fn appearance(&self, _: &Self::Style) -> container::Appearance {
         container::Appearance {
@@ -61,7 +60,7 @@ impl container::StyleSheet for GuiBackground {
 }
 
 // Convenience function to use be able to write `container(…).style(GuiBackground)`
-impl From<GuiBackground> for theme::Container {
+impl From<GuiBackground> for Container {
     fn from(_: GuiBackground) -> Self {
         Self::Custom(Box::new(GuiBackground))
     }
@@ -99,7 +98,7 @@ impl From<GuiBackground> for iced_aw::style::TabBarStyles {
 pub struct DeactivatedSlider;
 
 impl slider::StyleSheet for DeactivatedSlider {
-    type Style = iced::Theme;
+    type Style = Theme;
 
     fn active(&self, _style: &Self::Style) -> slider::Appearance {
         slider::Appearance {
@@ -129,7 +128,7 @@ impl slider::StyleSheet for DeactivatedSlider {
     }
 }
 
-impl From<DeactivatedSlider> for theme::Slider {
+impl From<DeactivatedSlider> for Slider {
     fn from(_: DeactivatedSlider) -> Self {
         Self::Custom(Box::new(DeactivatedSlider))
     }
@@ -142,7 +141,7 @@ impl From<DeactivatedSlider> for theme::Slider {
 pub struct BadValue(pub bool);
 
 impl text_input::StyleSheet for BadValue {
-    type Style = iced::Theme;
+    type Style = Theme;
 
     fn active(&self, _style: &Self::Style) -> text_input::Appearance {
         text_input::Appearance {
@@ -197,7 +196,7 @@ impl text_input::StyleSheet for BadValue {
         }
     }
 }
-impl From<BadValue> for theme::TextInput {
+impl From<BadValue> for TextInput {
     fn from(_: BadValue) -> Self {
         Self::Custom(Box::new(BadValue(true)))
     }

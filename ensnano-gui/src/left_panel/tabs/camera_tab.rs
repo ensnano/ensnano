@@ -22,8 +22,9 @@ use super::{AppState, CheckXoversParameter, FogParameters, HBondDisplay, Message
 use ensnano_iced::{
     fonts::{icon_to_char, MaterialIcon},
     helpers::*,
-    iced::{Alignment, Element, Length},
+    iced::{Alignment, Length},
     iced_aw::TabLabel,
+    theme,
 };
 use ensnano_interactor::graphics::{
     Background3D, RenderingMode, ALL_BACKGROUND3D, ALL_RENDERING_MODE,
@@ -82,11 +83,7 @@ impl<State: AppState> GuiTab<State> for CameraTab<State> {
         TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Videocam)))
     }
 
-    fn content(
-        &self,
-        ui_size: UiSize,
-        app_state: &State,
-    ) -> Element<Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer> {
+    fn content(&self, ui_size: UiSize, app_state: &State) -> ensnano_iced::Element<Message<State>> {
         let content = self::column![
             section("Camera", ui_size),
             subsection("Visibility", ui_size),
@@ -189,34 +186,30 @@ struct FogGuiParameters {
 }
 
 impl FogGuiParameters {
-    fn view<State: AppState>(
-        &self,
-        ui_size: UiSize,
-    ) -> Element<Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer> {
+    fn view<State: AppState>(&self, ui_size: UiSize) -> ensnano_iced::Element<Message<State>> {
         let radius_text = if self.is_activated {
             text("Radius")
         } else {
-            text("Radius").style(ensnano_iced::theme::DISABLED_TEXT)
+            text("Radius").style(theme::DISABLED_TEXT)
         };
 
         let gradient_text = if self.is_activated {
             text("Softness")
         } else {
-            text("Softness").style(ensnano_iced::theme::DISABLED_TEXT)
+            text("Softness").style(theme::DISABLED_TEXT)
         };
 
         let length_slider = if self.is_activated {
             slider(0f32..=100f32, self.length, Message::FogLength)
         } else {
-            slider(0f32..=100f32, self.length, |_| Message::Nothing)
-                .style(ensnano_iced::theme::DeactivatedSlider)
+            slider(0f32..=100f32, self.length, |_| Message::Nothing).style(theme::DeactivatedSlider)
         };
 
         let softness_slider = if self.is_activated {
             slider(0f32..=100f32, self.softness, Message::FogRadius)
         } else {
             slider(0f32..=100f32, self.softness, |_| Message::Nothing)
-                .style(ensnano_iced::theme::DeactivatedSlider)
+                .style(theme::DeactivatedSlider)
         };
 
         // Hand method to

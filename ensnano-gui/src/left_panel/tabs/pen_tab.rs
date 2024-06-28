@@ -22,7 +22,6 @@ use super::{AppState, GridTypeDescr, Message, UiSize, ICON_HONEYCOMB_GRID, ICON_
 use ensnano_iced::{
     fonts::{icon_to_char, MaterialIcon, MaterialIconStyle},
     helpers::*,
-    iced::Element,
     iced_aw::TabLabel,
 };
 
@@ -41,11 +40,7 @@ impl<State: AppState> GuiTab<State> for PenTab<State> {
         TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Draw)))
     }
 
-    fn content(
-        &self,
-        ui_size: UiSize,
-        app_state: &State,
-    ) -> Element<Self::Message, ensnano_iced::Theme, crate::Renderer> {
+    fn content(&self, ui_size: UiSize, app_state: &State) -> ensnano_iced::Element<Self::Message> {
         let selected_path_id = app_state.get_selected_bezier_path();
         let path_txt = selected_path_id
             .map(|p| format!("{:?}", p))

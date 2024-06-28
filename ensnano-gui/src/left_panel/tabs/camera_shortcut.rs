@@ -20,7 +20,7 @@ use crate::CameraId;
 use ensnano_iced::{
     fonts::{MaterialIcon, MaterialIconStyle},
     helpers::*,
-    iced::{alignment::Horizontal, Alignment, Element, Length},
+    iced::{alignment::Horizontal, Alignment, Length},
     UiSize,
 };
 
@@ -82,7 +82,7 @@ const PREDEFINED_CAMERA_ORIENTATION: [NamedCameraPosition; 6] = [
 fn named_camera_to_button<'a, State: AppState>(
     position: &NamedCameraPosition,
     ui_size: UiSize,
-) -> Element<'a, Message<State>, ensnano_iced::Theme, crate::Renderer> {
+) -> ensnano_iced::Element<'a, Message<State>> {
     fixed_text_button(position.name, 2.0, ui_size)
         .on_press(position.message())
         .into()
@@ -124,11 +124,8 @@ struct CameraWidget {
 }
 
 impl CameraWidget {
-    fn view<State: AppState>(
-        &self,
-        ui_size: UiSize,
-    ) -> Element<Message<State>, ensnano_iced::Theme, crate::Renderer> {
-        let name_field: Element<_, _, _> = if self.being_edited {
+    fn view<State: AppState>(&self, ui_size: UiSize) -> ensnano_iced::Element<Message<State>> {
+        let name_field: ensnano_iced::Element<_, _, _> = if self.being_edited {
             keyboard_priority(
                 text_input("Camera name", &self.name)
                     .on_input(Message::EditCameraName)
@@ -288,28 +285,27 @@ impl CameraShortcutPanel {
         &self,
         ui_size: UiSize,
         _state: &State,
-    ) -> Element<'_, Message<State>> {
+    ) -> ensnano_iced::Element<'_, Message<State>> {
         //let (ui_size, _) = state;
         //let ui_size = ui_size.to_owned();
 
         // Create button widget for each predefined target.
 
-        let rotate_buttons: Column<Message<State>, ensnano_iced::Theme, crate::Renderer> =
-            self::column![
-                row(IntoIterator::into_iter([4, 2, 5]).map(|i| {
-                    rotation_icon_button(i, ui_size)
-                        .on_press(rotation_message(i, self.xz, self.yz, self.xy))
-                        .into()
-                }))
-                .spacing(ui_size.button_spacing()),
-                row(IntoIterator::into_iter([0, 3, 1]).map(|i| {
-                    rotation_icon_button(i, ui_size)
-                        .on_press(rotation_message(i, self.xz, self.yz, self.xy))
-                        .into()
-                }))
-                .spacing(ui_size.button_spacing()),
-            ]
-            .spacing(ui_size.button_spacing());
+        let rotate_buttons: Column<Message<State>, _, _> = self::column![
+            row(IntoIterator::into_iter([4, 2, 5]).map(|i| {
+                rotation_icon_button(i, ui_size)
+                    .on_press(rotation_message(i, self.xz, self.yz, self.xy))
+                    .into()
+            }))
+            .spacing(ui_size.button_spacing()),
+            row(IntoIterator::into_iter([0, 3, 1]).map(|i| {
+                rotation_icon_button(i, ui_size)
+                    .on_press(rotation_message(i, self.xz, self.yz, self.xy))
+                    .into()
+            }))
+            .spacing(ui_size.button_spacing()),
+        ]
+        .spacing(ui_size.button_spacing());
 
         //let mut ret = Column::new();
         //while rotate_buttons.len() > 0 {

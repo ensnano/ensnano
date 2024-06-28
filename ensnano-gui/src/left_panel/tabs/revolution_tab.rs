@@ -26,7 +26,7 @@ use ensnano_design::{
 use ensnano_iced::{
     fonts::{icon_to_char, MaterialIcon},
     helpers::*,
-    iced::{Alignment, Element, Length},
+    iced::{Alignment, Length},
     iced_aw::TabLabel,
     theme, UiSize,
 };
@@ -155,7 +155,7 @@ impl ParameterWidget {
     fn input_view<State: AppState>(
         &self,
         id: RevolutionParameterId,
-    ) -> Element<Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer> {
+    ) -> ensnano_iced::Element<Message<State>> {
         keyboard_priority(
             text_input("", &self.current_text)
                 .on_input(move |s| Message::RevolutionParameterUpdate {
@@ -220,10 +220,7 @@ impl<S: AppState> CurveDescriptorWidget<S> {
         }
     }
 
-    fn view(
-        &self,
-        ui_size: UiSize,
-    ) -> Element<Message<S>, ensnano_iced::Theme, ensnano_iced::Renderer> {
+    fn view(&self, ui_size: UiSize) -> ensnano_iced::Element<Message<S>> {
         container(column(
             self.parameters
                 .iter()

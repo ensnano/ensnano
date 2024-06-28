@@ -66,9 +66,7 @@ impl ColorPicker {
         self.hsv_value = hsv_value
     }
 
-    pub fn view<State>(
-        &self,
-    ) -> ensnano_iced::Element<Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer>
+    pub fn view<State>(&self) -> ensnano_iced::Element<Message<State>>
     where
         State: AppState,
     {
@@ -92,9 +90,7 @@ impl ColorPicker {
         )
     }
 
-    pub fn new_view(
-        &self,
-    ) -> ensnano_iced::Element<ColorMessage, ensnano_iced::Theme, ensnano_iced::Renderer> {
+    pub fn new_view(&self) -> ensnano_iced::Element<ColorMessage> {
         row![
             HueColumn::new(ColorMessage::HueChanged,),
             LightSatSquare::new(
@@ -364,7 +360,7 @@ mod light_sat_square {
         }
     }
 
-    impl<'a, Message, Theme> Widget<Message, Theme, ensnano_iced::Renderer>
+    impl<'a, Message> Widget<Message, ensnano_iced::Theme, ensnano_iced::Renderer>
         for LightSatSquare<'a, Message>
     where
         Message: Clone + 'a,
@@ -394,7 +390,7 @@ mod light_sat_square {
             &self,
             _state: &widget::Tree,
             renderer: &mut ensnano_iced::Renderer,
-            _theme: &Theme,
+            _theme: &ensnano_iced::Theme,
             _style: &Style,
             layout: Layout<'_>,
             _cursor: Cursor,
@@ -514,8 +510,8 @@ mod light_sat_square {
         }
     }
 
-    impl<'a, Message, Theme> From<LightSatSquare<'a, Message>>
-        for ensnano_iced::Element<'a, Message, Theme, ensnano_iced::Renderer>
+    impl<'a, Message> From<LightSatSquare<'a, Message>>
+        for ensnano_iced::Element<'a, Message, ensnano_iced::Theme, ensnano_iced::Renderer>
     where
         Message: Clone + 'a,
     {

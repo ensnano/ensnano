@@ -16,7 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use super::{AppState, Message};
-use ensnano_iced::{helpers::*, iced::Element};
+use ensnano_iced::helpers::*;
 
 pub struct SequenceInput {
     #[allow(dead_code)]
@@ -33,7 +33,7 @@ impl SequenceInput {
     }
 
     #[allow(dead_code)]
-    pub fn view<'a, S>(&'a mut self) -> Element<'a, Message<S>>
+    pub fn view<'a, S>(&'a mut self) -> ensnano_iced::Element<'a, Message<S>>
     where
         S: AppState,
     {

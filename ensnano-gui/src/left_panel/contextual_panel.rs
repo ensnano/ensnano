@@ -265,7 +265,7 @@ where
         &self,
         ui_size: UiSize,
         app_state: &State,
-    ) -> ensnano_iced::Element<Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer> {
+    ) -> ensnano_iced::Element<Message<State>> {
         let selection = app_state
             .get_selection()
             .get(0)
@@ -521,7 +521,7 @@ fn add_grid_content<'a, State: AppState>(
     info_values: Vec<String>,
     ui_size: UiSize,
     twisting: TwistStatus,
-) -> ensnano_iced::Element<'a, Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer> {
+) -> ensnano_iced::Element<'a, Message<State>> {
     self::column![
         // twist_button
         match twisting {
@@ -547,7 +547,7 @@ fn add_grid_content<'a, State: AppState>(
 fn add_strand_content<'a, State: AppState>(
     info_values: Vec<String>,
     ui_size: UiSize,
-) -> ensnano_iced::Element<'a, Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer> {
+) -> ensnano_iced::Element<'a, Message<State>> {
     let s_id = info_values[2].parse::<usize>().unwrap();
     self::column![
         row![
@@ -576,7 +576,7 @@ fn add_help_to_column<'a, State: AppState>(
     help_title: impl ToString,
     help: Vec<(String, String)>,
     ui_size: UiSize,
-) -> Column<'a, Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer> {
+) -> Column<'a, Message<State>> {
     self::column![
         text(help_title).size(ui_size.intermediate_text()),
         column(help.iter().map(|(l, r)| {
@@ -899,7 +899,7 @@ impl AddStrandMenu {
         width: u16,
     ) -> iced::widget::Column<'a, Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer> {
         let color_choose_strand_start_length = if self.text_inputs_are_active {
-            iced::theme::Text::Color(theme::GUI_PALETTE.text)
+            theme::Text::Color(theme::GUI_PALETTE.text)
         } else {
             theme::DISABLED_TEXT
         };

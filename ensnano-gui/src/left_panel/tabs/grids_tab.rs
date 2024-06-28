@@ -20,8 +20,9 @@ use std::marker::PhantomData;
 use ensnano_iced::{
     fonts::{icon_to_char, MaterialIcon},
     helpers::*,
-    iced::{self, Element, Length},
+    iced::Length,
     iced_aw::TabLabel,
+    theme,
 };
 
 use super::tabs::GuiTab;
@@ -66,11 +67,7 @@ impl<State: AppState> GuiTab<State> for GridTab<State> {
         TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::GridOn)))
     }
 
-    fn content(
-        &self,
-        ui_size: UiSize,
-        app_state: &State,
-    ) -> Element<Self::Message, ensnano_iced::Theme, crate::Renderer> {
+    fn content(&self, ui_size: UiSize, app_state: &State) -> ensnano_iced::Element<Self::Message> {
         let content = self::column![
             section("Grids", ui_size),
             subsection("New Grid", ui_size),
@@ -90,10 +87,10 @@ impl<State: AppState> GuiTab<State> for GridTab<State> {
                 row![
                     text_button("Cancel", ui_size)
                         .on_press(Message::CancelHyperboloid)
-                        .style(iced::theme::Button::Destructive),
+                        .style(theme::Button::Destructive),
                     text_button("Finish", ui_size)
                         .on_press(Message::FinalizeHyperboloid)
-                        .style(iced::theme::Button::Positive),
+                        .style(theme::Button::Positive),
                 ]
                 .spacing(ui_size.button_spacing())
             } else {

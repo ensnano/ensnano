@@ -22,12 +22,7 @@ use ensnano_interactor::StandardSequence;
 use super::keyboard_priority;
 use super::tabs::GuiTab;
 use super::{AppState, DesignElementKey, Message, UiSize};
-use ensnano_iced::{
-    helpers::*,
-    iced::{Element, Length},
-    iced_aw::TabLabel,
-    theme,
-};
+use ensnano_iced::{helpers::*, iced::Length, iced_aw::TabLabel, theme};
 
 pub struct SequenceTab<State: AppState> {
     toggle_text_value: bool,
@@ -106,11 +101,7 @@ impl<State: AppState> GuiTab<State> for SequenceTab<State> {
         TabLabel::Icon(crate::consts::ICON_ATGC)
     }
 
-    fn content(
-        &self,
-        ui_size: UiSize,
-        app_state: &State,
-    ) -> Element<Self::Message, ensnano_iced::Theme, crate::Renderer> {
+    fn content(&self, ui_size: UiSize, app_state: &State) -> ensnano_iced::Element<Self::Message> {
         // TODO: This update should happen, but somewhere else in the code.
         //       I think it must happen inside LeftPanel::update
         //

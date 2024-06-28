@@ -24,7 +24,6 @@ use super::{AppState, FactoryId, Message, RequestFactory, ScrollSensitivity, UiS
 use ensnano_iced::{
     fonts::{icon_to_char, MaterialIcon},
     helpers::*,
-    iced::Element,
     iced_aw::TabLabel,
 };
 
@@ -66,11 +65,7 @@ impl<State: AppState> GuiTab<State> for ParametersTab<State> {
         TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Settings)))
     }
 
-    fn content(
-        &self,
-        ui_size: UiSize,
-        app_state: &State,
-    ) -> Element<Self::Message, ensnano_iced::Theme, crate::Renderer> {
+    fn content(&self, ui_size: UiSize, app_state: &State) -> ensnano_iced::Element<Self::Message> {
         let dna_params = &app_state.get_dna_parameters();
 
         let content = self::column![

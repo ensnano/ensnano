@@ -49,11 +49,16 @@ use iced_graphics::text::Paragraph;
 /// .on_priority(Message::SetKeyboardPriority(true))
 /// .on_unpriority(Message::SetKeyboardPriority(false));
 /// ```
-pub struct KeyboardPriority<'a, Message, Theme = ensnano_iced::Theme, Renderer = crate::Renderer> {
+pub struct KeyboardPriority<
+    'a,
+    Message,
+    Theme = ensnano_iced::Theme,
+    Renderer = ensnano_iced::Renderer,
+> {
     padding: Padding,
     width: Length,
     height: Length,
-    content: Element<'a, Message, Theme, Renderer>,
+    content: ensnano_iced::Element<'a, Message, Theme, Renderer>,
     on_priority: Option<Message>,
     on_unpriority: Option<Message>,
 }
