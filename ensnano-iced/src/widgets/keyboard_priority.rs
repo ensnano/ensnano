@@ -16,7 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 //! Gives text_input widgets priority to handle keyboard event.
-use ensnano_iced::iced::{
+use iced::{
     advanced::{
         layout::{self, Layout},
         renderer,
@@ -49,16 +49,11 @@ use iced_graphics::text::Paragraph;
 /// .on_priority(Message::SetKeyboardPriority(true))
 /// .on_unpriority(Message::SetKeyboardPriority(false));
 /// ```
-pub struct KeyboardPriority<
-    'a,
-    Message,
-    Theme = ensnano_iced::Theme,
-    Renderer = ensnano_iced::Renderer,
-> {
+pub struct KeyboardPriority<'a, Message, Theme = crate::Theme, Renderer = crate::Renderer> {
     padding: Padding,
     width: Length,
     height: Length,
-    content: ensnano_iced::Element<'a, Message, Theme, Renderer>,
+    content: crate::Element<'a, Message, Theme, Renderer>,
     on_priority: Option<Message>,
     on_unpriority: Option<Message>,
 }

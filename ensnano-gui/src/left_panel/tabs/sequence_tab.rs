@@ -19,7 +19,6 @@ use std::marker::PhantomData;
 
 use ensnano_interactor::StandardSequence;
 
-use super::keyboard_priority;
 use super::tabs::GuiTab;
 use super::{AppState, DesignElementKey, Message, UiSize};
 use ensnano_iced::{helpers::*, iced::Length, iced_aw::TabLabel, theme};
