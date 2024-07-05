@@ -21,6 +21,7 @@ use ensnano_iced::{
     fonts::{MaterialIcon, MaterialIconStyle},
     helpers::*,
     iced::{alignment::Horizontal, Alignment, Length},
+    iced_graphics::text::Paragraph,
     UiSize,
 };
 
@@ -159,7 +160,7 @@ impl CameraWidget {
 
 #[derive(Debug, Clone, Default)]
 struct CameraWidgetState {
-    name_input: text_input::State<iced_graphics::text::Paragraph>,
+    name_input: text_input::State<Paragraph>,
 }
 
 pub struct CameraShortcutPanel {

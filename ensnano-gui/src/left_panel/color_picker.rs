@@ -106,21 +106,23 @@ impl ColorPicker {
 
 /// A Iced Widget to select Hue.
 mod hue_column {
-    use ensnano_iced::iced::{
-        advanced::{
-            layout, mouse, renderer::Style, widget, Clipboard, Layout, Renderer as RendererTrait,
-            Shell, Widget,
+    use ensnano_iced::{
+        iced::{
+            advanced::{
+                layout, mouse, renderer::Style, widget, Clipboard, Layout,
+                Renderer as RendererTrait, Shell, Widget,
+            },
+            event,
+            mouse::Cursor,
+            Length, Point, Rectangle, Renderer, Size, Vector,
         },
-        event,
-        mouse::Cursor,
-        Length, Point, Rectangle, Renderer, Size, Vector,
+        iced_graphics::{
+            color::pack,
+            mesh::{Indexed, Mesh, SolidVertex2D},
+            Primitive,
+        },
+        iced_wgpu,
     };
-    use iced_graphics::{
-        color::pack,
-        mesh::{Indexed, Mesh, SolidVertex2D},
-        Primitive,
-    };
-    use iced_wgpu as wgpu;
 
     use color_space::{Hsv, Rgb};
 
@@ -218,7 +220,7 @@ mod hue_column {
                 }
             }
 
-            let mesh = wgpu::primitive::Custom::Mesh(Mesh::Solid {
+            let mesh = iced_wgpu::primitive::Custom::Mesh(Mesh::Solid {
                 buffers: Indexed { vertices, indices },
                 size: b.size(),
             });
@@ -302,21 +304,23 @@ mod hue_column {
 
 /// A widget to select Lightness and Saturation values.
 mod light_sat_square {
-    use ensnano_iced::iced::{
-        advanced::{
-            layout, mouse, renderer::Style, widget, Clipboard, Layout, Renderer as RendererTrait,
-            Shell, Widget,
+    use ensnano_iced::{
+        iced::{
+            advanced::{
+                layout, mouse, renderer::Style, widget, Clipboard, Layout,
+                Renderer as RendererTrait, Shell, Widget,
+            },
+            event,
+            mouse::Cursor,
+            Length, Point, Rectangle, Renderer, Size, Vector,
         },
-        event,
-        mouse::Cursor,
-        Length, Point, Rectangle, Renderer, Size, Vector,
+        iced_graphics::{
+            color::pack,
+            mesh::{Indexed, Mesh, SolidVertex2D},
+            Primitive,
+        },
+        iced_wgpu,
     };
-    use iced_graphics::{
-        color::pack,
-        mesh::{Indexed, Mesh, SolidVertex2D},
-        Primitive,
-    };
-    use iced_wgpu as wgpu;
 
     use color_space::{Hsv, Rgb};
 
@@ -429,7 +433,7 @@ mod light_sat_square {
                 }
             }
 
-            let mesh = wgpu::primitive::Custom::Mesh(Mesh::Solid {
+            let mesh = iced_wgpu::primitive::Custom::Mesh(Mesh::Solid {
                 size: b.size(),
                 buffers: Indexed { vertices, indices },
             });
@@ -524,21 +528,23 @@ mod light_sat_square {
 /// A widget to Visualize selected color.
 mod color_square {
     use super::Color;
-    use ensnano_iced::iced::{
-        advanced::{
-            layout, mouse, renderer::Style, widget, Clipboard, Layout, Renderer as RendererTrait,
-            Shell, Widget,
+    use ensnano_iced::{
+        iced::{
+            advanced::{
+                layout, mouse, renderer::Style, widget, Clipboard, Layout,
+                Renderer as RendererTrait, Shell, Widget,
+            },
+            event,
+            mouse::Cursor,
+            Length, Rectangle, Size, Vector,
         },
-        event,
-        mouse::Cursor,
-        Length, Rectangle, Size, Vector,
+        iced_graphics::{
+            color::pack,
+            mesh::{Indexed, Mesh, SolidVertex2D},
+            Primitive,
+        },
+        iced_wgpu,
     };
-    use iced_graphics::{
-        color::pack,
-        mesh::{Indexed, Mesh, SolidVertex2D},
-        Primitive,
-    };
-    use iced_wgpu as wgpu;
 
     /// The State of a [ColorSquare]
     #[derive(Default, Clone, Eq, PartialEq)]
@@ -640,7 +646,7 @@ mod color_square {
             ];
             let indices = vec![0, 1, 2, 1, 2, 3];
 
-            let mesh = wgpu::primitive::Custom::Mesh(Mesh::Solid {
+            let mesh = iced_wgpu::primitive::Custom::Mesh(Mesh::Solid {
                 buffers: Indexed { vertices, indices },
                 size: b.size(),
             });

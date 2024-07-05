@@ -18,17 +18,16 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::{AppState, Requests};
 use ensnano_iced::{
     iced::{Alignment, Color, Element, Length},
+    iced_graphics::text::Paragraph,
+    iced_runtime::{Command, Program},
+    iced_widget::*,
+    iced_winit::winit::dpi::LogicalSize,
     UiSize,
 };
 use ensnano_interactor::operation::{Operation, ParameterField};
 pub use ensnano_interactor::StrandBuildingStatus;
-use iced_graphics::text::Paragraph;
-use iced_runtime::{Command, Program};
-use iced_widget::*;
-use iced_winit::winit;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
-use winit::dpi::LogicalSize;
 
 const GOLD_ORANGE: Color = Color::from_rgb(0.84, 0.57, 0.20);
 

@@ -21,6 +21,7 @@ use super::{Selection, UiSize};
 use ensnano_iced::{
     helpers::*,
     iced::{Alignment, Length},
+    iced_graphics::text::Paragraph,
 };
 
 pub trait BuilderMessage: Clone + 'static {
@@ -38,7 +39,7 @@ macro_rules! type_builder {
                     #[allow(dead_code)]
                     $param: $param_type,
                     [<$param _string>]: String,
-                    [<$param _input>]: text_input::State<iced_graphics::text::Paragraph>,
+                    [<$param _input>]: text_input::State<Paragraph>,
                 )*
                     value_to_modify: ValueKind,
             }

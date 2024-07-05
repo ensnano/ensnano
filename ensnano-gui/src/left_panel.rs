@@ -18,18 +18,21 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use ensnano_iced::{
     iced::{theme, Color, Command, Element, Length},
     iced_aw::native::{TabBarPosition, TabLabel, Tabs},
+    iced_runtime::Program,
+    iced_widget::*,
+    iced_winit::{
+        conversion,
+        winit::{
+            dpi::{LogicalPosition, LogicalSize},
+            event::Modifiers,
+        },
+    },
     UiSize,
 };
 use ensnano_interactor::{graphics::HBondDisplay, EquadiffSolvingMethod};
 use ensnano_organizer::{Organizer, OrganizerMessage, OrganizerTree};
 use std::sync::{Arc, Mutex};
 
-use iced_runtime::Program;
-use iced_widget::*;
-use iced_winit::winit::{
-    dpi::{LogicalPosition, LogicalSize},
-    event::Modifiers,
-};
 use ultraviolet::Vec3;
 
 use ensnano_design::{
@@ -668,7 +671,7 @@ where
             }
             Message::ModifiersChanged(modifiers) => self
                 .organizer
-                .new_modifiers(iced_winit::conversion::modifiers(modifiers.state())),
+                .new_modifiers(conversion::modifiers(modifiers.state())),
             Message::UiSizePicked(ui_size) => self.requests.lock().unwrap().set_ui_size(ui_size),
             Message::UiSizeChanged(ui_size) => self.ui_size = ui_size,
             Message::SetScaffoldSeqButtonPressed => {

@@ -42,7 +42,6 @@ pub mod status_bar;
 pub use ensnano_design::{grid::GridId, Camera, CameraId};
 pub use status_bar::{ClipboardContent, CurentOpState, StrandBuildingStatus};
 mod consts;
-pub use iced_graphics;
 
 #[macro_use]
 extern crate paste;
@@ -54,6 +53,12 @@ use ensnano_design::{
     elements::{DesignElement, DesignElementKey, DnaAttribute},
     grid::GridTypeDescr,
     ultraviolet, BezierPathId, BezierVertexId, HelixParameters, Nucl,
+};
+use ensnano_iced::{
+    iced_graphics,
+    iced_runtime::{program, Debug},
+    iced_wgpu::{self, wgpu, Backend},
+    iced_winit::{conversion, winit},
 };
 use ensnano_interactor::{
     graphics::{Background3D, DrawArea, GuiComponentType, RenderingMode, SplitMode},
@@ -68,10 +73,6 @@ use ensnano_interactor::{operation::Operation, ScaffoldInfo};
 use ensnano_interactor::{ActionMode, HyperboloidRequest, RollRequest, SelectionMode};
 pub use ensnano_organizer::OrganizerTree;
 use iced::{event::Event, keyboard, Renderer, Size};
-use iced_graphics::Viewport;
-use iced_runtime::{program, Debug};
-use iced_wgpu::{wgpu, Backend};
-use iced_winit::{conversion, winit};
 use std::collections::{BTreeSet, HashMap};
 use std::rc::Rc;
 use std::sync::{Arc, Mutex};
@@ -587,7 +588,7 @@ impl<R: Requests, S: AppState> GuiComponent<R, S> {
         mouse_interaction: &mut iced::mouse::Interaction,
     ) {
         if self.redraw {
-            let viewport = Viewport::with_physical_size(
+            let viewport = iced_graphics::Viewport::with_physical_size(
                 convert_size_u32(multiplexer.get_draw_area(self.element_type).unwrap().size),
                 window.scale_factor(),
             );

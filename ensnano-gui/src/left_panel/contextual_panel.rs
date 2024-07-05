@@ -21,6 +21,7 @@ use ensnano_design::{grid::GridId, BezierVertexId};
 use ensnano_iced::{
     helpers::*,
     iced::{self, alignment::Horizontal, Alignment},
+    iced_graphics::text::Paragraph,
     theme,
 };
 use ensnano_interactor::{Selection, SimulationState};
@@ -943,7 +944,7 @@ impl AddStrandMenu {
 }
 
 struct InsertionLengthState {
-    state: text_input::State<iced_graphics::text::Paragraph>,
+    state: text_input::State<Paragraph>,
     selection: Selection,
     input_str: Option<String>,
 }

@@ -6,11 +6,6 @@ edition = "2018"
 license = "GPL-3.0-or-later"
 
 [dependencies]
-iced_graphics = "0.12"
-iced_runtime = "0.12"
-iced_winit = "0.12"
-iced_wgpu = "0.12"
-iced_widget = "0.12"
 wgpu = { version = "0.19", features = ["spirv"] }
 ensnano_design = { path = "../ensnano-design" }
 ensnano_iced = { path = "../ensnano-iced" }

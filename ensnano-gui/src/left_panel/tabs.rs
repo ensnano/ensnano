@@ -66,11 +66,7 @@ pub trait GuiTab<State: AppState> {
         None
     }
 
-    fn view(
-        &self,
-        ui_size: UiSize,
-        app_state: &State,
-    ) -> ensnano_iced::Element<'_, Self::Message, ensnano_iced::Theme, ensnano_iced::Renderer> {
+    fn view(&self, ui_size: UiSize, app_state: &State) -> ensnano_iced::Element<'_, Self::Message> {
         container(self.content(ui_size, app_state))
             .width(Length::Fill)
             .height(Length::Fill)
@@ -81,7 +77,7 @@ pub trait GuiTab<State: AppState> {
         &self,
         ui_size: UiSize,
         app_state: &State,
-    ) -> ensnano_iced::Element<'_, Self::Message, ensnano_iced::Theme, ensnano_iced::Renderer>;
+    ) -> ensnano_iced::Element<'_, Self::Message>;
 }
 
 mod gostop {

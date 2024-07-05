@@ -58,6 +58,7 @@ pub struct KeyboardPriority<'a, Message, Theme = crate::Theme, Renderer = crate:
     on_unpriority: Option<Message>,
 }
 
+/// A container that gives keyboard priority to it's [text_input::TextInput] content.
 pub fn keyboard_priority<'a, Message, Theme, Renderer>(
     content: impl Into<Element<'a, Message, Theme, Renderer>>,
 ) -> KeyboardPriority<'a, Message, Theme, Renderer> {

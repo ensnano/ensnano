@@ -28,11 +28,11 @@ use ensnano_iced::{
     fonts::{MaterialIcon, MaterialIconStyle},
     helpers::*,
     iced::{self, Element, Length, Padding},
+    iced_runtime::{Command, Program},
+    iced_winit::winit::dpi::LogicalSize,
     UiSize,
 };
 use ensnano_interactor::{ActionMode, SelectionMode};
-use iced_runtime::{Command, Program};
-use iced_winit::winit::dpi::LogicalSize;
 use std::sync::{Arc, Mutex};
 
 use super::{Requests, SplitMode};

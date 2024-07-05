@@ -16,11 +16,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use super::{AppState, Message};
-use ensnano_iced::helpers::*;
+use ensnano_iced::{helpers::*, iced_graphics::text::Paragraph};
 
 pub struct SequenceInput {
     #[allow(dead_code)]
-    text_input_state: text_input::State<iced_graphics::text::Paragraph>,
+    text_input_state: text_input::State<Paragraph>,
     sequence: String,
 }
 
