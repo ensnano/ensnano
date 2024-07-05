@@ -246,16 +246,13 @@ impl Controller {
             DesignOperation::AttachObject { object, grid, x, y } => {
                 self.apply(|c, d| c.attach_object(d, object, grid, x, y), design)
             }
-            DesignOperation::SetOrganizerTree(tree) => {
-                println!("Tree op {}", rand::random::<u8>());
-                Ok(self.ok_apply(
-                    |_, mut d| {
-                        d.organizer_tree = Some(Arc::new(tree));
-                        d
-                    },
-                    design,
-                ))
-            }
+            DesignOperation::SetOrganizerTree(tree) => Ok(self.ok_apply(
+                |_, mut d| {
+                    d.organizer_tree = Some(Arc::new(tree));
+                    d
+                },
+                design,
+            )),
             DesignOperation::SetStrandName { s_id, name } => {
                 self.apply(|c, d| c.change_strand_name(d, s_id, name), design)
             }
