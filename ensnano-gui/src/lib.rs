@@ -995,7 +995,10 @@ impl<S: AppState> IcedMessages<S> {
             self.left_panel
                 .push_back(left_panel::Message::NewApplicationState(state.clone()));
             self.top_bar
-                .push_back(top_bar::Message::NewApplicationState(state.clone()));
+                .push_back(top_bar::Message::NewApplicationState((
+                    state.clone(),
+                    top_bar_state,
+                )));
             self.status_bar
                 .push_back(status_bar::Message::NewApplicationState(state));
         }

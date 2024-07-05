@@ -35,9 +35,11 @@ use super::{Requests, SplitMode};
 
 /// Top bar object
 pub struct TopBar<R: Requests, S: AppState> {
-    /// ENSnano request to which forwards messages.
+    /// ENSnano requests handle to which forwards messages.
     requests: Arc<Mutex<R>>,
+    /// Area occupied by the top bar.
     logical_size: LogicalSize<f64>,
+    /// A copy of the UI sizes.
     ui_size: UiSize,
     /// State of the whole application.
     app_state: S,
@@ -60,7 +62,7 @@ pub enum Message<S: AppState> {
     ExportRequested,
     Split2d,
     // Receive an new application state.
-    NewApplicationState(S),
+    NewApplicationState((S, TopBarState)),
     ForceHelp,
     ShowTutorial,
     Undo,
@@ -126,7 +128,10 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
             Message::UiSizeChanged(ui_size) => self.ui_size = ui_size,
             Message::ExportRequested => self.requests.lock().unwrap().set_exporting(true),
             Message::Split2d => self.requests.lock().unwrap().toggle_2d_view_split(),
-            Message::NewApplicationState(app_state) => self.app_state = app_state,
+            Message::NewApplicationState((app_state, state)) => {
+                self.app_state = app_state;
+                self.state = state;
+            }
             Message::Undo => self.requests.lock().unwrap().undo(),
             Message::Redo => self.requests.lock().unwrap().redo(),
             Message::ForceHelp => self.requests.lock().unwrap().force_help(),
