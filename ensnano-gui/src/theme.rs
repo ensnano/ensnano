@@ -1,6 +1,7 @@
 //! ENSnano theme
 //!
 //! The theme of the GUI is defined here
+use std::rc::Rc;
 
 use iced::advanced::renderer::Style;
 pub use iced::Theme;
@@ -9,6 +10,7 @@ use iced::{
     theme::{self, Palette},
     Background, Border, Color,
 };
+use iced_aw::native::tab_bar;
 use iced_widget::{container, slider, text_input};
 
 /// Color palette
@@ -62,6 +64,33 @@ impl container::StyleSheet for GuiBackground {
 impl From<GuiBackground> for theme::Container {
     fn from(_: GuiBackground) -> Self {
         Self::Custom(Box::new(GuiBackground))
+    }
+}
+
+impl tab_bar::StyleSheet for GuiBackground {
+    type Style = iced::Theme;
+
+    fn active(&self, _style: &Self::Style, _is_active: bool) -> tab_bar::Appearance {
+        tab_bar::Appearance {
+            text_color: GUI_PALETTE.text,
+            icon_color: GUI_PALETTE.text,
+            ..Default::default()
+        }
+    }
+
+    fn hovered(&self, _style: &Self::Style, _is_active: bool) -> tab_bar::Appearance {
+        tab_bar::Appearance {
+            text_color: GUI_PALETTE.text,
+            icon_color: GUI_PALETTE.text,
+            ..Default::default()
+        }
+    }
+}
+
+// Convenience function to use be able to write `tabs(…).tab_bar_style(GuiBackground)`
+impl From<GuiBackground> for iced_aw::style::TabBarStyles {
+    fn from(_: GuiBackground) -> Self {
+        Self::Custom(Rc::new(GuiBackground))
     }
 }
 

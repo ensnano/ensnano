@@ -349,6 +349,8 @@ where
     type Renderer = crate::Renderer;
     type Message = Message<S>;
 
+    // BUG: Increasing the left panel too much crashes ENSnano.
+
     fn update(&mut self, message: Message<S>) -> Command<Message<S>> {
         self.camera_shortcut.update(&self.application_state);
         self.contextual_panel.update(&self.application_state);
@@ -1023,6 +1025,7 @@ where
             .icon_size(self.ui_size.icon())
             .text_font(fonts::MATERIAL_ICONS_DARK)
             .tab_bar_height(Length::Fixed(self.ui_size.tab_bar_height()))
+            .tab_bar_style(crate::theme::GuiBackground.into())
             .width(Length::Fixed(width as f32))
             .height(Length::Fill);
         // NOTE: The style, height and width values are necessary to clear the tab when
