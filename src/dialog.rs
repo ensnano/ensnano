@@ -49,9 +49,9 @@ pub fn yes_no_dialog(message: Cow<'static, str>) -> YesNoQuestion {
     let (snd, rcv) = mpsc::channel();
     thread::spawn(move || {
         let choice = async move {
-            println!("thread spawned");
+            log::debug!("thread spawned");
             let ret = msg.await;
-            println!("about to send");
+            log::debug!("about to send");
             log_err![snd.send(ret)];
         };
         futures::executor::block_on(choice);

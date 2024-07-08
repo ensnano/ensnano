@@ -505,6 +505,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             Instant::now() + Duration::from_millis(33),
         ));
 
+        log::debug!("Gui keyboard priority {:?}", &gui.has_keyboard_priority());
         let mut main_state_view = MainStateView {
             main_state: &mut main_state,
             window_target: &window_target,
@@ -1564,7 +1565,7 @@ impl MainState {
         if self.app_state.is_in_stable_state() {
             self.app_state.save_design(&path, save_info)?;
             self.last_backed_up_state = self.app_state.clone();
-            println!("Saved backup to {}", path.to_string_lossy());
+            log::warn!("Saved backup to {}", path.to_string_lossy());
         } else {
             // Do nothing. We do not want to save backup in transitory states.
         }

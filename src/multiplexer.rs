@@ -617,7 +617,18 @@ impl Multiplexer {
                     Key::Named(NamedKey::Delete) | Key::Named(NamedKey::Backspace) => {
                         self.requests.lock().unwrap().delete_selection = Some(());
                     }
-                    _ => {
+                    Key::Character("0")
+                    | Key::Character("1")
+                    | Key::Character("2")
+                    | Key::Character("3")
+                    | Key::Character("4")
+                    | Key::Character("5")
+                    | Key::Character("6")
+                    | Key::Character("7")
+                    | Key::Character("8")
+                    | Key::Character("9")
+                        if location == &KeyLocation::Standard =>
+                    {
                         if let Some(num) = keycode_to_num(logical_key, location) {
                             self.requests
                                 .lock()
@@ -628,6 +639,7 @@ impl Multiplexer {
                             captured = false
                         }
                     }
+                    _ => captured = false,
                 }
             }
             _ => {}
