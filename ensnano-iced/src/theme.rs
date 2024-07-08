@@ -31,6 +31,11 @@ pub fn gui_style(theme: &Theme) -> Style {
     }
 }
 
+fn scale_color(color: Color, scale: f32) -> Color {
+    let [r, g, b, a] = color.into_linear();
+    Color::from_linear_rgba(r * scale, g * scale, b * scale, a)
+}
+
 pub const DISABLED_TEXT: Text = Text::Color(Color::from_rgb(
     0.6 * GUI_PALETTE.text.r,
     0.6 * GUI_PALETTE.text.g,
@@ -100,20 +105,25 @@ pub struct DeactivatedSlider;
 impl slider::StyleSheet for DeactivatedSlider {
     type Style = Theme;
 
-    fn active(&self, _style: &Self::Style) -> slider::Appearance {
+    fn active(&self, style: &Self::Style) -> slider::Appearance {
+        let palette = style.extended_palette();
+
         slider::Appearance {
             rail: slider::Rail {
-                colors: ([0.6, 0.6, 0.6, 0.5].into(), Color::WHITE),
-                width: 8.0,
-                border_radius: Radius::from(1.0),
+                colors: (
+                    scale_color(palette.primary.base.color, 0.6),
+                    scale_color(palette.secondary.base.color, 0.6),
+                ),
+                width: 4.0,
+                border_radius: Radius::from(2.0),
             },
             handle: slider::Handle {
                 shape: slider::HandleShape::Rectangle {
                     width: 8,
                     border_radius: Radius::from(4.0),
                 },
-                color: Color::from_rgb(0.65, 0.65, 0.65),
-                border_color: Color::from_rgb(0.6, 0.6, 0.6),
+                color: scale_color(palette.background.base.color, 0.6),
+                border_color: scale_color(palette.primary.base.color, 0.6),
                 border_width: 1.0,
             },
         }
