@@ -539,6 +539,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     main_state_view.notify_apps(Notification::ModifersChanged(modifiers));
                 }
 
+                // NOTE: Escape fullscreen mode.
+                //
                 WindowEvent::KeyboardInput {
                     event: key_event, ..
                 } if (key_event.logical_key == Key::Named(NamedKey::Escape)
@@ -547,6 +549,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     window.set_fullscreen(None)
                 }
 
+                // NOTE: KEYBOARD PRIORITY MODE
+                //       Some widgets –such as [text_input]– need to intercept keys that are otherwise used
+                //       as shortcuts by the UI. The “keyboard priority” feature has been made for this,
+                //       and the interception is made here.
+                //
                 WindowEvent::KeyboardInput { .. } if gui.has_keyboard_priority() => {
                     iced_winit::conversion::window_event(
                         iced::window::Id::MAIN,
@@ -556,7 +563,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         window.scale_factor(),
                         kbd_modifiers,
                     )
-                    .map(|e| gui.forward_event_all(e));
+                    .map(|iced_event| gui.forward_event_all(iced_event));
                 }
 
                 WindowEvent::RedrawRequested

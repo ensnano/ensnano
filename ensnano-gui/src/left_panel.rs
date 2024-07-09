@@ -93,7 +93,6 @@ pub struct LeftPanel<R: Requests, S: AppState> {
 
 #[derive(Debug, Clone)]
 pub enum Message<S: AppState> {
-    FontLoaded(Result<(), iced::font::Error>),
     Resized(LogicalSize<f64>, LogicalPosition<f64>),
     #[allow(dead_code)]
     OpenColor,
@@ -373,7 +372,6 @@ where
                 .update_organizer_tree(self.organizer.tree())
         }
         match message {
-            Message::FontLoaded(_) => {}
             Message::SequenceChanged(s) => {
                 self.requests
                     .lock()

@@ -542,6 +542,9 @@ impl Multiplexer {
                     },
                 ..
             } => {
+                //
+                // NOTE: Gui keyboard shortcuts are defined and handled here.
+                //
                 captured = true;
                 match logical_key.as_ref() {
                     Key::Named(NamedKey::Escape) => {
@@ -636,6 +639,7 @@ impl Multiplexer {
             _ => {}
         }
 
+        // NOTE: Return the event if it has not been captured.
         if let Some(focus) = self.focus.filter(|_| !captured) {
             Some((event, focus))
         } else {
