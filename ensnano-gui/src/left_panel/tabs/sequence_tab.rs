@@ -22,6 +22,7 @@ use iced_aw::TabLabel;
 
 use ensnano_interactor::StandardSequence;
 
+use super::keyboard_priority;
 use super::tabs::GuiTab;
 use super::{AppState, DesignElementKey, Message, UiSize};
 use crate::helpers::*;
@@ -31,7 +32,6 @@ pub struct SequenceTab<State: AppState> {
     toggle_text_value: bool,
     scaffold_position_str: String,
     scaffold_position: usize,
-    scaffold_input: text_input::State<iced_graphics::text::Paragraph>,
     _state_type: PhantomData<State>,
 }
 
@@ -63,7 +63,6 @@ impl<State: AppState> SequenceTab<State> {
             toggle_text_value: false,
             scaffold_position_str: "0".to_string(),
             scaffold_position: 0,
-            scaffold_input: Default::default(),
             _state_type: PhantomData,
         }
     }
@@ -80,10 +79,6 @@ impl<State: AppState> SequenceTab<State> {
         } else {
             None
         }
-    }
-
-    pub fn has_keyboard_priority(&self) -> bool {
-        self.scaffold_input.is_focused()
     }
 
     fn get_candidate_scaffold(selection: &[DesignElementKey]) -> Option<usize> {
@@ -201,12 +196,16 @@ impl<State: AppState> GuiTab<State> for SequenceTab<State> {
             // add_scaffold_position_input_row!
             row![
                 text("Starting position").width(Length::FillPortion(2)),
-                text_input("Scaffold position", &self.scaffold_position_str)
-                    .on_input(Message::ScaffoldPositionInput,)
-                    .style(BadValue(
-                        self.scaffold_position_str == self.scaffold_position.to_string(),
-                    ))
-                    .width(iced::Length::FillPortion(1)),
+                keyboard_priority(
+                    text_input("Scaffold position", &self.scaffold_position_str)
+                        .on_input(Message::ScaffoldPositionInput,)
+                        .style(BadValue(
+                            self.scaffold_position_str == self.scaffold_position.to_string(),
+                        ))
+                )
+                .width(iced::Length::FillPortion(1))
+                .on_hover(Message::SetKeyboardPriority(true))
+                .on_unhover(Message::SetKeyboardPriority(false)),
             ],
             // add_optimize_scaffold_shift_button!
             text_button("Optimize starting position", ui_size)
