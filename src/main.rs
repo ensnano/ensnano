@@ -554,7 +554,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 //       as shortcuts by the UI. The “keyboard priority” feature has been made for this,
                 //       and the interception is made here.
                 //
-                WindowEvent::KeyboardInput { .. } if gui.has_keyboard_priority() => {
+                WindowEvent::KeyboardInput { .. } if main_state.keyboard_priority => {
                     iced_winit::conversion::window_event(
                         iced::window::Id::MAIN,
                         // NOTE: Used to be window.id(). It seems dirty,
@@ -1120,6 +1120,8 @@ pub(crate) struct MainState {
     messages: Arc<Mutex<IcedMessages<AppState>>>,
     applications: HashMap<GuiComponentType, Arc<Mutex<dyn Application<AppState = AppState>>>>,
     focused_component: Option<GuiComponentType>,
+    /// Disable the interception of keyboard events, to let the user input text.
+    keyboard_priority: bool,
     last_saved_state: AppState,
 
     /// The name of the file containing the current design.
@@ -1160,6 +1162,7 @@ impl MainState {
             messages: constructor.messages,
             applications: Default::default(),
             focused_component: None,
+            keyboard_priority: false,
             last_saved_state: app_state.clone(),
             file_name: None,
             wants_fit: false,
