@@ -211,6 +211,7 @@ pub enum Message<S: AppState> {
     SaveNucleotidesPositions,
     IncrRevolutionShift,
     DecrRevolutionShift,
+    SetKeyboardPriority(bool),
 }
 
 impl<S: AppState> contextual_panel::BuilderMessage for Message<S> {
@@ -963,6 +964,11 @@ where
             }
             Message::IncrRevolutionShift => self.revolution_tab.shift_idx += 1,
             Message::DecrRevolutionShift => self.revolution_tab.shift_idx -= 1,
+            Message::SetKeyboardPriority(priority) => self
+                .requests
+                .lock()
+                .unwrap()
+                .set_keyboard_priority(priority),
         };
 
         self.grid_tab.update(&mut self.application_state);
