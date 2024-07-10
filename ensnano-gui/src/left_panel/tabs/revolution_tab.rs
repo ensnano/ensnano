@@ -19,7 +19,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use iced::{Alignment, Element, Length};
 use iced_aw::TabLabel;
 
-use super::tabs::GuiTab;
+use super::{keyboard_priority, tabs::GuiTab};
 use crate::helpers::*;
 use crate::left_panel::Message;
 use crate::theme;
@@ -134,7 +134,6 @@ impl<S: AppState> Eq for CurveDescriptorBuilder<S> {}
 
 struct ParameterWidget {
     current_text: String,
-    state: text_input::State<iced_graphics::text::Paragraph>,
     parameter_kind: ParameterKind,
 }
 
@@ -147,7 +146,6 @@ impl ParameterWidget {
         };
         Self {
             current_text,
-            state: Default::default(),
             parameter_kind,
         }
     }
@@ -156,22 +154,22 @@ impl ParameterWidget {
         &self,
         id: RevolutionParameterId,
     ) -> Element<Message<State>, crate::Theme, crate::Renderer> {
-        text_input("", &self.current_text)
-            .on_input(move |s| Message::RevolutionParameterUpdate {
-                parameter_id: id,
-                text: s,
-            })
-            .width(50)
-            .style(theme::BadValue(self.contains_valid_input()))
-            .into()
+        keyboard_priority(
+            text_input("", &self.current_text)
+                .on_input(move |s| Message::RevolutionParameterUpdate {
+                    parameter_id: id,
+                    text: s,
+                })
+                .width(50)
+                .style(theme::BadValue(self.contains_valid_input())),
+        )
+        .on_hover(Message::SetKeyboardPriority(true))
+        .on_unhover(Message::SetKeyboardPriority(false))
+        .into()
     }
 
     fn set_text(&mut self, text: String) {
         self.current_text = text;
-    }
-
-    fn has_keyboard_priority(&self) -> bool {
-        self.state.is_focused()
     }
 
     fn contains_valid_input(&self) -> bool {
@@ -246,12 +244,6 @@ impl<S: AppState> CurveDescriptorWidget<S> {
         if let Some(p) = self.parameters.get_mut(param_id) {
             p.1.set_text(text)
         }
-    }
-
-    fn has_keyboard_priority(&self) -> bool {
-        self.parameters
-            .iter()
-            .any(|(_, p)| p.has_keyboard_priority())
     }
 
     fn instanciated_parameters(&self) -> Vec<InstanciatedParameter> {
@@ -406,24 +398,6 @@ impl<State: AppState> RevolutionTab<State> {
         })
     }
 
-    pub fn has_keyboard_priority(&self) -> bool {
-        self.curve_descriptor_widget
-            .as_ref()
-            .map(CurveDescriptorWidget::has_keyboard_priority)
-            .unwrap_or(false)
-            || self.radius_input.has_keyboard_priority()
-            || self.nb_section_per_segment_input.has_keyboard_priority()
-            || self.half_turn_count.has_keyboard_priority()
-            || self.scaffold_len_target.has_keyboard_priority()
-            || self.nb_sprial_state_input.has_keyboard_priority()
-            || self.spring_stiffness.has_keyboard_priority()
-            || self.torsion_stiffness.has_keyboard_priority()
-            || self.fluid_friction.has_keyboard_priority()
-            || self.ball_mass.has_keyboard_priority()
-            || self.time_span.has_keyboard_priority()
-            || self.simulation_step.has_keyboard_priority()
-    }
-
     pub fn get_revolution_system(
         &self,
         app_state: &State,
@@ -532,7 +506,9 @@ impl<State: AppState> RevolutionTab<State> {
     }
 
     pub fn modifying_radius(&self) -> bool {
-        self.radius_input.state.is_focused()
+        //self.radius_input.state.is_focused()
+        false
+        // TODO: Fix me
     }
 
     pub fn update(&mut self, app_state: &State) {

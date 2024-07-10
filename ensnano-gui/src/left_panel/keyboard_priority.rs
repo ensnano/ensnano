@@ -15,7 +15,6 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use crate::helpers::*;
 use iced::advanced::layout::{self, Layout};
 use iced::advanced::renderer;
 use iced::advanced::widget::{self, Widget};
@@ -23,6 +22,11 @@ use iced::advanced::{mouse, Clipboard, Shell};
 use iced::{event, overlay, Element, Length, Padding, Point, Rectangle, Size, Vector};
 
 // TODO: Merge with hoverable container ?
+
+// BUG: Implemented like this, the pointer must stay over the widget to maintain keyboard
+//      priority.
+//      A possible fix is to implement a custom text_input that will send a priority message
+//      on hover and focus.
 
 pub struct KeyboardPriority<'a, Message, Theme = crate::Theme, Renderer = crate::Renderer> {
     padding: Padding,

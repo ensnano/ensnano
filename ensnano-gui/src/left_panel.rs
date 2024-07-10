@@ -337,7 +337,6 @@ impl<R: Requests, S: AppState> LeftPanel<R, S> {
             || self.contextual_panel.has_keyboard_priority()
             || self.organizer.has_keyboard_priority()
             || self.camera_shortcut.has_keyboard_priority()
-            || self.revolution_tab.has_keyboard_priority()
     }
 }
 
