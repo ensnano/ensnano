@@ -18,14 +18,14 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 //! Implements the [Requests](`crate::gui::Requests`) trait for [Requests](`super::Requests`).
 
-use crate::gui::{Requests as GuiRequests, RigidBodyParametersRequest};
+use crate::gui::{self, RigidBodyParametersRequest};
 use ensnano_design::grid::GridId;
 use ensnano_interactor::{InsertionPoint, RigidBodyConstants, RollRequest};
 use std::collections::BTreeSet;
 
 use super::*;
 
-impl GuiRequests for Requests {
+impl gui::Requests for Requests {
     fn close_overlay(&mut self, overlay_type: OverlayType) {
         self.keep_proceed
             .push_back(Action::CloseOverlay(overlay_type));
@@ -538,6 +538,9 @@ impl GuiRequests for Requests {
             .push_back(Action::GetDesignPathAndNotify(|path| {
                 Notification::StlExport(path)
             }));
+    }
+    fn set_keyboard_priority(&mut self, priority: bool) {
+        self.set_keyboard_priority = Some(priority)
     }
 }
 

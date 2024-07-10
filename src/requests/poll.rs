@@ -385,4 +385,8 @@ pub(crate) fn poll_all<R: DerefMut<Target = Requests>>(
     if requests.switched_to_revolution_tab.take().is_some() {
         main_state.create_default_bezier_plane();
     }
+
+    if let Some(priority) = requests.set_keyboard_priority.take() {
+        main_state.keyboard_priority = priority;
+    }
 }

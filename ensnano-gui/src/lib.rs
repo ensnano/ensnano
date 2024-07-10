@@ -248,6 +248,8 @@ pub trait Requests: 'static + Send {
     fn request_save_nucleotides_positions(&mut self);
     fn notify_revolution_tab(&mut self);
     fn request_stl_export(&mut self);
+    /// Set keyboard priority, i.e. wether activate keyboard shortcuts.
+    fn set_keyboard_priority(&mut self, priority: bool);
 }
 
 #[derive(Clone, Debug, PartialEq)]
