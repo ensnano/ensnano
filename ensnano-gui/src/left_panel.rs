@@ -50,6 +50,8 @@ mod sequence_input;
 use sequence_input::SequenceInput;
 mod discrete_value;
 use discrete_value::{FactoryId, RequestFactory, Requestable, ValueId};
+mod keyboard_priority;
+use keyboard_priority::keyboard_priority;
 mod tabs;
 use crate::consts::*;
 mod contextual_panel;
