@@ -124,25 +124,6 @@ where
                 }
             }
         }
-
-        //if let Event::Mouse(mouse::Event::CursorMoved { .. }) = event {
-        //    let bounds = layout.bounds();
-        //    if bounds.contains(cursor_position) {
-        //        if !state.is_hovered {
-        //            if let Some(on_hovered_in) = self.on_hovered_in.clone() {
-        //                shell.publish(on_hovered_in)
-        //            }
-        //            state.is_hovered = true;
-        //        }
-        //    } else {
-        //        if state.is_hovered {
-        //            if let Some(on_hovered_out) = self.on_hovered_out.clone() {
-        //                shell.publish(on_hovered_out)
-        //            }
-        //            state.is_hovered = false;
-        //        }
-        //    }
-        //}
         event::Status::Ignored
     }
 

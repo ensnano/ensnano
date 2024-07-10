@@ -59,6 +59,10 @@ pub trait GuiTab<State: AppState> {
 
     fn label(&self) -> TabLabel;
 
+    fn update(&mut self, _app_state: &mut State) -> Option<Self::Message> {
+        None
+    }
+
     fn view(
         &self,
         ui_size: UiSize,

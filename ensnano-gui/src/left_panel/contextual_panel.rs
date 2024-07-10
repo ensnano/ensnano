@@ -224,7 +224,7 @@ where
         self.width = width;
     }
 
-    pub fn update(&mut self, app_state: &State) {
+    pub fn update(&mut self, app_state: &mut State) {
         let selection = app_state
             .get_selection()
             .get(0)

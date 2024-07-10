@@ -285,7 +285,7 @@ impl CameraShortcutPanel {
 //        None
 //    }
 impl CameraShortcutPanel {
-    pub fn update<State: AppState>(&mut self, app_state: &State) {
+    pub fn update<State: AppState>(&mut self, app_state: &mut State) {
         self.set_camera_widget(app_state);
     }
 

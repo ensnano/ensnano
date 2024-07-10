@@ -351,9 +351,6 @@ where
     // BUG: Increasing the left panel too much crashes ENSnano.
 
     fn update(&mut self, message: Message<S>) -> Command<Message<S>> {
-        self.camera_shortcut.update(&self.application_state);
-        self.contextual_panel.update(&self.application_state);
-
         let notify_new_tree =
             if let Some(tree) = self.application_state.get_reader().get_organizer_tree() {
                 self.organizer.read_tree(tree.as_ref())
@@ -967,6 +964,19 @@ where
             Message::IncrRevolutionShift => self.revolution_tab.shift_idx += 1,
             Message::DecrRevolutionShift => self.revolution_tab.shift_idx -= 1,
         };
+
+        self.grid_tab.update(&mut self.application_state);
+        self.edition_tab.update(&mut self.application_state);
+        self.camera_tab.update(&mut self.application_state);
+        self.simulation_tab.update(&mut self.application_state);
+        self.sequence_tab.update(&mut self.application_state);
+        self.parameters_tab.update(&mut self.application_state);
+        self.pen_tab.update(&mut self.application_state);
+        self.revolution_tab.update(&mut self.application_state);
+
+        self.camera_shortcut.update(&mut self.application_state);
+        self.contextual_panel.update(&mut self.application_state);
+
         Command::none()
     }
 
