@@ -705,28 +705,33 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     }
                 }
 
+                // NOTE: Any other [WindowEvent]
+                //
                 _ => {
                     //let modifiers = multiplexer.modifiers();
+
                     // Feed the event to the multiplexer
                     let event =
                         multiplexer.event(window_event, &mut resized, &mut scale_factor_changed);
 
-                    if let Some((event, area)) = event {
-                        // pass the event to the area on which it happenened
-                        if main_state.focused_element != Some(area) {
+                    if let Some((event, gui_component_type)) = event {
+                        // Update the focused gui component
+                        if main_state.focused_component != Some(gui_component_type) {
                             if let Some(app) = main_state
-                                .focused_element
+                                .focused_component
                                 .as_ref()
                                 .and_then(|elt| main_state.applications.get(elt))
                             {
                                 app.lock().unwrap().on_notify(Notification::WindowFocusLost)
                             }
-                            main_state.focused_element = Some(area);
+                            main_state.focused_component = Some(gui_component_type);
                             main_state.update_candidates(vec![]);
                         }
                         main_state.applications_cursor = None;
-                        match area {
-                            area if area.is_panel() => {
+
+                        // Feed the event to the gui component on which it happenened
+                        match gui_component_type {
+                            component if component.is_panel() => {
                                 iced_winit::conversion::window_event(
                                     iced::window::Id::MAIN,
                                     // NOTE: Used to be window.id(). It seems dirty,
@@ -735,7 +740,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                     window.scale_factor(),
                                     kbd_modifiers,
                                 )
-                                .map(|e| gui.forward_event(area, e));
+                                .map(|e| gui.forward_event(component, e));
                             }
                             GuiComponentType::Overlay(n) => {
                                 iced_winit::conversion::window_event(
@@ -1114,7 +1119,7 @@ pub(crate) struct MainState {
     channel_reader: ChannelReader,
     messages: Arc<Mutex<IcedMessages<AppState>>>,
     applications: HashMap<GuiComponentType, Arc<Mutex<dyn Application<AppState = AppState>>>>,
-    focused_element: Option<GuiComponentType>,
+    focused_component: Option<GuiComponentType>,
     last_saved_state: AppState,
 
     /// The name of the file containing the current design.
@@ -1154,7 +1159,7 @@ impl MainState {
             channel_reader: Default::default(),
             messages: constructor.messages,
             applications: Default::default(),
-            focused_element: None,
+            focused_component: None,
             last_saved_state: app_state.clone(),
             file_name: None,
             wants_fit: false,
