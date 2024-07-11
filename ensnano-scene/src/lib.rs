@@ -1020,10 +1020,11 @@ impl<S: AppState> Scene<S> {
             label: Some("3D PNG export"),
         });
 
-        let draw_options = DrawOptions {
-            rendering_mode: RenderingMode::Cartoon,
-            ..Default::default()
-        };
+        // let draw_options =  DrawOptions {
+        //     rendering_mode: RenderingMode::Cartoon,
+        //     ..Default::default()
+        // };
+        let draw_options = self.older_state.get_draw_options();
 
         self.view.borrow_mut().draw(
             &mut encoder,

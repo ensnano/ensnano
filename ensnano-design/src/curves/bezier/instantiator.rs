@@ -100,19 +100,20 @@ pub(crate) trait PieceWiseBezierInstantiator<T: BezierEndCoordinateUnit> {
         use rand::prelude::*;
         let descriptor = if self.nb_vertices() > 2 {
             let n = self.nb_vertices();
-            let idx_iterator: Box<dyn Iterator<Item = ((usize, usize), usize)>> = if self.is_cyclic() {
-                Box::new(
-                    (0..n)
-                        .cycle()
-                        .skip(n - 1)
-                        .zip((0..n).cycle().take(n + 1))
-                        .zip((0..n).cycle().skip(1)),
-                )
-            } else {
-                // iterate from 0 to n-1 and add manually the first and last vertices
-                // afterwards
-                Box::new((0..n).zip((0..n).skip(1)).zip((0..n).skip(2)))
-            };
+            let idx_iterator: Box<dyn Iterator<Item = ((usize, usize), usize)>> =
+                if self.is_cyclic() {
+                    Box::new(
+                        (0..n)
+                            .cycle()
+                            .skip(n - 1)
+                            .zip((0..n).cycle().take(n + 1))
+                            .zip((0..n).cycle().skip(1)),
+                    )
+                } else {
+                    // iterate from 0 to n-1 and add manually the first and last vertices
+                    // afterwards
+                    Box::new((0..n).zip((0..n).skip(1)).zip((0..n).skip(2)))
+                };
             let mut bezier_points: Vec<_> = idx_iterator
                 .filter_map(|((idx_from, idx), idx_to)| {
                     let pos_from = self.position(idx_from)?;

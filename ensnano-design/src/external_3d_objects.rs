@@ -28,7 +28,6 @@ use crate::Collection;
 const DEFAULT_OPACITY: f32 = 1.0;
 const DEFAULT_COLOR: u32 = 0xdb5530; // orange/red
 
-
 /// An external object to be drawn in the scene
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct External3DObject {

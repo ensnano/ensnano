@@ -647,15 +647,25 @@ impl Reader3D for DesignReader {
                             });
                         let position = content.space_position.get(nucl_id).unwrap().clone();
                         pos_seq.push(position);
-                        curvatures.push(design.helices.get(&domain.helix).unwrap().curvature_at_pos(nucl_position).unwrap_or(0.0)); 
+                        curvatures.push(
+                            design
+                                .helices
+                                .get(&domain.helix)
+                                .unwrap()
+                                .curvature_at_pos(nucl_position)
+                                .unwrap_or(0.0),
+                        );
                     }
                 }
             }
-            nucl_pos.insert(*s_id, StrandNucleotidesPositions {
-                positions: pos_seq,
-                is_cyclic: strand.is_cyclic,
-                curvatures,
-            });
+            nucl_pos.insert(
+                *s_id,
+                StrandNucleotidesPositions {
+                    positions: pos_seq,
+                    is_cyclic: strand.is_cyclic,
+                    curvatures,
+                },
+            );
         }
         return nucl_pos;
     }

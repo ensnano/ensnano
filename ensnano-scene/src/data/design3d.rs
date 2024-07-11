@@ -28,9 +28,9 @@ use crate::view::PlainRectangleInstance;
 use ensnano_design::grid::{GridId, GridObject, GridPosition};
 use ensnano_design::{grid::HelixGridPosition, Nucl};
 use ensnano_design::{
-    AdditionalStructure, BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex,
-    Collection, CubicBezierConstructor, CurveDescriptor, External3DObjects, HelixParameters,
-    InstanciatedPath,
+    perpendicular_basis, AdditionalStructure, BezierPathId, BezierPlaneDescriptor, BezierPlaneId,
+    BezierVertex, Collection, CubicBezierConstructor, CurveDescriptor, External3DObjects,
+    HelixParameters, InstanciatedPath,
 };
 pub use ensnano_design::{SurfaceInfo, SurfacePoint};
 use ensnano_interactor::consts::*;
@@ -39,10 +39,11 @@ use ensnano_interactor::{
     phantom_helix_encoder_bond, phantom_helix_encoder_nucl, BezierControlPoint, ObjectType,
     PhantomElement, Referential, PHANTOM_RANGE,
 };
+use ensnano_utils::colors::{self, new_color, purple_to_blue_gradient_color};
 use ensnano_utils::instance::Instance;
 use std::collections::hash_map::RandomState;
 use std::collections::{BTreeMap, HashMap, HashSet};
-use std::f32::consts::PI;
+use std::f32::consts::{PI, TAU};
 use std::iter::Zip;
 use std::rc::Rc;
 use std::sync::Arc;
@@ -51,7 +52,7 @@ use ultraviolet::{Mat4, Rotor3, Vec2, Vec3, Vec4};
 mod bezier_paths;
 
 use crate::SceneElement::DesignElement;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 use ensnano_utils::StrandNucleotidesPositions;
 
@@ -108,28 +109,34 @@ impl<R: DesignReader> Design3D<R> {
         }
         if let Some(additional_structure) = self.design_reader.get_additional_structure() {
             let transformation = additional_structure.frame();
+            // Draw the spheres of the masses of the helix routing simulation
             for p in additional_structure.position() {
                 ret.push(
                     SphereInstance {
                         position: transformation.transform_vec(p),
-                        color: Instance::unclear_color_from_u32(SURFACE_PIVOT_SPHERE_COLOR),
+                        color: Instance::unclear_color_from_u32(
+                            SURFACE_PIVOT_SPHERE_COLOR | 0xFF000000,
+                        ),
                         id: u32::MAX,
-                        radius: SPHERE_RADIUS,
+                        radius: 4. * SPHERE_RADIUS,
                     }
                     .to_raw_instance(),
                 );
             }
-            if let Some(path) = additional_structure.nt_path() {
-                for p in path {
-                    ret.push(
-                        SphereInstance {
-                            position: transformation.transform_vec(p),
-                            color: Instance::unclear_color_from_u32(PIVOT_SPHERE_COLOR),
-                            id: u32::MAX,
-                            radius: SPHERE_RADIUS,
-                        }
-                        .to_raw_instance(),
-                    );
+            // Draw the current helices during the helix routing simulation as a sequence of yellow balls -> TO BE REPLACED BY SAUSAGE ROSARY
+            if let Some(paths) = additional_structure.nt_paths() {
+                for p in paths {
+                    for q in p {
+                        ret.push(
+                            SphereInstance {
+                                position: transformation.transform_vec(q),
+                                color: Instance::unclear_color_from_u32(PIVOT_SPHERE_COLOR),
+                                id: u32::MAX,
+                                radius: SPHERE_RADIUS / 100.,
+                            }
+                            .to_raw_instance(),
+                        );
+                    }
                 }
             }
         }
@@ -278,24 +285,112 @@ impl<R: DesignReader> Design3D<R> {
             }
         }
 
+        let draw_helices = true;
+        let draw_springs = true;
+        let draw_broken_lines = !draw_helices;
+
         if let Some(additional_structure) = self.design_reader.get_additional_structure() {
             let transformation = additional_structure.frame();
-            let positions = additional_structure.position();
-            for (me, next) in additional_structure.right().into_iter() {
-                let pos_left = transformation.transform_vec(positions[me]);
-                let pos_right = transformation.transform_vec(positions[next]);
-                ret.push(
-                    create_dna_bond(pos_left, pos_right, REGULAR_H_BOND_COLOR, u32::MAX, false)
-                        .to_raw_instance(),
-                )
+            if draw_helices {
+                if let Some(path) = additional_structure.nt_paths() {
+                    let mut color_idx = 0;
+                    for positions in path {
+                        let color = colors::new_color(&mut color_idx);
+                        let positions = positions
+                            .into_iter()
+                            .map(|p| transformation.transform_vec(p))
+                            .collect();
+                        let (sliced_tubes, _) = SausageRosary {
+                            positions,
+                            is_cyclic: true,
+                        }
+                        .to_raw_dna_instances(
+                            { |_| color },
+                            2. * SPHERE_RADIUS,
+                            u32::MAX,
+                        );
+                        ret.extend(sliced_tubes.into_iter().map(|s| s.to_raw_instance()));
+                    }
+                }
             }
-            for (me, other) in additional_structure.next().into_iter() {
-                let pos_left = transformation.transform_vec(positions[me]);
-                let pos_right = transformation.transform_vec(positions[other]);
-                ret.push(
-                    create_dna_bond(pos_left, pos_right, COLOR_GUANINE, u32::MAX, false)
+
+            let positions = additional_structure.position();
+            // Draw grey bars between the masses defining for the broken lines corresponding to each helix -> TO BE REPLACED BY A SAUSAGEROSARY passing through the nt_paths
+            if draw_broken_lines {
+                for (me, next) in additional_structure.right().into_iter() {
+                    let pos_left = transformation.transform_vec(positions[me]);
+                    let pos_right = transformation.transform_vec(positions[next]);
+                    let mut color_idx = me / additional_structure.number_of_sections();
+                    ret.push(
+                        create_dna_bond(
+                            pos_left,
+                            pos_right,
+                            colors::new_color(&mut color_idx), //REGULAR_H_BOND_COLOR,
+                            u32::MAX,
+                            false,
+                        )
+                        .with_radius(1.5 * SPHERE_RADIUS)
                         .to_raw_instance(),
-                )
+                    )
+                }
+            }
+
+            // Draw section links in helix routing relaxation -> TO BE REPLACED BY SPRINGS WITH A CONSTANT NUMBER OF COILS
+            let NB_COILS = 10;
+            let NB_STEPS = 10 * NB_COILS;
+            let SPRING_RADIUS = 2. * SPHERE_RADIUS;
+            let SPRING_THICKNESS = SPRING_RADIUS / 4.;
+            let MIN_SPRING_LENGTH = 2.65 / 1.5;
+            let MAX_SPRING_LENGTH = 2.65 * 1.5;
+            let alpha = NB_COILS as f32 * TAU / NB_STEPS as f32;
+            let xx = (0..NB_COILS)
+                .map(|i| SPRING_RADIUS * (i as f32 * alpha).cos())
+                .collect::<Vec<f32>>();
+            let yy = (0..NB_COILS)
+                .map(|i| SPRING_RADIUS * (i as f32 * alpha).sin())
+                .collect::<Vec<f32>>();
+            if draw_springs {
+                // println!("drawing springs...");
+                for (me, other) in additional_structure.next().into_iter() {
+                    let pos_left = transformation.transform_vec(positions[me]);
+                    let pos_right = transformation.transform_vec(positions[other]);
+
+                    // create a spring with 10 coils between them
+                    let uv = pos_right - pos_left;
+                    let z_vec = uv.normalized();
+                    let y_vec = z_vec
+                        .cross(if z_vec.x.abs() > 0.5 {
+                            Vec3::unit_y()
+                        } else {
+                            Vec3::unit_x()
+                        })
+                        .normalized();
+                    let x_vec = y_vec.cross(z_vec);
+                    let positions = (0..NB_STEPS)
+                        .map(|i| {
+                            (pos_left
+                                + i as f32 / NB_STEPS as f32 * uv
+                                + xx[i % NB_COILS] * x_vec
+                                + yy[i % NB_COILS] * y_vec)
+                        })
+                        .collect();
+                    let color = ensnano_utils::colors::purple_to_blue_gradient_color_in_range(
+                        uv.mag(),
+                        MIN_SPRING_LENGTH,
+                        MAX_SPRING_LENGTH,
+                    );
+                    let (sliced_tubes, _) = SausageRosary {
+                        positions,
+                        is_cyclic: false,
+                    }
+                    .to_raw_dna_instances(
+                        { |_| color },
+                        SPRING_THICKNESS,
+                        u32::MAX,
+                    );
+                    ret.extend(sliced_tubes.into_iter().map(|s| s.to_raw_instance()));
+                }
+                // println!("drawing springs... Done");
             }
         }
 
@@ -1636,7 +1731,6 @@ pub(super) enum ExpandWith {
     Tubes,
 }
 
-
 // Array of (strand number, array of 3D space position of the nucleotides)
 
 pub trait DesignReader: 'static + ensnano_interactor::DesignReader {
@@ -1730,7 +1824,9 @@ pub trait DesignReader: 'static + ensnano_interactor::DesignReader {
     fn get_surface_info_nucl(&self, nucl: Nucl) -> Option<SurfaceInfo>;
     fn get_surface_info(&self, point: SurfacePoint) -> Option<SurfaceInfo>;
     fn get_additional_structure(&self) -> Option<&dyn AdditionalStructure>;
-    fn get_nucleotides_positions_by_strands(&self) -> HashMap<usize, StrandNucleotidesPositions, RandomState>;
+    fn get_nucleotides_positions_by_strands(
+        &self,
+    ) -> HashMap<usize, StrandNucleotidesPositions, RandomState>;
 }
 
 pub(super) struct HBondsInstances {

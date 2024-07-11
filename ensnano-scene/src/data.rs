@@ -1342,7 +1342,9 @@ impl<R: DesignReader> Data<R> {
         instances
     }
 
-    pub fn get_nucleotides_positions_by_strands(&self) -> Option<HashMap<usize, StrandNucleotidesPositions>> {
+    pub fn get_nucleotides_positions_by_strands(
+        &self,
+    ) -> Option<HashMap<usize, StrandNucleotidesPositions>> {
         return Some(
             self.designs
                 .get(0)?
