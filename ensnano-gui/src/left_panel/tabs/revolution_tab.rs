@@ -28,7 +28,6 @@ use ensnano_iced::{
     helpers::*,
     iced::{Alignment, Length},
     iced_aw::TabLabel,
-    iced_graphics::text::Paragraph,
     theme, UiSize,
 };
 use ensnano_interactor::{
