@@ -132,6 +132,10 @@ impl SpringTopology for CloseSurfaceTopology {
         self.prev_section[ball_id]
     }
 
+    fn number_of_sections_per_segment(&self) -> usize {
+        return self.nb_section_per_segment;
+    }
+
     fn balls_with_successor(&self) -> &[usize] {
         &self.idx_range
     }
@@ -213,12 +217,12 @@ impl SpringTopology for CloseSurfaceTopology {
         println!("Nb spirals {}", self.target.nb_spirals());
         for i in 0..self.target.nb_spirals() {
             let mut interpolations = Vec::new();
-            let segment_indicies = (0..nb_segment_per_helix).map(|n| {
+            let segment_indices = (0..nb_segment_per_helix).map(|n| {
                 (i as isize + (n as isize * self.target.total_shift()))
                     .rem_euclid(self.nb_segment as isize)
             });
             let theta_0 = thetas[i * self.nb_section_per_segment];
-            for s_idx in segment_indicies {
+            for s_idx in segment_indices {
                 let start = s_idx as usize * self.nb_section_per_segment;
                 let end = start + self.nb_section_per_segment - 1;
                 let mut segment_thetas = thetas[start..=end].to_vec();

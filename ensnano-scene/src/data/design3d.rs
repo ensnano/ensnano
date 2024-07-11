@@ -320,10 +320,17 @@ impl<R: DesignReader> Design3D<R> {
                 for (me, next) in additional_structure.right().into_iter() {
                     let pos_left = transformation.transform_vec(positions[me]);
                     let pos_right = transformation.transform_vec(positions[next]);
+                    let mut color_idx = me / additional_structure.number_of_sections();
                     ret.push(
-                        create_dna_bond(pos_left, pos_right, REGULAR_H_BOND_COLOR, u32::MAX, false)
-                            .with_radius(1.5 * SPHERE_RADIUS)
-                            .to_raw_instance(),
+                        create_dna_bond(
+                            pos_left,
+                            pos_right,
+                            colors::new_color(&mut color_idx), //REGULAR_H_BOND_COLOR,
+                            u32::MAX,
+                            false,
+                        )
+                        .with_radius(1.5 * SPHERE_RADIUS)
+                        .to_raw_instance(),
                     )
                 }
             }
@@ -336,8 +343,12 @@ impl<R: DesignReader> Design3D<R> {
             let MIN_SPRING_LENGTH = 2.65 / 1.5;
             let MAX_SPRING_LENGTH = 2.65 * 1.5;
             let alpha = NB_COILS as f32 * TAU / NB_STEPS as f32;
-            let xx = (0..NB_COILS).map(|i| SPRING_RADIUS * (i as f32 * alpha).cos()).collect::<Vec<f32>>();
-            let yy = (0..NB_COILS).map(|i| SPRING_RADIUS * (i as f32 * alpha).sin()).collect::<Vec<f32>>();
+            let xx = (0..NB_COILS)
+                .map(|i| SPRING_RADIUS * (i as f32 * alpha).cos())
+                .collect::<Vec<f32>>();
+            let yy = (0..NB_COILS)
+                .map(|i| SPRING_RADIUS * (i as f32 * alpha).sin())
+                .collect::<Vec<f32>>();
             if draw_springs {
                 // println!("drawing springs...");
                 for (me, other) in additional_structure.next().into_iter() {
@@ -359,11 +370,15 @@ impl<R: DesignReader> Design3D<R> {
                         .map(|i| {
                             (pos_left
                                 + i as f32 / NB_STEPS as f32 * uv
-                                + xx[i%NB_COILS] * x_vec
-                                + yy[i%NB_COILS] * y_vec)
+                                + xx[i % NB_COILS] * x_vec
+                                + yy[i % NB_COILS] * y_vec)
                         })
                         .collect();
-                    let color = ensnano_utils::colors::purple_to_blue_gradient_color_in_range(uv.mag(), MIN_SPRING_LENGTH, MAX_SPRING_LENGTH);
+                    let color = ensnano_utils::colors::purple_to_blue_gradient_color_in_range(
+                        uv.mag(),
+                        MIN_SPRING_LENGTH,
+                        MAX_SPRING_LENGTH,
+                    );
                     let (sliced_tubes, _) = SausageRosary {
                         positions,
                         is_cyclic: false,
