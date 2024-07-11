@@ -163,8 +163,8 @@ impl ParameterWidget {
                 .width(50)
                 .style(theme::BadValue(self.contains_valid_input())),
         )
-        .on_hover(Message::SetKeyboardPriority(true))
-        .on_unhover(Message::SetKeyboardPriority(false))
+        .on_priority(Message::SetKeyboardPriority(true))
+        .on_unpriority(Message::SetKeyboardPriority(false))
         .into()
     }
 

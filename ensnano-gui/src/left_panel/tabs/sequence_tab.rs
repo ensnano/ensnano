@@ -204,8 +204,8 @@ impl<State: AppState> GuiTab<State> for SequenceTab<State> {
                         ))
                 )
                 .width(iced::Length::FillPortion(1))
-                .on_hover(Message::SetKeyboardPriority(true))
-                .on_unhover(Message::SetKeyboardPriority(false)),
+                .on_priority(Message::SetKeyboardPriority(true))
+                .on_unpriority(Message::SetKeyboardPriority(false)),
             ],
             // add_optimize_scaffold_shift_button!
             text_button("Optimize starting position", ui_size)

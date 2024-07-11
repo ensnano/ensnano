@@ -15,26 +15,43 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+//! Gives text_input widgets priority to handle keyboard event.
 use iced::advanced::layout::{self, Layout};
 use iced::advanced::renderer;
 use iced::advanced::widget::{self, Widget};
 use iced::advanced::{mouse, Clipboard, Shell};
-use iced::{event, overlay, Element, Length, Padding, Point, Rectangle, Size, Vector};
+use iced::{
+    event, overlay, widget::text_input, Element, Length, Padding, Point, Rectangle, Size, Vector,
+};
+use iced_graphics::text::Paragraph;
 
-// TODO: Merge with hoverable container ?
-
-// BUG: Implemented like this, the pointer must stay over the widget to maintain keyboard
-//      priority.
-//      A possible fix is to implement a custom text_input that will send a priority message
-//      on hover and focus.
-
+/// A container that should contain a [text_input::TextInput].
+///
+/// Trigger `on_priority` and `on_unpriority` whent the text_input is focused or unfocused.
+///
+/// # Example
+///
+/// ```no_run
+/// #[derive(Debug, Clone)]
+/// enum Message {
+///     SetKeyboardPriority(bool)
+/// }
+///
+/// let value = "Some Text";
+///
+/// let input = keyboard_priority(
+///     text_input("This is the placeholder...", value)
+/// )
+/// .on_priority(Message::SetKeyboardPriority(true))
+/// .on_unpriority(Message::SetKeyboardPriority(false));
+/// ```
 pub struct KeyboardPriority<'a, Message, Theme = crate::Theme, Renderer = crate::Renderer> {
     padding: Padding,
     width: Length,
     height: Length,
     content: Element<'a, Message, Theme, Renderer>,
-    on_hover: Option<Message>,
-    on_unhover: Option<Message>,
+    on_priority: Option<Message>,
+    on_unpriority: Option<Message>,
 }
 
 pub fn keyboard_priority<'a, Message, Theme, Renderer>(
@@ -51,8 +68,8 @@ impl<'a, Message, Theme, Renderer> KeyboardPriority<'a, Message, Theme, Renderer
             width: Length::Shrink,
             height: Length::Shrink,
             content: content.into(),
-            on_hover: None,
-            on_unhover: None,
+            on_priority: None,
+            on_unpriority: None,
         }
     }
 
@@ -67,14 +84,14 @@ impl<'a, Message, Theme, Renderer> KeyboardPriority<'a, Message, Theme, Renderer
     }
 
     /// Sets the message that will be produced when the content is hovered.
-    pub fn on_hover(mut self, message: Message) -> Self {
-        self.on_hover = Some(message);
+    pub fn on_priority(mut self, message: Message) -> Self {
+        self.on_priority = Some(message);
         self
     }
 
     /// Sets the message that will be produced when the content is unhovered.
-    pub fn on_unhover(mut self, message: Message) -> Self {
-        self.on_unhover = Some(message);
+    pub fn on_unpriority(mut self, message: Message) -> Self {
+        self.on_unpriority = Some(message);
         self
     }
 }
@@ -82,7 +99,7 @@ impl<'a, Message, Theme, Renderer> KeyboardPriority<'a, Message, Theme, Renderer
 /// The local state of an [`HoverableContainer`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct State {
-    is_hovered: bool,
+    is_focused: bool,
 }
 
 impl<'a, Message, Theme, Renderer> Widget<Message, Theme, Renderer>
@@ -129,26 +146,48 @@ where
             return event::Status::Captured;
         }
         let state = tree.state.downcast_mut::<State>();
-        let was_hovered = state.is_hovered;
-        let now_hovered = cursor_position.is_over(layout.bounds());
-        match (was_hovered, now_hovered) {
-            (true, true) => {}
-            (false, false) => {}
-            (true, false) => {
-                // exited hover
-                state.is_hovered = now_hovered;
-                if let Some(on_unhover) = &self.on_unhover {
-                    shell.publish(on_unhover.clone());
+        // Figure out wether the underlying widget is a text_input, and if it is focused.
+        let was_focused = state.is_focused;
+        let now_focused = if let Some(child_widget) = tree.children.get(0) {
+            if let widget::tree::State::Some(child_state) = &child_widget.state {
+                match child_state.downcast_ref::<text_input::State<Paragraph>>() {
+                    Some(text_input_state) => text_input_state.is_focused(),
+                    None => false,
                 }
+            } else {
+                false
             }
-            (false, true) => {
-                // entered hover
-                state.is_hovered = now_hovered;
-                if let Some(on_hover) = &self.on_hover {
+        } else {
+            false
+        };
+        // Activate or deactivate keyboard priority.
+        enum Action {
+            Activate,
+            Deactivate,
+            None,
+        }
+        let action = match (was_focused, now_focused) {
+            (true, true) => Action::None,
+            (false, true) => Action::Activate,
+            (true, false) => Action::Deactivate,
+            (false, false) => Action::None,
+        };
+        match action {
+            Action::Activate => {
+                if let Some(on_hover) = &self.on_priority {
                     shell.publish(on_hover.clone());
                 }
             }
+            Action::Deactivate => {
+                if let Some(on_unhover) = &self.on_unpriority {
+                    shell.publish(on_unhover.clone());
+                }
+            }
+            Action::None => {}
         }
+        // Update state
+        state.is_focused = now_focused;
+
         event::Status::Ignored
     }
 

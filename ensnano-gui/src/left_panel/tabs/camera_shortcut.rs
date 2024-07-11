@@ -15,7 +15,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use super::{AppState, Message, UiSize, Vec3};
+use super::{keyboard_priority, AppState, Message, UiSize, Vec3};
 use crate::{helpers::*, CameraId};
 use iced::{alignment::Horizontal, Alignment, Element, Length};
 
@@ -124,10 +124,14 @@ impl CameraWidget {
         ui_size: UiSize,
     ) -> Element<Message<State>, crate::Theme, crate::Renderer> {
         let name_field: Element<_, _, _> = if self.being_edited {
-            text_input("Camera name", &self.name)
-                .on_input(Message::EditCameraName)
-                .on_submit(Message::<State>::SubmitCameraName)
-                .into()
+            keyboard_priority(
+                text_input("Camera name", &self.name)
+                    .on_input(Message::EditCameraName)
+                    .on_submit(Message::<State>::SubmitCameraName),
+            )
+            .on_priority(Message::SetKeyboardPriority(true))
+            .on_unpriority(Message::SetKeyboardPriority(false))
+            .into()
         } else {
             text(&self.name).into()
         };
