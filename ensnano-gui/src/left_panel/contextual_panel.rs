@@ -388,9 +388,13 @@ where
                 .unwrap_or(&real_len_string);
             content = content.push(row![
                 text("Loopout"),
-                text_input("", text_input_content)
-                    .on_input(Message::InsertionLengthInput)
-                    .on_submit(Message::InsertionLengthSubmitted),
+                keyboard_priority(
+                    text_input("", text_input_content)
+                        .on_input(Message::InsertionLengthInput)
+                        .on_submit(Message::InsertionLengthSubmitted)
+                )
+                .on_priority(Message::SetKeyboardPriority(true))
+                .on_unpriority(Message::SetKeyboardPriority(false)),
             ]);
         }
 
@@ -438,8 +442,7 @@ where
     }
 
     pub fn has_keyboard_priority(&self) -> bool {
-        self.add_strand_menu.has_keyboard_priority()
-            || self.strand_name_state.is_focused()
+        self.strand_name_state.is_focused()
             || self.builder_has_keyboard_priority()
             || self.insertion_length_state.has_keyboard_priority()
     }
@@ -834,7 +837,6 @@ struct AddStrandMenu {
     pos_str: String,
     length_str: String,
     text_inputs_are_active: bool,
-    builder_input: [text_input::State<iced_graphics::text::Paragraph>; 2],
 }
 
 impl Default for AddStrandMenu {
@@ -845,7 +847,6 @@ impl Default for AddStrandMenu {
             pos_str: "0".into(),
             length_str: "0".into(),
             text_inputs_are_active: false,
-            builder_input: Default::default(),
         }
     }
 }
@@ -867,11 +868,6 @@ impl AddStrandMenu {
         self.length_str = length_str;
         self.set_show_strand(true);
         (self.helix_pos, self.helix_length)
-    }
-
-    fn has_keyboard_priority(&self) -> bool {
-        self.builder_input.iter().any(|s| s.is_focused())
-        // NOTE: It would be nice if builder_input is fetched from the tree directly.
     }
 
     fn get_build_helix_mode(&self) -> ActionMode {
@@ -901,8 +897,6 @@ impl AddStrandMenu {
         ui_size: UiSize,
         width: u16,
     ) -> iced::widget::Column<'a, Message<State>, crate::Theme, crate::Renderer> {
-        //let _inputs = self.builder_input.iter_mut();
-
         let color_choose_strand_start_length = if self.text_inputs_are_active {
             theme::Text::Color(crate::theme::GUI_PALETTE.text)
         } else {
@@ -920,17 +914,25 @@ impl AddStrandMenu {
                 self::column![
                     text("Starting nt").style(color_choose_strand_start_length),
                     // position_input
-                    text_input("Position", &self.pos_str)
-                        .on_input(Message::PositionHelicesChanged)
-                        .style(BadValue(self.pos_str == self.helix_pos.to_string()))
+                    keyboard_priority(
+                        text_input("Position", &self.pos_str)
+                            .on_input(Message::PositionHelicesChanged)
+                            .style(BadValue(self.pos_str == self.helix_pos.to_string()))
+                    )
+                    .on_priority(Message::SetKeyboardPriority(true))
+                    .on_unpriority(Message::SetKeyboardPriority(false)),
                 ]
                 .width(width / 2),
                 self::column![
                     text("Length (nt)").style(color_choose_strand_start_length),
                     // length_input
-                    text_input("Length", &self.length_str)
-                        .on_input(Message::LengthHelicesChanged)
-                        .style(BadValue(self.length_str == self.helix_length.to_string())),
+                    keyboard_priority(
+                        text_input("Length", &self.length_str)
+                            .on_input(Message::LengthHelicesChanged)
+                            .style(BadValue(self.length_str == self.helix_length.to_string()))
+                    )
+                    .on_priority(Message::SetKeyboardPriority(true))
+                    .on_unpriority(Message::SetKeyboardPriority(false)),
                 ],
             ]
         ]

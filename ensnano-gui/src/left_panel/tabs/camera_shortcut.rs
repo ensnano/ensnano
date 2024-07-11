@@ -160,20 +160,6 @@ struct CameraWidgetState {
     name_input: text_input::State<iced_graphics::text::Paragraph>,
 }
 
-// NOTE: Messages used here:
-//                            Message::FixPoint(direction, up),
-//                            Message::RotateCam(angle_xz, angle_yz, angle_xy)
-//                            Message::ScreenShot2D,
-//                            Message::ScreenShot3D,
-//                            Message::StlExport,
-//                            Message::SaveNucleotidesPositions,
-//                            Message::NewCustomCamera,
-//                            Message::EditCameraName
-//                            Message::SubmitCameraName
-//                            Message::StartEditCameraName(camera_id),
-//                            Message::SelectCamera(camera_id),
-//                            Message::DeleteCamera(camera_id),
-
 pub struct CameraShortcutPanel {
     // Camera angles
     xz: isize,
