@@ -199,7 +199,6 @@ where
     pub force_help: bool,
     pub show_tutorial: bool,
     add_strand_menu: AddStrandMenu,
-    strand_name_state: text_input::State<iced_graphics::text::Paragraph>,
     builder: Option<InstantiatedBuilder<State>>,
     insertion_length_state: InsertionLengthState,
 }
@@ -214,7 +213,6 @@ where
             force_help: false,
             show_tutorial: false,
             add_strand_menu: Default::default(),
-            strand_name_state: Default::default(),
             builder: None,
             insertion_length_state: Default::default(),
         }
@@ -442,9 +440,7 @@ where
     }
 
     pub fn has_keyboard_priority(&self) -> bool {
-        self.strand_name_state.is_focused()
-            || self.builder_has_keyboard_priority()
-            || self.insertion_length_state.has_keyboard_priority()
+        self.builder_has_keyboard_priority() || self.insertion_length_state.has_keyboard_priority()
     }
 
     fn builder_has_keyboard_priority(&self) -> bool {
