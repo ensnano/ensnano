@@ -103,6 +103,10 @@ impl Curved for CircleCurve {
     //     true
     // }
 
+    // fn objective_nb_nt(&self) -> Option<usize> {
+        
+    // }
+
     fn first_theta(&self) -> Option<f64> {
         Some(0.)
     }
