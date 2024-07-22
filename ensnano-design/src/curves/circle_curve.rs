@@ -29,6 +29,8 @@ pub struct CircleCurve {
     pub z: f64,
     pub perimeter: f64,
     pub abscissa_converter_factor: Option<f64>,
+    pub target_nb_nt: Option<usize>, // desired length for the total circle in nt
+    pub is_closed: Option<bool>, // closed unless this is false
 }
 
 impl CircleCurve {
@@ -103,9 +105,9 @@ impl Curved for CircleCurve {
     //     true
     // }
 
-    // fn objective_nb_nt(&self) -> Option<usize> {
-        
-    // }
+    fn objective_nb_nt(&self) -> Option<usize> {
+        return self.target_nb_nt;
+    }
 
     fn first_theta(&self) -> Option<f64> {
         Some(0.)
@@ -116,7 +118,10 @@ impl Curved for CircleCurve {
     }
 
     fn full_turn_at_t(&self) -> Option<f64> {
-        Some(self.t_max())
+        match self.is_closed {
+            Some(false) => None,
+            _ => Some(self.t_max()),
+        }
     }
 
     fn t_max(&self) -> f64 {

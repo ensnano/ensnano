@@ -29,6 +29,9 @@ pub struct SphereConcentricCircleDescriptor {
     pub helix_index: i32, // 0 is the equator, negative for below the equator, positive above
     pub helix_index_shift: Option<f64>, // -0.5 if you want to center the equator between the helices
     pub inter_helix_center_gap: Option<f64>, // in nm, by default 2.65nm
+    pub is_closed: Option<bool>,
+    pub target_nb_nt: Option<usize>,
+    pub abscissa_converter_factor: Option<f64>,
 }
 
 fn default_number_of_helices() -> usize {
@@ -61,6 +64,9 @@ impl SphereConcentricCircleDescriptor {
             z,
             t_min: 0.,
             t_max: 1.,
+            is_closed: self.is_closed,
+            target_nb_nt: self.target_nb_nt,
+            abscissa_converter_factor: self.abscissa_converter_factor,
         }
     }
 }
@@ -77,6 +83,9 @@ pub(super) struct SphereConcentricCircle {
     pub z: f64,
     pub t_min: f64,
     pub t_max: f64,
+    pub is_closed: Option<bool>,
+    pub target_nb_nt: Option<usize>,
+    pub abscissa_converter_factor: Option<f64>,
 }
 
 impl SphereConcentricCircle {
@@ -160,7 +169,14 @@ impl Curved for SphereConcentricCircle {
     }
 
     fn full_turn_at_t(&self) -> Option<f64> {
-        Some(self.t_max())
+        match self.is_closed {
+            Some(false) => None,
+            _ => Some(self.t_max())
+        }
+    }
+
+    fn objective_nb_nt(&self) -> Option<usize> {
+        return self.target_nb_nt;
     }
 
     fn t_max(&self) -> f64 {
@@ -170,6 +186,13 @@ impl Curved for SphereConcentricCircle {
     fn t_min(&self) -> f64 {
         self.t_min
     }
+
+    fn abscissa_converter(&self) -> Option<crate::AbscissaConverter> {
+        return Some(crate::AbscissaConverter::linear(
+            self.abscissa_converter_factor.unwrap_or(1.),
+        ));
+    }
+
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -177,6 +200,7 @@ pub struct SphereTennisBallSeamDescriptor {
     pub radius: f64,
     pub theta_0_deg: f64,
     pub phi_deg: f64, // in radian 0 is the equator, negative for below the equator, positive above
+    pub target_nb_nt: Option<usize>,
 }
 
 impl SphereTennisBallSeamDescriptor {
@@ -200,6 +224,7 @@ impl SphereTennisBallSeamDescriptor {
             phi,
             z_radius,
             z,
+            target_nb_nt: self.target_nb_nt,
         }
     }
 }
@@ -215,6 +240,7 @@ pub(super) struct SphereTennisBallSeam {
     pub t2: f64,
     pub t3: f64,
     pub perimeter: f64,
+    pub target_nb_nt: Option<usize>,
 }
 
 impl SphereTennisBallSeam {
@@ -352,6 +378,10 @@ impl Curved for SphereTennisBallSeam {
 
     fn full_turn_at_t(&self) -> Option<f64> {
         Some(self.t_max())
+    }
+
+    fn objective_nb_nt(&self) -> Option<usize> {
+        return self.target_nb_nt;
     }
 
     fn t_max(&self) -> f64 {
