@@ -16,10 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 pub use crate::widgets::*;
-use crate::{
-    fonts::{icon_to_char, material_icons, MaterialIcon, MaterialIconStyle, ENSNANO_FONT},
-    UiSize,
-};
+use crate::{fonts::*, UiSize};
 pub use iced::widget::*;
 use iced::{
     advanced,
@@ -57,7 +54,7 @@ where
     Renderer: advanced::text::Renderer,
     <Renderer as advanced::text::Renderer>::Font: From<Font>,
 {
-    text(title).size(ui_size.head_text()).font(ENSNANO_FONT)
+    text(title).size(ui_size.head_text()).font(INTER_BOLD_FONT)
 }
 
 /// Section subtitle widget
@@ -70,9 +67,7 @@ where
     Renderer: advanced::text::Renderer,
     <Renderer as advanced::text::Renderer>::Font: From<Font>,
 {
-    text(title)
-        .size(ui_size.intermediate_text())
-        .font(ENSNANO_FONT)
+    text(title).size(ui_size.intermediate_text())
 }
 
 ///

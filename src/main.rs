@@ -357,7 +357,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let settings = Settings {
         antialiasing: Some(iced_graphics::Antialiasing::MSAAx4),
         default_text_size: ui_size.main_text().into(),
-        default_font: fonts::ENSNANO_FONT,
+        default_font: fonts::INTER_REGULAR_FONT,
         ..Default::default()
     };
     // Initialize the renderer

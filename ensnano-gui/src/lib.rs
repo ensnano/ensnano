@@ -641,7 +641,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
     ) -> Self {
         let wgpu_settings = iced_wgpu::Settings {
             antialiasing: Some(iced_graphics::Antialiasing::MSAAx4),
-            default_font: crate::fonts::ENSNANO_FONT,
+            default_font: crate::fonts::INTER_REGULAR_FONT,
             default_text_size: iced::Pixels(ui_size.main_text()),
             ..Default::default()
         };

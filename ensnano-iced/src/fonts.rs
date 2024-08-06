@@ -29,15 +29,31 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //        https://github.com/BillyDM/iced_baseview/issues/39
 use std::borrow::Cow;
 
+use iced::font;
+
 pub mod material_icons;
+pub use material_icons::{
+    icon_to_char, MaterialIcon, MaterialIconStyle, MATERIAL_ICONS_DARK, MATERIAL_ICONS_LIGHT,
+};
 
 const ENSNANO_FONT_BYTES: &[u8] = include_bytes!("../../font/ensnano2.ttf");
+const INTER_BOLD_FONT_BYTES: &[u8] = include_bytes!("../../font/Inter-Bold.ttf");
+const INTER_REGULAR_FONT_BYTES: &[u8] = include_bytes!("../../font/Inter-Regular.ttf");
 
 // NOTE: We export here all fonts used in ENSnano.
 pub use iced_aw::BOOTSTRAP_FONT;
 pub const ENSNANO_FONT: Font = Font::with_name("Ensnano");
-pub use material_icons::{
-    icon_to_char, MaterialIcon, MaterialIconStyle, MATERIAL_ICONS_DARK, MATERIAL_ICONS_LIGHT,
+pub const INTER_BOLD_FONT: Font = Font {
+    family: font::Family::Name("Inter"),
+    weight: font::Weight::Bold,
+    style: font::Style::Normal,
+    stretch: font::Stretch::Normal,
+};
+pub const INTER_REGULAR_FONT: Font = Font {
+    family: font::Family::Name("Inter"),
+    weight: font::Weight::Normal,
+    style: font::Style::Normal,
+    stretch: font::Stretch::Normal,
 };
 
 pub use iced::{font::Error, Font};
@@ -56,6 +72,8 @@ pub fn load_fonts(renderer: &mut impl advanced::text::Renderer) {
         material_icons::MATERIAL_ICONS_LIGHT_BYTES,
         material_icons::MATERIAL_ICONS_DARK_BYTES,
         ENSNANO_FONT_BYTES,
+        INTER_BOLD_FONT_BYTES,
+        INTER_REGULAR_FONT_BYTES,
     ];
     for font in fonts {
         renderer.load_font(Cow::from(font));
