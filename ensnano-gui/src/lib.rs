@@ -1083,7 +1083,7 @@ pub struct TopBarState {
     pub can_redo: bool,
     pub need_save: bool,
     pub can_reload: bool,
-    pub can_split2d: bool,
+    pub can_split_2d: bool,
     pub can_toggle_2d: bool,
     pub splited_2d: bool,
 }

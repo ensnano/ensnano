@@ -64,7 +64,7 @@ pub enum Message<S: AppState> {
     ToggleView(SplitMode),
     UiSizeChanged(UiSize),
     ExportRequested,
-    Split2d,
+    Split2D,
     // Receive an new application state.
     NewApplicationState((S, TopBarState)),
     ForceHelp,
@@ -131,7 +131,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
             Message::ToggleView(b) => self.requests.lock().unwrap().change_split_mode(b),
             Message::UiSizeChanged(ui_size) => self.ui_size = ui_size,
             Message::ExportRequested => self.requests.lock().unwrap().set_exporting(true),
-            Message::Split2d => self.requests.lock().unwrap().toggle_2d_view_split(),
+            Message::Split2D => self.requests.lock().unwrap().toggle_2d_view_split(),
             Message::NewApplicationState((app_state, state)) => {
                 self.app_state = app_state;
                 self.state = state;
@@ -347,7 +347,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
                 MaterialIconStyle::Light,
                 self.ui_size,
             )
-            .on_press_maybe(self.state.can_split2d.then_some(Message::Split2d)),
+            .on_press_maybe(self.state.can_split_2d.then_some(Message::Split2D)),
             "Toggle split of flat scene",
             tooltip::Position::FollowCursor,
         )

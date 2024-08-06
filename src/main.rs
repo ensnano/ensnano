@@ -1712,7 +1712,7 @@ impl MainState {
             can_redo: !self.redo_stack.is_empty(),
             need_save: self.need_save(),
             can_reload: self.get_current_file_name().is_some(),
-            can_split2d: multiplexer.is_showing(&GuiComponentType::FlatScene),
+            can_split_2d: multiplexer.is_showing(&GuiComponentType::FlatScene),
             splited_2d: self
                 .applications
                 .get(&GuiComponentType::FlatScene)
