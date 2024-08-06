@@ -76,16 +76,16 @@ impl tab_bar::StyleSheet for GuiBackground {
 
     fn active(&self, _style: &Self::Style, _is_active: bool) -> tab_bar::Appearance {
         tab_bar::Appearance {
-            text_color: GUI_PALETTE.text,
-            icon_color: GUI_PALETTE.text,
+            text_color: GUI_PALETTE.background,
+            icon_color: GUI_PALETTE.background,
             ..Default::default()
         }
     }
 
     fn hovered(&self, _style: &Self::Style, _is_active: bool) -> tab_bar::Appearance {
         tab_bar::Appearance {
-            text_color: GUI_PALETTE.text,
-            icon_color: GUI_PALETTE.text,
+            text_color: GUI_PALETTE.background,
+            icon_color: GUI_PALETTE.background,
             ..Default::default()
         }
     }
