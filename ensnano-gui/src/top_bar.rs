@@ -180,20 +180,6 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
     fn view(&self) -> Element<'_, Self::Message, Self::Theme, Self::Renderer> {
         let build_helix_mode = self.get_build_helix_mode();
 
-        let button_fit = material_icon_button(
-            MaterialIcon::ViewInAr,
-            MaterialIconStyle::Light,
-            self.ui_size,
-        )
-        .on_press(Message::SceneFitRequested);
-
-        let button_horizon = material_icon_button(
-            MaterialIcon::WbTwilight,
-            MaterialIconStyle::Light,
-            self.ui_size,
-        )
-        .on_press(Message::AlignHorizon);
-
         let button_new_empty_design = tooltip(
             material_icon_button(
                 MaterialIcon::InsertDriveFile,
@@ -262,18 +248,24 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
         )
         .style(theme::Container::Box);
 
-        let button_undo = tooltip(
-            material_icon_button(MaterialIcon::Undo, MaterialIconStyle::Dark, self.ui_size)
-                .on_press_maybe(self.state.can_undo.then_some(Message::Undo)),
-            "Undo",
+        let button_oxdna = tooltip(
+            material_icon_button(MaterialIcon::Upload, MaterialIconStyle::Light, self.ui_size)
+                .on_press(Message::ExportRequested),
+            "Export",
             tooltip::Position::FollowCursor,
         )
         .style(theme::Container::Box);
 
-        let button_redo = tooltip(
-            material_icon_button(MaterialIcon::Redo, MaterialIconStyle::Dark, self.ui_size)
-                .on_press_maybe(self.state.can_redo.then_some(Message::Redo)),
-            "Redo",
+        let oxdna_tooltip = button_oxdna;
+
+        let button_3d_import = tooltip(
+            material_icon_button(
+                MaterialIcon::Coronavirus,
+                MaterialIconStyle::Light,
+                self.ui_size,
+            )
+            .on_press(Message::Import3D),
+            "Import 3D",
             tooltip::Position::FollowCursor,
         )
         .style(theme::Container::Box);
@@ -315,28 +307,6 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
         )
         .style(theme::Container::Box);
 
-        let button_oxdna = tooltip(
-            material_icon_button(MaterialIcon::Upload, MaterialIconStyle::Light, self.ui_size)
-                .on_press(Message::ExportRequested),
-            "Export",
-            tooltip::Position::FollowCursor,
-        )
-        .style(theme::Container::Box);
-
-        let oxdna_tooltip = button_oxdna;
-
-        let button_3d_import = tooltip(
-            material_icon_button(
-                MaterialIcon::Coronavirus,
-                MaterialIconStyle::Light,
-                self.ui_size,
-            )
-            .on_press(Message::Import3D),
-            "Import 3D",
-            tooltip::Position::FollowCursor,
-        )
-        .style(theme::Container::Box);
-
         let button_split_2d = tooltip(
             material_icon_button(
                 if self.state.splited_2d {
@@ -373,10 +343,45 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
         )
         .style(theme::Container::Box);
 
-        let button_help = text_button("Help", self.ui_size).on_press(Message::ForceHelp);
+        let button_fit = tooltip(
+            material_icon_button(
+                MaterialIcon::ViewInAr,
+                MaterialIconStyle::Light,
+                self.ui_size,
+            )
+            .on_press(Message::SceneFitRequested),
+            "Request fit",
+            tooltip::Position::FollowCursor,
+        )
+        .style(theme::Container::Box);
 
-        let button_tutorial =
-            text_button("Tutorials", self.ui_size).on_press(Message::ShowTutorial);
+        let button_horizon = tooltip(
+            material_icon_button(
+                MaterialIcon::WbTwilight,
+                MaterialIconStyle::Light,
+                self.ui_size,
+            )
+            .on_press(Message::AlignHorizon),
+            "Align horizon",
+            tooltip::Position::FollowCursor,
+        )
+        .style(theme::Container::Box);
+
+        let button_undo = tooltip(
+            material_icon_button(MaterialIcon::Undo, MaterialIconStyle::Dark, self.ui_size)
+                .on_press_maybe(self.state.can_undo.then_some(Message::Undo)),
+            "Undo",
+            tooltip::Position::FollowCursor,
+        )
+        .style(theme::Container::Box);
+
+        let button_redo = tooltip(
+            material_icon_button(MaterialIcon::Redo, MaterialIconStyle::Dark, self.ui_size)
+                .on_press_maybe(self.state.can_redo.then_some(Message::Redo)),
+            "Redo",
+            tooltip::Position::FollowCursor,
+        )
+        .style(theme::Container::Box);
 
         //NOTE: List of action modes to add in the top bar.
         let action_modes_to_display = [
@@ -414,6 +419,11 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
                 selection_mode_btn(mode, self.app_state.get_selection_mode(), self.ui_size).into()
             })
             .collect();
+
+        let button_help = text_button("Help", self.ui_size).on_press(Message::ForceHelp);
+
+        let button_tutorial =
+            text_button("Tutorials", self.ui_size).on_press(Message::ShowTutorial);
 
         let bar = row![
             // “File” group
