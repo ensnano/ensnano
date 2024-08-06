@@ -470,74 +470,47 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
     }
 }
 
-//struct ButtonStyle(bool);
-//
-//impl iced_native::widget::button::StyleSheet for ButtonStyle {
-//    type Style = ();
-//    fn active(&self, _style: &Self::Style) -> iced_native::widget::button::Appearance {
-//        iced_native::widget::button::Appearance {
-//            border_width: if self.0 { 3_f32 } else { 1_f32 },
-//            border_radius: if self.0 { 3_f32 } else { 2_f32 },
-//            border_color: if self.0 {
-//                Color::BLACK
-//            } else {
-//                [0.7, 0.7, 0.7].into()
-//            },
-//            background: Some(Background::Color([0.87, 0.87, 0.87].into())),
-//            //background: Some(Background::Color(BACKGROUND)),
-//            ..Default::default()
-//        }
-//    }
-//}
-
-//impl From<ButtonStyle> for iced::theme::Container {
-//    fn from(_value: ButtonStyle) -> Self {
-//        Default::default()
-//    }
-//}
-//
-//impl From<ButtonStyle> for iced::theme::Button {
-//    fn from(_value: ButtonStyle) -> Self {
-//        Default::default()
-//    }
-//}
-
 use super::icon::{HasIcon, HasIconDependentOnAxis};
-fn action_mode_btn<'a, State>(
+fn action_mode_btn<'a, State: AppState>(
     mode: &ActionMode,
     current_action_mode: ActionMode,
     _button_size: impl Into<Length>,
     axis_aligned: bool,
     ui_size: UiSize,
-) -> Button<'a, Message<State>, ensnano_iced::Theme, crate::Renderer>
-where
-    State: AppState,
-{
+) -> Button<'a, Message<State>, ensnano_iced::Theme, crate::Renderer> {
     let icon_path = if current_action_mode == *mode {
         mode.icon_on(axis_aligned)
     } else {
         mode.icon_off(axis_aligned)
     };
 
-    image_button(image(icon_path), ui_size).on_press(Message::ActionModeChanged(mode.clone()))
-    //.style(ButtonStyle(fixed_mode == mode))
-    // TODO: Reimplement fixed_mode
+    image_button(image(icon_path), ui_size)
+        .on_press(Message::ActionModeChanged(mode.clone()))
+        .style(if current_action_mode == *mode {
+            theme::Button::Positive
+        } else {
+            theme::Button::Primary
+        })
     // TODO: Use SelectionMode Copy trait.
 }
 
-fn selection_mode_btn<'a, S: AppState>(
+fn selection_mode_btn<'a, State: AppState>(
     mode: &SelectionMode,
     current_mode: SelectionMode,
     ui_size: UiSize,
-) -> Button<'a, Message<S>, ensnano_iced::Theme, crate::Renderer> {
+) -> Button<'a, Message<State>, ensnano_iced::Theme, crate::Renderer> {
     let icon_path = if current_mode == *mode {
         mode.icon_on()
     } else {
         mode.icon_off()
     };
 
-    image_button(image(icon_path), ui_size).on_press(Message::SelectionModeChanged(mode.clone()))
-    //.style(ButtonStyle(fixed_mode == mode))
-    // TODO: Reimplement fixed_mode
+    image_button(image(icon_path), ui_size)
+        .on_press(Message::SelectionModeChanged(mode.clone()))
+        .style(if current_mode == *mode {
+            theme::Button::Positive
+        } else {
+            theme::Button::Primary
+        })
     // TODO: Use SelectionMode Copy trait.
 }
