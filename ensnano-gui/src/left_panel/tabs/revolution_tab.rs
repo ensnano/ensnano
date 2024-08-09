@@ -697,6 +697,7 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
                 .align_items(Alignment::Center),
                 row![
                     text("Solving Method"),
+                    Space::with_width(ui_size.checkbox_spacing()),
                     pick_list(
                         EquadiffSolvingMethod::ALL_METHODS,
                         Some(self.equadiff_method),
