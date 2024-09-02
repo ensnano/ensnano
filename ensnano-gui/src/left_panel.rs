@@ -1042,6 +1042,7 @@ where
             .icon_font(fonts::ENSNANO_FONT)
             .icon_size(self.ui_size.icon())
             .text_font(fonts::MATERIAL_ICONS_DARK)
+            .text_size(self.ui_size.main_text())
             .tab_bar_height(Length::Fixed(self.ui_size.tab_bar_height()))
             .tab_bar_style(ensnano_iced::theme::GuiBackground.into())
             .width(Length::Fixed(width as f32))
