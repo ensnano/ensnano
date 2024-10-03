@@ -61,6 +61,8 @@ impl TorusConcentricCircleDescriptor {
             z,
             perimeter,
             abscissa_converter_factor,
+            is_closed: None,
+            target_nb_nt: None,
         }
     }
 }
