@@ -192,7 +192,7 @@ impl<S: AppState> Controller<S> {
         }
     }
 
-    pub fn set_setreography(&mut self, stereography: Option<Stereography>) {
+    pub fn set_stereography(&mut self, stereography: Option<Stereography>) {
         self.stereography = stereography;
     }
 

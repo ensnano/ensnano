@@ -21,6 +21,12 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::sync::Arc;
 
+use regex::Regex;
+use std::str::FromStr;
+
+mod material_colors;
+use material_colors::MaterialColor;
+
 #[macro_use]
 extern crate serde_derive;
 extern crate serde;
@@ -29,6 +35,7 @@ pub use ultraviolet;
 use ultraviolet::{Rotor3, Vec3};
 
 pub mod codenano;
+pub mod consts;
 pub mod grid;
 use grid::{FreeGrids, GridData, GridDescriptor, GridId};
 pub mod scadnano;
@@ -51,9 +58,15 @@ mod collection;
 pub mod design_operations;
 pub mod utils;
 pub use collection::{Collection, HasMap};
+pub mod isometry3_descriptor;
+pub use isometry3_descriptor::Isometry3Descriptor;
 
 mod parameters;
 pub use parameters::*;
+
+mod id_manager;
+
+pub mod drawing_style;
 
 /// Re-export ultraviolet for linear algebra
 pub use ultraviolet::*;
@@ -64,6 +77,8 @@ mod insertions;
 #[cfg(test)]
 mod tests;
 pub use external_3d_objects::*;
+
+mod isograph;
 
 /// The `ensnano` Design structure.
 #[derive(Serialize, Deserialize, Clone)]
@@ -93,7 +108,7 @@ pub struct Design {
     pub scaffold_sequence: Option<String>,
 
     /// The shifting of the scaffold if the design is an origami. This is used to reduce the number
-    /// of anti-patern in the stapples sequences
+    /// of anti-patern in the staples sequences
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub scaffold_shift: Option<usize>,
 
@@ -172,6 +187,9 @@ pub struct Design {
 
     #[serde(skip)]
     pub additional_structure: Option<Arc<dyn AdditionalStructure>>,
+
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub clone_isometries: Option<Vec<Isometry3Descriptor>>,
 }
 
 pub trait AdditionalStructure: Send + Sync {
@@ -179,8 +197,9 @@ pub trait AdditionalStructure: Send + Sync {
     fn position(&self) -> Vec<Vec3>;
     fn right(&self) -> Vec<(usize, usize)>;
     fn next(&self) -> Vec<(usize, usize)>;
-    fn nt_path(&self) -> Option<Vec<Vec3>>;
+    fn nt_paths(&self) -> Option<Vec<Vec<Vec3>>>;
     fn current_length(&self) -> Option<usize>;
+    fn number_of_sections(&self) -> usize;
 }
 
 /// An immuatable reference to a design whose helices pahts and grid data are guaranteed to be up-to
@@ -370,6 +389,7 @@ impl Design {
             instanciated_paths: None,
             external_3d_objects: Default::default(),
             additional_structure: None,
+            clone_isometries: Some(Vec::new()),
         }
     }
 

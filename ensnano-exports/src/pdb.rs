@@ -574,7 +574,7 @@ pub struct PdbFormatter {
 pub struct PdbStrand<'a> {
     pdb_formater: ManuallyDrop<&'a mut PdbFormatter>,
     nucleotides: Vec<PdbNucleotide>,
-    cyclic: bool,
+    is_cyclic: bool,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -616,7 +616,7 @@ impl PdbFormatter {
         PdbStrand {
             pdb_formater: ManuallyDrop::new(self),
             nucleotides: Vec::new(),
-            cyclic,
+            is_cyclic: cyclic,
         }
     }
 }
@@ -651,7 +651,7 @@ impl PdbStrand<'_> {
 
         let nb_nucl = self.nucleotides.len();
         for (i, n) in self.nucleotides.into_iter().enumerate() {
-            let residue_type = if self.cyclic {
+            let residue_type = if self.is_cyclic {
                 ResidueType::Middle
             } else if i == 0 {
                 ResidueType::Prime5
@@ -664,7 +664,7 @@ impl PdbStrand<'_> {
         }
 
         // TODO should we put this when the strand is cyclic ?
-        if !self.cyclic {
+        if !self.is_cyclic {
             nucls_strs.push(String::from("TER"));
         }
 
@@ -693,7 +693,7 @@ pub(super) fn pdb_export(
     let mut previous_position = None;
 
     for s in design.strands.values() {
-        let mut pdb_strand = exporter.start_strand(s.cyclic);
+        let mut pdb_strand = exporter.start_strand(s.is_cyclic);
 
         for d in s.domains.iter() {
             if let Domain::HelixDomain(dom) = d {

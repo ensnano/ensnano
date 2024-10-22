@@ -15,11 +15,15 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+use std::path::Path;
+
+use ensnano_design::consts::ITERATIVE_AXIS_ALGORITHM;
 use ensnano_design::{grid::HelixGridPosition, ultraviolet, BezierVertexId};
+use ensnano_interactor::graphics::LoopoutBond;
 use ensnano_interactor::{
     graphics::RenderingMode, NewBezierTangentVector, UnrootedRevolutionSurfaceDescriptor,
 };
-use ensnano_utils::{wgpu, winit};
+use ensnano_utils::{filename, wgpu, winit};
 use std::cell::RefCell;
 use std::path::PathBuf;
 use std::rc::Rc;
@@ -29,6 +33,7 @@ use ultraviolet::{Mat4, Rotor3, Vec3};
 
 use camera::FiniteVec3;
 use ensnano_design::{grid::GridPosition, group_attributes::GroupPivot, Nucl};
+use ensnano_interactor::graphics::LoopoutNucl;
 use ensnano_interactor::{
     application::{AppId, Application, Camera3D, Notification},
     graphics::DrawArea,
@@ -42,10 +47,15 @@ use wgpu::{Device, Queue};
 use winit::dpi::PhysicalPosition;
 use winit::event::WindowEvent;
 
+mod stl;
+
+use serde::{Deserialize, Serialize};
+use serde_json::Result;
+
 /// Computation of the view and projection matrix.
 mod camera;
 /// Display of the scene
-mod view;
+pub mod view;
 pub use view::{DrawOptions, FogParameters, GridInstance};
 use view::{
     DrawType, HandleDir, HandleOrientation, HandlesDescriptor, LetterInstance,
@@ -67,6 +77,11 @@ mod maths_3d;
 type ViewPtr = Rc<RefCell<View>>;
 type DataPtr<R> = Rc<RefCell<Data<R>>>;
 use std::convert::TryInto;
+
+// Rotor utils: safe rotor between
+mod rotor_utils;
+
+mod sausage_rosary;
 
 const PNG_SIZE: u32 = 256 * 10;
 
@@ -113,7 +128,7 @@ impl<S: AppState> Scene<S> {
         area: DrawArea,
         requests: Arc<Mutex<dyn Requests>>,
         encoder: &mut wgpu::CommandEncoder,
-        inital_state: S,
+        initial_state: S,
         scene_kind: SceneKind,
     ) -> Self {
         let update = SceneUpdate::default();
@@ -125,7 +140,7 @@ impl<S: AppState> Scene<S> {
             encoder,
         )));
         let data: DataPtr<S::DesignReader> = Rc::new(RefCell::new(Data::new(
-            inital_state.get_design_reader(),
+            initial_state.get_design_reader(),
             view.clone(),
         )));
         let controller: Controller<S> =
@@ -145,7 +160,7 @@ impl<S: AppState> Scene<S> {
             area,
             requests,
             element_selector,
-            older_state: inital_state,
+            older_state: initial_state,
             scene_kind,
             current_camera: Arc::new((
                 Default::default(),
@@ -840,7 +855,7 @@ impl<S: AppState> Scene<S> {
         }
         self.data
             .borrow_mut()
-            .update_design(new_state.get_design_reader());
+            .update_design_reader(new_state.get_design_reader());
         self.data
             .borrow_mut()
             .update_view(&new_state, &self.older_state);
@@ -873,16 +888,16 @@ impl<S: AppState> Scene<S> {
     }
 
     fn perform_update(&mut self, dt: Duration) {
+        self.update.need_update = false; // moved first to avoid concurrency issue
         if self.update.camera_update {
+            self.update.camera_update = false; // moved first to avoid concurrency issue
             self.controller.update_camera(dt);
             self.view.borrow_mut().update(ViewUpdate::Camera);
-            self.update.camera_update = false;
             self.current_camera = Arc::new((
                 self.get_camera(),
                 self.view.borrow().get_projection().borrow().get_ratio(),
             ))
         }
-        self.update.need_update = false;
     }
 
     fn get_camera(&self) -> Camera3D {
@@ -969,14 +984,16 @@ impl<S: AppState> Scene<S> {
         (texture, view)
     }
 
-    fn export_png(&self) {
-        use chrono::Utc;
-        let png_name = Utc::now()
-            .format("export_3d_%Y_%m_%d_%H_%M_%S.png")
-            .to_string();
+    fn export_3d_png(&self, design_path: Option<Arc<Path>>) {
+        let path = filename::derive_path_with_prefix_and_time_stamp_and_suffix(
+            design_path,
+            Some("export_3d"),
+            Some(format!("{ITERATIVE_AXIS_ALGORITHM}").as_str()),
+            Some("png"),
+        );
+        println!("3D PNG export to {:?}", path);
         let device = self.element_selector.device.as_ref();
         let queue = self.element_selector.queue.as_ref();
-        println!("export to {png_name}");
         use ensnano_utils::BufferDimensions;
         use std::io::Write;
 
@@ -1000,13 +1017,14 @@ impl<S: AppState> Scene<S> {
         let (texture, texture_view) = self.create_png_export_texture(device, size);
 
         let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-            label: Some("3D Png export"),
+            label: Some("3D PNG export"),
         });
 
-        let draw_options = DrawOptions {
-            rendering_mode: RenderingMode::Cartoon,
-            ..Default::default()
-        };
+        // let draw_options =  DrawOptions {
+        //     rendering_mode: RenderingMode::Cartoon,
+        //     ..Default::default()
+        // };
+        let draw_options = self.older_state.get_draw_options();
 
         self.view.borrow_mut().draw(
             &mut encoder,
@@ -1081,26 +1099,67 @@ impl<S: AppState> Scene<S> {
             }
         };
         let pixels = futures::executor::block_on(pixels);
-        let mut png_encoder = png::Encoder::new(
-            std::fs::File::create(png_name).unwrap(),
-            buffer_dimensions.width as u32,
-            buffer_dimensions.height as u32,
-        );
-        png_encoder.set_depth(png::BitDepth::Eight);
-        png_encoder.set_color(png::ColorType::Rgba);
+        if let Ok(f_out) = std::fs::File::create(path) {
+            let mut png_encoder = png::Encoder::new(
+                f_out,
+                buffer_dimensions.width as u32,
+                buffer_dimensions.height as u32,
+            );
+            png_encoder.set_depth(png::BitDepth::Eight);
+            png_encoder.set_color(png::ColorType::Rgba);
 
-        let mut png_writer = png_encoder
-            .write_header()
-            .unwrap()
-            .into_stream_writer_with_size(buffer_dimensions.unpadded_bytes_per_row)
-            .unwrap();
-
-        for chunk in pixels.chunks(buffer_dimensions.padded_bytes_per_row) {
-            png_writer
-                .write_all(&chunk[..buffer_dimensions.unpadded_bytes_per_row])
+            let mut png_writer = png_encoder
+                .write_header()
+                .unwrap()
+                .into_stream_writer_with_size(buffer_dimensions.unpadded_bytes_per_row)
                 .unwrap();
+
+            for chunk in pixels.chunks(buffer_dimensions.padded_bytes_per_row) {
+                png_writer
+                    .write_all(&chunk[..buffer_dimensions.unpadded_bytes_per_row])
+                    .unwrap();
+            }
+            png_writer.finish().unwrap();
+            return;
         }
-        png_writer.finish().unwrap();
+        println!("PNG export failed! Save our design first");
+    }
+
+    fn export_stl(&self, design_path: Option<Arc<Path>>, app_state: &S) {
+        let path = filename::derive_path_with_prefix_and_time_stamp_and_suffix(
+            design_path,
+            Some("export_stl"),
+            Some(format!("{ITERATIVE_AXIS_ALGORITHM}").as_str()),
+            Some("stl"),
+        );
+        println!("STL export to {:?}", path);
+        let raw_instances = self.data.borrow().get_all_raw_instances(app_state);
+        let stl_bytes = stl::stl_bytes_export(raw_instances).unwrap();
+        if let Ok(mut out_file) = std::fs::File::create(path) {
+            use std::io::Write;
+            out_file.write_all(&stl_bytes);
+            return;
+        }
+        println!("Export failed!");
+    }
+
+    fn export_nucleotides_positions(&self, design_path: Option<Arc<Path>>) {
+        let path = filename::derive_path_with_prefix_and_time_stamp_and_suffix(
+            design_path,
+            Some("nucleotide_positions"),
+            Some(format!("{ITERATIVE_AXIS_ALGORITHM}").as_str()),
+            Some("json"),
+        );
+        println!("Nucleotides positions export to {:?}", path);
+        if let Some(nucl_pos) = self.data.borrow().get_nucleotides_positions_by_strands() {
+            let data = serde_json::to_string(&nucl_pos).unwrap();
+            if let Ok(mut out_file) = std::fs::File::create(path) {
+                use std::io::Write;
+                out_file.write_all(data.as_bytes());
+                return;
+            }
+        }
+        println!("Export failed!");
     }
 }
 
@@ -1244,9 +1303,22 @@ impl<S: AppState> Application for Scene<S> {
                 self.controller.align_horizon();
                 self.notify(SceneNotification::CameraMoved);
             }
-            Notification::ScreenShot3D => {
+            Notification::ScreenShot2D(_) => (),
+            Notification::ScreenShot3D(design_path) => {
                 if !self.is_stereographic() {
-                    self.export_png();
+                    self.export_3d_png(design_path);
+                }
+            }
+            Notification::SaveNucleotidesPositions(design_path) => {
+                if !self.is_stereographic() {
+                    // avoid exporting twice
+                    self.export_nucleotides_positions(design_path);
+                }
+            }
+            Notification::StlExport(design_path) => {
+                if !self.is_stereographic() {
+                    // avoid exporting twice
+                    self.export_stl(design_path, &self.older_state);
                 }
             }
         }
@@ -1262,9 +1334,9 @@ impl<S: AppState> Application for Scene<S> {
             .set_stereographic(self.is_stereographic());
         if self.is_stereographic() {
             let stereography = self.view.borrow().get_stereography();
-            self.controller.set_setreography(Some(stereography));
+            self.controller.set_stereography(Some(stereography));
         } else {
-            self.controller.set_setreography(None);
+            self.controller.set_stereography(None);
         }
         self.input(event, cursor_position, app_state)
     }

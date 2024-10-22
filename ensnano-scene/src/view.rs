@@ -19,6 +19,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! frame to be displayed, or on a "fake texture" that is used to map pixels to objects.
 
 use self::gltf_drawer::Object3DDrawer;
+use int_enum::IntEnum;
 
 use super::camera;
 use crate::{DrawArea, PhySize};
@@ -40,9 +41,9 @@ use wgpu::{Device, Queue};
 /// A `Uniform` is a structure that manages view and projection matrices.
 mod uniforms;
 use uniforms::Uniforms;
-pub use uniforms::{FogParameters, Stereography};
+pub use uniforms::{CutPlaneParameters, FogParameters, Stereography};
 mod direction_cube;
-mod dna_obj;
+pub mod dna_obj;
 /// This modules defines a trait for drawing widget made of several meshes.
 mod drawable;
 mod gltf_drawer;
@@ -51,7 +52,7 @@ mod grid;
 mod grid_disc;
 /// A HandleDrawer draws the widget for translating objects
 mod handle_drawer;
-mod instances_drawer;
+pub mod instances_drawer;
 mod letter;
 /// A RotationWidget draws the widget for rotating objects
 mod rotation_widget;
@@ -61,8 +62,8 @@ use super::maths_3d::{self, distance_to_cursor_with_penalty};
 use bindgroup_manager::{DynamicBindGroup, UniformBindGroup};
 use direction_cube::*;
 pub use dna_obj::{
-    ConeInstance, DnaObject, Ellipsoid, RawDnaInstance, SphereInstance,
-    StereographicSphereAndPlane, TubeInstance,
+    ConeInstance, DnaObject, Ellipsoid, PlainRectangleInstance, RawDnaInstance, SlicedTubeInstance,
+    SphereInstance, StereographicSphereAndPlane, TubeInstance, TubeLidInstance,
 };
 use drawable::{Drawable, Drawer, Vertex};
 pub use grid::{GridInstance, GridIntersection};
@@ -108,6 +109,8 @@ pub struct View {
     fake_depth_texture: Texture,
     /// The handle drawers draw handles to translate the elements
     handle_drawers: HandlesDrawer,
+    /// The handle drawers draw frames along helix 0
+    all_frames_drawers: Vec<HandlesDrawer>,
     /// The rotation widget draw the widget to rotate the elements
     rotation_widget: RotationWidget,
     /// A possible update of the size of the drawing area, must be taken into account before
@@ -137,6 +140,8 @@ pub struct View {
     external_objects_drawer: Object3DDrawer,
     stereography: Stereography,
     sheets_drawer: InstanceDrawer<Sheet2D>,
+    /// Cutting plane
+    cut_plane_parameters: Option<CutPlaneParameters>,
 }
 
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
@@ -144,7 +149,7 @@ pub struct DrawOptions {
     pub rendering_mode: RenderingMode,
     pub background3d: Background3D,
     pub show_stereographic_camera: bool,
-    pub thick_helices: bool,
+    pub all_helices_on_axis: bool,
     pub h_bonds: HBondDisplay,
     pub show_bezier_planes: bool,
 }
@@ -262,7 +267,7 @@ impl View {
         );
         let grid_manager = GridManager::new(grid_drawer, fake_grid_drawer);
 
-        log::info!("Create disc  drawer");
+        log::info!("Create disc drawer");
         let disc_drawer = InstanceDrawer::new(
             device.clone(),
             queue.clone(),
@@ -318,6 +323,10 @@ impl View {
             "2d sheets",
         );
 
+        let cut_plane_parameters = None::<CutPlaneParameters>;
+
+        let all_frames_drawers = Vec::new();
+
         Self {
             camera,
             projection,
@@ -329,6 +338,7 @@ impl View {
             stereographic_viewer,
             models,
             handle_drawers: HandlesDrawer::new(device.clone()),
+            all_frames_drawers,
             rotation_widget: RotationWidget::new(device),
             letter_drawer,
             helix_letter_drawer,
@@ -346,6 +356,7 @@ impl View {
             external_objects_drawer,
             stereography,
             sheets_drawer,
+            cut_plane_parameters,
         }
     }
 
@@ -355,6 +366,7 @@ impl View {
             self.projection.clone(),
             &self.fog_parameters,
             None,
+            &self.cut_plane_parameters,
         ));
         self.stereographic_viewer
             .update(&Uniforms::from_view_proj_fog(
@@ -362,6 +374,7 @@ impl View {
                 self.projection.clone(),
                 &self.fog_parameters,
                 Some(&self.stereography),
+                &self.cut_plane_parameters,
             ));
     }
 
@@ -425,20 +438,20 @@ impl View {
                 self.dna_drawers
                     .get_mut(mesh)
                     .new_instances_raw(instances.as_ref());
-                if let Some(mesh) = mesh.to_fake() {
+                if let Some(_mesh) = mesh.to_fake() {
                     let mut instances = instances.as_ref().clone();
                     for i in instances.iter_mut() {
-                        if i.scale.z <= 1. {
+                        if i.scale.z <= ensnano_interactor::consts::MIN_RADIUS_FOR_FAKE_UPSCALING {
                             i.scale *= ensnano_interactor::consts::SELECT_SCALE_FACTOR;
                         }
                     }
                     self.dna_drawers
-                        .get_mut(mesh)
+                        .get_mut(_mesh)
                         .new_instances_raw(instances.as_ref());
                 }
-                if let Some(mesh) = mesh.to_outline() {
+                if let Some(_mesh) = mesh.to_outline() {
                     self.dna_drawers
-                        .get_mut(mesh)
+                        .get_mut(_mesh)
                         .new_instances_raw(instances.as_ref());
                 }
             }
@@ -453,16 +466,20 @@ impl View {
                 .external_objects_drawer
                 .update_objects(objects, &self.viewer.get_layout_desc()),
             ViewUpdate::UnrootedSurface(surface) => {
-                let is_update = self
+                let is_updated = self
                     .external_objects_drawer
                     .update_desired_revolution_shape(
                         surface,
                         self.device.as_ref(),
                         &self.viewer.get_layout_desc(),
                     );
-                if !is_update {
+                if !is_updated {
                     self.need_redraw = needed_redraw;
                 }
+            }
+            ViewUpdate::CutPlane(normal, dot_value) => {
+                self.update_cut_plane(normal, dot_value);
+                self.need_redraw = true;
             }
         }
     }
@@ -473,6 +490,14 @@ impl View {
 
     pub fn need_redraw(&self) -> bool {
         self.need_redraw | self.redraw_twice
+    }
+
+    /// update cut plane
+    pub fn update_cut_plane(&mut self, normal: Vec3, dot_value: f32) {
+        println!(
+            "Update cut plane to: normal: <{},{},{}> dot: {dot_value}",
+            normal.x, normal.y, normal.z
+        );
     }
 
     /// Draw the scene
@@ -1052,41 +1077,47 @@ pub enum ViewUpdate {
     BezierSheets(Vec<Sheet2D>),
     External3DObjects(ExternalObjects),
     UnrootedSurface(Option<UnrootedRevolutionSurfaceDescriptor>),
+    /// The cutting plane has been modified: normal and dot product
+    CutPlane(Vec3, f32),
 }
 
-#[derive(Eq, PartialEq, Debug, Copy, Clone, Hash)]
+#[derive(Eq, PartialEq, Debug, Copy, Clone, Hash, IntEnum)]
+#[repr(u32)]
 pub enum Mesh {
-    Sphere,
-    Tube,
-    OutlineSphere,
-    OutlineTube,
-    FakeSphere,
-    FakeTube,
-    CandidateSphere,
-    CandidateTube,
-    SelectedSphere,
-    SelectedTube,
-    PhantomSphere,
-    PhantomTube,
-    FakePhantomTube,
-    FakePhantomSphere,
-    SuggestionSphere,
-    SuggestionTube,
-    PastedSphere,
-    PastedTube,
-    PivotSphere,
-    XoverSphere,
-    XoverTube,
-    Prime3Cone,
-    Prime3ConeOutline,
-    BezierControll,
-    BezierSqueleton,
-    FakeBezierControl,
-    StereographicSphere,
-    BaseEllipsoid,
-    EllipsoidOutline,
-    HBond,
-    HBondOutline,
+    Sphere = 1,
+    Tube = 2,
+    TubeLid = 3,
+    SlicedTube = 4,
+    OutlineSphere = 5,
+    OutlineTube = 6,
+    FakeSphere = 7,
+    FakeTube = 8,
+    CandidateSphere = 9,
+    CandidateTube = 10,
+    SelectedSphere = 11,
+    SelectedTube = 12,
+    PhantomSphere = 13,
+    PhantomTube = 14,
+    FakePhantomTube = 15,
+    FakePhantomSphere = 16,
+    SuggestionSphere = 17,
+    SuggestionTube = 18,
+    PastedSphere = 19,
+    PastedTube = 20,
+    PivotSphere = 21,
+    XoverSphere = 22,
+    XoverTube = 23,
+    Prime3Cone = 24,
+    Prime3ConeOutline = 25,
+    BezierControll = 26,
+    BezierSqueleton = 27,
+    FakeBezierControl = 28,
+    StereographicSphere = 29,
+    BaseEllipsoid = 30,
+    EllipsoidOutline = 31,
+    HBond = 32,
+    HBondOutline = 33,
+    PlainRectangle = 34,
 }
 
 impl Mesh {
@@ -1094,6 +1125,7 @@ impl Mesh {
         match self {
             Self::Sphere => Some(Self::FakeSphere),
             Self::Tube => Some(Self::FakeTube),
+            Self::SlicedTube => Some(Self::FakeTube),
             Self::PhantomSphere => Some(Self::FakePhantomSphere),
             Self::PhantomTube => Some(Self::FakePhantomTube),
             Self::BezierControll => Some(Self::FakeBezierControl),
@@ -1111,11 +1143,28 @@ impl Mesh {
             _ => None,
         }
     }
+
+    // FOR MEMORY
+    // pub fn to_u32(&self) -> u32 {
+    //     match self {
+    //         Mesh::Sphere => 1,
+    //         Mesh::Tube => 2,
+    //         Mesh::TubeLid => 3,
+    //         Mesh::SlicedTube => 4,
+    //         Mesh::PivotSphere => 5,
+    //         Mesh::Prime3Cone => 6,
+    //         Mesh::BaseEllipsoid => 7,
+    //         _ => 0,
+    //     }
+    // }
 }
 
 struct DnaDrawers {
     sphere: InstanceDrawer<SphereInstance>,
     tube: InstanceDrawer<TubeInstance>,
+    tube_lid: InstanceDrawer<TubeLidInstance>,
+    sliced_tube: InstanceDrawer<SlicedTubeInstance>,
+    plain_rectangle: InstanceDrawer<PlainRectangleInstance>,
     outline_sphere: InstanceDrawer<SphereInstance>,
     outline_tube: InstanceDrawer<TubeInstance>,
     candidate_sphere: InstanceDrawer<SphereInstance>,
@@ -1152,6 +1201,9 @@ impl DnaDrawers {
         match key {
             Mesh::Sphere => &mut self.sphere,
             Mesh::Tube => &mut self.tube,
+            Mesh::TubeLid => &mut self.tube_lid,
+            Mesh::SlicedTube => &mut self.sliced_tube,
+            Mesh::PlainRectangle => &mut self.plain_rectangle,
             Mesh::OutlineSphere => &mut self.outline_sphere,
             Mesh::OutlineTube => &mut self.outline_tube,
             Mesh::CandidateSphere => &mut self.candidate_sphere,
@@ -1191,6 +1243,9 @@ impl DnaDrawers {
         let mut ret: Vec<&mut dyn RawDrawer<RawInstance = RawDnaInstance>> = vec![
             &mut self.sphere,
             &mut self.tube,
+            &mut self.tube_lid,
+            &mut self.sliced_tube,
+            &mut self.plain_rectangle,
             &mut self.prime3_cones,
             &mut self.candidate_sphere,
             &mut self.candidate_tube,
@@ -1283,6 +1338,33 @@ impl DnaDrawers {
                 (),
                 false,
                 "tube",
+            ),
+            tube_lid: InstanceDrawer::new(
+                device.clone(),
+                queue.clone(),
+                viewer_desc,
+                model_desc,
+                (),
+                false,
+                "tube lid",
+            ),
+            sliced_tube: InstanceDrawer::new(
+                device.clone(),
+                queue.clone(),
+                viewer_desc,
+                model_desc,
+                (),
+                false,
+                "sliced tube",
+            ),
+            plain_rectangle: InstanceDrawer::new(
+                device.clone(),
+                queue.clone(),
+                viewer_desc,
+                model_desc,
+                (),
+                false,
+                "plain rectangle",
             ),
             hbond: InstanceDrawer::new(
                 device.clone(),

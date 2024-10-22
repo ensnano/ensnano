@@ -42,6 +42,7 @@ pub fn read_first_svg_path(file_path: &StdPath) -> Result<BezierPath, SvgImportE
 
             let mut ret = PathBuilder::default();
             for command in data.iter() {
+                // println!("{:?}",command); // ADD MISSING SVG COMMANDS HERE
                 match command {
                     Command::Close => return Ok(ret.close()),
                     Command::Move(Position::Absolute, parameters) => {
@@ -111,7 +112,7 @@ impl PathBuilder {
     fn close(self) -> BezierPath {
         BezierPath {
             vertices: self.vertices,
-            cyclic: true,
+            is_cyclic: true,
             grid_type: None,
         }
     }
@@ -119,7 +120,7 @@ impl PathBuilder {
     fn finish(self) -> BezierPath {
         BezierPath {
             vertices: self.vertices,
-            cyclic: false,
+            is_cyclic: false,
             grid_type: None,
         }
     }

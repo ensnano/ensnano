@@ -40,7 +40,7 @@ impl Reader2D for DesignReader {
                 .current_design
                 .helices
                 .get(&h_id)
-                .and_then(|h| h.additonal_isometries.get(segment_idx - 1))
+                .and_then(|h| h.additional_isometries.get(segment_idx - 1))
                 .and_then(|i| i.additional_isometry)
         }
     }
@@ -61,7 +61,7 @@ impl Reader2D for DesignReader {
                 .current_design
                 .helices
                 .get(&h_id)
-                .and_then(|h| h.additonal_isometries.get(segment_idx - 1))
+                .and_then(|h| h.additional_isometries.get(segment_idx - 1))
                 .and_then(|i| i.additional_symmetry)
         }
     }
@@ -75,7 +75,7 @@ impl Reader2D for DesignReader {
                 ret.extend(split_domain_into_helices_segment(domain, helices));
             }
         }
-        if strand.cyclic {
+        if strand.is_cyclic {
             ret.push(ret[0])
         }
         Some(ret)
@@ -112,7 +112,7 @@ impl Reader2D for DesignReader {
     }
 
     fn get_basis_map(&self) -> Arc<HashMap<Nucl, char, RandomState>> {
-        self.presenter.content.basis_map.clone()
+        self.presenter.content.letter_map.clone()
     }
 
     fn get_group_map(&self) -> Arc<BTreeMap<usize, bool>> {
@@ -226,7 +226,7 @@ impl Reader2D for DesignReader {
         self.presenter.content.nucl_collection.clone()
     }
 
-    fn get_abcissa_converter(&self, h_id: usize) -> ensnano_design::AbscissaConverter {
+    fn get_abscissa_converter(&self, h_id: usize) -> ensnano_design::AbscissaConverter {
         self.presenter
             .current_design
             .try_get_up_to_date()
@@ -251,7 +251,7 @@ fn split_domain_into_helices_segment(
 ) -> Vec<Nucl> {
     let helix = helices.get(&domain.helix);
     let empty = vec![];
-    let additional_segments = helix.map(|h| &h.additonal_isometries).unwrap_or(&empty);
+    let additional_segments = helix.map(|h| &h.additional_isometries).unwrap_or(&empty);
     let mut ret = Vec::new();
 
     let intermediate_positions: Vec<isize> = additional_segments

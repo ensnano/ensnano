@@ -39,6 +39,7 @@ mod hyperboloid;
 pub use copy_grid::GridCopyError;
 pub use grid_collection::*;
 pub use hyperboloid::*;
+use serde_with::rust::unwrap_or_skip;
 use std::sync::Arc;
 
 use ultraviolet::{Rotor3, Vec2, Vec3};
@@ -64,6 +65,8 @@ pub struct Grid {
 pub struct GridDescriptor {
     pub position: Vec3,
     pub orientation: Rotor3,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub helix_parameters: Option<HelixParameters>,
     pub grid_type: GridTypeDescr,
     #[serde(default)]
     pub invisible: bool, // by default grids are visible so we store a "negative attribute"
@@ -106,19 +109,20 @@ impl GridDescriptor {
         Self {
             position,
             orientation,
+            helix_parameters: None,
             grid_type: hyperboloid.desc(),
             invisible: false,
             bezier_vertex: None,
         }
     }
 
-    pub fn to_grid(&self, helix_parameters: HelixParameters) -> Grid {
+    pub fn to_grid(&self, default_helix_parameters: HelixParameters) -> Grid {
         Grid {
             position: self.position,
             orientation: self.orientation,
             invisible: self.invisible,
             grid_type: self.grid_type.to_concrete(),
-            helix_parameters,
+            helix_parameters: self.helix_parameters.unwrap_or(default_helix_parameters),
         }
     }
 }
@@ -417,6 +421,7 @@ impl Grid {
         GridDescriptor {
             position: self.position,
             orientation: self.orientation,
+            helix_parameters: Some(self.helix_parameters),
             grid_type: self.grid_type.descr(),
             invisible: self.invisible,
             bezier_vertex: None,
@@ -784,6 +789,14 @@ impl GridData {
             grids.insert(g_id, desc.to_grid(helix_parameters));
         }
         for (g_id, desc) in source_grids.iter() {
+            /* // odd even helix_parameters experiment
+            let hp = if g_id.0 % 2 == 0 {
+                HelixParameters::GEARY_2014_DNA
+            } else {
+                HelixParameters::GEARY_2014_RNA
+            };
+            let grid = desc.to_grid(hp);
+            */
             let grid = desc.to_grid(helix_parameters);
             grids.insert(GridId::FreeGrid(g_id.0), grid);
         }
@@ -813,7 +826,7 @@ impl GridData {
             grids,
             object_to_pos,
             pos_to_object,
-            helix_parameters: design.helix_parameters.unwrap_or_default(),
+            helix_parameters: design.helix_parameters.unwrap_or_default(), //ne change rien ???
             no_phantoms: design.no_phantoms.clone(),
             small_spheres: design.small_spheres.clone(),
             center_of_gravity: Default::default(),
@@ -1059,6 +1072,7 @@ impl GridData {
             GridDescriptor {
                 position: square_grid.position,
                 orientation: square_grid.orientation,
+                helix_parameters: Some(helix_parameters),
                 grid_type: GridTypeDescr::Square { twist: None },
                 invisible: square_grid.invisible,
                 bezier_vertex: None,
@@ -1067,6 +1081,7 @@ impl GridData {
             GridDescriptor {
                 position: hex_grid.position,
                 orientation: hex_grid.orientation,
+                helix_parameters: Some(helix_parameters),
                 grid_type: GridTypeDescr::Honeycomb { twist: None },
                 invisible: hex_grid.invisible,
                 bezier_vertex: None,
@@ -1211,7 +1226,7 @@ impl GridData {
                     .map(|map| map.get_abscissa_converter(h_id))
             })
             .or_else(|| {
-                helix.get_revolution_curve_desc().and_then(|key| {
+                helix.get_revolution_curve_descriptor().and_then(|key| {
                     self.revolution_curve_time_maps
                         .get(key)
                         .map(|m| m.get_abscissa_converter(h_id))
@@ -1426,8 +1441,9 @@ impl GridData {
             .unwrap_or(true)
         {
             if let Some(desc) = helix.instanciated_descriptor.as_ref() {
-                let curve = desc.make_curve(&self.helix_parameters, cached_curve);
-                curve.update_additional_segments(&mut helix.additonal_isometries);
+                let hp = helix.helix_parameters.unwrap_or(self.helix_parameters);
+                let curve = desc.make_curve(&hp, cached_curve);
+                curve.update_additional_segments(&mut helix.additional_isometries);
                 helix.instanciated_curve = Some(InstanciatedCurve {
                     curve,
                     source: desc.clone(),

@@ -459,8 +459,8 @@ impl AppState {
         self.with_updated_parameters(|p| p.show_bezier_paths = show)
     }
 
-    pub fn with_thick_helices(&self, thick: bool) -> Self {
-        self.with_updated_parameters(|p| p.thick_helices = thick)
+    pub fn all_helices_on_axis(&self, on_axis: bool) -> Self {
+        self.with_updated_parameters(|p| p.all_helices_on_axis = on_axis)
     }
 
     pub fn set_bezier_revolution_id(&self, id: Option<usize>) -> Self {
@@ -494,8 +494,8 @@ impl AppState {
         }
     }
 
-    pub fn with_toggled_thick_helices(&self) -> Self {
-        self.with_updated_parameters(|p| p.thick_helices ^= true)
+    pub fn with_toggled_all_helices_on_axis(&self) -> Self {
+        self.with_updated_parameters(|p| p.all_helices_on_axis ^= true)
     }
 
     pub fn with_background3d(&self, bg: Background3D) -> Self {
@@ -672,7 +672,7 @@ pub struct AppStateParameters {
     show_stereography: bool,
     rendering_mode: RenderingMode,
     background3d: Background3D,
-    thick_helices: bool,
+    all_helices_on_axis: bool,
     scroll_sensitivity: f32,
     inverted_y_scroll: bool,
     show_h_bonds: HBondDisplay,
@@ -689,7 +689,7 @@ impl Default for AppStateParameters {
             show_stereography: Default::default(),
             rendering_mode: Default::default(),
             background3d: Default::default(),
-            thick_helices: true,
+            all_helices_on_axis: false,
             scroll_sensitivity: 0.0,
             inverted_y_scroll: false,
             show_h_bonds: HBondDisplay::No,

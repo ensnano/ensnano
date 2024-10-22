@@ -17,3 +17,8 @@ image = "0.23"
 num_enum = "0.5.1"
 png = "0.17.5"
 chrono = "0.4.19"
+pod-enum = "0.1.0"
+rand = "0.8.5"
+int-enum = "1.0.1"
+serde = {version = "1.0.116", features = ["rc"] }
+serde_json = {version = "1.0.116" }

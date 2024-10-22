@@ -19,6 +19,7 @@ pub use iced_wgpu;
 pub use iced_wgpu::wgpu;
 pub use iced_winit;
 pub use iced_winit::winit;
+use serde::{Deserialize, Serialize};
 use wgpu::util::{BufferInitDescriptor, DeviceExt};
 pub use winit::dpi::{PhysicalPosition, PhysicalSize, Pixel};
 
@@ -35,8 +36,21 @@ pub mod obj_loader;
 pub mod text;
 pub mod texture;
 
+pub mod clic_counter;
+
+pub mod colors;
+
+pub mod filename;
+
 pub type PhySize = PhysicalSize<u32>;
 pub const TEXTURE_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Bgra8UnormSrgb;
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct StrandNucleotidesPositions {
+    pub is_cyclic: bool,
+    pub positions: Vec<[f32; 3]>,
+    pub curvatures: Vec<f64>,
+}
 
 pub fn create_buffer_with_data(
     device: &wgpu::Device,
@@ -52,6 +66,7 @@ pub fn create_buffer_with_data(
     device.create_buffer_init(&descriptor)
 }
 
+/// This struct handle the alignment of row in WGPU buffers.
 pub struct BufferDimensions {
     pub width: usize,
     pub height: usize,
@@ -63,9 +78,9 @@ impl BufferDimensions {
     pub fn new(width: usize, height: usize) -> Self {
         let bytes_per_pixel = std::mem::size_of::<u32>();
         let unpadded_bytes_per_row = width * bytes_per_pixel;
-        let align = wgpu::COPY_BYTES_PER_ROW_ALIGNMENT as usize;
-        let padded_bytes_per_row_padding = (align - unpadded_bytes_per_row % align) % align;
-        let padded_bytes_per_row = unpadded_bytes_per_row + padded_bytes_per_row_padding;
+        let block_size = wgpu::COPY_BYTES_PER_ROW_ALIGNMENT as usize;
+        let padding = (block_size - unpadded_bytes_per_row % block_size) % block_size;
+        let padded_bytes_per_row = unpadded_bytes_per_row + padding;
         Self {
             width,
             height,
@@ -73,23 +88,9 @@ impl BufferDimensions {
             padded_bytes_per_row,
         }
     }
-}
-
-pub fn hsv_color(hue: f64, saturation: f64, value: f64) -> u32 {
-    let hsv = color_space::Hsv::new(hue, saturation, value);
-    let rgb = color_space::Rgb::from(hsv);
-    (0xFF << 24) | ((rgb.r as u32) << 16) | ((rgb.g as u32) << 8) | (rgb.b as u32)
-}
-
-pub fn new_color(color_idx: &mut usize) -> u32 {
-    let color = {
-        let hue = (*color_idx as f64 * (1. + 5f64.sqrt()) / 2.).fract() * 360.;
-        let saturation = (*color_idx as f64 * 7. * (1. + 5f64.sqrt() / 2.)).fract() * 0.25 + 0.75;
-        let value = (*color_idx as f64 * 11. * (1. + 5f64.sqrt() / 2.)).fract() * 0.5 + 0.5;
-        hsv_color(hue, saturation, value)
-    };
-    *color_idx += 1;
-    color
+    pub fn buffer_size(&self) -> usize {
+        self.padded_bytes_per_row * self.height
+    }
 }
 
 #[repr(C)]

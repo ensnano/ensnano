@@ -166,7 +166,7 @@ impl DiscreteValue {
 
     fn view<S: AppState>(&mut self, active: bool, name_size: u16) -> Element<Message<S>> {
         let decr_button = if active && self.value - self.step >= self.min_val {
-            Button::new(&mut self.decr_button, Text::new("-")).on_press(Message::DescreteValue {
+            Button::new(&mut self.decr_button, Text::new("-")).on_press(Message::DiscreteValue {
                 factory_id: self.owner_id,
                 value_id: self.value_id,
                 value: self.value - self.step,
@@ -175,7 +175,7 @@ impl DiscreteValue {
             Button::new(&mut self.decr_button, Text::new("-"))
         };
         let incr_button = if active && self.value + self.step <= self.max_val {
-            Button::new(&mut self.incr_button, Text::new("+")).on_press(Message::DescreteValue {
+            Button::new(&mut self.incr_button, Text::new("+")).on_press(Message::DiscreteValue {
                 factory_id: self.owner_id,
                 value_id: self.value_id,
                 value: self.value + self.step,
@@ -190,7 +190,7 @@ impl DiscreteValue {
                 &mut self.slider,
                 self.min_val..=self.max_val,
                 self.value,
-                move |value| Message::DescreteValue {
+                move |value| Message::DiscreteValue {
                     factory_id,
                     value_id,
                     value,

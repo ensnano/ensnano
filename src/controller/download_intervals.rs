@@ -17,7 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::{
-    messages, DownloadStappleError, DownloadStappleOk, MainState, NormalState, StaplesDownloader,
+    messages, DownloadStapleError, DownloadStapleOk, MainState, NormalState, StaplesDownloader,
     State, TransitionMessage,
 };
 
@@ -70,23 +70,23 @@ impl State for DownloadIntervals {
 fn get_design_providing_staples(downlader: &dyn StaplesDownloader) -> Box<dyn State> {
     let result = downlader.download_staples();
     match result {
-        Ok(DownloadStappleOk { warnings }) => AskingPath_ {
+        Ok(DownloadStapleOk { warnings }) => AskingPath_ {
             warnings,
             design_id: 0,
             warning_ack: None,
         }
         .to_state(),
-        Err(DownloadStappleError::NoScaffoldSet) => TransitionMessage::new(
+        Err(DownloadStapleError::NoScaffoldSet) => TransitionMessage::new(
             messages::NO_SCAFFOLD_SET,
             rfd::MessageLevel::Error,
             Box::new(NormalState),
         ),
-        Err(DownloadStappleError::ScaffoldSequenceNotSet) => TransitionMessage::new(
+        Err(DownloadStapleError::ScaffoldSequenceNotSet) => TransitionMessage::new(
             messages::NO_SCAFFOLD_SEQUENCE_SET,
             rfd::MessageLevel::Error,
             Box::new(NormalState),
         ),
-        Err(DownloadStappleError::SeveralDesignNoneSelected) => TransitionMessage::new(
+        Err(DownloadStapleError::SeveralDesignNoneSelected) => TransitionMessage::new(
             messages::NO_DESIGN_SELECTED,
             rfd::MessageLevel::Error,
             Box::new(NormalState),
@@ -153,7 +153,7 @@ fn poll_path(path_input: PathInput, design_id: usize) -> Box<dyn State> {
             })
         } else {
             TransitionMessage::new(
-                messages::NO_FILE_RECIEVED_STAPPLE,
+                messages::NO_FILE_RECIEVED_STAPLE,
                 rfd::MessageLevel::Error,
                 Box::new(NormalState),
             )

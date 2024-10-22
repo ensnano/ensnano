@@ -642,14 +642,19 @@ impl<R: DesignReader> Data<R> {
     }
 
     pub fn get_fit_rectangle(&self) -> FitRectangle {
-        let mut ret = FitRectangle::new();
-        for h in self.helices.iter() {
-            let left = h.get_pivot(h.get_flat_left());
-            ret.add_point(Vec2::new(left.x, left.y));
-            let right = h.get_pivot(h.get_flat_right());
-            ret.add_point(Vec2::new(right.x, right.y));
-        }
-        ret
+        FitRectangle::from_points(
+            self.helices
+                .iter()
+                .map(|h| {
+                    [
+                        h.get_pivot(h.get_flat_left()),
+                        h.get_pivot(h.get_flat_right()),
+                    ]
+                })
+                .flatten()
+                .map(|v| v.into()),
+        )
+        .unwrap()
     }
 
     pub fn is_xover_end(&self, nucl: &FlatNucl) -> Option<bool> {
@@ -1020,7 +1025,7 @@ impl<R: DesignReader> Data<R> {
                 let flat_1 = FlatNucl::from_real(&n1, self.id_map());
                 let flat_2 = FlatNucl::from_real(&n2, self.id_map());
                 if let Some((flat_1, flat_2)) = flat_1.zip(flat_2) {
-                    FlatSelection::Bound(d_id, flat_1, flat_2)
+                    FlatSelection::Bond(d_id, flat_1, flat_2)
                 } else {
                     FlatSelection::Nothing
                 }

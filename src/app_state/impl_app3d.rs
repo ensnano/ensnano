@@ -122,7 +122,7 @@ impl App3D for AppState {
             background3d: self.0.parameters.background3d,
             rendering_mode: self.0.parameters.rendering_mode,
             show_stereographic_camera: self.0.parameters.show_stereography,
-            thick_helices: self.0.parameters.thick_helices,
+            all_helices_on_axis: self.0.parameters.all_helices_on_axis,
             h_bonds: self.0.parameters.show_h_bonds,
             show_bezier_planes: self.0.parameters.show_bezier_paths,
         }

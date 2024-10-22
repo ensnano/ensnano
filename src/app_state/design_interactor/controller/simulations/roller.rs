@@ -27,6 +27,8 @@ const MASS_HELIX: f32 = 2.;
 const K_SPRING: f32 = 1000.;
 const FRICTION: f32 = 100.;
 
+const SYNC_ROLLS_INSTEAD_OF_COPY_ROLLS: bool = false; // false is ENSnano default
+
 use std::f32::consts::{PI, SQRT_2};
 use std::sync::{Arc, Mutex, Weak};
 use ultraviolet::Vec3;
@@ -138,9 +140,9 @@ pub(super) fn cross_over_force(
 
     let derivative_shift = std::f32::consts::FRAC_PI_2;
     let vec_self = me.shifted_space_pos(helix_parameters, n_self, b_self, derivative_shift)
-        - me.axis_position(helix_parameters, n_self);
+        - me.axis_position(helix_parameters, n_self, b_self);
     let vec_other = other.shifted_space_pos(helix_parameters, n_other, b_other, derivative_shift)
-        - other.axis_position(helix_parameters, n_other);
+        - other.axis_position(helix_parameters, n_other, b_other);
 
     (
         (0..3)
@@ -253,20 +255,48 @@ impl RollSystem {
     }
 
     fn update_rolls(&mut self, data: &mut DesignData, dt: f32) {
-        for i in 0..self.speed.len() {
-            if data.helices[i].support_helix.is_none() {
-                data.helices[i].roll(self.speed[i] * dt);
-            }
-        }
+        self.update_rolls_aux(data, dt, SYNC_ROLLS_INSTEAD_OF_COPY_ROLLS);
+    }
 
-        for i in 0..self.speed.len() {
-            if let Some(roll) = Self::get_roll_from_support(&data, i) {
-                data.helices[i].roll = roll;
+    fn update_rolls_aux(
+        &mut self,
+        data: &mut DesignData,
+        dt: f32,
+        sync_roll_instead_of_copy_roll: bool,
+    ) {
+        if !sync_roll_instead_of_copy_roll {
+            for i in 0..self.speed.len() {
+                if data.helices[i].support_helix.is_none() {
+                    data.helices[i].roll(self.speed[i] * dt);
+                }
             }
+            // Copy the roll from the support_helix
+            for i in 0..self.speed.len() {
+                if let Some(roll) = Self::get_roll_from_support(&data, i) {
+                    data.helices[i].roll = roll;
+                }
+            }
+            return;
+        } else {
+            for i in 0..self.speed.len() {
+                if let Some(c) = data.helices.get(i) {
+                    if let Some(h) = c
+                        .support_helix
+                        .as_ref()
+                        .and_then(|id| data.helix_map.get(id))
+                    {
+                        // update the roll the same way as the support helix
+                        data.helices[i].roll(self.speed[*h] * dt);
+                    } else {
+                        data.helices[i].roll(self.speed[i] * dt);
+                    }
+                }
+            }
+            return;
         }
     }
 
-    /// Adjuste the helices of the design, do not show intermediate steps
+    /// Adjust the helices of the design, do not show intermediate steps
     #[allow(dead_code)]
     pub fn solve(&mut self, data: &mut DesignData, dt: f32) {
         let mut nb_step = 0;

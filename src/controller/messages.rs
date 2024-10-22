@@ -21,7 +21,7 @@ pub const NO_FILE_RECIEVED_LOAD: &'static str = "Open canceled";
 pub const NO_FILE_RECIEVED_SAVE: &'static str = "Save canceled";
 pub const NO_FILE_RECIEVED_OXDNA: &'static str = "OxDNA export canceled";
 pub const NO_FILE_RECIEVED_SCAFFOLD: &'static str = "Scaffold setting canceled";
-pub const NO_FILE_RECIEVED_STAPPLE: &'static str = "Staple export canceled";
+pub const NO_FILE_RECIEVED_STAPLE: &'static str = "Staple export canceled";
 
 pub fn failed_to_save_msg<D: std::fmt::Debug>(reason: &D) -> String {
     format!("Failed to save {:?}", reason)
@@ -57,7 +57,7 @@ pub const SAVE_BEFORE_NEW: &'static str =
 pub fn optimize_scaffold_position_msg(default_position: usize) -> String {
     format!("Optimize the scaffold position ?\n
               If you chose \"Yes\", ENSnano will position the scaffold in a way that minimizes the \
-              number of anti-patern (G^4, C^4 (A|T)^7) in the stapples sequence. If you chose \"No\", \
+              number of anti-patern (G^4, C^4 (A|T)^7) in the staples sequence. If you chose \"No\", \
               the scaffold sequence will begin at position {}", default_position)
 }
 
@@ -108,6 +108,8 @@ pub const ORIGAMI_FLTER: Filters = &[("Origami files", &[crate::consts::ORIGAMI_
 
 pub const PDB_FILTER: Filters = &[("Pdb files", &["pdb"])];
 pub const CADNANO_FILTER: Filters = &[("Cadnano files", &["json"])];
+
+pub const STL_FILTER: Filters = &[("Stl files", &["stl"])];
 
 pub const OBJECT3D_FILTERS: Filters = &[
     ("All supported files", &["gltf", "stl"]),

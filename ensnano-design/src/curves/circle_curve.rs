@@ -20,68 +20,22 @@ use crate::{parameters, HelixParameters};
 
 use super::Curved;
 use std::f64::consts::{PI, TAU};
-use ultraviolet::{DRotor3, DVec3};
+use ultraviolet::{DRotor3, DVec3, Vec3};
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
-pub struct SphereConcentricCircleDescriptor {
-    pub radius: f64,
-    pub theta_0: f64,
-    pub helix_index: i32, // 0 is the equator, negative for below the equator, positive above
-    pub helix_index_shift: Option<f64>, // -0.5 if you want to center the equator between the helices
-    pub inter_helix_center_gap: Option<f64>, // in nm, by default 2.65nm
-}
-
-fn default_number_of_helices() -> usize {
-    3
-}
-
-impl SphereConcentricCircleDescriptor {
-    pub(super) fn with_helix_parameters(
-        self,
-        helix_parameters: HelixParameters,
-    ) -> SphereConcentricCircle {
-        let helix_index = self.helix_index as f64 + self.helix_index_shift.unwrap_or(0.);
-        let inter_helix_center_gap = self
-            .inter_helix_center_gap
-            .unwrap_or(HelixParameters::INTER_CENTER_GAP as f64);
-        let φ = PI / 2.0 - helix_index * inter_helix_center_gap as f64 / self.radius;
-        let z_radius = self.radius * φ.sin();
-        let z = self.radius * φ.cos();
-        let perimeter = TAU * z_radius;
-
-        SphereConcentricCircle {
-            _parameters: helix_parameters,
-            radius: self.radius,
-            theta_0: self.theta_0,
-            helix_index,
-            inter_helix_center_gap,
-            perimeter,
-            φ,
-            z_radius,
-            z,
-            t_min: 0.,
-            t_max: 1.,
-        }
-    }
-}
-
-pub(super) struct SphereConcentricCircle {
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct CircleCurve {
     pub _parameters: HelixParameters,
     pub radius: f64,
-    pub theta_0: f64,
-    pub helix_index: f64,
-    pub inter_helix_center_gap: f64,
-    pub perimeter: f64,
-    pub φ: f64,
-    pub z_radius: f64,
     pub z: f64,
-    pub t_min: f64,
-    pub t_max: f64,
+    pub perimeter: f64,
+    pub abscissa_converter_factor: Option<f64>,
+    pub target_nb_nt: Option<usize>, // desired length for the total circle in nt
+    pub is_closed: Option<bool>,     // closed unless this is false
 }
 
-impl SphereConcentricCircle {
+impl CircleCurve {
     fn theta(&self, t: f64) -> f64 {
-        t * TAU + self.theta_0
+        t * TAU
     }
 
     pub(super) fn last_theta(&self) -> f64 {
@@ -97,12 +51,12 @@ impl SphereConcentricCircle {
     }
 }
 
-impl Curved for SphereConcentricCircle {
+impl Curved for CircleCurve {
     fn position(&self, t: f64) -> DVec3 {
         let theta = self.theta(t);
         DVec3 {
-            x: self.z_radius * theta.cos(),
-            y: self.z_radius * theta.sin(),
+            x: self.radius * theta.cos(),
+            y: self.radius * theta.sin(),
             z: self.z,
         }
     }
@@ -110,9 +64,9 @@ impl Curved for SphereConcentricCircle {
     fn speed(&self, t: f64) -> DVec3 {
         let theta = self.theta(t);
 
-        let x = -self.z_radius * TAU * theta.sin();
+        let x = -self.radius * TAU * theta.sin();
 
-        let y = self.z_radius * TAU * theta.cos();
+        let y = self.radius * TAU * theta.cos();
 
         let z = 0.0;
 
@@ -122,9 +76,9 @@ impl Curved for SphereConcentricCircle {
     fn acceleration(&self, t: f64) -> DVec3 {
         let theta = self.theta(t);
 
-        let x = -self.z_radius * TAU * TAU * theta.cos();
+        let x = -self.radius * TAU * TAU * theta.cos();
 
-        let y = -self.z_radius * TAU * TAU * theta.sin();
+        let y = -self.radius * TAU * TAU * theta.sin();
 
         let z = 0.;
 
@@ -132,11 +86,11 @@ impl Curved for SphereConcentricCircle {
     }
 
     fn curvilinear_abscissa(&self, _t: f64) -> Option<f64> {
-        Some(self.z_radius * TAU * _t)
+        Some(self.radius * TAU * _t)
     }
 
     fn inverse_curvilinear_abscissa(&self, _x: f64) -> Option<f64> {
-        Some(_x / TAU / self.z_radius)
+        Some(_x / TAU / self.radius)
     }
 
     fn bounds(&self) -> super::CurveBounds {
@@ -151,8 +105,12 @@ impl Curved for SphereConcentricCircle {
     //     true
     // }
 
+    fn objective_nb_nt(&self) -> Option<usize> {
+        return self.target_nb_nt;
+    }
+
     fn first_theta(&self) -> Option<f64> {
-        Some(self.theta_0)
+        Some(0.)
     }
 
     fn last_theta(&self) -> Option<f64> {
@@ -160,14 +118,23 @@ impl Curved for SphereConcentricCircle {
     }
 
     fn full_turn_at_t(&self) -> Option<f64> {
-        Some(self.t_max())
+        match self.is_closed {
+            Some(false) => None,
+            _ => Some(self.t_max()),
+        }
     }
 
     fn t_max(&self) -> f64 {
-        self.t_max
+        1.
     }
 
     fn t_min(&self) -> f64 {
-        self.t_min
+        0.
+    }
+
+    fn abscissa_converter(&self) -> Option<crate::AbscissaConverter> {
+        return Some(crate::AbscissaConverter::linear(
+            self.abscissa_converter_factor.unwrap_or(1.),
+        ));
     }
 }

@@ -160,7 +160,7 @@ impl InstanciatedInsertion {
     }
 }
 
-const NB_STEP: usize = 1000;
+const NB_STEP: usize = 1_000;
 const DT_STEP: f32 = 1e-2;
 const K_SPRING: f32 = 1.0;
 const FRICTION: f32 = 0.1;
@@ -187,6 +187,7 @@ impl InsertionDescriptor {
             ret.push(initial_pos);
         }
 
+        //mini simulateur de ressorts !!
         let mut speed = vec![Vec3::zero(); self.nb_nucl];
         for _ in 0..NB_STEP {
             let mut forces: Vec<Vec3> = speed.iter().map(|s| -*s * FRICTION / MASS_NUCL).collect();
@@ -231,23 +232,26 @@ impl Strand {
         let mut to_be_updated = Vec::new();
         let nb_domain = self.domains.len();
         for (d_prev, ((d_id, d), d_next)) in self.domains.iter().cycle().skip(nb_domain - 1).zip(
+            // previous domain
             self.domains
                 .iter()
-                .enumerate()
-                .zip(self.domains.iter().cycle().skip(1)),
+                .enumerate() // domain index plus domain
+                .zip(self.domains.iter().cycle().skip(1)), // next domain
         ) {
             if let Domain::Insertion { .. } = d {
                 if let Some((prime_5, prime_3)) = d_prev.prime3_end().zip(d_next.prime5_end()) {
                     let prime_5 = helices.get(&prime_5.helix).map(|h| {
                         let position =
                             h.space_pos(helix_parameters, prime_5.position, prime_5.forward);
-                        let up_vec = position - h.axis_position(helix_parameters, prime_5.position);
+                        let up_vec = position
+                            - h.axis_position(helix_parameters, prime_5.position, prime_5.forward);
                         InsertionEnd { position, up_vec }
                     });
                     let prime_3 = helices.get(&prime_3.helix).map(|h| {
                         let position =
                             h.space_pos(helix_parameters, prime_3.position, prime_3.forward);
-                        let up_vec = position - h.axis_position(helix_parameters, prime_3.position);
+                        let up_vec = position
+                            - h.axis_position(helix_parameters, prime_3.position, prime_3.forward);
                         InsertionEnd { position, up_vec }
                     });
                     if let Some((prime_5, prime_3)) = prime_5.zip(prime_3) {
