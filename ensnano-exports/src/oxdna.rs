@@ -321,7 +321,7 @@ pub(super) fn to_oxdna(design: &Design, basis_map: BasisMapper) -> (OxDnaConfig,
             }
         }
         // TODO: encapsulate this call to manually drop
-        ManuallyDrop::into_inner(strand_maker).end(s.cyclic);
+        ManuallyDrop::into_inner(strand_maker).end(s.is_cyclic);
     }
 
     maker.end()

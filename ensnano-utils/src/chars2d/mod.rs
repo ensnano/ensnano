@@ -19,7 +19,7 @@ use iced_wgpu::wgpu;
 use std::collections::HashMap;
 use std::rc::Rc;
 use ultraviolet::{Mat2, Vec2, Vec4};
-use wgpu::{include_spirv, BindGroupLayout, Device, Queue, RenderPass, RenderPipeline};
+use wgpu::{BindGroupLayout, Device, Queue, RenderPass, RenderPipeline};
 
 use crate::bindgroup_manager::DynamicBindGroup;
 use crate::text::{Letter, Vertex as CharVertex};
@@ -113,10 +113,10 @@ impl CharDrawer {
     fn create_pipeline(&self, globals_layout: &BindGroupLayout) -> RenderPipeline {
         let vertex_module = self
             .device
-            .create_shader_module(&include_spirv!("chars.vert.spv"));
+            .create_shader_module(&wgpu::include_spirv!("chars.vert.spv"));
         let fragment_module = self
             .device
-            .create_shader_module(&include_spirv!("chars.frag.spv"));
+            .create_shader_module(&wgpu::include_spirv!("chars.frag.spv"));
         let render_pipeline_layout =
             self.device
                 .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {

@@ -47,6 +47,8 @@ use closed_curves::CloseSurfaceTopology;
 trait SpringTopology: Send + Sync + 'static {
     fn nb_balls(&self) -> usize;
 
+    fn number_of_sections_per_segment(&self) -> usize;
+
     fn balls_with_successor(&self) -> &[usize];
     /// Return the identifier of the next ball on the helix,  or `ball_id` if `ball_id` is
     /// the last ball on an open helix.
@@ -274,6 +276,8 @@ impl RevolutionSurfaceSystem {
     ) {
         let mut nb_spring = 0;
         if let Some(state) = spring_state.as_mut() {
+            state.min_ext = f64::INFINITY;
+            state.max_ext = -f64::INFINITY;
             state.avg_ext = 0.;
         }
         for i in self.topology.balls_involved_in_spring() {
@@ -570,6 +574,10 @@ impl ensnano_design::AdditionalStructure for RevolutionSurfaceSystem {
             .collect()
     }
 
+    fn number_of_sections(&self) -> usize {
+        return self.topology.number_of_sections_per_segment();
+    }
+
     fn next(&self) -> Vec<(usize, usize)> {
         self.topology
             .balls_involved_in_spring()
@@ -586,20 +594,31 @@ impl ensnano_design::AdditionalStructure for RevolutionSurfaceSystem {
             .collect()
     }
 
-    fn nt_path(&self) -> Option<Vec<ultraviolet::Vec3>> {
+    fn nt_paths(&self) -> Option<Vec<Vec<ultraviolet::Vec3>>> {
         let mut ret = Vec::new();
         let curve_desc = self.to_curve_desc(false)?;
         for desc in curve_desc {
             let nts = desc.path()?;
-            ret.extend(nts.into_iter().map(ensnano_design::utils::dvec_to_vec));
+            ret.push(
+                nts.into_iter()
+                    .map(ensnano_design::utils::dvec_to_vec)
+                    .collect::<Vec<ultraviolet::Vec3>>(),
+            );
         }
 
-        for n in 0..1000 {
-            ret.push(ensnano_design::utils::dvec_to_vec(
-                self.topology
-                    .surface_position(-std::f64::consts::FRAC_PI_2, n as f64 / 1000.),
+        let number_of_steps = 1000;
+
+        // The section at -PI/2
+        let mut section = Vec::new();
+        for n in 0..number_of_steps {
+            section.push(ensnano_design::utils::dvec_to_vec(
+                self.topology.surface_position(
+                    -std::f64::consts::FRAC_PI_2,
+                    n as f64 / number_of_steps as f64,
+                ),
             ));
         }
+        ret.push(section);
 
         Some(ret)
     }
@@ -687,14 +706,14 @@ impl SimulationUpdate for HelicesRouting {
                     forward,
                     sequence: None,
                 });
-                let color = ensnano_utils::new_color(&mut now_s);
+                let color = ensnano_utils::colors::new_color(&mut now_s);
 
                 strands.push(Strand {
                     color,
                     domains: vec![domain],
                     junctions: vec![DomainJunction::Prime3],
                     name: None,
-                    cyclic: false,
+                    is_cyclic: false,
                     sequence: None,
                 });
             }

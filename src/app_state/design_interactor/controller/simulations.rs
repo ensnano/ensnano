@@ -391,8 +391,8 @@ impl HelixSystem {
                     positions[n] + self.helices[n].center_to_origin.rotated_by(orientations[n]);
                 let helix = Helix::new(position, orientations[n]);
                 (
-                    helix.axis_position(&self.helix_parameters, self.helices[n].interval.0),
-                    helix.axis_position(&self.helix_parameters, self.helices[n].interval.1),
+                    helix.axis_position(&self.helix_parameters, self.helices[n].interval.0, true),
+                    helix.axis_position(&self.helix_parameters, self.helices[n].interval.1, true),
                 )
             })
             .collect();
@@ -1143,8 +1143,8 @@ fn make_rigid_helix_world_pov_interval(
 ) -> RigidHelix {
     let (x_min, x_max) = &interval;
     let helix = design.helices.get(&h_id).expect("helix");
-    let left = helix.axis_position(helix_parameters, *x_min);
-    let right = helix.axis_position(helix_parameters, *x_max);
+    let left = helix.axis_position(helix_parameters, *x_min, true);
+    let right = helix.axis_position(helix_parameters, *x_max, true);
     let position = (left + right) / 2.;
     let position_delta =
         -(*x_max as f32 * helix_parameters.rise + *x_min as f32 * helix_parameters.rise) / 2.

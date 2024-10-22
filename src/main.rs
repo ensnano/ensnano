@@ -100,6 +100,7 @@ use iced_winit::{conversion, futures, program, winit, Debug, Size};
 
 use app_state::AppStateParameters;
 use futures::task::SpawnExt;
+use rand::random;
 use ultraviolet::{Rotor3, Vec3};
 use winit::{
     dpi::{PhysicalPosition, PhysicalSize},
@@ -162,6 +163,8 @@ use gui::{ColorOverlay, Gui, IcedMessages, OverlayType, UiSize};
 use multiplexer::{Multiplexer, Overlay};
 use scene::Scene;
 use utils::{PhySize, TEXTURE_FORMAT};
+
+use std::collections::HashMap as StdHashMap;
 
 fn convert_size(size: PhySize) -> Size<f32> {
     Size::new(size.width as f32, size.height as f32)
@@ -1087,6 +1090,7 @@ impl MainState {
     }
 
     fn update(&mut self) {
+        // Appelé continuement
         log::trace!("call from main state");
         if let Some(camera_ptr) = self
             .applications
@@ -1491,8 +1495,8 @@ impl MainState {
         self.modify_state(|s| s.with_show_bezier_paths(show), None)
     }
 
-    fn set_thick_helices(&mut self, thick: bool) {
-        self.modify_state(|s| s.with_thick_helices(thick), None)
+    fn set_all_helices_on_axis(&mut self, off_axis: bool) {
+        self.modify_state(|s| s.all_helices_on_axis(off_axis), None)
     }
 
     fn set_bezier_revolution_id(&mut self, id: Option<usize>) {
@@ -1542,8 +1546,8 @@ impl MainState {
             })
     }
 
-    fn toggle_thick_helices(&mut self) {
-        self.modify_state(|s| s.with_toggled_thick_helices(), None)
+    fn toggle_all_helices_on_axis(&mut self) {
+        self.modify_state(|s| s.with_toggled_all_helices_on_axis(), None)
     }
 
     fn set_background_3d(&mut self, bg: ensnano_interactor::graphics::Background3D) {
@@ -1613,8 +1617,8 @@ struct MainStateView<'a> {
     resized: bool,
 }
 
-use controller::{LoadDesignError, MainState as MainStateInteface, StaplesDownloader};
-impl<'a> MainStateInteface for MainStateView<'a> {
+use controller::{LoadDesignError, MainState as MainStateInterface, StaplesDownloader};
+impl<'a> MainStateInterface for MainStateView<'a> {
     fn pop_action(&mut self) -> Option<Action> {
         if !self.main_state.pending_actions.is_empty() {
             log::debug!("pending actions {:?}", self.main_state.pending_actions);
@@ -1744,7 +1748,7 @@ impl<'a> MainStateInteface for MainStateView<'a> {
     }
 
     fn notify_apps(&mut self, notification: Notification) {
-        log::info!("Notiffy apps {:?}", notification);
+        log::info!("Notify apps {:?}", notification);
         for app in self.main_state.applications.values_mut() {
             app.lock().unwrap().on_notify(notification.clone())
         }
@@ -1916,6 +1920,17 @@ impl<'a> MainStateInteface for MainStateView<'a> {
 
     fn get_current_file_name(&self) -> Option<&Path> {
         self.main_state.get_current_file_name()
+    }
+
+    fn get_design_path_and_notify(&mut self, notificator: fn(Option<Arc<Path>>) -> Notification) {
+        if let Some(filename) = self.get_current_file_name() {
+            self.main_state
+                .push_action(Action::NotifyApps(notificator(Some(Arc::from(filename)))));
+        } else {
+            println!("Design has not been saved yet");
+            self.main_state
+                .push_action(Action::NotifyApps(notificator(None)));
+        }
     }
 
     fn set_current_group_pivot(&mut self, pivot: ensnano_design::group_attributes::GroupPivot) {

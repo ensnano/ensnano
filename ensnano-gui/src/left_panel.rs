@@ -133,7 +133,7 @@ pub enum Message<S: AppState> {
     FogRadius(f32),
     FogLength(f32),
     SimRequest,
-    DescreteValue {
+    DiscreteValue {
         factory_id: FactoryId,
         value_id: ValueId,
         value: f32,
@@ -149,7 +149,7 @@ pub enum Message<S: AppState> {
     ModifiersChanged(ModifiersState),
     UiSizeChanged(UiSize),
     UiSizePicked(UiSize),
-    StapplesRequested,
+    StaplesRequested,
     OrigamisRequested,
     ToggleText(bool),
     #[allow(dead_code)]
@@ -211,6 +211,7 @@ pub enum Message<S: AppState> {
         cyclic: bool,
     },
     Export(ExportType),
+    StlExport,
     CurveBuilderPicked(CurveDescriptorBuilder<S>),
     RevolutionEquadiffSolvingMethodPicked(EquadiffSolvingMethod),
     RevolutionParameterUpdate {
@@ -220,7 +221,9 @@ pub enum Message<S: AppState> {
     InitRevolutionRelaxation,
     CancelExport,
     LoadSvgFile,
+    ScreenShot2D,
     ScreenShot3D,
+    SaveNucleotidesPositions,
     IncrRevolutionShift,
     DecrRevolutionShift,
 }
@@ -480,7 +483,7 @@ impl<R: Requests, S: AppState> Program for LeftPanel<R, S> {
                 let request = self.camera_tab.get_fog_request();
                 self.requests.lock().unwrap().set_fog_parameters(request);
             }
-            Message::DescreteValue {
+            Message::DiscreteValue {
                 factory_id,
                 value_id,
                 value,
@@ -662,7 +665,7 @@ impl<R: Requests, S: AppState> Program for LeftPanel<R, S> {
             Message::OptimizeScaffoldShiftPressed => {
                 self.requests.lock().unwrap().optimize_scaffold_shift();
             }
-            Message::StapplesRequested => self.requests.lock().unwrap().download_stapples(),
+            Message::StaplesRequested => self.requests.lock().unwrap().download_staples(),
             Message::ToggleText(b) => {
                 self.requests
                     .lock()
@@ -866,9 +869,8 @@ impl<R: Requests, S: AppState> Program for LeftPanel<R, S> {
                     .unwrap()
                     .make_bezier_path_cyclic(path_id, cyclic);
             }
-            Message::Export(export_type) => {
-                self.requests.lock().unwrap().export(export_type);
-            }
+            Message::Export(export_type) => self.requests.lock().unwrap().export(export_type),
+
             Message::CancelExport => {
                 self.requests.lock().unwrap().set_exporting(false);
             }
@@ -931,8 +933,20 @@ impl<R: Requests, S: AppState> Program for LeftPanel<R, S> {
                 .unwrap()
                 .finish_revolutiion_relaxation(),
             Message::LoadSvgFile => self.requests.lock().unwrap().load_svg(),
+            Message::StlExport => {
+                self.requests.lock().unwrap().request_stl_export();
+            }
+            Message::ScreenShot2D => {
+                self.requests.lock().unwrap().request_screenshot_2d();
+            }
             Message::ScreenShot3D => {
                 self.requests.lock().unwrap().request_screenshot_3d();
+            }
+            Message::SaveNucleotidesPositions => {
+                self.requests
+                    .lock()
+                    .unwrap()
+                    .request_save_nucleotides_positions();
             }
             Message::IncrRevolutionShift => self.revolution_tab.shift_idx += 1,
             Message::DecrRevolutionShift => self.revolution_tab.shift_idx -= 1,

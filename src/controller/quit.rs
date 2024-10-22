@@ -465,11 +465,11 @@ impl State for Exporting {
         } else {
             let candidate_name = main_state.get_current_file_name().map(|p| {
                 let mut ret = p.to_owned();
-                ret.set_extension(export_extenstion(self.export_type));
+                ret.set_extension(export_extenstion(self.export_type.clone()));
                 ret
             });
             let getter = dialog::get_file_to_write(
-                export_filters(self.export_type),
+                export_filters(self.export_type.clone()),
                 main_state.get_current_design_directory(),
                 candidate_name,
             );

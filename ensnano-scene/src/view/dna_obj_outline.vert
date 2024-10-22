@@ -20,6 +20,7 @@ uniform Uniforms {
     float u_stereography_radius;
     mat4 u_stereography_view;
     float u_aspect_ratio;
+    uint u_nb_ray_tube;
 };
 
 layout(set=1, binding=0) buffer ModelBlock {
@@ -32,7 +33,9 @@ struct Instances {
     vec3 scale;
     uint id;
     mat4 model_inversed;
-    float expected_length;
+    vec3 prev;
+    uint mesh;
+    vec3 next;
 };
 
 layout(std430, set=2, binding=0) 

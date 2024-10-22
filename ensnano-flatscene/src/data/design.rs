@@ -239,7 +239,7 @@ impl<R: DesignReader> Design2d<R> {
             {
                 self.known_helices.insert(*h_id, helix);
                 let segments: Vec<isize> =
-                    helix.additonal_isometries.iter().map(|i| i.left).collect();
+                    helix.additional_isometries.iter().map(|i| i.left).collect();
                 let nb_segments = segments.len();
                 self.id_map.insert_segments(*h_id, segments);
                 for segment_idx in 0..=nb_segments {
@@ -298,7 +298,7 @@ impl<R: DesignReader> Design2d<R> {
                     .design
                     .get_visibility_helix(segment.helix_idx)
                     .unwrap_or(false),
-                abscissa_converter: Arc::new(self.design.get_abcissa_converter(segment.helix_idx)),
+                abscissa_converter: Arc::new(self.design.get_abscissa_converter(segment.helix_idx)),
             });
         } else {
             // unwrap Ok because we know that the key exists
@@ -306,7 +306,7 @@ impl<R: DesignReader> Design2d<R> {
             let helix2d = &mut self.helices[flat];
             helix2d.isometry = FullIsometry::from_isommetry_symmetry(isometry, symmetry);
             helix2d.abscissa_converter =
-                Arc::new(self.design.get_abcissa_converter(segment.helix_idx));
+                Arc::new(self.design.get_abscissa_converter(segment.helix_idx));
         }
     }
 
@@ -558,7 +558,7 @@ pub trait DesignReader: 'static {
     fn get_group_map(&self) -> Arc<BTreeMap<usize, bool>>;
     fn get_strand_ends(&self) -> Vec<Nucl>;
     fn get_nucl_collection(&self) -> Arc<Self::NuclCollection>;
-    fn get_abcissa_converter(&self, h_id: usize) -> AbscissaConverter;
+    fn get_abscissa_converter(&self, h_id: usize) -> AbscissaConverter;
 }
 
 pub trait NuclCollection {

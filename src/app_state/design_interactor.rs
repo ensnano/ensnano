@@ -102,8 +102,8 @@ impl DesignInteractor {
             let result = self.controller.apply_copy_operation(up_to_date, operation);
             self.handle_operation_result(result)
         } else {
-            let desing_mut = self.design.make_mut();
-            let up_to_date = desing_mut.get_up_to_date();
+            let design_mut = self.design.make_mut();
+            let up_to_date = design_mut.get_up_to_date();
             let result = self.controller.apply_copy_operation(up_to_date, operation);
             self.handle_operation_result(result)
         }
@@ -1241,6 +1241,7 @@ mod tests {
             .apply_design_op(DesignOperation::AddGrid(GridDescriptor {
                 position: Vec3::zero(),
                 orientation: Rotor3::identity(),
+                helix_parameters: None,
                 grid_type: ensnano_design::grid::GridTypeDescr::Square { twist: None },
                 invisible: false,
                 bezier_vertex: None,
@@ -1260,6 +1261,7 @@ mod tests {
             .apply_design_op(DesignOperation::AddGrid(GridDescriptor {
                 position: Vec3::zero(),
                 orientation: Rotor3::identity(),
+                helix_parameters: None,
                 grid_type: ensnano_design::grid::GridTypeDescr::Square { twist: None },
                 invisible: false,
                 bezier_vertex: None,
@@ -1287,6 +1289,7 @@ mod tests {
             .apply_design_op(DesignOperation::AddGrid(GridDescriptor {
                 position: Vec3::zero(),
                 orientation: Rotor3::identity(),
+                helix_parameters: None,
                 grid_type: ensnano_design::grid::GridTypeDescr::Square { twist: None },
                 invisible: false,
                 bezier_vertex: None,
@@ -1680,8 +1683,8 @@ mod tests {
             .apply_design_op(DesignOperation::SetScaffoldId(Some(s_id)))
             .unwrap();
         app_state.update();
-        let stapples = app_state.get_design_reader().presenter.get_staples();
-        for s in stapples.iter() {
+        let staples = app_state.get_design_reader().presenter.get_staples();
+        for s in staples.iter() {
             if s.name.contains("5':h1:nt7") {
                 assert_eq!(s.sequence, "CCAA TTTT")
             } else if s.name.contains("5':h2:nt0") {
@@ -1712,8 +1715,8 @@ mod tests {
             .apply_design_op(DesignOperation::SetScaffoldId(Some(s_id)))
             .unwrap();
         app_state.update();
-        let stapples = app_state.get_design_reader().presenter.get_staples();
-        for s in stapples.iter() {
+        let staples = app_state.get_design_reader().presenter.get_staples();
+        for s in staples.iter() {
             if s.name.contains("5':h1:nt7") {
                 assert_eq!(s.sequence, "AGGT TCCA")
             } else if s.name.contains("5':h2:nt0") {

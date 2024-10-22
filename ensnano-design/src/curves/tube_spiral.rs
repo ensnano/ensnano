@@ -23,7 +23,7 @@ use std::f64::consts::{PI, TAU};
 use ultraviolet::{DRotor3, DVec3};
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
-pub struct TubeSpiralDescritor {
+pub struct TubeSpiralDescriptor {
     pub theta_0: f64,
     pub big_axis: f64,
     #[serde(default)]
@@ -39,7 +39,7 @@ fn default_number_of_helices() -> usize {
     2
 }
 
-impl TubeSpiralDescritor {
+impl TubeSpiralDescriptor {
     pub(super) fn with_helix_parameters(self, helix_parameters: HelixParameters) -> TubeSpiral {
         TubeSpiral {
             theta_0: self.theta_0,
@@ -77,7 +77,7 @@ pub(super) struct TubeSpiral {
 impl TubeSpiral {
     fn dist_turn(&self) -> f64 {
         let nb_helices = self.number_of_helices as f64;
-        nb_helices * HelixParameters::INTER_CENTER_GAP as f64 / self.inclination().cos()
+        nb_helices * self._parameters.inter_helix_axis_gap() as f64 / self.inclination().cos()
     }
 
     fn nb_turn(&self) -> f64 {
@@ -93,7 +93,7 @@ impl TubeSpiral {
             // the correct result is the perimeter of the polygon inscribed in the helix
             let slice_width = self.perimeter / 2. / PI * (PI / nb_helices).sin();
 
-            (HelixParameters::INTER_CENTER_GAP as f64 / 2. / slice_width).asin()
+            (self._parameters.inter_helix_axis_gap() as f64 / 2. / slice_width).asin()
         }
     }
 

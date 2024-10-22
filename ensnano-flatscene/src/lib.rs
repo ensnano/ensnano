@@ -16,32 +16,50 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 //! This module handles the 2D view
+//!
+//! # Coordinate systems
+//!
+//! The 2D view uses three different coordinate systems:
+//!
+//! 1. **screen coordinates**: in this system, (0, 0) corresponds to the top left (or bottom left?)
+//!    corner of the view, and (x_res, y_res) corresponds to the bottom right (or top right?) of the
+//!    view, where x_res and y_res are the screen resolution of the view.
+//!
+//! 2. **normalized screen coordinates**: it is similar to the screen coordinates, except that the
+//!    bottom right (or top right?) corner has coordinate (1, 1).
+//!
+//! 3. **world coordinates**: this is the absolute coordinate system in which elements are
+//!    positionned.
 
-use ensnano_design::Nucl;
+use ensnano_design::{consts::ITERATIVE_AXIS_ALGORITHM, Nucl};
 use ensnano_interactor::{
     application::{AppId, Application, Duration, Notification},
+    consts::{EXPORT_2D_MARGIN, EXPORT_2D_MAX_SIZE},
     graphics::DrawArea,
     operation::*,
     ActionMode, DesignOperation, PhantomElement, Selection, SelectionMode, StrandBuilder,
     StrandBuildingStatus,
 };
+use ensnano_utils::filename;
 use ensnano_utils::wgpu;
 use ensnano_utils::winit;
 use ensnano_utils::PhySize;
+use lyon::geom::euclid::rect;
 use std::cell::RefCell;
 use std::collections::HashMap;
+use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use std::sync::{Arc, Mutex};
 use wgpu::{Device, Queue};
 use winit::dpi::PhysicalPosition;
 use winit::event::WindowEvent;
 
-use ensnano_utils::camera2d as camera;
+use ensnano_utils::camera2d;
 mod controller;
 mod data;
 mod flattypes;
 mod view;
-use camera::{Camera, FitRectangle, Globals};
+pub use camera2d::{Camera2D, FitRectangle};
 use controller::Controller;
 use data::Data;
 pub use data::{DesignReader, NuclCollection};
@@ -51,30 +69,39 @@ use view::View;
 
 type ViewPtr = Rc<RefCell<View>>;
 type DataPtr<R> = Rc<RefCell<Data<R>>>;
-type CameraPtr = Rc<RefCell<Camera>>;
+type CameraPtr = Rc<RefCell<Camera2D>>;
 
-const PNG_SIZE: PhySize = PhySize {
-    width: 256 * 32,
-    height: 256 * 10,
-};
+fn png_resolution([w, h]: [f32; 2]) -> [f32; 2] {
+    // Maximum width or height re of a png export.
+    let max_size = 2f32.powi(13);
+    let align_size = |x: f32| 2f32.powf(x.log2().ceil());
+    if w >= h {
+        [max_size, align_size(max_size / w * h)]
+    } else {
+        [align_size(max_size / h * w), max_size]
+    }
+}
 
 /// A Flatscene handles one design at a time
 pub struct FlatScene<S: AppState> {
-    /// Handle the data to send to the GPU
+    /// Handle the data to send to the GPU.
     view: Vec<ViewPtr>,
-    /// Handle the data representing the design
+    /// Handle the data representing the design.
     data: Vec<DataPtr<S::Reader>>,
-    /// Handle the inputs
+    /// Handle inputs.
     controller: Vec<Controller<S>>,
-    /// The area on which the flatscene is displayed
+    /// The area on which the flatscene is displayed.
     area: DrawArea,
-    /// The size of the window on which the flatscene is displayed
+    /// The size of the window on which the flatscene is displayed.
     window_size: PhySize,
-    /// The identifer of the design being drawn
+    /// The identifer of the design being drawn.
     selected_design: usize,
+    /// Graphics device.
     device: Rc<Device>,
+    /// Command queue on the graphics device.
     queue: Rc<Queue>,
     last_update: Instant,
+    /// Wether the flatscene is split in two.
     splited: bool,
     old_state: S,
     requests: Arc<Mutex<dyn Requests>>,
@@ -107,18 +134,23 @@ impl<S: AppState> FlatScene<S> {
         ret
     }
 
-    /// Add a design to the scene. This creates a new `View`, a new `Data` and a new `Controller`
+    /// Add a design to the scene.
+    ///
+    /// This creates a new `View`, a new `Data` and a new `Controller`
     fn add_design(&mut self, reader: S::Reader, requests: Arc<Mutex<dyn Requests>>) {
         let height = if self.splited {
             self.area.size.height as f32 / 2.
         } else {
             self.area.size.height as f32
         };
-        let globals_top = Globals::default([self.area.size.width as f32, height]);
-        let globals_bottom = Globals::default([self.area.size.width as f32, height]);
 
-        let camera_top = Rc::new(RefCell::new(Camera::new(globals_top, false)));
-        let camera_bottom = Rc::new(RefCell::new(Camera::new(globals_bottom, true)));
+        // Allocate resources even if the screen is not splited.
+        let globals_top = camera2d::Globals::from_resolution([self.area.size.width as f32, height]);
+        let globals_bottom =
+            camera2d::Globals::from_resolution([self.area.size.width as f32, height]);
+
+        let camera_top = Rc::new(RefCell::new(Camera2D::new(globals_top, false)));
+        let camera_bottom = Rc::new(RefCell::new(Camera2D::new(globals_bottom, true)));
         camera_top
             .borrow_mut()
             .fit_top_left(FitRectangle::INITIAL_RECTANGLE);
@@ -463,12 +495,18 @@ impl<S: AppState> FlatScene<S> {
                     helix_id: flat_helix.segment.helix_idx,
                     segment_id: flat_helix.segment.segment_idx,
                 }]),
+            /// OBSOLETE ?
             Consequence::PngExport(corner1, corner2) => {
-                let glob_png = Globals::from_selection_rectangle(corner1, corner2);
-                use chrono::Utc;
-                let now = Utc::now();
-                let name = now.format("export_2d_%Y_%m_%d_%H_%M_%S.png").to_string();
-                self.export_png(&name, glob_png);
+                println!("I'd like to know how you got there !");
+                let glob_png = camera2d::Globals::from_corners(corner1, corner2, png_resolution);
+                let path = filename::derive_path_with_prefix_and_time_stamp_and_suffix(
+                    Some(Arc::from(PathBuf::new())),
+                    Some("export_2d"),
+                    Some(format!("{ITERATIVE_AXIS_ALGORITHM}").as_str()),
+                    Some("png"),
+                );
+                println!("2D PNG export to {:?}", path);
+                self.export_2d_png(path, glob_png);
                 self.view[self.selected_design]
                     .borrow_mut()
                     .clear_rectangle();
@@ -565,40 +603,40 @@ impl<S: AppState> FlatScene<S> {
         (texture, view)
     }
 
-    fn export_png(&self, png_name: &str, glob: Globals) {
+    /// Export the scene into a PNG file.
+    fn export_2d_png(&self, path: PathBuf, glob: camera2d::Globals) {
         let device = self.device.as_ref();
         let queue = self.queue.as_ref();
-        println!("export to {png_name}");
+
+        log::info!("2D PNG export to {:?}", path);
         use ensnano_utils::BufferDimensions;
         use std::io::Write;
 
+        let png_size = PhySize::from(glob.resolution);
+
         let size = wgpu::Extent3d {
-            width: PNG_SIZE.width,
-            height: PNG_SIZE.height,
+            width: png_size.width,
+            height: png_size.height,
             depth_or_array_layers: 1,
         };
 
         let (texture, texture_view) = self.create_png_export_texture(device, size);
 
         let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-            label: Some("3D Png export"),
+            label: Some("2D PNG export"),
         });
 
         self.view[0]
             .borrow_mut()
-            .draw(&mut encoder, &texture_view, Some(PNG_SIZE), Some(glob));
+            .draw(&mut encoder, &texture_view, Some(png_size), Some(glob));
 
         // create a buffer and fill it with the texture
-        let extent = wgpu::Extent3d {
-            width: size.width,
-            height: size.height,
-            depth_or_array_layers: 1,
-        };
+        let extent = size.clone();
+
         let buffer_dimensions =
             BufferDimensions::new(extent.width as usize, extent.height as usize);
-        let buf_size = buffer_dimensions.padded_bytes_per_row * buffer_dimensions.height;
         let staging_buffer = device.create_buffer(&wgpu::BufferDescriptor {
-            size: buf_size as u64,
+            size: buffer_dimensions.buffer_size() as u64,
             usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: false,
             label: Some("staging_buffer"),
@@ -649,22 +687,22 @@ impl<S: AppState> FlatScene<S> {
             }
         };
         let pixels = futures::executor::block_on(pixels);
-        let mut png_encoder = png::Encoder::new(
-            std::fs::File::create(png_name).unwrap(),
-            PNG_SIZE.width,
-            PNG_SIZE.height,
-        );
-        png_encoder.set_depth(png::BitDepth::Eight);
-        png_encoder.set_color(png::ColorType::Rgba);
+        if let Ok(f_out) = std::fs::File::create(path) {
+            let mut png_encoder = png::Encoder::new(f_out, png_size.width, png_size.height);
+            png_encoder.set_depth(png::BitDepth::Eight);
+            png_encoder.set_color(png::ColorType::Rgba);
 
-        let mut png_writer = png_encoder
-            .write_header()
-            .unwrap()
-            .into_stream_writer_with_size(buffer_dimensions.unpadded_bytes_per_row)
-            .unwrap();
+            let mut png_writer = png_encoder
+                .write_header()
+                .unwrap()
+                .into_stream_writer_with_size(buffer_dimensions.unpadded_bytes_per_row)
+                .unwrap();
 
-        png_writer.write_all(pixels.as_slice()).unwrap();
-        png_writer.finish().unwrap();
+            png_writer.write_all(pixels.as_slice()).unwrap();
+            png_writer.finish().unwrap();
+            return;
+        }
+        println!("Export failed! Consider saving the design first.");
     }
 }
 
@@ -724,7 +762,51 @@ impl<S: AppState> Application for FlatScene<S> {
             Notification::NewStereographicCamera(_) => (),
             Notification::FlipSplitViews => self.controller[0].flip_split_views(),
             Notification::HorizonAligned => (),
-            Notification::ScreenShot3D => (),
+            Notification::ScreenShot2D(design_path) => {
+                // NOTE: When flatscene is split, return the whole view.
+                let rectangle = self.data[0].borrow().get_fit_rectangle();
+                let w = rectangle.width() + 2. * EXPORT_2D_MARGIN;
+                let h = rectangle.height() + 2. * EXPORT_2D_MARGIN;
+                let w_cuts = (w / EXPORT_2D_MAX_SIZE).ceil() as u32;
+                let h_cuts = (h / EXPORT_2D_MAX_SIZE).ceil() as u32;
+                let [x0, y0] = rectangle.top_left();
+                for i in 0..w_cuts {
+                    for j in 0..h_cuts {
+                        let glob_png = camera2d::Globals::from_corners(
+                            [
+                                x0 - EXPORT_2D_MARGIN + i as f32 * w / w_cuts as f32,
+                                y0 + EXPORT_2D_MARGIN - j as f32 * h / h_cuts as f32,
+                            ]
+                            .into(),
+                            [
+                                x0 - EXPORT_2D_MARGIN + (i + 1) as f32 * w / w_cuts as f32,
+                                y0 + EXPORT_2D_MARGIN - (j + 1) as f32 * h / h_cuts as f32,
+                            ]
+                            .into(),
+                            png_resolution,
+                        );
+                        let path = filename::derive_path_with_prefix_and_time_stamp_and_suffix(
+                            design_path.clone(),
+                            Some("export_2d"),
+                            Some(
+                                format!("{ITERATIVE_AXIS_ALGORITHM}-{}x{}", i + 1, j + 1).as_str(),
+                            ),
+                            Some("png"),
+                        );
+                        println!("2D PNG export to {:?}", path);
+                        self.export_2d_png(path.clone(), glob_png);
+                        println!(
+                            "File {:?} saved [{}/{}]",
+                            path.file_stem().unwrap(),
+                            i * h_cuts + j + 1,
+                            w_cuts * h_cuts
+                        );
+                    }
+                }
+            }
+            Notification::ScreenShot3D(_) => (), // Nothing to do in the flatscene.
+            Notification::SaveNucleotidesPositions(_) => (), // Nothing to do in the flatscene.
+            Notification::StlExport(_) => (),
         }
     }
 

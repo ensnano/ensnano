@@ -16,6 +16,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+use std::path::Path;
+
 use super::graphics::*;
 use super::Selection;
 use ensnano_design::group_attributes::GroupPivot;
@@ -106,7 +108,10 @@ pub enum Notification {
     NewStereographicCamera(Arc<(Camera3D, f32)>),
     FlipSplitViews,
     HorizonAligned,
-    ScreenShot3D,
+    ScreenShot2D(Option<Arc<Path>>),
+    ScreenShot3D(Option<Arc<Path>>),
+    SaveNucleotidesPositions(Option<Arc<Path>>),
+    StlExport(Option<Arc<Path>>),
 }
 
 #[derive(PartialEq, Debug, Clone, Copy)]

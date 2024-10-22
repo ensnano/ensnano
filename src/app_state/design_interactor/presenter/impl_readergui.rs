@@ -227,7 +227,7 @@ impl ReaderGui for DesignReader {
             .current_design
             .bezier_paths
             .get(&path_id)
-            .map(|p| p.cyclic)
+            .map(|p| p.is_cyclic)
     }
 
     fn get_bezier_vertex_position(

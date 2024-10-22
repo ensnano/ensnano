@@ -19,7 +19,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use crate::BezierControlPoint;
 
 use super::{DesignOperation, DesignRotation, DesignTranslation, GroupId, IsometryTarget};
-use ensnano_design::{grid::*, BezierPlaneId, BezierVertexId, Nucl};
+use ensnano_design::{grid::*, BezierPlaneId, BezierVertexId, HelixParameters, Nucl};
 use ultraviolet::{Bivec3, Rotor3, Vec2, Vec3};
 
 pub enum ParameterField {
@@ -792,6 +792,7 @@ impl Operation for CreateGrid {
         DesignOperation::AddGrid(GridDescriptor {
             position: self.position,
             orientation: self.orientation,
+            helix_parameters: None, // Some(HelixParameters::GEARY_2014_RNA),
             grid_type: self.grid_type,
             invisible: false,
             bezier_vertex: None,

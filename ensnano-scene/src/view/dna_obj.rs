@@ -20,16 +20,18 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::instances_drawer::{Instanciable, Vertexable};
 use ensnano_design::ultraviolet;
 use ensnano_interactor::consts::*;
-use ensnano_utils::wgpu;
+use ensnano_utils::{mesh::Mesh, wgpu};
 use std::f32::consts::PI;
 use ultraviolet::{Mat4, Rotor3, Vec3, Vec4};
+
+use std::iter::zip;
 
 /// The vertex type for the meshes used to draw DNA.
 #[repr(C)]
 #[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct DnaVertex {
-    position: [f32; 3],
-    normal: [f32; 3],
+    pub position: [f32; 3],
+    pub normal: [f32; 3],
 }
 
 pub trait DnaObject:
@@ -58,30 +60,137 @@ impl Vertexable for DnaVertex {
 #[repr(C)]
 #[derive(Clone, Debug, Copy, bytemuck::Zeroable, bytemuck::Pod)]
 pub struct RawDnaInstance {
-    pub model: Mat4,
-    pub color: Vec4,
-    pub scale: Vec3,
-    pub id: u32,
-    pub inversed_model: Mat4,
-    pub expected_length: f32,
-    _padding: [f32; 3],
+    // must be aligned on 4 times f32 module 8 ?
+    pub model: Mat4,          // 0
+    pub color: Vec4,          // 0
+    pub scale: Vec3,          // 3
+    pub id: u32,              // 0
+    pub inversed_model: Mat4, // 0
+    // pub expected_length: f32, // used to modify the color of bonds in the dna_obj vertex shader -> now obsolete
+    // previous bond direction assuming the current tube is aligned with X axis
+    pub prev: Vec3, // 3
+    // 32bits did not exist before -> ADD OPTIONAL VECTOR NEXT AND PREV FOR SLICED TUBES
+    pub mesh: u32, // 0
+    // next bond direction assuming the current tube is aligned with X axis
+    pub next: Vec3, // 3
+    _padding: [f32; 1],
 }
 
-impl RawDnaInstance {
-    pub fn with_expected_length(self, expected_length: f32) -> Self {
+// impl RawDnaInstance {
+//     pub fn with_expected_length(self, expected_length: f32) -> Self {
+//         Self {
+//             expected_length,
+//             ..self
+//         }
+//     }
+// }
+
+pub struct PlainRectangleInstance {
+    /// The position in space
+    pub position: Vec3,
+    pub color: Vec4,
+    pub id: u32,
+    pub width: f32,
+    pub height: f32,
+}
+
+impl PlainRectangleInstance {
+    pub fn with_size(self: Self, width: f32, height: f32) -> Self {
         Self {
-            expected_length,
+            width,
+            height,
             ..self
         }
     }
 }
+
+impl Instanciable for PlainRectangleInstance {
+    type Vertex = DnaVertex;
+    type RawInstance = RawDnaInstance;
+    type Ressource = ();
+
+    fn vertices() -> Vec<DnaVertex> {
+        let vertices = vec![
+            DnaVertex {
+                position: [0., 0., 0.],
+                normal: [0., 0., -1.],
+            },
+            DnaVertex {
+                position: [0., 1., 0.],
+                normal: [0., 0., -1.],
+            },
+            DnaVertex {
+                position: [1., 0., 0.],
+                normal: [0., 0., -1.],
+            },
+            DnaVertex {
+                position: [1., 1., 0.],
+                normal: [0., 0., -1.],
+            },
+        ];
+
+        vertices
+    }
+
+    fn indices() -> Vec<u16> {
+        let mut indices = vec![0, 1, 2, 3];
+        indices
+    }
+
+    fn primitive_topology() -> wgpu::PrimitiveTopology {
+        wgpu::PrimitiveTopology::TriangleStrip
+    }
+
+    fn to_raw_instance(&self) -> RawDnaInstance {
+        let model = Mat4::from_translation(self.position);
+        RawDnaInstance {
+            model, // translation to position
+            color: self.color,
+            scale: Vec3::new(self.width, self.height, 1.),
+            id: self.id,
+            inversed_model: model.inversed(),
+            mesh: super::Mesh::PlainRectangle as u32,
+            prev: Vec3::zero(),
+            next: Vec3::zero(),
+            _padding: Default::default(),
+        }
+    }
+
+    fn vertex_module(device: &wgpu::Device) -> wgpu::ShaderModule {
+        device.create_shader_module(&wgpu::include_spirv!("plain_rectangle.vert.spv"))
+    }
+
+    fn fragment_module(device: &wgpu::Device) -> wgpu::ShaderModule {
+        device.create_shader_module(&wgpu::include_spirv!("plain_rectangle.frag.spv"))
+    }
+
+    fn fake_fragment_module(device: &wgpu::Device) -> Option<wgpu::ShaderModule> {
+        None
+    }
+
+    fn outline_vertex_module(device: &wgpu::Device) -> Option<wgpu::ShaderModule> {
+        Some(device.create_shader_module(&wgpu::include_spirv!("plain_rectangle.vert.spv")))
+    }
+
+    fn outline_fragment_module(device: &wgpu::Device) -> Option<wgpu::ShaderModule> {
+        Some(device.create_shader_module(&wgpu::include_spirv!("plain_rectangle.frag.spv")))
+    }
+}
+
+impl DnaObject for PlainRectangleInstance {}
 
 pub struct SphereInstance {
     /// The position in space
     pub position: Vec3,
     pub color: Vec4,
     pub id: u32,
-    pub radius: f32,
+    pub radius: f32, // nm
+}
+
+impl SphereInstance {
+    pub fn with_radius(self, radius: f32) -> Self {
+        Self { radius, ..self }
+    }
 }
 
 impl Instanciable for SphereInstance {
@@ -97,7 +206,7 @@ impl Instanciable for SphereInstance {
         for i in 0..=NB_STACK_SPHERE {
             // 0..=x means that x is included
             let stack_angle = PI / 2. - (i as f32) * stack_step;
-            let radius = SPHERE_RADIUS;
+            let radius = 1.; // SPHERE_RADIUS;
             let xy = radius * stack_angle.cos();
             let z = radius * stack_angle.sin();
 
@@ -148,13 +257,15 @@ impl Instanciable for SphereInstance {
     fn to_raw_instance(&self) -> RawDnaInstance {
         let model = Mat4::from_translation(self.position);
         RawDnaInstance {
-            model,
+            model, // translation vers position
             color: self.color,
             scale: Vec3::new(self.radius, self.radius, self.radius),
             id: self.id,
             inversed_model: model.inversed(),
-            expected_length: 0.,
-            _padding: [0.; 3],
+            mesh: super::Mesh::Sphere as u32,
+            prev: Vec3::zero(),
+            next: Vec3::zero(),
+            _padding: Default::default(),
         }
     }
 
@@ -261,8 +372,10 @@ impl Instanciable for StereographicSphereAndPlane {
             scale,
             id: 0,
             inversed_model: model.inversed(),
-            expected_length: 0.,
-            _padding: [0.; 3],
+            mesh: super::Mesh::StereographicSphere as u32,
+            prev: Vec3::zero(),
+            next: Vec3::zero(),
+            _padding: Default::default(),
         }
     }
 }
@@ -288,22 +401,21 @@ impl Instanciable for TubeInstance {
     type Ressource = ();
 
     fn vertices() -> Vec<DnaVertex> {
-        let radius = BOND_RADIUS;
         (0..(2 * NB_RAY_TUBE))
             .map(|i| {
                 let point = i / 2;
-                let side = if i % 2 == 0 { -1. } else { 1. };
+                let side = if i % 2 == 0 { -0.5 } else { 0.5 };
                 let theta = (point as f32) * 2. * PI / NB_RAY_TUBE as f32;
-                let position = [
-                    side * BOND_LENGTH / 2.,
-                    theta.sin() * radius,
-                    theta.cos() * radius,
-                ];
+                let position = [side, theta.sin(), theta.cos()];
 
                 let normal = [0., theta.sin(), theta.cos()];
                 DnaVertex { position, normal }
             })
             .collect()
+    }
+
+    fn primitive_topology() -> wgpu::PrimitiveTopology {
+        wgpu::PrimitiveTopology::TriangleStrip
     }
 
     fn indices() -> Vec<u16> {
@@ -333,8 +445,93 @@ impl Instanciable for TubeInstance {
         Some(device.create_shader_module(&wgpu::include_spirv!("dna_obj_outline.frag.spv")))
     }
 
+    fn to_raw_instance(&self) -> RawDnaInstance {
+        let model =
+            Mat4::from_translation(self.position) * self.rotor.into_matrix().into_homogeneous(); // translation à position et rotation dans la bonne position u_x -> axe du tube
+        RawDnaInstance {
+            model,
+            color: self.color,
+            scale: Vec3::new(self.length, self.radius, self.radius), // scale.x is the length of the tube
+            id: self.id,
+            inversed_model: model.inversed(),
+            mesh: super::Mesh::Tube as u32,
+            prev: Vec3::zero(),
+            next: Vec3::zero(),
+            _padding: Default::default(),
+        }
+    }
+}
+
+impl DnaObject for TubeInstance {}
+
+/// TUBE TIP INSTANCE
+
+pub struct TubeLidInstance {
+    pub position: Vec3,
+    pub rotor: Rotor3,
+    pub color: Vec4,
+    pub id: u32,
+    pub radius: f32,
+}
+
+impl TubeLidInstance {
+    pub fn with_radius(self, radius: f32) -> Self {
+        Self { radius, ..self }
+    }
+}
+
+impl Instanciable for TubeLidInstance {
+    type Vertex = DnaVertex;
+    type RawInstance = RawDnaInstance;
+    type Ressource = ();
+
+    fn vertices() -> Vec<DnaVertex> {
+        let normal = [1., 0., 0.];
+        (-1..(NB_RAY_TUBE as isize + 1))
+            .map(|i| {
+                if i < 0 {
+                    DnaVertex {
+                        position: [0., 0., 0.],
+                        normal,
+                    }
+                } else {
+                    let φ = i as f32 / NB_RAY_TUBE as f32 * 2. * std::f32::consts::PI;
+                    let position = [0., φ.sin(), φ.cos()];
+                    DnaVertex { position, normal }
+                }
+            })
+            .collect()
+    }
+
+    fn indices() -> Vec<u16> {
+        (0..NB_RAY_TUBE)
+            .map(|i| [0, i as u16 + 2, i as u16 + 1])
+            .flatten()
+            .collect()
+    }
+
     fn primitive_topology() -> wgpu::PrimitiveTopology {
-        wgpu::PrimitiveTopology::TriangleStrip
+        wgpu::PrimitiveTopology::TriangleList
+    }
+
+    fn vertex_module(device: &wgpu::Device) -> wgpu::ShaderModule {
+        device.create_shader_module(&wgpu::include_spirv!("dna_obj.vert.spv"))
+    }
+
+    fn fragment_module(device: &wgpu::Device) -> wgpu::ShaderModule {
+        device.create_shader_module(&wgpu::include_spirv!("dna_obj.frag.spv"))
+    }
+
+    fn fake_fragment_module(device: &wgpu::Device) -> Option<wgpu::ShaderModule> {
+        Some(device.create_shader_module(&wgpu::include_spirv!("dna_obj_fake.frag.spv")))
+    }
+
+    fn outline_vertex_module(device: &wgpu::Device) -> Option<wgpu::ShaderModule> {
+        Some(device.create_shader_module(&wgpu::include_spirv!("dna_obj_outline.vert.spv")))
+    }
+
+    fn outline_fragment_module(device: &wgpu::Device) -> Option<wgpu::ShaderModule> {
+        Some(device.create_shader_module(&wgpu::include_spirv!("dna_obj_outline.frag.spv")))
     }
 
     fn to_raw_instance(&self) -> RawDnaInstance {
@@ -343,17 +540,135 @@ impl Instanciable for TubeInstance {
         RawDnaInstance {
             model,
             color: self.color,
-            scale: Vec3::new(self.length, self.radius, self.radius),
+            scale: Vec3::new(1.0, self.radius, self.radius),
             id: self.id,
             inversed_model: model.inversed(),
-            expected_length: 0.,
-            _padding: [0.; 3],
+            mesh: super::Mesh::TubeLid as u32,
+            prev: Vec3::zero(),
+            next: Vec3::zero(),
+            _padding: Default::default(),
         }
     }
 }
 
-impl DnaObject for TubeInstance {}
+impl DnaObject for TubeLidInstance {}
 
+/// SLICED TUBE INSTANCE
+
+pub struct SlicedTubeInstance {
+    pub position: Vec3,
+    pub rotor: Rotor3,
+    pub color: Vec4,
+    pub id: u32,
+    pub radius: f32,
+    pub length: f32,
+    pub prev: Vec3, // direction of the previous cylinder - Zero if does not exist
+    pub next: Vec3, // direction of the next cylinder - Zero if does not exist
+}
+
+impl Instanciable for SlicedTubeInstance {
+    type Vertex = DnaVertex;
+    type RawInstance = RawDnaInstance;
+    type Ressource = ();
+
+    fn vertices() -> Vec<DnaVertex> {
+        // Precomputation of the cos and sin
+        let circle: Vec<[f32; 3]> = (0..3 * NB_RAY_TUBE)
+            .map(|i| {
+                let φ = (i % NB_RAY_TUBE) as f32 / NB_RAY_TUBE as f32 * 2. * std::f32::consts::PI;
+                let x = match i / NB_RAY_TUBE {
+                    0 => -0.5,
+                    1 => 0.,
+                    _ => 0.5,
+                };
+                [x, φ.sin(), φ.cos()]
+            })
+            .collect();
+
+        let circle_normal: Vec<[f32; 3]> = (0..3 * NB_RAY_TUBE)
+            .map(|i| {
+                let φ = (i % NB_RAY_TUBE) as f32 / NB_RAY_TUBE as f32 * 2. * std::f32::consts::PI;
+                [0., φ.sin(), φ.cos()]
+            })
+            .collect();
+
+        zip(circle, circle_normal)
+            .map(|(p, q)| {
+                DnaVertex {
+                    position: p,
+                    normal: q,
+                } // the normal are used to deduce the tangents
+            })
+            .collect()
+    }
+
+    fn primitive_topology() -> wgpu::PrimitiveTopology {
+        wgpu::PrimitiveTopology::TriangleStrip
+    }
+
+    fn indices() -> Vec<u16> {
+        let _NB_RAY_TUBE = NB_RAY_TUBE as u16;
+        let left = (0.._NB_RAY_TUBE)
+            .map(|i| [i, i + _NB_RAY_TUBE])
+            .flatten()
+            .collect::<Vec<u16>>();
+        let right = (_NB_RAY_TUBE..2 * _NB_RAY_TUBE)
+            .map(|i| [i, i + _NB_RAY_TUBE])
+            .flatten()
+            .collect::<Vec<u16>>();
+        [
+            left,
+            vec![0, _NB_RAY_TUBE],
+            right,
+            vec![_NB_RAY_TUBE, 2 * _NB_RAY_TUBE],
+        ]
+        .into_iter()
+        .flatten()
+        .collect::<Vec<u16>>()
+    }
+
+    fn vertex_module(device: &wgpu::Device) -> wgpu::ShaderModule {
+        device.create_shader_module(&wgpu::include_spirv!("sliced_tube.vert.spv"))
+    }
+
+    fn fragment_module(device: &wgpu::Device) -> wgpu::ShaderModule {
+        device.create_shader_module(&wgpu::include_spirv!("dna_obj.frag.spv"))
+    }
+
+    fn fake_fragment_module(device: &wgpu::Device) -> Option<wgpu::ShaderModule> {
+        // note that currently fake sliced tube points to faketube... to be changed
+        Some(device.create_shader_module(&wgpu::include_spirv!("dna_obj_fake.frag.spv")))
+    }
+
+    fn outline_vertex_module(device: &wgpu::Device) -> Option<wgpu::ShaderModule> {
+        Some(device.create_shader_module(&wgpu::include_spirv!("dna_obj_outline.vert.spv")))
+    }
+
+    fn outline_fragment_module(device: &wgpu::Device) -> Option<wgpu::ShaderModule> {
+        Some(device.create_shader_module(&wgpu::include_spirv!("dna_obj_outline.frag.spv")))
+    }
+
+    fn to_raw_instance(&self) -> RawDnaInstance {
+        let model =
+            Mat4::from_translation(self.position) * self.rotor.into_matrix().into_homogeneous();
+
+        RawDnaInstance {
+            model,
+            color: self.color,
+            scale: Vec3::new(self.length, self.radius, self.radius),
+            id: self.id,
+            inversed_model: model.inversed(),
+            mesh: super::Mesh::SlicedTube as u32,
+            prev: self.prev,
+            next: self.next,
+            _padding: Default::default(),
+        }
+    }
+}
+
+impl DnaObject for SlicedTubeInstance {}
+
+/// CONE INSTANCE
 pub struct ConeInstance {
     pub position: Vec3,
     pub rotor: Rotor3,
@@ -369,7 +684,7 @@ impl Instanciable for ConeInstance {
     type Ressource = ();
 
     fn vertices() -> Vec<DnaVertex> {
-        let radius = 1. / 2.;
+        let radius = 1.;
         let mut ret: Vec<DnaVertex> = (0..(2 * NB_RAY_TUBE))
             .map(|i| {
                 let point = i / 2 + i % 2;
@@ -393,7 +708,7 @@ impl Instanciable for ConeInstance {
             let height = if i % 2 == 0 { radius } else { 0. };
             let theta = (point as f32) * 2. * PI / NB_RAY_TUBE as f32;
             let position = [0., theta.sin() * height, theta.cos() * height];
-            let normal = [0., 0., 0.];
+            let normal = [1., 0., 0.];
             ret.push(DnaVertex { position, normal });
         }
 
@@ -408,8 +723,8 @@ impl Instanciable for ConeInstance {
             ret.push((2 * i + 1) % nb_point);
             ret.push((2 * i + 2) % nb_point);
             ret.push((2 * i) % nb_point + nb_point);
-            ret.push((2 * i + 1) % nb_point + nb_point);
             ret.push((2 * i + 2) % nb_point + nb_point);
+            ret.push((2 * i + 1) % nb_point + nb_point);
         }
         ret
     }
@@ -447,8 +762,10 @@ impl Instanciable for ConeInstance {
             scale: Vec3::new(self.length, self.radius, self.radius),
             id: self.id,
             inversed_model: model.inversed(),
-            expected_length: 0.,
-            _padding: [0.; 3],
+            mesh: super::Mesh::Prime3Cone as u32,
+            prev: Vec3::zero(),
+            next: Vec3::zero(),
+            _padding: Default::default(),
         }
     }
 }
@@ -502,7 +819,7 @@ impl Instanciable for Ellipsoid {
         let mut ret = self.sphere.to_raw_instance();
         let model = Mat4::from_translation(self.sphere.position)
             * self.orientation.into_matrix().into_homogeneous();
-        ret.scale = self.scale;
+        ret.scale *= self.scale;
         ret.model = model;
         ret.inversed_model = model.inversed();
         ret

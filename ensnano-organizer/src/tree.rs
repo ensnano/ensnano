@@ -16,7 +16,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+use std::collections::hash_map::RandomState;
+use std::collections::HashMap;
 use std::collections::HashSet;
+use std::hash::Hash;
 
 use serde::Deserialize;
 #[derive(Clone, Debug, Serialize)]
@@ -76,6 +79,33 @@ impl<K: PartialEq> OrganizerTree<K> {
         ret
     }
 
+    pub fn get_names_of_all_groups_without_id(&self) -> Vec<String> {
+        let mut ret = Vec::new();
+        match self {
+            Self::Leaf(_) => (),
+            Self::Node {
+                name, children, id, ..
+            } => {
+                if let Some(name) = self.get_name_copy() {
+                    ret.push(name);
+                }
+                for c in children {
+                    let extention = c.get_names_of_all_groups_without_id();
+                    ret.extend(extention);
+                }
+            }
+        }
+        ret.dedup();
+        ret
+    }
+
+    pub fn get_name_copy(&self) -> Option<String> {
+        match self {
+            Self::Leaf(_) => None,
+            Self::Node { name, .. } => Some(name.clone()),
+        }
+    }
+
     pub fn get_name_copy_with_id(&self) -> String {
         match self {
             Self::Leaf(_) => "".to_string(),
@@ -89,6 +119,53 @@ impl<K: PartialEq> OrganizerTree<K> {
                 }
             }
         }
+    }
+}
+
+/// Hashmap
+impl<K: Eq + Hash + Copy> OrganizerTree<K> {
+    pub fn get_hashmap_to_all_groupnames_with_prefix(
+        &self,
+        prefix: &str,
+    ) -> HashMap<K, Vec<&str>, RandomState> {
+        let mut hashmap = HashMap::new();
+
+        match self {
+            Self::Leaf(_) => (),
+            Self::Node { name, children, .. } => {
+                let trimmed_name = name.trim();
+                let has_prefix = trimmed_name.starts_with(prefix);
+                for c in children {
+                    match c {
+                        Self::Leaf(e) => {
+                            let mut e_names: Vec<&str> = hashmap
+                                .get(e)
+                                .map(|x: &Vec<&str>| x.clone())
+                                .unwrap_or(Vec::new());
+                            if has_prefix {
+                                e_names.push(trimmed_name.clone());
+                            }
+                            hashmap.insert(*e, e_names);
+                        }
+                        _ => {
+                            let c_hashmap = c.get_hashmap_to_all_groupnames_with_prefix(prefix);
+                            for (e, e_names) in c_hashmap {
+                                let mut new_e_names: Vec<&str> = hashmap
+                                    .get(&e)
+                                    .map(|x: &Vec<&str>| x.clone())
+                                    .unwrap_or(Vec::new());
+                                new_e_names.extend(e_names);
+                                if has_prefix {
+                                    new_e_names.push(trimmed_name.clone());
+                                }
+                                hashmap.insert(e, new_e_names);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return hashmap;
     }
 }
 

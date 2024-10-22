@@ -22,6 +22,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! other components of the program it is forwarded to the `main` function via the
 //! [Request](Requests) data structure.
 
+use std::path::{Path, PathBuf};
+
 /// Draw the top bar of the GUI
 pub mod top_bar;
 use ensnano_organizer::GroupId;
@@ -110,8 +112,8 @@ pub trait Requests: 'static + Send {
     fn toggle_widget_basis(&mut self);
     /// Show/hide the DNA sequences
     fn set_dna_sequences_visibility(&mut self, visible: bool);
-    /// Download the stapples as an xlsx file
-    fn download_stapples(&mut self);
+    /// Download the staples as an xlsx file
+    fn download_staples(&mut self);
     fn set_selected_strand_sequence(&mut self, sequence: String);
     fn set_scaffold_sequence(&mut self, shift: usize);
     fn set_scaffold_shift(&mut self, shift: usize);
@@ -207,7 +209,7 @@ pub trait Requests: 'static + Send {
     fn set_show_h_bonds(&mut self, show: HBondDisplay);
     fn flip_split_views(&mut self);
     fn set_rainbow_scaffold(&mut self, rainbow: bool);
-    fn set_thick_helices(&mut self, thick: bool);
+    fn set_all_helices_on_axis(&mut self, thick: bool);
     fn align_horizon(&mut self);
     fn download_origamis(&mut self);
     fn set_dna_parameters(&mut self, param: HelixParameters);
@@ -227,9 +229,13 @@ pub trait Requests: 'static + Send {
     fn set_bezier_revolution_radius(&mut self, radius: f64);
     fn set_bezier_revolution_id(&mut self, id: Option<usize>);
     fn set_unrooted_surface(&mut self, surface: Option<UnrootedRevolutionSurfaceDescriptor>);
-    /// Make a 3D screenshot
+    /// Make a screenshot of the 2D flatscene.
+    fn request_screenshot_2d(&mut self);
+    /// Make a screenshot of the 3D scene.
     fn request_screenshot_3d(&mut self);
+    fn request_save_nucleotides_positions(&mut self);
     fn notify_revolution_tab(&mut self);
+    fn request_stl_export(&mut self);
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -1054,7 +1060,7 @@ pub trait AppState:
     fn get_h_bonds_display(&self) -> HBondDisplay;
     fn get_scroll_sensitivity(&self) -> f32;
     fn get_invert_y_scroll(&self) -> bool;
-    fn want_thick_helices(&self) -> bool;
+    fn want_all_helices_on_axis(&self) -> bool;
     fn expand_insertions(&self) -> bool;
     fn get_show_bezier_paths(&self) -> bool;
     fn get_selected_bezier_path(&self) -> Option<BezierPathId>;

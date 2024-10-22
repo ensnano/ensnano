@@ -203,7 +203,7 @@ impl<'a> BezierPathsMut<'a> {
             .unwrap_or_default();
         let new_path = BezierPath {
             vertices: vec![first_vertex],
-            cyclic: false,
+            is_cyclic: false,
             grid_type: None,
         };
         self.new_map.insert(new_key, Arc::new(new_path));
@@ -248,7 +248,8 @@ impl<'a> Drop for BezierPathsMut<'a> {
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct BezierPath {
     vertices: Vec<BezierVertex>,
-    pub cyclic: bool,
+    #[serde(alias = "cyclic")]
+    pub is_cyclic: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub grid_type: Option<GridTypeDescr>,
 }
@@ -412,8 +413,8 @@ impl PieceWiseBezierInstantiator<Vec3> for BezierInstantiator {
         self.source_path.vertices.len()
     }
 
-    fn cyclic(&self) -> bool {
-        self.source_path.cyclic
+    fn is_cyclic(&self) -> bool {
+        self.source_path.is_cyclic
     }
 }
 
@@ -440,8 +441,8 @@ impl PieceWiseBezierInstantiator<Vec2> for BezierPath {
         self.vertices.len()
     }
 
-    fn cyclic(&self) -> bool {
-        self.cyclic
+    fn is_cyclic(&self) -> bool {
+        self.is_cyclic
     }
 }
 
@@ -687,6 +688,7 @@ impl BezierPathData {
                             let desc = GridDescriptor {
                                 invisible: false,
                                 grid_type,
+                                helix_parameters: None,
                                 orientation: self.orientation_vertex(vertex_id)?,
                                 position: self.position_vertex_2d(vertex_id)? + v.grid_translation,
                                 bezier_vertex: Some(vertex_id),

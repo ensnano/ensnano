@@ -126,17 +126,57 @@ macro_rules! add_rotate_buttons {
     };
 }
 
-macro_rules! add_screenshot_button {
+macro_rules! add_screenshot_buttons {
     ($ret: ident, $self: ident, $ui_size: ident, $width: ident) => {
-        let screenshot_button = Button::new(
-            &mut $self.screenshot_button,
+        let screenshot_3d_button = Button::new(
+            &mut $self.screenshot_3d_button,
             Text::new("3D").size($ui_size.main_text()),
         )
         .on_press(Message::ScreenShot3D)
         .width(Length::Units($ui_size.button()));
 
+        let screenshot_2d_button = Button::new(
+            &mut $self.screenshot_2d_button,
+            Text::new("2D").size($ui_size.main_text()),
+        )
+        .on_press(Message::ScreenShot2D)
+        .width(Length::Units($ui_size.button()));
+
+        let mut row = Row::new();
+        row = row.push(screenshot_3d_button);
+        row = row.push(screenshot_2d_button);
+        row = row.spacing(5);
+
         $ret = $ret.push(Text::new("Screenshot"));
-        $ret = $ret.spacing(5).push(screenshot_button);
+        $ret = $ret.spacing(5).push(row);
+    };
+}
+
+macro_rules! add_stl_export_button {
+    ($ret: ident, $self: ident, $ui_size: ident, $width: ident) => {
+        let stl_export_button = Button::new(
+            &mut $self.stl_export_button,
+            Text::new("   STL").size($ui_size.main_text()),
+        )
+        .on_press(Message::StlExport)
+        .width(Length::Units(2 * $ui_size.button()));
+
+        $ret = $ret.push(Text::new("STL export"));
+        $ret = $ret.spacing(5).push(stl_export_button);
+    };
+}
+
+macro_rules! add_nucleotides_positons_export_button {
+    ($ret: ident, $self: ident, $ui_size: ident, $width: ident) => {
+        let nucleotides_positions_export_button = Button::new(
+            &mut $self.save_nucleotide_positions_button,
+            Text::new(" Nucl").size($ui_size.main_text()),
+        )
+        .on_press(Message::SaveNucleotidesPositions)
+        .width(Length::Units(2 * $ui_size.button()));
+
+        $ret = $ret.push(Text::new("Nucleotides positions export"));
+        $ret = $ret.spacing(5).push(nucleotides_positions_export_button);
     };
 }
 
@@ -184,7 +224,10 @@ pub struct CameraShortcut {
     camera_widgets: Vec<CameraWidget>,
     new_camera_button: button::State,
     camera_widget_states: Vec<CameraWidgetState>,
-    screenshot_button: button::State,
+    screenshot_3d_button: button::State,
+    screenshot_2d_button: button::State,
+    save_nucleotide_positions_button: button::State,
+    stl_export_button: button::State,
 }
 
 impl CameraShortcut {
@@ -201,7 +244,10 @@ impl CameraShortcut {
             camera_widgets: vec![],
             new_camera_button: Default::default(),
             camera_widget_states: vec![],
-            screenshot_button: Default::default(),
+            screenshot_3d_button: Default::default(),
+            screenshot_2d_button: Default::default(),
+            save_nucleotide_positions_button: Default::default(),
+            stl_export_button: Default::default(),
         }
     }
 
@@ -283,7 +329,11 @@ impl CameraShortcut {
 
         add_rotate_buttons!(ret, self, ui_size, width);
 
-        add_screenshot_button!(ret, self, ui_size, width);
+        add_screenshot_buttons!(ret, self, ui_size, width);
+
+        add_stl_export_button!(ret, self, ui_size, width);
+
+        add_nucleotides_positons_export_button!(ret, self, ui_size, width);
 
         add_custom_camera_row!(ret, self, ui_size);
 

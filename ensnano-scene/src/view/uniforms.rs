@@ -17,10 +17,12 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use super::camera::{CameraPtr, ProjectionPtr};
 use ensnano_design::ultraviolet::{Mat4, Rotor3, Vec3, Vec4};
+use ensnano_interactor::consts::NB_RAY_TUBE;
+pub use ensnano_interactor::graphics::CutPlaneParameters;
 pub use ensnano_interactor::graphics::FogParameters;
 
 #[repr(C)] // We need this for Rust to store our data correctly for the shaders
-#[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)] // This is so we can store this in a buffer
+#[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable, Default)] // This is so we can store this in a buffer
 /// Hold informations relative to camera: The camera position and the Projection,
 /// and View matrices.
 pub struct Uniforms {
@@ -37,8 +39,12 @@ pub struct Uniforms {
     pub stereography_radius: f32, // 0
     pub stereography_view: Mat4,  // 0
     pub aspect_ratio: f32,        // 1
-    pub stereography_zoom: f32,
-    pub _padding: [f32; 2],
+    pub stereography_zoom: f32,   // 2
+    pub nb_ray_tube: u32,         // 3
+    pub is_cut: u32,              // 0
+    pub cut_normal: Vec3,         // 3
+    pub cut_dot_value: f32,       // 0
+    pub _padding: [f32; 4],
 }
 
 #[derive(Clone, Debug)]
@@ -98,6 +104,10 @@ impl Uniforms {
             stereography_view,
             aspect_ratio: projection.borrow().get_ratio(),
             stereography_zoom: projection.borrow().stereographic_zoom,
+            nb_ray_tube: NB_RAY_TUBE as u32,
+            is_cut: 0,
+            cut_normal: Vec3::unit_x(),
+            cut_dot_value: 0.,
             _padding: Default::default(),
         }
     }
@@ -107,6 +117,7 @@ impl Uniforms {
         projection: ProjectionPtr,
         fog: &FogParameters,
         stereography: Option<&Stereography>,
+        cut: &Option<CutPlaneParameters>,
     ) -> Self {
         let stereography_view = if let Some(s) = stereography {
             s.calc_matrix()
@@ -119,6 +130,12 @@ impl Uniforms {
         if !fog.from_camera && fog.alt_fog_center.is_none() {
             make_fog = ensnano_interactor::graphics::fog_kind::NO_FOG;
         }
+        let (is_cut, cut_normal, cut_dot_value) = if let Some(cut_param) = cut {
+            (1, cut_param.normal, cut_param.dot_value)
+        } else {
+            (0, Vec3::zero(), 0.)
+        };
+
         Self {
             camera_position: camera.borrow().position.into_homogeneous_point(),
             view: camera.borrow().calc_matrix(),
@@ -133,6 +150,10 @@ impl Uniforms {
             stereography_radius,
             aspect_ratio: projection.borrow().get_ratio(),
             stereography_zoom: projection.borrow().stereographic_zoom,
+            nb_ray_tube: NB_RAY_TUBE as u32,
+            is_cut: 0,
+            cut_normal,
+            cut_dot_value,
             _padding: Default::default(),
         }
     }

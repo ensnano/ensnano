@@ -28,7 +28,10 @@ pub const VERTEX_NORMAL_ADRESS: u32 = 1;
 
 pub const BOND_RADIUS: f32 = 0.06;
 pub const BOND_LENGTH: f32 = 1.;
-pub const NB_RAY_TUBE: usize = 12;
+pub const NB_RAY_TUBE: usize = 17;
+
+pub const HELIX_CYLINDER_RADIUS: f32 = 0.9;
+pub const HELIX_CYLINDER_COLOR: u32 = 0x88_CC_CC_CC;
 
 pub const SPHERE_RADIUS: f32 = 0.2;
 pub const NB_STACK_SPHERE: u16 = 12;
@@ -38,8 +41,11 @@ pub const NB_SECTOR_CIRCLE: u16 = 36;
 
 pub const CANDIDATE_SCALE_FACTOR: f32 = 1.3;
 pub const SELECT_SCALE_FACTOR: f32 = 1. + 2. * (CANDIDATE_SCALE_FACTOR - 1.);
+pub const MIN_RADIUS_FOR_FAKE_UPSCALING: f32 = 0.5;
 pub const PIVOT_SCALE_FACTOR: f32 = 1.2 * SELECT_SCALE_FACTOR;
 pub const FREE_XOVER_SCALE_FACTOR: f32 = 1.25 * SELECT_SCALE_FACTOR;
+
+pub const CLONE_OPACITY: f32 = 0.7;
 
 pub const RIGHT_HANDLE_ID: u32 = 0;
 pub const UP_HANDLE_ID: u32 = 1;
@@ -117,6 +123,9 @@ pub const STEREOGRAPHIC_SPHERE_COLOR: u32 = 0xDD_2F_4F_4F; // Slate grey
 pub const STEREOGRAPHIC_SPHERE_RADIUS: f32 = 2.;
 
 pub const MAX_ZOOM_2D: f32 = 50.0;
+
+pub const EXPORT_2D_MAX_SIZE: f32 = 300.;
+pub const EXPORT_2D_MARGIN: f32 = 10.;
 
 pub const CIRCLE2D_GREY: u32 = 0xFF_4D4D4D;
 pub const CIRCLE2D_BLUE: u32 = 0xFF_036992;
@@ -207,6 +216,10 @@ pub const COLOR_GUANINE: u32 = 0x00_00CC00;
 pub const COLOR_CYTOSINE: u32 = 0x00_CC00CC;
 pub const UNKONW_BASE_COLOR: u32 = 0x00_77_88_99;
 pub const REGULAR_H_BOND_COLOR: u32 = 0x_29_26_26;
+
+pub const RANDOM_COLOR_SHADE_HUE_RANGE: f64 = 0.1;
+pub const RANDOM_COLOR_SHADE_SATURATION_RANGE: f64 = 0.2;
+pub const RANDOM_COLOR_SHADE_VALUE_RANGE: f64 = 0.2;
 
 pub const fn basis_color(basis: char) -> u32 {
     match basis {

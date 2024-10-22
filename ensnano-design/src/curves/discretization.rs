@@ -20,6 +20,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::*;
 use chebyshev_polynomials::ChebyshevPolynomial;
+use ultraviolet::DRotor3;
+
+use crate::consts::{IterativeFrameAlgorithm, ITERATIVE_AXIS_ALGORITHM};
 
 /// The number of points used in the iterative version of the discretization algorithm.
 const NB_DISCRETISATION_STEP: usize = 100_000;
@@ -54,16 +57,16 @@ impl Curve {
         };
         let len = polynomials
             .as_ref()
-            .map(|p| p.curvilinear_abcsissa.evaluate(self.geometry.t_max()))
+            .map(|p| p.curvilinear_abscissa.evaluate(self.geometry.t_max()))
             .unwrap_or_else(|| {
-                self.length_by_descretisation(self.geometry.t_min(), self.geometry.t_max(), nb_step)
+                self.length_by_discretisation(self.geometry.t_min(), self.geometry.t_max(), nb_step)
             });
         let nb_points = (len / nucl_rise) as usize;
         let small_step = 0.1 / (nb_step as f64);
         log::info!("small step = {small_step}");
         log::info!(
             "len = {}",
-            self.length_by_descretisation(self.geometry.t_min(), self.geometry.t_max(), nb_step)
+            self.length_by_discretisation(self.geometry.t_min(), self.geometry.t_max(), nb_step)
         );
 
         self.adjust_rise(&mut nucl_rise, polynomials.as_ref());
@@ -85,7 +88,8 @@ impl Curve {
         let mut axis_backward = Vec::with_capacity(nb_points + 1);
         let mut curvature = Vec::with_capacity(nb_points + 1);
         let mut t = self.geometry.t_min();
-        let mut current_axis = self.itterative_axis(t, None);
+        let mut current_axis = self.iterative_axis(t, None);
+        // let mut current_axis = self.iterative_rotated_axis(t, None);
 
         let mut current_segment = 0;
 
@@ -158,13 +162,13 @@ impl Curve {
             {
                 t = t_x;
                 current_abcissa = next_point_abscissa;
-                current_axis = self.itterative_axis(t, Some(&current_axis));
+                current_axis = self.iterative_axis(t, Some(&current_axis));
                 p = self.point_at_t(t, &current_axis);
             } else {
                 while current_abcissa < next_point_abscissa {
                     t += small_step;
 
-                    current_axis = self.itterative_axis(t, Some(&current_axis));
+                    current_axis = self.iterative_axis(t, Some(&current_axis));
 
                     let q = self.point_at_t(t, &current_axis);
 
@@ -205,7 +209,40 @@ impl Curve {
         self.positions_backward = points_backward;
         self.axis_forward = axis_forward;
         self.positions_forward = points_forward;
+
+        // Affiche la curvature
+        // println!(
+        //     "lengths: t_nucl {} & curvature {}",
+        //     t_nucl.len(),
+        //     curvature.len()
+        // );
+        // let radii = curvature
+        //     .clone()
+        //     .into_iter()
+        //     .map(|c| 1. / c)
+        //     .collect::<Vec<f64>>();
+        // let t_radii = t_nucl
+        //     .clone()
+        //     .into_iter()
+        //     .zip(radii)
+        //     .collect::<Vec<(f64, f64)>>();
+        // let mut min_radius = 1e30;
+        // let mut max_radius = 0.;
+        // for (_, r) in &t_radii {
+        //     if *r < min_radius {
+        //         min_radius = r.clone();
+        //     }
+        //     if *r > max_radius {
+        //         max_radius = r.clone();
+        //     }
+        // }
+        // println!(
+        //     "Curvature radius:\n\t{:?}\n\tMinimum radius: {}\n\tMaximum radius: {}",
+        //     t_radii, min_radius, max_radius
+        // );
+
         self.curvature = curvature;
+
         self.t_nucl = Arc::new(t_nucl);
         if self.geometry.is_time_maps_singleton() {
             self.abscissa_converter = AbscissaConverter::from_single_map(self.t_nucl.clone());
@@ -222,9 +259,9 @@ impl Curve {
         };
         if let Some(last_t) = self.geometry.full_turn_at_t() {
             let synchronization_length = polynomials
-                .map(|p| p.curvilinear_abcsissa.evaluate(last_t))
+                .map(|p| p.curvilinear_abscissa.evaluate(last_t))
                 .unwrap_or_else(|| {
-                    self.length_by_descretisation(self.geometry.t_min(), last_t, nb_step)
+                    self.length_by_discretisation(self.geometry.t_min(), last_t, nb_step)
                 });
 
             if let Some(n) = self.geometry.objective_nb_nt() {
@@ -265,10 +302,10 @@ impl Curve {
         }
     }
 
-    pub fn length_by_descretisation(&self, t0: f64, t1: f64, nb_step: usize) -> f64 {
+    pub fn length_by_discretisation(&self, t0: f64, t1: f64, nb_step: usize) -> f64 {
         if t0 > t1 {
             log::error!(
-                "Bad parameters ofr length by descritisation: \n t0 {} \n t1 {} \n nb_step {}",
+                "Bad parameters or length for discritisation: \n t0 {} \n t1 {} \n nb_step {}",
                 t0,
                 t1,
                 nb_step
@@ -283,12 +320,12 @@ impl Curve {
             log::info!("length by curvilinear_abscissa = {ret}");
             return x1 - x0;
         }
-        let mut current_axis = self.itterative_axis(t0, None);
+        let mut current_axis = self.iterative_axis(t0, None);
         let mut p = self.point_at_t(t0, &current_axis);
         let mut len = 0f64;
         for i in 1..=nb_step {
             let t = t0 + (i as f64) / (nb_step as f64) * (t1 - t0);
-            current_axis = self.itterative_axis(t, Some(&current_axis));
+            current_axis = self.iterative_axis(t, Some(&current_axis));
             let q = self.point_at_t(t, &current_axis);
             len += (q - p).mag();
             p = q;
@@ -318,7 +355,24 @@ impl Curve {
         ret
     }
 
-    fn itterative_axis(&self, t: f64, previous: Option<&DMat3>) -> DMat3 {
+    /// Allow to select the iterative axis computation method
+    #[inline(always)]
+    fn iterative_axis(&self, t: f64, previous: Option<&DMat3>) -> DMat3 {
+        match ITERATIVE_AXIS_ALGORITHM {
+            IterativeFrameAlgorithm::BasedOnGeometry => {
+                if self.geometry.use_original_iterative_frame_algorithm() {
+                    self.iterative_axis_original(t, previous)
+                } else {
+                    self.iterative_rotated_axis(t, previous)
+                }
+            }
+            IterativeFrameAlgorithm::Original => self.iterative_axis_original(t, previous),
+            IterativeFrameAlgorithm::Rotation => self.iterative_rotated_axis(t, previous),
+        }
+    }
+
+    #[allow(dead_code)]
+    fn iterative_axis_original(&self, t: f64, previous: Option<&DMat3>) -> DMat3 {
         let speed = self.geometry.speed(t);
         if speed.mag_sq() < EPSILON {
             let acceleration = self.geometry.acceleration(t);
@@ -334,7 +388,30 @@ impl Curve {
             DMat3::new(right, up, forward)
         } else {
             let previous = perpendicular_basis(speed);
-            self.itterative_axis(t, Some(&previous))
+            self.iterative_axis_original(t, Some(&previous))
+        }
+    }
+
+    #[allow(dead_code)]
+    fn iterative_rotated_axis(&self, t: f64, previous: Option<&DMat3>) -> DMat3 {
+        let speed = self.geometry.speed(t);
+        if speed.mag_sq() < EPSILON {
+            let acceleration = self.geometry.acceleration(t);
+            let mat = perpendicular_basis(acceleration);
+            return DMat3::new(mat.cols[2], mat.cols[1], mat.cols[0]);
+        }
+
+        if let Some(previous) = previous {
+            let prev_forward = previous.cols[2];
+            let forward = speed.normalized();
+            let rotor = DRotor3::from_rotation_between(prev_forward, forward);
+            let up = previous.cols[1].rotated_by(rotor);
+            let right = previous.cols[0].rotated_by(rotor);
+
+            DMat3::new(right, up, forward)
+        } else {
+            let previous = perpendicular_basis(speed);
+            self.iterative_rotated_axis(t, Some(&previous))
         }
     }
 
@@ -356,7 +433,7 @@ impl Curve {
                 let mut delta = 1.0;
                 while delta < DELTA_MAX {
                     let new_tmin = self.geometry.t_min() - delta;
-                    if self.length_by_descretisation(new_tmin, 0.0, NB_DISCRETISATION_STEP / 100)
+                    if self.length_by_discretisation(new_tmin, 0.0, NB_DISCRETISATION_STEP / 100)
                         > objective
                     {
                         return Some(new_tmin);
@@ -392,8 +469,8 @@ impl Curve {
                     let mut delta = 1.0;
                     while delta < DELTA_MAX {
                         let new_tmax = self.geometry.t_max() + delta;
-                        if self.length_by_descretisation(
-                            0.0,
+                        if self.length_by_discretisation(
+                            0.0, // should not it be self.geometry.t_min() ??? MAY BE NOT BECAUSE BIINFINITE
                             new_tmax,
                             NB_DISCRETISATION_STEP / 100,
                         ) > objective
@@ -415,8 +492,8 @@ impl Curve {
         self.geometry.pre_compute_polynomials().then(|| {
             let mut t = self.geometry.t_min();
             let mut abscissa = 0.;
-            let mut current_axis = self.itterative_axis(t, None);
-            current_axis = self.itterative_axis(t, Some(&current_axis));
+            let mut current_axis = self.iterative_axis(t, None);
+            current_axis = self.iterative_axis(t, Some(&current_axis));
             let mut p = self.point_at_t(t, &current_axis);
 
             let mut ts = vec![t];
@@ -427,7 +504,7 @@ impl Curve {
             let nb_step = NB_DISCRETISATION_STEP / 10;
             for i in 1..=nb_step {
                 t = t0 + (i as f64) / (nb_step as f64) * (t1 - t0);
-                current_axis = self.itterative_axis(t, Some(&current_axis));
+                current_axis = self.iterative_axis(t, Some(&current_axis));
                 let q = self.point_at_t(t, &current_axis);
                 abscissa += (p - q).mag();
                 ts.push(t);
@@ -450,12 +527,12 @@ impl Curve {
             // (1) This allows the interpolation to run much quicker with very little impact on
             // precision.
 
-            let curvilinear_abcsissa = chebyshev_polynomials::interpolate_points(t_abscissa, 1e-4);
-            let inverse_abcsissa = chebyshev_polynomials::interpolate_points(abscissa_t, 1e-4);
+            let curvilinear_abscissa = chebyshev_polynomials::interpolate_points(t_abscissa, 1e-4);
+            let inverse_abscissa = chebyshev_polynomials::interpolate_points(abscissa_t, 1e-4);
 
             PreComputedPolynomials {
-                curvilinear_abcsissa,
-                inverse_abscissa: inverse_abcsissa,
+                curvilinear_abscissa,
+                inverse_abscissa,
             }
         })
     }
@@ -463,7 +540,7 @@ impl Curve {
 
 /// Polynomials computed at the start of the discretization procedure
 struct PreComputedPolynomials {
-    curvilinear_abcsissa: ChebyshevPolynomial,
+    curvilinear_abscissa: ChebyshevPolynomial,
     inverse_abscissa: ChebyshevPolynomial,
 }
 

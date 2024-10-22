@@ -17,6 +17,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
+use crate::HelixParameters;
+
 use super::grid::{GridDescriptor, GridTypeDescr};
 use ultraviolet::{Rotor3, Vec3};
 
@@ -52,6 +54,7 @@ impl ScadnanoDesign {
         Ok(GridDescriptor {
             position: Vec3::zero(),
             orientation: Rotor3::identity(),
+            helix_parameters: Some(HelixParameters::GEARY_2014_DNA),
             grid_type,
             invisible: false,
             bezier_vertex: None,
@@ -91,6 +94,7 @@ impl ScadnanoGroup {
         Ok(GridDescriptor {
             grid_type,
             orientation,
+            helix_parameters: Some(HelixParameters::GEARY_2014_DNA),
             position: self.position,
             invisible: false,
             bezier_vertex: None,

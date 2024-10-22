@@ -26,6 +26,8 @@ use ensnano_design::{grid::GridId, HelixParameters};
 use ensnano_interactor::{
     graphics::FogParameters, HyperboloidOperation, RevolutionSurfaceSystemDescriptor,
 };
+use std::collections::HashMap;
+use std::sync::Arc;
 
 /// User is interacting with graphical components.
 pub(super) struct NormalState;
@@ -286,7 +288,7 @@ impl State for NormalState {
                 }
                 Action::SetDnaParameters(param) => Box::new(YesNo::new(
                     CHANGING_DNA_PARAMETERS_WARNING,
-                    Box::new(ChangindDnaParameters(param)),
+                    Box::new(ChangingDnaParameters(param)),
                     self,
                 )),
                 Action::SetExpandInsertions(b) => {
@@ -297,7 +299,12 @@ impl State for NormalState {
                     main_state.set_exporting(exporting);
                     self
                 }
+                Action::GetDesignPathAndNotify(notificator) => {
+                    main_state.get_design_path_and_notify(notificator);
+                    self
+                }
                 Action::OptimizeShift => Box::new(SetScaffoldSequence::optimize_shift()),
+                // Defaults
                 action => {
                     println!("Not implemented {:?}", action);
                     self
@@ -309,9 +316,9 @@ impl State for NormalState {
     }
 }
 
-struct ChangindDnaParameters(HelixParameters);
+struct ChangingDnaParameters(HelixParameters);
 
-impl State for ChangindDnaParameters {
+impl State for ChangingDnaParameters {
     fn make_progress(self: Box<Self>, main_state: &mut dyn MainState) -> Box<dyn State> {
         main_state.apply_operation(DesignOperation::SetGlobalHelixParameters {
             helix_parameters: self.0,
@@ -343,6 +350,7 @@ impl NormalState {
                 grid_type: descr,
                 position,
                 orientation,
+                helix_parameters: None, // Some(HelixParameters::GEARY_2014_RNA), // c'est ici
                 invisible: false,
                 bezier_vertex: None,
             }))
@@ -492,6 +500,8 @@ pub enum Action {
     },
     DeleteSelection,
     ScaffoldToSelection,
+    /// Save the nucleotides 3D positions by strand as a json file in the design directory
+    GetDesignPathAndNotify(fn(Option<Arc<Path>>) -> Notification),
     /// Remove empty domains and merge consecutive domains
     CleanDesign,
     SuspendOp,
