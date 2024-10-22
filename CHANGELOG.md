@@ -1,5 +1,6 @@
 # Changelog
 
+<<<<<<< HEAD
 ## 0.6.0
 
 - Fixed a lot of typos
@@ -7,6 +8,11 @@
 - Improved customizable 3D view
 - Better algorithm for curved DNA strand 3D embedding
 - Better visualisation of twisted revolution shape helix routing algorithm
+=======
+## 0.5.1.1
+
+- Changes in the file format, older files can still be read and will be automatically converted to the new file format when saved.
+>>>>>>> 2fdd3fa8d55515165fa9783effb74cadfaee6e4b
 
 ## 0.5.1
 
