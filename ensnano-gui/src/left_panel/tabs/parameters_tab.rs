@@ -99,6 +99,8 @@ impl ParametersTab {
         ret = ret.push(Text::new("Nicolas Schabanel"));
         ret = ret.push(Text::new("Joris Picot"));
         ret = ret.push(Text::new("Pierre Marcus"));
+        ret = ret.push(Text::new("Octave Hazard"));
+        ret = ret.push(Text::new("Daria Pchelina"));
         extra_jump!(ret);
         subsection!(ret, ui_size, "Conception:");
         ret = ret.push(Text::new("Nicolas Schabanel"));
