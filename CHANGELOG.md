@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.0
+
+- Fixed a lot of typos
+- Changes in filed names in .ens file format (older file still load and will be updated to the new fields) 
+- Improved customizable 3D view
+- Better algorithm for curved DNA strand 3D embedding
+- Better visualisation of twisted revolution shape helix routing algorithm
+
 ## 0.5.1
 
 - Fixed a lot of typos
