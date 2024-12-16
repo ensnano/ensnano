@@ -50,7 +50,7 @@ impl TorusConcentricCircleDescriptor {
         let circle_radius = self.radius - section_radius * φ.cos();
         let z = section_radius * φ.sin();
         let perimeter = TAU * circle_radius;
-        let abscissa_converter_factor = Some(circle_radius / (self.radius + section_radius)); // better <= 1
+        let abscissa_converter_factor = Some(circle_radius / (self.radius + section_radius) * HelixParameters::GEARY_2014_DNA.rise as f64 / helix_parameters.rise as f64); // better <= 1
 
         let mut circle_helix_parameters = helix_parameters.clone();
         circle_helix_parameters.inter_helix_gap = inter_helix_center_gap as f32;
