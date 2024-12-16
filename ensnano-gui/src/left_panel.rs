@@ -113,6 +113,7 @@ pub enum Message<S: AppState> {
     NewGrid(GridTypeDescr),
     /// Set camera to fixed position.
     FixPoint(Vec3, Vec3),
+    /// Rotate camera.
     RotateCam(f32, f32, f32),
     PositionHelicesChanged(String),
     LengthHelicesChanged(String),
