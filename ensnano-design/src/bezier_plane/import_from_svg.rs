@@ -42,6 +42,7 @@ pub fn read_first_svg_path(file_path: &StdPath) -> Result<BezierPath, SvgImportE
 
             let mut ret = PathBuilder::default();
             for command in data.iter() {
+                // println!("{:?}",command); // ADD MISSING SVG COMMANDS HERE
                 match command {
                     Command::Close => return Ok(ret.close()),
                     Command::Move(Position::Absolute, parameters) => {

@@ -47,6 +47,8 @@ use closed_curves::CloseSurfaceTopology;
 trait SpringTopology: Send + Sync + 'static {
     fn nb_balls(&self) -> usize;
 
+    fn number_of_sections_per_segment(&self) -> usize;
+
     fn balls_with_successor(&self) -> &[usize];
     /// Return the identifier of the next ball on the helix,  or `ball_id` if `ball_id` is
     /// the last ball on an open helix.
@@ -274,6 +276,8 @@ impl RevolutionSurfaceSystem {
     ) {
         let mut nb_spring = 0;
         if let Some(state) = spring_state.as_mut() {
+            state.min_ext = f64::INFINITY;
+            state.max_ext = -f64::INFINITY;
             state.avg_ext = 0.;
         }
         for i in self.topology.balls_involved_in_spring() {
@@ -568,6 +572,10 @@ impl ensnano_design::AdditionalStructure for RevolutionSurfaceSystem {
         (0..total_nb_sections)
             .map(|n| dvec_to_vec(self.position_section(n, &thetas)))
             .collect()
+    }
+
+    fn number_of_sections(&self) -> usize {
+        return self.topology.number_of_sections_per_segment();
     }
 
     fn next(&self) -> Vec<(usize, usize)> {
