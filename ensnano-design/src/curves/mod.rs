@@ -72,7 +72,7 @@ pub(crate) use time_nucl_map::{PathTimeMaps, RevolutionCurveTimeMaps};
 use torus::TwistedTorus;
 pub use torus::{CurveDescriptor2D, TwistedTorusDescriptor};
 pub use torus::{PointOnSurface, Torus};
-pub use torus_concentric_circle::TorusConcentricCircleDescriptor;
+pub use torus_concentric_circle::{TorusConcentricCircleDescriptor, EllipticTorusConcentricCircleDescriptor};
 pub use tube_spiral::TubeSpiralDescriptor;
 pub use twist::{nb_turn_per_100_nt_to_omega, twist_to_omega, Twist};
 
@@ -584,6 +584,7 @@ pub enum CurveDescriptor {
     Twist(Twist),
     Torus(Torus),
     TorusConcentricCircle(TorusConcentricCircleDescriptor),
+    EllipiticTorusConcentricCircle(EllipticTorusConcentricCircleDescriptor),
     TwistedTorus(TwistedTorusDescriptor),
     PiecewiseBezier {
         #[serde(skip_serializing_if = "Option::is_none", default)]
@@ -770,6 +771,9 @@ impl InstanciatedCurveDescriptor {
             CurveDescriptor::TorusConcentricCircle(t) => {
                 InstanciatedCurveDescriptor_::TorusConcentricCircle(t.clone())
             }
+            CurveDescriptor::EllipiticTorusConcentricCircle(t) => {
+                InstanciatedCurveDescriptor_::EllipticTorusConcentricCircle(t.clone())
+            }
             CurveDescriptor::SuperTwist(t) => InstanciatedCurveDescriptor_::SuperTwist(t.clone()),
             CurveDescriptor::TwistedTorus(t) => {
                 InstanciatedCurveDescriptor_::TwistedTorus(t.clone())
@@ -861,6 +865,9 @@ impl InstanciatedCurveDescriptor {
             CurveDescriptor::Torus(t) => Some(InstanciatedCurveDescriptor_::Torus(t.clone())),
             CurveDescriptor::TorusConcentricCircle(t) => Some(
                 InstanciatedCurveDescriptor_::TorusConcentricCircle(t.clone()),
+            ),
+            CurveDescriptor::EllipiticTorusConcentricCircle(t) => Some(
+                InstanciatedCurveDescriptor_::EllipticTorusConcentricCircle(t.clone()),
             ),
             CurveDescriptor::SuperTwist(t) => {
                 Some(InstanciatedCurveDescriptor_::SuperTwist(t.clone()))
@@ -971,6 +978,7 @@ enum InstanciatedCurveDescriptor_ {
     Twist(Twist),
     Torus(Torus),
     TorusConcentricCircle(TorusConcentricCircleDescriptor),
+    EllipticTorusConcentricCircle(EllipticTorusConcentricCircleDescriptor),
     SuperTwist(SuperTwist),
     TwistedTorus(TwistedTorusDescriptor),
     PiecewiseBezier(InstanciatedPiecewiseBezierDescriptor),
@@ -1096,6 +1104,10 @@ impl InstanciatedCurveDescriptor_ {
                 torus.with_helix_parameters(helix_parameters),
                 helix_parameters,
             )),
+            Self::EllipticTorusConcentricCircle(torus) => Arc::new(Curve::new(
+                torus.with_helix_parameters(helix_parameters),
+                helix_parameters,
+            )),
             Self::SuperTwist(twist) => Arc::new(Curve::new(twist, helix_parameters)),
             Self::TwistedTorus(ref desc) => {
                 if let Some(curve) = cache.0.get(desc) {
@@ -1171,6 +1183,10 @@ impl InstanciatedCurveDescriptor_ {
                 torus.clone().with_helix_parameters(helix_parameters),
                 helix_parameters,
             ))),
+            Self::EllipticTorusConcentricCircle(torus) => Some(Arc::new(Curve::new(
+                torus.clone().with_helix_parameters(helix_parameters),
+                helix_parameters,
+            ))),
             Self::SuperTwist(twist) => Some(Arc::new(Curve::new(twist.clone(), helix_parameters))),
             Self::TwistedTorus(_) => None,
             Self::PiecewiseBezier(_) => None,
@@ -1228,6 +1244,9 @@ impl InstanciatedCurveDescriptor_ {
             Self::TorusConcentricCircle(torus) => Some(Curve::compute_length(
                 torus.clone().with_helix_parameters(helix_parameters),
             )),
+            Self::EllipticTorusConcentricCircle(torus) => Some(Curve::compute_length(
+                torus.clone().with_helix_parameters(helix_parameters),
+            )),
             Self::SuperTwist(twist) => Some(Curve::compute_length(twist.clone())),
             Self::TwistedTorus(_) => None,
             Self::PiecewiseBezier(_) => None,
@@ -1281,6 +1300,9 @@ impl InstanciatedCurveDescriptor_ {
             Self::Twist(twist) => Some(Curve::path(twist.clone())),
             Self::Torus(torus) => Some(Curve::path(torus.clone())),
             Self::TorusConcentricCircle(torus) => Some(Curve::path(
+                torus.clone().with_helix_parameters(helix_parameters),
+            )),
+            Self::EllipticTorusConcentricCircle(torus) => Some(Curve::path(
                 torus.clone().with_helix_parameters(helix_parameters),
             )),
             Self::SuperTwist(twist) => Some(Curve::path(twist.clone())),

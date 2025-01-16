@@ -66,3 +66,38 @@ impl TorusConcentricCircleDescriptor {
         }
     }
 }
+
+#[derive(Clone, Serialize, Deserialize, Debug)]
+pub struct EllipticTorusConcentricCircleDescriptor {
+    pub radius: f64,
+    pub horizontal_axis: f64,
+    pub vertical_axis: f64,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub section_angle: Option<f64>, // unused for now
+    pub helix_theta: f64,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub number_of_helices: Option<u32>, 
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub helix_index: Option<i32>,       
+}
+
+impl EllipticTorusConcentricCircleDescriptor {
+    pub(super) fn with_helix_parameters(self, helix_parameters: &HelixParameters) -> CircleCurve {
+        let circle_radius = self.radius - self.horizontal_axis * self.helix_theta.cos();
+        let z = self.vertical_axis * self.helix_theta.sin();
+        let perimeter = TAU * circle_radius;
+        let abscissa_converter_factor = Some(circle_radius / (self.radius + self.horizontal_axis) * HelixParameters::GEARY_2014_DNA.rise as f64 / helix_parameters.rise as f64); // better <= 1
+
+        let mut circle_helix_parameters = helix_parameters.clone();
+
+        CircleCurve {
+            _parameters: circle_helix_parameters,
+            radius: circle_radius,
+            z,
+            perimeter,
+            abscissa_converter_factor,
+            is_closed: None,
+            target_nb_nt: None,
+        }
+    }
+}

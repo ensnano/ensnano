@@ -66,7 +66,7 @@ impl SphereConcentricCircleDescriptor {
             t_max: 1.,
             is_closed: self.is_closed,
             target_nb_nt: self.target_nb_nt,
-            abscissa_converter_factor: self.abscissa_converter_factor,
+            abscissa_converter_factor: Some(self.abscissa_converter_factor.unwrap_or(1.) * HelixParameters::GEARY_2014_DNA.rise as f64 / helix_parameters.rise as f64),
         }
     }
 }
