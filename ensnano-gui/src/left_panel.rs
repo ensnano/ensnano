@@ -17,7 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use ensnano_iced::{
     iced::{theme, Color, Command, Element, Length},
-    iced_aw::native::{TabBarPosition, TabLabel, Tabs},
+    iced_aw::widgets::{TabBarPosition, TabLabel, Tabs},
     iced_runtime::Program,
     iced_widget::*,
     iced_winit::{

@@ -61,7 +61,7 @@ pub trait OrganizerAttribute: Clone + Debug + 'static + Ord + Display {
 }
 
 pub enum AttributeDisplay {
-    Icon(crate::BootstrapIcon),
+    Icon(crate::Bootstrap),
     Text(String),
 }
 

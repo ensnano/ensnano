@@ -10,7 +10,7 @@ use iced::{
     widget::{container, slider, text_input},
     Background, Border, Color,
 };
-use iced_aw::native::tab_bar;
+use iced_aw::widgets::tab_bar;
 
 /// Color palette
 pub const GUI_PALETTE: Palette = Palette {

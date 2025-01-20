@@ -2,7 +2,10 @@ use iced::advanced;
 use iced::alignment;
 use iced::keyboard::Modifiers;
 use iced::{Element, Length};
-pub use iced_aw::graphics::icons::{icon_to_string, BootstrapIcon, BOOTSTRAP_FONT};
+pub use iced_aw::core::icons::{
+    bootstrap::{icon_to_string, Bootstrap},
+    BOOTSTRAP_FONT,
+};
 use iced_widget::*;
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::convert::TryInto;
@@ -1004,8 +1007,8 @@ impl<E: OrganizerElement> ElementView<E> {
             }
         }
         if let Some(id) = deletable.clone() {
-            content = content
-                .push(button(icon(BootstrapIcon::Trash)).on_press(OrganizerMessage::delete(id)));
+            content =
+                content.push(button(icon(Bootstrap::Trash)).on_press(OrganizerMessage::delete(id)));
         }
         let mut content = HoverableContainer::new(
             button(content)
@@ -1106,8 +1109,7 @@ impl<E: OrganizerElement> NodeView<E> {
                 }
 
                 row = row.push(
-                    button(icon(BootstrapIcon::Trash))
-                        .on_press(OrganizerMessage::delete(id.clone())),
+                    button(icon(Bootstrap::Trash)).on_press(OrganizerMessage::delete(id.clone())),
                 );
                 row
             }
@@ -1133,8 +1135,7 @@ impl<E: OrganizerElement> NodeView<E> {
                     }
                 }
                 row = row.push(
-                    button(icon(BootstrapIcon::Trash))
-                        .on_press(OrganizerMessage::delete(id.clone())),
+                    button(icon(Bootstrap::Trash)).on_press(OrganizerMessage::delete(id.clone())),
                 );
                 row
             }
@@ -1776,7 +1777,7 @@ impl<E: OrganizerElement> GroupContent<E> {
     }
 }
 
-fn icon<'a, Theme, Renderer>(icon: BootstrapIcon) -> Text<'a, Theme, Renderer>
+fn icon<'a, Theme, Renderer>(icon: Bootstrap) -> Text<'a, Theme, Renderer>
 where
     Theme: text::StyleSheet,
     Renderer: advanced::text::Renderer,
@@ -1796,9 +1797,9 @@ where
     <Renderer as advanced::text::Renderer>::Font: From<iced::Font>,
 {
     if expanded {
-        icon(BootstrapIcon::CaretDown)
+        icon(Bootstrap::CaretDown)
     } else {
-        icon(BootstrapIcon::CaretRight)
+        icon(Bootstrap::CaretRight)
     }
 }
 
@@ -1808,7 +1809,7 @@ where
     Renderer: advanced::text::Renderer,
     <Renderer as advanced::text::Renderer>::Font: From<iced::Font>,
 {
-    icon(BootstrapIcon::Plus)
+    icon(Bootstrap::Plus)
 }
 
 fn edit_icon<'a, Theme, Renderer>() -> Text<'a, Theme, Renderer>
@@ -1817,7 +1818,7 @@ where
     Renderer: advanced::text::Renderer,
     <Renderer as advanced::text::Renderer>::Font: From<iced::Font>,
 {
-    icon(BootstrapIcon::VectorPen)
+    icon(Bootstrap::VectorPen)
 }
 
 fn _delete_icon<'a, Theme, Renderer>() -> Text<'a, Theme, Renderer>
@@ -1827,7 +1828,7 @@ where
     <Renderer as advanced::text::Renderer>::Font: From<iced::Font>,
 {
     //icon('\u{E806}')
-    icon(BootstrapIcon::TrashFill)
+    icon(Bootstrap::TrashFill)
     // TODO: Check what was \u{E806}, or remove this function.
 }
 

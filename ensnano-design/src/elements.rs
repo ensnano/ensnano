@@ -15,7 +15,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use ensnano_organizer::BootstrapIcon; // This is actually from iced_aw.
+use ensnano_organizer::Bootstrap;
 use ensnano_organizer::{
     AttributeDisplay, AttributeWidget, ElementKey, OrganizerAttribute, OrganizerAttributeRepr,
     OrganizerElement,
@@ -340,9 +340,9 @@ impl OrganizerAttribute for DnaAttribute {
         match self {
             DnaAttribute::Visible(b) => {
                 let c = if *b {
-                    BootstrapIcon::EyeFill.into()
+                    Bootstrap::EyeFill.into()
                 } else {
-                    BootstrapIcon::EyeSlash.into()
+                    Bootstrap::EyeSlash.into()
                 };
                 AttributeDisplay::Icon(c)
             }
@@ -353,9 +353,9 @@ impl OrganizerAttribute for DnaAttribute {
             },
             DnaAttribute::LockedForSimulations(b) => {
                 let c = if *b {
-                    BootstrapIcon::Lock.into()
+                    Bootstrap::Lock.into()
                 } else {
-                    BootstrapIcon::Unlock.into()
+                    Bootstrap::Unlock.into()
                 };
                 AttributeDisplay::Icon(c)
             }
