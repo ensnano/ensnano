@@ -90,7 +90,9 @@ pub struct Multiplexer {
     status_bar_split: usize,
     /// The WGPU device.
     device: Rc<Device>,
+    /// The WGPU pipeline.
     pipeline: Option<wgpu::RenderPipeline>,
+    //. 3D/Flat scene split mode.
     split_mode: SplitMode,
     requests: Arc<Mutex<Requests>>,
     state: State,
@@ -296,7 +298,7 @@ impl Multiplexer {
             ]
             .iter()
             {
-                log::trace!("Draw {:?}", element);
+                log::debug!("Draw {:?}", element);
                 if let Some(area) = self.get_texture_size(*element) {
                     render_pass.set_bind_group(0, self.get_bind_group(element), &[]);
 
@@ -365,10 +367,19 @@ impl Multiplexer {
             (self.overlays[n].position, self.overlays[n].size)
         } else {
             let (left, top, right, bottom) = self.layout.get_area(element_type)?;
-            let top = top * self.window_size.height as f64;
-            let left = left * self.window_size.width as f64;
-            let bottom = bottom * self.window_size.height as f64;
-            let right = right * self.window_size.width as f64;
+            let top = (top * self.window_size.height as f64).round();
+            let left = (left * self.window_size.width as f64).round();
+            let bottom = (bottom * self.window_size.height as f64).round();
+            let right = (right * self.window_size.width as f64).round();
+
+            // WARN: There can be floating point issue here: `top`, `left`, `bottom`, and `right`
+            //       are proportions, e.g., values between 0 and 1, stored as f64; they are
+            //       multiplied by the window size and casted to the u32 type. If the rounding is
+            //       not well handled, there can be few missing pixels, of few pixels too much —
+            //       which make the soft crash with a “Viewport has invalid rect” message.
+            //
+            // NOTE: I tried to naively solve the problem by adding `.round()`, but the ideal
+            //       solution would be to distribute the pixels.
 
             (
                 PhysicalPosition::new(left, top).cast::<u32>(),
@@ -733,9 +744,8 @@ impl Multiplexer {
     }
 
     fn texture(&mut self, element_type: GuiComponentType) -> Option<MultiplexerTexture> {
-        log::info!("texture of {:?}", element_type);
         let area = self.get_draw_area(element_type)?;
-        log::info!("area = {:?}", area);
+        log::debug!("texture of {:?}: {:?}", element_type, area);
         let texture = SampledTexture::create_target_texture(self.device.as_ref(), &area.size);
         Some(MultiplexerTexture { area, texture })
     }
@@ -751,15 +761,13 @@ impl Multiplexer {
 
         self.overlays_textures.clear();
         for overlay in self.overlays.iter() {
+            let position = overlay.position;
             let size = overlay.size;
             let texture = SampledTexture::create_target_texture(self.device.as_ref(), &size);
 
             self.overlays_textures.push(MultiplexerTexture {
                 texture,
-                area: DrawArea {
-                    size,
-                    position: overlay.position,
-                },
+                area: DrawArea { size, position },
             });
         }
     }
