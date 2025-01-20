@@ -101,7 +101,7 @@ pub struct Multiplexer {
 }
 
 /// Maximum width of the left pannel.
-const MAX_LEFT_PANNEL_WIDTH: f64 = 200.;
+const MAX_LEFT_PANEL_WIDTH: f64 = 200.;
 /// Maximum height of the status bar.
 const MAX_STATUS_BAR_HEIGHT: f64 = 56.;
 
@@ -135,28 +135,22 @@ impl Multiplexer {
         ui_size: UiSize,
     ) -> Self {
         let mut layout = LayoutTree::new();
+        let (width, height) = (window_size.width as f64, window_size.height as f64);
 
         // The top bar are.
-        let top_bar_proportion = exact_proportion(
-            ui_size.top_bar_height() * scale_factor,
-            window_size.height as f64,
-        );
+        let top_bar_proportion = ui_size.top_bar_height() * scale_factor / height;
         let top_bar_split = 0;
         let (top_bar, scene) = layout.hsplit(0, top_bar_proportion, false);
 
         // The left pannel area.
-        let left_panel_proportion = proportion(
-            0.2,
-            MAX_LEFT_PANNEL_WIDTH * scale_factor,
-            window_size.width as f64,
-        );
+        let left_panel_proportion = (MAX_LEFT_PANEL_WIDTH * scale_factor / width).max(0.2);
         let (left_pannel, scene) = layout.vsplit(scene, left_panel_proportion, true);
 
         // The status bar area.
-        let scene_height = (1. - top_bar_proportion) * window_size.height as f64;
-        let status_bar_prop = exact_proportion(MAX_STATUS_BAR_HEIGHT * scale_factor, scene_height);
+        let scene_height = (1. - top_bar_proportion) * height;
+        let status_bar_proportion = MAX_STATUS_BAR_HEIGHT * scale_factor / scene_height;
         let status_bar_split = scene;
-        let (scene, status_bar) = layout.hsplit(scene, 1. - status_bar_prop, false);
+        let (scene, status_bar) = layout.hsplit(scene, 1. - status_bar_proportion, false);
 
         // Add GUI component types to areas.
         layout.attribute_element(top_bar, GuiComponentType::TopBar);
@@ -715,12 +709,10 @@ impl Multiplexer {
 
     pub fn resize(&mut self, window_size: PhySize, scale_factor: f64) -> bool {
         let ret = self.window_size != window_size;
-        let top_pannel_prop = exact_proportion(
-            self.ui_size.top_bar_height() * scale_factor,
-            window_size.height as f64,
-        );
+        let top_pannel_prop =
+            (self.ui_size.top_bar_height() * scale_factor / window_size.height as f64);
         let scene_height = (1. - top_pannel_prop) * window_size.height as f64;
-        let status_bar_prop = exact_proportion(MAX_STATUS_BAR_HEIGHT * scale_factor, scene_height);
+        let status_bar_prop = (MAX_STATUS_BAR_HEIGHT * scale_factor / scene_height);
         self.layout.resize(self.top_bar_split, top_pannel_prop);
         self.layout
             .resize(self.status_bar_split, 1. - status_bar_prop);
