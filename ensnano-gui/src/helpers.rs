@@ -130,8 +130,7 @@ macro_rules! button_text_wrapper {
         button(
             $text
                 .horizontal_alignment(Horizontal::Center)
-                .vertical_alignment(Vertical::Center)
-                .height($ui_size.button()),
+                .vertical_alignment(Vertical::Center),
         )
         .padding($ui_size.button_pad())
     };
@@ -147,7 +146,7 @@ where
     Renderer: advanced::Renderer + advanced::text::Renderer + 'a,
     <Renderer as advanced::text::Renderer>::Font: From<Font>,
 {
-    button_text_wrapper!(text(label).size(ui_size.main_text()), ui_size)
+    button_text_wrapper!(text(label).size(ui_size.main_text()), ui_size).height(ui_size.button())
 }
 pub fn fixed_text_button<'a, Message, Theme, Renderer>(
     label: impl ToString,
@@ -165,6 +164,7 @@ where
             .width(width_factor * ui_size.button()),
         ui_size
     )
+    .height(ui_size.button())
 }
 
 /// Return a button containing an icon in the light theme.
@@ -178,12 +178,9 @@ where
     Renderer: advanced::text::Renderer + 'a,
     <Renderer as advanced::text::Renderer>::Font: From<Font>,
 {
-    button_text_wrapper!(
-        material_icon(icon, style, ui_size)
-            .height(ui_size.button())
-            .width(ui_size.button()),
-        ui_size
-    )
+    button_text_wrapper!(material_icon(icon, style, ui_size), ui_size)
+        .height(ui_size.button())
+        .width(ui_size.button())
 }
 
 pub fn rotation_icon_button<'a, Message, Theme, Renderer>(
@@ -210,19 +207,17 @@ where
     <Renderer as advanced::text::Renderer>::Font: From<Font>,
 {
     button_text_wrapper!(
-        text(icon_char)
-            .font(ENSNANO_FONT)
-            .size(ui_size.icon())
-            .height(ui_size.button())
-            .width(ui_size.button()),
+        text(icon_char).font(ENSNANO_FONT).size(ui_size.icon()),
         ui_size
     )
+    .height(ui_size.button())
+    .width(ui_size.button())
 }
 
 /// A button containing an icon.
 pub fn image_button<'a, Message, Theme, Renderer, Handle>(
     image: iced_widget::Image<Handle>,
-    _ui_size: UiSize,
+    ui_size: UiSize,
 ) -> Button<'a, Message, Theme, Renderer>
 where
     Message: Clone + 'a,
@@ -235,6 +230,8 @@ where
     Handle: std::hash::Hash + Clone + 'a,
 {
     button(row![image].align_items(Alignment::Center))
+        .height(ui_size.button())
+        .width(ui_size.button())
 }
 
 /// Return a button that starts, then stops something.

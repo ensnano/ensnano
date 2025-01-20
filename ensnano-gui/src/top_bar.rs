@@ -501,9 +501,6 @@ fn action_mode_btn<'a, State>(
 ) -> Button<'a, Message<State>, crate::Theme, crate::Renderer>
 where
     State: AppState,
-    //Theme: button::StyleSheet,
-    //Renderer: iced::advanced::Renderer + iced::advanced::image::Renderer,
-    //<Renderer as iced::advanced::image::Renderer>::Handle: From<image::Handle>,
 {
     let icon_path = if current_action_mode == *mode {
         mode.icon_on(axis_aligned)

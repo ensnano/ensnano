@@ -103,7 +103,7 @@ pub struct Multiplexer {
 /// Maximum width of the left pannel.
 const MAX_LEFT_PANNEL_WIDTH: f64 = 200.;
 /// Maximum height of the status bar.
-const MAX_STATUS_BAR_HEIGHT: f64 = 50.;
+const MAX_STATUS_BAR_HEIGHT: f64 = 56.;
 
 impl Multiplexer {
     /// Create a new multiplexer for a window with size `window_size`.

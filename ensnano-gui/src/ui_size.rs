@@ -91,7 +91,19 @@ impl UiSize {
 
     /// Height of a button.
     pub fn button(&self) -> f32 {
-        self.icon() + 6.0
+        //
+        // NOTE: Be careful when changing icon size.
+        //       When too small, the content will not appear.
+        //       They are currently set to the smallest size.
+        //
+        // BUG: Setting this value too high will crash the app with the
+        //      message: “Dimension Y is zero”
+        //
+        match self {
+            Self::Small => 29.0,
+            Self::Medium => 36.0,
+            Self::Large => 50.0,
+        }
     }
 
     /// Padding around button content.
