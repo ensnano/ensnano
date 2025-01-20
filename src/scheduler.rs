@@ -17,13 +17,15 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::{AppState, Multiplexer};
+use ensnano_iced::{
+    iced_wgpu::wgpu,
+    iced_winit::winit::{
+        dpi::{PhysicalPosition, PhysicalSize},
+        event::WindowEvent,
+    },
+};
 use ensnano_interactor::application::Application;
 use ensnano_interactor::graphics::GuiComponentType;
-use iced_wgpu::wgpu;
-use iced_winit::winit::{
-    dpi::{PhysicalPosition, PhysicalSize},
-    event::WindowEvent,
-};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;

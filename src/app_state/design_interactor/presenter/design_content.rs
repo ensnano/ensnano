@@ -19,7 +19,6 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::*;
 use crate::scene::GridInstance;
 use ahash::RandomState;
-use cadnano_format::color;
 use ensnano_design::drawing_style::{ColorType, DrawingAttribute, DrawingStyle};
 use ensnano_design::elements::{DesignElement, DesignElementKey};
 use ensnano_design::grid::{GridId, GridObject, GridPosition, HelixGridPosition};
@@ -32,14 +31,9 @@ use ensnano_interactor::{
     ObjectType,
 };
 use ensnano_utils::clic_counter::ClicCounter;
-use futures::stream::LocalBoxStream;
-use iced::widget::slider::draw;
-use iced::Element;
 use serde::Serialize;
 use std::borrow::Cow;
-use std::clone;
 use std::collections::{BTreeMap, HashMap, HashSet};
-use std::f32::consts::PI;
 use std::str::FromStr;
 use std::sync::Arc;
 use ultraviolet::{Rotor3, Vec3};

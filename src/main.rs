@@ -98,7 +98,16 @@ use std::time::{Duration, Instant};
 use controller::{ChannelReader, ChannelReaderUpdate, SimulationRequest};
 use ensnano_design::{grid::GridId, Camera};
 use ensnano_exports::{ExportResult, ExportType};
-use ensnano_iced::{fonts, iced::Event as IcedEvent, iced::Size, theme, UiSize};
+use ensnano_iced::{
+    fonts,
+    iced::{self, Event as IcedEvent, Size},
+    iced_futures::futures,
+    iced_graphics::{Antialiasing, Viewport},
+    iced_runtime::{program, Debug},
+    iced_wgpu::{self, wgpu, Settings},
+    iced_winit::{self, winit},
+    theme, UiSize,
+};
 use ensnano_interactor::{
     application::{Application, Notification},
     RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor,
@@ -107,11 +116,6 @@ use ensnano_interactor::{
     CenterOfSelection, CursorIcon, DesignOperation, DesignReader, RigidBodyConstants,
     SuggestionParameters,
 };
-use iced_futures::futures;
-use iced_graphics::Viewport;
-use iced_runtime::{program, Debug};
-use iced_wgpu::{wgpu, Settings};
-use iced_winit::{conversion, winit};
 
 use app_state::AppStateParameters;
 use ultraviolet::{Rotor3, Vec3};
@@ -355,7 +359,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .unwrap_or_default();
 
     let settings = Settings {
-        antialiasing: Some(iced_graphics::Antialiasing::MSAAx4),
+        antialiasing: Some(Antialiasing::MSAAx4),
         default_text_size: ui_size.main_text().into(),
         default_font: fonts::INTER_REGULAR_FONT,
         ..Default::default()
@@ -951,7 +955,7 @@ impl OverlayManager {
     ) {
         for (n, overlay) in self.overlay_types.iter().enumerate() {
             let cursor = if multiplexer.focused_element() == Some(GuiComponentType::Overlay(n)) {
-                let point = conversion::cursor_position(
+                let point = iced_winit::conversion::cursor_position(
                     multiplexer.get_cursor_position(),
                     window.scale_factor(),
                 );
@@ -1059,7 +1063,7 @@ impl OverlayManager {
         let mut ret = false;
         for (n, overlay) in self.overlay_types.iter().enumerate() {
             let cursor = if multiplexer.focused_element() == Some(GuiComponentType::Overlay(n)) {
-                let point = conversion::cursor_position(
+                let point = iced_winit::conversion::cursor_position(
                     multiplexer.get_cursor_position(),
                     window.scale_factor(),
                 );

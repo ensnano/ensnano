@@ -1,6 +1,7 @@
 pub use iced;
 pub use iced::Renderer;
 pub use iced_aw;
+pub use iced_futures;
 pub use iced_graphics;
 pub use iced_runtime;
 pub use iced_wgpu;

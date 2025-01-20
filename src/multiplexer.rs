@@ -33,19 +33,20 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::{Action, Requests};
 use crate::utils::texture::SampledTexture;
 use crate::PhySize;
-use ensnano_iced::UiSize;
+use ensnano_iced::{
+    iced_wgpu::wgpu,
+    iced_wgpu::wgpu::Device,
+    iced_winit::winit::{
+        dpi::{PhysicalPosition, PhysicalSize},
+        event::{ElementState, KeyEvent, Modifiers, WindowEvent},
+        keyboard::{Key, KeyLocation, ModifiersState, NamedKey},
+        window::{CursorIcon, Window},
+    },
+    UiSize,
+};
 use ensnano_interactor::{ActionMode, SelectionMode};
-use iced_wgpu::wgpu;
-use iced_winit::winit;
 use std::rc::Rc;
 use std::sync::{Arc, Mutex};
-use wgpu::Device;
-use winit::{
-    dpi::{PhysicalPosition, PhysicalSize},
-    event::{ElementState, KeyEvent, Modifiers, WindowEvent},
-    keyboard::{Key, KeyLocation, ModifiersState, NamedKey},
-    window::CursorIcon,
-};
 
 mod layout_manager;
 use ensnano_interactor::graphics::{DrawArea, GuiComponentType, SplitMode};
@@ -653,7 +654,7 @@ impl Multiplexer {
         }
     }
 
-    pub fn change_ui_size(&mut self, ui_size: UiSize, window: &iced_winit::winit::window::Window) {
+    pub fn change_ui_size(&mut self, ui_size: UiSize, window: &Window) {
         self.ui_size = ui_size;
         self.resize(window.inner_size(), window.scale_factor());
         self.generate_textures();
