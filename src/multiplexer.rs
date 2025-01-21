@@ -734,9 +734,9 @@ impl Multiplexer {
     pub fn resize(&mut self, window_size: PhySize, scale_factor: f64) -> bool {
         let ret = self.window_size != window_size;
         let top_pannel_prop =
-            (self.ui_size.top_bar_height() * scale_factor / window_size.height as f64);
+            self.ui_size.top_bar_height() * scale_factor / window_size.height as f64;
         let scene_height = (1. - top_pannel_prop) * window_size.height as f64;
-        let status_bar_prop = (MAX_STATUS_BAR_HEIGHT * scale_factor / scene_height);
+        let status_bar_prop = MAX_STATUS_BAR_HEIGHT * scale_factor / scene_height;
         self.layout.resize(self.top_bar_split, top_pannel_prop);
         self.layout
             .resize(self.status_bar_split, 1. - status_bar_prop);
@@ -895,15 +895,6 @@ fn create_pipeline(device: &Device, bg_layout: &wgpu::BindGroupLayout) -> wgpu::
     };
 
     device.create_render_pipeline(&desc)
-}
-
-fn proportion(min_prop: f64, max_size: f64, length: f64) -> f64 {
-    let max_prop = max_size / length;
-    max_prop.min(min_prop)
-}
-
-fn exact_proportion(size: f64, length: f64) -> f64 {
-    size / length
 }
 
 /// Multiplexer state
