@@ -3,7 +3,7 @@
 use iced::Font;
 
 pub const MATERIAL_ICONS_LIGHT_BYTES: &[u8] =
-    include_bytes!("../../../font/MaterialIconsOutlined-Regular.otf");
+    include_bytes!("../../../font/MaterialIconsOutlined-Regular.ttf");
 pub const MATERIAL_ICONS_DARK_BYTES: &[u8] =
     include_bytes!("../../../font/MaterialIcons-Regular.ttf");
 
