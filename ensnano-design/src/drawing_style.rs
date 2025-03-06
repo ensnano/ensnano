@@ -40,6 +40,7 @@ pub enum DrawingAttribute {
     WithCones(bool),
     OnAxis(bool),
     Curvature(f32, f32),
+    Torsion(f32, f32),
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -61,6 +62,7 @@ impl FromStr for DrawingAttribute {
     /// - %wc / %noc for WithCones(true / false) - default = true
     /// - %onaxis / %offaxis for OnAxis(true / false) - default = false
     /// - %cv(r_min, r_max) - show the curvature radius using Purple to Blue gradient the helix cylinder for radius within the range r_min..r_max
+    /// - %to(t_min, t_max) - show the torsion using Blue to Purple gradient the helix cylinder for radius within the range to_min..to_max
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let parsed = s
             .split(&['%', ' ', ',', ')', '('])
@@ -128,6 +130,13 @@ impl FromStr for DrawingAttribute {
                     }
                 }
             }
+            "to" if len == 3 => {
+                if let Ok(t_min) = f32::from_str(parsed[1]) {
+                    if let Ok(t_max) = f32::from_str(parsed[2]) {
+                        return Ok(Self::Torsion(t_min, t_max));
+                    }
+                }
+            }
             _ => (),
         }
 
@@ -164,6 +173,9 @@ pub struct DrawingStyle {
     /// (r_min, r_max) display curvature on the helix cylinder with a gradient for radius from r_min to r_max
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub curvature: Option<(f32, f32)>,
+    /// (t_min, t_max) display torsion on the helix cylinder with a gradient for torsion from t_min to t_max
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub torsion: Option<(f32, f32)>,
 }
 
 impl std::default::Default for DrawingStyle {
@@ -182,6 +194,7 @@ impl std::default::Default for DrawingStyle {
             with_cones: None,
             on_axis: None,
             curvature: None,
+            torsion: None,
         }
     }
 }
@@ -217,6 +230,9 @@ impl From<Vec<DrawingAttribute>> for DrawingStyle {
                 DrawingAttribute::OnAxis(b) => ret.on_axis = ret.on_axis.or(Some(b)),
                 DrawingAttribute::Curvature(r_min, r_max) => {
                     ret.curvature = ret.curvature.or(Some((r_min, r_max)))
+                }
+                DrawingAttribute::Torsion(t_min, t_max) => {
+                    ret.torsion = ret.torsion.or(Some((t_min, t_max)))
                 }
             }
         }
@@ -276,6 +292,10 @@ impl DrawingStyle {
                 curvature: Some((r_min, r_max)),
                 ..*self
             },
+            DrawingAttribute::Torsion(t_min, t_max) => DrawingStyle {
+                torsion: Some((t_min, t_max)),
+                ..*self
+            },
         }
     }
 
@@ -320,6 +340,10 @@ impl DrawingStyle {
 
         if let Some((r_min, r_max)) = self.curvature {
             atts.push(DrawingAttribute::Curvature(r_min, r_max))
+        }
+
+        if let Some((t_min, t_max)) = self.torsion {
+            atts.push(DrawingAttribute::Torsion(t_min, t_max))
         }
 
         return atts;
@@ -376,6 +400,10 @@ impl DrawingStyle {
                 curvature: self.curvature.or(Some((r_min, r_max))),
                 ..*self
             },
+            DrawingAttribute::Torsion(t_min, t_max) => DrawingStyle {
+                torsion: self.torsion.or(Some((t_min, t_max))),
+                ..*self
+            },
         }
     }
 
@@ -406,6 +434,7 @@ impl DrawingStyle {
             hue_range: self.hue_range.or(other.hue_range),
             on_axis: self.on_axis.or(other.on_axis),
             curvature: self.curvature.or(other.curvature),
+            torsion: self.torsion.or(other.torsion),
         };
     }
 }

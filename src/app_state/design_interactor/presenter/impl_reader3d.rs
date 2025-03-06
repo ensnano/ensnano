@@ -627,7 +627,8 @@ impl Reader3D for DesignReader {
         // Scanning strands
         for (s_id, strand) in design.strands.iter() {
             let mut pos_seq = Vec::new();
-            let mut curvatures = Vec::new();
+            let mut curvatures: Vec<f64> = Vec::new();
+            let mut torsions: Vec<f64> = Vec::new();
             for (i, domain) in strand.domains.iter().enumerate() {
                 // Real domain or Insertion
                 if let Domain::HelixDomain(domain) = domain {
@@ -655,6 +656,14 @@ impl Reader3D for DesignReader {
                                 .curvature_at_pos(nucl_position)
                                 .unwrap_or(0.0),
                         );
+                        torsions.push(
+                            design
+                                .helices
+                                .get(&domain.helix)
+                                .unwrap()
+                                .torsion_at_pos(nucl_position)
+                                .unwrap_or(0.0),
+                        );
                     }
                 }
             }
@@ -664,6 +673,7 @@ impl Reader3D for DesignReader {
                     positions: pos_seq,
                     is_cyclic: strand.is_cyclic,
                     curvatures,
+                    torsions,
                 },
             );
         }

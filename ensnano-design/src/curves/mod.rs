@@ -129,6 +129,29 @@ pub trait Curved {
         numerator / denominator
     }
 
+    /// The torsion of the curve at point `t`.
+    ///
+    /// See `https://en.wikipedia.org/wiki/Torsion_of_a_curve`
+    fn torsion(&self, t: f64) -> f64 {
+        let ε: f64 = 1e-3;
+        let p0 = self.position(t);
+        let p1 = self.position(t + ε);
+        let p2 = self.position(t + 2. * ε);
+        let p3 = self.position(t + 3. * ε);
+        let dp0 = (p1 - p0) / ε;
+        let dp1 = (p2 - p1) / ε;
+        let dp2 = (p3 - p2) / ε;
+        let d2p0 = (dp1 - dp0) / ε;
+        let d2p1 = (dp2 - dp1) / ε;
+        let d3p = (d2p1 - d2p0) / ε;
+        let c = dp0.cross(d2p0);
+        return d3p.dot(c) / c.mag_sq();
+    }
+
+    fn absolute_torsion(&self, t: f64) -> f64 {
+        return self.torsion(t).abs();
+    }
+
     /// The bounds of the curve
     fn bounds(&self) -> CurveBounds;
 
@@ -311,6 +334,8 @@ pub struct Curve {
     axis_backward: Vec<DMat3>,
     /// The precomputed values of the curve's curvature
     curvature: Vec<f64>,
+    /// The precomputed values of the curve's torsion
+    torsion: Vec<f64>,
     /// The index in positions that was reached when t became non-negative
     nucl_t0: usize,
     /// The time point at which nucleotides where positioned
@@ -334,6 +359,7 @@ impl Curve {
             axis_forward: Vec::new(),
             axis_backward: Vec::new(),
             curvature: Vec::new(),
+            torsion: Vec::new(),
             nucl_t0: 0,
             t_nucl: Arc::new(Vec::new()),
             nucl_pos_full_turn: None,
@@ -403,6 +429,10 @@ impl Curve {
     #[allow(dead_code)]
     pub fn curvature(&self, n: usize) -> Option<f64> {
         self.curvature.get(n).cloned()
+    }
+
+    pub fn torsion(&self, n: usize) -> Option<f64> {
+        self.torsion.get(n).cloned()
     }
 
     pub fn idx_conversion(&self, n: isize) -> Option<usize> {
@@ -498,6 +528,11 @@ impl Curve {
     pub fn curvature_at_pos(&self, position: isize) -> Option<f64> {
         let idx = self.idx_conversion(position)?;
         self.curvature.get(idx).cloned()
+    }
+
+    pub fn torsion_at_pos(&self, position: isize) -> Option<f64> {
+        let idx = self.idx_conversion(position)?;
+        self.torsion.get(idx).cloned()
     }
 
     pub fn points(&self) -> &[DVec3] {

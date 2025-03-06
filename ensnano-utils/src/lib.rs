@@ -50,6 +50,7 @@ pub struct StrandNucleotidesPositions {
     pub is_cyclic: bool,
     pub positions: Vec<[f32; 3]>,
     pub curvatures: Vec<f64>,
+    pub torsions: Vec<f64>,
 }
 
 pub fn create_buffer_with_data(
