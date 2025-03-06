@@ -39,7 +39,7 @@ struct NamedCameraPosition {
 }
 
 impl NamedCameraPosition {
-    /// Generate a message to to ENSnano to set camera to desired position.
+    /// Generate a message to set camera to desired position.
     fn message<State: AppState>(&self) -> Message<State> {
         Message::FixPoint(self.direction, self.up)
     }
@@ -80,10 +80,10 @@ const PREDEFINED_CAMERA_ORIENTATION: [NamedCameraPosition; 6] = [
 ];
 
 /// Turn a NamedCameraPosition into a button.
-fn named_camera_to_button<'a, State: AppState>(
+fn named_camera_to_button<State: AppState>(
     position: &NamedCameraPosition,
     ui_size: UiSize,
-) -> ensnano_iced::Element<'a, Message<State>> {
+) -> ensnano_iced::Element<'_, Message<State>> {
     fixed_text_button(position.name, 2.0, ui_size)
         .on_press(position.message())
         .into()
@@ -125,12 +125,12 @@ struct CameraWidget {
 }
 
 impl CameraWidget {
-    fn view<State: AppState>(&self, ui_size: UiSize) -> ensnano_iced::Element<Message<State>> {
-        let name_field: ensnano_iced::Element<_, _, _> = if self.being_edited {
+    fn view<State: AppState>(&self, ui_size: UiSize) -> ensnano_iced::Element<'_, Message<State>> {
+        let name_field: ensnano_iced::Element<'_, _> = if self.being_edited {
             keyboard_priority(
                 text_input("Camera name", &self.name)
                     .on_input(Message::EditCameraName)
-                    .on_submit(Message::<State>::SubmitCameraName),
+                    .on_submit(Message::SubmitCameraName),
             )
             .on_priority(Message::SetKeyboardPriority(true))
             .on_unpriority(Message::SetKeyboardPriority(false))
@@ -144,15 +144,15 @@ impl CameraWidget {
             Space::with_width(3),
             // edit button
             material_icon_button(MaterialIcon::Edit, MaterialIconStyle::Light, ui_size)
-                .on_press(Message::<State>::StartEditCameraName(self.camera_id)),
+                .on_press(Message::StartEditCameraName(self.camera_id)),
             //
             Space::with_width(Length::Fill),
             //select camera button
             material_icon_button(MaterialIcon::Visibility, MaterialIconStyle::Light, ui_size)
-                .on_press(Message::<State>::SelectCamera(self.camera_id)),
+                .on_press(Message::SelectCamera(self.camera_id)),
             // delete button
             material_icon_button(MaterialIcon::Delete, MaterialIconStyle::Light, ui_size)
-                .on_press(Message::<State>::DeleteCamera(self.camera_id)),
+                .on_press(Message::DeleteCamera(self.camera_id)),
         ]
         .into()
     }
