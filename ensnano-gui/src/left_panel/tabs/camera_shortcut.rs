@@ -263,8 +263,6 @@ impl CameraShortcutPanel {
     }
 }
 
-// TODO: Implement the Component trait.
-//
 //impl<State> Component<Message<State>, ensnano_iced::Theme, crate::Renderer> for CameraShortcutPanel
 //where
 //    State: AppState,
@@ -325,7 +323,7 @@ impl CameraShortcutPanel {
         let content = self::column![
             self::column![
                 section("Camera", ui_size),
-                row![
+                self::column![
                     Space::with_width(ui_size.button_spacing()),
                     // add_target_buttons!
                     self::column![
@@ -353,44 +351,52 @@ impl CameraShortcutPanel {
                         .spacing(ui_size.button_spacing()),
                     ]
                     .align_items(Alignment::Center),
-                    Space::with_width(2.0 * ui_size.button_spacing()),
-                    // add_rotate_buttons!
-                    self::column![
-                        subsection("Rotation", ui_size)
-                            .height(ui_size.button())
-                            .horizontal_alignment(Horizontal::Center),
-                        extra_jump(),
-                        rotate_buttons,
-                    ]
-                    .align_items(Alignment::Center),
-                    Space::with_width(2.0 * ui_size.button_spacing()),
-                    // add_screenshot_button!
-                    self::column![
-                        material_icon(MaterialIcon::PhotoCamera, MaterialIconStyle::Dark, ui_size)
+                    Space::with_height(2.0 * ui_size.button_spacing()),
+                    row![
+                        // add_rotate_buttons!
+                        self::column![
+                            subsection("Rotation", ui_size)
+                                .height(ui_size.button())
+                                .horizontal_alignment(Horizontal::Center),
+                            extra_jump(),
+                            rotate_buttons,
+                        ]
+                        .align_items(Alignment::Center),
+                        Space::with_width(2.0 * ui_size.button_spacing()),
+                        // add_screenshot_button!
+                        self::column![
+                            material_icon(
+                                MaterialIcon::PhotoCamera,
+                                MaterialIconStyle::Dark,
+                                ui_size
+                            )
                             .height(ui_size.button()),
-                        extra_jump(),
-                        self::column![
-                            fixed_text_button("2D", 1.0, ui_size).on_press(Message::ScreenShot2D),
-                            fixed_text_button("3D", 1.0, ui_size).on_press(Message::ScreenShot3D),
+                            extra_jump(),
+                            self::column![
+                                fixed_text_button("2D", 1.0, ui_size)
+                                    .on_press(Message::ScreenShot2D),
+                                fixed_text_button("3D", 1.0, ui_size)
+                                    .on_press(Message::ScreenShot3D),
+                            ]
+                            .spacing(ui_size.button_spacing()),
                         ]
-                        .spacing(ui_size.button_spacing()),
-                    ]
-                    .align_items(Alignment::Center),
-                    Space::with_width(2.0 * ui_size.button_spacing()),
-                    // add_stl_export_button!
-                    // add_nucleotides_positions_export_button!
-                    self::column![
-                        Space::with_height(ui_size.button()),
-                        extra_jump(),
+                        .align_items(Alignment::Center),
+                        Space::with_width(2.0 * ui_size.button_spacing()),
+                        // add_stl_export_button!
+                        // add_nucleotides_positions_export_button!
                         self::column![
-                            fixed_text_button("STL", 2.0, ui_size).on_press(Message::StlExport),
-                            fixed_text_button("Nucl", 2.0, ui_size)
-                                .on_press(Message::SaveNucleotidesPositions),
+                            Space::with_height(ui_size.button()),
+                            extra_jump(),
+                            self::column![
+                                fixed_text_button("STL", 2.0, ui_size).on_press(Message::StlExport),
+                                fixed_text_button("Nucl", 2.0, ui_size)
+                                    .on_press(Message::SaveNucleotidesPositions),
+                            ]
+                            .spacing(ui_size.button_spacing()),
                         ]
-                        .spacing(ui_size.button_spacing()),
-                    ]
-                    .align_items(Alignment::End),
-                    Space::with_width(ui_size.button_spacing()),
+                        .align_items(Alignment::End),
+                        Space::with_width(ui_size.button_spacing()),
+                    ],
                 ]
                 .align_items(Alignment::Center),
             ]
