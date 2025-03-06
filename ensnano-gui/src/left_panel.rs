@@ -221,16 +221,6 @@ pub enum Message<S: AppState> {
     SetKeyboardPriority(bool),
 }
 
-impl<S: AppState> contextual_panel::BuilderMessage for Message<S> {
-    fn value_changed(kind: ValueKind, n: usize, value: String) -> Self {
-        Self::ContextualValueChanged(kind, n, value)
-    }
-
-    fn value_submitted(kind: ValueKind) -> Self {
-        Self::ContextualValueSubmitted(kind)
-    }
-}
-
 impl<R: Requests, S: AppState> LeftPanel<R, S> {
     /// Create a new [LeftPanel].
     pub fn new(
@@ -338,9 +328,7 @@ impl<R: Requests, S: AppState> LeftPanel<R, S> {
     }
 
     pub fn has_keyboard_priority(&self) -> bool {
-        self.sequence_input.has_keyboard_priority()
-            || self.contextual_panel.has_keyboard_priority()
-            || self.organizer.has_keyboard_priority()
+        self.sequence_input.has_keyboard_priority() || self.organizer.has_keyboard_priority()
     }
 }
 
