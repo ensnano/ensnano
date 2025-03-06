@@ -16,18 +16,16 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use super::{AppState, Message};
-use ensnano_iced::{helpers::*, iced_graphics::text::Paragraph};
+use ensnano_iced::helpers::*;
 
 pub struct SequenceInput {
     #[allow(dead_code)]
-    text_input_state: text_input::State<Paragraph>,
     sequence: String,
 }
 
 impl SequenceInput {
     pub fn new() -> Self {
         Self {
-            text_input_state: Default::default(),
             sequence: String::new(),
         }
     }
@@ -39,7 +37,11 @@ impl SequenceInput {
     {
         row![
             Space::with_width(5),
-            text_input("Sequence", &self.sequence).on_input(Message::SequenceChanged,),
+            keyboard_priority(
+                text_input("Sequence", &self.sequence).on_input(Message::SequenceChanged,),
+            )
+            .on_priority(Message::SetKeyboardPriority(true))
+            .on_unpriority(Message::SetKeyboardPriority(false)),
             button(text("Load File")).on_press(Message::SequenceFileRequested),
         ]
         .into()
@@ -47,9 +49,5 @@ impl SequenceInput {
 
     pub fn update_sequence(&mut self, sequence: String) {
         self.sequence = sequence;
-    }
-
-    pub fn has_keyboard_priority(&self) -> bool {
-        self.text_input_state.is_focused()
     }
 }

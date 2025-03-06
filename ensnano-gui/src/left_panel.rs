@@ -328,7 +328,7 @@ impl<R: Requests, S: AppState> LeftPanel<R, S> {
     }
 
     pub fn has_keyboard_priority(&self) -> bool {
-        self.sequence_input.has_keyboard_priority() || self.organizer.has_keyboard_priority()
+        self.organizer.has_keyboard_priority()
     }
 }
 
