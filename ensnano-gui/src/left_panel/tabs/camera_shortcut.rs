@@ -21,7 +21,6 @@ use ensnano_iced::{
     fonts::{MaterialIcon, MaterialIconStyle},
     helpers::*,
     iced::{alignment::Horizontal, Alignment, Length},
-    iced_graphics::text::Paragraph,
     UiSize,
 };
 
@@ -158,11 +157,6 @@ impl CameraWidget {
     }
 }
 
-#[derive(Debug, Clone, Default)]
-struct CameraWidgetState {
-    name_input: text_input::State<Paragraph>,
-}
-
 pub struct CameraShortcutPanel {
     // Camera angles
     xz: isize,
@@ -172,7 +166,6 @@ pub struct CameraShortcutPanel {
     camera_input_name: Option<String>,
     camera_being_edited: Option<CameraId>,
     camera_widgets: Vec<CameraWidget>,
-    camera_widget_states: Vec<CameraWidgetState>,
 }
 
 impl CameraShortcutPanel {
@@ -185,7 +178,6 @@ impl CameraShortcutPanel {
             camera_input_name: None,
             camera_being_edited: None,
             camera_widgets: vec![],
-            camera_widget_states: Default::default(),
         }
     }
 
@@ -208,51 +200,36 @@ impl CameraShortcutPanel {
     pub fn stop_editing(&mut self) -> Option<(CameraId, String)> {
         let name = self.camera_input_name.take();
         let id = self.camera_being_edited.take();
-        for s in self.camera_widget_states.iter_mut() {
-            s.name_input.unfocus();
-        }
         id.zip(name)
     }
 
     pub fn start_editing(&mut self, id: CameraId) {
-        for (c, s) in self
-            .camera_widgets
-            .iter()
-            .zip(self.camera_widget_states.iter_mut())
-        {
-            if c.camera_id == id {
+        for cam in self.camera_widgets.iter() {
+            if cam.camera_id == id {
                 self.camera_being_edited = Some(id);
-                s.name_input.focus();
-                s.name_input.select_all();
             }
         }
-    }
-
-    pub fn has_keyboard_priority(&self) -> bool {
-        self.camera_widget_states
-            .iter()
-            .any(|s| s.name_input.is_focused())
     }
 
     fn set_camera_widget<State: AppState>(&mut self, app: &State) {
         self.camera_widgets = app
             .get_reader()
             .get_all_cameras()
-            .iter()
-            .map(|cam| {
-                let being_edited = self.camera_being_edited == Some(cam.0);
+            .into_iter()
+            .map(|(id, name)| {
+                let being_edited = self.camera_being_edited == Some(id);
                 let name = if being_edited {
                     self.camera_input_name
                         .as_ref()
                         .map(|s| s.as_str())
-                        .unwrap_or(cam.1)
+                        .unwrap_or(name)
                 } else {
-                    cam.1
+                    name
                 };
                 CameraWidget {
                     name: name.to_string(),
                     being_edited,
-                    camera_id: cam.0,
+                    camera_id: id,
                 }
             })
             .collect();
@@ -263,18 +240,6 @@ impl CameraShortcutPanel {
     }
 }
 
-//impl<State> Component<Message<State>, ensnano_iced::Theme, crate::Renderer> for CameraShortcutPanel
-//where
-//    State: AppState,
-//{
-//    type State = (UiSize, State);
-//    type Event = ();
-//
-//    fn update(&mut self, state: &mut Self::State, _: Self::Event) -> Option<Message<State>> {
-//        let (_, app_state) = state;
-//        self.set_camera_widget(app_state);
-//        None
-//    }
 impl CameraShortcutPanel {
     pub fn update<State: AppState>(&mut self, app_state: &mut State) {
         self.set_camera_widget(app_state);
