@@ -1,7 +1,10 @@
 //! Customize the theme of ENSnano
-use iced::theme;
-use iced::widget::{button, container, pick_list};
-use iced::{border::Radius, Background, Border, Color, Shadow, Vector};
+use ensnano_iced::iced::{
+    border::Radius,
+    theme,
+    widget::{button, container, pick_list},
+    Background, Border, Color, Shadow, Vector,
+};
 
 #[derive(Debug, Clone, Copy)]
 struct ColorGradient {
@@ -156,7 +159,7 @@ impl button::StyleSheet for OrganizerThemeLevel {
 
     fn active(&self, _style: &Self::Style) -> button::Appearance {
         button::Appearance {
-            shadow_offset: iced::Vector::new(0., 0.),
+            shadow_offset: Vector::new(0., 0.),
             background: None,
             text_color: self.text_color,
             border: Border {
@@ -207,7 +210,7 @@ impl container::StyleSheet for OrganizerThemeLevel {
 
     fn appearance(&self, _style: &Self::Style) -> container::Appearance {
         container::Appearance {
-            background: Some(iced::Background::Color(
+            background: Some(Background::Color(
                 self.gradient.linear_interpolation(self.gradient_value),
             )),
             ..Default::default()

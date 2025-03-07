@@ -1,12 +1,11 @@
-use iced::advanced;
-use iced::alignment;
-use iced::keyboard::Modifiers;
-use iced::{Element, Length};
-pub use iced_aw::core::icons::{
+use ensnano_iced::iced_aw::core::icons::{
     bootstrap::{icon_to_string, Bootstrap},
     BOOTSTRAP_FONT,
 };
-use iced_widget::*;
+use ensnano_iced::{
+    iced::{advanced, alignment, keyboard::Modifiers, widget::*, Font, Length},
+    Element,
+};
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::convert::TryInto;
 
@@ -272,10 +271,7 @@ impl<E: OrganizerElement> Organizer<E> {
         self.width = width;
     }
 
-    pub fn view<'a>(
-        &'a self,
-        selection: BTreeSet<E::Key>,
-    ) -> Element<'a, OrganizerMessage<E>, iced::Theme, iced::Renderer> {
+    pub fn view<'a>(&'a self, selection: BTreeSet<E::Key>) -> Element<'a, OrganizerMessage<E>> {
         //self.hovered_in = None;
         // TODO: This comment may break some functionality. Not observed so far.
         let mut content = Column::new().spacing(5.0f32); // TODO: Find a way to use `ui_size` here.
@@ -288,14 +284,14 @@ impl<E: OrganizerElement> Organizer<E> {
                     &selection,
                     &self.selected_nodes,
                 ))
-                .width(iced::Length::FillPortion(8)),
+                .width(Length::FillPortion(8)),
             ]);
         }
         for s in self.sections.iter() {
             content = content.push(row![
                 tabulation(),
                 s.view(&self.theme, &selection)
-                    .width(iced::Length::FillPortion(8))
+                    .width(Length::FillPortion(8))
             ])
         }
 
@@ -303,7 +299,7 @@ impl<E: OrganizerElement> Organizer<E> {
             content = content.push(row![
                 tabulation(),
                 s.view(&self.theme, &selection)
-                    .width(iced::Length::FillPortion(8))
+                    .width(Length::FillPortion(8))
             ])
         }
         let mut new_group_button = button(text("New Group"));
@@ -318,7 +314,7 @@ impl<E: OrganizerElement> Organizer<E> {
                     "Create new_group from selection",
                     tooltip::Position::FollowCursor,
                 )
-                .style(style::theme::Container::Box)],
+                .style(ensnano_iced::iced::theme::Container::Box)],
                 scrollable(content).width(self.width)
             ]
             .spacing(5.0f32), // TODO: Find a way to use `ui_size` here.
@@ -937,7 +933,7 @@ impl<E: OrganizerElement> Section<E> {
                     tabulation(),
                     container(e.view(theme, &self.content[e_id], selection, None,))
                         .style(theme.level(1))
-                        .width(iced::Length::FillPortion(8)),
+                        .width(Length::FillPortion(8)),
                 ])
             }
         }
@@ -983,7 +979,7 @@ impl<E: OrganizerElement> ElementView<E> {
     ) -> DragDropTarget<'a, OrganizerMessage<E>, crate::Theme, crate::Renderer, E::Key, E::AutoGroup>
     where
         Theme: 'a,
-        Renderer: iced::advanced::Renderer + 'a,
+        Renderer: advanced::Renderer + 'a,
     {
         let selected = selection.contains(&element.key());
 
@@ -1013,7 +1009,7 @@ impl<E: OrganizerElement> ElementView<E> {
         let mut content = HoverableContainer::new(
             button(content)
                 .on_press(OrganizerMessage::element_selected(element.key().clone()))
-                .width(iced::Length::Fill),
+                .width(Length::Fill),
             //.style(iced_theme::Button::from(theme.selected(selected)))
         );
         if let Some(id) = deletable {
@@ -1065,11 +1061,11 @@ impl<E: OrganizerElement> NodeView<E> {
     fn start_editing(&mut self) {
         log::info!("reached view");
         self.state = GroupState::Editing {
-            input: text_input::State::focused(),
+            // input: text_input::State::focused(),
         };
-        if let GroupState::Editing { input, .. } = &mut self.state {
-            input.select_all()
-        }
+        // if let GroupState::Editing { input, .. } = &mut self.state {
+        //     input.select_all()
+        // }
     }
 
     fn stop_editing(&mut self) {
@@ -1153,7 +1149,7 @@ impl<E: OrganizerElement> NodeView<E> {
         };
         let title_button = button(title_row)
             .on_press(OrganizerMessage::node_selected(id.clone()))
-            .width(iced::Length::Fill);
+            .width(Length::Fill);
         let title_button = HoverableContainer::new(
             title_button,
             //.style(iced_theme::Button::from(button_theme))
@@ -1200,7 +1196,7 @@ enum GroupContent<E: OrganizerElement> {
 pub enum GroupState {
     Idle,
     Editing {
-        input: text_input::State<iced_graphics::text::Paragraph>,
+        // input: text_input::State<iced_graphics::text::Paragraph>,
     },
     NotEditable,
 }
@@ -1212,7 +1208,7 @@ impl<E: OrganizerElement> GroupContent<E> {
         sections: &[Section<E>],
         selection: &BTreeSet<E::Key>,
         selected_nodes: &BTreeSet<NodeId<E::AutoGroup>>,
-    ) -> Element<OrganizerMessage<E>, iced::Theme, iced::Renderer> {
+    ) -> Element<'_, OrganizerMessage<E>> {
         let level; // Need this variable at this level.
         let colummn = match self {
             Self::Node {
@@ -1236,7 +1232,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                         let r = row![
                             tabulation(),
                             container(c.view(theme, sections, selection, selected_nodes))
-                                .width(iced::Length::FillPortion(8))
+                                .width(Length::FillPortion(8))
                         ];
                         col = col.push(r)
                     }
@@ -1781,7 +1777,7 @@ fn icon<'a, Theme, Renderer>(icon: Bootstrap) -> Text<'a, Theme, Renderer>
 where
     Theme: text::StyleSheet,
     Renderer: advanced::text::Renderer,
-    <Renderer as advanced::text::Renderer>::Font: From<iced::Font>,
+    <Renderer as advanced::text::Renderer>::Font: From<Font>,
 {
     Text::new(icon_to_string(icon))
         .font(BOOTSTRAP_FONT)
@@ -1794,7 +1790,7 @@ fn expand_icon<'a, Theme, Renderer>(expanded: bool) -> Text<'a, Theme, Renderer>
 where
     Theme: text::StyleSheet,
     Renderer: advanced::text::Renderer,
-    <Renderer as advanced::text::Renderer>::Font: From<iced::Font>,
+    <Renderer as advanced::text::Renderer>::Font: From<Font>,
 {
     if expanded {
         icon(Bootstrap::CaretDown)
@@ -1807,7 +1803,7 @@ fn plus_icon<'a, Theme, Renderer>() -> Text<'a, Theme, Renderer>
 where
     Theme: text::StyleSheet,
     Renderer: advanced::text::Renderer,
-    <Renderer as advanced::text::Renderer>::Font: From<iced::Font>,
+    <Renderer as advanced::text::Renderer>::Font: From<Font>,
 {
     icon(Bootstrap::Plus)
 }
@@ -1816,7 +1812,7 @@ fn edit_icon<'a, Theme, Renderer>() -> Text<'a, Theme, Renderer>
 where
     Theme: text::StyleSheet,
     Renderer: advanced::text::Renderer,
-    <Renderer as advanced::text::Renderer>::Font: From<iced::Font>,
+    <Renderer as advanced::text::Renderer>::Font: From<Font>,
 {
     icon(Bootstrap::VectorPen)
 }
@@ -1825,7 +1821,7 @@ fn _delete_icon<'a, Theme, Renderer>() -> Text<'a, Theme, Renderer>
 where
     Theme: text::StyleSheet,
     Renderer: advanced::text::Renderer,
-    <Renderer as advanced::text::Renderer>::Font: From<iced::Font>,
+    <Renderer as advanced::text::Renderer>::Font: From<Font>,
 {
     //icon('\u{E806}')
     icon(Bootstrap::TrashFill)

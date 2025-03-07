@@ -1,9 +1,15 @@
 //! Allow your users to drag and drop widgets.
-use iced::advanced::layout::{self, Layout};
-use iced::advanced::renderer;
-use iced::advanced::widget::{self, Widget};
-use iced::advanced::{mouse, Clipboard, Shell};
-use iced::{alignment, event, overlay, Element, Length, Padding, Rectangle, Size, Vector};
+use ensnano_iced::iced::{
+    advanced::{
+        layout::{self, Layout},
+        renderer,
+        widget::{self, Widget},
+        {mouse, Clipboard, Shell},
+    },
+    alignment, event, overlay,
+    widget::container,
+    Element, Length, Padding, Rectangle, Size, Vector,
+};
 
 use super::OrganizerMessage;
 
@@ -70,7 +76,7 @@ where
         renderer: &Renderer,
         limits: &layout::Limits,
     ) -> layout::Node {
-        iced_widget::container::layout(
+        container::layout(
             limits,
             Length::Shrink,
             Length::Shrink,
