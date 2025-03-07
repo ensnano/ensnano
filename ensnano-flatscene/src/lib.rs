@@ -44,10 +44,9 @@ use ensnano_utils::filename;
 use ensnano_utils::wgpu;
 use ensnano_utils::winit;
 use ensnano_utils::PhySize;
-use lyon::geom::euclid::rect;
 use std::cell::RefCell;
 use std::collections::HashMap;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::rc::Rc;
 use std::sync::{Arc, Mutex};
 use wgpu::{Device, Queue};
@@ -495,7 +494,7 @@ impl<S: AppState> FlatScene<S> {
                     helix_id: flat_helix.segment.helix_idx,
                     segment_id: flat_helix.segment.segment_idx,
                 }]),
-            /// OBSOLETE ?
+            // OBSOLETE ?
             Consequence::PngExport(corner1, corner2) => {
                 println!("I'd like to know how you got there !");
                 let glob_png = camera2d::Globals::from_corners(corner1, corner2, png_resolution);
