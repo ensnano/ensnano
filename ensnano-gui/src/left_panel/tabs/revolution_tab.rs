@@ -447,7 +447,7 @@ impl<State: AppState> RevolutionTab<State> {
         })
     }
 
-    /// Return the number of shift per turn if `self.shift_generator` if up-to-date, and `None`
+    /// Return the number of shift per turn if `self.shift_generator` is up-to-date, and `None`
     /// otherwise.
     fn try_get_shift_per_turn(&self, app_state: &State) -> Option<isize> {
         let unrooted_surface = self.get_current_unrooted_surface(app_state)?;
@@ -512,8 +512,20 @@ impl<State: AppState> RevolutionTab<State> {
         false
         // TODO: Fix me
     }
+}
 
-    pub fn update(&mut self, app_state: &State) {
+impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
+    type Message = Message<State>;
+
+    fn label(&self) -> TabLabel {
+        TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::AutoMode)))
+    }
+
+    fn update(&mut self, app_state: &mut State) -> Option<Self::Message> {
+        log::debug!(
+            "revolution tab  update: {:?}",
+            &self.try_get_shift_per_turn(app_state)
+        );
         if let Some(r) = app_state.get_current_revoultion_radius() {
             if !self.modifying_radius() {
                 self.update_builder_parameter(
@@ -530,14 +542,18 @@ impl<State: AppState> RevolutionTab<State> {
             .and_then(|len_scaffold| {
                 app_state.get_recommended_scaling_revolution_surface(len_scaffold)
             });
-    }
-}
 
-impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
-    type Message = Message<State>;
-
-    fn label(&self) -> TabLabel {
-        TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::AutoMode)))
+        if self.try_get_shift_per_turn(app_state).is_none() {
+            let unrooted_surface = self.get_current_unrooted_surface(app_state)?;
+            let nb_spiral = self
+                .nb_sprial_state_input
+                .get_value()
+                .and_then(InstanciatedParameter::get_uint)?;
+            let half_nb_helix = self.scaling.as_ref()?.nb_helix / 2;
+            self.shift_generator =
+                unrooted_surface.shifts_to_get_n_spirals(half_nb_helix, nb_spiral);
+        };
+        None
     }
 
     fn content(

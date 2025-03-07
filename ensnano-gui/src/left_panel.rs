@@ -753,7 +753,7 @@ where
                     self.contextual_panel.state_updated();
                 }
                 self.application_state = state;
-                self.revolution_tab.update(&self.application_state);
+                self.revolution_tab.update(&mut self.application_state);
             }
             Message::FinishChangingColor => {
                 self.edition_tab.add_color();

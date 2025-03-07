@@ -570,7 +570,6 @@ impl<R: Requests, S: AppState> GuiComponent<R, S> {
                 style,
                 &mut self.debug,
             );
-            log::debug!("GUI request redraw");
             true
         } else {
             false
