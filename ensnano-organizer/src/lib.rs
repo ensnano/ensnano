@@ -596,10 +596,6 @@ impl<E: OrganizerElement> Organizer<E> {
         }
     }
 
-    pub fn has_keyboard_priority(&self) -> bool {
-        self.editing.is_some()
-    }
-
     fn stop_editing(&mut self) {
         let node_id = self
             .editing

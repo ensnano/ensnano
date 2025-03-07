@@ -331,10 +331,6 @@ impl<R: Requests, S: AppState> LeftPanel<R, S> {
         }
         None
     }
-
-    pub fn has_keyboard_priority(&self) -> bool {
-        self.organizer.has_keyboard_priority()
-    }
 }
 
 impl<R, S> Program for LeftPanel<R, S>
