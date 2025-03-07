@@ -3,7 +3,8 @@ use ensnano_iced::iced_aw::core::icons::{
     BOOTSTRAP_FONT,
 };
 use ensnano_iced::{
-    iced::{advanced, alignment, keyboard::Modifiers, widget::*, Font, Length},
+    helpers::*,
+    iced::{advanced, alignment, keyboard::Modifiers, Font, Length},
     Element,
 };
 use std::collections::{BTreeMap, BTreeSet, HashMap};
@@ -48,6 +49,7 @@ pub enum OrganizerMessage<E: OrganizerElement> {
         elements_selected: Vec<E::Key>,
         new_tree: OrganizerTree<E::Key>,
     },
+    SetKeyboardPriority(bool),
 }
 
 #[derive(Clone, Debug)]
@@ -1060,12 +1062,7 @@ impl<E: OrganizerElement> NodeView<E> {
 
     fn start_editing(&mut self) {
         log::info!("reached view");
-        self.state = GroupState::Editing {
-            // input: text_input::State::focused(),
-        };
-        // if let GroupState::Editing { input, .. } = &mut self.state {
-        //     input.select_all()
-        // }
+        self.state = GroupState::Editing;
     }
 
     fn stop_editing(&mut self) {
@@ -1088,7 +1085,11 @@ impl<E: OrganizerElement> NodeView<E> {
                         .on_press(OrganizerMessage::<E>::expand(id.clone(), !expanded)),
                     Space::with_width(5.0),
                     text(name),
-                    //text_input("", name), // TODO: IDEA: Custom style to show editable.
+                    // keyboard_priority(
+                    //     text_input("", name), // TODO: IDEA: Custom style to show editable.
+                    // )
+                    // .on_priority(OrganizerMessage::SetKeyboardPriority(true))
+                    // .on_unpriority(OrganizerMessage::SetKeyboardPriority(false)),
                     horizontal_space(),
                     button(plus_icon())
                         .on_press(OrganizerMessage::add_selection_to_group(id.clone())), // TODO: change icon later !!!
@@ -1114,9 +1115,13 @@ impl<E: OrganizerElement> NodeView<E> {
                     button(expand_icon(expanded))
                         .on_press(OrganizerMessage::expand(id.clone(), !expanded)),
                     Space::with_width(5.0),
-                    text_input("New group name...", &name)
-                        .on_input(|s| { OrganizerMessage::name_input(s) })
-                        .on_submit(OrganizerMessage::stop_edit()),
+                    keyboard_priority(
+                        text_input("New group name...", &name)
+                            .on_input(|s| { OrganizerMessage::name_input(s) })
+                            .on_submit(OrganizerMessage::stop_edit())
+                    )
+                    .on_priority(OrganizerMessage::SetKeyboardPriority(true))
+                    .on_unpriority(OrganizerMessage::SetKeyboardPriority(false)),
                     horizontal_space(),
                     button(plus_icon())
                         .on_press(OrganizerMessage::add_selection_to_group(id.clone())), // TODO: change icon later !!!
@@ -1195,9 +1200,7 @@ enum GroupContent<E: OrganizerElement> {
 
 pub enum GroupState {
     Idle,
-    Editing {
-        // input: text_input::State<iced_graphics::text::Paragraph>,
-    },
+    Editing,
     NotEditable,
 }
 

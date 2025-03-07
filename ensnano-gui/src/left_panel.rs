@@ -322,6 +322,11 @@ impl<R: Requests, S: AppState> LeftPanel<R, S> {
                     true,
                 );
             }
+            OrganizerMessage::SetKeyboardPriority(priority) => self
+                .requests
+                .lock()
+                .unwrap()
+                .set_keyboard_priority(priority),
             _ => (),
         }
         None
