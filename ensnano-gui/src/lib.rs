@@ -403,7 +403,7 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
         match self {
             Self::TopBar(_) => false,
             Self::LeftPanel(_left_panel) => false,
-            Self::StatusBar(status_bar) => status_bar.program().has_keyboard_priority(),
+            Self::StatusBar(status_bar) => false,
         }
     }
 }
