@@ -398,14 +398,6 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
             }
         }
     }
-
-    fn has_keyboard_priority(&self) -> bool {
-        match self {
-            Self::TopBar(_) => false,
-            Self::LeftPanel(_left_panel) => false,
-            Self::StatusBar(status_bar) => false,
-        }
-    }
 }
 
 /// A Gui component.
@@ -528,10 +520,6 @@ impl<R: Requests, S: AppState> GuiComponent<R, S> {
 
     fn get_state(&mut self) -> &mut GuiState<R, S> {
         &mut self.state
-    }
-
-    fn has_keyboard_priority(&self) -> bool {
-        self.state.has_keyboard_priority()
     }
 
     fn resize(&mut self, window: &Window, multiplexer: &dyn Multiplexer) {
@@ -765,10 +753,6 @@ impl<R: Requests, State: AppState> Gui<R, State> {
         for e in self.components.values_mut() {
             e.forward_event(event.clone())
         }
-    }
-
-    pub fn has_keyboard_priority(&self) -> bool {
-        self.components.values().any(|e| e.has_keyboard_priority())
     }
 
     /// Forward a message to the appropriate gui component
