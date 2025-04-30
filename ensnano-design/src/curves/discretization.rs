@@ -32,6 +32,8 @@ const NB_DISCRETISATION_STEP: usize = 100_000;
 /// The number of points used in the quick iterative version of the discretization algorithm.
 const NB_FAST_DISCRETIZATION_STEP: usize = 1_000;
 
+const PRINTOUT_NUCL_3D_POSITIONS: bool = true;
+
 impl Curve {
     /// Pre-compute the frames arround which the nucleotides will be positioned.
     ///
@@ -218,7 +220,14 @@ impl Curve {
         for _ in torsion.len()..points_forward.len() {
             torsion.push(last_torsion);
         }
-        println!("Torsion: {} {}", torsion.len(), last_torsion);
+        // println!("Torsion: {} {}", torsion.len(), last_torsion);
+        // println!("Axis: {} {}", points_forward.len(), points_forward[0].x);
+
+        if PRINTOUT_NUCL_3D_POSITIONS {
+            println!("points_forward.append([\n\t{}\n])\n",points_forward.iter().fold( "".to_string(), |a,p| if a.len() > 0 { format!("{}, ({}, {}, {})", a, p.x, p.y, p.z)} else { format!("({}, {}, {})", p.x, p.y, p.z) }));
+            println!("points_backward.append([\n\t{}\n])\n", points_backward.iter().fold( "".to_string(), |a,p|  if a.len() > 0 { format!("{}, ({}, {}, {})", a, p.x, p.y, p.z)} else { format!("({}, {}, {})", p.x, p.y, p.z) })
+            );
+        }
 
         // Final output
         self.axis_backward = axis_backward;

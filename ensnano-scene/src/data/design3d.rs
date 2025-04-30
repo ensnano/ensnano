@@ -232,9 +232,10 @@ impl<R: DesignReader> Design3D<R> {
     pub fn get_scalebar_plain_rectangles_raw(&self) -> Vec<RawDnaInstance> {
         let n = 1000;
         if let Some((r_min, r_max, gradient)) = self.design_reader.get_scalebar() {
+            let (v_min, v_max) = if r_min < r_max { (r_min,r_max) } else { (r_max, r_min) }; 
             let vec = (0..n)
                 .map(|i| -> RawDnaInstance {
-                    let r = r_min + i as f32 * (r_max - r_min) / n as f32;
+                    let r = v_min + i as f32 * (v_max - v_min) / n as f32;
                     PlainRectangleInstance {
                         position: Vec3::new(0.85, -0.5 + i as f32 / n as f32, 0.),
                         color: Instance::unclear_color_from_u32(gradient(r, r_min, r_max)),

@@ -20,6 +20,7 @@ use super::*;
 use crate::scene::GridInstance;
 use ahash::RandomState;
 use cadnano_format::color;
+use chrono::format;
 use ensnano_design::drawing_style::{ColorType, DrawingAttribute, DrawingStyle};
 use ensnano_design::elements::{DesignElement, DesignElementKey};
 use ensnano_design::grid::{GridId, GridObject, GridPosition, HelixGridPosition};
@@ -54,6 +55,8 @@ use ensnano_design::isometry3_descriptor::{
 };
 use ensnano_utils::colors;
 use ensnano_utils::instance::Instance;
+
+const PRINTOUT_NUCL_POSITIONS: bool = true;
 
 #[derive(Default, Clone)]
 pub struct NuclCollection {
@@ -1179,8 +1182,11 @@ impl DesignContent {
                         object_type.insert(bond_id, ObjectType::HelixCylinder(*n_i_id, *n_j_id));
                     } else {
                         let (r_min, r_max) = helix_style.curvature.unwrap_or_else(|| helix_style.torsion.unwrap() );
-                        scalebar =
-                            Some((r_min, r_max, colors::purple_to_blue_gradient_color_in_range));
+                        scalebar = if helix_style.torsion.is_none() {
+                            Some((r_min, r_max, colors::purple_to_blue_gradient_color_in_range))
+                        } else {
+                            Some((r_max, r_min, colors::purple_to_blue_gradient_color_in_range))
+                        };
 
                         let colors = (i..=j)
                             .map(|n| {
@@ -1199,9 +1205,9 @@ impl DesignContent {
                                 } else {
                                     if let Some(torsion) = helix.torsion_at_pos(n) {
                                         colors::purple_to_blue_gradient_color_in_range(
-                                            -torsion as f32,
-                                            -r_max,
-                                            -r_min,
+                                            torsion as f32,
+                                            r_max,
+                                            r_min,
                                         )
                                     } else {
                                         color
@@ -1321,6 +1327,19 @@ impl DesignContent {
                     helix_map.insert(clone_bond_id, *helix_id);
                 }
             }
+        }
+
+        if PRINTOUT_NUCL_POSITIONS && nucleotide.len() > 0 {
+            let mut s1 = "{\n\t".to_string();
+            let mut s2 = "{\n\t".to_string();
+            for (i,n) in nucleotide.iter() {
+                let p = axis_space_position.get(i).unwrap();
+                s1.push_str(format!("({},{},{}):({},{},{}),", n.helix, n.position, if n.forward { 1 } else { 0 }, p[0], p[1], p[2]).as_str());
+                let p = space_position.get(i).unwrap();
+                s2.push_str(format!("({},{},{}):({},{},{}),", n.helix, n.position, if n.forward { 1 } else { 0 }, p[0], p[1], p[2]).as_str());
+            }
+            println!("axis_points = {s1}\n{}", "}");
+            println!("points = {s2}\n{}", "}");
         }
 
         // Output

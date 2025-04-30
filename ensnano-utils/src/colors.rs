@@ -102,5 +102,9 @@ pub fn purple_to_blue_gradient_color(t: f32) -> u32 {
 
 #[inline(always)]
 pub fn purple_to_blue_gradient_color_in_range(t: f32, t_min: f32, t_max: f32) -> u32 {
-    purple_to_blue_gradient_color((t - t_min) / (t_max - t_min))
+    if t_min < t_max {
+        purple_to_blue_gradient_color((t - t_min) / (t_max - t_min))
+    } else {
+        purple_to_blue_gradient_color((t_min - t) / (t_min - t_max))        
+    }
 }
