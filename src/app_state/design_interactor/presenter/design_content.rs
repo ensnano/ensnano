@@ -56,7 +56,7 @@ use ensnano_design::isometry3_descriptor::{
 use ensnano_utils::colors;
 use ensnano_utils::instance::Instance;
 
-const PRINTOUT_NUCL_POSITIONS: bool = true;
+const PRINTOUT_NUCL_POSITIONS: bool = false; // true;
 
 #[derive(Default, Clone)]
 pub struct NuclCollection {
