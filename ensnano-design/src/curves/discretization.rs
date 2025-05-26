@@ -213,7 +213,11 @@ impl Curve {
         log::debug!("t_nucl {:.4?}", t_nucl);
 
         // Computing the discrete torsion
-        for (p0, (p1, (p2, p3))) in points_forward.iter().zip(points_forward[1..].iter().zip(points_forward[2..].iter().zip(points_forward[3..].iter()))) {
+        for (p0, (p1, (p2, p3))) in points_forward.iter().zip(
+            points_forward[1..]
+                .iter()
+                .zip(points_forward[2..].iter().zip(points_forward[3..].iter())),
+        ) {
             torsion.push(Self::discrete_torsion([p0, p1, p2, p3]).abs());
         }
         let last_torsion = torsion.last().unwrap_or(&0.).clone();
@@ -224,8 +228,25 @@ impl Curve {
         // println!("Axis: {} {}", points_forward.len(), points_forward[0].x);
 
         if PRINTOUT_NUCL_3D_POSITIONS {
-            println!("points_forward.append([\n\t{}\n])\n",points_forward.iter().fold( "".to_string(), |a,p| if a.len() > 0 { format!("{}, ({}, {}, {})", a, p.x, p.y, p.z)} else { format!("({}, {}, {})", p.x, p.y, p.z) }));
-            println!("points_backward.append([\n\t{}\n])\n", points_backward.iter().fold( "".to_string(), |a,p|  if a.len() > 0 { format!("{}, ({}, {}, {})", a, p.x, p.y, p.z)} else { format!("({}, {}, {})", p.x, p.y, p.z) })
+            println!(
+                "points_forward.append([\n\t{}\n])\n",
+                points_forward
+                    .iter()
+                    .fold("".to_string(), |a, p| if a.len() > 0 {
+                        format!("{}, ({}, {}, {})", a, p.x, p.y, p.z)
+                    } else {
+                        format!("({}, {}, {})", p.x, p.y, p.z)
+                    })
+            );
+            println!(
+                "points_backward.append([\n\t{}\n])\n",
+                points_backward
+                    .iter()
+                    .fold("".to_string(), |a, p| if a.len() > 0 {
+                        format!("{}, ({}, {}, {})", a, p.x, p.y, p.z)
+                    } else {
+                        format!("({}, {}, {})", p.x, p.y, p.z)
+                    })
             );
         }
 
@@ -276,16 +297,16 @@ impl Curve {
     }
 
     /// Compute the discrete torsion given 4 points
-    fn discrete_torsion(points: [&DVec3;4]) -> f64 {
-    	let p0 = points[0].clone();
-    	let p1 = points[1].clone();
-    	let p2 = points[2].clone();
-    	let p3 = points[3].clone();
-    	let dp = (p2 - p1);
-	    let d2p = (p2 + p0 - 2. * p1);
-	    let d3p = (p3 - p0 + 3. * (p1 - p2));
-	    let c = dp.cross(d2p);
-    	return d3p.dot(c) / c.mag_sq();
+    fn discrete_torsion(points: [&DVec3; 4]) -> f64 {
+        let p0 = points[0].clone();
+        let p1 = points[1].clone();
+        let p2 = points[2].clone();
+        let p3 = points[3].clone();
+        let dp = (p2 - p1);
+        let d2p = (p2 + p0 - 2. * p1);
+        let d3p = (p3 - p0 + 3. * (p1 - p2));
+        let c = dp.cross(d2p);
+        return d3p.dot(c) / c.mag_sq();
     }
 
     /// If `self.geometry` sepcifies that a certain number of nucleotide must fit on a given

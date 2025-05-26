@@ -66,7 +66,11 @@ impl SphereConcentricCircleDescriptor {
             t_max: 1.,
             is_closed: self.is_closed,
             target_nb_nt: self.target_nb_nt,
-            abscissa_converter_factor: Some(self.abscissa_converter_factor.unwrap_or(1.) * HelixParameters::GEARY_2014_DNA.rise as f64 / helix_parameters.rise as f64),
+            abscissa_converter_factor: Some(
+                self.abscissa_converter_factor.unwrap_or(1.)
+                    * HelixParameters::GEARY_2014_DNA.rise as f64
+                    / helix_parameters.rise as f64,
+            ),
         }
     }
 }
@@ -171,7 +175,7 @@ impl Curved for SphereConcentricCircle {
     fn full_turn_at_t(&self) -> Option<f64> {
         match self.is_closed {
             Some(false) => None,
-            _ => Some(self.t_max())
+            _ => Some(self.t_max()),
         }
     }
 
@@ -192,7 +196,6 @@ impl Curved for SphereConcentricCircle {
             self.abscissa_converter_factor.unwrap_or(1.),
         ));
     }
-
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -219,7 +222,9 @@ impl SphereTennisBallSeamDescriptor {
         SphereTennisBallSeam {
             _parameters: helix_parameters,
             theta_0,
-            t1, t2, t3,
+            t1,
+            t2,
+            t3,
             perimeter,
             phi,
             z_radius,
@@ -228,7 +233,6 @@ impl SphereTennisBallSeamDescriptor {
         }
     }
 }
-
 
 pub(super) struct SphereTennisBallSeam {
     pub _parameters: HelixParameters,
@@ -257,12 +261,12 @@ impl Curved for SphereTennisBallSeam {
     fn position(&self, t: f64) -> DVec3 {
         let t = t.rem_euclid(self.perimeter);
         if t < self.t1 {
-            let t = t / self.z_radius; 
+            let t = t / self.z_radius;
             return DVec3 {
                 x: self.z_radius * t.cos(),
                 y: self.z_radius * t.sin(),
                 z: self.z,
-            }
+            };
         }
         if t < self.t2 {
             let t = (t - self.t1) / self.z;
@@ -270,33 +274,33 @@ impl Curved for SphereTennisBallSeam {
                 x: -self.z_radius,
                 y: -self.z * t.sin(),
                 z: self.z * t.cos(),
-            }
+            };
         }
         if t < self.t3 {
-            let t = (t - self.t2) / self.z_radius; 
+            let t = (t - self.t2) / self.z_radius;
             return DVec3 {
                 x: -self.z_radius * t.cos(),
                 y: self.z_radius * t.sin(),
                 z: -self.z,
-            }
+            };
         }
         let t = (t - self.t3) / self.z;
         return DVec3 {
             x: self.z_radius,
             y: -self.z * t.sin(),
             z: -self.z * t.cos(),
-        }
+        };
     }
 
     fn speed(&self, t: f64) -> DVec3 {
         let t = t.rem_euclid(self.perimeter);
         if t < self.t1 {
-            let t = t / self.z_radius; 
+            let t = t / self.z_radius;
             return DVec3 {
                 x: -self.z_radius * t.sin(),
                 y: self.z_radius * t.cos(),
                 z: 0.,
-            }
+            };
         }
         if t < self.t2 {
             let t = (t - self.t1) / self.z;
@@ -304,33 +308,33 @@ impl Curved for SphereTennisBallSeam {
                 x: 0.,
                 y: -self.z * t.cos(),
                 z: -self.z * t.sin(),
-            }
+            };
         }
         if t < self.t3 {
-            let t = (t - self.t2) / self.z_radius; 
+            let t = (t - self.t2) / self.z_radius;
             return DVec3 {
                 x: self.z_radius * t.sin(),
                 y: self.z_radius * t.cos(),
                 z: 0.,
-            }
+            };
         }
         let t = (t - self.t3) / self.z;
         return DVec3 {
             x: 0.,
             y: -self.z * t.cos(),
             z: self.z * t.sin(),
-        }
+        };
     }
 
     fn acceleration(&self, t: f64) -> DVec3 {
         let t = t.rem_euclid(self.perimeter);
         if t < self.t1 {
-            let t = t / self.z_radius; 
+            let t = t / self.z_radius;
             return DVec3 {
                 x: -self.z_radius * t.cos(),
                 y: -self.z_radius * t.sin(),
                 z: 0.,
-            }
+            };
         }
         if t < self.t2 {
             let t = (t - self.t1) / self.z;
@@ -338,22 +342,22 @@ impl Curved for SphereTennisBallSeam {
                 x: 0.,
                 y: self.z * t.sin(),
                 z: -self.z * t.cos(),
-            }
+            };
         }
         if t < self.t3 {
-            let t = (t - self.t2) / self.z_radius; 
+            let t = (t - self.t2) / self.z_radius;
             return DVec3 {
                 x: self.z_radius * t.cos(),
                 y: -self.z_radius * t.sin(),
                 z: 0.,
-            }
+            };
         }
         let t = (t - self.t3) / self.z;
         return DVec3 {
             x: 0.,
             y: self.z * t.sin(),
             z: self.z * t.cos(),
-        }
+        };
     }
 
     fn curvilinear_abscissa(&self, _t: f64) -> Option<f64> {

@@ -50,7 +50,11 @@ impl TorusConcentricCircleDescriptor {
         let circle_radius = self.radius - section_radius * φ.cos();
         let z = section_radius * φ.sin();
         let perimeter = TAU * circle_radius;
-        let abscissa_converter_factor = Some(circle_radius / (self.radius + section_radius) * HelixParameters::GEARY_2014_DNA.rise as f64 / helix_parameters.rise as f64); // better <= 1
+        let abscissa_converter_factor = Some(
+            circle_radius / (self.radius + section_radius)
+                * HelixParameters::GEARY_2014_DNA.rise as f64
+                / helix_parameters.rise as f64,
+        ); // better <= 1
 
         let mut circle_helix_parameters = helix_parameters.clone();
         circle_helix_parameters.inter_helix_gap = inter_helix_center_gap as f32;
@@ -76,9 +80,9 @@ pub struct EllipticTorusConcentricCircleDescriptor {
     pub section_angle: Option<f64>, // unused for now
     pub helix_theta: f64,
     #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub number_of_helices: Option<u32>, 
+    pub number_of_helices: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub helix_index: Option<i32>,       
+    pub helix_index: Option<i32>,
 }
 
 impl EllipticTorusConcentricCircleDescriptor {
@@ -86,7 +90,11 @@ impl EllipticTorusConcentricCircleDescriptor {
         let circle_radius = self.radius - self.horizontal_axis * self.helix_theta.cos();
         let z = self.vertical_axis * self.helix_theta.sin();
         let perimeter = TAU * circle_radius;
-        let abscissa_converter_factor = Some(circle_radius / (self.radius + self.horizontal_axis) * HelixParameters::GEARY_2014_DNA.rise as f64 / helix_parameters.rise as f64); // better <= 1
+        let abscissa_converter_factor = Some(
+            circle_radius / (self.radius + self.horizontal_axis)
+                * HelixParameters::GEARY_2014_DNA.rise as f64
+                / helix_parameters.rise as f64,
+        ); // better <= 1
 
         let mut circle_helix_parameters = helix_parameters.clone();
 

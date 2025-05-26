@@ -60,8 +60,7 @@ pub use bezier::{
 pub use circle_curve::CircleCurve;
 pub use revolution::{InterpolatedCurveDescriptor, InterpolationDescriptor};
 pub use sphere_concentric_circle::{
-    SphereConcentricCircleDescriptor,
-    SphereTennisBallSeamDescriptor,
+    SphereConcentricCircleDescriptor, SphereTennisBallSeamDescriptor,
 };
 pub use sphere_like_spiral::{SphereLikeSpiralDescriptor, SphereOrientation};
 pub use spiral_cylinder::SpiralCylinderDescriptor;
@@ -72,7 +71,9 @@ pub(crate) use time_nucl_map::{PathTimeMaps, RevolutionCurveTimeMaps};
 use torus::TwistedTorus;
 pub use torus::{CurveDescriptor2D, TwistedTorusDescriptor};
 pub use torus::{PointOnSurface, Torus};
-pub use torus_concentric_circle::{TorusConcentricCircleDescriptor, EllipticTorusConcentricCircleDescriptor};
+pub use torus_concentric_circle::{
+    EllipticTorusConcentricCircleDescriptor, TorusConcentricCircleDescriptor,
+};
 pub use tube_spiral::TubeSpiralDescriptor;
 pub use twist::{nb_turn_per_100_nt_to_omega, twist_to_omega, Twist};
 
