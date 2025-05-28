@@ -17,10 +17,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use super::{AppState, Requests};
 use ensnano_iced::{
+    helpers::*,
     iced::{Alignment, Color, Element, Length},
     iced_graphics::text::Paragraph,
     iced_runtime::{Command, Program},
-    iced_widget::*,
     iced_winit::winit::dpi::LogicalSize,
     UiSize,
 };
@@ -148,22 +148,18 @@ impl<R: Requests, State: AppState> StatusBar<R, State> {
         row.into()
     }*/
 
-    pub fn has_keyboard_priority(&self) -> bool {
-        self.operation
-            .as_ref()
-            .map(|op| op.has_keyboard_priority())
-            .unwrap_or(false)
-    }
+    // NOTE: process_tag seems useless without keyboard priority. Reactivate it if something
+    //       broken.
 
-    pub fn process_tab(&mut self) {
-        let op = self.operation.as_mut().and_then(|op| op.process_tab());
-        if !self.has_keyboard_priority() {
-            log::info!("Updating operation");
-            if let Some(op) = op {
-                self.requests.lock().unwrap().update_current_operation(op)
-            }
-        }
-    }
+    // pub fn process_tab(&mut self) {
+    //     let op = self.operation.as_mut().and_then(|op| op.process_tab());
+    //     // if !self.has_keyboard_priority() {
+    //     //     log::info!("Updating operation");
+    //     //     if let Some(op) = op {
+    //     //         self.requests.lock().unwrap().update_current_operation(op)
+    //     //     }
+    //     // }
+    // }
 }
 
 // List of Messages that can be send by the status bar.
@@ -179,6 +175,7 @@ pub enum Message<S: AppState> {
     TabPressed,
     Message(Option<String>),
     Resize(LogicalSize<f64>),
+    SetKeyboardPriority(bool),
 }
 
 impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
@@ -224,9 +221,15 @@ impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
             }
             Message::NewApplicationState(state) => self.app_state = state,
             Message::UiSizeChanged(ui_size) => self.set_ui_size(ui_size),
-            Message::TabPressed => self.process_tab(),
+            //Message::TabPressed => self.process_tab(),
+            Message::TabPressed => (),
             Message::Message(message) => self.message = message,
             Message::Resize(size) => self.logical_size = size,
+            Message::SetKeyboardPriority(priority) => self
+                .requests
+                .lock()
+                .unwrap()
+                .set_keyboard_priority(priority),
         }
         Command::none()
     }
@@ -319,27 +322,27 @@ impl OperationInput {
         }
     }
 
-    #[must_use = "Do not forget to apply the oppertaion"]
-    pub fn process_tab(&mut self) -> Option<Arc<dyn Operation>> {
-        let mut was_focus = false;
-        let mut old_foccussed_idx: Option<usize> = None;
-        for (i, p) in self.parameters.iter_mut().enumerate() {
-            if was_focus {
-                was_focus ^= p.focus()
-            } else {
-                if p.has_keyboard_priority() {
-                    p.unfocus();
-                    old_foccussed_idx = Some(i);
-                    was_focus = true;
-                }
-            }
-        }
-
-        old_foccussed_idx.and_then(|i| {
-            self.inputed_values.insert(i, self.values_str[i].clone());
-            self.update_value(i, self.values_str[i].clone())
-        })
-    }
+    // #[must_use = "Do not forget to apply the operation"]
+    // pub fn process_tab(&mut self) -> Option<Arc<dyn Operation>> {
+    //     let mut was_focus = false;
+    //     let mut old_foccussed_idx: Option<usize> = None;
+    //     for (i, p) in self.parameters.iter_mut().enumerate() {
+    //         if was_focus {
+    //             was_focus ^= p.focus()
+    //         } else {
+    //             // if p.has_keyboard_priority() {
+    //             //     p.unfocus();
+    //             //     old_foccussed_idx = Some(i);
+    //             //     was_focus = true;
+    //             // }
+    //         }
+    //     }
+    //
+    //     old_foccussed_idx.and_then(|i| {
+    //         self.inputed_values.insert(i, self.values_str[i].clone());
+    //         self.update_value(i, self.values_str[i].clone())
+    //     })
+    // }
 
     pub fn update(&mut self, operation_state: CurentOpState) {
         let op_is_new = self.op_id != operation_state.operation_id;
@@ -379,7 +382,7 @@ impl OperationInput {
     ) -> Row<Message<S>, ensnano_iced::Theme, ensnano_iced::Renderer> {
         let mut row = Row::new();
         let op = self.operation.as_ref();
-        row = row.push(Text::new(op.description()).size(ui_size.main_text()));
+        row = row.push(text(op.description()).size(ui_size.main_text()));
         let values = &self.values;
         let str_values = &self.values_str;
         let active_input = (0..values.len())
@@ -390,7 +393,7 @@ impl OperationInput {
             if let Some(param) = op.parameters().get(i) {
                 match param.field {
                     ParameterField::Value => {
-                        let mut input = TextInput::new("", &format!("{0:.4}", str_values[i]))
+                        let mut input = text_input("", &format!("{0:.4}", str_values[i]))
                             .on_input(move |s| Message::ValueStrChanged(i, s))
                             .size(ui_size.main_text())
                             .width(40)
@@ -409,8 +412,12 @@ impl OperationInput {
                         }
                         row = row
                             .spacing(20)
-                            .push(Text::new(param.name.clone()).size(ui_size.main_text()))
-                            .push(input)
+                            .push(text(param.name.clone()).size(ui_size.main_text()))
+                            .push(
+                                keyboard_priority(input)
+                                    .on_priority(Message::SetKeyboardPriority(true))
+                                    .on_unpriority(Message::SetKeyboardPriority(false)),
+                            )
                     }
                     ParameterField::Choice(ref v) => {
                         row = row.spacing(20).push(
@@ -455,10 +462,6 @@ impl OperationInput {
         } else {
             None
         }
-    }
-
-    fn has_keyboard_priority(&self) -> bool {
-        self.parameters.iter().any(|p| p.has_keyboard_priority())
     }
 }
 

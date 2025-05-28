@@ -10,11 +10,15 @@
 //!
 //!    https://docs.rs/iced_widget/0.12.1/src/iced_widget/container.rs.html
 
-use iced::advanced::layout::{self, Layout};
-use iced::advanced::renderer;
-use iced::advanced::widget::{self, Widget};
-use iced::advanced::{mouse, Clipboard, Shell};
-use iced::{event, overlay, Element, Length, Padding, Point, Rectangle, Size, Vector};
+use ensnano_iced::iced::{
+    advanced::{
+        layout::{self, Layout},
+        mouse, renderer,
+        widget::{self, Widget},
+        Clipboard, Shell,
+    },
+    event, overlay, Element, Length, Padding, Point, Rectangle, Size, Vector,
+};
 
 /// A widget that emits a message when hovered.
 pub struct HoverableContainer<'a, Message, Theme = crate::Theme, Renderer = crate::Renderer> {

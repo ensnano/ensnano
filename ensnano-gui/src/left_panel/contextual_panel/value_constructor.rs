@@ -16,18 +16,12 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use super::{Selection, UiSize};
+use super::{Message, Selection, UiSize};
 
 use ensnano_iced::{
     helpers::*,
     iced::{Alignment, Length},
-    iced_graphics::text::Paragraph,
 };
-
-pub trait BuilderMessage: Clone + 'static {
-    fn value_changed(kind: ValueKind, n: usize, value: String) -> Self;
-    fn value_submitted(kind: ValueKind) -> Self;
-}
 
 use crate::ultraviolet::{Bivec3, Mat3, Rotor3, Vec2, Vec3};
 
@@ -39,7 +33,6 @@ macro_rules! type_builder {
                     #[allow(dead_code)]
                     $param: $param_type,
                     [<$param _string>]: String,
-                    [<$param _input>]: text_input::State<Paragraph>,
                 )*
                     value_to_modify: ValueKind,
             }
@@ -53,7 +46,6 @@ macro_rules! type_builder {
                         $(
                             $param: initial.$param,
                             [<$param _string>]: $formatter::fmt(&initial.$param),
-                            [<$param _input>]: Default::default(),
                         )*
                     }
 
@@ -65,31 +57,22 @@ macro_rules! type_builder {
                     }
                 }
 
-                fn view<'a ,Message: BuilderMessage>(&self) -> ensnano_iced::Element<Message, Theme, Renderer> {
+                fn view<'a, State: AppState>(&self) -> ensnano_iced::Element<Message<State>, Theme, Renderer> {
                     let str_values = [$(& self.[<$param _string>],)*];
-                    //let states = vec![$(&mut self.[<$param _input>],)*];
                     let mut ret = Column::new().width(Length::Fill).align_items(Alignment::End);
                     let value_to_modify = self.value_to_modify;
-                    //for (i, s) in states.into_iter().enumerate() {
-                    //    let mut row = Row::new().width(iced::Length::Fill);
-                    //    row = row.push(Text::new(Self::PARAMETER_NAMES[i]));
-                    //    row = row.push(iced::widget::Space::with_width(iced::Length::Units(5)));
-                    //    row = row.push(
-                    //        TextInput::new(s, "", str_values[i], move |string| Message::value_changed(value_to_modify, i, string))
-                    //        .on_submit(Message::value_submitted(value_to_modify))
-                    //        .width(iced::Length::Units(50))
-                    //    );
-                    //    ret = ret.push(row)
-                    //}
                     for i in 0..Self::PARAMETER_NAMES.len() {
                         ret = ret.push(row![
                             text(Self::PARAMETER_NAMES[i]),
                             Space::with_width(5),
-                            text_input("", str_values[i])
-                                .on_input(move |string| Message::value_changed(value_to_modify, i, string))
-                                .on_submit(Message::value_submitted(value_to_modify))
-                                .width(50)
-                            ,
+                            keyboard_priority(
+                                text_input("", str_values[i])
+                                    .on_input(move |string| Message::ContextualValueChanged(value_to_modify, i, string))
+                                    .on_submit(Message::ContextualValueSubmitted(value_to_modify))
+                                    .width(50)
+                            )
+                            .on_priority(Message::SetKeyboardPriority(true))
+                            .on_unpriority(Message::SetKeyboardPriority(false)),
                         ].width(Length::Fill))
                     }
                     ret.into()
@@ -106,11 +89,6 @@ macro_rules! type_builder {
                     };
 
                     Some($convert_out(out))
-                }
-
-                fn has_keyboard_priority(&self) -> bool {
-                    let states = [$(&self.[<$param _input>],)*];
-                    states.iter().any(|s| s.is_focused())
                 }
             }
         }
@@ -210,7 +188,7 @@ impl GridPositionBuilder {
         Self::Cartesian(Vec3Builder::new(ValueKind::HelixGridPosition, position))
     }
 
-    fn view<Message: BuilderMessage>(&self) -> ensnano_iced::Element<Message, Theme, Renderer> {
+    fn view<'a, State: AppState>(&self) -> ensnano_iced::Element<Message<State>, Theme, Renderer> {
         match self {
             Self::Cartesian(builder) => builder.view(),
         }
@@ -229,12 +207,6 @@ impl GridPositionBuilder {
                 .map(InstanciatedValue::HelixGridPosition),
         }
     }
-
-    fn has_keyboard_priority(&self) -> bool {
-        match self {
-            Self::Cartesian(b) => b.has_keyboard_priority(),
-        }
-    }
 }
 
 pub enum GridOrientationBuilder {
@@ -249,7 +221,7 @@ impl GridOrientationBuilder {
         ))
     }
 
-    fn view<Message: BuilderMessage>(&self) -> ensnano_iced::Element<Message, Theme, Renderer> {
+    fn view<State: AppState>(&self) -> ensnano_iced::Element<Message<State>, Theme, Renderer> {
         match self {
             Self::DirectionAngle(builder) => builder.view(),
         }
@@ -266,12 +238,6 @@ impl GridOrientationBuilder {
             Self::DirectionAngle(builder) => builder
                 .submit_value()
                 .map(InstanciatedValue::GridOrientation),
-        }
-    }
-
-    fn has_keyboard_priority(&self) -> bool {
-        match self {
-            Self::DirectionAngle(b) => b.has_keyboard_priority(),
         }
     }
 }
@@ -301,7 +267,7 @@ where
     {
         self::column![
             text("Position").size(ui_size.intermediate_text()),
-            //self.position_builder.view(),
+            self.position_builder.view(),
         ]
         .width(Length::Fill)
         .into()
@@ -330,10 +296,6 @@ where
             );
             None
         }
-    }
-
-    fn has_keyboard_priority(&self) -> bool {
-        self.position_builder.has_keyboard_priority()
     }
 }
 
@@ -386,7 +348,7 @@ where
         ui_size: UiSize,
         selection: &Selection,
         app_state: &State,
-    ) -> ensnano_iced::Element<super::Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer>
+    ) -> ensnano_iced::Element<'_, super::Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer>
     {
         self::column![
             text("Position").size(ui_size.intermediate_text()),
@@ -422,11 +384,6 @@ where
             }
         }
     }
-
-    fn has_keyboard_priority(&self) -> bool {
-        self.position_builder.has_keyboard_priority()
-            || self.orientation_builder.has_keyboard_priority()
-    }
 }
 
 use super::AppState;
@@ -443,7 +400,6 @@ where
     ) -> ensnano_iced::Element<'a, super::Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer>;
     fn update_str_value(&mut self, value_kind: ValueKind, n: usize, value_str: String);
     fn submit_value(&mut self, value_kind: ValueKind) -> Option<InstanciatedValue>;
-    fn has_keyboard_priority(&self) -> bool;
 }
 
 #[derive(Debug, Clone, Copy)]

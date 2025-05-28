@@ -21,14 +21,13 @@ use ensnano_design::{grid::GridId, BezierVertexId};
 use ensnano_iced::{
     helpers::*,
     iced::{self, alignment::Horizontal, Alignment},
-    iced_graphics::text::Paragraph,
     theme,
 };
 use ensnano_interactor::{Selection, SimulationState};
 
 mod value_constructor;
 use value_constructor::{BezierVertexBuilder, Builder, GridBuilder};
-pub use value_constructor::{BuilderMessage, InstanciatedValue, ValueKind};
+pub use value_constructor::{InstanciatedValue, ValueKind};
 
 use ultraviolet::{Rotor3, Vec2, Vec3};
 pub enum ValueRequest {
@@ -442,17 +441,6 @@ where
         self.add_strand_menu.update_length_str(length_str)
     }
 
-    pub fn has_keyboard_priority(&self) -> bool {
-        self.builder_has_keyboard_priority() || self.insertion_length_state.has_keyboard_priority()
-    }
-
-    fn builder_has_keyboard_priority(&self) -> bool {
-        self.builder
-            .as_ref()
-            .map(|b| b.builder.has_keyboard_priority())
-            .unwrap_or(false)
-    }
-
     pub fn get_build_helix_mode(&self) -> ActionMode {
         self.add_strand_menu.get_build_helix_mode()
     }
@@ -553,9 +541,13 @@ fn add_strand_content<'a, State: AppState>(
     self::column![
         row![
             text("Name").size(ui_size.main_text()),
-            text_input("Name", &info_values[4])
-                .on_input(move |new_name| { Message::StrandNameChanged(s_id, new_name) })
-                .size(ui_size.main_text()),
+            keyboard_priority(
+                text_input("Name", &info_values[4])
+                    .on_input(move |new_name| { Message::StrandNameChanged(s_id, new_name) })
+                    .size(ui_size.main_text())
+            )
+            .on_priority(Message::SetKeyboardPriority(true))
+            .on_unpriority(Message::SetKeyboardPriority(false)),
         ],
         text(format!("length {}", info_values[0])).size(ui_size.main_text()),
         checkbox("Scaffold", info_values[1].parse().unwrap())
@@ -772,10 +764,10 @@ fn view_2d_help() -> Vec<(String, String)> {
     ]
 }
 
-fn link_row<State: AppState>(
+fn link_row<'a, State: AppState>(
     link: &'static str,
     ui_size: UiSize,
-) -> ensnano_iced::Element<Message<State>> {
+) -> ensnano_iced::Element<'a, Message<State>> {
     row![
         self::column![text(link),].width(Length::FillPortion(3)),
         self::column![text_button("Go", ui_size).on_press(Message::OpenLink(link)),]
@@ -893,12 +885,11 @@ impl AddStrandMenu {
         self.text_inputs_are_active = show;
     }
 
-    #[allow(clippy::needless_lifetimes)]
-    fn view<'a, State: AppState>(
+    fn view<State: AppState>(
         &self,
         ui_size: UiSize,
         width: u16,
-    ) -> iced::widget::Column<'a, Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer> {
+    ) -> iced::widget::Column<'_, Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer> {
         let color_choose_strand_start_length = if self.text_inputs_are_active {
             theme::Text::Color(theme::GUI_PALETTE.text)
         } else {
@@ -944,7 +935,6 @@ impl AddStrandMenu {
 }
 
 struct InsertionLengthState {
-    state: text_input::State<Paragraph>,
     selection: Selection,
     input_str: Option<String>,
 }
@@ -952,7 +942,6 @@ struct InsertionLengthState {
 impl Default for InsertionLengthState {
     fn default() -> Self {
         Self {
-            state: Default::default(),
             selection: Selection::Nothing,
             input_str: None,
         }
@@ -965,10 +954,6 @@ impl InsertionLengthState {
             self.input_str = None;
             self.selection = *selection;
         }
-    }
-
-    fn has_keyboard_priority(&self) -> bool {
-        self.state.is_focused()
     }
 }
 

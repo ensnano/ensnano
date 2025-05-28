@@ -21,7 +21,6 @@ use ensnano_iced::{
     fonts::{MaterialIcon, MaterialIconStyle},
     helpers::*,
     iced::{alignment::Horizontal, Alignment, Length},
-    iced_graphics::text::Paragraph,
     UiSize,
 };
 
@@ -39,7 +38,7 @@ struct NamedCameraPosition {
 }
 
 impl NamedCameraPosition {
-    /// Generate a message to to ENSnano to set camera to desired position.
+    /// Generate a message to set camera to desired position.
     fn message<State: AppState>(&self) -> Message<State> {
         Message::FixPoint(self.direction, self.up)
     }
@@ -80,10 +79,10 @@ const PREDEFINED_CAMERA_ORIENTATION: [NamedCameraPosition; 6] = [
 ];
 
 /// Turn a NamedCameraPosition into a button.
-fn named_camera_to_button<'a, State: AppState>(
+fn named_camera_to_button<State: AppState>(
     position: &NamedCameraPosition,
     ui_size: UiSize,
-) -> ensnano_iced::Element<'a, Message<State>> {
+) -> ensnano_iced::Element<'_, Message<State>> {
     fixed_text_button(position.name, 2.0, ui_size)
         .on_press(position.message())
         .into()
@@ -125,12 +124,12 @@ struct CameraWidget {
 }
 
 impl CameraWidget {
-    fn view<State: AppState>(&self, ui_size: UiSize) -> ensnano_iced::Element<Message<State>> {
-        let name_field: ensnano_iced::Element<_, _, _> = if self.being_edited {
+    fn view<State: AppState>(&self, ui_size: UiSize) -> ensnano_iced::Element<'_, Message<State>> {
+        let name_field: ensnano_iced::Element<'_, _> = if self.being_edited {
             keyboard_priority(
                 text_input("Camera name", &self.name)
                     .on_input(Message::EditCameraName)
-                    .on_submit(Message::<State>::SubmitCameraName),
+                    .on_submit(Message::SubmitCameraName),
             )
             .on_priority(Message::SetKeyboardPriority(true))
             .on_unpriority(Message::SetKeyboardPriority(false))
@@ -144,23 +143,18 @@ impl CameraWidget {
             Space::with_width(3),
             // edit button
             material_icon_button(MaterialIcon::Edit, MaterialIconStyle::Light, ui_size)
-                .on_press(Message::<State>::StartEditCameraName(self.camera_id)),
+                .on_press(Message::StartEditCameraName(self.camera_id)),
             //
             Space::with_width(Length::Fill),
             //select camera button
             material_icon_button(MaterialIcon::Visibility, MaterialIconStyle::Light, ui_size)
-                .on_press(Message::<State>::SelectCamera(self.camera_id)),
+                .on_press(Message::SelectCamera(self.camera_id)),
             // delete button
             material_icon_button(MaterialIcon::Delete, MaterialIconStyle::Light, ui_size)
-                .on_press(Message::<State>::DeleteCamera(self.camera_id)),
+                .on_press(Message::DeleteCamera(self.camera_id)),
         ]
         .into()
     }
-}
-
-#[derive(Debug, Clone, Default)]
-struct CameraWidgetState {
-    name_input: text_input::State<Paragraph>,
 }
 
 pub struct CameraShortcutPanel {
@@ -172,7 +166,6 @@ pub struct CameraShortcutPanel {
     camera_input_name: Option<String>,
     camera_being_edited: Option<CameraId>,
     camera_widgets: Vec<CameraWidget>,
-    camera_widget_states: Vec<CameraWidgetState>,
 }
 
 impl CameraShortcutPanel {
@@ -185,7 +178,6 @@ impl CameraShortcutPanel {
             camera_input_name: None,
             camera_being_edited: None,
             camera_widgets: vec![],
-            camera_widget_states: Default::default(),
         }
     }
 
@@ -208,51 +200,36 @@ impl CameraShortcutPanel {
     pub fn stop_editing(&mut self) -> Option<(CameraId, String)> {
         let name = self.camera_input_name.take();
         let id = self.camera_being_edited.take();
-        for s in self.camera_widget_states.iter_mut() {
-            s.name_input.unfocus();
-        }
         id.zip(name)
     }
 
     pub fn start_editing(&mut self, id: CameraId) {
-        for (c, s) in self
-            .camera_widgets
-            .iter()
-            .zip(self.camera_widget_states.iter_mut())
-        {
-            if c.camera_id == id {
+        for cam in self.camera_widgets.iter() {
+            if cam.camera_id == id {
                 self.camera_being_edited = Some(id);
-                s.name_input.focus();
-                s.name_input.select_all();
             }
         }
-    }
-
-    pub fn has_keyboard_priority(&self) -> bool {
-        self.camera_widget_states
-            .iter()
-            .any(|s| s.name_input.is_focused())
     }
 
     fn set_camera_widget<State: AppState>(&mut self, app: &State) {
         self.camera_widgets = app
             .get_reader()
             .get_all_cameras()
-            .iter()
-            .map(|cam| {
-                let being_edited = self.camera_being_edited == Some(cam.0);
+            .into_iter()
+            .map(|(id, name)| {
+                let being_edited = self.camera_being_edited == Some(id);
                 let name = if being_edited {
                     self.camera_input_name
                         .as_ref()
                         .map(|s| s.as_str())
-                        .unwrap_or(cam.1)
+                        .unwrap_or(name)
                 } else {
-                    cam.1
+                    name
                 };
                 CameraWidget {
                     name: name.to_string(),
                     being_edited,
-                    camera_id: cam.0,
+                    camera_id: id,
                 }
             })
             .collect();
@@ -263,20 +240,6 @@ impl CameraShortcutPanel {
     }
 }
 
-// TODO: Implement the Component trait.
-//
-//impl<State> Component<Message<State>, ensnano_iced::Theme, crate::Renderer> for CameraShortcutPanel
-//where
-//    State: AppState,
-//{
-//    type State = (UiSize, State);
-//    type Event = ();
-//
-//    fn update(&mut self, state: &mut Self::State, _: Self::Event) -> Option<Message<State>> {
-//        let (_, app_state) = state;
-//        self.set_camera_widget(app_state);
-//        None
-//    }
 impl CameraShortcutPanel {
     pub fn update<State: AppState>(&mut self, app_state: &mut State) {
         self.set_camera_widget(app_state);
@@ -325,7 +288,7 @@ impl CameraShortcutPanel {
         let content = self::column![
             self::column![
                 section("Camera", ui_size),
-                row![
+                self::column![
                     Space::with_width(ui_size.button_spacing()),
                     // add_target_buttons!
                     self::column![
@@ -353,44 +316,52 @@ impl CameraShortcutPanel {
                         .spacing(ui_size.button_spacing()),
                     ]
                     .align_items(Alignment::Center),
-                    Space::with_width(2.0 * ui_size.button_spacing()),
-                    // add_rotate_buttons!
-                    self::column![
-                        subsection("Rotation", ui_size)
-                            .height(ui_size.button())
-                            .horizontal_alignment(Horizontal::Center),
-                        extra_jump(),
-                        rotate_buttons,
-                    ]
-                    .align_items(Alignment::Center),
-                    Space::with_width(2.0 * ui_size.button_spacing()),
-                    // add_screenshot_button!
-                    self::column![
-                        material_icon(MaterialIcon::PhotoCamera, MaterialIconStyle::Dark, ui_size)
+                    Space::with_height(2.0 * ui_size.button_spacing()),
+                    row![
+                        // add_rotate_buttons!
+                        self::column![
+                            subsection("Rotation", ui_size)
+                                .height(ui_size.button())
+                                .horizontal_alignment(Horizontal::Center),
+                            extra_jump(),
+                            rotate_buttons,
+                        ]
+                        .align_items(Alignment::Center),
+                        Space::with_width(2.0 * ui_size.button_spacing()),
+                        // add_screenshot_button!
+                        self::column![
+                            material_icon(
+                                MaterialIcon::PhotoCamera,
+                                MaterialIconStyle::Dark,
+                                ui_size
+                            )
                             .height(ui_size.button()),
-                        extra_jump(),
-                        self::column![
-                            fixed_text_button("2D", 1.0, ui_size).on_press(Message::ScreenShot2D),
-                            fixed_text_button("3D", 1.0, ui_size).on_press(Message::ScreenShot3D),
+                            extra_jump(),
+                            self::column![
+                                fixed_text_button("2D", 1.0, ui_size)
+                                    .on_press(Message::ScreenShot2D),
+                                fixed_text_button("3D", 1.0, ui_size)
+                                    .on_press(Message::ScreenShot3D),
+                            ]
+                            .spacing(ui_size.button_spacing()),
                         ]
-                        .spacing(ui_size.button_spacing()),
-                    ]
-                    .align_items(Alignment::Center),
-                    Space::with_width(2.0 * ui_size.button_spacing()),
-                    // add_stl_export_button!
-                    // add_nucleotides_positions_export_button!
-                    self::column![
-                        Space::with_height(ui_size.button()),
-                        extra_jump(),
+                        .align_items(Alignment::Center),
+                        Space::with_width(2.0 * ui_size.button_spacing()),
+                        // add_stl_export_button!
+                        // add_nucleotides_positions_export_button!
                         self::column![
-                            fixed_text_button("STL", 2.0, ui_size).on_press(Message::StlExport),
-                            fixed_text_button("Nucl", 2.0, ui_size)
-                                .on_press(Message::SaveNucleotidesPositions),
+                            Space::with_height(ui_size.button()),
+                            extra_jump(),
+                            self::column![
+                                fixed_text_button("STL", 2.0, ui_size).on_press(Message::StlExport),
+                                fixed_text_button("Nucl", 2.0, ui_size)
+                                    .on_press(Message::SaveNucleotidesPositions),
+                            ]
+                            .spacing(ui_size.button_spacing()),
                         ]
-                        .spacing(ui_size.button_spacing()),
-                    ]
-                    .align_items(Alignment::End),
-                    Space::with_width(ui_size.button_spacing()),
+                        .align_items(Alignment::End),
+                        Space::with_width(ui_size.button_spacing()),
+                    ],
                 ]
                 .align_items(Alignment::Center),
             ]

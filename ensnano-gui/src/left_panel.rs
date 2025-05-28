@@ -221,16 +221,6 @@ pub enum Message<S: AppState> {
     SetKeyboardPriority(bool),
 }
 
-impl<S: AppState> contextual_panel::BuilderMessage for Message<S> {
-    fn value_changed(kind: ValueKind, n: usize, value: String) -> Self {
-        Self::ContextualValueChanged(kind, n, value)
-    }
-
-    fn value_submitted(kind: ValueKind) -> Self {
-        Self::ContextualValueSubmitted(kind)
-    }
-}
-
 impl<R: Requests, S: AppState> LeftPanel<R, S> {
     /// Create a new [LeftPanel].
     pub fn new(
@@ -332,16 +322,14 @@ impl<R: Requests, S: AppState> LeftPanel<R, S> {
                     true,
                 );
             }
+            OrganizerMessage::SetKeyboardPriority(priority) => self
+                .requests
+                .lock()
+                .unwrap()
+                .set_keyboard_priority(priority),
             _ => (),
         }
         None
-    }
-
-    pub fn has_keyboard_priority(&self) -> bool {
-        self.sequence_input.has_keyboard_priority()
-            || self.contextual_panel.has_keyboard_priority()
-            || self.organizer.has_keyboard_priority()
-            || self.camera_shortcut.has_keyboard_priority()
     }
 }
 
@@ -765,7 +753,7 @@ where
                     self.contextual_panel.state_updated();
                 }
                 self.application_state = state;
-                self.revolution_tab.update(&self.application_state);
+                self.revolution_tab.update(&mut self.application_state);
             }
             Message::FinishChangingColor => {
                 self.edition_tab.add_color();

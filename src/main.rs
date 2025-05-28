@@ -509,7 +509,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             Instant::now() + Duration::from_millis(33),
         ));
 
-        log::debug!("Gui keyboard priority {:?}", &gui.has_keyboard_priority());
         let mut main_state_view = MainStateView {
             main_state: &mut main_state,
             window_target: &window_target,

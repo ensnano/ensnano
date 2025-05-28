@@ -1,5 +1,5 @@
 use core::convert::{Into, TryFrom};
-use iced::Element;
+use ensnano_iced::iced::{advanced, overlay, widget, Element};
 use serde::{Deserialize, Serialize};
 use std::fmt::{Debug, Display};
 
@@ -104,15 +104,15 @@ impl<Attrib: OrganizerAttribute> AttributeDisplayer<Attrib> {
 
     pub fn view<'a, Theme, Renderer>(&self) -> Option<Element<'a, Attrib, Theme, Renderer>>
     where
-        Theme: iced_widget::pick_list::StyleSheet
-            + iced_widget::scrollable::StyleSheet
-            + iced::overlay::menu::StyleSheet,
-        <Theme as iced::overlay::menu::StyleSheet>::Style:
-            From<<Theme as iced_widget::pick_list::StyleSheet>::Style>,
-        Renderer: iced::advanced::Renderer + iced::advanced::text::Renderer,
+        Theme: widget::pick_list::StyleSheet
+            + widget::scrollable::StyleSheet
+            + overlay::menu::StyleSheet,
+        <Theme as overlay::menu::StyleSheet>::Style:
+            From<<Theme as widget::pick_list::StyleSheet>::Style>,
+        Renderer: advanced::Renderer + advanced::text::Renderer,
     {
-        use iced_widget::*; // NOTE: This is a trick to avoid a conflict between core and
-                            //       iced_core.
+        use widget::*; // NOTE: This is a trick to avoid a conflict between core and
+                       //       iced_core.
 
         //if let Some(widget) = self.widget.as_ref() {
         //    match widget {
