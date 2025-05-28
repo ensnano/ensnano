@@ -568,7 +568,7 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
             if let Some(shift) = self.get_shift_per_turn(app_state) {
                 row![
                     buttons.0.on_press(Message::DecrRevolutionShift),
-                    buttons.1.on_press(Message::DecrRevolutionShift),
+                    buttons.1.on_press(Message::IncrRevolutionShift),
                     Space::with_width(ui_size.checkbox_spacing()),
                     text(format!("Nb shift: {shift}")),
                 ]
