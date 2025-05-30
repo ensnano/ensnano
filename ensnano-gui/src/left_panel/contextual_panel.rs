@@ -197,7 +197,7 @@ pub(super) struct ContextualPanel<State>
 where
     State: AppState,
 {
-    width: u32,
+    width: u16,
     pub force_help: bool,
     pub show_tutorial: bool,
     add_strand_menu: AddStrandMenu,
@@ -209,7 +209,7 @@ impl<State> ContextualPanel<State>
 where
     State: AppState,
 {
-    pub fn new(width: u32) -> Self {
+    pub fn new(width: u16) -> Self {
         Self {
             width,
             force_help: false,
@@ -220,7 +220,7 @@ where
         }
     }
 
-    pub fn new_width(&mut self, width: u32) {
+    pub fn new_width(&mut self, width: u16) {
         self.width = width;
     }
 
@@ -307,7 +307,7 @@ where
         } else if self.force_help && xover_len.is_none() {
             turn_into_help_column(ui_size)
         } else if app_state.get_action_mode().is_build() {
-            self.add_strand_menu.view(ui_size, self.width as u16)
+            self.add_strand_menu.view(ui_size, self.width)
         } else if *selection == Selection::Nothing && xover_len.is_none() {
             turn_into_help_column(ui_size)
         } else if nb_selected > 1 {
@@ -398,7 +398,7 @@ where
             ]);
         }
 
-        scrollable(content.max_width((self.width - 2) as u16)).into()
+        scrollable(content.max_width(self.width - 2)).into()
         // NOTE: I don't really understand why there is a “- 2” here.
     }
 
