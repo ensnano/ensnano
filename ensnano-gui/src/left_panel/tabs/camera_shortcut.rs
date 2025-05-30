@@ -158,6 +158,7 @@ impl CameraWidget {
 }
 
 pub struct CameraShortcutPanel {
+    width: u16,
     // Camera angles
     xz: isize,
     yz: isize,
@@ -169,8 +170,9 @@ pub struct CameraShortcutPanel {
 }
 
 impl CameraShortcutPanel {
-    pub fn new() -> Self {
+    pub fn new(width: u16) -> Self {
         Self {
+            width,
             xz: 0,
             yz: 0,
             xy: 0,
@@ -179,6 +181,10 @@ impl CameraShortcutPanel {
             camera_being_edited: None,
             camera_widgets: vec![],
         }
+    }
+
+    pub fn new_width(&mut self, width: u16) {
+        self.width = width;
     }
 
     pub fn reset_angles(&mut self) {
@@ -288,106 +294,102 @@ impl CameraShortcutPanel {
         let content = self::column![
             self::column![
                 section("Camera", ui_size),
+                Space::with_width(ui_size.button_spacing()),
+                // add_target_buttons!
                 self::column![
-                    Space::with_width(ui_size.button_spacing()),
-                    // add_target_buttons!
+                    subsection("Fixed", ui_size)
+                        .height(ui_size.button())
+                        .horizontal_alignment(Horizontal::Center),
+                    extra_jump(),
+                    row![
+                        self::column![
+                            named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[0], ui_size),
+                            named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[1], ui_size),
+                        ]
+                        .spacing(ui_size.button_spacing()),
+                        self::column![
+                            named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[2], ui_size),
+                            named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[3], ui_size),
+                        ]
+                        .spacing(ui_size.button_spacing()),
+                        self::column![
+                            named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[4], ui_size),
+                            named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[5], ui_size),
+                        ]
+                        .spacing(ui_size.button_spacing()),
+                    ]
+                    .spacing(ui_size.button_spacing()),
+                ]
+                .align_items(Alignment::Center),
+                Space::with_height(2.0 * ui_size.button_spacing()),
+                row![
+                    // add_rotate_buttons!
                     self::column![
-                        subsection("Fixed", ui_size)
+                        subsection("Rotation", ui_size)
                             .height(ui_size.button())
                             .horizontal_alignment(Horizontal::Center),
                         extra_jump(),
-                        row![
-                            self::column![
-                                named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[0], ui_size),
-                                named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[1], ui_size),
-                            ]
-                            .spacing(ui_size.button_spacing()),
-                            self::column![
-                                named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[2], ui_size),
-                                named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[3], ui_size),
-                            ]
-                            .spacing(ui_size.button_spacing()),
-                            self::column![
-                                named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[4], ui_size),
-                                named_camera_to_button(&PREDEFINED_CAMERA_ORIENTATION[5], ui_size),
-                            ]
-                            .spacing(ui_size.button_spacing()),
+                        rotate_buttons,
+                    ]
+                    .align_items(Alignment::Center),
+                    Space::with_width(2.0 * ui_size.button_spacing()),
+                    // add_screenshot_button!
+                    self::column![
+                        material_icon(
+                            MaterialIcon::PhotoCamera,
+                            MaterialIconStyle::Dark,
+                            ui_size
+                        )
+                        .height(ui_size.button()),
+                        extra_jump(),
+                        self::column![
+                            fixed_text_button("2D", 1.0, ui_size)
+                                .on_press(Message::ScreenShot2D),
+                            fixed_text_button("3D", 1.0, ui_size)
+                                .on_press(Message::ScreenShot3D),
                         ]
                         .spacing(ui_size.button_spacing()),
                     ]
                     .align_items(Alignment::Center),
-                    Space::with_height(2.0 * ui_size.button_spacing()),
-                    row![
-                        // add_rotate_buttons!
+                    Space::with_width(2.0 * ui_size.button_spacing()),
+                    // add_stl_export_button!
+                    // add_nucleotides_positions_export_button!
+                    self::column![
+                        Space::with_height(ui_size.button()),
+                        extra_jump(),
                         self::column![
-                            subsection("Rotation", ui_size)
-                                .height(ui_size.button())
-                                .horizontal_alignment(Horizontal::Center),
-                            extra_jump(),
-                            rotate_buttons,
+                            fixed_text_button("STL", 2.0, ui_size).on_press(Message::StlExport),
+                            fixed_text_button("Nucl", 2.0, ui_size)
+                                .on_press(Message::SaveNucleotidesPositions),
                         ]
-                        .align_items(Alignment::Center),
-                        Space::with_width(2.0 * ui_size.button_spacing()),
-                        // add_screenshot_button!
-                        self::column![
-                            material_icon(
-                                MaterialIcon::PhotoCamera,
-                                MaterialIconStyle::Dark,
-                                ui_size
-                            )
-                            .height(ui_size.button()),
-                            extra_jump(),
-                            self::column![
-                                fixed_text_button("2D", 1.0, ui_size)
-                                    .on_press(Message::ScreenShot2D),
-                                fixed_text_button("3D", 1.0, ui_size)
-                                    .on_press(Message::ScreenShot3D),
-                            ]
-                            .spacing(ui_size.button_spacing()),
-                        ]
-                        .align_items(Alignment::Center),
-                        Space::with_width(2.0 * ui_size.button_spacing()),
-                        // add_stl_export_button!
-                        // add_nucleotides_positions_export_button!
-                        self::column![
-                            Space::with_height(ui_size.button()),
-                            extra_jump(),
-                            self::column![
-                                fixed_text_button("STL", 2.0, ui_size).on_press(Message::StlExport),
-                                fixed_text_button("Nucl", 2.0, ui_size)
-                                    .on_press(Message::SaveNucleotidesPositions),
-                            ]
-                            .spacing(ui_size.button_spacing()),
-                        ]
-                        .align_items(Alignment::End),
-                        Space::with_width(ui_size.button_spacing()),
-                    ],
-                ]
-                .align_items(Alignment::Center),
+                        .spacing(ui_size.button_spacing()),
+                    ]
+                    .align_items(Alignment::End),
+                    Space::with_width(ui_size.button_spacing()),
+                ],
             ]
             .align_items(Alignment::Center),
-            self::column![
-                // add_custom_camera_row!
-                row![
-                    section("Custom cameras", ui_size),
-                    Space::with_width(ui_size.button_spacing()),
-                    material_icon_button(
-                        MaterialIcon::AddAPhoto,
-                        MaterialIconStyle::Light,
-                        ui_size
-                    )
-                    .on_press(Message::NewCustomCamera),
-                ],
-                // add_camera_widgets!
-                Column::with_children(self.camera_widgets.iter().map(|w| w.view(ui_size)))
-            ]
-            .align_items(Alignment::Center)
-            .width(Length::Fill),
+            // add_custom_camera_row!
+            row![
+                section("Custom cameras", ui_size),
+                Space::with_width(ui_size.button_spacing()),
+                material_icon_button(
+                    MaterialIcon::AddAPhoto,
+                    MaterialIconStyle::Light,
+                    ui_size
+                )
+                .on_press(Message::NewCustomCamera),
+            ],
+            // add_camera_widgets!
+            Column::with_children(self.camera_widgets.iter().map(|w| w.view(ui_size)))
         ]
         .align_items(Alignment::Center)
+        .width(Length::Fill)
+        .max_width(self.width - 2)
         .spacing(20.0);
 
-        scrollable(content).into()
+        scrollable(content)
+            .into()
         // NOTE: Background and size are handled in left_panel.rs
     }
 }

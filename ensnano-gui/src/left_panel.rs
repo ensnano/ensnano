@@ -254,8 +254,8 @@ impl<R: Requests, S: AppState> LeftPanel<R, S> {
             parameters_tab: ParametersTab::new(state),
             pen_tab: Default::default(),
             revolution_tab: Default::default(),
-            contextual_panel: ContextualPanel::new(logical_size.width as u32),
-            camera_shortcut: CameraShortcutPanel::new(),
+            contextual_panel: ContextualPanel::new(logical_size.width as u16),
+            camera_shortcut: CameraShortcutPanel::new(logical_size.width as u16),
             application_state: state.clone(),
             exports_menu: Default::default(),
         }
@@ -269,7 +269,8 @@ impl<R: Requests, S: AppState> LeftPanel<R, S> {
     ) {
         self.logical_size = logical_size;
         self.logical_position = logical_position;
-        self.contextual_panel.new_width(logical_size.width as u32);
+        self.contextual_panel.new_width(logical_size.width as u16);
+        self.camera_shortcut.new_width(logical_size.width as u16);
         self.organizer.set_width(logical_size.width as u16);
     }
 
