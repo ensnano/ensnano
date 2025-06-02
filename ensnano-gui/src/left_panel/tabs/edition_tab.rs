@@ -162,6 +162,10 @@ impl<State: AppState> GuiTab<State> for EditionTab<State> {
         TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Edit)))
     }
 
+    fn update(&mut self, _app_state: &mut State) -> Option<Self::Message> {
+        None
+    }
+
     fn content(&self, ui_size: UiSize, app_state: &State) -> ensnano_iced::Element<Self::Message> {
         let roll_target_helices =
             self.get_roll_target_helices(&app_state.get_selection_as_designelement());

@@ -22,3 +22,5 @@ pub mod helpers;
 
 pub mod theme;
 pub use theme::Theme;
+
+pub mod color_picker;
