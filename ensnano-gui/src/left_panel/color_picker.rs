@@ -75,30 +75,6 @@ impl ColorPicker {
         self.hsv_value = hsv_value
     }
 
-    pub fn view<State>(&self) -> ensnano_iced::Element<Message<State>>
-    where
-        State: AppState,
-    {
-        row![
-            HueColumn::new(Message::HueChanged),
-            LightSatSquare::new(
-                self.hue as f64,
-                Message::HsvSatValueChanged,
-                Message::FinishChangingColor,
-            ),
-        ]
-        .spacing(10)
-        .into()
-    }
-
-    pub fn color_square<'a, State: AppState>(&self) -> ColorSquare<'a, Message<State>> {
-        ColorSquare::new(
-            self.color,
-            Message::ColorPicked,
-            Message::FinishChangingColor,
-        )
-    }
-
     pub fn new_view(&self) -> ensnano_iced::Element<ColorMessage> {
         row![
             HueColumn::new(ColorMessage::HueChanged,),

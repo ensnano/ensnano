@@ -16,6 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use ensnano_iced::{
+    color_picker::{ColorPicker, ColorPickerMessage},
     fonts::{icon_to_char, MaterialIcon},
     helpers::*,
     iced_aw::TabLabel,
@@ -24,9 +25,8 @@ use std::marker::PhantomData;
 
 use super::tabs::GuiTab;
 use super::{
-    AppState, Color, ColorPicker, ColorSquare, DesignElementKey, FactoryId, HelixRoll, Length,
-    Message, RequestFactory, RollRequest, UiSize, ValueId, VecDeque, MEMORY_COLOR_COLUMNS,
-    MEMORY_COLOR_ROWS, NB_MEMORY_COLOR,
+    AppState, DesignElementKey, FactoryId, HelixRoll, Message, RequestFactory, RollRequest, UiSize,
+    ValueId,
 };
 
 pub struct EditionTab<State: AppState> {
@@ -34,51 +34,7 @@ pub struct EditionTab<State: AppState> {
     color_picker: ColorPicker,
     //_sequence_input: SequenceInput,
     //roll_target_btn: GoStop<State>,
-    memory_color_squares: VecDeque<MemoryColorSquare>,
     _state_type: PhantomData<State>,
-}
-
-/// An entry of the stack of last picked colors.
-struct MemoryColorSquare {
-    color: Color,
-}
-
-impl PartialEq<MemoryColorSquare> for MemoryColorSquare {
-    fn eq(&self, other: &MemoryColorSquare) -> bool {
-        self.color == other.color
-    }
-}
-
-impl MemoryColorSquare {
-    fn new(color: Color) -> Self {
-        Self { color }
-    }
-}
-
-/// Arrange memory colors in a few rows.
-fn memory_color_column<State: AppState>(
-    memory_color_squares: &VecDeque<MemoryColorSquare>,
-    fill_portion: u16,
-) -> ensnano_iced::Element<Message<State>> {
-    let mut content = Vec::with_capacity(MEMORY_COLOR_ROWS);
-    let mut current_row = Vec::with_capacity(MEMORY_COLOR_COLUMNS);
-    for memory_color_square in memory_color_squares.iter() {
-        if current_row.len() >= MEMORY_COLOR_COLUMNS {
-            // Create a new row
-            content.push(row(current_row).into());
-            current_row = Vec::with_capacity(MEMORY_COLOR_COLUMNS);
-        }
-        // Append to row
-        let color_square = ColorSquare::new(
-            memory_color_square.color,
-            Message::ColorPicked,
-            Message::FinishChangingColor,
-        );
-        current_row.push(color_square.into());
-    }
-    column(content)
-        .width(Length::FillPortion(fill_portion))
-        .into()
 }
 
 impl<State: AppState> EditionTab<State> {
@@ -91,7 +47,6 @@ impl<State: AppState> EditionTab<State> {
             //    "Autoroll selected helices".to_owned(),
             //    Message::RollTargeted,
             //),
-            memory_color_squares: VecDeque::new(),
             _state_type: PhantomData,
         }
     }
@@ -129,29 +84,13 @@ impl<State: AppState> EditionTab<State> {
         }
     }
 
-    pub fn strand_color_change(&mut self) -> u32 {
-        let color = self.color_picker.update_color();
+    pub fn current_strand_color(&mut self) -> u32 {
+        let color = self.color_picker.current_color();
         super::color_to_u32(color)
     }
 
-    pub fn change_sat_value(&mut self, sat: f64, hsv_value: f64) {
-        self.color_picker.set_hsv_value(hsv_value);
-        self.color_picker.set_saturation(sat);
-    }
-
-    pub fn change_hue(&mut self, hue: f64) {
-        self.color_picker.change_hue(hue)
-    }
-
-    pub fn add_color(&mut self) {
-        let color = self.color_picker.update_color();
-        let memory_color = MemoryColorSquare::new(color);
-        if !self.memory_color_squares.contains(&memory_color) {
-            log::info!("adding color");
-            self.memory_color_squares.push_front(memory_color);
-            self.memory_color_squares.truncate(NB_MEMORY_COLOR);
-            log::info!("color len {}", self.memory_color_squares.len());
-        }
+    pub fn update_color_picker(&mut self, message: ColorPickerMessage) {
+        self.color_picker.update(message)
     }
 }
 
@@ -201,9 +140,11 @@ impl<State: AppState> GuiTab<State> for EditionTab<State> {
             // add_color_square!
             if selection_contains_strand {
                 row![
-                    self.color_picker.view(),
-                    self.color_picker.color_square(),
-                    memory_color_column(&self.memory_color_squares, 4),
+                    self.color_picker
+                        .view()
+                        .map(|m| Message::ColorPickerMessage(m)),
+                    //self.color_picker.color_square(),
+                    // memory_color_column(&self.memory_color_squares, 4),
                 ]
             } else {
                 row![]

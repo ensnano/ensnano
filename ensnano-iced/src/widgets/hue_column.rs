@@ -20,8 +20,7 @@ use std::marker::PhantomData;
 
 use iced::{
     advanced::{
-        layout, mouse, renderer::Style, widget, Clipboard, Layout, Renderer as RendererTrait,
-        Shell, Widget,
+        layout, mouse, renderer::Style, widget, Clipboard, Layout, Renderer as _, Shell, Widget,
     },
     event,
     mouse::Cursor,
@@ -36,6 +35,8 @@ use iced_wgpu;
 
 use color_space::{Hsv, Rgb};
 
+const DEFAULT_SIZE: f32 = 90.0;
+
 /// The internal state of a [HueColumn].
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct State {
@@ -43,7 +44,7 @@ pub struct State {
 }
 
 /// A HueColumn Widget.
-pub struct HueColumn<'a, Message, Theme = crate::Theme, Renderer = iced_wgpu::Renderer> {
+pub struct HueColumn<'a, Message, Theme = crate::Theme, Renderer = crate::Renderer> {
     width: Length,
     height: Length,
     on_slide: Option<Box<dyn Fn(f64) -> Message + 'a>>,
@@ -51,11 +52,11 @@ pub struct HueColumn<'a, Message, Theme = crate::Theme, Renderer = iced_wgpu::Re
     _renderer: PhantomData<Renderer>,
 }
 
-impl<'a, Message, Theme> HueColumn<'a, Message, Theme, iced_wgpu::Renderer> {
+impl<'a, Message, Theme> HueColumn<'a, Message, Theme, crate::Renderer> {
     pub fn new() -> Self {
         Self {
-            width: Length::FillPortion(1),
-            height: Length::Fill,
+            width: Length::Fixed(DEFAULT_SIZE),
+            height: Length::Fixed(4.0 * DEFAULT_SIZE),
             on_slide: None,
             _theme: Default::default(),
             _renderer: Default::default(),
@@ -89,8 +90,8 @@ impl<'a, Message, Theme> HueColumn<'a, Message, Theme, iced_wgpu::Renderer> {
     }
 }
 
-impl<'a, Message, Theme> Widget<Message, Theme, iced_wgpu::Renderer>
-    for HueColumn<'a, Message, Theme, iced_wgpu::Renderer>
+impl<'a, Message, Theme> Widget<Message, Theme, crate::Renderer>
+    for HueColumn<'a, Message, Theme, crate::Renderer>
 {
     fn state(&self) -> widget::tree::State {
         widget::tree::State::Some(Box::new(State::default()))
@@ -105,18 +106,16 @@ impl<'a, Message, Theme> Widget<Message, Theme, iced_wgpu::Renderer>
     fn layout(
         &self,
         _tree: &mut widget::Tree,
-        _renderer: &iced_wgpu::Renderer,
+        _renderer: &crate::Renderer,
         limits: &layout::Limits,
     ) -> layout::Node {
-        let size = limits.resolve(Length::Fill, Length::Fill, Size::ZERO);
-
-        layout::Node::new(size)
+        layout::atomic(limits, self.width, self.height)
     }
 
     fn draw(
         &self,
         _tree: &widget::Tree,
-        renderer: &mut iced_wgpu::Renderer,
+        renderer: &mut crate::Renderer,
         _theme: &Theme,
         _style: &Style,
         layout: Layout<'_>,
@@ -128,19 +127,15 @@ impl<'a, Message, Theme> Widget<Message, Theme, iced_wgpu::Renderer>
         let x_max = b.width;
         let y_max = b.height;
 
-        let nb_row = 10;
+        let nb_row = u32::min(100, y_max.ceil() as u32);
 
         let mut vertices = Vec::new();
         let mut indices = Vec::new();
         for i in 0..=nb_row {
-            let hsv = Hsv::new(i as f64 / nb_row as f64 * 360., 1., 1.);
-            let rgb = Rgb::from(hsv);
-            let color = pack([
-                rgb.r as f32 / 255.,
-                rgb.g as f32 / 255.,
-                rgb.b as f32 / 255.,
-                1.,
-            ]);
+            let hsv = Hsv::new((360 * i) as f64 / nb_row as f64, 1., 1.);
+            let Rgb { r, g, b } = Rgb::from(hsv);
+            let color = pack([r as f32 / 255., g as f32 / 255., b as f32 / 255., 1.]);
+
             vertices.push(SolidVertex2D {
                 position: [0., y_max * (i as f32 / nb_row as f32)],
                 color,
@@ -164,9 +159,13 @@ impl<'a, Message, Theme> Widget<Message, Theme, iced_wgpu::Renderer>
             size: b.size(),
         });
 
-        renderer.with_translation(Vector::new(b.x, b.y), |renderer| {
-            renderer.draw_primitive(Primitive::Custom(mesh))
-        });
+        match renderer {
+            crate::Renderer::Wgpu(wgpu_renderer) => wgpu_renderer
+                .with_translation(Vector::new(b.x, b.y), |renderer| {
+                    renderer.draw_primitive(Primitive::Custom(mesh))
+                }),
+            _ => panic!("Unhandled renderer"),
+        };
     }
 
     fn on_event(
@@ -175,11 +174,12 @@ impl<'a, Message, Theme> Widget<Message, Theme, iced_wgpu::Renderer>
         event: event::Event,
         layout: Layout<'_>,
         cursor: Cursor,
-        _renderer: &iced_wgpu::Renderer,
+        _renderer: &crate::Renderer,
         _clipboard: &mut dyn Clipboard,
         shell: &mut Shell<'_, Message>,
         _viewport: &Rectangle,
     ) -> event::Status {
+        // A closure that takes an absolute position and send Message.
         let mut change = |Point { x: _, y }| {
             let bounds = layout.bounds();
             if y <= bounds.y {
@@ -201,10 +201,11 @@ impl<'a, Message, Theme> Widget<Message, Theme, iced_wgpu::Renderer>
 
         if let event::Event::Mouse(mouse_event) = event {
             let state = tree.state.downcast_mut::<State>();
+            let position = cursor.position_over(layout.bounds());
             match mouse_event {
                 mouse::Event::ButtonPressed(mouse::Button::Left) => {
-                    if let Some(position) = cursor.position() {
-                        change(position);
+                    if let Some(pos) = position {
+                        change(pos);
                         state.is_dragging = true;
                     }
                     event::Status::Captured
@@ -215,9 +216,13 @@ impl<'a, Message, Theme> Widget<Message, Theme, iced_wgpu::Renderer>
                     }
                     event::Status::Captured
                 }
-                mouse::Event::CursorMoved { position } => {
+                mouse::Event::CursorMoved { .. } => {
+                    // NOTE: Using "position" attribute from mouse::Event::CursorMoved dosen't work because
+                    //       it is not the good coordinates.
                     if state.is_dragging {
-                        change(position);
+                        if let Some(pos) = position {
+                            change(pos);
+                        }
                         event::Status::Captured
                     } else {
                         event::Status::Ignored
@@ -232,13 +237,13 @@ impl<'a, Message, Theme> Widget<Message, Theme, iced_wgpu::Renderer>
     }
 }
 
-impl<'a, Message, Theme> From<HueColumn<'a, Message, Theme, iced_wgpu::Renderer>>
-    for crate::Element<'a, Message, Theme, iced_wgpu::Renderer>
+impl<'a, Message, Theme> From<HueColumn<'a, Message, Theme, crate::Renderer>>
+    for crate::Element<'a, Message, Theme, crate::Renderer>
 where
     Message: 'a + Clone,
     Theme: 'a,
 {
-    fn from(hue_column: HueColumn<'a, Message, Theme, iced_wgpu::Renderer>) -> Self {
+    fn from(hue_column: HueColumn<'a, Message, Theme, crate::Renderer>) -> Self {
         Self::new(hue_column)
     }
 }

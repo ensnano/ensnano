@@ -17,6 +17,8 @@ use iced_graphics::{
 };
 use iced_wgpu as wgpu;
 
+const DEFAULT_SIZE: f32 = 90.0;
+
 /// The State of a [ColorSquare]
 #[derive(Default, Clone, Eq, PartialEq)]
 pub struct ColorSquareState {
@@ -24,8 +26,9 @@ pub struct ColorSquareState {
 }
 
 /// A ColorSquare Widget
-pub struct ColorSquare<'a, Message, Theme = crate::Theme, Renderer = iced_wgpu::Renderer> {
-    //state: &'a mut State,
+pub struct ColorSquare<'a, Message, Theme = crate::Theme, Renderer = crate::Renderer> {
+    width: Length,
+    height: Length,
     color: Color,
     on_click: Option<Box<dyn Fn(Color) -> Message + 'a>>,
     on_release: Option<Message>,
@@ -33,10 +36,11 @@ pub struct ColorSquare<'a, Message, Theme = crate::Theme, Renderer = iced_wgpu::
     _renderer: PhantomData<Renderer>,
 }
 
-impl<'a, Message, Theme> ColorSquare<'a, Message, Theme, iced_wgpu::Renderer> {
+impl<'a, Message, Theme> ColorSquare<'a, Message, Theme, crate::Renderer> {
     pub fn new(color: Color) -> Self {
         Self {
-            //state,
+            width: Length::Fixed(DEFAULT_SIZE),
+            height: Length::Fixed(DEFAULT_SIZE),
             color,
             on_click: None,
             on_release: None,
@@ -57,10 +61,20 @@ impl<'a, Message, Theme> ColorSquare<'a, Message, Theme, iced_wgpu::Renderer> {
         self.on_release = Some(message);
         self
     }
+
+    pub fn width(mut self, width: impl Into<Length>) -> Self {
+        self.width = width.into();
+        self
+    }
+
+    pub fn height(mut self, height: impl Into<Length>) -> Self {
+        self.height = height.into();
+        self
+    }
 }
 
-impl<'a, Message, Theme> Widget<Message, Theme, iced_wgpu::Renderer>
-    for ColorSquare<'a, Message, Theme, iced_wgpu::Renderer>
+impl<'a, Message, Theme> Widget<Message, Theme, crate::Renderer>
+    for ColorSquare<'a, Message, Theme, crate::Renderer>
 where
     Message: Clone,
 {
@@ -69,26 +83,24 @@ where
     }
     fn size(&self) -> Size<Length> {
         Size {
-            width: Length::FillPortion(1),
-            height: Length::FillPortion(1),
+            width: self.width,
+            height: self.height,
         }
     }
 
     fn layout(
         &self,
         _tree: &mut widget::Tree,
-        _renderer: &iced_wgpu::Renderer,
+        _renderer: &crate::Renderer,
         limits: &layout::Limits,
     ) -> layout::Node {
-        let size = limits.resolve(Length::Fill, Length::Fill, Size::ZERO);
-
-        layout::Node::new(Size::new(size.width, size.width))
+        layout::atomic(limits, self.width, self.height)
     }
 
     fn draw(
         &self,
         _tree: &widget::Tree,
-        renderer: &mut iced_wgpu::Renderer,
+        renderer: &mut crate::Renderer,
         _theme: &Theme,
         _style: &Style,
         layout: Layout<'_>,
@@ -98,26 +110,23 @@ where
         let b = layout.bounds();
         let x_max = b.width;
         let y_max = b.height;
-        let dummy_color = pack([1.0, 0.0, 0.0, 1.0]);
-        // TODO: Find an appropriate color.
-        // The primitiver API changed. It now ask for
-        // some color. I do not now which one to choose now.
+        let color = pack(self.color.into_linear());
         let vertices = vec![
             SolidVertex2D {
                 position: [0., 0.],
-                color: dummy_color,
+                color: color,
             },
             SolidVertex2D {
                 position: [0., y_max],
-                color: dummy_color,
+                color: color,
             },
             SolidVertex2D {
                 position: [x_max, 0.],
-                color: dummy_color,
+                color: color,
             },
             SolidVertex2D {
                 position: [x_max, y_max],
-                color: dummy_color,
+                color: color,
             },
         ];
         let indices = vec![0, 1, 2, 1, 2, 3];
@@ -127,13 +136,13 @@ where
             size: b.size(),
         });
 
-        renderer.with_translation(Vector::new(b.x, b.y), |renderer| {
-            //renderer.draw_primitive(Primitive::SolidMesh {
-            //    buffers: Indexed { vertices, indices },
-            //    size: b.size(),
-            //})
-            renderer.draw_primitive(Primitive::Custom(mesh))
-        });
+        match renderer {
+            crate::Renderer::Wgpu(wgpu_renderer) => wgpu_renderer
+                .with_translation(Vector::new(b.x, b.y), |renderer| {
+                    renderer.draw_primitive(Primitive::Custom(mesh))
+                }),
+            _ => panic!("Unhandled renderer"),
+        };
     }
 
     fn on_event(
@@ -142,7 +151,7 @@ where
         event: event::Event,
         layout: Layout<'_>,
         cursor: Cursor,
-        _renderer: &iced_wgpu::Renderer,
+        _renderer: &crate::Renderer,
         _clipboard: &mut dyn Clipboard,
         shell: &mut Shell<'_, Message>,
         _viewport: &Rectangle,
@@ -191,13 +200,13 @@ where
     }
 }
 
-impl<'a, Message, Theme> From<ColorSquare<'a, Message, Theme, iced_wgpu::Renderer>>
-    for crate::Element<'a, Message, Theme, iced_wgpu::Renderer>
+impl<'a, Message, Theme> From<ColorSquare<'a, Message, Theme, crate::Renderer>>
+    for crate::Element<'a, Message, Theme, crate::Renderer>
 where
     Message: Clone + 'a,
     Theme: 'a,
 {
-    fn from(color_square: ColorSquare<'a, Message, Theme, iced_wgpu::Renderer>) -> Self {
+    fn from(color_square: ColorSquare<'a, Message, Theme, crate::Renderer>) -> Self {
         Self::new(color_square)
     }
 }

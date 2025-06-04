@@ -3,8 +3,7 @@ use std::marker::PhantomData;
 
 use iced::{
     advanced::{
-        layout, mouse, renderer::Style, widget, Clipboard, Layout, Renderer as RendererTrait,
-        Shell, Widget,
+        layout, mouse, renderer::Style, widget, Clipboard, Layout, Renderer as _, Shell, Widget,
     },
     event,
     mouse::Cursor,
@@ -18,6 +17,8 @@ use iced_graphics::{
 use iced_wgpu as wgpu;
 
 use color_space::{Hsv, Rgb};
+
+const DEFAULT_SIZE: f32 = 360.0;
 
 /// The internal state of a [LightSatSquare].
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -37,7 +38,9 @@ fn hsv_to_linear(hue: f64, sat: f64, light: f64) -> [f32; 4] {
 }
 
 /// A Lightness-Saturation square Widget.
-pub struct LightSatSquare<'a, Message, Theme = crate::Theme, Renderer = iced_wgpu::Renderer> {
+pub struct LightSatSquare<'a, Message, Theme = crate::Theme, Renderer = crate::Renderer> {
+    width: Length,
+    height: Length,
     hue: f64,
     on_slide: Option<Box<dyn Fn(f64, f64) -> Message + 'a>>,
     on_finish: Option<Message>,
@@ -45,9 +48,11 @@ pub struct LightSatSquare<'a, Message, Theme = crate::Theme, Renderer = iced_wgp
     _renderer: PhantomData<Renderer>,
 }
 
-impl<'a, Message, Theme> LightSatSquare<'a, Message, Theme, iced_wgpu::Renderer> {
+impl<'a, Message, Theme> LightSatSquare<'a, Message, Theme, crate::Renderer> {
     pub fn new(hue: f64) -> Self {
         Self {
+            width: Length::Fixed(DEFAULT_SIZE),
+            height: Length::Fixed(DEFAULT_SIZE),
             hue,
             on_slide: None,
             on_finish: None,
@@ -68,10 +73,20 @@ impl<'a, Message, Theme> LightSatSquare<'a, Message, Theme, iced_wgpu::Renderer>
         self.on_finish = Some(message);
         self
     }
+
+    pub fn width(mut self, width: impl Into<Length>) -> Self {
+        self.width = width.into();
+        self
+    }
+
+    pub fn height(mut self, height: impl Into<Length>) -> Self {
+        self.height = height.into();
+        self
+    }
 }
 
-impl<'a, Message, Theme> Widget<Message, Theme, iced_wgpu::Renderer>
-    for LightSatSquare<'a, Message, Theme, iced_wgpu::Renderer>
+impl<'a, Message, Theme> Widget<Message, Theme, crate::Renderer>
+    for LightSatSquare<'a, Message, Theme, crate::Renderer>
 where
     Message: Clone,
 {
@@ -80,26 +95,24 @@ where
     }
     fn size(&self) -> Size<Length> {
         Size {
-            width: Length::FillPortion(4),
-            height: Length::Shrink,
+            width: self.width,
+            height: self.height,
         }
     }
 
     fn layout(
         &self,
         _tree: &mut widget::Tree,
-        _renderer: &iced_wgpu::Renderer,
+        _renderer: &crate::Renderer,
         limits: &layout::Limits,
     ) -> layout::Node {
-        let size = limits.resolve(Length::Fill, Length::Fill, Size::ZERO);
-
-        layout::Node::new(Size::new(size.width, size.width))
+        layout::atomic(limits, self.width, self.height)
     }
 
     fn draw(
         &self,
         _state: &widget::Tree,
-        renderer: &mut iced_wgpu::Renderer,
+        renderer: &mut crate::Renderer,
         _theme: &Theme,
         _style: &Style,
         layout: Layout<'_>,
@@ -144,9 +157,13 @@ where
             buffers: Indexed { vertices, indices },
         });
 
-        renderer.with_translation(Vector::new(b.x, b.y), |renderer| {
-            renderer.draw_primitive(Primitive::Custom(mesh))
-        });
+        match renderer {
+            crate::Renderer::Wgpu(wgpu_renderer) => wgpu_renderer
+                .with_translation(Vector::new(b.x, b.y), |renderer| {
+                    renderer.draw_primitive(Primitive::Custom(mesh))
+                }),
+            _ => panic!("Unhandled renderer"),
+        };
     }
 
     fn on_event(
@@ -155,11 +172,12 @@ where
         event: event::Event,
         layout: Layout<'_>,
         cursor: Cursor,
-        _renderer: &iced_wgpu::Renderer,
+        _renderer: &crate::Renderer,
         _clipboard: &mut dyn Clipboard,
         shell: &mut Shell<'_, Message>,
         _viewport: &Rectangle,
     ) -> event::Status {
+        // A closure that takes an absolute position and send Message.
         let mut change = |Point { x, y }| {
             let bounds = layout.bounds();
             let percent_x = if x <= bounds.x {
@@ -187,10 +205,11 @@ where
 
         if let event::Event::Mouse(mouse_event) = event {
             let state = tree.state.downcast_mut::<LightSatState>();
+            let position = cursor.position_over(layout.bounds());
             match mouse_event {
                 mouse::Event::ButtonPressed(mouse::Button::Left) => {
-                    if let Some(position) = cursor.position() {
-                        change(position);
+                    if let Some(pos) = position {
+                        change(pos);
                         state.is_dragging = true;
                         event::Status::Captured
                     } else {
@@ -206,9 +225,13 @@ where
                     }
                     event::Status::Captured
                 }
-                mouse::Event::CursorMoved { position } => {
+                mouse::Event::CursorMoved { .. } => {
+                    // NOTE: Using "position" attribute from mouse::Event::CursorMoved dosen't work because
+                    //       it is not the good coordinates.
                     if state.is_dragging {
-                        change(position);
+                        if let Some(pos) = position {
+                            change(pos);
+                        }
                     }
                     event::Status::Captured
                 }
@@ -220,13 +243,13 @@ where
     }
 }
 
-impl<'a, Message, Theme> From<LightSatSquare<'a, Message, Theme, iced_wgpu::Renderer>>
-    for crate::Element<'a, Message, Theme, iced_wgpu::Renderer>
+impl<'a, Message, Theme> From<LightSatSquare<'a, Message, Theme, crate::Renderer>>
+    for crate::Element<'a, Message, Theme, crate::Renderer>
 where
     Message: Clone + 'a,
     Theme: 'a,
 {
-    fn from(value: LightSatSquare<'a, Message, Theme, iced_wgpu::Renderer>) -> Self {
+    fn from(value: LightSatSquare<'a, Message, Theme, crate::Renderer>) -> Self {
         Self::new(value)
     }
 }
