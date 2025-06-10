@@ -728,6 +728,12 @@ impl Helix {
             .and_then(|c| c.curve.curvature_at_pos(n))
     }
 
+    pub fn torsion_at_pos(&self, n: isize) -> Option<f64> {
+        self.instanciated_curve
+            .as_ref()
+            .and_then(|c| c.curve.torsion_at_pos(n))
+    }
+
     fn theta_n_to_space_pos(
         &self,
         p: &HelixParameters,
