@@ -88,6 +88,7 @@ mod gostop {
     pub struct GoStop<State: AppState> {
         pub name: String,
         on_press: Box<dyn Fn(bool) -> Message<State>>,
+        // TODO: Use a checkbox-like approach with Option<Box<…>>
     }
 
     impl<State: AppState> GoStop<State> {

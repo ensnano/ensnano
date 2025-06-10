@@ -16,6 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use ensnano_iced::{
+    color_picker::ColorPickerMessage,
     iced::{theme, Color, Command, Element, Length},
     iced_aw::widgets::{TabBarPosition, TabLabel, Tabs},
     iced_runtime::Program,
@@ -50,8 +51,6 @@ use super::{AppState, FogParameters, OverlayType, Requests};
 use crate::fonts;
 
 use ensnano_design::{grid::GridTypeDescr, ultraviolet, NamedParameter};
-mod color_picker;
-use color_picker::ColorPicker;
 mod sequence_input;
 use sequence_input::SequenceInput;
 mod discrete_value;
@@ -105,11 +104,8 @@ pub enum Message<S: AppState> {
     MakeGrids,
     SequenceChanged(String),
     SequenceFileRequested,
-    ColorPicked(Color),
-    HsvSatValueChanged(f64, f64),
     StrandNameChanged(usize, String),
-    FinishChangingColor,
-    HueChanged(f64),
+    ColorPickerMessage(ColorPickerMessage),
     NewGrid(GridTypeDescr),
     /// Set camera to fixed position.
     FixPoint(Vec3, Vec3),
@@ -398,25 +394,21 @@ where
                 .lock()
                 .unwrap()
                 .open_overlay(OverlayType::Color),
-            Message::HsvSatValueChanged(saturation, value) => {
-                self.edition_tab.change_sat_value(saturation, value);
-                let requested_color = self.edition_tab.strand_color_change();
-                self.requests
-                    .lock()
-                    .unwrap()
-                    .change_strand_color(requested_color);
-            }
-            Message::HueChanged(x) => {
-                self.edition_tab.change_hue(x);
-                let requested_color = self.edition_tab.strand_color_change();
-                self.requests
-                    .lock()
-                    .unwrap()
-                    .change_strand_color(requested_color);
-            }
-            Message::ColorPicked(color) => {
-                let color_u32 = color_to_u32(color);
-                self.requests.lock().unwrap().change_strand_color(color_u32);
+            Message::ColorPickerMessage(message) => {
+                self.edition_tab.update_color_picker(message);
+                // Forward action to Requests.
+                match message {
+                    ColorPickerMessage::HueChanged(_)
+                    | ColorPickerMessage::HsvSatValueChanged(_, _)
+                    | ColorPickerMessage::ColorPicked(_) => {
+                        let color = self.edition_tab.current_strand_color();
+                        self.requests.lock().unwrap().change_strand_color(color);
+                    }
+                    ColorPickerMessage::FinishChangingColor => {
+                        self.requests.lock().unwrap().finish_changing_color();
+                    }
+                    _ => {}
+                }
             }
             Message::Resized(size, position) => self.resize(size, position),
             Message::NewGrid(grid_type) => {
@@ -756,10 +748,6 @@ where
                 self.application_state = state;
                 self.revolution_tab.update(&mut self.application_state);
             }
-            Message::FinishChangingColor => {
-                self.edition_tab.add_color();
-                self.requests.lock().unwrap().finish_changing_color();
-            }
             Message::ResetSimulation => self.requests.lock().unwrap().reset_simulations(),
             Message::Nothing => (),
             Message::SubmitCameraName => {
@@ -1083,6 +1071,11 @@ where
         .into()
     }
 }
+
+// TODO: Remove ColorOverlay
+
+mod color_picker;
+use color_picker::ColorPicker;
 
 pub struct ColorOverlay<R: Requests> {
     logical_size: LogicalSize<f64>,

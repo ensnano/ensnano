@@ -1,21 +1,4 @@
-/*
-ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-//! A Iced Widget to select Hue.
+//! A widget to select Lightness and Saturation values.
 use std::marker::PhantomData;
 
 use iced::{
@@ -31,33 +14,48 @@ use iced_graphics::{
     mesh::{Indexed, Mesh, SolidVertex2D},
     Primitive,
 };
-use iced_wgpu;
+use iced_wgpu as wgpu;
 
 use color_space::{Hsv, Rgb};
 
-const DEFAULT_SIZE: f32 = 90.0;
+const DEFAULT_SIZE: f32 = 360.0;
 
-/// The internal state of a [HueColumn].
+/// The internal state of a [LightSatSquare].
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub struct State {
+pub struct LightSatState {
     is_dragging: bool,
 }
 
-/// A HueColumn Widget.
-pub struct HueColumn<'a, Message, Theme = crate::Theme, Renderer = crate::Renderer> {
+fn hsv_to_linear(hue: f64, sat: f64, light: f64) -> [f32; 4] {
+    let hsv = Hsv::new(hue, sat, light);
+    let rgb = Rgb::from(hsv);
+    [
+        rgb.r as f32 / 255.,
+        rgb.g as f32 / 255.,
+        rgb.b as f32 / 255.,
+        1.,
+    ]
+}
+
+/// A Lightness-Saturation square Widget.
+pub struct LightSatSquare<'a, Message, Theme = crate::Theme, Renderer = crate::Renderer> {
     width: Length,
     height: Length,
-    on_slide: Option<Box<dyn Fn(f64) -> Message + 'a>>,
+    hue: f64,
+    on_slide: Option<Box<dyn Fn(f64, f64) -> Message + 'a>>,
+    on_finish: Option<Message>,
     _theme: PhantomData<Theme>,
     _renderer: PhantomData<Renderer>,
 }
 
-impl<'a, Message, Theme> HueColumn<'a, Message, Theme, crate::Renderer> {
-    pub fn new() -> Self {
+impl<'a, Message, Theme> LightSatSquare<'a, Message, Theme, crate::Renderer> {
+    pub fn new(hue: f64) -> Self {
         Self {
             width: Length::Fixed(DEFAULT_SIZE),
-            height: Length::Fixed(4.0 * DEFAULT_SIZE),
+            height: Length::Fixed(DEFAULT_SIZE),
+            hue,
             on_slide: None,
+            on_finish: None,
             _theme: Default::default(),
             _renderer: Default::default(),
         }
@@ -65,17 +63,14 @@ impl<'a, Message, Theme> HueColumn<'a, Message, Theme, crate::Renderer> {
 
     pub fn on_slide<F>(mut self, f: F) -> Self
     where
-        F: 'a + Fn(f64) -> Message,
+        F: 'a + Fn(f64, f64) -> Message,
     {
         self.on_slide = Some(Box::new(f));
         self
     }
 
-    pub fn on_slide_maybe<F>(mut self, f: Option<F>) -> Self
-    where
-        F: 'a + Fn(f64) -> Message,
-    {
-        self.on_slide = f.map(|f| Box::new(f) as _);
+    pub fn on_finish(mut self, message: Message) -> Self {
+        self.on_finish = Some(message);
         self
     }
 
@@ -91,10 +86,12 @@ impl<'a, Message, Theme> HueColumn<'a, Message, Theme, crate::Renderer> {
 }
 
 impl<'a, Message, Theme> Widget<Message, Theme, crate::Renderer>
-    for HueColumn<'a, Message, Theme, crate::Renderer>
+    for LightSatSquare<'a, Message, Theme, crate::Renderer>
+where
+    Message: Clone,
 {
     fn state(&self) -> widget::tree::State {
-        widget::tree::State::Some(Box::new(State::default()))
+        widget::tree::State::Some(Box::new(LightSatState::default()))
     }
     fn size(&self) -> Size<Length> {
         Size {
@@ -114,7 +111,7 @@ impl<'a, Message, Theme> Widget<Message, Theme, crate::Renderer>
 
     fn draw(
         &self,
-        _tree: &widget::Tree,
+        _state: &widget::Tree,
         renderer: &mut crate::Renderer,
         _theme: &Theme,
         _style: &Style,
@@ -127,36 +124,37 @@ impl<'a, Message, Theme> Widget<Message, Theme, crate::Renderer>
         let x_max = b.width;
         let y_max = b.height;
 
-        let nb_row = u32::min(100, y_max.ceil() as u32);
+        let nb_row = 100;
+        let nb_column = 100;
 
         let mut vertices = Vec::new();
         let mut indices = Vec::new();
-        for i in 0..=nb_row {
-            let hsv = Hsv::new((360 * i) as f64 / nb_row as f64, 1., 1.);
-            let Rgb { r, g, b } = Rgb::from(hsv);
-            let color = pack([r as f32 / 255., g as f32 / 255., b as f32 / 255., 1.]);
-
-            vertices.push(SolidVertex2D {
-                position: [0., y_max * (i as f32 / nb_row as f32)],
-                color,
-            });
-            vertices.push(SolidVertex2D {
-                position: [x_max, y_max * (i as f32 / nb_row as f32)],
-                color,
-            });
-            if i > 0 {
-                indices.push(2 * i - 2);
-                indices.push(2 * i + 1);
-                indices.push(2 * i);
-                indices.push(2 * i - 2);
-                indices.push(2 * i + 1);
-                indices.push(2 * i - 1);
+        for i in 0..nb_row {
+            let value = 1. - (i as f64 / nb_row as f64);
+            for j in 0..nb_column {
+                let sat = 1. - (j as f64 / nb_column as f64);
+                let color = pack(hsv_to_linear(self.hue, sat, value));
+                vertices.push(SolidVertex2D {
+                    position: [
+                        x_max * (j as f32 / nb_column as f32),
+                        y_max * (i as f32 / nb_row as f32),
+                    ],
+                    color,
+                });
+                if i > 0 && j > 0 {
+                    indices.push(nb_row * (i - 1) + j - 1);
+                    indices.push(nb_row * i + j);
+                    indices.push(nb_row * i + j - 1);
+                    indices.push(nb_row * (i - 1) + j - 1);
+                    indices.push(nb_row * i + j);
+                    indices.push(nb_row * (i - 1) + j);
+                }
             }
         }
 
-        let mesh = iced_wgpu::primitive::Custom::Mesh(Mesh::Solid {
-            buffers: Indexed { vertices, indices },
+        let mesh = wgpu::primitive::Custom::Mesh(Mesh::Solid {
             size: b.size(),
+            buffers: Indexed { vertices, indices },
         });
 
         match renderer {
@@ -180,39 +178,50 @@ impl<'a, Message, Theme> Widget<Message, Theme, crate::Renderer>
         _viewport: &Rectangle,
     ) -> event::Status {
         // A closure that takes an absolute position and send Message.
-        let mut change = |Point { x: _, y }| {
+        let mut change = |Point { x, y }| {
             let bounds = layout.bounds();
-            if y <= bounds.y {
-                if let Some(on_slide) = &self.on_slide {
-                    shell.publish(on_slide(0.));
-                }
-            } else if y >= bounds.y + bounds.height {
-                if let Some(on_slide) = &self.on_slide {
-                    shell.publish(on_slide(360.));
-                }
+            let percent_x = if x <= bounds.x {
+                0.
+            } else if x >= bounds.x + bounds.width {
+                1.
             } else {
-                if let Some(on_slide) = &self.on_slide {
-                    let percent = (y - bounds.y) / bounds.height;
-                    let value: f32 = percent * 360.;
-                    shell.publish(on_slide(value.into()));
-                }
+                f64::from(x - bounds.x) / f64::from(bounds.width)
+            };
+
+            let percent_y = if y <= bounds.y {
+                0.
+            } else if y >= bounds.y + bounds.height {
+                1.
+            } else {
+                f64::from(y - bounds.y) / f64::from(bounds.height)
+            };
+
+            let saturation = 1. - percent_x;
+            let value = 1. - percent_y;
+            if let Some(on_slide) = &self.on_slide {
+                shell.publish(on_slide(saturation, value));
             }
         };
 
         if let event::Event::Mouse(mouse_event) = event {
-            let state = tree.state.downcast_mut::<State>();
+            let state = tree.state.downcast_mut::<LightSatState>();
             let position = cursor.position_over(layout.bounds());
             match mouse_event {
                 mouse::Event::ButtonPressed(mouse::Button::Left) => {
                     if let Some(pos) = position {
                         change(pos);
                         state.is_dragging = true;
+                        event::Status::Captured
+                    } else {
+                        event::Status::Ignored
                     }
-                    event::Status::Captured
                 }
                 mouse::Event::ButtonReleased(mouse::Button::Left) => {
                     if state.is_dragging {
                         state.is_dragging = false;
+                    }
+                    if let Some(on_finish) = self.on_finish.clone() {
+                        shell.publish(on_finish);
                     }
                     event::Status::Captured
                 }
@@ -223,27 +232,24 @@ impl<'a, Message, Theme> Widget<Message, Theme, crate::Renderer>
                         if let Some(pos) = position {
                             change(pos);
                         }
-                        event::Status::Captured
-                    } else {
-                        event::Status::Ignored
                     }
+                    event::Status::Captured
                 }
                 _ => event::Status::Ignored,
             }
         } else {
-            // Not a mouse event.
             event::Status::Ignored
         }
     }
 }
 
-impl<'a, Message, Theme> From<HueColumn<'a, Message, Theme, crate::Renderer>>
+impl<'a, Message, Theme> From<LightSatSquare<'a, Message, Theme, crate::Renderer>>
     for crate::Element<'a, Message, Theme, crate::Renderer>
 where
-    Message: 'a + Clone,
+    Message: Clone + 'a,
     Theme: 'a,
 {
-    fn from(hue_column: HueColumn<'a, Message, Theme, crate::Renderer>) -> Self {
-        Self::new(hue_column)
+    fn from(value: LightSatSquare<'a, Message, Theme, crate::Renderer>) -> Self {
+        Self::new(value)
     }
 }

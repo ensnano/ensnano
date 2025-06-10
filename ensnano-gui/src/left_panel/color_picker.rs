@@ -16,7 +16,16 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use super::{AppState, ColorMessage, Message};
-use ensnano_iced::{helpers::*, iced::Color};
+use ensnano_iced::{helpers::*, iced::Color, iced_winit::winit::dpi::LogicalSize};
+
+/// Messages from ColorPicker
+pub enum ColorPickerMessage {
+    HsvSatValueChanged(f64, f64),
+    HueChanged(f64),
+    Resized(LogicalSize<f64>),
+    FinishChangingColor,
+    // Closed,
+}
 
 pub struct ColorPicker {
     color: Color,
@@ -64,30 +73,6 @@ impl ColorPicker {
 
     pub fn set_hsv_value(&mut self, hsv_value: f64) {
         self.hsv_value = hsv_value
-    }
-
-    pub fn view<State>(&self) -> ensnano_iced::Element<Message<State>>
-    where
-        State: AppState,
-    {
-        row![
-            HueColumn::new(Message::HueChanged),
-            LightSatSquare::new(
-                self.hue as f64,
-                Message::HsvSatValueChanged,
-                Message::FinishChangingColor,
-            ),
-        ]
-        .spacing(10)
-        .into()
-    }
-
-    pub fn color_square<'a, State: AppState>(&self) -> ColorSquare<'a, Message<State>> {
-        ColorSquare::new(
-            self.color,
-            Message::ColorPicked,
-            Message::FinishChangingColor,
-        )
     }
 
     pub fn new_view(&self) -> ensnano_iced::Element<ColorMessage> {
