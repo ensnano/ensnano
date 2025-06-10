@@ -30,7 +30,7 @@ pub struct CircleCurve {
     pub perimeter: f64,
     pub abscissa_converter_factor: Option<f64>,
     pub target_nb_nt: Option<usize>, // desired length for the total circle in nt
-    pub is_closed: Option<bool>, // closed unless this is false
+    pub is_closed: Option<bool>,     // closed unless this is false
 }
 
 impl CircleCurve {

@@ -18,6 +18,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 //! Implementation of the curve discretization alogrithm.
 
+use std::iter::zip;
+
 use super::*;
 use chebyshev_polynomials::ChebyshevPolynomial;
 use ultraviolet::DRotor3;
@@ -29,6 +31,8 @@ const NB_DISCRETISATION_STEP: usize = 100_000;
 
 /// The number of points used in the quick iterative version of the discretization algorithm.
 const NB_FAST_DISCRETIZATION_STEP: usize = 1_000;
+
+const PRINTOUT_NUCL_3D_POSITIONS: bool = false; // true;
 
 impl Curve {
     /// Pre-compute the frames arround which the nucleotides will be positioned.
@@ -87,6 +91,7 @@ impl Curve {
         let mut axis_forward = Vec::with_capacity(nb_points + 1);
         let mut axis_backward = Vec::with_capacity(nb_points + 1);
         let mut curvature = Vec::with_capacity(nb_points + 1);
+        let mut torsion = Vec::with_capacity(nb_points + 1);
         let mut t = self.geometry.t_min();
         let mut current_axis = self.iterative_axis(t, None);
         // let mut current_axis = self.iterative_rotated_axis(t, None);
@@ -107,6 +112,7 @@ impl Curve {
             points_forward.push(point);
             axis_forward.push(current_axis);
             curvature.push(self.geometry.curvature(t));
+            // torsion.push(self.geometry.absolute_torsion(t));
             t_nucl.push(t);
             next_abscissa_forward = nucl_rise;
             next_abscissa_backward = inclination;
@@ -194,6 +200,7 @@ impl Curve {
                     points_forward.push(p);
                     axis_forward.push(current_axis);
                     curvature.push(self.geometry.curvature(t));
+                    // torsion.push(self.geometry.absolute_torsion(t));
                     next_abscissa_forward = current_abcissa + nucl_rise;
                 }
             } else {
@@ -205,6 +212,45 @@ impl Curve {
         log::info!("Synchronization length by old method {synchronization_length}");
         log::debug!("t_nucl {:.4?}", t_nucl);
 
+        // Computing the discrete torsion
+        for (p0, (p1, (p2, p3))) in points_forward.iter().zip(
+            points_forward[1..]
+                .iter()
+                .zip(points_forward[2..].iter().zip(points_forward[3..].iter())),
+        ) {
+            torsion.push(Self::discrete_torsion([p0, p1, p2, p3]).abs());
+        }
+        let last_torsion = torsion.last().unwrap_or(&0.).clone();
+        for _ in torsion.len()..points_forward.len() {
+            torsion.push(last_torsion);
+        }
+        // println!("Torsion: {} {}", torsion.len(), last_torsion);
+        // println!("Axis: {} {}", points_forward.len(), points_forward[0].x);
+
+        if PRINTOUT_NUCL_3D_POSITIONS {
+            println!(
+                "points_forward.append([\n\t{}\n])\n",
+                points_forward
+                    .iter()
+                    .fold("".to_string(), |a, p| if a.len() > 0 {
+                        format!("{}, ({}, {}, {})", a, p.x, p.y, p.z)
+                    } else {
+                        format!("({}, {}, {})", p.x, p.y, p.z)
+                    })
+            );
+            println!(
+                "points_backward.append([\n\t{}\n])\n",
+                points_backward
+                    .iter()
+                    .fold("".to_string(), |a, p| if a.len() > 0 {
+                        format!("{}, ({}, {}, {})", a, p.x, p.y, p.z)
+                    } else {
+                        format!("({}, {}, {})", p.x, p.y, p.z)
+                    })
+            );
+        }
+
+        // Final output
         self.axis_backward = axis_backward;
         self.positions_backward = points_backward;
         self.axis_forward = axis_forward;
@@ -242,11 +288,25 @@ impl Curve {
         // );
 
         self.curvature = curvature;
+        self.torsion = torsion;
 
         self.t_nucl = Arc::new(t_nucl);
         if self.geometry.is_time_maps_singleton() {
             self.abscissa_converter = AbscissaConverter::from_single_map(self.t_nucl.clone());
         }
+    }
+
+    /// Compute the discrete torsion given 4 points
+    fn discrete_torsion(points: [&DVec3; 4]) -> f64 {
+        let p0 = points[0].clone();
+        let p1 = points[1].clone();
+        let p2 = points[2].clone();
+        let p3 = points[3].clone();
+        let dp = (p2 - p1);
+        let d2p = (p2 + p0 - 2. * p1);
+        let d3p = (p3 - p0 + 3. * (p1 - p2));
+        let c = dp.cross(d2p);
+        return d3p.dot(c) / c.mag_sq();
     }
 
     /// If `self.geometry` sepcifies that a certain number of nucleotide must fit on a given

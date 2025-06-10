@@ -35,6 +35,7 @@ impl Curve {
         let mut axis_forward = Vec::with_capacity(nb_points + 1);
         let mut axis_backward = Vec::with_capacity(nb_points + 1);
         let mut curvature = Vec::with_capacity(nb_points + 1);
+        let mut torsion = Vec::with_capacity(nb_points + 1);
         let mut t = self.geometry.t_min();
         let mut current_axis = self.legacy_itterative_axis(t, None);
 
@@ -54,6 +55,7 @@ impl Curve {
             points_forward.push(point);
             axis_forward.push(current_axis);
             curvature.push(self.geometry.curvature(t));
+            torsion.push(self.geometry.absolute_torsion(t));
             t_nucl.push(t);
             next_abscissa_forward = nucl_rise;
             next_abscissa_backward = inclination;
@@ -136,6 +138,7 @@ impl Curve {
                     points_forward.push(p);
                     axis_forward.push(current_axis);
                     curvature.push(self.geometry.curvature(t));
+                    torsion.push(self.geometry.absolute_torsion(t));
                     next_abscissa_forward = current_abcissa + nucl_rise;
                     if self.nucl_pos_full_turn.is_none()
                         && self
@@ -167,6 +170,7 @@ impl Curve {
         self.axis_forward = axis_forward;
         self.positions_forward = points_forward;
         self.curvature = curvature;
+        self.torsion = torsion;
         self.t_nucl = Arc::new(t_nucl);
         if self.geometry.is_time_maps_singleton() {
             self.abscissa_converter = AbscissaConverter::from_single_map(self.t_nucl.clone());
