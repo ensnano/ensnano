@@ -29,13 +29,13 @@ use crate::widgets::{ColorSquare, HueRow, LightSatSquare};
 
 // TODO: Adjust to tab height.
 
-const DEFAULT_SIZE: f32 = 60.0;
+const DEFAULT_SIZE: f32 = 30.0;
 // Ratio between Hue column height and width.
 // Gives a number of memory cells: 2(FACTOR-2).
 // Choose between: [3,4,5,6]
-const FACTOR: usize = 5;
+const FACTOR: usize = 6;
 // Gap between squares.
-const GAP: f32 = 5.0;
+const GAP: f32 = 3.0;
 
 /// Messages from ColorPicker
 #[derive(Debug, Clone, Copy)]
@@ -97,6 +97,11 @@ impl ColorPicker {
 
     pub fn size(mut self, size: f32) -> Self {
         self.size = size;
+        self
+    }
+
+    pub fn width(mut self, width: f32) -> Self {
+        self.size = (width - 2.0 * GAP) / 7.0;
         self
     }
 

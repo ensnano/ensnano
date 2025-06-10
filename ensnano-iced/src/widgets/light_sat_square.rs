@@ -129,9 +129,9 @@ where
 
         let mut vertices = Vec::new();
         let mut indices = Vec::new();
-        for i in 0..nb_row {
+        for i in 0..=nb_row {
             let value = 1. - (i as f64 / nb_row as f64);
-            for j in 0..nb_column {
+            for j in 0..=nb_column {
                 let sat = 1. - (j as f64 / nb_column as f64);
                 let color = pack(hsv_to_linear(self.hue, sat, value));
                 vertices.push(SolidVertex2D {
