@@ -25,7 +25,9 @@ use iced::{
 };
 use iced_winit::winit::dpi::LogicalSize;
 
-use crate::widgets::{ColorSquare, HueColumn, LightSatSquare};
+use crate::widgets::{ColorSquare, HueRow, LightSatSquare};
+
+// TODO: Adjust to tab height.
 
 const DEFAULT_SIZE: f32 = 60.0;
 // Ratio between Hue column height and width.
@@ -140,22 +142,24 @@ impl ColorPicker {
             Message::FinishChangingColor => {
                 self.add_color_to_history(self.current_color());
             }
-            Message::Resized(_size) => {}
+            Message::Resized(_size) => {
+                log::debug!("Resized");
+            }
         }
     }
 
     pub fn view(&self) -> crate::Element<Message> {
-        row![
-            HueColumn::new()
+        column![
+            HueRow::new()
                 .on_slide(Message::HueChanged)
-                .height(Length::Fixed(FACTOR as f32 * self.size))
-                .width(Length::Fixed(self.size)),
+                .height(Length::Fixed(self.size))
+                .width(Length::Fixed(FACTOR as f32 * self.size)),
             LightSatSquare::new(self.current_hue())
                 .on_slide(Message::HsvSatValueChanged)
                 .on_finish(Message::FinishChangingColor)
                 .height(Length::Fixed(FACTOR as f32 * self.size))
                 .width(Length::Fixed(FACTOR as f32 * self.size)),
-            column![
+            row![
                 color_square(self.current_color())
                     .height(Length::Fixed(2.0 * self.size - GAP))
                     .width(Length::Fixed(2.0 * self.size - GAP)),
@@ -177,26 +181,26 @@ impl ColorPicker {
                     .width(Length::Fixed(self.size - GAP))
             })
             .into_iter();
-        let mut column = Vec::new();
+        let mut row = Vec::new();
         loop {
             let first_square = color_squares.next();
             let second_square = color_squares.next();
             match (first_square, second_square) {
                 (Some(sq1), Some(sq2)) => {
-                    column.push(row![sq1, sq2].spacing(GAP));
+                    row.push(column![sq1, sq2].spacing(GAP));
                 }
                 (Some(sq1), None) => {
-                    column.push(row![sq1].spacing(GAP));
+                    row.push(column![sq1].spacing(GAP));
                     break;
                 }
                 (None, Some(sq2)) => {
                     log::error!("Buggy situation in color_picker history colors");
-                    column.push(row![sq2].spacing(GAP));
+                    row.push(column![sq2].spacing(GAP));
                 }
                 (None, None) => break,
             }
         }
-        let column = column.into_iter().map(Row::into);
-        Column::from_vec(column.collect()).spacing(GAP).into()
+        let row = row.into_iter().map(Column::into);
+        Row::from_vec(row.collect()).spacing(GAP).into()
     }
 }

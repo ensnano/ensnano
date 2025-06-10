@@ -44,7 +44,7 @@ pub struct State {
 }
 
 /// A HueColumn Widget.
-pub struct HueColumn<'a, Message, Theme = crate::Theme, Renderer = crate::Renderer> {
+pub struct HueRow<'a, Message, Theme = crate::Theme, Renderer = crate::Renderer> {
     width: Length,
     height: Length,
     on_slide: Option<Box<dyn Fn(f64) -> Message + 'a>>,
@@ -52,11 +52,11 @@ pub struct HueColumn<'a, Message, Theme = crate::Theme, Renderer = crate::Render
     _renderer: PhantomData<Renderer>,
 }
 
-impl<'a, Message, Theme> HueColumn<'a, Message, Theme, crate::Renderer> {
+impl<'a, Message, Theme> HueRow<'a, Message, Theme, crate::Renderer> {
     pub fn new() -> Self {
         Self {
-            width: Length::Fixed(DEFAULT_SIZE),
-            height: Length::Fixed(4.0 * DEFAULT_SIZE),
+            width: Length::Fixed(4.0 * DEFAULT_SIZE),
+            height: Length::Fixed(DEFAULT_SIZE),
             on_slide: None,
             _theme: Default::default(),
             _renderer: Default::default(),
@@ -91,7 +91,7 @@ impl<'a, Message, Theme> HueColumn<'a, Message, Theme, crate::Renderer> {
 }
 
 impl<'a, Message, Theme> Widget<Message, Theme, crate::Renderer>
-    for HueColumn<'a, Message, Theme, crate::Renderer>
+    for HueRow<'a, Message, Theme, crate::Renderer>
 {
     fn state(&self) -> widget::tree::State {
         widget::tree::State::Some(Box::new(State::default()))
@@ -127,21 +127,21 @@ impl<'a, Message, Theme> Widget<Message, Theme, crate::Renderer>
         let x_max = b.width;
         let y_max = b.height;
 
-        let nb_row = u32::min(100, y_max.ceil() as u32);
+        let nb_column = u32::min(100, x_max.ceil() as u32);
 
         let mut vertices = Vec::new();
         let mut indices = Vec::new();
-        for i in 0..=nb_row {
-            let hsv = Hsv::new((360 * i) as f64 / nb_row as f64, 1., 1.);
+        for i in 0..=nb_column {
+            let hsv = Hsv::new((360 * i) as f64 / nb_column as f64, 1., 1.);
             let Rgb { r, g, b } = Rgb::from(hsv);
             let color = pack([r as f32 / 255., g as f32 / 255., b as f32 / 255., 1.]);
 
             vertices.push(SolidVertex2D {
-                position: [0., y_max * (i as f32 / nb_row as f32)],
+                position: [x_max * (i as f32 / nb_column as f32), 0.],
                 color,
             });
             vertices.push(SolidVertex2D {
-                position: [x_max, y_max * (i as f32 / nb_row as f32)],
+                position: [x_max * (i as f32 / nb_column as f32), y_max],
                 color,
             });
             if i > 0 {
@@ -180,19 +180,19 @@ impl<'a, Message, Theme> Widget<Message, Theme, crate::Renderer>
         _viewport: &Rectangle,
     ) -> event::Status {
         // A closure that takes an absolute position and send Message.
-        let mut change = |Point { x: _, y }| {
+        let mut change = |Point { x, y: _ }| {
             let bounds = layout.bounds();
-            if y <= bounds.y {
+            if x <= bounds.x {
                 if let Some(on_slide) = &self.on_slide {
                     shell.publish(on_slide(0.));
                 }
-            } else if y >= bounds.y + bounds.height {
+            } else if x >= bounds.x + bounds.width {
                 if let Some(on_slide) = &self.on_slide {
                     shell.publish(on_slide(360.));
                 }
             } else {
                 if let Some(on_slide) = &self.on_slide {
-                    let percent = (y - bounds.y) / bounds.height;
+                    let percent = (x - bounds.x) / bounds.width;
                     let value: f32 = percent * 360.;
                     shell.publish(on_slide(value.into()));
                 }
@@ -237,13 +237,13 @@ impl<'a, Message, Theme> Widget<Message, Theme, crate::Renderer>
     }
 }
 
-impl<'a, Message, Theme> From<HueColumn<'a, Message, Theme, crate::Renderer>>
+impl<'a, Message, Theme> From<HueRow<'a, Message, Theme, crate::Renderer>>
     for crate::Element<'a, Message, Theme, crate::Renderer>
 where
     Message: 'a + Clone,
     Theme: 'a,
 {
-    fn from(hue_column: HueColumn<'a, Message, Theme, crate::Renderer>) -> Self {
-        Self::new(hue_column)
+    fn from(hue_row: HueRow<'a, Message, Theme, crate::Renderer>) -> Self {
+        Self::new(hue_row)
     }
 }
