@@ -32,7 +32,7 @@ const NB_DISCRETISATION_STEP: usize = 100_000;
 /// The number of points used in the quick iterative version of the discretization algorithm.
 const NB_FAST_DISCRETIZATION_STEP: usize = 1_000;
 
-const PRINTOUT_NUCL_3D_POSITIONS: bool = false; // true;
+const PRINTOUT_NUCL_3D_POSITIONS: bool = true; // false; // true;
 
 impl Curve {
     /// Pre-compute the frames arround which the nucleotides will be positioned.
