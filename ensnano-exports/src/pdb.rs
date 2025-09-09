@@ -488,9 +488,15 @@ impl PdbAtom {
         write!(&mut ret, " {}", self.chain_id)?; //21-22
         write!(&mut ret, "{:>4}", self.residue_idx)?; // 23-26
         ret.push_str(&vec![" "; 4].join("")); // 27-30
-        write!(&mut ret, "{:>8.3}", self.position.x)?; // 31-38
-        write!(&mut ret, "{:>8.3}", self.position.y)?; // 39-46
-        write!(&mut ret, "{:>8.3}", self.position.z)?; // 47-54
+        let s_x = format!("{:>8.3}", self.position.x).to_string(); // 31-38
+        write!(&mut ret, "{}", &s_x[0..8])?;
+        let s_y = format!("{:>8.3}", self.position.y).to_string(); // 39-46
+        write!(&mut ret, "{}", &s_y[0..8])?;
+        let s_z = format!("{:>8.3}", self.position.z).to_string(); // 47-54
+        write!(&mut ret, "{}", &s_z[0..8])?;
+        // write!(&mut ret, "{:>8.3}", self.position.x)?; // 31-38
+        // write!(&mut ret, "{:>8.3}", self.position.y)?; // 39-46
+        // write!(&mut ret, "{:>8.3}", self.position.z)?; // 47-54
         write!(&mut ret, "{:>6.2}", OCCUPENCY)?; // 55-60
         write!(&mut ret, "{:>6.2}", TEMPERATURE_FACTOR)?; // 61-66
         ret.push_str(&vec![" "; 14].join("")); // 67-80
