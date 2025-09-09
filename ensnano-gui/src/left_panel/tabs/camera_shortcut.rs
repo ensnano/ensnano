@@ -335,18 +335,12 @@ impl CameraShortcutPanel {
                     Space::with_width(2.0 * ui_size.button_spacing()),
                     // add_screenshot_button!
                     self::column![
-                        material_icon(
-                            MaterialIcon::PhotoCamera,
-                            MaterialIconStyle::Dark,
-                            ui_size
-                        )
-                        .height(ui_size.button()),
+                        material_icon(MaterialIcon::PhotoCamera, MaterialIconStyle::Dark, ui_size)
+                            .height(ui_size.button()),
                         extra_jump(),
                         self::column![
-                            fixed_text_button("2D", 1.0, ui_size)
-                                .on_press(Message::ScreenShot2D),
-                            fixed_text_button("3D", 1.0, ui_size)
-                                .on_press(Message::ScreenShot3D),
+                            fixed_text_button("2D", 1.0, ui_size).on_press(Message::ScreenShot2D),
+                            fixed_text_button("3D", 1.0, ui_size).on_press(Message::ScreenShot3D),
                         ]
                         .spacing(ui_size.button_spacing()),
                     ]
@@ -373,12 +367,8 @@ impl CameraShortcutPanel {
             row![
                 section("Custom cameras", ui_size),
                 Space::with_width(ui_size.button_spacing()),
-                material_icon_button(
-                    MaterialIcon::AddAPhoto,
-                    MaterialIconStyle::Light,
-                    ui_size
-                )
-                .on_press(Message::NewCustomCamera),
+                material_icon_button(MaterialIcon::AddAPhoto, MaterialIconStyle::Light, ui_size)
+                    .on_press(Message::NewCustomCamera),
             ],
             // add_camera_widgets!
             Column::with_children(self.camera_widgets.iter().map(|w| w.view(ui_size)))
@@ -388,8 +378,7 @@ impl CameraShortcutPanel {
         .max_width(self.width - 2)
         .spacing(20.0);
 
-        scrollable(content)
-            .into()
+        scrollable(content).into()
         // NOTE: Background and size are handled in left_panel.rs
     }
 }
