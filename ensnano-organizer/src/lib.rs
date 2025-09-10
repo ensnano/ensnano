@@ -968,16 +968,13 @@ impl<E: OrganizerElement> ElementView<E> {
             attribute_displayers: vec![AttributeDisplayer::new(); E::all_repr().len()],
         }
     }
-    fn view<'a>(
+    fn view(
         &self,
         _theme: &OrganizerTheme,
         element: &E,
         selection: &BTreeSet<E::Key>,
         deletable: Option<NodeId<E::AutoGroup>>,
-    ) -> DragDropTarget<'a, OrganizerMessage<E>, crate::Theme, crate::Renderer, E::Key, E::AutoGroup>
-    where
-        Theme: 'a,
-        Renderer: advanced::Renderer + 'a,
+    ) -> DragDropTarget<'_, OrganizerMessage<E>, crate::Theme, crate::Renderer, E::Key, E::AutoGroup>
     {
         let selected = selection.contains(&element.key());
 
