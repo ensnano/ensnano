@@ -102,46 +102,36 @@ impl<Attrib: OrganizerAttribute> AttributeDisplayer<Attrib> {
         self.widget = widget;
     }
 
-    pub fn view<'a, Theme, Renderer>(&self) -> Option<Element<'a, Attrib, Theme, Renderer>>
-    where
-        Theme: widget::pick_list::StyleSheet
-            + widget::scrollable::StyleSheet
-            + overlay::menu::StyleSheet,
-        <Theme as overlay::menu::StyleSheet>::Style:
-            From<<Theme as widget::pick_list::StyleSheet>::Style>,
-        Renderer: advanced::Renderer + advanced::text::Renderer,
-    {
+    pub fn view(&self) -> Option<Element<'_, Attrib, crate::Theme, crate::Renderer>> {
         use widget::*; // NOTE: This is a trick to avoid a conflict between core and
                        //       iced_core.
 
-        //if let Some(widget) = self.widget.as_ref() {
-        //    match widget {
-        //        AttributeWidget::PickList { choices } => {
-        //            let mut picklist = pick_list(*choices, self.attribute.clone(), |a| a)
-        //                //.style(crate::theme::NoIcon)
-        //            ;
-        //            if let Some(AttributeDisplay::Icon(_)) =
-        //                self.attribute.as_ref().map(|a| a.char_repr())
-        //            {
-        //                picklist = picklist
-        //                    //.font(crate::BOOTSTRAP_FONT)
-        //                    .text_size(crate::ICON_SIZE);
-        //            }
-        //            Some(picklist.into())
-        //        }
-        //        AttributeWidget::FlipButton { value_if_pressed } => {
-        //            let content = match self.attribute.as_ref().map(|a| a.char_repr()) {
-        //                Some(AttributeDisplay::Icon(c)) => crate::icon(c),
-        //                Some(AttributeDisplay::Text(s)) => text(s.clone()).size(crate::ICON_SIZE),
-        //                _ => text("???"),
-        //            };
-        //            Some(button(content).on_press(value_if_pressed.clone()).into())
-        //        }
-        //    }
-        //} else {
-        //    None
-        //}
-        //TODO: REACTIVATE ME!
-        None
+        if let Some(widget) = self.widget.as_ref() {
+            match widget {
+                AttributeWidget::PickList { choices } => {
+                    let mut picklist = pick_list(*choices, self.attribute.clone(), |a| a)
+                        //.style(crate::theme::NoIcon)
+                    ;
+                    if let Some(AttributeDisplay::Icon(_)) =
+                        self.attribute.as_ref().map(|a| a.char_repr())
+                    {
+                        picklist = picklist
+                            //.font(crate::BOOTSTRAP_FONT)
+                            .text_size(crate::ICON_SIZE);
+                    }
+                    Some(picklist.into())
+                }
+                AttributeWidget::FlipButton { value_if_pressed } => {
+                    let content = match self.attribute.as_ref().map(|a| a.char_repr()) {
+                        Some(AttributeDisplay::Icon(c)) => crate::icon(c),
+                        Some(AttributeDisplay::Text(s)) => text(s.clone()).size(crate::ICON_SIZE),
+                        _ => text("???"),
+                    };
+                    Some(button(content).on_press(value_if_pressed.clone()).into())
+                }
+            }
+        } else {
+            None
+        }
     }
 }
