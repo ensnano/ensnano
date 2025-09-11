@@ -86,10 +86,10 @@ impl<State: AppState> GuiTab<State> for CameraTab<State> {
     fn content(&self, ui_size: UiSize, app_state: &State) -> ensnano_iced::Element<Message<State>> {
         let content = self::column![
             section("Camera", ui_size),
-            subsection("Visibility", ui_size),
+            subsection("Toggle Visibility", ui_size),
             row![
-                text_button("Toggle Selected", ui_size).on_press(Message::ToggleVisibility(false)),
-                text_button("Toggle Non-selected", ui_size)
+                text_button("Selected", ui_size).on_press(Message::ToggleVisibility(false)),
+                text_button("Non-selected", ui_size)
                     .on_press(Message::ToggleVisibility(true)),
                 text_button("All visible", ui_size).on_press(Message::AllVisible),
             ]
