@@ -29,7 +29,7 @@ use iced::{
 };
 use iced_graphics::text::Paragraph;
 
-/// A container that should contain a [text_input::TextInput].
+/// A container that <span class="warning>should contain</span> a [text_input::TextInput].
 ///
 /// Trigger `on_priority` and `on_unpriority` whent the text_input is focused or unfocused.
 ///
