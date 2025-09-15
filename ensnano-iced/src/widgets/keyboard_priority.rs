@@ -23,8 +23,8 @@ use iced::{
         widget::{self, Widget},
         {mouse, Clipboard, Shell},
     },
-    event, overlay,
-    widget::text_input,
+    alignment, event, keyboard, overlay,
+    widget::{container, text_input},
     Element, Length, Padding, Point, Rectangle, Size, Vector,
 };
 use iced_graphics::text::Paragraph;
@@ -61,18 +61,26 @@ pub struct KeyboardPriority<'a, Message, Theme = crate::Theme, Renderer = crate:
 /// A container that gives keyboard priority to it's [text_input::TextInput] content.
 pub fn keyboard_priority<'a, Message, Theme, Renderer>(
     content: impl Into<Element<'a, Message, Theme, Renderer>>,
-) -> KeyboardPriority<'a, Message, Theme, Renderer> {
+) -> KeyboardPriority<'a, Message, Theme, Renderer>
+where
+    Renderer: renderer::Renderer,
+{
     KeyboardPriority::new(content)
 }
 
-impl<'a, Message, Theme, Renderer> KeyboardPriority<'a, Message, Theme, Renderer> {
-    /// Creates a new [HoverableContainer] with the given content.
+impl<'a, Message, Theme, Renderer> KeyboardPriority<'a, Message, Theme, Renderer>
+where
+    Renderer: renderer::Renderer,
+{
+    /// Creates a new [`HoverableContainer`] with the given content.
     pub fn new(content: impl Into<Element<'a, Message, Theme, Renderer>>) -> Self {
+        let content = content.into();
+        let size = content.as_widget().size_hint();
         KeyboardPriority {
             padding: Padding::ZERO,
-            width: Length::Shrink,
-            height: Length::Shrink,
-            content: content.into(),
+            width: size.width.fluid(),
+            height: size.height.fluid(),
+            content,
             on_priority: None,
             on_unpriority: None,
         }
@@ -138,45 +146,74 @@ where
         shell: &mut Shell<'_, Message>,
         viewport: &Rectangle,
     ) -> event::Status {
-        if let event::Status::Captured = self.content.as_widget_mut().on_event(
-            &mut tree.children[0],
-            event,
-            layout.children().next().unwrap(),
-            cursor_position,
-            renderer,
-            clipboard,
-            shell,
-            viewport,
-        ) {
-            return event::Status::Captured;
-        }
-        let state = tree.state.downcast_mut::<State>();
-        // Figure out wether the underlying widget is a text_input, and if it is focused.
-        let was_focused = state.is_focused;
-        let now_focused = if let Some(child_widget) = tree.children.get(0) {
-            if let widget::tree::State::Some(child_state) = &child_widget.state {
-                match child_state.downcast_ref::<text_input::State<Paragraph>>() {
-                    Some(text_input_state) => text_input_state.is_focused(),
-                    None => false,
-                }
-            } else {
-                false
-            }
-        } else {
-            false
-        };
-        // Activate or deactivate keyboard priority.
+        // Here are the three actions we can do.
         enum Action {
             Activate,
             Deactivate,
             None,
         }
-        let action = match (was_focused, now_focused) {
-            (true, true) => Action::None,
-            (false, true) => Action::Activate,
-            (true, false) => Action::Deactivate,
-            (false, false) => Action::None,
+        // First, we get the current focus state.
+        let state = tree.state.downcast_mut::<State>();
+
+        // Figure out wether the underlying widget is a [`text_input`].
+        let is_child_a_text_input = if let Some(child_widget) = tree.children.get(0) {
+            if let widget::tree::State::Some(child_state) = &child_widget.state {
+                match child_state.downcast_ref::<text_input::State<Paragraph>>() {
+                    Some(text_input_state) => Some(text_input_state),
+                    None => None,
+                }
+            } else {
+                None
+            }
+        } else {
+            None
         };
+
+        let action = match is_child_a_text_input {
+            Some(text_input_state) => {
+                let was_focused = state.is_focused;
+                // Figure out wether the underlying widget is focused.
+                let now_focused = text_input_state.is_focused();
+                // Update state
+                state.is_focused = now_focused;
+                // We also need to intercept if the key Enter has been hit.
+                let enter_key_hit = match &event {
+                    event::Event::Keyboard(keyboard::Event::KeyPressed { key, .. }) => {
+                        match key.as_ref() {
+                            keyboard::Key::Named(keyboard::key::Named::Enter) => true,
+                            _ => false,
+                        }
+                    }
+                    _ => false,
+                };
+                if enter_key_hit {
+                    // I.e, user requested to stop text edition.
+                    Action::Deactivate
+                } else {
+                    if was_focused == now_focused {
+                        // Situation has not changed, do nothing.
+                        Action::None
+                    } else {
+                        if now_focused {
+                            Action::Activate
+                        } else {
+                            Action::Deactivate
+                        }
+                    }
+                }
+            }
+            None => {
+                // If the child is not a [`text_input`] ensure keyboard_priority is off and stop
+                if state.is_focused {
+                    state.is_focused = false;
+                    Action::Deactivate
+                } else {
+                    Action::None
+                }
+            }
+        };
+
+        // Act.
         match action {
             Action::Activate => {
                 if let Some(on_hover) = &self.on_priority {
@@ -190,10 +227,18 @@ where
             }
             Action::None => {}
         }
-        // Update state
-        state.is_focused = now_focused;
 
-        event::Status::Ignored
+        // Finally process the event of child.
+        self.content.as_widget_mut().on_event(
+            &mut tree.children[0],
+            event,
+            layout.children().next().unwrap(),
+            cursor_position,
+            renderer,
+            clipboard,
+            shell,
+            viewport,
+        )
     }
 
     fn layout(
@@ -202,6 +247,19 @@ where
         renderer: &Renderer,
         limits: &layout::Limits,
     ) -> layout::Node {
+        // container::layout(
+        //     limits,
+        //     self.width,
+        //     self.height,
+        //     f32::INFINITY,
+        //     f32::INFINITY,
+        //     self.padding,
+        //     alignment::Horizontal::Left,
+        //     alignment::Vertical::Top,
+        //     |limits| self.content.as_widget().layout(tree, renderer, limits),
+        // )
+        // NOTE: I tried to use the layout defined by container. I will try again later to make it
+        // work.
         let Size { width, height } = self.size();
         let limits = limits.width(width).height(height).shrink(self.padding);
 
