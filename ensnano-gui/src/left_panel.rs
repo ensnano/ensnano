@@ -270,7 +270,7 @@ impl<R: Requests, S: AppState> LeftPanel<R, S> {
         self.organizer.set_width(logical_size.width as u16);
     }
 
-    /// Recieves an [OrganizerMessage] and convert it into a LeftPanel [Message].
+    /// Convert an [OrganizerMessage] into a LeftPanel [Message].
     fn organizer_message(&mut self, m: OrganizerMessage<DesignElement>) -> Option<Message<S>> {
         match m {
             OrganizerMessage::InternalMessage(m) => {
