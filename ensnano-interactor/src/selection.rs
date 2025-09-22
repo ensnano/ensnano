@@ -487,6 +487,16 @@ impl SelectionMode {
         SelectionMode::Strand,
         SelectionMode::Helix,
     ];
+
+    pub fn tooltip_description(&self) -> &'static str {
+        // TODO: better descriptions
+        match self {
+            SelectionMode::Nucleotide => "Nucleotide",
+            SelectionMode::Strand => "Strand",
+            SelectionMode::Helix => "Helix",
+            SelectionMode::Design => "Design",
+        }
+    }
 }
 
 /// Describe the action currently done by the user when they click left
@@ -537,6 +547,19 @@ impl std::fmt::Display for ActionMode {
 impl ActionMode {
     pub fn is_build(&self) -> bool {
         matches!(self, Self::Build(_) | Self::BuildHelix { .. })
+    }
+
+    pub fn tooltip_description(&self) -> &'static str {
+        // TODO: better descriptions
+        match self {
+            ActionMode::Normal => "Normal",
+            ActionMode::Translate => "Translate",
+            ActionMode::Rotate => "Rotate",
+            ActionMode::Build(_) => "Build",
+            ActionMode::BuildHelix { .. } => "BuildHelix",
+            ActionMode::Cut => "Cut",
+            ActionMode::EditBezierPath => "EditBezierPath",
+        }
     }
 }
 
