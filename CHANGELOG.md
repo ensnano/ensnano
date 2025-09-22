@@ -8,19 +8,19 @@
 
 ## 0.5.0
 - Introduce curved DNA strands in ENSnano
-- Add a new DNA parmaters: inclination, and make it possible to change the DNA parameters
+- Add a new DNA parameters: inclination, and make it possible to change the DNA parameters
 
 ## 0.4.1
 - Introduce the possibility to copy and paste whole grids with their content
 - Make the strand color picker appear when the current selection contains a strand
 (previously, it appeared when the current selection mode was strand)
-- Treat unpaired nucleotide as seperate domains during staples export
+- Treat unpaired nucleotide as separate domains during staples export
 - Show a question mark in place of letter for nucleotide with no basis in 2D view
 - Use cursor icons to indicate that actions are being performed in the 2D/3D views
 - Make it possible to tilt the 3D view with shift + RClick, and the 2D view with alt + Left/Right
-- Make it possible to apply a symetry transformation to the 2d view by pressing ctrl/⌘ + Left/Up/Right/Down
+- Make it possible to apply a symmetry transformation to the 2d view by pressing ctrl/⌘ + Left/Up/Right/Down
 - Make it possible to add single stranded insertions (a.k.a. loopouts) in strands
-- Modify the behaviour of 3D camera rotations. RClick + drag has now the following effect depending of the
+- Modify the behavior of 3D camera rotations. RClick + drag has now the following effect depending of the
    active modifiers (in order of priority)
    * shift: tilt the camera
    * ctrl/⌘: Make a free rotation
@@ -37,25 +37,24 @@
 - Make it possible to move several domain ends at once.
 
 ## 0.3.2
-- Use jemalloc alocator to prevent crash in macOS
-- Add a contextual pannel to position objects in space
-- Load immediatly scaffold sequence when loading a file
+- Use jemalloc allocator to prevent crash in macOS
+- Add a contextual panel to position objects in space
+- Load immediately scaffold sequence when loading a file
 - Fix the filter for scaffold sequence files
 - Always show the position of the hovered nucleotide in the 2D view
 
 ## 0.3.1
 - Improve flexibility of the cross-over suggestions interface. The parameters are in the "Edition" tab
 - Update wgpu to 0.11
-- Files that do not have an `.ens` extensions won't be overiden when saving a design. This fixes a problem that caused
-ENSnano to overide cadnano files for example.
+- Files that do not have an `.ens` extensions won't be overridden when saving a design. This fixes a problem that caused ENSnano to override cadnano files for example.
 - Selected/candidate nucleotide are now highlighted in the 2D view.
 - Fix a bug that would cause high CPU usage while ENSnano was in the background on MacOS
 
 ## 0.3.0
 - It is now possible to translate several helices at once.
-- It is now possible to change the color of several strands at once. Moreover, the red hilighting
+- It is now possible to change the color of several strands at once. Moreover, the red highlighting
 of the select strands disappears when changing color.
-- Several actions that were not undoable before can now be undone:
+- Several actions that were irreversible can now be undone:
  * selections
  * changing color of strands
  * moving helices in the 2d view
@@ -64,7 +63,7 @@ save the design with the current file name instead of opening a file picking dia
 - Shows the length of the currently edited domain in the 2d view
 - When editing a domain, its length (in bp and in nm) is now displayed in the 2d view
 - The `wgpu` dependency is updated to `0.10.1`
-- It is now possible to move helices in the 3d view by doing by grabing and draging the disc at the
+- It is now possible to move helices in the 3d view by doing by grabbing and dragging the disc at the
 intersection between the grid and the helix
 - Strands can now be given a name for spreadsheet export
 - Make it possible to set a pivot point for a group and for current selection
@@ -77,7 +76,7 @@ intersection between the grid and the helix
 - Fix a bug in oxdna export
 - Fix a bug that would make user believe that a cross-over between two 3' ends or two 5' ends was possible in 3D
 view
-- Make it possible to put rotation/translation origin of grids at any point on the grid's latice
+- Make it possible to put rotation/translation origin of grids at any point on the grid's lattice
 - Fix translation of phantom helices
 - Add new icons for rotation and translation action modes, when these action are performed in the
 object's coordinates
@@ -87,7 +86,7 @@ object's coordinates
 an other design
 - Fix import of scadnano files containing insertions or deletions & replace those by single strands
 - Fix a bug that would cause the fitting of the 2D view to be incorrect
-- Fix a bug that would incorretly initiate the length of strands when creating nanotubes
+- Fix a bug that would incorrectly initiate the length of strands when creating nanotubes
 - Fix position of text indicating negative indices on helices in 2d view
 - Fit design on loading
 - Don't switch to Nucleotide selection mode when pasting
