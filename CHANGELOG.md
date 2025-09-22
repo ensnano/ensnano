@@ -1,7 +1,6 @@
 # Changelog
 
 ## 0.5.1
-
 - Fixed a lot of typos
 - Adding new curve functionality
 - (Even) better DNA and RNA double-helix parameters and representation
@@ -45,7 +44,7 @@
 - Always show the position of the hovered nucleotide in the 2D view
 
 ## 0.3.1
-- Improve flexibility of the cross-over suggestions interface. The parameters are in the "Eddition" tab
+- Improve flexibility of the cross-over suggestions interface. The parameters are in the "Edition" tab
 - Update wgpu to 0.11
 - Files that do not have an `.ens` extensions won't be overiden when saving a design. This fixes a problem that caused
 ENSnano to overide cadnano files for example.
