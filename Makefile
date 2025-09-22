@@ -9,7 +9,9 @@ RELEASE_OPT= #--features=log_after_renderer_setup
 SIGNATURE=Developer ID Application: Nicolas Schabanel (2KPHSEF9U9)
 ICON_APP=app-icons/ENSnano
 
-SHADERS := $(shell find . -name '*.spv')
+FRAG_SRCS := $(shell find . -name '*.frag')
+VERT_SRCS := $(shell find . -name '*.vert')
+SHADERS := $(patsubst %.frag,%.frag.spv,$(FRAG_SRCS)) $(patsubst %.vert,%.vert.spv,$(VERT_SRCS))
 
 shaders: ${SHADERS}
 	@echo Shaders compilation: Done.
@@ -77,8 +79,6 @@ mos: ${MACOS_BIN}
 	@echo "\n**** SIGNATURE VERIFICATION ****"
 	codesign -dvvvv ${MACOS_BIN}
 
-
-
 ${MACOS_M1_BIN}: src
 	@echo MACOSX_DEPLOYMENT_TARGET = $$MACOSX_DEPLOYMENT_TARGET
 	cargo build --release --target aarch64-apple-darwin ${RELEASE_OPT}
@@ -102,13 +102,9 @@ m1s: m1
 	rm ${ICON_APP}.tmp.rsrc
 	@echo "\n**** SIGNATURE VERIFICATION ****"
 	codesign -dvvvv ${MACOS_M1_BIN}
- 
-
-
 
 rm_m1:
 	rm ${MACOS_M1_BIN}
-
 
 ${WINDOWS_BIN}: src
 	cargo build --release --target x86_64-pc-windows-gnu
