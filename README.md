@@ -16,7 +16,7 @@ ENSnano include
 Currently, ENSnano can only produces sequences for DNA origamis.
 
 For more details about ENSnano you can checkout the paper introducing it in the proceedings of the
-[DNA27 conference](http://dna27.iopconfs.org/home): 
+DNA27 conference: 
 
 > <ins> ENSnano: a 3D modeling software for DNA nanostructures </ins>
    Nicolas Levy and Nicolas Schabanel.
