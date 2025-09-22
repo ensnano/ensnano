@@ -214,7 +214,7 @@ pub const COLOR_ADENOSINE: u32 = 0x00_CC0000;
 pub const COLOR_THYMINE: u32 = 0x00_0000CC;
 pub const COLOR_GUANINE: u32 = 0x00_00CC00;
 pub const COLOR_CYTOSINE: u32 = 0x00_CC00CC;
-pub const UNKONW_BASE_COLOR: u32 = 0x00_77_88_99;
+pub const UNKNOWN_BASE_COLOR: u32 = 0x00_77_88_99;
 pub const REGULAR_H_BOND_COLOR: u32 = 0x_29_26_26;
 
 pub const RANDOM_COLOR_SHADE_HUE_RANGE: f64 = 0.1;
@@ -227,7 +227,7 @@ pub const fn basis_color(basis: char) -> u32 {
         'T' => COLOR_THYMINE,
         'G' => COLOR_GUANINE,
         'C' => COLOR_CYTOSINE,
-        _ => UNKONW_BASE_COLOR,
+        _ => UNKNOWN_BASE_COLOR,
     }
 }
 
