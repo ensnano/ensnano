@@ -21,7 +21,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! # Organization of the software
 //!
 //!
-//! The [main] function owns the event loop and the framebuffer. It recieves window events
+//! The [main] function owns the event loop and the framebuffer. It receives window events
 //! and handles the framebuffer.
 //!
 //! ## Drawing process
@@ -29,7 +29,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! On each redraw request, the [main] function generates a new frame, and asks the
 //! [Multiplexer](multiplexer) to draw on a view of that texture.
 //!
-//! The [Multiplexer](multiplexer) knows how the window is devided into several regions. For each
+//! The [Multiplexer](multiplexer) knows how the window is divided into several regions. For each
 //! of these region it knows what application or gui component should draw on it. For each region
 //! the [Multiplexer](multiplexer) holds a texture, and at each draw request, it will request the
 //! corresponding app or gui element to possibly update the texture.
@@ -38,7 +38,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! ## Handling of events
 //!
 //! The Global state of the program is encoded in an automaton defined in the
-//! [controller] module. This global state determines wether inputs are handled
+//! [controller] module. This global state determines whether inputs are handled
 //! normally or if the program should wait for the user to interact with dialog windows.
 //!
 //! When the Global automaton is in NormalState, events are forwarded to the
@@ -46,10 +46,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! usually the application displayed in the active region (the region under the cursor). Special
 //! events like resizing of the window are handled by the multiplexer.
 //!
-//! When GUIs handle an event. They recieve a reference to the state of the main program. This
+//! When GUIs handle an event. They receive a reference to the state of the main program. This
 //! state is encoded in the [AppState] data structure. Each GUI component
-//! needs to be able to recieve some specific information about the state of the program to handle
-//! events and to draw their views. Theese needs are encoded in traits. GUI component typically
+//! needs to be able to receive some specific information about the state of the program to handle
+//! events and to draw their views. These needs are encoded in traits. GUI component typically
 //! defines their own `AppState` trait that must be implemented by the concrete `AppState` type.
 //!
 //! GUI components may interpret event as a request from the user to modify the design or the state
@@ -57,14 +57,14 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! the [Requests] data structure. Each application defines a `Requests` trait
 //! that must be implemented by the concrete `Requests` type.
 //!
-//! On each itteration of the main event loop, if the Global controller is in Normal State,
+//! On each iteration of the main event loop, if the Global controller is in Normal State,
 //! requests are polled and transmitted to the main `AppState` by the main controller. The
 //! processing of these requests may have three different kind of consequences:
 //!
-//!  * An undoable action is performed on the main `AppState`, modifiying it. In that case the
+//!  * An undoable action is performed on the main `AppState`, modifying it. In that case the
 //!  current `AppState` is copied on the undo stack and the replaced by the modified one.
 //!
-//!  * A non-undoable action is perfomed on the main `AppState`, modyfing it. In that case, the
+//!  * A non-undoable action is performed on the main `AppState`, modifying it. In that case, the
 //!  current `AppState` is replaced by the modified one, but not stored on the undo stack.
 //!  This typically happens when the `AppState` is in a transient state for example while the user
 //!  is performing a drag and drop action. Transient states are not stored on the undo stack
@@ -73,9 +73,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //!  * An error is returned. In the case the `AppState` is not modified and the user is notified of
 //!  the error. Error typically occur when user attempt to make actions on the design that are not
 //!  permitted by the current state of the program. For example an error is returned if the user
-//!  try to modify the design durring a simulation.
+//!  try to modify the design during a simulation.
 //!
-//!  # Developpement detail
+//!  # Development detail
 //!
 //!  ## [wgpu::PresentMode] compatibility experience
 //!
@@ -195,7 +195,7 @@ fn convert_size_u32(size: PhySize) -> Size<u32> {
 
 /// Determine if log messages can be printed before the renderer setup.
 ///
-/// Setting it to true will print information in the terminal that are not usefull for regular use.
+/// Setting it to true will print information in the terminal that are not useful for regular use.
 /// By default the value is `false`. It can be set to `true` by enabling the
 /// `log_after_renderer_setup` feature.
 #[cfg(not(feature = "log_after_renderer_setup"))]
@@ -221,9 +221,9 @@ const PANIC_ON_WGPU_ERRORS: bool = true;
 
 /// Main function. Runs the event loop and holds the framebuffer.
 ///
-/// # Intialization
+/// # Initialization
 ///
-/// Before running the event loop, the main fuction does the following:
+/// Before running the event loop, the main function does the following:
 ///
 /// * It requests a connection to the GPU and creates a framebuffer.
 /// * It initializes a multiplexer.
@@ -234,14 +234,14 @@ const PANIC_ON_WGPU_ERRORS: bool = true;
 ///
 /// # Event loop
 ///
-/// * The event loop waits for an event. If no event is recieved during 33ms, a new redraw is
+/// * The event loop waits for an event. If no event is received during 33ms, a new redraw is
 /// requested.
-/// * When a event is recieved, it is forwareded to the multiplexer. The Multiplexer may then
-/// convert this event into a event for a specific screen region.
-/// * When all window events have been handled, the main function reads messages that it recieved
-/// from the [Gui Manager](gui::Gui).  The consequences of these messages are forwarded to the
+/// * When a event is received, it is forwarded to the multiplexer. The Multiplexer may then
+/// convert this event into an event for a specific screen region.
+/// * When all window events have been handled, the main function reads messages that it received
+/// from the [Gui Manager](gui::Gui). The consequences of these messages are forwarded to the
 /// applications.
-/// * The main loops then reads the messages that it recieved from the [Mediator](ensnano_interactor::application::AppId::Mediator) and
+/// * The main loops then reads the messages that it received from the [Mediator](ensnano_interactor::application::AppId::Mediator) and
 /// forwards their consequences to the Gui components.
 /// * Finally, a redraw is requested.
 ///
@@ -250,7 +250,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     if EARLY_LOG {
         pretty_env_logger::init();
     }
-    // Parse arugments. If an argument was given it is treated as a file to open.
+    // Parse arguments. If an argument was given it is treated as a file to open.
     let args: Vec<String> = env::args().collect();
     let path = if args.len() >= 2 {
         Some(PathBuf::from(&args[1]))
@@ -266,7 +266,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut windows_title = String::from("ENSnano");
     window.set_title("ENSnano");
-    // NOTE: Why we don't use window.title() ? Because this method dosen't
+    // NOTE: Why we don't use window.title() ? Because this method doesn't
     //       work on linux (both X11 and Wayland). See:
     //
     // https://docs.rs/winit/latest/winit/window/struct.Window.html#platform-specific-41
@@ -478,7 +478,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .applications
         .insert(GuiComponentType::StereographicScene, stereographic_scene);
 
-    // Add a design to the scene if one was given as a command line arguement
+    // Add a design to the scene if one was given as a command line argument
     if path.is_some() {
         main_state.push_action(Action::LoadDesign(path))
     }
@@ -731,7 +731,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         }
                         main_state.applications_cursor = None;
 
-                        // Feed the event to the gui component on which it happenened
+                        // Feed the event to the gui component on which it happened
                         match gui_component_type {
                             component if component.is_panel() => {
                                 iced_winit::conversion::window_event(
@@ -823,7 +823,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             );
                             main_state.pending_actions.push_back(Action::ErrorMsg(msg));
                         } else {
-                            // unwrap because in this block, result is necessarilly an Err
+                            // unwrap because in this block, result is necessarily an Err
                             log::warn!("{:?}", result.err().unwrap());
                         }
                     } else if let ChannelReaderUpdate::SimulationUpdate(update) = update {
@@ -847,7 +847,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     windows_title = new_title;
                 }
 
-                // Treat eventual event that happenend in the gui left panel.
+                // Treat eventual event that happened in the gui left panel.
                 let _overlay_change = overlay_manager.fetch_change(
                     &multiplexer,
                     &window,
@@ -1179,7 +1179,7 @@ impl MainState {
 
     fn update_cursor(&mut self, multiplexer: &Multiplexer) -> bool {
         self.update_simulation_cursor();
-        // Usefull to remember to finish hyperboloid before trying to edit
+        // Useful to remember to finish hyperboloid before trying to edit
         if self.app_state.is_building_hyperboloid()
             && multiplexer
                 .focused_element()
