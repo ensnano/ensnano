@@ -350,8 +350,6 @@ fn build_render_pipeline(
         push_constant_ranges: &[],
     });
 
-    let depth_compare = wgpu::CompareFunction::Less;
-
     let strip_index_format = match primitive_topology {
         wgpu::PrimitiveTopology::LineStrip | wgpu::PrimitiveTopology::TriangleStrip => {
             Some(wgpu::IndexFormat::Uint32)
@@ -389,7 +387,7 @@ fn build_render_pipeline(
         depth_stencil: Some(wgpu::DepthStencilState {
             format: Texture::DEPTH_FORMAT,
             depth_write_enabled: true,
-            depth_compare,
+            depth_compare: wgpu::CompareFunction::Less,
             stencil: Default::default(),
             bias: Default::default(),
         }),

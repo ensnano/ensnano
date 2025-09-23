@@ -185,14 +185,6 @@ pub trait Instanciable {
     {
         false
     }
-
-    /// The method can be overwritten to disable depth test
-    fn depth_test() -> bool
-    where
-        Self: Sized,
-    {
-        true
-    }
 }
 
 /// An object that draws an instanced mesh
@@ -421,7 +413,7 @@ impl<D: Instanciable> InstanceDrawer<D> {
         let models_bind_group_layout =
             device.create_bind_group_layout(&models_bind_group_layout_desc);
 
-        // gather the ressources, [instance, additional ressources]
+        // gather the resources, [instance, additional resources]
         let instance_entry = wgpu::BindGroupLayoutEntry {
             binding: 0,
             visibility: wgpu::ShaderStages::VERTEX,
@@ -485,11 +477,6 @@ impl<D: Instanciable> InstanceDrawer<D> {
             })
         };
 
-        let depth_compare = if D::depth_test() {
-            wgpu::CompareFunction::Less
-        } else {
-            wgpu::CompareFunction::Always
-        };
         let targets = &[Some(wgpu::ColorTargetState {
             format,
             blend: Some(blend_state),
@@ -532,7 +519,7 @@ impl<D: Instanciable> InstanceDrawer<D> {
             depth_stencil: Some(wgpu::DepthStencilState {
                 format: Texture::DEPTH_FORMAT,
                 depth_write_enabled: true,
-                depth_compare,
+                depth_compare: wgpu::CompareFunction::Less,
                 stencil: Default::default(),
                 bias: Default::default(),
             }),
