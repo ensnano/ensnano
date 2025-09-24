@@ -73,12 +73,12 @@ pub(super) trait ControllerState<S: AppState> {
     #[allow(dead_code)]
     fn display(&self) -> Cow<'static, str>;
 
-    fn transition_from(&self, _controller: &Controller<S>) -> TransistionConsequence {
-        TransistionConsequence::Nothing
+    fn transition_from(&self, _controller: &Controller<S>) -> TransitionConsequence {
+        TransitionConsequence::Nothing
     }
 
-    fn transition_to(&self, _controller: &Controller<S>) -> TransistionConsequence {
-        TransistionConsequence::Nothing
+    fn transition_to(&self, _controller: &Controller<S>) -> TransitionConsequence {
+        TransitionConsequence::Nothing
     }
 
     fn check_timers(&mut self, _controller: &Controller<S>) -> Transition<S> {

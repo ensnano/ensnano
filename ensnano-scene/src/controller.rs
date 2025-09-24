@@ -157,7 +157,7 @@ pub enum Consequence {
     SetRevolutionAxisPosition(f32),
 }
 
-enum TransistionConsequence {
+enum TransitionConsequence {
     Nothing,
     InitCameraMovement {
         translation: bool,
@@ -404,10 +404,10 @@ impl<S: AppState> Controller<S> {
         transition.consequences
     }
 
-    fn transition_consequence(&mut self, csq: TransistionConsequence) {
+    fn transition_consequence(&mut self, csq: TransitionConsequence) {
         match csq {
-            TransistionConsequence::Nothing => (),
-            TransistionConsequence::InitCameraMovement { translation, nucl } => {
+            TransitionConsequence::Nothing => (),
+            TransitionConsequence::InitCameraMovement { translation, nucl } => {
                 if let Some(info) = nucl
                     .and_then(|n| self.data.borrow().get_surface_info_nucl(n))
                     .filter(|_| self.current_modifiers_state.shift_key())
@@ -416,14 +416,14 @@ impl<S: AppState> Controller<S> {
                 }
                 self.init_movement(translation && self.current_modifiers_state.shift_key())
             }
-            TransistionConsequence::EndCameraMovement => self.end_movement(),
-            TransistionConsequence::InitFreeXover(nucl, d_id, position) => {
+            TransitionConsequence::EndCameraMovement => self.end_movement(),
+            TransitionConsequence::InitFreeXover(nucl, d_id, position) => {
                 self.data.borrow_mut().init_free_xover(nucl, position, d_id)
             }
-            TransistionConsequence::StartRotatingPivot => {
+            TransitionConsequence::StartRotatingPivot => {
                 self.data.borrow_mut().notify_rotating_pivot()
             }
-            TransistionConsequence::StopRotatingPivot => {
+            TransitionConsequence::StopRotatingPivot => {
                 self.data.borrow_mut().stop_rotating_pivot()
             }
         }

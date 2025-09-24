@@ -90,8 +90,8 @@ pub(super) trait DraggingTransitionTable {
     fn cursor() -> Option<ensnano_interactor::CursorIcon> {
         None
     }
-    fn on_enterring(&self) -> TransistionConsequence;
-    fn on_leaving(&self) -> TransistionConsequence;
+    fn on_enterring(&self) -> TransitionConsequence;
+    fn on_leaving(&self) -> TransitionConsequence;
     fn handles_color_system(&self) -> Option<HandleColors> {
         None
     }
@@ -216,11 +216,11 @@ impl<S: AppState, Table: DraggingTransitionTable> ControllerState<S> for Draggin
         Table::cursor()
     }
 
-    fn transition_to(&self, _controller: &Controller<S>) -> TransistionConsequence {
+    fn transition_to(&self, _controller: &Controller<S>) -> TransitionConsequence {
         self.transition_table.on_enterring()
     }
 
-    fn transition_from(&self, _controller: &Controller<S>) -> TransistionConsequence {
+    fn transition_from(&self, _controller: &Controller<S>) -> TransitionConsequence {
         self.transition_table.on_leaving()
     }
 
@@ -255,15 +255,15 @@ impl DraggingTransitionTable for TranslatingCamera {
         Some(Consequence::MovementEnded)
     }
 
-    fn on_enterring(&self) -> TransistionConsequence {
-        TransistionConsequence::InitCameraMovement {
+    fn on_enterring(&self) -> TransitionConsequence {
+        TransitionConsequence::InitCameraMovement {
             translation: true,
             nucl: self.from_nucl,
         }
     }
 
-    fn on_leaving(&self) -> TransistionConsequence {
-        TransistionConsequence::EndCameraMovement
+    fn on_leaving(&self) -> TransitionConsequence {
+        TransitionConsequence::EndCameraMovement
     }
 
     fn cursor() -> Option<ensnano_interactor::CursorIcon> {
@@ -319,15 +319,15 @@ impl DraggingTransitionTable for RotatingCamera {
         Some(CursorIcon::AllScroll)
     }
 
-    fn on_enterring(&self) -> TransistionConsequence {
-        TransistionConsequence::InitCameraMovement {
+    fn on_enterring(&self) -> TransitionConsequence {
+        TransitionConsequence::InitCameraMovement {
             translation: false,
             nucl: None,
         }
     }
 
-    fn on_leaving(&self) -> TransistionConsequence {
-        TransistionConsequence::EndCameraMovement
+    fn on_leaving(&self) -> TransitionConsequence {
+        TransitionConsequence::EndCameraMovement
     }
 }
 
@@ -357,15 +357,15 @@ impl DraggingTransitionTable for TiltingCamera {
         Some(Consequence::MovementEnded)
     }
 
-    fn on_enterring(&self) -> TransistionConsequence {
-        TransistionConsequence::InitCameraMovement {
+    fn on_enterring(&self) -> TransitionConsequence {
+        TransitionConsequence::InitCameraMovement {
             translation: false,
             nucl: None,
         }
     }
 
-    fn on_leaving(&self) -> TransistionConsequence {
-        TransistionConsequence::EndCameraMovement
+    fn on_leaving(&self) -> TransitionConsequence {
+        TransitionConsequence::EndCameraMovement
     }
 
     fn cursor() -> Option<ensnano_interactor::CursorIcon> {
@@ -421,12 +421,12 @@ impl DraggingTransitionTable for MakingXover {
         }
     }
 
-    fn on_enterring(&self) -> TransistionConsequence {
-        TransistionConsequence::InitFreeXover(self.origin.nucl, 0, self.origin.position)
+    fn on_enterring(&self) -> TransitionConsequence {
+        TransitionConsequence::InitFreeXover(self.origin.nucl, 0, self.origin.position)
     }
 
-    fn on_leaving(&self) -> TransistionConsequence {
-        TransistionConsequence::Nothing
+    fn on_leaving(&self) -> TransitionConsequence {
+        TransitionConsequence::Nothing
     }
 
     fn cursor() -> Option<ensnano_interactor::CursorIcon> {
@@ -616,12 +616,12 @@ impl DraggingTransitionTable for RotatingWidget {
         Some(Consequence::MovementEnded)
     }
 
-    fn on_enterring(&self) -> TransistionConsequence {
-        TransistionConsequence::StartRotatingPivot
+    fn on_enterring(&self) -> TransitionConsequence {
+        TransitionConsequence::StartRotatingPivot
     }
 
-    fn on_leaving(&self) -> TransistionConsequence {
-        TransistionConsequence::StopRotatingPivot
+    fn on_leaving(&self) -> TransitionConsequence {
+        TransitionConsequence::StopRotatingPivot
     }
 
     fn on_cursor_moved<S: AppState>(
