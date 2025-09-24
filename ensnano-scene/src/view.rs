@@ -516,7 +516,7 @@ impl View {
                 Texture::create_depth_texture(self.device.as_ref(), &area.size, SAMPLE_COUNT);
             self.fake_depth_texture = Texture::create_depth_texture(self.device.as_ref(), &size, 1);
             self.msaa_texture = if SAMPLE_COUNT > 1 {
-                Some(ensnano_utils::texture::Texture::create_msaa_texture(
+                Some(Texture::create_msaa_texture(
                     self.device.clone().as_ref(),
                     &area.size,
                     SAMPLE_COUNT,
@@ -589,7 +589,7 @@ impl View {
 
         let png_depth;
 
-        let depth_attachement = if !fake_color && draw_type == DrawType::Scene {
+        let depth_attachment = if !fake_color && draw_type == DrawType::Scene {
             &self.depth_texture
         } else if let DrawType::Png { width, height } = draw_type {
             let size = PhySize::new(width, height);
@@ -615,7 +615,7 @@ impl View {
                     },
                 })],
                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                    view: &depth_attachement.view,
+                    view: &depth_attachment.view,
                     depth_ops: Some(wgpu::Operations {
                         load: wgpu::LoadOp::Clear(1.),
                         store: wgpu::StoreOp::Store,
@@ -625,7 +625,7 @@ impl View {
                         store: wgpu::StoreOp::Store,
                     }),
                 }),
-                // TODO: New attributes comming with iced 0.12 (1/3)
+                // TODO: New attributes coming with iced 0.12 (1/3)
                 //       So far I don't know which value put in here, so I stick to
                 //       the most simple. Please, the one who knows, set an appropriate
                 //       value here and after.
@@ -792,7 +792,7 @@ impl View {
                     },
                 })],
                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                    view: &depth_attachement.view,
+                    view: &depth_attachment.view,
                     depth_ops: Some(wgpu::Operations {
                         load: wgpu::LoadOp::Clear(1.),
                         store: wgpu::StoreOp::Store,
@@ -839,7 +839,7 @@ impl View {
                 })],
                 // Reuse previous depth_stencil_attachment
                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                    view: &depth_attachement.view,
+                    view: &depth_attachment.view,
                     depth_ops: Some(wgpu::Operations {
                         load: wgpu::LoadOp::Load,
                         store: wgpu::StoreOp::Store,
