@@ -274,12 +274,12 @@ impl AppState {
     }
 
     pub(super) fn apply_simulation_update(&mut self, update: Box<dyn SimulationUpdate>) {
-        apply_update(self, |s| s.with_simualtion_update_applied(update))
+        apply_update(self, |s| s.with_simulation_update_applied(update))
     }
 
-    fn with_simualtion_update_applied(self, update: Box<dyn SimulationUpdate>) -> Self {
+    fn with_simulation_update_applied(self, update: Box<dyn SimulationUpdate>) -> Self {
         let mut design = self.0.design.clone_inner();
-        design = design.with_simualtion_update_applied(update);
+        design = design.with_simulation_update_applied(update);
         self.with_interactor(design)
     }
 

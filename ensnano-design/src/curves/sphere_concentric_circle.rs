@@ -427,7 +427,7 @@ impl PillTennisBallSeamDescriptor {
             _parameters: helix_parameters,
             length: self.length,
             // theta_0,
-            t1a, 
+            t1a,
             t1,
             t1b,
             t2,
@@ -773,7 +773,7 @@ impl Curved for PillConcentricStadium {
                 x: self.z_radius,
                 y: -self.length / 2.0 + t,
                 z: self.z,
-            }
+            };
         }
         if t < self.t2 {
             let t = (t - self.t1) / self.z_radius;
@@ -805,7 +805,7 @@ impl Curved for PillConcentricStadium {
                 x: 0.0,
                 y: 1.0,
                 z: 0.0,
-            }
+            };
         }
         if t < self.t2 {
             let t = (t - self.t1) / self.z_radius;
@@ -859,7 +859,7 @@ impl Curved for PillConcentricStadium {
     }
 
     fn inverse_curvilinear_abscissa(&self, _x: f64) -> Option<f64> {
-        Some(_x /  self.perimeter)
+        Some(_x / self.perimeter)
     }
 
     fn bounds(&self) -> super::CurveBounds {

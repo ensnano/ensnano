@@ -28,7 +28,7 @@ use crate::{
     BezierPathData, BezierPathId,
 };
 
-use self::sphere_concentric_circle::{SphereTennisBallSeam, PillTennisBallSeam};
+use self::sphere_concentric_circle::{PillTennisBallSeam, SphereTennisBallSeam};
 
 use super::{Helix, HelixParameters};
 use std::sync::Arc;
@@ -60,7 +60,8 @@ pub use bezier::{
 pub use circle_curve::CircleCurve;
 pub use revolution::{InterpolatedCurveDescriptor, InterpolationDescriptor};
 pub use sphere_concentric_circle::{
-    SphereConcentricCircleDescriptor, SphereTennisBallSeamDescriptor, PillTennisBallSeamDescriptor, PillConcentricStadiumDescriptor,
+    PillConcentricStadiumDescriptor, PillTennisBallSeamDescriptor,
+    SphereConcentricCircleDescriptor, SphereTennisBallSeamDescriptor,
 };
 pub use sphere_like_spiral::{SphereLikeSpiralDescriptor, SphereOrientation};
 pub use spiral_cylinder::SpiralCylinderDescriptor;
@@ -905,9 +906,9 @@ impl InstanciatedCurveDescriptor {
             CurveDescriptor::PillConcentricStadium(s) => Some(
                 InstanciatedCurveDescriptor_::PillConcentricStadium(s.clone()),
             ),
-            CurveDescriptor::PillTennisBallSeam(s) => Some(
-                InstanciatedCurveDescriptor_::PillTennisBallSeam(s.clone()),
-            ),
+            CurveDescriptor::PillTennisBallSeam(s) => {
+                Some(InstanciatedCurveDescriptor_::PillTennisBallSeam(s.clone()))
+            }
             CurveDescriptor::SpiralCylinder(s) => {
                 Some(InstanciatedCurveDescriptor_::SpiralCylinder(s.clone()))
             }

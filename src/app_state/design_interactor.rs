@@ -264,7 +264,7 @@ impl DesignInteractor {
         }
     }
 
-    pub(super) fn with_simualtion_update_applied(
+    pub(super) fn with_simulation_update_applied(
         mut self,
         update: Box<dyn SimulationUpdate>,
     ) -> Self {
