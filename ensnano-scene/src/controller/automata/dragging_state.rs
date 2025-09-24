@@ -159,12 +159,12 @@ macro_rules! dragging_state_constructor_with_state {
 
 macro_rules! no_csq_leaving_or_entering {
     () => {
-        fn on_enterring(&self) -> TransistionConsequence {
-            TransistionConsequence::Nothing
+        fn on_enterring(&self) -> TransitionConsequence {
+            TransitionConsequence::Nothing
         }
 
-        fn on_leaving(&self) -> TransistionConsequence {
-            TransistionConsequence::Nothing
+        fn on_leaving(&self) -> TransitionConsequence {
+            TransitionConsequence::Nothing
         }
     };
 }
