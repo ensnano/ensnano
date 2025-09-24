@@ -109,8 +109,6 @@ pub struct View {
     fake_depth_texture: Texture,
     /// The handle drawers draw handles to translate the elements
     handle_drawers: HandlesDrawer,
-    /// The handle drawers draw frames along helix 0
-    all_frames_drawers: Vec<HandlesDrawer>,
     /// The rotation widget draw the widget to rotate the elements
     rotation_widget: RotationWidget,
     /// A possible update of the size of the drawing area, must be taken into account before
@@ -325,8 +323,6 @@ impl View {
 
         let cut_plane_parameters = None::<CutPlaneParameters>;
 
-        let all_frames_drawers = Vec::new();
-
         Self {
             camera,
             projection,
@@ -338,7 +334,6 @@ impl View {
             stereographic_viewer,
             models,
             handle_drawers: HandlesDrawer::new(device.clone()),
-            all_frames_drawers,
             rotation_widget: RotationWidget::new(device),
             letter_drawer,
             helix_letter_drawer,
