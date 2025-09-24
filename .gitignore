@@ -2,3 +2,4 @@ target/
 .vscode/
 # TODO: push the Cargo.lock
 Cargo.lock
+*.dot
