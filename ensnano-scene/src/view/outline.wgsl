@@ -30,9 +30,13 @@ fn linearize_depth(depth: f32, near: f32, far: f32) -> f32 {
     return (near * far) / (far - depth * (far - near));
 }
 
-// TODO: don't hardcode SAMPLE_COUNT, camera near and camera far
+// TODO: don't hardcode sample count (4), camera near (0.1) and camera far (1000.0)
 fn load_depth(center: vec2<i32>, direction: vec2<i32>) -> f32 {
-    let coord = clamp(center + direction, vec2<i32>(0), vec2<i32>(textureDimensions(depth_tex_ms) - 1));
+    let coord = clamp(
+        center + direction,
+        vec2<i32>(0),
+        vec2<i32>(textureDimensions(depth_tex_ms)) - 1
+    );
 
     let d0 = textureLoad(depth_tex_ms, coord, 0);
     let d1 = textureLoad(depth_tex_ms, coord, 1);
@@ -70,8 +74,9 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     // Sobel filter
     let gx = (d20 + 2.0 * d21 + d22) - (d00 + 2.0 * d01 + d02);
     let gy = (d02 + 2.0 * d12 + d22) - (d00 + 2.0 * d10 + d20);
-    let g = sqrt(gx * gx + gy * gy);
+    // Gradient squared, to avoid costly sqrt
+    let g2 = gx * gx + gy * gy;
 
-    // return vec4(0.0, 0.0, 0.0, smoothstep(5.0, 20.0, g)); // outline
-    return vec4(smoothstep(20.0, 5.0, g), smoothstep(20.0, 5.0, g), smoothstep(20.0, 5.0, g), 1.0); // black and white
+    // return vec4(0.0, 0.0, 0.0, smoothstep(25.0, 100.0, g2)); // outline
+    return vec4(vec3(smoothstep(100.0, 25.0, g2)), 1.0); // black and white
 }
