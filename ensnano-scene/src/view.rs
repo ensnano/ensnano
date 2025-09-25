@@ -142,8 +142,8 @@ pub struct View {
     cut_plane_parameters: Option<CutPlaneParameters>,
     // Outline shader parameters. TODO: use InstanceDrawer?
     outline_pipeline: wgpu::RenderPipeline,
-    outline_bg_layout: wgpu::BindGroupLayout,
-    outline_bg: wgpu::BindGroup,
+    outline_bgl: wgpu::BindGroupLayout,
+    outline_bind_group: wgpu::BindGroup,
 }
 
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
@@ -325,8 +325,7 @@ impl View {
         let cut_plane_parameters = None::<CutPlaneParameters>;
 
         // === OUTLINE SHADER ===
-        let outline_shader = device.create_shader_module(wgpu::include_wgsl!("view/outline.wgsl"));
-        let outline_bg_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+        let outline_bgl = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             label: Some("outline bg layout (MSAA)"),
             entries: &[
                 // multisampled depth; no sampler binding
@@ -342,22 +341,22 @@ impl View {
                 },
             ],
         });
-
-        let outline_bg = device.create_bind_group(&wgpu::BindGroupDescriptor {
+        let outline_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: Some("outline bg (MSAA)"),
-            layout: &outline_bg_layout,
+            layout: &outline_bgl,
             entries: &[wgpu::BindGroupEntry {
                 binding: 0,
                 resource: wgpu::BindingResource::TextureView(&depth_texture.view),
             }],
         });
 
+        let outline_shader = device.create_shader_module(wgpu::include_wgsl!("view/outline.wgsl"));
         let outline_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             label: Some("outline pipeline"),
             layout: Some(
                 &device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                     label: Some("outline pipeline layout"),
-                    bind_group_layouts: &[&outline_bg_layout],
+                    bind_group_layouts: &[&outline_bgl],
                     push_constant_ranges: &[],
                 }),
             ),
@@ -425,8 +424,8 @@ impl View {
             sheets_drawer,
             cut_plane_parameters,
             outline_pipeline,
-            outline_bg_layout,
-            outline_bg,
+            outline_bgl,
+            outline_bind_group,
         }
     }
 
@@ -595,9 +594,9 @@ impl View {
                 None
             };
 
-            self.outline_bg = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
+            self.outline_bind_group = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
                 label: Some("outline bg (MSAA)"),
-                layout: &self.outline_bg_layout,
+                layout: &self.outline_bgl,
                 entries: &[wgpu::BindGroupEntry {
                     binding: 0,
                     resource: wgpu::BindingResource::TextureView(&self.depth_texture.view),
@@ -872,7 +871,7 @@ impl View {
                 occlusion_query_set: None,
             });
             outline_render_pass.set_pipeline(&self.outline_pipeline);
-            outline_render_pass.set_bind_group(0, &self.outline_bg, &[]);
+            outline_render_pass.set_bind_group(0, &self.outline_bind_group, &[]);
             outline_render_pass.draw(0..3, 0..1); // fullscreen triangle
         }
 
