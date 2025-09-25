@@ -803,33 +803,36 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 first_iteration = false;
 
                 for update in main_state.channel_reader.get_updates() {
-                    if let ChannelReaderUpdate::ScaffoldShiftOptimizationProgress(x) = update {
-                        main_state
-                            .messages
-                            .lock()
-                            .unwrap()
-                            .push_progress("Optimizing: ".to_string(), x);
-                    } else if let ChannelReaderUpdate::ScaffoldShiftOptimizationResult(result) =
-                        update
-                    {
-                        main_state.messages.lock().unwrap().finish_progess();
-                        if let Ok(result) = result {
-                            main_state.apply_operation(DesignOperation::SetScaffoldShift(
-                                result.position,
-                            ));
-                            let msg = format!(
-                                "Scaffold position set to {}\n {}",
-                                result.position, result.score
-                            );
-                            main_state.pending_actions.push_back(Action::ErrorMsg(msg));
-                        } else {
-                            // unwrap because in this block, result is necessarily an Err
-                            log::warn!("{:?}", result.err().unwrap());
+                    match update {
+                        ChannelReaderUpdate::ScaffoldShiftOptimizationProgress(x) => {
+                            main_state
+                                .messages
+                                .lock()
+                                .unwrap()
+                                .push_progress("Optimizing: ".to_string(), x);
                         }
-                    } else if let ChannelReaderUpdate::SimulationUpdate(update) = update {
-                        main_state.app_state.apply_simulation_update(update)
-                    } else if let ChannelReaderUpdate::SimulationExpired = update {
-                        main_state.update_simulation(SimulationRequest::Stop)
+                        ChannelReaderUpdate::ScaffoldShiftOptimizationResult(result) => {
+                            main_state.messages.lock().unwrap().finish_progess();
+                            if let Ok(result) = result {
+                                main_state.apply_operation(DesignOperation::SetScaffoldShift(
+                                    result.position,
+                                ));
+                                let msg = format!(
+                                    "Scaffold position set to {}\n {}",
+                                    result.position, result.score
+                                );
+                                main_state.pending_actions.push_back(Action::ErrorMsg(msg));
+                            } else {
+                                // unwrap because in this block, result is necessarily an Err
+                                log::warn!("{:?}", result.err().unwrap());
+                            }
+                        }
+                        ChannelReaderUpdate::SimulationUpdate(update) => {
+                            main_state.app_state.apply_simulation_update(update)
+                        }
+                        ChannelReaderUpdate::SimulationExpired => {
+                            main_state.update_simulation(SimulationRequest::Stop)
+                        }
                     }
                 }
 
