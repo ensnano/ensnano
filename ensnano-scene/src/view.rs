@@ -522,13 +522,7 @@ impl View {
             };
         }
         let clear_color = if fake_color || draw_options.background3d == Background3D::White {
-            // 0xFF_FF_FF_FF is the "default" color for the fake texture
-            wgpu::Color {
-                r: 1.,
-                g: 1.,
-                b: 1.,
-                a: 1.,
-            }
+            wgpu::Color::WHITE
         } else {
             // Clearing with black is a bit faster than with other colors, so that's what we do
             // when possible
