@@ -114,7 +114,7 @@ pub struct View {
     /// A possible update of the size of the drawing area, must be taken into account before
     /// drawing the next frame
     new_size: Option<PhySize>,
-    /// The pipilines that draw the basis symbols
+    /// The pipelines that draw the basis symbols
     letter_drawer: Vec<InstanceDrawer<LetterInstance>>,
     helix_letter_drawer: Vec<InstanceDrawer<LetterInstance>>,
     device: Rc<Device>,
@@ -138,8 +138,12 @@ pub struct View {
     external_objects_drawer: Object3DDrawer,
     stereography: Stereography,
     sheets_drawer: InstanceDrawer<Sheet2D>,
-    /// Cutting plane
+    /// Cutting plane. TODO: remove? I don't see where the value is ever not `None`
     cut_plane_parameters: Option<CutPlaneParameters>,
+    // Outline shader parameters. TODO: use InstanceDrawer?
+    outline_pipeline: wgpu::RenderPipeline,
+    outline_bg_layout: wgpu::BindGroupLayout,
+    outline_bg: wgpu::BindGroup,
 }
 
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
@@ -320,6 +324,78 @@ impl View {
 
         let cut_plane_parameters = None::<CutPlaneParameters>;
 
+        // === OUTLINE SHADER ===
+        println!("{SAMPLE_COUNT}");
+        let outline_shader = device.create_shader_module(wgpu::include_wgsl!("view/outline.wgsl"));
+        let outline_bg_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+            label: Some("outline bg layout (MSAA)"),
+            entries: &[
+                // multisampled depth; no sampler binding
+                wgpu::BindGroupLayoutEntry {
+                    binding: 0,
+                    visibility: wgpu::ShaderStages::FRAGMENT,
+                    ty: wgpu::BindingType::Texture {
+                        multisampled: true,
+                        sample_type: wgpu::TextureSampleType::Depth,
+                        view_dimension: wgpu::TextureViewDimension::D2,
+                    },
+                    count: None,
+                },
+            ],
+        });
+
+        let outline_bg = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("outline bg (MSAA)"),
+            layout: &outline_bg_layout,
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0,
+                resource: wgpu::BindingResource::TextureView(&depth_texture.view),
+            }],
+        });
+
+        let outline_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: Some("outline pipeline"),
+            layout: Some(
+                &device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+                    label: Some("outline pipeline layout"),
+                    bind_group_layouts: &[&outline_bg_layout],
+                    push_constant_ranges: &[],
+                }),
+            ),
+            vertex: wgpu::VertexState {
+                module: &outline_shader,
+                entry_point: "vs_main",
+                buffers: &[],
+            },
+            fragment: Some(wgpu::FragmentState {
+                module: &outline_shader,
+                entry_point: "fs_main",
+                targets: &[Some(wgpu::ColorTargetState {
+                    format: wgpu::TextureFormat::Bgra8UnormSrgb,
+                    blend: Some(wgpu::BlendState {
+                        color: wgpu::BlendComponent {
+                            src_factor: wgpu::BlendFactor::SrcAlpha,
+                            dst_factor: wgpu::BlendFactor::OneMinusSrcAlpha,
+                            operation: wgpu::BlendOperation::Add,
+                        },
+                        alpha: wgpu::BlendComponent {
+                            src_factor: wgpu::BlendFactor::One,
+                            dst_factor: wgpu::BlendFactor::OneMinusSrcAlpha,
+                            operation: wgpu::BlendOperation::Add,
+                        },
+                    }),
+                    write_mask: wgpu::ColorWrites::ALL,
+                })],
+            }),
+            primitive: wgpu::PrimitiveState::default(),
+            depth_stencil: None,
+            multisample: wgpu::MultisampleState {
+                count: SAMPLE_COUNT,
+                ..Default::default()
+            },
+            multiview: None,
+        });
+
         Self {
             camera,
             projection,
@@ -349,6 +425,9 @@ impl View {
             stereography,
             sheets_drawer,
             cut_plane_parameters,
+            outline_pipeline,
+            outline_bg_layout,
+            outline_bg,
         }
     }
 
@@ -516,6 +595,15 @@ impl View {
             } else {
                 None
             };
+
+            self.outline_bg = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
+                label: Some("outline bg (MSAA)"),
+                layout: &self.outline_bg_layout,
+                entries: &[wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: wgpu::BindingResource::TextureView(&self.depth_texture.view),
+                }],
+            })
         }
         let clear_color = if fake_color || draw_options.background3d == Background3D::White {
             wgpu::Color::WHITE
@@ -768,6 +856,27 @@ impl View {
                 self.need_redraw_fake = true;
             }
         }
+
+        if !fake_color && draw_type == DrawType::Scene {
+            let mut outline_render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("outline_render_pass"),
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view: attachment,
+                    resolve_target,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Load,
+                        store: wgpu::StoreOp::Store,
+                    },
+                })],
+                depth_stencil_attachment: None,
+                timestamp_writes: None,
+                occlusion_query_set: None,
+            });
+            outline_render_pass.set_pipeline(&self.outline_pipeline);
+            outline_render_pass.set_bind_group(0, &self.outline_bg, &[]);
+            outline_render_pass.draw(0..3, 0..1); // fullscreen triangle
+        }
+
         if !fake_color && draw_type == DrawType::Scene {
             let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: None,
