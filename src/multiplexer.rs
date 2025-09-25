@@ -283,8 +283,8 @@ impl Multiplexer {
                 },
             })],
             depth_stencil_attachment: None,
-            timestamp_writes: None,    //TODO: Think of an appropriate value!
-            occlusion_query_set: None, //TODO: Think of an appropriate value!
+            timestamp_writes: None,
+            occlusion_query_set: None,
         });
         if self.window_size.width > 0 && self.window_size.height > 0 {
             for element in [

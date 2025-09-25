@@ -140,8 +140,6 @@ fn fill_square_texture(target: &TextureView, device: &Device, encoder: &mut wgpu
             },
         })],
         depth_stencil_attachment: None,
-        // TODO: New fields in iced 0.12. (1/2)
-        //       Please, the one who knows, set these fields to appropriate values.
         timestamp_writes: None,
         occlusion_query_set: None,
     });
@@ -291,7 +289,6 @@ fn fill_honneycomb_texture(
             },
         })],
         depth_stencil_attachment: None,
-        // TODO: New fields in iced 0.12. (2/2)
         timestamp_writes: None,
         occlusion_query_set: None,
     });

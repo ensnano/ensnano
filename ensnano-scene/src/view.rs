@@ -620,10 +620,6 @@ impl View {
                         store: wgpu::StoreOp::Store,
                     }),
                 }),
-                // TODO: New attributes coming with iced 0.12 (1/3)
-                //       So far I don't know which value put in here, so I stick to
-                //       the most simple. Please, the one who knows, set an appropriate
-                //       value here and after.
                 timestamp_writes: None,
                 occlusion_query_set: None,
             });
@@ -804,7 +800,6 @@ impl View {
                         store: wgpu::StoreOp::Store,
                     }),
                 }),
-                // TODO: New attributes comming with iced 0.12 (2/3)
                 timestamp_writes: None,
                 occlusion_query_set: None,
             });
@@ -851,7 +846,6 @@ impl View {
                         store: wgpu::StoreOp::Store,
                     }),
                 }),
-                // TODO: New attributes comming with iced 0.12 (3/3)
                 timestamp_writes: None,
                 occlusion_query_set: None,
             });

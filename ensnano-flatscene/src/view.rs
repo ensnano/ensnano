@@ -701,10 +701,6 @@ impl View {
                     store: wgpu::StoreOp::Store,
                 }),
             }),
-            // TODO: New attributes comming with iced 0.12 (1/7)
-            //       So far I don't know which value put in here, so I stick to
-            //       the most simple. Please, the one who knows, set an appropriate
-            //       value here and after.
             timestamp_writes: None,
             occlusion_query_set: None,
         });
@@ -768,7 +764,6 @@ impl View {
                     store: wgpu::StoreOp::Store,
                 }),
             }),
-            // TODO: New attributes comming with iced 0.12 (2/7)
             timestamp_writes: None,
             occlusion_query_set: None,
         });
@@ -842,7 +837,6 @@ impl View {
                     store: wgpu::StoreOp::Store,
                 }),
             }),
-            // TODO: New attributes comming with iced 0.12 (3/7)
             timestamp_writes: None,
             occlusion_query_set: None,
         });
@@ -908,7 +902,6 @@ impl View {
                         store: wgpu::StoreOp::Store,
                     }),
                 }),
-                // TODO: New attributes comming with iced 0.12 (4/7)
                 timestamp_writes: None,
                 occlusion_query_set: None,
             });
@@ -961,7 +954,6 @@ impl View {
                         store: wgpu::StoreOp::Store,
                     }),
                 }),
-                // TODO: New attributes comming with iced 0.12 (5/7)
                 timestamp_writes: None,
                 occlusion_query_set: None,
             });
@@ -1024,7 +1016,6 @@ impl View {
                         store: wgpu::StoreOp::Store,
                     }),
                 }),
-                // TODO: New attributes comming with iced 0.12 (6/7)
                 timestamp_writes: None,
                 occlusion_query_set: None,
             });
@@ -1085,7 +1076,6 @@ impl View {
                         store: wgpu::StoreOp::Store,
                     }),
                 }),
-                // TODO: New attributes comming with iced 0.12 (7/7)
                 timestamp_writes: None,
                 occlusion_query_set: None,
             });
