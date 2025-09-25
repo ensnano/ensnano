@@ -52,7 +52,7 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
 
     // Don't outline the skybox
     let d11 = load_depth(center, vec2<i32>(0, 0));
-    if d11 > 450.0 { // TODO: get skybox size (500) in uniform
+    if d11 > 300.0 { // TODO: get skybox size (500) in uniform
         return vec4<f32>(0.0, 0.0, 0.0, 0.0);
     }
 
@@ -72,5 +72,6 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     let gy = (d02 + 2.0 * d12 + d22) - (d00 + 2.0 * d10 + d20);
     let g = sqrt(gx * gx + gy * gy);
 
-    return vec4(0.0, 0.0, 0.0, smoothstep(5.0, 20.0, g));
+    // return vec4(0.0, 0.0, 0.0, smoothstep(5.0, 20.0, g)); // outline
+    return vec4(smoothstep(20.0, 5.0, g), smoothstep(20.0, 5.0, g), smoothstep(20.0, 5.0, g), 1.0); // black and white
 }
