@@ -403,7 +403,6 @@ impl View {
                     self.projection.clone(),
                 );
             }
-
             ViewUpdate::RotationWidget(descr) => {
                 self.rotation_widget.update_decriptor(
                     descr,
@@ -484,7 +483,7 @@ impl View {
         self.need_redraw | self.redraw_twice
     }
 
-    /// update cut plane
+    // Is a feature missing? This just prints. - Axel
     pub fn update_cut_plane(&mut self, normal: Vec3, dot_value: f32) {
         println!(
             "Update cut plane to: normal: <{},{},{}> dot: {dot_value}",
