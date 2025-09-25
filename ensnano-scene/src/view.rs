@@ -644,62 +644,69 @@ impl View {
                 );
             }
 
-            if draw_type == DrawType::Design {
-                for drawer in self.dna_drawers.fakes() {
-                    drawer.draw(
-                        &mut render_pass,
-                        viewer.get_bindgroup(),
-                        self.models.get_bindgroup(),
-                    )
+            match draw_type {
+                DrawType::Design => {
+                    for drawer in self.dna_drawers.fakes() {
+                        drawer.draw(
+                            &mut render_pass,
+                            viewer.get_bindgroup(),
+                            self.models.get_bindgroup(),
+                        )
+                    }
                 }
-            } else if draw_type == DrawType::Scene {
-                log::trace!("Draw sky..");
-                if draw_options.background3d == Background3D::Sky {
-                    self.skybox_cube.draw(
+                DrawType::Scene => {
+                    log::trace!("Draw sky..");
+                    if draw_options.background3d == Background3D::Sky {
+                        self.skybox_cube.draw(
+                            &mut render_pass,
+                            viewer.get_bindgroup(),
+                            self.models.get_bindgroup(),
+                        );
+                    }
+                    log::trace!("..Done");
+                    for drawer in self.dna_drawers.reals(&draw_options) {
+                        drawer.draw(
+                            &mut render_pass,
+                            viewer.get_bindgroup(),
+                            self.models.get_bindgroup(),
+                        )
+                    }
+                }
+                DrawType::Png { .. } => {
+                    for drawer in self.dna_drawers.reals(&draw_options) {
+                        drawer.draw(
+                            &mut render_pass,
+                            viewer.get_bindgroup(),
+                            self.models.get_bindgroup(),
+                        )
+                    }
+                }
+                DrawType::Phantom => {
+                    for drawer in self.dna_drawers.phantoms() {
+                        drawer.draw(
+                            &mut render_pass,
+                            viewer.get_bindgroup(),
+                            self.models.get_bindgroup(),
+                        )
+                    }
+                }
+                DrawType::Grid => {
+                    // Draw design elements and phantoms, to fill the depth buffer
+                    for drawer in self.dna_drawers.fakes_and_phantoms() {
+                        drawer.draw(
+                            &mut render_pass,
+                            viewer.get_bindgroup(),
+                            self.models.get_bindgroup(),
+                        )
+                    }
+                }
+                DrawType::Widget => {
+                    self.dna_drawers.fake_bezier_control.draw(
                         &mut render_pass,
-                        viewer.get_bindgroup(),
+                        viewer_bind_group,
                         self.models.get_bindgroup(),
                     );
                 }
-                log::trace!("..Done");
-                for drawer in self.dna_drawers.reals(&draw_options) {
-                    drawer.draw(
-                        &mut render_pass,
-                        viewer.get_bindgroup(),
-                        self.models.get_bindgroup(),
-                    )
-                }
-            } else if matches!(draw_type, DrawType::Png { .. }) {
-                for drawer in self.dna_drawers.reals(&draw_options) {
-                    drawer.draw(
-                        &mut render_pass,
-                        viewer.get_bindgroup(),
-                        self.models.get_bindgroup(),
-                    )
-                }
-            } else if draw_type == DrawType::Phantom {
-                for drawer in self.dna_drawers.phantoms() {
-                    drawer.draw(
-                        &mut render_pass,
-                        viewer.get_bindgroup(),
-                        self.models.get_bindgroup(),
-                    )
-                }
-            } else if draw_type == DrawType::Grid {
-                // Draw design elements and phantoms, to fill the depth buffer
-                for drawer in self.dna_drawers.fakes_and_phantoms() {
-                    drawer.draw(
-                        &mut render_pass,
-                        viewer.get_bindgroup(),
-                        self.models.get_bindgroup(),
-                    )
-                }
-            } else if draw_type == DrawType::Widget {
-                self.dna_drawers.fake_bezier_control.draw(
-                    &mut render_pass,
-                    viewer_bind_group,
-                    self.models.get_bindgroup(),
-                );
             }
 
             if !fake_color && !stereographic && self.draw_letter {
