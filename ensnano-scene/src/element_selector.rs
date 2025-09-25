@@ -397,59 +397,57 @@ impl SceneReader {
             b,
             a
         );
-        let color = r + g + b;
+
         if a == u32::from(ObjType::None) {
-            None
-        } else {
-            match self.draw_type {
-                DrawType::Grid => {
-                    if a == u32::from(ObjType::BezierVertex) {
-                        let vertex = BezierVertexId {
-                            path_id: BezierPathId(r >> 16),
-                            vertex_id: (g + b) as usize,
-                        };
-                        Some(SceneElement::Grid(0, GridId::BezierPathGrid(vertex)))
-                    } else {
-                        Some(SceneElement::Grid(0, GridId::FreeGrid(color as usize)))
-                    }
-                }
-                DrawType::Design => {
-                    if a == u32::from(ObjType::BezierVertex) {
-                        Some(SceneElement::BezierVertex {
-                            path_id: BezierPathId(r >> 16),
-                            vertex_id: (g + b) as usize,
-                        })
-                    } else if a == u32::from(ObjType::BezierPlaneCorner) {
-                        Some(SceneElement::PlaneCorner {
-                            plane_id: BezierPlaneId(g + b),
-                            corner_type: CornerType::from_u32(r >> 16),
-                        })
-                    } else if a == u32::from(ObjType::BezierTangentIn) {
-                        Some(SceneElement::BezierTangent {
-                            path_id: BezierPathId(r >> 16),
-                            vertex_id: (g + b) as usize,
-                            tangent_in: true,
-                        })
-                    } else if a == u32::from(ObjType::BezierTangentOut) {
-                        Some(SceneElement::BezierTangent {
-                            path_id: BezierPathId(r >> 16),
-                            vertex_id: (g + b) as usize,
-                            tangent_in: false,
-                        })
-                    } else {
-                        Some(SceneElement::DesignElement(a, color))
-                    }
-                }
-                DrawType::Phantom => {
-                    Some(SceneElement::PhantomElement(phantom_helix_decoder(color)))
-                }
-                DrawType::Widget => {
-                    Some(SceneElement::WidgetElement(color).transform_into_bezier())
-                }
-                DrawType::Scene => unreachable!(),
-                DrawType::Png { .. } => unreachable!(),
-            }
+            return None;
         }
+
+        let color = r + g + b;
+
+        Some(match self.draw_type {
+            DrawType::Grid => {
+                if a == u32::from(ObjType::BezierVertex) {
+                    let vertex = BezierVertexId {
+                        path_id: BezierPathId(r >> 16),
+                        vertex_id: (g + b) as usize,
+                    };
+                    SceneElement::Grid(0, GridId::BezierPathGrid(vertex))
+                } else {
+                    SceneElement::Grid(0, GridId::FreeGrid(color as usize))
+                }
+            }
+            DrawType::Design => {
+                if a == u32::from(ObjType::BezierVertex) {
+                    SceneElement::BezierVertex {
+                        path_id: BezierPathId(r >> 16),
+                        vertex_id: (g + b) as usize,
+                    }
+                } else if a == u32::from(ObjType::BezierPlaneCorner) {
+                    SceneElement::PlaneCorner {
+                        plane_id: BezierPlaneId(g + b),
+                        corner_type: CornerType::from_u32(r >> 16),
+                    }
+                } else if a == u32::from(ObjType::BezierTangentIn) {
+                    SceneElement::BezierTangent {
+                        path_id: BezierPathId(r >> 16),
+                        vertex_id: (g + b) as usize,
+                        tangent_in: true,
+                    }
+                } else if a == u32::from(ObjType::BezierTangentOut) {
+                    SceneElement::BezierTangent {
+                        path_id: BezierPathId(r >> 16),
+                        vertex_id: (g + b) as usize,
+                        tangent_in: false,
+                    }
+                } else {
+                    SceneElement::DesignElement(a, color)
+                }
+            }
+            DrawType::Phantom => SceneElement::PhantomElement(phantom_helix_decoder(color)),
+            DrawType::Widget => SceneElement::WidgetElement(color).transform_into_bezier(),
+            DrawType::Scene => unreachable!(),
+            DrawType::Png { .. } => unreachable!(),
+        })
     }
 }
 
