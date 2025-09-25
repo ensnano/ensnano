@@ -325,7 +325,6 @@ impl View {
         let cut_plane_parameters = None::<CutPlaneParameters>;
 
         // === OUTLINE SHADER ===
-        println!("{SAMPLE_COUNT}");
         let outline_shader = device.create_shader_module(wgpu::include_wgsl!("view/outline.wgsl"));
         let outline_bg_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
             label: Some("outline bg layout (MSAA)"),
