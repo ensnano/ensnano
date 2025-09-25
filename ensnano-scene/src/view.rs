@@ -226,19 +226,16 @@ impl View {
             .collect();
 
         let depth_texture =
-            texture::Texture::create_depth_texture(device.as_ref(), &area_size, SAMPLE_COUNT);
-        let fake_depth_texture =
-            texture::Texture::create_depth_texture(device.as_ref(), &window_size, 1);
-        let msaa_texture = if SAMPLE_COUNT > 1 {
-            Some(ensnano_utils::texture::Texture::create_msaa_texture(
+            Texture::create_depth_texture(device.as_ref(), &area_size, SAMPLE_COUNT);
+        let fake_depth_texture = Texture::create_depth_texture(device.as_ref(), &window_size, 1);
+        let msaa_texture = (SAMPLE_COUNT > 1).then(|| {
+            Texture::create_msaa_texture(
                 device.clone().as_ref(),
                 &area_size,
                 SAMPLE_COUNT,
                 wgpu::TextureFormat::Bgra8UnormSrgb,
-            ))
-        } else {
-            None
-        };
+            )
+        });
         let models = DynamicBindGroup::new(device.clone(), queue.clone(), "models");
 
         let grid_textures = GridTextures::new(device.as_ref(), encoder);
@@ -553,7 +550,7 @@ impl View {
         } else if let DrawType::Png { width, height } = draw_type {
             png_msaa = if SAMPLE_COUNT > 1 {
                 let size = PhySize::new(width, height);
-                Some(ensnano_utils::texture::Texture::create_msaa_texture(
+                Some(Texture::create_msaa_texture(
                     self.device.clone().as_ref(),
                     &size,
                     SAMPLE_COUNT,
