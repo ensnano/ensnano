@@ -343,21 +343,16 @@ impl<D: Instanciable> InstanceDrawer<D> {
         );
 
         let additional_ressources_layout = D::Ressource::ressources_layout();
-        let additional_bind_group = if additional_ressources_layout.len() > 0 {
-            let additional_bind_group_layout =
-                device.create_bind_group_layout(&BindGroupLayoutDescriptor {
+        let additional_bind_group = (additional_ressources_layout.len() > 0).then(|| {
+            device.create_bind_group(&wgpu::BindGroupDescriptor {
+                label: None,
+                layout: &device.create_bind_group_layout(&BindGroupLayoutDescriptor {
                     label: None,
                     entries: D::Ressource::ressources_layout(),
-                });
-
-            Some(device.create_bind_group(&wgpu::BindGroupDescriptor {
-                label: None,
-                layout: &additional_bind_group_layout,
+                }),
                 entries: ressource.ressources().as_slice(),
-            }))
-        } else {
-            None
-        };
+            })
+        });
 
         Self {
             vertex_buffer,
