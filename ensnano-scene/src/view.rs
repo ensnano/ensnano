@@ -622,6 +622,7 @@ impl View {
         let viewer_bind_group_layout = viewer.get_layout();
 
         let mut png_msaa = None;
+        let mut png_depth_texture: Option<Texture> = None;
 
         let attachment = match draw_type {
             DrawType::Scene => {
@@ -665,6 +666,20 @@ impl View {
             &self.fake_depth_texture
         };
 
+        let (depth_view, depth_owner) = if draw_type == DrawType::Scene {
+            (&self.depth_texture.view, None)
+        } else if let DrawType::Png { width, height } = draw_type {
+            let size = PhySize::new(width, height);
+            let tex = Texture::create_depth_texture(self.device.as_ref(), &size, SAMPLE_COUNT);
+            png_depth_texture = Some(tex);
+            (
+                &png_depth_texture.as_ref().unwrap().view,
+                png_depth_texture.as_ref(),
+            )
+        } else {
+            (&self.fake_depth_texture.view, None)
+        };
+
         {
             let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: None,
@@ -677,7 +692,7 @@ impl View {
                     },
                 })],
                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                    view: &depth_attachment.view,
+                    view: depth_view,
                     depth_ops: Some(wgpu::Operations {
                         load: wgpu::LoadOp::Clear(1.),
                         store: wgpu::StoreOp::Store,
@@ -848,24 +863,41 @@ impl View {
         }
 
         // Draw the outline
-        if draw_type == DrawType::Scene {
-            let mut outline_render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                label: Some("outline_render_pass"),
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view: attachment,
-                    resolve_target,
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Load,
-                        store: wgpu::StoreOp::Store,
-                    },
-                })],
-                depth_stencil_attachment: None,
-                timestamp_writes: None,
-                occlusion_query_set: None,
-            });
-            outline_render_pass.set_pipeline(&self.outline_pipeline);
-            outline_render_pass.set_bind_group(0, &self.outline_bind_group, &[]);
-            outline_render_pass.draw(0..3, 0..1); // fullscreen triangle
+        if matches!(draw_type, DrawType::Scene | DrawType::Png { .. }) {
+            let outline_bg_ref: &wgpu::BindGroup = if matches!(draw_type, DrawType::Scene) {
+                &self.outline_bind_group
+            } else {
+                &self.device.create_bind_group(&wgpu::BindGroupDescriptor {
+                    label: Some("outline bg (PNG)"),
+                    layout: &self.outline_bgl,
+                    entries: &[wgpu::BindGroupEntry {
+                        binding: 0,
+                        resource: wgpu::BindingResource::TextureView(depth_view),
+                    }],
+                })
+            };
+
+            {
+                let mut outline_render_pass =
+                    encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                        label: Some("outline_render_pass"),
+                        color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                            view: attachment,
+                            resolve_target,
+                            ops: wgpu::Operations {
+                                load: wgpu::LoadOp::Load,
+                                store: wgpu::StoreOp::Store,
+                            },
+                        })],
+                        depth_stencil_attachment: None,
+                        timestamp_writes: None,
+                        occlusion_query_set: None,
+                    });
+                outline_render_pass.set_pipeline(&self.outline_pipeline);
+                outline_render_pass.set_bind_group(0, &self.outline_bind_group, &[]);
+                outline_render_pass.set_bind_group(0, &outline_bg_ref, &[]);
+                outline_render_pass.draw(0..3, 0..1); // fullscreen triangle
+            }
         }
 
         // Draw the cube
@@ -881,7 +913,7 @@ impl View {
                     },
                 })],
                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                    view: &depth_attachment.view,
+                    view: &depth_view,
                     depth_ops: Some(wgpu::Operations {
                         load: wgpu::LoadOp::Clear(1.),
                         store: wgpu::StoreOp::Store,
