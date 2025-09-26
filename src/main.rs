@@ -138,9 +138,6 @@ extern crate pretty_env_logger;
 // #[global_allocator]
 // static GLOBAL: Jemalloc = Jemalloc;
 
-/// An interface to use iced_aw's Bootstrap icons.
-//pub mod icons;
-
 /// Design handling
 //mod design;
 /// Graphical interface drawing
