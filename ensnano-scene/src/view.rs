@@ -626,50 +626,45 @@ impl View {
         let viewer_bind_group_layout = viewer.get_layout();
 
         let mut png_msaa = None;
-        let attachment = if !fake_color && draw_type == DrawType::Scene {
-            if let Some(ref msaa) = self.msaa_texture {
-                msaa
-            } else {
-                target
+
+        let attachment = match draw_type {
+            DrawType::Scene => {
+                if let Some(ref msaa) = self.msaa_texture {
+                    msaa
+                } else {
+                    target
+                }
             }
-        } else if let DrawType::Png { width, height } = draw_type {
-            png_msaa = if SAMPLE_COUNT > 1 {
-                let size = PhySize::new(width, height);
-                Some(Texture::create_msaa_texture(
-                    self.device.clone().as_ref(),
-                    &size,
-                    SAMPLE_COUNT,
-                    wgpu::TextureFormat::Bgra8UnormSrgb,
-                ))
-            } else {
-                None
-            };
-            png_msaa.as_ref().unwrap_or(target)
-        } else {
-            target
+            DrawType::Png { width, height } => {
+                png_msaa = if SAMPLE_COUNT > 1 {
+                    let size = PhySize::new(width, height);
+                    Some(Texture::create_msaa_texture(
+                        self.device.clone().as_ref(),
+                        &size,
+                        SAMPLE_COUNT,
+                        wgpu::TextureFormat::Bgra8UnormSrgb,
+                    ))
+                } else {
+                    None
+                };
+                png_msaa.as_ref().unwrap_or(target)
+            }
+            DrawType::Design | DrawType::Widget | DrawType::Phantom | DrawType::Grid => target,
         };
 
-        let resolve_target =
-            if !fake_color && self.msaa_texture.is_some() && draw_type == DrawType::Scene {
-                Some(target)
-            } else if let DrawType::Png { .. } = draw_type {
-                png_msaa.as_ref().and(Some(target))
-            } else {
-                None
-            };
+        let resolve_target = if self.msaa_texture.is_some() && draw_type == DrawType::Scene {
+            Some(target)
+        } else if let DrawType::Png { .. } = draw_type {
+            png_msaa.as_ref().and(Some(target))
+        } else {
+            None
+        };
 
-        let png_depth;
-
-        let depth_attachment = if !fake_color && draw_type == DrawType::Scene {
+        let depth_attachment = if draw_type == DrawType::Scene {
             &self.depth_texture
         } else if let DrawType::Png { width, height } = draw_type {
             let size = PhySize::new(width, height);
-            png_depth = Some(Texture::create_depth_texture(
-                self.device.as_ref(),
-                &size,
-                SAMPLE_COUNT,
-            ));
-            png_depth.as_ref().unwrap()
+            &Texture::create_depth_texture(self.device.as_ref(), &size, SAMPLE_COUNT)
         } else {
             &self.fake_depth_texture
         };
@@ -699,6 +694,7 @@ impl View {
                 timestamp_writes: None,
                 occlusion_query_set: None,
             });
+
             if draw_type != DrawType::Scene {
                 render_pass.set_viewport(
                     area.position.x as f32,
@@ -855,7 +851,8 @@ impl View {
             }
         }
 
-        if !fake_color && draw_type == DrawType::Scene {
+        // Draw the outline
+        if draw_type == DrawType::Scene {
             let mut outline_render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: Some("outline_render_pass"),
                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
@@ -875,8 +872,9 @@ impl View {
             outline_render_pass.draw(0..3, 0..1); // fullscreen triangle
         }
 
-        if !fake_color && draw_type == DrawType::Scene {
-            let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+        // Draw the cube
+        if draw_type == DrawType::Scene {
+            let mut cube_render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: None,
                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                     view: attachment,
@@ -900,7 +898,7 @@ impl View {
                 timestamp_writes: None,
                 occlusion_query_set: None,
             });
-            render_pass.set_viewport(
+            cube_render_pass.set_viewport(
                 area.size.width as f32 / 20.,
                 0.,
                 (area.size.width as f32 / 10. * 1.5)
@@ -914,14 +912,16 @@ impl View {
             );
             log::trace!("draw direction cube...");
             self.direction_cube.draw(
-                &mut render_pass,
+                &mut cube_render_pass,
                 viewer_bind_group,
                 self.models.get_bindgroup(),
             );
             log::trace!("..Done");
-        } else if draw_type == DrawType::Grid {
-            // render pass to draw the grids
-            let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+        }
+
+        // Draw the grids
+        if draw_type == DrawType::Grid {
+            let mut grid_render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: None,
                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                     view: attachment,
@@ -946,7 +946,7 @@ impl View {
                 timestamp_writes: None,
                 occlusion_query_set: None,
             });
-            render_pass.set_viewport(
+            grid_render_pass.set_viewport(
                 area.position.x as f32,
                 area.position.y as f32,
                 area.size.width as f32,
@@ -954,14 +954,14 @@ impl View {
                 0.0,
                 1.0,
             );
-            render_pass.set_scissor_rect(
+            grid_render_pass.set_scissor_rect(
                 area.position.x,
                 area.position.y,
                 area.size.width,
                 area.size.height,
             );
             self.grid_manager.draw(
-                &mut render_pass,
+                &mut grid_render_pass,
                 viewer_bind_group,
                 self.models.get_bindgroup(),
                 true,

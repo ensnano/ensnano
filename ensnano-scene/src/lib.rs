@@ -43,7 +43,7 @@ use ensnano_utils::{
     instance::Instance,
     wgpu::{self, Device, Queue},
     winit::{dpi::PhysicalPosition, event::WindowEvent},
-    PhySize,
+    BufferDimensions, PhySize,
 };
 
 mod stl;
@@ -993,8 +993,6 @@ impl<S: AppState> Scene<S> {
         println!("3D PNG export to {:?}", path);
         let device = self.element_selector.device.as_ref();
         let queue = self.element_selector.queue.as_ref();
-        use ensnano_utils::BufferDimensions;
-        use std::io::Write;
 
         let ratio = self.view.borrow().get_projection().borrow().get_ratio();
         let width = if ratio < 1. {
@@ -1062,7 +1060,7 @@ impl<S: AppState> Scene<S> {
                 rows_per_image: None,
             },
         };
-        let origin = wgpu::Origin3d { x: 0, y: 0, z: 0 };
+        let origin = wgpu::Origin3d::ZERO;
         let texture_copy_view = wgpu::ImageCopyTexture {
             texture: &texture,
             mip_level: 0,
