@@ -578,7 +578,6 @@ impl View {
         stereographic: bool,
         draw_options: DrawOptions,
     ) {
-        let fake_color = draw_type.is_fake();
         if let Some(size) = self.new_size.take() {
             self.depth_texture =
                 Texture::create_depth_texture(self.device.as_ref(), &area.size, SAMPLE_COUNT);
@@ -595,7 +594,7 @@ impl View {
             };
 
             self.outline_bind_group = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
-                label: Some("outline bg (MSAA)"),
+                label: Some("outline_bind_group"),
                 layout: &self.outline_bgl,
                 entries: &[wgpu::BindGroupEntry {
                     binding: 0,
@@ -603,17 +602,14 @@ impl View {
                 }],
             })
         }
+
+        let fake_color = draw_type.is_fake();
         let clear_color = if fake_color || draw_options.background3d == Background3D::White {
             wgpu::Color::WHITE
         } else {
-            // Clearing with black is a bit faster than with other colors, so that's what we do
-            // when possible
-            wgpu::Color {
-                r: 0.,
-                g: 0.,
-                b: 0.,
-                a: 0.,
-            }
+            // Clearing with all zeros is a bit faster than with other colors,
+            // so that's what we do when possible
+            wgpu::Color::TRANSPARENT
         };
 
         let viewer = if stereographic {
