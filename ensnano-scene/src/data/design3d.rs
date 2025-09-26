@@ -341,12 +341,12 @@ impl<R: DesignReader> Design3D<R> {
             }
 
             // Draw section links in helix routing relaxation -> TO BE REPLACED BY SPRINGS WITH A CONSTANT NUMBER OF COILS
-            let NB_COILS = 10;
-            let NB_STEPS = 10 * NB_COILS;
-            let SPRING_RADIUS = 2. * SPHERE_RADIUS;
-            let SPRING_THICKNESS = SPRING_RADIUS / 4.;
-            let MIN_SPRING_LENGTH = 2.65 / 1.5;
-            let MAX_SPRING_LENGTH = 2.65 * 1.5;
+            const NB_COILS: usize = 10;
+            const NB_STEPS: usize = 10 * NB_COILS;
+            const SPRING_RADIUS: f32 = 2. * SPHERE_RADIUS;
+            const SPRING_THICKNESS: f32 = SPRING_RADIUS / 4.;
+            const MIN_SPRING_LENGTH: f32 = 2.65 / 1.5;
+            const MAX_SPRING_LENGTH: f32 = 2.65 * 1.5;
             let alpha = NB_COILS as f32 * TAU / NB_STEPS as f32;
             let xx = (0..NB_COILS)
                 .map(|i| SPRING_RADIUS * (i as f32 * alpha).cos())
