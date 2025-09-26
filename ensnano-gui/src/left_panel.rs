@@ -476,9 +476,9 @@ where
                 }
             }
             Message::FogChoice(choice) => {
-                let (visble, from_camera, dark, reversed) = choice.to_param();
+                let (visible, from_camera, dark, reversed) = choice.to_param();
                 self.camera_tab.fog_camera(from_camera);
-                self.camera_tab.fog_visible(visble);
+                self.camera_tab.fog_visible(visible);
                 self.camera_tab.fog_dark(dark);
                 self.camera_tab.fog_reversed(reversed);
                 let request = self.camera_tab.get_fog_request();
@@ -721,7 +721,7 @@ where
                 self.contextual_panel.force_help = false;
             }
             Message::OpenLink(link) => {
-                // ATM we continue even in case of error, later any error will be promted to user
+                // ATM we continue even in case of error, later any error will be prompted to user
                 let _ = open::that(link);
             }
             Message::NewApplicationState(state) => {
@@ -968,7 +968,7 @@ where
         Command::none()
     }
 
-    fn view(&self) -> Element<Self::Message, Self::Theme, Self::Renderer> {
+    fn view(&'_ self) -> Element<'_, Self::Message, Self::Theme, Self::Renderer> {
         let width = self.logical_size.cast::<u16>().width;
         let tabs = Tabs::new(Message::TabSelected)
             .push(
@@ -1130,7 +1130,7 @@ impl<R: Requests> Program for ColorOverlay<R> {
         Command::none()
     }
 
-    fn view(&self) -> Element<Self::Message, Self::Theme, Self::Renderer> {
+    fn view(&'_ self) -> Element<'_, Self::Message, Self::Theme, Self::Renderer> {
         let width = self.logical_size.cast::<u16>().width;
 
         let widget = Column::new()
@@ -1265,7 +1265,7 @@ impl Requestable for ScrollSensitivity {
     }
     fn name_val(&self, n: usize) -> String {
         if n == 0 {
-            String::from("Sentivity")
+            String::from("Sensitivity")
         } else {
             unreachable!()
         }
