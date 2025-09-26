@@ -622,7 +622,6 @@ impl View {
         let viewer_bind_group_layout = viewer.get_layout();
 
         let mut png_msaa = None;
-        let mut png_depth_texture: Option<Texture> = None;
 
         let attachment = match draw_type {
             DrawType::Scene => {
@@ -666,18 +665,13 @@ impl View {
             &self.fake_depth_texture
         };
 
-        let (depth_view, depth_owner) = if draw_type == DrawType::Scene {
-            (&self.depth_texture.view, None)
+        let depth_view = if draw_type == DrawType::Scene {
+            &self.depth_texture.view
         } else if let DrawType::Png { width, height } = draw_type {
             let size = PhySize::new(width, height);
-            let tex = Texture::create_depth_texture(self.device.as_ref(), &size, SAMPLE_COUNT);
-            png_depth_texture = Some(tex);
-            (
-                &png_depth_texture.as_ref().unwrap().view,
-                png_depth_texture.as_ref(),
-            )
+            &Texture::create_depth_texture(self.device.as_ref(), &size, SAMPLE_COUNT).view
         } else {
-            (&self.fake_depth_texture.view, None)
+            &self.fake_depth_texture.view
         };
 
         {
