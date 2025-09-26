@@ -343,12 +343,12 @@ impl<D: Instanciable> InstanceDrawer<D> {
         );
 
         let additional_ressources_layout = D::Ressource::ressources_layout();
-        let additional_bind_group = (additional_ressources_layout.len() > 0).then(|| {
+        let additional_bind_group = (!additional_ressources_layout.is_empty()).then(|| {
             device.create_bind_group(&wgpu::BindGroupDescriptor {
                 label: None,
                 layout: &device.create_bind_group_layout(&BindGroupLayoutDescriptor {
                     label: None,
-                    entries: D::Ressource::ressources_layout(),
+                    entries: additional_ressources_layout,
                 }),
                 entries: ressource.ressources().as_slice(),
             })
