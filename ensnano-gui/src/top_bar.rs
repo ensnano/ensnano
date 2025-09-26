@@ -27,7 +27,7 @@ use super::{AppState, TopBarState};
 use ensnano_iced::{
     fonts::{MaterialIcon, MaterialIconStyle},
     helpers::*,
-    iced::{self, Element, Length, Padding},
+    iced::{self, color, Element, Length, Padding},
     iced_runtime::{Command, Program},
     iced_winit::winit::dpi::LogicalSize,
     UiSize,
@@ -36,6 +36,22 @@ use ensnano_interactor::{ActionMode, SelectionMode};
 use std::sync::{Arc, Mutex};
 
 use super::{Requests, SplitMode};
+
+fn test_icon() -> Svg {
+    // let handle = svg::Handle::from_memory(icon_svg!(icondata::MdiYoutubeStudio).as_bytes());
+    let handle=svg::Handle::from_memory(r#"
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+      <path fill="currentColor"
+            d="M10,15L15,12L10,9V15M19.45,13L21.56,14.63C21.78,14.78 21.81,15 21.66,15.28L19.64,18.75C19.5,18.97 19.31,19.03 19.03,18.94L16.55,17.95C15.89,18.42 15.33,18.75 14.86,18.94L14.5,21.56C14.42,21.84 14.27,22 14,22H10C9.73,22 9.58,21.84 9.5,21.56L9.14,18.94C8.55,18.69 8,18.36 7.45,17.95L4.97,18.94C4.69,19.03 4.5,18.97 4.36,18.75L2.34,15.28C2.19,15 2.22,14.78 2.44,14.63L4.55,13C4.5,12.77 4.5,12.44 4.5,12C4.5,11.56 4.5,11.23 4.55,11L2.44,9.38C2.22,9.22 2.19,9 2.34,8.72L4.36,5.25C4.5,5.03 4.69,4.97 4.97,5.06L7.45,6.05C8.11,5.58 8.67,5.25 9.14,5.06L9.5,2.44C9.58,2.16 9.73,2 10,2H14C14.27,2 14.42,2.16 14.5,2.44L14.86,5.06C15.45,5.31 16,5.64 16.55,6.05L19.03,5.06C19.31,4.97 19.5,5.03 19.64,5.25L21.66,8.72C21.81,9 21.78,9.22 21.56,9.38L19.45,11C19.5,11.23 19.5,11.56 19.5,12C19.5,12.44 19.5,12.77 19.45,13Z"/>
+    </svg>
+    "#.as_bytes());
+    Svg::new(handle)
+        .width(Length::Fixed(32.0))
+        .height(Length::Fixed(32.0))
+        .style(theme::Svg::custom_fn(|_theme| svg::Appearance {
+            color: Some(color!(0xff0000)),
+        }))
+}
 
 /// Top bar object
 pub struct TopBar<R: Requests, S: AppState> {
@@ -473,6 +489,8 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
             // “Selection” group
             Row::from_vec(selection_mode_buttons).spacing(self.ui_size.button_spacing()),
             row![button_help, button_tutorial,].spacing(self.ui_size.button_spacing()),
+            // TODO: delete this test
+            row![test_icon()].spacing(self.ui_size.button_spacing()),
             // ENSnano logo, placed on the right.
             text("\u{e91c}")
                 .font(crate::fonts::ENSNANO_FONT)
