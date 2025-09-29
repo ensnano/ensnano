@@ -23,15 +23,15 @@ use iced::{
         widget::{self, Widget},
         {mouse, Clipboard, Shell},
     },
-    alignment, event, keyboard, overlay,
-    widget::{container, text_input},
+    event, keyboard, overlay,
+    widget::text_input,
     Element, Length, Padding, Point, Rectangle, Size, Vector,
 };
 use iced_graphics::text::Paragraph;
 
 /// A container that <span class="warning>should contain</span> a [text_input::TextInput].
 ///
-/// Trigger `on_priority` and `on_unpriority` whent the text_input is focused or unfocused.
+/// Trigger `on_priority` and `on_unpriority` when the text_input is focused or unfocused.
 ///
 /// # Example
 ///
