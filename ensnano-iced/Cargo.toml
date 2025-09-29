@@ -16,6 +16,10 @@ iced_runtime = "0.12"
 iced_wgpu = "0.12"
 iced_widget = "0.12"
 iced_winit = "0.12"
+icondata = { version = "0.6", default-features = false, features = [
+    "bootstrap-icons",
+    "material-design-icons",
+] }
 log = "0.4"
 serde_derive = "1.0.116"
 serde = "1.0.116"

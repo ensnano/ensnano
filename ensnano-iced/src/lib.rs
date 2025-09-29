@@ -24,3 +24,6 @@ pub mod theme;
 pub use theme::Theme;
 
 pub mod color_picker;
+
+mod icons;
+pub use {icondata, icons::icon_svg};
