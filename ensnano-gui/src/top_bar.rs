@@ -40,24 +40,18 @@ use std::{
 
 use super::{Requests, SplitMode};
 
-static HANDLE_CACHE: LazyLock<Mutex<HashMap<icondata::Icon, Handle>>> =
+static ICON_HANDLE_CACHE: LazyLock<Mutex<HashMap<icondata::Icon, Handle>>> =
     LazyLock::new(|| Mutex::new(HashMap::new()));
 
 fn icon_svg(icon: icondata::Icon) -> Svg {
-    // Handle owns an Arc<Data> so the clones are efficient
-    let handle = match HANDLE_CACHE.lock().unwrap().get(&icon) {
-        Some(h) => h.clone(),
-        None => {
+    let handle = ICON_HANDLE_CACHE.lock().unwrap().entry(&icon).or_insert_with(|| {
             let xml = format!(
                 r#"<svg xmlns="http://www.w3.org/2000/svg" viewBox="{}" fill="currentColor">{}</svg>"#,
                 icon.view_box.unwrap_or("0 0 24 24"),
                 icon.data,
             );
-            let handle = Handle::from_memory(xml.into_bytes());
-            HANDLE_CACHE.lock().unwrap().insert(icon, handle.clone());
-            handle
-        }
-    };
+            Handle::from_memory(xml.into_bytes())
+        }).clone(); // Handle owns an Arc<Data> so the clones are efficient
 
     Svg::new(handle)
 }
