@@ -16,28 +16,16 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use crate::BezierControlPoint;
-
 use super::{DesignOperation, DesignRotation, DesignTranslation, GroupId, IsometryTarget};
+use crate::BezierControlPoint;
 use ensnano_design::{grid::*, BezierPlaneId, BezierVertexId, Nucl};
-use ultraviolet::{Bivec3, Rotor3, Vec2, Vec3};
-
-pub struct Parameter {
-    pub name: String,
-}
-impl Parameter {
-    pub fn new(name: &str) -> Self {
-        Self {
-            name: name.to_owned(),
-        }
-    }
-}
-
 use std::sync::Arc;
+use ultraviolet::{Bivec3, Rotor3, Vec2, Vec3};
 
 pub trait Operation: std::fmt::Debug + Sync + Send {
     /// The effect of self that must be sent as a notifications to the targeted designs
     fn effect(&self) -> DesignOperation;
+
     /// A description of self of display in the GUI
     fn description(&self) -> String;
 
@@ -47,9 +35,10 @@ pub trait Operation: std::fmt::Debug + Sync + Send {
     }
 
     /// The set of parameters that can be modified via a GUI component
-    fn parameters(&self) -> Vec<Parameter> {
-        vec![]
+    fn parameters(&self) -> &[&'static str] {
+        &[]
     }
+
     /// The values associated to the parameters.
     fn values(&self) -> Vec<String> {
         vec![]
@@ -73,8 +62,8 @@ pub struct GridRotation {
 }
 
 impl Operation for GridRotation {
-    fn parameters(&self) -> Vec<Parameter> {
-        vec![Parameter::new("angle")]
+    fn parameters(&self) -> &[&'static str] {
+        &["angle"]
     }
 
     fn values(&self) -> Vec<String> {
@@ -128,10 +117,8 @@ pub struct HelixRotation {
 }
 
 impl Operation for HelixRotation {
-    fn parameters(&self) -> Vec<Parameter> {
-        vec![Parameter {
-            name: String::from("angle"),
-        }]
+    fn parameters(&self) -> &[&'static str] {
+        &["angle"]
     }
 
     fn values(&self) -> Vec<String> {
@@ -182,8 +169,8 @@ pub struct DesignViewRotation {
 }
 
 impl Operation for DesignViewRotation {
-    fn parameters(&self) -> Vec<Parameter> {
-        vec![Parameter::new("angle")]
+    fn parameters(&self) -> &[&'static str] {
+        &["angle"]
     }
 
     fn values(&self) -> Vec<String> {
@@ -229,12 +216,8 @@ pub struct DesignViewTranslation {
 }
 
 impl Operation for DesignViewTranslation {
-    fn parameters(&self) -> Vec<Parameter> {
-        vec![
-            Parameter::new("x"),
-            Parameter::new("y"),
-            Parameter::new("z"),
-        ]
+    fn parameters(&self) -> &[&'static str] {
+        &["x", "y", "z"]
     }
 
     fn values(&self) -> Vec<String> {
@@ -288,12 +271,8 @@ pub struct BezierControlPointTranslation {
 }
 
 impl Operation for BezierControlPointTranslation {
-    fn parameters(&self) -> Vec<Parameter> {
-        vec![
-            Parameter::new("x"),
-            Parameter::new("y"),
-            Parameter::new("z"),
-        ]
+    fn parameters(&self) -> &[&'static str] {
+        &["x", "y", "z"]
     }
 
     fn values(&self) -> Vec<String> {
@@ -402,12 +381,8 @@ pub struct HelixTranslation {
 }
 
 impl Operation for HelixTranslation {
-    fn parameters(&self) -> Vec<Parameter> {
-        vec![
-            Parameter::new("x"),
-            Parameter::new("y"),
-            Parameter::new("z"),
-        ]
+    fn parameters(&self) -> &[&'static str] {
+        &["x", "y", "z"]
     }
 
     fn values(&self) -> Vec<String> {
@@ -480,12 +455,8 @@ pub struct GridTranslation {
 }
 
 impl Operation for GridTranslation {
-    fn parameters(&self) -> Vec<Parameter> {
-        vec![
-            Parameter::new("x"),
-            Parameter::new("y"),
-            Parameter::new("z"),
-        ]
+    fn parameters(&self) -> &[&'static str] {
+        &["x", "y", "z"]
     }
 
     fn values(&self) -> Vec<String> {

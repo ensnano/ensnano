@@ -376,7 +376,7 @@ impl OperationInput {
                 }
                 row = row
                     .spacing(20)
-                    .push(text(param.name.clone()).size(ui_size.main_text()))
+                    .push(text(param).size(ui_size.main_text()))
                     .push(
                         keyboard_priority(input)
                             .on_priority(Message::SetKeyboardPriority(true))
