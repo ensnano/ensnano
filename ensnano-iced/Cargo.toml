@@ -9,7 +9,10 @@ resolver = "2"
 [dependencies]
 color_space = "0.5.2"
 iced = { version = "0.12", features = ["advanced", "image", "svg"] }
-iced_aw = "0.9"
+iced_aw = { version = "0.9", default-features = false, features = [
+    "tabs",
+    "tab_bar",
+] }
 iced_futures = "0.12"
 iced_graphics = "0.12"
 iced_runtime = "0.12"

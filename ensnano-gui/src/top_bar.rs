@@ -26,17 +26,14 @@ use super::{AppState, TopBarState};
 //       implement it.
 use ensnano_iced::{
     fonts::{MaterialIcon, MaterialIconStyle},
-    helpers::{svg::Handle, *},
+    helpers::*,
     iced::{self, color, Element, Length, Padding},
     iced_runtime::{Command, Program},
     iced_winit::winit::dpi::LogicalSize,
     icon_to_svg, icondata, UiSize,
 };
 use ensnano_interactor::{ActionMode, SelectionMode};
-use std::{
-    collections::HashMap,
-    sync::{Arc, LazyLock, Mutex},
-};
+use std::sync::{Arc, Mutex};
 
 use super::{Requests, SplitMode};
 
