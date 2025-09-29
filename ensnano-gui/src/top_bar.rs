@@ -27,10 +27,10 @@ use super::{AppState, TopBarState};
 use ensnano_iced::{
     fonts::{MaterialIcon, MaterialIconStyle},
     helpers::*,
-    iced::{self, color, Element, Length, Padding},
+    iced::{self, Element, Length, Padding},
     iced_runtime::{Command, Program},
     iced_winit::winit::dpi::LogicalSize,
-    icon_to_svg, icondata, UiSize,
+    UiSize,
 };
 use ensnano_interactor::{ActionMode, SelectionMode};
 use std::sync::{Arc, Mutex};
