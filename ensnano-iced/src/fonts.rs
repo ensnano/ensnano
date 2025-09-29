@@ -58,15 +58,10 @@ pub const INTER_REGULAR_FONT: Font = Font {
 
 pub use iced::{font::Error, Font};
 
-use iced::{
-    advanced,
-    widget::{text, Text},
-};
-
 // https://rsms.me/inter
 
 /// Load custom font for ENSnano GUI.
-pub fn load_fonts(renderer: &mut impl advanced::text::Renderer) {
+pub fn load_fonts(renderer: &mut impl iced::advanced::text::Renderer) {
     let fonts = [
         iced_aw::BOOTSTRAP_FONT_BYTES,
         material_icons::MATERIAL_ICONS_LIGHT_BYTES,
@@ -78,30 +73,4 @@ pub fn load_fonts(renderer: &mut impl advanced::text::Renderer) {
     for font in fonts {
         renderer.load_font(Cow::from(font));
     }
-}
-
-pub fn light_icon<'a, Theme, Renderer>(
-    icon: MaterialIcon,
-    //ui_size: UiSize,
-) -> Text<'a, Theme, Renderer>
-where
-    Theme: text::StyleSheet,
-    Renderer: advanced::Renderer + advanced::text::Renderer,
-    <Renderer as advanced::text::Renderer>::Font: From<Font>,
-{
-    text(icon_to_char(icon)).font(MATERIAL_ICONS_LIGHT)
-    //.size(ui_size.icon())
-}
-
-pub fn dark_icon<'a, Theme, Renderer>(
-    icon: MaterialIcon,
-    //ui_size: UiSize,
-) -> Text<'a, Theme, Renderer>
-where
-    Theme: text::StyleSheet,
-    Renderer: advanced::Renderer + advanced::text::Renderer,
-    <Renderer as advanced::text::Renderer>::Font: From<Font>,
-{
-    text(icon_to_char(icon)).font(MATERIAL_ICONS_DARK)
-    //.size(ui_size.icon())
 }
