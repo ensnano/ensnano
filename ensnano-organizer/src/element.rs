@@ -48,7 +48,7 @@ pub trait OrganizerAttributeRepr: Ord + Eq + TryFrom<usize> + Into<usize> + Debu
     fn all_repr() -> &'static [Self];
 }
 
-pub trait OrganizerAttribute: Clone + Debug + 'static + Ord + Display {
+pub trait OrganizerAttribute: Clone + Debug + 'static + Ord {
     /// A type used to represent the different values of self
     type Repr: OrganizerAttributeRepr;
 

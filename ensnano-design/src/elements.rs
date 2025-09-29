@@ -356,16 +356,3 @@ impl OrganizerAttribute for DnaAttribute {
         }
     }
 }
-
-impl std::fmt::Display for DnaAttribute {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{}",
-            match self.char_repr() {
-                AttributeDisplay::Icon(c) => format!("{:?}", c), // TODO: get name
-                AttributeDisplay::Text(s) => s,
-            }
-        )
-    }
-}

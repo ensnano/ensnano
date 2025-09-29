@@ -34,54 +34,18 @@ const GOLD_ORANGE: Color = Color::from_rgb(0.84, 0.57, 0.20);
 #[derive(Debug)]
 enum StatusParameter {
     Value(text_input::State<Paragraph>),
-    Choice(pick_list::State<Paragraph>),
 }
 
 impl StatusParameter {
-    // fn get_value(&mut self) -> &mut text_input::State<Paragraph> {
-    //     match self {
-    //         StatusParameter::Value(ref mut state) => state,
-    //         _ => panic!("wrong status parameter variant"),
-    //     }
-    // }
-
-    // fn get_choice(&mut self) -> &mut pick_list::State<Paragraph> {
-    //     match self {
-    //         StatusParameter::Choice(ref mut state) => state,
-    //         _ => panic!("wrong status parameter variant"),
-    //     }
-    // }
-
     fn value() -> Self {
         Self::Value(Default::default())
     }
 
-    fn choice() -> Self {
-        Self::Choice(Default::default())
-    }
-
     fn has_keyboard_priority(&self) -> bool {
         match self {
-            Self::Choice(_) => false,
             Self::Value(state) => state.is_focused(),
         }
     }
-
-    // fn focus(&mut self) -> bool {
-    //     if let Self::Value(state) = self {
-    //         state.focus();
-    //         state.select_all();
-    //         true
-    //     } else {
-    //         false
-    //     }
-    // }
-
-    // fn unfocus(&mut self) {
-    //     if let Self::Value(state) = self {
-    //         state.unfocus()
-    //     }
-    // }
 }
 
 pub struct StatusBar<R: Requests, S: AppState> {
