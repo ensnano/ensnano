@@ -248,13 +248,13 @@ impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
     }
 }
 
-pub struct CurentOpState {
+pub struct CurrentOpState {
     pub current_operation: Arc<dyn Operation>,
     pub operation_id: usize,
 }
 
 struct OperationInput {
-    /// The values obatained with Operation::values
+    /// The values obtained with Operation::values
     values: Vec<String>,
     /// The String in the text inputs,
     values_str: Vec<String>,
@@ -265,7 +265,7 @@ struct OperationInput {
 }
 
 impl OperationInput {
-    pub fn new(operation_state: CurentOpState) -> Self {
+    pub fn new(operation_state: CurrentOpState) -> Self {
         let operation = operation_state.current_operation;
         let parameters = operation.parameters();
         let mut status_parameters = Vec::new();
@@ -310,7 +310,7 @@ impl OperationInput {
     //     })
     // }
 
-    pub fn update(&mut self, operation_state: CurentOpState) {
+    pub fn update(&mut self, operation_state: CurrentOpState) {
         let op_is_new = self.op_id != operation_state.operation_id;
         let operation = operation_state.current_operation;
         self.values = operation.values().clone();
@@ -321,7 +321,7 @@ impl OperationInput {
             let mut status_parameters = Vec::new();
 
             // This looks suspicious
-            for _ in operation.parameters().iter() {
+            for _ in operation.parameters() {
                 status_parameters.push(StatusParameter::value());
             }
 

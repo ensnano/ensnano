@@ -106,7 +106,7 @@ impl GuiState for AppState {
         self.0.strand_on_new_helix.is_some()
     }
 
-    fn get_curent_operation_state(&self) -> Option<crate::gui::CurentOpState> {
+    fn get_curent_operation_state(&self) -> Option<crate::gui::CurrentOpState> {
         self.0.design.get_curent_operation_state()
     }
 

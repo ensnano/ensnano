@@ -40,7 +40,7 @@ pub use left_panel::{
 /// Draw the status bar
 pub mod status_bar;
 pub use ensnano_design::{grid::GridId, Camera, CameraId};
-pub use status_bar::{ClipboardContent, CurentOpState, StrandBuildingStatus};
+pub use status_bar::{ClipboardContent, CurrentOpState, StrandBuildingStatus};
 mod consts;
 
 #[macro_use]
@@ -1006,7 +1006,7 @@ pub trait AppState:
     fn get_reader(&self) -> Box<dyn DesignReader>;
     fn design_was_modified(&self, other: &Self) -> bool;
     fn selection_was_updated(&self, other: &Self) -> bool;
-    fn get_curent_operation_state(&self) -> Option<CurentOpState>;
+    fn get_curent_operation_state(&self) -> Option<CurrentOpState>;
     fn get_strand_building_state(&self) -> Option<StrandBuildingStatus>;
     fn get_selected_group(&self) -> Option<GroupId>;
     fn get_suggestion_parameters(&self) -> &SuggestionParameters;

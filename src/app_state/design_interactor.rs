@@ -34,11 +34,11 @@ use presenter::{apply_simulation_update, update_presenter, NuclCollection, Prese
 pub(super) mod controller;
 use controller::Controller;
 pub use controller::{
-    CopyOperation, InteractorNotification, PastePosition, PastingStatus, RigidHelixState,
-    ShiftOptimizationResult, ShiftOptimizerReader, SimulationInterface, SimulationReader,
+    CopyOperation, InteractorNotification, PastePosition, PastingStatus, ShiftOptimizationResult,
+    ShiftOptimizerReader, SimulationInterface, SimulationReader,
 };
 
-use crate::{controller::SimulationRequest, gui::CurentOpState};
+use crate::{controller::SimulationRequest, gui::CurrentOpState};
 pub(super) use controller::ErrOperation;
 use controller::{GridPresenter, HelixPresenter, OkOperation, RollPresenter, TwistPresenter};
 
@@ -219,8 +219,8 @@ impl DesignInteractor {
         }
     }
 
-    pub(super) fn get_curent_operation_state(&self) -> Option<CurentOpState> {
-        self.current_operation.as_ref().map(|op| CurentOpState {
+    pub(super) fn get_curent_operation_state(&self) -> Option<CurrentOpState> {
+        self.current_operation.as_ref().map(|op| CurrentOpState {
             operation_id: self.current_operation_id,
             current_operation: op.clone(),
         })

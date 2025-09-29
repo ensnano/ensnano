@@ -25,6 +25,13 @@ use ultraviolet::{Bivec3, Rotor3, Vec2, Vec3};
 pub struct Parameter {
     pub name: String,
 }
+impl Parameter {
+    pub fn new(name: &str) -> Self {
+        Self {
+            name: name.to_owned(),
+        }
+    }
+}
 
 use std::sync::Arc;
 
@@ -67,9 +74,7 @@ pub struct GridRotation {
 
 impl Operation for GridRotation {
     fn parameters(&self) -> Vec<Parameter> {
-        vec![Parameter {
-            name: String::from("angle"),
-        }]
+        vec![Parameter::new("angle")]
     }
 
     fn values(&self) -> Vec<String> {
@@ -178,9 +183,7 @@ pub struct DesignViewRotation {
 
 impl Operation for DesignViewRotation {
     fn parameters(&self) -> Vec<Parameter> {
-        vec![Parameter {
-            name: String::from("angle"),
-        }]
+        vec![Parameter::new("angle")]
     }
 
     fn values(&self) -> Vec<String> {
@@ -228,15 +231,9 @@ pub struct DesignViewTranslation {
 impl Operation for DesignViewTranslation {
     fn parameters(&self) -> Vec<Parameter> {
         vec![
-            Parameter {
-                name: String::from("x"),
-            },
-            Parameter {
-                name: String::from("y"),
-            },
-            Parameter {
-                name: String::from("z"),
-            },
+            Parameter::new("x"),
+            Parameter::new("y"),
+            Parameter::new("z"),
         ]
     }
 
@@ -293,15 +290,9 @@ pub struct BezierControlPointTranslation {
 impl Operation for BezierControlPointTranslation {
     fn parameters(&self) -> Vec<Parameter> {
         vec![
-            Parameter {
-                name: String::from("x"),
-            },
-            Parameter {
-                name: String::from("y"),
-            },
-            Parameter {
-                name: String::from("z"),
-            },
+            Parameter::new("x"),
+            Parameter::new("y"),
+            Parameter::new("z"),
         ]
     }
 
@@ -413,15 +404,9 @@ pub struct HelixTranslation {
 impl Operation for HelixTranslation {
     fn parameters(&self) -> Vec<Parameter> {
         vec![
-            Parameter {
-                name: String::from("x"),
-            },
-            Parameter {
-                name: String::from("y"),
-            },
-            Parameter {
-                name: String::from("z"),
-            },
+            Parameter::new("x"),
+            Parameter::new("y"),
+            Parameter::new("z"),
         ]
     }
 
@@ -497,15 +482,9 @@ pub struct GridTranslation {
 impl Operation for GridTranslation {
     fn parameters(&self) -> Vec<Parameter> {
         vec![
-            Parameter {
-                name: String::from("x"),
-            },
-            Parameter {
-                name: String::from("y"),
-            },
-            Parameter {
-                name: String::from("z"),
-            },
+            Parameter::new("x"),
+            Parameter::new("y"),
+            Parameter::new("z"),
         ]
     }
 
