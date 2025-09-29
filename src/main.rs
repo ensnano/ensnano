@@ -287,6 +287,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Obtain a WGPU adapter.
     let (format, _adapter, device, queue) = futures::executor::block_on(async {
+        log::info!(
+            "Creating GPU adapter with WGPU_ADAPTER_NAME={:?} and WGPU_POWER_PREF={:?}",
+            std::env::var("WGPU_ADAPTER_NAME").ok(),
+            std::env::var("WGPU_POWER_PREF").ok(),
+        );
+
         let adapter = wgpu::util::initialize_adapter_from_env_or_default(
             &gpu_instance,
             Some(&surface),
