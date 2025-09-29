@@ -21,9 +21,6 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::sync::Arc;
 
-use regex::Regex;
-use std::str::FromStr;
-
 mod material_colors;
 use material_colors::MaterialColor;
 
@@ -32,7 +29,6 @@ extern crate serde_derive;
 extern crate serde;
 pub use bezier_plane::*;
 pub use ultraviolet;
-use ultraviolet::{Rotor3, Vec3};
 
 pub mod codenano;
 pub mod consts;
@@ -308,7 +304,7 @@ impl Design {
 pub struct CameraId(u64);
 
 use serde_with::{serde_as, DefaultOnError};
-/// A saved camera position. This can be use to register intresting point of views of the design.
+/// A saved camera position. This can be use to register interesting point of views of the design.
 #[serde_as]
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Camera {
@@ -615,7 +611,7 @@ impl Design {
         }
     }
 
-    pub fn mut_strand_and_data(&mut self) -> MutStrandAndData {
+    pub fn mut_strand_and_data(&mut self) -> MutStrandAndData<'_> {
         self.get_updated_grid_data();
         MutStrandAndData {
             strands: &mut self.strands,
