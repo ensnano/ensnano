@@ -23,7 +23,7 @@ use ensnano_design::{grid::*, BezierPlaneId, BezierVertexId, Nucl};
 use ultraviolet::{Bivec3, Rotor3, Vec2, Vec3};
 
 pub enum ParameterField {
-    Choice(Vec<String>),
+    // Choice(Vec<String>),
     Value,
 }
 

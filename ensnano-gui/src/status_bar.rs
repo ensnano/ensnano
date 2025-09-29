@@ -305,7 +305,6 @@ impl OperationInput {
         let mut status_parameters = Vec::new();
         for p in parameters.iter() {
             match p.field {
-                ParameterField::Choice(_) => status_parameters.push(StatusParameter::choice()),
                 ParameterField::Value => status_parameters.push(StatusParameter::value()),
             }
         }
@@ -355,7 +354,6 @@ impl OperationInput {
             let mut status_parameters = Vec::new();
             for p in operation.parameters().iter() {
                 match p.field {
-                    ParameterField::Choice(_) => status_parameters.push(StatusParameter::choice()),
                     ParameterField::Value => status_parameters.push(StatusParameter::value()),
                 }
             }
@@ -418,14 +416,6 @@ impl OperationInput {
                                     .on_priority(Message::SetKeyboardPriority(true))
                                     .on_unpriority(Message::SetKeyboardPriority(false)),
                             )
-                    }
-                    ParameterField::Choice(ref v) => {
-                        row = row.spacing(20).push(
-                            PickList::new(v.clone(), Some(values[i].clone()), move |s| {
-                                Message::ValueSet(i, s)
-                            })
-                            .text_size(ui_size.main_text() - 4.0),
-                        )
                     }
                 }
             }
