@@ -317,22 +317,18 @@ impl OrganizerAttribute for DnaAttribute {
 
     fn widget(&self) -> AttributeWidget<DnaAttribute> {
         match self {
-            DnaAttribute::Visible(b) => AttributeWidget::FlipButton {
-                value_if_pressed: DnaAttribute::Visible(!b),
-            },
-            DnaAttribute::LockedForSimulations(b) => AttributeWidget::FlipButton {
-                value_if_pressed: DnaAttribute::LockedForSimulations(!b),
-            },
-            DnaAttribute::XoverGroup(None) => AttributeWidget::FlipButton {
-                value_if_pressed: DnaAttribute::XoverGroup(Some(false)),
-            },
-            DnaAttribute::XoverGroup(Some(b)) => AttributeWidget::FlipButton {
-                value_if_pressed: if *b {
-                    DnaAttribute::XoverGroup(None)
-                } else {
-                    DnaAttribute::XoverGroup(Some(true))
-                },
-            },
+            DnaAttribute::Visible(b) => AttributeWidget::new(DnaAttribute::Visible(!b)),
+            DnaAttribute::LockedForSimulations(b) => {
+                AttributeWidget::new(DnaAttribute::LockedForSimulations(!b))
+            }
+            DnaAttribute::XoverGroup(None) => {
+                AttributeWidget::new(DnaAttribute::XoverGroup(Some(false)))
+            }
+            DnaAttribute::XoverGroup(Some(b)) => AttributeWidget::new(if *b {
+                DnaAttribute::XoverGroup(None)
+            } else {
+                DnaAttribute::XoverGroup(Some(true))
+            }),
         }
     }
 

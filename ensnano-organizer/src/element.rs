@@ -5,9 +5,9 @@ use ensnano_iced::{
     icondata::Icon,
 };
 use serde::{Deserialize, Serialize};
-use std::fmt::{Debug, Display};
+use std::fmt::Debug;
 
-/// A key identifing an element
+/// A key identifying an element
 pub trait ElementKey: Clone + Ord + Debug + Serialize + Deserialize<'static> {
     type Section: Eq + Ord + TryFrom<usize> + Into<usize> + Debug;
 
@@ -70,8 +70,13 @@ pub enum AttributeDisplay {
 }
 
 #[derive(Clone)]
-pub enum AttributeWidget<A: OrganizerAttribute> {
-    FlipButton { value_if_pressed: A },
+pub struct AttributeWidget<A: OrganizerAttribute> {
+    value_if_pressed: A,
+}
+impl<A: OrganizerAttribute> AttributeWidget<A> {
+    pub fn new(value_if_pressed: A) -> Self {
+        Self { value_if_pressed }
+    }
 }
 
 #[derive(Default, Clone)]
@@ -101,18 +106,14 @@ impl<Attrib: OrganizerAttribute> AttributeDisplayer<Attrib> {
     }
 
     pub fn view(&self) -> Option<Element<'_, Attrib, crate::Theme, crate::Renderer>> {
-        self.widget.as_ref().map(|widget| match widget {
-            AttributeWidget::FlipButton { value_if_pressed } => {
-                match self.attribute.as_ref().map(|a| a.char_repr()) {
-                    Some(AttributeDisplay::Icon(c)) => button(crate::icon(c)),
-                    Some(AttributeDisplay::Text(s)) => {
-                        button(text(s.clone()).size(crate::ICON_SIZE))
-                    }
-                    _ => button(text("???")),
-                }
-                .on_press(value_if_pressed.clone())
-                .into()
+        self.widget.as_ref().map(|widget| {
+            match self.attribute.as_ref().map(|a| a.char_repr()) {
+                Some(AttributeDisplay::Icon(c)) => button(crate::icon(c)),
+                Some(AttributeDisplay::Text(s)) => button(text(s.clone()).size(crate::ICON_SIZE)),
+                _ => button(text("???")),
             }
+            .on_press(widget.value_if_pressed.clone())
+            .into()
         })
     }
 }
