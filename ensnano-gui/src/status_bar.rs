@@ -38,19 +38,19 @@ enum StatusParameter {
 }
 
 impl StatusParameter {
-    fn get_value(&mut self) -> &mut text_input::State<Paragraph> {
-        match self {
-            StatusParameter::Value(ref mut state) => state,
-            _ => panic!("wrong status parameter variant"),
-        }
-    }
+    // fn get_value(&mut self) -> &mut text_input::State<Paragraph> {
+    //     match self {
+    //         StatusParameter::Value(ref mut state) => state,
+    //         _ => panic!("wrong status parameter variant"),
+    //     }
+    // }
 
-    fn get_choice(&mut self) -> &mut pick_list::State<Paragraph> {
-        match self {
-            StatusParameter::Choice(ref mut state) => state,
-            _ => panic!("wrong status parameter variant"),
-        }
-    }
+    // fn get_choice(&mut self) -> &mut pick_list::State<Paragraph> {
+    //     match self {
+    //         StatusParameter::Choice(ref mut state) => state,
+    //         _ => panic!("wrong status parameter variant"),
+    //     }
+    // }
 
     fn value() -> Self {
         Self::Value(Default::default())
@@ -67,21 +67,21 @@ impl StatusParameter {
         }
     }
 
-    fn focus(&mut self) -> bool {
-        if let Self::Value(state) = self {
-            state.focus();
-            state.select_all();
-            true
-        } else {
-            false
-        }
-    }
+    // fn focus(&mut self) -> bool {
+    //     if let Self::Value(state) = self {
+    //         state.focus();
+    //         state.select_all();
+    //         true
+    //     } else {
+    //         false
+    //     }
+    // }
 
-    fn unfocus(&mut self) {
-        if let Self::Value(state) = self {
-            state.unfocus()
-        }
-    }
+    // fn unfocus(&mut self) {
+    //     if let Self::Value(state) = self {
+    //         state.unfocus()
+    //     }
+    // }
 }
 
 pub struct StatusBar<R: Requests, S: AppState> {

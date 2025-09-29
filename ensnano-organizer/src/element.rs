@@ -96,7 +96,6 @@ impl<Attrib: OrganizerAttribute> AttributeDisplayer<Attrib> {
     }
 
     pub fn update_widget(&mut self, widget: Option<AttributeWidget<Attrib>>) {
-        // If the widget is no longer a picklist, reset self.being_modified
         if !matches!(widget, Some(AttributeWidget::PickList { .. })) {
             self.being_modified = false;
         }
