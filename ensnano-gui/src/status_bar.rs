@@ -31,20 +31,20 @@ use std::sync::{Arc, Mutex};
 
 const GOLD_ORANGE: Color = Color::from_rgb(0.84, 0.57, 0.20);
 
+// Very weird struct, doesn't seem to be used properly
 #[derive(Debug)]
-enum StatusParameter {
-    Value(text_input::State<Paragraph>),
+struct StatusParameter {
+    text_input: text_input::State<Paragraph>,
 }
-
 impl StatusParameter {
-    fn value() -> Self {
-        Self::Value(Default::default())
+    fn new() -> Self {
+        Self {
+            text_input: Default::default(),
+        }
     }
 
     fn has_keyboard_priority(&self) -> bool {
-        match self {
-            Self::Value(state) => state.is_focused(),
-        }
+        self.text_input.is_focused()
     }
 }
 
@@ -134,7 +134,6 @@ pub enum Message<S: AppState> {
     ValueStrChanged(usize, String),
     ValueSet(usize, String),
     Progress(Option<(String, f32)>),
-    #[allow(dead_code)]
     SetShift(f32),
     NewApplicationState(S),
     UiSizeChanged(UiSize),
@@ -261,7 +260,7 @@ struct OperationInput {
     parameters: Vec<StatusParameter>,
     op_id: usize,
     operation: Arc<dyn Operation>,
-    inputed_values: HashMap<usize, String>,
+    inputted_values: HashMap<usize, String>,
 }
 
 impl OperationInput {
@@ -272,7 +271,7 @@ impl OperationInput {
 
         // This looks suspicious
         for _ in parameters.iter() {
-            status_parameters.push(StatusParameter::value());
+            status_parameters.push(StatusParameter::new());
         }
 
         let values = operation.values().clone();
@@ -284,7 +283,7 @@ impl OperationInput {
             values,
             values_str,
             operation,
-            inputed_values: HashMap::new(),
+            inputted_values: HashMap::new(),
         }
     }
 
@@ -322,20 +321,18 @@ impl OperationInput {
 
             // This looks suspicious
             for _ in operation.parameters() {
-                status_parameters.push(StatusParameter::value());
+                status_parameters.push(StatusParameter::new());
             }
 
             self.parameters = status_parameters;
         } else {
             for (v_id, v) in self.values.iter().enumerate() {
-                let foccused_parameter = self
-                    .parameters
-                    .get(v_id)
-                    .map(|p| p.has_keyboard_priority())
-                    .unwrap_or(false);
-                if !foccused_parameter {
-                    self.values_str[v_id] =
-                        self.inputed_values.get(&v_id).cloned().unwrap_or(v.clone())
+                if !self.active_input(v_id) {
+                    self.values_str[v_id] = self
+                        .inputted_values
+                        .get(&v_id)
+                        .cloned()
+                        .unwrap_or(v.clone())
                 }
             }
         }
