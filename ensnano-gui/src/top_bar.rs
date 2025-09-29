@@ -473,14 +473,6 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
             // “Selection” group
             Row::from_vec(selection_mode_buttons).spacing(self.ui_size.button_spacing()),
             row![button_help, button_tutorial,].spacing(self.ui_size.button_spacing()),
-            // TODO: delete this test
-            row![icon_to_svg(icondata::MdiYoutubeStudio)
-                .width(Length::Fixed(32.0))
-                .height(Length::Fixed(32.0))
-                .style(theme::Svg::custom_fn(|_theme| svg::Appearance {
-                    color: Some(color!(0xff0000)),
-                }))]
-            .spacing(self.ui_size.button_spacing()),
             // ENSnano logo, placed on the right.
             text("\u{e91c}")
                 .font(crate::fonts::ENSNANO_FONT)

@@ -1,6 +1,7 @@
 use core::convert::{Into, TryFrom};
 use ensnano_iced::{
-    iced::{widget, Element},
+    helpers::{button, text},
+    iced::Element,
     icondata::Icon,
 };
 use serde::{Deserialize, Serialize};
@@ -70,7 +71,6 @@ pub enum AttributeDisplay {
 
 #[derive(Clone)]
 pub enum AttributeWidget<A: OrganizerAttribute> {
-    PickList { choices: &'static [A] },
     FlipButton { value_if_pressed: A },
 }
 
@@ -96,40 +96,23 @@ impl<Attrib: OrganizerAttribute> AttributeDisplayer<Attrib> {
     }
 
     pub fn update_widget(&mut self, widget: Option<AttributeWidget<Attrib>>) {
-        if !matches!(widget, Some(AttributeWidget::PickList { .. })) {
-            self.being_modified = false;
-        }
+        self.being_modified = false;
         self.widget = widget;
     }
 
     pub fn view(&self) -> Option<Element<'_, Attrib, crate::Theme, crate::Renderer>> {
-        use widget::*;
-
-        if let Some(widget) = self.widget.as_ref() {
-            match widget {
-                AttributeWidget::PickList { choices } => {
-                    let mut picklist = pick_list(*choices, self.attribute.clone(), |a| a);
-                    if let Some(AttributeDisplay::Icon(_)) =
-                        self.attribute.as_ref().map(|a| a.char_repr())
-                    {
-                        picklist = picklist.text_size(crate::ICON_SIZE);
+        self.widget.as_ref().map(|widget| match widget {
+            AttributeWidget::FlipButton { value_if_pressed } => {
+                match self.attribute.as_ref().map(|a| a.char_repr()) {
+                    Some(AttributeDisplay::Icon(c)) => button(crate::icon(c)),
+                    Some(AttributeDisplay::Text(s)) => {
+                        button(text(s.clone()).size(crate::ICON_SIZE))
                     }
-                    Some(picklist.into())
+                    _ => button(text("???")),
                 }
-                AttributeWidget::FlipButton { value_if_pressed } => Some(
-                    match self.attribute.as_ref().map(|a| a.char_repr()) {
-                        Some(AttributeDisplay::Icon(c)) => button(crate::icon(c)),
-                        Some(AttributeDisplay::Text(s)) => {
-                            button(text(s.clone()).size(crate::ICON_SIZE))
-                        }
-                        _ => button(text("???")),
-                    }
-                    .on_press(value_if_pressed.clone())
-                    .into(),
-                ),
+                .on_press(value_if_pressed.clone())
+                .into()
             }
-        } else {
-            None
-        }
+        })
     }
 }

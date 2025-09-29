@@ -19,7 +19,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use crate::BezierControlPoint;
 
 use super::{DesignOperation, DesignRotation, DesignTranslation, GroupId, IsometryTarget};
-use ensnano_design::{grid::*, BezierPlaneId, BezierVertexId, HelixParameters, Nucl};
+use ensnano_design::{grid::*, BezierPlaneId, BezierVertexId, Nucl};
 use ultraviolet::{Bivec3, Rotor3, Vec2, Vec3};
 
 pub enum ParameterField {
@@ -40,7 +40,7 @@ pub trait Operation: std::fmt::Debug + Sync + Send {
     /// A description of self of display in the GUI
     fn description(&self) -> String;
 
-    /// Produce an new opperation by setting the value of the `n`-th parameter to `val`.
+    /// Produce an new operation by setting the value of the `n`-th parameter to `val`.
     fn with_new_value(&self, _n: usize, _val: String) -> Option<Arc<dyn Operation>> {
         None
     }
@@ -765,58 +765,5 @@ impl Operation for CrossCut {
             "Cross cut from strand {} on nucl {} (strand {})",
             self.source_id, self.nucl, self.target_id
         )
-    }
-}
-
-#[derive(Clone, Debug)]
-pub struct CreateGrid {
-    pub position: Vec3,
-    pub orientation: Rotor3,
-    pub grid_type: GridTypeDescr,
-    pub design_id: usize,
-}
-
-impl Operation for CreateGrid {
-    fn parameters(&self) -> Vec<Parameter> {
-        vec![Parameter {
-            field: ParameterField::Choice(vec![String::from("Square"), String::from("Honeycomb")]),
-            name: String::from("Grid type"),
-        }]
-    }
-
-    fn values(&self) -> Vec<String> {
-        vec![self.grid_type.to_string()]
-    }
-
-    fn effect(&self) -> DesignOperation {
-        DesignOperation::AddGrid(GridDescriptor {
-            position: self.position,
-            orientation: self.orientation,
-            helix_parameters: None, // Some(HelixParameters::GEARY_2014_RNA),
-            grid_type: self.grid_type,
-            invisible: false,
-            bezier_vertex: None,
-        })
-    }
-
-    fn description(&self) -> String {
-        String::from("Create Grid")
-    }
-
-    fn with_new_value(&self, n: usize, val: String) -> Option<Arc<dyn Operation>> {
-        match n {
-            0 => match val.as_str() {
-                "Square" => Some(Arc::new(Self {
-                    grid_type: GridTypeDescr::Square { twist: None },
-                    ..*self
-                })),
-                "Honeycomb" => Some(Arc::new(Self {
-                    grid_type: GridTypeDescr::Honeycomb { twist: None },
-                    ..*self
-                })),
-                _ => None,
-            },
-            _ => None,
-        }
     }
 }
