@@ -22,13 +22,7 @@ use super::{DesignOperation, DesignRotation, DesignTranslation, GroupId, Isometr
 use ensnano_design::{grid::*, BezierPlaneId, BezierVertexId, Nucl};
 use ultraviolet::{Bivec3, Rotor3, Vec2, Vec3};
 
-pub enum ParameterField {
-    // Choice(Vec<String>),
-    Value,
-}
-
 pub struct Parameter {
-    pub field: ParameterField,
     pub name: String,
 }
 
@@ -74,7 +68,6 @@ pub struct GridRotation {
 impl Operation for GridRotation {
     fn parameters(&self) -> Vec<Parameter> {
         vec![Parameter {
-            field: ParameterField::Value,
             name: String::from("angle"),
         }]
     }
@@ -132,7 +125,6 @@ pub struct HelixRotation {
 impl Operation for HelixRotation {
     fn parameters(&self) -> Vec<Parameter> {
         vec![Parameter {
-            field: ParameterField::Value,
             name: String::from("angle"),
         }]
     }
@@ -187,7 +179,6 @@ pub struct DesignViewRotation {
 impl Operation for DesignViewRotation {
     fn parameters(&self) -> Vec<Parameter> {
         vec![Parameter {
-            field: ParameterField::Value,
             name: String::from("angle"),
         }]
     }
@@ -238,15 +229,12 @@ impl Operation for DesignViewTranslation {
     fn parameters(&self) -> Vec<Parameter> {
         vec![
             Parameter {
-                field: ParameterField::Value,
                 name: String::from("x"),
             },
             Parameter {
-                field: ParameterField::Value,
                 name: String::from("y"),
             },
             Parameter {
-                field: ParameterField::Value,
                 name: String::from("z"),
             },
         ]
@@ -306,15 +294,12 @@ impl Operation for BezierControlPointTranslation {
     fn parameters(&self) -> Vec<Parameter> {
         vec![
             Parameter {
-                field: ParameterField::Value,
                 name: String::from("x"),
             },
             Parameter {
-                field: ParameterField::Value,
                 name: String::from("y"),
             },
             Parameter {
-                field: ParameterField::Value,
                 name: String::from("z"),
             },
         ]
@@ -429,15 +414,12 @@ impl Operation for HelixTranslation {
     fn parameters(&self) -> Vec<Parameter> {
         vec![
             Parameter {
-                field: ParameterField::Value,
                 name: String::from("x"),
             },
             Parameter {
-                field: ParameterField::Value,
                 name: String::from("y"),
             },
             Parameter {
-                field: ParameterField::Value,
                 name: String::from("z"),
             },
         ]
@@ -516,15 +498,12 @@ impl Operation for GridTranslation {
     fn parameters(&self) -> Vec<Parameter> {
         vec![
             Parameter {
-                field: ParameterField::Value,
                 name: String::from("x"),
             },
             Parameter {
-                field: ParameterField::Value,
                 name: String::from("y"),
             },
             Parameter {
-                field: ParameterField::Value,
                 name: String::from("z"),
             },
         ]

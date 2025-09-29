@@ -24,7 +24,7 @@ use ensnano_iced::{
     iced_winit::winit::dpi::LogicalSize,
     UiSize,
 };
-use ensnano_interactor::operation::{Operation, ParameterField};
+use ensnano_interactor::operation::Operation;
 pub use ensnano_interactor::StrandBuildingStatus;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
@@ -97,7 +97,9 @@ impl<R: Requests, State: AppState> StatusBar<R, State> {
         }
     }
 
-    fn view_progress(&self) -> Row<Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer> {
+    fn view_progress(
+        &'_ self,
+    ) -> Row<'_, Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer> {
         let progress = self.progress.as_ref().unwrap();
         row![text(format!("{}, {:.1}%", progress.0, progress.1 * 100.))
             .size(self.ui_size.main_text()),]
@@ -198,7 +200,7 @@ impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
         Command::none()
     }
 
-    fn view(&self) -> Element<Self::Message, Self::Theme, Self::Renderer> {
+    fn view(&'_ self) -> Element<'_, Self::Message, Self::Theme, Self::Renderer> {
         let clipboard_text = format!(
             "Clipboard: {}",
             self.app_state.get_clipboard_content().to_string()
@@ -267,11 +269,12 @@ impl OperationInput {
         let operation = operation_state.current_operation;
         let parameters = operation.parameters();
         let mut status_parameters = Vec::new();
-        for p in parameters.iter() {
-            match p.field {
-                ParameterField::Value => status_parameters.push(StatusParameter::value()),
-            }
+
+        // This looks suspicious
+        for _ in parameters.iter() {
+            status_parameters.push(StatusParameter::value());
         }
+
         let values = operation.values().clone();
         let values_str = values.clone();
         let op_id = operation_state.operation_id;
@@ -316,11 +319,12 @@ impl OperationInput {
             self.op_id = operation_state.operation_id;
 
             let mut status_parameters = Vec::new();
-            for p in operation.parameters().iter() {
-                match p.field {
-                    ParameterField::Value => status_parameters.push(StatusParameter::value()),
-                }
+
+            // This looks suspicious
+            for _ in operation.parameters().iter() {
+                status_parameters.push(StatusParameter::value());
             }
+
             self.parameters = status_parameters;
         } else {
             for (v_id, v) in self.values.iter().enumerate() {
@@ -339,9 +343,9 @@ impl OperationInput {
     }
 
     fn view<S: AppState>(
-        &self,
+        &'_ self,
         ui_size: UiSize,
-    ) -> Row<Message<S>, ensnano_iced::Theme, ensnano_iced::Renderer> {
+    ) -> Row<'_, Message<S>, ensnano_iced::Theme, ensnano_iced::Renderer> {
         let mut row = Row::new();
         let op = self.operation.as_ref();
         row = row.push(text(op.description()).size(ui_size.main_text()));
@@ -353,35 +357,31 @@ impl OperationInput {
         let mut need_validation = false;
         for i in 0..self.values.len() {
             if let Some(param) = op.parameters().get(i) {
-                match param.field {
-                    ParameterField::Value => {
-                        let mut input = text_input("", &format!("{0:.4}", str_values[i]))
-                            .on_input(move |s| Message::ValueStrChanged(i, s))
-                            .size(ui_size.main_text())
-                            .width(40)
-                            .on_submit(Message::ValueSet(i, str_values[i].clone()));
-                        if active_input.get(i) == Some(&true) {
-                            use input_color::InputValueState;
-                            let state = if values.get(i) == str_values.get(i) {
-                                InputValueState::Normal
-                            } else if op.with_new_value(i, str_values[i].clone()).is_some() {
-                                need_validation = true;
-                                InputValueState::BeingTyped
-                            } else {
-                                InputValueState::Invalid
-                            };
-                            input = input.style(state);
-                        }
-                        row = row
-                            .spacing(20)
-                            .push(text(param.name.clone()).size(ui_size.main_text()))
-                            .push(
-                                keyboard_priority(input)
-                                    .on_priority(Message::SetKeyboardPriority(true))
-                                    .on_unpriority(Message::SetKeyboardPriority(false)),
-                            )
-                    }
+                let mut input = text_input("", &format!("{0:.4}", str_values[i]))
+                    .on_input(move |s| Message::ValueStrChanged(i, s))
+                    .size(ui_size.main_text())
+                    .width(40)
+                    .on_submit(Message::ValueSet(i, str_values[i].clone()));
+                if active_input.get(i) == Some(&true) {
+                    use input_color::InputValueState;
+                    let state = if values.get(i) == str_values.get(i) {
+                        InputValueState::Normal
+                    } else if op.with_new_value(i, str_values[i].clone()).is_some() {
+                        need_validation = true;
+                        InputValueState::BeingTyped
+                    } else {
+                        InputValueState::Invalid
+                    };
+                    input = input.style(state);
                 }
+                row = row
+                    .spacing(20)
+                    .push(text(param.name.clone()).size(ui_size.main_text()))
+                    .push(
+                        keyboard_priority(input)
+                            .on_priority(Message::SetKeyboardPriority(true))
+                            .on_unpriority(Message::SetKeyboardPriority(false)),
+                    )
             }
         }
         if need_validation {
