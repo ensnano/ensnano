@@ -30,7 +30,7 @@ use ensnano_iced::{
     iced::{self, color, Element, Length, Padding},
     iced_runtime::{Command, Program},
     iced_winit::winit::dpi::LogicalSize,
-    icon_svg, icondata, UiSize,
+    icon_to_svg, icondata, UiSize,
 };
 use ensnano_interactor::{ActionMode, SelectionMode};
 use std::{
@@ -477,7 +477,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
             Row::from_vec(selection_mode_buttons).spacing(self.ui_size.button_spacing()),
             row![button_help, button_tutorial,].spacing(self.ui_size.button_spacing()),
             // TODO: delete this test
-            row![icon_svg(icondata::MdiYoutubeStudio)
+            row![icon_to_svg(icondata::MdiYoutubeStudio)
                 .width(Length::Fixed(32.0))
                 .height(Length::Fixed(32.0))
                 .style(theme::Svg::custom_fn(|_theme| svg::Appearance {

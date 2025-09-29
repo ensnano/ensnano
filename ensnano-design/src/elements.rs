@@ -15,7 +15,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use ensnano_iced::iced_aw::core::icons::bootstrap::Bootstrap;
+use ensnano_iced::icondata;
 use ensnano_organizer::{
     AttributeDisplay, AttributeWidget, ElementKey, OrganizerAttribute, OrganizerAttributeRepr,
     OrganizerElement,
@@ -338,27 +338,21 @@ impl OrganizerAttribute for DnaAttribute {
 
     fn char_repr(&self) -> AttributeDisplay {
         match self {
-            DnaAttribute::Visible(b) => {
-                let c = if *b {
-                    Bootstrap::EyeFill.into()
-                } else {
-                    Bootstrap::EyeSlash.into()
-                };
-                AttributeDisplay::Icon(c)
-            }
+            DnaAttribute::Visible(b) => AttributeDisplay::Icon(if *b {
+                icondata::BsEyeFill
+            } else {
+                icondata::BsEyeSlash
+            }),
             DnaAttribute::XoverGroup(group) => match group {
                 None => AttributeDisplay::Text("\u{2205}".to_owned()),
                 Some(false) => AttributeDisplay::Text("G".to_owned()),
                 Some(true) => AttributeDisplay::Text("R".to_owned()),
             },
-            DnaAttribute::LockedForSimulations(b) => {
-                let c = if *b {
-                    Bootstrap::Lock.into()
-                } else {
-                    Bootstrap::Unlock.into()
-                };
-                AttributeDisplay::Icon(c)
-            }
+            DnaAttribute::LockedForSimulations(b) => AttributeDisplay::Icon(if *b {
+                icondata::BsLock
+            } else {
+                icondata::BsUnlock
+            }),
         }
     }
 }
@@ -369,7 +363,7 @@ impl std::fmt::Display for DnaAttribute {
             f,
             "{}",
             match self.char_repr() {
-                AttributeDisplay::Icon(c) => format!("{}", c),
+                AttributeDisplay::Icon(c) => format!("{:?}", c), // TODO: get name
                 AttributeDisplay::Text(s) => s,
             }
         )

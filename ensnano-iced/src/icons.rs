@@ -10,7 +10,7 @@ use {
 static ICON_HANDLE_CACHE: LazyLock<Mutex<HashMap<Icon, Handle>>> =
     LazyLock::new(|| Mutex::new(HashMap::new()));
 
-pub fn icon_svg(icon: Icon) -> Svg {
+pub fn icon_to_svg(icon: Icon) -> Svg {
     let handle = ICON_HANDLE_CACHE.lock().unwrap().entry(icon).or_insert_with(|| {
             let xml = format!(
                 r#"<svg xmlns="http://www.w3.org/2000/svg" viewBox="{}" fill="currentColor">{}</svg>"#,
