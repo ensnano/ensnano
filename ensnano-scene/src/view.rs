@@ -24,7 +24,10 @@ use crate::{DrawArea, PhySize};
 use camera::{Camera, CameraPtr, Projection, ProjectionPtr};
 use ensnano_design::{grid::GridId, group_attributes::GroupPivot, ultraviolet, Axis};
 use ensnano_interactor::{consts::*, UnrootedRevolutionSurfaceDescriptor};
-use ensnano_utils::{bindgroup_manager, text, texture, wgpu};
+use ensnano_utils::{
+    bindgroup_manager, text, texture,
+    wgpu::{self, util::DeviceExt as _},
+};
 use int_enum::IntEnum;
 use std::{cell::RefCell, collections::BTreeMap, rc::Rc, usize};
 use texture::Texture;
@@ -133,8 +136,9 @@ pub struct View {
     cut_plane_parameters: Option<CutPlaneParameters>,
     // Outline shader parameters. TODO: use InstanceDrawer?
     outline_pipeline: wgpu::RenderPipeline,
-    outline_bgl: wgpu::BindGroupLayout,
+    outline_bind_group_layout: wgpu::BindGroupLayout,
     outline_bind_group: wgpu::BindGroup,
+    outline_buffer: wgpu::Buffer,
 }
 
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
@@ -316,29 +320,56 @@ impl View {
         let cut_plane_parameters = None::<CutPlaneParameters>;
 
         // === OUTLINE SHADER ===
-        let outline_bgl = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-            label: Some("outline bg layout (MSAA)"),
-            entries: &[
-                // multisampled depth; no sampler binding
-                wgpu::BindGroupLayoutEntry {
-                    binding: 0,
-                    visibility: wgpu::ShaderStages::FRAGMENT,
-                    ty: wgpu::BindingType::Texture {
-                        multisampled: true,
-                        sample_type: wgpu::TextureSampleType::Depth,
-                        view_dimension: wgpu::TextureViewDimension::D2,
+        let outline_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("outline_buffer"),
+            contents: bytemuck::bytes_of(&OutlineUniform {
+                sample_count: SAMPLE_COUNT, // e.g. 4
+                use_outline: 1,             // TODO: get from iced
+                camera_near: 0.1,           // TODO: import constants
+                camera_far: 1000.0,         // TODO: import constants
+            }),
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+        });
+
+        let outline_bind_group_layout =
+            device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                label: Some("outline bind group layout"),
+                entries: &[
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 0,
+                        visibility: wgpu::ShaderStages::FRAGMENT,
+                        ty: wgpu::BindingType::Texture {
+                            multisampled: true,
+                            sample_type: wgpu::TextureSampleType::Depth,
+                            view_dimension: wgpu::TextureViewDimension::D2,
+                        },
+                        count: None,
                     },
-                    count: None,
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 1,
+                        visibility: wgpu::ShaderStages::FRAGMENT,
+                        ty: wgpu::BindingType::Buffer {
+                            ty: wgpu::BufferBindingType::Uniform,
+                            has_dynamic_offset: false,
+                            min_binding_size: None,
+                        },
+                        count: None,
+                    },
+                ],
+            });
+        let outline_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("outline bind group"),
+            layout: &outline_bind_group_layout,
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: wgpu::BindingResource::TextureView(&depth_texture.view),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: outline_buffer.as_entire_binding(),
                 },
             ],
-        });
-        let outline_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: Some("outline bg (MSAA)"),
-            layout: &outline_bgl,
-            entries: &[wgpu::BindGroupEntry {
-                binding: 0,
-                resource: wgpu::BindingResource::TextureView(&depth_texture.view),
-            }],
         });
 
         let outline_shader = device.create_shader_module(wgpu::include_wgsl!("view/outline.wgsl"));
@@ -347,7 +378,7 @@ impl View {
             layout: Some(
                 &device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                     label: Some("outline pipeline layout"),
-                    bind_group_layouts: &[&outline_bgl],
+                    bind_group_layouts: &[&outline_bind_group_layout],
                     push_constant_ranges: &[],
                 }),
             ),
@@ -415,8 +446,9 @@ impl View {
             sheets_drawer,
             cut_plane_parameters,
             outline_pipeline,
-            outline_bgl,
+            outline_bind_group_layout,
             outline_bind_group,
+            outline_buffer,
         }
     }
 
@@ -586,11 +618,17 @@ impl View {
 
             self.outline_bind_group = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
                 label: Some("outline_bind_group"),
-                layout: &self.outline_bgl,
-                entries: &[wgpu::BindGroupEntry {
-                    binding: 0,
-                    resource: wgpu::BindingResource::TextureView(&self.depth_texture.view),
-                }],
+                layout: &self.outline_bind_group_layout,
+                entries: &[
+                    wgpu::BindGroupEntry {
+                        binding: 0,
+                        resource: wgpu::BindingResource::TextureView(&self.depth_texture.view),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 1,
+                        resource: self.outline_buffer.as_entire_binding(),
+                    },
+                ],
             })
         }
 
@@ -853,12 +891,18 @@ impl View {
                 &self.outline_bind_group
             } else {
                 &self.device.create_bind_group(&wgpu::BindGroupDescriptor {
-                    label: Some("outline bg (PNG)"),
-                    layout: &self.outline_bgl,
-                    entries: &[wgpu::BindGroupEntry {
-                        binding: 0,
-                        resource: wgpu::BindingResource::TextureView(depth_view),
-                    }],
+                    label: Some("outline bind group (PNG)"),
+                    layout: &self.outline_bind_group_layout,
+                    entries: &[
+                        wgpu::BindGroupEntry {
+                            binding: 0,
+                            resource: wgpu::BindingResource::TextureView(depth_view),
+                        },
+                        wgpu::BindGroupEntry {
+                            binding: 1,
+                            resource: self.outline_buffer.as_entire_binding(),
+                        },
+                    ],
                 })
             };
 
@@ -1776,4 +1820,13 @@ impl DrawType {
             DrawType::Png { .. } => false,
         }
     }
+}
+
+#[repr(C)]
+#[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
+struct OutlineUniform {
+    sample_count: u32,
+    use_outline: u32, // used as a bool, but alignment required
+    camera_near: f32,
+    camera_far: f32,
 }
