@@ -1157,7 +1157,7 @@ impl<R: DesignReader> Design3D<R> {
             }
             SceneElement::Grid(_, g_id) => self.design_reader.get_grid_position(*g_id),
             SceneElement::GridCircle(_, position) => {
-                self.design_reader.get_grid_latice_position(*position)
+                self.design_reader.get_grid_lattice_position(*position)
             }
             SceneElement::BezierVertex { path_id, vertex_id } => {
                 self.get_bezier_vertex_position(*path_id, *vertex_id)
@@ -1767,7 +1767,7 @@ pub trait DesignReader: 'static + ensnano_interactor::DesignReader {
     ) -> Option<Vec3>;
     fn get_object_type(&self, id: u32) -> Option<ObjectType>;
     fn get_grid_position(&self, g_id: GridId) -> Option<Vec3>;
-    fn get_grid_latice_position(&self, position: GridPosition) -> Option<Vec3>;
+    fn get_grid_lattice_position(&self, position: GridPosition) -> Option<Vec3>;
     fn get_element_position(&self, e_id: u32, referential: Referential) -> Option<Vec3>;
     fn get_element_axis_position(&self, id: u32, referential: Referential) -> Option<Vec3>;
     fn get_element_graphic_position(&self, id: u32, referential: Referential) -> Option<Vec3>;

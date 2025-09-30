@@ -33,7 +33,7 @@ pub mod obj_loader;
 pub mod text;
 pub mod texture;
 
-pub mod clic_counter;
+pub mod click_counter;
 
 pub mod colors;
 

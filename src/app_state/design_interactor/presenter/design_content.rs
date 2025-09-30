@@ -16,41 +16,35 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+mod xover_suggestions;
+
 use super::*;
 use crate::scene::GridInstance;
 use ahash::RandomState;
-use cadnano_format::color;
-use chrono::format;
-
-use ensnano_design::drawing_style::{ColorType, DrawingAttribute, DrawingStyle};
-use ensnano_design::elements::{DesignElement, DesignElementKey};
-use ensnano_design::grid::{GridId, GridObject, GridPosition, HelixGridPosition};
-use ensnano_design::*;
-use ensnano_interactor::consts::{
-    BOND_RADIUS, CLONE_OPACITY, HELIX_CYLINDER_COLOR, HELIX_CYLINDER_RADIUS, SPHERE_RADIUS,
+use ensnano_design::{
+    drawing_style::{ColorType, DrawingAttribute, DrawingStyle},
+    elements::{DesignElement, DesignElementKey},
+    grid::{GridData, GridId, GridObject, GridPosition, HelixGridPosition},
+    isometry3_descriptor::Isometry3MissingMethods,
+    *,
 };
 use ensnano_interactor::{
+    consts::{
+        BOND_RADIUS, CLONE_OPACITY, HELIX_CYLINDER_COLOR, HELIX_CYLINDER_RADIUS, SPHERE_RADIUS,
+    },
     graphics::{LoopoutBond, LoopoutNucl},
     ObjectType,
 };
-use ensnano_utils::clic_counter::ClicCounter;
+use ensnano_utils::{click_counter::ClickCounter, colors, instance::Instance};
 use serde::Serialize;
-use std::borrow::Cow;
-use std::collections::{BTreeMap, HashMap, HashSet};
-use std::str::FromStr;
-use std::sync::Arc;
-use ultraviolet::{Rotor3, Vec3};
-
-use ensnano_design::grid::GridData;
-
-mod xover_suggestions;
-use xover_suggestions::XoverSuggestions;
-
-use ensnano_design::isometry3_descriptor::{
-    Isometry3Descriptor, Isometry3DescriptorItem, Isometry3MissingMethods,
+use std::{
+    borrow::Cow,
+    collections::{BTreeMap, HashMap, HashSet},
+    str::FromStr,
+    sync::Arc,
 };
-use ensnano_utils::colors;
-use ensnano_utils::instance::Instance;
+use ultraviolet::Vec3;
+use xover_suggestions::XoverSuggestions;
 
 const PRINTOUT_NUCL_POSITIONS: bool = false; // true;
 
@@ -102,7 +96,7 @@ impl NuclCollection {
 
 #[derive(Default, Clone)]
 pub(super) struct DesignContent {
-    /// Maps identifer of elements to their object type
+    /// Maps identifier of elements to their object type
     pub object_type: HashMap<u32, ObjectType, RandomState>,
     /// Maps identifier of nucleotide to Nucleotide objects
     pub nucleotide: HashMap<u32, Nucl, RandomState>,
@@ -210,7 +204,7 @@ impl DesignContent {
         self.grid_manager.get_helix_grid_position(h_id)
     }
 
-    pub(super) fn get_grid_latice_position(&self, position: GridPosition) -> Option<Vec3> {
+    pub(super) fn get_grid_lattice_position(&self, position: GridPosition) -> Option<Vec3> {
         let grid = self.grid_manager.grids.get(&position.grid)?;
         Some(grid.position_helix(position.x, position.y))
     }
@@ -441,7 +435,7 @@ impl DesignContent {
         design: &Design,
         invisible_nucls: &HashSet<Nucl>,
     ) -> Vec<u32> {
-        let check_visiblity = |&(_, v): &(&u32, &Nucl)| {
+        let check_visibility = |&(_, v): &(&u32, &Nucl)| {
             !invisible_nucls.contains(v)
                 && design
                     .helices
@@ -451,7 +445,7 @@ impl DesignContent {
         };
         self.nucleotide
             .iter()
-            .filter(check_visiblity)
+            .filter(check_visibility)
             .map(|t| *t.0)
             .collect()
     }
@@ -563,7 +557,7 @@ impl DesignContent {
         let mut loopout_bonds = Vec::new();
         let mut loopout_nucls = Vec::new();
         let mut id_TMP = 0u32;
-        let mut id_clic_counter = ClicCounter::new();
+        let mut id_clic_counter = ClickCounter::new();
         let mut nucl_id;
         let mut prev_nucl: Option<Nucl> = None;
         let mut prev_nucl_id: Option<u32> = None;
@@ -662,7 +656,6 @@ impl DesignContent {
             // If the strand is not the rainbow strand, the rainbow iterator will be empty and the
             // real strand color will be used.
             let mut rainbow_iterator = (0..rainbow_len).map(|i| {
-                let hsv = color_space::Hsv::new(i as f64 * 360. / rainbow_len as f64, 1., 1.);
                 let hsv = color_space::Hsv::new(i as f64 * 360. / rainbow_len as f64, 1., 1.);
                 let rgb = color_space::Rgb::from(hsv);
                 (0xFF << 24) | ((rgb.r as u32) << 16) | ((rgb.g as u32) << 8) | (rgb.b as u32)
@@ -1074,9 +1067,7 @@ impl DesignContent {
                     let mut i_f = f.into_iter();
                     let mut i_b = b.into_iter();
                     let mut last_f = i_f.next();
-                    let mut s_f = 0isize;
                     let mut last_b = i_b.next();
-                    let mut s_b = 0isize;
                     while !last_b.is_none() && !last_f.is_none() {
                         while let (Some(l_f), Some(l_b)) = (last_f, last_b) {
                             if l_f >= *l_b {
@@ -1091,7 +1082,7 @@ impl DesignContent {
                             last_b = i_b.next();
                         }
                         while let (Some(l_f), Some(l_b)) = (last_f, last_b) {
-                            if (l_f != *l_b) {
+                            if l_f != *l_b {
                                 break;
                             }
                             inter.push(*l_b);

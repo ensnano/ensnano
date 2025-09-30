@@ -226,8 +226,8 @@ impl Reader3D for DesignReader {
         )
     }
 
-    fn get_grid_latice_position(&self, position: GridPosition) -> Option<Vec3> {
-        self.presenter.content.get_grid_latice_position(position)
+    fn get_grid_lattice_position(&self, position: GridPosition) -> Option<Vec3> {
+        self.presenter.content.get_grid_lattice_position(position)
     }
 
     fn get_nucl_with_id_relaxed(&self, e_id: u32) -> Option<Nucl> {
