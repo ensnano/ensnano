@@ -19,21 +19,14 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! frame to be displayed, or on a "fake texture" that is used to map pixels to objects.
 
 use self::gltf_drawer::Object3DDrawer;
-use int_enum::IntEnum;
-
 use super::camera;
 use crate::{DrawArea, PhySize};
 use camera::{Camera, CameraPtr, Projection, ProjectionPtr};
-use ensnano_design::group_attributes::GroupPivot;
-use ensnano_design::ultraviolet;
-use ensnano_design::{grid::GridId, Axis};
+use ensnano_design::{grid::GridId, group_attributes::GroupPivot, ultraviolet, Axis};
 use ensnano_interactor::{consts::*, UnrootedRevolutionSurfaceDescriptor};
-use ensnano_utils::wgpu;
-use ensnano_utils::{bindgroup_manager, text, texture};
-use std::cell::RefCell;
-use std::collections::BTreeMap;
-use std::rc::Rc;
-use std::usize;
+use ensnano_utils::{bindgroup_manager, text, texture, wgpu};
+use int_enum::IntEnum;
+use std::{cell::RefCell, collections::BTreeMap, rc::Rc, usize};
 use texture::Texture;
 use ultraviolet::{Mat4, Rotor3, Vec3};
 use wgpu::{Device, Queue};
@@ -81,8 +74,6 @@ pub use rotation_widget::{
 };
 pub use sheet_2d::Sheet2D;
 use text::Letter;
-//use plane_drawer::PlaneDrawer;
-//pub use plane_drawer::Plane;
 
 static MODEL_BG_ENTRY: &[wgpu::BindGroupLayoutEntry] = &[wgpu::BindGroupLayoutEntry {
     binding: 0,

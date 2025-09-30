@@ -139,7 +139,7 @@ impl<State: AppState> GuiTab<State> for CameraTab<State> {
                 row![
                     text("Style"),
                     pick_list(
-                        &ALL_RENDERING_MODE[..],
+                        ALL_RENDERING_MODE,
                         Some(self.rendering_mode),
                         Message::RenderingMode,
                     ),

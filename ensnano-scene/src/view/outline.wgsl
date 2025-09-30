@@ -77,6 +77,6 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     // Gradient squared, to avoid costly sqrt
     let g2 = gx * gx + gy * gy;
 
-    // return vec4(0.0, 0.0, 0.0, smoothstep(25.0, 100.0, g2)); // outline
-    return vec4(vec3(smoothstep(100.0, 25.0, g2)), 1.0); // black and white
+    // return vec4(0.0, 0.0, 0.0, smoothstep(4.0, 9.0, g2)); // outline
+    return vec4(vec3(smoothstep(9.0, 4.0, g2)), 1.0); // black and white
 }
