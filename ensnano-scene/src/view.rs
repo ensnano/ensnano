@@ -78,6 +78,8 @@ pub use rotation_widget::{
 pub use sheet_2d::Sheet2D;
 use text::Letter;
 
+use ensnano_interactor::graphics::{Background3D, HBondDisplay, RenderingMode};
+
 static MODEL_BG_ENTRY: &[wgpu::BindGroupLayoutEntry] = &[wgpu::BindGroupLayoutEntry {
     binding: 0,
     visibility: wgpu::ShaderStages::from_bits_truncate(wgpu::ShaderStages::VERTEX.bits()),
@@ -89,7 +91,8 @@ static MODEL_BG_ENTRY: &[wgpu::BindGroupLayoutEntry] = &[wgpu::BindGroupLayoutEn
     count: None,
 }];
 
-use ensnano_interactor::graphics::{Background3D, HBondDisplay, RenderingMode};
+const CAMERA_NEAR: f32 = 0.1;
+const CAMERA_FAR: f32 = 1000.0;
 
 /// An object that handles the communication with the GPU to draw the scene.
 pub struct View {
@@ -134,7 +137,8 @@ pub struct View {
     sheets_drawer: InstanceDrawer<Sheet2D>,
     /// Cutting plane. TODO: remove? I don't see where the value is ever not `None`
     cut_plane_parameters: Option<CutPlaneParameters>,
-    // Outline shader parameters. TODO: use InstanceDrawer?
+    // Outline shader parameters. TODO: bundle in InstanceDrawer or a new struct
+    queue: Rc<wgpu::Queue>,
     outline_pipeline: wgpu::RenderPipeline,
     outline_bind_group_layout: wgpu::BindGroupLayout,
     outline_bind_group: wgpu::BindGroup,
@@ -167,8 +171,8 @@ impl View {
             area_size.width,
             area_size.height,
             70f32.to_radians(),
-            0.1,
-            1000.0,
+            CAMERA_NEAR,
+            CAMERA_FAR,
         )));
         let stereography = Stereography {
             radius: 30.,
@@ -309,7 +313,7 @@ impl View {
         let external_objects_drawer = Object3DDrawer::new(device.clone());
         let sheets_drawer = InstanceDrawer::new(
             device.clone(),
-            queue,
+            queue.clone(),
             &viewer.get_layout_desc(),
             &model_bg_desc,
             (),
@@ -445,6 +449,7 @@ impl View {
             stereography,
             sheets_drawer,
             cut_plane_parameters,
+            queue,
             outline_pipeline,
             outline_bind_group_layout,
             outline_bind_group,
@@ -615,21 +620,6 @@ impl View {
             } else {
                 None
             };
-
-            self.outline_bind_group = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
-                label: Some("outline_bind_group"),
-                layout: &self.outline_bind_group_layout,
-                entries: &[
-                    wgpu::BindGroupEntry {
-                        binding: 0,
-                        resource: wgpu::BindingResource::TextureView(&self.depth_texture.view),
-                    },
-                    wgpu::BindGroupEntry {
-                        binding: 1,
-                        resource: self.outline_buffer.as_entire_binding(),
-                    },
-                ],
-            })
         }
 
         let fake_color = draw_type.is_fake();
@@ -885,8 +875,41 @@ impl View {
             }
         }
 
+        println!("{:?}", draw_options.rendering_mode);
         // Draw the outline
-        if matches!(draw_type, DrawType::Scene | DrawType::Png { .. }) {
+        if matches!(draw_type, DrawType::Scene | DrawType::Png { .. })
+            && draw_options.rendering_mode.requires_post_processing()
+        {
+            let outline_uniform = OutlineUniform {
+                sample_count: SAMPLE_COUNT,
+                use_outline: if draw_options.rendering_mode == RenderingMode::Outline {
+                    1
+                } else {
+                    0
+                },
+                camera_near: CAMERA_NEAR,
+                camera_far: CAMERA_FAR,
+            };
+            self.queue.write_buffer(
+                &self.outline_buffer,
+                0,
+                bytemuck::bytes_of(&outline_uniform),
+            );
+            self.outline_bind_group = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
+                label: Some("outline_bind_group"),
+                layout: &self.outline_bind_group_layout,
+                entries: &[
+                    wgpu::BindGroupEntry {
+                        binding: 0,
+                        resource: wgpu::BindingResource::TextureView(&self.depth_texture.view),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 1,
+                        resource: self.outline_buffer.as_entire_binding(),
+                    },
+                ],
+            });
+
             let outline_bg_ref: &wgpu::BindGroup = if matches!(draw_type, DrawType::Scene) {
                 &self.outline_bind_group
             } else {
@@ -906,27 +929,24 @@ impl View {
                 })
             };
 
-            {
-                let mut outline_render_pass =
-                    encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                        label: Some("outline_render_pass"),
-                        color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                            view: attachment,
-                            resolve_target,
-                            ops: wgpu::Operations {
-                                load: wgpu::LoadOp::Load,
-                                store: wgpu::StoreOp::Store,
-                            },
-                        })],
-                        depth_stencil_attachment: None,
-                        timestamp_writes: None,
-                        occlusion_query_set: None,
-                    });
-                outline_render_pass.set_pipeline(&self.outline_pipeline);
-                outline_render_pass.set_bind_group(0, &self.outline_bind_group, &[]);
-                outline_render_pass.set_bind_group(0, &outline_bg_ref, &[]);
-                outline_render_pass.draw(0..3, 0..1); // fullscreen triangle
-            }
+            let mut outline_render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("outline_render_pass"),
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view: attachment,
+                    resolve_target,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Load,
+                        store: wgpu::StoreOp::Store,
+                    },
+                })],
+                depth_stencil_attachment: None,
+                timestamp_writes: None,
+                occlusion_query_set: None,
+            });
+            outline_render_pass.set_pipeline(&self.outline_pipeline);
+            outline_render_pass.set_bind_group(0, &self.outline_bind_group, &[]);
+            outline_render_pass.set_bind_group(0, outline_bg_ref, &[]);
+            outline_render_pass.draw(0..3, 0..1); // fullscreen triangle
         }
 
         // Draw the cube

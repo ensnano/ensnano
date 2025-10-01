@@ -842,7 +842,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 log::trace!("call update from main");
                 main_state.update();
                 let new_title = if let Some(path) = main_state.get_current_file_name() {
-                    let path_str = formated_path_end(path);
+                    let path_str = formatted_path_end(path);
                     format!("ENSnano {}", path_str)
                 } else {
                     format!("ENSnano {}", crate::consts::NO_DESIGN_TITLE)
@@ -987,7 +987,6 @@ impl OverlayManager {
         }
     }
 
-    #[allow(dead_code)]
     fn render(
         &self,
         device: &wgpu::Device,
@@ -1098,7 +1097,7 @@ impl OverlayManager {
     }
 }
 
-fn formated_path_end<P: AsRef<Path>>(path: P) -> String {
+fn formatted_path_end<P: AsRef<Path>>(path: P) -> String {
     let components: Vec<_> = path
         .as_ref()
         .components()

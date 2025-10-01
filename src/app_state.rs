@@ -664,7 +664,7 @@ impl AppState {
 
 use serde::{Deserialize, Serialize};
 #[derive(Clone, Serialize, Deserialize)]
-#[serde(default)] // workarround for https://github.com/rust-cli/confy/issues/34
+#[serde(default)] // workaround for https://github.com/rust-cli/confy/issues/34
 pub struct AppStateParameters {
     suggestion_parameters: SuggestionParameters,
     check_xover_parameters: CheckXoversParameter,

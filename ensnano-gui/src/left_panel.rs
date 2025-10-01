@@ -15,6 +15,14 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+use super::{AppState, FogParameters, OverlayType, Requests};
+use crate::{consts::*, fonts};
+use ensnano_design::{
+    elements::{DesignElement, DesignElementKey},
+    grid::GridTypeDescr,
+    ultraviolet, BezierPathId, CameraId, NamedParameter,
+};
+use ensnano_exports::ExportType;
 use ensnano_iced::{
     color_picker::ColorPickerMessage,
     iced::{theme, Color, Command, Element, Length},
@@ -30,39 +38,28 @@ use ensnano_iced::{
     },
     UiSize,
 };
-use ensnano_interactor::{graphics::HBondDisplay, EquadiffSolvingMethod};
+use ensnano_interactor::{
+    graphics::{Background3D, HBondDisplay, RenderingMode},
+    ActionMode, CheckXoversParameter, EquadiffSolvingMethod, HyperboloidRequest, Selection,
+    SelectionConversion, SuggestionParameters,
+};
 use ensnano_organizer::{Organizer, OrganizerMessage, OrganizerTree};
 use std::sync::{Arc, Mutex};
-
 use ultraviolet::Vec3;
 
-use ensnano_design::{
-    elements::{DesignElement, DesignElementKey},
-    BezierPathId, CameraId,
-};
-use ensnano_interactor::{
-    graphics::{Background3D, RenderingMode},
-    ActionMode, SelectionConversion, SuggestionParameters,
-};
-
-use ensnano_exports::ExportType;
-
-use super::{AppState, FogParameters, OverlayType, Requests};
-use crate::fonts;
-
-use ensnano_design::{grid::GridTypeDescr, ultraviolet, NamedParameter};
 mod sequence_input;
 use sequence_input::SequenceInput;
+
 mod discrete_value;
 use discrete_value::{FactoryId, RequestFactory, Requestable, ValueId};
-mod tabs;
-use crate::consts::*;
+
 mod contextual_panel;
-mod export_menu;
 use contextual_panel::{ContextualPanel, InstanciatedValue, ValueKind};
+
+mod export_menu;
 use export_menu::ExportMenu;
 
-use ensnano_interactor::{CheckXoversParameter, HyperboloidRequest, Selection};
+mod tabs;
 pub use tabs::revolution_tab::*;
 use tabs::{
     CameraShortcutPanel, CameraTab, EditionTab, GridTab, GuiTab, ParametersTab, PenTab,
@@ -705,6 +702,7 @@ where
             }
             Message::SelectScaffold => self.requests.lock().unwrap().set_scaffold_from_selection(),
             Message::RenderingMode(mode) => {
+                println!("Change rendering mode to {mode:?}");
                 self.requests.lock().unwrap().change_3d_rendering_mode(mode);
                 self.camera_tab.rendering_mode = mode;
             }

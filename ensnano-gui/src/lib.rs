@@ -18,7 +18,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! The [GUI Manager](Gui) handles redraw request on textures that corresponds to regions
 //! attributed to GUI components and events happening on these regions.
 //!
-//! When a message is emmitted by a GUI component that have consequences that must be forwarded to
+//! When a message is emitted by a GUI component that have consequences that must be forwarded to
 //! other components of the program it is forwarded to the `main` function via the
 //! [Request](Requests) data structure.
 
@@ -31,7 +31,7 @@ use ensnano_iced::{
 pub mod top_bar;
 use ensnano_organizer::GroupId;
 pub use top_bar::TopBar;
-/// Draw the left pannel of the GUI
+/// Draw the left panel of the GUI
 pub mod left_panel;
 pub use left_panel::{
     ColorOverlay, CurveDescriptorBuilder, CurveDescriptorParameter, InstanciatedParameter,
@@ -61,21 +61,23 @@ use ensnano_iced::{
     iced_winit::{conversion, winit},
 };
 use ensnano_interactor::{
-    graphics::{Background3D, DrawArea, GuiComponentType, RenderingMode, SplitMode},
-    CheckXoversParameter, InsertionPoint, PastingStatus, Selection, SimulationState,
-    SuggestionParameters, UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
+    graphics::{
+        Background3D, DrawArea, FogParameters, GuiComponentType, HBondDisplay, RenderingMode,
+        SplitMode,
+    },
+    operation::Operation,
+    CheckXoversParameter, InsertionPoint, PastingStatus, RevolutionSurfaceSystemDescriptor,
+    ScaffoldInfo, Selection, SimulationState, SuggestionParameters,
+    UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
 };
-use ensnano_interactor::{
-    graphics::{FogParameters, HBondDisplay},
-    RevolutionSurfaceSystemDescriptor,
-};
-use ensnano_interactor::{operation::Operation, ScaffoldInfo};
 use ensnano_interactor::{ActionMode, HyperboloidRequest, RollRequest, SelectionMode};
 pub use ensnano_organizer::OrganizerTree;
 use iced::{event::Event, keyboard, Renderer, Size};
-use std::collections::{BTreeSet, HashMap};
-use std::rc::Rc;
-use std::sync::{Arc, Mutex};
+use std::{
+    collections::{BTreeSet, HashMap},
+    rc::Rc,
+    sync::{Arc, Mutex},
+};
 use ultraviolet::{Rotor3, Vec2, Vec3};
 use wgpu::{Device, Queue};
 use winit::{

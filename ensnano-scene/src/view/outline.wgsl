@@ -56,7 +56,7 @@ fn load_depth(center: vec2<i32>, direction: vec2<i32>) -> f32 {
 
     for (var i = 1u; i < u_outline.sample_count; i = i + 1u) {
         let di = textureLoad(depth_tex_ms, coord, i32(i));
-        sum_d = sum_d + di;
+        sum_d += di;
         min_d = min(min_d, di);
         max_d = max(max_d, di);
     }

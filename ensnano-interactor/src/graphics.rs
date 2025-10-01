@@ -27,6 +27,11 @@ pub enum RenderingMode {
     Outline,
     BlackAndWhite,
 }
+impl RenderingMode {
+    pub fn requires_post_processing(&self) -> bool {
+        matches!(self, Self::Outline | Self::BlackAndWhite)
+    }
+}
 
 pub const ALL_RENDERING_MODE: &[RenderingMode] = &[
     RenderingMode::Normal,
