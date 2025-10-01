@@ -15,19 +15,21 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use std::rc::Rc;
 
 use super::{Device, DrawArea, DrawType, Queue, ViewPtr};
-use ensnano_design::grid::{GridId, GridPosition};
-use ensnano_design::{BezierPathId, BezierPlaneId, BezierVertexId};
+use ensnano_design::{
+    grid::{GridId, GridPosition},
+    BezierPathId, BezierPlaneId, BezierVertexId,
+};
 use ensnano_interactor::{phantom_helix_decoder, BezierControlPoint, PhantomElement};
-use ensnano_utils as utils;
+use ensnano_utils::{
+    wgpu,
+    winit::dpi::{PhysicalPosition, PhysicalSize},
+    BufferDimensions,
+};
 use futures::executor;
 use num_enum::IntoPrimitive;
-use std::convert::TryInto;
-use utils::wgpu;
-use utils::winit::dpi::{PhysicalPosition, PhysicalSize};
-use utils::BufferDimensions;
+use std::{convert::TryInto, rc::Rc};
 
 pub struct ElementSelector {
     pub device: Rc<Device>,
@@ -196,8 +198,8 @@ impl ElementSelector {
         let pixels = {
             let pixels_slice = buffer_slice.get_mapped_range();
             let mut pixels = Vec::with_capacity((size.height * size.width) as usize);
-            for chunck in pixels_slice.chunks(buffer_dimensions.padded_bytes_per_row) {
-                for byte in chunck[..buffer_dimensions.unpadded_bytes_per_row].iter() {
+            for chunk in pixels_slice.chunks(buffer_dimensions.padded_bytes_per_row) {
+                for byte in chunk[..buffer_dimensions.unpadded_bytes_per_row].iter() {
                     pixels.push(*byte);
                 }
             }
