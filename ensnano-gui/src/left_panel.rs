@@ -702,7 +702,6 @@ where
             }
             Message::SelectScaffold => self.requests.lock().unwrap().set_scaffold_from_selection(),
             Message::RenderingMode(mode) => {
-                println!("Change rendering mode to {mode:?}");
                 self.requests.lock().unwrap().change_3d_rendering_mode(mode);
                 self.camera_tab.rendering_mode = mode;
             }
