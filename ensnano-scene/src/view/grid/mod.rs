@@ -426,7 +426,7 @@ impl RessourceProvider for GridTextures {
         ]
     }
 
-    fn ressources(&'_ self) -> Vec<wgpu::BindGroupEntry<'_>> {
+    fn ressources(&self) -> Vec<wgpu::BindGroupEntry<'_>> {
         vec![
             wgpu::BindGroupEntry {
                 binding: 0,

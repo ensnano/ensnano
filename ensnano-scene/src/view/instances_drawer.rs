@@ -47,7 +47,7 @@ pub trait RessourceProvider {
         &[]
     }
     /// Description of the additional ressources (eg textures) needed to draw the mesh.
-    fn ressources(&'_ self) -> Vec<wgpu::BindGroupEntry<'_>> {
+    fn ressources(&self) -> Vec<wgpu::BindGroupEntry<'_>> {
         Vec::new()
     }
 

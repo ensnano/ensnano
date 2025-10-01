@@ -41,7 +41,7 @@ impl<State: AppState> GuiTab<State> for PenTab<State> {
     }
 
     fn content(
-        &'_ self,
+        &self,
         ui_size: UiSize,
         app_state: &State,
     ) -> ensnano_iced::Element<'_, Self::Message> {

@@ -98,7 +98,7 @@ impl<R: Requests, State: AppState> StatusBar<R, State> {
     }
 
     fn view_progress(
-        &'_ self,
+        &self,
     ) -> Row<'_, Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer> {
         let progress = self.progress.as_ref().unwrap();
         row![text(format!("{}, {:.1}%", progress.0, progress.1 * 100.))
@@ -199,7 +199,7 @@ impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
         Command::none()
     }
 
-    fn view(&'_ self) -> Element<'_, Self::Message, Self::Theme, Self::Renderer> {
+    fn view(&self) -> Element<'_, Self::Message, Self::Theme, Self::Renderer> {
         let clipboard_text = format!(
             "Clipboard: {}",
             self.app_state.get_clipboard_content().to_string()
@@ -340,7 +340,7 @@ impl OperationInput {
     }
 
     fn view<S: AppState>(
-        &'_ self,
+        &self,
         ui_size: UiSize,
     ) -> Row<'_, Message<S>, ensnano_iced::Theme, ensnano_iced::Renderer> {
         let mut row = Row::new();

@@ -94,7 +94,7 @@ impl<R: Requestable> RequestFactory<R> {
         &self,
         active: bool,
         size: impl Into<Pixels>,
-    ) -> Vec<ensnano_iced::Element<Message<State>>> {
+    ) -> Vec<ensnano_iced::Element<'_, Message<State>>> {
         let s = size.into();
         self.values
             .values()
@@ -175,7 +175,7 @@ impl DiscreteValue {
         &self,
         active: bool,
         name_size: impl Into<Pixels>,
-    ) -> ensnano_iced::Element<Message<State>> {
+    ) -> ensnano_iced::Element<'_, Message<State>> {
         let decr_button = if active && self.value - self.step >= self.min_val {
             button(text("-")).on_press(Message::DiscreteValue {
                 factory_id: self.owner_id,

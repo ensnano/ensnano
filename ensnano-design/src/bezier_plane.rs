@@ -59,7 +59,7 @@ impl HasMap for BezierPlanes {
 }
 
 impl BezierPlanes {
-    pub fn make_mut(&mut self) -> BezierPlanesMut {
+    pub fn make_mut(&mut self) -> BezierPlanesMut<'_> {
         let new_map = BTreeMap::clone(&self.0);
         BezierPlanesMut {
             source: self,
@@ -185,7 +185,7 @@ pub struct BezierPathsMut<'a> {
 }
 
 impl BezierPaths {
-    pub fn make_mut(&mut self) -> BezierPathsMut {
+    pub fn make_mut(&mut self) -> BezierPathsMut<'_> {
         BezierPathsMut {
             new_map: BTreeMap::clone(&self.0),
             source: self,

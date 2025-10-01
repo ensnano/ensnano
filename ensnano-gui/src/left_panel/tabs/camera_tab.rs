@@ -85,7 +85,7 @@ impl<State: AppState> GuiTab<State> for CameraTab<State> {
     }
 
     fn content(
-        &'_ self,
+        &self,
         ui_size: UiSize,
         app_state: &State,
     ) -> ensnano_iced::Element<'_, Message<State>> {
@@ -190,10 +190,7 @@ struct FogGuiParameters {
 }
 
 impl FogGuiParameters {
-    fn view<State: AppState>(
-        &'_ self,
-        ui_size: UiSize,
-    ) -> ensnano_iced::Element<'_, Message<State>> {
+    fn view<State: AppState>(&self, ui_size: UiSize) -> ensnano_iced::Element<'_, Message<State>> {
         let radius_text = if self.is_activated {
             text("Radius")
         } else {

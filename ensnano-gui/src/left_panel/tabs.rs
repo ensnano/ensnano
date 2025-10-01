@@ -97,7 +97,7 @@ mod gostop {
         }
 
         pub fn view(
-            &'_ self,
+            &self,
             active: bool,
             running: bool,
         ) -> Element<'_, Message<State>, Theme, Renderer> {

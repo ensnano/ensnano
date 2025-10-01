@@ -143,7 +143,7 @@ impl<State: AppState> GuiTab<State> for SimulationTab<State> {
     }
 
     fn content(
-        &'_ self,
+        &self,
         ui_size: UiSize,
         app_state: &State,
     ) -> ensnano_iced::Element<'_, Self::Message> {
@@ -207,7 +207,8 @@ impl PhysicalSimulation {
         name: &'static str,
         active: bool,
         running: bool,
-    ) -> ensnano_iced::Element<Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer> {
+    ) -> ensnano_iced::Element<'_, Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer>
+    {
         let button_str = if running { "Stop" } else { name };
         let mut button = text_button(button_str, ui_size);
         button = if running {

@@ -74,7 +74,7 @@ impl ColorPicker {
         self.hsv_value = hsv_value
     }
 
-    pub fn new_view(&self) -> ensnano_iced::Element<ColorMessage> {
+    pub fn new_view(&self) -> ensnano_iced::Element<'_, ColorMessage> {
         row![
             HueColumn::new(ColorMessage::HueChanged,),
             LightSatSquare::new(

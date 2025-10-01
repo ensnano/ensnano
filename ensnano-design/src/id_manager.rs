@@ -67,7 +67,7 @@ impl<T: Clone> IdCollectionInner<T> {
         new_key
     }
 
-    fn remove(&mut self, id: &Id) -> Result<Arc<T>, CollectionError> {
+    fn remove(&mut self, id: &Id) -> Result<Arc<T>, CollectionError<'_>> {
         (self.0)
             .remove(&id)
             .ok_or(CollectionError::NoItemWithSuchId(Id(id.0)))

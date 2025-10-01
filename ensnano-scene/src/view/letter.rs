@@ -72,7 +72,7 @@ impl RessourceProvider for Letter {
         Some(ensnano_utils::text::Vertex::desc())
     }
 
-    fn ressources(&'_ self) -> Vec<wgpu::BindGroupEntry<'_>> {
+    fn ressources(&self) -> Vec<wgpu::BindGroupEntry<'_>> {
         vec![
             wgpu::BindGroupEntry {
                 binding: 0,
