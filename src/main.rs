@@ -109,9 +109,8 @@ use controller::{
 };
 use ensnano_design::{grid::GridId, Camera};
 use ensnano_exports::{ExportResult, ExportType};
-use ensnano_flatscene as flatscene;
-use ensnano_gui::{self as gui, AppState as _};
-use ensnano_gui::{ColorOverlay, Gui, IcedMessages, OverlayType};
+use ensnano_flatscene::FlatScene;
+use ensnano_gui::{AppState as _, ColorOverlay, Gui, IcedMessages, OverlayType, TopBarState};
 use ensnano_iced::{
     fonts,
     iced::{self, Event as IcedEvent, Size},
@@ -133,7 +132,6 @@ use ensnano_interactor::{
 };
 use ensnano_scene as scene;
 use ensnano_utils::{PhySize, TEXTURE_FORMAT};
-use flatscene::FlatScene;
 use multiplexer::{Multiplexer, Overlay};
 use scene::Scene;
 use scheduler::Scheduler;
@@ -191,7 +189,7 @@ const PANIC_ON_WGPU_ERRORS: bool = true;
 /// * It initializes applications and GUI component, and associate regions of the screen to these
 /// components
 /// * It initializes the [Mediator](ensnano_interactor::application::AppId::Mediator), the
-/// [Scheduler] and the [Gui manager](gui::Gui)
+/// [Scheduler] and the [Gui manager](ensnano_gui::Gui)
 ///
 /// # Event loop
 ///
@@ -200,7 +198,7 @@ const PANIC_ON_WGPU_ERRORS: bool = true;
 /// * When a event is received, it is forwarded to the multiplexer. The Multiplexer may then
 /// convert this event into an event for a specific screen region.
 /// * When all window events have been handled, the main function reads messages that it received
-/// from the [Gui Manager](gui::Gui). The consequences of these messages are forwarded to the
+/// from the [Gui Manager](ensnano_gui::Gui). The consequences of these messages are forwarded to the
 /// applications.
 /// * The main loops then reads the messages that it received from the [Mediator](ensnano_interactor::application::AppId::Mediator) and
 /// forwards their consequences to the Gui components.
@@ -407,17 +405,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     scheduler.add_application(flat_scene.clone(), GuiComponentType::FlatScene);
 
     // Initialize the UI
-    //
     let main_state_constructor = MainStateConstructor {
         messages: messages.clone(),
     };
 
     let mut main_state = MainState::new(main_state_constructor);
 
-    //let _ = ensnano_gui::material_icons_light::load_fonts();
-    //let _ = ensnano_gui::helpers::load_fonts2();
-
-    let mut gui = gui::Gui::new(
+    let mut gui = Gui::new(
         Rc::clone(&device),
         Rc::clone(&queue),
         &window,
@@ -1673,8 +1667,8 @@ impl MainState {
         self.modify_state(|s| s.with_inverted_y_scroll(inverted), None)
     }
 
-    fn gui_state(&self, multiplexer: &Multiplexer) -> gui::TopBarState {
-        gui::TopBarState {
+    fn gui_state(&self, multiplexer: &Multiplexer) -> TopBarState {
+        TopBarState {
             can_undo: !self.undo_stack.is_empty(),
             can_redo: !self.redo_stack.is_empty(),
             need_save: self.need_save(),

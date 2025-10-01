@@ -26,6 +26,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use ensnano_design::{group_attributes::GroupPivot, BezierPathId};
 use ensnano_exports::{ExportResult, ExportType};
+use ensnano_gui::StrandBuildingStatus;
 use ensnano_iced::UiSize;
 use ensnano_interactor::{
     graphics::{Background3D, HBondDisplay, RenderingMode},
@@ -564,8 +565,7 @@ impl AppState {
             && (self.0.updated_once || other.0.updated_once)
     }
 
-    fn get_strand_building_state(&self) -> Option<crate::gui::StrandBuildingStatus> {
-        use crate::gui::StrandBuildingStatus;
+    fn get_strand_building_state(&self) -> Option<StrandBuildingStatus> {
         let builders = self.0.design.get_strand_builders();
         builders.get(0).and_then(|b| {
             let domain_id = b.get_domain_identifier();

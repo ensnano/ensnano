@@ -38,9 +38,10 @@ pub use controller::{
     ShiftOptimizerReader, SimulationInterface, SimulationReader,
 };
 
-use crate::{controller::SimulationRequest, gui::CurrentOpState};
+use crate::controller::SimulationRequest;
 pub(super) use controller::ErrOperation;
 use controller::{GridPresenter, HelixPresenter, OkOperation, RollPresenter, TwistPresenter};
+use ensnano_gui::CurrentOpState;
 
 use std::sync::Arc;
 mod file_parsing;

@@ -16,11 +16,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-//! Implements the [Requests](`crate::flatscene::Requests`) trait for [Requests](`super::Requests`).
+//! Implements the [Requests](`ensnano_flatscene::Requests`) trait for [Requests](`super::Requests`).
 
 use super::*;
-use crate::flatscene::Requests as FlatSceneRequests;
-
+use ensnano_flatscene::Requests as FlatSceneRequests;
 use ultraviolet::Isometry2;
 
 impl FlatSceneRequests for Requests {

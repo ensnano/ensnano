@@ -26,24 +26,23 @@ mod impl_scene;
 mod poll;
 
 use super::*;
-use ensnano_iced::UiSize;
-use ensnano_interactor::{application::AppId, RollRequest, Selection};
-use ensnano_interactor::{graphics::HBondDisplay, UnrootedRevolutionSurfaceDescriptor};
-use ensnano_interactor::{CenterOfSelection, CheckXoversParameter};
-pub(crate) use poll::poll_all;
-use ultraviolet::Vec3;
-
-use super::gui::OrganizerTree;
-use super::scene::FogParameters;
 use ensnano_design::grid::{GridId, GridPosition, GridTypeDescr};
 use ensnano_design::{
     elements::{DesignElementKey, DnaAttribute},
     Nucl,
 };
+use ensnano_gui::OrganizerTree;
+use ensnano_iced::UiSize;
+use ensnano_interactor::{application::AppId, RollRequest, Selection};
+use ensnano_interactor::{graphics::HBondDisplay, UnrootedRevolutionSurfaceDescriptor};
 use ensnano_interactor::{
     graphics::{Background3D, RenderingMode},
     HyperboloidRequest, RigidBodyConstants, SuggestionParameters,
 };
+use ensnano_interactor::{CenterOfSelection, CheckXoversParameter};
+use ensnano_scene::FogParameters;
+pub(crate) use poll::poll_all;
+use ultraviolet::Vec3;
 
 use std::collections::VecDeque;
 

@@ -17,8 +17,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::*;
-use crate::gui::AppState as GuiState;
 use ensnano_design::{elements::DesignElementKey, HelixParameters};
+use ensnano_gui::AppState as GuiState;
 use ensnano_gui::ClipboardContent;
 use ensnano_interactor::{ScaffoldInfo, SelectionConversion, SimulationState};
 
@@ -76,7 +76,7 @@ impl GuiState for AppState {
             )
     }
 
-    fn get_reader(&self) -> Box<dyn crate::gui::DesignReader> {
+    fn get_reader(&self) -> Box<dyn ensnano_gui::DesignReader> {
         Box::new(self.get_design_reader())
     }
 
@@ -106,11 +106,11 @@ impl GuiState for AppState {
         self.0.strand_on_new_helix.is_some()
     }
 
-    fn get_curent_operation_state(&self) -> Option<crate::gui::CurrentOpState> {
+    fn get_curent_operation_state(&self) -> Option<ensnano_gui::CurrentOpState> {
         self.0.design.get_curent_operation_state()
     }
 
-    fn get_strand_building_state(&self) -> Option<crate::gui::StrandBuildingStatus> {
+    fn get_strand_building_state(&self) -> Option<ensnano_gui::StrandBuildingStatus> {
         self.get_strand_building_state()
     }
 
