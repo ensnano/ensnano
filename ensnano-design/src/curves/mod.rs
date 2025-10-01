@@ -28,8 +28,6 @@ use crate::{
     BezierPathData, BezierPathId,
 };
 
-use self::sphere_concentric_circle::{PillTennisBallSeam, SphereTennisBallSeam};
-
 use super::{Helix, HelixParameters};
 use std::sync::Arc;
 mod bezier;

@@ -66,8 +66,8 @@ pub use shift_optimization::{ShiftOptimizationResult, ShiftOptimizerReader};
 
 mod simulations;
 pub use simulations::{
-    GridPresenter, HelixPresenter, RigidHelixState, RollPresenter, ShakeTarget,
-    SimulationInterface, SimulationOperation, SimulationReader, TwistPresenter,
+    GridPresenter, HelixPresenter, RollPresenter, SimulationInterface, SimulationOperation,
+    SimulationReader, TwistPresenter,
 };
 
 mod update_insertion_length;
@@ -1977,16 +1977,6 @@ impl From<ensnano_design::SvgImportError> for ErrOperation {
 }
 
 impl Controller {
-    fn recolor_staples(&mut self, mut design: Design) -> Design {
-        for (s_id, strand) in design.strands.iter_mut() {
-            if Some(*s_id) != design.scaffold_id {
-                let color = crate::utils::colors::new_color(&mut self.color_idx);
-                strand.color = color;
-            }
-        }
-        design
-    }
-
     fn fancy_recolor_staples(&mut self, mut design: Design) -> Design {
         let mut drawing_styles = HashMap::<DesignElementKey, DrawingStyle>::default();
 
@@ -2006,7 +1996,7 @@ impl Controller {
                     })
                     .flatten()
                     .collect::<Vec<DrawingAttribute>>();
-                let mut style = DrawingStyle::from(drawing_attributes);
+                let style = DrawingStyle::from(drawing_attributes);
                 drawing_styles.insert(e, style);
             }
         }
@@ -3477,7 +3467,7 @@ fn nucl_pos_2d(helices: &Helices, nucl: &Nucl, segment: usize) -> Option<Vec2> {
         if segment > 0 {
             h.additional_isometries
                 .get(segment - 1)
-                .and_then(|i| (i.additional_isometry.or(h.isometry2d)))
+                .and_then(|i| i.additional_isometry.or(h.isometry2d))
         } else {
             h.isometry2d
         }

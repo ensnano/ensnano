@@ -265,7 +265,7 @@ impl RessourceProvider for DirectionTexture {
         ]
     }
 
-    fn ressources(&self) -> Vec<wgpu::BindGroupEntry> {
+    fn ressources(&self) -> Vec<wgpu::BindGroupEntry<'_>> {
         vec![
             wgpu::BindGroupEntry {
                 binding: 0,

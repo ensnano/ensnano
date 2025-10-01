@@ -28,9 +28,9 @@ use crate::view::PlainRectangleInstance;
 use ensnano_design::grid::{GridId, GridObject, GridPosition};
 use ensnano_design::{grid::HelixGridPosition, Nucl};
 use ensnano_design::{
-    perpendicular_basis, AdditionalStructure, BezierPathId, BezierPlaneDescriptor, BezierPlaneId,
-    BezierVertex, Collection, CubicBezierConstructor, CurveDescriptor, External3DObjects,
-    HelixParameters, InstanciatedPath,
+    AdditionalStructure, BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex,
+    Collection, CubicBezierConstructor, CurveDescriptor, External3DObjects, HelixParameters,
+    InstanciatedPath,
 };
 pub use ensnano_design::{SurfaceInfo, SurfacePoint};
 use ensnano_interactor::consts::*;
@@ -39,20 +39,18 @@ use ensnano_interactor::{
     phantom_helix_encoder_bond, phantom_helix_encoder_nucl, BezierControlPoint, ObjectType,
     PhantomElement, Referential, PHANTOM_RANGE,
 };
-use ensnano_utils::colors::{self, new_color, purple_to_blue_gradient_color};
+use ensnano_utils::colors;
 use ensnano_utils::instance::Instance;
 use std::collections::hash_map::RandomState;
 use std::collections::{BTreeMap, HashMap, HashSet};
-use std::f32::consts::{PI, TAU};
-use std::iter::Zip;
+use std::f32::consts::TAU;
 use std::rc::Rc;
 use std::sync::Arc;
-use ultraviolet::{Mat4, Rotor3, Vec2, Vec3, Vec4};
+use ultraviolet::{Mat4, Rotor3, Vec2, Vec3};
 
 mod bezier_paths;
 
 use crate::SceneElement::DesignElement;
-use serde::{Deserialize, Serialize};
 
 use ensnano_utils::StrandNucleotidesPositions;
 
@@ -373,10 +371,10 @@ impl<R: DesignReader> Design3D<R> {
                     let x_vec = y_vec.cross(z_vec);
                     let positions = (0..NB_STEPS)
                         .map(|i| {
-                            (pos_left
+                            pos_left
                                 + i as f32 / NB_STEPS as f32 * uv
                                 + xx[i % NB_COILS] * x_vec
-                                + yy[i % NB_COILS] * y_vec)
+                                + yy[i % NB_COILS] * y_vec
                         })
                         .collect();
                     let color = ensnano_utils::colors::purple_to_blue_gradient_color_in_range(

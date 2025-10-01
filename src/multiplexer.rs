@@ -30,9 +30,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //!
 //!
 //! The multiplexer is also in charge of drawing to the frame.
-use super::{Action, Requests};
-use crate::utils::texture::SampledTexture;
+use super::Action;
 use crate::PhySize;
+use crate::{requests::Requests, utils::texture::SampledTexture};
 use ensnano_iced::{
     iced_wgpu::wgpu,
     iced_wgpu::wgpu::Device,
@@ -82,11 +82,11 @@ pub struct Multiplexer {
     stereographic_scene_texture: Option<MultiplexerTexture>,
     /// The texture on which the status bar gui is rendered.
     status_bar_texture: Option<MultiplexerTexture>,
-    /// The texutre on which the flat scene is rendered.
+    /// The texture on which the flat scene is rendered.
     flat_scene_texture: Option<MultiplexerTexture>,
     /// The pointer to the node that separate the top bar from the scene.
     top_bar_split: usize,
-    /// The pointer to the node that separtate the status bar from the scene.
+    /// The pointer to the node that separate the status bar from the scene.
     status_bar_split: usize,
     /// The WGPU device.
     device: Rc<Device>,
@@ -103,7 +103,7 @@ pub struct Multiplexer {
     element_2d: GuiComponentType,
 }
 
-/// Maximum width of the left pannel.
+/// Maximum width of the left panel.
 const MAX_LEFT_PANEL_WIDTH: f64 = 200.;
 /// Maximum height of the status bar.
 const MAX_STATUS_BAR_HEIGHT: f64 = 56.;

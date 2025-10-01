@@ -142,7 +142,11 @@ impl<State: AppState> GuiTab<State> for SimulationTab<State> {
         TabLabel::Icon(crate::consts::ICON_PHYSICAL_ENGINE)
     }
 
-    fn content(&self, ui_size: UiSize, app_state: &State) -> ensnano_iced::Element<Self::Message> {
+    fn content(
+        &'_ self,
+        ui_size: UiSize,
+        app_state: &State,
+    ) -> ensnano_iced::Element<'_, Self::Message> {
         let sim_state = &app_state.get_simulation_state();
         let rigid_grid_is_active = sim_state.is_none() || sim_state.simulating_grid();
         let roll_active = sim_state.is_none() || sim_state.is_rolling();

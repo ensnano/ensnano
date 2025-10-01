@@ -16,11 +16,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use crate::HelixParameters;
-
 use super::Curved;
-use std::f64::consts::{PI, TAU};
-use ultraviolet::{DRotor3, DVec3};
+use crate::HelixParameters;
+use std::f64::consts::TAU;
+use ultraviolet::DVec3;
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct SpiralCylinderDescriptor {

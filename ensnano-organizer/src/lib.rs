@@ -31,7 +31,6 @@ use drag_drop_target::*;
 
 use hoverable_container::HoverableContainer;
 
-const LEVEL0_V_SPACING: u16 = 3;
 const LEVELS_V_SPACING: u16 = 2;
 const H_SPACING_IN_UNITS: u16 = 15;
 const ICON_SIZE: u16 = 10;
@@ -975,7 +974,7 @@ impl<E: OrganizerElement> ElementView<E> {
         &self,
         _theme: &OrganizerTheme,
         element: &E,
-        selection: &BTreeSet<E::Key>,
+        _selection: &BTreeSet<E::Key>,
         deletable: Option<NodeId<E::AutoGroup>>,
     ) -> DragDropTarget<'_, OrganizerMessage<E>, crate::Theme, crate::Renderer, E::Key, E::AutoGroup>
     {
@@ -1140,11 +1139,12 @@ impl<E: OrganizerElement> NodeView<E> {
                 text(name),
             ],
         };
-        let button_theme = if selected {
-            theme.level_selected(level)
-        } else {
-            theme.level(level)
-        };
+
+        // let button_theme = if selected {
+        //     theme.level_selected(level)
+        // } else {
+        //     theme.level(level)
+        // };
         let title_button = button(title_row)
             .on_press(OrganizerMessage::node_selected(id.clone()))
             .width(Length::Fill);

@@ -16,12 +16,17 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use std::path::Path;
-pub const NO_FILE_RECIEVED_LOAD: &'static str = "Open canceled";
-pub const NO_FILE_RECIEVED_SAVE: &'static str = "Save canceled";
-pub const NO_FILE_RECIEVED_OXDNA: &'static str = "OxDNA export canceled";
-pub const NO_FILE_RECIEVED_SCAFFOLD: &'static str = "Scaffold setting canceled";
-pub const NO_FILE_RECIEVED_STAPLE: &'static str = "Staple export canceled";
+use {
+    crate::dialog::Filters,
+    ensnano_interactor::consts::{ENS_EXTENSION, ORIGAMI_EXTENSION},
+    std::path::Path,
+};
+
+pub const NO_FILE_RECEIVED_LOAD: &'static str = "Open canceled";
+pub const NO_FILE_RECEIVED_SAVE: &'static str = "Save canceled";
+pub const NO_FILE_RECEIVED_OXDNA: &'static str = "OxDNA export canceled";
+pub const NO_FILE_RECEIVED_SCAFFOLD: &'static str = "Scaffold setting canceled";
+pub const NO_FILE_RECEIVED_STAPLE: &'static str = "Staple export canceled";
 
 pub fn failed_to_save_msg<D: std::fmt::Debug>(reason: &D) -> String {
     format!("Failed to save {:?}", reason)
@@ -37,7 +42,7 @@ pub const NO_SCAFFOLD_SEQUENCE_SET: &'static str = "No sequence uploaded for sca
 pub const NO_DESIGN_SELECTED: &'static str =
     "No design selected, select a design by selecting one of its elements";
 
-pub fn successfull_staples_export_msg<P: AsRef<Path>>(file: P) -> String {
+pub fn successful_staples_export_msg<P: AsRef<Path>>(file: P) -> String {
     format!(
         "Successfully wrote staples in {}",
         file.as_ref().to_string_lossy()
@@ -57,7 +62,7 @@ pub const SAVE_BEFORE_NEW: &'static str =
 pub fn optimize_scaffold_position_msg(default_position: usize) -> String {
     format!("Optimize the scaffold position ?\n
               If you chose \"Yes\", ENSnano will position the scaffold in a way that minimizes the \
-              number of anti-patern (G^4, C^4 (A|T)^7) in the staples sequence. If you chose \"No\", \
+              number of anti-pattern (G^4, C^4 (A|T)^7) in the staples sequence. If you chose \"No\", \
               the scaffold sequence will begin at position {}", default_position)
 }
 
@@ -69,7 +74,6 @@ pub fn invalid_sequence_file(first_invalid_char_position: usize) -> String {
     )
 }
 
-use crate::dialog::Filters;
 pub const DESIGN_LOAD_FILTER: Filters = &[
     (
         "All supported files",
@@ -91,25 +95,23 @@ pub const DESIGN_LOAD_FILTER: Filters = &[
     ("scadnano files", &["sc"]),
 ];
 
-pub const DESIGN_WRITE_FILTER: Filters = &[("ENSnano files", &[crate::consts::ENS_EXTENSION])];
+pub const DESIGN_WRITE_FILTER: Filters = &[("ENSnano files", &[ENS_EXTENSION])];
 
 pub const SEQUENCE_FILTERS: Filters = &[("Text files", &["txt"])];
 
 pub const CHANGING_DNA_PARAMETERS_WARNING: &'static str =
     "Are you sure that you want to change DNA parameters?";
 
-pub const OXDNA_CONFIG_EXTENSTION: &str = "oxdna";
+pub const OXDNA_CONFIG_EXTENSION: &str = "oxdna";
 
-pub const OXDNA_CONFIG_FILTERS: Filters = &[("Oxdna config files", &[OXDNA_CONFIG_EXTENSTION])];
+pub const OXDNA_CONFIG_FILTERS: Filters = &[("Oxdna config files", &[OXDNA_CONFIG_EXTENSION])];
 
 pub const STAPLES_FILTER: Filters = &[("Excel files", &["xlsx"])];
 
-pub const ORIGAMI_FLTER: Filters = &[("Origami files", &[crate::consts::ORIGAMI_EXTENSION])];
+pub const ORIGAMI_FILTER: Filters = &[("Origami files", &[ORIGAMI_EXTENSION])];
 
 pub const PDB_FILTER: Filters = &[("Pdb files", &["pdb"])];
 pub const CADNANO_FILTER: Filters = &[("Cadnano files", &["json"])];
-
-pub const STL_FILTER: Filters = &[("Stl files", &["stl"])];
 
 pub const OBJECT3D_FILTERS: Filters = &[
     ("All supported files", &["gltf", "stl"]),
@@ -120,5 +122,5 @@ pub const OBJECT3D_FILTERS: Filters = &[
 pub const SVG_FILTERS: Filters = &[("Svg files", &["svg"])];
 
 pub const SET_DESIGN_DIRECTORY_FIRST: &str =
-    "It is not possible to import 3D objects in an unamed design.
+    "It is not possible to import 3D objects in an unnamed design.
 Please save your design first to give it a name";

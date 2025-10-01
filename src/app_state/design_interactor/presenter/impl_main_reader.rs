@@ -18,12 +18,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::*;
 use crate::controller::{DownloadStapleError, DownloadStapleOk, StaplesDownloader};
-use hex;
-use rust_xlsxwriter::{Color, Format, Workbook, XlsxError};
+use rust_xlsxwriter::{Color, Format, Workbook};
 use serde::Serialize;
-use std::borrow::Cow;
-use std::io::Write;
-use std::path::PathBuf;
+use std::{io::Write, path::PathBuf};
 
 impl StaplesDownloader for DesignReader {
     fn download_staples(&self) -> Result<DownloadStapleOk, DownloadStapleError> {

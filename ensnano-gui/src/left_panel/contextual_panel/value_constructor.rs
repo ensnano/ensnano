@@ -188,7 +188,9 @@ impl GridPositionBuilder {
         Self::Cartesian(Vec3Builder::new(ValueKind::HelixGridPosition, position))
     }
 
-    fn view<'a, State: AppState>(&self) -> ensnano_iced::Element<Message<State>, Theme, Renderer> {
+    fn view<'a, State: AppState>(
+        &'_ self,
+    ) -> ensnano_iced::Element<'_, Message<State>, Theme, Renderer> {
         match self {
             Self::Cartesian(builder) => builder.view(),
         }
@@ -221,7 +223,9 @@ impl GridOrientationBuilder {
         ))
     }
 
-    fn view<State: AppState>(&self) -> ensnano_iced::Element<Message<State>, Theme, Renderer> {
+    fn view<State: AppState>(
+        &'_ self,
+    ) -> ensnano_iced::Element<'_, Message<State>, Theme, Renderer> {
         match self {
             Self::DirectionAngle(builder) => builder.view(),
         }
@@ -259,11 +263,11 @@ where
     State: AppState,
 {
     fn view(
-        &self,
+        &'_ self,
         ui_size: UiSize,
         _selection: &Selection,
         _app_state: &State,
-    ) -> ensnano_iced::Element<super::Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer>
+    ) -> ensnano_iced::Element<'_, super::Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer>
     {
         self::column![
             text("Position").size(ui_size.intermediate_text()),

@@ -25,7 +25,6 @@ use std::sync::Arc;
 mod formating;
 
 extern crate serde_hex;
-use serde_hex::{SerHex, StrictPfx};
 
 /// A collection of strands, that maps strand identifier to strands.
 ///

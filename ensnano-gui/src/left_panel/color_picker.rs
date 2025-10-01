@@ -15,7 +15,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use super::{AppState, ColorMessage, Message};
+use super::ColorMessage;
 use ensnano_iced::{helpers::*, iced::Color, iced_winit::winit::dpi::LogicalSize};
 
 /// Messages from ColorPicker
@@ -34,7 +34,6 @@ pub struct ColorPicker {
     hsv_value: f64,
 }
 
-pub use color_square::ColorSquare;
 use hue_column::HueColumn;
 use light_sat_square::LightSatSquare;
 

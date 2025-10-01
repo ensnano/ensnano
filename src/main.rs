@@ -87,17 +87,12 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //!      | AutoVsync   | Yes         | Yes         |
 //!      | Immediate   | No          | Yes         |
 //!      | Mailbox     | Yes         | No          |
-//!
-use std::collections::{HashMap, VecDeque};
-use std::env;
-use std::path::{Path, PathBuf};
-use std::rc::Rc;
-use std::sync::{Arc, Mutex};
-use std::time::{Duration, Instant};
 
+use app_state::AppStateParameters;
 use controller::{ChannelReader, ChannelReaderUpdate, SimulationRequest};
 use ensnano_design::{grid::GridId, Camera};
 use ensnano_exports::{ExportResult, ExportType};
+use ensnano_gui as gui;
 use ensnano_iced::{
     fonts,
     iced::{self, Event as IcedEvent, Size},
@@ -108,6 +103,7 @@ use ensnano_iced::{
     iced_winit::{self, winit},
     theme, UiSize,
 };
+use ensnano_interactor::consts;
 use ensnano_interactor::{
     application::{Application, Notification},
     RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor,
@@ -116,8 +112,12 @@ use ensnano_interactor::{
     CenterOfSelection, CursorIcon, DesignOperation, DesignReader, RigidBodyConstants,
     SuggestionParameters,
 };
-
-use app_state::AppStateParameters;
+use std::collections::{HashMap, VecDeque};
+use std::env;
+use std::path::{Path, PathBuf};
+use std::rc::Rc;
+use std::sync::{Arc, Mutex};
+use std::time::{Duration, Instant};
 use ultraviolet::{Rotor3, Vec3};
 use winit::{
     dpi::{PhysicalPosition, PhysicalSize},
@@ -126,13 +126,6 @@ use winit::{
     keyboard::{Key, ModifiersState, NamedKey},
     window::Window,
 };
-
-#[allow(unused_imports)]
-#[macro_use]
-extern crate pretty_env_logger;
-
-use ensnano_gui as gui;
-use ensnano_interactor::consts;
 mod multiplexer;
 use ensnano_flatscene as flatscene;
 use ensnano_interactor::{
@@ -144,25 +137,18 @@ use ensnano_scene as scene;
 mod scheduler;
 use ensnano_utils as utils;
 use scheduler::Scheduler;
-
-#[cfg(test)]
-mod main_tests;
-// mod grid_panel; We don't use the grid panel atm
-
 mod app_state;
 mod controller;
+#[cfg(test)]
+mod main_tests;
 use app_state::{
     AppState, AppStateTransition, CopyOperation, ErrOperation, OkOperation, PastePosition,
     PastingStatus, SimulationTarget, TransitionLabel,
 };
 use controller::Action;
 use controller::Controller;
-
-mod requests;
-pub use requests::Requests;
-
 mod dialog;
-
+mod requests;
 use flatscene::FlatScene;
 use gui::{ColorOverlay, Gui, IcedMessages, OverlayType};
 use multiplexer::{Multiplexer, Overlay};
@@ -1811,10 +1797,6 @@ impl<'a> MainStateInterface for MainStateView<'a> {
         Ok(())
     }
 
-    fn get_chanel_reader(&mut self) -> &mut ChannelReader {
-        &mut self.main_state.channel_reader
-    }
-
     fn apply_operation(&mut self, operation: DesignOperation) {
         self.main_state.apply_operation(operation)
     }
@@ -2199,7 +2181,7 @@ impl<'a> MainStateInterface for MainStateView<'a> {
 
 use controller::{SetScaffoldSequenceError, SetScaffoldSequenceOk};
 
-use crate::controller::TargetScaffoldLength;
+use crate::{controller::TargetScaffoldLength, requests::Requests};
 impl<'a> controller::ScaffoldSetter for MainStateView<'a> {
     fn set_scaffold_sequence(
         &mut self,

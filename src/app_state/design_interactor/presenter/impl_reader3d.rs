@@ -17,7 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::*;
-use ahash::RandomState;
+use crate::scene::{DesignReader as Reader3D, GridInstance, SurfaceInfo};
 use ensnano_design::{
     grid::{GridId, GridObject, GridPosition, HelixGridPosition},
     BezierPlaneDescriptor, BezierPlaneId, BezierVertexId, Collection, CurveDescriptor, Domain,
@@ -27,12 +27,9 @@ use ensnano_interactor::{
     graphics::{LoopoutBond, LoopoutNucl},
     BezierControlPoint, ObjectType, Referential,
 };
+use ensnano_utils::StrandNucleotidesPositions;
 use std::collections::HashSet;
 use ultraviolet::{Mat4, Rotor3, Vec2, Vec3};
-
-use crate::scene::{DesignReader as Reader3D, GridInstance, SurfaceInfo};
-
-use ensnano_utils::StrandNucleotidesPositions;
 
 impl Reader3D for DesignReader {
     fn get_color(&self, e_id: u32) -> Option<u32> {
@@ -629,12 +626,12 @@ impl Reader3D for DesignReader {
             let mut pos_seq = Vec::new();
             let mut curvatures: Vec<f64> = Vec::new();
             let mut torsions: Vec<f64> = Vec::new();
-            for (i, domain) in strand.domains.iter().enumerate() {
+            for domain in &strand.domains {
                 // Real domain or Insertion
                 if let Domain::HelixDomain(domain) = domain {
                     // Real helix domain
                     // Iterate along the domain
-                    for (dom_position, nucl_position) in domain.iter().enumerate() {
+                    for nucl_position in domain.iter() {
                         let nucl: Nucl = Nucl {
                             position: nucl_position,
                             forward: domain.forward,

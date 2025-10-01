@@ -89,14 +89,6 @@ pub(super) trait ControllerState<S: AppState> {
         None
     }
 
-    fn element_being_selected(&self) -> Option<SceneElement> {
-        None
-    }
-
-    #[allow(clippy::unused_unit)]
-    fn notify_scroll(&mut self) {
-        ()
-    }
     fn cursor(&self) -> Option<ensnano_interactor::CursorIcon> {
         None
     }

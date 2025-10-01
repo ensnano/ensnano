@@ -16,31 +16,32 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#[cfg(test)]
-pub use self::design_content::Staple;
-
-use super::*;
-use ensnano_design::{
-    BezierPathId, Extremity, HelixCollection, InstanciatedPiecewiseBezier, Nucl, VirtualNucl,
-};
-
-use ensnano_interactor::{
-    application::Camera3D, NeighbourDescriptor, NeighbourDescriptorGiver, ScaffoldInfo, Selection,
-    SuggestionParameters,
-};
-
-use ultraviolet::Mat4;
-
-use crate::utils::id_generator::IdGenerator;
-type JunctionsIds = IdGenerator<(Nucl, Nucl)>;
 pub mod design_content;
 mod impl_main_reader;
 mod impl_reader2d;
 mod impl_reader3d;
 mod impl_readergui;
-use crate::scene::{HBond, HalfHBond};
+
+#[cfg(test)]
+pub use self::design_content::Staple;
+
+use super::*;
+use crate::{
+    scene::{HBond, HalfHBond},
+    utils::id_generator::IdGenerator,
+};
 use design_content::DesignContent;
-use std::collections::{BTreeMap, HashSet};
+use ensnano_design::{
+    BezierPathId, Extremity, HelixCollection, InstanciatedPiecewiseBezier, Nucl, VirtualNucl,
+};
+use ensnano_interactor::{
+    application::Camera3D, NeighbourDescriptor, NeighbourDescriptorGiver, Referential,
+    ScaffoldInfo, Selection, SuggestionParameters,
+};
+use std::collections::{BTreeMap, HashMap, HashSet};
+use ultraviolet::{Mat4, Vec3};
+
+type JunctionsIds = IdGenerator<(Nucl, Nucl)>;
 
 #[derive(Clone)]
 /// The structure that handles "read" operations on designs.
@@ -51,7 +52,7 @@ use std::collections::{BTreeMap, HashSet};
 /// When the data structures are updated, a pointer to the design that was used to build them is
 /// stored. To obtain a design reader, a pointer to the current design must be given. If the given
 /// pointer does not point to the same address as the one that was used to create the data
-/// structures, the strucutres are updated before returning the design reader.
+/// structures, the structures are updated before returning the design reader.
 pub(super) struct Presenter {
     pub current_design: AddressPointer<Design>,
     current_suggestion_parameters: SuggestionParameters,
@@ -584,8 +585,6 @@ pub(super) fn apply_simulation_update(
     (AddressPointer::new(returned_presenter), returned_design)
 }
 
-use ensnano_interactor::{ObjectType, Referential};
-use ultraviolet::Vec3;
 impl DesignReader {
     pub(super) fn get_position_of_nucl_on_helix(
         &self,
@@ -799,7 +798,6 @@ impl RollPresenter for Presenter {
 
 impl TwistPresenter for Presenter {}
 
-use std::collections::HashMap;
 pub trait SimulationUpdate: Send + Sync {
     fn update_positions(
         &self,

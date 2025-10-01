@@ -132,13 +132,12 @@ pub(super) struct DesignContent {
     pub loopout_bonds: Vec<LoopoutBond>,
     /// Maps bonds identifier to the length of the corresponding insertion.
     pub insertion_length: HashMap<u32, usize, RandomState>,
-    /// Maps identifiers to drawingstyles
+    /// Maps identifiers to drawing styles
     pub drawing_styles: HashMap<DesignElementKey, DrawingStyle, RandomState>,
-    /// Maps identifiers to drawingstyles
     pub xover_coloring_map: HashMap<u32, bool, RandomState>,
     pub clone_transformations: Vec<Isometry3>,
     pub with_cones_map: HashMap<u32, bool, RandomState>,
-    // min value, max value and rainow function(t, min, max)->color
+    // min value, max value and rainbow function(t, min, max)->color
     pub scalebar: Option<(f32, f32, fn(f32, f32, f32) -> u32)>,
 }
 
@@ -483,13 +482,6 @@ impl DesignContent {
             .filter(check_visibility)
             .map(|t| *t.0)
             .collect()
-    }
-
-    /// NOT IMPLEMENTED YET
-    pub fn get_drawing_style(&self, id: u32) -> DrawingStyle {
-        println!("get_drawing_style not implemented yet!");
-        let style = DrawingStyle::default();
-        return style;
     }
 }
 

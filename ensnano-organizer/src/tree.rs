@@ -80,9 +80,7 @@ impl<K: PartialEq> OrganizerTree<K> {
         let mut ret = Vec::new();
         match self {
             Self::Leaf(_) => (),
-            Self::Node {
-                name, children, id, ..
-            } => {
+            Self::Node { children, .. } => {
                 if let Some(name) = self.get_name_copy() {
                     ret.push(name);
                 }

@@ -144,7 +144,7 @@ fn poll_path(path_input: PathInput, design_id: usize) -> Box<dyn State> {
             })
         } else {
             TransitionMessage::new(
-                messages::NO_FILE_RECIEVED_STAPLE,
+                messages::NO_FILE_RECEIVED_STAPLE,
                 rfd::MessageLevel::Error,
                 Box::new(NormalState),
             )
@@ -165,7 +165,7 @@ fn download_staples(
     path: PathBuf,
 ) -> Box<dyn State> {
     downlader.write_staples_xlsx(&path);
-    let msg = messages::successfull_staples_export_msg(&path);
+    let msg = messages::successful_staples_export_msg(&path);
     TransitionMessage::new(msg, rfd::MessageLevel::Error, Box::new(NormalState))
 }
 

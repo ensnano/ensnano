@@ -35,7 +35,7 @@ use std::sync::Arc;
 
 use ensnano_design::grid::GridObject;
 use ensnano_design::{BezierVertexId, Collection};
-use ensnano_interactor::graphics::{HBondDisplay, LoopoutNucl};
+use ensnano_interactor::graphics::HBondDisplay;
 use ultraviolet::{Rotor3, Vec3};
 
 use super::view::Mesh;
@@ -2039,28 +2039,14 @@ impl<R: DesignReader> Data<R> {
             .get(0)
             .and_then(|d| d.get_surface_info_nucl(nucl))
     }
-
-    pub fn get_stl_information(&self) -> Vec<bool> {
-        vec![]
-    }
 }
 
 pub(super) trait WantWidget: Sized + 'static {
-    const ALL: &'static [Self];
-
     fn wants_rotation(&self) -> bool;
     fn wants_handle(&self) -> bool;
 }
 
 impl WantWidget for ActionMode {
-    const ALL: &'static [ActionMode] = &[
-        ActionMode::Normal,
-        ActionMode::Translate,
-        ActionMode::Rotate,
-        ActionMode::Build(false),
-        ActionMode::Cut,
-    ];
-
     fn wants_rotation(&self) -> bool {
         match self {
             ActionMode::Rotate => true,
@@ -2144,12 +2130,6 @@ impl<R: DesignReader> ControllerData for Data<R> {
             self.handle_need_opdate = true;
             self.handle_colors = colors;
         }
-    }
-
-    fn element_to_selection(&self, element: &Option<SceneElement>) -> Selection {
-        element
-            .map(|elt| self.element_to_selection(&elt, SelectionMode::Nucleotide))
-            .unwrap_or(Selection::Nothing)
     }
 
     fn init_free_xover(&mut self, nucl: Nucl, position: Vec3, design_id: usize) {

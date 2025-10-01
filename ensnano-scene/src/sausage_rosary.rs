@@ -22,7 +22,7 @@ use ensnano_utils::instance::Instance;
 
 use crate::view::{SlicedTubeInstance, TubeLidInstance};
 
-use ensnano_interactor::consts::{HELIX_CYLINDER_COLOR, HELIX_CYLINDER_RADIUS};
+use ensnano_interactor::consts::HELIX_CYLINDER_COLOR;
 
 pub struct SausageRosary {
     pub positions: Vec<Vec3>,

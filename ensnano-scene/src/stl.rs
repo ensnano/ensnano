@@ -19,6 +19,7 @@ use ensnano_design::ultraviolet::{Mat3, Vec3};
 use ensnano_interactor::consts::NB_RAY_TUBE;
 
 #[derive(Debug)]
+#[allow(unused)]
 pub enum StlError {
     IOError(std::io::Error),
 }

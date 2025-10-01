@@ -34,7 +34,7 @@ use wgpu::{
 pub trait Vertexable {
     /// The raw type that is sent to the shaders
     type RawType: bytemuck::Pod + bytemuck::Zeroable;
-    /// The vertex state decriptor used to create the pipeline
+    /// The vertex state descriptor used to create the pipeline
     fn desc<'a>() -> wgpu::VertexBufferLayout<'a>;
     /// Convert self into a raw vertex.
     fn to_raw(&self) -> Self::RawType;
@@ -42,12 +42,12 @@ pub trait Vertexable {
 
 /// A type that provides additional ressources needed to draw a mesh
 pub trait RessourceProvider {
-    /// Descritpion of the additional ressources (eg textures) needed to draw the mesh.
+    /// Description of the additional ressources (eg textures) needed to draw the mesh.
     fn ressources_layout() -> &'static [wgpu::BindGroupLayoutEntry] {
         &[]
     }
-    /// Descritpion of the additional ressources (eg textures) needed to draw the mesh.
-    fn ressources(&self) -> Vec<wgpu::BindGroupEntry> {
+    /// Description of the additional ressources (eg textures) needed to draw the mesh.
+    fn ressources(&'_ self) -> Vec<wgpu::BindGroupEntry<'_>> {
         Vec::new()
     }
 

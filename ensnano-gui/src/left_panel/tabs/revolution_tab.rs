@@ -153,9 +153,9 @@ impl ParameterWidget {
     }
 
     fn input_view<State: AppState>(
-        &self,
+        &'_ self,
         id: RevolutionParameterId,
-    ) -> ensnano_iced::Element<Message<State>> {
+    ) -> ensnano_iced::Element<'_, Message<State>> {
         keyboard_priority(
             text_input("", &self.current_text)
                 .on_input(move |s| Message::RevolutionParameterUpdate {
@@ -220,7 +220,7 @@ impl<S: AppState> CurveDescriptorWidget<S> {
         }
     }
 
-    fn view(&self, ui_size: UiSize) -> ensnano_iced::Element<Message<S>> {
+    fn view(&'_ self, ui_size: UiSize) -> ensnano_iced::Element<'_, Message<S>> {
         container(column(
             self.parameters
                 .iter()
