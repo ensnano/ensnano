@@ -95,6 +95,7 @@ where
 /// The local state of an [`HoverableContainer`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct State {
+    /// Store the last known state of the underlying [text_input].
     is_focused: bool,
 }
 
@@ -135,7 +136,7 @@ where
             Deactivate,
             None,
         }
-        // First, we get the current focus state.
+        // First, we get the widget's state.
         let state = tree.state.downcast_mut::<State>();
 
         // Figure out whether the underlying widget is a [`text_input`].
@@ -147,12 +148,13 @@ where
             None
         };
 
+        // Determine if something must be done.
         let action = match is_child_a_text_input {
             Some(text_input_state) => {
+                // Last known focus state of [text_input]
                 let was_focused = state.is_focused;
                 // Figure out whether the underlying widget is focused.
                 let now_focused = text_input_state.is_focused();
-                // Update state
                 state.is_focused = now_focused;
                 // We also need to intercept if the key Enter has been hit.
                 let enter_key_hit = match &event {

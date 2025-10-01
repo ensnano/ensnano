@@ -1,3 +1,7 @@
+//! Tree-like structure for iced.
+//!
+//! In ENSnano, [ensnano_design] implements the structures defined here, and are instanciated in
+//! [ensnano_gui].
 use {
     ensnano_iced::{
         Element,
@@ -139,7 +143,7 @@ fn get_element<'a, E: OrganizerElement>(
     sections.get(s_id).and_then(|s| s.content.get(key))
 }
 
-// Shorthands to send internal messages.
+/// Shorthands to send internal messages.
 impl<E: OrganizerElement> OrganizerMessage<E> {
     fn expand(id: NodeId<E::AutoGroup>, expanded: bool) -> Self {
         Self::InternalMessage(InternalMessage(_Message::Expand { id, expanded }))
@@ -201,18 +205,21 @@ impl<E: OrganizerElement> OrganizerMessage<E> {
     }
 }
 
-/// Provide an tree-like view of the object being edited.
+/// Tree-like view of the object being edited.
 ///
 /// There are three kind of elements:
 ///
 /// 1. _Groups_ — User-defined groups of elements.
-/// 2. _Sections_ — Objects organized by category.
+/// 2. _Sections_ — Elements organized by category.
 /// 3. _Auto Groups_ — Automatically generated groups of elements.
 ///
 pub struct Organizer<E: OrganizerElement> {
     rng_thread: ThreadRng,
+    /// List of _groups_.
     groups: Vec<GroupContent<E>>,
+    /// List of _sections.
     sections: Vec<Section<E>>,
+    /// List of _auto groups.
     auto_groups: BTreeMap<E::AutoGroup, Section<E>>,
     theme: OrganizerTheme,
     width: u16,
@@ -230,8 +237,10 @@ impl<E: OrganizerElement> Organizer<E> {
     /// Create a new organizer object with default sections.
     pub fn new() -> Self {
         let rng = rand::thread_rng();
-        let mut sections = Vec::new(); // Hold sections that will be added to [Organizer]..
+        let mut sections = Vec::new(); // Hold sections that will be added to [Organizer].
 
+        // NOTE: Sections are yielded from their index, implicitely defined in
+        // [ensnano_design::elements::DesignElementKey]
         let mut i = 0usize;
         let mut section: Result<<E::Key as ElementKey>::Section, _> = i.try_into();
         while let Ok(s) = section {
@@ -589,6 +598,7 @@ impl<E: OrganizerElement> Organizer<E> {
             log::info!("start editing {:?}", id);
             self.groups[id_slice[0]].start_editing(&id_slice[1..]);
             self.editing = Some(id);
+            // TODO: Set focus.
         }
     }
 
