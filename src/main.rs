@@ -110,7 +110,8 @@ use controller::{
 use ensnano_design::{grid::GridId, Camera};
 use ensnano_exports::{ExportResult, ExportType};
 use ensnano_flatscene as flatscene;
-use ensnano_gui as gui;
+use ensnano_gui::{self as gui, AppState as _};
+use ensnano_gui::{ColorOverlay, Gui, IcedMessages, OverlayType};
 use ensnano_iced::{
     fonts,
     iced::{self, Event as IcedEvent, Size},
@@ -133,7 +134,6 @@ use ensnano_interactor::{
 use ensnano_scene as scene;
 use ensnano_utils::{PhySize, TEXTURE_FORMAT};
 use flatscene::FlatScene;
-use gui::{ColorOverlay, Gui, IcedMessages, OverlayType};
 use multiplexer::{Multiplexer, Overlay};
 use scene::Scene;
 use scheduler::Scheduler;
@@ -2211,7 +2211,6 @@ impl<'a> controller::ScaffoldSetter for MainStateView<'a> {
     }
 
     fn get_scaffold_length(&self) -> Option<usize> {
-        use gui::AppState;
         self.main_state
             .app_state
             .get_scaffold_info()

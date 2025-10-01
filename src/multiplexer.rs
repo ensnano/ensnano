@@ -367,8 +367,7 @@ impl Multiplexer {
 
     /// Return the drawing area attributed to an element.
     pub fn get_draw_area(&self, element_type: GuiComponentType) -> Option<DrawArea> {
-        use GuiComponentType::Overlay;
-        let (position, size) = if let Overlay(n) = element_type {
+        let (position, size) = if let GuiComponentType::Overlay(n) = element_type {
             (self.overlays[n].position, self.overlays[n].size)
         } else {
             let (left, top, right, bottom) = self.layout.get_area(element_type)?;
@@ -956,7 +955,7 @@ fn control_key(modifiers: &ModifiersState) -> bool {
     }
 }
 
-use crate::gui::Multiplexer as GuiMultiplexer;
+use ensnano_gui::Multiplexer as GuiMultiplexer;
 
 impl GuiMultiplexer for Multiplexer {
     fn get_draw_area(&self, element_type: GuiComponentType) -> Option<DrawArea> {
