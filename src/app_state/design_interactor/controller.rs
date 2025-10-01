@@ -1993,7 +1993,7 @@ impl Controller {
         if let Some(ref t) = design.organizer_tree {
             // Read drawing style -> this should be a function on its own, the exact same code is used in design-content
             let prefix = "style:"; // PREFIX SHOULD BELONG TO CONST.RS
-            let h = t.get_hashmap_to_all_groupnames_with_prefix(prefix);
+            let h = t.get_hashmap_to_all_group_names_with_prefix(prefix);
             for (e, names) in h {
                 let drawing_attributes = names
                     .iter()

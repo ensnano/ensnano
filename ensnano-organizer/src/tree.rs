@@ -119,7 +119,7 @@ impl<K: PartialEq> OrganizerTree<K> {
 
 /// Hashmap
 impl<K: Eq + Hash + Copy> OrganizerTree<K> {
-    pub fn get_hashmap_to_all_groupnames_with_prefix(
+    pub fn get_hashmap_to_all_group_names_with_prefix(
         &self,
         prefix: &str,
     ) -> HashMap<K, Vec<&str>, RandomState> {
@@ -143,7 +143,7 @@ impl<K: Eq + Hash + Copy> OrganizerTree<K> {
                             hashmap.insert(*e, e_names);
                         }
                         _ => {
-                            let c_hashmap = c.get_hashmap_to_all_groupnames_with_prefix(prefix);
+                            let c_hashmap = c.get_hashmap_to_all_group_names_with_prefix(prefix);
                             for (e, e_names) in c_hashmap {
                                 let mut new_e_names: Vec<&str> = hashmap
                                     .get(&e)
