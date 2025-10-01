@@ -87,7 +87,7 @@ impl Sheet2D {
     }
 }
 
-impl Instanciable for Sheet2D {
+impl Instantiable for Sheet2D {
     type Vertex = SheetVertex;
     type Ressource = ();
     type RawInstance = Sheet2DRaw;

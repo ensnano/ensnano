@@ -448,7 +448,7 @@ impl RessourceProvider for GridTextures {
     }
 }
 
-impl Instanciable for GridInstance {
+impl Instantiable for GridInstance {
     type Vertex = GridVertex;
     type RawInstance = GridInstanceRaw;
     type Ressource = GridTextures;

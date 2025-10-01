@@ -67,7 +67,7 @@ use grid::{GridManager, GridTextures};
 pub use grid_disc::GridDisc;
 use handle_drawer::HandlesDrawer;
 pub use handle_drawer::{HandleColors, HandleDir, HandleOrientation, HandlesDescriptor};
-pub use instances_drawer::Instanciable;
+pub use instances_drawer::Instantiable;
 use instances_drawer::{InstanceDrawer, RawDrawer};
 pub use letter::LetterInstance;
 use maths_3d::unproject_point_on_line;
@@ -497,14 +497,14 @@ impl View {
                 self.update_viewers();
             }
             ViewUpdate::Handles(descr) => {
-                self.handle_drawers.update_decriptor(
+                self.handle_drawers.update_descriptor(
                     descr,
                     self.camera.clone(),
                     self.projection.clone(),
                 );
             }
             ViewUpdate::RotationWidget(descr) => {
-                self.rotation_widget.update_decriptor(
+                self.rotation_widget.update_descriptor(
                     descr,
                     self.camera.clone(),
                     self.projection.clone(),
@@ -1093,13 +1093,13 @@ impl View {
         self.rotation_widget.translate(translation);
     }
 
-    /// Initialise the rotation that will be applied on objects affected by the rotation widget.
+    /// Initialize the rotation that will be applied on objects affected by the rotation widget.
     pub fn init_rotation(&mut self, mode: RotationMode, x_coord: f32, y_coord: f32) {
         self.need_redraw = true;
         self.rotation_widget.init_rotation(x_coord, y_coord, mode)
     }
 
-    /// Initialise the translation that will be applied on objects affected by the handle widget.
+    /// Initialize the translation that will be applied on objects affected by the handle widget.
     pub fn init_translation(&mut self, x: f32, y: f32) {
         self.need_redraw = true;
         self.handle_drawers.init_translation(x, y)
@@ -1271,8 +1271,8 @@ pub enum Mesh {
     XoverTube = 23,
     Prime3Cone = 24,
     Prime3ConeOutline = 25,
-    BezierControll = 26,
-    BezierSqueleton = 27,
+    BezierControl = 26,
+    BezierSkeleton = 27,
     FakeBezierControl = 28,
     StereographicSphere = 29,
     BaseEllipsoid = 30,
@@ -1290,7 +1290,7 @@ impl Mesh {
             Self::SlicedTube => Some(Self::FakeTube),
             Self::PhantomSphere => Some(Self::FakePhantomSphere),
             Self::PhantomTube => Some(Self::FakePhantomTube),
-            Self::BezierControll => Some(Self::FakeBezierControl),
+            Self::BezierControl => Some(Self::FakeBezierControl),
             _ => None,
         }
     }
@@ -1348,8 +1348,8 @@ struct DnaDrawers {
     xover_tube: InstanceDrawer<TubeInstance>,
     prime3_cones: InstanceDrawer<dna_obj::ConeInstance>,
     outline_prime3_cones: InstanceDrawer<dna_obj::ConeInstance>,
-    bezier_controll_points: InstanceDrawer<dna_obj::SphereInstance>,
-    bezier_squelton: InstanceDrawer<dna_obj::TubeInstance>,
+    bezier_control_points: InstanceDrawer<dna_obj::SphereInstance>,
+    bezier_skeleton: InstanceDrawer<dna_obj::TubeInstance>,
     fake_bezier_control: InstanceDrawer<SphereInstance>,
     stereographic_sphere: InstanceDrawer<StereographicSphereAndPlane>,
     base_ellipsoid: InstanceDrawer<dna_obj::Ellipsoid>,
@@ -1387,8 +1387,8 @@ impl DnaDrawers {
             Mesh::XoverTube => &mut self.xover_tube,
             Mesh::Prime3Cone => &mut self.prime3_cones,
             Mesh::Prime3ConeOutline => &mut self.outline_prime3_cones,
-            Mesh::BezierControll => &mut self.bezier_controll_points,
-            Mesh::BezierSqueleton => &mut self.bezier_squelton,
+            Mesh::BezierControl => &mut self.bezier_control_points,
+            Mesh::BezierSkeleton => &mut self.bezier_skeleton,
             Mesh::FakeBezierControl => &mut self.fake_bezier_control,
             Mesh::StereographicSphere => &mut self.stereographic_sphere,
             Mesh::HBond => &mut self.hbond,
@@ -1422,8 +1422,8 @@ impl DnaDrawers {
             &mut self.pivot_sphere,
             &mut self.xover_sphere,
             &mut self.xover_tube,
-            &mut self.bezier_squelton,
-            &mut self.bezier_controll_points,
+            &mut self.bezier_skeleton,
+            &mut self.bezier_control_points,
         ];
         let mut last_solid_item = 2;
         match draw_options.h_bonds {
@@ -1748,23 +1748,23 @@ impl DnaDrawers {
                 true,
                 "fake phantom tube",
             ),
-            bezier_controll_points: InstanceDrawer::new(
+            bezier_control_points: InstanceDrawer::new(
                 device.clone(),
                 queue.clone(),
                 viewer_desc,
                 model_desc,
                 (),
                 false,
-                "bezier controlle points",
+                "bezier control points",
             ),
-            bezier_squelton: InstanceDrawer::new(
+            bezier_skeleton: InstanceDrawer::new(
                 device.clone(),
                 queue.clone(),
                 viewer_desc,
                 model_desc,
                 (),
                 false,
-                "bezier squeleton",
+                "bezier skeleton",
             ),
             fake_bezier_control: InstanceDrawer::new(
                 device.clone(),

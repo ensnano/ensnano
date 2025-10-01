@@ -21,7 +21,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use crate::view::AvailableRotationAxes;
 
 use super::view::{
-    GridDisc, HandleColors, Instanciable, RawDnaInstance, StereographicSphereAndPlane,
+    GridDisc, HandleColors, Instantiable, RawDnaInstance, StereographicSphereAndPlane,
 };
 use super::{
     ultraviolet, Camera3D, HandleOrientation, HandlesDescriptor, LetterInstance,
@@ -270,10 +270,10 @@ impl<R: DesignReader> Data<R> {
 
         self.view
             .borrow_mut()
-            .update(ViewUpdate::RawDna(Mesh::BezierControll, Rc::new(spheres)));
+            .update(ViewUpdate::RawDna(Mesh::BezierControl, Rc::new(spheres)));
         self.view
             .borrow_mut()
-            .update(ViewUpdate::RawDna(Mesh::BezierSqueleton, Rc::new(tubes)));
+            .update(ViewUpdate::RawDna(Mesh::BezierSkeleton, Rc::new(tubes)));
     }
 
     fn update_handle<S: AppState>(&self, app_state: &S) {

@@ -145,7 +145,7 @@ impl HandlesDrawer {
         );
     }
 
-    pub fn update_decriptor(
+    pub fn update_descriptor(
         &mut self,
         descriptor: Option<HandlesDescriptor>,
         camera: CameraPtr,

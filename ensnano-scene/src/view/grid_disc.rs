@@ -18,7 +18,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use ensnano_utils::wgpu;
 use wgpu::{include_spirv, Device, PrimitiveTopology};
 
-use super::instances_drawer::Instanciable;
+use super::instances_drawer::Instantiable;
 use ensnano_design::ultraviolet::{Mat4, Rotor3, Vec3, Vec4};
 
 #[derive(Debug, Clone)]
@@ -77,7 +77,7 @@ impl super::instances_drawer::Vertexable for GridDiscVertex {
     }
 }
 
-impl Instanciable for GridDisc {
+impl Instantiable for GridDisc {
     type Vertex = GridDiscVertex;
     type RawInstance = GridDiscRaw;
     type Ressource = ();

@@ -11,17 +11,12 @@
 //!     REAL32[3] – Vertex 3                  - 12 bytes
 //!     UINT16    – Attribute byte count      -  2 bytes
 
-use std::io;
-use std::io::Write;
-
-use ensnano_design::ultraviolet::{Mat3, Mat4, Rotor3, Vec3, Vec4};
-use ensnano_design::Design;
-use ensnano_interactor::consts::NB_RAY_TUBE;
-//use ensnano_interactor::graphics::LoopoutNucl;
 use crate::view::{
-    ConeInstance, Ellipsoid, Instanciable, Mesh, Mesh::*, RawDnaInstance, SlicedTubeInstance,
+    ConeInstance, Ellipsoid, Instantiable, Mesh, Mesh::*, RawDnaInstance, SlicedTubeInstance,
     SphereInstance, TubeInstance, TubeLidInstance,
 };
+use ensnano_design::ultraviolet::{Mat3, Vec3};
+use ensnano_interactor::consts::NB_RAY_TUBE;
 
 #[derive(Debug)]
 pub enum StlError {
@@ -253,12 +248,15 @@ fn vertices_indices_to_stl_triangles(
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use {
+        super::*,
+        std::io::{self, Write as _},
+    };
 
     fn stl_file_from_triangles(path: &str, triangles: Vec<StlTriangle>) -> Result<(), io::Error> {
         let mut out_file = std::fs::File::create(path)?;
         let mut bytes: Vec<u8> = vec![0; 80]; // header numer of triangles
-        let mut triangles_number: u32 = triangles.len() as u32;
+        let triangles_number: u32 = triangles.len() as u32;
         let triangle_number = triangles_number.to_le_bytes();
         bytes.extend_from_slice(&triangle_number[0..]);
         for t in triangles {

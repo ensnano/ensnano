@@ -17,7 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use super::super::maths_3d::{Basis3D, UnalignedBoundaries};
 use super::super::view::{
-    ConeInstance, Ellipsoid, Instanciable, RawDnaInstance, Sheet2D, SlicedTubeInstance,
+    ConeInstance, Ellipsoid, Instantiable, RawDnaInstance, Sheet2D, SlicedTubeInstance,
     SphereInstance, TubeInstance, TubeLidInstance,
 };
 use super::super::GridInstance;
@@ -464,7 +464,7 @@ impl<R: DesignReader> Design3D<R> {
         &self,
         id: u32,
         color: u32,
-        mut radius: f32,
+        radius: f32,
         expand_with: Option<ExpandWith>,
     ) -> Vec<RawDnaInstance> {
         let kind = self.get_object_type(id);
@@ -474,7 +474,7 @@ impl<R: DesignReader> Design3D<R> {
             || self.design_reader.get_insertion_length(id) == 0
             || matches!(kind, Some(ObjectType::Nucleotide(_)))
         {
-            let instanciables = match kind {
+            let instantiables = match kind {
                 Some(ObjectType::Bond(id1, id2)) => {
                     let pos1 = self
                         .get_graphic_element_position(&SceneElement::DesignElement(self.id, id1))
@@ -529,7 +529,7 @@ impl<R: DesignReader> Design3D<R> {
                 }
                 _ => vec![],
             };
-            ret.extend(instanciables.iter());
+            ret.extend(instantiables.iter());
         }
         if let Some(ExpandWith::Tubes) = expand_with {
             for loopout_bond in self
