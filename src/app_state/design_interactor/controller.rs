@@ -1919,6 +1919,8 @@ impl OkOperation {
     }
 }
 
+// Some values are only used for logging the error, which Rust considers to be unused
+#[allow(unused)]
 #[derive(Debug)]
 pub enum ErrOperation {
     GroupHasNoPivot(GroupId),
