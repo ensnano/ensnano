@@ -30,9 +30,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //!
 //!
 //! The multiplexer is also in charge of drawing to the frame.
+
+mod layout_manager;
+
 use super::Action;
-use crate::PhySize;
-use crate::{requests::Requests, utils::texture::SampledTexture};
+use crate::{requests::Requests, PhySize};
 use ensnano_iced::{
     iced_wgpu::wgpu,
     iced_wgpu::wgpu::Device,
@@ -44,13 +46,16 @@ use ensnano_iced::{
     },
     UiSize,
 };
-use ensnano_interactor::{ActionMode, SelectionMode};
-use std::rc::Rc;
-use std::sync::{Arc, Mutex};
-
-mod layout_manager;
-use ensnano_interactor::graphics::{DrawArea, GuiComponentType, SplitMode};
+use ensnano_interactor::{
+    graphics::{DrawArea, GuiComponentType, SplitMode},
+    ActionMode, SelectionMode,
+};
+use ensnano_utils::texture::SampledTexture;
 use layout_manager::{LayoutTree, PixelRegion};
+use std::{
+    rc::Rc,
+    sync::{Arc, Mutex},
+};
 
 /// A structure that handles the division of the window into different `DrawArea`.
 ///
@@ -72,11 +77,11 @@ pub struct Multiplexer {
     scene_texture: Option<MultiplexerTexture>,
     /// The texture on which the top bar gui is rendered.
     top_bar_texture: Option<MultiplexerTexture>,
-    /// The texture on which the left pannel is rendered.
+    /// The texture on which the left panel is rendered.
     left_pannel_texture: Option<MultiplexerTexture>,
     /// The textures on which the overlays are rendered.
     overlays_textures: Vec<MultiplexerTexture>,
-    /// The texture on wich the grid is rendered.
+    /// The texture on which the grid is rendered.
     grid_panel_texture: Option<MultiplexerTexture>,
     /// The texture on which the stereographic scene is rendered.
     stereographic_scene_texture: Option<MultiplexerTexture>,

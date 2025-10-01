@@ -18,8 +18,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::*;
 use crate::controller::LoadDesignError;
-use crate::utils::id_generator::IdGenerator;
 use ensnano_design::{codenano, scadnano, Nucl};
+use ensnano_utils::id_generator::IdGenerator;
 use std::path::{Path, PathBuf};
 
 mod cadnano;

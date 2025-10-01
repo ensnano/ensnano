@@ -131,7 +131,7 @@ use ensnano_interactor::{
     SuggestionParameters, UnrootedRevolutionSurfaceDescriptor,
 };
 use ensnano_scene as scene;
-use ensnano_utils as utils;
+use ensnano_utils::{PhySize, TEXTURE_FORMAT};
 use flatscene::FlatScene;
 use gui::{ColorOverlay, Gui, IcedMessages, OverlayType};
 use multiplexer::{Multiplexer, Overlay};
@@ -146,7 +146,6 @@ use std::{
     time::{Duration, Instant},
 };
 use ultraviolet::{Rotor3, Vec3};
-use utils::{PhySize, TEXTURE_FORMAT};
 use winit::{
     dpi::{PhysicalPosition, PhysicalSize},
     event::{Event, WindowEvent},
@@ -860,7 +859,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-pub struct OverlayManager {
+struct OverlayManager {
     color_state: program::State<ColorOverlay<Requests>>,
     color_debug: Debug,
     overlay_types: Vec<OverlayType>,
@@ -868,11 +867,7 @@ pub struct OverlayManager {
 }
 
 impl OverlayManager {
-    pub fn new(
-        requests: Arc<Mutex<Requests>>,
-        window: &Window,
-        renderer: &mut iced::Renderer,
-    ) -> Self {
+    fn new(requests: Arc<Mutex<Requests>>, window: &Window, renderer: &mut iced::Renderer) -> Self {
         let color = ColorOverlay::new(
             requests,
             PhysicalSize::new(250., 250.).to_logical(window.scale_factor()),
@@ -1083,7 +1078,7 @@ fn formatted_path_end<P: AsRef<Path>>(path: P) -> String {
 }
 
 /// The state of the main event loop.
-pub(crate) struct MainState {
+struct MainState {
     app_state: AppState,
     pending_actions: VecDeque<Action>,
     undo_stack: Vec<AppStateTransition>,

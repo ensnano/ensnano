@@ -26,10 +26,7 @@ mod impl_readergui;
 pub use self::design_content::Staple;
 
 use super::*;
-use crate::{
-    scene::{HBond, HalfHBond},
-    utils::id_generator::IdGenerator,
-};
+use crate::scene::{HBond, HalfHBond};
 use design_content::DesignContent;
 use ensnano_design::{
     BezierPathId, Extremity, HelixCollection, InstanciatedPiecewiseBezier, Nucl, VirtualNucl,
@@ -38,6 +35,7 @@ use ensnano_interactor::{
     application::Camera3D, NeighbourDescriptor, NeighbourDescriptorGiver, Referential,
     ScaffoldInfo, Selection, SuggestionParameters,
 };
+use ensnano_utils::id_generator::IdGenerator;
 use std::collections::{BTreeMap, HashMap, HashSet};
 use ultraviolet::{Mat4, Vec3};
 
