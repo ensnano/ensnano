@@ -17,9 +17,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::*;
-use crate::scene::{AppState as App3D, DrawOptions};
 use ensnano_design::grid::GridId;
-use ensnano_interactor::StrandBuilder;
+use ensnano_interactor::{consts::scroll_sensitivity_conversion, StrandBuilder};
+use ensnano_scene::{AppState as App3D, DrawOptions};
 
 impl App3D for AppState {
     type DesignReader = DesignReader;
@@ -138,7 +138,7 @@ impl App3D for AppState {
         } else {
             1.0
         };
-        sign * crate::consts::scroll_sensitivity_conversion(self.0.parameters.scroll_sensitivity)
+        sign * scroll_sensitivity_conversion(self.0.parameters.scroll_sensitivity)
     }
 
     fn show_insertion_representents(&self) -> bool {

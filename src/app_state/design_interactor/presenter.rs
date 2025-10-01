@@ -26,7 +26,7 @@ mod impl_readergui;
 pub use self::design_content::Staple;
 
 use super::*;
-use crate::scene::{HBond, HalfHBond};
+use ensnano_scene::{HBond, HalfHBond};
 use design_content::DesignContent;
 use ensnano_design::{
     BezierPathId, Extremity, HelixCollection, InstanciatedPiecewiseBezier, Nucl, VirtualNucl,

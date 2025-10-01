@@ -29,6 +29,7 @@ use ensnano_exports::{ExportResult, ExportType};
 use ensnano_gui::StrandBuildingStatus;
 use ensnano_iced::UiSize;
 use ensnano_interactor::{
+    consts::{ENS_BACKUP_EXTENSION, ENS_EXTENSION},
     graphics::{Background3D, HBondDisplay, RenderingMode},
     UnrootedRevolutionSurfaceDescriptor,
 };
@@ -241,10 +242,8 @@ impl AppState {
 
     pub fn import_design(mut path: PathBuf) -> Result<Self, LoadDesignError> {
         let design_interactor = DesignInteractor::new_with_path(&path)?;
-        if path.extension().map(|s| s.to_string_lossy())
-            != Some(crate::consts::ENS_BACKUP_EXTENSION.into())
-        {
-            path.set_extension(crate::consts::ENS_EXTENSION);
+        if path.extension().map(|s| s.to_string_lossy()) != Some(ENS_BACKUP_EXTENSION.into()) {
+            path.set_extension(ENS_EXTENSION);
         }
         Ok(Self(AddressPointer::new(AppState_ {
             design: AddressPointer::new(design_interactor),

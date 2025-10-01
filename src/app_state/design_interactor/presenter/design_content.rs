@@ -19,7 +19,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 mod xover_suggestions;
 
 use super::*;
-use crate::scene::GridInstance;
+use ensnano_scene::GridInstance;
 use ahash::RandomState;
 use ensnano_design::{
     drawing_style::{ColorType, DrawingAttribute, DrawingStyle},

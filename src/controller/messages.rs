@@ -18,7 +18,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use {
     crate::dialog::Filters,
-    ensnano_interactor::consts::{ENS_EXTENSION, ORIGAMI_EXTENSION},
+    ensnano_interactor::consts::{ENS_BACKUP_EXTENSION, ENS_EXTENSION, ORIGAMI_EXTENSION},
     std::path::Path,
 };
 
@@ -77,20 +77,9 @@ pub fn invalid_sequence_file(first_invalid_char_position: usize) -> String {
 pub const DESIGN_LOAD_FILTER: Filters = &[
     (
         "All supported files",
-        &[
-            crate::consts::ENS_EXTENSION,
-            crate::consts::ENS_BACKUP_EXTENSION,
-            "json",
-            "sc",
-        ],
+        &[ENS_EXTENSION, ENS_BACKUP_EXTENSION, "json", "sc"],
     ),
-    (
-        "ENSnano files",
-        &[
-            crate::consts::ENS_EXTENSION,
-            crate::consts::ENS_BACKUP_EXTENSION,
-        ],
-    ),
+    ("ENSnano files", &[ENS_EXTENSION, ENS_BACKUP_EXTENSION]),
     ("json files", &["json"]),
     ("scadnano files", &["sc"]),
 ];

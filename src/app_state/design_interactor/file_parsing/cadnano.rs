@@ -15,10 +15,12 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
 pub use cadnano_format::Cadnano;
 use cadnano_format::VStrand;
 use ensnano_design::grid::{Grid, GridType};
 use ensnano_design::{Design, Domain, Helix, HelixInterval, Nucl, Strand};
+use ensnano_interactor::consts::SCAFFOLD_COLOR;
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::sync::Arc;
 use ultraviolet::{Rotor3, Vec3};
@@ -135,7 +137,7 @@ fn make_strand(
         sequence: None,
         junctions: Vec::new(),
         is_cyclic: cyclic,
-        color: crate::consts::SCAFFOLD_COLOR,
+        color: SCAFFOLD_COLOR,
         name: None,
     };
 

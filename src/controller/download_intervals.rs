@@ -20,9 +20,9 @@ use super::{
     messages, DownloadStapleError, DownloadStapleOk, MainState, NormalState, StaplesDownloader,
     State, TransitionMessage,
 };
-
 use crate::dialog;
 use dialog::{MustAckMessage, PathInput};
+use ensnano_interactor::consts::ORIGAMI_EXTENSION;
 use std::path::PathBuf;
 
 #[derive(Default)]
@@ -108,7 +108,7 @@ fn ask_path(mut state: AskingPath_, main_state: &mut dyn MainState) -> Box<Downl
     } else {
         let candidate_name = main_state.get_current_file_name().map(|p| {
             let mut ret = p.to_owned();
-            ret.set_extension(crate::consts::ORIGAMI_EXTENSION);
+            ret.set_extension(ORIGAMI_EXTENSION);
             ret
         });
         let starting_directory = main_state.get_current_design_directory();

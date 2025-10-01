@@ -97,59 +97,64 @@ mod multiplexer;
 mod requests;
 mod scheduler;
 
-use crate::{controller::TargetScaffoldLength, requests::Requests};
-use app_state::{
-    AppState, AppStateParameters, AppStateTransition, CopyOperation, ErrOperation, OkOperation,
-    PastePosition, PastingStatus, SimulationTarget, TransitionLabel,
-};
-use controller::{
-    Action, ChannelReader, ChannelReaderUpdate, Controller, LoadDesignError,
-    MainState as MainStateInterface, SaveDesignError, SetScaffoldSequenceError,
-    SetScaffoldSequenceOk, SimulationRequest, StaplesDownloader,
-};
-use ensnano_design::{grid::GridId, Camera};
-use ensnano_exports::{ExportResult, ExportType};
-use ensnano_flatscene::FlatScene;
-use ensnano_gui::{AppState as _, ColorOverlay, Gui, IcedMessages, OverlayType, TopBarState};
-use ensnano_iced::{
-    fonts,
-    iced::{self, Event as IcedEvent, Size},
-    iced_futures::futures,
-    iced_graphics::{Antialiasing, Viewport},
-    iced_runtime::{program, Debug},
-    iced_wgpu::{self, wgpu, Settings},
-    iced_winit::{self, winit},
-    theme, UiSize,
-};
-use ensnano_interactor::{
-    application::{Application, Notification},
-    consts,
-    graphics::{GuiComponentType, SplitMode},
-    operation::Operation,
-    ActionMode, CenterOfSelection, CheckXoversParameter, CursorIcon, DesignOperation, DesignReader,
-    RevolutionSurfaceSystemDescriptor, RigidBodyConstants, Selection, SelectionMode,
-    SuggestionParameters, UnrootedRevolutionSurfaceDescriptor,
-};
-use ensnano_scene as scene;
-use ensnano_utils::{PhySize, TEXTURE_FORMAT};
-use multiplexer::{Multiplexer, Overlay};
-use scene::Scene;
-use scheduler::Scheduler;
-use std::{
-    collections::{HashMap, VecDeque},
-    env,
-    path::{Path, PathBuf},
-    rc::Rc,
-    sync::{Arc, Mutex},
-    time::{Duration, Instant},
-};
-use ultraviolet::{Rotor3, Vec3};
-use winit::{
-    dpi::{PhysicalPosition, PhysicalSize},
-    event::{Event, WindowEvent},
-    event_loop::{ControlFlow, EventLoop, EventLoopWindowTarget},
-    keyboard::{Key, ModifiersState, NamedKey},
-    window::Window,
+use {
+    crate::{controller::TargetScaffoldLength, requests::Requests},
+    app_state::{
+        AppState, AppStateParameters, AppStateTransition, CopyOperation, ErrOperation, OkOperation,
+        PastePosition, PastingStatus, SimulationTarget, TransitionLabel,
+    },
+    controller::{
+        Action, ChannelReader, ChannelReaderUpdate, Controller, LoadDesignError,
+        MainState as MainStateInterface, SaveDesignError, SetScaffoldSequenceError,
+        SetScaffoldSequenceOk, SimulationRequest, StaplesDownloader,
+    },
+    ensnano_design::{grid::GridId, Camera},
+    ensnano_exports::{ExportResult, ExportType},
+    ensnano_flatscene::FlatScene,
+    ensnano_gui::{AppState as _, ColorOverlay, Gui, IcedMessages, OverlayType, TopBarState},
+    ensnano_iced::{
+        fonts,
+        iced::{self, Event as IcedEvent, Size},
+        iced_futures::futures,
+        iced_graphics::{Antialiasing, Viewport},
+        iced_runtime::{program, Debug},
+        iced_wgpu::{self, wgpu, Settings},
+        iced_winit::{self, winit},
+        theme, UiSize,
+    },
+    ensnano_interactor::{
+        application::{Application, Notification},
+        consts::{
+            APP_NAME, ENS_BACKUP_EXTENSION, ENS_UNNAMED_FILE_NAME, NO_DESIGN_TITLE,
+            SEC_BETWEEN_BACKUPS, SEC_PER_YEAR, WELCOME_MSG,
+        },
+        graphics::{GuiComponentType, SplitMode},
+        operation::Operation,
+        ActionMode, CenterOfSelection, CheckXoversParameter, CursorIcon, DesignOperation,
+        DesignReader, DesignRotation, DesignTranslation, IsometryTarget,
+        RevolutionSurfaceSystemDescriptor, RigidBodyConstants, Selection, SelectionMode,
+        SuggestionParameters, UnrootedRevolutionSurfaceDescriptor,
+    },
+    ensnano_scene::{AppState as _, DesignReader as _, Scene, SceneKind},
+    ensnano_utils::{PhySize, TEXTURE_FORMAT},
+    multiplexer::{Multiplexer, Overlay},
+    scheduler::Scheduler,
+    std::{
+        collections::{HashMap, VecDeque},
+        env,
+        path::{Path, PathBuf},
+        rc::Rc,
+        sync::{Arc, Mutex},
+        time::{Duration, Instant},
+    },
+    ultraviolet::{Rotor3, Vec3},
+    winit::{
+        dpi::{PhysicalPosition, PhysicalSize},
+        event::{Event, WindowEvent},
+        event_loop::{ControlFlow, EventLoop, EventLoopWindowTarget},
+        keyboard::{Key, ModifiersState, NamedKey},
+        window::Window,
+    },
 };
 
 /// Determine if log messages can be printed before the renderer setup.
@@ -318,7 +323,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         )
     }
 
-    use consts::APP_NAME;
     let ui_size = confy::load(APP_NAME, APP_NAME)
         .map(|p: AppStateParameters| p.ui_size)
         .unwrap_or_default();
@@ -374,7 +378,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Arc::clone(&requests),
         &mut encoder,
         Default::default(),
-        scene::SceneKind::Cartesian,
+        SceneKind::Cartesian,
     )));
     let stereographic_scene = Arc::new(Mutex::new(Scene::new(
         Rc::clone(&device),
@@ -384,7 +388,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Arc::clone(&requests),
         &mut encoder,
         Default::default(),
-        scene::SceneKind::Stereographic,
+        SceneKind::Stereographic,
     )));
 
     queue.submit(Some(encoder.finish()));
@@ -448,7 +452,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut controller = Controller::new();
 
-    println!("{}", consts::WELCOME_MSG);
+    println!("{}", WELCOME_MSG);
     if !EARLY_LOG {
         pretty_env_logger::init();
     }
@@ -803,7 +807,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     let path_str = formatted_path_end(path);
                     format!("ENSnano {}", path_str)
                 } else {
-                    format!("ENSnano {}", crate::consts::NO_DESIGN_TITLE)
+                    format!("ENSnano {}", NO_DESIGN_TITLE)
                 };
 
                 if windows_title != new_title {
@@ -873,6 +877,7 @@ impl OverlayManager {
             renderer,
             &mut color_debug,
         );
+
         Self {
             color_state,
             color_debug,
@@ -884,7 +889,7 @@ impl OverlayManager {
     fn forward_event(&mut self, event: IcedEvent, n: usize) {
         match self.overlay_types.get(n) {
             None => {
-                log::error!("recieve event from non existing overlay");
+                log::error!("receive event from non existing overlay");
                 unreachable!();
             }
             Some(OverlayType::Color) => self.color_state.queue_event(event),
@@ -1213,7 +1218,6 @@ impl MainState {
     }
 
     fn transfer_selection_pivot_to_group(&mut self, group_id: ensnano_design::GroupId) {
-        use scene::AppState;
         let scene_pivot = self
             .applications
             .get(&GuiComponentType::Scene)
@@ -1509,18 +1513,17 @@ impl MainState {
             });
         let save_info = ensnano_design::SavingInformation { camera };
         let path = if let Some(mut path) = self.app_state.path_to_current_design().cloned() {
-            path.set_extension(crate::consts::ENS_BACKUP_EXTENSION);
+            path.set_extension(ENS_BACKUP_EXTENSION);
             path
         } else {
             let mut ret = dirs::document_dir()
                 .or_else(dirs::home_dir)
                 .ok_or_else(|| {
-                    self.last_backup_date =
-                        Instant::now() + Duration::from_secs(crate::consts::SEC_PER_YEAR);
+                    self.last_backup_date = Instant::now() + Duration::from_secs(SEC_PER_YEAR);
                     SaveDesignError::cannot_open_default_dir()
                 })?;
-            ret.push(crate::consts::ENS_UNNAMED_FILE_NAME);
-            ret.set_extension(crate::consts::ENS_BACKUP_EXTENSION);
+            ret.push(ENS_UNNAMED_FILE_NAME);
+            ret.set_extension(ENS_BACKUP_EXTENSION);
             ret
         };
         if self.app_state.is_in_stable_state() {
@@ -1614,7 +1617,6 @@ impl MainState {
 
     /// Create a bezier plane where the user is looking at if there are no bezier plane yet.
     fn create_default_bezier_plane(&mut self) {
-        use ensnano_scene::DesignReader;
         if self.app_state.get_design_reader().get_bezier_planes().len() == 0 {
             if let Some((position, orientation)) = self.get_bezier_sheet_creation_position() {
                 self.apply_operation(DesignOperation::AddBezierPlane {
@@ -1741,8 +1743,7 @@ impl<'a> MainStateInterface for MainStateView<'a> {
     }
 
     fn need_backup(&self) -> bool {
-        Instant::now() - self.main_state.last_backup_date
-            > Duration::from_secs(crate::consts::SEC_BETWEEN_BACKUPS)
+        Instant::now() - self.main_state.last_backup_date > Duration::from_secs(SEC_BETWEEN_BACKUPS)
     }
 
     fn exit_control_flow(&mut self) {
@@ -2038,7 +2039,6 @@ impl<'a> MainStateInterface for MainStateView<'a> {
     }
 
     fn translate_group_pivot(&mut self, translation: Vec3) {
-        use ensnano_interactor::{DesignTranslation, IsometryTarget};
         if let Some(group_id) = self.main_state.app_state.get_current_group_id() {
             self.apply_operation(DesignOperation::Translation(DesignTranslation {
                 target: IsometryTarget::GroupPivot(group_id),
@@ -2051,7 +2051,6 @@ impl<'a> MainStateInterface for MainStateView<'a> {
     }
 
     fn rotate_group_pivot(&mut self, rotation: Rotor3) {
-        use ensnano_interactor::{DesignRotation, IsometryTarget};
         if let Some(group_id) = self.main_state.app_state.get_current_group_id() {
             self.apply_operation(DesignOperation::Rotation(DesignRotation {
                 target: IsometryTarget::GroupPivot(group_id),
@@ -2125,7 +2124,6 @@ impl<'a> MainStateInterface for MainStateView<'a> {
     }
 
     fn make_all_suggested_xover(&mut self, doubled: bool) {
-        use scene::DesignReader;
         let reader = self.main_state.app_state.get_design_reader();
         let xovers = reader.get_suggestions();
         self.apply_operation(DesignOperation::MakeSeveralXovers { xovers, doubled })
