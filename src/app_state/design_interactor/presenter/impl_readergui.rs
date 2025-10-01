@@ -89,8 +89,8 @@ impl ReaderGui for DesignReader {
             .collect()
     }
 
-    fn get_favourite_camera(&self) -> Option<CameraId> {
-        self.presenter.current_design.get_favourite_camera_id()
+    fn get_favorite_camera(&self) -> Option<CameraId> {
+        self.presenter.current_design.get_favorite_camera_id()
     }
 
     fn get_grid_position_and_orientation(&self, g_id: GridId) -> Option<(Vec3, Rotor3)> {

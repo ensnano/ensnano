@@ -724,10 +724,10 @@ impl DesignReader {
             })
     }
 
-    pub fn get_favourite_camera(&self) -> Option<(Vec3, ultraviolet::Rotor3)> {
+    pub fn get_favorite_camera(&self) -> Option<(Vec3, ultraviolet::Rotor3)> {
         self.presenter
             .current_design
-            .get_favourite_camera()
+            .get_favorite_camera()
             .map(|c| (c.position, c.orientation))
     }
 }

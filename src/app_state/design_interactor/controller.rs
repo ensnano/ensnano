@@ -270,8 +270,8 @@ impl Controller {
             DesignOperation::DeleteCamera(cam_id) => {
                 self.apply(|c, d| c.delete_camera(d, cam_id), design)
             }
-            DesignOperation::SetFavouriteCamera(cam_id) => {
-                self.apply(|c, d| c.set_favourite_camera(d, cam_id), design)
+            DesignOperation::SetFavoriteCamera(cam_id) => {
+                self.apply(|c, d| c.set_favorite_camera(d, cam_id), design)
             }
             DesignOperation::UpdateCamera {
                 camera_id,
@@ -1570,12 +1570,12 @@ impl Controller {
         }
     }
 
-    fn set_favourite_camera(
+    fn set_favorite_camera(
         &mut self,
         mut design: Design,
         id: CameraId,
     ) -> Result<Design, ErrOperation> {
-        if !design.set_favourite_camera(id) {
+        if !design.set_favorite_camera(id) {
             Err(ErrOperation::CameraDoesNotExist(id))
         } else {
             Ok(design)

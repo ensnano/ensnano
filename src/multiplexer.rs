@@ -22,7 +22,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //!
 //! In addition, the multiplexer holds a [Vec] of [overlays](Overlay), which are floating regions.
 //!
-//! When an event is recieved by the window, the multiplexer is in charge of forwarding it to the
+//! When an event is received by the window, the multiplexer is in charge of forwarding it to the
 //! appropriate application, GUI component, or overlay. The multiplexer also handles some events
 //! directly, like resizing events or keyboard input that should be handled independently of the
 //! focused region.

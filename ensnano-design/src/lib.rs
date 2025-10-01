@@ -499,18 +499,18 @@ impl Design {
         self.cameras.get(&cam_id)
     }
 
-    pub fn get_favourite_camera(&self) -> Option<&Camera> {
+    pub fn get_favorite_camera(&self) -> Option<&Camera> {
         self.favorite_camera
             .as_ref()
             .and_then(|id| self.cameras.get(id))
             .or(self.saved_camera.as_ref())
     }
 
-    pub fn get_favourite_camera_id(&self) -> Option<CameraId> {
+    pub fn get_favorite_camera_id(&self) -> Option<CameraId> {
         self.favorite_camera
     }
 
-    pub fn set_favourite_camera(&mut self, cam_id: CameraId) -> bool {
+    pub fn set_favorite_camera(&mut self, cam_id: CameraId) -> bool {
         if self.cameras.contains_key(&cam_id) {
             if self.favorite_camera != Some(cam_id) {
                 self.favorite_camera = Some(cam_id);

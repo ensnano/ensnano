@@ -325,10 +325,11 @@ impl gui::Requests for Requests {
         self.keep_proceed.push_back(Action::SelectCamera(cam_id))
     }
 
-    fn set_favourite_camera(&mut self, cam_id: ensnano_design::CameraId) {
-        self.keep_proceed.push_back(Action::DesignOperation(
-            DesignOperation::SetFavouriteCamera(cam_id),
-        ))
+    fn set_favorite_camera(&mut self, cam_id: ensnano_design::CameraId) {
+        self.keep_proceed
+            .push_back(Action::DesignOperation(DesignOperation::SetFavoriteCamera(
+                cam_id,
+            )))
     }
 
     fn update_camera(&mut self, cam_id: ensnano_design::CameraId) {

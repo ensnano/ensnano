@@ -131,20 +131,8 @@ use winit::{
 #[macro_use]
 extern crate pretty_env_logger;
 
-//#[cfg(not(target_env = "msvc"))]
-//use jemallocator::Jemalloc;
-
-// #[cfg(not(target_env = "msvc"))]
-// #[global_allocator]
-// static GLOBAL: Jemalloc = Jemalloc;
-
-/// Design handling
-//mod design;
-/// Graphical interface drawing
 use ensnano_gui as gui;
 use ensnano_interactor::consts;
-//use design::Design;
-//mod mediator;
 mod multiplexer;
 use ensnano_flatscene as flatscene;
 use ensnano_interactor::{
@@ -152,7 +140,6 @@ use ensnano_interactor::{
     operation::Operation,
     ActionMode, CheckXoversParameter, Selection, SelectionMode,
 };
-/// 3D scene drawing
 use ensnano_scene as scene;
 mod scheduler;
 use ensnano_utils as utils;
@@ -181,14 +168,6 @@ use gui::{ColorOverlay, Gui, IcedMessages, OverlayType};
 use multiplexer::{Multiplexer, Overlay};
 use scene::Scene;
 use utils::{PhySize, TEXTURE_FORMAT};
-
-fn convert_size(size: PhySize) -> Size<f32> {
-    Size::new(size.width as f32, size.height as f32)
-}
-
-fn convert_size_u32(size: PhySize) -> Size<u32> {
-    Size::new(size.width, size.height)
-}
 
 /// Determine if log messages can be printed before the renderer setup.
 ///
@@ -541,7 +520,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 WindowEvent::ModifiersChanged(modifiers) => {
                     main_state_view.multiplexer.update_modifiers(modifiers);
                     messages.lock().unwrap().update_modifiers(modifiers);
-                    main_state_view.notify_apps(Notification::ModifersChanged(modifiers));
+                    main_state_view.notify_apps(Notification::ModifiersChanged(modifiers));
                 }
 
                 // NOTE: Escape fullscreen mode.
@@ -915,7 +894,7 @@ impl OverlayManager {
         let mut color_debug = Debug::new();
         let color_state = program::State::new(
             color,
-            convert_size(PhysicalSize::new(250, 250)),
+            convert_size_f32(PhysicalSize::new(250, 250)),
             renderer,
             &mut color_debug,
         );
@@ -973,7 +952,7 @@ impl OverlayManager {
                 OverlayType::Color => {
                     if !self.color_state.is_queue_empty() || resized {
                         let _ = self.color_state.update(
-                            convert_size(PhysicalSize::new(250, 250)),
+                            convert_size_f32(PhysicalSize::new(250, 250)),
                             cursor,
                             renderer,
                             theme,
@@ -1081,7 +1060,7 @@ impl OverlayManager {
                     if !self.color_state.is_queue_empty() {
                         ret = true;
                         let _ = self.color_state.update(
-                            convert_size(PhysicalSize::new(250, 250)),
+                            convert_size_f32(PhysicalSize::new(250, 250)),
                             cursor,
                             renderer,
                             theme,
@@ -1816,7 +1795,7 @@ impl<'a> MainStateInterface for MainStateView<'a> {
             .main_state
             .app_state
             .get_design_reader()
-            .get_favourite_camera()
+            .get_favorite_camera()
         {
             self.notify_apps(Notification::TeleportCamera(
                 ensnano_interactor::application::Camera3D {
@@ -2274,4 +2253,12 @@ where
 {
     let tmp = obj.clone();
     *obj = update_func(tmp);
+}
+
+fn convert_size_f32(size: PhySize) -> Size<f32> {
+    Size::new(size.width as f32, size.height as f32)
+}
+
+fn convert_size_u32(size: PhySize) -> Size<u32> {
+    Size::new(size.width, size.height)
 }

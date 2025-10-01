@@ -746,7 +746,7 @@ impl<S: AppState> Application for FlatScene<S> {
                 }
             }
             Notification::CameraRotation(_, _, _) => (),
-            Notification::ModifersChanged(modifiers) => {
+            Notification::ModifiersChanged(modifiers) => {
                 for c in self.controller.iter_mut() {
                     c.update_modifiers(modifiers.state())
                 }

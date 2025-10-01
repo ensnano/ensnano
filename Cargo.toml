@@ -68,9 +68,6 @@ chebyshev_polynomials = { git = "https://github.com/thenlevy/chebyshev_polynomia
 hex = "0.4.3"
 pod-enum = "0.1.0"
 
-# [target.'cfg(not(target_env = "msvc"))'.dependencies]
-# jemallocator = "0.3.2"
-
 [features]
 log_after_renderer_setup = []
 dx12_only = []

@@ -1279,7 +1279,9 @@ impl<S: AppState> Application for Scene<S> {
                 }
             }
             Notification::ShowTorsion(_) => (),
-            Notification::ModifersChanged(modifiers) => self.controller.update_modifiers(modifiers),
+            Notification::ModifiersChanged(modifiers) => {
+                self.controller.update_modifiers(modifiers)
+            }
             Notification::Split2d => (),
             Notification::Redim2dHelices(_) => (),
             Notification::Fog(fog) => self.fog_request(fog),

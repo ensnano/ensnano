@@ -198,7 +198,7 @@ pub trait Requests: 'static + Send {
     fn create_new_camera(&mut self);
     fn delete_camera(&mut self, cam_id: CameraId);
     fn select_camera(&mut self, cam_id: CameraId);
-    fn set_favourite_camera(&mut self, cam_id: CameraId);
+    fn set_favorite_camera(&mut self, cam_id: CameraId);
     fn update_camera(&mut self, cam_id: CameraId);
     fn set_camera_name(&mut self, cam_id: CameraId, name: String);
     fn set_suggestion_parameters(&mut self, param: SuggestionParameters);
@@ -1045,7 +1045,7 @@ pub trait DesignReader: 'static {
     fn get_organizer_tree(&self) -> Option<Arc<ensnano_design::EnsnTree>>;
     fn strand_name(&self, s_id: usize) -> String;
     fn get_all_cameras(&self) -> Vec<(CameraId, &str)>;
-    fn get_favourite_camera(&self) -> Option<CameraId>;
+    fn get_favorite_camera(&self) -> Option<CameraId>;
     fn get_grid_position_and_orientation(&self, g_id: GridId) -> Option<(Vec3, Rotor3)>;
     fn get_grid_nb_turn(&self, g_id: GridId) -> Option<f32>;
     fn xover_length(&self, xover_id: usize) -> Option<(f32, Option<f32>)>;

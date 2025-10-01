@@ -248,7 +248,7 @@ pub enum DesignOperation {
         orientation: Rotor3,
         pivot_position: Option<Vec3>,
     },
-    SetFavouriteCamera(ensnano_design::CameraId),
+    SetFavoriteCamera(ensnano_design::CameraId),
     UpdateCamera {
         camera_id: ensnano_design::CameraId,
         position: Vec3,
