@@ -88,7 +88,7 @@ impl Default for AppState {
         let mut ret = AppState(Default::default());
         log::trace!("call from default");
         // Synchronize all the pointers.
-        // This truns updated_once to true so we must set it back to false afterwards
+        // This turns updated_once to true so we must set it back to false afterwards
         ret = ret.updated();
         let mut with_forgot_update = ret.0.clone_inner();
         with_forgot_update.updated_once = false;

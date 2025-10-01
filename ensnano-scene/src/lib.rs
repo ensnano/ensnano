@@ -15,17 +15,6 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use std::{
-    cell::RefCell,
-    fs,
-    io::Write as _,
-    path::{Path, PathBuf},
-    rc::Rc,
-    sync::{Arc, Mutex},
-    time::Duration,
-};
-
-use ultraviolet::{Mat4, Rotor3, Vec3};
 
 use ensnano_design::{
     consts::ITERATIVE_AXIS_ALGORITHM, grid::GridPosition, grid::HelixGridPosition,
@@ -45,6 +34,16 @@ use ensnano_utils::{
     winit::{dpi::PhysicalPosition, event::WindowEvent},
     BufferDimensions, PhySize,
 };
+use std::{
+    cell::RefCell,
+    fs,
+    io::Write as _,
+    path::{Path, PathBuf},
+    rc::Rc,
+    sync::{Arc, Mutex},
+    time::Duration,
+};
+use ultraviolet::{Mat4, Rotor3, Vec3};
 
 mod stl;
 
@@ -74,7 +73,6 @@ mod maths_3d;
 
 type ViewPtr = Rc<RefCell<View>>;
 type DataPtr<R> = Rc<RefCell<Data<R>>>;
-use std::convert::TryInto;
 
 // Rotor utils: safe rotor between
 mod rotor_utils;

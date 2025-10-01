@@ -16,14 +16,14 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+use super::*;
 use crate::scene::{AppState as App3D, DrawOptions};
 use ensnano_design::grid::GridId;
 use ensnano_interactor::StrandBuilder;
 
-use super::*;
-
 impl App3D for AppState {
     type DesignReader = DesignReader;
+
     fn get_selection(&self) -> &[Selection] {
         self.selection_content().as_slice()
     }
@@ -71,7 +71,7 @@ impl App3D for AppState {
     fn get_widget_basis(&self) -> WidgetBasis {
         // When the selected object is a grid associated to a bezier vertex, we always want to
         // return WidgetBasis::Object. We do so to enforce that all rotation applied to that grid
-        // happen in a cannonical plane
+        // happen in a canonical plane
         if self.has_selected_a_bezier_grid() {
             WidgetBasis::Object
         } else {
@@ -138,7 +138,7 @@ impl App3D for AppState {
         } else {
             1.0
         };
-        sign * crate::consts::scroll_sensitivity_convertion(self.0.parameters.scroll_sensitivity)
+        sign * crate::consts::scroll_sensitivity_conversion(self.0.parameters.scroll_sensitivity)
     }
 
     fn show_insertion_representents(&self) -> bool {

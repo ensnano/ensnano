@@ -141,7 +141,6 @@ pub struct View {
     queue: Rc<wgpu::Queue>,
     outline_pipeline: wgpu::RenderPipeline,
     outline_bind_group_layout: wgpu::BindGroupLayout,
-    outline_bind_group: wgpu::BindGroup,
     outline_buffer: wgpu::Buffer,
 }
 
@@ -326,12 +325,7 @@ impl View {
         // === OUTLINE SHADER ===
         let outline_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("outline_buffer"),
-            contents: bytemuck::bytes_of(&OutlineUniform {
-                sample_count: SAMPLE_COUNT, // e.g. 4
-                use_outline: 1,             // TODO: get from iced
-                camera_near: 0.1,           // TODO: import constants
-                camera_far: 1000.0,         // TODO: import constants
-            }),
+            contents: bytemuck::bytes_of(&OutlineUniform::new(RenderingMode::default())), // dummy initial buffer
             usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
         });
 
@@ -361,20 +355,6 @@ impl View {
                     },
                 ],
             });
-        let outline_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: Some("outline bind group"),
-            layout: &outline_bind_group_layout,
-            entries: &[
-                wgpu::BindGroupEntry {
-                    binding: 0,
-                    resource: wgpu::BindingResource::TextureView(&depth_texture.view),
-                },
-                wgpu::BindGroupEntry {
-                    binding: 1,
-                    resource: outline_buffer.as_entire_binding(),
-                },
-            ],
-        });
 
         let outline_shader = device.create_shader_module(wgpu::include_wgsl!("view/outline.wgsl"));
         let outline_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
@@ -452,7 +432,6 @@ impl View {
             queue,
             outline_pipeline,
             outline_bind_group_layout,
-            outline_bind_group,
             outline_buffer,
         }
     }
@@ -875,27 +854,16 @@ impl View {
             }
         }
 
-        println!("{:?}", draw_options.rendering_mode);
         // Draw the outline
         if matches!(draw_type, DrawType::Scene | DrawType::Png { .. })
             && draw_options.rendering_mode.requires_post_processing()
         {
-            let outline_uniform = OutlineUniform {
-                sample_count: SAMPLE_COUNT,
-                use_outline: if draw_options.rendering_mode == RenderingMode::Outline {
-                    1
-                } else {
-                    0
-                },
-                camera_near: CAMERA_NEAR,
-                camera_far: CAMERA_FAR,
-            };
             self.queue.write_buffer(
                 &self.outline_buffer,
                 0,
-                bytemuck::bytes_of(&outline_uniform),
+                bytemuck::bytes_of(&OutlineUniform::new(draw_options.rendering_mode)),
             );
-            self.outline_bind_group = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
+            let outline_bind_group = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
                 label: Some("outline_bind_group"),
                 layout: &self.outline_bind_group_layout,
                 entries: &[
@@ -909,25 +877,6 @@ impl View {
                     },
                 ],
             });
-
-            let outline_bg_ref: &wgpu::BindGroup = if matches!(draw_type, DrawType::Scene) {
-                &self.outline_bind_group
-            } else {
-                &self.device.create_bind_group(&wgpu::BindGroupDescriptor {
-                    label: Some("outline bind group (PNG)"),
-                    layout: &self.outline_bind_group_layout,
-                    entries: &[
-                        wgpu::BindGroupEntry {
-                            binding: 0,
-                            resource: wgpu::BindingResource::TextureView(depth_view),
-                        },
-                        wgpu::BindGroupEntry {
-                            binding: 1,
-                            resource: self.outline_buffer.as_entire_binding(),
-                        },
-                    ],
-                })
-            };
 
             let mut outline_render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: Some("outline_render_pass"),
@@ -944,8 +893,7 @@ impl View {
                 occlusion_query_set: None,
             });
             outline_render_pass.set_pipeline(&self.outline_pipeline);
-            outline_render_pass.set_bind_group(0, &self.outline_bind_group, &[]);
-            outline_render_pass.set_bind_group(0, outline_bg_ref, &[]);
+            outline_render_pass.set_bind_group(0, &outline_bind_group, &[]);
             outline_render_pass.draw(0..3, 0..1); // fullscreen triangle
         }
 
@@ -1502,6 +1450,7 @@ impl DnaDrawers {
         viewer_desc: &wgpu::BindGroupLayoutDescriptor<'static>,
         model_desc: &wgpu::BindGroupLayoutDescriptor<'static>,
     ) -> Self {
+        // TODO: shorten this code
         Self {
             sphere: InstanceDrawer::new(
                 device.clone(),
@@ -1846,7 +1795,21 @@ impl DrawType {
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 struct OutlineUniform {
     sample_count: u32,
-    use_outline: u32, // used as a bool, but alignment required
+    only_outline: u32, // used as a bool, but alignment required
     camera_near: f32,
     camera_far: f32,
+}
+impl OutlineUniform {
+    fn new(rendering_mode: RenderingMode) -> Self {
+        Self {
+            sample_count: SAMPLE_COUNT,
+            only_outline: if rendering_mode == RenderingMode::Outline {
+                1
+            } else {
+                0
+            },
+            camera_near: CAMERA_NEAR,
+            camera_far: CAMERA_FAR,
+        }
+    }
 }

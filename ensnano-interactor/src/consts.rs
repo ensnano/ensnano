@@ -103,7 +103,7 @@ pub fn bezier_control_id(control_point: BezierControlPoint) -> u32 {
 
 pub const BASE_SCROLL_SENSITIVITY: f32 = 0.12;
 
-pub fn scroll_sensitivity_convertion(sensitivity: f32) -> f32 {
+pub fn scroll_sensitivity_conversion(sensitivity: f32) -> f32 {
     10f32.powf(sensitivity / 10.) * BASE_SCROLL_SENSITIVITY
 }
 

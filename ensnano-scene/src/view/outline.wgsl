@@ -27,7 +27,7 @@ fn vs_main(@builtin(vertex_index) vi: u32) -> VertexOutput {
 
 struct OutlineUniform {
     sample_count: u32,
-    use_outline: u32,
+    only_outline: u32,
     camera_near: f32,
     camera_far: f32,
 };
@@ -101,6 +101,6 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     return select(
         vec4(vec3(smoothstep(4.0, 1.0, g2)), 1.0),
         vec4(0.0, 0.0, 0.0, smoothstep(1.0, 4.0, g2)),
-        vec4(u_outline.use_outline == 1u)
+        vec4(u_outline.only_outline == 1u)
     );
 }
