@@ -308,7 +308,7 @@ impl<R: DesignReader> Design3D<R> {
                             is_cyclic: true,
                         }
                         .to_raw_dna_instances(
-                            { |_| color },
+                            |_| color,
                             2. * SPHERE_RADIUS,
                             u32::MAX,
                         );
@@ -387,7 +387,7 @@ impl<R: DesignReader> Design3D<R> {
                         is_cyclic: false,
                     }
                     .to_raw_dna_instances(
-                        { |_| color },
+                        |_| color,
                         SPRING_THICKNESS,
                         u32::MAX,
                     );

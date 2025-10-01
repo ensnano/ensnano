@@ -26,7 +26,6 @@ use ensnano_design::{
     BezierPathId, BezierPlaneId, BezierVertex, BezierVertexId, Nucl, SurfaceInfo, SurfacePoint,
 };
 use ensnano_interactor::consts::*;
-use ensnano_interactor::Selection;
 use ensnano_utils::winit;
 use std::cell::RefCell;
 use std::ops::Deref;
@@ -42,7 +41,7 @@ mod automata;
 pub use automata::WidgetTarget;
 use automata::{EventContext, NormalState, State, Transition};
 
-/// The effect that draging the mouse have
+/// The effect that dragging the mouse have
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ClickMode {
     TranslateCam,

@@ -585,7 +585,7 @@ impl DesignContent {
                     })
                     .flatten()
                     .collect::<Vec<DrawingAttribute>>();
-                let mut style = DrawingStyle::from(drawing_attributes);
+                let style = DrawingStyle::from(drawing_attributes);
                 drawing_styles.insert(e, style);
             }
 

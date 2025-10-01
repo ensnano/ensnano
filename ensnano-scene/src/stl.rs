@@ -174,7 +174,7 @@ impl StlProcessing for RawDnaInstance {
 fn triangle_indices_from_strip(indices: Vec<u16>) -> Vec<u16> {
     let mut triangle_from_strip_indices = vec![];
     let n = indices.len();
-    for i in (0..n - 2) {
+    for i in 0..n - 2 {
         if i % 2 == 0 {
             triangle_from_strip_indices.push(indices[i]);
             triangle_from_strip_indices.push(indices[i + 1]);
