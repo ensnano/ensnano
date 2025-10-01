@@ -88,10 +88,28 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //!      | Immediate   | No          | Yes         |
 //!      | Mailbox     | Yes         | No          |
 
-use app_state::AppStateParameters;
-use controller::{ChannelReader, ChannelReaderUpdate, SimulationRequest};
+mod app_state;
+mod controller;
+mod dialog;
+#[cfg(test)]
+mod main_tests;
+mod multiplexer;
+mod requests;
+mod scheduler;
+
+use crate::{controller::TargetScaffoldLength, requests::Requests};
+use app_state::{
+    AppState, AppStateParameters, AppStateTransition, CopyOperation, ErrOperation, OkOperation,
+    PastePosition, PastingStatus, SimulationTarget, TransitionLabel,
+};
+use controller::{
+    Action, ChannelReader, ChannelReaderUpdate, Controller, LoadDesignError,
+    MainState as MainStateInterface, SaveDesignError, SetScaffoldSequenceError,
+    SetScaffoldSequenceOk, SimulationRequest, StaplesDownloader,
+};
 use ensnano_design::{grid::GridId, Camera};
 use ensnano_exports::{ExportResult, ExportType};
+use ensnano_flatscene as flatscene;
 use ensnano_gui as gui;
 use ensnano_iced::{
     fonts,
@@ -103,22 +121,32 @@ use ensnano_iced::{
     iced_winit::{self, winit},
     theme, UiSize,
 };
-use ensnano_interactor::consts;
 use ensnano_interactor::{
     application::{Application, Notification},
-    RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor,
+    consts,
+    graphics::{GuiComponentType, SplitMode},
+    operation::Operation,
+    ActionMode, CenterOfSelection, CheckXoversParameter, CursorIcon, DesignOperation, DesignReader,
+    RevolutionSurfaceSystemDescriptor, RigidBodyConstants, Selection, SelectionMode,
+    SuggestionParameters, UnrootedRevolutionSurfaceDescriptor,
 };
-use ensnano_interactor::{
-    CenterOfSelection, CursorIcon, DesignOperation, DesignReader, RigidBodyConstants,
-    SuggestionParameters,
+use ensnano_scene as scene;
+use ensnano_utils as utils;
+use flatscene::FlatScene;
+use gui::{ColorOverlay, Gui, IcedMessages, OverlayType};
+use multiplexer::{Multiplexer, Overlay};
+use scene::Scene;
+use scheduler::Scheduler;
+use std::{
+    collections::{HashMap, VecDeque},
+    env,
+    path::{Path, PathBuf},
+    rc::Rc,
+    sync::{Arc, Mutex},
+    time::{Duration, Instant},
 };
-use std::collections::{HashMap, VecDeque};
-use std::env;
-use std::path::{Path, PathBuf};
-use std::rc::Rc;
-use std::sync::{Arc, Mutex};
-use std::time::{Duration, Instant};
 use ultraviolet::{Rotor3, Vec3};
+use utils::{PhySize, TEXTURE_FORMAT};
 use winit::{
     dpi::{PhysicalPosition, PhysicalSize},
     event::{Event, WindowEvent},
@@ -126,34 +154,6 @@ use winit::{
     keyboard::{Key, ModifiersState, NamedKey},
     window::Window,
 };
-mod multiplexer;
-use ensnano_flatscene as flatscene;
-use ensnano_interactor::{
-    graphics::{GuiComponentType, SplitMode},
-    operation::Operation,
-    ActionMode, CheckXoversParameter, Selection, SelectionMode,
-};
-use ensnano_scene as scene;
-mod scheduler;
-use ensnano_utils as utils;
-use scheduler::Scheduler;
-mod app_state;
-mod controller;
-#[cfg(test)]
-mod main_tests;
-use app_state::{
-    AppState, AppStateTransition, CopyOperation, ErrOperation, OkOperation, PastePosition,
-    PastingStatus, SimulationTarget, TransitionLabel,
-};
-use controller::Action;
-use controller::Controller;
-mod dialog;
-mod requests;
-use flatscene::FlatScene;
-use gui::{ColorOverlay, Gui, IcedMessages, OverlayType};
-use multiplexer::{Multiplexer, Overlay};
-use scene::Scene;
-use utils::{PhySize, TEXTURE_FORMAT};
 
 /// Determine if log messages can be printed before the renderer setup.
 ///
@@ -1115,7 +1115,6 @@ struct MainStateConstructor {
     messages: Arc<Mutex<IcedMessages<AppState>>>,
 }
 
-use controller::SaveDesignError;
 impl MainState {
     fn new(constructor: MainStateConstructor) -> Self {
         let app_state = match AppState::with_preferred_parameters() {
@@ -1730,7 +1729,6 @@ struct MainStateView<'a> {
     resized: bool,
 }
 
-use controller::{LoadDesignError, MainState as MainStateInterface, StaplesDownloader};
 impl<'a> MainStateInterface for MainStateView<'a> {
     fn pop_action(&mut self) -> Option<Action> {
         if !self.main_state.pending_actions.is_empty() {
@@ -2179,9 +2177,6 @@ impl<'a> MainStateInterface for MainStateView<'a> {
     }
 }
 
-use controller::{SetScaffoldSequenceError, SetScaffoldSequenceOk};
-
-use crate::{controller::TargetScaffoldLength, requests::Requests};
 impl<'a> controller::ScaffoldSetter for MainStateView<'a> {
     fn set_scaffold_sequence(
         &mut self,
