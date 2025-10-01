@@ -15,42 +15,42 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
+mod background;
+mod helix_view;
+mod insertion;
+mod rectangle;
+
 use super::data::{
     helix::CharCollector, FlatTorsion, FreeEnd, GpuVertex, Helix, HelixModel, Shift, Strand,
     StrandVertex,
 };
+use super::FlatSelection;
 use super::{CameraPtr, FlatIdx, FlatNucl, NuclCollection};
 use crate::{DrawArea, PhySize};
-use ensnano_design::Nucl;
-use ensnano_utils::bindgroup_manager::{DynamicBindGroup, UniformBindGroup};
-use ensnano_utils::camera2d::Globals;
-use ensnano_utils::texture::Texture;
-use ensnano_utils::wgpu;
-use ensnano_utils::Ndc;
-use std::rc::Rc;
-use wgpu::{Device, Queue, RenderPipeline};
-
-mod helix_view;
-use helix_view::{HelixView, StrandView};
-mod background;
-mod insertion;
-mod rectangle;
-use super::FlatSelection;
 use ahash::RandomState;
 use background::Background;
-pub use chars::TextDrawer;
-pub use circles::CircleInstance;
-use circles::{CircleDrawer, CircleKind};
+use ensnano_design::Nucl;
 use ensnano_interactor::consts::SAMPLE_COUNT;
+use ensnano_utils::bindgroup_manager::{DynamicBindGroup, UniformBindGroup};
+use ensnano_utils::camera2d::Globals;
+pub use ensnano_utils::chars2d::TextDrawer;
+pub use ensnano_utils::circles2d::CircleInstance;
+use ensnano_utils::circles2d::{CircleDrawer, CircleKind};
+use ensnano_utils::texture::Texture;
+use ensnano_utils::wgpu;
 use ensnano_utils::winit::dpi::PhysicalPosition;
-use ensnano_utils::{chars2d as chars, circles2d as circles};
+use ensnano_utils::Ndc;
+use helix_view::{HelixView, StrandView};
 use insertion::InsertionDrawer;
 pub use insertion::{InsertionDescriptor, InsertionInstance};
 use rectangle::Rectangle;
+use std::rc::Rc;
 use std::{
     collections::{BTreeMap, BTreeSet, HashMap},
     sync::Arc,
 };
+use wgpu::{Device, Queue, RenderPipeline};
 
 const SHOW_SUGGESTION: bool = false;
 
