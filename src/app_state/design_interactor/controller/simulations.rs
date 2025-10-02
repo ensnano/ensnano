@@ -630,7 +630,7 @@ pub enum ShakeTarget {
     Helix(usize),
 }
 
-/// Return the length of the shortes line between a point of [a, b] and a poin of [c, d]
+/// Return the length of the shortest line between a point of [a, b] and a point of [c, d]
 fn distance_segment(a: Vec3, b: Vec3, c: Vec3, d: Vec3) -> (f32, Vec3, Vec3, Vec3) {
     let u = b - a;
     let v = d - c;

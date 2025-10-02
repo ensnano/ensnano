@@ -51,7 +51,7 @@ pub enum Selection {
     Nothing,
 }
 
-/// The object that is foccused in the 3D scene.
+/// The object that is focused in the 3D scene.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CenterOfSelection {
     Nucleotide(u32, Nucl),

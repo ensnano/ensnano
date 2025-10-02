@@ -419,9 +419,9 @@ impl StrandBuilder {
 enum EditDirection {
     /// In both direction
     Both,
-    /// Only on position smaller that the inital position
+    /// Only on position smaller that the initial position
     Negative,
-    /// Only on position bigger that the inital position
+    /// Only on position bigger that the initial position
     Positive,
 }
 

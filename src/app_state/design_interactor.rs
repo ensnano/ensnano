@@ -369,7 +369,7 @@ impl DesignInteractor {
     }
 }
 
-/// An opperation has been successfully applied to the design, resulting in a new modifed
+/// An operation has been successfully applied to the design, resulting in a new modified
 /// interactor. The variants of these enum indicate different ways in which the result should be
 /// handled
 pub(super) enum InteractorResult {
