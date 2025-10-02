@@ -658,7 +658,7 @@ impl AppState {
     }
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default)] // workaround for https://github.com/rust-cli/confy/issues/34
 pub struct AppStateParameters {
     suggestion_parameters: SuggestionParameters,

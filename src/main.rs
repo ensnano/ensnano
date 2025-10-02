@@ -1111,13 +1111,11 @@ struct MainStateConstructor {
 
 impl MainState {
     fn new(constructor: MainStateConstructor) -> Self {
-        let app_state = match AppState::with_preferred_parameters() {
-            Ok(state) => state,
-            Err(e) => {
-                log::error!("Could not load preferrences {e}");
-                Default::default()
-            }
-        };
+        let app_state = AppState::with_preferred_parameters().unwrap_or_else(|e| {
+            log::error!("Could not load preferences {e}");
+            AppState::default()
+        });
+
         Self {
             app_state: app_state.clone(),
             pending_actions: VecDeque::new(),
