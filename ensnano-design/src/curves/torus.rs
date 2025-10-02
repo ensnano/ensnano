@@ -649,8 +649,8 @@ pub(super) struct TwistedTorus {
 pub struct TwistedTorusDescriptor {
     pub curve: CurveDescriptor2D,
     /// Number of time the shape appears in a full turn
-    #[serde(alias = "half_twist_count_per_turn")]
-    pub symetry_per_turn: isize,
+    #[serde(alias = "half_twist_count_per_turn", alias = "symetry_per_turn")]
+    pub symmetry_per_turn: isize,
     /// Radius of the structure,
     pub big_radius: OrderedFloat<f64>,
     pub number_of_helix_per_section: usize,
@@ -669,7 +669,7 @@ impl TwistedTorus {
             / instanciated_curve.perimeter();
         let shift_per_turn = descriptor.helix_index_shift_per_turn;
         let nb_helices = descriptor.number_of_helix_per_section;
-        let nb_symetry_per_turn = descriptor.symetry_per_turn;
+        let nb_symetry_per_turn = descriptor.symmetry_per_turn;
         let rho = instanciated_curve.symetry_order();
 
         // At each turn, all helices positions are shifted by total_shift = nb_helices / rho * number of symetry
@@ -755,7 +755,7 @@ impl Curved for TwistedTorus {
 
         let point_curve = self.instanciated_curve.position(t_curve) * self.scale;
 
-        let curve_angle = self.descriptor.symetry_per_turn as f64 * theta
+        let curve_angle = self.descriptor.symmetry_per_turn as f64 * theta
             / (self.instanciated_curve.symetry_order() as f64);
 
         let rotated_curve_x = point_curve.x * curve_angle.cos() - point_curve.y * curve_angle.sin();

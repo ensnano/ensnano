@@ -243,14 +243,14 @@ pub struct Strand {
     pub junctions: Vec<DomainJunction>,
     /// The sequence of this strand, if any. If the sequence is longer
     /// than specified by the domains, a prefix is assumed. Can be
-    /// skipped in the serialisation.
+    /// skipped in the serialization.
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub sequence: Option<Cow<'static, str>>,
     /// Is this sequence cyclic? Can be skipped (and defaults to
     /// `false`) in the serialization.
     #[serde(skip_serializing_if = "is_false", default, alias = "cyclic")]
     pub is_cyclic: bool,
-    /// Colour of this strand. If skipped, a default colour will be
+    /// Color of this strand. If skipped, a default color will be
     /// chosen automatically.
     #[serde(default)] // with = "SerHex",
     pub color: u32,

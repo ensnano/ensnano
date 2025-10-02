@@ -24,45 +24,42 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //!
 //! Each component of ENSnano has specific needs and express them via its own `AppState` trait.
 
-use ensnano_design::{group_attributes::GroupPivot, BezierPathId};
+mod address_pointer;
+mod design_interactor;
+mod impl_app2d;
+mod impl_app3d;
+mod impl_gui;
+mod transitions;
+
+use crate::{
+    apply_update,
+    controller::{LoadDesignError, SaveDesignError, SimulationRequest},
+};
+use address_pointer::AddressPointer;
+pub use design_interactor::{
+    controller::ErrOperation, CopyOperation, DesignReader, InteractorNotification, PastePosition,
+    PastingStatus, ShiftOptimizationResult, ShiftOptimizerReader, SimulationInterface,
+    SimulationReader, SimulationTarget, SimulationUpdate,
+};
+use design_interactor::{DesignInteractor, InteractorResult};
+use ensnano_design::{group_attributes::GroupPivot, BezierPathId, Design, SavingInformation};
 use ensnano_exports::{ExportResult, ExportType};
 use ensnano_gui::StrandBuildingStatus;
 use ensnano_iced::UiSize;
 use ensnano_interactor::{
-    consts::{ENS_BACKUP_EXTENSION, ENS_EXTENSION},
+    consts::{APP_NAME, ENS_BACKUP_EXTENSION, ENS_EXTENSION},
     graphics::{Background3D, HBondDisplay, RenderingMode},
-    UnrootedRevolutionSurfaceDescriptor,
+    operation::Operation,
+    ActionMode, CenterOfSelection, CheckXoversParameter, DesignOperation, RigidBodyConstants,
+    Selection, SelectionMode, SuggestionParameters, UnrootedRevolutionSurfaceDescriptor,
+    WidgetBasis,
 };
-use ensnano_interactor::{
-    operation::Operation, ActionMode, CenterOfSelection, CheckXoversParameter, Selection,
-    SelectionMode, WidgetBasis,
-};
-
-use std::path::PathBuf;
-use std::sync::{Arc, RwLock};
-mod address_pointer;
-mod design_interactor;
-mod transitions;
-use crate::apply_update;
-use crate::controller::{LoadDesignError, SaveDesignError, SimulationRequest};
-use address_pointer::AddressPointer;
-use ensnano_design::{Design, SavingInformation};
-use ensnano_interactor::consts::APP_NAME;
-use ensnano_interactor::{DesignOperation, RigidBodyConstants, SuggestionParameters};
 use ensnano_organizer::GroupId;
-
-pub use design_interactor::controller::ErrOperation;
-pub use design_interactor::{
-    CopyOperation, DesignReader, InteractorNotification, PastePosition, PastingStatus,
-    ShiftOptimizationResult, ShiftOptimizerReader, SimulationInterface, SimulationReader,
-    SimulationTarget, SimulationUpdate,
+use serde::{Deserialize, Serialize};
+use std::{
+    path::PathBuf,
+    sync::{Arc, RwLock},
 };
-use design_interactor::{DesignInteractor, InteractorResult};
-
-mod impl_app2d;
-mod impl_app3d;
-mod impl_gui;
-
 pub use transitions::{AppStateTransition, OkOperation, TransitionLabel};
 
 /// A structure containing the global state of the program.
@@ -661,7 +658,6 @@ impl AppState {
     }
 }
 
-use serde::{Deserialize, Serialize};
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(default)] // workaround for https://github.com/rust-cli/confy/issues/34
 pub struct AppStateParameters {
