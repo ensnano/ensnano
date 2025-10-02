@@ -315,7 +315,7 @@ pub(crate) fn poll_all<R: DerefMut<Target = Requests>>(
             )))
     }
 
-    if let Some(candidate) = requests.new_paste_candiate.take() {
+    if let Some(candidate) = requests.new_paste_candidate.take() {
         main_state
             .pending_actions
             .push_back(Action::PasteCandidate(candidate.map(PastePosition::Nucl)))

@@ -57,7 +57,7 @@ pub struct Requests {
     pub action_mode: Option<ActionMode>,
     /// A change of the selection mode
     pub selection_mode: Option<SelectionMode>,
-    /// A request to move the camera so that the frustrum fits the design
+    /// A request to move the camera so that the frustum fits the design
     pub fitting: Option<()>,
     /// A request to save the selected design
     pub file_save: Option<()>,
@@ -127,7 +127,7 @@ pub struct Requests {
     pub centering_on_nucl: Option<(Nucl, usize)>,
     pub toggle_widget_basis: Option<()>,
     pub stop_roll: Option<()>,
-    pub new_paste_candiate: Option<Option<Nucl>>,
+    pub new_paste_candidate: Option<Option<Nucl>>,
     pub new_grid_paste_candidate: Option<GridPosition>,
     pub new_double_strand_parameters: Option<Option<(isize, usize)>>,
     pub new_center_of_selection: Option<Option<CenterOfSelection>>,
