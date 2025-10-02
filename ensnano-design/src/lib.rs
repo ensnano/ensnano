@@ -21,9 +21,6 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::sync::Arc;
 
-use regex::Regex;
-use std::str::FromStr;
-
 mod material_colors;
 use material_colors::MaterialColor;
 
@@ -32,7 +29,6 @@ extern crate serde_derive;
 extern crate serde;
 pub use bezier_plane::*;
 pub use ultraviolet;
-use ultraviolet::{Rotor3, Vec3};
 
 pub mod codenano;
 pub mod consts;
@@ -308,7 +304,7 @@ impl Design {
 pub struct CameraId(u64);
 
 use serde_with::{serde_as, DefaultOnError};
-/// A saved camera position. This can be use to register intresting point of views of the design.
+/// A saved camera position. This can be use to register interesting point of views of the design.
 #[serde_as]
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Camera {
@@ -503,18 +499,18 @@ impl Design {
         self.cameras.get(&cam_id)
     }
 
-    pub fn get_favourite_camera(&self) -> Option<&Camera> {
+    pub fn get_favorite_camera(&self) -> Option<&Camera> {
         self.favorite_camera
             .as_ref()
             .and_then(|id| self.cameras.get(id))
             .or(self.saved_camera.as_ref())
     }
 
-    pub fn get_favourite_camera_id(&self) -> Option<CameraId> {
+    pub fn get_favorite_camera_id(&self) -> Option<CameraId> {
         self.favorite_camera
     }
 
-    pub fn set_favourite_camera(&mut self, cam_id: CameraId) -> bool {
+    pub fn set_favorite_camera(&mut self, cam_id: CameraId) -> bool {
         if self.cameras.contains_key(&cam_id) {
             if self.favorite_camera != Some(cam_id) {
                 self.favorite_camera = Some(cam_id);
@@ -615,7 +611,7 @@ impl Design {
         }
     }
 
-    pub fn mut_strand_and_data(&mut self) -> MutStrandAndData {
+    pub fn mut_strand_and_data(&mut self) -> MutStrandAndData<'_> {
         self.get_updated_grid_data();
         MutStrandAndData {
             strands: &mut self.strands,

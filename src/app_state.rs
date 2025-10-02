@@ -26,8 +26,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use ensnano_design::{group_attributes::GroupPivot, BezierPathId};
 use ensnano_exports::{ExportResult, ExportType};
+use ensnano_gui::StrandBuildingStatus;
 use ensnano_iced::UiSize;
 use ensnano_interactor::{
+    consts::{ENS_BACKUP_EXTENSION, ENS_EXTENSION},
     graphics::{Background3D, HBondDisplay, RenderingMode},
     UnrootedRevolutionSurfaceDescriptor,
 };
@@ -88,7 +90,7 @@ impl Default for AppState {
         let mut ret = AppState(Default::default());
         log::trace!("call from default");
         // Synchronize all the pointers.
-        // This truns updated_once to true so we must set it back to false afterwards
+        // This turns updated_once to true so we must set it back to false afterwards
         ret = ret.updated();
         let mut with_forgot_update = ret.0.clone_inner();
         with_forgot_update.updated_once = false;
@@ -240,10 +242,8 @@ impl AppState {
 
     pub fn import_design(mut path: PathBuf) -> Result<Self, LoadDesignError> {
         let design_interactor = DesignInteractor::new_with_path(&path)?;
-        if path.extension().map(|s| s.to_string_lossy())
-            != Some(crate::consts::ENS_BACKUP_EXTENSION.into())
-        {
-            path.set_extension(crate::consts::ENS_EXTENSION);
+        if path.extension().map(|s| s.to_string_lossy()) != Some(ENS_BACKUP_EXTENSION.into()) {
+            path.set_extension(ENS_EXTENSION);
         }
         Ok(Self(AddressPointer::new(AppState_ {
             design: AddressPointer::new(design_interactor),
@@ -564,8 +564,7 @@ impl AppState {
             && (self.0.updated_once || other.0.updated_once)
     }
 
-    fn get_strand_building_state(&self) -> Option<crate::gui::StrandBuildingStatus> {
-        use crate::gui::StrandBuildingStatus;
+    fn get_strand_building_state(&self) -> Option<StrandBuildingStatus> {
         let builders = self.0.design.get_strand_builders();
         builders.get(0).and_then(|b| {
             let domain_id = b.get_domain_identifier();
@@ -664,7 +663,7 @@ impl AppState {
 
 use serde::{Deserialize, Serialize};
 #[derive(Clone, Serialize, Deserialize)]
-#[serde(default)] // workarround for https://github.com/rust-cli/confy/issues/34
+#[serde(default)] // workaround for https://github.com/rust-cli/confy/issues/34
 pub struct AppStateParameters {
     suggestion_parameters: SuggestionParameters,
     check_xover_parameters: CheckXoversParameter,

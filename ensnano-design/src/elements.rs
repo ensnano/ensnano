@@ -15,7 +15,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use ensnano_iced::iced_aw::core::icons::bootstrap::Bootstrap;
+use ensnano_iced::icondata;
 use ensnano_organizer::{
     AttributeDisplay, AttributeWidget, ElementKey, OrganizerAttribute, OrganizerAttributeRepr,
     OrganizerElement,
@@ -317,61 +317,38 @@ impl OrganizerAttribute for DnaAttribute {
 
     fn widget(&self) -> AttributeWidget<DnaAttribute> {
         match self {
-            DnaAttribute::Visible(b) => AttributeWidget::FlipButton {
-                value_if_pressed: DnaAttribute::Visible(!b),
-            },
-            DnaAttribute::LockedForSimulations(b) => AttributeWidget::FlipButton {
-                value_if_pressed: DnaAttribute::LockedForSimulations(!b),
-            },
-            DnaAttribute::XoverGroup(None) => AttributeWidget::FlipButton {
-                value_if_pressed: DnaAttribute::XoverGroup(Some(false)),
-            },
-            DnaAttribute::XoverGroup(Some(b)) => AttributeWidget::FlipButton {
-                value_if_pressed: if *b {
-                    DnaAttribute::XoverGroup(None)
-                } else {
-                    DnaAttribute::XoverGroup(Some(true))
-                },
-            },
+            DnaAttribute::Visible(b) => AttributeWidget::new(DnaAttribute::Visible(!b)),
+            DnaAttribute::LockedForSimulations(b) => {
+                AttributeWidget::new(DnaAttribute::LockedForSimulations(!b))
+            }
+            DnaAttribute::XoverGroup(None) => {
+                AttributeWidget::new(DnaAttribute::XoverGroup(Some(false)))
+            }
+            DnaAttribute::XoverGroup(Some(b)) => AttributeWidget::new(if *b {
+                DnaAttribute::XoverGroup(None)
+            } else {
+                DnaAttribute::XoverGroup(Some(true))
+            }),
         }
     }
 
     fn char_repr(&self) -> AttributeDisplay {
         match self {
-            DnaAttribute::Visible(b) => {
-                let c = if *b {
-                    Bootstrap::EyeFill.into()
-                } else {
-                    Bootstrap::EyeSlash.into()
-                };
-                AttributeDisplay::Icon(c)
-            }
+            DnaAttribute::Visible(b) => AttributeDisplay::Icon(if *b {
+                icondata::BsEyeFill
+            } else {
+                icondata::BsEyeSlash
+            }),
             DnaAttribute::XoverGroup(group) => match group {
                 None => AttributeDisplay::Text("\u{2205}".to_owned()),
                 Some(false) => AttributeDisplay::Text("G".to_owned()),
                 Some(true) => AttributeDisplay::Text("R".to_owned()),
             },
-            DnaAttribute::LockedForSimulations(b) => {
-                let c = if *b {
-                    Bootstrap::Lock.into()
-                } else {
-                    Bootstrap::Unlock.into()
-                };
-                AttributeDisplay::Icon(c)
-            }
+            DnaAttribute::LockedForSimulations(b) => AttributeDisplay::Icon(if *b {
+                icondata::BsLock
+            } else {
+                icondata::BsUnlock
+            }),
         }
-    }
-}
-
-impl std::fmt::Display for DnaAttribute {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{}",
-            match self.char_repr() {
-                AttributeDisplay::Icon(c) => format!("{}", c),
-                AttributeDisplay::Text(s) => s,
-            }
-        )
     }
 }

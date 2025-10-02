@@ -99,7 +99,7 @@ pub enum Notification {
     Centering(Nucl, usize),
     CenterSelection(Selection, AppId),
     ShowTorsion(bool),
-    ModifersChanged(Modifiers),
+    ModifiersChanged(Modifiers),
     Split2d,
     Redim2dHelices(bool),
     Fog(FogParameters),

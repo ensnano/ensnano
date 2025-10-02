@@ -26,7 +26,6 @@ use ensnano_design::{
     BezierPathId, BezierPlaneId, BezierVertex, BezierVertexId, Nucl, SurfaceInfo, SurfacePoint,
 };
 use ensnano_interactor::consts::*;
-use ensnano_interactor::Selection;
 use ensnano_utils::winit;
 use std::cell::RefCell;
 use std::ops::Deref;
@@ -42,7 +41,7 @@ mod automata;
 pub use automata::WidgetTarget;
 use automata::{EventContext, NormalState, State, Transition};
 
-/// The effect that draging the mouse have
+/// The effect that dragging the mouse have
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ClickMode {
     TranslateCam,
@@ -157,7 +156,7 @@ pub enum Consequence {
     SetRevolutionAxisPosition(f32),
 }
 
-enum TransistionConsequence {
+enum TransitionConsequence {
     Nothing,
     InitCameraMovement {
         translation: bool,
@@ -404,10 +403,10 @@ impl<S: AppState> Controller<S> {
         transition.consequences
     }
 
-    fn transition_consequence(&mut self, csq: TransistionConsequence) {
+    fn transition_consequence(&mut self, csq: TransitionConsequence) {
         match csq {
-            TransistionConsequence::Nothing => (),
-            TransistionConsequence::InitCameraMovement { translation, nucl } => {
+            TransitionConsequence::Nothing => (),
+            TransitionConsequence::InitCameraMovement { translation, nucl } => {
                 if let Some(info) = nucl
                     .and_then(|n| self.data.borrow().get_surface_info_nucl(n))
                     .filter(|_| self.current_modifiers_state.shift_key())
@@ -416,14 +415,14 @@ impl<S: AppState> Controller<S> {
                 }
                 self.init_movement(translation && self.current_modifiers_state.shift_key())
             }
-            TransistionConsequence::EndCameraMovement => self.end_movement(),
-            TransistionConsequence::InitFreeXover(nucl, d_id, position) => {
+            TransitionConsequence::EndCameraMovement => self.end_movement(),
+            TransitionConsequence::InitFreeXover(nucl, d_id, position) => {
                 self.data.borrow_mut().init_free_xover(nucl, position, d_id)
             }
-            TransistionConsequence::StartRotatingPivot => {
+            TransitionConsequence::StartRotatingPivot => {
                 self.data.borrow_mut().notify_rotating_pivot()
             }
-            TransistionConsequence::StopRotatingPivot => {
+            TransitionConsequence::StopRotatingPivot => {
                 self.data.borrow_mut().stop_rotating_pivot()
             }
         }
@@ -575,7 +574,6 @@ pub(super) trait Data {
     fn notify_rotating_pivot(&mut self);
     fn stop_rotating_pivot(&mut self);
     fn update_handle_colors(&mut self, colors: HandleColors);
-    fn element_to_selection(&self, element: &Option<SceneElement>) -> Selection;
     fn init_free_xover(&mut self, nucl: Nucl, position: Vec3, design_id: usize);
     fn get_surface_info(&self, point: SurfacePoint) -> Option<SurfaceInfo>;
     fn get_surface_info_nucl(&self, nucl: Nucl) -> Option<SurfaceInfo>;

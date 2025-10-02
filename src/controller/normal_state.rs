@@ -16,13 +16,12 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use crate::app_state::PastePosition;
-
 use super::download_intervals::DownloadIntervals;
 use super::messages::CHANGING_DNA_PARAMETERS_WARNING;
 use super::*;
-use ensnano_design::group_attributes::GroupPivot;
-use ensnano_design::{grid::GridId, HelixParameters};
+use crate::app_state::PastePosition;
+use ensnano_design::{grid::GridId, group_attributes::GroupPivot, HelixParameters};
+use ensnano_interactor::consts::ENS_EXTENSION;
 use ensnano_interactor::{
     graphics::FogParameters, HyperboloidOperation, RevolutionSurfaceSystemDescriptor,
 };
@@ -40,7 +39,7 @@ impl State for NormalState {
                 Action::QuickSave => {
                     if let Some(path) = main_state
                         .get_current_file_name()
-                        .filter(|p| p.extension() == Some(crate::consts::ENS_EXTENSION.as_ref()))
+                        .filter(|p| p.extension() == Some(ENS_EXTENSION.as_ref()))
                     {
                         quicksave(path)
                     } else {

@@ -73,12 +73,12 @@ pub(super) trait ControllerState<S: AppState> {
     #[allow(dead_code)]
     fn display(&self) -> Cow<'static, str>;
 
-    fn transition_from(&self, _controller: &Controller<S>) -> TransistionConsequence {
-        TransistionConsequence::Nothing
+    fn transition_from(&self, _controller: &Controller<S>) -> TransitionConsequence {
+        TransitionConsequence::Nothing
     }
 
-    fn transition_to(&self, _controller: &Controller<S>) -> TransistionConsequence {
-        TransistionConsequence::Nothing
+    fn transition_to(&self, _controller: &Controller<S>) -> TransitionConsequence {
+        TransitionConsequence::Nothing
     }
 
     fn check_timers(&mut self, _controller: &Controller<S>) -> Transition<S> {
@@ -89,14 +89,6 @@ pub(super) trait ControllerState<S: AppState> {
         None
     }
 
-    fn element_being_selected(&self) -> Option<SceneElement> {
-        None
-    }
-
-    #[allow(clippy::unused_unit)]
-    fn notify_scroll(&mut self) {
-        ()
-    }
     fn cursor(&self) -> Option<ensnano_interactor::CursorIcon> {
         None
     }

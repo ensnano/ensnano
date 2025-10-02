@@ -19,7 +19,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use ensnano_design::{elements::DesignElement, CameraId, Collection};
 
 use super::*;
-use crate::gui::DesignReader as ReaderGui;
+use ensnano_gui::DesignReader as ReaderGui;
 use ensnano_interactor::InsertionPoint;
 use ultraviolet::Rotor3;
 
@@ -89,8 +89,8 @@ impl ReaderGui for DesignReader {
             .collect()
     }
 
-    fn get_favourite_camera(&self) -> Option<CameraId> {
-        self.presenter.current_design.get_favourite_camera_id()
+    fn get_favorite_camera(&self) -> Option<CameraId> {
+        self.presenter.current_design.get_favorite_camera_id()
     }
 
     fn get_grid_position_and_orientation(&self, g_id: GridId) -> Option<(Vec3, Rotor3)> {

@@ -16,15 +16,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use mathru::algebra::abstr::Identity;
-use std::f32::consts::PI;
-use ultraviolet::*;
-
-use std::str::FromStr;
-
-use std::collections::HashMap;
-
 use crate::drawing_style::ParsePointError;
+use std::collections::HashMap;
+use std::f32::consts::PI;
+use std::str::FromStr;
+use ultraviolet::*;
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug)]
 pub enum Isometry3DescriptorItem {

@@ -19,21 +19,17 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! frame to be displayed, or on a "fake texture" that is used to map pixels to objects.
 
 use self::gltf_drawer::Object3DDrawer;
-use int_enum::IntEnum;
-
 use super::camera;
 use crate::{DrawArea, PhySize};
 use camera::{Camera, CameraPtr, Projection, ProjectionPtr};
-use ensnano_design::group_attributes::GroupPivot;
-use ensnano_design::ultraviolet;
-use ensnano_design::{grid::GridId, Axis};
+use ensnano_design::{grid::GridId, group_attributes::GroupPivot, ultraviolet, Axis};
 use ensnano_interactor::{consts::*, UnrootedRevolutionSurfaceDescriptor};
-use ensnano_utils::wgpu;
-use ensnano_utils::{bindgroup_manager, text, texture};
-use std::cell::RefCell;
-use std::collections::BTreeMap;
-use std::rc::Rc;
-use std::usize;
+use ensnano_utils::{
+    bindgroup_manager, text, texture,
+    wgpu::{self, util::DeviceExt as _},
+};
+use int_enum::IntEnum;
+use std::{cell::RefCell, collections::BTreeMap, rc::Rc, usize};
 use texture::Texture;
 use ultraviolet::{Mat4, Rotor3, Vec3};
 use wgpu::{Device, Queue};
@@ -71,7 +67,7 @@ use grid::{GridManager, GridTextures};
 pub use grid_disc::GridDisc;
 use handle_drawer::HandlesDrawer;
 pub use handle_drawer::{HandleColors, HandleDir, HandleOrientation, HandlesDescriptor};
-pub use instances_drawer::Instanciable;
+pub use instances_drawer::Instantiable;
 use instances_drawer::{InstanceDrawer, RawDrawer};
 pub use letter::LetterInstance;
 use maths_3d::unproject_point_on_line;
@@ -81,8 +77,8 @@ pub use rotation_widget::{
 };
 pub use sheet_2d::Sheet2D;
 use text::Letter;
-//use plane_drawer::PlaneDrawer;
-//pub use plane_drawer::Plane;
+
+use ensnano_interactor::graphics::{Background3D, HBondDisplay, RenderingMode};
 
 static MODEL_BG_ENTRY: &[wgpu::BindGroupLayoutEntry] = &[wgpu::BindGroupLayoutEntry {
     binding: 0,
@@ -95,7 +91,8 @@ static MODEL_BG_ENTRY: &[wgpu::BindGroupLayoutEntry] = &[wgpu::BindGroupLayoutEn
     count: None,
 }];
 
-use ensnano_interactor::graphics::{Background3D, HBondDisplay, RenderingMode};
+const CAMERA_NEAR: f32 = 0.1;
+const CAMERA_FAR: f32 = 1000.0;
 
 /// An object that handles the communication with the GPU to draw the scene.
 pub struct View {
@@ -109,14 +106,12 @@ pub struct View {
     fake_depth_texture: Texture,
     /// The handle drawers draw handles to translate the elements
     handle_drawers: HandlesDrawer,
-    /// The handle drawers draw frames along helix 0
-    all_frames_drawers: Vec<HandlesDrawer>,
     /// The rotation widget draw the widget to rotate the elements
     rotation_widget: RotationWidget,
     /// A possible update of the size of the drawing area, must be taken into account before
     /// drawing the next frame
     new_size: Option<PhySize>,
-    /// The pipilines that draw the basis symbols
+    /// The pipelines that draw the basis symbols
     letter_drawer: Vec<InstanceDrawer<LetterInstance>>,
     helix_letter_drawer: Vec<InstanceDrawer<LetterInstance>>,
     device: Rc<Device>,
@@ -140,8 +135,13 @@ pub struct View {
     external_objects_drawer: Object3DDrawer,
     stereography: Stereography,
     sheets_drawer: InstanceDrawer<Sheet2D>,
-    /// Cutting plane
+    /// Cutting plane. TODO: remove? I don't see where the value is ever not `None`
     cut_plane_parameters: Option<CutPlaneParameters>,
+    // Post-processing shader parameters. TODO: bundle in InstanceDrawer or a new struct
+    queue: Rc<wgpu::Queue>,
+    post_processing_pipeline: wgpu::RenderPipeline,
+    post_processing_bind_group_layout: wgpu::BindGroupLayout,
+    post_processing_buffer: wgpu::Buffer,
 }
 
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
@@ -170,8 +170,8 @@ impl View {
             area_size.width,
             area_size.height,
             70f32.to_radians(),
-            0.1,
-            1000.0,
+            CAMERA_NEAR,
+            CAMERA_FAR,
         )));
         let stereography = Stereography {
             radius: 30.,
@@ -228,19 +228,16 @@ impl View {
             .collect();
 
         let depth_texture =
-            texture::Texture::create_depth_texture(device.as_ref(), &area_size, SAMPLE_COUNT);
-        let fake_depth_texture =
-            texture::Texture::create_depth_texture(device.as_ref(), &window_size, 1);
-        let msaa_texture = if SAMPLE_COUNT > 1 {
-            Some(ensnano_utils::texture::Texture::create_msaa_texture(
+            Texture::create_depth_texture(device.as_ref(), &area_size, SAMPLE_COUNT);
+        let fake_depth_texture = Texture::create_depth_texture(device.as_ref(), &window_size, 1);
+        let msaa_texture = (SAMPLE_COUNT > 1).then(|| {
+            Texture::create_msaa_texture(
                 device.clone().as_ref(),
                 &area_size,
                 SAMPLE_COUNT,
                 wgpu::TextureFormat::Bgra8UnormSrgb,
-            ))
-        } else {
-            None
-        };
+            )
+        });
         let models = DynamicBindGroup::new(device.clone(), queue.clone(), "models");
 
         let grid_textures = GridTextures::new(device.as_ref(), encoder);
@@ -315,7 +312,7 @@ impl View {
         let external_objects_drawer = Object3DDrawer::new(device.clone());
         let sheets_drawer = InstanceDrawer::new(
             device.clone(),
-            queue,
+            queue.clone(),
             &viewer.get_layout_desc(),
             &model_bg_desc,
             (),
@@ -325,7 +322,85 @@ impl View {
 
         let cut_plane_parameters = None::<CutPlaneParameters>;
 
-        let all_frames_drawers = Vec::new();
+        // === POST-PROCESSING SHADER ===
+        let post_processing_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("post-processing buffer"),
+            contents: bytemuck::bytes_of(&PostProcessingUniform::new(RenderingMode::default())), // dummy initial buffer
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+        });
+
+        let post_processing_bind_group_layout =
+            device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                label: Some("post-processing bind group layout"),
+                entries: &[
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 0,
+                        visibility: wgpu::ShaderStages::FRAGMENT,
+                        ty: wgpu::BindingType::Texture {
+                            multisampled: true,
+                            sample_type: wgpu::TextureSampleType::Depth,
+                            view_dimension: wgpu::TextureViewDimension::D2,
+                        },
+                        count: None,
+                    },
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 1,
+                        visibility: wgpu::ShaderStages::FRAGMENT,
+                        ty: wgpu::BindingType::Buffer {
+                            ty: wgpu::BufferBindingType::Uniform,
+                            has_dynamic_offset: false,
+                            min_binding_size: None,
+                        },
+                        count: None,
+                    },
+                ],
+            });
+
+        let post_processing_shader =
+            device.create_shader_module(wgpu::include_wgsl!("view/post_processing.wgsl"));
+        let post_processing_pipeline =
+            device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+                label: Some("post-processing pipeline"),
+                layout: Some(
+                    &device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+                        label: Some("post-processing pipeline layout"),
+                        bind_group_layouts: &[&post_processing_bind_group_layout],
+                        push_constant_ranges: &[],
+                    }),
+                ),
+                vertex: wgpu::VertexState {
+                    module: &post_processing_shader,
+                    entry_point: "vs_main",
+                    buffers: &[],
+                },
+                fragment: Some(wgpu::FragmentState {
+                    module: &post_processing_shader,
+                    entry_point: "fs_main",
+                    targets: &[Some(wgpu::ColorTargetState {
+                        format: wgpu::TextureFormat::Bgra8UnormSrgb,
+                        blend: Some(wgpu::BlendState {
+                            color: wgpu::BlendComponent {
+                                src_factor: wgpu::BlendFactor::SrcAlpha,
+                                dst_factor: wgpu::BlendFactor::OneMinusSrcAlpha,
+                                operation: wgpu::BlendOperation::Add,
+                            },
+                            alpha: wgpu::BlendComponent {
+                                src_factor: wgpu::BlendFactor::One,
+                                dst_factor: wgpu::BlendFactor::OneMinusSrcAlpha,
+                                operation: wgpu::BlendOperation::Add,
+                            },
+                        }),
+                        write_mask: wgpu::ColorWrites::ALL,
+                    })],
+                }),
+                primitive: wgpu::PrimitiveState::default(),
+                depth_stencil: None,
+                multisample: wgpu::MultisampleState {
+                    count: SAMPLE_COUNT,
+                    ..Default::default()
+                },
+                multiview: None,
+            });
 
         Self {
             camera,
@@ -338,7 +413,6 @@ impl View {
             stereographic_viewer,
             models,
             handle_drawers: HandlesDrawer::new(device.clone()),
-            all_frames_drawers,
             rotation_widget: RotationWidget::new(device),
             letter_drawer,
             helix_letter_drawer,
@@ -357,6 +431,10 @@ impl View {
             stereography,
             sheets_drawer,
             cut_plane_parameters,
+            queue,
+            post_processing_pipeline,
+            post_processing_bind_group_layout,
+            post_processing_buffer,
         }
     }
 
@@ -405,15 +483,14 @@ impl View {
                 self.update_viewers();
             }
             ViewUpdate::Handles(descr) => {
-                self.handle_drawers.update_decriptor(
+                self.handle_drawers.update_descriptor(
                     descr,
                     self.camera.clone(),
                     self.projection.clone(),
                 );
             }
-
             ViewUpdate::RotationWidget(descr) => {
-                self.rotation_widget.update_decriptor(
+                self.rotation_widget.update_descriptor(
                     descr,
                     self.camera.clone(),
                     self.projection.clone(),
@@ -492,7 +569,7 @@ impl View {
         self.need_redraw | self.redraw_twice
     }
 
-    /// update cut plane
+    // Is a feature missing? This just prints. - Axel
     pub fn update_cut_plane(&mut self, normal: Vec3, dot_value: f32) {
         println!(
             "Update cut plane to: normal: <{},{},{}> dot: {dot_value}",
@@ -510,13 +587,12 @@ impl View {
         stereographic: bool,
         draw_options: DrawOptions,
     ) {
-        let fake_color = draw_type.is_fake();
         if let Some(size) = self.new_size.take() {
             self.depth_texture =
                 Texture::create_depth_texture(self.device.as_ref(), &area.size, SAMPLE_COUNT);
             self.fake_depth_texture = Texture::create_depth_texture(self.device.as_ref(), &size, 1);
             self.msaa_texture = if SAMPLE_COUNT > 1 {
-                Some(ensnano_utils::texture::Texture::create_msaa_texture(
+                Some(Texture::create_msaa_texture(
                     self.device.clone().as_ref(),
                     &area.size,
                     SAMPLE_COUNT,
@@ -526,23 +602,14 @@ impl View {
                 None
             };
         }
+
+        let fake_color = draw_type.is_fake();
         let clear_color = if fake_color || draw_options.background3d == Background3D::White {
-            // 0xFF_FF_FF_FF is the "default" color for the fake texture
-            wgpu::Color {
-                r: 1.,
-                g: 1.,
-                b: 1.,
-                a: 1.,
-            }
+            wgpu::Color::WHITE
         } else {
-            // Clearing with black is a bit faster than with other colors, so that's what we do
-            // when possible
-            wgpu::Color {
-                r: 0.,
-                g: 0.,
-                b: 0.,
-                a: 0.,
-            }
+            // Clearing with all zeros is a bit faster than with other colors,
+            // so that's what we do when possible
+            wgpu::Color::TRANSPARENT
         };
 
         let viewer = if stereographic {
@@ -555,52 +622,56 @@ impl View {
         let viewer_bind_group_layout = viewer.get_layout();
 
         let mut png_msaa = None;
-        let attachment = if !fake_color && draw_type == DrawType::Scene {
-            if let Some(ref msaa) = self.msaa_texture {
-                msaa
-            } else {
-                target
+
+        let attachment = match draw_type {
+            DrawType::Scene => {
+                if let Some(ref msaa) = self.msaa_texture {
+                    msaa
+                } else {
+                    target
+                }
             }
-        } else if let DrawType::Png { width, height } = draw_type {
-            png_msaa = if SAMPLE_COUNT > 1 {
-                let size = PhySize::new(width, height);
-                Some(ensnano_utils::texture::Texture::create_msaa_texture(
-                    self.device.clone().as_ref(),
-                    &size,
-                    SAMPLE_COUNT,
-                    wgpu::TextureFormat::Bgra8UnormSrgb,
-                ))
-            } else {
-                None
-            };
-            png_msaa.as_ref().unwrap_or(target)
-        } else {
-            target
+            DrawType::Png { width, height } => {
+                png_msaa = if SAMPLE_COUNT > 1 {
+                    let size = PhySize::new(width, height);
+                    Some(Texture::create_msaa_texture(
+                        self.device.clone().as_ref(),
+                        &size,
+                        SAMPLE_COUNT,
+                        wgpu::TextureFormat::Bgra8UnormSrgb,
+                    ))
+                } else {
+                    None
+                };
+                png_msaa.as_ref().unwrap_or(target)
+            }
+            DrawType::Design | DrawType::Widget | DrawType::Phantom | DrawType::Grid => target,
         };
 
-        let resolve_target =
-            if !fake_color && self.msaa_texture.is_some() && draw_type == DrawType::Scene {
-                Some(target)
-            } else if let DrawType::Png { .. } = draw_type {
-                png_msaa.as_ref().and(Some(target))
-            } else {
-                None
-            };
+        let resolve_target = if self.msaa_texture.is_some() && draw_type == DrawType::Scene {
+            Some(target)
+        } else if let DrawType::Png { .. } = draw_type {
+            png_msaa.as_ref().and(Some(target))
+        } else {
+            None
+        };
 
-        let png_depth;
-
-        let depth_attachement = if !fake_color && draw_type == DrawType::Scene {
+        let depth_attachment = if draw_type == DrawType::Scene {
             &self.depth_texture
         } else if let DrawType::Png { width, height } = draw_type {
             let size = PhySize::new(width, height);
-            png_depth = Some(Texture::create_depth_texture(
-                self.device.as_ref(),
-                &size,
-                SAMPLE_COUNT,
-            ));
-            png_depth.as_ref().unwrap()
+            &Texture::create_depth_texture(self.device.as_ref(), &size, SAMPLE_COUNT)
         } else {
             &self.fake_depth_texture
+        };
+
+        let depth_view = if draw_type == DrawType::Scene {
+            &self.depth_texture.view
+        } else if let DrawType::Png { width, height } = draw_type {
+            let size = PhySize::new(width, height);
+            &Texture::create_depth_texture(self.device.as_ref(), &size, SAMPLE_COUNT).view
+        } else {
+            &self.fake_depth_texture.view
         };
 
         {
@@ -615,7 +686,7 @@ impl View {
                     },
                 })],
                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                    view: &depth_attachement.view,
+                    view: depth_view,
                     depth_ops: Some(wgpu::Operations {
                         load: wgpu::LoadOp::Clear(1.),
                         store: wgpu::StoreOp::Store,
@@ -625,13 +696,10 @@ impl View {
                         store: wgpu::StoreOp::Store,
                     }),
                 }),
-                // TODO: New attributes comming with iced 0.12 (1/3)
-                //       So far I don't know which value put in here, so I stick to
-                //       the most simple. Please, the one who knows, set an appropriate
-                //       value here and after.
                 timestamp_writes: None,
                 occlusion_query_set: None,
             });
+
             if draw_type != DrawType::Scene {
                 render_pass.set_viewport(
                     area.position.x as f32,
@@ -649,62 +717,69 @@ impl View {
                 );
             }
 
-            if draw_type == DrawType::Design {
-                for drawer in self.dna_drawers.fakes() {
-                    drawer.draw(
-                        &mut render_pass,
-                        viewer.get_bindgroup(),
-                        self.models.get_bindgroup(),
-                    )
+            match draw_type {
+                DrawType::Design => {
+                    for drawer in self.dna_drawers.fakes() {
+                        drawer.draw(
+                            &mut render_pass,
+                            viewer.get_bindgroup(),
+                            self.models.get_bindgroup(),
+                        )
+                    }
                 }
-            } else if draw_type == DrawType::Scene {
-                log::trace!("Draw sky..");
-                if draw_options.background3d == Background3D::Sky {
-                    self.skybox_cube.draw(
+                DrawType::Scene => {
+                    log::trace!("Draw sky..");
+                    if draw_options.background3d == Background3D::Sky {
+                        self.skybox_cube.draw(
+                            &mut render_pass,
+                            viewer.get_bindgroup(),
+                            self.models.get_bindgroup(),
+                        );
+                    }
+                    log::trace!("..Done");
+                    for drawer in self.dna_drawers.reals(&draw_options) {
+                        drawer.draw(
+                            &mut render_pass,
+                            viewer.get_bindgroup(),
+                            self.models.get_bindgroup(),
+                        )
+                    }
+                }
+                DrawType::Png { .. } => {
+                    for drawer in self.dna_drawers.reals(&draw_options) {
+                        drawer.draw(
+                            &mut render_pass,
+                            viewer.get_bindgroup(),
+                            self.models.get_bindgroup(),
+                        )
+                    }
+                }
+                DrawType::Phantom => {
+                    for drawer in self.dna_drawers.phantoms() {
+                        drawer.draw(
+                            &mut render_pass,
+                            viewer.get_bindgroup(),
+                            self.models.get_bindgroup(),
+                        )
+                    }
+                }
+                DrawType::Grid => {
+                    // Draw design elements and phantoms, to fill the depth buffer
+                    for drawer in self.dna_drawers.fakes_and_phantoms() {
+                        drawer.draw(
+                            &mut render_pass,
+                            viewer.get_bindgroup(),
+                            self.models.get_bindgroup(),
+                        )
+                    }
+                }
+                DrawType::Widget => {
+                    self.dna_drawers.fake_bezier_control.draw(
                         &mut render_pass,
-                        viewer.get_bindgroup(),
+                        viewer_bind_group,
                         self.models.get_bindgroup(),
                     );
                 }
-                log::trace!("..Done");
-                for drawer in self.dna_drawers.reals(&draw_options) {
-                    drawer.draw(
-                        &mut render_pass,
-                        viewer.get_bindgroup(),
-                        self.models.get_bindgroup(),
-                    )
-                }
-            } else if matches!(draw_type, DrawType::Png { .. }) {
-                for drawer in self.dna_drawers.reals(&draw_options) {
-                    drawer.draw(
-                        &mut render_pass,
-                        viewer.get_bindgroup(),
-                        self.models.get_bindgroup(),
-                    )
-                }
-            } else if draw_type == DrawType::Phantom {
-                for drawer in self.dna_drawers.phantoms() {
-                    drawer.draw(
-                        &mut render_pass,
-                        viewer.get_bindgroup(),
-                        self.models.get_bindgroup(),
-                    )
-                }
-            } else if draw_type == DrawType::Grid {
-                // Draw design elements and phantoms, to fill the depth buffer
-                for drawer in self.dna_drawers.fakes_and_phantoms() {
-                    drawer.draw(
-                        &mut render_pass,
-                        viewer.get_bindgroup(),
-                        self.models.get_bindgroup(),
-                    )
-                }
-            } else if draw_type == DrawType::Widget {
-                self.dna_drawers.fake_bezier_control.draw(
-                    &mut render_pass,
-                    viewer_bind_group,
-                    self.models.get_bindgroup(),
-                );
             }
 
             if !fake_color && !stereographic && self.draw_letter {
@@ -780,8 +855,55 @@ impl View {
                 self.need_redraw_fake = true;
             }
         }
-        if !fake_color && draw_type == DrawType::Scene {
-            let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+
+        // Post-processing
+        if matches!(draw_type, DrawType::Scene | DrawType::Png { .. })
+            && draw_options.rendering_mode.requires_post_processing()
+        {
+            self.queue.write_buffer(
+                &self.post_processing_buffer,
+                0,
+                bytemuck::bytes_of(&PostProcessingUniform::new(draw_options.rendering_mode)),
+            );
+            let post_processing_bind_group =
+                self.device.create_bind_group(&wgpu::BindGroupDescriptor {
+                    label: Some("post-processing bind group"),
+                    layout: &self.post_processing_bind_group_layout,
+                    entries: &[
+                        wgpu::BindGroupEntry {
+                            binding: 0,
+                            resource: wgpu::BindingResource::TextureView(&self.depth_texture.view),
+                        },
+                        wgpu::BindGroupEntry {
+                            binding: 1,
+                            resource: self.post_processing_buffer.as_entire_binding(),
+                        },
+                    ],
+                });
+
+            let mut post_processing_render_pass =
+                encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                    label: Some("post-processing render pass"),
+                    color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                        view: attachment,
+                        resolve_target,
+                        ops: wgpu::Operations {
+                            load: wgpu::LoadOp::Load,
+                            store: wgpu::StoreOp::Store,
+                        },
+                    })],
+                    depth_stencil_attachment: None,
+                    timestamp_writes: None,
+                    occlusion_query_set: None,
+                });
+            post_processing_render_pass.set_pipeline(&self.post_processing_pipeline);
+            post_processing_render_pass.set_bind_group(0, &post_processing_bind_group, &[]);
+            post_processing_render_pass.draw(0..3, 0..1); // fullscreen triangle
+        }
+
+        // Draw the cube
+        if draw_type == DrawType::Scene {
+            let mut cube_render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: None,
                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                     view: attachment,
@@ -792,7 +914,7 @@ impl View {
                     },
                 })],
                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                    view: &depth_attachement.view,
+                    view: &depth_view,
                     depth_ops: Some(wgpu::Operations {
                         load: wgpu::LoadOp::Clear(1.),
                         store: wgpu::StoreOp::Store,
@@ -802,11 +924,10 @@ impl View {
                         store: wgpu::StoreOp::Store,
                     }),
                 }),
-                // TODO: New attributes comming with iced 0.12 (2/3)
                 timestamp_writes: None,
                 occlusion_query_set: None,
             });
-            render_pass.set_viewport(
+            cube_render_pass.set_viewport(
                 area.size.width as f32 / 20.,
                 0.,
                 (area.size.width as f32 / 10. * 1.5)
@@ -820,14 +941,16 @@ impl View {
             );
             log::trace!("draw direction cube...");
             self.direction_cube.draw(
-                &mut render_pass,
+                &mut cube_render_pass,
                 viewer_bind_group,
                 self.models.get_bindgroup(),
             );
             log::trace!("..Done");
-        } else if draw_type == DrawType::Grid {
-            // render pass to draw the grids
-            let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+        }
+
+        // Draw the grids
+        if draw_type == DrawType::Grid {
+            let mut grid_render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: None,
                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                     view: attachment,
@@ -839,7 +962,7 @@ impl View {
                 })],
                 // Reuse previous depth_stencil_attachment
                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                    view: &depth_attachement.view,
+                    view: &depth_attachment.view,
                     depth_ops: Some(wgpu::Operations {
                         load: wgpu::LoadOp::Load,
                         store: wgpu::StoreOp::Store,
@@ -849,11 +972,10 @@ impl View {
                         store: wgpu::StoreOp::Store,
                     }),
                 }),
-                // TODO: New attributes comming with iced 0.12 (3/3)
                 timestamp_writes: None,
                 occlusion_query_set: None,
             });
-            render_pass.set_viewport(
+            grid_render_pass.set_viewport(
                 area.position.x as f32,
                 area.position.y as f32,
                 area.size.width as f32,
@@ -861,14 +983,14 @@ impl View {
                 0.0,
                 1.0,
             );
-            render_pass.set_scissor_rect(
+            grid_render_pass.set_scissor_rect(
                 area.position.x,
                 area.position.y,
                 area.size.width,
                 area.size.height,
             );
             self.grid_manager.draw(
-                &mut render_pass,
+                &mut grid_render_pass,
                 viewer_bind_group,
                 self.models.get_bindgroup(),
                 true,
@@ -943,13 +1065,13 @@ impl View {
         self.rotation_widget.translate(translation);
     }
 
-    /// Initialise the rotation that will be applied on objects affected by the rotation widget.
+    /// Initialize the rotation that will be applied on objects affected by the rotation widget.
     pub fn init_rotation(&mut self, mode: RotationMode, x_coord: f32, y_coord: f32) {
         self.need_redraw = true;
         self.rotation_widget.init_rotation(x_coord, y_coord, mode)
     }
 
-    /// Initialise the translation that will be applied on objects affected by the handle widget.
+    /// Initialize the translation that will be applied on objects affected by the handle widget.
     pub fn init_translation(&mut self, x: f32, y: f32) {
         self.need_redraw = true;
         self.handle_drawers.init_translation(x, y)
@@ -1121,8 +1243,8 @@ pub enum Mesh {
     XoverTube = 23,
     Prime3Cone = 24,
     Prime3ConeOutline = 25,
-    BezierControll = 26,
-    BezierSqueleton = 27,
+    BezierControl = 26,
+    BezierSkeleton = 27,
     FakeBezierControl = 28,
     StereographicSphere = 29,
     BaseEllipsoid = 30,
@@ -1140,7 +1262,7 @@ impl Mesh {
             Self::SlicedTube => Some(Self::FakeTube),
             Self::PhantomSphere => Some(Self::FakePhantomSphere),
             Self::PhantomTube => Some(Self::FakePhantomTube),
-            Self::BezierControll => Some(Self::FakeBezierControl),
+            Self::BezierControl => Some(Self::FakeBezierControl),
             _ => None,
         }
     }
@@ -1198,8 +1320,8 @@ struct DnaDrawers {
     xover_tube: InstanceDrawer<TubeInstance>,
     prime3_cones: InstanceDrawer<dna_obj::ConeInstance>,
     outline_prime3_cones: InstanceDrawer<dna_obj::ConeInstance>,
-    bezier_controll_points: InstanceDrawer<dna_obj::SphereInstance>,
-    bezier_squelton: InstanceDrawer<dna_obj::TubeInstance>,
+    bezier_control_points: InstanceDrawer<dna_obj::SphereInstance>,
+    bezier_skeleton: InstanceDrawer<dna_obj::TubeInstance>,
     fake_bezier_control: InstanceDrawer<SphereInstance>,
     stereographic_sphere: InstanceDrawer<StereographicSphereAndPlane>,
     base_ellipsoid: InstanceDrawer<dna_obj::Ellipsoid>,
@@ -1237,8 +1359,8 @@ impl DnaDrawers {
             Mesh::XoverTube => &mut self.xover_tube,
             Mesh::Prime3Cone => &mut self.prime3_cones,
             Mesh::Prime3ConeOutline => &mut self.outline_prime3_cones,
-            Mesh::BezierControll => &mut self.bezier_controll_points,
-            Mesh::BezierSqueleton => &mut self.bezier_squelton,
+            Mesh::BezierControl => &mut self.bezier_control_points,
+            Mesh::BezierSkeleton => &mut self.bezier_skeleton,
             Mesh::FakeBezierControl => &mut self.fake_bezier_control,
             Mesh::StereographicSphere => &mut self.stereographic_sphere,
             Mesh::HBond => &mut self.hbond,
@@ -1272,8 +1394,8 @@ impl DnaDrawers {
             &mut self.pivot_sphere,
             &mut self.xover_sphere,
             &mut self.xover_tube,
-            &mut self.bezier_squelton,
-            &mut self.bezier_controll_points,
+            &mut self.bezier_skeleton,
+            &mut self.bezier_control_points,
         ];
         let mut last_solid_item = 2;
         match draw_options.h_bonds {
@@ -1332,6 +1454,7 @@ impl DnaDrawers {
         viewer_desc: &wgpu::BindGroupLayoutDescriptor<'static>,
         model_desc: &wgpu::BindGroupLayoutDescriptor<'static>,
     ) -> Self {
+        // TODO: shorten this code
         Self {
             sphere: InstanceDrawer::new(
                 device.clone(),
@@ -1598,23 +1721,23 @@ impl DnaDrawers {
                 true,
                 "fake phantom tube",
             ),
-            bezier_controll_points: InstanceDrawer::new(
+            bezier_control_points: InstanceDrawer::new(
                 device.clone(),
                 queue.clone(),
                 viewer_desc,
                 model_desc,
                 (),
                 false,
-                "bezier controlle points",
+                "bezier control points",
             ),
-            bezier_squelton: InstanceDrawer::new(
+            bezier_skeleton: InstanceDrawer::new(
                 device.clone(),
                 queue.clone(),
                 viewer_desc,
                 model_desc,
                 (),
                 false,
-                "bezier squeleton",
+                "bezier skeleton",
             ),
             fake_bezier_control: InstanceDrawer::new(
                 device.clone(),
@@ -1668,6 +1791,29 @@ impl DrawType {
             DrawType::Phantom => false,
             DrawType::Grid => false,
             DrawType::Png { .. } => false,
+        }
+    }
+}
+
+#[repr(C)]
+#[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
+struct PostProcessingUniform {
+    sample_count: u32,
+    only_outline: u32, // used as a bool, but alignment required
+    camera_near: f32,
+    camera_far: f32,
+}
+impl PostProcessingUniform {
+    fn new(rendering_mode: RenderingMode) -> Self {
+        Self {
+            sample_count: SAMPLE_COUNT,
+            only_outline: if rendering_mode == RenderingMode::Outline {
+                1
+            } else {
+                0
+            },
+            camera_near: CAMERA_NEAR,
+            camera_far: CAMERA_FAR,
         }
     }
 }

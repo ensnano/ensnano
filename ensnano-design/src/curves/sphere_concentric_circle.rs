@@ -16,11 +16,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use crate::{parameters, HelixParameters};
-
 use super::Curved;
+use crate::HelixParameters;
 use std::f64::consts::{PI, TAU};
-use ultraviolet::{DRotor3, DVec3};
+use ultraviolet::DVec3;
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct SphereConcentricCircleDescriptor {
@@ -32,10 +31,6 @@ pub struct SphereConcentricCircleDescriptor {
     pub is_closed: Option<bool>,
     pub target_nb_nt: Option<usize>,
     pub abscissa_converter_factor: Option<f64>,
-}
-
-fn default_number_of_helices() -> usize {
-    3
 }
 
 impl SphereConcentricCircleDescriptor {

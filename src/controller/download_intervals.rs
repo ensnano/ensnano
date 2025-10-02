@@ -20,9 +20,9 @@ use super::{
     messages, DownloadStapleError, DownloadStapleOk, MainState, NormalState, StaplesDownloader,
     State, TransitionMessage,
 };
-
 use crate::dialog;
 use dialog::{MustAckMessage, PathInput};
+use ensnano_interactor::consts::ORIGAMI_EXTENSION;
 use std::path::PathBuf;
 
 #[derive(Default)]
@@ -108,12 +108,12 @@ fn ask_path(mut state: AskingPath_, main_state: &mut dyn MainState) -> Box<Downl
     } else {
         let candidate_name = main_state.get_current_file_name().map(|p| {
             let mut ret = p.to_owned();
-            ret.set_extension(crate::consts::ORIGAMI_EXTENSION);
+            ret.set_extension(ORIGAMI_EXTENSION);
             ret
         });
         let starting_directory = main_state.get_current_design_directory();
         let path_input = dialog::get_file_to_write(
-            &messages::ORIGAMI_FLTER,
+            &messages::ORIGAMI_FILTER,
             starting_directory.as_ref(),
             candidate_name,
         );
@@ -153,7 +153,7 @@ fn poll_path(path_input: PathInput, design_id: usize) -> Box<dyn State> {
             })
         } else {
             TransitionMessage::new(
-                messages::NO_FILE_RECIEVED_STAPLE,
+                messages::NO_FILE_RECEIVED_STAPLE,
                 rfd::MessageLevel::Error,
                 Box::new(NormalState),
             )
@@ -174,6 +174,6 @@ fn download_staples(
     path: PathBuf,
 ) -> Box<dyn State> {
     downlader.write_intervals(&path);
-    let msg = messages::successfull_staples_export_msg(&path);
+    let msg = messages::successful_staples_export_msg(&path);
     TransitionMessage::new(msg, rfd::MessageLevel::Error, Box::new(NormalState))
 }

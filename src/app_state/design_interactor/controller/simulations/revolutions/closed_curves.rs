@@ -125,9 +125,6 @@ impl SpringTopology for CloseSurfaceTopology {
         self.nb_section_per_segment * self.nb_segment
     }
 
-    fn balls_with_predecessor(&self) -> &[usize] {
-        &self.idx_range
-    }
     fn predecessor(&self, ball_id: usize) -> usize {
         self.prev_section[ball_id]
     }
@@ -277,10 +274,6 @@ impl SpringTopology for CloseSurfaceTopology {
 
     fn fixed_points(&self) -> &[usize] {
         &[]
-    }
-
-    fn revolution_radius(&self) -> RevolutionSurfaceRadius {
-        self.target.get_revolution_radius()
     }
 
     fn get_frame(&self) -> Similarity3 {

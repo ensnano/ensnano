@@ -23,6 +23,7 @@ mod download_intervals;
 mod download_staples;
 use download_staples::*;
 pub use download_staples::{DownloadStapleError, DownloadStapleOk, StaplesDownloader};
+use ensnano_interactor::consts::CANNOT_OPEN_DEFAULT_DIR;
 use std::sync::Arc;
 mod quit;
 use ensnano_design::grid::GridId;
@@ -196,7 +197,6 @@ pub(crate) trait MainState: ScaffoldSetter {
     fn load_design(&mut self, path: PathBuf) -> Result<(), LoadDesignError>;
     fn save_design(&mut self, path: &PathBuf) -> Result<(), SaveDesignError>;
     fn save_backup(&mut self) -> Result<(), SaveDesignError>;
-    fn get_chanel_reader(&mut self) -> &mut ChannelReader;
     fn apply_operation(&mut self, operation: DesignOperation);
     fn apply_silent_operation(&mut self, operation: DesignOperation);
     fn undo(&mut self);
@@ -291,7 +291,7 @@ impl<E: std::error::Error> From<E> for SaveDesignError {
 
 impl SaveDesignError {
     pub fn cannot_open_default_dir() -> Self {
-        Self(crate::consts::CANNOT_OPEN_DEFAULT_DIR.to_string())
+        Self(CANNOT_OPEN_DEFAULT_DIR.to_string())
     }
 }
 

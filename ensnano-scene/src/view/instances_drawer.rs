@@ -15,8 +15,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-//! This modules defines the [Instanciable](Instanciable) trait. Types that implement the
-//! `Instanciable` trait can be turned into instances that can be drawn by an
+//! This modules defines the [Instantiable](Instantiable) trait. Types that implement the
+//! `Instantiable` trait can be turned into instances that can be drawn by an
 //! [InstanceDrawer](InstanceDrawer).
 
 use ensnano_interactor::consts::*;
@@ -34,7 +34,7 @@ use wgpu::{
 pub trait Vertexable {
     /// The raw type that is sent to the shaders
     type RawType: bytemuck::Pod + bytemuck::Zeroable;
-    /// The vertex state decriptor used to create the pipeline
+    /// The vertex state descriptor used to create the pipeline
     fn desc<'a>() -> wgpu::VertexBufferLayout<'a>;
     /// Convert self into a raw vertex.
     fn to_raw(&self) -> Self::RawType;
@@ -42,17 +42,17 @@ pub trait Vertexable {
 
 /// A type that provides additional ressources needed to draw a mesh
 pub trait RessourceProvider {
-    /// Descritpion of the additional ressources (eg textures) needed to draw the mesh.
+    /// Description of the additional ressources (eg textures) needed to draw the mesh.
     fn ressources_layout() -> &'static [wgpu::BindGroupLayoutEntry] {
         &[]
     }
-    /// Descritpion of the additional ressources (eg textures) needed to draw the mesh.
-    fn ressources(&self) -> Vec<wgpu::BindGroupEntry> {
+    /// Description of the additional ressources (eg textures) needed to draw the mesh.
+    fn ressources(&self) -> Vec<wgpu::BindGroupEntry<'_>> {
         Vec::new()
     }
 
     /// This methods allows the ressource tho provide the vertex buffer. If the return value is
-    /// Some, it takes priority over the Instanciable's vertices.
+    /// Some, it takes priority over the Instantiable's vertices.
     fn vertex_buffer_desc() -> Option<wgpu::VertexBufferLayout<'static>>
     where
         Self: Sized,
@@ -61,13 +61,13 @@ pub trait RessourceProvider {
     }
 
     /// This methods allows the ressource tho provide the vertex buffer. If the return value is
-    /// Some, it takes priority over the Instanciable's vertices.
+    /// Some, it takes priority over the Instantiable's vertices.
     fn vertex_buffer(&self) -> Option<&wgpu::Buffer> {
         None
     }
 
     /// This methods allows the ressource tho provide the index buffer. If the return value is
-    /// Some, it takes priority over the Instanciable's indices.
+    /// Some, it takes priority over the Instantiable's indices.
     fn index_buffer(&self) -> Option<&wgpu::Buffer> {
         None
     }
@@ -76,7 +76,7 @@ pub trait RessourceProvider {
 impl RessourceProvider for () {}
 
 /// A type that represents a mesh
-pub trait Instanciable {
+pub trait Instantiable {
     /// The type that represents the vertices of the mesh
     type Vertex: Vertexable;
     /// The type that will represents the instance data
@@ -86,8 +86,8 @@ pub trait Instanciable {
     /// The vertices of the mesh.
     ///
     /// The vertices must be the same for all the instances drawn by an
-    /// `Instanciable`. However, vertices can depend on the particular instantiation of the type
-    /// that implements `Instanciable`. In that case, the implementation of `Instanciable` must
+    /// `Instantiable`. However, vertices can depend on the particular instantiation of the type
+    /// that implements `Instantiable`. In that case, the implementation of `Instantiable` must
     /// overwrite the [`custom_vertices`](`custom_vertices`) method.
     fn vertices() -> Vec<Self::Vertex>
     where
@@ -95,8 +95,8 @@ pub trait Instanciable {
     /// The indices used to draw the mesh.
     ///
     /// The indices must be the same for all the instances drawn by an
-    /// `Instanciable`. However, indices can depend on the particular instantiation of the type
-    /// that implements `Instanciable`. In that case, the implementation of `Instanciable` must
+    /// `Instantiable`. However, indices can depend on the particular instantiation of the type
+    /// that implements `Instantiable`. In that case, the implementation of `Instantiable` must
     /// overwrite the [`custom_indices`](`custom_indices`) method.
     fn indices() -> Vec<u16>
     where
@@ -185,18 +185,10 @@ pub trait Instanciable {
     {
         false
     }
-
-    /// The method can be overwritten to disable depth test
-    fn depth_test() -> bool
-    where
-        Self: Sized,
-    {
-        true
-    }
 }
 
 /// An object that draws an instanced mesh
-pub struct InstanceDrawer<D: Instanciable + ?Sized> {
+pub struct InstanceDrawer<D: Instantiable + ?Sized> {
     /// The pipeline that will render the mesh
     pipeline: RenderPipeline,
     /// The vertex buffer used to draw the mesh
@@ -216,7 +208,7 @@ pub struct InstanceDrawer<D: Instanciable + ?Sized> {
     label: String,
 }
 
-impl<D: Instanciable> InstanceDrawer<D> {
+impl<D: Instantiable> InstanceDrawer<D> {
     pub fn new<S: AsRef<str>>(
         device: Rc<Device>,
         queue: Rc<Queue>,
@@ -351,21 +343,16 @@ impl<D: Instanciable> InstanceDrawer<D> {
         );
 
         let additional_ressources_layout = D::Ressource::ressources_layout();
-        let additional_bind_group = if additional_ressources_layout.len() > 0 {
-            let additional_bind_group_layout =
-                device.create_bind_group_layout(&BindGroupLayoutDescriptor {
-                    label: None,
-                    entries: D::Ressource::ressources_layout(),
-                });
-
-            Some(device.create_bind_group(&wgpu::BindGroupDescriptor {
+        let additional_bind_group = (!additional_ressources_layout.is_empty()).then(|| {
+            device.create_bind_group(&wgpu::BindGroupDescriptor {
                 label: None,
-                layout: &additional_bind_group_layout,
+                layout: &device.create_bind_group_layout(&BindGroupLayoutDescriptor {
+                    label: None,
+                    entries: additional_ressources_layout,
+                }),
                 entries: ressource.ressources().as_slice(),
-            }))
-        } else {
-            None
-        };
+            })
+        });
 
         Self {
             vertex_buffer,
@@ -421,7 +408,7 @@ impl<D: Instanciable> InstanceDrawer<D> {
         let models_bind_group_layout =
             device.create_bind_group_layout(&models_bind_group_layout_desc);
 
-        // gather the ressources, [instance, additional ressources]
+        // gather the resources, [instance, additional resources]
         let instance_entry = wgpu::BindGroupLayoutEntry {
             binding: 0,
             visibility: wgpu::ShaderStages::VERTEX,
@@ -485,11 +472,6 @@ impl<D: Instanciable> InstanceDrawer<D> {
             })
         };
 
-        let depth_compare = if D::depth_test() {
-            wgpu::CompareFunction::Less
-        } else {
-            wgpu::CompareFunction::Always
-        };
         let targets = &[Some(wgpu::ColorTargetState {
             format,
             blend: Some(blend_state),
@@ -532,7 +514,7 @@ impl<D: Instanciable> InstanceDrawer<D> {
             depth_stencil: Some(wgpu::DepthStencilState {
                 format: Texture::DEPTH_FORMAT,
                 depth_write_enabled: true,
-                depth_compare,
+                depth_compare: wgpu::CompareFunction::Less,
                 stencil: Default::default(),
                 bias: Default::default(),
             }),
@@ -560,8 +542,8 @@ pub trait RawDrawer {
     fn new_instances_raw(&mut self, instances_raw: &Vec<Self::RawInstance>);
 }
 
-impl<D: Instanciable> RawDrawer for InstanceDrawer<D> {
-    type RawInstance = <D as Instanciable>::RawInstance;
+impl<D: Instantiable> RawDrawer for InstanceDrawer<D> {
+    type RawInstance = <D as Instantiable>::RawInstance;
 
     fn new_instances_raw(&mut self, instances_raw: &Vec<D::RawInstance>) {
         self.nb_instances = instances_raw.len() as u32;

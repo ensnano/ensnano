@@ -22,7 +22,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //!
 //! In addition, the multiplexer holds a [Vec] of [overlays](Overlay), which are floating regions.
 //!
-//! When an event is recieved by the window, the multiplexer is in charge of forwarding it to the
+//! When an event is received by the window, the multiplexer is in charge of forwarding it to the
 //! appropriate application, GUI component, or overlay. The multiplexer also handles some events
 //! directly, like resizing events or keyboard input that should be handled independently of the
 //! focused region.
@@ -30,9 +30,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //!
 //!
 //! The multiplexer is also in charge of drawing to the frame.
-use super::{Action, Requests};
-use crate::utils::texture::SampledTexture;
-use crate::PhySize;
+
+mod layout_manager;
+
+use super::Action;
+use crate::{requests::Requests, PhySize};
 use ensnano_iced::{
     iced_wgpu::wgpu,
     iced_wgpu::wgpu::Device,
@@ -44,13 +46,16 @@ use ensnano_iced::{
     },
     UiSize,
 };
-use ensnano_interactor::{ActionMode, SelectionMode};
-use std::rc::Rc;
-use std::sync::{Arc, Mutex};
-
-mod layout_manager;
-use ensnano_interactor::graphics::{DrawArea, GuiComponentType, SplitMode};
+use ensnano_interactor::{
+    graphics::{DrawArea, GuiComponentType, SplitMode},
+    ActionMode, SelectionMode,
+};
+use ensnano_utils::texture::SampledTexture;
 use layout_manager::{LayoutTree, PixelRegion};
+use std::{
+    rc::Rc,
+    sync::{Arc, Mutex},
+};
 
 /// A structure that handles the division of the window into different `DrawArea`.
 ///
@@ -72,21 +77,21 @@ pub struct Multiplexer {
     scene_texture: Option<MultiplexerTexture>,
     /// The texture on which the top bar gui is rendered.
     top_bar_texture: Option<MultiplexerTexture>,
-    /// The texture on which the left pannel is rendered.
+    /// The texture on which the left panel is rendered.
     left_pannel_texture: Option<MultiplexerTexture>,
     /// The textures on which the overlays are rendered.
     overlays_textures: Vec<MultiplexerTexture>,
-    /// The texture on wich the grid is rendered.
+    /// The texture on which the grid is rendered.
     grid_panel_texture: Option<MultiplexerTexture>,
     /// The texture on which the stereographic scene is rendered.
     stereographic_scene_texture: Option<MultiplexerTexture>,
     /// The texture on which the status bar gui is rendered.
     status_bar_texture: Option<MultiplexerTexture>,
-    /// The texutre on which the flat scene is rendered.
+    /// The texture on which the flat scene is rendered.
     flat_scene_texture: Option<MultiplexerTexture>,
     /// The pointer to the node that separate the top bar from the scene.
     top_bar_split: usize,
-    /// The pointer to the node that separtate the status bar from the scene.
+    /// The pointer to the node that separate the status bar from the scene.
     status_bar_split: usize,
     /// The WGPU device.
     device: Rc<Device>,
@@ -103,7 +108,7 @@ pub struct Multiplexer {
     element_2d: GuiComponentType,
 }
 
-/// Maximum width of the left pannel.
+/// Maximum width of the left panel.
 const MAX_LEFT_PANEL_WIDTH: f64 = 200.;
 /// Maximum height of the status bar.
 const MAX_STATUS_BAR_HEIGHT: f64 = 56.;
@@ -283,8 +288,8 @@ impl Multiplexer {
                 },
             })],
             depth_stencil_attachment: None,
-            timestamp_writes: None,    //TODO: Think of an appropriate value!
-            occlusion_query_set: None, //TODO: Think of an appropriate value!
+            timestamp_writes: None,
+            occlusion_query_set: None,
         });
         if self.window_size.width > 0 && self.window_size.height > 0 {
             for element in [
@@ -362,8 +367,7 @@ impl Multiplexer {
 
     /// Return the drawing area attributed to an element.
     pub fn get_draw_area(&self, element_type: GuiComponentType) -> Option<DrawArea> {
-        use GuiComponentType::Overlay;
-        let (position, size) = if let Overlay(n) = element_type {
+        let (position, size) = if let GuiComponentType::Overlay(n) = element_type {
             (self.overlays[n].position, self.overlays[n].size)
         } else {
             let (left, top, right, bottom) = self.layout.get_area(element_type)?;
@@ -951,7 +955,7 @@ fn control_key(modifiers: &ModifiersState) -> bool {
     }
 }
 
-use crate::gui::Multiplexer as GuiMultiplexer;
+use ensnano_gui::Multiplexer as GuiMultiplexer;
 
 impl GuiMultiplexer for Multiplexer {
     fn get_draw_area(&self, element_type: GuiComponentType) -> Option<DrawArea> {

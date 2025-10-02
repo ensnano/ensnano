@@ -16,39 +16,29 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use crate::BezierControlPoint;
-
 use super::{DesignOperation, DesignRotation, DesignTranslation, GroupId, IsometryTarget};
-use ensnano_design::{grid::*, BezierPlaneId, BezierVertexId, HelixParameters, Nucl};
-use ultraviolet::{Bivec3, Rotor3, Vec2, Vec3};
-
-pub enum ParameterField {
-    Choice(Vec<String>),
-    Value,
-}
-
-pub struct Parameter {
-    pub field: ParameterField,
-    pub name: String,
-}
-
+use crate::BezierControlPoint;
+use ensnano_design::{grid::*, BezierPlaneId, BezierVertexId, Nucl};
 use std::sync::Arc;
+use ultraviolet::{Bivec3, Rotor3, Vec2, Vec3};
 
 pub trait Operation: std::fmt::Debug + Sync + Send {
     /// The effect of self that must be sent as a notifications to the targeted designs
     fn effect(&self) -> DesignOperation;
+
     /// A description of self of display in the GUI
     fn description(&self) -> String;
 
-    /// Produce an new opperation by setting the value of the `n`-th parameter to `val`.
+    /// Produce an new operation by setting the value of the `n`-th parameter to `val`.
     fn with_new_value(&self, _n: usize, _val: String) -> Option<Arc<dyn Operation>> {
         None
     }
 
     /// The set of parameters that can be modified via a GUI component
-    fn parameters(&self) -> Vec<Parameter> {
-        vec![]
+    fn parameters(&self) -> &[&'static str] {
+        &[]
     }
+
     /// The values associated to the parameters.
     fn values(&self) -> Vec<String> {
         vec![]
@@ -72,11 +62,8 @@ pub struct GridRotation {
 }
 
 impl Operation for GridRotation {
-    fn parameters(&self) -> Vec<Parameter> {
-        vec![Parameter {
-            field: ParameterField::Value,
-            name: String::from("angle"),
-        }]
+    fn parameters(&self) -> &[&'static str] {
+        &["angle"]
     }
 
     fn values(&self) -> Vec<String> {
@@ -130,11 +117,8 @@ pub struct HelixRotation {
 }
 
 impl Operation for HelixRotation {
-    fn parameters(&self) -> Vec<Parameter> {
-        vec![Parameter {
-            field: ParameterField::Value,
-            name: String::from("angle"),
-        }]
+    fn parameters(&self) -> &[&'static str] {
+        &["angle"]
     }
 
     fn values(&self) -> Vec<String> {
@@ -185,11 +169,8 @@ pub struct DesignViewRotation {
 }
 
 impl Operation for DesignViewRotation {
-    fn parameters(&self) -> Vec<Parameter> {
-        vec![Parameter {
-            field: ParameterField::Value,
-            name: String::from("angle"),
-        }]
+    fn parameters(&self) -> &[&'static str] {
+        &["angle"]
     }
 
     fn values(&self) -> Vec<String> {
@@ -235,21 +216,8 @@ pub struct DesignViewTranslation {
 }
 
 impl Operation for DesignViewTranslation {
-    fn parameters(&self) -> Vec<Parameter> {
-        vec![
-            Parameter {
-                field: ParameterField::Value,
-                name: String::from("x"),
-            },
-            Parameter {
-                field: ParameterField::Value,
-                name: String::from("y"),
-            },
-            Parameter {
-                field: ParameterField::Value,
-                name: String::from("z"),
-            },
-        ]
+    fn parameters(&self) -> &[&'static str] {
+        &["x", "y", "z"]
     }
 
     fn values(&self) -> Vec<String> {
@@ -303,21 +271,8 @@ pub struct BezierControlPointTranslation {
 }
 
 impl Operation for BezierControlPointTranslation {
-    fn parameters(&self) -> Vec<Parameter> {
-        vec![
-            Parameter {
-                field: ParameterField::Value,
-                name: String::from("x"),
-            },
-            Parameter {
-                field: ParameterField::Value,
-                name: String::from("y"),
-            },
-            Parameter {
-                field: ParameterField::Value,
-                name: String::from("z"),
-            },
-        ]
+    fn parameters(&self) -> &[&'static str] {
+        &["x", "y", "z"]
     }
 
     fn values(&self) -> Vec<String> {
@@ -426,21 +381,8 @@ pub struct HelixTranslation {
 }
 
 impl Operation for HelixTranslation {
-    fn parameters(&self) -> Vec<Parameter> {
-        vec![
-            Parameter {
-                field: ParameterField::Value,
-                name: String::from("x"),
-            },
-            Parameter {
-                field: ParameterField::Value,
-                name: String::from("y"),
-            },
-            Parameter {
-                field: ParameterField::Value,
-                name: String::from("z"),
-            },
-        ]
+    fn parameters(&self) -> &[&'static str] {
+        &["x", "y", "z"]
     }
 
     fn values(&self) -> Vec<String> {
@@ -513,21 +455,8 @@ pub struct GridTranslation {
 }
 
 impl Operation for GridTranslation {
-    fn parameters(&self) -> Vec<Parameter> {
-        vec![
-            Parameter {
-                field: ParameterField::Value,
-                name: String::from("x"),
-            },
-            Parameter {
-                field: ParameterField::Value,
-                name: String::from("y"),
-            },
-            Parameter {
-                field: ParameterField::Value,
-                name: String::from("z"),
-            },
-        ]
+    fn parameters(&self) -> &[&'static str] {
+        &["x", "y", "z"]
     }
 
     fn values(&self) -> Vec<String> {
@@ -765,58 +694,5 @@ impl Operation for CrossCut {
             "Cross cut from strand {} on nucl {} (strand {})",
             self.source_id, self.nucl, self.target_id
         )
-    }
-}
-
-#[derive(Clone, Debug)]
-pub struct CreateGrid {
-    pub position: Vec3,
-    pub orientation: Rotor3,
-    pub grid_type: GridTypeDescr,
-    pub design_id: usize,
-}
-
-impl Operation for CreateGrid {
-    fn parameters(&self) -> Vec<Parameter> {
-        vec![Parameter {
-            field: ParameterField::Choice(vec![String::from("Square"), String::from("Honeycomb")]),
-            name: String::from("Grid type"),
-        }]
-    }
-
-    fn values(&self) -> Vec<String> {
-        vec![self.grid_type.to_string()]
-    }
-
-    fn effect(&self) -> DesignOperation {
-        DesignOperation::AddGrid(GridDescriptor {
-            position: self.position,
-            orientation: self.orientation,
-            helix_parameters: None, // Some(HelixParameters::GEARY_2014_RNA),
-            grid_type: self.grid_type,
-            invisible: false,
-            bezier_vertex: None,
-        })
-    }
-
-    fn description(&self) -> String {
-        String::from("Create Grid")
-    }
-
-    fn with_new_value(&self, n: usize, val: String) -> Option<Arc<dyn Operation>> {
-        match n {
-            0 => match val.as_str() {
-                "Square" => Some(Arc::new(Self {
-                    grid_type: GridTypeDescr::Square { twist: None },
-                    ..*self
-                })),
-                "Honeycomb" => Some(Arc::new(Self {
-                    grid_type: GridTypeDescr::Honeycomb { twist: None },
-                    ..*self
-                })),
-                _ => None,
-            },
-            _ => None,
-        }
     }
 }

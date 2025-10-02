@@ -15,17 +15,6 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use std::{
-    cell::RefCell,
-    fs,
-    io::Write as _,
-    path::{Path, PathBuf},
-    rc::Rc,
-    sync::{Arc, Mutex},
-    time::Duration,
-};
-
-use ultraviolet::{Mat4, Rotor3, Vec3};
 
 use ensnano_design::{
     consts::ITERATIVE_AXIS_ALGORITHM, grid::GridPosition, grid::HelixGridPosition,
@@ -43,8 +32,18 @@ use ensnano_utils::{
     instance::Instance,
     wgpu::{self, Device, Queue},
     winit::{dpi::PhysicalPosition, event::WindowEvent},
-    PhySize,
+    BufferDimensions, PhySize,
 };
+use std::{
+    cell::RefCell,
+    fs,
+    io::Write as _,
+    path::{Path, PathBuf},
+    rc::Rc,
+    sync::{Arc, Mutex},
+    time::Duration,
+};
+use ultraviolet::{Mat4, Rotor3, Vec3};
 
 mod stl;
 
@@ -74,7 +73,6 @@ mod maths_3d;
 
 type ViewPtr = Rc<RefCell<View>>;
 type DataPtr<R> = Rc<RefCell<Data<R>>>;
-use std::convert::TryInto;
 
 // Rotor utils: safe rotor between
 mod rotor_utils;
@@ -993,8 +991,6 @@ impl<S: AppState> Scene<S> {
         println!("3D PNG export to {:?}", path);
         let device = self.element_selector.device.as_ref();
         let queue = self.element_selector.queue.as_ref();
-        use ensnano_utils::BufferDimensions;
-        use std::io::Write;
 
         let ratio = self.view.borrow().get_projection().borrow().get_ratio();
         let width = if ratio < 1. {
@@ -1019,10 +1015,6 @@ impl<S: AppState> Scene<S> {
             label: Some("3D PNG export"),
         });
 
-        // let draw_options =  DrawOptions {
-        //     rendering_mode: RenderingMode::Cartoon,
-        //     ..Default::default()
-        // };
         let draw_options = self.older_state.get_draw_options();
 
         self.view.borrow_mut().draw(
@@ -1062,7 +1054,7 @@ impl<S: AppState> Scene<S> {
                 rows_per_image: None,
             },
         };
-        let origin = wgpu::Origin3d { x: 0, y: 0, z: 0 };
+        let origin = wgpu::Origin3d::ZERO;
         let texture_copy_view = wgpu::ImageCopyTexture {
             texture: &texture,
             mip_level: 0,
@@ -1287,7 +1279,9 @@ impl<S: AppState> Application for Scene<S> {
                 }
             }
             Notification::ShowTorsion(_) => (),
-            Notification::ModifersChanged(modifiers) => self.controller.update_modifiers(modifiers),
+            Notification::ModifiersChanged(modifiers) => {
+                self.controller.update_modifiers(modifiers)
+            }
             Notification::Split2d => (),
             Notification::Redim2dHelices(_) => (),
             Notification::Fog(fog) => self.fog_request(fog),

@@ -16,34 +16,35 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+pub(super) mod controller;
+mod file_parsing;
+mod presenter;
+
 use super::AddressPointer;
+use controller::Controller;
+pub use controller::{
+    CopyOperation, InteractorNotification, PastePosition, PastingStatus, ShiftOptimizationResult,
+    ShiftOptimizerReader, SimulationInterface, SimulationReader,
+};
 use ensnano_design::{
     grid::GridId, group_attributes::GroupAttribute, BezierPathId, BezierPlaneDescriptor, Design,
     HelixCollection, HelixParameters, InstanciatedPiecewiseBezier,
 };
 use ensnano_exports::{ExportResult, ExportType};
 use ensnano_interactor::{
-    operation::Operation, DesignOperation, RevolutionSurfaceSystemDescriptor, RigidBodyConstants,
-    Selection, SimulationState, StrandBuilder, SuggestionParameters,
+    consts::UPDATE_VISIBILITY_SIEVE_LABEL, operation::Operation, DesignOperation,
+    RevolutionSurfaceSystemDescriptor, RigidBodyConstants, Selection, SimulationState,
+    StrandBuilder, SuggestionParameters,
 };
-
-mod presenter;
 use ensnano_organizer::GroupId;
 pub use presenter::SimulationUpdate;
 use presenter::{apply_simulation_update, update_presenter, NuclCollection, Presenter};
-pub(super) mod controller;
-use controller::Controller;
-pub use controller::{
-    CopyOperation, InteractorNotification, PastePosition, PastingStatus, RigidHelixState,
-    ShiftOptimizationResult, ShiftOptimizerReader, SimulationInterface, SimulationReader,
-};
 
-use crate::{controller::SimulationRequest, gui::CurentOpState};
+use crate::controller::SimulationRequest;
 pub(super) use controller::ErrOperation;
 use controller::{GridPresenter, HelixPresenter, OkOperation, RollPresenter, TwistPresenter};
-
+use ensnano_gui::CurrentOpState;
 use std::sync::Arc;
-mod file_parsing;
 
 /// The `DesignInteractor` handles all read/write operations on the design. It is a stateful struct
 /// so it is meant to be unexpansive to clone.
@@ -219,8 +220,8 @@ impl DesignInteractor {
         }
     }
 
-    pub(super) fn get_curent_operation_state(&self) -> Option<CurentOpState> {
-        self.current_operation.as_ref().map(|op| CurentOpState {
+    pub(super) fn get_curent_operation_state(&self) -> Option<CurrentOpState> {
+        self.current_operation.as_ref().map(|op| CurrentOpState {
             operation_id: self.current_operation_id,
             current_operation: op.clone(),
         })
@@ -351,7 +352,7 @@ impl DesignInteractor {
         self.design = AddressPointer::new(self.design.clone_inner());
         InteractorResult::Push {
             interactor: self,
-            label: crate::consts::UPDATE_VISIBILITY_SIEVE_LABEL.into(),
+            label: UPDATE_VISIBILITY_SIEVE_LABEL.into(),
         }
     }
 
@@ -472,12 +473,12 @@ mod tests {
     use super::controller::CopyOperation;
     use super::file_parsing::StrandJunction;
     use super::*;
-    use crate::scene::DesignReader as Reader3d;
     use ensnano_design::grid::HelixGridPosition;
     use ensnano_design::HelixCollection;
     use ensnano_design::{grid::GridDescriptor, Collection, DomainJunction, Nucl, Strand};
     use ensnano_interactor::operation::GridHelixCreation;
     use ensnano_interactor::DesignReader;
+    use ensnano_scene::DesignReader as Reader3d;
     use std::path::PathBuf;
     use ultraviolet::{Rotor3, Vec3};
 

@@ -1,14 +1,16 @@
-use ensnano_iced::iced_aw::core::icons::{
-    bootstrap::{icon_to_string, Bootstrap},
-    BOOTSTRAP_FONT,
+use {
+    ensnano_iced::{
+        helpers::*,
+        iced::{keyboard::Modifiers, Length},
+        icon_to_svg, icondata,
+        icondata::Icon,
+        Element,
+    },
+    std::{
+        collections::{BTreeMap, BTreeSet, HashMap},
+        convert::TryInto,
+    },
 };
-use ensnano_iced::{
-    helpers::*,
-    iced::{advanced, alignment, keyboard::Modifiers, Font, Length},
-    Element,
-};
-use std::collections::{BTreeMap, BTreeSet, HashMap};
-use std::convert::TryInto;
 
 #[macro_use]
 extern crate serde_derive;
@@ -29,7 +31,6 @@ use drag_drop_target::*;
 
 use hoverable_container::HoverableContainer;
 
-const LEVEL0_V_SPACING: u16 = 3;
 const LEVELS_V_SPACING: u16 = 2;
 const H_SPACING_IN_UNITS: u16 = 15;
 const ICON_SIZE: u16 = 10;
@@ -973,12 +974,10 @@ impl<E: OrganizerElement> ElementView<E> {
         &self,
         _theme: &OrganizerTheme,
         element: &E,
-        selection: &BTreeSet<E::Key>,
+        _selection: &BTreeSet<E::Key>,
         deletable: Option<NodeId<E::AutoGroup>>,
     ) -> DragDropTarget<'_, OrganizerMessage<E>, crate::Theme, crate::Renderer, E::Key, E::AutoGroup>
     {
-        let selected = selection.contains(&element.key());
-
         let mut content = row![text(element.display_name()), horizontal_space(),];
         // [DragIdentifier::Group] are deletable, [DragIdentifier::Section] are not.
         let identifier = match deletable.as_ref() {
@@ -999,8 +998,8 @@ impl<E: OrganizerElement> ElementView<E> {
             }
         }
         if let Some(id) = deletable.clone() {
-            content =
-                content.push(button(icon(Bootstrap::Trash)).on_press(OrganizerMessage::delete(id)));
+            content = content
+                .push(button(icon(icondata::BsTrash)).on_press(OrganizerMessage::delete(id)));
         }
         let mut content = HoverableContainer::new(
             button(content)
@@ -1081,7 +1080,7 @@ impl<E: OrganizerElement> NodeView<E> {
                     text(name),
                     // text_input(&name, &name),
                     // NOTE: I would like to customize this to make it look like a non editable
-                    // `text_input`, but the defaut rendering of `text_input` without calling
+                    // `text_input`, but the default rendering of `text_input` without calling
                     // `on_input` make it look _deactivated_.
                     horizontal_space(),
                     button(plus_icon())
@@ -1099,7 +1098,7 @@ impl<E: OrganizerElement> NodeView<E> {
                 }
 
                 row = row.push(
-                    button(icon(Bootstrap::Trash)).on_press(OrganizerMessage::delete(id.clone())),
+                    button(icon(icondata::BsTrash)).on_press(OrganizerMessage::delete(id.clone())),
                 );
                 row
             }
@@ -1129,7 +1128,7 @@ impl<E: OrganizerElement> NodeView<E> {
                     }
                 }
                 row = row.push(
-                    button(icon(Bootstrap::Trash)).on_press(OrganizerMessage::delete(id.clone())),
+                    button(icon(icondata::BsTrash)).on_press(OrganizerMessage::delete(id.clone())),
                 );
                 row
             }
@@ -1140,11 +1139,12 @@ impl<E: OrganizerElement> NodeView<E> {
                 text(name),
             ],
         };
-        let button_theme = if selected {
-            theme.level_selected(level)
-        } else {
-            theme.level(level)
-        };
+
+        // let button_theme = if selected {
+        //     theme.level_selected(level)
+        // } else {
+        //     theme.level(level)
+        // };
         let title_button = button(title_row)
             .on_press(OrganizerMessage::node_selected(id.clone()))
             .width(Length::Fill);
@@ -1769,59 +1769,24 @@ impl<E: OrganizerElement> GroupContent<E> {
     }
 }
 
-fn icon<'a, Theme, Renderer>(icon: Bootstrap) -> Text<'a, Theme, Renderer>
-where
-    Theme: text::StyleSheet,
-    Renderer: advanced::text::Renderer,
-    <Renderer as advanced::text::Renderer>::Font: From<Font>,
-{
-    Text::new(icon_to_string(icon))
-        .font(BOOTSTRAP_FONT)
-        .size(ICON_SIZE)
-        .horizontal_alignment(alignment::Horizontal::Center)
-        .vertical_alignment(alignment::Vertical::Center)
+fn icon(icon: Icon) -> Svg {
+    icon_to_svg(icon).width(ICON_SIZE).height(ICON_SIZE)
 }
 
-fn expand_icon<'a, Theme, Renderer>(expanded: bool) -> Text<'a, Theme, Renderer>
-where
-    Theme: text::StyleSheet,
-    Renderer: advanced::text::Renderer,
-    <Renderer as advanced::text::Renderer>::Font: From<Font>,
-{
-    if expanded {
-        icon(Bootstrap::CaretDown)
+fn expand_icon(expanded: bool) -> Svg {
+    icon(if expanded {
+        icondata::BsCaretDown
     } else {
-        icon(Bootstrap::CaretRight)
-    }
+        icondata::BsCaretRight
+    })
 }
 
-fn plus_icon<'a, Theme, Renderer>() -> Text<'a, Theme, Renderer>
-where
-    Theme: text::StyleSheet,
-    Renderer: advanced::text::Renderer,
-    <Renderer as advanced::text::Renderer>::Font: From<Font>,
-{
-    icon(Bootstrap::Plus)
+fn plus_icon() -> Svg {
+    icon(icondata::BsPlus)
 }
 
-fn edit_icon<'a, Theme, Renderer>() -> Text<'a, Theme, Renderer>
-where
-    Theme: text::StyleSheet,
-    Renderer: advanced::text::Renderer,
-    <Renderer as advanced::text::Renderer>::Font: From<Font>,
-{
-    icon(Bootstrap::VectorPen)
-}
-
-fn _delete_icon<'a, Theme, Renderer>() -> Text<'a, Theme, Renderer>
-where
-    Theme: text::StyleSheet,
-    Renderer: advanced::text::Renderer,
-    <Renderer as advanced::text::Renderer>::Font: From<Font>,
-{
-    //icon('\u{E806}')
-    icon(Bootstrap::TrashFill)
-    // TODO: Check what was \u{E806}, or remove this function.
+fn edit_icon() -> Svg {
+    icon(icondata::BsVectorPen)
 }
 
 fn tabulation() -> Space {

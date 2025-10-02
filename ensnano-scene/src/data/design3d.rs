@@ -17,7 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use super::super::maths_3d::{Basis3D, UnalignedBoundaries};
 use super::super::view::{
-    ConeInstance, Ellipsoid, Instanciable, RawDnaInstance, Sheet2D, SlicedTubeInstance,
+    ConeInstance, Ellipsoid, Instantiable, RawDnaInstance, Sheet2D, SlicedTubeInstance,
     SphereInstance, TubeInstance, TubeLidInstance,
 };
 use super::super::GridInstance;
@@ -28,9 +28,9 @@ use crate::view::PlainRectangleInstance;
 use ensnano_design::grid::{GridId, GridObject, GridPosition};
 use ensnano_design::{grid::HelixGridPosition, Nucl};
 use ensnano_design::{
-    perpendicular_basis, AdditionalStructure, BezierPathId, BezierPlaneDescriptor, BezierPlaneId,
-    BezierVertex, Collection, CubicBezierConstructor, CurveDescriptor, External3DObjects,
-    HelixParameters, InstanciatedPath,
+    AdditionalStructure, BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex,
+    Collection, CubicBezierConstructor, CurveDescriptor, External3DObjects, HelixParameters,
+    InstanciatedPath,
 };
 pub use ensnano_design::{SurfaceInfo, SurfacePoint};
 use ensnano_interactor::consts::*;
@@ -39,20 +39,18 @@ use ensnano_interactor::{
     phantom_helix_encoder_bond, phantom_helix_encoder_nucl, BezierControlPoint, ObjectType,
     PhantomElement, Referential, PHANTOM_RANGE,
 };
-use ensnano_utils::colors::{self, new_color, purple_to_blue_gradient_color};
+use ensnano_utils::colors;
 use ensnano_utils::instance::Instance;
 use std::collections::hash_map::RandomState;
 use std::collections::{BTreeMap, HashMap, HashSet};
-use std::f32::consts::{PI, TAU};
-use std::iter::Zip;
+use std::f32::consts::TAU;
 use std::rc::Rc;
 use std::sync::Arc;
-use ultraviolet::{Mat4, Rotor3, Vec2, Vec3, Vec4};
+use ultraviolet::{Mat4, Rotor3, Vec2, Vec3};
 
 mod bezier_paths;
 
 use crate::SceneElement::DesignElement;
-use serde::{Deserialize, Serialize};
 
 use ensnano_utils::StrandNucleotidesPositions;
 
@@ -310,7 +308,7 @@ impl<R: DesignReader> Design3D<R> {
                             is_cyclic: true,
                         }
                         .to_raw_dna_instances(
-                            { |_| color },
+                            |_| color,
                             2. * SPHERE_RADIUS,
                             u32::MAX,
                         );
@@ -341,12 +339,12 @@ impl<R: DesignReader> Design3D<R> {
             }
 
             // Draw section links in helix routing relaxation -> TO BE REPLACED BY SPRINGS WITH A CONSTANT NUMBER OF COILS
-            let NB_COILS = 10;
-            let NB_STEPS = 10 * NB_COILS;
-            let SPRING_RADIUS = 2. * SPHERE_RADIUS;
-            let SPRING_THICKNESS = SPRING_RADIUS / 4.;
-            let MIN_SPRING_LENGTH = 2.65 / 1.5;
-            let MAX_SPRING_LENGTH = 2.65 * 1.5;
+            const NB_COILS: usize = 10;
+            const NB_STEPS: usize = 10 * NB_COILS;
+            const SPRING_RADIUS: f32 = 2. * SPHERE_RADIUS;
+            const SPRING_THICKNESS: f32 = SPRING_RADIUS / 4.;
+            const MIN_SPRING_LENGTH: f32 = 2.65 / 1.5;
+            const MAX_SPRING_LENGTH: f32 = 2.65 * 1.5;
             let alpha = NB_COILS as f32 * TAU / NB_STEPS as f32;
             let xx = (0..NB_COILS)
                 .map(|i| SPRING_RADIUS * (i as f32 * alpha).cos())
@@ -373,10 +371,10 @@ impl<R: DesignReader> Design3D<R> {
                     let x_vec = y_vec.cross(z_vec);
                     let positions = (0..NB_STEPS)
                         .map(|i| {
-                            (pos_left
+                            pos_left
                                 + i as f32 / NB_STEPS as f32 * uv
                                 + xx[i % NB_COILS] * x_vec
-                                + yy[i % NB_COILS] * y_vec)
+                                + yy[i % NB_COILS] * y_vec
                         })
                         .collect();
                     let color = ensnano_utils::colors::purple_to_blue_gradient_color_in_range(
@@ -389,7 +387,7 @@ impl<R: DesignReader> Design3D<R> {
                         is_cyclic: false,
                     }
                     .to_raw_dna_instances(
-                        { |_| color },
+                        |_| color,
                         SPRING_THICKNESS,
                         u32::MAX,
                     );
@@ -464,7 +462,7 @@ impl<R: DesignReader> Design3D<R> {
         &self,
         id: u32,
         color: u32,
-        mut radius: f32,
+        radius: f32,
         expand_with: Option<ExpandWith>,
     ) -> Vec<RawDnaInstance> {
         let kind = self.get_object_type(id);
@@ -474,7 +472,7 @@ impl<R: DesignReader> Design3D<R> {
             || self.design_reader.get_insertion_length(id) == 0
             || matches!(kind, Some(ObjectType::Nucleotide(_)))
         {
-            let instanciables = match kind {
+            let instantiables = match kind {
                 Some(ObjectType::Bond(id1, id2)) => {
                     let pos1 = self
                         .get_graphic_element_position(&SceneElement::DesignElement(self.id, id1))
@@ -529,7 +527,7 @@ impl<R: DesignReader> Design3D<R> {
                 }
                 _ => vec![],
             };
-            ret.extend(instanciables.iter());
+            ret.extend(instantiables.iter());
         }
         if let Some(ExpandWith::Tubes) = expand_with {
             for loopout_bond in self
@@ -1157,7 +1155,7 @@ impl<R: DesignReader> Design3D<R> {
             }
             SceneElement::Grid(_, g_id) => self.design_reader.get_grid_position(*g_id),
             SceneElement::GridCircle(_, position) => {
-                self.design_reader.get_grid_latice_position(*position)
+                self.design_reader.get_grid_lattice_position(*position)
             }
             SceneElement::BezierVertex { path_id, vertex_id } => {
                 self.get_bezier_vertex_position(*path_id, *vertex_id)
@@ -1767,7 +1765,7 @@ pub trait DesignReader: 'static + ensnano_interactor::DesignReader {
     ) -> Option<Vec3>;
     fn get_object_type(&self, id: u32) -> Option<ObjectType>;
     fn get_grid_position(&self, g_id: GridId) -> Option<Vec3>;
-    fn get_grid_latice_position(&self, position: GridPosition) -> Option<Vec3>;
+    fn get_grid_lattice_position(&self, position: GridPosition) -> Option<Vec3>;
     fn get_element_position(&self, e_id: u32, referential: Referential) -> Option<Vec3>;
     fn get_element_axis_position(&self, id: u32, referential: Referential) -> Option<Vec3>;
     fn get_element_graphic_position(&self, id: u32, referential: Referential) -> Option<Vec3>;

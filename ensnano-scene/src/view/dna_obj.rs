@@ -17,7 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 //! This modules defines the meshes that are used to draw DNA.
 
-use super::instances_drawer::{Instanciable, Vertexable};
+use super::instances_drawer::{Instantiable, Vertexable};
 use ensnano_design::ultraviolet;
 use ensnano_interactor::consts::*;
 use ensnano_utils::wgpu;
@@ -35,7 +35,7 @@ pub struct DnaVertex {
 }
 
 pub trait DnaObject:
-    Instanciable<Ressource = (), Vertex = DnaVertex, RawInstance = RawDnaInstance>
+    Instantiable<Ressource = (), Vertex = DnaVertex, RawInstance = RawDnaInstance>
 {
 }
 
@@ -104,7 +104,7 @@ impl PlainRectangleInstance {
     }
 }
 
-impl Instanciable for PlainRectangleInstance {
+impl Instantiable for PlainRectangleInstance {
     type Vertex = DnaVertex;
     type RawInstance = RawDnaInstance;
     type Ressource = ();
@@ -192,7 +192,7 @@ impl SphereInstance {
     }
 }
 
-impl Instanciable for SphereInstance {
+impl Instantiable for SphereInstance {
     type Vertex = DnaVertex;
     type RawInstance = RawDnaInstance;
     type Ressource = ();
@@ -297,7 +297,7 @@ pub struct StereographicSphereAndPlane {
     pub ratio: f32,
 }
 
-impl Instanciable for StereographicSphereAndPlane {
+impl Instantiable for StereographicSphereAndPlane {
     type Vertex = DnaVertex;
     type RawInstance = RawDnaInstance;
     type Ressource = ();
@@ -394,7 +394,7 @@ impl TubeInstance {
     }
 }
 
-impl Instanciable for TubeInstance {
+impl Instantiable for TubeInstance {
     type Vertex = DnaVertex;
     type RawInstance = RawDnaInstance;
     type Ressource = ();
@@ -479,7 +479,7 @@ impl TubeLidInstance {
     }
 }
 
-impl Instanciable for TubeLidInstance {
+impl Instantiable for TubeLidInstance {
     type Vertex = DnaVertex;
     type RawInstance = RawDnaInstance;
     type Ressource = ();
@@ -565,7 +565,7 @@ pub struct SlicedTubeInstance {
     pub next: Vec3, // direction of the next cylinder - Zero if does not exist
 }
 
-impl Instanciable for SlicedTubeInstance {
+impl Instantiable for SlicedTubeInstance {
     type Vertex = DnaVertex;
     type RawInstance = RawDnaInstance;
     type Ressource = ();
@@ -677,7 +677,7 @@ pub struct ConeInstance {
     pub length: f32,
 }
 
-impl Instanciable for ConeInstance {
+impl Instantiable for ConeInstance {
     type Vertex = DnaVertex;
     type RawInstance = RawDnaInstance;
     type Ressource = ();
@@ -777,7 +777,7 @@ pub struct Ellipsoid {
     pub sphere: SphereInstance,
 }
 
-impl Instanciable for Ellipsoid {
+impl Instantiable for Ellipsoid {
     type Vertex = DnaVertex;
     type RawInstance = RawDnaInstance;
     type Ressource = ();

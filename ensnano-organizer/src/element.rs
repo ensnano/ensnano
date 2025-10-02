@@ -1,9 +1,13 @@
 use core::convert::{Into, TryFrom};
-use ensnano_iced::iced::{advanced, overlay, widget, Element};
+use ensnano_iced::{
+    helpers::{button, text},
+    iced::Element,
+    icondata::Icon,
+};
 use serde::{Deserialize, Serialize};
-use std::fmt::{Debug, Display};
+use std::fmt::Debug;
 
-/// A key identifing an element
+/// A key identifying an element
 pub trait ElementKey: Clone + Ord + Debug + Serialize + Deserialize<'static> {
     type Section: Eq + Ord + TryFrom<usize> + Into<usize> + Debug;
 
@@ -44,7 +48,7 @@ pub trait OrganizerAttributeRepr: Ord + Eq + TryFrom<usize> + Into<usize> + Debu
     fn all_repr() -> &'static [Self];
 }
 
-pub trait OrganizerAttribute: Clone + Debug + 'static + Ord + Display {
+pub trait OrganizerAttribute: Clone + Debug + 'static + Ord {
     /// A type used to represent the different values of self
     type Repr: OrganizerAttributeRepr;
 
@@ -61,14 +65,18 @@ pub trait OrganizerAttribute: Clone + Debug + 'static + Ord + Display {
 }
 
 pub enum AttributeDisplay {
-    Icon(crate::Bootstrap),
+    Icon(Icon),
     Text(String),
 }
 
 #[derive(Clone)]
-pub enum AttributeWidget<A: OrganizerAttribute> {
-    PickList { choices: &'static [A] },
-    FlipButton { value_if_pressed: A },
+pub struct AttributeWidget<A: OrganizerAttribute> {
+    value_if_pressed: A,
+}
+impl<A: OrganizerAttribute> AttributeWidget<A> {
+    pub fn new(value_if_pressed: A) -> Self {
+        Self { value_if_pressed }
+    }
 }
 
 #[derive(Default, Clone)]
@@ -93,45 +101,19 @@ impl<Attrib: OrganizerAttribute> AttributeDisplayer<Attrib> {
     }
 
     pub fn update_widget(&mut self, widget: Option<AttributeWidget<Attrib>>) {
-        // If the widget is no longer a picklist, reset self.being_modified
-        if let Some(AttributeWidget::PickList { .. }) = widget {
-            ()
-        } else {
-            self.being_modified = false;
-        }
+        self.being_modified = false;
         self.widget = widget;
     }
 
     pub fn view(&self) -> Option<Element<'_, Attrib, crate::Theme, crate::Renderer>> {
-        use widget::*; // NOTE: This is a trick to avoid a conflict between core and
-                       //       iced_core.
-
-        if let Some(widget) = self.widget.as_ref() {
-            match widget {
-                AttributeWidget::PickList { choices } => {
-                    let mut picklist = pick_list(*choices, self.attribute.clone(), |a| a)
-                        //.style(crate::theme::NoIcon)
-                    ;
-                    if let Some(AttributeDisplay::Icon(_)) =
-                        self.attribute.as_ref().map(|a| a.char_repr())
-                    {
-                        picklist = picklist
-                            //.font(crate::BOOTSTRAP_FONT)
-                            .text_size(crate::ICON_SIZE);
-                    }
-                    Some(picklist.into())
-                }
-                AttributeWidget::FlipButton { value_if_pressed } => {
-                    let content = match self.attribute.as_ref().map(|a| a.char_repr()) {
-                        Some(AttributeDisplay::Icon(c)) => crate::icon(c),
-                        Some(AttributeDisplay::Text(s)) => text(s.clone()).size(crate::ICON_SIZE),
-                        _ => text("???"),
-                    };
-                    Some(button(content).on_press(value_if_pressed.clone()).into())
-                }
+        self.widget.as_ref().map(|widget| {
+            match self.attribute.as_ref().map(|a| a.char_repr()) {
+                Some(AttributeDisplay::Icon(c)) => button(crate::icon(c)),
+                Some(AttributeDisplay::Text(s)) => button(text(s.clone()).size(crate::ICON_SIZE)),
+                _ => button(text("???")),
             }
-        } else {
-            None
-        }
+            .on_press(widget.value_if_pressed.clone())
+            .into()
+        })
     }
 }

@@ -24,63 +24,27 @@ use ensnano_iced::{
     iced_winit::winit::dpi::LogicalSize,
     UiSize,
 };
-use ensnano_interactor::operation::{Operation, ParameterField};
+use ensnano_interactor::operation::Operation;
 pub use ensnano_interactor::StrandBuildingStatus;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
 const GOLD_ORANGE: Color = Color::from_rgb(0.84, 0.57, 0.20);
 
+// Very weird struct, doesn't seem to be used properly
 #[derive(Debug)]
-enum StatusParameter {
-    Value(text_input::State<Paragraph>),
-    Choice(pick_list::State<Paragraph>),
+struct StatusParameter {
+    text_input: text_input::State<Paragraph>,
 }
-
 impl StatusParameter {
-    fn get_value(&mut self) -> &mut text_input::State<Paragraph> {
-        match self {
-            StatusParameter::Value(ref mut state) => state,
-            _ => panic!("wrong status parameter variant"),
+    fn new() -> Self {
+        Self {
+            text_input: Default::default(),
         }
-    }
-
-    fn get_choice(&mut self) -> &mut pick_list::State<Paragraph> {
-        match self {
-            StatusParameter::Choice(ref mut state) => state,
-            _ => panic!("wrong status parameter variant"),
-        }
-    }
-
-    fn value() -> Self {
-        Self::Value(Default::default())
-    }
-
-    fn choice() -> Self {
-        Self::Choice(Default::default())
     }
 
     fn has_keyboard_priority(&self) -> bool {
-        match self {
-            Self::Choice(_) => false,
-            Self::Value(state) => state.is_focused(),
-        }
-    }
-
-    fn focus(&mut self) -> bool {
-        if let Self::Value(state) = self {
-            state.focus();
-            state.select_all();
-            true
-        } else {
-            false
-        }
-    }
-
-    fn unfocus(&mut self) {
-        if let Self::Value(state) = self {
-            state.unfocus()
-        }
+        self.text_input.is_focused()
     }
 }
 
@@ -133,7 +97,9 @@ impl<R: Requests, State: AppState> StatusBar<R, State> {
         }
     }
 
-    fn view_progress(&self) -> Row<Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer> {
+    fn view_progress(
+        &self,
+    ) -> Row<'_, Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer> {
         let progress = self.progress.as_ref().unwrap();
         row![text(format!("{}, {:.1}%", progress.0, progress.1 * 100.))
             .size(self.ui_size.main_text()),]
@@ -168,7 +134,6 @@ pub enum Message<S: AppState> {
     ValueStrChanged(usize, String),
     ValueSet(usize, String),
     Progress(Option<(String, f32)>),
-    #[allow(dead_code)]
     SetShift(f32),
     NewApplicationState(S),
     UiSizeChanged(UiSize),
@@ -234,7 +199,7 @@ impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
         Command::none()
     }
 
-    fn view(&self) -> Element<Self::Message, Self::Theme, Self::Renderer> {
+    fn view(&self) -> Element<'_, Self::Message, Self::Theme, Self::Renderer> {
         let clipboard_text = format!(
             "Clipboard: {}",
             self.app_state.get_clipboard_content().to_string()
@@ -282,33 +247,33 @@ impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
     }
 }
 
-pub struct CurentOpState {
+pub struct CurrentOpState {
     pub current_operation: Arc<dyn Operation>,
     pub operation_id: usize,
 }
 
 struct OperationInput {
-    /// The values obatained with Operation::values
+    /// The values obtained with Operation::values
     values: Vec<String>,
     /// The String in the text inputs,
     values_str: Vec<String>,
     parameters: Vec<StatusParameter>,
     op_id: usize,
     operation: Arc<dyn Operation>,
-    inputed_values: HashMap<usize, String>,
+    inputted_values: HashMap<usize, String>,
 }
 
 impl OperationInput {
-    pub fn new(operation_state: CurentOpState) -> Self {
+    pub fn new(operation_state: CurrentOpState) -> Self {
         let operation = operation_state.current_operation;
         let parameters = operation.parameters();
         let mut status_parameters = Vec::new();
-        for p in parameters.iter() {
-            match p.field {
-                ParameterField::Choice(_) => status_parameters.push(StatusParameter::choice()),
-                ParameterField::Value => status_parameters.push(StatusParameter::value()),
-            }
+
+        // This looks suspicious
+        for _ in parameters.iter() {
+            status_parameters.push(StatusParameter::new());
         }
+
         let values = operation.values().clone();
         let values_str = values.clone();
         let op_id = operation_state.operation_id;
@@ -318,7 +283,7 @@ impl OperationInput {
             values,
             values_str,
             operation,
-            inputed_values: HashMap::new(),
+            inputted_values: HashMap::new(),
         }
     }
 
@@ -344,7 +309,7 @@ impl OperationInput {
     //     })
     // }
 
-    pub fn update(&mut self, operation_state: CurentOpState) {
+    pub fn update(&mut self, operation_state: CurrentOpState) {
         let op_is_new = self.op_id != operation_state.operation_id;
         let operation = operation_state.current_operation;
         self.values = operation.values().clone();
@@ -353,23 +318,21 @@ impl OperationInput {
             self.op_id = operation_state.operation_id;
 
             let mut status_parameters = Vec::new();
-            for p in operation.parameters().iter() {
-                match p.field {
-                    ParameterField::Choice(_) => status_parameters.push(StatusParameter::choice()),
-                    ParameterField::Value => status_parameters.push(StatusParameter::value()),
-                }
+
+            // This looks suspicious
+            for _ in operation.parameters() {
+                status_parameters.push(StatusParameter::new());
             }
+
             self.parameters = status_parameters;
         } else {
             for (v_id, v) in self.values.iter().enumerate() {
-                let foccused_parameter = self
-                    .parameters
-                    .get(v_id)
-                    .map(|p| p.has_keyboard_priority())
-                    .unwrap_or(false);
-                if !foccused_parameter {
-                    self.values_str[v_id] =
-                        self.inputed_values.get(&v_id).cloned().unwrap_or(v.clone())
+                if !self.active_input(v_id) {
+                    self.values_str[v_id] = self
+                        .inputted_values
+                        .get(&v_id)
+                        .cloned()
+                        .unwrap_or(v.clone())
                 }
             }
         }
@@ -379,7 +342,7 @@ impl OperationInput {
     fn view<S: AppState>(
         &self,
         ui_size: UiSize,
-    ) -> Row<Message<S>, ensnano_iced::Theme, ensnano_iced::Renderer> {
+    ) -> Row<'_, Message<S>, ensnano_iced::Theme, ensnano_iced::Renderer> {
         let mut row = Row::new();
         let op = self.operation.as_ref();
         row = row.push(text(op.description()).size(ui_size.main_text()));
@@ -391,43 +354,31 @@ impl OperationInput {
         let mut need_validation = false;
         for i in 0..self.values.len() {
             if let Some(param) = op.parameters().get(i) {
-                match param.field {
-                    ParameterField::Value => {
-                        let mut input = text_input("", &format!("{0:.4}", str_values[i]))
-                            .on_input(move |s| Message::ValueStrChanged(i, s))
-                            .size(ui_size.main_text())
-                            .width(40)
-                            .on_submit(Message::ValueSet(i, str_values[i].clone()));
-                        if active_input.get(i) == Some(&true) {
-                            use input_color::InputValueState;
-                            let state = if values.get(i) == str_values.get(i) {
-                                InputValueState::Normal
-                            } else if op.with_new_value(i, str_values[i].clone()).is_some() {
-                                need_validation = true;
-                                InputValueState::BeingTyped
-                            } else {
-                                InputValueState::Invalid
-                            };
-                            input = input.style(state);
-                        }
-                        row = row
-                            .spacing(20)
-                            .push(text(param.name.clone()).size(ui_size.main_text()))
-                            .push(
-                                keyboard_priority(input)
-                                    .on_priority(Message::SetKeyboardPriority(true))
-                                    .on_unpriority(Message::SetKeyboardPriority(false)),
-                            )
-                    }
-                    ParameterField::Choice(ref v) => {
-                        row = row.spacing(20).push(
-                            PickList::new(v.clone(), Some(values[i].clone()), move |s| {
-                                Message::ValueSet(i, s)
-                            })
-                            .text_size(ui_size.main_text() - 4.0),
-                        )
-                    }
+                let mut input = text_input("", &format!("{0:.4}", str_values[i]))
+                    .on_input(move |s| Message::ValueStrChanged(i, s))
+                    .size(ui_size.main_text())
+                    .width(40)
+                    .on_submit(Message::ValueSet(i, str_values[i].clone()));
+                if active_input.get(i) == Some(&true) {
+                    use input_color::InputValueState;
+                    let state = if values.get(i) == str_values.get(i) {
+                        InputValueState::Normal
+                    } else if op.with_new_value(i, str_values[i].clone()).is_some() {
+                        need_validation = true;
+                        InputValueState::BeingTyped
+                    } else {
+                        InputValueState::Invalid
+                    };
+                    input = input.style(state);
                 }
+                row = row
+                    .spacing(20)
+                    .push(text(param).size(ui_size.main_text()))
+                    .push(
+                        keyboard_priority(input)
+                            .on_priority(Message::SetKeyboardPriority(true))
+                            .on_unpriority(Message::SetKeyboardPriority(false)),
+                    )
             }
         }
         if need_validation {

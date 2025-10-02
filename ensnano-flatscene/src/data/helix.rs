@@ -20,7 +20,7 @@ use super::super::{CameraPtr, Flat, FlatHelix};
 use super::{FlatNucl, Helix2d, NuclCollection};
 use crate::flattypes::{FlatHelixMaps, FlatPosition, HelixSegment};
 use crate::view::EditionInfo;
-use abcissa_converter::{AbscissaConverter, AbscissaConverter_};
+use abscissa_converter::{AbscissaConverter, AbscissaConverter_};
 use ahash::RandomState;
 use ensnano_design::ultraviolet;
 use ensnano_design::Nucl;
@@ -132,8 +132,8 @@ impl Helix {
         let mut vertices = Vertices::new();
         let left = self
             .abscissa_converter
-            .nucl_to_x_convertion(self.get_flat_left()) as f32;
-        let right = self.abscissa_converter.nucl_to_x_convertion(
+            .nucl_to_x_conversion(self.get_flat_left()) as f32;
+        let right = self.abscissa_converter.nucl_to_x_conversion(
             self.get_flat_right()
                 .right()
                 .max(self.get_flat_left().right()),
@@ -169,8 +169,8 @@ impl Helix {
         let mut vertices = Vertices::new();
         let left = self
             .abscissa_converter
-            .nucl_to_x_convertion(self.get_flat_left()) as f32;
-        let right = self.abscissa_converter.nucl_to_x_convertion(
+            .nucl_to_x_conversion(self.get_flat_left()) as f32;
+        let right = self.abscissa_converter.nucl_to_x_conversion(
             self.get_flat_right()
                 .right()
                 .max(self.get_flat_left().right()),
@@ -190,7 +190,7 @@ impl Helix {
         for i in (self.left + 1)..=self.right {
             let x = self
                 .abscissa_converter
-                .nucl_to_x_convertion(FlatPosition::from_real(i, self.flat_id.segment_left));
+                .nucl_to_x_conversion(FlatPosition::from_real(i, self.flat_id.segment_left));
             builder.begin(Point::new(x as f32, 0.));
             builder.line_to(Point::new(x as f32, 2.));
             builder.end(false);
@@ -528,12 +528,12 @@ impl Helix {
 
     fn leftmost_x(&self) -> f32 {
         self.abscissa_converter
-            .nucl_to_x_convertion(self.get_flat_left()) as f32
+            .nucl_to_x_conversion(self.get_flat_left()) as f32
     }
 
     fn rightmost_x(&self) -> f32 {
         self.abscissa_converter
-            .nucl_to_x_convertion(self.get_flat_right().right()) as f32
+            .nucl_to_x_conversion(self.get_flat_right().right()) as f32
     }
 
     /// Return the center of the helix's circle widget.
@@ -1134,7 +1134,7 @@ pub enum HelixHandle {
     Right,
 }
 
-mod abcissa_converter {
+mod abscissa_converter {
     use super::*;
     pub(super) use ensnano_design::AbscissaConverter as AbscissaConverter_;
 
@@ -1145,21 +1145,21 @@ mod abcissa_converter {
     }
 
     impl AbscissaConverter {
-        pub fn nucl_to_x_convertion(&self, n: FlatPosition) -> f64 {
+        pub fn nucl_to_x_conversion(&self, n: FlatPosition) -> f64 {
             let adjust = if let Some(n) = self.left {
-                self.converter.nucl_to_x_convertion(n)
+                self.converter.nucl_to_x_conversion(n)
             } else {
                 0.0
             };
 
             let real = n.to_real(self.left);
-            self.converter.nucl_to_x_convertion(real) - adjust
+            self.converter.nucl_to_x_conversion(real) - adjust
         }
 
         pub fn x_conversion(&self, x: f64) -> f64 {
             if let Some(n) = self.left {
                 // translate x to the right and back
-                let adjust = self.converter.nucl_to_x_convertion(n);
+                let adjust = self.converter.nucl_to_x_conversion(n);
                 self.converter.x_conversion(x + n as f64) - adjust
             } else {
                 self.converter.x_conversion(x)
@@ -1168,7 +1168,7 @@ mod abcissa_converter {
 
         pub fn x_to_nucl_conversion(&self, x: f64) -> f64 {
             if let Some(n) = self.left {
-                let shift = self.converter.nucl_to_x_convertion(n);
+                let shift = self.converter.nucl_to_x_conversion(n);
                 self.converter.x_to_nucl_conversion(x + shift) - n as f64
             } else {
                 self.converter.x_to_nucl_conversion(x)

@@ -33,7 +33,7 @@ enum QuitStep {
     Init {
         /// None if there is no need to save
         /// Some(Some(path)) if there is a need to save at a known path
-        /// Some(None) if there is a need to save at an unkonwn path
+        /// Some(None) if there is a need to save at an unknown path
         need_save: Option<Option<PathBuf>>,
     },
     Quitting,
@@ -219,7 +219,7 @@ fn ask_path<P: AsRef<Path>>(
                 })
             } else {
                 TransitionMessage::new(
-                    messages::NO_FILE_RECIEVED_LOAD,
+                    messages::NO_FILE_RECEIVED_LOAD,
                     rfd::MessageLevel::Error,
                     Box::new(super::NormalState),
                 )
@@ -369,7 +369,7 @@ impl State for SaveAs {
                     }
                 } else {
                     TransitionMessage::new(
-                        messages::NO_FILE_RECIEVED_SAVE,
+                        messages::NO_FILE_RECEIVED_SAVE,
                         rfd::MessageLevel::Error,
                         Box::new(super::NormalState),
                     )
@@ -454,7 +454,7 @@ impl State for Exporting {
                     }
                 } else {
                     TransitionMessage::new(
-                        messages::NO_FILE_RECIEVED_OXDNA,
+                        messages::NO_FILE_RECEIVED_OXDNA,
                         rfd::MessageLevel::Error,
                         self.on_error,
                     )
@@ -481,7 +481,7 @@ impl State for Exporting {
 
 fn export_extenstion(export_type: ExportType) -> &'static str {
     match export_type {
-        ExportType::Oxdna => messages::OXDNA_CONFIG_EXTENSTION,
+        ExportType::Oxdna => messages::OXDNA_CONFIG_EXTENSION,
         ExportType::Pdb => "pdb",
         ExportType::Cadnano => "json",
         ExportType::Cando => "cndo",

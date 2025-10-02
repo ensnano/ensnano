@@ -100,7 +100,11 @@ impl<State: AppState> GuiTab<State> for SequenceTab<State> {
         TabLabel::Icon(crate::consts::ICON_ATGC)
     }
 
-    fn content(&self, ui_size: UiSize, app_state: &State) -> ensnano_iced::Element<Self::Message> {
+    fn content(
+        &self,
+        ui_size: UiSize,
+        app_state: &State,
+    ) -> ensnano_iced::Element<'_, Self::Message> {
         // TODO: This update should happen, but somewhere else in the code.
         //       I think it must happen inside LeftPanel::update
         //

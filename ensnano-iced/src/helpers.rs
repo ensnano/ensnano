@@ -93,7 +93,7 @@ where
 }
 
 /// Return a text widget containing the rotation arrow.
-pub fn rotation_icon<'a, Theme, Renderer>(i: usize, ui_size: UiSize) -> Text<'a, Theme, Renderer>
+fn rotation_icon<'a, Theme, Renderer>(i: usize, ui_size: UiSize) -> Text<'a, Theme, Renderer>
 where
     Theme: text::StyleSheet,
     Renderer: advanced::text::Renderer,

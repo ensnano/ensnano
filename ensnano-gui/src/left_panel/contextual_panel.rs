@@ -265,7 +265,7 @@ where
         &self,
         ui_size: UiSize,
         app_state: &State,
-    ) -> ensnano_iced::Element<Message<State>> {
+    ) -> ensnano_iced::Element<'_, Message<State>> {
         let selection = app_state
             .get_selection()
             .get(0)

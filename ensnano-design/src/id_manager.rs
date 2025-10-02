@@ -1,6 +1,3 @@
-use core::fmt;
-use std::ops::Deref;
-
 /*
 ENSnano, a 3d graphical application for DNA nanostructures.
     Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
@@ -18,7 +15,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
 use super::*;
+use core::fmt;
 
 #[derive(
     Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Default, Hash,
@@ -68,7 +67,7 @@ impl<T: Clone> IdCollectionInner<T> {
         new_key
     }
 
-    fn remove(&mut self, id: &Id) -> Result<Arc<T>, CollectionError> {
+    fn remove(&mut self, id: &Id) -> Result<Arc<T>, CollectionError<'_>> {
         (self.0)
             .remove(&id)
             .ok_or(CollectionError::NoItemWithSuchId(Id(id.0)))

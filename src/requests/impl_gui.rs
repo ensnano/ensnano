@@ -16,16 +16,15 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-//! Implements the [Requests](`crate::gui::Requests`) trait for [Requests](`super::Requests`).
+//! Implements the [Requests](`ensnano_gui::Requests`) trait for [Requests](`super::Requests`).
 
-use crate::gui::{self, RigidBodyParametersRequest};
+use super::*;
 use ensnano_design::grid::GridId;
+use ensnano_gui::{self, RigidBodyParametersRequest};
 use ensnano_interactor::{InsertionPoint, RigidBodyConstants, RollRequest};
 use std::collections::BTreeSet;
 
-use super::*;
-
-impl gui::Requests for Requests {
+impl ensnano_gui::Requests for Requests {
     fn close_overlay(&mut self, overlay_type: OverlayType) {
         self.keep_proceed
             .push_back(Action::CloseOverlay(overlay_type));
@@ -325,10 +324,11 @@ impl gui::Requests for Requests {
         self.keep_proceed.push_back(Action::SelectCamera(cam_id))
     }
 
-    fn set_favourite_camera(&mut self, cam_id: ensnano_design::CameraId) {
-        self.keep_proceed.push_back(Action::DesignOperation(
-            DesignOperation::SetFavouriteCamera(cam_id),
-        ))
+    fn set_favorite_camera(&mut self, cam_id: ensnano_design::CameraId) {
+        self.keep_proceed
+            .push_back(Action::DesignOperation(DesignOperation::SetFavoriteCamera(
+                cam_id,
+            )))
     }
 
     fn update_camera(&mut self, cam_id: ensnano_design::CameraId) {

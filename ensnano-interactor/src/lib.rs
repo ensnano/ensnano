@@ -81,28 +81,7 @@ impl ObjectType {
     }
 
     pub fn same_type(&self, other: &Self) -> bool {
-        match self {
-            Self::Nucleotide(_) => match other {
-                Self::Nucleotide(_) => true,
-                _ => false,
-            },
-            Self::Bond(_, _) => match other {
-                Self::Bond(_, _) => true,
-                _ => false,
-            },
-            Self::HelixCylinder(_, _) => match other {
-                Self::HelixCylinder(_, _) => true,
-                _ => false,
-            },
-            Self::ColoredHelixCylinder(_, _, _) => match other {
-                Self::ColoredHelixCylinder(_, _, _) => true,
-                _ => false,
-            },
-            Self::SlicedBond(_, _, _, _) => match other {
-                Self::SlicedBond(_, _, _, _) => true,
-                _ => false,
-            },
-        }
+        std::mem::discriminant(self) == std::mem::discriminant(other)
     }
 }
 
@@ -269,7 +248,7 @@ pub enum DesignOperation {
         orientation: Rotor3,
         pivot_position: Option<Vec3>,
     },
-    SetFavouriteCamera(ensnano_design::CameraId),
+    SetFavoriteCamera(ensnano_design::CameraId),
     UpdateCamera {
         camera_id: ensnano_design::CameraId,
         position: Vec3,

@@ -131,7 +131,7 @@ fn ask_path<P: AsRef<Path>>(
                 })
             } else {
                 TransitionMessage::new(
-                    messages::NO_FILE_RECIEVED_SCAFFOLD,
+                    messages::NO_FILE_RECEIVED_SCAFFOLD,
                     rfd::MessageLevel::Error,
                     Box::new(super::NormalState),
                 )
@@ -241,4 +241,5 @@ pub enum TargetScaffoldLength {
 }
 
 #[derive(Debug)]
+#[allow(unused)]
 pub struct SetScaffoldSequenceError(pub String);

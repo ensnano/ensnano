@@ -41,6 +41,7 @@ use ensnano_interactor::{
     IsometryTarget, NeighbourDescriptor, NeighbourDescriptorGiver, Selection, StrandBuilder,
 };
 use ensnano_organizer::GroupId;
+use ensnano_utils::colors;
 use std::collections::BTreeMap;
 use std::sync::{Arc, Mutex};
 use std::{borrow::Cow, path::PathBuf};
@@ -66,8 +67,8 @@ pub use shift_optimization::{ShiftOptimizationResult, ShiftOptimizerReader};
 
 mod simulations;
 pub use simulations::{
-    GridPresenter, HelixPresenter, RigidHelixState, RollPresenter, ShakeTarget,
-    SimulationInterface, SimulationOperation, SimulationReader, TwistPresenter,
+    GridPresenter, HelixPresenter, RollPresenter, SimulationInterface, SimulationOperation,
+    SimulationReader, TwistPresenter,
 };
 
 mod update_insertion_length;
@@ -270,8 +271,8 @@ impl Controller {
             DesignOperation::DeleteCamera(cam_id) => {
                 self.apply(|c, d| c.delete_camera(d, cam_id), design)
             }
-            DesignOperation::SetFavouriteCamera(cam_id) => {
-                self.apply(|c, d| c.set_favourite_camera(d, cam_id), design)
+            DesignOperation::SetFavoriteCamera(cam_id) => {
+                self.apply(|c, d| c.set_favorite_camera(d, cam_id), design)
             }
             DesignOperation::UpdateCamera {
                 camera_id,
@@ -1570,12 +1571,12 @@ impl Controller {
         }
     }
 
-    fn set_favourite_camera(
+    fn set_favorite_camera(
         &mut self,
         mut design: Design,
         id: CameraId,
     ) -> Result<Design, ErrOperation> {
-        if !design.set_favourite_camera(id) {
+        if !design.set_favorite_camera(id) {
             Err(ErrOperation::CameraDoesNotExist(id))
         } else {
             Ok(design)
@@ -1919,6 +1920,8 @@ impl OkOperation {
     }
 }
 
+// Some values are only used for logging the error, which Rust considers to be unused
+#[allow(unused)]
 #[derive(Debug)]
 pub enum ErrOperation {
     GroupHasNoPivot(GroupId),
@@ -1975,23 +1978,13 @@ impl From<ensnano_design::SvgImportError> for ErrOperation {
 }
 
 impl Controller {
-    fn recolor_staples(&mut self, mut design: Design) -> Design {
-        for (s_id, strand) in design.strands.iter_mut() {
-            if Some(*s_id) != design.scaffold_id {
-                let color = crate::utils::colors::new_color(&mut self.color_idx);
-                strand.color = color;
-            }
-        }
-        design
-    }
-
     fn fancy_recolor_staples(&mut self, mut design: Design) -> Design {
         let mut drawing_styles = HashMap::<DesignElementKey, DrawingStyle>::default();
 
         if let Some(ref t) = design.organizer_tree {
             // Read drawing style -> this should be a function on its own, the exact same code is used in design-content
             let prefix = "style:"; // PREFIX SHOULD BELONG TO CONST.RS
-            let h = t.get_hashmap_to_all_groupnames_with_prefix(prefix);
+            let h = t.get_hashmap_to_all_group_names_with_prefix(prefix);
             for (e, names) in h {
                 let drawing_attributes = names
                     .iter()
@@ -2004,7 +1997,7 @@ impl Controller {
                     })
                     .flatten()
                     .collect::<Vec<DrawingAttribute>>();
-                let mut style = DrawingStyle::from(drawing_attributes);
+                let style = DrawingStyle::from(drawing_attributes);
                 drawing_styles.insert(e, style);
             }
         }
@@ -2019,9 +2012,9 @@ impl Controller {
                     .clone();
 
                 let color = if let Some(shade) = strand_style.color_shade {
-                    crate::utils::colors::random_color_with_shade(shade, strand_style.hue_range)
+                    colors::random_color_with_shade(shade, strand_style.hue_range)
                 } else {
-                    crate::utils::colors::new_color(&mut self.color_idx)
+                    colors::new_color(&mut self.color_idx)
                 };
 
                 strand.color = color;
@@ -2336,7 +2329,7 @@ impl Controller {
 
     fn init_strand(&mut self, design: &mut Design, nucl: Nucl) -> usize {
         let s_id = design.strands.keys().max().map(|n| n + 1).unwrap_or(0);
-        let color = crate::utils::colors::new_color(&mut self.color_idx);
+        let color = colors::new_color(&mut self.color_idx);
         design.strands.insert(
             s_id,
             Strand::init(nucl.helix, nucl.position, nucl.forward, color),
@@ -2356,7 +2349,7 @@ impl Controller {
         } else {
             0
         };
-        let color = crate::utils::colors::new_color(&mut self.color_idx);
+        let color = colors::new_color(&mut self.color_idx);
         design
             .strands
             .insert(new_key, Strand::init(helix, position, forward, color));
@@ -3475,7 +3468,7 @@ fn nucl_pos_2d(helices: &Helices, nucl: &Nucl, segment: usize) -> Option<Vec2> {
         if segment > 0 {
             h.additional_isometries
                 .get(segment - 1)
-                .and_then(|i| (i.additional_isometry.or(h.isometry2d)))
+                .and_then(|i| i.additional_isometry.or(h.isometry2d))
         } else {
             h.isometry2d
         }

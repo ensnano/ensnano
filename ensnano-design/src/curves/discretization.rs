@@ -16,9 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-//! Implementation of the curve discretization alogrithm.
-
-use std::iter::zip;
+//! Implementation of the curve discretization algorithm.
 
 use super::*;
 use chebyshev_polynomials::ChebyshevPolynomial;
@@ -302,9 +300,9 @@ impl Curve {
         let p1 = points[1].clone();
         let p2 = points[2].clone();
         let p3 = points[3].clone();
-        let dp = (p2 - p1);
-        let d2p = (p2 + p0 - 2. * p1);
-        let d3p = (p3 - p0 + 3. * (p1 - p2));
+        let dp = p2 - p1;
+        let d2p = p2 + p0 - 2. * p1;
+        let d3p = p3 - p0 + 3. * (p1 - p2);
         let c = dp.cross(d2p);
         return d3p.dot(c) / c.mag_sq();
     }

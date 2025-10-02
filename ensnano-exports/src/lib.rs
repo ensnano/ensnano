@@ -25,7 +25,6 @@ pub mod oxdna;
 pub mod pdb;
 use cadnano::CadnanoError;
 use cando::CanDoError;
-use ensnano_design::ultraviolet::{Vec3, Vec4};
 use ensnano_design::{ultraviolet, Design, Nucl};
 use pdb::PdbError;
 use std::collections::HashMap;

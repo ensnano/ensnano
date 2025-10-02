@@ -40,7 +40,11 @@ impl<State: AppState> GuiTab<State> for PenTab<State> {
         TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Draw)))
     }
 
-    fn content(&self, ui_size: UiSize, app_state: &State) -> ensnano_iced::Element<Self::Message> {
+    fn content(
+        &self,
+        ui_size: UiSize,
+        app_state: &State,
+    ) -> ensnano_iced::Element<'_, Self::Message> {
         let selected_path_id = app_state.get_selected_bezier_path();
         let path_txt = selected_path_id
             .map(|p| format!("{:?}", p))

@@ -15,6 +15,14 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+use super::{AppState, FogParameters, OverlayType, Requests};
+use crate::{consts::*, fonts};
+use ensnano_design::{
+    elements::{DesignElement, DesignElementKey},
+    grid::GridTypeDescr,
+    ultraviolet, BezierPathId, CameraId, NamedParameter,
+};
+use ensnano_exports::ExportType;
 use ensnano_iced::{
     color_picker::ColorPickerMessage,
     iced::{theme, Color, Command, Element, Length},
@@ -30,39 +38,28 @@ use ensnano_iced::{
     },
     UiSize,
 };
-use ensnano_interactor::{graphics::HBondDisplay, EquadiffSolvingMethod};
+use ensnano_interactor::{
+    graphics::{Background3D, HBondDisplay, RenderingMode},
+    ActionMode, CheckXoversParameter, EquadiffSolvingMethod, HyperboloidRequest, Selection,
+    SelectionConversion, SuggestionParameters,
+};
 use ensnano_organizer::{Organizer, OrganizerMessage, OrganizerTree};
 use std::sync::{Arc, Mutex};
-
 use ultraviolet::Vec3;
 
-use ensnano_design::{
-    elements::{DesignElement, DesignElementKey},
-    BezierPathId, CameraId,
-};
-use ensnano_interactor::{
-    graphics::{Background3D, RenderingMode},
-    ActionMode, SelectionConversion, SuggestionParameters,
-};
-
-use ensnano_exports::ExportType;
-
-use super::{AppState, FogParameters, OverlayType, Requests};
-use crate::fonts;
-
-use ensnano_design::{grid::GridTypeDescr, ultraviolet, NamedParameter};
 mod sequence_input;
 use sequence_input::SequenceInput;
+
 mod discrete_value;
 use discrete_value::{FactoryId, RequestFactory, Requestable, ValueId};
-mod tabs;
-use crate::consts::*;
+
 mod contextual_panel;
-mod export_menu;
 use contextual_panel::{ContextualPanel, InstanciatedValue, ValueKind};
+
+mod export_menu;
 use export_menu::ExportMenu;
 
-use ensnano_interactor::{CheckXoversParameter, HyperboloidRequest, Selection};
+mod tabs;
 pub use tabs::revolution_tab::*;
 use tabs::{
     CameraShortcutPanel, CameraTab, EditionTab, GridTab, GuiTab, ParametersTab, PenTab,
@@ -476,9 +473,9 @@ where
                 }
             }
             Message::FogChoice(choice) => {
-                let (visble, from_camera, dark, reversed) = choice.to_param();
+                let (visible, from_camera, dark, reversed) = choice.to_param();
                 self.camera_tab.fog_camera(from_camera);
-                self.camera_tab.fog_visible(visble);
+                self.camera_tab.fog_visible(visible);
                 self.camera_tab.fog_dark(dark);
                 self.camera_tab.fog_reversed(reversed);
                 let request = self.camera_tab.get_fog_request();
@@ -721,7 +718,7 @@ where
                 self.contextual_panel.force_help = false;
             }
             Message::OpenLink(link) => {
-                // ATM we continue even in case of error, later any error will be promted to user
+                // ATM we continue even in case of error, later any error will be prompted to user
                 let _ = open::that(link);
             }
             Message::NewApplicationState(state) => {
@@ -968,7 +965,7 @@ where
         Command::none()
     }
 
-    fn view(&self) -> Element<Self::Message, Self::Theme, Self::Renderer> {
+    fn view(&self) -> Element<'_, Self::Message, Self::Theme, Self::Renderer> {
         let width = self.logical_size.cast::<u16>().width;
         let tabs = Tabs::new(Message::TabSelected)
             .push(
@@ -1130,7 +1127,7 @@ impl<R: Requests> Program for ColorOverlay<R> {
         Command::none()
     }
 
-    fn view(&self) -> Element<Self::Message, Self::Theme, Self::Renderer> {
+    fn view(&self) -> Element<'_, Self::Message, Self::Theme, Self::Renderer> {
         let width = self.logical_size.cast::<u16>().width;
 
         let widget = Column::new()
@@ -1265,7 +1262,7 @@ impl Requestable for ScrollSensitivity {
     }
     fn name_val(&self, n: usize) -> String {
         if n == 0 {
-            String::from("Sentivity")
+            String::from("Sensitivity")
         } else {
             unreachable!()
         }

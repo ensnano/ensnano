@@ -33,16 +33,14 @@ use ensnano_design::{
     Similarity3,
 };
 use ensnano_interactor::{
-    EquadiffSolvingMethod, RevolutionSimulationParameters, RevolutionSurfaceRadius,
-    RevolutionSurfaceSystemDescriptor, RootedRevolutionSurface,
+    EquadiffSolvingMethod, RevolutionSimulationParameters, RevolutionSurfaceSystemDescriptor,
+    RootedRevolutionSurface,
 };
 
 use crate::app_state::ErrOperation;
 
 mod closed_curves;
 use closed_curves::CloseSurfaceTopology;
-
-//mod open_curves;
 
 trait SpringTopology: Send + Sync + 'static {
     fn nb_balls(&self) -> usize;
@@ -54,8 +52,7 @@ trait SpringTopology: Send + Sync + 'static {
     /// the last ball on an open helix.
     fn successor(&self, ball_id: usize) -> usize;
 
-    fn balls_with_predecessor(&self) -> &[usize];
-    /// Return the identfier of the previous ball on the helix,  or `ball_id` if `ball_id` is
+    /// Return the identifier of the previous ball on the helix,  or `ball_id` if `ball_id` is
     /// the first ball on an open helix.
     fn predecessor(&self, ball_id: usize) -> usize;
 
@@ -89,8 +86,6 @@ trait SpringTopology: Send + Sync + 'static {
     ) -> Vec<(usize, DVec3)> {
         vec![]
     }
-
-    fn revolution_radius(&self) -> RevolutionSurfaceRadius;
 
     fn get_frame(&self) -> Similarity3;
 }

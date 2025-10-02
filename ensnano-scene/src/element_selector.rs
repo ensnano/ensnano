@@ -15,19 +15,21 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use std::rc::Rc;
 
 use super::{Device, DrawArea, DrawType, Queue, ViewPtr};
-use ensnano_design::grid::{GridId, GridPosition};
-use ensnano_design::{BezierPathId, BezierPlaneId, BezierVertexId};
+use ensnano_design::{
+    grid::{GridId, GridPosition},
+    BezierPathId, BezierPlaneId, BezierVertexId,
+};
 use ensnano_interactor::{phantom_helix_decoder, BezierControlPoint, PhantomElement};
-use ensnano_utils as utils;
+use ensnano_utils::{
+    wgpu,
+    winit::dpi::{PhysicalPosition, PhysicalSize},
+    BufferDimensions,
+};
 use futures::executor;
 use num_enum::IntoPrimitive;
-use std::convert::TryInto;
-use utils::wgpu;
-use utils::winit::dpi::{PhysicalPosition, PhysicalSize};
-use utils::BufferDimensions;
+use std::{convert::TryInto, rc::Rc};
 
 pub struct ElementSelector {
     pub device: Rc<Device>,
@@ -196,8 +198,8 @@ impl ElementSelector {
         let pixels = {
             let pixels_slice = buffer_slice.get_mapped_range();
             let mut pixels = Vec::with_capacity((size.height * size.width) as usize);
-            for chunck in pixels_slice.chunks(buffer_dimensions.padded_bytes_per_row) {
-                for byte in chunck[..buffer_dimensions.unpadded_bytes_per_row].iter() {
+            for chunk in pixels_slice.chunks(buffer_dimensions.padded_bytes_per_row) {
+                for byte in chunk[..buffer_dimensions.unpadded_bytes_per_row].iter() {
                     pixels.push(*byte);
                 }
             }
@@ -397,59 +399,57 @@ impl SceneReader {
             b,
             a
         );
-        let color = r + g + b;
+
         if a == u32::from(ObjType::None) {
-            None
-        } else {
-            match self.draw_type {
-                DrawType::Grid => {
-                    if a == u32::from(ObjType::BezierVertex) {
-                        let vertex = BezierVertexId {
-                            path_id: BezierPathId(r >> 16),
-                            vertex_id: (g + b) as usize,
-                        };
-                        Some(SceneElement::Grid(0, GridId::BezierPathGrid(vertex)))
-                    } else {
-                        Some(SceneElement::Grid(0, GridId::FreeGrid(color as usize)))
-                    }
-                }
-                DrawType::Design => {
-                    if a == u32::from(ObjType::BezierVertex) {
-                        Some(SceneElement::BezierVertex {
-                            path_id: BezierPathId(r >> 16),
-                            vertex_id: (g + b) as usize,
-                        })
-                    } else if a == u32::from(ObjType::BezierPlaneCorner) {
-                        Some(SceneElement::PlaneCorner {
-                            plane_id: BezierPlaneId(g + b),
-                            corner_type: CornerType::from_u32(r >> 16),
-                        })
-                    } else if a == u32::from(ObjType::BezierTangentIn) {
-                        Some(SceneElement::BezierTangent {
-                            path_id: BezierPathId(r >> 16),
-                            vertex_id: (g + b) as usize,
-                            tangent_in: true,
-                        })
-                    } else if a == u32::from(ObjType::BezierTangentOut) {
-                        Some(SceneElement::BezierTangent {
-                            path_id: BezierPathId(r >> 16),
-                            vertex_id: (g + b) as usize,
-                            tangent_in: false,
-                        })
-                    } else {
-                        Some(SceneElement::DesignElement(a, color))
-                    }
-                }
-                DrawType::Phantom => {
-                    Some(SceneElement::PhantomElement(phantom_helix_decoder(color)))
-                }
-                DrawType::Widget => {
-                    Some(SceneElement::WidgetElement(color).transform_into_bezier())
-                }
-                DrawType::Scene => unreachable!(),
-                DrawType::Png { .. } => unreachable!(),
-            }
+            return None;
         }
+
+        let color = r + g + b;
+
+        Some(match self.draw_type {
+            DrawType::Grid => {
+                if a == u32::from(ObjType::BezierVertex) {
+                    let vertex = BezierVertexId {
+                        path_id: BezierPathId(r >> 16),
+                        vertex_id: (g + b) as usize,
+                    };
+                    SceneElement::Grid(0, GridId::BezierPathGrid(vertex))
+                } else {
+                    SceneElement::Grid(0, GridId::FreeGrid(color as usize))
+                }
+            }
+            DrawType::Design => {
+                if a == u32::from(ObjType::BezierVertex) {
+                    SceneElement::BezierVertex {
+                        path_id: BezierPathId(r >> 16),
+                        vertex_id: (g + b) as usize,
+                    }
+                } else if a == u32::from(ObjType::BezierPlaneCorner) {
+                    SceneElement::PlaneCorner {
+                        plane_id: BezierPlaneId(g + b),
+                        corner_type: CornerType::from_u32(r >> 16),
+                    }
+                } else if a == u32::from(ObjType::BezierTangentIn) {
+                    SceneElement::BezierTangent {
+                        path_id: BezierPathId(r >> 16),
+                        vertex_id: (g + b) as usize,
+                        tangent_in: true,
+                    }
+                } else if a == u32::from(ObjType::BezierTangentOut) {
+                    SceneElement::BezierTangent {
+                        path_id: BezierPathId(r >> 16),
+                        vertex_id: (g + b) as usize,
+                        tangent_in: false,
+                    }
+                } else {
+                    SceneElement::DesignElement(a, color)
+                }
+            }
+            DrawType::Phantom => SceneElement::PhantomElement(phantom_helix_decoder(color)),
+            DrawType::Widget => SceneElement::WidgetElement(color).transform_into_bezier(),
+            DrawType::Scene => unreachable!(),
+            DrawType::Png { .. } => unreachable!(),
+        })
     }
 }
 
