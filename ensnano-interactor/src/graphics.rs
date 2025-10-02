@@ -64,7 +64,7 @@ pub enum Background3D {
     White,
 }
 
-pub const ALL_BACKGROUND3D: [Background3D; 2] = [Background3D::Sky, Background3D::White];
+pub const ALL_BACKGROUND3D: &[Background3D] = &[Background3D::Sky, Background3D::White];
 
 impl Default for Background3D {
     fn default() -> Self {
