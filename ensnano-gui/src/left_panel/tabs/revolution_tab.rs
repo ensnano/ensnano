@@ -766,8 +766,8 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
         //        .push(Text::new(shift_txt)),
         //);
         //if let SimulationState::Relaxing = app_state.get_simulation_state() {
-        //    let button_abbort = Button::new(Text::new("Abort")).on_press(Message::StopSimulation);
-        //    ret = ret.push(button_abbort);
+        //    let button_abort = Button::new(Text::new("Abort")).on_press(Message::StopSimulation);
+        //    ret = ret.push(button_abort);
         //    extra_jump!(2, ret);
         //    if let Some(len) = app_state.get_reader().get_current_length_of_relaxed_shape() {
         //        ret = ret.push(Text::new(format!("Current total length: {len}")));
