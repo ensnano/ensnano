@@ -25,23 +25,22 @@ fn vs_main(@builtin(vertex_index) vi: u32) -> VertexOutput {
 
 @group(0) @binding(0) var depth_tex_ms: texture_depth_multisampled_2d;
 
-struct OutlineUniform {
+struct PostProcessingUniform {
     sample_count: u32,
     only_outline: u32,
     camera_near: f32,
     camera_far: f32,
 };
 
-@group(0) @binding(1) var<uniform> u_outline: OutlineUniform;
+@group(0) @binding(1) var<uniform> u_outline: PostProcessingUniform;
 
-// Linearize WebGPU depth in [0, 1] to a camera space z in [0, ∞]
+// Linearize WebGPU depth in [0, 1] to camera space z in [0, ∞]
 fn linearize_depth(depth: f32) -> f32 {
     let n = u_outline.camera_near;
     let f = u_outline.camera_far;
     return (n * f) / (f - depth * (f - n));
 }
 
-// TODO: don't hardcode sample count (4), camera near (0.1) and camera far (1000.0)
 fn load_depth(center: vec2<i32>, direction: vec2<i32>) -> f32 {
     let coord = clamp(
         center + direction,

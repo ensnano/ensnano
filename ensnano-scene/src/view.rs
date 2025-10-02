@@ -137,11 +137,11 @@ pub struct View {
     sheets_drawer: InstanceDrawer<Sheet2D>,
     /// Cutting plane. TODO: remove? I don't see where the value is ever not `None`
     cut_plane_parameters: Option<CutPlaneParameters>,
-    // Outline shader parameters. TODO: bundle in InstanceDrawer or a new struct
+    // Post-processing shader parameters. TODO: bundle in InstanceDrawer or a new struct
     queue: Rc<wgpu::Queue>,
-    outline_pipeline: wgpu::RenderPipeline,
-    outline_bind_group_layout: wgpu::BindGroupLayout,
-    outline_buffer: wgpu::Buffer,
+    post_processing_pipeline: wgpu::RenderPipeline,
+    post_processing_bind_group_layout: wgpu::BindGroupLayout,
+    post_processing_buffer: wgpu::Buffer,
 }
 
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
@@ -322,16 +322,16 @@ impl View {
 
         let cut_plane_parameters = None::<CutPlaneParameters>;
 
-        // === OUTLINE SHADER ===
-        let outline_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("outline_buffer"),
-            contents: bytemuck::bytes_of(&OutlineUniform::new(RenderingMode::default())), // dummy initial buffer
+        // === POST-PROCESSING SHADER ===
+        let post_processing_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("post-processing buffer"),
+            contents: bytemuck::bytes_of(&PostProcessingUniform::new(RenderingMode::default())), // dummy initial buffer
             usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
         });
 
-        let outline_bind_group_layout =
+        let post_processing_bind_group_layout =
             device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-                label: Some("outline bind group layout"),
+                label: Some("post-processing bind group layout"),
                 entries: &[
                     wgpu::BindGroupLayoutEntry {
                         binding: 0,
@@ -356,49 +356,51 @@ impl View {
                 ],
             });
 
-        let outline_shader = device.create_shader_module(wgpu::include_wgsl!("view/outline.wgsl"));
-        let outline_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: Some("outline pipeline"),
-            layout: Some(
-                &device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-                    label: Some("outline pipeline layout"),
-                    bind_group_layouts: &[&outline_bind_group_layout],
-                    push_constant_ranges: &[],
-                }),
-            ),
-            vertex: wgpu::VertexState {
-                module: &outline_shader,
-                entry_point: "vs_main",
-                buffers: &[],
-            },
-            fragment: Some(wgpu::FragmentState {
-                module: &outline_shader,
-                entry_point: "fs_main",
-                targets: &[Some(wgpu::ColorTargetState {
-                    format: wgpu::TextureFormat::Bgra8UnormSrgb,
-                    blend: Some(wgpu::BlendState {
-                        color: wgpu::BlendComponent {
-                            src_factor: wgpu::BlendFactor::SrcAlpha,
-                            dst_factor: wgpu::BlendFactor::OneMinusSrcAlpha,
-                            operation: wgpu::BlendOperation::Add,
-                        },
-                        alpha: wgpu::BlendComponent {
-                            src_factor: wgpu::BlendFactor::One,
-                            dst_factor: wgpu::BlendFactor::OneMinusSrcAlpha,
-                            operation: wgpu::BlendOperation::Add,
-                        },
+        let post_processing_shader =
+            device.create_shader_module(wgpu::include_wgsl!("view/post_processing.wgsl"));
+        let post_processing_pipeline =
+            device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+                label: Some("post-processing pipeline"),
+                layout: Some(
+                    &device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+                        label: Some("post-processing pipeline layout"),
+                        bind_group_layouts: &[&post_processing_bind_group_layout],
+                        push_constant_ranges: &[],
                     }),
-                    write_mask: wgpu::ColorWrites::ALL,
-                })],
-            }),
-            primitive: wgpu::PrimitiveState::default(),
-            depth_stencil: None,
-            multisample: wgpu::MultisampleState {
-                count: SAMPLE_COUNT,
-                ..Default::default()
-            },
-            multiview: None,
-        });
+                ),
+                vertex: wgpu::VertexState {
+                    module: &post_processing_shader,
+                    entry_point: "vs_main",
+                    buffers: &[],
+                },
+                fragment: Some(wgpu::FragmentState {
+                    module: &post_processing_shader,
+                    entry_point: "fs_main",
+                    targets: &[Some(wgpu::ColorTargetState {
+                        format: wgpu::TextureFormat::Bgra8UnormSrgb,
+                        blend: Some(wgpu::BlendState {
+                            color: wgpu::BlendComponent {
+                                src_factor: wgpu::BlendFactor::SrcAlpha,
+                                dst_factor: wgpu::BlendFactor::OneMinusSrcAlpha,
+                                operation: wgpu::BlendOperation::Add,
+                            },
+                            alpha: wgpu::BlendComponent {
+                                src_factor: wgpu::BlendFactor::One,
+                                dst_factor: wgpu::BlendFactor::OneMinusSrcAlpha,
+                                operation: wgpu::BlendOperation::Add,
+                            },
+                        }),
+                        write_mask: wgpu::ColorWrites::ALL,
+                    })],
+                }),
+                primitive: wgpu::PrimitiveState::default(),
+                depth_stencil: None,
+                multisample: wgpu::MultisampleState {
+                    count: SAMPLE_COUNT,
+                    ..Default::default()
+                },
+                multiview: None,
+            });
 
         Self {
             camera,
@@ -430,9 +432,9 @@ impl View {
             sheets_drawer,
             cut_plane_parameters,
             queue,
-            outline_pipeline,
-            outline_bind_group_layout,
-            outline_buffer,
+            post_processing_pipeline,
+            post_processing_bind_group_layout,
+            post_processing_buffer,
         }
     }
 
@@ -854,47 +856,49 @@ impl View {
             }
         }
 
-        // Draw the outline
+        // Post-processing
         if matches!(draw_type, DrawType::Scene | DrawType::Png { .. })
             && draw_options.rendering_mode.requires_post_processing()
         {
             self.queue.write_buffer(
-                &self.outline_buffer,
+                &self.post_processing_buffer,
                 0,
-                bytemuck::bytes_of(&OutlineUniform::new(draw_options.rendering_mode)),
+                bytemuck::bytes_of(&PostProcessingUniform::new(draw_options.rendering_mode)),
             );
-            let outline_bind_group = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
-                label: Some("outline_bind_group"),
-                layout: &self.outline_bind_group_layout,
-                entries: &[
-                    wgpu::BindGroupEntry {
-                        binding: 0,
-                        resource: wgpu::BindingResource::TextureView(&self.depth_texture.view),
-                    },
-                    wgpu::BindGroupEntry {
-                        binding: 1,
-                        resource: self.outline_buffer.as_entire_binding(),
-                    },
-                ],
-            });
+            let post_processing_bind_group =
+                self.device.create_bind_group(&wgpu::BindGroupDescriptor {
+                    label: Some("post-processing bind group"),
+                    layout: &self.post_processing_bind_group_layout,
+                    entries: &[
+                        wgpu::BindGroupEntry {
+                            binding: 0,
+                            resource: wgpu::BindingResource::TextureView(&self.depth_texture.view),
+                        },
+                        wgpu::BindGroupEntry {
+                            binding: 1,
+                            resource: self.post_processing_buffer.as_entire_binding(),
+                        },
+                    ],
+                });
 
-            let mut outline_render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                label: Some("outline_render_pass"),
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view: attachment,
-                    resolve_target,
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Load,
-                        store: wgpu::StoreOp::Store,
-                    },
-                })],
-                depth_stencil_attachment: None,
-                timestamp_writes: None,
-                occlusion_query_set: None,
-            });
-            outline_render_pass.set_pipeline(&self.outline_pipeline);
-            outline_render_pass.set_bind_group(0, &outline_bind_group, &[]);
-            outline_render_pass.draw(0..3, 0..1); // fullscreen triangle
+            let mut post_processing_render_pass =
+                encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                    label: Some("post-processing render pass"),
+                    color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                        view: attachment,
+                        resolve_target,
+                        ops: wgpu::Operations {
+                            load: wgpu::LoadOp::Load,
+                            store: wgpu::StoreOp::Store,
+                        },
+                    })],
+                    depth_stencil_attachment: None,
+                    timestamp_writes: None,
+                    occlusion_query_set: None,
+                });
+            post_processing_render_pass.set_pipeline(&self.post_processing_pipeline);
+            post_processing_render_pass.set_bind_group(0, &post_processing_bind_group, &[]);
+            post_processing_render_pass.draw(0..3, 0..1); // fullscreen triangle
         }
 
         // Draw the cube
@@ -1793,13 +1797,13 @@ impl DrawType {
 
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
-struct OutlineUniform {
+struct PostProcessingUniform {
     sample_count: u32,
     only_outline: u32, // used as a bool, but alignment required
     camera_near: f32,
     camera_far: f32,
 }
-impl OutlineUniform {
+impl PostProcessingUniform {
     fn new(rendering_mode: RenderingMode) -> Self {
         Self {
             sample_count: SAMPLE_COUNT,
