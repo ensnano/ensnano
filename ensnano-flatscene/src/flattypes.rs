@@ -20,12 +20,13 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! The motivation behind these types is that flatscene's representation of helices are stored in a
 //! Vec as opposed to a HashMap in the design. This means that their identifier needs to be
 //! converted. For both the flatscene and the design, usize could be used but having distinct types
-//! reduces the confusion, since erros will be detected by the typechecker.
+//! reduces the confusion, since errors will be detected by the typechecker.
 
 use super::{HashMap, Nucl, Selection};
 use ensnano_design::grid::GridId;
 use ensnano_interactor::PhantomElement;
 use std::collections::BTreeMap;
+use std::hash::{Hash, Hasher};
 
 /// An helix identifier in the flatscene data structures.
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Ord, Eq, Hash)]
@@ -33,7 +34,7 @@ pub struct FlatIdx(pub usize);
 
 #[derive(Debug, Clone, Copy)]
 pub struct FlatHelix {
-    /// The identifier of the helix in the flatscene data strucutres.
+    /// The identifier of the helix in the flatscene data structures.
     pub flat: FlatIdx,
     /// The segment that the helix represents
     pub segment: HelixSegment,
@@ -45,8 +46,6 @@ impl std::cmp::PartialEq for FlatHelix {
         self.flat == other.flat
     }
 }
-
-use std::hash::{Hash, Hasher};
 
 impl Hash for FlatHelix {
     fn hash<H: Hasher>(&self, state: &mut H) {

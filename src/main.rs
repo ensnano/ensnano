@@ -1666,10 +1666,10 @@ impl MainState {
             need_save: self.need_save(),
             can_reload: self.get_current_file_name().is_some(),
             can_split_2d: multiplexer.is_showing(&GuiComponentType::FlatScene),
-            splited_2d: self
+            is_split_2d: self
                 .applications
                 .get(&GuiComponentType::FlatScene)
-                .map(|app| app.lock().unwrap().is_splited())
+                .map(|app| app.lock().unwrap().is_split())
                 .unwrap_or(false),
             can_toggle_2d: multiplexer.is_showing(&GuiComponentType::FlatScene)
                 || multiplexer.is_showing(&GuiComponentType::StereographicScene),

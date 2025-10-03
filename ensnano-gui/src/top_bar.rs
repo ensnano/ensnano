@@ -304,7 +304,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
 
         // WARN: More tricky than expected: in 3D and 2D button we will need to get the current
         //       split mode, but it is defined in Multiplexer and not directly accessible. Need
-        //       to find an elegent way to do this.
+        //       to find an elegant way to do this.
 
         let button_split = tooltip(
             text_button("3D+2D", self.ui_size).on_press(Message::ToggleView(SplitMode::Both)),

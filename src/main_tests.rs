@@ -41,7 +41,7 @@ impl Application for DummyScene {
         ()
     }
 
-    fn is_splited(&self) -> bool {
+    fn is_split(&self) -> bool {
         false
     }
 

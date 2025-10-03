@@ -1374,7 +1374,7 @@ impl<S: AppState> Application for Scene<S> {
         self.view.borrow().get_current_pivot()
     }
 
-    fn is_splited(&self) -> bool {
+    fn is_split(&self) -> bool {
         false
     }
 }
