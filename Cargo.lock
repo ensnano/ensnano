@@ -1022,7 +1022,6 @@ dependencies = [
  "mathru",
  "num_enum 0.5.11",
  "ordered-float",
- "pod-enum",
  "pretty_env_logger",
  "rand",
  "rand_distr",
@@ -1209,7 +1208,6 @@ dependencies = [
  "lyon",
  "num_enum 0.5.11",
  "png 0.17.16",
- "pod-enum",
  "rand",
  "serde",
  "serde_json",
@@ -3424,27 +3422,6 @@ dependencies = [
  "fdeflate",
  "flate2",
  "miniz_oxide 0.8.9",
-]
-
-[[package]]
-name = "pod-enum"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c9890146f8f486cd3dfa258803e6646cc0c8c474615676e6f4c13969be9db1d1"
-dependencies = [
- "bytemuck",
- "pod-enum-macros",
-]
-
-[[package]]
-name = "pod-enum-macros"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a2a7ab329a294b998a72caab2a8e00c595b87d13d3d008a32205189d3d6a95f2"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.106",
 ]
 
 [[package]]
