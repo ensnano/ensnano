@@ -131,7 +131,7 @@ impl HelixParameters {
 
     pub const DEFAULT: Self = Self::GEARY_2014_DNA;
 
-    /// Values used in version perior to 0.4.1, taken from the litterature (Wikipedia, Cargo
+    /// Values used in version prior to 0.4.1, taken from the literature (Wikipedia, Cargo
     /// sorting paper, Woo 2011).
     pub const ENSNANO_2021: HelixParameters = HelixParameters {
         // z-step and helix radius from: Wikipedia

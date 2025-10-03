@@ -16,14 +16,17 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-pub use cadnano_format::Cadnano;
-use cadnano_format::VStrand;
-use ensnano_design::grid::{Grid, GridType};
-use ensnano_design::{Design, Domain, Helix, HelixInterval, Nucl, Strand};
+use ensnano_design::{
+    grid::{Grid, GridType},
+    Design, Domain, Helix, HelixInterval, Nucl, Strand,
+};
 use ensnano_interactor::consts::SCAFFOLD_COLOR;
-use std::collections::{BTreeMap, HashMap, HashSet};
-use std::sync::Arc;
+use std::{
+    collections::{BTreeMap, HashMap, HashSet},
+    sync::Arc,
+};
 use ultraviolet::{Rotor3, Vec3};
+use {cadnano_format::Cadnano, cadnano_format::VStrand};
 
 const NO_HELIX: usize = std::usize::MAX;
 
