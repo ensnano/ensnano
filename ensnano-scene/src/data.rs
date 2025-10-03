@@ -338,12 +338,6 @@ impl<R: DesignReader> Data<R> {
 }
 
 impl<R: DesignReader> Data<R> {
-    /// Return the sets of selected designs
-    #[allow(dead_code)]
-    pub fn get_selected_designs(&self, selection: &[Selection]) -> HashSet<u32> {
-        selection.iter().filter_map(|s| s.get_design()).collect()
-    }
-
     pub fn set_pivot_element<S: AppState>(&mut self, element: Option<SceneElement>, app_state: &S) {
         self.pivot_update |= self.pivot_element != element;
         self.pivot_element = element;
@@ -353,16 +347,6 @@ impl<R: DesignReader> Data<R> {
     pub fn set_pivot_position(&mut self, position: Vec3) {
         self.pivot_position = Some(position);
         self.pivot_update = true;
-    }
-
-    #[allow(dead_code)]
-    fn get_element_design(&self, element: &SceneElement) -> u32 {
-        match element {
-            SceneElement::DesignElement(d_id, _) => *d_id,
-            SceneElement::PhantomElement(phantom_element) => phantom_element.design_id,
-            SceneElement::Grid(d_id, _) => *d_id,
-            _ => unreachable!(),
-        }
     }
 
     /// Convert a selection into a set of elements
@@ -427,45 +411,6 @@ impl<R: DesignReader> Data<R> {
         }
         ret
     }
-
-    /*
-    /// Convert `self.candidates` into a set of elements according to `app_state.get_selection_mode()`
-    fn expand_candidate(&self, object_type: ObjectType) -> Vec<SceneElement> {
-        let mut ret = Vec::new();
-        for element in &self.candidates {
-            if let SceneElement::DesignElement(d_id, elt_id) = element {
-                let group_id = self.get_group_identifier(*d_id, *elt_id);
-                let group = self.get_group_member(*d_id, group_id);
-                for elt in group.iter() {
-                    if self.designs[*d_id as usize]
-                        .get_element_type(*elt)
-                        .map(|elt| elt.same_type(object_type))
-                        .unwrap_or(false)
-                    {
-                        ret.push(SceneElement::DesignElement(*d_id, *elt));
-                    }
-                }
-            } else if let SceneElement::PhantomElement(phantom_element) = element {
-                if let Some(group_id) = self.get_group_identifier_phantom(*phantom_element) {
-                    let d_id = phantom_element.design_id;
-                    let group = self.get_group_member(d_id, group_id);
-                    for elt in group.iter() {
-                        if self.designs[d_id as usize]
-                            .get_element_type(*elt)
-                            .unwrap()
-                            .same_type(object_type)
-                        {
-                            ret.push(SceneElement::DesignElement(d_id, *elt));
-                        }
-                    }
-                }
-                if phantom_element.bound == object_type.is_bound() {
-                    ret.push(SceneElement::PhantomElement(*phantom_element));
-                }
-            }
-        }
-        ret
-    }*/
 
     /// Return the instances of selected spheres
     pub fn get_selected_spheres<S: AppState>(
@@ -696,34 +641,6 @@ impl<R: DesignReader> Data<R> {
             SelectionMode::Helix => self.designs[design_id as usize]
                 .get_helix(element_id)
                 .map(|x| x as u32),
-        }
-    }
-
-    /// Return the group to which a phantom element belongs. The group depends on app_state.get_selection_mode().
-    #[allow(dead_code)]
-    fn get_group_identifier_phantom(
-        &self,
-        phantom_element: PhantomElement,
-        selection_mode: SelectionMode,
-    ) -> Option<u32> {
-        let nucl = Nucl {
-            helix: phantom_element.helix_id as usize,
-            forward: phantom_element.forward,
-            position: phantom_element.position as isize,
-        };
-
-        let design_id = phantom_element.design_id;
-        let element_id = self.designs[design_id as usize].get_identifier_nucl(&nucl);
-
-        match selection_mode {
-            SelectionMode::Nucleotide => element_id,
-            SelectionMode::Design => Some(design_id),
-            SelectionMode::Strand => element_id.and_then(|e| {
-                self.designs[design_id as usize]
-                    .get_strand(e)
-                    .map(|x| x as u32)
-            }),
-            SelectionMode::Helix => Some(phantom_element.helix_id),
         }
     }
 
@@ -1806,27 +1723,6 @@ impl<R: DesignReader> Data<R> {
     pub fn get_nucl_position(&self, nucl: Nucl, design_id: usize) -> Option<Vec3> {
         let design = self.designs.get(design_id)?;
         design.get_nucl_position(nucl)
-    }
-
-    /*
-    /// Set the selection to a given nucleotide if it exists in the design.
-    pub fn select_nucl(&mut self, nucl: Nucl, design_id: usize) {
-        let e_id = self.designs[design_id].get_identifier_nucl(&nucl);
-        if let Some(id) = e_id {
-            self.set_selection(Some(SceneElement::DesignElement(design_id as u32, id)));
-        }
-    }*/
-
-    #[allow(dead_code)]
-    pub fn get_candidate_nucl(&self) -> Option<Nucl> {
-        match self.candidate_element.as_ref() {
-            None => None,
-            Some(SceneElement::DesignElement(d_id, n_id)) => {
-                self.designs[*d_id as usize].get_nucl(*n_id)
-            }
-            Some(SceneElement::PhantomElement(pe)) => Some(pe.to_nucl()),
-            _ => None,
-        }
     }
 
     pub fn init_free_xover(&mut self, nucl: Nucl, position: Vec3, design_id: usize) {

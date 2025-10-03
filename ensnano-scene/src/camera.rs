@@ -247,7 +247,6 @@ pub struct CameraController {
     mouse_horizontal: f32,
     mouse_vertical: f32,
     scroll: f32,
-    #[allow(dead_code)]
     last_rotor: Rotor3,
     processed_move: bool,
     camera: CameraPtr,

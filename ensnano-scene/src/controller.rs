@@ -45,7 +45,6 @@ use automata::{EventContext, NormalState, State, Transition};
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ClickMode {
     TranslateCam,
-    #[allow(dead_code)]
     RotateCam,
 }
 

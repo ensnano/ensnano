@@ -18,12 +18,6 @@ use crate::view::{
 use ensnano_design::ultraviolet::{Mat3, Vec3};
 use ensnano_interactor::consts::NB_RAY_TUBE;
 
-#[derive(Debug)]
-#[allow(unused)]
-pub enum StlError {
-    IOError(std::io::Error),
-}
-
 trait StlProcessing {
     fn to_stl_triangles(&self) -> Vec<StlTriangle> {
         vertices_indices_to_stl_triangles(
@@ -188,7 +182,7 @@ fn triangle_indices_from_strip(indices: Vec<u16>) -> Vec<u16> {
     triangle_from_strip_indices
 }
 
-pub fn stl_bytes_export(raw_instances: Vec<RawDnaInstance>) -> Result<Vec<u8>, StlError> {
+pub fn stl_bytes_export(raw_instances: Vec<RawDnaInstance>) -> Vec<u8> {
     let triangles: Vec<StlTriangle> = raw_instances
         .iter()
         .flat_map(|raw_inst| raw_inst.to_stl_triangles())
@@ -200,7 +194,7 @@ pub fn stl_bytes_export(raw_instances: Vec<RawDnaInstance>) -> Result<Vec<u8>, S
     for t in triangles {
         bytes.append(&mut t.to_bytes());
     }
-    Ok(bytes)
+    bytes
 }
 
 #[derive(Debug, Copy, Clone)]

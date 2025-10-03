@@ -322,14 +322,6 @@ impl SceneElement {
         }
     }
 
-    #[allow(dead_code)]
-    pub fn is_widget(&self) -> bool {
-        match self {
-            SceneElement::WidgetElement(_) => true,
-            _ => false,
-        }
-    }
-
     pub fn transform_into_bezier(self) -> Self {
         if let Self::WidgetElement(id) = self {
             if let Some((helix_id, bezier_control)) =

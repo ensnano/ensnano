@@ -70,7 +70,6 @@ impl<S: AppState> Transition<S> {
 pub(super) trait ControllerState<S: AppState> {
     fn input<'a>(&mut self, event: &WindowEvent, context: EventContext<'a, S>) -> Transition<S>;
 
-    #[allow(dead_code)]
     fn display(&self) -> Cow<'static, str>;
 
     fn transition_from(&self, _controller: &Controller<S>) -> TransitionConsequence {
@@ -93,7 +92,6 @@ pub(super) trait ControllerState<S: AppState> {
         None
     }
 
-    #[allow(clippy::needless_lifetimes, clippy::unused_unit)]
     fn give_context<'a>(&mut self, _context: EventContext<'a, S>) {
         ()
     }

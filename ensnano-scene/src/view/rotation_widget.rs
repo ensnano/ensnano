@@ -254,7 +254,6 @@ pub struct RotationWidgetDescriptor {
 pub enum AvailableRotationAxes {
     All,
     NoZ,
-    #[allow(dead_code)] // may be used for grid helices
     OnlyZ,
 }
 

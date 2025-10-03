@@ -1133,7 +1133,7 @@ impl<S: AppState> Scene<S> {
         );
         println!("STL export to {:?}", path);
         let raw_instances = self.data.borrow().get_all_raw_instances(app_state);
-        let stl_bytes = stl::stl_bytes_export(raw_instances).unwrap();
+        let stl_bytes = stl::stl_bytes_export(raw_instances);
         if let Ok(mut out_file) = fs::File::create(path) {
             if out_file.write_all(&stl_bytes).is_ok() {
                 return;
@@ -1184,7 +1184,6 @@ pub enum SceneNotification {
     /// updated.
     CameraMoved,
     /// The camera is replaced by a new one.
-    #[allow(dead_code)]
     NewCamera(Vec3, Rotor3),
     /// The drawing area has been modified
     NewSize(PhySize, DrawArea),
