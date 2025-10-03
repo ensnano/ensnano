@@ -25,7 +25,7 @@ pub struct Torsion {
     pub strength_prime5: f32,
     /// The strength applied on the 3' helix of the cross over
     pub strength_prime3: f32,
-    /// Two cross-overs are fiends if their extremities are neighbour. In that case only one of
+    /// Two cross-overs are fiends if their extremities are neighbor. In that case only one of
     /// of them should appear in the keys of the torsion map, and their strength are combined
     pub friend: Option<Xover>,
 }

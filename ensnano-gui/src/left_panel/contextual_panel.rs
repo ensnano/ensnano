@@ -816,9 +816,9 @@ fn values_of_selection(selection: &Selection, reader: &dyn DesignReader) -> Vec<
 
 fn fmt_xover_len(info: Option<(f32, Option<f32>)>) -> Vec<String> {
     match info {
-        Some((len_self, Some(len_neighbour))) => vec![
+        Some((len_self, Some(len_neighbor))) => vec![
             format!("length {:.2} nm", len_self),
-            format!("{:.2} nm", len_neighbour),
+            format!("{:.2} nm", len_neighbor),
         ],
         Some((len, None)) => vec![format!("length {:.2} nm", len)],
         None => vec![String::from("Error getting length")],

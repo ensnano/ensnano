@@ -31,7 +31,7 @@ use ensnano_design::{
     BezierPathId, Extremity, HelixCollection, InstanciatedPiecewiseBezier, Nucl, VirtualNucl,
 };
 use ensnano_interactor::{
-    application::Camera3D, NeighbourDescriptor, NeighbourDescriptorGiver, Referential,
+    application::Camera3D, NeighborDescriptor, NeighborDescriptorGiver, Referential,
     ScaffoldInfo, Selection, SuggestionParameters,
 };
 use ensnano_scene::{HBond, HalfHBond};
@@ -84,12 +84,12 @@ impl Presenter {
     }
 
     pub fn can_start_builder_at(&self, nucl: Nucl) -> bool {
-        let left = self.current_design.get_neighbour_nucl(nucl.left());
-        let right = self.current_design.get_neighbour_nucl(nucl.right());
+        let left = self.current_design.get_neighbor_nucl(nucl.left());
+        let right = self.current_design.get_neighbor_nucl(nucl.right());
         if self.content.nucl_collection.contains_nucl(&nucl) {
-            if let Some(desc) = self.current_design.get_neighbour_nucl(nucl) {
+            if let Some(desc) = self.current_design.get_neighbor_nucl(nucl) {
                 let filter =
-                    |d: &NeighbourDescriptor| !(d.identifier.is_same_domain_than(&desc.identifier));
+                    |d: &NeighborDescriptor| !(d.identifier.is_same_domain_than(&desc.identifier));
                 !left.filter(filter).and(right.filter(filter)).is_some()
             } else {
                 false

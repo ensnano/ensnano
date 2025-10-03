@@ -800,15 +800,15 @@ impl Helix {
         self.theta_n_to_space_pos(&p, n, theta, forward)
     }
 
-    ///Return an helix that makes an ideal cross-over with self at postion n
-    pub fn ideal_neighbour(&self, n: isize, forward: bool, p: &HelixParameters) -> Helix {
+    ///Return an helix that makes an ideal cross-over with self at position n
+    pub fn ideal_neighbor(&self, n: isize, forward: bool, p: &HelixParameters) -> Helix {
         let p = match self.helix_parameters {
             None => p.clone(),
             Some(hp) => hp.clone(),
         };
-        let other_helix_pos = self.position_ideal_neighbour(n, forward, &p);
+        let other_helix_pos = self.position_ideal_neighbor(n, forward, &p);
         let mut new_helix = self.detached_copy_at(other_helix_pos);
-        self.adjust_theta_neighbour(n, forward, &mut new_helix, &p);
+        self.adjust_theta_neighbor(n, forward, &mut new_helix, &p);
         new_helix
     }
 
@@ -834,7 +834,7 @@ impl Helix {
         }
     }
 
-    fn position_ideal_neighbour(&self, n: isize, forward: bool, p: &HelixParameters) -> Vec3 {
+    fn position_ideal_neighbor(&self, n: isize, forward: bool, p: &HelixParameters) -> Vec3 {
         let p = match self.helix_parameters {
             None => p.clone(),
             Some(hp) => hp.clone(),
@@ -848,7 +848,7 @@ impl Helix {
         other_helix_pos
     }
 
-    fn adjust_theta_neighbour(
+    fn adjust_theta_neighbor(
         &self,
         n: isize,
         forward: bool,

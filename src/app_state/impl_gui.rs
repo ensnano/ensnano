@@ -219,12 +219,3 @@ impl GuiState for AppState {
         self.get_pasting_status()
     }
 }
-
-#[cfg(test)]
-mod tests {
-    #[ignore]
-    #[test]
-    fn is_building_hyperboloid_implemented() {
-        todo!()
-    }
-}

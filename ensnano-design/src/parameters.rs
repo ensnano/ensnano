@@ -42,7 +42,7 @@ pub struct HelixParameters {
     /// the reverse strand.
     pub groove_angle: f32,
 
-    /// Gap between two neighbouring helices.
+    /// Gap between two neighboring helices.
     pub inter_helix_gap: f32,
 
     /// The inclination of paired phosphates relative to the helical axis
@@ -208,7 +208,7 @@ impl HelixParameters {
     /// * A is a base on the helix
     /// * B is the base paired to A
     /// * O is the projection of A on the axis of the helix
-    /// * C is the 3' neighbour of A
+    /// * C is the 3' neighbor of A
     /// * C_2 is the projection of C in the AOB plane
     fn angle_aoc2(&self) -> f32 {
         TAU / self.bases_per_turn
@@ -217,7 +217,7 @@ impl HelixParameters {
     /// The distance |AC| where
     ///
     /// * A is a base on the helix
-    /// * C is the 3' neighbour of A
+    /// * C is the 3' neighbor of A
     pub fn dist_ac(&self) -> f32 {
         (self.dist_ac2() * self.dist_ac2() + self.rise * self.rise).sqrt()
     }
@@ -227,7 +227,7 @@ impl HelixParameters {
     /// * A is a base on the helix
     /// * B is the base paired to A
     /// * O is the projection of A on the axis of the helix
-    /// * C is the 3' neighbour of A
+    /// * C is the 3' neighbor of A
     /// * C_2 is the projection of C in the AOB plane
     pub fn dist_ac2(&self) -> f32 {
         SQRT_2 * (1. - self.angle_aoc2().cos()).sqrt() * self.helix_radius

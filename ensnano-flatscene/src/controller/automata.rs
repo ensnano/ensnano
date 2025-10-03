@@ -265,14 +265,14 @@ impl<S: AppState> ControllerState<S> for NormalState {
                                         consequences: Consequence::InitBuilding(nucl),
                                     }
                                 }
-                            } else if let Some(attachement) =
-                                controller.data.borrow().attachable_neighbour(nucl)
+                            } else if let Some(attachment) =
+                                controller.data.borrow().attachable_neighbor(nucl)
                             {
                                 Transition {
-                                    new_state: Some(Box::new(InitAttachement {
+                                    new_state: Some(Box::new(InitAttachment {
                                         mouse_position: self.mouse_position,
                                         from: nucl,
-                                        to: attachement,
+                                        to: attachment,
                                     })),
                                     consequences: Consequence::Nothing,
                                 }
@@ -786,14 +786,14 @@ impl<S: AppState> ControllerState<S> for ReleasedPivot {
                                         consequences: Consequence::InitBuilding(nucl),
                                     }
                                 }
-                            } else if let Some(attachement) =
-                                controller.data.borrow().attachable_neighbour(nucl)
+                            } else if let Some(attachment) =
+                                controller.data.borrow().attachable_neighbor(nucl)
                             {
                                 Transition {
-                                    new_state: Some(Box::new(InitAttachement {
+                                    new_state: Some(Box::new(InitAttachment {
                                         mouse_position: self.mouse_position,
                                         from: nucl,
-                                        to: attachement,
+                                        to: attachment,
                                     })),
                                     consequences: Consequence::Nothing,
                                 }
@@ -1228,10 +1228,10 @@ impl<S: AppState> ControllerState<S> for Rotating {
                     let consequences = if let ClickResult::Nucl(nucl) = click_result {
                         if let Some(nucl) = controller.data.borrow().can_make_auto_xover(nucl) {
                             Consequence::FollowingSuggestion(nucl, false)
-                        } else if let Some(attachement) =
-                            controller.data.borrow().attachable_neighbour(nucl)
+                        } else if let Some(attachment) =
+                            controller.data.borrow().attachable_neighbor(nucl)
                         {
-                            Consequence::Xover(nucl, attachement)
+                            Consequence::Xover(nucl, attachment)
                         } else {
                             Consequence::Cut(nucl)
                         }
@@ -1410,22 +1410,22 @@ impl<S: AppState> ControllerState<S> for AddOrXover {
     }
 }
 
-/// This state is entered when clicking on a strand extremity that has a neighbouring
-/// strand. If the cursor is released on the same nucleotide, the two neighbouring strands
+/// This state is entered when clicking on a strand extremity that has a neighboring
+/// strand. If the cursor is released on the same nucleotide, the two neighboring strands
 /// are merged.
-struct InitAttachement {
+struct InitAttachment {
     mouse_position: PhysicalPosition<f64>,
     from: FlatNucl,
     to: FlatNucl,
 }
 
-impl<S: AppState> ControllerState<S> for InitAttachement {
+impl<S: AppState> ControllerState<S> for InitAttachment {
     fn transition_from(&self, _controller: &Controller<S>) {}
 
     fn transition_to(&self, _controller: &Controller<S>) {}
 
     fn display(&self) -> String {
-        String::from("Init Attachement")
+        String::from("Init Attachment")
     }
 
     fn input(
@@ -1504,12 +1504,12 @@ impl<S: AppState> ControllerState<S> for InitAttachement {
 /// an other state. A transition is triggered when the cursor leaves the square in which the user
 /// clicked to initiate strand building.
 ///
-/// * If the cursor is moved on a neighbour nucleotide, the controller transition to Building
+/// * If the cursor is moved on a neighbor nucleotide, the controller transition to Building
 /// * If the cursor is moved out of the helix, the strand is cut and the controller transition to
 /// CrossCut state.
 ///
 /// It is possible to reach this state with no strand builder being active, in this case moving the
-/// cursor will have no effet and the controller will transition to NormalState when the left mouse
+/// cursor will have no effect and the controller will transition to NormalState when the left mouse
 /// button is released.
 struct InitBuilding {
     mouse_position: PhysicalPosition<f64>,
@@ -1819,22 +1819,18 @@ impl<S: AppState> ControllerState<S> for Building {
                 state,
                 ..
             } => {
-                /*assert!(
-                    *state == ElementState::Released,
-                    "Pressed mouse button in Building state"
-                );*/
                 if *state == ElementState::Pressed {
                     return Transition::nothing();
                 }
                 if self.can_attach {
-                    if let Some(attachement) =
-                        controller.data.borrow().attachable_neighbour(self.nucl)
+                    if let Some(attachment) =
+                        controller.data.borrow().attachable_neighbor(self.nucl)
                     {
                         return Transition {
                             new_state: Some(Box::new(NormalState {
                                 mouse_position: self.mouse_position,
                             })),
-                            consequences: Consequence::Xover(self.nucl, attachement),
+                            consequences: Consequence::Xover(self.nucl, attachment),
                         };
                     }
                 }
@@ -2024,17 +2020,17 @@ impl<S: AppState> ControllerState<S> for Cutting {
                         .data
                         .borrow()
                         .get_click(x, y, &controller.get_camera(position.y));
-                let attachement = if let ClickResult::Nucl(nucl) = nucl {
-                    Some(nucl).zip(controller.data.borrow().attachable_neighbour(nucl))
+                let attachment = if let ClickResult::Nucl(nucl) = nucl {
+                    Some(nucl).zip(controller.data.borrow().attachable_neighbor(nucl))
                 } else {
                     None
                 };
-                if let Some(attachement) = attachement {
+                if let Some(attachment) = attachment {
                     Transition {
                         new_state: Some(Box::new(NormalState {
                             mouse_position: self.mouse_position,
                         })),
-                        consequences: Consequence::Xover(attachement.0, attachement.1),
+                        consequences: Consequence::Xover(attachment.0, attachment.1),
                     }
                 } else {
                     let consequences = if nucl == ClickResult::Nucl(self.nucl) {

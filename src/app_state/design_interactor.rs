@@ -1729,14 +1729,14 @@ mod tests {
     }
 
     /// A design with two strands h1: 0 -> 5 and h1: 6 -> 10
-    fn two_neighbour_one_helix() -> AppState {
-        let path = test_path("two_neighbour_strands.ens");
+    fn two_neighbor_one_helix() -> AppState {
+        let path = test_path("two_neighbor_strands.ens");
         AppState::import_design(path).ok().unwrap()
     }
 
     #[test]
-    fn xover_same_helix_neighbour_strands() {
-        let mut app_state = two_neighbour_one_helix();
+    fn xover_same_helix_neighbor_strands() {
+        let mut app_state = two_neighbor_one_helix();
         let first_nucl = Nucl {
             helix: 1,
             position: 0,
@@ -1771,8 +1771,8 @@ mod tests {
     }
 
     #[test]
-    fn merge_neighbour_strands_same_helix() {
-        let mut app_state = two_neighbour_one_helix();
+    fn merge_neighbor_strands_same_helix() {
+        let mut app_state = two_neighbor_one_helix();
         let first_nucl = Nucl {
             helix: 1,
             position: 0,
@@ -1859,15 +1859,12 @@ mod tests {
         strand.read_junctions(&mut xover_ids, false);
     }
 
-    /// A design with two strands [h1: 0 -> 10] and [@20] [h2: 0 <- 10]
-    fn loopout_5prime_and_3prime_ends() -> AppState {
-        let path = test_path("loopout_5prime_and_3prime.ens");
-        AppState::import_design(path).ok().unwrap()
-    }
-
+    #[ignore = "the test file doesn't exist anymore"]
     #[test]
     fn merge_insertions() {
-        let mut app_state = loopout_5prime_and_3prime_ends();
+        // A design with two strands [h1: 0 -> 10] and [@20] [h2: 0 <- 10]
+        let path = test_path("loopout_5prime_and_3prime.ens");
+        let mut app_state = AppState::import_design(path).ok().unwrap();
         let source_nucl = Nucl {
             helix: 1,
             position: 10,

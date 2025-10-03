@@ -207,11 +207,11 @@ impl Strands {
 
 /// A link between a 5' and a 3' domain.
 ///
-/// For any non cyclic strand, the last domain juction must be DomainJunction::Prime3. For a cyclic
+/// For any non cyclic strand, the last domain junction must be DomainJunction::Prime3. For a cyclic
 /// strand it must be the link that would be appropriate between the first and the last domain.
 ///
-/// An Insertion is considered to be adjacent to its 5' neighbour. The link between an Insertion
-/// and it's 3' neighbour is the link that would exist between it's 5' and 3' neighbour if there
+/// An Insertion is considered to be adjacent to its 5' neighbor. The link between an Insertion
+/// and it's 3' neighbor is the link that would exist between it's 5' and 3' neighbor if there
 /// were no insertion.
 #[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize)]
 pub enum DomainJunction {
@@ -220,7 +220,7 @@ pub enum DomainJunction {
     UnindentifiedXover,
     /// A cross-over with an identifier.
     IdentifiedXover(usize),
-    /// A link between two neighbouring domains
+    /// A link between two neighboring domains
     Adjacent,
     /// Indicate that the previous domain is the end of the strand.
     Prime3,
@@ -709,10 +709,7 @@ impl Strand {
         let mut previous_domain: Option<Domain> = None;
         let mut lengths: Vec<usize> = vec![];
         for d in self.domains.iter() {
-            if previous_domain
-                .filter(|prev| prev.is_neighbour(d))
-                .is_some()
-            {
+            if previous_domain.filter(|prev| prev.is_neighbor(d)).is_some() {
                 *lengths.last_mut().unwrap() += d.length();
             } else {
                 lengths.push(d.length());
@@ -724,7 +721,7 @@ impl Strand {
                 .domains
                 .first()
                 .zip(self.domains.last())
-                .filter(|(d1, d2)| d1.is_neighbour(d2))
+                .filter(|(d1, d2)| d1.is_neighbor(d2))
                 .is_some()
         {
             lengths[0] += lengths.pop().unwrap();
@@ -1134,7 +1131,7 @@ impl Domain {
         }
     }
 
-    pub fn is_neighbour(&self, other: &Self) -> bool {
+    pub fn is_neighbor(&self, other: &Self) -> bool {
         if let (
             Self::HelixDomain(HelixInterval {
                 start: my_start, ..
