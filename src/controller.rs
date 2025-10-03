@@ -18,41 +18,40 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 //! Handles windows and dialog (Alert, and file pickers) interactions.
 
-use crate::PastePosition;
+mod chanel_reader;
 mod download_intervals;
 mod download_staples;
+mod messages;
+mod normal_state;
+mod quit;
+mod set_scaffold_sequence;
+
+use super::{dialog, OverlayType, SplitMode};
+use crate::PastePosition;
+pub use chanel_reader::{ChannelReader, ChannelReaderUpdate};
+use dialog::{MustAckMessage, YesNoQuestion};
 use download_staples::*;
 pub use download_staples::{DownloadStapleError, DownloadStapleOk, StaplesDownloader};
-use ensnano_interactor::consts::CANNOT_OPEN_DEFAULT_DIR;
-use std::sync::Arc;
-mod quit;
-use ensnano_design::grid::GridId;
-use ensnano_design::group_attributes::GroupPivot;
+use ensnano_design::{grid::GridId, group_attributes::GroupPivot};
 use ensnano_exports::{ExportResult, ExportType};
+use ensnano_iced::UiSize;
 use ensnano_interactor::{
-    application::Notification, DesignOperation, RevolutionSurfaceSystemDescriptor,
+    application::Notification, consts::CANNOT_OPEN_DEFAULT_DIR, DesignOperation, DesignReader,
+    RevolutionSurfaceSystemDescriptor, RigidBodyConstants, Selection,
 };
-use ensnano_interactor::{DesignReader, RigidBodyConstants, Selection};
+pub use normal_state::Action;
+use normal_state::NormalState;
 use quit::*;
-mod set_scaffold_sequence;
 use set_scaffold_sequence::*;
 pub use set_scaffold_sequence::{
     ScaffoldSetter, SetScaffoldSequenceError, SetScaffoldSequenceOk, TargetScaffoldLength,
 };
-mod chanel_reader;
-mod messages;
-mod normal_state;
-pub use chanel_reader::{ChannelReader, ChannelReaderUpdate};
-pub use normal_state::Action;
-use normal_state::NormalState;
-
-use std::path::{Path, PathBuf};
-
-use super::dialog;
-use super::{OverlayType, SplitMode};
-use dialog::MustAckMessage;
-use ensnano_iced::UiSize;
-use std::borrow::Cow;
+use std::{
+    borrow::Cow,
+    path::{Path, PathBuf},
+    sync::Arc,
+};
+use ultraviolet::{Rotor3, Vec3};
 
 pub struct Controller {
     /// The sate of the windows
@@ -66,7 +65,7 @@ impl Controller {
         }
     }
 
-    /// This function is called to update the sate of ENSnano. Its behaviour depends on the state
+    /// This function is called to update the sate of ENSnano. Its behavior depends on the state
     /// of the [Controller](`Controller`).
     pub(crate) fn make_progress(&mut self, main_state: &mut dyn MainState) {
         main_state.check_backup();
@@ -86,7 +85,7 @@ pub(crate) trait State {
     fn make_progress(self: Box<Self>, main_state: &mut dyn MainState) -> Box<dyn State>;
 }
 
-/// A dummy state that shoud never be constructed.
+/// A dummy state that should never be constructed.
 ///
 /// It is used as an argument to `std::mem::take`.
 struct OhNo;
@@ -103,20 +102,20 @@ struct TransitionMessage {
     level: rfd::MessageLevel,
     content: Cow<'static, str>,
     ack: Option<MustAckMessage>,
-    transistion_to: Box<dyn State>,
+    transition_to: Box<dyn State>,
 }
 
 impl TransitionMessage {
     fn new<S: Into<Cow<'static, str>>>(
         content: S,
         level: rfd::MessageLevel,
-        transistion_to: Box<dyn State + 'static>,
+        transition_to: Box<dyn State + 'static>,
     ) -> Box<Self> {
         Box::new(Self {
             level,
             content: content.into(),
             ack: None,
-            transistion_to,
+            transition_to,
         })
     }
 }
@@ -125,7 +124,7 @@ impl State for TransitionMessage {
     fn make_progress(mut self: Box<Self>, _: &mut dyn MainState) -> Box<dyn State + 'static> {
         if let Some(ack) = self.ack.as_ref() {
             if ack.was_ack() {
-                self.transistion_to
+                self.transition_to
             } else {
                 self
             }
@@ -137,6 +136,7 @@ impl State for TransitionMessage {
     }
 }
 
+// TODO: Remove this function? rfd::MessageLevel already implements Clone
 fn clone_msg_level(level: &rfd::MessageLevel) -> rfd::MessageLevel {
     match level {
         rfd::MessageLevel::Warning => rfd::MessageLevel::Warning,
@@ -145,7 +145,6 @@ fn clone_msg_level(level: &rfd::MessageLevel) -> rfd::MessageLevel {
     }
 }
 
-use dialog::YesNoQuestion;
 /// Ask the user a yes/no question and transition to a state that depends on their answer.
 struct YesNo {
     question: Cow<'static, str>,
@@ -189,7 +188,6 @@ impl State for YesNo {
     }
 }
 
-use ultraviolet::{Rotor3, Vec3};
 pub(crate) trait MainState: ScaffoldSetter {
     fn pop_action(&mut self) -> Option<Action>;
     fn exit_control_flow(&mut self);
@@ -263,7 +261,7 @@ impl std::fmt::Display for LoadDesignError {
             Self::ScadnanoImportError(e) => {
                 write!(
                     f,
-                    "Scadnanofile detected but the following error was encountered:
+                    "Scadnano file detected but the following error was encountered:
                 {:?}",
                     e
                 )
@@ -273,7 +271,7 @@ impl std::fmt::Display for LoadDesignError {
                     f,
                     "Your ENSnano version is too old to load this design.
                 Your version: {current},
-                Requiered version: {required}"
+                Required version: {required}"
                 )
             }
         }
