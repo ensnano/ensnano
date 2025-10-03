@@ -809,7 +809,6 @@ pub trait SimulationUpdate: Send + Sync {
 
 pub trait NuclCollection: Send + Sync + 'static {
     fn iter_nucls_ids<'a>(&'a self) -> Box<dyn Iterator<Item = (&'a Nucl, &'a u32)> + 'a>;
-    fn contains_nucl(&self, nucl: &Nucl) -> bool;
     fn iter_nucls<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Nucl> + 'a>;
     fn virtual_to_real(&self, virtual_nucl: &VirtualNucl) -> Option<&Nucl>;
 }
