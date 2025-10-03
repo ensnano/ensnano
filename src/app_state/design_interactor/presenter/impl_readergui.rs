@@ -104,7 +104,7 @@ impl ReaderGui for DesignReader {
     fn xover_length(&self, xover_id: usize) -> Option<(f32, Option<f32>)> {
         let (n1, n2) = self.presenter.junctions_ids.get_element(xover_id)?;
         let len_self = self.presenter.get_xover_len(xover_id)?;
-        let neighbour_id = self
+        let neighbor_id = self
             .presenter
             .junctions_ids
             .get_id(&(n1.prime3(), n2.prime5()))
@@ -124,9 +124,9 @@ impl ReaderGui for DesignReader {
                     .get_id(&(n2.prime5(), n1.prime3()))
             });
 
-        let neighbour_len = neighbour_id.and_then(|id| self.presenter.get_xover_len(id));
+        let len_neighbor = neighbor_id.and_then(|id| self.presenter.get_xover_len(id));
 
-        Some((len_self, neighbour_len))
+        Some((len_self, len_neighbor))
     }
 
     fn get_id_of_xover_involving_nucl(&self, nucl: Nucl) -> Option<usize> {

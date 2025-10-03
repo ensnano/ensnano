@@ -29,26 +29,9 @@ use iced::{
 };
 use iced_graphics::text::Paragraph;
 
-/// A container that <span class="warning>should contain</span> a [text_input::TextInput].
+/// A container that should contain a [text_input::TextInput].
 ///
 /// Trigger `on_priority` and `on_unpriority` when the text_input is focused or unfocused.
-///
-/// # Example
-///
-/// ```no_run
-/// #[derive(Debug, Clone)]
-/// enum Message {
-///     SetKeyboardPriority(bool)
-/// }
-///
-/// let value = "Some Text";
-///
-/// let input = keyboard_priority(
-///     text_input("This is the placeholder...", value)
-/// )
-/// .on_priority(Message::SetKeyboardPriority(true))
-/// .on_unpriority(Message::SetKeyboardPriority(false));
-/// ```
 pub struct KeyboardPriority<'a, Message, Theme = crate::Theme, Renderer = crate::Renderer> {
     padding: Padding,
     width: Length,

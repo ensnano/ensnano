@@ -86,10 +86,10 @@ impl XoverSuggestions {
         suggestion_parameters: &SuggestionParameters,
     ) {
         for blue_nucl in self.blue_nucl.iter() {
-            let neighbour = self
+            let neighbor = self
                 .get_possible_cross_over_groups(design, blue_nucl, suggestion_parameters)
                 .unwrap_or_default();
-            for (red_nucl, dist) in neighbour {
+            for (red_nucl, dist) in neighbor {
                 ret.push((*blue_nucl, red_nucl, dist))
             }
         }
@@ -131,10 +131,10 @@ impl XoverSuggestions {
     ) {
         for nucls in self.helices_groups.values() {
             for n in nucls.iter() {
-                let neighbour = self
+                let neighbor = self
                     .get_possible_cross_over_all_helices(design, n, suggestion_parameters)
                     .unwrap_or_default();
-                for (red_nucl, dist) in neighbour {
+                for (red_nucl, dist) in neighbor {
                     ret.push((*n, red_nucl, dist))
                 }
             }

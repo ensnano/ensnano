@@ -75,7 +75,6 @@ impl PhysicalSystem {
             helix_map,
             xovers,
             helix_parameters,
-            intervals,
         };
         let interface = Arc::new(Mutex::new(RollInterface::default()));
         let interface_dyn: Arc<Mutex<dyn super::SimulationInterface>> = interface.clone();
@@ -366,7 +365,6 @@ pub struct DesignData {
     pub helix_map: HashMap<usize, usize>,
     pub xovers: Vec<(Nucl, Nucl)>,
     pub helix_parameters: HelixParameters,
-    pub intervals: Vec<Option<(isize, isize)>>,
 }
 
 impl DesignData {

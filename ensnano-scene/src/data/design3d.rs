@@ -1592,19 +1592,6 @@ impl<R: DesignReader> Design3D<R> {
         prime5_1.and(prime5_2).is_some()
     }
 
-    #[allow(dead_code)]
-    pub fn get_all_prime3_cone(&self) -> Vec<RawDnaInstance> {
-        if self.all_helices_on_axis {
-            return vec![];
-        }
-        let cones = self.design_reader.get_all_prime3_nucl();
-        let mut ret = Vec::with_capacity(cones.len());
-        for c in cones {
-            ret.push(create_prime3_cone(c.0, c.1, c.2, 1.));
-        }
-        ret
-    }
-
     pub fn get_surface_info_nucl(&self, nucl: Nucl) -> Option<SurfaceInfo> {
         self.design_reader.get_surface_info_nucl(nucl)
     }

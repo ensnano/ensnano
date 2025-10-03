@@ -265,14 +265,14 @@ impl<S: AppState> ControllerState<S> for NormalState {
                                         consequences: Consequence::InitBuilding(nucl),
                                     }
                                 }
-                            } else if let Some(attachement) =
-                                controller.data.borrow().attachable_neighbour(nucl)
+                            } else if let Some(attachment) =
+                                controller.data.borrow().attachable_neighbor(nucl)
                             {
                                 Transition {
-                                    new_state: Some(Box::new(InitAttachement {
+                                    new_state: Some(Box::new(InitAttachment {
                                         mouse_position: self.mouse_position,
                                         from: nucl,
-                                        to: attachement,
+                                        to: attachment,
                                     })),
                                     consequences: Consequence::Nothing,
                                 }
@@ -320,12 +320,11 @@ impl<S: AppState> ControllerState<S> for NormalState {
                             consequences: Consequence::Nothing,
                         }
                     }
-                    ClickResult::CircleWidget { translation_pivot } => {
+                    ClickResult::CircleWidget { .. } => {
                         if controller.action_mode == ActionMode::Cut {
                             Transition {
                                 new_state: Some(Box::new(RmHelix {
                                     mouse_position: self.mouse_position,
-                                    helix: translation_pivot.helix,
                                 })),
                                 consequences: Consequence::Nothing,
                             }
@@ -786,14 +785,14 @@ impl<S: AppState> ControllerState<S> for ReleasedPivot {
                                         consequences: Consequence::InitBuilding(nucl),
                                     }
                                 }
-                            } else if let Some(attachement) =
-                                controller.data.borrow().attachable_neighbour(nucl)
+                            } else if let Some(attachment) =
+                                controller.data.borrow().attachable_neighbor(nucl)
                             {
                                 Transition {
-                                    new_state: Some(Box::new(InitAttachement {
+                                    new_state: Some(Box::new(InitAttachment {
                                         mouse_position: self.mouse_position,
                                         from: nucl,
-                                        to: attachement,
+                                        to: attachment,
                                     })),
                                     consequences: Consequence::Nothing,
                                 }
@@ -1228,10 +1227,10 @@ impl<S: AppState> ControllerState<S> for Rotating {
                     let consequences = if let ClickResult::Nucl(nucl) = click_result {
                         if let Some(nucl) = controller.data.borrow().can_make_auto_xover(nucl) {
                             Consequence::FollowingSuggestion(nucl, false)
-                        } else if let Some(attachement) =
-                            controller.data.borrow().attachable_neighbour(nucl)
+                        } else if let Some(attachment) =
+                            controller.data.borrow().attachable_neighbor(nucl)
                         {
-                            Consequence::Xover(nucl, attachement)
+                            Consequence::Xover(nucl, attachment)
                         } else {
                             Consequence::Cut(nucl)
                         }
@@ -1410,22 +1409,22 @@ impl<S: AppState> ControllerState<S> for AddOrXover {
     }
 }
 
-/// This state is entered when clicking on a strand extremity that has a neighbouring
-/// strand. If the cursor is released on the same nucleotide, the two neighbouring strands
+/// This state is entered when clicking on a strand extremity that has a neighboring
+/// strand. If the cursor is released on the same nucleotide, the two neighboring strands
 /// are merged.
-struct InitAttachement {
+struct InitAttachment {
     mouse_position: PhysicalPosition<f64>,
     from: FlatNucl,
     to: FlatNucl,
 }
 
-impl<S: AppState> ControllerState<S> for InitAttachement {
+impl<S: AppState> ControllerState<S> for InitAttachment {
     fn transition_from(&self, _controller: &Controller<S>) {}
 
     fn transition_to(&self, _controller: &Controller<S>) {}
 
     fn display(&self) -> String {
-        String::from("Init Attachement")
+        String::from("Init Attachment")
     }
 
     fn input(
@@ -1504,12 +1503,12 @@ impl<S: AppState> ControllerState<S> for InitAttachement {
 /// an other state. A transition is triggered when the cursor leaves the square in which the user
 /// clicked to initiate strand building.
 ///
-/// * If the cursor is moved on a neighbour nucleotide, the controller transition to Building
+/// * If the cursor is moved on a neighbor nucleotide, the controller transition to Building
 /// * If the cursor is moved out of the helix, the strand is cut and the controller transition to
 /// CrossCut state.
 ///
 /// It is possible to reach this state with no strand builder being active, in this case moving the
-/// cursor will have no effet and the controller will transition to NormalState when the left mouse
+/// cursor will have no effect and the controller will transition to NormalState when the left mouse
 /// button is released.
 struct InitBuilding {
     mouse_position: PhysicalPosition<f64>,
@@ -1819,22 +1818,18 @@ impl<S: AppState> ControllerState<S> for Building {
                 state,
                 ..
             } => {
-                /*assert!(
-                    *state == ElementState::Released,
-                    "Pressed mouse button in Building state"
-                );*/
                 if *state == ElementState::Pressed {
                     return Transition::nothing();
                 }
                 if self.can_attach {
-                    if let Some(attachement) =
-                        controller.data.borrow().attachable_neighbour(self.nucl)
+                    if let Some(attachment) =
+                        controller.data.borrow().attachable_neighbor(self.nucl)
                     {
                         return Transition {
                             new_state: Some(Box::new(NormalState {
                                 mouse_position: self.mouse_position,
                             })),
-                            consequences: Consequence::Xover(self.nucl, attachement),
+                            consequences: Consequence::Xover(self.nucl, attachment),
                         };
                     }
                 }
@@ -2024,22 +2019,23 @@ impl<S: AppState> ControllerState<S> for Cutting {
                         .data
                         .borrow()
                         .get_click(x, y, &controller.get_camera(position.y));
-                let attachement = if let ClickResult::Nucl(nucl) = nucl {
-                    Some(nucl).zip(controller.data.borrow().attachable_neighbour(nucl))
+                let attachment = if let ClickResult::Nucl(nucl) = nucl {
+                    Some(nucl).zip(controller.data.borrow().attachable_neighbor(nucl))
                 } else {
                     None
                 };
-                if let Some(attachement) = attachement {
+                if let Some(attachment) = attachment {
                     Transition {
                         new_state: Some(Box::new(NormalState {
                             mouse_position: self.mouse_position,
                         })),
-                        consequences: Consequence::Xover(attachement.0, attachement.1),
+                        consequences: Consequence::Xover(attachment.0, attachment.1),
                     }
                 } else {
                     let consequences = if nucl == ClickResult::Nucl(self.nucl) {
                         if self.whole_strand {
-                            Consequence::RmStrand(self.nucl)
+                            // Consequence::RmStrand(self.nucl)
+                            Consequence::Nothing
                         } else {
                             Consequence::Cut(self.nucl)
                         }
@@ -2076,7 +2072,6 @@ impl<S: AppState> ControllerState<S> for Cutting {
 
 struct RmHelix {
     mouse_position: PhysicalPosition<f64>,
-    helix: FlatHelix,
 }
 
 impl<S: AppState> ControllerState<S> for RmHelix {
@@ -2101,31 +2096,28 @@ impl<S: AppState> ControllerState<S> for RmHelix {
                 state,
                 ..
             } => {
-                /*assert!(
-                    *state == ElementState::Released,
-                    "Pressed mouse button in Cutting state"
-                );*/
                 if *state == ElementState::Pressed {
                     return Transition::nothing();
                 }
-                let (x, y) = controller
-                    .get_camera(position.y)
-                    .borrow()
-                    .screen_to_world(self.mouse_position.x as f32, self.mouse_position.y as f32);
-                let nucl =
-                    controller
-                        .data
-                        .borrow()
-                        .get_click(x, y, &controller.get_camera(position.y));
-                let consequences = if let ClickResult::CircleWidget { translation_pivot } = nucl {
-                    if translation_pivot.helix == self.helix {
-                        Consequence::RmHelix(self.helix)
-                    } else {
-                        Consequence::Nothing
-                    }
-                } else {
-                    Consequence::Nothing
-                };
+                // let (x, y) = controller
+                //     .get_camera(position.y)
+                //     .borrow()
+                //     .screen_to_world(self.mouse_position.x as f32, self.mouse_position.y as f32);
+                // let nucl =
+                //     controller
+                //         .data
+                //         .borrow()
+                //         .get_click(x, y, &controller.get_camera(position.y));
+                // let consequences = if let ClickResult::CircleWidget { translation_pivot } = nucl {
+                //     if translation_pivot.helix == self.helix {
+                //         Consequence::RmHelix(self.helix)
+                //     } else {
+                //         Consequence::Nothing
+                //     }
+                // } else {
+                //     Consequence::Nothing
+                // };
+                let consequences = Consequence::Nothing;
                 Transition {
                     new_state: Some(Box::new(NormalState {
                         mouse_position: self.mouse_position,
@@ -2411,87 +2403,6 @@ impl<S: AppState> ControllerState<S> for FollowingSuggestion {
     }
 }
 
-struct CenteringSuggestion {
-    mouse_position: PhysicalPosition<f64>,
-    nucl: FlatNucl,
-    bottom: bool,
-}
-
-impl<S: AppState> ControllerState<S> for CenteringSuggestion {
-    fn transition_from(&self, _controller: &Controller<S>) {}
-
-    fn transition_to(&self, _controller: &Controller<S>) {}
-
-    fn display(&self) -> String {
-        String::from("CenteringSuggestion")
-    }
-
-    fn input(
-        &mut self,
-        event: &WindowEvent,
-        position: PhysicalPosition<f64>,
-        controller: &Controller<S>,
-        _: &S,
-    ) -> Transition<S> {
-        match event {
-            WindowEvent::MouseInput {
-                button: MouseButton::Right,
-                state,
-                ..
-            } => {
-                /*assert!(
-                    *state == ElementState::Released,
-                    "Pressed mouse button in Cutting state"
-                );*/
-                if *state == ElementState::Pressed {
-                    return Transition::nothing();
-                }
-                let (x, y) = controller
-                    .get_camera(position.y)
-                    .borrow()
-                    .screen_to_world(self.mouse_position.x as f32, self.mouse_position.y as f32);
-                let nucl =
-                    controller
-                        .data
-                        .borrow()
-                        .get_click(x, y, &controller.get_camera(position.y));
-                let consequences = if let ClickResult::Nucl(nucl) = nucl {
-                    if nucl == self.nucl {
-                        let nucl = controller.data.borrow().get_best_suggestion(self.nucl);
-                        Consequence::Centering(nucl.unwrap_or(self.nucl), !self.bottom)
-                    } else {
-                        Consequence::Nothing
-                    }
-                } else {
-                    Consequence::Nothing
-                };
-                Transition {
-                    new_state: Some(Box::new(NormalState {
-                        mouse_position: self.mouse_position,
-                    })),
-                    consequences,
-                }
-            }
-            WindowEvent::CursorMoved { .. } => {
-                self.mouse_position = position;
-                Transition::nothing()
-            }
-            WindowEvent::KeyboardInput { .. } => {
-                controller.process_keyboard(event);
-                Transition::nothing()
-            }
-            WindowEvent::MouseWheel { delta, .. } => {
-                controller
-                    .get_camera(position.y)
-                    .borrow_mut()
-                    .process_scroll(delta, self.mouse_position);
-                Transition::nothing()
-            }
-            _ => Transition::nothing(),
-        }
-    }
-}
-
 struct Pasting {
     mouse_position: PhysicalPosition<f64>,
     nucl: Option<FlatNucl>,
@@ -2684,103 +2595,6 @@ impl<S: AppState> ControllerState<S> for DraggingSelection {
     }
 
     fn transition_to(&self, _controller: &Controller<S>) {}
-}
-
-struct AddClick {
-    mouse_position: PhysicalPosition<f64>,
-    click_result: ClickResult,
-}
-
-impl<S: AppState> ControllerState<S> for AddClick {
-    fn transition_from(&self, _controller: &Controller<S>) {}
-
-    fn transition_to(&self, _controller: &Controller<S>) {}
-
-    fn display(&self) -> String {
-        String::from("AddClick")
-    }
-
-    fn input(
-        &mut self,
-        event: &WindowEvent,
-        position: PhysicalPosition<f64>,
-        controller: &Controller<S>,
-        app_state: &S,
-    ) -> Transition<S> {
-        match event {
-            WindowEvent::MouseInput {
-                button: MouseButton::Left,
-                state,
-                ..
-            } => {
-                /*assert!(
-                    *state == ElementState::Released,
-                    "Pressed mouse button in Cutting state"
-                );*/
-                if *state == ElementState::Pressed {
-                    return Transition::nothing();
-                }
-                let (x, y) = controller
-                    .get_camera(position.y)
-                    .borrow()
-                    .screen_to_world(self.mouse_position.x as f32, self.mouse_position.y as f32);
-                let click =
-                    controller
-                        .data
-                        .borrow()
-                        .get_click(x, y, &controller.get_camera(position.y));
-                if let ClickResult::CircleWidget { .. } = click {
-                    let selection = if controller.modifiers.shift_key() {
-                        controller.data.borrow_mut().add_helix_selection(
-                            click,
-                            &controller.get_camera(position.y),
-                            app_state,
-                        )
-                    } else {
-                        controller.data.borrow_mut().set_helix_selection(
-                            click,
-                            &controller.get_camera(position.y),
-                            app_state,
-                        )
-                    };
-                    Transition {
-                        new_state: Some(Box::new(ReleasedPivot {
-                            mouse_position: position,
-                            translation_pivots: selection.translation_pivots,
-                            rotation_pivots: selection.rotation_pivots,
-                        })),
-                        consequences: Consequence::SelectionChanged(selection.new_selection),
-                    }
-                } else {
-                    Transition {
-                        new_state: Some(Box::new(DoubleClicking {
-                            mouse_position: self.mouse_position,
-                            click_result: self.click_result.clone(),
-                            clicked_time: Instant::now(),
-                            clicked_position: position,
-                        })),
-                        consequences: Consequence::Nothing,
-                    }
-                }
-            }
-            WindowEvent::CursorMoved { .. } => {
-                self.mouse_position = position;
-                Transition::nothing()
-            }
-            WindowEvent::KeyboardInput { .. } => {
-                controller.process_keyboard(event);
-                Transition::nothing()
-            }
-            WindowEvent::MouseWheel { delta, .. } => {
-                controller
-                    .get_camera(position.y)
-                    .borrow_mut()
-                    .process_scroll(delta, self.mouse_position);
-                Transition::nothing()
-            }
-            _ => Transition::nothing(),
-        }
-    }
 }
 
 struct DoubleClicking {

@@ -625,49 +625,6 @@ impl Operation for Xover {
     }
 }
 
-/*
-/// Delete a strand
-#[derive(Clone, Debug)]
-pub struct RmStrand {
-    pub strand_id: usize,
-    pub design_id: usize,
-}
-
-impl Operation for RmStrand {
-    fn effect(&self) -> DesignOperation {
-        DesignOperation::RmStrand {
-            strand_id: self.strand_id,
-            design_id: self.design_id,
-        }
-    }
-
-    fn description(&self) -> String {
-        format!(
-            "Remove strand {} of design {}",
-            self.strand_id, self.design_id
-        )
-    }
-}
-
-#[derive(Clone, Debug)]
-pub struct RmHelix {
-    pub helix_id: usize,
-    pub design_id: usize,
-}
-
-impl Operation for RmHelix {
-    fn effect(&self) -> DesignOperation {
-        DesignOperation::RmHelix {
-            h_id: self.helix_id,
-        }
-    }
-
-    fn description(&self) -> String {
-        format!("Remove helix {}", self.helix_id)
-    }
-}
-*/
-
 /// Cut the target strand at nucl, and make a cross over from the source strand.
 #[derive(Clone, Debug)]
 pub struct CrossCut {

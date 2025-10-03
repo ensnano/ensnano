@@ -118,7 +118,6 @@ impl Twister {
             helix_map,
             xovers,
             helix_parameters,
-            intervals,
         };
 
         let interface = Arc::new(Mutex::new(TwistInterface::default()));

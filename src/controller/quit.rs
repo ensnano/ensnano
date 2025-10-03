@@ -16,11 +16,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+use super::{dialog, messages, State, TransitionMessage, YesNo};
 use crate::controller::normal_state::NormalState;
 use crate::dialog::Filters;
-
-use super::{dialog, messages, MainState, State, TransitionMessage, YesNo};
-
+use crate::MainStateView;
 use dialog::PathInput;
 use ensnano_exports::ExportType;
 use std::path::Path;
@@ -54,7 +53,7 @@ impl Quit {
 }
 
 impl State for Quit {
-    fn make_progress(self: Box<Self>, pending_action: &mut dyn MainState) -> Box<dyn State> {
+    fn make_progress(self: Box<Self>, pending_action: &mut MainStateView) -> Box<dyn State> {
         match self.step {
             QuitStep::Init { need_save } => init_quit(need_save),
             QuitStep::Quitting => {
@@ -150,7 +149,7 @@ impl Load {
 }
 
 impl State for Load {
-    fn make_progress(self: Box<Self>, state: &mut dyn MainState) -> Box<dyn State> {
+    fn make_progress(self: Box<Self>, state: &mut MainStateView) -> Box<dyn State> {
         match self.step {
             LoadStep::Init { need_save } => init_load(need_save, self.load_type),
             LoadStep::AskPath { path_input } => ask_path(
@@ -248,7 +247,7 @@ fn ask_path<P: AsRef<Path>>(
     }
 }
 
-fn load_design(path: PathBuf, state: &mut dyn MainState) -> Box<dyn State> {
+fn load_design(path: PathBuf, state: &mut MainStateView) -> Box<dyn State> {
     if let Err(err) = state.load_design(path) {
         TransitionMessage::new(
             format!("Error when loading design:\n{err}"),
@@ -260,12 +259,12 @@ fn load_design(path: PathBuf, state: &mut dyn MainState) -> Box<dyn State> {
     }
 }
 
-fn load_3d_object(path: PathBuf, state: &mut dyn MainState) -> Box<dyn State> {
+fn load_3d_object(path: PathBuf, state: &mut MainStateView) -> Box<dyn State> {
     state.load_3d_object(path);
     Box::new(super::NormalState)
 }
 
-fn load_svg(path: PathBuf, state: &mut dyn MainState) -> Box<dyn State> {
+fn load_svg(path: PathBuf, state: &mut MainStateView) -> Box<dyn State> {
     state.load_svg(path);
     Box::new(super::NormalState)
 }
@@ -294,7 +293,7 @@ impl NewDesign {
 }
 
 impl State for NewDesign {
-    fn make_progress(self: Box<Self>, main_state: &mut dyn MainState) -> Box<dyn State> {
+    fn make_progress(self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn State> {
         match self.step {
             NewStep::Init { need_save } => {
                 if let Some(path) = need_save {
@@ -314,7 +313,7 @@ fn init_new_design(path_to_save: Option<PathBuf>) -> Box<dyn State> {
     Box::new(YesNo::new(messages::SAVE_BEFORE_NEW, yes, no))
 }
 
-fn new_design(main_state: &mut dyn MainState) -> Box<dyn State> {
+fn new_design(main_state: &mut MainStateView) -> Box<dyn State> {
     main_state.new_design();
     Box::new(super::NormalState)
 }
@@ -350,7 +349,7 @@ impl SaveAs {
 }
 
 impl State for SaveAs {
-    fn make_progress(mut self: Box<Self>, main_state: &mut dyn MainState) -> Box<dyn State> {
+    fn make_progress(mut self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn State> {
         if let Some(ref getter) = self.file_getter {
             if let Some(path_opt) = getter.get() {
                 if let Some(ref path) = path_opt {
@@ -396,7 +395,7 @@ pub(super) struct SaveWithPath {
 }
 
 impl State for SaveWithPath {
-    fn make_progress(self: Box<Self>, main_state: &mut dyn MainState) -> Box<dyn State> {
+    fn make_progress(self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn State> {
         if let Err(err) = main_state.save_design(&self.path) {
             TransitionMessage::new(
                 format!("Failed to save: {:?}", err.0),
@@ -436,7 +435,7 @@ impl Exporting {
 }
 
 impl State for Exporting {
-    fn make_progress(mut self: Box<Self>, main_state: &mut dyn MainState) -> Box<dyn State> {
+    fn make_progress(mut self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn State> {
         if let Some(ref getter) = self.file_getter {
             if let Some(path_opt) = getter.get() {
                 if let Some(ref path) = path_opt {

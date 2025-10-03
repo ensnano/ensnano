@@ -56,8 +56,6 @@ pub struct Controller<S: AppState> {
 
 #[derive(Debug)]
 pub enum Consequence {
-    #[allow(dead_code)]
-    GlobalsChanged,
     Nothing,
     Xover(FlatNucl, FlatNucl),
     Cut(FlatNucl),
@@ -66,13 +64,10 @@ pub enum Consequence {
     CutFreeEnd(FlatNucl, Option<FreeEnd>),
     NewCandidate(Option<FlatNucl>),
     NewHelixCandidate(FlatHelix),
-    RmStrand(FlatNucl),
-    RmHelix(FlatHelix),
     FlipVisibility(FlatHelix, bool),
     Built,
     FlipGroup(FlatHelix),
     FollowingSuggestion(FlatNucl, bool),
-    Centering(FlatNucl, bool),
     DrawingSelection(PhysicalPosition<f64>, PhysicalPosition<f64>),
     ReleasedSelection(Option<Vec<Selection>>),
     PasteRequest(Option<FlatNucl>),

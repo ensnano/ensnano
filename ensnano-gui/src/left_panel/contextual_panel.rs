@@ -59,7 +59,7 @@ impl ValueRequest {
                         position: v,
                     })
                 } else {
-                    log::error!("Recieved value {:?} with selection {:?}", value, selection);
+                    log::error!("Received value {:?} with selection {:?}", value, selection);
                     None
                 }
             }
@@ -70,7 +70,7 @@ impl ValueRequest {
                         orientation,
                     })
                 } else {
-                    log::error!("Recieved value {:?} with selection {:?}", value, selection);
+                    log::error!("Received value {:?} with selection {:?}", value, selection);
                     None
                 }
             }
@@ -81,7 +81,7 @@ impl ValueRequest {
                         nb_turn,
                     })
                 } else {
-                    log::error!("Recieved value {:?} with selection {:?}", value, selection);
+                    log::error!("Received value {:?} with selection {:?}", value, selection);
                     None
                 }
             }
@@ -92,7 +92,7 @@ impl ValueRequest {
                         position: pos,
                     })
                 } else {
-                    log::error!("Recieved value {:?} with selection {:?}", value, selection);
+                    log::error!("Received value {:?} with selection {:?}", value, selection);
                     None
                 }
             }
@@ -412,7 +412,7 @@ where
             requests
                 .lock()
                 .unwrap()
-                .toggle_helices_persistance_of_grid(g_id);
+                .toggle_helices_persistence_of_grid(g_id);
         }
     }
 
@@ -764,18 +764,6 @@ fn view_2d_help() -> Vec<(String, String)> {
     ]
 }
 
-fn link_row<'a, State: AppState>(
-    link: &'static str,
-    ui_size: UiSize,
-) -> ensnano_iced::Element<'a, Message<State>> {
-    row![
-        self::column![text(link),].width(Length::FillPortion(3)),
-        self::column![text_button("Go", ui_size).on_press(Message::OpenLink(link)),]
-            .width(Length::FillPortion(1)),
-    ]
-    .into()
-}
-
 fn values_of_selection(selection: &Selection, reader: &dyn DesignReader) -> Vec<String> {
     match selection {
         Selection::Grid(_, g_id) => {
@@ -816,9 +804,9 @@ fn values_of_selection(selection: &Selection, reader: &dyn DesignReader) -> Vec<
 
 fn fmt_xover_len(info: Option<(f32, Option<f32>)>) -> Vec<String> {
     match info {
-        Some((len_self, Some(len_neighbour))) => vec![
+        Some((len_self, Some(len_neighbor))) => vec![
             format!("length {:.2} nm", len_self),
-            format!("{:.2} nm", len_neighbour),
+            format!("{:.2} nm", len_neighbor),
         ],
         Some((len, None)) => vec![format!("length {:.2} nm", len)],
         None => vec![String::from("Error getting length")],

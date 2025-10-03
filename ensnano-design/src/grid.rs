@@ -148,7 +148,7 @@ impl GridTypeDescr {
     fn to_concrete(self) -> GridType {
         match self {
             Self::Square { twist } => GridType::square(twist),
-            Self::Honeycomb { twist } => GridType::honneycomb(twist),
+            Self::Honeycomb { twist } => GridType::honeycomb(twist),
             Self::Hyperboloid {
                 radius,
                 shift,
@@ -234,7 +234,7 @@ impl GridType {
         Self::Square(SquareGrid { twist })
     }
 
-    pub fn honneycomb(twist: Option<f64>) -> Self {
+    pub fn honeycomb(twist: Option<f64>) -> Self {
         Self::Honeycomb(HoneyComb { twist })
     }
 
@@ -444,6 +444,29 @@ impl Grid {
             grid_center: self.position,
         };
         self.grid_type.curve(x, y, info)
+    }
+
+    fn error_group(&self, group: &[usize], helices: &Helices) -> f32 {
+        let mut ret = 0f32;
+        for h_id in group.iter() {
+            let helix = helices.get(h_id).unwrap();
+            let axis = helix.get_axis(&self.helix_parameters);
+            if let Axis::Line { origin, direction } = axis {
+                ret += self.error_helix(origin, direction);
+            }
+        }
+        ret
+    }
+
+    fn error_helix(&self, origin: Vec3, direction: Vec3) -> f32 {
+        let position_discrete = self
+            .interpolate_helix(origin, direction)
+            .map(|(x, y)| self.position_helix(x, y));
+        if let Some(position) = self.real_intersection(origin, direction) {
+            (position - position_discrete.unwrap()).mag_sq()
+        } else {
+            std::f32::INFINITY
+        }
     }
 }
 
@@ -1021,7 +1044,7 @@ impl GridData {
             leader.position,
             orientation,
             self.helix_parameters,
-            GridType::honneycomb(None),
+            GridType::honeycomb(None),
         );
         let mut best_err = hex_grid.error_group(group, &self.source_helices);
         for dx in [-1, 0, 1].iter() {
@@ -1034,7 +1057,7 @@ impl GridData {
                         position,
                         orientation.rotated_by(rotor),
                         self.helix_parameters,
-                        GridType::honneycomb(None),
+                        GridType::honeycomb(None),
                     );
                     let err = grid.error_group(group, &self.source_helices);
                     if err < best_err {
@@ -1240,36 +1263,6 @@ impl GridData {
     }
 }
 
-trait GridApprox {
-    fn error_group(&self, group: &[usize], helices: &Helices) -> f32;
-    fn error_helix(&self, origin: Vec3, direction: Vec3) -> f32;
-}
-
-impl GridApprox for Grid {
-    fn error_group(&self, group: &[usize], helices: &Helices) -> f32 {
-        let mut ret = 0f32;
-        for h_id in group.iter() {
-            let helix = helices.get(h_id).unwrap();
-            let axis = helix.get_axis(&self.helix_parameters);
-            if let Axis::Line { origin, direction } = axis {
-                ret += self.error_helix(origin, direction);
-            }
-        }
-        ret
-    }
-
-    fn error_helix(&self, origin: Vec3, direction: Vec3) -> f32 {
-        let position_descrete = self
-            .interpolate_helix(origin, direction)
-            .map(|(x, y)| self.position_helix(x, y));
-        if let Some(position) = self.real_intersection(origin, direction) {
-            (position - position_descrete.unwrap()).mag_sq()
-        } else {
-            std::f32::INFINITY
-        }
-    }
-}
-
 pub(super) fn make_grid_from_helices(
     design: &mut Design,
     helices: &[usize],
@@ -1383,23 +1376,6 @@ impl CurveInstantiator for GridData {
 
     fn source(&self) -> FreeGrids {
         self.source_free_grids.clone()
-    }
-
-    fn orientation(&self, grid: GridId) -> Rotor3 {
-        if let Some(grid) = self.grids.get(&grid) {
-            grid.orientation
-        } else {
-            log::error!("Attempt to get orientation of unexisting grid. This is a bug");
-            Rotor3::identity()
-        }
-    }
-
-    fn get_tangents_between_two_points(
-        &self,
-        p0: GridPosition,
-        p1: GridPosition,
-    ) -> Option<(Vec3, Vec3)> {
-        self.get_tangents_between_two_points(p0, p1)
     }
 
     fn translate_by_edge(&self, position: GridPosition, edge: Edge) -> Option<GridPosition> {

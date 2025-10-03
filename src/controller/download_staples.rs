@@ -16,9 +16,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use super::{messages, MainState, NormalState, State, TransitionMessage};
+use super::{messages, NormalState, State, TransitionMessage};
 
-use crate::dialog;
+use crate::{dialog, MainStateView};
 use dialog::{MustAckMessage, PathInput};
 use std::path::PathBuf;
 
@@ -48,7 +48,7 @@ impl Default for Step {
 }
 
 impl State for DownloadStaples {
-    fn make_progress(self: Box<Self>, main_state: &mut dyn MainState) -> Box<dyn State> {
+    fn make_progress(self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn State> {
         let downloader = main_state.get_staple_downloader();
         match self.step {
             Step::Init => get_design_providing_staples(downloader.as_ref()),
@@ -91,7 +91,7 @@ fn get_design_providing_staples(downlader: &dyn StaplesDownloader) -> Box<dyn St
     }
 }
 
-fn ask_path(mut state: AskingPath_, main_state: &dyn MainState) -> Box<DownloadStaples> {
+fn ask_path(mut state: AskingPath_, main_state: &MainStateView) -> Box<DownloadStaples> {
     if let Some(must_ack) = state.warning_ack.as_ref() {
         if !must_ack.was_ack() {
             return Box::new(DownloadStaples {

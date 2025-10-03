@@ -16,14 +16,71 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-pub use cadnano_format::Cadnano;
-use cadnano_format::VStrand;
-use ensnano_design::grid::{Grid, GridType};
-use ensnano_design::{Design, Domain, Helix, HelixInterval, Nucl, Strand};
-use ensnano_interactor::consts::SCAFFOLD_COLOR;
-use std::collections::{BTreeMap, HashMap, HashSet};
-use std::sync::Arc;
-use ultraviolet::{Rotor3, Vec3};
+use {
+    ensnano_design::{
+        grid::{Grid, GridType},
+        Design, Domain, Helix, HelixInterval, Nucl, Strand,
+    },
+    ensnano_interactor::consts::SCAFFOLD_COLOR,
+    serde::{Deserialize, Serialize},
+    std::{
+        collections::{BTreeMap, HashMap, HashSet},
+        sync::Arc,
+    },
+    std::{fs::File, path::Path},
+    ultraviolet::{Rotor3, Vec3},
+};
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
+pub(super) struct Cadnano {
+    name: String,
+    vstrands: Vec<VStrand>,
+}
+
+impl Cadnano {
+    pub fn from_file<P: AsRef<Path>>(file: P) -> Result<Self, CadnanoError> {
+        let f = File::open(file)?;
+        Ok(serde_json::from_reader(&f)?)
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
+struct VStrand {
+    pub col: isize,
+
+    // Position of insertions
+    #[serde(rename = "loop")]
+    pub loop_: Vec<isize>,
+    pub num: isize,
+    pub row: isize,
+    pub scaf: Vec<(isize, isize, isize, isize)>,
+    #[serde(rename = "scafLoop")]
+    pub scaf_loop: Vec<isize>,
+    pub skip: Vec<isize>,
+    // Each element is a corner (helix number, position, helix number, position).
+    pub stap: Vec<(isize, isize, isize, isize)>,
+    #[serde(rename = "stapLoop")]
+    pub stap_loop: Vec<isize>,
+    pub stap_colors: Vec<(isize, isize)>,
+}
+
+#[derive(Debug)]
+pub(super) enum CadnanoError {
+    IO(#[allow(unused)] std::io::Error),
+    Json(#[allow(unused)] serde_json::Error),
+}
+
+impl std::convert::From<std::io::Error> for CadnanoError {
+    fn from(e: std::io::Error) -> Self {
+        CadnanoError::IO(e)
+    }
+}
+
+impl std::convert::From<serde_json::Error> for CadnanoError {
+    fn from(e: serde_json::Error) -> Self {
+        CadnanoError::Json(e)
+    }
+}
 
 const NO_HELIX: usize = std::usize::MAX;
 
@@ -43,13 +100,13 @@ impl FromCadnano for Design {
         let mut num_to_helix: HashMap<isize, usize> = HashMap::new();
 
         let mut helices = BTreeMap::new();
-        let honneycomb = vstrands[0].scaf.len() % 21 == 0;
-        let grid = if honneycomb {
+        let honeycomb = vstrands[0].scaf.len() % 21 == 0;
+        let grid = if honeycomb {
             Grid::new(
                 Vec3::zero(),
                 Rotor3::identity(),
                 Default::default(),
-                GridType::honneycomb(None),
+                GridType::honeycomb(None),
             )
         } else {
             Grid::new(
@@ -143,16 +200,16 @@ fn make_strand(
 
     let mut insertions = Vec::new();
 
-    let mut curent_dom = 0;
-    while curent_dom == 0 || i != end_5.0 || j != end_5.1 {
-        let curent_helix = i;
-        let curent_5 = j;
-        let mut curent_3 = j;
+    let mut current_dom = 0;
+    while current_dom == 0 || i != end_5.0 || j != end_5.1 {
+        let current_helix = i;
+        let current_5 = j;
+        let mut current_3 = j;
         let mut once = false;
         let mut insertions_on_dom = Vec::new();
-        while i == curent_helix && (i != end_5.0 || j != end_5.1 || !once) {
+        while i == current_helix && (i != end_5.0 || j != end_5.1 || !once) {
             once = true;
-            curent_3 = j;
+            current_3 = j;
             println!("nucl {}, {}", i, j);
             if let Some(color) = colors.get(&(i, j)).filter(|_| !scaf) {
                 ret.color = *color as u32;
@@ -172,31 +229,31 @@ fn make_strand(
             j = result.3 as usize;
         }
         println!("ready to build domain");
-        let forward = curent_3 >= curent_5;
+        let forward = current_3 >= current_5;
         let start = if forward {
-            substract_skips(curent_5, curent_helix, vstrands)
+            subtract_skips(current_5, current_helix, vstrands)
         } else {
-            substract_skips(curent_3, curent_helix, vstrands)
+            subtract_skips(current_3, current_helix, vstrands)
         };
         let end = if forward {
-            substract_skips(curent_3, curent_helix, vstrands)
+            subtract_skips(current_3, current_helix, vstrands)
         } else {
-            substract_skips(curent_5, curent_helix, vstrands)
+            subtract_skips(current_5, current_helix, vstrands)
         };
         for (j, n) in insertions_on_dom {
             insertions.push((
                 Nucl {
-                    helix: curent_helix,
-                    position: substract_skips(j, curent_helix, vstrands),
+                    helix: current_helix,
+                    position: subtract_skips(j, current_helix, vstrands),
                     forward,
                 },
                 n,
             ));
         }
 
-        println!("pushing {} {} {} {}", curent_helix, start, end, forward);
+        println!("pushing {} {} {} {}", current_helix, start, end, forward);
         ret.domains.push(Domain::HelixDomain(HelixInterval {
-            helix: curent_helix,
+            helix: current_helix,
             start,
             end: end + 1,
             forward,
@@ -205,7 +262,7 @@ fn make_strand(
         if i == NO_HELIX {
             break;
         }
-        curent_dom += 1;
+        current_dom += 1;
     }
     if cyclic {
         if let Domain::HelixDomain(dom0) = &ret.domains[0] {
@@ -244,7 +301,7 @@ fn make_strand(
     ret
 }
 
-fn substract_skips(nucl: usize, helix: usize, vstrands: &Vec<VStrand>) -> isize {
+fn subtract_skips(nucl: usize, helix: usize, vstrands: &Vec<VStrand>) -> isize {
     let skips: isize = (0..(nucl + 1))
         .map(|n| vstrands[helix].skip[n as usize])
         .sum();

@@ -59,10 +59,6 @@ impl super::NuclCollection for NuclCollection {
         Box::new(self.identifier.iter())
     }
 
-    fn contains_nucl(&self, nucl: &Nucl) -> bool {
-        self.identifier.contains_key(nucl)
-    }
-
     fn iter_nucls<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Nucl> + 'a> {
         Box::new(self.identifier.keys())
     }
@@ -120,9 +116,6 @@ pub(super) struct DesignContent {
     pub color_map: HashMap<u32, u32, RandomState>,
     /// Maps the identifier of an element to its radius
     pub radius_map: HashMap<u32, f32, RandomState>,
-    /// Maps the identifier of a bond element to its helix radius (if ≠ None)
-    pub helix_radius_map: HashMap<u32, f32, RandomState>,
-    pub helix_color_map: HashMap<u32, u32, RandomState>,
     pub letter_map: Arc<HashMap<Nucl, char, RandomState>>,
     pub prime3_set: Vec<Prime3End>,
     pub elements: Vec<DesignElement>,
@@ -132,10 +125,7 @@ pub(super) struct DesignContent {
     pub loopout_bonds: Vec<LoopoutBond>,
     /// Maps bonds identifier to the length of the corresponding insertion.
     pub insertion_length: HashMap<u32, usize, RandomState>,
-    /// Maps identifiers to drawing styles
-    pub drawing_styles: HashMap<DesignElementKey, DrawingStyle, RandomState>,
     pub xover_coloring_map: HashMap<u32, bool, RandomState>,
-    pub clone_transformations: Vec<Isometry3>,
     pub with_cones_map: HashMap<u32, bool, RandomState>,
     // min value, max value and rainbow function(t, min, max)->color
     pub scalebar: Option<(f32, f32, fn(f32, f32, f32) -> u32)>,
@@ -541,8 +531,6 @@ impl DesignContent {
         let mut strand_map = HashMap::default();
         let mut color_map = HashMap::default();
         let mut radius_map = HashMap::default();
-        let helix_radius_map = HashMap::default();
-        let helix_color_map = HashMap::default();
         let mut helix_map = HashMap::default();
         let mut letter_map = HashMap::default();
         let mut with_cones_map = HashMap::default();
@@ -558,11 +546,13 @@ impl DesignContent {
         let mut new_junctions: JunctionsIds = Default::default();
         let mut suggestion_maker = XoverSuggestions::default();
         let mut insertion_length = HashMap::default();
-        let mut drawing_styles = HashMap::default();
         let mut xover_coloring_map = HashMap::default();
-        let mut clone_transformations = Vec::new();
         let mut clone_variables: HashMap<String, f32> = HashMap::new();
         let mut scalebar: Option<(f32, f32, fn(f32, f32, f32) -> u32)> = None;
+
+        // Maps identifiers to drawing styles
+        let mut drawing_styles = HashMap::<DesignElementKey, DrawingStyle, RandomState>::default();
+        let mut clone_transformations = Vec::<Isometry3>::new();
 
         xover_ids.copy_next_id_to(&mut new_junctions);
         let rainbow_strand = design.scaffold_id.filter(|_| design.rainbow_scaffold);
@@ -1361,8 +1351,6 @@ impl DesignContent {
             color_map,
             radius_map,
             helix_map,
-            helix_radius_map,
-            helix_color_map,
             letter_map: Arc::new(letter_map),
             prime3_set,
             elements,
@@ -1371,9 +1359,7 @@ impl DesignContent {
             loopout_bonds,
             loopout_nucls,
             insertion_length,
-            drawing_styles,
             xover_coloring_map,
-            clone_transformations,
             with_cones_map,
             scalebar,
         };

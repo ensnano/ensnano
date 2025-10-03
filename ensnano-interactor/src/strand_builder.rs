@@ -34,19 +34,19 @@ pub struct StrandBuilder {
     /// The fixed_end of the domain being edited, `None` if the domain is new and can go in both
     /// direction
     fixed_end: Option<isize>,
-    /// The enventual other strand being modified by the current modification
-    neighbour_strand: Option<NeighbourDescriptor>,
-    /// The direction in which the end of neighbour_strand can go, starting from its inital
+    /// The eventual other strand being modified by the current modification
+    neighbor_strand: Option<NeighborDescriptor>,
+    /// The direction in which the end of neighbor_strand can go, starting from its initial
     /// position
-    neighbour_direction: Option<EditDirection>,
+    neighbor_direction: Option<EditDirection>,
     /// The minimum position to which the edited domain can go. It corresponds to the eventual
-    /// minimum position of the neighbour_strand or to the other end of the domain being edited
+    /// minimum position of the neighbor_strand or to the other end of the domain being edited
     min_pos: Option<isize>,
     /// The maximum position to which the edited domain can go. It corresponds to the eventual
-    /// maximum position of the neighbour_strand, or to the other end of the domain being edited
+    /// maximum position of the neighbor_strand, or to the other end of the domain being edited
     max_pos: Option<isize>,
-    /// A envtual neighbour that was detached during the movement
-    detached_neighbour: Option<NeighbourDescriptor>,
+    /// An eventual neighbor that was detached during the movement
+    detached_neighbor: Option<NeighborDescriptor>,
     /// The id of the design being edited
     design_id: u32,
     /// A timestamp used to distinguish between strand building operation initiated at different
@@ -56,8 +56,8 @@ pub struct StrandBuilder {
 }
 
 impl StrandBuilder {
-    /// Create a strand that will build a new strand. This means that the inital position
-    /// correspons to a phantom nucleotide
+    /// Create a strand that will build a new strand. This means that the initial position
+    /// corresponds to a phantom nucleotide
     /// # Argument
     ///
     /// * identifier: The identifier of the domain that will be created
@@ -66,21 +66,21 @@ impl StrandBuilder {
     ///
     /// * axis: The axis of the helix on which the domain will be created
     ///
-    /// * neighbour: An evental existing neighbour of the strand being created
+    /// * neighbor: An eventual existing neighbor of the strand being created
     pub fn init_empty(
         identifier: DomainIdentifier,
         nucl: Nucl,
         axis: OwnedAxis,
-        neighbour: Option<NeighbourDescriptor>,
+        neighbor: Option<NeighborDescriptor>,
         de_novo: bool,
     ) -> Self {
-        let mut neighbour_strand = None;
-        let mut neighbour_direction = None;
+        let mut neighbor_strand = None;
+        let mut neighbor_direction = None;
         let mut min_pos = None;
         let mut max_pos = None;
-        if let Some(desc) = neighbour {
-            neighbour_strand = Some(desc);
-            neighbour_direction = if desc.initial_moving_end < nucl.position {
+        if let Some(desc) = neighbor {
+            neighbor_strand = Some(desc);
+            neighbor_direction = if desc.initial_moving_end < nucl.position {
                 min_pos = Some(desc.fixed_end + 1);
                 Some(EditDirection::Negative)
             } else {
@@ -95,11 +95,11 @@ impl StrandBuilder {
             identifier,
             axis,
             fixed_end: None,
-            neighbour_strand,
-            neighbour_direction,
+            neighbor_strand,
+            neighbor_direction,
             min_pos,
             max_pos,
-            detached_neighbour: None,
+            detached_neighbor: None,
             design_id: 0,
             timestamp: std::time::SystemTime::now(),
             de_novo,
@@ -118,13 +118,13 @@ impl StrandBuilder {
     ///
     /// * other_end: The position of the fixed end of the domain that will be edited
     ///
-    /// * neighbour: An evental existing neighbour of the strand being created
+    /// * neighbor: An eventual existing neighbor of the strand being created
     pub fn init_existing(
         identifier: DomainIdentifier,
         nucl: Nucl,
         axis: OwnedAxis,
         other_end: Option<isize>,
-        neighbour: Option<NeighbourDescriptor>,
+        neighbor: Option<NeighborDescriptor>,
         stick: bool,
     ) -> Self {
         let mut min_pos = None;
@@ -137,11 +137,11 @@ impl StrandBuilder {
                 min_pos = Some(other_end);
             }
         }
-        let neighbour_strand;
-        let neighbour_direction;
-        if let Some(desc) = neighbour {
-            neighbour_strand = Some(desc);
-            neighbour_direction = if stick {
+        let neighbor_strand;
+        let neighbor_direction;
+        if let Some(desc) = neighbor {
+            neighbor_strand = Some(desc);
+            neighbor_direction = if stick {
                 Some(EditDirection::Both)
             } else if desc.moving_end > initial_position {
                 Some(EditDirection::Positive)
@@ -154,8 +154,8 @@ impl StrandBuilder {
                 min_pos = min_pos.or(Some(desc.fixed_end + 1))
             }
         } else {
-            neighbour_strand = None;
-            neighbour_direction = None;
+            neighbor_strand = None;
+            neighbor_direction = None;
         }
         let ret = Self {
             moving_end: nucl,
@@ -163,11 +163,11 @@ impl StrandBuilder {
             axis,
             identifier,
             fixed_end: other_end,
-            neighbour_strand,
-            neighbour_direction,
+            neighbor_strand,
+            neighbor_direction,
             max_pos,
             min_pos,
-            detached_neighbour: None,
+            detached_neighbor: None,
             design_id: 0,
             timestamp: std::time::SystemTime::now(),
             de_novo: false,
@@ -176,85 +176,85 @@ impl StrandBuilder {
         ret
     }
 
-    /// Detach the neighbour, this function must be called when the moving end goes to a position
-    /// where the moving end of the neighbour cannot follow it.
-    fn detach_neighbour(&mut self) {
-        self.neighbour_direction = None;
-        self.detached_neighbour = self.neighbour_strand.take();
+    /// Detach the neighbor, this function must be called when the moving end goes to a position
+    /// where the moving end of the neighbor cannot follow it.
+    fn detach_neighbor(&mut self) {
+        self.neighbor_direction = None;
+        self.detached_neighbor = self.neighbor_strand.take();
     }
 
-    /// Attach a new neighbour. This function must be called when the moving end goes to a position
+    /// Attach a new neighbor. This function must be called when the moving end goes to a position
     /// where it is next to an existing domain
-    fn attach_neighbour(&mut self, descriptor: &NeighbourDescriptor) -> bool {
-        // To prevent attaching to self or attaching to the same neighbour or attaching to a
-        // neighbour in the wrong direction
+    fn attach_neighbor(&mut self, descriptor: &NeighborDescriptor) -> bool {
+        // To prevent attaching to self or attaching to the same neighbor or attaching to a
+        // neighbor in the wrong direction
         if self.identifier.is_same_domain_than(&descriptor.identifier)
-            || self.neighbour_strand.is_some()
+            || self.neighbor_strand.is_some()
             || descriptor.moving_end > self.max_pos.unwrap_or(descriptor.moving_end)
             || descriptor.moving_end < self.min_pos.unwrap_or(descriptor.moving_end)
         {
             return false;
         }
-        self.neighbour_direction = if self.moving_end.position < descriptor.initial_moving_end {
+        self.neighbor_direction = if self.moving_end.position < descriptor.initial_moving_end {
             Some(EditDirection::Positive)
         } else {
             Some(EditDirection::Negative)
         };
-        self.neighbour_strand = Some(*descriptor);
+        self.neighbor_strand = Some(*descriptor);
         true
     }
 
-    /// Increase the postion of the moving end by one, and update the neighbour in consequences.
+    /// Increase the position of the moving end by one, and update the neighbor in consequences.
     fn incr_position(&mut self, design: &Design, ignored_domains: &[DomainIdentifier]) {
-        // Eventually detach from neighbour
-        if let Some(desc) = self.neighbour_strand.as_mut() {
+        // Eventually detach from neighbor
+        if let Some(desc) = self.neighbor_strand.as_mut() {
             if desc.initial_moving_end == self.moving_end.position - 1
-                && self.neighbour_direction == Some(EditDirection::Negative)
+                && self.neighbor_direction == Some(EditDirection::Negative)
             {
-                self.detach_neighbour();
+                self.detach_neighbor();
             } else {
                 desc.moving_end += 1;
             }
         }
         self.moving_end.position += 1;
         let desc = design
-            .get_neighbour_nucl(self.moving_end.right())
-            .filter(|neighbour| {
+            .get_neighbor_nucl(self.moving_end.right())
+            .filter(|neighbor| {
                 !ignored_domains
                     .iter()
-                    .any(|d| d.is_same_domain_than(&neighbour.identifier))
+                    .any(|d| d.is_same_domain_than(&neighbor.identifier))
             })
-            .filter(|neighbour| neighbour.identifier.start != self.identifier.start);
+            .filter(|neighbor| neighbor.identifier.start != self.identifier.start);
         if let Some(ref desc) = desc {
-            if self.attach_neighbour(desc) {
+            if self.attach_neighbor(desc) {
                 self.max_pos = self.max_pos.or(Some(desc.fixed_end - 1));
             }
         }
     }
 
-    /// Decrease the postion of the moving end by one, and update the neighbour in consequences.
+    /// Decrease the position of the moving end by one, and update the neighbor in consequences.
     fn decr_position(&mut self, design: &Design, ignored_domains: &[DomainIdentifier]) {
-        // Update neighbour and eventually detach from it
-        if let Some(desc) = self.neighbour_strand.as_mut() {
+        // Update neighbor and eventually detach from it
+        if let Some(desc) = self.neighbor_strand.as_mut() {
             if desc.initial_moving_end == self.moving_end.position + 1
-                && self.neighbour_direction == Some(EditDirection::Positive)
+                && self.neighbor_direction == Some(EditDirection::Positive)
             {
-                self.detach_neighbour();
+                self.detach_neighbor();
             } else {
                 desc.moving_end -= 1;
             }
         }
         self.moving_end.position -= 1;
         let desc = design
-            .get_neighbour_nucl(self.moving_end.left())
-            .filter(|neighbour| {
+            .get_neighbor_nucl(self.moving_end.left())
+            .filter(|neighbor| {
                 !ignored_domains
                     .iter()
-                    .any(|d| d.is_same_domain_than(&neighbour.identifier))
+                    .any(|d| d.is_same_domain_than(&neighbor.identifier))
             })
-            .filter(|neighbour| neighbour.identifier.start != self.identifier.start);
+            .filter(|neighbor| neighbor.identifier.start != self.identifier.start);
         if let Some(ref desc) = desc {
-            if self.attach_neighbour(desc) {
+            if self.attach_neighbor(desc) {
                 self.min_pos = self.min_pos.or(Some(desc.fixed_end + 1));
             }
         }
@@ -317,10 +317,10 @@ impl StrandBuilder {
             self.moving_end.position,
             self.fixed_end.unwrap_or(self.initial_position),
         );
-        if let Some(desc) = self.neighbour_strand {
+        if let Some(desc) = self.neighbor_strand {
             Self::update_strand(design, desc.identifier, desc.moving_end, desc.fixed_end)
         }
-        if let Some(desc) = self.detached_neighbour.take() {
+        if let Some(desc) = self.detached_neighbor.take() {
             Self::update_strand(design, desc.identifier, desc.moving_end, desc.fixed_end)
         }
     }
@@ -419,15 +419,15 @@ impl StrandBuilder {
 enum EditDirection {
     /// In both direction
     Both,
-    /// Only on position smaller that the inital position
+    /// Only on position smaller that the initial position
     Negative,
-    /// Only on position bigger that the inital position
+    /// Only on position bigger that the initial position
     Positive,
 }
 
 /// Describes a domain being edited
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub struct NeighbourDescriptor {
+pub struct NeighborDescriptor {
     pub identifier: DomainIdentifier,
     pub initial_moving_end: isize,
     pub moving_end: isize,
@@ -460,12 +460,12 @@ impl DomainIdentifier {
 }
 
 use ensnano_design::Design;
-pub trait NeighbourDescriptorGiver {
-    fn get_neighbour_nucl(&self, nucl: Nucl) -> Option<NeighbourDescriptor>;
+pub trait NeighborDescriptorGiver {
+    fn get_neighbor_nucl(&self, nucl: Nucl) -> Option<NeighborDescriptor>;
 }
 
-impl NeighbourDescriptorGiver for Design {
-    fn get_neighbour_nucl(&self, nucl: Nucl) -> Option<NeighbourDescriptor> {
+impl NeighborDescriptorGiver for Design {
+    fn get_neighbor_nucl(&self, nucl: Nucl) -> Option<NeighborDescriptor> {
         for (s_id, s) in self.strands.iter() {
             for (d_id, d) in s.domains.iter().enumerate() {
                 if let Some(other) = d.other_end(nucl) {
@@ -475,7 +475,7 @@ impl NeighbourDescriptorGiver for Design {
                     } else {
                         None
                     };
-                    return Some(NeighbourDescriptor {
+                    return Some(NeighborDescriptor {
                         identifier: DomainIdentifier {
                             strand: *s_id,
                             domain: d_id,

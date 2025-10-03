@@ -137,7 +137,7 @@ impl<State: AppState> GuiTab<State> for SequenceTab<State> {
                     button_selection_from_scaffold =
                         button_selection_from_scaffold.on_press(Message::SelectScaffold);
                 }
-                let selection = app_state.get_selection_as_designelement();
+                let selection = app_state.get_selection_as_design_element();
                 if let Some(n) = Self::get_candidate_scaffold(&selection) {
                     button_selection_to_scaffold =
                         button_selection_to_scaffold.on_press(Message::ScaffoldIdSet(n, true));

@@ -16,8 +16,15 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+mod clipboard;
+mod shift_optimization;
+mod simulations;
+mod update_insertion_length;
+
 use super::{NuclCollection, SimulationUpdate};
 use crate::app_state::AddressPointer;
+use clipboard::{Clipboard, PastedStrand, StrandClipboard};
+pub use clipboard::{CopyOperation, PastePosition};
 use ensnano_design::{
     drawing_style::{DrawingAttribute, DrawingStyle},
     elements::{DesignElementKey, DnaAttribute},
@@ -28,52 +35,36 @@ use ensnano_design::{
     group_attributes::GroupPivot,
     mutate_in_arc, BezierEnd, BezierPathId, BezierPlaneDescriptor, BezierVertex, BezierVertexId,
     CameraId, Collection, CurveDescriptor, Design, Domain, DomainJunction, Helices, Helix,
-    HelixCollection, Nucl, Strand, Strands, UpToDateDesign,
+    HelixCollection, HelixInterval, Nucl, Strand, Strands, UpToDateDesign,
 };
 use ensnano_gui::ClipboardContent;
 pub use ensnano_interactor::PastingStatus;
 use ensnano_interactor::{
     operation::{Operation, TranslateBezierPathVertex},
-    BezierControlPoint, HyperboloidOperation, NewBezierTangentVector, SimulationState,
-};
-use ensnano_interactor::{
-    BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation, DomainIdentifier,
-    IsometryTarget, NeighbourDescriptor, NeighbourDescriptorGiver, Selection, StrandBuilder,
+    BezierControlPoint, BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation,
+    DomainIdentifier, HyperboloidOperation, IsometryTarget, NeighborDescriptor,
+    NeighborDescriptorGiver, NewBezierTangentVector, Selection, SimulationState, StrandBuilder,
 };
 use ensnano_organizer::GroupId;
 use ensnano_utils::colors;
-use std::collections::BTreeMap;
-use std::sync::{Arc, Mutex};
-use std::{borrow::Cow, path::PathBuf};
-
-use clipboard::{PastedStrand, StrandClipboard};
-
-use self::simulations::{
-    GridSystemInterface, GridsSystemThread, HelixSystemInterface, HelixSystemThread,
-    PhysicalSystem, RevolutionSystemInterface, RevolutionSystemThread, RollInterface,
-    TwistInterface,
-};
-
-use std::collections::HashMap;
-
-use ultraviolet::{Isometry2, Rotor3, Vec2, Vec3};
-
-mod clipboard;
-use clipboard::Clipboard;
-pub use clipboard::{CopyOperation, PastePosition};
-
-mod shift_optimization;
 pub use shift_optimization::{ShiftOptimizationResult, ShiftOptimizerReader};
-
-mod simulations;
 pub use simulations::{
     GridPresenter, HelixPresenter, RollPresenter, SimulationInterface, SimulationOperation,
     SimulationReader, TwistPresenter,
 };
-
-mod update_insertion_length;
-
-use std::str::FromStr;
+use simulations::{
+    GridSystemInterface, GridsSystemThread, HelixSystemInterface, HelixSystemThread,
+    PhysicalSystem, RevolutionSystemInterface, RevolutionSystemThread, RollInterface,
+    TwistInterface,
+};
+use std::{
+    borrow::Cow,
+    collections::{BTreeMap, HashMap},
+    path::PathBuf,
+    str::FromStr,
+    sync::{Arc, Mutex},
+};
+use ultraviolet::{Isometry2, Rotor3, Vec2, Vec3};
 
 #[derive(Clone, Default)]
 pub(super) struct Controller {
@@ -106,7 +97,7 @@ impl Controller {
         operation: DesignOperation,
     ) -> Result<(OkOperation, Self), ErrOperation> {
         log::debug!("operation {:?}", operation);
-        match self.check_compatibilty(&operation) {
+        match self.check_compatibility(&operation) {
             OperationCompatibility::Incompatible => {
                 return Err(ErrOperation::IncompatibleState(
                     self.state.state_name().into(),
@@ -137,11 +128,11 @@ impl Controller {
             DesignOperation::ChangeColor { color, strands } => {
                 Ok(self.ok_apply(|c, d| c.change_color_strands(d, color, strands), design))
             }
-            DesignOperation::SetHelicesPersistance {
+            DesignOperation::SetHelicesPersistence {
                 grid_ids,
-                persistant,
+                persistent,
             } => Ok(self.ok_apply(
-                |c, d| c.set_helices_persisance(d, grid_ids, persistant),
+                |c, d| c.set_helices_persisance(d, grid_ids, persistent),
                 design,
             )),
             DesignOperation::SetSmallSpheres { grid_ids, small } => {
@@ -496,7 +487,7 @@ impl Controller {
         let mut ret = self.clone();
         match operation {
             SimulationOperation::RevolutionRelaxation { system, reader } => {
-                if self.is_in_persistant_state().is_transitory() {
+                if self.is_in_persistent_state().is_transitory() {
                     return Err(ErrOperation::IncompatibleState(
                         "Cannot launch simulation while editing".into(),
                     ));
@@ -513,7 +504,7 @@ impl Controller {
                 parameters,
                 reader,
             } => {
-                if self.is_in_persistant_state().is_transitory() {
+                if self.is_in_persistent_state().is_transitory() {
                     return Err(ErrOperation::IncompatibleState(
                         "Cannot launch simulation while editing".into(),
                     ));
@@ -529,7 +520,7 @@ impl Controller {
                 parameters,
                 reader,
             } => {
-                if self.is_in_persistant_state().is_transitory() {
+                if self.is_in_persistent_state().is_transitory() {
                     return Err(ErrOperation::IncompatibleState(
                         "Cannot launch simulation while editing".into(),
                     ));
@@ -545,7 +536,7 @@ impl Controller {
                 target_helices,
                 reader,
             } => {
-                if self.is_in_persistant_state().is_transitory() {
+                if self.is_in_persistent_state().is_transitory() {
                     return Err(ErrOperation::IncompatibleState(
                         "Cannot launch simulation while editing".into(),
                     ));
@@ -561,7 +552,7 @@ impl Controller {
                 presenter,
                 reader,
             } => {
-                if self.is_in_persistant_state().is_transitory() {
+                if self.is_in_persistent_state().is_transitory() {
                     return Err(ErrOperation::IncompatibleState(
                         "Cannot launch simulation while editing".into(),
                     ));
@@ -961,7 +952,7 @@ impl Controller {
         design: &Design,
     ) -> Result<(OkOperation, Self), ErrOperation> {
         if let OperationCompatibility::Incompatible =
-            self.check_compatibilty(&DesignOperation::SetScaffoldShift(0))
+            self.check_compatibility(&DesignOperation::SetScaffoldShift(0))
         {
             return Err(ErrOperation::IncompatibleState(
                 self.state.state_name().to_string(),
@@ -1023,7 +1014,7 @@ impl Controller {
         new_interactor
     }
 
-    fn check_compatibilty(&self, operation: &DesignOperation) -> OperationCompatibility {
+    fn check_compatibility(&self, operation: &DesignOperation) -> OperationCompatibility {
         match self.state {
             ControllerState::Normal => OperationCompatibility::Compatible,
             ControllerState::MakingHyperboloid { .. } => {
@@ -1123,7 +1114,7 @@ impl Controller {
     }
 
     fn return_design(&self, design: Design, label: std::borrow::Cow<'static, str>) -> OkOperation {
-        if self.is_in_persistant_state().is_persistant() {
+        if self.is_in_persistent_state().is_persistent() {
             OkOperation::Push { design, label }
         } else {
             OkOperation::Replace(design)
@@ -1161,17 +1152,17 @@ impl Controller {
         }
     }
 
-    pub(super) fn is_in_persistant_state(&self) -> StatePersitance {
+    pub(super) fn is_in_persistent_state(&self) -> StatePersistence {
         match self.state {
-            ControllerState::Normal => StatePersitance::Persistant,
-            ControllerState::WithPendingOp { .. } => StatePersitance::Persistant,
-            ControllerState::WithPendingStrandDuplication { .. } => StatePersitance::Persistant,
-            ControllerState::WithPendingXoverDuplication { .. } => StatePersitance::Persistant,
-            ControllerState::WithPendingHelicesDuplication { .. } => StatePersitance::Persistant,
-            ControllerState::WithPausedSimulation { .. } => StatePersitance::NeedFinish,
-            ControllerState::SettingRollHelices { .. } => StatePersitance::NeedFinish,
-            ControllerState::ChangingStrandName { .. } => StatePersitance::NeedFinish,
-            _ => StatePersitance::Transitory,
+            ControllerState::Normal => StatePersistence::Persistent,
+            ControllerState::WithPendingOp { .. } => StatePersistence::Persistent,
+            ControllerState::WithPendingStrandDuplication { .. } => StatePersistence::Persistent,
+            ControllerState::WithPendingXoverDuplication { .. } => StatePersistence::Persistent,
+            ControllerState::WithPendingHelicesDuplication { .. } => StatePersistence::Persistent,
+            ControllerState::WithPausedSimulation { .. } => StatePersistence::NeedFinish,
+            ControllerState::SettingRollHelices { .. } => StatePersistence::NeedFinish,
+            ControllerState::ChangingStrandName { .. } => StatePersistence::NeedFinish,
+            _ => StatePersistence::Transitory,
         }
     }
 
@@ -1893,10 +1884,10 @@ pub enum OkOperation {
         label: std::borrow::Cow<'static, str>,
     },
     /// Replace the current design by the wrapped value. This variant is produced when the
-    /// operation has been peroformed on a transitory design and should not been undone.
+    /// operation has been performed on a transitory design and should not been undone.
     ///
     /// This happens for example for operations that are performed by drag and drop, where each new
-    /// mouse mouvement produce a new design. In this case, the successive design should not be
+    /// mouse movement produce a new design. In this case, the successive design should not be
     /// pushed on the undo stack, since an undo is expected to revert back to the state prior to
     /// the whole drag and drop operation.
     Replace(Design),
@@ -2061,10 +2052,10 @@ impl Controller {
         &mut self,
         mut design: Design,
         grid_ids: Vec<GridId>,
-        persistant: bool,
+        persistent: bool,
     ) -> Design {
         for g_id in grid_ids.into_iter() {
-            if persistant {
+            if persistent {
                 Arc::make_mut(&mut design.no_phantoms).remove(&g_id);
             } else {
                 Arc::make_mut(&mut design.no_phantoms).insert(g_id);
@@ -2205,8 +2196,8 @@ impl Controller {
             .iter()
             .filter_map(|nucl| {
                 design
-                    .get_neighbour_nucl(*nucl)
-                    .map(|neighbour| neighbour.identifier)
+                    .get_neighbor_nucl(*nucl)
+                    .map(|neighbor| neighbor.identifier)
             })
             .collect();
         for nucl in nucls.into_iter() {
@@ -2215,7 +2206,7 @@ impl Controller {
                     .ok_or(ErrOperation::CannotBuildOn(nucl))?,
             );
         }
-        log::info!("Ingnored domains: {:?}", ignored_domains);
+        log::info!("Ignored domains: {:?}", ignored_domains);
         self.state = ControllerState::BuildingStrand {
             builders,
             initializing: true,
@@ -2247,23 +2238,22 @@ impl Controller {
         ignored_domains: &[DomainIdentifier],
     ) -> Option<StrandBuilder> {
         let left = design
-            .get_neighbour_nucl(nucl.left())
+            .get_neighbor_nucl(nucl.left())
             .filter(|n| !ignored_domains.contains(&n.identifier));
         let right = design
-            .get_neighbour_nucl(nucl.right())
+            .get_neighbor_nucl(nucl.right())
             .filter(|n| !ignored_domains.contains(&n.identifier));
         let axis = design
             .helices
             .get(&nucl.helix)
             .map(|h| h.get_axis(&design.helix_parameters.unwrap_or_default()))?;
-        let desc = design.get_neighbour_nucl(nucl)?;
+        let desc = design.get_neighbor_nucl(nucl)?;
         let strand_id = desc.identifier.strand;
-        let filter =
-            |d: &NeighbourDescriptor| !(d.identifier.is_same_domain_than(&desc.identifier));
-        let neighbour_desc = left.filter(filter).or_else(|| right.filter(filter));
-        // stick to the neighbour if it is its direct neighbour. This is because we want don't want
-        // to create a gap between neighbouring domains
-        let stick = neighbour_desc
+        let filter = |d: &NeighborDescriptor| !(d.identifier.is_same_domain_than(&desc.identifier));
+        let neighbor_desc = left.filter(filter).or_else(|| right.filter(filter));
+        // stick to the neighbor if it is its direct neighbor. This is because we want don't want
+        // to create a gap between neighboring domains
+        let stick = neighbor_desc
             .filter(|d| {
                 (d.identifier.domain as isize - desc.identifier.domain as isize).abs() < 1
                     && d.identifier.strand == desc.identifier.strand
@@ -2286,7 +2276,7 @@ impl Controller {
                 nucl,
                 axis.to_owned(),
                 other_end,
-                neighbour_desc,
+                neighbor_desc,
                 stick,
             )),
             _ => Some(StrandBuilder::init_empty(
@@ -2297,15 +2287,15 @@ impl Controller {
                 },
                 nucl,
                 axis.to_owned(),
-                neighbour_desc,
+                neighbor_desc,
                 false,
             )),
         }
     }
 
     fn new_strand_builder(&mut self, design: &mut Design, nucl: Nucl) -> Option<StrandBuilder> {
-        let left = design.get_neighbour_nucl(nucl.left());
-        let right = design.get_neighbour_nucl(nucl.right());
+        let left = design.get_neighbor_nucl(nucl.left());
+        let right = design.get_neighbor_nucl(nucl.right());
         if left.is_some() && right.is_some() {
             return None;
         }
@@ -3797,7 +3787,6 @@ pub enum InteractorNotification {
     NewSelection,
 }
 
-use ensnano_design::HelixInterval;
 /// Return the appropriate junction between two HelixInterval
 pub(super) fn junction(prime5: &HelixInterval, prime3: &HelixInterval) -> DomainJunction {
     let prime5_nucl = prime5.prime3();
@@ -3816,18 +3805,18 @@ enum OperationCompatibility {
     FinishFirst,
 }
 
-pub(super) enum StatePersitance {
-    Persistant,
+pub(super) enum StatePersistence {
+    Persistent,
     NeedFinish,
     Transitory,
 }
 
-impl StatePersitance {
-    pub fn is_persistant(&self) -> bool {
-        matches!(self, StatePersitance::Persistant)
+impl StatePersistence {
+    pub fn is_persistent(&self) -> bool {
+        matches!(self, StatePersistence::Persistent)
     }
 
     pub fn is_transitory(&self) -> bool {
-        matches!(self, StatePersitance::Transitory)
+        matches!(self, StatePersistence::Transitory)
     }
 }

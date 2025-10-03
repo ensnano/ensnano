@@ -92,6 +92,6 @@ impl FlatSceneRequests for Requests {
     }
 
     fn set_paste_candidate(&mut self, candidate: Option<Nucl>) {
-        self.new_paste_candiate = Some(candidate);
+        self.new_paste_candidate = Some(candidate);
     }
 }

@@ -617,7 +617,6 @@ impl PdbFormatter {
     }
 
     /// Create a new strand. The returned value must be droped with `PdbStrand::write`.
-    #[allow(clippy::needless_lifetimes)]
     pub fn start_strand<'a>(&'a mut self, cyclic: bool) -> PdbStrand<'a> {
         PdbStrand {
             pdb_formater: ManuallyDrop::new(self),

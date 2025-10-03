@@ -155,7 +155,7 @@ impl<State: AppState> GuiTab<State> for CameraTab<State> {
                 row![
                     text("Background"),
                     pick_list(
-                        &ALL_BACKGROUND3D[..],
+                        ALL_BACKGROUND3D,
                         Some(self.background3d),
                         Message::Background3D,
                     ),

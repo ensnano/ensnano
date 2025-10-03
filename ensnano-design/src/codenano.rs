@@ -312,12 +312,12 @@ pub struct Parameters {
     /// the reverse strand.
     pub groove_angle: f64,
 
-    /// Gap between two neighbouring helices.
+    /// Gap between two neighboring helices.
     pub inter_helix_gap: f64,
 }
 
 impl Parameters {
-    /// Default values for the parameters of DNA, taken from the litterature.
+    /// Default values for the parameters of DNA, taken from the literature.
     pub const DEFAULT: Parameters = Parameters {
         // z-step and helix radius from:
         //
@@ -348,7 +348,6 @@ pub struct Point {
 
 impl Point {
     /// Convert an array of 3 floats into a Point
-    #[allow(dead_code)]
     pub fn from_coord(coord: [f64; 3]) -> Self {
         Point {
             x: coord[0],
@@ -357,7 +356,6 @@ impl Point {
         }
     }
 
-    #[allow(dead_code)]
     pub fn to_vec3(&self) -> DVec3 {
         DVec3 {
             x: self.x,

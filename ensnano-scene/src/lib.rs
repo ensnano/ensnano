@@ -16,6 +16,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#![allow(mixed_script_confusables, confusable_idents)] // allow mathematical symbols as variables
+
 use ensnano_design::{
     consts::ITERATIVE_AXIS_ALGORITHM, grid::GridPosition, grid::HelixGridPosition,
     group_attributes::GroupPivot, ultraviolet, BezierVertexId, Nucl,
@@ -345,7 +347,7 @@ impl<S: AppState> Scene<S> {
                 self.controller.swing(-x, -y);
                 self.notify(SceneNotification::CameraMoved);
             }
-            Consequence::Tilt(x, _) => {
+            Consequence::Tilt(x) => {
                 let mut pivot: Option<FiniteVec3> = self
                     .data
                     .borrow()
@@ -1131,7 +1133,7 @@ impl<S: AppState> Scene<S> {
         );
         println!("STL export to {:?}", path);
         let raw_instances = self.data.borrow().get_all_raw_instances(app_state);
-        let stl_bytes = stl::stl_bytes_export(raw_instances).unwrap();
+        let stl_bytes = stl::stl_bytes_export(raw_instances);
         if let Ok(mut out_file) = fs::File::create(path) {
             if out_file.write_all(&stl_bytes).is_ok() {
                 return;
@@ -1182,7 +1184,6 @@ pub enum SceneNotification {
     /// updated.
     CameraMoved,
     /// The camera is replaced by a new one.
-    #[allow(dead_code)]
     NewCamera(Vec3, Rotor3),
     /// The drawing area has been modified
     NewSize(PhySize, DrawArea),
@@ -1374,7 +1375,7 @@ impl<S: AppState> Application for Scene<S> {
         self.view.borrow().get_current_pivot()
     }
 
-    fn is_splited(&self) -> bool {
+    fn is_split(&self) -> bool {
         false
     }
 }

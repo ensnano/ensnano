@@ -81,7 +81,7 @@ pub trait Application {
         None
     }
 
-    fn is_splited(&self) -> bool;
+    fn is_split(&self) -> bool;
 }
 
 #[derive(Clone, Debug)]

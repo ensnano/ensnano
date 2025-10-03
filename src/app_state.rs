@@ -24,45 +24,42 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //!
 //! Each component of ENSnano has specific needs and express them via its own `AppState` trait.
 
-use ensnano_design::{group_attributes::GroupPivot, BezierPathId};
+mod address_pointer;
+mod design_interactor;
+mod impl_app2d;
+mod impl_app3d;
+mod impl_gui;
+mod transitions;
+
+use crate::{
+    apply_update,
+    controller::{LoadDesignError, SaveDesignError, SimulationRequest},
+};
+use address_pointer::AddressPointer;
+pub use design_interactor::{
+    controller::ErrOperation, CopyOperation, DesignReader, InteractorNotification, PastePosition,
+    PastingStatus, ShiftOptimizationResult, ShiftOptimizerReader, SimulationInterface,
+    SimulationReader, SimulationTarget, SimulationUpdate,
+};
+use design_interactor::{DesignInteractor, InteractorResult};
+use ensnano_design::{group_attributes::GroupPivot, BezierPathId, Design, SavingInformation};
 use ensnano_exports::{ExportResult, ExportType};
 use ensnano_gui::StrandBuildingStatus;
 use ensnano_iced::UiSize;
 use ensnano_interactor::{
-    consts::{ENS_BACKUP_EXTENSION, ENS_EXTENSION},
+    consts::{APP_NAME, ENS_BACKUP_EXTENSION, ENS_EXTENSION},
     graphics::{Background3D, HBondDisplay, RenderingMode},
-    UnrootedRevolutionSurfaceDescriptor,
+    operation::Operation,
+    ActionMode, CenterOfSelection, CheckXoversParameter, DesignOperation, RigidBodyConstants,
+    Selection, SelectionMode, SuggestionParameters, UnrootedRevolutionSurfaceDescriptor,
+    WidgetBasis,
 };
-use ensnano_interactor::{
-    operation::Operation, ActionMode, CenterOfSelection, CheckXoversParameter, Selection,
-    SelectionMode, WidgetBasis,
-};
-
-use std::path::PathBuf;
-use std::sync::{Arc, RwLock};
-mod address_pointer;
-mod design_interactor;
-mod transitions;
-use crate::apply_update;
-use crate::controller::{LoadDesignError, SaveDesignError, SimulationRequest};
-use address_pointer::AddressPointer;
-use ensnano_design::{Design, SavingInformation};
-use ensnano_interactor::consts::APP_NAME;
-use ensnano_interactor::{DesignOperation, RigidBodyConstants, SuggestionParameters};
 use ensnano_organizer::GroupId;
-
-pub use design_interactor::controller::ErrOperation;
-pub use design_interactor::{
-    CopyOperation, DesignReader, InteractorNotification, PastePosition, PastingStatus,
-    ShiftOptimizationResult, ShiftOptimizerReader, SimulationInterface, SimulationReader,
-    SimulationTarget, SimulationUpdate,
+use serde::{Deserialize, Serialize};
+use std::{
+    path::PathBuf,
+    sync::{Arc, RwLock},
 };
-use design_interactor::{DesignInteractor, InteractorResult};
-
-mod impl_app2d;
-mod impl_app3d;
-mod impl_gui;
-
 pub use transitions::{AppStateTransition, OkOperation, TransitionLabel};
 
 /// A structure containing the global state of the program.
@@ -107,7 +104,7 @@ impl AppState {
         let mut ret = AppState(AddressPointer::new(state));
         log::trace!("call from default");
         // Synchronize all the pointers.
-        // This truns updated_once to true so we must set it back to false afterwards
+        // This turns updated_once to true so we must set it back to false afterwards
         ret = ret.updated();
         let mut with_forgot_update = ret.0.clone_inner();
         with_forgot_update.updated_once = false;
@@ -274,12 +271,12 @@ impl AppState {
     }
 
     pub(super) fn apply_simulation_update(&mut self, update: Box<dyn SimulationUpdate>) {
-        apply_update(self, |s| s.with_simualtion_update_applied(update))
+        apply_update(self, |s| s.with_simulation_update_applied(update))
     }
 
-    fn with_simualtion_update_applied(self, update: Box<dyn SimulationUpdate>) -> Self {
+    fn with_simulation_update_applied(self, update: Box<dyn SimulationUpdate>) -> Self {
         let mut design = self.0.design.clone_inner();
-        design = design.with_simualtion_update_applied(update);
+        design = design.with_simulation_update_applied(update);
         self.with_interactor(design)
     }
 
@@ -438,9 +435,9 @@ impl AppState {
 
     pub fn with_check_xovers_parameters(
         &self,
-        check_xover_paramters: CheckXoversParameter,
+        check_xover_parameters: CheckXoversParameter,
     ) -> Self {
-        self.with_updated_parameters(|p| p.check_xover_parameters = check_xover_paramters)
+        self.with_updated_parameters(|p| p.check_xover_parameters = check_xover_parameters)
     }
 
     pub fn with_follow_stereographic_camera(&self, follow: bool) -> Self {
@@ -598,7 +595,7 @@ impl AppState {
 
     pub fn set_current_group_pivot(&mut self, pivot: GroupPivot) {
         if self.0.selection.pivot.read().unwrap().is_none() {
-            log::info!("reseting selection pivot {:?}", pivot);
+            log::info!("resetting selection pivot {:?}", pivot);
             *self.0.selection.pivot.write().unwrap() = Some(pivot);
             *self.0.selection.old_pivot.write().unwrap() = Some(pivot);
             log::debug!(
@@ -661,8 +658,7 @@ impl AppState {
     }
 }
 
-use serde::{Deserialize, Serialize};
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default)] // workaround for https://github.com/rust-cli/confy/issues/34
 pub struct AppStateParameters {
     suggestion_parameters: SuggestionParameters,
@@ -702,10 +698,10 @@ impl Default for AppStateParameters {
 struct AppState_ {
     /// The set of currently selected objects
     selection: AppStateSelection,
-    /// The set of objects that are "one click away from beeing selected"
+    /// The set of objects that are "one click away from being selected"
     candidates: AddressPointer<Vec<Selection>>,
     selection_mode: SelectionMode,
-    /// A pointer to the design currently beign edited. The pointed design is never mutatated.
+    /// A pointer to the design currently being edited. The pointed design is never mutated.
     /// Instead, when a modification is requested, the design is cloned and the `design` pointer is
     /// replaced by a pointer to a modified `Design`.
     design: AddressPointer<DesignInteractor>,

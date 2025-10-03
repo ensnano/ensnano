@@ -235,16 +235,6 @@ impl OrganizerTheme {
         }
     }
 
-    pub(super) fn level_selected(&self, n: usize) -> OrganizerThemeLevel {
-        OrganizerThemeLevel {
-            gradient: self.gradient.clone(),
-            text_color: self.text_color.clone(),
-            border_color: self.border_color.clone(),
-            gradient_value: n as f32 / self.max_level as f32,
-            selected: true,
-        }
-    }
-
     pub fn moon() -> Self {
         Self {
             gradient: moon_gradient(),

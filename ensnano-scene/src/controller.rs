@@ -45,7 +45,6 @@ use automata::{EventContext, NormalState, State, Transition};
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ClickMode {
     TranslateCam,
-    #[allow(dead_code)]
     RotateCam,
 }
 
@@ -89,7 +88,7 @@ pub enum Consequence {
     InitRotation(RotationMode, f64, f64, WidgetTarget),
     InitTranslation(f64, f64, WidgetTarget),
     Swing(f64, f64),
-    Tilt(f64, f64),
+    Tilt(f64),
     Nothing,
     ToggleWidget,
     BuildEnded,

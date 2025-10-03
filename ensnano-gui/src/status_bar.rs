@@ -86,7 +86,7 @@ impl<R: Requests, State: AppState> StatusBar<R, State> {
     }
 
     fn update_operation(&mut self) {
-        if let Some(new_operation) = self.app_state.get_curent_operation_state() {
+        if let Some(new_operation) = self.app_state.get_current_operation_state() {
             if let Some(operation) = self.operation.as_mut() {
                 operation.update(new_operation);
             } else {

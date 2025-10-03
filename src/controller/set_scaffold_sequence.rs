@@ -16,7 +16,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use super::{dialog, messages, MainState, State, TransitionMessage, YesNo};
+use crate::MainStateView;
+
+use super::{dialog, messages, State, TransitionMessage, YesNo};
 use ensnano_interactor::StandardSequence;
 
 use dialog::PathInput;
@@ -84,7 +86,7 @@ enum Step {
 }
 
 impl State for SetScaffoldSequence {
-    fn make_progress(self: Box<Self>, main_state: &mut dyn MainState) -> Box<dyn State> {
+    fn make_progress(self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn State> {
         match self.step {
             Step::Init => init_set_scaffold_sequence(self.shift, main_state.get_scaffold_length()),
             Step::AskPath { path_input } => ask_path(
@@ -174,7 +176,7 @@ fn got_path(path: PathBuf, shift: usize) -> Box<dyn State> {
 fn set_sequence(
     sequence: String,
     shift: usize,
-    scaffold_setter: &mut dyn MainState,
+    scaffold_setter: &mut MainStateView,
 ) -> Box<dyn State> {
     let result = scaffold_setter.set_scaffold_sequence(sequence, shift);
     match result {
@@ -212,7 +214,7 @@ fn set_sequence(
     }
 }
 
-fn optimize_scaffold_position(_design_id: usize, main_state: &mut dyn MainState) -> Box<dyn State> {
+fn optimize_scaffold_position(_design_id: usize, main_state: &mut MainStateView) -> Box<dyn State> {
     main_state.optimize_shift();
     Box::new(super::NormalState)
 }
@@ -241,5 +243,4 @@ pub enum TargetScaffoldLength {
 }
 
 #[derive(Debug)]
-#[allow(unused)]
-pub struct SetScaffoldSequenceError(pub String);
+pub struct SetScaffoldSequenceError(#[allow(unused)] pub String);

@@ -180,13 +180,13 @@ pub trait Requests: 'static + Send {
     fn fit_design_in_scenes(&mut self);
     /// Update the parameters of the current operation
     fn update_current_operation(&mut self, operation: Arc<dyn Operation>);
-    /// Update the shift of the currently seleced hyperbloid grid
+    /// Update the shift of the currently selected hyperboloid grid
     fn update_hyperboloid_shift(&mut self, shift: f32);
     fn display_error_msg(&mut self, msg: String);
     /// Set the scaffold to be the some strand with id `s_id`, or none
     fn set_scaffold_id(&mut self, s_id: Option<usize>);
     /// make the spheres of the currently selected grid large/small
-    fn toggle_helices_persistance_of_grid(&mut self, persistant: bool);
+    fn toggle_helices_persistence_of_grid(&mut self, persistent: bool);
     /// make the spheres of the currently selected grid large/small
     fn set_small_sphere(&mut self, small: bool);
     fn finish_changing_color(&mut self);
@@ -738,8 +738,8 @@ impl<R: Requests, State: AppState> Gui<R, State> {
         self.components.get_mut(&area).unwrap().forward_event(event);
     }
 
-    /// Clear the foccus of all components of the GUI
-    pub fn clear_foccus(&mut self) {
+    /// Clear the focus of all components of the GUI
+    pub fn clear_focus(&mut self) {
         for elt in self.components.values_mut() {
             use iced::advanced::mouse::Event;
             elt.forward_event(event::Event::Mouse(Event::CursorMoved {
@@ -790,7 +790,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
         self.resized = true;
     }
 
-    /// Ask the gui component to process the event that they have recieved
+    /// Ask the gui component to process the event that they have received
     pub fn fetch_change(
         &mut self,
         window: &Window,
@@ -805,7 +805,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
         ret
     }
 
-    /// Ask the gui component to process the event and messages that they have recieved.
+    /// Ask the gui component to process the event and messages that they have received.
     pub fn update(
         &mut self,
         multiplexer: &dyn Multiplexer,
@@ -934,7 +934,7 @@ impl<S: AppState> IcedMessages<S> {
             ))))
     }
 
-    pub fn finish_progess(&mut self) {
+    pub fn finish_progress(&mut self) {
         self.status_bar
             .push_back(status_bar::Message::Progress(None))
     }
@@ -1003,12 +1003,12 @@ pub trait AppState:
     fn is_building_hyperboloid(&self) -> bool;
     fn get_scaffold_info(&self) -> Option<ScaffoldInfo>;
     fn get_selection(&self) -> &[Selection];
-    fn get_selection_as_designelement(&self) -> Vec<DesignElementKey>;
+    fn get_selection_as_design_element(&self) -> Vec<DesignElementKey>;
     fn can_make_grid(&self) -> bool;
     fn get_reader(&self) -> Box<dyn DesignReader>;
     fn design_was_modified(&self, other: &Self) -> bool;
     fn selection_was_updated(&self, other: &Self) -> bool;
-    fn get_curent_operation_state(&self) -> Option<CurrentOpState>;
+    fn get_current_operation_state(&self) -> Option<CurrentOpState>;
     fn get_strand_building_state(&self) -> Option<StrandBuildingStatus>;
     fn get_selected_group(&self) -> Option<GroupId>;
     fn get_suggestion_parameters(&self) -> &SuggestionParameters;
@@ -1070,7 +1070,7 @@ pub struct TopBarState {
     pub can_reload: bool,
     pub can_split_2d: bool,
     pub can_toggle_2d: bool,
-    pub splited_2d: bool,
+    pub is_split_2d: bool,
 }
 // NOTE: This was called “MainState”. I am not sure that “TopBarState” is the best name for this.
 //       Maybe this would be more like a “GuiState”.

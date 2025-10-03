@@ -18,6 +18,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! This module defines the ensnano format.
 //! All other format supported by ensnano are converted into this format and run-time manipulation
 //! of designs are performed on an `ensnano::Design` structure
+
+#![allow(mixed_script_confusables, confusable_idents)] // allow mathematical symbols as variables
+
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::sync::Arc;
 
@@ -60,8 +63,6 @@ pub use isometry3_descriptor::Isometry3Descriptor;
 mod parameters;
 pub use parameters::*;
 
-mod id_manager;
-
 pub mod drawing_style;
 
 /// Re-export ultraviolet for linear algebra
@@ -73,8 +74,6 @@ mod insertions;
 #[cfg(test)]
 mod tests;
 pub use external_3d_objects::*;
-
-mod isograph;
 
 /// The `ensnano` Design structure.
 #[derive(Serialize, Deserialize, Clone)]
@@ -213,7 +212,6 @@ impl Design {
     /// `UpToDateDesign` reference to the data.
     /// Having an option to not mutate the design is meant to prevent unecessary run-time cloning
     /// of the design
-    #[allow(clippy::needless_lifetimes)]
     pub fn try_get_up_to_date<'a>(&'a self) -> Option<UpToDateDesign<'a>> {
         let paths_data = self
             .instanciated_paths
@@ -235,7 +233,6 @@ impl Design {
     }
 
     /// Update self if necessary and returns an up-to-date reference to self.
-    #[allow(clippy::needless_lifetimes)]
     pub fn get_up_to_date<'a>(&'a mut self) -> UpToDateDesign<'a> {
         let helix_parameters = self
             .helix_parameters
@@ -267,7 +264,6 @@ impl Design {
         }
     }
 
-    #[allow(clippy::needless_lifetimes)]
     pub fn get_up_to_date_paths<'a>(&'a mut self) -> &'a BezierPathData {
         let helix_parameters = self
             .helix_parameters
@@ -810,7 +806,7 @@ impl Nucl {
         }
     }
 
-    pub fn is_neighbour(&self, other: &Nucl) -> bool {
+    pub fn is_neighbor(&self, other: &Nucl) -> bool {
         self.helix == other.helix
             && self.forward == other.forward
             && (self.position - other.position).abs() == 1

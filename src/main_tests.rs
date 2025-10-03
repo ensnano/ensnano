@@ -41,7 +41,7 @@ impl Application for DummyScene {
         ()
     }
 
-    fn is_splited(&self) -> bool {
+    fn is_split(&self) -> bool {
         false
     }
 
@@ -77,8 +77,7 @@ impl Application for DummyScene {
 
 fn new_state() -> MainState {
     let messages = Arc::new(Mutex::new(IcedMessages::new()));
-    let constructor = MainStateConstructor { messages };
-    let mut ret = MainState::new(constructor);
+    let mut ret = MainState::new(messages);
     ret.applications
         .insert(GuiComponentType::Scene, Arc::new(Mutex::new(DummyScene {})));
     ret

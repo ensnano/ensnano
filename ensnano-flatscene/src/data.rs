@@ -554,7 +554,7 @@ impl<R: DesignReader> Data<R> {
         }
     }
 
-    pub fn attachable_neighbour(&self, nucl: FlatNucl) -> Option<FlatNucl> {
+    pub fn attachable_neighbor(&self, nucl: FlatNucl) -> Option<FlatNucl> {
         if self.can_cross_to(nucl, nucl.prime5()) {
             Some(nucl.prime5())
         } else if self.can_cross_to(nucl, nucl.prime3()) {

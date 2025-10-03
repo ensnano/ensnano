@@ -48,11 +48,11 @@ impl DesignOperation {
             Self::HyperboloidOperation(_) => "Nanotube operation".into(),
             Self::CleanDesign => "Clean design".into(),
             Self::HelicesToGrid(_) => "Grid creation from helices".into(),
-            Self::SetHelicesPersistance {
-                persistant: true, ..
+            Self::SetHelicesPersistence {
+                persistent: true, ..
             } => "Show phantom helices".into(),
-            Self::SetHelicesPersistance {
-                persistant: false, ..
+            Self::SetHelicesPersistence {
+                persistent: false, ..
             } => "Hide phantom helices".into(),
             Self::UpdateAttribute { .. } => "Update attribute from organizer".into(),
             Self::SetSmallSpheres { small: true, .. } => "Hide nucleotides".into(),

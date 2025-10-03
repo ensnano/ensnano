@@ -923,9 +923,7 @@ impl<E: OrganizerElement> Section<E> {
         theme: &OrganizerTheme,
         selection: &BTreeSet<E::Key>,
     ) -> Container<'_, OrganizerMessage<E>, crate::Theme, crate::Renderer> {
-        let title_row = self
-            .view
-            .view(theme, &self.name, self.id.clone(), self.expanded, false);
+        let title_row = self.view.view(&self.name, self.id.clone(), self.expanded);
         let mut content = Column::new().spacing(LEVELS_V_SPACING).push(title_row);
         if self.expanded {
             for (e_id, e) in self.elements.iter() {
@@ -1064,13 +1062,10 @@ impl<E: OrganizerElement> NodeView<E> {
 
     fn view(
         &self,
-        theme: &OrganizerTheme,
         name: &String,
         id: NodeId<E::AutoGroup>,
         expanded: bool,
-        selected: bool,
     ) -> Element<'_, OrganizerMessage<E>, crate::Theme, crate::Renderer> {
-        let level = get_group_id(&id).map(|v| v.len()).unwrap_or(0);
         let title_row = match &self.state {
             GroupState::Idle { .. } => {
                 let mut row: Row<'_, _, crate::Theme, crate::Renderer> = row![
@@ -1206,7 +1201,7 @@ impl<E: OrganizerElement> GroupContent<E> {
         selected_nodes: &BTreeSet<NodeId<E::AutoGroup>>,
     ) -> Element<'_, OrganizerMessage<E>> {
         let level; // Need this variable at this level.
-        let colummn = match self {
+        let column = match self {
             Self::Node {
                 name,
                 expanded,
@@ -1220,8 +1215,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                 } else {
                     0
                 };
-                let selected = selected_nodes.contains(&id);
-                let title_row = view.view(theme, name, id.clone(), *expanded, selected);
+                let title_row = view.view(name, id.clone(), *expanded);
                 let mut col = self::column![title_row].spacing(LEVELS_V_SPACING);
                 if *expanded {
                     for c in children.iter() {
@@ -1259,7 +1253,7 @@ impl<E: OrganizerElement> GroupContent<E> {
             }
             Self::Placeholder => unreachable!("Viewing a placeholder"),
         };
-        Container::new(colummn).style(theme.level(level)).into()
+        Container::new(column).style(theme.level(level)).into()
     }
 
     fn leaf(key: E::Key, id: Vec<usize>) -> Self {

@@ -177,9 +177,9 @@ pub enum DesignOperation {
     HyperboloidOperation(HyperboloidOperation),
     CleanDesign,
     HelicesToGrid(Vec<Selection>),
-    SetHelicesPersistance {
+    SetHelicesPersistence {
         grid_ids: Vec<GridId>,
-        persistant: bool,
+        persistent: bool,
     },
     UpdateAttribute {
         attribute: DnaAttribute,
@@ -511,7 +511,7 @@ impl SimulationState {
         matches!(self, Self::Paused)
     }
 
-    pub fn is_runing(&self) -> bool {
+    pub fn is_running(&self) -> bool {
         !matches!(self, Self::Paused | Self::None)
     }
 }

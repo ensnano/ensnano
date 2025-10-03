@@ -15,31 +15,28 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use lyon::math::Point;
-use lyon::path::Path;
-use lyon::tessellation;
-use lyon::tessellation::{StrokeVertex, StrokeVertexConstructor};
+
+use ensnano_interactor::consts::*;
+use ensnano_utils::wgpu;
+use lyon::{
+    math::Point,
+    path::Path,
+    tessellation::{self, StrokeVertex, StrokeVertexConstructor},
+};
+use wgpu::{util::DeviceExt as _, Device, Sampler, TextureView};
 
 const TEXTURE_SIZE: u32 = 512;
-use ensnano_interactor::consts::*;
-
-use ensnano_utils::wgpu;
-use wgpu::util::DeviceExt;
-use wgpu::{Device, Sampler, Texture, TextureView};
 
 #[derive(Clone, Copy, bytemuck::Zeroable, bytemuck::Pod)]
 #[repr(C)]
 pub struct Vertex {
-    #[allow(dead_code)] // the values are used in the shader
     position: [f32; 2],
-    #[allow(dead_code)] // the values are used in the shader
     normal: [f32; 2],
 }
 
 type Vertices = lyon::tessellation::VertexBuffers<Vertex, u16>;
 
 pub struct SquareTexture {
-    pub texture: Texture,
     pub view: TextureView,
     pub sampler: Sampler,
 }
@@ -73,11 +70,7 @@ impl SquareTexture {
             ..Default::default()
         });
 
-        Self {
-            texture,
-            view,
-            sampler,
-        }
+        Self { view, sampler }
     }
 }
 
@@ -184,7 +177,6 @@ fn square_texture_vertices() -> Vertices {
 }
 
 pub struct HonneyTexture {
-    pub texture: Texture,
     pub view: TextureView,
     pub sampler: Sampler,
 }
@@ -202,12 +194,12 @@ impl HonneyTexture {
             dimension: wgpu::TextureDimension::D2,
             format: ensnano_utils::TEXTURE_FORMAT,
             usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::RENDER_ATTACHMENT,
-            label: Some("honneycomb texture"),
+            label: Some("honeycomb texture"),
             view_formats: Default::default(),
         });
 
         let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
-        fill_honneycomb_texture(&view, device, encoder);
+        fill_honeycomb_texture(&view, device, encoder);
         let sampler = device.create_sampler(&wgpu::SamplerDescriptor {
             address_mode_u: wgpu::AddressMode::MirrorRepeat,
             address_mode_v: wgpu::AddressMode::MirrorRepeat,
@@ -218,15 +210,11 @@ impl HonneyTexture {
             ..Default::default()
         });
 
-        Self {
-            texture,
-            view,
-            sampler,
-        }
+        Self { view, sampler }
     }
 }
 
-fn fill_honneycomb_texture(
+fn fill_honeycomb_texture(
     target: &TextureView,
     device: &Device,
     encoder: &mut wgpu::CommandEncoder,

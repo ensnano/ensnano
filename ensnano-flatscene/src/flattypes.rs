@@ -20,12 +20,13 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! The motivation behind these types is that flatscene's representation of helices are stored in a
 //! Vec as opposed to a HashMap in the design. This means that their identifier needs to be
 //! converted. For both the flatscene and the design, usize could be used but having distinct types
-//! reduces the confusion, since erros will be detected by the typechecker.
+//! reduces the confusion, since errors will be detected by the typechecker.
 
 use super::{HashMap, Nucl, Selection};
 use ensnano_design::grid::GridId;
 use ensnano_interactor::PhantomElement;
 use std::collections::BTreeMap;
+use std::hash::{Hash, Hasher};
 
 /// An helix identifier in the flatscene data structures.
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Ord, Eq, Hash)]
@@ -33,7 +34,7 @@ pub struct FlatIdx(pub usize);
 
 #[derive(Debug, Clone, Copy)]
 pub struct FlatHelix {
-    /// The identifier of the helix in the flatscene data strucutres.
+    /// The identifier of the helix in the flatscene data structures.
     pub flat: FlatIdx,
     /// The segment that the helix represents
     pub segment: HelixSegment,
@@ -45,8 +46,6 @@ impl std::cmp::PartialEq for FlatHelix {
         self.flat == other.flat
     }
 }
-
-use std::hash::{Hash, Hasher};
 
 impl Hash for FlatHelix {
     fn hash<H: Hasher>(&self, state: &mut H) {
@@ -162,7 +161,7 @@ impl FlatHelixMaps {
         Some(segment.len())
     }
 
-    pub fn iter<'a>(&'a self) -> Box<dyn Iterator<Item = (&HelixSegment, &FlatIdx)> + 'a> {
+    pub fn iter(&self) -> Box<dyn Iterator<Item = (&HelixSegment, &FlatIdx)> + '_> {
         Box::new(self.real_to_flat.iter())
     }
 
@@ -238,7 +237,7 @@ impl<T: Flat> std::ops::Index<FlatIdx> for Vec<T> {
 }
 
 /// The position of a flat nucleotide. If the flat nucleotide belongs to an helix2d representing a
-/// a segment of a real helix, this position is relative to the leftmost extrimity of the segment.
+/// a segment of a real helix, this position is relative to the leftmost extremity of the segment.
 #[derive(Debug, Clone, Copy, PartialOrd, PartialEq, Eq, Ord, Hash)]
 pub struct FlatPosition(pub isize);
 
@@ -312,6 +311,7 @@ impl FlatNucl {
     }
 }
 
+#[allow(unused)] // TODO: remove and understand why so many fields are unused
 pub enum FlatSelection {
     Nucleotide(usize, FlatNucl),
     Bond(usize, FlatNucl, FlatNucl),

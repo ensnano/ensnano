@@ -104,9 +104,8 @@ use {
         PastePosition, PastingStatus, SimulationTarget, TransitionLabel,
     },
     controller::{
-        Action, ChannelReader, ChannelReaderUpdate, Controller, LoadDesignError,
-        MainState as MainStateInterface, SaveDesignError, SetScaffoldSequenceError,
-        SetScaffoldSequenceOk, SimulationRequest, StaplesDownloader,
+        Action, ChannelReader, ChannelReaderUpdate, Controller, LoadDesignError, SaveDesignError,
+        SetScaffoldSequenceError, SetScaffoldSequenceOk, SimulationRequest, StaplesDownloader,
     },
     ensnano_design::{grid::GridId, Camera},
     ensnano_exports::{ExportResult, ExportType},
@@ -409,11 +408,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     scheduler.add_application(flat_scene.clone(), GuiComponentType::FlatScene);
 
     // Initialize the UI
-    let main_state_constructor = MainStateConstructor {
-        messages: messages.clone(),
-    };
-
-    let mut main_state = MainState::new(main_state_constructor);
+    let mut main_state = MainState::new(messages.clone());
 
     let mut gui = Gui::new(
         Rc::clone(&device),
@@ -726,7 +721,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 main_state.applications_cursor =
                                     scheduler.forward_event(&event, area, cursor_position, state);
                                 if matches!(event, winit::event::WindowEvent::MouseInput { .. }) {
-                                    gui.clear_foccus();
+                                    gui.clear_focus();
                                 }
                             }
                             _ => unreachable!(),
@@ -777,7 +772,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 .push_progress("Optimizing: ".to_string(), x);
                         }
                         ChannelReaderUpdate::ScaffoldShiftOptimizationResult(result) => {
-                            main_state.messages.lock().unwrap().finish_progess();
+                            main_state.messages.lock().unwrap().finish_progress();
                             if let Ok(result) = result {
                                 main_state.apply_operation(DesignOperation::SetScaffoldShift(
                                     result.position,
@@ -1105,26 +1100,20 @@ struct MainState {
     cursor: CursorIcon,
 }
 
-struct MainStateConstructor {
-    messages: Arc<Mutex<IcedMessages<AppState>>>,
-}
-
 impl MainState {
-    fn new(constructor: MainStateConstructor) -> Self {
-        let app_state = match AppState::with_preferred_parameters() {
-            Ok(state) => state,
-            Err(e) => {
-                log::error!("Could not load preferrences {e}");
-                Default::default()
-            }
-        };
+    fn new(messages: Arc<Mutex<IcedMessages<AppState>>>) -> Self {
+        let app_state = AppState::with_preferred_parameters().unwrap_or_else(|e| {
+            log::error!("Could not load preferences {e}");
+            AppState::default()
+        });
+
         Self {
             app_state: app_state.clone(),
             pending_actions: VecDeque::new(),
             undo_stack: Vec::new(),
             redo_stack: Vec::new(),
             channel_reader: Default::default(),
-            messages: constructor.messages,
+            messages,
             applications: Default::default(),
             focused_component: None,
             keyboard_priority: false,
@@ -1168,7 +1157,7 @@ impl MainState {
     }
 
     fn update_simulation_cursor(&mut self) {
-        self.simulation_cursor = if self.app_state.get_simulation_state().is_runing() {
+        self.simulation_cursor = if self.app_state.get_simulation_state().is_running() {
             Some(CursorIcon::Progress)
         } else {
             None
@@ -1196,7 +1185,7 @@ impl MainState {
     }
 
     fn update(&mut self) {
-        // Appelé continuement
+        // Called continuously
         log::trace!("call from main state");
         if let Some(camera_ptr) = self
             .applications
@@ -1676,10 +1665,10 @@ impl MainState {
             need_save: self.need_save(),
             can_reload: self.get_current_file_name().is_some(),
             can_split_2d: multiplexer.is_showing(&GuiComponentType::FlatScene),
-            splited_2d: self
+            is_split_2d: self
                 .applications
                 .get(&GuiComponentType::FlatScene)
-                .map(|app| app.lock().unwrap().is_splited())
+                .map(|app| app.lock().unwrap().is_split())
                 .unwrap_or(false),
             can_toggle_2d: multiplexer.is_showing(&GuiComponentType::FlatScene)
                 || multiplexer.is_showing(&GuiComponentType::StereographicScene),
@@ -1720,7 +1709,7 @@ struct MainStateView<'a> {
     resized: bool,
 }
 
-impl<'a> MainStateInterface for MainStateView<'a> {
+impl<'a> MainStateView<'a> {
     fn pop_action(&mut self) -> Option<Action> {
         if !self.main_state.pending_actions.is_empty() {
             log::debug!("pending actions {:?}", self.main_state.pending_actions);

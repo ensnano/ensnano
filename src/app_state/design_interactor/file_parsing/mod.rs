@@ -16,15 +16,17 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use super::*;
-use crate::controller::LoadDesignError;
-use ensnano_design::{codenano, scadnano, Nucl};
-use ensnano_utils::id_generator::IdGenerator;
-use std::path::{Path, PathBuf};
-
 mod cadnano;
 mod junctions;
+
+use super::*;
+use crate::controller::LoadDesignError;
+use cadnano::{Cadnano, FromCadnano};
+use ensnano_design::{codenano, scadnano, Nucl};
+use ensnano_utils::id_generator::IdGenerator;
 pub(super) use junctions::StrandJunction;
+use scadnano::ScadnanoImportError;
+use std::path::{Path, PathBuf};
 
 impl DesignInteractor {
     /// Create a new data by reading a file. At the moment, the supported format are
@@ -71,7 +73,6 @@ impl DesignInteractor {
 }
 
 /// Create a design by parsing a file
-use cadnano::{Cadnano, FromCadnano};
 fn read_file<P: AsRef<Path> + std::fmt::Debug>(path: P) -> Result<Design, LoadDesignError> {
     let json_str =
         std::fs::read_to_string(&path).unwrap_or_else(|_| panic!("File not found {:?}", path));
@@ -120,8 +121,6 @@ fn read_file<P: AsRef<Path> + std::fmt::Debug>(path: P) -> Result<Design, LoadDe
         }
     }
 }
-
-use scadnano::ScadnanoImportError;
 
 impl std::convert::From<ScadnanoImportError> for LoadDesignError {
     fn from(error: ScadnanoImportError) -> Self {

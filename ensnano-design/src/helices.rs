@@ -31,12 +31,11 @@ use std::collections::BTreeMap;
 use std::sync::Arc;
 use ultraviolet::{DRotor3, DVec3, Isometry2, Mat4, Rotor3, Vec2, Vec3};
 
-/// A structure maping helices identifier to `Helix` objects
+/// A structure mapping helices identifier to `Helix` objects
 #[derive(Debug, Default, Serialize, Deserialize, Clone)]
 pub struct Helices(pub(super) Arc<BTreeMap<usize, Arc<Helix>>>);
 
 impl Helices {
-    #[allow(clippy::needless_lifetimes)]
     pub fn make_mut<'a>(&'a mut self) -> HelicesMut<'a> {
         let new_map = BTreeMap::clone(self.0.as_ref());
         HelicesMut {
@@ -800,15 +799,15 @@ impl Helix {
         self.theta_n_to_space_pos(&p, n, theta, forward)
     }
 
-    ///Return an helix that makes an ideal cross-over with self at postion n
-    pub fn ideal_neighbour(&self, n: isize, forward: bool, p: &HelixParameters) -> Helix {
+    ///Return an helix that makes an ideal cross-over with self at position n
+    pub fn ideal_neighbor(&self, n: isize, forward: bool, p: &HelixParameters) -> Helix {
         let p = match self.helix_parameters {
             None => p.clone(),
             Some(hp) => hp.clone(),
         };
-        let other_helix_pos = self.position_ideal_neighbour(n, forward, &p);
+        let other_helix_pos = self.position_ideal_neighbor(n, forward, &p);
         let mut new_helix = self.detached_copy_at(other_helix_pos);
-        self.adjust_theta_neighbour(n, forward, &mut new_helix, &p);
+        self.adjust_theta_neighbor(n, forward, &mut new_helix, &p);
         new_helix
     }
 
@@ -834,7 +833,7 @@ impl Helix {
         }
     }
 
-    fn position_ideal_neighbour(&self, n: isize, forward: bool, p: &HelixParameters) -> Vec3 {
+    fn position_ideal_neighbor(&self, n: isize, forward: bool, p: &HelixParameters) -> Vec3 {
         let p = match self.helix_parameters {
             None => p.clone(),
             Some(hp) => hp.clone(),
@@ -843,12 +842,10 @@ impl Helix {
         let my_nucl_pos = self.space_pos(&p, n, forward);
         let direction = (my_nucl_pos - axis_pos).normalized();
 
-        #[allow(clippy::let_and_return)]
-        let other_helix_pos = (2. * p.helix_radius + p.inter_helix_gap) * direction + axis_pos;
-        other_helix_pos
+        (2. * p.helix_radius + p.inter_helix_gap) * direction + axis_pos
     }
 
-    fn adjust_theta_neighbour(
+    fn adjust_theta_neighbor(
         &self,
         n: isize,
         forward: bool,
@@ -1063,7 +1060,6 @@ impl<'a> Axis<'a> {
 }
 
 impl OwnedAxis {
-    #[allow(clippy::needless_lifetimes)]
     pub fn borrow<'a>(&'a self) -> Axis<'a> {
         match self {
             Self::Line { origin, direction } => Axis::Line {

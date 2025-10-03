@@ -29,7 +29,7 @@ use ensnano_iced::{
 
 pub struct ParametersTab<State: AppState> {
     scroll_sensitivity_factory: RequestFactory<ScrollSensitivity>,
-    pub invert_y_scroll: bool,
+    _invert_y_scroll: bool,
     _state_type: PhantomData<State>,
 }
 
@@ -42,7 +42,7 @@ impl<State: AppState> ParametersTab<State> {
                     initial_value: app_state.get_scroll_sensitivity(),
                 },
             ),
-            invert_y_scroll: false,
+            _invert_y_scroll: false,
             _state_type: PhantomData,
         }
     }

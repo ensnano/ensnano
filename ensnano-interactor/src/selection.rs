@@ -51,7 +51,7 @@ pub enum Selection {
     Nothing,
 }
 
-/// The object that is foccused in the 3D scene.
+/// The object that is focused in the 3D scene.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CenterOfSelection {
     Nucleotide(u32, Nucl),
@@ -508,7 +508,7 @@ pub enum ActionMode {
     Translate,
     /// User can rotate objects and move the camera
     Rotate,
-    /// User can elongate/shorten strands. The boolean attribute indicates if neighbour strands
+    /// User can elongate/shorten strands. The boolean attribute indicates if neighbor strands
     /// should "stick"
     Build(bool),
     /// User is creating helices with two strands starting at a given position and with a given
