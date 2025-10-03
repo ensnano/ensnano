@@ -445,6 +445,29 @@ impl Grid {
         };
         self.grid_type.curve(x, y, info)
     }
+
+    fn error_group(&self, group: &[usize], helices: &Helices) -> f32 {
+        let mut ret = 0f32;
+        for h_id in group.iter() {
+            let helix = helices.get(h_id).unwrap();
+            let axis = helix.get_axis(&self.helix_parameters);
+            if let Axis::Line { origin, direction } = axis {
+                ret += self.error_helix(origin, direction);
+            }
+        }
+        ret
+    }
+
+    fn error_helix(&self, origin: Vec3, direction: Vec3) -> f32 {
+        let position_discrete = self
+            .interpolate_helix(origin, direction)
+            .map(|(x, y)| self.position_helix(x, y));
+        if let Some(position) = self.real_intersection(origin, direction) {
+            (position - position_discrete.unwrap()).mag_sq()
+        } else {
+            std::f32::INFINITY
+        }
+    }
 }
 
 pub trait GridDivision {
@@ -1237,31 +1260,6 @@ impl GridData {
                     .as_ref()
                     .and_then(|c| c.curve.as_ref().abscissa_converter.clone())
             })
-    }
-}
-
-impl Grid {
-    fn error_group(&self, group: &[usize], helices: &Helices) -> f32 {
-        let mut ret = 0f32;
-        for h_id in group.iter() {
-            let helix = helices.get(h_id).unwrap();
-            let axis = helix.get_axis(&self.helix_parameters);
-            if let Axis::Line { origin, direction } = axis {
-                ret += self.error_helix(origin, direction);
-            }
-        }
-        ret
-    }
-
-    fn error_helix(&self, origin: Vec3, direction: Vec3) -> f32 {
-        let position_discrete = self
-            .interpolate_helix(origin, direction)
-            .map(|(x, y)| self.position_helix(x, y));
-        if let Some(position) = self.real_intersection(origin, direction) {
-            (position - position_discrete.unwrap()).mag_sq()
-        } else {
-            std::f32::INFINITY
-        }
     }
 }
 
