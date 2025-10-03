@@ -764,18 +764,6 @@ fn view_2d_help() -> Vec<(String, String)> {
     ]
 }
 
-fn link_row<'a, State: AppState>(
-    link: &'static str,
-    ui_size: UiSize,
-) -> ensnano_iced::Element<'a, Message<State>> {
-    row![
-        self::column![text(link),].width(Length::FillPortion(3)),
-        self::column![text_button("Go", ui_size).on_press(Message::OpenLink(link)),]
-            .width(Length::FillPortion(1)),
-    ]
-    .into()
-}
-
 fn values_of_selection(selection: &Selection, reader: &dyn DesignReader) -> Vec<String> {
     match selection {
         Selection::Grid(_, g_id) => {
