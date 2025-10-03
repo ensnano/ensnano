@@ -722,7 +722,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 main_state.applications_cursor =
                                     scheduler.forward_event(&event, area, cursor_position, state);
                                 if matches!(event, winit::event::WindowEvent::MouseInput { .. }) {
-                                    gui.clear_foccus();
+                                    gui.clear_focus();
                                 }
                             }
                             _ => unreachable!(),
@@ -773,7 +773,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 .push_progress("Optimizing: ".to_string(), x);
                         }
                         ChannelReaderUpdate::ScaffoldShiftOptimizationResult(result) => {
-                            main_state.messages.lock().unwrap().finish_progess();
+                            main_state.messages.lock().unwrap().finish_progress();
                             if let Ok(result) = result {
                                 main_state.apply_operation(DesignOperation::SetScaffoldShift(
                                     result.position,
@@ -1158,7 +1158,7 @@ impl MainState {
     }
 
     fn update_simulation_cursor(&mut self) {
-        self.simulation_cursor = if self.app_state.get_simulation_state().is_runing() {
+        self.simulation_cursor = if self.app_state.get_simulation_state().is_running() {
             Some(CursorIcon::Progress)
         } else {
             None
@@ -1186,7 +1186,7 @@ impl MainState {
     }
 
     fn update(&mut self) {
-        // Appelé continuement
+        // Called continuously
         log::trace!("call from main state");
         if let Some(camera_ptr) = self
             .applications

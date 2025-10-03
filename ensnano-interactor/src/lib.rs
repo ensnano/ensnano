@@ -511,7 +511,7 @@ impl SimulationState {
         matches!(self, Self::Paused)
     }
 
-    pub fn is_runing(&self) -> bool {
+    pub fn is_running(&self) -> bool {
         !matches!(self, Self::Paused | Self::None)
     }
 }

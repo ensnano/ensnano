@@ -59,7 +59,7 @@ impl ValueRequest {
                         position: v,
                     })
                 } else {
-                    log::error!("Recieved value {:?} with selection {:?}", value, selection);
+                    log::error!("Received value {:?} with selection {:?}", value, selection);
                     None
                 }
             }
@@ -70,7 +70,7 @@ impl ValueRequest {
                         orientation,
                     })
                 } else {
-                    log::error!("Recieved value {:?} with selection {:?}", value, selection);
+                    log::error!("Received value {:?} with selection {:?}", value, selection);
                     None
                 }
             }
@@ -81,7 +81,7 @@ impl ValueRequest {
                         nb_turn,
                     })
                 } else {
-                    log::error!("Recieved value {:?} with selection {:?}", value, selection);
+                    log::error!("Received value {:?} with selection {:?}", value, selection);
                     None
                 }
             }
@@ -92,7 +92,7 @@ impl ValueRequest {
                         position: pos,
                     })
                 } else {
-                    log::error!("Recieved value {:?} with selection {:?}", value, selection);
+                    log::error!("Received value {:?} with selection {:?}", value, selection);
                     None
                 }
             }
