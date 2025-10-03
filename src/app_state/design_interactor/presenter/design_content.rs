@@ -120,9 +120,6 @@ pub(super) struct DesignContent {
     pub color_map: HashMap<u32, u32, RandomState>,
     /// Maps the identifier of an element to its radius
     pub radius_map: HashMap<u32, f32, RandomState>,
-    /// Maps the identifier of a bond element to its helix radius (if ≠ None)
-    pub helix_radius_map: HashMap<u32, f32, RandomState>,
-    pub helix_color_map: HashMap<u32, u32, RandomState>,
     pub letter_map: Arc<HashMap<Nucl, char, RandomState>>,
     pub prime3_set: Vec<Prime3End>,
     pub elements: Vec<DesignElement>,
@@ -541,8 +538,6 @@ impl DesignContent {
         let mut strand_map = HashMap::default();
         let mut color_map = HashMap::default();
         let mut radius_map = HashMap::default();
-        let helix_radius_map = HashMap::default();
-        let helix_color_map = HashMap::default();
         let mut helix_map = HashMap::default();
         let mut letter_map = HashMap::default();
         let mut with_cones_map = HashMap::default();
@@ -1361,8 +1356,6 @@ impl DesignContent {
             color_map,
             radius_map,
             helix_map,
-            helix_radius_map,
-            helix_color_map,
             letter_map: Arc::new(letter_map),
             prime3_set,
             elements,
