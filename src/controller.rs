@@ -27,7 +27,7 @@ mod quit;
 mod set_scaffold_sequence;
 
 use super::{dialog, OverlayType, SplitMode};
-use crate::PastePosition;
+use crate::{MainStateView, PastePosition};
 pub use chanel_reader::{ChannelReader, ChannelReaderUpdate};
 use dialog::{MustAckMessage, YesNoQuestion};
 use download_staples::*;
@@ -67,7 +67,7 @@ impl Controller {
 
     /// This function is called to update the sate of ENSnano. Its behavior depends on the state
     /// of the [Controller](`Controller`).
-    pub(crate) fn make_progress(&mut self, main_state: &mut dyn MainState) {
+    pub(crate) fn make_progress(&mut self, main_state: &mut MainStateView) {
         main_state.check_backup();
         if main_state.need_backup() {
             if let Err(e) = main_state.save_backup() {
@@ -82,7 +82,7 @@ impl Controller {
 
 pub(crate) trait State {
     /// Operate on [MainState] and return the new State of the automata
-    fn make_progress(self: Box<Self>, main_state: &mut dyn MainState) -> Box<dyn State>;
+    fn make_progress(self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn State>;
 }
 
 /// A dummy state that should never be constructed.
@@ -91,7 +91,7 @@ pub(crate) trait State {
 struct OhNo;
 
 impl State for OhNo {
-    fn make_progress(self: Box<Self>, _: &mut dyn MainState) -> Box<dyn State> {
+    fn make_progress(self: Box<Self>, _: &mut MainStateView) -> Box<dyn State> {
         panic!("Oh No !")
     }
 }
@@ -121,7 +121,7 @@ impl TransitionMessage {
 }
 
 impl State for TransitionMessage {
-    fn make_progress(mut self: Box<Self>, _: &mut dyn MainState) -> Box<dyn State + 'static> {
+    fn make_progress(mut self: Box<Self>, _: &mut MainStateView) -> Box<dyn State + 'static> {
         if let Some(ack) = self.ack.as_ref() {
             if ack.was_ack() {
                 self.transition_to
@@ -169,7 +169,7 @@ impl YesNo {
 }
 
 impl State for YesNo {
-    fn make_progress(mut self: Box<Self>, _: &mut dyn MainState) -> Box<dyn State> {
+    fn make_progress(mut self: Box<Self>, _: &mut MainStateView) -> Box<dyn State> {
         if let Some(ans) = self.answer.as_ref() {
             if let Some(b) = ans.answer() {
                 if b {
@@ -186,66 +186,6 @@ impl State for YesNo {
             self
         }
     }
-}
-
-pub(crate) trait MainState: ScaffoldSetter {
-    fn pop_action(&mut self) -> Option<Action>;
-    fn exit_control_flow(&mut self);
-    fn new_design(&mut self);
-    fn load_design(&mut self, path: PathBuf) -> Result<(), LoadDesignError>;
-    fn save_design(&mut self, path: &PathBuf) -> Result<(), SaveDesignError>;
-    fn save_backup(&mut self) -> Result<(), SaveDesignError>;
-    fn apply_operation(&mut self, operation: DesignOperation);
-    fn apply_silent_operation(&mut self, operation: DesignOperation);
-    fn undo(&mut self);
-    fn redo(&mut self);
-    fn get_staple_downloader(&self) -> Box<dyn StaplesDownloader>;
-    fn toggle_split_mode(&mut self, mode: SplitMode);
-    fn export(&mut self, path: &PathBuf, export_type: ExportType) -> ExportResult;
-    fn change_ui_size(&mut self, ui_size: UiSize);
-    fn notify_apps(&mut self, notificiation: Notification);
-    fn get_selection(&mut self) -> Box<dyn AsRef<[Selection]>>;
-    fn get_design_reader(&mut self) -> Box<dyn DesignReader>;
-    fn get_grid_creation_position(&self) -> Option<(Vec3, Rotor3)>;
-    fn get_bezier_sheet_creation_position(&self) -> Option<(Vec3, Rotor3)>;
-    fn finish_operation(&mut self);
-    fn request_copy(&mut self);
-    fn request_pasting_candidate(&mut self, candidate: Option<PastePosition>);
-    fn init_paste(&mut self);
-    fn apply_paste(&mut self);
-    fn duplicate(&mut self);
-    fn delete_selection(&mut self);
-    fn scaffold_to_selection(&mut self);
-    fn start_helix_simulation(&mut self, parameters: RigidBodyConstants);
-    fn start_grid_simulation(&mut self, parameters: RigidBodyConstants);
-    fn start_revolution_simulation(&mut self, desc: RevolutionSurfaceSystemDescriptor);
-    fn start_roll_simulation(&mut self, target_helices: Option<Vec<usize>>);
-    fn update_simulation(&mut self, request: SimulationRequest);
-    fn set_roll_of_selected_helices(&mut self, roll: f32);
-    fn turn_selection_into_anchor(&mut self);
-    fn set_visibility_sieve(&mut self, compl: bool);
-    fn clear_visibility_sieve(&mut self);
-    fn need_save(&self) -> Option<Option<PathBuf>>;
-    fn get_current_design_directory(&self) -> Option<&Path>;
-    fn get_current_file_name(&self) -> Option<&Path>;
-    fn set_current_group_pivot(&mut self, pivot: GroupPivot);
-    fn translate_group_pivot(&mut self, translation: Vec3);
-    fn rotate_group_pivot(&mut self, rotation: Rotor3);
-    fn create_new_camera(&mut self);
-    fn select_camera(&mut self, camera_id: ensnano_design::CameraId);
-    fn select_favorite_camera(&mut self, n_camera: u32);
-    fn update_camera(&mut self, camera_id: ensnano_design::CameraId);
-    fn toggle_2d(&mut self);
-    fn make_all_suggested_xover(&mut self, doubled: bool);
-    fn need_backup(&self) -> bool;
-    fn check_backup(&mut self);
-    fn flip_split_views(&mut self);
-    fn start_twist(&mut self, g_id: GridId);
-    fn set_expand_insertions(&mut self, expand: bool);
-    fn set_exporting(&mut self, exporting: bool);
-    fn load_3d_object(&mut self, path: PathBuf);
-    fn load_svg(&mut self, path: PathBuf);
-    fn get_design_path_and_notify(&mut self, notificator: fn(Option<Arc<Path>>) -> Notification);
 }
 
 pub enum LoadDesignError {

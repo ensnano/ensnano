@@ -31,7 +31,7 @@ use std::sync::Arc;
 pub(super) struct NormalState;
 
 impl State for NormalState {
-    fn make_progress(self: Box<Self>, main_state: &mut dyn MainState) -> Box<dyn State> {
+    fn make_progress(self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn State> {
         if let Some(action) = main_state.pop_action() {
             match action {
                 Action::NewDesign => Box::new(NewDesign::init(main_state.need_save())),
@@ -317,7 +317,7 @@ impl State for NormalState {
 struct ChangingDnaParameters(HelixParameters);
 
 impl State for ChangingDnaParameters {
-    fn make_progress(self: Box<Self>, main_state: &mut dyn MainState) -> Box<dyn State> {
+    fn make_progress(self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn State> {
         main_state.apply_operation(DesignOperation::SetGlobalHelixParameters {
             helix_parameters: self.0,
         });
@@ -326,7 +326,7 @@ impl State for ChangingDnaParameters {
 }
 
 impl NormalState {
-    fn turn_selection_into_grid(self: Box<Self>, main_state: &mut dyn MainState) -> Box<Self> {
+    fn turn_selection_into_grid(self: Box<Self>, main_state: &mut MainStateView) -> Box<Self> {
         let selection = main_state.get_selection();
         if ensnano_interactor::all_helices_no_grid(
             selection.as_ref().as_ref(),
@@ -340,7 +340,7 @@ impl NormalState {
 
     fn add_grid(
         self: Box<Self>,
-        main_state: &mut dyn MainState,
+        main_state: &mut MainStateView,
         descr: GridTypeDescr,
     ) -> Box<Self> {
         if let Some((position, orientation)) = main_state.get_grid_creation_position() {
@@ -358,7 +358,7 @@ impl NormalState {
         self
     }
 
-    fn change_color(self: Box<Self>, main_state: &mut dyn MainState, color: u32) -> Box<Self> {
+    fn change_color(self: Box<Self>, main_state: &mut MainStateView, color: u32) -> Box<Self> {
         let strands = ensnano_interactor::extract_strands_from_selection(
             main_state.get_selection().as_ref().as_ref(),
         );
@@ -368,7 +368,7 @@ impl NormalState {
 
     fn toggle_small_spheres(
         self: Box<Self>,
-        main_state: &mut dyn MainState,
+        main_state: &mut MainStateView,
         small: bool,
     ) -> Box<Self> {
         let grid_ids =
@@ -381,7 +381,7 @@ impl NormalState {
 
     fn toggle_helices_persistance(
         self: Box<Self>,
-        main_state: &mut dyn MainState,
+        main_state: &mut MainStateView,
         persistant: bool,
     ) -> Box<Self> {
         let grid_ids =

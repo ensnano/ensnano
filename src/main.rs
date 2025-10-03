@@ -104,9 +104,8 @@ use {
         PastePosition, PastingStatus, SimulationTarget, TransitionLabel,
     },
     controller::{
-        Action, ChannelReader, ChannelReaderUpdate, Controller, LoadDesignError,
-        MainState as MainStateInterface, SaveDesignError, SetScaffoldSequenceError,
-        SetScaffoldSequenceOk, SimulationRequest, StaplesDownloader,
+        Action, ChannelReader, ChannelReaderUpdate, Controller, LoadDesignError, SaveDesignError,
+        SetScaffoldSequenceError, SetScaffoldSequenceOk, SimulationRequest, StaplesDownloader,
     },
     ensnano_design::{grid::GridId, Camera},
     ensnano_exports::{ExportResult, ExportType},
@@ -1710,7 +1709,7 @@ struct MainStateView<'a> {
     resized: bool,
 }
 
-impl<'a> MainStateInterface for MainStateView<'a> {
+impl<'a> MainStateView<'a> {
     fn pop_action(&mut self) -> Option<Action> {
         if !self.main_state.pending_actions.is_empty() {
             log::debug!("pending actions {:?}", self.main_state.pending_actions);

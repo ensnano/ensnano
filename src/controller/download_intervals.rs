@@ -17,10 +17,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::{
-    messages, DownloadStapleError, DownloadStapleOk, MainState, NormalState, StaplesDownloader,
-    State, TransitionMessage,
+    messages, DownloadStapleError, DownloadStapleOk, NormalState, StaplesDownloader, State,
+    TransitionMessage,
 };
-use crate::dialog;
+use crate::{dialog, MainStateView};
 use dialog::{MustAckMessage, PathInput};
 use ensnano_interactor::consts::ORIGAMI_EXTENSION;
 use std::path::PathBuf;
@@ -51,7 +51,7 @@ impl Default for Step {
 }
 
 impl State for DownloadIntervals {
-    fn make_progress(self: Box<Self>, main_state: &mut dyn MainState) -> Box<dyn State> {
+    fn make_progress(self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn State> {
         let downloader = main_state.get_staple_downloader();
         match self.step {
             Step::Init => get_design_providing_staples(downloader.as_ref()),
@@ -94,7 +94,7 @@ fn get_design_providing_staples(downlader: &dyn StaplesDownloader) -> Box<dyn St
     }
 }
 
-fn ask_path(mut state: AskingPath_, main_state: &mut dyn MainState) -> Box<DownloadIntervals> {
+fn ask_path(mut state: AskingPath_, main_state: &MainStateView) -> Box<DownloadIntervals> {
     if let Some(must_ack) = state.warning_ack.as_ref() {
         if !must_ack.was_ack() {
             return Box::new(DownloadIntervals {
