@@ -180,13 +180,13 @@ pub trait Requests: 'static + Send {
     fn fit_design_in_scenes(&mut self);
     /// Update the parameters of the current operation
     fn update_current_operation(&mut self, operation: Arc<dyn Operation>);
-    /// Update the shift of the currently seleced hyperbloid grid
+    /// Update the shift of the currently selected hyperboloid grid
     fn update_hyperboloid_shift(&mut self, shift: f32);
     fn display_error_msg(&mut self, msg: String);
     /// Set the scaffold to be the some strand with id `s_id`, or none
     fn set_scaffold_id(&mut self, s_id: Option<usize>);
     /// make the spheres of the currently selected grid large/small
-    fn toggle_helices_persistance_of_grid(&mut self, persistant: bool);
+    fn toggle_helices_persistence_of_grid(&mut self, persistent: bool);
     /// make the spheres of the currently selected grid large/small
     fn set_small_sphere(&mut self, small: bool);
     fn finish_changing_color(&mut self);

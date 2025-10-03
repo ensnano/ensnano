@@ -412,7 +412,7 @@ where
             requests
                 .lock()
                 .unwrap()
-                .toggle_helices_persistance_of_grid(g_id);
+                .toggle_helices_persistence_of_grid(g_id);
         }
     }
 

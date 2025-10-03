@@ -128,11 +128,11 @@ impl Controller {
             DesignOperation::ChangeColor { color, strands } => {
                 Ok(self.ok_apply(|c, d| c.change_color_strands(d, color, strands), design))
             }
-            DesignOperation::SetHelicesPersistance {
+            DesignOperation::SetHelicesPersistence {
                 grid_ids,
-                persistant,
+                persistent,
             } => Ok(self.ok_apply(
-                |c, d| c.set_helices_persisance(d, grid_ids, persistant),
+                |c, d| c.set_helices_persisance(d, grid_ids, persistent),
                 design,
             )),
             DesignOperation::SetSmallSpheres { grid_ids, small } => {
@@ -487,7 +487,7 @@ impl Controller {
         let mut ret = self.clone();
         match operation {
             SimulationOperation::RevolutionRelaxation { system, reader } => {
-                if self.is_in_persistant_state().is_transitory() {
+                if self.is_in_persistent_state().is_transitory() {
                     return Err(ErrOperation::IncompatibleState(
                         "Cannot launch simulation while editing".into(),
                     ));
@@ -504,7 +504,7 @@ impl Controller {
                 parameters,
                 reader,
             } => {
-                if self.is_in_persistant_state().is_transitory() {
+                if self.is_in_persistent_state().is_transitory() {
                     return Err(ErrOperation::IncompatibleState(
                         "Cannot launch simulation while editing".into(),
                     ));
@@ -520,7 +520,7 @@ impl Controller {
                 parameters,
                 reader,
             } => {
-                if self.is_in_persistant_state().is_transitory() {
+                if self.is_in_persistent_state().is_transitory() {
                     return Err(ErrOperation::IncompatibleState(
                         "Cannot launch simulation while editing".into(),
                     ));
@@ -536,7 +536,7 @@ impl Controller {
                 target_helices,
                 reader,
             } => {
-                if self.is_in_persistant_state().is_transitory() {
+                if self.is_in_persistent_state().is_transitory() {
                     return Err(ErrOperation::IncompatibleState(
                         "Cannot launch simulation while editing".into(),
                     ));
@@ -552,7 +552,7 @@ impl Controller {
                 presenter,
                 reader,
             } => {
-                if self.is_in_persistant_state().is_transitory() {
+                if self.is_in_persistent_state().is_transitory() {
                     return Err(ErrOperation::IncompatibleState(
                         "Cannot launch simulation while editing".into(),
                     ));
@@ -1114,7 +1114,7 @@ impl Controller {
     }
 
     fn return_design(&self, design: Design, label: std::borrow::Cow<'static, str>) -> OkOperation {
-        if self.is_in_persistant_state().is_persistant() {
+        if self.is_in_persistent_state().is_persistent() {
             OkOperation::Push { design, label }
         } else {
             OkOperation::Replace(design)
@@ -1152,17 +1152,17 @@ impl Controller {
         }
     }
 
-    pub(super) fn is_in_persistant_state(&self) -> StatePersitance {
+    pub(super) fn is_in_persistent_state(&self) -> StatePersistence {
         match self.state {
-            ControllerState::Normal => StatePersitance::Persistant,
-            ControllerState::WithPendingOp { .. } => StatePersitance::Persistant,
-            ControllerState::WithPendingStrandDuplication { .. } => StatePersitance::Persistant,
-            ControllerState::WithPendingXoverDuplication { .. } => StatePersitance::Persistant,
-            ControllerState::WithPendingHelicesDuplication { .. } => StatePersitance::Persistant,
-            ControllerState::WithPausedSimulation { .. } => StatePersitance::NeedFinish,
-            ControllerState::SettingRollHelices { .. } => StatePersitance::NeedFinish,
-            ControllerState::ChangingStrandName { .. } => StatePersitance::NeedFinish,
-            _ => StatePersitance::Transitory,
+            ControllerState::Normal => StatePersistence::Persistent,
+            ControllerState::WithPendingOp { .. } => StatePersistence::Persistent,
+            ControllerState::WithPendingStrandDuplication { .. } => StatePersistence::Persistent,
+            ControllerState::WithPendingXoverDuplication { .. } => StatePersistence::Persistent,
+            ControllerState::WithPendingHelicesDuplication { .. } => StatePersistence::Persistent,
+            ControllerState::WithPausedSimulation { .. } => StatePersistence::NeedFinish,
+            ControllerState::SettingRollHelices { .. } => StatePersistence::NeedFinish,
+            ControllerState::ChangingStrandName { .. } => StatePersistence::NeedFinish,
+            _ => StatePersistence::Transitory,
         }
     }
 
@@ -2052,10 +2052,10 @@ impl Controller {
         &mut self,
         mut design: Design,
         grid_ids: Vec<GridId>,
-        persistant: bool,
+        persistent: bool,
     ) -> Design {
         for g_id in grid_ids.into_iter() {
-            if persistant {
+            if persistent {
                 Arc::make_mut(&mut design.no_phantoms).remove(&g_id);
             } else {
                 Arc::make_mut(&mut design.no_phantoms).insert(g_id);
@@ -3805,18 +3805,18 @@ enum OperationCompatibility {
     FinishFirst,
 }
 
-pub(super) enum StatePersitance {
-    Persistant,
+pub(super) enum StatePersistence {
+    Persistent,
     NeedFinish,
     Transitory,
 }
 
-impl StatePersitance {
-    pub fn is_persistant(&self) -> bool {
-        matches!(self, StatePersitance::Persistant)
+impl StatePersistence {
+    pub fn is_persistent(&self) -> bool {
+        matches!(self, StatePersistence::Persistent)
     }
 
     pub fn is_transitory(&self) -> bool {
-        matches!(self, StatePersitance::Transitory)
+        matches!(self, StatePersistence::Transitory)
     }
 }

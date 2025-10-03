@@ -27,18 +27,14 @@ mod quit;
 mod set_scaffold_sequence;
 
 use super::{dialog, OverlayType, SplitMode};
-use crate::{MainStateView, PastePosition};
+use crate::MainStateView;
 pub use chanel_reader::{ChannelReader, ChannelReaderUpdate};
 use dialog::{MustAckMessage, YesNoQuestion};
 use download_staples::*;
 pub use download_staples::{DownloadStapleError, DownloadStapleOk, StaplesDownloader};
-use ensnano_design::{grid::GridId, group_attributes::GroupPivot};
-use ensnano_exports::{ExportResult, ExportType};
+use ensnano_exports::ExportType;
 use ensnano_iced::UiSize;
-use ensnano_interactor::{
-    application::Notification, consts::CANNOT_OPEN_DEFAULT_DIR, DesignOperation, DesignReader,
-    RevolutionSurfaceSystemDescriptor, RigidBodyConstants, Selection,
-};
+use ensnano_interactor::{consts::CANNOT_OPEN_DEFAULT_DIR, RigidBodyConstants};
 pub use normal_state::Action;
 use normal_state::NormalState;
 use quit::*;
@@ -49,7 +45,6 @@ pub use set_scaffold_sequence::{
 use std::{
     borrow::Cow,
     path::{Path, PathBuf},
-    sync::Arc,
 };
 use ultraviolet::{Rotor3, Vec3};
 
@@ -65,7 +60,7 @@ impl Controller {
         }
     }
 
-    /// This function is called to update the sate of ENSnano. Its behavior depends on the state
+    /// This function is called to update the state of ENSnano. Its behavior depends on the state
     /// of the [Controller](`Controller`).
     pub(crate) fn make_progress(&mut self, main_state: &mut MainStateView) {
         main_state.check_backup();

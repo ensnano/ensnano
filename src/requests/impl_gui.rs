@@ -273,8 +273,8 @@ impl ensnano_gui::Requests for Requests {
         self.set_scaffold_id = Some(s_id);
     }
 
-    fn toggle_helices_persistance_of_grid(&mut self, persistant: bool) {
-        self.toggle_persistent_helices = Some(persistant);
+    fn toggle_helices_persistence_of_grid(&mut self, persistent: bool) {
+        self.toggle_persistent_helices = Some(persistent);
     }
 
     fn set_small_sphere(&mut self, small: bool) {

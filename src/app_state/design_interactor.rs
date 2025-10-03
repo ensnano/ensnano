@@ -298,7 +298,7 @@ impl DesignInteractor {
     }
 
     pub(super) fn is_in_stable_state(&self) -> bool {
-        self.controller.is_in_persistant_state().is_persistant()
+        self.controller.is_in_persistent_state().is_persistent()
     }
 
     pub(super) fn has_different_design_than(&self, other: &Self) -> bool {

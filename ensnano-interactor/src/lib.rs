@@ -177,9 +177,9 @@ pub enum DesignOperation {
     HyperboloidOperation(HyperboloidOperation),
     CleanDesign,
     HelicesToGrid(Vec<Selection>),
-    SetHelicesPersistance {
+    SetHelicesPersistence {
         grid_ids: Vec<GridId>,
-        persistant: bool,
+        persistent: bool,
     },
     UpdateAttribute {
         attribute: DnaAttribute,

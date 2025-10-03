@@ -60,10 +60,6 @@ pub(crate) fn poll_all<R: DerefMut<Target = Requests>>(
         main_state.change_double_strand_parameters(double_strand_parameters)
     }
 
-    if let Some(sequence) = requests.sequence_change.take() {
-        main_state.push_action(Action::ChangeSequence(sequence))
-    }
-
     if let Some(color) = requests.strand_color_change.take() {
         main_state.push_action(Action::ChangeColorStrand(color))
     }
@@ -77,7 +73,7 @@ pub(crate) fn poll_all<R: DerefMut<Target = Requests>>(
     }
 
     if let Some(b) = requests.toggle_persistent_helices.take() {
-        main_state.push_action(Action::ToggleHelicesPersistance(b))
+        main_state.push_action(Action::ToggleHelicesPersistence(b))
     }
 
     if let Some(b) = requests.small_spheres.take() {
@@ -173,10 +169,6 @@ pub(crate) fn poll_all<R: DerefMut<Target = Requests>>(
         main_state.push_action(Action::TurnIntoAnchor)
     }
 
-    if let Some(f) = requests.new_shift_hyperboloid.take() {
-        main_state.push_action(Action::UpdateHyperboloidShift(f))
-    }
-
     if let Some((s, g_id, new_group)) = requests.organizer_selection.take() {
         let selection = s.into_iter().map(|e| e.to_selection(0)).collect();
 
@@ -220,7 +212,7 @@ pub(crate) fn poll_all<R: DerefMut<Target = Requests>>(
     }
 
     if let Some(b) = requests.toggle_visibility.take() {
-        main_state.push_action(Action::SetVisiblitySieve { compl: b })
+        main_state.push_action(Action::SetVisibilitySieve { compl: b })
     }
 
     if let Some(b) = requests.set_invert_y_scroll.take() {
