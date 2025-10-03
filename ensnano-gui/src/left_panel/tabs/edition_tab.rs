@@ -104,7 +104,11 @@ impl<State: AppState> GuiTab<State> for EditionTab<State> {
         None
     }
 
-    fn content(&self, ui_size: UiSize, app_state: &State) -> iced::Element<'_, Self::Message> {
+    fn content(
+        &self,
+        ui_size: UiSize,
+        app_state: &State,
+    ) -> ensnano_iced::Element<'_, Self::Message> {
         let roll_target_helices =
             self.get_roll_target_helices(&app_state.get_selection_as_design_element());
         let sim_state = &app_state.get_simulation_state();

@@ -24,7 +24,7 @@ use ensnano_iced::{
     UiSize,
     fonts::{MaterialIcon, icon_to_char},
     helpers::*,
-    iced::{Alignment, Length},
+    iced::{Alignment, Command, Length},
     iced_aw::TabLabel,
     theme,
 };
@@ -514,7 +514,7 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
         TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::AutoMode)))
     }
 
-    fn update(&mut self, app_state: &mut State) -> Option<Self::Message> {
+    fn update(&mut self, app_state: &mut State) -> Command<Message<State>> {
         log::debug!(
             "revolution tab  update: {:?}",
             &self.try_get_shift_per_turn(app_state)
@@ -537,16 +537,19 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
             });
 
         if self.try_get_shift_per_turn(app_state).is_none() {
-            let unrooted_surface = self.get_current_unrooted_surface(app_state)?;
-            let nb_spiral = self
-                .nb_spiral_state_input
-                .get_value()
-                .and_then(InstantiatedParameter::get_uint)?;
-            let half_nb_helix = self.scaling.as_ref()?.nb_helix / 2;
-            self.shift_generator =
-                unrooted_surface.shifts_to_get_n_spirals(half_nb_helix, nb_spiral);
+            if let Some((unrooted_surface, nb_spiral)) =
+                self.get_current_unrooted_surface(app_state).zip(
+                    self.nb_sprial_state_input
+                        .get_value()
+                        .and_then(InstanciatedParameter::get_uint),
+                )
+            {
+                let half_nb_helix = self.scaling.as_ref().unwrap().nb_helix / 2;
+                self.shift_generator =
+                    unrooted_surface.shifts_to_get_n_spirals(half_nb_helix, nb_spiral);
+            }
         };
-        None
+        Command::none()
     }
 
     fn content(
