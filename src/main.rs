@@ -409,11 +409,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     scheduler.add_application(flat_scene.clone(), GuiComponentType::FlatScene);
 
     // Initialize the UI
-    let main_state_constructor = MainStateConstructor {
-        messages: messages.clone(),
-    };
-
-    let mut main_state = MainState::new(main_state_constructor);
+    let mut main_state = MainState::new(messages.clone());
 
     let mut gui = Gui::new(
         Rc::clone(&device),
@@ -1105,12 +1101,8 @@ struct MainState {
     cursor: CursorIcon,
 }
 
-struct MainStateConstructor {
-    messages: Arc<Mutex<IcedMessages<AppState>>>,
-}
-
 impl MainState {
-    fn new(constructor: MainStateConstructor) -> Self {
+    fn new(messages: Arc<Mutex<IcedMessages<AppState>>>) -> Self {
         let app_state = AppState::with_preferred_parameters().unwrap_or_else(|e| {
             log::error!("Could not load preferences {e}");
             AppState::default()
@@ -1122,7 +1114,7 @@ impl MainState {
             undo_stack: Vec::new(),
             redo_stack: Vec::new(),
             channel_reader: Default::default(),
-            messages: constructor.messages,
+            messages,
             applications: Default::default(),
             focused_component: None,
             keyboard_priority: false,
