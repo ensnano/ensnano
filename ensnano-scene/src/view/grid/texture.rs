@@ -194,12 +194,12 @@ impl HonneyTexture {
             dimension: wgpu::TextureDimension::D2,
             format: ensnano_utils::TEXTURE_FORMAT,
             usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::RENDER_ATTACHMENT,
-            label: Some("honneycomb texture"),
+            label: Some("honeycomb texture"),
             view_formats: Default::default(),
         });
 
         let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
-        fill_honneycomb_texture(&view, device, encoder);
+        fill_honeycomb_texture(&view, device, encoder);
         let sampler = device.create_sampler(&wgpu::SamplerDescriptor {
             address_mode_u: wgpu::AddressMode::MirrorRepeat,
             address_mode_v: wgpu::AddressMode::MirrorRepeat,
@@ -214,7 +214,7 @@ impl HonneyTexture {
     }
 }
 
-fn fill_honneycomb_texture(
+fn fill_honeycomb_texture(
     target: &TextureView,
     device: &Device,
     encoder: &mut wgpu::CommandEncoder,

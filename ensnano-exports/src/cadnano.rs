@@ -84,7 +84,7 @@ fn get_grid_type(grids: &GridData) -> Result<GridType, CadnanoError> {
     for g in grids.source_free_grids.values() {
         match g.grid_type {
             ensnano_design::grid::GridTypeDescr::Square { .. } => {
-                if ret == Some(GridType::HonneyComb) {
+                if ret == Some(GridType::HoneyComb) {
                     return Err(CadnanoError::NonHomogeneousGridTypes);
                 } else {
                     ret = Some(GridType::Square)
@@ -94,7 +94,7 @@ fn get_grid_type(grids: &GridData) -> Result<GridType, CadnanoError> {
                 if ret == Some(GridType::Square) {
                     return Err(CadnanoError::NonHomogeneousGridTypes);
                 } else {
-                    ret = Some(GridType::HonneyComb)
+                    ret = Some(GridType::HoneyComb)
                 }
             }
             t => return Err(CadnanoError::UnhandledGridType(t)),
@@ -213,7 +213,7 @@ pub enum CadnanoError {
 #[derive(Debug, Clone, PartialEq, Eq)]
 enum GridType {
     Square,
-    HonneyComb,
+    HoneyComb,
 }
 
 struct CadnanoExporter {

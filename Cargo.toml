@@ -25,6 +25,16 @@ resolver = "2"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+ensnano_design = { path = "ensnano-design" }
+ensnano_exports = { path = "ensnano-exports" }
+ensnano_iced = { path = "ensnano-iced" }
+ensnano_interactor = { path = "ensnano-interactor" }
+ensnano_scene = { path = "ensnano-scene" }
+ensnano_flatscene = { path = "ensnano-flatscene" }
+ensnano_gui = { path = "ensnano-gui" }
+ensnano_organizer = { path = "ensnano-organizer" }
+ensnano_utils = { path = "ensnano-utils" }
+
 ultraviolet = { git = "https://github.com/termhn/ultraviolet", rev = "b2fb29e", features = [
     "bytemuck",
     "f64",
@@ -44,17 +54,8 @@ rand = "0.8.3"
 rand_distr = "0.4.0"
 ordered-float = { version = "2.0", features = ["serde"] }
 rfd = "0.10"
-ensnano_organizer = { path = "ensnano-organizer" }
 num_enum = "0.5.1"
-cadnano-format = "0.1.0"
-ensnano_design = { path = "ensnano-design" }
-ensnano_iced = { path = "ensnano-iced" }
-ensnano_interactor = { path = "ensnano-interactor" }
-ensnano_scene = { path = "ensnano-scene" }
-ensnano_flatscene = { path = "ensnano-flatscene" }
-ensnano_gui = { path = "ensnano-gui" }
-ensnano_utils = { path = "ensnano-utils" }
-ensnano_exports = { path = "ensnano-exports" }
+palette = "0.4.1"
 log = "0.4"
 pretty_env_logger = "0.4"
 dirs = "4.0"

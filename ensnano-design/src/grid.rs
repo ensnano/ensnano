@@ -148,7 +148,7 @@ impl GridTypeDescr {
     fn to_concrete(self) -> GridType {
         match self {
             Self::Square { twist } => GridType::square(twist),
-            Self::Honeycomb { twist } => GridType::honneycomb(twist),
+            Self::Honeycomb { twist } => GridType::honeycomb(twist),
             Self::Hyperboloid {
                 radius,
                 shift,
@@ -234,7 +234,7 @@ impl GridType {
         Self::Square(SquareGrid { twist })
     }
 
-    pub fn honneycomb(twist: Option<f64>) -> Self {
+    pub fn honeycomb(twist: Option<f64>) -> Self {
         Self::Honeycomb(HoneyComb { twist })
     }
 
@@ -1044,7 +1044,7 @@ impl GridData {
             leader.position,
             orientation,
             self.helix_parameters,
-            GridType::honneycomb(None),
+            GridType::honeycomb(None),
         );
         let mut best_err = hex_grid.error_group(group, &self.source_helices);
         for dx in [-1, 0, 1].iter() {
@@ -1057,7 +1057,7 @@ impl GridData {
                         position,
                         orientation.rotated_by(rotor),
                         self.helix_parameters,
-                        GridType::honneycomb(None),
+                        GridType::honeycomb(None),
                     );
                     let err = grid.error_group(group, &self.source_helices);
                     if err < best_err {

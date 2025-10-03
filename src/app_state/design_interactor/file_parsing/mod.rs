@@ -21,8 +21,7 @@ mod junctions;
 
 use super::*;
 use crate::controller::LoadDesignError;
-use cadnano::FromCadnano;
-use cadnano_format::Cadnano;
+use cadnano::{Cadnano, FromCadnano};
 use ensnano_design::{codenano, scadnano, Nucl};
 use ensnano_utils::id_generator::IdGenerator;
 pub(super) use junctions::StrandJunction;

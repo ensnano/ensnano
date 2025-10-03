@@ -422,19 +422,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d71b6127be86fdcfddb610f7182ac57211d4b18a3e9c82eb2d17662f2227ad6a"
 
 [[package]]
-name = "cadnano-format"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ea2ec33081c82c1d05bfd5809a833f185a86a2b765b346c88c1c9af5f2bb8392"
-dependencies = [
- "log",
- "palette 0.4.1",
- "serde",
- "serde_derive",
- "serde_json",
-]
-
-[[package]]
 name = "cairo-sys-rs"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1038,7 +1025,6 @@ name = "ensnano"
 version = "0.7.0"
 dependencies = [
  "ahash 0.8.12",
- "cadnano-format",
  "chebyshev_polynomials",
  "chrono",
  "color_space",
@@ -1060,6 +1046,7 @@ dependencies = [
  "mathru",
  "num_enum 0.5.11",
  "ordered-float",
+ "palette 0.4.1",
  "pod-enum",
  "pretty_env_logger",
  "rand 0.8.5",
