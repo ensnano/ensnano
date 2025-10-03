@@ -212,7 +212,6 @@ impl Design {
     /// `UpToDateDesign` reference to the data.
     /// Having an option to not mutate the design is meant to prevent unecessary run-time cloning
     /// of the design
-    #[allow(clippy::needless_lifetimes)]
     pub fn try_get_up_to_date<'a>(&'a self) -> Option<UpToDateDesign<'a>> {
         let paths_data = self
             .instanciated_paths
@@ -234,7 +233,6 @@ impl Design {
     }
 
     /// Update self if necessary and returns an up-to-date reference to self.
-    #[allow(clippy::needless_lifetimes)]
     pub fn get_up_to_date<'a>(&'a mut self) -> UpToDateDesign<'a> {
         let helix_parameters = self
             .helix_parameters
@@ -266,7 +264,6 @@ impl Design {
         }
     }
 
-    #[allow(clippy::needless_lifetimes)]
     pub fn get_up_to_date_paths<'a>(&'a mut self) -> &'a BezierPathData {
         let helix_parameters = self
             .helix_parameters

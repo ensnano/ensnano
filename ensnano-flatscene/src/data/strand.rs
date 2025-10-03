@@ -294,7 +294,6 @@ struct TwoCameraAndPoints<'a> {
 
 /// Return true if `a` and `b` are both visible by exactly one camera, and each camera can see
 /// exactly one of the points.
-#[allow(clippy::needless_lifetimes)]
 fn one_point_one_camera<'a>(input: TwoCameraAndPoints<'a>) -> bool {
     let a = input.point_1;
     let b = input.point_2;

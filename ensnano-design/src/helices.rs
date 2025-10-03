@@ -31,12 +31,11 @@ use std::collections::BTreeMap;
 use std::sync::Arc;
 use ultraviolet::{DRotor3, DVec3, Isometry2, Mat4, Rotor3, Vec2, Vec3};
 
-/// A structure maping helices identifier to `Helix` objects
+/// A structure mapping helices identifier to `Helix` objects
 #[derive(Debug, Default, Serialize, Deserialize, Clone)]
 pub struct Helices(pub(super) Arc<BTreeMap<usize, Arc<Helix>>>);
 
 impl Helices {
-    #[allow(clippy::needless_lifetimes)]
     pub fn make_mut<'a>(&'a mut self) -> HelicesMut<'a> {
         let new_map = BTreeMap::clone(self.0.as_ref());
         HelicesMut {
@@ -1063,7 +1062,6 @@ impl<'a> Axis<'a> {
 }
 
 impl OwnedAxis {
-    #[allow(clippy::needless_lifetimes)]
     pub fn borrow<'a>(&'a self) -> Axis<'a> {
         match self {
             Self::Line { origin, direction } => Axis::Line {
