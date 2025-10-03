@@ -358,16 +358,6 @@ impl<S: AppState> FlatScene<S> {
                     }
                 }
             }
-            Consequence::Centering(nucl, bottom) => {
-                self.view[self.selected_design]
-                    .borrow_mut()
-                    .center_nucl(nucl, bottom);
-                let nucl = nucl.to_real();
-                self.requests
-                    .lock()
-                    .unwrap()
-                    .request_centering_on_nucl(nucl, self.selected_design)
-            }
             Consequence::DrawingSelection(c1, c2) => self.view[self.selected_design]
                 .borrow_mut()
                 .update_rectangle(c1, c2),
@@ -492,7 +482,6 @@ impl<S: AppState> FlatScene<S> {
                     helix_id: flat_helix.segment.helix_idx,
                     segment_id: flat_helix.segment.segment_idx,
                 }]),
-            // OBSOLETE ?
             Consequence::PngExport(corner1, corner2) => {
                 println!("I'd like to know how you got there !");
                 let glob_png = camera2d::Globals::from_corners(corner1, corner2, png_resolution);
@@ -508,7 +497,7 @@ impl<S: AppState> FlatScene<S> {
                     .borrow_mut()
                     .clear_rectangle();
             }
-            _ => (),
+            Consequence::Nothing => {}
         }
     }
 

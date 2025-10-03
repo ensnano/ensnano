@@ -320,12 +320,11 @@ impl<S: AppState> ControllerState<S> for NormalState {
                             consequences: Consequence::Nothing,
                         }
                     }
-                    ClickResult::CircleWidget { translation_pivot } => {
+                    ClickResult::CircleWidget { .. } => {
                         if controller.action_mode == ActionMode::Cut {
                             Transition {
                                 new_state: Some(Box::new(RmHelix {
                                     mouse_position: self.mouse_position,
-                                    helix: translation_pivot.helix,
                                 })),
                                 consequences: Consequence::Nothing,
                             }
@@ -2035,7 +2034,8 @@ impl<S: AppState> ControllerState<S> for Cutting {
                 } else {
                     let consequences = if nucl == ClickResult::Nucl(self.nucl) {
                         if self.whole_strand {
-                            Consequence::RmStrand(self.nucl)
+                            // Consequence::RmStrand(self.nucl)
+                            Consequence::Nothing
                         } else {
                             Consequence::Cut(self.nucl)
                         }
@@ -2072,7 +2072,6 @@ impl<S: AppState> ControllerState<S> for Cutting {
 
 struct RmHelix {
     mouse_position: PhysicalPosition<f64>,
-    helix: FlatHelix,
 }
 
 impl<S: AppState> ControllerState<S> for RmHelix {
@@ -2097,31 +2096,28 @@ impl<S: AppState> ControllerState<S> for RmHelix {
                 state,
                 ..
             } => {
-                /*assert!(
-                    *state == ElementState::Released,
-                    "Pressed mouse button in Cutting state"
-                );*/
                 if *state == ElementState::Pressed {
                     return Transition::nothing();
                 }
-                let (x, y) = controller
-                    .get_camera(position.y)
-                    .borrow()
-                    .screen_to_world(self.mouse_position.x as f32, self.mouse_position.y as f32);
-                let nucl =
-                    controller
-                        .data
-                        .borrow()
-                        .get_click(x, y, &controller.get_camera(position.y));
-                let consequences = if let ClickResult::CircleWidget { translation_pivot } = nucl {
-                    if translation_pivot.helix == self.helix {
-                        Consequence::RmHelix(self.helix)
-                    } else {
-                        Consequence::Nothing
-                    }
-                } else {
-                    Consequence::Nothing
-                };
+                // let (x, y) = controller
+                //     .get_camera(position.y)
+                //     .borrow()
+                //     .screen_to_world(self.mouse_position.x as f32, self.mouse_position.y as f32);
+                // let nucl =
+                //     controller
+                //         .data
+                //         .borrow()
+                //         .get_click(x, y, &controller.get_camera(position.y));
+                // let consequences = if let ClickResult::CircleWidget { translation_pivot } = nucl {
+                //     if translation_pivot.helix == self.helix {
+                //         Consequence::RmHelix(self.helix)
+                //     } else {
+                //         Consequence::Nothing
+                //     }
+                // } else {
+                //     Consequence::Nothing
+                // };
+                let consequences = Consequence::Nothing;
                 Transition {
                     new_state: Some(Box::new(NormalState {
                         mouse_position: self.mouse_position,

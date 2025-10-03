@@ -547,17 +547,6 @@ impl View {
         self.helices[n2.helix].make_visible(n2.flat_position, self.camera_bottom.clone());
     }
 
-    /// Center the top camera on a nucleotide
-    pub fn center_nucl(&mut self, nucl: FlatNucl, bottom: bool) {
-        let helix = nucl.helix;
-        let position = self.helices[helix].get_pivot(nucl.flat_position);
-        if bottom {
-            self.camera_bottom.borrow_mut().set_center(position);
-        } else {
-            self.camera_top.borrow_mut().set_center(position);
-        }
-    }
-
     pub fn update_rectangle(&mut self, c1: PhysicalPosition<f64>, c2: PhysicalPosition<f64>) {
         if self.splited {
             if (c1.y < self.area_size.height as f64 / 2.)
