@@ -41,10 +41,6 @@ impl CircleCurve {
         self.theta(1.)
     }
 
-    pub(super) fn t_min(&self) -> f64 {
-        0.
-    }
-
     pub(super) fn t_max(&self) -> f64 {
         1.
     }
