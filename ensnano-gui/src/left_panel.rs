@@ -607,7 +607,7 @@ where
             }
             Message::MakeGrids => self.requests.lock().unwrap().make_grid_from_selection(),
             Message::RollTargeted(b) => {
-                let selection = self.application_state.get_selection_as_designelement();
+                let selection = self.application_state.get_selection_as_design_element();
                 if b {
                     if let Some(simulation_request) = self.edition_tab.get_roll_request(&selection)
                     {

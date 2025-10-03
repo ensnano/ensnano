@@ -1003,12 +1003,12 @@ pub trait AppState:
     fn is_building_hyperboloid(&self) -> bool;
     fn get_scaffold_info(&self) -> Option<ScaffoldInfo>;
     fn get_selection(&self) -> &[Selection];
-    fn get_selection_as_designelement(&self) -> Vec<DesignElementKey>;
+    fn get_selection_as_design_element(&self) -> Vec<DesignElementKey>;
     fn can_make_grid(&self) -> bool;
     fn get_reader(&self) -> Box<dyn DesignReader>;
     fn design_was_modified(&self, other: &Self) -> bool;
     fn selection_was_updated(&self, other: &Self) -> bool;
-    fn get_curent_operation_state(&self) -> Option<CurrentOpState>;
+    fn get_current_operation_state(&self) -> Option<CurrentOpState>;
     fn get_strand_building_state(&self) -> Option<StrandBuildingStatus>;
     fn get_selected_group(&self) -> Option<GroupId>;
     fn get_suggestion_parameters(&self) -> &SuggestionParameters;
@@ -1070,7 +1070,7 @@ pub struct TopBarState {
     pub can_reload: bool,
     pub can_split_2d: bool,
     pub can_toggle_2d: bool,
-    pub splited_2d: bool,
+    pub is_split_2d: bool,
 }
 // NOTE: This was called “MainState”. I am not sure that “TopBarState” is the best name for this.
 //       Maybe this would be more like a “GuiState”.

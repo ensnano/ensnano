@@ -53,7 +53,7 @@ impl GuiState for AppState {
         self.selection_content().as_ref()
     }
 
-    fn get_selection_as_designelement(&self) -> Vec<DesignElementKey> {
+    fn get_selection_as_design_element(&self) -> Vec<DesignElementKey> {
         self.selection_content()
             .iter()
             .filter_map(|s| DesignElementKey::from_selection(s, 0))
@@ -106,7 +106,7 @@ impl GuiState for AppState {
         self.0.strand_on_new_helix.is_some()
     }
 
-    fn get_curent_operation_state(&self) -> Option<ensnano_gui::CurrentOpState> {
+    fn get_current_operation_state(&self) -> Option<ensnano_gui::CurrentOpState> {
         self.0.design.get_curent_operation_state()
     }
 

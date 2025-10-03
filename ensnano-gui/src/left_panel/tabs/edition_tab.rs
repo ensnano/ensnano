@@ -111,7 +111,7 @@ impl<State: AppState> GuiTab<State> for EditionTab<State> {
         app_state: &State,
     ) -> ensnano_iced::Element<'_, Self::Message> {
         let roll_target_helices =
-            self.get_roll_target_helices(&app_state.get_selection_as_designelement());
+            self.get_roll_target_helices(&app_state.get_selection_as_design_element());
         let sim_state = &app_state.get_simulation_state();
         let autoroll_is_active = sim_state.is_rolling() || roll_target_helices.len() > 0;
         let selection_contains_strand =
