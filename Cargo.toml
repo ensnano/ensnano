@@ -55,7 +55,6 @@ rand_distr = "0.4.0"
 ordered-float = { version = "2.0", features = ["serde"] }
 rfd = "0.10"
 num_enum = "0.5.1"
-palette = "0.4.1"
 log = "0.4"
 pretty_env_logger = "0.4"
 dirs = "4.0"
