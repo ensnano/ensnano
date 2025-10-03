@@ -16,6 +16,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+// TODO: check all unused fields (starting with _)
+
 use super::Curved;
 use crate::HelixParameters;
 use std::f64::consts::{PI, TAU};
@@ -49,12 +51,12 @@ impl SphereConcentricCircleDescriptor {
 
         SphereConcentricCircle {
             _parameters: helix_parameters,
-            radius: self.radius,
+            _radius: self.radius,
             theta_0: self.theta_0,
-            helix_index,
-            inter_helix_center_gap,
-            perimeter,
-            φ,
+            _helix_index: helix_index,
+            _inter_helix_center_gap: inter_helix_center_gap,
+            _perimeter: perimeter,
+            _φ: φ,
             z_radius,
             z,
             t_min: 0.,
@@ -72,12 +74,12 @@ impl SphereConcentricCircleDescriptor {
 
 pub(super) struct SphereConcentricCircle {
     pub _parameters: HelixParameters,
-    pub radius: f64,
+    pub _radius: f64,
     pub theta_0: f64,
-    pub helix_index: f64,
-    pub inter_helix_center_gap: f64,
-    pub perimeter: f64,
-    pub φ: f64,
+    pub _helix_index: f64,
+    pub _inter_helix_center_gap: f64,
+    pub _perimeter: f64,
+    pub _φ: f64,
     pub z_radius: f64,
     pub z: f64,
     pub t_min: f64,
@@ -94,10 +96,6 @@ impl SphereConcentricCircle {
 
     pub(super) fn last_theta(&self) -> f64 {
         self.theta(1.)
-    }
-
-    pub(super) fn t_min(&self) -> f64 {
-        0.
     }
 
     pub(super) fn t_max(&self) -> f64 {
@@ -216,12 +214,12 @@ impl SphereTennisBallSeamDescriptor {
         let perimeter = t3 + PI * z;
         SphereTennisBallSeam {
             _parameters: helix_parameters,
-            theta_0,
+            _theta_0: theta_0,
             t1,
             t2,
             t3,
             perimeter,
-            phi,
+            _phi: phi,
             z_radius,
             z,
             target_nb_nt: self.target_nb_nt,
@@ -231,10 +229,10 @@ impl SphereTennisBallSeamDescriptor {
 
 pub(super) struct SphereTennisBallSeam {
     pub _parameters: HelixParameters,
-    pub theta_0: f64,
+    pub _theta_0: f64,
     pub z_radius: f64,
     pub z: f64,
-    pub phi: f64,
+    pub _phi: f64,
     pub t1: f64,
     pub t2: f64,
     pub t3: f64,
@@ -243,10 +241,6 @@ pub(super) struct SphereTennisBallSeam {
 }
 
 impl SphereTennisBallSeam {
-    pub(super) fn t_min(&self) -> f64 {
-        0.
-    }
-
     pub(super) fn t_max(&self) -> f64 {
         self.perimeter
     }
@@ -430,7 +424,7 @@ impl PillTennisBallSeamDescriptor {
             t3,
             t3b,
             perimeter,
-            phi,
+            _phi: phi,
             z_radius,
             z,
             target_nb_nt: self.target_nb_nt,
@@ -441,10 +435,9 @@ impl PillTennisBallSeamDescriptor {
 pub(super) struct PillTennisBallSeam {
     pub _parameters: HelixParameters,
     pub length: f64,
-    // pub theta_0: f64,
     pub z_radius: f64,
     pub z: f64,
-    pub phi: f64,
+    pub _phi: f64,
     pub t1a: f64,
     pub t1: f64,
     pub t1b: f64,
@@ -457,10 +450,6 @@ pub(super) struct PillTennisBallSeam {
 }
 
 impl PillTennisBallSeam {
-    pub(super) fn t_min(&self) -> f64 {
-        0.
-    }
-
     pub(super) fn t_max(&self) -> f64 {
         1.0
     }
@@ -705,15 +694,15 @@ impl PillConcentricStadiumDescriptor {
 
         PillConcentricStadium {
             _parameters: helix_parameters,
-            radius: self.radius,
+            _radius: self.radius,
             length: self.length,
-            helix_index,
-            inter_helix_center_gap,
+            _helix_index: helix_index,
+            _inter_helix_center_gap: inter_helix_center_gap,
             t1,
             t2,
             t3,
             perimeter,
-            φ,
+            _φ: φ,
             z_radius,
             z,
             t_min: 0.,
@@ -731,15 +720,15 @@ impl PillConcentricStadiumDescriptor {
 
 pub(super) struct PillConcentricStadium {
     pub _parameters: HelixParameters,
-    pub radius: f64,
+    pub _radius: f64,
     pub length: f64,
-    pub helix_index: f64,
-    pub inter_helix_center_gap: f64,
+    pub _helix_index: f64,
+    pub _inter_helix_center_gap: f64,
     pub t1: f64,
     pub t2: f64,
     pub t3: f64,
     pub perimeter: f64,
-    pub φ: f64,
+    pub _φ: f64,
     pub z_radius: f64,
     pub z: f64,
     pub t_min: f64,
@@ -750,10 +739,6 @@ pub(super) struct PillConcentricStadium {
 }
 
 impl PillConcentricStadium {
-    pub(super) fn t_min(&self) -> f64 {
-        0.0
-    }
-
     pub(super) fn t_max(&self) -> f64 {
         self.perimeter
     }

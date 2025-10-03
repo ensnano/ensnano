@@ -19,7 +19,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use ultraviolet::{DMat3, DVec3, Isometry2, Rotor3, Vec2, Vec3};
 const EPSILON: f64 = 1e-6;
 
-/// To compute curvilinear abcissa over long distances
+/// To compute curvilinear abscissa over long distances
 const DELTA_MAX: f64 = 256.0;
 use crate::{
     curves::chebyshev::{PolynomialCoordinates, PolynomialCoordinates_},
@@ -46,7 +46,6 @@ mod torus_concentric_circle;
 mod tube_spiral;
 mod twist;
 
-use super::GridId;
 use crate::grid::*;
 pub use bezier::InstanciatedPiecewiseBezier;
 pub(crate) use bezier::PieceWiseBezierInstantiator;
@@ -771,14 +770,8 @@ pub struct InstanciatedCurveDescriptor {
 /// This is used to instantiate curves that reference design objects.
 pub(super) trait CurveInstantiator {
     fn concrete_grid_position(&self, position: GridPosition) -> Vec3;
-    fn orientation(&self, grid: GridId) -> Rotor3;
     fn source(&self) -> FreeGrids;
     fn source_paths(&self) -> Option<BezierPathData>;
-    fn get_tangents_between_two_points(
-        &self,
-        p0: GridPosition,
-        p1: GridPosition,
-    ) -> Option<(Vec3, Vec3)>;
     fn translate_by_edge(&self, position: GridPosition, edge: Edge) -> Option<GridPosition>;
 }
 

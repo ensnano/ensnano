@@ -1378,23 +1378,6 @@ impl CurveInstantiator for GridData {
         self.source_free_grids.clone()
     }
 
-    fn orientation(&self, grid: GridId) -> Rotor3 {
-        if let Some(grid) = self.grids.get(&grid) {
-            grid.orientation
-        } else {
-            log::error!("Attempt to get orientation of unexisting grid. This is a bug");
-            Rotor3::identity()
-        }
-    }
-
-    fn get_tangents_between_two_points(
-        &self,
-        p0: GridPosition,
-        p1: GridPosition,
-    ) -> Option<(Vec3, Vec3)> {
-        self.get_tangents_between_two_points(p0, p1)
-    }
-
     fn translate_by_edge(&self, position: GridPosition, edge: Edge) -> Option<GridPosition> {
         self.translate_by_edge(&position.to_helix_pos(), &edge)
             .map(|h| h.light())
