@@ -842,9 +842,7 @@ impl Helix {
         let my_nucl_pos = self.space_pos(&p, n, forward);
         let direction = (my_nucl_pos - axis_pos).normalized();
 
-        #[allow(clippy::let_and_return)]
-        let other_helix_pos = (2. * p.helix_radius + p.inter_helix_gap) * direction + axis_pos;
-        other_helix_pos
+        (2. * p.helix_radius + p.inter_helix_gap) * direction + axis_pos
     }
 
     fn adjust_theta_neighbor(

@@ -1457,7 +1457,5 @@ fn color_to_u32(color: Color) -> u32 {
     let green = ((color.g * 255.) as u32) << 8;
     let blue = (color.b * 255.) as u32;
 
-    #[allow(clippy::let_and_return)]
-    let color_u32 = red + green + blue;
-    color_u32
+    red + green + blue
 }
