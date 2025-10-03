@@ -89,7 +89,7 @@ pub enum Consequence {
     InitRotation(RotationMode, f64, f64, WidgetTarget),
     InitTranslation(f64, f64, WidgetTarget),
     Swing(f64, f64),
-    Tilt(f64, f64),
+    Tilt(f64),
     Nothing,
     ToggleWidget,
     BuildEnded,

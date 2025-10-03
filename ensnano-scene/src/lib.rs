@@ -16,6 +16,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#![allow(mixed_script_confusables, confusable_idents)] // allow mathematical symbols as variables
+
 use ensnano_design::{
     consts::ITERATIVE_AXIS_ALGORITHM, grid::GridPosition, grid::HelixGridPosition,
     group_attributes::GroupPivot, ultraviolet, BezierVertexId, Nucl,
@@ -345,7 +347,7 @@ impl<S: AppState> Scene<S> {
                 self.controller.swing(-x, -y);
                 self.notify(SceneNotification::CameraMoved);
             }
-            Consequence::Tilt(x, _) => {
+            Consequence::Tilt(x) => {
                 let mut pivot: Option<FiniteVec3> = self
                     .data
                     .borrow()

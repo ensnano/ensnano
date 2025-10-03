@@ -238,7 +238,6 @@ impl Vertexable for CubeVertex {
 }
 
 pub struct DirectionTexture {
-    pub texture: wgpu::Texture,
     pub texture_view: wgpu::TextureView,
     pub sampler: wgpu::Sampler,
 }
@@ -332,7 +331,6 @@ impl DirectionTexture {
         });
 
         Self {
-            texture,
             texture_view: view,
             sampler,
         }

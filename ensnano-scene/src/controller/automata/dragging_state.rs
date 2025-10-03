@@ -20,7 +20,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //!
 //! In this context dragging means that the user is holding one of the mouse button while moving
 //! the cursor.
-//! In such a state, cursor movement all cursor movement have similar consequences shuch has moving
+//! In such a state, cursor movement all cursor movement have similar consequences such has moving
 //! the camera or moving an object.
 
 use ensnano_design::BezierVertexId;
@@ -347,10 +347,7 @@ impl DraggingTransitionTable for TiltingCamera {
         &mut self,
         cursor: DraggedCursor<'_, '_, S>,
     ) -> Option<Consequence> {
-        Some(Consequence::Tilt(
-            cursor.delta_position.x,
-            cursor.delta_position.y,
-        ))
+        Some(Consequence::Tilt(cursor.delta_position.x))
     }
 
     fn on_button_released(&self) -> Option<Consequence> {
