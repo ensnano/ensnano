@@ -31,8 +31,8 @@ use ensnano_design::{
     BezierPathId, Extremity, HelixCollection, InstanciatedPiecewiseBezier, Nucl, VirtualNucl,
 };
 use ensnano_interactor::{
-    application::Camera3D, NeighborDescriptor, NeighborDescriptorGiver, Referential,
-    ScaffoldInfo, Selection, SuggestionParameters,
+    application::Camera3D, NeighborDescriptor, NeighborDescriptorGiver, Referential, ScaffoldInfo,
+    Selection, SuggestionParameters,
 };
 use ensnano_scene::{HBond, HalfHBond};
 use ensnano_utils::id_generator::IdGenerator;
