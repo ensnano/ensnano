@@ -161,7 +161,7 @@ impl FlatHelixMaps {
         Some(segment.len())
     }
 
-    pub fn iter<'a>(&'a self) -> Box<dyn Iterator<Item = (&HelixSegment, &FlatIdx)> + 'a> {
+    pub fn iter(&self) -> Box<dyn Iterator<Item = (&HelixSegment, &FlatIdx)> + '_> {
         Box::new(self.real_to_flat.iter())
     }
 
@@ -237,7 +237,7 @@ impl<T: Flat> std::ops::Index<FlatIdx> for Vec<T> {
 }
 
 /// The position of a flat nucleotide. If the flat nucleotide belongs to an helix2d representing a
-/// a segment of a real helix, this position is relative to the leftmost extrimity of the segment.
+/// a segment of a real helix, this position is relative to the leftmost extremity of the segment.
 #[derive(Debug, Clone, Copy, PartialOrd, PartialEq, Eq, Ord, Hash)]
 pub struct FlatPosition(pub isize);
 
@@ -311,6 +311,7 @@ impl FlatNucl {
     }
 }
 
+#[allow(unused)] // TODO: remove and understand why so many fields are unused
 pub enum FlatSelection {
     Nucleotide(usize, FlatNucl),
     Bond(usize, FlatNucl, FlatNucl),
