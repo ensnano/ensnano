@@ -86,7 +86,7 @@ pub trait Curved {
     /// The upper bound of the definition domain of `Self::position`.
     ///
     /// By default this is 1.0, but for curves that are infinite
-    /// this value may be overriden to allow the helix to have more nucleotides
+    /// this value may be overridden to allow the helix to have more nucleotides
     fn t_max(&self) -> f64 {
         1.0
     }
@@ -94,7 +94,7 @@ pub trait Curved {
     /// The lower bound of the definition domain of `Self::position`.
     ///
     /// By default this is 0.0, but for curves that are infinite
-    /// this value may be overriden to allow the helix to have more nucleotides
+    /// this value may be overridden to allow the helix to have more nucleotides
     fn t_min(&self) -> f64 {
         0.0
     }
@@ -168,7 +168,7 @@ pub trait Curved {
     }
 
     /// If the rise along the curve is not the same than for straight helices, this method should
-    /// be overriden
+    /// be overridden
     fn rise_ratio(&self) -> Option<f64> {
         None
     }
@@ -190,38 +190,38 @@ pub trait Curved {
         }
     }
 
-    /// This method can be overriden to express the fact that a translation should be applied to
+    /// This method can be overridden to express the fact that a translation should be applied to
     /// every point of the curve. For each point of the curve, the translation is expressed in the
     /// coordinate of the frame associated to the point.
     fn translation(&self) -> Option<DVec3> {
         None
     }
 
-    /// This method can be overriden to express the fact that a specific frame should be used to
+    /// This method can be overridden to express the fact that a specific frame should be used to
     /// position nucleotides arround the first point of the curve.
     fn initial_frame(&self) -> Option<DMat3> {
         None
     }
 
-    /// This method can be overriden to express the fact that the curve is closed.
+    /// This method can be overridden to express the fact that the curve is closed.
     /// In that case, return `Some(t)` if the curve is closed with period `t`.
     fn full_turn_at_t(&self) -> Option<f64> {
         None
     }
 
-    /// This method can be overriden to express the fact that the curve is closed and should
+    /// This method can be overridden to express the fact that the curve is closed and should
     /// contain a specific number of nucleotide between `self.t_min()` and `self.full_turn_at_t()`.
     fn nucl_pos_full_turn(&self) -> Option<isize> {
         None
     }
 
-    /// This method can be overriden to express the fact that the curve should contain a specific
+    /// This method can be overridden to express the fact that the curve should contain a specific
     /// number of nucleotides between `self.t_min()` and `self.t_max()`.
     fn objective_nb_nt(&self) -> Option<usize> {
         None
     }
 
-    /// This method can be overriden to express the fact that a curve needs to be represented by
+    /// This method can be overridden to express the fact that a curve needs to be represented by
     /// several helices segments in 2D.
     /// If that is the case, return the index of the corresponding segment for t. This methods must
     /// be increasing.
@@ -229,7 +229,7 @@ pub trait Curved {
         None
     }
 
-    /// This method can be overriden to express the fact that a curve will be the only member of
+    /// This method can be overridden to express the fact that a curve will be the only member of
     /// its synchornization group.
     /// In that case, the abscissa converter can be storred dirrectly in the curve.
     fn is_time_maps_singleton(&self) -> bool {
@@ -244,25 +244,25 @@ pub trait Curved {
         None
     }
 
-    /// This method can be overriden to express the fact the a curve is a portion of a surface.
+    /// This method can be overridden to express the fact the a curve is a portion of a surface.
     /// In that case return the information about the surface at the point corresponding to time t
     fn surface_info_time(&self, _t: f64, _helix_id: usize) -> Option<SurfaceInfo> {
         None
     }
 
-    /// This method can be overriden to express the fact the a curve is a portion of a surface.
+    /// This method can be overridden to express the fact the a curve is a portion of a surface.
     /// In that case return the information about the surface at the specified point
     fn surface_info(&self, _point: SurfacePoint) -> Option<SurfaceInfo> {
         None
     }
 
-    /// This method can be overriden to specify the additional isometry associated to each segment
+    /// This method can be overridden to specify the additional isometry associated to each segment
     /// of the helix.
     fn additional_isometry(&self, _segment_idx: usize) -> Option<Isometry2> {
         None
     }
 
-    /// This method can be overriden to indicate that the curve can mutst be discretized quickly,
+    /// This method can be overridden to indicate that the curve can mutst be discretized quickly,
     /// even at the cost of precision.
     fn discretize_quickly(&self) -> bool {
         false

@@ -45,7 +45,7 @@ impl Curve {
     /// given in argument. This happen when the implementation of `Curved` for `self.geometry`
     /// specifies that a certain number of nucleotides must fit on a specific portion of the curve
     /// (i.e. at least one of the method `full_turn_at_t`, `nucl_pos_full_turn` or
-    /// `objective_nb_nt` has been overriden).
+    /// `objective_nb_nt` has been overridden).
     pub(super) fn discretize(&mut self, mut nucl_rise: f64, inclination: f64) {
         if self.geometry.legacy() {
             return self.discretize_legacy(nucl_rise, inclination);
