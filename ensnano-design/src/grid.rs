@@ -1240,12 +1240,7 @@ impl GridData {
     }
 }
 
-trait GridApprox {
-    fn error_group(&self, group: &[usize], helices: &Helices) -> f32;
-    fn error_helix(&self, origin: Vec3, direction: Vec3) -> f32;
-}
-
-impl GridApprox for Grid {
+impl Grid {
     fn error_group(&self, group: &[usize], helices: &Helices) -> f32 {
         let mut ret = 0f32;
         for h_id in group.iter() {
@@ -1259,11 +1254,11 @@ impl GridApprox for Grid {
     }
 
     fn error_helix(&self, origin: Vec3, direction: Vec3) -> f32 {
-        let position_descrete = self
+        let position_discrete = self
             .interpolate_helix(origin, direction)
             .map(|(x, y)| self.position_helix(x, y));
         if let Some(position) = self.real_intersection(origin, direction) {
-            (position - position_descrete.unwrap()).mag_sq()
+            (position - position_discrete.unwrap()).mag_sq()
         } else {
             std::f32::INFINITY
         }
