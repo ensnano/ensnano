@@ -18,6 +18,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! This module defines the ensnano format.
 //! All other format supported by ensnano are converted into this format and run-time manipulation
 //! of designs are performed on an `ensnano::Design` structure
+
+#![allow(mixed_script_confusables)]
+
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::sync::Arc;
 
