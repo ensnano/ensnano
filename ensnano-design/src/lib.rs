@@ -63,8 +63,6 @@ pub use isometry3_descriptor::Isometry3Descriptor;
 mod parameters;
 pub use parameters::*;
 
-mod id_manager;
-
 pub mod drawing_style;
 
 /// Re-export ultraviolet for linear algebra
