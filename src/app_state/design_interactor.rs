@@ -42,7 +42,7 @@ use presenter::{apply_simulation_update, update_presenter, Presenter};
 
 use crate::controller::{ChannelReader, SimulationRequest};
 pub(super) use controller::ErrOperation;
-use controller::{GridPresenter, HelixPresenter, OkOperation, RollPresenter, TwistPresenter};
+use controller::OkOperation;
 use ensnano_gui::CurrentOpState;
 use std::sync::Arc;
 

@@ -16,17 +16,19 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use ensnano_design::grid::{GridDescriptor, GridTypeDescr};
-use ensnano_design::{
-    grid::*, Collection, CurveDescriptor, HelixCollection, HelixParameters, Twist,
+use super::{
+    roller::{DesignData, RollSystem},
+    Design, Helix, SimulationReader,
 };
-
-use super::roller::{DesignData, RollPresenter, RollSystem};
-use super::{Design, Helix, SimulationReader};
-use std::collections::HashMap;
-use std::sync::{Arc, Mutex, Weak};
-
-pub trait TwistPresenter: RollPresenter {}
+use crate::app_state::design_interactor::Presenter;
+use ensnano_design::{
+    grid::{GridDescriptor, GridTypeDescr, *},
+    Collection, CurveDescriptor, HelixCollection, HelixParameters, Twist,
+};
+use std::{
+    collections::HashMap,
+    sync::{Arc, Mutex, Weak},
+};
 
 struct TwistSystem {
     current_omega: f64,
@@ -79,7 +81,7 @@ pub struct TwistInterface {
 
 impl Twister {
     pub fn start_new(
-        presenter: &dyn TwistPresenter,
+        presenter: &Presenter,
         target_grid: GridId,
         reader: &mut dyn SimulationReader,
     ) -> Option<Arc<Mutex<TwistInterface>>> {

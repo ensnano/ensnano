@@ -16,31 +16,33 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-pub use revolutions::*;
+mod revolutions;
+mod roller;
+mod twister;
 
 use super::*;
-
-use ensnano_design::{grid::Grid, HelixParameters};
+use crate::app_state::design_interactor::Presenter;
+use ensnano_design::HelixParameters;
 use ensnano_interactor::{RevolutionSurfaceSystemDescriptor, RigidBodyConstants};
-use mathru::algebra::linear::vector::vector::Vector;
-use mathru::analysis::differential_equation::ordinary::{
-    solver::runge_kutta::{explicit::fixed::FixedStepper, ExplicitEuler, Kutta3},
-    ExplicitODE,
+use mathru::{
+    algebra::linear::vector::vector::Vector,
+    analysis::differential_equation::ordinary::{
+        solver::runge_kutta::{explicit::fixed::FixedStepper, ExplicitEuler, Kutta3},
+        ExplicitODE,
+    },
 };
 use ordered_float::OrderedFloat;
 use rand::Rng;
 use rand_distr::{Exp, StandardNormal};
-use std::cmp::Reverse;
-use std::collections::BinaryHeap;
-use std::collections::HashMap;
-use std::sync::{Arc, Mutex, Weak};
+pub use revolutions::*;
+pub use roller::{PhysicalSystem, RollInterface};
+use std::{
+    cmp::Reverse,
+    collections::{BinaryHeap, HashMap},
+    sync::{Arc, Mutex, Weak},
+};
+pub use twister::{TwistInterface, Twister};
 use ultraviolet::{Bivec3, Mat3};
-
-mod roller;
-pub use roller::{PhysicalSystem, RollInterface, RollPresenter};
-mod twister;
-pub use twister::{TwistInterface, TwistPresenter, Twister};
-mod revolutions;
 
 const MAX_DERIVATIVE_NORM: f32 = 1e4;
 
@@ -860,7 +862,7 @@ struct RigidHelixConstants {
 
 impl HelixSystemThread {
     pub(super) fn start_new(
-        presenter: &dyn HelixPresenter,
+        presenter: &Presenter,
         rigid_parameters: RigidBodyConstants,
         reader: &mut dyn SimulationReader,
     ) -> Result<Arc<Mutex<HelixSystemInterface>>, ErrOperation> {
@@ -955,7 +957,7 @@ pub(super) struct GridSystemInterface {
 
 impl GridsSystemThread {
     pub(super) fn start_new(
-        presenter: &dyn GridPresenter,
+        presenter: &Presenter,
         rigid_parameters: RigidBodyConstants,
         reader: &mut dyn SimulationReader,
     ) -> Result<Arc<Mutex<GridSystemInterface>>, ErrOperation> {
@@ -1010,7 +1012,7 @@ impl GridsSystemThread {
 fn make_flexible_helices_system(
     time_span: (f32, f32),
     rigid_parameters: RigidBodyConstants,
-    presenter: &dyn HelixPresenter,
+    presenter: &Presenter,
     interval_results: &IntervalResult,
 ) -> Result<HelixSystem, ErrOperation> {
     let helix_parameters = presenter
@@ -1159,7 +1161,7 @@ fn make_rigid_helix_world_pov_interval(
     )
 }
 
-fn read_intervals(presenter: &dyn HelixPresenter) -> Result<IntervalResult, ErrOperation> {
+fn read_intervals(presenter: &Presenter) -> Result<IntervalResult, ErrOperation> {
     // TODO remove pub after testing
     let mut nucl_map = HashMap::new();
     let mut current_helix = None;
@@ -1292,15 +1294,6 @@ fn read_intervals(presenter: &dyn HelixPresenter) -> Result<IntervalResult, ErrO
     })
 }
 
-pub trait HelixPresenter {
-    fn get_xovers_list(&self) -> Vec<(Nucl, Nucl)>;
-    fn get_design(&self) -> &Design;
-    fn get_all_bonds(&self) -> Vec<(Nucl, Nucl)>;
-    fn get_identifier(&self, nucl: &Nucl) -> Option<u32>;
-    fn get_space_position(&self, nucl: &Nucl) -> Option<Vec3>;
-    fn has_nucl(&self, nucl: &Nucl) -> bool;
-}
-
 #[derive(Debug)]
 pub struct IntervalResult {
     nucl_map: HashMap<Nucl, FreeNucl>,
@@ -1313,12 +1306,12 @@ pub struct IntervalResult {
 
 pub enum SimulationOperation<'pres, 'reader> {
     StartHelices {
-        presenter: &'pres dyn HelixPresenter,
+        presenter: &'pres Presenter,
         parameters: RigidBodyConstants,
         reader: &'reader mut dyn SimulationReader,
     },
     StartGrids {
-        presenter: &'pres dyn GridPresenter,
+        presenter: &'pres Presenter,
         parameters: RigidBodyConstants,
         reader: &'reader mut dyn SimulationReader,
     },
@@ -1330,13 +1323,13 @@ pub enum SimulationOperation<'pres, 'reader> {
     Stop,
     Reset,
     StartRoll {
-        presenter: &'pres dyn RollPresenter,
+        presenter: &'pres Presenter,
         reader: &'reader mut dyn SimulationReader,
         target_helices: Option<Vec<usize>>,
     },
     StartTwist {
         grid_id: GridId,
-        presenter: &'pres dyn TwistPresenter,
+        presenter: &'pres Presenter,
         reader: &'reader mut dyn SimulationReader,
     },
     RevolutionRelaxation {
@@ -1549,7 +1542,7 @@ impl GridsSystem {
 }
 
 impl ExplicitODE<f32> for GridsSystem {
-    // We read the sytem in the following format. For each grid, we read
+    // We read the system in the following format. For each grid, we read
     // * 3 f32 for position
     // * 4 f32 for rotation
     // * 3 f32 for linear momentum
@@ -1682,7 +1675,7 @@ struct ApplicationPoint {
 }
 
 fn make_grid_system(
-    presenter: &dyn GridPresenter,
+    presenter: &Presenter,
     time_span: (f32, f32),
     rigid_parameters: RigidBodyConstants,
 ) -> Result<GridsSystem, ErrOperation> {
@@ -1767,7 +1760,7 @@ fn make_grid_system(
 }
 
 fn make_rigid_grid(
-    presenter: &dyn GridPresenter,
+    presenter: &Presenter,
     g_id: GridId,
     intervals: &BTreeMap<usize, (isize, isize)>,
     helix_parameters: &HelixParameters,
@@ -1795,7 +1788,7 @@ fn make_rigid_grid(
 }
 
 fn make_rigid_helix_grid_pov(
-    presenter: &dyn GridPresenter,
+    presenter: &Presenter,
     h_id: usize,
     intervals: &BTreeMap<usize, (isize, isize)>,
     helix_parameters: &HelixParameters,
@@ -1814,13 +1807,6 @@ fn make_rigid_helix_grid_pov(
         helix.orientation,
         (*x_min, *x_max),
     ))
-}
-
-pub trait GridPresenter {
-    fn get_design(&self) -> &Design;
-    fn get_grid(&self, g_id: GridId) -> Option<&Grid>;
-    fn get_helices_attached_to_grid(&self, g_id: GridId) -> Option<Vec<usize>>;
-    fn get_xovers_list(&self) -> Vec<(Nucl, Nucl)>;
 }
 
 impl SimulationInterface for GridSystemInterface {

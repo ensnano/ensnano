@@ -51,15 +51,12 @@ use ensnano_interactor::{
 use ensnano_organizer::GroupId;
 use ensnano_utils::colors;
 pub use shift_optimization::ShiftOptimizationResult;
-pub use simulations::{
-    GridPresenter, HelixPresenter, RollPresenter, SimulationInterface, SimulationOperation,
-    SimulationReader, TwistPresenter,
-};
 use simulations::{
     GridSystemInterface, GridsSystemThread, HelixSystemInterface, HelixSystemThread,
     PhysicalSystem, RevolutionSystemInterface, RevolutionSystemThread, RollInterface,
     TwistInterface,
 };
+pub use simulations::{SimulationInterface, SimulationOperation, SimulationReader};
 use std::{
     borrow::Cow,
     collections::{BTreeMap, HashMap},
@@ -1879,7 +1876,7 @@ impl Controller {
 /// variants of these enums indicate different ways in which the result should be handled
 pub enum OkOperation {
     /// Push the current design on the undo stack and replace it by the wrapped value. This variant
-    /// is produced when the operation has been peroformed on a non transitory design and can be
+    /// is produced when the operation has been performed on a non transitory design and can be
     /// undone.
     Push {
         design: Design,

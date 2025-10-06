@@ -51,7 +51,7 @@ type JunctionsIds = IdGenerator<(Nucl, Nucl)>;
 /// stored. To obtain a design reader, a pointer to the current design must be given. If the given
 /// pointer does not point to the same address as the one that was used to create the data
 /// structures, the structures are updated before returning the design reader.
-pub(super) struct Presenter {
+pub struct Presenter {
     pub current_design: AddressPointer<Design>,
     current_suggestion_parameters: SuggestionParameters,
     model_matrix: AddressPointer<Mat4>,
@@ -524,6 +524,49 @@ impl Presenter {
             .get(&path_id)
             .and_then(|path| path.to_instanciated_path_2d())
     }
+
+    pub fn get_xovers_list(&self) -> Vec<(Nucl, Nucl)> {
+        self.current_design.strands.get_xovers()
+    }
+
+    pub fn get_design(&self) -> &Design {
+        self.current_design.as_ref()
+    }
+
+    pub fn get_all_bonds(&self) -> Vec<(Nucl, Nucl)> {
+        self.content.identifier_bond.keys().cloned().collect()
+    }
+
+    pub fn get_identifier(&self, nucl: &Nucl) -> Option<u32> {
+        self.content.nucl_collection.get_identifier(nucl).cloned()
+    }
+
+    pub fn get_space_position(&self, nucl: &Nucl) -> Option<Vec3> {
+        self.get_identifier(nucl)
+            .and_then(|id| self.content.space_position.get(&id).map(|v| v.into()))
+    }
+
+    pub fn has_nucl(&self, nucl: &Nucl) -> bool {
+        self.content.nucl_collection.contains_nucl(nucl)
+    }
+
+    pub fn get_helices_attached_to_grid(&self, g_id: GridId) -> Option<Vec<usize>> {
+        self.content
+            .get_helices_on_grid(g_id)
+            .map(|set| set.into_iter().collect())
+    }
+
+    pub fn get_grid(&self, g_id: GridId) -> Option<&ensnano_design::grid::Grid> {
+        self.content.grid_manager.grids.get(&g_id)
+    }
+
+    pub fn get_helices(&self) -> BTreeMap<usize, ensnano_design::Helix> {
+        self.current_design
+            .helices
+            .iter()
+            .map(|(k, h)| (*k, ensnano_design::Helix::clone(h)))
+            .collect()
+    }
 }
 
 pub(super) fn design_need_update(
@@ -728,73 +771,6 @@ impl DesignReader {
             .map(|c| (c.position, c.orientation))
     }
 }
-
-impl HelixPresenter for Presenter {
-    fn get_xovers_list(&self) -> Vec<(Nucl, Nucl)> {
-        self.current_design.strands.get_xovers()
-    }
-
-    fn get_design(&self) -> &Design {
-        self.current_design.as_ref()
-    }
-
-    fn get_all_bonds(&self) -> Vec<(Nucl, Nucl)> {
-        self.content.identifier_bond.keys().cloned().collect()
-    }
-
-    fn get_identifier(&self, nucl: &Nucl) -> Option<u32> {
-        self.content.nucl_collection.get_identifier(nucl).cloned()
-    }
-
-    fn get_space_position(&self, nucl: &Nucl) -> Option<Vec3> {
-        self.get_identifier(nucl)
-            .and_then(|id| self.content.space_position.get(&id).map(|v| v.into()))
-    }
-
-    fn has_nucl(&self, nucl: &Nucl) -> bool {
-        self.content.nucl_collection.contains_nucl(nucl)
-    }
-}
-
-impl GridPresenter for Presenter {
-    fn get_design(&self) -> &Design {
-        self.current_design.as_ref()
-    }
-
-    fn get_xovers_list(&self) -> Vec<(Nucl, Nucl)> {
-        self.current_design.strands.get_xovers()
-    }
-
-    fn get_helices_attached_to_grid(&self, g_id: GridId) -> Option<Vec<usize>> {
-        self.content
-            .get_helices_on_grid(g_id)
-            .map(|set| set.into_iter().collect())
-    }
-
-    fn get_grid(&self, g_id: GridId) -> Option<&ensnano_design::grid::Grid> {
-        self.content.grid_manager.grids.get(&g_id)
-    }
-}
-
-impl RollPresenter for Presenter {
-    fn get_design(&self) -> &Design {
-        self.current_design.as_ref()
-    }
-
-    fn get_xovers_list(&self) -> Vec<(Nucl, Nucl)> {
-        self.current_design.strands.get_xovers()
-    }
-
-    fn get_helices(&self) -> BTreeMap<usize, ensnano_design::Helix> {
-        self.current_design
-            .helices
-            .iter()
-            .map(|(k, h)| (*k, ensnano_design::Helix::clone(h)))
-            .collect()
-    }
-}
-
-impl TwistPresenter for Presenter {}
 
 pub trait SimulationUpdate: Send + Sync {
     fn update_positions(
