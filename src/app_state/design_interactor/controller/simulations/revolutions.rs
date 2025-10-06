@@ -80,14 +80,6 @@ trait SpringTopology: Send + Sync + 'static {
 
     fn fixed_points(&self) -> &[usize];
 
-    fn additional_forces(
-        &self,
-        _thetas: &[f64],
-        _parameters: &RevolutionSimulationParameters,
-    ) -> Vec<(usize, DVec3)> {
-        vec![]
-    }
-
     fn get_frame(&self) -> Similarity3;
 }
 
@@ -363,15 +355,6 @@ impl RevolutionSurfaceSystem {
         }
     }
 
-    fn apply_additional_forces(&self, system: &mut RelaxationSystem) {
-        for (b_id, f) in self
-            .topology
-            .additional_forces(&system.thetas, &self.simulation_parameters)
-        {
-            system.forces[b_id] += f;
-        }
-    }
-
     fn compute_accelerations(&self, system: &mut RelaxationSystem) {
         /* Newton's second law of motion:
          * F/m = d2pos / d2 t
@@ -478,7 +461,6 @@ impl ExplicitODE<f64> for RevolutionSurfaceSystem {
         self.apply_springs(&mut system, None);
         self.apply_torsions(&mut system);
         self.apply_friction(&mut system);
-        self.apply_additional_forces(&mut system);
         self.compute_accelerations(&mut system);
         system.into_mathru()
     }
