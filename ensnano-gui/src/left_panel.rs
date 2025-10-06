@@ -96,7 +96,6 @@ pub struct LeftPanel<R: Requests, S: AppState> {
 #[derive(Debug, Clone)]
 pub enum Message<S: AppState> {
     Resized(LogicalSize<f64>, LogicalPosition<f64>),
-    #[allow(dead_code)]
     OpenColor,
     MakeGrids,
     SequenceChanged(String),
@@ -111,7 +110,6 @@ pub enum Message<S: AppState> {
     PositionHelicesChanged(String),
     LengthHelicesChanged(String),
     ScaffoldPositionInput(String),
-    #[allow(dead_code)]
     ShowTorsion(bool),
     FogRadius(f32),
     FogLength(f32),
@@ -137,7 +135,6 @@ pub enum Message<S: AppState> {
     StaplesRequested,
     OrigamisRequested,
     ToggleText(bool),
-    #[allow(dead_code)]
     CleanRequested,
     AddDoubleStrandHelix(bool),
     ToggleVisibility(bool),
@@ -150,7 +147,6 @@ pub enum Message<S: AppState> {
     SelectionValueChanged(usize, String),
     SetSmallSpheres(bool),
     ScaffoldIdSet(usize, bool),
-    //NewScaffoldInfo(Option<ScaffoldInfo>),
     SelectScaffold,
     ForceHelp,
     ShowTutorial,
