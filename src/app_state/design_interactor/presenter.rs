@@ -22,14 +22,14 @@ mod impl_reader2d;
 mod impl_reader3d;
 mod impl_readergui;
 
+use crate::app_state::design_interactor::presenter::design_content::NuclCollection;
+
 #[cfg(test)]
 pub use self::design_content::Staple;
 
 use super::*;
 use design_content::DesignContent;
-use ensnano_design::{
-    BezierPathId, Extremity, HelixCollection, InstanciatedPiecewiseBezier, Nucl, VirtualNucl,
-};
+use ensnano_design::{BezierPathId, Extremity, HelixCollection, InstanciatedPiecewiseBezier, Nucl};
 use ensnano_interactor::{
     application::Camera3D, NeighborDescriptor, NeighborDescriptorGiver, Referential, ScaffoldInfo,
     Selection, SuggestionParameters,
@@ -420,7 +420,7 @@ impl Presenter {
             .and_then(|s| s.domains.get(d_id))
     }
 
-    pub(super) fn get_owned_nucl_collection(&self) -> Arc<impl NuclCollection> {
+    pub(super) fn get_owned_nucl_collection(&self) -> Arc<NuclCollection> {
         self.content.nucl_collection.clone()
     }
 
@@ -799,18 +799,12 @@ impl TwistPresenter for Presenter {}
 pub trait SimulationUpdate: Send + Sync {
     fn update_positions(
         &self,
-        _identifier_nucl: &dyn NuclCollection,
+        _identifier_nucl: &NuclCollection,
         _space_position: &mut HashMap<u32, [f32; 3], ahash::RandomState>,
     ) {
     }
 
     fn update_design(&self, design: &mut Design);
-}
-
-pub trait NuclCollection: Send + Sync + 'static {
-    fn iter_nucls_ids<'a>(&'a self) -> Box<dyn Iterator<Item = (&'a Nucl, &'a u32)> + 'a>;
-    fn iter_nucls<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Nucl> + 'a>;
-    fn virtual_to_real(&self, virtual_nucl: &VirtualNucl) -> Option<&Nucl>;
 }
 
 #[derive(Clone)]

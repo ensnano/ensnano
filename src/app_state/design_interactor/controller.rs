@@ -21,8 +21,10 @@ mod shift_optimization;
 mod simulations;
 mod update_insertion_length;
 
-use super::{NuclCollection, SimulationUpdate};
-use crate::app_state::AddressPointer;
+use super::SimulationUpdate;
+use crate::app_state::{
+    design_interactor::presenter::design_content::NuclCollection, AddressPointer,
+};
 use clipboard::{Clipboard, PastedStrand, StrandClipboard};
 pub use clipboard::{CopyOperation, PastePosition};
 use ensnano_design::{
@@ -945,10 +947,10 @@ impl Controller {
         }
     }
 
-    pub(super) fn optimize_shift<Nc: NuclCollection>(
+    pub(super) fn optimize_shift(
         &self,
         chanel_reader: &mut dyn ShiftOptimizerReader,
-        nucl_collection: Arc<Nc>,
+        nucl_collection: Arc<NuclCollection>,
         design: &Design,
     ) -> Result<(OkOperation, Self), ErrOperation> {
         if let OperationCompatibility::Incompatible =
@@ -964,11 +966,11 @@ impl Controller {
         ))
     }
 
-    fn start_shift_optimization<Nc: NuclCollection>(
+    fn start_shift_optimization(
         &mut self,
         design: &Design,
         chanel_reader: &mut dyn ShiftOptimizerReader,
-        nucl_collection: Arc<Nc>,
+        nucl_collection: Arc<NuclCollection>,
     ) {
         self.state = ControllerState::OptimizingScaffoldPosition;
         shift_optimization::optimize_shift(

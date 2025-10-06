@@ -54,21 +54,19 @@ pub struct NuclCollection {
     virtual_nucl_map: HashMap<VirtualNucl, Nucl, RandomState>,
 }
 
-impl super::NuclCollection for NuclCollection {
-    fn iter_nucls_ids<'a>(&'a self) -> Box<dyn Iterator<Item = (&'a Nucl, &'a u32)> + 'a> {
+impl NuclCollection {
+    pub fn iter_nucls_ids<'a>(&'a self) -> Box<dyn Iterator<Item = (&'a Nucl, &'a u32)> + 'a> {
         Box::new(self.identifier.iter())
     }
 
-    fn iter_nucls<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Nucl> + 'a> {
+    pub fn iter_nucls<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Nucl> + 'a> {
         Box::new(self.identifier.keys())
     }
 
-    fn virtual_to_real(&self, virtual_nucl: &VirtualNucl) -> Option<&Nucl> {
+    pub fn virtual_to_real(&self, virtual_nucl: &VirtualNucl) -> Option<&Nucl> {
         self.virtual_nucl_map.get(virtual_nucl)
     }
-}
 
-impl NuclCollection {
     pub fn get_identifier(&self, nucl: &Nucl) -> Option<&u32> {
         self.identifier.get(nucl)
     }

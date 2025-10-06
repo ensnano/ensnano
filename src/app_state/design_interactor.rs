@@ -38,7 +38,7 @@ use ensnano_interactor::{
 };
 use ensnano_organizer::GroupId;
 pub use presenter::SimulationUpdate;
-use presenter::{apply_simulation_update, update_presenter, NuclCollection, Presenter};
+use presenter::{apply_simulation_update, update_presenter, Presenter};
 
 use crate::controller::SimulationRequest;
 pub(super) use controller::ErrOperation;

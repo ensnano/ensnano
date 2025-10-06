@@ -24,14 +24,12 @@ macro_rules! log_err {
     };
 }
 
-use crate::app_state::design_interactor::presenter::NuclCollection;
-
 use super::*;
 use std::sync::mpsc;
 
 fn read_scaffold_seq(
     design: &Design,
-    nucl_collection: &dyn NuclCollection,
+    nucl_collection: &NuclCollection,
     shift: usize,
 ) -> Result<BTreeMap<Nucl, char>, ErrOperation> {
     let nb_skip = if let Some(sequence) = design.scaffold_sequence.as_ref() {
@@ -90,10 +88,10 @@ fn read_scaffold_seq(
     }
 }
 
-/// Shift the scaffold at an optimized poisition and return the corresponding score
-pub fn optimize_shift<Nc: NuclCollection>(
+/// Shift the scaffold at an optimized position and return the corresponding score
+pub fn optimize_shift(
     design: Arc<Design>,
-    nucl_collection: Arc<Nc>,
+    nucl_collection: Arc<NuclCollection>,
     chanel_reader: &mut dyn ShiftOptimizerReader,
 ) {
     let (progress_snd, progress_rcv) = std::sync::mpsc::channel();
@@ -110,7 +108,7 @@ pub fn optimize_shift<Nc: NuclCollection>(
 fn get_shift_optimization_result(
     design: &Design,
     progress_channel: std::sync::mpsc::Sender<f32>,
-    nucl_collection: &dyn NuclCollection,
+    nucl_collection: &NuclCollection,
 ) -> ShiftOptimizationResult {
     let mut best_score = usize::MAX;
     let mut best_shfit = 0;
