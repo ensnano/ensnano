@@ -41,3 +41,6 @@ ultraviolet = { git = "https://github.com/termhn/ultraviolet", rev = "b2fb29e", 
     "serde",
 ] }
 version-compare = "0.1.0"
+
+[package.metadata.cargo-machete]
+ignored = ["strum"] # required for strum_macros to work
