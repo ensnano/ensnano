@@ -29,7 +29,7 @@ pub fn hsv_color(hue: f64, saturation: f64, value: f64) -> u32 {
 }
 
 pub fn new_color(color_idx: &mut usize) -> u32 {
-    // Fibonachi hue coloring scheme
+    // Fibonacci hue coloring scheme
     let color = {
         let hue = (*color_idx as f64 * (1. + 5f64.sqrt()) / 2.).fract() * 360.;
         let saturation = (*color_idx as f64 * 7. * (1. + 5f64.sqrt() / 2.)).fract() * 0.25 + 0.75;
@@ -68,7 +68,7 @@ pub fn random_color_with_shade(shade: u32, hue_range: Option<f64>) -> u32 {
     return color;
 }
 
-// Give a color given a set of (t_i,h_i) where t_i is increasing from 0 to 1 such that for t_i ≤ t ≤ t_i+1, the hue is the linera interpolation of h_i and h_i+1 - h is considered modulo 360
+// Give a color given a set of (t_i,h_i) where t_i is increasing from 0 to 1 such that for t_i ≤ t ≤ t_i+1, the hue is the linear interpolation of h_i and h_i+1 - h is considered modulo 360
 
 pub const PURPLE_TO_BLUE_GRADIENT: [(f32, f32); 8] = [
     (0., -56.),  // purple
