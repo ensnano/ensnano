@@ -864,7 +864,7 @@ impl HelixSystemThread {
     pub(super) fn start_new(
         presenter: &Presenter,
         rigid_parameters: RigidBodyConstants,
-        reader: &mut dyn SimulationReader,
+        reader: &mut ChannelReader,
     ) -> Result<Arc<Mutex<HelixSystemInterface>>, ErrOperation> {
         let interval_results = read_intervals(presenter)?;
         let helix_system =
@@ -959,7 +959,7 @@ impl GridsSystemThread {
     pub(super) fn start_new(
         presenter: &Presenter,
         rigid_parameters: RigidBodyConstants,
-        reader: &mut dyn SimulationReader,
+        reader: &mut ChannelReader,
     ) -> Result<Arc<Mutex<GridSystemInterface>>, ErrOperation> {
         let grid_system = make_grid_system(presenter, (0., 1.), rigid_parameters)?;
         let ret = Arc::new(Mutex::new(GridSystemInterface::default()));
@@ -1308,12 +1308,12 @@ pub enum SimulationOperation<'pres, 'reader> {
     StartHelices {
         presenter: &'pres Presenter,
         parameters: RigidBodyConstants,
-        reader: &'reader mut dyn SimulationReader,
+        reader: &'reader mut ChannelReader,
     },
     StartGrids {
         presenter: &'pres Presenter,
         parameters: RigidBodyConstants,
-        reader: &'reader mut dyn SimulationReader,
+        reader: &'reader mut ChannelReader,
     },
     UpdateParameters {
         new_parameters: RigidBodyConstants,
@@ -1324,23 +1324,19 @@ pub enum SimulationOperation<'pres, 'reader> {
     Reset,
     StartRoll {
         presenter: &'pres Presenter,
-        reader: &'reader mut dyn SimulationReader,
+        reader: &'reader mut ChannelReader,
         target_helices: Option<Vec<usize>>,
     },
     StartTwist {
         grid_id: GridId,
         presenter: &'pres Presenter,
-        reader: &'reader mut dyn SimulationReader,
+        reader: &'reader mut ChannelReader,
     },
     RevolutionRelaxation {
         system: RevolutionSurfaceSystemDescriptor,
-        reader: &'reader mut dyn SimulationReader,
+        reader: &'reader mut ChannelReader,
     },
     FinishRelaxation,
-}
-
-pub trait SimulationReader {
-    fn attach_state(&mut self, state_chanel: &Arc<Mutex<dyn SimulationInterface>>);
 }
 
 pub trait SimulationInterface: Send {

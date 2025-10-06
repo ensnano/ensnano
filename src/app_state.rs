@@ -38,8 +38,8 @@ use crate::{
 use address_pointer::AddressPointer;
 pub use design_interactor::{
     controller::ErrOperation, CopyOperation, DesignReader, InteractorNotification, PastePosition,
-    PastingStatus, ShiftOptimizationResult, SimulationInterface, SimulationReader,
-    SimulationTarget, SimulationUpdate,
+    PastingStatus, ShiftOptimizationResult, SimulationInterface, SimulationTarget,
+    SimulationUpdate,
 };
 use design_interactor::{DesignInteractor, InteractorResult};
 use ensnano_design::{group_attributes::GroupPivot, BezierPathId, Design, SavingInformation};
@@ -334,7 +334,7 @@ impl AppState {
     pub(super) fn start_simulation(
         &mut self,
         parameters: RigidBodyConstants,
-        reader: &mut dyn SimulationReader,
+        reader: &mut ChannelReader,
         target: SimulationTarget,
     ) -> Result<OkOperation, ErrOperation> {
         let result = self.0.design.start_simulation(parameters, reader, target);

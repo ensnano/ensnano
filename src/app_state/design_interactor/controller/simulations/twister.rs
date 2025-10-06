@@ -18,9 +18,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::{
     roller::{DesignData, RollSystem},
-    Design, Helix, SimulationReader,
+    Design, Helix,
 };
-use crate::app_state::design_interactor::Presenter;
+use crate::{app_state::design_interactor::Presenter, controller::ChannelReader};
 use ensnano_design::{
     grid::{GridDescriptor, GridTypeDescr, *},
     Collection, CurveDescriptor, HelixCollection, HelixParameters, Twist,
@@ -83,7 +83,7 @@ impl Twister {
     pub fn start_new(
         presenter: &Presenter,
         target_grid: GridId,
-        reader: &mut dyn SimulationReader,
+        reader: &mut ChannelReader,
     ) -> Option<Arc<Mutex<TwistInterface>>> {
         let intervals_map = presenter.get_design().strands.get_intervals();
         let mut helices: Vec<Helix> = Vec::new();

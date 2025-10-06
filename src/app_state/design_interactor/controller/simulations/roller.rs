@@ -21,8 +21,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! them. These springs aim at minimizing the difference between the cross-over length and the
 //! normal distance between two consecutive nucleotides.
 
-use super::{Helix, HelixParameters, Nucl, SimulationReader};
-use crate::app_state::design_interactor::presenter::Presenter;
+use super::{Helix, HelixParameters, Nucl};
+use crate::{app_state::design_interactor::presenter::Presenter, controller::ChannelReader};
 use std::{
     collections::HashMap,
     f32::consts::{PI, SQRT_2},
@@ -49,7 +49,7 @@ impl PhysicalSystem {
     pub fn start_new(
         presenter: &Presenter,
         target_helices: Option<Vec<usize>>,
-        reader: &mut dyn SimulationReader,
+        reader: &mut ChannelReader,
     ) -> Arc<Mutex<RollInterface>> {
         let intervals_map = presenter.get_design().strands.get_intervals();
         let helices: Vec<Helix> = presenter.get_helices().values().cloned().collect();

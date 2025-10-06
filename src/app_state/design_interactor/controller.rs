@@ -56,7 +56,7 @@ use simulations::{
     PhysicalSystem, RevolutionSystemInterface, RevolutionSystemThread, RollInterface,
     TwistInterface,
 };
-pub use simulations::{SimulationInterface, SimulationOperation, SimulationReader};
+pub use simulations::{SimulationInterface, SimulationOperation};
 use std::{
     borrow::Cow,
     collections::{BTreeMap, HashMap},

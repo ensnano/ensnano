@@ -24,7 +24,7 @@ use super::AddressPointer;
 use controller::Controller;
 pub use controller::{
     CopyOperation, InteractorNotification, PastePosition, PastingStatus, ShiftOptimizationResult,
-    SimulationInterface, SimulationReader,
+    SimulationInterface,
 };
 use ensnano_design::{
     grid::GridId, group_attributes::GroupAttribute, BezierPathId, BezierPlaneDescriptor, Design,
@@ -128,7 +128,7 @@ impl DesignInteractor {
     pub(super) fn start_simulation(
         &self,
         parameters: RigidBodyConstants,
-        reader: &mut dyn SimulationReader,
+        reader: &mut ChannelReader,
         target: SimulationTarget,
     ) -> Result<InteractorResult, ErrOperation> {
         let operation = match target {

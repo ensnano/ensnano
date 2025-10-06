@@ -18,16 +18,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 const MAX_ACCEL: f64 = 100.;
 
-use super::{SimulationInterface, SimulationReader, SimulationUpdate};
-use std::f64::consts::TAU;
-use std::sync::{Arc, Mutex, Weak};
-
-use mathru::algebra::linear::vector::vector::Vector;
-use mathru::analysis::differential_equation::ordinary::{
-    solver::runge_kutta::{explicit::fixed::FixedStepper, ExplicitEuler, Ralston4},
-    ExplicitODE,
-};
-
+use super::{SimulationInterface, SimulationUpdate};
+use crate::{app_state::ErrOperation, controller::ChannelReader};
 use ensnano_design::{
     CurveDescriptor, CurveDescriptor2D, DVec3, HelixParameters, InterpolationDescriptor, Isometry3,
     Similarity3,
@@ -36,8 +28,17 @@ use ensnano_interactor::{
     EquadiffSolvingMethod, RevolutionSimulationParameters, RevolutionSurfaceSystemDescriptor,
     RootedRevolutionSurface,
 };
-
-use crate::app_state::ErrOperation;
+use mathru::{
+    algebra::linear::vector::vector::Vector,
+    analysis::differential_equation::ordinary::{
+        solver::runge_kutta::{explicit::fixed::FixedStepper, ExplicitEuler, Ralston4},
+        ExplicitODE,
+    },
+};
+use std::{
+    f64::consts::TAU,
+    sync::{Arc, Mutex, Weak},
+};
 
 mod closed_curves;
 use closed_curves::CloseSurfaceTopology;
@@ -137,7 +138,7 @@ impl RevolutionSurfaceSystem {
         }
     }
 
-    fn one_radius_optimisation_step(
+    fn one_radius_optimization_step(
         &mut self,
         first: &mut bool,
         interface: Option<Arc<Mutex<RevolutionSystemInterface>>>,
@@ -352,7 +353,7 @@ impl RevolutionSurfaceSystem {
     }
 
     fn apply_friction(&self, system: &mut RelaxationSystem) {
-        // Friction force = -friction_strengh * d pos / dt
+        // Friction force = -friction_strength * d pos / dt
         // d pos / dt = d theta / dt * d pos / d theta
 
         for section_idx in 0..self.topology.nb_balls() {
@@ -495,7 +496,7 @@ pub struct RevolutionSystemThread {
 impl RevolutionSystemThread {
     pub fn start_new(
         system: RevolutionSurfaceSystemDescriptor,
-        reader: &mut dyn SimulationReader,
+        reader: &mut ChannelReader,
     ) -> Result<Arc<Mutex<RevolutionSystemInterface>>, ErrOperation> {
         let ret = Arc::new(Mutex::new(RevolutionSystemInterface::default()));
         let ret_dyn: Arc<Mutex<dyn SimulationInterface>> = ret.clone();
@@ -522,7 +523,7 @@ impl RevolutionSystemThread {
             while let Some(interface_ptr) = self.interface.upgrade() {
                 let current_len = self
                     .system
-                    .one_radius_optimisation_step(&mut first, Some(interface_ptr.clone()));
+                    .one_radius_optimization_step(&mut first, Some(interface_ptr.clone()));
                 if interface_ptr.lock().unwrap().finished
                     || current_len == self.system.scaffold_len_target
                 {
@@ -767,5 +768,3 @@ impl<T> OptionOnce<T> {
         }
     }
 }
-
-// A test here was removed because revolution simulations can now be launched from the GUI
