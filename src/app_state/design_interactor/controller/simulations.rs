@@ -1684,7 +1684,7 @@ struct ApplicationPoint {
 fn make_grid_system(
     presenter: &dyn GridPresenter,
     time_span: (f32, f32),
-    rigid_paramaters: RigidBodyConstants,
+    rigid_parameters: RigidBodyConstants,
 ) -> Result<GridsSystem, ErrOperation> {
     let intervals = presenter.get_design().strands.get_intervals();
     let helix_parameters = presenter
@@ -1760,9 +1760,9 @@ fn make_grid_system(
         time_span,
         last_state: None,
         anchors: vec![],
-        parameters: rigid_paramaters.clone(),
+        parameters: rigid_parameters.clone(),
     };
-    ret.update_parameters(rigid_paramaters);
+    ret.update_parameters(rigid_parameters);
     Ok(ret)
 }
 
