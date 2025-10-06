@@ -22,8 +22,9 @@ mod simulations;
 mod update_insertion_length;
 
 use super::SimulationUpdate;
-use crate::app_state::{
-    design_interactor::presenter::design_content::NuclCollection, AddressPointer,
+use crate::{
+    app_state::{design_interactor::presenter::design_content::NuclCollection, AddressPointer},
+    controller::ChannelReader,
 };
 use clipboard::{Clipboard, PastedStrand, StrandClipboard};
 pub use clipboard::{CopyOperation, PastePosition};
@@ -49,7 +50,7 @@ use ensnano_interactor::{
 };
 use ensnano_organizer::GroupId;
 use ensnano_utils::colors;
-pub use shift_optimization::{ShiftOptimizationResult, ShiftOptimizerReader};
+pub use shift_optimization::ShiftOptimizationResult;
 pub use simulations::{
     GridPresenter, HelixPresenter, RollPresenter, SimulationInterface, SimulationOperation,
     SimulationReader, TwistPresenter,
@@ -949,7 +950,7 @@ impl Controller {
 
     pub(super) fn optimize_shift(
         &self,
-        chanel_reader: &mut dyn ShiftOptimizerReader,
+        chanel_reader: &mut ChannelReader,
         nucl_collection: Arc<NuclCollection>,
         design: &Design,
     ) -> Result<(OkOperation, Self), ErrOperation> {
@@ -969,7 +970,7 @@ impl Controller {
     fn start_shift_optimization(
         &mut self,
         design: &Design,
-        chanel_reader: &mut dyn ShiftOptimizerReader,
+        chanel_reader: &mut ChannelReader,
         nucl_collection: Arc<NuclCollection>,
     ) {
         self.state = ControllerState::OptimizingScaffoldPosition;

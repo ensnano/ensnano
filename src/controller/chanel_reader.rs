@@ -17,15 +17,14 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 //! This module defines the [ChannelReader] struct which is in charge of communication with
-//! computation threads that can be spawned by the progam
+//! computation threads that can be spawned by the program
 
+use crate::app_state::{
+    ShiftOptimizationResult, SimulationInterface, SimulationReader, SimulationUpdate,
+};
 use std::sync::mpsc;
 use std::sync::{Arc, Mutex, Weak};
 
-use crate::app_state::{
-    ShiftOptimizationResult, ShiftOptimizerReader, SimulationInterface, SimulationReader,
-    SimulationUpdate,
-};
 #[derive(Default)]
 pub struct ChannelReader {
     scaffold_shift_optimization_progress: Option<mpsc::Receiver<f32>>,
@@ -86,12 +85,12 @@ impl ChannelReader {
     }
 }
 
-impl ShiftOptimizerReader for ChannelReader {
-    fn attach_result_chanel(&mut self, chanel: mpsc::Receiver<ShiftOptimizationResult>) {
+impl ChannelReader {
+    pub fn attach_result_chanel(&mut self, chanel: mpsc::Receiver<ShiftOptimizationResult>) {
         self.scaffold_shift_optimization_result = Some(chanel);
     }
 
-    fn attach_progress_chanel(&mut self, chanel: mpsc::Receiver<f32>) {
+    pub fn attach_progress_chanel(&mut self, chanel: mpsc::Receiver<f32>) {
         self.scaffold_shift_optimization_progress = Some(chanel);
     }
 }

@@ -24,7 +24,7 @@ use super::AddressPointer;
 use controller::Controller;
 pub use controller::{
     CopyOperation, InteractorNotification, PastePosition, PastingStatus, ShiftOptimizationResult,
-    ShiftOptimizerReader, SimulationInterface, SimulationReader,
+    SimulationInterface, SimulationReader,
 };
 use ensnano_design::{
     grid::GridId, group_attributes::GroupAttribute, BezierPathId, BezierPlaneDescriptor, Design,
@@ -40,7 +40,7 @@ use ensnano_organizer::GroupId;
 pub use presenter::SimulationUpdate;
 use presenter::{apply_simulation_update, update_presenter, Presenter};
 
-use crate::controller::SimulationRequest;
+use crate::controller::{ChannelReader, SimulationRequest};
 pub(super) use controller::ErrOperation;
 use controller::{GridPresenter, HelixPresenter, OkOperation, RollPresenter, TwistPresenter};
 use ensnano_gui::CurrentOpState;
@@ -72,7 +72,7 @@ impl DesignInteractor {
     }
     pub(super) fn optimize_shift(
         &self,
-        reader: &mut dyn ShiftOptimizerReader,
+        reader: &mut ChannelReader,
     ) -> Result<InteractorResult, ErrOperation> {
         let nucl_map = self.presenter.get_owned_nucl_collection();
         let result = self

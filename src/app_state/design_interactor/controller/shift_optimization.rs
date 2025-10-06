@@ -24,8 +24,9 @@ macro_rules! log_err {
     };
 }
 
+use crate::controller::ChannelReader;
+
 use super::*;
-use std::sync::mpsc;
 
 fn read_scaffold_seq(
     design: &Design,
@@ -92,7 +93,7 @@ fn read_scaffold_seq(
 pub fn optimize_shift(
     design: Arc<Design>,
     nucl_collection: Arc<NuclCollection>,
-    chanel_reader: &mut dyn ShiftOptimizerReader,
+    chanel_reader: &mut ChannelReader,
 ) {
     let (progress_snd, progress_rcv) = std::sync::mpsc::channel();
     let (result_snd, result_rcv) = std::sync::mpsc::channel();
@@ -238,8 +239,3 @@ pub struct ShiftOptimizationOk {
 }
 
 pub type ShiftOptimizationResult = Result<ShiftOptimizationOk, ErrOperation>;
-
-pub trait ShiftOptimizerReader: Send {
-    fn attach_progress_chanel(&mut self, chanel: mpsc::Receiver<f32>);
-    fn attach_result_chanel(&mut self, chanel: mpsc::Receiver<ShiftOptimizationResult>);
-}

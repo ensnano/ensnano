@@ -33,13 +33,13 @@ mod transitions;
 
 use crate::{
     apply_update,
-    controller::{LoadDesignError, SaveDesignError, SimulationRequest},
+    controller::{ChannelReader, LoadDesignError, SaveDesignError, SimulationRequest},
 };
 use address_pointer::AddressPointer;
 pub use design_interactor::{
     controller::ErrOperation, CopyOperation, DesignReader, InteractorNotification, PastePosition,
-    PastingStatus, ShiftOptimizationResult, ShiftOptimizerReader, SimulationInterface,
-    SimulationReader, SimulationTarget, SimulationUpdate,
+    PastingStatus, ShiftOptimizationResult, SimulationInterface, SimulationReader,
+    SimulationTarget, SimulationUpdate,
 };
 use design_interactor::{DesignInteractor, InteractorResult};
 use ensnano_design::{group_attributes::GroupPivot, BezierPathId, Design, SavingInformation};
@@ -533,7 +533,7 @@ impl AppState {
 
     pub(super) fn optimize_shift(
         &mut self,
-        reader: &mut dyn ShiftOptimizerReader,
+        reader: &mut ChannelReader,
     ) -> Result<OkOperation, ErrOperation> {
         let result = self.0.design.optimize_shift(reader);
         self.handle_operation_result(result)
