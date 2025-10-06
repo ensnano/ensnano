@@ -10,7 +10,6 @@ edition = "2018"
 license = "GPL-3.0-or-later"
 
 [dependencies]
-ensnano_iced = { path = "../ensnano-iced" }
 ultraviolet = { git = "https://github.com/termhn/ultraviolet", rev = "b2fb29e", features = [
     "bytemuck",
     "f64",
@@ -37,3 +36,7 @@ svg = "0.12.0"
 rayon = "1.6.0"
 strum = "0.26"
 strum_macros = "0.26"
+icondata = { version = "0.6", default-features = false, features = [
+    "bootstrap-icons",
+    "material-design-icons",
+] }

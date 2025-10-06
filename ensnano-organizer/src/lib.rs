@@ -2,9 +2,7 @@ use {
     ensnano_iced::{
         helpers::*,
         iced::{keyboard::Modifiers, Length},
-        icon_to_svg, icondata,
-        icondata::Icon,
-        Element,
+        icon_to_svg, Element,
     },
     std::{
         collections::{BTreeMap, BTreeSet, HashMap},
@@ -23,6 +21,7 @@ pub mod theme;
 mod tree;
 
 pub use element::*;
+use icondata::Icon;
 use rand::{rngs::ThreadRng, Rng};
 use theme::OrganizerTheme;
 pub use tree::{GroupId, OrganizerTree};

@@ -15,7 +15,6 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use ensnano_iced::icondata;
 use ensnano_organizer::{
     AttributeDisplay, AttributeWidget, ElementKey, OrganizerAttribute, OrganizerAttributeRepr,
     OrganizerElement,

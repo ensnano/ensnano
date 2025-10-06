@@ -955,8 +955,8 @@ name = "ensnano_design"
 version = "0.7.0"
 dependencies = [
  "chebyshev_polynomials",
- "ensnano_iced",
  "ensnano_organizer",
+ "icondata",
  "log",
  "num_enum 0.5.11",
  "ordered-float",
@@ -1065,6 +1065,7 @@ name = "ensnano_organizer"
 version = "0.1.0"
 dependencies = [
  "ensnano_iced",
+ "icondata",
  "log",
  "num_enum 0.5.11",
  "rand",
