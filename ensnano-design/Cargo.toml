@@ -10,33 +10,34 @@ edition = "2018"
 license = "GPL-3.0-or-later"
 
 [dependencies]
+ensnano_organizer = { path = "../ensnano-organizer" }
+
+chebyshev_polynomials = { git = "https://github.com/thenlevy/chebyshev_polynomials" }
+icondata = { version = "0.6", default-features = false, features = [
+    "bootstrap-icons",
+    "material-design-icons",
+] }
+log = "0.4"
+num_enum = "0.5.1"
+ordered-float = { version = "2.0", features = ["serde"] }
+pathdiff = "0.2.1"
+quadrature = "0.1.2"
+rayon = "1.6.0"
+rand = "0.8.3"
+rand_distr = "0.4.0"
+regex = "1.4.2"
+relative-path = "1.7.0"
+serde = { version = "1.0.116", features = ["rc"] }
+serde_derive = "1.0.116"
+serde-hex = "0.1.0"
+serde_json = "1.0.57"
+serde_with = "1.11.0"
+strum = "0.26"
+strum_macros = "0.26"
+svg = "0.12.0"
 ultraviolet = { git = "https://github.com/termhn/ultraviolet", rev = "b2fb29e", features = [
     "bytemuck",
     "f64",
     "serde",
 ] }
-serde_json = "1.0.57"
-serde = { version = "1.0.116", features = ["rc"] }
-serde_derive = "1.0.116"
-serde-hex = "0.1.0"
-serde_with = "1.11.0"
-regex = "1.4.2"
-rand = "0.8.3"
-rand_distr = "0.4.0"
-ordered-float = { version = "2.0", features = ["serde"] }
-ensnano_organizer = { path = "../ensnano-organizer" }
-num_enum = "0.5.1"
-log = "0.4"
 version-compare = "0.1.0"
-relative-path = "1.7.0"
-pathdiff = "0.2.1"
-chebyshev_polynomials = { git = "https://github.com/thenlevy/chebyshev_polynomials" }
-quadrature = "0.1.2"
-svg = "0.12.0"
-rayon = "1.6.0"
-strum = "0.26"
-strum_macros = "0.26"
-icondata = { version = "0.6", default-features = false, features = [
-    "bootstrap-icons",
-    "material-design-icons",
-] }

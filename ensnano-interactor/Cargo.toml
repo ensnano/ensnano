@@ -8,14 +8,15 @@ license = "GPL-3.0-or-later"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+ensnano_design = { path = "../ensnano-design" }
+ensnano_iced = { path = "../ensnano-iced" }
+ensnano_organizer = { path = "../ensnano-organizer" }
+
+log = "0.4"
+rayon = "1.6.0"
+serde = "1.0.116"
 ultraviolet = { git = "https://github.com/termhn/ultraviolet", rev = "b2fb29e", features = [
     "bytemuck",
     "f64",
     "serde",
 ] }
-serde = "1.0.116"
-ensnano_design = { path = "../ensnano-design" }
-ensnano_organizer = { path = "../ensnano-organizer" }
-ensnano_iced = { path = "../ensnano-iced" }
-log = "0.4"
-rayon = "1.6.0"
