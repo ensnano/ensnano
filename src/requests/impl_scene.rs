@@ -18,8 +18,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 //! Implements the [Requests](`ensnano_scene::Requests`) trait for [Requests](`super::Requests`).
 
+use crate::app_state::design_interactor::controller::clipboard::PastePosition;
+
 use super::*;
-use crate::PastePosition;
 use ensnano_scene::Requests as SceneRequests;
 
 impl SceneRequests for Requests {

@@ -20,6 +20,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! The system consists of linear springs that moves the helices and torsion springs that rotates
 //! them. These springs aim at minimizing the difference between the cross-over length and the
 //! normal distance between two consectives nucleotides.
+use crate::app_state::design_interactor::presenter::SimulationUpdate;
+
 use super::{Design, Helix, HelixParameters, Nucl, SimulationReader};
 use std::collections::{BTreeMap, HashMap};
 
@@ -384,7 +386,7 @@ pub struct RollInterface {
 }
 
 impl super::SimulationInterface for RollInterface {
-    fn get_simulation_state(&mut self) -> Option<Box<dyn crate::app_state::SimulationUpdate>> {
+    fn get_simulation_state(&mut self) -> Option<Box<dyn SimulationUpdate>> {
         let s = self.new_state.take()?;
         Some(Box::new(s))
     }

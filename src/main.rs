@@ -88,21 +88,29 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //!      | Immediate   | No          | Yes         |
 //!      | Mailbox     | Yes         | No          |
 
-mod app_state;
-mod controller;
-mod dialog;
+pub mod app_state;
+pub mod controller;
+pub mod dialog;
 #[cfg(test)]
-mod main_tests;
-mod multiplexer;
-mod requests;
-mod scheduler;
+pub mod main_tests;
+pub mod multiplexer;
+pub mod requests;
+pub mod scheduler;
 
 use {
-    crate::{controller::TargetScaffoldLength, requests::Requests},
-    app_state::{
-        AppState, AppStateParameters, AppStateTransition, CopyOperation, ErrOperation, OkOperation,
-        PastePosition, PastingStatus, SimulationTarget, TransitionLabel,
+    crate::{
+        app_state::{
+            design_interactor::controller::{
+                clipboard::{CopyOperation, PastePosition},
+                simulations::SimulationOperation,
+                ErrOperation, InteractorNotification,
+            },
+            transitions::{AppStateTransition, OkOperation, TransitionLabel},
+        },
+        controller::TargetScaffoldLength,
+        requests::Requests,
     },
+    app_state::{AppState, AppStateParameters},
     controller::{
         Action, ChannelReader, ChannelReaderUpdate, Controller, LoadDesignError, SaveDesignError,
         SetScaffoldSequenceError, SetScaffoldSequenceOk, SimulationRequest, StaplesDownloader,
@@ -130,7 +138,7 @@ use {
         graphics::{GuiComponentType, SplitMode},
         operation::Operation,
         ActionMode, CenterOfSelection, CheckXoversParameter, CursorIcon, DesignOperation,
-        DesignReader, DesignRotation, DesignTranslation, IsometryTarget,
+        DesignReader, DesignRotation, DesignTranslation, IsometryTarget, PastingStatus,
         RevolutionSurfaceSystemDescriptor, RigidBodyConstants, Selection, SelectionMode,
         SuggestionParameters, UnrootedRevolutionSurfaceDescriptor,
     },
@@ -1241,7 +1249,7 @@ impl MainState {
         let result = self.app_state.apply_design_op(operation.clone());
         if let Err(ErrOperation::FinishFirst) = result {
             self.modify_state(
-                |s| s.notified(app_state::InteractorNotification::FinishOperation),
+                |s| s.notified(InteractorNotification::FinishOperation),
                 None,
             );
             self.apply_operation(operation);
@@ -1251,48 +1259,61 @@ impl MainState {
     }
 
     fn start_helix_simulation(&mut self, parameters: RigidBodyConstants) {
-        let result = self.app_state.start_simulation(
-            parameters,
-            &mut self.channel_reader,
-            SimulationTarget::Helices,
-        );
-        self.apply_operation_result(result)
+        let presenter = self.app_state.0.design.presenter.clone();
+        let result = self
+            .app_state
+            .start_simulation(SimulationOperation::StartHelices {
+                presenter: presenter.as_ref(),
+                parameters,
+                reader: &mut self.channel_reader,
+            });
+        self.apply_operation_result(result);
     }
 
     fn start_grid_simulation(&mut self, parameters: RigidBodyConstants) {
-        let result = self.app_state.start_simulation(
-            parameters,
-            &mut self.channel_reader,
-            SimulationTarget::Grids,
-        );
-        self.apply_operation_result(result)
+        let presenter = self.app_state.0.design.presenter.clone();
+        let result = self
+            .app_state
+            .start_simulation(SimulationOperation::StartGrids {
+                presenter: presenter.as_ref(),
+                parameters,
+                reader: &mut self.channel_reader,
+            });
+        self.apply_operation_result(result);
     }
 
     fn start_revolution_simulation(&mut self, desc: RevolutionSurfaceSystemDescriptor) {
-        let result = self.app_state.start_simulation(
-            Default::default(),
-            &mut self.channel_reader,
-            SimulationTarget::Revolution { desc },
-        );
-        self.apply_operation_result(result)
+        let result = self
+            .app_state
+            .start_simulation(SimulationOperation::RevolutionRelaxation {
+                system: desc,
+                reader: &mut self.channel_reader,
+            });
+        self.apply_operation_result(result);
     }
 
     fn start_twist(&mut self, grid_id: GridId) {
-        let result = self.app_state.start_simulation(
-            Default::default(),
-            &mut self.channel_reader,
-            SimulationTarget::Twist { grid_id },
-        );
-        self.apply_operation_result(result)
+        let presenter = self.app_state.0.design.presenter.clone();
+        let result = self
+            .app_state
+            .start_simulation(SimulationOperation::StartTwist {
+                presenter: presenter.as_ref(),
+                reader: &mut self.channel_reader,
+                grid_id,
+            });
+        self.apply_operation_result(result);
     }
 
     fn start_roll_simulation(&mut self, target_helices: Option<Vec<usize>>) {
-        let result = self.app_state.start_simulation(
-            Default::default(),
-            &mut self.channel_reader,
-            SimulationTarget::Roll { target_helices },
-        );
-        self.apply_operation_result(result)
+        let presenter = self.app_state.0.design.presenter.clone();
+        let result = self
+            .app_state
+            .start_simulation(SimulationOperation::StartRoll {
+                presenter: presenter.as_ref(),
+                reader: &mut self.channel_reader,
+                target_helices,
+            });
+        self.apply_operation_result(result);
     }
 
     fn update_simulation(&mut self, request: SimulationRequest) {
@@ -1305,7 +1326,7 @@ impl MainState {
             Ok(_) => (),
             Err(ErrOperation::FinishFirst) => {
                 self.modify_state(
-                    |s| s.notified(app_state::InteractorNotification::FinishOperation),
+                    |s| s.notified(InteractorNotification::FinishOperation),
                     None,
                 );
                 self.apply_silent_operation(operation)
@@ -1336,7 +1357,7 @@ impl MainState {
         if let Some(mut transition) = self.undo_stack.pop() {
             transition.state.prepare_for_replacement(&self.app_state);
             let mut redo_state = std::mem::replace(&mut self.app_state, transition.state);
-            redo_state = redo_state.notified(app_state::InteractorNotification::FinishOperation);
+            redo_state = redo_state.notified(InteractorNotification::FinishOperation);
             self.set_camera_3d(transition.camera_3d.clone());
             self.messages
                 .lock()
@@ -1393,7 +1414,7 @@ impl MainState {
         let result = self.app_state.update_pending_operation(operation.clone());
         if let Err(ErrOperation::FinishFirst) = result {
             self.modify_state(
-                |s| s.notified(app_state::InteractorNotification::FinishOperation),
+                |s| s.notified(InteractorNotification::FinishOperation),
                 None,
             );
             self.update_pending_operation(operation)
@@ -1858,7 +1879,7 @@ impl<'a> MainStateView<'a> {
 
     fn finish_operation(&mut self) {
         self.main_state.modify_state(
-            |s| s.notified(app_state::InteractorNotification::FinishOperation),
+            |s| s.notified(InteractorNotification::FinishOperation),
             None,
         );
         self.main_state.app_state.finish_operation();

@@ -22,7 +22,7 @@ use std::sync::Arc;
 
 /// A wrapper around an `Arc<T>` that uses `Arc::ptr_eq` to test for equality.
 #[derive(Default)]
-pub(super) struct AddressPointer<T: Default>(Arc<T>);
+pub struct AddressPointer<T: Default>(Arc<T>);
 
 impl<T: Default> Clone for AddressPointer<T> {
     fn clone(&self) -> Self {

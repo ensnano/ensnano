@@ -24,23 +24,26 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //!
 //! Each component of ENSnano has specific needs and express them via its own `AppState` trait.
 
-mod address_pointer;
-mod design_interactor;
-mod impl_app2d;
-mod impl_app3d;
-mod impl_gui;
-mod transitions;
+pub mod address_pointer;
+pub mod design_interactor;
+pub mod impl_app2d;
+pub mod impl_app3d;
+pub mod impl_gui;
+pub mod transitions;
 
 use crate::{
+    app_state::design_interactor::{
+        controller::{
+            clipboard::CopyOperation, shift_optimization::ShiftOptimizerReader,
+            simulations::SimulationOperation, InteractorNotification,
+        },
+        presenter::SimulationUpdate,
+    },
     apply_update,
     controller::{LoadDesignError, SaveDesignError, SimulationRequest},
 };
 use address_pointer::AddressPointer;
-pub use design_interactor::{
-    controller::ErrOperation, CopyOperation, DesignReader, InteractorNotification, PastePosition,
-    PastingStatus, ShiftOptimizationResult, ShiftOptimizerReader, SimulationInterface,
-    SimulationReader, SimulationTarget, SimulationUpdate,
-};
+use design_interactor::{controller::ErrOperation, DesignReader};
 use design_interactor::{DesignInteractor, InteractorResult};
 use ensnano_design::{group_attributes::GroupPivot, BezierPathId, Design, SavingInformation};
 use ensnano_exports::{ExportResult, ExportType};
@@ -50,9 +53,8 @@ use ensnano_interactor::{
     consts::{APP_NAME, ENS_BACKUP_EXTENSION, ENS_EXTENSION},
     graphics::{Background3D, HBondDisplay, RenderingMode},
     operation::Operation,
-    ActionMode, CenterOfSelection, CheckXoversParameter, DesignOperation, RigidBodyConstants,
-    Selection, SelectionMode, SuggestionParameters, UnrootedRevolutionSurfaceDescriptor,
-    WidgetBasis,
+    ActionMode, CenterOfSelection, CheckXoversParameter, DesignOperation, PastingStatus, Selection,
+    SelectionMode, SuggestionParameters, UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
 };
 use ensnano_organizer::GroupId;
 use serde::{Deserialize, Serialize};
@@ -60,14 +62,14 @@ use std::{
     path::PathBuf,
     sync::{Arc, RwLock},
 };
-pub use transitions::{AppStateTransition, OkOperation, TransitionLabel};
+use transitions::OkOperation;
 
 /// A structure containing the global state of the program.
 ///
 /// At each event loop iteration, a new `AppState` may be created. Successive AppState are stored
 /// on an undo/redo stack.
 #[derive(Clone, PartialEq, Eq)]
-pub struct AppState(AddressPointer<AppState_>);
+pub struct AppState(pub AddressPointer<AppState_>);
 
 impl std::fmt::Debug for AppState {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -333,11 +335,9 @@ impl AppState {
 
     pub(super) fn start_simulation(
         &mut self,
-        parameters: RigidBodyConstants,
-        reader: &mut dyn SimulationReader,
-        target: SimulationTarget,
+        operation: SimulationOperation,
     ) -> Result<OkOperation, ErrOperation> {
-        let result = self.0.design.start_simulation(parameters, reader, target);
+        let result = self.0.design.start_simulation(operation);
         self.handle_operation_result(result)
     }
 
@@ -695,30 +695,30 @@ impl Default for AppStateParameters {
 }
 
 #[derive(Clone, Default)]
-struct AppState_ {
+pub struct AppState_ {
     /// The set of currently selected objects
-    selection: AppStateSelection,
+    pub selection: AppStateSelection,
     /// The set of objects that are "one click away from being selected"
-    candidates: AddressPointer<Vec<Selection>>,
-    selection_mode: SelectionMode,
+    pub candidates: AddressPointer<Vec<Selection>>,
+    pub selection_mode: SelectionMode,
     /// A pointer to the design currently being edited. The pointed design is never mutated.
     /// Instead, when a modification is requested, the design is cloned and the `design` pointer is
     /// replaced by a pointer to a modified `Design`.
-    design: AddressPointer<DesignInteractor>,
-    action_mode: ActionMode,
-    widget_basis: WidgetBasis,
-    strand_on_new_helix: Option<NewHelixStrand>,
-    center_of_selection: Option<CenterOfSelection>,
-    updated_once: bool,
-    parameters: AppStateParameters,
-    show_insertion_representents: bool,
-    exporting: bool,
-    path_to_current_design: Option<PathBuf>,
-    unrooted_surface: CurrentUnrootedSurface,
+    pub design: AddressPointer<DesignInteractor>,
+    pub action_mode: ActionMode,
+    pub widget_basis: WidgetBasis,
+    pub strand_on_new_helix: Option<NewHelixStrand>,
+    pub center_of_selection: Option<CenterOfSelection>,
+    pub updated_once: bool,
+    pub parameters: AppStateParameters,
+    pub show_insertion_representents: bool,
+    pub exporting: bool,
+    pub path_to_current_design: Option<PathBuf>,
+    pub unrooted_surface: CurrentUnrootedSurface,
 }
 
 #[derive(Clone, Default)]
-struct CurrentUnrootedSurface {
+pub struct CurrentUnrootedSurface {
     descriptor: Option<UnrootedRevolutionSurfaceDescriptor>,
     bezier_path_id: Option<BezierPathId>,
     area: Option<f64>,
@@ -751,7 +751,7 @@ impl AppState_ {
 }
 
 #[derive(Clone, Default)]
-struct AppStateSelection {
+pub struct AppStateSelection {
     selection: AddressPointer<Vec<Selection>>,
     selected_group: Option<ensnano_organizer::GroupId>,
     pivot: Arc<RwLock<Option<GroupPivot>>>,
@@ -759,7 +759,7 @@ struct AppStateSelection {
 }
 
 #[derive(Clone, PartialEq, Eq)]
-struct NewHelixStrand {
+pub struct NewHelixStrand {
     length: usize,
     start: isize,
 }

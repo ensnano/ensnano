@@ -17,13 +17,17 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 pub mod design_content;
-mod impl_main_reader;
-mod impl_reader2d;
-mod impl_reader3d;
-mod impl_readergui;
+pub mod impl_main_reader;
+pub mod impl_reader2d;
+pub mod impl_reader3d;
+pub mod impl_readergui;
+
+use crate::app_state::design_interactor::controller::simulations::{
+    GridPresenter, HelixPresenter, RollPresenter, TwistPresenter,
+};
 
 #[cfg(test)]
-pub use self::design_content::Staple;
+use self::design_content::Staple;
 
 use super::*;
 use design_content::DesignContent;
@@ -51,7 +55,7 @@ type JunctionsIds = IdGenerator<(Nucl, Nucl)>;
 /// stored. To obtain a design reader, a pointer to the current design must be given. If the given
 /// pointer does not point to the same address as the one that was used to create the data
 /// structures, the structures are updated before returning the design reader.
-pub(super) struct Presenter {
+pub struct Presenter {
     pub current_design: AddressPointer<Design>,
     current_suggestion_parameters: SuggestionParameters,
     model_matrix: AddressPointer<Mat4>,
