@@ -16,33 +16,34 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-pub(super) mod controller;
-mod file_parsing;
-mod presenter;
+pub mod controller;
+pub mod file_parsing;
+pub mod presenter;
 
 use super::AddressPointer;
 use controller::Controller;
-pub use controller::{
-    CopyOperation, InteractorNotification, PastePosition, PastingStatus, ShiftOptimizationResult,
-    ShiftOptimizerReader, SimulationInterface, SimulationReader,
-};
+use controller::InteractorNotification;
 use ensnano_design::{
     grid::GridId, group_attributes::GroupAttribute, BezierPathId, BezierPlaneDescriptor, Design,
     HelixCollection, HelixParameters, InstanciatedPiecewiseBezier,
 };
 use ensnano_exports::{ExportResult, ExportType};
+use ensnano_interactor::PastingStatus;
 use ensnano_interactor::{
     consts::UPDATE_VISIBILITY_SIEVE_LABEL, operation::Operation, DesignOperation,
-    RevolutionSurfaceSystemDescriptor, RigidBodyConstants, Selection, SimulationState,
-    StrandBuilder, SuggestionParameters,
+    RevolutionSurfaceSystemDescriptor, Selection, SimulationState, StrandBuilder,
+    SuggestionParameters,
 };
 use ensnano_organizer::GroupId;
-pub use presenter::SimulationUpdate;
+use presenter::SimulationUpdate;
 use presenter::{apply_simulation_update, update_presenter, NuclCollection, Presenter};
 
+use crate::app_state::design_interactor::controller::clipboard::CopyOperation;
+use crate::app_state::design_interactor::controller::shift_optimization::ShiftOptimizerReader;
+use crate::app_state::design_interactor::controller::simulations::SimulationOperation;
+use crate::app_state::design_interactor::controller::OkOperation;
 use crate::controller::SimulationRequest;
-pub(super) use controller::ErrOperation;
-use controller::{GridPresenter, HelixPresenter, OkOperation, RollPresenter, TwistPresenter};
+use controller::ErrOperation;
 use ensnano_gui::CurrentOpState;
 use std::sync::Arc;
 
@@ -51,16 +52,16 @@ use std::sync::Arc;
 #[derive(Clone, Default)]
 pub struct DesignInteractor {
     /// The current design
-    design: AddressPointer<Design>,
+    pub design: AddressPointer<Design>,
     /// The structure that handles "read" operations. The graphic components of EnsNano access the
     /// presenter via a trait that defines each components needs.
-    presenter: AddressPointer<Presenter>,
+    pub presenter: AddressPointer<Presenter>,
     /// The structure that handles "write" operations.
-    controller: AddressPointer<Controller>,
-    simulation_update: Option<Arc<dyn SimulationUpdate>>,
-    current_operation: Option<Arc<dyn Operation>>,
-    current_operation_id: usize,
-    new_selection: Option<Vec<Selection>>,
+    pub controller: AddressPointer<Controller>,
+    pub simulation_update: Option<Arc<dyn SimulationUpdate>>,
+    pub current_operation: Option<Arc<dyn Operation>>,
+    pub current_operation_id: usize,
+    pub new_selection: Option<Vec<Selection>>,
 }
 
 impl DesignInteractor {
@@ -127,40 +128,8 @@ impl DesignInteractor {
 
     pub(super) fn start_simulation(
         &self,
-        parameters: RigidBodyConstants,
-        reader: &mut dyn SimulationReader,
-        target: SimulationTarget,
+        operation: SimulationOperation,
     ) -> Result<InteractorResult, ErrOperation> {
-        let operation = match target {
-            SimulationTarget::Helices => controller::SimulationOperation::StartHelices {
-                presenter: self.presenter.as_ref(),
-                parameters,
-                reader,
-            },
-            SimulationTarget::Grids => controller::SimulationOperation::StartGrids {
-                presenter: self.presenter.as_ref(),
-                parameters,
-                reader,
-            },
-            SimulationTarget::Roll { target_helices } => {
-                controller::SimulationOperation::StartRoll {
-                    presenter: self.presenter.as_ref(),
-                    reader,
-                    target_helices,
-                }
-            }
-            SimulationTarget::Twist { grid_id } => controller::SimulationOperation::StartTwist {
-                presenter: self.presenter.as_ref(),
-                reader,
-                grid_id,
-            },
-            SimulationTarget::Revolution { desc } => {
-                controller::SimulationOperation::RevolutionRelaxation {
-                    system: desc,
-                    reader,
-                }
-            }
-        };
         let result = self
             .controller
             .apply_simulation_operation(self.design.clone_inner(), operation);
@@ -172,14 +141,12 @@ impl DesignInteractor {
         request: SimulationRequest,
     ) -> Result<InteractorResult, ErrOperation> {
         let operation = match request {
-            SimulationRequest::Stop => controller::SimulationOperation::Stop,
-            SimulationRequest::Reset => controller::SimulationOperation::Reset,
+            SimulationRequest::Stop => SimulationOperation::Stop,
+            SimulationRequest::Reset => SimulationOperation::Reset,
             SimulationRequest::UpdateParameters(new_parameters) => {
-                controller::SimulationOperation::UpdateParameters { new_parameters }
+                SimulationOperation::UpdateParameters { new_parameters }
             }
-            SimulationRequest::FinishRelaxation => {
-                controller::SimulationOperation::FinishRelaxation
-            }
+            SimulationRequest::FinishRelaxation => SimulationOperation::FinishRelaxation,
         };
         let result = self
             .controller
@@ -468,6 +435,8 @@ impl DesignReader {
 
 #[cfg(test)]
 mod tests {
+    use crate::app_state::design_interactor::controller::clipboard::PastePosition;
+
     use super::super::OkOperation as TopOkOperation;
     use super::super::*;
     use super::controller::CopyOperation;

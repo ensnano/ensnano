@@ -31,10 +31,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //!
 //! The multiplexer is also in charge of drawing to the frame.
 
-mod layout_manager;
+pub mod layout_manager;
 
-use super::Action;
-use crate::{requests::Requests, PhySize};
+use crate::{controller::Action, requests::Requests, PhySize};
 use ensnano_iced::{
     iced_wgpu::wgpu,
     iced_wgpu::wgpu::Device,

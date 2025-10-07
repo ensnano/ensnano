@@ -21,6 +21,8 @@ use ensnano_design::{
     grid::*, Collection, CurveDescriptor, HelixCollection, HelixParameters, Twist,
 };
 
+use crate::app_state::design_interactor::presenter::SimulationUpdate;
+
 use super::roller::{DesignData, RollPresenter, RollSystem};
 use super::{Design, Helix, SimulationReader};
 use std::collections::HashMap;
@@ -53,7 +55,7 @@ pub struct TwistState {
     grid: GridDescriptor,
 }
 
-impl super::SimulationUpdate for TwistState {
+impl SimulationUpdate for TwistState {
     fn update_design(&self, design: &mut Design) {
         let mut new_helices = design.helices.make_mut();
         for (i, h) in self.helices.iter() {
@@ -225,7 +227,7 @@ impl Twister {
 }
 
 impl super::SimulationInterface for TwistInterface {
-    fn get_simulation_state(&mut self) -> Option<Box<dyn crate::app_state::SimulationUpdate>> {
+    fn get_simulation_state(&mut self) -> Option<Box<dyn SimulationUpdate>> {
         let s = self.new_state.take()?;
         Some(Box::new(s))
     }
