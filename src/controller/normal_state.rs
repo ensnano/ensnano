@@ -19,7 +19,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::download_intervals::DownloadIntervals;
 use super::messages::CHANGING_DNA_PARAMETERS_WARNING;
 use super::*;
-use crate::app_state::design_interactor::controller::clipboard::PastePosition;
+use crate::app_state::design_interactor::controller::{
+    clipboard::PastePosition, simulations::SimulationOperation,
+};
 use ensnano_design::{
     grid::{GridDescriptor, GridId, GridTypeDescr},
     group_attributes::GroupPivot,
@@ -188,11 +190,11 @@ impl State for NormalState {
                     self
                 }
                 Action::StopSimulation => {
-                    main_state.update_simulation(SimulationRequest::Stop);
+                    main_state.update_simulation(SimulationOperation::Stop);
                     self
                 }
                 Action::FinishRelaxationSimulation => {
-                    main_state.update_simulation(SimulationRequest::FinishRelaxation);
+                    main_state.update_simulation(SimulationOperation::FinishRelaxation);
                     self
                 }
                 Action::RollHelices(roll) => {
@@ -200,11 +202,13 @@ impl State for NormalState {
                     self
                 }
                 Action::ResetSimulation => {
-                    main_state.update_simulation(SimulationRequest::Reset);
+                    main_state.update_simulation(SimulationOperation::Reset);
                     self
                 }
-                Action::RigidParametersUpdate(parameters) => {
-                    main_state.update_simulation(SimulationRequest::UpdateParameters(parameters));
+                Action::RigidParametersUpdate(new_parameters) => {
+                    main_state.update_simulation(SimulationOperation::UpdateParameters {
+                        new_parameters,
+                    });
                     self
                 }
                 Action::RollRequest(request) => {
