@@ -113,7 +113,7 @@ use {
     app_state::{AppState, AppStateParameters},
     controller::{
         Action, ChannelReader, ChannelReaderUpdate, Controller, LoadDesignError, SaveDesignError,
-        SetScaffoldSequenceError, SetScaffoldSequenceOk, SimulationRequest, StaplesDownloader,
+        SetScaffoldSequenceError, SetScaffoldSequenceOk, StaplesDownloader,
     },
     ensnano_design::{grid::GridId, Camera},
     ensnano_exports::{ExportResult, ExportType},
@@ -799,7 +799,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             main_state.app_state.apply_simulation_update(update)
                         }
                         ChannelReaderUpdate::SimulationExpired => {
-                            main_state.update_simulation(SimulationRequest::Stop)
+                            main_state.update_simulation(SimulationOperation::Stop)
                         }
                     }
                 }
@@ -1316,7 +1316,7 @@ impl MainState {
         self.apply_operation_result(result);
     }
 
-    fn update_simulation(&mut self, request: SimulationRequest) {
+    fn update_simulation(&mut self, request: SimulationOperation) {
         let result = self.app_state.update_simulation(request);
         self.apply_operation_result(result);
     }
@@ -1972,7 +1972,7 @@ impl<'a> MainStateView<'a> {
         self.main_state.start_roll_simulation(target_helices);
     }
 
-    fn update_simulation(&mut self, request: SimulationRequest) {
+    fn update_simulation(&mut self, request: SimulationOperation) {
         self.main_state.update_simulation(request)
     }
 

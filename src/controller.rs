@@ -34,7 +34,7 @@ use download_staples::*;
 pub use download_staples::{DownloadStapleError, DownloadStapleOk, StaplesDownloader};
 use ensnano_exports::ExportType;
 use ensnano_iced::UiSize;
-use ensnano_interactor::{consts::CANNOT_OPEN_DEFAULT_DIR, RigidBodyConstants};
+use ensnano_interactor::consts::CANNOT_OPEN_DEFAULT_DIR;
 pub use normal_state::Action;
 use normal_state::NormalState;
 use quit::*;
@@ -226,12 +226,4 @@ impl SaveDesignError {
     pub fn cannot_open_default_dir() -> Self {
         Self(CANNOT_OPEN_DEFAULT_DIR.to_string())
     }
-}
-
-#[derive(Clone, Debug)]
-pub enum SimulationRequest {
-    Stop,
-    UpdateParameters(RigidBodyConstants),
-    FinishRelaxation,
-    Reset,
 }

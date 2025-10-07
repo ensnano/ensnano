@@ -42,7 +42,6 @@ use crate::app_state::design_interactor::controller::clipboard::CopyOperation;
 use crate::app_state::design_interactor::controller::shift_optimization::ShiftOptimizerReader;
 use crate::app_state::design_interactor::controller::simulations::SimulationOperation;
 use crate::app_state::design_interactor::controller::OkOperation;
-use crate::controller::SimulationRequest;
 use controller::ErrOperation;
 use ensnano_gui::CurrentOpState;
 use std::sync::Arc;
@@ -138,16 +137,8 @@ impl DesignInteractor {
 
     pub(super) fn update_simulation(
         &self,
-        request: SimulationRequest,
+        operation: SimulationOperation,
     ) -> Result<InteractorResult, ErrOperation> {
-        let operation = match request {
-            SimulationRequest::Stop => SimulationOperation::Stop,
-            SimulationRequest::Reset => SimulationOperation::Reset,
-            SimulationRequest::UpdateParameters(new_parameters) => {
-                SimulationOperation::UpdateParameters { new_parameters }
-            }
-            SimulationRequest::FinishRelaxation => SimulationOperation::FinishRelaxation,
-        };
         let result = self
             .controller
             .apply_simulation_operation(self.design.clone_inner(), operation);

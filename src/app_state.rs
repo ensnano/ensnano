@@ -40,7 +40,7 @@ use crate::{
         presenter::SimulationUpdate,
     },
     apply_update,
-    controller::{LoadDesignError, SaveDesignError, SimulationRequest},
+    controller::{LoadDesignError, SaveDesignError},
 };
 use address_pointer::AddressPointer;
 use design_interactor::{controller::ErrOperation, DesignReader};
@@ -343,7 +343,7 @@ impl AppState {
 
     pub(super) fn update_simulation(
         &mut self,
-        request: SimulationRequest,
+        request: SimulationOperation,
     ) -> Result<OkOperation, ErrOperation> {
         let result = self.0.design.update_simulation(request);
         self.handle_operation_result(result)
