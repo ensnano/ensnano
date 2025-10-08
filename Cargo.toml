@@ -11,16 +11,23 @@ members = [
     "ensnano-utils",
 ]
 
-[package]
-name = "ensnano"
+[workspace.package]
 version = "0.7.0"
 authors = [
     "thenlevy <nicolaspierrelevy@gmail.com>",
     "Nicolas Schabanel <nicolas.schabanel@gmail.com>",
+    "Joris Picot <joris.picot@ens-lyon.fr>",
 ]
 edition = "2024"
 license = "GPL-3.0-or-later"
+
+[package]
+name = "ensnano"
 resolver = "2"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

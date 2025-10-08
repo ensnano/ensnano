@@ -1,10 +1,9 @@
 [package]
 name = "ensnano_iced"
-version = "0.7.0"
-authors = ["Joris Picot <joris.picot@ens-lyon.fr"]
-license = "GPL-3.0-or-later"
-edition = "2024"
-resolver = "2"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
 
 [dependencies]
 color_space.workspace = true

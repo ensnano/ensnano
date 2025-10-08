@@ -1,9 +1,9 @@
 [package]
 name = "ensnano_utils"
-version = "0.7.0"
-authors = ["thenlevy <nicolaspierrelevy@gmail.com>"]
-edition = "2024"
-license = "GPL-3.0-or-later"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
 
 [dependencies]
 ensnano_design.workspace = true

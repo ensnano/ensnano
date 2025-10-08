@@ -1,8 +1,9 @@
 [package]
 name = "ensnano_organizer"
-version = "0.7.0"
-authors = ["nlevy <nicolaspierrelevy@gmail.com>"]
-edition = "2024"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
