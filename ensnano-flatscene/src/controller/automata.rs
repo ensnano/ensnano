@@ -16,14 +16,14 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use super::super::data::ClickResult;
-use super::super::{view::CircleInstance, FlatHelix, FlatNucl};
+use super::super::{data::ClickResult, view::CircleInstance, FlatHelix, FlatNucl};
 use super::*;
 use ensnano_utils::winit;
 use std::time::Instant;
-use winit::event::MouseButton;
-use winit::keyboard::{Key, ModifiersState, NamedKey};
-use CursorIcon;
+use winit::{
+    event::MouseButton,
+    keyboard::{Key, ModifiersState, NamedKey},
+};
 
 const WHEEL_RADIUS: f32 = 1.5;
 use ensnano_interactor::consts::*;

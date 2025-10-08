@@ -44,14 +44,14 @@ impl<'a, 'b, S: AppState> DraggedCursor<'a, 'b, S> {
         current_position: PhysicalPosition<f64>,
         context: &'b mut EventContext<'a, S>,
     ) -> Self {
-        let delta_postion = PhysicalPosition {
+        let delta_position = PhysicalPosition {
             x: current_position.x - clicked_position.x,
             y: current_position.y - clicked_position.y,
         };
 
         Self {
             clicked_position,
-            delta_position: context.normalize_position(delta_postion),
+            delta_position: context.normalize_position(delta_position),
             normalized_position: context.normalize_position(current_position),
             context,
         }
@@ -75,7 +75,7 @@ impl ClickInfo {
     }
 }
 
-/// A object maping cursor movement to their consequences
+/// A object mapping cursor movement to their consequences
 pub(super) trait DraggingTransitionTable {
     /// The consequences of moving the cursor
     fn on_cursor_moved<S: AppState>(
@@ -113,7 +113,7 @@ pub(super) struct DraggingState<Table: DraggingTransitionTable> {
     clicked_position: PhysicalPosition<f64>,
     /// The button that was pressed to enter this state
     clicked_button: MouseButton,
-    /// A object maping cursor movement to transitions in the controller's automata.
+    /// A object mapping cursor movement to transitions in the controller's automata.
     transition_table: Table,
 }
 
@@ -129,8 +129,8 @@ impl<Table: DraggingTransitionTable> DraggingState<Table> {
 }
 
 macro_rules! dragging_state_constructor {
-    ($contructor_name: ident, $type: tt) => {
-        pub(super) fn $contructor_name(click: ClickInfo) -> DraggingState<$type> {
+    ($constructor_name: ident, $type: tt) => {
+        pub(super) fn $constructor_name(click: ClickInfo) -> DraggingState<$type> {
             DraggingState {
                 current_cursor_position: click.current_position,
                 clicked_button: click.button,
@@ -142,8 +142,8 @@ macro_rules! dragging_state_constructor {
 }
 
 macro_rules! dragging_state_constructor_with_state {
-    ($contructor_name: ident, $type: tt) => {
-        pub(super) fn $contructor_name(
+    ($constructor_name: ident, $type: tt) => {
+        pub(super) fn $constructor_name(
             click: ClickInfo,
             transition_table: $type,
         ) -> DraggingState<$type> {
@@ -376,13 +376,13 @@ dragging_state_constructor! {tilting_camera, TiltingCamera}
 ///
 /// Cursor movement set the xover target
 pub(super) struct MakingXover {
-    /// The origin of the cross-over beeing made
+    /// The origin of the cross-over being made
     origin: XoverOrigin,
     /// The element that is currently under the cursor
     target_element: Option<SceneElement>,
     /// The xover that will be attempted when releasing the button
     current_xover: Option<(Nucl, Nucl, usize)>,
-    /// Weither the attempted xover should be automatically optimized
+    /// Whether the attempted xover should be automatically optimized
     magic_xover: bool,
 }
 
@@ -729,15 +729,15 @@ impl DraggingTransitionTable for MovingBezierCorner {
         let moving_corner = cursor
             .context
             .get_current_cursor_intersection_with_bezier_plane(self.plane_id);
-        let origignal_corner_position = cursor
+        let original_corner_position = cursor
             .context
             .get_point_intersection_with_bezier_plane(self.plane_id, cursor.clicked_position);
 
-        moving_corner.zip(origignal_corner_position).map(
-            |(moving_corner, origignal_corner_position)| Consequence::MoveBezierCorner {
+        moving_corner.zip(original_corner_position).map(
+            |(moving_corner, original_corner_position)| Consequence::MoveBezierCorner {
                 plane_id: self.plane_id,
                 moving_corner: moving_corner.position(),
-                original_corner_position: origignal_corner_position.position(),
+                original_corner_position: original_corner_position.position(),
                 fixed_corner_position: self.fixed_corner_position,
             },
         )
