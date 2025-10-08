@@ -87,10 +87,10 @@ pub(super) trait DraggingTransitionTable {
     fn description() -> &'static str;
     /// If not None, the cursor icon that should be used when the controller's automata is in this
     /// state
-    fn cursor() -> Option<ensnano_interactor::CursorIcon> {
+    fn cursor() -> Option<CursorIcon> {
         None
     }
-    fn on_enterring(&self) -> TransitionConsequence;
+    fn on_entering(&self) -> TransitionConsequence;
     fn on_leaving(&self) -> TransitionConsequence;
     fn handles_color_system(&self) -> Option<HandleColors> {
         None
@@ -159,7 +159,7 @@ macro_rules! dragging_state_constructor_with_state {
 
 macro_rules! no_csq_leaving_or_entering {
     () => {
-        fn on_enterring(&self) -> TransitionConsequence {
+        fn on_entering(&self) -> TransitionConsequence {
             TransitionConsequence::Nothing
         }
 
@@ -212,12 +212,12 @@ impl<S: AppState, Table: DraggingTransitionTable> ControllerState<S> for Draggin
         }
     }
 
-    fn cursor(&self) -> Option<ensnano_interactor::CursorIcon> {
+    fn cursor(&self) -> Option<CursorIcon> {
         Table::cursor()
     }
 
     fn transition_to(&self, _controller: &Controller<S>) -> TransitionConsequence {
-        self.transition_table.on_enterring()
+        self.transition_table.on_entering()
     }
 
     fn transition_from(&self, _controller: &Controller<S>) -> TransitionConsequence {
@@ -255,7 +255,7 @@ impl DraggingTransitionTable for TranslatingCamera {
         Some(Consequence::MovementEnded)
     }
 
-    fn on_enterring(&self) -> TransitionConsequence {
+    fn on_entering(&self) -> TransitionConsequence {
         TransitionConsequence::InitCameraMovement {
             translation: true,
             nucl: self.from_nucl,
@@ -266,7 +266,7 @@ impl DraggingTransitionTable for TranslatingCamera {
         TransitionConsequence::EndCameraMovement
     }
 
-    fn cursor() -> Option<ensnano_interactor::CursorIcon> {
+    fn cursor() -> Option<CursorIcon> {
         Some(CursorIcon::AllScroll)
     }
 
@@ -315,11 +315,11 @@ impl DraggingTransitionTable for RotatingCamera {
         Some(Consequence::MovementEnded)
     }
 
-    fn cursor() -> Option<ensnano_interactor::CursorIcon> {
+    fn cursor() -> Option<CursorIcon> {
         Some(CursorIcon::AllScroll)
     }
 
-    fn on_enterring(&self) -> TransitionConsequence {
+    fn on_entering(&self) -> TransitionConsequence {
         TransitionConsequence::InitCameraMovement {
             translation: false,
             nucl: None,
@@ -354,7 +354,7 @@ impl DraggingTransitionTable for TiltingCamera {
         Some(Consequence::MovementEnded)
     }
 
-    fn on_enterring(&self) -> TransitionConsequence {
+    fn on_entering(&self) -> TransitionConsequence {
         TransitionConsequence::InitCameraMovement {
             translation: false,
             nucl: None,
@@ -365,7 +365,7 @@ impl DraggingTransitionTable for TiltingCamera {
         TransitionConsequence::EndCameraMovement
     }
 
-    fn cursor() -> Option<ensnano_interactor::CursorIcon> {
+    fn cursor() -> Option<CursorIcon> {
         Some(CursorIcon::ColResize)
     }
 }
@@ -418,7 +418,7 @@ impl DraggingTransitionTable for MakingXover {
         }
     }
 
-    fn on_enterring(&self) -> TransitionConsequence {
+    fn on_entering(&self) -> TransitionConsequence {
         TransitionConsequence::InitFreeXover(self.origin.nucl, 0, self.origin.position)
     }
 
@@ -426,7 +426,7 @@ impl DraggingTransitionTable for MakingXover {
         TransitionConsequence::Nothing
     }
 
-    fn cursor() -> Option<ensnano_interactor::CursorIcon> {
+    fn cursor() -> Option<CursorIcon> {
         Some(CursorIcon::Grabbing)
     }
 }
@@ -523,7 +523,7 @@ impl DraggingTransitionTable for TranslatingWidget {
         Some(Consequence::MovementEnded)
     }
 
-    fn cursor() -> Option<ensnano_interactor::CursorIcon> {
+    fn cursor() -> Option<CursorIcon> {
         Some(CursorIcon::Grabbing)
     }
 
@@ -591,7 +591,7 @@ impl DraggingTransitionTable for TranslatingGridObject {
         Some(Consequence::MovementEnded)
     }
 
-    fn cursor() -> Option<ensnano_interactor::CursorIcon> {
+    fn cursor() -> Option<CursorIcon> {
         Some(CursorIcon::Grabbing)
     }
 
@@ -613,7 +613,7 @@ impl DraggingTransitionTable for RotatingWidget {
         Some(Consequence::MovementEnded)
     }
 
-    fn on_enterring(&self) -> TransitionConsequence {
+    fn on_entering(&self) -> TransitionConsequence {
         TransitionConsequence::StartRotatingPivot
     }
 
@@ -632,7 +632,7 @@ impl DraggingTransitionTable for RotatingWidget {
         ))
     }
 
-    fn cursor() -> Option<ensnano_interactor::CursorIcon> {
+    fn cursor() -> Option<CursorIcon> {
         Some(CursorIcon::Grabbing)
     }
 }

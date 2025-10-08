@@ -33,7 +33,6 @@ pub mod graphics;
 mod selection;
 pub use selection::*;
 pub mod application;
-pub use application::CursorIcon;
 pub mod operation;
 mod strand_builder;
 pub use strand_builder::*;

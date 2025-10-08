@@ -34,7 +34,7 @@ use ensnano_utils::{
     filename,
     instance::Instance,
     wgpu::{self, Device, Queue},
-    winit::{dpi::PhysicalPosition, event::WindowEvent},
+    winit::{dpi::PhysicalPosition, event::WindowEvent, window::CursorIcon},
     BufferDimensions, PhySize,
 };
 use std::{
@@ -184,7 +184,7 @@ impl<S: AppState> Scene<S> {
         event: &WindowEvent,
         cursor_position: PhysicalPosition<f64>,
         app_state: &S,
-    ) -> Option<ensnano_interactor::CursorIcon> {
+    ) -> Option<CursorIcon> {
         let consequence = self.controller.input(
             event,
             cursor_position,
@@ -1330,7 +1330,7 @@ impl<S: AppState> Application for Scene<S> {
         event: &WindowEvent,
         cursor_position: PhysicalPosition<f64>,
         app_state: &S,
-    ) -> Option<ensnano_interactor::CursorIcon> {
+    ) -> Option<CursorIcon> {
         self.element_selector
             .set_stereographic(self.is_stereographic());
         if self.is_stereographic() {
