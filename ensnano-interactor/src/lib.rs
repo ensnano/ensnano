@@ -43,6 +43,8 @@ use ensnano_organizer::GroupId;
 mod operation_labels;
 mod surfaces;
 pub use surfaces::*;
+mod multiplexer;
+pub use multiplexer::Multiplexer;
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub enum ObjectType {

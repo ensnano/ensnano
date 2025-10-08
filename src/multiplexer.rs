@@ -944,7 +944,7 @@ fn control_key(modifiers: &ModifiersState) -> bool {
     }
 }
 
-use ensnano_gui::Multiplexer as GuiMultiplexer;
+use ensnano_interactor::Multiplexer as GuiMultiplexer;
 
 impl GuiMultiplexer for Multiplexer {
     fn get_draw_area(&self, element_type: GuiComponentType) -> Option<DrawArea> {

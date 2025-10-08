@@ -67,8 +67,8 @@ use ensnano_interactor::{
         SplitMode,
     },
     operation::Operation,
-    InsertionPoint, PastingStatus, RevolutionSurfaceSystemDescriptor, ScaffoldInfo, Selection,
-    SimulationState, UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
+    InsertionPoint, Multiplexer, PastingStatus, RevolutionSurfaceSystemDescriptor, ScaffoldInfo,
+    Selection, SimulationState, UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
 };
 use ensnano_interactor::{ActionMode, HyperboloidRequest, RollRequest, SelectionMode};
 pub use ensnano_organizer::OrganizerTree;
@@ -80,11 +80,7 @@ use std::{
 };
 use ultraviolet::{Rotor3, Vec2, Vec3};
 use wgpu::{Device, Queue};
-use winit::{
-    dpi::{PhysicalPosition, PhysicalSize},
-    event::Modifiers,
-    window::Window,
-};
+use winit::{dpi::PhysicalSize, event::Modifiers, window::Window};
 
 pub trait Requests: 'static + Send {
     fn close_overlay(&mut self, overlay_type: OverlayType);
@@ -979,14 +975,6 @@ impl<S: AppState> IcedMessages<S> {
                 .push_back(status_bar::Message::NewApplicationState(state));
         }
     }
-}
-
-/// An object mapping ElementType to DrawArea
-pub trait Multiplexer {
-    fn get_draw_area(&self, element_type: GuiComponentType) -> Option<DrawArea>;
-    fn focused_element(&self) -> Option<GuiComponentType>;
-    fn get_cursor_position(&self) -> PhysicalPosition<f64>;
-    fn get_texture_view(&self, element_type: GuiComponentType) -> Option<&wgpu::TextureView>;
 }
 
 pub trait AppState:
