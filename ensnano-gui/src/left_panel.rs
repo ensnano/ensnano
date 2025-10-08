@@ -40,8 +40,8 @@ use ensnano_iced::{
 };
 use ensnano_interactor::{
     graphics::{Background3D, HBondDisplay, RenderingMode},
-    ActionMode, CheckXoversParameter, EquadiffSolvingMethod, HyperboloidRequest, Selection,
-    SelectionConversion, SuggestionParameters,
+    ActionMode, AppStateParameters, CheckXoversParameter, EquadiffSolvingMethod,
+    HyperboloidRequest, Selection, SelectionConversion, SuggestionParameters,
 };
 use ensnano_organizer::{Organizer, OrganizerMessage, OrganizerTree};
 use std::sync::{Arc, Mutex};
@@ -218,7 +218,7 @@ impl<R: Requests, S: AppState> LeftPanel<R, S> {
         logical_position: LogicalPosition<f64>,
         first_time: bool,
         state: &S,
-        ui_size: UiSize,
+        app_state_parameters: &AppStateParameters,
     ) -> Self {
         let mut organizer = Organizer::new();
         organizer.set_width(logical_size.width as u16);
@@ -234,7 +234,7 @@ impl<R: Requests, S: AppState> LeftPanel<R, S> {
                 TabId::Sequence
             },
             organizer,
-            ui_size,
+            ui_size: app_state_parameters.ui_size,
             grid_tab: GridTab::new(),
             edition_tab: EditionTab::new(),
             camera_tab: CameraTab::new(),

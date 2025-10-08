@@ -66,9 +66,9 @@ use ensnano_interactor::{
         SplitMode,
     },
     operation::Operation,
-    CheckXoversParameter, InsertionPoint, PastingStatus, RevolutionSurfaceSystemDescriptor,
-    ScaffoldInfo, Selection, SimulationState, SuggestionParameters,
-    UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
+    AppStateParameters, CheckXoversParameter, InsertionPoint, PastingStatus,
+    RevolutionSurfaceSystemDescriptor, ScaffoldInfo, Selection, SimulationState,
+    SuggestionParameters, UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
 };
 use ensnano_interactor::{ActionMode, HyperboloidRequest, RollRequest, SelectionMode};
 pub use ensnano_organizer::OrganizerTree;
@@ -454,7 +454,7 @@ impl<R: Requests, S: AppState> GuiComponent<R, S> {
         requests: Arc<Mutex<R>>,
         first_time: bool,
         state: &S,
-        ui_size: ensnano_iced::UiSize,
+        app_state_parameters: &AppStateParameters,
     ) -> Self {
         let left_panel_area = multiplexer
             .get_draw_area(GuiComponentType::LeftPanel)
@@ -465,7 +465,7 @@ impl<R: Requests, S: AppState> GuiComponent<R, S> {
             left_panel_area.position.to_logical(window.scale_factor()),
             first_time,
             state,
-            ui_size,
+            app_state_parameters,
         );
         let mut left_panel_debug = Debug::new();
         let left_panel_state = program::State::new(
@@ -612,7 +612,7 @@ pub struct Gui<R: Requests, S: AppState> {
     queue: Rc<Queue>,
     resized: bool,
     requests: Arc<Mutex<R>>,
-    ui_size: ensnano_iced::UiSize,
+    app_state_parameters: AppStateParameters,
     /// [GuiComponent] mapped by [GuiComponentType]
     components: HashMap<GuiComponentType, GuiComponent<R, S>>,
 }
@@ -624,14 +624,14 @@ impl<R: Requests, State: AppState> Gui<R, State> {
         window: &Window,
         multiplexer: &dyn Multiplexer,
         requests: Arc<Mutex<R>>,
-        ui_size: ensnano_iced::UiSize,
+        app_state_parameters: AppStateParameters,
         global_state: &State,
         top_bar_state: TopBarState,
     ) -> Self {
         let wgpu_settings = iced_wgpu::Settings {
             antialiasing: Some(iced_graphics::Antialiasing::MSAAx4),
             default_font: crate::fonts::INTER_REGULAR_FONT,
-            default_text_size: iced::Pixels(ui_size.main_text()),
+            default_text_size: iced::Pixels(app_state_parameters.ui_size.main_text()),
             ..Default::default()
         };
 
@@ -641,7 +641,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
             queue,
             resized: true,
             requests,
-            ui_size,
+            app_state_parameters,
             components: HashMap::new(),
         };
 
@@ -684,7 +684,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
                 Arc::clone(&self.requests),
                 state.clone(),
                 top_bar_state,
-                self.ui_size,
+                self.app_state_parameters.ui_size,
             ),
         );
 
@@ -708,7 +708,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
                 Arc::clone(&self.requests),
                 self.components.contains_key(&GuiComponentType::LeftPanel),
                 state,
-                self.ui_size,
+                &self.app_state_parameters,
             ),
         );
         self.components.insert(
@@ -728,7 +728,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
                 multiplexer,
                 Arc::clone(&self.requests),
                 state,
-                self.ui_size,
+                self.app_state_parameters.ui_size,
             ),
         );
     }
@@ -828,7 +828,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
         top_bar_state: TopBarState,
     ) {
         self.set_text_size(ui_size.main_text());
-        self.ui_size = ui_size;
+        self.app_state_parameters.ui_size = ui_size;
 
         self.rebuild_gui(window, multiplexer, app_state, top_bar_state);
     }
@@ -840,7 +840,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
         app_state: &State,
         top_bar_state: TopBarState,
     ) {
-        self.set_text_size(self.ui_size.main_text());
+        self.set_text_size(self.app_state_parameters.ui_size.main_text());
         self.rebuild_gui(window, multiplexer, app_state, top_bar_state);
     }
 
