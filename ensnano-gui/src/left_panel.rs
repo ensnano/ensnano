@@ -68,12 +68,9 @@ use tabs::{
 
 pub struct LeftPanel<R: Requests, S: AppState> {
     logical_size: LogicalSize<f64>,
-    #[allow(dead_code)]
     logical_position: LogicalPosition<f64>,
-    #[allow(dead_code)]
     sequence_input: SequenceInput,
     requests: Arc<Mutex<R>>,
-    #[allow(dead_code)]
     show_torsion: bool,
     active_tab: TabId,
     /// Provide an organized view of the object being edited.
