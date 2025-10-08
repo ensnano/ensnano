@@ -19,8 +19,6 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! This modules defines types and operations used by the graphical component of ENSnano to
 //! interact with the design.
 
-use std::path::PathBuf;
-
 use ensnano_design::{
     elements::{DesignElementKey, DnaAttribute},
     grid::{GridDescriptor, GridId, GridObject, GridTypeDescr, HelixGridPosition, Hyperboloid},
@@ -29,6 +27,7 @@ use ensnano_design::{
     CurveDescriptor2D, HelixParameters, Isometry3, Nucl,
 };
 use serde::{Deserialize, Serialize};
+use std::path::PathBuf;
 use ultraviolet::{Isometry2, Rotor3, Vec2, Vec3};
 pub mod graphics;
 mod selection;
@@ -44,6 +43,9 @@ use ensnano_organizer::GroupId;
 mod operation_labels;
 mod surfaces;
 pub use surfaces::*;
+
+mod app_state_parameters;
+pub use app_state_parameters::AppStateParameters;
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub enum ObjectType {

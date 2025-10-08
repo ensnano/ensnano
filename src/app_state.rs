@@ -50,12 +50,11 @@ use ensnano_interactor::{
     consts::{APP_NAME, ENS_BACKUP_EXTENSION, ENS_EXTENSION},
     graphics::{Background3D, HBondDisplay, RenderingMode},
     operation::Operation,
-    ActionMode, CenterOfSelection, CheckXoversParameter, DesignOperation, RigidBodyConstants,
-    Selection, SelectionMode, SuggestionParameters, UnrootedRevolutionSurfaceDescriptor,
-    WidgetBasis,
+    ActionMode, AppStateParameters, CenterOfSelection, CheckXoversParameter, DesignOperation,
+    RigidBodyConstants, Selection, SelectionMode, SuggestionParameters,
+    UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
 };
 use ensnano_organizer::GroupId;
-use serde::{Deserialize, Serialize};
 use std::{
     path::PathBuf,
     sync::{Arc, RwLock},
@@ -655,42 +654,6 @@ impl AppState {
 
     pub(super) fn get_new_selection(&self) -> Option<Vec<Selection>> {
         self.0.design.get_new_selection()
-    }
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(default)] // workaround for https://github.com/rust-cli/confy/issues/34
-pub struct AppStateParameters {
-    suggestion_parameters: SuggestionParameters,
-    check_xover_parameters: CheckXoversParameter,
-    follow_stereography: bool,
-    show_stereography: bool,
-    rendering_mode: RenderingMode,
-    background3d: Background3D,
-    all_helices_on_axis: bool,
-    scroll_sensitivity: f32,
-    inverted_y_scroll: bool,
-    show_h_bonds: HBondDisplay,
-    show_bezier_paths: bool,
-    pub ui_size: UiSize,
-}
-
-impl Default for AppStateParameters {
-    fn default() -> Self {
-        Self {
-            suggestion_parameters: Default::default(),
-            check_xover_parameters: Default::default(),
-            follow_stereography: Default::default(),
-            show_stereography: Default::default(),
-            rendering_mode: Default::default(),
-            background3d: Default::default(),
-            all_helices_on_axis: false,
-            scroll_sensitivity: 0.0,
-            inverted_y_scroll: false,
-            show_h_bonds: HBondDisplay::No,
-            show_bezier_paths: false,
-            ui_size: Default::default(),
-        }
     }
 }
 

@@ -100,8 +100,8 @@ mod scheduler;
 use {
     crate::{controller::TargetScaffoldLength, requests::Requests},
     app_state::{
-        AppState, AppStateParameters, AppStateTransition, CopyOperation, ErrOperation, OkOperation,
-        PastePosition, PastingStatus, SimulationTarget, TransitionLabel,
+        AppState, AppStateTransition, CopyOperation, ErrOperation, OkOperation, PastePosition,
+        PastingStatus, SimulationTarget, TransitionLabel,
     },
     controller::{
         Action, ChannelReader, ChannelReaderUpdate, Controller, LoadDesignError, SaveDesignError,
@@ -129,8 +129,8 @@ use {
         },
         graphics::{GuiComponentType, SplitMode},
         operation::Operation,
-        ActionMode, CenterOfSelection, CheckXoversParameter, CursorIcon, DesignOperation,
-        DesignReader, DesignRotation, DesignTranslation, IsometryTarget,
+        ActionMode, AppStateParameters, CenterOfSelection, CheckXoversParameter, CursorIcon,
+        DesignOperation, DesignReader, DesignRotation, DesignTranslation, IsometryTarget,
         RevolutionSurfaceSystemDescriptor, RigidBodyConstants, Selection, SelectionMode,
         SuggestionParameters, UnrootedRevolutionSurfaceDescriptor,
     },
