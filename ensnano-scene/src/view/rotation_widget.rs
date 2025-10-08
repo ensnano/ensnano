@@ -16,7 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use super::{
-    maths_3d, CameraPtr, Drawable, Drawer, GroupPivot, HandleColors, ProjectionPtr, Vertex,
+    CameraPtr, Drawable, Drawer, GroupPivot, HandleColors, ProjectionPtr, Vertex, maths_3d,
 };
 
 use ensnano_design::ultraviolet::{Rotor3, Vec3};

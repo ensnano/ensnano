@@ -1,9 +1,9 @@
 //! Customize the theme of ENSnano
 use ensnano_iced::iced::{
+    Background, Border, Color, Shadow, Vector,
     border::Radius,
     theme,
     widget::{button, container},
-    Background, Border, Color, Shadow, Vector,
 };
 
 #[derive(Debug, Clone, Copy)]

@@ -19,23 +19,22 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 #![allow(mixed_script_confusables, confusable_idents)] // allow mathematical symbols as variables
 
 use ensnano_design::{
-    consts::ITERATIVE_AXIS_ALGORITHM, grid::GridPosition, grid::HelixGridPosition,
-    group_attributes::GroupPivot, ultraviolet, BezierVertexId, Nucl,
+    BezierVertexId, Nucl, consts::ITERATIVE_AXIS_ALGORITHM, grid::GridPosition,
+    grid::HelixGridPosition, group_attributes::GroupPivot, ultraviolet,
 };
 use ensnano_interactor::{
+    ActionMode, CenterOfSelection, DesignOperation, NewBezierTangentVector, Selection,
+    SelectionMode, StrandBuilder, UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
     app_state_parameters::CheckXoversParameter,
     application::{AppId, Application, Camera3D, Notification},
     graphics::DrawArea,
     operation::*,
-    ActionMode, CenterOfSelection, DesignOperation, NewBezierTangentVector, Selection,
-    SelectionMode, StrandBuilder, UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
 };
 use ensnano_utils::{
-    filename,
+    BufferDimensions, PhySize, filename,
     instance::Instance,
     wgpu::{self, Device, Queue},
     winit::{dpi::PhysicalPosition, event::WindowEvent, window::CursorIcon},
-    BufferDimensions, PhySize,
 };
 use std::{
     cell::RefCell,

@@ -20,11 +20,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! interact with the design.
 
 use ensnano_design::{
+    BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, BezierVertexId,
+    CurveDescriptor2D, HelixParameters, Isometry3, Nucl,
     elements::{DesignElementKey, DnaAttribute},
     grid::{GridDescriptor, GridId, GridObject, GridTypeDescr, HelixGridPosition, Hyperboloid},
     group_attributes::GroupPivot,
-    BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, BezierVertexId,
-    CurveDescriptor2D, HelixParameters, Isometry3, Nucl,
 };
 use std::path::PathBuf;
 use ultraviolet::{Isometry2, Rotor3, Vec2, Vec3};

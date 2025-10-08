@@ -18,7 +18,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use serde::{Deserialize, Serialize};
 use std::{
-    collections::{hash_map::RandomState, HashMap},
+    collections::{HashMap, hash_map::RandomState},
     hash::Hash,
 };
 
@@ -243,12 +243,12 @@ impl<'de, K: Deserialize<'de>> Deserialize<'de> for OrganizerTree<K> {
 /// Used to map groups to group attributes.
 pub struct GroupId(u64);
 
-use rand::distributions::{Distribution, Standard};
 use rand::Rng;
+use rand::distributions::{Distribution, Standard};
 
 impl Distribution<GroupId> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> GroupId {
-        let id: u64 = rng.gen();
+        let id: u64 = rng.r#gen();
         GroupId(id)
     }
 }

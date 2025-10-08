@@ -17,8 +17,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 pub use ensnano_design::BezierControlPoint;
 use ensnano_design::{
-    grid::{GridId, HelixGridPosition},
     BezierPathId, BezierVertexId,
+    grid::{GridId, HelixGridPosition},
 };
 use ensnano_design::{Nucl, Strand};
 use std::collections::BTreeSet;

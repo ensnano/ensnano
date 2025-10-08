@@ -52,18 +52,18 @@ impl ColorPicker {
 mod hue_column {
     use ensnano_iced::{
         iced::{
+            Length, Point, Rectangle, Renderer, Size, Vector,
             advanced::{
-                layout, mouse, renderer::Style, widget, Clipboard, Layout,
-                Renderer as RendererTrait, Shell, Widget,
+                Clipboard, Layout, Renderer as RendererTrait, Shell, Widget, layout, mouse,
+                renderer::Style, widget,
             },
             event,
             mouse::Cursor,
-            Length, Point, Rectangle, Renderer, Size, Vector,
         },
         iced_graphics::{
+            Primitive,
             color::pack,
             mesh::{Indexed, Mesh, SolidVertex2D},
-            Primitive,
         },
         iced_wgpu,
     };
@@ -250,18 +250,18 @@ mod hue_column {
 mod light_sat_square {
     use ensnano_iced::{
         iced::{
+            Length, Point, Rectangle, Renderer, Size, Vector,
             advanced::{
-                layout, mouse, renderer::Style, widget, Clipboard, Layout,
-                Renderer as RendererTrait, Shell, Widget,
+                Clipboard, Layout, Renderer as RendererTrait, Shell, Widget, layout, mouse,
+                renderer::Style, widget,
             },
             event,
             mouse::Cursor,
-            Length, Point, Rectangle, Renderer, Size, Vector,
         },
         iced_graphics::{
+            Primitive,
             color::pack,
             mesh::{Indexed, Mesh, SolidVertex2D},
-            Primitive,
         },
         iced_wgpu,
     };
@@ -474,18 +474,18 @@ mod color_square {
     use super::Color;
     use ensnano_iced::{
         iced::{
+            Length, Rectangle, Size, Vector,
             advanced::{
-                layout, mouse, renderer::Style, widget, Clipboard, Layout,
-                Renderer as RendererTrait, Shell, Widget,
+                Clipboard, Layout, Renderer as RendererTrait, Shell, Widget, layout, mouse,
+                renderer::Style, widget,
             },
             event,
             mouse::Cursor,
-            Length, Rectangle, Size, Vector,
         },
         iced_graphics::{
+            Primitive,
             color::pack,
             mesh::{Indexed, Mesh, SolidVertex2D},
-            Primitive,
         },
         iced_wgpu,
     };

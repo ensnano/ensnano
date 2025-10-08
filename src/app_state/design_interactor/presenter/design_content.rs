@@ -28,11 +28,11 @@ use ensnano_design::{
     *,
 };
 use ensnano_interactor::{
+    ObjectType,
     consts::{
         BOND_RADIUS, CLONE_OPACITY, HELIX_CYLINDER_COLOR, HELIX_CYLINDER_RADIUS, SPHERE_RADIUS,
     },
     graphics::{LoopoutBond, LoopoutNucl},
-    ObjectType,
 };
 use ensnano_scene::GridInstance;
 use ensnano_utils::{click_counter::ClickCounter, colors, instance::Instance};
@@ -729,7 +729,12 @@ impl DesignContent {
                         if let Some(v_nucl) = virtual_nucl {
                             let previous = nucl_collection.insert_virtual(v_nucl, nucl);
                             if previous.is_some() && previous != Some(nucl) {
-                                log::error!("NUCLEOTIDE CONFLICTS: nucls {:?} and {:?} are mapped to the same virtual position {:?}", previous, nucl, v_nucl);
+                                log::error!(
+                                    "NUCLEOTIDE CONFLICTS: nucls {:?} and {:?} are mapped to the same virtual position {:?}",
+                                    previous,
+                                    nucl,
+                                    v_nucl
+                                );
                             }
                         } else {
                             log::error!("Could not get virtual nucl corresponding to {:?}", nucl);

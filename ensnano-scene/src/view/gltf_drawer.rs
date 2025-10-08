@@ -17,9 +17,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use super::wgpu;
 use ensnano_design::{External3DObject, External3DObjectId, PointOnSurface};
-use ensnano_interactor::consts;
 use ensnano_interactor::UnrootedRevolutionSurfaceDescriptor;
-use ensnano_utils::{create_buffer_with_data, obj_loader::*, texture::Texture, TEXTURE_FORMAT};
+use ensnano_interactor::consts;
+use ensnano_utils::{TEXTURE_FORMAT, create_buffer_with_data, obj_loader::*, texture::Texture};
 use std::ffi::OsStr;
 use std::path::PathBuf;
 use std::rc::Rc;

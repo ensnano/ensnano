@@ -23,7 +23,7 @@ pub mod oxdna;
 pub mod pdb;
 use cadnano::CadnanoError;
 use cando::CanDoError;
-use ensnano_design::{ultraviolet, Design, Nucl};
+use ensnano_design::{Design, Nucl, ultraviolet};
 use pdb::PdbError;
 use std::collections::HashMap;
 use std::path::PathBuf;

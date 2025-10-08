@@ -18,7 +18,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use crate::MainStateView;
 
-use super::{dialog, messages, State, TransitionMessage, YesNo};
+use super::{State, TransitionMessage, YesNo, dialog, messages};
 use ensnano_interactor::StandardSequence;
 
 use dialog::PathInput;

@@ -17,16 +17,16 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::{
-    roller::{DesignData, RollSystem},
     Design, Helix,
+    roller::{DesignData, RollSystem},
 };
 use crate::{
-    app_state::design_interactor::{presenter::SimulationUpdate, Presenter},
+    app_state::design_interactor::{Presenter, presenter::SimulationUpdate},
     controller::ChannelReader,
 };
 use ensnano_design::{
-    grid::{GridDescriptor, GridTypeDescr, *},
     Collection, CurveDescriptor, HelixCollection, HelixParameters, Twist,
+    grid::{GridDescriptor, GridTypeDescr, *},
 };
 use std::{
     collections::HashMap,

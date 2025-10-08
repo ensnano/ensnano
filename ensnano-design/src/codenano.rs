@@ -574,11 +574,7 @@ impl Helix {
         let point_up = self.axis_pos(p, up);
         let dist_low = (point_low - point).mag();
         let dist_up = (point_up - point).mag();
-        if dist_low > dist_up {
-            up
-        } else {
-            low
-        }
+        if dist_low > dist_up { up } else { low }
     }
 }
 

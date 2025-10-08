@@ -22,17 +22,17 @@ use crate::flattypes::{FlatHelixMaps, FlatPosition, HelixSegment};
 use crate::view::EditionInfo;
 use abscissa_converter::{AbscissaConverter, AbscissaConverter_};
 use ahash::RandomState;
-use ensnano_design::ultraviolet;
 use ensnano_design::Nucl;
+use ensnano_design::ultraviolet;
 use ensnano_interactor::consts::*;
 use ensnano_utils::{
     chars2d::{Line, Sentence, TextDrawer},
     full_isometry::FullIsometry,
     instance::Instance,
 };
-use lyon::math::{rect, Point};
-use lyon::path::builder::{BorderRadii, PathBuilder};
+use lyon::math::{Point, rect};
 use lyon::path::Path;
+use lyon::path::builder::{BorderRadii, PathBuilder};
 use lyon::tessellation;
 use lyon::tessellation::{
     FillVertex, FillVertexConstructor, StrokeVertex, StrokeVertexConstructor,

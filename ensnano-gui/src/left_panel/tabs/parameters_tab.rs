@@ -22,7 +22,7 @@ use super::tabs::GuiTab;
 use super::{AppState, FactoryId, Message, RequestFactory, ScrollSensitivity, UiSize, ValueId};
 
 use ensnano_iced::{
-    fonts::{icon_to_char, MaterialIcon},
+    fonts::{MaterialIcon, icon_to_char},
     helpers::*,
     iced_aw::TabLabel,
 };

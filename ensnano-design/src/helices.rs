@@ -21,11 +21,10 @@ use crate::grid::*;
 
 use super::curves::*;
 use super::{
-    codenano,
+    BezierPathId, HelixParameters, Nucl, codenano,
     grid::{Grid, GridData, HelixGridPosition},
     scadnano::*,
     utils::*,
-    BezierPathId, HelixParameters, Nucl,
 };
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -697,7 +696,7 @@ impl Helix {
             -n as f32 * beta  // Beta is positive but helix turn clockwise when n increases
             + shift
             + std::f32::consts::FRAC_PI_2 // Add PI/2 so that when the roll is 0,
-                                          // the backward strand is at vertical position on nucl 0
+        // the backward strand is at vertical position on nucl 0
     }
 
     /// 3D position of a nucleotide on this helix. `n` is the position along the axis, and `forward` is true iff the 5' to 3' direction of the strand containing that nucleotide runs in the same direction as the axis of the helix.

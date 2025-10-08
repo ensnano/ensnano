@@ -37,7 +37,7 @@ use std::cell::RefCell;
 use ultraviolet::Vec2;
 
 mod automata;
-use automata::{ctrl, ControllerState, NormalState, Transition};
+use automata::{ControllerState, NormalState, Transition, ctrl};
 
 pub struct Controller<S: AppState> {
     #[allow(dead_code)]

@@ -17,15 +17,15 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 //! Gives text_input widgets priority to handle keyboard event.
 use iced::{
+    Element, Length, Padding, Point, Rectangle, Size, Vector,
     advanced::{
         layout::{self, Layout},
         renderer,
         widget::{self, Widget},
-        {mouse, Clipboard, Shell},
+        {Clipboard, Shell, mouse},
     },
     event, keyboard, overlay,
     widget::text_input,
-    Element, Length, Padding, Point, Rectangle, Size, Vector,
 };
 use iced_graphics::text::Paragraph;
 

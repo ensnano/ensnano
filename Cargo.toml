@@ -18,7 +18,7 @@ authors = [
     "thenlevy <nicolaspierrelevy@gmail.com>",
     "Nicolas Schabanel <nicolas.schabanel@gmail.com>",
 ]
-edition = "2021"
+edition = "2024"
 license = "GPL-3.0-or-later"
 resolver = "2"
 

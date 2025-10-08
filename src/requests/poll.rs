@@ -20,7 +20,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! object.
 
 use super::*;
-use ensnano_interactor::{application::Notification, HyperboloidOperation, SelectionConversion};
+use ensnano_interactor::{HyperboloidOperation, SelectionConversion, application::Notification};
 use std::ops::DerefMut;
 
 pub(crate) fn poll_all<R: DerefMut<Target = Requests>>(

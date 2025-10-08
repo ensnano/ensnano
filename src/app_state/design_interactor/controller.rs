@@ -23,12 +23,15 @@ pub mod update_insertion_length;
 
 use super::SimulationUpdate;
 use crate::{
-    app_state::{design_interactor::presenter::design_content::NuclCollection, AddressPointer},
+    app_state::{AddressPointer, design_interactor::presenter::design_content::NuclCollection},
     controller::ChannelReader,
 };
 use clipboard::{Clipboard, PastedStrand, StrandClipboard};
 use clipboard::{CopyOperation, PastePosition};
 use ensnano_design::{
+    BezierEnd, BezierPathId, BezierPlaneDescriptor, BezierVertex, BezierVertexId, CameraId,
+    Collection, CurveDescriptor, Design, Domain, DomainJunction, Helices, Helix, HelixCollection,
+    HelixInterval, Nucl, Strand, Strands, UpToDateDesign,
     drawing_style::{DrawingAttribute, DrawingStyle},
     elements::{DesignElementKey, DnaAttribute},
     grid::{
@@ -36,17 +39,15 @@ use ensnano_design::{
         HelixGridPosition, Hyperboloid,
     },
     group_attributes::GroupPivot,
-    mutate_in_arc, BezierEnd, BezierPathId, BezierPlaneDescriptor, BezierVertex, BezierVertexId,
-    CameraId, Collection, CurveDescriptor, Design, Domain, DomainJunction, Helices, Helix,
-    HelixCollection, HelixInterval, Nucl, Strand, Strands, UpToDateDesign,
+    mutate_in_arc,
 };
 use ensnano_gui::ClipboardContent;
 use ensnano_interactor::PastingStatus;
 use ensnano_interactor::{
-    operation::{Operation, TranslateBezierPathVertex},
     BezierControlPoint, BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation,
     DomainIdentifier, HyperboloidOperation, IsometryTarget, NeighborDescriptor,
     NeighborDescriptorGiver, NewBezierTangentVector, Selection, SimulationState, StrandBuilder,
+    operation::{Operation, TranslateBezierPathVertex},
 };
 use ensnano_organizer::GroupId;
 use ensnano_utils::colors;
@@ -101,7 +102,7 @@ impl Controller {
             OperationCompatibility::Incompatible => {
                 return Err(ErrOperation::IncompatibleState(
                     self.state.state_name().into(),
-                ))
+                ));
             }
             OperationCompatibility::FinishFirst => return Err(ErrOperation::FinishFirst),
             OperationCompatibility::Compatible => (),

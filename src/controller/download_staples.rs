@@ -16,9 +16,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use super::{messages, NormalState, State, TransitionMessage};
-
-use crate::{dialog, MainStateView};
+use super::{NormalState, State, TransitionMessage, messages};
+use crate::{MainStateView, dialog};
 use dialog::{MustAckMessage, PathInput};
 use std::path::PathBuf;
 

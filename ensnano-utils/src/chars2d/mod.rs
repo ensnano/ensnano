@@ -19,7 +19,7 @@ use ensnano_iced::iced_wgpu::wgpu;
 use std::collections::HashMap;
 use std::rc::Rc;
 use ultraviolet::{Mat2, Vec2, Vec4};
-use wgpu::{include_spirv, BindGroupLayout, Device, Queue, RenderPass, RenderPipeline};
+use wgpu::{BindGroupLayout, Device, Queue, RenderPass, RenderPipeline, include_spirv};
 
 use crate::bindgroup_manager::DynamicBindGroup;
 use crate::text::{Letter, Vertex as CharVertex};

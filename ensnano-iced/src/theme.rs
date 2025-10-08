@@ -5,10 +5,10 @@ use std::rc::Rc;
 
 pub use iced::theme::*;
 use iced::{
+    Background, Border, Color,
     advanced::renderer::Style,
     border::Radius,
     widget::{container, slider, text_input},
-    Background, Border, Color,
 };
 use iced_aw::widgets::tab_bar;
 

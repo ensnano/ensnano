@@ -198,7 +198,7 @@ pub(crate) trait PieceWiseBezierInstantiator<T: BezierEndCoordinateUnit> {
             t_max,
             ends: descriptor,
             is_cyclic: self.is_cyclic(),
-            id: rng.gen(),
+            id: rng.r#gen(),
             discretize_quickly: false,
         })
     }

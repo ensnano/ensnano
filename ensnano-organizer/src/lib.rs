@@ -1,8 +1,9 @@
 use {
     ensnano_iced::{
+        Element,
         helpers::*,
-        iced::{keyboard::Modifiers, Length},
-        icon_to_svg, Element,
+        iced::{Length, keyboard::Modifiers},
+        icon_to_svg,
     },
     std::{
         collections::{BTreeMap, BTreeSet, HashMap},
@@ -18,7 +19,7 @@ mod tree;
 
 pub use element::*;
 use icondata::Icon;
-use rand::{rngs::ThreadRng, Rng};
+use rand::{Rng, rngs::ThreadRng};
 use theme::OrganizerTheme;
 pub use tree::{GroupId, OrganizerTree};
 
@@ -309,12 +310,14 @@ impl<E: OrganizerElement> Organizer<E> {
         container(
             self::column![
                 // Title row
-                row![tooltip(
-                    new_group_button,
-                    "Create new_group from selection",
-                    tooltip::Position::FollowCursor,
-                )
-                .style(ensnano_iced::iced::theme::Container::Box)],
+                row![
+                    tooltip(
+                        new_group_button,
+                        "Create new_group from selection",
+                        tooltip::Position::FollowCursor,
+                    )
+                    .style(ensnano_iced::iced::theme::Container::Box)
+                ],
                 scrollable(content).width(self.width)
             ]
             .spacing(5.0f32), // TODO: Find a way to use `ui_size` here.
@@ -443,7 +446,7 @@ impl<E: OrganizerElement> Organizer<E> {
             _Message::DragDropped(k) => self.drag_drop(k),
             _Message::NodeHovered { id, hovered_in } => return self.hover(id, *hovered_in),
             _Message::KeyHovered { key, hovered_in } => {
-                return self.key_hover(key.clone(), *hovered_in)
+                return self.key_hover(key.clone(), *hovered_in);
             }
             _Message::AttributeSelected { attribute, id } => {
                 let keys = self.get_keys_below(id);
@@ -781,7 +784,7 @@ impl<E: OrganizerElement> Organizer<E> {
         //TODO remove public once this is integrated in GUI
         if let Some(c1) = self.pop_id_no_recompute(id0) {
             if let Some(c2) = self.pop_id_no_recompute(id1) {
-                let new_group_id = self.rng_thread.gen();
+                let new_group_id = self.rng_thread.r#gen();
                 let content = GroupContent::Node {
                     id: NodeId::TreeId(vec![]),
                     name: String::from("new group"),
@@ -817,7 +820,9 @@ impl<E: OrganizerElement> Organizer<E> {
 
     fn add_key_at(&mut self, key: E::Key, dest: &[usize]) {
         if dest.len() < 2 {
-            println!("I have not decided what to do when moving a key at the root level of the organizer");
+            println!(
+                "I have not decided what to do when moving a key at the root level of the organizer"
+            );
         } else {
             if let Some(group) = self.groups.get_mut(dest[0]) {
                 group.add_key_at(key, &dest[1..])
@@ -1286,7 +1291,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                     // when we generate a new identifier, we must notify the program that the tree
                     // is different
                     *must_update_tree = true;
-                    rng.gen()
+                    rng.r#gen()
                 });
                 Self::Node {
                     children,
@@ -1322,7 +1327,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                 }
             })
             .collect();
-        let group_id = rng.gen();
+        let group_id = rng.r#gen();
         Self::Node {
             id,
             children,

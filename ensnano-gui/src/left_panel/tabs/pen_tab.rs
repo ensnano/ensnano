@@ -18,9 +18,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use std::marker::PhantomData;
 
 use super::tabs::GuiTab;
-use super::{AppState, GridTypeDescr, Message, UiSize, ICON_HONEYCOMB_GRID, ICON_SQUARE_GRID};
+use super::{AppState, GridTypeDescr, ICON_HONEYCOMB_GRID, ICON_SQUARE_GRID, Message, UiSize};
 use ensnano_iced::{
-    fonts::{icon_to_char, MaterialIcon, MaterialIconStyle},
+    fonts::{MaterialIcon, MaterialIconStyle, icon_to_char},
     helpers::*,
     iced_aw::TabLabel,
 };

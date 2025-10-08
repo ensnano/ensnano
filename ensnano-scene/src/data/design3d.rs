@@ -15,29 +15,29 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+use super::super::GridInstance;
 use super::super::maths_3d::{Basis3D, UnalignedBoundaries};
 use super::super::view::{
     ConeInstance, Ellipsoid, Instantiable, RawDnaInstance, Sheet2D, SlicedTubeInstance,
     SphereInstance, TubeInstance, TubeLidInstance,
 };
-use super::super::GridInstance;
-use super::{ultraviolet, LetterInstance, SceneElement};
+use super::{LetterInstance, SceneElement, ultraviolet};
 use crate::rotor_utils::SafeRotor;
 use crate::sausage_rosary::SausageRosary;
 use crate::view::PlainRectangleInstance;
 use ensnano_design::grid::{GridId, GridObject, GridPosition};
-use ensnano_design::{grid::HelixGridPosition, Nucl};
 use ensnano_design::{
     AdditionalStructure, BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex,
     Collection, CubicBezierConstructor, CurveDescriptor, External3DObjects, HelixParameters,
     InstanciatedPath,
 };
+use ensnano_design::{Nucl, grid::HelixGridPosition};
 pub use ensnano_design::{SurfaceInfo, SurfacePoint};
 use ensnano_interactor::consts::*;
 use ensnano_interactor::{
+    BezierControlPoint, ObjectType, PHANTOM_RANGE, PhantomElement, Referential,
     graphics::{LoopoutBond, LoopoutNucl},
-    phantom_helix_encoder_bond, phantom_helix_encoder_nucl, BezierControlPoint, ObjectType,
-    PhantomElement, Referential, PHANTOM_RANGE,
+    phantom_helix_encoder_bond, phantom_helix_encoder_nucl,
 };
 use ensnano_utils::colors;
 use ensnano_utils::instance::Instance;
@@ -481,9 +481,11 @@ impl<R: DesignReader> Design3D<R> {
                         .get_graphic_element_position(&SceneElement::DesignElement(self.id, id2))
                         .unwrap_or(f32::NAN * Vec3::unit_x());
                     let id = id | self.id << 24;
-                    vec![create_dna_bond(pos1, pos2, color, id, true)
-                        .with_radius(radius)
-                        .to_raw_instance()]
+                    vec![
+                        create_dna_bond(pos1, pos2, color, id, true)
+                            .with_radius(radius)
+                            .to_raw_instance(),
+                    ]
                 }
                 Some(ObjectType::HelixCylinder(id1, id2)) => {
                     let pos1 = self
@@ -517,13 +519,15 @@ impl<R: DesignReader> Design3D<R> {
                     //     radius *= 2.5;
                     // }
                     // radius = if small { radius / 3.5 } else { radius };
-                    vec![SphereInstance {
-                        position,
-                        radius,
-                        color,
-                        id,
-                    }
-                    .to_raw_instance()]
+                    vec![
+                        SphereInstance {
+                            position,
+                            radius,
+                            color,
+                            id,
+                        }
+                        .to_raw_instance(),
+                    ]
                 }
                 _ => vec![],
             };

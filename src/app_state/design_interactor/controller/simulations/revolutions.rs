@@ -31,8 +31,8 @@ use ensnano_interactor::{
 use mathru::{
     algebra::linear::vector::vector::Vector,
     analysis::differential_equation::ordinary::{
-        solver::runge_kutta::{explicit::fixed::FixedStepper, ExplicitEuler, Ralston4},
         ExplicitODE,
+        solver::runge_kutta::{ExplicitEuler, Ralston4, explicit::fixed::FixedStepper},
     },
 };
 use std::{

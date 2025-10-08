@@ -623,11 +623,7 @@ fn search_dicho(goal: f64, slice: &[f64]) -> Option<usize> {
                 b = c;
             }
         }
-        if slice[a] < goal {
-            Some(a)
-        } else {
-            Some(b)
-        }
+        if slice[a] < goal { Some(a) } else { Some(b) }
     } else {
         None
     }

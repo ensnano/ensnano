@@ -23,10 +23,10 @@ const EPSILON: f64 = 1e-6;
 /// To compute curvilinear abscissa over long distances
 const DELTA_MAX: f64 = 256.0;
 use crate::{
+    BezierPathData, BezierPathId,
     curves::chebyshev::{PolynomialCoordinates, PolynomialCoordinates_},
     grid::{Edge, GridPosition},
     utils::vec_to_dvec,
-    BezierPathData, BezierPathId,
 };
 
 use super::{Helix, HelixParameters};
@@ -74,7 +74,7 @@ pub use torus_concentric_circle::{
     EllipticTorusConcentricCircleDescriptor, TorusConcentricCircleDescriptor,
 };
 pub use tube_spiral::TubeSpiralDescriptor;
-pub use twist::{nb_turn_per_100_nt_to_omega, twist_to_omega, Twist};
+pub use twist::{Twist, nb_turn_per_100_nt_to_omega, twist_to_omega};
 
 const EPSILON_DERIVATIVE: f64 = 1e-6;
 
@@ -1099,7 +1099,7 @@ impl InstanciatedPiecewiseBezierDescriptor {
                 t_min: None,
                 t_max: None,
                 is_cyclic: false,
-                id: rng.gen(),
+                id: rng.r#gen(),
                 discretize_quickly: false,
             });
 

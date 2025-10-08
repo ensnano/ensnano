@@ -17,10 +17,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::{
-    messages, DownloadStapleError, DownloadStapleOk, NormalState, StaplesDownloader, State,
-    TransitionMessage,
+    DownloadStapleError, DownloadStapleOk, NormalState, StaplesDownloader, State,
+    TransitionMessage, messages,
 };
-use crate::{dialog, MainStateView};
+use crate::{MainStateView, dialog};
 use dialog::{MustAckMessage, PathInput};
 use ensnano_interactor::consts::ORIGAMI_EXTENSION;
 use std::path::PathBuf;

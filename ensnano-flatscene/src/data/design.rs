@@ -22,13 +22,13 @@ use super::super::{FlatHelix, FlatIdx, FlatNucl, HelixSegment, Requests};
 use super::{Flat, HelixVec, Nucl, Strand};
 use ahash::RandomState;
 use ensnano_design::{
-    ultraviolet, AbscissaConverter, Extremity, Helix as DesignHelix, HelixCollection,
-    Strand as StrandDesign,
+    AbscissaConverter, Extremity, Helix as DesignHelix, HelixCollection, Strand as StrandDesign,
+    ultraviolet,
 };
 use ensnano_interactor::consts::{
     CANDIDATE_STRAND_HIGHLIGHT_FACTOR_2D, SELECTED_STRAND_HIGHLIGHT_FACTOR_2D,
 };
-use ensnano_interactor::{torsion::Torsion, Referential};
+use ensnano_interactor::{Referential, torsion::Torsion};
 use ensnano_utils::full_isometry::FullIsometry;
 use ultraviolet::{Isometry2, Rotor2, Vec2, Vec3};
 
