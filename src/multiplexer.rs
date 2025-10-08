@@ -256,12 +256,6 @@ impl Multiplexer {
             let bg_layout = &self.top_bar_texture.as_ref().unwrap().texture.bg_layout;
             self.pipeline = Some(create_pipeline(self.device.as_ref(), bg_layout));
         }
-        let clear_color = wgpu::Color {
-            r: 0.,
-            g: 0.,
-            b: 0.,
-            a: 1.,
-        };
 
         let msaa_texture = None;
 
@@ -283,7 +277,7 @@ impl Multiplexer {
                 view: attachment,
                 resolve_target,
                 ops: wgpu::Operations {
-                    load: wgpu::LoadOp::Clear(clear_color),
+                    load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
                     store: wgpu::StoreOp::Store,
                 },
             })],

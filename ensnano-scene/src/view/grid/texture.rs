@@ -92,7 +92,7 @@ fn fill_square_texture(target: &TextureView, device: &Device, encoder: &mut wgpu
         r: 1.,
         g: 1.,
         b: 1.,
-        a: 0.4, // this will be usefull to discard fragments that are not on the grid
+        a: 0.4, // this will be useful to discard fragments that are not on the grid
     };
 
     let texture_size = ensnano_utils::winit::dpi::PhysicalSize {
@@ -236,7 +236,7 @@ fn fill_honeycomb_texture(
         r: 0.,
         g: 0.,
         b: 1.,
-        a: 0.4, // this will be usefull to discard fragments that are not on the grid
+        a: 0.4, // this will be useful to discard fragments that are not on the grid
     };
 
     let texture_size = ensnano_utils::winit::dpi::PhysicalSize {
