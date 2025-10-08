@@ -1,8 +1,12 @@
+mod check_xovers_parameter;
+mod suggestion_parameters;
+
+pub use self::{
+    check_xovers_parameter::CheckXoversParameter, suggestion_parameters::SuggestionParameters,
+};
+
 use {
-    crate::{
-        graphics::{Background3D, HBondDisplay, RenderingMode},
-        CheckXoversParameter, SuggestionParameters,
-    },
+    crate::graphics::{Background3D, HBondDisplay, RenderingMode},
     ensnano_iced::UiSize,
     serde::{Deserialize, Serialize},
 };

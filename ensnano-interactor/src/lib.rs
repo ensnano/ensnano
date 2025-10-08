@@ -26,7 +26,6 @@ use ensnano_design::{
     BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, BezierVertexId,
     CurveDescriptor2D, HelixParameters, Isometry3, Nucl,
 };
-use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use ultraviolet::{Isometry2, Rotor3, Vec2, Vec3};
 pub mod graphics;
@@ -45,7 +44,7 @@ mod surfaces;
 pub use surfaces::*;
 
 mod app_state_parameters;
-pub use app_state_parameters::AppStateParameters;
+pub use app_state_parameters::{AppStateParameters, CheckXoversParameter, SuggestionParameters};
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub enum ObjectType {
@@ -575,95 +574,6 @@ impl PastingStatus {
         match self {
             Self::Copy | Self::Duplication => true,
             Self::None => false,
-        }
-    }
-}
-
-/// Parameters of strand suggestions
-#[derive(Clone, Copy, PartialEq, Eq, Debug, Serialize, Deserialize)]
-pub struct SuggestionParameters {
-    pub include_scaffold: bool,
-    pub include_intra_strand: bool,
-    pub include_xover_ends: bool,
-    pub ignore_groups: bool,
-}
-
-impl Default for SuggestionParameters {
-    fn default() -> Self {
-        Self {
-            include_intra_strand: true,
-            include_scaffold: true,
-            include_xover_ends: false,
-            ignore_groups: false,
-        }
-    }
-}
-
-impl SuggestionParameters {
-    pub fn with_include_scaffod(&self, include_scaffold: bool) -> Self {
-        let mut ret = self.clone();
-        ret.include_scaffold = include_scaffold;
-        ret
-    }
-
-    pub fn with_intra_strand(&self, intra_strand: bool) -> Self {
-        let mut ret = self.clone();
-        ret.include_intra_strand = intra_strand;
-        ret
-    }
-
-    pub fn with_ignore_groups(&self, ignore_groups: bool) -> Self {
-        let mut ret = self.clone();
-        ret.ignore_groups = ignore_groups;
-        ret
-    }
-
-    pub fn with_xover_ends(&self, include_xover_ends: bool) -> Self {
-        let mut ret = self.clone();
-        ret.include_xover_ends = include_xover_ends;
-        ret
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-pub enum CheckXoversParameter {
-    None,
-    Checked,
-    Unchecked,
-    Both,
-}
-
-impl Default for CheckXoversParameter {
-    fn default() -> Self {
-        Self::None
-    }
-}
-
-impl ToString for CheckXoversParameter {
-    fn to_string(&self) -> String {
-        match self {
-            Self::None => String::from("None"),
-            Self::Checked => String::from("Checked"),
-            Self::Unchecked => String::from("Unchecked"),
-            Self::Both => String::from("Both"),
-        }
-    }
-}
-
-impl CheckXoversParameter {
-    pub const ALL: &'static [Self] = &[Self::None, Self::Checked, Self::Unchecked, Self::Both];
-
-    pub fn wants_checked(&self) -> bool {
-        match self {
-            Self::Checked | Self::Both => true,
-            Self::None | Self::Unchecked => false,
-        }
-    }
-
-    pub fn wants_unchecked(&self) -> bool {
-        match self {
-            Self::Unchecked | Self::Both => true,
-            Self::None | Self::Checked => false,
         }
     }
 }
