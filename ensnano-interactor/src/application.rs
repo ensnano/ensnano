@@ -24,9 +24,9 @@ use ensnano_design::group_attributes::GroupPivot;
 use ensnano_design::Nucl;
 use ensnano_iced::{iced_wgpu::wgpu, iced_winit::winit};
 use std::sync::Arc;
-pub use std::time::Duration;
+use std::time::Duration;
 use ultraviolet::{Rotor3, Vec3};
-pub use winit::window::CursorIcon;
+use winit::window::CursorIcon;
 use winit::{
     dpi::{PhysicalPosition, PhysicalSize},
     event::{Modifiers, WindowEvent},

@@ -26,8 +26,9 @@ use ensnano_iced::{
     iced_aw::TabLabel,
     theme,
 };
-use ensnano_interactor::graphics::{
-    Background3D, RenderingMode, ALL_BACKGROUND3D, ALL_RENDERING_MODE,
+use ensnano_interactor::{
+    app_state_parameters::AppStateParameters,
+    graphics::{Background3D, RenderingMode, ALL_BACKGROUND3D, ALL_RENDERING_MODE},
 };
 use std::marker::PhantomData;
 
@@ -39,11 +40,11 @@ pub struct CameraTab<State: AppState> {
 }
 
 impl<State: AppState> CameraTab<State> {
-    pub fn new() -> Self {
+    pub fn new(parameters: &AppStateParameters) -> Self {
         Self {
             fog: Default::default(),
-            background3d: Default::default(),
-            rendering_mode: Default::default(),
+            background3d: parameters.background3d,
+            rendering_mode: parameters.rendering_mode,
             _state_type: PhantomData,
         }
     }

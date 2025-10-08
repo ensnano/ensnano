@@ -26,25 +26,23 @@ mod impl_scene;
 mod poll;
 
 use super::*;
-use ensnano_design::grid::{GridId, GridPosition, GridTypeDescr};
 use ensnano_design::{
     elements::{DesignElementKey, DnaAttribute},
+    grid::{GridId, GridPosition, GridTypeDescr},
     Nucl,
 };
 use ensnano_gui::OrganizerTree;
 use ensnano_iced::UiSize;
-use ensnano_interactor::{application::AppId, RollRequest, Selection};
-use ensnano_interactor::{graphics::HBondDisplay, UnrootedRevolutionSurfaceDescriptor};
 use ensnano_interactor::{
-    graphics::{Background3D, RenderingMode},
-    HyperboloidRequest, RigidBodyConstants, SuggestionParameters,
+    application::AppId,
+    graphics::{Background3D, HBondDisplay, RenderingMode},
+    CenterOfSelection, HyperboloidRequest, RigidBodyConstants, RollRequest, Selection,
+    UnrootedRevolutionSurfaceDescriptor,
 };
-use ensnano_interactor::{CenterOfSelection, CheckXoversParameter};
 use ensnano_scene::FogParameters;
 pub(crate) use poll::poll_all;
-use ultraviolet::Vec3;
-
 use std::collections::VecDeque;
+use ultraviolet::Vec3;
 
 /// A structure that contains all the requests that can be made through the GUI or the
 /// Applications.

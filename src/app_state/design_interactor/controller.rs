@@ -21,8 +21,11 @@ pub mod shift_optimization;
 pub mod simulations;
 pub mod update_insertion_length;
 
-use super::{NuclCollection, SimulationUpdate};
-use crate::app_state::AddressPointer;
+use super::SimulationUpdate;
+use crate::{
+    app_state::{design_interactor::presenter::design_content::NuclCollection, AddressPointer},
+    controller::ChannelReader,
+};
 use clipboard::{Clipboard, PastedStrand, StrandClipboard};
 use clipboard::{CopyOperation, PastePosition};
 use ensnano_design::{
@@ -47,12 +50,12 @@ use ensnano_interactor::{
 };
 use ensnano_organizer::GroupId;
 use ensnano_utils::colors;
-use shift_optimization::ShiftOptimizerReader;
-use simulations::SimulationOperation;
+pub use shift_optimization::ShiftOptimizationResult;
+pub use simulations::SimulationInterface;
 use simulations::{
     GridSystemInterface, GridsSystemThread, HelixSystemInterface, HelixSystemThread,
     PhysicalSystem, RevolutionSystemInterface, RevolutionSystemThread, RollInterface,
-    TwistInterface,
+    SimulationOperation, TwistInterface,
 };
 use std::{
     borrow::Cow,
@@ -942,10 +945,10 @@ impl Controller {
         }
     }
 
-    pub(super) fn optimize_shift<Nc: NuclCollection>(
+    pub(super) fn optimize_shift(
         &self,
-        chanel_reader: &mut dyn ShiftOptimizerReader,
-        nucl_collection: Arc<Nc>,
+        chanel_reader: &mut ChannelReader,
+        nucl_collection: Arc<NuclCollection>,
         design: &Design,
     ) -> Result<(OkOperation, Self), ErrOperation> {
         if let OperationCompatibility::Incompatible =
@@ -961,11 +964,11 @@ impl Controller {
         ))
     }
 
-    fn start_shift_optimization<Nc: NuclCollection>(
+    fn start_shift_optimization(
         &mut self,
         design: &Design,
-        chanel_reader: &mut dyn ShiftOptimizerReader,
-        nucl_collection: Arc<Nc>,
+        chanel_reader: &mut ChannelReader,
+        nucl_collection: Arc<NuclCollection>,
     ) {
         self.state = ControllerState::OptimizingScaffoldPosition;
         shift_optimization::optimize_shift(
@@ -1873,7 +1876,7 @@ impl Controller {
 /// variants of these enums indicate different ways in which the result should be handled
 pub enum OkOperation {
     /// Push the current design on the undo stack and replace it by the wrapped value. This variant
-    /// is produced when the operation has been peroformed on a non transitory design and can be
+    /// is produced when the operation has been performed on a non transitory design and can be
     /// undone.
     Push {
         design: Design,

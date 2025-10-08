@@ -2,8 +2,8 @@ use core::convert::{Into, TryFrom};
 use ensnano_iced::{
     helpers::{button, text},
     iced::Element,
-    icondata::Icon,
 };
+use icondata::Icon;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 

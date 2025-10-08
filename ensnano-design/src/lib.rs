@@ -103,7 +103,7 @@ pub struct Design {
     pub scaffold_sequence: Option<String>,
 
     /// The shifting of the scaffold if the design is an origami. This is used to reduce the number
-    /// of anti-patern in the staples sequences
+    /// of anti-pattern in the staples sequences
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub scaffold_shift: Option<usize>,
 
@@ -125,7 +125,7 @@ pub struct Design {
     /// The set of identifiers of grids whose helices are displayed with smaller spheres for the
     /// nucleotides.
     #[serde(
-        alias = "small_shperes",
+        alias = "small_shperes", // cspell:disable-line
         alias = "no_spheres",
         rename(serialize = "no_spheres"),
         skip_serializing_if = "HashSet::is_empty",
@@ -197,7 +197,7 @@ pub trait AdditionalStructure: Send + Sync {
     fn number_of_sections(&self) -> usize;
 }
 
-/// An immuatable reference to a design whose helices pahts and grid data are guaranteed to be up-to
+/// An immutable reference to a design whose helices paths and grid data are guaranteed to be up-to
 /// date.
 pub struct UpToDateDesign<'a> {
     pub design: &'a Design,
@@ -210,7 +210,7 @@ impl Design {
     ///
     /// If this methods returns `None`, one needs to call `Design::get_up_to_date` to get an
     /// `UpToDateDesign` reference to the data.
-    /// Having an option to not mutate the design is meant to prevent unecessary run-time cloning
+    /// Having an option to not mutate the design is meant to prevent unnecessary run-time cloning
     /// of the design
     pub fn try_get_up_to_date<'a>(&'a self) -> Option<UpToDateDesign<'a>> {
         let paths_data = self
@@ -419,7 +419,7 @@ impl Design {
         }
     }
 
-    /// Return a list of tuples (n1, n2, M) where n1 and n2 are nuclotides that are not on the same
+    /// Return a list of tuples (n1, n2, M) where n1 and n2 are nucleotides that are not on the same
     /// helix and whose distance is at most `epsilon` and M is the middle of the segment between
     /// the two positions of n1 and n2.
     pub fn get_pairs_of_close_nucleotides(&self, epsilon: f32) -> Vec<(Nucl, Nucl, Vec3)> {
@@ -586,7 +586,7 @@ impl Design {
                         .curve
                         .right_extension_to_have_nucl(n_max, &helix_parameters)
                     {
-                        log::debug!("tmax {}", t_max);
+                        log::debug!("t_max {}", t_max);
                         if let Some(h_mut) = new_helices_mut.get_mut(h_id) {
                             replace |= h_mut
                                 .curve
@@ -703,7 +703,7 @@ where
     *obj_ptr = Arc::new(new_obj)
 }
 
-/// Apply a mutating fucntion to all the helices of a design.
+/// Apply a mutating function to all the helices of a design.
 pub fn mutate_all_helices<F>(design: &mut Design, mutation: F)
 where
     F: FnMut(&mut Helix) + Clone,

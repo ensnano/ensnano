@@ -43,14 +43,18 @@ use data::Data;
 pub use data::{DesignReader, NuclCollection};
 use ensnano_design::{consts::ITERATIVE_AXIS_ALGORITHM, Isometry2, Nucl};
 use ensnano_interactor::{
-    application::{AppId, Application, Duration, Notification},
+    application::{AppId, Application, Notification},
     consts::{EXPORT_2D_MARGIN, EXPORT_2D_MAX_SIZE},
     graphics::DrawArea,
     operation::*,
     ActionMode, DesignOperation, PhantomElement, Selection, SelectionMode, StrandBuilder,
     StrandBuildingStatus,
 };
-use ensnano_utils::{camera2d, filename, wgpu, winit, PhySize};
+use ensnano_utils::{
+    camera2d, filename, wgpu,
+    winit::{self, window::CursorIcon},
+    PhySize,
+};
 use flattypes::*;
 use std::{
     cell::RefCell,
@@ -58,7 +62,7 @@ use std::{
     path::PathBuf,
     rc::Rc,
     sync::{Arc, Mutex},
-    time::Instant,
+    time::{Duration, Instant},
 };
 use view::View;
 use wgpu::{Device, Queue};
@@ -205,13 +209,13 @@ impl<S: AppState> FlatScene<S> {
         }
     }
 
-    /// Handle an input that happend while the cursor was on the flatscene drawing area
+    /// Handle an input that happened while the cursor was on the flatscene drawing area
     fn input(
         &mut self,
         event: &WindowEvent,
         cursor_position: PhysicalPosition<f64>,
         app_state: &S,
-    ) -> Option<ensnano_interactor::CursorIcon> {
+    ) -> Option<CursorIcon> {
         if let Some(controller) = self.controller.get_mut(self.selected_design) {
             let consequence = controller.input(event, cursor_position, app_state);
             let icon = controller.get_icon();
@@ -812,7 +816,7 @@ impl<S: AppState> Application for FlatScene<S> {
         event: &WindowEvent,
         cursor_position: PhysicalPosition<f64>,
         state: &S,
-    ) -> Option<ensnano_interactor::CursorIcon> {
+    ) -> Option<CursorIcon> {
         self.input(event, cursor_position, state)
     }
 

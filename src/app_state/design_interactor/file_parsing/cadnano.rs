@@ -101,21 +101,17 @@ impl FromCadnano for Design {
 
         let mut helices = BTreeMap::new();
         let honeycomb = vstrands[0].scaf.len() % 21 == 0;
-        let grid = if honeycomb {
-            Grid::new(
-                Vec3::zero(),
-                Rotor3::identity(),
-                Default::default(),
-                GridType::honeycomb(None),
-            )
-        } else {
-            Grid::new(
-                Vec3::zero(),
-                Rotor3::identity(),
-                Default::default(),
-                GridType::square(None),
-            )
-        };
+        let grid = Grid::new(
+            Vec3::zero(),
+            Rotor3::identity(),
+            Default::default(),
+            if honeycomb {
+                GridType::honeycomb(None)
+            } else {
+                GridType::square(None)
+            },
+        );
+
         for (i, v) in vstrands.iter().enumerate() {
             num_to_helix.insert(v.num, i);
             let position = grid.position_helix(v.col, v.row);

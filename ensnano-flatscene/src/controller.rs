@@ -21,19 +21,20 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! happens. In addition to the transition in the automata, a [Consequence] is returned to the
 //! scene, that describes the consequences that the input must have on the view or the data held by
 //! the scene.
+
 use super::data::{ClickResult, FreeEnd};
 use super::{
     ActionMode, AppState, CameraPtr, DataPtr, FlatHelix, FlatNucl, PhySize, PhysicalPosition,
     Selection, ViewPtr, WindowEvent,
 };
-
 use ensnano_design::ultraviolet;
-use ensnano_utils::winit;
-//use ensnano_utils::winit::event::*;
+use ensnano_utils::winit::{
+    event::{ElementState, KeyEvent},
+    keyboard::{Key, ModifiersState, NamedKey},
+    window::CursorIcon,
+};
 use std::cell::RefCell;
 use ultraviolet::Vec2;
-use winit::event::{ElementState, KeyEvent};
-use winit::keyboard::{Key, ModifiersState, NamedKey};
 
 mod automata;
 use automata::{ctrl, ControllerState, NormalState, Transition};
@@ -321,7 +322,7 @@ impl<S: AppState> Controller<S> {
             .swap(&mut self.camera_top.borrow_mut())
     }
 
-    pub fn get_icon(&self) -> Option<ensnano_interactor::CursorIcon> {
+    pub fn get_icon(&self) -> Option<CursorIcon> {
         self.state.borrow().cursor()
     }
 }

@@ -54,21 +54,19 @@ pub struct NuclCollection {
     virtual_nucl_map: HashMap<VirtualNucl, Nucl, RandomState>,
 }
 
-impl super::NuclCollection for NuclCollection {
-    fn iter_nucls_ids<'a>(&'a self) -> Box<dyn Iterator<Item = (&'a Nucl, &'a u32)> + 'a> {
+impl NuclCollection {
+    pub fn iter_nucls_ids<'a>(&'a self) -> Box<dyn Iterator<Item = (&'a Nucl, &'a u32)> + 'a> {
         Box::new(self.identifier.iter())
     }
 
-    fn iter_nucls<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Nucl> + 'a> {
+    pub fn iter_nucls<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Nucl> + 'a> {
         Box::new(self.identifier.keys())
     }
 
-    fn virtual_to_real(&self, virtual_nucl: &VirtualNucl) -> Option<&Nucl> {
+    pub fn virtual_to_real(&self, virtual_nucl: &VirtualNucl) -> Option<&Nucl> {
         self.virtual_nucl_map.get(virtual_nucl)
     }
-}
 
-impl NuclCollection {
     pub fn get_identifier(&self, nucl: &Nucl) -> Option<&u32> {
         self.identifier.get(nucl)
     }
@@ -537,7 +535,7 @@ impl DesignContent {
         let mut loopout_bonds = Vec::new();
         let mut loopout_nucls = Vec::new();
         let mut id_tmp = 0u32;
-        let mut id_clic_counter = ClickCounter::new();
+        let mut id_click_counter = ClickCounter::new();
         let mut nucl_id;
         let mut prev_nucl: Option<Nucl> = None;
         let mut prev_nucl_id: Option<u32> = None;
@@ -1103,7 +1101,7 @@ impl DesignContent {
             }
 
             // DO NOT USE id_TMP beyond this point
-            id_clic_counter.set(id_tmp);
+            id_click_counter.set(id_tmp);
 
             // USE id_clic_counter
             let mut helix_cylinders = Vec::new();
@@ -1133,7 +1131,7 @@ impl DesignContent {
                             }
                         });
                 for (i, j) in a {
-                    let bond_id = id_clic_counter.next();
+                    let bond_id = id_click_counter.next();
                     let n_i = Nucl {
                         helix: h,
                         position: i,
@@ -1216,7 +1214,7 @@ impl DesignContent {
             for isometry3 in &clone_transformations {
                 let mut nucleotides_clones = HashMap::new();
                 for (nucl, nucl_id) in nucl_collection.identifier.iter() {
-                    let clone_nucl_id = id_clic_counter.next();
+                    let clone_nucl_id = id_click_counter.next();
                     nucleotides_clones.insert(nucl, clone_nucl_id);
                     let nucl_color = color_map.get(nucl_id).unwrap_or(&0);
                     let nucl_radius = radius_map.get(nucl_id).unwrap_or(&0.);
@@ -1253,7 +1251,7 @@ impl DesignContent {
                 }
                 // Cloned bonds
                 for (bond, bond_id) in &identifier_bond {
-                    let clone_bond_id = id_clic_counter.next();
+                    let clone_bond_id = id_click_counter.next();
                     let nucl_1_id = nucleotides_clones.get(&bond.0).unwrap();
                     let nucl_1 = nucleotide.get(nucl_1_id).unwrap();
                     let nucl_2_id = nucleotides_clones.get(&bond.1).unwrap();
@@ -1281,7 +1279,7 @@ impl DesignContent {
                 }
                 // Cloned cylinders
                 for bond_id in &helix_cylinders {
-                    let clone_bond_id = id_clic_counter.next();
+                    let clone_bond_id = id_click_counter.next();
                     let (nucl_1, nucl_2) = nucleotides_involved.get(bond_id).unwrap();
                     let clone_nucl_1_id = nucleotides_clones.get(nucl_1).unwrap();
                     let clone_nucl_2_id = nucleotides_clones.get(nucl_2).unwrap();

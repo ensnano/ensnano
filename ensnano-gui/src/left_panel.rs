@@ -39,9 +39,9 @@ use ensnano_iced::{
     UiSize,
 };
 use ensnano_interactor::{
+    app_state_parameters::{AppStateParameters, CheckXoversParameter, SuggestionParameters},
     graphics::{Background3D, HBondDisplay, RenderingMode},
-    ActionMode, CheckXoversParameter, EquadiffSolvingMethod, HyperboloidRequest, Selection,
-    SelectionConversion, SuggestionParameters,
+    ActionMode, EquadiffSolvingMethod, HyperboloidRequest, Selection, SelectionConversion,
 };
 use ensnano_organizer::{Organizer, OrganizerMessage, OrganizerTree};
 use std::sync::{Arc, Mutex};
@@ -68,12 +68,9 @@ use tabs::{
 
 pub struct LeftPanel<R: Requests, S: AppState> {
     logical_size: LogicalSize<f64>,
-    #[allow(dead_code)]
     logical_position: LogicalPosition<f64>,
-    #[allow(dead_code)]
     sequence_input: SequenceInput,
     requests: Arc<Mutex<R>>,
-    #[allow(dead_code)]
     show_torsion: bool,
     active_tab: TabId,
     /// Provide an organized view of the object being edited.
@@ -96,7 +93,6 @@ pub struct LeftPanel<R: Requests, S: AppState> {
 #[derive(Debug, Clone)]
 pub enum Message<S: AppState> {
     Resized(LogicalSize<f64>, LogicalPosition<f64>),
-    #[allow(dead_code)]
     OpenColor,
     MakeGrids,
     SequenceChanged(String),
@@ -111,7 +107,6 @@ pub enum Message<S: AppState> {
     PositionHelicesChanged(String),
     LengthHelicesChanged(String),
     ScaffoldPositionInput(String),
-    #[allow(dead_code)]
     ShowTorsion(bool),
     FogRadius(f32),
     FogLength(f32),
@@ -137,7 +132,6 @@ pub enum Message<S: AppState> {
     StaplesRequested,
     OrigamisRequested,
     ToggleText(bool),
-    #[allow(dead_code)]
     CleanRequested,
     AddDoubleStrandHelix(bool),
     ToggleVisibility(bool),
@@ -150,7 +144,6 @@ pub enum Message<S: AppState> {
     SelectionValueChanged(usize, String),
     SetSmallSpheres(bool),
     ScaffoldIdSet(usize, bool),
-    //NewScaffoldInfo(Option<ScaffoldInfo>),
     SelectScaffold,
     ForceHelp,
     ShowTutorial,
@@ -222,7 +215,7 @@ impl<R: Requests, S: AppState> LeftPanel<R, S> {
         logical_position: LogicalPosition<f64>,
         first_time: bool,
         state: &S,
-        ui_size: UiSize,
+        parameters: &AppStateParameters,
     ) -> Self {
         let mut organizer = Organizer::new();
         organizer.set_width(logical_size.width as u16);
@@ -238,10 +231,10 @@ impl<R: Requests, S: AppState> LeftPanel<R, S> {
                 TabId::Sequence
             },
             organizer,
-            ui_size,
+            ui_size: parameters.ui_size,
             grid_tab: GridTab::new(),
             edition_tab: EditionTab::new(),
-            camera_tab: CameraTab::new(),
+            camera_tab: CameraTab::new(parameters),
             simulation_tab: SimulationTab::new(),
             sequence_tab: SequenceTab::new(),
             parameters_tab: ParametersTab::new(state),

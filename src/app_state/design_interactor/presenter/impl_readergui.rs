@@ -16,11 +16,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use ensnano_design::{elements::DesignElement, CameraId, Collection};
-
-use crate::app_state::design_interactor::controller::simulations::RollPresenter;
-
 use super::*;
+use ensnano_design::{elements::DesignElement, CameraId, Collection};
 use ensnano_gui::DesignReader as ReaderGui;
 use ensnano_interactor::InsertionPoint;
 use ultraviolet::Rotor3;
@@ -67,9 +64,7 @@ impl ReaderGui for DesignReader {
     }
 
     fn get_organizer_tree(&self) -> Option<Arc<ensnano_design::EnsnTree>> {
-        RollPresenter::get_design(self.presenter.as_ref())
-            .organizer_tree
-            .clone()
+        self.presenter.get_design().organizer_tree.clone()
     }
 
     fn strand_name(&self, s_id: usize) -> String {
@@ -78,7 +73,7 @@ impl ReaderGui for DesignReader {
             .strands
             .get(&s_id)
             .and_then(|s| s.name.as_ref().map(|n| n.to_string()))
-            .unwrap_or_else(|| String::from("Unamed strand"))
+            .unwrap_or_else(|| String::from("Unnamed strand"))
     }
 
     fn get_all_cameras(&self) -> Vec<(CameraId, &str)> {

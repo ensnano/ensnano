@@ -61,14 +61,14 @@ use ensnano_iced::{
     iced_winit::{conversion, winit},
 };
 use ensnano_interactor::{
+    app_state_parameters::{AppStateParameters, CheckXoversParameter, SuggestionParameters},
     graphics::{
         Background3D, DrawArea, FogParameters, GuiComponentType, HBondDisplay, RenderingMode,
         SplitMode,
     },
     operation::Operation,
-    CheckXoversParameter, InsertionPoint, PastingStatus, RevolutionSurfaceSystemDescriptor,
-    ScaffoldInfo, Selection, SimulationState, SuggestionParameters,
-    UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
+    InsertionPoint, Multiplexer, PastingStatus, RevolutionSurfaceSystemDescriptor, ScaffoldInfo,
+    Selection, SimulationState, UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
 };
 use ensnano_interactor::{ActionMode, HyperboloidRequest, RollRequest, SelectionMode};
 pub use ensnano_organizer::OrganizerTree;
@@ -80,11 +80,7 @@ use std::{
 };
 use ultraviolet::{Rotor3, Vec2, Vec3};
 use wgpu::{Device, Queue};
-use winit::{
-    dpi::{PhysicalPosition, PhysicalSize},
-    event::Modifiers,
-    window::Window,
-};
+use winit::{dpi::PhysicalSize, event::Modifiers, window::Window};
 
 pub trait Requests: 'static + Send {
     fn close_overlay(&mut self, overlay_type: OverlayType);
@@ -454,7 +450,7 @@ impl<R: Requests, S: AppState> GuiComponent<R, S> {
         requests: Arc<Mutex<R>>,
         first_time: bool,
         state: &S,
-        ui_size: ensnano_iced::UiSize,
+        parameters: &AppStateParameters,
     ) -> Self {
         let left_panel_area = multiplexer
             .get_draw_area(GuiComponentType::LeftPanel)
@@ -465,7 +461,7 @@ impl<R: Requests, S: AppState> GuiComponent<R, S> {
             left_panel_area.position.to_logical(window.scale_factor()),
             first_time,
             state,
-            ui_size,
+            parameters,
         );
         let mut left_panel_debug = Debug::new();
         let left_panel_state = program::State::new(
@@ -612,7 +608,7 @@ pub struct Gui<R: Requests, S: AppState> {
     queue: Rc<Queue>,
     resized: bool,
     requests: Arc<Mutex<R>>,
-    ui_size: ensnano_iced::UiSize,
+    parameters: AppStateParameters,
     /// [GuiComponent] mapped by [GuiComponentType]
     components: HashMap<GuiComponentType, GuiComponent<R, S>>,
 }
@@ -624,14 +620,14 @@ impl<R: Requests, State: AppState> Gui<R, State> {
         window: &Window,
         multiplexer: &dyn Multiplexer,
         requests: Arc<Mutex<R>>,
-        ui_size: ensnano_iced::UiSize,
+        parameters: AppStateParameters,
         global_state: &State,
         top_bar_state: TopBarState,
     ) -> Self {
         let wgpu_settings = iced_wgpu::Settings {
             antialiasing: Some(iced_graphics::Antialiasing::MSAAx4),
             default_font: crate::fonts::INTER_REGULAR_FONT,
-            default_text_size: iced::Pixels(ui_size.main_text()),
+            default_text_size: iced::Pixels(parameters.ui_size.main_text()),
             ..Default::default()
         };
 
@@ -641,7 +637,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
             queue,
             resized: true,
             requests,
-            ui_size,
+            parameters,
             components: HashMap::new(),
         };
 
@@ -684,7 +680,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
                 Arc::clone(&self.requests),
                 state.clone(),
                 top_bar_state,
-                self.ui_size,
+                self.parameters.ui_size,
             ),
         );
 
@@ -708,7 +704,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
                 Arc::clone(&self.requests),
                 self.components.contains_key(&GuiComponentType::LeftPanel),
                 state,
-                self.ui_size,
+                &self.parameters,
             ),
         );
         self.components.insert(
@@ -728,7 +724,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
                 multiplexer,
                 Arc::clone(&self.requests),
                 state,
-                self.ui_size,
+                self.parameters.ui_size,
             ),
         );
     }
@@ -828,7 +824,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
         top_bar_state: TopBarState,
     ) {
         self.set_text_size(ui_size.main_text());
-        self.ui_size = ui_size;
+        self.parameters.ui_size = ui_size;
 
         self.rebuild_gui(window, multiplexer, app_state, top_bar_state);
     }
@@ -840,7 +836,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
         app_state: &State,
         top_bar_state: TopBarState,
     ) {
-        self.set_text_size(self.ui_size.main_text());
+        self.set_text_size(self.parameters.ui_size.main_text());
         self.rebuild_gui(window, multiplexer, app_state, top_bar_state);
     }
 
@@ -979,14 +975,6 @@ impl<S: AppState> IcedMessages<S> {
                 .push_back(status_bar::Message::NewApplicationState(state));
         }
     }
-}
-
-/// An object mapping ElementType to DrawArea
-pub trait Multiplexer {
-    fn get_draw_area(&self, element_type: GuiComponentType) -> Option<DrawArea>;
-    fn focused_element(&self) -> Option<GuiComponentType>;
-    fn get_cursor_position(&self) -> PhysicalPosition<f64>;
-    fn get_texture_view(&self, element_type: GuiComponentType) -> Option<&wgpu::TextureView>;
 }
 
 pub trait AppState:

@@ -638,13 +638,6 @@ impl View {
                 .new_instances(nucleotide_highliting);
         }
 
-        let clear_color = wgpu::Color {
-            r: 0.,
-            g: 0.,
-            b: 0.,
-            a: 0.,
-        };
-
         let msaa_texture = if SAMPLE_COUNT > 1 {
             Some(ensnano_utils::texture::Texture::create_msaa_texture(
                 self.device.clone().as_ref(),
@@ -675,7 +668,7 @@ impl View {
                 view: attachment,
                 resolve_target,
                 ops: wgpu::Operations {
-                    load: wgpu::LoadOp::Clear(clear_color),
+                    load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
                     store: wgpu::StoreOp::Store,
                 },
             })],

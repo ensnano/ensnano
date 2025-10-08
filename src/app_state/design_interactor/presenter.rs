@@ -22,21 +22,17 @@ pub mod impl_reader2d;
 pub mod impl_reader3d;
 pub mod impl_readergui;
 
-use crate::app_state::design_interactor::controller::simulations::{
-    GridPresenter, HelixPresenter, RollPresenter, TwistPresenter,
-};
+use crate::app_state::design_interactor::presenter::design_content::NuclCollection;
 
 #[cfg(test)]
 use self::design_content::Staple;
 
 use super::*;
 use design_content::DesignContent;
-use ensnano_design::{
-    BezierPathId, Extremity, HelixCollection, InstanciatedPiecewiseBezier, Nucl, VirtualNucl,
-};
+use ensnano_design::{BezierPathId, Extremity, HelixCollection, InstanciatedPiecewiseBezier, Nucl};
 use ensnano_interactor::{
     application::Camera3D, NeighborDescriptor, NeighborDescriptorGiver, Referential, ScaffoldInfo,
-    Selection, SuggestionParameters,
+    Selection,
 };
 use ensnano_scene::{HBond, HalfHBond};
 use ensnano_utils::id_generator::IdGenerator;
@@ -424,7 +420,7 @@ impl Presenter {
             .and_then(|s| s.domains.get(d_id))
     }
 
-    pub(super) fn get_owned_nucl_collection(&self) -> Arc<impl NuclCollection> {
+    pub(super) fn get_owned_nucl_collection(&self) -> Arc<NuclCollection> {
         self.content.nucl_collection.clone()
     }
 
@@ -527,6 +523,49 @@ impl Presenter {
             .bezier_paths
             .get(&path_id)
             .and_then(|path| path.to_instanciated_path_2d())
+    }
+
+    pub fn get_xovers_list(&self) -> Vec<(Nucl, Nucl)> {
+        self.current_design.strands.get_xovers()
+    }
+
+    pub fn get_design(&self) -> &Design {
+        self.current_design.as_ref()
+    }
+
+    pub fn get_all_bonds(&self) -> Vec<(Nucl, Nucl)> {
+        self.content.identifier_bond.keys().cloned().collect()
+    }
+
+    pub fn get_identifier(&self, nucl: &Nucl) -> Option<u32> {
+        self.content.nucl_collection.get_identifier(nucl).cloned()
+    }
+
+    pub fn get_space_position(&self, nucl: &Nucl) -> Option<Vec3> {
+        self.get_identifier(nucl)
+            .and_then(|id| self.content.space_position.get(&id).map(|v| v.into()))
+    }
+
+    pub fn has_nucl(&self, nucl: &Nucl) -> bool {
+        self.content.nucl_collection.contains_nucl(nucl)
+    }
+
+    pub fn get_helices_attached_to_grid(&self, g_id: GridId) -> Option<Vec<usize>> {
+        self.content
+            .get_helices_on_grid(g_id)
+            .map(|set| set.into_iter().collect())
+    }
+
+    pub fn get_grid(&self, g_id: GridId) -> Option<&ensnano_design::grid::Grid> {
+        self.content.grid_manager.grids.get(&g_id)
+    }
+
+    pub fn get_helices(&self) -> BTreeMap<usize, ensnano_design::Helix> {
+        self.current_design
+            .helices
+            .iter()
+            .map(|(k, h)| (*k, ensnano_design::Helix::clone(h)))
+            .collect()
     }
 }
 
@@ -733,88 +772,15 @@ impl DesignReader {
     }
 }
 
-impl HelixPresenter for Presenter {
-    fn get_xovers_list(&self) -> Vec<(Nucl, Nucl)> {
-        self.current_design.strands.get_xovers()
-    }
-
-    fn get_design(&self) -> &Design {
-        self.current_design.as_ref()
-    }
-
-    fn get_all_bonds(&self) -> Vec<(Nucl, Nucl)> {
-        self.content.identifier_bond.keys().cloned().collect()
-    }
-
-    fn get_identifier(&self, nucl: &Nucl) -> Option<u32> {
-        self.content.nucl_collection.get_identifier(nucl).cloned()
-    }
-
-    fn get_space_position(&self, nucl: &Nucl) -> Option<Vec3> {
-        self.get_identifier(nucl)
-            .and_then(|id| self.content.space_position.get(&id).map(|v| v.into()))
-    }
-
-    fn has_nucl(&self, nucl: &Nucl) -> bool {
-        self.content.nucl_collection.contains_nucl(nucl)
-    }
-}
-
-impl GridPresenter for Presenter {
-    fn get_design(&self) -> &Design {
-        self.current_design.as_ref()
-    }
-
-    fn get_xovers_list(&self) -> Vec<(Nucl, Nucl)> {
-        self.current_design.strands.get_xovers()
-    }
-
-    fn get_helices_attached_to_grid(&self, g_id: GridId) -> Option<Vec<usize>> {
-        self.content
-            .get_helices_on_grid(g_id)
-            .map(|set| set.into_iter().collect())
-    }
-
-    fn get_grid(&self, g_id: GridId) -> Option<&ensnano_design::grid::Grid> {
-        self.content.grid_manager.grids.get(&g_id)
-    }
-}
-
-impl RollPresenter for Presenter {
-    fn get_design(&self) -> &Design {
-        self.current_design.as_ref()
-    }
-
-    fn get_xovers_list(&self) -> Vec<(Nucl, Nucl)> {
-        self.current_design.strands.get_xovers()
-    }
-
-    fn get_helices(&self) -> BTreeMap<usize, ensnano_design::Helix> {
-        self.current_design
-            .helices
-            .iter()
-            .map(|(k, h)| (*k, ensnano_design::Helix::clone(h)))
-            .collect()
-    }
-}
-
-impl TwistPresenter for Presenter {}
-
 pub trait SimulationUpdate: Send + Sync {
     fn update_positions(
         &self,
-        _identifier_nucl: &dyn NuclCollection,
+        _identifier_nucl: &NuclCollection,
         _space_position: &mut HashMap<u32, [f32; 3], ahash::RandomState>,
     ) {
     }
 
     fn update_design(&self, design: &mut Design);
-}
-
-pub trait NuclCollection: Send + Sync + 'static {
-    fn iter_nucls_ids<'a>(&'a self) -> Box<dyn Iterator<Item = (&'a Nucl, &'a u32)> + 'a>;
-    fn iter_nucls<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Nucl> + 'a>;
-    fn virtual_to_real(&self, virtual_nucl: &VirtualNucl) -> Option<&Nucl>;
 }
 
 #[derive(Clone)]

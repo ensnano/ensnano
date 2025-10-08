@@ -23,17 +23,18 @@ use ensnano_design::{
     group_attributes::GroupPivot, ultraviolet, BezierVertexId, Nucl,
 };
 use ensnano_interactor::{
+    app_state_parameters::CheckXoversParameter,
     application::{AppId, Application, Camera3D, Notification},
     graphics::DrawArea,
     operation::*,
-    ActionMode, CenterOfSelection, CheckXoversParameter, DesignOperation, NewBezierTangentVector,
-    Selection, SelectionMode, StrandBuilder, UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
+    ActionMode, CenterOfSelection, DesignOperation, NewBezierTangentVector, Selection,
+    SelectionMode, StrandBuilder, UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
 };
 use ensnano_utils::{
     filename,
     instance::Instance,
     wgpu::{self, Device, Queue},
-    winit::{dpi::PhysicalPosition, event::WindowEvent},
+    winit::{dpi::PhysicalPosition, event::WindowEvent, window::CursorIcon},
     BufferDimensions, PhySize,
 };
 use std::{
@@ -183,7 +184,7 @@ impl<S: AppState> Scene<S> {
         event: &WindowEvent,
         cursor_position: PhysicalPosition<f64>,
         app_state: &S,
-    ) -> Option<ensnano_interactor::CursorIcon> {
+    ) -> Option<CursorIcon> {
         let consequence = self.controller.input(
             event,
             cursor_position,
@@ -1329,7 +1330,7 @@ impl<S: AppState> Application for Scene<S> {
         event: &WindowEvent,
         cursor_position: PhysicalPosition<f64>,
         app_state: &S,
-    ) -> Option<ensnano_interactor::CursorIcon> {
+    ) -> Option<CursorIcon> {
         self.element_selector
             .set_stereographic(self.is_stereographic());
         if self.is_stereographic() {

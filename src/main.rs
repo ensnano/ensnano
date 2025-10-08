@@ -110,7 +110,7 @@ use {
         controller::TargetScaffoldLength,
         requests::Requests,
     },
-    app_state::{AppState, AppStateParameters},
+    app_state::AppState,
     controller::{
         Action, ChannelReader, ChannelReaderUpdate, Controller, LoadDesignError, SaveDesignError,
         SetScaffoldSequenceError, SetScaffoldSequenceOk, StaplesDownloader,
@@ -130,6 +130,7 @@ use {
         theme, UiSize,
     },
     ensnano_interactor::{
+        app_state_parameters::{AppStateParameters, CheckXoversParameter, SuggestionParameters},
         application::{Application, Notification},
         consts::{
             APP_NAME, ENS_BACKUP_EXTENSION, ENS_UNNAMED_FILE_NAME, NO_DESIGN_TITLE,
@@ -137,13 +138,12 @@ use {
         },
         graphics::{GuiComponentType, SplitMode},
         operation::Operation,
-        ActionMode, CenterOfSelection, CheckXoversParameter, CursorIcon, DesignOperation,
-        DesignReader, DesignRotation, DesignTranslation, IsometryTarget, PastingStatus,
-        RevolutionSurfaceSystemDescriptor, RigidBodyConstants, Selection, SelectionMode,
-        SuggestionParameters, UnrootedRevolutionSurfaceDescriptor,
+        ActionMode, CenterOfSelection, DesignOperation, DesignReader, DesignRotation,
+        DesignTranslation, IsometryTarget, PastingStatus, RevolutionSurfaceSystemDescriptor,
+        RigidBodyConstants, Selection, SelectionMode, UnrootedRevolutionSurfaceDescriptor,
     },
     ensnano_scene::{AppState as _, DesignReader as _, Scene, SceneKind},
-    ensnano_utils::{PhySize, TEXTURE_FORMAT},
+    ensnano_utils::{winit::window::CursorIcon, PhySize, TEXTURE_FORMAT},
     multiplexer::{Multiplexer, Overlay},
     scheduler::Scheduler,
     std::{
@@ -330,13 +330,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         )
     }
 
-    let ui_size = confy::load(APP_NAME, APP_NAME)
-        .map(|p: AppStateParameters| p.ui_size)
-        .unwrap_or_default();
+    let parameters: AppStateParameters = confy::load(APP_NAME, APP_NAME).unwrap_or_default();
 
     let settings = Settings {
         antialiasing: Some(Antialiasing::MSAAx4),
-        default_text_size: ui_size.main_text().into(),
+        default_text_size: parameters.ui_size.main_text().into(),
         default_font: fonts::INTER_REGULAR_FONT,
         ..Default::default()
     };
@@ -365,7 +363,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         window.scale_factor(),
         Rc::clone(&device),
         Arc::clone(&requests),
-        ui_size,
+        parameters.ui_size,
     );
     multiplexer.change_split(SplitMode::Both);
 
@@ -424,7 +422,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         &window,
         &multiplexer,
         Arc::clone(&requests),
-        ui_size,
+        parameters,
         &main_state.app_state,
         Default::default(),
     );

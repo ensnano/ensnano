@@ -27,6 +27,7 @@ use ensnano_design::{
 };
 use ensnano_interactor::consts::*;
 use ensnano_utils::winit;
+use ensnano_utils::winit::window::CursorIcon;
 use std::cell::RefCell;
 use std::ops::Deref;
 use ultraviolet::{Rotor3, Vec2, Vec3};
@@ -126,7 +127,7 @@ pub enum Consequence {
     CreateBezierVertex {
         /// The position of the created vertex
         vertex: BezierVertex,
-        /// The identifier of the path to which the vertex is beign appenend. If this is None, a
+        /// The identifier of the path to which the vertex is being appended. If this is None, a
         /// new path is being created
         path: Option<BezierPathId>,
     },
@@ -437,7 +438,7 @@ impl<S: AppState> Controller<S> {
         self.camera_controller.set_pivot_point(point)
     }
 
-    /// Swing the camera arround its pivot point
+    /// Swing the camera around its pivot point
     pub fn swing(&mut self, x: f64, y: f64) {
         self.camera_controller.swing(x, y);
     }
@@ -528,7 +529,7 @@ impl<S: AppState> Controller<S> {
 
     /// Set the origin or destination of the two point bezier helix being built.
     ///
-    /// If an origin was set, `point` is treated as a destianation and the pair
+    /// If an origin was set, `point` is treated as a destination and the pair
     /// `(origin, destination)` is returned. Otherwise, `point` is treated as an origin and `None`
     /// is returned.
     pub fn add_bezier_point(
@@ -543,7 +544,7 @@ impl<S: AppState> Controller<S> {
         }
     }
 
-    pub fn get_icon(&self) -> Option<ensnano_interactor::CursorIcon> {
+    pub fn get_icon(&self) -> Option<CursorIcon> {
         self.state.borrow().cursor()
     }
 }

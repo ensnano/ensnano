@@ -23,7 +23,7 @@ use ensnano_design::{
     grid::{GridId, GridObject},
     BezierPlaneId,
 };
-use ensnano_interactor::{ActionMode, CursorIcon};
+use ensnano_interactor::ActionMode;
 use std::borrow::Cow;
 use std::cell::RefCell;
 use winit::event::{ElementState, MouseButton};
@@ -88,7 +88,7 @@ pub(super) trait ControllerState<S: AppState> {
         None
     }
 
-    fn cursor(&self) -> Option<ensnano_interactor::CursorIcon> {
+    fn cursor(&self) -> Option<CursorIcon> {
         None
     }
 

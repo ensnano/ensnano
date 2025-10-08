@@ -24,5 +24,5 @@ icondata = { version = "0.6", default-features = false, features = [
     "material-design-icons",
 ] }
 log = "0.4"
-serde_derive = "1.0.116"
 serde = "1.0.116"
+serde_derive = "1.0.116"

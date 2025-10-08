@@ -6,22 +6,23 @@ edition = "2018"
 license = "GPL-3.0-or-later"
 
 [dependencies]
+ensnano_design = { path = "../ensnano-design" }
+ensnano_iced = { path = "../ensnano-iced" }
+ensnano_interactor = { path = "../ensnano-interactor" }
+
+ahash = "0.8.6"
 bytemuck = "1.2.0"
+chrono = "0.4"
 color_space = "0.5.2"
+fontdue = "0.6.4"
+gltf = "0.16.0"
+log = "0.4"
+nom_stl = "0.2.2"
+rand = "0.8.5"
+serde = "1.0.116"
 ultraviolet = { git = "https://github.com/termhn/ultraviolet", rev = "b2fb29e", features = [
     "bytemuck",
     "f64",
     "serde",
 ] }
-ensnano_iced = { path = "../ensnano-iced" }
-ensnano_interactor = { path = "../ensnano-interactor" }
-ensnano_design = { path = "../ensnano-design" }
-log = "0.4"
-fontdue = "0.6.4"
-ahash = "0.8.6"
-gltf = "0.16.0"
-nom_stl = "0.2.2"
-rand = "0.8.5"
 wgpu = { version = "0.19", features = ["spirv"] }
-chrono = "0.4"
-serde = "1.0.116"

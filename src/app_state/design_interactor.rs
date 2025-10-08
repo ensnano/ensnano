@@ -21,29 +21,29 @@ pub mod file_parsing;
 pub mod presenter;
 
 use super::AddressPointer;
+use crate::app_state::design_interactor::controller::clipboard::CopyOperation;
+use crate::app_state::design_interactor::controller::simulations::SimulationOperation;
+use crate::app_state::design_interactor::controller::OkOperation;
+use crate::controller::ChannelReader;
 use controller::Controller;
+use controller::ErrOperation;
 use controller::InteractorNotification;
+pub use controller::{ShiftOptimizationResult, SimulationInterface};
 use ensnano_design::{
     grid::GridId, group_attributes::GroupAttribute, BezierPathId, BezierPlaneDescriptor, Design,
     HelixCollection, HelixParameters, InstanciatedPiecewiseBezier,
 };
 use ensnano_exports::{ExportResult, ExportType};
+use ensnano_gui::CurrentOpState;
+use ensnano_interactor::app_state_parameters::SuggestionParameters;
 use ensnano_interactor::PastingStatus;
 use ensnano_interactor::{
     consts::UPDATE_VISIBILITY_SIEVE_LABEL, operation::Operation, DesignOperation,
     RevolutionSurfaceSystemDescriptor, Selection, SimulationState, StrandBuilder,
-    SuggestionParameters,
 };
 use ensnano_organizer::GroupId;
 use presenter::SimulationUpdate;
-use presenter::{apply_simulation_update, update_presenter, NuclCollection, Presenter};
-
-use crate::app_state::design_interactor::controller::clipboard::CopyOperation;
-use crate::app_state::design_interactor::controller::shift_optimization::ShiftOptimizerReader;
-use crate::app_state::design_interactor::controller::simulations::SimulationOperation;
-use crate::app_state::design_interactor::controller::OkOperation;
-use controller::ErrOperation;
-use ensnano_gui::CurrentOpState;
+use presenter::{apply_simulation_update, update_presenter, Presenter};
 use std::sync::Arc;
 
 /// The `DesignInteractor` handles all read/write operations on the design. It is a stateful struct
@@ -72,7 +72,7 @@ impl DesignInteractor {
     }
     pub(super) fn optimize_shift(
         &self,
-        reader: &mut dyn ShiftOptimizerReader,
+        reader: &mut ChannelReader,
     ) -> Result<InteractorResult, ErrOperation> {
         let nucl_map = self.presenter.get_owned_nucl_collection();
         let result = self
@@ -426,13 +426,13 @@ impl DesignReader {
 
 #[cfg(test)]
 mod tests {
-    use crate::app_state::design_interactor::controller::clipboard::PastePosition;
-
     use super::super::OkOperation as TopOkOperation;
     use super::super::*;
-    use super::controller::CopyOperation;
     use super::file_parsing::StrandJunction;
     use super::*;
+    use crate::app_state::design_interactor::controller::clipboard::{
+        CopyOperation, PastePosition,
+    };
     use ensnano_design::grid::HelixGridPosition;
     use ensnano_design::HelixCollection;
     use ensnano_design::{grid::GridDescriptor, Collection, DomainJunction, Nucl, Strand};
