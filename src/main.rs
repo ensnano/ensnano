@@ -322,12 +322,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         )
     }
 
-    let app_state_parameters: AppStateParameters =
-        confy::load(APP_NAME, APP_NAME).unwrap_or_default();
+    let parameters: AppStateParameters = confy::load(APP_NAME, APP_NAME).unwrap_or_default();
 
     let settings = Settings {
         antialiasing: Some(Antialiasing::MSAAx4),
-        default_text_size: app_state_parameters.ui_size.main_text().into(),
+        default_text_size: parameters.ui_size.main_text().into(),
         default_font: fonts::INTER_REGULAR_FONT,
         ..Default::default()
     };
@@ -356,7 +355,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         window.scale_factor(),
         Rc::clone(&device),
         Arc::clone(&requests),
-        app_state_parameters.ui_size,
+        parameters.ui_size,
     );
     multiplexer.change_split(SplitMode::Both);
 
@@ -415,7 +414,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         &window,
         &multiplexer,
         Arc::clone(&requests),
-        app_state_parameters,
+        parameters,
         &main_state.app_state,
         Default::default(),
     );

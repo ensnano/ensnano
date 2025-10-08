@@ -40,11 +40,11 @@ pub struct CameraTab<State: AppState> {
 }
 
 impl<State: AppState> CameraTab<State> {
-    pub fn new(app_state_parameters: &AppStateParameters) -> Self {
+    pub fn new(parameters: &AppStateParameters) -> Self {
         Self {
             fog: Default::default(),
-            background3d: app_state_parameters.background3d,
-            rendering_mode: app_state_parameters.rendering_mode,
+            background3d: parameters.background3d,
+            rendering_mode: parameters.rendering_mode,
             _state_type: PhantomData,
         }
     }

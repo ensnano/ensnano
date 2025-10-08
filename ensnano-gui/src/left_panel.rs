@@ -218,7 +218,7 @@ impl<R: Requests, S: AppState> LeftPanel<R, S> {
         logical_position: LogicalPosition<f64>,
         first_time: bool,
         state: &S,
-        app_state_parameters: &AppStateParameters,
+        parameters: &AppStateParameters,
     ) -> Self {
         let mut organizer = Organizer::new();
         organizer.set_width(logical_size.width as u16);
@@ -234,10 +234,10 @@ impl<R: Requests, S: AppState> LeftPanel<R, S> {
                 TabId::Sequence
             },
             organizer,
-            ui_size: app_state_parameters.ui_size,
+            ui_size: parameters.ui_size,
             grid_tab: GridTab::new(),
             edition_tab: EditionTab::new(),
-            camera_tab: CameraTab::new(app_state_parameters),
+            camera_tab: CameraTab::new(parameters),
             simulation_tab: SimulationTab::new(),
             sequence_tab: SequenceTab::new(),
             parameters_tab: ParametersTab::new(state),
