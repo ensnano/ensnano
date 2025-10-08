@@ -1035,10 +1035,8 @@ dependencies = [
  "ensnano_iced",
  "icondata",
  "log",
- "num_enum 0.5.11",
  "rand",
  "serde",
- "serde_derive",
 ]
 
 [[package]]
