@@ -24,7 +24,7 @@ resolver = "2"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[dependencies]
+[workspace.dependencies]
 ensnano_design = { path = "ensnano-design" }
 ensnano_exports = { path = "ensnano-exports" }
 ensnano_flatscene = { path = "ensnano-flatscene" }
@@ -36,6 +36,7 @@ ensnano_scene = { path = "ensnano-scene" }
 ensnano_utils = { path = "ensnano-utils" }
 
 ahash = "0.8.6"
+bytemuck = "1.2.0"
 chebyshev_polynomials = { git = "https://github.com/thenlevy/chebyshev_polynomials" }
 color_space = "0.5.2"
 confy = { version = "1.0.0", default-features = false, features = [
@@ -43,23 +44,74 @@ confy = { version = "1.0.0", default-features = false, features = [
 ] }
 dirs = "4.0"
 futures = "0.3.5"
+futures-channel = "0.3.29"
+icondata = { version = "0.6", default-features = false, features = [
+    "bootstrap-icons",
+    "material-design-icons",
+] }
+itertools = "0.10.3"
 log = "0.4"
+lyon = { git = "https://github.com/nical/lyon", rev = "ea6d904c6c9ec0445c5653c119a48c43ea76cee9" }
 mathru = "0.13"
+num_enum = "0.5.1"
+open = "1"
 ordered-float = { version = "2.0", features = ["serde"] }
+paste = "1.0.5"
+pathdiff = "0.2.1"
+png = "0.17.5"
 pretty_env_logger = "0.4"
+quadrature = "0.1.2"
 rand = "0.8.3"
 rand_distr = "0.4.0"
+rayon = "1.6.0"
 regex = "1.4.2"
+relative-path = "1.7.0"
 rfd = "0.10"
 rust_xlsxwriter = "0.55.0"
-serde = "1.0.116"
+serde = { version = "1.0.116", features = ["rc"] }
+serde_derive = "1.0.116"
+serde-hex = "0.1.0"
 serde_json = "1.0.57"
+serde_with = "1.11.0"
+strum = { version = "0.26", features = ["derive"] }
+svg = "0.12.0"
 ultraviolet = { git = "https://github.com/termhn/ultraviolet", rev = "b2fb29e", features = [
     "bytemuck",
     "f64",
     "serde",
 ] }
 version-compare = "0.1.0"
+
+[dependencies]
+ensnano_design.workspace = true
+ensnano_exports.workspace = true
+ensnano_flatscene.workspace = true
+ensnano_gui.workspace = true
+ensnano_iced.workspace = true
+ensnano_interactor.workspace = true
+ensnano_organizer.workspace = true
+ensnano_scene.workspace = true
+ensnano_utils.workspace = true
+
+ahash.workspace = true
+chebyshev_polynomials.workspace = true
+color_space.workspace = true
+confy.workspace = true
+dirs.workspace = true
+futures.workspace = true
+log.workspace = true
+mathru.workspace = true
+ordered-float.workspace = true
+pretty_env_logger.workspace = true
+rand.workspace = true
+rand_distr.workspace = true
+regex.workspace = true
+rfd.workspace = true
+rust_xlsxwriter.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+ultraviolet.workspace = true
+version-compare.workspace = true
 
 [features]
 log_after_renderer_setup = []

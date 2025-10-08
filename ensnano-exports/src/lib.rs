@@ -17,8 +17,6 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 //! Exports utilities from ENSnano to other file formats used in DNA nanotechnologies
 
-use strum::Display;
-
 pub mod cadnano;
 pub mod cando;
 pub mod oxdna;
@@ -31,7 +29,7 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 
 /// The file formats to which an export is implemented
-#[derive(Debug, Clone, Display)]
+#[derive(Debug, Clone, strum::Display)]
 pub enum ExportType {
     Cadnano,
     Cando,
