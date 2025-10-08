@@ -222,7 +222,7 @@ pub trait Requests: 'static + Send {
     fn set_position_of_bezier_vertex(&mut self, vertex_id: BezierVertexId, position: Vec2);
     fn optimize_scaffold_shift(&mut self);
     fn start_revolution_relaxation(&mut self, desc: RevolutionSurfaceSystemDescriptor);
-    fn finish_revolutiion_relaxation(&mut self);
+    fn finish_revolution_relaxation(&mut self);
     fn load_svg(&mut self);
     fn set_bezier_revolution_radius(&mut self, radius: f64);
     fn set_bezier_revolution_id(&mut self, id: Option<usize>);

@@ -53,7 +53,7 @@ impl FlatSceneRequests for Requests {
         self.centering_on_nucl = Some((nucl, design_id));
     }
 
-    fn update_opperation(&mut self, operation: Arc<dyn Operation>) {
+    fn update_operation(&mut self, operation: Arc<dyn Operation>) {
         self.operation_update = Some(operation);
     }
 

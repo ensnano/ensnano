@@ -178,7 +178,7 @@ impl DesignInteractor {
         }
     }
 
-    pub(super) fn get_curent_operation_state(&self) -> Option<CurrentOpState> {
+    pub(super) fn get_current_operation_state(&self) -> Option<CurrentOpState> {
         self.current_operation.as_ref().map(|op| CurrentOpState {
             operation_id: self.current_operation_id,
             current_operation: op.clone(),
@@ -352,7 +352,7 @@ impl InteractorResult {
     }
 }
 
-/// A reference to a Presenter that is guaranted to always have up to date internal data
+/// A reference to a Presenter that is guaranteed to always have up to date internal data
 /// structures.
 pub struct DesignReader {
     presenter: AddressPointer<Presenter>,
@@ -459,11 +459,11 @@ mod tests {
     }
 
     fn assert_good_strand<S: std::ops::Deref<Target = str>>(strand: &Strand, objective: S) {
-        println!("self {:?}", strand.formated_domains());
+        println!("self {:?}", strand.formatted_domains());
         println!("objective {}", objective.deref());
         use regex::Regex;
         let re = Regex::new(r#"\[[^\]]*\]"#).unwrap();
-        let formated_strand = strand.formated_domains();
+        let formated_strand = strand.formatted_domains();
         let left = re.find_iter(&formated_strand);
         let right = re.find_iter(&objective);
         for (a, b) in left.zip(right) {

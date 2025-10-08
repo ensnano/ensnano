@@ -487,7 +487,7 @@ impl ensnano_gui::Requests for Requests {
             .push_back(Action::RevolutionSimulation { desc })
     }
 
-    fn finish_revolutiion_relaxation(&mut self) {
+    fn finish_revolution_relaxation(&mut self) {
         self.keep_proceed
             .push_back(Action::FinishRelaxationSimulation)
     }

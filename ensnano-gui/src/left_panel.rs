@@ -914,11 +914,9 @@ where
                         .start_revolution_relaxation(desc);
                 }
             }
-            Message::FinishRelaxation => self
-                .requests
-                .lock()
-                .unwrap()
-                .finish_revolutiion_relaxation(),
+            Message::FinishRelaxation => {
+                self.requests.lock().unwrap().finish_revolution_relaxation()
+            }
             Message::LoadSvgFile => self.requests.lock().unwrap().load_svg(),
             Message::StlExport => {
                 self.requests.lock().unwrap().request_stl_export();

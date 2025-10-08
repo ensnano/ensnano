@@ -430,7 +430,7 @@ impl<S: AppState> Scene<S> {
                     self.requests
                         .lock()
                         .unwrap()
-                        .update_opperation(Arc::new(GridHelixCreation {
+                        .update_operation(Arc::new(GridHelixCreation {
                             grid_id,
                             design_id: design_id as usize,
                             x,
@@ -533,7 +533,7 @@ impl<S: AppState> Scene<S> {
                 self.requests
                     .lock()
                     .unwrap()
-                    .update_opperation(Arc::new(TranslateBezierPathVertex { vertices, x, y }))
+                    .update_operation(Arc::new(TranslateBezierPathVertex { vertices, x, y }))
             }
             Consequence::ReleaseBezierVertex => self.requests.lock().unwrap().suspend_op(),
             Consequence::MoveBezierCorner {
@@ -541,7 +541,7 @@ impl<S: AppState> Scene<S> {
                 original_corner_position,
                 fixed_corner_position,
                 moving_corner,
-            } => self.requests.lock().unwrap().update_opperation(Arc::new(
+            } => self.requests.lock().unwrap().update_operation(Arc::new(
                 TranslateBezierSheetCorner {
                     plane_id,
                     origin_moving_corner: original_corner_position,
@@ -752,7 +752,7 @@ impl<S: AppState> Scene<S> {
         self.requests
             .lock()
             .unwrap()
-            .update_opperation(translation_op);
+            .update_operation(translation_op);
     }
 
     fn translate_group_pivot(&mut self, translation: Vec3) {
@@ -828,7 +828,7 @@ impl<S: AppState> Scene<S> {
             }
         };
 
-        self.requests.lock().unwrap().update_opperation(rotation);
+        self.requests.lock().unwrap().update_operation(rotation);
     }
 
     /// Adapt the camera, position, orientation and pivot point to a design so that the design fits
@@ -1424,7 +1424,7 @@ pub trait AppState: Clone + 'static {
 }
 
 pub trait Requests {
-    fn update_opperation(&mut self, op: Arc<dyn Operation>);
+    fn update_operation(&mut self, op: Arc<dyn Operation>);
     fn apply_design_operation(&mut self, op: DesignOperation);
     fn set_candidate(&mut self, candidates: Vec<Selection>);
     fn set_paste_candidate(&mut self, nucl: Option<Nucl>);

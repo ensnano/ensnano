@@ -24,7 +24,7 @@ use super::*;
 use ensnano_scene::Requests as SceneRequests;
 
 impl SceneRequests for Requests {
-    fn update_opperation(&mut self, op: Arc<dyn Operation>) {
+    fn update_operation(&mut self, op: Arc<dyn Operation>) {
         self.operation_update = Some(op);
     }
 

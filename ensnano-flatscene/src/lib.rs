@@ -235,7 +235,7 @@ impl<S: AppState> FlatScene<S> {
                 self.requests
                     .lock()
                     .unwrap()
-                    .update_opperation(Arc::new(Xover {
+                    .update_operation(Arc::new(Xover {
                         prime3_id,
                         prime5_id,
                         undo: false,
@@ -250,7 +250,7 @@ impl<S: AppState> FlatScene<S> {
                     self.requests
                         .lock()
                         .unwrap()
-                        .update_opperation(Arc::new(Cut {
+                        .update_operation(Arc::new(Cut {
                             nucl,
                             strand_id,
                             design_id: self.selected_design,
@@ -281,7 +281,7 @@ impl<S: AppState> FlatScene<S> {
                     self.requests
                         .lock()
                         .unwrap()
-                        .update_opperation(Arc::new(Cut {
+                        .update_operation(Arc::new(Cut {
                             nucl,
                             strand_id,
                             design_id: self.selected_design,
@@ -299,7 +299,7 @@ impl<S: AppState> FlatScene<S> {
                         self.requests
                             .lock()
                             .unwrap()
-                            .update_opperation(Arc::new(CrossCut {
+                            .update_operation(Arc::new(CrossCut {
                                 source_id,
                                 target_id,
                                 target_3prime,
@@ -866,7 +866,7 @@ pub trait Requests {
     fn new_candidates(&mut self, candidates: Vec<Selection>);
     fn attempt_paste(&mut self, nucl: Option<Nucl>);
     fn request_centering_on_nucl(&mut self, nucl: Nucl, design_id: usize);
-    fn update_opperation(&mut self, operation: Arc<dyn Operation>);
+    fn update_operation(&mut self, operation: Arc<dyn Operation>);
     fn set_isometry(&mut self, helix: usize, segment_idx: usize, isometry: Isometry2);
     fn set_visibility_helix(&mut self, helix: usize, visibility: bool);
     fn flip_group(&mut self, helix: usize);

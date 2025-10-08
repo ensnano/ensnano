@@ -22,7 +22,7 @@ use std::fmt;
 use std::fmt::Write;
 
 impl Strand {
-    pub fn formated_domains(&self) -> String {
+    pub fn formatted_domains(&self) -> String {
         let mut ret = String::new();
         for d in self.domains.iter() {
             writeln!(&mut ret, "{}", d).unwrap_or_default();
