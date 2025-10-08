@@ -159,7 +159,7 @@ impl<State: AppState> GuiTab<State> for EditionTab<State> {
                 suggestion_parameters.include_scaffold,
                 "Include scaffold",
                 move |b| {
-                    Message::NewSuggestionParameters(suggestion_parameters.with_include_scaffod(b))
+                    Message::NewSuggestionParameters(suggestion_parameters.with_include_scaffold(b))
                 },
                 ui_size,
             ),

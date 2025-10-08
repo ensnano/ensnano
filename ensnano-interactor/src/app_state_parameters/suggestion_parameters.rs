@@ -21,7 +21,7 @@ impl Default for SuggestionParameters {
 }
 
 impl SuggestionParameters {
-    pub fn with_include_scaffod(&self, include_scaffold: bool) -> Self {
+    pub fn with_include_scaffold(&self, include_scaffold: bool) -> Self {
         let mut ret = self.clone();
         ret.include_scaffold = include_scaffold;
         ret
