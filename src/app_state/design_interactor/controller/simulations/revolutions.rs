@@ -43,48 +43,8 @@ use std::{
 mod closed_curves;
 use closed_curves::CloseSurfaceTopology;
 
-trait SpringTopology: Send + Sync + 'static {
-    fn nb_balls(&self) -> usize;
-
-    fn number_of_sections_per_segment(&self) -> usize;
-
-    fn balls_with_successor(&self) -> &[usize];
-    /// Return the identifier of the next ball on the helix,  or `ball_id` if `ball_id` is
-    /// the last ball on an open helix.
-    fn successor(&self, ball_id: usize) -> usize;
-
-    /// Return the identifier of the previous ball on the helix,  or `ball_id` if `ball_id` is
-    /// the first ball on an open helix.
-    fn predecessor(&self, ball_id: usize) -> usize;
-
-    fn balls_with_predecessor_and_successor(&self) -> &[usize];
-
-    fn balls_involved_in_spring(&self) -> &[usize];
-    fn other_spring_end(&self, ball_id: usize) -> usize;
-
-    fn surface_position(&self, revolution_angle: f64, theta: f64) -> DVec3;
-    fn dpos_dtheta(&self, revolution_angle: f64, theta: f64) -> DVec3;
-    fn d2pos_dtheta2(&self, revolution_angle: f64, theta: f64) -> DVec3;
-    fn revolution_angle_ball(&self, ball_id: usize) -> f64;
-
-    fn theta_ball_init(&self) -> Vec<f64>;
-
-    fn rescale_section(&mut self, scaling_factor: f64);
-    fn rescale_radius(&mut self, objective_number_of_nts: usize, actual_number_of_nt: usize);
-
-    fn cloned(&self) -> Box<dyn SpringTopology>;
-
-    fn axis(&self, revolution_angle: f64) -> DVec3;
-
-    fn to_curve_descriptor(&self, thetas: Vec<f64>, finished: bool) -> Vec<CurveDescriptor>;
-
-    fn fixed_points(&self) -> &[usize];
-
-    fn get_frame(&self) -> Similarity3;
-}
-
 pub struct RevolutionSurfaceSystem {
-    topology: Box<dyn SpringTopology>,
+    topology: CloseSurfaceTopology,
     helix_parameters: HelixParameters,
     last_thetas: Option<Vec<f64>>,
     last_dthetas: Option<Vec<f64>>,
@@ -96,7 +56,7 @@ pub struct RevolutionSurfaceSystem {
 impl Clone for RevolutionSurfaceSystem {
     fn clone(&self) -> Self {
         Self {
-            topology: self.topology.cloned(),
+            topology: self.topology.clone(),
             helix_parameters: self.helix_parameters,
             last_thetas: self.last_thetas.clone(),
             last_dthetas: self.last_dthetas.clone(),
@@ -112,11 +72,11 @@ impl RevolutionSurfaceSystem {
         let scaffold_len_target = desc.scaffold_len_target;
         let dna_parameters = desc.helix_parameters;
         let simulation_parameters = desc.simulation_parameters.clone();
-        let topology: Box<dyn SpringTopology> = if desc.target.curve_is_open() {
+        let topology = if desc.target.curve_is_open() {
             //Box::new(OpenSurfaceTopology::new(desc))
             todo!("Refactor open curves")
         } else {
-            Box::new(CloseSurfaceTopology::new(desc))
+            CloseSurfaceTopology::new(desc)
         };
 
         Self {
