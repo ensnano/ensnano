@@ -22,8 +22,8 @@ use self::gltf_drawer::Object3DDrawer;
 use super::camera;
 use crate::{DrawArea, PhySize};
 use camera::{Camera, CameraPtr, Projection, ProjectionPtr};
-use ensnano_design::{grid::GridId, group_attributes::GroupPivot, ultraviolet, Axis};
-use ensnano_interactor::{consts::*, UnrootedRevolutionSurfaceDescriptor};
+use ensnano_design::{Axis, grid::GridId, group_attributes::GroupPivot, ultraviolet};
+use ensnano_interactor::{UnrootedRevolutionSurfaceDescriptor, consts::*};
 use ensnano_utils::{
     bindgroup_manager, text, texture,
     wgpu::{self, util::DeviceExt as _},

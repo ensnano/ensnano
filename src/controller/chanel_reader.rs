@@ -23,7 +23,7 @@ use crate::app_state::design_interactor::{
     controller::{shift_optimization::ShiftOptimizationResult, simulations::SimulationInterface},
     presenter::SimulationUpdate,
 };
-use std::sync::{mpsc, Arc, Mutex, Weak};
+use std::sync::{Arc, Mutex, Weak, mpsc};
 
 #[derive(Default)]
 pub struct ChannelReader {

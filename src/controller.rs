@@ -26,7 +26,7 @@ mod normal_state;
 mod quit;
 mod set_scaffold_sequence;
 
-use super::{dialog, OverlayType, SplitMode};
+use super::{OverlayType, SplitMode, dialog};
 use crate::MainStateView;
 pub use chanel_reader::{ChannelReader, ChannelReaderUpdate};
 use dialog::{MustAckMessage, YesNoQuestion};
@@ -167,11 +167,7 @@ impl State for YesNo {
     fn make_progress(mut self: Box<Self>, _: &mut MainStateView) -> Box<dyn State> {
         if let Some(ans) = self.answer.as_ref() {
             if let Some(b) = ans.answer() {
-                if b {
-                    self.yes
-                } else {
-                    self.no
-                }
+                if b { self.yes } else { self.no }
             } else {
                 self
             }

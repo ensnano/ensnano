@@ -15,9 +15,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use std::borrow::Cow;
-use std::f64::consts::PI;
-use std::fmt;
+use serde::{Deserialize, Serialize};
+use std::{borrow::Cow, f64::consts::PI, fmt};
 use ultraviolet::DVec3;
 
 /// The main type of this crate, describing a DNA design.
@@ -575,11 +574,7 @@ impl Helix {
         let point_up = self.axis_pos(p, up);
         let dist_low = (point_low - point).mag();
         let dist_up = (point_up - point).mag();
-        if dist_low > dist_up {
-            up
-        } else {
-            low
-        }
+        if dist_low > dist_up { up } else { low }
     }
 }
 

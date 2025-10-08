@@ -18,13 +18,13 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::*;
 use ensnano_design::{
-    grid::{GridId, GridObject, GridPosition, HelixGridPosition},
     BezierPlaneDescriptor, BezierPlaneId, BezierVertexId, Collection, CurveDescriptor, Domain,
     Nucl,
+    grid::{GridId, GridObject, GridPosition, HelixGridPosition},
 };
 use ensnano_interactor::{
-    graphics::{LoopoutBond, LoopoutNucl},
     BezierControlPoint, ObjectType, Referential,
+    graphics::{LoopoutBond, LoopoutNucl},
 };
 use ensnano_scene::{DesignReader as Reader3D, GridInstance, SurfaceInfo};
 use ensnano_utils::StrandNucleotidesPositions;

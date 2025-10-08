@@ -1,5 +1,5 @@
 use {
-    iced_widget::{svg::Handle, Svg},
+    iced_widget::{Svg, svg::Handle},
     icondata::Icon,
     std::{
         collections::HashMap,

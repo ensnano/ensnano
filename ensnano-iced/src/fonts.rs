@@ -30,7 +30,7 @@ use iced::font;
 
 pub mod material_icons;
 pub use material_icons::{
-    icon_to_char, MaterialIcon, MaterialIconStyle, MATERIAL_ICONS_DARK, MATERIAL_ICONS_LIGHT,
+    MATERIAL_ICONS_DARK, MATERIAL_ICONS_LIGHT, MaterialIcon, MaterialIconStyle, icon_to_char,
 };
 
 const ENSNANO_FONT_BYTES: &[u8] = include_bytes!("../../font/ensnano2.ttf");
@@ -52,7 +52,7 @@ pub const INTER_REGULAR_FONT: Font = Font {
     stretch: font::Stretch::Normal,
 };
 
-pub use iced::{font::Error, Font};
+pub use iced::{Font, font::Error};
 
 // https://rsms.me/inter
 

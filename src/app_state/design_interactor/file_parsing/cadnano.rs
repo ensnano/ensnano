@@ -18,8 +18,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use {
     ensnano_design::{
-        grid::{Grid, GridType},
         Design, Domain, Helix, HelixInterval, Nucl, Strand,
+        grid::{Grid, GridType},
     },
     ensnano_interactor::consts::SCAFFOLD_COLOR,
     serde::{Deserialize, Serialize},

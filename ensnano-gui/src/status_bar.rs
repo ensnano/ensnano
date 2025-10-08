@@ -17,15 +17,15 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use super::{AppState, Requests};
 use ensnano_iced::{
+    UiSize,
     helpers::*,
     iced::{Alignment, Color, Element, Length},
     iced_graphics::text::Paragraph,
     iced_runtime::{Command, Program},
     iced_winit::winit::dpi::LogicalSize,
-    UiSize,
 };
-use ensnano_interactor::operation::Operation;
 pub use ensnano_interactor::StrandBuildingStatus;
+use ensnano_interactor::operation::Operation;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
@@ -101,8 +101,10 @@ impl<R: Requests, State: AppState> StatusBar<R, State> {
         &self,
     ) -> Row<'_, Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer> {
         let progress = self.progress.as_ref().unwrap();
-        row![text(format!("{}, {:.1}%", progress.0, progress.1 * 100.))
-            .size(self.ui_size.main_text()),]
+        row![
+            text(format!("{}, {:.1}%", progress.0, progress.1 * 100.))
+                .size(self.ui_size.main_text()),
+        ]
     }
 
     /* TODO
@@ -216,7 +218,7 @@ impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
             self.view_progress()
         } else if let Some(building_info) = self.app_state.get_strand_building_state() {
             row![text(building_info.to_info()).size(self.ui_size.main_text()),]
-        } else if let Some(ref message) = &self.message {
+        } else if let Some(message) = &self.message {
             row![text(message).size(self.ui_size.main_text()),]
         } else if let Some(operation) = &self.operation {
             log::trace!("operation is some");
@@ -418,7 +420,7 @@ impl OperationInput {
 
 mod input_color {
     // TODO: Move this in ensnano_iced.
-    use ensnano_iced::iced::{theme, widget::text_input::*, Background, Border, Color};
+    use ensnano_iced::iced::{Background, Border, Color, theme, widget::text_input::*};
 
     pub enum InputValueState {
         Normal,

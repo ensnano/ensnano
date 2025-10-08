@@ -41,19 +41,18 @@ pub use camera2d::{Camera2D, FitRectangle};
 use controller::Controller;
 use data::Data;
 pub use data::{DesignReader, NuclCollection};
-use ensnano_design::{consts::ITERATIVE_AXIS_ALGORITHM, Isometry2, Nucl};
+use ensnano_design::{Isometry2, Nucl, consts::ITERATIVE_AXIS_ALGORITHM};
 use ensnano_interactor::{
+    ActionMode, DesignOperation, PhantomElement, Selection, SelectionMode, StrandBuilder,
+    StrandBuildingStatus,
     application::{AppId, Application, Notification},
     consts::{EXPORT_2D_MARGIN, EXPORT_2D_MAX_SIZE},
     graphics::DrawArea,
     operation::*,
-    ActionMode, DesignOperation, PhantomElement, Selection, SelectionMode, StrandBuilder,
-    StrandBuildingStatus,
 };
 use ensnano_utils::{
-    camera2d, filename, wgpu,
+    PhySize, camera2d, filename, wgpu,
     winit::{self, window::CursorIcon},
-    PhySize,
 };
 use flattypes::*;
 use std::{
@@ -236,7 +235,7 @@ impl<S: AppState> FlatScene<S> {
                 self.requests
                     .lock()
                     .unwrap()
-                    .update_opperation(Arc::new(Xover {
+                    .update_operation(Arc::new(Xover {
                         prime3_id,
                         prime5_id,
                         undo: false,
@@ -251,7 +250,7 @@ impl<S: AppState> FlatScene<S> {
                     self.requests
                         .lock()
                         .unwrap()
-                        .update_opperation(Arc::new(Cut {
+                        .update_operation(Arc::new(Cut {
                             nucl,
                             strand_id,
                             design_id: self.selected_design,
@@ -282,7 +281,7 @@ impl<S: AppState> FlatScene<S> {
                     self.requests
                         .lock()
                         .unwrap()
-                        .update_opperation(Arc::new(Cut {
+                        .update_operation(Arc::new(Cut {
                             nucl,
                             strand_id,
                             design_id: self.selected_design,
@@ -300,7 +299,7 @@ impl<S: AppState> FlatScene<S> {
                         self.requests
                             .lock()
                             .unwrap()
-                            .update_opperation(Arc::new(CrossCut {
+                            .update_operation(Arc::new(CrossCut {
                                 source_id,
                                 target_id,
                                 target_3prime,
@@ -867,7 +866,7 @@ pub trait Requests {
     fn new_candidates(&mut self, candidates: Vec<Selection>);
     fn attempt_paste(&mut self, nucl: Option<Nucl>);
     fn request_centering_on_nucl(&mut self, nucl: Nucl, design_id: usize);
-    fn update_opperation(&mut self, operation: Arc<dyn Operation>);
+    fn update_operation(&mut self, operation: Arc<dyn Operation>);
     fn set_isometry(&mut self, helix: usize, segment_idx: usize, isometry: Isometry2);
     fn set_visibility_helix(&mut self, helix: usize, visibility: bool);
     fn flip_group(&mut self, helix: usize);

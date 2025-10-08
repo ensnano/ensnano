@@ -18,10 +18,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::{AppState, Message, Vec3};
 use crate::CameraId;
 use ensnano_iced::{
+    UiSize,
     fonts::{MaterialIcon, MaterialIconStyle},
     helpers::*,
-    iced::{alignment::Horizontal, Alignment, Length},
-    UiSize,
+    iced::{Alignment, Length, alignment::Horizontal},
 };
 
 /// A named camera orientation.

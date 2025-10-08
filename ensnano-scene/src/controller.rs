@@ -17,8 +17,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use super::view::HandleColors;
 use super::{
-    camera, ultraviolet, Duration, ElementSelector, HandleDir, SceneElement, Stereography, ViewPtr,
-    WidgetRotationMode as RotationMode,
+    Duration, ElementSelector, HandleDir, SceneElement, Stereography, ViewPtr,
+    WidgetRotationMode as RotationMode, camera, ultraviolet,
 };
 use crate::{PhySize, PhysicalPosition, WindowEvent};
 use ensnano_design::grid::{GridId, GridObject, GridPosition, HelixGridPosition};

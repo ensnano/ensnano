@@ -27,10 +27,8 @@ use std::sync::Arc;
 mod material_colors;
 use material_colors::MaterialColor;
 
-#[macro_use]
-extern crate serde_derive;
-extern crate serde;
 pub use bezier_plane::*;
+use serde::{Deserialize, Serialize};
 pub use ultraviolet;
 
 pub mod codenano;
@@ -299,7 +297,7 @@ impl Design {
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct CameraId(u64);
 
-use serde_with::{serde_as, DefaultOnError};
+use serde_with::{DefaultOnError, serde_as};
 /// A saved camera position. This can be use to register interesting point of views of the design.
 #[serde_as]
 #[derive(Clone, Debug, Serialize, Deserialize)]

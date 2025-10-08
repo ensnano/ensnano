@@ -15,9 +15,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use strum_macros::EnumString;
 
-#[derive(Debug, PartialEq, EnumString)]
+#[derive(Debug, PartialEq, strum::EnumString)]
 #[repr(u32)]
 pub enum MaterialColor {
     // MARK: - Red

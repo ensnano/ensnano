@@ -21,29 +21,29 @@ pub mod file_parsing;
 pub mod presenter;
 
 use super::AddressPointer;
+use crate::app_state::design_interactor::controller::OkOperation;
 use crate::app_state::design_interactor::controller::clipboard::CopyOperation;
 use crate::app_state::design_interactor::controller::simulations::SimulationOperation;
-use crate::app_state::design_interactor::controller::OkOperation;
 use crate::controller::ChannelReader;
 use controller::Controller;
 use controller::ErrOperation;
 use controller::InteractorNotification;
 pub use controller::{ShiftOptimizationResult, SimulationInterface};
 use ensnano_design::{
-    grid::GridId, group_attributes::GroupAttribute, BezierPathId, BezierPlaneDescriptor, Design,
-    HelixCollection, HelixParameters, InstanciatedPiecewiseBezier,
+    BezierPathId, BezierPlaneDescriptor, Design, HelixCollection, HelixParameters,
+    InstanciatedPiecewiseBezier, grid::GridId, group_attributes::GroupAttribute,
 };
 use ensnano_exports::{ExportResult, ExportType};
 use ensnano_gui::CurrentOpState;
-use ensnano_interactor::app_state_parameters::SuggestionParameters;
 use ensnano_interactor::PastingStatus;
+use ensnano_interactor::app_state_parameters::SuggestionParameters;
 use ensnano_interactor::{
-    consts::UPDATE_VISIBILITY_SIEVE_LABEL, operation::Operation, DesignOperation,
-    RevolutionSurfaceSystemDescriptor, Selection, SimulationState, StrandBuilder,
+    DesignOperation, RevolutionSurfaceSystemDescriptor, Selection, SimulationState, StrandBuilder,
+    consts::UPDATE_VISIBILITY_SIEVE_LABEL, operation::Operation,
 };
 use ensnano_organizer::GroupId;
 use presenter::SimulationUpdate;
-use presenter::{apply_simulation_update, update_presenter, Presenter};
+use presenter::{Presenter, apply_simulation_update, update_presenter};
 use std::sync::Arc;
 
 /// The `DesignInteractor` handles all read/write operations on the design. It is a stateful struct
@@ -178,7 +178,7 @@ impl DesignInteractor {
         }
     }
 
-    pub(super) fn get_curent_operation_state(&self) -> Option<CurrentOpState> {
+    pub(super) fn get_current_operation_state(&self) -> Option<CurrentOpState> {
         self.current_operation.as_ref().map(|op| CurrentOpState {
             operation_id: self.current_operation_id,
             current_operation: op.clone(),
@@ -352,7 +352,7 @@ impl InteractorResult {
     }
 }
 
-/// A reference to a Presenter that is guaranted to always have up to date internal data
+/// A reference to a Presenter that is guaranteed to always have up to date internal data
 /// structures.
 pub struct DesignReader {
     presenter: AddressPointer<Presenter>,
@@ -433,11 +433,11 @@ mod tests {
     use crate::app_state::design_interactor::controller::clipboard::{
         CopyOperation, PastePosition,
     };
-    use ensnano_design::grid::HelixGridPosition;
     use ensnano_design::HelixCollection;
-    use ensnano_design::{grid::GridDescriptor, Collection, DomainJunction, Nucl, Strand};
-    use ensnano_interactor::operation::GridHelixCreation;
+    use ensnano_design::grid::HelixGridPosition;
+    use ensnano_design::{Collection, DomainJunction, Nucl, Strand, grid::GridDescriptor};
     use ensnano_interactor::DesignReader;
+    use ensnano_interactor::operation::GridHelixCreation;
     use ensnano_scene::DesignReader as Reader3d;
     use std::path::PathBuf;
     use ultraviolet::{Rotor3, Vec3};
@@ -459,11 +459,11 @@ mod tests {
     }
 
     fn assert_good_strand<S: std::ops::Deref<Target = str>>(strand: &Strand, objective: S) {
-        println!("self {:?}", strand.formated_domains());
+        println!("self {:?}", strand.formatted_domains());
         println!("objective {}", objective.deref());
         use regex::Regex;
         let re = Regex::new(r#"\[[^\]]*\]"#).unwrap();
-        let formated_strand = strand.formated_domains();
+        let formated_strand = strand.formatted_domains();
         let left = re.find_iter(&formated_strand);
         let right = re.find_iter(&objective);
         for (a, b) in left.zip(right) {
@@ -905,10 +905,12 @@ mod tests {
             .strands
             .get(&0)
             .expect("No strand 0");
-        let expected_result =
-            format!(
+        let expected_result = format!(
             "[H1: -1 -> 3] [@{}] [H1: 4 -> 7] [@{}] [H2: -1 <- 7] [@{}] [H3: 0 -> 9] [@{}] [cycle]",
-            INSERTION_LEN_1, INSERTION_LEN_2, INSERTION_LEN_3, INSERTION_LEN_4 + INSERTION_LEN_0
+            INSERTION_LEN_1,
+            INSERTION_LEN_2,
+            INSERTION_LEN_3,
+            INSERTION_LEN_4 + INSERTION_LEN_0
         );
         assert_good_strand(strand, expected_result);
     }
@@ -1143,10 +1145,12 @@ mod tests {
             .strands
             .get(&0)
             .expect("No strand 0");
-        let expected_result =
-            format!(
+        let expected_result = format!(
             "[H1: -1 -> 3] [@{}] [H1: 4 -> 7] [@{}] [H2: -1 <- 7] [@{}] [H3: 0 -> 9] [@{}] [cycle]",
-            insertion_len_1, insertion_len_2, insertion_len_3, insertion_len_4 + insertion_len_0
+            insertion_len_1,
+            insertion_len_2,
+            insertion_len_3,
+            insertion_len_4 + insertion_len_0
         );
         assert_good_strand(strand, expected_result);
     }
@@ -1471,12 +1475,14 @@ mod tests {
                 .map(PastePosition::Nucl),
             ))
             .unwrap();
-        assert!(!app_state
-            .0
-            .design
-            .controller
-            .get_pasted_position()
-            .is_empty());
+        assert!(
+            !app_state
+                .0
+                .design
+                .controller
+                .get_pasted_position()
+                .is_empty()
+        );
     }
 
     #[test]

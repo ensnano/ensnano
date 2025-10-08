@@ -34,7 +34,7 @@ pub mod transitions;
 use crate::{
     app_state::design_interactor::{
         controller::{
-            clipboard::CopyOperation, simulations::SimulationOperation, InteractorNotification,
+            InteractorNotification, clipboard::CopyOperation, simulations::SimulationOperation,
         },
         presenter::SimulationUpdate,
     },
@@ -42,19 +42,19 @@ use crate::{
     controller::{ChannelReader, LoadDesignError, SaveDesignError},
 };
 use address_pointer::AddressPointer;
-use design_interactor::{controller::ErrOperation, DesignReader};
 use design_interactor::{DesignInteractor, InteractorResult};
-use ensnano_design::{group_attributes::GroupPivot, BezierPathId, Design, SavingInformation};
+use design_interactor::{DesignReader, controller::ErrOperation};
+use ensnano_design::{BezierPathId, Design, SavingInformation, group_attributes::GroupPivot};
 use ensnano_exports::{ExportResult, ExportType};
 use ensnano_gui::StrandBuildingStatus;
 use ensnano_iced::UiSize;
 use ensnano_interactor::{
+    ActionMode, CenterOfSelection, DesignOperation, PastingStatus, Selection, SelectionMode,
+    UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
     app_state_parameters::{AppStateParameters, CheckXoversParameter, SuggestionParameters},
     consts::{APP_NAME, ENS_BACKUP_EXTENSION, ENS_EXTENSION},
     graphics::{Background3D, HBondDisplay, RenderingMode},
     operation::Operation,
-    ActionMode, CenterOfSelection, DesignOperation, PastingStatus, Selection, SelectionMode,
-    UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
 };
 use ensnano_organizer::GroupId;
 use std::{
@@ -415,7 +415,7 @@ impl AppState {
         self.get_design_reader().export(export_path, export_type)
     }
 
-    pub fn get_selection(&self) -> impl AsRef<[Selection]> {
+    pub fn get_selection(&self) -> impl AsRef<[Selection]> + use<> {
         self.0.selection.selection.clone()
     }
 

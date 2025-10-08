@@ -18,6 +18,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::circle_curve::CircleCurve;
 use crate::HelixParameters;
+use serde::{Deserialize, Serialize};
 use std::f64::consts::TAU;
 
 #[derive(Clone, Serialize, Deserialize, Debug)]

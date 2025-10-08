@@ -16,14 +16,13 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use std::sync::Arc;
-
 use super::{CurveInstantiator, Edge};
 use crate::grid::GridPosition;
 use crate::utils::vec_to_dvec;
-use ultraviolet::{DMat3, DVec3, Vec3};
-
 use num_enum::{IntoPrimitive, TryFromPrimitive};
+use serde::{Deserialize, Serialize};
+use std::sync::Arc;
+use ultraviolet::{DMat3, DVec3, Vec3};
 
 mod instantiator;
 pub(crate) use instantiator::PieceWiseBezierInstantiator;

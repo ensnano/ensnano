@@ -24,8 +24,8 @@ use super::view::{
     GridDisc, HandleColors, Instantiable, RawDnaInstance, StereographicSphereAndPlane,
 };
 use super::{
-    ultraviolet, Camera3D, HandleOrientation, HandlesDescriptor, LetterInstance,
-    RotationWidgetDescriptor, RotationWidgetOrientation, SceneElement, View, ViewUpdate,
+    Camera3D, HandleOrientation, HandlesDescriptor, LetterInstance, RotationWidgetDescriptor,
+    RotationWidgetOrientation, SceneElement, View, ViewUpdate, ultraviolet,
 };
 use std::cell::RefCell;
 use std::collections::{BTreeMap, HashMap, HashSet};
@@ -40,8 +40,8 @@ use ultraviolet::{Rotor3, Vec3};
 
 use super::view::Mesh;
 use ensnano_design::{
-    grid::{GridId, GridPosition},
     Nucl,
+    grid::{GridId, GridPosition},
 };
 use ensnano_interactor::consts::*;
 use ensnano_interactor::{
@@ -202,12 +202,14 @@ impl<R: DesignReader> Data<R> {
     }
 
     fn update_stereographic_sphere(&self) {
-        let instances = Rc::new(vec![StereographicSphereAndPlane {
-            position: self.stereographic_camera.0.position,
-            orientation: self.stereographic_camera.0.orientation.reversed(),
-            ratio: self.stereographic_camera.1,
-        }
-        .to_raw_instance()]);
+        let instances = Rc::new(vec![
+            StereographicSphereAndPlane {
+                position: self.stereographic_camera.0.position,
+                orientation: self.stereographic_camera.0.orientation.reversed(),
+                ratio: self.stereographic_camera.1,
+            }
+            .to_raw_instance(),
+        ]);
         self.view
             .borrow_mut()
             .update(ViewUpdate::RawDna(Mesh::StereographicSphere, instances));

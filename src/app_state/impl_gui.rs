@@ -17,7 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::*;
-use ensnano_design::{elements::DesignElementKey, HelixParameters};
+use ensnano_design::{HelixParameters, elements::DesignElementKey};
 use ensnano_gui::AppState as GuiState;
 use ensnano_gui::ClipboardContent;
 use ensnano_interactor::PastingStatus;
@@ -108,7 +108,7 @@ impl GuiState for AppState {
     }
 
     fn get_current_operation_state(&self) -> Option<ensnano_gui::CurrentOpState> {
-        self.0.design.get_curent_operation_state()
+        self.0.design.get_current_operation_state()
     }
 
     fn get_strand_building_state(&self) -> Option<ensnano_gui::StrandBuildingStatus> {

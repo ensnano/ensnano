@@ -254,12 +254,14 @@ fn position_paste_via_requests() {
         position: 3,
         forward: true,
     };
-    assert!(!main_state
-        .app_state
-        .get_design_reader()
-        .is_xover_end(&nucl)
-        .to_opt()
-        .is_some());
+    assert!(
+        !main_state
+            .app_state
+            .get_design_reader()
+            .is_xover_end(&nucl)
+            .to_opt()
+            .is_some()
+    );
     main_state.apply_copy_operation(CopyOperation::PositionPastingPoint(None));
     main_state.apply_copy_operation(CopyOperation::PositionPastingPoint(Some(
         PastePosition::Nucl(Nucl {
@@ -269,12 +271,14 @@ fn position_paste_via_requests() {
         }),
     )));
     main_state.update();
-    assert!(main_state
-        .app_state
-        .get_design_reader()
-        .is_xover_end(&nucl)
-        .to_opt()
-        .is_some());
+    assert!(
+        main_state
+            .app_state
+            .get_design_reader()
+            .is_xover_end(&nucl)
+            .to_opt()
+            .is_some()
+    );
 }
 
 #[test]
@@ -299,28 +303,34 @@ fn undo_redo_copy_paste_xover() {
     )));
     main_state.apply_copy_operation(CopyOperation::Paste);
     main_state.update();
-    assert!(main_state
-        .app_state
-        .get_design_reader()
-        .is_xover_end(&nucl)
-        .to_opt()
-        .is_some());
+    assert!(
+        main_state
+            .app_state
+            .get_design_reader()
+            .is_xover_end(&nucl)
+            .to_opt()
+            .is_some()
+    );
     main_state.undo();
     main_state.update();
-    assert!(!main_state
-        .app_state
-        .get_design_reader()
-        .is_xover_end(&nucl)
-        .to_opt()
-        .is_some());
+    assert!(
+        !main_state
+            .app_state
+            .get_design_reader()
+            .is_xover_end(&nucl)
+            .to_opt()
+            .is_some()
+    );
     main_state.redo();
     main_state.update();
-    assert!(main_state
-        .app_state
-        .get_design_reader()
-        .is_xover_end(&nucl)
-        .to_opt()
-        .is_some());
+    assert!(
+        main_state
+            .app_state
+            .get_design_reader()
+            .is_xover_end(&nucl)
+            .to_opt()
+            .is_some()
+    );
 }
 
 #[test]
@@ -391,49 +401,61 @@ fn duplicate_xover() {
         position: 3,
         forward: true,
     };
-    assert!(main_state
-        .app_state
-        .get_design_reader()
-        .is_xover_end(&n1)
-        .to_opt()
-        .is_none());
-    assert!(main_state
-        .app_state
-        .get_design_reader()
-        .is_xover_end(&n2)
-        .to_opt()
-        .is_none());
+    assert!(
+        main_state
+            .app_state
+            .get_design_reader()
+            .is_xover_end(&n1)
+            .to_opt()
+            .is_none()
+    );
+    assert!(
+        main_state
+            .app_state
+            .get_design_reader()
+            .is_xover_end(&n2)
+            .to_opt()
+            .is_none()
+    );
     main_state.apply_copy_operation(CopyOperation::PositionPastingPoint(Some(
         PastePosition::Nucl(n1),
     )));
     main_state.apply_paste();
     main_state.update();
-    assert!(main_state
-        .app_state
-        .get_design_reader()
-        .is_xover_end(&n1)
-        .to_opt()
-        .is_some());
-    assert!(main_state
-        .app_state
-        .get_design_reader()
-        .is_xover_end(&n2)
-        .to_opt()
-        .is_none());
+    assert!(
+        main_state
+            .app_state
+            .get_design_reader()
+            .is_xover_end(&n1)
+            .to_opt()
+            .is_some()
+    );
+    assert!(
+        main_state
+            .app_state
+            .get_design_reader()
+            .is_xover_end(&n2)
+            .to_opt()
+            .is_none()
+    );
     main_state.request_duplication();
     main_state.update();
-    assert!(main_state
-        .app_state
-        .get_design_reader()
-        .is_xover_end(&n1)
-        .to_opt()
-        .is_some());
-    assert!(main_state
-        .app_state
-        .get_design_reader()
-        .is_xover_end(&n2)
-        .to_opt()
-        .is_some());
+    assert!(
+        main_state
+            .app_state
+            .get_design_reader()
+            .is_xover_end(&n1)
+            .to_opt()
+            .is_some()
+    );
+    assert!(
+        main_state
+            .app_state
+            .get_design_reader()
+            .is_xover_end(&n2)
+            .to_opt()
+            .is_some()
+    );
 }
 
 #[test]

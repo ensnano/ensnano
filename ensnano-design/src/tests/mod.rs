@@ -120,7 +120,7 @@ fn scadnano_import_one_loopout() {
 fn assert_good_strand<S: std::ops::Deref<Target = str>>(strand: &Strand, objective: S) {
     use regex::Regex;
     let re = Regex::new(r#"\[[^\]]*\]"#).unwrap();
-    let formated_strand = strand.formated_domains();
+    let formated_strand = strand.formatted_domains();
     let left = re.find_iter(&formated_strand);
     let right = re.find_iter(&objective);
     for (a, b) in left.zip(right) {

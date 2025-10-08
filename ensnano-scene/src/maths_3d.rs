@@ -16,8 +16,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use super::{
-    camera::{CameraPtr, ProjectionPtr},
     Stereography, Vec3,
+    camera::{CameraPtr, ProjectionPtr},
 };
 
 /// Use to compute the shortes line between two lines in 3D.

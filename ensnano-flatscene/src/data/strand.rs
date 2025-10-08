@@ -20,8 +20,8 @@ use super::helix::{Helix, Shift};
 use super::{CameraPtr, FlatNucl};
 use ensnano_design::ultraviolet::Vec2;
 use lyon::math::Point;
-use lyon::path::path::BuilderWithAttributes;
 use lyon::path::Path;
+use lyon::path::path::BuilderWithAttributes;
 use lyon::tessellation;
 use lyon::tessellation::{StrokeVertex, StrokeVertexConstructor};
 

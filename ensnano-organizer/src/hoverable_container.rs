@@ -11,13 +11,14 @@
 //!    https://docs.rs/iced_widget/0.12.1/src/iced_widget/container.rs.html
 
 use ensnano_iced::iced::{
+    Element, Length, Padding, Point, Rectangle, Size, Vector,
     advanced::{
+        Clipboard, Shell,
         layout::{self, Layout},
         mouse, renderer,
         widget::{self, Widget},
-        Clipboard, Shell,
     },
-    event, overlay, Element, Length, Padding, Point, Rectangle, Size, Vector,
+    event, overlay,
 };
 
 /// A widget that emits a message when hovered.

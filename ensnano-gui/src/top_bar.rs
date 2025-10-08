@@ -25,12 +25,12 @@ use super::{AppState, TopBarState};
 // NOTE: I would like to rename AppState to ApplicationState, and name AppState the structures that
 //       implement it.
 use ensnano_iced::{
+    UiSize,
     fonts::{MaterialIcon, MaterialIconStyle},
     helpers::*,
     iced::{self, Element, Length, Padding},
     iced_runtime::{Command, Program},
     iced_winit::winit::dpi::LogicalSize,
-    UiSize,
 };
 use ensnano_interactor::{ActionMode, SelectionMode};
 use std::sync::{Arc, Mutex};

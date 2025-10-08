@@ -18,14 +18,16 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::{AppState, FogParameters, OverlayType, Requests};
 use crate::{consts::*, fonts};
 use ensnano_design::{
+    BezierPathId, CameraId, NamedParameter,
     elements::{DesignElement, DesignElementKey},
     grid::GridTypeDescr,
-    ultraviolet, BezierPathId, CameraId, NamedParameter,
+    ultraviolet,
 };
 use ensnano_exports::ExportType;
 use ensnano_iced::{
+    UiSize,
     color_picker::ColorPickerMessage,
-    iced::{theme, Color, Command, Element, Length},
+    iced::{Color, Command, Element, Length, theme},
     iced_aw::widgets::{TabBarPosition, TabLabel, Tabs},
     iced_runtime::Program,
     iced_widget::*,
@@ -36,12 +38,11 @@ use ensnano_iced::{
             event::Modifiers,
         },
     },
-    UiSize,
 };
 use ensnano_interactor::{
+    ActionMode, EquadiffSolvingMethod, HyperboloidRequest, Selection, SelectionConversion,
     app_state_parameters::{AppStateParameters, CheckXoversParameter, SuggestionParameters},
     graphics::{Background3D, HBondDisplay, RenderingMode},
-    ActionMode, EquadiffSolvingMethod, HyperboloidRequest, Selection, SelectionConversion,
 };
 use ensnano_organizer::{Organizer, OrganizerMessage, OrganizerTree};
 use std::sync::{Arc, Mutex};
@@ -913,11 +914,9 @@ where
                         .start_revolution_relaxation(desc);
                 }
             }
-            Message::FinishRelaxation => self
-                .requests
-                .lock()
-                .unwrap()
-                .finish_revolutiion_relaxation(),
+            Message::FinishRelaxation => {
+                self.requests.lock().unwrap().finish_revolution_relaxation()
+            }
             Message::LoadSvgFile => self.requests.lock().unwrap().load_svg(),
             Message::StlExport => {
                 self.requests.lock().unwrap().request_stl_export();
@@ -1233,25 +1232,13 @@ impl Requestable for ScrollSensitivity {
         }
     }
     fn min_val(&self, n: usize) -> f32 {
-        if n == 0 {
-            -10f32
-        } else {
-            unreachable!()
-        }
+        if n == 0 { -10f32 } else { unreachable!() }
     }
     fn max_val(&self, n: usize) -> f32 {
-        if n == 0 {
-            10f32
-        } else {
-            unreachable!()
-        }
+        if n == 0 { 10f32 } else { unreachable!() }
     }
     fn step_val(&self, n: usize) -> f32 {
-        if n == 0 {
-            0.5f32
-        } else {
-            unreachable!()
-        }
+        if n == 0 { 0.5f32 } else { unreachable!() }
     }
     fn name_val(&self, n: usize) -> String {
         if n == 0 {

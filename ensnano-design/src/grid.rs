@@ -17,16 +17,16 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use crate::{
-    curves::{AbscissaConverter, CurveDescriptor2D},
     BezierPathData, BezierPathId, BezierVertexId, CurveDescriptor,
+    curves::{AbscissaConverter, CurveDescriptor2D},
 };
 use std::collections::{BTreeMap, HashMap, HashSet};
 
 use super::{
-    curves,
+    Axis, BezierControlPoint, Collection, Design, Helices, Helix, HelixCollection, HelixParameters,
+    Twist, curves,
     design_operations::{ErrOperation, MIN_HELICES_TO_MAKE_GRID},
-    twist_to_omega, Axis, BezierControlPoint, Collection, Design, Helices, Helix, HelixCollection,
-    HelixParameters, Twist,
+    twist_to_omega,
 };
 use curves::{
     CurveCache, CurveInstantiator, InstanciatedCurve, InstanciatedCurveDescriptor, PathTimeMaps,
@@ -39,6 +39,7 @@ mod hyperboloid;
 pub use copy_grid::GridCopyError;
 pub use grid_collection::*;
 pub use hyperboloid::*;
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
 use ultraviolet::{Rotor3, Vec2, Vec3};

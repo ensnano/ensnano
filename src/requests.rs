@@ -27,17 +27,17 @@ mod poll;
 
 use super::*;
 use ensnano_design::{
+    Nucl,
     elements::{DesignElementKey, DnaAttribute},
     grid::{GridId, GridPosition, GridTypeDescr},
-    Nucl,
 };
 use ensnano_gui::OrganizerTree;
 use ensnano_iced::UiSize;
 use ensnano_interactor::{
-    application::AppId,
-    graphics::{Background3D, HBondDisplay, RenderingMode},
     CenterOfSelection, HyperboloidRequest, RigidBodyConstants, RollRequest, Selection,
     UnrootedRevolutionSurfaceDescriptor,
+    application::AppId,
+    graphics::{Background3D, HBondDisplay, RenderingMode},
 };
 use ensnano_scene::FogParameters;
 pub(crate) use poll::poll_all;

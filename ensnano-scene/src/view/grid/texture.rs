@@ -23,7 +23,7 @@ use lyon::{
     path::Path,
     tessellation::{self, StrokeVertex, StrokeVertexConstructor},
 };
-use wgpu::{util::DeviceExt as _, Device, Sampler, TextureView};
+use wgpu::{Device, Sampler, TextureView, util::DeviceExt as _};
 
 const TEXTURE_SIZE: u32 = 512;
 

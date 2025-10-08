@@ -21,17 +21,18 @@ mod helix_view;
 mod insertion;
 mod rectangle;
 
-use super::data::{
-    helix::CharCollector, FlatTorsion, FreeEnd, GpuVertex, Helix, HelixModel, Shift, Strand,
-    StrandVertex,
-};
 use super::FlatSelection;
+use super::data::{
+    FlatTorsion, FreeEnd, GpuVertex, Helix, HelixModel, Shift, Strand, StrandVertex,
+    helix::CharCollector,
+};
 use super::{CameraPtr, FlatIdx, FlatNucl, NuclCollection};
 use crate::{DrawArea, PhySize};
 use ahash::RandomState;
 use background::Background;
 use ensnano_design::Nucl;
 use ensnano_interactor::consts::SAMPLE_COUNT;
+use ensnano_utils::Ndc;
 use ensnano_utils::bindgroup_manager::{DynamicBindGroup, UniformBindGroup};
 use ensnano_utils::camera2d::Globals;
 pub use ensnano_utils::chars2d::TextDrawer;
@@ -40,7 +41,6 @@ use ensnano_utils::circles2d::{CircleDrawer, CircleKind};
 use ensnano_utils::texture::Texture;
 use ensnano_utils::wgpu;
 use ensnano_utils::winit::dpi::PhysicalPosition;
-use ensnano_utils::Ndc;
 use helix_view::{HelixView, StrandView};
 use insertion::InsertionDrawer;
 pub use insertion::{InsertionDescriptor, InsertionInstance};

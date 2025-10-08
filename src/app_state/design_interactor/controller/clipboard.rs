@@ -21,8 +21,8 @@ use super::{
     HelixInterval, Nucl, Strand,
 };
 use ensnano_design::{
-    grid::{Edge, FreeGridId, GridData, GridId, GridPosition},
     Helices, HelixCollection, HelixParameters, MutStrandAndData, Strands, UpToDateDesign,
+    grid::{Edge, FreeGridId, GridData, GridId, GridPosition},
 };
 use ultraviolet::Vec3;
 

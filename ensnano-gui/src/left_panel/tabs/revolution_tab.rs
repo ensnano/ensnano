@@ -20,15 +20,16 @@ use super::tabs::GuiTab;
 use crate::left_panel::Message;
 use crate::{AppState, SimulationState};
 use ensnano_design::{
-    ultraviolet::{self, Rotor3, Vec3},
     CurveDescriptor2D,
+    ultraviolet::{self, Rotor3, Vec3},
 };
 use ensnano_iced::{
-    fonts::{icon_to_char, MaterialIcon},
+    UiSize,
+    fonts::{MaterialIcon, icon_to_char},
     helpers::*,
     iced::{Alignment, Length},
     iced_aw::TabLabel,
-    theme, UiSize,
+    theme,
 };
 use ensnano_interactor::{
     EquadiffSolvingMethod, RevolutionSimulationParameters, RevolutionSurfaceRadius,

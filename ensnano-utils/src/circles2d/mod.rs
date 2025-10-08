@@ -21,7 +21,7 @@ use {
     ensnano_interactor::consts::SAMPLE_COUNT,
     std::rc::Rc,
     ultraviolet::Vec2,
-    wgpu::{include_spirv, BindGroupLayout, Device, Queue, RenderPass, RenderPipeline},
+    wgpu::{BindGroupLayout, Device, Queue, RenderPass, RenderPipeline, include_spirv},
 };
 
 #[repr(C)]

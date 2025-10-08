@@ -20,8 +20,8 @@ use log;
 use std::collections::VecDeque;
 
 use iced::{
-    widget::{column, row, Column, Row},
     Color, Length,
+    widget::{Column, Row, column, row},
 };
 use iced_winit::winit::dpi::LogicalSize;
 

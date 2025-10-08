@@ -21,7 +21,7 @@ use super::*;
 use ahash::RandomState;
 use ensnano_design::{Domain, Extremity, Helix, HelixInterval, Strand};
 use ensnano_flatscene::DesignReader as Reader2D;
-use ensnano_interactor::{torsion::Torsion, Referential};
+use ensnano_interactor::{Referential, torsion::Torsion};
 use std::collections::{BTreeMap, HashMap};
 use std::sync::Arc;
 use ultraviolet::{Isometry2, Vec3};

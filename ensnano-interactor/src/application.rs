@@ -18,10 +18,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use std::path::Path;
 
-use super::graphics::*;
 use super::Selection;
-use ensnano_design::group_attributes::GroupPivot;
+use super::graphics::*;
 use ensnano_design::Nucl;
+use ensnano_design::group_attributes::GroupPivot;
 use ensnano_iced::{iced_wgpu::wgpu, iced_winit::winit};
 use std::sync::Arc;
 use std::time::Duration;

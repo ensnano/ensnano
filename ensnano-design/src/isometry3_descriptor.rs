@@ -17,9 +17,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use crate::drawing_style::ParsePointError;
-use std::collections::HashMap;
-use std::f32::consts::PI;
-use std::str::FromStr;
+use serde::{Deserialize, Serialize};
+use std::{collections::HashMap, f32::consts::PI, str::FromStr};
 use ultraviolet::*;
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug)]
@@ -151,13 +150,13 @@ impl Isometry3DescriptorItem {
                         Vec3::new(args[0], args[1], args[2]),
                         Vec3::new(args[3], args[4], args[5]),
                         Vec3::new(args[6], args[7], args[8]),
-                    ))
+                    ));
                 }
                 6 => {
                     return Ok(Self::RotateFromTo(
                         Vec3::new(args[0], args[1], args[2]),
                         Vec3::new(args[3], args[4], args[5]),
-                    ))
+                    ));
                 }
                 _ => (),
             }
@@ -169,7 +168,7 @@ impl Isometry3DescriptorItem {
                     return Ok(Self::RotateYZByAround(
                         args[0],
                         Vec3::new(args[1], args[2], args[3]),
-                    ))
+                    ));
                 }
                 _ => (),
             }
@@ -181,7 +180,7 @@ impl Isometry3DescriptorItem {
                     return Ok(Self::RotateZXByAround(
                         args[0],
                         Vec3::new(args[1], args[2], args[3]),
-                    ))
+                    ));
                 }
                 _ => (),
             }
@@ -193,7 +192,7 @@ impl Isometry3DescriptorItem {
                     return Ok(Self::RotateXYByAround(
                         args[0],
                         Vec3::new(args[1], args[2], args[3]),
-                    ))
+                    ));
                 }
                 _ => (),
             }

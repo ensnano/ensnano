@@ -17,10 +17,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::{
-    tabs::GuiTab, AppState, CheckXoversParameter, FogParameters, HBondDisplay, Message, UiSize,
+    AppState, CheckXoversParameter, FogParameters, HBondDisplay, Message, UiSize, tabs::GuiTab,
 };
 use ensnano_iced::{
-    fonts::{icon_to_char, MaterialIcon},
+    fonts::{MaterialIcon, icon_to_char},
     helpers::*,
     iced::{Alignment, Length},
     iced_aw::TabLabel,
@@ -28,7 +28,7 @@ use ensnano_iced::{
 };
 use ensnano_interactor::{
     app_state_parameters::AppStateParameters,
-    graphics::{Background3D, RenderingMode, ALL_BACKGROUND3D, ALL_RENDERING_MODE},
+    graphics::{ALL_BACKGROUND3D, ALL_RENDERING_MODE, Background3D, RenderingMode},
 };
 use std::marker::PhantomData;
 

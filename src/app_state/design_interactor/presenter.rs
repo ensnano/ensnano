@@ -31,8 +31,8 @@ use super::*;
 use design_content::DesignContent;
 use ensnano_design::{BezierPathId, Extremity, HelixCollection, InstanciatedPiecewiseBezier, Nucl};
 use ensnano_interactor::{
-    application::Camera3D, NeighborDescriptor, NeighborDescriptorGiver, Referential, ScaffoldInfo,
-    Selection,
+    NeighborDescriptor, NeighborDescriptorGiver, Referential, ScaffoldInfo, Selection,
+    application::Camera3D,
 };
 use ensnano_scene::{HBond, HalfHBond};
 use ensnano_utils::id_generator::IdGenerator;
@@ -229,7 +229,10 @@ impl Presenter {
                                 }
                             } else if basis.is_none() {
                                 if !ran_out {
-                                    log::error!("Ran out of base for nucleotide {:?}. Scaffold sequence is too short", nucl);
+                                    log::error!(
+                                        "Ran out of base for nucleotide {:?}. Scaffold sequence is too short",
+                                        nucl
+                                    );
                                     ran_out = true;
                                 }
                             } else {

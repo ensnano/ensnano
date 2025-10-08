@@ -15,9 +15,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-//! DNA geometric parmeters.
+
+//! DNA geometric parameters.
 
 use super::codenano;
+use serde::{Deserialize, Serialize};
 use std::f32::consts::{PI, SQRT_2, TAU};
 
 /// DNA geometric parameters.

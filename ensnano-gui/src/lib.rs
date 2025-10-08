@@ -39,40 +39,39 @@ pub use left_panel::{
 };
 /// Draw the status bar
 pub mod status_bar;
-pub use ensnano_design::{grid::GridId, Camera, CameraId};
+pub use ensnano_design::{Camera, CameraId, grid::GridId};
 pub use status_bar::{ClipboardContent, CurrentOpState, StrandBuildingStatus};
 mod consts;
 
-#[macro_use]
-extern crate paste;
 mod icon;
 
 use status_bar::StatusBar;
 
 use ensnano_design::{
+    BezierPathId, BezierVertexId, HelixParameters, Nucl,
     elements::{DesignElement, DesignElementKey, DnaAttribute},
     grid::GridTypeDescr,
-    ultraviolet, BezierPathId, BezierVertexId, HelixParameters, Nucl,
+    ultraviolet,
 };
 use ensnano_iced::{
     iced_graphics,
-    iced_runtime::{program, Debug},
-    iced_wgpu::{self, wgpu, Backend},
+    iced_runtime::{Debug, program},
+    iced_wgpu::{self, Backend, wgpu},
     iced_winit::{conversion, winit},
 };
+use ensnano_interactor::{ActionMode, HyperboloidRequest, RollRequest, SelectionMode};
 use ensnano_interactor::{
+    InsertionPoint, Multiplexer, PastingStatus, RevolutionSurfaceSystemDescriptor, ScaffoldInfo,
+    Selection, SimulationState, UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
     app_state_parameters::{AppStateParameters, CheckXoversParameter, SuggestionParameters},
     graphics::{
         Background3D, DrawArea, FogParameters, GuiComponentType, HBondDisplay, RenderingMode,
         SplitMode,
     },
     operation::Operation,
-    InsertionPoint, Multiplexer, PastingStatus, RevolutionSurfaceSystemDescriptor, ScaffoldInfo,
-    Selection, SimulationState, UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
 };
-use ensnano_interactor::{ActionMode, HyperboloidRequest, RollRequest, SelectionMode};
 pub use ensnano_organizer::OrganizerTree;
-use iced::{event::Event, keyboard, Renderer, Size};
+use iced::{Renderer, Size, event::Event, keyboard};
 use std::{
     collections::{BTreeSet, HashMap},
     rc::Rc,
@@ -223,7 +222,7 @@ pub trait Requests: 'static + Send {
     fn set_position_of_bezier_vertex(&mut self, vertex_id: BezierVertexId, position: Vec2);
     fn optimize_scaffold_shift(&mut self);
     fn start_revolution_relaxation(&mut self, desc: RevolutionSurfaceSystemDescriptor);
-    fn finish_revolutiion_relaxation(&mut self);
+    fn finish_revolution_relaxation(&mut self);
     fn load_svg(&mut self);
     fn set_bezier_revolution_radius(&mut self, radius: f64);
     fn set_bezier_revolution_id(&mut self, id: Option<usize>);
@@ -276,7 +275,7 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
 
     fn queue_top_bar_message(&mut self, message: top_bar::Message<S>) {
         log::trace!("Queue top bar {:?}", message);
-        if let GuiState::TopBar(ref mut state) = self {
+        if let GuiState::TopBar(state) = self {
             state.queue_message(message)
         } else {
             panic!("wrong message type")
@@ -285,7 +284,7 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
 
     fn queue_left_panel_message(&mut self, message: left_panel::Message<S>) {
         log::trace!("Queue left panel {:?}", message);
-        if let GuiState::LeftPanel(ref mut state) = self {
+        if let GuiState::LeftPanel(state) = self {
             state.queue_message(message)
         } else {
             panic!("wrong message type")
@@ -294,7 +293,7 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
 
     fn queue_status_bar_message(&mut self, message: status_bar::Message<S>) {
         log::trace!("Queue status_bar {:?}", message);
-        if let GuiState::StatusBar(ref mut state) = self {
+        if let GuiState::StatusBar(state) = self {
             state.queue_message(message)
         } else {
             panic!("wrong message type")
@@ -303,16 +302,14 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
 
     fn resize(&mut self, area: DrawArea, window: &Window) {
         match self {
-            GuiState::TopBar(ref mut state) => state.queue_message(top_bar::Message::Resize(
+            GuiState::TopBar(state) => state.queue_message(top_bar::Message::Resize(
                 area.size.to_logical(window.scale_factor()),
             )),
-            GuiState::LeftPanel(ref mut state) => {
-                state.queue_message(left_panel::Message::Resized(
-                    area.size.to_logical(window.scale_factor()),
-                    area.position.to_logical(window.scale_factor()),
-                ))
-            }
-            GuiState::StatusBar(ref mut state) => state.queue_message(status_bar::Message::Resize(
+            GuiState::LeftPanel(state) => state.queue_message(left_panel::Message::Resized(
+                area.size.to_logical(window.scale_factor()),
+                area.position.to_logical(window.scale_factor()),
+            )),
+            GuiState::StatusBar(state) => state.queue_message(status_bar::Message::Resize(
                 area.size.to_logical(window.scale_factor()),
             )),
         }
@@ -381,14 +378,14 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
             _ => panic!("Unhandled renderer"),
         };
         match self {
-            GuiState::TopBar(ref state) => *mouse_interaction = state.mouse_interaction(),
-            GuiState::LeftPanel(ref state) => {
+            GuiState::TopBar(state) => *mouse_interaction = state.mouse_interaction(),
+            GuiState::LeftPanel(state) => {
                 let icon = state.mouse_interaction();
                 if icon > *mouse_interaction {
                     *mouse_interaction = icon;
                 }
             }
-            GuiState::StatusBar(ref state) => {
+            GuiState::StatusBar(state) => {
                 let icon = state.mouse_interaction();
                 if icon > *mouse_interaction {
                     *mouse_interaction = icon;

@@ -18,13 +18,12 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::insertions::InstanciatedInsertion;
 use super::scadnano::*;
-use super::{codenano, Helices, HelixCollection, Nucl, VirtualNucl};
+use super::{Helices, HelixCollection, Nucl, VirtualNucl, codenano};
+use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 use std::collections::BTreeMap;
 use std::sync::Arc;
 mod formating;
-
-extern crate serde_hex;
 
 /// A collection of strands, that maps strand identifier to strands.
 ///
@@ -252,7 +251,7 @@ pub struct Strand {
     pub is_cyclic: bool,
     /// Color of this strand. If skipped, a default color will be
     /// chosen automatically.
-    #[serde(default)] // with = "SerHex",
+    #[serde(default)]
     pub color: u32,
     /// A name of the strand, used for strand export. If the name is `None`, the exported strand
     /// will be given a name corresponding to the position of its 5' nucleotide

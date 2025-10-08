@@ -17,10 +17,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use super::super::DesignReader;
 use super::*;
-use ensnano_design::{grid::GridId, BezierVertexId};
+use ensnano_design::{BezierVertexId, grid::GridId};
 use ensnano_iced::{
     helpers::*,
-    iced::{self, alignment::Horizontal, Alignment},
+    iced::{self, Alignment, alignment::Horizontal},
     theme,
 };
 use ensnano_interactor::{Selection, SimulationState};
@@ -576,9 +576,11 @@ fn add_help_to_column<'a, State: AppState>(
             if l.is_empty() {
                 row![Space::with_width(10)]
             } else if r.is_empty() {
-                row![text(l)
-                    .width(Length::Fill)
-                    .horizontal_alignment(Horizontal::Center)]
+                row![
+                    text(l)
+                        .width(Length::Fill)
+                        .horizontal_alignment(Horizontal::Center)
+                ]
             } else {
                 row![
                     text(l)

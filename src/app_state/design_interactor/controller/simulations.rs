@@ -27,8 +27,8 @@ use ensnano_interactor::{RevolutionSurfaceSystemDescriptor, RigidBodyConstants};
 use mathru::{
     algebra::linear::vector::vector::Vector,
     analysis::differential_equation::ordinary::{
-        solver::runge_kutta::{explicit::fixed::FixedStepper, ExplicitEuler, Kutta3},
         ExplicitODE,
+        solver::runge_kutta::{ExplicitEuler, Kutta3, explicit::fixed::FixedStepper},
     },
 };
 use ordered_float::OrderedFloat;
@@ -549,7 +549,7 @@ impl HelixSystem {
             state[entry + 2] += 10. * self.rigid_parameters.brownian_amplitude * gz;
             if let ShakeTarget::Helix(_) = nucl {
                 let delta_roll =
-                    rnd.gen::<f32>() * 2. * std::f32::consts::PI - std::f32::consts::PI;
+                    rnd.r#gen::<f32>() * 2. * std::f32::consts::PI - std::f32::consts::PI;
                 let mut iterator = state.iter().skip(entry + 3);
                 let rotation = Rotor3::new(
                     *iterator.next().unwrap(),
@@ -1238,11 +1238,7 @@ fn read_intervals(presenter: &Presenter) -> Result<IntervalResult, ErrOperation>
                                 current_helix.unwrap()
                             } else {
                                 if let Some(helix) = starting_helix.take() {
-                                    if let Some(n) = helix {
-                                        n + 1
-                                    } else {
-                                        0
-                                    }
+                                    if let Some(n) = helix { n + 1 } else { 0 }
                                 } else {
                                     helix_map.push(nucl.helix);
                                     intervals.push((moving_nucl.position, moving_nucl.position));

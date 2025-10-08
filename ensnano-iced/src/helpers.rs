@@ -16,12 +16,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 pub use crate::widgets::*;
-use crate::{fonts::*, UiSize};
+use crate::{UiSize, fonts::*};
 pub use iced::widget::*;
 use iced::{
-    advanced,
+    Font, Length, advanced,
     alignment::{Alignment, Horizontal, Vertical},
-    Font, Length,
 };
 
 ///

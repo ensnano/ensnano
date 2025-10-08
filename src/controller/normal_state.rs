@@ -23,14 +23,14 @@ use crate::app_state::design_interactor::controller::{
     clipboard::PastePosition, simulations::SimulationOperation,
 };
 use ensnano_design::{
+    HelixParameters,
     grid::{GridDescriptor, GridId, GridTypeDescr},
     group_attributes::GroupPivot,
-    HelixParameters,
 };
 use ensnano_interactor::{
-    application::Notification, consts::ENS_EXTENSION, graphics::FogParameters, DesignOperation,
-    HyperboloidOperation, HyperboloidRequest, RevolutionSurfaceSystemDescriptor,
-    RigidBodyConstants, RollRequest,
+    DesignOperation, HyperboloidOperation, HyperboloidRequest, RevolutionSurfaceSystemDescriptor,
+    RigidBodyConstants, RollRequest, application::Notification, consts::ENS_EXTENSION,
+    graphics::FogParameters,
 };
 use std::sync::Arc;
 
