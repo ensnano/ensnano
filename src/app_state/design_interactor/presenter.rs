@@ -32,7 +32,7 @@ use design_content::DesignContent;
 use ensnano_design::{BezierPathId, Extremity, HelixCollection, InstanciatedPiecewiseBezier, Nucl};
 use ensnano_interactor::{
     application::Camera3D, NeighborDescriptor, NeighborDescriptorGiver, Referential, ScaffoldInfo,
-    Selection, SuggestionParameters,
+    Selection,
 };
 use ensnano_scene::{HBond, HalfHBond};
 use ensnano_utils::id_generator::IdGenerator;

@@ -28,6 +28,7 @@ use ensnano_design::{
 };
 use std::path::PathBuf;
 use ultraviolet::{Isometry2, Rotor3, Vec2, Vec3};
+pub mod app_state_parameters;
 pub mod graphics;
 mod selection;
 pub use selection::*;
@@ -42,9 +43,6 @@ use ensnano_organizer::GroupId;
 mod operation_labels;
 mod surfaces;
 pub use surfaces::*;
-
-mod app_state_parameters;
-pub use app_state_parameters::{AppStateParameters, CheckXoversParameter, SuggestionParameters};
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub enum ObjectType {

@@ -23,11 +23,12 @@ use ensnano_design::{
     group_attributes::GroupPivot, ultraviolet, BezierVertexId, Nucl,
 };
 use ensnano_interactor::{
+    app_state_parameters::CheckXoversParameter,
     application::{AppId, Application, Camera3D, Notification},
     graphics::DrawArea,
     operation::*,
-    ActionMode, CenterOfSelection, CheckXoversParameter, DesignOperation, NewBezierTangentVector,
-    Selection, SelectionMode, StrandBuilder, UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
+    ActionMode, CenterOfSelection, DesignOperation, NewBezierTangentVector, Selection,
+    SelectionMode, StrandBuilder, UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
 };
 use ensnano_utils::{
     filename,

@@ -32,9 +32,9 @@ use ensnano_design::{
 };
 use ensnano_exports::{ExportResult, ExportType};
 use ensnano_interactor::{
-    consts::UPDATE_VISIBILITY_SIEVE_LABEL, operation::Operation, DesignOperation,
-    RevolutionSurfaceSystemDescriptor, RigidBodyConstants, Selection, SimulationState,
-    StrandBuilder, SuggestionParameters,
+    app_state_parameters::SuggestionParameters, consts::UPDATE_VISIBILITY_SIEVE_LABEL,
+    operation::Operation, DesignOperation, RevolutionSurfaceSystemDescriptor, RigidBodyConstants,
+    Selection, SimulationState, StrandBuilder,
 };
 use ensnano_organizer::GroupId;
 pub use presenter::SimulationUpdate;

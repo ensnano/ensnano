@@ -39,9 +39,9 @@ use ensnano_iced::{
     UiSize,
 };
 use ensnano_interactor::{
+    app_state_parameters::{AppStateParameters, CheckXoversParameter, SuggestionParameters},
     graphics::{Background3D, HBondDisplay, RenderingMode},
-    ActionMode, AppStateParameters, CheckXoversParameter, EquadiffSolvingMethod,
-    HyperboloidRequest, Selection, SelectionConversion, SuggestionParameters,
+    ActionMode, EquadiffSolvingMethod, HyperboloidRequest, Selection, SelectionConversion,
 };
 use ensnano_organizer::{Organizer, OrganizerMessage, OrganizerTree};
 use std::sync::{Arc, Mutex};

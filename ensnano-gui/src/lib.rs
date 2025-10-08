@@ -61,14 +61,14 @@ use ensnano_iced::{
     iced_winit::{conversion, winit},
 };
 use ensnano_interactor::{
+    app_state_parameters::{AppStateParameters, CheckXoversParameter, SuggestionParameters},
     graphics::{
         Background3D, DrawArea, FogParameters, GuiComponentType, HBondDisplay, RenderingMode,
         SplitMode,
     },
     operation::Operation,
-    AppStateParameters, CheckXoversParameter, InsertionPoint, PastingStatus,
-    RevolutionSurfaceSystemDescriptor, ScaffoldInfo, Selection, SimulationState,
-    SuggestionParameters, UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
+    InsertionPoint, PastingStatus, RevolutionSurfaceSystemDescriptor, ScaffoldInfo, Selection,
+    SimulationState, UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
 };
 use ensnano_interactor::{ActionMode, HyperboloidRequest, RollRequest, SelectionMode};
 pub use ensnano_organizer::OrganizerTree;

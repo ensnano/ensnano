@@ -47,11 +47,11 @@ use ensnano_exports::{ExportResult, ExportType};
 use ensnano_gui::StrandBuildingStatus;
 use ensnano_iced::UiSize;
 use ensnano_interactor::{
+    app_state_parameters::{AppStateParameters, CheckXoversParameter, SuggestionParameters},
     consts::{APP_NAME, ENS_BACKUP_EXTENSION, ENS_EXTENSION},
     graphics::{Background3D, HBondDisplay, RenderingMode},
     operation::Operation,
-    ActionMode, AppStateParameters, CenterOfSelection, CheckXoversParameter, DesignOperation,
-    RigidBodyConstants, Selection, SelectionMode, SuggestionParameters,
+    ActionMode, CenterOfSelection, DesignOperation, RigidBodyConstants, Selection, SelectionMode,
     UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
 };
 use ensnano_organizer::GroupId;

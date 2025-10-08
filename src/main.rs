@@ -122,6 +122,7 @@ use {
         theme, UiSize,
     },
     ensnano_interactor::{
+        app_state_parameters::{AppStateParameters, CheckXoversParameter, SuggestionParameters},
         application::{Application, Notification},
         consts::{
             APP_NAME, ENS_BACKUP_EXTENSION, ENS_UNNAMED_FILE_NAME, NO_DESIGN_TITLE,
@@ -129,10 +130,9 @@ use {
         },
         graphics::{GuiComponentType, SplitMode},
         operation::Operation,
-        ActionMode, AppStateParameters, CenterOfSelection, CheckXoversParameter, CursorIcon,
-        DesignOperation, DesignReader, DesignRotation, DesignTranslation, IsometryTarget,
-        RevolutionSurfaceSystemDescriptor, RigidBodyConstants, Selection, SelectionMode,
-        SuggestionParameters, UnrootedRevolutionSurfaceDescriptor,
+        ActionMode, CenterOfSelection, CursorIcon, DesignOperation, DesignReader, DesignRotation,
+        DesignTranslation, IsometryTarget, RevolutionSurfaceSystemDescriptor, RigidBodyConstants,
+        Selection, SelectionMode, UnrootedRevolutionSurfaceDescriptor,
     },
     ensnano_scene::{AppState as _, DesignReader as _, Scene, SceneKind},
     ensnano_utils::{PhySize, TEXTURE_FORMAT},

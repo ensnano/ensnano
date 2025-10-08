@@ -27,8 +27,8 @@ use ensnano_iced::{
     theme,
 };
 use ensnano_interactor::{
+    app_state_parameters::AppStateParameters,
     graphics::{Background3D, RenderingMode, ALL_BACKGROUND3D, ALL_RENDERING_MODE},
-    AppStateParameters,
 };
 use std::marker::PhantomData;
 
