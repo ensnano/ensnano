@@ -38,13 +38,16 @@ ensnano_utils = { path = "ensnano-utils" }
 ahash = "0.8.6"
 bytemuck = "1.2.0"
 chebyshev_polynomials = { git = "https://github.com/thenlevy/chebyshev_polynomials" }
+chrono = "0.4"
 color_space = "0.5.2"
 confy = { version = "1.0.0", default-features = false, features = [
     "yaml_conf",
 ] }
 dirs = "4.0"
+fontdue = "0.6.4"
 futures = "0.3.5"
 futures-channel = "0.3.30"
+gltf = "0.16.0"
 iced = { version = "0.12", features = ["advanced", "image", "svg"] }
 iced_aw = { version = "0.9", default-features = false, features = [
     "tabs",
@@ -66,6 +69,7 @@ itertools = "0.10.3"
 log = "0.4"
 lyon = { git = "https://github.com/nical/lyon", rev = "ea6d904c6c9ec0445c5653c119a48c43ea76cee9" }
 mathru = "0.13"
+nom_stl = "0.2.2"
 num_enum = "0.5.1"
 open = "1"
 ordered-float = { version = "2.0", features = ["serde"] }
@@ -74,7 +78,7 @@ pathdiff = "0.2.1"
 png = "0.17.5"
 pretty_env_logger = "0.4"
 quadrature = "0.1.2"
-rand = "0.8.4"
+rand = "0.8.5"
 rand_distr = "0.4.0"
 rayon = "1.6.0"
 regex = "1.4.2"
@@ -93,6 +97,7 @@ ultraviolet = { git = "https://github.com/termhn/ultraviolet", rev = "b2fb29e", 
     "serde",
 ] }
 version-compare = "0.1.0"
+wgpu = { version = "0.19", features = ["spirv"] }
 
 [dependencies]
 ensnano_design.workspace = true
