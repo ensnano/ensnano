@@ -43,8 +43,6 @@ pub use ensnano_design::{Camera, CameraId, grid::GridId};
 pub use status_bar::{ClipboardContent, CurrentOpState, StrandBuildingStatus};
 mod consts;
 
-#[macro_use]
-extern crate paste;
 mod icon;
 
 use status_bar::StatusBar;
