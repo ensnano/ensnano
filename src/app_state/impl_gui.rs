@@ -20,6 +20,7 @@ use super::*;
 use ensnano_design::{elements::DesignElementKey, HelixParameters};
 use ensnano_gui::AppState as GuiState;
 use ensnano_gui::ClipboardContent;
+use ensnano_interactor::PastingStatus;
 use ensnano_interactor::{ScaffoldInfo, SelectionConversion, SimulationState};
 
 mod curve_builders;

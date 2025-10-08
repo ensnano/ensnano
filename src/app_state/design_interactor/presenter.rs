@@ -17,15 +17,15 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 pub mod design_content;
-mod impl_main_reader;
-mod impl_reader2d;
-mod impl_reader3d;
-mod impl_readergui;
+pub mod impl_main_reader;
+pub mod impl_reader2d;
+pub mod impl_reader3d;
+pub mod impl_readergui;
 
 use crate::app_state::design_interactor::presenter::design_content::NuclCollection;
 
 #[cfg(test)]
-pub use self::design_content::Staple;
+use self::design_content::Staple;
 
 use super::*;
 use design_content::DesignContent;

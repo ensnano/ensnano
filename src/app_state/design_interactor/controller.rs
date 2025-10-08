@@ -16,10 +16,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-mod clipboard;
-mod shift_optimization;
-mod simulations;
-mod update_insertion_length;
+pub mod clipboard;
+pub mod shift_optimization;
+pub mod simulations;
+pub mod update_insertion_length;
 
 use super::SimulationUpdate;
 use crate::{
@@ -27,7 +27,7 @@ use crate::{
     controller::ChannelReader,
 };
 use clipboard::{Clipboard, PastedStrand, StrandClipboard};
-pub use clipboard::{CopyOperation, PastePosition};
+use clipboard::{CopyOperation, PastePosition};
 use ensnano_design::{
     drawing_style::{DrawingAttribute, DrawingStyle},
     elements::{DesignElementKey, DnaAttribute},
@@ -41,7 +41,7 @@ use ensnano_design::{
     HelixCollection, HelixInterval, Nucl, Strand, Strands, UpToDateDesign,
 };
 use ensnano_gui::ClipboardContent;
-pub use ensnano_interactor::PastingStatus;
+use ensnano_interactor::PastingStatus;
 use ensnano_interactor::{
     operation::{Operation, TranslateBezierPathVertex},
     BezierControlPoint, BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation,
@@ -51,12 +51,12 @@ use ensnano_interactor::{
 use ensnano_organizer::GroupId;
 use ensnano_utils::colors;
 pub use shift_optimization::ShiftOptimizationResult;
+pub use simulations::SimulationInterface;
 use simulations::{
     GridSystemInterface, GridsSystemThread, HelixSystemInterface, HelixSystemThread,
     PhysicalSystem, RevolutionSystemInterface, RevolutionSystemThread, RollInterface,
-    TwistInterface,
+    SimulationOperation, TwistInterface,
 };
-pub use simulations::{SimulationInterface, SimulationOperation};
 use std::{
     borrow::Cow,
     collections::{BTreeMap, HashMap},
@@ -67,7 +67,7 @@ use std::{
 use ultraviolet::{Isometry2, Rotor3, Vec2, Vec3};
 
 #[derive(Clone, Default)]
-pub(super) struct Controller {
+pub struct Controller {
     color_idx: usize,
     state: ControllerState,
     clipboard: AddressPointer<Clipboard>,

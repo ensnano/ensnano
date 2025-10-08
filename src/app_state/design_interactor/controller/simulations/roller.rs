@@ -22,7 +22,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! normal distance between two consecutive nucleotides.
 
 use super::{Helix, HelixParameters, Nucl};
-use crate::{app_state::design_interactor::presenter::Presenter, controller::ChannelReader};
+use crate::{
+    app_state::design_interactor::presenter::{Presenter, SimulationUpdate},
+    controller::ChannelReader,
+};
 use std::{
     collections::HashMap,
     f32::consts::{PI, SQRT_2},
@@ -381,7 +384,7 @@ pub struct RollInterface {
 }
 
 impl super::SimulationInterface for RollInterface {
-    fn get_simulation_state(&mut self) -> Option<Box<dyn crate::app_state::SimulationUpdate>> {
+    fn get_simulation_state(&mut self) -> Option<Box<dyn SimulationUpdate>> {
         let s = self.new_state.take()?;
         Some(Box::new(s))
     }

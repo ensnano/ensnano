@@ -19,7 +19,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! This module defines the [ChannelReader] struct which is in charge of communication with
 //! computation threads that can be spawned by the program
 
-use crate::app_state::{ShiftOptimizationResult, SimulationInterface, SimulationUpdate};
+use crate::app_state::design_interactor::{
+    controller::{shift_optimization::ShiftOptimizationResult, simulations::SimulationInterface},
+    presenter::SimulationUpdate,
+};
 use std::sync::{mpsc, Arc, Mutex, Weak};
 
 #[derive(Default)]
