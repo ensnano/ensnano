@@ -17,6 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use crate::MaterialColor;
+use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
 #[derive(Serialize, PartialEq, Deserialize, Clone, Debug, Copy)]

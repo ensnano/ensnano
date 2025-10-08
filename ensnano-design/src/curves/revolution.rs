@@ -16,13 +16,12 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use crate::{curves::torus::PointOnSurface_, utils::dvec_to_vec};
-
 use super::*;
+use crate::{curves::torus::PointOnSurface_, utils::dvec_to_vec};
+use chebyshev_polynomials::ChebyshevPolynomial;
+use serde::{Deserialize, Serialize};
 use std::f64::consts::{PI, TAU};
 use ultraviolet::{DRotor2, DVec2, Mat3};
-
-use chebyshev_polynomials::ChebyshevPolynomial;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct InterpolatedCurveDescriptor {

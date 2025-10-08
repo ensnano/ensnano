@@ -45,6 +45,17 @@ confy = { version = "1.0.0", default-features = false, features = [
 dirs = "4.0"
 futures = "0.3.5"
 futures-channel = "0.3.29"
+iced = { version = "0.12", features = ["advanced", "image", "svg"] }
+iced_aw = { version = "0.9", default-features = false, features = [
+    "tabs",
+    "tab_bar",
+] }
+iced_futures = "0.12"
+iced_graphics = "0.12"
+iced_runtime = "0.12"
+iced_wgpu = "0.12"
+iced_widget = "0.12"
+iced_winit = "0.12"
 icondata = { version = "0.6", default-features = false, features = [
     "bootstrap-icons",
     "material-design-icons",

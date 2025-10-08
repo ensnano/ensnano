@@ -16,11 +16,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use std::collections::hash_map::RandomState;
-use std::collections::HashMap;
-use std::hash::Hash;
-
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
+use std::{
+    collections::{hash_map::RandomState, HashMap},
+    hash::Hash,
+};
 
 /// A tree-like structure that references and organize all the data being edited.
 #[derive(Clone, Debug, Serialize)]
@@ -28,7 +28,7 @@ pub enum OrganizerTree<K> {
     Leaf(K),
     Node {
         name: String,
-        #[serde(alias = "childrens")]
+        #[serde(alias = "childrens")] // cspell:disable-line
         children: Vec<OrganizerTree<K>>,
         expanded: bool,
         #[serde(default)]
@@ -176,7 +176,7 @@ enum NewOrganizerTree<K> {
     Leaf(K),
     Node {
         name: String,
-        #[serde(alias = "childrens")]
+        #[serde(alias = "childrens")] // cspell:disable-line
         children: Vec<OrganizerTree<K>>,
         expanded: bool,
         #[serde(default)]

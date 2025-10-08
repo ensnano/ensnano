@@ -22,6 +22,7 @@ use super::HelixParameters;
 use crate::grid::*;
 use crate::utils::rotor_to_drotor;
 use crate::PieceWiseBezierInstantiator;
+use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::sync::Arc;
 use ultraviolet::{DMat3, DVec3, Mat3, Rotor3, Vec2, Vec3};

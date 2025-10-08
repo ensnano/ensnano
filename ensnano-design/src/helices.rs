@@ -27,6 +27,7 @@ use super::{
     utils::*,
     BezierPathId, HelixParameters, Nucl,
 };
+use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::sync::Arc;
 use ultraviolet::{DRotor3, DVec3, Isometry2, Mat4, Rotor3, Vec2, Vec3};

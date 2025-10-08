@@ -17,9 +17,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use crate::drawing_style::ParsePointError;
-use std::collections::HashMap;
-use std::f32::consts::PI;
-use std::str::FromStr;
+use serde::{Deserialize, Serialize};
+use std::{collections::HashMap, f32::consts::PI, str::FromStr};
 use ultraviolet::*;
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug)]

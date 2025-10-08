@@ -19,6 +19,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::*;
 
 use chebyshev_polynomials::ChebyshevPolynomial;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PolynomialCoordinates {

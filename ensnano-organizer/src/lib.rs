@@ -10,10 +10,6 @@ use {
     },
 };
 
-#[macro_use]
-extern crate serde_derive;
-extern crate serde;
-
 pub mod drag_drop_target;
 pub mod element;
 pub mod hoverable_container;

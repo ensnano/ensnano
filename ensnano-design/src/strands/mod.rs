@@ -19,6 +19,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::insertions::InstanciatedInsertion;
 use super::scadnano::*;
 use super::{codenano, Helices, HelixCollection, Nucl, VirtualNucl};
+use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 use std::collections::BTreeMap;
 use std::sync::Arc;

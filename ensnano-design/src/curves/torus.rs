@@ -16,14 +16,13 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use crate::{HelixParameters, InstanciatedPiecewiseBezier};
-
 use super::Curved;
+use crate::{HelixParameters, InstanciatedPiecewiseBezier};
+use ordered_float::OrderedFloat;
+use serde::{Deserialize, Serialize};
+use std::f64::consts::TAU;
 use std::sync::Arc;
 use ultraviolet::{DVec2, DVec3, Isometry3, Rotor3};
-
-use ordered_float::OrderedFloat;
-use std::f64::consts::TAU;
 
 const INTER_HELIX_GAP: f64 = crate::HelixParameters::DEFAULT.helix_radius as f64
     + crate::HelixParameters::DEFAULT.inter_helix_gap as f64 / 2.;

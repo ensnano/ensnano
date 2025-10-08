@@ -941,7 +941,6 @@ dependencies = [
  "relative-path",
  "serde",
  "serde-hex",
- "serde_derive",
  "serde_json",
  "serde_with",
  "strum",
@@ -1014,7 +1013,6 @@ dependencies = [
  "icondata",
  "log",
  "serde",
- "serde_derive",
 ]
 
 [[package]]

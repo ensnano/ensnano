@@ -39,6 +39,7 @@ mod hyperboloid;
 pub use copy_grid::GridCopyError;
 pub use grid_collection::*;
 pub use hyperboloid::*;
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
 use ultraviolet::{Rotor3, Vec2, Vec3};

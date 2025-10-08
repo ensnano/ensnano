@@ -18,6 +18,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::Curved;
 use crate::HelixParameters;
+use serde::{Deserialize, Serialize};
 use std::f64::consts::TAU;
 use ultraviolet::DVec3;
 

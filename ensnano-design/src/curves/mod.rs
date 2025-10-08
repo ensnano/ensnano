@@ -16,6 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+use serde::{Deserialize, Serialize};
 use ultraviolet::{DMat3, DVec3, Isometry2, Rotor3, Vec2, Vec3};
 const EPSILON: f64 = 1e-6;
 

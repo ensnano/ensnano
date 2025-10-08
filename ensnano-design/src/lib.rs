@@ -27,10 +27,8 @@ use std::sync::Arc;
 mod material_colors;
 use material_colors::MaterialColor;
 
-#[macro_use]
-extern crate serde_derive;
-extern crate serde;
 pub use bezier_plane::*;
+use serde::{Deserialize, Serialize};
 pub use ultraviolet;
 
 pub mod codenano;
