@@ -25,7 +25,6 @@ rand_distr.workspace = true
 regex.workspace = true
 relative-path.workspace = true
 serde.workspace = true
-serde-hex.workspace = true
 serde_json.workspace = true
 serde_with.workspace = true
 strum.workspace = true
