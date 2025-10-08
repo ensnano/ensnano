@@ -237,7 +237,7 @@ impl<R: Requests, S: AppState> LeftPanel<R, S> {
             ui_size: app_state_parameters.ui_size,
             grid_tab: GridTab::new(),
             edition_tab: EditionTab::new(),
-            camera_tab: CameraTab::new(),
+            camera_tab: CameraTab::new(app_state_parameters),
             simulation_tab: SimulationTab::new(),
             sequence_tab: SequenceTab::new(),
             parameters_tab: ParametersTab::new(state),
