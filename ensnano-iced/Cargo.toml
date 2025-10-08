@@ -1,6 +1,6 @@
 [package]
 name = "ensnano_iced"
-version = "0.1.0"
+version = "0.7.0"
 authors = ["Joris Picot <joris.picot@ens-lyon.fr"]
 license = "GPL-3.0-or-later"
 edition = "2024"

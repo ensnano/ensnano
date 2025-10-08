@@ -1,6 +1,6 @@
 [package]
 name = "ensnano_interactor"
-version = "0.2.1"
+version = "0.7.0"
 authors = ["thenlevy <nicolaspierrelevy@gmail.com>"]
 edition = "2024"
 license = "GPL-3.0-or-later"

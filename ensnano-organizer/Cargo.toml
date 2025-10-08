@@ -1,6 +1,6 @@
 [package]
 name = "ensnano_organizer"
-version = "0.1.0"
+version = "0.7.0"
 authors = ["nlevy <nicolaspierrelevy@gmail.com>"]
 edition = "2024"
 

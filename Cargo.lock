@@ -941,7 +941,7 @@ dependencies = [
 
 [[package]]
 name = "ensnano_exports"
-version = "0.1.0"
+version = "0.7.0"
 dependencies = [
  "ahash 0.8.12",
  "ensnano_design",
@@ -954,7 +954,7 @@ dependencies = [
 
 [[package]]
 name = "ensnano_flatscene"
-version = "0.4.0"
+version = "0.7.0"
 dependencies = [
  "ahash 0.8.12",
  "bytemuck",
@@ -971,7 +971,7 @@ dependencies = [
 
 [[package]]
 name = "ensnano_gui"
-version = "0.4.0"
+version = "0.7.0"
 dependencies = [
  "color_space",
  "ensnano_design",
@@ -989,7 +989,7 @@ dependencies = [
 
 [[package]]
 name = "ensnano_iced"
-version = "0.1.0"
+version = "0.7.0"
 dependencies = [
  "color_space",
  "iced",
@@ -1007,7 +1007,7 @@ dependencies = [
 
 [[package]]
 name = "ensnano_interactor"
-version = "0.2.1"
+version = "0.7.0"
 dependencies = [
  "ensnano_design",
  "ensnano_iced",
@@ -1020,7 +1020,7 @@ dependencies = [
 
 [[package]]
 name = "ensnano_organizer"
-version = "0.1.0"
+version = "0.7.0"
 dependencies = [
  "ensnano_iced",
  "icondata",
@@ -1031,7 +1031,7 @@ dependencies = [
 
 [[package]]
 name = "ensnano_scene"
-version = "0.4.0"
+version = "0.7.0"
 dependencies = [
  "bytemuck",
  "ensnano_design",
@@ -1050,7 +1050,7 @@ dependencies = [
 
 [[package]]
 name = "ensnano_utils"
-version = "0.4.0"
+version = "0.7.0"
 dependencies = [
  "ahash 0.8.12",
  "bytemuck",
