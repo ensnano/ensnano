@@ -7,6 +7,7 @@ members = [
     "ensnano-iced",
     "ensnano-interactor",
     "ensnano-organizer",
+    "ensnano-physics",
     "ensnano-scene",
     "ensnano-utils",
 ]
@@ -20,6 +21,10 @@ authors = [
 ]
 edition = "2024"
 license = "GPL-3.0-or-later"
+
+# Enable max optimizations for dependencies, but not for our code:
+[profile.dev.package."*"]
+opt-level = 3
 
 [package]
 name = "ensnano"
@@ -39,6 +44,7 @@ ensnano_interactor = { path = "ensnano-interactor" }
 ensnano_organizer = { path = "ensnano-organizer" }
 ensnano_scene = { path = "ensnano-scene" }
 ensnano_utils = { path = "ensnano-utils" }
+ensnano_physics = { path = "ensnano-physics" }
 
 ahash = "0.8.6"
 bytemuck = "1.2.0"
@@ -113,6 +119,7 @@ ensnano_interactor.workspace = true
 ensnano_organizer.workspace = true
 ensnano_scene.workspace = true
 ensnano_utils.workspace = true
+ensnano_physics.workspace = true
 
 ahash.workspace = true
 chebyshev_polynomials.workspace = true

@@ -28,9 +28,9 @@ use ensnano_design::{
     group_attributes::GroupPivot,
 };
 use ensnano_interactor::{
-    DesignOperation, HyperboloidOperation, HyperboloidRequest, RevolutionSurfaceSystemDescriptor,
-    RigidBodyConstants, RollRequest, application::Notification, consts::ENS_EXTENSION,
-    graphics::FogParameters,
+    DesignOperation, HyperboloidOperation, HyperboloidRequest, RapierSimulationRequest,
+    RevolutionSurfaceSystemDescriptor, RigidBodyConstants, RollRequest, application::Notification,
+    consts::ENS_EXTENSION, graphics::FogParameters,
 };
 use std::sync::Arc;
 
@@ -199,6 +199,14 @@ impl State for NormalState {
                 }
                 Action::RollHelices(roll) => {
                     main_state.set_roll_of_selected_helices(roll);
+                    self
+                }
+                Action::RapierSimulationRequest(request) => {
+                    match request {
+                        RapierSimulationRequest::Start => {
+                            main_state.main_state().start_rapier_simulation();
+                        }
+                    }
                     self
                 }
                 Action::ResetSimulation => {
@@ -460,6 +468,7 @@ pub enum Action {
     ToggleHelicesPersistence(bool),
     ToggleSmallSphere(bool),
     RollRequest(RollRequest),
+    RapierSimulationRequest(RapierSimulationRequest),
     StopSimulation,
     RollHelices(f32),
     Copy,

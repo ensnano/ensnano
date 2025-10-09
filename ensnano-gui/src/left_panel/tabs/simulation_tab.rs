@@ -170,6 +170,7 @@ impl<State: AppState> GuiTab<State> for SimulationTab<State> {
                     sim_state.simulating_grid()
                 ),
                 Self::helix_btns(&self.rigid_helices_button, app_state, ui_size,),
+                text_button("Rapier Simulation", ui_size,).on_press(Message::StartRapierSimulation),
             ]
             .spacing(ui_size.button_spacing()),
             subsection("Parameters for helices simulation", ui_size),
@@ -217,7 +218,7 @@ impl PhysicalSimulation {
             button.style(theme::Button::Positive)
         };
         if active {
-            button = button.on_press(Message::SimRequest);
+            button = button.on_press(Message::RollSimulationRequest);
         }
         row![button].into()
     }

@@ -89,7 +89,7 @@ impl NuclCollection {
 }
 
 #[derive(Default, Clone)]
-pub(super) struct DesignContent {
+pub struct DesignContent {
     /// Maps identifier of elements to their object type
     pub object_type: HashMap<u32, ObjectType, RandomState>,
     /// Maps identifier of nucleotide to Nucleotide objects

@@ -124,6 +124,10 @@ impl ensnano_gui::Requests for Requests {
         self.roll_request = Some(request);
     }
 
+    fn request_rapier_simulation(&mut self, request: RapierSimulationRequest) {
+        self.rapier_simulation_request = Some(request);
+    }
+
     fn make_grid_from_selection(&mut self) {
         self.make_grids = Some(());
     }

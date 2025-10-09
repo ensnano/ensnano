@@ -16,9 +16,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-mod revolutions;
-mod roller;
-mod twister;
+pub mod rapier;
+pub mod revolutions;
+pub mod roller;
+pub mod twister;
 
 use super::*;
 use crate::app_state::design_interactor::Presenter;
@@ -34,14 +35,11 @@ use mathru::{
 use ordered_float::OrderedFloat;
 use rand::Rng;
 use rand_distr::{Exp, StandardNormal};
-pub use revolutions::*;
-pub use roller::{PhysicalSystem, RollInterface};
 use std::{
     cmp::Reverse,
     collections::{BinaryHeap, HashMap},
     sync::{Arc, Mutex, Weak},
 };
-pub use twister::{TwistInterface, Twister};
 use ultraviolet::{Bivec3, Mat3};
 
 const MAX_DERIVATIVE_NORM: f32 = 1e4;
@@ -1329,6 +1327,10 @@ pub enum SimulationOperation<'pres, 'reader> {
         reader: &'reader mut ChannelReader,
     },
     FinishRelaxation,
+    StartRapierSimulation {
+        presenter: &'pres Presenter,
+        reader: &'reader mut ChannelReader,
+    },
 }
 
 pub trait SimulationInterface: Send {
