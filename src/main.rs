@@ -1314,6 +1314,18 @@ impl MainState {
         self.apply_operation_result(result);
     }
 
+    fn start_rapier_simulation(&mut self) {
+        let presenter = self.app_state.0.design.presenter.clone();
+        let result = self
+            .app_state
+            .start_simulation(SimulationOperation::StartRapierSimulation {
+                presenter: presenter.as_ref(),
+                reader: &mut self.channel_reader,
+            });
+        self.apply_operation_result(result);
+    }
+
+    // NOTE : rename to apply_simulation_operation
     fn update_simulation(&mut self, request: SimulationOperation) {
         let result = self.app_state.update_simulation(request);
         self.apply_operation_result(result);
@@ -1748,6 +1760,10 @@ impl<'a> MainStateView<'a> {
         {
             self.main_state.last_backup_date = Instant::now()
         }
+    }
+
+    fn main_state(&mut self) -> &mut MainState {
+        &mut self.main_state
     }
 
     fn need_backup(&self) -> bool {

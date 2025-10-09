@@ -1,0 +1,12 @@
+[package]
+name = "ensnano_physics"
+version = "0.1.0"
+authors = ["Pacôme Perrotin <pacome.perrotin@gmail.com>"]
+edition = "2024"
+license = "GPL-3.0-or-later"
+
+[dependencies]
+rapier3d = "0.30.0"
+ensnano_design = { path = "../ensnano-design" }
+ensnano_interactor = { path = "../ensnano-interactor" }
+ahash = "0.8.6"

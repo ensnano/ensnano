@@ -55,7 +55,7 @@ pub struct Presenter {
     pub current_design: AddressPointer<Design>,
     current_suggestion_parameters: SuggestionParameters,
     model_matrix: AddressPointer<Mat4>,
-    content: AddressPointer<DesignContent>,
+    pub content: AddressPointer<DesignContent>,
     pub junctions_ids: AddressPointer<JunctionsIds>,
     visibility_sieve: Option<VisibilitySieve>,
     invisible_nucls: HashSet<Nucl>,
