@@ -539,9 +539,9 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
         if self.try_get_shift_per_turn(app_state).is_none() {
             if let Some((unrooted_surface, nb_spiral)) =
                 self.get_current_unrooted_surface(app_state).zip(
-                    self.nb_sprial_state_input
+                    self.nb_spiral_state_input
                         .get_value()
-                        .and_then(InstanciatedParameter::get_uint),
+                        .and_then(InstantiatedParameter::get_uint),
                 )
             {
                 let half_nb_helix = self.scaling.as_ref().unwrap().nb_helix / 2;

@@ -673,10 +673,6 @@ where
                 self.sequence_tab.toggle_text_value(b);
                 Command::none()
             }
-            Message::CleanRequested => {
-                self.requests.lock().unwrap().remove_empty_domains();
-                Command::none()
-            }
             Message::AddDoubleStrandHelix(b) => {
                 self.contextual_panel.set_show_strand(b);
                 let new_strand_parameters = self.contextual_panel.get_new_strand_parameters();
@@ -772,7 +768,7 @@ where
                     self.contextual_panel.state_updated();
                 }
                 self.application_state = state;
-                self.revolution_tab.update(&mut self.application_state);
+                let _ = self.revolution_tab.update(&mut self.application_state);
                 Command::none()
             }
             Message::ResetSimulation => {

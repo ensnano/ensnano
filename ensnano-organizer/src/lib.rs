@@ -84,6 +84,7 @@ pub enum Message<E: OrganizerElement> {
     NameInput {
         name: String,
     },
+    /// Create a new group.
     NewGroup,
     AddSelectionToGroup {
         id: NodeId<E::AutoGroup>,
@@ -288,6 +289,7 @@ impl<E: OrganizerElement> Organizer<E> {
                 .width(Length::FillPortion(8)),
             ]);
         }
+        // Add Sections
         for s in self.sections.iter() {
             content = content.push(row![
                 tabulation(),
@@ -296,6 +298,7 @@ impl<E: OrganizerElement> Organizer<E> {
             ])
         }
 
+        // Add Auto groups
         for s in self.auto_groups.values() {
             content = content.push(row![
                 tabulation(),
@@ -858,7 +861,7 @@ struct Section<E: OrganizerElement> {
     id: NodeId<E::AutoGroup>,
     name: String,
     expanded: bool,
-    view: NodeView<E>,
+    title_bar: NodeTitleBar<E>,
     elements: BTreeMap<E::Key, ElementView<E>>,
 }
 
@@ -869,7 +872,7 @@ impl<E: OrganizerElement> Section<E> {
             id,
             name,
             expanded: false,
-            view: NodeView::new_section(),
+            title_bar: NodeTitleBar::new_section(),
             elements: BTreeMap::new(),
         }
     }
@@ -885,7 +888,9 @@ impl<E: OrganizerElement> Section<E> {
         theme: &OrganizerTheme,
         selection: &BTreeSet<E::Key>,
     ) -> Container<'_, OrganizerMessage<E>, Theme, Renderer> {
-        let title_row = self.view.view(&self.name, self.id.clone(), self.expanded);
+        let title_row = self
+            .title_bar
+            .view(&self.name, self.id.clone(), self.expanded);
         let mut content = Column::new().spacing(LEVELS_V_SPACING).push(title_row);
         if self.expanded {
             for (e_id, e) in self.elements.iter() {
@@ -992,12 +997,12 @@ impl<E: OrganizerElement> ElementView<E> {
 }
 
 /// A data structure whose view is a "title bar" for a group or a section
-struct NodeView<E: OrganizerElement> {
+struct NodeTitleBar<E: OrganizerElement> {
     state: GroupState,
     attribute_displayers: Vec<AttributeDisplayer<E::Attribute>>,
 }
 
-impl<E: OrganizerElement> NodeView<E> {
+impl<E: OrganizerElement> NodeTitleBar<E> {
     fn new() -> Self {
         Self {
             state: GroupState::Idle,
@@ -1136,9 +1141,10 @@ enum GroupContent<E: OrganizerElement> {
     },
     Node {
         id: NodeId<E::AutoGroup>,
+        /// Name of the Group
         name: String,
         expanded: bool,
-        view: NodeView<E>,
+        view: NodeTitleBar<E>,
         children: Vec<GroupContent<E>>,
         attributes: Vec<Option<E::Attribute>>,
         elements_below: BTreeSet<E::Key>,
@@ -1259,7 +1265,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                     id: NodeId::TreeId(vec![]),
                     name: name.clone(),
                     expanded: *expanded,
-                    view: NodeView::new(),
+                    view: NodeTitleBar::new(),
                     attributes: vec![None; E::all_discriminants().len()],
                     elements_below: BTreeSet::new(),
                     group_id,
@@ -1294,7 +1300,7 @@ impl<E: OrganizerElement> GroupContent<E> {
             children,
             name,
             expanded: false,
-            view: NodeView::new(),
+            view: NodeTitleBar::new(),
             attributes: vec![None; E::all_discriminants().len()],
             elements_below: BTreeSet::new(),
             group_id,
