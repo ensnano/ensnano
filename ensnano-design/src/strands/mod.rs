@@ -18,14 +18,12 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::insertions::InstanciatedInsertion;
 use super::scadnano::*;
-use super::{codenano, Helices, HelixCollection, Nucl, VirtualNucl};
+use super::{Helices, HelixCollection, Nucl, VirtualNucl, codenano};
+use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 use std::collections::BTreeMap;
 use std::sync::Arc;
 mod formating;
-
-extern crate serde_hex;
-use serde_hex::{SerHex, StrictPfx};
 
 /// A collection of strands, that maps strand identifier to strands.
 ///
@@ -117,10 +115,10 @@ impl Strands {
     pub fn uses_helix(&self, h_id: usize) -> bool {
         for s in self.0.values() {
             for d in s.domains.iter() {
-                if let Domain::HelixDomain(interval) = d {
-                    if interval.helix == h_id {
-                        return true;
-                    }
+                if let Domain::HelixDomain(interval) = d
+                    && interval.helix == h_id
+                {
+                    return true;
                 }
             }
         }
@@ -208,11 +206,11 @@ impl Strands {
 
 /// A link between a 5' and a 3' domain.
 ///
-/// For any non cyclic strand, the last domain juction must be DomainJunction::Prime3. For a cyclic
+/// For any non cyclic strand, the last domain junction must be DomainJunction::Prime3. For a cyclic
 /// strand it must be the link that would be appropriate between the first and the last domain.
 ///
-/// An Insertion is considered to be adjacent to its 5' neighbour. The link between an Insertion
-/// and it's 3' neighbour is the link that would exist between it's 5' and 3' neighbour if there
+/// An Insertion is considered to be adjacent to its 5' neighbor. The link between an Insertion
+/// and it's 3' neighbor is the link that would exist between it's 5' and 3' neighbor if there
 /// were no insertion.
 #[derive(PartialEq, Eq, Debug, Clone, Serialize, Deserialize)]
 pub enum DomainJunction {
@@ -221,7 +219,7 @@ pub enum DomainJunction {
     UnindentifiedXover,
     /// A cross-over with an identifier.
     IdentifiedXover(usize),
-    /// A link between two neighbouring domains
+    /// A link between two neighboring domains
     Adjacent,
     /// Indicate that the previous domain is the end of the strand.
     Prime3,
@@ -244,16 +242,16 @@ pub struct Strand {
     pub junctions: Vec<DomainJunction>,
     /// The sequence of this strand, if any. If the sequence is longer
     /// than specified by the domains, a prefix is assumed. Can be
-    /// skipped in the serialisation.
+    /// skipped in the serialization.
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub sequence: Option<Cow<'static, str>>,
     /// Is this sequence cyclic? Can be skipped (and defaults to
     /// `false`) in the serialization.
     #[serde(skip_serializing_if = "is_false", default, alias = "cyclic")]
     pub is_cyclic: bool,
-    /// Colour of this strand. If skipped, a default colour will be
+    /// Color of this strand. If skipped, a default color will be
     /// chosen automatically.
-    #[serde(default)] // with = "SerHex",
+    #[serde(default)]
     pub color: u32,
     /// A name of the strand, used for strand export. If the name is `None`, the exported strand
     /// will be given a name corresponding to the position of its 5' nucleotide
@@ -710,10 +708,7 @@ impl Strand {
         let mut previous_domain: Option<Domain> = None;
         let mut lengths: Vec<usize> = vec![];
         for d in self.domains.iter() {
-            if previous_domain
-                .filter(|prev| prev.is_neighbour(d))
-                .is_some()
-            {
+            if previous_domain.filter(|prev| prev.is_neighbor(d)).is_some() {
                 *lengths.last_mut().unwrap() += d.length();
             } else {
                 lengths.push(d.length());
@@ -725,7 +720,7 @@ impl Strand {
                 .domains
                 .first()
                 .zip(self.domains.last())
-                .filter(|(d1, d2)| d1.is_neighbour(d2))
+                .filter(|(d1, d2)| d1.is_neighbor(d2))
                 .is_some()
         {
             lengths[0] += lengths.pop().unwrap();
@@ -1135,7 +1130,7 @@ impl Domain {
         }
     }
 
-    pub fn is_neighbour(&self, other: &Self) -> bool {
+    pub fn is_neighbor(&self, other: &Self) -> bool {
         if let (
             Self::HelixDomain(HelixInterval {
                 start: my_start, ..

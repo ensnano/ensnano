@@ -18,85 +18,33 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 const MAX_ACCEL: f64 = 100.;
 
-use super::{SimulationInterface, SimulationReader, SimulationUpdate};
-use std::f64::consts::TAU;
-use std::sync::{Arc, Mutex, Weak};
-
-use mathru::algebra::linear::vector::vector::Vector;
-use mathru::analysis::differential_equation::ordinary::{
-    solver::runge_kutta::{explicit::fixed::FixedStepper, ExplicitEuler, Ralston4},
-    ExplicitODE,
-};
-
+use super::{SimulationInterface, SimulationUpdate};
+use crate::{app_state::ErrOperation, controller::ChannelReader};
 use ensnano_design::{
     CurveDescriptor, CurveDescriptor2D, DVec3, HelixParameters, InterpolationDescriptor, Isometry3,
     Similarity3,
 };
 use ensnano_interactor::{
-    EquadiffSolvingMethod, RevolutionSimulationParameters, RevolutionSurfaceRadius,
-    RevolutionSurfaceSystemDescriptor, RootedRevolutionSurface,
+    EquadiffSolvingMethod, RevolutionSimulationParameters, RevolutionSurfaceSystemDescriptor,
+    RootedRevolutionSurface,
 };
-
-use crate::app_state::ErrOperation;
+use mathru::{
+    algebra::linear::vector::vector::Vector,
+    analysis::differential_equation::ordinary::{
+        ExplicitODE,
+        solver::runge_kutta::{ExplicitEuler, Ralston4, explicit::fixed::FixedStepper},
+    },
+};
+use std::{
+    f64::consts::TAU,
+    sync::{Arc, Mutex, Weak},
+};
 
 mod closed_curves;
 use closed_curves::CloseSurfaceTopology;
 
-//mod open_curves;
-
-trait SpringTopology: Send + Sync + 'static {
-    fn nb_balls(&self) -> usize;
-
-    fn number_of_sections_per_segment(&self) -> usize;
-
-    fn balls_with_successor(&self) -> &[usize];
-    /// Return the identifier of the next ball on the helix,  or `ball_id` if `ball_id` is
-    /// the last ball on an open helix.
-    fn successor(&self, ball_id: usize) -> usize;
-
-    fn balls_with_predecessor(&self) -> &[usize];
-    /// Return the identfier of the previous ball on the helix,  or `ball_id` if `ball_id` is
-    /// the first ball on an open helix.
-    fn predecessor(&self, ball_id: usize) -> usize;
-
-    fn balls_with_predecessor_and_successor(&self) -> &[usize];
-
-    fn balls_involved_in_spring(&self) -> &[usize];
-    fn other_spring_end(&self, ball_id: usize) -> usize;
-
-    fn surface_position(&self, revolution_angle: f64, theta: f64) -> DVec3;
-    fn dpos_dtheta(&self, revolution_angle: f64, theta: f64) -> DVec3;
-    fn d2pos_dtheta2(&self, revolution_angle: f64, theta: f64) -> DVec3;
-    fn revolution_angle_ball(&self, ball_id: usize) -> f64;
-
-    fn theta_ball_init(&self) -> Vec<f64>;
-
-    fn rescale_section(&mut self, scaling_factor: f64);
-    fn rescale_radius(&mut self, objective_number_of_nts: usize, actual_number_of_nt: usize);
-
-    fn cloned(&self) -> Box<dyn SpringTopology>;
-
-    fn axis(&self, revolution_angle: f64) -> DVec3;
-
-    fn to_curve_descriptor(&self, thetas: Vec<f64>, finished: bool) -> Vec<CurveDescriptor>;
-
-    fn fixed_points(&self) -> &[usize];
-
-    fn additional_forces(
-        &self,
-        _thetas: &[f64],
-        _parameters: &RevolutionSimulationParameters,
-    ) -> Vec<(usize, DVec3)> {
-        vec![]
-    }
-
-    fn revolution_radius(&self) -> RevolutionSurfaceRadius;
-
-    fn get_frame(&self) -> Similarity3;
-}
-
 pub struct RevolutionSurfaceSystem {
-    topology: Box<dyn SpringTopology>,
+    topology: CloseSurfaceTopology,
     helix_parameters: HelixParameters,
     last_thetas: Option<Vec<f64>>,
     last_dthetas: Option<Vec<f64>>,
@@ -108,7 +56,7 @@ pub struct RevolutionSurfaceSystem {
 impl Clone for RevolutionSurfaceSystem {
     fn clone(&self) -> Self {
         Self {
-            topology: self.topology.cloned(),
+            topology: self.topology.clone(),
             helix_parameters: self.helix_parameters,
             last_thetas: self.last_thetas.clone(),
             last_dthetas: self.last_dthetas.clone(),
@@ -124,11 +72,11 @@ impl RevolutionSurfaceSystem {
         let scaffold_len_target = desc.scaffold_len_target;
         let dna_parameters = desc.helix_parameters;
         let simulation_parameters = desc.simulation_parameters.clone();
-        let topology: Box<dyn SpringTopology> = if desc.target.curve_is_open() {
+        let topology = if desc.target.curve_is_open() {
             //Box::new(OpenSurfaceTopology::new(desc))
             todo!("Refactor open curves")
         } else {
-            Box::new(CloseSurfaceTopology::new(desc))
+            CloseSurfaceTopology::new(desc)
         };
 
         Self {
@@ -142,7 +90,7 @@ impl RevolutionSurfaceSystem {
         }
     }
 
-    fn one_radius_optimisation_step(
+    fn one_radius_optimization_step(
         &mut self,
         first: &mut bool,
         interface: Option<Arc<Mutex<RevolutionSystemInterface>>>,
@@ -357,22 +305,13 @@ impl RevolutionSurfaceSystem {
     }
 
     fn apply_friction(&self, system: &mut RelaxationSystem) {
-        // Friction force = -friction_strengh * d pos / dt
+        // Friction force = -friction_strength * d pos / dt
         // d pos / dt = d theta / dt * d pos / d theta
 
         for section_idx in 0..self.topology.nb_balls() {
             let dpos_dt =
                 system.d_thetas[section_idx] * self.dpos_dtheta(section_idx, &system.thetas);
             system.forces[section_idx] += -self.simulation_parameters.fluid_friction * dpos_dt;
-        }
-    }
-
-    fn apply_additional_forces(&self, system: &mut RelaxationSystem) {
-        for (b_id, f) in self
-            .topology
-            .additional_forces(&system.thetas, &self.simulation_parameters)
-        {
-            system.forces[b_id] += f;
         }
     }
 
@@ -482,7 +421,6 @@ impl ExplicitODE<f64> for RevolutionSurfaceSystem {
         self.apply_springs(&mut system, None);
         self.apply_torsions(&mut system);
         self.apply_friction(&mut system);
-        self.apply_additional_forces(&mut system);
         self.compute_accelerations(&mut system);
         system.into_mathru()
     }
@@ -500,7 +438,7 @@ pub struct RevolutionSystemThread {
 impl RevolutionSystemThread {
     pub fn start_new(
         system: RevolutionSurfaceSystemDescriptor,
-        reader: &mut dyn SimulationReader,
+        reader: &mut ChannelReader,
     ) -> Result<Arc<Mutex<RevolutionSystemInterface>>, ErrOperation> {
         let ret = Arc::new(Mutex::new(RevolutionSystemInterface::default()));
         let ret_dyn: Arc<Mutex<dyn SimulationInterface>> = ret.clone();
@@ -527,7 +465,7 @@ impl RevolutionSystemThread {
             while let Some(interface_ptr) = self.interface.upgrade() {
                 let current_len = self
                     .system
-                    .one_radius_optimisation_step(&mut first, Some(interface_ptr.clone()));
+                    .one_radius_optimization_step(&mut first, Some(interface_ptr.clone()));
                 if interface_ptr.lock().unwrap().finished
                     || current_len == self.system.scaffold_len_target
                 {
@@ -772,5 +710,3 @@ impl<T> OptionOnce<T> {
         }
     }
 }
-
-// A test here was removed because revolution simulations can now be launched from the GUI

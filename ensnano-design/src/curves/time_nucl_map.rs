@@ -60,11 +60,11 @@ impl HelixTimeMap {
         }
     }
 
-    pub fn nucl_to_x_convertion(&self, n: isize) -> f64 {
+    pub fn nucl_to_x_conversion(&self, n: isize) -> f64 {
         self.time_nucl(n) * self.square_per_time
     }
 
-    /// Same as nucl_to_x_convertion but for "non integer nucl positions"
+    /// Same as nucl_to_x_conversion but for "non integer nucl positions"
     pub fn x_conversion(&self, x: f64) -> f64 {
         let nucl_idx = x.floor() as isize;
         let left = self.time_nucl(nucl_idx) * self.square_per_time;
@@ -164,9 +164,9 @@ impl AbscissaConverter {
         }
     }
 
-    pub fn nucl_to_x_convertion(&self, n: isize) -> f64 {
+    pub fn nucl_to_x_conversion(&self, n: isize) -> f64 {
         match &self.0 {
-            AbscissaConverter_::TimeMap(time_map) => time_map.nucl_to_x_convertion(n),
+            AbscissaConverter_::TimeMap(time_map) => time_map.nucl_to_x_conversion(n),
             AbscissaConverter_::Linear(normalisation_time) => n as f64 / normalisation_time,
         }
     }

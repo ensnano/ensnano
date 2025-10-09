@@ -15,7 +15,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use super::instances_drawer::{Instanciable, RessourceProvider, Vertexable};
+use super::instances_drawer::{Instantiable, RessourceProvider, Vertexable};
 use ensnano_design::ultraviolet::{Vec2, Vec3};
 use ensnano_utils::wgpu;
 use std::convert::TryInto;
@@ -33,7 +33,7 @@ impl SkyBox {
     }
 }
 
-impl Instanciable for SkyBox {
+impl Instantiable for SkyBox {
     type RawInstance = SkyBox;
     type Ressource = ();
     type Vertex = CubeVertex;
@@ -75,7 +75,7 @@ impl DirectionCube {
     }
 }
 
-impl Instanciable for DirectionCube {
+impl Instantiable for DirectionCube {
     type RawInstance = DirectionCube;
     type Ressource = DirectionTexture;
     type Vertex = CubeVertex;
@@ -238,7 +238,6 @@ impl Vertexable for CubeVertex {
 }
 
 pub struct DirectionTexture {
-    pub texture: wgpu::Texture,
     pub texture_view: wgpu::TextureView,
     pub sampler: wgpu::Sampler,
 }
@@ -265,7 +264,7 @@ impl RessourceProvider for DirectionTexture {
         ]
     }
 
-    fn ressources(&self) -> Vec<wgpu::BindGroupEntry> {
+    fn ressources(&self) -> Vec<wgpu::BindGroupEntry<'_>> {
         vec![
             wgpu::BindGroupEntry {
                 binding: 0,
@@ -332,7 +331,6 @@ impl DirectionTexture {
         });
 
         Self {
-            texture,
             texture_view: view,
             sampler,
         }

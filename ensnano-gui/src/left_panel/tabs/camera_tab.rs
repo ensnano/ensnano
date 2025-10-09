@@ -15,20 +15,22 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use std::marker::PhantomData;
 
-use super::tabs::GuiTab;
-use super::{AppState, CheckXoversParameter, FogParameters, HBondDisplay, Message, UiSize};
+use super::{
+    AppState, CheckXoversParameter, FogParameters, HBondDisplay, Message, UiSize, tabs::GuiTab,
+};
 use ensnano_iced::{
-    fonts::{icon_to_char, MaterialIcon},
+    fonts::{MaterialIcon, icon_to_char},
     helpers::*,
     iced::{Alignment, Length},
     iced_aw::TabLabel,
     theme,
 };
-use ensnano_interactor::graphics::{
-    Background3D, RenderingMode, ALL_BACKGROUND3D, ALL_RENDERING_MODE,
+use ensnano_interactor::{
+    app_state_parameters::AppStateParameters,
+    graphics::{ALL_BACKGROUND3D, ALL_RENDERING_MODE, Background3D, RenderingMode},
 };
+use std::marker::PhantomData;
 
 pub struct CameraTab<State: AppState> {
     fog: FogGuiParameters,
@@ -38,11 +40,11 @@ pub struct CameraTab<State: AppState> {
 }
 
 impl<State: AppState> CameraTab<State> {
-    pub fn new() -> Self {
+    pub fn new(parameters: &AppStateParameters) -> Self {
         Self {
             fog: Default::default(),
-            background3d: Default::default(),
-            rendering_mode: Default::default(),
+            background3d: parameters.background3d,
+            rendering_mode: parameters.rendering_mode,
             _state_type: PhantomData,
         }
     }
@@ -83,7 +85,11 @@ impl<State: AppState> GuiTab<State> for CameraTab<State> {
         TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Videocam)))
     }
 
-    fn content(&self, ui_size: UiSize, app_state: &State) -> ensnano_iced::Element<Message<State>> {
+    fn content(
+        &self,
+        ui_size: UiSize,
+        app_state: &State,
+    ) -> ensnano_iced::Element<'_, Message<State>> {
         let content = self::column![
             section("Camera", ui_size),
             subsection("Toggle visibility", ui_size),
@@ -139,7 +145,7 @@ impl<State: AppState> GuiTab<State> for CameraTab<State> {
                 row![
                     text("Style"),
                     pick_list(
-                        &ALL_RENDERING_MODE[..],
+                        ALL_RENDERING_MODE,
                         Some(self.rendering_mode),
                         Message::RenderingMode,
                     ),
@@ -150,7 +156,7 @@ impl<State: AppState> GuiTab<State> for CameraTab<State> {
                 row![
                     text("Background"),
                     pick_list(
-                        &ALL_BACKGROUND3D[..],
+                        ALL_BACKGROUND3D,
                         Some(self.background3d),
                         Message::Background3D,
                     ),
@@ -174,7 +180,7 @@ struct FogGuiParameters {
     is_activated: bool,
     // Compute Distance Fog from the camera or pivot position.
     from_camera: bool,
-    // Turn object into dark instead of disapearing.
+    // Turn object into dark instead of disappearing.
     dark: bool,
     // Deepness of the Distance Fog.
     length: f32,
@@ -185,7 +191,7 @@ struct FogGuiParameters {
 }
 
 impl FogGuiParameters {
-    fn view<State: AppState>(&self, ui_size: UiSize) -> ensnano_iced::Element<Message<State>> {
+    fn view<State: AppState>(&self, ui_size: UiSize) -> ensnano_iced::Element<'_, Message<State>> {
         let radius_text = if self.is_activated {
             text("Radius")
         } else {
@@ -296,7 +302,7 @@ const ALL_FOG_CHOICES: &'static [FogChoices] = &[
 ];
 
 impl std::fmt::Display for FogChoices {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         let ret = match self {
             Self::None => "None",
             Self::FromCamera => "From Camera",

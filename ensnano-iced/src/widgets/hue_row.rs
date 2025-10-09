@@ -19,17 +19,17 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use std::marker::PhantomData;
 
 use iced::{
+    Length, Point, Rectangle, Size, Vector,
     advanced::{
-        layout, mouse, renderer::Style, widget, Clipboard, Layout, Renderer as _, Shell, Widget,
+        Clipboard, Layout, Renderer as _, Shell, Widget, layout, mouse, renderer::Style, widget,
     },
     event,
     mouse::Cursor,
-    Length, Point, Rectangle, Size, Vector,
 };
 use iced_graphics::{
+    Primitive,
     color::pack,
     mesh::{Indexed, Mesh, SolidVertex2D},
-    Primitive,
 };
 use iced_wgpu;
 
@@ -118,7 +118,7 @@ impl<'a, Message, Theme> Widget<Message, Theme, crate::Renderer>
         renderer: &mut crate::Renderer,
         _theme: &Theme,
         _style: &Style,
-        layout: Layout<'_>,
+        layout: Layout,
         _cursor: Cursor,
         _viewport: &Rectangle,
     ) {
@@ -172,7 +172,7 @@ impl<'a, Message, Theme> Widget<Message, Theme, crate::Renderer>
         &mut self,
         tree: &mut widget::Tree,
         event: event::Event,
-        layout: Layout<'_>,
+        layout: Layout,
         cursor: Cursor,
         _renderer: &crate::Renderer,
         _clipboard: &mut dyn Clipboard,

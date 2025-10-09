@@ -21,8 +21,8 @@ use super::{
     HelixInterval, Nucl, Strand,
 };
 use ensnano_design::{
-    grid::{Edge, FreeGridId, GridData, GridId, GridPosition},
     Helices, HelixCollection, HelixParameters, MutStrandAndData, Strands, UpToDateDesign,
+    grid::{Edge, FreeGridId, GridData, GridId, GridPosition},
 };
 use ultraviolet::Vec3;
 
@@ -155,7 +155,7 @@ impl Controller {
 
     pub fn set_templates(
         &mut self,
-        data: &UpToDateDesign<'_>,
+        data: &UpToDateDesign,
         strand_ids: Vec<usize>,
     ) -> Result<(), ErrOperation> {
         let mut templates = Vec::with_capacity(strand_ids.len());
@@ -329,7 +329,7 @@ impl Controller {
 
     pub(super) fn position_strand_copies(
         &mut self,
-        data: &mut MutStrandAndData<'_>,
+        data: &mut MutStrandAndData,
         nucl: Option<Nucl>,
     ) -> Result<(), ErrOperation> {
         let strand_clipboard = if let Clipboard::Strands(clipboard) = self.clipboard.as_ref() {
@@ -354,7 +354,7 @@ impl Controller {
         &self,
         clipboard: &StrandClipboard,
         nucl: Nucl,
-        data: &mut MutStrandAndData<'_>,
+        data: &mut MutStrandAndData,
     ) -> Result<(Vec<PastedStrand>, Option<(Edge, isize)>), ErrOperation> {
         let mut duplication_edge = None;
         let template_0 = clipboard
@@ -980,12 +980,14 @@ impl Controller {
             log::debug!("copy 1 {:?}", copy_1);
             let copy_2 = self.translate_nucl_by_edge(n2, &edge, shift, helices, grid_manager);
             log::debug!("copy 2 {:?}", copy_2);
-            if let Some((copy_1, copy_2)) = copy_1.zip(copy_2) {
-                if !strands.is_true_xover_end(&copy_1) && !strands.is_true_xover_end(&copy_2) {
-                    // If general_cross_over returns an error we simply ignore this cross_over
-                    self.general_cross_over(strands, copy_1, copy_2)
-                        .unwrap_or_default();
-                }
+            if let Some(copy_1) = copy_1
+                && let Some(copy_2) = copy_2
+                && !strands.is_true_xover_end(&copy_1)
+                && !strands.is_true_xover_end(&copy_2)
+            {
+                // If general_cross_over returns an error we simply ignore this cross_over
+                self.general_cross_over(strands, copy_1, copy_2)
+                    .unwrap_or_default();
             }
         }
         Ok(())

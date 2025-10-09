@@ -1,25 +1,22 @@
 [package]
 name = "ensnano_scene"
-version = "0.4.0"
-authors = ["thenlevy <nicolaspierrelevy@gmail.com>"]
-edition = "2021"
-license = "GPL-3.0-or-later"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
 
 [dependencies]
-ensnano_design = { path = "../ensnano-design" }
-ensnano_interactor = { path = "../ensnano-interactor" }
-ensnano_utils = { path = "../ensnano-utils" }
-lyon = { git = "https://github.com/nical/lyon", rev = "ea6d904c6c9ec0445c5653c119a48c43ea76cee9" }
-log = "0.4"
-bytemuck = "1.2.0"
-futures = "0.3.5"
-image = "0.23"
-num_enum = "0.5.1"
-png = "0.17.5"
-chrono = "0.4.19"
-pod-enum = "0.1.0"
-futures-channel = "0.3.30"
-rand = "0.8.5"
-int-enum = "1.0.1"
-serde = {version = "1.0.116", features = ["rc"] }
-serde_json = {version = "1.0.116" }
+ensnano_design.workspace = true
+ensnano_interactor.workspace = true
+ensnano_utils.workspace = true
+
+bytemuck.workspace = true
+futures.workspace = true
+futures-channel.workspace = true
+image.workspace = true
+int-enum.workspace = true
+log.workspace = true
+lyon.workspace = true
+num_enum.workspace = true
+png.workspace = true
+serde_json.workspace = true

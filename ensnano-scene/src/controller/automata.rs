@@ -16,14 +16,14 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use super::*;
-use crate::controller::automata::dragging_state::translating_grid_object;
 use crate::DesignReader;
+use crate::controller::automata::dragging_state::translating_grid_object;
 use ensnano_design::ultraviolet::Vec2;
 use ensnano_design::{
-    grid::{GridId, GridObject},
     BezierPlaneId,
+    grid::{GridId, GridObject},
 };
-use ensnano_interactor::{ActionMode, CursorIcon};
+use ensnano_interactor::ActionMode;
 use std::borrow::Cow;
 use std::cell::RefCell;
 use winit::event::{ElementState, MouseButton};
@@ -70,15 +70,14 @@ impl<S: AppState> Transition<S> {
 pub(super) trait ControllerState<S: AppState> {
     fn input<'a>(&mut self, event: &WindowEvent, context: EventContext<'a, S>) -> Transition<S>;
 
-    #[allow(dead_code)]
     fn display(&self) -> Cow<'static, str>;
 
-    fn transition_from(&self, _controller: &Controller<S>) -> TransistionConsequence {
-        TransistionConsequence::Nothing
+    fn transition_from(&self, _controller: &Controller<S>) -> TransitionConsequence {
+        TransitionConsequence::Nothing
     }
 
-    fn transition_to(&self, _controller: &Controller<S>) -> TransistionConsequence {
-        TransistionConsequence::Nothing
+    fn transition_to(&self, _controller: &Controller<S>) -> TransitionConsequence {
+        TransitionConsequence::Nothing
     }
 
     fn check_timers(&mut self, _controller: &Controller<S>) -> Transition<S> {
@@ -89,19 +88,10 @@ pub(super) trait ControllerState<S: AppState> {
         None
     }
 
-    fn element_being_selected(&self) -> Option<SceneElement> {
+    fn cursor(&self) -> Option<CursorIcon> {
         None
     }
 
-    #[allow(clippy::unused_unit)]
-    fn notify_scroll(&mut self) {
-        ()
-    }
-    fn cursor(&self) -> Option<ensnano_interactor::CursorIcon> {
-        None
-    }
-
-    #[allow(clippy::needless_lifetimes, clippy::unused_unit)]
     fn give_context<'a>(&mut self, _context: EventContext<'a, S>) {
         ()
     }

@@ -16,12 +16,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use crate::{parameters, HelixParameters};
-
 use super::circle_curve::CircleCurve;
-use super::Curved;
-use std::f64::consts::{PI, TAU};
-use ultraviolet::{DRotor3, DVec3, Vec3};
+use crate::HelixParameters;
+use serde::{Deserialize, Serialize};
+use std::f64::consts::TAU;
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct TorusConcentricCircleDescriptor {
@@ -32,10 +30,6 @@ pub struct TorusConcentricCircleDescriptor {
     pub helix_index_shift: Option<f64>, // -0.5 if you want to center the equator between the helices
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub inter_helix_center_gap: Option<f64>, // in nm, by default 2.65nm
-}
-
-fn default_number_of_helices() -> usize {
-    6
 }
 
 impl TorusConcentricCircleDescriptor {
@@ -96,7 +90,7 @@ impl EllipticTorusConcentricCircleDescriptor {
                 / helix_parameters.rise as f64,
         ); // better <= 1
 
-        let mut circle_helix_parameters = helix_parameters.clone();
+        let circle_helix_parameters = helix_parameters.clone();
 
         CircleCurve {
             _parameters: circle_helix_parameters,

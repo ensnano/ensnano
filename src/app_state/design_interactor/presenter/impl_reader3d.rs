@@ -17,22 +17,19 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::*;
-use ahash::RandomState;
 use ensnano_design::{
-    grid::{GridId, GridObject, GridPosition, HelixGridPosition},
     BezierPlaneDescriptor, BezierPlaneId, BezierVertexId, Collection, CurveDescriptor, Domain,
     Nucl,
+    grid::{GridId, GridObject, GridPosition, HelixGridPosition},
 };
 use ensnano_interactor::{
-    graphics::{LoopoutBond, LoopoutNucl},
     BezierControlPoint, ObjectType, Referential,
+    graphics::{LoopoutBond, LoopoutNucl},
 };
+use ensnano_scene::{DesignReader as Reader3D, GridInstance, SurfaceInfo};
+use ensnano_utils::StrandNucleotidesPositions;
 use std::collections::HashSet;
 use ultraviolet::{Mat4, Rotor3, Vec2, Vec3};
-
-use crate::scene::{DesignReader as Reader3D, GridInstance, SurfaceInfo};
-
-use ensnano_utils::StrandNucleotidesPositions;
 
 impl Reader3D for DesignReader {
     fn get_color(&self, e_id: u32) -> Option<u32> {
@@ -226,8 +223,8 @@ impl Reader3D for DesignReader {
         )
     }
 
-    fn get_grid_latice_position(&self, position: GridPosition) -> Option<Vec3> {
-        self.presenter.content.get_grid_latice_position(position)
+    fn get_grid_lattice_position(&self, position: GridPosition) -> Option<Vec3> {
+        self.presenter.content.get_grid_lattice_position(position)
     }
 
     fn get_nucl_with_id_relaxed(&self, e_id: u32) -> Option<Nucl> {
@@ -252,12 +249,11 @@ impl Reader3D for DesignReader {
 
     fn get_element_axis_position(&self, e_id: u32, referential: Referential) -> Option<Vec3> {
         if let Some(pos) = self.presenter.content.axis_space_position.get(&e_id) {
-            return Some(
+            Some(
                 self.presenter
                     .in_referential(Vec3::new(pos[0], pos[1], pos[2]), referential),
-            );
-        }
-        if let Some(nucl) = self.get_nucl_with_id(e_id) {
+            )
+        } else if let Some(nucl) = self.get_nucl_with_id(e_id) {
             self.get_position_of_nucl_on_helix(nucl, referential, true)
         } else if let Some((n1, n2)) = self.presenter.content.nucleotides_involved.get(&e_id) {
             let a = self.get_position_of_nucl_on_helix(*n1, referential, true);
@@ -281,11 +277,7 @@ impl Reader3D for DesignReader {
         if let Some(nucl) = self.get_nucl_with_id(e_id) {
             Some(nucl.helix)
         } else if let Some((n1, n2)) = self.presenter.content.nucleotides_involved.get(&e_id) {
-            if n1.helix == n2.helix {
-                Some(n1.helix)
-            } else {
-                None
-            }
+            (n1.helix == n2.helix).then_some(n1.helix)
         } else {
             None
         }
@@ -362,15 +354,9 @@ impl Reader3D for DesignReader {
     }
 
     fn has_small_spheres_nucl_id(&self, e_id: u32) -> bool {
-        if let Some(nucl) = self.get_nucl_with_id(e_id) {
-            if let Some(grid_pos) = self.get_helix_grid_position(nucl.helix as u32) {
-                self.presenter.content.grid_has_small_spheres(grid_pos.grid)
-            } else {
-                false
-            }
-        } else {
-            false
-        }
+        self.get_nucl_with_id(e_id)
+            .and_then(|nucl| self.get_helix_grid_position(nucl.helix as u32))
+            .is_some_and(|grid_pos| self.presenter.content.grid_has_small_spheres(grid_pos.grid))
     }
 
     fn get_all_loopout_nucl(&self) -> &[LoopoutNucl] {
@@ -579,19 +565,16 @@ impl Reader3D for DesignReader {
         let helix = self.presenter.current_design.helices.get(&h_id);
         if let Some(CurveDescriptor::TranslatedPath { path_id, .. }) =
             helix.and_then(|h| h.curve.as_ref().map(Arc::as_ref))
+            && let Some(path) = self.presenter.current_design.bezier_paths.get(path_id)
         {
-            if let Some(path) = self.presenter.current_design.bezier_paths.get(path_id) {
-                (0..(path.vertices().len()))
-                    .map(|i| {
-                        GridId::BezierPathGrid(BezierVertexId {
-                            path_id: *path_id,
-                            vertex_id: i,
-                        })
+            (0..(path.vertices().len()))
+                .map(|i| {
+                    GridId::BezierPathGrid(BezierVertexId {
+                        path_id: *path_id,
+                        vertex_id: i,
                     })
-                    .collect()
-            } else {
-                vec![]
-            }
+                })
+                .collect()
         } else {
             vec![]
         }
@@ -629,12 +612,12 @@ impl Reader3D for DesignReader {
             let mut pos_seq = Vec::new();
             let mut curvatures: Vec<f64> = Vec::new();
             let mut torsions: Vec<f64> = Vec::new();
-            for (i, domain) in strand.domains.iter().enumerate() {
+            for domain in &strand.domains {
                 // Real domain or Insertion
                 if let Domain::HelixDomain(domain) = domain {
                     // Real helix domain
                     // Iterate along the domain
-                    for (dom_position, nucl_position) in domain.iter().enumerate() {
+                    for nucl_position in domain.iter() {
                         let nucl: Nucl = Nucl {
                             position: nucl_position,
                             forward: domain.forward,

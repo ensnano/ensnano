@@ -18,9 +18,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::Curved;
 use crate::{
-    utils::{rotor_to_drotor, vec_to_dvec},
     HelixParameters,
+    utils::{rotor_to_drotor, vec_to_dvec},
 };
+use serde::{Deserialize, Serialize};
 use ultraviolet::{DVec3, Rotor3, Vec3};
 
 #[allow(non_snake_case)]

@@ -16,8 +16,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use super::maths_3d;
-use super::{controller::Data as SurfaceInfoProvider, ClickMode, PhySize, Stereography};
-use ensnano_design::{ultraviolet, SurfaceInfo, SurfacePoint};
+use super::{ClickMode, PhySize, Stereography, controller::Data as SurfaceInfoProvider};
+use ensnano_design::{SurfaceInfo, SurfacePoint, ultraviolet};
 use ensnano_utils::winit;
 use std::cell::RefCell;
 use std::f32::consts::{FRAC_PI_2, PI};
@@ -247,7 +247,6 @@ pub struct CameraController {
     mouse_horizontal: f32,
     mouse_vertical: f32,
     scroll: f32,
-    #[allow(dead_code)]
     last_rotor: Rotor3,
     processed_move: bool,
     camera: CameraPtr,

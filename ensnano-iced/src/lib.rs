@@ -14,7 +14,7 @@ pub type Element<'a, Message, Theme = iced::Theme, Renderer = iced::Renderer> =
 pub mod fonts;
 
 mod ui_size;
-pub use ui_size::{UiSize, ALL_UI_SIZES};
+pub use ui_size::{ALL_UI_SIZES, UiSize};
 
 pub mod widgets;
 
@@ -24,3 +24,6 @@ pub mod theme;
 pub use theme::Theme;
 
 pub mod color_picker;
+
+mod icons;
+pub use icons::icon_to_svg;

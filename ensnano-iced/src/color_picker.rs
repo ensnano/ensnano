@@ -20,8 +20,8 @@ use log;
 use std::collections::VecDeque;
 
 use iced::{
-    widget::{column, row, Column, Row},
     Color, Length,
+    widget::{Column, Row, column, row},
 };
 use iced_winit::winit::dpi::LogicalSize;
 
@@ -153,7 +153,7 @@ impl ColorPicker {
         }
     }
 
-    pub fn view(&self) -> crate::Element<Message> {
+    pub fn view(&self) -> crate::Element<'_, Message> {
         column![
             HueRow::new()
                 .on_slide(Message::HueChanged)
@@ -176,7 +176,7 @@ impl ColorPicker {
         .into()
     }
 
-    fn view_color_history(&self) -> crate::Element<Message> {
+    fn view_color_history(&self) -> crate::Element<'_, Message> {
         let mut color_squares = self
             .color_history
             .iter()

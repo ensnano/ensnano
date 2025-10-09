@@ -15,9 +15,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use std::borrow::Cow;
-use std::f64::consts::PI;
-use std::fmt;
+use serde::{Deserialize, Serialize};
+use std::{borrow::Cow, f64::consts::PI, fmt};
 use ultraviolet::DVec3;
 
 /// The main type of this crate, describing a DNA design.
@@ -312,12 +311,12 @@ pub struct Parameters {
     /// the reverse strand.
     pub groove_angle: f64,
 
-    /// Gap between two neighbouring helices.
+    /// Gap between two neighboring helices.
     pub inter_helix_gap: f64,
 }
 
 impl Parameters {
-    /// Default values for the parameters of DNA, taken from the litterature.
+    /// Default values for the parameters of DNA, taken from the literature.
     pub const DEFAULT: Parameters = Parameters {
         // z-step and helix radius from:
         //
@@ -348,7 +347,6 @@ pub struct Point {
 
 impl Point {
     /// Convert an array of 3 floats into a Point
-    #[allow(dead_code)]
     pub fn from_coord(coord: [f64; 3]) -> Self {
         Point {
             x: coord[0],
@@ -357,7 +355,6 @@ impl Point {
         }
     }
 
-    #[allow(dead_code)]
     pub fn to_vec3(&self) -> DVec3 {
         DVec3 {
             x: self.x,
@@ -409,7 +406,7 @@ fn zero_f64() -> f64 {
 }
 
 impl fmt::Debug for Helix {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.debug_tuple("").field(&self.position).finish()
     }
 }
@@ -577,11 +574,7 @@ impl Helix {
         let point_up = self.axis_pos(p, up);
         let dist_low = (point_low - point).mag();
         let dist_up = (point_up - point).mag();
-        if dist_low > dist_up {
-            up
-        } else {
-            low
-        }
+        if dist_low > dist_up { up } else { low }
     }
 }
 

@@ -21,7 +21,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use std::collections::HashMap;
 
-use ensnano_design::{grid::GridData, Collection, Design, Domain, Nucl};
+use ensnano_design::{Collection, Design, Domain, Nucl, grid::GridData};
 
 mod parity_graph;
 
@@ -84,7 +84,7 @@ fn get_grid_type(grids: &GridData) -> Result<GridType, CadnanoError> {
     for g in grids.source_free_grids.values() {
         match g.grid_type {
             ensnano_design::grid::GridTypeDescr::Square { .. } => {
-                if ret == Some(GridType::HonneyComb) {
+                if ret == Some(GridType::HoneyComb) {
                     return Err(CadnanoError::NonHomogeneousGridTypes);
                 } else {
                     ret = Some(GridType::Square)
@@ -94,7 +94,7 @@ fn get_grid_type(grids: &GridData) -> Result<GridType, CadnanoError> {
                 if ret == Some(GridType::Square) {
                     return Err(CadnanoError::NonHomogeneousGridTypes);
                 } else {
-                    ret = Some(GridType::HonneyComb)
+                    ret = Some(GridType::HoneyComb)
                 }
             }
             t => return Err(CadnanoError::UnhandledGridType(t)),
@@ -213,7 +213,7 @@ pub enum CadnanoError {
 #[derive(Debug, Clone, PartialEq, Eq)]
 enum GridType {
     Square,
-    HonneyComb,
+    HoneyComb,
 }
 
 struct CadnanoExporter {
@@ -269,13 +269,13 @@ impl CadnanoExporter {
 
     fn set_staple_color(&mut self, prime5_nucl: Nucl, color: u32) {
         // this method will never fail and simply do nothing if it cannot succeed
-        if let Some(helix) = self.helices.get_mut(&prime5_nucl.helix) {
-            if (helix.num % 2 == 0) != prime5_nucl.forward {
-                helix.stap_colors.push((
-                    prime5_nucl.position - self.bonds.shift,
-                    color % 0x01_00_00_00,
-                ))
-            }
+        if let Some(helix) = self.helices.get_mut(&prime5_nucl.helix)
+            && (helix.num % 2 == 0) != prime5_nucl.forward
+        {
+            helix.stap_colors.push((
+                prime5_nucl.position - self.bonds.shift,
+                color % 0x01_00_00_00,
+            ))
         }
     }
 
@@ -306,12 +306,11 @@ impl CadnanoStrand<'_> {
     }
 
     fn finish(self, cyclic: bool, color: u32) -> Result<(), CadnanoError> {
-        if cyclic {
-            if let Some((prime5, prime3)) = self.previous_nucl.zip(self.first_nucl) {
-                if prime5 != prime3 {
-                    self.exporter.make_bond(prime5, prime3)?;
-                }
-            }
+        if cyclic
+            && let Some((prime5, prime3)) = self.previous_nucl.zip(self.first_nucl)
+            && prime5 != prime3
+        {
+            self.exporter.make_bond(prime5, prime3)?;
         }
 
         if let Some(nucl) = self.first_nucl {

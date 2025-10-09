@@ -51,7 +51,7 @@ impl HasMap for FreeGrids {
 }
 
 impl FreeGrids {
-    pub fn make_mut(&mut self) -> FreeGridsMut {
+    pub fn make_mut(&mut self) -> FreeGridsMut<'_> {
         FreeGridsMut {
             new_map: BTreeMap::clone(&self.0),
             source: self,

@@ -21,22 +21,23 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! happens. In addition to the transition in the automata, a [Consequence] is returned to the
 //! scene, that describes the consequences that the input must have on the view or the data held by
 //! the scene.
+
 use super::data::{ClickResult, FreeEnd};
 use super::{
     ActionMode, AppState, CameraPtr, DataPtr, FlatHelix, FlatNucl, PhySize, PhysicalPosition,
     Selection, ViewPtr, WindowEvent,
 };
-
 use ensnano_design::ultraviolet;
-use ensnano_utils::winit;
-//use ensnano_utils::winit::event::*;
+use ensnano_utils::winit::{
+    event::{ElementState, KeyEvent},
+    keyboard::{Key, ModifiersState, NamedKey},
+    window::CursorIcon,
+};
 use std::cell::RefCell;
 use ultraviolet::Vec2;
-use winit::event::{ElementState, KeyEvent};
-use winit::keyboard::{Key, ModifiersState, NamedKey};
 
 mod automata;
-use automata::{ctrl, ControllerState, NormalState, Transition};
+use automata::{ControllerState, NormalState, Transition, ctrl};
 
 pub struct Controller<S: AppState> {
     #[allow(dead_code)]
@@ -56,8 +57,6 @@ pub struct Controller<S: AppState> {
 
 #[derive(Debug)]
 pub enum Consequence {
-    #[allow(dead_code)]
-    GlobalsChanged,
     Nothing,
     Xover(FlatNucl, FlatNucl),
     Cut(FlatNucl),
@@ -66,13 +65,10 @@ pub enum Consequence {
     CutFreeEnd(FlatNucl, Option<FreeEnd>),
     NewCandidate(Option<FlatNucl>),
     NewHelixCandidate(FlatHelix),
-    RmStrand(FlatNucl),
-    RmHelix(FlatHelix),
     FlipVisibility(FlatHelix, bool),
     Built,
     FlipGroup(FlatHelix),
     FollowingSuggestion(FlatNucl, bool),
-    Centering(FlatNucl, bool),
     DrawingSelection(PhysicalPosition<f64>, PhysicalPosition<f64>),
     ReleasedSelection(Option<Vec<Selection>>),
     PasteRequest(Option<FlatNucl>),
@@ -326,7 +322,7 @@ impl<S: AppState> Controller<S> {
             .swap(&mut self.camera_top.borrow_mut())
     }
 
-    pub fn get_icon(&self) -> Option<ensnano_interactor::CursorIcon> {
+    pub fn get_icon(&self) -> Option<CursorIcon> {
         self.state.borrow().cursor()
     }
 }

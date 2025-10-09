@@ -21,22 +21,21 @@ use crate::grid::*;
 
 use super::curves::*;
 use super::{
-    codenano,
+    BezierPathId, HelixParameters, Nucl, codenano,
     grid::{Grid, GridData, HelixGridPosition},
     scadnano::*,
     utils::*,
-    BezierPathId, HelixParameters, Nucl,
 };
+use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::sync::Arc;
 use ultraviolet::{DRotor3, DVec3, Isometry2, Mat4, Rotor3, Vec2, Vec3};
 
-/// A structure maping helices identifier to `Helix` objects
+/// A structure mapping helices identifier to `Helix` objects
 #[derive(Debug, Default, Serialize, Deserialize, Clone)]
 pub struct Helices(pub(super) Arc<BTreeMap<usize, Arc<Helix>>>);
 
 impl Helices {
-    #[allow(clippy::needless_lifetimes)]
     pub fn make_mut<'a>(&'a mut self) -> HelicesMut<'a> {
         let new_map = BTreeMap::clone(self.0.as_ref());
         HelicesMut {
@@ -302,27 +301,19 @@ impl Helix {
             .group
             .clone()
             .unwrap_or_else(|| String::from("default_group"));
-        let grid_id = if let Some(id) = group_map.get(&group_id) {
-            id
-        } else {
+        let Some(grid_id) = group_map.get(&group_id) else {
             return Err(ScadnanoImportError::MissingField(format!(
                 "group {}",
                 group_id
             )));
         };
-        let x = if let Some(x) = scad.grid_position.get(0).cloned() {
-            x
-        } else {
+        let Some(x) = scad.grid_position.get(0).cloned() else {
             return Err(ScadnanoImportError::MissingField(String::from("x")));
         };
-        let y = if let Some(y) = scad.grid_position.get(1).cloned() {
-            y
-        } else {
+        let Some(y) = scad.grid_position.get(1).cloned() else {
             return Err(ScadnanoImportError::MissingField(String::from("y")));
         };
-        let group = if let Some(group) = groups.get(*grid_id) {
-            group
-        } else {
+        let Some(group) = groups.get(*grid_id) else {
             return Err(ScadnanoImportError::MissingField(format!(
                 "group {}",
                 grid_id
@@ -331,9 +322,7 @@ impl Helix {
 
         println!("helices per group {:?}", group_map);
         println!("helices per group {:?}", helix_per_group);
-        let nb_helices = if let Some(nb_helices) = helix_per_group.get_mut(*grid_id) {
-            nb_helices
-        } else {
+        let Some(nb_helices) = helix_per_group.get_mut(*grid_id) else {
             return Err(ScadnanoImportError::MissingField(format!(
                 "helix_per_group {}",
                 grid_id
@@ -697,7 +686,7 @@ impl Helix {
             -n as f32 * beta  // Beta is positive but helix turn clockwise when n increases
             + shift
             + std::f32::consts::FRAC_PI_2 // Add PI/2 so that when the roll is 0,
-                                          // the backward strand is at vertical position on nucl 0
+        // the backward strand is at vertical position on nucl 0
     }
 
     /// 3D position of a nucleotide on this helix. `n` is the position along the axis, and `forward` is true iff the 5' to 3' direction of the strand containing that nucleotide runs in the same direction as the axis of the helix.
@@ -800,15 +789,15 @@ impl Helix {
         self.theta_n_to_space_pos(&p, n, theta, forward)
     }
 
-    ///Return an helix that makes an ideal cross-over with self at postion n
-    pub fn ideal_neighbour(&self, n: isize, forward: bool, p: &HelixParameters) -> Helix {
+    ///Return an helix that makes an ideal cross-over with self at position n
+    pub fn ideal_neighbor(&self, n: isize, forward: bool, p: &HelixParameters) -> Helix {
         let p = match self.helix_parameters {
             None => p.clone(),
             Some(hp) => hp.clone(),
         };
-        let other_helix_pos = self.position_ideal_neighbour(n, forward, &p);
+        let other_helix_pos = self.position_ideal_neighbor(n, forward, &p);
         let mut new_helix = self.detached_copy_at(other_helix_pos);
-        self.adjust_theta_neighbour(n, forward, &mut new_helix, &p);
+        self.adjust_theta_neighbor(n, forward, &mut new_helix, &p);
         new_helix
     }
 
@@ -834,7 +823,7 @@ impl Helix {
         }
     }
 
-    fn position_ideal_neighbour(&self, n: isize, forward: bool, p: &HelixParameters) -> Vec3 {
+    fn position_ideal_neighbor(&self, n: isize, forward: bool, p: &HelixParameters) -> Vec3 {
         let p = match self.helix_parameters {
             None => p.clone(),
             Some(hp) => hp.clone(),
@@ -843,12 +832,10 @@ impl Helix {
         let my_nucl_pos = self.space_pos(&p, n, forward);
         let direction = (my_nucl_pos - axis_pos).normalized();
 
-        #[allow(clippy::let_and_return)]
-        let other_helix_pos = (2. * p.helix_radius + p.inter_helix_gap) * direction + axis_pos;
-        other_helix_pos
+        (2. * p.helix_radius + p.inter_helix_gap) * direction + axis_pos
     }
 
-    fn adjust_theta_neighbour(
+    fn adjust_theta_neighbor(
         &self,
         n: isize,
         forward: bool,
@@ -895,15 +882,15 @@ impl Helix {
     pub fn axis_position(&self, p: &HelixParameters, n: isize, forward: bool) -> Vec3 {
         // Attention, ne tient pas compte de l'inclinaison !!!
         let n = n + self.initial_nt_index;
-        if let Some(curve) = self.instanciated_curve.as_ref().map(|s| &s.curve) {
-            if let Some(point) = curve.axis_pos(n, forward).map(dvec_to_vec) {
-                let (position, orientation) = if curve.as_ref().has_its_own_encoded_frame() {
-                    (Vec3::zero(), Rotor3::identity())
-                } else {
-                    (self.position, self.orientation)
-                };
-                return point.rotated_by(orientation) + position;
-            }
+        if let Some(curve) = self.instanciated_curve.as_ref().map(|s| &s.curve)
+            && let Some(point) = curve.axis_pos(n, forward).map(dvec_to_vec)
+        {
+            let (position, orientation) = if curve.as_ref().has_its_own_encoded_frame() {
+                (Vec3::zero(), Rotor3::identity())
+            } else {
+                (self.position, self.orientation)
+            };
+            return point.rotated_by(orientation) + position;
         }
         let p = self.helix_parameters.unwrap_or(*p).clone();
         let mut ret = Vec3::new(n as f32 * p.rise, 0., 0.);
@@ -1063,7 +1050,6 @@ impl<'a> Axis<'a> {
 }
 
 impl OwnedAxis {
-    #[allow(clippy::needless_lifetimes)]
     pub fn borrow<'a>(&'a self) -> Axis<'a> {
         match self {
             Self::Line { origin, direction } => Axis::Line {

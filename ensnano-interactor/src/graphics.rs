@@ -24,13 +24,37 @@ use ultraviolet::Vec3;
 pub enum RenderingMode {
     Normal,
     Cartoon,
+    Outline,
+    BlackAndWhite,
+}
+impl RenderingMode {
+    pub fn requires_post_processing(&self) -> bool {
+        matches!(self, Self::Outline | Self::BlackAndWhite)
+    }
 }
 
-pub const ALL_RENDERING_MODE: [RenderingMode; 2] = [RenderingMode::Normal, RenderingMode::Cartoon];
+pub const ALL_RENDERING_MODE: &[RenderingMode] = &[
+    RenderingMode::Normal,
+    RenderingMode::Cartoon,
+    RenderingMode::Outline,
+    RenderingMode::BlackAndWhite,
+];
 
 impl Default for RenderingMode {
     fn default() -> Self {
         Self::Normal
+    }
+}
+
+impl std::fmt::Display for RenderingMode {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        let ret = match self {
+            Self::Normal => "Normal",
+            Self::Cartoon => "Cartoon",
+            Self::Outline => "Outline",
+            Self::BlackAndWhite => "Black and white",
+        };
+        write!(f, "{}", ret)
     }
 }
 
@@ -40,7 +64,7 @@ pub enum Background3D {
     White,
 }
 
-pub const ALL_BACKGROUND3D: [Background3D; 2] = [Background3D::Sky, Background3D::White];
+pub const ALL_BACKGROUND3D: &[Background3D] = &[Background3D::Sky, Background3D::White];
 
 impl Default for Background3D {
     fn default() -> Self {
@@ -49,20 +73,10 @@ impl Default for Background3D {
 }
 
 impl std::fmt::Display for Background3D {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         let ret = match self {
             Self::White => "White",
             Self::Sky => "Sky",
-        };
-        write!(f, "{}", ret)
-    }
-}
-
-impl std::fmt::Display for RenderingMode {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let ret = match self {
-            Self::Normal => "Normal",
-            Self::Cartoon => "Cartoon",
         };
         write!(f, "{}", ret)
     }
@@ -82,7 +96,7 @@ impl Default for HBondDisplay {
 }
 
 impl std::fmt::Display for HBondDisplay {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         let ret = match self {
             Self::No => "No",
             Self::Stick => "Sticks",

@@ -16,15 +16,21 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use crate::app_state::PastePosition;
-
 use super::download_intervals::DownloadIntervals;
 use super::messages::CHANGING_DNA_PARAMETERS_WARNING;
 use super::*;
-use ensnano_design::group_attributes::GroupPivot;
-use ensnano_design::{grid::GridId, HelixParameters};
+use crate::app_state::design_interactor::controller::{
+    clipboard::PastePosition, simulations::SimulationOperation,
+};
+use ensnano_design::{
+    HelixParameters,
+    grid::{GridDescriptor, GridId, GridTypeDescr},
+    group_attributes::GroupPivot,
+};
 use ensnano_interactor::{
-    graphics::FogParameters, HyperboloidOperation, RevolutionSurfaceSystemDescriptor,
+    DesignOperation, HyperboloidOperation, HyperboloidRequest, RevolutionSurfaceSystemDescriptor,
+    RigidBodyConstants, RollRequest, application::Notification, consts::ENS_EXTENSION,
+    graphics::FogParameters,
 };
 use std::sync::Arc;
 
@@ -32,7 +38,7 @@ use std::sync::Arc;
 pub(super) struct NormalState;
 
 impl State for NormalState {
-    fn make_progress(self: Box<Self>, main_state: &mut dyn MainState) -> Box<dyn State> {
+    fn make_progress(self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn State> {
         if let Some(action) = main_state.pop_action() {
             match action {
                 Action::NewDesign => Box::new(NewDesign::init(main_state.need_save())),
@@ -40,7 +46,7 @@ impl State for NormalState {
                 Action::QuickSave => {
                     if let Some(path) = main_state
                         .get_current_file_name()
-                        .filter(|p| p.extension() == Some(crate::consts::ENS_EXTENSION.as_ref()))
+                        .filter(|p| p.extension() == Some(ENS_EXTENSION.as_ref()))
                     {
                         quicksave(path)
                     } else {
@@ -89,17 +95,13 @@ impl State for NormalState {
                 }
                 Action::TurnSelectionIntoGrid => self.turn_selection_into_grid(main_state),
                 Action::AddGrid(descr) => self.add_grid(main_state, descr),
-                Action::ChangeSequence(_) => {
-                    println!("Sequence input is not yet implemented");
-                    self
-                }
                 Action::ChangeColorStrand(color) => self.change_color(main_state, color),
                 Action::FinishChangingColor => {
                     main_state.finish_operation();
                     self
                 }
-                Action::ToggleHelicesPersistance(persistant) => {
-                    self.toggle_helices_persistance(main_state, persistant)
+                Action::ToggleHelicesPersistence(persistent) => {
+                    self.toggle_helices_persistence(main_state, persistent)
                 }
                 Action::ToggleSmallSphere(small) => self.toggle_small_spheres(main_state, small),
                 Action::LoadDesign(Some(path)) => Box::new(Load::known_path(path)),
@@ -188,11 +190,11 @@ impl State for NormalState {
                     self
                 }
                 Action::StopSimulation => {
-                    main_state.update_simulation(SimulationRequest::Stop);
+                    main_state.update_simulation(SimulationOperation::Stop);
                     self
                 }
                 Action::FinishRelaxationSimulation => {
-                    main_state.update_simulation(SimulationRequest::FinishRelaxation);
+                    main_state.update_simulation(SimulationOperation::FinishRelaxation);
                     self
                 }
                 Action::RollHelices(roll) => {
@@ -200,11 +202,13 @@ impl State for NormalState {
                     self
                 }
                 Action::ResetSimulation => {
-                    main_state.update_simulation(SimulationRequest::Reset);
+                    main_state.update_simulation(SimulationOperation::Reset);
                     self
                 }
-                Action::RigidParametersUpdate(parameters) => {
-                    main_state.update_simulation(SimulationRequest::UpdateParameters(parameters));
+                Action::RigidParametersUpdate(new_parameters) => {
+                    main_state.update_simulation(SimulationOperation::UpdateParameters {
+                        new_parameters,
+                    });
                     self
                 }
                 Action::RollRequest(request) => {
@@ -223,7 +227,7 @@ impl State for NormalState {
                     main_state.turn_selection_into_anchor();
                     self
                 }
-                Action::SetVisiblitySieve { compl } => {
+                Action::SetVisibilitySieve { compl } => {
                     main_state.set_visibility_sieve(compl);
                     self
                 }
@@ -271,12 +275,10 @@ impl State for NormalState {
                     main_state.toggle_2d();
                     self
                 }
-
                 Action::MakeAllSuggestedXover { doubled } => {
                     main_state.make_all_suggested_xover(doubled);
                     self
                 }
-
                 Action::FlipSplitViews => {
                     main_state.flip_split_views();
                     self
@@ -303,11 +305,6 @@ impl State for NormalState {
                     self
                 }
                 Action::OptimizeShift => Box::new(SetScaffoldSequence::optimize_shift()),
-                // Defaults
-                action => {
-                    println!("Not implemented {:?}", action);
-                    self
-                }
             }
         } else {
             self
@@ -318,7 +315,7 @@ impl State for NormalState {
 struct ChangingDnaParameters(HelixParameters);
 
 impl State for ChangingDnaParameters {
-    fn make_progress(self: Box<Self>, main_state: &mut dyn MainState) -> Box<dyn State> {
+    fn make_progress(self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn State> {
         main_state.apply_operation(DesignOperation::SetGlobalHelixParameters {
             helix_parameters: self.0,
         });
@@ -327,7 +324,7 @@ impl State for ChangingDnaParameters {
 }
 
 impl NormalState {
-    fn turn_selection_into_grid(self: Box<Self>, main_state: &mut dyn MainState) -> Box<Self> {
+    fn turn_selection_into_grid(self: Box<Self>, main_state: &mut MainStateView) -> Box<Self> {
         let selection = main_state.get_selection();
         if ensnano_interactor::all_helices_no_grid(
             selection.as_ref().as_ref(),
@@ -341,7 +338,7 @@ impl NormalState {
 
     fn add_grid(
         self: Box<Self>,
-        main_state: &mut dyn MainState,
+        main_state: &mut MainStateView,
         descr: GridTypeDescr,
     ) -> Box<Self> {
         if let Some((position, orientation)) = main_state.get_grid_creation_position() {
@@ -359,7 +356,7 @@ impl NormalState {
         self
     }
 
-    fn change_color(self: Box<Self>, main_state: &mut dyn MainState, color: u32) -> Box<Self> {
+    fn change_color(self: Box<Self>, main_state: &mut MainStateView, color: u32) -> Box<Self> {
         let strands = ensnano_interactor::extract_strands_from_selection(
             main_state.get_selection().as_ref().as_ref(),
         );
@@ -369,7 +366,7 @@ impl NormalState {
 
     fn toggle_small_spheres(
         self: Box<Self>,
-        main_state: &mut dyn MainState,
+        main_state: &mut MainStateView,
         small: bool,
     ) -> Box<Self> {
         let grid_ids =
@@ -380,17 +377,17 @@ impl NormalState {
         self
     }
 
-    fn toggle_helices_persistance(
+    fn toggle_helices_persistence(
         self: Box<Self>,
-        main_state: &mut dyn MainState,
-        persistant: bool,
+        main_state: &mut MainStateView,
+        persistent: bool,
     ) -> Box<Self> {
         let grid_ids =
             ensnano_interactor::extract_grids(main_state.get_selection().as_ref().as_ref());
         if !grid_ids.is_empty() {
-            main_state.apply_operation(DesignOperation::SetHelicesPersistance {
+            main_state.apply_operation(DesignOperation::SetHelicesPersistence {
                 grid_ids,
-                persistant,
+                persistent,
             });
         }
         self
@@ -429,12 +426,6 @@ fn export(export_type: ExportType) -> Box<dyn State> {
     Box::new(Exporting::new(on_success, on_error, export_type))
 }
 
-use ensnano_design::grid::{GridDescriptor, GridTypeDescr};
-
-use ensnano_interactor::HyperboloidRequest;
-use ensnano_interactor::{
-    application::Notification, DesignOperation, RigidBodyConstants, RollRequest,
-};
 /// An action to be performed at the end of an event loop iteration, and that will have an effect
 /// on the main application state, e.g. Closing the window, or toggling between 3D/2D views.
 #[derive(Debug, Clone)]
@@ -455,7 +446,6 @@ pub enum Action {
     CloseOverlay(OverlayType),
     OpenOverlay(OverlayType),
     ChangeUiSize(UiSize),
-    InvertScrollY(bool),
     ErrorMsg(String),
     DesignOperation(DesignOperation),
     SilentDesignOperation(DesignOperation),
@@ -464,12 +454,10 @@ pub enum Action {
     NotifyApps(Notification),
     TurnSelectionIntoGrid,
     AddGrid(GridTypeDescr),
-    /// Set the sequence of all the selected strands
-    ChangeSequence(String),
     /// Change the color of all the selected strands
     ChangeColorStrand(u32),
     FinishChangingColor,
-    ToggleHelicesPersistance(bool),
+    ToggleHelicesPersistence(bool),
     ToggleSmallSphere(bool),
     RollRequest(RollRequest),
     StopSimulation,
@@ -493,16 +481,13 @@ pub enum Action {
     RigidParametersUpdate(RigidBodyConstants),
     TurnIntoAnchor,
     NewHyperboloid(HyperboloidRequest),
-    UpdateHyperboloidShift(f32),
-    SetVisiblitySieve {
+    SetVisibilitySieve {
         compl: bool,
     },
     DeleteSelection,
     ScaffoldToSelection,
     /// Save the nucleotides 3D positions by strand as a json file in the design directory
     GetDesignPathAndNotify(fn(Option<Arc<Path>>) -> Notification),
-    /// Remove empty domains and merge consecutive domains
-    CleanDesign,
     SuspendOp,
     Fog(FogParameters),
     Split2D,

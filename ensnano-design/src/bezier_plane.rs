@@ -15,13 +15,14 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use super::collection::HasMap;
-use super::curves::{BezierEndCoordinates, Curve, InstanciatedPiecewiseBezier};
 use super::Collection;
 use super::HelixParameters;
+use super::collection::HasMap;
+use super::curves::{BezierEndCoordinates, Curve, InstanciatedPiecewiseBezier};
+use crate::PieceWiseBezierInstantiator;
 use crate::grid::*;
 use crate::utils::rotor_to_drotor;
-use crate::PieceWiseBezierInstantiator;
+use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::sync::Arc;
 use ultraviolet::{DMat3, DVec3, Mat3, Rotor3, Vec2, Vec3};
@@ -59,7 +60,7 @@ impl HasMap for BezierPlanes {
 }
 
 impl BezierPlanes {
-    pub fn make_mut(&mut self) -> BezierPlanesMut {
+    pub fn make_mut(&mut self) -> BezierPlanesMut<'_> {
         let new_map = BTreeMap::clone(&self.0);
         BezierPlanesMut {
             source: self,
@@ -185,7 +186,7 @@ pub struct BezierPathsMut<'a> {
 }
 
 impl BezierPaths {
-    pub fn make_mut(&mut self) -> BezierPathsMut {
+    pub fn make_mut(&mut self) -> BezierPathsMut<'_> {
         BezierPathsMut {
             new_map: BTreeMap::clone(&self.0),
             source: self,
@@ -566,7 +567,7 @@ pub struct BezierPathData {
 }
 
 impl std::fmt::Debug for BezierPathData {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         f.debug_struct("BezierPathData")
             .field(
                 "instanciated_paths",

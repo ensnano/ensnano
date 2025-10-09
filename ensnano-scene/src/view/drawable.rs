@@ -23,7 +23,7 @@ use ensnano_utils::texture::Texture;
 use ensnano_utils::wgpu;
 use std::rc::Rc;
 use ultraviolet::Vec3;
-use wgpu::{include_spirv, Device, RenderPass, RenderPipeline};
+use wgpu::{Device, RenderPass, RenderPipeline, include_spirv};
 
 pub trait Drawable {
     fn indices() -> Vec<u16>;

@@ -20,19 +20,19 @@ use super::super::{CameraPtr, Flat, FlatHelix};
 use super::{FlatNucl, Helix2d, NuclCollection};
 use crate::flattypes::{FlatHelixMaps, FlatPosition, HelixSegment};
 use crate::view::EditionInfo;
-use abcissa_converter::{AbscissaConverter, AbscissaConverter_};
+use abscissa_converter::{AbscissaConverter, AbscissaConverter_};
 use ahash::RandomState;
-use ensnano_design::ultraviolet;
 use ensnano_design::Nucl;
+use ensnano_design::ultraviolet;
 use ensnano_interactor::consts::*;
 use ensnano_utils::{
     chars2d::{Line, Sentence, TextDrawer},
     full_isometry::FullIsometry,
     instance::Instance,
 };
-use lyon::math::{rect, Point};
-use lyon::path::builder::{BorderRadii, PathBuilder};
+use lyon::math::{Point, rect};
 use lyon::path::Path;
+use lyon::path::builder::{BorderRadii, PathBuilder};
 use lyon::tessellation;
 use lyon::tessellation::{
     FillVertex, FillVertexConstructor, StrokeVertex, StrokeVertexConstructor,
@@ -132,8 +132,8 @@ impl Helix {
         let mut vertices = Vertices::new();
         let left = self
             .abscissa_converter
-            .nucl_to_x_convertion(self.get_flat_left()) as f32;
-        let right = self.abscissa_converter.nucl_to_x_convertion(
+            .nucl_to_x_conversion(self.get_flat_left()) as f32;
+        let right = self.abscissa_converter.nucl_to_x_conversion(
             self.get_flat_right()
                 .right()
                 .max(self.get_flat_left().right()),
@@ -169,8 +169,8 @@ impl Helix {
         let mut vertices = Vertices::new();
         let left = self
             .abscissa_converter
-            .nucl_to_x_convertion(self.get_flat_left()) as f32;
-        let right = self.abscissa_converter.nucl_to_x_convertion(
+            .nucl_to_x_conversion(self.get_flat_left()) as f32;
+        let right = self.abscissa_converter.nucl_to_x_conversion(
             self.get_flat_right()
                 .right()
                 .max(self.get_flat_left().right()),
@@ -190,7 +190,7 @@ impl Helix {
         for i in (self.left + 1)..=self.right {
             let x = self
                 .abscissa_converter
-                .nucl_to_x_convertion(FlatPosition::from_real(i, self.flat_id.segment_left));
+                .nucl_to_x_conversion(FlatPosition::from_real(i, self.flat_id.segment_left));
             builder.begin(Point::new(x as f32, 0.));
             builder.line_to(Point::new(x as f32, 2.));
             builder.end(false);
@@ -528,12 +528,12 @@ impl Helix {
 
     fn leftmost_x(&self) -> f32 {
         self.abscissa_converter
-            .nucl_to_x_convertion(self.get_flat_left()) as f32
+            .nucl_to_x_conversion(self.get_flat_left()) as f32
     }
 
     fn rightmost_x(&self) -> f32 {
         self.abscissa_converter
-            .nucl_to_x_convertion(self.get_flat_right().right()) as f32
+            .nucl_to_x_conversion(self.get_flat_right().right()) as f32
     }
 
     /// Return the center of the helix's circle widget.
@@ -841,10 +841,10 @@ impl Helix {
                 .add_sentence(sentence, self.info_position(flat_pos), line);
         };
 
-        if let Some(building) = edition_info {
-            if building.nucl.helix == self.flat_id {
-                print_info(building.nucl.flat_position, &building.to_string());
-            }
+        if let Some(building) = edition_info
+            && building.nucl.helix == self.flat_id
+        {
+            print_info(building.nucl.flat_position, &building.to_string());
         }
 
         let mut print_basis = |flat_position: FlatPosition, forward: bool| {
@@ -915,32 +915,28 @@ impl Helix {
     ) -> bool {
         if let Some((x0, x1)) =
             self.screen_rectangle_intersection(camera, left, top, right, bottom, HelixLine::Middle)
+            && self.x_conversion(nucl.flat_position.0 as f32) >= x0.floor()
+            && self.x_conversion(nucl.flat_position.0 as f32) < x1.ceil()
         {
-            if self.x_conversion(nucl.flat_position.0 as f32) >= x0.floor()
-                && self.x_conversion(nucl.flat_position.0 as f32) < x1.ceil()
-            {
-                return true;
-            }
+            return true;
         }
+
         if nucl.forward {
             if let Some((x0, x1)) =
                 self.screen_rectangle_intersection(camera, left, top, right, bottom, HelixLine::Top)
-            {
-                if self.x_conversion(nucl.flat_position.0 as f32) >= x0.floor()
-                    && self.x_conversion(nucl.flat_position.0 as f32) < x1.ceil()
-                {
-                    return true;
-                }
-            }
-        } else if let Some((x0, x1)) =
-            self.screen_rectangle_intersection(camera, left, top, right, bottom, HelixLine::Bottom)
-        {
-            if self.x_conversion(nucl.flat_position.0 as f32) >= x0.floor()
+                && self.x_conversion(nucl.flat_position.0 as f32) >= x0.floor()
                 && self.x_conversion(nucl.flat_position.0 as f32) < x1.ceil()
             {
                 return true;
             }
+        } else if let Some((x0, x1)) =
+            self.screen_rectangle_intersection(camera, left, top, right, bottom, HelixLine::Bottom)
+            && self.x_conversion(nucl.flat_position.0 as f32) >= x0.floor()
+            && self.x_conversion(nucl.flat_position.0 as f32) < x1.ceil()
+        {
+            return true;
         }
+
         false
     }
 
@@ -1134,7 +1130,7 @@ pub enum HelixHandle {
     Right,
 }
 
-mod abcissa_converter {
+mod abscissa_converter {
     use super::*;
     pub(super) use ensnano_design::AbscissaConverter as AbscissaConverter_;
 
@@ -1145,21 +1141,21 @@ mod abcissa_converter {
     }
 
     impl AbscissaConverter {
-        pub fn nucl_to_x_convertion(&self, n: FlatPosition) -> f64 {
+        pub fn nucl_to_x_conversion(&self, n: FlatPosition) -> f64 {
             let adjust = if let Some(n) = self.left {
-                self.converter.nucl_to_x_convertion(n)
+                self.converter.nucl_to_x_conversion(n)
             } else {
                 0.0
             };
 
             let real = n.to_real(self.left);
-            self.converter.nucl_to_x_convertion(real) - adjust
+            self.converter.nucl_to_x_conversion(real) - adjust
         }
 
         pub fn x_conversion(&self, x: f64) -> f64 {
             if let Some(n) = self.left {
                 // translate x to the right and back
-                let adjust = self.converter.nucl_to_x_convertion(n);
+                let adjust = self.converter.nucl_to_x_conversion(n);
                 self.converter.x_conversion(x + n as f64) - adjust
             } else {
                 self.converter.x_conversion(x)
@@ -1168,7 +1164,7 @@ mod abcissa_converter {
 
         pub fn x_to_nucl_conversion(&self, x: f64) -> f64 {
             if let Some(n) = self.left {
-                let shift = self.converter.nucl_to_x_convertion(n);
+                let shift = self.converter.nucl_to_x_conversion(n);
                 self.converter.x_to_nucl_conversion(x + shift) - n as f64
             } else {
                 self.converter.x_to_nucl_conversion(x)

@@ -23,10 +23,10 @@ pub use ensnano_interactor::graphics::FogParameters;
 
 #[repr(C)] // We need this for Rust to store our data correctly for the shaders
 #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable, Default)] // This is so we can store this in a buffer
-/// Hold informations relative to camera: The camera position and the Projection,
-/// and View matrices.
+/// Hold information relative to camera:
+/// the camera position and the Projection and View matrices.
 pub struct Uniforms {
-    //  name: type, // alignement of the next field
+    //  name: type, // alignment of the next field
     pub camera_position: Vec4,    //0
     pub view: Mat4,               // 0
     pub proj: Mat4,               // 0
@@ -130,7 +130,7 @@ impl Uniforms {
         if !fog.from_camera && fog.alt_fog_center.is_none() {
             make_fog = ensnano_interactor::graphics::fog_kind::NO_FOG;
         }
-        let (is_cut, cut_normal, cut_dot_value) = if let Some(cut_param) = cut {
+        let (_, cut_normal, cut_dot_value) = if let Some(cut_param) = cut {
             (1, cut_param.normal, cut_param.dot_value)
         } else {
             (0, Vec3::zero(), 0.)

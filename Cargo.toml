@@ -1,63 +1,138 @@
 [workspace]
-members = [ "ensnano-design", "ensnano-iced", "ensnano-interactor", "ensnano-organizer", "ensnano-scene", "ensnano-flatscene", "ensnano-gui", "ensnano-utils", "ensnano-exports", "ensnano-iced"]
+members = [
+    "ensnano-design",
+    "ensnano-exports",
+    "ensnano-flatscene",
+    "ensnano-gui",
+    "ensnano-iced",
+    "ensnano-interactor",
+    "ensnano-organizer",
+    "ensnano-scene",
+    "ensnano-utils",
+]
+
+[workspace.package]
+version = "0.7.0"
+authors = [
+    "thenlevy <nicolaspierrelevy@gmail.com>",
+    "Nicolas Schabanel <nicolas.schabanel@gmail.com>",
+    "Joris Picot <joris.picot@ens-lyon.fr>",
+]
+edition = "2024"
+license = "GPL-3.0-or-later"
 
 [package]
 name = "ensnano"
-version = "0.7.0"
-authors = ["thenlevy <nicolaspierrelevy@gmail.com>", "Nicolas Schabanel <nicolas.schabanel@gmail.com>"]
-edition = "2021"
-license = "GPL-3.0-or-later"
 resolver = "2"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dependencies]
-ultraviolet = { git = "https://github.com/termhn/ultraviolet", rev = "b2fb29e" , features = ["bytemuck", "f64", "serde"] }
-env_logger = "0.11"
-serde_json = "1.0.57"
-futures = "0.3.5"
-serde = "1.0.116"
-serde_derive = "1.0.116"
-chrono = "0.4"
-simple_excel_writer = "0.1.7"
-rust_xlsxwriter = "0.55.0"
-regex = "1.4.2"
-mathru = "0.13"
-rand = "0.8.3"
-rand_distr = "0.4.0"
-ordered-float = { version = "2.0", features = ["serde"] }
-rfd = "0.10"
-ensnano_organizer = { path = "ensnano-organizer" }
-num_enum = "0.5.1"
-cadnano-format = "0.1.0"
+[workspace.dependencies]
 ensnano_design = { path = "ensnano-design" }
-ensnano_iced = { path = "ensnano-iced" }
-ensnano_interactor = { path = "ensnano-interactor" }
-ensnano_scene = { path = "ensnano-scene" }
+ensnano_exports = { path = "ensnano-exports" }
 ensnano_flatscene = { path = "ensnano-flatscene" }
 ensnano_gui = { path = "ensnano-gui" }
-ensnano_utils = {path = "ensnano-utils" }
-ensnano_exports = {path = "ensnano-exports"}
-log = "0.4"
-pretty_env_logger = "0.4"
-dirs = "4.0"
+ensnano_iced = { path = "ensnano-iced" }
+ensnano_interactor = { path = "ensnano-interactor" }
+ensnano_organizer = { path = "ensnano-organizer" }
+ensnano_scene = { path = "ensnano-scene" }
+ensnano_utils = { path = "ensnano-utils" }
+
 ahash = "0.8.6"
-color_space = "0.5.2"
-confy = {git = "https://github.com/rust-cli/confy", rev = "64282241313", default-features=false, features=["yaml_conf"]}
-version-compare = "0.1.0"
+bytemuck = "1.2.0"
 chebyshev_polynomials = { git = "https://github.com/thenlevy/chebyshev_polynomials" }
-hex = "0.4.3"
-pod-enum = "0.1.0"
+chrono = "0.4"
+color_space = "0.5.2"
+confy = { version = "1.0.0", default-features = false, features = [
+    "yaml_conf",
+] }
+dirs = "4.0"
+fontdue = "0.6.4"
+futures = "0.3.5"
+futures-channel = "0.3.30"
+gltf = "0.16.0"
+iced = { version = "0.12", features = ["advanced", "image", "svg"] }
+iced_aw = { version = "0.9", default-features = false, features = [
+    "tabs",
+    "tab_bar",
+] }
+iced_futures = "0.12"
+iced_graphics = "0.12"
+iced_runtime = "0.12"
+iced_wgpu = "0.12"
+iced_widget = "0.12"
+iced_winit = "0.12"
+icondata = { version = "0.6", default-features = false, features = [
+    "bootstrap-icons",
+    "material-design-icons",
+] }
+image = "0.23"
+int-enum = "1.0.1"
+itertools = "0.10.3"
+log = "0.4"
+lyon = { git = "https://github.com/nical/lyon", rev = "ea6d904c6c9ec0445c5653c119a48c43ea76cee9" }
+mathru = "0.13"
+nom_stl = "0.2.2"
+num_enum = "0.5.1"
+open = "1"
+ordered-float = { version = "2.0", features = ["serde"] }
+paste = "1.0.5"
+pathdiff = "0.2.1"
+png = "0.17.5"
+pretty_env_logger = "0.4"
+quadrature = "0.1.2"
+rand = "0.8.5"
+rand_distr = "0.4.0"
+rayon = "1.6.0"
+regex = "1.4.2"
+relative-path = "1.7.0"
+rfd = "0.10"
+rust_xlsxwriter = "0.55.0"
+serde = { version = "1.0.116", features = ["derive", "rc"] }
+serde_json = "1.0.116"
+serde_with = "1.11.0"
+strum = { version = "0.26", features = ["derive"] }
+svg = "0.12.0"
+ultraviolet = { git = "https://github.com/termhn/ultraviolet", rev = "b2fb29e", features = [
+    "bytemuck",
+    "f64",
+    "serde",
+] }
+version-compare = "0.1.0"
+wgpu = { version = "0.19", features = ["spirv"] }
 
+[dependencies]
+ensnano_design.workspace = true
+ensnano_exports.workspace = true
+ensnano_flatscene.workspace = true
+ensnano_gui.workspace = true
+ensnano_iced.workspace = true
+ensnano_interactor.workspace = true
+ensnano_organizer.workspace = true
+ensnano_scene.workspace = true
+ensnano_utils.workspace = true
 
-#[patch.crates-io]
-#iced_aw = { git="https://github.com/iced-rs/iced_aw.git", tag="v0.2.0" }
-#iced_aw = "0.7"
-
-
-
-# [target.'cfg(not(target_env = "msvc"))'.dependencies]
-# jemallocator = "0.3.2"
+ahash.workspace = true
+chebyshev_polynomials.workspace = true
+color_space.workspace = true
+confy.workspace = true
+dirs.workspace = true
+futures.workspace = true
+log.workspace = true
+mathru.workspace = true
+ordered-float.workspace = true
+pretty_env_logger.workspace = true
+rand.workspace = true
+rand_distr.workspace = true
+regex.workspace = true
+rfd.workspace = true
+rust_xlsxwriter.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+ultraviolet.workspace = true
+version-compare.workspace = true
 
 [features]
 log_after_renderer_setup = []

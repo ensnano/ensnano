@@ -1,21 +1,20 @@
 [package]
 name = "ensnano_iced"
-version = "0.1.0"
-authors = ["Joris Picot <joris.picot@ens-lyon.fr"]
-license = "GPL-3.0-or-later"
-edition = "2021"
-resolver = "2"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
 
 [dependencies]
-color_space = "0.5.2"
-iced = { version = "0.12", features = ["advanced", "image"] }
-iced_aw = "0.9"
-iced_futures = "0.12"
-iced_graphics = "0.12"
-iced_runtime = "0.12"
-iced_wgpu = "0.12"
-iced_widget = "0.12"
-iced_winit = "0.12"
-log = "0.4"
-serde_derive = "1.0.116"
-serde = "1.0.116"
+color_space.workspace = true
+iced.workspace = true
+iced_aw.workspace = true
+iced_futures.workspace = true
+iced_graphics.workspace = true
+iced_runtime.workspace = true
+iced_wgpu.workspace = true
+iced_widget.workspace = true
+iced_winit.workspace = true
+icondata.workspace = true
+log.workspace = true
+serde.workspace = true

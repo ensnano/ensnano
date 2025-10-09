@@ -18,9 +18,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use ensnano_design::ultraviolet;
 use ensnano_utils::wgpu;
 use ultraviolet::{Mat4, Vec2, Vec3, Vec4};
-use wgpu::{include_spirv, Device, RenderPass};
+use wgpu::{Device, RenderPass, include_spirv};
 
-use super::{grid_disc::GridDisc, instances_drawer::*, LetterInstance};
+use super::{LetterInstance, grid_disc::GridDisc, instances_drawer::*};
 use ensnano_design::grid::{Grid, GridDivision, GridId, GridPosition, GridType};
 use std::collections::BTreeMap;
 
@@ -284,11 +284,11 @@ impl GridManager {
         let mut ret = None;
         let mut depth = std::f32::INFINITY;
         for g in self.instances.values() {
-            if let Some(intersection) = g.ray_intersection(origin, direction) {
-                if intersection.depth < depth {
-                    ret = Some(intersection.clone());
-                    depth = intersection.depth;
-                }
+            if let Some(intersection) = g.ray_intersection(origin, direction)
+                && intersection.depth < depth
+            {
+                ret = Some(intersection.clone());
+                depth = intersection.depth;
             }
         }
         ret
@@ -426,7 +426,7 @@ impl RessourceProvider for GridTextures {
         ]
     }
 
-    fn ressources(&self) -> Vec<wgpu::BindGroupEntry> {
+    fn ressources(&self) -> Vec<wgpu::BindGroupEntry<'_>> {
         vec![
             wgpu::BindGroupEntry {
                 binding: 0,
@@ -448,7 +448,7 @@ impl RessourceProvider for GridTextures {
     }
 }
 
-impl Instanciable for GridInstance {
+impl Instantiable for GridInstance {
     type Vertex = GridVertex;
     type RawInstance = GridInstanceRaw;
     type Ressource = GridTextures;

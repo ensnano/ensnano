@@ -17,9 +17,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use ensnano_design::ultraviolet::{Vec2, Vec3, Vec4};
 use ensnano_utils::wgpu;
-use wgpu::{include_spirv, Device};
+use wgpu::{Device, include_spirv};
 
-use super::instances_drawer::{Instanciable, RessourceProvider, Vertexable};
+use super::instances_drawer::{Instantiable, RessourceProvider, Vertexable};
 use ensnano_utils::text::Letter;
 
 #[derive(Debug, Clone)]
@@ -64,7 +64,7 @@ impl RessourceProvider for Letter {
     }
 
     /// This methods allows the ressource tho provide the vertex buffer. If the return value is
-    /// Some, it takes priority over the Instanciable's vertices.
+    /// Some, it takes priority over the Instantiable's vertices.
     fn vertex_buffer_desc() -> Option<wgpu::VertexBufferLayout<'static>>
     where
         Self: Sized,
@@ -72,7 +72,7 @@ impl RessourceProvider for Letter {
         Some(ensnano_utils::text::Vertex::desc())
     }
 
-    fn ressources(&self) -> Vec<wgpu::BindGroupEntry> {
+    fn ressources(&self) -> Vec<wgpu::BindGroupEntry<'_>> {
         vec![
             wgpu::BindGroupEntry {
                 binding: 0,
@@ -116,7 +116,7 @@ impl Vertexable for LetterVertex {
     }
 }
 
-impl Instanciable for LetterInstance {
+impl Instantiable for LetterInstance {
     type Ressource = Letter;
     type Vertex = LetterVertex;
     type RawInstance = RawLetter;

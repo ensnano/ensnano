@@ -16,31 +16,30 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+pub mod design_content;
+pub mod impl_main_reader;
+pub mod impl_reader2d;
+pub mod impl_reader3d;
+pub mod impl_readergui;
+
+use crate::app_state::design_interactor::presenter::design_content::NuclCollection;
+
 #[cfg(test)]
-pub use self::design_content::Staple;
+use self::design_content::Staple;
 
 use super::*;
-use ensnano_design::{
-    BezierPathId, Extremity, HelixCollection, InstanciatedPiecewiseBezier, Nucl, VirtualNucl,
-};
-
-use ensnano_interactor::{
-    application::Camera3D, NeighbourDescriptor, NeighbourDescriptorGiver, ScaffoldInfo, Selection,
-    SuggestionParameters,
-};
-
-use ultraviolet::Mat4;
-
-use crate::utils::id_generator::IdGenerator;
-type JunctionsIds = IdGenerator<(Nucl, Nucl)>;
-pub mod design_content;
-mod impl_main_reader;
-mod impl_reader2d;
-mod impl_reader3d;
-mod impl_readergui;
-use crate::scene::{HBond, HalfHBond};
 use design_content::DesignContent;
-use std::collections::{BTreeMap, HashSet};
+use ensnano_design::{BezierPathId, Extremity, HelixCollection, InstanciatedPiecewiseBezier, Nucl};
+use ensnano_interactor::{
+    NeighborDescriptor, NeighborDescriptorGiver, Referential, ScaffoldInfo, Selection,
+    application::Camera3D,
+};
+use ensnano_scene::{HBond, HalfHBond};
+use ensnano_utils::id_generator::IdGenerator;
+use std::collections::{BTreeMap, HashMap, HashSet};
+use ultraviolet::{Mat4, Vec3};
+
+type JunctionsIds = IdGenerator<(Nucl, Nucl)>;
 
 #[derive(Clone)]
 /// The structure that handles "read" operations on designs.
@@ -51,8 +50,8 @@ use std::collections::{BTreeMap, HashSet};
 /// When the data structures are updated, a pointer to the design that was used to build them is
 /// stored. To obtain a design reader, a pointer to the current design must be given. If the given
 /// pointer does not point to the same address as the one that was used to create the data
-/// structures, the strucutres are updated before returning the design reader.
-pub(super) struct Presenter {
+/// structures, the structures are updated before returning the design reader.
+pub struct Presenter {
     pub current_design: AddressPointer<Design>,
     current_suggestion_parameters: SuggestionParameters,
     model_matrix: AddressPointer<Mat4>,
@@ -85,12 +84,12 @@ impl Presenter {
     }
 
     pub fn can_start_builder_at(&self, nucl: Nucl) -> bool {
-        let left = self.current_design.get_neighbour_nucl(nucl.left());
-        let right = self.current_design.get_neighbour_nucl(nucl.right());
+        let left = self.current_design.get_neighbor_nucl(nucl.left());
+        let right = self.current_design.get_neighbor_nucl(nucl.right());
         if self.content.nucl_collection.contains_nucl(&nucl) {
-            if let Some(desc) = self.current_design.get_neighbour_nucl(nucl) {
+            if let Some(desc) = self.current_design.get_neighbor_nucl(nucl) {
                 let filter =
-                    |d: &NeighbourDescriptor| !(d.identifier.is_same_domain_than(&desc.identifier));
+                    |d: &NeighborDescriptor| !(d.identifier.is_same_domain_than(&desc.identifier));
                 !left.filter(filter).and(right.filter(filter)).is_some()
             } else {
                 false
@@ -221,16 +220,17 @@ impl Presenter {
                                 if let Some(virtual_compl) = Nucl::map_to_virtual_nucl(
                                     nucl.compl(),
                                     &self.current_design.helices,
-                                ) {
-                                    if let Some(real_compl) =
-                                        self.content.nucl_collection.virtual_to_real(&virtual_compl)
-                                    {
-                                        basis_map.insert(*real_compl, basis_compl);
-                                    }
+                                ) && let Some(real_compl) =
+                                    self.content.nucl_collection.virtual_to_real(&virtual_compl)
+                                {
+                                    basis_map.insert(*real_compl, basis_compl);
                                 }
                             } else if basis.is_none() {
                                 if !ran_out {
-                                    log::error!("Ran out of base for nucleotide {:?}. Scaffold sequence is too short", nucl);
+                                    log::error!(
+                                        "Ran out of base for nucleotide {:?}. Scaffold sequence is too short",
+                                        nucl
+                                    );
                                     ran_out = true;
                                 }
                             } else {
@@ -262,14 +262,12 @@ impl Presenter {
             })
         {
             let virtual_nucl_backward = virtual_nucl_forward.compl();
-            if let Some(backward_nucl) = nucl_collection.virtual_to_real(&virtual_nucl_backward) {
-                if let Some(backward_id) = nucl_collection.get_identifier(backward_nucl) {
-                    if let Some(bond) =
-                        self.h_bond(forward_id, *backward_id, forward_nucl, *backward_nucl)
-                    {
-                        h_bonds.push(bond);
-                    }
-                }
+            if let Some(backward_nucl) = nucl_collection.virtual_to_real(&virtual_nucl_backward)
+                && let Some(backward_id) = nucl_collection.get_identifier(backward_nucl)
+                && let Some(bond) =
+                    self.h_bond(forward_id, *backward_id, forward_nucl, *backward_nucl)
+            {
+                h_bonds.push(bond);
             }
         }
         self.h_bonds = AddressPointer::new(h_bonds);
@@ -421,7 +419,7 @@ impl Presenter {
             .and_then(|s| s.domains.get(d_id))
     }
 
-    pub(super) fn get_owned_nucl_collection(&self) -> Arc<impl NuclCollection> {
+    pub(super) fn get_owned_nucl_collection(&self) -> Arc<NuclCollection> {
         self.content.nucl_collection.clone()
     }
 
@@ -477,10 +475,11 @@ impl Presenter {
         }
         let mut ret = Vec::new();
         for (n1, n2) in unchecked_pairs {
-            if !checked_nucl.contains(&n1.prime3()) && !checked_nucl.contains(&n1.prime5()) {
-                if let Some(id) = self.content.identifier_bond.get(&(n1, n2)) {
-                    ret.push(*id)
-                }
+            if !checked_nucl.contains(&n1.prime3())
+                && !checked_nucl.contains(&n1.prime5())
+                && let Some(id) = self.content.identifier_bond.get(&(n1, n2))
+            {
+                ret.push(*id)
             }
         }
         ret
@@ -524,6 +523,49 @@ impl Presenter {
             .bezier_paths
             .get(&path_id)
             .and_then(|path| path.to_instanciated_path_2d())
+    }
+
+    pub fn get_xovers_list(&self) -> Vec<(Nucl, Nucl)> {
+        self.current_design.strands.get_xovers()
+    }
+
+    pub fn get_design(&self) -> &Design {
+        self.current_design.as_ref()
+    }
+
+    pub fn get_all_bonds(&self) -> Vec<(Nucl, Nucl)> {
+        self.content.identifier_bond.keys().cloned().collect()
+    }
+
+    pub fn get_identifier(&self, nucl: &Nucl) -> Option<u32> {
+        self.content.nucl_collection.get_identifier(nucl).cloned()
+    }
+
+    pub fn get_space_position(&self, nucl: &Nucl) -> Option<Vec3> {
+        self.get_identifier(nucl)
+            .and_then(|id| self.content.space_position.get(&id).map(|v| v.into()))
+    }
+
+    pub fn has_nucl(&self, nucl: &Nucl) -> bool {
+        self.content.nucl_collection.contains_nucl(nucl)
+    }
+
+    pub fn get_helices_attached_to_grid(&self, g_id: GridId) -> Option<Vec<usize>> {
+        self.content
+            .get_helices_on_grid(g_id)
+            .map(|set| set.into_iter().collect())
+    }
+
+    pub fn get_grid(&self, g_id: GridId) -> Option<&ensnano_design::grid::Grid> {
+        self.content.grid_manager.grids.get(&g_id)
+    }
+
+    pub fn get_helices(&self) -> BTreeMap<usize, ensnano_design::Helix> {
+        self.current_design
+            .helices
+            .iter()
+            .map(|(k, h)| (*k, ensnano_design::Helix::clone(h)))
+            .collect()
     }
 }
 
@@ -584,8 +626,6 @@ pub(super) fn apply_simulation_update(
     (AddressPointer::new(returned_presenter), returned_design)
 }
 
-use ensnano_interactor::{ObjectType, Referential};
-use ultraviolet::Vec3;
 impl DesignReader {
     pub(super) fn get_position_of_nucl_on_helix(
         &self,
@@ -724,98 +764,23 @@ impl DesignReader {
             })
     }
 
-    pub fn get_favourite_camera(&self) -> Option<(Vec3, ultraviolet::Rotor3)> {
+    pub fn get_favorite_camera(&self) -> Option<(Vec3, ultraviolet::Rotor3)> {
         self.presenter
             .current_design
-            .get_favourite_camera()
+            .get_favorite_camera()
             .map(|c| (c.position, c.orientation))
     }
 }
 
-impl HelixPresenter for Presenter {
-    fn get_xovers_list(&self) -> Vec<(Nucl, Nucl)> {
-        self.current_design.strands.get_xovers()
-    }
-
-    fn get_design(&self) -> &Design {
-        self.current_design.as_ref()
-    }
-
-    fn get_all_bonds(&self) -> Vec<(Nucl, Nucl)> {
-        self.content.identifier_bond.keys().cloned().collect()
-    }
-
-    fn get_identifier(&self, nucl: &Nucl) -> Option<u32> {
-        self.content.nucl_collection.get_identifier(nucl).cloned()
-    }
-
-    fn get_space_position(&self, nucl: &Nucl) -> Option<Vec3> {
-        self.get_identifier(nucl)
-            .and_then(|id| self.content.space_position.get(&id).map(|v| v.into()))
-    }
-
-    fn has_nucl(&self, nucl: &Nucl) -> bool {
-        self.content.nucl_collection.contains_nucl(nucl)
-    }
-}
-
-impl GridPresenter for Presenter {
-    fn get_design(&self) -> &Design {
-        self.current_design.as_ref()
-    }
-
-    fn get_xovers_list(&self) -> Vec<(Nucl, Nucl)> {
-        self.current_design.strands.get_xovers()
-    }
-
-    fn get_helices_attached_to_grid(&self, g_id: GridId) -> Option<Vec<usize>> {
-        self.content
-            .get_helices_on_grid(g_id)
-            .map(|set| set.into_iter().collect())
-    }
-
-    fn get_grid(&self, g_id: GridId) -> Option<&ensnano_design::grid::Grid> {
-        self.content.grid_manager.grids.get(&g_id)
-    }
-}
-
-impl RollPresenter for Presenter {
-    fn get_design(&self) -> &Design {
-        self.current_design.as_ref()
-    }
-
-    fn get_xovers_list(&self) -> Vec<(Nucl, Nucl)> {
-        self.current_design.strands.get_xovers()
-    }
-
-    fn get_helices(&self) -> BTreeMap<usize, ensnano_design::Helix> {
-        self.current_design
-            .helices
-            .iter()
-            .map(|(k, h)| (*k, ensnano_design::Helix::clone(h)))
-            .collect()
-    }
-}
-
-impl TwistPresenter for Presenter {}
-
-use std::collections::HashMap;
 pub trait SimulationUpdate: Send + Sync {
     fn update_positions(
         &self,
-        _identifier_nucl: &dyn NuclCollection,
+        _identifier_nucl: &NuclCollection,
         _space_position: &mut HashMap<u32, [f32; 3], ahash::RandomState>,
     ) {
     }
 
     fn update_design(&self, design: &mut Design);
-}
-
-pub trait NuclCollection: Send + Sync + 'static {
-    fn iter_nucls_ids<'a>(&'a self) -> Box<dyn Iterator<Item = (&'a Nucl, &'a u32)> + 'a>;
-    fn contains_nucl(&self, nucl: &Nucl) -> bool;
-    fn iter_nucls<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Nucl> + 'a>;
-    fn virtual_to_real(&self, virtual_nucl: &VirtualNucl) -> Option<&Nucl>;
 }
 
 #[derive(Clone)]

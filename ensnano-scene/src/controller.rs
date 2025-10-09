@@ -17,8 +17,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use super::view::HandleColors;
 use super::{
-    camera, ultraviolet, Duration, ElementSelector, HandleDir, SceneElement, Stereography, ViewPtr,
-    WidgetRotationMode as RotationMode,
+    Duration, ElementSelector, HandleDir, SceneElement, Stereography, ViewPtr,
+    WidgetRotationMode as RotationMode, camera, ultraviolet,
 };
 use crate::{PhySize, PhysicalPosition, WindowEvent};
 use ensnano_design::grid::{GridId, GridObject, GridPosition, HelixGridPosition};
@@ -26,8 +26,8 @@ use ensnano_design::{
     BezierPathId, BezierPlaneId, BezierVertex, BezierVertexId, Nucl, SurfaceInfo, SurfacePoint,
 };
 use ensnano_interactor::consts::*;
-use ensnano_interactor::Selection;
 use ensnano_utils::winit;
+use ensnano_utils::winit::window::CursorIcon;
 use std::cell::RefCell;
 use std::ops::Deref;
 use ultraviolet::{Rotor3, Vec2, Vec3};
@@ -42,11 +42,10 @@ mod automata;
 pub use automata::WidgetTarget;
 use automata::{EventContext, NormalState, State, Transition};
 
-/// The effect that draging the mouse have
+/// The effect that dragging the mouse have
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ClickMode {
     TranslateCam,
-    #[allow(dead_code)]
     RotateCam,
 }
 
@@ -90,7 +89,7 @@ pub enum Consequence {
     InitRotation(RotationMode, f64, f64, WidgetTarget),
     InitTranslation(f64, f64, WidgetTarget),
     Swing(f64, f64),
-    Tilt(f64, f64),
+    Tilt(f64),
     Nothing,
     ToggleWidget,
     BuildEnded,
@@ -128,7 +127,7 @@ pub enum Consequence {
     CreateBezierVertex {
         /// The position of the created vertex
         vertex: BezierVertex,
-        /// The identifier of the path to which the vertex is beign appenend. If this is None, a
+        /// The identifier of the path to which the vertex is being appended. If this is None, a
         /// new path is being created
         path: Option<BezierPathId>,
     },
@@ -157,7 +156,7 @@ pub enum Consequence {
     SetRevolutionAxisPosition(f32),
 }
 
-enum TransistionConsequence {
+enum TransitionConsequence {
     Nothing,
     InitCameraMovement {
         translation: bool,
@@ -404,10 +403,10 @@ impl<S: AppState> Controller<S> {
         transition.consequences
     }
 
-    fn transition_consequence(&mut self, csq: TransistionConsequence) {
+    fn transition_consequence(&mut self, csq: TransitionConsequence) {
         match csq {
-            TransistionConsequence::Nothing => (),
-            TransistionConsequence::InitCameraMovement { translation, nucl } => {
+            TransitionConsequence::Nothing => (),
+            TransitionConsequence::InitCameraMovement { translation, nucl } => {
                 if let Some(info) = nucl
                     .and_then(|n| self.data.borrow().get_surface_info_nucl(n))
                     .filter(|_| self.current_modifiers_state.shift_key())
@@ -416,14 +415,14 @@ impl<S: AppState> Controller<S> {
                 }
                 self.init_movement(translation && self.current_modifiers_state.shift_key())
             }
-            TransistionConsequence::EndCameraMovement => self.end_movement(),
-            TransistionConsequence::InitFreeXover(nucl, d_id, position) => {
+            TransitionConsequence::EndCameraMovement => self.end_movement(),
+            TransitionConsequence::InitFreeXover(nucl, d_id, position) => {
                 self.data.borrow_mut().init_free_xover(nucl, position, d_id)
             }
-            TransistionConsequence::StartRotatingPivot => {
+            TransitionConsequence::StartRotatingPivot => {
                 self.data.borrow_mut().notify_rotating_pivot()
             }
-            TransistionConsequence::StopRotatingPivot => {
+            TransitionConsequence::StopRotatingPivot => {
                 self.data.borrow_mut().stop_rotating_pivot()
             }
         }
@@ -439,7 +438,7 @@ impl<S: AppState> Controller<S> {
         self.camera_controller.set_pivot_point(point)
     }
 
-    /// Swing the camera arround its pivot point
+    /// Swing the camera around its pivot point
     pub fn swing(&mut self, x: f64, y: f64) {
         self.camera_controller.swing(x, y);
     }
@@ -530,7 +529,7 @@ impl<S: AppState> Controller<S> {
 
     /// Set the origin or destination of the two point bezier helix being built.
     ///
-    /// If an origin was set, `point` is treated as a destianation and the pair
+    /// If an origin was set, `point` is treated as a destination and the pair
     /// `(origin, destination)` is returned. Otherwise, `point` is treated as an origin and `None`
     /// is returned.
     pub fn add_bezier_point(
@@ -545,7 +544,7 @@ impl<S: AppState> Controller<S> {
         }
     }
 
-    pub fn get_icon(&self) -> Option<ensnano_interactor::CursorIcon> {
+    pub fn get_icon(&self) -> Option<CursorIcon> {
         self.state.borrow().cursor()
     }
 }
@@ -575,7 +574,6 @@ pub(super) trait Data {
     fn notify_rotating_pivot(&mut self);
     fn stop_rotating_pivot(&mut self);
     fn update_handle_colors(&mut self, colors: HandleColors);
-    fn element_to_selection(&self, element: &Option<SceneElement>) -> Selection;
     fn init_free_xover(&mut self, nucl: Nucl, position: Vec3, design_id: usize);
     fn get_surface_info(&self, point: SurfacePoint) -> Option<SurfaceInfo>;
     fn get_surface_info_nucl(&self, nucl: Nucl) -> Option<SurfaceInfo>;

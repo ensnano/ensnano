@@ -15,6 +15,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
 //! This module handles the 2D view
 //!
 //! # Coordinate systems
@@ -29,42 +30,42 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //!    bottom right (or top right?) corner has coordinate (1, 1).
 //!
 //! 3. **world coordinates**: this is the absolute coordinate system in which elements are
-//!    positionned.
+//!    positioned.
 
-use ensnano_design::{consts::ITERATIVE_AXIS_ALGORITHM, Nucl};
-use ensnano_interactor::{
-    application::{AppId, Application, Duration, Notification},
-    consts::{EXPORT_2D_MARGIN, EXPORT_2D_MAX_SIZE},
-    graphics::DrawArea,
-    operation::*,
-    ActionMode, DesignOperation, PhantomElement, Selection, SelectionMode, StrandBuilder,
-    StrandBuildingStatus,
-};
-use ensnano_utils::filename;
-use ensnano_utils::wgpu;
-use ensnano_utils::winit;
-use ensnano_utils::PhySize;
-use std::cell::RefCell;
-use std::collections::HashMap;
-use std::path::PathBuf;
-use std::rc::Rc;
-use std::sync::{Arc, Mutex};
-use wgpu::{Device, Queue};
-use winit::dpi::PhysicalPosition;
-use winit::event::WindowEvent;
-
-use ensnano_utils::camera2d;
 mod controller;
 mod data;
 mod flattypes;
 mod view;
+
 pub use camera2d::{Camera2D, FitRectangle};
 use controller::Controller;
 use data::Data;
 pub use data::{DesignReader, NuclCollection};
+use ensnano_design::{Isometry2, Nucl, consts::ITERATIVE_AXIS_ALGORITHM};
+use ensnano_interactor::{
+    ActionMode, DesignOperation, PhantomElement, Selection, SelectionMode, StrandBuilder,
+    StrandBuildingStatus,
+    application::{AppId, Application, Notification},
+    consts::{EXPORT_2D_MARGIN, EXPORT_2D_MAX_SIZE},
+    graphics::DrawArea,
+    operation::*,
+};
+use ensnano_utils::{
+    PhySize, camera2d, filename, wgpu,
+    winit::{self, window::CursorIcon},
+};
 use flattypes::*;
-use std::time::Instant;
+use std::{
+    cell::RefCell,
+    collections::HashMap,
+    path::PathBuf,
+    rc::Rc,
+    sync::{Arc, Mutex},
+    time::{Duration, Instant},
+};
 use view::View;
+use wgpu::{Device, Queue};
+use winit::{dpi::PhysicalPosition, event::WindowEvent};
 
 type ViewPtr = Rc<RefCell<View>>;
 type DataPtr<R> = Rc<RefCell<Data<R>>>;
@@ -101,7 +102,7 @@ pub struct FlatScene<S: AppState> {
     queue: Rc<Queue>,
     last_update: Instant,
     /// Wether the flatscene is split in two.
-    splited: bool,
+    is_split: bool,
     old_state: S,
     requests: Arc<Mutex<dyn Requests>>,
 }
@@ -125,7 +126,7 @@ impl<S: AppState> FlatScene<S> {
             device,
             queue,
             last_update: Instant::now(),
-            splited: false,
+            is_split: false,
             old_state: initial_state.clone(),
             requests: requests.clone(),
         };
@@ -137,7 +138,7 @@ impl<S: AppState> FlatScene<S> {
     ///
     /// This creates a new `View`, a new `Data` and a new `Controller`
     fn add_design(&mut self, reader: S::Reader, requests: Arc<Mutex<dyn Requests>>) {
-        let height = if self.splited {
+        let height = if self.is_split {
             self.area.size.height as f32 / 2.
         } else {
             self.area.size.height as f32
@@ -162,7 +163,7 @@ impl<S: AppState> FlatScene<S> {
             self.area,
             camera_top.clone(),
             camera_bottom.clone(),
-            self.splited,
+            self.is_split,
         )));
         let data = Rc::new(RefCell::new(Data::new(view.clone(), reader, 0, requests)));
         //data.borrow_mut().perform_update();
@@ -174,7 +175,7 @@ impl<S: AppState> FlatScene<S> {
             self.area.size,
             camera_top,
             camera_bottom,
-            self.splited,
+            self.is_split,
         );
         if !self.view.is_empty() {
             self.view[0] = view;
@@ -207,13 +208,13 @@ impl<S: AppState> FlatScene<S> {
         }
     }
 
-    /// Handle an input that happend while the cursor was on the flatscene drawing area
+    /// Handle an input that happened while the cursor was on the flatscene drawing area
     fn input(
         &mut self,
         event: &WindowEvent,
         cursor_position: PhysicalPosition<f64>,
         app_state: &S,
-    ) -> Option<ensnano_interactor::CursorIcon> {
+    ) -> Option<CursorIcon> {
         if let Some(controller) = self.controller.get_mut(self.selected_design) {
             let consequence = controller.input(event, cursor_position, app_state);
             let icon = controller.get_icon();
@@ -234,7 +235,7 @@ impl<S: AppState> FlatScene<S> {
                 self.requests
                     .lock()
                     .unwrap()
-                    .update_opperation(Arc::new(Xover {
+                    .update_operation(Arc::new(Xover {
                         prime3_id,
                         prime5_id,
                         undo: false,
@@ -249,7 +250,7 @@ impl<S: AppState> FlatScene<S> {
                     self.requests
                         .lock()
                         .unwrap()
-                        .update_opperation(Arc::new(Cut {
+                        .update_operation(Arc::new(Cut {
                             nucl,
                             strand_id,
                             design_id: self.selected_design,
@@ -280,7 +281,7 @@ impl<S: AppState> FlatScene<S> {
                     self.requests
                         .lock()
                         .unwrap()
-                        .update_opperation(Arc::new(Cut {
+                        .update_operation(Arc::new(Cut {
                             nucl,
                             strand_id,
                             design_id: self.selected_design,
@@ -298,7 +299,7 @@ impl<S: AppState> FlatScene<S> {
                         self.requests
                             .lock()
                             .unwrap()
-                            .update_opperation(Arc::new(CrossCut {
+                            .update_operation(Arc::new(CrossCut {
                                 source_id,
                                 target_id,
                                 target_3prime,
@@ -359,16 +360,6 @@ impl<S: AppState> FlatScene<S> {
                         self.attempt_xover(nucl.prime3(), nucl2.prime5());
                     }
                 }
-            }
-            Consequence::Centering(nucl, bottom) => {
-                self.view[self.selected_design]
-                    .borrow_mut()
-                    .center_nucl(nucl, bottom);
-                let nucl = nucl.to_real();
-                self.requests
-                    .lock()
-                    .unwrap()
-                    .request_centering_on_nucl(nucl, self.selected_design)
             }
             Consequence::DrawingSelection(c1, c2) => self.view[self.selected_design]
                 .borrow_mut()
@@ -494,7 +485,6 @@ impl<S: AppState> FlatScene<S> {
                     helix_id: flat_helix.segment.helix_idx,
                     segment_id: flat_helix.segment.segment_idx,
                 }]),
-            // OBSOLETE ?
             Consequence::PngExport(corner1, corner2) => {
                 println!("I'd like to know how you got there !");
                 let glob_png = camera2d::Globals::from_corners(corner1, corner2, png_resolution);
@@ -510,7 +500,7 @@ impl<S: AppState> FlatScene<S> {
                     .borrow_mut()
                     .clear_rectangle();
             }
-            _ => (),
+            Consequence::Nothing => {}
         }
     }
 
@@ -547,23 +537,23 @@ impl<S: AppState> FlatScene<S> {
     }
 
     fn toggle_split_from_btn(&mut self) {
-        self.splited ^= true;
+        self.is_split ^= true;
         for c in self.controller.iter_mut() {
-            c.set_splited(self.splited, true);
+            c.set_splited(self.is_split, true);
         }
 
         for v in self.view.iter_mut() {
-            v.borrow_mut().set_splited(self.splited);
+            v.borrow_mut().set_splited(self.is_split);
         }
     }
 
     fn split_and_center(&mut self, n1: FlatNucl, n2: FlatNucl) {
-        self.splited = true;
+        self.is_split = true;
         for v in self.view.iter_mut() {
-            v.borrow_mut().set_splited(self.splited);
+            v.borrow_mut().set_splited(self.is_split);
         }
         for c in self.controller.iter_mut() {
-            c.set_splited(self.splited, false);
+            c.set_splited(self.is_split, false);
         }
         self.view[self.selected_design]
             .borrow_mut()
@@ -746,7 +736,7 @@ impl<S: AppState> Application for FlatScene<S> {
                 }
             }
             Notification::CameraRotation(_, _, _) => (),
-            Notification::ModifersChanged(modifiers) => {
+            Notification::ModifiersChanged(modifiers) => {
                 for c in self.controller.iter_mut() {
                     c.update_modifiers(modifiers.state())
                 }
@@ -825,7 +815,7 @@ impl<S: AppState> Application for FlatScene<S> {
         event: &WindowEvent,
         cursor_position: PhysicalPosition<f64>,
         state: &S,
-    ) -> Option<ensnano_interactor::CursorIcon> {
+    ) -> Option<CursorIcon> {
         self.input(event, cursor_position, state)
     }
 
@@ -849,8 +839,8 @@ impl<S: AppState> Application for FlatScene<S> {
         }
     }
 
-    fn is_splited(&self) -> bool {
-        self.splited
+    fn is_split(&self) -> bool {
+        self.is_split
     }
 }
 
@@ -869,7 +859,6 @@ pub trait AppState: Clone {
     fn get_building_state(&self) -> Option<StrandBuildingStatus>;
 }
 
-use ensnano_design::ultraviolet::Isometry2;
 pub trait Requests {
     fn xover_request(&mut self, source: Nucl, target: Nucl, design_id: usize);
     fn request_center_selection(&mut self, selection: Selection, app_id: AppId);
@@ -877,7 +866,7 @@ pub trait Requests {
     fn new_candidates(&mut self, candidates: Vec<Selection>);
     fn attempt_paste(&mut self, nucl: Option<Nucl>);
     fn request_centering_on_nucl(&mut self, nucl: Nucl, design_id: usize);
-    fn update_opperation(&mut self, operation: Arc<dyn Operation>);
+    fn update_operation(&mut self, operation: Arc<dyn Operation>);
     fn set_isometry(&mut self, helix: usize, segment_idx: usize, isometry: Isometry2);
     fn set_visibility_helix(&mut self, helix: usize, visibility: bool);
     fn flip_group(&mut self, helix: usize);

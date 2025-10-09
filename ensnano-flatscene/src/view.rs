@@ -15,42 +15,42 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
+mod background;
+mod helix_view;
+mod insertion;
+mod rectangle;
+
+use super::FlatSelection;
 use super::data::{
-    helix::CharCollector, FlatTorsion, FreeEnd, GpuVertex, Helix, HelixModel, Shift, Strand,
-    StrandVertex,
+    FlatTorsion, FreeEnd, GpuVertex, Helix, HelixModel, Shift, Strand, StrandVertex,
+    helix::CharCollector,
 };
 use super::{CameraPtr, FlatIdx, FlatNucl, NuclCollection};
 use crate::{DrawArea, PhySize};
-use ensnano_design::Nucl;
-use ensnano_utils::bindgroup_manager::{DynamicBindGroup, UniformBindGroup};
-use ensnano_utils::camera2d::Globals;
-use ensnano_utils::texture::Texture;
-use ensnano_utils::wgpu;
-use ensnano_utils::Ndc;
-use std::rc::Rc;
-use wgpu::{Device, Queue, RenderPipeline};
-
-mod helix_view;
-use helix_view::{HelixView, StrandView};
-mod background;
-mod insertion;
-mod rectangle;
-use super::FlatSelection;
 use ahash::RandomState;
 use background::Background;
-pub use chars::TextDrawer;
-pub use circles::CircleInstance;
-use circles::{CircleDrawer, CircleKind};
+use ensnano_design::Nucl;
 use ensnano_interactor::consts::SAMPLE_COUNT;
+use ensnano_utils::Ndc;
+use ensnano_utils::bindgroup_manager::{DynamicBindGroup, UniformBindGroup};
+use ensnano_utils::camera2d::Globals;
+pub use ensnano_utils::chars2d::TextDrawer;
+pub use ensnano_utils::circles2d::CircleInstance;
+use ensnano_utils::circles2d::{CircleDrawer, CircleKind};
+use ensnano_utils::texture::Texture;
+use ensnano_utils::wgpu;
 use ensnano_utils::winit::dpi::PhysicalPosition;
-use ensnano_utils::{chars2d as chars, circles2d as circles};
+use helix_view::{HelixView, StrandView};
 use insertion::InsertionDrawer;
 pub use insertion::{InsertionDescriptor, InsertionInstance};
 use rectangle::Rectangle;
+use std::rc::Rc;
 use std::{
     collections::{BTreeMap, BTreeSet, HashMap},
     sync::Arc,
 };
+use wgpu::{Device, Queue, RenderPipeline};
 
 const SHOW_SUGGESTION: bool = false;
 
@@ -547,17 +547,6 @@ impl View {
         self.helices[n2.helix].make_visible(n2.flat_position, self.camera_bottom.clone());
     }
 
-    /// Center the top camera on a nucleotide
-    pub fn center_nucl(&mut self, nucl: FlatNucl, bottom: bool) {
-        let helix = nucl.helix;
-        let position = self.helices[helix].get_pivot(nucl.flat_position);
-        if bottom {
-            self.camera_bottom.borrow_mut().set_center(position);
-        } else {
-            self.camera_top.borrow_mut().set_center(position);
-        }
-    }
-
     pub fn update_rectangle(&mut self, c1: PhysicalPosition<f64>, c2: PhysicalPosition<f64>) {
         if self.splited {
             if (c1.y < self.area_size.height as f64 / 2.)
@@ -649,13 +638,6 @@ impl View {
                 .new_instances(nucleotide_highliting);
         }
 
-        let clear_color = wgpu::Color {
-            r: 0.,
-            g: 0.,
-            b: 0.,
-            a: 0.,
-        };
-
         let msaa_texture = if SAMPLE_COUNT > 1 {
             Some(ensnano_utils::texture::Texture::create_msaa_texture(
                 self.device.clone().as_ref(),
@@ -686,7 +668,7 @@ impl View {
                 view: attachment,
                 resolve_target,
                 ops: wgpu::Operations {
-                    load: wgpu::LoadOp::Clear(clear_color),
+                    load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
                     store: wgpu::StoreOp::Store,
                 },
             })],
@@ -701,10 +683,6 @@ impl View {
                     store: wgpu::StoreOp::Store,
                 }),
             }),
-            // TODO: New attributes comming with iced 0.12 (1/7)
-            //       So far I don't know which value put in here, so I stick to
-            //       the most simple. Please, the one who knows, set an appropriate
-            //       value here and after.
             timestamp_writes: None,
             occlusion_query_set: None,
         });
@@ -768,7 +746,6 @@ impl View {
                     store: wgpu::StoreOp::Store,
                 }),
             }),
-            // TODO: New attributes comming with iced 0.12 (2/7)
             timestamp_writes: None,
             occlusion_query_set: None,
         });
@@ -842,7 +819,6 @@ impl View {
                     store: wgpu::StoreOp::Store,
                 }),
             }),
-            // TODO: New attributes comming with iced 0.12 (3/7)
             timestamp_writes: None,
             occlusion_query_set: None,
         });
@@ -908,7 +884,6 @@ impl View {
                         store: wgpu::StoreOp::Store,
                     }),
                 }),
-                // TODO: New attributes comming with iced 0.12 (4/7)
                 timestamp_writes: None,
                 occlusion_query_set: None,
             });
@@ -961,7 +936,6 @@ impl View {
                         store: wgpu::StoreOp::Store,
                     }),
                 }),
-                // TODO: New attributes comming with iced 0.12 (5/7)
                 timestamp_writes: None,
                 occlusion_query_set: None,
             });
@@ -1024,7 +998,6 @@ impl View {
                         store: wgpu::StoreOp::Store,
                     }),
                 }),
-                // TODO: New attributes comming with iced 0.12 (6/7)
                 timestamp_writes: None,
                 occlusion_query_set: None,
             });
@@ -1085,7 +1058,6 @@ impl View {
                         store: wgpu::StoreOp::Store,
                     }),
                 }),
-                // TODO: New attributes comming with iced 0.12 (7/7)
                 timestamp_writes: None,
                 occlusion_query_set: None,
             });

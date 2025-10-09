@@ -16,19 +16,18 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+use serde::{Deserialize, Serialize};
 use ultraviolet::{DMat3, DVec3, Isometry2, Rotor3, Vec2, Vec3};
 const EPSILON: f64 = 1e-6;
 
-/// To compute curvilinear abcissa over long distances
+/// To compute curvilinear abscissa over long distances
 const DELTA_MAX: f64 = 256.0;
 use crate::{
+    BezierPathData, BezierPathId,
     curves::chebyshev::{PolynomialCoordinates, PolynomialCoordinates_},
     grid::{Edge, GridPosition},
     utils::vec_to_dvec,
-    BezierPathData, BezierPathId,
 };
-
-use self::sphere_concentric_circle::{PillTennisBallSeam, SphereTennisBallSeam};
 
 use super::{Helix, HelixParameters};
 use std::sync::Arc;
@@ -48,7 +47,6 @@ mod torus_concentric_circle;
 mod tube_spiral;
 mod twist;
 
-use super::GridId;
 use crate::grid::*;
 pub use bezier::InstanciatedPiecewiseBezier;
 pub(crate) use bezier::PieceWiseBezierInstantiator;
@@ -76,7 +74,7 @@ pub use torus_concentric_circle::{
     EllipticTorusConcentricCircleDescriptor, TorusConcentricCircleDescriptor,
 };
 pub use tube_spiral::TubeSpiralDescriptor;
-pub use twist::{nb_turn_per_100_nt_to_omega, twist_to_omega, Twist};
+pub use twist::{Twist, nb_turn_per_100_nt_to_omega, twist_to_omega};
 
 const EPSILON_DERIVATIVE: f64 = 1e-6;
 
@@ -88,7 +86,7 @@ pub trait Curved {
     /// The upper bound of the definition domain of `Self::position`.
     ///
     /// By default this is 1.0, but for curves that are infinite
-    /// this value may be overriden to allow the helix to have more nucleotides
+    /// this value may be overridden to allow the helix to have more nucleotides
     fn t_max(&self) -> f64 {
         1.0
     }
@@ -96,7 +94,7 @@ pub trait Curved {
     /// The lower bound of the definition domain of `Self::position`.
     ///
     /// By default this is 0.0, but for curves that are infinite
-    /// this value may be overriden to allow the helix to have more nucleotides
+    /// this value may be overridden to allow the helix to have more nucleotides
     fn t_min(&self) -> f64 {
         0.0
     }
@@ -170,7 +168,7 @@ pub trait Curved {
     }
 
     /// If the rise along the curve is not the same than for straight helices, this method should
-    /// be overriden
+    /// be overridden
     fn rise_ratio(&self) -> Option<f64> {
         None
     }
@@ -192,38 +190,38 @@ pub trait Curved {
         }
     }
 
-    /// This method can be overriden to express the fact that a translation should be applied to
+    /// This method can be overridden to express the fact that a translation should be applied to
     /// every point of the curve. For each point of the curve, the translation is expressed in the
     /// coordinate of the frame associated to the point.
     fn translation(&self) -> Option<DVec3> {
         None
     }
 
-    /// This method can be overriden to express the fact that a specific frame should be used to
+    /// This method can be overridden to express the fact that a specific frame should be used to
     /// position nucleotides arround the first point of the curve.
     fn initial_frame(&self) -> Option<DMat3> {
         None
     }
 
-    /// This method can be overriden to express the fact that the curve is closed.
+    /// This method can be overridden to express the fact that the curve is closed.
     /// In that case, return `Some(t)` if the curve is closed with period `t`.
     fn full_turn_at_t(&self) -> Option<f64> {
         None
     }
 
-    /// This method can be overriden to express the fact that the curve is closed and should
+    /// This method can be overridden to express the fact that the curve is closed and should
     /// contain a specific number of nucleotide between `self.t_min()` and `self.full_turn_at_t()`.
     fn nucl_pos_full_turn(&self) -> Option<isize> {
         None
     }
 
-    /// This method can be overriden to express the fact that the curve should contain a specific
+    /// This method can be overridden to express the fact that the curve should contain a specific
     /// number of nucleotides between `self.t_min()` and `self.t_max()`.
     fn objective_nb_nt(&self) -> Option<usize> {
         None
     }
 
-    /// This method can be overriden to express the fact that a curve needs to be represented by
+    /// This method can be overridden to express the fact that a curve needs to be represented by
     /// several helices segments in 2D.
     /// If that is the case, return the index of the corresponding segment for t. This methods must
     /// be increasing.
@@ -231,7 +229,7 @@ pub trait Curved {
         None
     }
 
-    /// This method can be overriden to express the fact that a curve will be the only member of
+    /// This method can be overridden to express the fact that a curve will be the only member of
     /// its synchornization group.
     /// In that case, the abscissa converter can be storred dirrectly in the curve.
     fn is_time_maps_singleton(&self) -> bool {
@@ -246,25 +244,25 @@ pub trait Curved {
         None
     }
 
-    /// This method can be overriden to express the fact the a curve is a portion of a surface.
+    /// This method can be overridden to express the fact the a curve is a portion of a surface.
     /// In that case return the information about the surface at the point corresponding to time t
     fn surface_info_time(&self, _t: f64, _helix_id: usize) -> Option<SurfaceInfo> {
         None
     }
 
-    /// This method can be overriden to express the fact the a curve is a portion of a surface.
+    /// This method can be overridden to express the fact the a curve is a portion of a surface.
     /// In that case return the information about the surface at the specified point
     fn surface_info(&self, _point: SurfacePoint) -> Option<SurfaceInfo> {
         None
     }
 
-    /// This method can be overriden to specify the additional isometry associated to each segment
+    /// This method can be overridden to specify the additional isometry associated to each segment
     /// of the helix.
     fn additional_isometry(&self, _segment_idx: usize) -> Option<Isometry2> {
         None
     }
 
-    /// This method can be overriden to indicate that the curve can mutst be discretized quickly,
+    /// This method can be overridden to indicate that the curve can mutst be discretized quickly,
     /// even at the cost of precision.
     fn discretize_quickly(&self) -> bool {
         false
@@ -773,14 +771,8 @@ pub struct InstanciatedCurveDescriptor {
 /// This is used to instantiate curves that reference design objects.
 pub(super) trait CurveInstantiator {
     fn concrete_grid_position(&self, position: GridPosition) -> Vec3;
-    fn orientation(&self, grid: GridId) -> Rotor3;
     fn source(&self) -> FreeGrids;
     fn source_paths(&self) -> Option<BezierPathData>;
-    fn get_tangents_between_two_points(
-        &self,
-        p0: GridPosition,
-        p1: GridPosition,
-    ) -> Option<(Vec3, Vec3)>;
     fn translate_by_edge(&self, position: GridPosition, edge: Edge) -> Option<GridPosition>;
 }
 
@@ -1107,7 +1099,7 @@ impl InstanciatedPiecewiseBezierDescriptor {
                 t_min: None,
                 t_max: None,
                 is_cyclic: false,
-                id: rng.gen(),
+                id: rng.r#gen(),
                 discretize_quickly: false,
             });
 
@@ -1440,7 +1432,7 @@ pub(super) struct InstanciatedCurve {
 }
 
 impl std::fmt::Debug for InstanciatedCurve {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         f.debug_struct("InstanciatedCurve")
             .field("source", &Arc::as_ptr(&self.source))
             .finish()
@@ -1491,18 +1483,18 @@ impl Helix {
     }
 
     pub fn try_update_curve(&mut self, helix_parameters: &HelixParameters) {
-        if let Some(curve) = self.curve.as_ref() {
-            if let Some(desc) = InstanciatedCurveDescriptor::try_instanciate(curve.clone()) {
-                let desc = Arc::new(desc);
-                self.instanciated_descriptor = Some(desc.clone());
-                let hp = &(self.helix_parameters.unwrap_or(*helix_parameters));
-                println!("helix: {} nm {} bpt", hp.rise, hp.bases_per_turn);
-                if let Some(curve) = desc.as_ref().instance.try_into_curve(hp) {
-                    self.instanciated_curve = Some(InstanciatedCurve {
-                        curve,
-                        source: desc,
-                    })
-                }
+        if let Some(curve) = self.curve.as_ref()
+            && let Some(desc) = InstanciatedCurveDescriptor::try_instanciate(curve.clone())
+        {
+            let desc = Arc::new(desc);
+            self.instanciated_descriptor = Some(desc.clone());
+            let hp = &(self.helix_parameters.unwrap_or(*helix_parameters));
+            println!("helix: {} nm {} bpt", hp.rise, hp.bases_per_turn);
+            if let Some(curve) = desc.as_ref().instance.try_into_curve(hp) {
+                self.instanciated_curve = Some(InstanciatedCurve {
+                    curve,
+                    source: desc,
+                })
             }
         }
     }

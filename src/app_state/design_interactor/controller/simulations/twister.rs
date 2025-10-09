@@ -16,17 +16,22 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use ensnano_design::grid::{GridDescriptor, GridTypeDescr};
-use ensnano_design::{
-    grid::*, Collection, CurveDescriptor, HelixCollection, HelixParameters, Twist,
+use super::{
+    Design, Helix,
+    roller::{DesignData, RollSystem},
 };
-
-use super::roller::{DesignData, RollPresenter, RollSystem};
-use super::{Design, Helix, SimulationReader};
-use std::collections::HashMap;
-use std::sync::{Arc, Mutex, Weak};
-
-pub trait TwistPresenter: RollPresenter {}
+use crate::{
+    app_state::design_interactor::{Presenter, presenter::SimulationUpdate},
+    controller::ChannelReader,
+};
+use ensnano_design::{
+    Collection, CurveDescriptor, HelixCollection, HelixParameters, Twist,
+    grid::{GridDescriptor, GridTypeDescr, *},
+};
+use std::{
+    collections::HashMap,
+    sync::{Arc, Mutex, Weak},
+};
 
 struct TwistSystem {
     current_omega: f64,
@@ -53,7 +58,7 @@ pub struct TwistState {
     grid: GridDescriptor,
 }
 
-impl super::SimulationUpdate for TwistState {
+impl SimulationUpdate for TwistState {
     fn update_design(&self, design: &mut Design) {
         let mut new_helices = design.helices.make_mut();
         for (i, h) in self.helices.iter() {
@@ -79,9 +84,9 @@ pub struct TwistInterface {
 
 impl Twister {
     pub fn start_new(
-        presenter: &dyn TwistPresenter,
+        presenter: &Presenter,
         target_grid: GridId,
-        reader: &mut dyn SimulationReader,
+        reader: &mut ChannelReader,
     ) -> Option<Arc<Mutex<TwistInterface>>> {
         let intervals_map = presenter.get_design().strands.get_intervals();
         let mut helices: Vec<Helix> = Vec::new();
@@ -118,7 +123,6 @@ impl Twister {
             helix_map,
             xovers,
             helix_parameters,
-            intervals,
         };
 
         let interface = Arc::new(Mutex::new(TwistInterface::default()));
@@ -226,7 +230,7 @@ impl Twister {
 }
 
 impl super::SimulationInterface for TwistInterface {
-    fn get_simulation_state(&mut self) -> Option<Box<dyn crate::app_state::SimulationUpdate>> {
+    fn get_simulation_state(&mut self) -> Option<Box<dyn SimulationUpdate>> {
         let s = self.new_state.take()?;
         Some(Box::new(s))
     }

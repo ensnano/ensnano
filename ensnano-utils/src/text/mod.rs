@@ -21,8 +21,8 @@ use fontdue::Font;
 use std::convert::TryInto;
 use std::rc::Rc;
 use wgpu::{
-    util::DeviceExt, BindGroup, BindGroupLayout, Device, Extent3d, Queue, Sampler, Texture,
-    TextureView,
+    BindGroup, BindGroupLayout, Device, Extent3d, Queue, Sampler, Texture, TextureView,
+    util::DeviceExt,
 };
 
 #[repr(C)]

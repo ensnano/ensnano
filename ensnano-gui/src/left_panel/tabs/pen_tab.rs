@@ -18,9 +18,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use std::marker::PhantomData;
 
 use super::tabs::GuiTab;
-use super::{AppState, GridTypeDescr, Message, UiSize, ICON_HONEYCOMB_GRID, ICON_SQUARE_GRID};
+use super::{AppState, GridTypeDescr, ICON_HONEYCOMB_GRID, ICON_SQUARE_GRID, Message, UiSize};
 use ensnano_iced::{
-    fonts::{icon_to_char, MaterialIcon, MaterialIconStyle},
+    fonts::{MaterialIcon, MaterialIconStyle, icon_to_char},
     helpers::*,
     iced_aw::TabLabel,
 };
@@ -40,7 +40,11 @@ impl<State: AppState> GuiTab<State> for PenTab<State> {
         TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Draw)))
     }
 
-    fn content(&self, ui_size: UiSize, app_state: &State) -> ensnano_iced::Element<Self::Message> {
+    fn content(
+        &self,
+        ui_size: UiSize,
+        app_state: &State,
+    ) -> ensnano_iced::Element<'_, Self::Message> {
         let selected_path_id = app_state.get_selected_bezier_path();
         let path_txt = selected_path_id
             .map(|p| format!("{:?}", p))

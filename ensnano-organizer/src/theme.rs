@@ -1,9 +1,9 @@
 //! Customize the theme of ENSnano
 use ensnano_iced::iced::{
+    Background, Border, Color, Shadow, Vector,
     border::Radius,
     theme,
-    widget::{button, container, pick_list},
-    Background, Border, Color, Shadow, Vector,
+    widget::{button, container},
 };
 
 #[derive(Debug, Clone, Copy)]
@@ -235,25 +235,6 @@ impl OrganizerTheme {
         }
     }
 
-    pub(super) fn level_selected(&self, n: usize) -> OrganizerThemeLevel {
-        OrganizerThemeLevel {
-            gradient: self.gradient.clone(),
-            text_color: self.text_color.clone(),
-            border_color: self.border_color.clone(),
-            gradient_value: n as f32 / self.max_level as f32,
-            selected: true,
-        }
-    }
-
-    pub(super) fn selected(&self, selected: bool) -> OrganizerThemeSelection {
-        OrganizerThemeSelection {
-            selected,
-            text_color: self.text_color.clone(),
-            selected_color: self.border_color.clone(),
-            border_color: self.border_color.clone(),
-        }
-    }
-
     pub fn moon() -> Self {
         Self {
             gradient: moon_gradient(),
@@ -270,51 +251,5 @@ impl OrganizerTheme {
             border_color: Color::from_rgb8(0x83, 0x1a, 0x1a),
             max_level: 5,
         }
-    }
-}
-
-/// An [pick_list::Appearance] where there is no icon.
-///
-pub struct NoIcon;
-
-impl pick_list::StyleSheet for NoIcon {
-    type Style = ();
-    //type Style = iced_style::theme::PickList;
-    // I think the good way to do it is to implement a custom Style.
-
-    // TODO: Check the `handle_color` value on the UI in both active and hovered.
-
-    fn active(&self, _style: &Self::Style) -> pick_list::Appearance {
-        pick_list::Appearance {
-            text_color: Color::BLACK,
-            placeholder_color: [0.4, 0.4, 0.4].into(),
-            handle_color: Color::BLACK,
-            background: Background::Color([0.87, 0.87, 0.87].into()),
-            border: Border {
-                color: [0.7, 0.7, 0.7].into(),
-                width: 1.0,
-                radius: Radius::from(0),
-            },
-        }
-    }
-
-    fn hovered(&self, _style: &Self::Style) -> pick_list::Appearance {
-        pick_list::Appearance {
-            text_color: Color::BLACK,
-            placeholder_color: [0.4, 0.4, 0.4].into(),
-            handle_color: Color::BLACK,
-            background: Background::Color([0.87, 0.87, 0.87].into()),
-            border: Border {
-                color: [0.7, 0.7, 0.7].into(),
-                width: 1.0,
-                radius: Radius::from(0),
-            },
-        }
-    }
-}
-
-impl From<NoIcon> for theme::PickList {
-    fn from(_: NoIcon) -> Self {
-        Default::default()
     }
 }

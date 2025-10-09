@@ -11,22 +11,12 @@
 //!     REAL32[3] – Vertex 3                  - 12 bytes
 //!     UINT16    – Attribute byte count      -  2 bytes
 
-use std::io;
-use std::io::Write;
-
-use ensnano_design::ultraviolet::{Mat3, Mat4, Rotor3, Vec3, Vec4};
-use ensnano_design::Design;
-use ensnano_interactor::consts::NB_RAY_TUBE;
-//use ensnano_interactor::graphics::LoopoutNucl;
 use crate::view::{
-    ConeInstance, Ellipsoid, Instanciable, Mesh, Mesh::*, RawDnaInstance, SlicedTubeInstance,
+    ConeInstance, Ellipsoid, Instantiable, Mesh, Mesh::*, RawDnaInstance, SlicedTubeInstance,
     SphereInstance, TubeInstance, TubeLidInstance,
 };
-
-#[derive(Debug)]
-pub enum StlError {
-    IOError(std::io::Error),
-}
+use ensnano_design::ultraviolet::{Mat3, Vec3};
+use ensnano_interactor::consts::NB_RAY_TUBE;
 
 trait StlProcessing {
     fn to_stl_triangles(&self) -> Vec<StlTriangle> {
@@ -178,7 +168,7 @@ impl StlProcessing for RawDnaInstance {
 fn triangle_indices_from_strip(indices: Vec<u16>) -> Vec<u16> {
     let mut triangle_from_strip_indices = vec![];
     let n = indices.len();
-    for i in (0..n - 2) {
+    for i in 0..n - 2 {
         if i % 2 == 0 {
             triangle_from_strip_indices.push(indices[i]);
             triangle_from_strip_indices.push(indices[i + 1]);
@@ -192,7 +182,7 @@ fn triangle_indices_from_strip(indices: Vec<u16>) -> Vec<u16> {
     triangle_from_strip_indices
 }
 
-pub fn stl_bytes_export(raw_instances: Vec<RawDnaInstance>) -> Result<Vec<u8>, StlError> {
+pub fn stl_bytes_export(raw_instances: Vec<RawDnaInstance>) -> Vec<u8> {
     let triangles: Vec<StlTriangle> = raw_instances
         .iter()
         .flat_map(|raw_inst| raw_inst.to_stl_triangles())
@@ -204,7 +194,7 @@ pub fn stl_bytes_export(raw_instances: Vec<RawDnaInstance>) -> Result<Vec<u8>, S
     for t in triangles {
         bytes.append(&mut t.to_bytes());
     }
-    Ok(bytes)
+    bytes
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -253,12 +243,15 @@ fn vertices_indices_to_stl_triangles(
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use {
+        super::*,
+        std::io::{self, Write as _},
+    };
 
     fn stl_file_from_triangles(path: &str, triangles: Vec<StlTriangle>) -> Result<(), io::Error> {
         let mut out_file = std::fs::File::create(path)?;
         let mut bytes: Vec<u8> = vec![0; 80]; // header numer of triangles
-        let mut triangles_number: u32 = triangles.len() as u32;
+        let triangles_number: u32 = triangles.len() as u32;
         let triangle_number = triangles_number.to_le_bytes();
         bytes.extend_from_slice(&triangle_number[0..]);
         for t in triangles {

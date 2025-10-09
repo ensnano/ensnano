@@ -346,26 +346,6 @@ impl<S: AppState> PointAndClicking<S> {
         }
     }
 
-    #[allow(dead_code)] // was used to make it possible to reverse surface direction with a double
-                        // click. We may want to use it again in the future.
-    pub(super) fn reversing_surface_direction(
-        clicked_position: PhysicalPosition<f64>,
-        clicked_date: Instant,
-    ) -> Self {
-        Self {
-            away_state: Default::default(),
-            away_state_maker: None,
-            clicked_date,
-            description: "Reversing surface direction",
-            pressed_button: MouseButton::Middle,
-            release_consequences: Consequence::ReverseSurfaceDirection,
-            release_transition: Default::default(),
-            long_hold_state: Some(Default::default()),
-            clicked_position,
-            long_hold_state_maker: None,
-        }
-    }
-
     /// A state in which the user may be performing a double click
     ///
     /// If the user clicks on the element a second time in a short (i.e. < `LONG_HOLDING_TIME` )

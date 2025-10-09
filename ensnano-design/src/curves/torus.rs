@@ -16,14 +16,13 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use crate::{HelixParameters, InstanciatedPiecewiseBezier};
-
 use super::Curved;
+use crate::{HelixParameters, InstanciatedPiecewiseBezier};
+use ordered_float::OrderedFloat;
+use serde::{Deserialize, Serialize};
+use std::f64::consts::TAU;
 use std::sync::Arc;
 use ultraviolet::{DVec2, DVec3, Isometry3, Rotor3};
-
-use ordered_float::OrderedFloat;
-use std::f64::consts::TAU;
 
 const INTER_HELIX_GAP: f64 = crate::HelixParameters::DEFAULT.helix_radius as f64
     + crate::HelixParameters::DEFAULT.inter_helix_gap as f64 / 2.;
@@ -624,11 +623,7 @@ fn search_dicho(goal: f64, slice: &[f64]) -> Option<usize> {
                 b = c;
             }
         }
-        if slice[a] < goal {
-            Some(a)
-        } else {
-            Some(b)
-        }
+        if slice[a] < goal { Some(a) } else { Some(b) }
     } else {
         None
     }
@@ -649,8 +644,8 @@ pub(super) struct TwistedTorus {
 pub struct TwistedTorusDescriptor {
     pub curve: CurveDescriptor2D,
     /// Number of time the shape appears in a full turn
-    #[serde(alias = "half_twist_count_per_turn")]
-    pub symetry_per_turn: isize,
+    #[serde(alias = "half_twist_count_per_turn", alias = "symetry_per_turn")]
+    pub symmetry_per_turn: isize,
     /// Radius of the structure,
     pub big_radius: OrderedFloat<f64>,
     pub number_of_helix_per_section: usize,
@@ -669,7 +664,7 @@ impl TwistedTorus {
             / instanciated_curve.perimeter();
         let shift_per_turn = descriptor.helix_index_shift_per_turn;
         let nb_helices = descriptor.number_of_helix_per_section;
-        let nb_symetry_per_turn = descriptor.symetry_per_turn;
+        let nb_symetry_per_turn = descriptor.symmetry_per_turn;
         let rho = instanciated_curve.symetry_order();
 
         // At each turn, all helices positions are shifted by total_shift = nb_helices / rho * number of symetry
@@ -755,7 +750,7 @@ impl Curved for TwistedTorus {
 
         let point_curve = self.instanciated_curve.position(t_curve) * self.scale;
 
-        let curve_angle = self.descriptor.symetry_per_turn as f64 * theta
+        let curve_angle = self.descriptor.symmetry_per_turn as f64 * theta
             / (self.instanciated_curve.symetry_order() as f64);
 
         let rotated_curve_x = point_curve.x * curve_angle.cos() - point_curve.y * curve_angle.sin();

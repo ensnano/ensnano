@@ -2,17 +2,17 @@
 use std::marker::PhantomData;
 
 use iced::{
+    Length, Point, Rectangle, Size, Vector,
     advanced::{
-        layout, mouse, renderer::Style, widget, Clipboard, Layout, Renderer as _, Shell, Widget,
+        Clipboard, Layout, Renderer as _, Shell, Widget, layout, mouse, renderer::Style, widget,
     },
     event,
     mouse::Cursor,
-    Length, Point, Rectangle, Size, Vector,
 };
 use iced_graphics::{
+    Primitive,
     color::pack,
     mesh::{Indexed, Mesh, SolidVertex2D},
-    Primitive,
 };
 use iced_wgpu as wgpu;
 
@@ -115,7 +115,7 @@ where
         renderer: &mut crate::Renderer,
         _theme: &Theme,
         _style: &Style,
-        layout: Layout<'_>,
+        layout: Layout,
         _cursor: Cursor,
         _viewport: &Rectangle,
     ) {
@@ -170,7 +170,7 @@ where
         &mut self,
         tree: &mut widget::Tree,
         event: event::Event,
-        layout: Layout<'_>,
+        layout: Layout,
         cursor: Cursor,
         _renderer: &crate::Renderer,
         _clipboard: &mut dyn Clipboard,
@@ -228,10 +228,10 @@ where
                 mouse::Event::CursorMoved { .. } => {
                     // NOTE: Using "position" attribute from mouse::Event::CursorMoved dosen't work because
                     //       it is not the good coordinates.
-                    if state.is_dragging {
-                        if let Some(pos) = position {
-                            change(pos);
-                        }
+                    if state.is_dragging
+                        && let Some(pos) = position
+                    {
+                        change(pos);
                     }
                     event::Status::Captured
                 }

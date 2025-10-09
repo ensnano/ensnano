@@ -123,12 +123,11 @@ impl Design {
         let mut ret = HashMap::new();
 
         for (h_id, h) in self.helices.iter() {
-            if let Some(grid_position) = h.grid_position {
-                if matches!(grid_position.grid, GridId::FreeGrid(g_id) if grid_ids.contains(&FreeGridId(g_id)))
-                {
-                    ret.insert(*h_id, new_helix_id);
-                    new_helix_id += 1;
-                }
+            if let Some(grid_position) = h.grid_position
+                && matches!(grid_position.grid, GridId::FreeGrid(g_id) if grid_ids.contains(&FreeGridId(g_id)))
+            {
+                ret.insert(*h_id, new_helix_id);
+                new_helix_id += 1;
             }
         }
         ret

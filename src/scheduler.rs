@@ -26,6 +26,7 @@ use ensnano_iced::{
 };
 use ensnano_interactor::application::Application;
 use ensnano_interactor::graphics::GuiComponentType;
+use ensnano_utils::winit::window::CursorIcon;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
@@ -59,7 +60,7 @@ impl Scheduler {
         area: GuiComponentType,
         cursor_position: PhysicalPosition<f64>,
         app_state: AppState,
-    ) -> Option<ensnano_interactor::CursorIcon> {
+    ) -> Option<CursorIcon> {
         if let Some(app) = self.applications.get_mut(&area) {
             app.lock()
                 .unwrap()

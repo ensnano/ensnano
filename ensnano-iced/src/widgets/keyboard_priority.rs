@@ -17,38 +17,21 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 //! Gives text_input widgets priority to handle keyboard event.
 use iced::{
+    Element, Length, Padding, Point, Rectangle, Size, Vector,
     advanced::{
         layout::{self, Layout},
         renderer,
         widget::{self, Widget},
-        {mouse, Clipboard, Shell},
+        {Clipboard, Shell, mouse},
     },
-    alignment, event, keyboard, overlay,
-    widget::{container, text_input},
-    Element, Length, Padding, Point, Rectangle, Size, Vector,
+    event, keyboard, overlay,
+    widget::text_input,
 };
 use iced_graphics::text::Paragraph;
 
-/// A container that <span class="warning>should contain</span> a [text_input::TextInput].
+/// A container that should contain a [text_input::TextInput].
 ///
-/// Trigger `on_priority` and `on_unpriority` whent the text_input is focused or unfocused.
-///
-/// # Example
-///
-/// ```no_run
-/// #[derive(Debug, Clone)]
-/// enum Message {
-///     SetKeyboardPriority(bool)
-/// }
-///
-/// let value = "Some Text";
-///
-/// let input = keyboard_priority(
-///     text_input("This is the placeholder...", value)
-/// )
-/// .on_priority(Message::SetKeyboardPriority(true))
-/// .on_unpriority(Message::SetKeyboardPriority(false));
-/// ```
+/// Trigger `on_priority` and `on_unpriority` when the text_input is focused or unfocused.
 pub struct KeyboardPriority<'a, Message, Theme = crate::Theme, Renderer = crate::Renderer> {
     padding: Padding,
     width: Length,
@@ -139,7 +122,7 @@ where
         &mut self,
         tree: &mut widget::Tree,
         event: event::Event,
-        layout: Layout<'_>,
+        layout: Layout,
         cursor_position: mouse::Cursor,
         renderer: &Renderer,
         clipboard: &mut dyn Clipboard,
@@ -292,7 +275,7 @@ where
         renderer: &mut Renderer,
         theme: &Theme,
         style: &renderer::Style,
-        layout: Layout<'_>,
+        layout: Layout,
         cursor_position: mouse::Cursor,
         _viewport: &Rectangle,
     ) {
@@ -313,7 +296,7 @@ where
     fn mouse_interaction(
         &self,
         tree: &widget::Tree,
-        layout: Layout<'_>,
+        layout: Layout,
         cursor_position: mouse::Cursor,
         viewport: &Rectangle,
         renderer: &Renderer,
@@ -330,7 +313,7 @@ where
     fn overlay<'b>(
         &'b mut self,
         tree: &'b mut widget::Tree,
-        layout: Layout<'_>,
+        layout: Layout,
         renderer: &Renderer,
         translation: Vector,
     ) -> Option<overlay::Element<'b, Message, Theme, Renderer>> {

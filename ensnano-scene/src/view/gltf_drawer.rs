@@ -17,9 +17,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use super::wgpu;
 use ensnano_design::{External3DObject, External3DObjectId, PointOnSurface};
-use ensnano_interactor::consts;
 use ensnano_interactor::UnrootedRevolutionSurfaceDescriptor;
-use ensnano_utils::{create_buffer_with_data, obj_loader::*, texture::Texture, TEXTURE_FORMAT};
+use ensnano_interactor::consts;
+use ensnano_utils::{TEXTURE_FORMAT, create_buffer_with_data, obj_loader::*, texture::Texture};
 use std::ffi::OsStr;
 use std::path::PathBuf;
 use std::rc::Rc;
@@ -82,11 +82,6 @@ impl Object3DDrawer {
                 self.add_object(obj_id, object, &objects.path_base, bg_desc);
             }
         }
-    }
-
-    #[allow(dead_code)]
-    fn update_object(&mut self, _id: External3DObjectId, _object: External3DObject) {
-        todo!("update object's attributes")
     }
 
     fn add_object(
@@ -350,8 +345,6 @@ fn build_render_pipeline(
         push_constant_ranges: &[],
     });
 
-    let depth_compare = wgpu::CompareFunction::Less;
-
     let strip_index_format = match primitive_topology {
         wgpu::PrimitiveTopology::LineStrip | wgpu::PrimitiveTopology::TriangleStrip => {
             Some(wgpu::IndexFormat::Uint32)
@@ -389,7 +382,7 @@ fn build_render_pipeline(
         depth_stencil: Some(wgpu::DepthStencilState {
             format: Texture::DEPTH_FORMAT,
             depth_write_enabled: true,
-            depth_compare,
+            depth_compare: wgpu::CompareFunction::Less,
             stencil: Default::default(),
             bias: Default::default(),
         }),

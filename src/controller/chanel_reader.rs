@@ -17,15 +17,14 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 //! This module defines the [ChannelReader] struct which is in charge of communication with
-//! computation threads that can be spawned by the progam
+//! computation threads that can be spawned by the program
 
-use std::sync::mpsc;
-use std::sync::{Arc, Mutex, Weak};
-
-use crate::app_state::{
-    ShiftOptimizationResult, ShiftOptimizerReader, SimulationInterface, SimulationReader,
-    SimulationUpdate,
+use crate::app_state::design_interactor::{
+    controller::{shift_optimization::ShiftOptimizationResult, simulations::SimulationInterface},
+    presenter::SimulationUpdate,
 };
+use std::sync::{Arc, Mutex, Weak, mpsc};
+
 #[derive(Default)]
 pub struct ChannelReader {
     scaffold_shift_optimization_progress: Option<mpsc::Receiver<f32>>,
@@ -84,20 +83,16 @@ impl ChannelReader {
             .as_ref()
             .and_then(|chanel| chanel.try_recv().ok())
     }
-}
 
-impl ShiftOptimizerReader for ChannelReader {
-    fn attach_result_chanel(&mut self, chanel: mpsc::Receiver<ShiftOptimizationResult>) {
+    pub fn attach_result_chanel(&mut self, chanel: mpsc::Receiver<ShiftOptimizationResult>) {
         self.scaffold_shift_optimization_result = Some(chanel);
     }
 
-    fn attach_progress_chanel(&mut self, chanel: mpsc::Receiver<f32>) {
+    pub fn attach_progress_chanel(&mut self, chanel: mpsc::Receiver<f32>) {
         self.scaffold_shift_optimization_progress = Some(chanel);
     }
-}
 
-impl SimulationReader for ChannelReader {
-    fn attach_state(&mut self, state_chanel: &std::sync::Arc<Mutex<dyn SimulationInterface>>) {
+    pub fn attach_state(&mut self, state_chanel: &std::sync::Arc<Mutex<dyn SimulationInterface>>) {
         self.simulation_interface = Some(Arc::downgrade(state_chanel));
     }
 }

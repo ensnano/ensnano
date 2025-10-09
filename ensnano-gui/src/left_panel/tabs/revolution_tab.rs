@@ -20,15 +20,16 @@ use super::tabs::GuiTab;
 use crate::left_panel::Message;
 use crate::{AppState, SimulationState};
 use ensnano_design::{
-    ultraviolet::{self, Rotor3, Vec3},
     CurveDescriptor2D,
+    ultraviolet::{self, Rotor3, Vec3},
 };
 use ensnano_iced::{
-    fonts::{icon_to_char, MaterialIcon},
+    UiSize,
+    fonts::{MaterialIcon, icon_to_char},
     helpers::*,
     iced::{Alignment, Length},
     iced_aw::TabLabel,
-    theme, UiSize,
+    theme,
 };
 use ensnano_interactor::{
     EquadiffSolvingMethod, RevolutionSimulationParameters, RevolutionSurfaceRadius,
@@ -113,7 +114,7 @@ pub struct CurveDescriptorBuilder<S: AppState> {
 
 use std::fmt;
 impl<S: AppState> fmt::Debug for CurveDescriptorBuilder<S> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.debug_struct("CurveDecriptorBuilder")
             .field("curve_name", &self.curve_name)
             .finish()
@@ -155,7 +156,7 @@ impl ParameterWidget {
     fn input_view<State: AppState>(
         &self,
         id: RevolutionParameterId,
-    ) -> ensnano_iced::Element<Message<State>> {
+    ) -> ensnano_iced::Element<'_, Message<State>> {
         keyboard_priority(
             text_input("", &self.current_text)
                 .on_input(move |s| Message::RevolutionParameterUpdate {
@@ -220,7 +221,7 @@ impl<S: AppState> CurveDescriptorWidget<S> {
         }
     }
 
-    fn view(&self, ui_size: UiSize) -> ensnano_iced::Element<Message<S>> {
+    fn view(&self, ui_size: UiSize) -> ensnano_iced::Element<'_, Message<S>> {
         container(column(
             self.parameters
                 .iter()
@@ -560,7 +561,7 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
         &self,
         ui_size: UiSize,
         app_state: &State,
-    ) -> ensnano_iced::Element<Self::Message, ensnano_iced::Theme, ensnano_iced::Renderer> {
+    ) -> ensnano_iced::Element<'_, Self::Message, ensnano_iced::Theme, ensnano_iced::Renderer> {
         let desc = self.get_revolution_system(app_state, false);
 
         let shift_buttons = {
@@ -766,8 +767,8 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
         //        .push(Text::new(shift_txt)),
         //);
         //if let SimulationState::Relaxing = app_state.get_simulation_state() {
-        //    let button_abbort = Button::new(Text::new("Abort")).on_press(Message::StopSimulation);
-        //    ret = ret.push(button_abbort);
+        //    let button_abort = Button::new(Text::new("Abort")).on_press(Message::StopSimulation);
+        //    ret = ret.push(button_abort);
         //    extra_jump!(2, ret);
         //    if let Some(len) = app_state.get_reader().get_current_length_of_relaxed_shape() {
         //        ret = ret.push(Text::new(format!("Current total length: {len}")));

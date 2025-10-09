@@ -15,67 +15,26 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use super::{AppState, ColorMessage, Message};
-use ensnano_iced::{helpers::*, iced::Color, iced_winit::winit::dpi::LogicalSize};
 
-/// Messages from ColorPicker
-pub enum ColorPickerMessage {
-    HsvSatValueChanged(f64, f64),
-    HueChanged(f64),
-    Resized(LogicalSize<f64>),
-    FinishChangingColor,
-    // Closed,
-}
-
-pub struct ColorPicker {
-    color: Color,
-    hue: f64,
-    saturation: f64,
-    hsv_value: f64,
-}
-
-pub use color_square::ColorSquare;
+use super::ColorMessage;
+use ensnano_iced::{helpers::*, iced::Color};
 use hue_column::HueColumn;
 use light_sat_square::LightSatSquare;
 
+pub struct ColorPicker {
+    hue: f64,
+}
+
 impl ColorPicker {
     pub fn new() -> Self {
-        Self {
-            color: Color::BLACK,
-            hue: 0.,
-            saturation: 1.,
-            hsv_value: 1.,
-        }
-    }
-
-    pub fn update_color(&mut self) -> Color {
-        use color_space::{Hsv, Rgb};
-        let hsv = Hsv::new(self.hue, self.saturation, self.hsv_value);
-        let rgb = Rgb::from(hsv);
-        let color: Color = [
-            rgb.r as f32 / 255.,
-            rgb.g as f32 / 255.,
-            rgb.b as f32 / 255.,
-            1.,
-        ]
-        .into();
-        self.color = color;
-        color
+        Self { hue: 0. }
     }
 
     pub fn change_hue(&mut self, hue: f64) {
         self.hue = hue
     }
 
-    pub fn set_saturation(&mut self, saturation: f64) {
-        self.saturation = saturation
-    }
-
-    pub fn set_hsv_value(&mut self, hsv_value: f64) {
-        self.hsv_value = hsv_value
-    }
-
-    pub fn new_view(&self) -> ensnano_iced::Element<ColorMessage> {
+    pub fn new_view(&self) -> ensnano_iced::Element<'_, ColorMessage> {
         row![
             HueColumn::new(ColorMessage::HueChanged,),
             LightSatSquare::new(
@@ -93,18 +52,18 @@ impl ColorPicker {
 mod hue_column {
     use ensnano_iced::{
         iced::{
+            Length, Point, Rectangle, Renderer, Size, Vector,
             advanced::{
-                layout, mouse, renderer::Style, widget, Clipboard, Layout,
-                Renderer as RendererTrait, Shell, Widget,
+                Clipboard, Layout, Renderer as RendererTrait, Shell, Widget, layout, mouse,
+                renderer::Style, widget,
             },
             event,
             mouse::Cursor,
-            Length, Point, Rectangle, Renderer, Size, Vector,
         },
         iced_graphics::{
+            Primitive,
             color::pack,
             mesh::{Indexed, Mesh, SolidVertex2D},
-            Primitive,
         },
         iced_wgpu,
     };
@@ -165,7 +124,7 @@ mod hue_column {
             renderer: &mut ensnano_iced::Renderer,
             _theme: &ensnano_iced::Theme,
             _style: &Style,
-            layout: Layout<'_>,
+            layout: Layout,
             _cursor: Cursor,
             _viewport: &Rectangle,
         ) {
@@ -223,7 +182,7 @@ mod hue_column {
             &mut self,
             tree: &mut widget::Tree,
             event: event::Event,
-            layout: Layout<'_>,
+            layout: Layout,
             cursor: Cursor,
             _renderer: &ensnano_iced::Renderer,
             _clipboard: &mut dyn Clipboard,
@@ -291,18 +250,18 @@ mod hue_column {
 mod light_sat_square {
     use ensnano_iced::{
         iced::{
+            Length, Point, Rectangle, Renderer, Size, Vector,
             advanced::{
-                layout, mouse, renderer::Style, widget, Clipboard, Layout,
-                Renderer as RendererTrait, Shell, Widget,
+                Clipboard, Layout, Renderer as RendererTrait, Shell, Widget, layout, mouse,
+                renderer::Style, widget,
             },
             event,
             mouse::Cursor,
-            Length, Point, Rectangle, Renderer, Size, Vector,
         },
         iced_graphics::{
+            Primitive,
             color::pack,
             mesh::{Indexed, Mesh, SolidVertex2D},
-            Primitive,
         },
         iced_wgpu,
     };
@@ -381,7 +340,7 @@ mod light_sat_square {
             renderer: &mut ensnano_iced::Renderer,
             _theme: &ensnano_iced::Theme,
             _style: &Style,
-            layout: Layout<'_>,
+            layout: Layout,
             _cursor: Cursor,
             _viewport: &Rectangle,
         ) {
@@ -436,7 +395,7 @@ mod light_sat_square {
             &mut self,
             tree: &mut widget::Tree,
             event: event::Event,
-            layout: Layout<'_>,
+            layout: Layout,
             cursor: Cursor,
             _renderer: &ensnano_iced::Renderer,
             _clipboard: &mut dyn Clipboard,
@@ -515,18 +474,18 @@ mod color_square {
     use super::Color;
     use ensnano_iced::{
         iced::{
+            Length, Rectangle, Size, Vector,
             advanced::{
-                layout, mouse, renderer::Style, widget, Clipboard, Layout,
-                Renderer as RendererTrait, Shell, Widget,
+                Clipboard, Layout, Renderer as RendererTrait, Shell, Widget, layout, mouse,
+                renderer::Style, widget,
             },
             event,
             mouse::Cursor,
-            Length, Rectangle, Size, Vector,
         },
         iced_graphics::{
+            Primitive,
             color::pack,
             mesh::{Indexed, Mesh, SolidVertex2D},
-            Primitive,
         },
         iced_wgpu,
     };
@@ -600,7 +559,7 @@ mod color_square {
             renderer: &mut ensnano_iced::Renderer,
             _theme: &ensnano_iced::Theme,
             _style: &Style,
-            layout: Layout<'_>,
+            layout: Layout,
             _cursor: Cursor,
             _viewport: &Rectangle,
         ) {
@@ -654,7 +613,7 @@ mod color_square {
             &mut self,
             tree: &mut widget::Tree,
             event: event::Event,
-            layout: Layout<'_>,
+            layout: Layout,
             cursor: Cursor,
             _renderer: &ensnano_iced::Renderer,
             _clipboard: &mut dyn Clipboard,

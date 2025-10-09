@@ -17,6 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use crate::MaterialColor;
+use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
 #[derive(Serialize, PartialEq, Deserialize, Clone, Debug, Copy)]
@@ -123,17 +124,17 @@ impl FromStr for DrawingAttribute {
                 }
             }
             "cv" if len == 3 => {
-                if let Ok(r_min) = f32::from_str(parsed[1]) {
-                    if let Ok(r_max) = f32::from_str(parsed[2]) {
-                        return Ok(Self::Curvature(r_min, r_max));
-                    }
+                if let Ok(r_min) = f32::from_str(parsed[1])
+                    && let Ok(r_max) = f32::from_str(parsed[2])
+                {
+                    return Ok(Self::Curvature(r_min, r_max));
                 }
             }
             "to" if len == 3 => {
-                if let Ok(t_min) = f32::from_str(parsed[1]) {
-                    if let Ok(t_max) = f32::from_str(parsed[2]) {
-                        return Ok(Self::Torsion(t_min, t_max));
-                    }
+                if let Ok(t_min) = f32::from_str(parsed[1])
+                    && let Ok(t_max) = f32::from_str(parsed[2])
+                {
+                    return Ok(Self::Torsion(t_min, t_max));
                 }
             }
             _ => (),

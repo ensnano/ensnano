@@ -291,7 +291,7 @@ impl DynamicBuffer {
         self.queue.write_buffer(&self.buffer, 0, bytes.as_slice());
     }
 
-    pub fn get_slice(&self) -> wgpu::BufferSlice {
+    pub fn get_slice(&self) -> wgpu::BufferSlice<'_> {
         self.buffer.slice(..self.length)
     }
 }

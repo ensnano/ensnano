@@ -21,9 +21,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use crate::BasisMapper;
 
-use super::ultraviolet;
 use super::PathBuf;
-use crate::oxdna::{OxDnaHelix, OXDNA_LEN_FACTOR};
+use super::ultraviolet;
+use crate::oxdna::{OXDNA_LEN_FACTOR, OxDnaHelix};
 use ahash::AHashMap;
 use ensnano_design::{Design, Domain, HelixCollection, Nucl};
 use std::borrow::Cow;
@@ -617,7 +617,6 @@ impl PdbFormatter {
     }
 
     /// Create a new strand. The returned value must be droped with `PdbStrand::write`.
-    #[allow(clippy::needless_lifetimes)]
     pub fn start_strand<'a>(&'a mut self, cyclic: bool) -> PdbStrand<'a> {
         PdbStrand {
             pdb_formater: ManuallyDrop::new(self),

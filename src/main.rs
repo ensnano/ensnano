@@ -21,7 +21,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! # Organization of the software
 //!
 //!
-//! The [main] function owns the event loop and the framebuffer. It recieves window events
+//! The [main] function owns the event loop and the framebuffer. It receives window events
 //! and handles the framebuffer.
 //!
 //! ## Drawing process
@@ -29,7 +29,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! On each redraw request, the [main] function generates a new frame, and asks the
 //! [Multiplexer](multiplexer) to draw on a view of that texture.
 //!
-//! The [Multiplexer](multiplexer) knows how the window is devided into several regions. For each
+//! The [Multiplexer](multiplexer) knows how the window is divided into several regions. For each
 //! of these region it knows what application or gui component should draw on it. For each region
 //! the [Multiplexer](multiplexer) holds a texture, and at each draw request, it will request the
 //! corresponding app or gui element to possibly update the texture.
@@ -38,7 +38,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! ## Handling of events
 //!
 //! The Global state of the program is encoded in an automaton defined in the
-//! [controller] module. This global state determines wether inputs are handled
+//! [controller] module. This global state determines whether inputs are handled
 //! normally or if the program should wait for the user to interact with dialog windows.
 //!
 //! When the Global automaton is in NormalState, events are forwarded to the
@@ -46,10 +46,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! usually the application displayed in the active region (the region under the cursor). Special
 //! events like resizing of the window are handled by the multiplexer.
 //!
-//! When GUIs handle an event. They recieve a reference to the state of the main program. This
+//! When GUIs handle an event. They receive a reference to the state of the main program. This
 //! state is encoded in the [AppState] data structure. Each GUI component
-//! needs to be able to recieve some specific information about the state of the program to handle
-//! events and to draw their views. Theese needs are encoded in traits. GUI component typically
+//! needs to be able to receive some specific information about the state of the program to handle
+//! events and to draw their views. These needs are encoded in traits. GUI component typically
 //! defines their own `AppState` trait that must be implemented by the concrete `AppState` type.
 //!
 //! GUI components may interpret event as a request from the user to modify the design or the state
@@ -57,14 +57,14 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! the [Requests] data structure. Each application defines a `Requests` trait
 //! that must be implemented by the concrete `Requests` type.
 //!
-//! On each itteration of the main event loop, if the Global controller is in Normal State,
+//! On each iteration of the main event loop, if the Global controller is in Normal State,
 //! requests are polled and transmitted to the main `AppState` by the main controller. The
 //! processing of these requests may have three different kind of consequences:
 //!
-//!  * An undoable action is performed on the main `AppState`, modifiying it. In that case the
+//!  * An undoable action is performed on the main `AppState`, modifying it. In that case the
 //!  current `AppState` is copied on the undo stack and the replaced by the modified one.
 //!
-//!  * A non-undoable action is perfomed on the main `AppState`, modyfing it. In that case, the
+//!  * A non-undoable action is performed on the main `AppState`, modifying it. In that case, the
 //!  current `AppState` is replaced by the modified one, but not stored on the undo stack.
 //!  This typically happens when the `AppState` is in a transient state for example while the user
 //!  is performing a drag and drop action. Transient states are not stored on the undo stack
@@ -73,9 +73,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //!  * An error is returned. In the case the `AppState` is not modified and the user is notified of
 //!  the error. Error typically occur when user attempt to make actions on the design that are not
 //!  permitted by the current state of the program. For example an error is returned if the user
-//!  try to modify the design durring a simulation.
+//!  try to modify the design during a simulation.
 //!
-//!  # Developpement detail
+//!  # Development detail
 //!
 //!  ## [wgpu::PresentMode] compatibility experience
 //!
@@ -87,115 +87,86 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //!      | AutoVsync   | Yes         | Yes         |
 //!      | Immediate   | No          | Yes         |
 //!      | Mailbox     | Yes         | No          |
-//!
-use std::collections::{HashMap, VecDeque};
-use std::env;
-use std::path::{Path, PathBuf};
-use std::rc::Rc;
-use std::sync::{Arc, Mutex};
-use std::time::{Duration, Instant};
 
-use controller::{ChannelReader, ChannelReaderUpdate, SimulationRequest};
-use ensnano_design::{grid::GridId, Camera};
-use ensnano_exports::{ExportResult, ExportType};
-use ensnano_iced::{
-    fonts,
-    iced::{self, Event as IcedEvent, Size},
-    iced_futures::futures,
-    iced_graphics::{Antialiasing, Viewport},
-    iced_runtime::{program, Debug},
-    iced_wgpu::{self, wgpu, Settings},
-    iced_winit::{self, winit},
-    theme, UiSize,
-};
-use ensnano_interactor::{
-    application::{Application, Notification},
-    RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor,
-};
-use ensnano_interactor::{
-    CenterOfSelection, CursorIcon, DesignOperation, DesignReader, RigidBodyConstants,
-    SuggestionParameters,
-};
-
-use app_state::AppStateParameters;
-use ultraviolet::{Rotor3, Vec3};
-use winit::{
-    dpi::{PhysicalPosition, PhysicalSize},
-    event::{Event, WindowEvent},
-    event_loop::{ControlFlow, EventLoop, EventLoopWindowTarget},
-    keyboard::{Key, ModifiersState, NamedKey},
-    window::Window,
-};
-
-#[allow(unused_imports)]
-#[macro_use]
-extern crate pretty_env_logger;
-
-//#[cfg(not(target_env = "msvc"))]
-//use jemallocator::Jemalloc;
-
-// #[cfg(not(target_env = "msvc"))]
-// #[global_allocator]
-// static GLOBAL: Jemalloc = Jemalloc;
-
-/// An interface to use iced_aw's Bootstrap icons.
-//pub mod icons;
-
-/// Design handling
-//mod design;
-/// Graphical interface drawing
-use ensnano_gui as gui;
-use ensnano_interactor::consts;
-//use design::Design;
-//mod mediator;
-mod multiplexer;
-use ensnano_flatscene as flatscene;
-use ensnano_interactor::{
-    graphics::{GuiComponentType, SplitMode},
-    operation::Operation,
-    ActionMode, CheckXoversParameter, Selection, SelectionMode,
-};
-/// 3D scene drawing
-use ensnano_scene as scene;
-mod scheduler;
-use ensnano_utils as utils;
-use scheduler::Scheduler;
-
+pub mod app_state;
+pub mod controller;
+pub mod dialog;
 #[cfg(test)]
-mod main_tests;
-// mod grid_panel; We don't use the grid panel atm
+pub mod main_tests;
+pub mod multiplexer;
+pub mod requests;
+pub mod scheduler;
 
-mod app_state;
-mod controller;
-use app_state::{
-    AppState, AppStateTransition, CopyOperation, ErrOperation, OkOperation, PastePosition,
-    PastingStatus, SimulationTarget, TransitionLabel,
+use {
+    crate::{
+        app_state::{
+            design_interactor::controller::{
+                ErrOperation, InteractorNotification,
+                clipboard::{CopyOperation, PastePosition},
+                simulations::SimulationOperation,
+            },
+            transitions::{AppStateTransition, OkOperation, TransitionLabel},
+        },
+        controller::TargetScaffoldLength,
+        requests::Requests,
+    },
+    app_state::AppState,
+    controller::{
+        Action, ChannelReader, ChannelReaderUpdate, Controller, LoadDesignError, SaveDesignError,
+        SetScaffoldSequenceError, SetScaffoldSequenceOk, StaplesDownloader,
+    },
+    ensnano_design::{Camera, grid::GridId},
+    ensnano_exports::{ExportResult, ExportType},
+    ensnano_flatscene::FlatScene,
+    ensnano_gui::{AppState as _, ColorOverlay, Gui, IcedMessages, OverlayType, TopBarState},
+    ensnano_iced::{
+        UiSize, fonts,
+        iced::{self, Event as IcedEvent, Size},
+        iced_futures::futures,
+        iced_graphics::{Antialiasing, Viewport},
+        iced_runtime::{Debug, program},
+        iced_wgpu::{self, Settings, wgpu},
+        iced_winit::{self, winit},
+        theme,
+    },
+    ensnano_interactor::{
+        ActionMode, CenterOfSelection, DesignOperation, DesignReader, DesignRotation,
+        DesignTranslation, IsometryTarget, PastingStatus, RevolutionSurfaceSystemDescriptor,
+        RigidBodyConstants, Selection, SelectionMode, UnrootedRevolutionSurfaceDescriptor,
+        app_state_parameters::{AppStateParameters, CheckXoversParameter, SuggestionParameters},
+        application::{Application, Notification},
+        consts::{
+            APP_NAME, ENS_BACKUP_EXTENSION, ENS_UNNAMED_FILE_NAME, NO_DESIGN_TITLE,
+            SEC_BETWEEN_BACKUPS, SEC_PER_YEAR, WELCOME_MSG,
+        },
+        graphics::{GuiComponentType, SplitMode},
+        operation::Operation,
+    },
+    ensnano_scene::{AppState as _, DesignReader as _, Scene, SceneKind},
+    ensnano_utils::{PhySize, TEXTURE_FORMAT, winit::window::CursorIcon},
+    multiplexer::{Multiplexer, Overlay},
+    scheduler::Scheduler,
+    std::{
+        collections::{HashMap, VecDeque},
+        env,
+        path::{Path, PathBuf},
+        rc::Rc,
+        sync::{Arc, Mutex},
+        time::{Duration, Instant},
+    },
+    ultraviolet::{Rotor3, Vec3},
+    winit::{
+        dpi::{PhysicalPosition, PhysicalSize},
+        event::{Event, WindowEvent},
+        event_loop::{ControlFlow, EventLoop, EventLoopWindowTarget},
+        keyboard::{Key, ModifiersState, NamedKey},
+        window::Window,
+    },
 };
-use controller::Action;
-use controller::Controller;
-
-mod requests;
-pub use requests::Requests;
-
-mod dialog;
-
-use flatscene::FlatScene;
-use gui::{ColorOverlay, Gui, IcedMessages, OverlayType};
-use multiplexer::{Multiplexer, Overlay};
-use scene::Scene;
-use utils::{PhySize, TEXTURE_FORMAT};
-
-fn convert_size(size: PhySize) -> Size<f32> {
-    Size::new(size.width as f32, size.height as f32)
-}
-
-fn convert_size_u32(size: PhySize) -> Size<u32> {
-    Size::new(size.width, size.height)
-}
 
 /// Determine if log messages can be printed before the renderer setup.
 ///
-/// Setting it to true will print information in the terminal that are not usefull for regular use.
+/// Setting it to true will print information in the terminal that are not useful for regular use.
 /// By default the value is `false`. It can be set to `true` by enabling the
 /// `log_after_renderer_setup` feature.
 #[cfg(not(feature = "log_after_renderer_setup"))]
@@ -221,27 +192,27 @@ const PANIC_ON_WGPU_ERRORS: bool = true;
 
 /// Main function. Runs the event loop and holds the framebuffer.
 ///
-/// # Intialization
+/// # Initialization
 ///
-/// Before running the event loop, the main fuction does the following:
+/// Before running the event loop, the main function does the following:
 ///
 /// * It requests a connection to the GPU and creates a framebuffer.
 /// * It initializes a multiplexer.
 /// * It initializes applications and GUI component, and associate regions of the screen to these
 /// components
 /// * It initializes the [Mediator](ensnano_interactor::application::AppId::Mediator), the
-/// [Scheduler] and the [Gui manager](gui::Gui)
+/// [Scheduler] and the [Gui manager](ensnano_gui::Gui)
 ///
 /// # Event loop
 ///
-/// * The event loop waits for an event. If no event is recieved during 33ms, a new redraw is
+/// * The event loop waits for an event. If no event is received during 33ms, a new redraw is
 /// requested.
-/// * When a event is recieved, it is forwareded to the multiplexer. The Multiplexer may then
-/// convert this event into a event for a specific screen region.
-/// * When all window events have been handled, the main function reads messages that it recieved
-/// from the [Gui Manager](gui::Gui).  The consequences of these messages are forwarded to the
+/// * When a event is received, it is forwarded to the multiplexer. The Multiplexer may then
+/// convert this event into an event for a specific screen region.
+/// * When all window events have been handled, the main function reads messages that it received
+/// from the [Gui Manager](ensnano_gui::Gui). The consequences of these messages are forwarded to the
 /// applications.
-/// * The main loops then reads the messages that it recieved from the [Mediator](ensnano_interactor::application::AppId::Mediator) and
+/// * The main loops then reads the messages that it received from the [Mediator](ensnano_interactor::application::AppId::Mediator) and
 /// forwards their consequences to the Gui components.
 /// * Finally, a redraw is requested.
 ///
@@ -250,7 +221,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     if EARLY_LOG {
         pretty_env_logger::init();
     }
-    // Parse arugments. If an argument was given it is treated as a file to open.
+    // Parse arguments. If an argument was given it is treated as a file to open.
     let args: Vec<String> = env::args().collect();
     let path = if args.len() >= 2 {
         Some(PathBuf::from(&args[1]))
@@ -266,7 +237,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut windows_title = String::from("ENSnano");
     window.set_title("ENSnano");
-    // NOTE: Why we don't use window.title() ? Because this method dosen't
+    // NOTE: Why we don't use window.title() ? Because this method doesn't
     //       work on linux (both X11 and Wayland). See:
     //
     // https://docs.rs/winit/latest/winit/window/struct.Window.html#platform-specific-41
@@ -290,6 +261,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Obtain a WGPU adapter.
     let (format, _adapter, device, queue) = futures::executor::block_on(async {
+        log::info!(
+            "Creating GPU adapter with WGPU_ADAPTER_NAME={:?} and WGPU_POWER_PREF={:?}",
+            std::env::var("WGPU_ADAPTER_NAME").ok(),
+            std::env::var("WGPU_POWER_PREF").ok(),
+        );
+
         let adapter = wgpu::util::initialize_adapter_from_env_or_default(
             &gpu_instance,
             Some(&surface),
@@ -353,14 +330,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         )
     }
 
-    use consts::APP_NAME;
-    let ui_size = confy::load(APP_NAME, APP_NAME)
-        .map(|p: AppStateParameters| p.ui_size)
-        .unwrap_or_default();
+    let parameters: AppStateParameters = confy::load(APP_NAME, APP_NAME).unwrap_or_default();
 
     let settings = Settings {
         antialiasing: Some(Antialiasing::MSAAx4),
-        default_text_size: ui_size.main_text().into(),
+        default_text_size: parameters.ui_size.main_text().into(),
         default_font: fonts::INTER_REGULAR_FONT,
         ..Default::default()
     };
@@ -389,7 +363,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         window.scale_factor(),
         Rc::clone(&device),
         Arc::clone(&requests),
-        ui_size,
+        parameters.ui_size,
     );
     multiplexer.change_split(SplitMode::Both);
 
@@ -409,7 +383,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Arc::clone(&requests),
         &mut encoder,
         Default::default(),
-        scene::SceneKind::Cartesian,
+        SceneKind::Cartesian,
     )));
     let stereographic_scene = Arc::new(Mutex::new(Scene::new(
         Rc::clone(&device),
@@ -419,7 +393,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Arc::clone(&requests),
         &mut encoder,
         Default::default(),
-        scene::SceneKind::Stereographic,
+        SceneKind::Stereographic,
     )));
 
     queue.submit(Some(encoder.finish()));
@@ -440,23 +414,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     scheduler.add_application(flat_scene.clone(), GuiComponentType::FlatScene);
 
     // Initialize the UI
-    //
-    let main_state_constructor = MainStateConstructor {
-        messages: messages.clone(),
-    };
+    let mut main_state = MainState::new(messages.clone());
 
-    let mut main_state = MainState::new(main_state_constructor);
-
-    //let _ = ensnano_gui::material_icons_light::load_fonts();
-    //let _ = ensnano_gui::helpers::load_fonts2();
-
-    let mut gui = gui::Gui::new(
+    let mut gui = Gui::new(
         Rc::clone(&device),
         Rc::clone(&queue),
         &window,
         &multiplexer,
         Arc::clone(&requests),
-        ui_size,
+        parameters,
         &main_state.app_state,
         Default::default(),
     );
@@ -478,7 +444,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .applications
         .insert(GuiComponentType::StereographicScene, stereographic_scene);
 
-    // Add a design to the scene if one was given as a command line arguement
+    // Add a design to the scene if one was given as a command line argument
     if path.is_some() {
         main_state.push_action(Action::LoadDesign(path))
     }
@@ -487,7 +453,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut controller = Controller::new();
 
-    println!("{}", consts::WELCOME_MSG);
+    println!("{}", WELCOME_MSG);
     if !EARLY_LOG {
         pretty_env_logger::init();
     }
@@ -538,7 +504,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 WindowEvent::ModifiersChanged(modifiers) => {
                     main_state_view.multiplexer.update_modifiers(modifiers);
                     messages.lock().unwrap().update_modifiers(modifiers);
-                    main_state_view.notify_apps(Notification::ModifersChanged(modifiers));
+                    main_state_view.notify_apps(Notification::ModifiersChanged(modifiers));
                 }
 
                 // NOTE: Escape fullscreen mode.
@@ -731,7 +697,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         }
                         main_state.applications_cursor = None;
 
-                        // Feed the event to the gui component on which it happenened
+                        // Feed the event to the gui component on which it happened
                         match gui_component_type {
                             component if component.is_panel() => {
                                 iced_winit::conversion::window_event(
@@ -761,7 +727,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 main_state.applications_cursor =
                                     scheduler.forward_event(&event, area, cursor_position, state);
                                 if matches!(event, winit::event::WindowEvent::MouseInput { .. }) {
-                                    gui.clear_foccus();
+                                    gui.clear_focus();
                                 }
                             }
                             _ => unreachable!(),
@@ -803,43 +769,46 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 first_iteration = false;
 
                 for update in main_state.channel_reader.get_updates() {
-                    if let ChannelReaderUpdate::ScaffoldShiftOptimizationProgress(x) = update {
-                        main_state
-                            .messages
-                            .lock()
-                            .unwrap()
-                            .push_progress("Optimizing: ".to_string(), x);
-                    } else if let ChannelReaderUpdate::ScaffoldShiftOptimizationResult(result) =
-                        update
-                    {
-                        main_state.messages.lock().unwrap().finish_progess();
-                        if let Ok(result) = result {
-                            main_state.apply_operation(DesignOperation::SetScaffoldShift(
-                                result.position,
-                            ));
-                            let msg = format!(
-                                "Scaffold position set to {}\n {}",
-                                result.position, result.score
-                            );
-                            main_state.pending_actions.push_back(Action::ErrorMsg(msg));
-                        } else {
-                            // unwrap because in this block, result is necessarilly an Err
-                            log::warn!("{:?}", result.err().unwrap());
+                    match update {
+                        ChannelReaderUpdate::ScaffoldShiftOptimizationProgress(x) => {
+                            main_state
+                                .messages
+                                .lock()
+                                .unwrap()
+                                .push_progress("Optimizing: ".to_string(), x);
                         }
-                    } else if let ChannelReaderUpdate::SimulationUpdate(update) = update {
-                        main_state.app_state.apply_simulation_update(update)
-                    } else if let ChannelReaderUpdate::SimulationExpired = update {
-                        main_state.update_simulation(SimulationRequest::Stop)
+                        ChannelReaderUpdate::ScaffoldShiftOptimizationResult(result) => {
+                            main_state.messages.lock().unwrap().finish_progress();
+                            if let Ok(result) = result {
+                                main_state.apply_operation(DesignOperation::SetScaffoldShift(
+                                    result.position,
+                                ));
+                                let msg = format!(
+                                    "Scaffold position set to {}\n {}",
+                                    result.position, result.score
+                                );
+                                main_state.pending_actions.push_back(Action::ErrorMsg(msg));
+                            } else {
+                                // unwrap because in this block, result is necessarily an Err
+                                log::warn!("{:?}", result.err().unwrap());
+                            }
+                        }
+                        ChannelReaderUpdate::SimulationUpdate(update) => {
+                            main_state.app_state.apply_simulation_update(update)
+                        }
+                        ChannelReaderUpdate::SimulationExpired => {
+                            main_state.update_simulation(SimulationOperation::Stop)
+                        }
                     }
                 }
 
                 log::trace!("call update from main");
                 main_state.update();
                 let new_title = if let Some(path) = main_state.get_current_file_name() {
-                    let path_str = formated_path_end(path);
+                    let path_str = formatted_path_end(path);
                     format!("ENSnano {}", path_str)
                 } else {
-                    format!("ENSnano {}", crate::consts::NO_DESIGN_TITLE)
+                    format!("ENSnano {}", NO_DESIGN_TITLE)
                 };
 
                 if windows_title != new_title {
@@ -847,7 +816,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     windows_title = new_title;
                 }
 
-                // Treat eventual event that happenend in the gui left panel.
+                // Treat eventual event that happened in the gui left panel.
                 let _overlay_change = overlay_manager.fetch_change(
                     &multiplexer,
                     &window,
@@ -889,7 +858,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-pub struct OverlayManager {
+struct OverlayManager {
     color_state: program::State<ColorOverlay<Requests>>,
     color_debug: Debug,
     overlay_types: Vec<OverlayType>,
@@ -897,11 +866,7 @@ pub struct OverlayManager {
 }
 
 impl OverlayManager {
-    pub fn new(
-        requests: Arc<Mutex<Requests>>,
-        window: &Window,
-        renderer: &mut iced::Renderer,
-    ) -> Self {
+    fn new(requests: Arc<Mutex<Requests>>, window: &Window, renderer: &mut iced::Renderer) -> Self {
         let color = ColorOverlay::new(
             requests,
             PhysicalSize::new(250., 250.).to_logical(window.scale_factor()),
@@ -909,10 +874,11 @@ impl OverlayManager {
         let mut color_debug = Debug::new();
         let color_state = program::State::new(
             color,
-            convert_size(PhysicalSize::new(250, 250)),
+            convert_size_f32(PhysicalSize::new(250, 250)),
             renderer,
             &mut color_debug,
         );
+
         Self {
             color_state,
             color_debug,
@@ -924,7 +890,7 @@ impl OverlayManager {
     fn forward_event(&mut self, event: IcedEvent, n: usize) {
         match self.overlay_types.get(n) {
             None => {
-                log::error!("recieve event from non existing overlay");
+                log::error!("receive event from non existing overlay");
                 unreachable!();
             }
             Some(OverlayType::Color) => self.color_state.queue_event(event),
@@ -967,7 +933,7 @@ impl OverlayManager {
                 OverlayType::Color => {
                     if !self.color_state.is_queue_empty() || resized {
                         let _ = self.color_state.update(
-                            convert_size(PhysicalSize::new(250, 250)),
+                            convert_size_f32(PhysicalSize::new(250, 250)),
                             cursor,
                             renderer,
                             theme,
@@ -981,7 +947,6 @@ impl OverlayManager {
         }
     }
 
-    #[allow(dead_code)]
     fn render(
         &self,
         device: &wgpu::Device,
@@ -1076,7 +1041,7 @@ impl OverlayManager {
                     if !self.color_state.is_queue_empty() {
                         ret = true;
                         let _ = self.color_state.update(
-                            convert_size(PhysicalSize::new(250, 250)),
+                            convert_size_f32(PhysicalSize::new(250, 250)),
                             cursor,
                             renderer,
                             theme,
@@ -1092,7 +1057,7 @@ impl OverlayManager {
     }
 }
 
-fn formated_path_end<P: AsRef<Path>>(path: P) -> String {
+fn formatted_path_end<P: AsRef<Path>>(path: P) -> String {
     let components: Vec<_> = path
         .as_ref()
         .components()
@@ -1113,7 +1078,7 @@ fn formated_path_end<P: AsRef<Path>>(path: P) -> String {
 }
 
 /// The state of the main event loop.
-pub(crate) struct MainState {
+struct MainState {
     app_state: AppState,
     pending_actions: VecDeque<Action>,
     undo_stack: Vec<AppStateTransition>,
@@ -1141,27 +1106,20 @@ pub(crate) struct MainState {
     cursor: CursorIcon,
 }
 
-struct MainStateConstructor {
-    messages: Arc<Mutex<IcedMessages<AppState>>>,
-}
-
-use controller::SaveDesignError;
 impl MainState {
-    fn new(constructor: MainStateConstructor) -> Self {
-        let app_state = match AppState::with_preferred_parameters() {
-            Ok(state) => state,
-            Err(e) => {
-                log::error!("Could not load preferrences {e}");
-                Default::default()
-            }
-        };
+    fn new(messages: Arc<Mutex<IcedMessages<AppState>>>) -> Self {
+        let app_state = AppState::with_preferred_parameters().unwrap_or_else(|e| {
+            log::error!("Could not load preferences {e}");
+            AppState::default()
+        });
+
         Self {
             app_state: app_state.clone(),
             pending_actions: VecDeque::new(),
             undo_stack: Vec::new(),
             redo_stack: Vec::new(),
             channel_reader: Default::default(),
-            messages: constructor.messages,
+            messages,
             applications: Default::default(),
             focused_component: None,
             keyboard_priority: false,
@@ -1179,7 +1137,7 @@ impl MainState {
 
     fn update_cursor(&mut self, multiplexer: &Multiplexer) -> bool {
         self.update_simulation_cursor();
-        // Usefull to remember to finish hyperboloid before trying to edit
+        // Useful to remember to finish hyperboloid before trying to edit
         if self.app_state.is_building_hyperboloid()
             && multiplexer
                 .focused_element()
@@ -1205,7 +1163,7 @@ impl MainState {
     }
 
     fn update_simulation_cursor(&mut self) {
-        self.simulation_cursor = if self.app_state.get_simulation_state().is_runing() {
+        self.simulation_cursor = if self.app_state.get_simulation_state().is_running() {
             Some(CursorIcon::Progress)
         } else {
             None
@@ -1233,7 +1191,7 @@ impl MainState {
     }
 
     fn update(&mut self) {
-        // Appelé continuement
+        // Called continuously
         log::trace!("call from main state");
         if let Some(camera_ptr) = self
             .applications
@@ -1255,7 +1213,6 @@ impl MainState {
     }
 
     fn transfer_selection_pivot_to_group(&mut self, group_id: ensnano_design::GroupId) {
-        use scene::AppState;
         let scene_pivot = self
             .applications
             .get(&GuiComponentType::Scene)
@@ -1290,7 +1247,7 @@ impl MainState {
         let result = self.app_state.apply_design_op(operation.clone());
         if let Err(ErrOperation::FinishFirst) = result {
             self.modify_state(
-                |s| s.notified(app_state::InteractorNotification::FinishOperation),
+                |s| s.notified(InteractorNotification::FinishOperation),
                 None,
             );
             self.apply_operation(operation);
@@ -1300,51 +1257,64 @@ impl MainState {
     }
 
     fn start_helix_simulation(&mut self, parameters: RigidBodyConstants) {
-        let result = self.app_state.start_simulation(
-            parameters,
-            &mut self.channel_reader,
-            SimulationTarget::Helices,
-        );
-        self.apply_operation_result(result)
+        let presenter = self.app_state.0.design.presenter.clone();
+        let result = self
+            .app_state
+            .start_simulation(SimulationOperation::StartHelices {
+                presenter: presenter.as_ref(),
+                parameters,
+                reader: &mut self.channel_reader,
+            });
+        self.apply_operation_result(result);
     }
 
     fn start_grid_simulation(&mut self, parameters: RigidBodyConstants) {
-        let result = self.app_state.start_simulation(
-            parameters,
-            &mut self.channel_reader,
-            SimulationTarget::Grids,
-        );
-        self.apply_operation_result(result)
+        let presenter = self.app_state.0.design.presenter.clone();
+        let result = self
+            .app_state
+            .start_simulation(SimulationOperation::StartGrids {
+                presenter: presenter.as_ref(),
+                parameters,
+                reader: &mut self.channel_reader,
+            });
+        self.apply_operation_result(result);
     }
 
     fn start_revolution_simulation(&mut self, desc: RevolutionSurfaceSystemDescriptor) {
-        let result = self.app_state.start_simulation(
-            Default::default(),
-            &mut self.channel_reader,
-            SimulationTarget::Revolution { desc },
-        );
-        self.apply_operation_result(result)
+        let result = self
+            .app_state
+            .start_simulation(SimulationOperation::RevolutionRelaxation {
+                system: desc,
+                reader: &mut self.channel_reader,
+            });
+        self.apply_operation_result(result);
     }
 
     fn start_twist(&mut self, grid_id: GridId) {
-        let result = self.app_state.start_simulation(
-            Default::default(),
-            &mut self.channel_reader,
-            SimulationTarget::Twist { grid_id },
-        );
-        self.apply_operation_result(result)
+        let presenter = self.app_state.0.design.presenter.clone();
+        let result = self
+            .app_state
+            .start_simulation(SimulationOperation::StartTwist {
+                presenter: presenter.as_ref(),
+                reader: &mut self.channel_reader,
+                grid_id,
+            });
+        self.apply_operation_result(result);
     }
 
     fn start_roll_simulation(&mut self, target_helices: Option<Vec<usize>>) {
-        let result = self.app_state.start_simulation(
-            Default::default(),
-            &mut self.channel_reader,
-            SimulationTarget::Roll { target_helices },
-        );
-        self.apply_operation_result(result)
+        let presenter = self.app_state.0.design.presenter.clone();
+        let result = self
+            .app_state
+            .start_simulation(SimulationOperation::StartRoll {
+                presenter: presenter.as_ref(),
+                reader: &mut self.channel_reader,
+                target_helices,
+            });
+        self.apply_operation_result(result);
     }
 
-    fn update_simulation(&mut self, request: SimulationRequest) {
+    fn update_simulation(&mut self, request: SimulationOperation) {
         let result = self.app_state.update_simulation(request);
         self.apply_operation_result(result);
     }
@@ -1354,7 +1324,7 @@ impl MainState {
             Ok(_) => (),
             Err(ErrOperation::FinishFirst) => {
                 self.modify_state(
-                    |s| s.notified(app_state::InteractorNotification::FinishOperation),
+                    |s| s.notified(InteractorNotification::FinishOperation),
                     None,
                 );
                 self.apply_silent_operation(operation)
@@ -1385,7 +1355,7 @@ impl MainState {
         if let Some(mut transition) = self.undo_stack.pop() {
             transition.state.prepare_for_replacement(&self.app_state);
             let mut redo_state = std::mem::replace(&mut self.app_state, transition.state);
-            redo_state = redo_state.notified(app_state::InteractorNotification::FinishOperation);
+            redo_state = redo_state.notified(InteractorNotification::FinishOperation);
             self.set_camera_3d(transition.camera_3d.clone());
             self.messages
                 .lock()
@@ -1442,7 +1412,7 @@ impl MainState {
         let result = self.app_state.update_pending_operation(operation.clone());
         if let Err(ErrOperation::FinishFirst) = result {
             self.modify_state(
-                |s| s.notified(app_state::InteractorNotification::FinishOperation),
+                |s| s.notified(InteractorNotification::FinishOperation),
                 None,
             );
             self.update_pending_operation(operation)
@@ -1551,18 +1521,17 @@ impl MainState {
             });
         let save_info = ensnano_design::SavingInformation { camera };
         let path = if let Some(mut path) = self.app_state.path_to_current_design().cloned() {
-            path.set_extension(crate::consts::ENS_BACKUP_EXTENSION);
+            path.set_extension(ENS_BACKUP_EXTENSION);
             path
         } else {
             let mut ret = dirs::document_dir()
                 .or_else(dirs::home_dir)
                 .ok_or_else(|| {
-                    self.last_backup_date =
-                        Instant::now() + Duration::from_secs(crate::consts::SEC_PER_YEAR);
+                    self.last_backup_date = Instant::now() + Duration::from_secs(SEC_PER_YEAR);
                     SaveDesignError::cannot_open_default_dir()
                 })?;
-            ret.push(crate::consts::ENS_UNNAMED_FILE_NAME);
-            ret.set_extension(crate::consts::ENS_BACKUP_EXTENSION);
+            ret.push(ENS_UNNAMED_FILE_NAME);
+            ret.set_extension(ENS_BACKUP_EXTENSION);
             ret
         };
         if self.app_state.is_in_stable_state() {
@@ -1656,7 +1625,6 @@ impl MainState {
 
     /// Create a bezier plane where the user is looking at if there are no bezier plane yet.
     fn create_default_bezier_plane(&mut self) {
-        use ensnano_scene::DesignReader;
         if self.app_state.get_design_reader().get_bezier_planes().len() == 0 {
             if let Some((position, orientation)) = self.get_bezier_sheet_creation_position() {
                 self.apply_operation(DesignOperation::AddBezierPlane {
@@ -1709,17 +1677,17 @@ impl MainState {
         self.modify_state(|s| s.with_inverted_y_scroll(inverted), None)
     }
 
-    fn gui_state(&self, multiplexer: &Multiplexer) -> gui::TopBarState {
-        gui::TopBarState {
+    fn gui_state(&self, multiplexer: &Multiplexer) -> TopBarState {
+        TopBarState {
             can_undo: !self.undo_stack.is_empty(),
             can_redo: !self.redo_stack.is_empty(),
             need_save: self.need_save(),
             can_reload: self.get_current_file_name().is_some(),
             can_split_2d: multiplexer.is_showing(&GuiComponentType::FlatScene),
-            splited_2d: self
+            is_split_2d: self
                 .applications
                 .get(&GuiComponentType::FlatScene)
-                .map(|app| app.lock().unwrap().is_splited())
+                .map(|app| app.lock().unwrap().is_split())
                 .unwrap_or(false),
             can_toggle_2d: multiplexer.is_showing(&GuiComponentType::FlatScene)
                 || multiplexer.is_showing(&GuiComponentType::StereographicScene),
@@ -1760,8 +1728,7 @@ struct MainStateView<'a> {
     resized: bool,
 }
 
-use controller::{LoadDesignError, MainState as MainStateInterface, StaplesDownloader};
-impl<'a> MainStateInterface for MainStateView<'a> {
+impl<'a> MainStateView<'a> {
     fn pop_action(&mut self) -> Option<Action> {
         if !self.main_state.pending_actions.is_empty() {
             log::debug!("pending actions {:?}", self.main_state.pending_actions);
@@ -1784,8 +1751,7 @@ impl<'a> MainStateInterface for MainStateView<'a> {
     }
 
     fn need_backup(&self) -> bool {
-        Instant::now() - self.main_state.last_backup_date
-            > Duration::from_secs(crate::consts::SEC_BETWEEN_BACKUPS)
+        Instant::now() - self.main_state.last_backup_date > Duration::from_secs(SEC_BETWEEN_BACKUPS)
     }
 
     fn exit_control_flow(&mut self) {
@@ -1811,7 +1777,7 @@ impl<'a> MainStateInterface for MainStateView<'a> {
             .main_state
             .app_state
             .get_design_reader()
-            .get_favourite_camera()
+            .get_favorite_camera()
         {
             self.notify_apps(Notification::TeleportCamera(
                 ensnano_interactor::application::Camera3D {
@@ -1825,10 +1791,6 @@ impl<'a> MainStateInterface for MainStateView<'a> {
         }
         self.main_state.update_current_file_name();
         Ok(())
-    }
-
-    fn get_chanel_reader(&mut self) -> &mut ChannelReader {
-        &mut self.main_state.channel_reader
     }
 
     fn apply_operation(&mut self, operation: DesignOperation) {
@@ -1915,7 +1877,7 @@ impl<'a> MainStateInterface for MainStateView<'a> {
 
     fn finish_operation(&mut self) {
         self.main_state.modify_state(
-            |s| s.notified(app_state::InteractorNotification::FinishOperation),
+            |s| s.notified(InteractorNotification::FinishOperation),
             None,
         );
         self.main_state.app_state.finish_operation();
@@ -2008,7 +1970,7 @@ impl<'a> MainStateInterface for MainStateView<'a> {
         self.main_state.start_roll_simulation(target_helices);
     }
 
-    fn update_simulation(&mut self, request: SimulationRequest) {
+    fn update_simulation(&mut self, request: SimulationOperation) {
         self.main_state.update_simulation(request)
     }
 
@@ -2085,7 +2047,6 @@ impl<'a> MainStateInterface for MainStateView<'a> {
     }
 
     fn translate_group_pivot(&mut self, translation: Vec3) {
-        use ensnano_interactor::{DesignTranslation, IsometryTarget};
         if let Some(group_id) = self.main_state.app_state.get_current_group_id() {
             self.apply_operation(DesignOperation::Translation(DesignTranslation {
                 target: IsometryTarget::GroupPivot(group_id),
@@ -2098,7 +2059,6 @@ impl<'a> MainStateInterface for MainStateView<'a> {
     }
 
     fn rotate_group_pivot(&mut self, rotation: Rotor3) {
-        use ensnano_interactor::{DesignRotation, IsometryTarget};
         if let Some(group_id) = self.main_state.app_state.get_current_group_id() {
             self.apply_operation(DesignOperation::Rotation(DesignRotation {
                 target: IsometryTarget::GroupPivot(group_id),
@@ -2172,7 +2132,6 @@ impl<'a> MainStateInterface for MainStateView<'a> {
     }
 
     fn make_all_suggested_xover(&mut self, doubled: bool) {
-        use scene::DesignReader;
         let reader = self.main_state.app_state.get_design_reader();
         let xovers = reader.get_suggestions();
         self.apply_operation(DesignOperation::MakeSeveralXovers { xovers, doubled })
@@ -2213,9 +2172,6 @@ impl<'a> MainStateInterface for MainStateView<'a> {
     }
 }
 
-use controller::{SetScaffoldSequenceError, SetScaffoldSequenceOk};
-
-use crate::controller::TargetScaffoldLength;
 impl<'a> controller::ScaffoldSetter for MainStateView<'a> {
     fn set_scaffold_sequence(
         &mut self,
@@ -2255,7 +2211,6 @@ impl<'a> controller::ScaffoldSetter for MainStateView<'a> {
     }
 
     fn get_scaffold_length(&self) -> Option<usize> {
-        use gui::AppState;
         self.main_state
             .app_state
             .get_scaffold_info()
@@ -2269,4 +2224,12 @@ where
 {
     let tmp = obj.clone();
     *obj = update_func(tmp);
+}
+
+fn convert_size_f32(size: PhySize) -> Size<f32> {
+    Size::new(size.width as f32, size.height as f32)
+}
+
+fn convert_size_u32(size: PhySize) -> Size<u32> {
+    Size::new(size.width, size.height)
 }

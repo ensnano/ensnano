@@ -16,14 +16,15 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-//! Implements the [Requests](`crate::scene::Requests`) trait for [Requests](`super::Requests`).
+//! Implements the [Requests](`ensnano_scene::Requests`) trait for [Requests](`super::Requests`).
+
+use crate::app_state::design_interactor::controller::clipboard::PastePosition;
 
 use super::*;
-use crate::scene::Requests as SceneRequests;
-use crate::PastePosition;
+use ensnano_scene::Requests as SceneRequests;
 
 impl SceneRequests for Requests {
-    fn update_opperation(&mut self, op: Arc<dyn Operation>) {
+    fn update_operation(&mut self, op: Arc<dyn Operation>) {
         self.operation_update = Some(op);
     }
 
@@ -41,7 +42,7 @@ impl SceneRequests for Requests {
     }
 
     fn set_paste_candidate(&mut self, nucl: Option<Nucl>) {
-        self.new_paste_candiate = Some(nucl);
+        self.new_paste_candidate = Some(nucl);
     }
 
     fn attempt_paste(&mut self, nucl: Option<Nucl>) {

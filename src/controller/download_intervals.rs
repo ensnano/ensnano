@@ -17,12 +17,12 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::{
-    messages, DownloadStapleError, DownloadStapleOk, MainState, NormalState, StaplesDownloader,
-    State, TransitionMessage,
+    DownloadStapleError, DownloadStapleOk, NormalState, StaplesDownloader, State,
+    TransitionMessage, messages,
 };
-
-use crate::dialog;
+use crate::{MainStateView, dialog};
 use dialog::{MustAckMessage, PathInput};
+use ensnano_interactor::consts::ORIGAMI_EXTENSION;
 use std::path::PathBuf;
 
 #[derive(Default)]
@@ -51,7 +51,7 @@ impl Default for Step {
 }
 
 impl State for DownloadIntervals {
-    fn make_progress(self: Box<Self>, main_state: &mut dyn MainState) -> Box<dyn State> {
+    fn make_progress(self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn State> {
         let downloader = main_state.get_staple_downloader();
         match self.step {
             Step::Init => get_design_providing_staples(downloader.as_ref()),
@@ -94,26 +94,25 @@ fn get_design_providing_staples(downlader: &dyn StaplesDownloader) -> Box<dyn St
     }
 }
 
-fn ask_path(mut state: AskingPath_, main_state: &mut dyn MainState) -> Box<DownloadIntervals> {
-    if let Some(must_ack) = state.warning_ack.as_ref() {
-        if !must_ack.was_ack() {
-            return Box::new(DownloadIntervals {
-                step: Step::AskingPath(state),
-            });
-        }
-    }
-    if let Some(msg) = state.warnings.pop() {
+fn ask_path(mut state: AskingPath_, main_state: &MainStateView) -> Box<DownloadIntervals> {
+    if let Some(must_ack) = state.warning_ack.as_ref()
+        && !must_ack.was_ack()
+    {
+        Box::new(DownloadIntervals {
+            step: Step::AskingPath(state),
+        })
+    } else if let Some(msg) = state.warnings.pop() {
         let must_ack = dialog::blocking_message(msg.into(), rfd::MessageLevel::Warning);
         state.with_ack(must_ack)
     } else {
         let candidate_name = main_state.get_current_file_name().map(|p| {
             let mut ret = p.to_owned();
-            ret.set_extension(crate::consts::ORIGAMI_EXTENSION);
+            ret.set_extension(ORIGAMI_EXTENSION);
             ret
         });
         let starting_directory = main_state.get_current_design_directory();
         let path_input = dialog::get_file_to_write(
-            &messages::ORIGAMI_FLTER,
+            &messages::ORIGAMI_FILTER,
             starting_directory.as_ref(),
             candidate_name,
         );
@@ -153,7 +152,7 @@ fn poll_path(path_input: PathInput, design_id: usize) -> Box<dyn State> {
             })
         } else {
             TransitionMessage::new(
-                messages::NO_FILE_RECIEVED_STAPLE,
+                messages::NO_FILE_RECEIVED_STAPLE,
                 rfd::MessageLevel::Error,
                 Box::new(NormalState),
             )
@@ -174,6 +173,6 @@ fn download_staples(
     path: PathBuf,
 ) -> Box<dyn State> {
     downlader.write_intervals(&path);
-    let msg = messages::successfull_staples_export_msg(&path);
+    let msg = messages::successful_staples_export_msg(&path);
     TransitionMessage::new(msg, rfd::MessageLevel::Error, Box::new(NormalState))
 }

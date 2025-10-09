@@ -16,50 +16,51 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+pub mod controller;
+pub mod file_parsing;
+pub mod presenter;
+
 use super::AddressPointer;
+use crate::app_state::design_interactor::controller::OkOperation;
+use crate::app_state::design_interactor::controller::clipboard::CopyOperation;
+use crate::app_state::design_interactor::controller::simulations::SimulationOperation;
+use crate::controller::ChannelReader;
+use controller::Controller;
+use controller::ErrOperation;
+use controller::InteractorNotification;
+pub use controller::{ShiftOptimizationResult, SimulationInterface};
 use ensnano_design::{
-    grid::GridId, group_attributes::GroupAttribute, BezierPathId, BezierPlaneDescriptor, Design,
-    HelixCollection, HelixParameters, InstanciatedPiecewiseBezier,
+    BezierPathId, BezierPlaneDescriptor, Design, HelixCollection, HelixParameters,
+    InstanciatedPiecewiseBezier, grid::GridId, group_attributes::GroupAttribute,
 };
 use ensnano_exports::{ExportResult, ExportType};
+use ensnano_gui::CurrentOpState;
+use ensnano_interactor::PastingStatus;
+use ensnano_interactor::app_state_parameters::SuggestionParameters;
 use ensnano_interactor::{
-    operation::Operation, DesignOperation, RevolutionSurfaceSystemDescriptor, RigidBodyConstants,
-    Selection, SimulationState, StrandBuilder, SuggestionParameters,
+    DesignOperation, RevolutionSurfaceSystemDescriptor, Selection, SimulationState, StrandBuilder,
+    consts::UPDATE_VISIBILITY_SIEVE_LABEL, operation::Operation,
 };
-
-mod presenter;
 use ensnano_organizer::GroupId;
-pub use presenter::SimulationUpdate;
-use presenter::{apply_simulation_update, update_presenter, NuclCollection, Presenter};
-pub(super) mod controller;
-use controller::Controller;
-pub use controller::{
-    CopyOperation, InteractorNotification, PastePosition, PastingStatus, RigidHelixState,
-    ShiftOptimizationResult, ShiftOptimizerReader, SimulationInterface, SimulationReader,
-};
-
-use crate::{controller::SimulationRequest, gui::CurentOpState};
-pub(super) use controller::ErrOperation;
-use controller::{GridPresenter, HelixPresenter, OkOperation, RollPresenter, TwistPresenter};
-
+use presenter::SimulationUpdate;
+use presenter::{Presenter, apply_simulation_update, update_presenter};
 use std::sync::Arc;
-mod file_parsing;
 
 /// The `DesignInteractor` handles all read/write operations on the design. It is a stateful struct
 /// so it is meant to be unexpansive to clone.
 #[derive(Clone, Default)]
 pub struct DesignInteractor {
     /// The current design
-    design: AddressPointer<Design>,
+    pub design: AddressPointer<Design>,
     /// The structure that handles "read" operations. The graphic components of EnsNano access the
     /// presenter via a trait that defines each components needs.
-    presenter: AddressPointer<Presenter>,
+    pub presenter: AddressPointer<Presenter>,
     /// The structure that handles "write" operations.
-    controller: AddressPointer<Controller>,
-    simulation_update: Option<Arc<dyn SimulationUpdate>>,
-    current_operation: Option<Arc<dyn Operation>>,
-    current_operation_id: usize,
-    new_selection: Option<Vec<Selection>>,
+    pub controller: AddressPointer<Controller>,
+    pub simulation_update: Option<Arc<dyn SimulationUpdate>>,
+    pub current_operation: Option<Arc<dyn Operation>>,
+    pub current_operation_id: usize,
+    pub new_selection: Option<Vec<Selection>>,
 }
 
 impl DesignInteractor {
@@ -71,7 +72,7 @@ impl DesignInteractor {
     }
     pub(super) fn optimize_shift(
         &self,
-        reader: &mut dyn ShiftOptimizerReader,
+        reader: &mut ChannelReader,
     ) -> Result<InteractorResult, ErrOperation> {
         let nucl_map = self.presenter.get_owned_nucl_collection();
         let result = self
@@ -126,40 +127,8 @@ impl DesignInteractor {
 
     pub(super) fn start_simulation(
         &self,
-        parameters: RigidBodyConstants,
-        reader: &mut dyn SimulationReader,
-        target: SimulationTarget,
+        operation: SimulationOperation,
     ) -> Result<InteractorResult, ErrOperation> {
-        let operation = match target {
-            SimulationTarget::Helices => controller::SimulationOperation::StartHelices {
-                presenter: self.presenter.as_ref(),
-                parameters,
-                reader,
-            },
-            SimulationTarget::Grids => controller::SimulationOperation::StartGrids {
-                presenter: self.presenter.as_ref(),
-                parameters,
-                reader,
-            },
-            SimulationTarget::Roll { target_helices } => {
-                controller::SimulationOperation::StartRoll {
-                    presenter: self.presenter.as_ref(),
-                    reader,
-                    target_helices,
-                }
-            }
-            SimulationTarget::Twist { grid_id } => controller::SimulationOperation::StartTwist {
-                presenter: self.presenter.as_ref(),
-                reader,
-                grid_id,
-            },
-            SimulationTarget::Revolution { desc } => {
-                controller::SimulationOperation::RevolutionRelaxation {
-                    system: desc,
-                    reader,
-                }
-            }
-        };
         let result = self
             .controller
             .apply_simulation_operation(self.design.clone_inner(), operation);
@@ -168,18 +137,8 @@ impl DesignInteractor {
 
     pub(super) fn update_simulation(
         &self,
-        request: SimulationRequest,
+        operation: SimulationOperation,
     ) -> Result<InteractorResult, ErrOperation> {
-        let operation = match request {
-            SimulationRequest::Stop => controller::SimulationOperation::Stop,
-            SimulationRequest::Reset => controller::SimulationOperation::Reset,
-            SimulationRequest::UpdateParameters(new_parameters) => {
-                controller::SimulationOperation::UpdateParameters { new_parameters }
-            }
-            SimulationRequest::FinishRelaxation => {
-                controller::SimulationOperation::FinishRelaxation
-            }
-        };
         let result = self
             .controller
             .apply_simulation_operation(self.design.clone_inner(), operation);
@@ -219,8 +178,8 @@ impl DesignInteractor {
         }
     }
 
-    pub(super) fn get_curent_operation_state(&self) -> Option<CurentOpState> {
-        self.current_operation.as_ref().map(|op| CurentOpState {
+    pub(super) fn get_current_operation_state(&self) -> Option<CurrentOpState> {
+        self.current_operation.as_ref().map(|op| CurrentOpState {
             operation_id: self.current_operation_id,
             current_operation: op.clone(),
         })
@@ -255,7 +214,7 @@ impl DesignInteractor {
         log::trace!("Interactor design <- {:p}", new_design);
         self.design = new_design;
         if let Some(update) = self.simulation_update.take() {
-            if !self.controller.get_simulation_state().is_runing() {
+            if !self.controller.get_simulation_state().is_running() {
                 self.simulation_update = None;
             }
             self.after_applying_simulation_update(update, suggestion_parameters)
@@ -264,7 +223,7 @@ impl DesignInteractor {
         }
     }
 
-    pub(super) fn with_simualtion_update_applied(
+    pub(super) fn with_simulation_update_applied(
         mut self,
         update: Box<dyn SimulationUpdate>,
     ) -> Self {
@@ -297,7 +256,7 @@ impl DesignInteractor {
     }
 
     pub(super) fn is_in_stable_state(&self) -> bool {
-        self.controller.is_in_persistant_state().is_persistant()
+        self.controller.is_in_persistent_state().is_persistent()
     }
 
     pub(super) fn has_different_design_than(&self, other: &Self) -> bool {
@@ -351,7 +310,7 @@ impl DesignInteractor {
         self.design = AddressPointer::new(self.design.clone_inner());
         InteractorResult::Push {
             interactor: self,
-            label: crate::consts::UPDATE_VISIBILITY_SIEVE_LABEL.into(),
+            label: UPDATE_VISIBILITY_SIEVE_LABEL.into(),
         }
     }
 
@@ -368,7 +327,7 @@ impl DesignInteractor {
     }
 }
 
-/// An opperation has been successfully applied to the design, resulting in a new modifed
+/// An operation has been successfully applied to the design, resulting in a new modified
 /// interactor. The variants of these enum indicate different ways in which the result should be
 /// handled
 pub(super) enum InteractorResult {
@@ -393,7 +352,7 @@ impl InteractorResult {
     }
 }
 
-/// A reference to a Presenter that is guaranted to always have up to date internal data
+/// A reference to a Presenter that is guaranteed to always have up to date internal data
 /// structures.
 pub struct DesignReader {
     presenter: AddressPointer<Presenter>,
@@ -469,15 +428,17 @@ impl DesignReader {
 mod tests {
     use super::super::OkOperation as TopOkOperation;
     use super::super::*;
-    use super::controller::CopyOperation;
     use super::file_parsing::StrandJunction;
     use super::*;
-    use crate::scene::DesignReader as Reader3d;
-    use ensnano_design::grid::HelixGridPosition;
+    use crate::app_state::design_interactor::controller::clipboard::{
+        CopyOperation, PastePosition,
+    };
     use ensnano_design::HelixCollection;
-    use ensnano_design::{grid::GridDescriptor, Collection, DomainJunction, Nucl, Strand};
-    use ensnano_interactor::operation::GridHelixCreation;
+    use ensnano_design::grid::HelixGridPosition;
+    use ensnano_design::{Collection, DomainJunction, Nucl, Strand, grid::GridDescriptor};
     use ensnano_interactor::DesignReader;
+    use ensnano_interactor::operation::GridHelixCreation;
+    use ensnano_scene::DesignReader as Reader3d;
     use std::path::PathBuf;
     use ultraviolet::{Rotor3, Vec3};
 
@@ -498,11 +459,11 @@ mod tests {
     }
 
     fn assert_good_strand<S: std::ops::Deref<Target = str>>(strand: &Strand, objective: S) {
-        println!("self {:?}", strand.formated_domains());
+        println!("self {:?}", strand.formatted_domains());
         println!("objective {}", objective.deref());
         use regex::Regex;
         let re = Regex::new(r#"\[[^\]]*\]"#).unwrap();
-        let formated_strand = strand.formated_domains();
+        let formated_strand = strand.formatted_domains();
         let left = re.find_iter(&formated_strand);
         let right = re.find_iter(&objective);
         for (a, b) in left.zip(right) {
@@ -944,10 +905,12 @@ mod tests {
             .strands
             .get(&0)
             .expect("No strand 0");
-        let expected_result =
-            format!(
+        let expected_result = format!(
             "[H1: -1 -> 3] [@{}] [H1: 4 -> 7] [@{}] [H2: -1 <- 7] [@{}] [H3: 0 -> 9] [@{}] [cycle]",
-            INSERTION_LEN_1, INSERTION_LEN_2, INSERTION_LEN_3, INSERTION_LEN_4 + INSERTION_LEN_0
+            INSERTION_LEN_1,
+            INSERTION_LEN_2,
+            INSERTION_LEN_3,
+            INSERTION_LEN_4 + INSERTION_LEN_0
         );
         assert_good_strand(strand, expected_result);
     }
@@ -1182,10 +1145,12 @@ mod tests {
             .strands
             .get(&0)
             .expect("No strand 0");
-        let expected_result =
-            format!(
+        let expected_result = format!(
             "[H1: -1 -> 3] [@{}] [H1: 4 -> 7] [@{}] [H2: -1 <- 7] [@{}] [H3: 0 -> 9] [@{}] [cycle]",
-            insertion_len_1, insertion_len_2, insertion_len_3, insertion_len_4 + insertion_len_0
+            insertion_len_1,
+            insertion_len_2,
+            insertion_len_3,
+            insertion_len_4 + insertion_len_0
         );
         assert_good_strand(strand, expected_result);
     }
@@ -1510,12 +1475,14 @@ mod tests {
                 .map(PastePosition::Nucl),
             ))
             .unwrap();
-        assert!(!app_state
-            .0
-            .design
-            .controller
-            .get_pasted_position()
-            .is_empty());
+        assert!(
+            !app_state
+                .0
+                .design
+                .controller
+                .get_pasted_position()
+                .is_empty()
+        );
     }
 
     #[test]
@@ -1728,14 +1695,14 @@ mod tests {
     }
 
     /// A design with two strands h1: 0 -> 5 and h1: 6 -> 10
-    fn two_neighbour_one_helix() -> AppState {
-        let path = test_path("two_neighbour_strands.ens");
+    fn two_neighbor_one_helix() -> AppState {
+        let path = test_path("two_neighbor_strands.ens");
         AppState::import_design(path).ok().unwrap()
     }
 
     #[test]
-    fn xover_same_helix_neighbour_strands() {
-        let mut app_state = two_neighbour_one_helix();
+    fn xover_same_helix_neighbor_strands() {
+        let mut app_state = two_neighbor_one_helix();
         let first_nucl = Nucl {
             helix: 1,
             position: 0,
@@ -1770,8 +1737,8 @@ mod tests {
     }
 
     #[test]
-    fn merge_neighbour_strands_same_helix() {
-        let mut app_state = two_neighbour_one_helix();
+    fn merge_neighbor_strands_same_helix() {
+        let mut app_state = two_neighbor_one_helix();
         let first_nucl = Nucl {
             helix: 1,
             position: 0,
@@ -1858,15 +1825,12 @@ mod tests {
         strand.read_junctions(&mut xover_ids, false);
     }
 
-    /// A design with two strands [h1: 0 -> 10] and [@20] [h2: 0 <- 10]
-    fn loopout_5prime_and_3prime_ends() -> AppState {
-        let path = test_path("loopout_5prime_and_3prime.ens");
-        AppState::import_design(path).ok().unwrap()
-    }
-
+    #[ignore = "the test file doesn't exist anymore"]
     #[test]
     fn merge_insertions() {
-        let mut app_state = loopout_5prime_and_3prime_ends();
+        // A design with two strands [h1: 0 -> 10] and [@20] [h2: 0 <- 10]
+        let path = test_path("loopout_5prime_and_3prime.ens");
+        let mut app_state = AppState::import_design(path).ok().unwrap();
         let source_nucl = Nucl {
             helix: 1,
             position: 10,

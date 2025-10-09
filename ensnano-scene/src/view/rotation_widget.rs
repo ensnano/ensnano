@@ -16,7 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use super::{
-    maths_3d, CameraPtr, Drawable, Drawer, GroupPivot, HandleColors, ProjectionPtr, Vertex,
+    CameraPtr, Drawable, Drawer, GroupPivot, HandleColors, ProjectionPtr, Vertex, maths_3d,
 };
 
 use ensnano_design::ultraviolet::{Rotor3, Vec3};
@@ -79,7 +79,7 @@ impl RotationWidget {
         }
     }
 
-    pub fn update_decriptor(
+    pub fn update_descriptor(
         &mut self,
         descriptor: Option<RotationWidgetDescriptor>,
         camera: CameraPtr,
@@ -254,7 +254,6 @@ pub struct RotationWidgetDescriptor {
 pub enum AvailableRotationAxes {
     All,
     NoZ,
-    #[allow(dead_code)] // may be used for grid helices
     OnlyZ,
 }
 

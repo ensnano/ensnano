@@ -17,7 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::*;
-use crate::flatscene::AppState as App2D;
+use ensnano_flatscene::AppState as App2D;
 use ensnano_interactor::StrandBuilder;
 
 impl App2D for AppState {

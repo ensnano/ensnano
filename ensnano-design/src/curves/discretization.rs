@@ -16,15 +16,13 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-//! Implementation of the curve discretization alogrithm.
-
-use std::iter::zip;
+//! Implementation of the curve discretization algorithm.
 
 use super::*;
 use chebyshev_polynomials::ChebyshevPolynomial;
 use ultraviolet::DRotor3;
 
-use crate::consts::{IterativeFrameAlgorithm, ITERATIVE_AXIS_ALGORITHM};
+use crate::consts::{ITERATIVE_AXIS_ALGORITHM, IterativeFrameAlgorithm};
 
 /// The number of points used in the iterative version of the discretization algorithm.
 const NB_DISCRETISATION_STEP: usize = 100_000;
@@ -47,7 +45,7 @@ impl Curve {
     /// given in argument. This happen when the implementation of `Curved` for `self.geometry`
     /// specifies that a certain number of nucleotides must fit on a specific portion of the curve
     /// (i.e. at least one of the method `full_turn_at_t`, `nucl_pos_full_turn` or
-    /// `objective_nb_nt` has been overriden).
+    /// `objective_nb_nt` has been overridden).
     pub(super) fn discretize(&mut self, mut nucl_rise: f64, inclination: f64) {
         if self.geometry.legacy() {
             return self.discretize_legacy(nucl_rise, inclination);
@@ -302,9 +300,9 @@ impl Curve {
         let p1 = points[1].clone();
         let p2 = points[2].clone();
         let p3 = points[3].clone();
-        let dp = (p2 - p1);
-        let d2p = (p2 + p0 - 2. * p1);
-        let d3p = (p3 - p0 + 3. * (p1 - p2));
+        let dp = p2 - p1;
+        let d2p = p2 + p0 - 2. * p1;
+        let d3p = p3 - p0 + 3. * (p1 - p2);
         let c = dp.cross(d2p);
         return d3p.dot(c) / c.mag_sq();
     }

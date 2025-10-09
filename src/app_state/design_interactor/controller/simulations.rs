@@ -16,33 +16,33 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use crate::app_state::design_interactor::presenter::NuclCollection;
-
-pub use revolutions::*;
+mod revolutions;
+mod roller;
+mod twister;
 
 use super::*;
-
-use ensnano_design::{grid::Grid, HelixParameters};
+use crate::app_state::design_interactor::Presenter;
+use ensnano_design::HelixParameters;
 use ensnano_interactor::{RevolutionSurfaceSystemDescriptor, RigidBodyConstants};
-use mathru::algebra::linear::vector::vector::Vector;
-use mathru::analysis::differential_equation::ordinary::{
-    solver::runge_kutta::{explicit::fixed::FixedStepper, ExplicitEuler, Kutta3},
-    ExplicitODE,
+use mathru::{
+    algebra::linear::vector::vector::Vector,
+    analysis::differential_equation::ordinary::{
+        ExplicitODE,
+        solver::runge_kutta::{ExplicitEuler, Kutta3, explicit::fixed::FixedStepper},
+    },
 };
 use ordered_float::OrderedFloat;
 use rand::Rng;
 use rand_distr::{Exp, StandardNormal};
-use std::cmp::Reverse;
-use std::collections::BinaryHeap;
-use std::collections::HashMap;
-use std::sync::{Arc, Mutex, Weak};
+pub use revolutions::*;
+pub use roller::{PhysicalSystem, RollInterface};
+use std::{
+    cmp::Reverse,
+    collections::{BinaryHeap, HashMap},
+    sync::{Arc, Mutex, Weak},
+};
+pub use twister::{TwistInterface, Twister};
 use ultraviolet::{Bivec3, Mat3};
-
-mod roller;
-pub use roller::{PhysicalSystem, RollInterface, RollPresenter};
-mod twister;
-pub use twister::{TwistInterface, TwistPresenter, Twister};
-mod revolutions;
 
 const MAX_DERIVATIVE_NORM: f32 = 1e4;
 
@@ -498,11 +498,11 @@ impl HelixSystem {
 
     fn brownian_jump(&mut self) {
         let mut rnd = rand::thread_rng();
-        if let Some((t, _)) = self.brownian_heap.peek() {
-            // t.0 because t is a &Reverse<_>
-            if self.next_time < t.0.into_inner() {
-                return;
-            }
+        // t.0 because t is a &Reverse<_>
+        if let Some((t, _)) = self.brownian_heap.peek()
+            && self.next_time < t.0.into_inner()
+        {
+            return;
         }
         if let Some((_, nucl_id)) = self.brownian_heap.pop() {
             let gx: f32 = rnd.sample(StandardNormal);
@@ -549,7 +549,7 @@ impl HelixSystem {
             state[entry + 2] += 10. * self.rigid_parameters.brownian_amplitude * gz;
             if let ShakeTarget::Helix(_) = nucl {
                 let delta_roll =
-                    rnd.gen::<f32>() * 2. * std::f32::consts::PI - std::f32::consts::PI;
+                    rnd.r#gen::<f32>() * 2. * std::f32::consts::PI - std::f32::consts::PI;
                 let mut iterator = state.iter().skip(entry + 3);
                 let rotation = Rotor3::new(
                     *iterator.next().unwrap(),
@@ -630,7 +630,7 @@ pub enum ShakeTarget {
     Helix(usize),
 }
 
-/// Return the length of the shortes line between a point of [a, b] and a poin of [c, d]
+/// Return the length of the shortest line between a point of [a, b] and a point of [c, d]
 fn distance_segment(a: Vec3, b: Vec3, c: Vec3, d: Vec3) -> (f32, Vec3, Vec3, Vec3) {
     let u = b - a;
     let v = d - c;
@@ -862,9 +862,9 @@ struct RigidHelixConstants {
 
 impl HelixSystemThread {
     pub(super) fn start_new(
-        presenter: &dyn HelixPresenter,
+        presenter: &Presenter,
         rigid_parameters: RigidBodyConstants,
-        reader: &mut dyn SimulationReader,
+        reader: &mut ChannelReader,
     ) -> Result<Arc<Mutex<HelixSystemInterface>>, ErrOperation> {
         let interval_results = read_intervals(presenter)?;
         let helix_system =
@@ -957,9 +957,9 @@ pub(super) struct GridSystemInterface {
 
 impl GridsSystemThread {
     pub(super) fn start_new(
-        presenter: &dyn GridPresenter,
+        presenter: &Presenter,
         rigid_parameters: RigidBodyConstants,
-        reader: &mut dyn SimulationReader,
+        reader: &mut ChannelReader,
     ) -> Result<Arc<Mutex<GridSystemInterface>>, ErrOperation> {
         let grid_system = make_grid_system(presenter, (0., 1.), rigid_parameters)?;
         let ret = Arc::new(Mutex::new(GridSystemInterface::default()));
@@ -1012,7 +1012,7 @@ impl GridsSystemThread {
 fn make_flexible_helices_system(
     time_span: (f32, f32),
     rigid_parameters: RigidBodyConstants,
-    presenter: &dyn HelixPresenter,
+    presenter: &Presenter,
     interval_results: &IntervalResult,
 ) -> Result<HelixSystem, ErrOperation> {
     let helix_parameters = presenter
@@ -1091,18 +1091,18 @@ fn make_flexible_helices_system(
     let mut anchors = vec![];
     let mut free_anchors = vec![];
     for anchor in presenter.get_design().anchors.iter() {
-        if let Some(position) = presenter.get_space_position(anchor) {
-            if let Some(free_nucl) = interval_results.nucl_map.get(anchor) {
-                if let Some(rigid_helix) = free_nucl.helix {
-                    let rigid_nucl = RigidNucl {
-                        helix: rigid_helix,
-                        position: anchor.position,
-                        forward: anchor.forward,
-                    };
-                    anchors.push((rigid_nucl, position));
-                } else if let Some(id) = interval_results.free_nucl_ids.get(free_nucl) {
-                    free_anchors.push((*id, position));
-                }
+        if let Some(position) = presenter.get_space_position(anchor)
+            && let Some(free_nucl) = interval_results.nucl_map.get(anchor)
+        {
+            if let Some(rigid_helix) = free_nucl.helix {
+                let rigid_nucl = RigidNucl {
+                    helix: rigid_helix,
+                    position: anchor.position,
+                    forward: anchor.forward,
+                };
+                anchors.push((rigid_nucl, position));
+            } else if let Some(id) = interval_results.free_nucl_ids.get(free_nucl) {
+                free_anchors.push((*id, position));
             }
         }
     }
@@ -1161,7 +1161,7 @@ fn make_rigid_helix_world_pov_interval(
     )
 }
 
-fn read_intervals(presenter: &dyn HelixPresenter) -> Result<IntervalResult, ErrOperation> {
+fn read_intervals(presenter: &Presenter) -> Result<IntervalResult, ErrOperation> {
     // TODO remove pub after testing
     let mut nucl_map = HashMap::new();
     let mut current_helix = None;
@@ -1173,24 +1173,71 @@ fn read_intervals(presenter: &dyn HelixPresenter) -> Result<IntervalResult, ErrO
     for s in presenter.get_design().strands.values() {
         for d in s.domains.iter() {
             log::debug!("New dom");
-            if let Some(nucl) = d.prime5_end() {
-                if !nucl_map.contains_key(&nucl) || !nucl.forward {
-                    let starting_doubled = presenter.has_nucl(&nucl.compl());
-                    let starting_nucl = nucl.clone();
-                    let mut prev_doubled = false;
-                    let mut moving_nucl = starting_nucl;
-                    let mut starting_helix = if starting_doubled {
-                        Some(current_helix.clone())
-                    } else {
-                        None
-                    };
-                    while presenter.has_nucl(&moving_nucl) {
-                        log::debug!("nucl {:?}", moving_nucl);
-                        let doubled = presenter.has_nucl(&moving_nucl.compl());
-                        if doubled && nucl.forward {
-                            log::debug!("has compl");
-                            let helix = if prev_doubled {
-                                current_helix.unwrap()
+            if let Some(nucl) = d.prime5_end()
+                && (!nucl_map.contains_key(&nucl) || !nucl.forward)
+            {
+                let starting_doubled = presenter.has_nucl(&nucl.compl());
+                let starting_nucl = nucl.clone();
+                let mut prev_doubled = false;
+                let mut moving_nucl = starting_nucl;
+                let mut starting_helix = if starting_doubled {
+                    Some(current_helix.clone())
+                } else {
+                    None
+                };
+                while presenter.has_nucl(&moving_nucl) {
+                    log::debug!("nucl {:?}", moving_nucl);
+                    let doubled = presenter.has_nucl(&moving_nucl.compl());
+                    if doubled && nucl.forward {
+                        log::debug!("has compl");
+                        let helix = if prev_doubled {
+                            current_helix.unwrap()
+                        } else {
+                            helix_map.push(nucl.helix);
+                            intervals.push((moving_nucl.position, moving_nucl.position));
+                            if let Some(n) = current_helix.as_mut() {
+                                *n += 1;
+                                *n
+                            } else {
+                                current_helix = Some(0);
+                                0
+                            }
+                        };
+                        log::debug!("helix {}", helix);
+                        nucl_map
+                            .insert(moving_nucl, FreeNucl::with_helix(&moving_nucl, Some(helix)));
+                        nucl_map.insert(
+                            moving_nucl.compl(),
+                            FreeNucl::with_helix(&moving_nucl.compl(), Some(helix)),
+                        );
+                        intervals[helix].0 = intervals[helix].0.min(moving_nucl.position);
+                        intervals[helix].1 = intervals[helix].1.max(moving_nucl.position);
+                    } else if !doubled {
+                        log::debug!("has not compl");
+                        nucl_map.insert(moving_nucl, FreeNucl::with_helix(&moving_nucl, None));
+                        free_nucl_ids
+                            .insert(FreeNucl::with_helix(&moving_nucl, None), free_nucls.len());
+                        free_nucls.push(FreeNucl::with_helix(&moving_nucl, None));
+                        let position = presenter
+                            .get_space_position(&moving_nucl)
+                            .ok_or(ErrOperation::NuclDoesNotExist(moving_nucl))?;
+                        free_nucl_position.push(position);
+                    }
+                    prev_doubled = doubled;
+                    moving_nucl = moving_nucl.left();
+                }
+                prev_doubled = starting_doubled;
+                moving_nucl = starting_nucl.right();
+                while presenter.has_nucl(&moving_nucl) {
+                    log::debug!("nucl {:?}", moving_nucl);
+                    let doubled = presenter.has_nucl(&moving_nucl.compl());
+                    if doubled && nucl.forward {
+                        log::debug!("has compl");
+                        let helix = if prev_doubled {
+                            current_helix.unwrap()
+                        } else {
+                            if let Some(helix) = starting_helix.take() {
+                                if let Some(n) = helix { n + 1 } else { 0 }
                             } else {
                                 helix_map.push(nucl.helix);
                                 intervals.push((moving_nucl.position, moving_nucl.position));
@@ -1201,85 +1248,30 @@ fn read_intervals(presenter: &dyn HelixPresenter) -> Result<IntervalResult, ErrO
                                     current_helix = Some(0);
                                     0
                                 }
-                            };
-                            log::debug!("helix {}", helix);
-                            nucl_map.insert(
-                                moving_nucl,
-                                FreeNucl::with_helix(&moving_nucl, Some(helix)),
-                            );
-                            nucl_map.insert(
-                                moving_nucl.compl(),
-                                FreeNucl::with_helix(&moving_nucl.compl(), Some(helix)),
-                            );
-                            intervals[helix].0 = intervals[helix].0.min(moving_nucl.position);
-                            intervals[helix].1 = intervals[helix].1.max(moving_nucl.position);
-                        } else if !doubled {
-                            log::debug!("has not compl");
-                            nucl_map.insert(moving_nucl, FreeNucl::with_helix(&moving_nucl, None));
-                            free_nucl_ids
-                                .insert(FreeNucl::with_helix(&moving_nucl, None), free_nucls.len());
-                            free_nucls.push(FreeNucl::with_helix(&moving_nucl, None));
-                            let position = presenter
-                                .get_space_position(&moving_nucl)
-                                .ok_or(ErrOperation::NuclDoesNotExist(moving_nucl))?;
-                            free_nucl_position.push(position);
-                        }
-                        prev_doubled = doubled;
-                        moving_nucl = moving_nucl.left();
+                            }
+                        };
+                        log::debug!("helix {}", helix);
+                        intervals[helix].0 = intervals[helix].0.min(moving_nucl.position);
+                        intervals[helix].1 = intervals[helix].1.max(moving_nucl.position);
+                        nucl_map
+                            .insert(moving_nucl, FreeNucl::with_helix(&moving_nucl, Some(helix)));
+                        nucl_map.insert(
+                            moving_nucl.compl(),
+                            FreeNucl::with_helix(&moving_nucl.compl(), Some(helix)),
+                        );
+                    } else if !doubled {
+                        log::debug!("has not compl");
+                        nucl_map.insert(moving_nucl, FreeNucl::with_helix(&moving_nucl, None));
+                        free_nucl_ids
+                            .insert(FreeNucl::with_helix(&moving_nucl, None), free_nucls.len());
+                        free_nucls.push(FreeNucl::with_helix(&moving_nucl, None));
+                        let position = presenter
+                            .get_space_position(&moving_nucl)
+                            .ok_or(ErrOperation::NuclDoesNotExist(moving_nucl))?;
+                        free_nucl_position.push(position);
                     }
-                    prev_doubled = starting_doubled;
-                    moving_nucl = starting_nucl.right();
-                    while presenter.has_nucl(&moving_nucl) {
-                        log::debug!("nucl {:?}", moving_nucl);
-                        let doubled = presenter.has_nucl(&moving_nucl.compl());
-                        if doubled && nucl.forward {
-                            log::debug!("has compl");
-                            let helix = if prev_doubled {
-                                current_helix.unwrap()
-                            } else {
-                                if let Some(helix) = starting_helix.take() {
-                                    if let Some(n) = helix {
-                                        n + 1
-                                    } else {
-                                        0
-                                    }
-                                } else {
-                                    helix_map.push(nucl.helix);
-                                    intervals.push((moving_nucl.position, moving_nucl.position));
-                                    if let Some(n) = current_helix.as_mut() {
-                                        *n += 1;
-                                        *n
-                                    } else {
-                                        current_helix = Some(0);
-                                        0
-                                    }
-                                }
-                            };
-                            log::debug!("helix {}", helix);
-                            intervals[helix].0 = intervals[helix].0.min(moving_nucl.position);
-                            intervals[helix].1 = intervals[helix].1.max(moving_nucl.position);
-                            nucl_map.insert(
-                                moving_nucl,
-                                FreeNucl::with_helix(&moving_nucl, Some(helix)),
-                            );
-                            nucl_map.insert(
-                                moving_nucl.compl(),
-                                FreeNucl::with_helix(&moving_nucl.compl(), Some(helix)),
-                            );
-                        } else if !doubled {
-                            log::debug!("has not compl");
-                            nucl_map.insert(moving_nucl, FreeNucl::with_helix(&moving_nucl, None));
-                            free_nucl_ids
-                                .insert(FreeNucl::with_helix(&moving_nucl, None), free_nucls.len());
-                            free_nucls.push(FreeNucl::with_helix(&moving_nucl, None));
-                            let position = presenter
-                                .get_space_position(&moving_nucl)
-                                .ok_or(ErrOperation::NuclDoesNotExist(moving_nucl))?;
-                            free_nucl_position.push(position);
-                        }
-                        prev_doubled = doubled;
-                        moving_nucl = moving_nucl.right();
-                    }
+                    prev_doubled = doubled;
+                    moving_nucl = moving_nucl.right();
                 }
             }
         }
@@ -1294,15 +1286,6 @@ fn read_intervals(presenter: &dyn HelixPresenter) -> Result<IntervalResult, ErrO
     })
 }
 
-pub trait HelixPresenter {
-    fn get_xovers_list(&self) -> Vec<(Nucl, Nucl)>;
-    fn get_design(&self) -> &Design;
-    fn get_all_bonds(&self) -> Vec<(Nucl, Nucl)>;
-    fn get_identifier(&self, nucl: &Nucl) -> Option<u32>;
-    fn get_space_position(&self, nucl: &Nucl) -> Option<Vec3>;
-    fn has_nucl(&self, nucl: &Nucl) -> bool;
-}
-
 #[derive(Debug)]
 pub struct IntervalResult {
     nucl_map: HashMap<Nucl, FreeNucl>,
@@ -1315,14 +1298,14 @@ pub struct IntervalResult {
 
 pub enum SimulationOperation<'pres, 'reader> {
     StartHelices {
-        presenter: &'pres dyn HelixPresenter,
+        presenter: &'pres Presenter,
         parameters: RigidBodyConstants,
-        reader: &'reader mut dyn SimulationReader,
+        reader: &'reader mut ChannelReader,
     },
     StartGrids {
-        presenter: &'pres dyn GridPresenter,
+        presenter: &'pres Presenter,
         parameters: RigidBodyConstants,
-        reader: &'reader mut dyn SimulationReader,
+        reader: &'reader mut ChannelReader,
     },
     UpdateParameters {
         new_parameters: RigidBodyConstants,
@@ -1332,24 +1315,20 @@ pub enum SimulationOperation<'pres, 'reader> {
     Stop,
     Reset,
     StartRoll {
-        presenter: &'pres dyn RollPresenter,
-        reader: &'reader mut dyn SimulationReader,
+        presenter: &'pres Presenter,
+        reader: &'reader mut ChannelReader,
         target_helices: Option<Vec<usize>>,
     },
     StartTwist {
         grid_id: GridId,
-        presenter: &'pres dyn TwistPresenter,
-        reader: &'reader mut dyn SimulationReader,
+        presenter: &'pres Presenter,
+        reader: &'reader mut ChannelReader,
     },
     RevolutionRelaxation {
         system: RevolutionSurfaceSystemDescriptor,
-        reader: &'reader mut dyn SimulationReader,
+        reader: &'reader mut ChannelReader,
     },
     FinishRelaxation,
-}
-
-pub trait SimulationReader {
-    fn attach_state(&mut self, state_chanel: &Arc<Mutex<dyn SimulationInterface>>);
 }
 
 pub trait SimulationInterface: Send {
@@ -1377,7 +1356,7 @@ impl SimulationUpdate for RigidHelixState {
 
     fn update_positions(
         &self,
-        identifier_nucl: &dyn NuclCollection,
+        identifier_nucl: &NuclCollection,
         space_position: &mut HashMap<u32, [f32; 3], ahash::RandomState>,
     ) {
         let helices: Vec<Helix> = (0..self.constants.nb_helices)
@@ -1551,7 +1530,7 @@ impl GridsSystem {
 }
 
 impl ExplicitODE<f32> for GridsSystem {
-    // We read the sytem in the following format. For each grid, we read
+    // We read the system in the following format. For each grid, we read
     // * 3 f32 for position
     // * 4 f32 for rotation
     // * 3 f32 for linear momentum
@@ -1684,9 +1663,9 @@ struct ApplicationPoint {
 }
 
 fn make_grid_system(
-    presenter: &dyn GridPresenter,
+    presenter: &Presenter,
     time_span: (f32, f32),
-    rigid_paramaters: RigidBodyConstants,
+    rigid_parameters: RigidBodyConstants,
 ) -> Result<GridsSystem, ErrOperation> {
     let intervals = presenter.get_design().strands.get_intervals();
     let helix_parameters = presenter
@@ -1762,14 +1741,14 @@ fn make_grid_system(
         time_span,
         last_state: None,
         anchors: vec![],
-        parameters: rigid_paramaters.clone(),
+        parameters: rigid_parameters.clone(),
     };
-    ret.update_parameters(rigid_paramaters);
+    ret.update_parameters(rigid_parameters);
     Ok(ret)
 }
 
 fn make_rigid_grid(
-    presenter: &dyn GridPresenter,
+    presenter: &Presenter,
     g_id: GridId,
     intervals: &BTreeMap<usize, (isize, isize)>,
     helix_parameters: &HelixParameters,
@@ -1797,7 +1776,7 @@ fn make_rigid_grid(
 }
 
 fn make_rigid_helix_grid_pov(
-    presenter: &dyn GridPresenter,
+    presenter: &Presenter,
     h_id: usize,
     intervals: &BTreeMap<usize, (isize, isize)>,
     helix_parameters: &HelixParameters,
@@ -1816,13 +1795,6 @@ fn make_rigid_helix_grid_pov(
         helix.orientation,
         (*x_min, *x_max),
     ))
-}
-
-pub trait GridPresenter {
-    fn get_design(&self) -> &Design;
-    fn get_grid(&self, g_id: GridId) -> Option<&Grid>;
-    fn get_helices_attached_to_grid(&self, g_id: GridId) -> Option<Vec<usize>>;
-    fn get_xovers_list(&self) -> Vec<(Nucl, Nucl)>;
 }
 
 impl SimulationInterface for GridSystemInterface {

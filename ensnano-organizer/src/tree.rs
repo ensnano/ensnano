@@ -16,11 +16,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use std::collections::hash_map::RandomState;
-use std::collections::HashMap;
-use std::hash::Hash;
-
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
+use std::{
+    collections::{HashMap, hash_map::RandomState},
+    hash::Hash,
+};
 
 /// A tree-like structure that references and organize all the data being edited.
 #[derive(Clone, Debug, Serialize)]
@@ -28,7 +28,7 @@ pub enum OrganizerTree<K> {
     Leaf(K),
     Node {
         name: String,
-        #[serde(alias = "childrens")]
+        #[serde(alias = "childrens")] // cspell:disable-line
         children: Vec<OrganizerTree<K>>,
         expanded: bool,
         #[serde(default)]
@@ -80,9 +80,7 @@ impl<K: PartialEq> OrganizerTree<K> {
         let mut ret = Vec::new();
         match self {
             Self::Leaf(_) => (),
-            Self::Node {
-                name, children, id, ..
-            } => {
+            Self::Node { children, .. } => {
                 if let Some(name) = self.get_name_copy() {
                     ret.push(name);
                 }
@@ -119,7 +117,7 @@ impl<K: PartialEq> OrganizerTree<K> {
 
 /// Hashmap
 impl<K: Eq + Hash + Copy> OrganizerTree<K> {
-    pub fn get_hashmap_to_all_groupnames_with_prefix(
+    pub fn get_hashmap_to_all_group_names_with_prefix(
         &self,
         prefix: &str,
     ) -> HashMap<K, Vec<&str>, RandomState> {
@@ -143,7 +141,7 @@ impl<K: Eq + Hash + Copy> OrganizerTree<K> {
                             hashmap.insert(*e, e_names);
                         }
                         _ => {
-                            let c_hashmap = c.get_hashmap_to_all_groupnames_with_prefix(prefix);
+                            let c_hashmap = c.get_hashmap_to_all_group_names_with_prefix(prefix);
                             for (e, e_names) in c_hashmap {
                                 let mut new_e_names: Vec<&str> = hashmap
                                     .get(&e)
@@ -178,7 +176,7 @@ enum NewOrganizerTree<K> {
     Leaf(K),
     Node {
         name: String,
-        #[serde(alias = "childrens")]
+        #[serde(alias = "childrens")] // cspell:disable-line
         children: Vec<OrganizerTree<K>>,
         expanded: bool,
         #[serde(default)]
@@ -245,12 +243,12 @@ impl<'de, K: Deserialize<'de>> Deserialize<'de> for OrganizerTree<K> {
 /// Used to map groups to group attributes.
 pub struct GroupId(u64);
 
-use rand::distributions::{Distribution, Standard};
 use rand::Rng;
+use rand::distributions::{Distribution, Standard};
 
 impl Distribution<GroupId> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> GroupId {
-        let id: u64 = rng.gen();
+        let id: u64 = rng.r#gen();
         GroupId(id)
     }
 }

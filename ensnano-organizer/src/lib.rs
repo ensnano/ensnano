@@ -1,18 +1,15 @@
-use ensnano_iced::iced_aw::core::icons::{
-    bootstrap::{icon_to_string, Bootstrap},
-    BOOTSTRAP_FONT,
+use {
+    ensnano_iced::{
+        Element,
+        helpers::*,
+        iced::{Length, keyboard::Modifiers},
+        icon_to_svg,
+    },
+    std::{
+        collections::{BTreeMap, BTreeSet, HashMap},
+        convert::TryInto,
+    },
 };
-use ensnano_iced::{
-    helpers::*,
-    iced::{advanced, alignment, keyboard::Modifiers, Font, Length},
-    Element,
-};
-use std::collections::{BTreeMap, BTreeSet, HashMap};
-use std::convert::TryInto;
-
-#[macro_use]
-extern crate serde_derive;
-extern crate serde;
 
 pub mod drag_drop_target;
 pub mod element;
@@ -21,7 +18,8 @@ pub mod theme;
 mod tree;
 
 pub use element::*;
-use rand::{rngs::ThreadRng, Rng};
+use icondata::Icon;
+use rand::{Rng, rngs::ThreadRng};
 use theme::OrganizerTheme;
 pub use tree::{GroupId, OrganizerTree};
 
@@ -29,7 +27,6 @@ use drag_drop_target::*;
 
 use hoverable_container::HoverableContainer;
 
-const LEVEL0_V_SPACING: u16 = 3;
 const LEVELS_V_SPACING: u16 = 2;
 const H_SPACING_IN_UNITS: u16 = 15;
 const ICON_SIZE: u16 = 10;
@@ -313,12 +310,14 @@ impl<E: OrganizerElement> Organizer<E> {
         container(
             self::column![
                 // Title row
-                row![tooltip(
-                    new_group_button,
-                    "Create new_group from selection",
-                    tooltip::Position::FollowCursor,
-                )
-                .style(ensnano_iced::iced::theme::Container::Box)],
+                row![
+                    tooltip(
+                        new_group_button,
+                        "Create new_group from selection",
+                        tooltip::Position::FollowCursor,
+                    )
+                    .style(ensnano_iced::iced::theme::Container::Box)
+                ],
                 scrollable(content).width(self.width)
             ]
             .spacing(5.0f32), // TODO: Find a way to use `ui_size` here.
@@ -447,7 +446,7 @@ impl<E: OrganizerElement> Organizer<E> {
             _Message::DragDropped(k) => self.drag_drop(k),
             _Message::NodeHovered { id, hovered_in } => return self.hover(id, *hovered_in),
             _Message::KeyHovered { key, hovered_in } => {
-                return self.key_hover(key.clone(), *hovered_in)
+                return self.key_hover(key.clone(), *hovered_in);
             }
             _Message::AttributeSelected { attribute, id } => {
                 let keys = self.get_keys_below(id);
@@ -627,10 +626,10 @@ impl<E: OrganizerElement> Organizer<E> {
             self.groups[id[0]].expand(&id[1..], expanded)
         } else if let Some(id) = get_section_id(id) {
             self.sections[id].expand(expanded)
-        } else if let NodeId::AutoGroupId(name) = id {
-            if let Some(group) = self.auto_groups.get_mut(name) {
-                group.expand(expanded)
-            }
+        } else if let NodeId::AutoGroupId(name) = id
+            && let Some(group) = self.auto_groups.get_mut(name)
+        {
+            group.expand(expanded)
         }
     }
 
@@ -785,7 +784,7 @@ impl<E: OrganizerElement> Organizer<E> {
         //TODO remove public once this is integrated in GUI
         if let Some(c1) = self.pop_id_no_recompute(id0) {
             if let Some(c2) = self.pop_id_no_recompute(id1) {
-                let new_group_id = self.rng_thread.gen();
+                let new_group_id = self.rng_thread.r#gen();
                 let content = GroupContent::Node {
                     id: NodeId::TreeId(vec![]),
                     name: String::from("new group"),
@@ -821,7 +820,9 @@ impl<E: OrganizerElement> Organizer<E> {
 
     fn add_key_at(&mut self, key: E::Key, dest: &[usize]) {
         if dest.len() < 2 {
-            println!("I have not decided what to do when moving a key at the root level of the organizer");
+            println!(
+                "I have not decided what to do when moving a key at the root level of the organizer"
+            );
         } else {
             if let Some(group) = self.groups.get_mut(dest[0]) {
                 group.add_key_at(key, &dest[1..])
@@ -922,9 +923,7 @@ impl<E: OrganizerElement> Section<E> {
         theme: &OrganizerTheme,
         selection: &BTreeSet<E::Key>,
     ) -> Container<'_, OrganizerMessage<E>, crate::Theme, crate::Renderer> {
-        let title_row = self
-            .view
-            .view(theme, &self.name, self.id.clone(), self.expanded, false);
+        let title_row = self.view.view(&self.name, self.id.clone(), self.expanded);
         let mut content = Column::new().spacing(LEVELS_V_SPACING).push(title_row);
         if self.expanded {
             for (e_id, e) in self.elements.iter() {
@@ -973,12 +972,10 @@ impl<E: OrganizerElement> ElementView<E> {
         &self,
         _theme: &OrganizerTheme,
         element: &E,
-        selection: &BTreeSet<E::Key>,
+        _selection: &BTreeSet<E::Key>,
         deletable: Option<NodeId<E::AutoGroup>>,
     ) -> DragDropTarget<'_, OrganizerMessage<E>, crate::Theme, crate::Renderer, E::Key, E::AutoGroup>
     {
-        let selected = selection.contains(&element.key());
-
         let mut content = row![text(element.display_name()), horizontal_space(),];
         // [DragIdentifier::Group] are deletable, [DragIdentifier::Section] are not.
         let identifier = match deletable.as_ref() {
@@ -999,8 +996,8 @@ impl<E: OrganizerElement> ElementView<E> {
             }
         }
         if let Some(id) = deletable.clone() {
-            content =
-                content.push(button(icon(Bootstrap::Trash)).on_press(OrganizerMessage::delete(id)));
+            content = content
+                .push(button(icon(icondata::BsTrash)).on_press(OrganizerMessage::delete(id)));
         }
         let mut content = HoverableContainer::new(
             button(content)
@@ -1065,13 +1062,10 @@ impl<E: OrganizerElement> NodeView<E> {
 
     fn view(
         &self,
-        theme: &OrganizerTheme,
         name: &String,
         id: NodeId<E::AutoGroup>,
         expanded: bool,
-        selected: bool,
     ) -> Element<'_, OrganizerMessage<E>, crate::Theme, crate::Renderer> {
-        let level = get_group_id(&id).map(|v| v.len()).unwrap_or(0);
         let title_row = match &self.state {
             GroupState::Idle { .. } => {
                 let mut row: Row<'_, _, crate::Theme, crate::Renderer> = row![
@@ -1081,7 +1075,7 @@ impl<E: OrganizerElement> NodeView<E> {
                     text(name),
                     // text_input(&name, &name),
                     // NOTE: I would like to customize this to make it look like a non editable
-                    // `text_input`, but the defaut rendering of `text_input` without calling
+                    // `text_input`, but the default rendering of `text_input` without calling
                     // `on_input` make it look _deactivated_.
                     horizontal_space(),
                     button(plus_icon())
@@ -1099,7 +1093,7 @@ impl<E: OrganizerElement> NodeView<E> {
                 }
 
                 row = row.push(
-                    button(icon(Bootstrap::Trash)).on_press(OrganizerMessage::delete(id.clone())),
+                    button(icon(icondata::BsTrash)).on_press(OrganizerMessage::delete(id.clone())),
                 );
                 row
             }
@@ -1129,7 +1123,7 @@ impl<E: OrganizerElement> NodeView<E> {
                     }
                 }
                 row = row.push(
-                    button(icon(Bootstrap::Trash)).on_press(OrganizerMessage::delete(id.clone())),
+                    button(icon(icondata::BsTrash)).on_press(OrganizerMessage::delete(id.clone())),
                 );
                 row
             }
@@ -1140,11 +1134,12 @@ impl<E: OrganizerElement> NodeView<E> {
                 text(name),
             ],
         };
-        let button_theme = if selected {
-            theme.level_selected(level)
-        } else {
-            theme.level(level)
-        };
+
+        // let button_theme = if selected {
+        //     theme.level_selected(level)
+        // } else {
+        //     theme.level(level)
+        // };
         let title_button = button(title_row)
             .on_press(OrganizerMessage::node_selected(id.clone()))
             .width(Length::Fill);
@@ -1206,7 +1201,7 @@ impl<E: OrganizerElement> GroupContent<E> {
         selected_nodes: &BTreeSet<NodeId<E::AutoGroup>>,
     ) -> Element<'_, OrganizerMessage<E>> {
         let level; // Need this variable at this level.
-        let colummn = match self {
+        let column = match self {
             Self::Node {
                 name,
                 expanded,
@@ -1220,8 +1215,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                 } else {
                     0
                 };
-                let selected = selected_nodes.contains(&id);
-                let title_row = view.view(theme, name, id.clone(), *expanded, selected);
+                let title_row = view.view(name, id.clone(), *expanded);
                 let mut col = self::column![title_row].spacing(LEVELS_V_SPACING);
                 if *expanded {
                     for c in children.iter() {
@@ -1259,7 +1253,7 @@ impl<E: OrganizerElement> GroupContent<E> {
             }
             Self::Placeholder => unreachable!("Viewing a placeholder"),
         };
-        Container::new(colummn).style(theme.level(level)).into()
+        Container::new(column).style(theme.level(level)).into()
     }
 
     fn leaf(key: E::Key, id: Vec<usize>) -> Self {
@@ -1297,7 +1291,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                     // when we generate a new identifier, we must notify the program that the tree
                     // is different
                     *must_update_tree = true;
-                    rng.gen()
+                    rng.r#gen()
                 });
                 Self::Node {
                     children,
@@ -1333,7 +1327,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                 }
             })
             .collect();
-        let group_id = rng.gen();
+        let group_id = rng.r#gen();
         Self::Node {
             id,
             children,
@@ -1769,59 +1763,24 @@ impl<E: OrganizerElement> GroupContent<E> {
     }
 }
 
-fn icon<'a, Theme, Renderer>(icon: Bootstrap) -> Text<'a, Theme, Renderer>
-where
-    Theme: text::StyleSheet,
-    Renderer: advanced::text::Renderer,
-    <Renderer as advanced::text::Renderer>::Font: From<Font>,
-{
-    Text::new(icon_to_string(icon))
-        .font(BOOTSTRAP_FONT)
-        .size(ICON_SIZE)
-        .horizontal_alignment(alignment::Horizontal::Center)
-        .vertical_alignment(alignment::Vertical::Center)
+fn icon(icon: Icon) -> Svg {
+    icon_to_svg(icon).width(ICON_SIZE).height(ICON_SIZE)
 }
 
-fn expand_icon<'a, Theme, Renderer>(expanded: bool) -> Text<'a, Theme, Renderer>
-where
-    Theme: text::StyleSheet,
-    Renderer: advanced::text::Renderer,
-    <Renderer as advanced::text::Renderer>::Font: From<Font>,
-{
-    if expanded {
-        icon(Bootstrap::CaretDown)
+fn expand_icon(expanded: bool) -> Svg {
+    icon(if expanded {
+        icondata::BsCaretDown
     } else {
-        icon(Bootstrap::CaretRight)
-    }
+        icondata::BsCaretRight
+    })
 }
 
-fn plus_icon<'a, Theme, Renderer>() -> Text<'a, Theme, Renderer>
-where
-    Theme: text::StyleSheet,
-    Renderer: advanced::text::Renderer,
-    <Renderer as advanced::text::Renderer>::Font: From<Font>,
-{
-    icon(Bootstrap::Plus)
+fn plus_icon() -> Svg {
+    icon(icondata::BsPlus)
 }
 
-fn edit_icon<'a, Theme, Renderer>() -> Text<'a, Theme, Renderer>
-where
-    Theme: text::StyleSheet,
-    Renderer: advanced::text::Renderer,
-    <Renderer as advanced::text::Renderer>::Font: From<Font>,
-{
-    icon(Bootstrap::VectorPen)
-}
-
-fn _delete_icon<'a, Theme, Renderer>() -> Text<'a, Theme, Renderer>
-where
-    Theme: text::StyleSheet,
-    Renderer: advanced::text::Renderer,
-    <Renderer as advanced::text::Renderer>::Font: From<Font>,
-{
-    //icon('\u{E806}')
-    icon(Bootstrap::TrashFill)
-    // TODO: Check what was \u{E806}, or remove this function.
+fn edit_icon() -> Svg {
+    icon(icondata::BsVectorPen)
 }
 
 fn tabulation() -> Space {

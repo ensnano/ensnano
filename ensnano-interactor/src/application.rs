@@ -18,15 +18,15 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use std::path::Path;
 
-use super::graphics::*;
 use super::Selection;
-use ensnano_design::group_attributes::GroupPivot;
+use super::graphics::*;
 use ensnano_design::Nucl;
+use ensnano_design::group_attributes::GroupPivot;
 use ensnano_iced::{iced_wgpu::wgpu, iced_winit::winit};
 use std::sync::Arc;
-pub use std::time::Duration;
+use std::time::Duration;
 use ultraviolet::{Rotor3, Vec3};
-pub use winit::window::CursorIcon;
+use winit::window::CursorIcon;
 use winit::{
     dpi::{PhysicalPosition, PhysicalSize},
     event::{Modifiers, WindowEvent},
@@ -81,7 +81,7 @@ pub trait Application {
         None
     }
 
-    fn is_splited(&self) -> bool;
+    fn is_split(&self) -> bool;
 }
 
 #[derive(Clone, Debug)]
@@ -99,7 +99,7 @@ pub enum Notification {
     Centering(Nucl, usize),
     CenterSelection(Selection, AppId),
     ShowTorsion(bool),
-    ModifersChanged(Modifiers),
+    ModifiersChanged(Modifiers),
     Split2d,
     Redim2dHelices(bool),
     Fog(FogParameters),

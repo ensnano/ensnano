@@ -81,7 +81,7 @@ impl TextDrawer {
         }
     }
 
-    pub fn add_sentence(&mut self, sentence: Sentence<'_>, center_position: Vec2, bound: Line) {
+    pub fn add_sentence(&mut self, sentence: Sentence, center_position: Vec2, bound: Line) {
         let fonts = if sentence
             .text
             .chars()

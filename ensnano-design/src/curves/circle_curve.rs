@@ -16,11 +16,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use crate::{parameters, HelixParameters};
-
 use super::Curved;
-use std::f64::consts::{PI, TAU};
-use ultraviolet::{DRotor3, DVec3, Vec3};
+use crate::HelixParameters;
+use serde::{Deserialize, Serialize};
+use std::f64::consts::TAU;
+use ultraviolet::DVec3;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CircleCurve {
@@ -40,10 +40,6 @@ impl CircleCurve {
 
     pub(super) fn last_theta(&self) -> f64 {
         self.theta(1.)
-    }
-
-    pub(super) fn t_min(&self) -> f64 {
-        0.
     }
 
     pub(super) fn t_max(&self) -> f64 {

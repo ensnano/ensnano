@@ -120,7 +120,7 @@ fn scadnano_import_one_loopout() {
 fn assert_good_strand<S: std::ops::Deref<Target = str>>(strand: &Strand, objective: S) {
     use regex::Regex;
     let re = Regex::new(r#"\[[^\]]*\]"#).unwrap();
-    let formated_strand = strand.formated_domains();
+    let formated_strand = strand.formatted_domains();
     let left = re.find_iter(&formated_strand);
     let right = re.find_iter(&objective);
     for (a, b) in left.zip(right) {
@@ -144,12 +144,11 @@ fn assert_sane_domains_non_cyclic(dom: &[Domain]) {
 }
 
 fn assert_sane_domains_cyclic(dom: &[Domain]) {
-    if dom.len() >= 2 {
-        if let Some(Domain::Insertion { .. }) = dom.first() {
-            if let Some(Domain::Insertion { .. }) = dom.last() {
-                panic!("First and last domains are both insertions in cyclic strand")
-            }
-        }
+    if dom.len() >= 2
+        && let Some(Domain::Insertion { .. }) = dom.first()
+        && let Some(Domain::Insertion { .. }) = dom.last()
+    {
+        panic!("First and last domains are both insertions in cyclic strand")
     }
 }
 

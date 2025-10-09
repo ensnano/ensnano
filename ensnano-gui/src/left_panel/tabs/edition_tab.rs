@@ -17,7 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use ensnano_iced::{
     color_picker::{ColorPicker, ColorPickerMessage},
-    fonts::{icon_to_char, MaterialIcon},
+    fonts::{MaterialIcon, icon_to_char},
     helpers::*,
     iced_aw::TabLabel,
 };
@@ -105,9 +105,13 @@ impl<State: AppState> GuiTab<State> for EditionTab<State> {
         None
     }
 
-    fn content(&self, ui_size: UiSize, app_state: &State) -> ensnano_iced::Element<Self::Message> {
+    fn content(
+        &self,
+        ui_size: UiSize,
+        app_state: &State,
+    ) -> ensnano_iced::Element<'_, Self::Message> {
         let roll_target_helices =
-            self.get_roll_target_helices(&app_state.get_selection_as_designelement());
+            self.get_roll_target_helices(&app_state.get_selection_as_design_element());
         let sim_state = &app_state.get_simulation_state();
         let autoroll_is_active = sim_state.is_rolling() || roll_target_helices.len() > 0;
         let selection_contains_strand =
@@ -155,7 +159,7 @@ impl<State: AppState> GuiTab<State> for EditionTab<State> {
                 suggestion_parameters.include_scaffold,
                 "Include scaffold",
                 move |b| {
-                    Message::NewSuggestionParameters(suggestion_parameters.with_include_scaffod(b))
+                    Message::NewSuggestionParameters(suggestion_parameters.with_include_scaffold(b))
                 },
                 ui_size,
             ),

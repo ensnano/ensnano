@@ -16,15 +16,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use mathru::algebra::abstr::Identity;
-use std::f32::consts::PI;
-use ultraviolet::*;
-
-use std::str::FromStr;
-
-use std::collections::HashMap;
-
 use crate::drawing_style::ParsePointError;
+use serde::{Deserialize, Serialize};
+use std::{collections::HashMap, f32::consts::PI, str::FromStr};
+use ultraviolet::*;
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug)]
 pub enum Isometry3DescriptorItem {
@@ -79,12 +74,11 @@ impl Parsef32s for Isometry3DescriptorItem {
                     .split(&[' ', '*'])
                     .filter(|s| *s != "")
                     .collect::<Vec<&str>>();
-                if parsed_t.len() == 2 {
-                    if let Ok(value) = f32::from_str(parsed_t[0]) {
-                        if let Some(v) = variables.get(parsed_t[1]) {
-                            ret.push(value * v);
-                        }
-                    }
+                if parsed_t.len() == 2
+                    && let Ok(value) = f32::from_str(parsed_t[0])
+                    && let Some(v) = variables.get(parsed_t[1])
+                {
+                    ret.push(value * v);
                 }
             }
         }
@@ -155,13 +149,13 @@ impl Isometry3DescriptorItem {
                         Vec3::new(args[0], args[1], args[2]),
                         Vec3::new(args[3], args[4], args[5]),
                         Vec3::new(args[6], args[7], args[8]),
-                    ))
+                    ));
                 }
                 6 => {
                     return Ok(Self::RotateFromTo(
                         Vec3::new(args[0], args[1], args[2]),
                         Vec3::new(args[3], args[4], args[5]),
-                    ))
+                    ));
                 }
                 _ => (),
             }
@@ -173,7 +167,7 @@ impl Isometry3DescriptorItem {
                     return Ok(Self::RotateYZByAround(
                         args[0],
                         Vec3::new(args[1], args[2], args[3]),
-                    ))
+                    ));
                 }
                 _ => (),
             }
@@ -185,7 +179,7 @@ impl Isometry3DescriptorItem {
                     return Ok(Self::RotateZXByAround(
                         args[0],
                         Vec3::new(args[1], args[2], args[3]),
-                    ))
+                    ));
                 }
                 _ => (),
             }
@@ -197,7 +191,7 @@ impl Isometry3DescriptorItem {
                     return Ok(Self::RotateXYByAround(
                         args[0],
                         Vec3::new(args[1], args[2], args[3]),
-                    ))
+                    ));
                 }
                 _ => (),
             }

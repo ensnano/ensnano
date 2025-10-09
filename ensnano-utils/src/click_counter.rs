@@ -17,11 +17,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 #[derive(Clone, Debug)]
-pub struct ClicCounter {
+pub struct ClickCounter {
     value: u32,
 }
 
-impl ClicCounter {
+impl ClickCounter {
     pub fn new() -> Self {
         Self { value: 0 }
     }

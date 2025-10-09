@@ -17,10 +17,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::instances_drawer::*;
-use ensnano_design::{ultraviolet, BezierPlaneId};
+use ensnano_design::{BezierPlaneId, ultraviolet};
 use ensnano_utils::wgpu;
 use ultraviolet::{Mat4, Rotor3, Vec2, Vec3};
-use wgpu::{include_spirv, Device};
+use wgpu::{Device, include_spirv};
 
 #[derive(Debug, Clone)]
 pub struct Sheet2D {
@@ -87,7 +87,7 @@ impl Sheet2D {
     }
 }
 
-impl Instanciable for Sheet2D {
+impl Instantiable for Sheet2D {
     type Vertex = SheetVertex;
     type Ressource = ();
     type RawInstance = Sheet2DRaw;

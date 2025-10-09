@@ -17,10 +17,12 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use relative_path::RelativePathBuf;
-use serde_derive::{Deserialize, Serialize};
-use std::collections::HashMap;
-use std::path::{Path, PathBuf};
-use std::sync::Arc;
+use serde::{Deserialize, Serialize};
+use std::{
+    collections::HashMap,
+    path::{Path, PathBuf},
+    sync::Arc,
+};
 use ultraviolet::{Rotor3, Vec3};
 
 use crate::Collection;

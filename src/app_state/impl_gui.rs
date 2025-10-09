@@ -17,9 +17,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::*;
-use crate::gui::AppState as GuiState;
-use ensnano_design::{elements::DesignElementKey, HelixParameters};
+use ensnano_design::{HelixParameters, elements::DesignElementKey};
+use ensnano_gui::AppState as GuiState;
 use ensnano_gui::ClipboardContent;
+use ensnano_interactor::PastingStatus;
 use ensnano_interactor::{ScaffoldInfo, SelectionConversion, SimulationState};
 
 mod curve_builders;
@@ -53,7 +54,7 @@ impl GuiState for AppState {
         self.selection_content().as_ref()
     }
 
-    fn get_selection_as_designelement(&self) -> Vec<DesignElementKey> {
+    fn get_selection_as_design_element(&self) -> Vec<DesignElementKey> {
         self.selection_content()
             .iter()
             .filter_map(|s| DesignElementKey::from_selection(s, 0))
@@ -76,7 +77,7 @@ impl GuiState for AppState {
             )
     }
 
-    fn get_reader(&self) -> Box<dyn crate::gui::DesignReader> {
+    fn get_reader(&self) -> Box<dyn ensnano_gui::DesignReader> {
         Box::new(self.get_design_reader())
     }
 
@@ -106,11 +107,11 @@ impl GuiState for AppState {
         self.0.strand_on_new_helix.is_some()
     }
 
-    fn get_curent_operation_state(&self) -> Option<crate::gui::CurentOpState> {
-        self.0.design.get_curent_operation_state()
+    fn get_current_operation_state(&self) -> Option<ensnano_gui::CurrentOpState> {
+        self.0.design.get_current_operation_state()
     }
 
-    fn get_strand_building_state(&self) -> Option<crate::gui::StrandBuildingStatus> {
+    fn get_strand_building_state(&self) -> Option<ensnano_gui::StrandBuildingStatus> {
         self.get_strand_building_state()
     }
 
@@ -217,14 +218,5 @@ impl GuiState for AppState {
 
     fn get_pasting_status(&self) -> PastingStatus {
         self.get_pasting_status()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    #[ignore]
-    #[test]
-    fn is_building_hyperboloid_implemented() {
-        todo!()
     }
 }

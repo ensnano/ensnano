@@ -15,9 +15,19 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+use super::{AppState, FogParameters, OverlayType, Requests};
+use crate::{consts::*, fonts};
+use ensnano_design::{
+    BezierPathId, CameraId, NamedParameter,
+    elements::{DesignElement, DesignElementKey},
+    grid::GridTypeDescr,
+    ultraviolet,
+};
+use ensnano_exports::ExportType;
 use ensnano_iced::{
+    UiSize,
     color_picker::ColorPickerMessage,
-    iced::{theme, Color, Command, Element, Length},
+    iced::{Color, Command, Element, Length, theme},
     iced_aw::widgets::{TabBarPosition, TabLabel, Tabs},
     iced_runtime::Program,
     iced_widget::*,
@@ -28,41 +38,29 @@ use ensnano_iced::{
             event::Modifiers,
         },
     },
-    UiSize,
-};
-use ensnano_interactor::{graphics::HBondDisplay, EquadiffSolvingMethod};
-use ensnano_organizer::{Organizer, OrganizerMessage, OrganizerTree};
-use std::sync::{Arc, Mutex};
-
-use ultraviolet::Vec3;
-
-use ensnano_design::{
-    elements::{DesignElement, DesignElementKey},
-    BezierPathId, CameraId,
 };
 use ensnano_interactor::{
-    graphics::{Background3D, RenderingMode},
-    ActionMode, SelectionConversion, SuggestionParameters,
+    ActionMode, EquadiffSolvingMethod, HyperboloidRequest, Selection, SelectionConversion,
+    app_state_parameters::{AppStateParameters, CheckXoversParameter, SuggestionParameters},
+    graphics::{Background3D, HBondDisplay, RenderingMode},
 };
+use ensnano_organizer::{Organizer, OrganizerMessage, OrganizerTree};
+use std::sync::{Arc, Mutex};
+use ultraviolet::Vec3;
 
-use ensnano_exports::ExportType;
-
-use super::{AppState, FogParameters, OverlayType, Requests};
-use crate::fonts;
-
-use ensnano_design::{grid::GridTypeDescr, ultraviolet, NamedParameter};
 mod sequence_input;
 use sequence_input::SequenceInput;
+
 mod discrete_value;
 use discrete_value::{FactoryId, RequestFactory, Requestable, ValueId};
-mod tabs;
-use crate::consts::*;
+
 mod contextual_panel;
-mod export_menu;
 use contextual_panel::{ContextualPanel, InstanciatedValue, ValueKind};
+
+mod export_menu;
 use export_menu::ExportMenu;
 
-use ensnano_interactor::{CheckXoversParameter, HyperboloidRequest, Selection};
+mod tabs;
 pub use tabs::revolution_tab::*;
 use tabs::{
     CameraShortcutPanel, CameraTab, EditionTab, GridTab, GuiTab, ParametersTab, PenTab,
@@ -71,12 +69,9 @@ use tabs::{
 
 pub struct LeftPanel<R: Requests, S: AppState> {
     logical_size: LogicalSize<f64>,
-    #[allow(dead_code)]
     logical_position: LogicalPosition<f64>,
-    #[allow(dead_code)]
     sequence_input: SequenceInput,
     requests: Arc<Mutex<R>>,
-    #[allow(dead_code)]
     show_torsion: bool,
     active_tab: TabId,
     /// Provide an organized view of the object being edited.
@@ -99,7 +94,6 @@ pub struct LeftPanel<R: Requests, S: AppState> {
 #[derive(Debug, Clone)]
 pub enum Message<S: AppState> {
     Resized(LogicalSize<f64>, LogicalPosition<f64>),
-    #[allow(dead_code)]
     OpenColor,
     MakeGrids,
     SequenceChanged(String),
@@ -114,7 +108,6 @@ pub enum Message<S: AppState> {
     PositionHelicesChanged(String),
     LengthHelicesChanged(String),
     ScaffoldPositionInput(String),
-    #[allow(dead_code)]
     ShowTorsion(bool),
     FogRadius(f32),
     FogLength(f32),
@@ -140,7 +133,6 @@ pub enum Message<S: AppState> {
     StaplesRequested,
     OrigamisRequested,
     ToggleText(bool),
-    #[allow(dead_code)]
     CleanRequested,
     AddDoubleStrandHelix(bool),
     ToggleVisibility(bool),
@@ -153,7 +145,6 @@ pub enum Message<S: AppState> {
     SelectionValueChanged(usize, String),
     SetSmallSpheres(bool),
     ScaffoldIdSet(usize, bool),
-    //NewScaffoldInfo(Option<ScaffoldInfo>),
     SelectScaffold,
     ForceHelp,
     ShowTutorial,
@@ -225,7 +216,7 @@ impl<R: Requests, S: AppState> LeftPanel<R, S> {
         logical_position: LogicalPosition<f64>,
         first_time: bool,
         state: &S,
-        ui_size: UiSize,
+        parameters: &AppStateParameters,
     ) -> Self {
         let mut organizer = Organizer::new();
         organizer.set_width(logical_size.width as u16);
@@ -241,10 +232,10 @@ impl<R: Requests, S: AppState> LeftPanel<R, S> {
                 TabId::Sequence
             },
             organizer,
-            ui_size,
+            ui_size: parameters.ui_size,
             grid_tab: GridTab::new(),
             edition_tab: EditionTab::new(),
-            camera_tab: CameraTab::new(),
+            camera_tab: CameraTab::new(parameters),
             simulation_tab: SimulationTab::new(),
             sequence_tab: SequenceTab::new(),
             parameters_tab: ParametersTab::new(state),
@@ -376,14 +367,13 @@ where
                 std::thread::spawn(move || {
                     let save_op = async move {
                         let file = dialog.await;
-                        if let Some(handle) = file {
-                            let content = std::fs::read_to_string(handle.path());
-                            if let Ok(content) = content {
-                                requests
-                                    .lock()
-                                    .unwrap()
-                                    .set_selected_strand_sequence(content);
-                            }
+                        if let Some(handle) = file
+                            && let Ok(content) = std::fs::read_to_string(handle.path())
+                        {
+                            requests
+                                .lock()
+                                .unwrap()
+                                .set_selected_strand_sequence(content);
                         }
                     };
                     futures::executor::block_on(save_op);
@@ -476,9 +466,9 @@ where
                 }
             }
             Message::FogChoice(choice) => {
-                let (visble, from_camera, dark, reversed) = choice.to_param();
+                let (visible, from_camera, dark, reversed) = choice.to_param();
                 self.camera_tab.fog_camera(from_camera);
-                self.camera_tab.fog_visible(visble);
+                self.camera_tab.fog_visible(visible);
                 self.camera_tab.fog_dark(dark);
                 self.camera_tab.fog_reversed(reversed);
                 let request = self.camera_tab.get_fog_request();
@@ -610,7 +600,7 @@ where
             }
             Message::MakeGrids => self.requests.lock().unwrap().make_grid_from_selection(),
             Message::RollTargeted(b) => {
-                let selection = self.application_state.get_selection_as_designelement();
+                let selection = self.application_state.get_selection_as_design_element();
                 if b {
                     if let Some(simulation_request) = self.edition_tab.get_roll_request(&selection)
                     {
@@ -624,14 +614,14 @@ where
                 }
             }
             Message::TabSelected(tab_id) => {
-                if let ActionMode::BuildHelix { .. } = self.application_state.get_action_mode() {
-                    if tab_id != TabId::Grid {
-                        let action_mode = ActionMode::Normal;
-                        self.requests
-                            .lock()
-                            .unwrap()
-                            .change_action_mode(action_mode);
-                    }
+                if let ActionMode::BuildHelix { .. } = self.application_state.get_action_mode()
+                    && tab_id != TabId::Grid
+                {
+                    let action_mode = ActionMode::Normal;
+                    self.requests
+                        .lock()
+                        .unwrap()
+                        .change_action_mode(action_mode);
                 }
                 if tab_id != TabId::Grid && self.application_state.is_building_hyperboloid() {
                     self.requests.lock().unwrap().finalize_hyperboloid();
@@ -721,7 +711,7 @@ where
                 self.contextual_panel.force_help = false;
             }
             Message::OpenLink(link) => {
-                // ATM we continue even in case of error, later any error will be promted to user
+                // ATM we continue even in case of error, later any error will be prompted to user
                 let _ = open::that(link);
             }
             Message::NewApplicationState(state) => {
@@ -889,13 +879,13 @@ where
                 self.revolution_tab.set_method(method);
             }
             Message::RevolutionParameterUpdate { parameter_id, text } => {
-                if let RevolutionParameterId::RevolutionRadius = parameter_id {
-                    if let Some(radius) = text.parse::<f64>().ok() {
-                        self.requests
-                            .lock()
-                            .unwrap()
-                            .set_bezier_revolution_radius(radius);
-                    }
+                if let RevolutionParameterId::RevolutionRadius = parameter_id
+                    && let Some(radius) = text.parse::<f64>().ok()
+                {
+                    self.requests
+                        .lock()
+                        .unwrap()
+                        .set_bezier_revolution_radius(radius);
                 }
                 self.revolution_tab
                     .update_builder_parameter(parameter_id, text);
@@ -923,11 +913,9 @@ where
                         .start_revolution_relaxation(desc);
                 }
             }
-            Message::FinishRelaxation => self
-                .requests
-                .lock()
-                .unwrap()
-                .finish_revolutiion_relaxation(),
+            Message::FinishRelaxation => {
+                self.requests.lock().unwrap().finish_revolution_relaxation()
+            }
             Message::LoadSvgFile => self.requests.lock().unwrap().load_svg(),
             Message::StlExport => {
                 self.requests.lock().unwrap().request_stl_export();
@@ -968,7 +956,7 @@ where
         Command::none()
     }
 
-    fn view(&self) -> Element<Self::Message, Self::Theme, Self::Renderer> {
+    fn view(&self) -> Element<'_, Self::Message, Self::Theme, Self::Renderer> {
         let width = self.logical_size.cast::<u16>().width;
         let tabs = Tabs::new(Message::TabSelected)
             .push(
@@ -1130,7 +1118,7 @@ impl<R: Requests> Program for ColorOverlay<R> {
         Command::none()
     }
 
-    fn view(&self) -> Element<Self::Message, Self::Theme, Self::Renderer> {
+    fn view(&self) -> Element<'_, Self::Message, Self::Theme, Self::Renderer> {
         let width = self.logical_size.cast::<u16>().width;
 
         let widget = Column::new()
@@ -1243,29 +1231,17 @@ impl Requestable for ScrollSensitivity {
         }
     }
     fn min_val(&self, n: usize) -> f32 {
-        if n == 0 {
-            -10f32
-        } else {
-            unreachable!()
-        }
+        if n == 0 { -10f32 } else { unreachable!() }
     }
     fn max_val(&self, n: usize) -> f32 {
-        if n == 0 {
-            10f32
-        } else {
-            unreachable!()
-        }
+        if n == 0 { 10f32 } else { unreachable!() }
     }
     fn step_val(&self, n: usize) -> f32 {
-        if n == 0 {
-            0.5f32
-        } else {
-            unreachable!()
-        }
+        if n == 0 { 0.5f32 } else { unreachable!() }
     }
     fn name_val(&self, n: usize) -> String {
         if n == 0 {
-            String::from("Sentivity")
+            String::from("Sensitivity")
         } else {
             unreachable!()
         }
@@ -1460,7 +1436,5 @@ fn color_to_u32(color: Color) -> u32 {
     let green = ((color.g * 255.) as u32) << 8;
     let blue = (color.b * 255.) as u32;
 
-    #[allow(clippy::let_and_return)]
-    let color_u32 = red + green + blue;
-    color_u32
+    red + green + blue
 }

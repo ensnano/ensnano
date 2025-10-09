@@ -15,6 +15,27 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
+#![allow(mixed_script_confusables, confusable_idents)] // allow mathematical symbols as variables
+
+use ensnano_design::{
+    BezierVertexId, Nucl, consts::ITERATIVE_AXIS_ALGORITHM, grid::GridPosition,
+    grid::HelixGridPosition, group_attributes::GroupPivot, ultraviolet,
+};
+use ensnano_interactor::{
+    ActionMode, CenterOfSelection, DesignOperation, NewBezierTangentVector, Selection,
+    SelectionMode, StrandBuilder, UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
+    app_state_parameters::CheckXoversParameter,
+    application::{AppId, Application, Camera3D, Notification},
+    graphics::DrawArea,
+    operation::*,
+};
+use ensnano_utils::{
+    BufferDimensions, PhySize, filename,
+    instance::Instance,
+    wgpu::{self, Device, Queue},
+    winit::{dpi::PhysicalPosition, event::WindowEvent, window::CursorIcon},
+};
 use std::{
     cell::RefCell,
     fs,
@@ -24,27 +45,7 @@ use std::{
     sync::{Arc, Mutex},
     time::Duration,
 };
-
 use ultraviolet::{Mat4, Rotor3, Vec3};
-
-use ensnano_design::{
-    consts::ITERATIVE_AXIS_ALGORITHM, grid::GridPosition, grid::HelixGridPosition,
-    group_attributes::GroupPivot, ultraviolet, BezierVertexId, Nucl,
-};
-use ensnano_interactor::{
-    application::{AppId, Application, Camera3D, Notification},
-    graphics::DrawArea,
-    operation::*,
-    ActionMode, CenterOfSelection, CheckXoversParameter, DesignOperation, NewBezierTangentVector,
-    Selection, SelectionMode, StrandBuilder, UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
-};
-use ensnano_utils::{
-    filename,
-    instance::Instance,
-    wgpu::{self, Device, Queue},
-    winit::{dpi::PhysicalPosition, event::WindowEvent},
-    PhySize,
-};
 
 mod stl;
 
@@ -74,7 +75,6 @@ mod maths_3d;
 
 type ViewPtr = Rc<RefCell<View>>;
 type DataPtr<R> = Rc<RefCell<Data<R>>>;
-use std::convert::TryInto;
 
 // Rotor utils: safe rotor between
 mod rotor_utils;
@@ -183,7 +183,7 @@ impl<S: AppState> Scene<S> {
         event: &WindowEvent,
         cursor_position: PhysicalPosition<f64>,
         app_state: &S,
-    ) -> Option<ensnano_interactor::CursorIcon> {
+    ) -> Option<CursorIcon> {
         let consequence = self.controller.input(
             event,
             cursor_position,
@@ -295,10 +295,10 @@ impl<S: AppState> Scene<S> {
                     .init_rotation(mode, x as f32, y as f32);
                 if let Some(pivot) = self.view.borrow().get_group_pivot() {
                     self.requests.lock().unwrap().set_current_group_pivot(pivot);
-                    if target == WidgetTarget::Pivot {
-                        if let WidgetBasis::World = app_state.get_widget_basis() {
-                            self.requests.lock().unwrap().toggle_widget_basis()
-                        }
+                    if target == WidgetTarget::Pivot
+                        && let WidgetBasis::World = app_state.get_widget_basis()
+                    {
+                        self.requests.lock().unwrap().toggle_widget_basis()
                     }
                 }
             }
@@ -347,7 +347,7 @@ impl<S: AppState> Scene<S> {
                 self.controller.swing(-x, -y);
                 self.notify(SceneNotification::CameraMoved);
             }
-            Consequence::Tilt(x, _) => {
+            Consequence::Tilt(x) => {
                 let mut pivot: Option<FiniteVec3> = self
                     .data
                     .borrow()
@@ -430,7 +430,7 @@ impl<S: AppState> Scene<S> {
                     self.requests
                         .lock()
                         .unwrap()
-                        .update_opperation(Arc::new(GridHelixCreation {
+                        .update_operation(Arc::new(GridHelixCreation {
                             grid_id,
                             design_id: design_id as usize,
                             x,
@@ -533,7 +533,7 @@ impl<S: AppState> Scene<S> {
                 self.requests
                     .lock()
                     .unwrap()
-                    .update_opperation(Arc::new(TranslateBezierPathVertex { vertices, x, y }))
+                    .update_operation(Arc::new(TranslateBezierPathVertex { vertices, x, y }))
             }
             Consequence::ReleaseBezierVertex => self.requests.lock().unwrap().suspend_op(),
             Consequence::MoveBezierCorner {
@@ -541,7 +541,7 @@ impl<S: AppState> Scene<S> {
                 original_corner_position,
                 fixed_corner_position,
                 moving_corner,
-            } => self.requests.lock().unwrap().update_opperation(Arc::new(
+            } => self.requests.lock().unwrap().update_operation(Arc::new(
                 TranslateBezierSheetCorner {
                     plane_id,
                     origin_moving_corner: original_corner_position,
@@ -752,7 +752,7 @@ impl<S: AppState> Scene<S> {
         self.requests
             .lock()
             .unwrap()
-            .update_opperation(translation_op);
+            .update_operation(translation_op);
     }
 
     fn translate_group_pivot(&mut self, translation: Vec3) {
@@ -828,7 +828,7 @@ impl<S: AppState> Scene<S> {
             }
         };
 
-        self.requests.lock().unwrap().update_opperation(rotation);
+        self.requests.lock().unwrap().update_operation(rotation);
     }
 
     /// Adapt the camera, position, orientation and pivot point to a design so that the design fits
@@ -993,8 +993,6 @@ impl<S: AppState> Scene<S> {
         println!("3D PNG export to {:?}", path);
         let device = self.element_selector.device.as_ref();
         let queue = self.element_selector.queue.as_ref();
-        use ensnano_utils::BufferDimensions;
-        use std::io::Write;
 
         let ratio = self.view.borrow().get_projection().borrow().get_ratio();
         let width = if ratio < 1. {
@@ -1019,10 +1017,6 @@ impl<S: AppState> Scene<S> {
             label: Some("3D PNG export"),
         });
 
-        // let draw_options =  DrawOptions {
-        //     rendering_mode: RenderingMode::Cartoon,
-        //     ..Default::default()
-        // };
         let draw_options = self.older_state.get_draw_options();
 
         self.view.borrow_mut().draw(
@@ -1062,7 +1056,7 @@ impl<S: AppState> Scene<S> {
                 rows_per_image: None,
             },
         };
-        let origin = wgpu::Origin3d { x: 0, y: 0, z: 0 };
+        let origin = wgpu::Origin3d::ZERO;
         let texture_copy_view = wgpu::ImageCopyTexture {
             texture: &texture,
             mip_level: 0,
@@ -1139,7 +1133,7 @@ impl<S: AppState> Scene<S> {
         );
         println!("STL export to {:?}", path);
         let raw_instances = self.data.borrow().get_all_raw_instances(app_state);
-        let stl_bytes = stl::stl_bytes_export(raw_instances).unwrap();
+        let stl_bytes = stl::stl_bytes_export(raw_instances);
         if let Ok(mut out_file) = fs::File::create(path) {
             if out_file.write_all(&stl_bytes).is_ok() {
                 return;
@@ -1190,7 +1184,6 @@ pub enum SceneNotification {
     /// updated.
     CameraMoved,
     /// The camera is replaced by a new one.
-    #[allow(dead_code)]
     NewCamera(Vec3, Rotor3),
     /// The drawing area has been modified
     NewSize(PhySize, DrawArea),
@@ -1287,7 +1280,9 @@ impl<S: AppState> Application for Scene<S> {
                 }
             }
             Notification::ShowTorsion(_) => (),
-            Notification::ModifersChanged(modifiers) => self.controller.update_modifiers(modifiers),
+            Notification::ModifiersChanged(modifiers) => {
+                self.controller.update_modifiers(modifiers)
+            }
             Notification::Split2d => (),
             Notification::Redim2dHelices(_) => (),
             Notification::Fog(fog) => self.fog_request(fog),
@@ -1334,7 +1329,7 @@ impl<S: AppState> Application for Scene<S> {
         event: &WindowEvent,
         cursor_position: PhysicalPosition<f64>,
         app_state: &S,
-    ) -> Option<ensnano_interactor::CursorIcon> {
+    ) -> Option<CursorIcon> {
         self.element_selector
             .set_stereographic(self.is_stereographic());
         if self.is_stereographic() {
@@ -1380,7 +1375,7 @@ impl<S: AppState> Application for Scene<S> {
         self.view.borrow().get_current_pivot()
     }
 
-    fn is_splited(&self) -> bool {
+    fn is_split(&self) -> bool {
         false
     }
 }
@@ -1429,7 +1424,7 @@ pub trait AppState: Clone + 'static {
 }
 
 pub trait Requests {
-    fn update_opperation(&mut self, op: Arc<dyn Operation>);
+    fn update_operation(&mut self, op: Arc<dyn Operation>);
     fn apply_design_operation(&mut self, op: DesignOperation);
     fn set_candidate(&mut self, candidates: Vec<Selection>);
     fn set_paste_candidate(&mut self, nucl: Option<Nucl>);

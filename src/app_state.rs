@@ -24,60 +24,60 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //!
 //! Each component of ENSnano has specific needs and express them via its own `AppState` trait.
 
-use ensnano_design::{group_attributes::GroupPivot, BezierPathId};
+pub mod address_pointer;
+pub mod design_interactor;
+pub mod impl_app2d;
+pub mod impl_app3d;
+pub mod impl_gui;
+pub mod transitions;
+
+use crate::{
+    app_state::design_interactor::{
+        controller::{
+            InteractorNotification, clipboard::CopyOperation, simulations::SimulationOperation,
+        },
+        presenter::SimulationUpdate,
+    },
+    apply_update,
+    controller::{ChannelReader, LoadDesignError, SaveDesignError},
+};
+use address_pointer::AddressPointer;
+use design_interactor::{DesignInteractor, InteractorResult};
+use design_interactor::{DesignReader, controller::ErrOperation};
+use ensnano_design::{BezierPathId, Design, SavingInformation, group_attributes::GroupPivot};
 use ensnano_exports::{ExportResult, ExportType};
+use ensnano_gui::StrandBuildingStatus;
 use ensnano_iced::UiSize;
 use ensnano_interactor::{
+    ActionMode, CenterOfSelection, DesignOperation, PastingStatus, Selection, SelectionMode,
+    UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
+    app_state_parameters::{AppStateParameters, CheckXoversParameter, SuggestionParameters},
+    consts::{APP_NAME, ENS_BACKUP_EXTENSION, ENS_EXTENSION},
     graphics::{Background3D, HBondDisplay, RenderingMode},
-    UnrootedRevolutionSurfaceDescriptor,
+    operation::Operation,
 };
-use ensnano_interactor::{
-    operation::Operation, ActionMode, CenterOfSelection, CheckXoversParameter, Selection,
-    SelectionMode, WidgetBasis,
-};
-
-use std::path::PathBuf;
-use std::sync::{Arc, RwLock};
-mod address_pointer;
-mod design_interactor;
-mod transitions;
-use crate::apply_update;
-use crate::controller::{LoadDesignError, SaveDesignError, SimulationRequest};
-use address_pointer::AddressPointer;
-use ensnano_design::{Design, SavingInformation};
-use ensnano_interactor::consts::APP_NAME;
-use ensnano_interactor::{DesignOperation, RigidBodyConstants, SuggestionParameters};
 use ensnano_organizer::GroupId;
-
-pub use design_interactor::controller::ErrOperation;
-pub use design_interactor::{
-    CopyOperation, DesignReader, InteractorNotification, PastePosition, PastingStatus,
-    ShiftOptimizationResult, ShiftOptimizerReader, SimulationInterface, SimulationReader,
-    SimulationTarget, SimulationUpdate,
+use std::{
+    path::PathBuf,
+    sync::{Arc, RwLock},
 };
-use design_interactor::{DesignInteractor, InteractorResult};
-
-mod impl_app2d;
-mod impl_app3d;
-mod impl_gui;
-
-pub use transitions::{AppStateTransition, OkOperation, TransitionLabel};
+use transitions::OkOperation;
 
 /// A structure containing the global state of the program.
 ///
 /// At each event loop iteration, a new `AppState` may be created. Successive AppState are stored
 /// on an undo/redo stack.
 #[derive(Clone, PartialEq, Eq)]
-pub struct AppState(AddressPointer<AppState_>);
+pub struct AppState(pub AddressPointer<AppState_>);
 
 impl std::fmt::Debug for AppState {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         f.debug_struct("AppState").finish()
     }
 }
 
 impl std::fmt::Pointer for AppState {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         let ptr = self.0.get_ptr();
         std::fmt::Pointer::fmt(&ptr, f)
     }
@@ -88,7 +88,7 @@ impl Default for AppState {
         let mut ret = AppState(Default::default());
         log::trace!("call from default");
         // Synchronize all the pointers.
-        // This truns updated_once to true so we must set it back to false afterwards
+        // This turns updated_once to true so we must set it back to false afterwards
         ret = ret.updated();
         let mut with_forgot_update = ret.0.clone_inner();
         with_forgot_update.updated_once = false;
@@ -105,7 +105,7 @@ impl AppState {
         let mut ret = AppState(AddressPointer::new(state));
         log::trace!("call from default");
         // Synchronize all the pointers.
-        // This truns updated_once to true so we must set it back to false afterwards
+        // This turns updated_once to true so we must set it back to false afterwards
         ret = ret.updated();
         let mut with_forgot_update = ret.0.clone_inner();
         with_forgot_update.updated_once = false;
@@ -240,10 +240,8 @@ impl AppState {
 
     pub fn import_design(mut path: PathBuf) -> Result<Self, LoadDesignError> {
         let design_interactor = DesignInteractor::new_with_path(&path)?;
-        if path.extension().map(|s| s.to_string_lossy())
-            != Some(crate::consts::ENS_BACKUP_EXTENSION.into())
-        {
-            path.set_extension(crate::consts::ENS_EXTENSION);
+        if path.extension().map(|s| s.to_string_lossy()) != Some(ENS_BACKUP_EXTENSION.into()) {
+            path.set_extension(ENS_EXTENSION);
         }
         Ok(Self(AddressPointer::new(AppState_ {
             design: AddressPointer::new(design_interactor),
@@ -274,12 +272,12 @@ impl AppState {
     }
 
     pub(super) fn apply_simulation_update(&mut self, update: Box<dyn SimulationUpdate>) {
-        apply_update(self, |s| s.with_simualtion_update_applied(update))
+        apply_update(self, |s| s.with_simulation_update_applied(update))
     }
 
-    fn with_simualtion_update_applied(self, update: Box<dyn SimulationUpdate>) -> Self {
+    fn with_simulation_update_applied(self, update: Box<dyn SimulationUpdate>) -> Self {
         let mut design = self.0.design.clone_inner();
-        design = design.with_simualtion_update_applied(update);
+        design = design.with_simulation_update_applied(update);
         self.with_interactor(design)
     }
 
@@ -336,17 +334,15 @@ impl AppState {
 
     pub(super) fn start_simulation(
         &mut self,
-        parameters: RigidBodyConstants,
-        reader: &mut dyn SimulationReader,
-        target: SimulationTarget,
+        operation: SimulationOperation,
     ) -> Result<OkOperation, ErrOperation> {
-        let result = self.0.design.start_simulation(parameters, reader, target);
+        let result = self.0.design.start_simulation(operation);
         self.handle_operation_result(result)
     }
 
     pub(super) fn update_simulation(
         &mut self,
-        request: SimulationRequest,
+        request: SimulationOperation,
     ) -> Result<OkOperation, ErrOperation> {
         let result = self.0.design.update_simulation(request);
         self.handle_operation_result(result)
@@ -419,7 +415,7 @@ impl AppState {
         self.get_design_reader().export(export_path, export_type)
     }
 
-    pub fn get_selection(&self) -> impl AsRef<[Selection]> {
+    pub fn get_selection(&self) -> impl AsRef<[Selection]> + use<> {
         self.0.selection.selection.clone()
     }
 
@@ -438,9 +434,9 @@ impl AppState {
 
     pub fn with_check_xovers_parameters(
         &self,
-        check_xover_paramters: CheckXoversParameter,
+        check_xover_parameters: CheckXoversParameter,
     ) -> Self {
-        self.with_updated_parameters(|p| p.check_xover_parameters = check_xover_paramters)
+        self.with_updated_parameters(|p| p.check_xover_parameters = check_xover_parameters)
     }
 
     pub fn with_follow_stereographic_camera(&self, follow: bool) -> Self {
@@ -536,7 +532,7 @@ impl AppState {
 
     pub(super) fn optimize_shift(
         &mut self,
-        reader: &mut dyn ShiftOptimizerReader,
+        reader: &mut ChannelReader,
     ) -> Result<OkOperation, ErrOperation> {
         let result = self.0.design.optimize_shift(reader);
         self.handle_operation_result(result)
@@ -564,8 +560,7 @@ impl AppState {
             && (self.0.updated_once || other.0.updated_once)
     }
 
-    fn get_strand_building_state(&self) -> Option<crate::gui::StrandBuildingStatus> {
-        use crate::gui::StrandBuildingStatus;
+    fn get_strand_building_state(&self) -> Option<StrandBuildingStatus> {
         let builders = self.0.design.get_strand_builders();
         builders.get(0).and_then(|b| {
             let domain_id = b.get_domain_identifier();
@@ -599,7 +594,7 @@ impl AppState {
 
     pub fn set_current_group_pivot(&mut self, pivot: GroupPivot) {
         if self.0.selection.pivot.read().unwrap().is_none() {
-            log::info!("reseting selection pivot {:?}", pivot);
+            log::info!("resetting selection pivot {:?}", pivot);
             *self.0.selection.pivot.write().unwrap() = Some(pivot);
             *self.0.selection.old_pivot.write().unwrap() = Some(pivot);
             log::debug!(
@@ -662,68 +657,31 @@ impl AppState {
     }
 }
 
-use serde::{Deserialize, Serialize};
-#[derive(Clone, Serialize, Deserialize)]
-#[serde(default)] // workarround for https://github.com/rust-cli/confy/issues/34
-pub struct AppStateParameters {
-    suggestion_parameters: SuggestionParameters,
-    check_xover_parameters: CheckXoversParameter,
-    follow_stereography: bool,
-    show_stereography: bool,
-    rendering_mode: RenderingMode,
-    background3d: Background3D,
-    all_helices_on_axis: bool,
-    scroll_sensitivity: f32,
-    inverted_y_scroll: bool,
-    show_h_bonds: HBondDisplay,
-    show_bezier_paths: bool,
-    pub ui_size: UiSize,
-}
-
-impl Default for AppStateParameters {
-    fn default() -> Self {
-        Self {
-            suggestion_parameters: Default::default(),
-            check_xover_parameters: Default::default(),
-            follow_stereography: Default::default(),
-            show_stereography: Default::default(),
-            rendering_mode: Default::default(),
-            background3d: Default::default(),
-            all_helices_on_axis: false,
-            scroll_sensitivity: 0.0,
-            inverted_y_scroll: false,
-            show_h_bonds: HBondDisplay::No,
-            show_bezier_paths: false,
-            ui_size: Default::default(),
-        }
-    }
-}
-
 #[derive(Clone, Default)]
-struct AppState_ {
+pub struct AppState_ {
     /// The set of currently selected objects
-    selection: AppStateSelection,
-    /// The set of objects that are "one click away from beeing selected"
-    candidates: AddressPointer<Vec<Selection>>,
-    selection_mode: SelectionMode,
-    /// A pointer to the design currently beign edited. The pointed design is never mutatated.
+    pub selection: AppStateSelection,
+    /// The set of objects that are "one click away from being selected"
+    pub candidates: AddressPointer<Vec<Selection>>,
+    pub selection_mode: SelectionMode,
+    /// A pointer to the design currently being edited. The pointed design is never mutated.
     /// Instead, when a modification is requested, the design is cloned and the `design` pointer is
     /// replaced by a pointer to a modified `Design`.
-    design: AddressPointer<DesignInteractor>,
-    action_mode: ActionMode,
-    widget_basis: WidgetBasis,
-    strand_on_new_helix: Option<NewHelixStrand>,
-    center_of_selection: Option<CenterOfSelection>,
-    updated_once: bool,
-    parameters: AppStateParameters,
-    show_insertion_representents: bool,
-    exporting: bool,
-    path_to_current_design: Option<PathBuf>,
-    unrooted_surface: CurrentUnrootedSurface,
+    pub design: AddressPointer<DesignInteractor>,
+    pub action_mode: ActionMode,
+    pub widget_basis: WidgetBasis,
+    pub strand_on_new_helix: Option<NewHelixStrand>,
+    pub center_of_selection: Option<CenterOfSelection>,
+    pub updated_once: bool,
+    pub parameters: AppStateParameters,
+    pub show_insertion_representents: bool,
+    pub exporting: bool,
+    pub path_to_current_design: Option<PathBuf>,
+    pub unrooted_surface: CurrentUnrootedSurface,
 }
 
 #[derive(Clone, Default)]
-struct CurrentUnrootedSurface {
+pub struct CurrentUnrootedSurface {
     descriptor: Option<UnrootedRevolutionSurfaceDescriptor>,
     bezier_path_id: Option<BezierPathId>,
     area: Option<f64>,
@@ -756,7 +714,7 @@ impl AppState_ {
 }
 
 #[derive(Clone, Default)]
-struct AppStateSelection {
+pub struct AppStateSelection {
     selection: AddressPointer<Vec<Selection>>,
     selected_group: Option<ensnano_organizer::GroupId>,
     pivot: Arc<RwLock<Option<GroupPivot>>>,
@@ -764,7 +722,7 @@ struct AppStateSelection {
 }
 
 #[derive(Clone, PartialEq, Eq)]
-struct NewHelixStrand {
+pub struct NewHelixStrand {
     length: usize,
     start: isize,
 }

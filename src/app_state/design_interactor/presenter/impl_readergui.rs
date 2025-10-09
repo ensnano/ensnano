@@ -16,10 +16,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use ensnano_design::{elements::DesignElement, CameraId, Collection};
-
 use super::*;
-use crate::gui::DesignReader as ReaderGui;
+use ensnano_design::{CameraId, Collection, elements::DesignElement};
+use ensnano_gui::DesignReader as ReaderGui;
 use ensnano_interactor::InsertionPoint;
 use ultraviolet::Rotor3;
 
@@ -65,9 +64,7 @@ impl ReaderGui for DesignReader {
     }
 
     fn get_organizer_tree(&self) -> Option<Arc<ensnano_design::EnsnTree>> {
-        RollPresenter::get_design(self.presenter.as_ref())
-            .organizer_tree
-            .clone()
+        self.presenter.get_design().organizer_tree.clone()
     }
 
     fn strand_name(&self, s_id: usize) -> String {
@@ -76,7 +73,7 @@ impl ReaderGui for DesignReader {
             .strands
             .get(&s_id)
             .and_then(|s| s.name.as_ref().map(|n| n.to_string()))
-            .unwrap_or_else(|| String::from("Unamed strand"))
+            .unwrap_or_else(|| String::from("Unnamed strand"))
     }
 
     fn get_all_cameras(&self) -> Vec<(CameraId, &str)> {
@@ -89,8 +86,8 @@ impl ReaderGui for DesignReader {
             .collect()
     }
 
-    fn get_favourite_camera(&self) -> Option<CameraId> {
-        self.presenter.current_design.get_favourite_camera_id()
+    fn get_favorite_camera(&self) -> Option<CameraId> {
+        self.presenter.current_design.get_favorite_camera_id()
     }
 
     fn get_grid_position_and_orientation(&self, g_id: GridId) -> Option<(Vec3, Rotor3)> {
@@ -104,7 +101,7 @@ impl ReaderGui for DesignReader {
     fn xover_length(&self, xover_id: usize) -> Option<(f32, Option<f32>)> {
         let (n1, n2) = self.presenter.junctions_ids.get_element(xover_id)?;
         let len_self = self.presenter.get_xover_len(xover_id)?;
-        let neighbour_id = self
+        let neighbor_id = self
             .presenter
             .junctions_ids
             .get_id(&(n1.prime3(), n2.prime5()))
@@ -124,9 +121,9 @@ impl ReaderGui for DesignReader {
                     .get_id(&(n2.prime5(), n1.prime3()))
             });
 
-        let neighbour_len = neighbour_id.and_then(|id| self.presenter.get_xover_len(id));
+        let len_neighbor = neighbor_id.and_then(|id| self.presenter.get_xover_len(id));
 
-        Some((len_self, neighbour_len))
+        Some((len_self, len_neighbor))
     }
 
     fn get_id_of_xover_involving_nucl(&self, nucl: Nucl) -> Option<usize> {

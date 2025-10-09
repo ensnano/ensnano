@@ -16,9 +16,22 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use super::{NuclCollection, SimulationUpdate};
-use crate::app_state::AddressPointer;
+pub mod clipboard;
+pub mod shift_optimization;
+pub mod simulations;
+pub mod update_insertion_length;
+
+use super::SimulationUpdate;
+use crate::{
+    app_state::{AddressPointer, design_interactor::presenter::design_content::NuclCollection},
+    controller::ChannelReader,
+};
+use clipboard::{Clipboard, PastedStrand, StrandClipboard};
+use clipboard::{CopyOperation, PastePosition};
 use ensnano_design::{
+    BezierEnd, BezierPathId, BezierPlaneDescriptor, BezierVertex, BezierVertexId, CameraId,
+    Collection, CurveDescriptor, Design, Domain, DomainJunction, Helices, Helix, HelixCollection,
+    HelixInterval, Nucl, Strand, Strands, UpToDateDesign,
     drawing_style::{DrawingAttribute, DrawingStyle},
     elements::{DesignElementKey, DnaAttribute},
     grid::{
@@ -26,56 +39,36 @@ use ensnano_design::{
         HelixGridPosition, Hyperboloid,
     },
     group_attributes::GroupPivot,
-    mutate_in_arc, BezierEnd, BezierPathId, BezierPlaneDescriptor, BezierVertex, BezierVertexId,
-    CameraId, Collection, CurveDescriptor, Design, Domain, DomainJunction, Helices, Helix,
-    HelixCollection, Nucl, Strand, Strands, UpToDateDesign,
+    mutate_in_arc,
 };
 use ensnano_gui::ClipboardContent;
-pub use ensnano_interactor::PastingStatus;
+use ensnano_interactor::PastingStatus;
 use ensnano_interactor::{
+    BezierControlPoint, BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation,
+    DomainIdentifier, HyperboloidOperation, IsometryTarget, NeighborDescriptor,
+    NeighborDescriptorGiver, NewBezierTangentVector, Selection, SimulationState, StrandBuilder,
     operation::{Operation, TranslateBezierPathVertex},
-    BezierControlPoint, HyperboloidOperation, NewBezierTangentVector, SimulationState,
-};
-use ensnano_interactor::{
-    BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation, DomainIdentifier,
-    IsometryTarget, NeighbourDescriptor, NeighbourDescriptorGiver, Selection, StrandBuilder,
 };
 use ensnano_organizer::GroupId;
-use std::collections::BTreeMap;
-use std::sync::{Arc, Mutex};
-use std::{borrow::Cow, path::PathBuf};
-
-use clipboard::{PastedStrand, StrandClipboard};
-
-use self::simulations::{
+use ensnano_utils::colors;
+pub use shift_optimization::ShiftOptimizationResult;
+pub use simulations::SimulationInterface;
+use simulations::{
     GridSystemInterface, GridsSystemThread, HelixSystemInterface, HelixSystemThread,
     PhysicalSystem, RevolutionSystemInterface, RevolutionSystemThread, RollInterface,
-    TwistInterface,
+    SimulationOperation, TwistInterface,
 };
-
-use std::collections::HashMap;
-
+use std::{
+    borrow::Cow,
+    collections::{BTreeMap, HashMap},
+    path::PathBuf,
+    str::FromStr,
+    sync::{Arc, Mutex},
+};
 use ultraviolet::{Isometry2, Rotor3, Vec2, Vec3};
 
-mod clipboard;
-use clipboard::Clipboard;
-pub use clipboard::{CopyOperation, PastePosition};
-
-mod shift_optimization;
-pub use shift_optimization::{ShiftOptimizationResult, ShiftOptimizerReader};
-
-mod simulations;
-pub use simulations::{
-    GridPresenter, HelixPresenter, RigidHelixState, RollPresenter, ShakeTarget,
-    SimulationInterface, SimulationOperation, SimulationReader, TwistPresenter,
-};
-
-mod update_insertion_length;
-
-use std::str::FromStr;
-
 #[derive(Clone, Default)]
-pub(super) struct Controller {
+pub struct Controller {
     color_idx: usize,
     state: ControllerState,
     clipboard: AddressPointer<Clipboard>,
@@ -105,11 +98,11 @@ impl Controller {
         operation: DesignOperation,
     ) -> Result<(OkOperation, Self), ErrOperation> {
         log::debug!("operation {:?}", operation);
-        match self.check_compatibilty(&operation) {
+        match self.check_compatibility(&operation) {
             OperationCompatibility::Incompatible => {
                 return Err(ErrOperation::IncompatibleState(
                     self.state.state_name().into(),
-                ))
+                ));
             }
             OperationCompatibility::FinishFirst => return Err(ErrOperation::FinishFirst),
             OperationCompatibility::Compatible => (),
@@ -136,11 +129,11 @@ impl Controller {
             DesignOperation::ChangeColor { color, strands } => {
                 Ok(self.ok_apply(|c, d| c.change_color_strands(d, color, strands), design))
             }
-            DesignOperation::SetHelicesPersistance {
+            DesignOperation::SetHelicesPersistence {
                 grid_ids,
-                persistant,
+                persistent,
             } => Ok(self.ok_apply(
-                |c, d| c.set_helices_persisance(d, grid_ids, persistant),
+                |c, d| c.set_helices_persisance(d, grid_ids, persistent),
                 design,
             )),
             DesignOperation::SetSmallSpheres { grid_ids, small } => {
@@ -270,8 +263,8 @@ impl Controller {
             DesignOperation::DeleteCamera(cam_id) => {
                 self.apply(|c, d| c.delete_camera(d, cam_id), design)
             }
-            DesignOperation::SetFavouriteCamera(cam_id) => {
-                self.apply(|c, d| c.set_favourite_camera(d, cam_id), design)
+            DesignOperation::SetFavoriteCamera(cam_id) => {
+                self.apply(|c, d| c.set_favorite_camera(d, cam_id), design)
             }
             DesignOperation::UpdateCamera {
                 camera_id,
@@ -405,7 +398,7 @@ impl Controller {
 
     pub fn apply_copy_operation(
         &self,
-        up_to_date_design: UpToDateDesign<'_>,
+        up_to_date_design: UpToDateDesign,
         operation: CopyOperation,
     ) -> Result<(OkOperation, Self), ErrOperation> {
         match operation {
@@ -495,7 +488,7 @@ impl Controller {
         let mut ret = self.clone();
         match operation {
             SimulationOperation::RevolutionRelaxation { system, reader } => {
-                if self.is_in_persistant_state().is_transitory() {
+                if self.is_in_persistent_state().is_transitory() {
                     return Err(ErrOperation::IncompatibleState(
                         "Cannot launch simulation while editing".into(),
                     ));
@@ -512,7 +505,7 @@ impl Controller {
                 parameters,
                 reader,
             } => {
-                if self.is_in_persistant_state().is_transitory() {
+                if self.is_in_persistent_state().is_transitory() {
                     return Err(ErrOperation::IncompatibleState(
                         "Cannot launch simulation while editing".into(),
                     ));
@@ -528,7 +521,7 @@ impl Controller {
                 parameters,
                 reader,
             } => {
-                if self.is_in_persistant_state().is_transitory() {
+                if self.is_in_persistent_state().is_transitory() {
                     return Err(ErrOperation::IncompatibleState(
                         "Cannot launch simulation while editing".into(),
                     ));
@@ -544,7 +537,7 @@ impl Controller {
                 target_helices,
                 reader,
             } => {
-                if self.is_in_persistant_state().is_transitory() {
+                if self.is_in_persistent_state().is_transitory() {
                     return Err(ErrOperation::IncompatibleState(
                         "Cannot launch simulation while editing".into(),
                     ));
@@ -560,7 +553,7 @@ impl Controller {
                 presenter,
                 reader,
             } => {
-                if self.is_in_persistant_state().is_transitory() {
+                if self.is_in_persistent_state().is_transitory() {
                     return Err(ErrOperation::IncompatibleState(
                         "Cannot launch simulation while editing".into(),
                     ));
@@ -941,26 +934,22 @@ impl Controller {
     }
 
     pub fn can_iterate_duplication(&self) -> bool {
-        if let ControllerState::WithPendingStrandDuplication { .. } = self.state {
-            true
-        } else if let ControllerState::WithPendingXoverDuplication { .. } = self.state {
-            true
-        } else {
-            matches!(
-                self.state,
-                ControllerState::WithPendingHelicesDuplication { .. }
-            )
-        }
+        matches!(
+            self.state,
+            ControllerState::WithPendingStrandDuplication { .. }
+                | ControllerState::WithPendingXoverDuplication { .. }
+                | ControllerState::WithPendingHelicesDuplication { .. }
+        )
     }
 
-    pub(super) fn optimize_shift<Nc: NuclCollection>(
+    pub(super) fn optimize_shift(
         &self,
-        chanel_reader: &mut dyn ShiftOptimizerReader,
-        nucl_collection: Arc<Nc>,
+        chanel_reader: &mut ChannelReader,
+        nucl_collection: Arc<NuclCollection>,
         design: &Design,
     ) -> Result<(OkOperation, Self), ErrOperation> {
         if let OperationCompatibility::Incompatible =
-            self.check_compatibilty(&DesignOperation::SetScaffoldShift(0))
+            self.check_compatibility(&DesignOperation::SetScaffoldShift(0))
         {
             return Err(ErrOperation::IncompatibleState(
                 self.state.state_name().to_string(),
@@ -972,11 +961,11 @@ impl Controller {
         ))
     }
 
-    fn start_shift_optimization<Nc: NuclCollection>(
+    fn start_shift_optimization(
         &mut self,
         design: &Design,
-        chanel_reader: &mut dyn ShiftOptimizerReader,
-        nucl_collection: Arc<Nc>,
+        chanel_reader: &mut ChannelReader,
+        nucl_collection: Arc<NuclCollection>,
     ) {
         self.state = ControllerState::OptimizingScaffoldPosition;
         shift_optimization::optimize_shift(
@@ -1022,7 +1011,7 @@ impl Controller {
         new_interactor
     }
 
-    fn check_compatibilty(&self, operation: &DesignOperation) -> OperationCompatibility {
+    fn check_compatibility(&self, operation: &DesignOperation) -> OperationCompatibility {
         match self.state {
             ControllerState::Normal => OperationCompatibility::Compatible,
             ControllerState::MakingHyperboloid { .. } => {
@@ -1122,7 +1111,7 @@ impl Controller {
     }
 
     fn return_design(&self, design: Design, label: std::borrow::Cow<'static, str>) -> OkOperation {
-        if self.is_in_persistant_state().is_persistant() {
+        if self.is_in_persistent_state().is_persistent() {
             OkOperation::Push { design, label }
         } else {
             OkOperation::Replace(design)
@@ -1160,17 +1149,17 @@ impl Controller {
         }
     }
 
-    pub(super) fn is_in_persistant_state(&self) -> StatePersitance {
+    pub(super) fn is_in_persistent_state(&self) -> StatePersistence {
         match self.state {
-            ControllerState::Normal => StatePersitance::Persistant,
-            ControllerState::WithPendingOp { .. } => StatePersitance::Persistant,
-            ControllerState::WithPendingStrandDuplication { .. } => StatePersitance::Persistant,
-            ControllerState::WithPendingXoverDuplication { .. } => StatePersitance::Persistant,
-            ControllerState::WithPendingHelicesDuplication { .. } => StatePersitance::Persistant,
-            ControllerState::WithPausedSimulation { .. } => StatePersitance::NeedFinish,
-            ControllerState::SettingRollHelices { .. } => StatePersitance::NeedFinish,
-            ControllerState::ChangingStrandName { .. } => StatePersitance::NeedFinish,
-            _ => StatePersitance::Transitory,
+            ControllerState::Normal => StatePersistence::Persistent,
+            ControllerState::WithPendingOp { .. } => StatePersistence::Persistent,
+            ControllerState::WithPendingStrandDuplication { .. } => StatePersistence::Persistent,
+            ControllerState::WithPendingXoverDuplication { .. } => StatePersistence::Persistent,
+            ControllerState::WithPendingHelicesDuplication { .. } => StatePersistence::Persistent,
+            ControllerState::WithPausedSimulation { .. } => StatePersistence::NeedFinish,
+            ControllerState::SettingRollHelices { .. } => StatePersistence::NeedFinish,
+            ControllerState::ChangingStrandName { .. } => StatePersistence::NeedFinish,
+            _ => StatePersistence::Transitory,
         }
     }
 
@@ -1570,12 +1559,12 @@ impl Controller {
         }
     }
 
-    fn set_favourite_camera(
+    fn set_favorite_camera(
         &mut self,
         mut design: Design,
         id: CameraId,
     ) -> Result<Design, ErrOperation> {
-        if !design.set_favourite_camera(id) {
+        if !design.set_favorite_camera(id) {
             Err(ErrOperation::CameraDoesNotExist(id))
         } else {
             Ok(design)
@@ -1850,11 +1839,11 @@ impl Controller {
         let mut new_vectors_out = BTreeMap::new();
 
         for g_id in grid_ids.iter() {
-            if let GridId::BezierPathGrid(vertex_id) = g_id {
-                if let Some(old_vector_out) = bezier_paths.get_vector_out(*vertex_id) {
-                    let new_vector_out = old_vector_out.rotated_by(rotation);
-                    new_vectors_out.insert(vertex_id, new_vector_out);
-                }
+            if let GridId::BezierPathGrid(vertex_id) = g_id
+                && let Some(old_vector_out) = bezier_paths.get_vector_out(*vertex_id)
+            {
+                let new_vector_out = old_vector_out.rotated_by(rotation);
+                new_vectors_out.insert(vertex_id, new_vector_out);
             }
         }
 
@@ -1884,7 +1873,7 @@ impl Controller {
 /// variants of these enums indicate different ways in which the result should be handled
 pub enum OkOperation {
     /// Push the current design on the undo stack and replace it by the wrapped value. This variant
-    /// is produced when the operation has been peroformed on a non transitory design and can be
+    /// is produced when the operation has been performed on a non transitory design and can be
     /// undone.
     Push {
         design: Design,
@@ -1892,10 +1881,10 @@ pub enum OkOperation {
         label: std::borrow::Cow<'static, str>,
     },
     /// Replace the current design by the wrapped value. This variant is produced when the
-    /// operation has been peroformed on a transitory design and should not been undone.
+    /// operation has been performed on a transitory design and should not been undone.
     ///
     /// This happens for example for operations that are performed by drag and drop, where each new
-    /// mouse mouvement produce a new design. In this case, the successive design should not be
+    /// mouse movement produce a new design. In this case, the successive design should not be
     /// pushed on the undo stack, since an undo is expected to revert back to the state prior to
     /// the whole drag and drop operation.
     Replace(Design),
@@ -1919,6 +1908,8 @@ impl OkOperation {
     }
 }
 
+// Some values are only used for logging the error, which Rust considers to be unused
+#[allow(unused)]
 #[derive(Debug)]
 pub enum ErrOperation {
     GroupHasNoPivot(GroupId),
@@ -1975,23 +1966,13 @@ impl From<ensnano_design::SvgImportError> for ErrOperation {
 }
 
 impl Controller {
-    fn recolor_staples(&mut self, mut design: Design) -> Design {
-        for (s_id, strand) in design.strands.iter_mut() {
-            if Some(*s_id) != design.scaffold_id {
-                let color = crate::utils::colors::new_color(&mut self.color_idx);
-                strand.color = color;
-            }
-        }
-        design
-    }
-
     fn fancy_recolor_staples(&mut self, mut design: Design) -> Design {
         let mut drawing_styles = HashMap::<DesignElementKey, DrawingStyle>::default();
 
         if let Some(ref t) = design.organizer_tree {
             // Read drawing style -> this should be a function on its own, the exact same code is used in design-content
             let prefix = "style:"; // PREFIX SHOULD BELONG TO CONST.RS
-            let h = t.get_hashmap_to_all_groupnames_with_prefix(prefix);
+            let h = t.get_hashmap_to_all_group_names_with_prefix(prefix);
             for (e, names) in h {
                 let drawing_attributes = names
                     .iter()
@@ -2004,7 +1985,7 @@ impl Controller {
                     })
                     .flatten()
                     .collect::<Vec<DrawingAttribute>>();
-                let mut style = DrawingStyle::from(drawing_attributes);
+                let style = DrawingStyle::from(drawing_attributes);
                 drawing_styles.insert(e, style);
             }
         }
@@ -2019,9 +2000,9 @@ impl Controller {
                     .clone();
 
                 let color = if let Some(shade) = strand_style.color_shade {
-                    crate::utils::colors::random_color_with_shade(shade, strand_style.hue_range)
+                    colors::random_color_with_shade(shade, strand_style.hue_range)
                 } else {
-                    crate::utils::colors::new_color(&mut self.color_idx)
+                    colors::new_color(&mut self.color_idx)
                 };
 
                 strand.color = color;
@@ -2068,10 +2049,10 @@ impl Controller {
         &mut self,
         mut design: Design,
         grid_ids: Vec<GridId>,
-        persistant: bool,
+        persistent: bool,
     ) -> Design {
         for g_id in grid_ids.into_iter() {
-            if persistant {
+            if persistent {
                 Arc::make_mut(&mut design.no_phantoms).remove(&g_id);
             } else {
                 Arc::make_mut(&mut design.no_phantoms).insert(g_id);
@@ -2105,20 +2086,20 @@ impl Controller {
         self.update_state_and_design(&mut design);
         let mut new_helices = design.helices.make_mut();
         for (p, segment_idx) in pivots.iter() {
-            if let Some(old_pos) = nucl_pos_2d(new_helices.as_ref(), p, *segment_idx) {
-                if let Some(h) = new_helices.get_mut(&p.helix) {
-                    let position = old_pos + translation;
-                    let position = Vec2::new(position.x.round(), position.y.round());
-                    let isometry = if *segment_idx > 0 {
-                        h.additional_isometries
-                            .get_mut(segment_idx - 1)
-                            .and_then(|i| i.additional_isometry.as_mut())
-                    } else {
-                        h.isometry2d.as_mut()
-                    };
-                    if let Some(isometry) = isometry {
-                        isometry.append_translation(position - old_pos)
-                    }
+            if let Some(old_pos) = nucl_pos_2d(new_helices.as_ref(), p, *segment_idx)
+                && let Some(h) = new_helices.get_mut(&p.helix)
+            {
+                let position = old_pos + translation;
+                let position = Vec2::new(position.x.round(), position.y.round());
+                let isometry = if *segment_idx > 0 {
+                    h.additional_isometries
+                        .get_mut(segment_idx - 1)
+                        .and_then(|i| i.additional_isometry.as_mut())
+                } else {
+                    h.isometry2d.as_mut()
+                };
+                if let Some(isometry) = isometry {
+                    isometry.append_translation(position - old_pos)
                 }
             }
         }
@@ -2190,12 +2171,12 @@ impl Controller {
         };
         let mut new_helices = design.helices.make_mut();
         for h_id in helices.iter() {
-            if let Some(h) = new_helices.get_mut(h_id) {
-                if let Some(isometry) = h.isometry2d.as_mut() {
-                    isometry.append_translation(-center);
-                    isometry.append_rotation(ultraviolet::Rotor2::from_angle(angle));
-                    isometry.append_translation(center);
-                }
+            if let Some(h) = new_helices.get_mut(h_id)
+                && let Some(isometry) = h.isometry2d.as_mut()
+            {
+                isometry.append_translation(-center);
+                isometry.append_rotation(ultraviolet::Rotor2::from_angle(angle));
+                isometry.append_translation(center);
             }
         }
         drop(new_helices);
@@ -2212,8 +2193,8 @@ impl Controller {
             .iter()
             .filter_map(|nucl| {
                 design
-                    .get_neighbour_nucl(*nucl)
-                    .map(|neighbour| neighbour.identifier)
+                    .get_neighbor_nucl(*nucl)
+                    .map(|neighbor| neighbor.identifier)
             })
             .collect();
         for nucl in nucls.into_iter() {
@@ -2222,7 +2203,7 @@ impl Controller {
                     .ok_or(ErrOperation::CannotBuildOn(nucl))?,
             );
         }
-        log::info!("Ingnored domains: {:?}", ignored_domains);
+        log::info!("Ignored domains: {:?}", ignored_domains);
         self.state = ControllerState::BuildingStrand {
             builders,
             initializing: true,
@@ -2254,23 +2235,22 @@ impl Controller {
         ignored_domains: &[DomainIdentifier],
     ) -> Option<StrandBuilder> {
         let left = design
-            .get_neighbour_nucl(nucl.left())
+            .get_neighbor_nucl(nucl.left())
             .filter(|n| !ignored_domains.contains(&n.identifier));
         let right = design
-            .get_neighbour_nucl(nucl.right())
+            .get_neighbor_nucl(nucl.right())
             .filter(|n| !ignored_domains.contains(&n.identifier));
         let axis = design
             .helices
             .get(&nucl.helix)
             .map(|h| h.get_axis(&design.helix_parameters.unwrap_or_default()))?;
-        let desc = design.get_neighbour_nucl(nucl)?;
+        let desc = design.get_neighbor_nucl(nucl)?;
         let strand_id = desc.identifier.strand;
-        let filter =
-            |d: &NeighbourDescriptor| !(d.identifier.is_same_domain_than(&desc.identifier));
-        let neighbour_desc = left.filter(filter).or_else(|| right.filter(filter));
-        // stick to the neighbour if it is its direct neighbour. This is because we want don't want
-        // to create a gap between neighbouring domains
-        let stick = neighbour_desc
+        let filter = |d: &NeighborDescriptor| !(d.identifier.is_same_domain_than(&desc.identifier));
+        let neighbor_desc = left.filter(filter).or_else(|| right.filter(filter));
+        // stick to the neighbor if it is its direct neighbor. This is because we want don't want
+        // to create a gap between neighboring domains
+        let stick = neighbor_desc
             .filter(|d| {
                 (d.identifier.domain as isize - desc.identifier.domain as isize).abs() < 1
                     && d.identifier.strand == desc.identifier.strand
@@ -2293,7 +2273,7 @@ impl Controller {
                 nucl,
                 axis.to_owned(),
                 other_end,
-                neighbour_desc,
+                neighbor_desc,
                 stick,
             )),
             _ => Some(StrandBuilder::init_empty(
@@ -2304,15 +2284,15 @@ impl Controller {
                 },
                 nucl,
                 axis.to_owned(),
-                neighbour_desc,
+                neighbor_desc,
                 false,
             )),
         }
     }
 
     fn new_strand_builder(&mut self, design: &mut Design, nucl: Nucl) -> Option<StrandBuilder> {
-        let left = design.get_neighbour_nucl(nucl.left());
-        let right = design.get_neighbour_nucl(nucl.right());
+        let left = design.get_neighbor_nucl(nucl.left());
+        let right = design.get_neighbor_nucl(nucl.right());
         if left.is_some() && right.is_some() {
             return None;
         }
@@ -2336,7 +2316,7 @@ impl Controller {
 
     fn init_strand(&mut self, design: &mut Design, nucl: Nucl) -> usize {
         let s_id = design.strands.keys().max().map(|n| n + 1).unwrap_or(0);
-        let color = crate::utils::colors::new_color(&mut self.color_idx);
+        let color = colors::new_color(&mut self.color_idx);
         design.strands.insert(
             s_id,
             Strand::init(nucl.helix, nucl.position, nucl.forward, color),
@@ -2356,7 +2336,7 @@ impl Controller {
         } else {
             0
         };
-        let color = crate::utils::colors::new_color(&mut self.color_idx);
+        let color = colors::new_color(&mut self.color_idx);
         design
             .strands
             .insert(new_key, Strand::init(helix, position, forward, color));
@@ -3475,7 +3455,7 @@ fn nucl_pos_2d(helices: &Helices, nucl: &Nucl, segment: usize) -> Option<Vec2> {
         if segment > 0 {
             h.additional_isometries
                 .get(segment - 1)
-                .and_then(|i| (i.additional_isometry.or(h.isometry2d)))
+                .and_then(|i| i.additional_isometry.or(h.isometry2d))
         } else {
             h.isometry2d
         }
@@ -3778,11 +3758,12 @@ impl ControllerState {
     }
 
     fn acknowledge_new_selection(&self) -> Self {
-        if let Self::WithPendingStrandDuplication { .. } = self {
-            Self::Normal
-        } else if let Self::WithPendingXoverDuplication { .. } = self {
-            Self::Normal
-        } else if let Self::WithPendingHelicesDuplication { .. } = self {
+        if matches!(
+            self,
+            Self::WithPendingStrandDuplication { .. }
+                | Self::WithPendingXoverDuplication { .. }
+                | Self::WithPendingHelicesDuplication { .. }
+        ) {
             Self::Normal
         } else {
             self.clone()
@@ -3804,7 +3785,6 @@ pub enum InteractorNotification {
     NewSelection,
 }
 
-use ensnano_design::HelixInterval;
 /// Return the appropriate junction between two HelixInterval
 pub(super) fn junction(prime5: &HelixInterval, prime3: &HelixInterval) -> DomainJunction {
     let prime5_nucl = prime5.prime3();
@@ -3823,18 +3803,18 @@ enum OperationCompatibility {
     FinishFirst,
 }
 
-pub(super) enum StatePersitance {
-    Persistant,
+pub(super) enum StatePersistence {
+    Persistent,
     NeedFinish,
     Transitory,
 }
 
-impl StatePersitance {
-    pub fn is_persistant(&self) -> bool {
-        matches!(self, StatePersitance::Persistant)
+impl StatePersistence {
+    pub fn is_persistent(&self) -> bool {
+        matches!(self, StatePersistence::Persistent)
     }
 
     pub fn is_transitory(&self) -> bool {
-        matches!(self, StatePersitance::Transitory)
+        matches!(self, StatePersistence::Transitory)
     }
 }

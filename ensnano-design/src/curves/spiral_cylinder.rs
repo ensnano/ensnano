@@ -16,11 +16,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use crate::HelixParameters;
-
 use super::Curved;
-use std::f64::consts::{PI, TAU};
-use ultraviolet::{DRotor3, DVec3};
+use crate::HelixParameters;
+use serde::{Deserialize, Serialize};
+use std::f64::consts::TAU;
+use ultraviolet::DVec3;
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct SpiralCylinderDescriptor {
@@ -55,7 +55,7 @@ impl SpiralCylinderDescriptor {
             number_of_turns: self.number_of_turns,
             number_of_helices: self.number_of_helices,
             helix_index: self.helix_index % self.number_of_helices,
-            inter_helix_axis_gap,
+            _inter_helix_axis_gap: inter_helix_axis_gap,
             rise_per_turn,
             d_curvilinear_abscissa,
         }
@@ -77,7 +77,7 @@ pub(super) struct SpiralCylinder {
     pub number_of_turns: f64,
     pub _parameters: HelixParameters,
     pub number_of_helices: usize,
-    pub inter_helix_axis_gap: f64,
+    pub _inter_helix_axis_gap: f64,
     pub helix_index: usize,
     pub rise_per_turn: f64,          // computed by SpiralCylinderDescriptor
     pub d_curvilinear_abscissa: f64, // computed by SpiralCylinderDescriptor: derivative of the curvilinear abscissa by t

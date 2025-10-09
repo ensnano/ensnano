@@ -15,14 +15,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use super::color_picker::ColorSquare;
 use super::*;
 use ensnano_interactor::{RollRequest, SimulationState};
-use std::collections::VecDeque;
-
-const MEMORY_COLOR_ROWS: usize = 3;
-const MEMORY_COLOR_COLUMNS: usize = 8;
-const NB_MEMORY_COLOR: usize = MEMORY_COLOR_ROWS * MEMORY_COLOR_COLUMNS;
 
 mod edition_tab;
 pub use edition_tab::EditionTab;
@@ -83,7 +77,7 @@ pub trait GuiTab<State: AppState> {
 mod gostop {
     // TODO: Turn this into a widget
     use super::{AppState, Message};
-    use ensnano_iced::{helpers::*, iced, Element, Renderer, Theme};
+    use ensnano_iced::{Element, Renderer, Theme, helpers::*, iced};
 
     pub struct GoStop<State: AppState> {
         pub name: String,
@@ -106,7 +100,7 @@ mod gostop {
             &self,
             active: bool,
             running: bool,
-        ) -> Element<Message<State>, Theme, Renderer> {
+        ) -> Element<'_, Message<State>, Theme, Renderer> {
             let button_str = if running {
                 "Stop".to_owned()
             } else {

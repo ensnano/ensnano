@@ -88,7 +88,7 @@ type LayoutNodePtr = Rc<RefCell<LayoutNode>>;
 ///     use layout_manager;
 ///     let mut layout = LayoutTree::new();
 ///     let (top_bar, content_section) = layout.hsplit(0, 0.05, false);
-///     let (left_pannel, main_section) = layout.vsplit(content_section, 0.2, true);
+///     let (left_panel, main_section) = layout.vsplit(content_section, 0.2, true);
 ///
 ///
 pub struct LayoutTree {
@@ -98,8 +98,8 @@ pub struct LayoutTree {
     areas: Vec<LayoutNodePtr>,
     /// An array mapping area identifier to ElementType.
     element_types: Vec<GuiComponentType>,
-    /// A HashMap mapping element types to area identifer.
-    area_identifers: HashMap<GuiComponentType, usize>,
+    /// A HashMap mapping element types to area identifier.
+    area_identifiers: HashMap<GuiComponentType, usize>,
     /// An array mapping area to their parent node.
     parents: Vec<usize>,
 }
@@ -119,12 +119,12 @@ impl LayoutTree {
         }));
         let area = vec![Rc::clone(&root)];
         let element_type = vec![GuiComponentType::Unattributed];
-        let area_identifer = HashMap::new();
+        let area_identifiers = HashMap::new();
         Self {
             root,
             areas: area,
             element_types: element_type,
-            area_identifers: area_identifer,
+            area_identifiers,
             parents: vec![0],
         }
     }
@@ -164,7 +164,7 @@ impl LayoutTree {
         self.element_types.push(GuiComponentType::Unattributed);
         self.element_types.push(GuiComponentType::Unattributed);
         let parent_element_type = self.element_types[parent_ident];
-        self.area_identifers.remove(&parent_element_type);
+        self.area_identifiers.remove(&parent_element_type);
         self.element_types[parent_ident] = GuiComponentType::Unattributed;
         (left_ident, right_ident)
     }
@@ -205,7 +205,7 @@ impl LayoutTree {
         self.element_types.push(GuiComponentType::Unattributed);
         self.element_types.push(GuiComponentType::Unattributed);
         let parent_element_type = self.element_types[parent_ident];
-        self.area_identifers.remove(&parent_element_type);
+        self.area_identifiers.remove(&parent_element_type);
         self.element_types[parent_ident] = GuiComponentType::Unattributed;
         (top_ident, bottom_ident)
     }
@@ -214,14 +214,14 @@ impl LayoutTree {
     /// `new_leaf`.
     pub fn merge(&mut self, old_leaf: GuiComponentType, new_leaf: GuiComponentType) {
         let area_ident = *self
-            .area_identifers
+            .area_identifiers
             .get(&old_leaf)
             .expect("Try to get the area of an element that was not given one");
         let parent_ident = self.parents[area_ident];
-        let childs = self.areas[parent_ident].borrow_mut().merge(parent_ident);
-        let old_brother = self.element_types[childs.1];
-        self.area_identifers.remove(&old_leaf);
-        self.area_identifers.remove(&old_brother);
+        let (_, child2) = self.areas[parent_ident].borrow_mut().merge(parent_ident);
+        let old_brother = self.element_types[child2];
+        self.area_identifiers.remove(&old_leaf);
+        self.area_identifiers.remove(&old_brother);
         self.attribute_element(parent_ident, new_leaf);
     }
 
@@ -237,7 +237,7 @@ impl LayoutTree {
 
     /// Return the boundaries of the area attributed to an element
     pub fn get_area(&self, element: GuiComponentType) -> Option<(f64, f64, f64, f64)> {
-        let area_id = *self.area_identifers.get(&element)?;
+        let area_id = *self.area_identifiers.get(&element)?;
         match *self.areas[area_id].borrow() {
             LayoutNode::Area {
                 left,
@@ -251,15 +251,15 @@ impl LayoutTree {
     }
 
     pub fn get_area_id(&self, element: GuiComponentType) -> Option<usize> {
-        self.area_identifers.get(&element).cloned()
+        self.area_identifiers.get(&element).cloned()
     }
 
     /// Attribute an element_type to an area.
     pub fn attribute_element(&mut self, area_ident: usize, element_type: GuiComponentType) {
         let old_element = self.element_types[area_ident];
-        self.area_identifers.remove(&old_element);
+        self.area_identifiers.remove(&old_element);
         self.element_types[area_ident] = element_type;
-        self.area_identifers.insert(element_type, area_ident);
+        self.area_identifiers.insert(element_type, area_ident);
     }
 
     pub fn resize(&mut self, node_id: usize, new_prop: f64) {
@@ -692,7 +692,7 @@ impl LayoutNode {
 pub(super) enum PixelRegion {
     /// The pixel is on a region attributed to a certain element
     Element(GuiComponentType),
-    /// The pixel is on a region where clicking must resize a pannel
+    /// The pixel is on a region where clicking must resize a panel
     Resize(usize),
     /// The pixel is on a given area
     Area(usize),

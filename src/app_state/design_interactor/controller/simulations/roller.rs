@@ -19,19 +19,25 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! system on the design.
 //! The system consists of linear springs that moves the helices and torsion springs that rotates
 //! them. These springs aim at minimizing the difference between the cross-over length and the
-//! normal distance between two consectives nucleotides.
-use super::{Design, Helix, HelixParameters, Nucl, SimulationReader};
-use std::collections::{BTreeMap, HashMap};
+//! normal distance between two consecutive nucleotides.
+
+use super::{Helix, HelixParameters, Nucl};
+use crate::{
+    app_state::design_interactor::presenter::{Presenter, SimulationUpdate},
+    controller::ChannelReader,
+};
+use std::{
+    collections::HashMap,
+    f32::consts::{PI, SQRT_2},
+    sync::{Arc, Mutex, Weak},
+};
+use ultraviolet::Vec3;
 
 const MASS_HELIX: f32 = 2.;
 const K_SPRING: f32 = 1000.;
 const FRICTION: f32 = 100.;
 
 const SYNC_ROLLS_INSTEAD_OF_COPY_ROLLS: bool = false; // false is ENSnano default
-
-use std::f32::consts::{PI, SQRT_2};
-use std::sync::{Arc, Mutex, Weak};
-use ultraviolet::Vec3;
 
 /// A structure performing physical simulation on a design.
 pub struct PhysicalSystem {
@@ -42,17 +48,11 @@ pub struct PhysicalSystem {
     interface: Weak<Mutex<RollInterface>>,
 }
 
-pub trait RollPresenter {
-    fn get_helices(&self) -> BTreeMap<usize, Helix>;
-    fn get_xovers_list(&self) -> Vec<(Nucl, Nucl)>;
-    fn get_design(&self) -> &Design;
-}
-
 impl PhysicalSystem {
     pub fn start_new(
-        presenter: &dyn RollPresenter,
+        presenter: &Presenter,
         target_helices: Option<Vec<usize>>,
-        reader: &mut dyn SimulationReader,
+        reader: &mut ChannelReader,
     ) -> Arc<Mutex<RollInterface>> {
         let intervals_map = presenter.get_design().strands.get_intervals();
         let helices: Vec<Helix> = presenter.get_helices().values().cloned().collect();
@@ -75,7 +75,6 @@ impl PhysicalSystem {
             helix_map,
             xovers,
             helix_parameters,
-            intervals,
         };
         let interface = Arc::new(Mutex::new(RollInterface::default()));
         let interface_dyn: Arc<Mutex<dyn super::SimulationInterface>> = interface.clone();
@@ -366,7 +365,6 @@ pub struct DesignData {
     pub helix_map: HashMap<usize, usize>,
     pub xovers: Vec<(Nucl, Nucl)>,
     pub helix_parameters: HelixParameters,
-    pub intervals: Vec<Option<(isize, isize)>>,
 }
 
 impl DesignData {
@@ -386,7 +384,7 @@ pub struct RollInterface {
 }
 
 impl super::SimulationInterface for RollInterface {
-    fn get_simulation_state(&mut self) -> Option<Box<dyn crate::app_state::SimulationUpdate>> {
+    fn get_simulation_state(&mut self) -> Option<Box<dyn SimulationUpdate>> {
         let s = self.new_state.take()?;
         Some(Box::new(s))
     }

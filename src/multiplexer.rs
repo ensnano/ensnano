@@ -22,7 +22,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //!
 //! In addition, the multiplexer holds a [Vec] of [overlays](Overlay), which are floating regions.
 //!
-//! When an event is recieved by the window, the multiplexer is in charge of forwarding it to the
+//! When an event is received by the window, the multiplexer is in charge of forwarding it to the
 //! appropriate application, GUI component, or overlay. The multiplexer also handles some events
 //! directly, like resizing events or keyboard input that should be handled independently of the
 //! focused region.
@@ -30,10 +30,12 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //!
 //!
 //! The multiplexer is also in charge of drawing to the frame.
-use super::{Action, Requests};
-use crate::utils::texture::SampledTexture;
-use crate::PhySize;
+
+pub mod layout_manager;
+
+use crate::{PhySize, controller::Action, requests::Requests};
 use ensnano_iced::{
+    UiSize,
     iced_wgpu::wgpu,
     iced_wgpu::wgpu::Device,
     iced_winit::winit::{
@@ -42,15 +44,17 @@ use ensnano_iced::{
         keyboard::{Key, KeyLocation, ModifiersState, NamedKey},
         window::{CursorIcon, Window},
     },
-    UiSize,
 };
-use ensnano_interactor::{ActionMode, SelectionMode};
-use std::rc::Rc;
-use std::sync::{Arc, Mutex};
-
-mod layout_manager;
-use ensnano_interactor::graphics::{DrawArea, GuiComponentType, SplitMode};
+use ensnano_interactor::{
+    ActionMode, SelectionMode,
+    graphics::{DrawArea, GuiComponentType, SplitMode},
+};
+use ensnano_utils::texture::SampledTexture;
 use layout_manager::{LayoutTree, PixelRegion};
+use std::{
+    rc::Rc,
+    sync::{Arc, Mutex},
+};
 
 /// A structure that handles the division of the window into different `DrawArea`.
 ///
@@ -72,21 +76,21 @@ pub struct Multiplexer {
     scene_texture: Option<MultiplexerTexture>,
     /// The texture on which the top bar gui is rendered.
     top_bar_texture: Option<MultiplexerTexture>,
-    /// The texture on which the left pannel is rendered.
-    left_pannel_texture: Option<MultiplexerTexture>,
+    /// The texture on which the left panel is rendered.
+    left_panel_texture: Option<MultiplexerTexture>,
     /// The textures on which the overlays are rendered.
     overlays_textures: Vec<MultiplexerTexture>,
-    /// The texture on wich the grid is rendered.
+    /// The texture on which the grid is rendered.
     grid_panel_texture: Option<MultiplexerTexture>,
     /// The texture on which the stereographic scene is rendered.
     stereographic_scene_texture: Option<MultiplexerTexture>,
     /// The texture on which the status bar gui is rendered.
     status_bar_texture: Option<MultiplexerTexture>,
-    /// The texutre on which the flat scene is rendered.
+    /// The texture on which the flat scene is rendered.
     flat_scene_texture: Option<MultiplexerTexture>,
     /// The pointer to the node that separate the top bar from the scene.
     top_bar_split: usize,
-    /// The pointer to the node that separtate the status bar from the scene.
+    /// The pointer to the node that separate the status bar from the scene.
     status_bar_split: usize,
     /// The WGPU device.
     device: Rc<Device>,
@@ -103,7 +107,7 @@ pub struct Multiplexer {
     element_2d: GuiComponentType,
 }
 
-/// Maximum width of the left pannel.
+/// Maximum width of the left panel.
 const MAX_LEFT_PANEL_WIDTH: f64 = 200.;
 /// Maximum height of the status bar.
 const MAX_STATUS_BAR_HEIGHT: f64 = 56.;
@@ -111,8 +115,8 @@ const MAX_STATUS_BAR_HEIGHT: f64 = 56.;
 impl Multiplexer {
     /// Create a new multiplexer for a window with size `window_size`.
     ///
-    /// Immediately creates a _top bar_, then a _left pannel_, then a _status bar_. The remaining
-    /// aera is called the _scene._ It looks like this:
+    /// Immediately creates a _top bar_, then a _left panel_, then a _status bar_. The remaining
+    /// area is called the _scene._ It looks like this:
     ///
     /// ```text
     ///     ┌───────────────────────────┐
@@ -121,7 +125,7 @@ impl Multiplexer {
     ///     │┌────────┬────────────────┐│
     ///     ││        │┌──────────────┐││
     ///     ││  left  ││              │││
-    ///     ││ pannel ││     scene    │││
+    ///     ││  panel ││     scene    │││
     ///     ││        ││              │││
     ///     ││        │├──────────────┤││
     ///     ││        ││  status bar  │││
@@ -145,9 +149,9 @@ impl Multiplexer {
         let top_bar_split = 0;
         let (top_bar, scene) = layout.hsplit(0, top_bar_proportion, false);
 
-        // The left pannel area.
+        // The left panel area.
         let left_panel_proportion = (MAX_LEFT_PANEL_WIDTH * scale_factor / width).max(0.2);
-        let (left_pannel, scene) = layout.vsplit(scene, left_panel_proportion, true);
+        let (left_panel, scene) = layout.vsplit(scene, left_panel_proportion, true);
 
         // The status bar area.
         let scene_height = (1. - top_bar_proportion) * height;
@@ -159,7 +163,7 @@ impl Multiplexer {
         layout.attribute_element(top_bar, GuiComponentType::TopBar);
         layout.attribute_element(scene, GuiComponentType::Scene);
         layout.attribute_element(status_bar, GuiComponentType::StatusBar);
-        layout.attribute_element(left_pannel, GuiComponentType::LeftPanel);
+        layout.attribute_element(left_panel, GuiComponentType::LeftPanel);
 
         let mut ret = Self {
             window_size,
@@ -170,7 +174,7 @@ impl Multiplexer {
             scene_texture: None,
             flat_scene_texture: None,
             top_bar_texture: None,
-            left_pannel_texture: None,
+            left_panel_texture: None,
             grid_panel_texture: None,
             status_bar_texture: None,
             stereographic_scene_texture: None,
@@ -204,7 +208,7 @@ impl Multiplexer {
                 .map(|t| &t.texture.view),
             GuiComponentType::Scene => self.scene_texture.as_ref().map(|t| &t.texture.view),
             GuiComponentType::LeftPanel => {
-                self.left_pannel_texture.as_ref().map(|t| &t.texture.view)
+                self.left_panel_texture.as_ref().map(|t| &t.texture.view)
             }
             GuiComponentType::TopBar => self.top_bar_texture.as_ref().map(|t| &t.texture.view),
             GuiComponentType::Overlay(n) => Some(&self.overlays_textures[n].texture.view),
@@ -224,7 +228,7 @@ impl Multiplexer {
     fn get_texture_size(&self, element_type: GuiComponentType) -> Option<DrawArea> {
         match element_type {
             GuiComponentType::Scene => self.scene_texture.as_ref().map(|t| t.area),
-            GuiComponentType::LeftPanel => self.left_pannel_texture.as_ref().map(|t| t.area),
+            GuiComponentType::LeftPanel => self.left_panel_texture.as_ref().map(|t| t.area),
             GuiComponentType::TopBar => self.top_bar_texture.as_ref().map(|t| t.area),
             GuiComponentType::Overlay(n) => Some(self.overlays_textures[n].area),
             GuiComponentType::GridPanel => self.grid_panel_texture.as_ref().map(|t| t.area),
@@ -251,12 +255,6 @@ impl Multiplexer {
             let bg_layout = &self.top_bar_texture.as_ref().unwrap().texture.bg_layout;
             self.pipeline = Some(create_pipeline(self.device.as_ref(), bg_layout));
         }
-        let clear_color = wgpu::Color {
-            r: 0.,
-            g: 0.,
-            b: 0.,
-            a: 1.,
-        };
 
         let msaa_texture = None;
 
@@ -278,13 +276,13 @@ impl Multiplexer {
                 view: attachment,
                 resolve_target,
                 ops: wgpu::Operations {
-                    load: wgpu::LoadOp::Clear(clear_color),
+                    load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
                     store: wgpu::StoreOp::Store,
                 },
             })],
             depth_stencil_attachment: None,
-            timestamp_writes: None,    //TODO: Think of an appropriate value!
-            occlusion_query_set: None, //TODO: Think of an appropriate value!
+            timestamp_writes: None,
+            occlusion_query_set: None,
         });
         if self.window_size.width > 0 && self.window_size.height > 0 {
             for element in [
@@ -330,12 +328,7 @@ impl Multiplexer {
         match element_type {
             GuiComponentType::TopBar => &self.top_bar_texture.as_ref().unwrap().texture.bind_group,
             GuiComponentType::LeftPanel => {
-                &self
-                    .left_pannel_texture
-                    .as_ref()
-                    .unwrap()
-                    .texture
-                    .bind_group
+                &self.left_panel_texture.as_ref().unwrap().texture.bind_group
             }
             GuiComponentType::Scene => &self.scene_texture.as_ref().unwrap().texture.bind_group,
             GuiComponentType::FlatScene => {
@@ -362,8 +355,7 @@ impl Multiplexer {
 
     /// Return the drawing area attributed to an element.
     pub fn get_draw_area(&self, element_type: GuiComponentType) -> Option<DrawArea> {
-        use GuiComponentType::Overlay;
-        let (position, size) = if let Overlay(n) = element_type {
+        let (position, size) = if let GuiComponentType::Overlay(n) = element_type {
             (self.overlays[n].position, self.overlays[n].size)
         } else {
             let (left, top, right, bottom) = self.layout.get_area(element_type)?;
@@ -404,7 +396,7 @@ impl Multiplexer {
         }
     }
 
-    /// Forwards event to the elment on which they happen.
+    /// Forwards event to the element on which they happen.
     pub fn event(
         &mut self,
         mut event: WindowEvent,
@@ -514,7 +506,7 @@ impl Multiplexer {
                     PixelRegion::Resize(_) => {
                         self.state = State::Normal { mouse_position };
                         if log::log_enabled!(log::Level::Info) {
-                            log::info!("Tree after reisze");
+                            log::info!("Tree after resize");
                             self.layout.log_tree();
                         }
                     }
@@ -529,7 +521,7 @@ impl Multiplexer {
                             if matches!(self.state, State::Resizing { .. })
                                 && log::log_enabled!(log::Level::Info)
                             {
-                                log::info!("Tree after reisze");
+                                log::info!("Tree after resize");
                                 self.layout.log_tree();
                             }
                             self.state = State::Normal { mouse_position };
@@ -751,11 +743,11 @@ impl Multiplexer {
 
     pub fn resize(&mut self, window_size: PhySize, scale_factor: f64) -> bool {
         let ret = self.window_size != window_size;
-        let top_pannel_prop =
+        let top_panel_prop =
             self.ui_size.top_bar_height() * scale_factor / window_size.height as f64;
-        let scene_height = (1. - top_pannel_prop) * window_size.height as f64;
+        let scene_height = (1. - top_panel_prop) * window_size.height as f64;
         let status_bar_prop = MAX_STATUS_BAR_HEIGHT * scale_factor / scene_height;
-        self.layout.resize(self.top_bar_split, top_pannel_prop);
+        self.layout.resize(self.top_bar_split, top_panel_prop);
         self.layout
             .resize(self.status_bar_split, 1. - status_bar_prop);
         ret
@@ -771,7 +763,7 @@ impl Multiplexer {
     pub fn generate_textures(&mut self) {
         self.scene_texture = self.texture(GuiComponentType::Scene);
         self.top_bar_texture = self.texture(GuiComponentType::TopBar);
-        self.left_pannel_texture = self.texture(GuiComponentType::LeftPanel);
+        self.left_panel_texture = self.texture(GuiComponentType::LeftPanel);
         self.grid_panel_texture = self.texture(GuiComponentType::GridPanel);
         self.flat_scene_texture = self.texture(GuiComponentType::FlatScene);
         self.status_bar_texture = self.texture(GuiComponentType::StatusBar);
@@ -809,7 +801,7 @@ impl Multiplexer {
         self.get_draw_area(element)
     }
 
-    /// Return the *physical* position of the cursor, in the foccused element coordinates
+    /// Return the *physical* position of the cursor, in the focused element coordinates
     pub fn get_cursor_position(&self) -> PhysicalPosition<f64> {
         self.cursor_position
     }
@@ -951,7 +943,7 @@ fn control_key(modifiers: &ModifiersState) -> bool {
     }
 }
 
-use crate::gui::Multiplexer as GuiMultiplexer;
+use ensnano_interactor::Multiplexer as GuiMultiplexer;
 
 impl GuiMultiplexer for Multiplexer {
     fn get_draw_area(&self, element_type: GuiComponentType) -> Option<DrawArea> {
@@ -974,7 +966,7 @@ impl GuiMultiplexer for Multiplexer {
 fn keycode_to_num(key: &Key, _location: &KeyLocation) -> Option<u32> {
     match key {
         // NOTE: We make no distinction on the key location here.
-        //       Specifiy it if you need to.
+        //       Specify it if you need to.
         Key::Character(char) => match char.as_str() {
             "0" => Some(0),
             "1" => Some(1),

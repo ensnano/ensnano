@@ -133,7 +133,7 @@ impl<'a, S: AppState> EventContext<'a, S> {
     }
 
     /// Project the current cursor position on an axis
-    pub fn get_projection_on_axis(&self, axis: Axis<'_>) -> Option<isize> {
+    pub fn get_projection_on_axis(&self, axis: Axis) -> Option<isize> {
         let normalized_cursor_position = self.normalized_cursor_position();
         self.controller.view.borrow().compute_projection_axis(
             axis,

@@ -16,8 +16,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+use serde::{Deserialize, Serialize};
 use std::f64::consts::{PI, TAU};
-
 use ultraviolet::{DVec2, DVec3};
 
 const INTER_HELIX_GAP: f64 = 2.65;
@@ -39,16 +39,16 @@ impl super::Curved for SuperTwist {
     }
 
     fn t_max(&self) -> f64 {
-        if let Some(tmax) = self.t_max {
-            tmax.max(1.0)
+        if let Some(t_max) = self.t_max {
+            t_max.max(1.0)
         } else {
             1.0
         }
     }
 
     fn t_min(&self) -> f64 {
-        if let Some(tmin) = self.t_min {
-            tmin.min(0.0)
+        if let Some(t_min) = self.t_min {
+            t_min.min(0.0)
         } else {
             0.0
         }

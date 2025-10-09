@@ -22,14 +22,14 @@ use super::tabs::GuiTab;
 use super::{AppState, FactoryId, Message, RequestFactory, ScrollSensitivity, UiSize, ValueId};
 
 use ensnano_iced::{
-    fonts::{icon_to_char, MaterialIcon},
+    fonts::{MaterialIcon, icon_to_char},
     helpers::*,
     iced_aw::TabLabel,
 };
 
 pub struct ParametersTab<State: AppState> {
     scroll_sensitivity_factory: RequestFactory<ScrollSensitivity>,
-    pub invert_y_scroll: bool,
+    _invert_y_scroll: bool,
     _state_type: PhantomData<State>,
 }
 
@@ -42,7 +42,7 @@ impl<State: AppState> ParametersTab<State> {
                     initial_value: app_state.get_scroll_sensitivity(),
                 },
             ),
-            invert_y_scroll: false,
+            _invert_y_scroll: false,
             _state_type: PhantomData,
         }
     }
@@ -65,7 +65,11 @@ impl<State: AppState> GuiTab<State> for ParametersTab<State> {
         TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Settings)))
     }
 
-    fn content(&self, ui_size: UiSize, app_state: &State) -> ensnano_iced::Element<Self::Message> {
+    fn content(
+        &self,
+        ui_size: UiSize,
+        app_state: &State,
+    ) -> ensnano_iced::Element<'_, Self::Message> {
         let dna_params = &app_state.get_dna_parameters();
 
         let content = self::column![

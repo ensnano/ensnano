@@ -16,41 +16,35 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use super::*;
-use crate::scene::GridInstance;
-use ahash::RandomState;
-use cadnano_format::color;
-use chrono::format;
+mod xover_suggestions;
 
-use ensnano_design::drawing_style::{ColorType, DrawingAttribute, DrawingStyle};
-use ensnano_design::elements::{DesignElement, DesignElementKey};
-use ensnano_design::grid::{GridId, GridObject, GridPosition, HelixGridPosition};
-use ensnano_design::*;
-use ensnano_interactor::consts::{
-    BOND_RADIUS, CLONE_OPACITY, HELIX_CYLINDER_COLOR, HELIX_CYLINDER_RADIUS, SPHERE_RADIUS,
+use super::*;
+use ahash::RandomState;
+use ensnano_design::{
+    drawing_style::{ColorType, DrawingAttribute, DrawingStyle},
+    elements::{DesignElement, DesignElementKey},
+    grid::{GridData, GridId, GridObject, GridPosition, HelixGridPosition},
+    isometry3_descriptor::Isometry3MissingMethods,
+    *,
 };
 use ensnano_interactor::{
-    graphics::{LoopoutBond, LoopoutNucl},
     ObjectType,
+    consts::{
+        BOND_RADIUS, CLONE_OPACITY, HELIX_CYLINDER_COLOR, HELIX_CYLINDER_RADIUS, SPHERE_RADIUS,
+    },
+    graphics::{LoopoutBond, LoopoutNucl},
 };
-use ensnano_utils::clic_counter::ClicCounter;
+use ensnano_scene::GridInstance;
+use ensnano_utils::{click_counter::ClickCounter, colors, instance::Instance};
 use serde::Serialize;
-use std::borrow::Cow;
-use std::collections::{BTreeMap, HashMap, HashSet};
-use std::str::FromStr;
-use std::sync::Arc;
-use ultraviolet::{Rotor3, Vec3};
-
-use ensnano_design::grid::GridData;
-
-mod xover_suggestions;
-use xover_suggestions::XoverSuggestions;
-
-use ensnano_design::isometry3_descriptor::{
-    Isometry3Descriptor, Isometry3DescriptorItem, Isometry3MissingMethods,
+use std::{
+    borrow::Cow,
+    collections::{BTreeMap, HashMap, HashSet},
+    str::FromStr,
+    sync::Arc,
 };
-use ensnano_utils::colors;
-use ensnano_utils::instance::Instance;
+use ultraviolet::Vec3;
+use xover_suggestions::XoverSuggestions;
 
 const PRINTOUT_NUCL_POSITIONS: bool = false; // true;
 
@@ -60,25 +54,19 @@ pub struct NuclCollection {
     virtual_nucl_map: HashMap<VirtualNucl, Nucl, RandomState>,
 }
 
-impl super::NuclCollection for NuclCollection {
-    fn iter_nucls_ids<'a>(&'a self) -> Box<dyn Iterator<Item = (&'a Nucl, &'a u32)> + 'a> {
+impl NuclCollection {
+    pub fn iter_nucls_ids<'a>(&'a self) -> Box<dyn Iterator<Item = (&'a Nucl, &'a u32)> + 'a> {
         Box::new(self.identifier.iter())
     }
 
-    fn contains_nucl(&self, nucl: &Nucl) -> bool {
-        self.identifier.contains_key(nucl)
-    }
-
-    fn iter_nucls<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Nucl> + 'a> {
+    pub fn iter_nucls<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Nucl> + 'a> {
         Box::new(self.identifier.keys())
     }
 
-    fn virtual_to_real(&self, virtual_nucl: &VirtualNucl) -> Option<&Nucl> {
+    pub fn virtual_to_real(&self, virtual_nucl: &VirtualNucl) -> Option<&Nucl> {
         self.virtual_nucl_map.get(virtual_nucl)
     }
-}
 
-impl NuclCollection {
     pub fn get_identifier(&self, nucl: &Nucl) -> Option<&u32> {
         self.identifier.get(nucl)
     }
@@ -102,7 +90,7 @@ impl NuclCollection {
 
 #[derive(Default, Clone)]
 pub(super) struct DesignContent {
-    /// Maps identifer of elements to their object type
+    /// Maps identifier of elements to their object type
     pub object_type: HashMap<u32, ObjectType, RandomState>,
     /// Maps identifier of nucleotide to Nucleotide objects
     pub nucleotide: HashMap<u32, Nucl, RandomState>,
@@ -126,9 +114,6 @@ pub(super) struct DesignContent {
     pub color_map: HashMap<u32, u32, RandomState>,
     /// Maps the identifier of an element to its radius
     pub radius_map: HashMap<u32, f32, RandomState>,
-    /// Maps the identifier of a bond element to its helix radius (if ≠ None)
-    pub helix_radius_map: HashMap<u32, f32, RandomState>,
-    pub helix_color_map: HashMap<u32, u32, RandomState>,
     pub letter_map: Arc<HashMap<Nucl, char, RandomState>>,
     pub prime3_set: Vec<Prime3End>,
     pub elements: Vec<DesignElement>,
@@ -138,13 +123,9 @@ pub(super) struct DesignContent {
     pub loopout_bonds: Vec<LoopoutBond>,
     /// Maps bonds identifier to the length of the corresponding insertion.
     pub insertion_length: HashMap<u32, usize, RandomState>,
-    /// Maps identifiers to drawingstyles
-    pub drawing_styles: HashMap<DesignElementKey, DrawingStyle, RandomState>,
-    /// Maps identifiers to drawingstyles
     pub xover_coloring_map: HashMap<u32, bool, RandomState>,
-    pub clone_transformations: Vec<Isometry3>,
     pub with_cones_map: HashMap<u32, bool, RandomState>,
-    // min value, max value and rainow function(t, min, max)->color
+    // min value, max value and rainbow function(t, min, max)->color
     pub scalebar: Option<(f32, f32, fn(f32, f32, f32) -> u32)>,
 }
 
@@ -210,7 +191,7 @@ impl DesignContent {
         self.grid_manager.get_helix_grid_position(h_id)
     }
 
-    pub(super) fn get_grid_latice_position(&self, position: GridPosition) -> Option<Vec3> {
+    pub(super) fn get_grid_lattice_position(&self, position: GridPosition) -> Option<Vec3> {
         let grid = self.grid_manager.grids.get(&position.grid)?;
         Some(grid.position_helix(position.x, position.y))
     }
@@ -441,7 +422,7 @@ impl DesignContent {
         design: &Design,
         invisible_nucls: &HashSet<Nucl>,
     ) -> Vec<u32> {
-        let check_visiblity = |&(_, v): &(&u32, &Nucl)| {
+        let check_visibility = |&(_, v): &(&u32, &Nucl)| {
             !invisible_nucls.contains(v)
                 && design
                     .helices
@@ -451,7 +432,7 @@ impl DesignContent {
         };
         self.nucleotide
             .iter()
-            .filter(check_visiblity)
+            .filter(check_visibility)
             .map(|t| *t.0)
             .collect()
     }
@@ -489,13 +470,6 @@ impl DesignContent {
             .filter(check_visibility)
             .map(|t| *t.0)
             .collect()
-    }
-
-    /// NOT IMPLEMENTED YET
-    pub fn get_drawing_style(&self, id: u32) -> DrawingStyle {
-        println!("get_drawing_style not implemented yet!");
-        let style = DrawingStyle::default();
-        return style;
     }
 }
 
@@ -555,15 +529,13 @@ impl DesignContent {
         let mut strand_map = HashMap::default();
         let mut color_map = HashMap::default();
         let mut radius_map = HashMap::default();
-        let mut helix_radius_map = HashMap::default();
-        let mut helix_color_map = HashMap::default();
         let mut helix_map = HashMap::default();
         let mut letter_map = HashMap::default();
         let mut with_cones_map = HashMap::default();
         let mut loopout_bonds = Vec::new();
         let mut loopout_nucls = Vec::new();
-        let mut id_TMP = 0u32;
-        let mut id_clic_counter = ClicCounter::new();
+        let mut id_tmp = 0u32;
+        let mut id_click_counter = ClickCounter::new();
         let mut nucl_id;
         let mut prev_nucl: Option<Nucl> = None;
         let mut prev_nucl_id: Option<u32> = None;
@@ -572,11 +544,13 @@ impl DesignContent {
         let mut new_junctions: JunctionsIds = Default::default();
         let mut suggestion_maker = XoverSuggestions::default();
         let mut insertion_length = HashMap::default();
-        let mut drawing_styles = HashMap::default();
         let mut xover_coloring_map = HashMap::default();
-        let mut clone_transformations = Vec::new();
         let mut clone_variables: HashMap<String, f32> = HashMap::new();
         let mut scalebar: Option<(f32, f32, fn(f32, f32, f32) -> u32)> = None;
+
+        // Maps identifiers to drawing styles
+        let mut drawing_styles = HashMap::<DesignElementKey, DrawingStyle, RandomState>::default();
+        let mut clone_transformations = Vec::<Isometry3>::new();
 
         xover_ids.copy_next_id_to(&mut new_junctions);
         let rainbow_strand = design.scaffold_id.filter(|_| design.rainbow_scaffold);
@@ -586,7 +560,7 @@ impl DesignContent {
         if let Some(ref t) = design.organizer_tree {
             // Read drawing style
             let prefix = "style:"; // PREFIX SHOULD BELONG TO CONST.RS
-            let h = t.get_hashmap_to_all_groupnames_with_prefix(prefix);
+            let h = t.get_hashmap_to_all_group_names_with_prefix(prefix);
             for (e, names) in h {
                 let drawing_attributes = names
                     .iter()
@@ -599,7 +573,7 @@ impl DesignContent {
                     })
                     .flatten()
                     .collect::<Vec<DrawingAttribute>>();
-                let mut style = DrawingStyle::from(drawing_attributes);
+                let style = DrawingStyle::from(drawing_attributes);
                 drawing_styles.insert(e, style);
             }
 
@@ -663,7 +637,6 @@ impl DesignContent {
             // real strand color will be used.
             let mut rainbow_iterator = (0..rainbow_len).map(|i| {
                 let hsv = color_space::Hsv::new(i as f64 * 360. / rainbow_len as f64, 1., 1.);
-                let hsv = color_space::Hsv::new(i as f64 * 360. / rainbow_len as f64, 1., 1.);
                 let rgb = color_space::Rgb::from(hsv);
                 (0xFF << 24) | ((rgb.r as u32) << 16) | ((rgb.g as u32) << 8) | (rgb.b as u32)
                 // colors::purple_to_blue_gradient_color(i as f32 / rainbow_len as f32)
@@ -716,14 +689,10 @@ impl DesignContent {
                     }
                     // - domain style completed with grid style if there is a grid
                     if let Some(grid_position) = grid_manager.get_helix_grid_position(domain.helix)
+                        && let GridId::FreeGrid(h_id) = grid_position.grid
+                        && let Some(grid_style) = drawing_styles.get(&DesignElementKey::Grid(h_id))
                     {
-                        if let GridId::FreeGrid(h_id) = grid_position.grid {
-                            if let Some(grid_style) =
-                                drawing_styles.get(&DesignElementKey::Grid(h_id))
-                            {
-                                domain_style = domain_style.complete_with(grid_style);
-                            }
-                        }
+                        domain_style = domain_style.complete_with(grid_style);
                     }
                     // Get the drawing parameters
                     let bond_radius = domain_style.bond_radius.unwrap_or(BOND_RADIUS);
@@ -756,7 +725,12 @@ impl DesignContent {
                         if let Some(v_nucl) = virtual_nucl {
                             let previous = nucl_collection.insert_virtual(v_nucl, nucl);
                             if previous.is_some() && previous != Some(nucl) {
-                                log::error!("NUCLEOTIDE CONFLICTS: nucls {:?} and {:?} are mapped to the same virtual position {:?}", previous, nucl, v_nucl);
+                                log::error!(
+                                    "NUCLEOTIDE CONFLICTS: nucls {:?} and {:?} are mapped to the same virtual position {:?}",
+                                    previous,
+                                    nucl,
+                                    v_nucl
+                                );
                             }
                         } else {
                             log::error!("Could not get virtual nucl corresponding to {:?}", nucl);
@@ -778,15 +752,15 @@ impl DesignContent {
                                 position_prime5: prev_pos,
                                 position_prime3: position.into(),
                                 color: bond_color,
-                                repr_bond_identifier: id_TMP,
+                                repr_bond_identifier: id_tmp,
                             });
                         }
                         nucl_id = if let Some(prev_nucl) = prev_nucl {
-                            let bond_id = id_TMP;
-                            id_TMP += 1;
+                            let bond_id = id_tmp;
+                            id_tmp += 1;
                             let bond = (prev_nucl, nucl);
                             object_type
-                                .insert(bond_id, ObjectType::Bond(prev_nucl_id.unwrap(), id_TMP)); // To be overwritten by a sliced bond later
+                                .insert(bond_id, ObjectType::Bond(prev_nucl_id.unwrap(), id_tmp)); // To be overwritten by a sliced bond later
                             bond_ids_sequence.push(bond_id);
                             identifier_bond.insert(bond, bond_id);
                             nucleotides_involved.insert(bond_id, bond);
@@ -798,11 +772,11 @@ impl DesignContent {
                             if Some(false) == strand_style.with_cones {
                                 with_cones_map.insert(bond_id, false);
                             }
-                            id_TMP
+                            id_tmp
                         } else {
-                            id_TMP
+                            id_tmp
                         };
-                        id_TMP += 1;
+                        id_tmp += 1;
                         object_type.insert(nucl_id, ObjectType::Nucleotide(nucl_id));
                         nucleotide.insert(nucl_id, nucl);
                         nucl_collection.insert(nucl, nucl_id);
@@ -860,7 +834,7 @@ impl DesignContent {
                             loopout_nucls.push(LoopoutNucl {
                                 position: *pos,
                                 color,
-                                repr_bond_identifier: id_TMP,
+                                repr_bond_identifier: id_tmp,
                                 basis: basis.and_then(|b| b.clone().try_into().ok()),
                             });
                             if let Some(prev_pos) =
@@ -871,21 +845,21 @@ impl DesignContent {
                                     position_prime5: prev_pos,
                                     position_prime3: *pos,
                                     color,
-                                    repr_bond_identifier: id_TMP,
+                                    repr_bond_identifier: id_tmp,
                                 });
                             }
                             prev_loopout_pos = Some(*pos);
                             strand_position += 1;
                         }
                     }
-                    insertion_length.insert(id_TMP, *nb_nucl);
+                    insertion_length.insert(id_tmp, *nb_nucl);
                     last_xover_junction = Some(&mut strand.junctions[i]);
                 }
             }
             if strand.is_cyclic {
                 let nucl = strand.get_5prime().unwrap();
                 let prime5_id = nucl_collection.get_identifier(&nucl).unwrap();
-                let bond_id = id_TMP;
+                let bond_id = id_tmp;
                 if let Some((prev_pos, position)) =
                     prev_loopout_pos.take().zip(space_position.get(&prime5_id))
                 {
@@ -893,10 +867,10 @@ impl DesignContent {
                         position_prime5: prev_pos,
                         position_prime3: position.into(),
                         color: strand_color,
-                        repr_bond_identifier: id_TMP,
+                        repr_bond_identifier: id_tmp,
                     });
                 }
-                id_TMP += 1;
+                id_tmp += 1;
                 let bond = (prev_nucl.unwrap(), nucl);
                 object_type.insert(bond_id, ObjectType::Bond(prev_nucl_id.unwrap(), *prime5_id)); // to be overwritten by a sliced bond later
                 bond_ids_sequence.push(bond_id);
@@ -934,16 +908,16 @@ impl DesignContent {
                     });
                 }
             } else {
-                if let Some(len) = insertion_length.remove(&id_TMP) {
-                    insertion_length.insert(id_TMP - 1, len);
+                if let Some(len) = insertion_length.remove(&id_tmp) {
+                    insertion_length.insert(id_tmp - 1, len);
                     for loopout_nucl in loopout_nucls.iter_mut() {
-                        if loopout_nucl.repr_bond_identifier == id_TMP {
-                            loopout_nucl.repr_bond_identifier = id_TMP - 1;
+                        if loopout_nucl.repr_bond_identifier == id_tmp {
+                            loopout_nucl.repr_bond_identifier = id_tmp - 1;
                         }
                     }
                     for loopout_bond in loopout_bonds.iter_mut() {
-                        if loopout_bond.repr_bond_identifier == id_TMP {
-                            loopout_bond.repr_bond_identifier = id_TMP - 1;
+                        if loopout_bond.repr_bond_identifier == id_tmp {
+                            loopout_bond.repr_bond_identifier = id_tmp - 1;
                         }
                     }
                 }
@@ -1074,9 +1048,7 @@ impl DesignContent {
                     let mut i_f = f.into_iter();
                     let mut i_b = b.into_iter();
                     let mut last_f = i_f.next();
-                    let mut s_f = 0isize;
                     let mut last_b = i_b.next();
-                    let mut s_b = 0isize;
                     while !last_b.is_none() && !last_f.is_none() {
                         while let (Some(l_f), Some(l_b)) = (last_f, last_b) {
                             if l_f >= *l_b {
@@ -1091,7 +1063,7 @@ impl DesignContent {
                             last_b = i_b.next();
                         }
                         while let (Some(l_f), Some(l_b)) = (last_f, last_b) {
-                            if (l_f != *l_b) {
+                            if l_f != *l_b {
                                 break;
                             }
                             inter.push(*l_b);
@@ -1130,7 +1102,7 @@ impl DesignContent {
             }
 
             // DO NOT USE id_TMP beyond this point
-            id_clic_counter.set(id_TMP);
+            id_click_counter.set(id_tmp);
 
             // USE id_clic_counter
             let mut helix_cylinders = Vec::new();
@@ -1139,12 +1111,11 @@ impl DesignContent {
                     .get(&DesignElementKey::Helix(h))
                     .unwrap_or(&DrawingStyle::default())
                     .clone();
-                if let Some(grid_position) = grid_manager.get_helix_grid_position(h) {
-                    if let GridId::FreeGrid(h) = grid_position.grid {
-                        if let Some(grid_style) = drawing_styles.get(&DesignElementKey::Grid(h)) {
-                            helix_style = helix_style.complete_with(grid_style);
-                        }
-                    }
+                if let Some(grid_position) = grid_manager.get_helix_grid_position(h)
+                    && let GridId::FreeGrid(h) = grid_position.grid
+                    && let Some(grid_style) = drawing_styles.get(&DesignElementKey::Grid(h))
+                {
+                    helix_style = helix_style.complete_with(grid_style);
                 }
                 let radius = helix_style
                     .helix_as_cylinder_radius
@@ -1160,7 +1131,7 @@ impl DesignContent {
                             }
                         });
                 for (i, j) in a {
-                    let bond_id = id_clic_counter.next();
+                    let bond_id = id_click_counter.next();
                     let n_i = Nucl {
                         helix: h,
                         position: i,
@@ -1243,7 +1214,7 @@ impl DesignContent {
             for isometry3 in &clone_transformations {
                 let mut nucleotides_clones = HashMap::new();
                 for (nucl, nucl_id) in nucl_collection.identifier.iter() {
-                    let clone_nucl_id = id_clic_counter.next();
+                    let clone_nucl_id = id_click_counter.next();
                     nucleotides_clones.insert(nucl, clone_nucl_id);
                     let nucl_color = color_map.get(nucl_id).unwrap_or(&0);
                     let nucl_radius = radius_map.get(nucl_id).unwrap_or(&0.);
@@ -1280,7 +1251,7 @@ impl DesignContent {
                 }
                 // Cloned bonds
                 for (bond, bond_id) in &identifier_bond {
-                    let clone_bond_id = id_clic_counter.next();
+                    let clone_bond_id = id_click_counter.next();
                     let nucl_1_id = nucleotides_clones.get(&bond.0).unwrap();
                     let nucl_1 = nucleotide.get(nucl_1_id).unwrap();
                     let nucl_2_id = nucleotides_clones.get(&bond.1).unwrap();
@@ -1308,7 +1279,7 @@ impl DesignContent {
                 }
                 // Cloned cylinders
                 for bond_id in &helix_cylinders {
-                    let clone_bond_id = id_clic_counter.next();
+                    let clone_bond_id = id_click_counter.next();
                     let (nucl_1, nucl_2) = nucleotides_involved.get(bond_id).unwrap();
                     let clone_nucl_1_id = nucleotides_clones.get(nucl_1).unwrap();
                     let clone_nucl_2_id = nucleotides_clones.get(nucl_2).unwrap();
@@ -1378,8 +1349,6 @@ impl DesignContent {
             color_map,
             radius_map,
             helix_map,
-            helix_radius_map,
-            helix_color_map,
             letter_map: Arc::new(letter_map),
             prime3_set,
             elements,
@@ -1388,9 +1357,7 @@ impl DesignContent {
             loopout_bonds,
             loopout_nucls,
             insertion_length,
-            drawing_styles,
             xover_coloring_map,
-            clone_transformations,
             with_cones_map,
             scalebar,
         };
@@ -1489,54 +1456,54 @@ mod tests {
                     s.domains.len()
                 };
                 for (i, d) in s.domains.iter().enumerate().cycle().take(nb_taken) {
-                    if let Some(prime3) = d.prime5_end() {
-                        if let Some(prime5) = expected_prime5 {
-                            if prime5.prime3() == prime3 {
-                                // Expect adjacent
+                    if let Some(prime3) = d.prime5_end()
+                        && let Some(prime5) = expected_prime5
+                    {
+                        if prime5.prime3() == prime3 {
+                            // Expect adjacent
+                            if s.junctions[expected_prime5_domain.unwrap()]
+                                != DomainJunction::Adjacent
+                            {
+                                panic!(
+                                    "In test{} \n
+                                        Expected junction {:?}, got {:?}\n
+                                        junctions are {:?}",
+                                    fail_msg,
+                                    DomainJunction::Adjacent,
+                                    s.junctions[expected_prime5_domain.unwrap()],
+                                    s.junctions,
+                                );
+                            }
+                        } else {
+                            // Expect named xover
+                            if let Some(id) = xover_ids.get_id(&(prime5, prime3)) {
+                                xover_cpy.remove(id);
                                 if s.junctions[expected_prime5_domain.unwrap()]
-                                    != DomainJunction::Adjacent
+                                    != DomainJunction::IdentifiedXover(id)
                                 {
                                     panic!(
                                         "In test{} \n
                                         Expected junction {:?}, got {:?}\n
                                         junctions are {:?}",
                                         fail_msg,
-                                        DomainJunction::Adjacent,
+                                        DomainJunction::IdentifiedXover(id),
                                         s.junctions[expected_prime5_domain.unwrap()],
                                         s.junctions,
                                     );
                                 }
                             } else {
-                                // Expect named xover
-                                if let Some(id) = xover_ids.get_id(&(prime5, prime3)) {
-                                    xover_cpy.remove(id);
-                                    if s.junctions[expected_prime5_domain.unwrap()]
-                                        != DomainJunction::IdentifiedXover(id)
-                                    {
-                                        panic!(
-                                            "In test{} \n
-                                        Expected junction {:?}, got {:?}\n
-                                        junctions are {:?}",
-                                            fail_msg,
-                                            DomainJunction::IdentifiedXover(id),
-                                            s.junctions[expected_prime5_domain.unwrap()],
-                                            s.junctions,
-                                        );
-                                    }
-                                } else {
-                                    panic!(
-                                        "In test{} \n
+                                panic!(
+                                    "In test{} \n
                                         Could not find xover in xover_ids {:?}
                                         xover_ids: {:?}",
-                                        fail_msg,
-                                        (prime5, prime3),
-                                        xover_ids.get_all_elements(),
-                                    );
-                                }
+                                    fail_msg,
+                                    (prime5, prime3),
+                                    xover_ids.get_all_elements(),
+                                );
                             }
-                            if expected_prime5_domain.unwrap() >= i {
-                                break;
-                            }
+                        }
+                        if expected_prime5_domain.unwrap() >= i {
+                            break;
                         }
                     }
                     if let Some(nucl) = d.prime3_end() {

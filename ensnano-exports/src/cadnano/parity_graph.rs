@@ -66,14 +66,13 @@ fn make_graph(
 
 fn get_color_first_helix(design: &Design, father: &[usize]) -> bool {
     for h_id in 0..father.len() {
-        if father[h_id] == h_id {
-            if let Some(grid_pos) = design
+        if father[h_id] == h_id
+            && let Some(grid_pos) = design
                 .helices
                 .get(&h_id)
                 .and_then(|h| h.grid_position.as_ref())
-            {
-                return (grid_pos.x + grid_pos.y) % 2 == 0;
-            }
+        {
+            return (grid_pos.x + grid_pos.y) % 2 == 0;
         }
     }
     false

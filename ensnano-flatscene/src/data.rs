@@ -16,11 +16,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use super::{
+    AppState, Flat, HelixVec, PhantomElement, Requests, ViewPtr,
     flattypes::{FlatPosition, FlatSelection, HelixSegment},
     view::EditionInfo,
-    AppState, Flat, HelixVec, PhantomElement, Requests, ViewPtr,
 };
-use ensnano_design::{ultraviolet, Nucl};
+use ensnano_design::{Nucl, ultraviolet};
 use ensnano_interactor::{Selection, SelectionMode};
 use std::sync::{Arc, Mutex};
 use ultraviolet::Vec2;
@@ -554,7 +554,7 @@ impl<R: DesignReader> Data<R> {
         }
     }
 
-    pub fn attachable_neighbour(&self, nucl: FlatNucl) -> Option<FlatNucl> {
+    pub fn attachable_neighbor(&self, nucl: FlatNucl) -> Option<FlatNucl> {
         if self.can_cross_to(nucl, nucl.prime5()) {
             Some(nucl.prime5())
         } else if self.can_cross_to(nucl, nucl.prime3()) {
@@ -636,7 +636,9 @@ impl<R: DesignReader> Data<R> {
             .or_else(|| self.design.prime3_of(nucl2));
 
         if strand_3prime.is_none() || strand_5prime.is_none() {
-            log::error!("Problem during cross-over attempt. If you are not trying to break a cyclic strand please repport a bug");
+            log::error!(
+                "Problem during cross-over attempt. If you are not trying to break a cyclic strand please repport a bug"
+            );
         }
         (strand_5prime.unwrap(), strand_3prime.unwrap())
     }
@@ -1080,10 +1082,10 @@ impl<R: DesignReader> Data<R> {
 
     fn get_xover_nucl(&self, nucl: FlatNucl) -> Option<FlatNucl> {
         for x in self.design.get_xovers_list() {
-            if x.1 .0 == nucl {
-                return Some(x.1 .1);
-            } else if x.1 .1 == nucl {
-                return Some(x.1 .0);
+            if x.1.0 == nucl {
+                return Some(x.1.1);
+            } else if x.1.1 == nucl {
+                return Some(x.1.0);
             }
         }
         None

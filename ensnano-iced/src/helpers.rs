@@ -16,12 +16,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 pub use crate::widgets::*;
-use crate::{fonts::*, UiSize};
+use crate::{UiSize, fonts::*};
 pub use iced::widget::*;
 use iced::{
-    advanced,
+    Font, Length, advanced,
     alignment::{Alignment, Horizontal, Vertical},
-    Font, Length,
 };
 
 ///
@@ -93,7 +92,7 @@ where
 }
 
 /// Return a text widget containing the rotation arrow.
-pub fn rotation_icon<'a, Theme, Renderer>(i: usize, ui_size: UiSize) -> Text<'a, Theme, Renderer>
+fn rotation_icon<'a, Theme, Renderer>(i: usize, ui_size: UiSize) -> Text<'a, Theme, Renderer>
 where
     Theme: text::StyleSheet,
     Renderer: advanced::text::Renderer,

@@ -20,11 +20,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! object.
 
 use super::*;
-use crate::PastePosition;
-
-use ensnano_interactor::{application::Notification, HyperboloidOperation, SelectionConversion};
-
+use ensnano_interactor::{HyperboloidOperation, SelectionConversion, application::Notification};
 use std::ops::DerefMut;
+
 pub(crate) fn poll_all<R: DerefMut<Target = Requests>>(
     mut requests: R,
     main_state: &mut MainState,
@@ -61,10 +59,6 @@ pub(crate) fn poll_all<R: DerefMut<Target = Requests>>(
         main_state.change_double_strand_parameters(double_strand_parameters)
     }
 
-    if let Some(sequence) = requests.sequence_change.take() {
-        main_state.push_action(Action::ChangeSequence(sequence))
-    }
-
     if let Some(color) = requests.strand_color_change.take() {
         main_state.push_action(Action::ChangeColorStrand(color))
     }
@@ -78,7 +72,7 @@ pub(crate) fn poll_all<R: DerefMut<Target = Requests>>(
     }
 
     if let Some(b) = requests.toggle_persistent_helices.take() {
-        main_state.push_action(Action::ToggleHelicesPersistance(b))
+        main_state.push_action(Action::ToggleHelicesPersistence(b))
     }
 
     if let Some(b) = requests.small_spheres.take() {
@@ -174,17 +168,11 @@ pub(crate) fn poll_all<R: DerefMut<Target = Requests>>(
         main_state.push_action(Action::TurnIntoAnchor)
     }
 
-    if let Some(f) = requests.new_shift_hyperboloid.take() {
-        main_state.push_action(Action::UpdateHyperboloidShift(f))
-    }
-
     if let Some((s, g_id, new_group)) = requests.organizer_selection.take() {
         let selection = s.into_iter().map(|e| e.to_selection(0)).collect();
 
-        if new_group {
-            if let Some(g_id) = g_id {
-                main_state.transfer_selection_pivot_to_group(g_id);
-            }
+        if new_group && let Some(g_id) = g_id {
+            main_state.transfer_selection_pivot_to_group(g_id);
         }
 
         main_state.update_selection(selection, g_id);
@@ -221,7 +209,7 @@ pub(crate) fn poll_all<R: DerefMut<Target = Requests>>(
     }
 
     if let Some(b) = requests.toggle_visibility.take() {
-        main_state.push_action(Action::SetVisiblitySieve { compl: b })
+        main_state.push_action(Action::SetVisibilitySieve { compl: b })
     }
 
     if let Some(b) = requests.set_invert_y_scroll.take() {
@@ -316,7 +304,7 @@ pub(crate) fn poll_all<R: DerefMut<Target = Requests>>(
             )))
     }
 
-    if let Some(candidate) = requests.new_paste_candiate.take() {
+    if let Some(candidate) = requests.new_paste_candidate.take() {
         main_state
             .pending_actions
             .push_back(Action::PasteCandidate(candidate.map(PastePosition::Nucl)))

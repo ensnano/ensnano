@@ -15,11 +15,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use std::collections::{BTreeMap, BTreeSet, HashMap};
-
-use crate::HelixParameters;
 
 use super::grid::{GridDescriptor, GridTypeDescr};
+use crate::HelixParameters;
+use serde::{Deserialize, Serialize};
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 use ultraviolet::{Rotor3, Vec3};
 
 #[derive(Serialize, Deserialize)]

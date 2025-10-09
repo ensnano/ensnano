@@ -21,9 +21,6 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //         https://github.com/iced-rs/iced/discussions/1988
 //         https://github.com/fmonniot/pathfinder-wotr-editor/commit/c86fb9a5d2b77b63f284026de3c269fb798dc9ef#diff-42cb6807ad74b3e201c5a7ca98b911c5fa08380e942be6e4ac5807f8377f87fcR106-R116
 //
-// NOTE: Icon font used to be loaded by hand, but now the bootstrap icons
-//       are included in iced_aw, so we use them directly.
-//
 // NOTE: Other help from forums
 //
 //        https://github.com/BillyDM/iced_baseview/issues/39
@@ -33,7 +30,7 @@ use iced::font;
 
 pub mod material_icons;
 pub use material_icons::{
-    icon_to_char, MaterialIcon, MaterialIconStyle, MATERIAL_ICONS_DARK, MATERIAL_ICONS_LIGHT,
+    MATERIAL_ICONS_DARK, MATERIAL_ICONS_LIGHT, MaterialIcon, MaterialIconStyle, icon_to_char,
 };
 
 const ENSNANO_FONT_BYTES: &[u8] = include_bytes!("../../font/ensnano2.ttf");
@@ -41,7 +38,6 @@ const INTER_BOLD_FONT_BYTES: &[u8] = include_bytes!("../../font/Inter-Bold.ttf")
 const INTER_REGULAR_FONT_BYTES: &[u8] = include_bytes!("../../font/Inter-Regular.ttf");
 
 // NOTE: We export here all fonts used in ENSnano.
-pub use iced_aw::BOOTSTRAP_FONT;
 pub const ENSNANO_FONT: Font = Font::with_name("Ensnano");
 pub const INTER_BOLD_FONT: Font = Font {
     family: font::Family::Name("Inter"),
@@ -56,19 +52,13 @@ pub const INTER_REGULAR_FONT: Font = Font {
     stretch: font::Stretch::Normal,
 };
 
-pub use iced::{font::Error, Font};
-
-use iced::{
-    advanced,
-    widget::{text, Text},
-};
+pub use iced::{Font, font::Error};
 
 // https://rsms.me/inter
 
 /// Load custom font for ENSnano GUI.
-pub fn load_fonts(renderer: &mut impl advanced::text::Renderer) {
+pub fn load_fonts(renderer: &mut impl iced::advanced::text::Renderer) {
     let fonts = [
-        iced_aw::BOOTSTRAP_FONT_BYTES,
         material_icons::MATERIAL_ICONS_LIGHT_BYTES,
         material_icons::MATERIAL_ICONS_DARK_BYTES,
         ENSNANO_FONT_BYTES,
@@ -78,30 +68,4 @@ pub fn load_fonts(renderer: &mut impl advanced::text::Renderer) {
     for font in fonts {
         renderer.load_font(Cow::from(font));
     }
-}
-
-pub fn light_icon<'a, Theme, Renderer>(
-    icon: MaterialIcon,
-    //ui_size: UiSize,
-) -> Text<'a, Theme, Renderer>
-where
-    Theme: text::StyleSheet,
-    Renderer: advanced::Renderer + advanced::text::Renderer,
-    <Renderer as advanced::text::Renderer>::Font: From<Font>,
-{
-    text(icon_to_char(icon)).font(MATERIAL_ICONS_LIGHT)
-    //.size(ui_size.icon())
-}
-
-pub fn dark_icon<'a, Theme, Renderer>(
-    icon: MaterialIcon,
-    //ui_size: UiSize,
-) -> Text<'a, Theme, Renderer>
-where
-    Theme: text::StyleSheet,
-    Renderer: advanced::Renderer + advanced::text::Renderer,
-    <Renderer as advanced::text::Renderer>::Font: From<Font>,
-{
-    text(icon_to_char(icon)).font(MATERIAL_ICONS_DARK)
-    //.size(ui_size.icon())
 }

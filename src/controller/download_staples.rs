@@ -16,9 +16,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use super::{messages, MainState, NormalState, State, TransitionMessage};
-
-use crate::dialog;
+use super::{NormalState, State, TransitionMessage, messages};
+use crate::{MainStateView, dialog};
 use dialog::{MustAckMessage, PathInput};
 use std::path::PathBuf;
 
@@ -48,7 +47,7 @@ impl Default for Step {
 }
 
 impl State for DownloadStaples {
-    fn make_progress(self: Box<Self>, main_state: &mut dyn MainState) -> Box<dyn State> {
+    fn make_progress(self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn State> {
         let downloader = main_state.get_staple_downloader();
         match self.step {
             Step::Init => get_design_providing_staples(downloader.as_ref()),
@@ -91,15 +90,14 @@ fn get_design_providing_staples(downlader: &dyn StaplesDownloader) -> Box<dyn St
     }
 }
 
-fn ask_path(mut state: AskingPath_, main_state: &dyn MainState) -> Box<DownloadStaples> {
-    if let Some(must_ack) = state.warning_ack.as_ref() {
-        if !must_ack.was_ack() {
-            return Box::new(DownloadStaples {
-                step: Step::AskingPath(state),
-            });
-        }
-    }
-    if let Some(msg) = state.warnings.pop() {
+fn ask_path(mut state: AskingPath_, main_state: &MainStateView) -> Box<DownloadStaples> {
+    if let Some(must_ack) = state.warning_ack.as_ref()
+        && !must_ack.was_ack()
+    {
+        Box::new(DownloadStaples {
+            step: Step::AskingPath(state),
+        })
+    } else if let Some(msg) = state.warnings.pop() {
         let must_ack = dialog::blocking_message(msg.into(), rfd::MessageLevel::Warning);
         state.with_ack(must_ack)
     } else {
@@ -144,7 +142,7 @@ fn poll_path(path_input: PathInput, design_id: usize) -> Box<dyn State> {
             })
         } else {
             TransitionMessage::new(
-                messages::NO_FILE_RECIEVED_STAPLE,
+                messages::NO_FILE_RECEIVED_STAPLE,
                 rfd::MessageLevel::Error,
                 Box::new(NormalState),
             )
@@ -165,7 +163,7 @@ fn download_staples(
     path: PathBuf,
 ) -> Box<dyn State> {
     downlader.write_staples_xlsx(&path);
-    let msg = messages::successfull_staples_export_msg(&path);
+    let msg = messages::successful_staples_export_msg(&path);
     TransitionMessage::new(msg, rfd::MessageLevel::Error, Box::new(NormalState))
 }
 

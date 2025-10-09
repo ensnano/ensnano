@@ -20,8 +20,8 @@ use super::helix::{Helix, Shift};
 use super::{CameraPtr, FlatNucl};
 use ensnano_design::ultraviolet::Vec2;
 use lyon::math::Point;
-use lyon::path::path::BuilderWithAttributes;
 use lyon::path::Path;
+use lyon::path::path::BuilderWithAttributes;
 use lyon::tessellation;
 use lyon::tessellation::{StrokeVertex, StrokeVertexConstructor};
 
@@ -294,7 +294,6 @@ struct TwoCameraAndPoints<'a> {
 
 /// Return true if `a` and `b` are both visible by exactly one camera, and each camera can see
 /// exactly one of the points.
-#[allow(clippy::needless_lifetimes)]
 fn one_point_one_camera<'a>(input: TwoCameraAndPoints<'a>) -> bool {
     let a = input.point_1;
     let b = input.point_2;

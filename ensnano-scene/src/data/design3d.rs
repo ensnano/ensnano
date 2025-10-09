@@ -15,44 +15,42 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+use super::super::GridInstance;
 use super::super::maths_3d::{Basis3D, UnalignedBoundaries};
 use super::super::view::{
-    ConeInstance, Ellipsoid, Instanciable, RawDnaInstance, Sheet2D, SlicedTubeInstance,
+    ConeInstance, Ellipsoid, Instantiable, RawDnaInstance, Sheet2D, SlicedTubeInstance,
     SphereInstance, TubeInstance, TubeLidInstance,
 };
-use super::super::GridInstance;
-use super::{ultraviolet, LetterInstance, SceneElement};
+use super::{LetterInstance, SceneElement, ultraviolet};
 use crate::rotor_utils::SafeRotor;
 use crate::sausage_rosary::SausageRosary;
 use crate::view::PlainRectangleInstance;
 use ensnano_design::grid::{GridId, GridObject, GridPosition};
-use ensnano_design::{grid::HelixGridPosition, Nucl};
 use ensnano_design::{
-    perpendicular_basis, AdditionalStructure, BezierPathId, BezierPlaneDescriptor, BezierPlaneId,
-    BezierVertex, Collection, CubicBezierConstructor, CurveDescriptor, External3DObjects,
-    HelixParameters, InstanciatedPath,
+    AdditionalStructure, BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex,
+    Collection, CubicBezierConstructor, CurveDescriptor, External3DObjects, HelixParameters,
+    InstanciatedPath,
 };
+use ensnano_design::{Nucl, grid::HelixGridPosition};
 pub use ensnano_design::{SurfaceInfo, SurfacePoint};
 use ensnano_interactor::consts::*;
 use ensnano_interactor::{
+    BezierControlPoint, ObjectType, PHANTOM_RANGE, PhantomElement, Referential,
     graphics::{LoopoutBond, LoopoutNucl},
-    phantom_helix_encoder_bond, phantom_helix_encoder_nucl, BezierControlPoint, ObjectType,
-    PhantomElement, Referential, PHANTOM_RANGE,
+    phantom_helix_encoder_bond, phantom_helix_encoder_nucl,
 };
-use ensnano_utils::colors::{self, new_color, purple_to_blue_gradient_color};
+use ensnano_utils::colors;
 use ensnano_utils::instance::Instance;
 use std::collections::hash_map::RandomState;
 use std::collections::{BTreeMap, HashMap, HashSet};
-use std::f32::consts::{PI, TAU};
-use std::iter::Zip;
+use std::f32::consts::TAU;
 use std::rc::Rc;
 use std::sync::Arc;
-use ultraviolet::{Mat4, Rotor3, Vec2, Vec3, Vec4};
+use ultraviolet::{Mat4, Rotor3, Vec2, Vec3};
 
 mod bezier_paths;
 
 use crate::SceneElement::DesignElement;
-use serde::{Deserialize, Serialize};
 
 use ensnano_utils::StrandNucleotidesPositions;
 
@@ -183,33 +181,33 @@ impl<R: DesignReader> Design3D<R> {
         for id in ids {
             let pos = self.design_reader.get_symbol_position(id);
             let symbol = self.design_reader.get_symbol(id);
-            if let Some((pos, symbol)) = pos.zip(symbol) {
-                if let Some(id) = self.symbol_map.get(&symbol) {
+            if let Some(pos) = pos
+                && let Some(symbol) = symbol
+                && let Some(id) = self.symbol_map.get(&symbol)
+            {
+                let instance = LetterInstance {
+                    position: pos,
+                    color: ultraviolet::Vec4::new(0., 0., 0., 1.),
+                    design_id: self.id,
+                    scale: 1.,
+                    shift: Vec3::zero(),
+                };
+                vecs[*id].push(instance);
+            }
+        }
+        if !show_insertion_representents {
+            for loopout_nucl in self.design_reader.get_all_loopout_nucl() {
+                if let Some(symbol) = loopout_nucl.basis
+                    && let Some(id) = self.symbol_map.get(&symbol)
+                {
                     let instance = LetterInstance {
-                        position: pos,
+                        position: loopout_nucl.position,
                         color: ultraviolet::Vec4::new(0., 0., 0., 1.),
                         design_id: self.id,
                         scale: 1.,
                         shift: Vec3::zero(),
                     };
                     vecs[*id].push(instance);
-                }
-            }
-        }
-        if !show_insertion_representents {
-            for loopout_nucl in self.design_reader.get_all_loopout_nucl() {
-                if let Some(symbol) = loopout_nucl.basis {
-                    let pos = loopout_nucl.position;
-                    if let Some(id) = self.symbol_map.get(&symbol) {
-                        let instance = LetterInstance {
-                            position: pos,
-                            color: ultraviolet::Vec4::new(0., 0., 0., 1.),
-                            design_id: self.id,
-                            scale: 1.,
-                            shift: Vec3::zero(),
-                        };
-                        vecs[*id].push(instance);
-                    }
                 }
             }
         }
@@ -296,26 +294,24 @@ impl<R: DesignReader> Design3D<R> {
 
         if let Some(additional_structure) = self.design_reader.get_additional_structure() {
             let transformation = additional_structure.frame();
-            if draw_helices {
-                if let Some(path) = additional_structure.nt_paths() {
-                    let mut color_idx = 0;
-                    for positions in path {
-                        let color = colors::new_color(&mut color_idx);
-                        let positions = positions
-                            .into_iter()
-                            .map(|p| transformation.transform_vec(p))
-                            .collect();
-                        let (sliced_tubes, _) = SausageRosary {
-                            positions,
-                            is_cyclic: true,
-                        }
-                        .to_raw_dna_instances(
-                            { |_| color },
-                            2. * SPHERE_RADIUS,
-                            u32::MAX,
-                        );
-                        ret.extend(sliced_tubes.into_iter().map(|s| s.to_raw_instance()));
+            if draw_helices && let Some(path) = additional_structure.nt_paths() {
+                let mut color_idx = 0;
+                for positions in path {
+                    let color = colors::new_color(&mut color_idx);
+                    let positions = positions
+                        .into_iter()
+                        .map(|p| transformation.transform_vec(p))
+                        .collect();
+                    let (sliced_tubes, _) = SausageRosary {
+                        positions,
+                        is_cyclic: true,
                     }
+                    .to_raw_dna_instances(
+                        |_| color,
+                        2. * SPHERE_RADIUS,
+                        u32::MAX,
+                    );
+                    ret.extend(sliced_tubes.into_iter().map(|s| s.to_raw_instance()));
                 }
             }
 
@@ -341,12 +337,12 @@ impl<R: DesignReader> Design3D<R> {
             }
 
             // Draw section links in helix routing relaxation -> TO BE REPLACED BY SPRINGS WITH A CONSTANT NUMBER OF COILS
-            let NB_COILS = 10;
-            let NB_STEPS = 10 * NB_COILS;
-            let SPRING_RADIUS = 2. * SPHERE_RADIUS;
-            let SPRING_THICKNESS = SPRING_RADIUS / 4.;
-            let MIN_SPRING_LENGTH = 2.65 / 1.5;
-            let MAX_SPRING_LENGTH = 2.65 * 1.5;
+            const NB_COILS: usize = 10;
+            const NB_STEPS: usize = 10 * NB_COILS;
+            const SPRING_RADIUS: f32 = 2. * SPHERE_RADIUS;
+            const SPRING_THICKNESS: f32 = SPRING_RADIUS / 4.;
+            const MIN_SPRING_LENGTH: f32 = 2.65 / 1.5;
+            const MAX_SPRING_LENGTH: f32 = 2.65 * 1.5;
             let alpha = NB_COILS as f32 * TAU / NB_STEPS as f32;
             let xx = (0..NB_COILS)
                 .map(|i| SPRING_RADIUS * (i as f32 * alpha).cos())
@@ -373,10 +369,10 @@ impl<R: DesignReader> Design3D<R> {
                     let x_vec = y_vec.cross(z_vec);
                     let positions = (0..NB_STEPS)
                         .map(|i| {
-                            (pos_left
+                            pos_left
                                 + i as f32 / NB_STEPS as f32 * uv
                                 + xx[i % NB_COILS] * x_vec
-                                + yy[i % NB_COILS] * y_vec)
+                                + yy[i % NB_COILS] * y_vec
                         })
                         .collect();
                     let color = ensnano_utils::colors::purple_to_blue_gradient_color_in_range(
@@ -389,7 +385,7 @@ impl<R: DesignReader> Design3D<R> {
                         is_cyclic: false,
                     }
                     .to_raw_dna_instances(
-                        { |_| color },
+                        |_| color,
                         SPRING_THICKNESS,
                         u32::MAX,
                     );
@@ -464,7 +460,7 @@ impl<R: DesignReader> Design3D<R> {
         &self,
         id: u32,
         color: u32,
-        mut radius: f32,
+        radius: f32,
         expand_with: Option<ExpandWith>,
     ) -> Vec<RawDnaInstance> {
         let kind = self.get_object_type(id);
@@ -474,7 +470,7 @@ impl<R: DesignReader> Design3D<R> {
             || self.design_reader.get_insertion_length(id) == 0
             || matches!(kind, Some(ObjectType::Nucleotide(_)))
         {
-            let instanciables = match kind {
+            let instantiables = match kind {
                 Some(ObjectType::Bond(id1, id2)) => {
                     let pos1 = self
                         .get_graphic_element_position(&SceneElement::DesignElement(self.id, id1))
@@ -483,9 +479,11 @@ impl<R: DesignReader> Design3D<R> {
                         .get_graphic_element_position(&SceneElement::DesignElement(self.id, id2))
                         .unwrap_or(f32::NAN * Vec3::unit_x());
                     let id = id | self.id << 24;
-                    vec![create_dna_bond(pos1, pos2, color, id, true)
-                        .with_radius(radius)
-                        .to_raw_instance()]
+                    vec![
+                        create_dna_bond(pos1, pos2, color, id, true)
+                            .with_radius(radius)
+                            .to_raw_instance(),
+                    ]
                 }
                 Some(ObjectType::HelixCylinder(id1, id2)) => {
                     let pos1 = self
@@ -519,17 +517,19 @@ impl<R: DesignReader> Design3D<R> {
                     //     radius *= 2.5;
                     // }
                     // radius = if small { radius / 3.5 } else { radius };
-                    vec![SphereInstance {
-                        position,
-                        radius,
-                        color,
-                        id,
-                    }
-                    .to_raw_instance()]
+                    vec![
+                        SphereInstance {
+                            position,
+                            radius,
+                            color,
+                            id,
+                        }
+                        .to_raw_instance(),
+                    ]
                 }
                 _ => vec![],
             };
-            ret.extend(instanciables.iter());
+            ret.extend(instantiables.iter());
         }
         if let Some(ExpandWith::Tubes) = expand_with {
             for loopout_bond in self
@@ -1157,7 +1157,7 @@ impl<R: DesignReader> Design3D<R> {
             }
             SceneElement::Grid(_, g_id) => self.design_reader.get_grid_position(*g_id),
             SceneElement::GridCircle(_, position) => {
-                self.design_reader.get_grid_latice_position(*position)
+                self.design_reader.get_grid_lattice_position(*position)
             }
             SceneElement::BezierVertex { path_id, vertex_id } => {
                 self.get_bezier_vertex_position(*path_id, *vertex_id)
@@ -1594,19 +1594,6 @@ impl<R: DesignReader> Design3D<R> {
         prime5_1.and(prime5_2).is_some()
     }
 
-    #[allow(dead_code)]
-    pub fn get_all_prime3_cone(&self) -> Vec<RawDnaInstance> {
-        if self.all_helices_on_axis {
-            return vec![];
-        }
-        let cones = self.design_reader.get_all_prime3_nucl();
-        let mut ret = Vec::with_capacity(cones.len());
-        for c in cones {
-            ret.push(create_prime3_cone(c.0, c.1, c.2, 1.));
-        }
-        ret
-    }
-
     pub fn get_surface_info_nucl(&self, nucl: Nucl) -> Option<SurfaceInfo> {
         self.design_reader.get_surface_info_nucl(nucl)
     }
@@ -1767,7 +1754,7 @@ pub trait DesignReader: 'static + ensnano_interactor::DesignReader {
     ) -> Option<Vec3>;
     fn get_object_type(&self, id: u32) -> Option<ObjectType>;
     fn get_grid_position(&self, g_id: GridId) -> Option<Vec3>;
-    fn get_grid_latice_position(&self, position: GridPosition) -> Option<Vec3>;
+    fn get_grid_lattice_position(&self, position: GridPosition) -> Option<Vec3>;
     fn get_element_position(&self, e_id: u32, referential: Referential) -> Option<Vec3>;
     fn get_element_axis_position(&self, id: u32, referential: Referential) -> Option<Vec3>;
     fn get_element_graphic_position(&self, id: u32, referential: Referential) -> Option<Vec3>;

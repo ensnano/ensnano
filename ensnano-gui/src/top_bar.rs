@@ -25,12 +25,12 @@ use super::{AppState, TopBarState};
 // NOTE: I would like to rename AppState to ApplicationState, and name AppState the structures that
 //       implement it.
 use ensnano_iced::{
+    UiSize,
     fonts::{MaterialIcon, MaterialIconStyle},
     helpers::*,
     iced::{self, Element, Length, Padding},
     iced_runtime::{Command, Program},
     iced_winit::winit::dpi::LogicalSize,
-    UiSize,
 };
 use ensnano_interactor::{ActionMode, SelectionMode};
 use std::sync::{Arc, Mutex};
@@ -304,7 +304,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
 
         // WARN: More tricky than expected: in 3D and 2D button we will need to get the current
         //       split mode, but it is defined in Multiplexer and not directly accessible. Need
-        //       to find an elegent way to do this.
+        //       to find an elegant way to do this.
 
         let button_split = tooltip(
             text_button("3D+2D", self.ui_size).on_press(Message::ToggleView(SplitMode::Both)),
@@ -315,7 +315,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
 
         let button_split_2d = tooltip(
             material_icon_button(
-                if self.state.splited_2d {
+                if self.state.is_split_2d {
                     MaterialIcon::BorderOuter
                 } else {
                     MaterialIcon::BorderHorizontal
@@ -343,7 +343,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
                 MaterialIconStyle::Light,
                 self.ui_size,
             )
-            .on_press_maybe(self.state.splited_2d.then_some(Message::FlipSplitViews)),
+            .on_press_maybe(self.state.is_split_2d.then_some(Message::FlipSplitViews)),
             "Swap flat views",
             tooltip::Position::FollowCursor,
         )
@@ -400,13 +400,18 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
         let action_mode_buttons: Vec<Element<'_, _, _, _>> = action_modes_to_display
             .iter()
             .map(|mode| {
-                action_mode_btn(
-                    mode,
-                    self.app_state.get_action_mode(),
-                    self.ui_size.button(),
-                    self.app_state.get_widget_basis().is_axis_aligned(),
-                    self.ui_size,
+                tooltip(
+                    action_mode_btn(
+                        mode,
+                        self.app_state.get_action_mode(),
+                        self.ui_size.button(),
+                        self.app_state.get_widget_basis().is_axis_aligned(),
+                        self.ui_size,
+                    ),
+                    mode.tooltip_description(),
+                    tooltip::Position::FollowCursor,
                 )
+                .style(theme::Container::Box)
                 .into()
             })
             .collect();
@@ -422,7 +427,13 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
             .iter()
             .filter(|mode| selection_modes_to_display.contains(mode))
             .map(|mode| {
-                selection_mode_btn(mode, self.app_state.get_selection_mode(), self.ui_size).into()
+                tooltip(
+                    selection_mode_btn(mode, self.app_state.get_selection_mode(), self.ui_size),
+                    mode.tooltip_description(),
+                    tooltip::Position::FollowCursor,
+                )
+                .style(theme::Container::Box)
+                .into()
             })
             .collect();
 
