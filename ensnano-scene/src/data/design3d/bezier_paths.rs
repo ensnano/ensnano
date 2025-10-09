@@ -204,7 +204,7 @@ struct SheetDescriptor<'a> {
     axis_position: Option<f64>,
 }
 
-fn get_sheet_instance(desc: SheetDescriptor<'_>) -> Sheet2D {
+fn get_sheet_instance(desc: SheetDescriptor) -> Sheet2D {
     let helix_parameters = &desc.helix_parameters;
     let grad_step = 48.0 * helix_parameters.rise;
     let delta_corners = grad_step / 5.;
@@ -233,7 +233,7 @@ fn get_sheet_instance(desc: SheetDescriptor<'_>) -> Sheet2D {
 }
 
 /// Returns a sphere representing the corner of a bezier sheet
-fn sheet_corner_instance(corner_desc: BezierSheetCornerDesc<'_>) -> RawDnaInstance {
+fn sheet_corner_instance(corner_desc: BezierSheetCornerDesc) -> RawDnaInstance {
     let position = corner_desc
         .sheet
         .space_position_of_point2d(corner_desc.corner_position);
@@ -295,7 +295,7 @@ struct RawDnaInstances<'a> {
 
 fn add_raw_instances_representing_bezier_vertex(
     vertex: BezierVertex,
-    mut instances: RawDnaInstances<'_>,
+    mut instances: RawDnaInstances,
     selection: &[Selection],
 ) {
     let tubes = &mut instances.tubes;

@@ -114,7 +114,7 @@ pub struct CurveDescriptorBuilder<S: AppState> {
 
 use std::fmt;
 impl<S: AppState> fmt::Debug for CurveDescriptorBuilder<S> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.debug_struct("CurveDecriptorBuilder")
             .field("curve_name", &self.curve_name)
             .finish()

@@ -466,7 +466,7 @@ impl Default for SelectionMode {
 }
 
 impl std::fmt::Display for SelectionMode {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(
             f,
             "{}",
@@ -527,7 +527,7 @@ impl Default for ActionMode {
 }
 
 impl std::fmt::Display for ActionMode {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(
             f,
             "{}",

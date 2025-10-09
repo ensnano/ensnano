@@ -302,7 +302,7 @@ const ALL_FOG_CHOICES: &'static [FogChoices] = &[
 ];
 
 impl std::fmt::Display for FogChoices {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         let ret = match self {
             Self::None => "None",
             Self::FromCamera => "From Camera",

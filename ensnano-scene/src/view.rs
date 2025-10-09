@@ -1091,7 +1091,7 @@ impl View {
 
     pub fn compute_projection_axis(
         &self,
-        axis: Axis<'_>,
+        axis: Axis,
         mouse_x: f64,
         mouse_y: f64,
         initial_position: Option<Vec3>,

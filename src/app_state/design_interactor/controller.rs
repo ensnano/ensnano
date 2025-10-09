@@ -398,7 +398,7 @@ impl Controller {
 
     pub fn apply_copy_operation(
         &self,
-        up_to_date_design: UpToDateDesign<'_>,
+        up_to_date_design: UpToDateDesign,
         operation: CopyOperation,
     ) -> Result<(OkOperation, Self), ErrOperation> {
         match operation {

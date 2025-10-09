@@ -1432,7 +1432,7 @@ pub(super) struct InstanciatedCurve {
 }
 
 impl std::fmt::Debug for InstanciatedCurve {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         f.debug_struct("InstanciatedCurve")
             .field("source", &Arc::as_ptr(&self.source))
             .finish()

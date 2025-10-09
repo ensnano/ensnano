@@ -93,7 +93,7 @@ where
         &mut self,
         tree: &mut widget::Tree,
         event: event::Event,
-        layout: Layout<'_>,
+        layout: Layout,
         cursor_position: mouse::Cursor,
         renderer: &Renderer,
         clipboard: &mut dyn Clipboard,
@@ -133,7 +133,7 @@ where
         renderer: &mut Renderer,
         theme: &Theme,
         style: &renderer::Style,
-        layout: layout::Layout<'_>,
+        layout: layout::Layout,
         cursor_position: mouse::Cursor,
         viewport: &Rectangle,
     ) {
@@ -151,7 +151,7 @@ where
     fn overlay<'b>(
         &'b mut self,
         tree: &'b mut widget::Tree,
-        layout: Layout<'_>,
+        layout: Layout,
         renderer: &Renderer,
         translation: Vector,
     ) -> Option<overlay::Element<'b, OrganizerMessage<E>, Theme, Renderer>> {

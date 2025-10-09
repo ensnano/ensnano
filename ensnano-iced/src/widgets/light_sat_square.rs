@@ -115,7 +115,7 @@ where
         renderer: &mut crate::Renderer,
         _theme: &Theme,
         _style: &Style,
-        layout: Layout<'_>,
+        layout: Layout,
         _cursor: Cursor,
         _viewport: &Rectangle,
     ) {
@@ -170,7 +170,7 @@ where
         &mut self,
         tree: &mut widget::Tree,
         event: event::Event,
-        layout: Layout<'_>,
+        layout: Layout,
         cursor: Cursor,
         _renderer: &crate::Renderer,
         _clipboard: &mut dyn Clipboard,

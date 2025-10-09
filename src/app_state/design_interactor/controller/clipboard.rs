@@ -155,7 +155,7 @@ impl Controller {
 
     pub fn set_templates(
         &mut self,
-        data: &UpToDateDesign<'_>,
+        data: &UpToDateDesign,
         strand_ids: Vec<usize>,
     ) -> Result<(), ErrOperation> {
         let mut templates = Vec::with_capacity(strand_ids.len());
@@ -329,7 +329,7 @@ impl Controller {
 
     pub(super) fn position_strand_copies(
         &mut self,
-        data: &mut MutStrandAndData<'_>,
+        data: &mut MutStrandAndData,
         nucl: Option<Nucl>,
     ) -> Result<(), ErrOperation> {
         let strand_clipboard = if let Clipboard::Strands(clipboard) = self.clipboard.as_ref() {
@@ -354,7 +354,7 @@ impl Controller {
         &self,
         clipboard: &StrandClipboard,
         nucl: Nucl,
-        data: &mut MutStrandAndData<'_>,
+        data: &mut MutStrandAndData,
     ) -> Result<(Vec<PastedStrand>, Option<(Edge, isize)>), ErrOperation> {
         let mut duplication_edge = None;
         let template_0 = clipboard

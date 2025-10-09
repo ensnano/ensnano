@@ -47,7 +47,7 @@ impl Default for RenderingMode {
 }
 
 impl std::fmt::Display for RenderingMode {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         let ret = match self {
             Self::Normal => "Normal",
             Self::Cartoon => "Cartoon",
@@ -73,7 +73,7 @@ impl Default for Background3D {
 }
 
 impl std::fmt::Display for Background3D {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         let ret = match self {
             Self::White => "White",
             Self::Sky => "Sky",
@@ -96,7 +96,7 @@ impl Default for HBondDisplay {
 }
 
 impl std::fmt::Display for HBondDisplay {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         let ret = match self {
             Self::No => "No",
             Self::Stick => "Sticks",

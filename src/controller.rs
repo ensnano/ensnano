@@ -186,7 +186,7 @@ pub enum LoadDesignError {
 }
 
 impl std::fmt::Display for LoadDesignError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
             Self::JsonError(e) => write!(f, "Json error: {e}"),
             Self::ScadnanoImportError(e) => {

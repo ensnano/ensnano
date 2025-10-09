@@ -406,7 +406,7 @@ fn zero_f64() -> f64 {
 }
 
 impl fmt::Debug for Helix {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.debug_tuple("").field(&self.position).finish()
     }
 }

@@ -71,13 +71,13 @@ use transitions::OkOperation;
 pub struct AppState(pub AddressPointer<AppState_>);
 
 impl std::fmt::Debug for AppState {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         f.debug_struct("AppState").finish()
     }
 }
 
 impl std::fmt::Pointer for AppState {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         let ptr = self.0.get_ptr();
         std::fmt::Pointer::fmt(&ptr, f)
     }

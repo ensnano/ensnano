@@ -122,7 +122,7 @@ where
         &mut self,
         tree: &mut widget::Tree,
         event: event::Event,
-        layout: Layout<'_>,
+        layout: Layout,
         cursor_position: mouse::Cursor,
         renderer: &Renderer,
         clipboard: &mut dyn Clipboard,
@@ -275,7 +275,7 @@ where
         renderer: &mut Renderer,
         theme: &Theme,
         style: &renderer::Style,
-        layout: Layout<'_>,
+        layout: Layout,
         cursor_position: mouse::Cursor,
         _viewport: &Rectangle,
     ) {
@@ -296,7 +296,7 @@ where
     fn mouse_interaction(
         &self,
         tree: &widget::Tree,
-        layout: Layout<'_>,
+        layout: Layout,
         cursor_position: mouse::Cursor,
         viewport: &Rectangle,
         renderer: &Renderer,
@@ -313,7 +313,7 @@ where
     fn overlay<'b>(
         &'b mut self,
         tree: &'b mut widget::Tree,
-        layout: Layout<'_>,
+        layout: Layout,
         renderer: &Renderer,
         translation: Vector,
     ) -> Option<overlay::Element<'b, Message, Theme, Renderer>> {
