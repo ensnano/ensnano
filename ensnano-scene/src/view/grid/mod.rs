@@ -284,11 +284,11 @@ impl GridManager {
         let mut ret = None;
         let mut depth = std::f32::INFINITY;
         for g in self.instances.values() {
-            if let Some(intersection) = g.ray_intersection(origin, direction) {
-                if intersection.depth < depth {
-                    ret = Some(intersection.clone());
-                    depth = intersection.depth;
-                }
+            if let Some(intersection) = g.ray_intersection(origin, direction)
+                && intersection.depth < depth
+            {
+                ret = Some(intersection.clone());
+                depth = intersection.depth;
             }
         }
         ret

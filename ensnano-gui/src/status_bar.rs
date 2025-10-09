@@ -172,13 +172,13 @@ impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
                 }
             }
             Message::ValueSet(n, s) => {
-                if let Some(operation) = self.operation.as_mut() {
-                    if let Some(new_operation) = operation.update_value(n, s) {
-                        self.requests
-                            .lock()
-                            .unwrap()
-                            .update_current_operation(new_operation);
-                    }
+                if let Some(operation) = self.operation.as_mut()
+                    && let Some(new_operation) = operation.update_value(n, s)
+                {
+                    self.requests
+                        .lock()
+                        .unwrap()
+                        .update_current_operation(new_operation);
                 }
             }
             Message::Progress(progress) => self.progress = progress,

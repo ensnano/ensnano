@@ -269,13 +269,13 @@ impl CadnanoExporter {
 
     fn set_staple_color(&mut self, prime5_nucl: Nucl, color: u32) {
         // this method will never fail and simply do nothing if it cannot succeed
-        if let Some(helix) = self.helices.get_mut(&prime5_nucl.helix) {
-            if (helix.num % 2 == 0) != prime5_nucl.forward {
-                helix.stap_colors.push((
-                    prime5_nucl.position - self.bonds.shift,
-                    color % 0x01_00_00_00,
-                ))
-            }
+        if let Some(helix) = self.helices.get_mut(&prime5_nucl.helix)
+            && (helix.num % 2 == 0) != prime5_nucl.forward
+        {
+            helix.stap_colors.push((
+                prime5_nucl.position - self.bonds.shift,
+                color % 0x01_00_00_00,
+            ))
         }
     }
 
@@ -306,12 +306,11 @@ impl CadnanoStrand<'_> {
     }
 
     fn finish(self, cyclic: bool, color: u32) -> Result<(), CadnanoError> {
-        if cyclic {
-            if let Some((prime5, prime3)) = self.previous_nucl.zip(self.first_nucl) {
-                if prime5 != prime3 {
-                    self.exporter.make_bond(prime5, prime3)?;
-                }
-            }
+        if cyclic
+            && let Some((prime5, prime3)) = self.previous_nucl.zip(self.first_nucl)
+            && prime5 != prime3
+        {
+            self.exporter.make_bond(prime5, prime3)?;
         }
 
         if let Some(nucl) = self.first_nucl {

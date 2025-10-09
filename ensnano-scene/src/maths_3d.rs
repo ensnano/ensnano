@@ -58,12 +58,8 @@ pub fn unproject_point_on_line(
     let p4 = objective_origin + objective_direction;
     let mu = mu_unprojection(p3, p4, p1, p2);
 
-    if let Some(mu) = mu {
-        // http://paulbourke.net/geometry/pointlineplane/
-        Some(p3 + (p4 - p3) * mu)
-    } else {
-        None
-    }
+    // http://paulbourke.net/geometry/pointlineplane/
+    mu.map(|mu| p3 + (p4 - p3) * mu)
 }
 
 const DIST_TO_CAMERA_PENALTY: f32 = 0.001;

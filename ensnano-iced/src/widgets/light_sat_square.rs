@@ -228,10 +228,10 @@ where
                 mouse::Event::CursorMoved { .. } => {
                     // NOTE: Using "position" attribute from mouse::Event::CursorMoved dosen't work because
                     //       it is not the good coordinates.
-                    if state.is_dragging {
-                        if let Some(pos) = position {
-                            change(pos);
-                        }
+                    if state.is_dragging
+                        && let Some(pos) = position
+                    {
+                        change(pos);
                     }
                     event::Status::Captured
                 }

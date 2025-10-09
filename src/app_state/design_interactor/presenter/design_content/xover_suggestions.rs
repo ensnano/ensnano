@@ -158,27 +158,26 @@ impl XoverSuggestions {
                     for (_, cubes) in self.helices_cubes.iter().filter(|(h, _)| **h > nucl.helix) {
                         if let Some(v) = cubes.get(&cube) {
                             for red_nucl in v {
-                                if red_nucl.helix != nucl.helix {
-                                    if let Some(red_position) = design.get_nucl_position(*red_nucl)
+                                if red_nucl.helix != nucl.helix
+                                    && let Some(red_position) = design.get_nucl_position(*red_nucl)
+                                {
+                                    let dist = (0..3)
+                                        .map(|i| (positions[i], red_position[i]))
+                                        .map(|(x, y)| (x - y) * (x - y))
+                                        .sum::<f32>()
+                                        .sqrt();
+                                    if dist < LEN_CRIT
+                                        && (suggestion_parameters.include_scaffold
+                                            || design.strands.get_strand_nucl(nucl)
+                                                != design.scaffold_id)
+                                        && (suggestion_parameters.include_scaffold
+                                            || design.strands.get_strand_nucl(red_nucl)
+                                                != design.scaffold_id)
+                                        && (suggestion_parameters.include_intra_strand
+                                            || design.strands.get_strand_nucl(nucl)
+                                                != design.strands.get_strand_nucl(red_nucl))
                                     {
-                                        let dist = (0..3)
-                                            .map(|i| (positions[i], red_position[i]))
-                                            .map(|(x, y)| (x - y) * (x - y))
-                                            .sum::<f32>()
-                                            .sqrt();
-                                        if dist < LEN_CRIT
-                                            && (suggestion_parameters.include_scaffold
-                                                || design.strands.get_strand_nucl(nucl)
-                                                    != design.scaffold_id)
-                                            && (suggestion_parameters.include_scaffold
-                                                || design.strands.get_strand_nucl(red_nucl)
-                                                    != design.scaffold_id)
-                                            && (suggestion_parameters.include_intra_strand
-                                                || design.strands.get_strand_nucl(nucl)
-                                                    != design.strands.get_strand_nucl(red_nucl))
-                                        {
-                                            ret.push((*red_nucl, dist));
-                                        }
+                                        ret.push((*red_nucl, dist));
                                     }
                                 }
                             }
@@ -208,26 +207,26 @@ impl XoverSuggestions {
 
                     if let Some(v) = self.red_cubes.get(&cube) {
                         for red_nucl in v {
-                            if red_nucl.helix != nucl.helix {
-                                if let Some(red_position) = design.get_nucl_position(*red_nucl) {
-                                    let dist = (0..3)
-                                        .map(|i| (positions[i], red_position[i]))
-                                        .map(|(x, y)| (x - y) * (x - y))
-                                        .sum::<f32>()
-                                        .sqrt();
-                                    if dist < LEN_CRIT
-                                        && (suggestion_parameters.include_scaffold
-                                            || design.strands.get_strand_nucl(nucl)
-                                                != design.scaffold_id)
-                                        && (suggestion_parameters.include_scaffold
-                                            || design.strands.get_strand_nucl(red_nucl)
-                                                != design.scaffold_id)
-                                        && (suggestion_parameters.include_intra_strand
-                                            || design.strands.get_strand_nucl(nucl)
-                                                != design.strands.get_strand_nucl(red_nucl))
-                                    {
-                                        ret.push((*red_nucl, dist));
-                                    }
+                            if red_nucl.helix != nucl.helix
+                                && let Some(red_position) = design.get_nucl_position(*red_nucl)
+                            {
+                                let dist = (0..3)
+                                    .map(|i| (positions[i], red_position[i]))
+                                    .map(|(x, y)| (x - y) * (x - y))
+                                    .sum::<f32>()
+                                    .sqrt();
+                                if dist < LEN_CRIT
+                                    && (suggestion_parameters.include_scaffold
+                                        || design.strands.get_strand_nucl(nucl)
+                                            != design.scaffold_id)
+                                    && (suggestion_parameters.include_scaffold
+                                        || design.strands.get_strand_nucl(red_nucl)
+                                            != design.scaffold_id)
+                                    && (suggestion_parameters.include_intra_strand
+                                        || design.strands.get_strand_nucl(nucl)
+                                            != design.strands.get_strand_nucl(red_nucl))
+                                {
+                                    ret.push((*red_nucl, dist));
                                 }
                             }
                         }

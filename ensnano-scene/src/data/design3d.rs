@@ -181,33 +181,33 @@ impl<R: DesignReader> Design3D<R> {
         for id in ids {
             let pos = self.design_reader.get_symbol_position(id);
             let symbol = self.design_reader.get_symbol(id);
-            if let Some((pos, symbol)) = pos.zip(symbol) {
-                if let Some(id) = self.symbol_map.get(&symbol) {
+            if let Some(pos) = pos
+                && let Some(symbol) = symbol
+                && let Some(id) = self.symbol_map.get(&symbol)
+            {
+                let instance = LetterInstance {
+                    position: pos,
+                    color: ultraviolet::Vec4::new(0., 0., 0., 1.),
+                    design_id: self.id,
+                    scale: 1.,
+                    shift: Vec3::zero(),
+                };
+                vecs[*id].push(instance);
+            }
+        }
+        if !show_insertion_representents {
+            for loopout_nucl in self.design_reader.get_all_loopout_nucl() {
+                if let Some(symbol) = loopout_nucl.basis
+                    && let Some(id) = self.symbol_map.get(&symbol)
+                {
                     let instance = LetterInstance {
-                        position: pos,
+                        position: loopout_nucl.position,
                         color: ultraviolet::Vec4::new(0., 0., 0., 1.),
                         design_id: self.id,
                         scale: 1.,
                         shift: Vec3::zero(),
                     };
                     vecs[*id].push(instance);
-                }
-            }
-        }
-        if !show_insertion_representents {
-            for loopout_nucl in self.design_reader.get_all_loopout_nucl() {
-                if let Some(symbol) = loopout_nucl.basis {
-                    let pos = loopout_nucl.position;
-                    if let Some(id) = self.symbol_map.get(&symbol) {
-                        let instance = LetterInstance {
-                            position: pos,
-                            color: ultraviolet::Vec4::new(0., 0., 0., 1.),
-                            design_id: self.id,
-                            scale: 1.,
-                            shift: Vec3::zero(),
-                        };
-                        vecs[*id].push(instance);
-                    }
                 }
             }
         }
@@ -294,26 +294,24 @@ impl<R: DesignReader> Design3D<R> {
 
         if let Some(additional_structure) = self.design_reader.get_additional_structure() {
             let transformation = additional_structure.frame();
-            if draw_helices {
-                if let Some(path) = additional_structure.nt_paths() {
-                    let mut color_idx = 0;
-                    for positions in path {
-                        let color = colors::new_color(&mut color_idx);
-                        let positions = positions
-                            .into_iter()
-                            .map(|p| transformation.transform_vec(p))
-                            .collect();
-                        let (sliced_tubes, _) = SausageRosary {
-                            positions,
-                            is_cyclic: true,
-                        }
-                        .to_raw_dna_instances(
-                            |_| color,
-                            2. * SPHERE_RADIUS,
-                            u32::MAX,
-                        );
-                        ret.extend(sliced_tubes.into_iter().map(|s| s.to_raw_instance()));
+            if draw_helices && let Some(path) = additional_structure.nt_paths() {
+                let mut color_idx = 0;
+                for positions in path {
+                    let color = colors::new_color(&mut color_idx);
+                    let positions = positions
+                        .into_iter()
+                        .map(|p| transformation.transform_vec(p))
+                        .collect();
+                    let (sliced_tubes, _) = SausageRosary {
+                        positions,
+                        is_cyclic: true,
                     }
+                    .to_raw_dna_instances(
+                        |_| color,
+                        2. * SPHERE_RADIUS,
+                        u32::MAX,
+                    );
+                    ret.extend(sliced_tubes.into_iter().map(|s| s.to_raw_instance()));
                 }
             }
 

@@ -841,10 +841,10 @@ impl Helix {
                 .add_sentence(sentence, self.info_position(flat_pos), line);
         };
 
-        if let Some(building) = edition_info {
-            if building.nucl.helix == self.flat_id {
-                print_info(building.nucl.flat_position, &building.to_string());
-            }
+        if let Some(building) = edition_info
+            && building.nucl.helix == self.flat_id
+        {
+            print_info(building.nucl.flat_position, &building.to_string());
         }
 
         let mut print_basis = |flat_position: FlatPosition, forward: bool| {
@@ -915,32 +915,28 @@ impl Helix {
     ) -> bool {
         if let Some((x0, x1)) =
             self.screen_rectangle_intersection(camera, left, top, right, bottom, HelixLine::Middle)
+            && self.x_conversion(nucl.flat_position.0 as f32) >= x0.floor()
+            && self.x_conversion(nucl.flat_position.0 as f32) < x1.ceil()
         {
-            if self.x_conversion(nucl.flat_position.0 as f32) >= x0.floor()
-                && self.x_conversion(nucl.flat_position.0 as f32) < x1.ceil()
-            {
-                return true;
-            }
+            return true;
         }
+
         if nucl.forward {
             if let Some((x0, x1)) =
                 self.screen_rectangle_intersection(camera, left, top, right, bottom, HelixLine::Top)
-            {
-                if self.x_conversion(nucl.flat_position.0 as f32) >= x0.floor()
-                    && self.x_conversion(nucl.flat_position.0 as f32) < x1.ceil()
-                {
-                    return true;
-                }
-            }
-        } else if let Some((x0, x1)) =
-            self.screen_rectangle_intersection(camera, left, top, right, bottom, HelixLine::Bottom)
-        {
-            if self.x_conversion(nucl.flat_position.0 as f32) >= x0.floor()
+                && self.x_conversion(nucl.flat_position.0 as f32) >= x0.floor()
                 && self.x_conversion(nucl.flat_position.0 as f32) < x1.ceil()
             {
                 return true;
             }
+        } else if let Some((x0, x1)) =
+            self.screen_rectangle_intersection(camera, left, top, right, bottom, HelixLine::Bottom)
+            && self.x_conversion(nucl.flat_position.0 as f32) >= x0.floor()
+            && self.x_conversion(nucl.flat_position.0 as f32) < x1.ceil()
+        {
+            return true;
         }
+
         false
     }
 

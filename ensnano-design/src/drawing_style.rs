@@ -124,17 +124,17 @@ impl FromStr for DrawingAttribute {
                 }
             }
             "cv" if len == 3 => {
-                if let Ok(r_min) = f32::from_str(parsed[1]) {
-                    if let Ok(r_max) = f32::from_str(parsed[2]) {
-                        return Ok(Self::Curvature(r_min, r_max));
-                    }
+                if let Ok(r_min) = f32::from_str(parsed[1])
+                    && let Ok(r_max) = f32::from_str(parsed[2])
+                {
+                    return Ok(Self::Curvature(r_min, r_max));
                 }
             }
             "to" if len == 3 => {
-                if let Ok(t_min) = f32::from_str(parsed[1]) {
-                    if let Ok(t_max) = f32::from_str(parsed[2]) {
-                        return Ok(Self::Torsion(t_min, t_max));
-                    }
+                if let Ok(t_min) = f32::from_str(parsed[1])
+                    && let Ok(t_max) = f32::from_str(parsed[2])
+                {
+                    return Ok(Self::Torsion(t_min, t_max));
                 }
             }
             _ => (),

@@ -295,10 +295,10 @@ impl<S: AppState> Scene<S> {
                     .init_rotation(mode, x as f32, y as f32);
                 if let Some(pivot) = self.view.borrow().get_group_pivot() {
                     self.requests.lock().unwrap().set_current_group_pivot(pivot);
-                    if target == WidgetTarget::Pivot {
-                        if let WidgetBasis::World = app_state.get_widget_basis() {
-                            self.requests.lock().unwrap().toggle_widget_basis()
-                        }
+                    if target == WidgetTarget::Pivot
+                        && let WidgetBasis::World = app_state.get_widget_basis()
+                    {
+                        self.requests.lock().unwrap().toggle_widget_basis()
                     }
                 }
             }

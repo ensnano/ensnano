@@ -74,12 +74,11 @@ impl Parsef32s for Isometry3DescriptorItem {
                     .split(&[' ', '*'])
                     .filter(|s| *s != "")
                     .collect::<Vec<&str>>();
-                if parsed_t.len() == 2 {
-                    if let Ok(value) = f32::from_str(parsed_t[0]) {
-                        if let Some(v) = variables.get(parsed_t[1]) {
-                            ret.push(value * v);
-                        }
-                    }
+                if parsed_t.len() == 2
+                    && let Ok(value) = f32::from_str(parsed_t[0])
+                    && let Some(v) = variables.get(parsed_t[1])
+                {
+                    ret.push(value * v);
                 }
             }
         }

@@ -350,15 +350,14 @@ impl CanDoStrand<'_> {
     }
 
     pub fn end(mut self, cyclic: bool) -> Result<(), CanDoError> {
-        if cyclic {
-            if let Some((prime5, prime3)) = self
+        if cyclic
+            && let Some((prime5, prime3)) = self
                 .previous_nucl
                 .take()
                 .zip(self.first_nucl.take())
                 .filter(|(a, b)| a != b)
-            {
-                self.formatter.make_bound(prime5, prime3)?;
-            }
+        {
+            self.formatter.make_bound(prime5, prime3)?;
         }
         Ok(())
     }

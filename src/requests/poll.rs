@@ -171,10 +171,8 @@ pub(crate) fn poll_all<R: DerefMut<Target = Requests>>(
     if let Some((s, g_id, new_group)) = requests.organizer_selection.take() {
         let selection = s.into_iter().map(|e| e.to_selection(0)).collect();
 
-        if new_group {
-            if let Some(g_id) = g_id {
-                main_state.transfer_selection_pivot_to_group(g_id);
-            }
+        if new_group && let Some(g_id) = g_id {
+            main_state.transfer_selection_pivot_to_group(g_id);
         }
 
         main_state.update_selection(selection, g_id);

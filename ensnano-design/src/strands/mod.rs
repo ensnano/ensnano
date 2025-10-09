@@ -115,10 +115,10 @@ impl Strands {
     pub fn uses_helix(&self, h_id: usize) -> bool {
         for s in self.0.values() {
             for d in s.domains.iter() {
-                if let Domain::HelixDomain(interval) = d {
-                    if interval.helix == h_id {
-                        return true;
-                    }
+                if let Domain::HelixDomain(interval) = d
+                    && interval.helix == h_id
+                {
+                    return true;
                 }
             }
         }

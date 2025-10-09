@@ -367,14 +367,13 @@ where
                 std::thread::spawn(move || {
                     let save_op = async move {
                         let file = dialog.await;
-                        if let Some(handle) = file {
-                            let content = std::fs::read_to_string(handle.path());
-                            if let Ok(content) = content {
-                                requests
-                                    .lock()
-                                    .unwrap()
-                                    .set_selected_strand_sequence(content);
-                            }
+                        if let Some(handle) = file
+                            && let Ok(content) = std::fs::read_to_string(handle.path())
+                        {
+                            requests
+                                .lock()
+                                .unwrap()
+                                .set_selected_strand_sequence(content);
                         }
                     };
                     futures::executor::block_on(save_op);
@@ -615,14 +614,14 @@ where
                 }
             }
             Message::TabSelected(tab_id) => {
-                if let ActionMode::BuildHelix { .. } = self.application_state.get_action_mode() {
-                    if tab_id != TabId::Grid {
-                        let action_mode = ActionMode::Normal;
-                        self.requests
-                            .lock()
-                            .unwrap()
-                            .change_action_mode(action_mode);
-                    }
+                if let ActionMode::BuildHelix { .. } = self.application_state.get_action_mode()
+                    && tab_id != TabId::Grid
+                {
+                    let action_mode = ActionMode::Normal;
+                    self.requests
+                        .lock()
+                        .unwrap()
+                        .change_action_mode(action_mode);
                 }
                 if tab_id != TabId::Grid && self.application_state.is_building_hyperboloid() {
                     self.requests.lock().unwrap().finalize_hyperboloid();
@@ -880,13 +879,13 @@ where
                 self.revolution_tab.set_method(method);
             }
             Message::RevolutionParameterUpdate { parameter_id, text } => {
-                if let RevolutionParameterId::RevolutionRadius = parameter_id {
-                    if let Some(radius) = text.parse::<f64>().ok() {
-                        self.requests
-                            .lock()
-                            .unwrap()
-                            .set_bezier_revolution_radius(radius);
-                    }
+                if let RevolutionParameterId::RevolutionRadius = parameter_id
+                    && let Some(radius) = text.parse::<f64>().ok()
+                {
+                    self.requests
+                        .lock()
+                        .unwrap()
+                        .set_bezier_revolution_radius(radius);
                 }
                 self.revolution_tab
                     .update_builder_parameter(parameter_id, text);

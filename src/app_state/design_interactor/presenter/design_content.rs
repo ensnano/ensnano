@@ -689,14 +689,10 @@ impl DesignContent {
                     }
                     // - domain style completed with grid style if there is a grid
                     if let Some(grid_position) = grid_manager.get_helix_grid_position(domain.helix)
+                        && let GridId::FreeGrid(h_id) = grid_position.grid
+                        && let Some(grid_style) = drawing_styles.get(&DesignElementKey::Grid(h_id))
                     {
-                        if let GridId::FreeGrid(h_id) = grid_position.grid {
-                            if let Some(grid_style) =
-                                drawing_styles.get(&DesignElementKey::Grid(h_id))
-                            {
-                                domain_style = domain_style.complete_with(grid_style);
-                            }
-                        }
+                        domain_style = domain_style.complete_with(grid_style);
                     }
                     // Get the drawing parameters
                     let bond_radius = domain_style.bond_radius.unwrap_or(BOND_RADIUS);
@@ -1115,12 +1111,11 @@ impl DesignContent {
                     .get(&DesignElementKey::Helix(h))
                     .unwrap_or(&DrawingStyle::default())
                     .clone();
-                if let Some(grid_position) = grid_manager.get_helix_grid_position(h) {
-                    if let GridId::FreeGrid(h) = grid_position.grid {
-                        if let Some(grid_style) = drawing_styles.get(&DesignElementKey::Grid(h)) {
-                            helix_style = helix_style.complete_with(grid_style);
-                        }
-                    }
+                if let Some(grid_position) = grid_manager.get_helix_grid_position(h)
+                    && let GridId::FreeGrid(h) = grid_position.grid
+                    && let Some(grid_style) = drawing_styles.get(&DesignElementKey::Grid(h))
+                {
+                    helix_style = helix_style.complete_with(grid_style);
                 }
                 let radius = helix_style
                     .helix_as_cylinder_radius
@@ -1461,54 +1456,54 @@ mod tests {
                     s.domains.len()
                 };
                 for (i, d) in s.domains.iter().enumerate().cycle().take(nb_taken) {
-                    if let Some(prime3) = d.prime5_end() {
-                        if let Some(prime5) = expected_prime5 {
-                            if prime5.prime3() == prime3 {
-                                // Expect adjacent
+                    if let Some(prime3) = d.prime5_end()
+                        && let Some(prime5) = expected_prime5
+                    {
+                        if prime5.prime3() == prime3 {
+                            // Expect adjacent
+                            if s.junctions[expected_prime5_domain.unwrap()]
+                                != DomainJunction::Adjacent
+                            {
+                                panic!(
+                                    "In test{} \n
+                                        Expected junction {:?}, got {:?}\n
+                                        junctions are {:?}",
+                                    fail_msg,
+                                    DomainJunction::Adjacent,
+                                    s.junctions[expected_prime5_domain.unwrap()],
+                                    s.junctions,
+                                );
+                            }
+                        } else {
+                            // Expect named xover
+                            if let Some(id) = xover_ids.get_id(&(prime5, prime3)) {
+                                xover_cpy.remove(id);
                                 if s.junctions[expected_prime5_domain.unwrap()]
-                                    != DomainJunction::Adjacent
+                                    != DomainJunction::IdentifiedXover(id)
                                 {
                                     panic!(
                                         "In test{} \n
                                         Expected junction {:?}, got {:?}\n
                                         junctions are {:?}",
                                         fail_msg,
-                                        DomainJunction::Adjacent,
+                                        DomainJunction::IdentifiedXover(id),
                                         s.junctions[expected_prime5_domain.unwrap()],
                                         s.junctions,
                                     );
                                 }
                             } else {
-                                // Expect named xover
-                                if let Some(id) = xover_ids.get_id(&(prime5, prime3)) {
-                                    xover_cpy.remove(id);
-                                    if s.junctions[expected_prime5_domain.unwrap()]
-                                        != DomainJunction::IdentifiedXover(id)
-                                    {
-                                        panic!(
-                                            "In test{} \n
-                                        Expected junction {:?}, got {:?}\n
-                                        junctions are {:?}",
-                                            fail_msg,
-                                            DomainJunction::IdentifiedXover(id),
-                                            s.junctions[expected_prime5_domain.unwrap()],
-                                            s.junctions,
-                                        );
-                                    }
-                                } else {
-                                    panic!(
-                                        "In test{} \n
+                                panic!(
+                                    "In test{} \n
                                         Could not find xover in xover_ids {:?}
                                         xover_ids: {:?}",
-                                        fail_msg,
-                                        (prime5, prime3),
-                                        xover_ids.get_all_elements(),
-                                    );
-                                }
+                                    fail_msg,
+                                    (prime5, prime3),
+                                    xover_ids.get_all_elements(),
+                                );
                             }
-                            if expected_prime5_domain.unwrap() >= i {
-                                break;
-                            }
+                        }
+                        if expected_prime5_domain.unwrap() >= i {
+                            break;
                         }
                     }
                     if let Some(nucl) = d.prime3_end() {

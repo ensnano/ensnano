@@ -301,27 +301,19 @@ impl Helix {
             .group
             .clone()
             .unwrap_or_else(|| String::from("default_group"));
-        let grid_id = if let Some(id) = group_map.get(&group_id) {
-            id
-        } else {
+        let Some(grid_id) = group_map.get(&group_id) else {
             return Err(ScadnanoImportError::MissingField(format!(
                 "group {}",
                 group_id
             )));
         };
-        let x = if let Some(x) = scad.grid_position.get(0).cloned() {
-            x
-        } else {
+        let Some(x) = scad.grid_position.get(0).cloned() else {
             return Err(ScadnanoImportError::MissingField(String::from("x")));
         };
-        let y = if let Some(y) = scad.grid_position.get(1).cloned() {
-            y
-        } else {
+        let Some(y) = scad.grid_position.get(1).cloned() else {
             return Err(ScadnanoImportError::MissingField(String::from("y")));
         };
-        let group = if let Some(group) = groups.get(*grid_id) {
-            group
-        } else {
+        let Some(group) = groups.get(*grid_id) else {
             return Err(ScadnanoImportError::MissingField(format!(
                 "group {}",
                 grid_id
@@ -330,9 +322,7 @@ impl Helix {
 
         println!("helices per group {:?}", group_map);
         println!("helices per group {:?}", helix_per_group);
-        let nb_helices = if let Some(nb_helices) = helix_per_group.get_mut(*grid_id) {
-            nb_helices
-        } else {
+        let Some(nb_helices) = helix_per_group.get_mut(*grid_id) else {
             return Err(ScadnanoImportError::MissingField(format!(
                 "helix_per_group {}",
                 grid_id
@@ -892,15 +882,15 @@ impl Helix {
     pub fn axis_position(&self, p: &HelixParameters, n: isize, forward: bool) -> Vec3 {
         // Attention, ne tient pas compte de l'inclinaison !!!
         let n = n + self.initial_nt_index;
-        if let Some(curve) = self.instanciated_curve.as_ref().map(|s| &s.curve) {
-            if let Some(point) = curve.axis_pos(n, forward).map(dvec_to_vec) {
-                let (position, orientation) = if curve.as_ref().has_its_own_encoded_frame() {
-                    (Vec3::zero(), Rotor3::identity())
-                } else {
-                    (self.position, self.orientation)
-                };
-                return point.rotated_by(orientation) + position;
-            }
+        if let Some(curve) = self.instanciated_curve.as_ref().map(|s| &s.curve)
+            && let Some(point) = curve.axis_pos(n, forward).map(dvec_to_vec)
+        {
+            let (position, orientation) = if curve.as_ref().has_its_own_encoded_frame() {
+                (Vec3::zero(), Rotor3::identity())
+            } else {
+                (self.position, self.orientation)
+            };
+            return point.rotated_by(orientation) + position;
         }
         let p = self.helix_parameters.unwrap_or(*p).clone();
         let mut ret = Vec3::new(n as f32 * p.rise, 0., 0.);

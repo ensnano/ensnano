@@ -144,12 +144,11 @@ fn assert_sane_domains_non_cyclic(dom: &[Domain]) {
 }
 
 fn assert_sane_domains_cyclic(dom: &[Domain]) {
-    if dom.len() >= 2 {
-        if let Some(Domain::Insertion { .. }) = dom.first() {
-            if let Some(Domain::Insertion { .. }) = dom.last() {
-                panic!("First and last domains are both insertions in cyclic strand")
-            }
-        }
+    if dom.len() >= 2
+        && let Some(Domain::Insertion { .. }) = dom.first()
+        && let Some(Domain::Insertion { .. }) = dom.last()
+    {
+        panic!("First and last domains are both insertions in cyclic strand")
     }
 }
 

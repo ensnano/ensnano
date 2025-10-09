@@ -1821,18 +1821,18 @@ impl<S: AppState> ControllerState<S> for Building {
                 if *state == ElementState::Pressed {
                     return Transition::nothing();
                 }
-                if self.can_attach {
-                    if let Some(attachment) =
+                if self.can_attach
+                    && let Some(attachment) =
                         controller.data.borrow().attachable_neighbor(self.nucl)
-                    {
-                        return Transition {
-                            new_state: Some(Box::new(NormalState {
-                                mouse_position: self.mouse_position,
-                            })),
-                            consequences: Consequence::Xover(self.nucl, attachment),
-                        };
-                    }
+                {
+                    return Transition {
+                        new_state: Some(Box::new(NormalState {
+                            mouse_position: self.mouse_position,
+                        })),
+                        consequences: Consequence::Xover(self.nucl, attachment),
+                    };
                 }
+
                 Transition {
                     new_state: Some(Box::new(NormalState {
                         mouse_position: self.mouse_position,

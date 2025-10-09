@@ -934,16 +934,12 @@ impl Controller {
     }
 
     pub fn can_iterate_duplication(&self) -> bool {
-        if let ControllerState::WithPendingStrandDuplication { .. } = self.state {
-            true
-        } else if let ControllerState::WithPendingXoverDuplication { .. } = self.state {
-            true
-        } else {
-            matches!(
-                self.state,
-                ControllerState::WithPendingHelicesDuplication { .. }
-            )
-        }
+        matches!(
+            self.state,
+            ControllerState::WithPendingStrandDuplication { .. }
+                | ControllerState::WithPendingXoverDuplication { .. }
+                | ControllerState::WithPendingHelicesDuplication { .. }
+        )
     }
 
     pub(super) fn optimize_shift(
@@ -1843,11 +1839,11 @@ impl Controller {
         let mut new_vectors_out = BTreeMap::new();
 
         for g_id in grid_ids.iter() {
-            if let GridId::BezierPathGrid(vertex_id) = g_id {
-                if let Some(old_vector_out) = bezier_paths.get_vector_out(*vertex_id) {
-                    let new_vector_out = old_vector_out.rotated_by(rotation);
-                    new_vectors_out.insert(vertex_id, new_vector_out);
-                }
+            if let GridId::BezierPathGrid(vertex_id) = g_id
+                && let Some(old_vector_out) = bezier_paths.get_vector_out(*vertex_id)
+            {
+                let new_vector_out = old_vector_out.rotated_by(rotation);
+                new_vectors_out.insert(vertex_id, new_vector_out);
             }
         }
 
@@ -2090,20 +2086,20 @@ impl Controller {
         self.update_state_and_design(&mut design);
         let mut new_helices = design.helices.make_mut();
         for (p, segment_idx) in pivots.iter() {
-            if let Some(old_pos) = nucl_pos_2d(new_helices.as_ref(), p, *segment_idx) {
-                if let Some(h) = new_helices.get_mut(&p.helix) {
-                    let position = old_pos + translation;
-                    let position = Vec2::new(position.x.round(), position.y.round());
-                    let isometry = if *segment_idx > 0 {
-                        h.additional_isometries
-                            .get_mut(segment_idx - 1)
-                            .and_then(|i| i.additional_isometry.as_mut())
-                    } else {
-                        h.isometry2d.as_mut()
-                    };
-                    if let Some(isometry) = isometry {
-                        isometry.append_translation(position - old_pos)
-                    }
+            if let Some(old_pos) = nucl_pos_2d(new_helices.as_ref(), p, *segment_idx)
+                && let Some(h) = new_helices.get_mut(&p.helix)
+            {
+                let position = old_pos + translation;
+                let position = Vec2::new(position.x.round(), position.y.round());
+                let isometry = if *segment_idx > 0 {
+                    h.additional_isometries
+                        .get_mut(segment_idx - 1)
+                        .and_then(|i| i.additional_isometry.as_mut())
+                } else {
+                    h.isometry2d.as_mut()
+                };
+                if let Some(isometry) = isometry {
+                    isometry.append_translation(position - old_pos)
                 }
             }
         }
@@ -2175,12 +2171,12 @@ impl Controller {
         };
         let mut new_helices = design.helices.make_mut();
         for h_id in helices.iter() {
-            if let Some(h) = new_helices.get_mut(h_id) {
-                if let Some(isometry) = h.isometry2d.as_mut() {
-                    isometry.append_translation(-center);
-                    isometry.append_rotation(ultraviolet::Rotor2::from_angle(angle));
-                    isometry.append_translation(center);
-                }
+            if let Some(h) = new_helices.get_mut(h_id)
+                && let Some(isometry) = h.isometry2d.as_mut()
+            {
+                isometry.append_translation(-center);
+                isometry.append_rotation(ultraviolet::Rotor2::from_angle(angle));
+                isometry.append_translation(center);
             }
         }
         drop(new_helices);
@@ -3762,11 +3758,12 @@ impl ControllerState {
     }
 
     fn acknowledge_new_selection(&self) -> Self {
-        if let Self::WithPendingStrandDuplication { .. } = self {
-            Self::Normal
-        } else if let Self::WithPendingXoverDuplication { .. } = self {
-            Self::Normal
-        } else if let Self::WithPendingHelicesDuplication { .. } = self {
+        if matches!(
+            self,
+            Self::WithPendingStrandDuplication { .. }
+                | Self::WithPendingXoverDuplication { .. }
+                | Self::WithPendingHelicesDuplication { .. }
+        ) {
             Self::Normal
         } else {
             self.clone()

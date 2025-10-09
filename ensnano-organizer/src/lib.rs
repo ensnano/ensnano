@@ -626,10 +626,10 @@ impl<E: OrganizerElement> Organizer<E> {
             self.groups[id[0]].expand(&id[1..], expanded)
         } else if let Some(id) = get_section_id(id) {
             self.sections[id].expand(expanded)
-        } else if let NodeId::AutoGroupId(name) = id {
-            if let Some(group) = self.auto_groups.get_mut(name) {
-                group.expand(expanded)
-            }
+        } else if let NodeId::AutoGroupId(name) = id
+            && let Some(group) = self.auto_groups.get_mut(name)
+        {
+            group.expand(expanded)
         }
     }
 

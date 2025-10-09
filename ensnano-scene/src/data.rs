@@ -1044,17 +1044,11 @@ impl<R: DesignReader> Data<R> {
     }
 
     fn must_draw_phantom<S: AppState>(&self, app_state: &S) -> bool {
-        let ret = app_state.get_selection_mode() == SelectionMode::Helix;
-        if ret {
-            true
-        } else {
-            for element in self.selected_element(app_state).iter() {
-                if let SceneElement::PhantomElement(_) = element {
-                    return true;
-                }
-            }
-            false
-        }
+        app_state.get_selection_mode() == SelectionMode::Helix
+            || self
+                .selected_element(app_state)
+                .iter()
+                .any(|element| matches!(element, SceneElement::PhantomElement(_)))
     }
 
     pub fn element_to_selection(
@@ -1180,17 +1174,13 @@ impl<R: DesignReader> Data<R> {
             }
         }
         self.candidate_element = element;
-        let future_candidates = if let Some(element) = element.as_ref() {
+        if let Some(element) = element.as_ref() {
             let selection = self.element_to_selection(element, app_state.get_selection_mode());
             if selection != Selection::Nothing {
-                Some(selection)
-            } else {
-                None
+                return Some(selection);
             }
-        } else {
-            None
-        };
-        future_candidates
+        }
+        None
     }
 
     pub fn notify_selection(&mut self, selection: &[Selection]) {
@@ -1533,18 +1523,18 @@ impl<R: DesignReader> Data<R> {
         }
 
         for c in app_state.get_candidates() {
-            if let Selection::Helix { helix_id, .. } = c {
-                if let Some(pos) = design.get_helix_grid_position(*helix_id as u32) {
-                    add_discs(pos.light(), discs!(), DiscLevel::Candidate)
-                };
+            if let Selection::Helix { helix_id, .. } = c
+                && let Some(pos) = design.get_helix_grid_position(*helix_id as u32)
+            {
+                add_discs(pos.light(), discs!(), DiscLevel::Candidate)
             }
         }
 
         for s in app_state.get_selection() {
-            if let Selection::Helix { helix_id, .. } = s {
-                if let Some(pos) = design.get_helix_grid_position(*helix_id as u32) {
-                    add_discs(pos.light(), discs!(), DiscLevel::Selection)
-                }
+            if let Selection::Helix { helix_id, .. } = s
+                && let Some(pos) = design.get_helix_grid_position(*helix_id as u32)
+            {
+                add_discs(pos.light(), discs!(), DiscLevel::Selection)
             }
         }
         for design in self.designs.iter() {
@@ -1741,14 +1731,12 @@ impl<R: DesignReader> Data<R> {
         let nucl = self.element_to_nucl(&element, true);
         if let Some(free_xover) = self.free_xover.as_mut() {
             free_xover.target = FreeXoverEnd::Free(position);
-            if let FreeXoverEnd::Nucl(origin_nucl) = free_xover.source {
-                if let Some((nucl, _)) = nucl.filter(|n| n.1 == free_xover.design_id) {
-                    if !self.designs[free_xover.design_id].both_prime3(origin_nucl, nucl)
-                        && !self.designs[free_xover.design_id].both_prime5(origin_nucl, nucl)
-                    {
-                        free_xover.target = FreeXoverEnd::Nucl(nucl);
-                    }
-                }
+            if let FreeXoverEnd::Nucl(origin_nucl) = free_xover.source
+                && let Some((nucl, _)) = nucl.filter(|n| n.1 == free_xover.design_id)
+                && !self.designs[free_xover.design_id].both_prime3(origin_nucl, nucl)
+                && !self.designs[free_xover.design_id].both_prime5(origin_nucl, nucl)
+            {
+                free_xover.target = FreeXoverEnd::Nucl(nucl);
             }
         }
     }

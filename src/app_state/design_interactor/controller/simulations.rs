@@ -498,11 +498,11 @@ impl HelixSystem {
 
     fn brownian_jump(&mut self) {
         let mut rnd = rand::thread_rng();
-        if let Some((t, _)) = self.brownian_heap.peek() {
-            // t.0 because t is a &Reverse<_>
-            if self.next_time < t.0.into_inner() {
-                return;
-            }
+        // t.0 because t is a &Reverse<_>
+        if let Some((t, _)) = self.brownian_heap.peek()
+            && self.next_time < t.0.into_inner()
+        {
+            return;
         }
         if let Some((_, nucl_id)) = self.brownian_heap.pop() {
             let gx: f32 = rnd.sample(StandardNormal);
@@ -1091,18 +1091,18 @@ fn make_flexible_helices_system(
     let mut anchors = vec![];
     let mut free_anchors = vec![];
     for anchor in presenter.get_design().anchors.iter() {
-        if let Some(position) = presenter.get_space_position(anchor) {
-            if let Some(free_nucl) = interval_results.nucl_map.get(anchor) {
-                if let Some(rigid_helix) = free_nucl.helix {
-                    let rigid_nucl = RigidNucl {
-                        helix: rigid_helix,
-                        position: anchor.position,
-                        forward: anchor.forward,
-                    };
-                    anchors.push((rigid_nucl, position));
-                } else if let Some(id) = interval_results.free_nucl_ids.get(free_nucl) {
-                    free_anchors.push((*id, position));
-                }
+        if let Some(position) = presenter.get_space_position(anchor)
+            && let Some(free_nucl) = interval_results.nucl_map.get(anchor)
+        {
+            if let Some(rigid_helix) = free_nucl.helix {
+                let rigid_nucl = RigidNucl {
+                    helix: rigid_helix,
+                    position: anchor.position,
+                    forward: anchor.forward,
+                };
+                anchors.push((rigid_nucl, position));
+            } else if let Some(id) = interval_results.free_nucl_ids.get(free_nucl) {
+                free_anchors.push((*id, position));
             }
         }
     }
@@ -1173,24 +1173,71 @@ fn read_intervals(presenter: &Presenter) -> Result<IntervalResult, ErrOperation>
     for s in presenter.get_design().strands.values() {
         for d in s.domains.iter() {
             log::debug!("New dom");
-            if let Some(nucl) = d.prime5_end() {
-                if !nucl_map.contains_key(&nucl) || !nucl.forward {
-                    let starting_doubled = presenter.has_nucl(&nucl.compl());
-                    let starting_nucl = nucl.clone();
-                    let mut prev_doubled = false;
-                    let mut moving_nucl = starting_nucl;
-                    let mut starting_helix = if starting_doubled {
-                        Some(current_helix.clone())
-                    } else {
-                        None
-                    };
-                    while presenter.has_nucl(&moving_nucl) {
-                        log::debug!("nucl {:?}", moving_nucl);
-                        let doubled = presenter.has_nucl(&moving_nucl.compl());
-                        if doubled && nucl.forward {
-                            log::debug!("has compl");
-                            let helix = if prev_doubled {
-                                current_helix.unwrap()
+            if let Some(nucl) = d.prime5_end()
+                && (!nucl_map.contains_key(&nucl) || !nucl.forward)
+            {
+                let starting_doubled = presenter.has_nucl(&nucl.compl());
+                let starting_nucl = nucl.clone();
+                let mut prev_doubled = false;
+                let mut moving_nucl = starting_nucl;
+                let mut starting_helix = if starting_doubled {
+                    Some(current_helix.clone())
+                } else {
+                    None
+                };
+                while presenter.has_nucl(&moving_nucl) {
+                    log::debug!("nucl {:?}", moving_nucl);
+                    let doubled = presenter.has_nucl(&moving_nucl.compl());
+                    if doubled && nucl.forward {
+                        log::debug!("has compl");
+                        let helix = if prev_doubled {
+                            current_helix.unwrap()
+                        } else {
+                            helix_map.push(nucl.helix);
+                            intervals.push((moving_nucl.position, moving_nucl.position));
+                            if let Some(n) = current_helix.as_mut() {
+                                *n += 1;
+                                *n
+                            } else {
+                                current_helix = Some(0);
+                                0
+                            }
+                        };
+                        log::debug!("helix {}", helix);
+                        nucl_map
+                            .insert(moving_nucl, FreeNucl::with_helix(&moving_nucl, Some(helix)));
+                        nucl_map.insert(
+                            moving_nucl.compl(),
+                            FreeNucl::with_helix(&moving_nucl.compl(), Some(helix)),
+                        );
+                        intervals[helix].0 = intervals[helix].0.min(moving_nucl.position);
+                        intervals[helix].1 = intervals[helix].1.max(moving_nucl.position);
+                    } else if !doubled {
+                        log::debug!("has not compl");
+                        nucl_map.insert(moving_nucl, FreeNucl::with_helix(&moving_nucl, None));
+                        free_nucl_ids
+                            .insert(FreeNucl::with_helix(&moving_nucl, None), free_nucls.len());
+                        free_nucls.push(FreeNucl::with_helix(&moving_nucl, None));
+                        let position = presenter
+                            .get_space_position(&moving_nucl)
+                            .ok_or(ErrOperation::NuclDoesNotExist(moving_nucl))?;
+                        free_nucl_position.push(position);
+                    }
+                    prev_doubled = doubled;
+                    moving_nucl = moving_nucl.left();
+                }
+                prev_doubled = starting_doubled;
+                moving_nucl = starting_nucl.right();
+                while presenter.has_nucl(&moving_nucl) {
+                    log::debug!("nucl {:?}", moving_nucl);
+                    let doubled = presenter.has_nucl(&moving_nucl.compl());
+                    if doubled && nucl.forward {
+                        log::debug!("has compl");
+                        let helix = if prev_doubled {
+                            current_helix.unwrap()
+                        } else {
+                            if let Some(helix) = starting_helix.take() {
+                                if let Some(n) = helix { n + 1 } else { 0 }
                             } else {
                                 helix_map.push(nucl.helix);
                                 intervals.push((moving_nucl.position, moving_nucl.position));
@@ -1201,81 +1248,30 @@ fn read_intervals(presenter: &Presenter) -> Result<IntervalResult, ErrOperation>
                                     current_helix = Some(0);
                                     0
                                 }
-                            };
-                            log::debug!("helix {}", helix);
-                            nucl_map.insert(
-                                moving_nucl,
-                                FreeNucl::with_helix(&moving_nucl, Some(helix)),
-                            );
-                            nucl_map.insert(
-                                moving_nucl.compl(),
-                                FreeNucl::with_helix(&moving_nucl.compl(), Some(helix)),
-                            );
-                            intervals[helix].0 = intervals[helix].0.min(moving_nucl.position);
-                            intervals[helix].1 = intervals[helix].1.max(moving_nucl.position);
-                        } else if !doubled {
-                            log::debug!("has not compl");
-                            nucl_map.insert(moving_nucl, FreeNucl::with_helix(&moving_nucl, None));
-                            free_nucl_ids
-                                .insert(FreeNucl::with_helix(&moving_nucl, None), free_nucls.len());
-                            free_nucls.push(FreeNucl::with_helix(&moving_nucl, None));
-                            let position = presenter
-                                .get_space_position(&moving_nucl)
-                                .ok_or(ErrOperation::NuclDoesNotExist(moving_nucl))?;
-                            free_nucl_position.push(position);
-                        }
-                        prev_doubled = doubled;
-                        moving_nucl = moving_nucl.left();
+                            }
+                        };
+                        log::debug!("helix {}", helix);
+                        intervals[helix].0 = intervals[helix].0.min(moving_nucl.position);
+                        intervals[helix].1 = intervals[helix].1.max(moving_nucl.position);
+                        nucl_map
+                            .insert(moving_nucl, FreeNucl::with_helix(&moving_nucl, Some(helix)));
+                        nucl_map.insert(
+                            moving_nucl.compl(),
+                            FreeNucl::with_helix(&moving_nucl.compl(), Some(helix)),
+                        );
+                    } else if !doubled {
+                        log::debug!("has not compl");
+                        nucl_map.insert(moving_nucl, FreeNucl::with_helix(&moving_nucl, None));
+                        free_nucl_ids
+                            .insert(FreeNucl::with_helix(&moving_nucl, None), free_nucls.len());
+                        free_nucls.push(FreeNucl::with_helix(&moving_nucl, None));
+                        let position = presenter
+                            .get_space_position(&moving_nucl)
+                            .ok_or(ErrOperation::NuclDoesNotExist(moving_nucl))?;
+                        free_nucl_position.push(position);
                     }
-                    prev_doubled = starting_doubled;
-                    moving_nucl = starting_nucl.right();
-                    while presenter.has_nucl(&moving_nucl) {
-                        log::debug!("nucl {:?}", moving_nucl);
-                        let doubled = presenter.has_nucl(&moving_nucl.compl());
-                        if doubled && nucl.forward {
-                            log::debug!("has compl");
-                            let helix = if prev_doubled {
-                                current_helix.unwrap()
-                            } else {
-                                if let Some(helix) = starting_helix.take() {
-                                    if let Some(n) = helix { n + 1 } else { 0 }
-                                } else {
-                                    helix_map.push(nucl.helix);
-                                    intervals.push((moving_nucl.position, moving_nucl.position));
-                                    if let Some(n) = current_helix.as_mut() {
-                                        *n += 1;
-                                        *n
-                                    } else {
-                                        current_helix = Some(0);
-                                        0
-                                    }
-                                }
-                            };
-                            log::debug!("helix {}", helix);
-                            intervals[helix].0 = intervals[helix].0.min(moving_nucl.position);
-                            intervals[helix].1 = intervals[helix].1.max(moving_nucl.position);
-                            nucl_map.insert(
-                                moving_nucl,
-                                FreeNucl::with_helix(&moving_nucl, Some(helix)),
-                            );
-                            nucl_map.insert(
-                                moving_nucl.compl(),
-                                FreeNucl::with_helix(&moving_nucl.compl(), Some(helix)),
-                            );
-                        } else if !doubled {
-                            log::debug!("has not compl");
-                            nucl_map.insert(moving_nucl, FreeNucl::with_helix(&moving_nucl, None));
-                            free_nucl_ids
-                                .insert(FreeNucl::with_helix(&moving_nucl, None), free_nucls.len());
-                            free_nucls.push(FreeNucl::with_helix(&moving_nucl, None));
-                            let position = presenter
-                                .get_space_position(&moving_nucl)
-                                .ok_or(ErrOperation::NuclDoesNotExist(moving_nucl))?;
-                            free_nucl_position.push(position);
-                        }
-                        prev_doubled = doubled;
-                        moving_nucl = moving_nucl.right();
-                    }
+                    prev_doubled = doubled;
+                    moving_nucl = moving_nucl.right();
                 }
             }
         }

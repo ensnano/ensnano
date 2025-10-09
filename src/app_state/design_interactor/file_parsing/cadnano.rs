@@ -260,33 +260,32 @@ fn make_strand(
         }
         current_dom += 1;
     }
-    if cyclic {
-        if let Domain::HelixDomain(dom0) = &ret.domains[0] {
-            if let Domain::HelixDomain(last_dom) = &ret.domains[ret.domains.len() - 1] {
-                if last_dom.helix != dom0.helix {
-                    let helix = dom0.helix;
-                    let start = dom0.start;
-                    let end = dom0.start + 1;
-                    let forward = dom0.forward;
-                    ret.domains.push(Domain::HelixDomain(HelixInterval {
-                        helix,
-                        start,
-                        end,
-                        forward,
-                        sequence: None,
-                    }));
+    if cyclic
+        && let Domain::HelixDomain(dom0) = &ret.domains[0]
+        && let Domain::HelixDomain(last_dom) = &ret.domains[ret.domains.len() - 1]
+    {
+        if last_dom.helix != dom0.helix {
+            let helix = dom0.helix;
+            let start = dom0.start;
+            let end = dom0.start + 1;
+            let forward = dom0.forward;
+            ret.domains.push(Domain::HelixDomain(HelixInterval {
+                helix,
+                start,
+                end,
+                forward,
+                sequence: None,
+            }));
+        } else {
+            let len = ret.domains.len();
+            let forward = dom0.forward;
+            let start = dom0.start;
+            let end = dom0.end;
+            if let Domain::HelixDomain(last_dom) = &mut ret.domains[len - 1] {
+                if forward {
+                    last_dom.end = start + 1;
                 } else {
-                    let len = ret.domains.len();
-                    let forward = dom0.forward;
-                    let start = dom0.start;
-                    let end = dom0.end;
-                    if let Domain::HelixDomain(last_dom) = &mut ret.domains[len - 1] {
-                        if forward {
-                            last_dom.end = start + 1;
-                        } else {
-                            last_dom.start = end - 1;
-                        }
-                    }
+                    last_dom.start = end - 1;
                 }
             }
         }

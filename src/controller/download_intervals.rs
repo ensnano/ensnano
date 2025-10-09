@@ -95,14 +95,13 @@ fn get_design_providing_staples(downlader: &dyn StaplesDownloader) -> Box<dyn St
 }
 
 fn ask_path(mut state: AskingPath_, main_state: &MainStateView) -> Box<DownloadIntervals> {
-    if let Some(must_ack) = state.warning_ack.as_ref() {
-        if !must_ack.was_ack() {
-            return Box::new(DownloadIntervals {
-                step: Step::AskingPath(state),
-            });
-        }
-    }
-    if let Some(msg) = state.warnings.pop() {
+    if let Some(must_ack) = state.warning_ack.as_ref()
+        && !must_ack.was_ack()
+    {
+        Box::new(DownloadIntervals {
+            step: Step::AskingPath(state),
+        })
+    } else if let Some(msg) = state.warnings.pop() {
         let must_ack = dialog::blocking_message(msg.into(), rfd::MessageLevel::Warning);
         state.with_ack(must_ack)
     } else {

@@ -220,12 +220,10 @@ impl Presenter {
                                 if let Some(virtual_compl) = Nucl::map_to_virtual_nucl(
                                     nucl.compl(),
                                     &self.current_design.helices,
-                                ) {
-                                    if let Some(real_compl) =
-                                        self.content.nucl_collection.virtual_to_real(&virtual_compl)
-                                    {
-                                        basis_map.insert(*real_compl, basis_compl);
-                                    }
+                                ) && let Some(real_compl) =
+                                    self.content.nucl_collection.virtual_to_real(&virtual_compl)
+                                {
+                                    basis_map.insert(*real_compl, basis_compl);
                                 }
                             } else if basis.is_none() {
                                 if !ran_out {
@@ -264,14 +262,12 @@ impl Presenter {
             })
         {
             let virtual_nucl_backward = virtual_nucl_forward.compl();
-            if let Some(backward_nucl) = nucl_collection.virtual_to_real(&virtual_nucl_backward) {
-                if let Some(backward_id) = nucl_collection.get_identifier(backward_nucl) {
-                    if let Some(bond) =
-                        self.h_bond(forward_id, *backward_id, forward_nucl, *backward_nucl)
-                    {
-                        h_bonds.push(bond);
-                    }
-                }
+            if let Some(backward_nucl) = nucl_collection.virtual_to_real(&virtual_nucl_backward)
+                && let Some(backward_id) = nucl_collection.get_identifier(backward_nucl)
+                && let Some(bond) =
+                    self.h_bond(forward_id, *backward_id, forward_nucl, *backward_nucl)
+            {
+                h_bonds.push(bond);
             }
         }
         self.h_bonds = AddressPointer::new(h_bonds);
@@ -479,10 +475,11 @@ impl Presenter {
         }
         let mut ret = Vec::new();
         for (n1, n2) in unchecked_pairs {
-            if !checked_nucl.contains(&n1.prime3()) && !checked_nucl.contains(&n1.prime5()) {
-                if let Some(id) = self.content.identifier_bond.get(&(n1, n2)) {
-                    ret.push(*id)
-                }
+            if !checked_nucl.contains(&n1.prime3())
+                && !checked_nucl.contains(&n1.prime5())
+                && let Some(id) = self.content.identifier_bond.get(&(n1, n2))
+            {
+                ret.push(*id)
             }
         }
         ret
