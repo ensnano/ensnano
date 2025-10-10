@@ -286,3 +286,10 @@ impl From<FiniteVec3> for Vec3 {
         v.0
     }
 }
+
+/// A plane in space defined by an origin and a normal
+#[derive(Debug)]
+pub struct Plane {
+    pub origin: Vec3,
+    pub normal: Vec3,
+}

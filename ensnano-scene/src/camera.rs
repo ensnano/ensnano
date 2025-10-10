@@ -18,7 +18,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use {
     super::{ClickMode, PhySize, Stereography, controller::Data as SurfaceInfoProvider},
-    crate::maths_3d::{self, FiniteVec3},
+    crate::maths_3d::{self, FiniteVec3, Plane},
     ensnano_design::{SurfaceInfo, SurfacePoint, ultraviolet},
     ensnano_interactor::consts::{DEFAULT_STEREOGRAPHIC_ZOOM, STEREOGRAPHIC_ZOOM_STEP},
     ensnano_utils::winit,
@@ -89,7 +89,7 @@ impl Camera {
 /// This structure holds the information needed to compute the projection matrix.
 pub struct Projection {
     aspect: f32,
-    /// Field of view in *radiants*
+    /// Field of view in *radians*
     fovy: f32,
     znear: f32,
     zfar: f32,
@@ -911,11 +911,4 @@ impl CameraController {
             None
         }
     }
-}
-
-/// A plane in space defined by an origin and a normal
-#[derive(Debug)]
-struct Plane {
-    origin: Vec3,
-    normal: Vec3,
 }
