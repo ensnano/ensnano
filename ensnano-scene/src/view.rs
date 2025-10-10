@@ -708,36 +708,30 @@ impl View {
                 );
             }
 
+            if draw_type == DrawType::Scene {
+                log::trace!("Draw sky..");
+                if draw_options.background3d == Background3D::Sky {
+                    self.skybox_cube.draw(
+                        &mut render_pass,
+                        viewer.get_bindgroup(),
+                        self.models.get_bindgroup(),
+                    );
+                }
+                log::trace!("..Done");
+            }
+
             match draw_type {
+                DrawType::Scene | DrawType::Png { .. } => {
+                    for drawer in self.dna_drawers.reals(&draw_options) {
+                        drawer.draw(
+                            &mut render_pass,
+                            viewer.get_bindgroup(),
+                            self.models.get_bindgroup(),
+                        )
+                    }
+                }
                 DrawType::Design => {
                     for drawer in self.dna_drawers.fakes() {
-                        drawer.draw(
-                            &mut render_pass,
-                            viewer.get_bindgroup(),
-                            self.models.get_bindgroup(),
-                        )
-                    }
-                }
-                DrawType::Scene => {
-                    log::trace!("Draw sky..");
-                    if draw_options.background3d == Background3D::Sky {
-                        self.skybox_cube.draw(
-                            &mut render_pass,
-                            viewer.get_bindgroup(),
-                            self.models.get_bindgroup(),
-                        );
-                    }
-                    log::trace!("..Done");
-                    for drawer in self.dna_drawers.reals(&draw_options) {
-                        drawer.draw(
-                            &mut render_pass,
-                            viewer.get_bindgroup(),
-                            self.models.get_bindgroup(),
-                        )
-                    }
-                }
-                DrawType::Png { .. } => {
-                    for drawer in self.dna_drawers.reals(&draw_options) {
                         drawer.draw(
                             &mut render_pass,
                             viewer.get_bindgroup(),
