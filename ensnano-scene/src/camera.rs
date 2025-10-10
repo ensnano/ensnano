@@ -17,13 +17,13 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use {
-    super::{ClickMode, PhySize, Stereography, controller::Data as SurfaceInfoProvider, maths_3d},
+    super::{ClickMode, PhySize, Stereography, controller::Data as SurfaceInfoProvider},
+    crate::maths_3d::{self, FiniteVec3},
     ensnano_design::{SurfaceInfo, SurfacePoint, ultraviolet},
     ensnano_interactor::consts::{DEFAULT_STEREOGRAPHIC_ZOOM, STEREOGRAPHIC_ZOOM_STEP},
     ensnano_utils::winit,
     std::{
         cell::RefCell,
-        convert::TryFrom,
         f32::consts::{FRAC_PI_2, PI},
         rc::Rc,
         time::Duration,
@@ -269,32 +269,6 @@ pub struct CameraController {
     surface_point: Option<SurfacePoint>,
     surface_point0: Option<SurfacePoint>,
     dist_to_surface: Option<f32>,
-}
-
-#[derive(Clone, Copy, Debug)]
-pub struct FiniteVec3(Vec3);
-
-impl TryFrom<Vec3> for FiniteVec3 {
-    type Error = ();
-    fn try_from(value: Vec3) -> Result<Self, Self::Error> {
-        if !value.x.is_finite() || !value.y.is_finite() || !value.z.is_finite() {
-            Err(())
-        } else {
-            Ok(Self(value))
-        }
-    }
-}
-
-impl FiniteVec3 {
-    pub fn zero() -> Self {
-        Self(Vec3::zero())
-    }
-}
-
-impl From<FiniteVec3> for Vec3 {
-    fn from(v: FiniteVec3) -> Self {
-        v.0
-    }
 }
 
 impl CameraController {

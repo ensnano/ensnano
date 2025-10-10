@@ -20,7 +20,7 @@ use super::{
     camera::{CameraPtr, ProjectionPtr},
 };
 
-/// Use to compute the shortes line between two lines in 3D.
+/// Computes the shortest line between two lines in 3D.
 /// Let P1, P2, P3, P4 be 4 points.
 /// We want to find the shortest line between the segment (P1, P2) and (P3, P4).
 /// This line is a line (Pa, Pb) where Pa = P1 + mua (P2 - P1).
@@ -123,7 +123,7 @@ pub fn unproject_point_on_plane(
     }
 }
 
-/// Convert a point on the screen into a point in the world. Usefull for casting rays
+/// Convert a point on the screen into a point in the world. Useful for casting rays
 fn ndc_to_world(
     x_ndc: f32,
     y_ndc: f32,
@@ -165,16 +165,6 @@ pub fn cast_ray(
     (camera.borrow().position, target - camera.borrow().position)
 }
 
-pub struct UnalignedBoundaries {
-    min_x: f32,
-    max_x: f32,
-    min_y: f32,
-    max_y: f32,
-    min_z: f32,
-    max_z: f32,
-    basis: Basis3D,
-}
-
 pub struct Basis3D {
     unit_x: Vec3,
     unit_y: Vec3,
@@ -201,6 +191,16 @@ impl Basis3D {
     pub fn convert_point_from_self(&self, point: Vec3) -> Vec3 {
         point.x * self.unit_x + point.y * self.unit_y + point.z * self.unit_z
     }
+}
+
+pub struct UnalignedBoundaries {
+    min_x: f32,
+    max_x: f32,
+    min_y: f32,
+    max_y: f32,
+    min_z: f32,
+    max_z: f32,
+    basis: Basis3D,
 }
 
 impl UnalignedBoundaries {
@@ -258,5 +258,31 @@ impl UnalignedBoundaries {
         let x_back = radius * ratio_adjust / 2. / (fovy / 2.).tan();
 
         Some(middle + x_back.max(10.) * self.basis.unit_z)
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct FiniteVec3(Vec3);
+
+impl TryFrom<Vec3> for FiniteVec3 {
+    type Error = ();
+    fn try_from(value: Vec3) -> Result<Self, Self::Error> {
+        if !value.x.is_finite() || !value.y.is_finite() || !value.z.is_finite() {
+            Err(())
+        } else {
+            Ok(Self(value))
+        }
+    }
+}
+
+impl FiniteVec3 {
+    pub fn zero() -> Self {
+        Self(Vec3::zero())
+    }
+}
+
+impl From<FiniteVec3> for Vec3 {
+    fn from(v: FiniteVec3) -> Self {
+        v.0
     }
 }

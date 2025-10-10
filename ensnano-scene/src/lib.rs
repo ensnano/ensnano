@@ -18,6 +18,22 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 #![allow(mixed_script_confusables, confusable_idents)] // allow mathematical symbols as variables
 
+mod camera;
+mod controller;
+mod data;
+mod element_selector;
+mod maths_3d;
+mod rotor_utils;
+mod sausage_rosary;
+mod stl;
+pub mod view;
+
+use crate::maths_3d::FiniteVec3;
+pub use controller::ClickMode;
+use controller::{Consequence, Controller, WidgetTarget};
+use data::Data;
+pub use data::{DesignReader, HBond, HalfHBond, SurfaceInfo, SurfacePoint};
+use element_selector::{ElementSelector, SceneElement};
 use ensnano_design::{
     BezierVertexId, Nucl, consts::ITERATIVE_AXIS_ALGORITHM, grid::GridPosition,
     grid::HelixGridPosition, group_attributes::GroupPivot, ultraviolet,
@@ -46,40 +62,15 @@ use std::{
     time::Duration,
 };
 use ultraviolet::{Mat4, Rotor3, Vec3};
-
-mod stl;
-
-/// Computation of the view and projection matrix.
-mod camera;
-use camera::FiniteVec3;
-
-/// Display of the scene
-pub mod view;
 pub use view::{DrawOptions, FogParameters, GridInstance};
 use view::{
     DrawType, HandleDir, HandleOrientation, HandlesDescriptor, LetterInstance,
     RotationMode as WidgetRotationMode, RotationWidgetDescriptor, RotationWidgetOrientation,
     Stereography, View, ViewUpdate,
 };
-/// Handling of inputs and notifications
-mod controller;
-use controller::{Consequence, Controller, WidgetTarget};
-/// Handling of designs and internal data
-mod data;
-pub use controller::ClickMode;
-use data::Data;
-pub use data::{DesignReader, HBond, HalfHBond, SurfaceInfo, SurfacePoint};
-mod element_selector;
-use element_selector::{ElementSelector, SceneElement};
-mod maths_3d;
 
 type ViewPtr = Rc<RefCell<View>>;
 type DataPtr<R> = Rc<RefCell<Data<R>>>;
-
-// Rotor utils: safe rotor between
-mod rotor_utils;
-
-mod sausage_rosary;
 
 const PNG_SIZE: u32 = 256 * 10;
 

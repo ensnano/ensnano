@@ -15,12 +15,16 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
+use super::AppState;
 use super::view::HandleColors;
 use super::{
     Duration, ElementSelector, HandleDir, SceneElement, Stereography, ViewPtr,
     WidgetRotationMode as RotationMode, camera, ultraviolet,
 };
+use crate::maths_3d::FiniteVec3;
 use crate::{PhySize, PhysicalPosition, WindowEvent};
+use camera::CameraController;
 use ensnano_design::grid::{GridId, GridObject, GridPosition, HelixGridPosition};
 use ensnano_design::{
     BezierPathId, BezierPlaneId, BezierVertex, BezierVertexId, Nucl, SurfaceInfo, SurfacePoint,
@@ -30,13 +34,10 @@ use ensnano_utils::winit;
 use ensnano_utils::winit::window::CursorIcon;
 use std::cell::RefCell;
 use std::ops::Deref;
+use std::rc::Rc;
 use ultraviolet::{Rotor3, Vec2, Vec3};
 use winit::event::{ElementState, KeyEvent, Modifiers};
 use winit::keyboard::{Key, ModifiersState, NamedKey, PhysicalKey};
-
-use super::AppState;
-
-use camera::{CameraController, FiniteVec3};
 
 mod automata;
 pub use automata::WidgetTarget;
@@ -49,7 +50,6 @@ pub enum ClickMode {
     RotateCam,
 }
 
-use std::rc::Rc;
 type DataPtr = Rc<RefCell<dyn Data>>;
 
 /// An object handling input and notification for the scene.
