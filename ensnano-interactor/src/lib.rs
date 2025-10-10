@@ -99,7 +99,7 @@ impl Referential {
 }
 
 #[derive(Debug, Clone)]
-/// An operation that can be perorfed on a design
+/// An operation that can be performed on a design
 pub enum DesignOperation {
     /// Rotate an element of the design
     Rotation(DesignRotation),
@@ -127,7 +127,7 @@ pub enum DesignOperation {
         nucl: Nucl,
         s_id: usize,
     },
-    /// Make a cross-over between two nucleotides, spliting the source and target strands if needed
+    /// Make a cross-over between two nucleotides, splitting the source and target strands if needed
     GeneralXover {
         source: Nucl,
         target: Nucl,
@@ -138,7 +138,7 @@ pub enum DesignOperation {
         prime5_id: usize,
         prime3_id: usize,
     },
-    /// Make a cross over from a strand end to a nucleotide, spliting the target strand if needed.
+    /// Make a cross over from a strand end to a nucleotide, splitting the target strand if needed.
     CrossCut {
         target_3prime: bool,
         source_id: usize,
@@ -346,12 +346,6 @@ pub struct InsertionPoint {
     pub nucl_is_prime5_of_insertion: bool,
 }
 
-/// An action performed on the application
-pub enum AppOperation {
-    /// Adjust the camera so that the design fit the view
-    Fit,
-}
-
 #[derive(Debug, Clone)]
 pub enum HyperboloidOperation {
     New {
@@ -409,7 +403,7 @@ impl ToString for IsometryTarget {
     }
 }
 
-/// A stucture that defines an helix on a grid
+/// An helix on a grid
 #[derive(Clone, Debug)]
 pub struct GridHelixDescriptor {
     pub grid_id: GridId,
