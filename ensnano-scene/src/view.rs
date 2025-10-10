@@ -720,51 +720,23 @@ impl View {
                 log::trace!("..Done");
             }
 
-            match draw_type {
-                DrawType::Scene | DrawType::Png { .. } => {
-                    for drawer in self.dna_drawers.reals(&draw_options) {
-                        drawer.draw(
-                            &mut render_pass,
-                            viewer.get_bindgroup(),
-                            self.models.get_bindgroup(),
-                        )
-                    }
-                }
-                DrawType::Design => {
-                    for drawer in self.dna_drawers.fakes() {
-                        drawer.draw(
-                            &mut render_pass,
-                            viewer.get_bindgroup(),
-                            self.models.get_bindgroup(),
-                        )
-                    }
-                }
-                DrawType::Phantom => {
-                    for drawer in self.dna_drawers.phantoms() {
-                        drawer.draw(
-                            &mut render_pass,
-                            viewer.get_bindgroup(),
-                            self.models.get_bindgroup(),
-                        )
-                    }
-                }
-                DrawType::Grid => {
-                    // Draw design elements and phantoms, to fill the depth buffer
-                    for drawer in self.dna_drawers.fakes_and_phantoms() {
-                        drawer.draw(
-                            &mut render_pass,
-                            viewer.get_bindgroup(),
-                            self.models.get_bindgroup(),
-                        )
-                    }
-                }
-                DrawType::Widget => {
-                    self.dna_drawers.fake_bezier_control.draw(
-                        &mut render_pass,
-                        viewer_bind_group,
-                        self.models.get_bindgroup(),
-                    );
-                }
+            let drawers = match draw_type {
+                DrawType::Scene | DrawType::Png { .. } => self.dna_drawers.reals(&draw_options),
+                DrawType::Design => self.dna_drawers.fakes(),
+                DrawType::Phantom => self.dna_drawers.phantoms(),
+                DrawType::Grid => self.dna_drawers.fakes_and_phantoms(), // to fill the depth buffer
+                DrawType::Widget => vec![
+                    &mut self.dna_drawers.fake_bezier_control
+                        as &mut dyn RawDrawer<RawInstance = RawDnaInstance>,
+                ],
+            };
+
+            for drawer in drawers {
+                drawer.draw(
+                    &mut render_pass,
+                    viewer.get_bindgroup(),
+                    self.models.get_bindgroup(),
+                );
             }
 
             if !fake_color && !stereographic && self.draw_letter {
