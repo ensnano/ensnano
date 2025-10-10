@@ -390,11 +390,11 @@ impl CameraController {
     }
 
     pub fn is_moving(&self) -> bool {
-        self.amount_down > 0.
-            || self.amount_up > 0.
-            || self.amount_right > 0.
-            || self.amount_left > 0.
-            || self.scroll.abs() > 0.
+        self.amount_down != 0.
+            || self.amount_up != 0.
+            || self.amount_right != 0.
+            || self.amount_left != 0.
+            || self.scroll != 0.
     }
 
     pub fn stop_camera_movement(&mut self) {
@@ -594,28 +594,30 @@ impl CameraController {
             ) * camera.rotor;
         }
 
-        let pivot = self.zoom_plane.as_ref().and_then(|plane| {
-            if self
-                .camera
-                .borrow()
-                .direction()
-                .normalized()
-                .dot(-plane.normal.normalized())
-                > 0.9
-            {
-                maths_3d::unproject_point_on_plane(
-                    plane.origin,
-                    plane.normal,
-                    self.camera.clone(),
-                    self.projection.clone(),
-                    self.x_scroll,
-                    self.y_scroll,
-                    None,
-                )
-            } else {
-                None
-            }
-        });
+        let pivot = self
+            .zoom_plane
+            .as_ref()
+            .and_then(|plane| {
+                (self
+                    .camera
+                    .borrow()
+                    .direction()
+                    .normalized()
+                    .dot(-plane.normal.normalized())
+                    > 0.9)
+                    .then(|| {
+                        maths_3d::unproject_point_on_plane(
+                            plane.origin,
+                            plane.normal,
+                            self.camera.clone(),
+                            self.projection.clone(),
+                            self.x_scroll,
+                            self.y_scroll,
+                            None,
+                        )
+                    })
+            })
+            .flatten();
 
         // Move in/out (aka. "zoom")
         // Note: this isn't an actual zoom. The camera's position
