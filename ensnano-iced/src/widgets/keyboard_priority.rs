@@ -139,15 +139,10 @@ where
         let state = tree.state.downcast_mut::<State>();
 
         // Figure out wether the underlying widget is a [`text_input`].
-        let is_child_a_text_input = if let Some(child_widget) = tree.children.get(0) {
-            if let widget::tree::State::Some(child_state) = &child_widget.state {
-                match child_state.downcast_ref::<text_input::State<Paragraph>>() {
-                    Some(text_input_state) => Some(text_input_state),
-                    None => None,
-                }
-            } else {
-                None
-            }
+        let is_child_a_text_input = if let Some(child_widget) = tree.children.get(0)
+            && let widget::tree::State::Some(child_state) = &child_widget.state
+        {
+            child_state.downcast_ref::<text_input::State<Paragraph>>()
         } else {
             None
         };
