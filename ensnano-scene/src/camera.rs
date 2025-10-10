@@ -55,10 +55,7 @@ pub type CameraPtr = Rc<RefCell<Camera>>;
 
 impl Camera {
     pub fn new(position: Vec3, rotor: Rotor3) -> Self {
-        Self {
-            position: position.into(),
-            rotor,
-        }
+        Self { position, rotor }
     }
 
     /// The view matrix of the camera
