@@ -33,12 +33,12 @@ const NB_FAST_DISCRETIZATION_STEP: usize = 1_000;
 const PRINTOUT_NUCL_3D_POSITIONS: bool = false; // true;
 
 impl Curve {
-    /// Pre-compute the frames arround which the nucleotides will be positioned.
+    /// Pre-compute the frames around which the nucleotides will be positioned.
     ///
     /// This is done by an iterative discretization algorithm that computes forward positions
     /// (f_0,... f_n) (for the forward strand) and backwards positions (b_0,..., b_n) (for the backward strand), so that
-    /// * The curvinilear distance between f_{i} and f_{i + 1} is `nucl_rise`.
-    /// * The curvinilear distance between b_{i} and b_{i + 1} is `nucl_rise`.
+    /// * The curvilinear distance between f_{i} and f_{i + 1} is `nucl_rise`.
+    /// * The curvilinear distance between b_{i} and b_{i + 1} is `nucl_rise`.
     /// * The curvilinear distance between f_{i} and b_{i} is `inclination`.
     ///
     /// Note that the actual value used for `nucl_rise` may be slightly different from the value

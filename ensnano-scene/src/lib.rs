@@ -583,7 +583,7 @@ impl<S: AppState> Scene<S> {
             if let Some(opt) = self
                 .older_state
                 .get_design_reader()
-                .get_optimal_xover_arround(source, target)
+                .get_optimal_xover_around(source, target)
             {
                 (source, target) = opt;
             }

@@ -913,7 +913,7 @@ impl Helix {
         self.position = rotation * self.position;
     }
 
-    pub fn rotate_arround(&mut self, rotation: Rotor3, origin: Vec3) {
+    pub fn rotate_around(&mut self, rotation: Rotor3, origin: Vec3) {
         self.append_translation(-origin);
         self.append_rotation(rotation);
         self.append_translation(origin);

@@ -52,7 +52,7 @@ pub struct Twist {
     pub position: Vec3,
     /// The orientation of the curve. The normal vector is orientation * unit_x
     pub orientation: Rotor3,
-    /// The radius of the circle arround which the helix turns
+    /// The radius of the circle around which the helix turns
     pub radius: f64,
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub t_min: Option<f64>,

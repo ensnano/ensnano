@@ -345,7 +345,7 @@ impl CurveDescriptor2D {
 
         // (x, y) := position in the revolution plane
         // This position is shifted by `-revolution_axis_position` so that the plane can simply be
-        // rotated arround the x axis.
+        // rotated around the x axis.
         let x = -surface.revolution_axis_position
             + surface.curve_scale_factor
                 * (point2d.x * surface.section_rotation.cos()

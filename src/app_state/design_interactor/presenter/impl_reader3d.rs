@@ -515,7 +515,7 @@ impl Reader3D for DesignReader {
         ]
     }
 
-    fn get_optimal_xover_arround(&self, source: Nucl, target: Nucl) -> Option<(Nucl, Nucl)> {
+    fn get_optimal_xover_around(&self, source: Nucl, target: Nucl) -> Option<(Nucl, Nucl)> {
         let source_id = self.get_id_of_strand_containing_nucl(&source)?;
         let target_id = self.get_id_of_strand_containing_nucl(&target)?;
         let mut opt_pair = (source, target);

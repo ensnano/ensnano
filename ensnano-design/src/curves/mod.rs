@@ -198,7 +198,7 @@ pub trait Curved {
     }
 
     /// This method can be overridden to express the fact that a specific frame should be used to
-    /// position nucleotides arround the first point of the curve.
+    /// position nucleotides around the first point of the curve.
     fn initial_frame(&self) -> Option<DMat3> {
         None
     }

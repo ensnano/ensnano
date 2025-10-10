@@ -15,51 +15,47 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-//! This modules handles internal informations about the scene, such as the selected objects etc..
+
+//! This modules handles internal information about the scene, such as the selected objects etc..
 //! It also communicates with the designs to get the position of the objects to draw on the scene.
 
-use crate::view::AvailableRotationAxes;
-
-use super::view::{
-    GridDisc, HandleColors, Instantiable, RawDnaInstance, StereographicSphereAndPlane,
-};
 use super::{
-    Camera3D, HandleOrientation, HandlesDescriptor, LetterInstance, RotationWidgetDescriptor,
-    RotationWidgetOrientation, SceneElement, View, ViewUpdate, ultraviolet,
+    AppState, Camera3D, HandleOrientation, HandlesDescriptor, LetterInstance,
+    RotationWidgetDescriptor, RotationWidgetOrientation, SceneElement, View, ViewUpdate,
+    ultraviolet,
+    view::{
+        GridDisc, HandleColors, Instantiable, Mesh, RawDnaInstance, StereographicSphereAndPlane,
+    },
 };
-use std::cell::RefCell;
-use std::collections::{BTreeMap, HashMap, HashSet};
-// use std::hash::RandomState;
-use std::rc::Rc;
-use std::sync::Arc;
-
-use ensnano_design::grid::GridObject;
-use ensnano_design::{BezierVertexId, Collection};
-use ensnano_interactor::graphics::HBondDisplay;
-use ultraviolet::{Rotor3, Vec3};
-
-use super::view::Mesh;
+use crate::view::AvailableRotationAxes;
 use ensnano_design::{
-    Nucl,
-    grid::{GridId, GridPosition},
+    BezierVertexId, Collection, External3DObjectsStamp, Nucl,
+    grid::{GridId, GridObject, GridPosition},
 };
-use ensnano_interactor::consts::*;
 use ensnano_interactor::{
     ActionMode, CenterOfSelection, ObjectType, PhantomElement, Referential, Selection,
     SelectionMode,
+    consts::{
+        BOND_RADIUS, CANDIDATE_COLOR, CANDIDATE_SCALE_FACTOR, SELECT_SCALE_FACTOR, SELECTED_COLOR,
+        SPHERE_RADIUS,
+    },
+    graphics::HBondDisplay,
 };
-
 use ensnano_utils::StrandNucleotidesPositions;
-
-use super::AppState;
-
-type ViewPtr = Rc<RefCell<View>>;
+use std::{
+    cell::RefCell,
+    collections::{BTreeMap, HashMap, HashSet},
+    rc::Rc,
+    sync::Arc,
+};
+use ultraviolet::{Rotor3, Vec3};
 
 /// A module that handles the instantiation of designs as 3D geometric objects
 mod design3d;
 use design3d::Design3D;
 pub use design3d::{DesignReader, HBond, HalfHBond, SurfaceInfo, SurfacePoint};
-use ensnano_design::External3DObjectsStamp;
+
+type ViewPtr = Rc<RefCell<View>>;
 
 pub struct Data<R: DesignReader> {
     view: ViewPtr,
@@ -75,7 +71,7 @@ pub struct Data<R: DesignReader> {
     /// A position determined by the current selection. If only one nucleotide is selected, it's
     /// the position of the nucleotide.
     selected_position: Option<Vec3>,
-    /// The element arround which the camera rotates
+    /// The element around which the camera rotates
     pivot_element: Option<SceneElement>,
     pivot_update: bool,
     pivot_position: Option<Vec3>,

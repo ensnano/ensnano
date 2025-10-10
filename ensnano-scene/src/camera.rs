@@ -23,6 +23,7 @@ use {
     ensnano_utils::winit,
     std::{
         cell::RefCell,
+        convert::TryFrom,
         f32::consts::{FRAC_PI_2, PI},
         rc::Rc,
         time::Duration,
@@ -273,7 +274,6 @@ pub struct CameraController {
 #[derive(Clone, Copy, Debug)]
 pub struct FiniteVec3(Vec3);
 
-use std::convert::TryFrom;
 impl TryFrom<Vec3> for FiniteVec3 {
     type Error = ();
     fn try_from(value: Vec3) -> Result<Self, Self::Error> {

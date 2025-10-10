@@ -38,7 +38,7 @@ pub struct Hyperboloid {
     /// A forced grid radius, for when user modifies the shift but still wants the radius in the
     /// center to be constant.
     pub forced_radius: Option<f32>,
-    /// The number of turns arround the grid made by the helices every 100 nucleotides.
+    /// The number of turns around the grid made by the helices every 100 nucleotides.
     ///
     /// Note that this value is subject to the constraint
     /// |Ω| ≤ Z * r / sqrt(2π)

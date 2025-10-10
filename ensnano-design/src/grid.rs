@@ -92,7 +92,7 @@ pub enum GridTypeDescr {
         #[serde(skip_serializing_if = "Option::is_none", default)]
         forced_radius: Option<f32>,
         #[serde(default)]
-        /// The number of turns arround the grid made by the helices every 100 nucleotides.
+        /// The number of turns around the grid made by the helices every 100 nucleotides.
         ///
         /// Note that this value is subject to the constraint
         /// |Ω| ≤ Z * r / sqrt(2π)
@@ -1340,7 +1340,7 @@ impl<'a> HelicesTranslator<'a> {
         let mut new_helices = self.grid_data.source_helices.make_mut();
         for h_id in helices.iter() {
             if let Some(h) = new_helices.get_mut(h_id) {
-                h.rotate_arround(rotation, origin)
+                h.rotate_around(rotation, origin)
             }
         }
         drop(new_helices);
