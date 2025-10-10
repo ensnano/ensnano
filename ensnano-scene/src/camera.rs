@@ -15,18 +15,25 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use super::maths_3d;
-use super::{ClickMode, PhySize, Stereography, controller::Data as SurfaceInfoProvider};
-use ensnano_design::{SurfaceInfo, SurfacePoint, ultraviolet};
-use ensnano_utils::winit;
-use std::cell::RefCell;
-use std::f32::consts::{FRAC_PI_2, PI};
-use std::rc::Rc;
-use std::time::Duration;
-use ultraviolet::{Mat3, Mat4, Rotor3, Vec3};
-use winit::dpi::PhysicalPosition;
-use winit::event::*;
-use winit::keyboard::{KeyCode, ModifiersState};
+
+use {
+    super::{ClickMode, PhySize, Stereography, controller::Data as SurfaceInfoProvider, maths_3d},
+    ensnano_design::{SurfaceInfo, SurfacePoint, ultraviolet},
+    ensnano_interactor::consts::{DEFAULT_STEREOGRAPHIC_ZOOM, STEREOGRAPHIC_ZOOM_STEP},
+    ensnano_utils::winit,
+    std::{
+        cell::RefCell,
+        f32::consts::{FRAC_PI_2, PI},
+        rc::Rc,
+        time::Duration,
+    },
+    ultraviolet::{Mat3, Mat4, Rotor3, Vec3},
+    winit::{
+        dpi::PhysicalPosition,
+        event::*,
+        keyboard::{KeyCode, ModifiersState},
+    },
+};
 
 const DEFAULT_DIST_TO_SURFACE: f32 = 20.;
 const SURFACE_ABSCISSA_FACTOR: f64 = 1.;
@@ -100,7 +107,7 @@ impl Projection {
             fovy,
             znear,
             zfar,
-            stereographic_zoom: ensnano_interactor::consts::DEFAULT_STEREOGRAPHIC_ZOOM,
+            stereographic_zoom: DEFAULT_STEREOGRAPHIC_ZOOM,
         }
     }
 
@@ -150,12 +157,12 @@ impl ConstrainedRotation {
                 // if the current position is not on a pole, use it to compute theta
 
                 // We project on the zx plane (z to the right, x up) so the z coordinate is the `x` argument of atan2 and the
-                // x coordinate is the `y` arugment of atan2
+                // x coordinate is the `y` argument of atan2
                 current_pos_on_sphere
                     .dot(horizon_x)
                     .atan2(current_pos_on_sphere.dot(horizon_z))
             } else {
-                // The current right vector is in the xz plane so we can use it to dertermine theta
+                // The current right vector is in the xz plane so we can use it to determine theta
 
                 // We project the right vector in the x(-z) plane
                 let current_right = current_rotor.reversed() * Vec3::from([1., 0., 0.]);
@@ -416,7 +423,7 @@ impl CameraController {
         origin: Vec3,
         x: f64,
         y: f64,
-        streography: Option<&Stereography>,
+        stereography: Option<&Stereography>,
     ) -> Vec3 {
         let plane = Plane {
             origin,
@@ -429,7 +436,7 @@ impl CameraController {
             self.projection.clone(),
             x as f32,
             y as f32,
-            streography,
+            stereography,
         )
         .unwrap_or(origin)
     }
@@ -465,8 +472,7 @@ impl CameraController {
                 scroll.signum() as f32
             }
         };
-        self.projection.borrow_mut().stereographic_zoom *=
-            ensnano_interactor::consts::STEREOGRAPHIC_ZOOM_STEP.powf(direction);
+        self.projection.borrow_mut().stereographic_zoom *= STEREOGRAPHIC_ZOOM_STEP.powf(direction);
     }
 
     /// Rotate the head of the camera on its yz plane and xz plane according to the values of
@@ -751,25 +757,25 @@ impl CameraController {
     pub fn horizon_angle(&self) -> f32 {
         let pv_matrix = self.projection.borrow().calc_matrix() * self.camera.borrow().calc_matrix();
         let far_dist = 1000.;
-        let mut percieved_x_far = pv_matrix
+        let mut perceived_x_far = pv_matrix
             .transform_point3(far_dist * Vec3::unit_z() + far_dist * Vec3::unit_x())
             - pv_matrix.transform_point3(far_dist * Vec3::unit_z());
-        percieved_x_far.x *= self.projection.borrow().get_ratio();
-        let mut percieved_z_far = pv_matrix
+        perceived_x_far.x *= self.projection.borrow().get_ratio();
+        let mut perceived_z_far = pv_matrix
             .transform_point3(far_dist * Vec3::unit_z() + far_dist * Vec3::unit_x())
             - pv_matrix.transform_point3(far_dist * Vec3::unit_x());
-        percieved_z_far.x *= self.projection.borrow().get_ratio();
-        let mut angle = if ultraviolet::Vec2::new(percieved_x_far.x, percieved_x_far.y).mag()
-            > ultraviolet::Vec2::new(percieved_z_far.x, percieved_z_far.y).mag()
+        perceived_z_far.x *= self.projection.borrow().get_ratio();
+        let mut angle = if ultraviolet::Vec2::new(perceived_x_far.x, perceived_x_far.y).mag()
+            > ultraviolet::Vec2::new(perceived_z_far.x, perceived_z_far.y).mag()
         {
-            -percieved_x_far.y.atan2(percieved_x_far.x)
+            -perceived_x_far.y.atan2(perceived_x_far.x)
         } else {
-            -percieved_z_far.y.atan2(percieved_z_far.x)
+            -perceived_z_far.y.atan2(perceived_z_far.x)
         };
-        if angle > std::f32::consts::FRAC_PI_2 {
-            angle -= std::f32::consts::PI;
-        } else if angle < -std::f32::consts::FRAC_PI_2 {
-            angle += std::f32::consts::PI;
+        if angle > FRAC_PI_2 {
+            angle -= PI;
+        } else if angle < -FRAC_PI_2 {
+            angle += PI;
         };
         angle
     }
@@ -784,7 +790,7 @@ impl CameraController {
         self.projection.borrow_mut().resize(size.width, size.height)
     }
 
-    /// Swing the camera arrond `self.pivot_point`. Assumes that the pivot_point is where the
+    /// Swing the camera around `self.pivot_point`. Assumes that the pivot_point is where the
     /// camera points at.
     pub fn swing(&mut self, x: f64, y: f64) {
         let new_angle_yz = -((y + 1.).rem_euclid(2.) - 1.) as f32 * PI;
@@ -800,8 +806,8 @@ impl CameraController {
         self.free_yz_angle = new_angle_yz;
     }
 
-    /// Rotate the camera arround a point.
-    /// `point` is given in the world's coordiantes.
+    /// Rotate the camera around a point.
+    /// `point` is given in the world's coordinates.
     pub fn rotate_camera_around(
         &mut self,
         delta_xz_angle: f32,
