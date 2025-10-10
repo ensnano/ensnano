@@ -163,7 +163,7 @@ impl View {
         encoder: &mut wgpu::CommandEncoder,
     ) -> Self {
         let camera = Rc::new(RefCell::new(Camera::new(
-            (0.0, 5.0, 10.0),
+            Vec3::new(0.0, 5.0, 10.0),
             Rotor3::identity(),
         )));
         let projection = Rc::new(RefCell::new(Projection::new(

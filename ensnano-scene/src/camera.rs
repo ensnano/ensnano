@@ -54,7 +54,7 @@ pub struct Camera {
 pub type CameraPtr = Rc<RefCell<Camera>>;
 
 impl Camera {
-    pub fn new<V: Into<Vec3>>(position: V, rotor: Rotor3) -> Self {
+    pub fn new(position: Vec3, rotor: Rotor3) -> Self {
         Self {
             position: position.into(),
             rotor,
