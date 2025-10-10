@@ -117,7 +117,7 @@ fn rotation_message<State: AppState>(
 struct CameraWidget {
     // Name of the custom camera orientation.
     name: String,
-    // Wether the name is being edited.
+    // Whether the name is being edited.
     being_edited: bool,
     // An id for this camera.
     camera_id: CameraId,

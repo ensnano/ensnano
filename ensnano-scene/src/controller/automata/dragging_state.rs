@@ -777,7 +777,7 @@ impl DraggingTransitionTable for MovingBezierTangent {
         cursor: DraggedCursor<'_, '_, S>,
     ) -> Option<Consequence> {
         let translate_only = cursor.context.get_modifiers().shift_key();
-        let full_symetry_other = cursor.context.get_modifiers().alt_key();
+        let full_symmetry_other = cursor.context.get_modifiers().alt_key();
 
         let new_tangent = if translate_only {
             // Change the norm without changing the angle
@@ -801,7 +801,7 @@ impl DraggingTransitionTable for MovingBezierTangent {
             Consequence::MoveBezierTangent {
                 vertex_id: self.vertex_id,
                 tangent_in: self.tangent_in,
-                full_symetry_other,
+                full_symmetry_other,
                 new_vector: t,
             }
         })

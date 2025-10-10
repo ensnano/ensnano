@@ -1461,7 +1461,7 @@ impl Controller {
             .ok_or(ErrOperation::VertexDoesNotExist(path_id, vertex_id))?;
         if request.tangent_in {
             vertex.position_in = Some(vertex.position + request.new_vector);
-            if request.full_symetry_other_tangent {
+            if request.full_symmetry_other_tangent {
                 vertex.position_out = Some(vertex.position - request.new_vector);
             } else {
                 let norm = vertex
@@ -1476,7 +1476,7 @@ impl Controller {
             }
         } else {
             vertex.position_out = Some(vertex.position + request.new_vector);
-            if request.full_symetry_other_tangent {
+            if request.full_symmetry_other_tangent {
                 vertex.position_in = Some(vertex.position - request.new_vector);
             } else {
                 let norm = vertex

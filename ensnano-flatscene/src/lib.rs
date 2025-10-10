@@ -101,7 +101,7 @@ pub struct FlatScene<S: AppState> {
     /// Command queue on the graphics device.
     queue: Rc<Queue>,
     last_update: Instant,
-    /// Wether the flatscene is split in two.
+    /// Whether the flatscene is split in two.
     is_split: bool,
     old_state: S,
     requests: Arc<Mutex<dyn Requests>>,

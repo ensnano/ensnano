@@ -187,7 +187,7 @@ pub struct Helix {
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub helix_parameters: Option<HelixParameters>,
 
-    /// Indicate wether the helix should be displayed in the 3D view.
+    /// Indicate whether the helix should be displayed in the 3D view.
     #[serde(default = "default_visibility", skip_serializing_if = "bool::clone")]
     pub visible: bool,
 

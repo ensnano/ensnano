@@ -138,7 +138,7 @@ where
         // First, we get the current focus state.
         let state = tree.state.downcast_mut::<State>();
 
-        // Figure out wether the underlying widget is a [`text_input`].
+        // Figure out whether the underlying widget is a [`text_input`].
         let is_child_a_text_input = if let Some(child_widget) = tree.children.get(0)
             && let widget::tree::State::Some(child_state) = &child_widget.state
         {
@@ -150,7 +150,7 @@ where
         let action = match is_child_a_text_input {
             Some(text_input_state) => {
                 let was_focused = state.is_focused;
-                // Figure out wether the underlying widget is focused.
+                // Figure out whether the underlying widget is focused.
                 let now_focused = text_input_state.is_focused();
                 // Update state
                 state.is_focused = now_focused;

@@ -334,9 +334,9 @@ pub enum DesignOperation {
 #[derive(Clone, Debug, Copy)]
 pub struct NewBezierTangentVector {
     pub vertex_id: BezierVertexId,
-    /// Wether `new_vector` is the vector of the inward or outward tangent
+    /// Whether `new_vector` is the vector of the inward or outward tangent
     pub tangent_in: bool,
-    pub full_symetry_other_tangent: bool,
+    pub full_symmetry_other_tangent: bool,
     pub new_vector: Vec2,
 }
 

@@ -238,7 +238,7 @@ pub trait Requests: 'static + Send {
     fn request_save_nucleotides_positions(&mut self);
     fn notify_revolution_tab(&mut self);
     fn request_stl_export(&mut self);
-    /// Set keyboard priority, i.e. wether activate keyboard shortcuts.
+    /// Set keyboard priority, i.e. whether activate keyboard shortcuts.
     fn set_keyboard_priority(&mut self, priority: bool);
 }
 
@@ -1051,9 +1051,9 @@ pub trait DesignReader: 'static {
 /// Some main application state, mostly related with top bar buttons.
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct TopBarState {
-    /// Wether the Undo operation is possible.
+    /// Whether the Undo operation is possible.
     pub can_undo: bool,
-    /// Wether the Redo operation is possible.
+    /// Whether the Redo operation is possible.
     pub can_redo: bool,
     pub need_save: bool,
     pub can_reload: bool,

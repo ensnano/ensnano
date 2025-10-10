@@ -326,7 +326,7 @@ impl<S: AppState> Scene<S> {
                     }
                     self.data.borrow_mut().notify_handle_movement();
                 } else {
-                    log::warn!("Warning rotiation was None")
+                    log::warn!("Warning rotation was None")
                 }
             }
             Consequence::Swing(x, y) => {
@@ -554,11 +554,11 @@ impl<S: AppState> Scene<S> {
             Consequence::MoveBezierTangent {
                 vertex_id,
                 tangent_in,
-                full_symetry_other: adjust_other,
+                full_symmetry_other: adjust_other,
                 new_vector,
             } => self.requests.lock().unwrap().apply_design_operation(
                 DesignOperation::SetVectorOfBezierTangent(NewBezierTangentVector {
-                    full_symetry_other_tangent: adjust_other,
+                    full_symmetry_other_tangent: adjust_other,
                     new_vector,
                     tangent_in,
                     vertex_id,
@@ -1190,7 +1190,7 @@ pub enum SceneNotification {
 }
 
 impl<S: AppState> Scene<S> {
-    /// Send a notificatoin to the scene
+    /// Send a notification to the scene
     pub fn notify(&mut self, notification: SceneNotification) {
         match notification {
             SceneNotification::NewCamera(position, projection) => {

@@ -123,7 +123,7 @@ pub enum Consequence {
     PivotCenter,
     CheckXovers,
     AlignWithStereo,
-    /// Appen a vertex to a bezier path
+    /// Append a vertex to a bezier path
     CreateBezierVertex {
         /// The position of the created vertex
         vertex: BezierVertex,
@@ -149,7 +149,7 @@ pub enum Consequence {
     MoveBezierTangent {
         vertex_id: BezierVertexId,
         tangent_in: bool,
-        full_symetry_other: bool,
+        full_symmetry_other: bool,
         new_vector: Vec2,
     },
     ReverseSurfaceDirection,
