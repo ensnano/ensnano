@@ -88,14 +88,14 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //!      | Immediate   | No          | Yes         |
 //!      | Mailbox     | Yes         | No          |
 
-pub mod app_state;
-pub mod controller;
-pub mod dialog;
+mod app_state;
+mod controller;
+mod dialog;
 #[cfg(test)]
-pub mod main_tests;
-pub mod multiplexer;
-pub mod requests;
-pub mod scheduler;
+mod main_tests;
+mod multiplexer;
+mod requests;
+mod scheduler;
 
 use {
     crate::{

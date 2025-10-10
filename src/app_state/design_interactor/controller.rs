@@ -67,7 +67,6 @@ use ensnano_interactor::{
 };
 use ensnano_organizer::GroupId;
 use ensnano_utils::colors;
-pub use shift_optimization::ShiftOptimizationResult;
 pub use simulations::SimulationInterface;
 use std::{
     borrow::Cow,

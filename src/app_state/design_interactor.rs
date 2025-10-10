@@ -28,7 +28,7 @@ use crate::controller::ChannelReader;
 use controller::Controller;
 use controller::ErrOperation;
 use controller::InteractorNotification;
-pub use controller::{ShiftOptimizationResult, SimulationInterface};
+pub use controller::SimulationInterface;
 use ensnano_design::{
     BezierPathId, BezierPlaneDescriptor, Design, HelixCollection, HelixParameters,
     InstanciatedPiecewiseBezier, grid::GridId, group_attributes::GroupAttribute,
@@ -38,7 +38,7 @@ use ensnano_gui::CurrentOpState;
 use ensnano_interactor::PastingStatus;
 use ensnano_interactor::app_state_parameters::SuggestionParameters;
 use ensnano_interactor::{
-    DesignOperation, RevolutionSurfaceSystemDescriptor, Selection, SimulationState, StrandBuilder,
+    DesignOperation, Selection, SimulationState, StrandBuilder,
     consts::UPDATE_VISIBILITY_SIEVE_LABEL, operation::Operation,
 };
 use ensnano_organizer::GroupId;
@@ -1863,19 +1863,4 @@ mod tests {
 
         assert_good_strand(strand, "[H1: 0 -> 10] [@20] [H2: 0 <- 10]");
     }
-}
-
-#[allow(clippy::large_enum_variant)] // We don't create many instances of this type
-pub enum SimulationTarget {
-    Grids,
-    Helices,
-    Roll {
-        target_helices: Option<Vec<usize>>,
-    },
-    Twist {
-        grid_id: GridId,
-    },
-    Revolution {
-        desc: RevolutionSurfaceSystemDescriptor,
-    },
 }
