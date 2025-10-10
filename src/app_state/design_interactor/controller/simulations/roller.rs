@@ -24,7 +24,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::{Helix, HelixParameters, Nucl};
 use crate::{
     app_state::design_interactor::presenter::{Presenter, SimulationUpdate},
-    controller::ChannelReader,
+    controller::chanel_reader::ChannelReader,
 };
 use std::{
     collections::HashMap,

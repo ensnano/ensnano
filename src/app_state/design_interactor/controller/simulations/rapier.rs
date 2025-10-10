@@ -12,7 +12,7 @@ use crate::{
         controller::simulations::SimulationInterface,
         presenter::{Presenter, SimulationUpdate, design_content::NuclCollection},
     },
-    controller::ChannelReader,
+    controller::chanel_reader::ChannelReader,
 };
 
 #[derive(Default)]

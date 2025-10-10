@@ -21,28 +21,26 @@ pub mod file_parsing;
 pub mod presenter;
 
 use super::AddressPointer;
-use crate::app_state::design_interactor::controller::OkOperation;
-use crate::app_state::design_interactor::controller::clipboard::CopyOperation;
-use crate::app_state::design_interactor::controller::simulations::SimulationOperation;
-use crate::controller::ChannelReader;
-use controller::Controller;
-use controller::ErrOperation;
-use controller::InteractorNotification;
+use crate::{
+    app_state::design_interactor::controller::{
+        OkOperation, clipboard::CopyOperation, simulations::SimulationOperation,
+    },
+    controller::chanel_reader::ChannelReader,
+};
+use controller::{Controller, ErrOperation, InteractorNotification};
 use ensnano_design::{
     BezierPathId, BezierPlaneDescriptor, Design, HelixCollection, HelixParameters,
     InstanciatedPiecewiseBezier, grid::GridId, group_attributes::GroupAttribute,
 };
 use ensnano_exports::{ExportResult, ExportType};
 use ensnano_gui::CurrentOpState;
-use ensnano_interactor::PastingStatus;
-use ensnano_interactor::app_state_parameters::SuggestionParameters;
 use ensnano_interactor::{
-    DesignOperation, Selection, SimulationState, StrandBuilder,
-    consts::UPDATE_VISIBILITY_SIEVE_LABEL, operation::Operation,
+    DesignOperation, PastingStatus, Selection, SimulationState, StrandBuilder,
+    app_state_parameters::SuggestionParameters, consts::UPDATE_VISIBILITY_SIEVE_LABEL,
+    operation::Operation,
 };
 use ensnano_organizer::GroupId;
-use presenter::SimulationUpdate;
-use presenter::{Presenter, apply_simulation_update, update_presenter};
+use presenter::{Presenter, SimulationUpdate, apply_simulation_update, update_presenter};
 use std::sync::Arc;
 
 /// The `DesignInteractor` handles all read/write operations on the design. It is a stateful struct

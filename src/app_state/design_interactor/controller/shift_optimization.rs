@@ -24,8 +24,6 @@ macro_rules! log_err {
     };
 }
 
-use crate::controller::ChannelReader;
-
 use super::*;
 
 fn read_scaffold_seq(

@@ -107,13 +107,19 @@ use {
             },
             transitions::{AppStateTransition, OkOperation, TransitionLabel},
         },
-        controller::TargetScaffoldLength,
+        controller::{
+            chanel_reader::{ChannelReader, ChannelReaderUpdate},
+            normal_state::Action,
+            set_scaffold_sequence::{
+                ScaffoldSetter, SetScaffoldSequenceError, SetScaffoldSequenceOk,
+                TargetScaffoldLength,
+            },
+        },
         requests::Requests,
     },
     app_state::AppState,
     controller::{
-        Action, ChannelReader, ChannelReaderUpdate, Controller, LoadDesignError, SaveDesignError,
-        SetScaffoldSequenceError, SetScaffoldSequenceOk, StaplesDownloader,
+        Controller, LoadDesignError, SaveDesignError, download_staples::StaplesDownloader,
     },
     ensnano_design::{Camera, grid::GridId},
     ensnano_exports::{ExportResult, ExportType},
@@ -2188,7 +2194,7 @@ impl<'a> MainStateView<'a> {
     }
 }
 
-impl<'a> controller::ScaffoldSetter for MainStateView<'a> {
+impl<'a> ScaffoldSetter for MainStateView<'a> {
     fn set_scaffold_sequence(
         &mut self,
         sequence: String,

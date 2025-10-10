@@ -39,7 +39,7 @@ use crate::{
         presenter::SimulationUpdate,
     },
     apply_update,
-    controller::{ChannelReader, LoadDesignError, SaveDesignError},
+    controller::{LoadDesignError, SaveDesignError, chanel_reader::ChannelReader},
 };
 use address_pointer::AddressPointer;
 use design_interactor::{DesignInteractor, InteractorResult};

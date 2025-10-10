@@ -22,28 +22,24 @@ pub mod simulations;
 pub mod update_insertion_length;
 
 use super::SimulationUpdate;
-use crate::app_state::design_interactor::controller::simulations::rapier::{
-    RapierInterface, RapierPhysicalSystem,
-};
-use crate::app_state::design_interactor::controller::simulations::revolutions::{
-    RevolutionSystemInterface, RevolutionSystemThread,
-};
-use crate::app_state::design_interactor::controller::simulations::roller::{
-    PhysicalSystem, RollInterface,
-};
-use crate::app_state::design_interactor::controller::simulations::twister::{
-    TwistInterface, Twister,
-};
-use crate::app_state::design_interactor::controller::simulations::{
-    GridSystemInterface, GridsSystemThread, HelixSystemInterface, HelixSystemThread,
-    SimulationOperation,
-};
 use crate::{
-    app_state::{AddressPointer, design_interactor::presenter::design_content::NuclCollection},
-    controller::ChannelReader,
+    app_state::{
+        AddressPointer,
+        design_interactor::{
+            controller::simulations::{
+                GridSystemInterface, GridsSystemThread, HelixSystemInterface, HelixSystemThread,
+                SimulationOperation,
+                rapier::{RapierInterface, RapierPhysicalSystem},
+                revolutions::{RevolutionSystemInterface, RevolutionSystemThread},
+                roller::{PhysicalSystem, RollInterface},
+                twister::{TwistInterface, Twister},
+            },
+            presenter::design_content::NuclCollection,
+        },
+    },
+    controller::chanel_reader::ChannelReader,
 };
-use clipboard::{Clipboard, PastedStrand, StrandClipboard};
-use clipboard::{CopyOperation, PastePosition};
+use clipboard::{Clipboard, CopyOperation, PastePosition, PastedStrand, StrandClipboard};
 use ensnano_design::{
     BezierEnd, BezierPathId, BezierPlaneDescriptor, BezierVertex, BezierVertexId, CameraId,
     Collection, CurveDescriptor, Design, Domain, DomainJunction, Helices, Helix, HelixCollection,
@@ -58,11 +54,11 @@ use ensnano_design::{
     mutate_in_arc,
 };
 use ensnano_gui::ClipboardContent;
-use ensnano_interactor::PastingStatus;
 use ensnano_interactor::{
     BezierControlPoint, BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation,
     DomainIdentifier, HyperboloidOperation, IsometryTarget, NeighborDescriptor,
-    NeighborDescriptorGiver, NewBezierTangentVector, Selection, SimulationState, StrandBuilder,
+    NeighborDescriptorGiver, NewBezierTangentVector, PastingStatus, Selection, SimulationState,
+    StrandBuilder,
     operation::{Operation, TranslateBezierPathVertex},
 };
 use ensnano_organizer::GroupId;

@@ -16,11 +16,12 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use super::{
-    DownloadStapleError, DownloadStapleOk, NormalState, StaplesDownloader, State,
-    TransitionMessage, messages,
+use super::{NormalState, State, TransitionMessage, messages};
+use crate::{
+    MainStateView,
+    controller::download_staples::{DownloadStapleError, DownloadStapleOk, StaplesDownloader},
+    dialog,
 };
-use crate::{MainStateView, dialog};
 use dialog::{MustAckMessage, PathInput};
 use ensnano_interactor::consts::ORIGAMI_EXTENSION;
 use std::path::PathBuf;
@@ -67,8 +68,8 @@ impl State for DownloadIntervals {
     }
 }
 
-fn get_design_providing_staples(downlader: &dyn StaplesDownloader) -> Box<dyn State> {
-    let result = downlader.download_staples();
+fn get_design_providing_staples(downloader: &dyn StaplesDownloader) -> Box<dyn State> {
+    let result = downloader.download_staples();
     match result {
         Ok(DownloadStapleOk { warnings }) => AskingPath_ {
             warnings,

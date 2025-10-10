@@ -19,8 +19,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::download_intervals::DownloadIntervals;
 use super::messages::CHANGING_DNA_PARAMETERS_WARNING;
 use super::*;
-use crate::app_state::design_interactor::controller::{
-    clipboard::PastePosition, simulations::SimulationOperation,
+use crate::{
+    app_state::design_interactor::controller::{
+        clipboard::PastePosition, simulations::SimulationOperation,
+    },
+    controller::download_staples::DownloadStaples,
 };
 use ensnano_design::{
     HelixParameters,

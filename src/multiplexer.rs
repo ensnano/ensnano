@@ -33,7 +33,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 pub mod layout_manager;
 
-use crate::{PhySize, controller::Action, requests::Requests};
+use crate::{PhySize, controller::normal_state::Action, requests::Requests};
 use ensnano_iced::{
     UiSize,
     iced_wgpu::wgpu,

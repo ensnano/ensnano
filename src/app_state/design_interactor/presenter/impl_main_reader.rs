@@ -17,7 +17,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::*;
-use crate::controller::{DownloadStapleError, DownloadStapleOk, StaplesDownloader};
+use crate::controller::download_staples::{
+    DownloadStapleError, DownloadStapleOk, StaplesDownloader,
+};
 use rust_xlsxwriter::{Color, Format, Workbook};
 use serde::Serialize;
 use std::{io::Write, path::PathBuf};
