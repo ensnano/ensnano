@@ -28,7 +28,6 @@ use crate::controller::ChannelReader;
 use controller::Controller;
 use controller::ErrOperation;
 use controller::InteractorNotification;
-pub use controller::SimulationInterface;
 use ensnano_design::{
     BezierPathId, BezierPlaneDescriptor, Design, HelixCollection, HelixParameters,
     InstanciatedPiecewiseBezier, grid::GridId, group_attributes::GroupAttribute,
