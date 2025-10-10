@@ -16,9 +16,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use crate::{element_selector::CornerType, view::GridIntersection};
-
 use super::*;
+use crate::{element_selector::CornerType, view::GridIntersection};
 use ensnano_design::{Axis, BezierPlaneIntersection};
 
 const REVOLUTION_AXIS_WIDTH: f32 = 1.;
