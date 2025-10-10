@@ -252,7 +252,6 @@ pub struct CameraController {
     mouse_horizontal: f32,
     mouse_vertical: f32,
     scroll: f32,
-    last_rotor: Rotor3,
     processed_move: bool,
     camera: CameraPtr,
     cam0: Camera,
@@ -282,7 +281,6 @@ impl CameraController {
             mouse_horizontal: 0.0,
             mouse_vertical: 0.0,
             scroll: 0.0,
-            last_rotor: camera.borrow().rotor,
             processed_move: false,
             camera: camera.clone(),
             cam0: camera.borrow().clone(), // clone the camera not the pointer !
@@ -670,7 +668,6 @@ impl CameraController {
     }
 
     pub fn end_movement(&mut self) {
-        self.last_rotor = self.camera.borrow().rotor;
         self.cam0 = self.camera.borrow().clone();
         self.surface_point0 = self.surface_point.clone();
         self.mouse_horizontal = 0.;
@@ -691,7 +688,6 @@ impl CameraController {
         let mut camera = self.camera.borrow_mut();
         camera.position = position;
         camera.rotor = rotation;
-        self.last_rotor = rotation;
         self.cam0 = camera.clone();
     }
 
