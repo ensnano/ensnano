@@ -78,7 +78,7 @@ pub struct Controller<S: AppState> {
 pub enum Consequence {
     CameraMoved,
     CameraTranslated(f64, f64),
-    XoverAtempt(Nucl, Nucl, usize, bool),
+    XoverAttempt(Nucl, Nucl, usize, bool),
     QuickXoverAttempt {
         nucl: Nucl,
         doubled: bool,
@@ -369,15 +369,12 @@ impl<S: AppState> Controller<S> {
                     Consequence::ToggleWidget
                 }
                 _ => {
-                    if let PhysicalKey::Code(key_code) = physical_key {
-                        if self
+                    if let PhysicalKey::Code(key_code) = physical_key
+                        && self
                             .camera_controller
                             .process_keyboard(key_code.to_owned(), *state)
-                        {
-                            Consequence::CameraMoved
-                        } else {
-                            Consequence::Nothing
-                        }
+                    {
+                        Consequence::CameraMoved
                     } else {
                         Consequence::Nothing
                     }

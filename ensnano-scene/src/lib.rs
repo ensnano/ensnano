@@ -224,7 +224,7 @@ impl<S: AppState> Scene<S> {
                 self.controller.translate_camera(dx, dy);
                 self.notify(SceneNotification::CameraMoved);
             }
-            Consequence::XoverAtempt(source, target, d_id, magic) => {
+            Consequence::XoverAttempt(source, target, d_id, magic) => {
                 self.attempt_xover(source, target, d_id, magic);
                 self.data.borrow_mut().end_free_xover();
             }

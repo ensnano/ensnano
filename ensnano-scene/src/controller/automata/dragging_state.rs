@@ -407,7 +407,7 @@ impl DraggingTransitionTable for MakingXover {
 
     fn on_button_released(&self) -> Option<Consequence> {
         if let Some((source, target, design_id)) = self.current_xover.clone() {
-            Some(Consequence::XoverAtempt(
+            Some(Consequence::XoverAttempt(
                 source,
                 target,
                 design_id,
