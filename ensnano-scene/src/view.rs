@@ -665,15 +665,6 @@ impl View {
             &self.fake_depth_texture
         };
 
-        let depth_view = if draw_type == DrawType::Scene {
-            &self.depth_texture.view
-        } else if let DrawType::Png { width, height } = draw_type {
-            let size = PhySize::new(width, height);
-            &Texture::create_depth_texture(self.device.as_ref(), &size, SAMPLE_COUNT).view
-        } else {
-            &self.fake_depth_texture.view
-        };
-
         {
             let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: None,
@@ -686,7 +677,7 @@ impl View {
                     },
                 })],
                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                    view: depth_view,
+                    view: &depth_attachment.view,
                     depth_ops: Some(wgpu::Operations {
                         load: wgpu::LoadOp::Clear(1.),
                         store: wgpu::StoreOp::Store,
@@ -872,7 +863,7 @@ impl View {
                     entries: &[
                         wgpu::BindGroupEntry {
                             binding: 0,
-                            resource: wgpu::BindingResource::TextureView(&self.depth_texture.view),
+                            resource: wgpu::BindingResource::TextureView(&depth_attachment.view),
                         },
                         wgpu::BindGroupEntry {
                             binding: 1,
@@ -914,7 +905,7 @@ impl View {
                     },
                 })],
                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                    view: &depth_view,
+                    view: &depth_attachment.view,
                     depth_ops: Some(wgpu::Operations {
                         load: wgpu::LoadOp::Clear(1.),
                         store: wgpu::StoreOp::Store,
