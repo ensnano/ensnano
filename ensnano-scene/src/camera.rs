@@ -551,21 +551,16 @@ impl CameraController {
             (self.amount_down, 0., 0.)
         };
 
-        let rotation_speed = 0.1;
         {
             let mut camera = self.camera.borrow_mut();
             camera.position += right * (amount_right - amount_left) * self.speed * dt;
             camera.position += up_vec * (amount_up - amount_down) * self.speed * dt;
             camera.position += forward_vec * (amount_forward - amount_backward) * self.speed * dt;
-            camera.rotor = Rotor3::from_rotation_xz(
-                (amount_rotate_left - amount_rotate_right) * rotation_speed * self.speed * dt,
-            ) * camera.rotor;
-            camera.rotor = Rotor3::from_rotation_yz(
-                (amount_rotate_down - amount_rotate_up) * rotation_speed * self.speed * dt,
-            ) * camera.rotor;
-            camera.rotor = Rotor3::from_rotation_xy(
-                (amount_roll_left - amount_roll_right) * rotation_speed * self.speed * dt,
-            ) * camera.rotor;
+            let dr = 0.1 * self.speed * dt;
+            camera.rotor = Rotor3::from_rotation_xy((amount_roll_left - amount_roll_right) * dr)
+                * Rotor3::from_rotation_yz((amount_rotate_down - amount_rotate_up) * dr)
+                * Rotor3::from_rotation_xz((amount_rotate_left - amount_rotate_right) * dr)
+                * camera.rotor;
         }
 
         let pivot = self
