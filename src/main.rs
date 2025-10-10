@@ -753,7 +753,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 );
 
                 // When there is no more event to deal with
-                requests::poll_all(requests.lock().unwrap(), &mut main_state);
+                requests::poll::poll_all(requests.lock().unwrap(), &mut main_state);
 
                 let mut main_state_view = MainStateView {
                     main_state: &mut main_state,

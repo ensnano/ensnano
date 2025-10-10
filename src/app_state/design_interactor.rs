@@ -425,11 +425,11 @@ impl DesignReader {
 mod tests {
     use super::super::OkOperation as TopOkOperation;
     use super::super::*;
-    use super::file_parsing::StrandJunction;
     use super::*;
     use crate::app_state::design_interactor::controller::clipboard::{
         CopyOperation, PastePosition,
     };
+    use crate::app_state::design_interactor::file_parsing::junctions::StrandJunction as _;
     use ensnano_design::HelixCollection;
     use ensnano_design::grid::HelixGridPosition;
     use ensnano_design::{Collection, DomainJunction, Nucl, Strand, grid::GridDescriptor};

@@ -23,7 +23,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 mod impl_flatscene;
 mod impl_gui;
 mod impl_scene;
-mod poll;
+pub mod poll;
 
 use super::*;
 use ensnano_design::{
@@ -33,17 +33,14 @@ use ensnano_design::{
 };
 use ensnano_gui::OrganizerTree;
 use ensnano_iced::UiSize;
-use ensnano_interactor::RapierSimulationRequest;
-use ensnano_interactor::app_state_parameters::CheckXoversParameter;
 use ensnano_interactor::{
-    CenterOfSelection, HyperboloidRequest, RigidBodyConstants, RollRequest, Selection,
-    UnrootedRevolutionSurfaceDescriptor,
+    CenterOfSelection, HyperboloidRequest, RapierSimulationRequest, RigidBodyConstants,
+    RollRequest, Selection, UnrootedRevolutionSurfaceDescriptor,
+    app_state_parameters::CheckXoversParameter,
     application::AppId,
     graphics::{Background3D, HBondDisplay, RenderingMode},
 };
 use ensnano_scene::FogParameters;
-
-pub(crate) use poll::poll_all;
 use std::collections::VecDeque;
 use ultraviolet::Vec3;
 
