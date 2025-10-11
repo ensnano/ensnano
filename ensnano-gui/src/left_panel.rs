@@ -197,6 +197,7 @@ pub enum Message<S: AppState> {
     IncrRevolutionShift,
     DecrRevolutionShift,
     SetKeyboardPriority(bool),
+    SetFocus(text_input::Id),
 }
 
 impl<R: Requests, S: AppState> LeftPanel<R, S> {
@@ -304,6 +305,7 @@ impl<R: Requests, S: AppState> LeftPanel<R, S> {
                 .lock()
                 .unwrap()
                 .set_keyboard_priority(priority),
+            OrganizerMessage::SetFocus(id) => return Some(Message::SetFocus(id)),
             _ => (),
         }
         None
@@ -341,6 +343,7 @@ where
                 .unwrap()
                 .update_organizer_tree(self.organizer.tree())
         }
+        log::debug!("Message: {:?}", &message);
         let command = match message {
             Message::StrandNameChanged(s_id, name) => {
                 self.requests.lock().unwrap().set_strand_name(s_id, name);
@@ -1036,9 +1039,10 @@ where
                     .set_keyboard_priority(priority);
                 Command::none()
             }
+            Message::SetFocus(id) => text_input::focus(id.clone()),
         };
 
-        Command::batch(vec![
+        let command = Command::batch(vec![
             command,
             self.grid_tab.update(&mut self.application_state),
             self.edition_tab.update(&mut self.application_state),
@@ -1050,7 +1054,9 @@ where
             self.revolution_tab.update(&mut self.application_state),
             self.camera_shortcut.update(&mut self.application_state),
             self.contextual_panel.update(&mut self.application_state),
-        ])
+        ]);
+        log::debug!("Command: {:?}", &command);
+        command
     }
 
     fn view(&self) -> Element<'_, Self::Message, Self::Theme, Self::Renderer> {

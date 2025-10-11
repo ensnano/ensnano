@@ -515,10 +515,6 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
     }
 
     fn update(&mut self, app_state: &mut State) -> Command<Message<State>> {
-        log::debug!(
-            "revolution tab  update: {:?}",
-            &self.try_get_shift_per_turn(app_state)
-        );
         if let Some(r) = app_state.get_current_revolution_radius() {
             if !self.modifying_radius() {
                 self.update_builder_parameter(

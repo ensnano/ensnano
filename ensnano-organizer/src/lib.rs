@@ -54,6 +54,8 @@ pub enum OrganizerMessage<E: OrganizerElement> {
     },
     /// Taking or releasing keyboard priority.
     SetKeyboardPriority(bool),
+    /// Ask Iced application to focus on this element
+    SetFocus(text_input::Id),
 }
 
 /// Internal messages
@@ -391,7 +393,11 @@ impl<E: OrganizerElement> Organizer<E> {
             Message::Edit { id } => {
                 log::info!("Message edit {:?}", id);
                 if let Some(group_id) = self.get_group(id).and_then(|g| g.get_group_id()) {
-                    self.start_editing(group_id)
+                    self.start_editing(group_id);
+                    if let Some(GroupContent::Node { view, .. }) = self.get_group(&id) {
+                        log::debug!("SetFocus()");
+                        return Some(OrganizerMessage::SetFocus(view.name_input_id.clone()));
+                    }
                 } else {
                     log::error!("Could not get group id");
                 }
@@ -1000,6 +1006,7 @@ impl<E: OrganizerElement> ElementView<E> {
 struct NodeTitleBar<E: OrganizerElement> {
     state: GroupState,
     attribute_displayers: Vec<AttributeDisplayer<E::Attribute>>,
+    name_input_id: text_input::Id,
 }
 
 impl<E: OrganizerElement> NodeTitleBar<E> {
@@ -1007,6 +1014,7 @@ impl<E: OrganizerElement> NodeTitleBar<E> {
         Self {
             state: GroupState::Idle,
             attribute_displayers: vec![AttributeDisplayer::new(); E::all_discriminants().len()],
+            name_input_id: text_input::Id::unique(),
         }
     }
 
@@ -1014,6 +1022,7 @@ impl<E: OrganizerElement> NodeTitleBar<E> {
         Self {
             state: GroupState::NotEditable,
             attribute_displayers: vec![],
+            name_input_id: text_input::Id::unique(),
         }
     }
 
@@ -1070,6 +1079,7 @@ impl<E: OrganizerElement> NodeTitleBar<E> {
                     Space::with_width(5.0),
                     keyboard_priority(
                         text_input("New group name...", &name)
+                            .id(self.name_input_id.clone())
                             .on_input(|s| { OrganizerMessage::name_input(s) })
                             .on_submit(OrganizerMessage::stop_edit())
                     )
