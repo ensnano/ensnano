@@ -64,9 +64,8 @@ use std::{
 use ultraviolet::{Mat4, Rotor3, Vec3};
 pub use view::{DrawOptions, FogParameters, GridInstance};
 use view::{
-    DrawType, HandleDir, HandleOrientation, HandlesDescriptor, LetterInstance,
-    RotationMode as WidgetRotationMode, RotationWidgetDescriptor, RotationWidgetOrientation,
-    Stereography, View, ViewUpdate,
+    DrawType, HandleDir, HandlesDescriptor, LetterInstance, RotationMode as WidgetRotationMode,
+    RotationWidgetDescriptor, RotationWidgetOrientation, Stereography, View, ViewUpdate,
 };
 
 type ViewPtr = Rc<RefCell<View>>;

@@ -20,9 +20,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! It also communicates with the designs to get the position of the objects to draw on the scene.
 
 use super::{
-    AppState, Camera3D, HandleOrientation, HandlesDescriptor, LetterInstance,
-    RotationWidgetDescriptor, RotationWidgetOrientation, SceneElement, View, ViewUpdate,
-    ultraviolet,
+    AppState, Camera3D, HandlesDescriptor, LetterInstance, RotationWidgetDescriptor,
+    RotationWidgetOrientation, SceneElement, View, ViewUpdate, ultraviolet,
     view::{
         GridDisc, HandleColors, Instantiable, Mesh, RawDnaInstance, StereographicSphereAndPlane,
     },
@@ -299,7 +298,7 @@ impl<R: DesignReader> Data<R> {
                 .zip(orientation.clone())
                 .map(|(origin, orientation)| HandlesDescriptor {
                     origin,
-                    orientation: HandleOrientation::Rotor(orientation),
+                    orientation,
                     size: 0.25,
                     colors,
                 })
