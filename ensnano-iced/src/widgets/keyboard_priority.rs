@@ -33,6 +33,7 @@ use iced_graphics::text::Paragraph;
 ///
 /// Trigger `on_priority` and `on_unpriority` when the text_input is focused or unfocused.
 pub struct KeyboardPriority<'a, Message, Theme = iced::Theme, Renderer = iced::Renderer> {
+    id: Option<Id>,
     padding: Padding,
     width: Length,
     height: Length,
@@ -60,6 +61,7 @@ where
         let content = content.into();
         let size = content.as_widget().size_hint();
         KeyboardPriority {
+            id: None,
             padding: Padding::ZERO,
             width: size.width.fluid(),
             height: size.height.fluid(),
@@ -69,11 +71,19 @@ where
         }
     }
 
+    /// Sets the [`Id`] of the [`KeyboardPriority`].
+    pub fn id(mut self, id: Id) -> Self {
+        self.id = Some(id);
+        self
+    }
+
+    /// Sets the width of the [`KeyboardPriority`].
     pub fn width(mut self, width: Length) -> Self {
         self.width = width;
         self
     }
 
+    /// Sets the height of the [`KeyboardPriority`].
     pub fn height(mut self, height: Length) -> Self {
         self.height = height;
         self
@@ -334,5 +344,29 @@ where
         value: KeyboardPriority<'a, Message, Theme, Renderer>,
     ) -> Element<'a, Message, Theme, Renderer> {
         Element::new(value)
+    }
+}
+
+/// The identifier of a [`KeyboardPriority`].
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct Id(widget::Id);
+
+impl Id {
+    /// Creates a custom [`Id`].
+    pub fn new(id: impl Into<std::borrow::Cow<'static, str>>) -> Self {
+        Self(widget::Id::new(id))
+    }
+
+    /// Creates a unique [`Id`].
+    ///
+    /// This function produces a different [`Id`] every time it is called.
+    pub fn unique() -> Self {
+        Self(widget::Id::unique())
+    }
+}
+
+impl From<Id> for widget::Id {
+    fn from(id: Id) -> Self {
+        id.0
     }
 }
