@@ -70,7 +70,6 @@ use view::{
 };
 
 type ViewPtr = Rc<RefCell<View>>;
-type DataPtr<R> = Rc<RefCell<Data<R>>>;
 
 const PNG_SIZE: u32 = 256 * 10;
 
@@ -81,7 +80,7 @@ pub struct Scene<S: AppState> {
     /// The Object that handles the drawing to the 3d texture
     view: ViewPtr,
     /// The Object that handles the designs data
-    data: DataPtr<S::DesignReader>,
+    data: Rc<RefCell<Data<S::DesignReader>>>,
     /// The Object that handles input and notifications
     controller: Controller<S>,
     /// The limits of the area on which the scene is displayed
@@ -128,7 +127,7 @@ impl<S: AppState> Scene<S> {
             queue.clone(),
             encoder,
         )));
-        let data: DataPtr<S::DesignReader> = Rc::new(RefCell::new(Data::new(
+        let data: Rc<RefCell<Data<S::DesignReader>>> = Rc::new(RefCell::new(Data::new(
             initial_state.get_design_reader(),
             view.clone(),
         )));

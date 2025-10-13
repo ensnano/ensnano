@@ -50,14 +50,12 @@ pub enum ClickMode {
     RotateCam,
 }
 
-type DataPtr = Rc<RefCell<dyn Data>>;
-
 /// An object handling input and notification for the scene.
 pub struct Controller<S: AppState> {
     /// A pointer to the View
     view: ViewPtr,
     /// A pointer to the data
-    data: DataPtr,
+    data: Rc<RefCell<dyn Data>>,
     /// The event that modify the camera are forwarded to the camera_controller
     camera_controller: CameraController,
     /// The size of the window
@@ -171,7 +169,7 @@ enum TransitionConsequence {
 impl<S: AppState> Controller<S> {
     pub(super) fn new(
         view: ViewPtr,
-        data: DataPtr,
+        data: Rc<RefCell<dyn Data>>,
         window_size: PhySize,
         area_size: PhySize,
     ) -> Self {
