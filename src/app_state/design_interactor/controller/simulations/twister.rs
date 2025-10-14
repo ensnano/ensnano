@@ -22,7 +22,7 @@ use super::{
 };
 use crate::{
     app_state::design_interactor::{Presenter, presenter::SimulationUpdate},
-    controller::ChannelReader,
+    controller::chanel_reader::ChannelReader,
 };
 use ensnano_design::{
     Collection, CurveDescriptor, HelixCollection, HelixParameters, Twist,

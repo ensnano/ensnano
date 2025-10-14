@@ -21,29 +21,26 @@ pub mod file_parsing;
 pub mod presenter;
 
 use super::AddressPointer;
-use crate::app_state::design_interactor::controller::OkOperation;
-use crate::app_state::design_interactor::controller::clipboard::CopyOperation;
-use crate::app_state::design_interactor::controller::simulations::SimulationOperation;
-use crate::controller::ChannelReader;
-use controller::Controller;
-use controller::ErrOperation;
-use controller::InteractorNotification;
-pub use controller::{ShiftOptimizationResult, SimulationInterface};
+use crate::{
+    app_state::design_interactor::controller::{
+        OkOperation, clipboard::CopyOperation, simulations::SimulationOperation,
+    },
+    controller::chanel_reader::ChannelReader,
+};
+use controller::{Controller, ErrOperation, InteractorNotification};
 use ensnano_design::{
     BezierPathId, BezierPlaneDescriptor, Design, HelixCollection, HelixParameters,
     InstanciatedPiecewiseBezier, grid::GridId, group_attributes::GroupAttribute,
 };
 use ensnano_exports::{ExportResult, ExportType};
 use ensnano_gui::CurrentOpState;
-use ensnano_interactor::PastingStatus;
-use ensnano_interactor::app_state_parameters::SuggestionParameters;
 use ensnano_interactor::{
-    DesignOperation, RevolutionSurfaceSystemDescriptor, Selection, SimulationState, StrandBuilder,
-    consts::UPDATE_VISIBILITY_SIEVE_LABEL, operation::Operation,
+    DesignOperation, PastingStatus, Selection, SimulationState, StrandBuilder,
+    app_state_parameters::SuggestionParameters, consts::UPDATE_VISIBILITY_SIEVE_LABEL,
+    operation::Operation,
 };
 use ensnano_organizer::GroupId;
-use presenter::SimulationUpdate;
-use presenter::{Presenter, apply_simulation_update, update_presenter};
+use presenter::{Presenter, SimulationUpdate, apply_simulation_update, update_presenter};
 use std::sync::Arc;
 
 /// The `DesignInteractor` handles all read/write operations on the design. It is a stateful struct
@@ -428,11 +425,11 @@ impl DesignReader {
 mod tests {
     use super::super::OkOperation as TopOkOperation;
     use super::super::*;
-    use super::file_parsing::StrandJunction;
     use super::*;
     use crate::app_state::design_interactor::controller::clipboard::{
         CopyOperation, PastePosition,
     };
+    use crate::app_state::design_interactor::file_parsing::junctions::StrandJunction as _;
     use ensnano_design::HelixCollection;
     use ensnano_design::grid::HelixGridPosition;
     use ensnano_design::{Collection, DomainJunction, Nucl, Strand, grid::GridDescriptor};
@@ -1863,19 +1860,4 @@ mod tests {
 
         assert_good_strand(strand, "[H1: 0 -> 10] [@20] [H2: 0 <- 10]");
     }
-}
-
-#[allow(clippy::large_enum_variant)] // We don't create many instances of this type
-pub enum SimulationTarget {
-    Grids,
-    Helices,
-    Roll {
-        target_helices: Option<Vec<usize>>,
-    },
-    Twist {
-        grid_id: GridId,
-    },
-    Revolution {
-        desc: RevolutionSurfaceSystemDescriptor,
-    },
 }

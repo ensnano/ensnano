@@ -88,14 +88,14 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //!      | Immediate   | No          | Yes         |
 //!      | Mailbox     | Yes         | No          |
 
-pub mod app_state;
-pub mod controller;
-pub mod dialog;
+mod app_state;
+mod controller;
+mod dialog;
 #[cfg(test)]
-pub mod main_tests;
-pub mod multiplexer;
-pub mod requests;
-pub mod scheduler;
+mod main_tests;
+mod multiplexer;
+mod requests;
+mod scheduler;
 
 use {
     crate::{
@@ -107,13 +107,19 @@ use {
             },
             transitions::{AppStateTransition, OkOperation, TransitionLabel},
         },
-        controller::TargetScaffoldLength,
+        controller::{
+            chanel_reader::{ChannelReader, ChannelReaderUpdate},
+            normal_state::Action,
+            set_scaffold_sequence::{
+                ScaffoldSetter, SetScaffoldSequenceError, SetScaffoldSequenceOk,
+                TargetScaffoldLength,
+            },
+        },
         requests::Requests,
     },
     app_state::AppState,
     controller::{
-        Action, ChannelReader, ChannelReaderUpdate, Controller, LoadDesignError, SaveDesignError,
-        SetScaffoldSequenceError, SetScaffoldSequenceOk, StaplesDownloader,
+        Controller, LoadDesignError, SaveDesignError, download_staples::StaplesDownloader,
     },
     ensnano_design::{Camera, grid::GridId},
     ensnano_exports::{ExportResult, ExportType},
@@ -747,7 +753,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 );
 
                 // When there is no more event to deal with
-                requests::poll_all(requests.lock().unwrap(), &mut main_state);
+                requests::poll::poll_all(requests.lock().unwrap(), &mut main_state);
 
                 let mut main_state_view = MainStateView {
                     main_state: &mut main_state,
@@ -1314,6 +1320,18 @@ impl MainState {
         self.apply_operation_result(result);
     }
 
+    fn start_rapier_simulation(&mut self) {
+        let presenter = self.app_state.0.design.presenter.clone();
+        let result = self
+            .app_state
+            .start_simulation(SimulationOperation::StartRapierSimulation {
+                presenter: presenter.as_ref(),
+                reader: &mut self.channel_reader,
+            });
+        self.apply_operation_result(result);
+    }
+
+    // NOTE : rename to apply_simulation_operation
     fn update_simulation(&mut self, request: SimulationOperation) {
         let result = self.app_state.update_simulation(request);
         self.apply_operation_result(result);
@@ -1750,6 +1768,10 @@ impl<'a> MainStateView<'a> {
         }
     }
 
+    fn main_state(&mut self) -> &mut MainState {
+        &mut self.main_state
+    }
+
     fn need_backup(&self) -> bool {
         Instant::now() - self.main_state.last_backup_date > Duration::from_secs(SEC_BETWEEN_BACKUPS)
     }
@@ -2172,7 +2194,7 @@ impl<'a> MainStateView<'a> {
     }
 }
 
-impl<'a> controller::ScaffoldSetter for MainStateView<'a> {
+impl<'a> ScaffoldSetter for MainStateView<'a> {
     fn set_scaffold_sequence(
         &mut self,
         sequence: String,

@@ -18,30 +18,23 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 //! Handles windows and dialog (Alert, and file pickers) interactions.
 
-mod chanel_reader;
+pub mod chanel_reader;
 mod download_intervals;
-mod download_staples;
+pub mod download_staples;
 mod messages;
-mod normal_state;
+pub mod normal_state;
 mod quit;
-mod set_scaffold_sequence;
+pub mod set_scaffold_sequence;
 
 use super::{OverlayType, SplitMode, dialog};
 use crate::MainStateView;
-pub use chanel_reader::{ChannelReader, ChannelReaderUpdate};
 use dialog::{MustAckMessage, YesNoQuestion};
-use download_staples::*;
-pub use download_staples::{DownloadStapleError, DownloadStapleOk, StaplesDownloader};
 use ensnano_exports::ExportType;
 use ensnano_iced::UiSize;
 use ensnano_interactor::consts::CANNOT_OPEN_DEFAULT_DIR;
-pub use normal_state::Action;
 use normal_state::NormalState;
 use quit::*;
 use set_scaffold_sequence::*;
-pub use set_scaffold_sequence::{
-    ScaffoldSetter, SetScaffoldSequenceError, SetScaffoldSequenceOk, TargetScaffoldLength,
-};
 use std::{
     borrow::Cow,
     path::{Path, PathBuf},

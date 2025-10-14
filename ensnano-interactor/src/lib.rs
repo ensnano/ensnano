@@ -446,6 +446,11 @@ pub struct RollRequest {
     pub target_helices: Option<Vec<usize>>,
 }
 
+#[derive(Clone, Copy, Debug)]
+pub enum RapierSimulationRequest {
+    Start,
+}
+
 #[derive(Clone, Debug)]
 pub struct RigidBodyConstants {
     pub k_spring: f32,

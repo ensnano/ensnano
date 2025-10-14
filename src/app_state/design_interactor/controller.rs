@@ -23,11 +23,23 @@ pub mod update_insertion_length;
 
 use super::SimulationUpdate;
 use crate::{
-    app_state::{AddressPointer, design_interactor::presenter::design_content::NuclCollection},
-    controller::ChannelReader,
+    app_state::{
+        AddressPointer,
+        design_interactor::{
+            controller::simulations::{
+                GridSystemInterface, GridsSystemThread, HelixSystemInterface, HelixSystemThread,
+                SimulationOperation,
+                rapier::{RapierInterface, RapierPhysicalSystem},
+                revolutions::{RevolutionSystemInterface, RevolutionSystemThread},
+                roller::{PhysicalSystem, RollInterface},
+                twister::{TwistInterface, Twister},
+            },
+            presenter::design_content::NuclCollection,
+        },
+    },
+    controller::chanel_reader::ChannelReader,
 };
-use clipboard::{Clipboard, PastedStrand, StrandClipboard};
-use clipboard::{CopyOperation, PastePosition};
+use clipboard::{Clipboard, CopyOperation, PastePosition, PastedStrand, StrandClipboard};
 use ensnano_design::{
     BezierEnd, BezierPathId, BezierPlaneDescriptor, BezierVertex, BezierVertexId, CameraId,
     Collection, CurveDescriptor, Design, Domain, DomainJunction, Helices, Helix, HelixCollection,
@@ -42,22 +54,15 @@ use ensnano_design::{
     mutate_in_arc,
 };
 use ensnano_gui::ClipboardContent;
-use ensnano_interactor::PastingStatus;
 use ensnano_interactor::{
     BezierControlPoint, BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation,
     DomainIdentifier, HyperboloidOperation, IsometryTarget, NeighborDescriptor,
-    NeighborDescriptorGiver, NewBezierTangentVector, Selection, SimulationState, StrandBuilder,
+    NeighborDescriptorGiver, NewBezierTangentVector, PastingStatus, Selection, SimulationState,
+    StrandBuilder,
     operation::{Operation, TranslateBezierPathVertex},
 };
 use ensnano_organizer::GroupId;
 use ensnano_utils::colors;
-pub use shift_optimization::ShiftOptimizationResult;
-pub use simulations::SimulationInterface;
-use simulations::{
-    GridSystemInterface, GridsSystemThread, HelixSystemInterface, HelixSystemThread,
-    PhysicalSystem, RevolutionSystemInterface, RevolutionSystemThread, RollInterface,
-    SimulationOperation, TwistInterface,
-};
 use std::{
     borrow::Cow,
     collections::{BTreeMap, HashMap},
@@ -480,6 +485,16 @@ impl Controller {
         }
     }
 
+    fn check_state_compatible_with_simulation(&self) -> Result<(), ErrOperation> {
+        if self.is_in_persistent_state().is_transitory() {
+            return Err(ErrOperation::IncompatibleState(
+                "Cannot launch simulation while editing".into(),
+            ));
+        }
+
+        Ok(())
+    }
+
     pub(super) fn apply_simulation_operation(
         &self,
         mut design: Design,
@@ -488,11 +503,7 @@ impl Controller {
         let mut ret = self.clone();
         match operation {
             SimulationOperation::RevolutionRelaxation { system, reader } => {
-                if self.is_in_persistent_state().is_transitory() {
-                    return Err(ErrOperation::IncompatibleState(
-                        "Cannot launch simulation while editing".into(),
-                    ));
-                }
+                self.check_state_compatible_with_simulation()?;
                 println!("system {:#?}", system);
                 let interface = RevolutionSystemThread::start_new(system, reader)?;
                 ret.state = ControllerState::Relaxing {
@@ -505,11 +516,7 @@ impl Controller {
                 parameters,
                 reader,
             } => {
-                if self.is_in_persistent_state().is_transitory() {
-                    return Err(ErrOperation::IncompatibleState(
-                        "Cannot launch simulation while editing".into(),
-                    ));
-                }
+                self.check_state_compatible_with_simulation()?;
                 let interface = HelixSystemThread::start_new(presenter, parameters, reader)?;
                 ret.state = ControllerState::Simulating {
                     interface,
@@ -521,27 +528,27 @@ impl Controller {
                 parameters,
                 reader,
             } => {
-                if self.is_in_persistent_state().is_transitory() {
-                    return Err(ErrOperation::IncompatibleState(
-                        "Cannot launch simulation while editing".into(),
-                    ));
-                }
+                self.check_state_compatible_with_simulation()?;
                 let interface = GridsSystemThread::start_new(presenter, parameters, reader)?;
                 ret.state = ControllerState::SimulatingGrids {
                     interface,
                     _initial_design: AddressPointer::new(design.clone()),
-                }
+                };
+            }
+            SimulationOperation::StartRapierSimulation { presenter, reader } => {
+                self.check_state_compatible_with_simulation()?;
+                let interface = RapierPhysicalSystem::start_new(presenter, reader);
+                ret.state = ControllerState::RapierSimulating {
+                    interface,
+                    initial_design: AddressPointer::new(design.clone()),
+                };
             }
             SimulationOperation::StartRoll {
                 presenter,
                 target_helices,
                 reader,
             } => {
-                if self.is_in_persistent_state().is_transitory() {
-                    return Err(ErrOperation::IncompatibleState(
-                        "Cannot launch simulation while editing".into(),
-                    ));
-                }
+                self.check_state_compatible_with_simulation()?;
                 let interface = PhysicalSystem::start_new(presenter, target_helices, reader);
                 ret.state = ControllerState::Rolling {
                     _interface: interface,
@@ -553,12 +560,8 @@ impl Controller {
                 presenter,
                 reader,
             } => {
-                if self.is_in_persistent_state().is_transitory() {
-                    return Err(ErrOperation::IncompatibleState(
-                        "Cannot launch simulation while editing".into(),
-                    ));
-                }
-                let interface = simulations::Twister::start_new(presenter, grid_id, reader)
+                self.check_state_compatible_with_simulation()?;
+                let interface = Twister::start_new(presenter, grid_id, reader)
                     .ok_or(ErrOperation::GridDoesNotExist(grid_id))?;
                 ret.state = ControllerState::Twisting {
                     _interface: interface,
@@ -586,23 +589,33 @@ impl Controller {
                     ));
                 }
             }
-            SimulationOperation::Stop => {
-                if let ControllerState::Simulating { initial_design, .. } = &ret.state {
+            SimulationOperation::Stop => match &ret.state {
+                ControllerState::Simulating { initial_design, .. } => {
                     ret.state = ControllerState::WithPausedSimulation {
                         initial_design: initial_design.clone(),
                     };
-                } else if let ControllerState::SimulatingGrids { .. } = &ret.state {
+                }
+                ControllerState::SimulatingGrids { .. } => {
                     ret.state = ControllerState::Normal;
-                } else if let ControllerState::Rolling { .. } = &ret.state {
-                    ret.state = ControllerState::Normal
-                } else if let ControllerState::Twisting { .. } = &ret.state {
-                    ret.state = ControllerState::Normal
-                } else if let ControllerState::Relaxing { interface, .. } = &ret.state {
+                }
+                ControllerState::Rolling { .. } => ret.state = ControllerState::Normal,
+                ControllerState::Twisting { .. } => ret.state = ControllerState::Normal,
+                ControllerState::Relaxing { interface, .. } => {
                     interface.lock().unwrap().kill();
                     design.additional_structure = None;
                     ret.state = ControllerState::Normal
                 }
-            }
+                ControllerState::RapierSimulating {
+                    interface,
+                    initial_design,
+                } => {
+                    interface.lock().unwrap().kill();
+                    ret.state = ControllerState::WithPausedSimulation {
+                        initial_design: initial_design.clone(),
+                    }
+                }
+                _ => (),
+            },
             SimulationOperation::Reset => {
                 if let ControllerState::WithPausedSimulation { initial_design } = &ret.state {
                     let returned_design = initial_design.clone_inner();
@@ -3544,6 +3557,10 @@ enum ControllerState {
         interface: Arc<Mutex<HelixSystemInterface>>,
         initial_design: AddressPointer<Design>,
     },
+    RapierSimulating {
+        interface: Arc<Mutex<RapierInterface>>,
+        initial_design: AddressPointer<Design>,
+    },
     SimulatingGrids {
         interface: Arc<Mutex<GridSystemInterface>>,
         _initial_design: AddressPointer<Design>,
@@ -3593,6 +3610,7 @@ impl ControllerState {
             Self::DoingFirstXoversDuplication { .. } => "DoingFirstXoversDuplication",
             Self::OptimizingScaffoldPosition => "OptimizingScaffoldPosition",
             Self::Simulating { .. } => "Simulation",
+            Self::RapierSimulating { .. } => "Rapier Simulation",
             Self::SimulatingGrids { .. } => "Simulating Grids",
             Self::WithPausedSimulation { .. } => "WithPausedSimulation",
             Self::Rolling { .. } => "Rolling",
@@ -3744,6 +3762,7 @@ impl ControllerState {
             Self::DoingFirstXoversDuplication { .. } => self.clone(),
             Self::OptimizingScaffoldPosition => self.clone(),
             Self::Simulating { .. } => self.clone(),
+            Self::RapierSimulating { .. } => self.clone(),
             Self::SimulatingGrids { .. } => self.clone(),
             Self::Relaxing { .. } => self.clone(),
             Self::WithPausedSimulation { .. } => Self::Normal,

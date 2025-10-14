@@ -19,8 +19,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::download_intervals::DownloadIntervals;
 use super::messages::CHANGING_DNA_PARAMETERS_WARNING;
 use super::*;
-use crate::app_state::design_interactor::controller::{
-    clipboard::PastePosition, simulations::SimulationOperation,
+use crate::{
+    app_state::design_interactor::controller::{
+        clipboard::PastePosition, simulations::SimulationOperation,
+    },
+    controller::download_staples::DownloadStaples,
 };
 use ensnano_design::{
     HelixParameters,
@@ -28,9 +31,9 @@ use ensnano_design::{
     group_attributes::GroupPivot,
 };
 use ensnano_interactor::{
-    DesignOperation, HyperboloidOperation, HyperboloidRequest, RevolutionSurfaceSystemDescriptor,
-    RigidBodyConstants, RollRequest, application::Notification, consts::ENS_EXTENSION,
-    graphics::FogParameters,
+    DesignOperation, HyperboloidOperation, HyperboloidRequest, RapierSimulationRequest,
+    RevolutionSurfaceSystemDescriptor, RigidBodyConstants, RollRequest, application::Notification,
+    consts::ENS_EXTENSION, graphics::FogParameters,
 };
 use std::sync::Arc;
 
@@ -199,6 +202,14 @@ impl State for NormalState {
                 }
                 Action::RollHelices(roll) => {
                     main_state.set_roll_of_selected_helices(roll);
+                    self
+                }
+                Action::RapierSimulationRequest(request) => {
+                    match request {
+                        RapierSimulationRequest::Start => {
+                            main_state.main_state().start_rapier_simulation();
+                        }
+                    }
                     self
                 }
                 Action::ResetSimulation => {
@@ -460,6 +471,7 @@ pub enum Action {
     ToggleHelicesPersistence(bool),
     ToggleSmallSphere(bool),
     RollRequest(RollRequest),
+    RapierSimulationRequest(RapierSimulationRequest),
     StopSimulation,
     RollHelices(f32),
     Copy,

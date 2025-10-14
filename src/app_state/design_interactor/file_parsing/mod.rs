@@ -17,14 +17,16 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 mod cadnano;
-mod junctions;
+pub mod junctions;
 
 use super::*;
-use crate::controller::LoadDesignError;
+use crate::{
+    app_state::design_interactor::file_parsing::junctions::StrandJunction as _,
+    controller::LoadDesignError,
+};
 use cadnano::{Cadnano, FromCadnano};
 use ensnano_design::{Nucl, codenano, scadnano};
 use ensnano_utils::id_generator::IdGenerator;
-pub(super) use junctions::StrandJunction;
 use scadnano::ScadnanoImportError;
 use std::path::{Path, PathBuf};
 

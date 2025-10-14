@@ -59,7 +59,9 @@ use ensnano_iced::{
     iced_wgpu::{self, Backend, wgpu},
     iced_winit::{conversion, winit},
 };
-use ensnano_interactor::{ActionMode, HyperboloidRequest, RollRequest, SelectionMode};
+use ensnano_interactor::{
+    ActionMode, HyperboloidRequest, RapierSimulationRequest, RollRequest, SelectionMode,
+};
 use ensnano_interactor::{
     InsertionPoint, Multiplexer, PastingStatus, RevolutionSurfaceSystemDescriptor, ScaffoldInfo,
     Selection, SimulationState, UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
@@ -121,6 +123,8 @@ pub trait Requests: 'static + Send {
     fn finalize_hyperboloid(&mut self);
     fn stop_roll_simulation(&mut self);
     fn start_roll_simulation(&mut self, roll_request: RollRequest);
+    /// Request a Rapier simulation of the current design
+    fn request_rapier_simulation(&mut self, request: RapierSimulationRequest);
     /// Make a grid from the set of selected helices
     fn make_grid_from_selection(&mut self);
     /// Start of Update the rigid helices simulation

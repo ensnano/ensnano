@@ -40,7 +40,8 @@ use ensnano_iced::{
     },
 };
 use ensnano_interactor::{
-    ActionMode, EquadiffSolvingMethod, HyperboloidRequest, Selection, SelectionConversion,
+    ActionMode, EquadiffSolvingMethod, HyperboloidRequest, RapierSimulationRequest, Selection,
+    SelectionConversion,
     app_state_parameters::{AppStateParameters, CheckXoversParameter, SuggestionParameters},
     graphics::{Background3D, HBondDisplay, RenderingMode},
 };
@@ -111,7 +112,8 @@ pub enum Message<S: AppState> {
     ShowTorsion(bool),
     FogRadius(f32),
     FogLength(f32),
-    SimRequest,
+    RollSimulationRequest,
+    StartRapierSimulation,
     DiscreteValue {
         factory_id: FactoryId,
         value_id: ValueId,
@@ -457,13 +459,19 @@ where
                 let request = self.camera_tab.get_fog_request();
                 self.requests.lock().unwrap().set_fog_parameters(request);
             }
-            Message::SimRequest => {
+            Message::RollSimulationRequest => {
                 if self.application_state.get_simulation_state().is_rolling() {
                     self.requests.lock().unwrap().stop_simulations()
                 } else {
                     let request = self.simulation_tab.get_physical_simulation_request();
                     self.requests.lock().unwrap().start_roll_simulation(request);
                 }
+            }
+            Message::StartRapierSimulation => {
+                self.requests
+                    .lock()
+                    .unwrap()
+                    .request_rapier_simulation(RapierSimulationRequest::Start);
             }
             Message::FogChoice(choice) => {
                 let (visible, from_camera, dark, reversed) = choice.to_param();

@@ -7,6 +7,7 @@ members = [
     "ensnano-iced",
     "ensnano-interactor",
     "ensnano-organizer",
+    "ensnano-physics",
     "ensnano-scene",
     "ensnano-utils",
 ]
@@ -17,9 +18,14 @@ authors = [
     "thenlevy <nicolaspierrelevy@gmail.com>",
     "Nicolas Schabanel <nicolas.schabanel@gmail.com>",
     "Joris Picot <joris.picot@ens-lyon.fr>",
+    "Pacôme Perrotin <pacome.perrotin@gmail.com>",
 ]
 edition = "2024"
 license = "GPL-3.0-or-later"
+
+# Enable max optimizations for dependencies, but not for our code:
+[profile.dev.package."*"]
+opt-level = 3
 
 [package]
 name = "ensnano"
@@ -37,6 +43,7 @@ ensnano_gui = { path = "ensnano-gui" }
 ensnano_iced = { path = "ensnano-iced" }
 ensnano_interactor = { path = "ensnano-interactor" }
 ensnano_organizer = { path = "ensnano-organizer" }
+ensnano_physics = { path = "ensnano-physics" }
 ensnano_scene = { path = "ensnano-scene" }
 ensnano_utils = { path = "ensnano-utils" }
 
@@ -85,6 +92,7 @@ pretty_env_logger = "0.4"
 quadrature = "0.1.2"
 rand = "0.8.5"
 rand_distr = "0.4.0"
+rapier3d = "0.30.0"
 rayon = "1.6.0"
 regex = "1.4.2"
 relative-path = "1.7.0"
@@ -111,6 +119,7 @@ ensnano_gui.workspace = true
 ensnano_iced.workspace = true
 ensnano_interactor.workspace = true
 ensnano_organizer.workspace = true
+ensnano_physics.workspace = true
 ensnano_scene.workspace = true
 ensnano_utils.workspace = true
 

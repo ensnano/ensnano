@@ -1056,11 +1056,10 @@ impl<S: AppState> Scene<S> {
                 rows_per_image: None,
             },
         };
-        let origin = wgpu::Origin3d::ZERO;
         let texture_copy_view = wgpu::ImageCopyTexture {
             texture: &texture,
             mip_level: 0,
-            origin,
+            origin: wgpu::Origin3d::ZERO,
             aspect: Default::default(),
         };
 
@@ -1085,8 +1084,8 @@ impl<S: AppState> Scene<S> {
         let pixels = {
             let pixels_slice = buffer_slice.get_mapped_range();
             let mut pixels = Vec::with_capacity((size.height * size.width) as usize);
-            for chunck in pixels_slice.chunks(buffer_dimensions.padded_bytes_per_row) {
-                for chunk in chunck.chunks(4) {
+            for row in pixels_slice.chunks(buffer_dimensions.padded_bytes_per_row) {
+                for chunk in row.chunks(4) {
                     // convert Bgra to Rgba
                     pixels.push(chunk[2]);
                     pixels.push(chunk[1]);
