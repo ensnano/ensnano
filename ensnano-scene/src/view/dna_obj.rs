@@ -227,8 +227,8 @@ impl Instantiable for SphereInstance {
         let mut indices = Vec::new();
 
         for i in 0..NB_STACK_SPHERE {
-            let mut k1: u16 = i * (NB_SECTOR_SPHERE + 1); // begining of ith stack
-            let mut k2: u16 = k1 + NB_SECTOR_SPHERE + 1; // begining of (i + 1)th stack
+            let mut k1: u16 = i * (NB_SECTOR_SPHERE + 1); // start of ith stack
+            let mut k2: u16 = k1 + NB_SECTOR_SPHERE + 1; // start of (i + 1)th stack
 
             for _ in 0..NB_SECTOR_SPHERE {
                 if i > 0 {

@@ -18,18 +18,7 @@ use crate::view::{
 use ensnano_design::ultraviolet::{Mat3, Vec3};
 use ensnano_interactor::consts::NB_RAY_TUBE;
 
-trait StlProcessing {
-    fn to_stl_triangles(&self) -> Vec<StlTriangle> {
-        vertices_indices_to_stl_triangles(
-            self.transformed_vertices_normal(),
-            self.triangle_list_indices(),
-        )
-    }
-    fn transformed_vertices_normal(&self) -> Vec<([f32; 3], [f32; 3])>;
-    fn triangle_list_indices(&self) -> Vec<usize>;
-}
-
-impl StlProcessing for RawDnaInstance {
+impl RawDnaInstance {
     fn to_stl_triangles(&self) -> Vec<StlTriangle> {
         if self.scale.z.abs() < 1e-6 {
             vec![]

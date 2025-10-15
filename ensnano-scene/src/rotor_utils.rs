@@ -16,8 +16,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use ensnano_design::ultraviolet::*;
-use std::f32::consts::PI;
+use {
+    ensnano_design::ultraviolet::{Rotor3, Vec3},
+    std::f32::consts::PI,
+};
 
 pub trait SafeRotor {
     fn safe_from_rotation_from_unit_x_to(u: Vec3) -> Rotor3;
@@ -27,29 +29,29 @@ pub trait SafeRotor {
 impl SafeRotor for Rotor3 {
     fn safe_from_rotation_from_unit_x_to(u: Vec3) -> Rotor3 {
         // u must be normalized
-        let _ε: f32 = 1e-5;
+        let ε: f32 = 1e-5;
         let ux = Vec3::unit_x();
         let ux_dot_u = u.x; //ux.dot(u);
-        if ux_dot_u > 1. - _ε {
-            return Rotor3::identity();
-        } else if ux_dot_u < -1. + _ε {
-            return Rotor3::from_rotation_xy(PI);
+        if ux_dot_u > 1. - ε {
+            Rotor3::identity()
+        } else if ux_dot_u < -1. + ε {
+            Rotor3::from_rotation_xy(PI)
         } else {
-            return Rotor3::from_rotation_between(ux, u);
-        };
+            Rotor3::from_rotation_between(ux, u)
+        }
     }
 
     fn safe_from_rotation_to_unit_x_from(u: Vec3) -> Rotor3 {
         // u must be normalized
-        let _ε: f32 = 1e-5;
+        let ε: f32 = 1e-5;
         let ux = Vec3::unit_x();
         let ux_dot_u = u.x; //ux.dot(u);
-        if ux_dot_u > 1. - _ε {
-            return Rotor3::identity();
-        } else if ux_dot_u < -1. + _ε {
-            return Rotor3::from_rotation_xy(PI);
+        if ux_dot_u > 1. - ε {
+            Rotor3::identity()
+        } else if ux_dot_u < -1. + ε {
+            Rotor3::from_rotation_xy(PI)
         } else {
-            return Rotor3::from_rotation_between(u, ux);
-        };
+            Rotor3::from_rotation_between(u, ux)
+        }
     }
 }

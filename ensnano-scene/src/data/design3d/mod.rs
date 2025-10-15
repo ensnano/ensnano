@@ -22,7 +22,7 @@ use super::super::view::{
     SphereInstance, TubeInstance, TubeLidInstance,
 };
 use super::{LetterInstance, SceneElement, ultraviolet};
-use crate::rotor_utils::SafeRotor;
+use crate::rotor_utils::SafeRotor as _;
 use crate::sausage_rosary::SausageRosary;
 use crate::view::PlainRectangleInstance;
 use ensnano_design::grid::{GridId, GridObject, GridPosition};

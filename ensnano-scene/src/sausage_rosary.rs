@@ -16,13 +16,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use crate::rotor_utils::SafeRotor;
+use crate::rotor_utils::SafeRotor as _;
 use crate::ultraviolet::{Rotor3, Vec3};
-use ensnano_utils::instance::Instance;
-
 use crate::view::{SlicedTubeInstance, TubeLidInstance};
-
 use ensnano_interactor::consts::HELIX_CYLINDER_COLOR;
+use ensnano_utils::instance::Instance;
 
 pub struct SausageRosary {
     pub positions: Vec<Vec3>,
