@@ -17,7 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use {
-    super::{PhySize, Stereography, controller::Data as SurfaceInfoProvider},
+    super::{PhySize, Stereography},
     crate::maths_3d::{self, FiniteVec3, Plane},
     ensnano_design::{SurfaceInfo, SurfacePoint, ultraviolet},
     ensnano_interactor::consts::{DEFAULT_STEREOGRAPHIC_ZOOM, STEREOGRAPHIC_ZOOM_STEP},
@@ -445,7 +445,7 @@ impl CameraController {
     }
 
     /// Translate the camera
-    fn translate_camera(&mut self, surface_info_provider: &dyn SurfaceInfoProvider) {
+    fn translate_camera(&mut self, surface_info_provider: &dyn super::controller::Data) {
         let right = self.mouse_horizontal;
         let up = -self.mouse_vertical;
 
@@ -489,7 +489,7 @@ impl CameraController {
         &mut self,
         dt: Duration,
         modifier: &ModifiersState,
-        surface_info_provider: &dyn SurfaceInfoProvider,
+        surface_info_provider: &dyn super::controller::Data,
     ) {
         let dt = dt.as_secs_f32();
 
@@ -614,7 +614,7 @@ impl CameraController {
         &mut self,
         dt: Duration,
         modifier: &ModifiersState,
-        surface_info_provider: &dyn SurfaceInfoProvider,
+        surface_info_provider: &dyn super::controller::Data,
     ) {
         if self.processed_move {
             self.translate_camera(surface_info_provider);
@@ -685,7 +685,7 @@ impl CameraController {
 
     pub(super) fn reverse_surface_direction(
         &mut self,
-        surface_info_provider: &dyn SurfaceInfoProvider,
+        surface_info_provider: &dyn super::controller::Data,
     ) {
         if let Some(point) = self.surface_point.as_mut() {
             point.reversed_direction ^= true;

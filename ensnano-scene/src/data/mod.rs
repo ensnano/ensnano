@@ -1965,9 +1965,7 @@ fn toggle_selection(mode: SelectionMode) -> SelectionMode {
     }
 }
 
-use super::controller::Data as ControllerData;
-
-impl<R: DesignReader> ControllerData for Data<R> {
+impl<R: DesignReader> super::controller::Data for Data<R> {
     fn element_to_nucl(
         &self,
         element: &Option<SceneElement>,
