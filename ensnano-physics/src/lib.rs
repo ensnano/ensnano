@@ -20,6 +20,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! done through the rapier3d crate.
 //!
 
+mod anchors;
+mod helices;
 mod import;
 mod simulation;
 
