@@ -435,7 +435,7 @@ mod tests {
     use ensnano_design::{Collection, DomainJunction, Nucl, Strand, grid::GridDescriptor};
     use ensnano_interactor::DesignReader;
     use ensnano_interactor::operation::GridHelixCreation;
-    use ensnano_scene::DesignReader as Reader3d;
+    use ensnano_scene::data::DesignReader as Reader3d;
     use std::path::PathBuf;
     use ultraviolet::{Rotor3, Vec3};
 

@@ -20,7 +20,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 mod camera;
 mod controller;
-mod data;
+pub mod data;
 mod element_selector;
 mod maths_3d;
 mod rotor_utils;
@@ -29,10 +29,8 @@ mod stl;
 pub mod view;
 
 use crate::maths_3d::FiniteVec3;
-use controller::ClickMode;
-use controller::{Consequence, Controller, WidgetTarget};
-use data::Data;
-pub use data::{DesignReader, HBond, HalfHBond, SurfaceInfo, SurfacePoint};
+use controller::{ClickMode, Consequence, Controller, WidgetTarget};
+use data::{Data, DesignReader};
 use element_selector::{ElementSelector, SceneElement};
 use ensnano_design::{
     BezierVertexId, Nucl, consts::ITERATIVE_AXIS_ALGORITHM, grid::GridPosition,

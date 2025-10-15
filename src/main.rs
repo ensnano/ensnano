@@ -148,7 +148,7 @@ use {
         graphics::{GuiComponentType, SplitMode},
         operation::Operation,
     },
-    ensnano_scene::{AppState as _, DesignReader as _, Scene, SceneKind},
+    ensnano_scene::{AppState as _, Scene, SceneKind, data::DesignReader as _},
     ensnano_utils::{PhySize, TEXTURE_FORMAT, winit::window::CursorIcon},
     multiplexer::{Multiplexer, Overlay},
     scheduler::Scheduler,

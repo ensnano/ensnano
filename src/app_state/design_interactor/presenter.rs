@@ -34,7 +34,7 @@ use ensnano_interactor::{
     NeighborDescriptor, NeighborDescriptorGiver, Referential, ScaffoldInfo, Selection,
     application::Camera3D,
 };
-use ensnano_scene::{HBond, HalfHBond};
+use ensnano_scene::data::{HBond, HalfHBond};
 use ensnano_utils::id_generator::IdGenerator;
 use std::collections::{BTreeMap, HashMap, HashSet};
 use ultraviolet::{Mat4, Vec3};

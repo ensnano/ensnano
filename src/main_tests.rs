@@ -168,7 +168,7 @@ fn duplication_via_requests_correct_status() {
 
 #[test]
 fn duplication_via_requests_strands_are_duplicated() {
-    use ensnano_scene::DesignReader;
+    use ensnano_scene::data::DesignReader as _;
     let mut main_state = new_state();
     let app_state = pastable_design();
     main_state.clear_app_state(app_state);

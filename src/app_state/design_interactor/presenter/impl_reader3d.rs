@@ -19,19 +19,19 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::*;
 use ensnano_design::{
     BezierPlaneDescriptor, BezierPlaneId, BezierVertexId, Collection, CurveDescriptor, Domain,
-    Nucl,
+    Nucl, SurfaceInfo,
     grid::{GridId, GridObject, GridPosition, HelixGridPosition},
 };
 use ensnano_interactor::{
     BezierControlPoint, ObjectType, Referential,
     graphics::{LoopoutBond, LoopoutNucl},
 };
-use ensnano_scene::{DesignReader as Reader3D, GridInstance, SurfaceInfo};
+use ensnano_scene::GridInstance;
 use ensnano_utils::StrandNucleotidesPositions;
 use std::collections::HashSet;
 use ultraviolet::{Mat4, Rotor3, Vec2, Vec3};
 
-impl Reader3D for DesignReader {
+impl ensnano_scene::data::DesignReader for DesignReader {
     fn get_color(&self, e_id: u32) -> Option<u32> {
         self.presenter.content.color_map.get(&e_id).cloned()
     }
