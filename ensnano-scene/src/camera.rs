@@ -586,26 +586,26 @@ impl CameraController {
         } else {
             self.camera.borrow().direction()
         };
-        {
-            if let Some((dist_to_surface, surface_info)) = self.dist_to_surface.as_mut().zip(
-                self.surface_point
-                    .as_ref()
-                    .and_then(|p| surface_info_provider.get_surface_info(p.clone())),
-            ) {
-                if self.scroll > 0. {
-                    *dist_to_surface /= 1.1
-                } else {
-                    *dist_to_surface *= 1.1
-                };
-                let cam_pos = surface_info.position
-                    + self.dist_to_surface.unwrap_or(DEFAULT_DIST_TO_SURFACE)
-                        * Vec3::unit_z().rotated_by(surface_info.local_frame);
-                self.teleport_camera(cam_pos, surface_info.local_frame.reversed());
+
+        if let Some((dist_to_surface, surface_info)) = self.dist_to_surface.as_mut().zip(
+            self.surface_point
+                .as_ref()
+                .and_then(|p| surface_info_provider.get_surface_info(p.clone())),
+        ) {
+            if self.scroll > 0. {
+                *dist_to_surface /= 1.1
             } else {
-                let mut camera = self.camera.borrow_mut();
-                camera.position += scrollward * self.scroll * self.speed * 3.0;
-            }
+                *dist_to_surface *= 1.1
+            };
+            let cam_pos = surface_info.position
+                + self.dist_to_surface.unwrap_or(DEFAULT_DIST_TO_SURFACE)
+                    * Vec3::unit_z().rotated_by(surface_info.local_frame);
+            self.teleport_camera(cam_pos, surface_info.local_frame.reversed());
+        } else {
+            let mut camera = self.camera.borrow_mut();
+            camera.position += scrollward * self.scroll * self.speed * 3.0;
         }
+
         self.cam0 = self.camera.borrow().clone();
         self.scroll = 0.;
     }
