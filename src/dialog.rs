@@ -111,17 +111,17 @@ pub fn get_file_to_write<P1: AsRef<Path>, P2: AsRef<Path>>(
     );
     let mut dialog = rfd::AsyncFileDialog::new();
 
-    let default_extenstion = extension_filter.get(0).and_then(|f| f.1.get(0));
+    let default_extension = extension_filter.get(0).and_then(|f| f.1.get(0));
 
     let starting_name = starting_name.and_then(|p| {
         let mut path_buf = PathBuf::from(p.as_ref());
         let extension = path_buf.extension();
-        if extension.is_none() && default_extenstion.is_some() {
-            path_buf.set_extension(default_extenstion.unwrap());
+        if extension.is_none() && default_extension.is_some() {
+            path_buf.set_extension(default_extension.unwrap());
         } else if let Some(_current_extension) = extension
             .filter(|ext| !filter_has_extension(extension_filter, ext.to_str().unwrap_or("")))
         {
-            let new_extension = format!("{}", default_extenstion.unwrap_or(&""));
+            let new_extension = format!("{}", default_extension.unwrap_or(&""));
             path_buf.set_extension(new_extension);
         }
         path_buf.file_name().map(|s| s.to_os_string())
@@ -148,15 +148,15 @@ pub fn get_file_to_write<P1: AsRef<Path>, P2: AsRef<Path>>(
             if let Some(handle) = file {
                 let mut path_buf: std::path::PathBuf = handle.path().into();
                 let extension = path_buf.extension();
-                if extension.is_none() && default_extenstion.is_some() {
-                    path_buf.set_extension(default_extenstion.unwrap());
+                if extension.is_none() && default_extension.is_some() {
+                    path_buf.set_extension(default_extension.unwrap());
                 } else if let Some(current_extension) = extension.filter(|ext| {
                     !filter_has_extension(extension_filter, ext.to_str().unwrap_or(""))
                 }) {
                     let new_extension = format!(
                         "{}.{}",
                         current_extension.to_str().unwrap(),
-                        default_extenstion.unwrap_or(&"")
+                        default_extension.unwrap_or(&"")
                     );
                     path_buf.set_extension(new_extension);
                 }
