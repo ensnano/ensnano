@@ -43,12 +43,6 @@ mod automata;
 pub use automata::WidgetTarget;
 use automata::{EventContext, NormalState, State, Transition};
 
-/// The effect that dragging the mouse have
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum ClickMode {
-    TranslateCam,
-}
-
 /// An object handling input and notification for the scene.
 pub struct Controller<S: AppState> {
     /// A pointer to the View
@@ -63,8 +57,6 @@ pub struct Controller<S: AppState> {
     area_size: PhySize,
     /// The current modifiers
     current_modifiers_state: ModifiersState,
-    /// The effect that dragging the mouse has
-    click_mode: ClickMode,
     state: State<S>,
     stereography: Option<Stereography>,
     /// The origin of the two points bezier curve being created.
@@ -183,7 +175,6 @@ impl<S: AppState> Controller<S> {
             window_size,
             area_size,
             current_modifiers_state: ModifiersState::empty(),
-            click_mode: ClickMode::TranslateCam,
             state: automata::initial_state(),
             stereography: None,
             bezier_curve_origin: None,
@@ -441,7 +432,6 @@ impl<S: AppState> Controller<S> {
     pub fn update_camera(&mut self, dt: Duration) {
         self.camera_controller.update_camera(
             dt,
-            self.click_mode,
             &self.current_modifiers_state,
             self.data.borrow().deref(),
         );

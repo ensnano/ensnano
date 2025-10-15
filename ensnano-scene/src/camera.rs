@@ -17,7 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use {
-    super::{ClickMode, PhySize, Stereography, controller::Data as SurfaceInfoProvider},
+    super::{PhySize, Stereography, controller::Data as SurfaceInfoProvider},
     crate::maths_3d::{self, FiniteVec3, Plane},
     ensnano_design::{SurfaceInfo, SurfacePoint, ultraviolet},
     ensnano_interactor::consts::{DEFAULT_STEREOGRAPHIC_ZOOM, STEREOGRAPHIC_ZOOM_STEP},
@@ -613,14 +613,11 @@ impl CameraController {
     pub(super) fn update_camera(
         &mut self,
         dt: Duration,
-        click_mode: ClickMode,
         modifier: &ModifiersState,
         surface_info_provider: &dyn SurfaceInfoProvider,
     ) {
         if self.processed_move {
-            match click_mode {
-                ClickMode::TranslateCam => self.translate_camera(surface_info_provider),
-            }
+            self.translate_camera(surface_info_provider);
         }
         if self.is_moving() {
             self.move_camera(dt, modifier, surface_info_provider);

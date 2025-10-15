@@ -29,7 +29,7 @@ mod stl;
 pub mod view;
 
 use crate::maths_3d::FiniteVec3;
-use controller::{ClickMode, Consequence, Controller, WidgetTarget};
+use controller::{Consequence, Controller, WidgetTarget};
 use data::{Data, DesignReader};
 use element_selector::{ElementSelector, SceneElement};
 use ensnano_design::{
