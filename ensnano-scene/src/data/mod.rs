@@ -77,12 +77,12 @@ pub struct Data<R: DesignReader> {
     surface_pivot_position: Option<Vec3>,
     free_xover: Option<FreeXover>,
     free_xover_update: bool,
-    handle_need_opdate: bool,
+    handle_needs_update: bool,
     last_candidate_disc: Option<SceneElement>,
     rotating_pivot: bool,
     handle_colors: HandleColors,
     stereographic_camera: Arc<(Camera3D, f32)>,
-    stereographic_camera_need_update: bool,
+    stereographic_camera_needs_update: bool,
     external_3d_objects_stamps: Option<External3DObjectsStamp>,
 }
 
@@ -99,12 +99,12 @@ impl<R: DesignReader> Data<R> {
             pivot_position: None,
             free_xover: None,
             free_xover_update: false,
-            handle_need_opdate: false,
+            handle_needs_update: false,
             last_candidate_disc: None,
             rotating_pivot: false,
             handle_colors: HandleColors::Rgb,
             stereographic_camera: Arc::new((Default::default(), 1.)),
-            stereographic_camera_need_update: false,
+            stereographic_camera_needs_update: false,
             external_3d_objects_stamps: None,
             surface_pivot_position: None,
         }
@@ -113,7 +113,7 @@ impl<R: DesignReader> Data<R> {
     pub fn update_stereographic_camera(&mut self, camera_ptr: Arc<(Camera3D, f32)>) {
         if Arc::as_ptr(&camera_ptr) != Arc::as_ptr(&self.stereographic_camera) {
             self.stereographic_camera = camera_ptr;
-            self.stereographic_camera_need_update = true;
+            self.stereographic_camera_needs_update = true;
         }
     }
 
@@ -153,9 +153,9 @@ impl<R: DesignReader> Data<R> {
             self.update_instances(app_state);
         }
 
-        if self.stereographic_camera_need_update {
+        if self.stereographic_camera_needs_update {
             self.update_stereographic_sphere();
-            self.stereographic_camera_need_update = false;
+            self.stereographic_camera_needs_update = false;
         }
 
         // If the color of a strand is being modified, we tell the view to highlight nothing.
@@ -168,14 +168,14 @@ impl<R: DesignReader> Data<R> {
         {
             self.update_selection(app_state.get_selection(), app_state);
         }
-        self.handle_need_opdate |= app_state.design_was_modified(older_app_state)
+        self.handle_needs_update |= app_state.design_was_modified(older_app_state)
             || app_state.selection_was_updated(older_app_state)
             || app_state.get_action_mode() != older_app_state.get_action_mode();
 
-        if self.handle_need_opdate {
+        if self.handle_needs_update {
             self.update_bezier(app_state);
             self.update_handle(app_state);
-            self.handle_need_opdate = false;
+            self.handle_needs_update = false;
         }
         if app_state.candidates_set_was_updated(older_app_state) {
             self.update_candidate(app_state.get_candidates(), app_state);
@@ -735,7 +735,7 @@ impl<R: DesignReader> Data<R> {
         element: Option<SceneElement>,
         app_state: &S,
     ) -> (Option<Selection>, Option<CenterOfSelection>) {
-        self.handle_need_opdate = true;
+        self.handle_needs_update = true;
         if let Some(SceneElement::WidgetElement(_)) = element {
             return (None, None);
         }
@@ -1912,7 +1912,7 @@ impl<R: DesignReader> Data<R> {
     }
 
     pub fn notify_handle_movement(&mut self) {
-        self.handle_need_opdate = true;
+        self.handle_needs_update = true;
     }
 
     pub(super) fn get_surface_info_nucl(&self, nucl: Nucl) -> Option<SurfaceInfo> {
@@ -2008,7 +2008,7 @@ impl<R: DesignReader> ControllerData for Data<R> {
 
     fn update_handle_colors(&mut self, colors: HandleColors) {
         if self.handle_colors != colors {
-            self.handle_need_opdate = true;
+            self.handle_needs_update = true;
             self.handle_colors = colors;
         }
     }

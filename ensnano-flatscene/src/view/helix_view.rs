@@ -158,7 +158,7 @@ impl StrandView {
         } else {
             false
         };*/
-        let need_update = true; //TODO improve this
+        let need_update = true; // TODO: check if update is needed
 
         if need_update {
             let (vertices_top, split_vertices_top) =
