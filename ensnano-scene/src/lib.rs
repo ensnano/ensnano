@@ -29,7 +29,7 @@ mod stl;
 pub mod view;
 
 use crate::maths_3d::FiniteVec3;
-pub use controller::ClickMode;
+use controller::ClickMode;
 use controller::{Consequence, Controller, WidgetTarget};
 use data::Data;
 pub use data::{DesignReader, HBond, HalfHBond, SurfaceInfo, SurfacePoint};

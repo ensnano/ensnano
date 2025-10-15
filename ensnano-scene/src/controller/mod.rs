@@ -47,7 +47,6 @@ use automata::{EventContext, NormalState, State, Transition};
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ClickMode {
     TranslateCam,
-    RotateCam,
 }
 
 /// An object handling input and notification for the scene.

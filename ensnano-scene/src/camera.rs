@@ -444,25 +444,6 @@ impl CameraController {
         self.projection.borrow_mut().stereographic_zoom *= STEREOGRAPHIC_ZOOM_STEP.powf(direction);
     }
 
-    /// Rotate the head of the camera on its yz plane and xz plane according to the values of
-    /// self.mouse_horizontal and self.mouse_vertical
-    fn process_angles(&mut self) {
-        let xz_angle = self.mouse_horizontal * FRAC_PI_2;
-        let yz_angle = self.mouse_vertical * FRAC_PI_2;
-
-        // We want to build a rotation that will
-        // first maps (1, 0, 0) to (cos(yz_angle), -sin(yz_angle), 0)
-        // and then (0, 1, 0) to (0, cos(xz_angle), -sin(yz_angle))
-
-        let rotation = Rotor3::from_rotation_xz(xz_angle) * Rotor3::from_rotation_yz(yz_angle);
-
-        self.camera.borrow_mut().rotor = rotation * self.cam0.rotor;
-
-        // Since we have rotated the camera we can reset those values
-        self.mouse_horizontal = 0.0;
-        self.mouse_vertical = 0.0;
-    }
-
     /// Translate the camera
     fn translate_camera(&mut self, surface_info_provider: &dyn SurfaceInfoProvider) {
         let right = self.mouse_horizontal;
@@ -638,7 +619,6 @@ impl CameraController {
     ) {
         if self.processed_move {
             match click_mode {
-                ClickMode::RotateCam => self.process_angles(),
                 ClickMode::TranslateCam => self.translate_camera(surface_info_provider),
             }
         }
