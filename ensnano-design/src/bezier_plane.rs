@@ -452,15 +452,15 @@ fn path_to_curve_descriptor(
     source_path: Arc<BezierPath>,
     path_3d: bool,
 ) -> Option<InstanciatedPiecewiseBezier> {
-    let instanciator = BezierInstantiator {
+    let instantiator = BezierInstantiator {
         source_planes,
         source_path,
         path_3d,
     };
     let mut ret =
-        <BezierInstantiator as PieceWiseBezierInstantiator<Vec3>>::instantiate(&instanciator)?;
+        <BezierInstantiator as PieceWiseBezierInstantiator<Vec3>>::instantiate(&instantiator)?;
 
-    // This discriptor is only used to draw the path of the curve on the bezier plane. It does not
+    // This descriptor is only used to draw the path of the curve on the bezier plane. It does not
     // need to be precise, but it is better if we can update it quickly.
     ret.discretize_quickly = true;
     Some(ret)
