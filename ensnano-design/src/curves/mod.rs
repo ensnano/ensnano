@@ -16,21 +16,6 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use serde::{Deserialize, Serialize};
-use ultraviolet::{DMat3, DVec3, Isometry2, Rotor3, Vec2, Vec3};
-const EPSILON: f64 = 1e-6;
-
-/// To compute curvilinear abscissa over long distances
-const DELTA_MAX: f64 = 256.0;
-use crate::{
-    BezierPathData, BezierPathId,
-    curves::chebyshev::{PolynomialCoordinates, PolynomialCoordinates_},
-    grid::{Edge, GridPosition},
-    utils::vec_to_dvec,
-};
-
-use super::{Helix, HelixParameters};
-use std::sync::Arc;
 mod bezier;
 mod chebyshev;
 mod circle_curve;
@@ -47,7 +32,14 @@ mod torus_concentric_circle;
 mod tube_spiral;
 mod twist;
 
+use super::{Helix, HelixParameters};
 use crate::grid::*;
+use crate::{
+    BezierPathData, BezierPathId,
+    curves::chebyshev::{PolynomialCoordinates, PolynomialCoordinates_},
+    grid::{Edge, GridPosition},
+    utils::vec_to_dvec,
+};
 pub use bezier::InstanciatedPiecewiseBezier;
 pub(crate) use bezier::PieceWiseBezierInstantiator;
 use bezier::TranslatedPiecewiseBezier;
@@ -57,6 +49,7 @@ pub use bezier::{
 };
 pub use circle_curve::CircleCurve;
 pub use revolution::{InterpolatedCurveDescriptor, InterpolationDescriptor};
+use serde::{Deserialize, Serialize};
 pub use sphere_concentric_circle::{
     PillConcentricStadiumDescriptor, PillTennisBallSeamDescriptor,
     SphereConcentricCircleDescriptor, SphereTennisBallSeamDescriptor,
@@ -64,6 +57,7 @@ pub use sphere_concentric_circle::{
 pub use sphere_like_spiral::{SphereLikeSpiralDescriptor, SphereOrientation};
 pub use spiral_cylinder::SpiralCylinderDescriptor;
 use std::collections::HashMap;
+use std::sync::Arc;
 pub use supertwist::SuperTwist;
 pub use time_nucl_map::AbscissaConverter;
 pub(crate) use time_nucl_map::{PathTimeMaps, RevolutionCurveTimeMaps};
@@ -75,7 +69,12 @@ pub use torus_concentric_circle::{
 };
 pub use tube_spiral::TubeSpiralDescriptor;
 pub use twist::{Twist, nb_turn_per_100_nt_to_omega, twist_to_omega};
+use ultraviolet::{DMat3, DVec3, Isometry2, Rotor3, Vec2, Vec3};
 
+/// To compute curvilinear abscissa over long distances
+const DELTA_MAX: f64 = 256.0;
+
+const EPSILON: f64 = 1e-6;
 const EPSILON_DERIVATIVE: f64 = 1e-6;
 
 /// Types that implements this trait represents curves.
