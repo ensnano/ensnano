@@ -621,7 +621,7 @@ pub enum CurveDescriptor {
     Twist(Twist),
     Torus(Torus),
     TorusConcentricCircle(TorusConcentricCircleDescriptor),
-    EllipiticTorusConcentricCircle(EllipticTorusConcentricCircleDescriptor),
+    EllipticTorusConcentricCircle(EllipticTorusConcentricCircleDescriptor),
     TwistedTorus(TwistedTorusDescriptor),
     PiecewiseBezier {
         #[serde(skip_serializing_if = "Option::is_none", default)]
@@ -808,7 +808,7 @@ impl InstanciatedCurveDescriptor {
             CurveDescriptor::TorusConcentricCircle(t) => {
                 InstanciatedCurveDescriptor_::TorusConcentricCircle(t.clone())
             }
-            CurveDescriptor::EllipiticTorusConcentricCircle(t) => {
+            CurveDescriptor::EllipticTorusConcentricCircle(t) => {
                 InstanciatedCurveDescriptor_::EllipticTorusConcentricCircle(t.clone())
             }
             CurveDescriptor::SuperTwist(t) => InstanciatedCurveDescriptor_::SuperTwist(t.clone()),
@@ -909,7 +909,7 @@ impl InstanciatedCurveDescriptor {
             CurveDescriptor::TorusConcentricCircle(t) => Some(
                 InstanciatedCurveDescriptor_::TorusConcentricCircle(t.clone()),
             ),
-            CurveDescriptor::EllipiticTorusConcentricCircle(t) => Some(
+            CurveDescriptor::EllipticTorusConcentricCircle(t) => Some(
                 InstanciatedCurveDescriptor_::EllipticTorusConcentricCircle(t.clone()),
             ),
             CurveDescriptor::SuperTwist(t) => {
