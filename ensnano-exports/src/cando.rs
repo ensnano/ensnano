@@ -279,7 +279,7 @@ impl CanDoFormater {
         known_nucls.sort_by_key(|n| n.id);
 
         // For each nucl make topology entry and write
-        let topologie: Vec<String> = known_nucls
+        let topology: Vec<String> = known_nucls
             .into_iter()
             .enumerate()
             .map(|(id, nucl)| {
@@ -295,7 +295,7 @@ impl CanDoFormater {
             })
             .collect();
 
-        writeln!(&mut out_file, "{}\n", topologie.join("\n"))?;
+        writeln!(&mut out_file, "{}\n", topology.join("\n"))?;
 
         // TODO write self.node_entries, self.triad_entries and self.bp_entries
         writeln!(&mut out_file, "{DNODE_HEADER}")?;
