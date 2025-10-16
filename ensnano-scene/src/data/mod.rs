@@ -287,24 +287,25 @@ impl<R: DesignReader> Data<R> {
                 .map(|p| p.orientation)
                 .or_else(|| self.get_widget_basis(app_state))
         });
-        let handle_descr = if app_state.get_action_mode().0.wants_handle() || self.rotating_pivot {
-            let colors = if self.rotating_pivot {
-                HandleColors::Rgb
+        let handle_descr =
+            if app_state.get_action_mode().0 == ActionMode::Translate || self.rotating_pivot {
+                let colors = if self.rotating_pivot {
+                    HandleColors::Rgb
+                } else {
+                    self.handle_colors
+                };
+                origin
+                    .clone()
+                    .zip(orientation.clone())
+                    .map(|(origin, orientation)| HandlesDescriptor {
+                        origin,
+                        orientation,
+                        size: 0.25,
+                        colors,
+                    })
             } else {
-                self.handle_colors
+                None
             };
-            origin
-                .clone()
-                .zip(orientation.clone())
-                .map(|(origin, orientation)| HandlesDescriptor {
-                    origin,
-                    orientation,
-                    size: 0.25,
-                    colors,
-                })
-        } else {
-            None
-        };
         log::debug!("{:?}", handle_descr);
         self.view
             .borrow_mut()
@@ -314,7 +315,7 @@ impl<R: DesignReader> Data<R> {
         } else {
             AvailableRotationAxes::All
         };
-        let rotation_widget_descr = if app_state.get_action_mode().0.wants_rotation() {
+        let rotation_widget_descr = if app_state.get_action_mode().0 == ActionMode::Rotate {
             origin
                 .clone()
                 .zip(orientation.clone())
@@ -1603,14 +1604,10 @@ impl<R: DesignReader> Data<R> {
     }
 
     fn get_forced_widget_basis<S: AppState>(&self, app_state: &S) -> Option<Rotor3> {
-        if app_state.get_widget_basis().is_axis_aligned()
+        (app_state.get_widget_basis().is_axis_aligned()
             && !(self.handle_colors == HandleColors::Cym
-                && app_state.get_action_mode().0 == ActionMode::Rotate)
-        {
-            Some(Rotor3::identity())
-        } else {
-            None
-        }
+                && app_state.get_action_mode().0 == ActionMode::Rotate))
+            .then(|| Rotor3::identity())
     }
 
     fn get_selected_basis<S: AppState>(&self, app_state: &S) -> Option<Rotor3> {
@@ -1919,27 +1916,6 @@ impl<R: DesignReader> Data<R> {
         self.designs
             .get(0)
             .and_then(|d| d.get_surface_info_nucl(nucl))
-    }
-}
-
-pub(super) trait WantWidget: Sized + 'static {
-    fn wants_rotation(&self) -> bool;
-    fn wants_handle(&self) -> bool;
-}
-
-impl WantWidget for ActionMode {
-    fn wants_rotation(&self) -> bool {
-        match self {
-            ActionMode::Rotate => true,
-            _ => false,
-        }
-    }
-
-    fn wants_handle(&self) -> bool {
-        match self {
-            ActionMode::Translate => true,
-            _ => false,
-        }
     }
 }
 
