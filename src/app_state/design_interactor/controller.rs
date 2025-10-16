@@ -63,7 +63,7 @@ use crate::{
     controller::chanel_reader::ChannelReader,
 };
 use clipboard::{Clipboard, CopyOperation, PastePosition, PastedStrand, StrandClipboard};
-use ensnano_organizer::GroupId;
+use crate::ensnano_organizer::GroupId;
 use std::{
     borrow::Cow,
     collections::{BTreeMap, HashMap},

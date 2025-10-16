@@ -29,7 +29,7 @@ use ensnano_iced::{
 };
 
 pub mod top_bar;
-use ensnano_organizer::GroupId;
+use crate::ensnano_organizer::GroupId;
 pub use top_bar::TopBar;
 /// Draw the left panel of the GUI
 pub mod left_panel;
@@ -66,13 +66,13 @@ use crate::ensnano_interactor::{
     },
     operation::Operation,
 };
+pub use crate::ensnano_organizer::OrganizerTree;
 use ensnano_iced::{
     iced_graphics,
     iced_runtime::{Debug, program},
     iced_wgpu::{self, Backend, wgpu},
     iced_winit::{conversion, winit},
 };
-pub use ensnano_organizer::OrganizerTree;
 use iced::{Renderer, Size, event::Event, keyboard};
 use std::{
     collections::{BTreeSet, HashMap},
@@ -146,7 +146,7 @@ pub trait Requests: 'static + Send {
     fn set_selected_keys(
         &mut self,
         selection: Vec<DesignElementKey>,
-        group_id: Option<ensnano_organizer::GroupId>,
+        group_id: Option<crate::ensnano_organizer::GroupId>,
         new_group: bool,
     );
     fn update_organizer_tree(&mut self, tree: OrganizerTree<DesignElementKey>);

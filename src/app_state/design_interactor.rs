@@ -33,6 +33,7 @@ use crate::ensnano_interactor::{
     app_state_parameters::SuggestionParameters, consts::UPDATE_VISIBILITY_SIEVE_LABEL,
     operation::Operation,
 };
+use crate::ensnano_organizer::GroupId;
 use crate::{
     app_state::design_interactor::controller::{
         OkOperation, clipboard::CopyOperation, simulations::SimulationOperation,
@@ -40,7 +41,6 @@ use crate::{
     controller::chanel_reader::ChannelReader,
 };
 use controller::{Controller, ErrOperation, InteractorNotification};
-use ensnano_organizer::GroupId;
 use presenter::{Presenter, SimulationUpdate, apply_simulation_update, update_presenter};
 use std::sync::Arc;
 
@@ -246,7 +246,7 @@ impl DesignInteractor {
         self
     }
 
-    #[allow(dead_code)] //used in tests
+    #[cfg(test)]
     pub(super) fn with_updated_design(&self, design: Design) -> Self {
         let mut new_interactor = self.clone();
         new_interactor.design = AddressPointer::new(design);

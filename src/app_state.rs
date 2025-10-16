@@ -32,9 +32,9 @@ pub mod impl_gui;
 pub mod transitions;
 
 use crate::ensnano_design;
-use crate::ensnano_design::{
-    BezierPathId, Design, SavingInformation, group_attributes::GroupPivot,
-};
+#[cfg(test)]
+use crate::ensnano_design::Design;
+use crate::ensnano_design::{BezierPathId, SavingInformation, group_attributes::GroupPivot};
 use crate::ensnano_exports::{ExportResult, ExportType};
 use crate::ensnano_gui::StrandBuildingStatus;
 use crate::ensnano_interactor::{
@@ -45,6 +45,7 @@ use crate::ensnano_interactor::{
     graphics::{Background3D, HBondDisplay, RenderingMode},
     operation::Operation,
 };
+use crate::ensnano_organizer::GroupId;
 use crate::{
     app_state::design_interactor::{
         controller::{
@@ -59,7 +60,6 @@ use address_pointer::AddressPointer;
 use design_interactor::{DesignInteractor, InteractorResult};
 use design_interactor::{DesignReader, controller::ErrOperation};
 use ensnano_iced::UiSize;
-use ensnano_organizer::GroupId;
 use std::{
     path::PathBuf,
     sync::{Arc, RwLock},
@@ -228,12 +228,12 @@ impl AppState {
         Self(AddressPointer::new(new_state))
     }
 
-    #[allow(dead_code)] //used in tests
+    #[cfg(test)]
     pub fn update_design(&mut self, design: Design) {
         apply_update(self, |s| s.with_updated_design(design))
     }
 
-    #[allow(dead_code)] //used in tests
+    #[cfg(test)]
     pub fn with_updated_design(&self, design: Design) -> Self {
         let mut new_state = self.0.clone_inner();
         let new_interactor = new_state.design.with_updated_design(design);
@@ -719,7 +719,7 @@ impl AppState_ {
 #[derive(Clone, Default)]
 pub struct AppStateSelection {
     selection: AddressPointer<Vec<Selection>>,
-    selected_group: Option<ensnano_organizer::GroupId>,
+    selected_group: Option<crate::ensnano_organizer::GroupId>,
     pivot: Arc<RwLock<Option<GroupPivot>>>,
     old_pivot: Arc<RwLock<Option<GroupPivot>>>,
 }

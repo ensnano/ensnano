@@ -45,7 +45,7 @@ use ensnano_iced::{
         },
     },
 };
-use ensnano_organizer::{Organizer, OrganizerMessage, OrganizerTree};
+use crate::ensnano_organizer::{Organizer, OrganizerMessage, OrganizerTree};
 use std::sync::{Arc, Mutex};
 use ultraviolet::Vec3;
 

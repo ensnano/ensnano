@@ -95,7 +95,7 @@ pub struct Requests {
     pub keep_proceed: VecDeque<Action>,
     pub organizer_selection: Option<(
         Vec<DesignElementKey>,
-        Option<ensnano_organizer::GroupId>,
+        Option<crate::ensnano_organizer::GroupId>,
         bool,
     )>,
     pub organizer_candidates: Option<Vec<DesignElementKey>>,

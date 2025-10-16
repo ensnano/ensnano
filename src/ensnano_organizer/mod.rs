@@ -259,10 +259,6 @@ impl<E: OrganizerElement> Organizer<E> {
         }
     }
 
-    pub fn reset(&mut self) {
-        self.groups = vec![]
-    }
-
     pub fn new_modifiers(&mut self, modifiers: Modifiers) {
         self.modifiers = modifiers;
     }
@@ -731,22 +727,6 @@ impl<E: OrganizerElement> Organizer<E> {
         }
     }
 
-    fn replace_id(&mut self, content: GroupContent<E>, id: &[usize]) {
-        if id.len() < 2 {
-            if self.groups.len() < id[0] {
-                self.groups.push(content)
-            } else {
-                self.groups.insert(id[0], content);
-            }
-        } else {
-            // We unwrap because getting None would be the symptom of a serious bug
-            self.groups
-                .get_mut(id[0])
-                .unwrap()
-                .replace_id(&id[1..], content)
-        }
-    }
-
     fn add_at_id(&mut self, content: GroupContent<E>, id: &[usize], from_top: bool) {
         if id.len() < 2 {
             let insertion_point = if from_top { id[0] + 1 } else { id[0] };
@@ -778,29 +758,6 @@ impl<E: OrganizerElement> Organizer<E> {
             _ => (),
         }
         self.dragging = BTreeSet::new();
-    }
-
-    pub fn merge_ids(&mut self, id0: &[usize], id1: &[usize]) {
-        //TODO remove public once this is integrated in GUI
-        if let Some(c1) = self.pop_id_no_recompute(id0) {
-            if let Some(c2) = self.pop_id_no_recompute(id1) {
-                let new_group_id = self.rng_thread.r#gen();
-                let content = GroupContent::Node {
-                    id: NodeId::TreeId(vec![]),
-                    name: String::from("new group"),
-                    expanded: false,
-                    children: vec![c2, c1],
-                    view: NodeView::new(),
-                    attributes: vec![None; E::all_repr().len()],
-                    elements_below: BTreeSet::new(),
-                    group_id: new_group_id,
-                };
-                self.replace_id(content, id1);
-            } else {
-                self.replace_id(c1, id0)
-            }
-            self.recompute_id()
-        }
     }
 
     fn move_id(&mut self, source: &NodeId<E::AutoGroup>, dest: &NodeId<E::AutoGroup>) {
@@ -922,7 +879,7 @@ impl<E: OrganizerElement> Section<E> {
         &self,
         theme: &OrganizerTheme,
         selection: &BTreeSet<E::Key>,
-    ) -> Container<'_, OrganizerMessage<E>, crate::Theme, crate::Renderer> {
+    ) -> Container<'_, OrganizerMessage<E>, Theme, Renderer> {
         let title_row = self.view.view(&self.name, self.id.clone(), self.expanded);
         let mut content = Column::new().spacing(LEVELS_V_SPACING).push(title_row);
         if self.expanded {
@@ -974,8 +931,7 @@ impl<E: OrganizerElement> ElementView<E> {
         element: &E,
         _selection: &BTreeSet<E::Key>,
         deletable: Option<NodeId<E::AutoGroup>>,
-    ) -> DragDropTarget<'_, OrganizerMessage<E>, crate::Theme, crate::Renderer, E::Key, E::AutoGroup>
-    {
+    ) -> DragDropTarget<'_, OrganizerMessage<E>, Theme, Renderer, E::Key, E::AutoGroup> {
         let mut content = row![text(element.display_name()), horizontal_space(),];
         // [DragIdentifier::Group] are deletable, [DragIdentifier::Section] are not.
         let identifier = match deletable.as_ref() {
@@ -1065,10 +1021,10 @@ impl<E: OrganizerElement> NodeView<E> {
         name: &String,
         id: NodeId<E::AutoGroup>,
         expanded: bool,
-    ) -> Element<'_, OrganizerMessage<E>, crate::Theme, crate::Renderer> {
+    ) -> Element<'_, OrganizerMessage<E>, Theme, Renderer> {
         let title_row = match &self.state {
             GroupState::Idle { .. } => {
-                let mut row: Row<'_, _, crate::Theme, crate::Renderer> = row![
+                let mut row: Row<'_, _, Theme, Renderer> = row![
                     button(expand_icon(expanded))
                         .on_press(OrganizerMessage::<E>::expand(id.clone(), !expanded)),
                     Space::with_width(5.0),
@@ -1528,20 +1484,6 @@ impl<E: OrganizerElement> GroupContent<E> {
                 }
             }
             _ => None,
-        }
-    }
-
-    fn replace_id(&mut self, id: &[usize], content: Self) {
-        match self {
-            Self::Node { children, .. } => {
-                if id.len() > 1 {
-                    children[id[0]].replace_id(&id[1..], content)
-                } else {
-                    children[id[0]] = content
-                }
-            }
-            Self::Leaf { .. } => unreachable!("Replace Id on Leaf"),
-            Self::Placeholder => unreachable!("Replace Id on Placeholder"),
         }
     }
 
