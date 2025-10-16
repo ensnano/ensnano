@@ -225,13 +225,6 @@ impl DesignContent {
             .and_then(|g| g.grid_type.get_nb_turn().map(|x| x as f32))
     }
 
-    pub(super) fn get_grid_shift(&self, g_id: GridId) -> Option<f32> {
-        self.grid_manager
-            .grids
-            .get(&g_id)
-            .and_then(|g| g.grid_type.get_shift())
-    }
-
     pub(super) fn get_staple_mismatch(&self, design: &Design) -> Option<Nucl> {
         let basis_map = self.letter_map.as_ref();
         for strand in design.strands.values() {

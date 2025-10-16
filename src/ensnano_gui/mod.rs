@@ -35,11 +35,11 @@ pub use top_bar::TopBar;
 pub mod left_panel;
 pub use left_panel::{
     ColorOverlay, CurveDescriptorBuilder, CurveDescriptorParameter, InstanciatedParameter,
-    LeftPanel, ParameterKind, RevolutionScaling, RigidBodyParametersRequest,
+    LeftPanel, RevolutionScaling, RigidBodyParametersRequest,
 };
 /// Draw the status bar
 pub mod status_bar;
-pub use ensnano_design::{Camera, CameraId, grid::GridId};
+pub use ensnano_design::{CameraId, grid::GridId};
 pub use status_bar::{ClipboardContent, CurrentOpState, StrandBuildingStatus};
 mod consts;
 
@@ -85,7 +85,6 @@ use winit::{dpi::PhysicalSize, event::Modifiers, window::Window};
 
 pub trait Requests: 'static + Send {
     fn close_overlay(&mut self, overlay_type: OverlayType);
-    fn open_overlay(&mut self, overlay_type: OverlayType);
     /// Change the color of the selected strands
     fn change_strand_color(&mut self, color: u32);
     /// Change the background of the 3D scene
@@ -104,8 +103,6 @@ pub trait Requests: 'static + Send {
     fn make_all_elements_visible(&mut self);
     /// Toggle the visibility of the selected elements
     fn toggle_visibility(&mut self, visible: bool);
-    /// Remove empty domains in the design
-    fn remove_empty_domains(&mut self);
     fn change_action_mode(&mut self, action_mode: ActionMode);
     fn change_selection_mode(&mut self, selection_mode: SelectionMode);
     /// Switch widget basis between world and object
@@ -140,8 +137,6 @@ pub trait Requests: 'static + Send {
     fn update_roll_of_selected_helices(&mut self, roll: f32);
     fn update_scroll_sensitivity(&mut self, sensitivity: f32);
     fn set_fog_parameters(&mut self, parameters: FogParameters);
-    /// Show/hide the torsion indications
-    fn set_torsion_visibility(&mut self, visible: bool);
     /// Set the direction and up vector of the 3D camera
     fn set_camera_dir_up_vec(&mut self, direction: Vec3, up: Vec3);
     fn perform_camera_rotation(&mut self, xz: f32, yz: f32, xy: f32);
@@ -179,9 +174,6 @@ pub trait Requests: 'static + Send {
     fn fit_design_in_scenes(&mut self);
     /// Update the parameters of the current operation
     fn update_current_operation(&mut self, operation: Arc<dyn Operation>);
-    /// Update the shift of the currently selected hyperboloid grid
-    fn update_hyperboloid_shift(&mut self, shift: f32);
-    fn display_error_msg(&mut self, msg: String);
     /// Set the scaffold to be the some strand with id `s_id`, or none
     fn set_scaffold_id(&mut self, s_id: Option<usize>);
     /// make the spheres of the currently selected grid large/small
@@ -197,8 +189,6 @@ pub trait Requests: 'static + Send {
     fn create_new_camera(&mut self);
     fn delete_camera(&mut self, cam_id: CameraId);
     fn select_camera(&mut self, cam_id: CameraId);
-    fn set_favorite_camera(&mut self, cam_id: CameraId);
-    fn update_camera(&mut self, cam_id: CameraId);
     fn set_camera_name(&mut self, cam_id: CameraId, name: String);
     fn set_suggestion_parameters(&mut self, param: SuggestionParameters);
     fn set_grid_position(&mut self, grid_id: GridId, position: Vec3);
@@ -985,7 +975,6 @@ pub trait AppState:
     fn get_selection_mode(&self) -> SelectionMode;
     fn get_action_mode(&self) -> ActionMode;
     fn get_build_helix_mode(&self) -> ActionMode;
-    fn has_double_strand_on_new_helix(&self) -> bool;
     fn get_widget_basis(&self) -> WidgetBasis;
     fn get_simulation_state(&self) -> SimulationState;
     fn get_dna_parameters(&self) -> HelixParameters;
@@ -1025,7 +1014,6 @@ pub trait AppState:
 pub trait DesignReader: 'static {
     fn grid_has_persistent_phantom(&self, g_id: GridId) -> bool;
     fn grid_has_small_spheres(&self, g_id: GridId) -> bool;
-    fn get_grid_shift(&self, g_id: GridId) -> Option<f32>;
     fn get_strand_length(&self, s_id: usize) -> Option<usize>;
     fn is_id_of_scaffold(&self, s_id: usize) -> bool;
     fn length_decomposition(&self, s_id: usize) -> String;
@@ -1034,7 +1022,6 @@ pub trait DesignReader: 'static {
     fn get_organizer_tree(&self) -> Option<Arc<ensnano_design::EnsnTree>>;
     fn strand_name(&self, s_id: usize) -> String;
     fn get_all_cameras(&self) -> Vec<(CameraId, &str)>;
-    fn get_favorite_camera(&self) -> Option<CameraId>;
     fn get_grid_position_and_orientation(&self, g_id: GridId) -> Option<(Vec3, Rotor3)>;
     fn get_grid_nb_turn(&self, g_id: GridId) -> Option<f32>;
     fn xover_length(&self, xover_id: usize) -> Option<(f32, Option<f32>)>;

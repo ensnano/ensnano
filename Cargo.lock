@@ -912,7 +912,6 @@ dependencies = [
  "dirs",
  "ensnano_design",
  "ensnano_exports",
- "ensnano_gui",
  "ensnano_iced",
  "ensnano_interactor",
  "ensnano_organizer",
@@ -926,7 +925,9 @@ dependencies = [
  "lyon",
  "mathru",
  "num_enum 0.5.11",
+ "open",
  "ordered-float 2.10.1",
+ "paste",
  "png 0.17.16",
  "pretty_env_logger",
  "rand",
@@ -977,24 +978,6 @@ dependencies = [
  "serde",
  "serde_json",
  "strum",
-]
-
-[[package]]
-name = "ensnano_gui"
-version = "0.7.0"
-dependencies = [
- "color_space",
- "ensnano_design",
- "ensnano_exports",
- "ensnano_iced",
- "ensnano_interactor",
- "ensnano_organizer",
- "ensnano_utils",
- "futures",
- "log",
- "open",
- "paste",
- "rfd",
 ]
 
 [[package]]

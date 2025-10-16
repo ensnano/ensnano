@@ -16,7 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use super::{AppState, FogParameters, OverlayType, Requests};
-use crate::{consts::*, fonts};
+use super::{consts::*, fonts};
 use ensnano_design::{
     BezierPathId, CameraId, NamedParameter,
     elements::{DesignElement, DesignElementKey},
@@ -73,7 +73,6 @@ pub struct LeftPanel<R: Requests, S: AppState> {
     logical_position: LogicalPosition<f64>,
     sequence_input: SequenceInput,
     requests: Arc<Mutex<R>>,
-    show_torsion: bool,
     active_tab: TabId,
     /// Provide an organized view of the object being edited.
     organizer: Organizer<DesignElement>,
@@ -95,7 +94,6 @@ pub struct LeftPanel<R: Requests, S: AppState> {
 #[derive(Debug, Clone)]
 pub enum Message<S: AppState> {
     Resized(LogicalSize<f64>, LogicalPosition<f64>),
-    OpenColor,
     MakeGrids,
     SequenceChanged(String),
     SequenceFileRequested,
@@ -109,7 +107,6 @@ pub enum Message<S: AppState> {
     PositionHelicesChanged(String),
     LengthHelicesChanged(String),
     ScaffoldPositionInput(String),
-    ShowTorsion(bool),
     FogRadius(f32),
     FogLength(f32),
     RollSimulationRequest,
@@ -135,7 +132,6 @@ pub enum Message<S: AppState> {
     StaplesRequested,
     OrigamisRequested,
     ToggleText(bool),
-    CleanRequested,
     AddDoubleStrandHelix(bool),
     ToggleVisibility(bool),
     AllVisible,
@@ -227,7 +223,6 @@ impl<R: Requests, S: AppState> LeftPanel<R, S> {
             logical_position,
             sequence_input: SequenceInput::new(),
             requests,
-            show_torsion: false,
             active_tab: if first_time {
                 TabId::Grid
             } else {
@@ -329,7 +324,7 @@ where
     S: AppState,
 {
     type Theme = ensnano_iced::Theme;
-    type Renderer = crate::Renderer;
+    type Renderer = super::Renderer;
     type Message = Message<S>;
 
     // BUG: Increasing the left panel too much crashes ENSnano.
@@ -381,11 +376,6 @@ where
                     futures::executor::block_on(save_op);
                 });
             }
-            Message::OpenColor => self
-                .requests
-                .lock()
-                .unwrap()
-                .open_overlay(OverlayType::Color),
             Message::ColorPickerMessage(message) => {
                 self.edition_tab.update_color_picker(message);
                 // Forward action to Requests.
@@ -444,10 +434,6 @@ where
                 if let Some(n) = self.sequence_tab.update_pos_str(position_str) {
                     self.requests.lock().unwrap().set_scaffold_shift(n);
                 }
-            }
-            Message::ShowTorsion(b) => {
-                self.requests.lock().unwrap().set_torsion_visibility(b);
-                self.show_torsion = b;
             }
             Message::FogLength(length) => {
                 self.camera_tab.fog_length(length);
@@ -671,7 +657,6 @@ where
                     .set_dna_sequences_visibility(b);
                 self.sequence_tab.toggle_text_value(b);
             }
-            Message::CleanRequested => self.requests.lock().unwrap().remove_empty_domains(),
             Message::AddDoubleStrandHelix(b) => {
                 self.contextual_panel.set_show_strand(b);
                 let new_strand_parameters = self.contextual_panel.get_new_strand_parameters();
@@ -1104,7 +1089,7 @@ pub enum ColorMessage {
 }
 
 impl<R: Requests> Program for ColorOverlay<R> {
-    type Renderer = crate::Renderer;
+    type Renderer = super::Renderer;
     type Theme = ensnano_iced::Theme;
     type Message = ColorMessage;
 

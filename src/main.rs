@@ -94,6 +94,7 @@ mod app_state;
 mod controller;
 mod dialog;
 mod ensnano_flatscene;
+mod ensnano_gui;
 mod ensnano_scene;
 #[cfg(test)]
 mod main_tests;
@@ -2119,24 +2120,6 @@ impl<'a> MainStateView<'a> {
             self.notify_apps(Notification::TeleportCamera(camera))
         } else {
             log::error!("Could not get camera {:?}", camera_id)
-        }
-    }
-
-    fn update_camera(&mut self, camera_id: ensnano_design::CameraId) {
-        if let Some(camera) = self
-            .main_state
-            .applications
-            .get(&GuiComponentType::Scene)
-            .and_then(|s| s.lock().unwrap().get_camera())
-        {
-            self.main_state
-                .apply_operation(DesignOperation::UpdateCamera {
-                    camera_id,
-                    position: camera.0.position,
-                    orientation: camera.0.orientation,
-                })
-        } else {
-            log::error!("Could not get current camera position");
         }
     }
 

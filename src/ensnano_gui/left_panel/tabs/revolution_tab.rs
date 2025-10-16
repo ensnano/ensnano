@@ -17,8 +17,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::tabs::GuiTab;
-use crate::left_panel::Message;
-use crate::{AppState, SimulationState};
+use crate::ensnano_gui::left_panel::Message;
+use crate::ensnano_gui::{AppState, SimulationState};
 use ensnano_design::{
     CurveDescriptor2D,
     ultraviolet::{self, Rotor3, Vec3},
@@ -96,14 +96,12 @@ impl InstanciatedParameter {
 #[derive(Debug, Clone)]
 pub struct CurveDescriptorParameter {
     pub name: &'static str,
-    pub kind: ParameterKind,
     pub default_value: InstanciatedParameter,
 }
 
 pub type Frame = (ultraviolet::Vec3, ultraviolet::Rotor3);
 #[derive(Clone)]
 pub struct CurveDescriptorBuilder<S: AppState> {
-    pub nb_parameters: usize,
     pub curve_name: &'static str,
     pub parameters: &'static [CurveDescriptorParameter],
     pub bezier_path_id: &'static (dyn Fn(&[InstanciatedParameter]) -> Option<usize> + Send + Sync),

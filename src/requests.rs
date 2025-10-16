@@ -26,13 +26,13 @@ mod impl_scene;
 pub mod poll;
 
 use crate::controller::normal_state::Action;
+use crate::ensnano_gui::OrganizerTree;
 use crate::ensnano_scene::view::FogParameters;
 use ensnano_design::{
     Nucl,
     elements::{DesignElementKey, DnaAttribute},
     grid::{GridId, GridPosition, GridTypeDescr},
 };
-use ensnano_gui::OrganizerTree;
 use ensnano_iced::UiSize;
 use ensnano_interactor::{
     ActionMode, CenterOfSelection, HyperboloidRequest, RapierSimulationRequest, RigidBodyConstants,
@@ -93,7 +93,6 @@ pub struct Requests {
     pub anchor: Option<()>,
     pub rigid_body_parameters: Option<RigidBodyConstants>,
     pub keep_proceed: VecDeque<Action>,
-    pub new_shift_hyperboloid: Option<f32>,
     pub organizer_selection: Option<(
         Vec<DesignElementKey>,
         Option<ensnano_organizer::GroupId>,

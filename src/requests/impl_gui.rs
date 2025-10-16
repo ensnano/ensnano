@@ -19,9 +19,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! Implements the [Requests](`ensnano_gui::Requests`) trait for [Requests](`super::Requests`).
 
 use super::*;
+use crate::ensnano_gui::{OverlayType, RigidBodyParametersRequest};
 use ensnano_design::grid::GridId;
 use ensnano_exports::ExportType;
-use ensnano_gui::{self, OverlayType, RigidBodyParametersRequest};
 use ensnano_interactor::{
     DesignOperation, InsertionPoint, RevolutionSurfaceSystemDescriptor, RigidBodyConstants,
     RollRequest, application::Notification, graphics::SplitMode,
@@ -29,15 +29,10 @@ use ensnano_interactor::{
 use std::collections::BTreeSet;
 use ultraviolet::Rotor3;
 
-impl ensnano_gui::Requests for Requests {
+impl crate::ensnano_gui::Requests for Requests {
     fn close_overlay(&mut self, overlay_type: OverlayType) {
         self.keep_proceed
             .push_back(Action::CloseOverlay(overlay_type));
-    }
-
-    fn open_overlay(&mut self, overlay_type: OverlayType) {
-        self.keep_proceed
-            .push_back(Action::OpenOverlay(overlay_type));
     }
 
     fn change_strand_color(&mut self, color: u32) {
@@ -74,10 +69,6 @@ impl ensnano_gui::Requests for Requests {
 
     fn toggle_visibility(&mut self, compl: bool) {
         self.toggle_visibility = Some(compl);
-    }
-
-    fn remove_empty_domains(&mut self) {
-        self.clean_requests = Some(());
     }
 
     fn change_action_mode(&mut self, action_mode: ActionMode) {
@@ -170,10 +161,6 @@ impl ensnano_gui::Requests for Requests {
 
     fn set_fog_parameters(&mut self, parameters: FogParameters) {
         self.fog = Some(parameters);
-    }
-
-    fn set_torsion_visibility(&mut self, visible: bool) {
-        self.show_torsion_request = Some(visible);
     }
 
     fn set_camera_dir_up_vec(&mut self, direction: Vec3, up: Vec3) {
@@ -270,14 +257,6 @@ impl ensnano_gui::Requests for Requests {
         self.suspend_op = Some(());
     }
 
-    fn update_hyperboloid_shift(&mut self, shift: f32) {
-        self.new_shift_hyperboloid = Some(shift);
-    }
-
-    fn display_error_msg(&mut self, msg: String) {
-        self.keep_proceed.push_back(Action::ErrorMsg(msg))
-    }
-
     fn set_scaffold_id(&mut self, s_id: Option<usize>) {
         self.set_scaffold_id = Some(s_id);
     }
@@ -331,17 +310,6 @@ impl ensnano_gui::Requests for Requests {
 
     fn select_camera(&mut self, cam_id: ensnano_design::CameraId) {
         self.keep_proceed.push_back(Action::SelectCamera(cam_id))
-    }
-
-    fn set_favorite_camera(&mut self, cam_id: ensnano_design::CameraId) {
-        self.keep_proceed
-            .push_back(Action::DesignOperation(DesignOperation::SetFavoriteCamera(
-                cam_id,
-            )))
-    }
-
-    fn update_camera(&mut self, cam_id: ensnano_design::CameraId) {
-        self.keep_proceed.push_back(Action::UpdateCamera(cam_id))
     }
 
     fn set_camera_name(&mut self, camera_id: ensnano_design::CameraId, name: String) {

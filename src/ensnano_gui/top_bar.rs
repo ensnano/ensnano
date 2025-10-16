@@ -111,7 +111,7 @@ impl<R: Requests, S: AppState> TopBar<R, S> {
 impl<R: Requests, S: AppState> Program for TopBar<R, S> {
     type Message = Message<S>;
     type Theme = ensnano_iced::Theme;
-    type Renderer = crate::Renderer;
+    type Renderer = super::Renderer;
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         match message {
@@ -504,7 +504,7 @@ fn action_mode_btn<'a, State: AppState>(
     _button_size: impl Into<Length>,
     axis_aligned: bool,
     ui_size: UiSize,
-) -> Button<'a, Message<State>, ensnano_iced::Theme, crate::Renderer> {
+) -> Button<'a, Message<State>, ensnano_iced::Theme, super::Renderer> {
     let icon_path = if current_action_mode == *mode {
         mode.icon_on(axis_aligned)
     } else {
@@ -525,7 +525,7 @@ fn selection_mode_btn<'a, State: AppState>(
     mode: &SelectionMode,
     current_mode: SelectionMode,
     ui_size: UiSize,
-) -> Button<'a, Message<State>, ensnano_iced::Theme, crate::Renderer> {
+) -> Button<'a, Message<State>, ensnano_iced::Theme, super::Renderer> {
     let icon_path = if current_mode == *mode {
         mode.icon_on()
     } else {

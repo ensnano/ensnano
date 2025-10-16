@@ -139,7 +139,7 @@ impl<State: AppState> GuiTab<State> for SimulationTab<State> {
     type Message = Message<State>;
 
     fn label(&self) -> TabLabel {
-        TabLabel::Icon(crate::consts::ICON_PHYSICAL_ENGINE)
+        TabLabel::Icon(crate::ensnano_gui::consts::ICON_PHYSICAL_ENGINE)
     }
 
     fn content(

@@ -17,7 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::{Message, Selection, UiSize};
-use crate::ultraviolet::{Bivec3, Mat3, Rotor3, Vec2, Vec3};
+use crate::ensnano_gui::ultraviolet::{Bivec3, Mat3, Rotor3, Vec2, Vec3};
 use ensnano_iced::{
     helpers::*,
     iced::{Alignment, Length},
@@ -319,7 +319,7 @@ impl GridBuilder {
     ) -> Option<
         ensnano_iced::Element<'a, super::Message<S>, ensnano_iced::Theme, ensnano_iced::Renderer>,
     > {
-        use crate::consts;
+        use crate::ensnano_gui::consts;
         if let Selection::Grid(_, g_id) = selection {
             if let Some(nb_turn) = app_state.get_reader().get_grid_nb_turn(*g_id) {
                 let row = row![

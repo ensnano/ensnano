@@ -17,9 +17,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::*;
+use crate::ensnano_gui::AppState as GuiState;
+use crate::ensnano_gui::ClipboardContent;
 use ensnano_design::{HelixParameters, elements::DesignElementKey};
-use ensnano_gui::AppState as GuiState;
-use ensnano_gui::ClipboardContent;
 use ensnano_interactor::PastingStatus;
 use ensnano_interactor::{ScaffoldInfo, SelectionConversion, SimulationState};
 
@@ -27,7 +27,7 @@ mod curve_builders;
 use curve_builders::*;
 
 impl GuiState for AppState {
-    const POSSIBLE_CURVES: &'static [ensnano_gui::CurveDescriptorBuilder<AppState>] =
+    const POSSIBLE_CURVES: &'static [crate::ensnano_gui::CurveDescriptorBuilder<AppState>] =
         &[ELLIPSE_BUILDER, TWO_SPHERES_BUILDER, BEZIER_CURVE_BUILDER];
 
     fn get_selection_mode(&self) -> SelectionMode {
@@ -77,7 +77,7 @@ impl GuiState for AppState {
             )
     }
 
-    fn get_reader(&self) -> Box<dyn ensnano_gui::DesignReader> {
+    fn get_reader(&self) -> Box<dyn crate::ensnano_gui::DesignReader> {
         Box::new(self.get_design_reader())
     }
 
@@ -103,15 +103,11 @@ impl GuiState for AppState {
         }
     }
 
-    fn has_double_strand_on_new_helix(&self) -> bool {
-        self.0.strand_on_new_helix.is_some()
-    }
-
-    fn get_current_operation_state(&self) -> Option<ensnano_gui::CurrentOpState> {
+    fn get_current_operation_state(&self) -> Option<crate::ensnano_gui::CurrentOpState> {
         self.0.design.get_current_operation_state()
     }
 
-    fn get_strand_building_state(&self) -> Option<ensnano_gui::StrandBuildingStatus> {
+    fn get_strand_building_state(&self) -> Option<crate::ensnano_gui::StrandBuildingStatus> {
         self.get_strand_building_state()
     }
 
@@ -187,7 +183,7 @@ impl GuiState for AppState {
     fn get_recommended_scaling_revolution_surface(
         &self,
         scaffold_len: usize,
-    ) -> Option<ensnano_gui::RevolutionScaling> {
+    ) -> Option<crate::ensnano_gui::RevolutionScaling> {
         let area_surface = self.0.unrooted_surface.area?;
         let perimeter_surface = self
             .0
@@ -206,7 +202,7 @@ impl GuiState for AppState {
         let half_number_helix =
             (scaled_perimeter / 2. / HelixParameters::INTER_CENTER_GAP as f64).floor() as usize;
 
-        Some(ensnano_gui::RevolutionScaling {
+        Some(crate::ensnano_gui::RevolutionScaling {
             nb_helix: half_number_helix * 2,
             scale: scaling_factor,
         })
