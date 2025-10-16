@@ -93,6 +93,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 mod app_state;
 mod controller;
 mod dialog;
+mod ensnano_flatscene;
 mod ensnano_scene;
 #[cfg(test)]
 mod main_tests;

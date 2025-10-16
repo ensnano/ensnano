@@ -17,17 +17,16 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::*;
-
+use crate::ensnano_flatscene::DesignReader as Reader2D;
 use ahash::RandomState;
 use ensnano_design::{Domain, Extremity, Helix, HelixInterval, Strand};
-use ensnano_flatscene::DesignReader as Reader2D;
 use ensnano_interactor::{Referential, torsion::Torsion};
 use std::collections::{BTreeMap, HashMap};
 use std::sync::Arc;
 use ultraviolet::{Isometry2, Vec3};
 
 impl Reader2D for DesignReader {
-    type NuclCollection = super::design_content::NuclCollection;
+    type NuclCollection = design_content::NuclCollection;
     fn get_isometry(&self, h_id: usize, segment_idx: usize) -> Option<Isometry2> {
         if segment_idx == 0 {
             self.presenter
@@ -235,7 +234,7 @@ impl Reader2D for DesignReader {
     }
 }
 
-impl ensnano_flatscene::NuclCollection for super::design_content::NuclCollection {
+impl crate::ensnano_flatscene::NuclCollection for super::design_content::NuclCollection {
     fn contains(&self, nucl: &Nucl) -> bool {
         self.contains_nucl(nucl)
     }

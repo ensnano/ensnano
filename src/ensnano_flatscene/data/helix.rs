@@ -15,11 +15,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+use super::super::flattypes::{FlatHelixMaps, FlatPosition, HelixSegment};
+use super::super::view::EditionInfo;
 use super::super::view::{CircleInstance, InsertionDescriptor, InsertionInstance};
 use super::super::{CameraPtr, Flat, FlatHelix};
 use super::{FlatNucl, Helix2d, NuclCollection};
-use crate::flattypes::{FlatHelixMaps, FlatPosition, HelixSegment};
-use crate::view::EditionInfo;
 use abscissa_converter::{AbscissaConverter, AbscissaConverter_};
 use ahash::RandomState;
 use ensnano_design::Nucl;

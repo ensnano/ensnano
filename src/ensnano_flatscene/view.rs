@@ -27,7 +27,7 @@ use super::data::{
     helix::CharCollector,
 };
 use super::{CameraPtr, FlatIdx, FlatNucl, NuclCollection};
-use crate::{DrawArea, PhySize};
+use super::{DrawArea, PhySize};
 use ahash::RandomState;
 use background::Background;
 use ensnano_design::Nucl;

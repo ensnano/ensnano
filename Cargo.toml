@@ -2,7 +2,6 @@
 members = [
     "ensnano-design",
     "ensnano-exports",
-    "ensnano-flatscene",
     "ensnano-gui",
     "ensnano-iced",
     "ensnano-interactor",
@@ -37,7 +36,6 @@ license.workspace = true
 [workspace.dependencies]
 ensnano_design = { path = "ensnano-design" }
 ensnano_exports = { path = "ensnano-exports" }
-ensnano_flatscene = { path = "ensnano-flatscene" }
 ensnano_gui = { path = "ensnano-gui" }
 ensnano_iced = { path = "ensnano-iced" }
 ensnano_interactor = { path = "ensnano-interactor" }
@@ -112,7 +110,6 @@ wgpu = { version = "0.19", features = ["spirv"] }
 [dependencies]
 ensnano_design.workspace = true
 ensnano_exports.workspace = true
-ensnano_flatscene.workspace = true
 ensnano_gui.workspace = true
 ensnano_iced.workspace = true
 ensnano_interactor.workspace = true
@@ -120,7 +117,7 @@ ensnano_organizer.workspace = true
 ensnano_physics.workspace = true
 ensnano_utils.workspace = true
 
-# ensnano_scene specific
+# ensnano_(flat)?scene specific
 bytemuck.workspace = true
 futures-channel.workspace = true
 image.workspace = true

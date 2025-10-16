@@ -32,7 +32,7 @@ use ensnano_interactor::{Referential, torsion::Torsion};
 use ensnano_utils::full_isometry::FullIsometry;
 use ultraviolet::{Isometry2, Rotor2, Vec2, Vec3};
 
-use crate::flattypes::FlatHelixMaps;
+use super::super::flattypes::FlatHelixMaps;
 
 pub(super) struct Design2d<R: DesignReader> {
     /// The 2d helices

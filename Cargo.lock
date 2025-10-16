@@ -912,7 +912,6 @@ dependencies = [
  "dirs",
  "ensnano_design",
  "ensnano_exports",
- "ensnano_flatscene",
  "ensnano_gui",
  "ensnano_iced",
  "ensnano_interactor",
@@ -978,23 +977,6 @@ dependencies = [
  "serde",
  "serde_json",
  "strum",
-]
-
-[[package]]
-name = "ensnano_flatscene"
-version = "0.7.0"
-dependencies = [
- "ahash 0.8.12",
- "bytemuck",
- "color_space",
- "ensnano_design",
- "ensnano_interactor",
- "ensnano_utils",
- "futures",
- "futures-channel",
- "log",
- "lyon",
- "png 0.17.16",
 ]
 
 [[package]]
