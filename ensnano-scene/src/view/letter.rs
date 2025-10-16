@@ -63,7 +63,7 @@ impl ResourceProvider for Letter {
         ]
     }
 
-    /// This methods allows the ressource tho provide the vertex buffer. If the return value is
+    /// This methods allows the resource tho provide the vertex buffer. If the return value is
     /// Some, it takes priority over the Instantiable's vertices.
     fn vertex_buffer_desc() -> Option<wgpu::VertexBufferLayout<'static>>
     where
