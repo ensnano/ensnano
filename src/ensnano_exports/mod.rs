@@ -15,14 +15,14 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
 //! Exports utilities from ENSnano to other file formats used in DNA nanotechnologies
 
 pub mod cadnano;
-pub mod cando;
 pub mod oxdna;
 pub mod pdb;
+
 use cadnano::CadnanoError;
-use cando::CanDoError;
 use ensnano_design::{Design, Nucl, ultraviolet};
 use pdb::PdbError;
 use std::collections::HashMap;
@@ -32,7 +32,6 @@ use std::path::PathBuf;
 #[derive(Debug, Clone, strum::Display)]
 pub enum ExportType {
     Cadnano,
-    Cando,
     Pdb,
     Oxdna,
 }
@@ -42,7 +41,6 @@ pub enum ExportType {
 /// This means that both the format conversion and the write to the output file were successful.
 pub enum ExportSuccess {
     Cadnano(PathBuf),
-    Cando(PathBuf),
     Pdb(PathBuf),
     Oxdna {
         topology: PathBuf,
@@ -58,7 +56,6 @@ impl ExportSuccess {
     pub fn message(&self) -> String {
         match self {
             Self::Cadnano(p) => format!("{SUCCESSFUL_EXPORT_MSG_PREFIX}\n{}", p.to_string_lossy()),
-            Self::Cando(p) => format!("{SUCCESSFUL_EXPORT_MSG_PREFIX}\n{}", p.to_string_lossy()),
             Self::Pdb(p) => format!("{SUCCESSFUL_EXPORT_MSG_PREFIX}\n{}", p.to_string_lossy()),
             Self::Oxdna {
                 topology,
@@ -74,22 +71,14 @@ impl ExportSuccess {
 
 #[derive(Debug)]
 pub enum ExportError {
-    CadnanoConversion(CadnanoError),
-    CandoConversion(CanDoError),
-    PdbConversion(PdbError),
-    IOError(std::io::Error),
-
-    NotImplemented,
+    CadnanoConversion(#[allow(unused)] CadnanoError),
+    PdbConversion(#[allow(unused)] PdbError),
+    IOError(#[allow(unused)] std::io::Error),
 }
 
 impl From<CadnanoError> for ExportError {
     fn from(e: CadnanoError) -> Self {
         Self::CadnanoConversion(e)
-    }
-}
-impl From<CanDoError> for ExportError {
-    fn from(e: CanDoError) -> Self {
-        Self::CandoConversion(e)
     }
 }
 impl From<PdbError> for ExportError {
@@ -225,8 +214,6 @@ pub fn export(
             writeln!(&mut out_file, "{cadnano_content}")?;
             Ok(ExportSuccess::Cadnano(export_path.clone()))
         }
-
-        _ => Err(ExportError::NotImplemented),
     }
 }
 

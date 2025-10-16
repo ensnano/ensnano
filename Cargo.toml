@@ -1,7 +1,6 @@
 [workspace]
 members = [
     "ensnano-design",
-    "ensnano-exports",
     "ensnano-iced",
     "ensnano-interactor",
     "ensnano-organizer",
@@ -33,7 +32,6 @@ license.workspace = true
 
 [workspace.dependencies]
 ensnano_design = { path = "ensnano-design" }
-ensnano_exports = { path = "ensnano-exports" }
 ensnano_iced = { path = "ensnano-iced" }
 ensnano_interactor = { path = "ensnano-interactor" }
 ensnano_organizer = { path = "ensnano-organizer" }
@@ -105,11 +103,14 @@ wgpu = { version = "0.19", features = ["spirv"] }
 
 [dependencies]
 ensnano_design.workspace = true
-ensnano_exports.workspace = true
 ensnano_iced.workspace = true
 ensnano_interactor.workspace = true
 ensnano_organizer.workspace = true
 ensnano_physics.workspace = true
+
+# ensnano_exports specific
+itertools.workspace = true
+strum.workspace = true
 
 # ensnano_(flat)?scene specific
 bytemuck.workspace = true

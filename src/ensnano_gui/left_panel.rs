@@ -17,13 +17,13 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use super::{AppState, FogParameters, OverlayType, Requests};
 use super::{consts::*, fonts};
+use crate::ensnano_exports::ExportType;
 use ensnano_design::{
     BezierPathId, CameraId, NamedParameter,
     elements::{DesignElement, DesignElementKey},
     grid::GridTypeDescr,
     ultraviolet,
 };
-use ensnano_exports::ExportType;
 use ensnano_iced::{
     UiSize,
     color_picker::ColorPickerMessage,

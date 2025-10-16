@@ -19,11 +19,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! A good description of the cadnano file format can be found at
 //! <https://github.com/UC-Davis-molecular-computing/scadnano-python-package/blob/main/misc/cadnano-format-specs/v2.txt>
 
-use std::collections::HashMap;
+mod parity_graph;
 
 use ensnano_design::{Collection, Design, Domain, Nucl, grid::GridData};
-
-mod parity_graph;
+use std::collections::HashMap;
 
 pub fn cadnano_export(design: &Design) -> Result<String, CadnanoError> {
     let mut exporter = init_cadnano_exporter(design)?;
@@ -204,10 +203,10 @@ impl EnsnanoBonds {
 pub enum CadnanoError {
     Not2Colorable,
     NonHomogeneousGridTypes,
-    UnhandledGridType(ensnano_design::grid::GridTypeDescr),
+    UnhandledGridType(#[allow(unused)] ensnano_design::grid::GridTypeDescr),
     ImpossibleBond,
-    HelixNotFound(usize),
-    SerdeError(serde_json::Error),
+    HelixNotFound(#[allow(unused)] usize),
+    SerdeError(#[allow(unused)] serde_json::Error),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

@@ -912,7 +912,6 @@ dependencies = [
  "confy",
  "dirs",
  "ensnano_design",
- "ensnano_exports",
  "ensnano_iced",
  "ensnano_interactor",
  "ensnano_organizer",
@@ -923,6 +922,7 @@ dependencies = [
  "gltf",
  "image 0.23.14",
  "int-enum",
+ "itertools",
  "log",
  "lyon",
  "mathru",
@@ -940,6 +940,7 @@ dependencies = [
  "rust_xlsxwriter",
  "serde",
  "serde_json",
+ "strum",
  "ultraviolet",
  "version-compare 0.1.1",
  "wgpu",
@@ -969,19 +970,6 @@ dependencies = [
  "svg",
  "ultraviolet",
  "version-compare 0.1.1",
-]
-
-[[package]]
-name = "ensnano_exports"
-version = "0.7.0"
-dependencies = [
- "ahash 0.8.12",
- "ensnano_design",
- "itertools",
- "rand",
- "serde",
- "serde_json",
- "strum",
 ]
 
 [[package]]

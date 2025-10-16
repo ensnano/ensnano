@@ -19,11 +19,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! Export to pdb file format. The method used here is an adpatation from the one used in
 //! [tacOxDNA](https://github.com/lorenzo-rovigatti/tacoxDNA)
 
-use crate::BasisMapper;
-
 use super::PathBuf;
 use super::ultraviolet;
-use crate::oxdna::{OXDNA_LEN_FACTOR, OxDnaHelix};
+use crate::ensnano_exports::BasisMapper;
+use crate::ensnano_exports::oxdna::{OXDNA_LEN_FACTOR, OxDnaHelix};
 use ahash::AHashMap;
 use ensnano_design::{Design, Domain, HelixCollection, Nucl};
 use std::borrow::Cow;
@@ -383,13 +382,13 @@ struct PdbAtom {
 
 const DNA_MIN_LINE_LENGTH: usize = 77;
 pub fn make_reference_nucleotides() -> Result<ReferenceNucleotides, PdbError> {
-    let pdb_content = include_str!("../dd12_na.pdb");
+    let pdb_content = include_str!("../../pdb/dd12_na.pdb");
     read_pdb_string(pdb_content, DNA_MIN_LINE_LENGTH)
 }
 
 const RNA_MIN_LINE_LENGTH: usize = 66;
 pub fn make_reference_nucleotides_rna() -> Result<ReferenceNucleotides, PdbError> {
-    let pdb_content = include_str!("../ds_rna_Helix.pdb");
+    let pdb_content = include_str!("../../pdb/ds_rna_Helix.pdb");
     read_pdb_string(pdb_content, RNA_MIN_LINE_LENGTH)
 }
 
@@ -428,6 +427,7 @@ fn read_pdb_string(
 }
 
 #[derive(Debug)]
+#[allow(unused)]
 pub enum PdbError {
     ParsingError {
         line_number: usize,
@@ -728,7 +728,7 @@ pub(super) fn pdb_export(
             } = d
             {
                 for (insertion_idx, position) in instanciation.pos().iter().enumerate() {
-                    let ox_nucl = crate::oxdna::free_oxdna_nucl(
+                    let ox_nucl = crate::ensnano_exports::oxdna::free_oxdna_nucl(
                         *position,
                         previous_position,
                         insertion_idx,

@@ -21,6 +21,7 @@ pub mod file_parsing;
 pub mod presenter;
 
 use super::AddressPointer;
+use crate::ensnano_exports::{ExportResult, ExportType};
 use crate::ensnano_gui::CurrentOpState;
 use crate::{
     app_state::design_interactor::controller::{
@@ -33,7 +34,6 @@ use ensnano_design::{
     BezierPathId, BezierPlaneDescriptor, Design, HelixCollection, HelixParameters,
     InstanciatedPiecewiseBezier, grid::GridId, group_attributes::GroupAttribute,
 };
-use ensnano_exports::{ExportResult, ExportType};
 use ensnano_interactor::{
     DesignOperation, PastingStatus, Selection, SimulationState, StrandBuilder,
     app_state_parameters::SuggestionParameters, consts::UPDATE_VISIBILITY_SIEVE_LABEL,
