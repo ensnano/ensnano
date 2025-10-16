@@ -17,9 +17,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::*;
+use crate::ensnano_scene::{AppState as App3D, view::DrawOptions};
 use ensnano_design::grid::GridId;
 use ensnano_interactor::{StrandBuilder, consts::scroll_sensitivity_conversion};
-use ensnano_scene::{AppState as App3D, view::DrawOptions};
 
 impl App3D for AppState {
     type DesignReader = DesignReader;

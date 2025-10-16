@@ -16,8 +16,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+use crate::ensnano_scene::element_selector;
+
+use super::super::AppState;
 use super::*;
-use crate::AppState;
 use ensnano_design::{BezierEndCoordinates, BezierVertexId};
 use ensnano_interactor::Selection;
 
@@ -312,7 +314,7 @@ fn add_raw_instances_representing_bezier_vertex(
         SphereInstance {
             position: vertex.coordinates.position,
             color,
-            id: crate::element_selector::bezier_vertex_id(vertex.id.path_id, vertex.id.vertex_id),
+            id: element_selector::bezier_vertex_id(vertex.id.path_id, vertex.id.vertex_id),
             radius: 10.0 * SPHERE_RADIUS,
         }
         .to_raw_instance(),
@@ -321,11 +323,7 @@ fn add_raw_instances_representing_bezier_vertex(
         SphereInstance {
             position: vertex.coordinates.position + vertex.coordinates.vector_out,
             color: Instance::unclear_color_from_u32(BEZIER_CONTROL1_COLOR),
-            id: crate::element_selector::bezier_tangent_id(
-                vertex.id.path_id,
-                vertex.id.vertex_id,
-                false,
-            ),
+            id: element_selector::bezier_tangent_id(vertex.id.path_id, vertex.id.vertex_id, false),
             radius: 5.0 * SPHERE_RADIUS,
         }
         .to_raw_instance(),
@@ -334,11 +332,7 @@ fn add_raw_instances_representing_bezier_vertex(
         SphereInstance {
             position: vertex.coordinates.position - vertex.coordinates.vector_in,
             color: Instance::unclear_color_from_u32(BEZIER_CONTROL1_COLOR),
-            id: crate::element_selector::bezier_tangent_id(
-                vertex.id.path_id,
-                vertex.id.vertex_id,
-                true,
-            ),
+            id: element_selector::bezier_tangent_id(vertex.id.path_id, vertex.id.vertex_id, true),
             radius: 5.0 * SPHERE_RADIUS,
         }
         .to_raw_instance(),

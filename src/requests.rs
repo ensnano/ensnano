@@ -26,6 +26,7 @@ mod impl_scene;
 pub mod poll;
 
 use crate::controller::normal_state::Action;
+use crate::ensnano_scene::view::FogParameters;
 use ensnano_design::{
     Nucl,
     elements::{DesignElementKey, DnaAttribute},
@@ -41,7 +42,6 @@ use ensnano_interactor::{
     graphics::{Background3D, HBondDisplay, RenderingMode},
     operation::Operation,
 };
-use ensnano_scene::view::FogParameters;
 use std::{collections::VecDeque, sync::Arc};
 use ultraviolet::Vec3;
 

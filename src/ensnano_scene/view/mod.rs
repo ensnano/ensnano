@@ -20,7 +20,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use self::gltf_drawer::Object3DDrawer;
 use super::camera;
-use crate::{DrawArea, PhySize};
+use super::{DrawArea, PhySize};
 use camera::{Camera, CameraPtr, Projection, ProjectionPtr};
 use ensnano_design::{Axis, grid::GridId, group_attributes::GroupPivot, ultraviolet};
 use ensnano_interactor::{UnrootedRevolutionSurfaceDescriptor, consts::*};

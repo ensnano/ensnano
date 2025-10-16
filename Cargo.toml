@@ -8,7 +8,6 @@ members = [
     "ensnano-interactor",
     "ensnano-organizer",
     "ensnano-physics",
-    "ensnano-scene",
     "ensnano-utils",
 ]
 
@@ -44,7 +43,6 @@ ensnano_iced = { path = "ensnano-iced" }
 ensnano_interactor = { path = "ensnano-interactor" }
 ensnano_organizer = { path = "ensnano-organizer" }
 ensnano_physics = { path = "ensnano-physics" }
-ensnano_scene = { path = "ensnano-scene" }
 ensnano_utils = { path = "ensnano-utils" }
 
 ahash = "0.8.6"
@@ -120,8 +118,16 @@ ensnano_iced.workspace = true
 ensnano_interactor.workspace = true
 ensnano_organizer.workspace = true
 ensnano_physics.workspace = true
-ensnano_scene.workspace = true
 ensnano_utils.workspace = true
+
+# ensnano_scene specific
+bytemuck.workspace = true
+futures-channel.workspace = true
+image.workspace = true
+int-enum.workspace = true
+lyon.workspace = true
+num_enum.workspace = true
+png.workspace = true
 
 ahash.workspace = true
 chebyshev_polynomials.workspace = true

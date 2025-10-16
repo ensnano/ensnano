@@ -16,8 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use super::*;
-use crate::DesignReader as _;
-use crate::controller::automata::dragging_state::translating_grid_object;
+use crate::ensnano_scene::controller::automata::dragging_state::translating_grid_object;
 use ensnano_design::ultraviolet::Vec2;
 use ensnano_design::{
     BezierPlaneId,

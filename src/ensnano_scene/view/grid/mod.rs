@@ -91,7 +91,7 @@ impl GridInstance {
         let color = match self.id {
             GridId::FreeGrid(id) => id as u32,
             GridId::BezierPathGrid(vertex) => {
-                crate::element_selector::bezier_vertex_id(vertex.path_id, vertex.vertex_id)
+                super::super::element_selector::bezier_vertex_id(vertex.path_id, vertex.vertex_id)
             }
         };
         Self {

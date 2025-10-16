@@ -16,8 +16,6 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#![allow(mixed_script_confusables, confusable_idents)] // allow mathematical symbols as variables
-
 mod camera;
 mod controller;
 pub mod data;
@@ -28,7 +26,6 @@ mod sausage_rosary;
 mod stl;
 pub mod view;
 
-use crate::maths_3d::FiniteVec3;
 use controller::{Consequence, Controller, WidgetTarget};
 use data::{Data, DesignReader};
 use element_selector::{ElementSelector, SceneElement};
@@ -50,6 +47,7 @@ use ensnano_utils::{
     wgpu::{self, Device, Queue},
     winit::{dpi::PhysicalPosition, event::WindowEvent, window::CursorIcon},
 };
+use maths_3d::FiniteVec3;
 use std::{
     cell::RefCell,
     fs,

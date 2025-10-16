@@ -430,12 +430,12 @@ mod tests {
         CopyOperation, PastePosition,
     };
     use crate::app_state::design_interactor::file_parsing::junctions::StrandJunction as _;
+    use crate::ensnano_scene::data::DesignReader as Reader3d;
     use ensnano_design::HelixCollection;
     use ensnano_design::grid::HelixGridPosition;
     use ensnano_design::{Collection, DomainJunction, Nucl, Strand, grid::GridDescriptor};
     use ensnano_interactor::DesignReader;
     use ensnano_interactor::operation::GridHelixCreation;
-    use ensnano_scene::data::DesignReader as Reader3d;
     use std::path::PathBuf;
     use ultraviolet::{Rotor3, Vec3};
 

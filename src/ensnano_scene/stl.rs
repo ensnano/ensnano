@@ -11,7 +11,7 @@
 //!     REAL32[3] – Vertex 3                  - 12 bytes
 //!     UINT16    – Attribute byte count      -  2 bytes
 
-use crate::view::{
+use super::view::{
     ConeInstance, Ellipsoid, Instantiable, Mesh, Mesh::*, RawDnaInstance, SlicedTubeInstance,
     SphereInstance, TubeInstance, TubeLidInstance,
 };

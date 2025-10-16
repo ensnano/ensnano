@@ -905,6 +905,7 @@ name = "ensnano"
 version = "0.7.0"
 dependencies = [
  "ahash 0.8.12",
+ "bytemuck",
  "chebyshev_polynomials",
  "color_space",
  "confy",
@@ -917,12 +918,17 @@ dependencies = [
  "ensnano_interactor",
  "ensnano_organizer",
  "ensnano_physics",
- "ensnano_scene",
  "ensnano_utils",
  "futures",
+ "futures-channel",
+ "image 0.23.14",
+ "int-enum",
  "log",
+ "lyon",
  "mathru",
+ "num_enum 0.5.11",
  "ordered-float 2.10.1",
+ "png 0.17.16",
  "pretty_env_logger",
  "rand",
  "rand_distr",
@@ -1059,25 +1065,6 @@ dependencies = [
  "ensnano_design",
  "ensnano_interactor",
  "rapier3d",
-]
-
-[[package]]
-name = "ensnano_scene"
-version = "0.7.0"
-dependencies = [
- "bytemuck",
- "ensnano_design",
- "ensnano_interactor",
- "ensnano_utils",
- "futures",
- "futures-channel",
- "image 0.23.14",
- "int-enum",
- "log",
- "lyon",
- "num_enum 0.5.11",
- "png 0.17.16",
- "serde_json",
 ]
 
 [[package]]
