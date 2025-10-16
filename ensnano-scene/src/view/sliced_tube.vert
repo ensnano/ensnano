@@ -119,7 +119,7 @@ void main() {
         v_normal = normalize(cross(plane_normal,tangent));
     }
     // } else {
-    //     // middle face - rien à changer
+    //     // middle face - nothing to update
     // }
 
 

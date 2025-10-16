@@ -316,7 +316,7 @@ fn honeycomb_texture_vertices() -> Vertices {
             &tessellation::StrokeOptions::default(),
             &mut tessellation::BuffersBuilder::new(&mut vertices, Custom),
         )
-        .expect("error durring tessellation");
+        .expect("error during tessellation");
     vertices
 }
 

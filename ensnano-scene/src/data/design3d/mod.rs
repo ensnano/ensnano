@@ -996,7 +996,7 @@ impl<R: DesignReader> Design3D<R> {
         ret
     }
 
-    /// Make a instance with the same postion and orientation as a phantom element.
+    /// Make an instance with the same position and orientation as a phantom element.
     pub fn make_instance_phantom(
         &self,
         phantom_element: &PhantomElement,

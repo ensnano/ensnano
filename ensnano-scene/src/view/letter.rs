@@ -15,12 +15,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use ensnano_design::ultraviolet::{Vec2, Vec3, Vec4};
-use ensnano_utils::wgpu;
-use wgpu::{Device, include_spirv};
 
 use super::instances_drawer::{Instantiable, ResourceProvider, Vertexable};
-use ensnano_utils::text::Letter;
+use ensnano_design::ultraviolet::{Vec2, Vec3, Vec4};
+use ensnano_utils::{text::Letter, wgpu};
+use wgpu::{Device, include_spirv};
 
 #[derive(Debug, Clone)]
 pub struct LetterInstance {
