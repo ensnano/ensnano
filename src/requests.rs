@@ -25,7 +25,7 @@ mod impl_gui;
 mod impl_scene;
 pub mod poll;
 
-use super::*;
+use crate::controller::normal_state::Action;
 use ensnano_design::{
     Nucl,
     elements::{DesignElementKey, DnaAttribute},
@@ -34,14 +34,15 @@ use ensnano_design::{
 use ensnano_gui::OrganizerTree;
 use ensnano_iced::UiSize;
 use ensnano_interactor::{
-    CenterOfSelection, HyperboloidRequest, RapierSimulationRequest, RigidBodyConstants,
-    RollRequest, Selection, UnrootedRevolutionSurfaceDescriptor,
-    app_state_parameters::CheckXoversParameter,
+    ActionMode, CenterOfSelection, HyperboloidRequest, RapierSimulationRequest, RigidBodyConstants,
+    RollRequest, Selection, SelectionMode, UnrootedRevolutionSurfaceDescriptor,
+    app_state_parameters::{CheckXoversParameter, SuggestionParameters},
     application::AppId,
     graphics::{Background3D, HBondDisplay, RenderingMode},
+    operation::Operation,
 };
 use ensnano_scene::FogParameters;
-use std::collections::VecDeque;
+use std::{collections::VecDeque, sync::Arc};
 use ultraviolet::Vec3;
 
 /// A structure that contains all the requests that can be made through the GUI or the

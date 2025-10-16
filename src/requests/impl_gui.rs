@@ -20,9 +20,14 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::*;
 use ensnano_design::grid::GridId;
-use ensnano_gui::{self, RigidBodyParametersRequest};
-use ensnano_interactor::{InsertionPoint, RigidBodyConstants, RollRequest};
+use ensnano_exports::ExportType;
+use ensnano_gui::{self, OverlayType, RigidBodyParametersRequest};
+use ensnano_interactor::{
+    DesignOperation, InsertionPoint, RevolutionSurfaceSystemDescriptor, RigidBodyConstants,
+    RollRequest, application::Notification, graphics::SplitMode,
+};
 use std::collections::BTreeSet;
+use ultraviolet::Rotor3;
 
 impl ensnano_gui::Requests for Requests {
     fn close_overlay(&mut self, overlay_type: OverlayType) {
