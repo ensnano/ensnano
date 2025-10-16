@@ -7,7 +7,8 @@ use rapier3d::{
 /// An internal structure, which is made from an Helix
 /// and computes the ideal spring anchor points to enforce
 /// a rigid, straight DNA or RNA strand
-pub(crate) struct SpringsAnchorReference {
+#[derive(Clone, Debug)]
+pub(crate) struct SpringAnchorsReference {
     nucleotide_forward: OVector<f32, Const<3>>,
     nucleotide_backward: OVector<f32, Const<3>>,
 
@@ -31,6 +32,9 @@ pub(crate) fn vec_to_point(v: Vec3) -> OVector<f32, Const<3>> {
     vector![v.x, v.y, v.z].into()
 }
 
+/// Turns two anchors 90° around the "up" axis,
+/// resulting in "left" and "right" anchors for
+/// better stability
 fn turn_anchors(
     forward: OVector<f32, Const<3>>,
     backward: OVector<f32, Const<3>>,
@@ -49,8 +53,10 @@ fn turn_anchors(
     )
 }
 
-impl SpringsAnchorReference {
-    pub(crate) fn new(helix: Helix, distance: u32, default_parameters: &HelixParameters) -> Self {
+impl SpringAnchorsReference {
+    /// Initializes a new reference with the given Helix's parameters,
+    /// and to a provided distance. Higher distance means
+    pub(crate) fn new(helix: &Helix, distance: u32, default_parameters: &HelixParameters) -> Self {
         let nucleotide_forward = vec_to_point(helix.space_pos(default_parameters, 0, true));
         let nucleotide_backward = vec_to_point(helix.space_pos(default_parameters, 0, false));
 
@@ -175,10 +181,10 @@ impl SpringsAnchorReference {
         let second_rotation = Self::second_rotation(current_up, target_forward, target_up);
 
         (
-            (second_rotation * current_anchor_forward).into(),
-            (second_rotation * current_anchor_backward).into(),
-            (second_rotation * current_anchor_left).into(),
-            (second_rotation * current_anchor_right).into(),
+            (second_rotation * current_anchor_forward + target_center).into(),
+            (second_rotation * current_anchor_backward + target_center).into(),
+            (second_rotation * current_anchor_left + target_center).into(),
+            (second_rotation * current_anchor_right + target_center).into(),
         )
     }
 
@@ -191,30 +197,338 @@ impl SpringsAnchorReference {
         &self,
         forward_nucleotide: OVector<f32, Const<3>>,
         backward_nucleotide: OVector<f32, Const<3>>,
-        down: OVector<f32, Const<3>>,
+        up: OVector<f32, Const<3>>,
     ) -> (Point<f32>, Point<f32>, Point<f32>, Point<f32>) {
         let target_center = (forward_nucleotide + backward_nucleotide) / 2.0;
 
         let target_forward = forward_nucleotide - target_center;
         let target_backward = backward_nucleotide - target_center;
-        let target_down = down;
+        let target_up = up;
 
         let first_rotation = self.first_rotation(target_forward);
 
-        let current_down = first_rotation * self.down;
-        let current_anchor_forward = first_rotation * self.up_forward_anchor;
-        let current_anchor_backward = first_rotation * self.up_backward_anchor;
-        let current_anchor_left = first_rotation * self.up_left_anchor;
-        let current_anchor_right = first_rotation * self.up_right_anchor;
+        let current_up = first_rotation * self.up;
+        let current_anchor_forward = first_rotation * self.down_forward_anchor;
+        let current_anchor_backward = first_rotation * self.down_backward_anchor;
+        let current_anchor_left = first_rotation * self.down_left_anchor;
+        let current_anchor_right = first_rotation * self.down_right_anchor;
 
-        let second_rotation = Self::second_rotation(current_down, target_forward, target_down);
+        let second_rotation = Self::second_rotation(current_up, target_forward, target_up);
 
         (
-            (second_rotation * current_anchor_forward).into(),
-            (second_rotation * current_anchor_backward).into(),
-            // left / right order is inverted to match the upper order
-            (second_rotation * current_anchor_right).into(),
-            (second_rotation * current_anchor_left).into(),
+            (second_rotation * current_anchor_forward + target_center).into(),
+            (second_rotation * current_anchor_backward + target_center).into(),
+            (second_rotation * current_anchor_left + target_center).into(),
+            (second_rotation * current_anchor_right + target_center).into(),
         )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::os::fd::FromRawFd;
+
+    use super::*;
+    use ensnano_design::{HelixParameters, Rotor3};
+
+    #[test]
+    fn anchors() {
+        // "artificial" custom parameters
+        // that make it easy to predict positions
+        let parameters = HelixParameters {
+            rise: 1.0,
+            helix_radius: 1.0,
+            bases_per_turn: 4.0,
+            groove_angle: std::f32::consts::PI,
+            inter_helix_gap: 1.0,
+            inclination: 0.0,
+        };
+
+        let helix = Helix::new(Vec3::zero(), Rotor3::default());
+
+        let reference = SpringAnchorsReference::new(&helix, 1, &parameters);
+
+        let eps: f32 = 1e-5;
+
+        assert!(
+            reference
+                .nucleotide_forward
+                .metric_distance(&vector![0.0, -1.0, 0.0])
+                < eps
+        );
+        assert!(
+            reference
+                .nucleotide_backward
+                .metric_distance(&vector![0.0, 1.0, 0.0])
+                < eps
+        );
+        assert!(reference.up.metric_distance(&vector![1.0, 0.0, 0.0]) < eps);
+        assert!(reference.down.metric_distance(&vector![-1.0, 0.0, 0.0]) < eps);
+        assert!(
+            reference
+                .up_forward_anchor
+                .metric_distance(&vector![0.5, -0.5, -0.5])
+                < eps
+        );
+        assert!(
+            reference
+                .up_backward_anchor
+                .metric_distance(&vector![0.5, 0.5, 0.5])
+                < eps
+        );
+        assert!(
+            reference
+                .up_left_anchor
+                .metric_distance(&vector![0.5, 0.5, -0.5])
+                < eps
+        );
+        assert!(
+            reference
+                .up_right_anchor
+                .metric_distance(&vector![0.5, -0.5, 0.5])
+                < eps
+        );
+        assert!(
+            reference
+                .down_forward_anchor
+                .metric_distance(&vector![-0.5, -0.5, 0.5])
+                < eps
+        );
+        assert!(
+            reference
+                .down_backward_anchor
+                .metric_distance(&vector![-0.5, 0.5, -0.5])
+                < eps
+        );
+        assert!(
+            reference
+                .down_left_anchor
+                .metric_distance(&vector![-0.5, 0.5, 0.5])
+                < eps
+        );
+        assert!(
+            reference
+                .down_right_anchor
+                .metric_distance(&vector![-0.5, -0.5, -0.5])
+                < eps
+        );
+
+        // test with identity transform
+        let forward_nucleotide = reference.nucleotide_forward;
+        let backward_nucleotide = reference.nucleotide_backward;
+        let up = reference.up;
+
+        let (forward, backward, left, right) =
+            reference.get_up_spring_anchors(forward_nucleotide, backward_nucleotide, up);
+
+        assert!(forward.coords.metric_distance(&reference.up_forward_anchor) < eps);
+        assert!(
+            backward
+                .coords
+                .metric_distance(&reference.up_backward_anchor)
+                < eps
+        );
+        assert!(left.coords.metric_distance(&reference.up_left_anchor) < eps);
+        assert!(right.coords.metric_distance(&reference.up_right_anchor) < eps);
+
+        let (forward, backward, left, right) =
+            reference.get_down_spring_anchors(forward_nucleotide, backward_nucleotide, up);
+
+        assert!(
+            forward
+                .coords
+                .metric_distance(&reference.down_forward_anchor)
+                < eps
+        );
+        assert!(
+            backward
+                .coords
+                .metric_distance(&reference.down_backward_anchor)
+                < eps
+        );
+        assert!(left.coords.metric_distance(&reference.down_left_anchor) < eps);
+        assert!(right.coords.metric_distance(&reference.down_right_anchor) < eps);
+
+        // test with a translation
+        let offset = vector![32.0, -43.5, 0.111];
+        let forward_nucleotide = reference.nucleotide_forward + offset;
+        let backward_nucleotide = reference.nucleotide_backward + offset;
+        let up = reference.up;
+
+        let (forward, backward, left, right) =
+            reference.get_up_spring_anchors(forward_nucleotide, backward_nucleotide, up);
+
+        assert!(
+            forward
+                .coords
+                .metric_distance(&(reference.up_forward_anchor + offset))
+                < eps
+        );
+        assert!(
+            backward
+                .coords
+                .metric_distance(&(reference.up_backward_anchor + offset))
+                < eps
+        );
+        assert!(
+            left.coords
+                .metric_distance(&(reference.up_left_anchor + offset))
+                < eps
+        );
+        assert!(
+            right
+                .coords
+                .metric_distance(&(reference.up_right_anchor + offset))
+                < eps
+        );
+
+        let (forward, backward, left, right) =
+            reference.get_down_spring_anchors(forward_nucleotide, backward_nucleotide, up);
+
+        assert!(
+            forward
+                .coords
+                .metric_distance(&(reference.down_forward_anchor + offset))
+                < eps
+        );
+        assert!(
+            backward
+                .coords
+                .metric_distance(&(reference.down_backward_anchor + offset))
+                < eps
+        );
+        assert!(
+            left.coords
+                .metric_distance(&(reference.down_left_anchor + offset))
+                < eps
+        );
+        assert!(
+            right
+                .coords
+                .metric_distance(&(reference.down_right_anchor + offset))
+                < eps
+        );
+
+        // test with a rotation
+        let rotation = UnitQuaternion::from_euler_angles(0.45, 0.111, -1.5);
+        let forward_nucleotide = rotation * reference.nucleotide_forward;
+        let backward_nucleotide = rotation * reference.nucleotide_backward;
+        let up = rotation * reference.up;
+
+        let (forward, backward, left, right) =
+            reference.get_up_spring_anchors(forward_nucleotide, backward_nucleotide, up);
+
+        assert!(
+            forward
+                .coords
+                .metric_distance(&(rotation * reference.up_forward_anchor))
+                < eps
+        );
+        assert!(
+            backward
+                .coords
+                .metric_distance(&(rotation * reference.up_backward_anchor))
+                < eps
+        );
+        assert!(
+            left.coords
+                .metric_distance(&(rotation * reference.up_left_anchor))
+                < eps
+        );
+        assert!(
+            right
+                .coords
+                .metric_distance(&(rotation * reference.up_right_anchor))
+                < eps
+        );
+
+        let (forward, backward, left, right) =
+            reference.get_down_spring_anchors(forward_nucleotide, backward_nucleotide, up);
+
+        assert!(
+            forward
+                .coords
+                .metric_distance(&(rotation * reference.down_forward_anchor))
+                < eps
+        );
+        assert!(
+            backward
+                .coords
+                .metric_distance(&(rotation * reference.down_backward_anchor))
+                < eps
+        );
+        assert!(
+            left.coords
+                .metric_distance(&(rotation * reference.down_left_anchor))
+                < eps
+        );
+        assert!(
+            right
+                .coords
+                .metric_distance(&(rotation * reference.down_right_anchor))
+                < eps
+        );
+
+        // test with a rotation
+        let rotation = UnitQuaternion::from_euler_angles(-0.3, 0.4, 0.9);
+        let offset = vector![10.0, 22.222222, -3.0];
+        let forward_nucleotide = rotation * reference.nucleotide_forward + offset;
+        let backward_nucleotide = rotation * reference.nucleotide_backward + offset;
+        let up = rotation * reference.up;
+
+        let (forward, backward, left, right) =
+            reference.get_up_spring_anchors(forward_nucleotide, backward_nucleotide, up);
+
+        assert!(
+            forward
+                .coords
+                .metric_distance(&(rotation * reference.up_forward_anchor + offset))
+                < eps
+        );
+        assert!(
+            backward
+                .coords
+                .metric_distance(&(rotation * reference.up_backward_anchor + offset))
+                < eps
+        );
+        assert!(
+            left.coords
+                .metric_distance(&(rotation * reference.up_left_anchor + offset))
+                < eps
+        );
+
+        assert!(
+            right
+                .coords
+                .metric_distance(&(rotation * reference.up_right_anchor + offset))
+                < eps
+        );
+
+        let (forward, backward, left, right) =
+            reference.get_down_spring_anchors(forward_nucleotide, backward_nucleotide, up);
+
+        assert!(
+            forward
+                .coords
+                .metric_distance(&(rotation * reference.down_forward_anchor + offset))
+                < eps
+        );
+        assert!(
+            backward
+                .coords
+                .metric_distance(&(rotation * reference.down_backward_anchor + offset))
+                < eps
+        );
+        assert!(
+            left.coords
+                .metric_distance(&(rotation * reference.down_left_anchor + offset))
+                < eps
+        );
+        assert!(
+            right
+                .coords
+                .metric_distance(&(rotation * reference.down_right_anchor + offset))
+                < eps
+        );
     }
 }
