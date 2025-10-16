@@ -108,10 +108,6 @@ impl NuclCollection for () {
     fn contains(&self, _nucl: &Nucl) -> bool {
         false
     }
-
-    fn iter<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Nucl> + 'a> {
-        Box::new([].iter())
-    }
 }
 
 pub struct EditionInfo {

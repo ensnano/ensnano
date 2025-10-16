@@ -665,19 +665,6 @@ impl DesignReader {
         None
     }
 
-    pub(super) fn helix_is_empty(&self, h_id: usize) -> Option<bool> {
-        if !self.presenter.current_design.helices.contains_key(&h_id) {
-            None
-        } else {
-            for h in self.presenter.content.helix_map.values() {
-                if *h == h_id {
-                    return Some(true);
-                }
-            }
-            Some(false)
-        }
-    }
-
     pub(super) fn get_id_of_strand_containing_nucl(&self, nucl: &Nucl) -> Option<usize> {
         let e_id = self
             .presenter

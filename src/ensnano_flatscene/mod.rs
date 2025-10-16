@@ -863,7 +863,6 @@ pub trait Requests {
     fn new_selection(&mut self, selection: Vec<Selection>);
     fn new_candidates(&mut self, candidates: Vec<Selection>);
     fn attempt_paste(&mut self, nucl: Option<Nucl>);
-    fn request_centering_on_nucl(&mut self, nucl: Nucl, design_id: usize);
     fn update_operation(&mut self, operation: Arc<dyn Operation>);
     fn set_isometry(&mut self, helix: usize, segment_idx: usize, isometry: Isometry2);
     fn set_visibility_helix(&mut self, helix: usize, visibility: bool);

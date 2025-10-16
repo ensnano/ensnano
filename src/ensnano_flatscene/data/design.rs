@@ -22,8 +22,7 @@ use super::super::{FlatHelix, FlatIdx, FlatNucl, HelixSegment, Requests};
 use super::{Flat, HelixVec, Nucl, Strand};
 use ahash::RandomState;
 use ensnano_design::{
-    AbscissaConverter, Extremity, Helix as DesignHelix, HelixCollection, Strand as StrandDesign,
-    ultraviolet,
+    AbscissaConverter, Extremity, Helix as DesignHelix, HelixCollection, ultraviolet,
 };
 use ensnano_interactor::consts::{
     CANDIDATE_STRAND_HIGHLIGHT_FACTOR_2D, SELECTED_STRAND_HIGHLIGHT_FACTOR_2D,
@@ -536,10 +535,7 @@ pub trait DesignReader: 'static {
     fn can_start_builder_at(&self, nucl: Nucl) -> bool;
     fn prime3_of_which_strand(&self, nucl: Nucl) -> Option<usize>;
     fn prime5_of_which_strand(&self, nucl: Nucl) -> Option<usize>;
-    fn helix_is_empty(&self, h_id: usize) -> Option<bool>;
     fn get_helices_map(&self) -> &ensnano_design::Helices;
-    fn get_raw_helix(&self, h_id: usize) -> Option<Arc<DesignHelix>>;
-    fn get_raw_strand(&self, s_id: usize) -> Option<StrandDesign>;
     fn is_xover_end(&self, nucl: &Nucl) -> Extremity;
     fn get_identifier_nucl(&self, nucl: &Nucl) -> Option<u32>;
     fn get_id_of_strand_containing_nucl(&self, nucl: &Nucl) -> Option<usize>;
@@ -563,5 +559,4 @@ pub trait DesignReader: 'static {
 
 pub trait NuclCollection {
     fn contains(&self, nucl: &Nucl) -> bool;
-    fn iter<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Nucl> + 'a>;
 }

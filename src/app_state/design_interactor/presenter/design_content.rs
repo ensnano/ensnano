@@ -59,10 +59,6 @@ impl NuclCollection {
         Box::new(self.identifier.iter())
     }
 
-    pub fn iter_nucls<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Nucl> + 'a> {
-        Box::new(self.identifier.keys())
-    }
-
     pub fn virtual_to_real(&self, virtual_nucl: &VirtualNucl) -> Option<&Nucl> {
         self.virtual_nucl_map.get(virtual_nucl)
     }

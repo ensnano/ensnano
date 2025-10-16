@@ -52,10 +52,6 @@ impl FlatSceneRequests for Requests {
         self.keep_proceed.push_back(Action::ApplyPaste);
     }
 
-    fn request_centering_on_nucl(&mut self, nucl: Nucl, design_id: usize) {
-        self.centering_on_nucl = Some((nucl, design_id));
-    }
-
     fn update_operation(&mut self, operation: Arc<dyn Operation>) {
         self.operation_update = Some(operation);
     }
