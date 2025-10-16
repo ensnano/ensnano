@@ -37,7 +37,7 @@ pub enum ExportType {
     Oxdna,
 }
 
-/// A value returned by the export functions when exports was successfull.
+/// A value returned by the export functions when exports was successful.
 ///
 /// This means that both the format conversion and the write to the output file were successful.
 pub enum ExportSuccess {
@@ -50,10 +50,10 @@ pub enum ExportSuccess {
     },
 }
 
-const SUCCESSFUL_EXPORT_MSG_PREFIX: &str = "Succussfully exported to";
+const SUCCESSFUL_EXPORT_MSG_PREFIX: &str = "Successfully exported to";
 
 impl ExportSuccess {
-    /// A message telling that the export operation was successfull and giving the path to which
+    /// A message telling that the export operation was successful and giving the path to which
     /// the export was made
     pub fn message(&self) -> String {
         match self {
@@ -170,12 +170,12 @@ fn rand_pick(list: &[char]) -> char {
     list[idx]
 }
 
-const CANNONICAL_BASES: &[char] = &['A', 'T', 'G', 'C', 'U'];
+const CANONICAL_BASES: &[char] = &['A', 'T', 'G', 'C', 'U'];
 
 /// Perform a symbol conversion based on this [list](http://www.hgmd.cf.ac.uk/docs/nuc_lett.html)
 fn rand_base_from_symbol(symbol: char, compl_a: char) -> char {
     match symbol {
-        c if CANNONICAL_BASES.contains(&c) => c,
+        c if CANONICAL_BASES.contains(&c) => c,
         'R' => rand_pick(&['G', 'A']),
         'Y' => rand_pick(&['C', compl_a]),
         'K' => rand_pick(&['G', compl_a]),
