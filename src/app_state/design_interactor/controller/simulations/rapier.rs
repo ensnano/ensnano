@@ -4,8 +4,8 @@ use std::{
     time::Duration,
 };
 
+use crate::ensnano_physics::RapierPhysicsSystem;
 use ensnano_design::Design;
-use ensnano_physics::RapierPhysicsSystem;
 
 use crate::{
     app_state::design_interactor::{
