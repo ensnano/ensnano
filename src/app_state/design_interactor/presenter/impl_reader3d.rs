@@ -26,7 +26,7 @@ use ensnano_interactor::{
     BezierControlPoint, ObjectType, Referential,
     graphics::{LoopoutBond, LoopoutNucl},
 };
-use ensnano_scene::GridInstance;
+use ensnano_scene::view::GridInstance;
 use ensnano_utils::StrandNucleotidesPositions;
 use std::collections::HashSet;
 use ultraviolet::{Mat4, Rotor3, Vec2, Vec3};

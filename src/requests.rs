@@ -41,7 +41,7 @@ use ensnano_interactor::{
     graphics::{Background3D, HBondDisplay, RenderingMode},
     operation::Operation,
 };
-use ensnano_scene::FogParameters;
+use ensnano_scene::view::FogParameters;
 use std::{collections::VecDeque, sync::Arc};
 use ultraviolet::Vec3;
 

@@ -60,10 +60,10 @@ use std::{
     time::Duration,
 };
 use ultraviolet::{Mat4, Rotor3, Vec3};
-pub use view::{DrawOptions, FogParameters, GridInstance};
 use view::{
-    DrawType, HandleDir, HandlesDescriptor, LetterInstance, RotationMode as WidgetRotationMode,
-    RotationWidgetDescriptor, RotationWidgetOrientation, Stereography, View, ViewUpdate,
+    DrawOptions, DrawType, FogParameters, GridInstance, HandleDir, HandlesDescriptor,
+    LetterInstance, RotationMode as WidgetRotationMode, RotationWidgetDescriptor,
+    RotationWidgetOrientation, Stereography, View, ViewUpdate,
 };
 
 type ViewPtr = Rc<RefCell<View>>;

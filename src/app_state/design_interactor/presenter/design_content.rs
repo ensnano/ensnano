@@ -34,7 +34,7 @@ use ensnano_interactor::{
     },
     graphics::{LoopoutBond, LoopoutNucl},
 };
-use ensnano_scene::GridInstance;
+use ensnano_scene::view::GridInstance;
 use ensnano_utils::{click_counter::ClickCounter, colors, instance::Instance};
 use serde::Serialize;
 use std::{
