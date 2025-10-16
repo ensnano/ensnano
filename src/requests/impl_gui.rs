@@ -22,7 +22,7 @@ use super::*;
 use crate::ensnano_exports::ExportType;
 use crate::ensnano_gui::{OverlayType, RigidBodyParametersRequest};
 use ensnano_design::grid::GridId;
-use ensnano_interactor::{
+use crate::ensnano_interactor::{
     DesignOperation, InsertionPoint, RevolutionSurfaceSystemDescriptor, RigidBodyConstants,
     RollRequest, application::Notification, graphics::SplitMode,
 };

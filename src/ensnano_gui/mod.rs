@@ -59,10 +59,10 @@ use ensnano_iced::{
     iced_wgpu::{self, Backend, wgpu},
     iced_winit::{conversion, winit},
 };
-use ensnano_interactor::{
+use crate::ensnano_interactor::{
     ActionMode, HyperboloidRequest, RapierSimulationRequest, RollRequest, SelectionMode,
 };
-use ensnano_interactor::{
+use crate::ensnano_interactor::{
     InsertionPoint, Multiplexer, PastingStatus, RevolutionSurfaceSystemDescriptor, ScaffoldInfo,
     Selection, SimulationState, UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
     app_state_parameters::{AppStateParameters, CheckXoversParameter, SuggestionParameters},

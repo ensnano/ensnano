@@ -16,10 +16,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use super::camera::{CameraPtr, ProjectionPtr};
+use crate::ensnano_interactor::consts::NB_RAY_TUBE;
+pub use crate::ensnano_interactor::graphics::CutPlaneParameters;
+pub use crate::ensnano_interactor::graphics::FogParameters;
 use ensnano_design::ultraviolet::{Mat4, Rotor3, Vec3, Vec4};
-use ensnano_interactor::consts::NB_RAY_TUBE;
-pub use ensnano_interactor::graphics::CutPlaneParameters;
-pub use ensnano_interactor::graphics::FogParameters;
 
 #[repr(C)] // We need this for Rust to store our data correctly for the shaders
 #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable, Default)] // This is so we can store this in a buffer
@@ -128,7 +128,7 @@ impl Uniforms {
         let stereography_radius = stereography.as_ref().map(|s| s.radius).unwrap_or(0.0);
         let mut make_fog = fog.fog_kind;
         if !fog.from_camera && fog.alt_fog_center.is_none() {
-            make_fog = ensnano_interactor::graphics::fog_kind::NO_FOG;
+            make_fog = crate::ensnano_interactor::graphics::fog_kind::NO_FOG;
         }
         let (_, cut_normal, cut_dot_value) = if let Some(cut_param) = cut {
             (1, cut_param.normal, cut_param.dot_value)

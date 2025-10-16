@@ -20,7 +20,7 @@ use super::rotor_utils::SafeRotor as _;
 use super::ultraviolet::{Rotor3, Vec3};
 use super::view::{SlicedTubeInstance, TubeLidInstance};
 use crate::ensnano_utils::instance::Instance;
-use ensnano_interactor::consts::HELIX_CYLINDER_COLOR;
+use crate::ensnano_interactor::consts::HELIX_CYLINDER_COLOR;
 
 pub struct SausageRosary {
     pub positions: Vec<Vec3>,

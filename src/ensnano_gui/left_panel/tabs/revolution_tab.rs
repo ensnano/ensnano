@@ -19,6 +19,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::tabs::GuiTab;
 use crate::ensnano_gui::left_panel::Message;
 use crate::ensnano_gui::{AppState, SimulationState};
+use crate::ensnano_interactor::{
+    EquadiffSolvingMethod, RevolutionSimulationParameters, RevolutionSurfaceRadius,
+    RevolutionSurfaceSystemDescriptor, RootingParameters, ShiftGenerator,
+    UnrootedRevolutionSurfaceDescriptor,
+};
 use ensnano_design::{
     CurveDescriptor2D,
     ultraviolet::{self, Rotor3, Vec3},
@@ -30,11 +35,6 @@ use ensnano_iced::{
     iced::{Alignment, Length},
     iced_aw::TabLabel,
     theme,
-};
-use ensnano_interactor::{
-    EquadiffSolvingMethod, RevolutionSimulationParameters, RevolutionSurfaceRadius,
-    RevolutionSurfaceSystemDescriptor, RootingParameters, ShiftGenerator,
-    UnrootedRevolutionSurfaceDescriptor,
 };
 
 #[derive(Debug, Clone, Copy)]
@@ -407,7 +407,6 @@ impl<State: AppState> RevolutionTab<State> {
         let unrooted_surface = self.get_current_unrooted_surface(app_state)?;
 
         let rooting_parameters = RootingParameters {
-            dna_parameters: app_state.get_dna_parameters(),
             nb_helix_per_half_section: self.scaling.as_ref()?.nb_helix / 2,
             shift_per_turn: self.try_get_shift_per_turn(app_state)?,
             junction_smoothening: 0.,
@@ -491,8 +490,6 @@ impl<State: AppState> RevolutionTab<State> {
             .and_then(InstanciatedParameter::get_float)?;
         let method = self.equadiff_method;
 
-        let rescaling = self.scaling.as_ref()?.scale;
-
         Some(RevolutionSimulationParameters {
             nb_section_per_segment,
             spring_stiffness,
@@ -502,7 +499,6 @@ impl<State: AppState> RevolutionTab<State> {
             simulation_step,
             time_span,
             method,
-            rescaling,
         })
     }
 
@@ -790,5 +786,4 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
 #[derive(Clone, Copy)]
 pub struct RevolutionScaling {
     pub nb_helix: usize,
-    pub scale: f64,
 }

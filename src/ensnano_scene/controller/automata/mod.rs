@@ -22,7 +22,7 @@ use ensnano_design::{
     BezierPlaneId,
     grid::{GridId, GridObject},
 };
-use ensnano_interactor::ActionMode;
+use crate::ensnano_interactor::ActionMode;
 use std::borrow::Cow;
 use std::cell::RefCell;
 use winit::event::{ElementState, MouseButton};

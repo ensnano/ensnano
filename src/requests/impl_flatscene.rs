@@ -22,7 +22,7 @@ use crate::app_state::design_interactor::controller::clipboard::PastePosition;
 
 use super::*;
 use crate::ensnano_flatscene::Requests as FlatSceneRequests;
-use ensnano_interactor::DesignOperation;
+use crate::ensnano_interactor::DesignOperation;
 use ultraviolet::Isometry2;
 
 impl FlatSceneRequests for Requests {

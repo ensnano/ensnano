@@ -28,6 +28,7 @@ use super::data::{
 };
 use super::{CameraPtr, FlatIdx, FlatNucl, NuclCollection};
 use super::{DrawArea, PhySize};
+use crate::ensnano_interactor::consts::SAMPLE_COUNT;
 use crate::ensnano_utils::Ndc;
 use crate::ensnano_utils::bindgroup_manager::{DynamicBindGroup, UniformBindGroup};
 use crate::ensnano_utils::camera2d::Globals;
@@ -40,7 +41,6 @@ use crate::ensnano_utils::winit::dpi::PhysicalPosition;
 use ahash::RandomState;
 use background::Background;
 use ensnano_design::Nucl;
-use ensnano_interactor::consts::SAMPLE_COUNT;
 use helix_view::{HelixView, StrandView};
 use insertion::InsertionDrawer;
 pub use insertion::{InsertionDescriptor, InsertionInstance};
@@ -203,13 +203,13 @@ impl View {
         let rectangle = Rectangle::new(&device, queue.clone());
 
         let text_drawer_top = TextDrawer::new(
-            ensnano_interactor::consts::PRINTABLE_CHARS,
+            crate::ensnano_interactor::consts::PRINTABLE_CHARS,
             device.clone(),
             queue.clone(),
             globals_top.get_layout(),
         );
         let text_drawer_bottom = TextDrawer::new(
-            ensnano_interactor::consts::PRINTABLE_CHARS,
+            crate::ensnano_interactor::consts::PRINTABLE_CHARS,
             device.clone(),
             queue.clone(),
             globals_bottom.get_layout(),
@@ -1152,7 +1152,7 @@ impl View {
     /// Collect the candidate/selection circles
     fn collect_nucl_highlight(&self, circles: &mut Vec<CircleInstance>) {
         for n in self.candidate_nucl.iter() {
-            let candidate_color = ensnano_interactor::consts::CANDIDATE_COLOR;
+            let candidate_color = crate::ensnano_interactor::consts::CANDIDATE_COLOR;
             if let Some(h1) = self.helices.get(n.helix.flat.0) {
                 let mut c = h1.get_circle_nucl(n.flat_position, n.forward, candidate_color);
                 c.set_radius(1. / 2.);
@@ -1163,7 +1163,7 @@ impl View {
         }
 
         for n in self.selected_nucl.iter() {
-            let selected_color = ensnano_interactor::consts::SELECTED_COLOR;
+            let selected_color = crate::ensnano_interactor::consts::SELECTED_COLOR;
             if let Some(h1) = self.helices.get(n.helix.flat.0) {
                 let mut c = h1.get_circle_nucl(n.flat_position, n.forward, selected_color);
                 c.set_radius(std::f32::consts::FRAC_1_SQRT_2);

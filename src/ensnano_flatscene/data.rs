@@ -21,7 +21,7 @@ use super::{
     view::EditionInfo,
 };
 use ensnano_design::{Nucl, ultraviolet};
-use ensnano_interactor::{Selection, SelectionMode};
+use crate::ensnano_interactor::{Selection, SelectionMode};
 use std::sync::{Arc, Mutex};
 use ultraviolet::Vec2;
 
@@ -36,7 +36,7 @@ use crate::ensnano_utils::camera2d::FitRectangle;
 use ahash::RandomState;
 use design::{Design2d, Helix2d};
 pub use design::{DesignReader, FlatTorsion, NuclCollection};
-use ensnano_interactor::consts::*;
+use crate::ensnano_interactor::consts::*;
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 
 pub struct Data<R: DesignReader> {

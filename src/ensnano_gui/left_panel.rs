@@ -39,7 +39,7 @@ use ensnano_iced::{
         },
     },
 };
-use ensnano_interactor::{
+use crate::ensnano_interactor::{
     ActionMode, EquadiffSolvingMethod, HyperboloidRequest, RapierSimulationRequest, Selection,
     SelectionConversion,
     app_state_parameters::{AppStateParameters, CheckXoversParameter, SuggestionParameters},

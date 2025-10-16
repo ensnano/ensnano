@@ -23,7 +23,7 @@ use ensnano_iced::{
     iced::{self, Alignment, alignment::Horizontal},
     theme,
 };
-use ensnano_interactor::{Selection, SimulationState};
+use crate::ensnano_interactor::{Selection, SimulationState};
 
 mod value_constructor;
 use value_constructor::{BezierVertexBuilder, Builder, GridBuilder};

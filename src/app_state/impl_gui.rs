@@ -19,9 +19,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::*;
 use crate::ensnano_gui::AppState as GuiState;
 use crate::ensnano_gui::ClipboardContent;
+use crate::ensnano_interactor::PastingStatus;
+use crate::ensnano_interactor::{ScaffoldInfo, SelectionConversion, SimulationState};
 use ensnano_design::{HelixParameters, elements::DesignElementKey};
-use ensnano_interactor::PastingStatus;
-use ensnano_interactor::{ScaffoldInfo, SelectionConversion, SimulationState};
 
 mod curve_builders;
 use curve_builders::*;
@@ -71,7 +71,7 @@ impl GuiState for AppState {
 
     fn can_make_grid(&self) -> bool {
         self.selection_content().len() > 4
-            && ensnano_interactor::all_helices_no_grid(
+            && crate::ensnano_interactor::all_helices_no_grid(
                 self.selection_content(),
                 &self.get_design_reader(),
             )
@@ -204,7 +204,6 @@ impl GuiState for AppState {
 
         Some(crate::ensnano_gui::RevolutionScaling {
             nb_helix: half_number_helix * 2,
-            scale: scaling_factor,
         })
     }
 

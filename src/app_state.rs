@@ -33,6 +33,14 @@ pub mod transitions;
 
 use crate::ensnano_exports::{ExportResult, ExportType};
 use crate::ensnano_gui::StrandBuildingStatus;
+use crate::ensnano_interactor::{
+    ActionMode, CenterOfSelection, DesignOperation, PastingStatus, Selection, SelectionMode,
+    UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
+    app_state_parameters::{AppStateParameters, CheckXoversParameter, SuggestionParameters},
+    consts::{APP_NAME, ENS_BACKUP_EXTENSION, ENS_EXTENSION},
+    graphics::{Background3D, HBondDisplay, RenderingMode},
+    operation::Operation,
+};
 use crate::{
     app_state::design_interactor::{
         controller::{
@@ -48,14 +56,6 @@ use design_interactor::{DesignInteractor, InteractorResult};
 use design_interactor::{DesignReader, controller::ErrOperation};
 use ensnano_design::{BezierPathId, Design, SavingInformation, group_attributes::GroupPivot};
 use ensnano_iced::UiSize;
-use ensnano_interactor::{
-    ActionMode, CenterOfSelection, DesignOperation, PastingStatus, Selection, SelectionMode,
-    UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
-    app_state_parameters::{AppStateParameters, CheckXoversParameter, SuggestionParameters},
-    consts::{APP_NAME, ENS_BACKUP_EXTENSION, ENS_EXTENSION},
-    graphics::{Background3D, HBondDisplay, RenderingMode},
-    operation::Operation,
-};
 use ensnano_organizer::GroupId;
 use std::{
     path::PathBuf,
@@ -638,7 +638,7 @@ impl AppState {
         *self.0.selection.pivot.write().unwrap() = Some(new_pivot);
     }
 
-    pub fn get_simulation_state(&self) -> ensnano_interactor::SimulationState {
+    pub fn get_simulation_state(&self) -> crate::ensnano_interactor::SimulationState {
         self.0.design.get_simulation_state()
     }
 
@@ -696,7 +696,7 @@ impl AppState_ {
     }
 
     fn set_surface_revolution_radius(&mut self, radius: f64) {
-        use ensnano_interactor::RevolutionSurfaceRadius;
+        use crate::ensnano_interactor::RevolutionSurfaceRadius;
         let mut new_surface = self.unrooted_surface.descriptor.clone();
         if let Some(s) = new_surface.as_mut() {
             s.revolution_radius = RevolutionSurfaceRadius::from_signed_f64(radius);

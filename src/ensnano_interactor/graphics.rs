@@ -144,15 +144,6 @@ pub struct CutPlaneParameters {
     pub dot_value: f32,
 }
 
-impl CutPlaneParameters {
-    pub fn new() -> Self {
-        Self {
-            normal: Vec3::unit_x(),
-            dot_value: 0.,
-        }
-    }
-}
-
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum SplitMode {
     Flat,

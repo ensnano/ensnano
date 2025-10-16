@@ -6,7 +6,7 @@ pub use self::{
 };
 
 use {
-    crate::graphics::{Background3D, HBondDisplay, RenderingMode},
+    super::graphics::{Background3D, HBondDisplay, RenderingMode},
     ensnano_iced::UiSize,
     serde::{Deserialize, Serialize},
 };

@@ -31,7 +31,7 @@ use ensnano_design::grid::{GridId, GridObject, GridPosition, HelixGridPosition};
 use ensnano_design::{
     BezierPathId, BezierPlaneId, BezierVertex, BezierVertexId, Nucl, SurfaceInfo, SurfacePoint,
 };
-use ensnano_interactor::consts::*;
+use crate::ensnano_interactor::consts::*;
 use std::cell::RefCell;
 use std::ops::Deref;
 use std::rc::Rc;

@@ -20,8 +20,8 @@ use crate::ensnano_utils::{
     TEXTURE_FORMAT, create_buffer_with_data, obj_loader::*, texture::Texture,
 };
 use ensnano_design::{External3DObject, External3DObjectId, PointOnSurface};
-use ensnano_interactor::UnrootedRevolutionSurfaceDescriptor;
-use ensnano_interactor::consts;
+use crate::ensnano_interactor::UnrootedRevolutionSurfaceDescriptor;
+use crate::ensnano_interactor::consts;
 use std::ffi::OsStr;
 use std::path::PathBuf;
 use std::rc::Rc;

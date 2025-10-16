@@ -16,7 +16,7 @@ use super::view::{
     SphereInstance, TubeInstance, TubeLidInstance,
 };
 use ensnano_design::ultraviolet::{Mat3, Vec3};
-use ensnano_interactor::consts::NB_RAY_TUBE;
+use crate::ensnano_interactor::consts::NB_RAY_TUBE;
 
 impl RawDnaInstance {
     fn to_stl_triangles(&self) -> Vec<StlTriangle> {

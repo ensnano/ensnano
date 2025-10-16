@@ -18,7 +18,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use ensnano_iced::iced::widget::image::Handle;
 
-use ensnano_interactor::{ActionMode, SelectionMode};
+use crate::ensnano_interactor::{ActionMode, SelectionMode};
 
 pub trait HasIcon {
     fn icon_on(&self) -> Handle;

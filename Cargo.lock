@@ -913,7 +913,6 @@ dependencies = [
  "dirs",
  "ensnano_design",
  "ensnano_iced",
- "ensnano_interactor",
  "ensnano_organizer",
  "fontdue",
  "futures",
@@ -935,6 +934,7 @@ dependencies = [
  "rand",
  "rand_distr",
  "rapier3d",
+ "rayon",
  "regex",
  "rfd",
  "rust_xlsxwriter",
@@ -988,19 +988,6 @@ dependencies = [
  "icondata",
  "log",
  "serde",
-]
-
-[[package]]
-name = "ensnano_interactor"
-version = "0.7.0"
-dependencies = [
- "ensnano_design",
- "ensnano_iced",
- "ensnano_organizer",
- "log",
- "rayon",
- "serde",
- "ultraviolet",
 ]
 
 [[package]]

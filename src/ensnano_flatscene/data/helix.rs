@@ -29,7 +29,7 @@ use abscissa_converter::{AbscissaConverter, AbscissaConverter_};
 use ahash::RandomState;
 use ensnano_design::Nucl;
 use ensnano_design::ultraviolet;
-use ensnano_interactor::consts::*;
+use crate::ensnano_interactor::consts::*;
 use lyon::math::{Point, rect};
 use lyon::path::Path;
 use lyon::path::builder::{BorderRadii, PathBuilder};

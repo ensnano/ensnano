@@ -37,6 +37,14 @@ mod data;
 mod flattypes;
 mod view;
 
+use crate::ensnano_interactor::{
+    ActionMode, DesignOperation, PhantomElement, Selection, SelectionMode, StrandBuilder,
+    StrandBuildingStatus,
+    application::{AppId, Application, Notification},
+    consts::{EXPORT_2D_MARGIN, EXPORT_2D_MAX_SIZE},
+    graphics::DrawArea,
+    operation::*,
+};
 use crate::ensnano_utils::{
     PhySize, camera2d, filename, wgpu,
     winit::{self, window::CursorIcon},
@@ -46,14 +54,6 @@ use controller::Controller;
 use data::Data;
 pub use data::{DesignReader, NuclCollection};
 use ensnano_design::{Isometry2, Nucl, consts::ITERATIVE_AXIS_ALGORITHM};
-use ensnano_interactor::{
-    ActionMode, DesignOperation, PhantomElement, Selection, SelectionMode, StrandBuilder,
-    StrandBuildingStatus,
-    application::{AppId, Application, Notification},
-    consts::{EXPORT_2D_MARGIN, EXPORT_2D_MAX_SIZE},
-    graphics::DrawArea,
-    operation::*,
-};
 use flattypes::*;
 use std::{
     cell::RefCell,
@@ -239,22 +239,17 @@ impl<S: AppState> FlatScene<S> {
                         prime3_id,
                         prime5_id,
                         undo: false,
-                        design_id: self.selected_design,
                     }))
             }
             Consequence::Cut(nucl) => {
                 let strand_id = self.data[self.selected_design].borrow().get_strand_id(nucl);
-                if let Some(strand_id) = strand_id {
+                if strand_id.is_some() {
                     log::info!("cutting {:?}", nucl);
                     let nucl = nucl.to_real();
                     self.requests
                         .lock()
                         .unwrap()
-                        .update_operation(Arc::new(Cut {
-                            nucl,
-                            strand_id,
-                            design_id: self.selected_design,
-                        }))
+                        .update_operation(Arc::new(Cut { nucl }))
                 }
             }
             Consequence::FreeEnd(free_end) => {
@@ -275,17 +270,13 @@ impl<S: AppState> FlatScene<S> {
             }
             Consequence::CutFreeEnd(nucl, free_end) => {
                 let strand_id = self.data[self.selected_design].borrow().get_strand_id(nucl);
-                if let Some(strand_id) = strand_id {
+                if strand_id.is_some() {
                     log::info!("cutting {:?}", nucl);
                     let nucl = nucl.to_real();
                     self.requests
                         .lock()
                         .unwrap()
-                        .update_operation(Arc::new(Cut {
-                            nucl,
-                            strand_id,
-                            design_id: self.selected_design,
-                        }))
+                        .update_operation(Arc::new(Cut { nucl }))
                 }
                 self.data[self.selected_design]
                     .borrow_mut()
@@ -304,7 +295,6 @@ impl<S: AppState> FlatScene<S> {
                                 target_id,
                                 target_3prime,
                                 nucl: to.to_real(),
-                                design_id: self.selected_design,
                             }))
                     }
                 }
@@ -451,7 +441,7 @@ impl<S: AppState> FlatScene<S> {
                 )
             }
             Consequence::InitBuilding(nucl) => {
-                let mut nucls = ensnano_interactor::extract_nucls_and_xover_ends(
+                let mut nucls = crate::ensnano_interactor::extract_nucls_and_xover_ends(
                     app_state.get_selection(),
                     &app_state.get_design_reader(),
                 );
@@ -717,7 +707,6 @@ impl<S: AppState> Application for FlatScene<S> {
             }
             Notification::CameraTarget(_) => (),
             Notification::ClearDesigns => self.data[0].borrow_mut().clear_design(),
-            Notification::Centering(_, _) => (),
             Notification::CenterSelection(selection, app_id) => {
                 log::info!("2D view centering selection {:?}", selection);
                 let flat_selection = self.data[self.selected_design]
@@ -843,7 +832,7 @@ impl<S: AppState> Application for FlatScene<S> {
 }
 
 pub trait AppState: Clone {
-    type Reader: DesignReader + ensnano_interactor::DesignReader;
+    type Reader: DesignReader + crate::ensnano_interactor::DesignReader;
     fn selection_was_updated(&self, other: &Self) -> bool;
     fn candidate_was_updated(&self, other: &Self) -> bool;
     fn get_selection(&self) -> &[Selection];

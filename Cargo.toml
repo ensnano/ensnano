@@ -1,10 +1,5 @@
 [workspace]
-members = [
-    "ensnano-design",
-    "ensnano-iced",
-    "ensnano-interactor",
-    "ensnano-organizer",
-]
+members = ["ensnano-design", "ensnano-iced", "ensnano-organizer"]
 
 [workspace.package]
 version = "0.7.0"
@@ -32,7 +27,6 @@ license.workspace = true
 [workspace.dependencies]
 ensnano_design = { path = "ensnano-design" }
 ensnano_iced = { path = "ensnano-iced" }
-ensnano_interactor = { path = "ensnano-interactor" }
 ensnano_organizer = { path = "ensnano-organizer" }
 
 ahash = "0.8.6"
@@ -102,7 +96,6 @@ wgpu = { version = "0.19", features = ["spirv"] }
 [dependencies]
 ensnano_design.workspace = true
 ensnano_iced.workspace = true
-ensnano_interactor.workspace = true
 ensnano_organizer.workspace = true
 
 # ensnano_exports specific
@@ -121,6 +114,9 @@ png.workspace = true
 # ensnano_gui specific
 open.workspace = true
 paste.workspace = true
+
+# ensnano_interactor specific
+rayon.workspace = true
 
 # ensnano_physics specific
 rapier3d.workspace = true

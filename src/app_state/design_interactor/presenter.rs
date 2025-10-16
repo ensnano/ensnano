@@ -28,14 +28,14 @@ use crate::app_state::design_interactor::presenter::design_content::NuclCollecti
 use self::design_content::Staple;
 
 use super::*;
+use crate::ensnano_interactor::{
+    NeighborDescriptor, NeighborDescriptorGiver, Referential, ScaffoldInfo, Selection,
+    application::Camera3D,
+};
 use crate::ensnano_scene::data::{HBond, HalfHBond};
 use crate::ensnano_utils::id_generator::IdGenerator;
 use design_content::DesignContent;
 use ensnano_design::{BezierPathId, Extremity, HelixCollection, InstanciatedPiecewiseBezier, Nucl};
-use ensnano_interactor::{
-    NeighborDescriptor, NeighborDescriptorGiver, Referential, ScaffoldInfo, Selection,
-    application::Camera3D,
-};
 use std::collections::{BTreeMap, HashMap, HashSet};
 use ultraviolet::{Mat4, Vec3};
 
@@ -374,7 +374,6 @@ impl Presenter {
                     Selection::Bond(_, n1, n2) => *n1 == nucl || *n2 == nucl,
                     Selection::Phantom(e) => e.to_nucl() == nucl,
                     Selection::BezierControlPoint { .. } => false,
-                    Selection::BezierTangent { .. } => false,
                     Selection::BezierVertex(_) => false,
                 };
         }
@@ -721,7 +720,6 @@ impl DesignReader {
             .and_then(|s| s.get_nth_nucl(shift.unwrap_or(0)));
         Some(ScaffoldInfo {
             id,
-            shift,
             length,
             starting_nucl,
         })

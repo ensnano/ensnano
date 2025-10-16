@@ -23,7 +23,7 @@ use crate::ensnano_utils::bindgroup_manager::DynamicBindGroup;
 use crate::ensnano_utils::create_buffer_with_data;
 use crate::ensnano_utils::texture::Texture;
 use crate::ensnano_utils::wgpu;
-use ensnano_interactor::consts::*;
+use crate::ensnano_interactor::consts::*;
 use std::rc::Rc;
 use wgpu::{
     BindGroupLayoutDescriptor, Device, PrimitiveTopology, Queue, RenderPass, RenderPipeline,

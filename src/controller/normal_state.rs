@@ -19,6 +19,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::download_intervals::DownloadIntervals;
 use super::messages::CHANGING_DNA_PARAMETERS_WARNING;
 use super::*;
+use crate::ensnano_interactor::{
+    DesignOperation, HyperboloidOperation, HyperboloidRequest, RapierSimulationRequest,
+    RevolutionSurfaceSystemDescriptor, RigidBodyConstants, RollRequest, application::Notification,
+    consts::ENS_EXTENSION, graphics::FogParameters,
+};
 use crate::{
     app_state::design_interactor::controller::{
         clipboard::PastePosition, simulations::SimulationOperation,
@@ -29,11 +34,6 @@ use ensnano_design::{
     HelixParameters,
     grid::{GridDescriptor, GridId, GridTypeDescr},
     group_attributes::GroupPivot,
-};
-use ensnano_interactor::{
-    DesignOperation, HyperboloidOperation, HyperboloidRequest, RapierSimulationRequest,
-    RevolutionSurfaceSystemDescriptor, RigidBodyConstants, RollRequest, application::Notification,
-    consts::ENS_EXTENSION, graphics::FogParameters,
 };
 use std::sync::Arc;
 
@@ -333,7 +333,7 @@ impl State for ChangingDnaParameters {
 impl NormalState {
     fn turn_selection_into_grid(self: Box<Self>, main_state: &mut MainStateView) -> Box<Self> {
         let selection = main_state.get_selection();
-        if ensnano_interactor::all_helices_no_grid(
+        if crate::ensnano_interactor::all_helices_no_grid(
             selection.as_ref().as_ref(),
             main_state.get_design_reader().as_ref(),
         ) {
@@ -364,7 +364,7 @@ impl NormalState {
     }
 
     fn change_color(self: Box<Self>, main_state: &mut MainStateView, color: u32) -> Box<Self> {
-        let strands = ensnano_interactor::extract_strands_from_selection(
+        let strands = crate::ensnano_interactor::extract_strands_from_selection(
             main_state.get_selection().as_ref().as_ref(),
         );
         main_state.apply_operation(DesignOperation::ChangeColor { color, strands });
@@ -377,7 +377,7 @@ impl NormalState {
         small: bool,
     ) -> Box<Self> {
         let grid_ids =
-            ensnano_interactor::extract_grids(main_state.get_selection().as_ref().as_ref());
+            crate::ensnano_interactor::extract_grids(main_state.get_selection().as_ref().as_ref());
         if !grid_ids.is_empty() {
             main_state.apply_operation(DesignOperation::SetSmallSpheres { grid_ids, small });
         }
@@ -390,7 +390,7 @@ impl NormalState {
         persistent: bool,
     ) -> Box<Self> {
         let grid_ids =
-            ensnano_interactor::extract_grids(main_state.get_selection().as_ref().as_ref());
+            crate::ensnano_interactor::extract_grids(main_state.get_selection().as_ref().as_ref());
         if !grid_ids.is_empty() {
             main_state.apply_operation(DesignOperation::SetHelicesPersistence {
                 grid_ids,

@@ -16,7 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-pub use ensnano_interactor::consts::*;
+pub use crate::ensnano_interactor::consts::*;
 pub const MIN_NB_TURN: f32 = -5.0;
 pub const MAX_NB_TURN: f32 = 5.0;
 pub const NB_TURN_STEP: f32 = 0.05;

@@ -17,6 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::{Device, DrawArea, DrawType, Queue, ViewPtr};
+use crate::ensnano_interactor::{BezierControlPoint, PhantomElement, phantom_helix_decoder};
 use crate::ensnano_utils::{
     BufferDimensions, wgpu,
     winit::dpi::{PhysicalPosition, PhysicalSize},
@@ -25,7 +26,6 @@ use ensnano_design::{
     BezierPathId, BezierPlaneId, BezierVertexId,
     grid::{GridId, GridPosition},
 };
-use ensnano_interactor::{BezierControlPoint, PhantomElement, phantom_helix_decoder};
 use futures::executor;
 use num_enum::IntoPrimitive;
 use std::{convert::TryInto, rc::Rc};
@@ -324,7 +324,7 @@ impl SceneElement {
     pub fn transform_into_bezier(self) -> Self {
         if let Self::WidgetElement(id) = self
             && let Some((helix_id, bezier_control)) =
-                ensnano_interactor::consts::widget_id_to_bezier(id)
+                crate::ensnano_interactor::consts::widget_id_to_bezier(id)
         {
             Self::BezierControl {
                 bezier_control,

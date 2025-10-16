@@ -26,7 +26,7 @@ use winit::{
 };
 
 const WHEEL_RADIUS: f32 = 1.5;
-use ensnano_interactor::consts::*;
+use crate::ensnano_interactor::consts::*;
 
 pub struct Transition<S: AppState> {
     pub new_state: Option<Box<dyn ControllerState<S>>>,
@@ -238,11 +238,6 @@ impl<S: AppState> ControllerState<S> for NormalState {
                                 consequences: Consequence::Nothing,
                             }
                         } else {
-                            let _stick = if let ActionMode::Build(b) = controller.action_mode {
-                                b
-                            } else {
-                                false
-                            };
                             if controller.data.borrow().can_start_builder_at(nucl) {
                                 if !controller.data.borrow().has_nucl(nucl) {
                                     // If the builder is not on an existing strand, we transition
@@ -758,11 +753,6 @@ impl<S: AppState> ControllerState<S> for ReleasedPivot {
                                 consequences: Consequence::Nothing,
                             }
                         } else {
-                            let _stick = if let ActionMode::Build(b) = controller.action_mode {
-                                b
-                            } else {
-                                false
-                            };
                             if controller.data.borrow().can_start_builder_at(nucl) {
                                 if !controller.data.borrow().has_nucl(nucl) {
                                     // If the builder is not on an existing strand, we transition

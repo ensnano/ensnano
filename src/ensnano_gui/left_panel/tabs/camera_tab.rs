@@ -26,7 +26,7 @@ use ensnano_iced::{
     iced_aw::TabLabel,
     theme,
 };
-use ensnano_interactor::{
+use crate::ensnano_interactor::{
     app_state_parameters::AppStateParameters,
     graphics::{ALL_BACKGROUND3D, ALL_RENDERING_MODE, Background3D, RenderingMode},
 };
@@ -402,7 +402,7 @@ impl FogChoices {
     }
 
     fn fog_kind(&self) -> u32 {
-        use ensnano_interactor::graphics::fog_kind;
+        use crate::ensnano_interactor::graphics::fog_kind;
         match self {
             Self::None => fog_kind::NO_FOG,
             Self::FromCamera | Self::FromPivot => fog_kind::TRANSPARENT_FOG,

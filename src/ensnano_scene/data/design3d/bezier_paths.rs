@@ -21,7 +21,7 @@ use crate::ensnano_scene::element_selector;
 use super::super::AppState;
 use super::*;
 use ensnano_design::{BezierEndCoordinates, BezierVertexId};
-use ensnano_interactor::Selection;
+use crate::ensnano_interactor::Selection;
 
 impl<R: DesignReader> Design3D<R> {
     pub fn get_bezier_elements(&self, h_id: usize) -> (Vec<RawDnaInstance>, Vec<RawDnaInstance>) {

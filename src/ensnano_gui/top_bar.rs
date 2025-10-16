@@ -32,7 +32,7 @@ use ensnano_iced::{
     iced_runtime::{Command, Program},
     iced_winit::winit::dpi::LogicalSize,
 };
-use ensnano_interactor::{ActionMode, SelectionMode};
+use crate::ensnano_interactor::{ActionMode, SelectionMode};
 use std::sync::{Arc, Mutex};
 
 use super::{Requests, SplitMode};

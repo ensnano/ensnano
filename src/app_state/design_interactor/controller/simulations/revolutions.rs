@@ -24,7 +24,7 @@ use ensnano_design::{
     CurveDescriptor, CurveDescriptor2D, DVec3, HelixParameters, InterpolationDescriptor, Isometry3,
     Similarity3,
 };
-use ensnano_interactor::{
+use crate::ensnano_interactor::{
     EquadiffSolvingMethod, RevolutionSimulationParameters, RevolutionSurfaceSystemDescriptor,
     RootedRevolutionSurface,
 };

@@ -26,6 +26,14 @@ mod sausage_rosary;
 mod stl;
 pub mod view;
 
+use crate::ensnano_interactor::{
+    ActionMode, CenterOfSelection, DesignOperation, NewBezierTangentVector, Selection,
+    SelectionMode, StrandBuilder, UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
+    app_state_parameters::CheckXoversParameter,
+    application::{AppId, Application, Camera3D, Notification},
+    graphics::DrawArea,
+    operation::*,
+};
 use crate::ensnano_utils::{
     BufferDimensions, PhySize, filename,
     wgpu::{self, Device, Queue},
@@ -37,14 +45,6 @@ use element_selector::{ElementSelector, SceneElement};
 use ensnano_design::{
     BezierVertexId, Nucl, consts::ITERATIVE_AXIS_ALGORITHM, grid::GridPosition,
     grid::HelixGridPosition, group_attributes::GroupPivot, ultraviolet,
-};
-use ensnano_interactor::{
-    ActionMode, CenterOfSelection, DesignOperation, NewBezierTangentVector, Selection,
-    SelectionMode, StrandBuilder, UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
-    app_state_parameters::CheckXoversParameter,
-    application::{AppId, Application, Camera3D, Notification},
-    graphics::DrawArea,
-    operation::*,
 };
 use maths_3d::FiniteVec3;
 use std::{
@@ -459,7 +459,7 @@ impl<S: AppState> Scene<S> {
                     .update(ViewUpdate::FogCenter(Some(Vec3::zero())));
             }
             Consequence::CheckXovers => {
-                let xovers = ensnano_interactor::list_of_xover_ids(
+                let xovers = crate::ensnano_interactor::list_of_xover_ids(
                     app_state.get_selection(),
                     &app_state.get_design_reader(),
                 );
@@ -675,23 +675,23 @@ impl<S: AppState> Scene<S> {
         let dir = Vec3::unit_z().rotated_by(rotor);
 
         let reader = app_state.get_design_reader();
-        let helices = ensnano_interactor::set_of_helices_containing_selection(
+        let helices = crate::ensnano_interactor::set_of_helices_containing_selection(
             app_state.get_selection(),
             &reader,
         );
-        let grids = ensnano_interactor::set_of_grids_containing_selection(
+        let grids = crate::ensnano_interactor::set_of_grids_containing_selection(
             app_state.get_selection(),
             &reader,
         );
         log::debug!("grids {:?}", grids);
-        let control_points = ensnano_interactor::extract_control_points(app_state.get_selection());
+        let control_points =
+            crate::ensnano_interactor::extract_control_points(app_state.get_selection());
         let at_most_one_grid = grids.as_ref().map(|g| g.len() <= 1).unwrap_or(false);
 
         let group_id = app_state.get_current_group_id();
 
         let translation_op: Arc<dyn Operation> = if !control_points.is_empty() {
             Arc::new(BezierControlPointTranslation {
-                design_id: 0,
                 control_points,
                 right: Vec3::unit_x().rotated_by(rotor),
                 top: Vec3::unit_y().rotated_by(rotor),
@@ -699,7 +699,6 @@ impl<S: AppState> Scene<S> {
                 x: translation.dot(right),
                 y: translation.dot(top),
                 z: translation.dot(dir),
-                snap: true,
                 group_id,
             })
         } else if let Some(helices) = helices.filter(|_| at_most_one_grid) {
@@ -764,11 +763,11 @@ impl<S: AppState> Scene<S> {
             angle *= -1.;
             plane *= -1.;
         }
-        let grids = ensnano_interactor::set_of_grids_containing_selection(
+        let grids = crate::ensnano_interactor::set_of_grids_containing_selection(
             app_state.get_selection(),
             &app_state.get_design_reader(),
         );
-        let helices = ensnano_interactor::set_of_helices_containing_selection(
+        let helices = crate::ensnano_interactor::set_of_helices_containing_selection(
             app_state.get_selection(),
             &app_state.get_design_reader(),
         );
@@ -1217,12 +1216,6 @@ impl<S: AppState> Application for Scene<S> {
             }
             Notification::CameraRotation(xz, yz, xy) => {
                 self.request_camera_rotation(xz, yz, xy, &older_state);
-                self.notify(SceneNotification::CameraMoved);
-            }
-            Notification::Centering(nucl, design_id) => {
-                if let Some(position) = self.data.borrow().get_nucl_position(nucl, design_id) {
-                    self.controller.center_camera(position);
-                }
                 self.notify(SceneNotification::CameraMoved);
             }
             Notification::CenterSelection(selection, app_id) => {

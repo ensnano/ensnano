@@ -20,7 +20,7 @@ use super::*;
 use crate::ensnano_flatscene::DesignReader as Reader2D;
 use ahash::RandomState;
 use ensnano_design::{Domain, Extremity, HelixInterval};
-use ensnano_interactor::{Referential, torsion::Torsion};
+use crate::ensnano_interactor::{Referential, torsion::Torsion};
 use std::collections::{BTreeMap, HashMap};
 use std::sync::Arc;
 use ultraviolet::{Isometry2, Vec3};

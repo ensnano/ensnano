@@ -20,7 +20,7 @@ use crate::ensnano_utils::create_buffer_with_data;
 use crate::ensnano_utils::texture::Texture;
 use crate::ensnano_utils::wgpu;
 use ensnano_design::ultraviolet;
-use ensnano_interactor::consts::*;
+use crate::ensnano_interactor::consts::*;
 use std::rc::Rc;
 use ultraviolet::Vec3;
 use wgpu::{Device, RenderPass, RenderPipeline, include_spirv};

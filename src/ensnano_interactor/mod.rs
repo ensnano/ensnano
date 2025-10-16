@@ -60,24 +60,12 @@ pub enum ObjectType {
 }
 
 impl ObjectType {
-    pub fn is_nucl(&self) -> bool {
-        matches!(self, ObjectType::Nucleotide(_))
-    }
-
     pub fn is_bond(&self) -> bool {
         matches!(self, ObjectType::Bond(_, _))
     }
 
     pub fn is_helix_cylinder(&self) -> bool {
         matches!(self, ObjectType::HelixCylinder(_, _))
-    }
-
-    pub fn is_colored_helix_cylinder(&self) -> bool {
-        matches!(self, ObjectType::ColoredHelixCylinder(_, _, _))
-    }
-
-    pub fn is_sliced_bond(&self) -> bool {
-        matches!(self, ObjectType::SlicedBond(_, _, _, _))
     }
 
     pub fn same_type(&self, other: &Self) -> bool {
@@ -90,12 +78,6 @@ impl ObjectType {
 pub enum Referential {
     World,
     Model,
-}
-
-impl Referential {
-    pub fn is_world(&self) -> bool {
-        matches!(self, Referential::World)
-    }
 }
 
 #[derive(Debug, Clone)]
@@ -125,7 +107,6 @@ pub enum DesignOperation {
     /// delete the strand.
     Cut {
         nucl: Nucl,
-        s_id: usize,
     },
     /// Make a cross-over between two nucleotides, splitting the source and target strands if needed
     GeneralXover {
@@ -151,15 +132,8 @@ pub enum DesignOperation {
     },
     /// Add a grid to the design
     AddGrid(GridDescriptor),
-    /// Remove a grid
-    RmGrid(usize),
     /// Pick a new color at random for all the strands that are not the scaffold
     RecolorStaples,
-    /// Set the sequence of a set of strands
-    ChangeSequence {
-        sequence: String,
-        strands: Vec<usize>,
-    },
     /// Change the color of a set of strands
     ChangeColor {
         color: u32,
@@ -247,12 +221,6 @@ pub enum DesignOperation {
         position: Vec3,
         orientation: Rotor3,
         pivot_position: Option<Vec3>,
-    },
-    SetFavoriteCamera(ensnano_design::CameraId),
-    UpdateCamera {
-        camera_id: ensnano_design::CameraId,
-        position: Vec3,
-        orientation: Rotor3,
     },
     SetCameraName {
         camera_id: ensnano_design::CameraId,
@@ -379,8 +347,6 @@ pub struct DesignTranslation {
 /// A element on which an isometry must be applied
 #[derive(Clone, Debug)]
 pub enum IsometryTarget {
-    /// The view of the whole design
-    Design,
     /// An helix of the design
     Helices(Vec<usize>, bool),
     /// A grid of the design
@@ -394,21 +360,12 @@ pub enum IsometryTarget {
 impl ToString for IsometryTarget {
     fn to_string(&self) -> String {
         match self {
-            Self::Design => "Design".into(),
             Self::Helices(hs, _) => format!("Helices {:?}", hs),
             Self::Grids(gs) => format!("Grids {:?}", gs),
             Self::GroupPivot(_) => "Group pivot".into(),
             Self::ControlPoint(_) => "Bezier control point".into(),
         }
     }
-}
-
-/// An helix on a grid
-#[derive(Clone, Debug)]
-pub struct GridHelixDescriptor {
-    pub grid_id: GridId,
-    pub x: isize,
-    pub y: isize,
 }
 
 #[derive(Debug, Clone)]
@@ -435,8 +392,6 @@ impl HyperboloidRequest {
 
 #[derive(Clone, Debug)]
 pub struct RollRequest {
-    pub roll: bool,
-    pub springs: bool,
     pub target_helices: Option<Vec<usize>>,
 }
 
@@ -473,7 +428,6 @@ impl Default for RigidBodyConstants {
 #[derive(Clone, Debug)]
 pub struct ScaffoldInfo {
     pub id: usize,
-    pub shift: Option<usize>,
     pub length: usize,
     pub starting_nucl: Option<Nucl>,
 }
@@ -591,7 +545,6 @@ pub enum StandardSequence {
     P7249,
     P7560,
     P8064,
-    PUC19,
 }
 
 impl StandardSequence {
@@ -601,7 +554,6 @@ impl StandardSequence {
             Self::P7249 => "m13 p7249",
             Self::P7560 => "m13 p7560",
             Self::P8064 => "m13 p8064",
-            Self::PUC19 => "pUC19 (2686 nt)",
         }
     }
 
@@ -611,7 +563,6 @@ impl StandardSequence {
             Self::P7249 => include_str!("../../txt/p7249-Tilibit.txt"),
             Self::P7560 => include_str!("../../txt/p7560.txt"),
             Self::P8064 => include_str!("../../txt/m13-p8064.txt"),
-            Self::PUC19 => include_str!("../../txt/pUC19.txt"),
         }
     }
 

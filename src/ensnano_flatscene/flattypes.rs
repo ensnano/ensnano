@@ -23,8 +23,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! reduces the confusion, since errors will be detected by the typechecker.
 
 use super::{HashMap, Nucl, Selection};
+use crate::ensnano_interactor::PhantomElement;
 use ensnano_design::grid::GridId;
-use ensnano_interactor::PhantomElement;
 use std::collections::BTreeMap;
 use std::hash::{Hash, Hasher};
 
@@ -368,7 +368,6 @@ impl FlatSelection {
                 Selection::Phantom(pe) => Self::Phantom(*pe),
                 Selection::Nothing => Self::Nothing,
                 Selection::BezierControlPoint { .. } => Self::Nothing,
-                Selection::BezierTangent { .. } => Self::Nothing,
                 Selection::BezierVertex(_) => Self::Nothing,
             }
         } else {

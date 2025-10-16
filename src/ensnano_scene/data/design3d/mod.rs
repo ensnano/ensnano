@@ -22,6 +22,12 @@ use super::super::view::{
     SphereInstance, TubeInstance, TubeLidInstance,
 };
 use super::{LetterInstance, SceneElement, ultraviolet};
+use crate::ensnano_interactor::consts::*;
+use crate::ensnano_interactor::{
+    BezierControlPoint, ObjectType, PHANTOM_RANGE, PhantomElement, Referential,
+    graphics::{LoopoutBond, LoopoutNucl},
+    phantom_helix_encoder_bond, phantom_helix_encoder_nucl,
+};
 use crate::ensnano_scene::rotor_utils::SafeRotor as _;
 use crate::ensnano_scene::sausage_rosary::SausageRosary;
 use crate::ensnano_scene::view::PlainRectangleInstance;
@@ -35,12 +41,6 @@ use ensnano_design::{
 };
 use ensnano_design::{Nucl, grid::HelixGridPosition};
 pub use ensnano_design::{SurfaceInfo, SurfacePoint};
-use ensnano_interactor::consts::*;
-use ensnano_interactor::{
-    BezierControlPoint, ObjectType, PHANTOM_RANGE, PhantomElement, Referential,
-    graphics::{LoopoutBond, LoopoutNucl},
-    phantom_helix_encoder_bond, phantom_helix_encoder_nucl,
-};
 use std::collections::hash_map::RandomState;
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::f32::consts::TAU;
@@ -1726,7 +1726,7 @@ pub(super) enum ExpandWith {
 
 // Array of (strand number, array of 3D space position of the nucleotides)
 
-pub trait DesignReader: 'static + ensnano_interactor::DesignReader {
+pub trait DesignReader: 'static + crate::ensnano_interactor::DesignReader {
     /// Return the identifier of all the visible nucleotides
     fn get_all_visible_nucl_ids(&self) -> Vec<u32>;
     /// Return the identifier of all the visible bounds

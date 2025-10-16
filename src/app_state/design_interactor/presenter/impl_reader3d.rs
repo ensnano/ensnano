@@ -24,7 +24,7 @@ use ensnano_design::{
     Nucl, SurfaceInfo,
     grid::{GridId, GridObject, GridPosition, HelixGridPosition},
 };
-use ensnano_interactor::{
+use crate::ensnano_interactor::{
     BezierControlPoint, ObjectType, Referential,
     graphics::{LoopoutBond, LoopoutNucl},
 };

@@ -20,8 +20,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::*;
 use crate::app_state::design_interactor::controller::clipboard::PastePosition;
+use crate::ensnano_interactor;
+use crate::ensnano_interactor::DesignOperation;
 use crate::ensnano_scene::Requests as SceneRequests;
-use ensnano_interactor::DesignOperation;
 use ultraviolet::Rotor3;
 
 impl SceneRequests for Requests {

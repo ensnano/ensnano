@@ -27,12 +27,7 @@ use super::{
         GridDisc, HandleColors, Instantiable, Mesh, RawDnaInstance, StereographicSphereAndPlane,
     },
 };
-use crate::ensnano_utils::StrandNucleotidesPositions;
-use ensnano_design::{
-    BezierVertexId, Collection, External3DObjectsStamp, Nucl,
-    grid::{GridId, GridObject, GridPosition},
-};
-use ensnano_interactor::{
+use crate::ensnano_interactor::{
     ActionMode, CenterOfSelection, ObjectType, PhantomElement, Referential, Selection,
     SelectionMode,
     consts::{
@@ -40,6 +35,11 @@ use ensnano_interactor::{
         SPHERE_RADIUS,
     },
     graphics::HBondDisplay,
+};
+use crate::ensnano_utils::StrandNucleotidesPositions;
+use ensnano_design::{
+    BezierVertexId, Collection, External3DObjectsStamp, Nucl,
+    grid::{GridId, GridObject, GridPosition},
 };
 use std::{
     cell::RefCell,
@@ -255,7 +255,7 @@ impl<R: DesignReader> Data<R> {
 
     fn update_bezier<S: AppState>(&mut self, app_state: &S) {
         let selected_helices =
-            ensnano_interactor::extract_helices_with_controls(app_state.get_selection());
+            crate::ensnano_interactor::extract_helices_with_controls(app_state.get_selection());
         log::debug!("selected helices {:?}", selected_helices);
         let mut spheres = Vec::new();
         let mut tubes = Vec::new();
@@ -677,7 +677,6 @@ impl<R: DesignReader> Data<R> {
             }
             Selection::Grid(_, _) => HashSet::new(), // A grid is not made of atomic elements
             Selection::Phantom(_) => HashSet::new(),
-            Selection::BezierTangent { .. } => HashSet::new(),
             Selection::BezierVertex(_) => HashSet::new(),
             Selection::Nothing => HashSet::new(),
             Selection::Design(d_id) => self.designs[*d_id as usize].get_all_elements(),

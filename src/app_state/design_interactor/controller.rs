@@ -23,6 +23,14 @@ pub mod update_insertion_length;
 
 use super::SimulationUpdate;
 use crate::ensnano_gui::ClipboardContent;
+use crate::ensnano_interactor;
+use crate::ensnano_interactor::{
+    BezierControlPoint, BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation,
+    DomainIdentifier, HyperboloidOperation, IsometryTarget, NeighborDescriptor,
+    NeighborDescriptorGiver, NewBezierTangentVector, PastingStatus, Selection, SimulationState,
+    StrandBuilder,
+    operation::{Operation, TranslateBezierPathVertex},
+};
 use crate::ensnano_utils::colors;
 use crate::{
     app_state::{
@@ -54,13 +62,6 @@ use ensnano_design::{
     },
     group_attributes::GroupPivot,
     mutate_in_arc,
-};
-use ensnano_interactor::{
-    BezierControlPoint, BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation,
-    DomainIdentifier, HyperboloidOperation, IsometryTarget, NeighborDescriptor,
-    NeighborDescriptorGiver, NewBezierTangentVector, PastingStatus, Selection, SimulationState,
-    StrandBuilder,
-    operation::{Operation, TranslateBezierPathVertex},
 };
 use ensnano_organizer::GroupId;
 use std::{
@@ -238,8 +239,6 @@ impl Controller {
             DesignOperation::FlipAnchors { nucls } => {
                 self.apply(|c, d| c.flip_anchors(d, nucls), design)
             }
-            DesignOperation::RmGrid(_) => Err(ErrOperation::NotImplemented), // TODO
-            DesignOperation::ChangeSequence { .. } => Err(ErrOperation::NotImplemented), // TODO
             DesignOperation::CleanDesign => Err(ErrOperation::NotImplemented), // TODO
             DesignOperation::AttachObject { object, grid, x, y } => {
                 self.apply(|c, d| c.attach_object(d, object, grid, x, y), design)
@@ -268,17 +267,6 @@ impl Controller {
             DesignOperation::DeleteCamera(cam_id) => {
                 self.apply(|c, d| c.delete_camera(d, cam_id), design)
             }
-            DesignOperation::SetFavoriteCamera(cam_id) => {
-                self.apply(|c, d| c.set_favorite_camera(d, cam_id), design)
-            }
-            DesignOperation::UpdateCamera {
-                camera_id,
-                position,
-                orientation,
-            } => self.apply(
-                |c, d| c.update_camera(d, camera_id, position, orientation),
-                design,
-            ),
             DesignOperation::SetCameraName { camera_id, name } => {
                 self.apply(|c, d| c.set_camera_name(d, camera_id, name), design)
             }
@@ -1572,34 +1560,6 @@ impl Controller {
         }
     }
 
-    fn set_favorite_camera(
-        &mut self,
-        mut design: Design,
-        id: CameraId,
-    ) -> Result<Design, ErrOperation> {
-        if !design.set_favorite_camera(id) {
-            Err(ErrOperation::CameraDoesNotExist(id))
-        } else {
-            Ok(design)
-        }
-    }
-
-    fn update_camera(
-        &mut self,
-        mut design: Design,
-        id: CameraId,
-        position: Vec3,
-        orientation: Rotor3,
-    ) -> Result<Design, ErrOperation> {
-        if let Some(camera) = design.get_camera_mut(id) {
-            camera.position = position;
-            camera.orientation = orientation;
-            Ok(design)
-        } else {
-            Err(ErrOperation::CameraDoesNotExist(id))
-        }
-    }
-
     fn set_camera_name(
         &mut self,
         mut design: Design,
@@ -1632,7 +1592,6 @@ impl Controller {
         translation: DesignTranslation,
     ) -> Result<Design, ErrOperation> {
         let mut design = match translation.target {
-            IsometryTarget::Design => Err(ErrOperation::NotImplemented),
             IsometryTarget::Helices(helices, snap) => {
                 Ok(self.translate_helices(design, snap, helices, translation.translation))
             }
@@ -1709,7 +1668,6 @@ impl Controller {
         rotation: DesignRotation,
     ) -> Result<Design, ErrOperation> {
         let mut design = match rotation.target {
-            IsometryTarget::Design => Err(ErrOperation::NotImplemented),
             IsometryTarget::GroupPivot(g_id) => {
                 self.rotate_group_pivot(design, rotation.rotation, g_id)
             }
@@ -2298,7 +2256,6 @@ impl Controller {
                 nucl,
                 axis.to_owned(),
                 neighbor_desc,
-                false,
             )),
         }
     }
@@ -2323,7 +2280,6 @@ impl Controller {
             nucl,
             axis.to_owned(),
             left.or(right),
-            true,
         ))
     }
 

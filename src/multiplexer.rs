@@ -46,7 +46,7 @@ use ensnano_iced::{
         window::{CursorIcon, Window},
     },
 };
-use ensnano_interactor::{
+use crate::ensnano_interactor::{
     ActionMode, SelectionMode,
     graphics::{DrawArea, GuiComponentType, SplitMode},
 };
@@ -943,7 +943,7 @@ fn control_key(modifiers: &ModifiersState) -> bool {
     }
 }
 
-use ensnano_interactor::Multiplexer as GuiMultiplexer;
+use crate::ensnano_interactor::Multiplexer as GuiMultiplexer;
 
 impl GuiMultiplexer for Multiplexer {
     fn get_draw_area(&self, element_type: GuiComponentType) -> Option<DrawArea> {
