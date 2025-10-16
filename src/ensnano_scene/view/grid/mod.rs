@@ -15,8 +15,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+use crate::ensnano_utils::wgpu;
 use ensnano_design::ultraviolet;
-use ensnano_utils::wgpu;
 use ultraviolet::{Mat4, Vec2, Vec3, Vec4};
 use wgpu::{Device, RenderPass, include_spirv};
 
@@ -102,7 +102,7 @@ impl GridInstance {
     }
 
     fn to_raw(&self) -> GridInstanceRaw {
-        use ensnano_utils::instance::Instance;
+        use crate::ensnano_utils::instance::Instance;
         let (min_x, min_y, max_x, max_y);
         if let GridType::Hyperboloid(ref h) = self.grid.grid_type {
             min_x = -h.grid_radius(&self.grid.helix_parameters);

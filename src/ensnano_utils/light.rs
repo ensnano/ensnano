@@ -15,7 +15,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use crate::create_buffer_with_data;
+
 use ensnano_iced::iced_wgpu::wgpu;
 use ultraviolet::Vec3;
 use wgpu::{BindGroup, BindGroupLayout, Device};
@@ -44,7 +44,7 @@ impl Light {
 pub fn create_light(device: &Device) -> (BindGroup, BindGroupLayout) {
     let light = Light::new([0.0, 0.0, 1000.0], [1.0, 1.0, 1.0]);
 
-    let light_buffer = create_buffer_with_data(
+    let light_buffer = super::create_buffer_with_data(
         device,
         bytemuck::cast_slice(&[light]),
         wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,

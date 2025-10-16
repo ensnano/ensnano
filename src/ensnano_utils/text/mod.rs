@@ -21,8 +21,7 @@ use fontdue::Font;
 use std::convert::TryInto;
 use std::rc::Rc;
 use wgpu::{
-    BindGroup, BindGroupLayout, Device, Extent3d, Queue, Sampler, Texture, TextureView,
-    util::DeviceExt,
+    BindGroup, BindGroupLayout, Device, Extent3d, Queue, Sampler, TextureView, util::DeviceExt,
 };
 
 #[repr(C)]
@@ -49,18 +48,13 @@ const INDICES: &[u16] = &[0, 1, 2, 3];
 
 /// A glyph whose top left of the bounding box is at (0, 0).
 pub struct Letter {
-    pub texture: Texture,
     pub texture_view: TextureView,
     pub sampler: Sampler,
     pub bind_group: BindGroup,
-    pub size: Extent3d,
     pub vertex_buffer: wgpu::Buffer,
     pub index_buffer: wgpu::Buffer,
     pub bind_group_layout: BindGroupLayout,
-    pub advance: f32,
-    pub advance_height: f32,
     pub font: Font,
-    pub height: f32,
 }
 
 const MAX_SIZE: u32 = 9;
@@ -124,9 +118,6 @@ impl Letter {
             },
         ];
 
-        let advance = metrics.advance_width / size.width as f32;
-        let height = metrics.height as f32 / size.height as f32;
-        let advance_height = metrics.ymin as f32 / size.height as f32;
         let mut last_pixels = None;
 
         for mip_level in 0..MIP_LEVEL_COUNT {
@@ -243,17 +234,12 @@ impl Letter {
         });
 
         Self {
-            size,
-            texture: diffuse_texture,
             bind_group: diffuse_bind_group,
             sampler: diffuse_sampler,
             texture_view: diffuse_texture_view,
             vertex_buffer,
             index_buffer,
             bind_group_layout: texture_bind_group_layout,
-            advance,
-            height,
-            advance_height,
             font,
         }
     }

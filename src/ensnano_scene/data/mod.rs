@@ -27,6 +27,7 @@ use super::{
         GridDisc, HandleColors, Instantiable, Mesh, RawDnaInstance, StereographicSphereAndPlane,
     },
 };
+use crate::ensnano_utils::StrandNucleotidesPositions;
 use ensnano_design::{
     BezierVertexId, Collection, External3DObjectsStamp, Nucl,
     grid::{GridId, GridObject, GridPosition},
@@ -40,7 +41,6 @@ use ensnano_interactor::{
     },
     graphics::HBondDisplay,
 };
-use ensnano_utils::StrandNucleotidesPositions;
 use std::{
     cell::RefCell,
     collections::{BTreeMap, HashMap, HashSet},

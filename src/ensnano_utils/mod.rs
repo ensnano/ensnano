@@ -28,7 +28,6 @@ pub mod full_isometry;
 pub mod id_generator;
 pub mod instance;
 pub mod light;
-pub mod mesh;
 pub mod obj_loader;
 pub mod text;
 pub mod texture;

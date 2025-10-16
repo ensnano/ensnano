@@ -43,10 +43,6 @@ impl Camera2D {
             bottom,
         }
     }
-
-    pub fn from_resolution(resolution: [f32; 2], bottom: bool) -> Self {
-        Camera2D::new(Globals::from_resolution(resolution), bottom)
-    }
 }
 
 /// Movement mechanism.
@@ -443,10 +439,6 @@ impl FitRectangle {
     }
     pub fn top_left(&self) -> [f32; 2] {
         [self.x_min, self.y_max]
-    }
-
-    pub fn bottom_right(&self) -> [f32; 2] {
-        [self.x_max, self.y_min]
     }
 }
 

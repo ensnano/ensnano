@@ -16,8 +16,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use super::*;
+use crate::ensnano_utils::wgpu;
 use ensnano_design::ultraviolet;
-use ensnano_utils::wgpu;
 use lyon::math::Point;
 use lyon::path::Path;
 use lyon::tessellation;
@@ -144,7 +144,7 @@ impl InsertionInstance {
             depth: desc.depth,
             _pading: 0,
             orientation: desc.orientation.into_matrix() * symmetry_matrix,
-            color: ensnano_utils::instance::Instance::color_from_u32(desc.color).into(),
+            color: crate::ensnano_utils::instance::Instance::color_from_u32(desc.color).into(),
         }
     }
 }

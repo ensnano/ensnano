@@ -28,19 +28,19 @@ use super::data::{
 };
 use super::{CameraPtr, FlatIdx, FlatNucl, NuclCollection};
 use super::{DrawArea, PhySize};
+use crate::ensnano_utils::Ndc;
+use crate::ensnano_utils::bindgroup_manager::{DynamicBindGroup, UniformBindGroup};
+use crate::ensnano_utils::camera2d::Globals;
+pub use crate::ensnano_utils::chars2d::TextDrawer;
+pub use crate::ensnano_utils::circles2d::CircleInstance;
+use crate::ensnano_utils::circles2d::{CircleDrawer, CircleKind};
+use crate::ensnano_utils::texture::Texture;
+use crate::ensnano_utils::wgpu;
+use crate::ensnano_utils::winit::dpi::PhysicalPosition;
 use ahash::RandomState;
 use background::Background;
 use ensnano_design::Nucl;
 use ensnano_interactor::consts::SAMPLE_COUNT;
-use ensnano_utils::Ndc;
-use ensnano_utils::bindgroup_manager::{DynamicBindGroup, UniformBindGroup};
-use ensnano_utils::camera2d::Globals;
-pub use ensnano_utils::chars2d::TextDrawer;
-pub use ensnano_utils::circles2d::CircleInstance;
-use ensnano_utils::circles2d::{CircleDrawer, CircleKind};
-use ensnano_utils::texture::Texture;
-use ensnano_utils::wgpu;
-use ensnano_utils::winit::dpi::PhysicalPosition;
 use helix_view::{HelixView, StrandView};
 use insertion::InsertionDrawer;
 pub use insertion::{InsertionDescriptor, InsertionInstance};
@@ -635,7 +635,7 @@ impl View {
         }
 
         let msaa_texture = if SAMPLE_COUNT > 1 {
-            Some(ensnano_utils::texture::Texture::create_msaa_texture(
+            Some(crate::ensnano_utils::texture::Texture::create_msaa_texture(
                 self.device.clone().as_ref(),
                 &target_size,
                 SAMPLE_COUNT,

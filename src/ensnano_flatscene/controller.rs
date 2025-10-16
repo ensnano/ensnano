@@ -27,12 +27,12 @@ use super::{
     ActionMode, AppState, CameraPtr, DataPtr, FlatHelix, FlatNucl, PhySize, PhysicalPosition,
     Selection, ViewPtr, WindowEvent,
 };
-use ensnano_design::ultraviolet;
-use ensnano_utils::winit::{
+use crate::ensnano_utils::winit::{
     event::{ElementState, KeyEvent},
     keyboard::{Key, ModifiersState, NamedKey},
     window::CursorIcon,
 };
+use ensnano_design::ultraviolet;
 use std::cell::RefCell;
 use ultraviolet::Vec2;
 

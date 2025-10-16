@@ -37,6 +37,10 @@ mod data;
 mod flattypes;
 mod view;
 
+use crate::ensnano_utils::{
+    PhySize, camera2d, filename, wgpu,
+    winit::{self, window::CursorIcon},
+};
 pub use camera2d::{Camera2D, FitRectangle};
 use controller::Controller;
 use data::Data;
@@ -49,10 +53,6 @@ use ensnano_interactor::{
     consts::{EXPORT_2D_MARGIN, EXPORT_2D_MAX_SIZE},
     graphics::DrawArea,
     operation::*,
-};
-use ensnano_utils::{
-    PhySize, camera2d, filename, wgpu,
-    winit::{self, window::CursorIcon},
 };
 use flattypes::*;
 use std::{
@@ -599,7 +599,7 @@ impl<S: AppState> FlatScene<S> {
         let queue = self.queue.as_ref();
 
         log::info!("2D PNG export to {:?}", path);
-        use ensnano_utils::BufferDimensions;
+        use crate::ensnano_utils::BufferDimensions;
         use std::io::Write;
 
         let png_size = PhySize::from(glob.resolution);

@@ -19,16 +19,11 @@ use crate::PhySize;
 use ensnano_iced::iced_wgpu::wgpu;
 
 pub struct Texture {
-    pub texture: wgpu::Texture,
     pub view: wgpu::TextureView,
-    pub sampler: wgpu::Sampler,
-    pub size: wgpu::Extent3d,
 }
 
 pub struct SampledTexture {
-    pub texture: wgpu::Texture,
     pub view: wgpu::TextureView,
-    pub sampler: wgpu::Sampler,
     pub bg_layout: wgpu::BindGroupLayout,
     pub bind_group: wgpu::BindGroup,
 }
@@ -68,49 +63,9 @@ impl Texture {
         };
 
         let view = texture.create_view(&view_descriptor);
-        let sampler = device.create_sampler(&wgpu::SamplerDescriptor {
-            // 4.
-            label: Some("sampler"),
-            address_mode_u: wgpu::AddressMode::ClampToEdge,
-            address_mode_v: wgpu::AddressMode::ClampToEdge,
-            address_mode_w: wgpu::AddressMode::ClampToEdge,
-            mag_filter: wgpu::FilterMode::Linear,
-            min_filter: wgpu::FilterMode::Nearest,
-            mipmap_filter: wgpu::FilterMode::Nearest,
-            lod_min_clamp: 0.0,
-            lod_max_clamp: 100.0,
-            compare: Some(wgpu::CompareFunction::LessEqual), // 5.
-            anisotropy_clamp: 1,
-            border_color: None,
-        });
 
-        Self {
-            texture,
-            view,
-            sampler,
-            size,
-        }
+        Self { view }
     }
-
-    /*
-    pub fn clear(&mut self, queue: Rc<wgpu::Queue>) {
-        let clear = vec![ 1f32; (self.size.width * self.size.height) as usize];
-
-        queue.write_texture(
-            wgpu::TextureCopyView {
-                texture: &self.texture,
-                mip_level: 0,
-                origin: wgpu::Origin3d::ZERO,
-            },
-            bytemuck::cast_slice(clear.as_slice()),
-            wgpu::TextureDataLayout {
-                offset: 0,
-                bytes_per_row: 4 * self.size.width,
-                rows_per_image: self.size.height,
-            },
-            self.size,
-        );
-    }*/
 
     pub fn create_msaa_texture(
         device: &wgpu::Device,
@@ -196,9 +151,7 @@ impl SampledTexture {
             label: Some("diffuse_bind_group"),
         });
         Self {
-            texture,
             view,
-            sampler,
             bind_group,
             bg_layout,
         }

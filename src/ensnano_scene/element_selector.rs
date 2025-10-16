@@ -17,15 +17,15 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::{Device, DrawArea, DrawType, Queue, ViewPtr};
+use crate::ensnano_utils::{
+    BufferDimensions, wgpu,
+    winit::dpi::{PhysicalPosition, PhysicalSize},
+};
 use ensnano_design::{
     BezierPathId, BezierPlaneId, BezierVertexId,
     grid::{GridId, GridPosition},
 };
 use ensnano_interactor::{BezierControlPoint, PhantomElement, phantom_helix_decoder};
-use ensnano_utils::{
-    BufferDimensions, wgpu,
-    winit::dpi::{PhysicalPosition, PhysicalSize},
-};
 use futures::executor;
 use num_enum::IntoPrimitive;
 use std::{convert::TryInto, rc::Rc};

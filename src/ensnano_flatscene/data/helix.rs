@@ -20,16 +20,16 @@ use super::super::view::EditionInfo;
 use super::super::view::{CircleInstance, InsertionDescriptor, InsertionInstance};
 use super::super::{CameraPtr, Flat, FlatHelix};
 use super::{FlatNucl, Helix2d, NuclCollection};
+use crate::ensnano_utils::{
+    chars2d::{Line, Sentence, TextDrawer},
+    full_isometry::FullIsometry,
+    instance::Instance,
+};
 use abscissa_converter::{AbscissaConverter, AbscissaConverter_};
 use ahash::RandomState;
 use ensnano_design::Nucl;
 use ensnano_design::ultraviolet;
 use ensnano_interactor::consts::*;
-use ensnano_utils::{
-    chars2d::{Line, Sentence, TextDrawer},
-    full_isometry::FullIsometry,
-    instance::Instance,
-};
 use lyon::math::{Point, rect};
 use lyon::path::Path;
 use lyon::path::builder::{BorderRadii, PathBuilder};

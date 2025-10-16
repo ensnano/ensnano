@@ -26,6 +26,11 @@ mod sausage_rosary;
 mod stl;
 pub mod view;
 
+use crate::ensnano_utils::{
+    BufferDimensions, PhySize, filename,
+    wgpu::{self, Device, Queue},
+    winit::{dpi::PhysicalPosition, event::WindowEvent, window::CursorIcon},
+};
 use controller::{Consequence, Controller, WidgetTarget};
 use data::{Data, DesignReader};
 use element_selector::{ElementSelector, SceneElement};
@@ -40,11 +45,6 @@ use ensnano_interactor::{
     application::{AppId, Application, Camera3D, Notification},
     graphics::DrawArea,
     operation::*,
-};
-use ensnano_utils::{
-    BufferDimensions, PhySize, filename,
-    wgpu::{self, Device, Queue},
-    winit::{dpi::PhysicalPosition, event::WindowEvent, window::CursorIcon},
 };
 use maths_3d::FiniteVec3;
 use std::{

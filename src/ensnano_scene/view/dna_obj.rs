@@ -18,9 +18,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! This modules defines the meshes that are used to draw DNA.
 
 use super::instances_drawer::{Instantiable, Vertexable};
+use crate::ensnano_utils::wgpu;
 use ensnano_design::ultraviolet;
 use ensnano_interactor::consts::*;
-use ensnano_utils::wgpu;
 use std::f32::consts::PI;
 use ultraviolet::{Mat4, Rotor3, Vec3, Vec4};
 
@@ -332,7 +332,7 @@ impl Instantiable for StereographicSphereAndPlane {
     }
 
     fn to_raw_instance(&self) -> Self::RawInstance {
-        use ensnano_utils::instance::Instance;
+        use crate::ensnano_utils::instance::Instance;
         let color =
             Instance::color_from_au32(ensnano_interactor::consts::STEREOGRAPHIC_SPHERE_COLOR);
         let model = Mat4::from_translation(self.position)

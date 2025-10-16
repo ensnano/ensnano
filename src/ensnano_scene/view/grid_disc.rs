@@ -15,7 +15,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use ensnano_utils::wgpu;
+use crate::ensnano_utils::wgpu;
 use wgpu::{Device, PrimitiveTopology, include_spirv};
 
 use super::instances_drawer::Instantiable;
@@ -64,7 +64,7 @@ impl super::instances_drawer::Vertexable for GridDiscVertex {
     fn to_raw(&self) -> GridDiscVertexRaw {
         GridDiscVertexRaw {
             position: self.position,
-            color: ensnano_utils::instance::Instance::color_from_au32(self.color),
+            color: crate::ensnano_utils::instance::Instance::color_from_au32(self.color),
         }
     }
 
@@ -122,7 +122,7 @@ impl Instantiable for GridDisc {
         GridDiscRaw {
             model_matrix: Mat4::from_translation(self.position)
                 * self.orientation.into_matrix().into_homogeneous(),
-            color: ensnano_utils::instance::Instance::color_from_au32(self.color),
+            color: crate::ensnano_utils::instance::Instance::color_from_au32(self.color),
             radius: self.radius,
             model_id: self.model_id,
             _padding: [0, 0],

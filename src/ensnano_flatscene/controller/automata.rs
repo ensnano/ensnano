@@ -18,7 +18,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::super::{FlatHelix, FlatNucl, data::ClickResult, view::CircleInstance};
 use super::*;
-use ensnano_utils::winit;
+use crate::ensnano_utils::winit;
 use std::time::Instant;
 use winit::{
     event::MouseButton,

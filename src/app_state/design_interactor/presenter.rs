@@ -29,13 +29,13 @@ use self::design_content::Staple;
 
 use super::*;
 use crate::ensnano_scene::data::{HBond, HalfHBond};
+use crate::ensnano_utils::id_generator::IdGenerator;
 use design_content::DesignContent;
 use ensnano_design::{BezierPathId, Extremity, HelixCollection, InstanciatedPiecewiseBezier, Nucl};
 use ensnano_interactor::{
     NeighborDescriptor, NeighborDescriptorGiver, Referential, ScaffoldInfo, Selection,
     application::Camera3D,
 };
-use ensnano_utils::id_generator::IdGenerator;
 use std::collections::{BTreeMap, HashMap, HashSet};
 use ultraviolet::{Mat4, Vec3};
 

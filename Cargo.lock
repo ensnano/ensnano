@@ -907,6 +907,7 @@ dependencies = [
  "ahash 0.8.12",
  "bytemuck",
  "chebyshev_polynomials",
+ "chrono",
  "color_space",
  "confy",
  "dirs",
@@ -916,14 +917,16 @@ dependencies = [
  "ensnano_interactor",
  "ensnano_organizer",
  "ensnano_physics",
- "ensnano_utils",
+ "fontdue",
  "futures",
  "futures-channel",
+ "gltf",
  "image 0.23.14",
  "int-enum",
  "log",
  "lyon",
  "mathru",
+ "nom_stl",
  "num_enum 0.5.11",
  "open",
  "ordered-float 2.10.1",
@@ -939,6 +942,7 @@ dependencies = [
  "serde_json",
  "ultraviolet",
  "version-compare 0.1.1",
+ "wgpu",
 ]
 
 [[package]]
@@ -1030,27 +1034,6 @@ dependencies = [
  "ensnano_design",
  "ensnano_interactor",
  "rapier3d",
-]
-
-[[package]]
-name = "ensnano_utils"
-version = "0.7.0"
-dependencies = [
- "ahash 0.8.12",
- "bytemuck",
- "chrono",
- "color_space",
- "ensnano_design",
- "ensnano_iced",
- "ensnano_interactor",
- "fontdue",
- "gltf",
- "log",
- "nom_stl",
- "rand",
- "serde",
- "ultraviolet",
- "wgpu",
 ]
 
 [[package]]

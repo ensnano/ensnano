@@ -18,7 +18,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 /// This modules contains structure that manipulate bind groups and their associated buffers.
 use std::rc::Rc;
 
-use crate::create_buffer_with_data;
+use crate::ensnano_utils::create_buffer_with_data;
 use crate::wgpu;
 use wgpu::{BindGroup, BindGroupLayout, Buffer, BufferDescriptor, Device, Queue};
 

@@ -23,6 +23,7 @@ pub mod update_insertion_length;
 
 use super::SimulationUpdate;
 use crate::ensnano_gui::ClipboardContent;
+use crate::ensnano_utils::colors;
 use crate::{
     app_state::{
         AddressPointer,
@@ -62,7 +63,6 @@ use ensnano_interactor::{
     operation::{Operation, TranslateBezierPathVertex},
 };
 use ensnano_organizer::GroupId;
-use ensnano_utils::colors;
 use std::{
     borrow::Cow,
     collections::{BTreeMap, HashMap},
