@@ -16,7 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use super::*;
-use ensnano_design::{InterpolatedCurveDescriptor, InterpolationDescriptor};
+use crate::ensnano_design::{InterpolatedCurveDescriptor, InterpolationDescriptor};
 use ultraviolet::{DVec3, Similarity3};
 #[derive(Debug, Clone)]
 pub struct RevolutionSurfaceSystemDescriptor {
@@ -229,7 +229,7 @@ impl UnrootedRevolutionSurfaceDescriptor {
         revolution_angle: f64,
         scale: f64,
     ) -> DVec3 {
-        use ensnano_design::PointOnSurface;
+        use crate::ensnano_design::PointOnSurface;
         let surface_point = PointOnSurface {
             revolution_angle,
             section_parameter,
@@ -478,7 +478,7 @@ impl RootedRevolutionSurface {
     }
 
     pub fn dpos_dtheta(&self, revolution_angle: f64, section_parameter: f64) -> DVec3 {
-        use ensnano_design::PointOnSurface;
+        use crate::ensnano_design::PointOnSurface;
         let surface_point = PointOnSurface {
             revolution_angle,
             section_parameter,
@@ -494,7 +494,7 @@ impl RootedRevolutionSurface {
     }
 
     pub fn d2pos_dtheta2(&self, revolution_angle: f64, section_parameter: f64) -> DVec3 {
-        use ensnano_design::PointOnSurface;
+        use crate::ensnano_design::PointOnSurface;
         let surface_point = PointOnSurface {
             revolution_angle,
             section_parameter,

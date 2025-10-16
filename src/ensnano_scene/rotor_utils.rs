@@ -17,7 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use {
-    ensnano_design::ultraviolet::{Rotor3, Vec3},
+    crate::ensnano_design::ultraviolet::{Rotor3, Vec3},
     std::f32::consts::PI,
 };
 

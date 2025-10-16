@@ -19,8 +19,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! This modules defines types and operations used by the graphical component of ENSnano to
 //! interact with the design.
 
-use ensnano_design::{
-    BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, BezierVertexId,
+use crate::ensnano_design::{
+    self, BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, BezierVertexId,
     CurveDescriptor2D, HelixParameters, Isometry3, Nucl,
     elements::{DesignElementKey, DnaAttribute},
     grid::{GridDescriptor, GridId, GridObject, GridTypeDescr, HelixGridPosition, Hyperboloid},

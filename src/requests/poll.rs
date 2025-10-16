@@ -20,10 +20,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! object.
 
 use super::*;
-use crate::{MainState, app_state::design_interactor::controller::clipboard::PastePosition};
 use crate::ensnano_interactor::{
     DesignOperation, HyperboloidOperation, SelectionConversion, application::Notification,
 };
+use crate::{MainState, app_state::design_interactor::controller::clipboard::PastePosition};
 use std::ops::DerefMut;
 
 pub(crate) fn poll_all<R: DerefMut<Target = Requests>>(

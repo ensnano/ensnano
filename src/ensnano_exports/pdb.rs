@@ -21,10 +21,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::PathBuf;
 use super::ultraviolet;
+use crate::ensnano_design::{Design, Domain, HelixCollection, Nucl};
 use crate::ensnano_exports::BasisMapper;
 use crate::ensnano_exports::oxdna::{OXDNA_LEN_FACTOR, OxDnaHelix};
 use ahash::AHashMap;
-use ensnano_design::{Design, Domain, HelixCollection, Nucl};
 use std::borrow::Cow;
 use ultraviolet::{Rotor3, Vec3};
 

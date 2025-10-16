@@ -20,7 +20,7 @@ use crate::ensnano_scene::element_selector;
 
 use super::super::AppState;
 use super::*;
-use ensnano_design::{BezierEndCoordinates, BezierVertexId};
+use crate::ensnano_design::{BezierEndCoordinates, BezierVertexId};
 use crate::ensnano_interactor::Selection;
 
 impl<R: DesignReader> Design3D<R> {

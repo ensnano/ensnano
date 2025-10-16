@@ -19,11 +19,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! `Instantiable` trait can be turned into instances that can be drawn by an
 //! [InstanceDrawer](InstanceDrawer).
 
+use crate::ensnano_interactor::consts::*;
 use crate::ensnano_utils::bindgroup_manager::DynamicBindGroup;
 use crate::ensnano_utils::create_buffer_with_data;
 use crate::ensnano_utils::texture::Texture;
 use crate::ensnano_utils::wgpu;
-use crate::ensnano_interactor::consts::*;
 use std::rc::Rc;
 use wgpu::{
     BindGroupLayoutDescriptor, Device, PrimitiveTopology, Queue, RenderPass, RenderPipeline,

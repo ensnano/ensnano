@@ -18,7 +18,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::super::view::InsertionInstance;
 use super::helix::{Helix, Shift};
 use super::{CameraPtr, FlatNucl};
-use ensnano_design::ultraviolet::Vec2;
+use crate::ensnano_design::ultraviolet::Vec2;
 use lyon::math::Point;
 use lyon::path::Path;
 use lyon::path::path::BuilderWithAttributes;

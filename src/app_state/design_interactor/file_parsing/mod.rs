@@ -20,13 +20,13 @@ mod cadnano;
 pub mod junctions;
 
 use super::*;
+use crate::ensnano_design::{Nucl, codenano, scadnano};
 use crate::ensnano_utils::id_generator::IdGenerator;
 use crate::{
     app_state::design_interactor::file_parsing::junctions::StrandJunction as _,
     controller::LoadDesignError,
 };
 use cadnano::{Cadnano, FromCadnano};
-use ensnano_design::{Nucl, codenano, scadnano};
 use scadnano::ScadnanoImportError;
 use std::path::{Path, PathBuf};
 
@@ -132,7 +132,7 @@ impl std::convert::From<ScadnanoImportError> for LoadDesignError {
 
 #[cfg(test)]
 mod tests {
-    use ensnano_design::HelixCollection;
+    use crate::ensnano_design::HelixCollection;
 
     fn one_helix_path() -> PathBuf {
         let mut ret = PathBuf::from(std::env!("CARGO_MANIFEST_DIR"));

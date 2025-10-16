@@ -23,7 +23,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! In such a state, cursor movement all cursor movement have similar consequences such has moving
 //! the camera or moving an object.
 
-use ensnano_design::BezierVertexId;
+use crate::ensnano_design::BezierVertexId;
 
 use super::*;
 

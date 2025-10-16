@@ -17,16 +17,16 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::tabs::GuiTab;
+use crate::ensnano_design::{
+    CurveDescriptor2D,
+    ultraviolet::{self, Rotor3, Vec3},
+};
 use crate::ensnano_gui::left_panel::Message;
 use crate::ensnano_gui::{AppState, SimulationState};
 use crate::ensnano_interactor::{
     EquadiffSolvingMethod, RevolutionSimulationParameters, RevolutionSurfaceRadius,
     RevolutionSurfaceSystemDescriptor, RootingParameters, ShiftGenerator,
     UnrootedRevolutionSurfaceDescriptor,
-};
-use ensnano_design::{
-    CurveDescriptor2D,
-    ultraviolet::{self, Rotor3, Vec3},
 };
 use ensnano_iced::{
     UiSize,

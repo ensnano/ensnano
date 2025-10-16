@@ -17,13 +17,13 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use super::super::DesignReader;
 use super::*;
-use ensnano_design::{BezierVertexId, grid::GridId};
+use crate::ensnano_design::{BezierVertexId, grid::GridId};
+use crate::ensnano_interactor::{Selection, SimulationState};
 use ensnano_iced::{
     helpers::*,
     iced::{self, Alignment, alignment::Horizontal},
     theme,
 };
-use crate::ensnano_interactor::{Selection, SimulationState};
 
 mod value_constructor;
 use value_constructor::{BezierVertexBuilder, Builder, GridBuilder};

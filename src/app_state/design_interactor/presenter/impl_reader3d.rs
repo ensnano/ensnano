@@ -17,9 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::*;
-use crate::ensnano_scene::view::GridInstance;
-use crate::ensnano_utils::StrandNucleotidesPositions;
-use ensnano_design::{
+use crate::ensnano_design::{
     BezierPlaneDescriptor, BezierPlaneId, BezierVertexId, Collection, CurveDescriptor, Domain,
     Nucl, SurfaceInfo,
     grid::{GridId, GridObject, GridPosition, HelixGridPosition},
@@ -28,6 +26,8 @@ use crate::ensnano_interactor::{
     BezierControlPoint, ObjectType, Referential,
     graphics::{LoopoutBond, LoopoutNucl},
 };
+use crate::ensnano_scene::view::GridInstance;
+use crate::ensnano_utils::StrandNucleotidesPositions;
 use std::collections::HashSet;
 use ultraviolet::{Mat4, Rotor3, Vec2, Vec3};
 

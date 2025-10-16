@@ -20,15 +20,15 @@ use std::sync::{Arc, Mutex};
 
 use super::super::{FlatHelix, FlatIdx, FlatNucl, HelixSegment, Requests};
 use super::{Flat, HelixVec, Nucl, Strand};
+use crate::ensnano_design::{
+    self, AbscissaConverter, Extremity, Helix as DesignHelix, HelixCollection, ultraviolet,
+};
 use crate::ensnano_interactor::consts::{
     CANDIDATE_STRAND_HIGHLIGHT_FACTOR_2D, SELECTED_STRAND_HIGHLIGHT_FACTOR_2D,
 };
 use crate::ensnano_interactor::{Referential, torsion::Torsion};
 use crate::ensnano_utils::full_isometry::FullIsometry;
 use ahash::RandomState;
-use ensnano_design::{
-    AbscissaConverter, Extremity, Helix as DesignHelix, HelixCollection, ultraviolet,
-};
 use ultraviolet::{Isometry2, Rotor2, Vec2, Vec3};
 
 use super::super::flattypes::FlatHelixMaps;

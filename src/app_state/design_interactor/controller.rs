@@ -22,6 +22,19 @@ pub mod simulations;
 pub mod update_insertion_length;
 
 use super::SimulationUpdate;
+use crate::ensnano_design::{
+    self, BezierEnd, BezierPathId, BezierPlaneDescriptor, BezierVertex, BezierVertexId, CameraId,
+    Collection, CurveDescriptor, Design, Domain, DomainJunction, Helices, Helix, HelixCollection,
+    HelixInterval, Nucl, Strand, Strands, UpToDateDesign,
+    drawing_style::{DrawingAttribute, DrawingStyle},
+    elements::{DesignElementKey, DnaAttribute},
+    grid::{
+        Edge, FreeGridId, GridDescriptor, GridId, GridObject, GridPosition, GridTypeDescr,
+        HelixGridPosition, Hyperboloid,
+    },
+    group_attributes::GroupPivot,
+    mutate_in_arc,
+};
 use crate::ensnano_gui::ClipboardContent;
 use crate::ensnano_interactor;
 use crate::ensnano_interactor::{
@@ -50,19 +63,6 @@ use crate::{
     controller::chanel_reader::ChannelReader,
 };
 use clipboard::{Clipboard, CopyOperation, PastePosition, PastedStrand, StrandClipboard};
-use ensnano_design::{
-    BezierEnd, BezierPathId, BezierPlaneDescriptor, BezierVertex, BezierVertexId, CameraId,
-    Collection, CurveDescriptor, Design, Domain, DomainJunction, Helices, Helix, HelixCollection,
-    HelixInterval, Nucl, Strand, Strands, UpToDateDesign,
-    drawing_style::{DrawingAttribute, DrawingStyle},
-    elements::{DesignElementKey, DnaAttribute},
-    grid::{
-        Edge, FreeGridId, GridDescriptor, GridId, GridObject, GridPosition, GridTypeDescr,
-        HelixGridPosition, Hyperboloid,
-    },
-    group_attributes::GroupPivot,
-    mutate_in_arc,
-};
 use ensnano_organizer::GroupId;
 use std::{
     borrow::Cow,
@@ -648,7 +648,7 @@ impl Controller {
         position: Vec3,
         orientation: Rotor3,
     ) -> Result<(), ErrOperation> {
-        use ensnano_design::grid::GridDivision;
+        use crate::ensnano_design::grid::GridDivision;
         // the hyperboloid grid is always the last one that was added to the design
         let grid_id = design
             .free_grids
@@ -3385,7 +3385,7 @@ impl Controller {
         object_path: PathBuf,
         design_path: PathBuf,
     ) -> Result<Design, ErrOperation> {
-        use ensnano_design::{External3DObject, External3DObjectDescriptor};
+        use crate::ensnano_design::{External3DObject, External3DObjectDescriptor};
         let object = External3DObject::new(External3DObjectDescriptor {
             object_path,
             design_path,
@@ -3402,7 +3402,7 @@ impl Controller {
         mut design: Design,
         path: PathBuf,
     ) -> Result<Design, ErrOperation> {
-        use ensnano_design::BezierPlaneId;
+        use crate::ensnano_design::BezierPlaneId;
 
         // The imported bezier path will be attached to plane 0 so we need to ensure that it exists
         if design.bezier_planes.get(&BezierPlaneId(0)).is_none() {

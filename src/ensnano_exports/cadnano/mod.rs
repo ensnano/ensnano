@@ -21,7 +21,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 mod parity_graph;
 
-use ensnano_design::{Collection, Design, Domain, Nucl, grid::GridData};
+use crate::ensnano_design::{self, Collection, Design, Domain, Nucl, grid::GridData};
 use std::collections::HashMap;
 
 pub fn cadnano_export(design: &Design) -> Result<String, CadnanoError> {

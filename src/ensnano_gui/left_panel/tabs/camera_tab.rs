@@ -19,16 +19,16 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::{
     AppState, CheckXoversParameter, FogParameters, HBondDisplay, Message, UiSize, tabs::GuiTab,
 };
+use crate::ensnano_interactor::{
+    app_state_parameters::AppStateParameters,
+    graphics::{ALL_BACKGROUND3D, ALL_RENDERING_MODE, Background3D, RenderingMode},
+};
 use ensnano_iced::{
     fonts::{MaterialIcon, icon_to_char},
     helpers::*,
     iced::{Alignment, Length},
     iced_aw::TabLabel,
     theme,
-};
-use crate::ensnano_interactor::{
-    app_state_parameters::AppStateParameters,
-    graphics::{ALL_BACKGROUND3D, ALL_RENDERING_MODE, Background3D, RenderingMode},
 };
 use std::marker::PhantomData;
 

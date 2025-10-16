@@ -37,6 +37,7 @@ mod data;
 mod flattypes;
 mod view;
 
+use crate::ensnano_design::{Isometry2, Nucl, consts::ITERATIVE_AXIS_ALGORITHM};
 use crate::ensnano_interactor::{
     ActionMode, DesignOperation, PhantomElement, Selection, SelectionMode, StrandBuilder,
     StrandBuildingStatus,
@@ -53,7 +54,6 @@ pub use camera2d::{Camera2D, FitRectangle};
 use controller::Controller;
 use data::Data;
 pub use data::{DesignReader, NuclCollection};
-use ensnano_design::{Isometry2, Nucl, consts::ITERATIVE_AXIS_ALGORITHM};
 use flattypes::*;
 use std::{
     cell::RefCell,

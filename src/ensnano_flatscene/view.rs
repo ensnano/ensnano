@@ -28,6 +28,7 @@ use super::data::{
 };
 use super::{CameraPtr, FlatIdx, FlatNucl, NuclCollection};
 use super::{DrawArea, PhySize};
+use crate::ensnano_design::Nucl;
 use crate::ensnano_interactor::consts::SAMPLE_COUNT;
 use crate::ensnano_utils::Ndc;
 use crate::ensnano_utils::bindgroup_manager::{DynamicBindGroup, UniformBindGroup};
@@ -40,7 +41,6 @@ use crate::ensnano_utils::wgpu;
 use crate::ensnano_utils::winit::dpi::PhysicalPosition;
 use ahash::RandomState;
 use background::Background;
-use ensnano_design::Nucl;
 use helix_view::{HelixView, StrandView};
 use insertion::InsertionDrawer;
 pub use insertion::{InsertionDescriptor, InsertionInstance};

@@ -20,13 +20,13 @@ use super::{
     Design, Helix,
     roller::{DesignData, RollSystem},
 };
+use crate::ensnano_design::{
+    self, Collection, CurveDescriptor, HelixCollection, HelixParameters, Twist,
+    grid::{GridDescriptor, GridTypeDescr, *},
+};
 use crate::{
     app_state::design_interactor::{Presenter, presenter::SimulationUpdate},
     controller::chanel_reader::ChannelReader,
-};
-use ensnano_design::{
-    Collection, CurveDescriptor, HelixCollection, HelixParameters, Twist,
-    grid::{GridDescriptor, GridTypeDescr, *},
 };
 use std::{
     collections::HashMap,
@@ -242,7 +242,7 @@ impl super::SimulationInterface for TwistInterface {
 
 impl DesignData {
     fn square_xover_constraints(&self) -> f64 {
-        use ensnano_design::utils::vec_to_dvec;
+        use crate::ensnano_design::utils::vec_to_dvec;
         let mut ret = 0.0;
         let len_0 = super::roller::dist_ac(&self.helix_parameters) as f64;
         for (n1, n2) in self.xovers.iter() {

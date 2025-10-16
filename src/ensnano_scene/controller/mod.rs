@@ -22,16 +22,16 @@ use super::{
     Duration, ElementSelector, HandleDir, SceneElement, Stereography, ViewPtr,
     WidgetRotationMode as RotationMode, camera, ultraviolet,
 };
+use crate::ensnano_design::grid::{GridId, GridObject, GridPosition, HelixGridPosition};
+use crate::ensnano_design::{
+    BezierPathId, BezierPlaneId, BezierVertex, BezierVertexId, Nucl, SurfaceInfo, SurfacePoint,
+};
+use crate::ensnano_interactor::consts::*;
 use crate::ensnano_scene::maths_3d::FiniteVec3;
 use crate::ensnano_utils::winit;
 use crate::ensnano_utils::winit::window::CursorIcon;
 use crate::{PhySize, PhysicalPosition, WindowEvent};
 use camera::CameraController;
-use ensnano_design::grid::{GridId, GridObject, GridPosition, HelixGridPosition};
-use ensnano_design::{
-    BezierPathId, BezierPlaneId, BezierVertex, BezierVertexId, Nucl, SurfaceInfo, SurfacePoint,
-};
-use crate::ensnano_interactor::consts::*;
 use std::cell::RefCell;
 use std::ops::Deref;
 use std::rc::Rc;

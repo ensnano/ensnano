@@ -19,10 +19,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 mod xover_suggestions;
 
 use super::*;
-use crate::ensnano_scene::view::GridInstance;
-use crate::ensnano_utils::{click_counter::ClickCounter, colors, instance::Instance};
-use ahash::RandomState;
-use ensnano_design::{
+use crate::ensnano_design::{
     drawing_style::{ColorType, DrawingAttribute, DrawingStyle},
     elements::{DesignElement, DesignElementKey},
     grid::{GridData, GridId, GridObject, GridPosition, HelixGridPosition},
@@ -36,6 +33,9 @@ use crate::ensnano_interactor::{
     },
     graphics::{LoopoutBond, LoopoutNucl},
 };
+use crate::ensnano_scene::view::GridInstance;
+use crate::ensnano_utils::{click_counter::ClickCounter, colors, instance::Instance};
+use ahash::RandomState;
 use serde::Serialize;
 use std::{
     borrow::Cow,
@@ -980,7 +980,6 @@ impl DesignContent {
             elements.push(DesignElement::HelixElement {
                 id: *h_id,
                 group: groups.get(h_id).cloned(),
-                visible: h.visible,
                 locked_for_simulations: h.locked_for_simulations,
             });
         }

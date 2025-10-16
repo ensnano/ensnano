@@ -19,15 +19,15 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 const MAX_ACCEL: f64 = 100.;
 
 use super::{SimulationInterface, SimulationUpdate};
-use crate::{app_state::ErrOperation, controller::chanel_reader::ChannelReader};
-use ensnano_design::{
-    CurveDescriptor, CurveDescriptor2D, DVec3, HelixParameters, InterpolationDescriptor, Isometry3,
-    Similarity3,
+use crate::ensnano_design::{
+    self, CurveDescriptor, CurveDescriptor2D, DVec3, HelixParameters, InterpolationDescriptor,
+    Isometry3, Similarity3,
 };
 use crate::ensnano_interactor::{
     EquadiffSolvingMethod, RevolutionSimulationParameters, RevolutionSurfaceSystemDescriptor,
     RootedRevolutionSurface,
 };
+use crate::{app_state::ErrOperation, controller::chanel_reader::ChannelReader};
 use mathru::{
     algebra::linear::vector::vector::Vector,
     analysis::differential_equation::ordinary::{
@@ -501,7 +501,7 @@ impl SimulationUpdate for RevolutionSurfaceSystem {
 
 impl ensnano_design::AdditionalStructure for RevolutionSurfaceSystem {
     fn position(&self) -> Vec<ultraviolet::Vec3> {
-        use ensnano_design::utils::dvec_to_vec;
+        use crate::ensnano_design::utils::dvec_to_vec;
         let thetas = self
             .last_thetas
             .clone()
@@ -592,7 +592,9 @@ struct HelicesRouting {
 
 impl SimulationUpdate for HelicesRouting {
     fn update_design(&self, design: &mut ensnano_design::Design) {
-        use ensnano_design::{Domain, DomainJunction, Helix, HelixInterval, Rotor2, Strand, Vec2};
+        use crate::ensnano_design::{
+            Domain, DomainJunction, Helix, HelixInterval, Rotor2, Strand, Vec2,
+        };
         let helix_parameters = design.helix_parameters.unwrap_or_default();
         let mut helices = design.helices.make_mut();
         let mut strand_to_be_added = Vec::new();

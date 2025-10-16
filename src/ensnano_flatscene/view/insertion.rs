@@ -16,8 +16,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use super::*;
+use crate::ensnano_design::ultraviolet;
 use crate::ensnano_utils::wgpu;
-use ensnano_design::ultraviolet;
 use lyon::math::Point;
 use lyon::path::Path;
 use lyon::tessellation;

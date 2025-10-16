@@ -20,7 +20,7 @@ use super::{
     AddressPointer, Controller, ControllerState, Design, Domain, ErrOperation, HelixGridPosition,
     HelixInterval, Nucl, Strand,
 };
-use ensnano_design::{
+use crate::ensnano_design::{
     Helices, HelixCollection, HelixParameters, MutStrandAndData, Strands, UpToDateDesign,
     grid::{Edge, FreeGridId, GridData, GridId, GridPosition},
 };
@@ -595,7 +595,7 @@ impl Controller {
             let color = Self::new_color(color_idx);
             if pasted_strand.pastable {
                 let junctions =
-                    ensnano_design::read_junctions(pasted_strand.domains.as_slice(), false);
+                    crate::ensnano_design::read_junctions(pasted_strand.domains.as_slice(), false);
                 let strand = Strand {
                     domains: pasted_strand.domains.clone(),
                     color,

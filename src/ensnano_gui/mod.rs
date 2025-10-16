@@ -39,7 +39,7 @@ pub use left_panel::{
 };
 /// Draw the status bar
 pub mod status_bar;
-pub use ensnano_design::{CameraId, grid::GridId};
+pub use crate::ensnano_design::{CameraId, grid::GridId};
 pub use status_bar::{ClipboardContent, CurrentOpState, StrandBuildingStatus};
 mod consts;
 
@@ -47,17 +47,11 @@ mod icon;
 
 use status_bar::StatusBar;
 
-use ensnano_design::{
-    BezierPathId, BezierVertexId, HelixParameters, Nucl,
+use crate::ensnano_design::{
+    self, BezierPathId, BezierVertexId, HelixParameters, Nucl,
     elements::{DesignElement, DesignElementKey, DnaAttribute},
     grid::GridTypeDescr,
     ultraviolet,
-};
-use ensnano_iced::{
-    iced_graphics,
-    iced_runtime::{Debug, program},
-    iced_wgpu::{self, Backend, wgpu},
-    iced_winit::{conversion, winit},
 };
 use crate::ensnano_interactor::{
     ActionMode, HyperboloidRequest, RapierSimulationRequest, RollRequest, SelectionMode,
@@ -71,6 +65,12 @@ use crate::ensnano_interactor::{
         SplitMode,
     },
     operation::Operation,
+};
+use ensnano_iced::{
+    iced_graphics,
+    iced_runtime::{Debug, program},
+    iced_wgpu::{self, Backend, wgpu},
+    iced_winit::{conversion, winit},
 };
 pub use ensnano_organizer::OrganizerTree;
 use iced::{Renderer, Size, event::Event, keyboard};

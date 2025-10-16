@@ -21,6 +21,11 @@ pub mod file_parsing;
 pub mod presenter;
 
 use super::AddressPointer;
+use crate::ensnano_design;
+use crate::ensnano_design::{
+    BezierPathId, BezierPlaneDescriptor, Design, HelixCollection, HelixParameters,
+    InstanciatedPiecewiseBezier, grid::GridId, group_attributes::GroupAttribute,
+};
 use crate::ensnano_exports::{ExportResult, ExportType};
 use crate::ensnano_gui::CurrentOpState;
 use crate::ensnano_interactor::{
@@ -35,10 +40,6 @@ use crate::{
     controller::chanel_reader::ChannelReader,
 };
 use controller::{Controller, ErrOperation, InteractorNotification};
-use ensnano_design::{
-    BezierPathId, BezierPlaneDescriptor, Design, HelixCollection, HelixParameters,
-    InstanciatedPiecewiseBezier, grid::GridId, group_attributes::GroupAttribute,
-};
 use ensnano_organizer::GroupId;
 use presenter::{Presenter, SimulationUpdate, apply_simulation_update, update_presenter};
 use std::sync::Arc;
@@ -394,7 +395,7 @@ impl DesignReader {
     }
 
     pub fn get_default_bezier(&self) -> Option<&BezierPlaneDescriptor> {
-        use ensnano_design::Collection;
+        use crate::ensnano_design::Collection;
         self.presenter
             .current_design
             .as_ref()
@@ -404,7 +405,7 @@ impl DesignReader {
     }
 
     pub fn get_first_bezier_plane(&self, path_id: BezierPathId) -> Option<&BezierPlaneDescriptor> {
-        use ensnano_design::Collection;
+        use crate::ensnano_design::Collection;
         let path = self
             .presenter
             .current_design
@@ -430,12 +431,12 @@ mod tests {
         CopyOperation, PastePosition,
     };
     use crate::app_state::design_interactor::file_parsing::junctions::StrandJunction as _;
+    use crate::ensnano_design::HelixCollection;
+    use crate::ensnano_design::grid::HelixGridPosition;
+    use crate::ensnano_design::{Collection, DomainJunction, Nucl, Strand, grid::GridDescriptor};
     use crate::ensnano_interactor::operation::GridHelixCreation;
     use crate::ensnano_interactor::{DesignReader, InsertionPoint};
     use crate::ensnano_scene::data::DesignReader as Reader3d;
-    use ensnano_design::HelixCollection;
-    use ensnano_design::grid::HelixGridPosition;
-    use ensnano_design::{Collection, DomainJunction, Nucl, Strand, grid::GridDescriptor};
     use std::path::PathBuf;
     use ultraviolet::{Rotor3, Vec3};
 

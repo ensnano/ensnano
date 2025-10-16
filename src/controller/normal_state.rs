@@ -19,6 +19,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::download_intervals::DownloadIntervals;
 use super::messages::CHANGING_DNA_PARAMETERS_WARNING;
 use super::*;
+use crate::ensnano_design::{
+    self, HelixParameters,
+    grid::{GridDescriptor, GridId, GridTypeDescr},
+    group_attributes::GroupPivot,
+};
 use crate::ensnano_interactor::{
     DesignOperation, HyperboloidOperation, HyperboloidRequest, RapierSimulationRequest,
     RevolutionSurfaceSystemDescriptor, RigidBodyConstants, RollRequest, application::Notification,
@@ -29,11 +34,6 @@ use crate::{
         clipboard::PastePosition, simulations::SimulationOperation,
     },
     controller::download_staples::DownloadStaples,
-};
-use ensnano_design::{
-    HelixParameters,
-    grid::{GridDescriptor, GridId, GridTypeDescr},
-    group_attributes::GroupPivot,
 };
 use std::sync::Arc;
 

@@ -16,8 +16,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+use crate::ensnano_design::{BezierPathId, CurveDescriptor2D};
 use crate::ensnano_gui::{CurveDescriptorBuilder, CurveDescriptorParameter, InstanciatedParameter};
-use ensnano_design::{BezierPathId, CurveDescriptor2D};
 use ultraviolet::{Rotor3, Vec3};
 
 pub(super) const ELLIPSE_BUILDER: CurveDescriptorBuilder<super::AppState> =

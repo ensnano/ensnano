@@ -19,7 +19,7 @@ use crate::ensnano_utils::wgpu;
 use wgpu::{Device, PrimitiveTopology, include_spirv};
 
 use super::instances_drawer::Instantiable;
-use ensnano_design::ultraviolet::{Mat4, Rotor3, Vec3, Vec4};
+use crate::ensnano_design::ultraviolet::{Mat4, Rotor3, Vec3, Vec4};
 
 #[derive(Debug, Clone)]
 pub struct GridDisc {
