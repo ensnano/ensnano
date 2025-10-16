@@ -134,4 +134,3 @@ impl Curved for CircleCurve {
         ));
     }
 }
-
