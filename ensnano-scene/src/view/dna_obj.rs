@@ -35,7 +35,7 @@ pub struct DnaVertex {
 }
 
 pub trait DnaObject:
-    Instantiable<Ressource = (), Vertex = DnaVertex, RawInstance = RawDnaInstance>
+    Instantiable<Resource = (), Vertex = DnaVertex, RawInstance = RawDnaInstance>
 {
 }
 
@@ -107,7 +107,7 @@ impl PlainRectangleInstance {
 impl Instantiable for PlainRectangleInstance {
     type Vertex = DnaVertex;
     type RawInstance = RawDnaInstance;
-    type Ressource = ();
+    type Resource = ();
 
     fn vertices() -> Vec<DnaVertex> {
         let vertices = vec![
@@ -195,7 +195,7 @@ impl SphereInstance {
 impl Instantiable for SphereInstance {
     type Vertex = DnaVertex;
     type RawInstance = RawDnaInstance;
-    type Ressource = ();
+    type Resource = ();
 
     fn vertices() -> Vec<DnaVertex> {
         let mut vertices = Vec::new();
@@ -300,7 +300,7 @@ pub struct StereographicSphereAndPlane {
 impl Instantiable for StereographicSphereAndPlane {
     type Vertex = DnaVertex;
     type RawInstance = RawDnaInstance;
-    type Ressource = ();
+    type Resource = ();
 
     fn vertices() -> Vec<DnaVertex> {
         let mut ret = SphereInstance::vertices();
@@ -397,7 +397,7 @@ impl TubeInstance {
 impl Instantiable for TubeInstance {
     type Vertex = DnaVertex;
     type RawInstance = RawDnaInstance;
-    type Ressource = ();
+    type Resource = ();
 
     fn vertices() -> Vec<DnaVertex> {
         (0..(2 * NB_RAY_TUBE))
@@ -482,7 +482,7 @@ impl TubeLidInstance {
 impl Instantiable for TubeLidInstance {
     type Vertex = DnaVertex;
     type RawInstance = RawDnaInstance;
-    type Ressource = ();
+    type Resource = ();
 
     fn vertices() -> Vec<DnaVertex> {
         let normal = [1., 0., 0.];
@@ -568,7 +568,7 @@ pub struct SlicedTubeInstance {
 impl Instantiable for SlicedTubeInstance {
     type Vertex = DnaVertex;
     type RawInstance = RawDnaInstance;
-    type Ressource = ();
+    type Resource = ();
 
     fn vertices() -> Vec<DnaVertex> {
         // Precomputation of the cos and sin
@@ -680,7 +680,7 @@ pub struct ConeInstance {
 impl Instantiable for ConeInstance {
     type Vertex = DnaVertex;
     type RawInstance = RawDnaInstance;
-    type Ressource = ();
+    type Resource = ();
 
     fn vertices() -> Vec<DnaVertex> {
         let radius = 1.;
@@ -780,7 +780,7 @@ pub struct Ellipsoid {
 impl Instantiable for Ellipsoid {
     type Vertex = DnaVertex;
     type RawInstance = RawDnaInstance;
-    type Ressource = ();
+    type Resource = ();
 
     fn vertices() -> Vec<Self::Vertex> {
         SphereInstance::vertices()

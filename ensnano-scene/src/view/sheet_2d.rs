@@ -89,7 +89,7 @@ impl Sheet2D {
 
 impl Instantiable for Sheet2D {
     type Vertex = SheetVertex;
-    type Ressource = ();
+    type Resource = ();
     type RawInstance = Sheet2DRaw;
 
     fn to_raw_instance(&self) -> Self::RawInstance {

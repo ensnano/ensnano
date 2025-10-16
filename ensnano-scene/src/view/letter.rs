@@ -19,7 +19,7 @@ use ensnano_design::ultraviolet::{Vec2, Vec3, Vec4};
 use ensnano_utils::wgpu;
 use wgpu::{Device, include_spirv};
 
-use super::instances_drawer::{Instantiable, RessourceProvider, Vertexable};
+use super::instances_drawer::{Instantiable, ResourceProvider, Vertexable};
 use ensnano_utils::text::Letter;
 
 #[derive(Debug, Clone)]
@@ -41,8 +41,8 @@ pub struct RawLetter {
     pub scale: f32,
 }
 
-impl RessourceProvider for Letter {
-    fn ressources_layout() -> &'static [wgpu::BindGroupLayoutEntry] {
+impl ResourceProvider for Letter {
+    fn resources_layout() -> &'static [wgpu::BindGroupLayoutEntry] {
         &[
             wgpu::BindGroupLayoutEntry {
                 binding: 0,
@@ -72,7 +72,7 @@ impl RessourceProvider for Letter {
         Some(ensnano_utils::text::Vertex::desc())
     }
 
-    fn ressources(&self) -> Vec<wgpu::BindGroupEntry<'_>> {
+    fn resources(&self) -> Vec<wgpu::BindGroupEntry<'_>> {
         vec![
             wgpu::BindGroupEntry {
                 binding: 0,
@@ -117,7 +117,7 @@ impl Vertexable for LetterVertex {
 }
 
 impl Instantiable for LetterInstance {
-    type Ressource = Letter;
+    type Resource = Letter;
     type Vertex = LetterVertex;
     type RawInstance = RawLetter;
 

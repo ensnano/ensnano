@@ -388,8 +388,8 @@ impl GridTextures {
     }
 }
 
-impl RessourceProvider for GridTextures {
-    fn ressources_layout() -> &'static [wgpu::BindGroupLayoutEntry] {
+impl ResourceProvider for GridTextures {
+    fn resources_layout() -> &'static [wgpu::BindGroupLayoutEntry] {
         &[
             wgpu::BindGroupLayoutEntry {
                 binding: 0,
@@ -426,7 +426,7 @@ impl RessourceProvider for GridTextures {
         ]
     }
 
-    fn ressources(&self) -> Vec<wgpu::BindGroupEntry<'_>> {
+    fn resources(&self) -> Vec<wgpu::BindGroupEntry<'_>> {
         vec![
             wgpu::BindGroupEntry {
                 binding: 0,
@@ -451,7 +451,7 @@ impl RessourceProvider for GridTextures {
 impl Instantiable for GridInstance {
     type Vertex = GridVertex;
     type RawInstance = GridInstanceRaw;
-    type Ressource = GridTextures;
+    type Resource = GridTextures;
 
     fn to_raw_instance(&self) -> GridInstanceRaw {
         self.to_raw()

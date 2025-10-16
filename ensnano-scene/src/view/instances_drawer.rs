@@ -40,18 +40,18 @@ pub trait Vertexable {
     fn to_raw(&self) -> Self::RawType;
 }
 
-/// A type that provides additional ressources needed to draw a mesh
-pub trait RessourceProvider {
-    /// Description of the additional ressources (eg textures) needed to draw the mesh.
-    fn ressources_layout() -> &'static [wgpu::BindGroupLayoutEntry] {
+/// A type that provides additional resources needed to draw a mesh
+pub trait ResourceProvider {
+    /// Description of the additional resources (eg textures) needed to draw the mesh.
+    fn resources_layout() -> &'static [wgpu::BindGroupLayoutEntry] {
         &[]
     }
-    /// Description of the additional ressources (eg textures) needed to draw the mesh.
-    fn ressources(&self) -> Vec<wgpu::BindGroupEntry<'_>> {
+    /// Description of the additional resources (eg textures) needed to draw the mesh.
+    fn resources(&self) -> Vec<wgpu::BindGroupEntry<'_>> {
         Vec::new()
     }
 
-    /// This methods allows the ressource tho provide the vertex buffer. If the return value is
+    /// This methods allows the resource tho provide the vertex buffer. If the return value is
     /// Some, it takes priority over the Instantiable's vertices.
     fn vertex_buffer_desc() -> Option<wgpu::VertexBufferLayout<'static>>
     where
@@ -60,20 +60,20 @@ pub trait RessourceProvider {
         None
     }
 
-    /// This methods allows the ressource tho provide the vertex buffer. If the return value is
+    /// This methods allows the resource tho provide the vertex buffer. If the return value is
     /// Some, it takes priority over the Instantiable's vertices.
     fn vertex_buffer(&self) -> Option<&wgpu::Buffer> {
         None
     }
 
-    /// This methods allows the ressource tho provide the index buffer. If the return value is
+    /// This methods allows the resource tho provide the index buffer. If the return value is
     /// Some, it takes priority over the Instantiable's indices.
     fn index_buffer(&self) -> Option<&wgpu::Buffer> {
         None
     }
 }
 
-impl RessourceProvider for () {}
+impl ResourceProvider for () {}
 
 /// A type that represents a mesh
 pub trait Instantiable {
@@ -81,8 +81,8 @@ pub trait Instantiable {
     type Vertex: Vertexable;
     /// The type that will represents the instance data
     type RawInstance: bytemuck::Pod + bytemuck::Zeroable;
-    /// The type that will provide additional ressources needed to draw the mesh
-    type Ressource: RessourceProvider;
+    /// The type that will provide additional resources needed to draw the mesh
+    type Resource: ResourceProvider;
     /// The vertices of the mesh.
     ///
     /// The vertices must be the same for all the instances drawn by an
@@ -137,7 +137,7 @@ pub trait Instantiable {
         None
     }
 
-    /// Return the content of the vertex buffer, or `None` if `custom_vertex` is not overwriten
+    /// Return the content of the vertex buffer, or `None` if `custom_vertex` is not overwritten
     fn custom_raw_vertices(&self) -> Option<Vec<<Self::Vertex as Vertexable>::RawType>> {
         self.custom_vertices()
             .map(|v| v.iter().map(Vertexable::to_raw).collect())
@@ -197,13 +197,13 @@ pub struct InstanceDrawer<D: Instantiable + ?Sized> {
     index_buffer: wgpu::Buffer,
     /// The bind group containing the instances data
     instances: DynamicBindGroup,
-    /// The bind group containing the additional ressources need to draw the mesh
+    /// The bind group containing the additional resources need to draw the mesh
     additional_bind_group: Option<wgpu::BindGroup>,
     /// The number of instances
     nb_instances: u32,
     /// The number of vertex indices
     nb_indices: u32,
-    ressource: D::Ressource,
+    resource: D::Resource,
     device: Rc<Device>,
     label: String,
 }
@@ -214,7 +214,7 @@ impl<D: Instantiable> InstanceDrawer<D> {
         queue: Rc<Queue>,
         viewer_desc: &BindGroupLayoutDescriptor<'static>,
         models_desc: &BindGroupLayoutDescriptor<'static>,
-        ressource: D::Ressource,
+        resource: D::Resource,
         fake: bool,
         label: S,
     ) -> Self {
@@ -223,7 +223,7 @@ impl<D: Instantiable> InstanceDrawer<D> {
             queue,
             viewer_desc,
             models_desc,
-            ressource,
+            resource,
             fake,
             false,
             false,
@@ -236,7 +236,7 @@ impl<D: Instantiable> InstanceDrawer<D> {
         queue: Rc<Queue>,
         viewer_desc: &BindGroupLayoutDescriptor<'static>,
         models_desc: &BindGroupLayoutDescriptor<'static>,
-        ressource: D::Ressource,
+        resource: D::Resource,
         label: S,
     ) -> Self {
         Self::init(
@@ -244,7 +244,7 @@ impl<D: Instantiable> InstanceDrawer<D> {
             queue,
             viewer_desc,
             models_desc,
-            ressource,
+            resource,
             false,
             false,
             true,
@@ -257,7 +257,7 @@ impl<D: Instantiable> InstanceDrawer<D> {
         queue: Rc<Queue>,
         viewer_desc: &BindGroupLayoutDescriptor<'static>,
         models_desc: &BindGroupLayoutDescriptor<'static>,
-        ressource: D::Ressource,
+        resource: D::Resource,
         fake: bool,
         label: S,
     ) -> Self {
@@ -266,7 +266,7 @@ impl<D: Instantiable> InstanceDrawer<D> {
             queue,
             viewer_desc,
             models_desc,
-            ressource,
+            resource,
             fake,
             true,
             false,
@@ -279,7 +279,7 @@ impl<D: Instantiable> InstanceDrawer<D> {
         queue: Rc<Queue>,
         viewer_desc: &BindGroupLayoutDescriptor<'static>,
         models_desc: &BindGroupLayoutDescriptor<'static>,
-        ressource: D::Ressource,
+        resource: D::Resource,
         fake: bool,
         wireframe: bool,
         outliner: bool,
@@ -342,15 +342,15 @@ impl<D: Instantiable> InstanceDrawer<D> {
             format!("{label_string} instances").as_str(),
         );
 
-        let additional_ressources_layout = D::Ressource::ressources_layout();
-        let additional_bind_group = (!additional_ressources_layout.is_empty()).then(|| {
+        let additional_resources_layout = D::Resource::resources_layout();
+        let additional_bind_group = (!additional_resources_layout.is_empty()).then(|| {
             device.create_bind_group(&wgpu::BindGroupDescriptor {
                 label: None,
                 layout: &device.create_bind_group_layout(&BindGroupLayoutDescriptor {
                     label: None,
-                    entries: additional_ressources_layout,
+                    entries: additional_resources_layout,
                 }),
-                entries: ressource.ressources().as_slice(),
+                entries: resource.resources().as_slice(),
             })
         });
 
@@ -362,7 +362,7 @@ impl<D: Instantiable> InstanceDrawer<D> {
             nb_instances: 0,
             nb_indices: D::indices().len() as u32,
             additional_bind_group,
-            ressource,
+            resource,
             device,
             label: label_string,
         }
@@ -447,9 +447,9 @@ impl<D: Instantiable> InstanceDrawer<D> {
         let additional_bind_group_layout =
             device.create_bind_group_layout(&BindGroupLayoutDescriptor {
                 label: None,
-                entries: D::Ressource::ressources_layout(),
+                entries: D::Resource::resources_layout(),
             });
-        let render_pipeline_layout = if D::Ressource::ressources_layout().len() > 0 {
+        let render_pipeline_layout = if D::Resource::resources_layout().len() > 0 {
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 bind_group_layouts: &[
                     &viewer_bind_group_layout,
@@ -484,11 +484,7 @@ impl<D: Instantiable> InstanceDrawer<D> {
             _ => None,
         };
 
-        let cull_mode = if outliner {
-            Some(wgpu::Face::Front)
-        } else {
-            None
-        };
+        let cull_mode = outliner.then(|| wgpu::Face::Front);
 
         let primitive = wgpu::PrimitiveState {
             topology: primitive_topology,
@@ -503,7 +499,7 @@ impl<D: Instantiable> InstanceDrawer<D> {
             vertex: wgpu::VertexState {
                 module: &vertex_module,
                 entry_point: "main",
-                buffers: &[D::Ressource::vertex_buffer_desc().unwrap_or_else(D::Vertex::desc)],
+                buffers: &[D::Resource::vertex_buffer_desc().unwrap_or_else(D::Vertex::desc)],
             },
             fragment: Some(wgpu::FragmentState {
                 module: &fragment_module,
@@ -559,13 +555,13 @@ impl<D: Instantiable> RawDrawer for InstanceDrawer<D> {
         if self.nb_instances > 0 {
             let pipeline = &self.pipeline;
             render_pass.set_pipeline(pipeline);
-            let vbo = if let Some(ref vbo) = self.ressource.vertex_buffer() {
+            let vbo = if let Some(ref vbo) = self.resource.vertex_buffer() {
                 vbo.slice(..)
             } else {
                 self.vertex_buffer.slice(..)
             };
             render_pass.set_vertex_buffer(0, vbo);
-            let ibo = if let Some(ref ibo) = self.ressource.index_buffer() {
+            let ibo = if let Some(ref ibo) = self.resource.index_buffer() {
                 ibo.slice(..)
             } else {
                 self.index_buffer.slice(..)
