@@ -3030,7 +3030,7 @@ impl Controller {
             .is_cyclic;
         //println!("half1 {}, ; half0 {}", new_id, target_strand);
         Self::split_strand(strands, &nucl, Some(target_3prime), color_idx)?;
-        //println!("splitted");
+        //println!("split");
 
         if !was_cyclic && source_strand != target_strand {
             if target_3prime {

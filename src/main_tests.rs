@@ -36,7 +36,6 @@ impl Application for DummyScene {
         &mut self,
         _encoder: &mut wgpu::CommandEncoder,
         _target: &wgpu::TextureView,
-        _dt: Duration,
     ) {
         ()
     }

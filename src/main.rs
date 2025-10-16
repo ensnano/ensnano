@@ -626,9 +626,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             });
 
                         // We draw the applications first
-                        let now = std::time::Instant::now();
-                        let dt = now - last_render_time;
-                        scheduler.draw_apps(&mut encoder, &multiplexer, dt);
+                        scheduler.draw_apps(&mut encoder, &multiplexer);
 
                         gui.render(
                             &mut encoder,

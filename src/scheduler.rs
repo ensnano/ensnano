@@ -89,16 +89,11 @@ impl Scheduler {
     }
 
     /// Request an application to draw on a texture
-    pub fn draw_apps(
-        &mut self,
-        encoder: &mut wgpu::CommandEncoder,
-        multiplexer: &Multiplexer,
-        dt: Duration,
-    ) {
+    pub fn draw_apps(&mut self, encoder: &mut wgpu::CommandEncoder, multiplexer: &Multiplexer) {
         for area in self.needs_redraw.iter() {
             let app = self.applications.get_mut(area).unwrap();
             if let Some(target) = multiplexer.get_texture_view(*area) {
-                app.lock().unwrap().on_redraw_request(encoder, target, dt);
+                app.lock().unwrap().on_redraw_request(encoder, target);
             }
         }
     }

@@ -1335,7 +1335,6 @@ impl<S: AppState> Application for Scene<S> {
         &mut self,
         encoder: &mut wgpu::CommandEncoder,
         target: &wgpu::TextureView,
-        _dt: Duration,
     ) {
         let older_state = self.older_state.clone();
         self.draw_view(encoder, target, &older_state)

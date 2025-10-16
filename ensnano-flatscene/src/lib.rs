@@ -144,7 +144,7 @@ impl<S: AppState> FlatScene<S> {
             self.area.size.height as f32
         };
 
-        // Allocate resources even if the screen is not splited.
+        // Allocate resources even if the screen is not split.
         let globals_top = camera2d::Globals::from_resolution([self.area.size.width as f32, height]);
         let globals_bottom =
             camera2d::Globals::from_resolution([self.area.size.width as f32, height]);
@@ -539,7 +539,7 @@ impl<S: AppState> FlatScene<S> {
     fn toggle_split_from_btn(&mut self) {
         self.is_split ^= true;
         for c in self.controller.iter_mut() {
-            c.set_splited(self.is_split, true);
+            c.set_split(self.is_split, true);
         }
 
         for v in self.view.iter_mut() {
@@ -553,7 +553,7 @@ impl<S: AppState> FlatScene<S> {
             v.borrow_mut().set_splited(self.is_split);
         }
         for c in self.controller.iter_mut() {
-            c.set_splited(self.is_split, false);
+            c.set_split(self.is_split, false);
         }
         self.view[self.selected_design]
             .borrow_mut()
@@ -823,9 +823,7 @@ impl<S: AppState> Application for FlatScene<S> {
         &mut self,
         encoder: &mut wgpu::CommandEncoder,
         target: &wgpu::TextureView,
-        _dt: Duration,
     ) {
-        //println!("draw flatscene");
         self.draw_view(encoder, target)
     }
 

@@ -133,7 +133,7 @@ impl<S: AppState> Controller<S> {
         self.update_globals();
     }
 
-    pub fn set_splited(&mut self, splited: bool, refit: bool) {
+    pub fn set_split(&mut self, splited: bool, refit: bool) {
         self.splited = splited;
         let old_rectangle_top = self.camera_top.borrow().get_visible_rectangle();
         self.update_globals();

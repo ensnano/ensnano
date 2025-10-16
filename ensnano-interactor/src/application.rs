@@ -63,12 +63,7 @@ pub trait Application {
         app_state: &Self::AppState,
     ) -> Option<CursorIcon>;
     /// The method is used to forwards redraw_requests to applications
-    fn on_redraw_request(
-        &mut self,
-        encoder: &mut wgpu::CommandEncoder,
-        target: &wgpu::TextureView,
-        dt: Duration,
-    );
+    fn on_redraw_request(&mut self, encoder: &mut wgpu::CommandEncoder, target: &wgpu::TextureView);
     fn needs_redraw(&mut self, dt: Duration, app_state: Self::AppState) -> bool;
     fn get_position_for_new_grid(&self) -> Option<(Vec3, Rotor3)> {
         None
