@@ -15,7 +15,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use ensnano_iced::{
+use crate::ensnano_iced::{
     color_picker::{ColorPicker, ColorPickerMessage},
     fonts::{MaterialIcon, icon_to_char},
     helpers::*,
@@ -103,11 +103,7 @@ impl<State: AppState> GuiTab<State> for EditionTab<State> {
         None
     }
 
-    fn content(
-        &self,
-        ui_size: UiSize,
-        app_state: &State,
-    ) -> ensnano_iced::Element<'_, Self::Message> {
+    fn content(&self, ui_size: UiSize, app_state: &State) -> iced::Element<'_, Self::Message> {
         let roll_target_helices =
             self.get_roll_target_helices(&app_state.get_selection_as_design_element());
         let sim_state = &app_state.get_simulation_state();

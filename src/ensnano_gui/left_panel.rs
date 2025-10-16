@@ -24,16 +24,11 @@ use crate::ensnano_design::{
     ultraviolet,
 };
 use crate::ensnano_exports::ExportType;
-use crate::ensnano_interactor::{
-    ActionMode, EquadiffSolvingMethod, HyperboloidRequest, RapierSimulationRequest, Selection,
-    SelectionConversion,
-    app_state_parameters::{AppStateParameters, CheckXoversParameter, SuggestionParameters},
-    graphics::{Background3D, HBondDisplay, RenderingMode},
-};
-use ensnano_iced::{
+use crate::ensnano_iced;
+use crate::ensnano_iced::{
     UiSize,
     color_picker::ColorPickerMessage,
-    iced::{Color, Command, Element, Length, theme},
+    iced::{Color, Command, Element, Length},
     iced_aw::widgets::{TabBarPosition, TabLabel, Tabs},
     iced_runtime::Program,
     iced_widget::*,
@@ -45,12 +40,15 @@ use ensnano_iced::{
         },
     },
 };
+use crate::ensnano_interactor::{
+    ActionMode, EquadiffSolvingMethod, HyperboloidRequest, RapierSimulationRequest, Selection,
+    SelectionConversion,
+    app_state_parameters::{AppStateParameters, CheckXoversParameter, SuggestionParameters},
+    graphics::{Background3D, HBondDisplay, RenderingMode},
+};
 use crate::ensnano_organizer::{Organizer, OrganizerMessage, OrganizerTree};
 use std::sync::{Arc, Mutex};
 use ultraviolet::Vec3;
-
-mod sequence_input;
-use sequence_input::SequenceInput;
 
 mod discrete_value;
 use discrete_value::{FactoryId, RequestFactory, Requestable, ValueId};
@@ -71,7 +69,6 @@ use tabs::{
 pub struct LeftPanel<R: Requests, S: AppState> {
     logical_size: LogicalSize<f64>,
     logical_position: LogicalPosition<f64>,
-    sequence_input: SequenceInput,
     requests: Arc<Mutex<R>>,
     active_tab: TabId,
     /// Provide an organized view of the object being edited.
@@ -95,8 +92,6 @@ pub struct LeftPanel<R: Requests, S: AppState> {
 pub enum Message<S: AppState> {
     Resized(LogicalSize<f64>, LogicalPosition<f64>),
     MakeGrids,
-    SequenceChanged(String),
-    SequenceFileRequested,
     StrandNameChanged(usize, String),
     ColorPickerMessage(ColorPickerMessage),
     NewGrid(GridTypeDescr),
@@ -221,7 +216,6 @@ impl<R: Requests, S: AppState> LeftPanel<R, S> {
         Self {
             logical_size,
             logical_position,
-            sequence_input: SequenceInput::new(),
             requests,
             active_tab: if first_time {
                 TabId::Grid
@@ -348,33 +342,8 @@ where
                 .update_organizer_tree(self.organizer.tree())
         }
         match message {
-            Message::SequenceChanged(s) => {
-                self.requests
-                    .lock()
-                    .unwrap()
-                    .set_selected_strand_sequence(s.clone());
-                self.sequence_input.update_sequence(s);
-            }
             Message::StrandNameChanged(s_id, name) => {
                 self.requests.lock().unwrap().set_strand_name(s_id, name)
-            }
-            Message::SequenceFileRequested => {
-                let dialog = rfd::AsyncFileDialog::new().pick_file();
-                let requests = Arc::clone(&self.requests);
-                std::thread::spawn(move || {
-                    let save_op = async move {
-                        let file = dialog.await;
-                        if let Some(handle) = file
-                            && let Ok(content) = std::fs::read_to_string(handle.path())
-                        {
-                            requests
-                                .lock()
-                                .unwrap()
-                                .set_selected_strand_sequence(content);
-                        }
-                    };
-                    futures::executor::block_on(save_op);
-                });
             }
             Message::ColorPickerMessage(message) => {
                 self.edition_tab.update_color_picker(message);
@@ -389,7 +358,6 @@ where
                     ColorPickerMessage::FinishChangingColor => {
                         self.requests.lock().unwrap().finish_changing_color();
                     }
-                    _ => {}
                 }
             }
             Message::Resized(size, position) => self.resize(size, position),

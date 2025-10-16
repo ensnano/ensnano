@@ -22,10 +22,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //!
 //! Drawing the top bar, and triggering events from it is handled here.
 use super::{AppState, TopBarState};
+use crate::ensnano_iced;
 // NOTE: I would like to rename AppState to ApplicationState, and name AppState the structures that
 //       implement it.
-use crate::ensnano_interactor::{ActionMode, SelectionMode};
-use ensnano_iced::{
+use crate::ensnano_iced::{
     UiSize,
     fonts::{MaterialIcon, MaterialIconStyle},
     helpers::*,
@@ -33,6 +33,7 @@ use ensnano_iced::{
     iced_runtime::{Command, Program},
     iced_winit::winit::dpi::LogicalSize,
 };
+use crate::ensnano_interactor::{ActionMode, SelectionMode};
 use std::sync::{Arc, Mutex};
 
 use super::{Requests, SplitMode};

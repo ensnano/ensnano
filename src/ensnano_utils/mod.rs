@@ -15,7 +15,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-pub use ensnano_iced::{iced_wgpu::wgpu, iced_winit::winit};
+pub use crate::ensnano_iced::{iced_wgpu::wgpu, iced_winit::winit};
 use serde::{Deserialize, Serialize};
 use wgpu::util::{BufferInitDescriptor, DeviceExt};
 pub use winit::dpi::{PhysicalPosition, PhysicalSize, Pixel};

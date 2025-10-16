@@ -16,16 +16,16 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use super::{AppState, Requests};
-pub use crate::ensnano_interactor::StrandBuildingStatus;
-use crate::ensnano_interactor::operation::Operation;
-use ensnano_iced::{
-    UiSize,
+use crate::ensnano_iced::{
+    self, UiSize,
     helpers::*,
     iced::{Alignment, Color, Element, Length},
     iced_graphics::text::Paragraph,
     iced_runtime::{Command, Program},
     iced_winit::winit::dpi::LogicalSize,
 };
+pub use crate::ensnano_interactor::StrandBuildingStatus;
+use crate::ensnano_interactor::operation::Operation;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
@@ -95,9 +95,7 @@ impl<R: Requests, State: AppState> StatusBar<R, State> {
         }
     }
 
-    fn view_progress(
-        &self,
-    ) -> Row<'_, Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer> {
+    fn view_progress(&self) -> Row<'_, Message<State>, iced::Theme, iced::Renderer> {
         let progress = self.progress.as_ref().unwrap();
         row![
             text(format!("{}, {:.1}%", progress.0, progress.1 * 100.))
@@ -413,7 +411,7 @@ impl OperationInput {
 
 mod input_color {
     // TODO: Move this in ensnano_iced.
-    use ensnano_iced::iced::{Background, Border, Color, theme, widget::text_input::*};
+    use crate::ensnano_iced::iced::{Background, Border, Color, theme, widget::text_input::*};
 
     pub enum InputValueState {
         Normal,

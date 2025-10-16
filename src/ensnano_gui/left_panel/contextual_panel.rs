@@ -19,7 +19,7 @@ use super::super::DesignReader;
 use super::*;
 use crate::ensnano_design::{BezierVertexId, grid::GridId};
 use crate::ensnano_interactor::{Selection, SimulationState};
-use ensnano_iced::{
+use crate::ensnano_iced::{
     helpers::*,
     iced::{self, Alignment, alignment::Horizontal},
     theme,

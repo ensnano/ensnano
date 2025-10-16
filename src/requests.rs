@@ -32,6 +32,7 @@ use crate::ensnano_design::{
     grid::{GridId, GridPosition, GridTypeDescr},
 };
 use crate::ensnano_gui::OrganizerTree;
+use crate::ensnano_iced::UiSize;
 use crate::ensnano_interactor::{
     ActionMode, CenterOfSelection, HyperboloidRequest, RapierSimulationRequest, RigidBodyConstants,
     RollRequest, Selection, SelectionMode, UnrootedRevolutionSurfaceDescriptor,
@@ -41,7 +42,6 @@ use crate::ensnano_interactor::{
     operation::Operation,
 };
 use crate::ensnano_scene::view::FogParameters;
-use ensnano_iced::UiSize;
 use std::{collections::VecDeque, sync::Arc};
 use ultraviolet::Vec3;
 
@@ -60,8 +60,6 @@ pub struct Requests {
     pub fitting: Option<()>,
     /// A request to change the color of the selected strand
     pub strand_color_change: Option<u32>,
-    /// A request to change the sequence of the selected strand
-    pub sequence_change: Option<String>,
     /// A request to show/hide the sequences
     pub toggle_text: Option<bool>,
     /// A request to change the sensitivity of scrolling

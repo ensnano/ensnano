@@ -17,13 +17,13 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use std::marker::PhantomData;
 
-use crate::ensnano_design;
+use crate::{ensnano_design, ensnano_iced};
 
 use super::tabs::GuiTab;
 
 use super::{AppState, FactoryId, Message, RequestFactory, ScrollSensitivity, UiSize, ValueId};
 
-use ensnano_iced::{
+use crate::ensnano_iced::{
     fonts::{MaterialIcon, icon_to_char},
     helpers::*,
     iced_aw::TabLabel,

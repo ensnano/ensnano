@@ -18,7 +18,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::AppState;
 
 use super::Message;
-use ensnano_iced::{
+use crate::ensnano_iced::{
     helpers::*,
     iced::{Alignment, Length, Pixels},
     theme,
@@ -94,7 +94,7 @@ impl<R: Requestable> RequestFactory<R> {
         &self,
         active: bool,
         size: impl Into<Pixels>,
-    ) -> Vec<ensnano_iced::Element<'_, Message<State>>> {
+    ) -> Vec<iced::Element<'_, Message<State>>> {
         let s = size.into();
         self.values
             .values()
@@ -175,7 +175,7 @@ impl DiscreteValue {
         &self,
         active: bool,
         name_size: impl Into<Pixels>,
-    ) -> ensnano_iced::Element<'_, Message<State>> {
+    ) -> iced::Element<'_, Message<State>> {
         let decr_button = if active && self.value - self.step >= self.min_val {
             button(text("-")).on_press(Message::DiscreteValue {
                 factory_id: self.owner_id,

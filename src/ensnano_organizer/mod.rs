@@ -1,5 +1,5 @@
 use {
-    ensnano_iced::{
+    crate::ensnano_iced::{
         Element,
         helpers::*,
         iced::{Length, keyboard::Modifiers},
@@ -312,7 +312,7 @@ impl<E: OrganizerElement> Organizer<E> {
                         "Create new_group from selection",
                         tooltip::Position::FollowCursor,
                     )
-                    .style(ensnano_iced::iced::theme::Container::Box)
+                    .style(crate::ensnano_iced::iced::theme::Container::Box)
                 ],
                 scrollable(content).width(self.width)
             ]

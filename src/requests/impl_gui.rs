@@ -92,10 +92,6 @@ impl crate::ensnano_gui::Requests for Requests {
         self.keep_proceed.push_back(Action::DownloadStaplesRequest)
     }
 
-    fn set_selected_strand_sequence(&mut self, sequence: String) {
-        self.sequence_change = Some(sequence);
-    }
-
     fn set_scaffold_sequence(&mut self, shift: usize) {
         self.keep_proceed
             .push_back(Action::SetScaffoldSequence { shift });

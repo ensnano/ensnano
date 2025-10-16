@@ -32,11 +32,11 @@ use iced_graphics::text::Paragraph;
 /// A container that should contain a [text_input::TextInput].
 ///
 /// Trigger `on_priority` and `on_unpriority` when the text_input is focused or unfocused.
-pub struct KeyboardPriority<'a, Message, Theme = crate::Theme, Renderer = crate::Renderer> {
+pub struct KeyboardPriority<'a, Message, Theme = iced::Theme, Renderer = iced::Renderer> {
     padding: Padding,
     width: Length,
     height: Length,
-    content: crate::Element<'a, Message, Theme, Renderer>,
+    content: iced::Element<'a, Message, Theme, Renderer>,
     on_priority: Option<Message>,
     on_unpriority: Option<Message>,
 }

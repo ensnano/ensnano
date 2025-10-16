@@ -1,6 +1,3 @@
-[workspace]
-members = ["ensnano-iced"]
-
 [workspace.package]
 version = "0.7.0"
 authors = [
@@ -25,8 +22,6 @@ edition.workspace = true
 license.workspace = true
 
 [workspace.dependencies]
-ensnano_iced = { path = "ensnano-iced" }
-
 ahash = "0.8.6"
 bytemuck = "1.2.0"
 chebyshev_polynomials = { git = "https://github.com/thenlevy/chebyshev_polynomials" }
@@ -92,7 +87,6 @@ version-compare = "0.1.0"
 wgpu = { version = "0.19", features = ["spirv"] }
 
 [dependencies]
-ensnano_iced.workspace = true
 
 # ensnano_design specific
 icondata.workspace = true
@@ -118,6 +112,16 @@ png.workspace = true
 # ensnano_gui specific
 open.workspace = true
 paste.workspace = true
+
+# ensnano_iced specific
+iced.workspace = true
+iced_aw.workspace = true
+iced_futures.workspace = true
+iced_graphics.workspace = true
+iced_runtime.workspace = true
+iced_wgpu.workspace = true
+iced_widget.workspace = true
+iced_winit.workspace = true
 
 # ensnano_interactor specific
 rayon.workspace = true

@@ -17,7 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::ColorMessage;
-use ensnano_iced::{helpers::*, iced::Color};
+use crate::ensnano_iced::{self, helpers::*, iced::Color};
 use hue_column::HueColumn;
 use light_sat_square::LightSatSquare;
 
@@ -50,7 +50,8 @@ impl ColorPicker {
 
 /// A Iced Widget to select Hue.
 mod hue_column {
-    use ensnano_iced::{
+    use crate::ensnano_iced::{
+        self,
         iced::{
             Length, Point, Rectangle, Renderer, Size, Vector,
             advanced::{
@@ -248,7 +249,8 @@ mod hue_column {
 
 /// A widget to select Lightness and Saturation values.
 mod light_sat_square {
-    use ensnano_iced::{
+    use crate::ensnano_iced::{
+        self,
         iced::{
             Length, Point, Rectangle, Renderer, Size, Vector,
             advanced::{
@@ -472,7 +474,8 @@ mod light_sat_square {
 /// A widget to Visualize selected color.
 mod color_square {
     use super::Color;
-    use ensnano_iced::{
+    use crate::ensnano_iced::{
+        self,
         iced::{
             Length, Rectangle, Size, Vector,
             advanced::{
