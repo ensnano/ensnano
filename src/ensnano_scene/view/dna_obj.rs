@@ -34,11 +34,6 @@ pub struct DnaVertex {
     pub normal: [f32; 3],
 }
 
-pub trait DnaObject:
-    Instantiable<Resource = (), Vertex = DnaVertex, RawInstance = RawDnaInstance>
-{
-}
-
 const VERTEX_ATTR_ARRAY: [wgpu::VertexAttribute; 2] =
     wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3];
 impl Vertexable for DnaVertex {
@@ -92,16 +87,6 @@ pub struct PlainRectangleInstance {
     pub id: u32,
     pub width: f32,
     pub height: f32,
-}
-
-impl PlainRectangleInstance {
-    pub fn with_size(self: Self, width: f32, height: f32) -> Self {
-        Self {
-            width,
-            height,
-            ..self
-        }
-    }
 }
 
 impl Instantiable for PlainRectangleInstance {
@@ -176,20 +161,12 @@ impl Instantiable for PlainRectangleInstance {
     }
 }
 
-impl DnaObject for PlainRectangleInstance {}
-
 pub struct SphereInstance {
     /// The position in space
     pub position: Vec3,
     pub color: Vec4,
     pub id: u32,
     pub radius: f32, // nm
-}
-
-impl SphereInstance {
-    pub fn with_radius(self, radius: f32) -> Self {
-        Self { radius, ..self }
-    }
 }
 
 impl Instantiable for SphereInstance {
@@ -288,8 +265,6 @@ impl Instantiable for SphereInstance {
         Some(device.create_shader_module(wgpu::include_spirv!("dna_obj_outline.frag.spv")))
     }
 }
-
-impl DnaObject for SphereInstance {}
 
 pub struct StereographicSphereAndPlane {
     pub position: Vec3,
@@ -461,8 +436,6 @@ impl Instantiable for TubeInstance {
     }
 }
 
-impl DnaObject for TubeInstance {}
-
 /// TUBE TIP INSTANCE
 
 pub struct TubeLidInstance {
@@ -471,12 +444,6 @@ pub struct TubeLidInstance {
     pub color: Vec4,
     pub id: u32,
     pub radius: f32,
-}
-
-impl TubeLidInstance {
-    pub fn with_radius(self, radius: f32) -> Self {
-        Self { radius, ..self }
-    }
 }
 
 impl Instantiable for TubeLidInstance {
@@ -549,8 +516,6 @@ impl Instantiable for TubeLidInstance {
         }
     }
 }
-
-impl DnaObject for TubeLidInstance {}
 
 /// SLICED TUBE INSTANCE
 
@@ -665,8 +630,6 @@ impl Instantiable for SlicedTubeInstance {
     }
 }
 
-impl DnaObject for SlicedTubeInstance {}
-
 /// CONE INSTANCE
 pub struct ConeInstance {
     pub position: Vec3,
@@ -768,8 +731,6 @@ impl Instantiable for ConeInstance {
         }
     }
 }
-
-impl DnaObject for ConeInstance {}
 
 pub struct Ellipsoid {
     pub scale: Vec3,

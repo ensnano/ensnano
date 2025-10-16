@@ -254,7 +254,6 @@ pub struct RotationWidgetDescriptor {
 pub enum AvailableRotationAxes {
     All,
     NoZ,
-    OnlyZ,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -277,7 +276,6 @@ impl RotationWidgetDescriptor {
         let (xy_filter, z_filter) = match self.available_rotation_axes {
             AvailableRotationAxes::All => (1., 1.),
             AvailableRotationAxes::NoZ => (1., 0.),
-            AvailableRotationAxes::OnlyZ => (0., 1.),
         };
         let colors = match self.colors {
             HandleColors::Cym => ensnano_interactor::consts::CYM_HANDLE_COLORS,

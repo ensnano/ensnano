@@ -58,7 +58,7 @@ use super::maths_3d::{self, distance_to_cursor_with_penalty};
 use bindgroup_manager::{DynamicBindGroup, UniformBindGroup};
 use direction_cube::*;
 pub use dna_obj::{
-    ConeInstance, DnaObject, Ellipsoid, PlainRectangleInstance, RawDnaInstance, SlicedTubeInstance,
+    ConeInstance, Ellipsoid, PlainRectangleInstance, RawDnaInstance, SlicedTubeInstance,
     SphereInstance, StereographicSphereAndPlane, TubeInstance, TubeLidInstance,
 };
 use drawable::{Drawable, Drawer, Vertex};
@@ -554,10 +554,6 @@ impl View {
                     self.need_redraw = needed_redraw;
                 }
             }
-            ViewUpdate::CutPlane(normal, dot_value) => {
-                self.update_cut_plane(normal, dot_value);
-                self.need_redraw = true;
-            }
         }
     }
 
@@ -567,14 +563,6 @@ impl View {
 
     pub fn need_redraw(&self) -> bool {
         self.need_redraw | self.redraw_twice
-    }
-
-    // Is a feature missing? This just prints. - Axel
-    pub fn update_cut_plane(&mut self, normal: Vec3, dot_value: f32) {
-        println!(
-            "Update cut plane to: normal: <{},{},{}> dot: {dot_value}",
-            normal.x, normal.y, normal.z
-        );
     }
 
     /// Draw the scene
@@ -1168,8 +1156,6 @@ pub enum ViewUpdate {
     BezierSheets(Vec<Sheet2D>),
     External3DObjects(ExternalObjects),
     UnrootedSurface(Option<UnrootedRevolutionSurfaceDescriptor>),
-    /// The cutting plane has been modified: normal and dot product
-    CutPlane(Vec3, f32),
 }
 
 #[derive(Eq, PartialEq, Debug, Copy, Clone, Hash, IntEnum)]

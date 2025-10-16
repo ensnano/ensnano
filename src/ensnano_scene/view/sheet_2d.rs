@@ -138,8 +138,4 @@ impl Instantiable for Sheet2D {
     fn primitive_topology() -> wgpu::PrimitiveTopology {
         wgpu::PrimitiveTopology::TriangleStrip
     }
-
-    fn alpha_to_coverage_enabled() -> bool {
-        true
-    }
 }

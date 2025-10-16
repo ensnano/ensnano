@@ -115,7 +115,6 @@ pub struct DesignContent {
     /// Maps the identifier of an element to its radius
     pub radius_map: HashMap<u32, f32, RandomState>,
     pub letter_map: Arc<HashMap<Nucl, char, RandomState>>,
-    pub prime3_set: Vec<Prime3End>,
     pub elements: Vec<DesignElement>,
     pub suggestions: Vec<(Nucl, Nucl)>,
     pub(super) grid_manager: GridData,
@@ -504,12 +503,6 @@ struct StapleInfo {
     intervals: StapleIntervals,
 }
 
-#[derive(Clone)]
-pub struct Prime3End {
-    pub nucl: Nucl,
-    pub color: u32,
-}
-
 impl DesignContent {
     /// Update all the hash maps - called after every edit operation
     pub(super) fn make_hash_maps(
@@ -540,7 +533,6 @@ impl DesignContent {
         let mut prev_nucl: Option<Nucl> = None;
         let mut prev_nucl_id: Option<u32> = None;
         let mut elements = Vec::new();
-        let mut prime3_set = Vec::new();
         let mut new_junctions: JunctionsIds = Default::default();
         let mut suggestion_maker = XoverSuggestions::default();
         let mut insertion_length = HashMap::default();
@@ -920,10 +912,6 @@ impl DesignContent {
                             loopout_bond.repr_bond_identifier = id_tmp - 1;
                         }
                     }
-                }
-                if let Some(nucl) = prev_nucl {
-                    let color = strand.color;
-                    prime3_set.push(Prime3End { nucl, color });
                 }
             }
 
@@ -1350,7 +1338,6 @@ impl DesignContent {
             radius_map,
             helix_map,
             letter_map: Arc::new(letter_map),
-            prime3_set,
             elements,
             grid_manager,
             suggestions: vec![],

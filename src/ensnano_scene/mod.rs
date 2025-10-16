@@ -43,7 +43,6 @@ use ensnano_interactor::{
 };
 use ensnano_utils::{
     BufferDimensions, PhySize, filename,
-    instance::Instance,
     wgpu::{self, Device, Queue},
     winit::{dpi::PhysicalPosition, event::WindowEvent, window::CursorIcon},
 };
@@ -57,7 +56,7 @@ use std::{
     sync::{Arc, Mutex},
     time::Duration,
 };
-use ultraviolet::{Mat4, Rotor3, Vec3};
+use ultraviolet::{Rotor3, Vec3};
 use view::{
     DrawOptions, DrawType, FogParameters, GridInstance, HandleDir, HandlesDescriptor,
     LetterInstance, RotationMode as WidgetRotationMode, RotationWidgetDescriptor,
@@ -1149,15 +1148,6 @@ impl<S: AppState> Scene<S> {
 /// A structure that stores the element that needs to be updated in a scene
 #[derive(Default)]
 pub struct SceneUpdate {
-    pub tube_instances: Option<Vec<Instance>>,
-    pub sphere_instances: Option<Vec<Instance>>,
-    pub fake_tube_instances: Option<Vec<Instance>>,
-    pub fake_sphere_instances: Option<Vec<Instance>>,
-    pub selected_tube: Option<Vec<Instance>>,
-    pub selected_sphere: Option<Vec<Instance>>,
-    pub candidate_spheres: Option<Vec<Instance>>,
-    pub candidate_tubes: Option<Vec<Instance>>,
-    pub model_matrices: Option<Vec<Mat4>>,
     pub need_update: bool,
     pub camera_update: bool,
 }
@@ -1167,8 +1157,6 @@ pub enum SceneNotification {
     /// The camera has moved. As a consequence, the projection and view matrix must be
     /// updated.
     CameraMoved,
-    /// The camera is replaced by a new one.
-    NewCamera(Vec3, Rotor3),
     /// The drawing area has been modified
     NewSize(PhySize, DrawArea),
     NewCameraPosition(Vec3),
@@ -1178,10 +1166,6 @@ impl<S: AppState> Scene<S> {
     /// Send a notification to the scene
     pub fn notify(&mut self, notification: SceneNotification) {
         match notification {
-            SceneNotification::NewCamera(position, projection) => {
-                self.controller.teleport_camera(position, projection);
-                self.update.camera_update = true;
-            }
             SceneNotification::NewCameraPosition(position) => {
                 self.controller.set_camera_position(position);
                 self.update.camera_update = true;

@@ -162,8 +162,4 @@ impl Instantiable for LetterInstance {
     fn fragment_module(device: &Device) -> wgpu::ShaderModule {
         device.create_shader_module(include_spirv!("letter.frag.spv"))
     }
-
-    fn alpha_to_coverage_enabled() -> bool {
-        true
-    }
 }
