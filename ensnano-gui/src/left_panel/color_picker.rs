@@ -17,7 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::ColorMessage;
-use ensnano_iced::{self, helpers::*, iced::Color};
+use ensnano_iced::{helpers::*, iced::Color};
 use hue_column::HueColumn;
 use light_sat_square::LightSatSquare;
 
