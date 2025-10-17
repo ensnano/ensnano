@@ -4,6 +4,8 @@ use rapier3d::{
     prelude::*,
 };
 
+use crate::vec_to_vector;
+
 /// An internal structure, which is made from an Helix
 /// and computes the ideal spring anchor points to enforce
 /// a rigid, straight DNA or RNA strand
@@ -25,11 +27,6 @@ pub(crate) struct SpringAnchorsReference {
     down_backward_anchor: OVector<f32, Const<3>>,
     down_left_anchor: OVector<f32, Const<3>>,
     down_right_anchor: OVector<f32, Const<3>>,
-}
-
-/// Conversion method
-pub(crate) fn vec_to_point(v: Vec3) -> OVector<f32, Const<3>> {
-    vector![v.x, v.y, v.z].into()
 }
 
 /// Turns two anchors 90° around the "up" axis,
@@ -57,24 +54,24 @@ impl SpringAnchorsReference {
     /// Initializes a new reference with the given Helix's parameters,
     /// and to a provided distance. Higher distance means
     pub(crate) fn new(helix: &Helix, distance: u32, default_parameters: &HelixParameters) -> Self {
-        let nucleotide_forward = vec_to_point(helix.space_pos(default_parameters, 0, true));
-        let nucleotide_backward = vec_to_point(helix.space_pos(default_parameters, 0, false));
+        let nucleotide_forward = vec_to_vector(helix.space_pos(default_parameters, 0, true));
+        let nucleotide_backward = vec_to_vector(helix.space_pos(default_parameters, 0, false));
 
         let center = (nucleotide_forward + nucleotide_backward) / 2.0;
 
         let up_nucleotide_forward =
-            vec_to_point(helix.space_pos(default_parameters, distance as isize, true));
+            vec_to_vector(helix.space_pos(default_parameters, distance as isize, true));
         let up_nucleotide_backward =
-            vec_to_point(helix.space_pos(default_parameters, distance as isize, false));
+            vec_to_vector(helix.space_pos(default_parameters, distance as isize, false));
 
         let up_center = (up_nucleotide_forward + up_nucleotide_backward) / 2.0;
 
         let up = up_center - center;
 
         let down_nucleotide_forward =
-            vec_to_point(helix.space_pos(default_parameters, -(distance as isize), true));
+            vec_to_vector(helix.space_pos(default_parameters, -(distance as isize), true));
         let down_nucleotide_backward =
-            vec_to_point(helix.space_pos(default_parameters, -(distance as isize), false));
+            vec_to_vector(helix.space_pos(default_parameters, -(distance as isize), false));
 
         let down_center = (down_nucleotide_forward + down_nucleotide_backward) / 2.0;
 

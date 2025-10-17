@@ -2,7 +2,6 @@ use std::ops::Range;
 
 use ahash::HashMap;
 use ensnano_design::{HelixParameters, Nucl};
-use rapier3d::prelude::*;
 
 /// Holds the intermediary representation
 /// of a nucleotide pair.
@@ -49,7 +48,7 @@ impl IntermediaryPair {
 /// ensured by the physical simulation.
 pub(crate) struct IntermediaryHelix {
     pub parameters: HelixParameters,
-    pub helices: HashMap<isize, IntermediaryPair>,
+    pub pairs: HashMap<isize, IntermediaryPair>,
     pub double_ranges: Vec<Range<isize>>,
     pub single_ranges: Vec<Range<isize>>,
 }
@@ -61,7 +60,7 @@ pub fn build_helices(
     let mut result = HashMap::default();
 
     for (&id, &nucl) in nucleotide {
-        let mut helix = result
+        result
             .entry(nucl.helix)
             .or_insert(IntermediaryHelix::new(parameters))
             .push_nucleotide(id, nucl);
@@ -76,7 +75,7 @@ impl IntermediaryHelix {
     pub fn new(parameters: HelixParameters) -> Self {
         Self {
             parameters,
-            helices: Default::default(),
+            pairs: Default::default(),
             double_ranges: Default::default(),
             single_ranges: Default::default(),
         }
@@ -97,7 +96,7 @@ impl IntermediaryHelix {
     ) -> Vec<Range<isize>> {
         let mut result = vec![];
 
-        let mut values = self.helices.iter().collect::<Vec<_>>();
+        let mut values = self.pairs.iter().collect::<Vec<_>>();
         values.sort_unstable_by(|p, q| p.0.cmp(q.0));
 
         let mut current_range: Option<Range<isize>> = None;
@@ -131,7 +130,7 @@ impl IntermediaryHelix {
     }
 
     pub fn push_nucleotide(&mut self, id: u32, nucl: Nucl) -> Option<()> {
-        if let Some(pair) = self.helices.get_mut(&nucl.position) {
+        if let Some(pair) = self.pairs.get_mut(&nucl.position) {
             match pair {
                 IntermediaryPair::OnlyForward(i, n) => {
                     if nucl.forward {
@@ -156,10 +155,10 @@ impl IntermediaryHelix {
         }
 
         if nucl.forward {
-            self.helices
+            self.pairs
                 .insert(nucl.position, IntermediaryPair::OnlyForward(id, nucl));
         } else {
-            self.helices
+            self.pairs
                 .insert(nucl.position, IntermediaryPair::OnlyBackward(id, nucl));
         }
 
