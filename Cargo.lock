@@ -1158,6 +1158,7 @@ dependencies = [
  "regex",
  "relative-path",
  "serde",
+ "serde_json",
  "serde_with",
  "strum",
  "svg",
