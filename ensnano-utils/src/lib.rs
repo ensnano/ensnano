@@ -30,7 +30,6 @@ pub mod filename;
 pub mod full_isometry;
 pub mod id_generator;
 pub mod instance;
-pub mod light;
 pub mod obj_loader;
 pub mod text;
 pub mod texture;
