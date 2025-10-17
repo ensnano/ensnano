@@ -22,7 +22,6 @@ pub mod simulations;
 pub mod update_insertion_length;
 
 use super::SimulationUpdate;
-use ensnano_gui::ClipboardContent;
 use crate::{
     app_state::{
         AddressPointer,
@@ -54,6 +53,7 @@ use ensnano_design::{
     group_attributes::GroupPivot,
     mutate_in_arc,
 };
+use ensnano_gui::ClipboardContent;
 use ensnano_interactor::{
     BezierControlPoint, BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation,
     DomainIdentifier, HyperboloidOperation, IsometryTarget, NeighborDescriptor,

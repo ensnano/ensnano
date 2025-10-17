@@ -17,9 +17,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::*;
+use ensnano_design::{HelixParameters, elements::DesignElementKey};
 use ensnano_gui::AppState as GuiState;
 use ensnano_gui::ClipboardContent;
-use ensnano_design::{HelixParameters, elements::DesignElementKey};
 use ensnano_interactor::PastingStatus;
 use ensnano_interactor::{ScaffoldInfo, SelectionConversion, SimulationState};
 

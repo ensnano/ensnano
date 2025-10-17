@@ -22,7 +22,7 @@ use super::{
     Duration, ElementSelector, HandleDir, SceneElement, Stereography, ViewPtr,
     WidgetRotationMode as RotationMode, camera,
 };
-use crate::ensnano_scene::maths_3d::FiniteVec3;
+use crate::maths_3d::FiniteVec3;
 use crate::{PhySize, PhysicalPosition, WindowEvent};
 use camera::CameraController;
 use ensnano_design::grid::{GridId, GridObject, GridPosition, HelixGridPosition};

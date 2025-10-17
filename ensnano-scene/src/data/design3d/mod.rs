@@ -22,9 +22,9 @@ use super::super::view::{
     SphereInstance, TubeInstance, TubeLidInstance,
 };
 use super::{LetterInstance, SceneElement};
-use crate::ensnano_scene::rotor_utils::SafeRotor as _;
-use crate::ensnano_scene::sausage_rosary::SausageRosary;
-use crate::ensnano_scene::view::PlainRectangleInstance;
+use crate::rotor_utils::SafeRotor as _;
+use crate::sausage_rosary::SausageRosary;
+use crate::view::PlainRectangleInstance;
 use ensnano_design::grid::{GridId, GridObject, GridPosition};
 use ensnano_design::{
     AdditionalStructure, BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex,
@@ -50,7 +50,7 @@ use ultraviolet::{Mat4, Rotor3, Vec2, Vec3};
 
 mod bezier_paths;
 
-use crate::ensnano_scene::SceneElement::DesignElement;
+use crate::SceneElement::DesignElement;
 
 use ensnano_utils::StrandNucleotidesPositions;
 
