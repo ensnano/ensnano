@@ -98,7 +98,7 @@ impl<State: AppState> GuiTab<State> for SequenceTab<State> {
     type Message = Message<State>;
 
     fn label(&self) -> TabLabel {
-        TabLabel::Icon(crate::ensnano_gui::consts::ICON_ATGC)
+        TabLabel::Icon(crate::consts::ICON_ATGC)
     }
 
     fn content(&self, ui_size: UiSize, app_state: &State) -> iced::Element<'_, Self::Message> {

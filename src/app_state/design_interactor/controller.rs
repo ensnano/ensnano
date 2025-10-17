@@ -22,7 +22,7 @@ pub mod simulations;
 pub mod update_insertion_length;
 
 use super::SimulationUpdate;
-use crate::ensnano_gui::ClipboardContent;
+use ensnano_gui::ClipboardContent;
 use crate::{
     app_state::{
         AddressPointer,

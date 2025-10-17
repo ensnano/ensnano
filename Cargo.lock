@@ -1107,6 +1107,7 @@ dependencies = [
  "dirs",
  "ensnano_design",
  "ensnano_exports",
+ "ensnano_gui",
  "ensnano_iced",
  "ensnano_interactor",
  "ensnano_organizer",
@@ -1178,6 +1179,25 @@ dependencies = [
  "serde",
  "serde_json",
  "strum",
+ "ultraviolet",
+]
+
+[[package]]
+name = "ensnano_gui"
+version = "0.7.0"
+dependencies = [
+ "color_space",
+ "ensnano_design",
+ "ensnano_exports",
+ "ensnano_iced",
+ "ensnano_interactor",
+ "ensnano_organizer",
+ "ensnano_utils",
+ "futures",
+ "log",
+ "open",
+ "paste",
+ "rfd",
  "ultraviolet",
 ]
 

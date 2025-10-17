@@ -19,7 +19,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! Implements the [Requests](`ensnano_gui::Requests`) trait for [Requests](`super::Requests`).
 
 use super::*;
-use crate::ensnano_gui::{OverlayType, RigidBodyParametersRequest};
+use ensnano_gui::{OverlayType, RigidBodyParametersRequest};
 use ensnano_design::grid::GridId;
 use ensnano_exports::ExportType;
 use ensnano_interactor::{
@@ -29,7 +29,7 @@ use ensnano_interactor::{
 use std::collections::BTreeSet;
 use ultraviolet::Rotor3;
 
-impl crate::ensnano_gui::Requests for Requests {
+impl ensnano_gui::Requests for Requests {
     fn close_overlay(&mut self, overlay_type: OverlayType) {
         self.keep_proceed
             .push_back(Action::CloseOverlay(overlay_type));

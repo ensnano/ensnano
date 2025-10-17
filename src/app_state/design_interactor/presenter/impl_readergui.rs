@@ -17,7 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::*;
-use crate::ensnano_gui::DesignReader as ReaderGui;
+use ensnano_gui::DesignReader as ReaderGui;
 use ensnano_design::{CameraId, Collection, elements::DesignElement};
 use ensnano_interactor::InsertionPoint;
 use ultraviolet::Rotor3;

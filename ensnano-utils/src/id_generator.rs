@@ -37,33 +37,6 @@ impl<K: Eq + Hash + Clone> Default for IdGenerator<K> {
 }
 
 impl<K: Eq + Hash + Clone> IdGenerator<K> {
-    #[allow(dead_code)]
-    pub fn import_existing(existing: Vec<(usize, K)>) -> Self {
-        use std::collections::HashSet;
-        let mut used = HashSet::new();
-        let mut ids: HashMap<K, usize, RandomState> = Default::default();
-        let mut elements: HashMap<usize, K, RandomState> = Default::default();
-        let mut next_id = 0;
-        ids.reserve(existing.len());
-        elements.reserve(existing.len());
-        for (id, k) in existing.into_iter() {
-            if !used.insert(id) {
-                panic!(
-                    "Error while loading ids, the id {} is used more that once",
-                    id
-                );
-            }
-            elements.insert(id, k.clone());
-            ids.insert(k, id);
-            next_id = next_id.max(id + 1);
-        }
-        Self {
-            next_id,
-            ids,
-            elements,
-        }
-    }
-
     pub fn insert(&mut self, key: K) -> usize {
         let ret = self.next_id;
         self.elements.insert(self.next_id, key.clone());
@@ -86,14 +59,12 @@ impl<K: Eq + Hash + Clone> IdGenerator<K> {
         self.ids.get(element).cloned()
     }
 
-    #[cfg(test)]
     pub fn remove(&mut self, id: usize) {
         let elt = self.get_element(id).expect("Removing unexisting id");
         self.ids.remove(&elt);
         self.elements.remove(&id);
     }
 
-    #[cfg(test)]
     pub fn is_empty(&self) -> bool {
         self.ids.is_empty() && self.elements.is_empty()
     }

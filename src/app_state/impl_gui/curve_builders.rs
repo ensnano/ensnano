@@ -16,7 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use crate::ensnano_gui::{CurveDescriptorBuilder, CurveDescriptorParameter, InstanciatedParameter};
+use ensnano_gui::{CurveDescriptorBuilder, CurveDescriptorParameter, InstanciatedParameter};
 use ensnano_design::{BezierPathId, CurveDescriptor2D};
 use ultraviolet::{Rotor3, Vec3};
 
@@ -26,11 +26,11 @@ pub(super) const ELLIPSE_BUILDER: CurveDescriptorBuilder<super::AppState> =
         parameters: &[
             CurveDescriptorParameter {
                 name: "Semi major axis",
-                default_value: crate::ensnano_gui::InstanciatedParameter::Float(20.0),
+                default_value: ensnano_gui::InstanciatedParameter::Float(20.0),
             },
             CurveDescriptorParameter {
                 name: "Semi minor axis",
-                default_value: crate::ensnano_gui::InstanciatedParameter::Float(10.0),
+                default_value: ensnano_gui::InstanciatedParameter::Float(10.0),
             },
         ],
         build: &build_ellipse,
@@ -62,19 +62,19 @@ pub(super) const TWO_SPHERES_BUILDER: CurveDescriptorBuilder<super::AppState> =
         parameters: &[
             CurveDescriptorParameter {
                 name: "Radius extern",
-                default_value: crate::ensnano_gui::InstanciatedParameter::Float(25.),
+                default_value: ensnano_gui::InstanciatedParameter::Float(25.),
             },
             CurveDescriptorParameter {
                 name: "Radius intern",
-                default_value: crate::ensnano_gui::InstanciatedParameter::Float(17.),
+                default_value: ensnano_gui::InstanciatedParameter::Float(17.),
             },
             CurveDescriptorParameter {
                 name: "Radius tube",
-                default_value: crate::ensnano_gui::InstanciatedParameter::Float(7.6),
+                default_value: ensnano_gui::InstanciatedParameter::Float(7.6),
             },
             CurveDescriptorParameter {
                 name: "Smooth ceil",
-                default_value: crate::ensnano_gui::InstanciatedParameter::Float(0.04),
+                default_value: ensnano_gui::InstanciatedParameter::Float(0.04),
             },
         ],
         build: &build_two_spheres,
@@ -120,7 +120,7 @@ pub(super) const BEZIER_CURVE_BUILDER: CurveDescriptorBuilder<super::AppState> =
         curve_name: "Bezier",
         parameters: &[CurveDescriptorParameter {
             name: "Path n°",
-            default_value: crate::ensnano_gui::InstanciatedParameter::Uint(0),
+            default_value: ensnano_gui::InstanciatedParameter::Uint(0),
         }],
         build: &build_bezier,
         bezier_path_id: &get_bezier_path_id,

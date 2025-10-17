@@ -21,7 +21,7 @@ pub mod file_parsing;
 pub mod presenter;
 
 use super::AddressPointer;
-use crate::ensnano_gui::CurrentOpState;
+use ensnano_gui::CurrentOpState;
 use crate::{
     app_state::design_interactor::controller::{
         OkOperation, clipboard::CopyOperation, simulations::SimulationOperation,
@@ -319,7 +319,7 @@ impl DesignInteractor {
         self.new_selection.take()
     }
 
-    pub fn get_clipboard_content(&self) -> crate::ensnano_gui::ClipboardContent {
+    pub fn get_clipboard_content(&self) -> ensnano_gui::ClipboardContent {
         self.controller.get_clipboard_content()
     }
 }

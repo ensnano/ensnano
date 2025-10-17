@@ -31,7 +31,6 @@ pub mod impl_app3d;
 pub mod impl_gui;
 pub mod transitions;
 
-use crate::ensnano_gui::StrandBuildingStatus;
 use crate::{
     app_state::design_interactor::{
         controller::{
@@ -49,6 +48,7 @@ use design_interactor::{DesignReader, controller::ErrOperation};
 use ensnano_design::Design;
 use ensnano_design::{BezierPathId, SavingInformation, group_attributes::GroupPivot};
 use ensnano_exports::{ExportResult, ExportType};
+use ensnano_gui::StrandBuildingStatus;
 use ensnano_iced::UiSize;
 use ensnano_interactor::{
     ActionMode, CenterOfSelection, DesignOperation, PastingStatus, Selection, SelectionMode,

@@ -92,7 +92,6 @@ mod app_state;
 mod controller;
 mod dialog;
 mod ensnano_flatscene;
-mod ensnano_gui;
 mod ensnano_scene;
 #[cfg(test)]
 mod main_tests;
