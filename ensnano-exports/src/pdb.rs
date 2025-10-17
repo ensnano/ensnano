@@ -20,8 +20,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! [tacOxDNA](https://github.com/lorenzo-rovigatti/tacoxDNA)
 
 use super::PathBuf;
-use crate::ensnano_exports::BasisMapper;
-use crate::ensnano_exports::oxdna::{OXDNA_LEN_FACTOR, OxDnaHelix};
+use crate::BasisMapper;
+use crate::oxdna::{OXDNA_LEN_FACTOR, OxDnaHelix};
 use ahash::AHashMap;
 use ensnano_design::{Design, Domain, HelixCollection, Nucl};
 use std::borrow::Cow;
@@ -727,7 +727,7 @@ pub(super) fn pdb_export(
             } = d
             {
                 for (insertion_idx, position) in instanciation.pos().iter().enumerate() {
-                    let ox_nucl = crate::ensnano_exports::oxdna::free_oxdna_nucl(
+                    let ox_nucl = crate::oxdna::free_oxdna_nucl(
                         *position,
                         previous_position,
                         insertion_idx,

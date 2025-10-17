@@ -20,9 +20,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::*;
 use crate::app_state::design_interactor::controller::clipboard::PastePosition;
-use ensnano_interactor;
-use ensnano_interactor::DesignOperation;
 use crate::ensnano_scene::Requests as SceneRequests;
+use ensnano_interactor::DesignOperation;
 use ultraviolet::Rotor3;
 
 impl SceneRequests for Requests {
@@ -107,10 +106,7 @@ impl SceneRequests for Requests {
         self.keep_proceed.push_back(Action::DesignOperation(op))
     }
 
-    fn set_current_group_pivot(
-        &mut self,
-        pivot: ensnano_design::group_attributes::GroupPivot,
-    ) {
+    fn set_current_group_pivot(&mut self, pivot: ensnano_design::group_attributes::GroupPivot) {
         self.keep_proceed.push_back(Action::SetGroupPivot(pivot))
     }
 

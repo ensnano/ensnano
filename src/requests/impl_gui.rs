@@ -19,9 +19,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! Implements the [Requests](`ensnano_gui::Requests`) trait for [Requests](`super::Requests`).
 
 use super::*;
-use ensnano_design;
 use ensnano_design::grid::GridId;
-use crate::ensnano_exports::ExportType;
+use ensnano_exports::ExportType;
 use crate::ensnano_gui::{OverlayType, RigidBodyParametersRequest};
 use ensnano_interactor::{
     DesignOperation, InsertionPoint, RevolutionSurfaceSystemDescriptor, RigidBodyConstants,

@@ -158,7 +158,7 @@ pub trait Requests: 'static + Send {
         keys: BTreeSet<DesignElementKey>,
     );
     fn change_split_mode(&mut self, split_mode: SplitMode);
-    fn export(&mut self, export_type: crate::ensnano_exports::ExportType);
+    fn export(&mut self, export_type: ensnano_exports::ExportType);
     /// Split/Unsplit the 2D view
     fn toggle_2d_view_split(&mut self);
     fn undo(&mut self);

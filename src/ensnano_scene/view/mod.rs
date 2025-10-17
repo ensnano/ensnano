@@ -27,7 +27,6 @@ use crate::ensnano_utils::{
     wgpu::{self, util::DeviceExt as _},
 };
 use camera::{Camera, CameraPtr, Projection, ProjectionPtr};
-use ensnano_design;
 use ensnano_design::{Axis, grid::GridId, group_attributes::GroupPivot};
 use int_enum::IntEnum;
 use std::{cell::RefCell, collections::BTreeMap, rc::Rc, usize};

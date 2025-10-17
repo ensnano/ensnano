@@ -28,8 +28,8 @@ pub mod set_scaffold_sequence;
 
 use super::{OverlayType, SplitMode, dialog};
 use crate::MainStateView;
-use crate::ensnano_exports::ExportType;
 use dialog::{MustAckMessage, YesNoQuestion};
+use ensnano_exports::ExportType;
 use ensnano_iced::UiSize;
 use ensnano_interactor::consts::CANNOT_OPEN_DEFAULT_DIR;
 use normal_state::NormalState;

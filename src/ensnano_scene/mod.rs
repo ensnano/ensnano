@@ -42,7 +42,6 @@ use crate::ensnano_utils::{
 use controller::{Consequence, Controller, WidgetTarget};
 use data::{Data, DesignReader};
 use element_selector::{ElementSelector, SceneElement};
-use ensnano_design;
 use ensnano_design::{
     BezierVertexId, Nucl, consts::ITERATIVE_AXIS_ALGORITHM, grid::GridPosition,
     grid::HelixGridPosition, group_attributes::GroupPivot,
