@@ -16,7 +16,6 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use super::instances_drawer::{Instantiable, ResourceProvider, Vertexable};
-use ensnano_utils::wgpu;
 use std::convert::TryInto;
 use std::rc::Rc;
 use ultraviolet::{Vec2, Vec3};

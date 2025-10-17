@@ -15,11 +15,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-/// This modules contains structure that manipulate bind groups and their associated buffers.
-use std::rc::Rc;
+
+//! This modules contains structure that manipulate bind groups and their associated buffers.
 
 use crate::create_buffer_with_data;
-use crate::wgpu;
+use std::rc::Rc;
 use wgpu::{BindGroup, BindGroupLayout, Buffer, BufferDescriptor, Device, Queue};
 
 /// A bind group with an associated buffer whose size may varry

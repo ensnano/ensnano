@@ -1101,37 +1101,31 @@ dependencies = [
  "ahash 0.8.12",
  "bytemuck",
  "chebyshev_polynomials",
- "chrono",
  "color_space",
  "confy",
  "dirs",
  "ensnano_design",
  "ensnano_exports",
+ "ensnano_flatscene",
  "ensnano_gui",
  "ensnano_iced",
  "ensnano_interactor",
  "ensnano_organizer",
  "ensnano_physics",
  "ensnano_utils",
- "fontdue",
  "futures",
  "futures-channel",
- "gltf",
  "image 0.23.14",
  "int-enum",
  "log",
  "lyon",
  "mathru",
- "nom_stl",
  "num_enum 0.5.11",
- "open",
  "ordered-float 2.10.1",
- "paste",
  "png 0.17.16",
  "pretty_env_logger",
  "rand 0.8.5",
  "rand_distr",
- "rapier3d",
  "regex",
  "rfd",
  "rust_xlsxwriter",
@@ -1140,6 +1134,7 @@ dependencies = [
  "ultraviolet",
  "version-compare",
  "wgpu",
+ "winit",
 ]
 
 [[package]]
@@ -1180,6 +1175,26 @@ dependencies = [
  "serde_json",
  "strum",
  "ultraviolet",
+]
+
+[[package]]
+name = "ensnano_flatscene"
+version = "0.7.0"
+dependencies = [
+ "ahash 0.8.12",
+ "bytemuck",
+ "color_space",
+ "ensnano_design",
+ "ensnano_interactor",
+ "ensnano_utils",
+ "futures",
+ "futures-channel",
+ "log",
+ "lyon",
+ "png 0.17.16",
+ "ultraviolet",
+ "wgpu",
+ "winit",
 ]
 
 [[package]]

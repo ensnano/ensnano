@@ -15,15 +15,16 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use super::wgpu;
+
 use ensnano_design::{External3DObject, External3DObjectId, PointOnSurface};
-use ensnano_interactor::UnrootedRevolutionSurfaceDescriptor;
-use ensnano_interactor::consts;
+use ensnano_interactor::{UnrootedRevolutionSurfaceDescriptor, consts};
 use ensnano_utils::{TEXTURE_FORMAT, create_buffer_with_data, obj_loader::*, texture::Texture};
-use std::ffi::OsStr;
-use std::path::PathBuf;
-use std::rc::Rc;
-use std::{collections::BTreeMap, path::Path};
+use std::{
+    collections::BTreeMap,
+    ffi::OsStr,
+    path::{Path, PathBuf},
+    rc::Rc,
+};
 use wgpu::{BindGroupLayoutDescriptor, Device};
 
 struct DesiredRevolutionShapeDrawer {

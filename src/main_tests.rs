@@ -20,6 +20,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::*;
 use ensnano_design::Nucl;
+use winit::window::CursorIcon;
 
 struct DummyScene {}
 impl Application for DummyScene {

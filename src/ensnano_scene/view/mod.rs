@@ -24,14 +24,12 @@ use super::{DrawArea, PhySize};
 use camera::{Camera, CameraPtr, Projection, ProjectionPtr};
 use ensnano_design::{Axis, grid::GridId, group_attributes::GroupPivot};
 use ensnano_interactor::{UnrootedRevolutionSurfaceDescriptor, consts::*};
-use ensnano_utils::{
-    bindgroup_manager, text, texture,
-    wgpu::{self, util::DeviceExt as _},
-};
+use ensnano_utils::{bindgroup_manager, text, texture};
 use int_enum::IntEnum;
 use std::{cell::RefCell, collections::BTreeMap, rc::Rc, usize};
 use texture::Texture;
 use ultraviolet::{Mat4, Rotor3, Vec3};
+use wgpu::util::DeviceExt as _;
 use wgpu::{Device, Queue};
 
 /// A `Uniform` is a structure that manages view and projection matrices.

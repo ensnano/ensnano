@@ -20,7 +20,6 @@ use super::{
 };
 
 use ensnano_interactor::consts::*;
-use ensnano_utils::wgpu;
 use std::f32::consts::PI;
 use std::rc::Rc;
 use ultraviolet::{Rotor3, Vec3};

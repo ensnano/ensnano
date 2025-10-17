@@ -18,7 +18,6 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::instances_drawer::*;
 use ensnano_design::BezierPlaneId;
-use ensnano_utils::wgpu;
 use ultraviolet::{Mat4, Rotor3, Vec2, Vec3};
 use wgpu::{Device, include_spirv};
 

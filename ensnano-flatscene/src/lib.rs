@@ -50,10 +50,7 @@ use ensnano_interactor::{
     graphics::DrawArea,
     operation::*,
 };
-use ensnano_utils::{
-    PhySize, camera2d, filename, wgpu,
-    winit::{self, window::CursorIcon},
-};
+use ensnano_utils::{PhySize, camera2d, filename};
 use flattypes::*;
 use std::{
     cell::RefCell,
@@ -65,7 +62,7 @@ use std::{
 };
 use view::View;
 use wgpu::{Device, Queue};
-use winit::{dpi::PhysicalPosition, event::WindowEvent};
+use winit::{dpi::PhysicalPosition, event::WindowEvent, window::CursorIcon};
 
 type ViewPtr = Rc<RefCell<View>>;
 type DataPtr<R> = Rc<RefCell<Data<R>>>;

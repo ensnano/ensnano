@@ -30,14 +30,13 @@ use ensnano_design::{
     BezierPathId, BezierPlaneId, BezierVertex, BezierVertexId, Nucl, SurfaceInfo, SurfacePoint,
 };
 use ensnano_interactor::consts::*;
-use ensnano_utils::winit;
-use ensnano_utils::winit::window::CursorIcon;
 use std::cell::RefCell;
 use std::ops::Deref;
 use std::rc::Rc;
 use ultraviolet::{Rotor3, Vec2, Vec3};
 use winit::event::{ElementState, KeyEvent, Modifiers};
 use winit::keyboard::{Key, ModifiersState, NamedKey, PhysicalKey};
+use winit::window::CursorIcon;
 
 mod automata;
 pub use automata::WidgetTarget;

@@ -27,13 +27,13 @@ use super::{
     ActionMode, AppState, CameraPtr, DataPtr, FlatHelix, FlatNucl, PhySize, PhysicalPosition,
     Selection, ViewPtr, WindowEvent,
 };
-use ensnano_utils::winit::{
+use std::cell::RefCell;
+use ultraviolet::Vec2;
+use winit::{
     event::{ElementState, KeyEvent},
     keyboard::{Key, ModifiersState, NamedKey},
     window::CursorIcon,
 };
-use std::cell::RefCell;
-use ultraviolet::Vec2;
 
 mod automata;
 use automata::{ControllerState, NormalState, Transition, ctrl};

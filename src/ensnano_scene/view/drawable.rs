@@ -19,7 +19,6 @@ use super::SAMPLE_COUNT;
 use ensnano_interactor::consts::*;
 use ensnano_utils::create_buffer_with_data;
 use ensnano_utils::texture::Texture;
-use ensnano_utils::wgpu;
 use std::rc::Rc;
 use ultraviolet::Vec3;
 use wgpu::{Device, RenderPass, RenderPipeline, include_spirv};

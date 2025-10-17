@@ -41,11 +41,7 @@ use ensnano_interactor::{
     graphics::DrawArea,
     operation::*,
 };
-use ensnano_utils::{
-    BufferDimensions, PhySize, filename,
-    wgpu::{self, Device, Queue},
-    winit::{dpi::PhysicalPosition, event::WindowEvent, window::CursorIcon},
-};
+use ensnano_utils::{BufferDimensions, PhySize, filename};
 use maths_3d::FiniteVec3;
 use std::{
     cell::RefCell,
@@ -62,6 +58,8 @@ use view::{
     LetterInstance, RotationMode as WidgetRotationMode, RotationWidgetDescriptor,
     RotationWidgetOrientation, Stereography, View, ViewUpdate,
 };
+use wgpu::{Device, Queue};
+use winit::{dpi::PhysicalPosition, event::WindowEvent, window::CursorIcon};
 
 type ViewPtr = Rc<RefCell<View>>;
 

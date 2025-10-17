@@ -18,8 +18,6 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use std::path::Path;
 
-use super::wgpu;
-
 const OBJ_VERTEX_ARRAY: [wgpu::VertexAttribute; 3] =
     wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3, 2 => Float32x4];
 

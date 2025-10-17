@@ -17,9 +17,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::*;
-use crate::ensnano_flatscene::DesignReader as Reader2D;
 use ahash::RandomState;
 use ensnano_design::{Domain, Extremity, HelixInterval};
+use ensnano_flatscene::DesignReader as Reader2D;
 use ensnano_interactor::{Referential, torsion::Torsion};
 use std::collections::{BTreeMap, HashMap};
 use std::sync::Arc;
@@ -217,7 +217,7 @@ impl Reader2D for DesignReader {
     }
 }
 
-impl crate::ensnano_flatscene::NuclCollection for super::design_content::NuclCollection {
+impl ensnano_flatscene::NuclCollection for super::design_content::NuclCollection {
     fn contains(&self, nucl: &Nucl) -> bool {
         self.contains_nucl(nucl)
     }

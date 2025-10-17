@@ -91,7 +91,6 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 mod app_state;
 mod controller;
 mod dialog;
-mod ensnano_flatscene;
 mod ensnano_scene;
 #[cfg(test)]
 mod main_tests;
@@ -133,9 +132,8 @@ use {
         iced_futures::futures,
         iced_graphics::{Antialiasing, Viewport},
         iced_runtime::{Debug, program},
-        iced_wgpu::{self, Settings, wgpu},
-        iced_winit::{self, winit},
-        theme,
+        iced_wgpu::{self, Settings},
+        iced_winit, theme,
     },
     ensnano_interactor::{
         ActionMode, CenterOfSelection, DesignOperation, DesignReader, DesignRotation,
@@ -151,7 +149,7 @@ use {
         operation::Operation,
     },
     ensnano_scene::{AppState as _, Scene, SceneKind, data::DesignReader as _},
-    ensnano_utils::{PhySize, TEXTURE_FORMAT, winit::window::CursorIcon},
+    ensnano_utils::{PhySize, TEXTURE_FORMAT},
     multiplexer::{Multiplexer, Overlay},
     scheduler::Scheduler,
     std::{
@@ -168,7 +166,7 @@ use {
         event::{Event, WindowEvent},
         event_loop::{ControlFlow, EventLoop, EventLoopWindowTarget},
         keyboard::{Key, ModifiersState, NamedKey},
-        window::Window,
+        window::{CursorIcon, Window},
     },
 };
 

@@ -16,7 +16,6 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use super::{CameraPtr, FlatNucl, FreeEnd, Helix, Strand};
-use ensnano_utils::wgpu;
 use std::rc::Rc;
 use wgpu::{Buffer, Device, Queue, RenderPass};
 

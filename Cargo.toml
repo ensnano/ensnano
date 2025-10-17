@@ -2,6 +2,7 @@
 members = [
     "ensnano-design",
     "ensnano-exports",
+    "ensnano-flatscene",
     "ensnano-gui",
     "ensnano-iced",
     "ensnano-interactor",
@@ -36,6 +37,7 @@ license.workspace = true
 [workspace.dependencies]
 ensnano_design = { path = "ensnano-design" }
 ensnano_exports = { path = "ensnano-exports" }
+ensnano_flatscene = { path = "ensnano-flatscene" }
 ensnano_gui = { path = "ensnano-gui" }
 ensnano_iced = { path = "ensnano-iced" }
 ensnano_interactor = { path = "ensnano-interactor" }
@@ -106,10 +108,12 @@ ultraviolet = { git = "https://github.com/termhn/ultraviolet", rev = "b2fb29e", 
 ] }
 version-compare = "0.1.0"
 wgpu = { version = "0.19", features = ["spirv"] }
+winit = "0.29"
 
 [dependencies]
 ensnano_design.workspace = true
 ensnano_exports.workspace = true
+ensnano_flatscene.workspace = true
 ensnano_gui.workspace = true
 ensnano_iced.workspace = true
 ensnano_interactor.workspace = true
@@ -117,7 +121,7 @@ ensnano_organizer.workspace = true
 ensnano_physics.workspace = true
 ensnano_utils.workspace = true
 
-# ensnano_(flat)?scene specific
+# ensnano_scene specific
 bytemuck.workspace = true
 futures-channel.workspace = true
 image.workspace = true
@@ -125,20 +129,6 @@ int-enum.workspace = true
 lyon.workspace = true
 num_enum.workspace = true
 png.workspace = true
-
-# ensnano_gui specific
-open.workspace = true
-paste.workspace = true
-
-# ensnano_physics specific
-rapier3d.workspace = true
-
-# ensnano_utils specific
-chrono.workspace = true
-fontdue.workspace = true
-gltf.workspace = true
-nom_stl.workspace = true
-wgpu.workspace = true
 
 ahash.workspace = true
 chebyshev_polynomials.workspace = true
@@ -159,6 +149,8 @@ serde.workspace = true
 serde_json.workspace = true
 ultraviolet.workspace = true
 version-compare.workspace = true
+wgpu.workspace = true
+winit.workspace = true
 
 [features]
 log_after_renderer_setup = []

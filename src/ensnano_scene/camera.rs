@@ -21,7 +21,6 @@ use {
     super::{PhySize, Stereography},
     ensnano_design::{SurfaceInfo, SurfacePoint},
     ensnano_interactor::consts::{DEFAULT_STEREOGRAPHIC_ZOOM, STEREOGRAPHIC_ZOOM_STEP},
-    ensnano_utils::winit,
     std::{
         cell::RefCell,
         f32::consts::{FRAC_PI_2, PI},
