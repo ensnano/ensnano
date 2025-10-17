@@ -1,5 +1,5 @@
 use core::convert::{Into, TryFrom};
-use crate::ensnano_iced::{
+use ensnano_iced::{
     helpers::{button, text},
     iced::Element,
 };

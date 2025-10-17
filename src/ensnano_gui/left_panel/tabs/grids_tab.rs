@@ -17,10 +17,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use std::marker::PhantomData;
 
-use crate::ensnano_iced::{
+use ensnano_iced::{
     fonts::{MaterialIcon, icon_to_char},
     helpers::*,
-    iced::Length,
+    iced::{self, Length},
     iced_aw::TabLabel,
     theme,
 };

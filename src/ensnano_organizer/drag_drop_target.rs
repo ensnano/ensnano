@@ -1,5 +1,5 @@
 //! Allow your users to drag and drop widgets.
-use crate::ensnano_iced::iced::{
+use ensnano_iced::iced::{
     Element, Length, Padding, Rectangle, Size, Vector,
     advanced::{
         layout::{self, Layout},

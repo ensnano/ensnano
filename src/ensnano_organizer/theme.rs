@@ -1,5 +1,5 @@
 //! Customize the theme of ENSnano
-use crate::ensnano_iced::iced::{
+use ensnano_iced::iced::{
     Background, Border, Color, Shadow, Vector,
     border::Radius,
     theme,

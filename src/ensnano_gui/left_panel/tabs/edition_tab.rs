@@ -15,10 +15,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use crate::ensnano_iced::{
+use ensnano_iced::{
     color_picker::{ColorPicker, ColorPickerMessage},
     fonts::{MaterialIcon, icon_to_char},
     helpers::*,
+    iced,
     iced_aw::TabLabel,
 };
 use std::marker::PhantomData;

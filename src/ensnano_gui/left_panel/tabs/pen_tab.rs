@@ -15,15 +15,15 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use std::marker::PhantomData;
-
 use super::tabs::GuiTab;
 use super::{AppState, GridTypeDescr, ICON_HONEYCOMB_GRID, ICON_SQUARE_GRID, Message, UiSize};
-use crate::ensnano_iced::{
+use ensnano_iced::iced;
+use ensnano_iced::{
     fonts::{MaterialIcon, MaterialIconStyle, icon_to_char},
     helpers::*,
     iced_aw::TabLabel,
 };
+use std::marker::PhantomData;
 
 const NEW_BEZIER_PLANE_ICON: MaterialIcon = MaterialIcon::HistoryEdu;
 const EDIT_BEZIER_PATH_ICON: MaterialIcon = MaterialIcon::LinearScale;

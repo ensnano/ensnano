@@ -59,7 +59,7 @@ use crate::{
 use address_pointer::AddressPointer;
 use design_interactor::{DesignInteractor, InteractorResult};
 use design_interactor::{DesignReader, controller::ErrOperation};
-use crate::ensnano_iced::UiSize;
+use ensnano_iced::UiSize;
 use std::{
     path::PathBuf,
     sync::{Arc, RwLock},

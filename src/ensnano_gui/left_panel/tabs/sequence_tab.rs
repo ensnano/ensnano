@@ -21,7 +21,8 @@ use crate::ensnano_interactor::StandardSequence;
 
 use super::tabs::GuiTab;
 use super::{AppState, DesignElementKey, Message, UiSize};
-use crate::ensnano_iced::{helpers::*, iced::Length, iced_aw::TabLabel, theme};
+use ensnano_iced::iced;
+use ensnano_iced::{helpers::*, iced::Length, iced_aw::TabLabel, theme};
 
 pub struct SequenceTab<State: AppState> {
     toggle_text_value: bool,

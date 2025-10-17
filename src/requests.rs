@@ -32,7 +32,7 @@ use crate::ensnano_design::{
     grid::{GridId, GridPosition, GridTypeDescr},
 };
 use crate::ensnano_gui::OrganizerTree;
-use crate::ensnano_iced::UiSize;
+use ensnano_iced::UiSize;
 use crate::ensnano_interactor::{
     ActionMode, CenterOfSelection, HyperboloidRequest, RapierSimulationRequest, RigidBodyConstants,
     RollRequest, Selection, SelectionMode, UnrootedRevolutionSurfaceDescriptor,

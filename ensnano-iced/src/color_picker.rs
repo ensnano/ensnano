@@ -21,7 +21,6 @@ use iced::{
     Color, Length,
     widget::{Column, Row, column, row},
 };
-use log;
 use std::collections::VecDeque;
 
 // TODO: Adjust to tab height.

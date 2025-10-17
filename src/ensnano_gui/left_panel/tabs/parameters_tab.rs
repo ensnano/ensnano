@@ -15,19 +15,15 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use std::marker::PhantomData;
-
-use crate::{ensnano_design, ensnano_iced};
-
 use super::tabs::GuiTab;
-
 use super::{AppState, FactoryId, Message, RequestFactory, ScrollSensitivity, UiSize, ValueId};
-
-use crate::ensnano_iced::{
+use crate::ensnano_design;
+use ensnano_iced::{
     fonts::{MaterialIcon, icon_to_char},
     helpers::*,
     iced_aw::TabLabel,
 };
+use std::marker::PhantomData;
 
 pub struct ParametersTab<State: AppState> {
     scroll_sensitivity_factory: RequestFactory<ScrollSensitivity>,

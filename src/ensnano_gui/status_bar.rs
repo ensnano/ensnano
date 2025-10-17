@@ -16,16 +16,16 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use super::{AppState, Requests};
-use crate::ensnano_iced::{
+pub use crate::ensnano_interactor::StrandBuildingStatus;
+use crate::ensnano_interactor::operation::Operation;
+use ensnano_iced::{
     self, UiSize,
     helpers::*,
-    iced::{Alignment, Color, Element, Length},
+    iced::{self, Alignment, Color, Element, Length},
     iced_graphics::text::Paragraph,
     iced_runtime::{Command, Program},
     iced_winit::winit::dpi::LogicalSize,
 };
-pub use crate::ensnano_interactor::StrandBuildingStatus;
-use crate::ensnano_interactor::operation::Operation;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
@@ -411,7 +411,7 @@ impl OperationInput {
 
 mod input_color {
     // TODO: Move this in ensnano_iced.
-    use crate::ensnano_iced::iced::{Background, Border, Color, theme, widget::text_input::*};
+    use ensnano_iced::iced::{Background, Border, Color, theme, widget::text_input::*};
 
     pub enum InputValueState {
         Normal,

@@ -24,8 +24,14 @@ use crate::ensnano_design::{
     ultraviolet,
 };
 use crate::ensnano_exports::ExportType;
-use crate::ensnano_iced;
-use crate::ensnano_iced::{
+use crate::ensnano_interactor::{
+    ActionMode, EquadiffSolvingMethod, HyperboloidRequest, RapierSimulationRequest, Selection,
+    SelectionConversion,
+    app_state_parameters::{AppStateParameters, CheckXoversParameter, SuggestionParameters},
+    graphics::{Background3D, HBondDisplay, RenderingMode},
+};
+use crate::ensnano_organizer::{Organizer, OrganizerMessage, OrganizerTree};
+use ensnano_iced::{
     UiSize,
     color_picker::ColorPickerMessage,
     iced::{Color, Command, Element, Length},
@@ -40,13 +46,6 @@ use crate::ensnano_iced::{
         },
     },
 };
-use crate::ensnano_interactor::{
-    ActionMode, EquadiffSolvingMethod, HyperboloidRequest, RapierSimulationRequest, Selection,
-    SelectionConversion,
-    app_state_parameters::{AppStateParameters, CheckXoversParameter, SuggestionParameters},
-    graphics::{Background3D, HBondDisplay, RenderingMode},
-};
-use crate::ensnano_organizer::{Organizer, OrganizerMessage, OrganizerTree};
 use std::sync::{Arc, Mutex};
 use ultraviolet::Vec3;
 

@@ -31,7 +31,7 @@ use crate::ensnano_exports::ExportType;
 use crate::ensnano_interactor::consts::CANNOT_OPEN_DEFAULT_DIR;
 use crate::{MainStateView, ensnano_design};
 use dialog::{MustAckMessage, YesNoQuestion};
-use crate::ensnano_iced::UiSize;
+use ensnano_iced::UiSize;
 use normal_state::NormalState;
 use quit::*;
 use set_scaffold_sequence::*;

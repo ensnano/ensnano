@@ -22,8 +22,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! other components of the program it is forwarded to the `main` function via the
 //! [Request](Requests) data structure.
 
-pub use crate::ensnano_iced::iced;
-use crate::ensnano_iced::{
+pub use ensnano_iced::iced;
+use ensnano_iced::{
     self, fonts,
     iced::{
         advanced::{clipboard, mouse},
@@ -56,7 +56,7 @@ use crate::ensnano_design::{
     grid::GridTypeDescr,
     ultraviolet,
 };
-use crate::ensnano_iced::{
+use ensnano_iced::{
     iced_graphics,
     iced_runtime::{Debug, program},
     iced_wgpu::{self, Backend, wgpu},
