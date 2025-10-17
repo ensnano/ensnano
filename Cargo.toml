@@ -96,10 +96,7 @@ rapier3d = "0.30.0"
 rayon = "1.6.0"
 regex = "1.4.2"
 relative-path = "1.7.0"
-rfd = { version = "0.13", default-features = false, features = [
-    "tokio",
-    "xdg-portal",
-] }
+rfd = "0.14"
 rust_xlsxwriter = "0.55.0"
 serde = { version = "1.0.116", features = ["derive", "rc"] }
 serde_json = "1.0.116"
