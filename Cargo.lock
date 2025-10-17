@@ -1110,6 +1110,7 @@ dependencies = [
  "ensnano_iced",
  "ensnano_interactor",
  "ensnano_organizer",
+ "ensnano_physics",
  "fontdue",
  "futures",
  "futures-channel",
@@ -1219,6 +1220,16 @@ dependencies = [
  "log",
  "rand 0.8.5",
  "serde",
+]
+
+[[package]]
+name = "ensnano_physics"
+version = "0.7.0"
+dependencies = [
+ "ahash 0.8.12",
+ "ensnano_design",
+ "ensnano_interactor",
+ "rapier3d",
 ]
 
 [[package]]

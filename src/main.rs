@@ -93,7 +93,6 @@ mod controller;
 mod dialog;
 mod ensnano_flatscene;
 mod ensnano_gui;
-mod ensnano_physics;
 mod ensnano_scene;
 mod ensnano_utils;
 #[cfg(test)]
