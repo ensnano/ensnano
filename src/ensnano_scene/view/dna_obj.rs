@@ -18,7 +18,6 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! This modules defines the meshes that are used to draw DNA.
 
 use super::instances_drawer::{Instantiable, Vertexable};
-use crate::ensnano_design::ultraviolet;
 use crate::ensnano_interactor::consts::*;
 use crate::ensnano_utils::wgpu;
 use std::f32::consts::PI;
@@ -462,8 +461,8 @@ impl Instantiable for TubeLidInstance {
                         normal,
                     }
                 } else {
-                    let φ = i as f32 / NB_RAY_TUBE as f32 * 2. * std::f32::consts::PI;
-                    let position = [0., φ.sin(), φ.cos()];
+                    let phi = i as f32 / NB_RAY_TUBE as f32 * 2. * std::f32::consts::PI;
+                    let position = [0., phi.sin(), phi.cos()];
                     DnaVertex { position, normal }
                 }
             })
@@ -540,20 +539,20 @@ impl Instantiable for SlicedTubeInstance {
         // Precomputation of the cos and sin
         let circle: Vec<[f32; 3]> = (0..3 * NB_RAY_TUBE)
             .map(|i| {
-                let φ = (i % NB_RAY_TUBE) as f32 / NB_RAY_TUBE as f32 * 2. * std::f32::consts::PI;
+                let phi = (i % NB_RAY_TUBE) as f32 / NB_RAY_TUBE as f32 * 2. * std::f32::consts::PI;
                 let x = match i / NB_RAY_TUBE {
                     0 => -0.5,
                     1 => 0.,
                     _ => 0.5,
                 };
-                [x, φ.sin(), φ.cos()]
+                [x, phi.sin(), phi.cos()]
             })
             .collect();
 
         let circle_normal: Vec<[f32; 3]> = (0..3 * NB_RAY_TUBE)
             .map(|i| {
-                let φ = (i % NB_RAY_TUBE) as f32 / NB_RAY_TUBE as f32 * 2. * std::f32::consts::PI;
-                [0., φ.sin(), φ.cos()]
+                let phi = (i % NB_RAY_TUBE) as f32 / NB_RAY_TUBE as f32 * 2. * std::f32::consts::PI;
+                [0., phi.sin(), phi.cos()]
             })
             .collect();
 

@@ -27,7 +27,6 @@ use material_colors::MaterialColor;
 
 pub use bezier_plane::*;
 use serde::{Deserialize, Serialize};
-pub use ultraviolet;
 
 pub mod codenano;
 pub mod consts;

@@ -16,8 +16,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use super::*;
-use crate::ensnano_design::curves::Twist;
-use crate::ensnano_design::{CurveDescriptor, Helix};
+use crate::curves::Twist;
+use crate::{CurveDescriptor, Helix};
 use std::sync::Arc;
 
 use ultraviolet::{Isometry2, Rotor2, Rotor3, Vec2, Vec3};

@@ -365,11 +365,7 @@ impl Helix {
         })
     }
 
-    pub fn translated_by(
-        &self,
-        edge: crate::ensnano_design::grid::Edge,
-        grid_data: &GridData,
-    ) -> Option<Self> {
+    pub fn translated_by(&self, edge: crate::grid::Edge, grid_data: &GridData) -> Option<Self> {
         log::debug!("attempt to translate helix");
         let grid_position = self
             .grid_position

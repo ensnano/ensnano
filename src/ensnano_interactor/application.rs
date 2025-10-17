@@ -20,7 +20,7 @@ use std::path::Path;
 
 use super::Selection;
 use super::graphics::*;
-use crate::ensnano_design::group_attributes::GroupPivot;
+use ensnano_design::group_attributes::GroupPivot;
 use ensnano_iced::{iced_wgpu::wgpu, iced_winit::winit};
 use std::sync::Arc;
 use std::time::Duration;

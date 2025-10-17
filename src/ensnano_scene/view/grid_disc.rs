@@ -15,11 +15,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use crate::ensnano_utils::wgpu;
-use wgpu::{Device, PrimitiveTopology, include_spirv};
 
 use super::instances_drawer::Instantiable;
-use crate::ensnano_design::ultraviolet::{Mat4, Rotor3, Vec3, Vec4};
+use crate::ensnano_utils::wgpu;
+use ultraviolet::{Mat4, Rotor3, Vec3, Vec4};
+use wgpu::{Device, PrimitiveTopology, include_spirv};
 
 #[derive(Debug, Clone)]
 pub struct GridDisc {

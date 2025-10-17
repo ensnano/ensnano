@@ -17,7 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::Curved;
-use crate::ensnano_design::{HelixParameters, InstanciatedPiecewiseBezier};
+use crate::{HelixParameters, InstanciatedPiecewiseBezier};
 use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
 use std::f64::consts::TAU;
@@ -780,11 +780,11 @@ impl Curved for TwistedTorus {
     }
 }
 
-impl crate::ensnano_design::Helix {
+impl crate::Helix {
     pub fn get_revolution_curve_descriptor(&self) -> Option<&CurveDescriptor2D> {
-        if let Some(crate::ensnano_design::CurveDescriptor::TwistedTorus(
-            TwistedTorusDescriptor { curve, .. },
-        )) = self.curve.as_ref().map(Arc::as_ref)
+        if let Some(crate::CurveDescriptor::TwistedTorus(TwistedTorusDescriptor {
+            curve, ..
+        })) = self.curve.as_ref().map(Arc::as_ref)
         {
             Some(curve)
         } else {

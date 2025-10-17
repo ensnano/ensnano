@@ -17,7 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::*;
-use crate::ensnano_design::{curves::torus::PointOnSurface_, utils::dvec_to_vec};
+use crate::{curves::torus::PointOnSurface_, utils::dvec_to_vec};
 use chebyshev_polynomials::ChebyshevPolynomial;
 use serde::{Deserialize, Serialize};
 use std::f64::consts::{PI, TAU};

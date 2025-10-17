@@ -397,7 +397,7 @@ impl super::SimulationInterface for RollInterface {
 pub struct RollState(HashMap<usize, Helix>);
 
 impl super::SimulationUpdate for RollState {
-    fn update_design(&self, design: &mut crate::ensnano_design::Design) {
+    fn update_design(&self, design: &mut ensnano_design::Design) {
         let mut new_helices = design.helices.make_mut();
         for (i, h) in self.0.iter() {
             new_helices.insert(*i, h.clone());

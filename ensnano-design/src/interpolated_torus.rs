@@ -1,5 +1,5 @@
-use crate::ensnano_design::Curve;
-use crate::ensnano_design::*;
+use crate::Curve;
+use crate::*;
 use std::sync::Arc;
 
 use ultraviolet::{Rotor3, Vec3};

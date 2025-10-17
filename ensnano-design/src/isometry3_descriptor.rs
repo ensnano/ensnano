@@ -300,9 +300,11 @@ impl Isometry3MissingMethods for Isometry3 {
     }
 
     fn rotation_yz_by_around(degree: f32, c: Vec3) -> Isometry3 {
-        let α = PI * degree / 180.;
-        let rotor =
-            Rotor3::from_rotation_between(Vec3::new(0., 1., 0.), Vec3::new(0., α.cos(), α.sin()));
+        let alpha = PI * degree / 180.;
+        let rotor = Rotor3::from_rotation_between(
+            Vec3::new(0., 1., 0.),
+            Vec3::new(0., alpha.cos(), alpha.sin()),
+        );
         Isometry3 {
             translation: c - c.rotated_by(rotor),
             rotation: rotor,
@@ -310,9 +312,11 @@ impl Isometry3MissingMethods for Isometry3 {
     }
 
     fn rotation_zx_by_around(degree: f32, c: Vec3) -> Isometry3 {
-        let α = PI * degree / 180.;
-        let rotor =
-            Rotor3::from_rotation_between(Vec3::new(0., 0., 1.), Vec3::new(α.sin(), 0., α.cos()));
+        let alpha = PI * degree / 180.;
+        let rotor = Rotor3::from_rotation_between(
+            Vec3::new(0., 0., 1.),
+            Vec3::new(alpha.sin(), 0., alpha.cos()),
+        );
         Isometry3 {
             translation: c - c.rotated_by(rotor),
             rotation: rotor,
@@ -320,9 +324,11 @@ impl Isometry3MissingMethods for Isometry3 {
     }
 
     fn rotation_xy_by_around(degree: f32, c: Vec3) -> Isometry3 {
-        let α = PI * degree / 180.;
-        let rotor =
-            Rotor3::from_rotation_between(Vec3::new(1., 0., 0.), Vec3::new(α.cos(), α.sin(), 0.));
+        let alpha = PI * degree / 180.;
+        let rotor = Rotor3::from_rotation_between(
+            Vec3::new(1., 0., 0.),
+            Vec3::new(alpha.cos(), alpha.sin(), 0.),
+        );
         Isometry3 {
             translation: c - c.rotated_by(rotor),
             rotation: rotor,

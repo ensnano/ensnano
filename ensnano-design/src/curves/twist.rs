@@ -17,7 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::Curved;
-use crate::ensnano_design::{
+use crate::{
     HelixParameters,
     utils::{rotor_to_drotor, vec_to_dvec},
 };
@@ -217,11 +217,10 @@ mod tests {
         twist.t_max = Some(Z);
         let descriptor = super::super::InstanciatedCurveDescriptor_::Twist(twist);
         let curve = descriptor.try_into_curve(&p).unwrap();
-        let flat_helix = crate::ensnano_design::Helix::new(Vec3::zero(), Rotor3::identity());
+        let flat_helix = crate::Helix::new(Vec3::zero(), Rotor3::identity());
         let theta = flat_helix.theta(99, true, &p);
         let nucl_curved = curve.nucl_pos(99, true, theta as f64, &p).unwrap();
-        let nucl_flat =
-            crate::ensnano_design::utils::vec_to_dvec(flat_helix.space_pos(&p, 99, true));
+        let nucl_flat = crate::utils::vec_to_dvec(flat_helix.space_pos(&p, 99, true));
 
         println!("curved {:?} \n flat {:?}", nucl_curved, nucl_flat);
         // The two nucleotides are not in the same position
@@ -242,7 +241,7 @@ mod tests {
         println!("abscissa {:?}", twist.curvilinear_abscissa(Z));
         println!("z ratio {:?}", twist.rise_ratio());
         assert!(twist.theta_shift(&p).is_some());
-        let flat_helix = crate::ensnano_design::Helix::new(Vec3::zero(), Rotor3::identity());
+        let flat_helix = crate::Helix::new(Vec3::zero(), Rotor3::identity());
         let theta_99 = flat_helix.theta(99, true, &p);
         let theta_98 = flat_helix.theta(98, true, &p);
         let nucl_98 = curve.nucl_pos(98, true, theta_98 as f64, &p).unwrap();

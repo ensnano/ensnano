@@ -1,0 +1,31 @@
+
+[package]
+name = "ensnano_design"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+ensnano_organizer.workspace = true
+
+chebyshev_polynomials.workspace = true
+icondata.workspace = true
+log.workspace = true
+num_enum.workspace = true
+ordered-float.workspace = true
+pathdiff.workspace = true
+quadrature.workspace = true
+rayon.workspace = true
+rand.workspace = true
+rand_distr.workspace = true
+relative-path.workspace = true
+serde.workspace = true
+serde_with.workspace = true
+strum.workspace = true
+svg.workspace = true
+ultraviolet.workspace = true
+version-compare.workspace = true
+
+[dev-dependencies]
+regex.workspace = true

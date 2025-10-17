@@ -21,8 +21,8 @@ pub mod file_parsing;
 pub mod presenter;
 
 use super::AddressPointer;
-use crate::ensnano_design;
-use crate::ensnano_design::{
+use ensnano_design;
+use ensnano_design::{
     BezierPathId, BezierPlaneDescriptor, Design, HelixCollection, HelixParameters,
     InstanciatedPiecewiseBezier, grid::GridId, group_attributes::GroupAttribute,
 };
@@ -395,7 +395,7 @@ impl DesignReader {
     }
 
     pub fn get_default_bezier(&self) -> Option<&BezierPlaneDescriptor> {
-        use crate::ensnano_design::Collection;
+        use ensnano_design::Collection;
         self.presenter
             .current_design
             .as_ref()
@@ -405,7 +405,7 @@ impl DesignReader {
     }
 
     pub fn get_first_bezier_plane(&self, path_id: BezierPathId) -> Option<&BezierPlaneDescriptor> {
-        use crate::ensnano_design::Collection;
+        use ensnano_design::Collection;
         let path = self
             .presenter
             .current_design
@@ -431,9 +431,9 @@ mod tests {
         CopyOperation, PastePosition,
     };
     use crate::app_state::design_interactor::file_parsing::junctions::StrandJunction as _;
-    use crate::ensnano_design::HelixCollection;
-    use crate::ensnano_design::grid::HelixGridPosition;
-    use crate::ensnano_design::{Collection, DomainJunction, Nucl, Strand, grid::GridDescriptor};
+    use ensnano_design::HelixCollection;
+    use ensnano_design::grid::HelixGridPosition;
+    use ensnano_design::{Collection, DomainJunction, Nucl, Strand, grid::GridDescriptor};
     use crate::ensnano_interactor::operation::GridHelixCreation;
     use crate::ensnano_interactor::{DesignReader, InsertionPoint};
     use crate::ensnano_scene::data::DesignReader as Reader3d;

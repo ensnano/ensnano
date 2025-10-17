@@ -19,7 +19,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 const MAX_ACCEL: f64 = 100.;
 
 use super::{SimulationInterface, SimulationUpdate};
-use crate::ensnano_design::{
+use ensnano_design::{
     self, CurveDescriptor, CurveDescriptor2D, DVec3, HelixParameters, InterpolationDescriptor,
     Isometry3, Similarity3,
 };
@@ -501,7 +501,7 @@ impl SimulationUpdate for RevolutionSurfaceSystem {
 
 impl ensnano_design::AdditionalStructure for RevolutionSurfaceSystem {
     fn position(&self) -> Vec<ultraviolet::Vec3> {
-        use crate::ensnano_design::utils::dvec_to_vec;
+        use ensnano_design::utils::dvec_to_vec;
         let thetas = self
             .last_thetas
             .clone()
@@ -592,7 +592,7 @@ struct HelicesRouting {
 
 impl SimulationUpdate for HelicesRouting {
     fn update_design(&self, design: &mut ensnano_design::Design) {
-        use crate::ensnano_design::{
+        use ensnano_design::{
             Domain, DomainJunction, Helix, HelixInterval, Rotor2, Strand, Vec2,
         };
         let helix_parameters = design.helix_parameters.unwrap_or_default();

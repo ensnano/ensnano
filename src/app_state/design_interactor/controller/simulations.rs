@@ -23,7 +23,7 @@ pub mod twister;
 
 use super::*;
 use crate::app_state::design_interactor::Presenter;
-use crate::ensnano_design::HelixParameters;
+use ensnano_design::HelixParameters;
 use crate::ensnano_interactor::{RevolutionSurfaceSystemDescriptor, RigidBodyConstants};
 use mathru::{
     algebra::linear::vector::vector::Vector,

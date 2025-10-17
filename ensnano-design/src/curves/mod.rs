@@ -33,8 +33,8 @@ mod tube_spiral;
 mod twist;
 
 use super::{Helix, HelixParameters};
-use crate::ensnano_design::grid::*;
-use crate::ensnano_design::{
+use crate::grid::*;
+use crate::{
     BezierPathData, BezierPathId,
     curves::chebyshev::{PolynomialCoordinates, PolynomialCoordinates_},
     grid::{Edge, GridPosition},
@@ -131,17 +131,17 @@ pub trait Curved {
     ///
     /// See `https://en.wikipedia.org/wiki/Torsion_of_a_curve`
     fn torsion(&self, t: f64) -> f64 {
-        let ε: f64 = 1e-3;
+        let eps: f64 = 1e-3;
         let p0 = self.position(t);
-        let p1 = self.position(t + ε);
-        let p2 = self.position(t + 2. * ε);
-        let p3 = self.position(t + 3. * ε);
-        let dp0 = (p1 - p0) / ε;
-        let dp1 = (p2 - p1) / ε;
-        let dp2 = (p3 - p2) / ε;
-        let d2p0 = (dp1 - dp0) / ε;
-        let d2p1 = (dp2 - dp1) / ε;
-        let d3p = (d2p1 - d2p0) / ε;
+        let p1 = self.position(t + eps);
+        let p2 = self.position(t + 2. * eps);
+        let p3 = self.position(t + 3. * eps);
+        let dp0 = (p1 - p0) / eps;
+        let dp1 = (p2 - p1) / eps;
+        let dp2 = (p3 - p2) / eps;
+        let d2p0 = (dp1 - dp0) / eps;
+        let d2p1 = (dp2 - dp1) / eps;
+        let d3p = (d2p1 - d2p0) / eps;
         let c = dp0.cross(d2p0);
         return d3p.dot(c) / c.mag_sq();
     }
@@ -524,20 +524,18 @@ impl Curve {
 
     pub fn update_additional_segments(
         &self,
-        segments: &mut Vec<crate::ensnano_design::helices::AdditionalHelix2D>,
+        segments: &mut Vec<crate::helices::AdditionalHelix2D>,
     ) {
         segments.truncate(self.additional_segment_left.len());
         let mut iter = self
             .additional_segment_left
             .iter()
             .enumerate()
-            .map(
-                |(segment_idx, s)| crate::ensnano_design::helices::AdditionalHelix2D {
-                    left: *s as isize - self.nucl_t0 as isize,
-                    additional_isometry: self.geometry.additional_isometry(segment_idx),
-                    additional_symmetry: None,
-                },
-            );
+            .map(|(segment_idx, s)| crate::helices::AdditionalHelix2D {
+                left: *s as isize - self.nucl_t0 as isize,
+                additional_isometry: self.geometry.additional_isometry(segment_idx),
+                additional_symmetry: None,
+            });
 
         for s in segments.iter_mut() {
             if let Some(i) = iter.next() {

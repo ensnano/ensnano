@@ -22,7 +22,7 @@ use super::*;
 use chebyshev_polynomials::ChebyshevPolynomial;
 use ultraviolet::DRotor3;
 
-use crate::ensnano_design::consts::{ITERATIVE_AXIS_ALGORITHM, IterativeFrameAlgorithm};
+use crate::consts::{ITERATIVE_AXIS_ALGORITHM, IterativeFrameAlgorithm};
 
 /// The number of points used in the iterative version of the discretization algorithm.
 const NB_DISCRETISATION_STEP: usize = 100_000;

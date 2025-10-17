@@ -17,7 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::*;
-use crate::ensnano_design::strands::*;
+use crate::strands::*;
 use std::borrow::Cow;
 
 impl Design {

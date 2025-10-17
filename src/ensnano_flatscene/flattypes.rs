@@ -23,7 +23,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! reduces the confusion, since errors will be detected by the typechecker.
 
 use super::{HashMap, Nucl, Selection};
-use crate::ensnano_design::grid::GridId;
+use ensnano_design::grid::GridId;
 use crate::ensnano_interactor::PhantomElement;
 use std::collections::BTreeMap;
 use std::hash::{Hash, Hasher};

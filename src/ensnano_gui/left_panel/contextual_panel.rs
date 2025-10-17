@@ -17,8 +17,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use super::super::DesignReader;
 use super::*;
-use crate::ensnano_design::{BezierVertexId, grid::GridId};
 use crate::ensnano_interactor::{Selection, SimulationState};
+use ensnano_design::{BezierVertexId, grid::GridId};
 use ensnano_iced::{
     helpers::*,
     iced::{self, Alignment, alignment::Horizontal},
@@ -26,10 +26,10 @@ use ensnano_iced::{
 };
 
 mod value_constructor;
+use ultraviolet::{Rotor3, Vec2};
 use value_constructor::{BezierVertexBuilder, Builder, GridBuilder};
 pub use value_constructor::{InstanciatedValue, ValueKind};
 
-use ultraviolet::{Rotor3, Vec2, Vec3};
 pub enum ValueRequest {
     HelixGridPosition {
         grid_id: GridId,

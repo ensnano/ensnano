@@ -37,7 +37,7 @@ mod data;
 mod flattypes;
 mod view;
 
-use crate::ensnano_design::{Isometry2, Nucl, consts::ITERATIVE_AXIS_ALGORITHM};
+use ensnano_design::{Isometry2, Nucl, consts::ITERATIVE_AXIS_ALGORITHM};
 use crate::ensnano_interactor::{
     ActionMode, DesignOperation, PhantomElement, Selection, SelectionMode, StrandBuilder,
     StrandBuildingStatus,

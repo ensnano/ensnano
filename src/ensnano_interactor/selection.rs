@@ -15,12 +15,12 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-pub use crate::ensnano_design::BezierControlPoint;
-use crate::ensnano_design::{
+pub use ensnano_design::BezierControlPoint;
+use ensnano_design::{
     BezierPathId, BezierVertexId,
     grid::{GridId, HelixGridPosition},
 };
-use crate::ensnano_design::{Nucl, Strand};
+use ensnano_design::{Nucl, Strand};
 use std::collections::BTreeSet;
 
 pub const PHANTOM_RANGE: i32 = 1000;
@@ -617,7 +617,7 @@ pub trait SelectionConversion: Sized {
     fn to_selection(&self, d_id: u32) -> Selection;
 }
 
-use crate::ensnano_design::elements::*;
+use ensnano_design::elements::*;
 impl SelectionConversion for DesignElementKey {
     fn from_selection(selection: &Selection, d_id: u32) -> Option<Self> {
         if selection.get_design() == Some(d_id) {

@@ -18,12 +18,13 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::super::view::InsertionInstance;
 use super::helix::{Helix, Shift};
 use super::{CameraPtr, FlatNucl};
-use crate::ensnano_design::ultraviolet::Vec2;
-use lyon::math::Point;
-use lyon::path::Path;
-use lyon::path::path::BuilderWithAttributes;
-use lyon::tessellation;
 use lyon::tessellation::{StrokeVertex, StrokeVertexConstructor};
+use lyon::{
+    math::Point,
+    path::{Path, path::BuilderWithAttributes},
+    tessellation,
+};
+use ultraviolet::Vec2;
 
 type Vertices = lyon::tessellation::VertexBuffers<StrandVertex, u16>;
 

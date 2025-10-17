@@ -109,7 +109,7 @@ impl SceneRequests for Requests {
 
     fn set_current_group_pivot(
         &mut self,
-        pivot: crate::ensnano_design::group_attributes::GroupPivot,
+        pivot: ensnano_design::group_attributes::GroupPivot,
     ) {
         self.keep_proceed.push_back(Action::SetGroupPivot(pivot))
     }

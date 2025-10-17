@@ -20,8 +20,8 @@ use super::{
     flattypes::{FlatPosition, FlatSelection, HelixSegment},
     view::EditionInfo,
 };
-use crate::ensnano_design::{Nucl, ultraviolet};
 use crate::ensnano_interactor::{Selection, SelectionMode};
+use ensnano_design::Nucl;
 use std::sync::{Arc, Mutex};
 use ultraviolet::Vec2;
 

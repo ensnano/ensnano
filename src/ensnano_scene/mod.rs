@@ -26,11 +26,6 @@ mod sausage_rosary;
 mod stl;
 pub mod view;
 
-use crate::ensnano_design;
-use crate::ensnano_design::{
-    BezierVertexId, Nucl, consts::ITERATIVE_AXIS_ALGORITHM, grid::GridPosition,
-    grid::HelixGridPosition, group_attributes::GroupPivot, ultraviolet,
-};
 use crate::ensnano_interactor::{
     ActionMode, CenterOfSelection, DesignOperation, NewBezierTangentVector, Selection,
     SelectionMode, StrandBuilder, UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
@@ -47,6 +42,11 @@ use crate::ensnano_utils::{
 use controller::{Consequence, Controller, WidgetTarget};
 use data::{Data, DesignReader};
 use element_selector::{ElementSelector, SceneElement};
+use ensnano_design;
+use ensnano_design::{
+    BezierVertexId, Nucl, consts::ITERATIVE_AXIS_ALGORITHM, grid::GridPosition,
+    grid::HelixGridPosition, group_attributes::GroupPivot,
+};
 use maths_3d::FiniteVec3;
 use std::{
     cell::RefCell,

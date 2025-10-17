@@ -19,7 +19,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 // TODO: check all unused fields (starting with _)
 
 use super::Curved;
-use crate::ensnano_design::HelixParameters;
+use crate::HelixParameters;
 use serde::{Deserialize, Serialize};
 use std::f64::consts::{PI, TAU};
 use ultraviolet::DVec3;
@@ -45,9 +45,9 @@ impl SphereConcentricCircleDescriptor {
         let inter_helix_center_gap = self
             .inter_helix_center_gap
             .unwrap_or(HelixParameters::INTER_CENTER_GAP as f64);
-        let φ = PI / 2.0 - helix_index * inter_helix_center_gap as f64 / self.radius;
-        let z_radius = self.radius * φ.sin();
-        let z = self.radius * φ.cos();
+        let phi = PI / 2.0 - helix_index * inter_helix_center_gap as f64 / self.radius;
+        let z_radius = self.radius * phi.sin();
+        let z = self.radius * phi.cos();
         let perimeter = TAU * z_radius;
 
         SphereConcentricCircle {
@@ -57,7 +57,7 @@ impl SphereConcentricCircleDescriptor {
             _helix_index: helix_index,
             _inter_helix_center_gap: inter_helix_center_gap,
             _perimeter: perimeter,
-            _φ: φ,
+            _phi: phi,
             z_radius,
             z,
             t_min: 0.,
@@ -80,7 +80,7 @@ pub(super) struct SphereConcentricCircle {
     pub _helix_index: f64,
     pub _inter_helix_center_gap: f64,
     pub _perimeter: f64,
-    pub _φ: f64,
+    pub _phi: f64,
     pub z_radius: f64,
     pub z: f64,
     pub t_min: f64,
@@ -165,8 +165,8 @@ impl Curved for SphereConcentricCircle {
         self.t_min
     }
 
-    fn abscissa_converter(&self) -> Option<crate::ensnano_design::AbscissaConverter> {
-        return Some(crate::ensnano_design::AbscissaConverter::linear(
+    fn abscissa_converter(&self) -> Option<crate::AbscissaConverter> {
+        return Some(crate::AbscissaConverter::linear(
             self.abscissa_converter_factor.unwrap_or(1.),
         ));
     }
@@ -665,9 +665,9 @@ impl PillConcentricStadiumDescriptor {
         let inter_helix_center_gap = self
             .inter_helix_center_gap
             .unwrap_or(HelixParameters::INTER_CENTER_GAP as f64);
-        let φ = PI / 2.0 - helix_index * inter_helix_center_gap as f64 / self.radius;
-        let z_radius = self.radius * φ.sin();
-        let z = self.radius * φ.cos();
+        let phi = PI / 2.0 - helix_index * inter_helix_center_gap as f64 / self.radius;
+        let z_radius = self.radius * phi.sin();
+        let z = self.radius * phi.cos();
         let t1 = self.length;
         let t2 = t1 + PI * z_radius;
         let t3 = t2 + self.length;
@@ -683,7 +683,7 @@ impl PillConcentricStadiumDescriptor {
             t2,
             t3,
             perimeter,
-            _φ: φ,
+            _phi: phi,
             z_radius,
             z,
             t_min: 0.,
@@ -709,7 +709,7 @@ pub(super) struct PillConcentricStadium {
     pub t2: f64,
     pub t3: f64,
     pub perimeter: f64,
-    pub _φ: f64,
+    pub _phi: f64,
     pub z_radius: f64,
     pub z: f64,
     pub t_min: f64,
@@ -862,8 +862,8 @@ impl Curved for PillConcentricStadium {
         self.t_min
     }
 
-    fn abscissa_converter(&self) -> Option<crate::ensnano_design::AbscissaConverter> {
-        return Some(crate::ensnano_design::AbscissaConverter::linear(
+    fn abscissa_converter(&self) -> Option<crate::AbscissaConverter> {
+        return Some(crate::AbscissaConverter::linear(
             self.abscissa_converter_factor.unwrap_or(1.),
         ));
     }

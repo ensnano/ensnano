@@ -17,8 +17,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::{CurveInstantiator, Edge};
-use crate::ensnano_design::grid::GridPosition;
-use crate::ensnano_design::utils::vec_to_dvec;
+use crate::grid::GridPosition;
+use crate::utils::vec_to_dvec;
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;

@@ -16,11 +16,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use std::collections::BTreeMap;
-
-use crate::ensnano_design;
-
 use super::*;
+use std::collections::BTreeMap;
 
 /// A structure that can map time points to nucleotide indices.
 #[derive(Clone, Debug)]
@@ -198,19 +195,19 @@ impl AbscissaConverter {
 
 #[derive(Debug)]
 pub(crate) struct PathTimeMaps {
-    time_maps: ensnano_design::BTreeMap<usize, HelixTimeMap>,
+    time_maps: BTreeMap<usize, HelixTimeMap>,
     length_normalisation: f64,
 }
 
 #[derive(Debug)]
 pub(crate) struct RevolutionCurveTimeMaps {
-    time_maps: ensnano_design::BTreeMap<usize, HelixTimeMap>,
+    time_maps: BTreeMap<usize, HelixTimeMap>,
     length_normalisation: f64,
 }
 
 impl RevolutionCurveTimeMaps {
     pub fn new(curve: &CurveDescriptor2D, helices: &[(usize, &Helix)]) -> Self {
-        let mut time_maps = ensnano_design::BTreeMap::new();
+        let mut time_maps = BTreeMap::new();
 
         let mut square_per_time: f64 = 1.;
 

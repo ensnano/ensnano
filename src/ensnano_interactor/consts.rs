@@ -75,7 +75,7 @@ pub fn widget_id_to_bezier(id: u32) -> Option<(usize, BezierControlPoint)> {
 }
 
 pub const fn bezier_control_color(control_point: BezierControlPoint) -> u32 {
-    use crate::ensnano_design::CubicBezierControlPoint::*;
+    use ensnano_design::CubicBezierControlPoint::*;
     match control_point {
         BezierControlPoint::CubicBezier(Start) => BEZIER_START_COLOR,
         BezierControlPoint::CubicBezier(Control1) => BEZIER_CONTROL1_COLOR,

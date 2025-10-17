@@ -1,5 +1,5 @@
 [workspace]
-members = ["ensnano-iced", "ensnano-organizer"]
+members = ["ensnano-design", "ensnano-iced", "ensnano-organizer"]
 
 [workspace.package]
 version = "0.7.0"
@@ -25,6 +25,7 @@ edition.workspace = true
 license.workspace = true
 
 [workspace.dependencies]
+ensnano_design = { path = "ensnano-design" }
 ensnano_iced = { path = "ensnano-iced" }
 ensnano_organizer = { path = "ensnano-organizer" }
 
@@ -93,16 +94,9 @@ version-compare = "0.1.0"
 wgpu = { version = "0.19", features = ["spirv"] }
 
 [dependencies]
+ensnano_design.workspace = true
 ensnano_iced.workspace = true
 ensnano_organizer.workspace = true
-
-# ensnano_design specific
-icondata.workspace = true
-pathdiff.workspace = true
-quadrature.workspace = true
-relative-path.workspace = true
-serde_with.workspace = true
-svg.workspace = true
 
 # ensnano_exports specific
 itertools.workspace = true

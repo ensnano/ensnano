@@ -17,7 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::IdGenerator;
-use crate::ensnano_design::*;
+use ensnano_design::*;
 pub trait StrandJunction {
     /// Read the junctions for self when loading the design.
     /// If `identified` is true (i.e. during the first pass), read the IdentifiedXover

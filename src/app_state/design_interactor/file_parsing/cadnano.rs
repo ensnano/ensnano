@@ -17,7 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use {
-    crate::ensnano_design::{
+    ensnano_design::{
         Design, Domain, Helix, HelixInterval, Nucl, Strand,
         grid::{Grid, GridType},
     },

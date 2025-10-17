@@ -17,7 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::Curved;
-use crate::ensnano_design::HelixParameters;
+use crate::HelixParameters;
 use serde::{Deserialize, Serialize};
 use std::f64::consts::TAU;
 use ultraviolet::DVec3;
@@ -108,8 +108,8 @@ impl Curved for CircleCurve {
         0.
     }
 
-    fn abscissa_converter(&self) -> Option<crate::ensnano_design::AbscissaConverter> {
-        return Some(crate::ensnano_design::AbscissaConverter::linear(
+    fn abscissa_converter(&self) -> Option<crate::AbscissaConverter> {
+        return Some(crate::AbscissaConverter::linear(
             self.abscissa_converter_factor.unwrap_or(1.),
         ));
     }

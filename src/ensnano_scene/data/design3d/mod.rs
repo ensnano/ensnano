@@ -21,15 +21,7 @@ use super::super::view::{
     ConeInstance, Ellipsoid, Instantiable, RawDnaInstance, Sheet2D, SlicedTubeInstance,
     SphereInstance, TubeInstance, TubeLidInstance,
 };
-use super::{LetterInstance, SceneElement, ultraviolet};
-use crate::ensnano_design::grid::{GridId, GridObject, GridPosition};
-use crate::ensnano_design::{
-    AdditionalStructure, BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex,
-    Collection, CubicBezierConstructor, CurveDescriptor, External3DObjects, HelixParameters,
-    InstanciatedPath,
-};
-use crate::ensnano_design::{Nucl, grid::HelixGridPosition};
-pub use crate::ensnano_design::{SurfaceInfo, SurfacePoint};
+use super::{LetterInstance, SceneElement};
 use crate::ensnano_interactor::consts::*;
 use crate::ensnano_interactor::{
     BezierControlPoint, ObjectType, PHANTOM_RANGE, PhantomElement, Referential,
@@ -41,6 +33,14 @@ use crate::ensnano_scene::sausage_rosary::SausageRosary;
 use crate::ensnano_scene::view::PlainRectangleInstance;
 use crate::ensnano_utils::colors;
 use crate::ensnano_utils::instance::Instance;
+use ensnano_design::grid::{GridId, GridObject, GridPosition};
+use ensnano_design::{
+    AdditionalStructure, BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex,
+    Collection, CubicBezierConstructor, CurveDescriptor, External3DObjects, HelixParameters,
+    InstanciatedPath,
+};
+use ensnano_design::{Nucl, grid::HelixGridPosition};
+pub use ensnano_design::{SurfaceInfo, SurfacePoint};
 use std::collections::hash_map::RandomState;
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::f32::consts::TAU;

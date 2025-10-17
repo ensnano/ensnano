@@ -22,8 +22,8 @@ pub mod cadnano;
 pub mod oxdna;
 pub mod pdb;
 
-use crate::ensnano_design::{Design, Nucl, ultraviolet};
 use cadnano::CadnanoError;
+use ensnano_design::{Design, Nucl};
 use pdb::PdbError;
 use std::collections::HashMap;
 use std::path::PathBuf;

@@ -17,7 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::*;
-use crate::ensnano_design::{HelixParameters, elements::DesignElementKey};
+use ensnano_design::{HelixParameters, elements::DesignElementKey};
 use crate::ensnano_gui::AppState as GuiState;
 use crate::ensnano_gui::ClipboardContent;
 use crate::ensnano_interactor::PastingStatus;
@@ -155,7 +155,7 @@ impl GuiState for AppState {
         self.0.parameters.show_bezier_paths
     }
 
-    fn get_selected_bezier_path(&self) -> Option<crate::ensnano_design::BezierPathId> {
+    fn get_selected_bezier_path(&self) -> Option<ensnano_design::BezierPathId> {
         if let Some(Selection::BezierVertex(vertex)) = self.0.selection.selection.get(0) {
             Some(vertex.path_id)
         } else {

@@ -20,8 +20,6 @@ use super::super::view::EditionInfo;
 use super::super::view::{CircleInstance, InsertionDescriptor, InsertionInstance};
 use super::super::{CameraPtr, Flat, FlatHelix};
 use super::{FlatNucl, Helix2d, NuclCollection};
-use crate::ensnano_design::Nucl;
-use crate::ensnano_design::ultraviolet;
 use crate::ensnano_interactor::consts::*;
 use crate::ensnano_utils::{
     chars2d::{Line, Sentence, TextDrawer},
@@ -30,6 +28,7 @@ use crate::ensnano_utils::{
 };
 use abscissa_converter::{AbscissaConverter, AbscissaConverter_};
 use ahash::RandomState;
+use ensnano_design::Nucl;
 use lyon::math::{Point, rect};
 use lyon::path::Path;
 use lyon::path::builder::{BorderRadii, PathBuilder};
@@ -1132,7 +1131,7 @@ pub enum HelixHandle {
 
 mod abscissa_converter {
     use super::*;
-    pub(super) use crate::ensnano_design::AbscissaConverter as AbscissaConverter_;
+    pub(super) use ensnano_design::AbscissaConverter as AbscissaConverter_;
 
     #[derive(Debug)]
     pub(super) struct AbscissaConverter {

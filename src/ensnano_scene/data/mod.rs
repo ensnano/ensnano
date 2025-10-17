@@ -22,14 +22,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::view::AvailableRotationAxes;
 use super::{
     AppState, Camera3D, HandlesDescriptor, LetterInstance, RotationWidgetDescriptor,
-    RotationWidgetOrientation, SceneElement, View, ViewUpdate, ultraviolet,
+    RotationWidgetOrientation, SceneElement, View, ViewUpdate,
     view::{
         GridDisc, HandleColors, Instantiable, Mesh, RawDnaInstance, StereographicSphereAndPlane,
     },
-};
-use crate::ensnano_design::{
-    BezierVertexId, Collection, External3DObjectsStamp, Nucl,
-    grid::{GridId, GridObject, GridPosition},
 };
 use crate::ensnano_interactor::{
     ActionMode, CenterOfSelection, ObjectType, PhantomElement, Referential, Selection,
@@ -41,6 +37,10 @@ use crate::ensnano_interactor::{
     graphics::HBondDisplay,
 };
 use crate::ensnano_utils::StrandNucleotidesPositions;
+use ensnano_design::{
+    BezierVertexId, Collection, External3DObjectsStamp, Nucl,
+    grid::{GridId, GridObject, GridPosition},
+};
 use std::{
     cell::RefCell,
     collections::{BTreeMap, HashMap, HashSet},

@@ -16,15 +16,15 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use super::*;
-use crate::ensnano_design::ultraviolet::Vec2;
-use crate::ensnano_design::{
+use crate::ensnano_interactor::ActionMode;
+use crate::ensnano_scene::controller::automata::dragging_state::translating_grid_object;
+use ensnano_design::{
     BezierPlaneId,
     grid::{GridId, GridObject},
 };
-use crate::ensnano_interactor::ActionMode;
-use crate::ensnano_scene::controller::automata::dragging_state::translating_grid_object;
 use std::borrow::Cow;
 use std::cell::RefCell;
+use ultraviolet::Vec2;
 use winit::event::{ElementState, MouseButton};
 
 mod dragging_state;

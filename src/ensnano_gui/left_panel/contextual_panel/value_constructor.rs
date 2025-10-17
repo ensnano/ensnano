@@ -17,12 +17,12 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::{Message, Selection, UiSize};
-use crate::ensnano_gui::ultraviolet::{Bivec3, Mat3, Rotor3, Vec2, Vec3};
 use ensnano_iced::{
     helpers::*,
     iced::{self, Alignment, Length},
 };
 use paste::paste;
+use ultraviolet::{Bivec3, Mat3, Rotor3, Vec2, Vec3};
 
 macro_rules! type_builder {
     ($builder_name:ident, $initializer:tt, $internal:tt, $convert_in:path, $convert_out:path, $($param: ident: $param_type: tt %$formatter:path), *) => {

@@ -28,7 +28,7 @@ use super::data::{
 };
 use super::{CameraPtr, FlatIdx, FlatNucl, NuclCollection};
 use super::{DrawArea, PhySize};
-use crate::ensnano_design::Nucl;
+use ensnano_design::Nucl;
 use crate::ensnano_interactor::consts::SAMPLE_COUNT;
 use crate::ensnano_utils::Ndc;
 use crate::ensnano_utils::bindgroup_manager::{DynamicBindGroup, UniformBindGroup};

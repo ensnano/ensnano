@@ -16,7 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use super::wgpu;
-use crate::ensnano_design::{External3DObject, External3DObjectId, PointOnSurface};
+use ensnano_design::{External3DObject, External3DObjectId, PointOnSurface};
 use crate::ensnano_interactor::UnrootedRevolutionSurfaceDescriptor;
 use crate::ensnano_interactor::consts;
 use crate::ensnano_utils::{
@@ -148,7 +148,7 @@ const NB_SECTION_PER_STRIP: usize = 1_000;
 
 impl MeshGenerator for UnrootedRevolutionSurfaceDescriptor {
     fn meshes(&self) -> Vec<GltfMesh> {
-        use crate::ensnano_design::utils::dvec_to_vec;
+        use ensnano_design::utils::dvec_to_vec;
         let frame = self.get_frame();
 
         (0..NB_STRIP)

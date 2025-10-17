@@ -19,11 +19,11 @@ use super::{
     CameraPtr, Drawable, Drawer, GroupPivot, HandleColors, ProjectionPtr, Vertex, maths_3d,
 };
 
-use crate::ensnano_design::ultraviolet::{Rotor3, Vec3};
 use crate::ensnano_interactor::consts::*;
 use crate::ensnano_utils::wgpu;
 use std::f32::consts::PI;
 use std::rc::Rc;
+use ultraviolet::{Rotor3, Vec3};
 use wgpu::Device;
 
 #[derive(Debug, Clone, Copy)]

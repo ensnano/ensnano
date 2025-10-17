@@ -313,7 +313,7 @@ fn warn_scaffold_seq_mismatch(scaffold_length: usize, sequence_length: usize) ->
     )
 }
 
-use crate::ensnano_design::grid::HelixGridPosition;
+use ensnano_design::grid::HelixGridPosition;
 use crate::ensnano_interactor::DesignReader as MainReader;
 
 impl MainReader for DesignReader {

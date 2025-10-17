@@ -28,7 +28,7 @@ use crate::app_state::design_interactor::presenter::design_content::NuclCollecti
 use self::design_content::Staple;
 
 use super::*;
-use crate::ensnano_design::{
+use ensnano_design::{
     BezierPathId, Extremity, HelixCollection, InstanciatedPiecewiseBezier, Nucl,
 };
 use crate::ensnano_interactor::{
@@ -519,7 +519,7 @@ impl Presenter {
     }
 
     pub fn get_bezier_path_2d(&self, path_id: BezierPathId) -> Option<InstanciatedPiecewiseBezier> {
-        use crate::ensnano_design::Collection;
+        use ensnano_design::Collection;
         self.current_design
             .bezier_paths
             .get(&path_id)
