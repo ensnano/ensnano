@@ -17,14 +17,14 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 //! Gives text_input widgets priority to handle keyboard event.
 use iced::{
-    Element, Length, Padding, Point, Rectangle, Size, Vector,
+    Element, Length, Rectangle, Size, Vector,
     advanced::{
         layout::{self, Layout},
         renderer,
-        widget::{self, Widget},
+        widget::{self, Widget, operation::Focusable as _},
         {Clipboard, Shell, mouse},
     },
-    event, keyboard, overlay,
+    event, overlay,
     widget::text_input,
 };
 use iced_graphics::text::Paragraph;
@@ -34,7 +34,6 @@ use iced_graphics::text::Paragraph;
 /// Trigger `on_priority` and `on_unpriority` when the text_input is focused or unfocused.
 pub struct KeyboardPriority<'a, Message, Theme = iced::Theme, Renderer = iced::Renderer> {
     id: Option<Id>,
-    padding: Padding,
     width: Length,
     height: Length,
     content: iced::Element<'a, Message, Theme, Renderer>,
@@ -43,12 +42,9 @@ pub struct KeyboardPriority<'a, Message, Theme = iced::Theme, Renderer = iced::R
 }
 
 /// A container that gives keyboard priority to it's [text_input::TextInput] content.
-pub fn keyboard_priority<'a, Message, Theme, Renderer>(
-    content: impl Into<Element<'a, Message, Theme, Renderer>>,
-) -> KeyboardPriority<'a, Message, Theme, Renderer>
-where
-    Renderer: renderer::Renderer,
-{
+pub fn keyboard_priority<'a, Message>(
+    content: impl Into<Element<'a, Message>>,
+) -> KeyboardPriority<'a, Message> {
     KeyboardPriority::new(content)
 }
 
@@ -62,7 +58,6 @@ where
         let size = content.as_widget().size_hint();
         KeyboardPriority {
             id: None,
-            padding: Padding::ZERO,
             width: size.width.fluid(),
             height: size.height.fluid(),
             content,
@@ -102,13 +97,6 @@ where
     }
 }
 
-/// The local state of an [`HoverableContainer`].
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub struct State {
-    /// Store the last known state of the underlying [text_input].
-    is_focused: bool,
-}
-
 impl<'a, Message, Theme, Renderer> Widget<Message, Theme, Renderer>
     for KeyboardPriority<'a, Message, Theme, Renderer>
 where
@@ -129,106 +117,11 @@ where
         tree.diff_children(std::slice::from_ref(&self.content));
     }
 
-    fn on_event(
-        &mut self,
-        tree: &mut widget::Tree,
-        event: event::Event,
-        layout: Layout,
-        cursor_position: mouse::Cursor,
-        renderer: &Renderer,
-        clipboard: &mut dyn Clipboard,
-        shell: &mut Shell<'_, Message>,
-        viewport: &Rectangle,
-    ) -> event::Status {
-        // Here are the three actions we can do.
-        enum Action {
-            Activate,
-            Deactivate,
-            None,
+    fn size(&self) -> Size<Length> {
+        Size {
+            width: self.width,
+            height: self.height,
         }
-        // First, we get the widget's state.
-        let state = tree.state.downcast_mut::<State>();
-
-        // Figure out whether the underlying widget is a [`text_input`].
-        let is_child_a_text_input = if let Some(child_widget) = tree.children.get(0)
-            && let widget::tree::State::Some(child_state) = &child_widget.state
-        {
-            child_state.downcast_ref::<text_input::State<Paragraph>>()
-        } else {
-            None
-        };
-
-        // Determine if something must be done.
-        let action = match is_child_a_text_input {
-            Some(text_input_state) => {
-                // Last known focus state of [text_input]
-                let was_focused = state.is_focused;
-                // Figure out whether the underlying widget is focused.
-                let now_focused = text_input_state.is_focused();
-                state.is_focused = now_focused;
-                // We also need to intercept if the key Enter has been hit.
-                let enter_key_hit = match &event {
-                    event::Event::Keyboard(keyboard::Event::KeyPressed { key, .. }) => {
-                        match key.as_ref() {
-                            keyboard::Key::Named(keyboard::key::Named::Enter) => true,
-                            _ => false,
-                        }
-                    }
-                    _ => false,
-                };
-                if enter_key_hit {
-                    // I.e, user requested to stop text edition.
-                    Action::Deactivate
-                } else {
-                    if was_focused == now_focused {
-                        // Situation has not changed, do nothing.
-                        Action::None
-                    } else {
-                        if now_focused {
-                            Action::Activate
-                        } else {
-                            Action::Deactivate
-                        }
-                    }
-                }
-            }
-            None => {
-                // If the child is not a [`text_input`] ensure keyboard_priority is off and stop
-                if state.is_focused {
-                    state.is_focused = false;
-                    Action::Deactivate
-                } else {
-                    Action::None
-                }
-            }
-        };
-
-        // Act.
-        match action {
-            Action::Activate => {
-                if let Some(on_hover) = &self.on_priority {
-                    shell.publish(on_hover.clone());
-                }
-            }
-            Action::Deactivate => {
-                if let Some(on_unhover) = &self.on_unpriority {
-                    shell.publish(on_unhover.clone());
-                }
-            }
-            Action::None => {}
-        }
-
-        // Finally process the event of child.
-        self.content.as_widget_mut().on_event(
-            &mut tree.children[0],
-            event,
-            layout.children().next().unwrap(),
-            cursor_position,
-            renderer,
-            clipboard,
-            shell,
-            viewport,
-        )
     }
 
     fn layout(
@@ -237,43 +130,110 @@ where
         renderer: &Renderer,
         limits: &layout::Limits,
     ) -> layout::Node {
-        // container::layout(
-        //     limits,
-        //     self.width,
-        //     self.height,
-        //     f32::INFINITY,
-        //     f32::INFINITY,
-        //     self.padding,
-        //     alignment::Horizontal::Left,
-        //     alignment::Vertical::Top,
-        //     |limits| self.content.as_widget().layout(tree, renderer, limits),
-        // )
-        // NOTE: I tried to use the layout defined by container. I will try again later to make it
-        // work.
-        let Size { width, height } = self.size();
-        let limits = limits.width(width).height(height).shrink(self.padding);
-
-        let content_layout = self
-            .content
-            .as_widget()
-            .layout(&mut tree.children[0], renderer, &limits)
-            .move_to(Point::new(
-                self.padding.left.into(),
-                self.padding.top.into(),
-            ));
-
-        let size = limits
-            .resolve(width, height, content_layout.size())
-            .expand(self.padding);
-
-        layout::Node::with_children(size, vec![content_layout])
+        iced::widget::container::layout(
+            limits,
+            self.width,
+            self.height,
+            f32::INFINITY,
+            f32::INFINITY,
+            iced::Padding::ZERO,
+            iced::alignment::Horizontal::Left,
+            iced::alignment::Vertical::Top,
+            |limits| {
+                self.content
+                    .as_widget()
+                    .layout(&mut tree.children[0], renderer, limits)
+            },
+        )
     }
 
-    fn size(&self) -> Size<Length> {
-        Size {
-            width: self.width,
-            height: self.height,
+    fn operate(
+        &self,
+        tree: &mut widget::Tree,
+        layout: Layout<'_>,
+        renderer: &Renderer,
+        operation: &mut dyn widget::Operation<Message>,
+    ) {
+        operation.container(
+            self.id.as_ref().map(|id| &id.0),
+            layout.bounds(),
+            &mut |operation| {
+                self.content.as_widget().operate(
+                    &mut tree.children[0],
+                    layout.children().next().unwrap(),
+                    renderer,
+                    operation,
+                );
+            },
+        );
+    }
+
+    fn on_event(
+        &mut self,
+        tree: &mut widget::Tree,
+        event: event::Event,
+        layout: Layout,
+        cursor: mouse::Cursor,
+        renderer: &Renderer,
+        clipboard: &mut dyn Clipboard,
+        shell: &mut Shell<'_, Message>,
+        viewport: &Rectangle,
+    ) -> event::Status {
+        // First, update the child [`TextInput`].
+        let status = self.content.as_widget_mut().on_event(
+            &mut tree.children[0],
+            event,
+            layout.children().next().unwrap(),
+            cursor,
+            renderer,
+            clipboard,
+            shell,
+            viewport,
+        );
+
+        // Now, update self.
+        let state = tree.state.downcast_mut::<State>();
+        // Look if the underlying [`TextInput`] is focused.
+        if let Some(tree) = tree.children.get(0) {
+            // TODO: Make the downcast more robust.
+            let text_input_state = tree.state.downcast_ref::<text_input::State<Paragraph>>();
+            // Send message if the state has changed.
+            if text_input_state.is_focused() & !state.is_focused() {
+                state.focus();
+                if let Some(on_priority) = &self.on_priority {
+                    shell.publish(on_priority.clone())
+                }
+                event::Status::Captured
+            } else if !text_input_state.is_focused() & state.is_focused() {
+                state.unfocus();
+                if let Some(on_unpriority) = &self.on_unpriority {
+                    shell.publish(on_unpriority.clone())
+                }
+                event::Status::Captured
+            } else {
+                status
+            }
+        } else {
+            status
         }
+    }
+
+    // NOTE: Needed to transmit mouse intercation to child [`TextInput`].
+    fn mouse_interaction(
+        &self,
+        tree: &widget::Tree,
+        layout: Layout,
+        cursor_position: mouse::Cursor,
+        viewport: &Rectangle,
+        renderer: &Renderer,
+    ) -> mouse::Interaction {
+        self.content.as_widget().mouse_interaction(
+            &tree.children[0],
+            layout.children().next().unwrap(),
+            cursor_position,
+            viewport,
+            renderer,
+        )
     }
 
     fn draw(
@@ -300,23 +260,6 @@ where
         );
     }
 
-    fn mouse_interaction(
-        &self,
-        tree: &widget::Tree,
-        layout: Layout,
-        cursor_position: mouse::Cursor,
-        viewport: &Rectangle,
-        renderer: &Renderer,
-    ) -> mouse::Interaction {
-        self.content.as_widget().mouse_interaction(
-            &tree.children[0],
-            layout.children().next().unwrap(),
-            cursor_position,
-            viewport,
-            renderer,
-        )
-    }
-
     fn overlay<'b>(
         &'b mut self,
         tree: &'b mut widget::Tree,
@@ -340,10 +283,8 @@ where
     Theme: 'a,
     Renderer: 'a + renderer::Renderer,
 {
-    fn from(
-        value: KeyboardPriority<'a, Message, Theme, Renderer>,
-    ) -> Element<'a, Message, Theme, Renderer> {
-        Element::new(value)
+    fn from(value: KeyboardPriority<'a, Message, Theme, Renderer>) -> Self {
+        Self::new(value)
     }
 }
 
@@ -368,5 +309,26 @@ impl Id {
 impl From<Id> for widget::Id {
     fn from(id: Id) -> Self {
         id.0
+    }
+}
+
+/// The local state of an [`KeyboardPriority`].
+#[derive(Debug, Clone, Default)]
+pub struct State {
+    /// Store the last known state of the underlying [text_input].
+    is_focused: bool,
+}
+
+impl widget::operation::Focusable for State {
+    fn is_focused(&self) -> bool {
+        self.is_focused
+    }
+
+    fn focus(&mut self) {
+        self.is_focused = true;
+    }
+
+    fn unfocus(&mut self) {
+        self.is_focused = false;
     }
 }

@@ -330,13 +330,13 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
         let mut clipboard = clipboard::Null;
         match self {
             GuiState::TopBar(state) => {
-                state.update(size, cursor, renderer, theme, style, &mut clipboard, debug);
+                let _ = state.update(size, cursor, renderer, theme, style, &mut clipboard, debug);
             }
             GuiState::LeftPanel(state) => {
-                state.update(size, cursor, renderer, theme, style, &mut clipboard, debug);
+                let _ = state.update(size, cursor, renderer, theme, style, &mut clipboard, debug);
             }
             GuiState::StatusBar(state) => {
-                state.update(size, cursor, renderer, theme, style, &mut clipboard, debug);
+                let _ = state.update(size, cursor, renderer, theme, style, &mut clipboard, debug);
             }
         }
     }

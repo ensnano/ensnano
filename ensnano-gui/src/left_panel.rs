@@ -323,7 +323,8 @@ where
 
     // BUG: Increasing the left panel too much crashes ENSnano.
 
-    // NOTE: It seems that `update` never send commands.
+    // NOTE: The Command feature of Iced has not been used in ENSnan.
+    // NOTE: Trying it, it seems that commands are not executed.
 
     fn update(&mut self, message: Message<S>) -> Command<Message<S>> {
         let notify_new_tree =
@@ -1039,7 +1040,7 @@ where
                     .set_keyboard_priority(priority);
                 Command::none()
             }
-            Message::SetFocus(id) => text_input::focus(id.clone()),
+            Message::SetFocus(id) => text_input::focus(id),
         };
 
         let command = Command::batch(vec![
