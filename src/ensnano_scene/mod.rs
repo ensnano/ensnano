@@ -26,6 +26,13 @@ mod sausage_rosary;
 mod stl;
 pub mod view;
 
+use controller::{Consequence, Controller, WidgetTarget};
+use data::{Data, DesignReader};
+use element_selector::{ElementSelector, SceneElement};
+use ensnano_design::{
+    BezierVertexId, Nucl, consts::ITERATIVE_AXIS_ALGORITHM, grid::GridPosition,
+    grid::HelixGridPosition, group_attributes::GroupPivot,
+};
 use ensnano_interactor::{
     ActionMode, CenterOfSelection, DesignOperation, NewBezierTangentVector, Selection,
     SelectionMode, StrandBuilder, UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
@@ -34,17 +41,10 @@ use ensnano_interactor::{
     graphics::DrawArea,
     operation::*,
 };
-use crate::ensnano_utils::{
+use ensnano_utils::{
     BufferDimensions, PhySize, filename,
     wgpu::{self, Device, Queue},
     winit::{dpi::PhysicalPosition, event::WindowEvent, window::CursorIcon},
-};
-use controller::{Consequence, Controller, WidgetTarget};
-use data::{Data, DesignReader};
-use element_selector::{ElementSelector, SceneElement};
-use ensnano_design::{
-    BezierVertexId, Nucl, consts::ITERATIVE_AXIS_ALGORITHM, grid::GridPosition,
-    grid::HelixGridPosition, group_attributes::GroupPivot,
 };
 use maths_3d::FiniteVec3;
 use std::{
@@ -684,8 +684,7 @@ impl<S: AppState> Scene<S> {
             &reader,
         );
         log::debug!("grids {:?}", grids);
-        let control_points =
-            ensnano_interactor::extract_control_points(app_state.get_selection());
+        let control_points = ensnano_interactor::extract_control_points(app_state.get_selection());
         let at_most_one_grid = grids.as_ref().map(|g| g.len() <= 1).unwrap_or(false);
 
         let group_id = app_state.get_current_group_id();

@@ -1154,7 +1154,7 @@ mod tests {
 
     fn test_sane_strand(strand: &Strand) {
         let mut strand = Strand::clone(strand);
-        let mut xover_ids = crate::ensnano_utils::id_generator::IdGenerator::default();
+        let mut xover_ids = ensnano_utils::id_generator::IdGenerator::default();
         strand.read_junctions(&mut xover_ids, true);
         strand.read_junctions(&mut xover_ids, false);
     }
@@ -1803,7 +1803,7 @@ mod tests {
             })
             .unwrap();
         app_state.update();
-        let mut xover_ids = crate::ensnano_utils::id_generator::IdGenerator::default();
+        let mut xover_ids = ensnano_utils::id_generator::IdGenerator::default();
 
         let s_id = app_state
             .get_design_reader()

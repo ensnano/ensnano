@@ -33,7 +33,6 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 pub mod layout_manager;
 
-use crate::ensnano_utils::texture::SampledTexture;
 use crate::{PhySize, controller::normal_state::Action, requests::Requests};
 use ensnano_iced::{
     UiSize,
@@ -50,6 +49,7 @@ use ensnano_interactor::{
     ActionMode, SelectionMode,
     graphics::{DrawArea, GuiComponentType, SplitMode},
 };
+use ensnano_utils::texture::SampledTexture;
 use layout_manager::{LayoutTree, PixelRegion};
 use std::{
     rc::Rc,

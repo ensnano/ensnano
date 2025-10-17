@@ -27,7 +27,7 @@ use super::{
     ActionMode, AppState, CameraPtr, DataPtr, FlatHelix, FlatNucl, PhySize, PhysicalPosition,
     Selection, ViewPtr, WindowEvent,
 };
-use crate::ensnano_utils::winit::{
+use ensnano_utils::winit::{
     event::{ElementState, KeyEvent},
     keyboard::{Key, ModifiersState, NamedKey},
     window::CursorIcon,

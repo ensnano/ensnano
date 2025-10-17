@@ -20,10 +20,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! [InstanceDrawer](InstanceDrawer).
 
 use ensnano_interactor::consts::*;
-use crate::ensnano_utils::bindgroup_manager::DynamicBindGroup;
-use crate::ensnano_utils::create_buffer_with_data;
-use crate::ensnano_utils::texture::Texture;
-use crate::ensnano_utils::wgpu;
+use ensnano_utils::bindgroup_manager::DynamicBindGroup;
+use ensnano_utils::create_buffer_with_data;
+use ensnano_utils::texture::Texture;
+use ensnano_utils::wgpu;
 use std::rc::Rc;
 use wgpu::{
     BindGroupLayoutDescriptor, Device, PrimitiveTopology, Queue, RenderPass, RenderPipeline,

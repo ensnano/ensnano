@@ -17,8 +17,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use {
+    crate::{bindgroup_manager::DynamicBindGroup, texture::Texture},
     ensnano_interactor::consts::SAMPLE_COUNT,
-    crate::ensnano_utils::{bindgroup_manager::DynamicBindGroup, texture::Texture},
     std::rc::Rc,
     ultraviolet::Vec2,
     wgpu::{BindGroupLayout, Device, Queue, RenderPass, RenderPipeline, include_spirv},

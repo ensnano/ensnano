@@ -16,8 +16,6 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use super::{AppState, Requests};
-pub use ensnano_interactor::StrandBuildingStatus;
-use ensnano_interactor::operation::Operation;
 use ensnano_iced::{
     self, UiSize,
     helpers::*,
@@ -26,6 +24,8 @@ use ensnano_iced::{
     iced_runtime::{Command, Program},
     iced_winit::winit::dpi::LogicalSize,
 };
+pub use ensnano_interactor::StrandBuildingStatus;
+use ensnano_interactor::operation::Operation;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 

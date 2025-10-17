@@ -17,18 +17,12 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use super::{AppState, FogParameters, OverlayType, Requests};
 use super::{consts::*, fonts};
-use ensnano_exports::ExportType;
-use ensnano_interactor::{
-    ActionMode, EquadiffSolvingMethod, HyperboloidRequest, RapierSimulationRequest, Selection,
-    SelectionConversion,
-    app_state_parameters::{AppStateParameters, CheckXoversParameter, SuggestionParameters},
-    graphics::{Background3D, HBondDisplay, RenderingMode},
-};
 use ensnano_design::{
     BezierPathId, CameraId, NamedParameter,
     elements::{DesignElement, DesignElementKey},
     grid::GridTypeDescr,
 };
+use ensnano_exports::ExportType;
 use ensnano_iced::{
     UiSize,
     color_picker::ColorPickerMessage,
@@ -43,6 +37,12 @@ use ensnano_iced::{
             event::Modifiers,
         },
     },
+};
+use ensnano_interactor::{
+    ActionMode, EquadiffSolvingMethod, HyperboloidRequest, RapierSimulationRequest, Selection,
+    SelectionConversion,
+    app_state_parameters::{AppStateParameters, CheckXoversParameter, SuggestionParameters},
+    graphics::{Background3D, HBondDisplay, RenderingMode},
 };
 use ensnano_organizer::{Organizer, OrganizerMessage, OrganizerTree};
 use std::sync::{Arc, Mutex};

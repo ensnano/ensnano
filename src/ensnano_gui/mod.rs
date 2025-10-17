@@ -50,6 +50,17 @@ mod icon;
 
 use status_bar::StatusBar;
 
+use ensnano_design::{
+    self, BezierPathId, BezierVertexId, HelixParameters, Nucl,
+    elements::{DesignElement, DesignElementKey, DnaAttribute},
+    grid::GridTypeDescr,
+};
+use ensnano_iced::{
+    iced_graphics,
+    iced_runtime::{Debug, program},
+    iced_wgpu::{self, Backend, wgpu},
+    iced_winit::{conversion, winit},
+};
 use ensnano_interactor::{
     ActionMode, HyperboloidRequest, RapierSimulationRequest, RollRequest, SelectionMode,
 };
@@ -62,17 +73,6 @@ use ensnano_interactor::{
         SplitMode,
     },
     operation::Operation,
-};
-use ensnano_design::{
-    self, BezierPathId, BezierVertexId, HelixParameters, Nucl,
-    elements::{DesignElement, DesignElementKey, DnaAttribute},
-    grid::GridTypeDescr,
-};
-use ensnano_iced::{
-    iced_graphics,
-    iced_runtime::{Debug, program},
-    iced_wgpu::{self, Backend, wgpu},
-    iced_winit::{conversion, winit},
 };
 pub use ensnano_organizer::OrganizerTree;
 use iced::{Renderer, Size, event::Event, keyboard};
@@ -576,7 +576,7 @@ impl<R: Requests, S: AppState> GuiComponent<R, S> {
                 queue,
                 encoder,
                 clear_color,
-                crate::ensnano_utils::TEXTURE_FORMAT,
+                ensnano_utils::TEXTURE_FORMAT,
                 // NOTE: Maybe we should put the format above.
                 frame,
                 &viewport,
@@ -657,7 +657,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
                 self.device.as_ref(),
                 self.queue.as_ref(),
                 self.wgpu_settings,
-                crate::ensnano_utils::TEXTURE_FORMAT,
+                ensnano_utils::TEXTURE_FORMAT,
             ),
             self.wgpu_settings.default_font,
             self.wgpu_settings.default_text_size,
@@ -681,7 +681,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
                 self.device.as_ref(),
                 self.queue.as_ref(),
                 self.wgpu_settings,
-                crate::ensnano_utils::TEXTURE_FORMAT,
+                ensnano_utils::TEXTURE_FORMAT,
             ),
             self.wgpu_settings.default_font,
             self.wgpu_settings.default_text_size,
@@ -707,7 +707,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
                         self.device.as_ref(),
                         self.queue.as_ref(),
                         self.wgpu_settings,
-                        crate::ensnano_utils::TEXTURE_FORMAT,
+                        ensnano_utils::TEXTURE_FORMAT,
                     ),
                     self.wgpu_settings.default_font,
                     self.wgpu_settings.default_text_size,

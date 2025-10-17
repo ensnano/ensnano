@@ -61,9 +61,9 @@ impl Strand {
 
     fn get_path_color(&self) -> [f32; 4] {
         let color = if self.highlight.is_some() {
-            crate::ensnano_utils::instance::Instance::color_from_au32(self.color)
+            ensnano_utils::instance::Instance::color_from_au32(self.color)
         } else {
-            crate::ensnano_utils::instance::Instance::color_from_u32(self.color)
+            ensnano_utils::instance::Instance::color_from_u32(self.color)
         };
         [color.x, color.y, color.z, color.w]
     }

@@ -22,28 +22,7 @@ pub mod simulations;
 pub mod update_insertion_length;
 
 use super::SimulationUpdate;
-use ensnano_design::{
-    self, BezierEnd, BezierPathId, BezierPlaneDescriptor, BezierVertex, BezierVertexId, CameraId,
-    Collection, CurveDescriptor, Design, Domain, DomainJunction, Helices, Helix, HelixCollection,
-    HelixInterval, Nucl, Strand, Strands, UpToDateDesign,
-    drawing_style::{DrawingAttribute, DrawingStyle},
-    elements::{DesignElementKey, DnaAttribute},
-    grid::{
-        Edge, FreeGridId, GridDescriptor, GridId, GridObject, GridPosition, GridTypeDescr,
-        HelixGridPosition, Hyperboloid,
-    },
-    group_attributes::GroupPivot,
-    mutate_in_arc,
-};
 use crate::ensnano_gui::ClipboardContent;
-use ensnano_interactor::{
-    BezierControlPoint, BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation,
-    DomainIdentifier, HyperboloidOperation, IsometryTarget, NeighborDescriptor,
-    NeighborDescriptorGiver, NewBezierTangentVector, PastingStatus, Selection, SimulationState,
-    StrandBuilder,
-    operation::{Operation, TranslateBezierPathVertex},
-};
-use crate::ensnano_utils::colors;
 use crate::{
     app_state::{
         AddressPointer,
@@ -62,7 +41,28 @@ use crate::{
     controller::chanel_reader::ChannelReader,
 };
 use clipboard::{Clipboard, CopyOperation, PastePosition, PastedStrand, StrandClipboard};
+use ensnano_design::{
+    self, BezierEnd, BezierPathId, BezierPlaneDescriptor, BezierVertex, BezierVertexId, CameraId,
+    Collection, CurveDescriptor, Design, Domain, DomainJunction, Helices, Helix, HelixCollection,
+    HelixInterval, Nucl, Strand, Strands, UpToDateDesign,
+    drawing_style::{DrawingAttribute, DrawingStyle},
+    elements::{DesignElementKey, DnaAttribute},
+    grid::{
+        Edge, FreeGridId, GridDescriptor, GridId, GridObject, GridPosition, GridTypeDescr,
+        HelixGridPosition, Hyperboloid,
+    },
+    group_attributes::GroupPivot,
+    mutate_in_arc,
+};
+use ensnano_interactor::{
+    BezierControlPoint, BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation,
+    DomainIdentifier, HyperboloidOperation, IsometryTarget, NeighborDescriptor,
+    NeighborDescriptorGiver, NewBezierTangentVector, PastingStatus, Selection, SimulationState,
+    StrandBuilder,
+    operation::{Operation, TranslateBezierPathVertex},
+};
 use ensnano_organizer::GroupId;
+use ensnano_utils::colors;
 use std::{
     borrow::Cow,
     collections::{BTreeMap, HashMap},

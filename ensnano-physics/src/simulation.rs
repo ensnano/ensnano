@@ -1,7 +1,7 @@
 use super::import::*;
+use ahash::HashMap;
 use ensnano_design::Nucl;
 use ensnano_interactor::ObjectType;
-use ahash::HashMap;
 use rapier3d::{na::Vector3, prelude::*};
 
 #[derive(Default)]

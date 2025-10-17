@@ -20,13 +20,13 @@ use super::{
     Design, Helix,
     roller::{DesignData, RollSystem},
 };
-use ensnano_design::{
-    self, Collection, CurveDescriptor, HelixCollection, HelixParameters, Twist,
-    grid::{GridDescriptor, GridTypeDescr, *},
-};
 use crate::{
     app_state::design_interactor::{Presenter, presenter::SimulationUpdate},
     controller::chanel_reader::ChannelReader,
+};
+use ensnano_design::{
+    self, Collection, CurveDescriptor, HelixCollection, HelixParameters, Twist,
+    grid::{GridDescriptor, GridTypeDescr, *},
 };
 use std::{
     collections::HashMap,

@@ -19,6 +19,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 const MAX_ACCEL: f64 = 100.;
 
 use super::{SimulationInterface, SimulationUpdate};
+use crate::{app_state::ErrOperation, controller::chanel_reader::ChannelReader};
 use ensnano_design::{
     self, CurveDescriptor, CurveDescriptor2D, DVec3, HelixParameters, InterpolationDescriptor,
     Isometry3, Similarity3,
@@ -27,7 +28,6 @@ use ensnano_interactor::{
     EquadiffSolvingMethod, RevolutionSimulationParameters, RevolutionSurfaceSystemDescriptor,
     RootedRevolutionSurface,
 };
-use crate::{app_state::ErrOperation, controller::chanel_reader::ChannelReader};
 use mathru::{
     algebra::linear::vector::vector::Vector,
     analysis::differential_equation::ordinary::{
@@ -592,9 +592,7 @@ struct HelicesRouting {
 
 impl SimulationUpdate for HelicesRouting {
     fn update_design(&self, design: &mut ensnano_design::Design) {
-        use ensnano_design::{
-            Domain, DomainJunction, Helix, HelixInterval, Rotor2, Strand, Vec2,
-        };
+        use ensnano_design::{Domain, DomainJunction, Helix, HelixInterval, Rotor2, Strand, Vec2};
         let helix_parameters = design.helix_parameters.unwrap_or_default();
         let mut helices = design.helices.make_mut();
         let mut strand_to_be_added = Vec::new();
@@ -646,7 +644,7 @@ impl SimulationUpdate for HelicesRouting {
                     forward,
                     sequence: None,
                 });
-                let color = crate::ensnano_utils::colors::new_color(&mut now_s);
+                let color = ensnano_utils::colors::new_color(&mut now_s);
 
                 strands.push(Strand {
                     color,

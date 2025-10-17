@@ -1,0 +1,24 @@
+[package]
+name = "ensnano_utils"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+ensnano_design.workspace = true
+ensnano_iced.workspace = true
+ensnano_interactor.workspace = true
+
+ahash.workspace = true
+bytemuck.workspace = true
+chrono.workspace = true
+color_space.workspace = true
+fontdue.workspace = true
+gltf.workspace = true
+log.workspace = true
+nom_stl.workspace = true
+rand.workspace = true
+serde.workspace = true
+ultraviolet.workspace = true
+wgpu.workspace = true

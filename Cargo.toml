@@ -6,6 +6,7 @@ members = [
     "ensnano-interactor",
     "ensnano-organizer",
     "ensnano-physics",
+    "ensnano-utils",
 ]
 
 [workspace.package]
@@ -38,6 +39,7 @@ ensnano_iced = { path = "ensnano-iced" }
 ensnano_interactor = { path = "ensnano-interactor" }
 ensnano_organizer = { path = "ensnano-organizer" }
 ensnano_physics = { path = "ensnano-physics" }
+ensnano_utils = { path = "ensnano-utils" }
 
 ahash = "0.8.6"
 bytemuck = "1.2.0"
@@ -110,6 +112,7 @@ ensnano_iced.workspace = true
 ensnano_interactor.workspace = true
 ensnano_organizer.workspace = true
 ensnano_physics.workspace = true
+ensnano_utils.workspace = true
 
 # ensnano_(flat)?scene specific
 bytemuck.workspace = true

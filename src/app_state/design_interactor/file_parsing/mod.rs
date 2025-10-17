@@ -20,13 +20,13 @@ mod cadnano;
 pub mod junctions;
 
 use super::*;
-use ensnano_design::{Nucl, codenano, scadnano};
-use crate::ensnano_utils::id_generator::IdGenerator;
 use crate::{
     app_state::design_interactor::file_parsing::junctions::StrandJunction as _,
     controller::LoadDesignError,
 };
 use cadnano::{Cadnano, FromCadnano};
+use ensnano_design::{Nucl, codenano, scadnano};
+use ensnano_utils::id_generator::IdGenerator;
 use scadnano::ScadnanoImportError;
 use std::path::{Path, PathBuf};
 

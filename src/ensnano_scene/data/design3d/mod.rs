@@ -22,17 +22,9 @@ use super::super::view::{
     SphereInstance, TubeInstance, TubeLidInstance,
 };
 use super::{LetterInstance, SceneElement};
-use ensnano_interactor::consts::*;
-use ensnano_interactor::{
-    BezierControlPoint, ObjectType, PHANTOM_RANGE, PhantomElement, Referential,
-    graphics::{LoopoutBond, LoopoutNucl},
-    phantom_helix_encoder_bond, phantom_helix_encoder_nucl,
-};
 use crate::ensnano_scene::rotor_utils::SafeRotor as _;
 use crate::ensnano_scene::sausage_rosary::SausageRosary;
 use crate::ensnano_scene::view::PlainRectangleInstance;
-use crate::ensnano_utils::colors;
-use crate::ensnano_utils::instance::Instance;
 use ensnano_design::grid::{GridId, GridObject, GridPosition};
 use ensnano_design::{
     AdditionalStructure, BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex,
@@ -41,6 +33,14 @@ use ensnano_design::{
 };
 use ensnano_design::{Nucl, grid::HelixGridPosition};
 pub use ensnano_design::{SurfaceInfo, SurfacePoint};
+use ensnano_interactor::consts::*;
+use ensnano_interactor::{
+    BezierControlPoint, ObjectType, PHANTOM_RANGE, PhantomElement, Referential,
+    graphics::{LoopoutBond, LoopoutNucl},
+    phantom_helix_encoder_bond, phantom_helix_encoder_nucl,
+};
+use ensnano_utils::colors;
+use ensnano_utils::instance::Instance;
 use std::collections::hash_map::RandomState;
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::f32::consts::TAU;
@@ -52,7 +52,7 @@ mod bezier_paths;
 
 use crate::ensnano_scene::SceneElement::DesignElement;
 
-use crate::ensnano_utils::StrandNucleotidesPositions;
+use ensnano_utils::StrandNucleotidesPositions;
 
 /// An object that handles the 3d graphical representation of a `Design`
 pub struct Design3D<R: DesignReader> {
@@ -375,12 +375,11 @@ impl<R: DesignReader> Design3D<R> {
                                 + yy[i % NB_COILS] * y_vec
                         })
                         .collect();
-                    let color =
-                        crate::ensnano_utils::colors::purple_to_blue_gradient_color_in_range(
-                            uv.mag(),
-                            MIN_SPRING_LENGTH,
-                            MAX_SPRING_LENGTH,
-                        );
+                    let color = ensnano_utils::colors::purple_to_blue_gradient_color_in_range(
+                        uv.mag(),
+                        MIN_SPRING_LENGTH,
+                        MAX_SPRING_LENGTH,
+                    );
                     let (sliced_tubes, _) = SausageRosary {
                         positions,
                         is_cyclic: false,

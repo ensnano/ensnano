@@ -94,7 +94,6 @@ mod dialog;
 mod ensnano_flatscene;
 mod ensnano_gui;
 mod ensnano_scene;
-mod ensnano_utils;
 #[cfg(test)]
 mod main_tests;
 mod multiplexer;

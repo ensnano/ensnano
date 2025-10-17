@@ -22,7 +22,7 @@ use ensnano_design::{
     grid::{GridId, GridPosition},
 };
 use ensnano_interactor::{BezierControlPoint, PhantomElement, phantom_helix_decoder};
-use crate::ensnano_utils::{
+use ensnano_utils::{
     BufferDimensions, wgpu,
     winit::dpi::{PhysicalPosition, PhysicalSize},
 };

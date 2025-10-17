@@ -1111,6 +1111,7 @@ dependencies = [
  "ensnano_interactor",
  "ensnano_organizer",
  "ensnano_physics",
+ "ensnano_utils",
  "fontdue",
  "futures",
  "futures-channel",
@@ -1230,6 +1231,27 @@ dependencies = [
  "ensnano_design",
  "ensnano_interactor",
  "rapier3d",
+]
+
+[[package]]
+name = "ensnano_utils"
+version = "0.7.0"
+dependencies = [
+ "ahash 0.8.12",
+ "bytemuck",
+ "chrono",
+ "color_space",
+ "ensnano_design",
+ "ensnano_iced",
+ "ensnano_interactor",
+ "fontdue",
+ "gltf",
+ "log",
+ "nom_stl",
+ "rand 0.8.5",
+ "serde",
+ "ultraviolet",
+ "wgpu",
 ]
 
 [[package]]
