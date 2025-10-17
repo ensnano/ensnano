@@ -50,7 +50,7 @@ pub fn yes_no_dialog(message: Cow<'static, str>) -> YesNoQuestion {
     thread::spawn(move || {
         let choice = async move {
             log::debug!("thread spawned");
-            let ret = msg.await;
+            let ret = msg.await == rfd::MessageDialogResult::Yes;
             log::debug!("about to send");
             log_err![snd.send(ret)];
         };
@@ -138,7 +138,7 @@ pub fn get_file_to_write<P1: AsRef<Path>, P2: AsRef<Path>>(
         dialog = dialog.set_directory(path);
     }
     if let Some(name) = starting_name {
-        dialog = dialog.set_file_name(&name.to_string_lossy());
+        dialog = dialog.set_file_name(&*name.to_string_lossy());
     }
     let future_file = dialog.save_file();
     let (snd, rcv) = mpsc::channel();
