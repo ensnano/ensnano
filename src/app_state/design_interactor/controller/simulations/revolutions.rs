@@ -21,8 +21,8 @@ const MAX_ACCEL: f64 = 100.;
 use super::{SimulationInterface, SimulationUpdate};
 use crate::{app_state::ErrOperation, controller::chanel_reader::ChannelReader};
 use ensnano_design::{
-    CurveDescriptor, CurveDescriptor2D, DVec3, HelixParameters, InterpolationDescriptor, Isometry3,
-    Similarity3,
+    self, CurveDescriptor, CurveDescriptor2D, DVec3, HelixParameters, InterpolationDescriptor,
+    Isometry3, Similarity3,
 };
 use ensnano_interactor::{
     EquadiffSolvingMethod, RevolutionSimulationParameters, RevolutionSurfaceSystemDescriptor,

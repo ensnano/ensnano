@@ -44,7 +44,9 @@ use crate::{
 use address_pointer::AddressPointer;
 use design_interactor::{DesignInteractor, InteractorResult};
 use design_interactor::{DesignReader, controller::ErrOperation};
-use ensnano_design::{BezierPathId, Design, SavingInformation, group_attributes::GroupPivot};
+#[cfg(test)]
+use ensnano_design::Design;
+use ensnano_design::{BezierPathId, SavingInformation, group_attributes::GroupPivot};
 use ensnano_exports::{ExportResult, ExportType};
 use ensnano_gui::StrandBuildingStatus;
 use ensnano_iced::UiSize;
@@ -225,12 +227,12 @@ impl AppState {
         Self(AddressPointer::new(new_state))
     }
 
-    #[allow(dead_code)] //used in tests
+    #[cfg(test)]
     pub fn update_design(&mut self, design: Design) {
         apply_update(self, |s| s.with_updated_design(design))
     }
 
-    #[allow(dead_code)] //used in tests
+    #[cfg(test)]
     pub fn with_updated_design(&self, design: Design) -> Self {
         let mut new_state = self.0.clone_inner();
         let new_interactor = new_state.design.with_updated_design(design);

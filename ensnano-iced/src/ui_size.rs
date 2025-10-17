@@ -37,14 +37,6 @@ impl Default for UiSize {
 impl UiSize {
     // Text related messages
 
-    pub fn smaller_text(&self) -> u16 {
-        match self {
-            Self::Small => 10,
-            Self::Medium => 12,
-            Self::Large => 16,
-        }
-    }
-
     pub fn main_text(&self) -> f32 {
         match self {
             Self::Small => 12.0,

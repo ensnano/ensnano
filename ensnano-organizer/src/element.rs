@@ -105,11 +105,11 @@ impl<Attrib: OrganizerAttribute> AttributeDisplayer<Attrib> {
         self.widget = widget;
     }
 
-    pub fn view(&self) -> Option<Element<'_, Attrib, crate::Theme, crate::Renderer>> {
+    pub fn view(&self) -> Option<Element<'_, Attrib, super::Theme, super::Renderer>> {
         self.widget.as_ref().map(|widget| {
             match self.attribute.as_ref().map(|a| a.char_repr()) {
-                Some(AttributeDisplay::Icon(c)) => button(crate::icon(c)),
-                Some(AttributeDisplay::Text(s)) => button(text(s.clone()).size(crate::ICON_SIZE)),
+                Some(AttributeDisplay::Icon(c)) => button(super::icon(c)),
+                Some(AttributeDisplay::Text(s)) => button(text(s.clone()).size(super::ICON_SIZE)),
                 _ => button(text("???")),
             }
             .on_press(widget.value_if_pressed.clone())

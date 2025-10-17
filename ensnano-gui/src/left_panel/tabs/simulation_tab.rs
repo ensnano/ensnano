@@ -225,8 +225,6 @@ impl PhysicalSimulation {
 
     fn request(&self) -> RollRequest {
         RollRequest {
-            roll: true,
-            springs: false,
             target_helices: None,
         }
     }

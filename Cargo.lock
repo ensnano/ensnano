@@ -1127,6 +1127,8 @@ dependencies = [
  "serde_json",
  "ultraviolet",
  "version-compare",
+ "wgpu",
+ "winit",
 ]
 
 [[package]]
@@ -1166,6 +1168,7 @@ dependencies = [
  "serde",
  "serde_json",
  "strum",
+ "ultraviolet",
 ]
 
 [[package]]
@@ -1183,6 +1186,9 @@ dependencies = [
  "log",
  "lyon",
  "png 0.17.16",
+ "ultraviolet",
+ "wgpu",
+ "winit",
 ]
 
 [[package]]
@@ -1196,11 +1202,10 @@ dependencies = [
  "ensnano_interactor",
  "ensnano_organizer",
  "ensnano_utils",
- "futures",
  "log",
  "open",
  "paste",
- "rfd",
+ "ultraviolet",
 ]
 
 [[package]]
@@ -1272,6 +1277,9 @@ dependencies = [
  "num_enum 0.5.11",
  "png 0.17.16",
  "serde_json",
+ "ultraviolet",
+ "wgpu",
+ "winit",
 ]
 
 [[package]]

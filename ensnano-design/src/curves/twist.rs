@@ -159,7 +159,6 @@ impl Curved for Twist {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::Helix;
 
     impl Twist {
         fn with_omega(omega: f64) -> Self {
@@ -218,7 +217,7 @@ mod tests {
         twist.t_max = Some(Z);
         let descriptor = super::super::InstanciatedCurveDescriptor_::Twist(twist);
         let curve = descriptor.try_into_curve(&p).unwrap();
-        let flat_helix = Helix::new(Vec3::zero(), Rotor3::identity());
+        let flat_helix = crate::Helix::new(Vec3::zero(), Rotor3::identity());
         let theta = flat_helix.theta(99, true, &p);
         let nucl_curved = curve.nucl_pos(99, true, theta as f64, &p).unwrap();
         let nucl_flat = crate::utils::vec_to_dvec(flat_helix.space_pos(&p, 99, true));
@@ -242,7 +241,7 @@ mod tests {
         println!("abscissa {:?}", twist.curvilinear_abscissa(Z));
         println!("z ratio {:?}", twist.rise_ratio());
         assert!(twist.theta_shift(&p).is_some());
-        let flat_helix = Helix::new(Vec3::zero(), Rotor3::identity());
+        let flat_helix = crate::Helix::new(Vec3::zero(), Rotor3::identity());
         let theta_99 = flat_helix.theta(99, true, &p);
         let theta_98 = flat_helix.theta(98, true, &p);
         let nucl_98 = curve.nucl_pos(98, true, theta_98 as f64, &p).unwrap();

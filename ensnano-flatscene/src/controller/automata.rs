@@ -18,7 +18,6 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::super::{FlatHelix, FlatNucl, data::ClickResult, view::CircleInstance};
 use super::*;
-use ensnano_utils::winit;
 use std::time::Instant;
 use winit::{
     event::MouseButton,
@@ -238,11 +237,6 @@ impl<S: AppState> ControllerState<S> for NormalState {
                                 consequences: Consequence::Nothing,
                             }
                         } else {
-                            let _stick = if let ActionMode::Build(b) = controller.action_mode {
-                                b
-                            } else {
-                                false
-                            };
                             if controller.data.borrow().can_start_builder_at(nucl) {
                                 if !controller.data.borrow().has_nucl(nucl) {
                                     // If the builder is not on an existing strand, we transition
@@ -758,11 +752,6 @@ impl<S: AppState> ControllerState<S> for ReleasedPivot {
                                 consequences: Consequence::Nothing,
                             }
                         } else {
-                            let _stick = if let ActionMode::Build(b) = controller.action_mode {
-                                b
-                            } else {
-                                false
-                            };
                             if controller.data.borrow().can_start_builder_at(nucl) {
                                 if !controller.data.borrow().has_nucl(nucl) {
                                     // If the builder is not on an existing strand, we transition

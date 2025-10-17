@@ -27,7 +27,6 @@ pub trait Collection {
     fn values<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Self::Item> + 'a>;
     fn keys<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Self::Key> + 'a>;
     fn len(&self) -> usize;
-    fn contains_key(&self, id: &Self::Key) -> bool;
 }
 
 pub trait HasMap {
@@ -61,9 +60,5 @@ where
 
     fn len(&self) -> usize {
         self.get_map().len()
-    }
-
-    fn contains_key(&self, id: &Self::Key) -> bool {
-        self.get_map().contains_key(id)
     }
 }

@@ -19,8 +19,6 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! All other format supported by ensnano are converted into this format and run-time manipulation
 //! of designs are performed on an `ensnano::Design` structure
 
-#![allow(mixed_script_confusables, confusable_idents)] // allow mathematical symbols as variables
-
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::sync::Arc;
 
@@ -29,7 +27,6 @@ use material_colors::MaterialColor;
 
 pub use bezier_plane::*;
 use serde::{Deserialize, Serialize};
-pub use ultraviolet;
 
 pub mod codenano;
 pub mod consts;

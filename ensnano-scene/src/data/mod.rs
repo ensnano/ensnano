@@ -19,14 +19,14 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! This modules handles internal information about the scene, such as the selected objects etc..
 //! It also communicates with the designs to get the position of the objects to draw on the scene.
 
+use super::view::AvailableRotationAxes;
 use super::{
     AppState, Camera3D, HandlesDescriptor, LetterInstance, RotationWidgetDescriptor,
-    RotationWidgetOrientation, SceneElement, View, ViewUpdate, ultraviolet,
+    RotationWidgetOrientation, SceneElement, View, ViewUpdate,
     view::{
         GridDisc, HandleColors, Instantiable, Mesh, RawDnaInstance, StereographicSphereAndPlane,
     },
 };
-use crate::view::AvailableRotationAxes;
 use ensnano_design::{
     BezierVertexId, Collection, External3DObjectsStamp, Nucl,
     grid::{GridId, GridObject, GridPosition},
@@ -211,7 +211,7 @@ impl<R: DesignReader> Data<R> {
     }
 
     fn update_external_3d_objects<S: AppState>(&mut self, app_state: &S) {
-        use crate::view::ExternalObjects;
+        use super::view::ExternalObjects;
         let reader = app_state.get_design_reader();
         let external_objects = reader.get_external_objects();
         if let Some(new_stamp) =
@@ -617,7 +617,7 @@ impl<R: DesignReader> Data<R> {
             Some(SceneElement::PhantomElement(phantom_element)) => Some(phantom_element.helix_id),
             Some(SceneElement::Grid(_, GridId::FreeGrid(g_id))) => Some(g_id as u32),
             Some(SceneElement::Grid(_, GridId::BezierPathGrid(vertex))) => Some(
-                crate::element_selector::bezier_vertex_id(vertex.path_id, vertex.vertex_id),
+                super::element_selector::bezier_vertex_id(vertex.path_id, vertex.vertex_id),
             ),
             _ => None,
         }
@@ -677,7 +677,6 @@ impl<R: DesignReader> Data<R> {
             }
             Selection::Grid(_, _) => HashSet::new(), // A grid is not made of atomic elements
             Selection::Phantom(_) => HashSet::new(),
-            Selection::BezierTangent { .. } => HashSet::new(),
             Selection::BezierVertex(_) => HashSet::new(),
             Selection::Nothing => HashSet::new(),
             Selection::Design(d_id) => self.designs[*d_id as usize].get_all_elements(),
@@ -1999,7 +1998,7 @@ impl<R: DesignReader> super::controller::Data for Data<R> {
         self.get_surface_info_nucl(nucl)
     }
 
-    fn notify_camera_movement(&mut self, camera: &crate::camera::CameraController) {
+    fn notify_camera_movement(&mut self, camera: &super::camera::CameraController) {
         self.update_surface_pivot(camera.get_current_surface_pivot())
     }
 }

@@ -17,11 +17,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use super::Collection;
 use super::HelixParameters;
+use super::PieceWiseBezierInstantiator;
 use super::collection::HasMap;
 use super::curves::{BezierEndCoordinates, Curve, InstanciatedPiecewiseBezier};
-use crate::PieceWiseBezierInstantiator;
-use crate::grid::*;
-use crate::utils::rotor_to_drotor;
+use super::grid::*;
+use super::utils::rotor_to_drotor;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::sync::Arc;

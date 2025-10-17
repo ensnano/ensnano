@@ -104,10 +104,6 @@ impl CharDrawer {
         }
     }
 
-    pub fn advancement_x(&self) -> f32 {
-        self.letter.advance
-    }
-
     /// Create a render pipepline. This function is meant to be called once, before drawing for the
     /// first time.
     fn create_pipeline(&self, globals_layout: &BindGroupLayout) -> RenderPipeline {
@@ -175,36 +171,4 @@ impl CharDrawer {
                 label: Some("Char drawer render pipeline"),
             })
     }
-}
-
-pub fn char_positions_x(string: &str, drawers: &HashMap<char, CharDrawer>) -> Vec<f32> {
-    let mut ret = vec![0f32];
-    let mut x = 0f32;
-    for c in string.chars() {
-        x += drawers.get(&c).unwrap().advancement_x();
-        ret.push(x);
-    }
-    ret
-}
-
-pub fn char_positions_y(string: &str, drawers: &HashMap<char, CharDrawer>) -> Vec<f32> {
-    let max_height = height(string, drawers);
-    let mut ret = vec![];
-
-    for c in string.chars() {
-        ret.push(
-            max_height
-                - drawers.get(&c).unwrap().letter.height
-                - drawers.get(&c).unwrap().letter.advance_height,
-        )
-    }
-    ret
-}
-
-pub fn height(string: &str, drawers: &HashMap<char, CharDrawer>) -> f32 {
-    let mut ret = 0f32;
-    for c in string.chars() {
-        ret = ret.max(drawers.get(&c).unwrap().letter.height)
-    }
-    ret
 }

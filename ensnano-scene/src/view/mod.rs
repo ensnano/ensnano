@@ -20,18 +20,16 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use self::gltf_drawer::Object3DDrawer;
 use super::camera;
-use crate::{DrawArea, PhySize};
+use super::{DrawArea, PhySize};
 use camera::{Camera, CameraPtr, Projection, ProjectionPtr};
-use ensnano_design::{Axis, grid::GridId, group_attributes::GroupPivot, ultraviolet};
+use ensnano_design::{Axis, grid::GridId, group_attributes::GroupPivot};
 use ensnano_interactor::{UnrootedRevolutionSurfaceDescriptor, consts::*};
-use ensnano_utils::{
-    bindgroup_manager, text, texture,
-    wgpu::{self, util::DeviceExt as _},
-};
+use ensnano_utils::{bindgroup_manager, text, texture};
 use int_enum::IntEnum;
 use std::{cell::RefCell, collections::BTreeMap, rc::Rc, usize};
 use texture::Texture;
 use ultraviolet::{Mat4, Rotor3, Vec3};
+use wgpu::util::DeviceExt as _;
 use wgpu::{Device, Queue};
 
 /// A `Uniform` is a structure that manages view and projection matrices.
@@ -554,10 +552,6 @@ impl View {
                     self.need_redraw = needed_redraw;
                 }
             }
-            ViewUpdate::CutPlane(normal, dot_value) => {
-                self.update_cut_plane(normal, dot_value);
-                self.need_redraw = true;
-            }
         }
     }
 
@@ -567,14 +561,6 @@ impl View {
 
     pub fn need_redraw(&self) -> bool {
         self.need_redraw | self.redraw_twice
-    }
-
-    // Is a feature missing? This just prints. - Axel
-    pub fn update_cut_plane(&mut self, normal: Vec3, dot_value: f32) {
-        println!(
-            "Update cut plane to: normal: <{},{},{}> dot: {dot_value}",
-            normal.x, normal.y, normal.z
-        );
     }
 
     /// Draw the scene
@@ -1168,8 +1154,6 @@ pub enum ViewUpdate {
     BezierSheets(Vec<Sheet2D>),
     External3DObjects(ExternalObjects),
     UnrootedSurface(Option<UnrootedRevolutionSurfaceDescriptor>),
-    /// The cutting plane has been modified: normal and dot product
-    CutPlane(Vec3, f32),
 }
 
 #[derive(Eq, PartialEq, Debug, Copy, Clone, Hash, IntEnum)]

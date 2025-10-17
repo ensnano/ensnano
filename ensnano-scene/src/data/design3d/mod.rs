@@ -21,7 +21,7 @@ use super::super::view::{
     ConeInstance, Ellipsoid, Instantiable, RawDnaInstance, Sheet2D, SlicedTubeInstance,
     SphereInstance, TubeInstance, TubeLidInstance,
 };
-use super::{LetterInstance, SceneElement, ultraviolet};
+use super::{LetterInstance, SceneElement};
 use crate::rotor_utils::SafeRotor as _;
 use crate::sausage_rosary::SausageRosary;
 use crate::view::PlainRectangleInstance;
@@ -1741,9 +1741,6 @@ pub trait DesignReader: 'static + ensnano_interactor::DesignReader {
     fn get_symbol(&self, e_id: u32) -> Option<char>;
     fn get_model_matrix(&self) -> Mat4;
     fn get_scalebar(&self) -> Option<(f32, f32, fn(f32, f32, f32) -> u32)>;
-    /// Return true iff e_id is the identifier of a nucleotide that must be displayed with a
-    /// smaller size
-    fn has_small_spheres_nucl_id(&self, e_id: u32) -> bool;
     /// Return the list of pairs of nucleotides that can be linked by a cross-over
     fn get_suggestions(&self) -> Vec<(Nucl, Nucl)>;
     fn get_position_of_nucl_on_helix(
@@ -1764,11 +1761,9 @@ pub trait DesignReader: 'static + ensnano_interactor::DesignReader {
     fn get_with_cones(&self, e_id: u32) -> Option<bool>;
     fn get_id_of_strand_containing(&self, e_id: u32) -> Option<usize>;
     fn get_id_of_helix_containing(&self, e_id: u32) -> Option<usize>;
-    fn get_ids_of_all_helices(&self) -> Vec<u32>;
     fn get_ids_of_elements_belonging_to_strand(&self, s_id: usize) -> Vec<u32>;
     fn get_ids_of_elements_belonging_to_helix(&self, h_id: usize) -> Vec<u32>;
     fn get_helix_basis(&self, h_id: u32) -> Option<Rotor3>;
-    fn get_basis(&self) -> Rotor3;
     fn get_identifier_nucl(&self, nucl: &Nucl) -> Option<u32>;
     fn get_identifier_bond(&self, n1: Nucl, n2: Nucl) -> Option<u32>;
     fn get_nucl_with_id(&self, e_id: u32) -> Option<Nucl>;
@@ -1785,7 +1780,6 @@ pub trait DesignReader: 'static + ensnano_interactor::DesignReader {
     fn get_helix_grid_position(&self, h_id: u32) -> Option<HelixGridPosition>;
     fn prime5_of_which_strand(&self, nucl: Nucl) -> Option<usize>;
     fn prime3_of_which_strand(&self, nucl: Nucl) -> Option<usize>;
-    fn get_all_prime3_nucl(&self) -> Vec<(Vec3, Vec3, u32)>;
     fn get_curve_range(&self, h_id: usize) -> Option<std::ops::RangeInclusive<isize>>;
     fn get_checked_xovers_ids(&self, checked: bool) -> Vec<u32>;
     fn get_id_of_xover_involving_nucl(&self, nucl: Nucl) -> Option<usize>;

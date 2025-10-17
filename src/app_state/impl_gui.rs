@@ -103,10 +103,6 @@ impl GuiState for AppState {
         }
     }
 
-    fn has_double_strand_on_new_helix(&self) -> bool {
-        self.0.strand_on_new_helix.is_some()
-    }
-
     fn get_current_operation_state(&self) -> Option<ensnano_gui::CurrentOpState> {
         self.0.design.get_current_operation_state()
     }
@@ -208,7 +204,6 @@ impl GuiState for AppState {
 
         Some(ensnano_gui::RevolutionScaling {
             nb_helix: half_number_helix * 2,
-            scale: scaling_factor,
         })
     }
 

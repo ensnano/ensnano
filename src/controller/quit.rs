@@ -483,7 +483,6 @@ fn export_extenstion(export_type: ExportType) -> &'static str {
         ExportType::Oxdna => messages::OXDNA_CONFIG_EXTENSION,
         ExportType::Pdb => "pdb",
         ExportType::Cadnano => "json",
-        ExportType::Cando => "cndo",
     }
 }
 
@@ -492,6 +491,5 @@ fn export_filters(export_type: ExportType) -> &'static Filters {
         ExportType::Oxdna => &messages::OXDNA_CONFIG_FILTERS,
         ExportType::Pdb => &messages::PDB_FILTER,
         ExportType::Cadnano => &messages::CADNANO_FILTER,
-        ExportType::Cando => todo!(),
     }
 }

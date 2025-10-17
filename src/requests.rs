@@ -60,8 +60,6 @@ pub struct Requests {
     pub fitting: Option<()>,
     /// A request to change the color of the selected strand
     pub strand_color_change: Option<u32>,
-    /// A request to change the sequence of the selected strand
-    pub sequence_change: Option<String>,
     /// A request to show/hide the sequences
     pub toggle_text: Option<bool>,
     /// A request to change the sensitivity of scrolling
@@ -93,7 +91,6 @@ pub struct Requests {
     pub anchor: Option<()>,
     pub rigid_body_parameters: Option<RigidBodyConstants>,
     pub keep_proceed: VecDeque<Action>,
-    pub new_shift_hyperboloid: Option<f32>,
     pub organizer_selection: Option<(
         Vec<DesignElementKey>,
         Option<ensnano_organizer::GroupId>,
@@ -121,7 +118,6 @@ pub struct Requests {
     pub new_selection: Option<Vec<Selection>>,
     pub suspend_op: Option<()>,
     pub center_selection: Option<(Selection, AppId)>,
-    pub centering_on_nucl: Option<(Nucl, usize)>,
     pub toggle_widget_basis: Option<()>,
     pub stop_roll: Option<()>,
     pub new_paste_candidate: Option<Option<Nucl>>,

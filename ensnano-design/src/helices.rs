@@ -16,8 +16,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use crate::design_operations::ErrOperation;
-use crate::grid::*;
+use super::design_operations::ErrOperation;
+use super::grid::*;
 
 use super::curves::*;
 use super::{

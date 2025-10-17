@@ -368,7 +368,6 @@ impl FlatSelection {
                 Selection::Phantom(pe) => Self::Phantom(*pe),
                 Selection::Nothing => Self::Nothing,
                 Selection::BezierControlPoint { .. } => Self::Nothing,
-                Selection::BezierTangent { .. } => Self::Nothing,
                 Selection::BezierVertex(_) => Self::Nothing,
             }
         } else {

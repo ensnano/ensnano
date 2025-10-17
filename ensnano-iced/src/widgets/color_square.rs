@@ -26,7 +26,7 @@ pub struct ColorSquareState {
 }
 
 /// A ColorSquare Widget
-pub struct ColorSquare<'a, Message, Theme = crate::Theme, Renderer = crate::Renderer> {
+pub struct ColorSquare<'a, Message, Theme = iced::Theme, Renderer = iced::Renderer> {
     width: Length,
     height: Length,
     color: Color,
@@ -36,7 +36,7 @@ pub struct ColorSquare<'a, Message, Theme = crate::Theme, Renderer = crate::Rend
     _renderer: PhantomData<Renderer>,
 }
 
-impl<'a, Message, Theme> ColorSquare<'a, Message, Theme, crate::Renderer> {
+impl<'a, Message, Theme> ColorSquare<'a, Message, Theme, iced::Renderer> {
     pub fn new(color: Color) -> Self {
         Self {
             width: Length::Fixed(DEFAULT_SIZE),
@@ -73,8 +73,8 @@ impl<'a, Message, Theme> ColorSquare<'a, Message, Theme, crate::Renderer> {
     }
 }
 
-impl<'a, Message, Theme> Widget<Message, Theme, crate::Renderer>
-    for ColorSquare<'a, Message, Theme, crate::Renderer>
+impl<'a, Message, Theme> Widget<Message, Theme, iced::Renderer>
+    for ColorSquare<'a, Message, Theme, iced::Renderer>
 where
     Message: Clone,
 {
@@ -91,7 +91,7 @@ where
     fn layout(
         &self,
         _tree: &mut widget::Tree,
-        _renderer: &crate::Renderer,
+        _renderer: &iced::Renderer,
         limits: &layout::Limits,
     ) -> layout::Node {
         layout::atomic(limits, self.width, self.height)
@@ -100,7 +100,7 @@ where
     fn draw(
         &self,
         _tree: &widget::Tree,
-        renderer: &mut crate::Renderer,
+        renderer: &mut iced::Renderer,
         _theme: &Theme,
         _style: &Style,
         layout: Layout,
@@ -137,7 +137,7 @@ where
         });
 
         match renderer {
-            crate::Renderer::Wgpu(wgpu_renderer) => wgpu_renderer
+            iced::Renderer::Wgpu(wgpu_renderer) => wgpu_renderer
                 .with_translation(Vector::new(b.x, b.y), |renderer| {
                     renderer.draw_primitive(Primitive::Custom(mesh))
                 }),
@@ -151,7 +151,7 @@ where
         event: event::Event,
         layout: Layout,
         cursor: Cursor,
-        _renderer: &crate::Renderer,
+        _renderer: &iced::Renderer,
         _clipboard: &mut dyn Clipboard,
         shell: &mut Shell<'_, Message>,
         _viewport: &Rectangle,
@@ -200,13 +200,13 @@ where
     }
 }
 
-impl<'a, Message, Theme> From<ColorSquare<'a, Message, Theme, crate::Renderer>>
-    for crate::Element<'a, Message, Theme, crate::Renderer>
+impl<'a, Message, Theme> From<ColorSquare<'a, Message, Theme, iced::Renderer>>
+    for iced::Element<'a, Message, Theme, iced::Renderer>
 where
     Message: Clone + 'a,
     Theme: 'a,
 {
-    fn from(color_square: ColorSquare<'a, Message, Theme, crate::Renderer>) -> Self {
+    fn from(color_square: ColorSquare<'a, Message, Theme, iced::Renderer>) -> Self {
         Self::new(color_square)
     }
 }

@@ -19,10 +19,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! Export to pdb file format. The method used here is an adpatation from the one used in
 //! [tacOxDNA](https://github.com/lorenzo-rovigatti/tacoxDNA)
 
-use crate::BasisMapper;
-
 use super::PathBuf;
-use super::ultraviolet;
+use crate::BasisMapper;
 use crate::oxdna::{OXDNA_LEN_FACTOR, OxDnaHelix};
 use ahash::AHashMap;
 use ensnano_design::{Design, Domain, HelixCollection, Nucl};
@@ -428,6 +426,7 @@ fn read_pdb_string(
 }
 
 #[derive(Debug)]
+#[allow(unused)]
 pub enum PdbError {
     ParsingError {
         line_number: usize,

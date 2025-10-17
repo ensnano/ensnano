@@ -17,9 +17,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use super::{AppState, Requests};
 use ensnano_iced::{
-    UiSize,
+    self, UiSize,
     helpers::*,
-    iced::{Alignment, Color, Element, Length},
+    iced::{self, Alignment, Color, Element, Length},
     iced_graphics::text::Paragraph,
     iced_runtime::{Command, Program},
     iced_winit::winit::dpi::LogicalSize,
@@ -49,7 +49,6 @@ impl StatusParameter {
 }
 
 pub struct StatusBar<R: Requests, S: AppState> {
-    info_values: Vec<String>,
     operation: Option<OperationInput>,
     requests: Arc<Mutex<R>>,
     progress: Option<(String, f32)>,
@@ -69,7 +68,6 @@ impl<R: Requests, State: AppState> StatusBar<R, State> {
         ui_size: UiSize,
     ) -> Self {
         Self {
-            info_values: Vec::new(),
             operation: None,
             requests,
             progress: None,
@@ -97,9 +95,7 @@ impl<R: Requests, State: AppState> StatusBar<R, State> {
         }
     }
 
-    fn view_progress(
-        &self,
-    ) -> Row<'_, Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer> {
+    fn view_progress(&self) -> Row<'_, Message<State>, iced::Theme, iced::Renderer> {
         let progress = self.progress.as_ref().unwrap();
         row![
             text(format!("{}, {:.1}%", progress.0, progress.1 * 100.))
@@ -136,7 +132,6 @@ pub enum Message<S: AppState> {
     ValueStrChanged(usize, String),
     ValueSet(usize, String),
     Progress(Option<(String, f32)>),
-    SetShift(f32),
     NewApplicationState(S),
     UiSizeChanged(UiSize),
     TabPressed,
@@ -182,10 +177,6 @@ impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
                 }
             }
             Message::Progress(progress) => self.progress = progress,
-            Message::SetShift(f) => {
-                self.info_values[2] = f.to_string();
-                self.requests.lock().unwrap().update_hyperboloid_shift(f);
-            }
             Message::NewApplicationState(state) => self.app_state = state,
             Message::UiSizeChanged(ui_size) => self.set_ui_size(ui_size),
             //Message::TabPressed => self.process_tab(),

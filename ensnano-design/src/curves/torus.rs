@@ -24,8 +24,8 @@ use std::f64::consts::TAU;
 use std::sync::Arc;
 use ultraviolet::{DVec2, DVec3, Isometry3, Rotor3};
 
-const INTER_HELIX_GAP: f64 = crate::HelixParameters::DEFAULT.helix_radius as f64
-    + crate::HelixParameters::DEFAULT.inter_helix_gap as f64 / 2.;
+const INTER_HELIX_GAP: f64 = HelixParameters::DEFAULT.helix_radius as f64
+    + HelixParameters::DEFAULT.inter_helix_gap as f64 / 2.;
 
 const NB_STEPS: usize = 10_000_000;
 

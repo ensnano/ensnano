@@ -25,7 +25,7 @@ use crate::{
     controller::chanel_reader::ChannelReader,
 };
 use ensnano_design::{
-    Collection, CurveDescriptor, HelixCollection, HelixParameters, Twist,
+    self, Collection, CurveDescriptor, HelixCollection, HelixParameters, Twist,
     grid::{GridDescriptor, GridTypeDescr, *},
 };
 use std::{

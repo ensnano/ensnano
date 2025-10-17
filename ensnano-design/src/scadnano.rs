@@ -16,8 +16,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+use super::HelixParameters;
 use super::grid::{GridDescriptor, GridTypeDescr};
-use crate::HelixParameters;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use ultraviolet::{Rotor3, Vec3};

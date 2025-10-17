@@ -17,12 +17,12 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::{Message, Selection, UiSize};
-use crate::ultraviolet::{Bivec3, Mat3, Rotor3, Vec2, Vec3};
 use ensnano_iced::{
     helpers::*,
-    iced::{Alignment, Length},
+    iced::{self, Alignment, Length},
 };
 use paste::paste;
+use ultraviolet::{Bivec3, Mat3, Rotor3, Vec2, Vec3};
 
 macro_rules! type_builder {
     ($builder_name:ident, $initializer:tt, $internal:tt, $convert_in:path, $convert_out:path, $($param: ident: $param_type: tt %$formatter:path), *) => {
@@ -56,7 +56,7 @@ macro_rules! type_builder {
                     }
                 }
 
-                fn view<'a, State: AppState>(&self) -> ensnano_iced::Element<'_, Message<State>, Theme, Renderer> {
+                fn view<'a, State: AppState>(&self) -> iced::Element<'_, Message<State>, Theme, Renderer> {
                     let str_values = [$(& self.[<$param _string>],)*];
                     let mut ret = Column::new().width(Length::Fill).align_items(Alignment::End);
                     let value_to_modify = self.value_to_modify;
@@ -187,9 +187,7 @@ impl GridPositionBuilder {
         Self::Cartesian(Vec3Builder::new(ValueKind::HelixGridPosition, position))
     }
 
-    fn view<'a, State: AppState>(
-        &self,
-    ) -> ensnano_iced::Element<'_, Message<State>, Theme, Renderer> {
+    fn view<'a, State: AppState>(&self) -> iced::Element<'_, Message<State>, Theme, Renderer> {
         match self {
             Self::Cartesian(builder) => builder.view(),
         }
@@ -222,7 +220,7 @@ impl GridOrientationBuilder {
         ))
     }
 
-    fn view<State: AppState>(&self) -> ensnano_iced::Element<'_, Message<State>, Theme, Renderer> {
+    fn view<State: AppState>(&self) -> iced::Element<'_, Message<State>, Theme, Renderer> {
         match self {
             Self::DirectionAngle(builder) => builder.view(),
         }
@@ -264,8 +262,7 @@ where
         ui_size: UiSize,
         _selection: &Selection,
         _app_state: &State,
-    ) -> ensnano_iced::Element<'_, super::Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer>
-    {
+    ) -> iced::Element<'_, super::Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer> {
         self::column![
             text("Position").size(ui_size.intermediate_text()),
             self.position_builder.view(),
@@ -316,9 +313,8 @@ impl GridBuilder {
     fn nb_turn_row<'a, S: AppState>(
         app_state: &S,
         selection: &Selection,
-    ) -> Option<
-        ensnano_iced::Element<'a, super::Message<S>, ensnano_iced::Theme, ensnano_iced::Renderer>,
-    > {
+    ) -> Option<iced::Element<'a, super::Message<S>, ensnano_iced::Theme, ensnano_iced::Renderer>>
+    {
         use crate::consts;
         if let Selection::Grid(_, g_id) = selection {
             if let Some(nb_turn) = app_state.get_reader().get_grid_nb_turn(*g_id) {
@@ -349,8 +345,7 @@ where
         ui_size: UiSize,
         selection: &Selection,
         app_state: &State,
-    ) -> ensnano_iced::Element<'_, super::Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer>
-    {
+    ) -> iced::Element<'_, super::Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer> {
         self::column![
             text("Position").size(ui_size.intermediate_text()),
             self.position_builder.view(),
@@ -398,7 +393,7 @@ where
         ui_size: UiSize,
         selection: &Selection,
         app_state: &State,
-    ) -> ensnano_iced::Element<'a, super::Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer>;
+    ) -> iced::Element<'a, super::Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer>;
     fn update_str_value(&mut self, value_kind: ValueKind, n: usize, value_str: String);
     fn submit_value(&mut self, value_kind: ValueKind) -> Option<InstanciatedValue>;
 }

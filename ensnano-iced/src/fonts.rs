@@ -29,9 +29,7 @@ use std::borrow::Cow;
 use iced::font;
 
 pub mod material_icons;
-pub use material_icons::{
-    MATERIAL_ICONS_DARK, MATERIAL_ICONS_LIGHT, MaterialIcon, MaterialIconStyle, icon_to_char,
-};
+pub use material_icons::{MATERIAL_ICONS_DARK, MaterialIcon, MaterialIconStyle, icon_to_char};
 
 const ENSNANO_FONT_BYTES: &[u8] = include_bytes!("../../font/ensnano2.ttf");
 const INTER_BOLD_FONT_BYTES: &[u8] = include_bytes!("../../font/Inter-Bold.ttf");
@@ -52,7 +50,7 @@ pub const INTER_REGULAR_FONT: Font = Font {
     stretch: font::Stretch::Normal,
 };
 
-pub use iced::{Font, font::Error};
+pub use iced::Font;
 
 // https://rsms.me/inter
 

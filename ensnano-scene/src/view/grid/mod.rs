@@ -15,16 +15,14 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use ensnano_design::ultraviolet;
-use ensnano_utils::wgpu;
-use ultraviolet::{Mat4, Vec2, Vec3, Vec4};
-use wgpu::{Device, RenderPass, include_spirv};
+
+mod texture;
 
 use super::{LetterInstance, grid_disc::GridDisc, instances_drawer::*};
 use ensnano_design::grid::{Grid, GridDivision, GridId, GridPosition, GridType};
 use std::collections::BTreeMap;
-
-mod texture;
+use ultraviolet::{Mat4, Vec2, Vec3, Vec4};
+use wgpu::{Device, RenderPass, include_spirv};
 
 #[derive(Debug, Clone)]
 pub struct GridInstance {
@@ -91,7 +89,7 @@ impl GridInstance {
         let color = match self.id {
             GridId::FreeGrid(id) => id as u32,
             GridId::BezierPathGrid(vertex) => {
-                crate::element_selector::bezier_vertex_id(vertex.path_id, vertex.vertex_id)
+                super::super::element_selector::bezier_vertex_id(vertex.path_id, vertex.vertex_id)
             }
         };
         Self {
@@ -488,9 +486,5 @@ impl Instantiable for GridInstance {
 
     fn fragment_module(device: &Device) -> wgpu::ShaderModule {
         device.create_shader_module(include_spirv!("grid.frag.spv"))
-    }
-
-    fn alpha_to_coverage_enabled() -> bool {
-        true
     }
 }

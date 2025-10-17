@@ -110,6 +110,7 @@ ultraviolet = { git = "https://github.com/termhn/ultraviolet", rev = "b2fb29e", 
 ] }
 version-compare = "0.1.0"
 wgpu = { version = "0.19", features = ["spirv"] }
+winit = "0.29"
 
 [dependencies]
 ensnano_design.workspace = true
@@ -142,6 +143,8 @@ serde.workspace = true
 serde_json.workspace = true
 ultraviolet.workspace = true
 version-compare.workspace = true
+wgpu.workspace = true
+winit.workspace = true
 
 [features]
 log_after_renderer_setup = []

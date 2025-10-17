@@ -131,9 +131,8 @@ use {
         iced_futures::futures,
         iced_graphics::{Antialiasing, Viewport},
         iced_runtime::{Debug, program},
-        iced_wgpu::{self, Settings, wgpu},
-        iced_winit::{self, winit},
-        theme,
+        iced_wgpu::{self, Settings},
+        iced_winit, theme,
     },
     ensnano_interactor::{
         ActionMode, CenterOfSelection, DesignOperation, DesignReader, DesignRotation,
@@ -149,7 +148,7 @@ use {
         operation::Operation,
     },
     ensnano_scene::{AppState as _, Scene, SceneKind, data::DesignReader as _},
-    ensnano_utils::{PhySize, TEXTURE_FORMAT, winit::window::CursorIcon},
+    ensnano_utils::{PhySize, TEXTURE_FORMAT},
     multiplexer::{Multiplexer, Overlay},
     scheduler::Scheduler,
     std::{
@@ -166,7 +165,7 @@ use {
         event::{Event, WindowEvent},
         event_loop::{ControlFlow, EventLoop, EventLoopWindowTarget},
         keyboard::{Key, ModifiersState, NamedKey},
-        window::Window,
+        window::{CursorIcon, Window},
     },
 };
 
@@ -2115,24 +2114,6 @@ impl<'a> MainStateView<'a> {
             self.notify_apps(Notification::TeleportCamera(camera))
         } else {
             log::error!("Could not get camera {:?}", camera_id)
-        }
-    }
-
-    fn update_camera(&mut self, camera_id: ensnano_design::CameraId) {
-        if let Some(camera) = self
-            .main_state
-            .applications
-            .get(&GuiComponentType::Scene)
-            .and_then(|s| s.lock().unwrap().get_camera())
-        {
-            self.main_state
-                .apply_operation(DesignOperation::UpdateCamera {
-                    camera_id,
-                    position: camera.0.position,
-                    orientation: camera.0.orientation,
-                })
-        } else {
-            log::error!("Could not get current camera position");
         }
     }
 

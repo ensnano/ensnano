@@ -11,12 +11,12 @@
 //!     REAL32[3] – Vertex 3                  - 12 bytes
 //!     UINT16    – Attribute byte count      -  2 bytes
 
-use crate::view::{
+use super::view::{
     ConeInstance, Ellipsoid, Instantiable, Mesh, Mesh::*, RawDnaInstance, SlicedTubeInstance,
     SphereInstance, TubeInstance, TubeLidInstance,
 };
-use ensnano_design::ultraviolet::{Mat3, Vec3};
 use ensnano_interactor::consts::NB_RAY_TUBE;
+use ultraviolet::{Mat3, Vec3};
 
 impl RawDnaInstance {
     fn to_stl_triangles(&self) -> Vec<StlTriangle> {

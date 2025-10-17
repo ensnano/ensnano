@@ -15,19 +15,13 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-#![allow(clippy::unusual_byte_groupings)]
-use ultraviolet::Vec4;
-pub const VIEWER_BINDING_ID: u32 = 0;
-pub const INSTANCES_BINDING_ID: u32 = 1;
-pub const LIGHT_BINDING_ID: u32 = 2;
-pub const TEXTURE_BINDING_ID: u32 = 2;
-pub const MODEL_BINDING_ID: u32 = 3;
 
-pub const VERTEX_POSITION_ADRESS: u32 = 0;
-pub const VERTEX_NORMAL_ADRESS: u32 = 1;
+use ultraviolet::Vec4;
+
+pub const VIEWER_BINDING_ID: u32 = 0;
+pub const TEXTURE_BINDING_ID: u32 = 2;
 
 pub const BOND_RADIUS: f32 = 0.06;
-pub const BOND_LENGTH: f32 = 1.;
 pub const NB_RAY_TUBE: usize = 17;
 
 pub const HELIX_CYLINDER_RADIUS: f32 = 0.9;
@@ -66,7 +60,7 @@ pub fn bezier_widget_id(helix_id: u32, control_point: BezierControlPoint) -> u32
     (helix_id << 8) | bezier_id
 }
 
-use crate::{BezierControlPoint, RevolutionSimulationParameters};
+use super::{BezierControlPoint, RevolutionSimulationParameters};
 pub fn widget_id_to_bezier(id: u32) -> Option<(usize, BezierControlPoint)> {
     let control = match id & 0xFF {
         n if n > BEZIER_END_WIDGET_ID => Some(BezierControlPoint::PiecewiseBezier(
@@ -280,6 +274,5 @@ pub const DEFAULT_REVOLUTION_SIMULATION_PARAMETERS: RevolutionSimulationParamete
         ball_mass: 10.0,
         time_span: 5.0e-2,
         simulation_step: 1e-3,
-        method: crate::EquadiffSolvingMethod::Ralston,
-        rescaling: 1.,
+        method: super::EquadiffSolvingMethod::Ralston,
     };

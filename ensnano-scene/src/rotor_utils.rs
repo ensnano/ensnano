@@ -17,8 +17,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use {
-    ensnano_design::ultraviolet::{Rotor3, Vec3},
     std::f32::consts::PI,
+    ultraviolet::{Rotor3, Vec3},
 };
 
 pub trait SafeRotor {
@@ -29,12 +29,12 @@ pub trait SafeRotor {
 impl SafeRotor for Rotor3 {
     fn safe_from_rotation_from_unit_x_to(u: Vec3) -> Rotor3 {
         // u must be normalized
-        let ε: f32 = 1e-5;
+        let eps: f32 = 1e-5;
         let ux = Vec3::unit_x();
         let ux_dot_u = u.x; //ux.dot(u);
-        if ux_dot_u > 1. - ε {
+        if ux_dot_u > 1. - eps {
             Rotor3::identity()
-        } else if ux_dot_u < -1. + ε {
+        } else if ux_dot_u < -1. + eps {
             Rotor3::from_rotation_xy(PI)
         } else {
             Rotor3::from_rotation_between(ux, u)
@@ -43,12 +43,12 @@ impl SafeRotor for Rotor3 {
 
     fn safe_from_rotation_to_unit_x_from(u: Vec3) -> Rotor3 {
         // u must be normalized
-        let ε: f32 = 1e-5;
+        let eps: f32 = 1e-5;
         let ux = Vec3::unit_x();
         let ux_dot_u = u.x; //ux.dot(u);
-        if ux_dot_u > 1. - ε {
+        if ux_dot_u > 1. - eps {
             Rotor3::identity()
-        } else if ux_dot_u < -1. + ε {
+        } else if ux_dot_u < -1. + eps {
             Rotor3::from_rotation_xy(PI)
         } else {
             Rotor3::from_rotation_between(u, ux)

@@ -47,14 +47,13 @@ pub use bezier::{
     BezierControlPoint, BezierEnd, BezierEndCoordinates, CubicBezierConstructor,
     CubicBezierControlPoint,
 };
-pub use circle_curve::CircleCurve;
 pub use revolution::{InterpolatedCurveDescriptor, InterpolationDescriptor};
 use serde::{Deserialize, Serialize};
 pub use sphere_concentric_circle::{
     PillConcentricStadiumDescriptor, PillTennisBallSeamDescriptor,
     SphereConcentricCircleDescriptor, SphereTennisBallSeamDescriptor,
 };
-pub use sphere_like_spiral::{SphereLikeSpiralDescriptor, SphereOrientation};
+pub use sphere_like_spiral::SphereLikeSpiralDescriptor;
 pub use spiral_cylinder::SpiralCylinderDescriptor;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -132,17 +131,17 @@ pub trait Curved {
     ///
     /// See `https://en.wikipedia.org/wiki/Torsion_of_a_curve`
     fn torsion(&self, t: f64) -> f64 {
-        let ε: f64 = 1e-3;
+        let eps: f64 = 1e-3;
         let p0 = self.position(t);
-        let p1 = self.position(t + ε);
-        let p2 = self.position(t + 2. * ε);
-        let p3 = self.position(t + 3. * ε);
-        let dp0 = (p1 - p0) / ε;
-        let dp1 = (p2 - p1) / ε;
-        let dp2 = (p3 - p2) / ε;
-        let d2p0 = (dp1 - dp0) / ε;
-        let d2p1 = (dp2 - dp1) / ε;
-        let d3p = (d2p1 - d2p0) / ε;
+        let p1 = self.position(t + eps);
+        let p2 = self.position(t + 2. * eps);
+        let p3 = self.position(t + 3. * eps);
+        let dp0 = (p1 - p0) / eps;
+        let dp1 = (p2 - p1) / eps;
+        let dp2 = (p3 - p2) / eps;
+        let d2p0 = (dp1 - dp0) / eps;
+        let d2p1 = (dp2 - dp1) / eps;
+        let d3p = (d2p1 - d2p0) / eps;
         let c = dp0.cross(d2p0);
         return d3p.dot(c) / c.mag_sq();
     }
@@ -229,18 +228,10 @@ pub trait Curved {
     }
 
     /// This method can be overridden to express the fact that a curve will be the only member of
-    /// its synchornization group.
-    /// In that case, the abscissa converter can be storred dirrectly in the curve.
+    /// its synchronization group.
+    /// In that case, the abscissa converter can be stored directly in the curve.
     fn is_time_maps_singleton(&self) -> bool {
         false
-    }
-
-    fn first_theta(&self) -> Option<f64> {
-        None
-    }
-
-    fn last_theta(&self) -> Option<f64> {
-        None
     }
 
     /// This method can be overridden to express the fact the a curve is a portion of a surface.
@@ -325,11 +316,11 @@ pub struct Curve {
     pub geometry: Arc<dyn Curved + Sync + Send>,
     /// The precomputed points along the curve for the forward strand
     pub(crate) positions_forward: Vec<DVec3>,
-    /// The procomputed points along the curve for the backward strand
+    /// The precomputed points along the curve for the backward strand
     pub(crate) positions_backward: Vec<DVec3>,
-    /// The precomputed orthgonal frames moving along the curve for the forward strand
+    /// The precomputed orthogonal frames moving along the curve for the forward strand
     axis_forward: Vec<DMat3>,
-    /// The precomputed orthgonal frames moving along the curve for the backward strand
+    /// The precomputed orthogonal frames moving along the curve for the backward strand
     axis_backward: Vec<DMat3>,
     /// The precomputed values of the curve's curvature
     curvature: Vec<f64>,
@@ -403,14 +394,6 @@ impl Curve {
             .min(self.positions_backward.len())
     }
 
-    pub fn nb_points_forwards(&self) -> usize {
-        self.positions_forward.len()
-    }
-
-    pub fn nb_points_backwards(&self) -> usize {
-        self.positions_backward.len()
-    }
-
     pub fn axis_pos(&self, n: isize, forward: bool) -> Option<DVec3> {
         let idx = self.idx_conversion(n)?;
         if forward {
@@ -423,15 +406,6 @@ impl Curve {
     pub fn nucl_time(&self, n: isize) -> Option<f64> {
         let idx = self.idx_conversion(n)?;
         self.t_nucl.get(idx).cloned()
-    }
-
-    #[allow(dead_code)]
-    pub fn curvature(&self, n: usize) -> Option<f64> {
-        self.curvature.get(n).cloned()
-    }
-
-    pub fn torsion(&self, n: usize) -> Option<f64> {
-        self.torsion.get(n).cloned()
     }
 
     pub fn idx_conversion(&self, n: isize) -> Option<usize> {
@@ -571,14 +545,6 @@ impl Curve {
         segments.extend(iter);
     }
 
-    pub fn first_theta(&self) -> Option<f64> {
-        self.geometry.first_theta()
-    }
-
-    pub fn last_theta(&self) -> Option<f64> {
-        self.geometry.last_theta()
-    }
-
     /// If `true`, then this means that the position and orientation of the helix are encoded in
     /// the `CurveDescriptor`, and that the `position` and `orientation` fields of the helix should
     /// be ignored.
@@ -715,11 +681,7 @@ impl CurveDescriptor {
         }
     }
 
-    pub(crate) fn translate(
-        &self,
-        edge: Edge,
-        grid_reader: &dyn CurveInstantiator,
-    ) -> Option<Self> {
+    pub fn translate(&self, edge: Edge, grid_reader: &dyn CurveInstantiator) -> Option<Self> {
         match self {
             Self::PiecewiseBezier {
                 points,
@@ -758,7 +720,7 @@ impl CurveDescriptor {
 }
 
 #[derive(Clone, Debug)]
-/// A descriptor of the the cruve where all reference to design element have been resolved.
+/// A descriptor of the the curve where all reference to design element have been resolved.
 /// For example, GridPosition are replaced by their actual position in space.
 pub struct InstanciatedCurveDescriptor {
     pub source: Arc<CurveDescriptor>,
@@ -768,7 +730,7 @@ pub struct InstanciatedCurveDescriptor {
 /// A type that is capable of converting Design object to concrete 3D position.
 ///
 /// This is used to instantiate curves that reference design objects.
-pub(super) trait CurveInstantiator {
+pub trait CurveInstantiator {
     fn concrete_grid_position(&self, position: GridPosition) -> Vec3;
     fn source(&self) -> FreeGrids;
     fn source_paths(&self) -> Option<BezierPathData>;
@@ -777,10 +739,7 @@ pub(super) trait CurveInstantiator {
 
 impl InstanciatedCurveDescriptor {
     /// Reads the design data to resolve the reference to elements of the design
-    pub(crate) fn instanciate(
-        desc: Arc<CurveDescriptor>,
-        grid_reader: &dyn CurveInstantiator,
-    ) -> Self {
+    pub fn instanciate(desc: Arc<CurveDescriptor>, grid_reader: &dyn CurveInstantiator) -> Self {
         let instance = match desc.as_ref() {
             CurveDescriptor::Bezier(b) => InstanciatedCurveDescriptor_::Bezier(b.clone()),
             CurveDescriptor::SphereLikeSpiral(s) => {

@@ -1,18 +1,16 @@
-use std::{
-    collections::HashMap,
-    sync::{Arc, Mutex, Weak},
-    time::Duration,
-};
-
-use ensnano_design::Design;
-use ensnano_physics::RapierPhysicsSystem;
-
 use crate::{
     app_state::design_interactor::{
         controller::simulations::SimulationInterface,
         presenter::{Presenter, SimulationUpdate, design_content::NuclCollection},
     },
     controller::chanel_reader::ChannelReader,
+};
+use ensnano_design::Design;
+use ensnano_physics::RapierPhysicsSystem;
+use std::{
+    collections::HashMap,
+    sync::{Arc, Mutex, Weak},
+    time::Duration,
 };
 
 #[derive(Default)]

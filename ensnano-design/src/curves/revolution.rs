@@ -345,12 +345,12 @@ impl Revolution {
             .rotated_by(DRotor2::from_angle(section_rotation));
         log::info!("section tangent {:?}", section_tangent);
 
-        let right = crate::utils::dvec_to_vec(DVec3 {
+        let right = dvec_to_vec(DVec3 {
             x: -point.revolution_angle.sin(),
             y: point.revolution_angle.cos(),
             z: 0.,
         });
-        let up = crate::utils::dvec_to_vec(DVec3 {
+        let up = dvec_to_vec(DVec3 {
             x: section_tangent.x * point.revolution_angle.cos(),
             y: section_tangent.x * point.revolution_angle.sin(),
             z: section_tangent.y,

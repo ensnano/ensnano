@@ -18,8 +18,6 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use std::path::Path;
 
-use super::wgpu;
-
 const OBJ_VERTEX_ARRAY: [wgpu::VertexAttribute; 3] =
     wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3, 2 => Float32x4];
 
@@ -141,6 +139,6 @@ pub fn load_stl<P: AsRef<Path>>(path: P) -> Result<StlMesh, ErrStl> {
 
 #[derive(Debug)]
 pub enum ErrStl {
-    FileErr(std::io::Error),
-    StlParseErr(nom_stl::Error),
+    FileErr(#[allow(unused)] std::io::Error),
+    StlParseErr(#[allow(unused)] nom_stl::Error),
 }

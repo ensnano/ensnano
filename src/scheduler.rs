@@ -17,19 +17,17 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::{AppState, Multiplexer};
-use ensnano_iced::{
-    iced_wgpu::wgpu,
-    iced_winit::winit::{
-        dpi::{PhysicalPosition, PhysicalSize},
-        event::WindowEvent,
-    },
-};
+use ensnano_iced::iced_wgpu::wgpu;
 use ensnano_interactor::application::Application;
 use ensnano_interactor::graphics::GuiComponentType;
-use ensnano_utils::winit::window::CursorIcon;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
+use winit::{
+    dpi::{PhysicalPosition, PhysicalSize},
+    event::WindowEvent,
+    window::CursorIcon,
+};
 
 /// The scheduler is responsible for running the different applications
 pub struct Scheduler {

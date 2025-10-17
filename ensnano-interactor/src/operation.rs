@@ -16,8 +16,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+use super::BezierControlPoint;
 use super::{DesignOperation, DesignRotation, DesignTranslation, GroupId, IsometryTarget};
-use crate::BezierControlPoint;
 use ensnano_design::{BezierPlaneId, BezierVertexId, Nucl, grid::*};
 use std::sync::Arc;
 use ultraviolet::{Bivec3, Rotor3, Vec2, Vec3};
@@ -161,104 +161,7 @@ impl Operation for HelixRotation {
 }
 
 #[derive(Debug, Clone)]
-pub struct DesignViewRotation {
-    pub origin: Vec3,
-    pub design_id: usize,
-    pub angle: f32,
-    pub plane: Bivec3,
-}
-
-impl Operation for DesignViewRotation {
-    fn parameters(&self) -> &[&'static str] {
-        &["angle"]
-    }
-
-    fn values(&self) -> Vec<String> {
-        vec![self.angle.to_degrees().to_string()]
-    }
-
-    fn effect(&self) -> DesignOperation {
-        let rotor = Rotor3::from_angle_plane(self.angle, self.plane);
-        DesignOperation::Rotation(DesignRotation {
-            rotation: rotor,
-            origin: self.origin,
-            target: IsometryTarget::Design,
-            group_id: None,
-        })
-    }
-
-    fn description(&self) -> String {
-        format!("Rotate view of design {}", self.design_id)
-    }
-
-    fn with_new_value(&self, n: usize, val: String) -> Option<Arc<dyn Operation>> {
-        if n == 0 {
-            let degrees: f32 = val.parse().ok()?;
-            Some(Arc::new(Self {
-                angle: degrees.to_radians(),
-                ..*self
-            }))
-        } else {
-            None
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct DesignViewTranslation {
-    pub design_id: usize,
-    pub right: Vec3,
-    pub top: Vec3,
-    pub dir: Vec3,
-    pub x: f32,
-    pub y: f32,
-    pub z: f32,
-}
-
-impl Operation for DesignViewTranslation {
-    fn parameters(&self) -> &[&'static str] {
-        &["x", "y", "z"]
-    }
-
-    fn values(&self) -> Vec<String> {
-        vec![self.x.to_string(), self.y.to_string(), self.z.to_string()]
-    }
-
-    fn effect(&self) -> DesignOperation {
-        let translation = self.x * self.right + self.y * self.top + self.z * self.dir;
-        DesignOperation::Translation(DesignTranslation {
-            translation,
-            target: IsometryTarget::Design,
-            group_id: None,
-        })
-    }
-
-    fn description(&self) -> String {
-        format!("Translate design {}", self.design_id)
-    }
-
-    fn with_new_value(&self, n: usize, val: String) -> Option<Arc<dyn Operation>> {
-        match n {
-            0 => {
-                let new_x: f32 = val.parse().ok()?;
-                Some(Arc::new(Self { x: new_x, ..*self }))
-            }
-            1 => {
-                let new_y: f32 = val.parse().ok()?;
-                Some(Arc::new(Self { y: new_y, ..*self }))
-            }
-            2 => {
-                let new_z: f32 = val.parse().ok()?;
-                Some(Arc::new(Self { z: new_z, ..*self }))
-            }
-            _ => None,
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
 pub struct BezierControlPointTranslation {
-    pub design_id: usize,
     pub control_points: Vec<(usize, BezierControlPoint)>,
     pub right: Vec3,
     pub top: Vec3,
@@ -266,7 +169,6 @@ pub struct BezierControlPointTranslation {
     pub x: f32,
     pub y: f32,
     pub z: f32,
-    pub snap: bool,
     pub group_id: Option<GroupId>,
 }
 
@@ -355,7 +257,7 @@ impl Operation for TranslateBezierSheetCorner {
 
     fn effect(&self) -> DesignOperation {
         DesignOperation::ApplyHomothethyOnBezierPlane {
-            homothethy: crate::BezierPlaneHomothethy {
+            homothethy: super::BezierPlaneHomothethy {
                 plane_id: self.plane_id,
                 fixed_corner: self.fixed_corner,
                 origin_moving_corner: self.origin_moving_corner,
@@ -579,16 +481,11 @@ impl Operation for GridHelixCreation {
 /// In all other cases, it will be the 3' end of the 5' end of the split.
 pub struct Cut {
     pub nucl: Nucl,
-    pub strand_id: usize,
-    pub design_id: usize,
 }
 
 impl Operation for Cut {
     fn effect(&self) -> DesignOperation {
-        DesignOperation::Cut {
-            nucl: self.nucl,
-            s_id: self.strand_id,
-        }
+        DesignOperation::Cut { nucl: self.nucl }
     }
 
     fn description(&self) -> String {
@@ -605,7 +502,6 @@ pub struct Xover {
     pub prime5_id: usize,
     pub prime3_id: usize,
     pub undo: bool,
-    pub design_id: usize,
 }
 
 impl Operation for Xover {
@@ -633,7 +529,6 @@ pub struct CrossCut {
     pub nucl: Nucl,
     /// True if the target strand will be the 3 prime part of the merged strand
     pub target_3prime: bool,
-    pub design_id: usize,
 }
 
 impl Operation for CrossCut {

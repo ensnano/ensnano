@@ -37,7 +37,6 @@ pub enum DesignElement {
     HelixElement {
         id: usize,
         group: Option<bool>,
-        visible: bool,
         locked_for_simulations: bool,
     },
     NucleotideElement {

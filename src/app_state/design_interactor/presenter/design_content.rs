@@ -59,10 +59,6 @@ impl NuclCollection {
         Box::new(self.identifier.iter())
     }
 
-    pub fn iter_nucls<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Nucl> + 'a> {
-        Box::new(self.identifier.keys())
-    }
-
     pub fn virtual_to_real(&self, virtual_nucl: &VirtualNucl) -> Option<&Nucl> {
         self.virtual_nucl_map.get(virtual_nucl)
     }
@@ -115,7 +111,6 @@ pub struct DesignContent {
     /// Maps the identifier of an element to its radius
     pub radius_map: HashMap<u32, f32, RandomState>,
     pub letter_map: Arc<HashMap<Nucl, char, RandomState>>,
-    pub prime3_set: Vec<Prime3End>,
     pub elements: Vec<DesignElement>,
     pub suggestions: Vec<(Nucl, Nucl)>,
     pub(super) grid_manager: GridData,
@@ -228,13 +223,6 @@ impl DesignContent {
             .grids
             .get(&g_id)
             .and_then(|g| g.grid_type.get_nb_turn().map(|x| x as f32))
-    }
-
-    pub(super) fn get_grid_shift(&self, g_id: GridId) -> Option<f32> {
-        self.grid_manager
-            .grids
-            .get(&g_id)
-            .and_then(|g| g.grid_type.get_shift())
     }
 
     pub(super) fn get_staple_mismatch(&self, design: &Design) -> Option<Nucl> {
@@ -504,12 +492,6 @@ struct StapleInfo {
     intervals: StapleIntervals,
 }
 
-#[derive(Clone)]
-pub struct Prime3End {
-    pub nucl: Nucl,
-    pub color: u32,
-}
-
 impl DesignContent {
     /// Update all the hash maps - called after every edit operation
     pub(super) fn make_hash_maps(
@@ -540,7 +522,6 @@ impl DesignContent {
         let mut prev_nucl: Option<Nucl> = None;
         let mut prev_nucl_id: Option<u32> = None;
         let mut elements = Vec::new();
-        let mut prime3_set = Vec::new();
         let mut new_junctions: JunctionsIds = Default::default();
         let mut suggestion_maker = XoverSuggestions::default();
         let mut insertion_length = HashMap::default();
@@ -921,10 +902,6 @@ impl DesignContent {
                         }
                     }
                 }
-                if let Some(nucl) = prev_nucl {
-                    let color = strand.color;
-                    prime3_set.push(Prime3End { nucl, color });
-                }
             }
 
             // Set the sliced bonds properly by adding the prev and next nucleotides
@@ -1003,7 +980,6 @@ impl DesignContent {
             elements.push(DesignElement::HelixElement {
                 id: *h_id,
                 group: groups.get(h_id).cloned(),
-                visible: h.visible,
                 locked_for_simulations: h.locked_for_simulations,
             });
         }
@@ -1350,7 +1326,6 @@ impl DesignContent {
             radius_map,
             helix_map,
             letter_map: Arc::new(letter_map),
-            prime3_set,
             elements,
             grid_manager,
             suggestions: vec![],

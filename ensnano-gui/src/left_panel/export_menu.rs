@@ -17,13 +17,13 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::{AppState, ExportType, Message};
-use ensnano_iced::helpers::*;
+use ensnano_iced::{helpers::*, iced};
 
 #[derive(Default)]
 pub struct ExportMenu {}
 
 impl ExportMenu {
-    pub fn view<'a, State>(&'a self) -> ensnano_iced::Element<'a, Message<State>>
+    pub fn view<'a, State>(&'a self) -> iced::Element<'a, Message<State>>
     where
         State: AppState,
     {

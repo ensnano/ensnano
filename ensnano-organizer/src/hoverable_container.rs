@@ -22,7 +22,7 @@ use ensnano_iced::iced::{
 };
 
 /// A widget that emits a message when hovered.
-pub struct HoverableContainer<'a, Message, Theme = crate::Theme, Renderer = crate::Renderer> {
+pub struct HoverableContainer<'a, Message, Theme = super::Theme, Renderer = super::Renderer> {
     padding: Padding,
     content: Element<'a, Message, Theme, Renderer>,
     on_hover: Option<Message>,

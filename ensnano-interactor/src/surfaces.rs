@@ -17,6 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use super::*;
 use ensnano_design::{InterpolatedCurveDescriptor, InterpolationDescriptor};
+use rayon::iter::{IntoParallelIterator as _, ParallelIterator as _};
 use ultraviolet::{DVec3, Similarity3};
 #[derive(Debug, Clone)]
 pub struct RevolutionSurfaceSystemDescriptor {
@@ -50,7 +51,6 @@ pub struct RootingParameters {
     pub nb_helix_per_half_section: usize,
     pub shift_per_turn: isize,
     pub junction_smoothening: f64,
-    pub dna_parameters: HelixParameters,
 }
 
 impl UnrootedRevolutionSurfaceDescriptor {
@@ -190,8 +190,6 @@ impl UnrootedRevolutionSurfaceDescriptor {
     ///
     /// The surface is split into `nb_strip` strips of 2 * `nb_section_per_strip` triangles
     pub fn approx_surface_area(&self, nb_strip: usize, nb_section_per_strip: usize) -> Option<f64> {
-        use rayon::prelude::*;
-
         if matches!(self.revolution_radius, RevolutionSurfaceRadius::Inside(_)) {
             return None;
         }
@@ -392,7 +390,6 @@ pub struct RevolutionSimulationParameters {
     pub time_span: f64,
     pub simulation_step: f64,
     pub method: EquadiffSolvingMethod,
-    pub rescaling: f64,
 }
 
 impl Default for RevolutionSimulationParameters {
@@ -530,10 +527,6 @@ impl RootedRevolutionSurface {
 
     pub fn curve_is_open(&self) -> bool {
         self.surface.curve.is_open()
-    }
-
-    pub fn get_revolution_radius(&self) -> RevolutionSurfaceRadius {
-        self.surface.revolution_radius.scaled(self.scale)
     }
 
     pub fn nb_spirals(&self) -> usize {

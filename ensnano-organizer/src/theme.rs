@@ -13,14 +13,6 @@ struct ColorGradient {
     right: Color,
 }
 
-fn moon_gradient() -> ColorGradient {
-    ColorGradient {
-        left: Color::from_rgb8(0x0f, 0x20, 0x27),
-        middle: Some(Color::from_rgb8(0x20, 0x3a, 0x43)),
-        right: Color::from_rgb8(0x2c, 0x53, 0x64),
-    }
-}
-
 fn grey_gradient() -> ColorGradient {
     ColorGradient {
         left: Color::from_rgb8(0x2c, 0x3e, 0x50),
@@ -232,15 +224,6 @@ impl OrganizerTheme {
             border_color: self.border_color.clone(),
             gradient_value: n as f32 / self.max_level as f32,
             selected: false,
-        }
-    }
-
-    pub fn moon() -> Self {
-        Self {
-            gradient: moon_gradient(),
-            text_color: Color::WHITE,
-            border_color: Color::from_rgb8(0x83, 0x1a, 0x1a),
-            max_level: 5,
         }
     }
 

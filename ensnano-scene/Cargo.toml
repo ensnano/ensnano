@@ -20,3 +20,6 @@ lyon.workspace = true
 num_enum.workspace = true
 png.workspace = true
 serde_json.workspace = true
+ultraviolet.workspace = true
+wgpu.workspace = true
+winit.workspace = true

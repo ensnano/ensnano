@@ -26,10 +26,10 @@ use ensnano_iced::{
 use ensnano_interactor::{Selection, SimulationState};
 
 mod value_constructor;
+use ultraviolet::{Rotor3, Vec2};
 use value_constructor::{BezierVertexBuilder, Builder, GridBuilder};
 pub use value_constructor::{InstanciatedValue, ValueKind};
 
-use ultraviolet::{Rotor3, Vec2, Vec3};
 pub enum ValueRequest {
     HelixGridPosition {
         grid_id: GridId,

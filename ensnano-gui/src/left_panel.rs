@@ -16,18 +16,17 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use super::{AppState, FogParameters, OverlayType, Requests};
-use crate::{consts::*, fonts};
+use super::{consts::*, fonts};
 use ensnano_design::{
     BezierPathId, CameraId, NamedParameter,
     elements::{DesignElement, DesignElementKey},
     grid::GridTypeDescr,
-    ultraviolet,
 };
 use ensnano_exports::ExportType;
 use ensnano_iced::{
     UiSize,
     color_picker::ColorPickerMessage,
-    iced::{Color, Command, Element, Length, theme},
+    iced::{Color, Command, Element, Length},
     iced_aw::widgets::{TabBarPosition, TabLabel, Tabs},
     iced_runtime::Program,
     iced_widget::*,
@@ -49,9 +48,6 @@ use ensnano_organizer::{Organizer, OrganizerMessage, OrganizerTree};
 use std::sync::{Arc, Mutex};
 use ultraviolet::Vec3;
 
-mod sequence_input;
-use sequence_input::SequenceInput;
-
 mod discrete_value;
 use discrete_value::{FactoryId, RequestFactory, Requestable, ValueId};
 
@@ -71,9 +67,7 @@ use tabs::{
 pub struct LeftPanel<R: Requests, S: AppState> {
     logical_size: LogicalSize<f64>,
     logical_position: LogicalPosition<f64>,
-    sequence_input: SequenceInput,
     requests: Arc<Mutex<R>>,
-    show_torsion: bool,
     active_tab: TabId,
     /// Provide an organized view of the object being edited.
     organizer: Organizer<DesignElement>,
@@ -95,10 +89,7 @@ pub struct LeftPanel<R: Requests, S: AppState> {
 #[derive(Debug, Clone)]
 pub enum Message<S: AppState> {
     Resized(LogicalSize<f64>, LogicalPosition<f64>),
-    OpenColor,
     MakeGrids,
-    SequenceChanged(String),
-    SequenceFileRequested,
     StrandNameChanged(usize, String),
     ColorPickerMessage(ColorPickerMessage),
     NewGrid(GridTypeDescr),
@@ -109,7 +100,6 @@ pub enum Message<S: AppState> {
     PositionHelicesChanged(String),
     LengthHelicesChanged(String),
     ScaffoldPositionInput(String),
-    ShowTorsion(bool),
     FogRadius(f32),
     FogLength(f32),
     RollSimulationRequest,
@@ -135,7 +125,6 @@ pub enum Message<S: AppState> {
     StaplesRequested,
     OrigamisRequested,
     ToggleText(bool),
-    CleanRequested,
     AddDoubleStrandHelix(bool),
     ToggleVisibility(bool),
     AllVisible,
@@ -225,9 +214,7 @@ impl<R: Requests, S: AppState> LeftPanel<R, S> {
         Self {
             logical_size,
             logical_position,
-            sequence_input: SequenceInput::new(),
             requests,
-            show_torsion: false,
             active_tab: if first_time {
                 TabId::Grid
             } else {
@@ -329,7 +316,7 @@ where
     S: AppState,
 {
     type Theme = ensnano_iced::Theme;
-    type Renderer = crate::Renderer;
+    type Renderer = super::Renderer;
     type Message = Message<S>;
 
     // BUG: Increasing the left panel too much crashes ENSnano.
@@ -353,39 +340,9 @@ where
                 .update_organizer_tree(self.organizer.tree())
         }
         match message {
-            Message::SequenceChanged(s) => {
-                self.requests
-                    .lock()
-                    .unwrap()
-                    .set_selected_strand_sequence(s.clone());
-                self.sequence_input.update_sequence(s);
-            }
             Message::StrandNameChanged(s_id, name) => {
                 self.requests.lock().unwrap().set_strand_name(s_id, name)
             }
-            Message::SequenceFileRequested => {
-                let dialog = rfd::AsyncFileDialog::new().pick_file();
-                let requests = Arc::clone(&self.requests);
-                std::thread::spawn(move || {
-                    let save_op = async move {
-                        let file = dialog.await;
-                        if let Some(handle) = file
-                            && let Ok(content) = std::fs::read_to_string(handle.path())
-                        {
-                            requests
-                                .lock()
-                                .unwrap()
-                                .set_selected_strand_sequence(content);
-                        }
-                    };
-                    futures::executor::block_on(save_op);
-                });
-            }
-            Message::OpenColor => self
-                .requests
-                .lock()
-                .unwrap()
-                .open_overlay(OverlayType::Color),
             Message::ColorPickerMessage(message) => {
                 self.edition_tab.update_color_picker(message);
                 // Forward action to Requests.
@@ -399,7 +356,6 @@ where
                     ColorPickerMessage::FinishChangingColor => {
                         self.requests.lock().unwrap().finish_changing_color();
                     }
-                    _ => {}
                 }
             }
             Message::Resized(size, position) => self.resize(size, position),
@@ -444,10 +400,6 @@ where
                 if let Some(n) = self.sequence_tab.update_pos_str(position_str) {
                     self.requests.lock().unwrap().set_scaffold_shift(n);
                 }
-            }
-            Message::ShowTorsion(b) => {
-                self.requests.lock().unwrap().set_torsion_visibility(b);
-                self.show_torsion = b;
             }
             Message::FogLength(length) => {
                 self.camera_tab.fog_length(length);
@@ -671,7 +623,6 @@ where
                     .set_dna_sequences_visibility(b);
                 self.sequence_tab.toggle_text_value(b);
             }
-            Message::CleanRequested => self.requests.lock().unwrap().remove_empty_domains(),
             Message::AddDoubleStrandHelix(b) => {
                 self.contextual_panel.set_show_strand(b);
                 let new_strand_parameters = self.contextual_panel.get_new_strand_parameters();
@@ -1104,7 +1055,7 @@ pub enum ColorMessage {
 }
 
 impl<R: Requests> Program for ColorOverlay<R> {
-    type Renderer = crate::Renderer;
+    type Renderer = super::Renderer;
     type Theme = ensnano_iced::Theme;
     type Message = ColorMessage;
 

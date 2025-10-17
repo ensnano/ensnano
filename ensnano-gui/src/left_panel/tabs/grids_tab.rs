@@ -20,7 +20,7 @@ use std::marker::PhantomData;
 use ensnano_iced::{
     fonts::{MaterialIcon, icon_to_char},
     helpers::*,
-    iced::Length,
+    iced::{self, Length},
     iced_aw::TabLabel,
     theme,
 };
@@ -67,11 +67,7 @@ impl<State: AppState> GuiTab<State> for GridTab<State> {
         TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::GridOn)))
     }
 
-    fn content(
-        &self,
-        ui_size: UiSize,
-        app_state: &State,
-    ) -> ensnano_iced::Element<'_, Self::Message> {
+    fn content(&self, ui_size: UiSize, app_state: &State) -> iced::Element<'_, Self::Message> {
         let content = self::column![
             section("Grids", ui_size),
             subsection("New Grid", ui_size),

@@ -17,7 +17,6 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use ensnano_interactor::consts::*;
-use ensnano_utils::wgpu;
 use lyon::{
     math::Point,
     path::Path,
@@ -95,7 +94,7 @@ fn fill_square_texture(target: &TextureView, device: &Device, encoder: &mut wgpu
         a: 0.4, // this will be useful to discard fragments that are not on the grid
     };
 
-    let texture_size = ensnano_utils::winit::dpi::PhysicalSize {
+    let texture_size = winit::dpi::PhysicalSize {
         width: TEXTURE_SIZE,
         height: TEXTURE_SIZE,
     };
@@ -239,7 +238,7 @@ fn fill_honeycomb_texture(
         a: 0.4, // this will be useful to discard fragments that are not on the grid
     };
 
-    let texture_size = ensnano_utils::winit::dpi::PhysicalSize {
+    let texture_size = winit::dpi::PhysicalSize {
         width: TEXTURE_SIZE,
         height: TEXTURE_SIZE,
     };

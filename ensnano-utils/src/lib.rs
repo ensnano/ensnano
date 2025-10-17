@@ -1,3 +1,4 @@
+use ensnano_iced::iced_winit::winit::dpi::{PhysicalPosition, PhysicalSize, Pixel};
 /*
 ENSnano, a 3d graphical application for DNA nanostructures.
     Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
@@ -15,29 +16,23 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-pub use ensnano_iced::{iced_wgpu::wgpu, iced_winit::winit};
+
 use serde::{Deserialize, Serialize};
 use wgpu::util::{BufferInitDescriptor, DeviceExt};
-pub use winit::dpi::{PhysicalPosition, PhysicalSize, Pixel};
 
 pub mod bindgroup_manager;
 pub mod camera2d;
 pub mod chars2d;
 pub mod circles2d;
+pub mod click_counter;
+pub mod colors;
+pub mod filename;
 pub mod full_isometry;
 pub mod id_generator;
 pub mod instance;
-pub mod light;
-pub mod mesh;
 pub mod obj_loader;
 pub mod text;
 pub mod texture;
-
-pub mod click_counter;
-
-pub mod colors;
-
-pub mod filename;
 
 pub type PhySize = PhysicalSize<u32>;
 

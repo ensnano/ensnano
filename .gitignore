@@ -1,3 +1,4 @@
 target/
 .vscode/
 /ensnano-scene/*.stl
+*.stl

@@ -22,13 +22,11 @@ use ensnano_design::{
     grid::{GridId, GridPosition},
 };
 use ensnano_interactor::{BezierControlPoint, PhantomElement, phantom_helix_decoder};
-use ensnano_utils::{
-    BufferDimensions, wgpu,
-    winit::dpi::{PhysicalPosition, PhysicalSize},
-};
+use ensnano_utils::BufferDimensions;
 use futures::executor;
 use num_enum::IntoPrimitive;
 use std::{convert::TryInto, rc::Rc};
+use winit::dpi::{PhysicalPosition, PhysicalSize};
 
 pub struct ElementSelector {
     pub device: Rc<Device>,

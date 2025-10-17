@@ -1,6 +1,5 @@
+use super::import::*;
 use ahash::HashMap;
-
-use crate::import::*;
 use ensnano_design::Nucl;
 use ensnano_interactor::ObjectType;
 use rapier3d::{na::Vector3, prelude::*};

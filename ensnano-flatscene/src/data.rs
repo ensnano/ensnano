@@ -20,7 +20,7 @@ use super::{
     flattypes::{FlatPosition, FlatSelection, HelixSegment},
     view::EditionInfo,
 };
-use ensnano_design::{Nucl, ultraviolet};
+use ensnano_design::Nucl;
 use ensnano_interactor::{Selection, SelectionMode};
 use std::sync::{Arc, Mutex};
 use ultraviolet::Vec2;
@@ -30,8 +30,8 @@ pub use helix::{GpuVertex, Helix, HelixHandle, HelixModel, Shift};
 mod strand;
 pub use strand::{FreeEnd, Strand, StrandVertex};
 mod design;
+use super::FlatHelixMaps;
 use super::{CameraPtr, FlatHelix, FlatIdx, FlatNucl};
-use crate::FlatHelixMaps;
 use ahash::RandomState;
 use design::{Design2d, Helix2d};
 pub use design::{DesignReader, FlatTorsion, NuclCollection};

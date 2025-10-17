@@ -17,9 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use ensnano_design::{Axis, Domain, Nucl, OwnedAxis};
-
 use std::cmp::Ordering;
-use ultraviolet::Mat4;
 
 #[derive(Clone, Debug)]
 pub struct StrandBuilder {
@@ -47,12 +45,6 @@ pub struct StrandBuilder {
     max_pos: Option<isize>,
     /// An eventual neighbor that was detached during the movement
     detached_neighbor: Option<NeighborDescriptor>,
-    /// The id of the design being edited
-    design_id: u32,
-    /// A timestamp used to distinguish between strand building operation initiated at different
-    /// moment
-    timestamp: std::time::SystemTime,
-    de_novo: bool,
 }
 
 impl StrandBuilder {
@@ -72,7 +64,6 @@ impl StrandBuilder {
         nucl: Nucl,
         axis: OwnedAxis,
         neighbor: Option<NeighborDescriptor>,
-        de_novo: bool,
     ) -> Self {
         let mut neighbor_strand = None;
         let mut neighbor_direction = None;
@@ -100,9 +91,6 @@ impl StrandBuilder {
             min_pos,
             max_pos,
             detached_neighbor: None,
-            design_id: 0,
-            timestamp: std::time::SystemTime::now(),
-            de_novo,
         }
     }
 
@@ -168,9 +156,6 @@ impl StrandBuilder {
             max_pos,
             min_pos,
             detached_neighbor: None,
-            design_id: 0,
-            timestamp: std::time::SystemTime::now(),
-            de_novo: false,
         };
         log::info!("builder {:?}", ret);
         ret
@@ -357,60 +342,20 @@ impl StrandBuilder {
         }
     }
 
-    /// Convert the axis in the world's coordinate. This function is used at the creation of the
-    /// builder.
-    pub fn transformed(self, model_matrix: &Mat4) -> Self {
-        let new_axis = self.axis.borrow().transformed(model_matrix).to_owned();
-        Self {
-            axis: new_axis,
-            ..self
-        }
-    }
-
     pub fn get_axis<'a>(&'a self) -> Axis<'a> {
         self.axis.borrow()
-    }
-
-    /// Return the identifier of the design being edited
-    pub fn get_design_id(&self) -> u32 {
-        self.design_id
     }
 
     pub fn get_strand_id(&self) -> usize {
         self.identifier.strand
     }
 
-    /*
-    pub fn reset(&mut self, design: &Design) {
-        self.move_to(self.initial_position);
-    }*/
-
-    /// Return false if self is modifying an existing strand and true otherwise
-    pub fn created_de_novo(&self) -> bool {
-        self.de_novo
-    }
-
     pub fn get_moving_end_position(&self) -> isize {
         self.moving_end.position
     }
 
-    pub fn get_moving_end_nucl(&self) -> Nucl {
-        self.moving_end
-    }
-
-    pub fn get_initial_nucl(&self) -> Nucl {
-        Nucl {
-            position: self.initial_position,
-            ..self.moving_end
-        }
-    }
-
     pub fn get_domain_identifier(&self) -> DomainIdentifier {
         self.identifier
-    }
-
-    pub fn get_timestamp(&self) -> std::time::SystemTime {
-        self.timestamp
     }
 }
 

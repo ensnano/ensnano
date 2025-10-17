@@ -17,8 +17,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::instances_drawer::{Instantiable, ResourceProvider, Vertexable};
-use ensnano_design::ultraviolet::{Vec2, Vec3, Vec4};
-use ensnano_utils::{text::Letter, wgpu};
+use ensnano_utils::text::Letter;
+use ultraviolet::{Vec2, Vec3, Vec4};
 use wgpu::{Device, include_spirv};
 
 #[derive(Debug, Clone)]
@@ -161,9 +161,5 @@ impl Instantiable for LetterInstance {
 
     fn fragment_module(device: &Device) -> wgpu::ShaderModule {
         device.create_shader_module(include_spirv!("letter.frag.spv"))
-    }
-
-    fn alpha_to_coverage_enabled() -> bool {
-        true
     }
 }

@@ -17,7 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::*;
-use crate::*;
+use std::collections::BTreeMap;
 
 /// A structure that can map time points to nucleotide indices.
 #[derive(Clone, Debug)]

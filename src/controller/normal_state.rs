@@ -26,7 +26,7 @@ use crate::{
     controller::download_staples::DownloadStaples,
 };
 use ensnano_design::{
-    HelixParameters,
+    self, HelixParameters,
     grid::{GridDescriptor, GridId, GridTypeDescr},
     group_attributes::GroupPivot,
 };
@@ -65,7 +65,7 @@ impl State for NormalState {
                     self
                 }
                 Action::Export(export_type) => export(export_type),
-                Action::CloseOverlay(_) | Action::OpenOverlay(_) => {
+                Action::CloseOverlay(_) => {
                     println!("unexpected action");
                     self
                 }
@@ -278,10 +278,6 @@ impl State for NormalState {
                     main_state.select_favorite_camera(n);
                     self
                 }
-                Action::UpdateCamera(camera_id) => {
-                    main_state.update_camera(camera_id);
-                    self
-                }
                 Action::Toggle2D => {
                     main_state.toggle_2d();
                     self
@@ -455,7 +451,6 @@ pub enum Action {
     ToggleSplit(SplitMode),
     Export(ExportType),
     CloseOverlay(OverlayType),
-    OpenOverlay(OverlayType),
     ChangeUiSize(UiSize),
     ErrorMsg(String),
     DesignOperation(DesignOperation),
@@ -511,7 +506,6 @@ pub enum Action {
     NewCamera,
     SelectCamera(ensnano_design::CameraId),
     SelectFavoriteCamera(u32),
-    UpdateCamera(ensnano_design::CameraId),
     Toggle2D,
     MakeAllSuggestedXover {
         doubled: bool,

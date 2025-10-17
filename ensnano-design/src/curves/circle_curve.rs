@@ -38,10 +38,6 @@ impl CircleCurve {
         t * TAU
     }
 
-    pub(super) fn last_theta(&self) -> f64 {
-        self.theta(1.)
-    }
-
     pub(super) fn t_max(&self) -> f64 {
         1.
     }
@@ -93,24 +89,8 @@ impl Curved for CircleCurve {
         super::CurveBounds::Finite
     }
 
-    // fn subdivision_for_t(&self, t: f64) -> Option<usize> {
-    //     None
-    // }
-
-    // fn is_time_maps_singleton(&self) -> bool {
-    //     true
-    // }
-
     fn objective_nb_nt(&self) -> Option<usize> {
         return self.target_nb_nt;
-    }
-
-    fn first_theta(&self) -> Option<f64> {
-        Some(0.)
-    }
-
-    fn last_theta(&self) -> Option<f64> {
-        Some(self.last_theta())
     }
 
     fn full_turn_at_t(&self) -> Option<f64> {

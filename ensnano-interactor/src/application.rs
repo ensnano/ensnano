@@ -20,7 +20,6 @@ use std::path::Path;
 
 use super::Selection;
 use super::graphics::*;
-use ensnano_design::Nucl;
 use ensnano_design::group_attributes::GroupPivot;
 use ensnano_iced::{iced_wgpu::wgpu, iced_winit::winit};
 use std::sync::Arc;
@@ -91,7 +90,6 @@ pub enum Notification {
     CameraTarget((Vec3, Vec3)),
     TeleportCamera(Camera3D),
     CameraRotation(f32, f32, f32),
-    Centering(Nucl, usize),
     CenterSelection(Selection, AppId),
     ShowTorsion(bool),
     ModifiersChanged(Modifiers),
@@ -112,6 +110,4 @@ pub enum Notification {
 pub enum AppId {
     FlatScene,
     Scene,
-    Organizer,
-    Mediator,
 }

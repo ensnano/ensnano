@@ -31,10 +31,6 @@ impl ReaderGui for DesignReader {
         self.presenter.content.grid_has_persistent_phantom(g_id)
     }
 
-    fn get_grid_shift(&self, g_id: GridId) -> Option<f32> {
-        self.presenter.content.get_grid_shift(g_id)
-    }
-
     fn get_grid_nb_turn(&self, g_id: GridId) -> Option<f32> {
         self.presenter.content.get_grid_nb_turn(g_id)
     }
@@ -84,10 +80,6 @@ impl ReaderGui for DesignReader {
             .into_iter()
             .map(|(id, cam)| (*id, cam.name.as_str()))
             .collect()
-    }
-
-    fn get_favorite_camera(&self) -> Option<CameraId> {
-        self.presenter.current_design.get_favorite_camera_id()
     }
 
     fn get_grid_position_and_orientation(&self, g_id: GridId) -> Option<(Vec3, Rotor3)> {

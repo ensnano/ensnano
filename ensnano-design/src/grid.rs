@@ -16,22 +16,21 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use crate::{
-    BezierPathData, BezierPathId, BezierVertexId, CurveDescriptor,
-    curves::{AbscissaConverter, CurveDescriptor2D},
-};
-use std::collections::{BTreeMap, HashMap, HashSet};
-
 use super::{
     Axis, BezierControlPoint, Collection, Design, Helices, Helix, HelixCollection, HelixParameters,
     Twist, curves,
     design_operations::{ErrOperation, MIN_HELICES_TO_MAKE_GRID},
     twist_to_omega,
 };
+use super::{
+    BezierPathData, BezierPathId, BezierVertexId, CurveDescriptor,
+    curves::{AbscissaConverter, CurveDescriptor2D},
+};
 use curves::{
     CurveCache, CurveInstantiator, InstanciatedCurve, InstanciatedCurveDescriptor, PathTimeMaps,
     RevolutionCurveTimeMaps,
 };
+use std::collections::{BTreeMap, HashMap, HashSet};
 mod copy_grid;
 mod deserialize;
 mod grid_collection;
@@ -177,10 +176,6 @@ pub enum GridType {
 }
 
 impl GridDivision for GridType {
-    fn grid_type(&self) -> GridType {
-        self.clone()
-    }
-
     fn origin_helix(&self, helix_parameters: &HelixParameters, x: isize, y: isize) -> Vec2 {
         match self {
             GridType::Square(grid) => grid.origin_helix(helix_parameters, x, y),
@@ -476,7 +471,6 @@ pub trait GridDivision {
     fn origin_helix(&self, helix_parameters: &HelixParameters, x: isize, y: isize) -> Vec2;
     /// Find the vertex in the grid that is the closest to a point in the plane.
     fn interpolate(&self, helix_parameters: &HelixParameters, x: f32, y: f32) -> (isize, isize);
-    fn grid_type(&self) -> GridType;
     fn translation_to_edge(&self, x1: isize, y1: isize, x2: isize, y2: isize) -> Edge;
     fn translate_by_edge(&self, x1: isize, y1: isize, edge: Edge) -> Option<(isize, isize)>;
 
@@ -489,8 +483,8 @@ pub trait GridDivision {
         Rotor3::identity()
     }
 
-    /// If the helix at position (x, y) should be a curve istead of a cylinder, this method must be
-    /// overiden
+    /// If the helix at position (x, y) should be a curve instead of a cylinder, this method must be
+    /// overridden
     fn curve(&self, _x: isize, _y: isize, _info: CurveInfo) -> Option<Arc<CurveDescriptor>>;
 }
 
@@ -538,10 +532,6 @@ impl GridDivision for SquareGrid {
         } else {
             None
         }
-    }
-
-    fn grid_type(&self) -> GridType {
-        GridType::Square(*self)
     }
 
     fn curve(&self, x: isize, y: isize, info: CurveInfo) -> Option<Arc<CurveDescriptor>> {
@@ -632,10 +622,6 @@ impl GridDivision for HoneyComb {
         } else {
             None
         }
-    }
-
-    fn grid_type(&self) -> GridType {
-        GridType::Honeycomb(*self)
     }
 
     fn curve(&self, x: isize, y: isize, info: CurveInfo) -> Option<Arc<CurveDescriptor>> {

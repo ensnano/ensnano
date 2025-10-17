@@ -19,10 +19,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::tabs::GuiTab;
 use crate::left_panel::Message;
 use crate::{AppState, SimulationState};
-use ensnano_design::{
-    CurveDescriptor2D,
-    ultraviolet::{self, Rotor3, Vec3},
-};
+use ensnano_design::CurveDescriptor2D;
 use ensnano_iced::{
     UiSize,
     fonts::{MaterialIcon, icon_to_char},
@@ -36,6 +33,7 @@ use ensnano_interactor::{
     RevolutionSurfaceSystemDescriptor, RootingParameters, ShiftGenerator,
     UnrootedRevolutionSurfaceDescriptor,
 };
+use ultraviolet::{Rotor3, Vec3};
 
 #[derive(Debug, Clone, Copy)]
 pub enum ParameterKind {
@@ -96,14 +94,12 @@ impl InstanciatedParameter {
 #[derive(Debug, Clone)]
 pub struct CurveDescriptorParameter {
     pub name: &'static str,
-    pub kind: ParameterKind,
     pub default_value: InstanciatedParameter,
 }
 
 pub type Frame = (ultraviolet::Vec3, ultraviolet::Rotor3);
 #[derive(Clone)]
 pub struct CurveDescriptorBuilder<S: AppState> {
-    pub nb_parameters: usize,
     pub curve_name: &'static str,
     pub parameters: &'static [CurveDescriptorParameter],
     pub bezier_path_id: &'static (dyn Fn(&[InstanciatedParameter]) -> Option<usize> + Send + Sync),
@@ -409,7 +405,6 @@ impl<State: AppState> RevolutionTab<State> {
         let unrooted_surface = self.get_current_unrooted_surface(app_state)?;
 
         let rooting_parameters = RootingParameters {
-            dna_parameters: app_state.get_dna_parameters(),
             nb_helix_per_half_section: self.scaling.as_ref()?.nb_helix / 2,
             shift_per_turn: self.try_get_shift_per_turn(app_state)?,
             junction_smoothening: 0.,
@@ -493,8 +488,6 @@ impl<State: AppState> RevolutionTab<State> {
             .and_then(InstanciatedParameter::get_float)?;
         let method = self.equadiff_method;
 
-        let rescaling = self.scaling.as_ref()?.scale;
-
         Some(RevolutionSimulationParameters {
             nb_section_per_segment,
             spring_stiffness,
@@ -504,7 +497,6 @@ impl<State: AppState> RevolutionTab<State> {
             simulation_step,
             time_span,
             method,
-            rescaling,
         })
     }
 
@@ -792,5 +784,4 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
 #[derive(Clone, Copy)]
 pub struct RevolutionScaling {
     pub nb_helix: usize,
-    pub scale: f64,
 }

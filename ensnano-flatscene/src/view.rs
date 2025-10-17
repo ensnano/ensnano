@@ -27,7 +27,7 @@ use super::data::{
     helix::CharCollector,
 };
 use super::{CameraPtr, FlatIdx, FlatNucl, NuclCollection};
-use crate::{DrawArea, PhySize};
+use super::{DrawArea, PhySize};
 use ahash::RandomState;
 use background::Background;
 use ensnano_design::Nucl;
@@ -39,8 +39,6 @@ pub use ensnano_utils::chars2d::TextDrawer;
 pub use ensnano_utils::circles2d::CircleInstance;
 use ensnano_utils::circles2d::{CircleDrawer, CircleKind};
 use ensnano_utils::texture::Texture;
-use ensnano_utils::wgpu;
-use ensnano_utils::winit::dpi::PhysicalPosition;
 use helix_view::{HelixView, StrandView};
 use insertion::InsertionDrawer;
 pub use insertion::{InsertionDescriptor, InsertionInstance};
@@ -51,6 +49,7 @@ use std::{
     sync::Arc,
 };
 use wgpu::{Device, Queue, RenderPipeline};
+use winit::dpi::PhysicalPosition;
 
 const SHOW_SUGGESTION: bool = false;
 
@@ -107,10 +106,6 @@ pub struct View {
 impl NuclCollection for () {
     fn contains(&self, _nucl: &Nucl) -> bool {
         false
-    }
-
-    fn iter<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Nucl> + 'a> {
-        Box::new([].iter())
     }
 }
 

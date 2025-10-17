@@ -16,8 +16,6 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#![allow(mixed_script_confusables, confusable_idents)] // allow mathematical symbols as variables
-
 mod camera;
 mod controller;
 pub mod data;
@@ -28,13 +26,12 @@ mod sausage_rosary;
 mod stl;
 pub mod view;
 
-use crate::maths_3d::FiniteVec3;
 use controller::{Consequence, Controller, WidgetTarget};
 use data::{Data, DesignReader};
 use element_selector::{ElementSelector, SceneElement};
 use ensnano_design::{
     BezierVertexId, Nucl, consts::ITERATIVE_AXIS_ALGORITHM, grid::GridPosition,
-    grid::HelixGridPosition, group_attributes::GroupPivot, ultraviolet,
+    grid::HelixGridPosition, group_attributes::GroupPivot,
 };
 use ensnano_interactor::{
     ActionMode, CenterOfSelection, DesignOperation, NewBezierTangentVector, Selection,
@@ -44,12 +41,8 @@ use ensnano_interactor::{
     graphics::DrawArea,
     operation::*,
 };
-use ensnano_utils::{
-    BufferDimensions, PhySize, filename,
-    instance::Instance,
-    wgpu::{self, Device, Queue},
-    winit::{dpi::PhysicalPosition, event::WindowEvent, window::CursorIcon},
-};
+use ensnano_utils::{BufferDimensions, PhySize, filename};
+use maths_3d::FiniteVec3;
 use std::{
     cell::RefCell,
     fs,
@@ -59,12 +52,14 @@ use std::{
     sync::{Arc, Mutex},
     time::Duration,
 };
-use ultraviolet::{Mat4, Rotor3, Vec3};
+use ultraviolet::{Rotor3, Vec3};
 use view::{
     DrawOptions, DrawType, FogParameters, GridInstance, HandleDir, HandlesDescriptor,
     LetterInstance, RotationMode as WidgetRotationMode, RotationWidgetDescriptor,
     RotationWidgetOrientation, Stereography, View, ViewUpdate,
 };
+use wgpu::{Device, Queue};
+use winit::{dpi::PhysicalPosition, event::WindowEvent, window::CursorIcon};
 
 type ViewPtr = Rc<RefCell<View>>;
 
@@ -694,7 +689,6 @@ impl<S: AppState> Scene<S> {
 
         let translation_op: Arc<dyn Operation> = if !control_points.is_empty() {
             Arc::new(BezierControlPointTranslation {
-                design_id: 0,
                 control_points,
                 right: Vec3::unit_x().rotated_by(rotor),
                 top: Vec3::unit_y().rotated_by(rotor),
@@ -702,7 +696,6 @@ impl<S: AppState> Scene<S> {
                 x: translation.dot(right),
                 y: translation.dot(top),
                 z: translation.dot(dir),
-                snap: true,
                 group_id,
             })
         } else if let Some(helices) = helices.filter(|_| at_most_one_grid) {
@@ -1151,15 +1144,6 @@ impl<S: AppState> Scene<S> {
 /// A structure that stores the element that needs to be updated in a scene
 #[derive(Default)]
 pub struct SceneUpdate {
-    pub tube_instances: Option<Vec<Instance>>,
-    pub sphere_instances: Option<Vec<Instance>>,
-    pub fake_tube_instances: Option<Vec<Instance>>,
-    pub fake_sphere_instances: Option<Vec<Instance>>,
-    pub selected_tube: Option<Vec<Instance>>,
-    pub selected_sphere: Option<Vec<Instance>>,
-    pub candidate_spheres: Option<Vec<Instance>>,
-    pub candidate_tubes: Option<Vec<Instance>>,
-    pub model_matrices: Option<Vec<Mat4>>,
     pub need_update: bool,
     pub camera_update: bool,
 }
@@ -1169,8 +1153,6 @@ pub enum SceneNotification {
     /// The camera has moved. As a consequence, the projection and view matrix must be
     /// updated.
     CameraMoved,
-    /// The camera is replaced by a new one.
-    NewCamera(Vec3, Rotor3),
     /// The drawing area has been modified
     NewSize(PhySize, DrawArea),
     NewCameraPosition(Vec3),
@@ -1180,10 +1162,6 @@ impl<S: AppState> Scene<S> {
     /// Send a notification to the scene
     pub fn notify(&mut self, notification: SceneNotification) {
         match notification {
-            SceneNotification::NewCamera(position, projection) => {
-                self.controller.teleport_camera(position, projection);
-                self.update.camera_update = true;
-            }
             SceneNotification::NewCameraPosition(position) => {
                 self.controller.set_camera_position(position);
                 self.update.camera_update = true;
@@ -1235,12 +1213,6 @@ impl<S: AppState> Application for Scene<S> {
             }
             Notification::CameraRotation(xz, yz, xy) => {
                 self.request_camera_rotation(xz, yz, xy, &older_state);
-                self.notify(SceneNotification::CameraMoved);
-            }
-            Notification::Centering(nucl, design_id) => {
-                if let Some(position) = self.data.borrow().get_nucl_position(nucl, design_id) {
-                    self.controller.center_camera(position);
-                }
                 self.notify(SceneNotification::CameraMoved);
             }
             Notification::CenterSelection(selection, app_id) => {
