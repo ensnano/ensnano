@@ -381,13 +381,13 @@ struct PdbAtom {
 
 const DNA_MIN_LINE_LENGTH: usize = 77;
 pub fn make_reference_nucleotides() -> Result<ReferenceNucleotides, PdbError> {
-    let pdb_content = include_str!("../../pdb/dd12_na.pdb");
+    let pdb_content = include_str!("../dd12_na.pdb");
     read_pdb_string(pdb_content, DNA_MIN_LINE_LENGTH)
 }
 
 const RNA_MIN_LINE_LENGTH: usize = 66;
 pub fn make_reference_nucleotides_rna() -> Result<ReferenceNucleotides, PdbError> {
-    let pdb_content = include_str!("../../pdb/ds_rna_Helix.pdb");
+    let pdb_content = include_str!("../ds_rna_Helix.pdb");
     read_pdb_string(pdb_content, RNA_MIN_LINE_LENGTH)
 }
 
