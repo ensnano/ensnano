@@ -1106,6 +1106,7 @@ dependencies = [
  "confy",
  "dirs",
  "ensnano_iced",
+ "ensnano_organizer",
  "fontdue",
  "futures",
  "futures-channel",
@@ -1159,6 +1160,17 @@ dependencies = [
  "iced_winit",
  "icondata",
  "log",
+ "serde",
+]
+
+[[package]]
+name = "ensnano_organizer"
+version = "0.7.0"
+dependencies = [
+ "ensnano_iced",
+ "icondata",
+ "log",
+ "rand 0.8.5",
  "serde",
 ]
 

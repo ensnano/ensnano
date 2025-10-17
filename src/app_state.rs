@@ -45,7 +45,6 @@ use crate::ensnano_interactor::{
     graphics::{Background3D, HBondDisplay, RenderingMode},
     operation::Operation,
 };
-use crate::ensnano_organizer::GroupId;
 use crate::{
     app_state::design_interactor::{
         controller::{
@@ -60,6 +59,7 @@ use address_pointer::AddressPointer;
 use design_interactor::{DesignInteractor, InteractorResult};
 use design_interactor::{DesignReader, controller::ErrOperation};
 use ensnano_iced::UiSize;
+use ensnano_organizer::GroupId;
 use std::{
     path::PathBuf,
     sync::{Arc, RwLock},
@@ -719,7 +719,7 @@ impl AppState_ {
 #[derive(Clone, Default)]
 pub struct AppStateSelection {
     selection: AddressPointer<Vec<Selection>>,
-    selected_group: Option<crate::ensnano_organizer::GroupId>,
+    selected_group: Option<ensnano_organizer::GroupId>,
     pivot: Arc<RwLock<Option<GroupPivot>>>,
     old_pivot: Arc<RwLock<Option<GroupPivot>>>,
 }

@@ -30,7 +30,7 @@ use crate::ensnano_interactor::{
     app_state_parameters::{AppStateParameters, CheckXoversParameter, SuggestionParameters},
     graphics::{Background3D, HBondDisplay, RenderingMode},
 };
-use crate::ensnano_organizer::{Organizer, OrganizerMessage, OrganizerTree};
+use ensnano_organizer::{Organizer, OrganizerMessage, OrganizerTree};
 use ensnano_iced::{
     UiSize,
     color_picker::ColorPickerMessage,

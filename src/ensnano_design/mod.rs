@@ -34,7 +34,7 @@ pub mod consts;
 pub mod grid;
 use grid::{FreeGrids, GridData, GridDescriptor, GridId};
 pub mod scadnano;
-pub use crate::ensnano_organizer::{GroupId, OrganizerTree};
+pub use ensnano_organizer::{GroupId, OrganizerTree};
 use scadnano::*;
 pub mod elements;
 use elements::DesignElementKey;
@@ -140,7 +140,7 @@ pub struct Design {
     pub ensnano_version: String,
 
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
-    pub group_attributes: HashMap<crate::ensnano_organizer::GroupId, GroupAttribute>,
+    pub group_attributes: HashMap<ensnano_organizer::GroupId, GroupAttribute>,
 
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     cameras: BTreeMap<CameraId, Camera>,

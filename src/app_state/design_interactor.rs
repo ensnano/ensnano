@@ -33,7 +33,7 @@ use crate::ensnano_interactor::{
     app_state_parameters::SuggestionParameters, consts::UPDATE_VISIBILITY_SIEVE_LABEL,
     operation::Operation,
 };
-use crate::ensnano_organizer::GroupId;
+use ensnano_organizer::GroupId;
 use crate::{
     app_state::design_interactor::controller::{
         OkOperation, clipboard::CopyOperation, simulations::SimulationOperation,

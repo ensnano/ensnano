@@ -38,7 +38,7 @@ mod strand_builder;
 pub use strand_builder::*;
 pub mod consts;
 pub mod torsion;
-use crate::ensnano_organizer::GroupId;
+use ensnano_organizer::GroupId;
 mod operation_labels;
 mod surfaces;
 pub use surfaces::*;

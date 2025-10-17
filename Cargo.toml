@@ -1,5 +1,5 @@
 [workspace]
-members = ["ensnano-iced"]
+members = ["ensnano-iced", "ensnano-organizer"]
 
 [workspace.package]
 version = "0.7.0"
@@ -26,6 +26,7 @@ license.workspace = true
 
 [workspace.dependencies]
 ensnano_iced = { path = "ensnano-iced" }
+ensnano_organizer = { path = "ensnano-organizer" }
 
 ahash = "0.8.6"
 bytemuck = "1.2.0"
@@ -93,6 +94,7 @@ wgpu = { version = "0.19", features = ["spirv"] }
 
 [dependencies]
 ensnano_iced.workspace = true
+ensnano_organizer.workspace = true
 
 # ensnano_design specific
 icondata.workspace = true

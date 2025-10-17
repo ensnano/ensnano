@@ -32,7 +32,6 @@ use crate::ensnano_design::{
     grid::{GridId, GridPosition, GridTypeDescr},
 };
 use crate::ensnano_gui::OrganizerTree;
-use ensnano_iced::UiSize;
 use crate::ensnano_interactor::{
     ActionMode, CenterOfSelection, HyperboloidRequest, RapierSimulationRequest, RigidBodyConstants,
     RollRequest, Selection, SelectionMode, UnrootedRevolutionSurfaceDescriptor,
@@ -42,6 +41,7 @@ use crate::ensnano_interactor::{
     operation::Operation,
 };
 use crate::ensnano_scene::view::FogParameters;
+use ensnano_iced::UiSize;
 use std::{collections::VecDeque, sync::Arc};
 use ultraviolet::Vec3;
 
@@ -93,7 +93,7 @@ pub struct Requests {
     pub keep_proceed: VecDeque<Action>,
     pub organizer_selection: Option<(
         Vec<DesignElementKey>,
-        Option<crate::ensnano_organizer::GroupId>,
+        Option<ensnano_organizer::GroupId>,
         bool,
     )>,
     pub organizer_candidates: Option<Vec<DesignElementKey>>,
