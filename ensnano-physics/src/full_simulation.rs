@@ -160,4 +160,4 @@ fn build_strong_springs(
             // computed earlier
         }
     }
-k
+}
