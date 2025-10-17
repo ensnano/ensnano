@@ -1,0 +1,16 @@
+[package]
+name = "ensnano_interactor"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+ensnano_design.workspace = true
+ensnano_iced.workspace = true
+ensnano_organizer.workspace = true
+
+log.workspace = true
+rayon.workspace = true
+serde.workspace = true
+ultraviolet.workspace = true

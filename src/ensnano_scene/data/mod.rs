@@ -27,7 +27,7 @@ use super::{
         GridDisc, HandleColors, Instantiable, Mesh, RawDnaInstance, StereographicSphereAndPlane,
     },
 };
-use crate::ensnano_interactor::{
+use ensnano_interactor::{
     ActionMode, CenterOfSelection, ObjectType, PhantomElement, Referential, Selection,
     SelectionMode,
     consts::{
@@ -255,7 +255,7 @@ impl<R: DesignReader> Data<R> {
 
     fn update_bezier<S: AppState>(&mut self, app_state: &S) {
         let selected_helices =
-            crate::ensnano_interactor::extract_helices_with_controls(app_state.get_selection());
+            ensnano_interactor::extract_helices_with_controls(app_state.get_selection());
         log::debug!("selected helices {:?}", selected_helices);
         let mut spheres = Vec::new();
         let mut tubes = Vec::new();

@@ -21,7 +21,7 @@ use std::rc::Rc;
 use ultraviolet::{Mat2, Vec2, Vec4};
 use wgpu::{BindGroupLayout, Device, Queue, RenderPass, RenderPipeline, include_spirv};
 
-use crate::ensnano_interactor::consts::*;
+use ensnano_interactor::consts::*;
 use crate::ensnano_utils::bindgroup_manager::DynamicBindGroup;
 use crate::ensnano_utils::text::{Letter, Vertex as CharVertex};
 use crate::ensnano_utils::texture::Texture;

@@ -50,10 +50,10 @@ mod icon;
 
 use status_bar::StatusBar;
 
-use crate::ensnano_interactor::{
+use ensnano_interactor::{
     ActionMode, HyperboloidRequest, RapierSimulationRequest, RollRequest, SelectionMode,
 };
-use crate::ensnano_interactor::{
+use ensnano_interactor::{
     InsertionPoint, Multiplexer, PastingStatus, RevolutionSurfaceSystemDescriptor, ScaffoldInfo,
     Selection, SimulationState, UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
     app_state_parameters::{AppStateParameters, CheckXoversParameter, SuggestionParameters},

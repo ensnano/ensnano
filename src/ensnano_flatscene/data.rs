@@ -20,7 +20,7 @@ use super::{
     flattypes::{FlatPosition, FlatSelection, HelixSegment},
     view::EditionInfo,
 };
-use crate::ensnano_interactor::{Selection, SelectionMode};
+use ensnano_interactor::{Selection, SelectionMode};
 use ensnano_design::Nucl;
 use std::sync::{Arc, Mutex};
 use ultraviolet::Vec2;
@@ -32,7 +32,7 @@ pub use strand::{FreeEnd, Strand, StrandVertex};
 mod design;
 use super::FlatHelixMaps;
 use super::{CameraPtr, FlatHelix, FlatIdx, FlatNucl};
-use crate::ensnano_interactor::consts::*;
+use ensnano_interactor::consts::*;
 use crate::ensnano_utils::camera2d::FitRectangle;
 use ahash::RandomState;
 use design::{Design2d, Helix2d};

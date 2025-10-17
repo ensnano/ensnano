@@ -22,8 +22,8 @@ use super::super::view::{
     SphereInstance, TubeInstance, TubeLidInstance,
 };
 use super::{LetterInstance, SceneElement};
-use crate::ensnano_interactor::consts::*;
-use crate::ensnano_interactor::{
+use ensnano_interactor::consts::*;
+use ensnano_interactor::{
     BezierControlPoint, ObjectType, PHANTOM_RANGE, PhantomElement, Referential,
     graphics::{LoopoutBond, LoopoutNucl},
     phantom_helix_encoder_bond, phantom_helix_encoder_nucl,
@@ -1726,7 +1726,7 @@ pub(super) enum ExpandWith {
 
 // Array of (strand number, array of 3D space position of the nucleotides)
 
-pub trait DesignReader: 'static + crate::ensnano_interactor::DesignReader {
+pub trait DesignReader: 'static + ensnano_interactor::DesignReader {
     /// Return the identifier of all the visible nucleotides
     fn get_all_visible_nucl_ids(&self) -> Vec<u32>;
     /// Return the identifier of all the visible bounds

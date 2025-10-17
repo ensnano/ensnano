@@ -16,8 +16,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use super::{AppState, Requests};
-pub use crate::ensnano_interactor::StrandBuildingStatus;
-use crate::ensnano_interactor::operation::Operation;
+pub use ensnano_interactor::StrandBuildingStatus;
+use ensnano_interactor::operation::Operation;
 use ensnano_iced::{
     self, UiSize,
     helpers::*,
@@ -198,9 +198,9 @@ impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
             self.app_state.get_clipboard_content().to_string()
         );
         let pasting_text = match self.app_state.get_pasting_status() {
-            crate::ensnano_interactor::PastingStatus::Copy => "Pasting",
-            crate::ensnano_interactor::PastingStatus::None => "",
-            crate::ensnano_interactor::PastingStatus::Duplication => "Duplicating",
+            ensnano_interactor::PastingStatus::Copy => "Pasting",
+            ensnano_interactor::PastingStatus::None => "",
+            ensnano_interactor::PastingStatus::Duplication => "Duplicating",
         }
         .to_string();
 

@@ -23,7 +23,7 @@ use ensnano_design::{
     self, CurveDescriptor, CurveDescriptor2D, DVec3, HelixParameters, InterpolationDescriptor,
     Isometry3, Similarity3,
 };
-use crate::ensnano_interactor::{
+use ensnano_interactor::{
     EquadiffSolvingMethod, RevolutionSimulationParameters, RevolutionSurfaceSystemDescriptor,
     RootedRevolutionSurface,
 };

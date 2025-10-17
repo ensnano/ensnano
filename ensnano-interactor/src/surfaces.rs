@@ -17,6 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use super::*;
 use ensnano_design::{InterpolatedCurveDescriptor, InterpolationDescriptor};
+use rayon::iter::{IntoParallelIterator as _, ParallelIterator as _};
 use ultraviolet::{DVec3, Similarity3};
 #[derive(Debug, Clone)]
 pub struct RevolutionSurfaceSystemDescriptor {
@@ -189,8 +190,6 @@ impl UnrootedRevolutionSurfaceDescriptor {
     ///
     /// The surface is split into `nb_strip` strips of 2 * `nb_section_per_strip` triangles
     pub fn approx_surface_area(&self, nb_strip: usize, nb_section_per_strip: usize) -> Option<f64> {
-        use rayon::prelude::*;
-
         if matches!(self.revolution_radius, RevolutionSurfaceRadius::Inside(_)) {
             return None;
         }

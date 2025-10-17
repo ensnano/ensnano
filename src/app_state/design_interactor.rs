@@ -28,7 +28,7 @@ use ensnano_design::{
 };
 use crate::ensnano_exports::{ExportResult, ExportType};
 use crate::ensnano_gui::CurrentOpState;
-use crate::ensnano_interactor::{
+use ensnano_interactor::{
     DesignOperation, PastingStatus, Selection, SimulationState, StrandBuilder,
     app_state_parameters::SuggestionParameters, consts::UPDATE_VISIBILITY_SIEVE_LABEL,
     operation::Operation,
@@ -434,8 +434,8 @@ mod tests {
     use ensnano_design::HelixCollection;
     use ensnano_design::grid::HelixGridPosition;
     use ensnano_design::{Collection, DomainJunction, Nucl, Strand, grid::GridDescriptor};
-    use crate::ensnano_interactor::operation::GridHelixCreation;
-    use crate::ensnano_interactor::{DesignReader, InsertionPoint};
+    use ensnano_interactor::operation::GridHelixCreation;
+    use ensnano_interactor::{DesignReader, InsertionPoint};
     use crate::ensnano_scene::data::DesignReader as Reader3d;
     use std::path::PathBuf;
     use ultraviolet::{Rotor3, Vec3};

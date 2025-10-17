@@ -17,7 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::{NormalState, State, TransitionMessage, messages};
-use crate::ensnano_interactor::consts::ORIGAMI_EXTENSION;
+use ensnano_interactor::consts::ORIGAMI_EXTENSION;
 use crate::{
     MainStateView,
     controller::download_staples::{DownloadStapleError, DownloadStapleOk, StaplesDownloader},

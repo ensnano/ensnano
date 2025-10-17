@@ -19,7 +19,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use {
     super::maths_3d::{self, FiniteVec3, Plane},
     super::{PhySize, Stereography},
-    crate::ensnano_interactor::consts::{DEFAULT_STEREOGRAPHIC_ZOOM, STEREOGRAPHIC_ZOOM_STEP},
+    ensnano_interactor::consts::{DEFAULT_STEREOGRAPHIC_ZOOM, STEREOGRAPHIC_ZOOM_STEP},
     crate::ensnano_utils::winit,
     ensnano_design::{SurfaceInfo, SurfacePoint},
     std::{

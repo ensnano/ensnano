@@ -115,7 +115,7 @@ impl Rectangle {
             primitive,
             depth_stencil,
             multisample: wgpu::MultisampleState {
-                count: crate::ensnano_interactor::consts::SAMPLE_COUNT,
+                count: ensnano_interactor::consts::SAMPLE_COUNT,
                 mask: !0,
                 alpha_to_coverage_enabled: false,
             },

@@ -18,7 +18,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::{AppState, FogParameters, OverlayType, Requests};
 use super::{consts::*, fonts};
 use crate::ensnano_exports::ExportType;
-use crate::ensnano_interactor::{
+use ensnano_interactor::{
     ActionMode, EquadiffSolvingMethod, HyperboloidRequest, RapierSimulationRequest, Selection,
     SelectionConversion,
     app_state_parameters::{AppStateParameters, CheckXoversParameter, SuggestionParameters},

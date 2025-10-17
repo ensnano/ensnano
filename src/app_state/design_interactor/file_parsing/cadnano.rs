@@ -21,7 +21,7 @@ use {
         Design, Domain, Helix, HelixInterval, Nucl, Strand,
         grid::{Grid, GridType},
     },
-    crate::ensnano_interactor::consts::SCAFFOLD_COLOR,
+    ensnano_interactor::consts::SCAFFOLD_COLOR,
     serde::{Deserialize, Serialize},
     std::{
         collections::{BTreeMap, HashMap, HashSet},

@@ -15,7 +15,7 @@ use super::view::{
     ConeInstance, Ellipsoid, Instantiable, Mesh, Mesh::*, RawDnaInstance, SlicedTubeInstance,
     SphereInstance, TubeInstance, TubeLidInstance,
 };
-use crate::ensnano_interactor::consts::NB_RAY_TUBE;
+use ensnano_interactor::consts::NB_RAY_TUBE;
 use ultraviolet::{Mat3, Vec3};
 
 impl RawDnaInstance {

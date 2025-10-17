@@ -22,7 +22,7 @@ use super::{
     Duration, ElementSelector, HandleDir, SceneElement, Stereography, ViewPtr,
     WidgetRotationMode as RotationMode, camera,
 };
-use crate::ensnano_interactor::consts::*;
+use ensnano_interactor::consts::*;
 use crate::ensnano_scene::maths_3d::FiniteVec3;
 use crate::ensnano_utils::winit;
 use crate::ensnano_utils::winit::window::CursorIcon;

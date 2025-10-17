@@ -36,8 +36,8 @@ use ensnano_design::{
     mutate_in_arc,
 };
 use crate::ensnano_gui::ClipboardContent;
-use crate::ensnano_interactor;
-use crate::ensnano_interactor::{
+use ensnano_interactor;
+use ensnano_interactor::{
     BezierControlPoint, BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation,
     DomainIdentifier, HyperboloidOperation, IsometryTarget, NeighborDescriptor,
     NeighborDescriptorGiver, NewBezierTangentVector, PastingStatus, Selection, SimulationState,

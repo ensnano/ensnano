@@ -27,14 +27,6 @@ pub mod poll;
 
 use crate::controller::normal_state::Action;
 use crate::ensnano_gui::OrganizerTree;
-use crate::ensnano_interactor::{
-    ActionMode, CenterOfSelection, HyperboloidRequest, RapierSimulationRequest, RigidBodyConstants,
-    RollRequest, Selection, SelectionMode, UnrootedRevolutionSurfaceDescriptor,
-    app_state_parameters::{CheckXoversParameter, SuggestionParameters},
-    application::AppId,
-    graphics::{Background3D, HBondDisplay, RenderingMode},
-    operation::Operation,
-};
 use crate::ensnano_scene::view::FogParameters;
 use ensnano_design::{
     Nucl,
@@ -42,6 +34,14 @@ use ensnano_design::{
     grid::{GridId, GridPosition, GridTypeDescr},
 };
 use ensnano_iced::UiSize;
+use ensnano_interactor::{
+    ActionMode, CenterOfSelection, HyperboloidRequest, RapierSimulationRequest, RigidBodyConstants,
+    RollRequest, Selection, SelectionMode, UnrootedRevolutionSurfaceDescriptor,
+    app_state_parameters::{CheckXoversParameter, SuggestionParameters},
+    application::AppId,
+    graphics::{Background3D, HBondDisplay, RenderingMode},
+    operation::Operation,
+};
 use std::{collections::VecDeque, sync::Arc};
 use ultraviolet::Vec3;
 

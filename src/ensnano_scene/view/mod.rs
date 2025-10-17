@@ -21,7 +21,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use self::gltf_drawer::Object3DDrawer;
 use super::camera;
 use super::{DrawArea, PhySize};
-use crate::ensnano_interactor::{UnrootedRevolutionSurfaceDescriptor, consts::*};
+use ensnano_interactor::{UnrootedRevolutionSurfaceDescriptor, consts::*};
 use crate::ensnano_utils::{
     bindgroup_manager, text, texture,
     wgpu::{self, util::DeviceExt as _},
@@ -79,7 +79,7 @@ pub use rotation_widget::{
 pub use sheet_2d::Sheet2D;
 use text::Letter;
 
-use crate::ensnano_interactor::graphics::{Background3D, HBondDisplay, RenderingMode};
+use ensnano_interactor::graphics::{Background3D, HBondDisplay, RenderingMode};
 
 static MODEL_BG_ENTRY: &[wgpu::BindGroupLayoutEntry] = &[wgpu::BindGroupLayoutEntry {
     binding: 0,
@@ -196,7 +196,7 @@ impl View {
             label: None,
         };
         log::info!("Create letter drawer");
-        let letter_drawer = crate::ensnano_interactor::consts::PRINTABLE_CHARS
+        let letter_drawer = ensnano_interactor::consts::PRINTABLE_CHARS
             .iter()
             .map(|c| {
                 let letter = Letter::new(*c, device.clone(), queue.clone());
@@ -520,9 +520,9 @@ impl View {
                     let mut instances = instances.as_ref().clone();
                     for i in instances.iter_mut() {
                         if i.scale.z
-                            <= crate::ensnano_interactor::consts::MIN_RADIUS_FOR_FAKE_UPSCALING
+                            <= ensnano_interactor::consts::MIN_RADIUS_FOR_FAKE_UPSCALING
                         {
-                            i.scale *= crate::ensnano_interactor::consts::SELECT_SCALE_FACTOR;
+                            i.scale *= ensnano_interactor::consts::SELECT_SCALE_FACTOR;
                         }
                     }
                     self.dna_drawers

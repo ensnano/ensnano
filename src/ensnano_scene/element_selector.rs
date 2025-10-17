@@ -21,7 +21,7 @@ use ensnano_design::{
     BezierPathId, BezierPlaneId, BezierVertexId,
     grid::{GridId, GridPosition},
 };
-use crate::ensnano_interactor::{BezierControlPoint, PhantomElement, phantom_helix_decoder};
+use ensnano_interactor::{BezierControlPoint, PhantomElement, phantom_helix_decoder};
 use crate::ensnano_utils::{
     BufferDimensions, wgpu,
     winit::dpi::{PhysicalPosition, PhysicalSize},
@@ -324,7 +324,7 @@ impl SceneElement {
     pub fn transform_into_bezier(self) -> Self {
         if let Self::WidgetElement(id) = self
             && let Some((helix_id, bezier_control)) =
-                crate::ensnano_interactor::consts::widget_id_to_bezier(id)
+                ensnano_interactor::consts::widget_id_to_bezier(id)
         {
             Self::BezierControl {
                 bezier_control,

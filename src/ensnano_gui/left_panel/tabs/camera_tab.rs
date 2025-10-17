@@ -19,7 +19,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::{
     AppState, CheckXoversParameter, FogParameters, HBondDisplay, Message, UiSize, tabs::GuiTab,
 };
-use crate::ensnano_interactor::{
+use ensnano_interactor::{
     app_state_parameters::AppStateParameters,
     graphics::{ALL_BACKGROUND3D, ALL_RENDERING_MODE, Background3D, RenderingMode},
 };
@@ -402,7 +402,7 @@ impl FogChoices {
     }
 
     fn fog_kind(&self) -> u32 {
-        use crate::ensnano_interactor::graphics::fog_kind;
+        use ensnano_interactor::graphics::fog_kind;
         match self {
             Self::None => fog_kind::NO_FOG,
             Self::FromCamera | Self::FromPivot => fog_kind::TRANSPARENT_FOG,

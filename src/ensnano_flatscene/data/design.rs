@@ -20,10 +20,10 @@ use std::sync::{Arc, Mutex};
 
 use super::super::{FlatHelix, FlatIdx, FlatNucl, HelixSegment, Requests};
 use super::{Flat, HelixVec, Nucl, Strand};
-use crate::ensnano_interactor::consts::{
+use ensnano_interactor::consts::{
     CANDIDATE_STRAND_HIGHLIGHT_FACTOR_2D, SELECTED_STRAND_HIGHLIGHT_FACTOR_2D,
 };
-use crate::ensnano_interactor::{Referential, torsion::Torsion};
+use ensnano_interactor::{Referential, torsion::Torsion};
 use crate::ensnano_utils::full_isometry::FullIsometry;
 use ahash::RandomState;
 use ensnano_design::{self, AbscissaConverter, Extremity, Helix as DesignHelix, HelixCollection};
@@ -121,7 +121,7 @@ impl<R: DesignReader> Design2d<R> {
         self.pasted_strands = nucls_opt
             .iter()
             .map(|nucls| {
-                let color = crate::ensnano_interactor::consts::CANDIDATE_COLOR;
+                let color = ensnano_interactor::consts::CANDIDATE_COLOR;
                 for nucl in nucls.iter() {
                     self.read_nucl(nucl)
                 }

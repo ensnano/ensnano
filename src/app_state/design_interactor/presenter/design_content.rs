@@ -26,7 +26,7 @@ use ensnano_design::{
     isometry3_descriptor::Isometry3MissingMethods,
     *,
 };
-use crate::ensnano_interactor::{
+use ensnano_interactor::{
     ObjectType,
     consts::{
         BOND_RADIUS, CLONE_OPACITY, HELIX_CYLINDER_COLOR, HELIX_CYLINDER_RADIUS, SPHERE_RADIUS,

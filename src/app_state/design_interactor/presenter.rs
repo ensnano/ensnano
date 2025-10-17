@@ -31,7 +31,7 @@ use super::*;
 use ensnano_design::{
     BezierPathId, Extremity, HelixCollection, InstanciatedPiecewiseBezier, Nucl,
 };
-use crate::ensnano_interactor::{
+use ensnano_interactor::{
     NeighborDescriptor, NeighborDescriptorGiver, Referential, ScaffoldInfo, Selection,
     application::Camera3D,
 };

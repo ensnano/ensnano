@@ -62,7 +62,7 @@ impl Application for DummyScene {
     }
 
     fn get_camera(&self) -> Option<Arc<(ensnano_interactor::application::Camera3D, f32)>> {
-        use crate::ensnano_interactor::application::Camera3D;
+        use ensnano_interactor::application::Camera3D;
         Some(Arc::new((
             Camera3D {
                 position: Vec3::zero(),

@@ -94,7 +94,6 @@ mod dialog;
 mod ensnano_exports;
 mod ensnano_flatscene;
 mod ensnano_gui;
-mod ensnano_interactor;
 mod ensnano_physics;
 mod ensnano_scene;
 mod ensnano_utils;

@@ -20,7 +20,7 @@ use super::super::view::EditionInfo;
 use super::super::view::{CircleInstance, InsertionDescriptor, InsertionInstance};
 use super::super::{CameraPtr, Flat, FlatHelix};
 use super::{FlatNucl, Helix2d, NuclCollection};
-use crate::ensnano_interactor::consts::*;
+use ensnano_interactor::consts::*;
 use crate::ensnano_utils::{
     chars2d::{Line, Sentence, TextDrawer},
     full_isometry::FullIsometry,

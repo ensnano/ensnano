@@ -17,8 +17,6 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::{AppState, Multiplexer};
-use crate::ensnano_interactor::application::Application;
-use crate::ensnano_interactor::graphics::GuiComponentType;
 use crate::ensnano_utils::winit::window::CursorIcon;
 use ensnano_iced::{
     iced_wgpu::wgpu,
@@ -27,6 +25,8 @@ use ensnano_iced::{
         event::WindowEvent,
     },
 };
+use ensnano_interactor::application::Application;
+use ensnano_interactor::graphics::GuiComponentType;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;

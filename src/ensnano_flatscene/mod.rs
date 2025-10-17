@@ -38,7 +38,7 @@ mod flattypes;
 mod view;
 
 use ensnano_design::{Isometry2, Nucl, consts::ITERATIVE_AXIS_ALGORITHM};
-use crate::ensnano_interactor::{
+use ensnano_interactor::{
     ActionMode, DesignOperation, PhantomElement, Selection, SelectionMode, StrandBuilder,
     StrandBuildingStatus,
     application::{AppId, Application, Notification},
@@ -441,7 +441,7 @@ impl<S: AppState> FlatScene<S> {
                 )
             }
             Consequence::InitBuilding(nucl) => {
-                let mut nucls = crate::ensnano_interactor::extract_nucls_and_xover_ends(
+                let mut nucls = ensnano_interactor::extract_nucls_and_xover_ends(
                     app_state.get_selection(),
                     &app_state.get_design_reader(),
                 );
@@ -832,7 +832,7 @@ impl<S: AppState> Application for FlatScene<S> {
 }
 
 pub trait AppState: Clone {
-    type Reader: DesignReader + crate::ensnano_interactor::DesignReader;
+    type Reader: DesignReader + ensnano_interactor::DesignReader;
     fn selection_was_updated(&self, other: &Self) -> bool;
     fn candidate_was_updated(&self, other: &Self) -> bool;
     fn get_selection(&self) -> &[Selection];

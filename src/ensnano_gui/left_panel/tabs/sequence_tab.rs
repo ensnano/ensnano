@@ -17,7 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use std::marker::PhantomData;
 
-use crate::ensnano_interactor::StandardSequence;
+use ensnano_interactor::StandardSequence;
 
 use super::tabs::GuiTab;
 use super::{AppState, DesignElementKey, Message, UiSize};
