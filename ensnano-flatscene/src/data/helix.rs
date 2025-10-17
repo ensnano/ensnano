@@ -15,29 +15,38 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use super::super::flattypes::{FlatHelixMaps, FlatPosition, HelixSegment};
-use super::super::view::EditionInfo;
-use super::super::view::{CircleInstance, InsertionDescriptor, InsertionInstance};
-use super::super::{CameraPtr, Flat, FlatHelix};
+
 use super::{FlatNucl, Helix2d, NuclCollection};
+use crate::{
+    CameraPtr, Flat, FlatHelix,
+    flattypes::{FlatHelixMaps, FlatPosition, HelixSegment},
+    view::{CircleInstance, EditionInfo, InsertionDescriptor, InsertionInstance},
+};
 use abscissa_converter::{AbscissaConverter, AbscissaConverter_};
 use ahash::RandomState;
 use ensnano_design::Nucl;
-use ensnano_interactor::consts::*;
+use ensnano_interactor::consts::{
+    BLACK_VEC4, CIRCLE2D_GREY, GREY_UNKNOWN_NUCL_VEC4, HELIX_BORDER_COLOR,
+};
 use ensnano_utils::{
     chars2d::{Line, Sentence, TextDrawer},
     full_isometry::FullIsometry,
     instance::Instance,
 };
-use lyon::math::{Point, rect};
-use lyon::path::Path;
-use lyon::path::builder::{BorderRadii, PathBuilder};
-use lyon::tessellation;
-use lyon::tessellation::{
-    FillVertex, FillVertexConstructor, StrokeVertex, StrokeVertexConstructor,
+use lyon::{
+    math::{Point, rect},
+    path::{
+        Path,
+        builder::{BorderRadii, PathBuilder},
+    },
+    tessellation::{
+        self, FillVertex, FillVertexConstructor, StrokeVertex, StrokeVertexConstructor,
+    },
 };
-use std::collections::{BTreeMap, HashMap};
-use std::sync::Arc;
+use std::{
+    collections::{BTreeMap, HashMap},
+    sync::Arc,
+};
 use ultraviolet::{Mat2, Rotor2, Vec2, Vec4};
 
 type Vertices = lyon::tessellation::VertexBuffers<GpuVertex, u16>;
@@ -571,9 +580,9 @@ impl Helix {
             CIRCLE2D_GREY
         } else {
             match groups.get(&self.real_id) {
-                None => CIRCLE2D_BLUE,
-                Some(true) => CIRCLE2D_RED,
-                Some(false) => CIRCLE2D_GREEN,
+                None => CIRCLE2D_GREY,
+                Some(true) => CIRCLE2D_GREY,
+                Some(false) => CIRCLE2D_GREY,
             }
         };
         let radius = if camera.borrow().get_globals().zoom < ZOOM_THRESHOLD {
