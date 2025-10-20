@@ -24,7 +24,7 @@
 
 ### Background (skybox)
 
-- Pngs should have a choice of background too (including transparent)
+- PNGs should have a choice of background too (including transparent)
 - Infinite distance instead of hardcoded 500
 - Any plain color instead of just white
 
