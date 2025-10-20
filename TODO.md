@@ -18,6 +18,8 @@
 
 - Fix rotation with `H`/`J`/`K`/`L` while dragging
 - Figure out why `H`/`J`/`K`/`L` don't work the same
+  - `J` and `L` ok
+  - `H` and `K` seem to be intercepted in another controller, but I can't find which one
 - Export PNG max size
 - Cut plane (toggleable button next to grids)
 - Isometric view
