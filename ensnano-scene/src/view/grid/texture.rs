@@ -171,16 +171,16 @@ fn square_texture_vertices() -> Vertices {
             &tessellation::StrokeOptions::default(),
             &mut tessellation::BuffersBuilder::new(&mut vertices, Custom),
         )
-        .expect("error durring tessellation");
+        .expect("error during tessellation");
     vertices
 }
 
-pub struct HonneyTexture {
+pub struct HoneyTexture {
     pub view: TextureView,
     pub sampler: Sampler,
 }
 
-impl HonneyTexture {
+impl HoneyTexture {
     pub fn new(device: &Device, encoder: &mut wgpu::CommandEncoder) -> Self {
         let texture = device.create_texture(&wgpu::TextureDescriptor {
             size: wgpu::Extent3d {
