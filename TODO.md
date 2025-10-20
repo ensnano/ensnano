@@ -16,8 +16,9 @@
 
 ## Scene (3D)
 
+- Fix rotation with `H`/`J`/`K`/`L` while dragging
+- Figure out why `H`/`J`/`K`/`L` don't work the same
 - Export PNG max size
-- Figure out why `H`/`J`/`K`/`L` don't work the same for rotations
 - Cut plane (toggleable button next to grids)
 - Isometric view
 
