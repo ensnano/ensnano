@@ -56,7 +56,7 @@ impl StrandJunction for Strand {
                 &self.domains[i + 1]
             };
             match &mut self.junctions[i] {
-                s @ DomainJunction::UnindentifiedXover => {
+                s @ DomainJunction::UnidentifiedXover => {
                     if !identified {
                         if let (Domain::HelixDomain(d1), Domain::HelixDomain(d2)) = (current, next)
                         {
@@ -72,11 +72,11 @@ impl StrandJunction for Strand {
                             let id = xover_ids.insert((prime5, prime3));
                             *s = DomainJunction::IdentifiedXover(id);
                         } else if let Domain::Insertion { .. } = next {
-                            panic!("UnindentifiedXover before an insertion");
+                            panic!("UnidentifiedXover before an insertion");
                         } else if let Domain::Insertion { .. } = previous_domain {
                             panic!("Invariant violated: [SaneDomains]");
                         } else {
-                            unreachable!("Unexhastive match");
+                            unreachable!("Non-exhaustive match");
                         }
                     }
                 }
@@ -98,7 +98,7 @@ impl StrandJunction for Strand {
                         } else if let Domain::Insertion { .. } = previous_domain {
                             panic!("Invariant violated: [SaneDomains]");
                         } else {
-                            unreachable!("Unexhastive match");
+                            unreachable!("Non-exhaustive match");
                         }
                     }
                 }
@@ -119,12 +119,12 @@ pub(super) fn junction(prime5: &HelixInterval, prime3: &HelixInterval) -> Domain
     if prime3_nucl == prime5_nucl.prime3() {
         DomainJunction::Adjacent
     } else {
-        DomainJunction::UnindentifiedXover
+        DomainJunction::UnidentifiedXover
     }
 }
 
-/// Add the correct juction between current and next to junctions.
-/// Assumes and preseve the following invariant
+/// Add the correct junction between current and next to junctions.
+/// Assumes and preserve the following invariant
 /// Invariant [read_junctions::PrevDomain]: One of the following is true
 /// * the strand is not cyclic
 /// * the strand is cyclic and its first domain is NOT and insertion.
@@ -132,8 +132,8 @@ pub(super) fn junction(prime5: &HelixInterval, prime3: &HelixInterval) -> Domain
 ///
 /// Moreover at the end of each iteration of the loop, previous_domain points to some
 /// Domain::HelixDomain. The loop is responsible for preserving the invariant. The invariant is
-/// true at initilasation if `[SaneDomains]` is true.
-fn add_juction<'b, 'a: 'b>(
+/// true at initialization if `[SaneDomains]` is true.
+fn add_junction<'b, 'a: 'b>(
     junctions: &'b mut Vec<DomainJunction>,
     current: &'a Domain,
     next: &'a Domain,
@@ -178,7 +178,7 @@ fn add_juction<'b, 'a: 'b>(
     }
 }
 
-/// Infer juctions from a succession of domains.
+/// Infer junctions from a succession of domains.
 pub(super) fn read_junctions(domains: &[Domain], cyclic: bool) -> Vec<DomainJunction> {
     if domains.len() == 0 {
         return vec![];
@@ -190,13 +190,13 @@ pub(super) fn read_junctions(domains: &[Domain], cyclic: bool) -> Vec<DomainJunc
     for i in 0..(domains.len() - 1) {
         let current = &domains[i];
         let next = &domains[i + 1];
-        add_juction(&mut ret, current, next, &mut previous_domain, cyclic, i);
+        add_junction(&mut ret, current, next, &mut previous_domain, cyclic, i);
     }
 
     if cyclic {
         let last = &domains[domains.len() - 1];
         let first = &domains[0];
-        add_juction(
+        add_junction(
             &mut ret,
             last,
             first,

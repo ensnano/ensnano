@@ -138,7 +138,7 @@ impl Controller {
                 grid_ids,
                 persistent,
             } => Ok(self.ok_apply(
-                |c, d| c.set_helices_persisance(d, grid_ids, persistent),
+                |c, d| c.set_helices_persistence(d, grid_ids, persistent),
                 design,
             )),
             DesignOperation::SetSmallSpheres { grid_ids, small } => {
@@ -220,13 +220,13 @@ impl Controller {
                 design,
             )),
             DesignOperation::HyperboloidOperation(op) => {
-                self.apply(|c, d| c.apply_hyperbolid_operation(d, op), design)
+                self.apply(|c, d| c.apply_hyperboloid_operation(d, op), design)
             }
             DesignOperation::SetRollHelices { helices, roll } => {
                 self.apply(|c, d| c.set_roll_helices(d, helices, roll), design)
             }
             DesignOperation::SetVisibilityHelix { helix, visible } => {
-                self.apply(|c, d| c.set_visiblity_helix(d, helix, visible), design)
+                self.apply(|c, d| c.set_visibility_helix(d, helix, visible), design)
             }
             DesignOperation::FlipHelixGroup { helix } => {
                 self.apply(|c, d| c.flip_helix_group(d, helix), design)
@@ -408,7 +408,7 @@ impl Controller {
                 if self.get_pasting_point() == Some(nucl) {
                     Ok((OkOperation::NoOp, self.clone()))
                 } else {
-                    let design_pasted_on = if let Some(p) = self.get_design_beign_pasted_on() {
+                    let design_pasted_on = if let Some(p) = self.get_design_being_pasted_on() {
                         p.as_ref()
                     } else {
                         up_to_date_design.design
@@ -718,7 +718,7 @@ impl Controller {
         Ok(design)
     }
 
-    fn set_visiblity_helix(
+    fn set_visibility_helix(
         &mut self,
         mut design: Design,
         helix: usize,
@@ -860,7 +860,7 @@ impl Controller {
         Ok(())
     }
 
-    fn apply_hyperbolid_operation(
+    fn apply_hyperboloid_operation(
         &mut self,
         mut design: Design,
         operation: HyperboloidOperation,
@@ -2015,7 +2015,7 @@ impl Controller {
         design
     }
 
-    fn set_helices_persisance(
+    fn set_helices_persistence(
         &mut self,
         mut design: Design,
         grid_ids: Vec<GridId>,
@@ -2192,13 +2192,13 @@ impl Controller {
     ) -> Option<StrandBuilder> {
         // if there is a strand that passes through the nucleotide
         if design.strands.get_strand_nucl(&nucl).is_some() {
-            self.strand_builder_on_exisiting(design, nucl, ignored_domains)
+            self.strand_builder_on_existing(design, nucl, ignored_domains)
         } else {
             self.new_strand_builder(design, nucl)
         }
     }
 
-    fn strand_builder_on_exisiting(
+    fn strand_builder_on_existing(
         &mut self,
         design: &Design,
         nucl: Nucl,
@@ -2783,7 +2783,7 @@ impl Controller {
                 if last_interval_prime5.can_merge(first_interval_prime3) {
                     DomainJunction::Adjacent
                 } else {
-                    DomainJunction::UnindentifiedXover
+                    DomainJunction::UnidentifiedXover
                 }
             };
             let skip_domain;
@@ -3767,7 +3767,7 @@ pub(super) fn junction(prime5: &HelixInterval, prime3: &HelixInterval) -> Domain
     if prime3_nucl == prime5_nucl.prime3() {
         DomainJunction::Adjacent
     } else {
-        DomainJunction::UnindentifiedXover
+        DomainJunction::UnidentifiedXover
     }
 }
 

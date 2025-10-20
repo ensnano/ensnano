@@ -1080,7 +1080,7 @@ impl DesignContent {
             // DO NOT USE id_TMP beyond this point
             id_click_counter.set(id_tmp);
 
-            // USE id_clic_counter
+            // USE id_click_counter
             let mut helix_cylinders = Vec::new();
             for (h, a) in hash_intervals {
                 let mut helix_style = drawing_styles
@@ -1207,19 +1207,19 @@ impl DesignContent {
                     radius_map.insert(clone_nucl_id, *nucl_radius); // radius given to the bond
                     helix_map.insert(clone_nucl_id, nucl.helix); // get helix_id from bond_id
 
-                    let nucl_posi = Vec3::new(position[0], position[1], position[2]);
-                    let clone_posi =
-                        isometry3.translation.clone() + nucl_posi.rotated_by(isometry3.rotation);
+                    let nucl_pos = Vec3::new(position[0], position[1], position[2]);
+                    let clone_pos =
+                        isometry3.translation.clone() + nucl_pos.rotated_by(isometry3.rotation);
                     space_position
-                        .insert(clone_nucl_id, [clone_posi[0], clone_posi[1], clone_posi[2]]);
+                        .insert(clone_nucl_id, [clone_pos[0], clone_pos[1], clone_pos[2]]);
 
-                    let nucl_axis_posi =
+                    let nucl_axis_pos =
                         Vec3::new(axis_position[0], axis_position[1], axis_position[2]);
-                    let clone_axis_posi = isometry3.translation.clone()
-                        + nucl_axis_posi.rotated_by(isometry3.rotation);
+                    let clone_axis_pos = isometry3.translation.clone()
+                        + nucl_axis_pos.rotated_by(isometry3.rotation);
                     axis_space_position.insert(
                         clone_nucl_id,
-                        [clone_axis_posi[0], clone_axis_posi[1], clone_axis_posi[2]],
+                        [clone_axis_pos[0], clone_axis_pos[1], clone_axis_pos[2]],
                     );
                     if let Some(o) = on_axis.get(&nucl_id) {
                         on_axis.insert(clone_nucl_id, *o);
@@ -1382,12 +1382,10 @@ impl DesignContent {
                 let id = new_xover_ids.insert(bond);
                 *junction = DomainJunction::IdentifiedXover(id);
             }
-            DomainJunction::UnindentifiedXover | DomainJunction::IdentifiedXover(_)
-                if !is_xover =>
-            {
+            DomainJunction::UnidentifiedXover | DomainJunction::IdentifiedXover(_) if !is_xover => {
                 *junction = DomainJunction::Adjacent;
             }
-            DomainJunction::UnindentifiedXover => {
+            DomainJunction::UnidentifiedXover => {
                 let id = new_xover_ids.insert(bond);
                 *junction = DomainJunction::IdentifiedXover(id);
             }

@@ -776,7 +776,7 @@ fn distance_segment(a: Vec3, b: Vec3, c: Vec3, d: Vec3) -> (f32, Vec3, Vec3, Vec
 
 /// Inertia matrix of an helix of axis e_x, radius r, height h with respect to its center of mass.
 fn inertia_helix(h: f32, r: f32) -> Mat3 {
-    // The mass is proportinal to the height of the cylinder times its radius squared, we assume that all
+    // The mass is proportional to the height of the cylinder times its radius squared, we assume that all
     // the cylinder that we work with have the same density
     let m = h * r * r;
     let c = m * r * r / 2.;

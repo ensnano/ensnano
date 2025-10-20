@@ -33,7 +33,7 @@ impl Strand {
         ret
     }
 
-    pub fn formated_anonymous_junctions(&self) -> String {
+    pub fn formatted_anonymous_junctions(&self) -> String {
         let mut ret = String::new();
         for j in self.junctions.iter() {
             ret.push_str(&format!("{} ", j.anonymous_fmt()))
@@ -56,7 +56,7 @@ impl DomainJunction {
         match self {
             DomainJunction::Prime3 => String::from("[3']"),
             DomainJunction::Adjacent => String::from("[->]"),
-            DomainJunction::UnindentifiedXover | DomainJunction::IdentifiedXover(_) => {
+            DomainJunction::UnidentifiedXover | DomainJunction::IdentifiedXover(_) => {
                 String::from("[x]")
             }
         }

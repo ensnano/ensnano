@@ -877,7 +877,7 @@ impl Controller {
         Ok(())
     }
 
-    pub(super) fn get_design_beign_pasted_on(&self) -> Option<&AddressPointer<Design>> {
+    pub(super) fn get_design_being_pasted_on(&self) -> Option<&AddressPointer<Design>> {
         match &self.state {
             ControllerState::PastingXovers { initial_design, .. } => Some(initial_design),
             ControllerState::DoingFirstXoversDuplication { initial_design, .. } => {

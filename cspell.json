@@ -1,7 +1,11 @@
 {
   "$schema": "https://raw.githubusercontent.com/streetsidesoftware/cspell/main/cspell.schema.json",
   "version": "0.2",
-  "ignorePaths": ["target/", "thirdparties/", "*.txt"],
+  "ignorePaths": [
+    "target/",
+    "thirdparties/",
+    "*.txt"
+  ],
   "words": [
     "2KPHSEF9U9",
     "ahash",
@@ -36,6 +40,7 @@
     "DNATOP",
     "DNODE",
     "doctest",
+    "dont",
     "dpos",
     "drotor",
     "dtheta",
@@ -95,6 +100,7 @@
     "outliner",
     "Oxdna",
     "Pacôme",
+    "pastable",
     "pathdiff",
     "Perrotin",
     "picklist",

@@ -209,8 +209,8 @@ impl Design {
         for j in source_strand.junctions.iter() {
             match j {
                 DomainJunction::Prime3 => new_junctions.push(DomainJunction::Prime3),
-                DomainJunction::IdentifiedXover(_) | DomainJunction::UnindentifiedXover => {
-                    new_junctions.push(DomainJunction::UnindentifiedXover)
+                DomainJunction::IdentifiedXover(_) | DomainJunction::UnidentifiedXover => {
+                    new_junctions.push(DomainJunction::UnidentifiedXover)
                 }
                 DomainJunction::Adjacent => new_junctions.push(DomainJunction::Adjacent),
             }

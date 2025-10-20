@@ -216,7 +216,7 @@ impl Strands {
 pub enum DomainJunction {
     /// A cross-over that has not yet been given an identifier. These should exist only in
     /// transitory states.
-    UnindentifiedXover,
+    UnidentifiedXover,
     /// A cross-over with an identifier.
     IdentifiedXover(usize),
     /// A link between two neighboring domains
@@ -1285,7 +1285,7 @@ fn junction(prime5: &HelixInterval, prime3: &HelixInterval) -> DomainJunction {
     if prime3_nucl == prime5_nucl.prime3() {
         DomainJunction::Adjacent
     } else {
-        DomainJunction::UnindentifiedXover
+        DomainJunction::UnidentifiedXover
     }
 }
 

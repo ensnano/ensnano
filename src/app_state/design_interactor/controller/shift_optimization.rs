@@ -145,9 +145,9 @@ fn evaluate_shift(design: &Design, basis_map: &BTreeMap<Nucl, char>) -> (usize, 
     let mut ret = 0;
     let mut shown = false;
     let bad = regex::Regex::new(r"[AT]{7,}?").unwrap();
-    let verybad = regex::Regex::new(r"G{4,}?|C{4,}?").unwrap();
-    let ultimatelybad = regex::Regex::new(r"G{5,}|C{5,}").unwrap();
-    let ultimatelybad2 = regex::Regex::new(r"G{6,}|C{6,}").unwrap();
+    let very_bad = regex::Regex::new(r"G{4,}?|C{4,}?").unwrap();
+    let ultimately_bad = regex::Regex::new(r"G{5,}|C{5,}").unwrap();
+    let ultimately_bad2 = regex::Regex::new(r"G{6,}|C{6,}").unwrap();
     for (s_id, strand) in design.strands.iter() {
         if strand.length() == 0 || design.scaffold_id == Some(*s_id) {
             continue;
@@ -172,21 +172,21 @@ fn evaluate_shift(design: &Design, basis_map: &BTreeMap<Nucl, char>) -> (usize, 
             }
             ret += 1;
         }
-        let mut matches = verybad.find_iter(&sequence);
+        let mut matches = very_bad.find_iter(&sequence);
         while matches.next().is_some() {
             if !shown {
                 shown = true;
             }
             ret += 100;
         }
-        let mut matches = ultimatelybad.find_iter(&sequence);
+        let mut matches = ultimately_bad.find_iter(&sequence);
         while matches.next().is_some() {
             if !shown {
                 shown = true;
             }
             ret += 10_000;
         }
-        let mut matches = ultimatelybad2.find_iter(&sequence);
+        let mut matches = ultimately_bad2.find_iter(&sequence);
         while matches.next().is_some() {
             if !shown {
                 shown = true;
