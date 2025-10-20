@@ -298,64 +298,32 @@ impl CameraController {
     }
 
     pub fn process_keyboard(&mut self, key: KeyCode, state: ElementState) -> bool {
-        let amount = if state == ElementState::Pressed {
-            1.0
-        } else {
-            0.0
+        let process_translation = |amount: &mut f32| {
+            *amount = state.is_pressed() as u8 as f32;
+            true
         };
+
+        let mut process_rotation = |xz: f32, yz: f32| {
+            const ROTATE_AMOUNT: f32 = FRAC_PI_2 / 20.;
+            if state.is_pressed() {
+                let pivot = self.pivot_point.unwrap_or_else(FiniteVec3::zero);
+                self.rotate_camera_around(xz * ROTATE_AMOUNT, yz * ROTATE_AMOUNT, pivot);
+                self.cam0 = self.camera.borrow().clone();
+                true
+            } else {
+                false
+            }
+        };
+
         match key {
-            KeyCode::ArrowUp => {
-                self.amount_up = amount;
-                true
-            }
-            KeyCode::ArrowDown => {
-                self.amount_down = amount;
-                true
-            }
-            KeyCode::ArrowLeft => {
-                self.amount_left = amount;
-                true
-            }
-            KeyCode::ArrowRight => {
-                self.amount_right = amount;
-                true
-            }
-            KeyCode::KeyH if amount > 0. => {
-                self.rotate_camera_around(
-                    FRAC_PI_2 / 20.,
-                    0.,
-                    self.pivot_point.unwrap_or_else(FiniteVec3::zero),
-                );
-                self.cam0 = self.camera.borrow().clone();
-                true
-            }
-            KeyCode::KeyL if amount > 0. => {
-                self.rotate_camera_around(
-                    -FRAC_PI_2 / 20.,
-                    0.,
-                    self.pivot_point.unwrap_or_else(FiniteVec3::zero),
-                );
-                self.cam0 = self.camera.borrow().clone();
-                true
-            }
-            KeyCode::KeyJ if amount > 0. => {
-                self.rotate_camera_around(
-                    0.,
-                    FRAC_PI_2 / 20.,
-                    self.pivot_point.unwrap_or_else(FiniteVec3::zero),
-                );
-                self.cam0 = self.camera.borrow().clone();
-                true
-            }
-            KeyCode::KeyK if amount > 0. => {
-                self.rotate_camera_around(
-                    0.,
-                    -FRAC_PI_2 / 20.,
-                    self.pivot_point.unwrap_or_else(FiniteVec3::zero),
-                );
-                self.cam0 = self.camera.borrow().clone();
-                true
-            }
+            KeyCode::ArrowUp => process_translation(&mut self.amount_up),
+            KeyCode::ArrowRight => process_translation(&mut self.amount_right),
+            KeyCode::ArrowDown => process_translation(&mut self.amount_down),
+            KeyCode::ArrowLeft => process_translation(&mut self.amount_left),
+            KeyCode::KeyH => process_rotation(1., 0.),
+            KeyCode::KeyL => process_rotation(-1., 0.),
+            KeyCode::KeyJ => process_rotation(0., 1.),
+            KeyCode::KeyK => process_rotation(0., -1.),
             _ => false,
         }
     }
