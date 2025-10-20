@@ -2,3 +2,4 @@ target/
 .vscode/
 /ensnano-scene/*.stl
 *.stl
+NOTES.md
