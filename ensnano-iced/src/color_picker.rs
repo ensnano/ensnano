@@ -69,7 +69,7 @@ pub struct ColorPicker {
     size: f32,
     current_color: Hsv,
     color_history: VecDeque<Color>,
-    // TODO: Evaluate if using bounded-vec-deque crate is avantageous
+    // TODO: Evaluate if using bounded-vec-deque crate is advantageous
     //       https://docs.rs/bounded-vec-deque/0.1.0/bounded_vec_deque/index.html
 }
 
@@ -106,7 +106,7 @@ impl ColorPicker {
     }
 
     pub fn update(&mut self, message: Message) {
-        // TODO: Managed color_square internaly
+        // TODO: Managed color_square internally
         match message {
             // HueColumn message
             Message::HueChanged(hue) => {

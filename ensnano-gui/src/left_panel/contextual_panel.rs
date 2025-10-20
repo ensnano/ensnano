@@ -15,6 +15,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
+mod value_constructor;
+
 use super::super::DesignReader;
 use super::*;
 use ensnano_design::{BezierVertexId, grid::GridId};
@@ -24,11 +27,9 @@ use ensnano_iced::{
     theme,
 };
 use ensnano_interactor::{Selection, SimulationState};
-
-mod value_constructor;
 use ultraviolet::{Rotor3, Vec2};
 use value_constructor::{BezierVertexBuilder, Builder, GridBuilder};
-pub use value_constructor::{InstanciatedValue, ValueKind};
+pub use value_constructor::{InstantiatedValue, ValueKind};
 
 pub enum ValueRequest {
     HelixGridPosition {
@@ -50,9 +51,9 @@ pub enum ValueRequest {
 }
 
 impl ValueRequest {
-    fn from_value_and_selection(selection: &Selection, value: InstanciatedValue) -> Option<Self> {
+    fn from_value_and_selection(selection: &Selection, value: InstantiatedValue) -> Option<Self> {
         match value {
-            InstanciatedValue::HelixGridPosition(v) => {
+            InstantiatedValue::HelixGridPosition(v) => {
                 if let Selection::Grid(_, g_id) = selection {
                     Some(Self::HelixGridPosition {
                         grid_id: *g_id,
@@ -63,7 +64,7 @@ impl ValueRequest {
                     None
                 }
             }
-            InstanciatedValue::GridOrientation(orientation) => {
+            InstantiatedValue::GridOrientation(orientation) => {
                 if let Selection::Grid(_, g_id) = selection {
                     Some(Self::GridOrientation {
                         grid_id: *g_id,
@@ -74,7 +75,7 @@ impl ValueRequest {
                     None
                 }
             }
-            InstanciatedValue::GridNbTurn(nb_turn) => {
+            InstantiatedValue::GridNbTurn(nb_turn) => {
                 if let Selection::Grid(_, g_id) = selection {
                     Some(Self::GridNbTurn {
                         grid_id: *g_id,
@@ -85,7 +86,7 @@ impl ValueRequest {
                     None
                 }
             }
-            InstanciatedValue::BezierVertexPosition(pos) => {
+            InstantiatedValue::BezierVertexPosition(pos) => {
                 if let Selection::BezierVertex(vertex_id) = selection {
                     Some(Self::BezierVertexPosition {
                         vertex_id: *vertex_id,
@@ -457,7 +458,7 @@ where
         if let Some(b) = &mut self.builder {
             b.builder.update_str_value(kind, n, value)
         } else {
-            log::error!("Cannot update value: No instanciated builder");
+            log::error!("Cannot update value: No instantiated builder");
         }
     }
 
@@ -469,16 +470,16 @@ where
                 None
             }
         } else {
-            log::error!("Cannot submit value: No instanciated builder");
+            log::error!("Cannot submit value: No instantiated builder");
             None
         }
     }
 
-    pub fn request_from_value(&mut self, value: InstanciatedValue) -> Option<ValueRequest> {
+    pub fn request_from_value(&mut self, value: InstantiatedValue) -> Option<ValueRequest> {
         if let Some(b) = &mut self.builder {
             ValueRequest::from_value_and_selection(&b.selection, value)
         } else {
-            log::error!("Cannot submit value: No instanciated builder");
+            log::error!("Cannot submit value: No instantiated builder");
             None
         }
     }

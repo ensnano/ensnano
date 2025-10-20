@@ -11,7 +11,7 @@
 - Animation timeline
 - Publish `ensnano` on crates.io?
 - Hide scientific WIP, either:
-  - Authentification once the app is ported to the web
+  - Authentication once the app is ported to the web
   - Possibility to inject an external private crate with more objects
 
 ## Scene (3D)
@@ -81,6 +81,7 @@
 - Use `mod.rs` everywhere instead of `module.rs` and `<module>/`
 - kebab-case -> snake_case for the crate directories
 - Fix all typos using `cspell`
+  - Add serialization/deserialization tests to detect regressions based on typo fixes
 - More consistent styling:
   - Create some `rustfmt.toml` rules?
   - Merge imports?

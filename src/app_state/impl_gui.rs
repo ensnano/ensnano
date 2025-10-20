@@ -171,7 +171,7 @@ impl GuiState for AppState {
         !self.is_in_stable_state()
     }
 
-    fn get_current_revoultion_radius(&self) -> Option<f64> {
+    fn get_current_revolution_radius(&self) -> Option<f64> {
         self.0
             .unrooted_surface
             .descriptor

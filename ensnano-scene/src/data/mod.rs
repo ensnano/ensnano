@@ -678,7 +678,7 @@ impl<R: DesignReader> Data<R> {
         }
     }
 
-    /// Return the postion of a given element, either in the world pov or in the model pov
+    /// Return the position of a given element, either in the world pov or in the model pov
     fn get_element_position(
         &self,
         element: &SceneElement,

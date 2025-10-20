@@ -52,7 +52,7 @@ mod discrete_value;
 use discrete_value::{FactoryId, RequestFactory, Requestable, ValueId};
 
 mod contextual_panel;
-use contextual_panel::{ContextualPanel, InstanciatedValue, ValueKind};
+use contextual_panel::{ContextualPanel, InstantiatedValue, ValueKind};
 
 mod export_menu;
 use export_menu::ExportMenu;
@@ -156,7 +156,7 @@ pub enum Message<S: AppState> {
     NewSuggestionParameters(SuggestionParameters),
     ContextualValueChanged(ValueKind, usize, String),
     ContextualValueSubmitted(ValueKind),
-    InstanciatedValueSubmitted(InstanciatedValue),
+    InstantiatedValueSubmitted(InstantiatedValue),
     CheckXoversParameter(CheckXoversParameter),
     FollowStereographicCamera(bool),
     ShowStereographicCamera(bool),
@@ -732,7 +732,7 @@ where
             Message::ContextualValueChanged(kind, n, val) => {
                 self.contextual_panel.update_builder_value(kind, n, val);
             }
-            Message::InstanciatedValueSubmitted(value) => {
+            Message::InstantiatedValueSubmitted(value) => {
                 if let Some(request) = self.contextual_panel.request_from_value(value) {
                     request.make_request(Arc::clone(&self.requests))
                 }

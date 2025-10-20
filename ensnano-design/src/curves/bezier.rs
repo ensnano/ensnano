@@ -259,9 +259,9 @@ impl super::Curved for CubicBezier {
 
 /// A curve that is the concatenation of several cubic bezier curves.
 ///
-/// The process to derive a curve from `ends` is decribed in [BezierEnd](The documentation on `BezierEnd`).
+/// The process to derive a curve from `ends` is described in [BezierEnd](The documentation on `BezierEnd`).
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct InstanciatedPiecewiseBezier {
+pub struct InstantiatedPiecewiseBezier {
     pub ends: Vec<BezierEndCoordinates>,
     pub t_min: Option<f64>,
     pub t_max: Option<f64>,
@@ -278,15 +278,15 @@ fn is_false(b: &bool) -> bool {
     !b
 }
 
-impl PartialEq for InstanciatedPiecewiseBezier {
+impl PartialEq for InstantiatedPiecewiseBezier {
     fn eq(&self, other: &Self) -> bool {
         self.id == other.id
     }
 }
 
-impl Eq for InstanciatedPiecewiseBezier {}
+impl Eq for InstantiatedPiecewiseBezier {}
 
-impl std::hash::Hash for InstanciatedPiecewiseBezier {
+impl std::hash::Hash for InstantiatedPiecewiseBezier {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.id.hash(state)
     }
@@ -299,7 +299,7 @@ pub struct BezierEndCoordinates {
     pub vector_out: Vec3,
 }
 
-impl InstanciatedPiecewiseBezier {
+impl InstantiatedPiecewiseBezier {
     /// Return the index of the bezier curve that determines the position associated to time `t`.
     fn t_to_segment_time(&self, t: f64) -> SegmentTime {
         if t < 0.0 {
@@ -374,7 +374,7 @@ impl InstanciatedPiecewiseBezier {
 pub struct BezierEnd {
     /// The position of the end point, denoted p_i in the above definition
     pub position: GridPosition,
-    /// The inward derivative coeffcient, denoted c-_i in the above definition
+    /// The inward derivative coefficient, denoted c-_i in the above definition
     pub inward_coeff: f32,
     /// The outward derivative coefficient, denoted c+_i in the above definition
     pub outward_coeff: f32,
@@ -397,15 +397,15 @@ struct SegmentTime {
     time: f64,
 }
 
-impl super::Curved for InstanciatedPiecewiseBezier {
+impl super::Curved for InstantiatedPiecewiseBezier {
     fn t_max(&self) -> f64 {
         let n = if self.is_cyclic {
             self.ends.len() as f64
         } else {
             self.ends.len() as f64 - 1.0
         };
-        if let Some(tmax) = self.t_max {
-            tmax.max(n)
+        if let Some(t_max) = self.t_max {
+            t_max.max(n)
         } else {
             n
         }
@@ -447,7 +447,7 @@ impl super::Curved for InstanciatedPiecewiseBezier {
 }
 
 pub(super) struct TranslatedPiecewiseBezier {
-    pub original_curve: Arc<InstanciatedPiecewiseBezier>,
+    pub original_curve: Arc<InstantiatedPiecewiseBezier>,
     pub translation: DVec3,
     pub initial_frame: DMat3,
     pub legacy: bool,

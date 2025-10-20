@@ -35,7 +35,7 @@ use crate::{
 use ensnano_design::{
     AdditionalStructure, BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex,
     Collection, CubicBezierConstructor, CurveDescriptor, External3DObjects, HelixParameters,
-    InstanciatedPath, Nucl,
+    InstantiatedPath, Nucl,
     grid::{GridId, GridObject, GridPosition, HelixGridPosition},
 };
 pub use ensnano_design::{SurfaceInfo, SurfacePoint};
@@ -1801,7 +1801,7 @@ pub trait DesignReader: 'static + ensnano_interactor::DesignReader {
         &self,
     ) -> &dyn Collection<Item = BezierPlaneDescriptor, Key = BezierPlaneId>;
     fn get_parameters(&self) -> HelixParameters;
-    fn get_bezier_paths(&self) -> Option<&BTreeMap<BezierPathId, Arc<InstanciatedPath>>>;
+    fn get_bezier_paths(&self) -> Option<&BTreeMap<BezierPathId, Arc<InstantiatedPath>>>;
     fn get_bezier_vertex(&self, path_id: BezierPathId, vertex_id: usize) -> Option<BezierVertex>;
     fn get_corners_of_plane(&self, plane_id: BezierPlaneId) -> [Vec2; 4];
     fn get_optimal_xover_around(&self, source: Nucl, target: Nucl) -> Option<(Nucl, Nucl)>;

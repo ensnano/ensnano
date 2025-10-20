@@ -796,13 +796,13 @@ impl DesignContent {
                     last_xover_junction = Some(&mut strand.junctions[i]);
                 } else if let Domain::Insertion {
                     nb_nucl,
-                    instanciation,
+                    instantiation,
                     sequence: dom_seq,
                     ..
                 } = domain
                 {
-                    if let Some(instanciation) = instanciation.as_ref() {
-                        for (dom_position, pos) in instanciation.as_ref().pos().iter().enumerate() {
+                    if let Some(instantiation) = instantiation.as_ref() {
+                        for (dom_position, pos) in instantiation.as_ref().pos().iter().enumerate() {
                             let color = rainbow_iterator.next().unwrap_or(strand_color);
                             let basis = dom_seq
                                 .as_ref()

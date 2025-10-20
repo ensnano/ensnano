@@ -30,7 +30,7 @@ use crate::{
 use controller::{Controller, ErrOperation, InteractorNotification};
 use ensnano_design::{
     BezierPathId, BezierPlaneDescriptor, Design, HelixCollection, HelixParameters,
-    InstanciatedPiecewiseBezier, grid::GridId, group_attributes::GroupAttribute,
+    InstantiatedPiecewiseBezier, grid::GridId, group_attributes::GroupAttribute,
 };
 use ensnano_exports::{ExportResult, ExportType};
 use ensnano_gui::CurrentOpState;
@@ -389,7 +389,7 @@ impl DesignReader {
             .get(&group_id)
     }
 
-    pub fn get_bezier_path_2d(&self, path_id: BezierPathId) -> Option<InstanciatedPiecewiseBezier> {
+    pub fn get_bezier_path_2d(&self, path_id: BezierPathId) -> Option<InstantiatedPiecewiseBezier> {
         self.presenter.get_bezier_path_2d(path_id)
     }
 

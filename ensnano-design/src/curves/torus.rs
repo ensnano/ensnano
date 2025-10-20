@@ -17,10 +17,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::Curved;
-use crate::{HelixParameters, InstanciatedPiecewiseBezier};
+use crate::{HelixParameters, InstantiatedPiecewiseBezier};
 use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
-use std::f64::consts::TAU;
+use std::f64::consts::{PI, TAU};
 use std::sync::Arc;
 use ultraviolet::{DVec2, DVec3, Isometry3, Rotor3};
 
@@ -64,7 +64,7 @@ impl Torus {
         let mut u = DVec2 { x: a, y: 0. };
         let mut t = 0f64;
         for i in 0..nb_steps + 1 {
-            // SHOULD COMPUTE A CHEBYCHEB POLY APPROX
+            // SHOULD COMPUTE A CHEBYSHEV POLY APPROX
             if sp <= 0. {
                 break;
             }
@@ -153,7 +153,7 @@ pub enum CurveDescriptor2D {
         radius_tube: OrderedFloat<f64>,
         smooth_ceil: OrderedFloat<f64>,
     },
-    Bezier(InstanciatedPiecewiseBezier),
+    Bezier(InstantiatedPiecewiseBezier),
     Parabola {
         speed: OrderedFloat<f64>,
     },
@@ -190,7 +190,6 @@ impl CurveDescriptor2D {
                 radius_intern,
                 smooth_ceil,
             } => {
-                use std::f64::consts::PI;
                 let radius_intern = f64::from(*radius_intern);
                 let radius_tube = f64::from(*radius_tube);
                 let radius_extern = f64::from(*radius_extern);
@@ -382,7 +381,7 @@ impl CurveDescriptor2D {
         Self::_3d(point2d, &point.clone().into())
     }
 
-    /// Return the derivative of the position on surface with respect to the section paramter
+    /// Return the derivative of the position on surface with respect to the section parameter
     pub fn derivative_position_on_surface_wrp_section_parameter(
         &self,
         point: &PointOnSurface,
@@ -391,7 +390,7 @@ impl CurveDescriptor2D {
         Self::_3d(point2d, &point.clone().into())
     }
 
-    /// Return the derivative of the position on surface with respect to the section paramter
+    /// Return the derivative of the position on surface with respect to the section parameter
     pub fn second_derivative_position_on_surface_wrp_section_parameter(
         &self,
         point: &PointOnSurface,
@@ -438,7 +437,7 @@ impl CurveDescriptor2D {
 pub struct PointOnSurface {
     /// Parameter along the surface of the curve, in [0, 1]
     pub section_parameter: f64,
-    /// Angle of revomultion in [0, 2pi]
+    /// Angle of revolution in [0, 2pi]
     pub revolution_angle: f64,
     pub revolution_axis_position: f64,
     pub section_half_turn_per_revolution: isize,
@@ -468,25 +467,25 @@ impl From<PointOnSurface> for PointOnSurface_ {
     }
 }
 
-struct InstanciatedEllipse {
+struct InstantiatedEllipse {
     semi_major_axis: f64,
     semi_minor_axis: f64,
-    cached_curvlinear_abscissa: Vec<f64>,
+    cached_curvilinear_abscissa: Vec<f64>,
 }
 
-impl InstanciatedEllipse {
+impl InstantiatedEllipse {
     fn new(semi_minor_axis: f64, semi_major_axis: f64) -> Self {
         let mut ret = Self {
             semi_minor_axis: semi_minor_axis as f64,
             semi_major_axis: semi_major_axis as f64,
-            cached_curvlinear_abscissa: Vec::new(),
+            cached_curvilinear_abscissa: Vec::new(),
         };
-        ret.initialise_cache();
+        ret.initialize_cache();
         ret
     }
 }
 
-impl Curve2D for InstanciatedEllipse {
+impl Curve2D for InstantiatedEllipse {
     fn position(&self, t: f64) -> DVec2 {
         let t = TAU * t;
         DVec2 {
@@ -495,26 +494,26 @@ impl Curve2D for InstanciatedEllipse {
         }
     }
 
-    fn symetry_order(&self) -> usize {
+    fn symmetry_order(&self) -> usize {
         2
     }
 
-    fn get_cached_curvlinear_abscissa(&self) -> Option<&[f64]> {
-        Some(&self.cached_curvlinear_abscissa)
+    fn get_cached_curvilinear_abscissa(&self) -> Option<&[f64]> {
+        Some(&self.cached_curvilinear_abscissa)
     }
 
-    fn get_cached_curvlinear_abscissa_mut(&mut self) -> Option<&mut Vec<f64>> {
-        Some(&mut self.cached_curvlinear_abscissa)
+    fn get_cached_curvilinear_abscissa_mut(&mut self) -> Option<&mut Vec<f64>> {
+        Some(&mut self.cached_curvilinear_abscissa)
     }
 }
 
 impl CurveDescriptor2D {
-    fn instanciate(self) -> Arc<dyn Curve2D + Sync + Send> {
+    fn instantiate(self) -> Arc<dyn Curve2D + Sync + Send> {
         match self {
             Self::Ellipse {
                 semi_minor_axis,
                 semi_major_axis,
-            } => Arc::new(InstanciatedEllipse::new(*semi_minor_axis, *semi_major_axis)),
+            } => Arc::new(InstantiatedEllipse::new(*semi_minor_axis, *semi_major_axis)),
             _ => todo!(),
         }
     }
@@ -523,14 +522,14 @@ impl CurveDescriptor2D {
 trait Curve2D {
     fn position(&self, t: f64) -> DVec2;
 
-    fn symetry_order(&self) -> usize;
+    fn symmetry_order(&self) -> usize;
 
-    fn get_cached_curvlinear_abscissa_mut(&mut self) -> Option<&mut Vec<f64>>;
+    fn get_cached_curvilinear_abscissa_mut(&mut self) -> Option<&mut Vec<f64>>;
 
-    fn get_cached_curvlinear_abscissa(&self) -> Option<&[f64]>;
+    fn get_cached_curvilinear_abscissa(&self) -> Option<&[f64]>;
 
     fn t_for_curvilinear_abscissa(&self, s_objective: f64) -> f64 {
-        self.get_cached_curvlinear_abscissa()
+        self.get_cached_curvilinear_abscissa()
             .map(|cache| {
                 let idx = search_dicho(s_objective, cache).expect("search dicho");
                 let s = cache[idx];
@@ -547,7 +546,7 @@ trait Curve2D {
                 let mut u = self.position(0.);
                 let mut t = 0.;
                 for i in 0..=NB_STEPS {
-                    // SHOULD COMPUTE A CHEBYCHEB POLY APPROX
+                    // SHOULD COMPUTE A CHEBYSHEV POLY APPROX
                     if sp <= 0. {
                         return t;
                     }
@@ -561,7 +560,7 @@ trait Curve2D {
     }
 
     fn curvilinear_abscissa(&self, t: f64) -> f64 {
-        if let Some(cache) = self.get_cached_curvlinear_abscissa() {
+        if let Some(cache) = self.get_cached_curvilinear_abscissa() {
             let idx = (t * (cache.len() - 1) as f64) as usize;
             let s = cache[idx];
             let p = self.position(idx as f64 / (cache.len() - 1) as f64);
@@ -581,8 +580,8 @@ trait Curve2D {
         }
     }
 
-    fn initialise_cache(&mut self) {
-        let len = if self.get_cached_curvlinear_abscissa_mut().is_some() {
+    fn initialize_cache(&mut self) {
+        let len = if self.get_cached_curvilinear_abscissa_mut().is_some() {
             NB_STEPS
         } else {
             0
@@ -600,7 +599,7 @@ trait Curve2D {
                 p = p_;
                 cache.push(s);
             }
-            if let Some(saved_cache) = self.get_cached_curvlinear_abscissa_mut() {
+            if let Some(saved_cache) = self.get_cached_curvilinear_abscissa_mut() {
                 *saved_cache = cache;
             }
         }
@@ -630,7 +629,7 @@ fn search_dicho(goal: f64, slice: &[f64]) -> Option<usize> {
 }
 
 pub(super) struct TwistedTorus {
-    instanciated_curve: Arc<dyn Curve2D + Sync + Send>,
+    instantiated_curve: Arc<dyn Curve2D + Sync + Send>,
     descriptor: TwistedTorusDescriptor,
     /// A scaling of the revolving curve so that the correct number of helices fit in the shape
     scale: f64,
@@ -644,6 +643,7 @@ pub(super) struct TwistedTorus {
 pub struct TwistedTorusDescriptor {
     pub curve: CurveDescriptor2D,
     /// Number of time the shape appears in a full turn
+    // cspell:disable-next-line
     #[serde(alias = "half_twist_count_per_turn", alias = "symetry_per_turn")]
     pub symmetry_per_turn: isize,
     /// Radius of the structure,
@@ -657,20 +657,20 @@ pub struct TwistedTorusDescriptor {
 
 impl TwistedTorus {
     pub fn new(descriptor: TwistedTorusDescriptor, helix_parameters: &HelixParameters) -> Self {
-        let instanciated_curve = descriptor.curve.clone().instanciate();
+        let instantiated_curve = descriptor.curve.clone().instantiate();
         let scale = 2.
             * Self::inter_helix_gap(helix_parameters)
             * descriptor.number_of_helix_per_section as f64
-            / instanciated_curve.perimeter();
+            / instantiated_curve.perimeter();
         let shift_per_turn = descriptor.helix_index_shift_per_turn;
         let nb_helices = descriptor.number_of_helix_per_section;
-        let nb_symetry_per_turn = descriptor.symmetry_per_turn;
-        let rho = instanciated_curve.symetry_order();
+        let nb_symmetry_per_turn = descriptor.symmetry_per_turn;
+        let rho = instantiated_curve.symmetry_order();
 
-        // At each turn, all helices positions are shifted by total_shift = nb_helices / rho * number of symetry
+        // At each turn, all helices positions are shifted by total_shift = nb_helices / rho * number of symmetry
         // per turn
         //
-        // ex for rho = 4, and 1 symetry per turn
+        // ex for rho = 4, and 1 symmetry per turn
         //
         // 1 2 3
         // 8   4
@@ -680,7 +680,8 @@ impl TwistedTorus {
         // 6   2
         // 5 4 3
         // in addition, the helix is shifted by `shift_per_turn` position every turn.
-        let total_shift = shift_per_turn + nb_helices as isize * nb_symetry_per_turn / rho as isize;
+        let total_shift =
+            shift_per_turn + nb_helices as isize * nb_symmetry_per_turn / rho as isize;
 
         // The number of turn needed for an helix to return to its initial position is k where:
         //  k * total_shift == gcm(total_shift, nb_helices).
@@ -692,8 +693,8 @@ impl TwistedTorus {
         Self {
             descriptor,
             scale,
-            perimeter: instanciated_curve.perimeter(),
-            instanciated_curve,
+            perimeter: instantiated_curve.perimeter(),
+            instantiated_curve,
             nb_turn_per_helix,
             helix_parameters: *helix_parameters,
         }
@@ -745,13 +746,13 @@ impl Curved for TwistedTorus {
         let s_theta = self.objective_s(theta) / self.scale;
 
         let t_curve = self
-            .instanciated_curve
+            .instantiated_curve
             .t_for_curvilinear_abscissa(s_theta.rem_euclid(self.perimeter));
 
-        let point_curve = self.instanciated_curve.position(t_curve) * self.scale;
+        let point_curve = self.instantiated_curve.position(t_curve) * self.scale;
 
         let curve_angle = self.descriptor.symmetry_per_turn as f64 * theta
-            / (self.instanciated_curve.symetry_order() as f64);
+            / (self.instantiated_curve.symmetry_order() as f64);
 
         let rotated_curve_x = point_curve.x * curve_angle.cos() - point_curve.y * curve_angle.sin();
         let rotated_curve_y = point_curve.x * curve_angle.sin() + point_curve.y * curve_angle.cos();

@@ -27,7 +27,7 @@ use super::{
     curves::{AbscissaConverter, CurveDescriptor2D},
 };
 use curves::{
-    CurveCache, CurveInstantiator, InstanciatedCurve, InstanciatedCurveDescriptor, PathTimeMaps,
+    CurveCache, CurveInstantiator, InstantiatedCurve, InstantiatedCurveDescriptor, PathTimeMaps,
     RevolutionCurveTimeMaps,
 };
 use std::collections::{BTreeMap, HashMap, HashSet};
@@ -776,7 +776,7 @@ impl GridData {
             && Arc::ptr_eq(&self.no_phantoms, &design.no_phantoms)
             && Arc::ptr_eq(&self.small_spheres, &design.small_spheres)
             && design
-                .instanciated_paths
+                .instantiated_paths
                 .as_ref()
                 .zip(self.paths_data.as_ref())
                 .map(|(data, paths_data)| BezierPathData::ptr_eq(data, paths_data))
@@ -1239,7 +1239,7 @@ impl GridData {
             })
             .or_else(|| {
                 helix
-                    .instanciated_curve
+                    .instantiated_curve
                     .as_ref()
                     .and_then(|c| c.curve.as_ref().abscissa_converter.clone())
             })
@@ -1370,13 +1370,13 @@ impl CurveInstantiator for GridData {
 }
 
 impl GridData {
-    fn update_instanciated_curve_descriptor(&self, helix: &mut Helix) {
+    fn update_instantiated_curve_descriptor(&self, helix: &mut Helix) {
         if let Some(curve) = helix.curve.clone() {
-            helix.instanciated_descriptor = Some(Arc::new(
-                InstanciatedCurveDescriptor::instanciate(curve, self),
+            helix.instantiated_descriptor = Some(Arc::new(
+                InstantiatedCurveDescriptor::instantiate(curve, self),
             ))
         } else {
-            helix.instanciated_descriptor = None;
+            helix.instantiated_descriptor = None;
         }
     }
 
@@ -1387,7 +1387,7 @@ impl GridData {
             .map(|p| helix.need_curve_descriptor_update(&self.source_free_grids, p))
             .unwrap_or(true)
         {
-            self.update_instanciated_curve_descriptor(helix)
+            self.update_instantiated_curve_descriptor(helix)
         }
 
         if self
@@ -1396,11 +1396,11 @@ impl GridData {
             .map(|p| helix.need_curve_update(&self.source_free_grids, p))
             .unwrap_or(true)
         {
-            if let Some(desc) = helix.instanciated_descriptor.as_ref() {
+            if let Some(desc) = helix.instantiated_descriptor.as_ref() {
                 let hp = helix.helix_parameters.unwrap_or(self.helix_parameters);
                 let curve = desc.make_curve(&hp, cached_curve);
                 curve.update_additional_segments(&mut helix.additional_isometries);
-                helix.instanciated_curve = Some(InstanciatedCurve {
+                helix.instantiated_curve = Some(InstantiatedCurve {
                     curve,
                     source: desc.clone(),
                 });

@@ -54,7 +54,7 @@ pub struct InterpolatedCurveDescriptor {
 }
 
 impl InterpolatedCurveDescriptor {
-    pub(super) fn instanciate(self, init_interpolators: bool) -> Revolution {
+    pub(super) fn instantiate(self, init_interpolators: bool) -> Revolution {
         let curve = self.curve.clone();
         let curve = SmoothInterpolatedCurve::from_curve_interpolation(
             curve,

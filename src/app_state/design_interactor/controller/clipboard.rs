@@ -117,7 +117,7 @@ struct StrandTemplate {
 }
 
 #[derive(Debug, Clone)]
-/// The starting point of a template. Used to determine weither a nucleotide is a correct starting
+/// The starting point of a template. Used to determine whether a nucleotide is a correct starting
 /// point for a copy of the strand.
 struct TemplateOrigin {
     helix: HelixGridPosition,
@@ -128,7 +128,7 @@ struct TemplateOrigin {
 #[derive(Debug, Clone)]
 /// A domain of a template.
 /// The HelixInterval variant does not have an helix attribute because helices are determined by
-/// a path in the grid's graph when instanciating the template.
+/// a path in the grid's graph when instantiating the template.
 enum DomainTemplate {
     Insertion(usize),
     HelixInterval {

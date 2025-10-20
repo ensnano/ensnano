@@ -29,7 +29,7 @@ use self::design_content::Staple;
 
 use super::*;
 use design_content::DesignContent;
-use ensnano_design::{BezierPathId, Extremity, HelixCollection, InstanciatedPiecewiseBezier, Nucl};
+use ensnano_design::{BezierPathId, Extremity, HelixCollection, InstantiatedPiecewiseBezier, Nucl};
 use ensnano_interactor::{
     NeighborDescriptor, NeighborDescriptorGiver, Referential, ScaffoldInfo, Selection,
     application::Camera3D,
@@ -516,12 +516,12 @@ impl Presenter {
         )
     }
 
-    pub fn get_bezier_path_2d(&self, path_id: BezierPathId) -> Option<InstanciatedPiecewiseBezier> {
+    pub fn get_bezier_path_2d(&self, path_id: BezierPathId) -> Option<InstantiatedPiecewiseBezier> {
         use ensnano_design::Collection;
         self.current_design
             .bezier_paths
             .get(&path_id)
-            .and_then(|path| path.to_instanciated_path_2d())
+            .and_then(|path| path.to_instantiated_path_2d())
     }
 
     pub fn get_xovers_list(&self) -> Vec<(Nucl, Nucl)> {

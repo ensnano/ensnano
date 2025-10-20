@@ -311,11 +311,11 @@ pub(super) fn to_oxdna(design: &Design, basis_map: BasisMapper) -> (OxDnaConfig,
                     strand_maker.add_ox_nucl(ox_nucl, Some(nucl));
                 }
             } else if let Domain::Insertion {
-                instanciation: Some(instanciation),
+                instantiation: Some(instantiation),
                 ..
             } = d
             {
-                for (dom_position, space_position) in instanciation.pos().iter().enumerate() {
+                for (dom_position, space_position) in instantiation.pos().iter().enumerate() {
                     strand_maker.add_free_nucl(*space_position, dom_position);
                 }
             }
