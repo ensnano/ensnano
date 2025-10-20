@@ -23,18 +23,6 @@ authors = [
 edition = "2024"
 license = "GPL-3.0-or-later"
 
-# Enable max optimizations for dependencies, but not for our code:
-[profile.dev.package."*"]
-opt-level = 3
-
-[package]
-name = "ensnano"
-resolver = "2"
-version.workspace = true
-authors.workspace = true
-edition.workspace = true
-license.workspace = true
-
 [workspace.dependencies]
 ensnano_design = { path = "ensnano-design" }
 ensnano_exports = { path = "ensnano-exports" }
@@ -111,6 +99,18 @@ ultraviolet = { git = "https://github.com/termhn/ultraviolet", rev = "b2fb29e", 
 version-compare = "0.1.0"
 wgpu = { version = "0.19", features = ["spirv"] }
 winit = "0.29"
+
+# Enable max optimizations for dependencies, but not for our code:
+[profile.dev.package."*"]
+opt-level = 3
+
+[package]
+name = "ensnano"
+resolver = "2"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
 
 [dependencies]
 ensnano_design.workspace = true
