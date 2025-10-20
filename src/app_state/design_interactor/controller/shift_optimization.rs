@@ -110,7 +110,7 @@ fn get_shift_optimization_result(
     nucl_collection: &NuclCollection,
 ) -> ShiftOptimizationResult {
     let mut best_score = usize::MAX;
-    let mut best_shfit = 0;
+    let mut best_shift = 0;
     let mut best_result = String::new();
     let len = design
         .scaffold_sequence
@@ -126,7 +126,7 @@ fn get_shift_optimization_result(
         if score < best_score {
             println!("shift {} score {}", shift, score);
             best_score = score;
-            best_shfit = shift;
+            best_shift = shift;
             best_result = result;
         }
         if score == 0 {
@@ -134,7 +134,7 @@ fn get_shift_optimization_result(
         }
     }
     Ok(ShiftOptimizationOk {
-        position: best_shfit,
+        position: best_shift,
         score: best_result,
     })
 }

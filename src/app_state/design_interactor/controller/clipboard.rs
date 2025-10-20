@@ -279,7 +279,7 @@ impl Controller {
             .zip(Some(nucl2.position - nucl1.position))
     }
 
-    fn edge_beteen_nucls(
+    fn edge_between_nucls(
         helices: &Helices,
         grid_manager: &GridData,
         n1: &Nucl,
@@ -637,7 +637,7 @@ impl Controller {
                         clipboard,
                     };
                 } else {
-                    // If it is not possible to ducplicate here, cancel the duplication
+                    // If it is not possible to duplicate here, cancel the duplication
                     self.state = ControllerState::Normal
                 }
                 Ok(design)
@@ -708,7 +708,7 @@ impl Controller {
                     .get(0)
                     .map(|n| n.0)
                     .ok_or(ErrOperation::EmptyClipboard)?;
-                let edge = Self::edge_beteen_nucls(
+                let edge = Self::edge_between_nucls(
                     data.helices,
                     data.grid_data,
                     &n1,
@@ -946,7 +946,7 @@ impl Controller {
             .ok_or(ErrOperation::WrongClipboard)?;
         let edge = nucl
             .as_ref()
-            .and_then(|n2| Self::edge_beteen_nucls(data.helices, data.grid_data, &n1, n2));
+            .and_then(|n2| Self::edge_between_nucls(data.helices, data.grid_data, &n1, n2));
         self.state
             .update_xover_pasting_position(nucl, edge, design)?;
         let data = design.mut_strand_and_data();

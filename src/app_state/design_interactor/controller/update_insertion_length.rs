@@ -100,7 +100,7 @@ impl Controller {
                     }
                 }
             } else {
-                // the nucl is the 5' end of the splited strand
+                // the nucl is the 5' end of the split strand
                 strand_mut
                     .domains
                     .insert(0, Domain::new_prime5_insertion(length));

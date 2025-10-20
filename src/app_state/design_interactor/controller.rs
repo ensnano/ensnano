@@ -1163,7 +1163,7 @@ impl Controller {
         }
     }
 
-    /// Apply an opperation that cannot fail on the design
+    /// Apply an operation that cannot fail on the design
     fn ok_apply<F>(&self, design_op: F, design: &Design) -> (OkOperation, Self)
     where
         F: FnOnce(&mut Self, Design) -> Design,
@@ -1889,7 +1889,7 @@ pub enum ErrOperation {
     /// The controller is in a state incompatible with applying the operation
     IncompatibleState(String),
     CannotBuildOn(Nucl),
-    CutInexistingStrand,
+    CutNonExistentStrand,
     GridDoesNotExist(GridId),
     GridPositionAlreadyUsed,
     StrandDoesNotExist(usize),
@@ -2405,7 +2405,7 @@ impl Controller {
     ) -> Result<usize, ErrOperation> {
         let id = strands
             .get_strand_nucl(nucl)
-            .ok_or(ErrOperation::CutInexistingStrand)?;
+            .ok_or(ErrOperation::CutNonExistentStrand)?;
 
         let strand = strands.remove(&id).expect("strand");
         let name = strand.name.clone();
@@ -2418,7 +2418,7 @@ impl Controller {
         }
         if strand.length() <= 1 {
             // return without putting the strand back
-            return Err(ErrOperation::CutInexistingStrand);
+            return Err(ErrOperation::CutNonExistentStrand);
         }
         let mut i = strand.domains.len();
         let mut prim5_domains = Vec::new();
@@ -2430,7 +2430,7 @@ impl Controller {
         let mut prime3_junctions: Vec<DomainJunction> = Vec::new();
         let mut prim3_domains = Vec::new();
 
-        log::info!("Spliting");
+        log::info!("Splitting");
         log::info!("{:?}", strand.domains);
         log::info!("{:?}", strand.junctions);
 
