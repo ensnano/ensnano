@@ -15,44 +15,44 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use super::super::GridInstance;
-use super::super::maths_3d::{Basis3D, UnalignedBoundaries};
-use super::super::view::{
-    ConeInstance, Ellipsoid, Instantiable, RawDnaInstance, Sheet2D, SlicedTubeInstance,
-    SphereInstance, TubeInstance, TubeLidInstance,
-};
-use super::{LetterInstance, SceneElement};
-use crate::rotor_utils::SafeRotor as _;
-use crate::sausage_rosary::SausageRosary;
-use crate::view::PlainRectangleInstance;
-use ensnano_design::grid::{GridId, GridObject, GridPosition};
-use ensnano_design::{
-    AdditionalStructure, BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex,
-    Collection, CubicBezierConstructor, CurveDescriptor, External3DObjects, HelixParameters,
-    InstanciatedPath,
-};
-use ensnano_design::{Nucl, grid::HelixGridPosition};
-pub use ensnano_design::{SurfaceInfo, SurfacePoint};
-use ensnano_interactor::consts::*;
-use ensnano_interactor::{
-    BezierControlPoint, ObjectType, PHANTOM_RANGE, PhantomElement, Referential,
-    graphics::{LoopoutBond, LoopoutNucl},
-    phantom_helix_encoder_bond, phantom_helix_encoder_nucl,
-};
-use ensnano_utils::colors;
-use ensnano_utils::instance::Instance;
-use std::collections::hash_map::RandomState;
-use std::collections::{BTreeMap, HashMap, HashSet};
-use std::f32::consts::TAU;
-use std::rc::Rc;
-use std::sync::Arc;
-use ultraviolet::{Mat4, Rotor3, Vec2, Vec3};
+
+//! This module handles the instantiation of designs as 3D geometric objects
 
 mod bezier_paths;
 
-use crate::SceneElement::DesignElement;
-
-use ensnano_utils::StrandNucleotidesPositions;
+use super::{LetterInstance, SceneElement};
+use crate::{
+    GridInstance,
+    SceneElement::DesignElement,
+    maths_3d::{Basis3D, UnalignedBoundaries},
+    rotor_utils::SafeRotor as _,
+    sausage_rosary::SausageRosary,
+    view::{
+        ConeInstance, Ellipsoid, Instantiable, PlainRectangleInstance, RawDnaInstance, Sheet2D,
+        SlicedTubeInstance, SphereInstance, TubeInstance, TubeLidInstance,
+    },
+};
+use ensnano_design::{
+    AdditionalStructure, BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex,
+    Collection, CubicBezierConstructor, CurveDescriptor, External3DObjects, HelixParameters,
+    InstanciatedPath, Nucl,
+    grid::{GridId, GridObject, GridPosition, HelixGridPosition},
+};
+pub use ensnano_design::{SurfaceInfo, SurfacePoint};
+use ensnano_interactor::{
+    BezierControlPoint, ObjectType, PHANTOM_RANGE, PhantomElement, Referential,
+    consts::*,
+    graphics::{LoopoutBond, LoopoutNucl},
+    phantom_helix_encoder_bond, phantom_helix_encoder_nucl,
+};
+use ensnano_utils::{StrandNucleotidesPositions, colors, instance::Instance};
+use std::{
+    collections::{BTreeMap, HashMap, HashSet, hash_map::RandomState},
+    f32::consts::TAU,
+    rc::Rc,
+    sync::Arc,
+};
+use ultraviolet::{Mat4, Rotor3, Vec2, Vec3};
 
 /// An object that handles the 3d graphical representation of a `Design`
 pub struct Design3D<R: DesignReader> {
@@ -591,7 +591,7 @@ impl<R: DesignReader> Design3D<R> {
             .collect()
     }
 
-    /// Return (h bonds instances, ellipoids instances)
+    /// Return (h bonds instances, ellipsoids instances)
     pub(super) fn get_all_h_bonds(&self) -> HBondsInstances {
         let mut full_h_bonds = Vec::new();
         let mut partial_h_bonds = Vec::new();
@@ -682,7 +682,7 @@ impl<R: DesignReader> Design3D<R> {
         }
     }
 
-    /// Auxilary function that computes the length-adjusted color of a bond
+    /// Auxiliary function that computes the length-adjusted color of a bond
     /// return None if color does not need to be adjusted
     pub fn length_adjusted_color_and_radius_for_bond(
         &self,
@@ -727,7 +727,7 @@ impl<R: DesignReader> Design3D<R> {
                     self.get_graphic_element_position(&SceneElement::DesignElement(self.id, id2))?;
                 let color = self.get_color(id).unwrap_or(0x00_00_00);
                 let id = id | self.id << 24;
-                // Adjust the color and rafius of the bond according to the REAL length of the bond
+                // Adjust the color and radius of the bond according to the REAL length of the bond
                 let xover_coloring = self.get_xover_coloring(id).unwrap_or(true);
                 let (color, radius_scale) = (if xover_coloring {
                     self.length_adjusted_color_and_radius_for_bond(id1, id2)
@@ -772,7 +772,7 @@ impl<R: DesignReader> Design3D<R> {
                 let rotor_inv = Rotor3::safe_from_rotation_to_unit_x_from(normalized);
                 let color = self.get_color(id).unwrap_or(0x00_00_00);
                 let id = id | self.id << 24;
-                // Adjust the color and rafius of the bond according to the REAL length of the bond
+                // Adjust the color and radius of the bond according to the REAL length of the bond
                 let xover_coloring = self.get_xover_coloring(id).unwrap_or(true);
                 let (color, radius_scale) = (if xover_coloring {
                     self.length_adjusted_color_and_radius_for_bond(nucl1_id, nucl2_id)
@@ -832,7 +832,7 @@ impl<R: DesignReader> Design3D<R> {
                     let color = self.get_color(id).unwrap_or(HELIX_CYLINDER_COLOR);
                     let color = Instance::add_alpha_to_clear_color_u32(color);
                     let id = id | self.id << 24;
-                    // Adjust the color and rafius of the bond according to the REAL length of the bond
+                    // Adjust the color and radius of the bond according to the REAL length of the bond
                     let radius = self.get_radius(id).unwrap_or(HELIX_CYLINDER_RADIUS);
                     let (lid1, tube, lid2) =
                         create_helix_cylinder(pos1, pos2, radius, color, id, true);
@@ -862,7 +862,7 @@ impl<R: DesignReader> Design3D<R> {
                     // REQUIRE: nucl1 and nucl2 are on the forward strand and in increasing order
                     assert_eq!(
                         nucl1.helix, nucl2.helix,
-                        "Helix cylinder accross different helices"
+                        "Helix cylinder across different helices"
                     );
                     assert!(
                         nucl1.forward && nucl2.forward,

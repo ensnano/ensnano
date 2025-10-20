@@ -637,7 +637,7 @@ impl<R: DesignReader> Data<R> {
 
         if strand_3prime.is_none() || strand_5prime.is_none() {
             log::error!(
-                "Problem during cross-over attempt. If you are not trying to break a cyclic strand please repport a bug"
+                "Problem during cross-over attempt. If you are not trying to break a cyclic strand please report a bug"
             );
         }
         (strand_5prime.unwrap(), strand_3prime.unwrap())
@@ -737,7 +737,7 @@ impl<R: DesignReader> Data<R> {
             if let Some((mut old_translation_pivots, mut old_rotation_pivots)) =
                 self.get_pivot_of_selected_helices(camera, &new_selection)
             {
-                apply_symetric_difference_to_pivots(
+                apply_symmetric_difference_to_pivots(
                     &mut old_translation_pivots,
                     &mut old_rotation_pivots,
                     &selection,
@@ -745,7 +745,7 @@ impl<R: DesignReader> Data<R> {
                 translation_pivots.append(&mut old_translation_pivots);
                 rotation_pivots.append(&mut old_rotation_pivots);
             }
-            apply_symetric_difference_to_selection(&mut selection, &mut new_selection);
+            apply_symmetric_difference_to_selection(&mut selection, &mut new_selection);
             selection.append(&mut new_selection);
             new_selection = selection;
         } else {
@@ -1167,7 +1167,7 @@ impl GraphicalSelection {
 
 /// Remove the element of `old_translation_pivots` and `old_rotation_pivots` that corresponds to an
 /// element existing in `selection`
-fn apply_symetric_difference_to_pivots(
+fn apply_symmetric_difference_to_pivots(
     old_translation_pivots: &mut Vec<FlatNucl>,
     old_rotation_pivots: &mut Vec<Vec2>,
     selection: &[Selection],
@@ -1189,7 +1189,7 @@ fn apply_symetric_difference_to_pivots(
     }
 }
 
-fn apply_symetric_difference_to_selection(
+fn apply_symmetric_difference_to_selection(
     old_selection: &mut Vec<Selection>,
     new_selection: &mut Vec<Selection>,
 ) {

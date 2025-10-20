@@ -16,10 +16,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use crate::element_selector;
-
 use super::super::AppState;
 use super::*;
+use crate::element_selector;
 use ensnano_design::{BezierEndCoordinates, BezierVertexId};
 use ensnano_interactor::Selection;
 
@@ -30,36 +29,36 @@ impl<R: DesignReader> Design3D<R> {
         if let Some(constructor) = self.design_reader.get_cubic_bezier_controls(h_id) {
             log::info!("got control");
             for (control_point, position) in constructor.iter() {
-                spheres.push(make_bezier_controll(
+                spheres.push(make_bezier_control(
                     *position,
                     h_id as u32,
                     BezierControlPoint::CubicBezier(control_point),
                 ));
             }
-            tubes.push(make_bezier_squelton(
+            tubes.push(make_bezier_skeleton(
                 constructor.start,
                 constructor.control1,
             ));
-            tubes.push(make_bezier_squelton(
+            tubes.push(make_bezier_skeleton(
                 constructor.control1,
                 constructor.control2,
             ));
-            tubes.push(make_bezier_squelton(constructor.control2, constructor.end));
+            tubes.push(make_bezier_skeleton(constructor.control2, constructor.end));
             (spheres, tubes)
         } else if let Some(controls) = self.design_reader.get_piecewise_bezier_controls(h_id) {
             let mut iter = controls.into_iter().enumerate();
             while let Some(((n1, c1), (n2, c2))) = iter.next().zip(iter.next()) {
-                spheres.push(make_bezier_controll(
+                spheres.push(make_bezier_control(
                     c1,
                     h_id as u32,
                     BezierControlPoint::PiecewiseBezier(n1),
                 ));
-                spheres.push(make_bezier_controll(
+                spheres.push(make_bezier_control(
                     c2,
                     h_id as u32,
                     BezierControlPoint::PiecewiseBezier(n2),
                 ));
-                tubes.push(make_bezier_squelton(c1, c2));
+                tubes.push(make_bezier_skeleton(c1, c2));
             }
             (spheres, tubes)
         } else {
@@ -111,7 +110,7 @@ impl<R: DesignReader> Design3D<R> {
             let corners = self.design_reader.get_corners_of_plane(*plane_id);
             let sheet = get_sheet_instance(SheetDescriptor {
                 corners,
-                plane_descritor: desc,
+                plane_descriptor: desc,
                 plane_id: *plane_id,
                 helix_parameters: self.design_reader.get_parameters(),
                 axis_position: axis_position.filter(|_| first),
@@ -201,7 +200,7 @@ fn corners_of_sheet(sheet: &Sheet2D) -> Vec<RawDnaInstance> {
 struct SheetDescriptor<'a> {
     corners: [Vec2; 4],
     plane_id: BezierPlaneId,
-    plane_descritor: &'a BezierPlaneDescriptor,
+    plane_descriptor: &'a BezierPlaneDescriptor,
     helix_parameters: HelixParameters,
     axis_position: Option<f64>,
 }
@@ -214,8 +213,8 @@ fn get_sheet_instance(desc: SheetDescriptor) -> Sheet2D {
     let axis_position = desc.axis_position.map(|x| x as f32);
     let mut ret = Sheet2D {
         plane_id: desc.plane_id,
-        position: desc.plane_descritor.position,
-        orientation: desc.plane_descritor.orientation,
+        position: desc.plane_descriptor.position,
+        orientation: desc.plane_descriptor.orientation,
         min_x: ((-3. * grad_step).min(corners[0].x - delta_corners) / grad_step).floor()
             * grad_step,
         max_x: ((3. * grad_step).max(corners[3].x + delta_corners) / grad_step).ceil() * grad_step,
@@ -253,7 +252,7 @@ fn sheet_corner_instance(corner_desc: BezierSheetCornerDesc) -> RawDnaInstance {
     .to_raw_instance()
 }
 
-fn make_bezier_controll(
+fn make_bezier_control(
     position: Vec3,
     helix_id: u32,
     bezier_control: BezierControlPoint,
@@ -269,7 +268,7 @@ fn make_bezier_controll(
     .to_raw_instance()
 }
 
-fn make_bezier_squelton(source: Vec3, dest: Vec3) -> RawDnaInstance {
+fn make_bezier_skeleton(source: Vec3, dest: Vec3) -> RawDnaInstance {
     let rotor = Rotor3::from_rotation_between(Vec3::unit_x(), (dest - source).normalized());
     let position = (dest + source) / 2.;
     let length = (dest - source).mag();
@@ -279,7 +278,7 @@ fn make_bezier_squelton(source: Vec3, dest: Vec3) -> RawDnaInstance {
         color: Instance::unclear_color_from_u32(0),
         id: 0,
         rotor,
-        radius: BEZIER_SQUELETON_RADIUS * BOND_RADIUS,
+        radius: BEZIER_SKELETON_RADIUS * BOND_RADIUS,
         length,
     }
     .to_raw_instance()

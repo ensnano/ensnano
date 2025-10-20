@@ -19,14 +19,18 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! This modules handles internal information about the scene, such as the selected objects etc..
 //! It also communicates with the designs to get the position of the objects to draw on the scene.
 
-use super::view::AvailableRotationAxes;
+mod design3d;
+
 use super::{
     AppState, Camera3D, HandlesDescriptor, LetterInstance, RotationWidgetDescriptor,
     RotationWidgetOrientation, SceneElement, View, ViewUpdate,
     view::{
-        GridDisc, HandleColors, Instantiable, Mesh, RawDnaInstance, StereographicSphereAndPlane,
+        AvailableRotationAxes, GridDisc, HandleColors, Instantiable, Mesh, RawDnaInstance,
+        StereographicSphereAndPlane,
     },
 };
+use design3d::Design3D;
+pub use design3d::{DesignReader, HBond, HalfHBond, SurfaceInfo, SurfacePoint};
 use ensnano_design::{
     BezierVertexId, Collection, External3DObjectsStamp, Nucl,
     grid::{GridId, GridObject, GridPosition},
@@ -48,11 +52,6 @@ use std::{
     sync::Arc,
 };
 use ultraviolet::{Rotor3, Vec3};
-
-/// A module that handles the instantiation of designs as 3D geometric objects
-mod design3d;
-use design3d::Design3D;
-pub use design3d::{DesignReader, HBond, HalfHBond, SurfaceInfo, SurfacePoint};
 
 type ViewPtr = Rc<RefCell<View>>;
 
@@ -132,9 +131,7 @@ impl<R: DesignReader> Data<R> {
         self.pivot_update = true;
         self.view.borrow_mut().clear_design();
     }
-}
 
-impl<R: DesignReader> Data<R> {
     /// Forwards all needed update to the view
     pub fn update_view<S: AppState>(&mut self, app_state: &S, older_app_state: &S) {
         if self.discs_need_update(app_state, older_app_state) {
@@ -333,9 +330,7 @@ impl<R: DesignReader> Data<R> {
             .borrow_mut()
             .update(ViewUpdate::RotationWidget(rotation_widget_descr));
     }
-}
 
-impl<R: DesignReader> Data<R> {
     pub fn set_pivot_element<S: AppState>(&mut self, element: Option<SceneElement>, app_state: &S) {
         self.pivot_update |= self.pivot_element != element;
         self.pivot_element = element;
