@@ -17,7 +17,6 @@ pub(crate) struct SpringAnchorsReference {
     // from center of the pair to the center of
     // the next pair
     up: OVector<f32, Const<3>>,
-    down: OVector<f32, Const<3>>,
 
     up_forward_anchor: OVector<f32, Const<3>>,
     up_backward_anchor: OVector<f32, Const<3>>,
@@ -29,10 +28,10 @@ pub(crate) struct SpringAnchorsReference {
     down_right_anchor: OVector<f32, Const<3>>,
 }
 
-/// Turns two anchors 90° around the "up" axis,
+/// Turns two nucleotides 90° around the "up" axis,
 /// resulting in "left" and "right" anchors for
 /// better stability
-fn turn_anchors(
+fn turn_points(
     forward: OVector<f32, Const<3>>,
     backward: OVector<f32, Const<3>>,
     axis: OVector<f32, Const<3>>,
@@ -45,8 +44,8 @@ fn turn_anchors(
         UnitQuaternion::from_axis_angle(&Unit::new_normalize(axis), std::f32::consts::FRAC_PI_2);
 
     (
-        center + rotation * c_forward,
-        center + rotation * c_backward,
+        rotation * c_forward + center,
+        rotation * c_backward + center,
     )
 }
 
@@ -68,6 +67,16 @@ impl SpringAnchorsReference {
 
         let up = up_center - center;
 
+        let up_up_nucleotide_forward =
+            vec_to_vector(helix.space_pos(default_parameters, 2 * (distance as isize), true));
+        let up_up_nucleotide_backward =
+            vec_to_vector(helix.space_pos(default_parameters, 2 * (distance as isize), false));
+
+        let up_up_center = (up_up_nucleotide_forward + up_up_nucleotide_backward) / 2.0;
+
+        // up's up direction
+        let up_up = up_up_center - up_center;
+
         let down_nucleotide_forward =
             vec_to_vector(helix.space_pos(default_parameters, -(distance as isize), true));
         let down_nucleotide_backward =
@@ -75,31 +84,39 @@ impl SpringAnchorsReference {
 
         let down_center = (down_nucleotide_forward + down_nucleotide_backward) / 2.0;
 
-        let down = down_center - center;
+        // down's up direction
+        let down_up = center - down_center;
+
+        // we compute the left and right anchors by rotating each nucletide pair in its
+        // local up axis
+
+        let (up_left, up_right) = turn_points(up_nucleotide_forward, up_nucleotide_backward, up_up);
+        let (left, right) = turn_points(nucleotide_forward, nucleotide_backward, up);
+        let (down_left, down_right) =
+            turn_points(down_nucleotide_forward, down_nucleotide_backward, down_up);
 
         let up_forward_anchor = (nucleotide_forward + up_nucleotide_forward) / 2.0;
         let up_backward_anchor = (nucleotide_backward + up_nucleotide_backward) / 2.0;
-        let (up_left_anchor, up_right_anchor) =
-            turn_anchors(up_forward_anchor, up_backward_anchor, up);
+        let up_left_anchor = (up_left + left) / 2.0;
+        let up_right_anchor = (up_right + right) / 2.0;
 
         let down_forward_anchor = (nucleotide_forward + down_nucleotide_forward) / 2.0;
         let down_backward_anchor = (nucleotide_backward + down_nucleotide_backward) / 2.0;
-        let (down_left_anchor, down_right_anchor) =
-            turn_anchors(down_forward_anchor, down_backward_anchor, down);
+        let down_left_anchor = (down_left + left) / 2.0;
+        let down_right_anchor = (down_right + right) / 2.0;
 
         Self {
             nucleotide_forward: nucleotide_forward - center,
             nucleotide_backward: nucleotide_backward - center,
             up,
-            down,
             up_forward_anchor: up_forward_anchor - center,
             up_backward_anchor: up_backward_anchor - center,
             down_forward_anchor: down_forward_anchor - center,
             down_backward_anchor: down_backward_anchor - center,
-            up_left_anchor,
-            up_right_anchor,
-            down_left_anchor,
-            down_right_anchor,
+            up_left_anchor: up_left_anchor - center,
+            up_right_anchor: up_right_anchor - center,
+            down_left_anchor: down_left_anchor - center,
+            down_right_anchor: down_right_anchor - center,
         }
     }
 
@@ -155,6 +172,7 @@ impl SpringAnchorsReference {
     /// This uses both uses the precomputed reference in self,
     /// and a sequence of two rotations to place it in the orientation
     /// of the desired nucleotide.
+    /// Return order : (forward, backward, left, right)
     pub(crate) fn get_up_spring_anchors(
         &self,
         forward_nucleotide: OVector<f32, Const<3>>,
@@ -190,6 +208,7 @@ impl SpringAnchorsReference {
     /// This uses both uses the precomputed reference in self,
     /// and a sequence of two rotations to place it in the orientation
     /// of the desired nucleotide.
+    /// Return order : (forward, backward, left, right)
     pub(crate) fn get_down_spring_anchors(
         &self,
         forward_nucleotide: OVector<f32, Const<3>>,
@@ -260,7 +279,6 @@ mod tests {
                 < eps
         );
         assert!(reference.up.metric_distance(&vector![1.0, 0.0, 0.0]) < eps);
-        assert!(reference.down.metric_distance(&vector![-1.0, 0.0, 0.0]) < eps);
         assert!(
             reference
                 .up_forward_anchor
@@ -300,13 +318,13 @@ mod tests {
         assert!(
             reference
                 .down_left_anchor
-                .metric_distance(&vector![-0.5, 0.5, 0.5])
+                .metric_distance(&vector![-0.5, -0.5, -0.5])
                 < eps
         );
         assert!(
             reference
                 .down_right_anchor
-                .metric_distance(&vector![-0.5, -0.5, -0.5])
+                .metric_distance(&vector![-0.5, 0.5, 0.5])
                 < eps
         );
 

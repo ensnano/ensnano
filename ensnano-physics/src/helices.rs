@@ -6,7 +6,7 @@ use ensnano_design::{HelixParameters, Nucl};
 /// Holds the intermediary representation
 /// of a nucleotide pair.
 /// Handles the case of free nucleotides;
-#[derive(Clone, Debug)]
+#[derive(Copy, Clone, Debug)]
 pub(crate) enum IntermediaryPair {
     OnlyForward(u32, Nucl),
     OnlyBackward(u32, Nucl),

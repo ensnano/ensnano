@@ -4,7 +4,7 @@ use std::{
     time::Duration,
 };
 
-use ensnano_design::Design;
+use ensnano_design::{Design, HelixParameters};
 use ensnano_physics::RapierPhysicsSystem;
 
 use crate::{
@@ -26,11 +26,22 @@ impl RapierPhysicalSystem {
         presenter: &Presenter,
         reader: &mut ChannelReader,
     ) -> Arc<Mutex<RapierInterface>> {
-        let system = RapierPhysicsSystem::new(
-            &presenter.content.object_type,
+        // first prototype simulation
+        // let system = RapierPhysicsSystem::new(
+        //     &presenter.content.object_type,
+        //     &presenter.content.nucleotide,
+        //     &presenter.content.space_position,
+        //     &presenter.content.helix_map,
+        //     &presenter.get_design().helices,
+        // );
+
+        let system = RapierPhysicsSystem::full_simulation(
+            presenter
+                .get_design()
+                .helix_parameters
+                .unwrap_or(HelixParameters::GEARY_2014_DNA_P_STICK),
             &presenter.content.nucleotide,
             &presenter.content.space_position,
-            &presenter.content.helix_map,
             &presenter.get_design().helices,
         );
 

@@ -1,7 +1,7 @@
 use ahash::HashMap;
 
-use crate::import::*;
-use ensnano_design::{Helices, Nucl};
+use crate::{full_simulation::build_full_simulation, helices::build_helices, import::*};
+use ensnano_design::{Helices, HelixParameters, Nucl};
 use ensnano_interactor::ObjectType;
 use rapier3d::{na::Vector3, prelude::*};
 
@@ -22,6 +22,17 @@ pub struct RapierPhysicsSystem {
 }
 
 impl RapierPhysicsSystem {
+    pub fn full_simulation(
+        parameters: HelixParameters,
+        nucleotide: &HashMap<u32, Nucl>,
+        space_position: &HashMap<u32, [f32; 3]>,
+        helices: &Helices,
+    ) -> Self {
+        let intermediary = build_helices(parameters, nucleotide);
+
+        build_full_simulation(&intermediary, space_position, helices, &parameters)
+    }
+
     pub fn new(
         // these parameters are all part of DesignContent
         object_type: &HashMap<u32, ObjectType>,
