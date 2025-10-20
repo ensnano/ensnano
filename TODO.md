@@ -16,7 +16,7 @@
 
 ## Scene (3D)
 
-- Fix rotation with `H`/`J`/`K`/`L` while dragging
+- Fix rotation with `H`/`J`/`K`/`L` while dragging (copy code from `swing`)
 - Figure out why `H`/`J`/`K`/`L` don't work the same
   - `J` and `L` ok
   - `H` is a top bar selection
