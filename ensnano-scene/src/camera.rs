@@ -605,7 +605,6 @@ impl CameraController {
             camera.position += scrollward * self.scroll * self.speed * 3.0;
         }
 
-        self.cam0 = self.camera.borrow().clone();
         self.scroll = 0.;
     }
 
