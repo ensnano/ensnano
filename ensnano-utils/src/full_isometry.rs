@@ -26,7 +26,7 @@ pub struct FullIsometry {
 }
 
 impl FullIsometry {
-    pub fn from_isommetry_symmetry(iso: Isometry2, symmetry: Vec2) -> Self {
+    pub fn from_isometry_symmetry(iso: Isometry2, symmetry: Vec2) -> Self {
         Self {
             translation: iso.translation,
             rotation: iso.rotation,

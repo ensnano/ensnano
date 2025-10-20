@@ -59,19 +59,19 @@ pub struct Strand<Label, DomainLabel> {
     pub domains: Vec<Domain<DomainLabel>>,
     /// The sequence of this strand, if any. If the sequence is longer
     /// than specified by the domains, a prefix is assumed. Can be
-    /// skipped in the serialisation.
+    /// skipped in the serialization.
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub sequence: Option<Cow<'static, str>>,
     /// Is this sequence cyclic? Can be skipped (and defaults to
     /// `false`) in the serialization.
     #[serde(skip_serializing_if = "is_false", default)]
     pub cyclic: bool,
-    /// Colour of this strand. If skipped, a default colour will be
+    /// Color of this strand. If skipped, a default color will be
     /// chosen automatically.
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub color: Option<Color>,
     /// An optional label for the strand. Can be
-    /// `serde_json::Value::Null`, and skipped in the serialisation.
+    /// `serde_json::Value::Null`, and skipped in the serialization.
     #[serde(skip_serializing_if = "Option::is_none", default = "none")]
     pub label: Option<Label>,
 }

@@ -25,7 +25,7 @@ use ultraviolet::DRotor3;
 use crate::consts::{ITERATIVE_AXIS_ALGORITHM, IterativeFrameAlgorithm};
 
 /// The number of points used in the iterative version of the discretization algorithm.
-const NB_DISCRETISATION_STEP: usize = 100_000;
+const NB_DISCRETIZATION_STEP: usize = 100_000;
 
 /// The number of points used in the quick iterative version of the discretization algorithm.
 const NB_FAST_DISCRETIZATION_STEP: usize = 1_000;
@@ -55,25 +55,25 @@ impl Curve {
         let nb_step = if self.geometry.discretize_quickly() {
             NB_FAST_DISCRETIZATION_STEP
         } else {
-            NB_DISCRETISATION_STEP
+            NB_DISCRETIZATION_STEP
         };
         let len = polynomials
             .as_ref()
             .map(|p| p.curvilinear_abscissa.evaluate(self.geometry.t_max()))
             .unwrap_or_else(|| {
-                self.length_by_discretisation(self.geometry.t_min(), self.geometry.t_max(), nb_step)
+                self.length_by_discretization(self.geometry.t_min(), self.geometry.t_max(), nb_step)
             });
         let nb_points = (len / nucl_rise) as usize;
         let small_step = 0.1 / (nb_step as f64);
         log::info!("small step = {small_step}");
         log::info!(
             "len = {}",
-            self.length_by_discretisation(self.geometry.t_min(), self.geometry.t_max(), nb_step)
+            self.length_by_discretization(self.geometry.t_min(), self.geometry.t_max(), nb_step)
         );
 
         self.adjust_rise(&mut nucl_rise, polynomials.as_ref());
 
-        //overide nucl_pos_full_turn with the value given by the geometry if it exists
+        // override nucl_pos_full_turn with the value given by the geometry if it exists
         self.nucl_pos_full_turn = self
             .geometry
             .nucl_pos_full_turn()
@@ -124,12 +124,12 @@ impl Curve {
             first_forward = false;
         }
 
-        let mut current_abcissa = 0.0;
+        let mut current_abscissa = 0.0;
         let mut first_non_negative = t < 0.0;
 
         let mut synchronization_length = 0.;
 
-        // The descritisation stops when t > t_max and when we have as many forward as backwards
+        // The discretization stops when t > t_max and when we have as many forward as backwards
         // point
         while t <= self.geometry.t_max()
             || next_abscissa_backward < next_abscissa_forward + inclination
@@ -141,7 +141,7 @@ impl Curve {
             }
 
             // Decide on which strand belongs the next point that we are looking for and it's
-            // curvilinear abcissa
+            // curvilinear abscissa
             let (next_point_abscissa, next_point_forward) = if t <= self.geometry.t_max() {
                 (
                     next_abscissa_forward.min(next_abscissa_backward),
@@ -165,18 +165,18 @@ impl Curve {
                 })
             {
                 t = t_x;
-                current_abcissa = next_point_abscissa;
+                current_abscissa = next_point_abscissa;
                 current_axis = self.iterative_axis(t, Some(&current_axis));
                 p = self.point_at_t(t, &current_axis);
             } else {
-                while current_abcissa < next_point_abscissa {
+                while current_abscissa < next_point_abscissa {
                     t += small_step;
 
                     current_axis = self.iterative_axis(t, Some(&current_axis));
 
                     let q = self.point_at_t(t, &current_axis);
 
-                    current_abcissa += (q - p).mag();
+                    current_abscissa += (q - p).mag();
 
                     if let Some(t_obj) = self.geometry.full_turn_at_t() {
                         if t >= 0. && t < t_obj {
@@ -199,12 +199,12 @@ impl Curve {
                     axis_forward.push(current_axis);
                     curvature.push(self.geometry.curvature(t));
                     // torsion.push(self.geometry.absolute_torsion(t));
-                    next_abscissa_forward = current_abcissa + nucl_rise;
+                    next_abscissa_forward = current_abscissa + nucl_rise;
                 }
             } else {
                 points_backward.push(p);
                 axis_backward.push(current_axis);
-                next_abscissa_backward = current_abcissa + nucl_rise;
+                next_abscissa_backward = current_abscissa + nucl_rise;
             }
         }
         log::info!("Synchronization length by old method {synchronization_length}");
@@ -313,13 +313,13 @@ impl Curve {
         let nb_step = if self.geometry.discretize_quickly() {
             NB_FAST_DISCRETIZATION_STEP
         } else {
-            NB_DISCRETISATION_STEP
+            NB_DISCRETIZATION_STEP
         };
         if let Some(last_t) = self.geometry.full_turn_at_t() {
             let synchronization_length = polynomials
                 .map(|p| p.curvilinear_abscissa.evaluate(last_t))
                 .unwrap_or_else(|| {
-                    self.length_by_discretisation(self.geometry.t_min(), last_t, nb_step)
+                    self.length_by_discretization(self.geometry.t_min(), last_t, nb_step)
                 });
 
             if let Some(n) = self.geometry.objective_nb_nt() {
@@ -360,7 +360,7 @@ impl Curve {
         }
     }
 
-    pub fn length_by_discretisation(&self, t0: f64, t1: f64, nb_step: usize) -> f64 {
+    pub fn length_by_discretization(&self, t0: f64, t1: f64, nb_step: usize) -> f64 {
         if t0 > t1 {
             log::error!(
                 "Bad parameters or length for discritisation: \n t0 {} \n t1 {} \n nb_step {}",
@@ -488,7 +488,7 @@ impl Curve {
                 let mut delta = 1.0;
                 while delta < DELTA_MAX {
                     let new_tmin = self.geometry.t_min() - delta;
-                    if self.length_by_discretisation(new_tmin, 0.0, NB_DISCRETISATION_STEP / 100)
+                    if self.length_by_discretization(new_tmin, 0.0, NB_DISCRETIZATION_STEP / 100)
                         > objective
                     {
                         return Some(new_tmin);
@@ -524,10 +524,10 @@ impl Curve {
                     let mut delta = 1.0;
                     while delta < DELTA_MAX {
                         let new_tmax = self.geometry.t_max() + delta;
-                        if self.length_by_discretisation(
+                        if self.length_by_discretization(
                             0.0, // should not it be self.geometry.t_min() ??? MAY BE NOT BECAUSE BIINFINITE
                             new_tmax,
-                            NB_DISCRETISATION_STEP / 100,
+                            NB_DISCRETIZATION_STEP / 100,
                         ) > objective
                         {
                             return Some(new_tmax);
@@ -556,7 +556,7 @@ impl Curve {
             let t0 = self.geometry.t_min();
             let t1 = self.geometry.t_max();
 
-            let nb_step = NB_DISCRETISATION_STEP / 10;
+            let nb_step = NB_DISCRETIZATION_STEP / 10;
             for i in 1..=nb_step {
                 t = t0 + (i as f64) / (nb_step as f64) * (t1 - t0);
                 current_axis = self.iterative_axis(t, Some(&current_axis));

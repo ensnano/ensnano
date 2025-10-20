@@ -49,11 +49,11 @@ impl ColorGradient {
             if x <= 0. {
                 self.left
             } else if x <= 1. {
-                let interp = |a, b| a * (1. - x) + b * x;
+                let lerp = |a, b| a * (1. - x) + b * x;
                 Color::from_rgb(
-                    interp(self.left.r, self.right.r),
-                    interp(self.left.g, self.right.g),
-                    interp(self.left.b, self.right.b),
+                    lerp(self.left.r, self.right.r),
+                    lerp(self.left.g, self.right.g),
+                    lerp(self.left.b, self.right.b),
                 )
             } else {
                 self.right

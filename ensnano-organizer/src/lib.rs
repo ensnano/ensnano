@@ -743,8 +743,8 @@ impl<E: OrganizerElement> Organizer<E> {
     fn drag_drop(&mut self, k: &DragIdentifier<E::Key, E::AutoGroup>) {
         match k {
             DragIdentifier::Group { id: id_dest } => {
-                if let Some(identifer) = self.dragging.iter().next().cloned() {
-                    match identifer {
+                if let Some(identifier) = self.dragging.iter().next().cloned() {
+                    match identifier {
                         id if id == k.clone() => (),
                         DragIdentifier::Group { id } => self.move_id(&id, id_dest),
                         DragIdentifier::Section { key } => {
@@ -1678,7 +1678,7 @@ impl<E: OrganizerElement> GroupContent<E> {
     /// If self is a Leaf return true iff it owns an element that is *not* in elements.keys(), and
     /// in this case adds its own node identifier to `ids_to_remove`
     ///
-    /// If self is a group, apply recursievely this process to all its children and then return
+    /// If self is a group, apply recursively this process to all its children and then return
     /// true iff all the children need to be removed.
     fn delete_useless_leaves(
         &self,
@@ -1694,7 +1694,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                 for c in children.iter() {
                     _ret &= c.delete_useless_leaves(ids_to_remove, elements);
                 }
-                // Decomment this to also remove empty groups (ret, id)
+                // Uncomment this to also remove empty groups (ret, id)
                 (false, id)
             }
         };
