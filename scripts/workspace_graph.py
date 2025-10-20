@@ -9,6 +9,10 @@ import tomllib
 PREFIX = "ensnano_"
 
 
+def label(pkg, root_pkg):
+    return "main" if pkg == root_pkg else pkg.removeprefix(PREFIX)
+
+
 def main():
     # Collect crates
     root = pathlib.Path(".").resolve()
@@ -20,35 +24,26 @@ def main():
 
     for cargo_toml in cargo_files:
         data = tomllib.load(cargo_toml.open("rb"))
-
-        pkg = (data.get("package") or {}).get("name")
-        assert pkg is not None
-
+        pkg = data.get("package", {})["name"]
         pkg_by_path[cargo_toml] = pkg
-        deps = set((data.get("dependencies") or {}).keys())
-        deps_by_pkg[pkg] = deps
+        deps_by_pkg[pkg] = set(data.get("dependencies", {}).keys())
 
     root_pkg = pkg_by_path[root_toml]
-
     internal_pkgs = {root_pkg} | {
         name for name in pkg_by_path.values() if name.startswith(PREFIX)
     }
 
     # Build edges
     edges = set()
-    for dependent, deps in deps_by_pkg.items():
-        if dependent not in internal_pkgs:
-            continue
-        for dep in deps:
-            if dep not in internal_pkgs or dep == dependent:
+    for dependent, dependencies in deps_by_pkg.items():
+        for dependency in dependencies:
+            if dependency == dependent or dependency not in internal_pkgs:
                 continue
-            src = "main" if dep == root_pkg else dep.removeprefix(PREFIX)
-            dst = "main" if dependent == root_pkg else dependent.removeprefix(PREFIX)
-            edges.add((src, dst))
+            edges.add((label(dependent, root_pkg), label(dependency, root_pkg)))
 
     # Print digraph
     print("digraph G {")
-    for src, dst in sorted(edges, key=lambda e: (e[1], e[0])):
+    for dst, src in sorted(edges):
         print(f"  {src} -> {dst};")
     print("}")
 
