@@ -15,44 +15,44 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use super::super::GridInstance;
-use super::super::maths_3d::{Basis3D, UnalignedBoundaries};
-use super::super::view::{
-    ConeInstance, Ellipsoid, Instantiable, RawDnaInstance, Sheet2D, SlicedTubeInstance,
-    SphereInstance, TubeInstance, TubeLidInstance,
-};
-use super::{LetterInstance, SceneElement};
-use crate::rotor_utils::SafeRotor as _;
-use crate::sausage_rosary::SausageRosary;
-use crate::view::PlainRectangleInstance;
-use ensnano_design::grid::{GridId, GridObject, GridPosition};
-use ensnano_design::{
-    AdditionalStructure, BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex,
-    Collection, CubicBezierConstructor, CurveDescriptor, External3DObjects, HelixParameters,
-    InstanciatedPath,
-};
-use ensnano_design::{Nucl, grid::HelixGridPosition};
-pub use ensnano_design::{SurfaceInfo, SurfacePoint};
-use ensnano_interactor::consts::*;
-use ensnano_interactor::{
-    BezierControlPoint, ObjectType, PHANTOM_RANGE, PhantomElement, Referential,
-    graphics::{LoopoutBond, LoopoutNucl},
-    phantom_helix_encoder_bond, phantom_helix_encoder_nucl,
-};
-use ensnano_utils::colors;
-use ensnano_utils::instance::Instance;
-use std::collections::hash_map::RandomState;
-use std::collections::{BTreeMap, HashMap, HashSet};
-use std::f32::consts::TAU;
-use std::rc::Rc;
-use std::sync::Arc;
-use ultraviolet::{Mat4, Rotor3, Vec2, Vec3};
+
+//! This module handles the instantiation of designs as 3D geometric objects
 
 mod bezier_paths;
 
-use crate::SceneElement::DesignElement;
-
-use ensnano_utils::StrandNucleotidesPositions;
+use super::{LetterInstance, SceneElement};
+use crate::{
+    GridInstance,
+    SceneElement::DesignElement,
+    maths_3d::{Basis3D, UnalignedBoundaries},
+    rotor_utils::SafeRotor as _,
+    sausage_rosary::SausageRosary,
+    view::{
+        ConeInstance, Ellipsoid, Instantiable, PlainRectangleInstance, RawDnaInstance, Sheet2D,
+        SlicedTubeInstance, SphereInstance, TubeInstance, TubeLidInstance,
+    },
+};
+use ensnano_design::{
+    AdditionalStructure, BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex,
+    Collection, CubicBezierConstructor, CurveDescriptor, External3DObjects, HelixParameters,
+    InstantiatedPath, Nucl,
+    grid::{GridId, GridObject, GridPosition, HelixGridPosition},
+};
+pub use ensnano_design::{SurfaceInfo, SurfacePoint};
+use ensnano_interactor::{
+    BezierControlPoint, ObjectType, PHANTOM_RANGE, PhantomElement, Referential,
+    consts::*,
+    graphics::{LoopoutBond, LoopoutNucl},
+    phantom_helix_encoder_bond, phantom_helix_encoder_nucl,
+};
+use ensnano_utils::{StrandNucleotidesPositions, colors, instance::Instance};
+use std::{
+    collections::{BTreeMap, HashMap, HashSet, hash_map::RandomState},
+    f32::consts::TAU,
+    rc::Rc,
+    sync::Arc,
+};
+use ultraviolet::{Mat4, Rotor3, Vec2, Vec3};
 
 /// An object that handles the 3d graphical representation of a `Design`
 pub struct Design3D<R: DesignReader> {
@@ -89,10 +89,10 @@ impl<R: DesignReader> Design3D<R> {
     }
 
     /// Return the list of raw sphere instances to be displayed to represent the design
-    pub fn get_spheres_raw(&self, show_insertion_representents: bool) -> Rc<Vec<RawDnaInstance>> {
+    pub fn get_spheres_raw(&self, show_insertion_discriminants: bool) -> Rc<Vec<RawDnaInstance>> {
         let visible_nucls_ids = self.design_reader.get_all_visible_nucl_ids();
         let mut ret = self.id_to_raw_instances(visible_nucls_ids);
-        if !show_insertion_representents {
+        if !show_insertion_discriminants {
             for loopout_nucl in self.design_reader.get_all_loopout_nucl() {
                 ret.push(
                     SphereInstance {
@@ -174,7 +174,7 @@ impl<R: DesignReader> Design3D<R> {
 
     pub fn get_letter_instances(
         &self,
-        show_insertion_representents: bool,
+        show_insertion_discriminants: bool,
     ) -> Vec<Vec<LetterInstance>> {
         let ids = self.design_reader.get_all_nucl_ids();
         let mut vecs = vec![Vec::new(); NB_PRINTABLE_CHARS];
@@ -195,7 +195,7 @@ impl<R: DesignReader> Design3D<R> {
                 vecs[*id].push(instance);
             }
         }
-        if !show_insertion_representents {
+        if !show_insertion_discriminants {
             for loopout_nucl in self.design_reader.get_all_loopout_nucl() {
                 if let Some(symbol) = loopout_nucl.basis
                     && let Some(id) = self.symbol_map.get(&symbol)
@@ -214,9 +214,9 @@ impl<R: DesignReader> Design3D<R> {
         vecs
     }
 
-    pub fn get_cones_raw(&self, show_insertion_representents: bool) -> Vec<RawDnaInstance> {
+    pub fn get_cones_raw(&self, show_insertion_discriminants: bool) -> Vec<RawDnaInstance> {
         let mut ids = self.design_reader.get_all_visible_bond_ids();
-        if !show_insertion_representents {
+        if !show_insertion_discriminants {
             ids.retain(|id| self.design_reader.get_insertion_length(*id) == 0);
         }
         let filter = |_n: &Nucl| true;
@@ -255,25 +255,13 @@ impl<R: DesignReader> Design3D<R> {
     }
 
     /// Return the list of tube instances to be displayed to represent the design
-    pub fn get_tubes_raw(&self, show_insertion_representents: bool) -> Rc<Vec<RawDnaInstance>> {
+    pub fn get_tubes_raw(&self, show_insertion_discriminants: bool) -> Rc<Vec<RawDnaInstance>> {
         let mut visible_bonds_ids = self.design_reader.get_all_visible_bond_ids();
-        if !show_insertion_representents {
+        if !show_insertion_discriminants {
             visible_bonds_ids.retain(|id| self.design_reader.get_insertion_length(*id) == 0);
         }
-        // let expected_length = if self.thick_helices {
-        //     // normal representation of an helix
-        //     self.design_reader.get_expected_bond_length()
-        // } else {
-        //     // axis representation of an helix
-        //     HelixParameters::INTER_CENTER_GAP
-        // };
-        let mut ret: Vec<_> = self
-            .id_to_raw_instances(visible_bonds_ids)
-            // .into_iter()
-            // .map(|x| x.with_expected_length(expected_length)) // inutile désormais
-            // .collect()
-            ;
-        if !show_insertion_representents {
+        let mut ret: Vec<_> = self.id_to_raw_instances(visible_bonds_ids);
+        if !show_insertion_discriminants {
             for loopout_bond in self.design_reader.get_all_loopout_bonds() {
                 ret.push(
                     create_dna_bond(
@@ -283,7 +271,7 @@ impl<R: DesignReader> Design3D<R> {
                         loopout_bond.repr_bond_identifier,
                         false,
                     )
-                    .to_raw_instance(), // .with_expected_length(expected_length),
+                    .to_raw_instance(),
                 )
             }
         }
@@ -316,7 +304,8 @@ impl<R: DesignReader> Design3D<R> {
             }
 
             let positions = additional_structure.position();
-            // Draw grey bars between the masses defining for the broken lines corresponding to each helix -> TO BE REPLACED BY A SAUSAGEROSARY passing through the nt_paths
+            // Draw grey bars between the masses defining for the broken lines corresponding to each helix
+            // -> To be replaced by a SausageRosary passing through the nt_paths
             if draw_broken_lines {
                 for (me, next) in additional_structure.right().into_iter() {
                     let pos_left = transformation.transform_vec(positions[me]);
@@ -395,54 +384,6 @@ impl<R: DesignReader> Design3D<R> {
             }
         }
 
-        //     // extra tubes to test sliced_tubes
-        //     let n = 50;
-        //     let b = 7.*PI/(n as f32);
-        //     let r = 3.0f32;
-
-        //     use rand::Rng;
-
-        //     let mut rng = rand::thread_rng();
-
-        //     let points = (0..n+1).map(|i|
-        //         match i {
-        //             0 =>  Vec3::zero(),
-        //             50 =>  Vec3::zero(),
-        //             _ => {
-        //                 let a = PI * 2. * rng.gen::<f32>(); /// i as f32 * b;
-        //                 Vec3::new(
-        //                 0.5,
-        //                 r*(a.cos()),
-        //                 r*(a.sin()))
-        //             },
-        // }).collect::<Vec<Vec3>>();
-
-        //     let mut point = Vec3::zero();
-        //     for ((prev, p) , next) in points.iter().cycle().skip(n).zip(&points).zip(points.iter().cycle().skip(1)) {
-        //         // println!("Prev: {:?}", *prev);
-        //         // println!("Curr: {:?}", *p);
-        //         // println!("Next: {:?}", *next);
-        //         let position = point + *p / 2.;
-        //         let q = p.normalized();
-        //         let rotor = Rotor3::from_rotation_between(Vec3::unit_x(), q);
-
-        //         let rotor = Rotor3::safe_from_rotation_from_unit_x_to(q);
-        //         let model =
-        //         Mat4::from_translation(position) * rotor.into_matrix().into_homogeneous(); // translation à position et rotation dans la bonne position u_x -> axe du tube
-        //         let rotor2 = Rotor3::safe_from_rotation_to_unit_x_from(q);
-
-        //         ret.push(SlicedTubeInstance {
-        //             position: position,
-        //             rotor: rotor,
-        //             color: Vec4::new(1.,0.,0.,1.), //RGBA
-        //             id: 100_000,
-        //             radius: 0.3,
-        //             length: p.mag(),
-        //             prev: prev.rotated_by(rotor2),
-        //             next: next.rotated_by(rotor2),
-        //         }.to_raw_instance());
-        //         point += *p;
-        //     }
         Rc::new(ret)
     }
 
@@ -591,7 +532,7 @@ impl<R: DesignReader> Design3D<R> {
             .collect()
     }
 
-    /// Return (h bonds instances, ellipoids instances)
+    /// Return (h bonds instances, ellipsoids instances)
     pub(super) fn get_all_h_bonds(&self) -> HBondsInstances {
         let mut full_h_bonds = Vec::new();
         let mut partial_h_bonds = Vec::new();
@@ -682,7 +623,7 @@ impl<R: DesignReader> Design3D<R> {
         }
     }
 
-    /// Auxilary function that computes the length-adjusted color of a bond
+    /// Auxiliary function that computes the length-adjusted color of a bond
     /// return None if color does not need to be adjusted
     pub fn length_adjusted_color_and_radius_for_bond(
         &self,
@@ -727,7 +668,7 @@ impl<R: DesignReader> Design3D<R> {
                     self.get_graphic_element_position(&SceneElement::DesignElement(self.id, id2))?;
                 let color = self.get_color(id).unwrap_or(0x00_00_00);
                 let id = id | self.id << 24;
-                // Adjust the color and rafius of the bond according to the REAL length of the bond
+                // Adjust the color and radius of the bond according to the REAL length of the bond
                 let xover_coloring = self.get_xover_coloring(id).unwrap_or(true);
                 let (color, radius_scale) = (if xover_coloring {
                     self.length_adjusted_color_and_radius_for_bond(id1, id2)
@@ -772,7 +713,7 @@ impl<R: DesignReader> Design3D<R> {
                 let rotor_inv = Rotor3::safe_from_rotation_to_unit_x_from(normalized);
                 let color = self.get_color(id).unwrap_or(0x00_00_00);
                 let id = id | self.id << 24;
-                // Adjust the color and rafius of the bond according to the REAL length of the bond
+                // Adjust the color and radius of the bond according to the REAL length of the bond
                 let xover_coloring = self.get_xover_coloring(id).unwrap_or(true);
                 let (color, radius_scale) = (if xover_coloring {
                     self.length_adjusted_color_and_radius_for_bond(nucl1_id, nucl2_id)
@@ -832,7 +773,7 @@ impl<R: DesignReader> Design3D<R> {
                     let color = self.get_color(id).unwrap_or(HELIX_CYLINDER_COLOR);
                     let color = Instance::add_alpha_to_clear_color_u32(color);
                     let id = id | self.id << 24;
-                    // Adjust the color and rafius of the bond according to the REAL length of the bond
+                    // Adjust the color and radius of the bond according to the REAL length of the bond
                     let radius = self.get_radius(id).unwrap_or(HELIX_CYLINDER_RADIUS);
                     let (lid1, tube, lid2) =
                         create_helix_cylinder(pos1, pos2, radius, color, id, true);
@@ -862,7 +803,7 @@ impl<R: DesignReader> Design3D<R> {
                     // REQUIRE: nucl1 and nucl2 are on the forward strand and in increasing order
                     assert_eq!(
                         nucl1.helix, nucl2.helix,
-                        "Helix cylinder accross different helices"
+                        "Helix cylinder across different helices"
                     );
                     assert!(
                         nucl1.forward && nucl2.forward,
@@ -1801,7 +1742,7 @@ pub trait DesignReader: 'static + ensnano_interactor::DesignReader {
         &self,
     ) -> &dyn Collection<Item = BezierPlaneDescriptor, Key = BezierPlaneId>;
     fn get_parameters(&self) -> HelixParameters;
-    fn get_bezier_paths(&self) -> Option<&BTreeMap<BezierPathId, Arc<InstanciatedPath>>>;
+    fn get_bezier_paths(&self) -> Option<&BTreeMap<BezierPathId, Arc<InstantiatedPath>>>;
     fn get_bezier_vertex(&self, path_id: BezierPathId, vertex_id: usize) -> Option<BezierVertex>;
     fn get_corners_of_plane(&self, plane_id: BezierPlaneId) -> [Vec2; 4];
     fn get_optimal_xover_around(&self, source: Nucl, target: Nucl) -> Option<(Nucl, Nucl)>;

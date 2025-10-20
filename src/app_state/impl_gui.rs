@@ -148,7 +148,7 @@ impl GuiState for AppState {
     }
 
     fn expand_insertions(&self) -> bool {
-        !self.0.show_insertion_representents
+        !self.0.show_insertion_discriminants
     }
 
     fn get_show_bezier_paths(&self) -> bool {
@@ -171,7 +171,7 @@ impl GuiState for AppState {
         !self.is_in_stable_state()
     }
 
-    fn get_current_revoultion_radius(&self) -> Option<f64> {
+    fn get_current_revolution_radius(&self) -> Option<f64> {
         self.0
             .unrooted_surface
             .descriptor

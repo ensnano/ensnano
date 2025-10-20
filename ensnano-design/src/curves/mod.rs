@@ -40,7 +40,7 @@ use crate::{
     grid::{Edge, GridPosition},
     utils::vec_to_dvec,
 };
-pub use bezier::InstanciatedPiecewiseBezier;
+pub use bezier::InstantiatedPiecewiseBezier;
 pub(crate) use bezier::PieceWiseBezierInstantiator;
 use bezier::TranslatedPiecewiseBezier;
 pub use bezier::{
@@ -709,12 +709,12 @@ impl CurveDescriptor {
     }
 
     pub fn compute_length(&self) -> Option<f64> {
-        let desc = InstanciatedCurveDescriptor::try_instanciate(Arc::new(self.clone()))?;
+        let desc = InstantiatedCurveDescriptor::try_instantiate(Arc::new(self.clone()))?;
         desc.instance.try_length(&HelixParameters::GEARY_2014_DNA)
     }
 
     pub fn path(&self) -> Option<Vec<DVec3>> {
-        let desc = InstanciatedCurveDescriptor::try_instanciate(Arc::new(self.clone()))?;
+        let desc = InstantiatedCurveDescriptor::try_instantiate(Arc::new(self.clone()))?;
         desc.instance.try_path(&HelixParameters::GEARY_2014_DNA)
     }
 }
@@ -722,9 +722,9 @@ impl CurveDescriptor {
 #[derive(Clone, Debug)]
 /// A descriptor of the the curve where all reference to design element have been resolved.
 /// For example, GridPosition are replaced by their actual position in space.
-pub struct InstanciatedCurveDescriptor {
+pub struct InstantiatedCurveDescriptor {
     pub source: Arc<CurveDescriptor>,
-    instance: InstanciatedCurveDescriptor_,
+    instance: InstantiatedCurveDescriptor_,
 }
 
 /// A type that is capable of converting Design object to concrete 3D position.
@@ -737,54 +737,54 @@ pub trait CurveInstantiator {
     fn translate_by_edge(&self, position: GridPosition, edge: Edge) -> Option<GridPosition>;
 }
 
-impl InstanciatedCurveDescriptor {
+impl InstantiatedCurveDescriptor {
     /// Reads the design data to resolve the reference to elements of the design
-    pub fn instanciate(desc: Arc<CurveDescriptor>, grid_reader: &dyn CurveInstantiator) -> Self {
+    pub fn instantiate(desc: Arc<CurveDescriptor>, grid_reader: &dyn CurveInstantiator) -> Self {
         let instance = match desc.as_ref() {
-            CurveDescriptor::Bezier(b) => InstanciatedCurveDescriptor_::Bezier(b.clone()),
+            CurveDescriptor::Bezier(b) => InstantiatedCurveDescriptor_::Bezier(b.clone()),
             CurveDescriptor::SphereLikeSpiral(s) => {
-                InstanciatedCurveDescriptor_::SphereLikeSpiral(s.clone())
+                InstantiatedCurveDescriptor_::SphereLikeSpiral(s.clone())
             }
-            CurveDescriptor::TubeSpiral(t) => InstanciatedCurveDescriptor_::TubeSpiral(t.clone()),
+            CurveDescriptor::TubeSpiral(t) => InstantiatedCurveDescriptor_::TubeSpiral(t.clone()),
             CurveDescriptor::SphereConcentricCircle(t) => {
-                InstanciatedCurveDescriptor_::SphereConcentricCircle(t.clone())
+                InstantiatedCurveDescriptor_::SphereConcentricCircle(t.clone())
             }
             CurveDescriptor::SphereTennisBallSeam(t) => {
-                InstanciatedCurveDescriptor_::SphereTennisBallSeam(t.clone())
+                InstantiatedCurveDescriptor_::SphereTennisBallSeam(t.clone())
             }
             CurveDescriptor::PillConcentricStadium(t) => {
-                InstanciatedCurveDescriptor_::PillConcentricStadium(t.clone())
+                InstantiatedCurveDescriptor_::PillConcentricStadium(t.clone())
             }
             CurveDescriptor::PillTennisBallSeam(t) => {
-                InstanciatedCurveDescriptor_::PillTennisBallSeam(t.clone())
+                InstantiatedCurveDescriptor_::PillTennisBallSeam(t.clone())
             }
             CurveDescriptor::SpiralCylinder(t) => {
-                InstanciatedCurveDescriptor_::SpiralCylinder(t.clone())
+                InstantiatedCurveDescriptor_::SpiralCylinder(t.clone())
             }
-            CurveDescriptor::Twist(t) => InstanciatedCurveDescriptor_::Twist(t.clone()),
-            CurveDescriptor::Torus(t) => InstanciatedCurveDescriptor_::Torus(t.clone()),
+            CurveDescriptor::Twist(t) => InstantiatedCurveDescriptor_::Twist(t.clone()),
+            CurveDescriptor::Torus(t) => InstantiatedCurveDescriptor_::Torus(t.clone()),
             CurveDescriptor::TorusConcentricCircle(t) => {
-                InstanciatedCurveDescriptor_::TorusConcentricCircle(t.clone())
+                InstantiatedCurveDescriptor_::TorusConcentricCircle(t.clone())
             }
             CurveDescriptor::EllipticTorusConcentricCircle(t) => {
-                InstanciatedCurveDescriptor_::EllipticTorusConcentricCircle(t.clone())
+                InstantiatedCurveDescriptor_::EllipticTorusConcentricCircle(t.clone())
             }
-            CurveDescriptor::SuperTwist(t) => InstanciatedCurveDescriptor_::SuperTwist(t.clone()),
+            CurveDescriptor::SuperTwist(t) => InstantiatedCurveDescriptor_::SuperTwist(t.clone()),
             CurveDescriptor::TwistedTorus(t) => {
-                InstanciatedCurveDescriptor_::TwistedTorus(t.clone())
+                InstantiatedCurveDescriptor_::TwistedTorus(t.clone())
             }
             CurveDescriptor::PiecewiseBezier {
                 points,
                 t_min,
                 t_max,
             } => {
-                let instanciated = InstanciatedPiecewiseBezierDescriptor::instanciate(
+                let instantiated = InstantiatedPiecewiseBezierDescriptor::instantiate(
                     points,
                     grid_reader,
                     *t_min,
                     *t_max,
                 );
-                InstanciatedCurveDescriptor_::PiecewiseBezier(instanciated)
+                InstantiatedCurveDescriptor_::PiecewiseBezier(instantiated)
             }
             CurveDescriptor::TranslatedPath {
                 path_id,
@@ -793,22 +793,22 @@ impl InstanciatedCurveDescriptor {
             } => grid_reader
                 .source_paths()
                 .and_then(|paths| {
-                    Self::instanciate_translated_path(*path_id, *translation, paths, *legacy)
+                    Self::instantiate_translated_path(*path_id, *translation, paths, *legacy)
                 })
                 .unwrap_or_else(|| {
-                    let instanciated = InstanciatedPiecewiseBezierDescriptor::instanciate(
+                    let instantiated = InstantiatedPiecewiseBezierDescriptor::instantiate(
                         &[],
                         grid_reader,
                         None,
                         None,
                     );
-                    InstanciatedCurveDescriptor_::PiecewiseBezier(instanciated)
+                    InstantiatedCurveDescriptor_::PiecewiseBezier(instantiated)
                 }),
             CurveDescriptor::InterpolatedCurve(desc) => {
-                InstanciatedCurveDescriptor_::InterpolatedCurve(desc.clone())
+                InstantiatedCurveDescriptor_::InterpolatedCurve(desc.clone())
             }
             CurveDescriptor::Chebyshev(coord) => {
-                InstanciatedCurveDescriptor_::Chebyshev(coord.clone().instanciated())
+                InstantiatedCurveDescriptor_::Chebyshev(coord.clone().instantiated())
             }
         };
         Self {
@@ -817,18 +817,18 @@ impl InstanciatedCurveDescriptor {
         }
     }
 
-    fn instanciate_translated_path(
+    fn instantiate_translated_path(
         path_id: BezierPathId,
         translation: Vec3,
         source_path: BezierPathData,
         legacy: bool,
-    ) -> Option<InstanciatedCurveDescriptor_> {
+    ) -> Option<InstantiatedCurveDescriptor_> {
         source_path
-            .instanciated_paths
+            .instantiated_paths
             .get(&path_id)
             .and_then(|path| path.curve_descriptor.as_ref().zip(path.initial_frame()))
             .map(
-                |(desc, frame)| InstanciatedCurveDescriptor_::TranslatedBezierPath {
+                |(desc, frame)| InstantiatedCurveDescriptor_::TranslatedBezierPath {
                     path_curve: desc.clone(),
                     initial_frame: frame,
                     translation: vec_to_dvec(translation),
@@ -838,51 +838,51 @@ impl InstanciatedCurveDescriptor {
             )
     }
 
-    pub fn try_instanciate(desc: Arc<CurveDescriptor>) -> Option<Self> {
+    pub fn try_instantiate(desc: Arc<CurveDescriptor>) -> Option<Self> {
         let instance = match desc.as_ref() {
-            CurveDescriptor::Bezier(b) => Some(InstanciatedCurveDescriptor_::Bezier(b.clone())),
+            CurveDescriptor::Bezier(b) => Some(InstantiatedCurveDescriptor_::Bezier(b.clone())),
             CurveDescriptor::SphereLikeSpiral(s) => {
-                Some(InstanciatedCurveDescriptor_::SphereLikeSpiral(s.clone()))
+                Some(InstantiatedCurveDescriptor_::SphereLikeSpiral(s.clone()))
             }
             CurveDescriptor::TubeSpiral(s) => {
-                Some(InstanciatedCurveDescriptor_::TubeSpiral(s.clone()))
+                Some(InstantiatedCurveDescriptor_::TubeSpiral(s.clone()))
             }
             CurveDescriptor::SphereConcentricCircle(s) => Some(
-                InstanciatedCurveDescriptor_::SphereConcentricCircle(s.clone()),
+                InstantiatedCurveDescriptor_::SphereConcentricCircle(s.clone()),
             ),
             CurveDescriptor::SphereTennisBallSeam(s) => Some(
-                InstanciatedCurveDescriptor_::SphereTennisBallSeam(s.clone()),
+                InstantiatedCurveDescriptor_::SphereTennisBallSeam(s.clone()),
             ),
             CurveDescriptor::PillConcentricStadium(s) => Some(
-                InstanciatedCurveDescriptor_::PillConcentricStadium(s.clone()),
+                InstantiatedCurveDescriptor_::PillConcentricStadium(s.clone()),
             ),
             CurveDescriptor::PillTennisBallSeam(s) => {
-                Some(InstanciatedCurveDescriptor_::PillTennisBallSeam(s.clone()))
+                Some(InstantiatedCurveDescriptor_::PillTennisBallSeam(s.clone()))
             }
             CurveDescriptor::SpiralCylinder(s) => {
-                Some(InstanciatedCurveDescriptor_::SpiralCylinder(s.clone()))
+                Some(InstantiatedCurveDescriptor_::SpiralCylinder(s.clone()))
             }
-            CurveDescriptor::Twist(t) => Some(InstanciatedCurveDescriptor_::Twist(t.clone())),
-            CurveDescriptor::Torus(t) => Some(InstanciatedCurveDescriptor_::Torus(t.clone())),
+            CurveDescriptor::Twist(t) => Some(InstantiatedCurveDescriptor_::Twist(t.clone())),
+            CurveDescriptor::Torus(t) => Some(InstantiatedCurveDescriptor_::Torus(t.clone())),
             CurveDescriptor::TorusConcentricCircle(t) => Some(
-                InstanciatedCurveDescriptor_::TorusConcentricCircle(t.clone()),
+                InstantiatedCurveDescriptor_::TorusConcentricCircle(t.clone()),
             ),
             CurveDescriptor::EllipticTorusConcentricCircle(t) => Some(
-                InstanciatedCurveDescriptor_::EllipticTorusConcentricCircle(t.clone()),
+                InstantiatedCurveDescriptor_::EllipticTorusConcentricCircle(t.clone()),
             ),
             CurveDescriptor::SuperTwist(t) => {
-                Some(InstanciatedCurveDescriptor_::SuperTwist(t.clone()))
+                Some(InstantiatedCurveDescriptor_::SuperTwist(t.clone()))
             }
             CurveDescriptor::TwistedTorus(t) => {
-                Some(InstanciatedCurveDescriptor_::TwistedTorus(t.clone()))
+                Some(InstantiatedCurveDescriptor_::TwistedTorus(t.clone()))
             }
             CurveDescriptor::PiecewiseBezier { .. } => None,
             CurveDescriptor::TranslatedPath { .. } => None,
             CurveDescriptor::InterpolatedCurve(desc) => Some(
-                InstanciatedCurveDescriptor_::InterpolatedCurve(desc.clone()),
+                InstantiatedCurveDescriptor_::InterpolatedCurve(desc.clone()),
             ),
-            CurveDescriptor::Chebyshev(coord) => Some(InstanciatedCurveDescriptor_::Chebyshev(
-                coord.clone().instanciated(),
+            CurveDescriptor::Chebyshev(coord) => Some(InstantiatedCurveDescriptor_::Chebyshev(
+                coord.clone().instantiated(),
             )),
         };
         instance.map(|instance| Self {
@@ -891,7 +891,7 @@ impl InstanciatedCurveDescriptor {
         })
     }
 
-    /// Return true if the instanciated curve descriptor was built using these curve descriptor and
+    /// Return true if the instantiated curve descriptor was built using these curve descriptor and
     /// grid data
     fn is_up_to_date(
         &self,
@@ -901,15 +901,15 @@ impl InstanciatedCurveDescriptor {
     ) -> bool {
         if Arc::ptr_eq(&self.source, desc) {
             match &self.instance {
-                InstanciatedCurveDescriptor_::PiecewiseBezier(instanciated_descriptor) => {
-                    FreeGrids::ptr_eq(&instanciated_descriptor.grids, grids)
-                        && instanciated_descriptor
+                InstantiatedCurveDescriptor_::PiecewiseBezier(instantiated_descriptor) => {
+                    FreeGrids::ptr_eq(&instantiated_descriptor.grids, grids)
+                        && instantiated_descriptor
                             .paths_data
                             .as_ref()
                             .map(|data| BezierPathData::ptr_eq(paths_data, data))
                             .unwrap_or(false)
                 }
-                InstanciatedCurveDescriptor_::TranslatedBezierPath {
+                InstantiatedCurveDescriptor_::TranslatedBezierPath {
                     paths_data: source_paths,
                     ..
                 } => BezierPathData::ptr_eq(paths_data, source_paths),
@@ -925,7 +925,7 @@ impl InstanciatedCurveDescriptor {
         helix_parameters: &HelixParameters,
         cached_curve: &mut CurveCache,
     ) -> Arc<Curve> {
-        InstanciatedCurveDescriptor_::clone(&self.instance)
+        InstantiatedCurveDescriptor_::clone(&self.instance)
             .into_curve(helix_parameters, cached_curve)
     }
 
@@ -935,7 +935,7 @@ impl InstanciatedCurveDescriptor {
 
     pub fn bezier_points(&self) -> Vec<Vec3> {
         match &self.instance {
-            InstanciatedCurveDescriptor_::Bezier(constructor) => {
+            InstantiatedCurveDescriptor_::Bezier(constructor) => {
                 vec![
                     constructor.start,
                     constructor.control1,
@@ -943,7 +943,7 @@ impl InstanciatedCurveDescriptor {
                     constructor.end,
                 ]
             }
-            InstanciatedCurveDescriptor_::PiecewiseBezier(desc) => {
+            InstantiatedCurveDescriptor_::PiecewiseBezier(desc) => {
                 let desc = &desc.desc;
                 let mut ret: Vec<_> = desc
                     .ends
@@ -969,7 +969,7 @@ impl InstanciatedCurveDescriptor {
 }
 
 #[derive(Clone, Debug)]
-enum InstanciatedCurveDescriptor_ {
+enum InstantiatedCurveDescriptor_ {
     Bezier(CubicBezierConstructor),
     SphereLikeSpiral(SphereLikeSpiralDescriptor),
     TubeSpiral(TubeSpiralDescriptor),
@@ -984,9 +984,9 @@ enum InstanciatedCurveDescriptor_ {
     EllipticTorusConcentricCircle(EllipticTorusConcentricCircleDescriptor),
     SuperTwist(SuperTwist),
     TwistedTorus(TwistedTorusDescriptor),
-    PiecewiseBezier(InstanciatedPiecewiseBezierDescriptor),
+    PiecewiseBezier(InstantiatedPiecewiseBezierDescriptor),
     TranslatedBezierPath {
-        path_curve: Arc<InstanciatedPiecewiseBezier>,
+        path_curve: Arc<InstantiatedPiecewiseBezier>,
         translation: DVec3,
         initial_frame: DMat3,
         paths_data: BezierPathData,
@@ -996,12 +996,12 @@ enum InstanciatedCurveDescriptor_ {
     Chebyshev(PolynomialCoordinates_),
 }
 
-/// An instanciation of a PiecewiseBezier descriptor where reference to grid positions in the
+/// An instantiation of a PiecewiseBezier descriptor where reference to grid positions in the
 /// design have been replaced by their actual position in space using the data in `grids`.
 #[derive(Clone, Debug)]
-pub struct InstanciatedPiecewiseBezierDescriptor {
-    /// The instanciated descriptor
-    desc: InstanciatedPiecewiseBezier,
+pub struct InstantiatedPiecewiseBezierDescriptor {
+    /// The instantiated descriptor
+    desc: InstantiatedPiecewiseBezier,
     /// The data that was used to map grid positions to space position
     grids: FreeGrids,
     /// The data that was used to map BezierVertex to grids
@@ -1036,8 +1036,8 @@ impl<'a, 'b> PieceWiseBezierInstantiator<Vec3> for PieceWiseBezierInstantiator_<
     }
 }
 
-impl InstanciatedPiecewiseBezierDescriptor {
-    fn instanciate(
+impl InstantiatedPiecewiseBezierDescriptor {
+    fn instantiate(
         points: &[BezierEnd],
         grid_reader: &dyn CurveInstantiator,
         t_min: Option<f64>,
@@ -1045,14 +1045,14 @@ impl InstanciatedPiecewiseBezierDescriptor {
     ) -> Self {
         use rand::prelude::*;
         let mut rng = rand::thread_rng();
-        log::debug!("Instanciating {:?}", points);
-        let instanciator = PieceWiseBezierInstantiator_ {
+        log::debug!("Instantiating {:?}", points);
+        let instantiator = PieceWiseBezierInstantiator_ {
             points,
             grid_reader,
         };
-        let mut desc = instanciator
+        let mut desc = instantiator
             .instantiate()
-            .unwrap_or(InstanciatedPiecewiseBezier {
+            .unwrap_or(InstantiatedPiecewiseBezier {
                 ends: vec![],
                 t_min: None,
                 t_max: None,
@@ -1071,7 +1071,7 @@ impl InstanciatedPiecewiseBezierDescriptor {
     }
 }
 
-impl InstanciatedCurveDescriptor_ {
+impl InstantiatedCurveDescriptor_ {
     pub fn into_curve(
         self,
         helix_parameters: &HelixParameters,
@@ -1133,8 +1133,8 @@ impl InstanciatedCurveDescriptor_ {
                     ret
                 }
             }
-            Self::PiecewiseBezier(instanciated_descriptor) => {
-                Arc::new(Curve::new(instanciated_descriptor.desc, helix_parameters))
+            Self::PiecewiseBezier(instantiated_descriptor) => {
+                Arc::new(Curve::new(instantiated_descriptor.desc, helix_parameters))
             }
             Self::TranslatedBezierPath {
                 path_curve,
@@ -1152,7 +1152,7 @@ impl InstanciatedCurveDescriptor_ {
                 helix_parameters,
             )),
             Self::InterpolatedCurve(desc) => {
-                Arc::new(Curve::new(desc.instanciate(true), helix_parameters))
+                Arc::new(Curve::new(desc.instantiate(true), helix_parameters))
             }
             Self::Chebyshev(coordinates) => Arc::new(Curve::new(coordinates, helix_parameters)),
         }
@@ -1229,7 +1229,7 @@ impl InstanciatedCurveDescriptor_ {
                 helix_parameters,
             ))),
             Self::InterpolatedCurve(desc) => Some(Arc::new(Curve::new(
-                desc.clone().instanciate(true),
+                desc.clone().instantiate(true),
                 helix_parameters,
             ))),
             Self::Chebyshev(coordinates) => {
@@ -1296,7 +1296,7 @@ impl InstanciatedCurveDescriptor_ {
                 legacy: *legacy,
             })),
             Self::InterpolatedCurve(desc) => {
-                Some(Curve::compute_length(desc.clone().instanciate(true)))
+                Some(Curve::compute_length(desc.clone().instantiate(true)))
             }
             Self::Chebyshev(coord) => Some(Curve::compute_length(coord.clone())),
         }
@@ -1363,7 +1363,7 @@ impl InstanciatedCurveDescriptor_ {
                 initial_frame: *initial_frame,
                 legacy: *legacy,
             })),
-            Self::InterpolatedCurve(desc) => Some(Curve::path(desc.clone().instanciate(false))),
+            Self::InterpolatedCurve(desc) => Some(Curve::path(desc.clone().instantiate(false))),
             Self::Chebyshev(coordinates) => Some(Curve::path(coordinates.clone())),
         }
     }
@@ -1378,26 +1378,26 @@ impl InstanciatedCurveDescriptor_ {
 }
 
 #[derive(Default, Clone)]
-/// A map from curve descriptor to instanciated curves to avoid duplication of computations
+/// A map from curve descriptor to instantiated curves to avoid duplication of computations
 pub struct CurveCache(pub(crate) HashMap<TwistedTorusDescriptor, Arc<Curve>>);
 
 #[derive(Clone)]
-/// An instanciated curve with pre-computed nucleotides positions and orientations
-pub(super) struct InstanciatedCurve {
-    /// A descriptor of the instanciated curve
-    pub source: Arc<InstanciatedCurveDescriptor>,
+/// An instantiated curve with pre-computed nucleotides positions and orientations
+pub(super) struct InstantiatedCurve {
+    /// A descriptor of the instantiated curve
+    pub source: Arc<InstantiatedCurveDescriptor>,
     pub curve: Arc<Curve>,
 }
 
-impl std::fmt::Debug for InstanciatedCurve {
+impl std::fmt::Debug for InstantiatedCurve {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        f.debug_struct("InstanciatedCurve")
+        f.debug_struct("InstantiatedCurve")
             .field("source", &Arc::as_ptr(&self.source))
             .finish()
     }
 }
 
-impl AsRef<Curve> for InstanciatedCurve {
+impl AsRef<Curve> for InstantiatedCurve {
     fn as_ref(&self) -> &Curve {
         self.curve.as_ref()
     }
@@ -1410,14 +1410,14 @@ impl Helix {
         paths_data: &BezierPathData,
     ) -> bool {
         if let Some(current_desc) = self.curve.as_ref() {
-            self.instanciated_descriptor
+            self.instantiated_descriptor
                 .as_ref()
                 .filter(|desc| desc.is_up_to_date(current_desc, grid_data, paths_data))
                 .is_none()
         } else {
             // If helix should not be a curved, the descriptor is up-to-date iff there is no
             // descriptor
-            self.instanciated_descriptor.is_some()
+            self.instantiated_descriptor.is_some()
         }
     }
 
@@ -1433,23 +1433,23 @@ impl Helix {
 
     fn need_curve_update_only(&self) -> bool {
         let up_to_date = self
-            .instanciated_curve
+            .instantiated_curve
             .as_ref()
             .map(|c| Arc::as_ptr(&c.source))
-            == self.instanciated_descriptor.as_ref().map(Arc::as_ptr);
+            == self.instantiated_descriptor.as_ref().map(Arc::as_ptr);
         !up_to_date
     }
 
     pub fn try_update_curve(&mut self, helix_parameters: &HelixParameters) {
         if let Some(curve) = self.curve.as_ref()
-            && let Some(desc) = InstanciatedCurveDescriptor::try_instanciate(curve.clone())
+            && let Some(desc) = InstantiatedCurveDescriptor::try_instantiate(curve.clone())
         {
             let desc = Arc::new(desc);
-            self.instanciated_descriptor = Some(desc.clone());
+            self.instantiated_descriptor = Some(desc.clone());
             let hp = &(self.helix_parameters.unwrap_or(*helix_parameters));
             println!("helix: {} nm {} bpt", hp.rise, hp.bases_per_turn);
             if let Some(curve) = desc.as_ref().instance.try_into_curve(hp) {
-                self.instanciated_curve = Some(InstanciatedCurve {
+                self.instantiated_curve = Some(InstantiatedCurve {
                     curve,
                     source: desc,
                 })
@@ -1458,20 +1458,8 @@ impl Helix {
     }
 }
 
-// #[derive(Serialize, Deserialize, Debug, Clone)]
-// pub enum InterpolationDescriptor {
-//     PointsValues {
-//         points: Vec<f64>,
-//         values: Vec<f64>,
-//     },
-//     Chebyshev {
-//         coeffs: Vec<f64>,
-//         interval: [f64; 2],
-//     },
-// }
-
 impl InterpolationDescriptor {
-    pub fn instanciated(self) -> chebyshev_polynomials::ChebyshevPolynomial {
+    pub fn instantiated(self) -> chebyshev_polynomials::ChebyshevPolynomial {
         match self {
             InterpolationDescriptor::PointsValues { points, values } => {
                 let points_values = points.into_iter().zip(values.into_iter()).collect();

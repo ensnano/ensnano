@@ -16,8 +16,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use ensnano_organizer::{
-    AttributeDisplay, AttributeWidget, ElementKey, OrganizerAttribute, OrganizerAttributeRepr,
-    OrganizerElement,
+    AttributeDisplay, AttributeWidget, ElementKey, OrganizerAttribute,
+    OrganizerAttributeDiscriminant, OrganizerElement,
 };
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 use serde::{Deserialize, Serialize};
@@ -285,32 +285,32 @@ pub enum DnaAttribute {
 
 #[derive(Clone, Debug, PartialEq, PartialOrd, Ord, Eq, TryFromPrimitive, IntoPrimitive)]
 #[repr(usize)]
-pub enum DnaAttributeRepr {
+pub enum DnaAttributeDiscriminant {
     Visible,
     XoverGroup,
     LockedForSimulations,
 }
 
-const ALL_DNA_ATTRIBUTE_REPR: [DnaAttributeRepr; 3] = [
-    DnaAttributeRepr::Visible,
-    DnaAttributeRepr::XoverGroup,
-    DnaAttributeRepr::LockedForSimulations,
+const ALL_DNA_ATTRIBUTE_DISCRIMINANTS: [DnaAttributeDiscriminant; 3] = [
+    DnaAttributeDiscriminant::Visible,
+    DnaAttributeDiscriminant::XoverGroup,
+    DnaAttributeDiscriminant::LockedForSimulations,
 ];
 
-impl OrganizerAttributeRepr for DnaAttributeRepr {
-    fn all_repr() -> &'static [Self] {
-        &ALL_DNA_ATTRIBUTE_REPR
+impl OrganizerAttributeDiscriminant for DnaAttributeDiscriminant {
+    fn all_discriminants() -> &'static [Self] {
+        &ALL_DNA_ATTRIBUTE_DISCRIMINANTS
     }
 }
 
 impl OrganizerAttribute for DnaAttribute {
-    type Repr = DnaAttributeRepr;
+    type Discriminant = DnaAttributeDiscriminant;
 
-    fn repr(&self) -> DnaAttributeRepr {
+    fn discriminant(&self) -> DnaAttributeDiscriminant {
         match self {
-            DnaAttribute::Visible(_) => DnaAttributeRepr::Visible,
-            DnaAttribute::XoverGroup(_) => DnaAttributeRepr::XoverGroup,
-            DnaAttribute::LockedForSimulations(_) => DnaAttributeRepr::LockedForSimulations,
+            DnaAttribute::Visible(_) => DnaAttributeDiscriminant::Visible,
+            DnaAttribute::XoverGroup(_) => DnaAttributeDiscriminant::XoverGroup,
+            DnaAttribute::LockedForSimulations(_) => DnaAttributeDiscriminant::LockedForSimulations,
         }
     }
 

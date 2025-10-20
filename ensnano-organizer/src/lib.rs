@@ -743,8 +743,8 @@ impl<E: OrganizerElement> Organizer<E> {
     fn drag_drop(&mut self, k: &DragIdentifier<E::Key, E::AutoGroup>) {
         match k {
             DragIdentifier::Group { id: id_dest } => {
-                if let Some(identifer) = self.dragging.iter().next().cloned() {
-                    match identifer {
+                if let Some(identifier) = self.dragging.iter().next().cloned() {
+                    match identifier {
                         id if id == k.clone() => (),
                         DragIdentifier::Group { id } => self.move_id(&id, id_dest),
                         DragIdentifier::Section { key } => {
@@ -922,7 +922,7 @@ struct ElementView<E: OrganizerElement + 'static> {
 impl<E: OrganizerElement> ElementView<E> {
     fn new() -> Self {
         Self {
-            attribute_displayers: vec![AttributeDisplayer::new(); E::all_repr().len()],
+            attribute_displayers: vec![AttributeDisplayer::new(); E::all_discriminants().len()],
         }
     }
     fn view(
@@ -981,7 +981,7 @@ impl<E: OrganizerElement> ElementView<E> {
 
     fn update_element(&mut self, element: &E) {
         for e in element.attributes() {
-            self.attribute_displayers[e.repr().into()].update_attribute(Some(e.clone()))
+            self.attribute_displayers[e.discriminant().into()].update_attribute(Some(e.clone()))
         }
     }
 }
@@ -996,7 +996,7 @@ impl<E: OrganizerElement> NodeView<E> {
     fn new() -> Self {
         Self {
             state: GroupState::Idle,
-            attribute_displayers: vec![AttributeDisplayer::new(); E::all_repr().len()],
+            attribute_displayers: vec![AttributeDisplayer::new(); E::all_discriminants().len()],
         }
     }
 
@@ -1217,7 +1217,7 @@ impl<E: OrganizerElement> GroupContent<E> {
             id: NodeId::TreeId(id),
             element: key,
             view: ElementView::new(),
-            attributes: vec![None; E::all_repr().len()],
+            attributes: vec![None; E::all_discriminants().len()],
         }
     }
 
@@ -1231,7 +1231,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                 id: NodeId::TreeId(vec![]),
                 element: k.clone(),
                 view: ElementView::new(),
-                attributes: vec![None; E::all_repr().len()],
+                attributes: vec![None; E::all_discriminants().len()],
             },
             OrganizerTree::Node {
                 name,
@@ -1255,7 +1255,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                     name: name.clone(),
                     expanded: *expanded,
                     view: NodeView::new(),
-                    attributes: vec![None; E::all_repr().len()],
+                    attributes: vec![None; E::all_discriminants().len()],
                     elements_below: BTreeSet::new(),
                     group_id,
                 }
@@ -1279,7 +1279,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                     id,
                     element: e.clone(),
                     view: ElementView::new(),
-                    attributes: vec![None; E::all_repr().len()],
+                    attributes: vec![None; E::all_discriminants().len()],
                 }
             })
             .collect();
@@ -1290,7 +1290,7 @@ impl<E: OrganizerElement> GroupContent<E> {
             name,
             expanded: false,
             view: NodeView::new(),
-            attributes: vec![None; E::all_repr().len()],
+            attributes: vec![None; E::all_discriminants().len()],
             elements_below: BTreeSet::new(),
             group_id,
         }
@@ -1338,7 +1338,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                             id,
                             element: e.clone(),
                             view: ElementView::new(),
-                            attributes: vec![None; E::all_repr().len()],
+                            attributes: vec![None; E::all_discriminants().len()],
                         }
                     });
                     children.extend(new_leaves);
@@ -1547,10 +1547,10 @@ impl<E: OrganizerElement> GroupContent<E> {
                 view,
                 ..
             } => {
-                *attributes = vec![None; E::all_repr().len()];
+                *attributes = vec![None; E::all_discriminants().len()];
                 if let Some(element) = get_element(sections, element) {
                     for attr in element.attributes() {
-                        let attr_id: usize = attr.repr().into();
+                        let attr_id: usize = attr.discriminant().into();
                         attributes[attr_id] = Some(attr.clone())
                     }
                 }
@@ -1565,7 +1565,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                 ..
             } => {
                 *elements_below = BTreeSet::new();
-                *attributes = vec![None; E::all_repr().len()];
+                *attributes = vec![None; E::all_discriminants().len()];
                 for c in children.iter_mut() {
                     c.update_attributes(sections);
                     for elt in c.get_all_elements_below().iter() {
@@ -1678,7 +1678,7 @@ impl<E: OrganizerElement> GroupContent<E> {
     /// If self is a Leaf return true iff it owns an element that is *not* in elements.keys(), and
     /// in this case adds its own node identifier to `ids_to_remove`
     ///
-    /// If self is a group, apply recursievely this process to all its children and then return
+    /// If self is a group, apply recursively this process to all its children and then return
     /// true iff all the children need to be removed.
     fn delete_useless_leaves(
         &self,
@@ -1694,7 +1694,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                 for c in children.iter() {
                     _ret &= c.delete_useless_leaves(ids_to_remove, elements);
                 }
-                // Decomment this to also remove empty groups (ret, id)
+                // Uncomment this to also remove empty groups (ret, id)
                 (false, id)
             }
         };

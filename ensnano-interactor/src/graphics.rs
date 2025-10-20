@@ -162,7 +162,7 @@ pub struct DrawArea {
     pub size: PhySize,
 }
 
-/// The different elements represented on the scene. Each element is instanciated once.
+/// The different elements represented on the scene. Each element is instantiated once.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 pub enum GuiComponentType {
     /// The top menu bar

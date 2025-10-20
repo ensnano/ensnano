@@ -60,7 +60,7 @@ impl<K: Eq + Hash + Clone> IdGenerator<K> {
     }
 
     pub fn remove(&mut self, id: usize) {
-        let elt = self.get_element(id).expect("Removing unexisting id");
+        let elt = self.get_element(id).expect("Removing non-existent id");
         self.ids.remove(&elt);
         self.elements.remove(&id);
     }

@@ -1361,10 +1361,10 @@ pub trait AppState: Clone + 'static {
     fn get_draw_options(&self) -> DrawOptions;
     fn draw_options_were_updated(&self, other: &Self) -> bool;
     fn get_scroll_sensitivity(&self) -> f32;
-    fn show_insertion_representents(&self) -> bool;
+    fn show_insertion_discriminants(&self) -> bool;
 
     fn insertion_bond_display_was_modified(&self, other: &Self) -> bool {
-        self.show_insertion_representents() != other.show_insertion_representents()
+        self.show_insertion_discriminants() != other.show_insertion_discriminants()
     }
 
     fn show_bezier_paths(&self) -> bool;

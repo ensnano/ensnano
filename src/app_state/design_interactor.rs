@@ -30,7 +30,7 @@ use crate::{
 use controller::{Controller, ErrOperation, InteractorNotification};
 use ensnano_design::{
     BezierPathId, BezierPlaneDescriptor, Design, HelixCollection, HelixParameters,
-    InstanciatedPiecewiseBezier, grid::GridId, group_attributes::GroupAttribute,
+    InstantiatedPiecewiseBezier, grid::GridId, group_attributes::GroupAttribute,
 };
 use ensnano_exports::{ExportResult, ExportType};
 use ensnano_gui::CurrentOpState;
@@ -44,7 +44,7 @@ use presenter::{Presenter, SimulationUpdate, apply_simulation_update, update_pre
 use std::sync::Arc;
 
 /// The `DesignInteractor` handles all read/write operations on the design. It is a stateful struct
-/// so it is meant to be unexpansive to clone.
+/// so it is meant to be cheap to clone.
 #[derive(Clone, Default)]
 pub struct DesignInteractor {
     /// The current design
@@ -389,7 +389,7 @@ impl DesignReader {
             .get(&group_id)
     }
 
-    pub fn get_bezier_path_2d(&self, path_id: BezierPathId) -> Option<InstanciatedPiecewiseBezier> {
+    pub fn get_bezier_path_2d(&self, path_id: BezierPathId) -> Option<InstantiatedPiecewiseBezier> {
         self.presenter.get_bezier_path_2d(path_id)
     }
 
@@ -460,8 +460,8 @@ mod tests {
         println!("objective {}", objective.deref());
         use regex::Regex;
         let re = Regex::new(r#"\[[^\]]*\]"#).unwrap();
-        let formated_strand = strand.formatted_domains();
-        let left = re.find_iter(&formated_strand);
+        let formatted_strand = strand.formatted_domains();
+        let left = re.find_iter(&formatted_strand);
         let right = re.find_iter(&objective);
         for (a, b) in left.zip(right) {
             assert_eq!(a.as_str(), b.as_str());
@@ -470,12 +470,12 @@ mod tests {
     }
 
     fn assert_good_junctions<S: std::ops::Deref<Target = str>>(strand: &Strand, objective: S) {
-        println!("self {:?}", strand.formated_anonymous_junctions());
+        println!("self {:?}", strand.formatted_anonymous_junctions());
         println!("objective {}", objective.deref());
         use regex::Regex;
         let re = Regex::new(r#"\[[^\]]*\]"#).unwrap();
-        let formated_strand = strand.formated_anonymous_junctions();
-        let left = re.find_iter(&formated_strand);
+        let formatted_strand = strand.formatted_anonymous_junctions();
+        let left = re.find_iter(&formatted_strand);
         let right = re.find_iter(&objective);
         for (a, b) in left.zip(right) {
             assert_eq!(a.as_str(), b.as_str());
@@ -737,17 +737,17 @@ mod tests {
             .unwrap();
 
         let strand = strands.get(&s_id_prime5).expect("No strand 5'");
-        let exptected_result = "[->] [x] [3']".to_string();
-        assert_good_junctions(strand, exptected_result);
+        let expected_result = "[->] [x] [3']".to_string();
+        assert_good_junctions(strand, expected_result);
         println!("OK for 5' end");
 
         let strand = strands.get(&s_id_prime3).expect("No strand 3'");
-        let exptected_result = "[3']".to_string();
-        assert_good_junctions(strand, exptected_result);
+        let expected_result = "[3']".to_string();
+        assert_good_junctions(strand, expected_result);
     }
 
     /// Add an insertion on 3'end of a strand and check that the last two junctions are in correct
-    /// oreder
+    /// order
     #[test]
     fn junction_on_xover_ends() {
         // A design with one strand h1: -1 -> 7 ; h2: -1 <- 7 ; h3: 0 -> 9
@@ -796,12 +796,12 @@ mod tests {
             .strands
             .get(&0)
             .expect("No strand 0");
-        let exptected_result = "[->] [x] [->] [x] [3']".to_string();
-        assert_good_junctions(strand, exptected_result);
+        let expected_result = "[->] [x] [->] [x] [3']".to_string();
+        assert_good_junctions(strand, expected_result);
     }
 
     /// Add an insertion on 3'end of a strand and check that the last two junctions are in correct
-    /// oreder
+    /// order
     #[test]
     fn junction_on_xover_and_3prime_ends() {
         // A design with one strand h1: -1 -> 7 ; h2: -1 <- 7 ; h3: 0 -> 9
@@ -862,8 +862,8 @@ mod tests {
             .strands
             .get(&0)
             .expect("No strand 0");
-        let exptected_result = "[->] [x] [->] [x] [->] [3']".to_string();
-        assert_good_junctions(strand, exptected_result);
+        let expected_result = "[->] [x] [->] [x] [->] [3']".to_string();
+        assert_good_junctions(strand, expected_result);
     }
 
     #[test]
@@ -1650,9 +1650,9 @@ mod tests {
         let staples = app_state.get_design_reader().presenter.get_staples();
         for s in staples.iter() {
             if s.name.contains("5':h1:nt7") {
-                assert_eq!(s.sequence, "CCAA TTTT")
+                assert_eq!(s.sequence, "CCAA TTTT") // cspell: disable-line
             } else if s.name.contains("5':h2:nt0") {
-                assert_eq!(s.sequence, "AAAA GGTT")
+                assert_eq!(s.sequence, "AAAA GGTT") // cspell: disable-line
             } else {
                 panic!("Incorrect staple name {:?}", s.name);
             }
@@ -1682,9 +1682,9 @@ mod tests {
         let staples = app_state.get_design_reader().presenter.get_staples();
         for s in staples.iter() {
             if s.name.contains("5':h1:nt7") {
-                assert_eq!(s.sequence, "AGGT TCCA")
+                assert_eq!(s.sequence, "AGGT TCCA") // cspell: disable-line
             } else if s.name.contains("5':h2:nt0") {
-                assert_eq!(s.sequence, "ATTT TAAA")
+                assert_eq!(s.sequence, "ATTT TAAA") // cspell: disable-line
             } else {
                 panic!("Incorrect staple name {:?}", s.name);
             }

@@ -290,7 +290,7 @@ impl<R: DesignReader> Design2d<R> {
                 right: left + 2,
                 max_right,
                 min_left,
-                isometry: FullIsometry::from_isommetry_symmetry(isometry, symmetry),
+                isometry: FullIsometry::from_isometry_symmetry(isometry, symmetry),
                 visible: self
                     .design
                     .get_visibility_helix(segment.helix_idx)
@@ -301,7 +301,7 @@ impl<R: DesignReader> Design2d<R> {
             // unwrap Ok because we know that the key exists
             let flat = self.id_map.get_segment_idx(segment).unwrap();
             let helix2d = &mut self.helices[flat];
-            helix2d.isometry = FullIsometry::from_isommetry_symmetry(isometry, symmetry);
+            helix2d.isometry = FullIsometry::from_isometry_symmetry(isometry, symmetry);
             helix2d.abscissa_converter =
                 Arc::new(self.design.get_abscissa_converter(segment.helix_idx));
         }

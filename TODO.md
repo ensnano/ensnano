@@ -11,13 +11,15 @@
 - Animation timeline
 - Publish `ensnano` on crates.io?
 - Hide scientific WIP, either:
-  - Authentification once the app is ported to the web
+  - Authentication once the app is ported to the web
   - Possibility to inject an external private crate with more objects
 
 ## Scene (3D)
 
 - Fix rotation with `H`/`J`/`K`/`L` while dragging
 - Figure out why `H`/`J`/`K`/`L` don't work the same
+  - `J` and `L` ok
+  - `H` and `K` seem to be intercepted in another controller, but I can't find which one
 - Export PNG max size
 - Cut plane (toggleable button next to grids)
 - Isometric view
@@ -79,6 +81,7 @@
 - Use `mod.rs` everywhere instead of `module.rs` and `<module>/`
 - kebab-case -> snake_case for the crate directories
 - Fix all typos using `cspell`
+  - Add serialization/deserialization tests to detect regressions based on typo fixes
 - More consistent styling:
   - Create some `rustfmt.toml` rules?
   - Merge imports?

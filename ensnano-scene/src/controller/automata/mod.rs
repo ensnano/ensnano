@@ -189,7 +189,7 @@ impl<S: AppState> ControllerState<S> for NormalState {
                             .map(|i| i.position())
                             .unwrap_or_else(|| {
                                 log::error!(
-                                    "Could not get curosr intersection with plane {:?}",
+                                    "Could not get cursor intersection with plane {:?}",
                                     vertex.plane_id
                                 );
                                 Vec2::unit_x()
@@ -417,9 +417,8 @@ impl<S: AppState> ControllerState<S> for NormalState {
                     }
                     None if context.is_editing_bezier_path() => {
                         // path_id is either:
-                        // - the id of the currently selected bezier vertex, in
-                        //   which case we are appening a new vertex to the path to which this vertex
-                        //   belong
+                        // - the id of the currently selected bezier vertex, in which case we are
+                        //   appending a new vertex to the path to which this vertex belong
                         // - None, in which case we are creating a new bezier path
                         let path_id = context.get_bezier_vertex_being_edited().map(|v| v.path_id);
 

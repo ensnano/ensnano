@@ -299,14 +299,14 @@ impl StaplesDownloader for DesignReader {
 
 fn warn_all_staples_not_paired(first_unpaired: Nucl) -> String {
     format!(
-        "All staptes are not paired. First unpaired nucleotide: {}",
+        "All staples are not paired. First unpaired nucleotide: {}",
         first_unpaired
     )
 }
 
 fn warn_scaffold_seq_mismatch(scaffold_length: usize, sequence_length: usize) -> String {
     format!(
-        "The lengh of the scaffold is not equal to the length of the sequence.\n
+        "The length of the scaffold is not equal to the length of the sequence.\n
         length of the scaffold: {}\n
         length of the sequence: {}",
         scaffold_length, sequence_length

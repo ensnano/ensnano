@@ -94,9 +94,9 @@ macro_rules! type_builder {
     }
 }
 
-struct DegreeAngleFormater;
+struct DegreeAngleFormatter;
 
-impl DegreeAngleFormater {
+impl DegreeAngleFormatter {
     fn fmt(angle: &f32) -> String {
         format!("{:.1}°", angle.to_degrees())
     }
@@ -152,7 +152,7 @@ type_builder!(
     x: f32 % FloatFormatter,
     y: f32 % FloatFormatter,
     z: f32 % FloatFormatter,
-    angle: f32 % DegreeAngleFormater
+    angle: f32 % DegreeAngleFormatter
 );
 
 /*type_builder!(
@@ -171,7 +171,7 @@ pub enum ValueKind {
 }
 
 #[derive(Debug, Clone)]
-pub enum InstanciatedValue {
+pub enum InstantiatedValue {
     HelixGridPosition(Vec3),
     GridOrientation(Rotor3),
     GridNbTurn(f32),
@@ -199,11 +199,11 @@ impl GridPositionBuilder {
         }
     }
 
-    fn submit_value(&mut self) -> Option<InstanciatedValue> {
+    fn submit_value(&mut self) -> Option<InstantiatedValue> {
         match self {
             Self::Cartesian(builder) => builder
                 .submit_value()
-                .map(InstanciatedValue::HelixGridPosition),
+                .map(InstantiatedValue::HelixGridPosition),
         }
     }
 }
@@ -232,11 +232,11 @@ impl GridOrientationBuilder {
         }
     }
 
-    fn submit_value(&mut self) -> Option<InstanciatedValue> {
+    fn submit_value(&mut self) -> Option<InstantiatedValue> {
         match self {
             Self::DirectionAngle(builder) => builder
                 .submit_value()
-                .map(InstanciatedValue::GridOrientation),
+                .map(InstantiatedValue::GridOrientation),
         }
     }
 }
@@ -282,11 +282,11 @@ where
         }
     }
 
-    fn submit_value(&mut self, value_kind: ValueKind) -> Option<InstanciatedValue> {
+    fn submit_value(&mut self, value_kind: ValueKind) -> Option<InstantiatedValue> {
         if let ValueKind::BezierVertexPosition = value_kind {
             self.position_builder
                 .submit_value()
-                .map(InstanciatedValue::BezierVertexPosition)
+                .map(InstantiatedValue::BezierVertexPosition)
         } else {
             log::error!(
                 "Unexpected value kind {:?} for BezierVertexBuilder",
@@ -321,7 +321,7 @@ impl GridBuilder {
                 let row = row![
                     text(format!("{:.2}", nb_turn)),
                     slider(consts::MIN_NB_TURN..=consts::MAX_NB_TURN, nb_turn, |x| {
-                        super::Message::InstanciatedValueSubmitted(InstanciatedValue::GridNbTurn(x))
+                        super::Message::InstantiatedValueSubmitted(InstantiatedValue::GridNbTurn(x))
                     })
                     .step(consts::NB_TURN_STEP),
                 ]
@@ -370,7 +370,7 @@ where
         }
     }
 
-    fn submit_value(&mut self, value_kind: ValueKind) -> Option<InstanciatedValue> {
+    fn submit_value(&mut self, value_kind: ValueKind) -> Option<InstantiatedValue> {
         match value_kind {
             ValueKind::HelixGridPosition => self.position_builder.submit_value(),
             ValueKind::GridOrientation => self.orientation_builder.submit_value(),
@@ -395,7 +395,7 @@ where
         app_state: &State,
     ) -> iced::Element<'a, super::Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer>;
     fn update_str_value(&mut self, value_kind: ValueKind, n: usize, value_str: String);
-    fn submit_value(&mut self, value_kind: ValueKind) -> Option<InstanciatedValue>;
+    fn submit_value(&mut self, value_kind: ValueKind) -> Option<InstantiatedValue>;
 }
 
 #[derive(Debug, Clone, Copy)]

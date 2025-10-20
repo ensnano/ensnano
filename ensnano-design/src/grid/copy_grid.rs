@@ -178,7 +178,7 @@ impl Design {
                     ..
                 } => new_strand_domains.push(Domain::Insertion {
                     nb_nucl: *nb_nucl,
-                    instanciation: None,
+                    instantiation: None,
                     sequence: sequence.clone(),
                     attached_to_prime3: *attached_to_prime3,
                 }),
@@ -209,8 +209,8 @@ impl Design {
         for j in source_strand.junctions.iter() {
             match j {
                 DomainJunction::Prime3 => new_junctions.push(DomainJunction::Prime3),
-                DomainJunction::IdentifiedXover(_) | DomainJunction::UnindentifiedXover => {
-                    new_junctions.push(DomainJunction::UnindentifiedXover)
+                DomainJunction::IdentifiedXover(_) | DomainJunction::UnidentifiedXover => {
+                    new_junctions.push(DomainJunction::UnidentifiedXover)
                 }
                 DomainJunction::Adjacent => new_junctions.push(DomainJunction::Adjacent),
             }

@@ -418,12 +418,14 @@ impl Instantiable for TubeInstance {
     }
 
     fn to_raw_instance(&self) -> RawDnaInstance {
+        // Translate to the position and apply rotation so that u_x aligns with the tube’s axis.
         let model =
-            Mat4::from_translation(self.position) * self.rotor.into_matrix().into_homogeneous(); // translation à position et rotation dans la bonne position u_x -> axe du tube
+            Mat4::from_translation(self.position) * self.rotor.into_matrix().into_homogeneous();
+
         RawDnaInstance {
             model,
             color: self.color,
-            scale: Vec3::new(self.length, self.radius, self.radius), // scale.x is the length of the tube
+            scale: Vec3::new(self.length, self.radius, self.radius),
             id: self.id,
             inversed_model: model.inversed(),
             mesh: super::Mesh::Tube as u32,
@@ -598,7 +600,7 @@ impl Instantiable for SlicedTubeInstance {
     }
 
     fn fake_fragment_module(device: &wgpu::Device) -> Option<wgpu::ShaderModule> {
-        // note that currently fake sliced tube points to faketube... to be changed
+        // note that currently fake sliced tube points to fake tube... to be changed
         Some(device.create_shader_module(wgpu::include_spirv!("dna_obj_fake.frag.spv")))
     }
 

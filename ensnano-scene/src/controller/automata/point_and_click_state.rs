@@ -18,7 +18,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 //! Defines the state in which the user is clicking on an object.
 //!
-//! Such a state is enterred when a mouse button is pressed while the cursor is on some specific
+//! Such a state is entered when a mouse button is pressed while the cursor is on some specific
 //! object. If the mouse button is released while the cursor is still close to the position on
 //! which it was when the button was pressed, the release of the button is treated as a click on
 //! the object.

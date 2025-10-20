@@ -28,19 +28,19 @@ impl ColorGradient {
                 self.left
             } else if x <= 0.5 {
                 let x = x * 2.;
-                let interp = |a, b| a * (1. - x) + b * x;
+                let lerp = |a, b| a * (1. - x) + b * x;
                 Color::from_rgb(
-                    interp(self.left.r, middle.r),
-                    interp(self.left.g, middle.g),
-                    interp(self.left.b, middle.b),
+                    lerp(self.left.r, middle.r),
+                    lerp(self.left.g, middle.g),
+                    lerp(self.left.b, middle.b),
                 )
             } else if x <= 1. {
                 let x = (x - 0.5) * 2.;
-                let interp = |a, b| a * (1. - x) + b * x;
+                let lerp = |a, b| a * (1. - x) + b * x;
                 Color::from_rgb(
-                    interp(middle.r, self.right.r),
-                    interp(middle.g, self.right.g),
-                    interp(middle.b, self.right.b),
+                    lerp(middle.r, self.right.r),
+                    lerp(middle.g, self.right.g),
+                    lerp(middle.b, self.right.b),
                 )
             } else {
                 self.right
@@ -49,11 +49,11 @@ impl ColorGradient {
             if x <= 0. {
                 self.left
             } else if x <= 1. {
-                let interp = |a, b| a * (1. - x) + b * x;
+                let lerp = |a, b| a * (1. - x) + b * x;
                 Color::from_rgb(
-                    interp(self.left.r, self.right.r),
-                    interp(self.left.g, self.right.g),
-                    interp(self.left.b, self.right.b),
+                    lerp(self.left.r, self.right.r),
+                    lerp(self.left.g, self.right.g),
+                    lerp(self.left.b, self.right.b),
                 )
             } else {
                 self.right

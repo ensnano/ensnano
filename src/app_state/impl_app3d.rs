@@ -141,8 +141,8 @@ impl App3D for AppState {
         sign * scroll_sensitivity_conversion(self.0.parameters.scroll_sensitivity)
     }
 
-    fn show_insertion_representents(&self) -> bool {
-        self.0.show_insertion_representents
+    fn show_insertion_discriminants(&self) -> bool {
+        self.0.show_insertion_discriminants
     }
 
     fn show_bezier_paths(&self) -> bool {

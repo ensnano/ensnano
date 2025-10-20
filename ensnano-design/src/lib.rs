@@ -157,8 +157,11 @@ pub struct Design {
     #[serde(default)]
     pub rainbow_scaffold: bool,
 
-    #[serde(skip)]
-    instanciated_grid_data: Option<GridData>,
+    #[serde(
+        skip,
+        alias = "instanciated_grid_data", // cspell:disable-line
+    )]
+    instantiated_grid_data: Option<GridData>,
 
     #[serde(skip, default)]
     cached_curve: Arc<CurveCache>,
@@ -169,8 +172,11 @@ pub struct Design {
     #[serde(default)]
     pub bezier_paths: BezierPaths,
 
-    #[serde(skip)]
-    instanciated_paths: Option<BezierPathData>,
+    #[serde(
+        skip,
+        alias = "instanciated_paths", // cspell:disable-line
+    )]
+    instantiated_paths: Option<BezierPathData>,
 
     #[serde(default)]
     pub external_3d_objects: External3DObjects,
@@ -209,10 +215,10 @@ impl Design {
     /// of the design
     pub fn try_get_up_to_date<'a>(&'a self) -> Option<UpToDateDesign<'a>> {
         let paths_data = self
-            .instanciated_paths
+            .instantiated_paths
             .as_ref()
             .filter(|data| !data.need_update(&self.bezier_planes, &self.bezier_paths))?;
-        if let Some(data) = self.instanciated_grid_data.as_ref() {
+        if let Some(data) = self.instantiated_grid_data.as_ref() {
             if data.is_up_to_date(self) {
                 Some(UpToDateDesign {
                     design: self,
@@ -233,16 +239,16 @@ impl Design {
             .helix_parameters
             .as_ref()
             .unwrap_or(&HelixParameters::DEFAULT);
-        if let Some(paths_data) = self.instanciated_paths.as_ref() {
+        if let Some(paths_data) = self.instantiated_paths.as_ref() {
             if let Some(new_data) = paths_data.updated(
                 self.bezier_planes.clone(),
                 self.bezier_paths.clone(),
                 helix_parameters,
             ) {
-                self.instanciated_paths = Some(new_data);
+                self.instantiated_paths = Some(new_data);
             }
         } else {
-            self.instanciated_paths = Some(BezierPathData::new(
+            self.instantiated_paths = Some(BezierPathData::new(
                 self.bezier_planes.clone(),
                 self.bezier_paths.clone(),
                 helix_parameters,
@@ -250,12 +256,12 @@ impl Design {
         }
         if self.needs_update() {
             let grid_data = GridData::new_by_updating_design(self);
-            self.instanciated_grid_data = Some(grid_data);
+            self.instantiated_grid_data = Some(grid_data);
         }
         UpToDateDesign {
             design: self,
-            grid_data: self.instanciated_grid_data.as_ref().unwrap(),
-            paths_data: self.instanciated_paths.as_ref().unwrap(),
+            grid_data: self.instantiated_grid_data.as_ref().unwrap(),
+            paths_data: self.instantiated_paths.as_ref().unwrap(),
         }
     }
 
@@ -264,26 +270,26 @@ impl Design {
             .helix_parameters
             .as_ref()
             .unwrap_or(&HelixParameters::DEFAULT);
-        if let Some(paths_data) = self.instanciated_paths.as_ref() {
+        if let Some(paths_data) = self.instantiated_paths.as_ref() {
             if let Some(new_data) = paths_data.updated(
                 self.bezier_planes.clone(),
                 self.bezier_paths.clone(),
                 helix_parameters,
             ) {
-                self.instanciated_paths = Some(new_data);
+                self.instantiated_paths = Some(new_data);
             }
         } else {
-            self.instanciated_paths = Some(BezierPathData::new(
+            self.instantiated_paths = Some(BezierPathData::new(
                 self.bezier_planes.clone(),
                 self.bezier_paths.clone(),
                 helix_parameters,
             ));
         }
-        self.instanciated_paths.as_ref().unwrap()
+        self.instantiated_paths.as_ref().unwrap()
     }
 
     fn needs_update(&self) -> bool {
-        if let Some(data) = self.instanciated_grid_data.as_ref() {
+        if let Some(data) = self.instantiated_grid_data.as_ref() {
             !data.is_up_to_date(self)
         } else {
             true
@@ -368,12 +374,12 @@ impl Design {
             saved_camera: None,
             checked_xovers: Default::default(),
             rainbow_scaffold: false,
-            instanciated_grid_data: None,
+            instantiated_grid_data: None,
             cached_curve: Default::default(),
             bezier_planes: Default::default(),
             bezier_paths: Default::default(),
             old_grids: Vec::new(),
-            instanciated_paths: None,
+            instantiated_paths: None,
             external_3d_objects: Default::default(),
             additional_structure: None,
             clone_isometries: Some(Vec::new()),
@@ -534,14 +540,14 @@ impl Design {
     pub fn get_updated_grid_data(&mut self) -> &GridData {
         self.update_curve_bounds();
         for _ in 0..3 {
-            let need_update = if let Some(data) = self.instanciated_grid_data.as_ref() {
+            let need_update = if let Some(data) = self.instantiated_grid_data.as_ref() {
                 !data.is_up_to_date(self)
             } else {
                 true
             };
             if need_update {
                 let updated_data = GridData::new_by_updating_design(self);
-                self.instanciated_grid_data = Some(updated_data);
+                self.instantiated_grid_data = Some(updated_data);
             }
             if !self.update_curve_bounds() {
                 // we are done
@@ -563,7 +569,7 @@ impl Design {
                 self.strands.get_used_bounds_for_helix(*h_id, &self.helices)
             {
                 log::debug!("bounds {} {}", n_min, n_max);
-                if let Some(curve) = h.instanciated_curve.as_ref() {
+                if let Some(curve) = h.instantiated_curve.as_ref() {
                     if let Some(t_min) = curve
                         .curve
                         .left_extension_to_have_nucl(n_min, &helix_parameters)
@@ -606,7 +612,7 @@ impl Design {
         self.get_updated_grid_data();
         MutStrandAndData {
             strands: &mut self.strands,
-            grid_data: self.instanciated_grid_data.as_ref().unwrap(),
+            grid_data: self.instantiated_grid_data.as_ref().unwrap(),
             helices: &self.helices,
             helix_parameters: self.helix_parameters.unwrap_or_default(),
         }

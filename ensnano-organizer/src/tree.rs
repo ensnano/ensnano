@@ -47,10 +47,7 @@ impl<K: PartialEq> OrganizerTree<K> {
                     match c {
                         Self::Leaf(k) if k == element => ret.push(rename.clone()),
                         Self::Leaf(_) => (),
-                        node => {
-                            let extention = node.get_names_of_groups_having(element);
-                            ret.extend(extention)
-                        }
+                        node => ret.extend(node.get_names_of_groups_having(element)),
                     }
                 }
             }
@@ -67,8 +64,7 @@ impl<K: PartialEq> OrganizerTree<K> {
             Self::Node { children, .. } => {
                 let _ = ret.push(self.get_name_copy_with_id());
                 for c in children {
-                    let extention = c.get_names_of_all_groups();
-                    ret.extend(extention);
+                    ret.extend(c.get_names_of_all_groups());
                 }
             }
         }
@@ -85,8 +81,7 @@ impl<K: PartialEq> OrganizerTree<K> {
                     ret.push(name);
                 }
                 for c in children {
-                    let extention = c.get_names_of_all_groups_without_id();
-                    ret.extend(extention);
+                    ret.extend(c.get_names_of_all_groups_without_id());
                 }
             }
         }

@@ -37,7 +37,7 @@ pub use top_bar::TopBar;
 /// Draw the left panel of the GUI
 pub mod left_panel;
 pub use left_panel::{
-    ColorOverlay, CurveDescriptorBuilder, CurveDescriptorParameter, InstanciatedParameter,
+    ColorOverlay, CurveDescriptorBuilder, CurveDescriptorParameter, InstantiatedParameter,
     LeftPanel, RevolutionScaling, RigidBodyParametersRequest,
 };
 /// Draw the status bar
@@ -1003,7 +1003,7 @@ pub trait AppState:
     fn get_selected_bezier_path(&self) -> Option<BezierPathId>;
     fn is_exporting(&self) -> bool;
     fn is_transitory(&self) -> bool;
-    fn get_current_revoultion_radius(&self) -> Option<f64>;
+    fn get_current_revolution_radius(&self) -> Option<f64>;
     fn get_recommended_scaling_revolution_surface(
         &self,
         scaffold_len: usize,

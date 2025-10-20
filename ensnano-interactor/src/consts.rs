@@ -190,7 +190,7 @@ No backup will be saved for this unnamed design";
 pub const NO_DESIGN_TITLE: &str = "New file";
 
 pub const BEZIER_CONTROL_RADIUS: f32 = 2.5;
-pub const BEZIER_SQUELETON_RADIUS: f32 = 0.5;
+pub const BEZIER_SKELETON_RADIUS: f32 = 0.5;
 pub const BEZIER_START_COLOR: u32 = 0xFF_B0_21_21;
 pub const BEZIER_END_COLOR: u32 = 0xFF_F0_CA_22;
 pub const BEZIER_CONTROL1_COLOR: u32 = 0xFF_37_85_30;

@@ -149,14 +149,14 @@ impl InsertionDescriptor {
     }
 }
 
-pub struct InstanciatedInsertion {
+pub struct InstantiatedInsertion {
     descriptor: InsertionDescriptor,
-    instanciation: Vec<Vec3>,
+    instantiation: Vec<Vec3>,
 }
 
-impl InstanciatedInsertion {
+impl InstantiatedInsertion {
     pub fn pos(&self) -> &[Vec3] {
-        self.instanciation.as_slice()
+        self.instantiation.as_slice()
     }
 }
 
@@ -167,7 +167,7 @@ const FRICTION: f32 = 0.1;
 const MASS_NUCL: f32 = 1.0;
 
 impl InsertionDescriptor {
-    fn instanciate(&self, helix_parameters: &HelixParameters) -> Vec<Vec3> {
+    fn instantiate(&self, helix_parameters: &HelixParameters) -> Vec<Vec3> {
         let mut rnd = rand::thread_rng();
         let mut ret = Vec::with_capacity(self.nb_nucl);
         let len_0 = helix_parameters.dist_ac();
@@ -187,7 +187,7 @@ impl InsertionDescriptor {
             ret.push(initial_pos);
         }
 
-        //mini simulateur de ressorts !!
+        // Mini springs simulator !!
         let mut speed = vec![Vec3::zero(); self.nb_nucl];
         for _ in 0..NB_STEP {
             let mut forces: Vec<Vec3> = speed.iter().map(|s| -*s * FRICTION / MASS_NUCL).collect();
@@ -277,7 +277,7 @@ impl Strand {
     ) {
         if let Some(Domain::Insertion {
             nb_nucl,
-            instanciation,
+            instantiation,
             ..
         }) = self.domains.get_mut(d_id)
         {
@@ -285,13 +285,13 @@ impl Strand {
                 nb_nucl: *nb_nucl,
                 edge,
             };
-            let up_to_date = instanciation
+            let up_to_date = instantiation
                 .as_ref()
                 .map(|i| i.descriptor.is_up_to_date(&descriptor))
                 .unwrap_or(false);
             if !up_to_date {
-                *instanciation = Some(Arc::new(InstanciatedInsertion {
-                    instanciation: descriptor.instanciate(helix_parameters),
+                *instantiation = Some(Arc::new(InstantiatedInsertion {
+                    instantiation: descriptor.instantiate(helix_parameters),
                     descriptor,
                 }))
             }

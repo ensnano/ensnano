@@ -423,12 +423,12 @@ impl ensnano_scene::data::DesignReader for DesignReader {
 
     fn get_bezier_paths(
         &self,
-    ) -> Option<&BTreeMap<ensnano_design::BezierPathId, Arc<ensnano_design::InstanciatedPath>>>
+    ) -> Option<&BTreeMap<ensnano_design::BezierPathId, Arc<ensnano_design::InstantiatedPath>>>
     {
         self.presenter
             .current_design
             .try_get_up_to_date()
-            .map(|data| data.paths_data.instanciated_paths.as_ref())
+            .map(|data| data.paths_data.instantiated_paths.as_ref())
     }
 
     fn get_parameters(&self) -> HelixParameters {

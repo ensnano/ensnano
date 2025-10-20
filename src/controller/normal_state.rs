@@ -92,8 +92,8 @@ impl State for NormalState {
                     main_state.redo();
                     self
                 }
-                Action::NotifyApps(notificiation) => {
-                    main_state.notify_apps(notificiation);
+                Action::NotifyApps(notification) => {
+                    main_state.notify_apps(notification);
                     self
                 }
                 Action::TurnSelectionIntoGrid => self.turn_selection_into_grid(main_state),
@@ -248,7 +248,7 @@ impl State for NormalState {
                 }
                 Action::ReloadFile => {
                     if let Some(path) = main_state.get_current_file_name() {
-                        Load::init_reolad(main_state.need_save(), path.to_path_buf())
+                        Load::init_reload(main_state.need_save(), path.to_path_buf())
                     } else {
                         self
                     }

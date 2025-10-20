@@ -16,7 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use super::insertions::InstanciatedInsertion;
+use super::insertions::InstantiatedInsertion;
 use super::scadnano::*;
 use super::{Helices, HelixCollection, Nucl, VirtualNucl, codenano};
 use serde::{Deserialize, Serialize};
@@ -216,7 +216,7 @@ impl Strands {
 pub enum DomainJunction {
     /// A cross-over that has not yet been given an identifier. These should exist only in
     /// transitory states.
-    UnindentifiedXover,
+    UnidentifiedXover,
     /// A cross-over with an identifier.
     IdentifiedXover(usize),
     /// A link between two neighboring domains
@@ -278,7 +278,7 @@ pub fn sanitize_domains(domains: &[Domain], cyclic: bool) -> Vec<Domain> {
                     ret.push(Domain::Insertion {
                         nb_nucl: acc.length,
                         sequence: Some(acc.sequence.into()),
-                        instanciation: None,
+                        instantiation: None,
                         attached_to_prime3: acc.attached_to_prime3,
                     });
                 }
@@ -738,8 +738,12 @@ pub enum Domain {
     /// A set of nucleotides not on an helix.
     Insertion {
         nb_nucl: usize,
-        #[serde(skip, default)]
-        instanciation: Option<Arc<InstanciatedInsertion>>,
+        #[serde(
+            skip,
+            default,
+            alias = "instanciation", // cspell:disable-line
+        )]
+        instantiation: Option<Arc<InstantiatedInsertion>>,
         #[serde(default)]
         sequence: Option<Cow<'static, str>>,
         #[serde(default)]
@@ -1115,7 +1119,7 @@ impl Domain {
     pub fn new_insertion(nb_nucl: usize) -> Self {
         Self::Insertion {
             nb_nucl,
-            instanciation: None,
+            instantiation: None,
             sequence: None,
             attached_to_prime3: false,
         }
@@ -1124,7 +1128,7 @@ impl Domain {
     pub fn new_prime5_insertion(nb_nucl: usize) -> Self {
         Self::Insertion {
             nb_nucl,
-            instanciation: None,
+            instantiation: None,
             sequence: None,
             attached_to_prime3: true,
         }
@@ -1281,7 +1285,7 @@ fn junction(prime5: &HelixInterval, prime3: &HelixInterval) -> DomainJunction {
     if prime3_nucl == prime5_nucl.prime3() {
         DomainJunction::Adjacent
     } else {
-        DomainJunction::UnindentifiedXover
+        DomainJunction::UnidentifiedXover
     }
 }
 

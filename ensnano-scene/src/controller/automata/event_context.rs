@@ -148,7 +148,7 @@ impl<'a, S: AppState> EventContext<'a, S> {
         let builder = self.app_state.get_strand_builders().get(0)?;
         let element = self.get_element_under_cursor();
 
-        // We can move the builder to a phantom nucl, so we do not exclue phantom nucls from the
+        // We can move the builder to a phantom nucl, so we do not exclude phantom nucls from the
         // search
         let no_phantom = false;
 
@@ -231,7 +231,7 @@ impl<'a, S: AppState> EventContext<'a, S> {
     }
 
     /// If there is a bezier plane under the cursor, return it's identifier and the coordinates of
-    /// the projection of the curosor on the plane
+    /// the projection of the cursor on the plane
     pub fn get_plane_under_cursor(&self) -> Option<(BezierPlaneId, BezierPlaneIntersection)> {
         let ray = self.shoot_ray(self.cursor_position);
         ensnano_design::ray_bezier_plane_intersection(

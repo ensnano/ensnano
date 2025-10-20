@@ -622,7 +622,7 @@ mod tests {
 
         assert!(
             (expected - actual).abs() < 1e-3,
-            "exptected {expected},  actual {actual}"
+            "expected {expected},  actual {actual}"
         );
     }
 }

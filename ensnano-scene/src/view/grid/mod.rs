@@ -133,7 +133,7 @@ impl GridInstance {
         }
     }
 
-    /// Return x >= 0 so that orgin + x axis is on the grid, or None if such an x does not exist.
+    /// Return x >= 0 so that origin + x axis is on the grid, or None if such an x does not exist.
     fn ray_intersection(&self, origin: Vec3, axis: Vec3) -> Option<GridIntersection> {
         let ret = self.grid.ray_intersection(origin, axis)?;
         if ret < 0. {
@@ -208,7 +208,7 @@ pub struct GridInstanceRaw {
     pub design_id: u32,       // padding 0,
 }
 
-/// A structure that manages the pipepline that draw the grids
+/// A structure that manages the pipeline that draw the grids
 pub struct GridManager {
     /// A possible updates to the instances to be drawn. Must be taken into account before drawing
     /// next frame
@@ -372,16 +372,14 @@ impl Vertexable for GridVertex {
 
 pub struct GridTextures {
     square_texture: texture::SquareTexture,
-    honney_texture: texture::HonneyTexture,
+    honey_texture: texture::HoneyTexture,
 }
 
 impl GridTextures {
     pub fn new(device: &Device, encoder: &mut wgpu::CommandEncoder) -> Self {
-        let square_texture = texture::SquareTexture::new(device, encoder);
-        let honney_texture = texture::HonneyTexture::new(device, encoder);
         Self {
-            square_texture,
-            honney_texture,
+            square_texture: texture::SquareTexture::new(device, encoder),
+            honey_texture: texture::HoneyTexture::new(device, encoder),
         }
     }
 }
@@ -436,11 +434,11 @@ impl ResourceProvider for GridTextures {
             },
             wgpu::BindGroupEntry {
                 binding: 2,
-                resource: wgpu::BindingResource::TextureView(&self.honney_texture.view),
+                resource: wgpu::BindingResource::TextureView(&self.honey_texture.view),
             },
             wgpu::BindGroupEntry {
                 binding: 3,
-                resource: wgpu::BindingResource::Sampler(&self.honney_texture.sampler),
+                resource: wgpu::BindingResource::Sampler(&self.honey_texture.sampler),
             },
         ]
     }

@@ -469,14 +469,14 @@ impl RevolutionSystemThread {
                 if interface_ptr.lock().unwrap().finished
                     || current_len == self.system.scaffold_len_target
                 {
-                    if let Some(descs) = self.system.to_curve_desc(true) {
+                    if let Some(curve_descriptors) = self.system.to_curve_desc(true) {
                         let Similarity3 {
                             translation,
                             rotation,
                             ..
                         } = self.system.topology.get_frame();
                         let routing = HelicesRouting {
-                            curves: descs,
+                            curves: curve_descriptors,
                             frame: Isometry3 {
                                 translation,
                                 rotation,

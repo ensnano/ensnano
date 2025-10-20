@@ -239,16 +239,14 @@ impl UnalignedBoundaries {
     }
 
     fn bounding_sphere_radius(&self) -> Option<f32> {
-        let lenght_x = self.max_x - self.min_x;
+        let length_x = self.max_x - self.min_x;
         let length_y = self.max_y - self.min_y;
         let length_z = self.max_z - self.min_z;
 
-        let max_length = lenght_x.max(length_y.max(length_z));
-        if max_length.is_finite() {
-            Some(max_length / 2. * 3f32.sqrt())
-        } else {
-            None
-        }
+        let max_length = length_x.max(length_y.max(length_z));
+        max_length
+            .is_finite()
+            .then(|| max_length / 2. * 3f32.sqrt())
     }
 
     pub fn fit_point(&self, fovy: f32, ratio: f32) -> Option<Vec3> {

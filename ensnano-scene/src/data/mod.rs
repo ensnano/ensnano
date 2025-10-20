@@ -19,14 +19,18 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! This modules handles internal information about the scene, such as the selected objects etc..
 //! It also communicates with the designs to get the position of the objects to draw on the scene.
 
-use super::view::AvailableRotationAxes;
+mod design3d;
+
 use super::{
     AppState, Camera3D, HandlesDescriptor, LetterInstance, RotationWidgetDescriptor,
     RotationWidgetOrientation, SceneElement, View, ViewUpdate,
     view::{
-        GridDisc, HandleColors, Instantiable, Mesh, RawDnaInstance, StereographicSphereAndPlane,
+        AvailableRotationAxes, GridDisc, HandleColors, Instantiable, Mesh, RawDnaInstance,
+        StereographicSphereAndPlane,
     },
 };
+use design3d::Design3D;
+pub use design3d::{DesignReader, HBond, HalfHBond, SurfaceInfo, SurfacePoint};
 use ensnano_design::{
     BezierVertexId, Collection, External3DObjectsStamp, Nucl,
     grid::{GridId, GridObject, GridPosition},
@@ -48,11 +52,6 @@ use std::{
     sync::Arc,
 };
 use ultraviolet::{Rotor3, Vec3};
-
-/// A module that handles the instantiation of designs as 3D geometric objects
-mod design3d;
-use design3d::Design3D;
-pub use design3d::{DesignReader, HBond, HalfHBond, SurfaceInfo, SurfacePoint};
 
 type ViewPtr = Rc<RefCell<View>>;
 
@@ -132,9 +131,7 @@ impl<R: DesignReader> Data<R> {
         self.pivot_update = true;
         self.view.borrow_mut().clear_design();
     }
-}
 
-impl<R: DesignReader> Data<R> {
     /// Forwards all needed update to the view
     pub fn update_view<S: AppState>(&mut self, app_state: &S, older_app_state: &S) {
         if self.discs_need_update(app_state, older_app_state) {
@@ -333,9 +330,7 @@ impl<R: DesignReader> Data<R> {
             .borrow_mut()
             .update(ViewUpdate::RotationWidget(rotation_widget_descr));
     }
-}
 
-impl<R: DesignReader> Data<R> {
     pub fn set_pivot_element<S: AppState>(&mut self, element: Option<SceneElement>, app_state: &S) {
         self.pivot_update |= self.pivot_element != element;
         self.pivot_element = element;
@@ -433,7 +428,7 @@ impl<R: DesignReader> Data<R> {
                                     .get_radius(*id)
                                     .unwrap(),
                             Some(design3d::ExpandWith::Spheres)
-                                .filter(|_| !app_state.show_insertion_representents()),
+                                .filter(|_| !app_state.show_insertion_discriminants()),
                         );
                         ret.extend(instances.iter())
                     }
@@ -482,7 +477,7 @@ impl<R: DesignReader> Data<R> {
                                     .get_radius(*id)
                                     .unwrap(),
                             Some(design3d::ExpandWith::Tubes)
-                                .filter(|_| !app_state.show_insertion_representents()),
+                                .filter(|_| !app_state.show_insertion_discriminants()),
                         );
                         ret.extend(instance)
                     }
@@ -531,7 +526,7 @@ impl<R: DesignReader> Data<R> {
                                     .get_radius(*id)
                                     .unwrap(),
                             Some(design3d::ExpandWith::Spheres)
-                                .filter(|_| !app_state.show_insertion_representents()),
+                                .filter(|_| !app_state.show_insertion_discriminants()),
                         );
                         ret.extend(instances);
                     }
@@ -580,7 +575,7 @@ impl<R: DesignReader> Data<R> {
                                     .get_radius(*id)
                                     .unwrap(),
                             Some(design3d::ExpandWith::Tubes)
-                                .filter(|_| !app_state.show_insertion_representents()),
+                                .filter(|_| !app_state.show_insertion_discriminants()),
                         );
                         ret.extend(instances)
                     }
@@ -683,7 +678,7 @@ impl<R: DesignReader> Data<R> {
         }
     }
 
-    /// Return the postion of a given element, either in the world pov or in the model pov
+    /// Return the position of a given element, either in the world pov or in the model pov
     fn get_element_position(
         &self,
         element: &SceneElement,
@@ -1218,15 +1213,15 @@ impl<R: DesignReader> Data<R> {
 
     pub fn get_all_raw_instances<S: AppState>(&self, app_state: &S) -> Vec<RawDnaInstance> {
         let mut instances = vec![];
-        let show_insertion_representents = app_state.show_insertion_representents();
+        let show_insertion_discriminants = app_state.show_insertion_discriminants();
         for design in self.designs.iter() {
-            for sphere in design.get_spheres_raw(show_insertion_representents).iter() {
+            for sphere in design.get_spheres_raw(show_insertion_discriminants).iter() {
                 instances.push(*sphere);
             }
-            for tube in design.get_tubes_raw(show_insertion_representents).iter() {
+            for tube in design.get_tubes_raw(show_insertion_discriminants).iter() {
                 instances.push(*tube);
             }
-            for cone in design.get_cones_raw(show_insertion_representents) {
+            for cone in design.get_cones_raw(show_insertion_discriminants) {
                 instances.push(cone);
             }
             if app_state.get_draw_options().h_bonds != HBondDisplay::No {
@@ -1380,13 +1375,13 @@ impl<R: DesignReader> Data<R> {
         let mut cones = Vec::new();
         for design in self.designs.iter() {
             for sphere in design
-                .get_spheres_raw(app_state.show_insertion_representents())
+                .get_spheres_raw(app_state.show_insertion_discriminants())
                 .iter()
             {
                 spheres.push(*sphere);
             }
             for tube in design
-                .get_tubes_raw(app_state.show_insertion_representents())
+                .get_tubes_raw(app_state.show_insertion_discriminants())
                 .iter()
             {
                 if tube.mesh == Mesh::TubeLid as u32 {
@@ -1406,7 +1401,7 @@ impl<R: DesignReader> Data<R> {
                 spheres.extend(bezier_spheres);
                 tubes.extend(bezier_tubes);
             }
-            letters = design.get_letter_instances(app_state.show_insertion_representents());
+            letters = design.get_letter_instances(app_state.show_insertion_discriminants());
             for (grid_id, grid) in design.get_grid().iter().filter(|g| g.1.visible) {
                 grids.insert(*grid_id, grid.clone());
             }
@@ -1423,7 +1418,7 @@ impl<R: DesignReader> Data<R> {
             for tube in tubes {
                 pasted_tubes.push(tube);
             }
-            for cone in design.get_cones_raw(app_state.show_insertion_representents()) {
+            for cone in design.get_cones_raw(app_state.show_insertion_discriminants()) {
                 cones.push(cone);
             }
         }

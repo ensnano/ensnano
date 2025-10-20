@@ -722,11 +722,11 @@ pub(super) fn pdb_export(
                     )?;
                 }
             } else if let Domain::Insertion {
-                instanciation: Some(instanciation),
+                instantiation: Some(instantiation),
                 ..
             } = d
             {
-                for (insertion_idx, position) in instanciation.pos().iter().enumerate() {
+                for (insertion_idx, position) in instantiation.pos().iter().enumerate() {
                     let ox_nucl = crate::oxdna::free_oxdna_nucl(
                         *position,
                         previous_position,

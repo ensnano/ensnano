@@ -707,7 +707,7 @@ impl Helix {
                 .transform_point2(-Vec2::unit_y()),
             direction: self
                 .isometry
-                .matrix_with_transposed_symetry()
+                .matrix_with_transposed_symmetry()
                 .transform_vec2(Vec2::unit_x()),
         }
     }
@@ -720,7 +720,7 @@ impl Helix {
                 .transform_point2(Vec2::zero()),
             direction: self
                 .isometry
-                .matrix_with_transposed_symetry()
+                .matrix_with_transposed_symmetry()
                 .transform_vec2(Vec2::unit_x()),
         }
     }
@@ -733,7 +733,7 @@ impl Helix {
                 .transform_point2(2. * Vec2::unit_y()),
             direction: self
                 .isometry
-                .matrix_with_transposed_symetry()
+                .matrix_with_transposed_symmetry()
                 .transform_vec2(-Vec2::unit_x()),
         }
     }
@@ -771,7 +771,7 @@ impl Helix {
         let size_pos = 1.4;
         let circle = self.get_circle(camera, groups);
         let rotation = camera.borrow().rotation().reversed();
-        let symetry = camera.borrow().get_globals().symmetry;
+        let symmetry = camera.borrow().get_globals().symmetry;
         if let Some(circle) = circle {
             let text = self.real_id.to_string();
             let sentence = Sentence {
@@ -780,7 +780,7 @@ impl Helix {
                 color: [0., 0., 0., 1.].into(),
                 z_index: self.flat_id.flat.0 as i32,
                 rotation,
-                symetry,
+                symmetry,
             };
             let line = Line {
                 origin: circle.center + circle.radius * Vec2::unit_y(),
@@ -809,7 +809,7 @@ impl Helix {
                 z_index: self.flat_id.flat.0 as i32,
                 color,
                 rotation,
-                symetry,
+                symmetry,
             };
             let (position, line) = if show_seq {
                 (self.info_position(flat_pos), self.info_line())
@@ -841,7 +841,7 @@ impl Helix {
                 z_index: self.flat_id.flat.0 as i32,
                 color: [0., 0., 0., 1.].into(),
                 rotation,
-                symetry,
+                symmetry,
             };
             let line = self.info_line();
             char_collector
@@ -874,7 +874,7 @@ impl Helix {
                     z_index: self.flat_id.flat.0 as i32,
                     color,
                     rotation,
-                    symetry,
+                    symmetry,
                 };
                 let (line, position) = if nucl.forward {
                     (self.top_line(), self.char_position_top(flat_position))
