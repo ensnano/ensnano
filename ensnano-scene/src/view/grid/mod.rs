@@ -133,7 +133,7 @@ impl GridInstance {
         }
     }
 
-    /// Return x >= 0 so that orgin + x axis is on the grid, or None if such an x does not exist.
+    /// Return x >= 0 so that origin + x axis is on the grid, or None if such an x does not exist.
     fn ray_intersection(&self, origin: Vec3, axis: Vec3) -> Option<GridIntersection> {
         let ret = self.grid.ray_intersection(origin, axis)?;
         if ret < 0. {

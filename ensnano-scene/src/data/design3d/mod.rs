@@ -260,19 +260,7 @@ impl<R: DesignReader> Design3D<R> {
         if !show_insertion_discriminants {
             visible_bonds_ids.retain(|id| self.design_reader.get_insertion_length(*id) == 0);
         }
-        // let expected_length = if self.thick_helices {
-        //     // normal representation of an helix
-        //     self.design_reader.get_expected_bond_length()
-        // } else {
-        //     // axis representation of an helix
-        //     HelixParameters::INTER_CENTER_GAP
-        // };
-        let mut ret: Vec<_> = self
-            .id_to_raw_instances(visible_bonds_ids)
-            // .into_iter()
-            // .map(|x| x.with_expected_length(expected_length)) // inutile désormais
-            // .collect()
-            ;
+        let mut ret: Vec<_> = self.id_to_raw_instances(visible_bonds_ids);
         if !show_insertion_discriminants {
             for loopout_bond in self.design_reader.get_all_loopout_bonds() {
                 ret.push(
@@ -283,7 +271,7 @@ impl<R: DesignReader> Design3D<R> {
                         loopout_bond.repr_bond_identifier,
                         false,
                     )
-                    .to_raw_instance(), // .with_expected_length(expected_length),
+                    .to_raw_instance(),
                 )
             }
         }
@@ -316,7 +304,8 @@ impl<R: DesignReader> Design3D<R> {
             }
 
             let positions = additional_structure.position();
-            // Draw grey bars between the masses defining for the broken lines corresponding to each helix -> TO BE REPLACED BY A SAUSAGEROSARY passing through the nt_paths
+            // Draw grey bars between the masses defining for the broken lines corresponding to each helix
+            // -> To be replaced by a SausageRosary passing through the nt_paths
             if draw_broken_lines {
                 for (me, next) in additional_structure.right().into_iter() {
                     let pos_left = transformation.transform_vec(positions[me]);
@@ -395,54 +384,6 @@ impl<R: DesignReader> Design3D<R> {
             }
         }
 
-        //     // extra tubes to test sliced_tubes
-        //     let n = 50;
-        //     let b = 7.*PI/(n as f32);
-        //     let r = 3.0f32;
-
-        //     use rand::Rng;
-
-        //     let mut rng = rand::thread_rng();
-
-        //     let points = (0..n+1).map(|i|
-        //         match i {
-        //             0 =>  Vec3::zero(),
-        //             50 =>  Vec3::zero(),
-        //             _ => {
-        //                 let a = PI * 2. * rng.gen::<f32>(); /// i as f32 * b;
-        //                 Vec3::new(
-        //                 0.5,
-        //                 r*(a.cos()),
-        //                 r*(a.sin()))
-        //             },
-        // }).collect::<Vec<Vec3>>();
-
-        //     let mut point = Vec3::zero();
-        //     for ((prev, p) , next) in points.iter().cycle().skip(n).zip(&points).zip(points.iter().cycle().skip(1)) {
-        //         // println!("Prev: {:?}", *prev);
-        //         // println!("Curr: {:?}", *p);
-        //         // println!("Next: {:?}", *next);
-        //         let position = point + *p / 2.;
-        //         let q = p.normalized();
-        //         let rotor = Rotor3::from_rotation_between(Vec3::unit_x(), q);
-
-        //         let rotor = Rotor3::safe_from_rotation_from_unit_x_to(q);
-        //         let model =
-        //         Mat4::from_translation(position) * rotor.into_matrix().into_homogeneous(); // translation à position et rotation dans la bonne position u_x -> axe du tube
-        //         let rotor2 = Rotor3::safe_from_rotation_to_unit_x_from(q);
-
-        //         ret.push(SlicedTubeInstance {
-        //             position: position,
-        //             rotor: rotor,
-        //             color: Vec4::new(1.,0.,0.,1.), //RGBA
-        //             id: 100_000,
-        //             radius: 0.3,
-        //             length: p.mag(),
-        //             prev: prev.rotated_by(rotor2),
-        //             next: next.rotated_by(rotor2),
-        //         }.to_raw_instance());
-        //         point += *p;
-        //     }
         Rc::new(ret)
     }
 
