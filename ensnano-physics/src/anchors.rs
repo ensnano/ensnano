@@ -1,4 +1,4 @@
-use ensnano_design::{Helix, HelixParameters, Vec3};
+use ensnano_design::{Helix, HelixParameters, Rotor3, Vec3};
 use rapier3d::{
     na::{Const, OVector, Rotation2, Unit, UnitQuaternion},
     prelude::*,
@@ -53,6 +53,10 @@ impl SpringAnchorsReference {
     /// Initializes a new reference with the given Helix's parameters,
     /// and to a provided distance. Higher distance means
     pub(crate) fn new(helix: &Helix, distance: u32, default_parameters: &HelixParameters) -> Self {
+        let helix_parameters = helix.helix_parameters.clone();
+        let mut helix = Helix::new(Vec3::default(), Rotor3::default());
+        helix.helix_parameters = helix_parameters;
+
         let nucleotide_forward = vec_to_vector(helix.space_pos(default_parameters, 0, true));
         let nucleotide_backward = vec_to_vector(helix.space_pos(default_parameters, 0, false));
 

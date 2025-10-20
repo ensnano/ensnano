@@ -3177,6 +3177,7 @@ dependencies = [
  "either",
  "ena",
  "foldhash 0.2.0",
+ "glam 0.30.8",
  "hashbrown 0.16.0",
  "log",
  "nalgebra",
@@ -3524,10 +3525,12 @@ dependencies = [
  "ordered-float 5.1.0",
  "parry3d",
  "profiling",
+ "rayon",
  "rustc-hash 2.1.1",
  "simba",
  "static_assertions",
  "thiserror 2.0.17",
+ "vec_map",
  "wide 0.7.33",
 ]
 
@@ -4746,6 +4749,12 @@ dependencies = [
  "svgtypes",
  "tiny-skia-path",
 ]
+
+[[package]]
+name = "vec_map"
+version = "0.8.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f1bddf1187be692e79c5ffeab891132dfb0f236ed36a43c7ed39f1165ee20191"
 
 [[package]]
 name = "version-compare"
