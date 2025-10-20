@@ -17,7 +17,6 @@
 ## Scene (3D)
 
 - Export PNG max size
-- Fix parallel translation and rotation
 - Figure out why `H`/`J`/`K`/`L` don't work the same for rotations
 - Cut plane (toggleable button next to grids)
 - Isometric view
