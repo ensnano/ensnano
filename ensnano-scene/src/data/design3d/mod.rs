@@ -89,10 +89,10 @@ impl<R: DesignReader> Design3D<R> {
     }
 
     /// Return the list of raw sphere instances to be displayed to represent the design
-    pub fn get_spheres_raw(&self, show_insertion_representents: bool) -> Rc<Vec<RawDnaInstance>> {
+    pub fn get_spheres_raw(&self, show_insertion_discriminants: bool) -> Rc<Vec<RawDnaInstance>> {
         let visible_nucls_ids = self.design_reader.get_all_visible_nucl_ids();
         let mut ret = self.id_to_raw_instances(visible_nucls_ids);
-        if !show_insertion_representents {
+        if !show_insertion_discriminants {
             for loopout_nucl in self.design_reader.get_all_loopout_nucl() {
                 ret.push(
                     SphereInstance {
@@ -174,7 +174,7 @@ impl<R: DesignReader> Design3D<R> {
 
     pub fn get_letter_instances(
         &self,
-        show_insertion_representents: bool,
+        show_insertion_discriminants: bool,
     ) -> Vec<Vec<LetterInstance>> {
         let ids = self.design_reader.get_all_nucl_ids();
         let mut vecs = vec![Vec::new(); NB_PRINTABLE_CHARS];
@@ -195,7 +195,7 @@ impl<R: DesignReader> Design3D<R> {
                 vecs[*id].push(instance);
             }
         }
-        if !show_insertion_representents {
+        if !show_insertion_discriminants {
             for loopout_nucl in self.design_reader.get_all_loopout_nucl() {
                 if let Some(symbol) = loopout_nucl.basis
                     && let Some(id) = self.symbol_map.get(&symbol)
@@ -214,9 +214,9 @@ impl<R: DesignReader> Design3D<R> {
         vecs
     }
 
-    pub fn get_cones_raw(&self, show_insertion_representents: bool) -> Vec<RawDnaInstance> {
+    pub fn get_cones_raw(&self, show_insertion_discriminants: bool) -> Vec<RawDnaInstance> {
         let mut ids = self.design_reader.get_all_visible_bond_ids();
-        if !show_insertion_representents {
+        if !show_insertion_discriminants {
             ids.retain(|id| self.design_reader.get_insertion_length(*id) == 0);
         }
         let filter = |_n: &Nucl| true;
@@ -255,9 +255,9 @@ impl<R: DesignReader> Design3D<R> {
     }
 
     /// Return the list of tube instances to be displayed to represent the design
-    pub fn get_tubes_raw(&self, show_insertion_representents: bool) -> Rc<Vec<RawDnaInstance>> {
+    pub fn get_tubes_raw(&self, show_insertion_discriminants: bool) -> Rc<Vec<RawDnaInstance>> {
         let mut visible_bonds_ids = self.design_reader.get_all_visible_bond_ids();
-        if !show_insertion_representents {
+        if !show_insertion_discriminants {
             visible_bonds_ids.retain(|id| self.design_reader.get_insertion_length(*id) == 0);
         }
         // let expected_length = if self.thick_helices {
@@ -273,7 +273,7 @@ impl<R: DesignReader> Design3D<R> {
             // .map(|x| x.with_expected_length(expected_length)) // inutile désormais
             // .collect()
             ;
-        if !show_insertion_representents {
+        if !show_insertion_discriminants {
             for loopout_bond in self.design_reader.get_all_loopout_bonds() {
                 ret.push(
                     create_dna_bond(

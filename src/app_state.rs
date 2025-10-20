@@ -650,7 +650,7 @@ impl AppState {
 
     pub fn with_expand_insertion_set(self, expand: bool) -> Self {
         let mut ret = (*self.0).clone();
-        ret.show_insertion_representents = !expand;
+        ret.show_insertion_discriminants = !expand;
         Self(AddressPointer::new(ret))
     }
 
@@ -676,7 +676,7 @@ pub struct AppState_ {
     pub center_of_selection: Option<CenterOfSelection>,
     pub updated_once: bool,
     pub parameters: AppStateParameters,
-    pub show_insertion_representents: bool,
+    pub show_insertion_discriminants: bool,
     pub exporting: bool,
     pub path_to_current_design: Option<PathBuf>,
     pub unrooted_surface: CurrentUnrootedSurface,

@@ -428,7 +428,7 @@ impl<R: DesignReader> Data<R> {
                                     .get_radius(*id)
                                     .unwrap(),
                             Some(design3d::ExpandWith::Spheres)
-                                .filter(|_| !app_state.show_insertion_representents()),
+                                .filter(|_| !app_state.show_insertion_discriminants()),
                         );
                         ret.extend(instances.iter())
                     }
@@ -477,7 +477,7 @@ impl<R: DesignReader> Data<R> {
                                     .get_radius(*id)
                                     .unwrap(),
                             Some(design3d::ExpandWith::Tubes)
-                                .filter(|_| !app_state.show_insertion_representents()),
+                                .filter(|_| !app_state.show_insertion_discriminants()),
                         );
                         ret.extend(instance)
                     }
@@ -526,7 +526,7 @@ impl<R: DesignReader> Data<R> {
                                     .get_radius(*id)
                                     .unwrap(),
                             Some(design3d::ExpandWith::Spheres)
-                                .filter(|_| !app_state.show_insertion_representents()),
+                                .filter(|_| !app_state.show_insertion_discriminants()),
                         );
                         ret.extend(instances);
                     }
@@ -575,7 +575,7 @@ impl<R: DesignReader> Data<R> {
                                     .get_radius(*id)
                                     .unwrap(),
                             Some(design3d::ExpandWith::Tubes)
-                                .filter(|_| !app_state.show_insertion_representents()),
+                                .filter(|_| !app_state.show_insertion_discriminants()),
                         );
                         ret.extend(instances)
                     }
@@ -1213,15 +1213,15 @@ impl<R: DesignReader> Data<R> {
 
     pub fn get_all_raw_instances<S: AppState>(&self, app_state: &S) -> Vec<RawDnaInstance> {
         let mut instances = vec![];
-        let show_insertion_representents = app_state.show_insertion_representents();
+        let show_insertion_discriminants = app_state.show_insertion_discriminants();
         for design in self.designs.iter() {
-            for sphere in design.get_spheres_raw(show_insertion_representents).iter() {
+            for sphere in design.get_spheres_raw(show_insertion_discriminants).iter() {
                 instances.push(*sphere);
             }
-            for tube in design.get_tubes_raw(show_insertion_representents).iter() {
+            for tube in design.get_tubes_raw(show_insertion_discriminants).iter() {
                 instances.push(*tube);
             }
-            for cone in design.get_cones_raw(show_insertion_representents) {
+            for cone in design.get_cones_raw(show_insertion_discriminants) {
                 instances.push(cone);
             }
             if app_state.get_draw_options().h_bonds != HBondDisplay::No {
@@ -1375,13 +1375,13 @@ impl<R: DesignReader> Data<R> {
         let mut cones = Vec::new();
         for design in self.designs.iter() {
             for sphere in design
-                .get_spheres_raw(app_state.show_insertion_representents())
+                .get_spheres_raw(app_state.show_insertion_discriminants())
                 .iter()
             {
                 spheres.push(*sphere);
             }
             for tube in design
-                .get_tubes_raw(app_state.show_insertion_representents())
+                .get_tubes_raw(app_state.show_insertion_discriminants())
                 .iter()
             {
                 if tube.mesh == Mesh::TubeLid as u32 {
@@ -1401,7 +1401,7 @@ impl<R: DesignReader> Data<R> {
                 spheres.extend(bezier_spheres);
                 tubes.extend(bezier_tubes);
             }
-            letters = design.get_letter_instances(app_state.show_insertion_representents());
+            letters = design.get_letter_instances(app_state.show_insertion_discriminants());
             for (grid_id, grid) in design.get_grid().iter().filter(|g| g.1.visible) {
                 grids.insert(*grid_id, grid.clone());
             }
@@ -1418,7 +1418,7 @@ impl<R: DesignReader> Data<R> {
             for tube in tubes {
                 pasted_tubes.push(tube);
             }
-            for cone in design.get_cones_raw(app_state.show_insertion_representents()) {
+            for cone in design.get_cones_raw(app_state.show_insertion_discriminants()) {
                 cones.push(cone);
             }
         }

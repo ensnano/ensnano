@@ -148,7 +148,7 @@ impl GuiState for AppState {
     }
 
     fn expand_insertions(&self) -> bool {
-        !self.0.show_insertion_representents
+        !self.0.show_insertion_discriminants
     }
 
     fn get_show_bezier_paths(&self) -> bool {

@@ -37,30 +37,32 @@ pub trait OrganizerElement: Clone + Debug + 'static {
 
     fn attributes(&self) -> Vec<Self::Attribute>;
 
-    fn all_repr() -> &'static [<Self::Attribute as OrganizerAttribute>::Repr] {
-        Self::Attribute::all_repr()
+    fn all_discriminants() -> &'static [<Self::Attribute as OrganizerAttribute>::Discriminant] {
+        Self::Attribute::all_discriminants()
     }
     fn min_max_domain_length_if_strand(&self) -> Option<(usize, usize)>;
     fn auto_groups(&self, upper_domain_length_bounds: (usize, usize)) -> Vec<Self::AutoGroup>;
 }
 
-pub trait OrganizerAttributeRepr: Ord + Eq + TryFrom<usize> + Into<usize> + Debug + Clone {
-    fn all_repr() -> &'static [Self];
+pub trait OrganizerAttributeDiscriminant:
+    Ord + Eq + TryFrom<usize> + Into<usize> + Debug + Clone
+{
+    fn all_discriminants() -> &'static [Self];
 }
 
 pub trait OrganizerAttribute: Clone + Debug + 'static + Ord {
     /// A type used to represent the different values of self
-    type Repr: OrganizerAttributeRepr;
+    type Discriminant: OrganizerAttributeDiscriminant;
 
-    /// Map any value to its representent
-    fn repr(&self) -> Self::Repr;
+    /// Map any value to its discriminant
+    fn discriminant(&self) -> Self::Discriminant;
     /// The widget that will be used to change the value of self
     fn widget(&self) -> AttributeWidget<Self>;
     /// Map any value to a char that represents it
     fn char_repr(&self) -> AttributeDisplay;
 
-    fn all_repr() -> &'static [Self::Repr] {
-        Self::Repr::all_repr()
+    fn all_discriminants() -> &'static [Self::Discriminant] {
+        Self::Discriminant::all_discriminants()
     }
 }
 

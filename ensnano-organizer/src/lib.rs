@@ -922,7 +922,7 @@ struct ElementView<E: OrganizerElement + 'static> {
 impl<E: OrganizerElement> ElementView<E> {
     fn new() -> Self {
         Self {
-            attribute_displayers: vec![AttributeDisplayer::new(); E::all_repr().len()],
+            attribute_displayers: vec![AttributeDisplayer::new(); E::all_discriminants().len()],
         }
     }
     fn view(
@@ -981,7 +981,7 @@ impl<E: OrganizerElement> ElementView<E> {
 
     fn update_element(&mut self, element: &E) {
         for e in element.attributes() {
-            self.attribute_displayers[e.repr().into()].update_attribute(Some(e.clone()))
+            self.attribute_displayers[e.discriminant().into()].update_attribute(Some(e.clone()))
         }
     }
 }
@@ -996,7 +996,7 @@ impl<E: OrganizerElement> NodeView<E> {
     fn new() -> Self {
         Self {
             state: GroupState::Idle,
-            attribute_displayers: vec![AttributeDisplayer::new(); E::all_repr().len()],
+            attribute_displayers: vec![AttributeDisplayer::new(); E::all_discriminants().len()],
         }
     }
 
@@ -1217,7 +1217,7 @@ impl<E: OrganizerElement> GroupContent<E> {
             id: NodeId::TreeId(id),
             element: key,
             view: ElementView::new(),
-            attributes: vec![None; E::all_repr().len()],
+            attributes: vec![None; E::all_discriminants().len()],
         }
     }
 
@@ -1231,7 +1231,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                 id: NodeId::TreeId(vec![]),
                 element: k.clone(),
                 view: ElementView::new(),
-                attributes: vec![None; E::all_repr().len()],
+                attributes: vec![None; E::all_discriminants().len()],
             },
             OrganizerTree::Node {
                 name,
@@ -1255,7 +1255,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                     name: name.clone(),
                     expanded: *expanded,
                     view: NodeView::new(),
-                    attributes: vec![None; E::all_repr().len()],
+                    attributes: vec![None; E::all_discriminants().len()],
                     elements_below: BTreeSet::new(),
                     group_id,
                 }
@@ -1279,7 +1279,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                     id,
                     element: e.clone(),
                     view: ElementView::new(),
-                    attributes: vec![None; E::all_repr().len()],
+                    attributes: vec![None; E::all_discriminants().len()],
                 }
             })
             .collect();
@@ -1290,7 +1290,7 @@ impl<E: OrganizerElement> GroupContent<E> {
             name,
             expanded: false,
             view: NodeView::new(),
-            attributes: vec![None; E::all_repr().len()],
+            attributes: vec![None; E::all_discriminants().len()],
             elements_below: BTreeSet::new(),
             group_id,
         }
@@ -1338,7 +1338,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                             id,
                             element: e.clone(),
                             view: ElementView::new(),
-                            attributes: vec![None; E::all_repr().len()],
+                            attributes: vec![None; E::all_discriminants().len()],
                         }
                     });
                     children.extend(new_leaves);
@@ -1547,10 +1547,10 @@ impl<E: OrganizerElement> GroupContent<E> {
                 view,
                 ..
             } => {
-                *attributes = vec![None; E::all_repr().len()];
+                *attributes = vec![None; E::all_discriminants().len()];
                 if let Some(element) = get_element(sections, element) {
                     for attr in element.attributes() {
-                        let attr_id: usize = attr.repr().into();
+                        let attr_id: usize = attr.discriminant().into();
                         attributes[attr_id] = Some(attr.clone())
                     }
                 }
@@ -1565,7 +1565,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                 ..
             } => {
                 *elements_below = BTreeSet::new();
-                *attributes = vec![None; E::all_repr().len()];
+                *attributes = vec![None; E::all_discriminants().len()];
                 for c in children.iter_mut() {
                     c.update_attributes(sections);
                     for elt in c.get_all_elements_below().iter() {
