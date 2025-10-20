@@ -2,6 +2,7 @@
 
 ## Long-term
 
+- Stabilize `dev_iced` and merge on `dev_private`
 - Update `iced` to 0.13
 - Port to the web with WASM
 - Distribution of strand lengths (analysis tab)
