@@ -75,7 +75,7 @@ impl GridInstance {
             let shift = 0.5 * up - 0.35 * h_id.to_string().len() as f32 * right;
             let instance = LetterInstance {
                 position: position + 0.7 * c_idx as f32 * right + shift,
-                color: ultraviolet::Vec4::new(0., 0., 0., 1.),
+                color: Vec4::new(0., 0., 0., 1.),
                 design_id: self.design as u32,
                 scale: 3.,
                 shift: Vec3::zero(),

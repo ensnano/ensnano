@@ -29,6 +29,7 @@ use super::{
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::sync::Arc;
+use ultraviolet::Rotor2;
 use ultraviolet::{DRotor3, DVec3, Isometry2, Mat4, Rotor3, Vec2, Vec3};
 
 /// A structure mapping helices identifier to `Helix` objects
@@ -323,12 +324,10 @@ impl Helix {
                 grid_id
             )));
         };
-        let rotation =
-            ultraviolet::Rotor2::from_angle(group.pitch.unwrap_or_default().to_radians());
+        let rotation = Rotor2::from_angle(group.pitch.unwrap_or_default().to_radians());
         let isometry2d = Isometry2 {
-            translation: (5. * *nb_helices as f32 - 1.)
-                * ultraviolet::Vec2::unit_y().rotated_by(rotation)
-                + 5. * ultraviolet::Vec2::new(group.position.x, group.position.y),
+            translation: (5. * *nb_helices as f32 - 1.) * Vec2::unit_y().rotated_by(rotation)
+                + 5. * Vec2::new(group.position.x, group.position.y),
             rotation,
         };
         *nb_helices += 1;

@@ -21,7 +21,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use ensnano_design::{
     self, BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, BezierVertexId,
-    CurveDescriptor2D, HelixParameters, Isometry3, Nucl,
+    CurveDescriptor2D, HelixParameters, Nucl,
     elements::{DesignElementKey, DnaAttribute},
     grid::{GridDescriptor, GridId, GridObject, GridTypeDescr, HelixGridPosition, Hyperboloid},
     group_attributes::GroupPivot,

@@ -52,7 +52,7 @@ use std::{
     rc::Rc,
     sync::Arc,
 };
-use ultraviolet::{Mat4, Rotor3, Vec2, Vec3};
+use ultraviolet::{Mat4, Rotor3, Vec2, Vec3, Vec4};
 
 /// An object that handles the 3d graphical representation of a `Design`
 pub struct Design3D<R: DesignReader> {
@@ -187,7 +187,7 @@ impl<R: DesignReader> Design3D<R> {
             {
                 let instance = LetterInstance {
                     position: pos,
-                    color: ultraviolet::Vec4::new(0., 0., 0., 1.),
+                    color: Vec4::new(0., 0., 0., 1.),
                     design_id: self.id,
                     scale: 1.,
                     shift: Vec3::zero(),
@@ -202,7 +202,7 @@ impl<R: DesignReader> Design3D<R> {
                 {
                     let instance = LetterInstance {
                         position: loopout_nucl.position,
-                        color: ultraviolet::Vec4::new(0., 0., 0., 1.),
+                        color: Vec4::new(0., 0., 0., 1.),
                         design_id: self.id,
                         scale: 1.,
                         shift: Vec3::zero(),

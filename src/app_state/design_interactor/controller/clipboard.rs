@@ -24,7 +24,7 @@ use ensnano_design::{
     Helices, HelixCollection, HelixParameters, MutStrandAndData, Strands, UpToDateDesign,
     grid::{Edge, FreeGridId, GridData, GridId, GridPosition},
 };
-use ultraviolet::Vec3;
+use ultraviolet::{Rotor3, Vec3};
 
 pub(super) enum Clipboard {
     Empty,
@@ -313,7 +313,7 @@ impl Controller {
                     .filter_map(|g_id| FreeGridId::try_from_grid_id(*g_id))
                     .collect();
                 design
-                    .copy_grids(&grid_ids, Vec3::zero(), ultraviolet::Rotor3::identity())
+                    .copy_grids(&grid_ids, Vec3::zero(), Rotor3::identity())
                     .map_err(|e| ErrOperation::GridCopyError(e))?;
                 Ok(design)
             }

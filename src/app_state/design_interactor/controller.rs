@@ -70,7 +70,7 @@ use std::{
     str::FromStr,
     sync::{Arc, Mutex},
 };
-use ultraviolet::{Isometry2, Rotor3, Vec2, Vec3};
+use ultraviolet::{Isometry2, Rotor2, Rotor3, Vec2, Vec3};
 
 #[derive(Clone, Default)]
 pub struct Controller {
@@ -1519,10 +1519,7 @@ impl Controller {
                         let vec = *v - homothethy.fixed_corner;
                         if vec.mag() > 1e-6 {
                             let new_norm = vec.mag() * scale;
-                            *v = vec
-                                .normalized()
-                                .rotated_by(ensnano_design::Rotor2::from_angle(angle))
-                                * new_norm
+                            *v = vec.normalized().rotated_by(Rotor2::from_angle(angle)) * new_norm
                                 + homothethy.fixed_corner;
                         }
                     };
@@ -2145,7 +2142,7 @@ impl Controller {
                 && let Some(isometry) = h.isometry2d.as_mut()
             {
                 isometry.append_translation(-center);
-                isometry.append_rotation(ultraviolet::Rotor2::from_angle(angle));
+                isometry.append_rotation(Rotor2::from_angle(angle));
                 isometry.append_translation(center);
             }
         }

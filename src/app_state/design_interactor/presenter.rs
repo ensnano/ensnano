@@ -37,7 +37,7 @@ use ensnano_interactor::{
 use ensnano_scene::data::{HBond, HalfHBond};
 use ensnano_utils::id_generator::IdGenerator;
 use std::collections::{BTreeMap, HashMap, HashSet};
-use ultraviolet::{Mat4, Vec3};
+use ultraviolet::{Mat4, Rotor3, Vec3};
 
 type JunctionsIds = IdGenerator<(Nucl, Nucl)>;
 
@@ -749,7 +749,7 @@ impl DesignReader {
             })
     }
 
-    pub fn get_favorite_camera(&self) -> Option<(Vec3, ultraviolet::Rotor3)> {
+    pub fn get_favorite_camera(&self) -> Option<(Vec3, Rotor3)> {
         self.presenter
             .current_design
             .get_favorite_camera()

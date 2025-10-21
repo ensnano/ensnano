@@ -64,6 +64,7 @@ use std::{
     sync::{Arc, RwLock},
 };
 use transitions::OkOperation;
+use ultraviolet::{Rotor3, Vec3};
 
 /// A structure containing the global state of the program.
 ///
@@ -606,7 +607,7 @@ impl AppState {
         }
     }
 
-    pub fn translate_group_pivot(&mut self, translation: ultraviolet::Vec3) {
+    pub fn translate_group_pivot(&mut self, translation: Vec3) {
         log::debug!("old pivot {:p}", Arc::as_ptr(&self.0.selection.old_pivot));
         log::info!("is {:?}", self.0.selection.old_pivot.read().unwrap());
         let new_pivot = {
@@ -623,7 +624,7 @@ impl AppState {
         *self.0.selection.pivot.write().unwrap() = Some(new_pivot);
     }
 
-    pub fn rotate_group_pivot(&mut self, rotation: ultraviolet::Rotor3) {
+    pub fn rotate_group_pivot(&mut self, rotation: Rotor3) {
         log::debug!("old pivot {:p}", Arc::as_ptr(&self.0.selection.old_pivot));
         log::info!("is {:?}", self.0.selection.old_pivot.read().unwrap());
         let new_pivot = {

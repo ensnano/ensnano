@@ -21,7 +21,7 @@ use crate::{curves::torus::PointOnSurface_, utils::dvec_to_vec};
 use chebyshev_polynomials::ChebyshevPolynomial;
 use serde::{Deserialize, Serialize};
 use std::f64::consts::{PI, TAU};
-use ultraviolet::{DRotor2, DVec2, Mat3};
+use ultraviolet::{DRotor2, DVec2, Mat3, Rotor2};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct InterpolatedCurveDescriptor {
@@ -501,7 +501,7 @@ impl Curved for Revolution {
                 translation: (h_id as f32 + (segment_idx + 1) as f32 * nb_helices as f32)
                     * 5.
                     * Vec2::unit_y(),
-                rotation: ultraviolet::Rotor2::identity(),
+                rotation: Rotor2::identity(),
             })
     }
 

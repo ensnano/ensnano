@@ -43,7 +43,7 @@ use std::{
     str::FromStr,
     sync::Arc,
 };
-use ultraviolet::Vec3;
+use ultraviolet::{Isometry3, Vec3};
 use xover_suggestions::XoverSuggestions;
 
 const PRINTOUT_NUCL_POSITIONS: bool = false; // true;

@@ -16,7 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-//! Export to pdb file format. The method used here is an adpatation from the one used in
+//! Export to pdb file format. The method used here is an adaptation from the one used in
 //! [tacOxDNA](https://github.com/lorenzo-rovigatti/tacoxDNA)
 
 use super::PathBuf;
@@ -25,7 +25,7 @@ use crate::oxdna::{OXDNA_LEN_FACTOR, OxDnaHelix};
 use ahash::AHashMap;
 use ensnano_design::{Design, Domain, HelixCollection, Nucl};
 use std::borrow::Cow;
-use ultraviolet::{Rotor3, Vec3};
+use ultraviolet::{Mat3, Rotor3, Vec3};
 
 const MAX_ATOM_SERIAL_NUMBER: usize = 99_999;
 
@@ -83,7 +83,7 @@ impl ReferenceNucleotide {
         a2.normalize();
         let a3 = a1.cross(a2).normalized();
 
-        let frame = ultraviolet::Mat3::new(a1, a2, a3).into_rotor3();
+        let frame = Mat3::new(a1, a2, a3).into_rotor3();
         Ok(Self { nucl, score, frame })
     }
 }

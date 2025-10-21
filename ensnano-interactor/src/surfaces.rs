@@ -18,7 +18,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::*;
 use ensnano_design::{InterpolatedCurveDescriptor, InterpolationDescriptor};
 use rayon::iter::{IntoParallelIterator as _, ParallelIterator as _};
-use ultraviolet::{DVec3, Similarity3};
+use ultraviolet::{DVec3, Isometry3, Similarity3};
 #[derive(Debug, Clone)]
 pub struct RevolutionSurfaceSystemDescriptor {
     pub scaffold_len_target: usize,

@@ -19,7 +19,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::drawing_style::ParsePointError;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, f32::consts::PI, str::FromStr};
-use ultraviolet::*;
+use ultraviolet::{Isometry3, Rotor3, Vec3};
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug)]
 pub enum Isometry3DescriptorItem {

@@ -20,7 +20,7 @@ use super::*;
 use ensnano_design::{CameraId, Collection, elements::DesignElement};
 use ensnano_gui::{DesignReader as ReaderGui, EnsnTree};
 use ensnano_interactor::InsertionPoint;
-use ultraviolet::Rotor3;
+use ultraviolet::{Rotor3, Vec2};
 
 impl ReaderGui for DesignReader {
     fn grid_has_small_spheres(&self, g_id: GridId) -> bool {
@@ -222,7 +222,7 @@ impl ReaderGui for DesignReader {
     fn get_bezier_vertex_position(
         &self,
         vertex_id: ensnano_design::BezierVertexId,
-    ) -> Option<ensnano_design::Vec2> {
+    ) -> Option<Vec2> {
         let path = self
             .presenter
             .current_design

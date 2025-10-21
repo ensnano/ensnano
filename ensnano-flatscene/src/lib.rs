@@ -41,7 +41,7 @@ pub use camera2d::{Camera2D, FitRectangle};
 use controller::Controller;
 use data::Data;
 pub use data::{DesignReader, NuclCollection};
-use ensnano_design::{Isometry2, Nucl, consts::ITERATIVE_AXIS_ALGORITHM};
+use ensnano_design::{Nucl, consts::ITERATIVE_AXIS_ALGORITHM};
 use ensnano_interactor::{
     ActionMode, DesignOperation, PhantomElement, Selection, SelectionMode, StrandBuilder,
     StrandBuildingStatus,
@@ -60,6 +60,7 @@ use std::{
     sync::{Arc, Mutex},
     time::{Duration, Instant},
 };
+use ultraviolet::Isometry2;
 use view::View;
 use wgpu::{Device, Queue};
 use winit::{dpi::PhysicalPosition, event::WindowEvent, window::CursorIcon};

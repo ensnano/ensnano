@@ -1,73 +1,66 @@
 /*
 ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
+Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 //! This module defines the ensnano format.
 //! All other format supported by ensnano are converted into this format and run-time manipulation
 //! of designs are performed on an `ensnano::Design` structure
 
-use std::collections::{BTreeMap, HashMap, HashSet};
-use std::sync::Arc;
-
-mod material_colors;
-use material_colors::MaterialColor;
-
-pub use bezier_plane::*;
-use serde::{Deserialize, Serialize};
-
-pub mod codenano;
-pub mod consts;
-pub mod grid;
-use grid::{FreeGrids, GridData, GridDescriptor, GridId};
-pub mod scadnano;
-pub use ensnano_organizer::{GroupId, OrganizerTree};
-use scadnano::*;
-pub mod elements;
-use elements::DesignElementKey;
-pub mod group_attributes;
-use group_attributes::GroupAttribute;
-
-mod strands;
-pub use strands::*;
-mod helices;
-pub use helices::*;
-
-mod curves;
-pub use curves::*;
-mod collection;
-pub mod design_operations;
-pub mod utils;
-pub use collection::{Collection, HasMap};
-pub mod isometry3_descriptor;
-pub use isometry3_descriptor::Isometry3Descriptor;
-
-mod parameters;
-pub use parameters::*;
-
-pub mod drawing_style;
-
-/// Re-export ultraviolet for linear algebra
-pub use ultraviolet::*;
-
-mod bezier_plane;
-mod external_3d_objects;
-mod insertions;
 #[cfg(test)]
 mod tests;
+
+mod bezier_plane;
+pub mod codenano;
+mod collection;
+pub mod consts;
+mod curves;
+pub mod design_operations;
+pub mod drawing_style;
+pub mod elements;
+mod external_3d_objects;
+pub mod grid;
+pub mod group_attributes;
+mod helices;
+mod insertions;
+pub mod isometry3_descriptor;
+mod material_colors;
+mod parameters;
+pub mod scadnano;
+mod strands;
+pub mod utils;
+
+pub use bezier_plane::*;
+pub use collection::{Collection, HasMap};
+pub use curves::*;
+use elements::DesignElementKey;
+pub use ensnano_organizer::{GroupId, OrganizerTree};
 pub use external_3d_objects::*;
+use grid::{FreeGrids, GridData, GridDescriptor, GridId};
+use group_attributes::GroupAttribute;
+pub use helices::*;
+pub use isometry3_descriptor::Isometry3Descriptor;
+use material_colors::MaterialColor;
+pub use parameters::*;
+use scadnano::*;
+use serde::{Deserialize, Serialize};
+use serde_with::{DefaultOnError, serde_as};
+use std::collections::{BTreeMap, HashMap, HashSet};
+use std::sync::Arc;
+pub use strands::*;
+use ultraviolet::{Rotor3, Similarity3, Vec3};
 
 /// The `ensnano` Design structure.
 #[derive(Serialize, Deserialize, Clone)]
@@ -299,7 +292,6 @@ impl Design {
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct CameraId(u64);
 
-use serde_with::{DefaultOnError, serde_as};
 /// A saved camera position. This can be use to register interesting point of views of the design.
 #[serde_as]
 #[derive(Clone, Debug, Serialize, Deserialize)]

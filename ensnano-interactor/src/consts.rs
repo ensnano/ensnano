@@ -16,7 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use ultraviolet::Vec4;
+use ultraviolet::{Vec3, Vec4};
 
 pub const VIEWER_BINDING_ID: u32 = 0;
 pub const TEXTURE_BINDING_ID: u32 = 2;
@@ -225,7 +225,7 @@ pub const fn basis_color(basis: char) -> u32 {
     }
 }
 
-pub const BASIS_SCALE: ultraviolet::Vec3 = ultraviolet::Vec3 {
+pub const BASIS_SCALE: Vec3 = Vec3 {
     x: 0.33 / SPHERE_RADIUS,
     y: BOND_RADIUS / SPHERE_RADIUS,
     z: 2. * BOND_RADIUS / SPHERE_RADIUS,

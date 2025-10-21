@@ -98,7 +98,8 @@ pub struct CurveDescriptorParameter {
     pub default_value: InstantiatedParameter,
 }
 
-pub type Frame = (ultraviolet::Vec3, ultraviolet::Rotor3);
+pub type Frame = (Vec3, Rotor3);
+
 #[derive(Clone)]
 pub struct CurveDescriptorBuilder<S: AppState> {
     pub curve_name: &'static str,

@@ -486,7 +486,7 @@ impl super::Curved for TranslatedPiecewiseBezier {
         Some(self.translation)
     }
 
-    fn initial_frame(&self) -> Option<ultraviolet::DMat3> {
+    fn initial_frame(&self) -> Option<DMat3> {
         Some(self.initial_frame)
     }
 

@@ -27,7 +27,7 @@ use ensnano_interactor::{
     RollRequest, application::Notification, graphics::SplitMode,
 };
 use std::collections::BTreeSet;
-use ultraviolet::Rotor3;
+use ultraviolet::{Rotor3, Vec2};
 
 impl ensnano_gui::Requests for Requests {
     fn close_overlay(&mut self, overlay_type: OverlayType) {
@@ -441,7 +441,7 @@ impl ensnano_gui::Requests for Requests {
     fn set_position_of_bezier_vertex(
         &mut self,
         vertex_id: ensnano_design::BezierVertexId,
-        position: ensnano_design::Vec2,
+        position: Vec2,
     ) {
         self.keep_proceed.push_back(Action::DesignOperation(
             DesignOperation::SetBezierVertexPosition {

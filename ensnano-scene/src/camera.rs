@@ -17,8 +17,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use {
-    super::maths_3d::{self, FiniteVec3, Plane},
-    super::{PhySize, Stereography},
+    super::{
+        PhySize, Stereography,
+        maths_3d::{self, FiniteVec3, Plane},
+    },
     ensnano_design::{SurfaceInfo, SurfacePoint},
     ensnano_interactor::consts::{DEFAULT_STEREOGRAPHIC_ZOOM, STEREOGRAPHIC_ZOOM_STEP},
     std::{
@@ -27,7 +29,7 @@ use {
         rc::Rc,
         time::Duration,
     },
-    ultraviolet::{Mat3, Mat4, Rotor3, Vec3},
+    ultraviolet::{Mat3, Mat4, Rotor3, Vec2, Vec3},
     winit::{
         dpi::PhysicalPosition,
         event::*,
@@ -672,8 +674,8 @@ impl CameraController {
             .transform_point3(far_dist * Vec3::unit_z() + far_dist * Vec3::unit_x())
             - pv_matrix.transform_point3(far_dist * Vec3::unit_x());
         perceived_z_far.x *= self.projection.borrow().get_ratio();
-        let mut angle = if ultraviolet::Vec2::new(perceived_x_far.x, perceived_x_far.y).mag()
-            > ultraviolet::Vec2::new(perceived_z_far.x, perceived_z_far.y).mag()
+        let mut angle = if Vec2::new(perceived_x_far.x, perceived_x_far.y).mag()
+            > Vec2::new(perceived_z_far.x, perceived_z_far.y).mag()
         {
             -perceived_x_far.y.atan2(perceived_x_far.x)
         } else {
