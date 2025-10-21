@@ -95,15 +95,6 @@ pub(super) trait DraggingTransitionTable {
     fn handles_color_system(&self) -> Option<HandleColors> {
         None
     }
-
-    // Currently no type override this method. It was used at some point to make it possible to
-    // reverse the surface direction with a double click.
-    fn out_transition<S: AppState>(
-        &self,
-        _context: EventContext<'_, S>,
-    ) -> Option<Box<dyn ControllerState<S>>> {
-        None
-    }
 }
 
 /// A state in which the user is holding a mouse button while moving the cursor.
@@ -189,13 +180,11 @@ impl<S: AppState, Table: DraggingTransitionTable> ControllerState<S> for Draggin
                     .transition_table
                     .on_button_released()
                     .unwrap_or(Consequence::Nothing);
-                let new_state = self.transition_table.out_transition(context).or_else(|| {
-                    Some(Box::new(NormalState {
-                        mouse_position: self.current_cursor_position,
-                    }))
-                });
+                let new_state = NormalState {
+                    mouse_position: self.current_cursor_position,
+                };
                 Transition {
-                    new_state,
+                    new_state: Some(Box::new(new_state)),
                     consequences,
                 }
             }
@@ -268,13 +257,6 @@ impl DraggingTransitionTable for TranslatingCamera {
 
     fn cursor() -> Option<CursorIcon> {
         Some(CursorIcon::AllScroll)
-    }
-
-    fn out_transition<S: AppState>(
-        &self,
-        _context: EventContext<'_, S>,
-    ) -> Option<Box<dyn ControllerState<S>>> {
-        None
     }
 }
 
