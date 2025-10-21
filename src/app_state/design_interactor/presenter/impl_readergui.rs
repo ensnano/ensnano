@@ -18,7 +18,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::*;
 use ensnano_design::{CameraId, Collection, elements::DesignElement};
-use ensnano_gui::DesignReader as ReaderGui;
+use ensnano_gui::{DesignReader as ReaderGui, EnsnTree};
 use ensnano_interactor::InsertionPoint;
 use ultraviolet::Rotor3;
 
@@ -59,7 +59,7 @@ impl ReaderGui for DesignReader {
         self.presenter.content.elements.as_slice()
     }
 
-    fn get_organizer_tree(&self) -> Option<Arc<ensnano_design::EnsnTree>> {
+    fn get_organizer_tree(&self) -> Option<Arc<EnsnTree>> {
         self.presenter.get_design().organizer_tree.clone()
     }
 

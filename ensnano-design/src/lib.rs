@@ -37,7 +37,6 @@ pub use ensnano_organizer::{GroupId, OrganizerTree};
 use scadnano::*;
 pub mod elements;
 use elements::DesignElementKey;
-pub type EnsnTree = OrganizerTree<DesignElementKey>;
 pub mod group_attributes;
 use group_attributes::GroupAttribute;
 
