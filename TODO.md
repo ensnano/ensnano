@@ -16,7 +16,6 @@
 
 ## Scene (3D)
 
-- Refactor `Consequence::(CameraTranslated|Swing|Tilt)`
 - Fix rotation with `H`/`J`/`K`/`L` while dragging (copy code from `swing`)
 - Figure out why `H`/`J`/`K`/`L` don't work the same
   - `J` and `L` ok

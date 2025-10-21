@@ -181,6 +181,23 @@ impl<S: AppState> Scene<S> {
         self.read_consequence(consequence, app_state);
     }
 
+    fn set_pivot_point(&mut self, app_state: &S) {
+        let mut pivot: Option<FiniteVec3> = self
+            .data
+            .borrow()
+            .get_pivot_position()
+            .and_then(|p| p.try_into().ok());
+        if pivot.is_none() {
+            self.data.borrow_mut().try_update_pivot_position(app_state);
+            pivot = self
+                .data
+                .borrow()
+                .get_pivot_position()
+                .and_then(|p| p.try_into().ok());
+        }
+        self.controller.set_pivot_point(pivot);
+    }
+
     fn read_consequence(&mut self, consequence: Consequence, app_state: &S) {
         if !matches!(consequence, Consequence::Nothing) {
             log::info!("Consequence {:?}", consequence);
@@ -189,20 +206,7 @@ impl<S: AppState> Scene<S> {
             Consequence::Nothing => (),
             Consequence::CameraMoved => self.notify(SceneNotification::CameraMoved),
             Consequence::CameraTranslated(dx, dy) => {
-                let mut pivot: Option<FiniteVec3> = self
-                    .data
-                    .borrow()
-                    .get_pivot_position()
-                    .and_then(|p| p.try_into().ok());
-                if pivot.is_none() {
-                    self.data.borrow_mut().try_update_pivot_position(app_state);
-                    pivot = self
-                        .data
-                        .borrow()
-                        .get_pivot_position()
-                        .and_then(|p| p.try_into().ok());
-                }
-                self.controller.set_pivot_point(pivot);
+                self.set_pivot_point(app_state);
                 self.controller.translate_camera(dx, dy);
                 self.notify(SceneNotification::CameraMoved);
             }
@@ -312,38 +316,12 @@ impl<S: AppState> Scene<S> {
                 }
             }
             Consequence::Swing(x, y) => {
-                let mut pivot: Option<FiniteVec3> = self
-                    .data
-                    .borrow()
-                    .get_pivot_position()
-                    .and_then(|p| p.try_into().ok());
-                if pivot.is_none() {
-                    self.data.borrow_mut().try_update_pivot_position(app_state);
-                    pivot = self
-                        .data
-                        .borrow()
-                        .get_pivot_position()
-                        .and_then(|p| p.try_into().ok());
-                }
-                self.controller.set_pivot_point(pivot);
+                self.set_pivot_point(app_state);
                 self.controller.swing(-x, -y);
                 self.notify(SceneNotification::CameraMoved);
             }
             Consequence::Tilt(x) => {
-                let mut pivot: Option<FiniteVec3> = self
-                    .data
-                    .borrow()
-                    .get_pivot_position()
-                    .and_then(|p| p.try_into().ok());
-                if pivot.is_none() {
-                    self.data.borrow_mut().try_update_pivot_position(app_state);
-                    pivot = self
-                        .data
-                        .borrow()
-                        .get_pivot_position()
-                        .and_then(|p| p.try_into().ok());
-                }
-                self.controller.set_pivot_point(pivot);
+                self.set_pivot_point(app_state);
                 let angle = x as f32 * -std::f32::consts::TAU;
                 self.controller.continuous_tilt(angle);
                 self.notify(SceneNotification::CameraMoved);
@@ -1139,26 +1117,7 @@ impl<S: AppState> Scene<S> {
         }
         println!("Export failed!");
     }
-}
 
-/// A structure that stores the element that needs to be updated in a scene
-#[derive(Default)]
-pub struct SceneUpdate {
-    pub need_update: bool,
-    pub camera_update: bool,
-}
-
-/// A notification to be given to the scene
-pub enum SceneNotification {
-    /// The camera has moved. As a consequence, the projection and view matrix must be
-    /// updated.
-    CameraMoved,
-    /// The drawing area has been modified
-    NewSize(PhySize, DrawArea),
-    NewCameraPosition(Vec3),
-}
-
-impl<S: AppState> Scene<S> {
     /// Send a notification to the scene
     pub fn notify(&mut self, notification: SceneNotification) {
         match notification {
@@ -1188,6 +1147,23 @@ impl<S: AppState> Scene<S> {
             self.view.borrow_mut().update(ViewUpdate::Fog(fog))
         }
     }
+}
+
+/// A structure that stores the element that needs to be updated in a scene
+#[derive(Default)]
+pub struct SceneUpdate {
+    pub need_update: bool,
+    pub camera_update: bool,
+}
+
+/// A notification to be given to the scene
+pub enum SceneNotification {
+    /// The camera has moved. As a consequence, the projection and view matrix must be
+    /// updated.
+    CameraMoved,
+    /// The drawing area has been modified
+    NewSize(PhySize, DrawArea),
+    NewCameraPosition(Vec3),
 }
 
 impl<S: AppState> Application for Scene<S> {
