@@ -1,19 +1,7 @@
 //! Tree-like structure for iced.
 //!
-//! In ENSnano, [ensnano_design] implements the structures defined here, and are instanciated in
+//! In ENSnano, [ensnano_design] implements the structures defined here, and are instantiated in
 //! [ensnano_gui].
-use {
-    ensnano_iced::{
-        Element,
-        helpers::*,
-        iced::{Length, keyboard::Modifiers},
-        icon_to_svg,
-    },
-    std::{
-        collections::{BTreeMap, BTreeSet, HashMap},
-        convert::TryInto,
-    },
-};
 
 pub mod drag_drop_target;
 pub mod element;
@@ -21,15 +9,23 @@ pub mod hoverable_container;
 pub mod theme;
 mod tree;
 
+use drag_drop_target::*;
 pub use element::*;
+use ensnano_iced::{
+    Element,
+    helpers::*,
+    iced::{Length, keyboard::Modifiers},
+    icon_to_svg,
+};
+use hoverable_container::HoverableContainer;
 use icondata::Icon;
 use rand::{Rng, rngs::ThreadRng};
+use std::{
+    collections::{BTreeMap, BTreeSet, HashMap},
+    convert::TryInto,
+};
 use theme::OrganizerTheme;
 pub use tree::{GroupId, OrganizerTree};
-
-use drag_drop_target::*;
-
-use hoverable_container::HoverableContainer;
 
 const LEVELS_V_SPACING: u16 = 2;
 const H_SPACING_IN_UNITS: u16 = 15;
