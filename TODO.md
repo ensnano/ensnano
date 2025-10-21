@@ -66,6 +66,13 @@
 - Finish using `confy` parameters to load saved preferences (`AppStateParameters`)
 - FPS counter
 
+### Keyboard shortcuts
+
+- Find and eliminate all duplicate keyboard shortcuts:
+  - `H` is used for 3D rotation and to switch to the Helix selection mode
+  - `K` is used for 3D rotation and to recolor staples
+- Use either `LogicalKey` or `PhysicalKey` everywhere, don't mix and match
+
 ### Command-line arguments (`clap`)
 
 - Filename
