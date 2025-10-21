@@ -21,7 +21,7 @@ use ensnano_iced::{
     UiSize,
     fonts::{MaterialIcon, MaterialIconStyle},
     helpers::*,
-    iced::{Alignment, Length, alignment::Horizontal},
+    iced::{Alignment, Command, Length, alignment::Horizontal},
 };
 
 /// A named camera orientation.
@@ -247,8 +247,9 @@ impl CameraShortcutPanel {
 }
 
 impl CameraShortcutPanel {
-    pub fn update<State: AppState>(&mut self, app_state: &mut State) {
+    pub fn update<State: AppState>(&mut self, app_state: &mut State) -> Command<Message<State>> {
         self.set_camera_widget(app_state);
+        Command::none()
     }
 
     pub fn view<State: AppState>(

@@ -11,6 +11,7 @@ use std::fmt::Debug;
 pub trait ElementKey: Clone + Ord + Debug + Serialize + Deserialize<'static> {
     type Section: Eq + Ord + TryFrom<usize> + Into<usize> + Debug;
 
+    /// Name of the Element
     fn name(section: Self::Section) -> String;
     fn section(&self) -> Self::Section;
 }

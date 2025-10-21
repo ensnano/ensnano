@@ -197,6 +197,7 @@ pub enum Message<S: AppState> {
     IncrRevolutionShift,
     DecrRevolutionShift,
     SetKeyboardPriority(bool),
+    SetFocus(text_input::Id),
 }
 
 impl<R: Requests, S: AppState> LeftPanel<R, S> {
@@ -304,6 +305,7 @@ impl<R: Requests, S: AppState> LeftPanel<R, S> {
                 .lock()
                 .unwrap()
                 .set_keyboard_priority(priority),
+            OrganizerMessage::SetFocus(id) => return Some(Message::SetFocus(id)),
             _ => (),
         }
         None
@@ -320,6 +322,9 @@ where
     type Message = Message<S>;
 
     // BUG: Increasing the left panel too much crashes ENSnano.
+
+    // NOTE: The Command feature of Iced has not been used in ENSnan.
+    // NOTE: Trying it, it seems that commands are not executed.
 
     fn update(&mut self, message: Message<S>) -> Command<Message<S>> {
         let notify_new_tree =
@@ -339,9 +344,11 @@ where
                 .unwrap()
                 .update_organizer_tree(self.organizer.tree())
         }
-        match message {
+        log::debug!("Message: {:?}", &message);
+        let command = match message {
             Message::StrandNameChanged(s_id, name) => {
-                self.requests.lock().unwrap().set_strand_name(s_id, name)
+                self.requests.lock().unwrap().set_strand_name(s_id, name);
+                Command::none()
             }
             Message::ColorPickerMessage(message) => {
                 self.edition_tab.update_color_picker(message);
@@ -357,8 +364,12 @@ where
                         self.requests.lock().unwrap().finish_changing_color();
                     }
                 }
+                Command::none()
             }
-            Message::Resized(size, position) => self.resize(size, position),
+            Message::Resized(size, position) => {
+                self.resize(size, position);
+                Command::none()
+            }
             Message::NewGrid(grid_type) => {
                 self.requests.lock().unwrap().create_grid(grid_type);
                 let action_mode = self.contextual_panel.get_build_helix_mode();
@@ -366,6 +377,7 @@ where
                     .lock()
                     .unwrap()
                     .change_action_mode(action_mode);
+                Command::none()
             }
             Message::RotateCam(xz, yz, xy) => {
                 self.camera_shortcut
@@ -374,6 +386,7 @@ where
                     .lock()
                     .unwrap()
                     .perform_camera_rotation(xz, yz, xy);
+                Command::none()
             }
             Message::FixPoint(point, up) => {
                 self.requests
@@ -381,35 +394,41 @@ where
                     .unwrap()
                     .set_camera_dir_up_vec(point, up);
                 self.camera_shortcut.reset_angles();
+                Command::none()
             }
             Message::LengthHelicesChanged(length_str) => {
                 let new_strand_parameters = self.contextual_panel.update_length_str(length_str);
                 self.requests
                     .lock()
                     .unwrap()
-                    .add_double_strand_on_new_helix(Some(new_strand_parameters))
+                    .add_double_strand_on_new_helix(Some(new_strand_parameters));
+                Command::none()
             }
             Message::PositionHelicesChanged(position_str) => {
                 let new_strand_parameters = self.contextual_panel.update_pos_str(position_str);
                 self.requests
                     .lock()
                     .unwrap()
-                    .add_double_strand_on_new_helix(Some(new_strand_parameters))
+                    .add_double_strand_on_new_helix(Some(new_strand_parameters));
+                Command::none()
             }
             Message::ScaffoldPositionInput(position_str) => {
                 if let Some(n) = self.sequence_tab.update_pos_str(position_str) {
                     self.requests.lock().unwrap().set_scaffold_shift(n);
-                }
+                };
+                Command::none()
             }
             Message::FogLength(length) => {
                 self.camera_tab.fog_length(length);
                 let request = self.camera_tab.get_fog_request();
                 self.requests.lock().unwrap().set_fog_parameters(request);
+                Command::none()
             }
             Message::FogRadius(radius) => {
                 self.camera_tab.fog_radius(radius);
                 let request = self.camera_tab.get_fog_request();
                 self.requests.lock().unwrap().set_fog_parameters(request);
+                Command::none()
             }
             Message::RollSimulationRequest => {
                 if self.application_state.get_simulation_state().is_rolling() {
@@ -418,12 +437,14 @@ where
                     let request = self.simulation_tab.get_physical_simulation_request();
                     self.requests.lock().unwrap().start_roll_simulation(request);
                 }
+                Command::none()
             }
             Message::StartRapierSimulation => {
                 self.requests
                     .lock()
                     .unwrap()
                     .request_rapier_simulation(RapierSimulationRequest::Start);
+                Command::none()
             }
             Message::FogChoice(choice) => {
                 let (visible, from_camera, dark, reversed) = choice.to_param();
@@ -433,6 +454,7 @@ where
                 self.camera_tab.fog_reversed(reversed);
                 let request = self.camera_tab.get_fog_request();
                 self.requests.lock().unwrap().set_fog_parameters(request);
+                Command::none()
             }
             Message::DiscreteValue {
                 factory_id,
@@ -449,6 +471,7 @@ where
                             .unwrap()
                             .update_scroll_sensitivity(request);
                     }
+                    Command::none()
                 }
                 FactoryId::HelixRoll => {
                     let mut request = None;
@@ -460,6 +483,7 @@ where
                             .unwrap()
                             .update_roll_of_selected_helices(request);
                     }
+                    Command::none()
                 }
                 FactoryId::Hyperboloid => {
                     let mut request = None;
@@ -471,6 +495,7 @@ where
                             .unwrap()
                             .update_current_hyperboloid(request);
                     }
+                    Command::none()
                 }
                 FactoryId::RigidBody => {
                     let mut request = None;
@@ -482,6 +507,7 @@ where
                             .unwrap()
                             .update_rigid_body_simulation_parameters(request);
                     }
+                    Command::none()
                 }
                 FactoryId::Brownian => {
                     let mut request = None;
@@ -493,6 +519,7 @@ where
                             .unwrap()
                             .update_rigid_body_simulation_parameters(request);
                     }
+                    Command::none()
                 }
             },
             Message::VolumeExclusion(b) => {
@@ -505,6 +532,7 @@ where
                         .unwrap()
                         .update_rigid_body_simulation_parameters(request);
                 }
+                Command::none()
             }
             Message::BrownianMotion(b) => {
                 self.simulation_tab.set_brownian_motion(b);
@@ -516,6 +544,7 @@ where
                         .unwrap()
                         .update_rigid_body_simulation_parameters(request);
                 }
+                Command::none()
             }
             Message::NewHyperboloid => {
                 let mut request: Option<HyperboloidRequest> = None;
@@ -526,9 +555,11 @@ where
                         .unwrap()
                         .create_new_hyperboloid(request);
                 }
+                Command::none()
             }
             Message::FinalizeHyperboloid => {
                 self.requests.lock().unwrap().finalize_hyperboloid();
+                Command::none()
             }
             Message::RigidGridSimulation(start) => {
                 if start {
@@ -543,6 +574,7 @@ where
                 } else {
                     self.requests.lock().unwrap().stop_simulations();
                 }
+                Command::none()
             }
             Message::RigidHelicesSimulation(start) => {
                 if start {
@@ -557,8 +589,12 @@ where
                 } else {
                     self.requests.lock().unwrap().stop_simulations();
                 }
+                Command::none()
             }
-            Message::MakeGrids => self.requests.lock().unwrap().make_grid_from_selection(),
+            Message::MakeGrids => {
+                self.requests.lock().unwrap().make_grid_from_selection();
+                Command::none()
+            }
             Message::RollTargeted(b) => {
                 let selection = self.application_state.get_selection_as_design_element();
                 if b {
@@ -572,6 +608,7 @@ where
                 } else {
                     self.requests.lock().unwrap().stop_roll_simulation();
                 }
+                Command::none()
             }
             Message::TabSelected(tab_id) => {
                 if let ActionMode::BuildHelix { .. } = self.application_state.get_action_mode()
@@ -594,34 +631,51 @@ where
                     self.requests.lock().unwrap().notify_revolution_tab()
                 }
                 self.active_tab = tab_id;
+                Command::none()
             }
             Message::OrganizerMessage(m) => {
                 let next_message = self.organizer_message(m);
                 if let Some(message) = next_message {
-                    let _ = self.update(message);
+                    self.update(message)
+                } else {
+                    Command::none()
                 }
             }
-            Message::ModifiersChanged(modifiers) => self
-                .organizer
-                .new_modifiers(conversion::modifiers(modifiers.state())),
-            Message::UiSizePicked(ui_size) => self.requests.lock().unwrap().set_ui_size(ui_size),
-            Message::UiSizeChanged(ui_size) => self.ui_size = ui_size,
+            Message::ModifiersChanged(modifiers) => {
+                self.organizer
+                    .new_modifiers(conversion::modifiers(modifiers.state()));
+                Command::none()
+            }
+            Message::UiSizePicked(ui_size) => {
+                self.requests.lock().unwrap().set_ui_size(ui_size);
+                Command::none()
+            }
+            Message::UiSizeChanged(ui_size) => {
+                self.ui_size = ui_size;
+                Command::none()
+            }
             Message::SetScaffoldSeqButtonPressed => {
                 self.requests
                     .lock()
                     .unwrap()
                     .set_scaffold_sequence(self.sequence_tab.get_scaffold_shift());
+                Command::none()
             }
             Message::OptimizeScaffoldShiftPressed => {
                 self.requests.lock().unwrap().optimize_scaffold_shift();
+                Command::none()
             }
-            Message::StaplesRequested => self.requests.lock().unwrap().download_staples(),
+            Message::StaplesRequested => {
+                self.requests.lock().unwrap().download_staples();
+                Command::none()
+            }
             Message::ToggleText(b) => {
                 self.requests
                     .lock()
                     .unwrap()
                     .set_dna_sequences_visibility(b);
                 self.sequence_tab.toggle_text_value(b);
+                Command::none()
             }
             Message::AddDoubleStrandHelix(b) => {
                 self.contextual_panel.set_show_strand(b);
@@ -630,48 +684,71 @@ where
                     .lock()
                     .unwrap()
                     .add_double_strand_on_new_helix(new_strand_parameters);
+                Command::none()
             }
-            Message::ToggleVisibility(b) => self.requests.lock().unwrap().toggle_visibility(b),
-            Message::AllVisible => self.requests.lock().unwrap().make_all_elements_visible(),
-            Message::Redim2dHelices(b) => self.requests.lock().unwrap().resize_2d_helices(b),
+            Message::ToggleVisibility(b) => {
+                self.requests.lock().unwrap().toggle_visibility(b);
+                Command::none()
+            }
+            Message::AllVisible => {
+                self.requests.lock().unwrap().make_all_elements_visible();
+                Command::none()
+            }
+            Message::Redim2dHelices(b) => {
+                self.requests.lock().unwrap().resize_2d_helices(b);
+                Command::none()
+            }
             Message::InvertScroll(b) => {
                 self.requests.lock().unwrap().invert_scroll(b);
+                Command::none()
             }
             Message::CancelHyperboloid => {
                 self.requests.lock().unwrap().cancel_hyperboloid();
+                Command::none()
             }
             Message::SelectionValueChanged(n, s) => {
                 self.contextual_panel
                     .selection_value_changed(n, s, Arc::clone(&self.requests));
+                Command::none()
             }
             Message::SetSmallSpheres(b) => {
                 self.contextual_panel
                     .set_small_sphere(b, Arc::clone(&self.requests));
+                Command::none()
             }
             Message::ScaffoldIdSet(n, b) => {
                 self.contextual_panel
                     .scaffold_id_set(n, b, Arc::clone(&self.requests));
+                Command::none()
             }
-            Message::SelectScaffold => self.requests.lock().unwrap().set_scaffold_from_selection(),
+            Message::SelectScaffold => {
+                self.requests.lock().unwrap().set_scaffold_from_selection();
+                Command::none()
+            }
             Message::RenderingMode(mode) => {
                 self.requests.lock().unwrap().change_3d_rendering_mode(mode);
                 self.camera_tab.rendering_mode = mode;
+                Command::none()
             }
             Message::Background3D(bg) => {
                 self.requests.lock().unwrap().change_3d_background(bg);
                 self.camera_tab.background3d = bg;
+                Command::none()
             }
             Message::ForceHelp => {
                 self.contextual_panel.force_help = true;
                 self.contextual_panel.show_tutorial = false;
+                Command::none()
             }
             Message::ShowTutorial => {
                 self.contextual_panel.show_tutorial ^= true;
                 self.contextual_panel.force_help = false;
+                Command::none()
             }
             Message::OpenLink(link) => {
                 // ATM we continue even in case of error, later any error will be prompted to user
                 let _ = open::that(link);
+                Command::none()
             }
             Message::NewApplicationState(state) => {
                 if state.design_was_modified(&self.application_state) {
@@ -695,85 +772,120 @@ where
                     self.contextual_panel.state_updated();
                 }
                 self.application_state = state;
-                self.revolution_tab.update(&mut self.application_state);
+                let _ = self.revolution_tab.update(&mut self.application_state);
+                Command::none()
             }
-            Message::ResetSimulation => self.requests.lock().unwrap().reset_simulations(),
-            Message::Nothing => (),
+            Message::ResetSimulation => {
+                self.requests.lock().unwrap().reset_simulations();
+                Command::none()
+            }
+            Message::Nothing => Command::none(),
             Message::SubmitCameraName => {
                 if let Some((id, name)) = self.camera_shortcut.stop_editing() {
                     self.requests.lock().unwrap().set_camera_name(id, name);
                 }
+                Command::none()
             }
-            Message::EditCameraName(name) => self.camera_shortcut.set_camera_input_name(name),
+            Message::EditCameraName(name) => {
+                self.camera_shortcut.set_camera_input_name(name);
+                Command::none()
+            }
             Message::StartEditCameraName(camera_id) => {
-                self.camera_shortcut.start_editing(camera_id)
+                self.camera_shortcut.start_editing(camera_id);
+                Command::none()
             }
             Message::DeleteCamera(camera_id) => {
-                self.requests.lock().unwrap().delete_camera(camera_id)
+                self.requests.lock().unwrap().delete_camera(camera_id);
+                Command::none()
             }
             Message::SelectCamera(camera_id) => {
-                self.requests.lock().unwrap().select_camera(camera_id)
+                self.requests.lock().unwrap().select_camera(camera_id);
+                Command::none()
             }
             Message::NewCustomCamera => {
                 self.requests.lock().unwrap().create_new_camera();
-                self.camera_shortcut.scroll_down()
+                self.camera_shortcut.scroll_down();
+                Command::none()
             }
             Message::NewSuggestionParameters(param) => {
                 self.requests
                     .lock()
                     .unwrap()
                     .set_suggestion_parameters(param);
+                Command::none()
             }
             Message::ContextualValueSubmitted(kind) => {
                 if let Some(request) = self.contextual_panel.submit_value(kind) {
                     request.make_request(Arc::clone(&self.requests))
                 }
+                Command::none()
             }
             Message::ContextualValueChanged(kind, n, val) => {
                 self.contextual_panel.update_builder_value(kind, n, val);
+                Command::none()
             }
             Message::InstantiatedValueSubmitted(value) => {
                 if let Some(request) = self.contextual_panel.request_from_value(value) {
                     request.make_request(Arc::clone(&self.requests))
                 }
+                Command::none()
             }
-            Message::CheckXoversParameter(parameters) => self
-                .requests
-                .lock()
-                .unwrap()
-                .set_check_xover_parameters(parameters),
+            Message::CheckXoversParameter(parameters) => {
+                self.requests
+                    .lock()
+                    .unwrap()
+                    .set_check_xover_parameters(parameters);
+                Command::none()
+            }
             Message::FollowStereographicCamera(b) => {
-                self.requests.lock().unwrap().follow_stereographic_camera(b)
+                self.requests.lock().unwrap().follow_stereographic_camera(b);
+                Command::none()
             }
             Message::ShowStereographicCamera(b) => {
                 self.requests
                     .lock()
                     .unwrap()
                     .set_show_stereographic_camera(b);
+                Command::none()
             }
             Message::ShowHBonds(b) => {
                 self.requests.lock().unwrap().set_show_h_bonds(b);
+                Command::none()
             }
-            Message::RainbowScaffold(b) => self.requests.lock().unwrap().set_rainbow_scaffold(b),
-            Message::StopSimulation => self.requests.lock().unwrap().stop_simulations(),
+            Message::RainbowScaffold(b) => {
+                self.requests.lock().unwrap().set_rainbow_scaffold(b);
+                Command::none()
+            }
+            Message::StopSimulation => {
+                self.requests.lock().unwrap().stop_simulations();
+                Command::none()
+            }
             Message::StartTwist => {
                 if let Some(Selection::Grid(_, g_id)) =
                     self.application_state.get_selection().get(0)
                 {
                     self.requests.lock().unwrap().start_twist_simulation(*g_id)
                 }
+                Command::none()
             }
-            Message::OrigamisRequested => self.requests.lock().unwrap().download_origamis(),
-            Message::NewDnaParameters(parameters) => self
-                .requests
-                .lock()
-                .unwrap()
-                .set_dna_parameters(parameters.value),
+            Message::OrigamisRequested => {
+                self.requests.lock().unwrap().download_origamis();
+                Command::none()
+            }
+            Message::NewDnaParameters(parameters) => {
+                self.requests
+                    .lock()
+                    .unwrap()
+                    .set_dna_parameters(parameters.value);
+                Command::none()
+            }
             Message::SetExpandInsertions(b) => {
-                self.requests.lock().unwrap().set_expand_insertions(b)
+                self.requests.lock().unwrap().set_expand_insertions(b);
+                Command::none()
             }
             Message::InsertionLengthInput(s) => {
                 self.contextual_panel.update_insertion_length_input(s);
+                Command::none()
             }
             Message::InsertionLengthSubmitted => {
                 if let Some(request) = self.contextual_panel.get_insertion_request() {
@@ -790,34 +902,44 @@ where
                         log::error!("No insertion point for {:?}", request.selection);
                     }
                 }
+                Command::none()
             }
             Message::NewBezierPlane => {
                 self.requests.lock().unwrap().create_bezier_plane();
+                Command::none()
             }
-            Message::StartBezierPath => self
-                .requests
-                .lock()
-                .unwrap()
-                .change_action_mode(ActionMode::EditBezierPath),
+            Message::StartBezierPath => {
+                self.requests
+                    .lock()
+                    .unwrap()
+                    .change_action_mode(ActionMode::EditBezierPath);
+                Command::none()
+            }
             Message::TurnPathIntoGrid { path_id, grid_type } => {
                 self.requests
                     .lock()
                     .unwrap()
                     .turn_path_into_grid(path_id, grid_type);
+                Command::none()
             }
             Message::SetShowBezierPaths(b) => {
-                self.requests.lock().unwrap().set_show_bezier_paths(b)
+                self.requests.lock().unwrap().set_show_bezier_paths(b);
+                Command::none()
             }
             Message::MakeBezierPathCyclic { path_id, cyclic } => {
                 self.requests
                     .lock()
                     .unwrap()
                     .make_bezier_path_cyclic(path_id, cyclic);
+                Command::none()
             }
-            Message::Export(export_type) => self.requests.lock().unwrap().export(export_type),
-
+            Message::Export(export_type) => {
+                self.requests.lock().unwrap().export(export_type);
+                Command::none()
+            }
             Message::CancelExport => {
                 self.requests.lock().unwrap().set_exporting(false);
+                Command::none()
             }
             Message::CurveBuilderPicked(builder) => {
                 self.revolution_tab.set_builder(builder);
@@ -833,9 +955,11 @@ where
                     .lock()
                     .unwrap()
                     .set_unrooted_surface(unrooted_surface);
+                Command::none()
             }
             Message::RevolutionEquadiffSolvingMethodPicked(method) => {
                 self.revolution_tab.set_method(method);
+                Command::none()
             }
             Message::RevolutionParameterUpdate { parameter_id, text } => {
                 if let RevolutionParameterId::RevolutionRadius = parameter_id
@@ -860,6 +984,7 @@ where
                     .lock()
                     .unwrap()
                     .set_unrooted_surface(unrooted_surface);
+                Command::none()
             }
             Message::InitRevolutionRelaxation => {
                 if let Some(desc) = self
@@ -871,48 +996,68 @@ where
                         .unwrap()
                         .start_revolution_relaxation(desc);
                 }
+                Command::none()
             }
             Message::FinishRelaxation => {
-                self.requests.lock().unwrap().finish_revolution_relaxation()
+                self.requests.lock().unwrap().finish_revolution_relaxation();
+                Command::none()
             }
-            Message::LoadSvgFile => self.requests.lock().unwrap().load_svg(),
+            Message::LoadSvgFile => {
+                self.requests.lock().unwrap().load_svg();
+                Command::none()
+            }
             Message::StlExport => {
                 self.requests.lock().unwrap().request_stl_export();
+                Command::none()
             }
             Message::ScreenShot2D => {
                 self.requests.lock().unwrap().request_screenshot_2d();
+                Command::none()
             }
             Message::ScreenShot3D => {
                 self.requests.lock().unwrap().request_screenshot_3d();
+                Command::none()
             }
             Message::SaveNucleotidesPositions => {
                 self.requests
                     .lock()
                     .unwrap()
                     .request_save_nucleotides_positions();
+                Command::none()
             }
-            Message::IncrRevolutionShift => self.revolution_tab.shift_idx += 1,
-            Message::DecrRevolutionShift => self.revolution_tab.shift_idx -= 1,
-            Message::SetKeyboardPriority(priority) => self
-                .requests
-                .lock()
-                .unwrap()
-                .set_keyboard_priority(priority),
+            Message::IncrRevolutionShift => {
+                self.revolution_tab.shift_idx += 1;
+                Command::none()
+            }
+            Message::DecrRevolutionShift => {
+                self.revolution_tab.shift_idx -= 1;
+                Command::none()
+            }
+            Message::SetKeyboardPriority(priority) => {
+                self.requests
+                    .lock()
+                    .unwrap()
+                    .set_keyboard_priority(priority);
+                Command::none()
+            }
+            Message::SetFocus(id) => text_input::focus(id),
         };
 
-        self.grid_tab.update(&mut self.application_state);
-        self.edition_tab.update(&mut self.application_state);
-        self.camera_tab.update(&mut self.application_state);
-        self.simulation_tab.update(&mut self.application_state);
-        self.sequence_tab.update(&mut self.application_state);
-        self.parameters_tab.update(&mut self.application_state);
-        self.pen_tab.update(&mut self.application_state);
-        self.revolution_tab.update(&mut self.application_state);
-
-        self.camera_shortcut.update(&mut self.application_state);
-        self.contextual_panel.update(&mut self.application_state);
-
-        Command::none()
+        let command = Command::batch(vec![
+            command,
+            self.grid_tab.update(&mut self.application_state),
+            self.edition_tab.update(&mut self.application_state),
+            self.camera_tab.update(&mut self.application_state),
+            self.simulation_tab.update(&mut self.application_state),
+            self.sequence_tab.update(&mut self.application_state),
+            self.parameters_tab.update(&mut self.application_state),
+            self.pen_tab.update(&mut self.application_state),
+            self.revolution_tab.update(&mut self.application_state),
+            self.camera_shortcut.update(&mut self.application_state),
+            self.contextual_panel.update(&mut self.application_state),
+        ]);
+        log::debug!("Command: {:?}", &command);
+        command
     }
 
     fn view(&self) -> Element<'_, Self::Message, Self::Theme, Self::Renderer> {

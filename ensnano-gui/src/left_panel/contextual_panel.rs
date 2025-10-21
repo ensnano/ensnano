@@ -225,7 +225,7 @@ where
         self.width = width;
     }
 
-    pub fn update(&mut self, app_state: &mut State) {
+    pub fn update(&mut self, app_state: &mut State) -> Command<Message<State>> {
         let selection = app_state
             .get_selection()
             .get(0)
@@ -241,6 +241,7 @@ where
             app_state,
         );
         self.insertion_length_state.update_selection(selection);
+        Command::none()
     }
 
     fn update_builder(

@@ -330,13 +330,13 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
         let mut clipboard = clipboard::Null;
         match self {
             GuiState::TopBar(state) => {
-                state.update(size, cursor, renderer, theme, style, &mut clipboard, debug);
+                let _ = state.update(size, cursor, renderer, theme, style, &mut clipboard, debug);
             }
             GuiState::LeftPanel(state) => {
-                state.update(size, cursor, renderer, theme, style, &mut clipboard, debug);
+                let _ = state.update(size, cursor, renderer, theme, style, &mut clipboard, debug);
             }
             GuiState::StatusBar(state) => {
-                state.update(size, cursor, renderer, theme, style, &mut clipboard, debug);
+                let _ = state.update(size, cursor, renderer, theme, style, &mut clipboard, debug);
             }
         }
     }
@@ -652,6 +652,12 @@ impl<R: Requests, State: AppState> Gui<R, State> {
         state: &State,
         top_bar_state: TopBarState,
     ) {
+        // NOTE: Wow…
+        //       Argument 'state' is called 'global_state' when called above, and it is used
+        //       for both left_panel and status_bar.
+        //       Type of 'state' is a parameter implementing 'AppState', while top_bar_state
+        //       is another type.
+        //
         let mut top_bar_renderer = Renderer::Wgpu(iced_wgpu::Renderer::new(
             Backend::new(
                 self.device.as_ref(),
