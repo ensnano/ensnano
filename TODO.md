@@ -17,10 +17,6 @@
 ## Scene (3D)
 
 - Fix rotation with `H`/`J`/`K`/`L` while dragging (copy code from `swing`)
-- Figure out why `H`/`J`/`K`/`L` don't work the same
-  - `J` and `L` ok
-  - `H` is a top bar selection
-  - `K` changes colors in the design but idk how
 - Export PNG max size
 - Cut plane (toggleable button next to grids)
 - Isometric view
