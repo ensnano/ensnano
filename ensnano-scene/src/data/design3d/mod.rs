@@ -48,7 +48,7 @@ use ensnano_interactor::{
 use ensnano_utils::{StrandNucleotidesPositions, colors, instance::Instance};
 use std::{
     collections::{BTreeMap, HashMap, HashSet, hash_map::RandomState},
-    f32::consts::TAU,
+    f32::{INFINITY, NEG_INFINITY, consts::TAU},
     rc::Rc,
     sync::Arc,
 };
@@ -1203,80 +1203,40 @@ impl<R: DesignReader> Design3D<R> {
 
     /// Return the middle point of `self` in the world coordinates
     pub fn middle_point(&self) -> Vec3 {
-        let boundaries = self.boundaries();
-        let middle = Vec3::new(
-            (boundaries[0] + boundaries[1]) as f32 / 2.,
-            (boundaries[2] + boundaries[3]) as f32 / 2.,
-            (boundaries[4] + boundaries[5]) as f32 / 2.,
-        );
+        let (min, max) = self.boundaries();
+        let middle = (min + max) / 2.;
         self.design_reader.get_model_matrix().transform_vec3(middle)
     }
 
-    fn boundaries(&self) -> [f32; 6] {
-        let mut min_x = std::f32::INFINITY;
-        let mut min_y = std::f32::INFINITY;
-        let mut min_z = std::f32::INFINITY;
-        let mut max_x = std::f32::NEG_INFINITY;
-        let mut max_y = std::f32::NEG_INFINITY;
-        let mut max_z = std::f32::NEG_INFINITY;
+    fn boundaries(&self) -> (Vec3, Vec3) {
+        let mut min = Vec3::new(INFINITY, INFINITY, INFINITY);
+        let mut max = Vec3::new(NEG_INFINITY, NEG_INFINITY, NEG_INFINITY);
 
-        let ids = self.design_reader.get_all_nucl_ids();
-        for id in ids {
-            let coord: [f32; 3] = self
-                .design_reader
-                .get_element_position(id, Referential::World)
-                .unwrap()
-                .into();
-            if coord[0] < min_x {
-                min_x = coord[0];
-            }
-            if coord[0] > max_x {
-                max_x = coord[0];
-            }
-            if coord[1] < min_y {
-                min_y = coord[1];
-            }
-            if coord[1] > max_y {
-                max_y = coord[1];
-            }
-            if coord[2] < min_z {
-                min_z = coord[2];
-            }
-            if coord[2] > max_z {
-                max_z = coord[2];
-            }
+        let mut update_bounds = |v: Vec3| {
+            min = min.min_by_component(v);
+            max = max.max_by_component(v);
+        };
+
+        for id in self.design_reader.get_all_nucl_ids() {
+            update_bounds(
+                self.design_reader
+                    .get_element_position(id, Referential::World)
+                    .unwrap(),
+            );
         }
+
         for grid in self.get_grid().values() {
-            let coords: [[f32; 3]; 2] = [
+            update_bounds(
                 grid.grid
-                    .position_helix(grid.min_x as isize, grid.min_y as isize)
-                    .into(),
+                    .position_helix(grid.min_x as isize, grid.min_y as isize),
+            );
+            update_bounds(
                 grid.grid
-                    .position_helix(grid.max_x as isize, grid.max_y as isize)
-                    .into(),
-            ];
-            for coord in coords.iter() {
-                if coord[0] < min_x {
-                    min_x = coord[0];
-                }
-                if coord[0] > max_x {
-                    max_x = coord[0];
-                }
-                if coord[1] < min_y {
-                    min_y = coord[1];
-                }
-                if coord[1] > max_y {
-                    max_y = coord[1];
-                }
-                if coord[2] < min_z {
-                    min_z = coord[2];
-                }
-                if coord[2] > max_z {
-                    max_z = coord[2];
-                }
-            }
+                    .position_helix(grid.max_x as isize, grid.max_y as isize),
+            );
         }
-        [min_x, max_x, min_y, max_y, min_z, max_z]
+
+        (min, max)
     }
 
     /// Return the list of corners of grid with no helices on them
