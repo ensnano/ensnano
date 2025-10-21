@@ -1047,11 +1047,10 @@ impl<E: OrganizerElement> NodeTitleBar<E> {
                     button(expand_icon(expanded))
                         .on_press(OrganizerMessage::<E>::expand(id.clone(), !expanded)),
                     Space::with_width(5.0),
-                    text(name),
-                    // text_input(&name, &name),
-                    // NOTE: I would like to customize this to make it look like a non editable
-                    // `text_input`, but the default rendering of `text_input` without calling
-                    // `on_input` make it look _deactivated_.
+                    mouse_area(
+                        text_input("New group name...", &name).id(self.name_input_id.clone())
+                    )
+                    .on_press(OrganizerMessage::edit(id.clone())),
                     horizontal_space(),
                     button(plus_icon())
                         .on_press(OrganizerMessage::add_selection_to_group(id.clone())), // TODO: change icon later !!!
