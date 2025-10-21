@@ -1931,7 +1931,7 @@ fn toggle_selection(mode: SelectionMode) -> SelectionMode {
         SelectionMode::Nucleotide => SelectionMode::Strand,
         SelectionMode::Strand => SelectionMode::Helix,
         SelectionMode::Helix => SelectionMode::Nucleotide,
-        mode => mode,
+        SelectionMode::Design => SelectionMode::Design,
     }
 }
 
