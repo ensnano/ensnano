@@ -1,5 +1,8 @@
+use std::ops::BitXorAssign;
+
 use ahash::HashMap;
-use ensnano_design::{Helices, HelixCollection, HelixParameters};
+use ensnano_design::{Helices, HelixCollection, HelixParameters, Nucl};
+use ensnano_interactor::ObjectType;
 use rapier3d::{na::Point3, prelude::*};
 
 use crate::{
@@ -20,8 +23,98 @@ const STRONG_SPRING_RANGES: [u32; 4] = [1, 2, 4, 8];
 const INTERBASE_SPRING_STIFFNESS: f32 = 10000.0;
 const INTERBASE_SPRING_DAMPING: f32 = 1000.0;
 
-pub fn build_full_simulation(
+const CROSSOVER_STIFFNESS: f32 = 100.0;
+const CROSSOVER_DAMPING: f32 = 50.0;
+const CROSSOVER_SIZE: f32 = 0.64;
+
+const FREE_NUCLEOTIDE_STIFFNESS: f32 = 100000.0;
+const FREE_NUCLEOTIDE_DAMPING: f32 = 50000.0;
+const FREE_NUCLEOTIDE_DISTANCE: f32 = 0.64;
+
+/// A trait to represent a strategy of how to attach
+/// colliders to rigid bodies in the simulation.
+/// This is meant to differenciate between
+/// full simulation (all bases are simulated),
+/// rigid helices (helices are one rigid body),
+/// or sliced rigid helices (helices are rigid bodies
+/// separated at crossovers)
+pub trait SimulationSetup {
+    // creates rigib bodes and assigns the provided
+    // colliders to them
+    fn build_bodies(
+        rigid_body_set: &mut RigidBodySet,
+        collider_set: &mut ColliderSet,
+        collider_map: &HashMap<(usize, isize), Vec<ColliderHandle>>,
+        intermediary_representation: &HashMap<usize, IntermediaryHelix>,
+    );
+}
+
+pub struct FullSimulationSetup;
+
+impl SimulationSetup for FullSimulationSetup {
+    fn build_bodies(
+        rigid_body_set: &mut RigidBodySet,
+        collider_set: &mut ColliderSet,
+        collider_map: &HashMap<(usize, isize), Vec<ColliderHandle>>,
+        intermediary_representation: &HashMap<usize, IntermediaryHelix>,
+    ) {
+        for (helix_index, helix) in intermediary_representation.iter() {
+            for pair_position in helix.pairs.keys() {
+                let rigid_body = RigidBodyBuilder::dynamic()
+                    .linear_damping(BASE_LINEAR_DAMPING)
+                    .angular_damping(BASE_ANGULAR_DAMPING);
+
+                let rigid_body_handle = rigid_body_set.insert(rigid_body);
+
+                for collider_handle in collider_map
+                    .get(&(*helix_index, *pair_position))
+                    .unwrap_or(&vec![])
+                {
+                    collider_set.set_parent(
+                        *collider_handle,
+                        Some(rigid_body_handle),
+                        rigid_body_set,
+                    );
+                }
+            }
+        }
+    }
+}
+
+pub struct RigidHelicesSetup;
+
+impl SimulationSetup for RigidHelicesSetup {
+    fn build_bodies(
+        rigid_body_set: &mut RigidBodySet,
+        collider_set: &mut ColliderSet,
+        collider_map: &HashMap<(usize, isize), Vec<ColliderHandle>>,
+        intermediary_representation: &HashMap<usize, IntermediaryHelix>,
+    ) {
+        for (helix_index, helix) in intermediary_representation.iter() {
+            let rigid_body = RigidBodyBuilder::dynamic()
+                .linear_damping(BASE_LINEAR_DAMPING)
+                .angular_damping(BASE_ANGULAR_DAMPING);
+            let rigid_body_handle = rigid_body_set.insert(rigid_body);
+            for pair_position in helix.pairs.keys() {
+                for collider_handle in collider_map
+                    .get(&(*helix_index, *pair_position))
+                    .unwrap_or(&vec![])
+                {
+                    collider_set.set_parent(
+                        *collider_handle,
+                        Some(rigid_body_handle),
+                        rigid_body_set,
+                    );
+                }
+            }
+        }
+    }
+}
+
+pub fn build_simulation<S: SimulationSetup>(
     intermediary_representation: &HashMap<usize, IntermediaryHelix>,
+    object_type: &HashMap<u32, ObjectType>,
+    nucleotide: &HashMap<u32, Nucl>,
     space_position: &HashMap<u32, [f32; 3]>,
     helices: &Helices,
     global_parameters: &HelixParameters,
@@ -32,17 +125,28 @@ pub fn build_full_simulation(
 
     let mut nucleotide_body_map: HashMap<u32, ColliderHandle> = Default::default();
 
+    // Stores the colliders per helix and per position in the helix
+    let mut collider_map: HashMap<(usize, isize), Vec<ColliderHandle>> = Default::default();
+
     // Create objects and store them in the map
     // 1) for each helix, for each level of the helix
     // 2) create either 2 balls and one capsule, or just 1 ball
     // 3) and place the resulting nucleotide colliders in a new map
 
-    build_bodies(
+    build_colliders(
         &mut rigid_body_set,
         &mut collider_set,
         &mut nucleotide_body_map,
+        &mut collider_map,
         intermediary_representation,
         space_position,
+    );
+
+    S::build_bodies(
+        &mut rigid_body_set,
+        &mut collider_set,
+        &collider_map,
+        intermediary_representation,
     );
 
     // create springs from double helix portions;
@@ -66,6 +170,15 @@ pub fn build_full_simulation(
     // to detect single threaded ranges
     // 2) add simple springs on those single threaded ranges
 
+    // add crossover springs
+    add_crossover_springs(
+        object_type,
+        nucleotide,
+        &nucleotide_body_map,
+        &collider_set,
+        &mut impulse_joint_set,
+    );
+
     // we return the physics system
     RapierPhysicsSystem {
         rigid_body_set,
@@ -76,16 +189,26 @@ pub fn build_full_simulation(
     }
 }
 
-/// Builds the rigid bodies and colliders necessary for the simulation.
-/// Fills nucleotide body map by indicating the colliders that correspond
+/// Builds the rigid bodies necessary for the simulation.
+/// Fills nucleotide body map and  by indicating the colliders that correspond
 /// to the nucleotides.
-fn build_bodies(
+fn build_colliders(
     rigid_body_set: &mut RigidBodySet,
     collider_set: &mut ColliderSet,
     nucleotide_body_map: &mut HashMap<u32, ColliderHandle>,
+    collider_map: &mut HashMap<(usize, isize), Vec<ColliderHandle>>,
     intermediary_representation: &HashMap<usize, IntermediaryHelix>,
     space_position: &HashMap<u32, [f32; 3]>,
 ) {
+    // This dummy body is here to "hold" the collider before
+    // they get reassigned to a proper body in a later step.
+    // Pacôme : I tried doing it with only "insert", which
+    // doesn't link to a body, but then it wouldn't work.
+    // Looking at the rapier source it looks like insert does
+    // a lot less work than insert_with_parent, and since
+    // doing it this way works...
+    let dummy_body = rigid_body_set.insert(RigidBodyBuilder::dynamic());
+
     for helix in intermediary_representation.values() {
         for pair in helix.pairs.values() {
             match pair {
@@ -98,9 +221,13 @@ fn build_bodies(
                         .expect("Couldn't get position of nucl");
 
                     let i_collider = ColliderBuilder::ball(NUCLEOTIDE_RADIUS)
-                        .position(Isometry::translation(i_p[0], i_p[1], i_p[2]));
+                        .position(Isometry::translation(i_p[0], i_p[1], i_p[2]))
+                        .active_collision_types(ActiveCollisionTypes::empty())
+                        .collision_groups(InteractionGroups::new(Group::GROUP_2, Group::empty()));
                     let j_collider = ColliderBuilder::ball(NUCLEOTIDE_RADIUS)
-                        .position(Isometry::translation(j_p[0], j_p[1], j_p[2]));
+                        .position(Isometry::translation(j_p[0], j_p[1], j_p[2]))
+                        .active_collision_types(ActiveCollisionTypes::empty())
+                        .collision_groups(InteractionGroups::new(Group::GROUP_2, Group::empty()));
 
                     let capsule = ColliderBuilder::capsule_from_endpoints(
                         point_from_parts(&i_p),
@@ -108,47 +235,36 @@ fn build_bodies(
                         PAIR_CAPSULE_RADIUS,
                     );
 
-                    let rigid_body = RigidBodyBuilder::dynamic()
-                        .linear_damping(BASE_LINEAR_DAMPING)
-                        .angular_damping(BASE_ANGULAR_DAMPING);
+                    let i_collider_handle =
+                        collider_set.insert_with_parent(i_collider, dummy_body, rigid_body_set);
+                    let j_collider_handle =
+                        collider_set.insert_with_parent(j_collider, dummy_body, rigid_body_set);
 
-                    let rigid_body_handle = rigid_body_set.insert(rigid_body);
-
-                    let i_collider_handle = collider_set.insert_with_parent(
-                        i_collider,
-                        rigid_body_handle,
-                        rigid_body_set,
-                    );
-                    let j_collider_handle = collider_set.insert_with_parent(
-                        j_collider,
-                        rigid_body_handle,
-                        rigid_body_set,
-                    );
-
-                    collider_set.insert_with_parent(capsule, rigid_body_handle, rigid_body_set);
+                    let capsule_handle =
+                        collider_set.insert_with_parent(capsule, dummy_body, rigid_body_set);
 
                     nucleotide_body_map.insert(*i, i_collider_handle);
                     nucleotide_body_map.insert(*j, j_collider_handle);
+
+                    collider_map.insert(
+                        (n.helix, n.position),
+                        vec![i_collider_handle, j_collider_handle, capsule_handle],
+                    );
                 }
-                crate::helices::IntermediaryPair::OnlyForward(id, _)
-                | crate::helices::IntermediaryPair::OnlyBackward(id, _) => {
+                crate::helices::IntermediaryPair::OnlyForward(id, n)
+                | crate::helices::IntermediaryPair::OnlyBackward(id, n) => {
                     let position = space_position
                         .get(id)
                         .expect("Couldn't get position of nucl");
-                    let rigid_body = RigidBodyBuilder::dynamic()
-                        .linear_damping(BASE_LINEAR_DAMPING)
-                        .angular_damping(BASE_ANGULAR_DAMPING);
+
                     let collider = ColliderBuilder::ball(NUCLEOTIDE_RADIUS)
                         .position(Isometry::translation(position[0], position[1], position[2]));
 
-                    let rigid_body_handle = rigid_body_set.insert(rigid_body);
-                    let collider_handle = collider_set.insert_with_parent(
-                        collider,
-                        rigid_body_handle,
-                        rigid_body_set,
-                    );
+                    let collider_handle =
+                        collider_set.insert_with_parent(collider, dummy_body, rigid_body_set);
 
                     nucleotide_body_map.insert(*id, collider_handle);
+                    collider_map.insert((n.helix, n.position), vec![collider_handle]);
                 }
             }
         }
@@ -289,6 +405,11 @@ fn build_strong_springs(
                             *up_up,
                         );
 
+                    // we don't attach rigid bodies to themselves
+                    if up_body_handle == down_body_handle {
+                        continue;
+                    }
+
                     // forward spring
                     impulse_joint_set.insert(
                         down_body_handle,
@@ -351,5 +472,47 @@ fn build_strong_springs(
                 }
             }
         }
+    }
+}
+
+pub fn add_crossover_springs(
+    object_type: &HashMap<u32, ObjectType>,
+    nucleotide: &HashMap<u32, Nucl>,
+    nucleotide_body_map: &HashMap<u32, ColliderHandle>,
+    collider_set: &ColliderSet,
+    impulse_joint_set: &mut ImpulseJointSet,
+) {
+    let mut bonds: Vec<(u32, u32)> = Default::default();
+
+    for (_, ty) in object_type.iter() {
+        match ty {
+            ObjectType::Bond(a, b) | ObjectType::SlicedBond(_, a, b, _) => {
+                if nucleotide[a].helix == nucleotide[b].helix {
+                    continue;
+                }
+                bonds.push((*a, *b));
+            }
+            _ => {}
+        }
+    }
+
+    // for each bond, a spring
+    for (a, b) in bonds {
+        let a = collider_set
+            .get(nucleotide_body_map[&a])
+            .expect("Error fetching nucleotide body");
+        let b = collider_set
+            .get(nucleotide_body_map[&b])
+            .expect("Error fetching nucleotide body");
+
+        impulse_joint_set.insert(
+            a.parent().expect("Collider without parent"),
+            b.parent().expect("Collider without parent"),
+            SpringJointBuilder::new(CROSSOVER_SIZE, CROSSOVER_STIFFNESS, CROSSOVER_DAMPING)
+                .local_anchor1(a.position_wrt_parent().unwrap().translation.vector.into())
+                .local_anchor2(b.position_wrt_parent().unwrap().translation.vector.into())
+                .build(),
+            true,
+        );
     }
 }

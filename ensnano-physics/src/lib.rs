@@ -24,6 +24,7 @@ mod anchors;
 mod full_simulation;
 mod helices;
 mod import;
+mod repulsion;
 mod simulation;
 
 use ensnano_design::Vec3;
