@@ -1,3 +1,10 @@
+//! Iced interface to ENSnano
+//!
+//! The objective of this crate is two-fold:
+//! 1. Ensure all other crates uses the same version of iced,
+//! 2. Provide customized widgets and tools to ease the building of the GUI.
+//!
+//! Therefore, in other crates, do not use Iced directly, but go through ensnano_iced.
 pub use iced;
 pub use iced::Renderer;
 pub use iced_aw;

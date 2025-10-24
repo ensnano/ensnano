@@ -52,7 +52,7 @@ impl<'a, Message, Theme, Renderer> KeyboardPriority<'a, Message, Theme, Renderer
 where
     Renderer: renderer::Renderer,
 {
-    /// Creates a new [`HoverableContainer`] with the given content.
+    /// Creates a new [`KeyboardPriority`] with the given content.
     pub fn new(content: impl Into<Element<'a, Message, Theme, Renderer>>) -> Self {
         let content = content.into();
         let size = content.as_widget().size_hint();
@@ -315,7 +315,7 @@ impl From<Id> for widget::Id {
 /// The local state of an [`KeyboardPriority`].
 #[derive(Debug, Clone, Default)]
 pub struct State {
-    /// Store the last known state of the underlying [text_input].
+    /// Store the last known state of the underlying [`TextInput`](text_input::TextInput).
     is_focused: bool,
 }
 

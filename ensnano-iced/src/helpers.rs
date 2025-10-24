@@ -30,7 +30,7 @@ use iced::{
 
 const JUMP_SIZE: f32 = 4.0;
 
-/// Add vertical space of [JUMP_SIZE] amount
+/// Add vertical space of fixed amount
 pub fn extra_jump() -> Space {
     jump_by(JUMP_SIZE)
 }

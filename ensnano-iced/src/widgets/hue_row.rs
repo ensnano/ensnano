@@ -37,7 +37,7 @@ use color_space::{Hsv, Rgb};
 
 const DEFAULT_SIZE: f32 = 90.0;
 
-/// The internal state of a [HueColumn].
+/// The internal state of a [`HueRow`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct State {
     is_dragging: bool,

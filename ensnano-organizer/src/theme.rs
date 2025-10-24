@@ -88,7 +88,7 @@ pub(super) struct OrganizerThemeSelection {
     border_color: Color,
 }
 
-/// Implements the [Button](button::Button) style sheet for [ThemeSelection]
+/// Implements the [Button](button::Button) style sheet for [`OrganizerThemeSelection`]
 impl button::StyleSheet for OrganizerThemeSelection {
     type Style = ();
     //type Style = iced_style::theme::Button;
@@ -143,7 +143,7 @@ impl From<OrganizerThemeSelection> for theme::Button {
     }
 }
 
-/// Implements the [Button](button::Button) style sheet for [ThemeLevel]
+/// Implements the [Button](button::Button) style sheet for [`OrganizerThemeLevel`]
 impl button::StyleSheet for OrganizerThemeLevel {
     type Style = ();
     //type Style = iced_style::theme::Button;
@@ -194,7 +194,7 @@ impl From<OrganizerThemeLevel> for theme::Button {
     }
 }
 
-/// Implements the [Container](container::Container) style sheet for [ThemeLevel]
+/// Implements the [Container](container::Container) style sheet for [`OrganizerThemeLevel`]
 impl container::StyleSheet for OrganizerThemeLevel {
     type Style = ();
     //type Style = iced_style::theme::Container;

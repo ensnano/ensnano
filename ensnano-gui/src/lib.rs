@@ -592,7 +592,7 @@ impl<R: Requests, S: AppState> GuiComponent<R, S> {
 
 /// The manager of the graphical user interface.
 ///
-/// The manager contains a [GuiComponent] for each [GuiComponentType] (top_bar, left_panel, etc…)
+/// The manager contains a [`GuiComponent`] for each [`GuiComponentType`] (top_bar, left_panel, etc…)
 pub struct Gui<R: Requests, S: AppState> {
     /// WGPU Settings
     wgpu_settings: iced_wgpu::Settings,
@@ -603,7 +603,7 @@ pub struct Gui<R: Requests, S: AppState> {
     resized: bool,
     requests: Arc<Mutex<R>>,
     parameters: AppStateParameters,
-    /// [GuiComponent] mapped by [GuiComponentType]
+    /// [`GuiComponent`] mapped by [`GuiComponentType`]
     components: HashMap<GuiComponentType, GuiComponent<R, S>>,
 }
 

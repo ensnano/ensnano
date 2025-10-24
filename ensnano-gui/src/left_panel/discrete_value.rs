@@ -15,6 +15,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+//! A slider to choose a numerical value within a dircrete linear range.
+// TODO: Make it an independent object like ensano_iced::color_picker ?
 use super::AppState;
 use super::Message;
 use ensnano_iced::iced;
@@ -132,10 +134,7 @@ impl<R: Requestable> RequestFactory<R> {
     }
 }
 
-/// A DiscreteValue allow the user to chose a numerical value with prescibed constraints.
-///
-/// The value must be chosen in the discrete range between [min_val], [max_val] by increments of
-/// [step].
+/// A slider to choose a numerical value within a dircrete linear range.
 struct DiscreteValue {
     // Current selected value.
     value: f32,

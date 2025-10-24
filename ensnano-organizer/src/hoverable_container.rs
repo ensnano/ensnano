@@ -4,11 +4,11 @@
 //!
 //! This widget is greatly inspired by
 //!
-//!    https://giesch.dev/iced-hoverable/
+//!    <https://giesch.dev/iced-hoverable/>
 //!
 //! see also
 //!
-//!    https://docs.rs/iced_widget/0.12.1/src/iced_widget/container.rs.html
+//!    <https://docs.rs/iced_widget/0.12.1/src/iced_widget/container.rs.html>
 
 use ensnano_iced::iced::{
     Element, Length, Padding, Point, Rectangle, Size, Vector,

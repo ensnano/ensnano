@@ -1,4 +1,4 @@
-//! ENSnano theme
+//! ENSnano theme.
 //!
 //! The theme of the GUI is defined here
 use std::rc::Rc;
