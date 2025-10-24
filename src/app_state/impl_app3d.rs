@@ -101,7 +101,7 @@ impl App3D for AppState {
             .or(*self.0.selection.pivot.read().as_deref().unwrap())
     }
 
-    fn get_current_group_id(&self) -> Option<ensnano_design::GroupId> {
+    fn get_current_group_id(&self) -> Option<GroupId> {
         self.0.selection.selected_group
     }
 

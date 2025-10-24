@@ -46,7 +46,7 @@ pub use bezier_plane::*;
 pub use collection::{Collection, HasMap};
 pub use curves::*;
 use elements::DesignElementKey;
-pub use ensnano_organizer::{GroupId, OrganizerTree};
+use ensnano_organizer::OrganizerTree;
 pub use external_3d_objects::*;
 use grid::{FreeGrids, GridData, GridDescriptor, GridId};
 use group_attributes::GroupAttribute;

@@ -8,6 +8,7 @@ license.workspace = true
 [dependencies]
 ensnano_design.workspace = true
 ensnano_interactor.workspace = true
+ensnano_organizer.workspace = true
 ensnano_utils.workspace = true
 
 bytemuck.workspace = true

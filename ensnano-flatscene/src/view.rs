@@ -32,13 +32,14 @@ use ahash::RandomState;
 use background::Background;
 use ensnano_design::Nucl;
 use ensnano_interactor::consts::SAMPLE_COUNT;
-use ensnano_utils::Ndc;
-use ensnano_utils::bindgroup_manager::{DynamicBindGroup, UniformBindGroup};
-use ensnano_utils::camera2d::Globals;
-pub use ensnano_utils::chars2d::TextDrawer;
-pub use ensnano_utils::circles2d::CircleInstance;
-use ensnano_utils::circles2d::{CircleDrawer, CircleKind};
-use ensnano_utils::texture::Texture;
+use ensnano_utils::{
+    Ndc,
+    bindgroup_manager::{DynamicBindGroup, UniformBindGroup},
+    camera2d::Globals,
+    chars2d::TextDrawer,
+    circles2d::{CircleDrawer, CircleInstance, CircleKind},
+    texture::Texture,
+};
 use helix_view::{HelixView, StrandView};
 use insertion::InsertionDrawer;
 pub use insertion::{InsertionDescriptor, InsertionInstance};

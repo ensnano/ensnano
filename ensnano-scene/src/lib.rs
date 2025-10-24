@@ -38,9 +38,10 @@ use ensnano_interactor::{
     SelectionMode, StrandBuilder, UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
     app_state_parameters::CheckXoversParameter,
     application::{AppId, Application, Camera3D, Notification},
-    graphics::DrawArea,
+    graphics::{DrawArea, FogParameters},
     operation::*,
 };
+use ensnano_organizer::GroupId;
 use ensnano_utils::{BufferDimensions, PhySize, filename};
 use maths_3d::FiniteVec3;
 use std::{
@@ -54,9 +55,9 @@ use std::{
 };
 use ultraviolet::{Rotor3, Vec3};
 use view::{
-    DrawOptions, DrawType, FogParameters, GridInstance, HandleDir, HandlesDescriptor,
-    LetterInstance, RotationMode as WidgetRotationMode, RotationWidgetDescriptor,
-    RotationWidgetOrientation, Stereography, View, ViewUpdate,
+    DrawOptions, DrawType, GridInstance, HandleDir, HandlesDescriptor, LetterInstance,
+    RotationMode as WidgetRotationMode, RotationWidgetDescriptor, RotationWidgetOrientation,
+    Stereography, View, ViewUpdate,
 };
 use wgpu::{Device, Queue};
 use winit::{dpi::PhysicalPosition, event::WindowEvent, window::CursorIcon};
@@ -1330,7 +1331,7 @@ pub trait AppState: Clone + 'static {
     fn is_pasting(&self) -> bool;
     fn get_selected_element(&self) -> Option<CenterOfSelection>;
     fn get_current_group_pivot(&self) -> Option<ensnano_design::group_attributes::GroupPivot>;
-    fn get_current_group_id(&self) -> Option<ensnano_design::GroupId>;
+    fn get_current_group_id(&self) -> Option<GroupId>;
     fn suggestion_parameters_were_updated(&self, other: &Self) -> bool;
     fn get_check_xover_parameters(&self) -> CheckXoversParameter;
     fn follow_stereographic_camera(&self) -> bool;

@@ -48,11 +48,10 @@ use design_interactor::{DesignReader, controller::ErrOperation};
 use ensnano_design::Design;
 use ensnano_design::{BezierPathId, SavingInformation, group_attributes::GroupPivot};
 use ensnano_exports::{ExportResult, ExportType};
-use ensnano_gui::StrandBuildingStatus;
 use ensnano_iced::UiSize;
 use ensnano_interactor::{
     ActionMode, CenterOfSelection, DesignOperation, PastingStatus, Selection, SelectionMode,
-    UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
+    StrandBuildingStatus, UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
     app_state_parameters::{AppStateParameters, CheckXoversParameter, SuggestionParameters},
     consts::{APP_NAME, ENS_BACKUP_EXTENSION, ENS_EXTENSION},
     graphics::{Background3D, HBondDisplay, RenderingMode},

@@ -16,8 +16,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use super::super::{FlatHelix, FlatNucl, data::ClickResult, view::CircleInstance};
+use super::super::{FlatHelix, FlatNucl, data::ClickResult};
 use super::*;
+use ensnano_utils::circles2d::CircleInstance;
 use std::time::Instant;
 use winit::{
     event::MouseButton,

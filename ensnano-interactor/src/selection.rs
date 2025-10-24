@@ -15,12 +15,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-pub use ensnano_design::BezierControlPoint;
+
 use ensnano_design::{
-    BezierPathId, BezierVertexId,
+    BezierControlPoint, BezierPathId, BezierVertexId, Nucl, Strand,
     grid::{GridId, HelixGridPosition},
 };
-use ensnano_design::{Nucl, Strand};
 use std::collections::BTreeSet;
 
 pub const PHANTOM_RANGE: i32 = 1000;

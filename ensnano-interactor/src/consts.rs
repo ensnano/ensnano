@@ -16,6 +16,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+use crate::RevolutionSimulationParameters;
+use ensnano_design::BezierControlPoint;
 use ultraviolet::{Vec3, Vec4};
 
 pub const VIEWER_BINDING_ID: u32 = 0;
@@ -60,7 +62,6 @@ pub fn bezier_widget_id(helix_id: u32, control_point: BezierControlPoint) -> u32
     (helix_id << 8) | bezier_id
 }
 
-use super::{BezierControlPoint, RevolutionSimulationParameters};
 pub fn widget_id_to_bezier(id: u32) -> Option<(usize, BezierControlPoint)> {
     let control = match id & 0xFF {
         n if n > BEZIER_END_WIDGET_ID => Some(BezierControlPoint::PiecewiseBezier(

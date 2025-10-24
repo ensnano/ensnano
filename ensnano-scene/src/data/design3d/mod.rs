@@ -33,14 +33,13 @@ use crate::{
     },
 };
 use ensnano_design::{
-    AdditionalStructure, BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex,
-    Collection, CubicBezierConstructor, CurveDescriptor, External3DObjects, HelixParameters,
-    InstantiatedPath, Nucl,
+    AdditionalStructure, BezierControlPoint, BezierPathId, BezierPlaneDescriptor, BezierPlaneId,
+    BezierVertex, Collection, CubicBezierConstructor, CurveDescriptor, External3DObjects,
+    HelixParameters, InstantiatedPath, Nucl, SurfaceInfo, SurfacePoint,
     grid::{GridId, GridObject, GridPosition, HelixGridPosition},
 };
-pub use ensnano_design::{SurfaceInfo, SurfacePoint};
 use ensnano_interactor::{
-    BezierControlPoint, ObjectType, PHANTOM_RANGE, PhantomElement, Referential,
+    ObjectType, PHANTOM_RANGE, PhantomElement, Referential,
     consts::*,
     graphics::{LoopoutBond, LoopoutNucl},
     phantom_helix_encoder_bond, phantom_helix_encoder_nucl,

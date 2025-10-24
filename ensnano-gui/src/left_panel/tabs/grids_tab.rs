@@ -15,8 +15,12 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use std::marker::PhantomData;
 
+use super::tabs::GuiTab;
+use super::{
+    AppState, FactoryId, GridTypeDescr, Hyperboloid_, HyperboloidRequest, Message, RequestFactory,
+    UiSize, ValueId,
+};
 use ensnano_iced::{
     fonts::{MaterialIcon, icon_to_char},
     helpers::*,
@@ -24,12 +28,8 @@ use ensnano_iced::{
     iced_aw::TabLabel,
     theme,
 };
-
-use super::tabs::GuiTab;
-use super::{
-    AppState, FactoryId, GridTypeDescr, Hyperboloid_, HyperboloidRequest, ICON_HONEYCOMB_GRID,
-    ICON_NANOTUBE, ICON_SQUARE_GRID, Message, RequestFactory, UiSize, ValueId,
-};
+use ensnano_interactor::consts::{ICON_HONEYCOMB_GRID, ICON_NANOTUBE, ICON_SQUARE_GRID};
+use std::marker::PhantomData;
 
 pub struct GridTab<State: AppState> {
     hyperboloid_factory: RequestFactory<Hyperboloid_>,

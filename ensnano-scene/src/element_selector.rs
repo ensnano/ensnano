@@ -18,10 +18,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::{Device, DrawArea, DrawType, Queue, ViewPtr};
 use ensnano_design::{
-    BezierPathId, BezierPlaneId, BezierVertexId,
+    BezierControlPoint, BezierPathId, BezierPlaneId, BezierVertexId,
     grid::{GridId, GridPosition},
 };
-use ensnano_interactor::{BezierControlPoint, PhantomElement, phantom_helix_decoder};
+use ensnano_interactor::{PhantomElement, phantom_helix_decoder};
 use ensnano_utils::BufferDimensions;
 use futures::executor;
 use num_enum::IntoPrimitive;

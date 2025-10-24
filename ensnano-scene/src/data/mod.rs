@@ -30,9 +30,9 @@ use super::{
     },
 };
 use design3d::Design3D;
-pub use design3d::{DesignReader, HBond, HalfHBond, SurfaceInfo, SurfacePoint};
+pub use design3d::{DesignReader, HBond, HalfHBond};
 use ensnano_design::{
-    BezierVertexId, Collection, External3DObjectsStamp, Nucl,
+    BezierVertexId, Collection, External3DObjectsStamp, Nucl, SurfaceInfo, SurfacePoint,
     grid::{GridId, GridObject, GridPosition},
 };
 use ensnano_interactor::{

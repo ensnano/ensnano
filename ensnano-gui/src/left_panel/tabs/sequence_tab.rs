@@ -15,14 +15,14 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use std::marker::PhantomData;
-
-use ensnano_interactor::StandardSequence;
 
 use super::tabs::GuiTab;
 use super::{AppState, DesignElementKey, Message, UiSize};
 use ensnano_iced::iced;
 use ensnano_iced::{helpers::*, iced::Length, iced_aw::TabLabel, theme};
+use ensnano_interactor::StandardSequence;
+use ensnano_interactor::consts::ICON_ATGC;
+use std::marker::PhantomData;
 
 pub struct SequenceTab<State: AppState> {
     toggle_text_value: bool,
@@ -98,7 +98,7 @@ impl<State: AppState> GuiTab<State> for SequenceTab<State> {
     type Message = Message<State>;
 
     fn label(&self) -> TabLabel {
-        TabLabel::Icon(crate::consts::ICON_ATGC)
+        TabLabel::Icon(ICON_ATGC)
     }
 
     fn content(&self, ui_size: UiSize, app_state: &State) -> iced::Element<'_, Self::Message> {

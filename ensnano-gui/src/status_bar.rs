@@ -15,6 +15,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
 use super::{AppState, Requests};
 use ensnano_iced::{
     self, UiSize,
@@ -24,10 +25,11 @@ use ensnano_iced::{
     iced_runtime::{Command, Program},
     iced_winit::winit::dpi::LogicalSize,
 };
-pub use ensnano_interactor::StrandBuildingStatus;
-use ensnano_interactor::operation::Operation;
-use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
+use ensnano_interactor::{StrandBuildingStatus, operation::Operation};
+use std::{
+    collections::HashMap,
+    sync::{Arc, Mutex},
+};
 
 const GOLD_ORANGE: Color = Color::from_rgb(0.84, 0.57, 0.20);
 

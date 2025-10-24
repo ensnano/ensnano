@@ -31,17 +31,16 @@ use ensnano_design::{
     elements::{DesignElementKey, DnaAttribute},
     grid::{GridId, GridPosition, GridTypeDescr},
 };
-use ensnano_gui::OrganizerTree;
 use ensnano_iced::UiSize;
 use ensnano_interactor::{
     ActionMode, CenterOfSelection, HyperboloidRequest, RapierSimulationRequest, RigidBodyConstants,
     RollRequest, Selection, SelectionMode, UnrootedRevolutionSurfaceDescriptor,
     app_state_parameters::{CheckXoversParameter, SuggestionParameters},
     application::AppId,
-    graphics::{Background3D, HBondDisplay, RenderingMode},
+    graphics::{Background3D, FogParameters, HBondDisplay, RenderingMode},
     operation::Operation,
 };
-use ensnano_scene::view::FogParameters;
+use ensnano_organizer::OrganizerTree;
 use std::{collections::VecDeque, sync::Arc};
 use ultraviolet::Vec3;
 

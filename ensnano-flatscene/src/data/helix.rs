@@ -20,7 +20,7 @@ use super::{FlatNucl, Helix2d, NuclCollection};
 use crate::{
     CameraPtr, Flat, FlatHelix,
     flattypes::{FlatHelixMaps, FlatPosition, HelixSegment},
-    view::{CircleInstance, EditionInfo, InsertionDescriptor, InsertionInstance},
+    view::{EditionInfo, InsertionDescriptor, InsertionInstance},
 };
 use abscissa_converter::{AbscissaConverter, AbscissaConverter_};
 use ahash::RandomState;
@@ -30,6 +30,7 @@ use ensnano_interactor::consts::{
 };
 use ensnano_utils::{
     chars2d::{Line, Sentence, TextDrawer},
+    circles2d::CircleInstance,
     full_isometry::FullIsometry,
     instance::Instance,
 };

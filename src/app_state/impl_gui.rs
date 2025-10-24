@@ -107,7 +107,7 @@ impl GuiState for AppState {
         self.0.design.get_current_operation_state()
     }
 
-    fn get_strand_building_state(&self) -> Option<ensnano_gui::StrandBuildingStatus> {
+    fn get_strand_building_state(&self) -> Option<StrandBuildingStatus> {
         self.get_strand_building_state()
     }
 

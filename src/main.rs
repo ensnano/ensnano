@@ -147,6 +147,7 @@ use {
         graphics::{GuiComponentType, SplitMode},
         operation::Operation,
     },
+    ensnano_organizer::GroupId,
     ensnano_scene::{AppState as _, Scene, SceneKind, data::DesignReader as _},
     ensnano_utils::{PhySize, TEXTURE_FORMAT},
     multiplexer::{Multiplexer, Overlay},
@@ -1215,7 +1216,7 @@ impl MainState {
         self.modify_state(|s| s.with_candidates(candidates), None);
     }
 
-    fn transfer_selection_pivot_to_group(&mut self, group_id: ensnano_design::GroupId) {
+    fn transfer_selection_pivot_to_group(&mut self, group_id: GroupId) {
         let scene_pivot = self
             .applications
             .get(&GuiComponentType::Scene)

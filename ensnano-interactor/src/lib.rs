@@ -19,31 +19,32 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! This modules defines types and operations used by the graphical component of ENSnano to
 //! interact with the design.
 
-use ensnano_design::{
-    self, BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, BezierVertexId,
-    CurveDescriptor2D, HelixParameters, Nucl,
-    elements::{DesignElementKey, DnaAttribute},
-    grid::{GridDescriptor, GridId, GridObject, GridTypeDescr, HelixGridPosition, Hyperboloid},
-    group_attributes::GroupPivot,
-};
-use std::path::PathBuf;
-use ultraviolet::{Isometry2, Rotor3, Vec2, Vec3};
 pub mod app_state_parameters;
 pub mod graphics;
 mod selection;
 pub use selection::*;
 pub mod application;
-pub mod operation;
-mod strand_builder;
-pub use strand_builder::*;
 pub mod consts;
-pub mod torsion;
-use ensnano_organizer::GroupId;
-mod operation_labels;
-mod surfaces;
-pub use surfaces::*;
 mod multiplexer;
+pub mod operation;
+mod operation_labels;
+mod strand_builder;
+mod surfaces;
+pub mod torsion;
+
+use ensnano_design::{
+    self, BezierControlPoint, BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex,
+    BezierVertexId, CurveDescriptor2D, HelixParameters, Nucl,
+    elements::{DesignElementKey, DnaAttribute},
+    grid::{GridDescriptor, GridId, GridObject, GridTypeDescr, HelixGridPosition, Hyperboloid},
+    group_attributes::GroupPivot,
+};
+use ensnano_organizer::{GroupId, OrganizerTree};
 pub use multiplexer::Multiplexer;
+use std::path::PathBuf;
+pub use strand_builder::*;
+pub use surfaces::*;
+use ultraviolet::{Isometry2, Rotor3, Vec2, Vec3};
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub enum ObjectType {
@@ -207,7 +208,7 @@ pub enum DesignOperation {
         x: isize,
         y: isize,
     },
-    SetOrganizerTree(ensnano_design::OrganizerTree<DesignElementKey>),
+    SetOrganizerTree(OrganizerTree<DesignElementKey>),
     SetStrandName {
         s_id: usize,
         name: String,

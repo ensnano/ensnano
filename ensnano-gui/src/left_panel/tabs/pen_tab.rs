@@ -16,13 +16,14 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use super::tabs::GuiTab;
-use super::{AppState, GridTypeDescr, ICON_HONEYCOMB_GRID, ICON_SQUARE_GRID, Message, UiSize};
+use super::{AppState, GridTypeDescr, Message, UiSize};
 use ensnano_iced::iced;
 use ensnano_iced::{
     fonts::{MaterialIcon, MaterialIconStyle, icon_to_char},
     helpers::*,
     iced_aw::TabLabel,
 };
+use ensnano_interactor::consts::{ICON_HONEYCOMB_GRID, ICON_SQUARE_GRID};
 use std::marker::PhantomData;
 
 const NEW_BEZIER_PLANE_ICON: MaterialIcon = MaterialIcon::HistoryEdu;

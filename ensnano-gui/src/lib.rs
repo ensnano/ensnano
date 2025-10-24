@@ -22,51 +22,35 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! other components of the program it is forwarded to the `main` function via the
 //! [Request](Requests) data structure.
 
-pub use ensnano_iced::iced;
+mod consts;
+mod icon;
+pub mod left_panel;
+pub mod status_bar;
+pub mod top_bar;
+
+use ensnano_design::{
+    self, BezierPathId, BezierVertexId, CameraId, HelixParameters, Nucl,
+    elements::{DesignElement, DesignElementKey, DnaAttribute},
+    grid::{GridId, GridTypeDescr},
+};
 use ensnano_iced::{
     self, fonts,
     iced::{
+        self, Renderer, Size,
         advanced::{clipboard, mouse},
-        event,
+        event::{self, Event},
+        keyboard,
     },
-};
-
-pub mod top_bar;
-use ensnano_organizer::GroupId;
-pub use top_bar::TopBar;
-/// Draw the left panel of the GUI
-pub mod left_panel;
-pub use left_panel::{
-    ColorOverlay, CurveDescriptorBuilder, CurveDescriptorParameter, InstantiatedParameter,
-    LeftPanel, RevolutionScaling, RigidBodyParametersRequest,
-};
-/// Draw the status bar
-pub mod status_bar;
-pub use ensnano_design::{CameraId, grid::GridId};
-pub use status_bar::{ClipboardContent, CurrentOpState, StrandBuildingStatus};
-mod consts;
-
-mod icon;
-
-use status_bar::StatusBar;
-
-use ensnano_design::{
-    self, BezierPathId, BezierVertexId, HelixParameters, Nucl,
-    elements::{DesignElement, DesignElementKey, DnaAttribute},
-    grid::GridTypeDescr,
-};
-use ensnano_iced::{
     iced_graphics,
     iced_runtime::{Debug, program},
     iced_wgpu::{self, Backend, wgpu},
     iced_winit::{conversion, winit},
 };
 use ensnano_interactor::{
-    ActionMode, HyperboloidRequest, RapierSimulationRequest, RollRequest, SelectionMode,
-};
-use ensnano_interactor::{
-    InsertionPoint, Multiplexer, PastingStatus, RevolutionSurfaceSystemDescriptor, ScaffoldInfo,
-    Selection, SimulationState, UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
+    ActionMode, HyperboloidRequest, InsertionPoint, Multiplexer, PastingStatus,
+    RapierSimulationRequest, RevolutionSurfaceSystemDescriptor, RollRequest, ScaffoldInfo,
+    Selection, SelectionMode, SimulationState, StrandBuildingStatus,
+    UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
     app_state_parameters::{AppStateParameters, CheckXoversParameter, SuggestionParameters},
     graphics::{
         Background3D, DrawArea, FogParameters, GuiComponentType, HBondDisplay, RenderingMode,
@@ -74,13 +58,19 @@ use ensnano_interactor::{
     },
     operation::Operation,
 };
-pub use ensnano_organizer::OrganizerTree;
-use iced::{Renderer, Size, event::Event, keyboard};
+use ensnano_organizer::{GroupId, OrganizerTree};
+pub use left_panel::{
+    ColorOverlay, CurveDescriptorBuilder, CurveDescriptorParameter, InstantiatedParameter,
+    LeftPanel, RevolutionScaling, RigidBodyParametersRequest,
+};
+use status_bar::StatusBar;
+pub use status_bar::{ClipboardContent, CurrentOpState};
 use std::{
     collections::{BTreeSet, HashMap},
     rc::Rc,
     sync::{Arc, Mutex},
 };
+pub use top_bar::TopBar;
 use ultraviolet::{Rotor3, Vec2, Vec3};
 use wgpu::{Device, Queue};
 use winit::{dpi::PhysicalSize, event::Modifiers, window::Window};

@@ -26,7 +26,13 @@ use ensnano_iced::{
     iced::{self, Alignment, alignment::Horizontal},
     theme,
 };
-use ensnano_interactor::{Selection, SimulationState};
+use ensnano_interactor::{
+    Selection, SimulationState,
+    consts::{
+        ALT, BACKSPACECHAR, CTRL, HELIXCHAR, KEY_DOWN, KEY_LEFT, KEY_RIGHT, KEY_UP, LCLICK, MCLICK,
+        MOVECHAR, NUCLCHAR, RCLICK, ROTCHAR, SELECTCHAR, SHIFT, STRANDCHAR, SUPPRCHAR,
+    },
+};
 use ultraviolet::{Rotor3, Vec2};
 use value_constructor::{BezierVertexBuilder, Builder, GridBuilder};
 pub use value_constructor::{InstantiatedValue, ValueKind};
@@ -720,7 +726,7 @@ fn view_2d_help() -> Vec<(String, String)> {
                 "{} + {}/{}/{}/{}",
                 CTRL, KEY_LEFT, KEY_RIGHT, KEY_UP, KEY_DOWN
             ),
-            "Apply symetry to view".to_owned(),
+            "Apply symmetry to view".to_owned(),
         ),
         (String::new(), String::new()),
         (format!("{}", LCLICK), "Select".to_owned()),

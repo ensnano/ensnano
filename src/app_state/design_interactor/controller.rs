@@ -41,9 +41,9 @@ use crate::{
 };
 use clipboard::{Clipboard, CopyOperation, PastePosition, PastedStrand, StrandClipboard};
 use ensnano_design::{
-    self, BezierEnd, BezierPathId, BezierPlaneDescriptor, BezierVertex, BezierVertexId, CameraId,
-    Collection, CurveDescriptor, Design, Domain, DomainJunction, Helices, Helix, HelixCollection,
-    HelixInterval, Nucl, Strand, Strands, UpToDateDesign,
+    self, BezierControlPoint, BezierEnd, BezierPathId, BezierPlaneDescriptor, BezierVertex,
+    BezierVertexId, CameraId, Collection, CurveDescriptor, Design, Domain, DomainJunction, Helices,
+    Helix, HelixCollection, HelixInterval, Nucl, Strand, Strands, UpToDateDesign,
     drawing_style::{DrawingAttribute, DrawingStyle},
     elements::{DesignElementKey, DnaAttribute},
     grid::{
@@ -55,10 +55,9 @@ use ensnano_design::{
 };
 use ensnano_gui::ClipboardContent;
 use ensnano_interactor::{
-    BezierControlPoint, BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation,
-    DomainIdentifier, HyperboloidOperation, IsometryTarget, NeighborDescriptor,
-    NeighborDescriptorGiver, NewBezierTangentVector, PastingStatus, Selection, SimulationState,
-    StrandBuilder,
+    BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation, DomainIdentifier,
+    HyperboloidOperation, IsometryTarget, NeighborDescriptor, NeighborDescriptorGiver,
+    NewBezierTangentVector, PastingStatus, Selection, SimulationState, StrandBuilder,
     operation::{Operation, TranslateBezierPathVertex},
 };
 use ensnano_organizer::GroupId;

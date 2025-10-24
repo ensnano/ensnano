@@ -34,8 +34,8 @@ use wgpu::{Device, Queue};
 
 /// A `Uniform` is a structure that manages view and projection matrices.
 mod uniforms;
+pub use uniforms::Stereography;
 use uniforms::Uniforms;
-pub use uniforms::{CutPlaneParameters, FogParameters, Stereography};
 mod direction_cube;
 pub mod dna_obj;
 /// This modules defines a trait for drawing widget made of several meshes.
@@ -76,7 +76,9 @@ pub use rotation_widget::{
 pub use sheet_2d::Sheet2D;
 use text::Letter;
 
-use ensnano_interactor::graphics::{Background3D, HBondDisplay, RenderingMode};
+use ensnano_interactor::graphics::{
+    Background3D, CutPlaneParameters, FogParameters, HBondDisplay, RenderingMode,
+};
 
 static MODEL_BG_ENTRY: &[wgpu::BindGroupLayoutEntry] = &[wgpu::BindGroupLayoutEntry {
     binding: 0,
