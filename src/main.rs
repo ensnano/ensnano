@@ -135,9 +135,10 @@ use {
         iced_winit, theme,
     },
     ensnano_interactor::{
-        ActionMode, CenterOfSelection, DesignOperation, DesignReader, DesignRotation,
-        DesignTranslation, IsometryTarget, PastingStatus, RevolutionSurfaceSystemDescriptor,
-        RigidBodyConstants, Selection, SelectionMode, UnrootedRevolutionSurfaceDescriptor,
+        ActionMode, CenterOfSelection, DesignOperation, DesignRotation, DesignTranslation,
+        InteractorDesignReaderExt, IsometryTarget, PastingStatus,
+        RevolutionSurfaceSystemDescriptor, RigidBodyConstants, Selection, SelectionMode,
+        UnrootedRevolutionSurfaceDescriptor,
         app_state_parameters::{AppStateParameters, CheckXoversParameter, SuggestionParameters},
         application::{Application, Notification},
         consts::{
@@ -148,7 +149,7 @@ use {
         operation::Operation,
     },
     ensnano_organizer::GroupId,
-    ensnano_scene::{AppState as _, Scene, SceneKind, data::DesignReader as _},
+    ensnano_scene::{AppState as _, Scene, SceneKind, data::SceneDesignReaderExt as _},
     ensnano_utils::{PhySize, TEXTURE_FORMAT},
     multiplexer::{Multiplexer, Overlay},
     scheduler::Scheduler,
@@ -1883,7 +1884,7 @@ impl<'a> MainStateView<'a> {
         Box::new(self.main_state.app_state.get_selection())
     }
 
-    fn get_design_reader(&mut self) -> Box<dyn DesignReader> {
+    fn get_design_reader(&mut self) -> Box<dyn InteractorDesignReaderExt> {
         Box::new(self.main_state.app_state.get_design_reader())
     }
 

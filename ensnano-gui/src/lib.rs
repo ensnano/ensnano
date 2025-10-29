@@ -982,7 +982,7 @@ pub trait AppState:
     fn get_selection(&self) -> &[Selection];
     fn get_selection_as_design_element(&self) -> Vec<DesignElementKey>;
     fn can_make_grid(&self) -> bool;
-    fn get_reader(&self) -> Box<dyn DesignReader>;
+    fn get_reader(&self) -> Box<dyn GuiDesignReaderExt>;
     fn design_was_modified(&self, other: &Self) -> bool;
     fn selection_was_updated(&self, other: &Self) -> bool;
     fn get_current_operation_state(&self) -> Option<CurrentOpState>;
@@ -1010,7 +1010,7 @@ pub trait AppState:
     fn get_pasting_status(&self) -> PastingStatus;
 }
 
-pub trait DesignReader: 'static {
+pub trait GuiDesignReaderExt: 'static {
     fn grid_has_persistent_phantom(&self, g_id: GridId) -> bool;
     fn grid_has_small_spheres(&self, g_id: GridId) -> bool;
     fn get_strand_length(&self, s_id: usize) -> Option<usize>;

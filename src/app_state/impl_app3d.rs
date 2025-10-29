@@ -22,7 +22,7 @@ use ensnano_interactor::{StrandBuilder, consts::scroll_sensitivity_conversion};
 use ensnano_scene::{AppState as App3D, view::DrawOptions};
 
 impl App3D for AppState {
-    type DesignReader = DesignReader;
+    type AppStateDesignReader = DesignReader;
 
     fn get_selection(&self) -> &[Selection] {
         self.selection_content().as_slice()
@@ -60,7 +60,7 @@ impl App3D for AppState {
         (self.0.action_mode, self.0.widget_basis)
     }
 
-    fn get_design_reader(&self) -> Self::DesignReader {
+    fn get_design_reader(&self) -> Self::AppStateDesignReader {
         self.0.design.get_design_reader()
     }
 

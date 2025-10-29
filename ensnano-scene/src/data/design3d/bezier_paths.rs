@@ -22,7 +22,7 @@ use crate::element_selector;
 use ensnano_design::{BezierEndCoordinates, BezierVertexId};
 use ensnano_interactor::Selection;
 
-impl<R: DesignReader> Design3D<R> {
+impl<R: SceneDesignReaderExt> Design3D<R> {
     pub fn get_bezier_elements(&self, h_id: usize) -> (Vec<RawDnaInstance>, Vec<RawDnaInstance>) {
         let mut spheres = Vec::new();
         let mut tubes = Vec::new();

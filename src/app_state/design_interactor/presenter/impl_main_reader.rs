@@ -314,7 +314,7 @@ fn warn_scaffold_seq_mismatch(scaffold_length: usize, sequence_length: usize) ->
 }
 
 use ensnano_design::grid::HelixGridPosition;
-use ensnano_interactor::DesignReader as MainReader;
+use ensnano_interactor::InteractorDesignReaderExt as MainReader;
 
 impl MainReader for DesignReader {
     fn get_xover_id(&self, pair: &(Nucl, Nucl)) -> Option<usize> {

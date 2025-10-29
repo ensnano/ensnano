@@ -34,12 +34,12 @@ use super::FlatHelixMaps;
 use super::{CameraPtr, FlatHelix, FlatIdx, FlatNucl};
 use ahash::RandomState;
 use design::{Design2d, Helix2d};
-pub use design::{DesignReader, FlatTorsion, NuclCollection};
+pub use design::{FlatSceneDesignReaderExt, FlatTorsion, NuclCollection};
 use ensnano_interactor::consts::*;
 use ensnano_utils::camera2d::FitRectangle;
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 
-pub struct Data<R: DesignReader> {
+pub struct Data<R: FlatSceneDesignReaderExt> {
     view: ViewPtr,
     design: Design2d<R>,
     instance_update: bool,
@@ -53,7 +53,7 @@ pub struct Data<R: DesignReader> {
     last_click: LastClick,
 }
 
-impl<R: DesignReader> Data<R> {
+impl<R: FlatSceneDesignReaderExt> Data<R> {
     pub fn new(view: ViewPtr, design: R, id: u32, requests: Arc<Mutex<dyn Requests>>) -> Self {
         Self {
             view,

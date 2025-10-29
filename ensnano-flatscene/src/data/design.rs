@@ -31,7 +31,7 @@ use ultraviolet::{Isometry2, Rotor2, Vec2, Vec3};
 
 use super::super::flattypes::FlatHelixMaps;
 
-pub(super) struct Design2d<R: DesignReader> {
+pub(super) struct Design2d<R: FlatSceneDesignReaderExt> {
     /// The 2d helices
     helices: HelixVec<Helix2d>,
     /// Maps id of helices in design to location in self.helices
@@ -49,7 +49,7 @@ pub(super) struct Design2d<R: DesignReader> {
     known_map: *const ensnano_design::Helices,
 }
 
-impl<R: DesignReader> Design2d<R> {
+impl<R: FlatSceneDesignReaderExt> Design2d<R> {
     pub fn new(design: R, requests: Arc<Mutex<dyn Requests>>) -> Self {
         Self {
             design,
@@ -516,7 +516,7 @@ impl FlatTorsion {
     }
 }
 
-pub trait DesignReader: 'static {
+pub trait FlatSceneDesignReaderExt: 'static {
     type NuclCollection: NuclCollection;
     fn get_all_strand_ids(&self) -> Vec<usize>;
     /// Return a the list of consecutive domain extremities of strand `s_id`. Return None iff there

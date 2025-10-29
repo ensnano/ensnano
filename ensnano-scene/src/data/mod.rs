@@ -30,7 +30,7 @@ use super::{
     },
 };
 use design3d::Design3D;
-pub use design3d::{DesignReader, HBond, HalfHBond};
+pub use design3d::{HBond, HalfHBond, SceneDesignReaderExt};
 use ensnano_design::{
     BezierVertexId, Collection, External3DObjectsStamp, Nucl, SurfaceInfo, SurfacePoint,
     grid::{GridId, GridObject, GridPosition},
@@ -55,7 +55,7 @@ use ultraviolet::{Rotor3, Vec3};
 
 type ViewPtr = Rc<RefCell<View>>;
 
-pub struct Data<R: DesignReader> {
+pub struct Data<R: SceneDesignReaderExt> {
     view: ViewPtr,
     /// A `Design3D` is associated to each design.
     designs: Vec<Design3D<R>>,
@@ -85,7 +85,7 @@ pub struct Data<R: DesignReader> {
     external_3d_objects_stamps: Option<External3DObjectsStamp>,
 }
 
-impl<R: DesignReader> Data<R> {
+impl<R: SceneDesignReaderExt> Data<R> {
     pub fn new(reader: R, view: ViewPtr) -> Self {
         Self {
             view,
@@ -1935,7 +1935,7 @@ fn toggle_selection(mode: SelectionMode) -> SelectionMode {
     }
 }
 
-impl<R: DesignReader> super::controller::Data for Data<R> {
+impl<R: SceneDesignReaderExt> super::controller::Data for Data<R> {
     fn element_to_nucl(
         &self,
         element: &Option<SceneElement>,
@@ -2015,14 +2015,14 @@ impl DiscLevel {
     }
 }
 
-struct Discs<'a, R: DesignReader> {
+struct Discs<'a, R: SceneDesignReaderExt> {
     discs: &'a mut Vec<GridDisc>,
     selection: &'a mut Vec<GridPosition>,
     candidates: &'a mut Vec<GridPosition>,
     design: &'a Design3D<R>,
 }
 
-fn add_discs<R: DesignReader>(pos: GridPosition, discs: Discs<R>, level: DiscLevel) {
+fn add_discs<R: SceneDesignReaderExt>(pos: GridPosition, discs: Discs<R>, level: DiscLevel) {
     if let Some(grid) = discs.design.get_grid().get(&pos.grid) {
         let new_disc_instances = match level {
             DiscLevel::Candidate => {

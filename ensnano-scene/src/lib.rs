@@ -27,7 +27,7 @@ mod stl;
 pub mod view;
 
 use controller::{Consequence, Controller, WidgetTarget};
-use data::{Data, DesignReader};
+use data::{Data, SceneDesignReaderExt};
 use element_selector::{ElementSelector, SceneElement};
 use ensnano_design::{
     BezierVertexId, Nucl, consts::ITERATIVE_AXIS_ALGORITHM, grid::GridPosition,
@@ -73,7 +73,7 @@ pub struct Scene<S: AppState> {
     /// The Object that handles the drawing to the 3d texture
     view: ViewPtr,
     /// The Object that handles the designs data
-    data: Rc<RefCell<Data<S::DesignReader>>>,
+    data: Rc<RefCell<Data<S::AppStateDesignReader>>>,
     /// The Object that handles input and notifications
     controller: Controller<S>,
     /// The limits of the area on which the scene is displayed
@@ -120,7 +120,7 @@ impl<S: AppState> Scene<S> {
             queue.clone(),
             encoder,
         )));
-        let data: Rc<RefCell<Data<S::DesignReader>>> = Rc::new(RefCell::new(Data::new(
+        let data: Rc<RefCell<Data<S::AppStateDesignReader>>> = Rc::new(RefCell::new(Data::new(
             initial_state.get_design_reader(),
             view.clone(),
         )));
@@ -1315,7 +1315,7 @@ impl<S: AppState> Application for Scene<S> {
 }
 
 pub trait AppState: Clone + 'static {
-    type DesignReader: DesignReader;
+    type AppStateDesignReader: SceneDesignReaderExt;
     fn get_selection(&self) -> &[Selection];
     fn get_candidates(&self) -> &[Selection];
     fn selection_was_updated(&self, other: &Self) -> bool;
@@ -1324,7 +1324,7 @@ pub trait AppState: Clone + 'static {
     fn design_model_matrix_was_updated(&self, other: &Self) -> bool;
     fn get_selection_mode(&self) -> SelectionMode;
     fn get_action_mode(&self) -> (ActionMode, WidgetBasis);
-    fn get_design_reader(&self) -> Self::DesignReader;
+    fn get_design_reader(&self) -> Self::AppStateDesignReader;
     fn get_strand_builders(&self) -> &[StrandBuilder];
     fn get_widget_basis(&self) -> WidgetBasis;
     fn is_changing_color(&self) -> bool;

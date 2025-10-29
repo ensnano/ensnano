@@ -77,7 +77,7 @@ impl GuiState for AppState {
             )
     }
 
-    fn get_reader(&self) -> Box<dyn ensnano_gui::DesignReader> {
+    fn get_reader(&self) -> Box<dyn ensnano_gui::GuiDesignReaderExt> {
         Box::new(self.get_design_reader())
     }
 

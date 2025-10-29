@@ -88,7 +88,7 @@ impl Selection {
         format!("{:?}", self)
     }
 
-    fn get_helices_containing_self(&self, reader: &dyn DesignReader) -> Option<Vec<usize>> {
+    fn get_helices_containing_self(&self, reader: &dyn InteractorDesignReaderExt) -> Option<Vec<usize>> {
         match self {
             Self::Design(_) => None,
             Self::Grid(_, _) => None,
@@ -110,7 +110,7 @@ impl Selection {
         }
     }
 
-    fn get_grids_containing_self(&self, reader: &dyn DesignReader) -> Option<Vec<GridId>> {
+    fn get_grids_containing_self(&self, reader: &dyn InteractorDesignReaderExt) -> Option<Vec<GridId>> {
         if let Self::Grid(_, g_id) = self {
             Some(vec![*g_id])
         } else {
@@ -127,7 +127,7 @@ impl Selection {
 
 pub fn extract_nucls_and_xover_ends(
     selection: &[Selection],
-    reader: &dyn DesignReader,
+    reader: &dyn InteractorDesignReaderExt,
 ) -> Vec<Nucl> {
     let mut ret = Vec::with_capacity(2 * selection.len());
     for s in selection.iter() {
@@ -208,7 +208,7 @@ pub fn list_of_strands(selection: &[Selection]) -> Option<(usize, Vec<usize>)> {
 /// Convert a selection of bonds into a list of cross-overs
 pub fn list_of_xover_ids(
     selection: &[Selection],
-    reader: &dyn DesignReader,
+    reader: &dyn InteractorDesignReaderExt,
 ) -> Option<(usize, Vec<usize>)> {
     let design_id = selection.get(0).and_then(Selection::get_design)?;
     let mut xovers = BTreeSet::new();
@@ -237,7 +237,7 @@ pub fn list_of_xover_ids(
 /// Convert a selection of bonds into a list of cross-overs
 pub fn list_of_xover_as_nucl_pairs(
     selection: &[Selection],
-    reader: &dyn DesignReader,
+    reader: &dyn InteractorDesignReaderExt,
 ) -> Option<(usize, Vec<(Nucl, Nucl)>)> {
     let design_id = selection.get(0).and_then(Selection::get_design)?;
     let mut xovers = BTreeSet::new();
@@ -345,7 +345,7 @@ pub fn extract_control_points(selection: &[Selection]) -> Vec<(usize, BezierCont
 
 pub fn set_of_helices_containing_selection(
     selection: &[Selection],
-    reader: &dyn DesignReader,
+    reader: &dyn InteractorDesignReaderExt,
 ) -> Option<Vec<usize>> {
     let mut ret = Vec::new();
     for s in selection {
@@ -359,7 +359,7 @@ pub fn set_of_helices_containing_selection(
 
 pub fn set_of_grids_containing_selection(
     selection: &[Selection],
-    reader: &dyn DesignReader,
+    reader: &dyn InteractorDesignReaderExt,
 ) -> Option<Vec<GridId>> {
     let mut ret = Vec::new();
     for s in selection {
@@ -372,7 +372,7 @@ pub fn set_of_grids_containing_selection(
 }
 
 /// Return true iff the selection is only made of helices that are not attached to a grid
-pub fn all_helices_no_grid(selection: &[Selection], reader: &dyn DesignReader) -> bool {
+pub fn all_helices_no_grid(selection: &[Selection], reader: &dyn InteractorDesignReaderExt) -> bool {
     let design_id = selection.get(0).and_then(Selection::get_design);
     let mut nb_helices = 0;
     if design_id.is_none() {
@@ -602,7 +602,7 @@ impl PhantomElement {
     }
 }
 
-pub trait DesignReader {
+pub trait InteractorDesignReaderExt {
     fn get_grid_position_of_helix(&self, h_id: usize) -> Option<HelixGridPosition>;
     fn get_xover_id(&self, pair: &(Nucl, Nucl)) -> Option<usize>;
     fn get_xover_with_id(&self, id: usize) -> Option<(Nucl, Nucl)>;
