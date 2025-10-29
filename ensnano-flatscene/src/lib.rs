@@ -40,7 +40,7 @@ mod view;
 pub use camera2d::{Camera2D, FitRectangle};
 use controller::Controller;
 use data::Data;
-pub use data::{FlatSceneDesignReaderExt, NuclCollection};
+pub use data::FlatSceneDesignReaderExt;
 use ensnano_design::{Nucl, consts::ITERATIVE_AXIS_ALGORITHM};
 use ensnano_interactor::{
     ActionMode, DesignOperation, PhantomElement, Selection, SelectionMode, StrandBuilder,

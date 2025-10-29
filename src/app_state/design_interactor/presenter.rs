@@ -22,14 +22,14 @@ pub mod impl_reader2d;
 pub mod impl_reader3d;
 pub mod impl_readergui;
 
-use crate::app_state::design_interactor::presenter::design_content::NuclCollection;
-
 #[cfg(test)]
 use self::design_content::Staple;
 
 use super::*;
 use design_content::DesignContent;
-use ensnano_design::{BezierPathId, Extremity, HelixCollection, InstantiatedPiecewiseBezier, Nucl};
+use ensnano_design::{
+    BezierPathId, Extremity, HelixCollection, InstantiatedPiecewiseBezier, Nucl, NuclCollection,
+};
 use ensnano_interactor::{
     NeighborDescriptor, NeighborDescriptorGiver, Referential, ScaffoldInfo, Selection,
     application::Camera3D,
