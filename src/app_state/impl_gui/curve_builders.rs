@@ -138,7 +138,7 @@ fn build_bezier(
 
     app.0
         .design
-        .get_design_reader()
+        .clone_inner()
         .get_bezier_path_2d(BezierPathId(curve_id as u32))
         .map(CurveDescriptor2D::Bezier)
 }
@@ -161,7 +161,7 @@ fn get_bezier_frame(
     let path_id = get_bezier_path_id(parameters)?;
     app.0
         .design
-        .get_design_reader()
+        .clone_inner()
         .get_first_bezier_plane(BezierPathId(path_id as u32))
         .map(|plane| (plane.position, plane.orientation))
 }
@@ -169,7 +169,7 @@ fn get_bezier_frame(
 fn default_frame(_: &[InstantiatedParameter], app: &super::AppState) -> Option<(Vec3, Rotor3)> {
     app.0
         .design
-        .get_design_reader()
+        .clone_inner()
         .get_default_bezier()
         .map(|plane| (plane.position, plane.orientation))
 }

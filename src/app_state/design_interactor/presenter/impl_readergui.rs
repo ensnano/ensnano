@@ -22,7 +22,7 @@ use ensnano_gui::{EnsnTree, GuiDesignReaderExt as ReaderGui};
 use ensnano_interactor::InsertionPoint;
 use ultraviolet::{Rotor3, Vec2};
 
-impl ReaderGui for DesignReader {
+impl ReaderGui for DesignInteractor {
     fn grid_has_small_spheres(&self, g_id: GridId) -> bool {
         self.presenter.content.grid_has_small_spheres(g_id)
     }

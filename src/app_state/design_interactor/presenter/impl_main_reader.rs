@@ -24,7 +24,7 @@ use rust_xlsxwriter::{Color, Format, Workbook};
 use serde::Serialize;
 use std::{io::Write, path::PathBuf};
 
-impl StaplesDownloader for DesignReader {
+impl StaplesDownloader for DesignInteractor {
     fn download_staples(&self) -> Result<DownloadStapleOk, DownloadStapleError> {
         let mut warnings = Vec::new();
         if self.presenter.current_design.scaffold_id.is_none() {
@@ -316,7 +316,7 @@ fn warn_scaffold_seq_mismatch(scaffold_length: usize, sequence_length: usize) ->
 use ensnano_design::grid::HelixGridPosition;
 use ensnano_interactor::InteractorDesignReaderExt as MainReader;
 
-impl MainReader for DesignReader {
+impl MainReader for DesignInteractor {
     fn get_xover_id(&self, pair: &(Nucl, Nucl)) -> Option<usize> {
         self.presenter.junctions_ids.get_id(pair)
     }

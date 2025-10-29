@@ -61,12 +61,6 @@ pub struct DesignInteractor {
 }
 
 impl DesignInteractor {
-    pub(super) fn get_design_reader(&self) -> DesignReader {
-        DesignReader {
-            presenter: self.presenter.clone(),
-            controller: self.controller.clone(),
-        }
-    }
     pub(super) fn optimize_shift(
         &self,
         reader: &mut ChannelReader,
@@ -349,16 +343,9 @@ impl InteractorResult {
     }
 }
 
-/// A reference to a Presenter that is guaranteed to always have up to date internal data
-/// structures.
-pub struct DesignReader {
-    presenter: AddressPointer<Presenter>,
-    controller: AddressPointer<Controller>,
-}
-
 use crate::controller::SaveDesignError;
 use std::path::PathBuf;
-impl DesignReader {
+impl DesignInteractor {
     pub(super) fn save_design(
         &self,
         path: &PathBuf,
@@ -515,8 +502,7 @@ mod tests {
         let interactor = DesignInteractor::new_with_path(&path).ok().unwrap();
         let suggestion_parameters = Default::default();
         let interactor = interactor.with_updated_design_reader(&suggestion_parameters);
-        let reader = interactor.get_design_reader();
-        assert_eq!(reader.get_all_visible_nucl_ids().len(), 24)
+        assert_eq!(interactor.get_all_visible_nucl_ids().len(), 24)
     }
 
     #[test]
@@ -1509,7 +1495,10 @@ mod tests {
     #[test]
     fn positioning_xovers_paste() {
         let mut app_state = pastable_design();
-        let (n1, n2) = app_state.get_design_reader().get_xover_with_id(0).unwrap();
+        let (n1, n2) = app_state
+            .get_design_interactor()
+            .get_xover_with_id(0)
+            .unwrap();
         app_state
             .apply_copy_operation(CopyOperation::CopyXovers(vec![(n1, n2)]))
             .unwrap();
@@ -1548,7 +1537,10 @@ mod tests {
     #[test]
     fn pasting_when_positioning_xovers() {
         let mut app_state = pastable_design();
-        let (n1, n2) = app_state.get_design_reader().get_xover_with_id(0).unwrap();
+        let (n1, n2) = app_state
+            .get_design_interactor()
+            .get_xover_with_id(0)
+            .unwrap();
         app_state
             .apply_copy_operation(CopyOperation::CopyXovers(vec![(n1, n2)]))
             .unwrap();
@@ -1561,7 +1553,10 @@ mod tests {
     #[test]
     fn duplicating_xovers() {
         let mut app_state = pastable_design();
-        let (n1, n2) = app_state.get_design_reader().get_xover_with_id(0).unwrap();
+        let (n1, n2) = app_state
+            .get_design_interactor()
+            .get_xover_with_id(0)
+            .unwrap();
         app_state
             .apply_copy_operation(CopyOperation::InitXoverDuplication(vec![(n1, n2)]))
             .unwrap();
@@ -1601,7 +1596,10 @@ mod tests {
     #[test]
     fn duplicating_xovers_pasting_status() {
         let mut app_state = pastable_design();
-        let (n1, n2) = app_state.get_design_reader().get_xover_with_id(0).unwrap();
+        let (n1, n2) = app_state
+            .get_design_interactor()
+            .get_xover_with_id(0)
+            .unwrap();
         app_state
             .apply_copy_operation(CopyOperation::InitXoverDuplication(vec![(n1, n2)]))
             .unwrap();
@@ -1636,7 +1634,7 @@ mod tests {
             .unwrap();
         app_state.update();
         let s_id = app_state
-            .get_design_reader()
+            .get_design_interactor()
             .get_id_of_strand_containing_nucl(&Nucl {
                 helix: 1,
                 position: 0,
@@ -1647,7 +1645,7 @@ mod tests {
             .apply_design_op(DesignOperation::SetScaffoldId(Some(s_id)))
             .unwrap();
         app_state.update();
-        let staples = app_state.get_design_reader().presenter.get_staples();
+        let staples = app_state.get_design_interactor().presenter.get_staples();
         for s in staples.iter() {
             if s.name.contains("5':h1:nt7") {
                 assert_eq!(s.sequence, "CCAA TTTT") // cspell: disable-line
@@ -1668,7 +1666,7 @@ mod tests {
             .unwrap();
         app_state.update();
         let s_id = app_state
-            .get_design_reader()
+            .get_design_interactor()
             .get_id_of_strand_containing_nucl(&Nucl {
                 helix: 1,
                 position: 0,
@@ -1679,7 +1677,7 @@ mod tests {
             .apply_design_op(DesignOperation::SetScaffoldId(Some(s_id)))
             .unwrap();
         app_state.update();
-        let staples = app_state.get_design_reader().presenter.get_staples();
+        let staples = app_state.get_design_interactor().presenter.get_staples();
         for s in staples.iter() {
             if s.name.contains("5':h1:nt7") {
                 assert_eq!(s.sequence, "AGGT TCCA") // cspell: disable-line
@@ -1718,7 +1716,7 @@ mod tests {
         app_state.update();
 
         let s_id = app_state
-            .get_design_reader()
+            .get_design_interactor()
             .get_id_of_strand_containing_nucl(&first_nucl)
             .unwrap_or_else(|| panic!("no strand containing {:?}", first_nucl));
         let strand = app_state
@@ -1746,11 +1744,11 @@ mod tests {
             ..first_nucl
         };
         let s_id_first = app_state
-            .get_design_reader()
+            .get_design_interactor()
             .get_id_of_strand_containing_nucl(&first_nucl)
             .unwrap_or_else(|| panic!("no strand containing {:?}", first_nucl));
         let s_id_last = app_state
-            .get_design_reader()
+            .get_design_interactor()
             .get_id_of_strand_containing_nucl(&last_nucl)
             .unwrap_or_else(|| panic!("no strand containing {:?}", last_nucl));
         app_state
@@ -1762,7 +1760,7 @@ mod tests {
         app_state.update();
 
         let s_id = app_state
-            .get_design_reader()
+            .get_design_interactor()
             .get_id_of_strand_containing_nucl(&first_nucl)
             .unwrap_or_else(|| panic!("no strand containing {:?}", first_nucl));
         let strand = app_state
@@ -1806,7 +1804,7 @@ mod tests {
         let mut xover_ids = ensnano_utils::id_generator::IdGenerator::default();
 
         let s_id = app_state
-            .get_design_reader()
+            .get_design_interactor()
             .get_id_of_strand_containing_nucl(&source_nucl)
             .unwrap_or_else(|| panic!("no strand containing {:?}", source_nucl));
         let strand = app_state
@@ -1846,7 +1844,7 @@ mod tests {
             .unwrap();
         app_state.update();
         let s_id = app_state
-            .get_design_reader()
+            .get_design_interactor()
             .get_id_of_strand_containing_nucl(&source_nucl)
             .unwrap_or_else(|| panic!("no strand containing {:?}", source_nucl));
         let strand = app_state

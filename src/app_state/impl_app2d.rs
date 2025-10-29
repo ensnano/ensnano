@@ -21,7 +21,7 @@ use ensnano_flatscene::AppState as App2D;
 use ensnano_interactor::StrandBuilder;
 
 impl App2D for AppState {
-    type Reader = DesignReader;
+    type Reader = DesignInteractor;
     fn get_selection(&self) -> &[Selection] {
         self.selection_content().as_slice()
     }
@@ -43,7 +43,7 @@ impl App2D for AppState {
     }
 
     fn get_design_reader(&self) -> Self::Reader {
-        self.0.design.get_design_reader()
+        self.0.design.clone_inner()
     }
 
     fn get_strand_builders(&self) -> &[StrandBuilder] {

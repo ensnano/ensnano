@@ -625,7 +625,7 @@ pub(super) fn apply_simulation_update(
     (AddressPointer::new(returned_presenter), returned_design)
 }
 
-impl DesignReader {
+impl DesignInteractor {
     pub(super) fn get_position_of_nucl_on_helix(
         &self,
         nucl: Nucl,

@@ -25,7 +25,7 @@ use std::collections::{BTreeMap, HashMap};
 use std::sync::Arc;
 use ultraviolet::{Isometry2, Vec2, Vec3};
 
-impl Reader2D for DesignReader {
+impl Reader2D for DesignInteractor {
     type NuclCollection = design_content::NuclCollection;
     fn get_isometry(&self, h_id: usize, segment_idx: usize) -> Option<Isometry2> {
         if segment_idx == 0 {
