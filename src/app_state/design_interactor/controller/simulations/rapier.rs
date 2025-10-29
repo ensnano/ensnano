@@ -1,3 +1,9 @@
+use std::collections::HashMap;
+use std::{
+    sync::{Arc, Mutex, Weak},
+    time::Duration,
+};
+
 use crate::{
     app_state::design_interactor::{
         controller::simulations::SimulationInterface,
@@ -5,13 +11,8 @@ use crate::{
     },
     controller::chanel_reader::ChannelReader,
 };
-use ensnano_design::Design;
+use ensnano_design::{Design, HelixParameters};
 use ensnano_physics::RapierPhysicsSystem;
-use std::{
-    collections::HashMap,
-    sync::{Arc, Mutex, Weak},
-    time::Duration,
-};
 
 #[derive(Default)]
 pub struct RapierPhysicalSystem {
@@ -24,10 +25,24 @@ impl RapierPhysicalSystem {
         presenter: &Presenter,
         reader: &mut ChannelReader,
     ) -> Arc<Mutex<RapierInterface>> {
-        let system = RapierPhysicsSystem::new(
+        // first prototype simulation
+        // let system = RapierPhysicsSystem::new(
+        //     &presenter.content.object_type,
+        //     &presenter.content.nucleotide,
+        //     &presenter.content.space_position,
+        //     &presenter.content.helix_map,
+        //     &presenter.get_design().helices,
+        // );
+
+        let system = RapierPhysicsSystem::full_simulation(
+            presenter
+                .get_design()
+                .helix_parameters
+                .unwrap_or(HelixParameters::GEARY_2014_DNA_P_STICK),
             &presenter.content.object_type,
             &presenter.content.nucleotide,
             &presenter.content.space_position,
+            &presenter.get_design().helices,
         );
 
         let interface = Arc::new(Mutex::new(RapierInterface {
