@@ -91,16 +91,6 @@ impl SphereLikeSpiral {
             SphereOrientation::Clockwise => -1.,
         }
     }
-
-    pub(super) fn first_theta(&self) -> f64 {
-        let nb_turn = self.nb_turn() * self.orientation();
-        nb_turn * TAU * self.t_min() + self.theta_0
-    }
-
-    pub(super) fn last_theta(&self) -> f64 {
-        let nb_turn = self.nb_turn() * self.orientation();
-        nb_turn * TAU * self.t_max() + self.theta_0
-    }
 }
 
 impl Curved for SphereLikeSpiral {
@@ -185,14 +175,6 @@ impl Curved for SphereLikeSpiral {
 
     fn t_max(&self) -> f64 {
         1. - self.t_min()
-    }
-
-    fn first_theta(&self) -> Option<f64> {
-        Some(self.first_theta())
-    }
-
-    fn last_theta(&self) -> Option<f64> {
-        Some(self.last_theta())
     }
 
     fn full_turn_at_t(&self) -> Option<f64> {

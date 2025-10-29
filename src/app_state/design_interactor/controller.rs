@@ -41,9 +41,9 @@ use crate::{
 };
 use clipboard::{Clipboard, CopyOperation, PastePosition, PastedStrand, StrandClipboard};
 use ensnano_design::{
-    BezierEnd, BezierPathId, BezierPlaneDescriptor, BezierVertex, BezierVertexId, CameraId,
-    Collection, CurveDescriptor, Design, Domain, DomainJunction, Helices, Helix, HelixCollection,
-    HelixInterval, Nucl, Strand, Strands, UpToDateDesign,
+    self, BezierControlPoint, BezierEnd, BezierPathId, BezierPlaneDescriptor, BezierVertex,
+    BezierVertexId, CameraId, Collection, CurveDescriptor, Design, Domain, DomainJunction, Helices,
+    Helix, HelixCollection, HelixInterval, Nucl, Strand, Strands, UpToDateDesign,
     drawing_style::{DrawingAttribute, DrawingStyle},
     elements::{DesignElementKey, DnaAttribute},
     grid::{
@@ -55,10 +55,9 @@ use ensnano_design::{
 };
 use ensnano_gui::ClipboardContent;
 use ensnano_interactor::{
-    BezierControlPoint, BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation,
-    DomainIdentifier, HyperboloidOperation, IsometryTarget, NeighborDescriptor,
-    NeighborDescriptorGiver, NewBezierTangentVector, PastingStatus, Selection, SimulationState,
-    StrandBuilder,
+    BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation, DomainIdentifier,
+    HyperboloidOperation, IsometryTarget, NeighborDescriptor, NeighborDescriptorGiver,
+    NewBezierTangentVector, PastingStatus, Selection, SimulationState, StrandBuilder,
     operation::{Operation, TranslateBezierPathVertex},
 };
 use ensnano_organizer::GroupId;
@@ -70,7 +69,7 @@ use std::{
     str::FromStr,
     sync::{Arc, Mutex},
 };
-use ultraviolet::{Isometry2, Rotor3, Vec2, Vec3};
+use ultraviolet::{Isometry2, Rotor2, Rotor3, Vec2, Vec3};
 
 #[derive(Clone, Default)]
 pub struct Controller {
@@ -138,7 +137,7 @@ impl Controller {
                 grid_ids,
                 persistent,
             } => Ok(self.ok_apply(
-                |c, d| c.set_helices_persisance(d, grid_ids, persistent),
+                |c, d| c.set_helices_persistence(d, grid_ids, persistent),
                 design,
             )),
             DesignOperation::SetSmallSpheres { grid_ids, small } => {
@@ -220,13 +219,13 @@ impl Controller {
                 design,
             )),
             DesignOperation::HyperboloidOperation(op) => {
-                self.apply(|c, d| c.apply_hyperbolid_operation(d, op), design)
+                self.apply(|c, d| c.apply_hyperboloid_operation(d, op), design)
             }
             DesignOperation::SetRollHelices { helices, roll } => {
                 self.apply(|c, d| c.set_roll_helices(d, helices, roll), design)
             }
             DesignOperation::SetVisibilityHelix { helix, visible } => {
-                self.apply(|c, d| c.set_visiblity_helix(d, helix, visible), design)
+                self.apply(|c, d| c.set_visibility_helix(d, helix, visible), design)
             }
             DesignOperation::FlipHelixGroup { helix } => {
                 self.apply(|c, d| c.flip_helix_group(d, helix), design)
@@ -238,8 +237,6 @@ impl Controller {
             DesignOperation::FlipAnchors { nucls } => {
                 self.apply(|c, d| c.flip_anchors(d, nucls), design)
             }
-            DesignOperation::RmGrid(_) => Err(ErrOperation::NotImplemented), // TODO
-            DesignOperation::ChangeSequence { .. } => Err(ErrOperation::NotImplemented), // TODO
             DesignOperation::CleanDesign => Err(ErrOperation::NotImplemented), // TODO
             DesignOperation::AttachObject { object, grid, x, y } => {
                 self.apply(|c, d| c.attach_object(d, object, grid, x, y), design)
@@ -268,17 +265,6 @@ impl Controller {
             DesignOperation::DeleteCamera(cam_id) => {
                 self.apply(|c, d| c.delete_camera(d, cam_id), design)
             }
-            DesignOperation::SetFavoriteCamera(cam_id) => {
-                self.apply(|c, d| c.set_favorite_camera(d, cam_id), design)
-            }
-            DesignOperation::UpdateCamera {
-                camera_id,
-                position,
-                orientation,
-            } => self.apply(
-                |c, d| c.update_camera(d, camera_id, position, orientation),
-                design,
-            ),
             DesignOperation::SetCameraName { camera_id, name } => {
                 self.apply(|c, d| c.set_camera_name(d, camera_id, name), design)
             }
@@ -421,7 +407,7 @@ impl Controller {
                 if self.get_pasting_point() == Some(nucl) {
                     Ok((OkOperation::NoOp, self.clone()))
                 } else {
-                    let design_pasted_on = if let Some(p) = self.get_design_beign_pasted_on() {
+                    let design_pasted_on = if let Some(p) = self.get_design_being_pasted_on() {
                         p.as_ref()
                     } else {
                         up_to_date_design.design
@@ -731,7 +717,7 @@ impl Controller {
         Ok(design)
     }
 
-    fn set_visiblity_helix(
+    fn set_visibility_helix(
         &mut self,
         mut design: Design,
         helix: usize,
@@ -873,7 +859,7 @@ impl Controller {
         Ok(())
     }
 
-    fn apply_hyperbolid_operation(
+    fn apply_hyperboloid_operation(
         &mut self,
         mut design: Design,
         operation: HyperboloidOperation,
@@ -1176,7 +1162,7 @@ impl Controller {
         }
     }
 
-    /// Apply an opperation that cannot fail on the design
+    /// Apply an operation that cannot fail on the design
     fn ok_apply<F>(&self, design_op: F, design: &Design) -> (OkOperation, Self)
     where
         F: FnOnce(&mut Self, Design) -> Design,
@@ -1461,7 +1447,7 @@ impl Controller {
             .ok_or(ErrOperation::VertexDoesNotExist(path_id, vertex_id))?;
         if request.tangent_in {
             vertex.position_in = Some(vertex.position + request.new_vector);
-            if request.full_symetry_other_tangent {
+            if request.full_symmetry_other_tangent {
                 vertex.position_out = Some(vertex.position - request.new_vector);
             } else {
                 let norm = vertex
@@ -1476,7 +1462,7 @@ impl Controller {
             }
         } else {
             vertex.position_out = Some(vertex.position + request.new_vector);
-            if request.full_symetry_other_tangent {
+            if request.full_symmetry_other_tangent {
                 vertex.position_in = Some(vertex.position - request.new_vector);
             } else {
                 let norm = vertex
@@ -1532,10 +1518,7 @@ impl Controller {
                         let vec = *v - homothethy.fixed_corner;
                         if vec.mag() > 1e-6 {
                             let new_norm = vec.mag() * scale;
-                            *v = vec
-                                .normalized()
-                                .rotated_by(ensnano_design::Rotor2::from_angle(angle))
-                                * new_norm
+                            *v = vec.normalized().rotated_by(Rotor2::from_angle(angle)) * new_norm
                                 + homothethy.fixed_corner;
                         }
                     };
@@ -1572,34 +1555,6 @@ impl Controller {
         }
     }
 
-    fn set_favorite_camera(
-        &mut self,
-        mut design: Design,
-        id: CameraId,
-    ) -> Result<Design, ErrOperation> {
-        if !design.set_favorite_camera(id) {
-            Err(ErrOperation::CameraDoesNotExist(id))
-        } else {
-            Ok(design)
-        }
-    }
-
-    fn update_camera(
-        &mut self,
-        mut design: Design,
-        id: CameraId,
-        position: Vec3,
-        orientation: Rotor3,
-    ) -> Result<Design, ErrOperation> {
-        if let Some(camera) = design.get_camera_mut(id) {
-            camera.position = position;
-            camera.orientation = orientation;
-            Ok(design)
-        } else {
-            Err(ErrOperation::CameraDoesNotExist(id))
-        }
-    }
-
     fn set_camera_name(
         &mut self,
         mut design: Design,
@@ -1632,7 +1587,6 @@ impl Controller {
         translation: DesignTranslation,
     ) -> Result<Design, ErrOperation> {
         let mut design = match translation.target {
-            IsometryTarget::Design => Err(ErrOperation::NotImplemented),
             IsometryTarget::Helices(helices, snap) => {
                 Ok(self.translate_helices(design, snap, helices, translation.translation))
             }
@@ -1709,7 +1663,6 @@ impl Controller {
         rotation: DesignRotation,
     ) -> Result<Design, ErrOperation> {
         let mut design = match rotation.target {
-            IsometryTarget::Design => Err(ErrOperation::NotImplemented),
             IsometryTarget::GroupPivot(g_id) => {
                 self.rotate_group_pivot(design, rotation.rotation, g_id)
             }
@@ -1932,7 +1885,7 @@ pub enum ErrOperation {
     /// The controller is in a state incompatible with applying the operation
     IncompatibleState(String),
     CannotBuildOn(Nucl),
-    CutInexistingStrand,
+    CutNonExistentStrand,
     GridDoesNotExist(GridId),
     GridPositionAlreadyUsed,
     StrandDoesNotExist(usize),
@@ -2058,7 +2011,7 @@ impl Controller {
         design
     }
 
-    fn set_helices_persisance(
+    fn set_helices_persistence(
         &mut self,
         mut design: Design,
         grid_ids: Vec<GridId>,
@@ -2188,7 +2141,7 @@ impl Controller {
                 && let Some(isometry) = h.isometry2d.as_mut()
             {
                 isometry.append_translation(-center);
-                isometry.append_rotation(ultraviolet::Rotor2::from_angle(angle));
+                isometry.append_rotation(Rotor2::from_angle(angle));
                 isometry.append_translation(center);
             }
         }
@@ -2235,13 +2188,13 @@ impl Controller {
     ) -> Option<StrandBuilder> {
         // if there is a strand that passes through the nucleotide
         if design.strands.get_strand_nucl(&nucl).is_some() {
-            self.strand_builder_on_exisiting(design, nucl, ignored_domains)
+            self.strand_builder_on_existing(design, nucl, ignored_domains)
         } else {
             self.new_strand_builder(design, nucl)
         }
     }
 
-    fn strand_builder_on_exisiting(
+    fn strand_builder_on_existing(
         &mut self,
         design: &Design,
         nucl: Nucl,
@@ -2298,7 +2251,6 @@ impl Controller {
                 nucl,
                 axis.to_owned(),
                 neighbor_desc,
-                false,
             )),
         }
     }
@@ -2323,7 +2275,6 @@ impl Controller {
             nucl,
             axis.to_owned(),
             left.or(right),
-            true,
         ))
     }
 
@@ -2450,7 +2401,7 @@ impl Controller {
     ) -> Result<usize, ErrOperation> {
         let id = strands
             .get_strand_nucl(nucl)
-            .ok_or(ErrOperation::CutInexistingStrand)?;
+            .ok_or(ErrOperation::CutNonExistentStrand)?;
 
         let strand = strands.remove(&id).expect("strand");
         let name = strand.name.clone();
@@ -2463,7 +2414,7 @@ impl Controller {
         }
         if strand.length() <= 1 {
             // return without putting the strand back
-            return Err(ErrOperation::CutInexistingStrand);
+            return Err(ErrOperation::CutNonExistentStrand);
         }
         let mut i = strand.domains.len();
         let mut prim5_domains = Vec::new();
@@ -2475,7 +2426,7 @@ impl Controller {
         let mut prime3_junctions: Vec<DomainJunction> = Vec::new();
         let mut prim3_domains = Vec::new();
 
-        log::info!("Spliting");
+        log::info!("Splitting");
         log::info!("{:?}", strand.domains);
         log::info!("{:?}", strand.junctions);
 
@@ -2828,7 +2779,7 @@ impl Controller {
                 if last_interval_prime5.can_merge(first_interval_prime3) {
                     DomainJunction::Adjacent
                 } else {
-                    DomainJunction::UnindentifiedXover
+                    DomainJunction::UnidentifiedXover
                 }
             };
             let skip_domain;
@@ -3030,7 +2981,7 @@ impl Controller {
             .is_cyclic;
         //println!("half1 {}, ; half0 {}", new_id, target_strand);
         Self::split_strand(strands, &nucl, Some(target_3prime), color_idx)?;
-        //println!("splitted");
+        //println!("split");
 
         if !was_cyclic && source_strand != target_strand {
             if target_3prime {
@@ -3812,7 +3763,7 @@ pub(super) fn junction(prime5: &HelixInterval, prime3: &HelixInterval) -> Domain
     if prime3_nucl == prime5_nucl.prime3() {
         DomainJunction::Adjacent
     } else {
-        DomainJunction::UnindentifiedXover
+        DomainJunction::UnidentifiedXover
     }
 }
 

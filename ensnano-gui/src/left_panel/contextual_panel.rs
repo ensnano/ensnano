@@ -15,6 +15,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
+mod value_constructor;
+
 use super::super::DesignReader;
 use super::*;
 use ensnano_design::{BezierVertexId, grid::GridId};
@@ -23,13 +26,17 @@ use ensnano_iced::{
     iced::{self, Alignment, alignment::Horizontal},
     theme,
 };
-use ensnano_interactor::{Selection, SimulationState};
-
-mod value_constructor;
+use ensnano_interactor::{
+    Selection, SimulationState,
+    consts::{
+        ALT, BACKSPACECHAR, CTRL, HELIXCHAR, KEY_DOWN, KEY_LEFT, KEY_RIGHT, KEY_UP, LCLICK, MCLICK,
+        MOVECHAR, NUCLCHAR, RCLICK, ROTCHAR, SELECTCHAR, SHIFT, STRANDCHAR, SUPPRCHAR,
+    },
+};
+use ultraviolet::{Rotor3, Vec2};
 use value_constructor::{BezierVertexBuilder, Builder, GridBuilder};
-pub use value_constructor::{InstanciatedValue, ValueKind};
+pub use value_constructor::{InstantiatedValue, ValueKind};
 
-use ultraviolet::{Rotor3, Vec2, Vec3};
 pub enum ValueRequest {
     HelixGridPosition {
         grid_id: GridId,
@@ -50,9 +57,9 @@ pub enum ValueRequest {
 }
 
 impl ValueRequest {
-    fn from_value_and_selection(selection: &Selection, value: InstanciatedValue) -> Option<Self> {
+    fn from_value_and_selection(selection: &Selection, value: InstantiatedValue) -> Option<Self> {
         match value {
-            InstanciatedValue::HelixGridPosition(v) => {
+            InstantiatedValue::HelixGridPosition(v) => {
                 if let Selection::Grid(_, g_id) = selection {
                     Some(Self::HelixGridPosition {
                         grid_id: *g_id,
@@ -63,7 +70,7 @@ impl ValueRequest {
                     None
                 }
             }
-            InstanciatedValue::GridOrientation(orientation) => {
+            InstantiatedValue::GridOrientation(orientation) => {
                 if let Selection::Grid(_, g_id) = selection {
                     Some(Self::GridOrientation {
                         grid_id: *g_id,
@@ -74,7 +81,7 @@ impl ValueRequest {
                     None
                 }
             }
-            InstanciatedValue::GridNbTurn(nb_turn) => {
+            InstantiatedValue::GridNbTurn(nb_turn) => {
                 if let Selection::Grid(_, g_id) = selection {
                     Some(Self::GridNbTurn {
                         grid_id: *g_id,
@@ -85,7 +92,7 @@ impl ValueRequest {
                     None
                 }
             }
-            InstanciatedValue::BezierVertexPosition(pos) => {
+            InstantiatedValue::BezierVertexPosition(pos) => {
                 if let Selection::BezierVertex(vertex_id) = selection {
                     Some(Self::BezierVertexPosition {
                         vertex_id: *vertex_id,
@@ -224,7 +231,7 @@ where
         self.width = width;
     }
 
-    pub fn update(&mut self, app_state: &mut State) {
+    pub fn update(&mut self, app_state: &mut State) -> Command<Message<State>> {
         let selection = app_state
             .get_selection()
             .get(0)
@@ -240,6 +247,7 @@ where
             app_state,
         );
         self.insertion_length_state.update_selection(selection);
+        Command::none()
     }
 
     fn update_builder(
@@ -457,7 +465,7 @@ where
         if let Some(b) = &mut self.builder {
             b.builder.update_str_value(kind, n, value)
         } else {
-            log::error!("Cannot update value: No instanciated builder");
+            log::error!("Cannot update value: No instantiated builder");
         }
     }
 
@@ -469,16 +477,16 @@ where
                 None
             }
         } else {
-            log::error!("Cannot submit value: No instanciated builder");
+            log::error!("Cannot submit value: No instantiated builder");
             None
         }
     }
 
-    pub fn request_from_value(&mut self, value: InstanciatedValue) -> Option<ValueRequest> {
+    pub fn request_from_value(&mut self, value: InstantiatedValue) -> Option<ValueRequest> {
         if let Some(b) = &mut self.builder {
             ValueRequest::from_value_and_selection(&b.selection, value)
         } else {
-            log::error!("Cannot submit value: No instanciated builder");
+            log::error!("Cannot submit value: No instantiated builder");
             None
         }
     }
@@ -718,7 +726,7 @@ fn view_2d_help() -> Vec<(String, String)> {
                 "{} + {}/{}/{}/{}",
                 CTRL, KEY_LEFT, KEY_RIGHT, KEY_UP, KEY_DOWN
             ),
-            "Apply symetry to view".to_owned(),
+            "Apply symmetry to view".to_owned(),
         ),
         (String::new(), String::new()),
         (format!("{}", LCLICK), "Select".to_owned()),

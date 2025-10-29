@@ -1,15 +1,13 @@
-use std::ops::BitXorAssign;
-
 use ahash::HashMap;
 use ensnano_design::{Helices, HelixCollection, HelixParameters, Nucl};
 use ensnano_interactor::ObjectType;
-use rapier3d::{na::Point3, prelude::*};
+use rapier3d::prelude::*;
 
 use crate::{
     RapierPhysicsSystem,
     anchors::SpringAnchorsReference,
     helices::{IntermediaryHelix, IntermediaryPair},
-    point_from_parts, vec_to_vector,
+    point_from_parts,
 };
 
 const NUCLEOTIDE_RADIUS: f32 = 0.05;
@@ -27,9 +25,9 @@ const CROSSOVER_STIFFNESS: f32 = 100.0;
 const CROSSOVER_DAMPING: f32 = 50.0;
 const CROSSOVER_SIZE: f32 = 0.64;
 
-const FREE_NUCLEOTIDE_STIFFNESS: f32 = 100000.0;
-const FREE_NUCLEOTIDE_DAMPING: f32 = 50000.0;
-const FREE_NUCLEOTIDE_DISTANCE: f32 = 0.64;
+// const FREE_NUCLEOTIDE_STIFFNESS: f32 = 100000.0;
+// const FREE_NUCLEOTIDE_DAMPING: f32 = 50000.0;
+// const FREE_NUCLEOTIDE_DISTANCE: f32 = 0.64;
 
 /// A trait to represent a strategy of how to attach
 /// colliders to rigid bodies in the simulation.
@@ -49,6 +47,9 @@ pub trait SimulationSetup {
     );
 }
 
+// This is used for full simulations; not used right now, but will be
+// with a proper interface.
+#[allow(dead_code)]
 pub struct FullSimulationSetup;
 
 impl SimulationSetup for FullSimulationSetup {
@@ -159,7 +160,6 @@ pub fn build_simulation<S: SimulationSetup>(
         intermediary_representation,
         &nucleotide_body_map,
         helices,
-        &rigid_body_set,
         &collider_set,
         &mut impulse_joint_set,
         global_parameters,
@@ -212,7 +212,7 @@ fn build_colliders(
     for helix in intermediary_representation.values() {
         for pair in helix.pairs.values() {
             match pair {
-                crate::helices::IntermediaryPair::Pair(i, n, j, _) => {
+                crate::helices::IntermediaryPair::Pair(i, n, j) => {
                     let i_p = space_position
                         .get(i)
                         .expect("Couldn't get position of nucl");
@@ -277,10 +277,10 @@ fn up_vector(
     nucleotide_body_map: &HashMap<u32, ColliderHandle>,
     collider_set: &ColliderSet,
 ) -> Vector<Real> {
-    let IntermediaryPair::Pair(up_i, _, up_j, _) = up_pair else {
+    let IntermediaryPair::Pair(up_i, _, up_j) = up_pair else {
         panic!("Incoherent double ranges");
     };
-    let IntermediaryPair::Pair(down_i, _, down_j, _) = down_pair else {
+    let IntermediaryPair::Pair(down_i, _, down_j) = down_pair else {
         panic!("Incoherent double ranges");
     };
 
@@ -299,7 +299,6 @@ fn build_strong_springs(
     intermediary_representation: &HashMap<usize, IntermediaryHelix>,
     nucleotide_body_map: &HashMap<u32, ColliderHandle>,
     helices: &Helices,
-    rigid_body_set: &RigidBodySet,
     collider_set: &ColliderSet,
     impulse_joint_set: &mut ImpulseJointSet,
     global_parameters: &HelixParameters,
@@ -353,15 +352,12 @@ fn build_strong_springs(
                     let down_pair = intermediary.pairs[down_index];
                     let down_up = up_vectors.get(down_index).unwrap();
 
-                    let IntermediaryPair::Pair(down_i, _, down_j, _) = down_pair else {
+                    let IntermediaryPair::Pair(down_i, _, down_j) = down_pair else {
                         panic!("Incoherent double ranges");
                     };
 
                     let down_forward = collider_set.get(nucleotide_body_map[&down_i]).unwrap();
                     let down_backward = collider_set.get(nucleotide_body_map[&down_j]).unwrap();
-
-                    let down_center =
-                        (down_forward.translation() + down_backward.translation()) / 2.0;
 
                     let down_body_handle = collider_set
                         .get(nucleotide_body_map[&down_i])
@@ -382,14 +378,12 @@ fn build_strong_springs(
                     let up_pair = intermediary.pairs[up_index];
                     let up_up = up_vectors.get(up_index).unwrap();
 
-                    let IntermediaryPair::Pair(up_i, _, up_j, _) = up_pair else {
+                    let IntermediaryPair::Pair(up_i, _, up_j) = up_pair else {
                         panic!("Incoherent double ranges");
                     };
 
                     let up_forward = collider_set.get(nucleotide_body_map[&up_i]).unwrap();
                     let up_backward = collider_set.get(nucleotide_body_map[&up_j]).unwrap();
-
-                    let up_center = (up_forward.translation() + up_backward.translation()) / 2.0;
 
                     let up_body_handle = collider_set
                         .get(nucleotide_body_map[&up_i])

@@ -136,7 +136,7 @@ impl CircleDrawer {
         }
     }
 
-    /// Create a render pipepline. This function is meant to be called once, before drawing for the
+    /// Create a render pipeline. This function is meant to be called once, before drawing for the
     /// first time.
     fn create_pipeline(
         &self,

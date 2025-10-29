@@ -19,31 +19,32 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! This modules defines types and operations used by the graphical component of ENSnano to
 //! interact with the design.
 
-use ensnano_design::{
-    BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, BezierVertexId,
-    CurveDescriptor2D, HelixParameters, Isometry3, Nucl,
-    elements::{DesignElementKey, DnaAttribute},
-    grid::{GridDescriptor, GridId, GridObject, GridTypeDescr, HelixGridPosition, Hyperboloid},
-    group_attributes::GroupPivot,
-};
-use std::path::PathBuf;
-use ultraviolet::{Isometry2, Rotor3, Vec2, Vec3};
 pub mod app_state_parameters;
 pub mod graphics;
 mod selection;
 pub use selection::*;
 pub mod application;
-pub mod operation;
-mod strand_builder;
-pub use strand_builder::*;
 pub mod consts;
-pub mod torsion;
-use ensnano_organizer::GroupId;
-mod operation_labels;
-mod surfaces;
-pub use surfaces::*;
 mod multiplexer;
+pub mod operation;
+mod operation_labels;
+mod strand_builder;
+mod surfaces;
+pub mod torsion;
+
+use ensnano_design::{
+    self, BezierControlPoint, BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex,
+    BezierVertexId, CurveDescriptor2D, HelixParameters, Nucl,
+    elements::{DesignElementKey, DnaAttribute},
+    grid::{GridDescriptor, GridId, GridObject, GridTypeDescr, HelixGridPosition, Hyperboloid},
+    group_attributes::GroupPivot,
+};
+use ensnano_organizer::{GroupId, OrganizerTree};
 pub use multiplexer::Multiplexer;
+use std::path::PathBuf;
+pub use strand_builder::*;
+pub use surfaces::*;
+use ultraviolet::{Isometry2, Rotor3, Vec2, Vec3};
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub enum ObjectType {
@@ -60,24 +61,12 @@ pub enum ObjectType {
 }
 
 impl ObjectType {
-    pub fn is_nucl(&self) -> bool {
-        matches!(self, ObjectType::Nucleotide(_))
-    }
-
     pub fn is_bond(&self) -> bool {
         matches!(self, ObjectType::Bond(_, _))
     }
 
     pub fn is_helix_cylinder(&self) -> bool {
         matches!(self, ObjectType::HelixCylinder(_, _))
-    }
-
-    pub fn is_colored_helix_cylinder(&self) -> bool {
-        matches!(self, ObjectType::ColoredHelixCylinder(_, _, _))
-    }
-
-    pub fn is_sliced_bond(&self) -> bool {
-        matches!(self, ObjectType::SlicedBond(_, _, _, _))
     }
 
     pub fn same_type(&self, other: &Self) -> bool {
@@ -92,14 +81,8 @@ pub enum Referential {
     Model,
 }
 
-impl Referential {
-    pub fn is_world(&self) -> bool {
-        matches!(self, Referential::World)
-    }
-}
-
 #[derive(Debug, Clone)]
-/// An operation that can be perorfed on a design
+/// An operation that can be performed on a design
 pub enum DesignOperation {
     /// Rotate an element of the design
     Rotation(DesignRotation),
@@ -125,9 +108,8 @@ pub enum DesignOperation {
     /// delete the strand.
     Cut {
         nucl: Nucl,
-        s_id: usize,
     },
-    /// Make a cross-over between two nucleotides, spliting the source and target strands if needed
+    /// Make a cross-over between two nucleotides, splitting the source and target strands if needed
     GeneralXover {
         source: Nucl,
         target: Nucl,
@@ -138,7 +120,7 @@ pub enum DesignOperation {
         prime5_id: usize,
         prime3_id: usize,
     },
-    /// Make a cross over from a strand end to a nucleotide, spliting the target strand if needed.
+    /// Make a cross over from a strand end to a nucleotide, splitting the target strand if needed.
     CrossCut {
         target_3prime: bool,
         source_id: usize,
@@ -151,15 +133,8 @@ pub enum DesignOperation {
     },
     /// Add a grid to the design
     AddGrid(GridDescriptor),
-    /// Remove a grid
-    RmGrid(usize),
     /// Pick a new color at random for all the strands that are not the scaffold
     RecolorStaples,
-    /// Set the sequence of a set of strands
-    ChangeSequence {
-        sequence: String,
-        strands: Vec<usize>,
-    },
     /// Change the color of a set of strands
     ChangeColor {
         color: u32,
@@ -233,7 +208,7 @@ pub enum DesignOperation {
         x: isize,
         y: isize,
     },
-    SetOrganizerTree(ensnano_design::OrganizerTree<DesignElementKey>),
+    SetOrganizerTree(OrganizerTree<DesignElementKey>),
     SetStrandName {
         s_id: usize,
         name: String,
@@ -247,12 +222,6 @@ pub enum DesignOperation {
         position: Vec3,
         orientation: Rotor3,
         pivot_position: Option<Vec3>,
-    },
-    SetFavoriteCamera(ensnano_design::CameraId),
-    UpdateCamera {
-        camera_id: ensnano_design::CameraId,
-        position: Vec3,
-        orientation: Rotor3,
     },
     SetCameraName {
         camera_id: ensnano_design::CameraId,
@@ -334,9 +303,9 @@ pub enum DesignOperation {
 #[derive(Clone, Debug, Copy)]
 pub struct NewBezierTangentVector {
     pub vertex_id: BezierVertexId,
-    /// Wether `new_vector` is the vector of the inward or outward tangent
+    /// Whether `new_vector` is the vector of the inward or outward tangent
     pub tangent_in: bool,
-    pub full_symetry_other_tangent: bool,
+    pub full_symmetry_other_tangent: bool,
     pub new_vector: Vec2,
 }
 
@@ -344,12 +313,6 @@ pub struct NewBezierTangentVector {
 pub struct InsertionPoint {
     pub nucl: Nucl,
     pub nucl_is_prime5_of_insertion: bool,
-}
-
-/// An action performed on the application
-pub enum AppOperation {
-    /// Adjust the camera so that the design fit the view
-    Fit,
 }
 
 #[derive(Debug, Clone)]
@@ -385,8 +348,6 @@ pub struct DesignTranslation {
 /// A element on which an isometry must be applied
 #[derive(Clone, Debug)]
 pub enum IsometryTarget {
-    /// The view of the whole design
-    Design,
     /// An helix of the design
     Helices(Vec<usize>, bool),
     /// A grid of the design
@@ -400,21 +361,12 @@ pub enum IsometryTarget {
 impl ToString for IsometryTarget {
     fn to_string(&self) -> String {
         match self {
-            Self::Design => "Design".into(),
             Self::Helices(hs, _) => format!("Helices {:?}", hs),
             Self::Grids(gs) => format!("Grids {:?}", gs),
             Self::GroupPivot(_) => "Group pivot".into(),
             Self::ControlPoint(_) => "Bezier control point".into(),
         }
     }
-}
-
-/// A stucture that defines an helix on a grid
-#[derive(Clone, Debug)]
-pub struct GridHelixDescriptor {
-    pub grid_id: GridId,
-    pub x: isize,
-    pub y: isize,
 }
 
 #[derive(Debug, Clone)]
@@ -441,8 +393,6 @@ impl HyperboloidRequest {
 
 #[derive(Clone, Debug)]
 pub struct RollRequest {
-    pub roll: bool,
-    pub springs: bool,
     pub target_helices: Option<Vec<usize>>,
 }
 
@@ -479,7 +429,6 @@ impl Default for RigidBodyConstants {
 #[derive(Clone, Debug)]
 pub struct ScaffoldInfo {
     pub id: usize,
-    pub shift: Option<usize>,
     pub length: usize,
     pub starting_nucl: Option<Nucl>,
 }
@@ -597,7 +546,6 @@ pub enum StandardSequence {
     P7249,
     P7560,
     P8064,
-    PUC19,
 }
 
 impl StandardSequence {
@@ -607,7 +555,6 @@ impl StandardSequence {
             Self::P7249 => "m13 p7249",
             Self::P7560 => "m13 p7560",
             Self::P8064 => "m13 p8064",
-            Self::PUC19 => "pUC19 (2686 nt)",
         }
     }
 
@@ -617,7 +564,6 @@ impl StandardSequence {
             Self::P7249 => include_str!("../p7249-Tilibit.txt"),
             Self::P7560 => include_str!("../p7560.txt"),
             Self::P8064 => include_str!("../m13-p8064.txt"),
-            Self::PUC19 => include_str!("../pUC19.txt"),
         }
     }
 

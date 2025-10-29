@@ -15,11 +15,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use super::instances_drawer::{Instantiable, RessourceProvider, Vertexable};
-use ensnano_design::ultraviolet::{Vec2, Vec3};
-use ensnano_utils::wgpu;
+use super::instances_drawer::{Instantiable, ResourceProvider, Vertexable};
 use std::convert::TryInto;
 use std::rc::Rc;
+use ultraviolet::{Vec2, Vec3};
 use wgpu::{Device, Queue};
 
 #[repr(C)]
@@ -35,7 +34,7 @@ impl SkyBox {
 
 impl Instantiable for SkyBox {
     type RawInstance = SkyBox;
-    type Ressource = ();
+    type Resource = ();
     type Vertex = CubeVertex;
 
     fn to_raw_instance(&self) -> SkyBox {
@@ -77,7 +76,7 @@ impl DirectionCube {
 
 impl Instantiable for DirectionCube {
     type RawInstance = DirectionCube;
-    type Ressource = DirectionTexture;
+    type Resource = DirectionTexture;
     type Vertex = CubeVertex;
 
     fn to_raw_instance(&self) -> DirectionCube {
@@ -242,8 +241,8 @@ pub struct DirectionTexture {
     pub sampler: wgpu::Sampler,
 }
 
-impl RessourceProvider for DirectionTexture {
-    fn ressources_layout() -> &'static [wgpu::BindGroupLayoutEntry] {
+impl ResourceProvider for DirectionTexture {
+    fn resources_layout() -> &'static [wgpu::BindGroupLayoutEntry] {
         &[
             wgpu::BindGroupLayoutEntry {
                 binding: 0,
@@ -264,7 +263,7 @@ impl RessourceProvider for DirectionTexture {
         ]
     }
 
-    fn ressources(&self) -> Vec<wgpu::BindGroupEntry<'_>> {
+    fn resources(&self) -> Vec<wgpu::BindGroupEntry<'_>> {
         vec![
             wgpu::BindGroupEntry {
                 binding: 0,

@@ -29,15 +29,15 @@ use self::design_content::Staple;
 
 use super::*;
 use design_content::DesignContent;
-use ensnano_design::{BezierPathId, Extremity, HelixCollection, InstanciatedPiecewiseBezier, Nucl};
+use ensnano_design::{BezierPathId, Extremity, HelixCollection, InstantiatedPiecewiseBezier, Nucl};
 use ensnano_interactor::{
     NeighborDescriptor, NeighborDescriptorGiver, Referential, ScaffoldInfo, Selection,
     application::Camera3D,
 };
-use ensnano_scene::{HBond, HalfHBond};
+use ensnano_scene::data::{HBond, HalfHBond};
 use ensnano_utils::id_generator::IdGenerator;
 use std::collections::{BTreeMap, HashMap, HashSet};
-use ultraviolet::{Mat4, Vec3};
+use ultraviolet::{Mat4, Rotor3, Vec3};
 
 type JunctionsIds = IdGenerator<(Nucl, Nucl)>;
 
@@ -374,7 +374,6 @@ impl Presenter {
                     Selection::Bond(_, n1, n2) => *n1 == nucl || *n2 == nucl,
                     Selection::Phantom(e) => e.to_nucl() == nucl,
                     Selection::BezierControlPoint { .. } => false,
-                    Selection::BezierTangent { .. } => false,
                     Selection::BezierVertex(_) => false,
                 };
         }
@@ -517,12 +516,12 @@ impl Presenter {
         )
     }
 
-    pub fn get_bezier_path_2d(&self, path_id: BezierPathId) -> Option<InstanciatedPiecewiseBezier> {
+    pub fn get_bezier_path_2d(&self, path_id: BezierPathId) -> Option<InstantiatedPiecewiseBezier> {
         use ensnano_design::Collection;
         self.current_design
             .bezier_paths
             .get(&path_id)
-            .and_then(|path| path.to_instanciated_path_2d())
+            .and_then(|path| path.to_instantiated_path_2d())
     }
 
     pub fn get_xovers_list(&self) -> Vec<(Nucl, Nucl)> {
@@ -665,19 +664,6 @@ impl DesignReader {
         None
     }
 
-    pub(super) fn helix_is_empty(&self, h_id: usize) -> Option<bool> {
-        if !self.presenter.current_design.helices.contains_key(&h_id) {
-            None
-        } else {
-            for h in self.presenter.content.helix_map.values() {
-                if *h == h_id {
-                    return Some(true);
-                }
-            }
-            Some(false)
-        }
-    }
-
     pub(super) fn get_id_of_strand_containing_nucl(&self, nucl: &Nucl) -> Option<usize> {
         let e_id = self
             .presenter
@@ -734,7 +720,6 @@ impl DesignReader {
             .and_then(|s| s.get_nth_nucl(shift.unwrap_or(0)));
         Some(ScaffoldInfo {
             id,
-            shift,
             length,
             starting_nucl,
         })
@@ -764,7 +749,7 @@ impl DesignReader {
             })
     }
 
-    pub fn get_favorite_camera(&self) -> Option<(Vec3, ultraviolet::Rotor3)> {
+    pub fn get_favorite_camera(&self) -> Option<(Vec3, Rotor3)> {
         self.presenter
             .current_design
             .get_favorite_camera()

@@ -18,8 +18,6 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 #[derive(strum::Display)]
 pub enum IterativeFrameAlgorithm {
-    Original,        // by Nicolas Levy
-    Rotation,        // by Nicolas Schabanel
     BasedOnGeometry, // impose by the file format
 }
 

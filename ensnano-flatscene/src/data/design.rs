@@ -21,10 +21,7 @@ use std::sync::{Arc, Mutex};
 use super::super::{FlatHelix, FlatIdx, FlatNucl, HelixSegment, Requests};
 use super::{Flat, HelixVec, Nucl, Strand};
 use ahash::RandomState;
-use ensnano_design::{
-    AbscissaConverter, Extremity, Helix as DesignHelix, HelixCollection, Strand as StrandDesign,
-    ultraviolet,
-};
+use ensnano_design::{AbscissaConverter, Extremity, Helix as DesignHelix, HelixCollection};
 use ensnano_interactor::consts::{
     CANDIDATE_STRAND_HIGHLIGHT_FACTOR_2D, SELECTED_STRAND_HIGHLIGHT_FACTOR_2D,
 };
@@ -32,7 +29,7 @@ use ensnano_interactor::{Referential, torsion::Torsion};
 use ensnano_utils::full_isometry::FullIsometry;
 use ultraviolet::{Isometry2, Rotor2, Vec2, Vec3};
 
-use crate::flattypes::FlatHelixMaps;
+use super::super::flattypes::FlatHelixMaps;
 
 pub(super) struct Design2d<R: DesignReader> {
     /// The 2d helices
@@ -293,7 +290,7 @@ impl<R: DesignReader> Design2d<R> {
                 right: left + 2,
                 max_right,
                 min_left,
-                isometry: FullIsometry::from_isommetry_symmetry(isometry, symmetry),
+                isometry: FullIsometry::from_isometry_symmetry(isometry, symmetry),
                 visible: self
                     .design
                     .get_visibility_helix(segment.helix_idx)
@@ -304,7 +301,7 @@ impl<R: DesignReader> Design2d<R> {
             // unwrap Ok because we know that the key exists
             let flat = self.id_map.get_segment_idx(segment).unwrap();
             let helix2d = &mut self.helices[flat];
-            helix2d.isometry = FullIsometry::from_isommetry_symmetry(isometry, symmetry);
+            helix2d.isometry = FullIsometry::from_isometry_symmetry(isometry, symmetry);
             helix2d.abscissa_converter =
                 Arc::new(self.design.get_abscissa_converter(segment.helix_idx));
         }
@@ -536,10 +533,7 @@ pub trait DesignReader: 'static {
     fn can_start_builder_at(&self, nucl: Nucl) -> bool;
     fn prime3_of_which_strand(&self, nucl: Nucl) -> Option<usize>;
     fn prime5_of_which_strand(&self, nucl: Nucl) -> Option<usize>;
-    fn helix_is_empty(&self, h_id: usize) -> Option<bool>;
     fn get_helices_map(&self) -> &ensnano_design::Helices;
-    fn get_raw_helix(&self, h_id: usize) -> Option<Arc<DesignHelix>>;
-    fn get_raw_strand(&self, s_id: usize) -> Option<StrandDesign>;
     fn is_xover_end(&self, nucl: &Nucl) -> Extremity;
     fn get_identifier_nucl(&self, nucl: &Nucl) -> Option<u32>;
     fn get_id_of_strand_containing_nucl(&self, nucl: &Nucl) -> Option<usize>;
@@ -563,5 +557,4 @@ pub trait DesignReader: 'static {
 
 pub trait NuclCollection {
     fn contains(&self, nucl: &Nucl) -> bool;
-    fn iter<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Nucl> + 'a>;
 }

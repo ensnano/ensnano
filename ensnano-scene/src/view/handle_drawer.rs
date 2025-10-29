@@ -17,9 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use super::{CameraPtr, Drawable, Drawer, ProjectionPtr, Vertex};
 use ensnano_design::group_attributes::GroupPivot;
-use ensnano_design::ultraviolet;
 use ensnano_interactor::consts::*;
-use ensnano_utils::wgpu;
 use std::rc::Rc;
 use ultraviolet::{Rotor3, Vec3};
 use wgpu::Device;
@@ -27,27 +25,15 @@ use wgpu::Device;
 #[derive(Clone, Debug)]
 pub struct HandlesDescriptor {
     pub origin: Vec3,
-    pub orientation: HandleOrientation,
+    pub orientation: Rotor3,
     pub size: f32,
     pub colors: HandleColors,
-}
-
-#[derive(Debug, Clone, Copy)]
-pub enum HandleOrientation {
-    Rotor(Rotor3),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum HandleColors {
     Rgb,
     Cym,
-}
-
-impl From<HandleOrientation> for Rotor3 {
-    fn from(orientation: HandleOrientation) -> Self {
-        let HandleOrientation::Rotor(r) = orientation;
-        r
-    }
 }
 
 impl HandlesDescriptor {
@@ -67,13 +53,11 @@ impl HandlesDescriptor {
     }
 
     fn make_axis(&self) -> (Vec3, Vec3, Vec3) {
-        match self.orientation {
-            HandleOrientation::Rotor(rotor) => (
-                rotor * Vec3::unit_x(),
-                rotor * Vec3::unit_y(),
-                rotor * -Vec3::unit_z(),
-            ),
-        }
+        (
+            self.orientation * Vec3::unit_x(),
+            self.orientation * Vec3::unit_y(),
+            self.orientation * -Vec3::unit_z(),
+        )
     }
 }
 

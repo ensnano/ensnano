@@ -15,12 +15,14 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+//! Size handler for ENSnano's GUI.
 
 use serde::{Deserialize, Serialize};
 
+/// List of available [`UiSize`].
 pub const ALL_UI_SIZES: [UiSize; 3] = [UiSize::Small, UiSize::Medium, UiSize::Large];
 
-/// Size handler of the GUI
+/// Size handler for ENSnano's GUI.
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum UiSize {
     Small,
@@ -36,14 +38,6 @@ impl Default for UiSize {
 
 impl UiSize {
     // Text related messages
-
-    pub fn smaller_text(&self) -> u16 {
-        match self {
-            Self::Small => 10,
-            Self::Medium => 12,
-            Self::Large => 16,
-        }
-    }
 
     pub fn main_text(&self) -> f32 {
         match self {

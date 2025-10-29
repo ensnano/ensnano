@@ -15,15 +15,16 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use std::marker::PhantomData;
-
 use super::tabs::GuiTab;
-use super::{AppState, GridTypeDescr, ICON_HONEYCOMB_GRID, ICON_SQUARE_GRID, Message, UiSize};
+use super::{AppState, GridTypeDescr, Message, UiSize};
+use ensnano_iced::iced;
 use ensnano_iced::{
     fonts::{MaterialIcon, MaterialIconStyle, icon_to_char},
     helpers::*,
     iced_aw::TabLabel,
 };
+use ensnano_interactor::consts::{ICON_HONEYCOMB_GRID, ICON_SQUARE_GRID};
+use std::marker::PhantomData;
 
 const NEW_BEZIER_PLANE_ICON: MaterialIcon = MaterialIcon::HistoryEdu;
 const EDIT_BEZIER_PATH_ICON: MaterialIcon = MaterialIcon::LinearScale;
@@ -40,11 +41,7 @@ impl<State: AppState> GuiTab<State> for PenTab<State> {
         TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Draw)))
     }
 
-    fn content(
-        &self,
-        ui_size: UiSize,
-        app_state: &State,
-    ) -> ensnano_iced::Element<'_, Self::Message> {
+    fn content(&self, ui_size: UiSize, app_state: &State) -> iced::Element<'_, Self::Message> {
         let selected_path_id = app_state.get_selected_bezier_path();
         let path_txt = selected_path_id
             .map(|p| format!("{:?}", p))

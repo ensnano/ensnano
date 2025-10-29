@@ -1,77 +1,66 @@
 /*
 ENSnano, a 3d graphical application for DNA nanostructures.
-    Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
+Copyright (C) 2021  Nicolas Levy <nicolaspierrelevy@gmail.com> and Nicolas Schabanel <nicolas.schabanel@ens-lyon.fr>
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 //! This module defines the ensnano format.
 //! All other format supported by ensnano are converted into this format and run-time manipulation
 //! of designs are performed on an `ensnano::Design` structure
 
-#![allow(mixed_script_confusables, confusable_idents)] // allow mathematical symbols as variables
-
-use std::collections::{BTreeMap, HashMap, HashSet};
-use std::sync::Arc;
-
-mod material_colors;
-use material_colors::MaterialColor;
-
-pub use bezier_plane::*;
-use serde::{Deserialize, Serialize};
-pub use ultraviolet;
-
-pub mod codenano;
-pub mod consts;
-pub mod grid;
-use grid::{FreeGrids, GridData, GridDescriptor, GridId};
-pub mod scadnano;
-pub use ensnano_organizer::{GroupId, OrganizerTree};
-use scadnano::*;
-pub mod elements;
-use elements::DesignElementKey;
-pub type EnsnTree = OrganizerTree<DesignElementKey>;
-pub mod group_attributes;
-use group_attributes::GroupAttribute;
-
-mod strands;
-pub use strands::*;
-mod helices;
-pub use helices::*;
-
-mod curves;
-pub use curves::*;
-mod collection;
-pub mod design_operations;
-pub mod utils;
-pub use collection::{Collection, HasMap};
-pub mod isometry3_descriptor;
-pub use isometry3_descriptor::Isometry3Descriptor;
-
-mod parameters;
-pub use parameters::*;
-
-pub mod drawing_style;
-
-/// Re-export ultraviolet for linear algebra
-pub use ultraviolet::*;
-
-mod bezier_plane;
-mod external_3d_objects;
-mod insertions;
 #[cfg(test)]
 mod tests;
+
+mod bezier_plane;
+pub mod codenano;
+mod collection;
+pub mod consts;
+mod curves;
+pub mod design_operations;
+pub mod drawing_style;
+pub mod elements;
+mod external_3d_objects;
+pub mod grid;
+pub mod group_attributes;
+mod helices;
+mod insertions;
+pub mod isometry3_descriptor;
+mod material_colors;
+mod parameters;
+pub mod scadnano;
+mod strands;
+pub mod utils;
+
+pub use bezier_plane::*;
+pub use collection::{Collection, HasMap};
+pub use curves::*;
+use elements::DesignElementKey;
+use ensnano_organizer::OrganizerTree;
 pub use external_3d_objects::*;
+use grid::{FreeGrids, GridData, GridDescriptor, GridId};
+use group_attributes::GroupAttribute;
+pub use helices::*;
+pub use isometry3_descriptor::Isometry3Descriptor;
+use material_colors::MaterialColor;
+pub use parameters::*;
+use scadnano::*;
+use serde::{Deserialize, Serialize};
+use serde_with::{DefaultOnError, serde_as};
+use std::collections::{BTreeMap, HashMap, HashSet};
+use std::sync::Arc;
+pub use strands::*;
+use ultraviolet::{Rotor3, Similarity3, Vec3};
 
 /// The `ensnano` Design structure.
 #[derive(Serialize, Deserialize, Clone)]
@@ -160,8 +149,11 @@ pub struct Design {
     #[serde(default)]
     pub rainbow_scaffold: bool,
 
-    #[serde(skip)]
-    instanciated_grid_data: Option<GridData>,
+    #[serde(
+        skip,
+        alias = "instanciated_grid_data", // cspell:disable-line
+    )]
+    instantiated_grid_data: Option<GridData>,
 
     #[serde(skip, default)]
     cached_curve: Arc<CurveCache>,
@@ -172,8 +164,11 @@ pub struct Design {
     #[serde(default)]
     pub bezier_paths: BezierPaths,
 
-    #[serde(skip)]
-    instanciated_paths: Option<BezierPathData>,
+    #[serde(
+        skip,
+        alias = "instanciated_paths", // cspell:disable-line
+    )]
+    instantiated_paths: Option<BezierPathData>,
 
     #[serde(default)]
     pub external_3d_objects: External3DObjects,
@@ -212,10 +207,10 @@ impl Design {
     /// of the design
     pub fn try_get_up_to_date<'a>(&'a self) -> Option<UpToDateDesign<'a>> {
         let paths_data = self
-            .instanciated_paths
+            .instantiated_paths
             .as_ref()
             .filter(|data| !data.need_update(&self.bezier_planes, &self.bezier_paths))?;
-        if let Some(data) = self.instanciated_grid_data.as_ref() {
+        if let Some(data) = self.instantiated_grid_data.as_ref() {
             if data.is_up_to_date(self) {
                 Some(UpToDateDesign {
                     design: self,
@@ -236,16 +231,16 @@ impl Design {
             .helix_parameters
             .as_ref()
             .unwrap_or(&HelixParameters::DEFAULT);
-        if let Some(paths_data) = self.instanciated_paths.as_ref() {
+        if let Some(paths_data) = self.instantiated_paths.as_ref() {
             if let Some(new_data) = paths_data.updated(
                 self.bezier_planes.clone(),
                 self.bezier_paths.clone(),
                 helix_parameters,
             ) {
-                self.instanciated_paths = Some(new_data);
+                self.instantiated_paths = Some(new_data);
             }
         } else {
-            self.instanciated_paths = Some(BezierPathData::new(
+            self.instantiated_paths = Some(BezierPathData::new(
                 self.bezier_planes.clone(),
                 self.bezier_paths.clone(),
                 helix_parameters,
@@ -253,12 +248,12 @@ impl Design {
         }
         if self.needs_update() {
             let grid_data = GridData::new_by_updating_design(self);
-            self.instanciated_grid_data = Some(grid_data);
+            self.instantiated_grid_data = Some(grid_data);
         }
         UpToDateDesign {
             design: self,
-            grid_data: self.instanciated_grid_data.as_ref().unwrap(),
-            paths_data: self.instanciated_paths.as_ref().unwrap(),
+            grid_data: self.instantiated_grid_data.as_ref().unwrap(),
+            paths_data: self.instantiated_paths.as_ref().unwrap(),
         }
     }
 
@@ -267,26 +262,26 @@ impl Design {
             .helix_parameters
             .as_ref()
             .unwrap_or(&HelixParameters::DEFAULT);
-        if let Some(paths_data) = self.instanciated_paths.as_ref() {
+        if let Some(paths_data) = self.instantiated_paths.as_ref() {
             if let Some(new_data) = paths_data.updated(
                 self.bezier_planes.clone(),
                 self.bezier_paths.clone(),
                 helix_parameters,
             ) {
-                self.instanciated_paths = Some(new_data);
+                self.instantiated_paths = Some(new_data);
             }
         } else {
-            self.instanciated_paths = Some(BezierPathData::new(
+            self.instantiated_paths = Some(BezierPathData::new(
                 self.bezier_planes.clone(),
                 self.bezier_paths.clone(),
                 helix_parameters,
             ));
         }
-        self.instanciated_paths.as_ref().unwrap()
+        self.instantiated_paths.as_ref().unwrap()
     }
 
     fn needs_update(&self) -> bool {
-        if let Some(data) = self.instanciated_grid_data.as_ref() {
+        if let Some(data) = self.instantiated_grid_data.as_ref() {
             !data.is_up_to_date(self)
         } else {
             true
@@ -297,7 +292,6 @@ impl Design {
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct CameraId(u64);
 
-use serde_with::{DefaultOnError, serde_as};
 /// A saved camera position. This can be use to register interesting point of views of the design.
 #[serde_as]
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -371,12 +365,12 @@ impl Design {
             saved_camera: None,
             checked_xovers: Default::default(),
             rainbow_scaffold: false,
-            instanciated_grid_data: None,
+            instantiated_grid_data: None,
             cached_curve: Default::default(),
             bezier_planes: Default::default(),
             bezier_paths: Default::default(),
             old_grids: Vec::new(),
-            instanciated_paths: None,
+            instantiated_paths: None,
             external_3d_objects: Default::default(),
             additional_structure: None,
             clone_isometries: Some(Vec::new()),
@@ -537,14 +531,14 @@ impl Design {
     pub fn get_updated_grid_data(&mut self) -> &GridData {
         self.update_curve_bounds();
         for _ in 0..3 {
-            let need_update = if let Some(data) = self.instanciated_grid_data.as_ref() {
+            let need_update = if let Some(data) = self.instantiated_grid_data.as_ref() {
                 !data.is_up_to_date(self)
             } else {
                 true
             };
             if need_update {
                 let updated_data = GridData::new_by_updating_design(self);
-                self.instanciated_grid_data = Some(updated_data);
+                self.instantiated_grid_data = Some(updated_data);
             }
             if !self.update_curve_bounds() {
                 // we are done
@@ -566,7 +560,7 @@ impl Design {
                 self.strands.get_used_bounds_for_helix(*h_id, &self.helices)
             {
                 log::debug!("bounds {} {}", n_min, n_max);
-                if let Some(curve) = h.instanciated_curve.as_ref() {
+                if let Some(curve) = h.instantiated_curve.as_ref() {
                     if let Some(t_min) = curve
                         .curve
                         .left_extension_to_have_nucl(n_min, &helix_parameters)
@@ -609,7 +603,7 @@ impl Design {
         self.get_updated_grid_data();
         MutStrandAndData {
             strands: &mut self.strands,
-            grid_data: self.instanciated_grid_data.as_ref().unwrap(),
+            grid_data: self.instantiated_grid_data.as_ref().unwrap(),
             helices: &self.helices,
             helix_parameters: self.helix_parameters.unwrap_or_default(),
         }

@@ -15,21 +15,21 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use std::marker::PhantomData;
-
-use ensnano_iced::{
-    fonts::{MaterialIcon, icon_to_char},
-    helpers::*,
-    iced::Length,
-    iced_aw::TabLabel,
-    theme,
-};
 
 use super::tabs::GuiTab;
 use super::{
-    AppState, FactoryId, GridTypeDescr, Hyperboloid_, HyperboloidRequest, ICON_HONEYCOMB_GRID,
-    ICON_NANOTUBE, ICON_SQUARE_GRID, Message, RequestFactory, UiSize, ValueId,
+    AppState, FactoryId, GridTypeDescr, Hyperboloid_, HyperboloidRequest, Message, RequestFactory,
+    UiSize, ValueId,
 };
+use ensnano_iced::{
+    fonts::{MaterialIcon, icon_to_char},
+    helpers::*,
+    iced::{self, Length},
+    iced_aw::TabLabel,
+    theme,
+};
+use ensnano_interactor::consts::{ICON_HONEYCOMB_GRID, ICON_NANOTUBE, ICON_SQUARE_GRID};
+use std::marker::PhantomData;
 
 pub struct GridTab<State: AppState> {
     hyperboloid_factory: RequestFactory<Hyperboloid_>,
@@ -67,11 +67,7 @@ impl<State: AppState> GuiTab<State> for GridTab<State> {
         TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::GridOn)))
     }
 
-    fn content(
-        &self,
-        ui_size: UiSize,
-        app_state: &State,
-    ) -> ensnano_iced::Element<'_, Self::Message> {
+    fn content(&self, ui_size: UiSize, app_state: &State) -> iced::Element<'_, Self::Message> {
         let content = self::column![
             section("Grids", ui_size),
             subsection("New Grid", ui_size),

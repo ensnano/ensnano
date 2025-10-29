@@ -20,7 +20,6 @@ use std::path::Path;
 
 use super::Selection;
 use super::graphics::*;
-use ensnano_design::Nucl;
 use ensnano_design::group_attributes::GroupPivot;
 use ensnano_iced::{iced_wgpu::wgpu, iced_winit::winit};
 use std::sync::Arc;
@@ -63,12 +62,7 @@ pub trait Application {
         app_state: &Self::AppState,
     ) -> Option<CursorIcon>;
     /// The method is used to forwards redraw_requests to applications
-    fn on_redraw_request(
-        &mut self,
-        encoder: &mut wgpu::CommandEncoder,
-        target: &wgpu::TextureView,
-        dt: Duration,
-    );
+    fn on_redraw_request(&mut self, encoder: &mut wgpu::CommandEncoder, target: &wgpu::TextureView);
     fn needs_redraw(&mut self, dt: Duration, app_state: Self::AppState) -> bool;
     fn get_position_for_new_grid(&self) -> Option<(Vec3, Rotor3)> {
         None
@@ -96,7 +90,6 @@ pub enum Notification {
     CameraTarget((Vec3, Vec3)),
     TeleportCamera(Camera3D),
     CameraRotation(f32, f32, f32),
-    Centering(Nucl, usize),
     CenterSelection(Selection, AppId),
     ShowTorsion(bool),
     ModifiersChanged(Modifiers),
@@ -117,6 +110,4 @@ pub enum Notification {
 pub enum AppId {
     FlatScene,
     Scene,
-    Organizer,
-    Mediator,
 }

@@ -54,7 +54,7 @@ impl super::Curved for SuperTwist {
         }
     }
 
-    fn position(&self, t: f64) -> ultraviolet::DVec3 {
+    fn position(&self, t: f64) -> DVec3 {
         let ct = (t * self.omega).cos();
         let st = (t * self.omega).sin();
 

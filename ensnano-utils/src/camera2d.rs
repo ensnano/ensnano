@@ -21,9 +21,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! matrix. The [Camera2D] struct modifies a [Globals] attribute and perform some view <-> world
 //! coordinate conversion.
 
-use ensnano_design::{Rotor2, Vec2};
 use ensnano_iced::iced_winit::winit::{dpi::PhysicalPosition, event::MouseScrollDelta};
 use ensnano_interactor::consts::MAX_ZOOM_2D;
+use ultraviolet::{Rotor2, Vec2};
 
 /// A 2D camera for the FlatScene.
 pub struct Camera2D {
@@ -42,10 +42,6 @@ impl Camera2D {
             was_updated: true,
             bottom,
         }
-    }
-
-    pub fn from_resolution(resolution: [f32; 2], bottom: bool) -> Self {
-        Camera2D::new(Globals::from_resolution(resolution), bottom)
     }
 }
 
@@ -128,10 +124,9 @@ impl Camera2D {
         }
         .min(1.)
         .max(-1.);
-        let mult_const = 1.25_f32.powf(scroll);
         let fixed_point =
             Vec2::from(self.screen_to_world(cursor_position.x as f32, cursor_position.y as f32));
-        self.globals.zoom *= mult_const;
+        self.globals.zoom *= 1.25_f32.powf(scroll);
         self.globals.zoom = self.globals.zoom.min(MAX_ZOOM_2D);
         let delta = fixed_point
             - Vec2::from(self.screen_to_world(cursor_position.x as f32, cursor_position.y as f32));
@@ -443,10 +438,6 @@ impl FitRectangle {
     }
     pub fn top_left(&self) -> [f32; 2] {
         [self.x_min, self.y_max]
-    }
-
-    pub fn bottom_right(&self) -> [f32; 2] {
-        [self.x_max, self.y_min]
     }
 }
 

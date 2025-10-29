@@ -16,7 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use crate::MaterialColor;
+use super::MaterialColor;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
@@ -241,114 +241,6 @@ impl From<Vec<DrawingAttribute>> for DrawingStyle {
 }
 
 impl DrawingStyle {
-    pub fn with_attribute(&self, att: DrawingAttribute) -> Self {
-        match att {
-            DrawingAttribute::SphereRadius(r) => DrawingStyle {
-                sphere_radius: Some(r),
-                ..*self
-            },
-            DrawingAttribute::BondRadius(r) => DrawingStyle {
-                bond_radius: Some(r),
-                ..*self
-            },
-            DrawingAttribute::DoubleHelixAsCylinderRadius(r) => DrawingStyle {
-                helix_as_cylinder_radius: Some(r),
-                ..*self
-            },
-            DrawingAttribute::SphereColor(c) => DrawingStyle {
-                sphere_color: Some(c),
-                ..*self
-            },
-            DrawingAttribute::BondColor(c) => DrawingStyle {
-                bond_color: Some(c),
-                ..*self
-            },
-            DrawingAttribute::DoubleHelixAsCylinderColor(c) => DrawingStyle {
-                helix_as_cylinder_color: Some(c),
-                ..*self
-            },
-            DrawingAttribute::RainbowStrand(b) => DrawingStyle {
-                rainbow_strand: Some(b),
-                ..*self
-            },
-            DrawingAttribute::XoverColoring(b) => DrawingStyle {
-                xover_coloring: Some(b),
-                ..*self
-            },
-            DrawingAttribute::WithCones(b) => DrawingStyle {
-                with_cones: Some(b),
-                ..*self
-            },
-            DrawingAttribute::ColorShade(c, hue_range) => DrawingStyle {
-                color_shade: Some(c),
-                hue_range,
-                ..*self
-            },
-            DrawingAttribute::OnAxis(b) => DrawingStyle {
-                on_axis: Some(b),
-                ..*self
-            },
-            DrawingAttribute::Curvature(r_min, r_max) => DrawingStyle {
-                curvature: Some((r_min, r_max)),
-                ..*self
-            },
-            DrawingAttribute::Torsion(t_min, t_max) => DrawingStyle {
-                torsion: Some((t_min, t_max)),
-                ..*self
-            },
-        }
-    }
-
-    pub fn attributes(&self) -> Vec<DrawingAttribute> {
-        let mut atts = Vec::new();
-
-        if let Some(r) = self.sphere_radius {
-            atts.push(DrawingAttribute::SphereRadius(r))
-        }
-        if let Some(r) = self.bond_radius {
-            atts.push(DrawingAttribute::BondRadius(r))
-        }
-        if let Some(r) = self.helix_as_cylinder_radius {
-            atts.push(DrawingAttribute::DoubleHelixAsCylinderRadius(r))
-        }
-
-        if let Some(c) = self.sphere_color {
-            atts.push(DrawingAttribute::SphereColor(c))
-        }
-        if let Some(c) = self.bond_color {
-            atts.push(DrawingAttribute::BondColor(c))
-        }
-        if let Some(c) = self.helix_as_cylinder_color {
-            atts.push(DrawingAttribute::DoubleHelixAsCylinderColor(c))
-        }
-
-        if let Some(b) = self.rainbow_strand {
-            atts.push(DrawingAttribute::RainbowStrand(b))
-        }
-
-        if let Some(b) = self.xover_coloring {
-            atts.push(DrawingAttribute::XoverColoring(b))
-        }
-
-        if let Some(c) = self.color_shade {
-            atts.push(DrawingAttribute::ColorShade(c, self.hue_range))
-        }
-
-        if let Some(b) = self.on_axis {
-            atts.push(DrawingAttribute::OnAxis(b))
-        }
-
-        if let Some((r_min, r_max)) = self.curvature {
-            atts.push(DrawingAttribute::Curvature(r_min, r_max))
-        }
-
-        if let Some((t_min, t_max)) = self.torsion {
-            atts.push(DrawingAttribute::Torsion(t_min, t_max))
-        }
-
-        return atts;
-    }
-
     pub fn complete_with_attribute(&self, att: DrawingAttribute) -> Self {
         match att {
             DrawingAttribute::SphereRadius(r) => DrawingStyle {

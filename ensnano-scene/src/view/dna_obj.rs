@@ -18,9 +18,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! This modules defines the meshes that are used to draw DNA.
 
 use super::instances_drawer::{Instantiable, Vertexable};
-use ensnano_design::ultraviolet;
 use ensnano_interactor::consts::*;
-use ensnano_utils::wgpu;
 use std::f32::consts::PI;
 use ultraviolet::{Mat4, Rotor3, Vec3, Vec4};
 
@@ -32,11 +30,6 @@ use std::iter::zip;
 pub struct DnaVertex {
     pub position: [f32; 3],
     pub normal: [f32; 3],
-}
-
-pub trait DnaObject:
-    Instantiable<Ressource = (), Vertex = DnaVertex, RawInstance = RawDnaInstance>
-{
 }
 
 const VERTEX_ATTR_ARRAY: [wgpu::VertexAttribute; 2] =
@@ -94,20 +87,10 @@ pub struct PlainRectangleInstance {
     pub height: f32,
 }
 
-impl PlainRectangleInstance {
-    pub fn with_size(self: Self, width: f32, height: f32) -> Self {
-        Self {
-            width,
-            height,
-            ..self
-        }
-    }
-}
-
 impl Instantiable for PlainRectangleInstance {
     type Vertex = DnaVertex;
     type RawInstance = RawDnaInstance;
-    type Ressource = ();
+    type Resource = ();
 
     fn vertices() -> Vec<DnaVertex> {
         let vertices = vec![
@@ -176,8 +159,6 @@ impl Instantiable for PlainRectangleInstance {
     }
 }
 
-impl DnaObject for PlainRectangleInstance {}
-
 pub struct SphereInstance {
     /// The position in space
     pub position: Vec3,
@@ -186,16 +167,10 @@ pub struct SphereInstance {
     pub radius: f32, // nm
 }
 
-impl SphereInstance {
-    pub fn with_radius(self, radius: f32) -> Self {
-        Self { radius, ..self }
-    }
-}
-
 impl Instantiable for SphereInstance {
     type Vertex = DnaVertex;
     type RawInstance = RawDnaInstance;
-    type Ressource = ();
+    type Resource = ();
 
     fn vertices() -> Vec<DnaVertex> {
         let mut vertices = Vec::new();
@@ -227,8 +202,8 @@ impl Instantiable for SphereInstance {
         let mut indices = Vec::new();
 
         for i in 0..NB_STACK_SPHERE {
-            let mut k1: u16 = i * (NB_SECTOR_SPHERE + 1); // begining of ith stack
-            let mut k2: u16 = k1 + NB_SECTOR_SPHERE + 1; // begining of (i + 1)th stack
+            let mut k1: u16 = i * (NB_SECTOR_SPHERE + 1); // start of ith stack
+            let mut k2: u16 = k1 + NB_SECTOR_SPHERE + 1; // start of (i + 1)th stack
 
             for _ in 0..NB_SECTOR_SPHERE {
                 if i > 0 {
@@ -289,8 +264,6 @@ impl Instantiable for SphereInstance {
     }
 }
 
-impl DnaObject for SphereInstance {}
-
 pub struct StereographicSphereAndPlane {
     pub position: Vec3,
     pub orientation: Rotor3,
@@ -300,7 +273,7 @@ pub struct StereographicSphereAndPlane {
 impl Instantiable for StereographicSphereAndPlane {
     type Vertex = DnaVertex;
     type RawInstance = RawDnaInstance;
-    type Ressource = ();
+    type Resource = ();
 
     fn vertices() -> Vec<DnaVertex> {
         let mut ret = SphereInstance::vertices();
@@ -397,7 +370,7 @@ impl TubeInstance {
 impl Instantiable for TubeInstance {
     type Vertex = DnaVertex;
     type RawInstance = RawDnaInstance;
-    type Ressource = ();
+    type Resource = ();
 
     fn vertices() -> Vec<DnaVertex> {
         (0..(2 * NB_RAY_TUBE))
@@ -445,12 +418,14 @@ impl Instantiable for TubeInstance {
     }
 
     fn to_raw_instance(&self) -> RawDnaInstance {
+        // Translate to the position and apply rotation so that u_x aligns with the tube’s axis.
         let model =
-            Mat4::from_translation(self.position) * self.rotor.into_matrix().into_homogeneous(); // translation à position et rotation dans la bonne position u_x -> axe du tube
+            Mat4::from_translation(self.position) * self.rotor.into_matrix().into_homogeneous();
+
         RawDnaInstance {
             model,
             color: self.color,
-            scale: Vec3::new(self.length, self.radius, self.radius), // scale.x is the length of the tube
+            scale: Vec3::new(self.length, self.radius, self.radius),
             id: self.id,
             inversed_model: model.inversed(),
             mesh: super::Mesh::Tube as u32,
@@ -460,8 +435,6 @@ impl Instantiable for TubeInstance {
         }
     }
 }
-
-impl DnaObject for TubeInstance {}
 
 /// TUBE TIP INSTANCE
 
@@ -473,16 +446,10 @@ pub struct TubeLidInstance {
     pub radius: f32,
 }
 
-impl TubeLidInstance {
-    pub fn with_radius(self, radius: f32) -> Self {
-        Self { radius, ..self }
-    }
-}
-
 impl Instantiable for TubeLidInstance {
     type Vertex = DnaVertex;
     type RawInstance = RawDnaInstance;
-    type Ressource = ();
+    type Resource = ();
 
     fn vertices() -> Vec<DnaVertex> {
         let normal = [1., 0., 0.];
@@ -494,8 +461,8 @@ impl Instantiable for TubeLidInstance {
                         normal,
                     }
                 } else {
-                    let φ = i as f32 / NB_RAY_TUBE as f32 * 2. * std::f32::consts::PI;
-                    let position = [0., φ.sin(), φ.cos()];
+                    let phi = i as f32 / NB_RAY_TUBE as f32 * 2. * std::f32::consts::PI;
+                    let position = [0., phi.sin(), phi.cos()];
                     DnaVertex { position, normal }
                 }
             })
@@ -550,8 +517,6 @@ impl Instantiable for TubeLidInstance {
     }
 }
 
-impl DnaObject for TubeLidInstance {}
-
 /// SLICED TUBE INSTANCE
 
 pub struct SlicedTubeInstance {
@@ -568,26 +533,26 @@ pub struct SlicedTubeInstance {
 impl Instantiable for SlicedTubeInstance {
     type Vertex = DnaVertex;
     type RawInstance = RawDnaInstance;
-    type Ressource = ();
+    type Resource = ();
 
     fn vertices() -> Vec<DnaVertex> {
         // Precomputation of the cos and sin
         let circle: Vec<[f32; 3]> = (0..3 * NB_RAY_TUBE)
             .map(|i| {
-                let φ = (i % NB_RAY_TUBE) as f32 / NB_RAY_TUBE as f32 * 2. * std::f32::consts::PI;
+                let phi = (i % NB_RAY_TUBE) as f32 / NB_RAY_TUBE as f32 * 2. * std::f32::consts::PI;
                 let x = match i / NB_RAY_TUBE {
                     0 => -0.5,
                     1 => 0.,
                     _ => 0.5,
                 };
-                [x, φ.sin(), φ.cos()]
+                [x, phi.sin(), phi.cos()]
             })
             .collect();
 
         let circle_normal: Vec<[f32; 3]> = (0..3 * NB_RAY_TUBE)
             .map(|i| {
-                let φ = (i % NB_RAY_TUBE) as f32 / NB_RAY_TUBE as f32 * 2. * std::f32::consts::PI;
-                [0., φ.sin(), φ.cos()]
+                let phi = (i % NB_RAY_TUBE) as f32 / NB_RAY_TUBE as f32 * 2. * std::f32::consts::PI;
+                [0., phi.sin(), phi.cos()]
             })
             .collect();
 
@@ -635,7 +600,7 @@ impl Instantiable for SlicedTubeInstance {
     }
 
     fn fake_fragment_module(device: &wgpu::Device) -> Option<wgpu::ShaderModule> {
-        // note that currently fake sliced tube points to faketube... to be changed
+        // note that currently fake sliced tube points to fake tube... to be changed
         Some(device.create_shader_module(wgpu::include_spirv!("dna_obj_fake.frag.spv")))
     }
 
@@ -665,8 +630,6 @@ impl Instantiable for SlicedTubeInstance {
     }
 }
 
-impl DnaObject for SlicedTubeInstance {}
-
 /// CONE INSTANCE
 pub struct ConeInstance {
     pub position: Vec3,
@@ -680,7 +643,7 @@ pub struct ConeInstance {
 impl Instantiable for ConeInstance {
     type Vertex = DnaVertex;
     type RawInstance = RawDnaInstance;
-    type Ressource = ();
+    type Resource = ();
 
     fn vertices() -> Vec<DnaVertex> {
         let radius = 1.;
@@ -769,8 +732,6 @@ impl Instantiable for ConeInstance {
     }
 }
 
-impl DnaObject for ConeInstance {}
-
 pub struct Ellipsoid {
     pub scale: Vec3,
     pub orientation: Rotor3,
@@ -780,7 +741,7 @@ pub struct Ellipsoid {
 impl Instantiable for Ellipsoid {
     type Vertex = DnaVertex;
     type RawInstance = RawDnaInstance;
-    type Ressource = ();
+    type Resource = ();
 
     fn vertices() -> Vec<Self::Vertex> {
         SphereInstance::vertices()

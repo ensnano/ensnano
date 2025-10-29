@@ -15,16 +15,14 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use ensnano_design::ultraviolet;
-use ensnano_utils::wgpu;
-use ultraviolet::{Mat4, Vec2, Vec3, Vec4};
-use wgpu::{Device, RenderPass, include_spirv};
+
+mod texture;
 
 use super::{LetterInstance, grid_disc::GridDisc, instances_drawer::*};
 use ensnano_design::grid::{Grid, GridDivision, GridId, GridPosition, GridType};
 use std::collections::BTreeMap;
-
-mod texture;
+use ultraviolet::{Mat4, Vec2, Vec3, Vec4};
+use wgpu::{Device, RenderPass, include_spirv};
 
 #[derive(Debug, Clone)]
 pub struct GridInstance {
@@ -77,7 +75,7 @@ impl GridInstance {
             let shift = 0.5 * up - 0.35 * h_id.to_string().len() as f32 * right;
             let instance = LetterInstance {
                 position: position + 0.7 * c_idx as f32 * right + shift,
-                color: ultraviolet::Vec4::new(0., 0., 0., 1.),
+                color: Vec4::new(0., 0., 0., 1.),
                 design_id: self.design as u32,
                 scale: 3.,
                 shift: Vec3::zero(),
@@ -91,7 +89,7 @@ impl GridInstance {
         let color = match self.id {
             GridId::FreeGrid(id) => id as u32,
             GridId::BezierPathGrid(vertex) => {
-                crate::element_selector::bezier_vertex_id(vertex.path_id, vertex.vertex_id)
+                super::super::element_selector::bezier_vertex_id(vertex.path_id, vertex.vertex_id)
             }
         };
         Self {
@@ -135,7 +133,7 @@ impl GridInstance {
         }
     }
 
-    /// Return x >= 0 so that orgin + x axis is on the grid, or None if such an x does not exist.
+    /// Return x >= 0 so that origin + x axis is on the grid, or None if such an x does not exist.
     fn ray_intersection(&self, origin: Vec3, axis: Vec3) -> Option<GridIntersection> {
         let ret = self.grid.ray_intersection(origin, axis)?;
         if ret < 0. {
@@ -210,7 +208,7 @@ pub struct GridInstanceRaw {
     pub design_id: u32,       // padding 0,
 }
 
-/// A structure that manages the pipepline that draw the grids
+/// A structure that manages the pipeline that draw the grids
 pub struct GridManager {
     /// A possible updates to the instances to be drawn. Must be taken into account before drawing
     /// next frame
@@ -374,22 +372,20 @@ impl Vertexable for GridVertex {
 
 pub struct GridTextures {
     square_texture: texture::SquareTexture,
-    honney_texture: texture::HonneyTexture,
+    honey_texture: texture::HoneyTexture,
 }
 
 impl GridTextures {
     pub fn new(device: &Device, encoder: &mut wgpu::CommandEncoder) -> Self {
-        let square_texture = texture::SquareTexture::new(device, encoder);
-        let honney_texture = texture::HonneyTexture::new(device, encoder);
         Self {
-            square_texture,
-            honney_texture,
+            square_texture: texture::SquareTexture::new(device, encoder),
+            honey_texture: texture::HoneyTexture::new(device, encoder),
         }
     }
 }
 
-impl RessourceProvider for GridTextures {
-    fn ressources_layout() -> &'static [wgpu::BindGroupLayoutEntry] {
+impl ResourceProvider for GridTextures {
+    fn resources_layout() -> &'static [wgpu::BindGroupLayoutEntry] {
         &[
             wgpu::BindGroupLayoutEntry {
                 binding: 0,
@@ -426,7 +422,7 @@ impl RessourceProvider for GridTextures {
         ]
     }
 
-    fn ressources(&self) -> Vec<wgpu::BindGroupEntry<'_>> {
+    fn resources(&self) -> Vec<wgpu::BindGroupEntry<'_>> {
         vec![
             wgpu::BindGroupEntry {
                 binding: 0,
@@ -438,11 +434,11 @@ impl RessourceProvider for GridTextures {
             },
             wgpu::BindGroupEntry {
                 binding: 2,
-                resource: wgpu::BindingResource::TextureView(&self.honney_texture.view),
+                resource: wgpu::BindingResource::TextureView(&self.honey_texture.view),
             },
             wgpu::BindGroupEntry {
                 binding: 3,
-                resource: wgpu::BindingResource::Sampler(&self.honney_texture.sampler),
+                resource: wgpu::BindingResource::Sampler(&self.honey_texture.sampler),
             },
         ]
     }
@@ -451,7 +447,7 @@ impl RessourceProvider for GridTextures {
 impl Instantiable for GridInstance {
     type Vertex = GridVertex;
     type RawInstance = GridInstanceRaw;
-    type Ressource = GridTextures;
+    type Resource = GridTextures;
 
     fn to_raw_instance(&self) -> GridInstanceRaw {
         self.to_raw()
@@ -488,9 +484,5 @@ impl Instantiable for GridInstance {
 
     fn fragment_module(device: &Device) -> wgpu::ShaderModule {
         device.create_shader_module(include_spirv!("grid.frag.spv"))
-    }
-
-    fn alpha_to_coverage_enabled() -> bool {
-        true
     }
 }

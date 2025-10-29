@@ -1,7 +1,7 @@
 use std::ops::Range;
 
 use ahash::HashMap;
-use ensnano_design::{HelixParameters, Nucl};
+use ensnano_design::Nucl;
 
 /// Holds the intermediary representation
 /// of a nucleotide pair.
@@ -11,7 +11,8 @@ pub(crate) enum IntermediaryPair {
     OnlyForward(u32, Nucl),
     OnlyBackward(u32, Nucl),
     // always forward, backward
-    Pair(u32, Nucl, u32, Nucl),
+    // the second nucleotide is redondant
+    Pair(u32, Nucl, u32),
 }
 
 impl IntermediaryPair {
@@ -46,23 +47,20 @@ impl IntermediaryPair {
 /// information is computed so that the structure
 /// of those continuous segments can be better
 /// ensured by the physical simulation.
+#[derive(Default)]
 pub(crate) struct IntermediaryHelix {
-    pub parameters: HelixParameters,
     pub pairs: HashMap<isize, IntermediaryPair>,
     pub double_ranges: Vec<Range<isize>>,
     pub single_ranges: Vec<Range<isize>>,
 }
 
-pub fn build_helices(
-    parameters: HelixParameters,
-    nucleotide: &HashMap<u32, Nucl>,
-) -> HashMap<usize, IntermediaryHelix> {
-    let mut result = HashMap::default();
+pub fn build_helices(nucleotide: &HashMap<u32, Nucl>) -> HashMap<usize, IntermediaryHelix> {
+    let mut result = HashMap::<usize, IntermediaryHelix>::default();
 
     for (&id, &nucl) in nucleotide {
         result
             .entry(nucl.helix)
-            .or_insert(IntermediaryHelix::new(parameters))
+            .or_default()
             .push_nucleotide(id, nucl);
     }
 
@@ -72,15 +70,6 @@ pub fn build_helices(
 }
 
 impl IntermediaryHelix {
-    pub fn new(parameters: HelixParameters) -> Self {
-        Self {
-            parameters,
-            pairs: Default::default(),
-            double_ranges: Default::default(),
-            single_ranges: Default::default(),
-        }
-    }
-
     pub fn compute_ranges(&mut self) {
         self.double_ranges = self.compute_ranges_only(IntermediaryPair::is_a_pair);
         self.single_ranges = self.compute_ranges_only(IntermediaryPair::is_only_forward);
@@ -137,15 +126,15 @@ impl IntermediaryHelix {
                         return None;
                     }
 
-                    *pair = IntermediaryPair::Pair(*i, *n, id, nucl);
+                    *pair = IntermediaryPair::Pair(*i, *n, id);
                     return Some(());
                 }
-                IntermediaryPair::OnlyBackward(i, n) => {
+                IntermediaryPair::OnlyBackward(i, _) => {
                     if !nucl.forward {
                         return None;
                     }
 
-                    *pair = IntermediaryPair::Pair(id, nucl, *i, *n);
+                    *pair = IntermediaryPair::Pair(id, nucl, *i);
                     return Some(());
                 }
                 _ => {
@@ -171,7 +160,7 @@ mod tests {
     use super::*;
     #[test]
     fn helix_ranges() {
-        let mut helix = IntermediaryHelix::new(HelixParameters::GEARY_2014_DNA_P_STICK);
+        let mut helix = IntermediaryHelix::default();
 
         helix.push_nucleotide(
             0,

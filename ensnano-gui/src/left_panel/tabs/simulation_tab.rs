@@ -18,6 +18,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::tabs::GuiTab;
 use super::*;
 use ensnano_iced::{helpers::*, iced_aw::TabLabel};
+use ensnano_interactor::consts::ICON_PHYSICAL_ENGINE;
 
 pub struct SimulationTab<State: AppState> {
     rigid_body_factory: RequestFactory<RigidBodyFactory>,
@@ -139,7 +140,7 @@ impl<State: AppState> GuiTab<State> for SimulationTab<State> {
     type Message = Message<State>;
 
     fn label(&self) -> TabLabel {
-        TabLabel::Icon(crate::consts::ICON_PHYSICAL_ENGINE)
+        TabLabel::Icon(ICON_PHYSICAL_ENGINE)
     }
 
     fn content(
@@ -225,8 +226,6 @@ impl PhysicalSimulation {
 
     fn request(&self) -> RollRequest {
         RollRequest {
-            roll: true,
-            springs: false,
             target_helices: None,
         }
     }

@@ -15,51 +15,45 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-//! This modules handles internal informations about the scene, such as the selected objects etc..
+
+//! This modules handles internal information about the scene, such as the selected objects etc..
 //! It also communicates with the designs to get the position of the objects to draw on the scene.
 
-use crate::view::AvailableRotationAxes;
+mod design3d;
 
-use super::view::{
-    GridDisc, HandleColors, Instantiable, RawDnaInstance, StereographicSphereAndPlane,
-};
 use super::{
-    Camera3D, HandleOrientation, HandlesDescriptor, LetterInstance, RotationWidgetDescriptor,
-    RotationWidgetOrientation, SceneElement, View, ViewUpdate, ultraviolet,
+    AppState, Camera3D, HandlesDescriptor, LetterInstance, RotationWidgetDescriptor,
+    RotationWidgetOrientation, SceneElement, View, ViewUpdate,
+    view::{
+        AvailableRotationAxes, GridDisc, HandleColors, Instantiable, Mesh, RawDnaInstance,
+        StereographicSphereAndPlane,
+    },
 };
-use std::cell::RefCell;
-use std::collections::{BTreeMap, HashMap, HashSet};
-// use std::hash::RandomState;
-use std::rc::Rc;
-use std::sync::Arc;
-
-use ensnano_design::grid::GridObject;
-use ensnano_design::{BezierVertexId, Collection};
-use ensnano_interactor::graphics::HBondDisplay;
-use ultraviolet::{Rotor3, Vec3};
-
-use super::view::Mesh;
+use design3d::Design3D;
+pub use design3d::{DesignReader, HBond, HalfHBond};
 use ensnano_design::{
-    Nucl,
-    grid::{GridId, GridPosition},
+    BezierVertexId, Collection, External3DObjectsStamp, Nucl, SurfaceInfo, SurfacePoint,
+    grid::{GridId, GridObject, GridPosition},
 };
-use ensnano_interactor::consts::*;
 use ensnano_interactor::{
     ActionMode, CenterOfSelection, ObjectType, PhantomElement, Referential, Selection,
     SelectionMode,
+    consts::{
+        BOND_RADIUS, CANDIDATE_COLOR, CANDIDATE_SCALE_FACTOR, SELECT_SCALE_FACTOR, SELECTED_COLOR,
+        SPHERE_RADIUS,
+    },
+    graphics::HBondDisplay,
 };
-
 use ensnano_utils::StrandNucleotidesPositions;
-
-use super::AppState;
+use std::{
+    cell::RefCell,
+    collections::{BTreeMap, HashMap, HashSet},
+    rc::Rc,
+    sync::Arc,
+};
+use ultraviolet::{Rotor3, Vec3};
 
 type ViewPtr = Rc<RefCell<View>>;
-
-/// A module that handles the instantiation of designs as 3D geometric objects
-mod design3d;
-use design3d::Design3D;
-pub use design3d::{DesignReader, HBond, HalfHBond, SurfaceInfo, SurfacePoint};
-use ensnano_design::External3DObjectsStamp;
 
 pub struct Data<R: DesignReader> {
     view: ViewPtr,
@@ -75,19 +69,19 @@ pub struct Data<R: DesignReader> {
     /// A position determined by the current selection. If only one nucleotide is selected, it's
     /// the position of the nucleotide.
     selected_position: Option<Vec3>,
-    /// The element arround which the camera rotates
+    /// The element around which the camera rotates
     pivot_element: Option<SceneElement>,
     pivot_update: bool,
     pivot_position: Option<Vec3>,
     surface_pivot_position: Option<Vec3>,
     free_xover: Option<FreeXover>,
     free_xover_update: bool,
-    handle_need_opdate: bool,
+    handle_needs_update: bool,
     last_candidate_disc: Option<SceneElement>,
     rotating_pivot: bool,
     handle_colors: HandleColors,
     stereographic_camera: Arc<(Camera3D, f32)>,
-    stereographic_camera_need_update: bool,
+    stereographic_camera_needs_update: bool,
     external_3d_objects_stamps: Option<External3DObjectsStamp>,
 }
 
@@ -104,12 +98,12 @@ impl<R: DesignReader> Data<R> {
             pivot_position: None,
             free_xover: None,
             free_xover_update: false,
-            handle_need_opdate: false,
+            handle_needs_update: false,
             last_candidate_disc: None,
             rotating_pivot: false,
             handle_colors: HandleColors::Rgb,
             stereographic_camera: Arc::new((Default::default(), 1.)),
-            stereographic_camera_need_update: false,
+            stereographic_camera_needs_update: false,
             external_3d_objects_stamps: None,
             surface_pivot_position: None,
         }
@@ -118,7 +112,7 @@ impl<R: DesignReader> Data<R> {
     pub fn update_stereographic_camera(&mut self, camera_ptr: Arc<(Camera3D, f32)>) {
         if Arc::as_ptr(&camera_ptr) != Arc::as_ptr(&self.stereographic_camera) {
             self.stereographic_camera = camera_ptr;
-            self.stereographic_camera_need_update = true;
+            self.stereographic_camera_needs_update = true;
         }
     }
 
@@ -137,9 +131,7 @@ impl<R: DesignReader> Data<R> {
         self.pivot_update = true;
         self.view.borrow_mut().clear_design();
     }
-}
 
-impl<R: DesignReader> Data<R> {
     /// Forwards all needed update to the view
     pub fn update_view<S: AppState>(&mut self, app_state: &S, older_app_state: &S) {
         if self.discs_need_update(app_state, older_app_state) {
@@ -158,9 +150,9 @@ impl<R: DesignReader> Data<R> {
             self.update_instances(app_state);
         }
 
-        if self.stereographic_camera_need_update {
+        if self.stereographic_camera_needs_update {
             self.update_stereographic_sphere();
-            self.stereographic_camera_need_update = false;
+            self.stereographic_camera_needs_update = false;
         }
 
         // If the color of a strand is being modified, we tell the view to highlight nothing.
@@ -173,14 +165,14 @@ impl<R: DesignReader> Data<R> {
         {
             self.update_selection(app_state.get_selection(), app_state);
         }
-        self.handle_need_opdate |= app_state.design_was_modified(older_app_state)
+        self.handle_needs_update |= app_state.design_was_modified(older_app_state)
             || app_state.selection_was_updated(older_app_state)
             || app_state.get_action_mode() != older_app_state.get_action_mode();
 
-        if self.handle_need_opdate {
+        if self.handle_needs_update {
             self.update_bezier(app_state);
             self.update_handle(app_state);
-            self.handle_need_opdate = false;
+            self.handle_needs_update = false;
         }
         if app_state.candidates_set_was_updated(older_app_state) {
             self.update_candidate(app_state.get_candidates(), app_state);
@@ -216,7 +208,7 @@ impl<R: DesignReader> Data<R> {
     }
 
     fn update_external_3d_objects<S: AppState>(&mut self, app_state: &S) {
-        use crate::view::ExternalObjects;
+        use super::view::ExternalObjects;
         let reader = app_state.get_design_reader();
         let external_objects = reader.get_external_objects();
         if let Some(new_stamp) =
@@ -292,24 +284,25 @@ impl<R: DesignReader> Data<R> {
                 .map(|p| p.orientation)
                 .or_else(|| self.get_widget_basis(app_state))
         });
-        let handle_descr = if app_state.get_action_mode().0.wants_handle() || self.rotating_pivot {
-            let colors = if self.rotating_pivot {
-                HandleColors::Rgb
+        let handle_descr =
+            if app_state.get_action_mode().0 == ActionMode::Translate || self.rotating_pivot {
+                let colors = if self.rotating_pivot {
+                    HandleColors::Rgb
+                } else {
+                    self.handle_colors
+                };
+                origin
+                    .clone()
+                    .zip(orientation.clone())
+                    .map(|(origin, orientation)| HandlesDescriptor {
+                        origin,
+                        orientation,
+                        size: 0.25,
+                        colors,
+                    })
             } else {
-                self.handle_colors
+                None
             };
-            origin
-                .clone()
-                .zip(orientation.clone())
-                .map(|(origin, orientation)| HandlesDescriptor {
-                    origin,
-                    orientation: HandleOrientation::Rotor(orientation),
-                    size: 0.25,
-                    colors,
-                })
-        } else {
-            None
-        };
         log::debug!("{:?}", handle_descr);
         self.view
             .borrow_mut()
@@ -319,7 +312,7 @@ impl<R: DesignReader> Data<R> {
         } else {
             AvailableRotationAxes::All
         };
-        let rotation_widget_descr = if app_state.get_action_mode().0.wants_rotation() {
+        let rotation_widget_descr = if app_state.get_action_mode().0 == ActionMode::Rotate {
             origin
                 .clone()
                 .zip(orientation.clone())
@@ -337,9 +330,7 @@ impl<R: DesignReader> Data<R> {
             .borrow_mut()
             .update(ViewUpdate::RotationWidget(rotation_widget_descr));
     }
-}
 
-impl<R: DesignReader> Data<R> {
     pub fn set_pivot_element<S: AppState>(&mut self, element: Option<SceneElement>, app_state: &S) {
         self.pivot_update |= self.pivot_element != element;
         self.pivot_element = element;
@@ -437,7 +428,7 @@ impl<R: DesignReader> Data<R> {
                                     .get_radius(*id)
                                     .unwrap(),
                             Some(design3d::ExpandWith::Spheres)
-                                .filter(|_| !app_state.show_insertion_representents()),
+                                .filter(|_| !app_state.show_insertion_discriminants()),
                         );
                         ret.extend(instances.iter())
                     }
@@ -486,7 +477,7 @@ impl<R: DesignReader> Data<R> {
                                     .get_radius(*id)
                                     .unwrap(),
                             Some(design3d::ExpandWith::Tubes)
-                                .filter(|_| !app_state.show_insertion_representents()),
+                                .filter(|_| !app_state.show_insertion_discriminants()),
                         );
                         ret.extend(instance)
                     }
@@ -535,7 +526,7 @@ impl<R: DesignReader> Data<R> {
                                     .get_radius(*id)
                                     .unwrap(),
                             Some(design3d::ExpandWith::Spheres)
-                                .filter(|_| !app_state.show_insertion_representents()),
+                                .filter(|_| !app_state.show_insertion_discriminants()),
                         );
                         ret.extend(instances);
                     }
@@ -584,7 +575,7 @@ impl<R: DesignReader> Data<R> {
                                     .get_radius(*id)
                                     .unwrap(),
                             Some(design3d::ExpandWith::Tubes)
-                                .filter(|_| !app_state.show_insertion_representents()),
+                                .filter(|_| !app_state.show_insertion_discriminants()),
                         );
                         ret.extend(instances)
                     }
@@ -621,7 +612,7 @@ impl<R: DesignReader> Data<R> {
             Some(SceneElement::PhantomElement(phantom_element)) => Some(phantom_element.helix_id),
             Some(SceneElement::Grid(_, GridId::FreeGrid(g_id))) => Some(g_id as u32),
             Some(SceneElement::Grid(_, GridId::BezierPathGrid(vertex))) => Some(
-                crate::element_selector::bezier_vertex_id(vertex.path_id, vertex.vertex_id),
+                super::element_selector::bezier_vertex_id(vertex.path_id, vertex.vertex_id),
             ),
             _ => None,
         }
@@ -681,14 +672,13 @@ impl<R: DesignReader> Data<R> {
             }
             Selection::Grid(_, _) => HashSet::new(), // A grid is not made of atomic elements
             Selection::Phantom(_) => HashSet::new(),
-            Selection::BezierTangent { .. } => HashSet::new(),
             Selection::BezierVertex(_) => HashSet::new(),
             Selection::Nothing => HashSet::new(),
             Selection::Design(d_id) => self.designs[*d_id as usize].get_all_elements(),
         }
     }
 
-    /// Return the postion of a given element, either in the world pov or in the model pov
+    /// Return the position of a given element, either in the world pov or in the model pov
     fn get_element_position(
         &self,
         element: &SceneElement,
@@ -740,7 +730,7 @@ impl<R: DesignReader> Data<R> {
         element: Option<SceneElement>,
         app_state: &S,
     ) -> (Option<Selection>, Option<CenterOfSelection>) {
-        self.handle_need_opdate = true;
+        self.handle_needs_update = true;
         if let Some(SceneElement::WidgetElement(_)) = element {
             return (None, None);
         }
@@ -1223,15 +1213,15 @@ impl<R: DesignReader> Data<R> {
 
     pub fn get_all_raw_instances<S: AppState>(&self, app_state: &S) -> Vec<RawDnaInstance> {
         let mut instances = vec![];
-        let show_insertion_representents = app_state.show_insertion_representents();
+        let show_insertion_discriminants = app_state.show_insertion_discriminants();
         for design in self.designs.iter() {
-            for sphere in design.get_spheres_raw(show_insertion_representents).iter() {
+            for sphere in design.get_spheres_raw(show_insertion_discriminants).iter() {
                 instances.push(*sphere);
             }
-            for tube in design.get_tubes_raw(show_insertion_representents).iter() {
+            for tube in design.get_tubes_raw(show_insertion_discriminants).iter() {
                 instances.push(*tube);
             }
-            for cone in design.get_cones_raw(show_insertion_representents) {
+            for cone in design.get_cones_raw(show_insertion_discriminants) {
                 instances.push(cone);
             }
             if app_state.get_draw_options().h_bonds != HBondDisplay::No {
@@ -1385,13 +1375,13 @@ impl<R: DesignReader> Data<R> {
         let mut cones = Vec::new();
         for design in self.designs.iter() {
             for sphere in design
-                .get_spheres_raw(app_state.show_insertion_representents())
+                .get_spheres_raw(app_state.show_insertion_discriminants())
                 .iter()
             {
                 spheres.push(*sphere);
             }
             for tube in design
-                .get_tubes_raw(app_state.show_insertion_representents())
+                .get_tubes_raw(app_state.show_insertion_discriminants())
                 .iter()
             {
                 if tube.mesh == Mesh::TubeLid as u32 {
@@ -1411,7 +1401,7 @@ impl<R: DesignReader> Data<R> {
                 spheres.extend(bezier_spheres);
                 tubes.extend(bezier_tubes);
             }
-            letters = design.get_letter_instances(app_state.show_insertion_representents());
+            letters = design.get_letter_instances(app_state.show_insertion_discriminants());
             for (grid_id, grid) in design.get_grid().iter().filter(|g| g.1.visible) {
                 grids.insert(*grid_id, grid.clone());
             }
@@ -1428,7 +1418,7 @@ impl<R: DesignReader> Data<R> {
             for tube in tubes {
                 pasted_tubes.push(tube);
             }
-            for cone in design.get_cones_raw(app_state.show_insertion_representents()) {
+            for cone in design.get_cones_raw(app_state.show_insertion_discriminants()) {
                 cones.push(cone);
             }
         }
@@ -1608,14 +1598,10 @@ impl<R: DesignReader> Data<R> {
     }
 
     fn get_forced_widget_basis<S: AppState>(&self, app_state: &S) -> Option<Rotor3> {
-        if app_state.get_widget_basis().is_axis_aligned()
+        (app_state.get_widget_basis().is_axis_aligned()
             && !(self.handle_colors == HandleColors::Cym
-                && app_state.get_action_mode().0 == ActionMode::Rotate)
-        {
-            Some(Rotor3::identity())
-        } else {
-            None
-        }
+                && app_state.get_action_mode().0 == ActionMode::Rotate))
+            .then(|| Rotor3::identity())
     }
 
     fn get_selected_basis<S: AppState>(&self, app_state: &S) -> Option<Rotor3> {
@@ -1917,34 +1903,13 @@ impl<R: DesignReader> Data<R> {
     }
 
     pub fn notify_handle_movement(&mut self) {
-        self.handle_need_opdate = true;
+        self.handle_needs_update = true;
     }
 
     pub(super) fn get_surface_info_nucl(&self, nucl: Nucl) -> Option<SurfaceInfo> {
         self.designs
             .get(0)
             .and_then(|d| d.get_surface_info_nucl(nucl))
-    }
-}
-
-pub(super) trait WantWidget: Sized + 'static {
-    fn wants_rotation(&self) -> bool;
-    fn wants_handle(&self) -> bool;
-}
-
-impl WantWidget for ActionMode {
-    fn wants_rotation(&self) -> bool {
-        match self {
-            ActionMode::Rotate => true,
-            _ => false,
-        }
-    }
-
-    fn wants_handle(&self) -> bool {
-        match self {
-            ActionMode::Translate => true,
-            _ => false,
-        }
     }
 }
 
@@ -1966,13 +1931,11 @@ fn toggle_selection(mode: SelectionMode) -> SelectionMode {
         SelectionMode::Nucleotide => SelectionMode::Strand,
         SelectionMode::Strand => SelectionMode::Helix,
         SelectionMode::Helix => SelectionMode::Nucleotide,
-        mode => mode,
+        SelectionMode::Design => SelectionMode::Design,
     }
 }
 
-use super::controller::Data as ControllerData;
-
-impl<R: DesignReader> ControllerData for Data<R> {
+impl<R: DesignReader> super::controller::Data for Data<R> {
     fn element_to_nucl(
         &self,
         element: &Option<SceneElement>,
@@ -2013,7 +1976,7 @@ impl<R: DesignReader> ControllerData for Data<R> {
 
     fn update_handle_colors(&mut self, colors: HandleColors) {
         if self.handle_colors != colors {
-            self.handle_need_opdate = true;
+            self.handle_needs_update = true;
             self.handle_colors = colors;
         }
     }
@@ -2030,7 +1993,7 @@ impl<R: DesignReader> ControllerData for Data<R> {
         self.get_surface_info_nucl(nucl)
     }
 
-    fn notify_camera_movement(&mut self, camera: &crate::camera::CameraController) {
+    fn notify_camera_movement(&mut self, camera: &super::camera::CameraController) {
         self.update_surface_pivot(camera.get_current_surface_pivot())
     }
 }

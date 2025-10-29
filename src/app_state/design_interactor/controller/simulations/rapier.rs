@@ -1,11 +1,8 @@
+use std::collections::HashMap;
 use std::{
-    collections::HashMap,
     sync::{Arc, Mutex, Weak},
     time::Duration,
 };
-
-use ensnano_design::{Design, HelixParameters};
-use ensnano_physics::RapierPhysicsSystem;
 
 use crate::{
     app_state::design_interactor::{
@@ -14,6 +11,8 @@ use crate::{
     },
     controller::chanel_reader::ChannelReader,
 };
+use ensnano_design::{Design, HelixParameters};
+use ensnano_physics::RapierPhysicsSystem;
 
 #[derive(Default)]
 pub struct RapierPhysicalSystem {

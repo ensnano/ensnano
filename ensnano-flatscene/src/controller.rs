@@ -27,14 +27,13 @@ use super::{
     ActionMode, AppState, CameraPtr, DataPtr, FlatHelix, FlatNucl, PhySize, PhysicalPosition,
     Selection, ViewPtr, WindowEvent,
 };
-use ensnano_design::ultraviolet;
-use ensnano_utils::winit::{
+use std::cell::RefCell;
+use ultraviolet::Vec2;
+use winit::{
     event::{ElementState, KeyEvent},
     keyboard::{Key, ModifiersState, NamedKey},
     window::CursorIcon,
 };
-use std::cell::RefCell;
-use ultraviolet::Vec2;
 
 mod automata;
 use automata::{ControllerState, NormalState, Transition, ctrl};
@@ -133,7 +132,7 @@ impl<S: AppState> Controller<S> {
         self.update_globals();
     }
 
-    pub fn set_splited(&mut self, splited: bool, refit: bool) {
+    pub fn set_split(&mut self, splited: bool, refit: bool) {
         self.splited = splited;
         let old_rectangle_top = self.camera_top.borrow().get_visible_rectangle();
         self.update_globals();

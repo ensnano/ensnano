@@ -78,11 +78,11 @@ impl Controller {
             if cfg!(test) {
                 println!(
                     "junction after split {}",
-                    strand_mut.formated_anonymous_junctions()
+                    strand_mut.formatted_anonymous_junctions()
                 )
             }
             if insertion_point.nucl_is_prime5_of_insertion {
-                // The nucl is the 3' end of the splited strand
+                // The nucl is the 3' end of the split strand
                 let insertion_junction_id = strand_mut.domains.len() - 1;
                 strand_mut.domains.push(Domain::new_insertion(length));
                 strand_mut
@@ -100,7 +100,7 @@ impl Controller {
                     }
                 }
             } else {
-                // the nucl is the 5' end of the splited strand
+                // the nucl is the 5' end of the split strand
                 strand_mut
                     .domains
                     .insert(0, Domain::new_prime5_insertion(length));
@@ -108,14 +108,14 @@ impl Controller {
                 if cfg!(test) {
                     println!(
                         "After adding junction, merging {}",
-                        strand_mut.formated_anonymous_junctions()
+                        strand_mut.formatted_anonymous_junctions()
                     );
                 }
                 if let Some(strand) = design.strands.get(&s_2) {
                     if strand.length() > 0 {
                         if s_2 != s_id {
                             if cfg!(test) {
-                                println!("with {}", strand.formated_anonymous_junctions());
+                                println!("with {}", strand.formatted_anonymous_junctions());
                             }
                             Self::merge_strands(&mut design.strands, s_2, s_id)?;
                             // The merged strand has id `s_2`, set it back to `s_id`

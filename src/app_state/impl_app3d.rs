@@ -19,7 +19,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::*;
 use ensnano_design::grid::GridId;
 use ensnano_interactor::{StrandBuilder, consts::scroll_sensitivity_conversion};
-use ensnano_scene::{AppState as App3D, DrawOptions};
+use ensnano_scene::{AppState as App3D, view::DrawOptions};
 
 impl App3D for AppState {
     type DesignReader = DesignReader;
@@ -101,7 +101,7 @@ impl App3D for AppState {
             .or(*self.0.selection.pivot.read().as_deref().unwrap())
     }
 
-    fn get_current_group_id(&self) -> Option<ensnano_design::GroupId> {
+    fn get_current_group_id(&self) -> Option<GroupId> {
         self.0.selection.selected_group
     }
 
@@ -141,8 +141,8 @@ impl App3D for AppState {
         sign * scroll_sensitivity_conversion(self.0.parameters.scroll_sensitivity)
     }
 
-    fn show_insertion_representents(&self) -> bool {
-        self.0.show_insertion_representents
+    fn show_insertion_discriminants(&self) -> bool {
+        self.0.show_insertion_discriminants
     }
 
     fn show_bezier_paths(&self) -> bool {

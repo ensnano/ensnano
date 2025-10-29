@@ -17,7 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::*;
-use crate::*;
+use std::collections::BTreeMap;
 
 /// A structure that can map time points to nucleotide indices.
 #[derive(Clone, Debug)]
@@ -215,7 +215,7 @@ impl RevolutionCurveTimeMaps {
             .iter()
             .filter(|(_, h)| h.get_revolution_curve_descriptor() == Some(curve))
         {
-            if let Some(curve) = h.instanciated_curve.as_ref() {
+            if let Some(curve) = h.instantiated_curve.as_ref() {
                 let mut positions = vec![0];
                 for next_left in h
                     .additional_isometries
@@ -241,7 +241,7 @@ impl RevolutionCurveTimeMaps {
             .iter()
             .filter(|(_, h)| h.get_revolution_curve_descriptor() == Some(&curve))
         {
-            if let Some(curve) = h.instanciated_curve.as_ref() {
+            if let Some(curve) = h.instantiated_curve.as_ref() {
                 let nucl_time = Vec::clone(curve.curve.t_nucl.as_ref());
                 time_maps.insert(
                     *h_id,
@@ -274,7 +274,7 @@ impl PathTimeMaps {
 
         let mut square_per_time: f64 = 1.;
         for (_, h) in helices.iter().filter(|(_, h)| h.path_id == Some(path_id)) {
-            if let Some(curve) = h.instanciated_curve.as_ref() {
+            if let Some(curve) = h.instantiated_curve.as_ref() {
                 let time_points = &curve.curve.t_nucl;
                 let square_per_time_for_h = HelixTimeMap::square_per_time_for_time_map(time_points);
                 square_per_time = square_per_time.max(square_per_time_for_h);
@@ -282,7 +282,7 @@ impl PathTimeMaps {
         }
 
         for (h_id, h) in helices.iter().filter(|(_, h)| h.path_id == Some(path_id)) {
-            if let Some(curve) = h.instanciated_curve.as_ref() {
+            if let Some(curve) = h.instantiated_curve.as_ref() {
                 time_maps.insert(
                     *h_id,
                     HelixTimeMap {

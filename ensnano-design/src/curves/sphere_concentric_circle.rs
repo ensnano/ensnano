@@ -45,9 +45,9 @@ impl SphereConcentricCircleDescriptor {
         let inter_helix_center_gap = self
             .inter_helix_center_gap
             .unwrap_or(HelixParameters::INTER_CENTER_GAP as f64);
-        let φ = PI / 2.0 - helix_index * inter_helix_center_gap as f64 / self.radius;
-        let z_radius = self.radius * φ.sin();
-        let z = self.radius * φ.cos();
+        let phi = PI / 2.0 - helix_index * inter_helix_center_gap as f64 / self.radius;
+        let z_radius = self.radius * phi.sin();
+        let z = self.radius * phi.cos();
         let perimeter = TAU * z_radius;
 
         SphereConcentricCircle {
@@ -57,7 +57,7 @@ impl SphereConcentricCircleDescriptor {
             _helix_index: helix_index,
             _inter_helix_center_gap: inter_helix_center_gap,
             _perimeter: perimeter,
-            _φ: φ,
+            _phi: phi,
             z_radius,
             z,
             t_min: 0.,
@@ -80,7 +80,7 @@ pub(super) struct SphereConcentricCircle {
     pub _helix_index: f64,
     pub _inter_helix_center_gap: f64,
     pub _perimeter: f64,
-    pub _φ: f64,
+    pub _phi: f64,
     pub z_radius: f64,
     pub z: f64,
     pub t_min: f64,
@@ -93,10 +93,6 @@ pub(super) struct SphereConcentricCircle {
 impl SphereConcentricCircle {
     fn theta(&self, t: f64) -> f64 {
         t * TAU + self.theta_0
-    }
-
-    pub(super) fn last_theta(&self) -> f64 {
-        self.theta(1.)
     }
 
     pub(super) fn t_max(&self) -> f64 {
@@ -148,22 +144,6 @@ impl Curved for SphereConcentricCircle {
 
     fn bounds(&self) -> super::CurveBounds {
         super::CurveBounds::Finite
-    }
-
-    // fn subdivision_for_t(&self, t: f64) -> Option<usize> {
-    //     None
-    // }
-
-    // fn is_time_maps_singleton(&self) -> bool {
-    //     true
-    // }
-
-    fn first_theta(&self) -> Option<f64> {
-        Some(self.theta_0)
-    }
-
-    fn last_theta(&self) -> Option<f64> {
-        Some(self.last_theta())
     }
 
     fn full_turn_at_t(&self) -> Option<f64> {
@@ -685,9 +665,9 @@ impl PillConcentricStadiumDescriptor {
         let inter_helix_center_gap = self
             .inter_helix_center_gap
             .unwrap_or(HelixParameters::INTER_CENTER_GAP as f64);
-        let φ = PI / 2.0 - helix_index * inter_helix_center_gap as f64 / self.radius;
-        let z_radius = self.radius * φ.sin();
-        let z = self.radius * φ.cos();
+        let phi = PI / 2.0 - helix_index * inter_helix_center_gap as f64 / self.radius;
+        let z_radius = self.radius * phi.sin();
+        let z = self.radius * phi.cos();
         let t1 = self.length;
         let t2 = t1 + PI * z_radius;
         let t3 = t2 + self.length;
@@ -703,7 +683,7 @@ impl PillConcentricStadiumDescriptor {
             t2,
             t3,
             perimeter,
-            _φ: φ,
+            _phi: phi,
             z_radius,
             z,
             t_min: 0.,
@@ -729,7 +709,7 @@ pub(super) struct PillConcentricStadium {
     pub t2: f64,
     pub t3: f64,
     pub perimeter: f64,
-    pub _φ: f64,
+    pub _phi: f64,
     pub z_radius: f64,
     pub z: f64,
     pub t_min: f64,

@@ -18,17 +18,15 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::{Device, DrawArea, DrawType, Queue, ViewPtr};
 use ensnano_design::{
-    BezierPathId, BezierPlaneId, BezierVertexId,
+    BezierControlPoint, BezierPathId, BezierPlaneId, BezierVertexId,
     grid::{GridId, GridPosition},
 };
-use ensnano_interactor::{BezierControlPoint, PhantomElement, phantom_helix_decoder};
-use ensnano_utils::{
-    BufferDimensions, wgpu,
-    winit::dpi::{PhysicalPosition, PhysicalSize},
-};
+use ensnano_interactor::{PhantomElement, phantom_helix_decoder};
+use ensnano_utils::BufferDimensions;
 use futures::executor;
 use num_enum::IntoPrimitive;
 use std::{convert::TryInto, rc::Rc};
+use winit::dpi::{PhysicalPosition, PhysicalSize};
 
 pub struct ElementSelector {
     pub device: Rc<Device>,
@@ -322,16 +320,13 @@ impl SceneElement {
     }
 
     pub fn transform_into_bezier(self) -> Self {
-        if let Self::WidgetElement(id) = self {
-            if let Some((helix_id, bezier_control)) =
+        if let Self::WidgetElement(id) = self
+            && let Some((helix_id, bezier_control)) =
                 ensnano_interactor::consts::widget_id_to_bezier(id)
-            {
-                Self::BezierControl {
-                    bezier_control,
-                    helix_id,
-                }
-            } else {
-                self
+        {
+            Self::BezierControl {
+                bezier_control,
+                helix_id,
             }
         } else {
             self

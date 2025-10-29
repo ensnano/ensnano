@@ -1,12 +1,12 @@
+use super::import::*;
 use ahash::HashMap;
+use ensnano_interactor::ObjectType;
 
 use crate::{
-    full_simulation::{FullSimulationSetup, RigidHelicesSetup, build_simulation},
+    full_simulation::{RigidHelicesSetup, build_simulation},
     helices::build_helices,
-    import::*,
 };
 use ensnano_design::{Helices, HelixParameters, Nucl};
-use ensnano_interactor::ObjectType;
 use rapier3d::{na::Vector3, prelude::*};
 
 #[derive(Default)]
@@ -33,7 +33,7 @@ impl RapierPhysicsSystem {
         space_position: &HashMap<u32, [f32; 3]>,
         helices: &Helices,
     ) -> Self {
-        let intermediary = build_helices(parameters, nucleotide);
+        let intermediary = build_helices(nucleotide);
 
         build_simulation::<RigidHelicesSetup>(
             &intermediary,
@@ -50,8 +50,6 @@ impl RapierPhysicsSystem {
         object_type: &HashMap<u32, ObjectType>,
         nucleotide: &HashMap<u32, Nucl>,
         space_position: &HashMap<u32, [f32; 3]>,
-        helix_map: &HashMap<u32, usize>,
-        helices: &Helices,
     ) -> Self {
         let mut rigid_body_set: RigidBodySet = Default::default();
         let mut collider_set: ColliderSet = Default::default();

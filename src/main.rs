@@ -131,9 +131,8 @@ use {
         iced_futures::futures,
         iced_graphics::{Antialiasing, Viewport},
         iced_runtime::{Debug, program},
-        iced_wgpu::{self, Settings, wgpu},
-        iced_winit::{self, winit},
-        theme,
+        iced_wgpu::{self, Settings},
+        iced_winit, theme,
     },
     ensnano_interactor::{
         ActionMode, CenterOfSelection, DesignOperation, DesignReader, DesignRotation,
@@ -148,8 +147,9 @@ use {
         graphics::{GuiComponentType, SplitMode},
         operation::Operation,
     },
-    ensnano_scene::{AppState as _, DesignReader as _, Scene, SceneKind},
-    ensnano_utils::{PhySize, TEXTURE_FORMAT, winit::window::CursorIcon},
+    ensnano_organizer::GroupId,
+    ensnano_scene::{AppState as _, Scene, SceneKind, data::DesignReader as _},
+    ensnano_utils::{PhySize, TEXTURE_FORMAT},
     multiplexer::{Multiplexer, Overlay},
     scheduler::Scheduler,
     std::{
@@ -166,7 +166,7 @@ use {
         event::{Event, WindowEvent},
         event_loop::{ControlFlow, EventLoop, EventLoopWindowTarget},
         keyboard::{Key, ModifiersState, NamedKey},
-        window::Window,
+        window::{CursorIcon, Window},
     },
 };
 
@@ -626,9 +626,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             });
 
                         // We draw the applications first
-                        let now = std::time::Instant::now();
-                        let dt = now - last_render_time;
-                        scheduler.draw_apps(&mut encoder, &multiplexer, dt);
+                        scheduler.draw_apps(&mut encoder, &multiplexer);
 
                         gui.render(
                             &mut encoder,
@@ -1218,7 +1216,7 @@ impl MainState {
         self.modify_state(|s| s.with_candidates(candidates), None);
     }
 
-    fn transfer_selection_pivot_to_group(&mut self, group_id: ensnano_design::GroupId) {
+    fn transfer_selection_pivot_to_group(&mut self, group_id: GroupId) {
         let scene_pivot = self
             .applications
             .get(&GuiComponentType::Scene)
@@ -2117,24 +2115,6 @@ impl<'a> MainStateView<'a> {
             self.notify_apps(Notification::TeleportCamera(camera))
         } else {
             log::error!("Could not get camera {:?}", camera_id)
-        }
-    }
-
-    fn update_camera(&mut self, camera_id: ensnano_design::CameraId) {
-        if let Some(camera) = self
-            .main_state
-            .applications
-            .get(&GuiComponentType::Scene)
-            .and_then(|s| s.lock().unwrap().get_camera())
-        {
-            self.main_state
-                .apply_operation(DesignOperation::UpdateCamera {
-                    camera_id,
-                    position: camera.0.position,
-                    orientation: camera.0.orientation,
-                })
-        } else {
-            log::error!("Could not get current camera position");
         }
     }
 

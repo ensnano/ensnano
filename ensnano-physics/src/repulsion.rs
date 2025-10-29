@@ -1,5 +1,4 @@
 use rapier3d::{
-    na::Vector3,
     parry::query::DefaultQueryDispatcher,
     prelude::*,
     rayon::iter::{IntoParallelIterator, ParallelIterator},
@@ -21,16 +20,6 @@ impl RapierPhysicsSystem {
 fn simple_kernel_1(r: f32, h: f32) -> f32 {
     let v = 1.0 - r / h;
     v
-}
-
-fn simple_kernel_2(r: f32, h: f32) -> f32 {
-    let v = 1.0 - r / h;
-    v * v
-}
-
-fn simple_kernel_3(r: f32, h: f32) -> f32 {
-    let v = 1.0 - r / h;
-    v * v * v
 }
 
 /// Operates a repulsion between all rigid bodies

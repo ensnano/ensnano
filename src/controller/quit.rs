@@ -104,7 +104,7 @@ impl Load {
         }
     }
 
-    pub(super) fn init_reolad(
+    pub(super) fn init_reload(
         need_save: Option<Option<PathBuf>>,
         path_to_load: PathBuf,
     ) -> Box<dyn State> {
@@ -464,7 +464,7 @@ impl State for Exporting {
         } else {
             let candidate_name = main_state.get_current_file_name().map(|p| {
                 let mut ret = p.to_owned();
-                ret.set_extension(export_extenstion(self.export_type.clone()));
+                ret.set_extension(export_extension(self.export_type.clone()));
                 ret
             });
             let getter = dialog::get_file_to_write(
@@ -478,12 +478,11 @@ impl State for Exporting {
     }
 }
 
-fn export_extenstion(export_type: ExportType) -> &'static str {
+fn export_extension(export_type: ExportType) -> &'static str {
     match export_type {
         ExportType::Oxdna => messages::OXDNA_CONFIG_EXTENSION,
         ExportType::Pdb => "pdb",
         ExportType::Cadnano => "json",
-        ExportType::Cando => "cndo",
     }
 }
 
@@ -492,6 +491,5 @@ fn export_filters(export_type: ExportType) -> &'static Filters {
         ExportType::Oxdna => &messages::OXDNA_CONFIG_FILTERS,
         ExportType::Pdb => &messages::PDB_FILTER,
         ExportType::Cadnano => &messages::CADNANO_FILTER,
-        ExportType::Cando => todo!(),
     }
 }

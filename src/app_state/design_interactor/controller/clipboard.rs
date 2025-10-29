@@ -24,7 +24,7 @@ use ensnano_design::{
     Helices, HelixCollection, HelixParameters, MutStrandAndData, Strands, UpToDateDesign,
     grid::{Edge, FreeGridId, GridData, GridId, GridPosition},
 };
-use ultraviolet::Vec3;
+use ultraviolet::{Rotor3, Vec3};
 
 pub(super) enum Clipboard {
     Empty,
@@ -117,7 +117,7 @@ struct StrandTemplate {
 }
 
 #[derive(Debug, Clone)]
-/// The starting point of a template. Used to determine weither a nucleotide is a correct starting
+/// The starting point of a template. Used to determine whether a nucleotide is a correct starting
 /// point for a copy of the strand.
 struct TemplateOrigin {
     helix: HelixGridPosition,
@@ -128,7 +128,7 @@ struct TemplateOrigin {
 #[derive(Debug, Clone)]
 /// A domain of a template.
 /// The HelixInterval variant does not have an helix attribute because helices are determined by
-/// a path in the grid's graph when instanciating the template.
+/// a path in the grid's graph when instantiating the template.
 enum DomainTemplate {
     Insertion(usize),
     HelixInterval {
@@ -279,7 +279,7 @@ impl Controller {
             .zip(Some(nucl2.position - nucl1.position))
     }
 
-    fn edge_beteen_nucls(
+    fn edge_between_nucls(
         helices: &Helices,
         grid_manager: &GridData,
         n1: &Nucl,
@@ -313,7 +313,7 @@ impl Controller {
                     .filter_map(|g_id| FreeGridId::try_from_grid_id(*g_id))
                     .collect();
                 design
-                    .copy_grids(&grid_ids, Vec3::zero(), ultraviolet::Rotor3::identity())
+                    .copy_grids(&grid_ids, Vec3::zero(), Rotor3::identity())
                     .map_err(|e| ErrOperation::GridCopyError(e))?;
                 Ok(design)
             }
@@ -637,7 +637,7 @@ impl Controller {
                         clipboard,
                     };
                 } else {
-                    // If it is not possible to ducplicate here, cancel the duplication
+                    // If it is not possible to duplicate here, cancel the duplication
                     self.state = ControllerState::Normal
                 }
                 Ok(design)
@@ -708,7 +708,7 @@ impl Controller {
                     .get(0)
                     .map(|n| n.0)
                     .ok_or(ErrOperation::EmptyClipboard)?;
-                let edge = Self::edge_beteen_nucls(
+                let edge = Self::edge_between_nucls(
                     data.helices,
                     data.grid_data,
                     &n1,
@@ -877,7 +877,7 @@ impl Controller {
         Ok(())
     }
 
-    pub(super) fn get_design_beign_pasted_on(&self) -> Option<&AddressPointer<Design>> {
+    pub(super) fn get_design_being_pasted_on(&self) -> Option<&AddressPointer<Design>> {
         match &self.state {
             ControllerState::PastingXovers { initial_design, .. } => Some(initial_design),
             ControllerState::DoingFirstXoversDuplication { initial_design, .. } => {
@@ -946,7 +946,7 @@ impl Controller {
             .ok_or(ErrOperation::WrongClipboard)?;
         let edge = nucl
             .as_ref()
-            .and_then(|n2| Self::edge_beteen_nucls(data.helices, data.grid_data, &n1, n2));
+            .and_then(|n2| Self::edge_between_nucls(data.helices, data.grid_data, &n1, n2));
         self.state
             .update_xover_pasting_position(nucl, edge, design)?;
         let data = design.mut_strand_and_data();

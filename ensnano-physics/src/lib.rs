@@ -27,12 +27,12 @@ mod import;
 mod repulsion;
 mod simulation;
 
-use ensnano_design::Vec3;
 use rapier3d::{
     na::{Const, OVector, Point3},
     prelude::*,
 };
 pub use simulation::RapierPhysicsSystem;
+use ultraviolet::Vec3;
 
 /// Conversion method
 pub(crate) fn vec_to_vector(v: Vec3) -> OVector<f32, Const<3>> {

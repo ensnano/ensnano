@@ -18,20 +18,20 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::*;
 use ensnano_design::{
-    BezierPlaneDescriptor, BezierPlaneId, BezierVertexId, Collection, CurveDescriptor, Domain,
-    Nucl,
+    BezierControlPoint, BezierPlaneDescriptor, BezierPlaneId, BezierVertexId, Collection,
+    CurveDescriptor, Domain, Nucl, SurfaceInfo,
     grid::{GridId, GridObject, GridPosition, HelixGridPosition},
 };
 use ensnano_interactor::{
-    BezierControlPoint, ObjectType, Referential,
+    ObjectType, Referential,
     graphics::{LoopoutBond, LoopoutNucl},
 };
-use ensnano_scene::{DesignReader as Reader3D, GridInstance, SurfaceInfo};
+use ensnano_scene::view::GridInstance;
 use ensnano_utils::StrandNucleotidesPositions;
 use std::collections::HashSet;
 use ultraviolet::{Mat4, Rotor3, Vec2, Vec3};
 
-impl Reader3D for DesignReader {
+impl ensnano_scene::data::DesignReader for DesignReader {
     fn get_color(&self, e_id: u32) -> Option<u32> {
         self.presenter.content.color_map.get(&e_id).cloned()
     }
@@ -50,10 +50,6 @@ impl Reader3D for DesignReader {
 
     fn get_with_cones(&self, e_id: u32) -> Option<bool> {
         self.presenter.content.with_cones_map.get(&e_id).cloned()
-    }
-
-    fn get_basis(&self) -> Rotor3 {
-        self.presenter.model_matrix.extract_rotation()
     }
 
     fn get_symbol(&self, e_id: u32) -> Option<char> {
@@ -171,27 +167,6 @@ impl Reader3D for DesignReader {
         self.presenter.content.get_helices_on_grid(g_id)
     }
 
-    fn get_all_prime3_nucl(&self) -> Vec<(Vec3, Vec3, u32)> {
-        let locate_nucl = |nucl| {
-            let pos_start_opt = self
-                .get_identifier_nucl(&nucl)
-                .and_then(|nucl_id| self.get_element_position(nucl_id, Referential::World));
-            pos_start_opt.or(self.get_position_of_nucl_on_helix(nucl, Referential::World, false))
-        };
-
-        self.presenter
-            .content
-            .prime3_set
-            .iter()
-            .filter(|prime3| !self.presenter.invisible_nucls.contains(&prime3.nucl))
-            .filter_map(|prime3| {
-                let start = locate_nucl(prime3.nucl)?;
-                let end = locate_nucl(prime3.nucl.prime3())?;
-                Some((start, end, prime3.color))
-            })
-            .collect()
-    }
-
     fn get_element_position(&self, e_id: u32, referential: Referential) -> Option<Vec3> {
         let position = self.presenter.content.get_element_position(e_id)?;
         Some(self.presenter.in_referential(position, referential))
@@ -262,15 +237,6 @@ impl Reader3D for DesignReader {
         } else {
             None
         }
-    }
-
-    fn get_ids_of_all_helices(&self) -> Vec<u32> {
-        self.presenter
-            .content
-            .helix_map
-            .keys()
-            .map(|&k| k)
-            .collect()
     }
 
     fn get_id_of_helix_containing(&self, e_id: u32) -> Option<usize> {
@@ -351,12 +317,6 @@ impl Reader3D for DesignReader {
 
     fn can_start_builder_at(&self, nucl: &Nucl) -> bool {
         self.presenter.can_start_builder_at(*nucl)
-    }
-
-    fn has_small_spheres_nucl_id(&self, e_id: u32) -> bool {
-        self.get_nucl_with_id(e_id)
-            .and_then(|nucl| self.get_helix_grid_position(nucl.helix as u32))
-            .is_some_and(|grid_pos| self.presenter.content.grid_has_small_spheres(grid_pos.grid))
     }
 
     fn get_all_loopout_nucl(&self) -> &[LoopoutNucl] {
@@ -463,12 +423,12 @@ impl Reader3D for DesignReader {
 
     fn get_bezier_paths(
         &self,
-    ) -> Option<&BTreeMap<ensnano_design::BezierPathId, Arc<ensnano_design::InstanciatedPath>>>
+    ) -> Option<&BTreeMap<ensnano_design::BezierPathId, Arc<ensnano_design::InstantiatedPath>>>
     {
         self.presenter
             .current_design
             .try_get_up_to_date()
-            .map(|data| data.paths_data.instanciated_paths.as_ref())
+            .map(|data| data.paths_data.instantiated_paths.as_ref())
     }
 
     fn get_parameters(&self) -> HelixParameters {
@@ -515,7 +475,7 @@ impl Reader3D for DesignReader {
         ]
     }
 
-    fn get_optimal_xover_arround(&self, source: Nucl, target: Nucl) -> Option<(Nucl, Nucl)> {
+    fn get_optimal_xover_around(&self, source: Nucl, target: Nucl) -> Option<(Nucl, Nucl)> {
         let source_id = self.get_id_of_strand_containing_nucl(&source)?;
         let target_id = self.get_id_of_strand_containing_nucl(&target)?;
         let mut opt_pair = (source, target);

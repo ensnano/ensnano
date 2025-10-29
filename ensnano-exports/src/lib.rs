@@ -15,15 +15,15 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
 //! Exports utilities from ENSnano to other file formats used in DNA nanotechnologies
 
 pub mod cadnano;
-pub mod cando;
 pub mod oxdna;
 pub mod pdb;
+
 use cadnano::CadnanoError;
-use cando::CanDoError;
-use ensnano_design::{Design, Nucl, ultraviolet};
+use ensnano_design::{Design, Nucl};
 use pdb::PdbError;
 use std::collections::HashMap;
 use std::path::PathBuf;
@@ -32,17 +32,15 @@ use std::path::PathBuf;
 #[derive(Debug, Clone, strum::Display)]
 pub enum ExportType {
     Cadnano,
-    Cando,
     Pdb,
     Oxdna,
 }
 
-/// A value returned by the export functions when exports was successfull.
+/// A value returned by the export functions when exports was successful.
 ///
 /// This means that both the format conversion and the write to the output file were successful.
 pub enum ExportSuccess {
     Cadnano(PathBuf),
-    Cando(PathBuf),
     Pdb(PathBuf),
     Oxdna {
         topology: PathBuf,
@@ -50,15 +48,14 @@ pub enum ExportSuccess {
     },
 }
 
-const SUCCESSFUL_EXPORT_MSG_PREFIX: &str = "Succussfully exported to";
+const SUCCESSFUL_EXPORT_MSG_PREFIX: &str = "Successfully exported to";
 
 impl ExportSuccess {
-    /// A message telling that the export operation was successfull and giving the path to which
+    /// A message telling that the export operation was successful and giving the path to which
     /// the export was made
     pub fn message(&self) -> String {
         match self {
             Self::Cadnano(p) => format!("{SUCCESSFUL_EXPORT_MSG_PREFIX}\n{}", p.to_string_lossy()),
-            Self::Cando(p) => format!("{SUCCESSFUL_EXPORT_MSG_PREFIX}\n{}", p.to_string_lossy()),
             Self::Pdb(p) => format!("{SUCCESSFUL_EXPORT_MSG_PREFIX}\n{}", p.to_string_lossy()),
             Self::Oxdna {
                 topology,
@@ -74,22 +71,14 @@ impl ExportSuccess {
 
 #[derive(Debug)]
 pub enum ExportError {
-    CadnanoConversion(CadnanoError),
-    CandoConversion(CanDoError),
-    PdbConversion(PdbError),
-    IOError(std::io::Error),
-
-    NotImplemented,
+    CadnanoConversion(#[allow(unused)] CadnanoError),
+    PdbConversion(#[allow(unused)] PdbError),
+    IOError(#[allow(unused)] std::io::Error),
 }
 
 impl From<CadnanoError> for ExportError {
     fn from(e: CadnanoError) -> Self {
         Self::CadnanoConversion(e)
-    }
-}
-impl From<CanDoError> for ExportError {
-    fn from(e: CanDoError) -> Self {
-        Self::CandoConversion(e)
     }
 }
 impl From<PdbError> for ExportError {
@@ -170,12 +159,12 @@ fn rand_pick(list: &[char]) -> char {
     list[idx]
 }
 
-const CANNONICAL_BASES: &[char] = &['A', 'T', 'G', 'C', 'U'];
+const CANONICAL_BASES: &[char] = &['A', 'T', 'G', 'C', 'U'];
 
 /// Perform a symbol conversion based on this [list](http://www.hgmd.cf.ac.uk/docs/nuc_lett.html)
 fn rand_base_from_symbol(symbol: char, compl_a: char) -> char {
     match symbol {
-        c if CANNONICAL_BASES.contains(&c) => c,
+        c if CANONICAL_BASES.contains(&c) => c,
         'R' => rand_pick(&['G', 'A']),
         'Y' => rand_pick(&['C', compl_a]),
         'K' => rand_pick(&['G', compl_a]),
@@ -225,8 +214,6 @@ pub fn export(
             writeln!(&mut out_file, "{cadnano_content}")?;
             Ok(ExportSuccess::Cadnano(export_path.clone()))
         }
-
-        _ => Err(ExportError::NotImplemented),
     }
 }
 

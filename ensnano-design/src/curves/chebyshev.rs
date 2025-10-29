@@ -29,11 +29,11 @@ pub struct PolynomialCoordinates {
 }
 
 impl PolynomialCoordinates {
-    pub(super) fn instanciated(self) -> PolynomialCoordinates_ {
+    pub(super) fn instantiated(self) -> PolynomialCoordinates_ {
         PolynomialCoordinates_ {
-            x: self.x.instanciated(),
-            y: self.y.instanciated(),
-            z: self.z.instanciated(),
+            x: self.x.instantiated(),
+            y: self.y.instantiated(),
+            z: self.z.instantiated(),
         }
     }
 }

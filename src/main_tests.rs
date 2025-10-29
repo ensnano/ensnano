@@ -20,6 +20,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::*;
 use ensnano_design::Nucl;
+use winit::window::CursorIcon;
 
 struct DummyScene {}
 impl Application for DummyScene {
@@ -36,7 +37,6 @@ impl Application for DummyScene {
         &mut self,
         _encoder: &mut wgpu::CommandEncoder,
         _target: &wgpu::TextureView,
-        _dt: Duration,
     ) {
         ()
     }
@@ -168,7 +168,7 @@ fn duplication_via_requests_correct_status() {
 
 #[test]
 fn duplication_via_requests_strands_are_duplicated() {
-    use ensnano_scene::DesignReader;
+    use ensnano_scene::data::DesignReader as _;
     let mut main_state = new_state();
     let app_state = pastable_design();
     main_state.clear_app_state(app_state);

@@ -573,7 +573,7 @@ impl LayoutNode {
         }
     }
 
-    /// Resize a split layout according to the new proportien given.
+    /// Resize a split layout according to the new proportion given.
     pub fn resize(&mut self, new_proportion: f64) {
         match self {
             LayoutNode::VSplit {

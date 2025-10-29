@@ -17,25 +17,20 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use ensnano_design::{BezierPathId, CurveDescriptor2D};
-use ensnano_gui::{
-    CurveDescriptorBuilder, CurveDescriptorParameter, InstanciatedParameter, ParameterKind,
-};
+use ensnano_gui::{CurveDescriptorBuilder, CurveDescriptorParameter, InstantiatedParameter};
 use ultraviolet::{Rotor3, Vec3};
 
 pub(super) const ELLIPSE_BUILDER: CurveDescriptorBuilder<super::AppState> =
     CurveDescriptorBuilder {
-        nb_parameters: 2,
         curve_name: "Ellipse",
         parameters: &[
             CurveDescriptorParameter {
                 name: "Semi major axis",
-                kind: ParameterKind::Float,
-                default_value: ensnano_gui::InstanciatedParameter::Float(20.0),
+                default_value: ensnano_gui::InstantiatedParameter::Float(20.0),
             },
             CurveDescriptorParameter {
                 name: "Semi minor axis",
-                kind: ParameterKind::Float,
-                default_value: ensnano_gui::InstanciatedParameter::Float(10.0),
+                default_value: ensnano_gui::InstantiatedParameter::Float(10.0),
             },
         ],
         build: &build_ellipse,
@@ -44,17 +39,17 @@ pub(super) const ELLIPSE_BUILDER: CurveDescriptorBuilder<super::AppState> =
     };
 
 fn build_ellipse(
-    parameters: &[InstanciatedParameter],
+    parameters: &[InstantiatedParameter],
     _: &super::AppState,
 ) -> Option<CurveDescriptor2D> {
     let a = parameters
         .get(0)
         .cloned()
-        .and_then(InstanciatedParameter::get_float)?;
+        .and_then(InstantiatedParameter::get_float)?;
     let b = parameters
         .get(1)
         .cloned()
-        .and_then(InstanciatedParameter::get_float)?;
+        .and_then(InstantiatedParameter::get_float)?;
     Some(CurveDescriptor2D::Ellipse {
         semi_minor_axis: b.into(),
         semi_major_axis: a.into(),
@@ -63,28 +58,23 @@ fn build_ellipse(
 
 pub(super) const TWO_SPHERES_BUILDER: CurveDescriptorBuilder<super::AppState> =
     CurveDescriptorBuilder {
-        nb_parameters: 2,
         curve_name: "Two spheres",
         parameters: &[
             CurveDescriptorParameter {
                 name: "Radius extern",
-                kind: ParameterKind::Float,
-                default_value: ensnano_gui::InstanciatedParameter::Float(25.),
+                default_value: ensnano_gui::InstantiatedParameter::Float(25.),
             },
             CurveDescriptorParameter {
                 name: "Radius intern",
-                kind: ParameterKind::Float,
-                default_value: ensnano_gui::InstanciatedParameter::Float(17.),
+                default_value: ensnano_gui::InstantiatedParameter::Float(17.),
             },
             CurveDescriptorParameter {
                 name: "Radius tube",
-                kind: ParameterKind::Float,
-                default_value: ensnano_gui::InstanciatedParameter::Float(7.6),
+                default_value: ensnano_gui::InstantiatedParameter::Float(7.6),
             },
             CurveDescriptorParameter {
                 name: "Smooth ceil",
-                kind: ParameterKind::Float,
-                default_value: ensnano_gui::InstanciatedParameter::Float(0.04),
+                default_value: ensnano_gui::InstantiatedParameter::Float(0.04),
             },
         ],
         build: &build_two_spheres,
@@ -93,28 +83,28 @@ pub(super) const TWO_SPHERES_BUILDER: CurveDescriptorBuilder<super::AppState> =
     };
 
 fn build_two_spheres(
-    parameters: &[InstanciatedParameter],
+    parameters: &[InstantiatedParameter],
     _: &super::AppState,
 ) -> Option<CurveDescriptor2D> {
     let radius_extern = parameters
         .get(0)
         .cloned()
-        .and_then(InstanciatedParameter::get_float)?
+        .and_then(InstantiatedParameter::get_float)?
         .into();
     let radius_intern = parameters
         .get(1)
         .cloned()
-        .and_then(InstanciatedParameter::get_float)?
+        .and_then(InstantiatedParameter::get_float)?
         .into();
     let radius_tube = parameters
         .get(2)
         .cloned()
-        .and_then(InstanciatedParameter::get_float)?
+        .and_then(InstantiatedParameter::get_float)?
         .into();
     let smooth_ceil = parameters
         .get(3)
         .cloned()
-        .and_then(InstanciatedParameter::get_float)?
+        .and_then(InstantiatedParameter::get_float)?
         .into();
 
     Some(CurveDescriptor2D::TwoBalls {
@@ -127,12 +117,10 @@ fn build_two_spheres(
 
 pub(super) const BEZIER_CURVE_BUILDER: CurveDescriptorBuilder<super::AppState> =
     CurveDescriptorBuilder {
-        nb_parameters: 1,
         curve_name: "Bezier",
         parameters: &[CurveDescriptorParameter {
             name: "Path n°",
-            kind: ParameterKind::Uint,
-            default_value: ensnano_gui::InstanciatedParameter::Uint(0),
+            default_value: ensnano_gui::InstantiatedParameter::Uint(0),
         }],
         build: &build_bezier,
         bezier_path_id: &get_bezier_path_id,
@@ -140,13 +128,13 @@ pub(super) const BEZIER_CURVE_BUILDER: CurveDescriptorBuilder<super::AppState> =
     };
 
 fn build_bezier(
-    parameters: &[InstanciatedParameter],
+    parameters: &[InstantiatedParameter],
     app: &super::AppState,
 ) -> Option<CurveDescriptor2D> {
     let curve_id = parameters
         .get(0)
         .cloned()
-        .and_then(InstanciatedParameter::get_uint)?;
+        .and_then(InstantiatedParameter::get_uint)?;
 
     app.0
         .design
@@ -155,19 +143,19 @@ fn build_bezier(
         .map(CurveDescriptor2D::Bezier)
 }
 
-fn no_bezier_path_id(_: &[InstanciatedParameter]) -> Option<usize> {
+fn no_bezier_path_id(_: &[InstantiatedParameter]) -> Option<usize> {
     None
 }
 
-fn get_bezier_path_id(parameters: &[InstanciatedParameter]) -> Option<usize> {
+fn get_bezier_path_id(parameters: &[InstantiatedParameter]) -> Option<usize> {
     parameters
         .get(0)
         .cloned()
-        .and_then(InstanciatedParameter::get_uint)
+        .and_then(InstantiatedParameter::get_uint)
 }
 
 fn get_bezier_frame(
-    parameters: &[InstanciatedParameter],
+    parameters: &[InstantiatedParameter],
     app: &super::AppState,
 ) -> Option<(Vec3, Rotor3)> {
     let path_id = get_bezier_path_id(parameters)?;
@@ -178,7 +166,7 @@ fn get_bezier_frame(
         .map(|plane| (plane.position, plane.orientation))
 }
 
-fn default_frame(_: &[InstanciatedParameter], app: &super::AppState) -> Option<(Vec3, Rotor3)> {
+fn default_frame(_: &[InstantiatedParameter], app: &super::AppState) -> Option<(Vec3, Rotor3)> {
     app.0
         .design
         .get_design_reader()

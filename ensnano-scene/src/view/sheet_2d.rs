@@ -17,8 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::instances_drawer::*;
-use ensnano_design::{BezierPlaneId, ultraviolet};
-use ensnano_utils::wgpu;
+use ensnano_design::BezierPlaneId;
 use ultraviolet::{Mat4, Rotor3, Vec2, Vec3};
 use wgpu::{Device, include_spirv};
 
@@ -89,7 +88,7 @@ impl Sheet2D {
 
 impl Instantiable for Sheet2D {
     type Vertex = SheetVertex;
-    type Ressource = ();
+    type Resource = ();
     type RawInstance = Sheet2DRaw;
 
     fn to_raw_instance(&self) -> Self::RawInstance {
@@ -137,9 +136,5 @@ impl Instantiable for Sheet2D {
 
     fn primitive_topology() -> wgpu::PrimitiveTopology {
         wgpu::PrimitiveTopology::TriangleStrip
-    }
-
-    fn alpha_to_coverage_enabled() -> bool {
-        true
     }
 }

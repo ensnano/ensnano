@@ -96,14 +96,6 @@ impl TubeSpiral {
             (self._parameters.inter_helix_axis_gap() as f64 / 2. / slice_width).asin()
         }
     }
-
-    fn theta(&self, t: f64) -> f64 {
-        self.nb_turn() * t * TAU + self.theta_0
-    }
-
-    pub(super) fn last_theta(&self) -> f64 {
-        self.theta(1.)
-    }
 }
 
 impl Curved for TubeSpiral {
@@ -154,14 +146,6 @@ impl Curved for TubeSpiral {
 
     fn is_time_maps_singleton(&self) -> bool {
         true
-    }
-
-    fn first_theta(&self) -> Option<f64> {
-        Some(self.theta_0)
-    }
-
-    fn last_theta(&self) -> Option<f64> {
-        Some(self.last_theta())
     }
 
     fn full_turn_at_t(&self) -> Option<f64> {

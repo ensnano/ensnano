@@ -39,10 +39,10 @@ impl TorusConcentricCircleDescriptor {
             .unwrap_or(helix_parameters.inter_helix_axis_gap() as f64);
         let inter_helix_angle = TAU / (self.number_of_helices as f64);
         let section_radius = inter_helix_center_gap / 2. / (inter_helix_angle / 2.).sin();
-        let φ =
+        let phi =
             inter_helix_angle * (self.helix_index as f64 + self.helix_index_shift.unwrap_or(0.));
-        let circle_radius = self.radius - section_radius * φ.cos();
-        let z = section_radius * φ.sin();
+        let circle_radius = self.radius - section_radius * phi.cos();
+        let z = section_radius * phi.sin();
         let perimeter = TAU * circle_radius;
         let abscissa_converter_factor = Some(
             circle_radius / (self.radius + section_radius)

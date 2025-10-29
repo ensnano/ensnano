@@ -103,15 +103,11 @@ impl GuiState for AppState {
         }
     }
 
-    fn has_double_strand_on_new_helix(&self) -> bool {
-        self.0.strand_on_new_helix.is_some()
-    }
-
     fn get_current_operation_state(&self) -> Option<ensnano_gui::CurrentOpState> {
         self.0.design.get_current_operation_state()
     }
 
-    fn get_strand_building_state(&self) -> Option<ensnano_gui::StrandBuildingStatus> {
+    fn get_strand_building_state(&self) -> Option<StrandBuildingStatus> {
         self.get_strand_building_state()
     }
 
@@ -152,7 +148,7 @@ impl GuiState for AppState {
     }
 
     fn expand_insertions(&self) -> bool {
-        !self.0.show_insertion_representents
+        !self.0.show_insertion_discriminants
     }
 
     fn get_show_bezier_paths(&self) -> bool {
@@ -175,7 +171,7 @@ impl GuiState for AppState {
         !self.is_in_stable_state()
     }
 
-    fn get_current_revoultion_radius(&self) -> Option<f64> {
+    fn get_current_revolution_radius(&self) -> Option<f64> {
         self.0
             .unrooted_surface
             .descriptor
@@ -208,7 +204,6 @@ impl GuiState for AppState {
 
         Some(ensnano_gui::RevolutionScaling {
             nb_helix: half_number_helix * 2,
-            scale: scaling_factor,
         })
     }
 

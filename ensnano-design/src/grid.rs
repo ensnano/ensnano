@@ -16,22 +16,21 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use crate::{
-    BezierPathData, BezierPathId, BezierVertexId, CurveDescriptor,
-    curves::{AbscissaConverter, CurveDescriptor2D},
-};
-use std::collections::{BTreeMap, HashMap, HashSet};
-
 use super::{
     Axis, BezierControlPoint, Collection, Design, Helices, Helix, HelixCollection, HelixParameters,
     Twist, curves,
     design_operations::{ErrOperation, MIN_HELICES_TO_MAKE_GRID},
     twist_to_omega,
 };
+use super::{
+    BezierPathData, BezierPathId, BezierVertexId, CurveDescriptor,
+    curves::{AbscissaConverter, CurveDescriptor2D},
+};
 use curves::{
-    CurveCache, CurveInstantiator, InstanciatedCurve, InstanciatedCurveDescriptor, PathTimeMaps,
+    CurveCache, CurveInstantiator, InstantiatedCurve, InstantiatedCurveDescriptor, PathTimeMaps,
     RevolutionCurveTimeMaps,
 };
+use std::collections::{BTreeMap, HashMap, HashSet};
 mod copy_grid;
 mod deserialize;
 mod grid_collection;
@@ -92,7 +91,7 @@ pub enum GridTypeDescr {
         #[serde(skip_serializing_if = "Option::is_none", default)]
         forced_radius: Option<f32>,
         #[serde(default)]
-        /// The number of turns arround the grid made by the helices every 100 nucleotides.
+        /// The number of turns around the grid made by the helices every 100 nucleotides.
         ///
         /// Note that this value is subject to the constraint
         /// |Ω| ≤ Z * r / sqrt(2π)
@@ -177,10 +176,6 @@ pub enum GridType {
 }
 
 impl GridDivision for GridType {
-    fn grid_type(&self) -> GridType {
-        self.clone()
-    }
-
     fn origin_helix(&self, helix_parameters: &HelixParameters, x: isize, y: isize) -> Vec2 {
         match self {
             GridType::Square(grid) => grid.origin_helix(helix_parameters, x, y),
@@ -476,7 +471,6 @@ pub trait GridDivision {
     fn origin_helix(&self, helix_parameters: &HelixParameters, x: isize, y: isize) -> Vec2;
     /// Find the vertex in the grid that is the closest to a point in the plane.
     fn interpolate(&self, helix_parameters: &HelixParameters, x: f32, y: f32) -> (isize, isize);
-    fn grid_type(&self) -> GridType;
     fn translation_to_edge(&self, x1: isize, y1: isize, x2: isize, y2: isize) -> Edge;
     fn translate_by_edge(&self, x1: isize, y1: isize, edge: Edge) -> Option<(isize, isize)>;
 
@@ -489,8 +483,8 @@ pub trait GridDivision {
         Rotor3::identity()
     }
 
-    /// If the helix at position (x, y) should be a curve istead of a cylinder, this method must be
-    /// overiden
+    /// If the helix at position (x, y) should be a curve instead of a cylinder, this method must be
+    /// overridden
     fn curve(&self, _x: isize, _y: isize, _info: CurveInfo) -> Option<Arc<CurveDescriptor>>;
 }
 
@@ -538,10 +532,6 @@ impl GridDivision for SquareGrid {
         } else {
             None
         }
-    }
-
-    fn grid_type(&self) -> GridType {
-        GridType::Square(*self)
     }
 
     fn curve(&self, x: isize, y: isize, info: CurveInfo) -> Option<Arc<CurveDescriptor>> {
@@ -632,10 +622,6 @@ impl GridDivision for HoneyComb {
         } else {
             None
         }
-    }
-
-    fn grid_type(&self) -> GridType {
-        GridType::Honeycomb(*self)
     }
 
     fn curve(&self, x: isize, y: isize, info: CurveInfo) -> Option<Arc<CurveDescriptor>> {
@@ -790,7 +776,7 @@ impl GridData {
             && Arc::ptr_eq(&self.no_phantoms, &design.no_phantoms)
             && Arc::ptr_eq(&self.small_spheres, &design.small_spheres)
             && design
-                .instanciated_paths
+                .instantiated_paths
                 .as_ref()
                 .zip(self.paths_data.as_ref())
                 .map(|(data, paths_data)| BezierPathData::ptr_eq(data, paths_data))
@@ -1253,7 +1239,7 @@ impl GridData {
             })
             .or_else(|| {
                 helix
-                    .instanciated_curve
+                    .instantiated_curve
                     .as_ref()
                     .and_then(|c| c.curve.as_ref().abscissa_converter.clone())
             })
@@ -1340,7 +1326,7 @@ impl<'a> HelicesTranslator<'a> {
         let mut new_helices = self.grid_data.source_helices.make_mut();
         for h_id in helices.iter() {
             if let Some(h) = new_helices.get_mut(h_id) {
-                h.rotate_arround(rotation, origin)
+                h.rotate_around(rotation, origin)
             }
         }
         drop(new_helices);
@@ -1384,13 +1370,13 @@ impl CurveInstantiator for GridData {
 }
 
 impl GridData {
-    fn update_instanciated_curve_descriptor(&self, helix: &mut Helix) {
+    fn update_instantiated_curve_descriptor(&self, helix: &mut Helix) {
         if let Some(curve) = helix.curve.clone() {
-            helix.instanciated_descriptor = Some(Arc::new(
-                InstanciatedCurveDescriptor::instanciate(curve, self),
+            helix.instantiated_descriptor = Some(Arc::new(
+                InstantiatedCurveDescriptor::instantiate(curve, self),
             ))
         } else {
-            helix.instanciated_descriptor = None;
+            helix.instantiated_descriptor = None;
         }
     }
 
@@ -1401,7 +1387,7 @@ impl GridData {
             .map(|p| helix.need_curve_descriptor_update(&self.source_free_grids, p))
             .unwrap_or(true)
         {
-            self.update_instanciated_curve_descriptor(helix)
+            self.update_instantiated_curve_descriptor(helix)
         }
 
         if self
@@ -1410,11 +1396,11 @@ impl GridData {
             .map(|p| helix.need_curve_update(&self.source_free_grids, p))
             .unwrap_or(true)
         {
-            if let Some(desc) = helix.instanciated_descriptor.as_ref() {
+            if let Some(desc) = helix.instantiated_descriptor.as_ref() {
                 let hp = helix.helix_parameters.unwrap_or(self.helix_parameters);
                 let curve = desc.make_curve(&hp, cached_curve);
                 curve.update_additional_segments(&mut helix.additional_isometries);
-                helix.instanciated_curve = Some(InstanciatedCurve {
+                helix.instantiated_curve = Some(InstantiatedCurve {
                     curve,
                     source: desc.clone(),
                 });

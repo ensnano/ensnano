@@ -15,19 +15,15 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-#![allow(clippy::unusual_byte_groupings)]
-use ultraviolet::Vec4;
-pub const VIEWER_BINDING_ID: u32 = 0;
-pub const INSTANCES_BINDING_ID: u32 = 1;
-pub const LIGHT_BINDING_ID: u32 = 2;
-pub const TEXTURE_BINDING_ID: u32 = 2;
-pub const MODEL_BINDING_ID: u32 = 3;
 
-pub const VERTEX_POSITION_ADRESS: u32 = 0;
-pub const VERTEX_NORMAL_ADRESS: u32 = 1;
+use crate::RevolutionSimulationParameters;
+use ensnano_design::BezierControlPoint;
+use ultraviolet::{Vec3, Vec4};
+
+pub const VIEWER_BINDING_ID: u32 = 0;
+pub const TEXTURE_BINDING_ID: u32 = 2;
 
 pub const BOND_RADIUS: f32 = 0.06;
-pub const BOND_LENGTH: f32 = 1.;
 pub const NB_RAY_TUBE: usize = 17;
 
 pub const HELIX_CYLINDER_RADIUS: f32 = 0.9;
@@ -66,7 +62,6 @@ pub fn bezier_widget_id(helix_id: u32, control_point: BezierControlPoint) -> u32
     (helix_id << 8) | bezier_id
 }
 
-use crate::{BezierControlPoint, RevolutionSimulationParameters};
 pub fn widget_id_to_bezier(id: u32) -> Option<(usize, BezierControlPoint)> {
     let control = match id & 0xFF {
         n if n > BEZIER_END_WIDGET_ID => Some(BezierControlPoint::PiecewiseBezier(
@@ -196,7 +191,7 @@ No backup will be saved for this unnamed design";
 pub const NO_DESIGN_TITLE: &str = "New file";
 
 pub const BEZIER_CONTROL_RADIUS: f32 = 2.5;
-pub const BEZIER_SQUELETON_RADIUS: f32 = 0.5;
+pub const BEZIER_SKELETON_RADIUS: f32 = 0.5;
 pub const BEZIER_START_COLOR: u32 = 0xFF_B0_21_21;
 pub const BEZIER_END_COLOR: u32 = 0xFF_F0_CA_22;
 pub const BEZIER_CONTROL1_COLOR: u32 = 0xFF_37_85_30;
@@ -231,7 +226,7 @@ pub const fn basis_color(basis: char) -> u32 {
     }
 }
 
-pub const BASIS_SCALE: ultraviolet::Vec3 = ultraviolet::Vec3 {
+pub const BASIS_SCALE: Vec3 = Vec3 {
     x: 0.33 / SPHERE_RADIUS,
     y: BOND_RADIUS / SPHERE_RADIUS,
     z: 2. * BOND_RADIUS / SPHERE_RADIUS,
@@ -280,6 +275,5 @@ pub const DEFAULT_REVOLUTION_SIMULATION_PARAMETERS: RevolutionSimulationParamete
         ball_mass: 10.0,
         time_span: 5.0e-2,
         simulation_step: 1e-3,
-        method: crate::EquadiffSolvingMethod::Ralston,
-        rescaling: 1.,
+        method: super::EquadiffSolvingMethod::Ralston,
     };

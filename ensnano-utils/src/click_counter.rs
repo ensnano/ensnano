@@ -35,15 +35,4 @@ impl ClickCounter {
         self.value += 1;
         return ret;
     }
-
-    pub fn count(&self) -> u32 {
-        return self.value;
-    }
-
-    pub fn last(&self) -> Option<u32> {
-        if self.value > 0 {
-            return Some(self.value - 1);
-        }
-        return None;
-    }
 }

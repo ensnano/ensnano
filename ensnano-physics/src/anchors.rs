@@ -1,8 +1,9 @@
-use ensnano_design::{Helix, HelixParameters, Rotor3, Vec3};
+use ensnano_design::{Helix, HelixParameters};
 use rapier3d::{
     na::{Const, OVector, Rotation2, Unit, UnitQuaternion},
     prelude::*,
 };
+use ultraviolet::{Rotor3, Vec3};
 
 use crate::vec_to_vector;
 
@@ -12,7 +13,6 @@ use crate::vec_to_vector;
 #[derive(Clone, Debug)]
 pub(crate) struct SpringAnchorsReference {
     nucleotide_forward: OVector<f32, Const<3>>,
-    nucleotide_backward: OVector<f32, Const<3>>,
 
     // from center of the pair to the center of
     // the next pair
@@ -111,7 +111,6 @@ impl SpringAnchorsReference {
 
         Self {
             nucleotide_forward: nucleotide_forward - center,
-            nucleotide_backward: nucleotide_backward - center,
             up,
             up_forward_anchor: up_forward_anchor - center,
             up_backward_anchor: up_backward_anchor - center,
@@ -186,7 +185,6 @@ impl SpringAnchorsReference {
         let target_center = (forward_nucleotide + backward_nucleotide) / 2.0;
 
         let target_forward = forward_nucleotide - target_center;
-        let target_backward = backward_nucleotide - target_center;
         let target_up = up;
 
         let first_rotation = self.first_rotation(target_forward);
@@ -222,7 +220,6 @@ impl SpringAnchorsReference {
         let target_center = (forward_nucleotide + backward_nucleotide) / 2.0;
 
         let target_forward = forward_nucleotide - target_center;
-        let target_backward = backward_nucleotide - target_center;
         let target_up = up;
 
         let first_rotation = self.first_rotation(target_forward);
@@ -246,10 +243,9 @@ impl SpringAnchorsReference {
 
 #[cfg(test)]
 mod tests {
-    use std::os::fd::FromRawFd;
 
     use super::*;
-    use ensnano_design::{HelixParameters, Rotor3};
+    use ensnano_design::HelixParameters;
 
     #[test]
     fn anchors() {
@@ -267,6 +263,7 @@ mod tests {
         let helix = Helix::new(Vec3::zero(), Rotor3::default());
 
         let reference = SpringAnchorsReference::new(&helix, 1, &parameters);
+        let reference_backward_nucleotide = vec_to_vector(helix.space_pos(&parameters, 0, false));
 
         let eps: f32 = 1e-5;
 
@@ -274,12 +271,6 @@ mod tests {
             reference
                 .nucleotide_forward
                 .metric_distance(&vector![0.0, -1.0, 0.0])
-                < eps
-        );
-        assert!(
-            reference
-                .nucleotide_backward
-                .metric_distance(&vector![0.0, 1.0, 0.0])
                 < eps
         );
         assert!(reference.up.metric_distance(&vector![1.0, 0.0, 0.0]) < eps);
@@ -334,7 +325,7 @@ mod tests {
 
         // test with identity transform
         let forward_nucleotide = reference.nucleotide_forward;
-        let backward_nucleotide = reference.nucleotide_backward;
+        let backward_nucleotide = reference_backward_nucleotide;
         let up = reference.up;
 
         let (forward, backward, left, right) =
@@ -371,7 +362,7 @@ mod tests {
         // test with a translation
         let offset = vector![32.0, -43.5, 0.111];
         let forward_nucleotide = reference.nucleotide_forward + offset;
-        let backward_nucleotide = reference.nucleotide_backward + offset;
+        let backward_nucleotide = reference_backward_nucleotide + offset;
         let up = reference.up;
 
         let (forward, backward, left, right) =
@@ -431,7 +422,7 @@ mod tests {
         // test with a rotation
         let rotation = UnitQuaternion::from_euler_angles(0.45, 0.111, -1.5);
         let forward_nucleotide = rotation * reference.nucleotide_forward;
-        let backward_nucleotide = rotation * reference.nucleotide_backward;
+        let backward_nucleotide = rotation * reference_backward_nucleotide;
         let up = rotation * reference.up;
 
         let (forward, backward, left, right) =
@@ -492,7 +483,7 @@ mod tests {
         let rotation = UnitQuaternion::from_euler_angles(-0.3, 0.4, 0.9);
         let offset = vector![10.0, 22.222222, -3.0];
         let forward_nucleotide = rotation * reference.nucleotide_forward + offset;
-        let backward_nucleotide = rotation * reference.nucleotide_backward + offset;
+        let backward_nucleotide = rotation * reference_backward_nucleotide + offset;
         let up = rotation * reference.up;
 
         let (forward, backward, left, right) =
