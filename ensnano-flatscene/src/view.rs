@@ -26,11 +26,11 @@ use super::data::{
     FlatTorsion, FreeEnd, GpuVertex, Helix, HelixModel, Shift, Strand, StrandVertex,
     helix::CharCollector,
 };
-use super::{CameraPtr, FlatIdx, FlatNucl, NuclCollection};
+use super::{CameraPtr, FlatIdx, FlatNucl};
 use super::{DrawArea, PhySize};
 use ahash::RandomState;
 use background::Background;
-use ensnano_design::Nucl;
+use ensnano_design::{Nucl, NuclCollection};
 use ensnano_interactor::consts::SAMPLE_COUNT;
 use ensnano_utils::{
     Ndc,
@@ -99,15 +99,9 @@ pub struct View {
     rectangle: Rectangle,
     groups: Arc<BTreeMap<usize, bool>>,
     basis_map: Arc<HashMap<Nucl, char, RandomState>>,
-    nucl_collection: Arc<dyn NuclCollection>,
+    nucl_collection: Arc<NuclCollection>,
     edition_info: Option<EditionInfo>,
     hovered_nucl: Option<FlatNucl>,
-}
-
-impl NuclCollection for () {
-    fn contains(&self, _nucl: &Nucl) -> bool {
-        false
-    }
 }
 
 pub struct EditionInfo {
@@ -265,7 +259,7 @@ impl View {
             insertion_drawer,
             groups: Default::default(),
             basis_map: Default::default(),
-            nucl_collection: Arc::new(()),
+            nucl_collection: Arc::new(NuclCollection::default()),
             edition_info: Default::default(),
             selected_nucl: vec![],
             candidate_nucl: vec![],
@@ -1269,7 +1263,7 @@ impl View {
         &mut self,
         groups: Arc<BTreeMap<usize, bool>>,
         basis_map: Arc<HashMap<Nucl, char, RandomState>>,
-        nucl_collection: Arc<dyn NuclCollection>,
+        nucl_collection: Arc<NuclCollection>,
     ) {
         self.was_updated = true;
         self.groups = groups;

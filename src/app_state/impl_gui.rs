@@ -66,19 +66,19 @@ impl GuiState for AppState {
     }
 
     fn get_scaffold_info(&self) -> Option<ScaffoldInfo> {
-        self.get_design_reader().get_scaffold_info()
+        self.get_design_interactor().get_scaffold_info()
     }
 
     fn can_make_grid(&self) -> bool {
         self.selection_content().len() > 4
             && ensnano_interactor::all_helices_no_grid(
                 self.selection_content(),
-                &self.get_design_reader(),
+                &self.get_design_interactor(),
             )
     }
 
-    fn get_reader(&self) -> Box<dyn ensnano_gui::DesignReader> {
-        Box::new(self.get_design_reader())
+    fn get_reader(&self) -> Box<dyn ensnano_gui::GuiDesignReaderExt> {
+        Box::new(self.get_design_interactor())
     }
 
     fn design_was_modified(&self, other: &Self) -> bool {

@@ -7,11 +7,11 @@ use std::{
 use crate::{
     app_state::design_interactor::{
         controller::simulations::SimulationInterface,
-        presenter::{Presenter, SimulationUpdate, design_content::NuclCollection},
+        presenter::{Presenter, SimulationUpdate},
     },
     controller::chanel_reader::ChannelReader,
 };
-use ensnano_design::{Design, HelixParameters};
+use ensnano_design::{Design, HelixParameters, NuclCollection};
 use ensnano_physics::RapierPhysicsSystem;
 
 #[derive(Default)]

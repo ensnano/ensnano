@@ -18,7 +18,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 mod value_constructor;
 
-use super::super::DesignReader;
+use super::super::GuiDesignReaderExt;
 use super::*;
 use ensnano_design::{BezierVertexId, grid::GridId};
 use ensnano_iced::{
@@ -151,7 +151,7 @@ where
     fn update(
         &mut self,
         selection: &Selection,
-        reader: &dyn DesignReader,
+        reader: &dyn GuiDesignReaderExt,
         app_state: &State,
     ) -> bool {
         if *selection != self.selection || app_state.is_transitory() {
@@ -167,7 +167,7 @@ where
         }
     }
 
-    fn new(selection: &Selection, reader: &dyn DesignReader) -> Option<Self> {
+    fn new(selection: &Selection, reader: &dyn GuiDesignReaderExt) -> Option<Self> {
         Self::new_builder(selection, reader).map(|builder| Self {
             builder,
             selection: *selection,
@@ -176,7 +176,7 @@ where
 
     fn new_builder(
         selection: &Selection,
-        reader: &dyn DesignReader,
+        reader: &dyn GuiDesignReaderExt,
     ) -> Option<Box<dyn Builder<State>>> {
         match selection {
             Selection::Grid(_, g_id) => {
@@ -253,7 +253,7 @@ where
     fn update_builder(
         &mut self,
         selection: Option<&Selection>,
-        reader: &dyn DesignReader,
+        reader: &dyn GuiDesignReaderExt,
         app_state: &State,
     ) {
         if let Some(s) = selection {
@@ -774,7 +774,7 @@ fn view_2d_help() -> Vec<(String, String)> {
     ]
 }
 
-fn values_of_selection(selection: &Selection, reader: &dyn DesignReader) -> Vec<String> {
+fn values_of_selection(selection: &Selection, reader: &dyn GuiDesignReaderExt) -> Vec<String> {
     match selection {
         Selection::Grid(_, g_id) => {
             let b1 = reader.grid_has_persistent_phantom(*g_id);

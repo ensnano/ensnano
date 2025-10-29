@@ -21,7 +21,9 @@ use std::sync::{Arc, Mutex};
 use super::super::{FlatHelix, FlatIdx, FlatNucl, HelixSegment, Requests};
 use super::{Flat, HelixVec, Nucl, Strand};
 use ahash::RandomState;
-use ensnano_design::{AbscissaConverter, Extremity, Helix as DesignHelix, HelixCollection};
+use ensnano_design::{
+    AbscissaConverter, Extremity, Helix as DesignHelix, HelixCollection, NuclCollection,
+};
 use ensnano_interactor::consts::{
     CANDIDATE_STRAND_HIGHLIGHT_FACTOR_2D, SELECTED_STRAND_HIGHLIGHT_FACTOR_2D,
 };
@@ -31,7 +33,7 @@ use ultraviolet::{Isometry2, Rotor2, Vec2, Vec3};
 
 use super::super::flattypes::FlatHelixMaps;
 
-pub(super) struct Design2d<R: DesignReader> {
+pub(super) struct Design2d<R: FlatSceneDesignReaderExt> {
     /// The 2d helices
     helices: HelixVec<Helix2d>,
     /// Maps id of helices in design to location in self.helices
@@ -49,7 +51,7 @@ pub(super) struct Design2d<R: DesignReader> {
     known_map: *const ensnano_design::Helices,
 }
 
-impl<R: DesignReader> Design2d<R> {
+impl<R: FlatSceneDesignReaderExt> Design2d<R> {
     pub fn new(design: R, requests: Arc<Mutex<dyn Requests>>) -> Self {
         Self {
             design,
@@ -516,8 +518,7 @@ impl FlatTorsion {
     }
 }
 
-pub trait DesignReader: 'static {
-    type NuclCollection: NuclCollection;
+pub trait FlatSceneDesignReaderExt: 'static {
     fn get_all_strand_ids(&self) -> Vec<usize>;
     /// Return a the list of consecutive domain extremities of strand `s_id`. Return None iff there
     /// is no strand with id `s_id` in the design.
@@ -551,10 +552,6 @@ pub trait DesignReader: 'static {
     fn get_basis_map(&self) -> Arc<HashMap<Nucl, char, RandomState>>;
     fn get_group_map(&self) -> Arc<BTreeMap<usize, bool>>;
     fn get_strand_ends(&self) -> Vec<Nucl>;
-    fn get_nucl_collection(&self) -> Arc<Self::NuclCollection>;
+    fn get_nucl_collection(&self) -> Arc<NuclCollection>;
     fn get_abscissa_converter(&self, h_id: usize) -> AbscissaConverter;
-}
-
-pub trait NuclCollection {
-    fn contains(&self, nucl: &Nucl) -> bool;
 }

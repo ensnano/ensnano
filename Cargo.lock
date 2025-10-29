@@ -1135,6 +1135,7 @@ dependencies = [
 name = "ensnano_design"
 version = "0.7.0"
 dependencies = [
+ "ahash 0.8.12",
  "chebyshev_polynomials",
  "ensnano_organizer",
  "icondata",

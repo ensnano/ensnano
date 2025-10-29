@@ -22,7 +22,7 @@ use ensnano_interactor::{StrandBuilder, consts::scroll_sensitivity_conversion};
 use ensnano_scene::{AppState as App3D, view::DrawOptions};
 
 impl App3D for AppState {
-    type DesignReader = DesignReader;
+    type AppStateDesignReader = DesignInteractor;
 
     fn get_selection(&self) -> &[Selection] {
         self.selection_content().as_slice()
@@ -60,8 +60,8 @@ impl App3D for AppState {
         (self.0.action_mode, self.0.widget_basis)
     }
 
-    fn get_design_reader(&self) -> Self::DesignReader {
-        self.0.design.get_design_reader()
+    fn get_design_reader(&self) -> Self::AppStateDesignReader {
+        self.0.design.clone_inner()
     }
 
     fn get_strand_builders(&self) -> &[StrandBuilder] {
@@ -92,7 +92,7 @@ impl App3D for AppState {
     }
 
     fn get_current_group_pivot(&self) -> Option<ensnano_design::group_attributes::GroupPivot> {
-        let reader = self.get_design_reader();
+        let reader = self.get_design_interactor();
         self.0
             .selection
             .selected_group

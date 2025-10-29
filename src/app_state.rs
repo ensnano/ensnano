@@ -42,8 +42,8 @@ use crate::{
     controller::{LoadDesignError, SaveDesignError, chanel_reader::ChannelReader},
 };
 use address_pointer::AddressPointer;
+use design_interactor::controller::ErrOperation;
 use design_interactor::{DesignInteractor, InteractorResult};
-use design_interactor::{DesignReader, controller::ErrOperation};
 #[cfg(test)]
 use ensnano_design::Design;
 use ensnano_design::{BezierPathId, SavingInformation, group_attributes::GroupPivot};
@@ -259,7 +259,7 @@ impl AppState {
         path: &PathBuf,
         saving_info: SavingInformation,
     ) -> Result<(), SaveDesignError> {
-        self.get_design_reader().save_design(path, saving_info)?;
+        self.get_design_interactor().save_design(path, saving_info)?;
         self.0.make_mut().path_to_current_design = Some(path.clone());
         Ok(())
     }
@@ -409,12 +409,12 @@ impl AppState {
         );
     }
 
-    pub fn get_design_reader(&self) -> DesignReader {
-        self.0.design.get_design_reader()
+    pub fn get_design_interactor(&self) -> DesignInteractor {
+        self.0.design.clone_inner()
     }
 
     pub fn export(&self, export_path: &PathBuf, export_type: ExportType) -> ExportResult {
-        self.get_design_reader().export(export_path, export_type)
+        self.get_design_interactor().export(export_path, export_type)
     }
 
     pub fn get_selection(&self) -> impl AsRef<[Selection]> + use<> {
@@ -566,7 +566,7 @@ impl AppState {
         let builders = self.0.design.get_strand_builders();
         builders.get(0).and_then(|b| {
             let domain_id = b.get_domain_identifier();
-            let reader = self.get_design_reader();
+            let reader = self.get_design_interactor();
             let domain = reader.get_strand_domain(domain_id.strand, domain_id.domain)?;
             let param = self.0.design.get_dna_parameters();
             if let ensnano_design::Domain::HelixDomain(interval) = domain {

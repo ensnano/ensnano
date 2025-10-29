@@ -40,7 +40,7 @@ mod view;
 pub use camera2d::{Camera2D, FitRectangle};
 use controller::Controller;
 use data::Data;
-pub use data::{DesignReader, NuclCollection};
+pub use data::FlatSceneDesignReaderExt;
 use ensnano_design::{Nucl, consts::ITERATIVE_AXIS_ALGORITHM};
 use ensnano_interactor::{
     ActionMode, DesignOperation, PhantomElement, Selection, SelectionMode, StrandBuilder,
@@ -830,7 +830,7 @@ impl<S: AppState> Application for FlatScene<S> {
 }
 
 pub trait AppState: Clone {
-    type Reader: DesignReader + ensnano_interactor::DesignReader;
+    type Reader: FlatSceneDesignReaderExt + ensnano_interactor::InteractorDesignReaderExt;
     fn selection_was_updated(&self, other: &Self) -> bool;
     fn candidate_was_updated(&self, other: &Self) -> bool;
     fn get_selection(&self) -> &[Selection];

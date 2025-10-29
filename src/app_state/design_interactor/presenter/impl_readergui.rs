@@ -18,11 +18,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::*;
 use ensnano_design::{CameraId, Collection, elements::DesignElement};
-use ensnano_gui::{DesignReader as ReaderGui, EnsnTree};
+use ensnano_gui::{EnsnTree, GuiDesignReaderExt as ReaderGui};
 use ensnano_interactor::InsertionPoint;
 use ultraviolet::{Rotor3, Vec2};
 
-impl ReaderGui for DesignReader {
+impl ReaderGui for DesignInteractor {
     fn grid_has_small_spheres(&self, g_id: GridId) -> bool {
         self.presenter.content.grid_has_small_spheres(g_id)
     }

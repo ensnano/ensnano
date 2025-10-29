@@ -168,14 +168,14 @@ fn duplication_via_requests_correct_status() {
 
 #[test]
 fn duplication_via_requests_strands_are_duplicated() {
-    use ensnano_scene::data::DesignReader as _;
+    use ensnano_scene::data::SceneDesignReaderExt as _;
     let mut main_state = new_state();
     let app_state = pastable_design();
     main_state.clear_app_state(app_state);
     main_state.update_selection(vec![Selection::Strand(0, 0)], None);
     let initial_amount = main_state
         .get_app_state()
-        .get_design_reader()
+        .get_design_interactor()
         .get_all_nucl_ids()
         .len();
     assert!(initial_amount > 0);
@@ -191,7 +191,7 @@ fn duplication_via_requests_strands_are_duplicated() {
     main_state.update();
     let amount = main_state
         .get_app_state()
-        .get_design_reader()
+        .get_design_interactor()
         .get_all_nucl_ids()
         .len();
     assert_eq!(amount, 2 * initial_amount);
@@ -199,7 +199,7 @@ fn duplication_via_requests_strands_are_duplicated() {
     main_state.update();
     let amount = main_state
         .get_app_state()
-        .get_design_reader()
+        .get_design_interactor()
         .get_all_nucl_ids()
         .len();
     assert_eq!(amount, 3 * initial_amount);
@@ -207,7 +207,7 @@ fn duplication_via_requests_strands_are_duplicated() {
     main_state.update();
     let amount = main_state
         .get_app_state()
-        .get_design_reader()
+        .get_design_interactor()
         .get_all_nucl_ids()
         .len();
     assert_eq!(amount, 4 * initial_amount);
@@ -257,7 +257,7 @@ fn position_paste_via_requests() {
     assert!(
         !main_state
             .app_state
-            .get_design_reader()
+            .get_design_interactor()
             .is_xover_end(&nucl)
             .to_opt()
             .is_some()
@@ -274,7 +274,7 @@ fn position_paste_via_requests() {
     assert!(
         main_state
             .app_state
-            .get_design_reader()
+            .get_design_interactor()
             .is_xover_end(&nucl)
             .to_opt()
             .is_some()
@@ -306,7 +306,7 @@ fn undo_redo_copy_paste_xover() {
     assert!(
         main_state
             .app_state
-            .get_design_reader()
+            .get_design_interactor()
             .is_xover_end(&nucl)
             .to_opt()
             .is_some()
@@ -316,7 +316,7 @@ fn undo_redo_copy_paste_xover() {
     assert!(
         !main_state
             .app_state
-            .get_design_reader()
+            .get_design_interactor()
             .is_xover_end(&nucl)
             .to_opt()
             .is_some()
@@ -326,7 +326,7 @@ fn undo_redo_copy_paste_xover() {
     assert!(
         main_state
             .app_state
-            .get_design_reader()
+            .get_design_interactor()
             .is_xover_end(&nucl)
             .to_opt()
             .is_some()
@@ -404,7 +404,7 @@ fn duplicate_xover() {
     assert!(
         main_state
             .app_state
-            .get_design_reader()
+            .get_design_interactor()
             .is_xover_end(&n1)
             .to_opt()
             .is_none()
@@ -412,7 +412,7 @@ fn duplicate_xover() {
     assert!(
         main_state
             .app_state
-            .get_design_reader()
+            .get_design_interactor()
             .is_xover_end(&n2)
             .to_opt()
             .is_none()
@@ -425,7 +425,7 @@ fn duplicate_xover() {
     assert!(
         main_state
             .app_state
-            .get_design_reader()
+            .get_design_interactor()
             .is_xover_end(&n1)
             .to_opt()
             .is_some()
@@ -433,7 +433,7 @@ fn duplicate_xover() {
     assert!(
         main_state
             .app_state
-            .get_design_reader()
+            .get_design_interactor()
             .is_xover_end(&n2)
             .to_opt()
             .is_none()
@@ -443,7 +443,7 @@ fn duplicate_xover() {
     assert!(
         main_state
             .app_state
-            .get_design_reader()
+            .get_design_interactor()
             .is_xover_end(&n1)
             .to_opt()
             .is_some()
@@ -451,7 +451,7 @@ fn duplicate_xover() {
     assert!(
         main_state
             .app_state
-            .get_design_reader()
+            .get_design_interactor()
             .is_xover_end(&n2)
             .to_opt()
             .is_some()

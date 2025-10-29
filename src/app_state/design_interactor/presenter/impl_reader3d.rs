@@ -31,7 +31,7 @@ use ensnano_utils::StrandNucleotidesPositions;
 use std::collections::HashSet;
 use ultraviolet::{Mat4, Rotor3, Vec2, Vec3};
 
-impl ensnano_scene::data::DesignReader for DesignReader {
+impl ensnano_scene::data::SceneDesignReaderExt for DesignInteractor {
     fn get_color(&self, e_id: u32) -> Option<u32> {
         self.presenter.content.color_map.get(&e_id).cloned()
     }

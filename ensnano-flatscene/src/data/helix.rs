@@ -16,7 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use super::{FlatNucl, Helix2d, NuclCollection};
+use super::{FlatNucl, Helix2d};
 use crate::{
     CameraPtr, Flat, FlatHelix,
     flattypes::{FlatHelixMaps, FlatPosition, HelixSegment},
@@ -24,7 +24,7 @@ use crate::{
 };
 use abscissa_converter::{AbscissaConverter, AbscissaConverter_};
 use ahash::RandomState;
-use ensnano_design::Nucl;
+use ensnano_design::{Nucl, NuclCollection};
 use ensnano_interactor::consts::{
     BLACK_VEC4, CIRCLE2D_GREY, GREY_UNKNOWN_NUCL_VEC4, HELIX_BORDER_COLOR,
 };
@@ -748,7 +748,7 @@ pub struct CharCollector<'a> {
     pub show_seq: bool,
     pub edition_info: &'a Option<EditionInfo>,
     pub hovered_nucl: &'a Option<FlatNucl>,
-    pub nucl_collection: &'a dyn NuclCollection,
+    pub nucl_collection: &'a NuclCollection,
 }
 
 impl Helix {
@@ -863,7 +863,7 @@ impl Helix {
                 forward,
             }
             .to_real();
-            if char_collector.nucl_collection.contains(&nucl) {
+            if char_collector.nucl_collection.contains_nucl(&nucl) {
                 let (c, color) = char_collector
                     .basis_map
                     .get(&nucl)

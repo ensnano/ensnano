@@ -54,7 +54,7 @@ use std::{
 use ultraviolet::{Mat4, Rotor3, Vec2, Vec3, Vec4};
 
 /// An object that handles the 3d graphical representation of a `Design`
-pub struct Design3D<R: DesignReader> {
+pub struct Design3D<R: SceneDesignReaderExt> {
     pub design_reader: R,
     id: u32,
     symbol_map: HashMap<char, usize>,
@@ -62,7 +62,7 @@ pub struct Design3D<R: DesignReader> {
     pub all_helices_on_axis: bool,
 }
 
-impl<R: DesignReader> Design3D<R> {
+impl<R: SceneDesignReaderExt> Design3D<R> {
     pub fn new(design_reader: R, id: u32) -> Self {
         let mut symbol_map = HashMap::new();
         for (s_id, s) in PRINTABLE_CHARS.iter().enumerate() {
@@ -1625,7 +1625,7 @@ pub(super) enum ExpandWith {
 
 // Array of (strand number, array of 3D space position of the nucleotides)
 
-pub trait DesignReader: 'static + ensnano_interactor::DesignReader {
+pub trait SceneDesignReaderExt: 'static + ensnano_interactor::InteractorDesignReaderExt {
     /// Return the identifier of all the visible nucleotides
     fn get_all_visible_nucl_ids(&self) -> Vec<u32>;
     /// Return the identifier of all the visible bounds

@@ -25,16 +25,13 @@ use super::SimulationUpdate;
 use crate::{
     app_state::{
         AddressPointer,
-        design_interactor::{
-            controller::simulations::{
-                GridSystemInterface, GridsSystemThread, HelixSystemInterface, HelixSystemThread,
-                SimulationOperation,
-                rapier::{RapierInterface, RapierPhysicalSystem},
-                revolutions::{RevolutionSystemInterface, RevolutionSystemThread},
-                roller::{PhysicalSystem, RollInterface},
-                twister::{TwistInterface, Twister},
-            },
-            presenter::design_content::NuclCollection,
+        design_interactor::controller::simulations::{
+            GridSystemInterface, GridsSystemThread, HelixSystemInterface, HelixSystemThread,
+            SimulationOperation,
+            rapier::{RapierInterface, RapierPhysicalSystem},
+            revolutions::{RevolutionSystemInterface, RevolutionSystemThread},
+            roller::{PhysicalSystem, RollInterface},
+            twister::{TwistInterface, Twister},
         },
     },
     controller::chanel_reader::ChannelReader,
@@ -43,7 +40,7 @@ use clipboard::{Clipboard, CopyOperation, PastePosition, PastedStrand, StrandCli
 use ensnano_design::{
     self, BezierControlPoint, BezierEnd, BezierPathId, BezierPlaneDescriptor, BezierVertex,
     BezierVertexId, CameraId, Collection, CurveDescriptor, Design, Domain, DomainJunction, Helices,
-    Helix, HelixCollection, HelixInterval, Nucl, Strand, Strands, UpToDateDesign,
+    Helix, HelixCollection, HelixInterval, Nucl, NuclCollection, Strand, Strands, UpToDateDesign,
     drawing_style::{DrawingAttribute, DrawingStyle},
     elements::{DesignElementKey, DnaAttribute},
     grid::{

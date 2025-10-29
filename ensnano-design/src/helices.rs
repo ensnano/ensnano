@@ -26,6 +26,7 @@ use super::{
     scadnano::*,
     utils::*,
 };
+use ahash::HashMap;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::sync::Arc;
@@ -971,6 +972,42 @@ pub struct VirtualNucl(pub(super) Nucl);
 impl VirtualNucl {
     pub fn compl(&self) -> Self {
         Self(self.0.compl())
+    }
+}
+
+#[derive(Default, Clone)]
+pub struct NuclCollection {
+    pub identifier: BTreeMap<Nucl, u32>, //HashMap<Nucl, u32, RandomState>,
+    virtual_nucl_map: HashMap<VirtualNucl, Nucl>,
+}
+
+impl NuclCollection {
+    pub fn iter_nucls_ids<'a>(&'a self) -> Box<dyn Iterator<Item = (&'a Nucl, &'a u32)> + 'a> {
+        Box::new(self.identifier.iter())
+    }
+
+    pub fn virtual_to_real(&self, virtual_nucl: &VirtualNucl) -> Option<&Nucl> {
+        self.virtual_nucl_map.get(virtual_nucl)
+    }
+
+    pub fn get_identifier(&self, nucl: &Nucl) -> Option<&u32> {
+        self.identifier.get(nucl)
+    }
+
+    pub fn contains_nucl(&self, nucl: &Nucl) -> bool {
+        self.identifier.contains_key(nucl)
+    }
+
+    pub fn nb_nucls(&self) -> usize {
+        self.identifier.len()
+    }
+
+    pub fn insert(&mut self, key: Nucl, id: u32) -> Option<u32> {
+        self.identifier.insert(key, id)
+    }
+
+    pub fn insert_virtual(&mut self, virtual_nucl: VirtualNucl, nucl: Nucl) -> Option<Nucl> {
+        self.virtual_nucl_map.insert(virtual_nucl, nucl)
     }
 }
 
