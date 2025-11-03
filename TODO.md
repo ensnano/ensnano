@@ -1,18 +1,16 @@
 # TODO
 
-## Long-term
+## Stabilize `dev_iced`
 
-- Stabilize `dev_iced` and merge on `dev_private`
-- Update `iced` to 0.13
-- Port to the web with WASM
-- Distribution of strand lengths (analysis tab)
-- Triple-stranded DNA
-- Local crossover optimization
-- Animation timeline
-- Publish `ensnano` on crates.io?
-- Hide scientific WIP, either:
-  - Authentication once the app is ported to the web
-  - Possibility to inject an external private crate with more objects
+- Fix text fields in organizer tree
+- Fix text fields in revolution surface tab
+
+## Hide scientific WIP
+
+- .ens file encryption
+- Naive solution based on system time, hidden files or something
+- Authentication once the app is ported to the web
+- Possibility to inject an external private crate with more objects
 
 ## Scene (3D)
 
@@ -31,6 +29,7 @@
 - Better implementation:
   - https://io7m.com/documents/outline-glsl/
   - https://gamedev.stackexchange.com/questions/68401/how-can-i-draw-outlines-around-3d-models
+  - Simply use the normal?
 - Give uniform instead of hardcoding
 - Fix on transparent objects (create a separate pass?)
 
@@ -73,6 +72,16 @@
 - Filename
 - Maximized/fullscreen/normal on startup
 - GPU power preference (`wgpu::PowerPreference::HighPerformance`)
+
+## Long-term
+
+- Update `iced` to 0.13
+- Port to the web with WASM
+- Distribution of strand lengths (analysis tab)
+- Triple-stranded DNA
+- Local crossover optimization
+- Animation timeline
+- Publish `ensnano` on crates.io?
 
 ## Refactor
 
