@@ -4,7 +4,7 @@
 
 - Fix text fields in organizer tree
 - Fix text fields in revolution surface tab
-- Click on organizer tree should focus
+- Click on organizer tree should select and reciprocally (select should highlight in red in organizer tree)
 - Double on organizer tree click should teleport in 2d and 3d scenes
 
 ## Hide scientific WIP

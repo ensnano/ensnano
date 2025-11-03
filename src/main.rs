@@ -88,11 +88,12 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //!      | Immediate   | No          | Yes         |
 //!      | Mailbox     | Yes         | No          |
 
+#[cfg(test)]
+mod main_tests;
+
 mod app_state;
 mod controller;
 mod dialog;
-#[cfg(test)]
-mod main_tests;
 mod multiplexer;
 mod requests;
 mod scheduler;
@@ -170,6 +171,8 @@ use {
     },
 };
 
+const PROGRAM_NAME: &'static str = "ENSnano";
+
 /// Determine if log messages can be printed before the renderer setup.
 ///
 /// Setting it to true will print information in the terminal that are not useful for regular use.
@@ -221,47 +224,39 @@ const PANIC_ON_WGPU_ERRORS: bool = true;
 /// * The main loops then reads the messages that it received from the [Mediator](ensnano_interactor::application::AppId::Mediator) and
 /// forwards their consequences to the Gui components.
 /// * Finally, a redraw is requested.
-///
-///
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     if EARLY_LOG {
         pretty_env_logger::init();
     }
 
     // Parse arguments. If an argument was given it is treated as a file to open.
-    let path = std::env::args().nth(1).map(|arg| PathBuf::from(arg));
+    let path = std::env::args().nth(1).map(PathBuf::from);
 
     // Initialize winit. Create an event_loop and a window.
     let event_loop = EventLoop::new()?;
     let window = Arc::new(winit::window::Window::new(&event_loop)?);
+    window.set_title(PROGRAM_NAME);
+    window.set_maximized(true);
+    window.set_min_inner_size(Some(PhySize::new(500, 500)));
 
-    let mut windows_title = String::from("ENSnano");
-    window.set_title("ENSnano");
+    log::info!("scale factor {}", window.scale_factor());
+
     // NOTE: Why we don't use window.title() ? Because this method doesn't
     //       work on linux (both X11 and Wayland). See:
     //
     // https://docs.rs/winit/latest/winit/window/struct.Window.html#platform-specific-41
-
-    // Set the minimal size of the window.
-    window.set_min_inner_size(Some(PhySize::new(100, 100)));
-    window.set_maximized(true);
-
-    log::info!("scale factor {}", window.scale_factor());
+    let mut window_title = String::from(PROGRAM_NAME);
 
     // Represents the current state of the keyboard modifiers (Shift, Ctrl, etc.)
     let kbd_modifiers = ModifiersState::default();
 
-    // Initialize the GPU backend.
-    let backend = wgpu::util::backend_bits_from_env().unwrap_or(DEFAULT_BACKEND);
+    // Setup wgpu
     let gpu_instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-        backends: backend,
+        backends: wgpu::util::backend_bits_from_env().unwrap_or(DEFAULT_BACKEND),
         ..Default::default()
     });
-    // Obtain a WGPU surface.
     let surface = gpu_instance.create_surface(window.clone())?;
-
-    // Obtain a WGPU adapter.
-    let (format, _adapter, device, queue) = futures::executor::block_on(async {
+    let (format, device, queue) = futures::executor::block_on(async {
         log::info!(
             "Creating GPU adapter with WGPU_ADAPTER_NAME={:?} and WGPU_POWER_PREF={:?}",
             std::env::var("WGPU_ADAPTER_NAME").ok(),
@@ -278,9 +273,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                      You need Vulkan, Metal (for MacOS) or DirectX (for Windows) drivers to run this software");
 
         let adapter_features = adapter.features();
-
         let needed_limits = wgpu::Limits::default();
-
         let capabilities = surface.get_capabilities(&adapter);
 
         let (device, queue) = adapter
@@ -303,7 +296,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .find(wgpu::TextureFormat::is_srgb)
                 .or_else(|| capabilities.formats.first().copied())
                 .expect("Get preferred format"),
-            adapter,
             device,
             queue,
         )
@@ -313,23 +305,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         device.on_uncaptured_error(Box::new(|e| log::error!("wgpu error {:?}", e)));
     }
 
-    {
-        let physical_size = window.inner_size();
-
-        surface.configure(
-            &device,
-            &wgpu::SurfaceConfiguration {
-                usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-                format,
-                width: physical_size.width,
-                height: physical_size.height,
-                present_mode: wgpu::PresentMode::AutoVsync,
-                desired_maximum_frame_latency: 2,
-                alpha_mode: wgpu::CompositeAlphaMode::Auto,
-                view_formats: vec![],
-            },
-        )
-    }
+    let physical_size = window.inner_size();
+    surface.configure(
+        &device,
+        &wgpu::SurfaceConfiguration {
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+            format,
+            width: physical_size.width,
+            height: physical_size.height,
+            present_mode: wgpu::PresentMode::AutoVsync,
+            desired_maximum_frame_latency: 2,
+            alpha_mode: wgpu::CompositeAlphaMode::Auto,
+            view_formats: vec![],
+        },
+    );
 
     let parameters: AppStateParameters = confy::load(APP_NAME, APP_NAME).unwrap_or_default();
 
@@ -803,16 +792,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
                 log::trace!("call update from main");
                 main_state.update();
-                let new_title = if let Some(path) = main_state.get_current_file_name() {
-                    let path_str = formatted_path_end(path);
-                    format!("ENSnano {}", path_str)
-                } else {
-                    format!("ENSnano {}", NO_DESIGN_TITLE)
-                };
 
-                if windows_title != new_title {
+                let new_title = format!(
+                    "{} {}",
+                    PROGRAM_NAME,
+                    match main_state.get_current_file_name() {
+                        Some(path) => &formatted_path_end(path),
+                        None => NO_DESIGN_TITLE,
+                    }
+                );
+                if window_title != new_title {
                     window.set_title(&new_title);
-                    windows_title = new_title;
+                    window_title = new_title;
                 }
 
                 // Treat eventual event that happened in the gui left panel.
