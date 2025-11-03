@@ -17,7 +17,6 @@
 ## Scene (3D)
 
 - Fix rotation with `H`/`J`/`K`/`L` while dragging (copy code from `swing`)
-- Export PNG max size
 - Cut plane (toggleable button next to grids)
 - Isometric view
 

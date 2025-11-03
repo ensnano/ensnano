@@ -64,7 +64,7 @@ use winit::{dpi::PhysicalPosition, event::WindowEvent, window::CursorIcon};
 
 type ViewPtr = Rc<RefCell<View>>;
 
-const PNG_SIZE: u32 = 256 * 10;
+const PNG_SIZE: u32 = 8192;
 
 /// A structure responsible of the 3D display of the designs
 pub struct Scene<S: AppState> {
@@ -953,16 +953,18 @@ impl<S: AppState> Scene<S> {
         let device = self.element_selector.device.as_ref();
         let queue = self.element_selector.queue.as_ref();
 
+        let png_size = device.limits().max_texture_dimension_2d.min(PNG_SIZE);
+
         let ratio = self.view.borrow().get_projection().borrow().get_ratio();
         let width = if ratio < 1. {
-            (ratio * PNG_SIZE as f32).floor() as u32
+            (ratio * png_size as f32).floor() as u32
         } else {
-            PNG_SIZE
+            png_size
         };
         let height = if ratio < 1. {
-            PNG_SIZE
+            png_size
         } else {
-            (PNG_SIZE as f32 / ratio).floor() as u32
+            (png_size as f32 / ratio).floor() as u32
         };
         let size = wgpu::Extent3d {
             width,
