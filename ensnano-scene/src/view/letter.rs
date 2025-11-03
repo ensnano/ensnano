@@ -15,12 +15,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use ensnano_design::ultraviolet::{Vec2, Vec3, Vec4};
-use ensnano_utils::wgpu;
-use wgpu::{Device, include_spirv};
 
-use super::instances_drawer::{Instantiable, RessourceProvider, Vertexable};
+use super::instances_drawer::{Instantiable, ResourceProvider, Vertexable};
 use ensnano_utils::text::Letter;
+use ultraviolet::{Vec2, Vec3, Vec4};
+use wgpu::{Device, include_spirv};
 
 #[derive(Debug, Clone)]
 pub struct LetterInstance {
@@ -41,8 +40,8 @@ pub struct RawLetter {
     pub scale: f32,
 }
 
-impl RessourceProvider for Letter {
-    fn ressources_layout() -> &'static [wgpu::BindGroupLayoutEntry] {
+impl ResourceProvider for Letter {
+    fn resources_layout() -> &'static [wgpu::BindGroupLayoutEntry] {
         &[
             wgpu::BindGroupLayoutEntry {
                 binding: 0,
@@ -63,7 +62,7 @@ impl RessourceProvider for Letter {
         ]
     }
 
-    /// This methods allows the ressource tho provide the vertex buffer. If the return value is
+    /// This methods allows the resource tho provide the vertex buffer. If the return value is
     /// Some, it takes priority over the Instantiable's vertices.
     fn vertex_buffer_desc() -> Option<wgpu::VertexBufferLayout<'static>>
     where
@@ -72,7 +71,7 @@ impl RessourceProvider for Letter {
         Some(ensnano_utils::text::Vertex::desc())
     }
 
-    fn ressources(&self) -> Vec<wgpu::BindGroupEntry<'_>> {
+    fn resources(&self) -> Vec<wgpu::BindGroupEntry<'_>> {
         vec![
             wgpu::BindGroupEntry {
                 binding: 0,
@@ -117,7 +116,7 @@ impl Vertexable for LetterVertex {
 }
 
 impl Instantiable for LetterInstance {
-    type Ressource = Letter;
+    type Resource = Letter;
     type Vertex = LetterVertex;
     type RawInstance = RawLetter;
 
@@ -162,9 +161,5 @@ impl Instantiable for LetterInstance {
 
     fn fragment_module(device: &Device) -> wgpu::ShaderModule {
         device.create_shader_module(include_spirv!("letter.frag.spv"))
-    }
-
-    fn alpha_to_coverage_enabled() -> bool {
-        true
     }
 }

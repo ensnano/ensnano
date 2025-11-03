@@ -16,7 +16,6 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use super::{CameraPtr, FlatNucl, FreeEnd, Helix, Strand};
-use ensnano_utils::wgpu;
 use std::rc::Rc;
 use wgpu::{Buffer, Device, Queue, RenderPass};
 
@@ -150,42 +149,32 @@ impl StrandView {
         top_cam: &CameraPtr,
         bottom_cam: &CameraPtr,
     ) {
-        /*
-        let need_update = if self.previous_points.as_ref() != Some(&strand.points) {
-            true
-        } else if let Some(free_end) = free_end {
-            free_end.strand_id == strand.id
-        } else {
-            false
-        };*/
-        let need_update = true; //TODO improve this
+        // TODO: check if update is needed
 
-        if need_update {
-            let (vertices_top, split_vertices_top) =
-                strand.to_vertices(helices, free_end, top_cam, bottom_cam);
-            self.vertex_buffer_top
-                .update(vertices_top.vertices.as_slice());
-            self.index_buffer_top
-                .update(vertices_top.indices.as_slice());
-            self.num_instance_top = vertices_top.indices.len() as u32;
-            self.split_vbo_top
-                .update(split_vertices_top.vertices.as_slice());
-            self.split_ibo_top
-                .update(split_vertices_top.indices.as_slice());
-            self.num_instance_split_top = split_vertices_top.indices.len() as u32;
-            let (vertices_bottom, split_vertices_bottom) =
-                strand.to_vertices(helices, free_end, bottom_cam, top_cam);
-            self.vertex_buffer_bottom
-                .update(vertices_bottom.vertices.as_slice());
-            self.index_buffer_bottom
-                .update(vertices_bottom.indices.as_slice());
-            self.num_instance_bottom = vertices_bottom.indices.len() as u32;
-            self.split_vbo_bottom
-                .update(split_vertices_bottom.vertices.as_slice());
-            self.split_ibo_bottom
-                .update(split_vertices_bottom.indices.as_slice());
-            self.num_instance_split_bottom = split_vertices_bottom.indices.len() as u32;
-        }
+        let (vertices_top, split_vertices_top) =
+            strand.to_vertices(helices, free_end, top_cam, bottom_cam);
+        self.vertex_buffer_top
+            .update(vertices_top.vertices.as_slice());
+        self.index_buffer_top
+            .update(vertices_top.indices.as_slice());
+        self.num_instance_top = vertices_top.indices.len() as u32;
+        self.split_vbo_top
+            .update(split_vertices_top.vertices.as_slice());
+        self.split_ibo_top
+            .update(split_vertices_top.indices.as_slice());
+        self.num_instance_split_top = split_vertices_top.indices.len() as u32;
+        let (vertices_bottom, split_vertices_bottom) =
+            strand.to_vertices(helices, free_end, bottom_cam, top_cam);
+        self.vertex_buffer_bottom
+            .update(vertices_bottom.vertices.as_slice());
+        self.index_buffer_bottom
+            .update(vertices_bottom.indices.as_slice());
+        self.num_instance_bottom = vertices_bottom.indices.len() as u32;
+        self.split_vbo_bottom
+            .update(split_vertices_bottom.vertices.as_slice());
+        self.split_ibo_bottom
+            .update(split_vertices_bottom.indices.as_slice());
+        self.num_instance_split_bottom = split_vertices_bottom.indices.len() as u32;
     }
 
     pub fn set_indication(&mut self, nucl1: FlatNucl, nucl2: FlatNucl, helices: &[Helix]) {

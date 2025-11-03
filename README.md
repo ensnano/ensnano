@@ -51,7 +51,7 @@ You need the GTK3 development packages and a C++ compiler to build the [RFD](htt
 
 * Fedora: `dnf install gtk3-devel`
 
-* Archlinux: `pacman -S gtk3`
+* Arch Linux: `pacman -S gtk3`
 
 You also need to have the **Vulkan** driver for your graphic card installed. The installation method depends on your distribution and graphic card,
 but there should be a tutorial on the internet for any combination of those.

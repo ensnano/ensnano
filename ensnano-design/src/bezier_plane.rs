@@ -17,11 +17,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use super::Collection;
 use super::HelixParameters;
+use super::PieceWiseBezierInstantiator;
 use super::collection::HasMap;
-use super::curves::{BezierEndCoordinates, Curve, InstanciatedPiecewiseBezier};
-use crate::PieceWiseBezierInstantiator;
-use crate::grid::*;
-use crate::utils::rotor_to_drotor;
+use super::curves::{BezierEndCoordinates, Curve, InstantiatedPiecewiseBezier};
+use super::grid::*;
+use super::utils::rotor_to_drotor;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::sync::Arc;
@@ -289,7 +289,7 @@ impl BezierPath {
         }
     }
 
-    pub fn to_instanciated_path_2d(&self) -> Option<InstanciatedPiecewiseBezier> {
+    pub fn to_instantiated_path_2d(&self) -> Option<InstantiatedPiecewiseBezier> {
         self.instantiate()
     }
 }
@@ -367,11 +367,11 @@ impl BezierVertex {
     }
 }
 
-pub struct InstanciatedPath {
+pub struct InstantiatedPath {
     source_planes: BezierPlanes,
     source_path: Arc<BezierPath>,
-    pub(crate) curve_descriptor: Option<Arc<InstanciatedPiecewiseBezier>>,
-    curve_descriptor_2d: Option<Arc<InstanciatedPiecewiseBezier>>,
+    pub(crate) curve_descriptor: Option<Arc<InstantiatedPiecewiseBezier>>,
+    curve_descriptor_2d: Option<Arc<InstantiatedPiecewiseBezier>>,
     curve_2d: Option<Curve>,
     pub(crate) frames: Option<Vec<(Vec3, Rotor3)>>,
 }
@@ -451,16 +451,16 @@ fn path_to_curve_descriptor(
     source_planes: BezierPlanes,
     source_path: Arc<BezierPath>,
     path_3d: bool,
-) -> Option<InstanciatedPiecewiseBezier> {
-    let instanciator = BezierInstantiator {
+) -> Option<InstantiatedPiecewiseBezier> {
+    let instantiator = BezierInstantiator {
         source_planes,
         source_path,
         path_3d,
     };
     let mut ret =
-        <BezierInstantiator as PieceWiseBezierInstantiator<Vec3>>::instantiate(&instanciator)?;
+        <BezierInstantiator as PieceWiseBezierInstantiator<Vec3>>::instantiate(&instantiator)?;
 
-    // This discriptor is only used to draw the path of the curve on the bezier plane. It does not
+    // This descriptor is only used to draw the path of the curve on the bezier plane. It does not
     // need to be precise, but it is better if we can update it quickly.
     ret.discretize_quickly = true;
     Some(ret)
@@ -469,7 +469,7 @@ fn path_to_curve_descriptor(
 fn curve_descriptor_to_frame(
     source_planes: BezierPlanes,
     source_path: Arc<BezierPath>,
-    desc: &InstanciatedPiecewiseBezier,
+    desc: &InstantiatedPiecewiseBezier,
 ) -> Option<Vec<(Vec3, Rotor3)>> {
     source_path
         .vertices
@@ -490,7 +490,7 @@ fn curve_descriptor_to_frame(
         .collect()
 }
 
-impl InstanciatedPath {
+impl InstantiatedPath {
     fn new(
         source_planes: BezierPlanes,
         source_path: Arc<BezierPath>,
@@ -563,15 +563,15 @@ impl InstanciatedPath {
 pub struct BezierPathData {
     source_planes: BezierPlanes,
     pub(crate) source_paths: BezierPaths,
-    pub instanciated_paths: Arc<BTreeMap<BezierPathId, Arc<InstanciatedPath>>>,
+    pub instantiated_paths: Arc<BTreeMap<BezierPathId, Arc<InstantiatedPath>>>,
 }
 
 impl std::fmt::Debug for BezierPathData {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         f.debug_struct("BezierPathData")
             .field(
-                "instanciated_paths",
-                &format_args!("{:p}", &self.instanciated_paths),
+                "instantiated_paths",
+                &format_args!("{:p}", &self.instantiated_paths),
             )
             .finish()
     }
@@ -583,13 +583,13 @@ impl BezierPathData {
         source_paths: BezierPaths,
         helix_parameters: &HelixParameters,
     ) -> Self {
-        let instanciated_paths: BTreeMap<_, _> = source_paths
+        let instantiated_paths: BTreeMap<_, _> = source_paths
             .0
             .iter()
             .map(|(id, path)| {
                 (
                     *id,
-                    Arc::new(InstanciatedPath::new(
+                    Arc::new(InstantiatedPath::new(
                         source_planes.clone(),
                         path.clone(),
                         helix_parameters,
@@ -598,7 +598,7 @@ impl BezierPathData {
             })
             .collect();
         Self {
-            instanciated_paths: Arc::new(instanciated_paths),
+            instantiated_paths: Arc::new(instantiated_paths),
             source_planes,
             source_paths,
         }
@@ -616,16 +616,16 @@ impl BezierPathData {
         helix_parameters: &HelixParameters,
     ) -> Option<Self> {
         if self.need_update(&source_planes, &source_paths) {
-            let instanciated_paths: BTreeMap<_, _> = source_paths
+            let instantiated_paths: BTreeMap<_, _> = source_paths
                 .0
                 .iter()
                 .map(|(id, source_path)| {
-                    let path = if let Some(path) = self.instanciated_paths.get(id) {
+                    let path = if let Some(path) = self.instantiated_paths.get(id) {
                         path.updated(source_planes.clone(), source_path.clone(), helix_parameters)
                             .map(Arc::new)
                             .unwrap_or_else(|| path.clone())
                     } else {
-                        Arc::new(InstanciatedPath::new(
+                        Arc::new(InstantiatedPath::new(
                             source_planes.clone(),
                             source_path.clone(),
                             helix_parameters,
@@ -635,7 +635,7 @@ impl BezierPathData {
                 })
                 .collect();
             Some(Self {
-                instanciated_paths: Arc::new(instanciated_paths),
+                instantiated_paths: Arc::new(instantiated_paths),
                 source_planes,
                 source_paths,
             })
@@ -645,11 +645,11 @@ impl BezierPathData {
     }
 
     pub fn ptr_eq(a: &Self, b: &Self) -> bool {
-        Arc::ptr_eq(&a.instanciated_paths, &b.instanciated_paths)
+        Arc::ptr_eq(&a.instantiated_paths, &b.instantiated_paths)
     }
 
     pub fn position_vertex_2d(&self, vertex_id: BezierVertexId) -> Option<Vec3> {
-        let path = self.instanciated_paths.get(&vertex_id.path_id)?;
+        let path = self.instantiated_paths.get(&vertex_id.path_id)?;
         path.frames
             .as_ref()
             .and_then(|f| f.get(vertex_id.vertex_id))
@@ -657,7 +657,7 @@ impl BezierPathData {
     }
 
     pub fn orientation_vertex(&self, vertex_id: BezierVertexId) -> Option<Rotor3> {
-        let path = self.instanciated_paths.get(&vertex_id.path_id)?;
+        let path = self.instantiated_paths.get(&vertex_id.path_id)?;
         path.frames
             .as_ref()
             .and_then(|f| f.get(vertex_id.vertex_id))
@@ -665,7 +665,7 @@ impl BezierPathData {
     }
 
     pub fn get_vector_out(&self, vertex_id: BezierVertexId) -> Option<Vec3> {
-        let path = self.instanciated_paths.get(&vertex_id.path_id)?;
+        let path = self.instantiated_paths.get(&vertex_id.path_id)?;
         path.curve_descriptor
             .as_ref()
             .and_then(|desc| desc.ends.get(vertex_id.vertex_id))
@@ -673,7 +673,7 @@ impl BezierPathData {
     }
 
     pub fn grids(&self) -> Vec<(GridId, GridDescriptor)> {
-        self.instanciated_paths
+        self.instantiated_paths
             .iter()
             .flat_map(|(path_id, path)| {
                 if let Some(grid_type) = path.source_path.grid_type {

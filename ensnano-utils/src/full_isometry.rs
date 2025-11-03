@@ -26,7 +26,7 @@ pub struct FullIsometry {
 }
 
 impl FullIsometry {
-    pub fn from_isommetry_symmetry(iso: Isometry2, symmetry: Vec2) -> Self {
+    pub fn from_isometry_symmetry(iso: Isometry2, symmetry: Vec2) -> Self {
         Self {
             translation: iso.translation,
             rotation: iso.rotation,
@@ -41,7 +41,7 @@ impl FullIsometry {
         Mat3::from_translation(self.translation) * sym_rot
     }
 
-    pub fn matrix_with_transposed_symetry(self) -> Mat3 {
+    pub fn matrix_with_transposed_symmetry(self) -> Mat3 {
         let mut sym_rot = self.rotation.into_matrix().into_homogeneous();
         sym_rot[0] *= self.symmetry.y;
         sym_rot[1] *= self.symmetry.x;

@@ -80,8 +80,8 @@ fn sanitize_domains_scadnano() {
         junctions,
         vec![
             DomainJunction::Adjacent,
-            DomainJunction::UnindentifiedXover,
-            DomainJunction::UnindentifiedXover
+            DomainJunction::UnidentifiedXover,
+            DomainJunction::UnidentifiedXover
         ]
     );
 }
@@ -248,7 +248,7 @@ fn correct_junction_insertions() {
             DomainJunction::Adjacent,
             DomainJunction::Adjacent,
             DomainJunction::Adjacent,
-            DomainJunction::UnindentifiedXover,
+            DomainJunction::UnidentifiedXover,
             DomainJunction::Prime3
         ]
     );
@@ -555,9 +555,9 @@ fn correct_junction_cyclic_pathological() {
             DomainJunction::Adjacent,
             DomainJunction::Adjacent,
             DomainJunction::Adjacent,
-            DomainJunction::UnindentifiedXover,
+            DomainJunction::UnidentifiedXover,
             DomainJunction::Adjacent,
-            DomainJunction::UnindentifiedXover
+            DomainJunction::UnidentifiedXover
         ]
     );
 }

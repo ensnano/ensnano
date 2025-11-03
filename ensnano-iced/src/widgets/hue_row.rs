@@ -37,14 +37,14 @@ use color_space::{Hsv, Rgb};
 
 const DEFAULT_SIZE: f32 = 90.0;
 
-/// The internal state of a [HueColumn].
+/// The internal state of a [`HueRow`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct State {
     is_dragging: bool,
 }
 
 /// A HueColumn Widget.
-pub struct HueRow<'a, Message, Theme = crate::Theme, Renderer = crate::Renderer> {
+pub struct HueRow<'a, Message, Theme = iced::Theme, Renderer = iced::Renderer> {
     width: Length,
     height: Length,
     on_slide: Option<Box<dyn Fn(f64) -> Message + 'a>>,
@@ -52,7 +52,7 @@ pub struct HueRow<'a, Message, Theme = crate::Theme, Renderer = crate::Renderer>
     _renderer: PhantomData<Renderer>,
 }
 
-impl<'a, Message, Theme> HueRow<'a, Message, Theme, crate::Renderer> {
+impl<'a, Message, Theme> HueRow<'a, Message, Theme, iced::Renderer> {
     pub fn new() -> Self {
         Self {
             width: Length::Fixed(4.0 * DEFAULT_SIZE),
@@ -90,8 +90,8 @@ impl<'a, Message, Theme> HueRow<'a, Message, Theme, crate::Renderer> {
     }
 }
 
-impl<'a, Message, Theme> Widget<Message, Theme, crate::Renderer>
-    for HueRow<'a, Message, Theme, crate::Renderer>
+impl<'a, Message, Theme> Widget<Message, Theme, iced::Renderer>
+    for HueRow<'a, Message, Theme, iced::Renderer>
 {
     fn state(&self) -> widget::tree::State {
         widget::tree::State::Some(Box::new(State::default()))
@@ -106,7 +106,7 @@ impl<'a, Message, Theme> Widget<Message, Theme, crate::Renderer>
     fn layout(
         &self,
         _tree: &mut widget::Tree,
-        _renderer: &crate::Renderer,
+        _renderer: &iced::Renderer,
         limits: &layout::Limits,
     ) -> layout::Node {
         layout::atomic(limits, self.width, self.height)
@@ -115,7 +115,7 @@ impl<'a, Message, Theme> Widget<Message, Theme, crate::Renderer>
     fn draw(
         &self,
         _tree: &widget::Tree,
-        renderer: &mut crate::Renderer,
+        renderer: &mut iced::Renderer,
         _theme: &Theme,
         _style: &Style,
         layout: Layout,
@@ -160,7 +160,7 @@ impl<'a, Message, Theme> Widget<Message, Theme, crate::Renderer>
         });
 
         match renderer {
-            crate::Renderer::Wgpu(wgpu_renderer) => wgpu_renderer
+            iced::Renderer::Wgpu(wgpu_renderer) => wgpu_renderer
                 .with_translation(Vector::new(b.x, b.y), |renderer| {
                     renderer.draw_primitive(Primitive::Custom(mesh))
                 }),
@@ -174,7 +174,7 @@ impl<'a, Message, Theme> Widget<Message, Theme, crate::Renderer>
         event: event::Event,
         layout: Layout,
         cursor: Cursor,
-        _renderer: &crate::Renderer,
+        _renderer: &iced::Renderer,
         _clipboard: &mut dyn Clipboard,
         shell: &mut Shell<'_, Message>,
         _viewport: &Rectangle,
@@ -237,13 +237,13 @@ impl<'a, Message, Theme> Widget<Message, Theme, crate::Renderer>
     }
 }
 
-impl<'a, Message, Theme> From<HueRow<'a, Message, Theme, crate::Renderer>>
-    for crate::Element<'a, Message, Theme, crate::Renderer>
+impl<'a, Message, Theme> From<HueRow<'a, Message, Theme, iced::Renderer>>
+    for iced::Element<'a, Message, Theme, iced::Renderer>
 where
     Message: 'a + Clone,
     Theme: 'a,
 {
-    fn from(hue_row: HueRow<'a, Message, Theme, crate::Renderer>) -> Self {
+    fn from(hue_row: HueRow<'a, Message, Theme, iced::Renderer>) -> Self {
         Self::new(hue_row)
     }
 }

@@ -16,6 +16,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+use rand::{
+    Rng,
+    distributions::{Distribution, Standard},
+};
 use serde::{Deserialize, Serialize};
 use std::{
     collections::{HashMap, hash_map::RandomState},
@@ -47,10 +51,7 @@ impl<K: PartialEq> OrganizerTree<K> {
                     match c {
                         Self::Leaf(k) if k == element => ret.push(rename.clone()),
                         Self::Leaf(_) => (),
-                        node => {
-                            let extention = node.get_names_of_groups_having(element);
-                            ret.extend(extention)
-                        }
+                        node => ret.extend(node.get_names_of_groups_having(element)),
                     }
                 }
             }
@@ -67,8 +68,7 @@ impl<K: PartialEq> OrganizerTree<K> {
             Self::Node { children, .. } => {
                 let _ = ret.push(self.get_name_copy_with_id());
                 for c in children {
-                    let extention = c.get_names_of_all_groups();
-                    ret.extend(extention);
+                    ret.extend(c.get_names_of_all_groups());
                 }
             }
         }
@@ -85,8 +85,7 @@ impl<K: PartialEq> OrganizerTree<K> {
                     ret.push(name);
                 }
                 for c in children {
-                    let extention = c.get_names_of_all_groups_without_id();
-                    ret.extend(extention);
+                    ret.extend(c.get_names_of_all_groups_without_id());
                 }
             }
         }
@@ -242,9 +241,6 @@ impl<'de, K: Deserialize<'de>> Deserialize<'de> for OrganizerTree<K> {
 ///
 /// Used to map groups to group attributes.
 pub struct GroupId(u64);
-
-use rand::Rng;
-use rand::distributions::{Distribution, Standard};
 
 impl Distribution<GroupId> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> GroupId {

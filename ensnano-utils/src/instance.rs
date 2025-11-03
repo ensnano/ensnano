@@ -15,18 +15,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use ultraviolet::{Mat4, Rotor3, Vec3, Vec4};
+use ultraviolet::{Mat4, Vec4};
+
 #[derive(Debug, Copy, Clone)]
 /// The instantiation of an object
-pub struct Instance {
-    /// The position in space
-    pub position: Vec3,
-    /// The rotation of the instance
-    pub rotor: Rotor3,
-    pub color: Vec4,
-    pub id: u32,
-    pub scale: f32,
-}
+pub struct Instance {}
 
 #[repr(C)]
 #[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
@@ -41,11 +34,6 @@ impl Instance {
     pub fn grey_u32_color_from_f32(grey: f32) -> u32 {
         let g = (grey * 255.).round() as u32;
         return g << 16 | g << 8 | g;
-    }
-
-    pub fn grey_au32_color_from_f32(grey: f32, alpha: f32) -> u32 {
-        let a = (alpha * 255.).round() as u32;
-        return Self::grey_u32_color_from_f32(grey) | a << 24;
     }
 
     pub fn color_from_u32(color: u32) -> Vec4 {

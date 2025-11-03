@@ -14,8 +14,7 @@ ensnano_organizer.workspace = true
 ensnano_utils.workspace = true
 
 color_space.workspace = true
-futures.workspace = true
 log.workspace = true
 open.workspace = true
 paste.workspace = true
-rfd.workspace = true
+ultraviolet.workspace = true

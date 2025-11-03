@@ -15,9 +15,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+//! A slider to choose a numerical value within a dircrete linear range.
+// TODO: Make it an independent object like ensano_iced::color_picker ?
 use super::AppState;
-
 use super::Message;
+use ensnano_iced::iced;
 use ensnano_iced::{
     helpers::*,
     iced::{Alignment, Length, Pixels},
@@ -94,7 +96,7 @@ impl<R: Requestable> RequestFactory<R> {
         &self,
         active: bool,
         size: impl Into<Pixels>,
-    ) -> Vec<ensnano_iced::Element<'_, Message<State>>> {
+    ) -> Vec<iced::Element<'_, Message<State>>> {
         let s = size.into();
         self.values
             .values()
@@ -132,10 +134,7 @@ impl<R: Requestable> RequestFactory<R> {
     }
 }
 
-/// A DiscreteValue allow the user to chose a numerical value with prescibed constraints.
-///
-/// The value must be chosen in the discrete range between [min_val], [max_val] by increments of
-/// [step].
+/// A slider to choose a numerical value within a dircrete linear range.
 struct DiscreteValue {
     // Current selected value.
     value: f32,
@@ -175,7 +174,7 @@ impl DiscreteValue {
         &self,
         active: bool,
         name_size: impl Into<Pixels>,
-    ) -> ensnano_iced::Element<'_, Message<State>> {
+    ) -> iced::Element<'_, Message<State>> {
         let decr_button = if active && self.value - self.step >= self.min_val {
             button(text("-")).on_press(Message::DiscreteValue {
                 factory_id: self.owner_id,

@@ -22,10 +22,10 @@ use super::{
 };
 use crate::{
     app_state::design_interactor::{Presenter, presenter::SimulationUpdate},
-    controller::chanel_reader::ChannelReader,
+    controller::channel_reader::ChannelReader,
 };
 use ensnano_design::{
-    Collection, CurveDescriptor, HelixCollection, HelixParameters, Twist,
+    self, Collection, CurveDescriptor, HelixCollection, HelixParameters, Twist,
     grid::{GridDescriptor, GridTypeDescr, *},
 };
 use std::{

@@ -17,7 +17,6 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use ensnano_interactor::consts::*;
-use ensnano_utils::wgpu;
 use lyon::{
     math::Point,
     path::Path,
@@ -95,7 +94,7 @@ fn fill_square_texture(target: &TextureView, device: &Device, encoder: &mut wgpu
         a: 0.4, // this will be useful to discard fragments that are not on the grid
     };
 
-    let texture_size = ensnano_utils::winit::dpi::PhysicalSize {
+    let texture_size = winit::dpi::PhysicalSize {
         width: TEXTURE_SIZE,
         height: TEXTURE_SIZE,
     };
@@ -172,16 +171,16 @@ fn square_texture_vertices() -> Vertices {
             &tessellation::StrokeOptions::default(),
             &mut tessellation::BuffersBuilder::new(&mut vertices, Custom),
         )
-        .expect("error durring tessellation");
+        .expect("error during tessellation");
     vertices
 }
 
-pub struct HonneyTexture {
+pub struct HoneyTexture {
     pub view: TextureView,
     pub sampler: Sampler,
 }
 
-impl HonneyTexture {
+impl HoneyTexture {
     pub fn new(device: &Device, encoder: &mut wgpu::CommandEncoder) -> Self {
         let texture = device.create_texture(&wgpu::TextureDescriptor {
             size: wgpu::Extent3d {
@@ -239,7 +238,7 @@ fn fill_honeycomb_texture(
         a: 0.4, // this will be useful to discard fragments that are not on the grid
     };
 
-    let texture_size = ensnano_utils::winit::dpi::PhysicalSize {
+    let texture_size = winit::dpi::PhysicalSize {
         width: TEXTURE_SIZE,
         height: TEXTURE_SIZE,
     };
@@ -316,7 +315,7 @@ fn honeycomb_texture_vertices() -> Vertices {
             &tessellation::StrokeOptions::default(),
             &mut tessellation::BuffersBuilder::new(&mut vertices, Custom),
         )
-        .expect("error durring tessellation");
+        .expect("error during tessellation");
     vertices
 }
 

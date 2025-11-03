@@ -18,7 +18,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 //! Defines the state in which the user is clicking on an object.
 //!
-//! Such a state is enterred when a mouse button is pressed while the cursor is on some specific
+//! Such a state is entered when a mouse button is pressed while the cursor is on some specific
 //! object. If the mouse button is released while the cursor is still close to the position on
 //! which it was when the button was pressed, the release of the button is treated as a click on
 //! the object.
@@ -89,7 +89,7 @@ impl<S: AppState> std::ops::Deref for OptionalTransitionPtr<S> {
 /// A function that maps a context (i.e. a pair &Controller, &mut ElementSelector) to an
 /// OptionalTransition.
 ///
-/// This is usefull when the context has an influence on weither a certain event should trigger an
+/// This is useful when the context has an influence on whether a certain event should trigger an
 /// OptionalTransition.
 trait ContextDependentTransition<S: AppState>:
     for<'a, 'b> Fn(&'b mut EventContext<'a, S>, ClickInfo) -> Box<dyn OptionalTransition<S>>
@@ -250,13 +250,13 @@ impl<S: AppState> ControllerState<S> for PointAndClicking<S> {
 }
 
 impl<S: AppState> PointAndClicking<S> {
-    /// A state in which the user is setting the pivot arrond which camera translation occur.
+    /// A state in which the user is setting the pivot around which camera translation occur.
     ///
     /// If the cursor is moved away from it's initial position, the controller's automata
     /// transition to "Rotating Camera" state
     pub(super) fn setting_pivot(
         clicked_position: PhysicalPosition<f64>,
-        pivot_elment: Option<SceneElement>,
+        pivot_element: Option<SceneElement>,
         tilt: bool,
     ) -> Self {
         let away_state = if tilt {
@@ -271,7 +271,7 @@ impl<S: AppState> PointAndClicking<S> {
             clicked_position,
             description: "Setting Pivot",
             pressed_button: MouseButton::Right,
-            release_consequences: Consequence::PivotElement(pivot_elment),
+            release_consequences: Consequence::PivotElement(pivot_element),
             long_hold_state: None,
             long_hold_state_maker: None,
             clicked_date: std::time::Instant::now(),

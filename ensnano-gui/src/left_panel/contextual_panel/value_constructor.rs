@@ -17,12 +17,12 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::{Message, Selection, UiSize};
-use crate::ultraviolet::{Bivec3, Mat3, Rotor3, Vec2, Vec3};
 use ensnano_iced::{
     helpers::*,
-    iced::{Alignment, Length},
+    iced::{self, Alignment, Length},
 };
 use paste::paste;
+use ultraviolet::{Bivec3, Mat3, Rotor3, Vec2, Vec3};
 
 macro_rules! type_builder {
     ($builder_name:ident, $initializer:tt, $internal:tt, $convert_in:path, $convert_out:path, $($param: ident: $param_type: tt %$formatter:path), *) => {
@@ -56,7 +56,7 @@ macro_rules! type_builder {
                     }
                 }
 
-                fn view<'a, State: AppState>(&self) -> ensnano_iced::Element<'_, Message<State>, Theme, Renderer> {
+                fn view<'a, State: AppState>(&self) -> iced::Element<'_, Message<State>, Theme, Renderer> {
                     let str_values = [$(& self.[<$param _string>],)*];
                     let mut ret = Column::new().width(Length::Fill).align_items(Alignment::End);
                     let value_to_modify = self.value_to_modify;
@@ -94,9 +94,9 @@ macro_rules! type_builder {
     }
 }
 
-struct DegreeAngleFormater;
+struct DegreeAngleFormatter;
 
-impl DegreeAngleFormater {
+impl DegreeAngleFormatter {
     fn fmt(angle: &f32) -> String {
         format!("{:.1}°", angle.to_degrees())
     }
@@ -152,7 +152,7 @@ type_builder!(
     x: f32 % FloatFormatter,
     y: f32 % FloatFormatter,
     z: f32 % FloatFormatter,
-    angle: f32 % DegreeAngleFormater
+    angle: f32 % DegreeAngleFormatter
 );
 
 /*type_builder!(
@@ -171,7 +171,7 @@ pub enum ValueKind {
 }
 
 #[derive(Debug, Clone)]
-pub enum InstanciatedValue {
+pub enum InstantiatedValue {
     HelixGridPosition(Vec3),
     GridOrientation(Rotor3),
     GridNbTurn(f32),
@@ -187,9 +187,7 @@ impl GridPositionBuilder {
         Self::Cartesian(Vec3Builder::new(ValueKind::HelixGridPosition, position))
     }
 
-    fn view<'a, State: AppState>(
-        &self,
-    ) -> ensnano_iced::Element<'_, Message<State>, Theme, Renderer> {
+    fn view<'a, State: AppState>(&self) -> iced::Element<'_, Message<State>, Theme, Renderer> {
         match self {
             Self::Cartesian(builder) => builder.view(),
         }
@@ -201,11 +199,11 @@ impl GridPositionBuilder {
         }
     }
 
-    fn submit_value(&mut self) -> Option<InstanciatedValue> {
+    fn submit_value(&mut self) -> Option<InstantiatedValue> {
         match self {
             Self::Cartesian(builder) => builder
                 .submit_value()
-                .map(InstanciatedValue::HelixGridPosition),
+                .map(InstantiatedValue::HelixGridPosition),
         }
     }
 }
@@ -222,7 +220,7 @@ impl GridOrientationBuilder {
         ))
     }
 
-    fn view<State: AppState>(&self) -> ensnano_iced::Element<'_, Message<State>, Theme, Renderer> {
+    fn view<State: AppState>(&self) -> iced::Element<'_, Message<State>, Theme, Renderer> {
         match self {
             Self::DirectionAngle(builder) => builder.view(),
         }
@@ -234,11 +232,11 @@ impl GridOrientationBuilder {
         }
     }
 
-    fn submit_value(&mut self) -> Option<InstanciatedValue> {
+    fn submit_value(&mut self) -> Option<InstantiatedValue> {
         match self {
             Self::DirectionAngle(builder) => builder
                 .submit_value()
-                .map(InstanciatedValue::GridOrientation),
+                .map(InstantiatedValue::GridOrientation),
         }
     }
 }
@@ -264,8 +262,7 @@ where
         ui_size: UiSize,
         _selection: &Selection,
         _app_state: &State,
-    ) -> ensnano_iced::Element<'_, super::Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer>
-    {
+    ) -> iced::Element<'_, super::Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer> {
         self::column![
             text("Position").size(ui_size.intermediate_text()),
             self.position_builder.view(),
@@ -285,11 +282,11 @@ where
         }
     }
 
-    fn submit_value(&mut self, value_kind: ValueKind) -> Option<InstanciatedValue> {
+    fn submit_value(&mut self, value_kind: ValueKind) -> Option<InstantiatedValue> {
         if let ValueKind::BezierVertexPosition = value_kind {
             self.position_builder
                 .submit_value()
-                .map(InstanciatedValue::BezierVertexPosition)
+                .map(InstantiatedValue::BezierVertexPosition)
         } else {
             log::error!(
                 "Unexpected value kind {:?} for BezierVertexBuilder",
@@ -316,16 +313,15 @@ impl GridBuilder {
     fn nb_turn_row<'a, S: AppState>(
         app_state: &S,
         selection: &Selection,
-    ) -> Option<
-        ensnano_iced::Element<'a, super::Message<S>, ensnano_iced::Theme, ensnano_iced::Renderer>,
-    > {
+    ) -> Option<iced::Element<'a, super::Message<S>, ensnano_iced::Theme, ensnano_iced::Renderer>>
+    {
         use crate::consts;
         if let Selection::Grid(_, g_id) = selection {
             if let Some(nb_turn) = app_state.get_reader().get_grid_nb_turn(*g_id) {
                 let row = row![
                     text(format!("{:.2}", nb_turn)),
                     slider(consts::MIN_NB_TURN..=consts::MAX_NB_TURN, nb_turn, |x| {
-                        super::Message::InstanciatedValueSubmitted(InstanciatedValue::GridNbTurn(x))
+                        super::Message::InstantiatedValueSubmitted(InstantiatedValue::GridNbTurn(x))
                     })
                     .step(consts::NB_TURN_STEP),
                 ]
@@ -349,8 +345,7 @@ where
         ui_size: UiSize,
         selection: &Selection,
         app_state: &State,
-    ) -> ensnano_iced::Element<'_, super::Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer>
-    {
+    ) -> iced::Element<'_, super::Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer> {
         self::column![
             text("Position").size(ui_size.intermediate_text()),
             self.position_builder.view(),
@@ -375,7 +370,7 @@ where
         }
     }
 
-    fn submit_value(&mut self, value_kind: ValueKind) -> Option<InstanciatedValue> {
+    fn submit_value(&mut self, value_kind: ValueKind) -> Option<InstantiatedValue> {
         match value_kind {
             ValueKind::HelixGridPosition => self.position_builder.submit_value(),
             ValueKind::GridOrientation => self.orientation_builder.submit_value(),
@@ -398,9 +393,9 @@ where
         ui_size: UiSize,
         selection: &Selection,
         app_state: &State,
-    ) -> ensnano_iced::Element<'a, super::Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer>;
+    ) -> iced::Element<'a, super::Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer>;
     fn update_str_value(&mut self, value_kind: ValueKind, n: usize, value_str: String);
-    fn submit_value(&mut self, value_kind: ValueKind) -> Option<InstanciatedValue>;
+    fn submit_value(&mut self, value_kind: ValueKind) -> Option<InstantiatedValue>;
 }
 
 #[derive(Debug, Clone, Copy)]

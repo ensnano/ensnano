@@ -17,17 +17,15 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::*;
-
 use ahash::RandomState;
-use ensnano_design::{Domain, Extremity, Helix, HelixInterval, Strand};
-use ensnano_flatscene::DesignReader as Reader2D;
+use ensnano_design::{Domain, Extremity, HelixInterval, NuclCollection};
+use ensnano_flatscene::FlatSceneDesignReaderExt;
 use ensnano_interactor::{Referential, torsion::Torsion};
 use std::collections::{BTreeMap, HashMap};
 use std::sync::Arc;
-use ultraviolet::{Isometry2, Vec3};
+use ultraviolet::{Isometry2, Vec2, Vec3};
 
-impl Reader2D for DesignReader {
-    type NuclCollection = super::design_content::NuclCollection;
+impl FlatSceneDesignReaderExt for DesignInteractor {
     fn get_isometry(&self, h_id: usize, segment_idx: usize) -> Option<Isometry2> {
         if segment_idx == 0 {
             self.presenter
@@ -45,11 +43,7 @@ impl Reader2D for DesignReader {
         }
     }
 
-    fn get_helix_segment_symmetry(
-        &self,
-        h_id: usize,
-        segment_idx: usize,
-    ) -> Option<ensnano_design::Vec2> {
+    fn get_helix_segment_symmetry(&self, h_id: usize, segment_idx: usize) -> Option<Vec2> {
         if segment_idx == 0 {
             self.presenter
                 .current_design
@@ -102,15 +96,6 @@ impl Reader2D for DesignReader {
         HashMap::new()
     }
 
-    fn get_raw_helix(&self, h_id: usize) -> Option<Arc<Helix>> {
-        self.presenter
-            .current_design
-            .helices
-            .get(&h_id)
-            .cloned()
-            .map(|h| Arc::new(h))
-    }
-
     fn get_basis_map(&self) -> Arc<HashMap<Nucl, char, RandomState>> {
         self.presenter.content.letter_map.clone()
     }
@@ -125,10 +110,6 @@ impl Reader2D for DesignReader {
             .strands
             .get(&s_id)
             .map(|s| s.get_insertions())
-    }
-
-    fn get_raw_strand(&self, s_id: usize) -> Option<Strand> {
-        self.presenter.current_design.strands.get(&s_id).cloned()
     }
 
     fn get_copy_points(&self) -> Vec<Vec<Nucl>> {
@@ -200,10 +181,6 @@ impl Reader2D for DesignReader {
         self.prime5_of_which_strand(nucl)
     }
 
-    fn helix_is_empty(&self, h_id: usize) -> Option<bool> {
-        self.helix_is_empty(h_id)
-    }
-
     fn is_xover_end(&self, nucl: &Nucl) -> Extremity {
         self.is_xover_end(nucl)
     }
@@ -222,7 +199,7 @@ impl Reader2D for DesignReader {
             .collect()
     }
 
-    fn get_nucl_collection(&self) -> Arc<super::design_content::NuclCollection> {
+    fn get_nucl_collection(&self) -> Arc<NuclCollection> {
         self.presenter.content.nucl_collection.clone()
     }
 
@@ -232,16 +209,6 @@ impl Reader2D for DesignReader {
             .try_get_up_to_date()
             .map(|data| data.grid_data.get_abscissa_converter(h_id))
             .unwrap_or_default()
-    }
-}
-
-impl ensnano_flatscene::NuclCollection for super::design_content::NuclCollection {
-    fn contains(&self, nucl: &Nucl) -> bool {
-        self.contains_nucl(nucl)
-    }
-
-    fn iter<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Nucl> + 'a> {
-        self.iter_nucls()
     }
 }
 

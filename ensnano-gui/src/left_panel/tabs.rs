@@ -56,8 +56,8 @@ pub trait GuiTab<State: AppState> {
 
     fn label(&self) -> TabLabel;
 
-    fn update(&mut self, _app_state: &mut State) -> Option<Self::Message> {
-        None
+    fn update(&mut self, _app_state: &mut State) -> Command<Message<State>> {
+        Command::none()
     }
 
     fn view(&self, ui_size: UiSize, app_state: &State) -> ensnano_iced::Element<'_, Self::Message> {

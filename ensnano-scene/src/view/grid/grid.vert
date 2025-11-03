@@ -3,7 +3,7 @@
 layout(location=0) in vec2 a_position;
 
 layout(location=0) out flat uint v_grid_type;
-layout(location=1) out vec2 v_tex_honney_coords;
+layout(location=1) out vec2 v_tex_honey_coords;
 layout(location=2) out vec2 v_tex_square_coords;
 layout(location=3) out vec4 v_color;
 layout(location=4) out flat uint v_fake;
@@ -58,7 +58,7 @@ void main() {
     vec2 position = vec2((max_x - min_x) * a_position.x + min_x,
                          (max_y - min_y) * a_position.y + min_y);
 
-    v_tex_honney_coords = position * vec2(1., -1.);
+    v_tex_honey_coords = position * vec2(1., -1.);
     v_tex_square_coords = position;
 
     mat4 design_matrix = model_matrix2[instances[gl_InstanceIndex].design_id];

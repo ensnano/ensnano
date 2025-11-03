@@ -23,7 +23,7 @@ pub mod twister;
 
 use super::*;
 use crate::app_state::design_interactor::Presenter;
-use ensnano_design::HelixParameters;
+use ensnano_design::{HelixParameters, NuclCollection};
 use ensnano_interactor::{RevolutionSurfaceSystemDescriptor, RigidBodyConstants};
 use mathru::{
     algebra::linear::vector::vector::Vector,
@@ -125,7 +125,7 @@ struct RigidHelix {
 }
 
 impl ExplicitODE<f32> for HelixSystem {
-    // We read the sytem in the following format. For each grid, we read
+    // We read the system in the following format. For each grid, we read
     // * 3 f32 for position
     // * 4 f32 for rotation
     // * 3 f32 for linear momentum
@@ -641,11 +641,11 @@ fn distance_segment(a: Vec3, b: Vec3, c: Vec3, d: Vec3) -> (f32, Vec3, Vec3, Vec
 
     // lambda u.norm2() - mu u.dot(v) + ((a - c).dot(u)) = 0
     // mu v.norm2() - lambda u.dot(v) + ((c - a).dot(v)) = 0
-    let normalise = u.dot(v) / u.mag_sq();
+    let normalize = u.dot(v) / u.mag_sq();
 
-    // mu (v.norm2() - normalise * u.dot(v)) = (-(c - a).dot(v)) - normalise * ((a - c).dot(u))
+    // mu (v.norm2() - normalize * u.dot(v)) = (-(c - a).dot(v)) - normalize * ((a - c).dot(u))
     let mut mu =
-        (-((c - a).dot(v)) - normalise * ((a - c).dot(u))) / (v.mag_sq() - normalise * u.dot(v));
+        (-((c - a).dot(v)) - normalize * ((a - c).dot(u))) / (v.mag_sq() - normalize * u.dot(v));
 
     let mut lambda = (-((a - c).dot(u)) + mu * u.dot(v)) / (u.mag_sq());
 
@@ -776,7 +776,7 @@ fn distance_segment(a: Vec3, b: Vec3, c: Vec3, d: Vec3) -> (f32, Vec3, Vec3, Vec
 
 /// Inertia matrix of an helix of axis e_x, radius r, height h with respect to its center of mass.
 fn inertia_helix(h: f32, r: f32) -> Mat3 {
-    // The mass is proportinal to the height of the cylinder times its radius squared, we assume that all
+    // The mass is proportional to the height of the cylinder times its radius squared, we assume that all
     // the cylinder that we work with have the same density
     let m = h * r * r;
     let c = m * r * r / 2.;
@@ -829,7 +829,7 @@ fn inertia_helices(helices: &[RigidHelix], center_of_mass: Vec3) -> Mat3 {
 pub(super) struct HelixSystemThread {
     helix_system: HelixSystem,
     /// The interface of the thread. A weak pointer is used so that the thread execution will
-    /// immeadiatly stop when the listener is dropped.
+    /// immediately stop when the listener is dropped.
     interface: Weak<Mutex<HelixSystemInterface>>,
     constants: Arc<RigidHelixConstants>,
 }

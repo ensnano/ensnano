@@ -30,7 +30,7 @@ pub(crate) trait BezierEndCoordinateUnit:
     + Clone
     + Copy
 {
-    fn instanciate_bezier_end(
+    fn instantiate_bezier_end(
         position: Self,
         vector_in: Self,
         vector_out: Self,
@@ -40,7 +40,7 @@ pub(crate) trait BezierEndCoordinateUnit:
 }
 
 impl BezierEndCoordinateUnit for Vec3 {
-    fn instanciate_bezier_end(
+    fn instantiate_bezier_end(
         position: Self,
         vector_in: Self,
         vector_out: Self,
@@ -62,7 +62,7 @@ impl BezierEndCoordinateUnit for Vec3 {
 }
 
 impl BezierEndCoordinateUnit for Vec2 {
-    fn instanciate_bezier_end(
+    fn instantiate_bezier_end(
         position: Self,
         vector_in: Self,
         vector_out: Self,
@@ -96,7 +96,7 @@ pub(crate) trait PieceWiseBezierInstantiator<T: BezierEndCoordinateUnit> {
     fn vector_out(&self, i: usize) -> Option<T>;
     fn is_cyclic(&self) -> bool;
 
-    fn instantiate(&self) -> Option<InstanciatedPiecewiseBezier> {
+    fn instantiate(&self) -> Option<InstantiatedPiecewiseBezier> {
         use rand::prelude::*;
         let descriptor = if self.nb_vertices() > 2 {
             let n = self.nb_vertices();
@@ -126,7 +126,7 @@ pub(crate) trait PieceWiseBezierInstantiator<T: BezierEndCoordinateUnit> {
                         .vector_out(idx)
                         .unwrap_or((pos_to - pos_from) * DEFAULT_BEZIER_TANGENT_NORM);
 
-                    Some(T::instanciate_bezier_end(pos, vector_in, vector_out))
+                    Some(T::instantiate_bezier_end(pos, vector_in, vector_out))
                 })
                 .collect();
             if !self.is_cyclic() {
@@ -141,7 +141,7 @@ pub(crate) trait PieceWiseBezierInstantiator<T: BezierEndCoordinateUnit> {
 
                     let vector_in = self.vector_in(0).unwrap_or((control - pos) / 2.);
 
-                    T::instanciate_bezier_end(pos, vector_in, vector_out)
+                    T::instantiate_bezier_end(pos, vector_in, vector_out)
                 };
                 bezier_points.insert(0, first_point);
                 let last_point = {
@@ -158,7 +158,7 @@ pub(crate) trait PieceWiseBezierInstantiator<T: BezierEndCoordinateUnit> {
                     let vector_in = self
                         .vector_in(self.nb_vertices() - 1)
                         .unwrap_or((pos - control) / 2.);
-                    T::instanciate_bezier_end(pos, vector_in, vector_out)
+                    T::instantiate_bezier_end(pos, vector_in, vector_out)
                 };
                 bezier_points.push(last_point);
             } else {
@@ -174,12 +174,12 @@ pub(crate) trait PieceWiseBezierInstantiator<T: BezierEndCoordinateUnit> {
             let vec_in_last = self.vector_in(1).unwrap_or(default_vec);
             let vec_out_last = self.vector_out(1).unwrap_or(default_vec);
             Some(vec![
-                T::instanciate_bezier_end(pos_first, vec_in_first, vec_out_first),
-                T::instanciate_bezier_end(pos_last, vec_in_last, vec_out_last),
+                T::instantiate_bezier_end(pos_first, vec_in_first, vec_out_first),
+                T::instantiate_bezier_end(pos_last, vec_in_last, vec_out_last),
             ])
         } else if self.nb_vertices() == 1 {
             let pos_first = self.position(0)?;
-            Some(vec![T::instanciate_bezier_end(
+            Some(vec![T::instantiate_bezier_end(
                 pos_first,
                 T::one() * f32::NAN,
                 T::one() * f32::NAN,
@@ -193,7 +193,7 @@ pub(crate) trait PieceWiseBezierInstantiator<T: BezierEndCoordinateUnit> {
         } else {
             Some(descriptor.len() as f64 - 1.)
         };
-        Some(InstanciatedPiecewiseBezier {
+        Some(InstantiatedPiecewiseBezier {
             t_min: None,
             t_max,
             ends: descriptor,

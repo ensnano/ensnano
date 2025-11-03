@@ -38,7 +38,7 @@ pub struct Hyperboloid {
     /// A forced grid radius, for when user modifies the shift but still wants the radius in the
     /// center to be constant.
     pub forced_radius: Option<f32>,
-    /// The number of turns arround the grid made by the helices every 100 nucleotides.
+    /// The number of turns around the grid made by the helices every 100 nucleotides.
     ///
     /// Note that this value is subject to the constraint
     /// |Ω| ≤ Z * r / sqrt(2π)
@@ -84,34 +84,7 @@ impl GridDivision for Hyperboloid {
         }
     }
 
-    fn grid_type(&self) -> GridType {
-        GridType::Hyperboloid(self.clone())
-    }
-
     fn curve(&self, _x: isize, _y: isize, _info: CurveInfo) -> Option<Arc<CurveDescriptor>> {
-        /*
-        if self.nb_turn_per_100_nt != 0.0 {
-            if let Some(omega) =
-                nb_turn_per_100_nt_to_omega(self.nb_turn_per_100_nt, &info.parameters)
-            {
-                let mut ret = self.curve(x as usize, &info.parameters, omega);
-                ret.orientation = info.orientation;
-                ret.position = info.position;
-                ret.t_max = info.t_max;
-                ret.t_min = info.t_min;
-                Some(Arc::new(CurveDescriptor::Twist(ret)))
-            } else {
-                log::error!("Too high number of turn per 100 nt");
-                None
-            }
-        } else {
-            let mut ret = self.curve(x as usize, &info.parameters, 0.0);
-            ret.orientation = info.orientation;
-            ret.position = info.position;
-            ret.t_max = info.t_max;
-            ret.t_min = info.t_min;
-            Some(Arc::new(CurveDescriptor::Twist(ret)))
-        }*/
         None
     }
 }

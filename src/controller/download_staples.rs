@@ -63,8 +63,8 @@ impl State for DownloadStaples {
     }
 }
 
-fn get_design_providing_staples(downlader: &dyn StaplesDownloader) -> Box<dyn State> {
-    let result = downlader.download_staples();
+fn get_design_providing_staples(downloader: &dyn StaplesDownloader) -> Box<dyn State> {
+    let result = downloader.download_staples();
     match result {
         Ok(DownloadStapleOk { warnings }) => AskingPath_ {
             warnings,
@@ -158,11 +158,11 @@ fn poll_path(path_input: PathInput, design_id: usize) -> Box<dyn State> {
 }
 
 fn download_staples(
-    downlader: &dyn StaplesDownloader,
+    downloader: &dyn StaplesDownloader,
     _design_id: usize,
     path: PathBuf,
 ) -> Box<dyn State> {
-    downlader.write_staples_xlsx(&path);
+    downloader.write_staples_xlsx(&path);
     let msg = messages::successful_staples_export_msg(&path);
     TransitionMessage::new(msg, rfd::MessageLevel::Error, Box::new(NormalState))
 }

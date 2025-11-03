@@ -19,15 +19,12 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::tabs::GuiTab;
 use crate::left_panel::Message;
 use crate::{AppState, SimulationState};
-use ensnano_design::{
-    CurveDescriptor2D,
-    ultraviolet::{self, Rotor3, Vec3},
-};
+use ensnano_design::CurveDescriptor2D;
 use ensnano_iced::{
     UiSize,
     fonts::{MaterialIcon, icon_to_char},
     helpers::*,
-    iced::{Alignment, Length},
+    iced::{Alignment, Command, Length},
     iced_aw::TabLabel,
     theme,
 };
@@ -36,6 +33,8 @@ use ensnano_interactor::{
     RevolutionSurfaceSystemDescriptor, RootingParameters, ShiftGenerator,
     UnrootedRevolutionSurfaceDescriptor,
 };
+use std::fmt;
+use ultraviolet::{Rotor3, Vec3};
 
 #[derive(Debug, Clone, Copy)]
 pub enum ParameterKind {
@@ -45,7 +44,7 @@ pub enum ParameterKind {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub enum InstanciatedParameter {
+pub enum InstantiatedParameter {
     Float(f64),
     Int(isize),
     Uint(usize),
@@ -67,7 +66,7 @@ pub enum RevolutionParameterId {
     SimulationStep,
 }
 
-impl InstanciatedParameter {
+impl InstantiatedParameter {
     pub fn get_float(self) -> Option<f64> {
         if let Self::Float(x) = self {
             Some(x)
@@ -96,26 +95,24 @@ impl InstanciatedParameter {
 #[derive(Debug, Clone)]
 pub struct CurveDescriptorParameter {
     pub name: &'static str,
-    pub kind: ParameterKind,
-    pub default_value: InstanciatedParameter,
+    pub default_value: InstantiatedParameter,
 }
 
-pub type Frame = (ultraviolet::Vec3, ultraviolet::Rotor3);
+pub type Frame = (Vec3, Rotor3);
+
 #[derive(Clone)]
 pub struct CurveDescriptorBuilder<S: AppState> {
-    pub nb_parameters: usize,
     pub curve_name: &'static str,
     pub parameters: &'static [CurveDescriptorParameter],
-    pub bezier_path_id: &'static (dyn Fn(&[InstanciatedParameter]) -> Option<usize> + Send + Sync),
+    pub bezier_path_id: &'static (dyn Fn(&[InstantiatedParameter]) -> Option<usize> + Send + Sync),
     pub build:
-        &'static (dyn Fn(&[InstanciatedParameter], &S) -> Option<CurveDescriptor2D> + Send + Sync),
-    pub frame: &'static (dyn Fn(&[InstanciatedParameter], &S) -> Option<Frame> + Send + Sync),
+        &'static (dyn Fn(&[InstantiatedParameter], &S) -> Option<CurveDescriptor2D> + Send + Sync),
+    pub frame: &'static (dyn Fn(&[InstantiatedParameter], &S) -> Option<Frame> + Send + Sync),
 }
 
-use std::fmt;
 impl<S: AppState> fmt::Debug for CurveDescriptorBuilder<S> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.debug_struct("CurveDecriptorBuilder")
+        f.debug_struct("CurveDescriptorBuilder")
             .field("curve_name", &self.curve_name)
             .finish()
     }
@@ -141,11 +138,11 @@ struct ParameterWidget {
 }
 
 impl ParameterWidget {
-    fn new(initial_value: InstanciatedParameter) -> Self {
+    fn new(initial_value: InstantiatedParameter) -> Self {
         let (current_text, parameter_kind) = match initial_value {
-            InstanciatedParameter::Float(x) => (format!("{:.3}", x), ParameterKind::Float),
-            InstanciatedParameter::Int(x) => (x.to_string(), ParameterKind::Int),
-            InstanciatedParameter::Uint(x) => (x.to_string(), ParameterKind::Uint),
+            InstantiatedParameter::Float(x) => (format!("{:.3}", x), ParameterKind::Float),
+            InstantiatedParameter::Int(x) => (x.to_string(), ParameterKind::Int),
+            InstantiatedParameter::Uint(x) => (x.to_string(), ParameterKind::Uint),
         };
         Self {
             current_text,
@@ -179,23 +176,23 @@ impl ParameterWidget {
         self.get_value().is_some()
     }
 
-    fn get_value(&self) -> Option<InstanciatedParameter> {
+    fn get_value(&self) -> Option<InstantiatedParameter> {
         match self.parameter_kind {
             ParameterKind::Float => self
                 .current_text
                 .parse::<f64>()
                 .ok()
-                .map(InstanciatedParameter::Float),
+                .map(InstantiatedParameter::Float),
             ParameterKind::Int => self
                 .current_text
                 .parse::<isize>()
                 .ok()
-                .map(InstanciatedParameter::Int),
+                .map(InstantiatedParameter::Int),
             ParameterKind::Uint => self
                 .current_text
                 .parse::<usize>()
                 .ok()
-                .map(InstanciatedParameter::Uint),
+                .map(InstantiatedParameter::Uint),
         }
     }
 }
@@ -249,7 +246,7 @@ impl<S: AppState> CurveDescriptorWidget<S> {
         }
     }
 
-    fn instanciated_parameters(&self) -> Vec<InstanciatedParameter> {
+    fn instantiated_parameters(&self) -> Vec<InstantiatedParameter> {
         self.parameters
             .iter()
             .filter_map(|p| p.1.get_value())
@@ -257,15 +254,15 @@ impl<S: AppState> CurveDescriptorWidget<S> {
     }
 
     fn build_curve(&self, app_state: &S) -> Option<CurveDescriptor2D> {
-        (self.builder.build)(&self.instanciated_parameters(), app_state)
+        (self.builder.build)(&self.instantiated_parameters(), app_state)
     }
 
     fn get_bezier_path_id(&self) -> Option<usize> {
-        (self.builder.bezier_path_id)(&self.instanciated_parameters())
+        (self.builder.bezier_path_id)(&self.instantiated_parameters())
     }
 
     fn get_frame(&self, app_state: &S) -> Option<Frame> {
-        (self.builder.frame)(&self.instanciated_parameters(), app_state)
+        (self.builder.frame)(&self.instantiated_parameters(), app_state)
     }
 }
 
@@ -274,7 +271,7 @@ pub(crate) struct RevolutionTab<State: AppState> {
     half_turn_count: ParameterWidget,
     radius_input: ParameterWidget,
     scaling: Option<RevolutionScaling>,
-    nb_sprial_state_input: ParameterWidget,
+    nb_spiral_state_input: ParameterWidget,
     shift_generator: Option<ShiftGenerator>,
     pub shift_idx: isize,
     scaffold_len_target: ParameterWidget,
@@ -294,31 +291,31 @@ impl<State: AppState> Default for RevolutionTab<State> {
         let init_parameter = RevolutionSimulationParameters::default();
         Self {
             curve_descriptor_widget: None,
-            half_turn_count: ParameterWidget::new(InstanciatedParameter::Int(0)),
-            radius_input: ParameterWidget::new(InstanciatedParameter::Float(0.)),
+            half_turn_count: ParameterWidget::new(InstantiatedParameter::Int(0)),
+            radius_input: ParameterWidget::new(InstantiatedParameter::Float(0.)),
             scaling: None,
-            nb_sprial_state_input: ParameterWidget::new(InstanciatedParameter::Uint(2)),
+            nb_spiral_state_input: ParameterWidget::new(InstantiatedParameter::Uint(2)),
             shift_generator: None,
             shift_idx: 0,
-            nb_section_per_segment_input: ParameterWidget::new(InstanciatedParameter::Uint(
+            nb_section_per_segment_input: ParameterWidget::new(InstantiatedParameter::Uint(
                 init_parameter.nb_section_per_segment,
             )),
-            spring_stiffness: ParameterWidget::new(InstanciatedParameter::Float(
+            spring_stiffness: ParameterWidget::new(InstantiatedParameter::Float(
                 init_parameter.spring_stiffness,
             )),
-            torsion_stiffness: ParameterWidget::new(InstanciatedParameter::Float(
+            torsion_stiffness: ParameterWidget::new(InstantiatedParameter::Float(
                 init_parameter.torsion_stiffness,
             )),
-            fluid_friction: ParameterWidget::new(InstanciatedParameter::Float(
+            fluid_friction: ParameterWidget::new(InstantiatedParameter::Float(
                 init_parameter.fluid_friction,
             )),
-            ball_mass: ParameterWidget::new(InstanciatedParameter::Float(init_parameter.ball_mass)),
-            time_span: ParameterWidget::new(InstanciatedParameter::Float(init_parameter.time_span)),
-            simulation_step: ParameterWidget::new(InstanciatedParameter::Float(
+            ball_mass: ParameterWidget::new(InstantiatedParameter::Float(init_parameter.ball_mass)),
+            time_span: ParameterWidget::new(InstantiatedParameter::Float(init_parameter.time_span)),
+            simulation_step: ParameterWidget::new(InstantiatedParameter::Float(
                 init_parameter.simulation_step,
             )),
             equadiff_method: init_parameter.method,
-            scaffold_len_target: ParameterWidget::new(InstanciatedParameter::Uint(7249)),
+            scaffold_len_target: ParameterWidget::new(InstantiatedParameter::Uint(7249)),
         }
     }
 }
@@ -352,7 +349,7 @@ impl<State: AppState> RevolutionTab<State> {
                 let widget = match param {
                     SectionParameter(_) => unreachable!(),
                     HalfTurnCount => &mut self.half_turn_count,
-                    NbSpiral => &mut self.nb_sprial_state_input,
+                    NbSpiral => &mut self.nb_spiral_state_input,
                     RevolutionRadius => &mut self.radius_input,
                     ScaffoldLenTarget => &mut self.scaffold_len_target,
                     NbSectionPerSegment => &mut self.nb_section_per_segment_input,
@@ -379,12 +376,12 @@ impl<State: AppState> RevolutionTab<State> {
         let revolution_radius = self
             .radius_input
             .get_value()
-            .and_then(InstanciatedParameter::get_float)
+            .and_then(InstantiatedParameter::get_float)
             .map(RevolutionSurfaceRadius::from_signed_f64)?;
         let half_turn_count = self
             .half_turn_count
             .get_value()
-            .and_then(InstanciatedParameter::get_int)?;
+            .and_then(InstantiatedParameter::get_int)?;
 
         let (curve_plane_position, curve_plane_orientation) = self
             .curve_descriptor_widget
@@ -409,7 +406,6 @@ impl<State: AppState> RevolutionTab<State> {
         let unrooted_surface = self.get_current_unrooted_surface(app_state)?;
 
         let rooting_parameters = RootingParameters {
-            dna_parameters: app_state.get_dna_parameters(),
             nb_helix_per_half_section: self.scaling.as_ref()?.nb_helix / 2,
             shift_per_turn: self.try_get_shift_per_turn(app_state)?,
             junction_smoothening: 0.,
@@ -424,7 +420,7 @@ impl<State: AppState> RevolutionTab<State> {
             scaffold_len_target: self
                 .scaffold_len_target
                 .get_value()
-                .and_then(InstanciatedParameter::get_uint)?,
+                .and_then(InstantiatedParameter::get_uint)?,
             helix_parameters: app_state.get_dna_parameters(),
             simulation_parameters,
         };
@@ -438,9 +434,9 @@ impl<State: AppState> RevolutionTab<State> {
             // TODO: This update must be done elsewhere.
             //let unrooted_surface = self.get_current_unrooted_surface(app_state)?;
             //let nb_spiral = self
-            //    .nb_sprial_state_input
+            //    .nb_spiral_state_input
             //    .get_value()
-            //    .and_then(InstanciatedParameter::get_uint)?;
+            //    .and_then(InstantiatedParameter::get_uint)?;
             //let half_nb_helix = self.scaling.as_ref()?.nb_helix / 2;
             //self.shift_generator =
             //    unrooted_surface.shifts_to_get_n_spirals(half_nb_helix, nb_spiral);
@@ -453,9 +449,9 @@ impl<State: AppState> RevolutionTab<State> {
     fn try_get_shift_per_turn(&self, app_state: &State) -> Option<isize> {
         let unrooted_surface = self.get_current_unrooted_surface(app_state)?;
         let nb_spiral = self
-            .nb_sprial_state_input
+            .nb_spiral_state_input
             .get_value()
-            .and_then(InstanciatedParameter::get_uint)?;
+            .and_then(InstantiatedParameter::get_uint)?;
         let half_nb_helix = self.scaling.as_ref()?.nb_helix / 2;
         self.shift_generator
             .as_ref()
@@ -466,34 +462,32 @@ impl<State: AppState> RevolutionTab<State> {
         let nb_section_per_segment = self
             .nb_section_per_segment_input
             .get_value()
-            .and_then(InstanciatedParameter::get_uint)?;
+            .and_then(InstantiatedParameter::get_uint)?;
         let spring_stiffness = self
             .spring_stiffness
             .get_value()
-            .and_then(InstanciatedParameter::get_float)?;
+            .and_then(InstantiatedParameter::get_float)?;
         let torsion_stiffness = self
             .torsion_stiffness
             .get_value()
-            .and_then(InstanciatedParameter::get_float)?;
+            .and_then(InstantiatedParameter::get_float)?;
         let fluid_friction = self
             .fluid_friction
             .get_value()
-            .and_then(InstanciatedParameter::get_float)?;
+            .and_then(InstantiatedParameter::get_float)?;
         let ball_mass = self
             .ball_mass
             .get_value()
-            .and_then(InstanciatedParameter::get_float)?;
+            .and_then(InstantiatedParameter::get_float)?;
         let time_span = self
             .time_span
             .get_value()
-            .and_then(InstanciatedParameter::get_float)?;
+            .and_then(InstantiatedParameter::get_float)?;
         let simulation_step = self
             .simulation_step
             .get_value()
-            .and_then(InstanciatedParameter::get_float)?;
+            .and_then(InstantiatedParameter::get_float)?;
         let method = self.equadiff_method;
-
-        let rescaling = self.scaling.as_ref()?.scale;
 
         Some(RevolutionSimulationParameters {
             nb_section_per_segment,
@@ -504,7 +498,6 @@ impl<State: AppState> RevolutionTab<State> {
             simulation_step,
             time_span,
             method,
-            rescaling,
         })
     }
 
@@ -522,12 +515,8 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
         TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::AutoMode)))
     }
 
-    fn update(&mut self, app_state: &mut State) -> Option<Self::Message> {
-        log::debug!(
-            "revolution tab  update: {:?}",
-            &self.try_get_shift_per_turn(app_state)
-        );
-        if let Some(r) = app_state.get_current_revoultion_radius() {
+    fn update(&mut self, app_state: &mut State) -> Command<Message<State>> {
+        if let Some(r) = app_state.get_current_revolution_radius() {
             if !self.modifying_radius() {
                 self.update_builder_parameter(
                     RevolutionParameterId::RevolutionRadius,
@@ -539,22 +528,25 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
         self.scaling = self
             .scaffold_len_target
             .get_value()
-            .and_then(InstanciatedParameter::get_uint)
+            .and_then(InstantiatedParameter::get_uint)
             .and_then(|len_scaffold| {
                 app_state.get_recommended_scaling_revolution_surface(len_scaffold)
             });
 
         if self.try_get_shift_per_turn(app_state).is_none() {
-            let unrooted_surface = self.get_current_unrooted_surface(app_state)?;
-            let nb_spiral = self
-                .nb_sprial_state_input
-                .get_value()
-                .and_then(InstanciatedParameter::get_uint)?;
-            let half_nb_helix = self.scaling.as_ref()?.nb_helix / 2;
-            self.shift_generator =
-                unrooted_surface.shifts_to_get_n_spirals(half_nb_helix, nb_spiral);
+            if let Some((unrooted_surface, nb_spiral)) =
+                self.get_current_unrooted_surface(app_state).zip(
+                    self.nb_spiral_state_input
+                        .get_value()
+                        .and_then(InstantiatedParameter::get_uint),
+                )
+            {
+                let half_nb_helix = self.scaling.as_ref().unwrap().nb_helix / 2;
+                self.shift_generator =
+                    unrooted_surface.shifts_to_get_n_spirals(half_nb_helix, nb_spiral);
+            }
         };
-        None
+        Command::none()
     }
 
     fn content(
@@ -649,7 +641,7 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
                 row![
                     text("Nb spiral"),
                     Space::with_width(ui_size.checkbox_spacing()),
-                    self.nb_sprial_state_input
+                    self.nb_spiral_state_input
                         .input_view(RevolutionParameterId::NbSpiral),
                 ]
                 .align_items(Alignment::Center),
@@ -792,5 +784,4 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
 #[derive(Clone, Copy)]
 pub struct RevolutionScaling {
     pub nb_helix: usize,
-    pub scale: f64,
 }

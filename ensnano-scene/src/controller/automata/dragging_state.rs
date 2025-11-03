@@ -95,15 +95,6 @@ pub(super) trait DraggingTransitionTable {
     fn handles_color_system(&self) -> Option<HandleColors> {
         None
     }
-
-    // Currently no type override this method. It was used at some point to make it possible to
-    // reverse the surface direction with a double click.
-    fn out_transition<S: AppState>(
-        &self,
-        _context: EventContext<'_, S>,
-    ) -> Option<Box<dyn ControllerState<S>>> {
-        None
-    }
 }
 
 /// A state in which the user is holding a mouse button while moving the cursor.
@@ -189,13 +180,11 @@ impl<S: AppState, Table: DraggingTransitionTable> ControllerState<S> for Draggin
                     .transition_table
                     .on_button_released()
                     .unwrap_or(Consequence::Nothing);
-                let new_state = self.transition_table.out_transition(context).or_else(|| {
-                    Some(Box::new(NormalState {
-                        mouse_position: self.current_cursor_position,
-                    }))
-                });
+                let new_state = NormalState {
+                    mouse_position: self.current_cursor_position,
+                };
                 Transition {
-                    new_state,
+                    new_state: Some(Box::new(new_state)),
                     consequences,
                 }
             }
@@ -268,13 +257,6 @@ impl DraggingTransitionTable for TranslatingCamera {
 
     fn cursor() -> Option<CursorIcon> {
         Some(CursorIcon::AllScroll)
-    }
-
-    fn out_transition<S: AppState>(
-        &self,
-        _context: EventContext<'_, S>,
-    ) -> Option<Box<dyn ControllerState<S>>> {
-        None
     }
 }
 
@@ -407,7 +389,7 @@ impl DraggingTransitionTable for MakingXover {
 
     fn on_button_released(&self) -> Option<Consequence> {
         if let Some((source, target, design_id)) = self.current_xover.clone() {
-            Some(Consequence::XoverAtempt(
+            Some(Consequence::XoverAttempt(
                 source,
                 target,
                 design_id,
@@ -777,7 +759,7 @@ impl DraggingTransitionTable for MovingBezierTangent {
         cursor: DraggedCursor<'_, '_, S>,
     ) -> Option<Consequence> {
         let translate_only = cursor.context.get_modifiers().shift_key();
-        let full_symetry_other = cursor.context.get_modifiers().alt_key();
+        let full_symmetry_other = cursor.context.get_modifiers().alt_key();
 
         let new_tangent = if translate_only {
             // Change the norm without changing the angle
@@ -801,7 +783,7 @@ impl DraggingTransitionTable for MovingBezierTangent {
             Consequence::MoveBezierTangent {
                 vertex_id: self.vertex_id,
                 tangent_in: self.tangent_in,
-                full_symetry_other,
+                full_symmetry_other,
                 new_vector: t,
             }
         })

@@ -16,9 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use super::*;
-use crate::DesignReader;
 use crate::controller::automata::dragging_state::translating_grid_object;
-use ensnano_design::ultraviolet::Vec2;
 use ensnano_design::{
     BezierPlaneId,
     grid::{GridId, GridObject},
@@ -26,9 +24,8 @@ use ensnano_design::{
 use ensnano_interactor::ActionMode;
 use std::borrow::Cow;
 use std::cell::RefCell;
+use ultraviolet::Vec2;
 use winit::event::{ElementState, MouseButton};
-
-use super::AppState;
 
 mod dragging_state;
 use dragging_state::*;
@@ -192,7 +189,7 @@ impl<S: AppState> ControllerState<S> for NormalState {
                             .map(|i| i.position())
                             .unwrap_or_else(|| {
                                 log::error!(
-                                    "Could not get curosr intersection with plane {:?}",
+                                    "Could not get cursor intersection with plane {:?}",
                                     vertex.plane_id
                                 );
                                 Vec2::unit_x()
@@ -420,9 +417,8 @@ impl<S: AppState> ControllerState<S> for NormalState {
                     }
                     None if context.is_editing_bezier_path() => {
                         // path_id is either:
-                        // - the id of the currently selected bezier vertex, in
-                        //   which case we are appening a new vertex to the path to which this vertex
-                        //   belong
+                        // - the id of the currently selected bezier vertex, in which case we are
+                        //   appending a new vertex to the path to which this vertex belong
                         // - None, in which case we are creating a new bezier path
                         let path_id = context.get_bezier_vertex_being_edited().map(|v| v.path_id);
 

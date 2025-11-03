@@ -24,7 +24,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::{Helix, HelixParameters, Nucl};
 use crate::{
     app_state::design_interactor::presenter::{Presenter, SimulationUpdate},
-    controller::chanel_reader::ChannelReader,
+    controller::channel_reader::ChannelReader,
 };
 use std::{
     collections::HashMap,
@@ -134,7 +134,7 @@ pub(super) fn cross_over_force(
     let norm = K_SPRING * (real_dist - dist_ac(helix_parameters));
 
     // vec_self is the derivative of the position of self w.r.t. theta
-    // postion of self is [0, sin(theta), cos(theta)]
+    // position of self is [0, sin(theta), cos(theta)]
     // so the derivative is [0, cos(theta), -sin(theta)]
 
     let derivative_shift = std::f32::consts::FRAC_PI_2;

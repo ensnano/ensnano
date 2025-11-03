@@ -20,24 +20,22 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use self::gltf_drawer::Object3DDrawer;
 use super::camera;
-use crate::{DrawArea, PhySize};
+use super::{DrawArea, PhySize};
 use camera::{Camera, CameraPtr, Projection, ProjectionPtr};
-use ensnano_design::{Axis, grid::GridId, group_attributes::GroupPivot, ultraviolet};
+use ensnano_design::{Axis, grid::GridId, group_attributes::GroupPivot};
 use ensnano_interactor::{UnrootedRevolutionSurfaceDescriptor, consts::*};
-use ensnano_utils::{
-    bindgroup_manager, text, texture,
-    wgpu::{self, util::DeviceExt as _},
-};
+use ensnano_utils::{bindgroup_manager, text, texture};
 use int_enum::IntEnum;
 use std::{cell::RefCell, collections::BTreeMap, rc::Rc, usize};
 use texture::Texture;
 use ultraviolet::{Mat4, Rotor3, Vec3};
+use wgpu::util::DeviceExt as _;
 use wgpu::{Device, Queue};
 
 /// A `Uniform` is a structure that manages view and projection matrices.
 mod uniforms;
+pub use uniforms::Stereography;
 use uniforms::Uniforms;
-pub use uniforms::{CutPlaneParameters, FogParameters, Stereography};
 mod direction_cube;
 pub mod dna_obj;
 /// This modules defines a trait for drawing widget made of several meshes.
@@ -58,7 +56,7 @@ use super::maths_3d::{self, distance_to_cursor_with_penalty};
 use bindgroup_manager::{DynamicBindGroup, UniformBindGroup};
 use direction_cube::*;
 pub use dna_obj::{
-    ConeInstance, DnaObject, Ellipsoid, PlainRectangleInstance, RawDnaInstance, SlicedTubeInstance,
+    ConeInstance, Ellipsoid, PlainRectangleInstance, RawDnaInstance, SlicedTubeInstance,
     SphereInstance, StereographicSphereAndPlane, TubeInstance, TubeLidInstance,
 };
 use drawable::{Drawable, Drawer, Vertex};
@@ -66,7 +64,7 @@ pub use grid::{GridInstance, GridIntersection};
 use grid::{GridManager, GridTextures};
 pub use grid_disc::GridDisc;
 use handle_drawer::HandlesDrawer;
-pub use handle_drawer::{HandleColors, HandleDir, HandleOrientation, HandlesDescriptor};
+pub use handle_drawer::{HandleColors, HandleDir, HandlesDescriptor};
 pub use instances_drawer::Instantiable;
 use instances_drawer::{InstanceDrawer, RawDrawer};
 pub use letter::LetterInstance;
@@ -78,7 +76,9 @@ pub use rotation_widget::{
 pub use sheet_2d::Sheet2D;
 use text::Letter;
 
-use ensnano_interactor::graphics::{Background3D, HBondDisplay, RenderingMode};
+use ensnano_interactor::graphics::{
+    Background3D, CutPlaneParameters, FogParameters, HBondDisplay, RenderingMode,
+};
 
 static MODEL_BG_ENTRY: &[wgpu::BindGroupLayoutEntry] = &[wgpu::BindGroupLayoutEntry {
     binding: 0,
@@ -163,7 +163,7 @@ impl View {
         encoder: &mut wgpu::CommandEncoder,
     ) -> Self {
         let camera = Rc::new(RefCell::new(Camera::new(
-            (0.0, 5.0, 10.0),
+            Vec3::new(0.0, 5.0, 10.0),
             Rotor3::identity(),
         )));
         let projection = Rc::new(RefCell::new(Projection::new(
@@ -357,7 +357,7 @@ impl View {
             });
 
         let post_processing_shader =
-            device.create_shader_module(wgpu::include_wgsl!("view/post_processing.wgsl"));
+            device.create_shader_module(wgpu::include_wgsl!("./post_processing.wgsl"));
         let post_processing_pipeline =
             device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
                 label: Some("post-processing pipeline"),
@@ -554,10 +554,6 @@ impl View {
                     self.need_redraw = needed_redraw;
                 }
             }
-            ViewUpdate::CutPlane(normal, dot_value) => {
-                self.update_cut_plane(normal, dot_value);
-                self.need_redraw = true;
-            }
         }
     }
 
@@ -567,14 +563,6 @@ impl View {
 
     pub fn need_redraw(&self) -> bool {
         self.need_redraw | self.redraw_twice
-    }
-
-    // Is a feature missing? This just prints. - Axel
-    pub fn update_cut_plane(&mut self, normal: Vec3, dot_value: f32) {
-        println!(
-            "Update cut plane to: normal: <{},{},{}> dot: {dot_value}",
-            normal.x, normal.y, normal.z
-        );
     }
 
     /// Draw the scene
@@ -1168,8 +1156,6 @@ pub enum ViewUpdate {
     BezierSheets(Vec<Sheet2D>),
     External3DObjects(ExternalObjects),
     UnrootedSurface(Option<UnrootedRevolutionSurfaceDescriptor>),
-    /// The cutting plane has been modified: normal and dot product
-    CutPlane(Vec3, f32),
 }
 
 #[derive(Eq, PartialEq, Debug, Copy, Clone, Hash, IntEnum)]

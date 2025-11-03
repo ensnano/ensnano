@@ -19,10 +19,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 const MAX_ACCEL: f64 = 100.;
 
 use super::{SimulationInterface, SimulationUpdate};
-use crate::{app_state::ErrOperation, controller::chanel_reader::ChannelReader};
+use crate::{app_state::ErrOperation, controller::channel_reader::ChannelReader};
 use ensnano_design::{
-    CurveDescriptor, CurveDescriptor2D, DVec3, HelixParameters, InterpolationDescriptor, Isometry3,
-    Similarity3,
+    self, CurveDescriptor, CurveDescriptor2D, HelixParameters, InterpolationDescriptor,
 };
 use ensnano_interactor::{
     EquadiffSolvingMethod, RevolutionSimulationParameters, RevolutionSurfaceSystemDescriptor,
@@ -39,6 +38,7 @@ use std::{
     f64::consts::TAU,
     sync::{Arc, Mutex, Weak},
 };
+use ultraviolet::{DVec3, Isometry2, Isometry3, Rotor2, Similarity3, Vec2, Vec3};
 
 mod closed_curves;
 use closed_curves::CloseSurfaceTopology;
@@ -469,14 +469,14 @@ impl RevolutionSystemThread {
                 if interface_ptr.lock().unwrap().finished
                     || current_len == self.system.scaffold_len_target
                 {
-                    if let Some(descs) = self.system.to_curve_desc(true) {
+                    if let Some(curve_descriptors) = self.system.to_curve_desc(true) {
                         let Similarity3 {
                             translation,
                             rotation,
                             ..
                         } = self.system.topology.get_frame();
                         let routing = HelicesRouting {
-                            curves: descs,
+                            curves: curve_descriptors,
                             frame: Isometry3 {
                                 translation,
                                 rotation,
@@ -500,7 +500,7 @@ impl SimulationUpdate for RevolutionSurfaceSystem {
 }
 
 impl ensnano_design::AdditionalStructure for RevolutionSurfaceSystem {
-    fn position(&self) -> Vec<ultraviolet::Vec3> {
+    fn position(&self) -> Vec<Vec3> {
         use ensnano_design::utils::dvec_to_vec;
         let thetas = self
             .last_thetas
@@ -532,7 +532,7 @@ impl ensnano_design::AdditionalStructure for RevolutionSurfaceSystem {
             .collect()
     }
 
-    fn nt_paths(&self) -> Option<Vec<Vec<ultraviolet::Vec3>>> {
+    fn nt_paths(&self) -> Option<Vec<Vec<Vec3>>> {
         let mut ret = Vec::new();
         let curve_desc = self.to_curve_desc(false)?;
         for desc in curve_desc {
@@ -540,7 +540,7 @@ impl ensnano_design::AdditionalStructure for RevolutionSurfaceSystem {
             ret.push(
                 nts.into_iter()
                     .map(ensnano_design::utils::dvec_to_vec)
-                    .collect::<Vec<ultraviolet::Vec3>>(),
+                    .collect(),
             );
         }
 
@@ -592,7 +592,7 @@ struct HelicesRouting {
 
 impl SimulationUpdate for HelicesRouting {
     fn update_design(&self, design: &mut ensnano_design::Design) {
-        use ensnano_design::{Domain, DomainJunction, Helix, HelixInterval, Rotor2, Strand, Vec2};
+        use ensnano_design::{Domain, DomainJunction, Helix, HelixInterval, Strand};
         let helix_parameters = design.helix_parameters.unwrap_or_default();
         let mut helices = design.helices.make_mut();
         let mut strand_to_be_added = Vec::new();
@@ -602,7 +602,7 @@ impl SimulationUpdate for HelicesRouting {
         } = &self.frame;
         for (c_id, c) in self.curves.iter().enumerate() {
             let mut helix = Helix::new_with_curve(c.clone());
-            helix.isometry2d = Some(ensnano_design::Isometry2 {
+            helix.isometry2d = Some(Isometry2 {
                 translation: 5. * c_id as f32 * Vec2::unit_y(),
                 rotation: Rotor2::identity(),
             });

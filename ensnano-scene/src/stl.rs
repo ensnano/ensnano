@@ -11,25 +11,14 @@
 //!     REAL32[3] – Vertex 3                  - 12 bytes
 //!     UINT16    – Attribute byte count      -  2 bytes
 
-use crate::view::{
+use super::view::{
     ConeInstance, Ellipsoid, Instantiable, Mesh, Mesh::*, RawDnaInstance, SlicedTubeInstance,
     SphereInstance, TubeInstance, TubeLidInstance,
 };
-use ensnano_design::ultraviolet::{Mat3, Vec3};
 use ensnano_interactor::consts::NB_RAY_TUBE;
+use ultraviolet::{Mat3, Vec3};
 
-trait StlProcessing {
-    fn to_stl_triangles(&self) -> Vec<StlTriangle> {
-        vertices_indices_to_stl_triangles(
-            self.transformed_vertices_normal(),
-            self.triangle_list_indices(),
-        )
-    }
-    fn transformed_vertices_normal(&self) -> Vec<([f32; 3], [f32; 3])>;
-    fn triangle_list_indices(&self) -> Vec<usize>;
-}
-
-impl StlProcessing for RawDnaInstance {
+impl RawDnaInstance {
     fn to_stl_triangles(&self) -> Vec<StlTriangle> {
         if self.scale.z.abs() < 1e-6 {
             vec![]
@@ -187,7 +176,7 @@ pub fn stl_bytes_export(raw_instances: Vec<RawDnaInstance>) -> Vec<u8> {
         .iter()
         .flat_map(|raw_inst| raw_inst.to_stl_triangles())
         .collect();
-    let mut bytes: Vec<u8> = vec![0; 80]; // header numer of triangles
+    let mut bytes: Vec<u8> = vec![0; 80]; // header number of triangles
     let triangles_number: u32 = triangles.len() as u32;
     let triangle_number = triangles_number.to_le_bytes();
     bytes.extend_from_slice(&triangle_number[0..]);
@@ -250,7 +239,7 @@ mod tests {
 
     fn stl_file_from_triangles(path: &str, triangles: Vec<StlTriangle>) -> Result<(), io::Error> {
         let mut out_file = std::fs::File::create(path)?;
-        let mut bytes: Vec<u8> = vec![0; 80]; // header numer of triangles
+        let mut bytes: Vec<u8> = vec![0; 80]; // header number of triangles
         let triangles_number: u32 = triangles.len() as u32;
         let triangle_number = triangles_number.to_le_bytes();
         bytes.extend_from_slice(&triangle_number[0..]);
@@ -262,7 +251,7 @@ mod tests {
     }
     #[test]
     fn empty_stl_test() {
-        assert!(stl_file_from_triangles("blop.stl", vec![]).is_ok());
+        assert!(stl_file_from_triangles("blop.stl", vec![]).is_ok()); // cspell: disable-line
     }
 
     #[test]
@@ -279,43 +268,6 @@ mod tests {
             v2: [0., 1., 0.],
             v3: [0., 0., 2.],
         };
-        assert!(stl_file_from_triangles("blop_triangle.stl", vec![t, t2]).is_ok());
+        assert!(stl_file_from_triangles("blop_triangle.stl", vec![t, t2]).is_ok()); // cspell: disable-line
     }
-
-    // #[test]
-    // #[ignore = "This test fails because normal is wrong."]
-    // fn vi_stl() {
-    //     assert_eq!(
-    //         format!(
-    //             "{:?}",
-    //             vertices_indices_to_stl_triangles(
-    //                 vec![[0., 0., 0.], [0., 1., 0.], [0., 0., 1.]],
-    //                 vec![0, 1, 2, 1, 2, 0]
-    //             )[1]
-    //             .v1
-    //         ),
-    //         "[0.0, 1.0, 0.0]"
-    //     );
-    // }
-
-    // fn stl_raw() {
-    //     let rawi = RawDnaInstance {
-    //         model: Mat4::identity(),
-    //         scale: Vec3::from([1.0, 1.0, 2.3]),
-    //         color: Vec4::zero(),
-    //         id: 1,
-    //         inversed_model: Mat4::identity(),
-    //         prev: Vec3::zero(),
-    //         mesh: 1,
-    //         next: Vec3::zero(),
-    //     };
-    //     assert!(stl_file_from_triangles("raw.stl", rawi.to_stl_triangles()))
-    // }
-
-    // #[test]
-    // fn lots_of_centers_to_stl() {
-    //     let ts = (0..500).map(|i| Vec3::from([i as f32, i as f32, i as f32]));
-    //     let ts = ts.map(|c| stl_obj_to_triangles(c, 1.0)).flatten().collect();
-    //     assert!(stl_bytes_from_triangles("many_nucl.stl", ts).is_ok())
-    // }
 }

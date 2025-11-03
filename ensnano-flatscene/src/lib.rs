@@ -34,14 +34,14 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 mod controller;
 mod data;
-mod flattypes;
+mod flat_types;
 mod view;
 
 pub use camera2d::{Camera2D, FitRectangle};
 use controller::Controller;
 use data::Data;
-pub use data::{DesignReader, NuclCollection};
-use ensnano_design::{Isometry2, Nucl, consts::ITERATIVE_AXIS_ALGORITHM};
+pub use data::FlatSceneDesignReaderExt;
+use ensnano_design::{Nucl, consts::ITERATIVE_AXIS_ALGORITHM};
 use ensnano_interactor::{
     ActionMode, DesignOperation, PhantomElement, Selection, SelectionMode, StrandBuilder,
     StrandBuildingStatus,
@@ -50,11 +50,8 @@ use ensnano_interactor::{
     graphics::DrawArea,
     operation::*,
 };
-use ensnano_utils::{
-    PhySize, camera2d, filename, wgpu,
-    winit::{self, window::CursorIcon},
-};
-use flattypes::*;
+use ensnano_utils::{PhySize, camera2d, filename};
+use flat_types::*;
 use std::{
     cell::RefCell,
     collections::HashMap,
@@ -63,9 +60,10 @@ use std::{
     sync::{Arc, Mutex},
     time::{Duration, Instant},
 };
+use ultraviolet::Isometry2;
 use view::View;
 use wgpu::{Device, Queue};
-use winit::{dpi::PhysicalPosition, event::WindowEvent};
+use winit::{dpi::PhysicalPosition, event::WindowEvent, window::CursorIcon};
 
 type ViewPtr = Rc<RefCell<View>>;
 type DataPtr<R> = Rc<RefCell<Data<R>>>;
@@ -101,7 +99,7 @@ pub struct FlatScene<S: AppState> {
     /// Command queue on the graphics device.
     queue: Rc<Queue>,
     last_update: Instant,
-    /// Wether the flatscene is split in two.
+    /// Whether the flatscene is split in two.
     is_split: bool,
     old_state: S,
     requests: Arc<Mutex<dyn Requests>>,
@@ -144,7 +142,7 @@ impl<S: AppState> FlatScene<S> {
             self.area.size.height as f32
         };
 
-        // Allocate resources even if the screen is not splited.
+        // Allocate resources even if the screen is not split.
         let globals_top = camera2d::Globals::from_resolution([self.area.size.width as f32, height]);
         let globals_bottom =
             camera2d::Globals::from_resolution([self.area.size.width as f32, height]);
@@ -239,22 +237,17 @@ impl<S: AppState> FlatScene<S> {
                         prime3_id,
                         prime5_id,
                         undo: false,
-                        design_id: self.selected_design,
                     }))
             }
             Consequence::Cut(nucl) => {
                 let strand_id = self.data[self.selected_design].borrow().get_strand_id(nucl);
-                if let Some(strand_id) = strand_id {
+                if strand_id.is_some() {
                     log::info!("cutting {:?}", nucl);
                     let nucl = nucl.to_real();
                     self.requests
                         .lock()
                         .unwrap()
-                        .update_operation(Arc::new(Cut {
-                            nucl,
-                            strand_id,
-                            design_id: self.selected_design,
-                        }))
+                        .update_operation(Arc::new(Cut { nucl }))
                 }
             }
             Consequence::FreeEnd(free_end) => {
@@ -275,17 +268,13 @@ impl<S: AppState> FlatScene<S> {
             }
             Consequence::CutFreeEnd(nucl, free_end) => {
                 let strand_id = self.data[self.selected_design].borrow().get_strand_id(nucl);
-                if let Some(strand_id) = strand_id {
+                if strand_id.is_some() {
                     log::info!("cutting {:?}", nucl);
                     let nucl = nucl.to_real();
                     self.requests
                         .lock()
                         .unwrap()
-                        .update_operation(Arc::new(Cut {
-                            nucl,
-                            strand_id,
-                            design_id: self.selected_design,
-                        }))
+                        .update_operation(Arc::new(Cut { nucl }))
                 }
                 self.data[self.selected_design]
                     .borrow_mut()
@@ -304,7 +293,6 @@ impl<S: AppState> FlatScene<S> {
                                 target_id,
                                 target_3prime,
                                 nucl: to.to_real(),
-                                design_id: self.selected_design,
                             }))
                     }
                 }
@@ -539,7 +527,7 @@ impl<S: AppState> FlatScene<S> {
     fn toggle_split_from_btn(&mut self) {
         self.is_split ^= true;
         for c in self.controller.iter_mut() {
-            c.set_splited(self.is_split, true);
+            c.set_split(self.is_split, true);
         }
 
         for v in self.view.iter_mut() {
@@ -553,7 +541,7 @@ impl<S: AppState> FlatScene<S> {
             v.borrow_mut().set_splited(self.is_split);
         }
         for c in self.controller.iter_mut() {
-            c.set_splited(self.is_split, false);
+            c.set_split(self.is_split, false);
         }
         self.view[self.selected_design]
             .borrow_mut()
@@ -717,7 +705,6 @@ impl<S: AppState> Application for FlatScene<S> {
             }
             Notification::CameraTarget(_) => (),
             Notification::ClearDesigns => self.data[0].borrow_mut().clear_design(),
-            Notification::Centering(_, _) => (),
             Notification::CenterSelection(selection, app_id) => {
                 log::info!("2D view centering selection {:?}", selection);
                 let flat_selection = self.data[self.selected_design]
@@ -823,9 +810,7 @@ impl<S: AppState> Application for FlatScene<S> {
         &mut self,
         encoder: &mut wgpu::CommandEncoder,
         target: &wgpu::TextureView,
-        _dt: Duration,
     ) {
-        //println!("draw flatscene");
         self.draw_view(encoder, target)
     }
 
@@ -845,7 +830,7 @@ impl<S: AppState> Application for FlatScene<S> {
 }
 
 pub trait AppState: Clone {
-    type Reader: DesignReader + ensnano_interactor::DesignReader;
+    type Reader: FlatSceneDesignReaderExt + ensnano_interactor::InteractorDesignReaderExt;
     fn selection_was_updated(&self, other: &Self) -> bool;
     fn candidate_was_updated(&self, other: &Self) -> bool;
     fn get_selection(&self) -> &[Selection];
@@ -865,7 +850,6 @@ pub trait Requests {
     fn new_selection(&mut self, selection: Vec<Selection>);
     fn new_candidates(&mut self, candidates: Vec<Selection>);
     fn attempt_paste(&mut self, nucl: Option<Nucl>);
-    fn request_centering_on_nucl(&mut self, nucl: Nucl, design_id: usize);
     fn update_operation(&mut self, operation: Arc<dyn Operation>);
     fn set_isometry(&mut self, helix: usize, segment_idx: usize, isometry: Isometry2);
     fn set_visibility_helix(&mut self, helix: usize, visibility: bool);

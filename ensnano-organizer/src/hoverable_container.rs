@@ -4,11 +4,11 @@
 //!
 //! This widget is greatly inspired by
 //!
-//!    https://giesch.dev/iced-hoverable/
+//!    <https://giesch.dev/iced-hoverable/>
 //!
 //! see also
 //!
-//!    https://docs.rs/iced_widget/0.12.1/src/iced_widget/container.rs.html
+//!    <https://docs.rs/iced_widget/0.12.1/src/iced_widget/container.rs.html>
 
 use ensnano_iced::iced::{
     Element, Length, Padding, Point, Rectangle, Size, Vector,
@@ -22,7 +22,7 @@ use ensnano_iced::iced::{
 };
 
 /// A widget that emits a message when hovered.
-pub struct HoverableContainer<'a, Message, Theme = crate::Theme, Renderer = crate::Renderer> {
+pub struct HoverableContainer<'a, Message, Theme = super::Theme, Renderer = super::Renderer> {
     padding: Padding,
     content: Element<'a, Message, Theme, Renderer>,
     on_hover: Option<Message>,

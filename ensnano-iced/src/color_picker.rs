@@ -15,17 +15,20 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+//! A handmade color picker for ENSnano.
+//!
+//! This module is an example of how to embed mini iced applications. It is inspired by the
+//! [`Component`](https://docs.rs/iced/0.12.1/iced/widget/trait.Component.html) trait, but it does
+//! not use it as this trait is deprecated since v0.13…
+//!
+//!
+use super::widgets::{ColorSquare, HueRow, LightSatSquare};
 use color_space::{Hsv, Rgb};
-use log;
-use std::collections::VecDeque;
-
 use iced::{
     Color, Length,
     widget::{Column, Row, column, row},
 };
-use iced_winit::winit::dpi::LogicalSize;
-
-use crate::widgets::{ColorSquare, HueRow, LightSatSquare};
+use std::collections::VecDeque;
 
 // TODO: Adjust to tab height.
 
@@ -44,7 +47,6 @@ pub enum ColorPickerMessage {
     HsvSatValueChanged(f64, f64),
     ColorPicked(Color),
     FinishChangingColor,
-    Resized(LogicalSize<f64>),
 }
 // Local alias
 type Message = ColorPickerMessage;
@@ -74,7 +76,7 @@ pub struct ColorPicker {
     size: f32,
     current_color: Hsv,
     color_history: VecDeque<Color>,
-    // TODO: Evaluate if using bounded-vec-deque crate is avantageous
+    // TODO: Evaluate if using bounded-vec-deque crate is advantageous
     //       https://docs.rs/bounded-vec-deque/0.1.0/bounded_vec_deque/index.html
 }
 
@@ -95,16 +97,6 @@ impl ColorPicker {
         2 * (FACTOR - 2)
     }
 
-    pub fn size(mut self, size: f32) -> Self {
-        self.size = size;
-        self
-    }
-
-    pub fn width(mut self, width: f32) -> Self {
-        self.size = (width - 2.0 * GAP) / 7.0;
-        self
-    }
-
     pub fn current_color(&self) -> Color {
         hsv_to_color(self.current_color)
     }
@@ -121,7 +113,7 @@ impl ColorPicker {
     }
 
     pub fn update(&mut self, message: Message) {
-        // TODO: Managed color_square internaly
+        // TODO: Managed color_square internally
         match message {
             // HueColumn message
             Message::HueChanged(hue) => {
@@ -147,13 +139,10 @@ impl ColorPicker {
             Message::FinishChangingColor => {
                 self.add_color_to_history(self.current_color());
             }
-            Message::Resized(_size) => {
-                log::debug!("Resized");
-            }
         }
     }
 
-    pub fn view(&self) -> crate::Element<'_, Message> {
+    pub fn view(&self) -> iced::Element<'_, Message> {
         column![
             HueRow::new()
                 .on_slide(Message::HueChanged)
@@ -176,7 +165,7 @@ impl ColorPicker {
         .into()
     }
 
-    fn view_color_history(&self) -> crate::Element<'_, Message> {
+    fn view_color_history(&self) -> iced::Element<'_, Message> {
         let mut color_squares = self
             .color_history
             .iter()

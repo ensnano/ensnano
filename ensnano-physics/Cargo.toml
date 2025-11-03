@@ -11,3 +11,4 @@ ensnano_interactor.workspace = true
 
 ahash.workspace = true
 rapier3d.workspace = true
+ultraviolet.workspace = true

@@ -20,7 +20,26 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! done through the rapier3d crate.
 //!
 
+mod anchors;
+mod full_simulation;
+mod helices;
 mod import;
+mod repulsion;
 mod simulation;
 
+use rapier3d::{
+    na::{Const, OVector, Point3},
+    prelude::*,
+};
 pub use simulation::RapierPhysicsSystem;
+use ultraviolet::Vec3;
+
+/// Conversion method
+pub(crate) fn vec_to_vector(v: Vec3) -> OVector<f32, Const<3>> {
+    vector![v.x, v.y, v.z].into()
+}
+
+/// Conversion method
+pub(crate) fn point_from_parts(parts: &[f32; 3]) -> Point3<f32> {
+    Point3::new(parts[0], parts[1], parts[2])
+}

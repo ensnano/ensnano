@@ -18,8 +18,6 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use std::path::Path;
 
-use super::wgpu;
-
 const OBJ_VERTEX_ARRAY: [wgpu::VertexAttribute; 3] =
     wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3, 2 => Float32x4];
 
@@ -52,9 +50,9 @@ pub struct GltfMesh {
     pub indices: Vec<u32>,
 }
 
-fn read_mesh(mesh_data: &gltf::Mesh, datas: &[gltf::buffer::Data]) -> Result<GltfMesh, ErrGltf> {
+fn read_mesh(mesh_data: &gltf::Mesh, data: &[gltf::buffer::Data]) -> Result<GltfMesh, ErrGltf> {
     let primitive = mesh_data.primitives().next().ok_or(ErrGltf::NoPrimitive)?;
-    let reader = primitive.reader(|b| Some(&datas.get(b.index())?.0[..b.length()]));
+    let reader = primitive.reader(|b| Some(&data.get(b.index())?.0[..b.length()]));
 
     let vertex_positions = {
         let position_iter = reader.read_positions().ok_or(ErrGltf::NoPosition)?;
@@ -82,7 +80,7 @@ fn read_mesh(mesh_data: &gltf::Mesh, datas: &[gltf::buffer::Data]) -> Result<Glt
         .zip(vertex_normals.zip(vertex_colors))
         .map(|(position, (normal, color))| ModelVertex {
             position,
-            // position: [5.0*position[0], 5.0*position[1], 5.0*position[2], ], // HUGLY HARDCODING OF STL UPSCALING BY 5.0
+            // position: [5.0*position[0], 5.0*position[1], 5.0*position[2], ], // UGLY HARDCODING OF STL UPSCALING BY 5.0
             normal,
             color,
         })
@@ -92,11 +90,11 @@ fn read_mesh(mesh_data: &gltf::Mesh, datas: &[gltf::buffer::Data]) -> Result<Glt
 }
 
 pub fn load_gltf<P: AsRef<Path>>(path: P) -> Result<GltfFile, ErrGltf> {
-    let (doc, datas, _) = gltf::import(path).ok().ok_or(ErrGltf::CannotReadFile)?;
+    let (doc, data, _) = gltf::import(path).ok().ok_or(ErrGltf::CannotReadFile)?;
     let mesh_data = doc.meshes();
     let mut meshes = Vec::new();
     for m in mesh_data {
-        let mesh = read_mesh(&m, &datas)?;
+        let mesh = read_mesh(&m, &data)?;
         meshes.push(mesh)
     }
     Ok(GltfFile { meshes })
@@ -141,6 +139,6 @@ pub fn load_stl<P: AsRef<Path>>(path: P) -> Result<StlMesh, ErrStl> {
 
 #[derive(Debug)]
 pub enum ErrStl {
-    FileErr(std::io::Error),
-    StlParseErr(nom_stl::Error),
+    FileErr(#[allow(unused)] std::io::Error),
+    StlParseErr(#[allow(unused)] nom_stl::Error),
 }

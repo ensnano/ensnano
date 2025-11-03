@@ -34,7 +34,7 @@ use ensnano_interactor::{
     },
     graphics::{LoopoutBond, LoopoutNucl},
 };
-use ensnano_scene::GridInstance;
+use ensnano_scene::view::GridInstance;
 use ensnano_utils::{click_counter::ClickCounter, colors, instance::Instance};
 use serde::Serialize;
 use std::{
@@ -43,50 +43,10 @@ use std::{
     str::FromStr,
     sync::Arc,
 };
-use ultraviolet::Vec3;
+use ultraviolet::{Isometry3, Vec3};
 use xover_suggestions::XoverSuggestions;
 
 const PRINTOUT_NUCL_POSITIONS: bool = false; // true;
-
-#[derive(Default, Clone)]
-pub struct NuclCollection {
-    identifier: BTreeMap<Nucl, u32>, //HashMap<Nucl, u32, RandomState>,
-    virtual_nucl_map: HashMap<VirtualNucl, Nucl, RandomState>,
-}
-
-impl NuclCollection {
-    pub fn iter_nucls_ids<'a>(&'a self) -> Box<dyn Iterator<Item = (&'a Nucl, &'a u32)> + 'a> {
-        Box::new(self.identifier.iter())
-    }
-
-    pub fn iter_nucls<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Nucl> + 'a> {
-        Box::new(self.identifier.keys())
-    }
-
-    pub fn virtual_to_real(&self, virtual_nucl: &VirtualNucl) -> Option<&Nucl> {
-        self.virtual_nucl_map.get(virtual_nucl)
-    }
-
-    pub fn get_identifier(&self, nucl: &Nucl) -> Option<&u32> {
-        self.identifier.get(nucl)
-    }
-
-    pub fn contains_nucl(&self, nucl: &Nucl) -> bool {
-        self.identifier.contains_key(nucl)
-    }
-
-    pub fn nb_nucls(&self) -> usize {
-        self.identifier.len()
-    }
-
-    fn insert(&mut self, key: Nucl, id: u32) -> Option<u32> {
-        self.identifier.insert(key, id)
-    }
-
-    fn insert_virtual(&mut self, virtual_nucl: VirtualNucl, nucl: Nucl) -> Option<Nucl> {
-        self.virtual_nucl_map.insert(virtual_nucl, nucl)
-    }
-}
 
 #[derive(Default, Clone)]
 pub struct DesignContent {
@@ -115,7 +75,6 @@ pub struct DesignContent {
     /// Maps the identifier of an element to its radius
     pub radius_map: HashMap<u32, f32, RandomState>,
     pub letter_map: Arc<HashMap<Nucl, char, RandomState>>,
-    pub prime3_set: Vec<Prime3End>,
     pub elements: Vec<DesignElement>,
     pub suggestions: Vec<(Nucl, Nucl)>,
     pub(super) grid_manager: GridData,
@@ -228,13 +187,6 @@ impl DesignContent {
             .grids
             .get(&g_id)
             .and_then(|g| g.grid_type.get_nb_turn().map(|x| x as f32))
-    }
-
-    pub(super) fn get_grid_shift(&self, g_id: GridId) -> Option<f32> {
-        self.grid_manager
-            .grids
-            .get(&g_id)
-            .and_then(|g| g.grid_type.get_shift())
     }
 
     pub(super) fn get_staple_mismatch(&self, design: &Design) -> Option<Nucl> {
@@ -504,12 +456,6 @@ struct StapleInfo {
     intervals: StapleIntervals,
 }
 
-#[derive(Clone)]
-pub struct Prime3End {
-    pub nucl: Nucl,
-    pub color: u32,
-}
-
 impl DesignContent {
     /// Update all the hash maps - called after every edit operation
     pub(super) fn make_hash_maps(
@@ -540,7 +486,6 @@ impl DesignContent {
         let mut prev_nucl: Option<Nucl> = None;
         let mut prev_nucl_id: Option<u32> = None;
         let mut elements = Vec::new();
-        let mut prime3_set = Vec::new();
         let mut new_junctions: JunctionsIds = Default::default();
         let mut suggestion_maker = XoverSuggestions::default();
         let mut insertion_length = HashMap::default();
@@ -815,13 +760,13 @@ impl DesignContent {
                     last_xover_junction = Some(&mut strand.junctions[i]);
                 } else if let Domain::Insertion {
                     nb_nucl,
-                    instanciation,
+                    instantiation,
                     sequence: dom_seq,
                     ..
                 } = domain
                 {
-                    if let Some(instanciation) = instanciation.as_ref() {
-                        for (dom_position, pos) in instanciation.as_ref().pos().iter().enumerate() {
+                    if let Some(instantiation) = instantiation.as_ref() {
+                        for (dom_position, pos) in instantiation.as_ref().pos().iter().enumerate() {
                             let color = rainbow_iterator.next().unwrap_or(strand_color);
                             let basis = dom_seq
                                 .as_ref()
@@ -921,10 +866,6 @@ impl DesignContent {
                         }
                     }
                 }
-                if let Some(nucl) = prev_nucl {
-                    let color = strand.color;
-                    prime3_set.push(Prime3End { nucl, color });
-                }
             }
 
             // Set the sliced bonds properly by adding the prev and next nucleotides
@@ -1003,13 +944,12 @@ impl DesignContent {
             elements.push(DesignElement::HelixElement {
                 id: *h_id,
                 group: groups.get(h_id).cloned(),
-                visible: h.visible,
                 locked_for_simulations: h.locked_for_simulations,
             });
         }
 
         // Make the helices tubes
-        if nucl_collection.identifier.len() > 0 {
+        if nucl_collection.nb_nucls() > 0 {
             let all_nt = nucl_collection
                 .identifier
                 .keys()
@@ -1104,7 +1044,7 @@ impl DesignContent {
             // DO NOT USE id_TMP beyond this point
             id_click_counter.set(id_tmp);
 
-            // USE id_clic_counter
+            // USE id_click_counter
             let mut helix_cylinders = Vec::new();
             for (h, a) in hash_intervals {
                 let mut helix_style = drawing_styles
@@ -1231,19 +1171,19 @@ impl DesignContent {
                     radius_map.insert(clone_nucl_id, *nucl_radius); // radius given to the bond
                     helix_map.insert(clone_nucl_id, nucl.helix); // get helix_id from bond_id
 
-                    let nucl_posi = Vec3::new(position[0], position[1], position[2]);
-                    let clone_posi =
-                        isometry3.translation.clone() + nucl_posi.rotated_by(isometry3.rotation);
+                    let nucl_pos = Vec3::new(position[0], position[1], position[2]);
+                    let clone_pos =
+                        isometry3.translation.clone() + nucl_pos.rotated_by(isometry3.rotation);
                     space_position
-                        .insert(clone_nucl_id, [clone_posi[0], clone_posi[1], clone_posi[2]]);
+                        .insert(clone_nucl_id, [clone_pos[0], clone_pos[1], clone_pos[2]]);
 
-                    let nucl_axis_posi =
+                    let nucl_axis_pos =
                         Vec3::new(axis_position[0], axis_position[1], axis_position[2]);
-                    let clone_axis_posi = isometry3.translation.clone()
-                        + nucl_axis_posi.rotated_by(isometry3.rotation);
+                    let clone_axis_pos = isometry3.translation.clone()
+                        + nucl_axis_pos.rotated_by(isometry3.rotation);
                     axis_space_position.insert(
                         clone_nucl_id,
-                        [clone_axis_posi[0], clone_axis_posi[1], clone_axis_posi[2]],
+                        [clone_axis_pos[0], clone_axis_pos[1], clone_axis_pos[2]],
                     );
                     if let Some(o) = on_axis.get(&nucl_id) {
                         on_axis.insert(clone_nucl_id, *o);
@@ -1350,7 +1290,6 @@ impl DesignContent {
             radius_map,
             helix_map,
             letter_map: Arc::new(letter_map),
-            prime3_set,
             elements,
             grid_manager,
             suggestions: vec![],
@@ -1407,12 +1346,10 @@ impl DesignContent {
                 let id = new_xover_ids.insert(bond);
                 *junction = DomainJunction::IdentifiedXover(id);
             }
-            DomainJunction::UnindentifiedXover | DomainJunction::IdentifiedXover(_)
-                if !is_xover =>
-            {
+            DomainJunction::UnidentifiedXover | DomainJunction::IdentifiedXover(_) if !is_xover => {
                 *junction = DomainJunction::Adjacent;
             }
-            DomainJunction::UnindentifiedXover => {
+            DomainJunction::UnidentifiedXover => {
                 let id = new_xover_ids.insert(bond);
                 *junction = DomainJunction::IdentifiedXover(id);
             }

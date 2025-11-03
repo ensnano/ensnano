@@ -19,11 +19,10 @@ use super::{
     CameraPtr, Drawable, Drawer, GroupPivot, HandleColors, ProjectionPtr, Vertex, maths_3d,
 };
 
-use ensnano_design::ultraviolet::{Rotor3, Vec3};
 use ensnano_interactor::consts::*;
-use ensnano_utils::wgpu;
 use std::f32::consts::PI;
 use std::rc::Rc;
+use ultraviolet::{Rotor3, Vec3};
 use wgpu::Device;
 
 #[derive(Debug, Clone, Copy)]
@@ -254,7 +253,6 @@ pub struct RotationWidgetDescriptor {
 pub enum AvailableRotationAxes {
     All,
     NoZ,
-    OnlyZ,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -277,7 +275,6 @@ impl RotationWidgetDescriptor {
         let (xy_filter, z_filter) = match self.available_rotation_axes {
             AvailableRotationAxes::All => (1., 1.),
             AvailableRotationAxes::NoZ => (1., 0.),
-            AvailableRotationAxes::OnlyZ => (0., 1.),
         };
         let colors = match self.colors {
             HandleColors::Cym => ensnano_interactor::consts::CYM_HANDLE_COLORS,
@@ -470,8 +467,8 @@ impl Drawable for Sphere {
         let mut indices = Vec::new();
 
         for i in 0..NB_STACK_SPHERE {
-            let mut k1: u16 = i * (NB_SECTOR_SPHERE + 1); // begining of ith stack
-            let mut k2: u16 = k1 + NB_SECTOR_SPHERE + 1; // begining of (i + 1)th stack
+            let mut k1: u16 = i * (NB_SECTOR_SPHERE + 1); // start of ith stack
+            let mut k2: u16 = k1 + NB_SECTOR_SPHERE + 1; // start of (i + 1)th stack
 
             for _ in 0..NB_SECTOR_SPHERE {
                 if i > 0 {

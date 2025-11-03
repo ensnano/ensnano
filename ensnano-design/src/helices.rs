@@ -16,20 +16,18 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use crate::design_operations::ErrOperation;
-use crate::grid::*;
-
-use super::curves::*;
 use super::{
     BezierPathId, HelixParameters, Nucl, codenano,
-    grid::{Grid, GridData, HelixGridPosition},
+    curves::*,
+    design_operations::ErrOperation,
+    grid::{Grid, GridData, HelixGridPosition, *},
     scadnano::*,
     utils::*,
 };
+use ahash::HashMap;
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
-use std::sync::Arc;
-use ultraviolet::{DRotor3, DVec3, Isometry2, Mat4, Rotor3, Vec2, Vec3};
+use std::{collections::BTreeMap, sync::Arc};
+use ultraviolet::{DRotor3, DVec3, Isometry2, Mat4, Rotor2, Rotor3, Vec2, Vec3};
 
 /// A structure mapping helices identifier to `Helix` objects
 #[derive(Debug, Default, Serialize, Deserialize, Clone)]
@@ -187,7 +185,7 @@ pub struct Helix {
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub helix_parameters: Option<HelixParameters>,
 
-    /// Indicate wether the helix should be displayed in the 3D view.
+    /// Indicate whether the helix should be displayed in the 3D view.
     #[serde(default = "default_visibility", skip_serializing_if = "bool::clone")]
     pub visible: bool,
 
@@ -208,7 +206,7 @@ pub struct Helix {
     #[serde(
         skip_serializing_if = "Vec::is_empty",
         default,
-        alias = "additonal_isometries"
+        alias = "additonal_isometries" // cspell:disable-line
     )]
     pub additional_isometries: Vec<AdditionalHelix2D>,
 
@@ -224,11 +222,19 @@ pub struct Helix {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub curve: Option<Arc<CurveDescriptor>>,
 
-    #[serde(default, skip)]
-    pub(super) instanciated_descriptor: Option<Arc<InstanciatedCurveDescriptor>>,
+    #[serde(
+        default,
+        skip,
+        alias = "instanciated_descriptor", // cspell:disable-line
+    )]
+    pub(super) instantiated_descriptor: Option<Arc<InstantiatedCurveDescriptor>>,
 
-    #[serde(default, skip)]
-    pub(super) instanciated_curve: Option<InstanciatedCurve>,
+    #[serde(
+        default,
+        skip,
+        alias = "instanciated_curve", // cspell:disable-line
+    )]
+    pub(super) instantiated_curve: Option<InstantiatedCurve>,
 
     #[serde(default, skip_serializing_if = "f32_is_zero")]
     delta_bppt: f32,
@@ -252,20 +258,7 @@ impl Helix {
             codenano_helix.position.y as f32,
             codenano_helix.position.z as f32,
         );
-        /*
-        let mut roll = codenano_helix.roll.rem_euclid(2. * std::f64::consts::PI);
-        if roll > std::f64::consts::PI {
-        roll -= 2. * std::f64::consts::PI;
-        }
-        let mut pitch = codenano_helix.pitch.rem_euclid(2. * std::f64::consts::PI);
-        if pitch > std::f64::consts::PI {
-        pitch -= 2. * std::f64::consts::PI;
-        }
-        let mut yaw = codenano_helix.yaw.rem_euclid(2. * std::f64::consts::PI);
-        if yaw > std::f64::consts::PI {
-        yaw -= 2. * std::f64::consts::PI;
-        }
-        */
+
         let orientation = Rotor3::from_rotation_xz(-codenano_helix.yaw as f32)
             * Rotor3::from_rotation_xy(codenano_helix.pitch as f32)
             * Rotor3::from_rotation_yz(codenano_helix.roll as f32);
@@ -282,8 +275,8 @@ impl Helix {
             roll: 0f32,
             locked_for_simulations: false,
             curve: None,
-            instanciated_curve: None,
-            instanciated_descriptor: None,
+            instantiated_curve: None,
+            instantiated_descriptor: None,
             delta_bppt: 0.,
             initial_nt_index: 0,
             support_helix: None,
@@ -328,12 +321,10 @@ impl Helix {
                 grid_id
             )));
         };
-        let rotation =
-            ultraviolet::Rotor2::from_angle(group.pitch.unwrap_or_default().to_radians());
+        let rotation = Rotor2::from_angle(group.pitch.unwrap_or_default().to_radians());
         let isometry2d = Isometry2 {
-            translation: (5. * *nb_helices as f32 - 1.)
-                * ultraviolet::Vec2::unit_y().rotated_by(rotation)
-                + 5. * ultraviolet::Vec2::new(group.position.x, group.position.y),
+            translation: (5. * *nb_helices as f32 - 1.) * Vec2::unit_y().rotated_by(rotation)
+                + 5. * Vec2::new(group.position.x, group.position.y),
             rotation,
         };
         *nb_helices += 1;
@@ -356,8 +347,8 @@ impl Helix {
             symmetry: Vec2::one(),
             locked_for_simulations: false,
             curve: None,
-            instanciated_curve: None,
-            instanciated_descriptor: None,
+            instantiated_curve: None,
+            instantiated_descriptor: None,
             delta_bppt: 0.,
             initial_nt_index: 0,
             support_helix: None,
@@ -380,8 +371,8 @@ impl Helix {
             None
         } else {
             Some(Self {
-                instanciated_curve: None,
-                instanciated_descriptor: None,
+                instantiated_curve: None,
+                instantiated_descriptor: None,
                 grid_position,
                 isometry2d: None,
                 curve: new_curve_descriptor.map(Arc::new),
@@ -405,8 +396,8 @@ impl Helix {
             roll: 0f32,
             locked_for_simulations: false,
             curve: None,
-            instanciated_curve: None,
-            instanciated_descriptor: None,
+            instantiated_curve: None,
+            instantiated_descriptor: None,
             delta_bppt: 0.,
             initial_nt_index: 0,
             support_helix: None,
@@ -434,8 +425,8 @@ impl Helix {
             roll: 0f32,
             locked_for_simulations: false,
             curve: None,
-            instanciated_curve: None,
-            instanciated_descriptor: None,
+            instantiated_curve: None,
+            instantiated_descriptor: None,
             delta_bppt: 0.,
             initial_nt_index: 0,
             support_helix: None,
@@ -456,8 +447,8 @@ impl Helix {
             roll: 0f32,
             locked_for_simulations: false,
             curve: Some(Arc::new(CurveDescriptor::SphereLikeSpiral(desc))),
-            instanciated_curve: None,
-            instanciated_descriptor: None,
+            instantiated_curve: None,
+            instantiated_descriptor: None,
             delta_bppt: 0.,
             initial_nt_index: 0,
             support_helix: None,
@@ -478,8 +469,8 @@ impl Helix {
             roll: 0f32,
             locked_for_simulations: false,
             curve: Some(Arc::new(CurveDescriptor::TubeSpiral(desc))),
-            instanciated_curve: None,
-            instanciated_descriptor: None,
+            instantiated_curve: None,
+            instantiated_descriptor: None,
             delta_bppt: 0.,
             initial_nt_index: 0,
             support_helix: None,
@@ -500,8 +491,8 @@ impl Helix {
             roll: 0f32,
             locked_for_simulations: false,
             curve: Some(Arc::new(desc)),
-            instanciated_curve: None,
-            instanciated_descriptor: None,
+            instantiated_curve: None,
+            instantiated_descriptor: None,
             delta_bppt: 0.,
             initial_nt_index: 0,
             support_helix: None,
@@ -555,7 +546,7 @@ impl Helix {
     }
 
     fn bezier_points(&self) -> Vec<Vec3> {
-        if let Some(desc) = self.instanciated_descriptor.as_ref() {
+        if let Some(desc) = self.instantiated_descriptor.as_ref() {
             desc.bezier_points()
         } else {
             vec![]
@@ -597,8 +588,8 @@ impl Helix {
             roll: 0f32,
             locked_for_simulations: false,
             curve: Some(Arc::new(constructor)),
-            instanciated_curve: None,
-            instanciated_descriptor: None,
+            instantiated_curve: None,
+            instantiated_descriptor: None,
             delta_bppt: 0.,
             initial_nt_index: 0,
             support_helix: None,
@@ -641,8 +632,8 @@ impl Helix {
             roll: 0f32,
             locked_for_simulations: false,
             curve,
-            instanciated_curve: None,
-            instanciated_descriptor: None,
+            instantiated_curve: None,
+            instantiated_descriptor: None,
             delta_bppt: 0.,
             initial_nt_index: 0,
             support_helix: None,
@@ -654,7 +645,7 @@ impl Helix {
     }
 
     pub fn nb_bezier_nucls(&self) -> usize {
-        self.instanciated_curve
+        self.instantiated_curve
             .as_ref()
             .map(|c| c.curve.as_ref().nb_points())
             .unwrap_or(0)
@@ -702,7 +693,7 @@ impl Helix {
     }
 
     pub fn normal_at_pos(&self, n: isize, forward: bool) -> Vec3 {
-        self.instanciated_curve
+        self.instantiated_curve
             .as_ref()
             .and_then(|c| {
                 let axis = c.curve.axis_at_pos(n, forward)?;
@@ -712,13 +703,13 @@ impl Helix {
     }
 
     pub fn curvature_at_pos(&self, n: isize) -> Option<f64> {
-        self.instanciated_curve
+        self.instantiated_curve
             .as_ref()
             .and_then(|c| c.curve.curvature_at_pos(n))
     }
 
     pub fn torsion_at_pos(&self, n: isize) -> Option<f64> {
-        self.instanciated_curve
+        self.instantiated_curve
             .as_ref()
             .and_then(|c| c.curve.torsion_at_pos(n))
     }
@@ -738,7 +729,7 @@ impl Helix {
             Some(hp) => hp.clone(),
         };
         */
-        if let Some(curve) = self.instanciated_curve.as_ref() {
+        if let Some(curve) = self.instantiated_curve.as_ref() {
             if let Some(point) = curve
                 .as_ref()
                 .nucl_pos(n, forward, theta as f64, &p)
@@ -814,8 +805,8 @@ impl Helix {
             symmetry: Vec2::one(),
             locked_for_simulations: false,
             curve: None,
-            instanciated_curve: None,
-            instanciated_descriptor: None,
+            instantiated_curve: None,
+            instantiated_descriptor: None,
             delta_bppt: 0.,
             initial_nt_index: 0,
             support_helix: None,
@@ -852,7 +843,7 @@ impl Helix {
     }
 
     pub fn get_axis<'a>(&'a self, p: &HelixParameters) -> Axis<'a> {
-        if let Some(curve) = self.instanciated_curve.as_ref() {
+        if let Some(curve) = self.instantiated_curve.as_ref() {
             let shift = self.initial_nt_index;
             let points = curve.as_ref().points();
             let (position, orientation) = if curve.as_ref().has_its_own_encoded_frame() {
@@ -880,9 +871,9 @@ impl Helix {
     }
 
     pub fn axis_position(&self, p: &HelixParameters, n: isize, forward: bool) -> Vec3 {
-        // Attention, ne tient pas compte de l'inclinaison !!!
+        // WARNING: doesn't take the inclination into account!
         let n = n + self.initial_nt_index;
-        if let Some(curve) = self.instanciated_curve.as_ref().map(|s| &s.curve)
+        if let Some(curve) = self.instantiated_curve.as_ref().map(|s| &s.curve)
             && let Some(point) = curve.axis_pos(n, forward).map(dvec_to_vec)
         {
             let (position, orientation) = if curve.as_ref().has_its_own_encoded_frame() {
@@ -913,7 +904,7 @@ impl Helix {
         self.position = rotation * self.position;
     }
 
-    pub fn rotate_arround(&mut self, rotation: Rotor3, origin: Vec3) {
+    pub fn rotate_around(&mut self, rotation: Rotor3, origin: Vec3) {
         self.append_translation(-origin);
         self.append_rotation(rotation);
         self.append_translation(origin);
@@ -923,7 +914,6 @@ impl Helix {
         self.append_translation(translation);
     }
 
-    #[allow(dead_code)]
     pub fn roll(&mut self, roll: f32) {
         self.roll += roll
     }
@@ -933,19 +923,19 @@ impl Helix {
     }
 
     pub fn get_bezier_controls(&self) -> Option<CubicBezierConstructor> {
-        self.instanciated_descriptor
+        self.instantiated_descriptor
             .as_ref()
             .and_then(|c| c.get_bezier_controls())
     }
 
     pub fn get_curve_range(&self) -> Option<std::ops::RangeInclusive<isize>> {
-        self.instanciated_curve
+        self.instantiated_curve
             .as_ref()
             .map(|curve| curve.curve.range())
     }
 
     pub fn get_surface_info_nucl(&self, nucl: Nucl) -> Option<SurfaceInfo> {
-        let mut surface_info = self.instanciated_curve.as_ref().and_then(|curve| {
+        let mut surface_info = self.instantiated_curve.as_ref().and_then(|curve| {
             let curve = &curve.curve;
             let t = curve.nucl_time(nucl.position)?;
             curve.geometry.surface_info_time(t, nucl.helix)
@@ -957,7 +947,7 @@ impl Helix {
     }
 
     pub fn get_surface_info(&self, point: SurfacePoint) -> Option<SurfaceInfo> {
-        let mut surface_info = self.instanciated_curve.as_ref().and_then(|curve| {
+        let mut surface_info = self.instantiated_curve.as_ref().and_then(|curve| {
             let curve = &curve.curve;
             curve.geometry.surface_info(point)
         })?;
@@ -978,6 +968,42 @@ pub struct VirtualNucl(pub(super) Nucl);
 impl VirtualNucl {
     pub fn compl(&self) -> Self {
         Self(self.0.compl())
+    }
+}
+
+#[derive(Default, Clone)]
+pub struct NuclCollection {
+    pub identifier: BTreeMap<Nucl, u32>, //HashMap<Nucl, u32, RandomState>,
+    virtual_nucl_map: HashMap<VirtualNucl, Nucl>,
+}
+
+impl NuclCollection {
+    pub fn iter_nucls_ids<'a>(&'a self) -> Box<dyn Iterator<Item = (&'a Nucl, &'a u32)> + 'a> {
+        Box::new(self.identifier.iter())
+    }
+
+    pub fn virtual_to_real(&self, virtual_nucl: &VirtualNucl) -> Option<&Nucl> {
+        self.virtual_nucl_map.get(virtual_nucl)
+    }
+
+    pub fn get_identifier(&self, nucl: &Nucl) -> Option<&u32> {
+        self.identifier.get(nucl)
+    }
+
+    pub fn contains_nucl(&self, nucl: &Nucl) -> bool {
+        self.identifier.contains_key(nucl)
+    }
+
+    pub fn nb_nucls(&self) -> usize {
+        self.identifier.len()
+    }
+
+    pub fn insert(&mut self, key: Nucl, id: u32) -> Option<u32> {
+        self.identifier.insert(key, id)
+    }
+
+    pub fn insert_virtual(&mut self, virtual_nucl: VirtualNucl, nucl: Nucl) -> Option<Nucl> {
+        self.virtual_nucl_map.insert(virtual_nucl, nucl)
     }
 }
 
@@ -1101,9 +1127,9 @@ impl<'a> Axis<'a> {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AdditionalHelix2D {
     /// The minimum nucleotide index of the helix.
-    /// Nucleotides with smalle indices are represented by the previous helix
+    /// Nucleotides with small indices are represented by the previous helix
     pub left: isize,
-    /// The Isomettry to be applied after applying the isometry of the main helix 2d representation
+    /// The Isometry to be applied after applying the isometry of the main helix 2d representation
     /// to obtain this segment
     pub additional_isometry: Option<Isometry2>,
     pub additional_symmetry: Option<Vec2>,

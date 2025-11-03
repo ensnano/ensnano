@@ -16,10 +16,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use crate::drawing_style::ParsePointError;
+use super::drawing_style::ParsePointError;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, f32::consts::PI, str::FromStr};
-use ultraviolet::*;
+use ultraviolet::{Isometry3, Rotor3, Vec3};
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug)]
 pub enum Isometry3DescriptorItem {
@@ -218,7 +218,6 @@ pub trait Isometry3MissingMethods {
     fn rotation_zx_by_around(degree: f32, c: Vec3) -> Isometry3;
     fn rotation_xy_by_around(degree: f32, c: Vec3) -> Isometry3;
     fn composed_with(&self, iso2: Isometry3) -> Isometry3;
-    fn from_str(s: &str) -> Isometry3;
     fn from_str_with_variables(s: &str, variables: Option<&HashMap<String, f32>>) -> Isometry3;
 }
 
@@ -301,9 +300,11 @@ impl Isometry3MissingMethods for Isometry3 {
     }
 
     fn rotation_yz_by_around(degree: f32, c: Vec3) -> Isometry3 {
-        let α = PI * degree / 180.;
-        let rotor =
-            Rotor3::from_rotation_between(Vec3::new(0., 1., 0.), Vec3::new(0., α.cos(), α.sin()));
+        let alpha = PI * degree / 180.;
+        let rotor = Rotor3::from_rotation_between(
+            Vec3::new(0., 1., 0.),
+            Vec3::new(0., alpha.cos(), alpha.sin()),
+        );
         Isometry3 {
             translation: c - c.rotated_by(rotor),
             rotation: rotor,
@@ -311,9 +312,11 @@ impl Isometry3MissingMethods for Isometry3 {
     }
 
     fn rotation_zx_by_around(degree: f32, c: Vec3) -> Isometry3 {
-        let α = PI * degree / 180.;
-        let rotor =
-            Rotor3::from_rotation_between(Vec3::new(0., 0., 1.), Vec3::new(α.sin(), 0., α.cos()));
+        let alpha = PI * degree / 180.;
+        let rotor = Rotor3::from_rotation_between(
+            Vec3::new(0., 0., 1.),
+            Vec3::new(alpha.sin(), 0., alpha.cos()),
+        );
         Isometry3 {
             translation: c - c.rotated_by(rotor),
             rotation: rotor,
@@ -321,9 +324,11 @@ impl Isometry3MissingMethods for Isometry3 {
     }
 
     fn rotation_xy_by_around(degree: f32, c: Vec3) -> Isometry3 {
-        let α = PI * degree / 180.;
-        let rotor =
-            Rotor3::from_rotation_between(Vec3::new(1., 0., 0.), Vec3::new(α.cos(), α.sin(), 0.));
+        let alpha = PI * degree / 180.;
+        let rotor = Rotor3::from_rotation_between(
+            Vec3::new(1., 0., 0.),
+            Vec3::new(alpha.cos(), alpha.sin(), 0.),
+        );
         Isometry3 {
             translation: c - c.rotated_by(rotor),
             rotation: rotor,
@@ -335,17 +340,6 @@ impl Isometry3MissingMethods for Isometry3 {
             translation: iso2.translation + self.translation.rotated_by(iso2.rotation),
             rotation: self.rotation * iso2.rotation,
         }
-    }
-
-    fn from_str(s: &str) -> Isometry3 {
-        let descr = s
-            .split(&[' ', ')'])
-            .map(|x| Isometry3DescriptorItem::from_str(x))
-            .filter(|x| x.is_ok())
-            .map(|x| x.unwrap())
-            .collect::<Vec<Isometry3DescriptorItem>>();
-
-        return Isometry3::from_descriptor(&descr);
     }
 
     fn from_str_with_variables(s: &str, variables: Option<&HashMap<String, f32>>) -> Isometry3 {

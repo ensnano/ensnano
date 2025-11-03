@@ -15,49 +15,39 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
+use super::AppState;
 use super::view::HandleColors;
 use super::{
     Duration, ElementSelector, HandleDir, SceneElement, Stereography, ViewPtr,
-    WidgetRotationMode as RotationMode, camera, ultraviolet,
+    WidgetRotationMode as RotationMode, camera,
 };
+use crate::maths_3d::FiniteVec3;
 use crate::{PhySize, PhysicalPosition, WindowEvent};
+use camera::CameraController;
 use ensnano_design::grid::{GridId, GridObject, GridPosition, HelixGridPosition};
 use ensnano_design::{
     BezierPathId, BezierPlaneId, BezierVertex, BezierVertexId, Nucl, SurfaceInfo, SurfacePoint,
 };
 use ensnano_interactor::consts::*;
-use ensnano_utils::winit;
-use ensnano_utils::winit::window::CursorIcon;
 use std::cell::RefCell;
 use std::ops::Deref;
+use std::rc::Rc;
 use ultraviolet::{Rotor3, Vec2, Vec3};
 use winit::event::{ElementState, KeyEvent, Modifiers};
 use winit::keyboard::{Key, ModifiersState, NamedKey, PhysicalKey};
-
-use super::AppState;
-
-use camera::{CameraController, FiniteVec3};
+use winit::window::CursorIcon;
 
 mod automata;
 pub use automata::WidgetTarget;
 use automata::{EventContext, NormalState, State, Transition};
-
-/// The effect that dragging the mouse have
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum ClickMode {
-    TranslateCam,
-    RotateCam,
-}
-
-use std::rc::Rc;
-type DataPtr = Rc<RefCell<dyn Data>>;
 
 /// An object handling input and notification for the scene.
 pub struct Controller<S: AppState> {
     /// A pointer to the View
     view: ViewPtr,
     /// A pointer to the data
-    data: DataPtr,
+    data: Rc<RefCell<dyn Data>>,
     /// The event that modify the camera are forwarded to the camera_controller
     camera_controller: CameraController,
     /// The size of the window
@@ -66,8 +56,6 @@ pub struct Controller<S: AppState> {
     area_size: PhySize,
     /// The current modifiers
     current_modifiers_state: ModifiersState,
-    /// The effect that dragging the mouse has
-    click_mode: ClickMode,
     state: State<S>,
     stereography: Option<Stereography>,
     /// The origin of the two points bezier curve being created.
@@ -78,7 +66,7 @@ pub struct Controller<S: AppState> {
 pub enum Consequence {
     CameraMoved,
     CameraTranslated(f64, f64),
-    XoverAtempt(Nucl, Nucl, usize, bool),
+    XoverAttempt(Nucl, Nucl, usize, bool),
     QuickXoverAttempt {
         nucl: Nucl,
         doubled: bool,
@@ -123,7 +111,7 @@ pub enum Consequence {
     PivotCenter,
     CheckXovers,
     AlignWithStereo,
-    /// Appen a vertex to a bezier path
+    /// Append a vertex to a bezier path
     CreateBezierVertex {
         /// The position of the created vertex
         vertex: BezierVertex,
@@ -149,7 +137,7 @@ pub enum Consequence {
     MoveBezierTangent {
         vertex_id: BezierVertexId,
         tangent_in: bool,
-        full_symetry_other: bool,
+        full_symmetry_other: bool,
         new_vector: Vec2,
     },
     ReverseSurfaceDirection,
@@ -171,7 +159,7 @@ enum TransitionConsequence {
 impl<S: AppState> Controller<S> {
     pub(super) fn new(
         view: ViewPtr,
-        data: DataPtr,
+        data: Rc<RefCell<dyn Data>>,
         window_size: PhySize,
         area_size: PhySize,
     ) -> Self {
@@ -186,7 +174,6 @@ impl<S: AppState> Controller<S> {
             window_size,
             area_size,
             current_modifiers_state: ModifiersState::empty(),
-            click_mode: ClickMode::TranslateCam,
             state: automata::initial_state(),
             stereography: None,
             bezier_curve_origin: None,
@@ -282,50 +269,6 @@ impl<S: AppState> Controller<S> {
             if ctrl(&self.current_modifiers_state) {
                 self.camera_controller.update_stereographic_zoom(delta);
                 Transition::consequence(Consequence::CameraMoved)
-            /*} else if self.current_modifiers.shift_key() {
-            self.state.borrow_mut().notify_scroll();
-            let element = pixel_reader.set_selected_id(position);
-            if let Some(builder) = app_state.get_strand_builders().get(0) {
-                let init_position = builder.get_moving_end_nucl().position;
-                let delta = match delta {
-                    MouseScrollDelta::LineDelta(_, y) => y.signum() as isize,
-                    MouseScrollDelta::PixelDelta(pos) => pos.y.signum() as isize,
-                };
-                Transition::consequence(Consequence::Building(init_position + delta))
-            } else if let Some(nucl) = self
-                .data
-                .borrow()
-                .can_start_builder(self.state.borrow().element_being_selected())
-            {
-                Transition::init_building(vec![nucl], false)
-            } else if let Selection::Nucleotide(_, nucl) =
-                self.data.borrow().element_to_selection(&element)
-            {
-                Transition::init_building(vec![nucl], false)
-            } else if let Selection::Xover(_, xover_id) =
-                self.data.borrow().element_to_selection(&element)
-            {
-                if let Some((n1, n2)) =
-                    app_state.get_design_reader().get_xover_with_id(xover_id)
-                {
-                    Transition::init_building(vec![n1, n2], false)
-                } else {
-                    self.camera_controller.process_scroll(
-                        delta,
-                        mouse_x as f32,
-                        mouse_y as f32,
-                    );
-                    Transition::consequence(Consequence::CameraMoved)
-                }
-            } else {
-                self.camera_controller
-                    .process_scroll(delta, mouse_x as f32, mouse_y as f32);
-                Transition::consequence(Consequence::CameraMoved)
-            }
-
-                * The above code was used to move the current strand builder with the mouse
-                * wheel
-                */
             } else {
                 self.camera_controller.process_scroll(
                     delta,
@@ -369,15 +312,12 @@ impl<S: AppState> Controller<S> {
                     Consequence::ToggleWidget
                 }
                 _ => {
-                    if let PhysicalKey::Code(key_code) = physical_key {
-                        if self
+                    if let PhysicalKey::Code(key_code) = physical_key
+                        && self
                             .camera_controller
                             .process_keyboard(key_code.to_owned(), *state)
-                        {
-                            Consequence::CameraMoved
-                        } else {
-                            Consequence::Nothing
-                        }
+                    {
+                        Consequence::CameraMoved
                     } else {
                         Consequence::Nothing
                     }
@@ -447,7 +387,6 @@ impl<S: AppState> Controller<S> {
     pub fn update_camera(&mut self, dt: Duration) {
         self.camera_controller.update_camera(
             dt,
-            self.click_mode,
             &self.current_modifiers_state,
             self.data.borrow().deref(),
         );

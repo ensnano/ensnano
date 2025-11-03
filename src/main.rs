@@ -108,7 +108,7 @@ use {
             transitions::{AppStateTransition, OkOperation, TransitionLabel},
         },
         controller::{
-            chanel_reader::{ChannelReader, ChannelReaderUpdate},
+            channel_reader::{ChannelReader, ChannelReaderUpdate},
             normal_state::Action,
             set_scaffold_sequence::{
                 ScaffoldSetter, SetScaffoldSequenceError, SetScaffoldSequenceOk,
@@ -131,14 +131,14 @@ use {
         iced_futures::futures,
         iced_graphics::{Antialiasing, Viewport},
         iced_runtime::{Debug, program},
-        iced_wgpu::{self, Settings, wgpu},
-        iced_winit::{self, winit},
-        theme,
+        iced_wgpu::{self, Settings},
+        iced_winit, theme,
     },
     ensnano_interactor::{
-        ActionMode, CenterOfSelection, DesignOperation, DesignReader, DesignRotation,
-        DesignTranslation, IsometryTarget, PastingStatus, RevolutionSurfaceSystemDescriptor,
-        RigidBodyConstants, Selection, SelectionMode, UnrootedRevolutionSurfaceDescriptor,
+        ActionMode, CenterOfSelection, DesignOperation, DesignRotation, DesignTranslation,
+        InteractorDesignReaderExt, IsometryTarget, PastingStatus,
+        RevolutionSurfaceSystemDescriptor, RigidBodyConstants, Selection, SelectionMode,
+        UnrootedRevolutionSurfaceDescriptor,
         app_state_parameters::{AppStateParameters, CheckXoversParameter, SuggestionParameters},
         application::{Application, Notification},
         consts::{
@@ -148,8 +148,9 @@ use {
         graphics::{GuiComponentType, SplitMode},
         operation::Operation,
     },
-    ensnano_scene::{AppState as _, DesignReader as _, Scene, SceneKind},
-    ensnano_utils::{PhySize, TEXTURE_FORMAT, winit::window::CursorIcon},
+    ensnano_organizer::GroupId,
+    ensnano_scene::{AppState as _, Scene, SceneKind, data::SceneDesignReaderExt as _},
+    ensnano_utils::{PhySize, TEXTURE_FORMAT},
     multiplexer::{Multiplexer, Overlay},
     scheduler::Scheduler,
     std::{
@@ -166,7 +167,7 @@ use {
         event::{Event, WindowEvent},
         event_loop::{ControlFlow, EventLoop, EventLoopWindowTarget},
         keyboard::{Key, ModifiersState, NamedKey},
-        window::Window,
+        window::{CursorIcon, Window},
     },
 };
 
@@ -626,9 +627,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             });
 
                         // We draw the applications first
-                        let now = std::time::Instant::now();
-                        let dt = now - last_render_time;
-                        scheduler.draw_apps(&mut encoder, &multiplexer, dt);
+                        scheduler.draw_apps(&mut encoder, &multiplexer);
 
                         gui.render(
                             &mut encoder,
@@ -1218,7 +1217,7 @@ impl MainState {
         self.modify_state(|s| s.with_candidates(candidates), None);
     }
 
-    fn transfer_selection_pivot_to_group(&mut self, group_id: ensnano_design::GroupId) {
+    fn transfer_selection_pivot_to_group(&mut self, group_id: GroupId) {
         let scene_pivot = self
             .applications
             .get(&GuiComponentType::Scene)
@@ -1456,7 +1455,7 @@ impl MainState {
     }
 
     fn request_copy(&mut self) {
-        let reader = self.app_state.get_design_reader();
+        let reader = self.app_state.get_design_interactor();
         let selection = self.app_state.get_selection();
         if let Some((_, xover_ids)) =
             ensnano_interactor::list_of_xover_as_nucl_pairs(selection.as_ref(), &reader)
@@ -1488,7 +1487,7 @@ impl MainState {
             self.apply_copy_operation(CopyOperation::Duplicate)
         } else if let Some((_, nucl_pairs)) = ensnano_interactor::list_of_xover_as_nucl_pairs(
             self.app_state.get_selection().as_ref(),
-            &self.app_state.get_design_reader(),
+            &self.app_state.get_design_interactor(),
         ) {
             self.apply_copy_operation(CopyOperation::InitXoverDuplication(nucl_pairs))
         } else if let Some((_, helices)) =
@@ -1643,7 +1642,13 @@ impl MainState {
 
     /// Create a bezier plane where the user is looking at if there are no bezier plane yet.
     fn create_default_bezier_plane(&mut self) {
-        if self.app_state.get_design_reader().get_bezier_planes().len() == 0 {
+        if self
+            .app_state
+            .get_design_interactor()
+            .get_bezier_planes()
+            .len()
+            == 0
+        {
             if let Some((position, orientation)) = self.get_bezier_sheet_creation_position() {
                 self.apply_operation(DesignOperation::AddBezierPlane {
                     desc: ensnano_design::BezierPlaneDescriptor {
@@ -1798,7 +1803,7 @@ impl<'a> MainStateView<'a> {
         if let Some((position, orientation)) = self
             .main_state
             .app_state
-            .get_design_reader()
+            .get_design_interactor()
             .get_favorite_camera()
         {
             self.notify_apps(Notification::TeleportCamera(
@@ -1832,7 +1837,7 @@ impl<'a> MainStateView<'a> {
     }
 
     fn get_staple_downloader(&self) -> Box<dyn StaplesDownloader> {
-        Box::new(self.main_state.app_state.get_design_reader())
+        Box::new(self.main_state.app_state.get_design_interactor())
     }
 
     fn save_design(&mut self, path: &PathBuf) -> Result<(), SaveDesignError> {
@@ -1885,8 +1890,8 @@ impl<'a> MainStateView<'a> {
         Box::new(self.main_state.app_state.get_selection())
     }
 
-    fn get_design_reader(&mut self) -> Box<dyn DesignReader> {
-        Box::new(self.main_state.app_state.get_design_reader())
+    fn get_design_reader(&mut self) -> Box<dyn InteractorDesignReaderExt> {
+        Box::new(self.main_state.app_state.get_design_interactor())
     }
 
     fn get_grid_creation_position(&self) -> Option<(Vec3, Rotor3)> {
@@ -1967,7 +1972,7 @@ impl<'a> MainStateView<'a> {
         let scaffold_id = self
             .main_state
             .get_app_state()
-            .get_design_reader()
+            .get_design_interactor()
             .get_scaffold_info()
             .map(|info| info.id);
         if let Some(s_id) = scaffold_id {
@@ -2112,7 +2117,7 @@ impl<'a> MainStateView<'a> {
     }
 
     fn select_camera(&mut self, camera_id: ensnano_design::CameraId) {
-        let reader = self.main_state.app_state.get_design_reader();
+        let reader = self.main_state.app_state.get_design_interactor();
         if let Some(camera) = reader.get_camera_with_id(camera_id) {
             self.notify_apps(Notification::TeleportCamera(camera))
         } else {
@@ -2120,26 +2125,8 @@ impl<'a> MainStateView<'a> {
         }
     }
 
-    fn update_camera(&mut self, camera_id: ensnano_design::CameraId) {
-        if let Some(camera) = self
-            .main_state
-            .applications
-            .get(&GuiComponentType::Scene)
-            .and_then(|s| s.lock().unwrap().get_camera())
-        {
-            self.main_state
-                .apply_operation(DesignOperation::UpdateCamera {
-                    camera_id,
-                    position: camera.0.position,
-                    orientation: camera.0.orientation,
-                })
-        } else {
-            log::error!("Could not get current camera position");
-        }
-    }
-
     fn select_favorite_camera(&mut self, n_camera: u32) {
-        let reader = self.main_state.app_state.get_design_reader();
+        let reader = self.main_state.app_state.get_design_interactor();
         if let Some(camera) = reader.get_nth_camera(n_camera) {
             self.notify_apps(Notification::TeleportCamera(camera))
         } else {
@@ -2154,7 +2141,7 @@ impl<'a> MainStateView<'a> {
     }
 
     fn make_all_suggested_xover(&mut self, doubled: bool) {
-        let reader = self.main_state.app_state.get_design_reader();
+        let reader = self.main_state.app_state.get_design_interactor();
         let xovers = reader.get_suggestions();
         self.apply_operation(DesignOperation::MakeSeveralXovers { xovers, doubled })
     }

@@ -19,10 +19,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::*;
 use ensnano_design::grid::GridId;
 use ensnano_interactor::{StrandBuilder, consts::scroll_sensitivity_conversion};
-use ensnano_scene::{AppState as App3D, DrawOptions};
+use ensnano_scene::{AppState as App3D, view::DrawOptions};
 
 impl App3D for AppState {
-    type DesignReader = DesignReader;
+    type AppStateDesignReader = DesignInteractor;
 
     fn get_selection(&self) -> &[Selection] {
         self.selection_content().as_slice()
@@ -60,8 +60,8 @@ impl App3D for AppState {
         (self.0.action_mode, self.0.widget_basis)
     }
 
-    fn get_design_reader(&self) -> Self::DesignReader {
-        self.0.design.get_design_reader()
+    fn get_design_reader(&self) -> Self::AppStateDesignReader {
+        self.0.design.clone_inner()
     }
 
     fn get_strand_builders(&self) -> &[StrandBuilder] {
@@ -92,7 +92,7 @@ impl App3D for AppState {
     }
 
     fn get_current_group_pivot(&self) -> Option<ensnano_design::group_attributes::GroupPivot> {
-        let reader = self.get_design_reader();
+        let reader = self.get_design_interactor();
         self.0
             .selection
             .selected_group
@@ -101,7 +101,7 @@ impl App3D for AppState {
             .or(*self.0.selection.pivot.read().as_deref().unwrap())
     }
 
-    fn get_current_group_id(&self) -> Option<ensnano_design::GroupId> {
+    fn get_current_group_id(&self) -> Option<GroupId> {
         self.0.selection.selected_group
     }
 
@@ -141,8 +141,8 @@ impl App3D for AppState {
         sign * scroll_sensitivity_conversion(self.0.parameters.scroll_sensitivity)
     }
 
-    fn show_insertion_representents(&self) -> bool {
-        self.0.show_insertion_representents
+    fn show_insertion_discriminants(&self) -> bool {
+        self.0.show_insertion_discriminants
     }
 
     fn show_bezier_paths(&self) -> bool {

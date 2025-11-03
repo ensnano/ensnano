@@ -25,12 +25,12 @@ use crate::{
     app_state::design_interactor::controller::{
         OkOperation, clipboard::CopyOperation, simulations::SimulationOperation,
     },
-    controller::chanel_reader::ChannelReader,
+    controller::channel_reader::ChannelReader,
 };
 use controller::{Controller, ErrOperation, InteractorNotification};
 use ensnano_design::{
     BezierPathId, BezierPlaneDescriptor, Design, HelixCollection, HelixParameters,
-    InstanciatedPiecewiseBezier, grid::GridId, group_attributes::GroupAttribute,
+    InstantiatedPiecewiseBezier, grid::GridId, group_attributes::GroupAttribute,
 };
 use ensnano_exports::{ExportResult, ExportType};
 use ensnano_gui::CurrentOpState;
@@ -44,7 +44,7 @@ use presenter::{Presenter, SimulationUpdate, apply_simulation_update, update_pre
 use std::sync::Arc;
 
 /// The `DesignInteractor` handles all read/write operations on the design. It is a stateful struct
-/// so it is meant to be unexpansive to clone.
+/// so it is meant to be cheap to clone.
 #[derive(Clone, Default)]
 pub struct DesignInteractor {
     /// The current design
@@ -61,12 +61,6 @@ pub struct DesignInteractor {
 }
 
 impl DesignInteractor {
-    pub(super) fn get_design_reader(&self) -> DesignReader {
-        DesignReader {
-            presenter: self.presenter.clone(),
-            controller: self.controller.clone(),
-        }
-    }
     pub(super) fn optimize_shift(
         &self,
         reader: &mut ChannelReader,
@@ -245,7 +239,7 @@ impl DesignInteractor {
         self
     }
 
-    #[allow(dead_code)] //used in tests
+    #[cfg(test)]
     pub(super) fn with_updated_design(&self, design: Design) -> Self {
         let mut new_interactor = self.clone();
         new_interactor.design = AddressPointer::new(design);
@@ -349,16 +343,9 @@ impl InteractorResult {
     }
 }
 
-/// A reference to a Presenter that is guaranteed to always have up to date internal data
-/// structures.
-pub struct DesignReader {
-    presenter: AddressPointer<Presenter>,
-    controller: AddressPointer<Controller>,
-}
-
 use crate::controller::SaveDesignError;
 use std::path::PathBuf;
-impl DesignReader {
+impl DesignInteractor {
     pub(super) fn save_design(
         &self,
         path: &PathBuf,
@@ -389,7 +376,7 @@ impl DesignReader {
             .get(&group_id)
     }
 
-    pub fn get_bezier_path_2d(&self, path_id: BezierPathId) -> Option<InstanciatedPiecewiseBezier> {
+    pub fn get_bezier_path_2d(&self, path_id: BezierPathId) -> Option<InstantiatedPiecewiseBezier> {
         self.presenter.get_bezier_path_2d(path_id)
     }
 
@@ -433,9 +420,9 @@ mod tests {
     use ensnano_design::HelixCollection;
     use ensnano_design::grid::HelixGridPosition;
     use ensnano_design::{Collection, DomainJunction, Nucl, Strand, grid::GridDescriptor};
-    use ensnano_interactor::DesignReader;
     use ensnano_interactor::operation::GridHelixCreation;
-    use ensnano_scene::DesignReader as Reader3d;
+    use ensnano_interactor::{InsertionPoint, InteractorDesignReaderExt};
+    use ensnano_scene::data::SceneDesignReaderExt as Reader3d;
     use std::path::PathBuf;
     use ultraviolet::{Rotor3, Vec3};
 
@@ -460,8 +447,8 @@ mod tests {
         println!("objective {}", objective.deref());
         use regex::Regex;
         let re = Regex::new(r#"\[[^\]]*\]"#).unwrap();
-        let formated_strand = strand.formatted_domains();
-        let left = re.find_iter(&formated_strand);
+        let formatted_strand = strand.formatted_domains();
+        let left = re.find_iter(&formatted_strand);
         let right = re.find_iter(&objective);
         for (a, b) in left.zip(right) {
             assert_eq!(a.as_str(), b.as_str());
@@ -470,12 +457,12 @@ mod tests {
     }
 
     fn assert_good_junctions<S: std::ops::Deref<Target = str>>(strand: &Strand, objective: S) {
-        println!("self {:?}", strand.formated_anonymous_junctions());
+        println!("self {:?}", strand.formatted_anonymous_junctions());
         println!("objective {}", objective.deref());
         use regex::Regex;
         let re = Regex::new(r#"\[[^\]]*\]"#).unwrap();
-        let formated_strand = strand.formated_anonymous_junctions();
-        let left = re.find_iter(&formated_strand);
+        let formatted_strand = strand.formatted_anonymous_junctions();
+        let left = re.find_iter(&formatted_strand);
         let right = re.find_iter(&objective);
         for (a, b) in left.zip(right) {
             assert_eq!(a.as_str(), b.as_str());
@@ -515,8 +502,7 @@ mod tests {
         let interactor = DesignInteractor::new_with_path(&path).ok().unwrap();
         let suggestion_parameters = Default::default();
         let interactor = interactor.with_updated_design_reader(&suggestion_parameters);
-        let reader = interactor.get_design_reader();
-        assert_eq!(reader.get_all_visible_nucl_ids().len(), 24)
+        assert_eq!(interactor.get_all_visible_nucl_ids().len(), 24)
     }
 
     #[test]
@@ -610,7 +596,7 @@ mod tests {
         // prime5 of strand
         app_state
             .apply_design_op(DesignOperation::SetInsertionLength {
-                insertion_point: ensnano_interactor::InsertionPoint {
+                insertion_point: InsertionPoint {
                     nucl: Nucl {
                         helix: 1,
                         position: -1,
@@ -626,7 +612,7 @@ mod tests {
         // middle of domain
         app_state
             .apply_design_op(DesignOperation::SetInsertionLength {
-                insertion_point: ensnano_interactor::InsertionPoint {
+                insertion_point: InsertionPoint {
                     nucl: Nucl {
                         helix: 1,
                         position: 3,
@@ -642,7 +628,7 @@ mod tests {
         // prime5 of xover
         app_state
             .apply_design_op(DesignOperation::SetInsertionLength {
-                insertion_point: ensnano_interactor::InsertionPoint {
+                insertion_point: InsertionPoint {
                     nucl: Nucl {
                         helix: 1,
                         position: 7,
@@ -658,7 +644,7 @@ mod tests {
         // prime3 of xover
         app_state
             .apply_design_op(DesignOperation::SetInsertionLength {
-                insertion_point: ensnano_interactor::InsertionPoint {
+                insertion_point: InsertionPoint {
                     nucl: Nucl {
                         helix: 3,
                         position: 0,
@@ -674,7 +660,7 @@ mod tests {
         //prime3 of strand
         app_state
             .apply_design_op(DesignOperation::SetInsertionLength {
-                insertion_point: ensnano_interactor::InsertionPoint {
+                insertion_point: InsertionPoint {
                     nucl: Nucl {
                         helix: 3,
                         position: 9,
@@ -700,7 +686,7 @@ mod tests {
         // prime5 of xover
         app_state
             .apply_design_op(DesignOperation::SetInsertionLength {
-                insertion_point: ensnano_interactor::InsertionPoint {
+                insertion_point: InsertionPoint {
                     nucl: Nucl {
                         helix: 1,
                         position: 7,
@@ -737,17 +723,17 @@ mod tests {
             .unwrap();
 
         let strand = strands.get(&s_id_prime5).expect("No strand 5'");
-        let exptected_result = "[->] [x] [3']".to_string();
-        assert_good_junctions(strand, exptected_result);
+        let expected_result = "[->] [x] [3']".to_string();
+        assert_good_junctions(strand, expected_result);
         println!("OK for 5' end");
 
         let strand = strands.get(&s_id_prime3).expect("No strand 3'");
-        let exptected_result = "[3']".to_string();
-        assert_good_junctions(strand, exptected_result);
+        let expected_result = "[3']".to_string();
+        assert_good_junctions(strand, expected_result);
     }
 
     /// Add an insertion on 3'end of a strand and check that the last two junctions are in correct
-    /// oreder
+    /// order
     #[test]
     fn junction_on_xover_ends() {
         // A design with one strand h1: -1 -> 7 ; h2: -1 <- 7 ; h3: 0 -> 9
@@ -757,7 +743,7 @@ mod tests {
         // prime5 of xover
         app_state
             .apply_design_op(DesignOperation::SetInsertionLength {
-                insertion_point: ensnano_interactor::InsertionPoint {
+                insertion_point: InsertionPoint {
                     nucl: Nucl {
                         helix: 1,
                         position: 7,
@@ -774,7 +760,7 @@ mod tests {
         // prime3 of xover
         app_state
             .apply_design_op(DesignOperation::SetInsertionLength {
-                insertion_point: ensnano_interactor::InsertionPoint {
+                insertion_point: InsertionPoint {
                     nucl: Nucl {
                         helix: 3,
                         position: 0,
@@ -796,12 +782,12 @@ mod tests {
             .strands
             .get(&0)
             .expect("No strand 0");
-        let exptected_result = "[->] [x] [->] [x] [3']".to_string();
-        assert_good_junctions(strand, exptected_result);
+        let expected_result = "[->] [x] [->] [x] [3']".to_string();
+        assert_good_junctions(strand, expected_result);
     }
 
     /// Add an insertion on 3'end of a strand and check that the last two junctions are in correct
-    /// oreder
+    /// order
     #[test]
     fn junction_on_xover_and_3prime_ends() {
         // A design with one strand h1: -1 -> 7 ; h2: -1 <- 7 ; h3: 0 -> 9
@@ -810,7 +796,7 @@ mod tests {
         // prime5 of xover
         app_state
             .apply_design_op(DesignOperation::SetInsertionLength {
-                insertion_point: ensnano_interactor::InsertionPoint {
+                insertion_point: InsertionPoint {
                     nucl: Nucl {
                         helix: 1,
                         position: 7,
@@ -826,7 +812,7 @@ mod tests {
         // prime3 of xover
         app_state
             .apply_design_op(DesignOperation::SetInsertionLength {
-                insertion_point: ensnano_interactor::InsertionPoint {
+                insertion_point: InsertionPoint {
                     nucl: Nucl {
                         helix: 3,
                         position: 0,
@@ -842,7 +828,7 @@ mod tests {
         //prime3 of strand
         app_state
             .apply_design_op(DesignOperation::SetInsertionLength {
-                insertion_point: ensnano_interactor::InsertionPoint {
+                insertion_point: InsertionPoint {
                     nucl: Nucl {
                         helix: 3,
                         position: 9,
@@ -862,8 +848,8 @@ mod tests {
             .strands
             .get(&0)
             .expect("No strand 0");
-        let exptected_result = "[->] [x] [->] [x] [->] [3']".to_string();
-        assert_good_junctions(strand, exptected_result);
+        let expected_result = "[->] [x] [->] [x] [->] [3']".to_string();
+        assert_good_junctions(strand, expected_result);
     }
 
     #[test]
@@ -917,7 +903,7 @@ mod tests {
         let mut app_state = non_cyclic_strand_with_insertions();
         app_state
             .apply_design_op(DesignOperation::SetInsertionLength {
-                insertion_point: ensnano_interactor::InsertionPoint {
+                insertion_point: InsertionPoint {
                     nucl: Nucl {
                         helix: 3,
                         position: 9,
@@ -955,7 +941,7 @@ mod tests {
         let mut app_state = non_cyclic_strand_with_insertions();
         app_state
             .apply_design_op(DesignOperation::SetInsertionLength {
-                insertion_point: ensnano_interactor::InsertionPoint {
+                insertion_point: InsertionPoint {
                     nucl: Nucl {
                         helix: 1,
                         position: -1,
@@ -1003,7 +989,7 @@ mod tests {
         // prime5 of strand
         app_state
             .apply_design_op(DesignOperation::SetInsertionLength {
-                insertion_point: ensnano_interactor::InsertionPoint {
+                insertion_point: InsertionPoint {
                     nucl: Nucl {
                         helix: 1,
                         position: -1,
@@ -1033,7 +1019,7 @@ mod tests {
         // middle of domain
         app_state
             .apply_design_op(DesignOperation::SetInsertionLength {
-                insertion_point: ensnano_interactor::InsertionPoint {
+                insertion_point: InsertionPoint {
                     nucl: Nucl {
                         helix: 1,
                         position: 3,
@@ -1062,7 +1048,7 @@ mod tests {
         // prime5 of xover
         app_state
             .apply_design_op(DesignOperation::SetInsertionLength {
-                insertion_point: ensnano_interactor::InsertionPoint {
+                insertion_point: InsertionPoint {
                     nucl: Nucl {
                         helix: 1,
                         position: 7,
@@ -1091,7 +1077,7 @@ mod tests {
         // prime3 of xover
         app_state
             .apply_design_op(DesignOperation::SetInsertionLength {
-                insertion_point: ensnano_interactor::InsertionPoint {
+                insertion_point: InsertionPoint {
                     nucl: Nucl {
                         helix: 3,
                         position: 0,
@@ -1121,7 +1107,7 @@ mod tests {
         //prime3 of strand
         app_state
             .apply_design_op(DesignOperation::SetInsertionLength {
-                insertion_point: ensnano_interactor::InsertionPoint {
+                insertion_point: InsertionPoint {
                     nucl: Nucl {
                         helix: 3,
                         position: 9,
@@ -1509,7 +1495,10 @@ mod tests {
     #[test]
     fn positioning_xovers_paste() {
         let mut app_state = pastable_design();
-        let (n1, n2) = app_state.get_design_reader().get_xover_with_id(0).unwrap();
+        let (n1, n2) = app_state
+            .get_design_interactor()
+            .get_xover_with_id(0)
+            .unwrap();
         app_state
             .apply_copy_operation(CopyOperation::CopyXovers(vec![(n1, n2)]))
             .unwrap();
@@ -1548,7 +1537,10 @@ mod tests {
     #[test]
     fn pasting_when_positioning_xovers() {
         let mut app_state = pastable_design();
-        let (n1, n2) = app_state.get_design_reader().get_xover_with_id(0).unwrap();
+        let (n1, n2) = app_state
+            .get_design_interactor()
+            .get_xover_with_id(0)
+            .unwrap();
         app_state
             .apply_copy_operation(CopyOperation::CopyXovers(vec![(n1, n2)]))
             .unwrap();
@@ -1561,7 +1553,10 @@ mod tests {
     #[test]
     fn duplicating_xovers() {
         let mut app_state = pastable_design();
-        let (n1, n2) = app_state.get_design_reader().get_xover_with_id(0).unwrap();
+        let (n1, n2) = app_state
+            .get_design_interactor()
+            .get_xover_with_id(0)
+            .unwrap();
         app_state
             .apply_copy_operation(CopyOperation::InitXoverDuplication(vec![(n1, n2)]))
             .unwrap();
@@ -1601,7 +1596,10 @@ mod tests {
     #[test]
     fn duplicating_xovers_pasting_status() {
         let mut app_state = pastable_design();
-        let (n1, n2) = app_state.get_design_reader().get_xover_with_id(0).unwrap();
+        let (n1, n2) = app_state
+            .get_design_interactor()
+            .get_xover_with_id(0)
+            .unwrap();
         app_state
             .apply_copy_operation(CopyOperation::InitXoverDuplication(vec![(n1, n2)]))
             .unwrap();
@@ -1636,7 +1634,7 @@ mod tests {
             .unwrap();
         app_state.update();
         let s_id = app_state
-            .get_design_reader()
+            .get_design_interactor()
             .get_id_of_strand_containing_nucl(&Nucl {
                 helix: 1,
                 position: 0,
@@ -1647,12 +1645,12 @@ mod tests {
             .apply_design_op(DesignOperation::SetScaffoldId(Some(s_id)))
             .unwrap();
         app_state.update();
-        let staples = app_state.get_design_reader().presenter.get_staples();
+        let staples = app_state.get_design_interactor().presenter.get_staples();
         for s in staples.iter() {
             if s.name.contains("5':h1:nt7") {
-                assert_eq!(s.sequence, "CCAA TTTT")
+                assert_eq!(s.sequence, "CCAA TTTT") // cspell: disable-line
             } else if s.name.contains("5':h2:nt0") {
-                assert_eq!(s.sequence, "AAAA GGTT")
+                assert_eq!(s.sequence, "AAAA GGTT") // cspell: disable-line
             } else {
                 panic!("Incorrect staple name {:?}", s.name);
             }
@@ -1668,7 +1666,7 @@ mod tests {
             .unwrap();
         app_state.update();
         let s_id = app_state
-            .get_design_reader()
+            .get_design_interactor()
             .get_id_of_strand_containing_nucl(&Nucl {
                 helix: 1,
                 position: 0,
@@ -1679,12 +1677,12 @@ mod tests {
             .apply_design_op(DesignOperation::SetScaffoldId(Some(s_id)))
             .unwrap();
         app_state.update();
-        let staples = app_state.get_design_reader().presenter.get_staples();
+        let staples = app_state.get_design_interactor().presenter.get_staples();
         for s in staples.iter() {
             if s.name.contains("5':h1:nt7") {
-                assert_eq!(s.sequence, "AGGT TCCA")
+                assert_eq!(s.sequence, "AGGT TCCA") // cspell: disable-line
             } else if s.name.contains("5':h2:nt0") {
-                assert_eq!(s.sequence, "ATTT TAAA")
+                assert_eq!(s.sequence, "ATTT TAAA") // cspell: disable-line
             } else {
                 panic!("Incorrect staple name {:?}", s.name);
             }
@@ -1718,7 +1716,7 @@ mod tests {
         app_state.update();
 
         let s_id = app_state
-            .get_design_reader()
+            .get_design_interactor()
             .get_id_of_strand_containing_nucl(&first_nucl)
             .unwrap_or_else(|| panic!("no strand containing {:?}", first_nucl));
         let strand = app_state
@@ -1746,11 +1744,11 @@ mod tests {
             ..first_nucl
         };
         let s_id_first = app_state
-            .get_design_reader()
+            .get_design_interactor()
             .get_id_of_strand_containing_nucl(&first_nucl)
             .unwrap_or_else(|| panic!("no strand containing {:?}", first_nucl));
         let s_id_last = app_state
-            .get_design_reader()
+            .get_design_interactor()
             .get_id_of_strand_containing_nucl(&last_nucl)
             .unwrap_or_else(|| panic!("no strand containing {:?}", last_nucl));
         app_state
@@ -1762,7 +1760,7 @@ mod tests {
         app_state.update();
 
         let s_id = app_state
-            .get_design_reader()
+            .get_design_interactor()
             .get_id_of_strand_containing_nucl(&first_nucl)
             .unwrap_or_else(|| panic!("no strand containing {:?}", first_nucl));
         let strand = app_state
@@ -1806,7 +1804,7 @@ mod tests {
         let mut xover_ids = ensnano_utils::id_generator::IdGenerator::default();
 
         let s_id = app_state
-            .get_design_reader()
+            .get_design_interactor()
             .get_id_of_strand_containing_nucl(&source_nucl)
             .unwrap_or_else(|| panic!("no strand containing {:?}", source_nucl));
         let strand = app_state
@@ -1846,7 +1844,7 @@ mod tests {
             .unwrap();
         app_state.update();
         let s_id = app_state
-            .get_design_reader()
+            .get_design_interactor()
             .get_id_of_strand_containing_nucl(&source_nucl)
             .unwrap_or_else(|| panic!("no strand containing {:?}", source_nucl));
         let strand = app_state

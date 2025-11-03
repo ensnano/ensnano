@@ -75,7 +75,7 @@ impl XoverSuggestions {
             self.get_suggestions_groups(&mut ret, design, suggestion_parameters);
         }
         ret.sort_by(|a, b| a.2.partial_cmp(&b.2).unwrap());
-        self.trimm_suggestion(&ret, design, suggestion_parameters)
+        self.trim_suggestion(&ret, design, suggestion_parameters)
     }
 
     /// Return the list of all suggested crossovers
@@ -95,9 +95,9 @@ impl XoverSuggestions {
         }
     }
 
-    /// Trimm a list of crossovers so that each nucleotide appears at most once in the suggestion
+    /// Trim a list of crossovers so that each nucleotide appears at most once in the suggestion
     /// list.
-    fn trimm_suggestion(
+    fn trim_suggestion(
         &self,
         suggestion: &[(Nucl, Nucl, f32)],
         design: &Design,

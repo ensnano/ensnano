@@ -144,15 +144,6 @@ pub struct CutPlaneParameters {
     pub dot_value: f32,
 }
 
-impl CutPlaneParameters {
-    pub fn new() -> Self {
-        Self {
-            normal: Vec3::unit_x(),
-            dot_value: 0.,
-        }
-    }
-}
-
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum SplitMode {
     Flat,
@@ -171,7 +162,7 @@ pub struct DrawArea {
     pub size: PhySize,
 }
 
-/// The different elements represented on the scene. Each element is instanciated once.
+/// The different elements represented on the scene. Each element is instantiated once.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 pub enum GuiComponentType {
     /// The top menu bar

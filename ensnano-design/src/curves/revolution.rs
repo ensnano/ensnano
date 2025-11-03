@@ -21,7 +21,7 @@ use crate::{curves::torus::PointOnSurface_, utils::dvec_to_vec};
 use chebyshev_polynomials::ChebyshevPolynomial;
 use serde::{Deserialize, Serialize};
 use std::f64::consts::{PI, TAU};
-use ultraviolet::{DRotor2, DVec2, Mat3};
+use ultraviolet::{DRotor2, DVec2, Mat3, Rotor2};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct InterpolatedCurveDescriptor {
@@ -54,7 +54,7 @@ pub struct InterpolatedCurveDescriptor {
 }
 
 impl InterpolatedCurveDescriptor {
-    pub(super) fn instanciate(self, init_interpolators: bool) -> Revolution {
+    pub(super) fn instantiate(self, init_interpolators: bool) -> Revolution {
         let curve = self.curve.clone();
         let curve = SmoothInterpolatedCurve::from_curve_interpolation(
             curve,
@@ -345,12 +345,12 @@ impl Revolution {
             .rotated_by(DRotor2::from_angle(section_rotation));
         log::info!("section tangent {:?}", section_tangent);
 
-        let right = crate::utils::dvec_to_vec(DVec3 {
+        let right = dvec_to_vec(DVec3 {
             x: -point.revolution_angle.sin(),
             y: point.revolution_angle.cos(),
             z: 0.,
         });
-        let up = crate::utils::dvec_to_vec(DVec3 {
+        let up = dvec_to_vec(DVec3 {
             x: section_tangent.x * point.revolution_angle.cos(),
             y: section_tangent.x * point.revolution_angle.sin(),
             z: section_tangent.y,
@@ -501,7 +501,7 @@ impl Curved for Revolution {
                 translation: (h_id as f32 + (segment_idx + 1) as f32 * nb_helices as f32)
                     * 5.
                     * Vec2::unit_y(),
-                rotation: ultraviolet::Rotor2::identity(),
+                rotation: Rotor2::identity(),
             })
     }
 

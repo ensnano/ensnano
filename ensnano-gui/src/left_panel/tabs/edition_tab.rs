@@ -19,6 +19,7 @@ use ensnano_iced::{
     color_picker::{ColorPicker, ColorPickerMessage},
     fonts::{MaterialIcon, icon_to_char},
     helpers::*,
+    iced::Command,
     iced_aw::TabLabel,
 };
 use std::marker::PhantomData;
@@ -75,8 +76,6 @@ impl<State: AppState> EditionTab<State> {
         let roll_target_helices = self.get_roll_target_helices(selection);
         if roll_target_helices.len() > 0 {
             Some(RollRequest {
-                roll: true,
-                springs: false,
                 target_helices: Some(roll_target_helices.clone()),
             })
         } else {
@@ -101,8 +100,8 @@ impl<State: AppState> GuiTab<State> for EditionTab<State> {
         TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Edit)))
     }
 
-    fn update(&mut self, _app_state: &mut State) -> Option<Self::Message> {
-        None
+    fn update(&mut self, _app_state: &mut State) -> Command<Self::Message> {
+        Command::none()
     }
 
     fn content(

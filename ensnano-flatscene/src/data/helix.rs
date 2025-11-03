@@ -15,30 +15,39 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use super::super::view::{CircleInstance, InsertionDescriptor, InsertionInstance};
-use super::super::{CameraPtr, Flat, FlatHelix};
-use super::{FlatNucl, Helix2d, NuclCollection};
-use crate::flattypes::{FlatHelixMaps, FlatPosition, HelixSegment};
-use crate::view::EditionInfo;
+
+use super::{FlatNucl, Helix2d};
+use crate::{
+    CameraPtr, Flat, FlatHelix,
+    flat_types::{FlatHelixMaps, FlatPosition, HelixSegment},
+    view::{EditionInfo, InsertionDescriptor, InsertionInstance},
+};
 use abscissa_converter::{AbscissaConverter, AbscissaConverter_};
 use ahash::RandomState;
-use ensnano_design::Nucl;
-use ensnano_design::ultraviolet;
-use ensnano_interactor::consts::*;
+use ensnano_design::{Nucl, NuclCollection};
+use ensnano_interactor::consts::{
+    BLACK_VEC4, CIRCLE2D_GREY, GREY_UNKNOWN_NUCL_VEC4, HELIX_BORDER_COLOR,
+};
 use ensnano_utils::{
     chars2d::{Line, Sentence, TextDrawer},
+    circles2d::CircleInstance,
     full_isometry::FullIsometry,
     instance::Instance,
 };
-use lyon::math::{Point, rect};
-use lyon::path::Path;
-use lyon::path::builder::{BorderRadii, PathBuilder};
-use lyon::tessellation;
-use lyon::tessellation::{
-    FillVertex, FillVertexConstructor, StrokeVertex, StrokeVertexConstructor,
+use lyon::{
+    math::{Point, rect},
+    path::{
+        Path,
+        builder::{BorderRadii, PathBuilder},
+    },
+    tessellation::{
+        self, FillVertex, FillVertexConstructor, StrokeVertex, StrokeVertexConstructor,
+    },
 };
-use std::collections::{BTreeMap, HashMap};
-use std::sync::Arc;
+use std::{
+    collections::{BTreeMap, HashMap},
+    sync::Arc,
+};
 use ultraviolet::{Mat2, Rotor2, Vec2, Vec4};
 
 type Vertices = lyon::tessellation::VertexBuffers<GpuVertex, u16>;
@@ -572,9 +581,9 @@ impl Helix {
             CIRCLE2D_GREY
         } else {
             match groups.get(&self.real_id) {
-                None => CIRCLE2D_BLUE,
-                Some(true) => CIRCLE2D_RED,
-                Some(false) => CIRCLE2D_GREEN,
+                None => CIRCLE2D_GREY,
+                Some(true) => CIRCLE2D_GREY,
+                Some(false) => CIRCLE2D_GREY,
             }
         };
         let radius = if camera.borrow().get_globals().zoom < ZOOM_THRESHOLD {
@@ -699,7 +708,7 @@ impl Helix {
                 .transform_point2(-Vec2::unit_y()),
             direction: self
                 .isometry
-                .matrix_with_transposed_symetry()
+                .matrix_with_transposed_symmetry()
                 .transform_vec2(Vec2::unit_x()),
         }
     }
@@ -712,7 +721,7 @@ impl Helix {
                 .transform_point2(Vec2::zero()),
             direction: self
                 .isometry
-                .matrix_with_transposed_symetry()
+                .matrix_with_transposed_symmetry()
                 .transform_vec2(Vec2::unit_x()),
         }
     }
@@ -725,7 +734,7 @@ impl Helix {
                 .transform_point2(2. * Vec2::unit_y()),
             direction: self
                 .isometry
-                .matrix_with_transposed_symetry()
+                .matrix_with_transposed_symmetry()
                 .transform_vec2(-Vec2::unit_x()),
         }
     }
@@ -739,7 +748,7 @@ pub struct CharCollector<'a> {
     pub show_seq: bool,
     pub edition_info: &'a Option<EditionInfo>,
     pub hovered_nucl: &'a Option<FlatNucl>,
-    pub nucl_collection: &'a dyn NuclCollection,
+    pub nucl_collection: &'a NuclCollection,
 }
 
 impl Helix {
@@ -763,7 +772,7 @@ impl Helix {
         let size_pos = 1.4;
         let circle = self.get_circle(camera, groups);
         let rotation = camera.borrow().rotation().reversed();
-        let symetry = camera.borrow().get_globals().symmetry;
+        let symmetry = camera.borrow().get_globals().symmetry;
         if let Some(circle) = circle {
             let text = self.real_id.to_string();
             let sentence = Sentence {
@@ -772,7 +781,7 @@ impl Helix {
                 color: [0., 0., 0., 1.].into(),
                 z_index: self.flat_id.flat.0 as i32,
                 rotation,
-                symetry,
+                symmetry,
             };
             let line = Line {
                 origin: circle.center + circle.radius * Vec2::unit_y(),
@@ -801,7 +810,7 @@ impl Helix {
                 z_index: self.flat_id.flat.0 as i32,
                 color,
                 rotation,
-                symetry,
+                symmetry,
             };
             let (position, line) = if show_seq {
                 (self.info_position(flat_pos), self.info_line())
@@ -833,7 +842,7 @@ impl Helix {
                 z_index: self.flat_id.flat.0 as i32,
                 color: [0., 0., 0., 1.].into(),
                 rotation,
-                symetry,
+                symmetry,
             };
             let line = self.info_line();
             char_collector
@@ -854,7 +863,7 @@ impl Helix {
                 forward,
             }
             .to_real();
-            if char_collector.nucl_collection.contains(&nucl) {
+            if char_collector.nucl_collection.contains_nucl(&nucl) {
                 let (c, color) = char_collector
                     .basis_map
                     .get(&nucl)
@@ -866,7 +875,7 @@ impl Helix {
                     z_index: self.flat_id.flat.0 as i32,
                     color,
                     rotation,
-                    symetry,
+                    symmetry,
                 };
                 let (line, position) = if nucl.forward {
                     (self.top_line(), self.char_position_top(flat_position))

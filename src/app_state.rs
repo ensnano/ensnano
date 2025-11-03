@@ -39,18 +39,19 @@ use crate::{
         presenter::SimulationUpdate,
     },
     apply_update,
-    controller::{LoadDesignError, SaveDesignError, chanel_reader::ChannelReader},
+    controller::{LoadDesignError, SaveDesignError, channel_reader::ChannelReader},
 };
 use address_pointer::AddressPointer;
+use design_interactor::controller::ErrOperation;
 use design_interactor::{DesignInteractor, InteractorResult};
-use design_interactor::{DesignReader, controller::ErrOperation};
-use ensnano_design::{BezierPathId, Design, SavingInformation, group_attributes::GroupPivot};
+#[cfg(test)]
+use ensnano_design::Design;
+use ensnano_design::{BezierPathId, SavingInformation, group_attributes::GroupPivot};
 use ensnano_exports::{ExportResult, ExportType};
-use ensnano_gui::StrandBuildingStatus;
 use ensnano_iced::UiSize;
 use ensnano_interactor::{
     ActionMode, CenterOfSelection, DesignOperation, PastingStatus, Selection, SelectionMode,
-    UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
+    StrandBuildingStatus, UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
     app_state_parameters::{AppStateParameters, CheckXoversParameter, SuggestionParameters},
     consts::{APP_NAME, ENS_BACKUP_EXTENSION, ENS_EXTENSION},
     graphics::{Background3D, HBondDisplay, RenderingMode},
@@ -62,6 +63,7 @@ use std::{
     sync::{Arc, RwLock},
 };
 use transitions::OkOperation;
+use ultraviolet::{Rotor3, Vec3};
 
 /// A structure containing the global state of the program.
 ///
@@ -225,12 +227,12 @@ impl AppState {
         Self(AddressPointer::new(new_state))
     }
 
-    #[allow(dead_code)] //used in tests
+    #[cfg(test)]
     pub fn update_design(&mut self, design: Design) {
         apply_update(self, |s| s.with_updated_design(design))
     }
 
-    #[allow(dead_code)] //used in tests
+    #[cfg(test)]
     pub fn with_updated_design(&self, design: Design) -> Self {
         let mut new_state = self.0.clone_inner();
         let new_interactor = new_state.design.with_updated_design(design);
@@ -257,7 +259,8 @@ impl AppState {
         path: &PathBuf,
         saving_info: SavingInformation,
     ) -> Result<(), SaveDesignError> {
-        self.get_design_reader().save_design(path, saving_info)?;
+        self.get_design_interactor()
+            .save_design(path, saving_info)?;
         self.0.make_mut().path_to_current_design = Some(path.clone());
         Ok(())
     }
@@ -407,12 +410,13 @@ impl AppState {
         );
     }
 
-    pub fn get_design_reader(&self) -> DesignReader {
-        self.0.design.get_design_reader()
+    pub fn get_design_interactor(&self) -> DesignInteractor {
+        self.0.design.clone_inner()
     }
 
     pub fn export(&self, export_path: &PathBuf, export_type: ExportType) -> ExportResult {
-        self.get_design_reader().export(export_path, export_type)
+        self.get_design_interactor()
+            .export(export_path, export_type)
     }
 
     pub fn get_selection(&self) -> impl AsRef<[Selection]> + use<> {
@@ -564,7 +568,7 @@ impl AppState {
         let builders = self.0.design.get_strand_builders();
         builders.get(0).and_then(|b| {
             let domain_id = b.get_domain_identifier();
-            let reader = self.get_design_reader();
+            let reader = self.get_design_interactor();
             let domain = reader.get_strand_domain(domain_id.strand, domain_id.domain)?;
             let param = self.0.design.get_dna_parameters();
             if let ensnano_design::Domain::HelixDomain(interval) = domain {
@@ -604,7 +608,7 @@ impl AppState {
         }
     }
 
-    pub fn translate_group_pivot(&mut self, translation: ultraviolet::Vec3) {
+    pub fn translate_group_pivot(&mut self, translation: Vec3) {
         log::debug!("old pivot {:p}", Arc::as_ptr(&self.0.selection.old_pivot));
         log::info!("is {:?}", self.0.selection.old_pivot.read().unwrap());
         let new_pivot = {
@@ -621,7 +625,7 @@ impl AppState {
         *self.0.selection.pivot.write().unwrap() = Some(new_pivot);
     }
 
-    pub fn rotate_group_pivot(&mut self, rotation: ultraviolet::Rotor3) {
+    pub fn rotate_group_pivot(&mut self, rotation: Rotor3) {
         log::debug!("old pivot {:p}", Arc::as_ptr(&self.0.selection.old_pivot));
         log::info!("is {:?}", self.0.selection.old_pivot.read().unwrap());
         let new_pivot = {
@@ -648,7 +652,7 @@ impl AppState {
 
     pub fn with_expand_insertion_set(self, expand: bool) -> Self {
         let mut ret = (*self.0).clone();
-        ret.show_insertion_representents = !expand;
+        ret.show_insertion_discriminants = !expand;
         Self(AddressPointer::new(ret))
     }
 
@@ -674,7 +678,7 @@ pub struct AppState_ {
     pub center_of_selection: Option<CenterOfSelection>,
     pub updated_once: bool,
     pub parameters: AppStateParameters,
-    pub show_insertion_representents: bool,
+    pub show_insertion_discriminants: bool,
     pub exporting: bool,
     pub path_to_current_design: Option<PathBuf>,
     pub unrooted_surface: CurrentUnrootedSurface,

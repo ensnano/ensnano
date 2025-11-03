@@ -16,6 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+use super::Collection;
 use relative_path::RelativePathBuf;
 use serde::{Deserialize, Serialize};
 use std::{
@@ -24,8 +25,6 @@ use std::{
     sync::Arc,
 };
 use ultraviolet::{Rotor3, Vec3};
-
-use crate::Collection;
 
 const DEFAULT_OPACITY: f32 = 1.0;
 const DEFAULT_COLOR: u32 = 0xdb5530; // orange/red
@@ -105,10 +104,6 @@ impl Collection for External3DObjects {
 
     fn len(&self) -> usize {
         self.0.len()
-    }
-
-    fn contains_key(&self, k: &Self::Key) -> bool {
-        self.0.contains_key(k)
     }
 }
 

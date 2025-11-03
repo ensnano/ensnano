@@ -268,10 +268,10 @@ fn interpolator_inverse_curvilinear_abscissa(curve: &CurveDescriptor2D) -> Cheby
         ts.push(t);
     }
 
-    let perimetter = *abscissas.last().unwrap();
+    let perimeter = *abscissas.last().unwrap();
 
     for x in abscissas.iter_mut() {
-        *x /= perimetter;
+        *x /= perimeter;
     }
 
     log::info!("Interpolating inverse...");

@@ -15,11 +15,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use ensnano_utils::wgpu;
-use wgpu::{Device, PrimitiveTopology, include_spirv};
 
 use super::instances_drawer::Instantiable;
-use ensnano_design::ultraviolet::{Mat4, Rotor3, Vec3, Vec4};
+use ultraviolet::{Mat4, Rotor3, Vec3, Vec4};
+use wgpu::{Device, PrimitiveTopology, include_spirv};
 
 #[derive(Debug, Clone)]
 pub struct GridDisc {
@@ -80,7 +79,7 @@ impl super::instances_drawer::Vertexable for GridDiscVertex {
 impl Instantiable for GridDisc {
     type Vertex = GridDiscVertex;
     type RawInstance = GridDiscRaw;
-    type Ressource = ();
+    type Resource = ();
     fn vertices() -> Vec<GridDiscVertex> {
         let color = 0xFF_FF_FF_FF; // we will multiply by the instance's color in the fragment shader
         let mut ret = vec![GridDiscVertex {

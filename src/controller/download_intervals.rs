@@ -169,11 +169,11 @@ fn poll_path(path_input: PathInput, design_id: usize) -> Box<dyn State> {
 }
 
 fn download_staples(
-    downlader: &dyn StaplesDownloader,
+    downloader: &dyn StaplesDownloader,
     _design_id: usize,
     path: PathBuf,
 ) -> Box<dyn State> {
-    downlader.write_intervals(&path);
+    downloader.write_intervals(&path);
     let msg = messages::successful_staples_export_msg(&path);
     TransitionMessage::new(msg, rfd::MessageLevel::Error, Box::new(NormalState))
 }
