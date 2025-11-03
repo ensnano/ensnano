@@ -155,7 +155,6 @@ use {
     scheduler::Scheduler,
     std::{
         collections::{HashMap, VecDeque},
-        env,
         path::{Path, PathBuf},
         rc::Rc,
         sync::{Arc, Mutex},
@@ -228,19 +227,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     if EARLY_LOG {
         pretty_env_logger::init();
     }
+
     // Parse arguments. If an argument was given it is treated as a file to open.
-    let args: Vec<String> = env::args().collect();
-    let path = if args.len() >= 2 {
-        Some(PathBuf::from(&args[1]))
-    } else {
-        None
-    };
+    let path = std::env::args().nth(1).map(|arg| PathBuf::from(arg));
 
     // Initialize winit. Create an event_loop and a window.
     let event_loop = EventLoop::new()?;
-    let window = winit::window::Window::new(&event_loop)?;
-
-    let window = Arc::new(window);
+    let window = Arc::new(winit::window::Window::new(&event_loop)?);
 
     let mut windows_title = String::from("ENSnano");
     window.set_title("ENSnano");
@@ -251,6 +244,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Set the minimal size of the window.
     window.set_min_inner_size(Some(PhySize::new(100, 100)));
+    window.set_maximized(true);
 
     log::info!("scale factor {}", window.scale_factor());
 
@@ -1196,7 +1190,6 @@ impl MainState {
     }
 
     fn update(&mut self) {
-        // Called continuously
         log::trace!("call from main state");
         if let Some(camera_ptr) = self
             .applications
