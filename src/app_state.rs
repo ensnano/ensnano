@@ -39,7 +39,7 @@ use crate::{
         presenter::SimulationUpdate,
     },
     apply_update,
-    controller::{LoadDesignError, SaveDesignError, chanel_reader::ChannelReader},
+    controller::{LoadDesignError, SaveDesignError, channel_reader::ChannelReader},
 };
 use address_pointer::AddressPointer;
 use design_interactor::controller::ErrOperation;
@@ -259,7 +259,8 @@ impl AppState {
         path: &PathBuf,
         saving_info: SavingInformation,
     ) -> Result<(), SaveDesignError> {
-        self.get_design_interactor().save_design(path, saving_info)?;
+        self.get_design_interactor()
+            .save_design(path, saving_info)?;
         self.0.make_mut().path_to_current_design = Some(path.clone());
         Ok(())
     }
@@ -414,7 +415,8 @@ impl AppState {
     }
 
     pub fn export(&self, export_path: &PathBuf, export_type: ExportType) -> ExportResult {
-        self.get_design_interactor().export(export_path, export_type)
+        self.get_design_interactor()
+            .export(export_path, export_type)
     }
 
     pub fn get_selection(&self) -> impl AsRef<[Selection]> + use<> {

@@ -15,11 +15,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use std::collections::{BTreeMap, BTreeSet, HashMap};
-use std::sync::{Arc, Mutex};
 
-use super::super::{FlatHelix, FlatIdx, FlatNucl, HelixSegment, Requests};
 use super::{Flat, HelixVec, Nucl, Strand};
+use crate::{FlatHelix, FlatIdx, FlatNucl, HelixSegment, Requests, flat_types::FlatHelixMaps};
 use ahash::RandomState;
 use ensnano_design::{
     AbscissaConverter, Extremity, Helix as DesignHelix, HelixCollection, NuclCollection,
@@ -29,9 +27,11 @@ use ensnano_interactor::consts::{
 };
 use ensnano_interactor::{Referential, torsion::Torsion};
 use ensnano_utils::full_isometry::FullIsometry;
+use std::{
+    collections::{BTreeMap, BTreeSet, HashMap},
+    sync::{Arc, Mutex},
+};
 use ultraviolet::{Isometry2, Rotor2, Vec2, Vec3};
-
-use super::super::flattypes::FlatHelixMaps;
 
 pub(super) struct Design2d<R: FlatSceneDesignReaderExt> {
     /// The 2d helices

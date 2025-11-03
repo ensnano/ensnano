@@ -34,7 +34,7 @@ use crate::{
             twister::{TwistInterface, Twister},
         },
     },
-    controller::chanel_reader::ChannelReader,
+    controller::channel_reader::ChannelReader,
 };
 use clipboard::{Clipboard, CopyOperation, PastePosition, PastedStrand, StrandClipboard};
 use ensnano_design::{

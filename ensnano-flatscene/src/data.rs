@@ -17,7 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use super::{
     AppState, Flat, HelixVec, PhantomElement, Requests, ViewPtr,
-    flattypes::{FlatPosition, FlatSelection, HelixSegment},
+    flat_types::{FlatPosition, FlatSelection, HelixSegment},
     view::EditionInfo,
 };
 use ensnano_design::Nucl;

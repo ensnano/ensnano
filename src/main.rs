@@ -108,7 +108,7 @@ use {
             transitions::{AppStateTransition, OkOperation, TransitionLabel},
         },
         controller::{
-            chanel_reader::{ChannelReader, ChannelReaderUpdate},
+            channel_reader::{ChannelReader, ChannelReaderUpdate},
             normal_state::Action,
             set_scaffold_sequence::{
                 ScaffoldSetter, SetScaffoldSequenceError, SetScaffoldSequenceOk,

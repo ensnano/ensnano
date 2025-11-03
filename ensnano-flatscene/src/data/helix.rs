@@ -19,7 +19,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::{FlatNucl, Helix2d};
 use crate::{
     CameraPtr, Flat, FlatHelix,
-    flattypes::{FlatHelixMaps, FlatPosition, HelixSegment},
+    flat_types::{FlatHelixMaps, FlatPosition, HelixSegment},
     view::{EditionInfo, InsertionDescriptor, InsertionInstance},
 };
 use abscissa_converter::{AbscissaConverter, AbscissaConverter_};

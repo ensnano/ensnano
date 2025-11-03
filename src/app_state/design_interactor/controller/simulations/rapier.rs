@@ -9,7 +9,7 @@ use crate::{
         controller::simulations::SimulationInterface,
         presenter::{Presenter, SimulationUpdate},
     },
-    controller::chanel_reader::ChannelReader,
+    controller::channel_reader::ChannelReader,
 };
 use ensnano_design::{Design, HelixParameters, NuclCollection};
 use ensnano_physics::RapierPhysicsSystem;

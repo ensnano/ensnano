@@ -18,7 +18,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 //! Handles windows and dialog (Alert, and file pickers) interactions.
 
-pub mod chanel_reader;
+pub mod channel_reader;
 mod download_intervals;
 pub mod download_staples;
 mod messages;

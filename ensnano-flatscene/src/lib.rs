@@ -34,7 +34,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 mod controller;
 mod data;
-mod flattypes;
+mod flat_types;
 mod view;
 
 pub use camera2d::{Camera2D, FitRectangle};
@@ -51,7 +51,7 @@ use ensnano_interactor::{
     operation::*,
 };
 use ensnano_utils::{PhySize, camera2d, filename};
-use flattypes::*;
+use flat_types::*;
 use std::{
     cell::RefCell,
     collections::HashMap,

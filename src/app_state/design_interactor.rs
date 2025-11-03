@@ -25,7 +25,7 @@ use crate::{
     app_state::design_interactor::controller::{
         OkOperation, clipboard::CopyOperation, simulations::SimulationOperation,
     },
-    controller::chanel_reader::ChannelReader,
+    controller::channel_reader::ChannelReader,
 };
 use controller::{Controller, ErrOperation, InteractorNotification};
 use ensnano_design::{
