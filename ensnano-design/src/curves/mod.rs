@@ -57,7 +57,7 @@ pub use bezier::{
     BezierControlPoint, BezierEnd, BezierEndCoordinates, CubicBezierConstructor,
     CubicBezierControlPoint,
 };
-pub use circle_curve::CircleCurve;
+pub use circle_curve::{CircleCurve, CircleDescriptor};
 pub use revolution::{InterpolatedCurveDescriptor, InterpolationDescriptor};
 pub use sphere_concentric_circle::{
     PillConcentricStadiumDescriptor, PillTennisBallSeamDescriptor,
@@ -617,6 +617,7 @@ pub enum CurveDescriptor {
     SpiralCylinder(SpiralCylinderDescriptor),
     TubeSpiral(TubeSpiralDescriptor),
     SphereConcentricCircle(SphereConcentricCircleDescriptor),
+    Circle(CircleDescriptor),
     SphereTennisBallSeam(SphereTennisBallSeamDescriptor),
     PillConcentricStadium(PillConcentricStadiumDescriptor),
     PillTennisBallSeam(PillTennisBallSeamDescriptor),
@@ -796,6 +797,9 @@ impl InstanciatedCurveDescriptor {
                 InstanciatedCurveDescriptor_::SphereLikeSpiral(s.clone())
             }
             CurveDescriptor::TubeSpiral(t) => InstanciatedCurveDescriptor_::TubeSpiral(t.clone()),
+            CurveDescriptor::Circle(t) => {
+                InstanciatedCurveDescriptor_::Circle(t.clone())
+            }
             CurveDescriptor::SphereConcentricCircle(t) => {
                 InstanciatedCurveDescriptor_::SphereConcentricCircle(t.clone())
             }
@@ -897,6 +901,9 @@ impl InstanciatedCurveDescriptor {
             CurveDescriptor::TubeSpiral(s) => {
                 Some(InstanciatedCurveDescriptor_::TubeSpiral(s.clone()))
             }
+            CurveDescriptor::Circle(s) => Some(
+                InstanciatedCurveDescriptor_::Circle(s.clone()),
+            ),
             CurveDescriptor::SphereConcentricCircle(s) => Some(
                 InstanciatedCurveDescriptor_::SphereConcentricCircle(s.clone()),
             ),
@@ -1023,6 +1030,7 @@ enum InstanciatedCurveDescriptor_ {
     Bezier(CubicBezierConstructor),
     SphereLikeSpiral(SphereLikeSpiralDescriptor),
     TubeSpiral(TubeSpiralDescriptor),
+    Circle(CircleDescriptor),
     SphereConcentricCircle(SphereConcentricCircleDescriptor),
     SphereTennisBallSeam(SphereTennisBallSeamDescriptor),
     PillConcentricStadium(PillConcentricStadiumDescriptor),
@@ -1143,6 +1151,10 @@ impl InstanciatedCurveDescriptor_ {
                 spiral.with_helix_parameters(helix_parameters.clone()),
                 helix_parameters,
             )),
+            Self::Circle(constructor) => Arc::new(Curve::new(
+                constructor.with_helix_parameters(&helix_parameters.clone()),
+                helix_parameters,
+            )),
             Self::SphereConcentricCircle(constructor) => Arc::new(Curve::new(
                 constructor.with_helix_parameters(helix_parameters.clone()),
                 helix_parameters,
@@ -1226,6 +1238,12 @@ impl InstanciatedCurveDescriptor_ {
                 spiral.clone().with_helix_parameters(*helix_parameters),
                 helix_parameters,
             ))),
+            Self::Circle(constructor) => Some(Arc::new(Curve::new(
+                constructor
+                    .clone()
+                    .with_helix_parameters(&helix_parameters.clone()),
+                helix_parameters,
+            ))),
             Self::SphereConcentricCircle(constructor) => Some(Arc::new(Curve::new(
                 constructor
                     .clone()
@@ -1302,6 +1320,11 @@ impl InstanciatedCurveDescriptor_ {
             Self::SpiralCylinder(spiral) => Some(Curve::compute_length(
                 spiral.clone().with_helix_parameters(*helix_parameters),
             )),
+            Self::Circle(constructor) => Some(Curve::compute_length(
+                constructor
+                    .clone()
+                    .with_helix_parameters(&helix_parameters.clone()),
+            )),
             Self::SphereConcentricCircle(constructor) => Some(Curve::compute_length(
                 constructor
                     .clone()
@@ -1369,6 +1392,11 @@ impl InstanciatedCurveDescriptor_ {
                 spiral
                     .clone()
                     .with_helix_parameters(helix_parameters.clone()),
+            )),
+            Self::Circle(constructor) => Some(Curve::path(
+                constructor
+                    .clone()
+                    .with_helix_parameters(&helix_parameters.clone()),
             )),
             Self::SphereConcentricCircle(constructor) => Some(Curve::path(
                 constructor
