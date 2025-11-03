@@ -80,7 +80,7 @@ pretty_env_logger = "0.4"
 quadrature = "0.1.2"
 rand = "0.8.5"
 rand_distr = "0.4.0"
-rapier3d = { version = "0.30.0", features = ["parallel", "simd-nightly"] }
+rapier3d = { version = "0.30.0", features = ["parallel"] } # "simd-nightly"
 rayon = "1.6.0"
 regex = "1.4.2"
 relative-path = "1.7.0"

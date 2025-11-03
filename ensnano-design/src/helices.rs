@@ -16,22 +16,18 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use super::design_operations::ErrOperation;
-use super::grid::*;
-
-use super::curves::*;
 use super::{
     BezierPathId, HelixParameters, Nucl, codenano,
-    grid::{Grid, GridData, HelixGridPosition},
+    curves::*,
+    design_operations::ErrOperation,
+    grid::{Grid, GridData, HelixGridPosition, *},
     scadnano::*,
     utils::*,
 };
 use ahash::HashMap;
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
-use std::sync::Arc;
-use ultraviolet::Rotor2;
-use ultraviolet::{DRotor3, DVec3, Isometry2, Mat4, Rotor3, Vec2, Vec3};
+use std::{collections::BTreeMap, sync::Arc};
+use ultraviolet::{DRotor3, DVec3, Isometry2, Mat4, Rotor2, Rotor3, Vec2, Vec3};
 
 /// A structure mapping helices identifier to `Helix` objects
 #[derive(Debug, Default, Serialize, Deserialize, Clone)]
