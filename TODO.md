@@ -4,6 +4,8 @@
 
 - Fix text fields in organizer tree
 - Fix text fields in revolution surface tab
+- Click on organizer tree should focus
+- Double on organizer tree click should teleport in 2d and 3d scenes
 
 ## Hide scientific WIP
 
@@ -41,13 +43,6 @@
 ## GUI
 
 - Better looking tabs (and show active)
-
-### Organizer Tree
-
-- Fix focus
-- Click (fix selection) (and inversely) (I don't remember what I meant but it seems important)
-- Double click on strand should teleport in 2d and 3d scenes
-- Merge `ensnano_organizer` and `ensnano_gui`
 
 ### Help
 
@@ -111,3 +106,5 @@
 - Replace `ensnano_iced/fonts/material_icons` by SVG icons from `icondata` lib
 - `cargo clippy --workspace --all-targets --all-features`
 - `build.rs` for shaders instead of manual compilation
+- Merge `ensnano_organizer` and `ensnano_gui`
+- Merge `ensnano_interactor` and `ensnano_utils`?
