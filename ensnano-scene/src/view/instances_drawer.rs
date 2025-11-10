@@ -19,7 +19,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! `Instantiable` trait can be turned into instances that can be drawn by an
 //! [InstanceDrawer](InstanceDrawer).
 
-use ensnano_interactor::consts::*;
+use ensnano_consts::*;
 use ensnano_utils::bindgroup_manager::DynamicBindGroup;
 use ensnano_utils::create_buffer_with_data;
 use ensnano_utils::texture::Texture;

@@ -25,11 +25,11 @@ use super::{
 use crate::maths_3d::FiniteVec3;
 use crate::{PhySize, PhysicalPosition, WindowEvent};
 use camera::CameraController;
+use ensnano_consts::*;
 use ensnano_design::grid::{GridId, GridObject, GridPosition, HelixGridPosition};
 use ensnano_design::{
     BezierPathId, BezierPlaneId, BezierVertex, BezierVertexId, Nucl, SurfaceInfo, SurfacePoint,
 };
-use ensnano_interactor::consts::*;
 use std::cell::RefCell;
 use std::ops::Deref;
 use std::rc::Rc;

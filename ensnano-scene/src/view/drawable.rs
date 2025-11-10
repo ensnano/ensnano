@@ -15,8 +15,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use super::SAMPLE_COUNT;
-use ensnano_interactor::consts::*;
+use ensnano_consts::*;
 use ensnano_utils::create_buffer_with_data;
 use ensnano_utils::texture::Texture;
 use std::rc::Rc;

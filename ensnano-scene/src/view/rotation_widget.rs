@@ -19,7 +19,7 @@ use super::{
     CameraPtr, Drawable, Drawer, GroupPivot, HandleColors, ProjectionPtr, Vertex, maths_3d,
 };
 
-use ensnano_interactor::consts::*;
+use ensnano_consts::*;
 use std::f32::consts::PI;
 use std::rc::Rc;
 use ultraviolet::{Rotor3, Vec3};
@@ -277,8 +277,8 @@ impl RotationWidgetDescriptor {
             AvailableRotationAxes::NoZ => (1., 0.),
         };
         let colors = match self.colors {
-            HandleColors::Cym => ensnano_interactor::consts::CYM_HANDLE_COLORS,
-            HandleColors::Rgb => ensnano_interactor::consts::RGB_HANDLE_COLORS,
+            HandleColors::Cym => ensnano_consts::CYM_HANDLE_COLORS,
+            HandleColors::Rgb => ensnano_consts::RGB_HANDLE_COLORS,
         };
         [
             Circle::new(

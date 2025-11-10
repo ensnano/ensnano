@@ -44,6 +44,7 @@ use crate::{
 use address_pointer::AddressPointer;
 use design_interactor::controller::ErrOperation;
 use design_interactor::{DesignInteractor, InteractorResult};
+use ensnano_consts::{APP_NAME, ENS_BACKUP_EXTENSION, ENS_EXTENSION};
 #[cfg(test)]
 use ensnano_design::Design;
 use ensnano_design::{BezierPathId, SavingInformation, group_attributes::GroupPivot};
@@ -53,7 +54,6 @@ use ensnano_interactor::{
     ActionMode, CenterOfSelection, DesignOperation, PastingStatus, Selection, SelectionMode,
     StrandBuildingStatus, UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
     app_state_parameters::{AppStateParameters, CheckXoversParameter, SuggestionParameters},
-    consts::{APP_NAME, ENS_BACKUP_EXTENSION, ENS_EXTENSION},
     graphics::{Background3D, HBondDisplay, RenderingMode},
     operation::Operation,
 };

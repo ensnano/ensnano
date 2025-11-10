@@ -19,6 +19,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::super::AppState;
 use super::*;
 use crate::element_selector;
+use ensnano_consts::*;
 use ensnano_design::{BezierEndCoordinates, BezierVertexId};
 use ensnano_interactor::Selection;
 

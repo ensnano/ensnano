@@ -17,8 +17,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use super::tabs::GuiTab;
 use super::*;
+use ensnano_consts::ICON_PHYSICAL_ENGINE;
 use ensnano_iced::{helpers::*, iced_aw::TabLabel};
-use ensnano_interactor::consts::ICON_PHYSICAL_ENGINE;
 
 pub struct SimulationTab<State: AppState> {
     rigid_body_factory: RequestFactory<RigidBodyFactory>,

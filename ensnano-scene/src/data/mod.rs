@@ -31,18 +31,17 @@ use super::{
 };
 use design3d::Design3D;
 pub use design3d::{HBond, HalfHBond, SceneDesignReaderExt};
+use ensnano_consts::{
+    BOND_RADIUS, CANDIDATE_COLOR, CANDIDATE_SCALE_FACTOR, SELECT_SCALE_FACTOR, SELECTED_COLOR,
+    SPHERE_RADIUS,
+};
 use ensnano_design::{
     BezierVertexId, Collection, External3DObjectsStamp, Nucl, SurfaceInfo, SurfacePoint,
     grid::{GridId, GridObject, GridPosition},
 };
 use ensnano_interactor::{
     ActionMode, CenterOfSelection, ObjectType, PhantomElement, Referential, Selection,
-    SelectionMode,
-    consts::{
-        BOND_RADIUS, CANDIDATE_COLOR, CANDIDATE_SCALE_FACTOR, SELECT_SCALE_FACTOR, SELECTED_COLOR,
-        SPHERE_RADIUS,
-    },
-    graphics::HBondDisplay,
+    SelectionMode, graphics::HBondDisplay,
 };
 use ensnano_utils::StrandNucleotidesPositions;
 use std::{

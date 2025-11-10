@@ -122,6 +122,10 @@ use {
     controller::{
         Controller, LoadDesignError, SaveDesignError, download_staples::StaplesDownloader,
     },
+    ensnano_consts::{
+        APP_NAME, ENS_BACKUP_EXTENSION, ENS_UNNAMED_FILE_NAME, NO_DESIGN_TITLE,
+        SEC_BETWEEN_BACKUPS, SEC_PER_YEAR, WELCOME_MSG,
+    },
     ensnano_design::{Camera, grid::GridId},
     ensnano_exports::{ExportResult, ExportType},
     ensnano_flatscene::FlatScene,
@@ -142,10 +146,6 @@ use {
         UnrootedRevolutionSurfaceDescriptor,
         app_state_parameters::{AppStateParameters, CheckXoversParameter, SuggestionParameters},
         application::{Application, Notification},
-        consts::{
-            APP_NAME, ENS_BACKUP_EXTENSION, ENS_UNNAMED_FILE_NAME, NO_DESIGN_TITLE,
-            SEC_BETWEEN_BACKUPS, SEC_PER_YEAR, WELCOME_MSG,
-        },
         graphics::{GuiComponentType, SplitMode},
         operation::Operation,
     },

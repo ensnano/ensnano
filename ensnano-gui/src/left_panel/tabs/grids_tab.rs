@@ -21,6 +21,7 @@ use super::{
     AppState, FactoryId, GridTypeDescr, Hyperboloid_, HyperboloidRequest, Message, RequestFactory,
     UiSize, ValueId,
 };
+use ensnano_consts::{ICON_HONEYCOMB_GRID, ICON_NANOTUBE, ICON_SQUARE_GRID};
 use ensnano_iced::{
     fonts::{MaterialIcon, icon_to_char},
     helpers::*,
@@ -28,7 +29,6 @@ use ensnano_iced::{
     iced_aw::TabLabel,
     theme,
 };
-use ensnano_interactor::consts::{ICON_HONEYCOMB_GRID, ICON_NANOTUBE, ICON_SQUARE_GRID};
 use std::marker::PhantomData;
 
 pub struct GridTab<State: AppState> {

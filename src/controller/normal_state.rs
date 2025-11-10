@@ -25,6 +25,7 @@ use crate::{
     },
     controller::download_staples::DownloadStaples,
 };
+use ensnano_consts::ENS_EXTENSION;
 use ensnano_design::{
     self, HelixParameters,
     grid::{GridDescriptor, GridId, GridTypeDescr},
@@ -33,7 +34,7 @@ use ensnano_design::{
 use ensnano_interactor::{
     DesignOperation, HyperboloidOperation, HyperboloidRequest, RapierSimulationRequest,
     RevolutionSurfaceSystemDescriptor, RigidBodyConstants, RollRequest, application::Notification,
-    consts::ENS_EXTENSION, graphics::FogParameters,
+    graphics::FogParameters,
 };
 use std::sync::Arc;
 

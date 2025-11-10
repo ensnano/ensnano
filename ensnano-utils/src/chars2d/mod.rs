@@ -24,7 +24,7 @@ use wgpu::{BindGroupLayout, Device, Queue, RenderPass, RenderPipeline, include_s
 use crate::bindgroup_manager::DynamicBindGroup;
 use crate::text::{Letter, Vertex as CharVertex};
 use crate::texture::Texture;
-use ensnano_interactor::consts::*;
+use ensnano_consts::*;
 mod text_drawer;
 pub use text_drawer::{Line, Sentence, TextDrawer};
 

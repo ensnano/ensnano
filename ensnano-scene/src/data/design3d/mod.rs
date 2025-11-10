@@ -32,6 +32,7 @@ use crate::{
         SlicedTubeInstance, SphereInstance, TubeInstance, TubeLidInstance,
     },
 };
+use ensnano_consts::*;
 use ensnano_design::{
     AdditionalStructure, BezierControlPoint, BezierPathId, BezierPlaneDescriptor, BezierPlaneId,
     BezierVertex, Collection, CubicBezierConstructor, CurveDescriptor, External3DObjects,

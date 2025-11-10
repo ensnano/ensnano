@@ -21,8 +21,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! matrix. The [Camera2D] struct modifies a [Globals] attribute and perform some view <-> world
 //! coordinate conversion.
 
+use ensnano_consts::MAX_ZOOM_2D;
 use ensnano_iced::iced_winit::winit::{dpi::PhysicalPosition, event::MouseScrollDelta};
-use ensnano_interactor::consts::MAX_ZOOM_2D;
 use ultraviolet::{Rotor2, Vec2};
 
 /// A 2D camera for the FlatScene.

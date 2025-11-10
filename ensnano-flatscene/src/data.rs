@@ -35,7 +35,7 @@ use super::{CameraPtr, FlatHelix, FlatIdx, FlatNucl};
 use ahash::RandomState;
 use design::{Design2d, Helix2d};
 pub use design::{FlatSceneDesignReaderExt, FlatTorsion};
-use ensnano_interactor::consts::*;
+use ensnano_consts::*;
 use ensnano_utils::camera2d::FitRectangle;
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 

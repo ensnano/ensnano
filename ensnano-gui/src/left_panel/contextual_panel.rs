@@ -20,19 +20,17 @@ mod value_constructor;
 
 use super::super::GuiDesignReaderExt;
 use super::*;
+use ensnano_consts::{
+    ALT, BACKSPACECHAR, CTRL, HELIXCHAR, KEY_DOWN, KEY_LEFT, KEY_RIGHT, KEY_UP, LCLICK, MCLICK,
+    MOVECHAR, NUCLCHAR, RCLICK, ROTCHAR, SELECTCHAR, SHIFT, STRANDCHAR, SUPPRCHAR,
+};
 use ensnano_design::{BezierVertexId, grid::GridId};
 use ensnano_iced::{
     helpers::*,
     iced::{self, Alignment, alignment::Horizontal},
     theme,
 };
-use ensnano_interactor::{
-    Selection, SimulationState,
-    consts::{
-        ALT, BACKSPACECHAR, CTRL, HELIXCHAR, KEY_DOWN, KEY_LEFT, KEY_RIGHT, KEY_UP, LCLICK, MCLICK,
-        MOVECHAR, NUCLCHAR, RCLICK, ROTCHAR, SELECTCHAR, SHIFT, STRANDCHAR, SUPPRCHAR,
-    },
-};
+use ensnano_interactor::{Selection, SimulationState};
 use ultraviolet::{Rotor3, Vec2};
 use value_constructor::{BezierVertexBuilder, Builder, GridBuilder};
 pub use value_constructor::{InstantiatedValue, ValueKind};
