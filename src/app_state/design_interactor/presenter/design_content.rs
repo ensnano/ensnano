@@ -567,8 +567,8 @@ impl DesignContent {
                 .unwrap_or(&DrawingStyle::default())
                 .clone()
                 .complete_with_attributes(vec![
-                    DrawingAttribute::SphereColor(ColorType::Color(strand_color)), // strand color gets after color in strand style
-                    DrawingAttribute::BondColor(ColorType::Color(strand_color)), // strand color gets after color in strand style
+                    DrawingAttribute::SphereColor(ColorType::Plain(strand_color)), // strand color gets after color in strand style
+                    DrawingAttribute::BondColor(ColorType::Plain(strand_color)), // strand color gets after color in strand style
                 ]);
 
             // Compute the length for rainbow coloring
@@ -1064,7 +1064,7 @@ impl DesignContent {
                     helix_style
                         .helix_as_cylinder_color
                         .map_or(HELIX_CYLINDER_COLOR, |ct| {
-                            if let ColorType::Color(c) = ct {
+                            if let ColorType::Plain(c) = ct {
                                 c
                             } else {
                                 HELIX_CYLINDER_COLOR

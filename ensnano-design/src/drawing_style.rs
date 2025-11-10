@@ -22,15 +22,14 @@ use std::str::FromStr;
 
 #[derive(Serialize, PartialEq, Deserialize, Clone, Debug, Copy)]
 pub enum ColorType {
-    Color(u32),
-    Rainbow, // IGNORED FOR NOW -> Later you can add an argument to tell which kind of rainbow you want
+    Plain(u32),
+    // TODO: Rainbow,
 }
 
 impl ColorType {
     fn to_u32(&self) -> u32 {
         match self {
-            ColorType::Color(color) => *color,
-            ColorType::Rainbow => todo!(),
+            ColorType::Plain(color) => *color,
         }
     }
 }
@@ -67,7 +66,6 @@ impl FromStr for DrawingAttribute {
     /// - %bc(HHHHHHHH) for BondColor(0xHHHHHHHH)
     /// - %hr(r) for DoubleHelixAsCylinderRadius(r)
     /// - %hc(HHHHHHHH) for DoubleHelixAsCylinderColor(0xHHHHHHHH)
-    /// - %rh(HHHHHHHH) for DoubleHelixAsCylinderColor(Rainbow)
     /// - %wc / %noc for WithCones(true / false) - default = true
     /// - %onaxis / %offaxis for OnAxis(true / false) - default = false
     /// - %cv(r_min, r_max) - show the curvature radius using Purple to Blue gradient the helix cylinder for radius within the range r_min..r_max
@@ -90,7 +88,6 @@ impl FromStr for DrawingAttribute {
             "wc" => return Ok(Self::WithCones(true)),
             "noc" => return Ok(Self::WithCones(false)),
             "xc" => return Ok(Self::XoverColoring(true)),
-            "rh" => return Ok(Self::DoubleHelixAsCylinderColor(ColorType::Rainbow)), // IGNORED FOR NOW
             "onaxis" => return Ok(Self::OnAxis(true)),
             "offaxis" => return Ok(Self::OnAxis(false)),
             "sr" | "br" | "hr" if len == 2 => {
@@ -125,9 +122,9 @@ impl FromStr for DrawingAttribute {
                 }
 
                 match parsed[0] {
-                    "sc" => return Ok(Self::SphereColor(ColorType::Color(color))),
-                    "bc" => return Ok(Self::BondColor(ColorType::Color(color))),
-                    "hc" => return Ok(Self::DoubleHelixAsCylinderColor(ColorType::Color(color))),
+                    "sc" => return Ok(Self::SphereColor(ColorType::Plain(color))),
+                    "bc" => return Ok(Self::BondColor(ColorType::Plain(color))),
+                    "hc" => return Ok(Self::DoubleHelixAsCylinderColor(ColorType::Plain(color))),
                     "cs" => return Ok(Self::ColorShade(color, hue_range)),
                     _ => (),
                 }
