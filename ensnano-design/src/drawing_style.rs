@@ -26,12 +26,21 @@ pub enum ColorType {
     Rainbow, // IGNORED FOR NOW -> Later you can add an argument to tell which kind of rainbow you want
 }
 
+impl ColorType {
+    fn to_u32(&self) -> u32 {
+        match self {
+            ColorType::Color(color) => *color,
+            ColorType::Rainbow => todo!(),
+        }
+    }
+}
+
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum DrawingAttribute {
     SphereRadius(f32),
     BondRadius(f32),
-    SphereColor(u32), // with alpha -> to be replaced with ColorType
-    BondColor(u32),   // with alpha -> to be replaced with ColorType
+    SphereColor(ColorType),
+    BondColor(ColorType),
     DoubleHelixAsCylinderRadius(f32),
     DoubleHelixAsCylinderColor(ColorType), // with alpha
     RainbowStrand(bool),
@@ -116,8 +125,8 @@ impl FromStr for DrawingAttribute {
                 }
 
                 match parsed[0] {
-                    "sc" => return Ok(Self::SphereColor(color)),
-                    "bc" => return Ok(Self::BondColor(color)),
+                    "sc" => return Ok(Self::SphereColor(ColorType::Color(color))),
+                    "bc" => return Ok(Self::BondColor(ColorType::Color(color))),
                     "hc" => return Ok(Self::DoubleHelixAsCylinderColor(ColorType::Color(color))),
                     "cs" => return Ok(Self::ColorShade(color, hue_range)),
                     _ => (),
@@ -211,8 +220,12 @@ impl From<Vec<DrawingAttribute>> for DrawingStyle {
                 DrawingAttribute::DoubleHelixAsCylinderRadius(r) => {
                     ret.helix_as_cylinder_radius = ret.helix_as_cylinder_radius.or(Some(r))
                 }
-                DrawingAttribute::SphereColor(c) => ret.sphere_color = ret.sphere_color.or(Some(c)),
-                DrawingAttribute::BondColor(c) => ret.bond_color = ret.bond_color.or(Some(c)),
+                DrawingAttribute::SphereColor(c) => {
+                    ret.sphere_color = ret.sphere_color.or(Some(c.to_u32()))
+                }
+                DrawingAttribute::BondColor(c) => {
+                    ret.bond_color = ret.bond_color.or(Some(c.to_u32()))
+                }
                 DrawingAttribute::DoubleHelixAsCylinderColor(c) => {
                     ret.helix_as_cylinder_color = ret.helix_as_cylinder_color.or(Some(c))
                 }
@@ -256,11 +269,11 @@ impl DrawingStyle {
                 ..*self
             },
             DrawingAttribute::SphereColor(c) => DrawingStyle {
-                sphere_color: self.sphere_color.or(Some(c)),
+                sphere_color: self.sphere_color.or(Some(c.to_u32())),
                 ..*self
             },
             DrawingAttribute::BondColor(c) => DrawingStyle {
-                bond_color: self.bond_color.or(Some(c)),
+                bond_color: self.bond_color.or(Some(c.to_u32())),
                 ..*self
             },
             DrawingAttribute::DoubleHelixAsCylinderColor(c) => DrawingStyle {

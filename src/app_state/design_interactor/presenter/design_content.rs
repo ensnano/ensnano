@@ -567,8 +567,8 @@ impl DesignContent {
                 .unwrap_or(&DrawingStyle::default())
                 .clone()
                 .complete_with_attributes(vec![
-                    DrawingAttribute::SphereColor(strand_color), // strand color gets after color in strand style
-                    DrawingAttribute::BondColor(strand_color), // strand color gets after color in strand style
+                    DrawingAttribute::SphereColor(ColorType::Color(strand_color)), // strand color gets after color in strand style
+                    DrawingAttribute::BondColor(ColorType::Color(strand_color)), // strand color gets after color in strand style
                 ]);
 
             // Compute the length for rainbow coloring
