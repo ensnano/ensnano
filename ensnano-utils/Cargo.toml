@@ -6,6 +6,7 @@ edition.workspace = true
 license.workspace = true
 
 [dependencies]
+ensnano_consts.workspace = true
 ensnano_iced.workspace = true
 ensnano_interactor.workspace = true
 

@@ -41,12 +41,12 @@ pub use camera2d::{Camera2D, FitRectangle};
 use controller::Controller;
 use data::Data;
 pub use data::FlatSceneDesignReaderExt;
+use ensnano_consts::{EXPORT_2D_MARGIN, EXPORT_2D_MAX_SIZE};
 use ensnano_design::{Nucl, consts::ITERATIVE_AXIS_ALGORITHM};
 use ensnano_interactor::{
     ActionMode, DesignOperation, PhantomElement, Selection, SelectionMode, StrandBuilder,
     StrandBuildingStatus,
     application::{AppId, Application, Notification},
-    consts::{EXPORT_2D_MARGIN, EXPORT_2D_MAX_SIZE},
     graphics::DrawArea,
     operation::*,
 };

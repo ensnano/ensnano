@@ -21,8 +21,8 @@ use {
         PhySize, Stereography,
         maths_3d::{self, FiniteVec3, Plane},
     },
+    ensnano_consts::{DEFAULT_STEREOGRAPHIC_ZOOM, STEREOGRAPHIC_ZOOM_STEP},
     ensnano_design::{SurfaceInfo, SurfacePoint},
-    ensnano_interactor::consts::{DEFAULT_STEREOGRAPHIC_ZOOM, STEREOGRAPHIC_ZOOM_STEP},
     std::{
         cell::RefCell,
         f32::consts::{FRAC_PI_2, PI},

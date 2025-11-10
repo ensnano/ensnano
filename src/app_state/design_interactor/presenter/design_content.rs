@@ -20,6 +20,9 @@ mod xover_suggestions;
 
 use super::*;
 use ahash::RandomState;
+use ensnano_consts::{
+    BOND_RADIUS, CLONE_OPACITY, HELIX_CYLINDER_COLOR, HELIX_CYLINDER_RADIUS, SPHERE_RADIUS,
+};
 use ensnano_design::{
     drawing_style::{ColorType, DrawingAttribute, DrawingStyle},
     elements::{DesignElement, DesignElementKey},
@@ -29,9 +32,6 @@ use ensnano_design::{
 };
 use ensnano_interactor::{
     ObjectType,
-    consts::{
-        BOND_RADIUS, CLONE_OPACITY, HELIX_CYLINDER_COLOR, HELIX_CYLINDER_RADIUS, SPHERE_RADIUS,
-    },
     graphics::{LoopoutBond, LoopoutNucl},
 };
 use ensnano_scene::view::GridInstance;

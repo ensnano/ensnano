@@ -16,8 +16,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+use ensnano_consts::*;
 use ensnano_design::{External3DObject, External3DObjectId, PointOnSurface};
-use ensnano_interactor::{UnrootedRevolutionSurfaceDescriptor, consts};
+use ensnano_interactor::UnrootedRevolutionSurfaceDescriptor;
 use ensnano_utils::{TEXTURE_FORMAT, create_buffer_with_data, obj_loader::*, texture::Texture};
 use std::{
     collections::BTreeMap,
@@ -338,7 +339,7 @@ fn build_render_pipeline(
     let fragment_module = device.create_shader_module(wgpu::include_spirv!("gltf_obj.frag.spv"));
     let format = TEXTURE_FORMAT;
     let blend_state = wgpu::BlendState::ALPHA_BLENDING;
-    let sample_count = consts::SAMPLE_COUNT;
+    let sample_count = SAMPLE_COUNT;
 
     let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         label: Some("Gltf Drawer"),

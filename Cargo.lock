@@ -1102,6 +1102,7 @@ dependencies = [
  "color_space",
  "confy",
  "dirs",
+ "ensnano_consts",
  "ensnano_design",
  "ensnano_exports",
  "ensnano_flatscene",
@@ -1128,6 +1129,13 @@ dependencies = [
  "version-compare",
  "wgpu",
  "winit",
+]
+
+[[package]]
+name = "ensnano_consts"
+version = "0.7.0"
+dependencies = [
+ "ultraviolet",
 ]
 
 [[package]]
@@ -1178,6 +1186,7 @@ dependencies = [
  "ahash 0.8.12",
  "bytemuck",
  "color_space",
+ "ensnano_consts",
  "ensnano_design",
  "ensnano_interactor",
  "ensnano_utils",
@@ -1196,6 +1205,7 @@ name = "ensnano_gui"
 version = "0.7.0"
 dependencies = [
  "color_space",
+ "ensnano_consts",
  "ensnano_design",
  "ensnano_exports",
  "ensnano_iced",
@@ -1230,6 +1240,7 @@ dependencies = [
 name = "ensnano_interactor"
 version = "0.7.0"
 dependencies = [
+ "ensnano_consts",
  "ensnano_design",
  "ensnano_iced",
  "ensnano_organizer",
@@ -1266,6 +1277,7 @@ name = "ensnano_scene"
 version = "0.7.0"
 dependencies = [
  "bytemuck",
+ "ensnano_consts",
  "ensnano_design",
  "ensnano_interactor",
  "ensnano_organizer",
@@ -1292,6 +1304,7 @@ dependencies = [
  "bytemuck",
  "chrono",
  "color_space",
+ "ensnano_consts",
  "ensnano_iced",
  "ensnano_interactor",
  "fontdue",

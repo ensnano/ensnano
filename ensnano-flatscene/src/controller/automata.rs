@@ -26,7 +26,7 @@ use winit::{
 };
 
 const WHEEL_RADIUS: f32 = 1.5;
-use ensnano_interactor::consts::*;
+use ensnano_consts::*;
 
 pub struct Transition<S: AppState> {
     pub new_state: Option<Box<dyn ControllerState<S>>>,

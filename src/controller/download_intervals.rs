@@ -23,7 +23,7 @@ use crate::{
     dialog,
 };
 use dialog::{MustAckMessage, PathInput};
-use ensnano_interactor::consts::ORIGAMI_EXTENSION;
+use ensnano_consts::ORIGAMI_EXTENSION;
 use std::path::PathBuf;
 
 #[derive(Default)]

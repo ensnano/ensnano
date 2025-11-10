@@ -28,6 +28,7 @@ use crate::{
     controller::channel_reader::ChannelReader,
 };
 use controller::{Controller, ErrOperation, InteractorNotification};
+use ensnano_consts::UPDATE_VISIBILITY_SIEVE_LABEL;
 use ensnano_design::{
     BezierPathId, BezierPlaneDescriptor, Design, HelixCollection, HelixParameters,
     InstantiatedPiecewiseBezier, grid::GridId, group_attributes::GroupAttribute,
@@ -36,8 +37,7 @@ use ensnano_exports::{ExportResult, ExportType};
 use ensnano_gui::CurrentOpState;
 use ensnano_interactor::{
     DesignOperation, PastingStatus, Selection, SimulationState, StrandBuilder,
-    app_state_parameters::SuggestionParameters, consts::UPDATE_VISIBILITY_SIEVE_LABEL,
-    operation::Operation,
+    app_state_parameters::SuggestionParameters, operation::Operation,
 };
 use ensnano_organizer::GroupId;
 use presenter::{Presenter, SimulationUpdate, apply_simulation_update, update_presenter};

@@ -17,10 +17,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::camera::{CameraPtr, ProjectionPtr};
-use ensnano_interactor::{
-    consts::NB_RAY_TUBE,
-    graphics::{CutPlaneParameters, FogParameters},
-};
+use ensnano_consts::NB_RAY_TUBE;
+use ensnano_interactor::graphics::{CutPlaneParameters, FogParameters};
 use ultraviolet::{Mat4, Rotor3, Vec3, Vec4};
 
 #[repr(C)] // We need this for Rust to store our data correctly for the shaders

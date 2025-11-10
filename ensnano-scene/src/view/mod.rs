@@ -22,8 +22,9 @@ use self::gltf_drawer::Object3DDrawer;
 use super::camera;
 use super::{DrawArea, PhySize};
 use camera::{Camera, CameraPtr, Projection, ProjectionPtr};
+use ensnano_consts::*;
 use ensnano_design::{Axis, grid::GridId, group_attributes::GroupPivot};
-use ensnano_interactor::{UnrootedRevolutionSurfaceDescriptor, consts::*};
+use ensnano_interactor::UnrootedRevolutionSurfaceDescriptor;
 use ensnano_utils::{bindgroup_manager, text, texture};
 use int_enum::IntEnum;
 use std::{cell::RefCell, collections::BTreeMap, rc::Rc, usize};
@@ -195,7 +196,7 @@ impl View {
             label: None,
         };
         log::info!("Create letter drawer");
-        let letter_drawer = ensnano_interactor::consts::PRINTABLE_CHARS
+        let letter_drawer = ensnano_consts::PRINTABLE_CHARS
             .iter()
             .map(|c| {
                 let letter = Letter::new(*c, device.clone(), queue.clone());
@@ -518,8 +519,8 @@ impl View {
                 if let Some(_mesh) = mesh.to_fake() {
                     let mut instances = instances.as_ref().clone();
                     for i in instances.iter_mut() {
-                        if i.scale.z <= ensnano_interactor::consts::MIN_RADIUS_FOR_FAKE_UPSCALING {
-                            i.scale *= ensnano_interactor::consts::SELECT_SCALE_FACTOR;
+                        if i.scale.z <= ensnano_consts::MIN_RADIUS_FOR_FAKE_UPSCALING {
+                            i.scale *= ensnano_consts::SELECT_SCALE_FACTOR;
                         }
                     }
                     self.dna_drawers

@@ -1,5 +1,6 @@
 [workspace]
 members = [
+    "ensnano-consts",
     "ensnano-design",
     "ensnano-exports",
     "ensnano-flatscene",
@@ -24,6 +25,7 @@ edition = "2024"
 license = "GPL-3.0-or-later"
 
 [workspace.dependencies]
+ensnano_consts = { path = "ensnano-consts" }
 ensnano_design = { path = "ensnano-design" }
 ensnano_exports = { path = "ensnano-exports" }
 ensnano_flatscene = { path = "ensnano-flatscene" }
@@ -113,6 +115,7 @@ edition.workspace = true
 license.workspace = true
 
 [dependencies]
+ensnano_consts.workspace = true
 ensnano_design.workspace = true
 ensnano_exports.workspace = true
 ensnano_flatscene.workspace = true

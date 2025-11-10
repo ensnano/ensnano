@@ -24,10 +24,8 @@ use crate::{
 };
 use abscissa_converter::{AbscissaConverter, AbscissaConverter_};
 use ahash::RandomState;
+use ensnano_consts::{BLACK_VEC4, CIRCLE2D_GREY, GREY_UNKNOWN_NUCL_VEC4, HELIX_BORDER_COLOR};
 use ensnano_design::{Nucl, NuclCollection};
-use ensnano_interactor::consts::{
-    BLACK_VEC4, CIRCLE2D_GREY, GREY_UNKNOWN_NUCL_VEC4, HELIX_BORDER_COLOR,
-};
 use ensnano_utils::{
     chars2d::{Line, Sentence, TextDrawer},
     circles2d::CircleInstance,

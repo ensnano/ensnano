@@ -16,7 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use ensnano_interactor::consts::*;
+use ensnano_consts::*;
 use lyon::{
     math::Point,
     path::Path,
