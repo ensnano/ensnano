@@ -8,7 +8,6 @@ license.workspace = true
 [dependencies]
 ensnano_consts.workspace = true
 ensnano_iced.workspace = true
-ensnano_interactor.workspace = true
 
 ahash.workspace = true
 bytemuck.workspace = true
