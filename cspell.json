@@ -1,7 +1,12 @@
 {
   "$schema": "https://raw.githubusercontent.com/streetsidesoftware/cspell/main/cspell.schema.json",
   "version": "0.2",
-  "ignorePaths": ["target/", "thirdparties/", "*.txt", "Cargo.lock"],
+  "ignorePaths": [
+    "target/",
+    "thirdparties/",
+    "*.txt",
+    "Cargo.lock"
+  ],
   "words": [
     "2KPHSEF9U9",
     "ahash",
@@ -95,10 +100,14 @@
     "nanostructures",
     "nanotubes",
     "nlevy",
+    "nors",
     "notificator",
+    "noxc",
     "nucl",
     "nucls",
     "Numpad",
+    "offaxis",
+    "onaxis",
     "oneshot",
     "otool",
     "outliner",
