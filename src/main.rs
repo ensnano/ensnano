@@ -797,8 +797,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     "{} {}",
                     PROGRAM_NAME,
                     match main_state.get_current_file_name() {
-                        Some(path) => &formatted_path_end(path),
-                        None => NO_DESIGN_TITLE,
+                        Some(path) => formatted_path_end(path),
+                        None => NO_DESIGN_TITLE.to_owned(),
                     }
                 );
                 if window_title != new_title {
