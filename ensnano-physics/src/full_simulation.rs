@@ -112,6 +112,46 @@ impl SimulationSetup for RigidHelicesSetup {
     }
 }
 
+pub struct CutHelicesSetup;
+
+impl SimulationSetup for CutHelicesSetup {
+    fn build_bodies(
+        rigid_body_set: &mut RigidBodySet,
+        collider_set: &mut ColliderSet,
+        collider_map: &HashMap<(usize, isize), Vec<ColliderHandle>>,
+        intermediary_representation: &HashMap<usize, IntermediaryHelix>,
+    ) {
+        let rigid_body = RigidBodyBuilder::dynamic()
+            .linear_damping(BASE_LINEAR_DAMPING)
+            .angular_damping(BASE_ANGULAR_DAMPING);
+
+        // for each helix
+        for (helix_index, helix) in intermediary_representation.iter() {
+            let mut current_rigid_body_handle = rigid_body_set.insert(rigid_body.clone());
+            // iterate through the positions, from bottom to top
+            let mut positions = helix.pairs.keys().copied().collect::<Vec<_>>();
+
+            positions.sort_unstable();
+
+            for k in positions {
+                // switch rigid body when meeting a cut
+                if helix.crossover_cuts.contains(&k) {
+                    current_rigid_body_handle = rigid_body_set.insert(rigid_body.clone());
+                }
+
+                // accumulate colliders in a rigid body
+                for collider_handle in collider_map.get(&(*helix_index, k)).unwrap_or(&vec![]) {
+                    collider_set.set_parent(
+                        *collider_handle,
+                        Some(current_rigid_body_handle),
+                        rigid_body_set,
+                    );
+                }
+            }
+        }
+    }
+}
+
 pub fn build_simulation<S: SimulationSetup>(
     intermediary_representation: &HashMap<usize, IntermediaryHelix>,
     object_type: &HashMap<u32, ObjectType>,

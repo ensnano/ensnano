@@ -3,7 +3,7 @@ use ahash::HashMap;
 use ensnano_interactor::ObjectType;
 
 use crate::{
-    full_simulation::{RigidHelicesSetup, build_simulation},
+    full_simulation::{CutHelicesSetup, RigidHelicesSetup, build_simulation},
     helices::build_helices,
 };
 use ensnano_design::{Helices, HelixParameters, Nucl};
@@ -33,9 +33,9 @@ impl RapierPhysicsSystem {
         space_position: &HashMap<u32, [f32; 3]>,
         helices: &Helices,
     ) -> Self {
-        let intermediary = build_helices(nucleotide);
+        let intermediary = build_helices(object_type, nucleotide);
 
-        build_simulation::<RigidHelicesSetup>(
+        build_simulation::<CutHelicesSetup>(
             &intermediary,
             object_type,
             nucleotide,
