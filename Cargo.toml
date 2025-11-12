@@ -93,8 +93,19 @@ log_after_renderer_setup = []
 dx12_only = []
 
 [lints.clippy]
+# all = { level = "warn", priority = -1 }
+# cargo = { level = "warn", priority = -1 }
+# complexity = { level = "warn", priority = -1 }
+# correctness = { level = "warn", priority = -1 }
+# nursery = { level = "warn", priority = -1 }
+# pedantic = { level = "warn", priority = -1 }
+# perf = { level = "warn", priority = -1 }
+# restriction = { level = "warn", priority = -1 }
+# style = { level = "warn", priority = -1 }
+# suspicious = { level = "warn", priority = -1 }
+
 arc_with_non_send_sync = "allow" # TODO: warn
 too_many_arguments = "allow"     # TODO: warn
 
-get_unwrap = "warn"
-wildcard_imports = "warn"
+# get_unwrap = "warn"
+# wildcard_imports = "warn"
