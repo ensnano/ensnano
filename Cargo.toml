@@ -93,3 +93,4 @@ dx12_only = []
 
 [lints.clippy]
 too_many_arguments = "allow"
+arc_with_non_send_sync = "allow" # TODO: warn
