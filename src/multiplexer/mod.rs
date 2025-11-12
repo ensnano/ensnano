@@ -859,8 +859,8 @@ impl Overlay {
 }
 
 fn create_pipeline(device: &Device, bg_layout: &wgpu::BindGroupLayout) -> wgpu::RenderPipeline {
-    let vs_module = &device.create_shader_module(wgpu::include_spirv!("multiplexer/draw.vert.spv"));
-    let fs_module = &device.create_shader_module(wgpu::include_spirv!("multiplexer/draw.frag.spv"));
+    let vs_module = &device.create_shader_module(wgpu::include_spirv!("./draw.vert.spv"));
+    let fs_module = &device.create_shader_module(wgpu::include_spirv!("./draw.frag.spv"));
     let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         bind_group_layouts: &[bg_layout],
         push_constant_ranges: &[],
