@@ -24,9 +24,7 @@ use iced::{
     alignment::{Alignment, Horizontal, Vertical},
 };
 
-///
-/// SPACING FUNCTIONS.
-///
+// === SPACING FUNCTIONS ===
 
 const JUMP_SIZE: f32 = 4.0;
 
@@ -40,9 +38,7 @@ pub fn jump_by(amount: impl Into<Length>) -> Space {
     Space::with_height(amount)
 }
 
-///
-/// TEXT FUNCTIONS.
-///
+// === TEXT FUNCTIONS ===
 
 /// Section title widget
 pub fn section<'a, Theme, Renderer>(
@@ -70,9 +66,7 @@ where
     text(title).size(ui_size.intermediate_text())
 }
 
-///
-/// ICON FUNCTIONS.
-///
+// === ICON FUNCTIONS ===
 
 pub fn material_icon<'a, Theme, Renderer>(
     icon: MaterialIcon,
@@ -113,9 +107,7 @@ where
     }
 }
 
-///
-/// BUTTON FUNCTIONS.
-///
+// === BUTTON FUNCTIONS ===
 
 // NOTE: It seems since iced 0.12 that giving a size to a button make the (text) content disappear,
 //       therefore we give the size to the underlying text.
@@ -260,9 +252,7 @@ where
     start_stop_button
 }
 
-///
-/// CHECKBOXES
-///
+// === CHECKBOX FUNCTIONS ===
 
 /// Return a checkbox widget with its label placed on the left.
 pub fn right_checkbox<'a, Message, Theme, Renderer>(

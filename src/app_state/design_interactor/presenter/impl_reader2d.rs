@@ -253,25 +253,16 @@ fn split_domain_into_helices_segment(
     ret
 }
 
-#[cfg(test)]
-mod tests {
+// TODO
+// #[cfg(test)]
+// mod tests {
 
-    #[test]
-    #[ignore]
-    fn correct_suggestions() {
-        // TODO: write test, and implement function
-        assert!(false)
-    }
+//     #[test]
+//     fn correct_suggestions() {}
 
-    #[test]
-    #[ignore]
-    fn get_torsions_implemented() {
-        assert!(false)
-    }
+//     #[test]
+//     fn get_torsions_implemented() {}
 
-    #[test]
-    #[ignore]
-    fn get_correct_visibility_helix() {
-        assert!(false)
-    }
-}
+//     #[test]
+//     fn get_correct_visibility_helix() {}
+// }

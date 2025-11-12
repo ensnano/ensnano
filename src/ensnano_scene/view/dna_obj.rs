@@ -436,7 +436,6 @@ impl Instantiable for TubeInstance {
 }
 
 /// TUBE TIP INSTANCE
-
 pub struct TubeLidInstance {
     pub position: Vec3,
     pub rotor: Rotor3,
@@ -516,7 +515,6 @@ impl Instantiable for TubeLidInstance {
 }
 
 /// SLICED TUBE INSTANCE
-
 pub struct SlicedTubeInstance {
     pub position: Vec3,
     pub rotor: Rotor3,

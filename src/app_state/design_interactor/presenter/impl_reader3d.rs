@@ -628,25 +628,16 @@ impl crate::ensnano_scene::data::SceneDesignReaderExt for DesignInteractor {
     }
 }
 
-#[cfg(test)]
-mod tests {
+// TODO
+// #[cfg(test)]
+// mod tests {
 
-    #[test]
-    #[ignore]
-    fn correct_suggestions() {
-        // TODO: write test, and implement function
-        assert!(false)
-    }
+//     #[test]
+//     fn correct_suggestions() {}
 
-    #[test]
-    #[ignore]
-    fn correct_pasted_position() {
-        assert!(false)
-    }
+//     #[test]
+//     fn correct_pasted_position() {}
 
-    #[test]
-    #[ignore]
-    fn nucls_are_filtered_by_visibility() {
-        assert!(false)
-    }
-}
+//     #[test]
+//     fn nucls_are_filtered_by_visibility() {}
+// }
