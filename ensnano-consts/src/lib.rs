@@ -108,19 +108,19 @@ pub const KEY_LEFT: char = '\u{2190}';
 pub const KEY_UP: char = '\u{2191}';
 pub const KEY_DOWN: char = '\u{2193}';
 
-pub const BACKSPACECHAR: char = '\u{232b}';
-pub const SUPPRCHAR: char = '\u{2326}';
-pub const SELECTCHAR: char = '\u{e90c}';
-pub const HELIXCHAR: char = '\u{e913}';
-pub const STRANDCHAR: char = '\u{e901}';
-pub const NUCLCHAR: char = '\u{e900}';
+pub const BACKSPACE_CHAR: char = '\u{232b}';
+pub const SUPPR_CHAR: char = '\u{2326}';
+pub const SELECT_CHAR: char = '\u{e90c}';
+pub const HELIX_CHAR: char = '\u{e913}';
+pub const STRAND_CHAR: char = '\u{e901}';
+pub const NUCL_CHAR: char = '\u{e900}';
 
 pub const SHIFT: char = '\u{21e7}';
-pub const MOVECHAR: char = '\u{e904}';
-pub const ROTCHAR: char = '\u{e915}';
-pub const LCLICK: char = '\u{e918}';
-pub const MCLICK: char = '\u{e91b}';
-pub const RCLICK: char = '\u{e91a}';
+pub const MOVE_CHAR: char = '\u{e904}';
+pub const ROT_CHAR: char = '\u{e915}';
+pub const L_CLICK: char = '\u{e918}';
+pub const M_CLICK: char = '\u{e91b}';
+pub const R_CLICK: char = '\u{e91a}';
 
 pub const WELCOME_MSG: &str = "
 ==============================================================================

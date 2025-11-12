@@ -21,8 +21,8 @@ mod value_constructor;
 use super::super::GuiDesignReaderExt;
 use super::*;
 use ensnano_consts::{
-    ALT, BACKSPACECHAR, CTRL, HELIXCHAR, KEY_DOWN, KEY_LEFT, KEY_RIGHT, KEY_UP, LCLICK, MCLICK,
-    MOVECHAR, NUCLCHAR, RCLICK, ROTCHAR, SELECTCHAR, SHIFT, STRANDCHAR, SUPPRCHAR,
+    ALT, BACKSPACE_CHAR, CTRL, HELIX_CHAR, KEY_DOWN, KEY_LEFT, KEY_RIGHT, KEY_UP, L_CLICK, M_CLICK,
+    MOVE_CHAR, NUCL_CHAR, R_CLICK, ROT_CHAR, SELECT_CHAR, SHIFT, STRAND_CHAR, SUPPR_CHAR,
 };
 use ensnano_design::{BezierVertexId, grid::GridId};
 use ensnano_iced::{
@@ -619,40 +619,40 @@ fn turn_into_help_column<'a, State: AppState>(
 fn view_3d_help() -> Vec<(String, String)> {
     vec![
         (
-            format!("{}", LCLICK),
+            format!("{}", L_CLICK),
             "Select\nnt → strand → helix".to_owned(),
         ),
         (
-            format!("{}+{}", SHIFT, LCLICK),
+            format!("{}+{}", SHIFT, L_CLICK),
             "Multiple select".to_owned(),
         ),
         (String::new(), String::new()),
         (
-            format!("2x{}", LCLICK),
+            format!("2x{}", L_CLICK),
             "Center selection in 2D view".to_owned(),
         ),
         (String::new(), String::new()),
-        (format!("{} Drag", MCLICK), "Translate camera".to_owned()),
+        (format!("{} Drag", M_CLICK), "Translate camera".to_owned()),
         (
-            format!("{}+{} Drag", ALT, LCLICK),
+            format!("{}+{} Drag", ALT, L_CLICK),
             "Translate camera".to_owned(),
         ),
         (String::new(), String::new()),
-        (format!("{}", RCLICK), "Set pivot".to_owned()),
+        (format!("{}", R_CLICK), "Set pivot".to_owned()),
         (
-            format!("{} Drag", RCLICK),
+            format!("{} Drag", R_CLICK),
             "Rotate camera around pivot (preserve the XZ plane)".to_owned(),
         ),
         (
-            format!("{}+{} Drag", CTRL, RCLICK),
+            format!("{}+{} Drag", CTRL, R_CLICK),
             "Rotate camera freely around pivot".to_owned(),
         ),
         (
-            format!("{}+{} Drag", ALT, RCLICK),
+            format!("{}+{} Drag", ALT, R_CLICK),
             "Rotate camera around pivot (preserve the current horizon plane)".to_owned(),
         ),
         (
-            format!("{}+{} Drag", SHIFT, RCLICK),
+            format!("{}+{} Drag", SHIFT, R_CLICK),
             "Tilt camera".to_owned(),
         ),
         (
@@ -660,21 +660,21 @@ fn view_3d_help() -> Vec<(String, String)> {
             "Export the current view in png format".to_owned(),
         ),
         (String::new(), String::new()),
-        (format!("{} Drag", LCLICK), "Edit strand".to_owned()),
+        (format!("{} Drag", L_CLICK), "Edit strand".to_owned()),
         (
-            format!("long {} Drag", LCLICK),
+            format!("long {} Drag", L_CLICK),
             "Make crossover (drop on nt)".to_owned(),
         ),
         (String::new(), String::new()),
-        (format!("When in 3D {} mode", MOVECHAR), String::new()),
+        (format!("When in 3D {} mode", MOVE_CHAR), String::new()),
         (
-            format!("{} on handle", LCLICK),
+            format!("{} on handle", L_CLICK),
             "Move selected object".to_owned(),
         ),
         (String::new(), String::new()),
-        (format!("When in 3D {} mode", ROTCHAR), String::new()),
+        (format!("When in 3D {} mode", ROT_CHAR), String::new()),
         (
-            format!("{} on handle", LCLICK),
+            format!("{} on handle", L_CLICK),
             "Rotate selected object".to_owned(),
         ),
     ]
@@ -687,7 +687,7 @@ fn view_2d_3d_help() -> Vec<(String, String)> {
         (format!("{} + J", CTRL), "Paste & repeat".to_owned()),
         (String::new(), String::new()),
         (
-            format!("{} or {}", SUPPRCHAR, BACKSPACECHAR),
+            format!("{} or {}", SUPPR_CHAR, BACKSPACE_CHAR),
             "Delete selected strands".to_owned(),
         ),
         (String::new(), String::new()),
@@ -697,22 +697,22 @@ fn view_2d_3d_help() -> Vec<(String, String)> {
         (format!("{} + R", CTRL), "Redo".to_owned()),
         (String::new(), String::new()),
         ("Selection mode shortcuts".to_owned(), "".to_owned()),
-        ("'N' key".to_owned(), format!("Nucleotide, ({})", NUCLCHAR)),
-        ("'S' key".to_owned(), format!("Strand ({})", STRANDCHAR)),
-        ("'H' key".to_owned(), format!("Helix ({})", HELIXCHAR)),
+        ("'N' key".to_owned(), format!("Nucleotide, ({})", NUCL_CHAR)),
+        ("'S' key".to_owned(), format!("Strand ({})", STRAND_CHAR)),
+        ("'H' key".to_owned(), format!("Helix ({})", HELIX_CHAR)),
         (String::new(), String::new()),
         ("Action mode shortcuts".to_owned(), "".to_owned()),
-        ("ESC".to_owned(), format!("Select ({})", SELECTCHAR)),
-        ("'T' key".to_owned(), format!("Translation ({})", MOVECHAR)),
-        ("'R' key".to_owned(), format!("Rotation ({})", ROTCHAR)),
+        ("ESC".to_owned(), format!("Select ({})", SELECT_CHAR)),
+        ("'T' key".to_owned(), format!("Translation ({})", MOVE_CHAR)),
+        ("'R' key".to_owned(), format!("Rotation ({})", ROT_CHAR)),
     ]
 }
 
 fn view_2d_help() -> Vec<(String, String)> {
     vec![
-        (format!("{} Drag", MCLICK), "Translate camera".to_owned()),
+        (format!("{} Drag", M_CLICK), "Translate camera".to_owned()),
         (
-            format!("{} + {} Drag", ALT, LCLICK),
+            format!("{} + {} Drag", ALT, L_CLICK),
             "Translate camera".to_owned(),
         ),
         (
@@ -727,46 +727,46 @@ fn view_2d_help() -> Vec<(String, String)> {
             "Apply symmetry to view".to_owned(),
         ),
         (String::new(), String::new()),
-        (format!("{}", LCLICK), "Select".to_owned()),
+        (format!("{}", L_CLICK), "Select".to_owned()),
         (
-            format!("{} + {}", SHIFT, LCLICK),
+            format!("{} + {}", SHIFT, L_CLICK),
             "Multiple Select".to_owned(),
         ),
         (
-            format!("{} Drag", LCLICK),
+            format!("{} Drag", L_CLICK),
             "Rectangular selection".to_owned(),
         ),
         (
-            format!("{} Drag, followed by {ALT} before releasing", LCLICK),
+            format!("{} Drag, followed by {ALT} before releasing", L_CLICK),
             "PNG export of rectangular area".to_owned(),
         ),
         (String::new(), String::new()),
         ("On helix numbers".to_owned(), String::new()),
-        (format!("{}", LCLICK), "Select helix".to_owned()),
+        (format!("{}", L_CLICK), "Select helix".to_owned()),
         (
-            format!("{} + {}", SHIFT, LCLICK),
+            format!("{} + {}", SHIFT, L_CLICK),
             "Multiple select".to_owned(),
         ),
         (
-            format!("{} Drag", LCLICK),
+            format!("{} Drag", L_CLICK),
             "Translate selected helices".to_owned(),
         ),
         (
-            format!("{} Drag", RCLICK),
+            format!("{} Drag", R_CLICK),
             "Rotate selected helices".to_owned(),
         ),
         (String::new(), String::new()),
         ("On nucleotides".to_owned(), String::new()),
         (
-            format!("{}", RCLICK),
+            format!("{}", R_CLICK),
             "cut/glue strand or double xover".to_owned(),
         ),
         (
-            format!("{} Drag", LCLICK),
+            format!("{} Drag", L_CLICK),
             "edit strand/crossover".to_owned(),
         ),
         (
-            format!("{} + {}", CTRL, LCLICK),
+            format!("{} + {}", CTRL, L_CLICK),
             "Make suggested crossover".to_owned(),
         ),
     ]
