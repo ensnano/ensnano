@@ -38,15 +38,7 @@ pub enum Isometry3DescriptorItem {
     RotateXYBy(f32),                      // around Vec3::zero // %rotXY(a)
 }
 
-pub trait Parsef32s {
-    fn parse_f32s_separated_by_commas_parenthesis_or_space(s: &str) -> Vec<f32>;
-    fn parse_f32s_separated_by_commas_parenthesis_or_space_with_variables(
-        s: &str,
-        variables: Option<&HashMap<String, f32>>,
-    ) -> Vec<f32>;
-}
-
-impl Parsef32s for Isometry3DescriptorItem {
+impl Isometry3DescriptorItem {
     fn parse_f32s_separated_by_commas_parenthesis_or_space(s: &str) -> Vec<f32> {
         let s = s.split(&[',', '(', ')', ' ']);
         let mut ret = Vec::new();

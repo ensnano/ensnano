@@ -23,7 +23,7 @@ use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 use std::collections::BTreeMap;
 use std::sync::Arc;
-mod formating;
+mod formatting;
 
 /// A collection of strands, that maps strand identifier to strands.
 ///
@@ -346,12 +346,12 @@ impl Strand {
             .map(|d| Domain::from_codenano(d))
             .collect();
         let sane_domains = sanitize_domains(&domains, codenano_strand.cyclic);
-        let juctions = read_junctions(&sane_domains, codenano_strand.cyclic);
+        let junctions = read_junctions(&sane_domains, codenano_strand.cyclic);
         Self {
             domains: sane_domains,
             sequence: codenano_strand.sequence.clone(),
             is_cyclic: codenano_strand.cyclic,
-            junctions: juctions,
+            junctions,
             color: codenano_strand
                 .color
                 .clone()
@@ -1189,8 +1189,8 @@ impl Iterator for DomainIter {
     }
 }
 
-/// Add the correct juction between current and next to junctions.
-/// Assumes and preseve the following invariant
+/// Add the correct junction between current and next to junctions.
+/// Assumes and preserve the following invariant
 /// Invariant [read_junctions::PrevDomain]: One of the following is true
 /// * the strand is not cyclic
 /// * the strand is cyclic and its first domain is NOT and insertion.
@@ -1198,8 +1198,8 @@ impl Iterator for DomainIter {
 ///
 /// Moreover at the end of each iteration of the loop, previous_domain points to some
 /// Domain::HelixDomain. The loop is responsible for preserving the invariant. The invariant is
-/// true at initilasation if [SaneDomains] is true.
-fn add_juction<'b, 'a: 'b>(
+/// true at initialization if [SaneDomains] is true.
+fn add_junction<'b, 'a: 'b>(
     junctions: &'b mut Vec<DomainJunction>,
     current: &'a Domain,
     next: &'a Domain,
@@ -1244,9 +1244,9 @@ fn add_juction<'b, 'a: 'b>(
     }
 }
 
-/// Infer juctions from a succession of domains.
+/// Infer junctions from a succession of domains.
 pub fn read_junctions(domains: &[Domain], cyclic: bool) -> Vec<DomainJunction> {
-    if domains.len() == 0 {
+    if domains.is_empty() {
         return vec![];
     }
 
@@ -1256,13 +1256,13 @@ pub fn read_junctions(domains: &[Domain], cyclic: bool) -> Vec<DomainJunction> {
     for i in 0..(domains.len() - 1) {
         let current = &domains[i];
         let next = &domains[i + 1];
-        add_juction(&mut ret, current, next, &mut previous_domain, cyclic, i);
+        add_junction(&mut ret, current, next, &mut previous_domain, cyclic, i);
     }
 
     if cyclic {
         let last = &domains[domains.len() - 1];
         let first = &domains[0];
-        add_juction(
+        add_junction(
             &mut ret,
             last,
             first,

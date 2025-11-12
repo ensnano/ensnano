@@ -247,7 +247,7 @@ impl PdbNucleotide {
                     },
                     residue_type,
                 )
-                .map_err(PdbError::Formating)?,
+                .map_err(PdbError::Formatting)?,
             );
             *nb_atom += 1;
         }
@@ -435,7 +435,7 @@ pub enum PdbError {
     EmptyNucleotide,
     EmptyBase,
     MissingAtom(String),
-    Formating(std::fmt::Error),
+    Formatting(std::fmt::Error),
     IOError(std::io::Error),
 }
 
@@ -577,7 +577,7 @@ pub struct PdbFormatter {
 }
 
 pub struct PdbStrand<'a> {
-    pdb_formater: ManuallyDrop<&'a mut PdbFormatter>,
+    pdb_formatter: ManuallyDrop<&'a mut PdbFormatter>,
     nucleotides: Vec<PdbNucleotide>,
     is_cyclic: bool,
 }
@@ -618,7 +618,7 @@ impl PdbFormatter {
     /// Create a new strand. The returned value must be droped with `PdbStrand::write`.
     pub fn start_strand<'a>(&'a mut self, cyclic: bool) -> PdbStrand<'a> {
         PdbStrand {
-            pdb_formater: ManuallyDrop::new(self),
+            pdb_formatter: ManuallyDrop::new(self),
             nucleotides: Vec::new(),
             is_cyclic: cyclic,
         }
@@ -633,10 +633,10 @@ impl PdbStrand<'_> {
         orientation: Rotor3,
     ) -> Result<(), PdbError> {
         let nucl = self
-            .pdb_formater
+            .pdb_formatter
             .reference
             .get_nucl(&base.to_string())
-            .or_else(|| self.pdb_formater.reference.get_nucl("A"))
+            .or_else(|| self.pdb_formatter.reference.get_nucl("A"))
             .ok_or_else(|| PdbError::MissingAtom("A".to_string()))?
             .clone()
             .with_residue_idx(self.nucleotides.len() + 1)
@@ -649,7 +649,7 @@ impl PdbStrand<'_> {
     pub fn write(self) -> Result<(), PdbError> {
         let mut nucls_strs = Vec::with_capacity(self.nucleotides.len());
 
-        let pdb_formatter = ManuallyDrop::into_inner(self.pdb_formater);
+        let pdb_formatter = ManuallyDrop::into_inner(self.pdb_formatter);
 
         let chain_id = ((pdb_formatter.current_strand_id % 26) as u8 + b'A') as char;
 

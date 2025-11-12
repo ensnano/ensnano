@@ -120,8 +120,8 @@ fn scadnano_import_one_loopout() {
 fn assert_good_strand<S: std::ops::Deref<Target = str>>(strand: &Strand, objective: S) {
     use regex::Regex;
     let re = Regex::new(r#"\[[^\]]*\]"#).unwrap();
-    let formated_strand = strand.formatted_domains();
-    let left = re.find_iter(&formated_strand);
+    let formatted_strand = strand.formatted_domains();
+    let left = re.find_iter(&formatted_strand);
     let right = re.find_iter(&objective);
     for (a, b) in left.zip(right) {
         assert_eq!(a.as_str(), b.as_str());
@@ -153,15 +153,15 @@ fn assert_sane_domains_cyclic(dom: &[Domain]) {
 }
 
 #[test]
-fn correct_sanetization() {
+fn correct_sanitization() {
     let mut strand = strand_with_insertion();
     let sane_domains = sanitize_domains(&strand.domains, false);
     strand.domains = sane_domains;
-    assert_good_strand(&strand, formated_sane_strand_with_insertion());
+    assert_good_strand(&strand, formatted_sane_strand_with_insertion());
 }
 
 #[test]
-fn correct_sanetization_cyclic() {
+fn correct_sanitization_cyclic() {
     let mut strand = strand_with_insertion();
     strand.is_cyclic = true;
     let sane_domains = sanitize_domains(&strand.domains, true);
@@ -172,7 +172,7 @@ fn correct_sanetization_cyclic() {
 }
 
 #[test]
-fn correct_sanetization_cyclic_pathological() {
+fn correct_sanitization_cyclic_pathological() {
     let mut strand = strand_with_insertion();
     strand.is_cyclic = true;
     let add_prime5 = 123;
@@ -185,13 +185,13 @@ fn correct_sanetization_cyclic_pathological() {
         vec![4, 8, 4, 5, 8, add_prime5 + add_prime3]
     );
     strand.domains = sane_domains;
-    let mut expected = String::from(formated_sane_strand_with_insertion());
+    let mut expected = String::from(formatted_sane_strand_with_insertion());
     write!(&mut expected, "[@{}]", add_prime5 + add_prime3).unwrap();
     assert_good_strand(&strand, expected);
 }
 
 #[test]
-fn correct_sanetization_cyclic_insertion_5prime() {
+fn correct_sanitization_cyclic_insertion_5prime() {
     let mut strand = strand_with_insertion();
     strand.is_cyclic = true;
     let insertion_prime5 = 17;
@@ -206,7 +206,7 @@ fn correct_sanetization_cyclic_insertion_5prime() {
 }
 
 #[test]
-fn correct_sanetization_cyclic_insertion_3prime() {
+fn correct_sanitization_cyclic_insertion_3prime() {
     let mut strand = strand_with_insertion();
     strand.is_cyclic = true;
     let insertion_prime3 = 17;
@@ -219,7 +219,7 @@ fn correct_sanetization_cyclic_insertion_3prime() {
 }
 
 #[test]
-fn correct_sanetization_cyclic_insertion_3prime_5prime() {
+fn correct_sanitization_cyclic_insertion_3prime_5prime() {
     let mut strand = strand_with_insertion();
     strand.is_cyclic = true;
     let insertion_prime5 = 12;
@@ -626,23 +626,23 @@ fn test_insertion_right_to_left() {
     assert_good_strand(&strand, objective);
 }
 
-/// A strand whose inital topology is [H1: 0 -> 3] [@5] [@3] [H1: 4 -> 7] [@5] [H2: 0 <- 7]
+/// A strand whose initial topology is [H1: 0 -> 3] [@5] [@3] [H1: 4 -> 7] [@5] [H2: 0 <- 7]
 fn strand_with_insertion() -> Strand {
     let strand_str = include_str!("./strand_with_insertion.json");
     let strand: Strand = serde_json::from_str(&strand_str).expect("Could not parse strand");
     strand
 }
 
-fn formated_strand_with_insertion() -> &'static str {
+fn formatted_strand_with_insertion() -> &'static str {
     "[H1: 0 -> 3] [@5] [@3] [H1: 4 -> 7] [@5] [H2: 0 <- 7]"
 }
 
-fn formated_sane_strand_with_insertion() -> &'static str {
+fn formatted_sane_strand_with_insertion() -> &'static str {
     "[H1: 0 -> 3] [@8] [H1: 4 -> 7] [@5] [H2: 0 <- 7]"
 }
 
 #[test]
-fn check_formated_strand_with_insertion() {
+fn check_formatted_strand_with_insertion() {
     let strand = strand_with_insertion();
-    assert_good_strand(&strand, formated_strand_with_insertion())
+    assert_good_strand(&strand, formatted_strand_with_insertion())
 }

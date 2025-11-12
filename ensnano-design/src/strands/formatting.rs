@@ -17,9 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::*;
-
-use std::fmt;
-use std::fmt::Write;
+use std::fmt::{self, Write};
 
 impl Strand {
     pub fn formatted_domains(&self) -> String {

@@ -83,8 +83,8 @@ impl InsertionDescriptor {
                     let a = 0.0;
                     let b = 10. * d;
                     if cord_length(a, b, false, self.nb_nucl) > helix_parameters.dist_ac() {
-                        // the objective_len is very close to the length of the straight line
-                        // between the to exremities
+                        // objective_len is very close to the length of the straight line
+                        // between the two extremities
                         return None;
                     }
                     (a, b, false)
@@ -260,7 +260,7 @@ impl Strand {
                         log::error!("Could not get space pos for insertion");
                     }
                 } else {
-                    log::error!("two insertions next to eachother");
+                    log::error!("two insertions next to each other");
                 }
             }
         }

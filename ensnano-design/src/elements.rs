@@ -190,7 +190,7 @@ impl OrganizerElement for DesignElement {
                 domain_lengths.clone().iter().min().copied(),
                 domain_lengths.clone().iter().max().copied(),
             ) {
-                (Some(nmin), Some(nmax)) => Some((nmin, nmax)),
+                (Some(n_min), Some(n_max)) => Some((n_min, n_max)),
                 _ => None,
             },
 

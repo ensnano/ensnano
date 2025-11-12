@@ -271,8 +271,8 @@ impl GridType {
 
     pub fn set_shift(&mut self, shift: f32, helix_parameters: &HelixParameters) {
         match self {
-            GridType::Square(_) => println!("WARNING changing shif of non hyperboloid grid"),
-            GridType::Honeycomb(_) => println!("WARNING changing shif of non hyperboloid grid"),
+            GridType::Square(_) => println!("WARNING changing shift of non hyperboloid grid"),
+            GridType::Honeycomb(_) => println!("WARNING changing shift of non hyperboloid grid"),
             GridType::Hyperboloid(h) => h.modify_shift(shift, helix_parameters),
         }
     }
@@ -429,10 +429,10 @@ impl Grid {
         y: isize,
         t_min: Option<f64>,
         t_max: Option<f64>,
-        center_of_gravitiy: Option<Vec3>,
+        center_of_gravity: Option<Vec3>,
     ) -> Option<Arc<CurveDescriptor>> {
         let info = CurveInfo {
-            position: center_of_gravitiy.unwrap_or(self.position),
+            position: center_of_gravity.unwrap_or(self.position),
             orientation: self.orientation,
             t_min,
             t_max,
@@ -608,16 +608,16 @@ impl GridDivision for HoneyComb {
     }
 
     fn translation_to_edge(&self, x1: isize, y1: isize, x2: isize, y2: isize) -> Edge {
-        let partity = x1.abs() % 2 == y1.abs() % 2;
-        Edge::Honney {
+        let parity = x1.abs() % 2 == y1.abs() % 2;
+        Edge::Honey {
             x: x2 - x1,
             y: y2 - y1,
-            start_parity: partity,
+            start_parity: parity,
         }
     }
 
     fn translate_by_edge(&self, x1: isize, y1: isize, edge: Edge) -> Option<(isize, isize)> {
-        if let Edge::Honney { x, y, .. } = edge {
+        if let Edge::Honey { x, y, .. } = edge {
             Some((x1 + x, y1 + y))
         } else {
             None
@@ -696,7 +696,7 @@ pub enum Edge {
         x: isize,
         y: isize,
     },
-    Honney {
+    Honey {
         x: isize,
         y: isize,
         start_parity: bool,
@@ -1094,8 +1094,7 @@ impl GridData {
         }
     }
 
-    /// Retrun the edge between two grid position. Return None if the position are not in the same
-    /// grid.
+    /// Return the edge between two grid position. Return None if the position are not in the same grid.
     pub fn get_edge(&self, pos1: &HelixGridPosition, pos2: &HelixGridPosition) -> Option<Edge> {
         if pos1.grid == pos2.grid {
             self.grids.get(&pos1.grid).map(|g| {
@@ -1192,24 +1191,23 @@ impl GridData {
     ) -> Option<(Vec3, Vec3)> {
         let grid_start = self.grids.get(&start.grid)?;
         let grid_end = self.grids.get(&end.grid)?;
-        let dumy_start_helix = Helix::new_on_grid(grid_start, start.x, start.y, start.grid);
-        let mut start_axis = dumy_start_helix
+        let dummy_start_helix = Helix::new_on_grid(grid_start, start.x, start.y, start.grid);
+        let mut start_axis = dummy_start_helix
             .get_axis(&self.helix_parameters)
             .direction()
             .unwrap_or_else(Vec3::zero);
-        let dumy_end_helix = Helix::new_on_grid(grid_end, end.x, end.y, end.grid);
-        let mut end_axis = dumy_end_helix
+        let dummy_end_helix = Helix::new_on_grid(grid_end, end.x, end.y, end.grid);
+        let mut end_axis = dummy_end_helix
             .get_axis(&self.helix_parameters)
             .direction()
             .unwrap_or_else(Vec3::zero);
         start_axis.normalize();
         end_axis.normalize();
-        let start = dumy_start_helix.position;
-        let end = dumy_end_helix.position;
+        let start = dummy_start_helix.position;
+        let end = dummy_end_helix.position;
         let middle = (end - start) / 2.;
         let vec_start = middle.dot(start_axis) * start_axis;
-        // Do not negate it, it corresponds to the tengeant of the piece that will leave at that
-        // point
+        // Do not negate it, it corresponds to the tangent of the piece that will leave at that point
         let vec_end = middle.dot(end_axis) * end_axis;
         Some((
             vec_start.rotated_by(grid_start.orientation.reversed()),
@@ -1278,7 +1276,7 @@ pub(super) fn make_grid_from_helices(
 }
 
 /// A mutable view to a design and it's grid data.
-/// When this view is droped, the design's helices are automatically updated.
+/// When this view is dropped, the design's helices are automatically updated.
 pub(super) struct HelicesTranslator<'a> {
     design: &'a mut Design,
     grid_data: GridData,
@@ -1350,7 +1348,7 @@ impl CurveInstantiator for GridData {
         if let Some(grid) = self.grids.get(&position.grid) {
             grid.position_helix(position.x, position.y)
         } else {
-            log::error!("Attempt to get position on unexisting grid. This is a bug");
+            log::error!("Attempt to get position on non-existent grid. This is a bug");
             Vec3::zero()
         }
     }
