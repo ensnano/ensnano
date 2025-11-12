@@ -107,5 +107,5 @@ dx12_only = []
 arc_with_non_send_sync = "allow" # TODO: warn
 too_many_arguments = "allow"     # TODO: warn
 
-# get_unwrap = "warn"
-# wildcard_imports = "warn"
+get_unwrap = "warn"
+wildcard_imports = "warn"

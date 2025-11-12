@@ -198,8 +198,8 @@ impl RollSystem {
             /*if h1 >= h2 {
                 continue;
             }*/
-            let h1 = data.helix_map.get(&n1.helix).unwrap();
-            let h2 = data.helix_map.get(&n2.helix).unwrap();
+            let h1 = &data.helix_map[&n1.helix];
+            let h2 = &data.helix_map[&n2.helix];
             let me = &data.helices[*h1];
             let other = &data.helices[*h2];
 

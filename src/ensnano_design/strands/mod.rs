@@ -452,7 +452,7 @@ impl Strand {
         }
         while let Some(n) = to_merge.pop() {
             let dom2 = self.domains[n + 1].clone();
-            self.domains.get_mut(n).unwrap().merge(&dom2);
+            self.domains[n].merge(&dom2);
             self.domains.remove(n + 1);
             self.junctions.remove(n);
         }

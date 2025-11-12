@@ -395,7 +395,7 @@ impl DesignContent {
         invisible_nucls: &HashSet<Nucl>,
     ) -> Vec<u32> {
         let check_visibility = |&(id, bond): &(&u32, &(Nucl, Nucl))| {
-            if self.object_type.get(id).unwrap().is_helix_cylinder() {
+            if self.object_type[id].is_helix_cylinder() {
                 true
                 // !(invisible_nucls.contains(&bond.0)
                 // && invisible_nucls.contains(&bond.0.compl())
@@ -869,7 +869,7 @@ impl DesignContent {
             let nucl1_ids = bond_ids_sequence
                 .iter()
                 .map(|x| {
-                    let ObjectType::Bond(id1, _) = object_type.get(x).unwrap() else {
+                    let ObjectType::Bond(id1, _) = &object_type[x] else {
                         panic!("The bond is not a bond");
                     };
                     *id1
@@ -878,7 +878,7 @@ impl DesignContent {
             let nucl2_ids = bond_ids_sequence
                 .iter()
                 .map(|x| {
-                    let ObjectType::Bond(_, id2) = object_type.get(x).unwrap() else {
+                    let ObjectType::Bond(_, id2) = &object_type[x] else {
                         panic!("The bond is not a bond");
                     };
                     *id2
@@ -893,7 +893,7 @@ impl DesignContent {
                     .zip(bond_ids_sequence.clone())
                     .zip(nucl2_ids.iter().cycle().skip(1))
                 {
-                    let ObjectType::Bond(id1, id2) = object_type.get(&bond_id).unwrap() else {
+                    let ObjectType::Bond(id1, id2) = &object_type[&bond_id] else {
                         panic!("The bond is not a bond");
                     };
 
@@ -905,8 +905,7 @@ impl DesignContent {
                 if !strand.is_cyclic {
                     // modify the first bond to repeat the first nucl_id
                     let first_id = bond_ids_sequence[0];
-                    let ObjectType::SlicedBond(_, id1, id2, next_id) =
-                        object_type.get(&first_id).unwrap()
+                    let ObjectType::SlicedBond(_, id1, id2, next_id) = &object_type[&first_id]
                     else {
                         unreachable!("The sliced bond is not a sliced bond");
                     };
@@ -914,8 +913,7 @@ impl DesignContent {
                         .insert(first_id, ObjectType::SlicedBond(*id1, *id1, *id2, *next_id));
                     // modify the last bond to repeat the second nucl_id
                     let last_id = bond_ids_sequence[n - 1];
-                    let ObjectType::SlicedBond(prev_id, id1, id2, _) =
-                        object_type.get(&last_id).unwrap()
+                    let ObjectType::SlicedBond(prev_id, id1, id2, _) = &object_type[&last_id]
                     else {
                         unreachable!("The sliced bond is not a sliced bond");
                     };
@@ -1178,17 +1176,17 @@ impl DesignContent {
                 // Cloned bonds
                 for (bond, bond_id) in &identifier_bond {
                     let clone_bond_id = id_click_counter.next();
-                    let nucl_1_id = nucleotides_clones.get(&bond.0).unwrap();
-                    let nucl_1 = nucleotide.get(nucl_1_id).unwrap();
-                    let nucl_2_id = nucleotides_clones.get(&bond.1).unwrap();
-                    let nucl_2 = nucleotide.get(nucl_2_id).unwrap();
-                    let bond_color = color_map.get(bond_id).unwrap();
+                    let nucl_1_id = &nucleotides_clones[&bond.0];
+                    let nucl_1 = &nucleotide[nucl_1_id];
+                    let nucl_2_id = &nucleotides_clones[&bond.1];
+                    let nucl_2 = &nucleotide[nucl_2_id];
+                    let bond_color = &color_map[bond_id];
                     let clone_bond_color =
                         Instance::color_au32_with_alpha_scaled_by(*bond_color, CLONE_OPACITY);
-                    let bond_radius = radius_map.get(bond_id).unwrap();
-                    let strand_id = strand_map.get(bond_id).unwrap();
-                    let helix_id = helix_map.get(bond_id).unwrap();
-                    let xover_coloring = xover_coloring_map.get(bond_id).unwrap();
+                    let bond_radius = &radius_map[bond_id];
+                    let strand_id = &strand_map[bond_id];
+                    let helix_id = &helix_map[bond_id];
+                    let xover_coloring = &xover_coloring_map[bond_id];
                     object_type.insert(clone_bond_id, ObjectType::Bond(*nucl_1_id, *nucl_2_id));
                     nucleotides_involved.insert(clone_bond_id, (*nucl_1, *nucl_2));
                     color_map.insert(clone_bond_id, clone_bond_color);
@@ -1206,14 +1204,14 @@ impl DesignContent {
                 // Cloned cylinders
                 for bond_id in &helix_cylinders {
                     let clone_bond_id = id_click_counter.next();
-                    let (nucl_1, nucl_2) = nucleotides_involved.get(bond_id).unwrap();
-                    let clone_nucl_1_id = nucleotides_clones.get(nucl_1).unwrap();
-                    let clone_nucl_2_id = nucleotides_clones.get(nucl_2).unwrap();
-                    let bond_color = color_map.get(bond_id).unwrap();
+                    let (nucl_1, nucl_2) = &nucleotides_involved[bond_id];
+                    let clone_nucl_1_id = &nucleotides_clones[nucl_1];
+                    let clone_nucl_2_id = &nucleotides_clones[nucl_2];
+                    let bond_color = &color_map[bond_id];
                     let clone_bond_color =
                         Instance::color_au32_with_alpha_scaled_by(*bond_color, CLONE_OPACITY);
-                    let bond_radius = radius_map.get(bond_id).unwrap();
-                    let helix_id = helix_map.get(bond_id).unwrap();
+                    let bond_radius = &radius_map[bond_id];
+                    let helix_id = &helix_map[bond_id];
                     object_type.insert(
                         clone_bond_id,
                         ObjectType::HelixCylinder(*clone_nucl_1_id, *clone_nucl_2_id), // SHOULD REMEMBER THE CLONING NUMBER -> have a map that maps a nucl to the array of its clones and use it when displaying the helix cylinder for real
@@ -1230,7 +1228,7 @@ impl DesignContent {
             let mut s1 = "{\n\t".to_string();
             let mut s2 = "{\n\t".to_string();
             for (i, n) in nucleotide.iter() {
-                let p = axis_space_position.get(i).unwrap();
+                let p = &axis_space_position[i];
                 s1.push_str(
                     format!(
                         "({},{},{}):({},{},{}),",
@@ -1243,7 +1241,7 @@ impl DesignContent {
                     )
                     .as_str(),
                 );
-                let p = space_position.get(i).unwrap();
+                let p = &space_position[i];
                 s2.push_str(
                     format!(
                         "({},{},{}):({},{},{}),",

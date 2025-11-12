@@ -350,7 +350,7 @@ fn build_strong_springs(
                     let down_index = window.first().unwrap();
 
                     let down_pair = intermediary.pairs[down_index];
-                    let down_up = up_vectors.get(down_index).unwrap();
+                    let down_up = &up_vectors[down_index];
 
                     let IntermediaryPair::Pair(down_i, _, down_j) = down_pair else {
                         panic!("Incoherent double ranges");
@@ -376,7 +376,7 @@ fn build_strong_springs(
                     let up_index = window.last().unwrap();
 
                     let up_pair = intermediary.pairs[up_index];
-                    let up_up = up_vectors.get(up_index).unwrap();
+                    let up_up = &up_vectors[up_index];
 
                     let IntermediaryPair::Pair(up_i, _, up_j) = up_pair else {
                         panic!("Incoherent double ranges");

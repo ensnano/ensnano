@@ -245,8 +245,8 @@ impl DesignData {
         let mut ret = 0.0;
         let len_0 = super::roller::dist_ac(&self.helix_parameters) as f64;
         for (n1, n2) in self.xovers.iter() {
-            let hid_1 = self.helix_map.get(&n1.helix).unwrap();
-            let hid_2 = self.helix_map.get(&n2.helix).unwrap();
+            let hid_1 = &self.helix_map[&n1.helix];
+            let hid_2 = &self.helix_map[&n2.helix];
             let helix_1 = &self.helices[*hid_1];
             let helix_2 = &self.helices[*hid_2];
 

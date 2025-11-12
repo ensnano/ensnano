@@ -593,7 +593,7 @@ impl crate::ensnano_scene::data::SceneDesignReaderExt for DesignInteractor {
                             .unwrap_or_else(|| {
                                 unreachable!("nucleotide does not belong to the design content!")
                             });
-                        let position = *content.space_position.get(nucl_id).unwrap();
+                        let position = content.space_position[nucl_id];
                         pos_seq.push(position);
                         curvatures.push(
                             design

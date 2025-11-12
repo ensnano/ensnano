@@ -1165,9 +1165,7 @@ impl MainState {
             .get(&GuiComponentType::StereographicScene)
             .and_then(|s| s.lock().unwrap().get_camera())
         {
-            self.applications
-                .get(&GuiComponentType::Scene)
-                .unwrap()
+            self.applications[&GuiComponentType::Scene]
                 .lock()
                 .unwrap()
                 .on_notify(Notification::NewStereographicCamera(camera_ptr));

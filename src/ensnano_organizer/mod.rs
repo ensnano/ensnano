@@ -707,7 +707,7 @@ impl<E: OrganizerElement> Organizer<E> {
         if id.len() < 2 {
             if self.groups.len() > id[0] {
                 ret = Some(std::mem::replace(
-                    self.groups.get_mut(id[0]).unwrap(),
+                    &mut self.groups[id[0]],
                     GroupContent::Placeholder,
                 ))
             } else {
@@ -741,10 +741,7 @@ impl<E: OrganizerElement> Organizer<E> {
             let insertion_point = if from_top { id[0] + 1 } else { id[0] };
             self.groups.insert(insertion_point, content);
         } else {
-            self.groups
-                .get_mut(id[0])
-                .unwrap()
-                .add_at_id(&id[1..], content, from_top)
+            self.groups[id[0]].add_at_id(&id[1..], content, from_top)
         }
     }
 

@@ -257,7 +257,7 @@ impl StrandMaker<'_, '_> {
         self.context.bonds.push(bond);
 
         if let Some(prev) = self.prev_nucl {
-            self.context.bonds.get_mut(prev as usize).unwrap().prime3 = self.context.nucl_id;
+            self.context.bonds[prev as usize].prime3 = self.context.nucl_id;
         }
 
         self.prev_nucl = Some(self.context.nucl_id);
@@ -278,11 +278,7 @@ impl StrandMaker<'_, '_> {
     pub fn end(self, cyclic: bool) {
         if cyclic {
             self.context.bonds.iter_mut().last().unwrap().prime3 = self.first_strand_nucl;
-            self.context
-                .bonds
-                .get_mut(self.first_strand_nucl as usize)
-                .unwrap()
-                .prime5 = self.context.nucl_id - 1;
+            self.context.bonds[self.first_strand_nucl as usize].prime5 = self.context.nucl_id - 1;
         }
     }
 }
