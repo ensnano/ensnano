@@ -3,9 +3,9 @@
 use iced::Font;
 
 pub const MATERIAL_ICONS_LIGHT_BYTES: &[u8] =
-    include_bytes!("../../../font/MaterialIconsOutlined-Regular.ttf");
+    include_bytes!("../../../fonts/MaterialIconsOutlined-Regular.ttf");
 pub const MATERIAL_ICONS_DARK_BYTES: &[u8] =
-    include_bytes!("../../../font/MaterialIcons-Regular.ttf");
+    include_bytes!("../../../fonts/MaterialIcons-Regular.ttf");
 
 pub const MATERIAL_ICONS_LIGHT: Font = Font::with_name("Material Icons Outlined");
 pub const MATERIAL_ICONS_DARK: Font = Font::with_name("Material Icons");
