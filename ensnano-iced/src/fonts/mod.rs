@@ -31,9 +31,9 @@ use iced::font;
 pub mod material_icons;
 pub use material_icons::{MATERIAL_ICONS_DARK, MaterialIcon, MaterialIconStyle, icon_to_char};
 
-const ENSNANO_FONT_BYTES: &[u8] = include_bytes!("../../font/ensnano2.ttf");
-const INTER_BOLD_FONT_BYTES: &[u8] = include_bytes!("../../font/Inter-Bold.ttf");
-const INTER_REGULAR_FONT_BYTES: &[u8] = include_bytes!("../../font/Inter-Regular.ttf");
+const ENSNANO_FONT_BYTES: &[u8] = include_bytes!("../../../font/ensnano2.ttf");
+const INTER_BOLD_FONT_BYTES: &[u8] = include_bytes!("../../../font/Inter-Bold.ttf");
+const INTER_REGULAR_FONT_BYTES: &[u8] = include_bytes!("../../../font/Inter-Regular.ttf");
 
 // NOTE: We export here all fonts used in ENSnano.
 pub const ENSNANO_FONT: Font = Font::with_name("Ensnano");
