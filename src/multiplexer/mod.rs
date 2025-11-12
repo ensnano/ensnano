@@ -15,6 +15,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
 //! This module handles the different regions of the window.
 //!
 //! The [layout_manager] splits the window into different regions and attribute each region to an
@@ -26,8 +27,6 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! appropriate application, GUI component, or overlay. The multiplexer also handles some events
 //! directly, like resizing events or keyboard input that should be handled independently of the
 //! focused region.
-//!
-//!
 //!
 //! The multiplexer is also in charge of drawing to the frame.
 
@@ -57,8 +56,6 @@ use std::{
 };
 
 /// A structure that handles the division of the window into different `DrawArea`.
-///
-///
 pub struct Multiplexer {
     /// The *physical* size of the window.
     pub window_size: PhySize,
@@ -475,8 +472,8 @@ impl Multiplexer {
             }
             WindowEvent::ScaleFactorChanged { scale_factor, .. } => {
                 self.scale_factor = *scale_factor;
-                //self.window_size = **new_inner_size;
-                //TODO: The WindowEvent used to provide [new_inner_size], that we use to
+                // self.window_size = **new_inner_size;
+                // TODO: The WindowEvent used to provide [new_inner_size], that we use to
                 //      update self.windows_size. This is now longer possible, and I
                 //      don't know where to get the new size.
                 //      Please, check and fix the self.window_size value.
@@ -540,9 +537,7 @@ impl Multiplexer {
                     },
                 ..
             } => {
-                //
                 // NOTE: Gui keyboard shortcuts are defined and handled here.
-                //
                 captured = true;
                 match logical_key.as_ref() {
                     Key::Named(NamedKey::Escape) => {
