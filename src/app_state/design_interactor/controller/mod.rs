@@ -1087,7 +1087,6 @@ impl Controller {
         }
     }
 
-    #[allow(clippy::needless_return)] // I just like to make it explicit
     fn update_state_not_design(&mut self, design: &Design) {
         if let ControllerState::ApplyingOperation { .. } = &self.state {
             return;
@@ -1870,7 +1869,7 @@ impl OkOperation {
 }
 
 // Some values are only used for logging the error, which Rust considers to be unused
-#[allow(unused)]
+#[expect(unused)]
 #[derive(Debug)]
 pub enum ErrOperation {
     GroupHasNoPivot(GroupId),
@@ -2857,21 +2856,16 @@ impl Controller {
             .get_mut(&strand_id)
             .ok_or(ErrOperation::StrandDoesNotExist(strand_id))?;
         if cyclic {
-            let first_last_domains = (strand.domains.first(), strand.domains.iter().last());
-            let (merge_insertions, replace) = if let (
-                Some(Domain::Insertion { nb_nucl: n1, .. }),
-                Some(Domain::Insertion { nb_nucl: n2, .. }),
-            ) = first_last_domains
+            let (merge_insertions, replace) = match (strand.domains.first(), strand.domains.last())
             {
-                (Some(n1 + n2), true)
-            } else if let Some(Domain::Insertion { nb_nucl: n1, .. }) = strand.domains.first() {
-                if cfg!(test) {
-                    println!("First domain is insertion");
-                }
-                (Some(*n1), false)
-            } else {
-                (None, false)
+                (
+                    Some(Domain::Insertion { nb_nucl: n1, .. }),
+                    Some(Domain::Insertion { nb_nucl: n2, .. }),
+                ) => (Some(n1 + n2), true),
+                (Some(Domain::Insertion { nb_nucl, .. }), _) => (Some(*nb_nucl), false),
+                _ => (None, false),
             };
+
             if let Some(n) = merge_insertions {
                 // If the strand starts and finishes by an Insertion, merge the insertions.
                 // TODO UNITTEST for this specific case
@@ -2888,23 +2882,15 @@ impl Controller {
                 strand.junctions.remove(0);
             }
 
-            let first_last_domains = (strand.domains.first(), strand.domains.iter().last());
-            #[allow(clippy::bool_to_int_with_if)]
-            let skip_last = if let (_, Some(Domain::Insertion { .. })) = first_last_domains {
-                1
-            } else {
-                0
-            };
-            #[allow(clippy::bool_to_int_with_if)]
-            let skip_first = if let (Some(Domain::Insertion { .. }), _) = first_last_domains {
-                1
-            } else {
-                0
-            };
+            let skip_first =
+                matches!(strand.domains.first(), Some(Domain::Insertion { .. })) as usize;
+            let skip_last =
+                matches!(strand.domains.last(), Some(Domain::Insertion { .. })) as usize;
             let last_first_intervals = (
                 strand.domains.iter().rev().nth(skip_last),
                 strand.domains.get(skip_first),
             );
+
             if let (Some(Domain::HelixDomain(i1)), Some(Domain::HelixDomain(i2))) =
                 last_first_intervals
             {
