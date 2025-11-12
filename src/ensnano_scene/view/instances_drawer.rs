@@ -527,15 +527,15 @@ pub trait RawDrawer {
         model_bind_group: &'a wgpu::BindGroup,
     );
 
-    fn new_instances_raw(&mut self, instances_raw: &Vec<Self::RawInstance>);
+    fn new_instances_raw(&mut self, instances_raw: &[Self::RawInstance]);
 }
 
 impl<D: Instantiable> RawDrawer for InstanceDrawer<D> {
     type RawInstance = <D as Instantiable>::RawInstance;
 
-    fn new_instances_raw(&mut self, instances_raw: &Vec<D::RawInstance>) {
+    fn new_instances_raw(&mut self, instances_raw: &[D::RawInstance]) {
         self.nb_instances = instances_raw.len() as u32;
-        self.instances.update(instances_raw.as_slice());
+        self.instances.update(instances_raw);
     }
 
     fn draw<'a>(

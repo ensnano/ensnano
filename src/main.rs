@@ -222,21 +222,22 @@ const PANIC_ON_WGPU_ERRORS: bool = true;
 /// * It requests a connection to the GPU and creates a framebuffer.
 /// * It initializes a multiplexer.
 /// * It initializes applications and GUI component, and associate regions of the screen to these
-/// components
+///   components
 /// * It initializes the [Mediator](crate::ensnano_interactor::application::AppId::Mediator), the
-/// [Scheduler] and the [Gui manager](crate::ensnano_gui::Gui)
+///   [Scheduler] and the [Gui manager](crate::ensnano_gui::Gui)
 ///
 /// # Event loop
 ///
 /// * The event loop waits for an event. If no event is received during 33ms, a new redraw is
-/// requested.
+///   requested.
 /// * When a event is received, it is forwarded to the multiplexer. The Multiplexer may then
-/// convert this event into an event for a specific screen region.
+///   convert this event into an event for a specific screen region.
 /// * When all window events have been handled, the main function reads messages that it received
-/// from the [Gui Manager](crate::ensnano_gui::Gui). The consequences of these messages are forwarded to the
-/// applications.
-/// * The main loops then reads the messages that it received from the [Mediator](crate::ensnano_interactor::application::AppId::Mediator) and
-/// forwards their consequences to the Gui components.
+///   from the [Gui Manager](crate::ensnano_gui::Gui). The consequences of these messages are
+///   forwarded to the applications.
+/// * The main loops then reads the messages that it received from the
+///   [Mediator](crate::ensnano_interactor::application::AppId::Mediator)
+///   and forwards their consequences to the Gui components.
 /// * Finally, a redraw is requested.
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     if EARLY_LOG {

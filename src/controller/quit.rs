@@ -17,12 +17,12 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::{State, TransitionMessage, YesNo, dialog, messages};
-use crate::MainStateView;
-use crate::controller::normal_state::NormalState;
-use crate::dialog::Filters;
-use crate::ensnano_exports::ExportType;
+use crate::{
+    MainStateView, controller::normal_state::NormalState, dialog::Filters,
+    ensnano_exports::ExportType,
+};
 use dialog::PathInput;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 pub(super) struct Quit {
     step: QuitStep,
@@ -118,7 +118,6 @@ impl Load {
     }
 }
 
-use std::path::PathBuf;
 enum LoadStep {
     Init { need_save: Option<Option<PathBuf>> },
     AskPath { path_input: Option<PathInput> },

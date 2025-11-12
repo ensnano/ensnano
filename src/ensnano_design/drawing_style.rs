@@ -27,9 +27,9 @@ pub enum ColorType {
 }
 
 impl ColorType {
-    pub fn to_u32(&self) -> u32 {
+    pub fn to_u32(self) -> u32 {
         match self {
-            ColorType::Plain(color) => *color,
+            ColorType::Plain(color) => color,
         }
     }
 }
@@ -77,7 +77,7 @@ impl FromStr for DrawingAttribute {
             .collect::<Vec<&str>>();
 
         let len = parsed.len();
-        if len <= 0 {
+        if len == 0 {
             return Err(ParsePointError);
         }
 
@@ -112,7 +112,7 @@ impl FromStr for DrawingAttribute {
                 if len > 2
                     && let Ok(alpha) = f32::from_str(parsed[2])
                 {
-                    let alpha = (alpha * 255.).min(255.).max(0.).round() as u32;
+                    let alpha = (alpha * 255.).clamp(0., 255.).round() as u32;
                     color = (color & 0xFF_FF_FF) | (alpha << 24);
                     if parsed.len() > 3
                         && let Ok(h_range) = f64::from_str(parsed[3])

@@ -296,7 +296,7 @@ impl LayoutNode {
     /// Arguments:
     ///
     /// * `top_proportion` — the proportion of the initial area attributed to the top area. It must
-    /// be between 0.0 and 1.0
+    ///   be between 0.0 and 1.0
     /// * `top_ident` — identifier given to the top area.
     /// * `bottom_ident` — identifier given to the bottom area.
     ///
@@ -359,7 +359,7 @@ impl LayoutNode {
     /// Arguments
     ///
     /// * `left_proportion` — the proportion of the initial area attributed to the left area. It
-    /// must be between 0. and 1.
+    ///   must be between 0. and 1.
     /// * `left_ident` — identifier be given to the left area.
     /// * `right_ident` — identifier be given to the right area.
     ///
@@ -552,13 +552,13 @@ impl LayoutNode {
             LayoutNode::VSplit { left, right, .. } => {
                 let delta = position.x - clicked_position.x;
                 let delta_prop = delta / (*right - *left);
-                let new_prop = (old_proportion + delta_prop).min(0.95).max(0.05);
+                let new_prop = (old_proportion + delta_prop).clamp(0.05, 0.95);
                 self.resize(new_prop);
             }
             LayoutNode::HSplit { top, bottom, .. } => {
                 let delta = position.y - clicked_position.y;
                 let delta_prop = delta / (*bottom - *top);
-                let new_prop = (old_proportion + delta_prop).min(0.95).max(0.05);
+                let new_prop = (old_proportion + delta_prop).clamp(0.05, 0.95);
                 self.resize(new_prop);
             }
             LayoutNode::Area { .. } => {

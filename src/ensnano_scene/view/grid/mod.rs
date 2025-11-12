@@ -20,7 +20,7 @@ mod texture;
 
 use super::{LetterInstance, grid_disc::GridDisc, instances_drawer::*};
 use crate::ensnano_design::grid::{Grid, GridDivision, GridId, GridPosition, GridType};
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, f32::INFINITY};
 use ultraviolet::{Mat4, Vec2, Vec3, Vec4};
 use wgpu::{Device, RenderPass, include_spirv};
 
@@ -280,7 +280,7 @@ impl GridManager {
 
     pub fn intersect(&self, origin: Vec3, direction: Vec3) -> Option<GridIntersection> {
         let mut ret = None;
-        let mut depth = std::f32::INFINITY;
+        let mut depth = INFINITY;
         for g in self.instances.values() {
             if let Some(intersection) = g.ray_intersection(origin, direction)
                 && intersection.depth < depth

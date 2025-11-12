@@ -90,3 +90,6 @@ license.workspace = true
 [features]
 log_after_renderer_setup = []
 dx12_only = []
+
+[lints.clippy]
+too_many_arguments = "allow"

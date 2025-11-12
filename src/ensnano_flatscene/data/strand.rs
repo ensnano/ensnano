@@ -210,8 +210,7 @@ const MINIMUM_THICKNESS: f32 = 0.7;
 impl StrokeVertexConstructor<StrandVertex> for WithAttributes {
     fn new_vertex(&mut self, mut vertex: StrokeVertex) -> StrandVertex {
         let mut width = (vertex.interpolated_attributes()[1] * 3.)
-            .min(1.)
-            .max(-1.)
+            .clamp(-1., 1.)
             .abs()
             .powf(THINNING_POWER)
             .max(MINIMUM_THICKNESS);
