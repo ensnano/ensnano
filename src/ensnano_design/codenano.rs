@@ -17,7 +17,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use serde::{Deserialize, Serialize};
-use std::{borrow::Cow, f64::consts::PI, fmt};
+use std::{
+    borrow::Cow,
+    f64::consts::{PI, TAU},
+    fmt,
+};
 use ultraviolet::DVec3;
 
 /// The main type of this crate, describing a DNA design.
@@ -408,7 +412,7 @@ impl Helix {
     /// Angle of base number `n` around this helix.
     pub fn theta(&self, n: isize, forward: bool, cst: &Parameters) -> f64 {
         let shift = if forward { cst.groove_angle } else { 0. };
-        n as f64 * 2. * PI / cst.bases_per_turn + shift + self.roll + PI
+        n as f64 * TAU / cst.bases_per_turn + shift + self.roll + PI
     }
 
     /// 3D position of a nucleotide on this helix. `n` is the position along the axis, and `forward` is true iff the 5' to 3' direction of the strand containing that nucleotide runs in the same direction as the axis of the helix.

@@ -28,7 +28,7 @@ use crate::{
 };
 use std::{
     collections::HashMap,
-    f32::consts::{PI, SQRT_2},
+    f32::consts::{SQRT_2, TAU},
     sync::{Arc, Mutex, Weak},
 };
 
@@ -103,7 +103,7 @@ impl PhysicalSystem {
 }
 
 fn angle_aoc2(helix_parameters: &HelixParameters) -> f32 {
-    2. * PI / helix_parameters.bases_per_turn
+    TAU / helix_parameters.bases_per_turn
 }
 
 pub(super) fn dist_ac(helix_parameters: &HelixParameters) -> f32 {

@@ -20,7 +20,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::codenano;
 use serde::{Deserialize, Serialize};
-use std::f32::consts::{PI, SQRT_2, TAU};
+use std::f32::consts::{SQRT_2, TAU};
 
 /// DNA geometric parameters.
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
@@ -142,7 +142,7 @@ impl HelixParameters {
         // bases per turn from Woo Rothemund (Nature Chemistry).
         bases_per_turn: 10.44,
         // minor groove 12 Å, major groove 22 Å total 34 Å
-        groove_angle: 2. * PI * 12. / 34.,
+        groove_angle: TAU * 12. / 34.,
         // From Paul's paper.
         inter_helix_gap: 0.65,
         // Previous version of ENSnano did not have an inclination parameter

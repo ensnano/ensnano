@@ -19,7 +19,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::instances_drawer::{Instantiable, Vertexable};
 use crate::ensnano_consts::*;
-use std::f32::consts::PI;
+use std::f32::consts::{PI, TAU};
 use ultraviolet::{Mat4, Rotor3, Vec3, Vec4};
 
 use std::iter::zip;
@@ -176,7 +176,7 @@ impl Instantiable for SphereInstance {
         let mut vertices = Vec::new();
 
         let stack_step = PI / NB_STACK_SPHERE as f32;
-        let sector_step = 2. * PI / NB_SECTOR_SPHERE as f32;
+        let sector_step = TAU / NB_SECTOR_SPHERE as f32;
         for i in 0..=NB_STACK_SPHERE {
             // 0..=x means that x is included
             let stack_angle = PI / 2. - (i as f32) * stack_step;
@@ -376,7 +376,7 @@ impl Instantiable for TubeInstance {
             .map(|i| {
                 let point = i / 2;
                 let side = if i % 2 == 0 { -0.5 } else { 0.5 };
-                let theta = (point as f32) * 2. * PI / NB_RAY_TUBE as f32;
+                let theta = (point as f32) * TAU / NB_RAY_TUBE as f32;
                 let position = [side, theta.sin(), theta.cos()];
 
                 let normal = [0., theta.sin(), theta.cos()];
@@ -651,7 +651,7 @@ impl Instantiable for ConeInstance {
                 let point = i / 2 + i % 2;
                 let side = if i % 2 == 0 { 0. } else { 1. };
                 let height = if i % 2 == 0 { radius } else { 0. };
-                let theta = (point as f32) * 2. * PI / NB_RAY_TUBE as f32;
+                let theta = (point as f32) * TAU / NB_RAY_TUBE as f32;
                 let position = [side, theta.sin() * height, theta.cos() * height];
                 use std::f32::consts::FRAC_1_SQRT_2;
 
@@ -667,7 +667,7 @@ impl Instantiable for ConeInstance {
         for i in 0..(2 * NB_RAY_TUBE) {
             let point = i / 2 + i % 2;
             let height = if i % 2 == 0 { radius } else { 0. };
-            let theta = (point as f32) * 2. * PI / NB_RAY_TUBE as f32;
+            let theta = (point as f32) * TAU / NB_RAY_TUBE as f32;
             let position = [0., theta.sin() * height, theta.cos() * height];
             let normal = [1., 0., 0.];
             ret.push(DnaVertex { position, normal });

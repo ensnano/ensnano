@@ -15,13 +15,15 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
 use super::{
     CameraPtr, Drawable, Drawer, GroupPivot, HandleColors, ProjectionPtr, Vertex, maths_3d,
 };
-
 use crate::ensnano_consts::*;
-use std::f32::consts::PI;
-use std::rc::Rc;
+use std::{
+    f32::consts::{PI, TAU},
+    rc::Rc,
+};
 use ultraviolet::{Rotor3, Vec3};
 use wgpu::Device;
 
@@ -373,7 +375,7 @@ impl Drawable for Circle {
         let color = if fake { self.id } else { self.color };
         let thickness = if fake { 0.3 } else { self.thickness };
         for i in 0..=NB_SECTOR_CIRCLE {
-            let theta = 2. * PI * i as f32 / NB_SECTOR_CIRCLE as f32;
+            let theta = TAU * i as f32 / NB_SECTOR_CIRCLE as f32;
             vertices.push(Vertex::new(
                 self.translation
                     + self.origin
@@ -434,7 +436,7 @@ impl Drawable for Sphere {
     fn vertices(&self, fake: bool) -> Vec<Vertex> {
         let mut vertices = Vec::new();
         let stack_step = PI / NB_STACK_SPHERE as f32;
-        let sector_step = 2. * PI / NB_SECTOR_SPHERE as f32;
+        let sector_step = TAU / NB_SECTOR_SPHERE as f32;
         let color = if fake { self.id } else { self.color };
         for i in 0..=NB_STACK_SPHERE {
             // 0..=x means that x is included
