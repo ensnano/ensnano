@@ -18,11 +18,15 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 //! Implements the [Requests](`crate::ensnano_scene::Requests`) trait for [Requests](`super::Requests`).
 
-use super::*;
+use super::Requests;
 use crate::app_state::design_interactor::controller::clipboard::PastePosition;
-use crate::ensnano_interactor::DesignOperation;
+use crate::controller::normal_state::Action;
+use crate::ensnano_design::{Nucl, grid::GridPosition};
+use crate::ensnano_interactor::operation::Operation;
+use crate::ensnano_interactor::{DesignOperation, Selection, application::AppId};
 use crate::ensnano_scene::Requests as SceneRequests;
-use ultraviolet::Rotor3;
+use std::sync::Arc;
+use ultraviolet::{Rotor3, Vec3};
 
 impl SceneRequests for Requests {
     fn update_operation(&mut self, op: Arc<dyn Operation>) {

@@ -19,10 +19,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! This modules defines the `poll_all` method that polls the requests stored in a `Requests`
 //! object.
 
-use super::*;
+use crate::controller::normal_state::Action;
 use crate::ensnano_interactor::{
     DesignOperation, HyperboloidOperation, SelectionConversion, application::Notification,
 };
+use crate::requests::Requests;
 use crate::{MainState, app_state::design_interactor::controller::clipboard::PastePosition};
 use std::ops::DerefMut;
 

@@ -6,6 +6,7 @@
 - Fix text fields in revolution surface tab
 - Click on organizer tree should select and reciprocally (select should highlight in red in organizer tree)
 - Double on organizer tree click should teleport in 2d and 3d scenes
+- Add serialization/deserialization tests to detect regressions based on typo fixes
 
 ## Hide scientific WIP
 
@@ -91,11 +92,10 @@
 - Rename structs with the same name in different crates
 - Remove as many `pub use` as possible
 - Remove as many `use *` as possible
+- Remove as many `use ... as ...` as possible
 - Remove as many `#[allow(...)]` as possible
 - Remove copyright from every file? `LICENSE` at the root should be enough
 - kebab-case -> snake_case for the crate directories
-- Fix all typos using `cspell`
-  - Add serialization/deserialization tests to detect regressions based on typo fixes
 - More consistent styling:
   - Create some `rustfmt.toml` rules?
   - Merge imports?
