@@ -15,6 +15,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
 use super::{
     AppState, Flat, HelixVec, PhantomElement, Requests, ViewPtr,
     flat_types::{FlatSelection, HelixSegment},
@@ -22,10 +23,7 @@ use super::{
 };
 use crate::ensnano_design::Nucl;
 use crate::ensnano_interactor::{Selection, SelectionMode};
-use std::{
-    f32::INFINITY,
-    sync::{Arc, Mutex},
-};
+use std::sync::{Arc, Mutex};
 use ultraviolet::Vec2;
 
 pub(crate) mod helix;
@@ -670,13 +668,13 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
 
     pub fn get_best_suggestion(&self, nucl: FlatNucl) -> Option<FlatNucl> {
         let mut ret = None;
-        let mut best_dist = INFINITY;
+        let mut best_dist = f32::INFINITY;
         if let Some(set) = self.suggestions.get(&nucl) {
             for nucl2 in set {
                 let dist = self
                     .design
                     .get_dist(nucl.to_real(), nucl2.to_real())
-                    .unwrap_or(INFINITY);
+                    .unwrap_or(f32::INFINITY);
                 if dist < best_dist {
                     ret = Some(*nucl2);
                     best_dist = dist;

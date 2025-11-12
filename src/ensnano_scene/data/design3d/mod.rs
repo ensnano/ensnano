@@ -48,7 +48,7 @@ use crate::ensnano_scene::{
 use crate::ensnano_utils::{StrandNucleotidesPositions, colors, instance::Instance};
 use std::{
     collections::{BTreeMap, HashMap, HashSet, hash_map::RandomState},
-    f32::{INFINITY, NEG_INFINITY, consts::TAU},
+    f32::consts::TAU,
     rc::Rc,
     sync::Arc,
 };
@@ -1210,8 +1210,8 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
     }
 
     fn boundaries(&self) -> (Vec3, Vec3) {
-        let mut min = Vec3::new(INFINITY, INFINITY, INFINITY);
-        let mut max = Vec3::new(NEG_INFINITY, NEG_INFINITY, NEG_INFINITY);
+        let mut min = Vec3::new(f32::INFINITY, f32::INFINITY, f32::INFINITY);
+        let mut max = Vec3::new(f32::NEG_INFINITY, f32::NEG_INFINITY, f32::NEG_INFINITY);
 
         let mut update_bounds = |v: Vec3| {
             min = min.min_by_component(v);

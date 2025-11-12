@@ -82,7 +82,7 @@ impl std::convert::From<serde_json::Error> for CadnanoError {
     }
 }
 
-const NO_HELIX: usize = std::usize::MAX;
+const NO_HELIX: usize = usize::MAX;
 
 pub(super) trait FromCadnano: Sized {
     fn from_cadnano(nano: Cadnano) -> Self;

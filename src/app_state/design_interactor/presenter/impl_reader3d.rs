@@ -490,7 +490,7 @@ impl crate::ensnano_scene::data::SceneDesignReaderExt for DesignInteractor {
             .current_design
             .helix_parameters
             .unwrap_or_default();
-        let mut opt_dist = std::f32::INFINITY;
+        let mut opt_dist = f32::INFINITY;
         for i in -2..2 {
             let source_candidate = Nucl {
                 position: source.position + i,

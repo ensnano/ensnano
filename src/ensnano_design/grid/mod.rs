@@ -461,7 +461,7 @@ impl Grid {
         if let Some(position) = self.real_intersection(origin, direction) {
             (position - position_discrete.unwrap()).mag_sq()
         } else {
-            std::f32::INFINITY
+            f32::INFINITY
         }
     }
 }

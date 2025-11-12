@@ -15,6 +15,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
 use super::{
     Stereography, Vec3,
     camera::{CameraPtr, ProjectionPtr},
@@ -205,12 +206,12 @@ pub struct UnalignedBoundaries {
 impl UnalignedBoundaries {
     pub fn from_basis(basis: Basis3D) -> Self {
         Self {
-            min_x: std::f32::INFINITY,
-            min_y: std::f32::INFINITY,
-            min_z: std::f32::INFINITY,
-            max_x: std::f32::NEG_INFINITY,
-            max_y: std::f32::NEG_INFINITY,
-            max_z: std::f32::NEG_INFINITY,
+            min_x: f32::INFINITY,
+            min_y: f32::INFINITY,
+            min_z: f32::INFINITY,
+            max_x: f32::NEG_INFINITY,
+            max_y: f32::NEG_INFINITY,
+            max_z: f32::NEG_INFINITY,
             basis,
         }
     }

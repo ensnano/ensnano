@@ -15,9 +15,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
 use super::instances_drawer::{Instantiable, ResourceProvider, Vertexable};
-use std::convert::TryInto;
-use std::rc::Rc;
+use std::{convert::TryInto as _, rc::Rc};
 use ultraviolet::{Vec2, Vec3};
 use wgpu::{Device, Queue};
 

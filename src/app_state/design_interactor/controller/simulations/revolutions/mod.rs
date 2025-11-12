@@ -225,7 +225,7 @@ impl RevolutionSurfaceSystem {
         let mut nb_spring = 0;
         if let Some(state) = spring_state.as_mut() {
             state.min_ext = f64::INFINITY;
-            state.max_ext = -f64::INFINITY;
+            state.max_ext = f64::NEG_INFINITY;
             state.avg_ext = 0.;
         }
         for i in self.topology.balls_involved_in_spring() {
@@ -371,7 +371,7 @@ struct SpringRelaxationState {
 impl SpringRelaxationState {
     fn new() -> Self {
         Self {
-            min_ext: std::f64::INFINITY,
+            min_ext: f64::INFINITY,
             max_ext: 0.,
             avg_ext: 0.,
         }

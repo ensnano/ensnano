@@ -27,7 +27,7 @@ use crate::ensnano_interactor::UnrootedRevolutionSurfaceDescriptor;
 use crate::ensnano_utils::{bindgroup_manager, text, texture};
 use camera::{Camera, CameraPtr, Projection, ProjectionPtr};
 use int_enum::IntEnum;
-use std::{cell::RefCell, collections::BTreeMap, rc::Rc, usize};
+use std::{cell::RefCell, collections::BTreeMap, rc::Rc};
 use texture::Texture;
 use ultraviolet::{Mat4, Rotor3, Vec3};
 use wgpu::util::DeviceExt as _;

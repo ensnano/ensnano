@@ -1490,7 +1490,7 @@ impl<S: AppState> ControllerState<S> for InitAttachment {
 ///
 /// * If the cursor is moved on a neighbor nucleotide, the controller transition to Building
 /// * If the cursor is moved out of the helix, the strand is cut and the controller transition to
-/// CrossCut state.
+///   CrossCut state.
 ///
 /// It is possible to reach this state with no strand builder being active, in this case moving the
 /// cursor will have no effect and the controller will transition to NormalState when the left mouse

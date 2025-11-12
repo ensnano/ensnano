@@ -611,7 +611,7 @@ fn distance_segment(a: Vec3, b: Vec3, c: Vec3, d: Vec3) -> (f32, Vec3, Vec3, Vec
         let vec = (a + u * lambda) - (c + v * mu);
         (vec.mag(), vec, a + u * lambda, c + v * mu)
     } else {
-        let mut min_dist = std::f32::INFINITY;
+        let mut min_dist = f32::INFINITY;
         let mut min_vec = Vec3::zero();
         let mut min_point_a = a;
         let mut min_point_c = c;

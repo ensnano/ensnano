@@ -15,9 +15,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use crate::ensnano_design::BezierVertexId;
 
-use super::*;
+use super::{GridId, GridTypeDescr};
+use crate::ensnano_design::BezierVertexId;
+use serde::Deserialize;
 
 #[derive(Deserialize)]
 enum NewGridTypeDescr {
@@ -112,7 +113,6 @@ enum NewOrOld {
     Old(OldGridTypeDescr),
 }
 
-use serde::Deserialize;
 impl<'de> Deserialize<'de> for GridTypeDescr {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
