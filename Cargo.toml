@@ -5,6 +5,7 @@ authors = [
     "Nicolas Schabanel <nicolas.schabanel@gmail.com>",
     "Joris Picot <joris.picot@ens-lyon.fr>",
     "Pacôme Perrotin <pacome.perrotin@gmail.com>",
+    "Axel Brisse <axel.brisse@gmail.com>",
 ]
 edition = "2024"
 license = "GPL-3.0-or-later"
