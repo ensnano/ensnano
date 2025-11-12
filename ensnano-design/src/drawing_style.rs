@@ -27,7 +27,7 @@ pub enum ColorType {
 }
 
 impl ColorType {
-    fn to_u32(&self) -> u32 {
+    pub fn to_u32(&self) -> u32 {
         match self {
             ColorType::Plain(color) => *color,
         }

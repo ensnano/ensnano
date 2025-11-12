@@ -1060,16 +1060,9 @@ impl DesignContent {
                 let radius = helix_style
                     .helix_as_cylinder_radius
                     .unwrap_or(HELIX_CYLINDER_RADIUS);
-                let color =
-                    helix_style
-                        .helix_as_cylinder_color
-                        .map_or(HELIX_CYLINDER_COLOR, |ct| {
-                            if let ColorType::Plain(c) = ct {
-                                c
-                            } else {
-                                HELIX_CYLINDER_COLOR
-                            }
-                        });
+                let color = helix_style
+                    .helix_as_cylinder_color
+                    .map_or(HELIX_CYLINDER_COLOR, |ct| ct.to_u32());
                 for (i, j) in a {
                     let bond_id = id_click_counter.next();
                     let n_i = Nucl {
