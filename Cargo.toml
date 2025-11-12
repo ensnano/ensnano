@@ -92,5 +92,6 @@ log_after_renderer_setup = []
 dx12_only = []
 
 [lints.clippy]
-too_many_arguments = "allow"     # TODO: warn
 arc_with_non_send_sync = "allow" # TODO: warn
+too_many_arguments = "allow"     # TODO: warn
+wildcard_imports = "warn"
