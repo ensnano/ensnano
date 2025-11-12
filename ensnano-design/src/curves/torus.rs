@@ -531,7 +531,7 @@ trait Curve2D {
     fn t_for_curvilinear_abscissa(&self, s_objective: f64) -> f64 {
         self.get_cached_curvilinear_abscissa()
             .map(|cache| {
-                let idx = search_dicho(s_objective, cache).expect("search dicho");
+                let idx = binary_search(s_objective, cache).expect("binary search");
                 let s = cache[idx];
                 let mut t = idx as f64 / (cache.len() - 1) as f64;
                 if idx < cache.len() - 1 {
@@ -610,7 +610,7 @@ trait Curve2D {
     }
 }
 
-fn search_dicho(goal: f64, slice: &[f64]) -> Option<usize> {
+fn binary_search(goal: f64, slice: &[f64]) -> Option<usize> {
     if !slice.is_empty() {
         let mut a = 0usize;
         let mut b = slice.len() - 1;

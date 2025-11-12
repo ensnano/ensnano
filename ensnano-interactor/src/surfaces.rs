@@ -545,7 +545,7 @@ impl RootedRevolutionSurface {
         InterpolatedCurveDescriptor {
             curve: self.surface.curve.clone(),
             curve_scale_factor: self.scale,
-            chevyshev_smoothening: self.rooting_parameters.junction_smoothening,
+            chebyshev_smoothening: self.rooting_parameters.junction_smoothening,
             interpolation: interpolations,
             half_turns_count: self.surface.half_turn_count,
             revolution_radius: -self.surface.get_axis_position_when_scaled(self.scale),

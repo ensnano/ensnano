@@ -32,7 +32,7 @@ pub struct InterpolatedCurveDescriptor {
     /// Scale factor of the section
     pub curve_scale_factor: f64,
     pub interpolation: Vec<InterpolationDescriptor>,
-    pub chevyshev_smoothening: f64,
+    pub chebyshev_smoothening: f64,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub revolution_angle_init: Option<f64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -59,7 +59,7 @@ impl InterpolatedCurveDescriptor {
         let curve = SmoothInterpolatedCurve::from_curve_interpolation(
             curve,
             self.interpolation,
-            self.chevyshev_smoothening,
+            self.chebyshev_smoothening,
             self.half_turns_count,
         );
         let mut ret = Revolution {

@@ -169,7 +169,7 @@ impl Curved for SphereLikeSpiral {
         self.minimum_diameter
             .map(|d| d / self.radius)
             .filter(|normalized_diameter| normalized_diameter <= &2.0)
-            .map(|normalized_diamter| (normalized_diamter / 2.).asin() / PI)
+            .map(|normalized_diameter| (normalized_diameter / 2.).asin() / PI)
             .unwrap_or(0.)
     }
 

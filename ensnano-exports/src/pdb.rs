@@ -426,7 +426,6 @@ fn read_pdb_string(
 }
 
 #[derive(Debug)]
-#[allow(unused)]
 pub enum PdbError {
     ParsingError {
         line_number: usize,

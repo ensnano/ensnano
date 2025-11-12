@@ -160,21 +160,21 @@ impl AbscissaConverter {
     pub fn x_to_nucl_conversion(&self, x: f64) -> f64 {
         match &self.0 {
             AbscissaConverter_::TimeMap(time_map) => time_map.x_to_nucl_conversion(x),
-            AbscissaConverter_::Linear(normalisation_time) => x * normalisation_time,
+            AbscissaConverter_::Linear(normalization_time) => x * normalization_time,
         }
     }
 
     pub fn nucl_to_x_conversion(&self, n: isize) -> f64 {
         match &self.0 {
             AbscissaConverter_::TimeMap(time_map) => time_map.nucl_to_x_conversion(n),
-            AbscissaConverter_::Linear(normalisation_time) => n as f64 / normalisation_time,
+            AbscissaConverter_::Linear(normalization_time) => n as f64 / normalization_time,
         }
     }
 
     pub fn x_conversion(&self, x: f64) -> f64 {
         match &self.0 {
             AbscissaConverter_::TimeMap(time_map) => time_map.x_conversion(x),
-            AbscissaConverter_::Linear(normalisation_time) => x / normalisation_time,
+            AbscissaConverter_::Linear(normalization_time) => x / normalization_time,
         }
     }
 
@@ -196,13 +196,13 @@ impl AbscissaConverter {
 #[derive(Debug)]
 pub(crate) struct PathTimeMaps {
     time_maps: BTreeMap<usize, HelixTimeMap>,
-    length_normalisation: f64,
+    length_normalization: f64,
 }
 
 #[derive(Debug)]
 pub(crate) struct RevolutionCurveTimeMaps {
     time_maps: BTreeMap<usize, HelixTimeMap>,
-    length_normalisation: f64,
+    length_normalization: f64,
 }
 
 impl RevolutionCurveTimeMaps {
@@ -255,7 +255,7 @@ impl RevolutionCurveTimeMaps {
         }
         Self {
             time_maps,
-            length_normalisation: square_per_time,
+            length_normalization: square_per_time,
         }
     }
 
@@ -263,7 +263,7 @@ impl RevolutionCurveTimeMaps {
         if let Some(map) = self.time_maps.get(&h_id) {
             AbscissaConverter(AbscissaConverter_::TimeMap(map.clone()))
         } else {
-            AbscissaConverter(AbscissaConverter_::Linear(self.length_normalisation))
+            AbscissaConverter(AbscissaConverter_::Linear(self.length_normalization))
         }
     }
 }
@@ -295,7 +295,7 @@ impl PathTimeMaps {
         }
         Self {
             time_maps,
-            length_normalisation: square_per_time,
+            length_normalization: square_per_time,
         }
     }
 
@@ -303,7 +303,7 @@ impl PathTimeMaps {
         if let Some(map) = self.time_maps.get(&h_id) {
             AbscissaConverter(AbscissaConverter_::TimeMap(map.clone()))
         } else {
-            AbscissaConverter(AbscissaConverter_::Linear(self.length_normalisation))
+            AbscissaConverter(AbscissaConverter_::Linear(self.length_normalization))
         }
     }
 }

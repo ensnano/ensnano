@@ -62,8 +62,8 @@ pub struct Twist {
 
 impl Curved for Twist {
     fn t_max(&self) -> f64 {
-        if let Some(tmax) = self.t_max {
-            tmax.max(1.0)
+        if let Some(t_max) = self.t_max {
+            t_max.max(1.0)
         } else {
             1.0
         }

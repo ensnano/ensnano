@@ -19,12 +19,12 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::*;
 
 /// The number of points used in the iterative version of the discretization algorithm.
-const NB_DISCRETISATION_STEP: usize = 100;
+const NB_DISCRETIZATION_STEP: usize = 100;
 
 impl Curve {
     ///Older version of the discretization algorithm
     pub(super) fn discretize_legacy(&mut self, nucl_rise: f64, inclination: f64) {
-        let nb_step = NB_DISCRETISATION_STEP;
+        let nb_step = NB_DISCRETIZATION_STEP;
 
         let len = self.legacy_length_by_descretisation(self.geometry.t_min(), 1., nb_step);
         let nb_points = (len / nucl_rise) as usize;

@@ -54,7 +54,7 @@ pub fn read_first_svg_path(file_path: &StdPath) -> Result<BezierPath, SvgImportE
                         }
                     }
                     Command::CubicCurve(Position::Absolute, parameters) => {
-                        let arg = MoveToParameter::from_svg_paramter(parameters)?;
+                        let arg = MoveToParameter::from_svg_parameter(parameters)?;
                         ret.move_to(arg)?
                     }
                     _ => (),
@@ -133,7 +133,7 @@ struct MoveToParameter {
 }
 
 impl MoveToParameter {
-    fn from_svg_paramter(parameters: &[f32]) -> Result<Self, SvgImportError> {
+    fn from_svg_parameter(parameters: &[f32]) -> Result<Self, SvgImportError> {
         if parameters.len() != 6 {
             Err(SvgImportError::BadParameters)
         } else {
@@ -148,11 +148,11 @@ impl MoveToParameter {
 
 #[derive(Debug)]
 pub enum SvgImportError {
-    IOError(#[allow(unused)] std::io::Error),
-    SvgParserError(#[allow(unused)] svg::parser::Error),
+    IOError(std::io::Error),
+    SvgParserError(svg::parser::Error),
     NoPathFound,
-    AttributeNotFound(#[allow(unused)] String),
-    UnexpectedCommand(#[allow(unused)] String),
+    AttributeNotFound(String),
+    UnexpectedCommand(String),
     BadParameters,
 }
 

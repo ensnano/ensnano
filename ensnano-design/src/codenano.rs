@@ -15,6 +15,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
 use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, f64::consts::PI, fmt};
 use ultraviolet::DVec3;
@@ -40,7 +41,6 @@ impl<StrandLabel: serde::Serialize, DomainLabel: serde::Serialize>
     Design<StrandLabel, DomainLabel>
 {
     /// Initiates a design.
-    #[allow(dead_code)]
     pub fn new() -> Self {
         Design {
             version: env!("CARGO_PKG_VERSION").to_string(),

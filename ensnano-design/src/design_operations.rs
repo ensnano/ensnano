@@ -15,15 +15,16 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
 //! This modules defines operations that can be performed on a design to modify it.
-//! The functions that apply thes operations take a mutable reference to the design that they are
-//! modifying and may return an `ErrOperation` if the opperation could not be applied.
+//! The functions that apply these operations take a mutable reference to the design that they are
+//! modifying and may return an `ErrOperation` if the operation could not be applied.
 
 use super::{CurveDescriptor, Design, bezier_plane::*, grid::*};
 use std::sync::Arc;
 use ultraviolet::{Rotor3, Vec3};
 
-/// An error that occured when trying to apply an operation.
+/// An error that occurred when trying to apply an operation.
 #[derive(Debug)]
 pub enum ErrOperation {
     NotEnoughHelices { actual: usize, needed: usize },
@@ -37,7 +38,7 @@ pub enum ErrOperation {
     CouldNotGetVertex(BezierVertexId),
 }
 
-/// The minimum number of helices requiered to infer a grid
+/// The minimum number of helices required to infer a grid
 pub const MIN_HELICES_TO_MAKE_GRID: usize = 4;
 
 /// Try to create a grid from a set of helices.

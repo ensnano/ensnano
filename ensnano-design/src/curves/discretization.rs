@@ -307,7 +307,7 @@ impl Curve {
         return d3p.dot(c) / c.mag_sq();
     }
 
-    /// If `self.geometry` sepcifies that a certain number of nucleotide must fit on a given
+    /// If `self.geometry` specifies that a certain number of nucleotide must fit on a given
     /// portion of the curve, adjust the value of nucl_rise accordingly.
     fn adjust_rise(&mut self, nucl_rise: &mut f64, polynomials: Option<&PreComputedPolynomials>) {
         let nb_step = if self.geometry.discretize_quickly() {
@@ -332,10 +332,10 @@ impl Curve {
                 // The remaining curvilinear length after positioning the last nucleotide.
                 let epsilon = synchronization_length.rem_euclid(*nucl_rise);
 
-                log::info!("Synchronization length by descretisation {synchronization_length}");
+                log::info!("Synchronization length by discretization {synchronization_length}");
 
                 if epsilon > *nucl_rise / 2. {
-                    // n and espilon are chosen so that
+                    // n and epsilon are chosen so that
                     // synchronization_length = n * len_segment - epsilon
                     //                        = n * (len_segment - epsilon / n)
                     let n: f64 = synchronization_length.div_euclid(*nucl_rise);
@@ -347,7 +347,7 @@ impl Curve {
 
                     *nucl_rise -= epsilon_ / (n + 1.);
                 } else {
-                    // n and espilon are chosen so that
+                    // n and epsilon are chosen so that
                     // synchronization_length = n * len_segment + epsilon
                     //                        = n * (len_segment + epsilon / n)
                     let n: f64 = synchronization_length.div_euclid(*nucl_rise);
@@ -363,7 +363,7 @@ impl Curve {
     pub fn length_by_discretization(&self, t0: f64, t1: f64, nb_step: usize) -> f64 {
         if t0 > t1 {
             log::error!(
-                "Bad parameters or length for discritisation: \n t0 {} \n t1 {} \n nb_step {}",
+                "Bad parameters or length for discretization: \n t0 {} \n t1 {} \n nb_step {}",
                 t0,
                 t1,
                 nb_step
@@ -523,14 +523,14 @@ impl Curve {
                     }
                     let mut delta = 1.0;
                     while delta < DELTA_MAX {
-                        let new_tmax = self.geometry.t_max() + delta;
+                        let new_t_max = self.geometry.t_max() + delta;
                         if self.length_by_discretization(
-                            0.0, // should not it be self.geometry.t_min() ??? MAY BE NOT BECAUSE BIINFINITE
-                            new_tmax,
+                            0.0, // should not it be self.geometry.t_min() ??? MAY BE NOT BECAUSE INFINITY
+                            new_t_max,
                             NB_DISCRETIZATION_STEP / 100,
                         ) > objective
                         {
-                            return Some(new_tmax);
+                            return Some(new_t_max);
                         }
                         delta *= 2.0;
                     }
