@@ -211,12 +211,12 @@ impl<R: SceneDesignReaderExt> Data<R> {
         let reader = app_state.get_design_reader();
         let external_objects = reader.get_external_objects();
         if let Some(new_stamp) =
-            external_objects.was_updated(self.external_3d_objects_stamps.clone())
+            external_objects.was_updated(self.external_3d_objects_stamps)
         {
             self.external_3d_objects_stamps = Some(new_stamp);
             let objects: Vec<_> = external_objects
                 .iter()
-                .map(|(id, obj)| (id.clone(), obj.clone()))
+                .map(|(id, obj)| (*id, obj.clone()))
                 .collect();
             if let Some(mut path_base) = app_state.get_design_path() {
                 path_base.pop();
@@ -245,7 +245,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
             || app_state.selection_was_updated(older_app_state)
             || app_state.candidates_set_was_updated(older_app_state)
             || self.last_candidate_disc != self.candidate_element;
-        self.last_candidate_disc = self.candidate_element.clone();
+        self.last_candidate_disc = self.candidate_element;
         ret
     }
 
@@ -291,8 +291,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
                     self.handle_colors
                 };
                 origin
-                    .clone()
-                    .zip(orientation.clone())
+                    .zip(orientation)
                     .map(|(origin, orientation)| HandlesDescriptor {
                         origin,
                         orientation,
@@ -313,8 +312,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
         };
         let rotation_widget_descr = if app_state.get_action_mode().0 == ActionMode::Rotate {
             origin
-                .clone()
-                .zip(orientation.clone())
+                .zip(orientation)
                 .map(|(origin, orientation)| RotationWidgetDescriptor {
                     origin,
                     orientation: RotationWidgetOrientation::Rotor(orientation),
@@ -382,13 +380,12 @@ impl<R: SceneDesignReaderExt> Data<R> {
                 }
             }
         } else if let Selection::Xover(d_id, xover_id) = selection {
-            if object_type.is_bond() {
-                if let Some(b_id) =
+            if object_type.is_bond()
+                && let Some(b_id) =
                     self.designs[*d_id as usize].get_element_identifier_from_xover_id(*xover_id)
                 {
                     ret.push(SceneElement::DesignElement(*d_id, b_id))
                 }
-            }
         } else {
             let group = self.get_group_member(selection);
             for elt in group.iter() {
@@ -606,7 +603,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
             Some(SceneElement::DesignElement(design_id, element_id)) => {
                 let selection_mode = self.get_sub_selection_mode(app_state);
                 self.get_group_identifier(design_id, element_id, selection_mode)
-                    .map(|x| x as u32)
+                    .map(|x| x)
             }
             Some(SceneElement::PhantomElement(phantom_element)) => Some(phantom_element.helix_id),
             Some(SceneElement::Grid(_, GridId::FreeGrid(g_id))) => Some(g_id as u32),
@@ -689,8 +686,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
             bezier_control,
         } = element
         {
-            self.designs
-                .get(0)
+            self.designs.first()
                 .and_then(|d| d.get_control_point(*helix_id, *bezier_control))
         } else {
             let design_id = element.get_design()?;
@@ -734,7 +730,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
             return (None, None);
         }
         log::debug!("selected {:?}", element);
-        let future_selection = element.clone();
+        let future_selection = element;
         let new_center_of_selection =
             element.and_then(|element| self.scene_element_to_center_of_selection(element));
         if self.selected_element(app_state) == future_selection {
@@ -789,7 +785,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
         } else {
             Selection::Nothing
         };
-        if let Some(element) = element.clone() {
+        if let Some(element) = element {
             center_of_selection = self.scene_element_to_center_of_selection(element);
         }
         if selected == Selection::Nothing {
@@ -910,16 +906,14 @@ impl<R: SceneDesignReaderExt> Data<R> {
         }
         if app_state.get_check_xover_parameters().wants_checked() {
             sphere.extend(
-                self.designs
-                    .get(0)
+                self.designs.first()
                     .map(|d| d.get_all_checked_xover_instance(true))
                     .unwrap_or_default(),
             );
         }
         if app_state.get_check_xover_parameters().wants_unchecked() {
             sphere.extend(
-                self.designs
-                    .get(0)
+                self.designs.first()
                     .map(|d| d.get_all_checked_xover_instance(false))
                     .unwrap_or_default(),
             );
@@ -1157,11 +1151,10 @@ impl<R: SceneDesignReaderExt> Data<R> {
         element: Option<SceneElement>,
         app_state: &S,
     ) -> Option<Selection> {
-        if log::log_enabled!(log::Level::Info) {
-            if element.is_some() {
+        if log::log_enabled!(log::Level::Info)
+            && element.is_some() {
                 log::debug!("candidate {:?}", element);
             }
-        }
         self.candidate_element = element;
         if let Some(element) = element.as_ref() {
             let selection = self.element_to_selection(element, app_state.get_selection_mode());
@@ -1196,8 +1189,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
                     bezier_control,
                 } => {
                     self.selected_position = self
-                        .designs
-                        .get(0)
+                        .designs.first()
                         .and_then(|d| d.get_control_point(helix_id, bezier_control))
                 }
                 _ => (),
@@ -1243,12 +1235,11 @@ impl<R: SceneDesignReaderExt> Data<R> {
     pub fn get_nucleotides_positions_by_strands(
         &self,
     ) -> Option<HashMap<usize, StrandNucleotidesPositions>> {
-        return Some(
-            self.designs
-                .get(0)?
+        Some(
+            self.designs.first()?
                 .design_reader
                 .get_nucleotides_positions_by_strands(),
-        );
+        )
     }
 
     /// Notify the view that the instances of candidates have changed
@@ -1505,11 +1496,10 @@ impl<R: SceneDesignReaderExt> Data<R> {
 
         // If we are building helices, we want to show candidates grid circle even when they do not
         // correspond to an existing helix
-        if app_state.get_action_mode().0.is_build() {
-            if let Some(SceneElement::GridCircle(0, position)) = self.candidate_element.as_ref() {
+        if app_state.get_action_mode().0.is_build()
+            && let Some(SceneElement::GridCircle(0, position)) = self.candidate_element.as_ref() {
                 add_discs(*position, discs!(), DiscLevel::Candidate);
             }
-        }
 
         for c in app_state.get_candidates() {
             if let Selection::Helix { helix_id, .. } = c
@@ -1576,8 +1566,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
         let basis = view.get_camera().borrow().get_basis();
         let fovy = view.get_projection().borrow().get_fovy();
         let ratio = view.get_projection().borrow().get_ratio();
-        self.designs
-            .get(0)
+        self.designs.first()
             .and_then(|d| d.get_fitting_camera_position(basis, fovy, ratio))
     }
 
@@ -1600,7 +1589,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
         (app_state.get_widget_basis().is_axis_aligned()
             && !(self.handle_colors == HandleColors::Cym
                 && app_state.get_action_mode().0 == ActionMode::Rotate))
-            .then(|| Rotor3::identity())
+            .then(Rotor3::identity)
     }
 
     fn get_selected_basis<S: AppState>(&self, app_state: &S) -> Option<Rotor3> {
@@ -1644,7 +1633,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
             }) => self.designs[0].get_bezier_control_basis(helix_id, bezier_control),
             _ => None,
         };
-        let from_selection = match app_state.get_selection().get(0) {
+        let from_selection = match app_state.get_selection().first() {
             Some(Selection::Grid(d_id, g_id)) => self
                 .designs
                 .get(*d_id as usize)
@@ -1801,7 +1790,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
     /// Return a default selected element when no center of selection was provided
     fn default_element<S: AppState>(&self, app_state: &S) -> Option<SceneElement> {
         log::trace!("Using default element");
-        let selected_object = app_state.get_selection().get(0)?;
+        let selected_object = app_state.get_selection().first()?;
         let design = selected_object
             .get_design()
             .and_then(|d_id| self.designs.get(d_id as usize))?;
@@ -1906,8 +1895,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
     }
 
     pub(super) fn get_surface_info_nucl(&self, nucl: Nucl) -> Option<SurfaceInfo> {
-        self.designs
-            .get(0)
+        self.designs.first()
             .and_then(|d| d.get_surface_info_nucl(nucl))
     }
 }
@@ -1960,8 +1948,7 @@ impl<R: SceneDesignReaderExt> super::controller::Data for Data<R> {
     }
 
     fn get_grid_object(&self, position: GridPosition) -> Option<GridObject> {
-        self.designs
-            .get(0)
+        self.designs.first()
             .and_then(|d| d.get_grid_object(position))
     }
 
@@ -1985,7 +1972,7 @@ impl<R: SceneDesignReaderExt> super::controller::Data for Data<R> {
     }
 
     fn get_surface_info(&self, point: SurfacePoint) -> Option<SurfaceInfo> {
-        self.designs.get(0).and_then(|d| d.get_surface_info(point))
+        self.designs.first().and_then(|d| d.get_surface_info(point))
     }
 
     fn get_surface_info_nucl(&self, nucl: Nucl) -> Option<SurfaceInfo> {

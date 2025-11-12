@@ -257,7 +257,7 @@ impl Design {
         }
     }
 
-    pub fn get_up_to_date_paths<'a>(&'a mut self) -> &'a BezierPathData {
+    pub fn get_up_to_date_paths(&mut self) -> &BezierPathData {
         let helix_parameters = self
             .helix_parameters
             .as_ref()

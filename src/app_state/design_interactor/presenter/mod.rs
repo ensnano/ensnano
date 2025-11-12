@@ -90,7 +90,7 @@ impl Presenter {
             if let Some(desc) = self.current_design.get_neighbor_nucl(nucl) {
                 let filter =
                     |d: &NeighborDescriptor| !(d.identifier.is_same_domain_than(&desc.identifier));
-                !left.filter(filter).and(right.filter(filter)).is_some()
+                left.filter(filter).and(right.filter(filter)).is_none()
             } else {
                 false
             }
@@ -167,7 +167,7 @@ impl Presenter {
         log::trace!("Presenter design <- {:p}", self.current_design);
         self.content = AddressPointer::new(content);
         self.junctions_ids = AddressPointer::new(new_junctions_ids);
-        self.current_suggestion_parameters = suggestion_parameters.clone();
+        self.current_suggestion_parameters = *suggestion_parameters;
     }
 
     pub(super) fn has_different_model_matrix_than(&self, other: &Self) -> bool {
@@ -329,10 +329,10 @@ impl Presenter {
             for nucl in self.content.nucleotide.values() {
                 if self.selection_contains_nucl(selection, *nucl) != *compl {
                     if !visible {
-                        new_invisible_nucls.insert(nucl.clone());
+                        new_invisible_nucls.insert(*nucl);
                     }
                 } else if self.invisible_nucls.contains(nucl) {
-                    new_invisible_nucls.insert(nucl.clone());
+                    new_invisible_nucls.insert(*nucl);
                 }
             }
         }
@@ -431,11 +431,10 @@ impl Presenter {
 
     fn whole_selection_is_visible(&self, selection: &[Selection], compl: bool) -> bool {
         for nucl in self.content.nucleotide.values() {
-            if self.selection_contains_nucl(selection, *nucl) != compl {
-                if self.invisible_nucls.contains(nucl) {
+            if self.selection_contains_nucl(selection, *nucl) != compl
+                && self.invisible_nucls.contains(nucl) {
                     return false;
                 }
-            }
         }
         true
     }
@@ -699,12 +698,12 @@ impl DesignInteractor {
                 return Extremity::Prime5;
             } else if domain.prime3_end() == Some(*nucl) {
                 return Extremity::Prime3;
-            } else if let Some(_) = domain.has_nucl(nucl) {
+            } else if domain.has_nucl(nucl).is_some() {
                 return Extremity::No;
             }
             prev_helix = domain.half_helix();
         }
-        return Extremity::No;
+        Extremity::No
     }
 
     fn get_strand_length(&self, s_id: usize) -> Option<usize> {

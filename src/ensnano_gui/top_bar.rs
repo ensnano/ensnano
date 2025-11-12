@@ -394,7 +394,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
             ActionMode::Normal,
             ActionMode::Translate,
             ActionMode::Rotate,
-            build_helix_mode.clone(),
+            build_helix_mode,
         ];
 
         let action_mode_buttons: Vec<Element<'_, _, _, _>> = action_modes_to_display
@@ -512,7 +512,7 @@ fn action_mode_btn<'a, State: AppState>(
     };
 
     image_button(image(icon_path), ui_size)
-        .on_press(Message::ActionModeChanged(mode.clone()))
+        .on_press(Message::ActionModeChanged(*mode))
         .style(if current_action_mode == *mode {
             theme::Button::Positive
         } else {
@@ -533,7 +533,7 @@ fn selection_mode_btn<'a, State: AppState>(
     };
 
     image_button(image(icon_path), ui_size)
-        .on_press(Message::SelectionModeChanged(mode.clone()))
+        .on_press(Message::SelectionModeChanged(*mode))
         .style(if current_mode == *mode {
             theme::Button::Positive
         } else {

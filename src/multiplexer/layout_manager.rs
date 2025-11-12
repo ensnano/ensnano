@@ -311,7 +311,7 @@ impl LayoutNode {
         bottom_ident: usize,
         resizable: bool,
     ) -> (LayoutNodePtr, LayoutNodePtr) {
-        assert!(top_proportion >= 0. && top_proportion <= 1.);
+        assert!((0. ..=1.).contains(&top_proportion));
         match self {
             LayoutNode::Area {
                 left,
@@ -374,7 +374,7 @@ impl LayoutNode {
         right_ident: usize,
         resizable: bool,
     ) -> (LayoutNodePtr, LayoutNodePtr) {
-        assert!(left_proportion >= 0. && left_proportion <= 1.);
+        assert!((0. ..=1.).contains(&left_proportion));
         match self {
             LayoutNode::Area {
                 left,
@@ -512,12 +512,10 @@ impl LayoutNode {
                     x >= separation - RESIZE_REGION_WIDTH && x <= separation + RESIZE_REGION_WIDTH
                 }) {
                     PixelRegion::Resize(id)
+                } else if x <= separation {
+                    l_child.borrow().get_area_pixel(x, y)
                 } else {
-                    if x <= separation {
-                        l_child.borrow().get_area_pixel(x, y)
-                    } else {
-                        r_child.borrow().get_area_pixel(x, y)
-                    }
+                    r_child.borrow().get_area_pixel(x, y)
                 }
             }
             LayoutNode::HSplit {
@@ -534,12 +532,10 @@ impl LayoutNode {
                     resizable.filter(|_| y >= separation - 0.02 && y <= separation + 0.02)
                 {
                     PixelRegion::Resize(id)
+                } else if y <= separation {
+                    t_child.borrow().get_area_pixel(x, y)
                 } else {
-                    if y <= separation {
-                        t_child.borrow().get_area_pixel(x, y)
-                    } else {
-                        b_child.borrow().get_area_pixel(x, y)
-                    }
+                    b_child.borrow().get_area_pixel(x, y)
                 }
             }
         }
@@ -678,8 +674,8 @@ impl LayoutNode {
         match self {
             LayoutNode::VSplit {
                 left_proportion, ..
-            } => Some(left_proportion.clone()),
-            LayoutNode::HSplit { top_proportion, .. } => Some(top_proportion.clone()),
+            } => Some(*left_proportion),
+            LayoutNode::HSplit { top_proportion, .. } => Some(*top_proportion),
             LayoutNode::Area { .. } => None,
         }
     }

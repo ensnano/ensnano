@@ -209,13 +209,11 @@ impl StrandView {
                 render_pass.set_vertex_buffer(0, self.split_vbo_bottom.get_slice());
                 render_pass.draw_indexed(0..self.num_instance_split_bottom, 0, 0..1);
             }
-        } else {
-            if self.num_instance_split_top > 0 {
-                render_pass
-                    .set_index_buffer(self.split_ibo_top.get_slice(), wgpu::IndexFormat::Uint16);
-                render_pass.set_vertex_buffer(0, self.split_vbo_top.get_slice());
-                render_pass.draw_indexed(0..self.num_instance_split_top, 0, 0..1);
-            }
+        } else if self.num_instance_split_top > 0 {
+            render_pass
+                .set_index_buffer(self.split_ibo_top.get_slice(), wgpu::IndexFormat::Uint16);
+            render_pass.set_vertex_buffer(0, self.split_vbo_top.get_slice());
+            render_pass.draw_indexed(0..self.num_instance_split_top, 0, 0..1);
         }
     }
 }
@@ -259,7 +257,7 @@ impl DynamicBuffer {
     pub fn update<I: bytemuck::Pod>(&mut self, data: &[I]) {
         let mut bytes: Vec<u8> = bytemuck::cast_slice(data).into();
         let length = bytes.len();
-        while bytes.len() % 4 != 0 {
+        while !bytes.len().is_multiple_of(4) {
             bytes.push(0)
         }
         if self.capacity < bytes.len() {

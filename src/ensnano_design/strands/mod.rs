@@ -87,7 +87,7 @@ impl Strands {
                 return Extremity::Prime3;
             }
         }
-        return Extremity::No;
+        Extremity::No
     }
 
     pub fn is_domain_end(&self, nucl: &Nucl) -> Extremity {
@@ -98,7 +98,7 @@ impl Strands {
                     return Extremity::Prime5;
                 } else if domain.prime3_end() == Some(*nucl) {
                     return Extremity::Prime3;
-                } else if let Some(_) = domain.has_nucl(nucl) {
+                } else if domain.has_nucl(nucl).is_some() {
                     return Extremity::No;
                 }
                 prev_helix = domain.half_helix();
@@ -313,15 +313,13 @@ pub fn sanitize_domains(domains: &[Domain], cyclic: bool) -> Vec<Domain> {
                 acc.length += nb_nucl;
             }
             ret.push(Domain::new_insertion(acc.length));
+        } else if acc.attached_to_prime3 {
+            ret.push(Domain::new_prime5_insertion(acc.length));
         } else {
-            if acc.attached_to_prime3 {
-                ret.push(Domain::new_prime5_insertion(acc.length));
-            } else {
-                ret.push(Domain::new_insertion(acc.length));
-            }
+            ret.push(Domain::new_insertion(acc.length));
         }
-    } else if cyclic {
-        if let Domain::Insertion {
+    } else if cyclic
+        && let Domain::Insertion {
             nb_nucl,
             attached_to_prime3,
             ..
@@ -334,7 +332,6 @@ pub fn sanitize_domains(domains: &[Domain], cyclic: bool) -> Vec<Domain> {
                 ret.push(Domain::new_insertion(nb_nucl));
             }
         }
-    }
     ret
 }
 
@@ -369,14 +366,9 @@ impl Strand {
         let domains: Vec<Domain> = scad
             .domains
             .iter()
-            .map(|s| Domain::from_scadnano(s, insertion_deletions))
-            .flatten()
+            .flat_map(|s| Domain::from_scadnano(s, insertion_deletions))
             .collect();
-        let sequence = if let Some(ref seq) = scad.sequence {
-            Some(Cow::Owned(seq.clone()))
-        } else {
-            None
-        };
+        let sequence = scad.sequence.as_ref().map(|seq| Cow::Owned(seq.clone()));
         let cyclic = scad.circular;
         let sane_domains = sanitize_domains(&domains, cyclic);
         let junctions = read_junctions(&sane_domains, cyclic);
@@ -921,7 +913,7 @@ impl Domain {
                 ..
             }) => {
                 if *helix == nucl.helix && *forward == nucl.forward {
-                    if nucl.position >= *start && nucl.position <= *end - 1 {
+                    if nucl.position >= *start && nucl.position < *end {
                         if *forward {
                             Some((nucl.position - *start) as usize)
                         } else {
@@ -955,7 +947,7 @@ impl Domain {
                 let start = start + shift;
                 let end = end + shift;
                 if helix == nucl.0.helix && *forward == nucl.0.forward {
-                    if nucl.0.position >= start && nucl.0.position <= end - 1 {
+                    if nucl.0.position >= start && nucl.0.position < end {
                         if *forward {
                             Some((nucl.0.position - start) as usize)
                         } else {
@@ -1226,12 +1218,10 @@ fn add_junction<'b, 'a: 'b>(
                         // previous domain MUST point to some Domain::HelixDomain.
                         if let Domain::HelixDomain(prime5) = *previous_domain {
                             junctions.push(junction(prime5, prime3))
+                        } else if i == 0 {
+                            panic!("Invariant violated: SaneDomains");
                         } else {
-                            if i == 0 {
-                                panic!("Invariant violated: SaneDomains");
-                            } else {
-                                panic!("Invariant violated: read_junctions::PrevDomain");
-                            }
+                            panic!("Invariant violated: read_junctions::PrevDomain");
                         }
                     }
                 }

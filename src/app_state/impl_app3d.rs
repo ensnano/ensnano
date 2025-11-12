@@ -157,7 +157,7 @@ impl App3D for AppState {
     }
 
     fn get_selected_bezier_vertex(&self) -> Option<crate::ensnano_design::BezierVertexId> {
-        if let Some(Selection::BezierVertex(vertex)) = self.0.selection.selection.get(0) {
+        if let Some(Selection::BezierVertex(vertex)) = self.0.selection.selection.first() {
             Some(*vertex)
         } else {
             None
@@ -166,7 +166,7 @@ impl App3D for AppState {
 
     fn has_selected_a_bezier_grid(&self) -> bool {
         matches!(
-            self.get_selection().as_ref().get(0),
+            self.get_selection().as_ref().first(),
             Some(Selection::Grid(_, GridId::BezierPathGrid(_)))
         )
     }

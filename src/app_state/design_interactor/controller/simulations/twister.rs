@@ -69,7 +69,7 @@ impl SimulationUpdate for TwistState {
         if let Some(grid) =
             FreeGridId::try_from_grid_id(self.grid_id).and_then(|g_id| grids_mut.get_mut(&g_id))
         {
-            *grid = self.grid.clone()
+            *grid = self.grid
         } else {
             log::error!("COULD NOT UPDATE GRID {:?}", self.grid_id)
         }
@@ -96,13 +96,12 @@ impl Twister {
                 .filter(|pos| pos.grid == target_grid)
                 .is_some()
         }) {
-            keys.push(key.clone());
+            keys.push(*key);
             helices.push(helix.clone());
         }
         let helix_parameters = presenter
             .get_design()
             .helix_parameters
-            .clone()
             .unwrap_or_default();
         let mut xovers = presenter.get_xovers_list();
         xovers.retain(|(n1, n2)| keys.contains(&n1.helix) && keys.contains(&n2.helix));
@@ -134,12 +133,12 @@ impl Twister {
         {
             TwistState {
                 grid_id: target_grid,
-                grid: grid.clone(),
+                grid: *grid,
                 helices: presenter
                     .get_design()
                     .helices
                     .iter()
-                    .map(|(k, h)| (k.clone(), h.clone()))
+                    .map(|(k, h)| (*k, h.clone()))
                     .collect(),
             }
         } else {
@@ -254,8 +253,8 @@ impl DesignData {
             let helix_1 = &self.helices[*hid_1];
             let helix_2 = &self.helices[*hid_2];
 
-            if self.support_helix_idx(&helix_1).unwrap_or(*hid_1)
-                != self.support_helix_idx(&helix_2).unwrap_or(*hid_2)
+            if self.support_helix_idx(helix_1).unwrap_or(*hid_1)
+                != self.support_helix_idx(helix_2).unwrap_or(*hid_2)
             {
                 let pos_1 =
                     vec_to_dvec(helix_1.space_pos(&self.helix_parameters, n1.position, n1.forward));

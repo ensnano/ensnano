@@ -74,7 +74,7 @@ impl<State: AppState> EditionTab<State> {
 
     pub fn get_roll_request(&mut self, selection: &[DesignElementKey]) -> Option<RollRequest> {
         let roll_target_helices = self.get_roll_target_helices(selection);
-        if roll_target_helices.len() > 0 {
+        if !roll_target_helices.is_empty() {
             Some(RollRequest {
                 target_helices: Some(roll_target_helices.clone()),
             })
@@ -112,12 +112,10 @@ impl<State: AppState> GuiTab<State> for EditionTab<State> {
         let roll_target_helices =
             self.get_roll_target_helices(&app_state.get_selection_as_design_element());
         let sim_state = &app_state.get_simulation_state();
-        let autoroll_is_active = sim_state.is_rolling() || roll_target_helices.len() > 0;
+        let autoroll_is_active = sim_state.is_rolling() || !roll_target_helices.is_empty();
         let selection_contains_strand =
-            crate::ensnano_interactor::extract_strands_from_selection(app_state.get_selection())
-                .len()
-                > 0;
-        let suggestion_parameters = app_state.get_suggestion_parameters().clone();
+            !crate::ensnano_interactor::extract_strands_from_selection(app_state.get_selection()).is_empty();
+        let suggestion_parameters = *app_state.get_suggestion_parameters();
         let mut tighten_helices_button = text_button("Selected", ui_size);
         if !roll_target_helices.is_empty() {
             tighten_helices_button =
@@ -129,7 +127,7 @@ impl<State: AppState> GuiTab<State> for EditionTab<State> {
             // add_roll_slider!
             column(
                 self.helix_roll_factory
-                    .view(roll_target_helices.len() >= 1, ui_size.intermediate_text())
+                    .view(!roll_target_helices.is_empty(), ui_size.intermediate_text())
             ),
             // add_autoroll_button!
             start_stop_button(

@@ -73,7 +73,7 @@ impl FromStr for DrawingAttribute {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let parsed = s
             .split(&['%', ' ', ',', ')', '('])
-            .filter(|x| x.len() > 0)
+            .filter(|x| !x.is_empty())
             .collect::<Vec<&str>>();
 
         let len = parsed.len();
@@ -100,7 +100,7 @@ impl FromStr for DrawingAttribute {
                     }
                 }
             }
-            "sc" | "bc" | "hc" | "cs" if len >= 2 && len <= 4 => {
+            "sc" | "bc" | "hc" | "cs" if (2..=4).contains(&len) => {
                 let mut color = 0xFF_FF_FF_FF;
                 let mut hue_range = None;
                 if let Ok(value) = MaterialColor::from_str(parsed[1]) {
@@ -109,17 +109,15 @@ impl FromStr for DrawingAttribute {
                     color = value;
                 }
 
-                if len > 2 {
-                    if let Ok(alpha) = f32::from_str(parsed[2]) {
+                if len > 2
+                    && let Ok(alpha) = f32::from_str(parsed[2]) {
                         let alpha = (alpha * 255.).min(255.).max(0.).round() as u32;
                         color = (color & 0xFF_FF_FF) | (alpha << 24);
-                        if parsed.len() > 3 {
-                            if let Ok(h_range) = f64::from_str(parsed[3]) {
+                        if parsed.len() > 3
+                            && let Ok(h_range) = f64::from_str(parsed[3]) {
                                 hue_range = Some(h_range);
                             }
-                        }
                     }
-                }
 
                 match parsed[0] {
                     "sc" => return Ok(Self::SphereColor(ColorType::Plain(color))),
@@ -146,11 +144,12 @@ impl FromStr for DrawingAttribute {
             _ => (),
         }
 
-        return Err(ParsePointError);
+        Err(ParsePointError)
     }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Copy)]
+#[derive(Default)]
 pub struct DrawingStyle {
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub sphere_radius: Option<f32>,
@@ -184,26 +183,6 @@ pub struct DrawingStyle {
     pub torsion: Option<(f32, f32)>,
 }
 
-impl std::default::Default for DrawingStyle {
-    fn default() -> Self {
-        DrawingStyle {
-            sphere_radius: None,
-            bond_radius: None,
-            helix_as_cylinder_radius: None,
-            sphere_color: None,
-            bond_color: None,
-            helix_as_cylinder_color: None,
-            rainbow_strand: None,
-            xover_coloring: None,
-            color_shade: None,
-            hue_range: None,
-            with_cones: None,
-            on_axis: None,
-            curvature: None,
-            torsion: None,
-        }
-    }
-}
 
 impl From<Vec<DrawingAttribute>> for DrawingStyle {
     fn from(attributes: Vec<DrawingAttribute>) -> Self {
@@ -246,7 +225,7 @@ impl From<Vec<DrawingAttribute>> for DrawingStyle {
                 }
             }
         }
-        return ret;
+        ret
     }
 }
 
@@ -314,11 +293,11 @@ impl DrawingStyle {
         for att in attributes {
             style = style.complete_with_attribute(att);
         }
-        return style.clone();
+        style
     }
 
     pub fn complete_with(&self, other: &Self) -> Self {
-        return DrawingStyle {
+        DrawingStyle {
             sphere_radius: self.sphere_radius.or(other.sphere_radius),
             bond_radius: self.bond_radius.or(other.bond_radius),
             helix_as_cylinder_radius: self
@@ -337,6 +316,6 @@ impl DrawingStyle {
             on_axis: self.on_axis.or(other.on_axis),
             curvature: self.curvature.or(other.curvature),
             torsion: self.torsion.or(other.torsion),
-        };
+        }
     }
 }

@@ -109,7 +109,7 @@ impl<'a, S: AppState> EventContext<'a, S> {
         self.controller
             .data
             .borrow()
-            .element_to_nucl(&element, no_phantom)
+            .element_to_nucl(element, no_phantom)
             .map(|(n, _)| n)
     }
 
@@ -147,7 +147,7 @@ impl<'a, S: AppState> EventContext<'a, S> {
 
     /// Get the new strand builder position corresponding to the cursor position.
     pub fn get_new_build_position(&mut self) -> Option<isize> {
-        let builder = self.app_state.get_strand_builders().get(0)?;
+        let builder = self.app_state.get_strand_builders().first()?;
         let element = self.get_element_under_cursor();
 
         // We can move the builder to a phantom nucl, so we do not exclude phantom nucls from the

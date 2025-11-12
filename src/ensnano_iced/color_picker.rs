@@ -173,8 +173,7 @@ impl ColorPicker {
                 color_square(c.to_owned())
                     .height(Length::Fixed(self.size - GAP))
                     .width(Length::Fixed(self.size - GAP))
-            })
-            .into_iter();
+            });
         let mut row = Vec::new();
         loop {
             let first_square = color_squares.next();

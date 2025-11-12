@@ -36,7 +36,7 @@ use ultraviolet::Vec3;
 
 /// Conversion method
 pub(crate) fn vec_to_vector(v: Vec3) -> OVector<f32, Const<3>> {
-    vector![v.x, v.y, v.z].into()
+    vector![v.x, v.y, v.z]
 }
 
 /// Conversion method

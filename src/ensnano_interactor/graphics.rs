@@ -21,7 +21,9 @@ use serde::{Deserialize, Serialize};
 use ultraviolet::Vec3;
 
 #[derive(Clone, Debug, PartialEq, Eq, Copy, Serialize, Deserialize)]
+#[derive(Default)]
 pub enum RenderingMode {
+    #[default]
     Normal,
     Cartoon,
     Outline,
@@ -40,11 +42,6 @@ pub const ALL_RENDERING_MODE: &[RenderingMode] = &[
     RenderingMode::BlackAndWhite,
 ];
 
-impl Default for RenderingMode {
-    fn default() -> Self {
-        Self::Normal
-    }
-}
 
 impl std::fmt::Display for RenderingMode {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
@@ -59,18 +56,15 @@ impl std::fmt::Display for RenderingMode {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Copy, Serialize, Deserialize)]
+#[derive(Default)]
 pub enum Background3D {
+    #[default]
     Sky,
     White,
 }
 
 pub const ALL_BACKGROUND3D: &[Background3D] = &[Background3D::Sky, Background3D::White];
 
-impl Default for Background3D {
-    fn default() -> Self {
-        Self::Sky
-    }
-}
 
 impl std::fmt::Display for Background3D {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
@@ -83,17 +77,14 @@ impl std::fmt::Display for Background3D {
 }
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Default)]
 pub enum HBondDisplay {
+    #[default]
     No,
     Stick,
     Ellipsoid,
 }
 
-impl Default for HBondDisplay {
-    fn default() -> Self {
-        Self::No
-    }
-}
 
 impl std::fmt::Display for HBondDisplay {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {

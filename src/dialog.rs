@@ -111,7 +111,7 @@ pub fn get_file_to_write<P1: AsRef<Path>, P2: AsRef<Path>>(
     );
     let mut dialog = rfd::AsyncFileDialog::new();
 
-    let default_extension = extension_filter.get(0).and_then(|f| f.1.get(0));
+    let default_extension = extension_filter.first().and_then(|f| f.1.first());
 
     let starting_name = starting_name.and_then(|p| {
         let mut path_buf = PathBuf::from(p.as_ref());
@@ -121,7 +121,7 @@ pub fn get_file_to_write<P1: AsRef<Path>, P2: AsRef<Path>>(
         } else if let Some(_current_extension) = extension
             .filter(|ext| !filter_has_extension(extension_filter, ext.to_str().unwrap_or("")))
         {
-            let new_extension = format!("{}", default_extension.unwrap_or(&""));
+            let new_extension = default_extension.unwrap_or(&"").to_string();
             path_buf.set_extension(new_extension);
         }
         path_buf.file_name().map(|s| s.to_os_string())

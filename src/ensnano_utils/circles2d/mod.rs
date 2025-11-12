@@ -154,7 +154,7 @@ impl CircleDrawer {
         let render_pipeline_layout =
             self.device
                 .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-                    bind_group_layouts: &[globals_layout, &self.instances_bg.get_layout()],
+                    bind_group_layouts: &[globals_layout, self.instances_bg.get_layout()],
                     push_constant_ranges: &[],
                     label: Some("Circle drawer pipeline layout"),
                 });

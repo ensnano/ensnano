@@ -45,14 +45,14 @@ pub fn cadnano_export(design: &Design) -> Result<String, CadnanoError> {
         strand.finish(s.is_cyclic, s.color)?;
     }
 
-    let mut helices: Vec<_> = exporter.helices.values().map(|h| h.clone()).collect();
+    let mut helices: Vec<_> = exporter.helices.values().cloned().collect();
     helices.sort_by_key(|h| h.num);
 
     serde_json::to_string(&ExportedCadnano {
         name: String::from("ENSnano exported design"),
         helices,
     })
-    .map_err(|e| CadnanoError::SerdeError(e))
+    .map_err(CadnanoError::SerdeError)
 }
 
 fn get_ensnano_bonds(design: &Design) -> EnsnanoBonds {
@@ -112,8 +112,8 @@ fn get_cadnano_bonds(design: &Design, grids: &GridData) -> Result<CadnanoBonds, 
 fn init_cadnano_exporter(design: &Design) -> Result<CadnanoExporter, CadnanoError> {
     let mut design_clone = design.clone();
     let grids = design_clone.get_updated_grid_data();
-    let bonds = get_cadnano_bonds(&design, &grids)?;
-    let parity_helix = parity_graph::get_parity(&design, bonds.max_helix_idx)?;
+    let bonds = get_cadnano_bonds(design, grids)?;
+    let parity_helix = parity_graph::get_parity(design, bonds.max_helix_idx)?;
 
     let mut shift_x = 0;
 

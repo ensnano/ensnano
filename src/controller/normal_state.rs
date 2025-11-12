@@ -338,7 +338,7 @@ impl NormalState {
             selection.as_ref().as_ref(),
             main_state.get_design_reader().as_ref(),
         ) {
-            let selection = selection.as_ref().as_ref().iter().cloned().collect();
+            let selection = selection.as_ref().as_ref().to_vec();
             main_state.apply_operation(DesignOperation::HelicesToGrid(selection));
         }
         self

@@ -210,9 +210,9 @@ impl<S: AppState> Controller<S> {
 
         if let Some(state) = transition.new_state {
             log::info!("2D automata state: {}", state.display());
-            self.state.borrow().transition_from(&self);
+            self.state.borrow().transition_from(self);
             self.state = RefCell::new(state);
-            self.state.borrow().transition_to(&self);
+            self.state.borrow().transition_to(self);
         }
         transition.consequences
     }
@@ -296,12 +296,12 @@ impl<S: AppState> Controller<S> {
     }
 
     pub fn check_timers(&mut self) -> Consequence {
-        let transition = self.state.borrow_mut().check_timers(&self);
+        let transition = self.state.borrow_mut().check_timers(self);
         if let Some(state) = transition.new_state {
             log::info!("{}", state.display());
-            self.state.borrow().transition_from(&self);
+            self.state.borrow().transition_from(self);
             self.state = RefCell::new(state);
-            self.state.borrow().transition_to(&self);
+            self.state.borrow().transition_to(self);
         }
         transition.consequences
     }

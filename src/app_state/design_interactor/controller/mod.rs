@@ -1146,7 +1146,7 @@ impl Controller {
             ControllerState::WithPendingXoverDuplication { .. } => StatePersistence::Persistent,
             ControllerState::WithPendingHelicesDuplication { .. } => StatePersistence::Persistent,
             ControllerState::WithPausedSimulation { .. } => StatePersistence::NeedFinish,
-            ControllerState::SettingRollHelices { .. } => StatePersistence::NeedFinish,
+            ControllerState::SettingRollHelices => StatePersistence::NeedFinish,
             ControllerState::ChangingStrandName { .. } => StatePersistence::NeedFinish,
             _ => StatePersistence::Transitory,
         }
@@ -1937,14 +1937,11 @@ impl Controller {
             for (e, names) in h {
                 let drawing_attributes = names
                     .iter()
-                    .map(|x| {
+                    .flat_map(|x| {
                         x.split(&[' ', ':'])
-                            .map(|x| DrawingAttribute::from_str(x))
-                            .filter(|x| x.is_ok())
-                            .map(|x| x.unwrap())
+                            .flat_map(DrawingAttribute::from_str)
                             .collect::<Vec<DrawingAttribute>>()
                     })
-                    .flatten()
                     .collect::<Vec<DrawingAttribute>>();
                 let style = DrawingStyle::from(drawing_attributes);
                 drawing_styles.insert(e, style);
@@ -1955,10 +1952,9 @@ impl Controller {
             // recoloring only concerns the non-scaffold strands
             if Some(*s_id) != design.scaffold_id {
                 // Compute strand drawing style
-                let strand_style = drawing_styles
+                let strand_style = *drawing_styles
                     .get(&DesignElementKey::Strand(*s_id))
-                    .unwrap_or(&DrawingStyle::default())
-                    .clone();
+                    .unwrap_or(&DrawingStyle::default());
 
                 let color = if let Some(shade) = strand_style.color_shade {
                     colors::random_color_with_shade(shade, strand_style.hue_range)
@@ -2314,8 +2310,7 @@ impl Controller {
             ignored_domains,
         } = &mut self.state
         {
-            let delta = builders
-                .get(0)
+            let delta = builders.first()
                 .map(|b| n - b.get_moving_end_position())
                 .unwrap_or(0);
             let mut design = initial_design.clone_inner();
@@ -3430,7 +3425,9 @@ fn nucl_pos_2d(helices: &Helices, nucl: &Nucl, segment: usize) -> Option<Vec2> {
 }
 
 #[derive(Clone)]
+#[derive(Default)]
 enum ControllerState {
+    #[default]
     Normal,
     MakingHyperboloid {
         initial_design: AddressPointer<Design>,
@@ -3532,11 +3529,6 @@ enum ControllerState {
     },
 }
 
-impl Default for ControllerState {
-    fn default() -> Self {
-        Self::Normal
-    }
-}
 
 impl ControllerState {
     fn state_name(&self) -> &'static str {

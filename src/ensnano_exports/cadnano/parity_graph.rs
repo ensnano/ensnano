@@ -42,9 +42,9 @@ fn make_graph(
         for d in &s.domains {
             if let Domain::HelixDomain(d) = d {
                 if d.forward {
-                    group_sens.push(d.helix as usize);
+                    group_sens.push(d.helix);
                 } else {
-                    group_anti.push(d.helix as usize);
+                    group_anti.push(d.helix);
                 }
             }
         }
@@ -91,8 +91,8 @@ fn color_graph(
         if !seen[i] {
             seen[i] = true;
             let mut to_do: Vec<usize> = vec![i];
-            while to_do.len() > 0 {
-                let i = to_do.pop().unwrap();
+            while let Some(i) = to_do.pop() {
+                
                 let i = find(i, father);
                 for j in 0..(max_helix_idx + 1) {
                     let j = find(j, father);
@@ -117,7 +117,7 @@ fn color_graph(
 }
 
 fn make_group(design: &Design, max_helix_idx: usize) -> Vec<usize> {
-    let mut father: Vec<usize> = (0..(max_helix_idx + 1)).map(|i| i).collect();
+    let mut father: Vec<usize> = (0..(max_helix_idx + 1)).collect();
     let mut rank: Vec<usize> = vec![0; max_helix_idx + 1];
     for s in design.strands.values() {
         let mut group_sens: Vec<usize> = Vec::new();
@@ -126,9 +126,9 @@ fn make_group(design: &Design, max_helix_idx: usize) -> Vec<usize> {
         for d in &s.domains {
             if let Domain::HelixDomain(d) = d {
                 if d.forward {
-                    group_sens.push(d.helix as usize);
+                    group_sens.push(d.helix);
                 } else {
-                    group_anti.push(d.helix as usize);
+                    group_anti.push(d.helix);
                 }
             }
         }

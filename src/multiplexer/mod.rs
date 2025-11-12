@@ -410,14 +410,14 @@ impl Multiplexer {
                     old_proportion,
                 } => {
                     *mouse_position = *position;
-                    let mut position = position.clone();
+                    let mut position = *position;
                     position.x /= self.window_size.width as f64;
                     position.y /= self.window_size.height as f64;
                     *resized = true;
                     self.layout.resize_click(
                         *region,
                         &position,
-                        &clicked_position,
+                        clicked_position,
                         *old_proportion,
                     );
                     self.icon = Some(CursorIcon::EwResize);
@@ -454,7 +454,7 @@ impl Multiplexer {
                     element,
                 } => {
                     *mouse_position = *position;
-                    let element = element.clone();
+                    let element = *element;
                     let area = self.get_draw_area(element);
                     if let Some(area) = area {
                         self.cursor_position.x = position.x - area.position.cast::<f64>().x;
@@ -489,7 +489,7 @@ impl Multiplexer {
                 let mouse_position = self.state.mouse_position();
                 match element {
                     PixelRegion::Resize(n) if *state == ElementState::Pressed => {
-                        let mut clicked_position = mouse_position.clone();
+                        let mut clicked_position = mouse_position;
                         clicked_position.x /= self.window_size.width as f64;
                         clicked_position.y /= self.window_size.height as f64;
                         let old_proportion = self.layout.get_proportion(n).unwrap();
@@ -663,11 +663,7 @@ impl Multiplexer {
         }
 
         // NOTE: Return the event if it has not been captured.
-        if let Some(focus) = self.focus.filter(|_| !captured) {
-            Some((event, focus))
-        } else {
-            None
-        }
+        self.focus.filter(|_| !captured).map(|focus| (event, focus))
     }
 
     pub fn change_ui_size(&mut self, ui_size: UiSize, window: &Window) {
@@ -863,12 +859,12 @@ fn create_pipeline(device: &Device, bg_layout: &wgpu::BindGroupLayout) -> wgpu::
     let desc = wgpu::RenderPipelineDescriptor {
         layout: Some(&pipeline_layout),
         vertex: wgpu::VertexState {
-            module: &vs_module,
+            module: vs_module,
             entry_point: "main",
             buffers: &[],
         },
         fragment: Some(wgpu::FragmentState {
-            module: &fs_module,
+            module: fs_module,
             entry_point: "main",
             targets,
         }),

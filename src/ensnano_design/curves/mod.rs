@@ -143,11 +143,11 @@ pub trait Curved {
         let d2p1 = (dp2 - dp1) / eps;
         let d3p = (d2p1 - d2p0) / eps;
         let c = dp0.cross(d2p0);
-        return d3p.dot(c) / c.mag_sq();
+        d3p.dot(c) / c.mag_sq()
     }
 
     fn absolute_torsion(&self, t: f64) -> f64 {
-        return self.torsion(t).abs();
+        self.torsion(t).abs()
     }
 
     /// The bounds of the curve
@@ -269,7 +269,7 @@ pub trait Curved {
     }
 
     fn abscissa_converter(&self) -> Option<AbscissaConverter> {
-        return None;
+        None
     }
     /// Choose the iterative frame algorithm used to discretize
     fn use_original_iterative_frame_algorithm(&self) -> bool {
@@ -351,7 +351,7 @@ impl Curve {
             t_nucl: Arc::new(Vec::new()),
             nucl_pos_full_turn: None,
             additional_segment_left: Vec::new(),
-            abscissa_converter: abscissa_converter,
+            abscissa_converter,
         };
         let len_segment = ret.geometry.rise_ratio().unwrap_or(1.0) * helix_parameters.rise as f64;
         ret.discretize(len_segment, helix_parameters.inclination as f64);
@@ -394,9 +394,9 @@ impl Curve {
     pub fn axis_pos(&self, n: isize, forward: bool) -> Option<DVec3> {
         let idx = self.idx_conversion(n)?;
         if forward {
-            return self.positions_forward.get(idx).cloned();
+            self.positions_forward.get(idx).cloned()
         } else {
-            return self.positions_backward.get(idx).cloned();
+            self.positions_backward.get(idx).cloned()
         }
     }
 
@@ -447,7 +447,7 @@ impl Curve {
                     y.atan2(x)
                 })
                 .unwrap_or(0.);
-            let final_angle = pos_full_turn as f64 * TAU / -helix_parameters.bases_per_turn as f64
+            let final_angle = pos_full_turn * TAU / -helix_parameters.bases_per_turn as f64
                 + additional_angle;
             let rem = final_angle.rem_euclid(TAU);
 
@@ -457,7 +457,7 @@ impl Curve {
                 full_delta -= TAU;
             }
 
-            theta + full_delta / pos_full_turn as f64 * n as f64
+            theta + full_delta / pos_full_turn * n as f64
         } else {
             theta
         };
@@ -1081,31 +1081,31 @@ impl InstantiatedCurveDescriptor_ {
                 Arc::new(Curve::new(constructor.into_bezier(), helix_parameters))
             }
             Self::SphereLikeSpiral(spiral) => Arc::new(Curve::new(
-                spiral.with_helix_parameters(helix_parameters.clone()),
+                spiral.with_helix_parameters(*helix_parameters),
                 helix_parameters,
             )),
             Self::TubeSpiral(spiral) => Arc::new(Curve::new(
-                spiral.with_helix_parameters(helix_parameters.clone()),
+                spiral.with_helix_parameters(*helix_parameters),
                 helix_parameters,
             )),
             Self::SpiralCylinder(spiral) => Arc::new(Curve::new(
-                spiral.with_helix_parameters(helix_parameters.clone()),
+                spiral.with_helix_parameters(*helix_parameters),
                 helix_parameters,
             )),
             Self::SphereConcentricCircle(constructor) => Arc::new(Curve::new(
-                constructor.with_helix_parameters(helix_parameters.clone()),
+                constructor.with_helix_parameters(*helix_parameters),
                 helix_parameters,
             )),
             Self::SphereTennisBallSeam(constructor) => Arc::new(Curve::new(
-                constructor.with_helix_parameters(helix_parameters.clone()),
+                constructor.with_helix_parameters(*helix_parameters),
                 helix_parameters,
             )),
             Self::PillConcentricStadium(constructor) => Arc::new(Curve::new(
-                constructor.with_helix_parameters(helix_parameters.clone()),
+                constructor.with_helix_parameters(*helix_parameters),
                 helix_parameters,
             )),
             Self::PillTennisBallSeam(constructor) => Arc::new(Curve::new(
-                constructor.with_helix_parameters(helix_parameters.clone()),
+                constructor.with_helix_parameters(*helix_parameters),
                 helix_parameters,
             )),
             Self::Twist(twist) => Arc::new(Curve::new(twist, helix_parameters)),
@@ -1178,25 +1178,25 @@ impl InstantiatedCurveDescriptor_ {
             Self::SphereConcentricCircle(constructor) => Some(Arc::new(Curve::new(
                 constructor
                     .clone()
-                    .with_helix_parameters(helix_parameters.clone()),
+                    .with_helix_parameters(*helix_parameters),
                 helix_parameters,
             ))),
             Self::SphereTennisBallSeam(constructor) => Some(Arc::new(Curve::new(
                 constructor
                     .clone()
-                    .with_helix_parameters(helix_parameters.clone()),
+                    .with_helix_parameters(*helix_parameters),
                 helix_parameters,
             ))),
             Self::PillConcentricStadium(constructor) => Some(Arc::new(Curve::new(
                 constructor
                     .clone()
-                    .with_helix_parameters(helix_parameters.clone()),
+                    .with_helix_parameters(*helix_parameters),
                 helix_parameters,
             ))),
             Self::PillTennisBallSeam(constructor) => Some(Arc::new(Curve::new(
                 constructor
                     .clone()
-                    .with_helix_parameters(helix_parameters.clone()),
+                    .with_helix_parameters(*helix_parameters),
                 helix_parameters,
             ))),
             Self::Twist(twist) => Some(Arc::new(Curve::new(twist.clone(), helix_parameters))),
@@ -1254,22 +1254,22 @@ impl InstantiatedCurveDescriptor_ {
             Self::SphereConcentricCircle(constructor) => Some(Curve::compute_length(
                 constructor
                     .clone()
-                    .with_helix_parameters(helix_parameters.clone()),
+                    .with_helix_parameters(*helix_parameters),
             )),
             Self::SphereTennisBallSeam(constructor) => Some(Curve::compute_length(
                 constructor
                     .clone()
-                    .with_helix_parameters(helix_parameters.clone()),
+                    .with_helix_parameters(*helix_parameters),
             )),
             Self::PillConcentricStadium(constructor) => Some(Curve::compute_length(
                 constructor
                     .clone()
-                    .with_helix_parameters(helix_parameters.clone()),
+                    .with_helix_parameters(*helix_parameters),
             )),
             Self::PillTennisBallSeam(constructor) => Some(Curve::compute_length(
                 constructor
                     .clone()
-                    .with_helix_parameters(helix_parameters.clone()),
+                    .with_helix_parameters(*helix_parameters),
             )),
             Self::Twist(twist) => Some(Curve::compute_length(twist.clone())),
             Self::Torus(torus) => Some(Curve::compute_length(torus.clone())),
@@ -1307,37 +1307,37 @@ impl InstantiatedCurveDescriptor_ {
             Self::SphereLikeSpiral(spiral) => Some(Curve::path(
                 spiral
                     .clone()
-                    .with_helix_parameters(helix_parameters.clone()),
+                    .with_helix_parameters(*helix_parameters),
             )),
             Self::TubeSpiral(spiral) => Some(Curve::path(
                 spiral
                     .clone()
-                    .with_helix_parameters(helix_parameters.clone()),
+                    .with_helix_parameters(*helix_parameters),
             )),
             Self::SpiralCylinder(spiral) => Some(Curve::path(
                 spiral
                     .clone()
-                    .with_helix_parameters(helix_parameters.clone()),
+                    .with_helix_parameters(*helix_parameters),
             )),
             Self::SphereConcentricCircle(constructor) => Some(Curve::path(
                 constructor
                     .clone()
-                    .with_helix_parameters(helix_parameters.clone()),
+                    .with_helix_parameters(*helix_parameters),
             )),
             Self::SphereTennisBallSeam(constructor) => Some(Curve::path(
                 constructor
                     .clone()
-                    .with_helix_parameters(helix_parameters.clone()),
+                    .with_helix_parameters(*helix_parameters),
             )),
             Self::PillConcentricStadium(constructor) => Some(Curve::path(
                 constructor
                     .clone()
-                    .with_helix_parameters(helix_parameters.clone()),
+                    .with_helix_parameters(*helix_parameters),
             )),
             Self::PillTennisBallSeam(constructor) => Some(Curve::path(
                 constructor
                     .clone()
-                    .with_helix_parameters(helix_parameters.clone()),
+                    .with_helix_parameters(*helix_parameters),
             )),
             Self::Twist(twist) => Some(Curve::path(twist.clone())),
             Self::Torus(torus) => Some(Curve::path(torus.clone())),
@@ -1461,7 +1461,7 @@ impl InterpolationDescriptor {
     pub fn instantiated(self) -> chebyshev_polynomials::ChebyshevPolynomial {
         match self {
             InterpolationDescriptor::PointsValues { points, values } => {
-                let points_values = points.into_iter().zip(values.into_iter()).collect();
+                let points_values = points.into_iter().zip(values).collect();
                 chebyshev_polynomials::interpolate_points(points_values, 1e-4)
             }
             InterpolationDescriptor::Chebyshev { coeffs, interval } => {

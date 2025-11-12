@@ -476,8 +476,8 @@ struct InstantiatedEllipse {
 impl InstantiatedEllipse {
     fn new(semi_minor_axis: f64, semi_major_axis: f64) -> Self {
         let mut ret = Self {
-            semi_minor_axis: semi_minor_axis as f64,
-            semi_major_axis: semi_major_axis as f64,
+            semi_minor_axis,
+            semi_major_axis,
             cached_curvilinear_abscissa: Vec::new(),
         };
         ret.initialize_cache();
@@ -688,7 +688,7 @@ impl TwistedTorus {
         //  =>   k = gcm(total_shift, nb_helices) / total_shift
         //  =>   k * gcd(total_shift, nb_helices) = nb_helices * total_shift / total_shift
         //  =>   k = nb_helices / gcd(total_shift, nb_helices)
-        let nb_turn_per_helix = nb_helices as usize / gcd(nb_helices as isize, total_shift);
+        let nb_turn_per_helix = nb_helices / gcd(nb_helices as isize, total_shift);
 
         Self {
             descriptor,

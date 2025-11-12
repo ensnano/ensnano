@@ -118,11 +118,10 @@ impl Curve {
 
                     current_abscissa += (q - p).mag();
 
-                    if let Some(t_obj) = self.geometry.full_turn_at_t() {
-                        if t >= 0. && t < t_obj {
+                    if let Some(t_obj) = self.geometry.full_turn_at_t()
+                        && t >= 0. && t < t_obj {
                             synchronization_length += (q - p).mag();
                         }
-                    }
                     p = q;
                 }
             }
@@ -261,7 +260,7 @@ impl Curve {
             let base_theta = TAU / helix_parameters.bases_per_turn as f64;
             (base_theta - real_theta) * n as f64 + theta
         } else if let Some(pos_full_turn) = self.nucl_pos_full_turn {
-            let final_angle = -pos_full_turn as f64 * TAU / helix_parameters.bases_per_turn as f64;
+            let final_angle = -pos_full_turn * TAU / helix_parameters.bases_per_turn as f64;
             let rem = final_angle.rem_euclid(TAU);
 
             let mut full_delta = -rem - std::f64::consts::FRAC_PI_2;
@@ -270,7 +269,7 @@ impl Curve {
                 full_delta -= TAU;
             }
 
-            theta + full_delta / pos_full_turn as f64 * n as f64
+            theta + full_delta / pos_full_turn * n as f64
         } else {
             theta
         };

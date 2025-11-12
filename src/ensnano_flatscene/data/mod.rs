@@ -642,13 +642,12 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
         FitRectangle::from_points(
             self.helices
                 .iter()
-                .map(|h| {
+                .flat_map(|h| {
                     [
                         h.get_pivot(h.get_flat_left()),
                         h.get_pivot(h.get_flat_right()),
                     ]
                 })
-                .flatten()
                 .map(|v| v.into()),
         )
         .unwrap()

@@ -390,7 +390,7 @@ impl<E: OrganizerElement> Organizer<E> {
                 log::info!("Message edit {:?}", id);
                 if let Some(group_id) = self.get_group(id).and_then(|g| g.get_group_id()) {
                     self.start_editing(group_id);
-                    if let Some(GroupContent::Node { view, .. }) = self.get_group(&id) {
+                    if let Some(GroupContent::Node { view, .. }) = self.get_group(id) {
                         log::debug!("SetFocus()");
                         return Some(OrganizerMessage::SetFocus(view.name_input_id.clone()));
                     }
@@ -419,7 +419,7 @@ impl<E: OrganizerElement> Organizer<E> {
             }
             Message::AddSelectionToGroup { id } => {
                 log::info!("Add selection to group with id {:?}", id);
-                if let Some(_) = self.get_group(id).and_then(|g| g.get_group_id()) {
+                if self.get_group(id).and_then(|g| g.get_group_id()).is_some() {
                     let _ = self.add_content_to_group(id, selection.iter().cloned().collect());
                     return Some(OrganizerMessage::NewTree(self.tree()));
                 } else {
@@ -529,17 +529,15 @@ impl<E: OrganizerElement> Organizer<E> {
                 self.selected_nodes.insert(id.clone());
             };
             None
+        } else if self.selected_nodes.len() == 1 && self.selected_nodes.contains(id) {
+            self.selected_nodes = BTreeSet::new();
+            current_selection = BTreeSet::new();
+            None
         } else {
-            if self.selected_nodes.len() == 1 && self.selected_nodes.contains(id) {
-                self.selected_nodes = BTreeSet::new();
-                current_selection = BTreeSet::new();
-                None
-            } else {
-                self.selected_nodes = BTreeSet::new();
-                self.selected_nodes.insert(id.clone());
-                current_selection = self.get_keys_below(id).iter().cloned().collect();
-                self.get_group(&id).and_then(|g| g.get_group_id())
-            }
+            self.selected_nodes = BTreeSet::new();
+            self.selected_nodes.insert(id.clone());
+            current_selection = self.get_keys_below(id).iter().cloned().collect();
+            self.get_group(id).and_then(|g| g.get_group_id())
         };
         log::info!("Selected nodes = {:?}", self.selected_nodes);
         (current_selection, group_id)
@@ -555,7 +553,7 @@ impl<E: OrganizerElement> Organizer<E> {
         }
     }
 
-    fn get_section_id<'a, 'b>(&'a self, id: &'b NodeId<E::AutoGroup>) -> Option<&'a Section<E>> {
+    fn get_section_id<'a>(&'a self, id: &NodeId<E::AutoGroup>) -> Option<&'a Section<E>> {
         if let Some(section_id) = get_section_id(id) {
             self.sections.get(section_id)
         } else {
@@ -563,7 +561,7 @@ impl<E: OrganizerElement> Organizer<E> {
         }
     }
 
-    fn get_group<'a, 'b>(&'a self, id: &'b NodeId<E::AutoGroup>) -> Option<&'a GroupContent<E>> {
+    fn get_group<'a>(&'a self, id: &NodeId<E::AutoGroup>) -> Option<&'a GroupContent<E>> {
         if let Some(group_id) = get_group_id(id) {
             if group_id.len() == 1 {
                 self.groups.get(group_id[0])
@@ -606,7 +604,7 @@ impl<E: OrganizerElement> Organizer<E> {
         let node_id = self
             .editing
             .as_ref()
-            .and_then(|g_id| self.group_to_node.get(g_id).clone())
+            .and_then(|g_id| self.group_to_node.get(g_id))
             .cloned();
         if let Some(id) = node_id.as_ref().and_then(get_group_id) {
             self.groups[id[0]].stop_editing(&id[1..]);
@@ -618,7 +616,7 @@ impl<E: OrganizerElement> Organizer<E> {
         let node_id = self
             .editing
             .as_ref()
-            .and_then(|g_id| self.group_to_node.get(g_id).clone())
+            .and_then(|g_id| self.group_to_node.get(g_id))
             .cloned();
         if let Some(id) = node_id.as_ref().and_then(get_group_id) {
             self.groups[id[0]].edit_name(&id[1..], name);
@@ -726,7 +724,7 @@ impl<E: OrganizerElement> Organizer<E> {
             g.delete_useless_leaves(&mut ids_to_remove, &elements);
         }
         ids_to_remove.sort_unstable();
-        if ids_to_remove.len() > 0 {
+        if !ids_to_remove.is_empty() {
             for id in ids_to_remove.iter().filter_map(get_group_id).rev() {
                 self.pop_id_no_recompute(id);
             }
@@ -751,22 +749,18 @@ impl<E: OrganizerElement> Organizer<E> {
 
     /// Action performed when dragged content is dropped.
     fn drag_drop(&mut self, k: &DragIdentifier<E::Key, E::AutoGroup>) {
-        match k {
-            DragIdentifier::Group { id: id_dest } => {
-                if let Some(identifier) = self.dragging.iter().next().cloned() {
-                    match identifier {
-                        id if id == k.clone() => (),
-                        DragIdentifier::Group { id } => self.move_id(&id, id_dest),
-                        DragIdentifier::Section { key } => {
-                            if let Some(id) = get_group_id(id_dest) {
-                                self.add_key_at(key, id)
-                            }
+        if let DragIdentifier::Group { id: id_dest } = k
+            && let Some(identifier) = self.dragging.iter().next().cloned() {
+                match identifier {
+                    id if id == k.clone() => (),
+                    DragIdentifier::Group { id } => self.move_id(&id, id_dest),
+                    DragIdentifier::Section { key } => {
+                        if let Some(id) = get_group_id(id_dest) {
+                            self.add_key_at(key, id)
                         }
                     }
                 }
             }
-            _ => (),
-        }
         self.dragging = BTreeSet::new();
     }
 
@@ -790,10 +784,8 @@ impl<E: OrganizerElement> Organizer<E> {
             println!(
                 "I have not decided what to do when moving a key at the root level of the organizer"
             );
-        } else {
-            if let Some(group) = self.groups.get_mut(dest[0]) {
-                group.add_key_at(key, &dest[1..])
-            }
+        } else if let Some(group) = self.groups.get_mut(dest[0]) {
+            group.add_key_at(key, &dest[1..])
         }
         self.recompute_id();
         self.must_update_tree = true;
@@ -812,21 +804,19 @@ impl<E: OrganizerElement> Organizer<E> {
         //second-last element actually
         let mut min_max_domain_lengths: Vec<(usize, usize)> = elements
             .iter()
-            .map(|e| e.min_max_domain_length_if_strand())
-            .into_iter()
-            .flatten()
+            .filter_map(|e| e.min_max_domain_length_if_strand())
             .collect::<Vec<(usize, usize)>>();
-        min_max_domain_lengths.sort_by_key(|(_, l_max)| l_max.clone());
+        min_max_domain_lengths.sort_by_key(|(_, l_max)| *l_max);
         let upper_domain_length_bounds: (usize, usize) = match min_max_domain_lengths.len() {
             0 => (
-                UPPER_DOMAIN_LENGTH_BOUND.clone(),
-                UPPER_DOMAIN_LENGTH_BOUND.clone(),
+                UPPER_DOMAIN_LENGTH_BOUND,
+                UPPER_DOMAIN_LENGTH_BOUND,
             ),
             1 => min_max_domain_lengths[0],
             n => {
                 let last = min_max_domain_lengths[n - 1];
                 let before_last = min_max_domain_lengths[n - 2];
-                ((before_last.1).max(last.0 - 1) + 1, last.1.clone()) // in reality, it is not the first length....
+                ((before_last.1).max(last.0 - 1) + 1, last.1) // in reality, it is not the first length....
             }
         };
         for e in elements.iter() {
@@ -840,7 +830,7 @@ impl<E: OrganizerElement> Organizer<E> {
                     .add_element(e.clone())
             }
         }
-        self.auto_groups.retain(|_, g| g.elements.len() > 0);
+        self.auto_groups.retain(|_, g| !g.elements.is_empty());
 
         let ret = self.delete_useless_leaves(elements.iter().map(|e| e.key()).collect());
         self.update_attributes();
@@ -1038,13 +1028,13 @@ impl<E: OrganizerElement> NodeTitleBar<E> {
         expanded: bool,
     ) -> Element<'_, OrganizerMessage<E>, Theme, Renderer> {
         let title_row = match &self.state {
-            GroupState::Idle { .. } => {
+            GroupState::Idle => {
                 let mut row: Row<'_, _, Theme, Renderer> = row![
                     button(expand_icon(expanded))
                         .on_press(OrganizerMessage::<E>::expand(id.clone(), !expanded)),
                     Space::with_width(5.0),
                     mouse_area(
-                        text_input("New group name...", &name).id(self.name_input_id.clone())
+                        text_input("New group name...", name).id(self.name_input_id.clone())
                     )
                     .on_press(OrganizerMessage::edit(id.clone())),
                     horizontal_space(),
@@ -1067,13 +1057,13 @@ impl<E: OrganizerElement> NodeTitleBar<E> {
                 );
                 row
             }
-            GroupState::Editing { .. } => {
+            GroupState::Editing => {
                 let mut row = row![
                     button(expand_icon(expanded))
                         .on_press(OrganizerMessage::expand(id.clone(), !expanded)),
                     Space::with_width(5.0),
                     keyboard_priority(
-                        text_input("New group name...", &name)
+                        text_input("New group name...", name)
                             .id(self.name_input_id.clone())
                             .on_input(|s| { OrganizerMessage::name_input(s) })
                             .on_submit(OrganizerMessage::stop_edit())
@@ -1259,7 +1249,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                     .iter()
                     .map(|c| Self::read_tree(c, rng, must_update_tree))
                     .collect();
-                let group_id = id.clone().unwrap_or_else(|| {
+                let group_id = (*id).unwrap_or_else(|| {
                     // when we generate a new identifier, we must notify the program that the tree
                     // is different
                     *must_update_tree = true;
@@ -1333,19 +1323,18 @@ impl<E: OrganizerElement> GroupContent<E> {
                 if !id_local.is_empty() {
                     children
                         .get_mut(id_local[0])
-                        .and_then(|c| c.add_content(&id_local[1..], &id, content))
+                        .and_then(|c| c.add_content(&id_local[1..], id, content))
                 } else {
                     let children_content: Vec<E::Key> = children
                         .iter()
-                        .map(|e| match e {
+                        .filter_map(|e| match e {
                             Self::Leaf { element, .. } => Some(element.clone()),
                             _ => None,
                         })
-                        .flatten()
                         .collect();
                     let content: Vec<E::Key> = content
                         .into_iter()
-                        .filter(|e| !children_content.contains(&e))
+                        .filter(|e| !children_content.contains(e))
                         .collect();
                     let new_leaves = content.into_iter().enumerate().map(|(i, e)| {
                         let mut id = my_id.clone();
@@ -1365,7 +1354,7 @@ impl<E: OrganizerElement> GroupContent<E> {
     }
 
     fn start_editing(&mut self, id: &[usize]) {
-        if id.len() > 0 {
+        if !id.is_empty() {
             match self {
                 Self::Leaf { .. } => {
                     println!("ERROR ACCESSING A LEAF WITHOUT EXHAUSTING ID");
@@ -1385,7 +1374,7 @@ impl<E: OrganizerElement> GroupContent<E> {
     }
 
     fn stop_editing(&mut self, id: &[usize]) {
-        if id.len() > 0 {
+        if !id.is_empty() {
             match self {
                 Self::Leaf { .. } => {
                     println!("ERROR ACCESSING A LEAF WITHOUT EXHAUSTING ID");
@@ -1407,7 +1396,7 @@ impl<E: OrganizerElement> GroupContent<E> {
     }
 
     fn edit_name(&mut self, id: &[usize], name: String) {
-        if id.len() > 0 {
+        if !id.is_empty() {
             match self {
                 Self::Leaf { .. } => {
                     println!("ERROR ACCESSING A LEAF WITHOUT EXHAUSTING ID");
@@ -1431,7 +1420,7 @@ impl<E: OrganizerElement> GroupContent<E> {
     }
 
     fn expand(&mut self, id: &[usize], expanded: bool) {
-        if id.len() > 0 {
+        if !id.is_empty() {
             match self {
                 Self::Leaf { .. } => {
                     println!("ERROR ACCESSING A LEAF WITHOUT EXHAUSTING ID");
@@ -1721,18 +1710,18 @@ fn tabulation() -> Space {
 fn merge_attributes<T: Ord + Clone + std::fmt::Debug>(
     attributes: &[&[Option<T>]],
 ) -> Vec<Option<T>> {
-    if attributes.len() == 0 {
+    if attributes.is_empty() {
         vec![]
     } else {
         let n = attributes[0].len();
-        let ret = (0..n)
+        
+        (0..n)
             .map(|attr_n| {
                 (0..attributes.len()).fold(None, |a, n| {
                     merge_opt(&a, attributes[n].get(attr_n).unwrap_or(&None))
                 })
             })
-            .collect();
-        ret
+            .collect()
     }
 }
 

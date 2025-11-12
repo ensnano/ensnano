@@ -559,19 +559,19 @@ impl Helix {
         groups: &BTreeMap<usize, bool>,
     ) -> Option<CircleInstance> {
         let (left, right) = self.screen_intersection(camera)?;
-        let center = if self.leftmost_x() as f32 > right || (self.rightmost_x() as f32) < left {
+        let center = if self.leftmost_x() > right || self.rightmost_x() < left {
             // the helix is invisible
             None
-        } else if self.leftmost_x() as f32 - 1. - 2. * CIRCLE_WIDGET_RADIUS > left {
+        } else if self.leftmost_x() - 1. - 2. * CIRCLE_WIDGET_RADIUS > left {
             // There is room on the left of the helix
             Some(self.x_position(
-                self.leftmost_x() as f32 - 1. - CIRCLE_WIDGET_RADIUS,
+                self.leftmost_x() - 1. - CIRCLE_WIDGET_RADIUS,
                 HelixLine::Middle,
             ))
-        } else if self.rightmost_x() as f32 + 1. + 2. * CIRCLE_WIDGET_RADIUS < right {
+        } else if self.rightmost_x() + 1. + 2. * CIRCLE_WIDGET_RADIUS < right {
             // There is room on the right of the helix
             Some(self.x_position(
-                self.rightmost_x() as f32 + 1. + CIRCLE_WIDGET_RADIUS,
+                self.rightmost_x() + 1. + CIRCLE_WIDGET_RADIUS,
                 HelixLine::Middle,
             ))
         } else {
@@ -615,7 +615,7 @@ impl Helix {
     /// See [get_circle](get_circle).
     pub fn get_circle_pivot(&self, camera: &CameraPtr) -> Option<FlatNucl> {
         let (left, right) = self.screen_intersection(camera)?;
-        if self.leftmost_x() > right || (self.rightmost_x() as f32) < left {
+        if self.leftmost_x() > right || self.rightmost_x() < left {
             // the helix is invisible
             None
         } else if self.leftmost_x() - 1. - 2. * CIRCLE_WIDGET_RADIUS > left

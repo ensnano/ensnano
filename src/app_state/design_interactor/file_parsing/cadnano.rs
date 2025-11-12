@@ -100,7 +100,7 @@ impl FromCadnano for Design {
         let mut num_to_helix: HashMap<isize, usize> = HashMap::new();
 
         let mut helices = BTreeMap::new();
-        let honeycomb = vstrands[0].scaf.len() % 21 == 0;
+        let honeycomb = vstrands[0].scaf.len().is_multiple_of(21);
         let grid = Grid::new(
             Vec3::zero(),
             Rotor3::identity(),
@@ -123,7 +123,7 @@ impl FromCadnano for Design {
         }
         num_to_helix.insert(-1, NO_HELIX);
 
-        for scaf in vec![false, true] {
+        for scaf in [false, true] {
             for i in 0..vstrands.len() {
                 let v = &vstrands[i];
                 for j in 0..v.stap.len() {
@@ -298,7 +298,7 @@ fn make_strand(
 
 fn subtract_skips(nucl: usize, helix: usize, vstrands: &Vec<VStrand>) -> isize {
     let skips: isize = (0..(nucl + 1))
-        .map(|n| vstrands[helix].skip[n as usize])
+        .map(|n| vstrands[helix].skip[n])
         .sum();
     nucl as isize + skips
 }

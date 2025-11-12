@@ -149,10 +149,10 @@ impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
         if self.progress.is_some() {
             self.operation = None;
             self.message = None;
-        } else if let Some(_) = self.app_state.get_strand_building_state() {
+        } else if self.app_state.get_strand_building_state().is_some() {
             self.operation = None;
             self.message = None;
-        } else if let Some(_) = self.message {
+        } else if self.message.is_some() {
             self.operation = None;
         } else if let Some(_) = self.operation {
             log::trace!("operation is some");
@@ -203,7 +203,7 @@ impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
         }
         .to_string();
 
-        let size = self.logical_size.clone();
+        let size = self.logical_size;
         let mut content = if self.progress.is_some() {
             self.view_progress()
         } else if let Some(building_info) = self.app_state.get_strand_building_state() {

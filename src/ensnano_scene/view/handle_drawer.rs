@@ -228,7 +228,7 @@ impl HandlesDrawer {
     pub fn get_pivot_position(&self) -> Option<GroupPivot> {
         self.descriptor.as_ref().map(|d| GroupPivot {
             position: d.origin,
-            orientation: d.orientation.into(),
+            orientation: d.orientation,
         })
     }
 }

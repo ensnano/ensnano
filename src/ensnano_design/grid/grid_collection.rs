@@ -95,7 +95,7 @@ impl<'a> FreeGridsMut<'a> {
     }
 
     pub fn get_mut(&mut self, g_id: &FreeGridId) -> Option<&mut GridDescriptor> {
-        self.new_map.get_mut(&g_id).map(Arc::make_mut)
+        self.new_map.get_mut(g_id).map(Arc::make_mut)
     }
 
     pub fn get_mut_g_id(&mut self, g_id: &GridId) -> Option<&mut GridDescriptor> {

@@ -73,7 +73,7 @@ impl Selection {
             Selection::Design(d) => Some(*d),
             Selection::Bond(d, _, _) => Some(*d),
             Selection::Strand(d, _) => Some(*d),
-            Selection::Helix { design_id, .. } => Some(*design_id as u32),
+            Selection::Helix { design_id, .. } => Some(*design_id),
             Selection::Nucleotide(d, _) => Some(*d),
             Selection::Grid(d, _) => Some(*d),
             Selection::Phantom(pe) => Some(pe.design_id),
@@ -95,7 +95,7 @@ impl Selection {
         match self {
             Self::Design(_) => None,
             Self::Grid(_, _) => None,
-            Self::Helix { helix_id, .. } => Some(vec![*helix_id as usize]),
+            Self::Helix { helix_id, .. } => Some(vec![(*helix_id)]),
             Self::Nucleotide(_, nucl) => Some(vec![nucl.helix]),
             Self::Phantom(pe) => Some(vec![pe.to_nucl().helix]),
             Self::Strand(_, s_id) => {
@@ -194,7 +194,7 @@ fn extract_one_grid(selection: &Selection) -> Option<GridId> {
 }
 
 pub fn list_of_strands(selection: &[Selection]) -> Option<(usize, Vec<usize>)> {
-    let design_id = selection.get(0).and_then(Selection::get_design)?;
+    let design_id = selection.first().and_then(Selection::get_design)?;
     let mut strands = BTreeSet::new();
     for s in selection.iter() {
         match s {
@@ -216,7 +216,7 @@ pub fn list_of_xover_ids(
     selection: &[Selection],
     reader: &dyn InteractorDesignReaderExt,
 ) -> Option<(usize, Vec<usize>)> {
-    let design_id = selection.get(0).and_then(Selection::get_design)?;
+    let design_id = selection.first().and_then(Selection::get_design)?;
     let mut xovers = BTreeSet::new();
     for s in selection.iter() {
         match s {
@@ -245,7 +245,7 @@ pub fn list_of_xover_as_nucl_pairs(
     selection: &[Selection],
     reader: &dyn InteractorDesignReaderExt,
 ) -> Option<(usize, Vec<(Nucl, Nucl)>)> {
-    let design_id = selection.get(0).and_then(Selection::get_design)?;
+    let design_id = selection.first().and_then(Selection::get_design)?;
     let mut xovers = BTreeSet::new();
     for s in selection.iter() {
         match s {
@@ -277,7 +277,7 @@ pub fn list_of_xover_as_nucl_pairs(
 }
 
 pub fn list_of_helices(selection: &[Selection]) -> Option<(usize, Vec<usize>)> {
-    let design_id = selection.get(0).and_then(Selection::get_design)?;
+    let design_id = selection.first().and_then(Selection::get_design)?;
     let mut helices = BTreeSet::new();
     for s in selection.iter() {
         match s {
@@ -382,7 +382,7 @@ pub fn all_helices_no_grid(
     selection: &[Selection],
     reader: &dyn InteractorDesignReaderExt,
 ) -> bool {
-    let design_id = selection.get(0).and_then(Selection::get_design);
+    let design_id = selection.first().and_then(Selection::get_design);
     let mut nb_helices = 0;
     if design_id.is_none() {
         return false;
@@ -424,18 +424,15 @@ pub fn extract_nucls_from_selection(selection: &[Selection]) -> Vec<Nucl> {
 
 /// Selection modes that can be selected by buttons on the top bar.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Default)]
 pub enum SelectionMode {
+    #[default]
     Nucleotide,
     Strand,
     Helix,
     Design,
 }
 
-impl Default for SelectionMode {
-    fn default() -> Self {
-        SelectionMode::Nucleotide
-    }
-}
 
 impl std::fmt::Display for SelectionMode {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
@@ -473,8 +470,10 @@ impl SelectionMode {
 
 /// Describe the action currently done by the user when they click left
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Default)]
 pub enum ActionMode {
     /// User is moving the camera
+    #[default]
     Normal,
     /// User can translate objects and move the camera
     Translate,
@@ -489,11 +488,6 @@ pub enum ActionMode {
     EditBezierPath,
 }
 
-impl Default for ActionMode {
-    fn default() -> Self {
-        ActionMode::Normal
-    }
-}
 
 impl std::fmt::Display for ActionMode {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
@@ -506,7 +500,7 @@ impl std::fmt::Display for ActionMode {
                 ActionMode::Rotate => "Rotate",
                 ActionMode::BuildHelix { .. } => "Build",
                 ActionMode::Cut => "Cut",
-                ActionMode::EditBezierPath { .. } => "Edit path",
+                ActionMode::EditBezierPath => "Edit path",
             }
         )
     }
@@ -580,7 +574,7 @@ pub fn phantom_helix_decoder(id: u32) -> PhantomElement {
     let helix_id = reminder / max_pos_id;
     let reminder = reminder % max_pos_id;
     let bond = reminder & 0b10 > 0;
-    let forward = reminder % 2 == 0;
+    let forward = reminder.is_multiple_of(2);
     let nucl_id = reminder / 4;
     let position = nucl_id as i32 - PHANTOM_RANGE;
     PhantomElement {

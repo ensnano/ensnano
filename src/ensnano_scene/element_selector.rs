@@ -192,7 +192,8 @@ impl ElementSelector {
         // This pattern is copied from
         //  https://stackoverflow.com/questions/76839881/creating-writing-and-reading-from-buffer-wgpu
 
-        let pixels = {
+        
+        {
             let pixels_slice = buffer_slice.get_mapped_range();
             let mut pixels = Vec::with_capacity((size.height * size.width) as usize);
             for chunk in pixels_slice.chunks(buffer_dimensions.padded_bytes_per_row) {
@@ -203,8 +204,7 @@ impl ElementSelector {
             drop(pixels_slice);
             staging_buffer.unmap();
             pixels
-        };
-        pixels
+        }
     }
 
     fn create_fake_scene_texture(

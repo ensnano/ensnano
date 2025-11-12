@@ -178,11 +178,10 @@ impl Curve {
 
                     current_abscissa += (q - p).mag();
 
-                    if let Some(t_obj) = self.geometry.full_turn_at_t() {
-                        if t >= 0. && t < t_obj {
+                    if let Some(t_obj) = self.geometry.full_turn_at_t()
+                        && t >= 0. && t < t_obj {
                             synchronization_length += (q - p).mag();
                         }
-                    }
                     p = q;
                 }
             }
@@ -218,7 +217,7 @@ impl Curve {
         ) {
             torsion.push(Self::discrete_torsion([p0, p1, p2, p3]).abs());
         }
-        let last_torsion = torsion.last().unwrap_or(&0.).clone();
+        let last_torsion = *torsion.last().unwrap_or(&0.);
         for _ in torsion.len()..points_forward.len() {
             torsion.push(last_torsion);
         }
@@ -230,7 +229,7 @@ impl Curve {
                 "points_forward.append([\n\t{}\n])\n",
                 points_forward
                     .iter()
-                    .fold("".to_string(), |a, p| if a.len() > 0 {
+                    .fold("".to_string(), |a, p| if !a.is_empty() {
                         format!("{}, ({}, {}, {})", a, p.x, p.y, p.z)
                     } else {
                         format!("({}, {}, {})", p.x, p.y, p.z)
@@ -240,7 +239,7 @@ impl Curve {
                 "points_backward.append([\n\t{}\n])\n",
                 points_backward
                     .iter()
-                    .fold("".to_string(), |a, p| if a.len() > 0 {
+                    .fold("".to_string(), |a, p| if !a.is_empty() {
                         format!("{}, ({}, {}, {})", a, p.x, p.y, p.z)
                     } else {
                         format!("({}, {}, {})", p.x, p.y, p.z)
@@ -296,15 +295,15 @@ impl Curve {
 
     /// Compute the discrete torsion given 4 points
     fn discrete_torsion(points: [&DVec3; 4]) -> f64 {
-        let p0 = points[0].clone();
-        let p1 = points[1].clone();
-        let p2 = points[2].clone();
-        let p3 = points[3].clone();
+        let p0 = *points[0];
+        let p1 = *points[1];
+        let p2 = *points[2];
+        let p3 = *points[3];
         let dp = p2 - p1;
         let d2p = p2 + p0 - 2. * p1;
         let d3p = p3 - p0 + 3. * (p1 - p2);
         let c = dp.cross(d2p);
-        return d3p.dot(c) / c.mag_sq();
+        d3p.dot(c) / c.mag_sq()
     }
 
     /// If `self.geometry` specifies that a certain number of nucleotide must fit on a given
@@ -574,7 +573,7 @@ impl Curve {
                 .collect();
             let t_abscissa = ts
                 .into_iter()
-                .zip(abscissas.into_iter())
+                .zip(abscissas)
                 .step_by(10) // (1)
                 .collect();
 

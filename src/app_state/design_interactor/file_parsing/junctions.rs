@@ -160,12 +160,10 @@ fn add_junction<'b, 'a: 'b>(
                         // previous domain MUST point to some Domain::HelixDomain.
                         if let Domain::HelixDomain(prime5) = *previous_domain {
                             junctions.push(junction(prime5, prime3))
+                        } else if i == 0 {
+                            panic!("Invariant violated: SaneDomains");
                         } else {
-                            if i == 0 {
-                                panic!("Invariant violated: SaneDomains");
-                            } else {
-                                panic!("Invariant violated: read_junctions::PrevDomain");
-                            }
+                            panic!("Invariant violated: read_junctions::PrevDomain");
                         }
                     }
                 }
@@ -180,7 +178,7 @@ fn add_junction<'b, 'a: 'b>(
 
 /// Infer junctions from a succession of domains.
 pub(super) fn read_junctions(domains: &[Domain], cyclic: bool) -> Vec<DomainJunction> {
-    if domains.len() == 0 {
+    if domains.is_empty() {
         return vec![];
     }
 

@@ -38,7 +38,7 @@ impl ColorPicker {
         row![
             HueColumn::new(ColorMessage::HueChanged,),
             LightSatSquare::new(
-                self.hue as f64,
+                self.hue,
                 ColorMessage::HsvSatValueChanged,
                 ColorMessage::FinishChangingColor,
             ),

@@ -179,7 +179,7 @@ impl ScadnanoDomain {
                 deletions, helix, ..
             } => {
                 if let Some(vec) = deletions {
-                    let entry = deletions_map.entry(*helix).or_insert(BTreeSet::new());
+                    let entry = deletions_map.entry(*helix).or_default();
                     for d in vec.iter() {
                         entry.insert(*d);
                     }

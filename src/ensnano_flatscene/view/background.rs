@@ -94,7 +94,7 @@ impl Background {
         let bg_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             layout: Some(&pipeline_layout),
             vertex: wgpu::VertexState {
-                module: &bg_vs_module,
+                module: bg_vs_module,
                 entry_point: "main",
                 buffers: &[wgpu::VertexBufferLayout {
                     array_stride: std::mem::size_of::<BgPoint>() as u64,
@@ -103,12 +103,12 @@ impl Background {
                 }],
             },
             fragment: Some(wgpu::FragmentState {
-                module: &bg_fs_module,
+                module: bg_fs_module,
                 entry_point: "main",
                 targets,
             }),
             depth_stencil: depth_stencil.clone(),
-            primitive: primitive.clone(),
+            primitive,
             multisample: wgpu::MultisampleState {
                 count: SAMPLE_COUNT,
                 mask: !0,
@@ -120,7 +120,7 @@ impl Background {
         let border_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             layout: Some(&pipeline_layout),
             vertex: wgpu::VertexState {
-                module: &border_vs_module,
+                module: border_vs_module,
                 entry_point: "main",
                 buffers: &[wgpu::VertexBufferLayout {
                     array_stride: std::mem::size_of::<BgPoint>() as u64,
@@ -129,7 +129,7 @@ impl Background {
                 }],
             },
             fragment: Some(wgpu::FragmentState {
-                module: &border_fs_module,
+                module: border_fs_module,
                 entry_point: "main",
                 targets,
             }),

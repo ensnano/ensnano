@@ -402,7 +402,7 @@ impl DesignInteractor {
             .as_ref()
             .bezier_paths
             .get(&path_id)?;
-        let vertex_0 = path.vertices().get(0)?;
+        let vertex_0 = path.vertices().first()?;
         let plane_id = vertex_0.plane_id;
         self.presenter
             .current_design
@@ -1279,12 +1279,11 @@ mod tests {
             .unwrap();
         app_state
             .apply_copy_operation(CopyOperation::PositionPastingPoint(
-                Some(Nucl {
+                Some(PastePosition::Nucl(Nucl {
                     helix: 4,
                     position: 5,
                     forward: true,
-                })
-                .map(PastePosition::Nucl),
+                })),
             ))
             .unwrap();
         app_state
@@ -1303,12 +1302,11 @@ mod tests {
             .unwrap();
         app_state
             .apply_copy_operation(CopyOperation::PositionPastingPoint(
-                Some(Nucl {
+                Some(PastePosition::Nucl(Nucl {
                     helix: 4,
                     position: 5,
                     forward: true,
-                })
-                .map(PastePosition::Nucl),
+                })),
             ))
             .unwrap();
         assert!(matches!(
@@ -1328,12 +1326,11 @@ mod tests {
             .unwrap();
         app_state
             .apply_copy_operation(CopyOperation::PositionPastingPoint(
-                Some(Nucl {
+                Some(PastePosition::Nucl(Nucl {
                     helix: 1,
                     position: 10,
                     forward: true,
-                })
-                .map(PastePosition::Nucl),
+                })),
             ))
             .unwrap();
         app_state
@@ -1352,12 +1349,11 @@ mod tests {
             .unwrap();
         app_state
             .apply_copy_operation(CopyOperation::PositionPastingPoint(
-                Some(Nucl {
+                Some(PastePosition::Nucl(Nucl {
                     helix: 1,
                     position: 5,
                     forward: true,
-                })
-                .map(PastePosition::Nucl),
+                })),
             ))
             .unwrap();
         match app_state.apply_copy_operation(CopyOperation::Paste) {
@@ -1395,12 +1391,11 @@ mod tests {
             .unwrap();
         app_state
             .apply_copy_operation(CopyOperation::PositionPastingPoint(
-                Some(Nucl {
+                Some(PastePosition::Nucl(Nucl {
                     helix: 4,
                     position: 5,
                     forward: true,
-                })
-                .map(PastePosition::Nucl),
+                })),
             ))
             .unwrap();
         app_state
@@ -1427,12 +1422,11 @@ mod tests {
             .unwrap();
         app_state
             .apply_copy_operation(CopyOperation::PositionPastingPoint(
-                Some(Nucl {
+                Some(PastePosition::Nucl(Nucl {
                     helix: 1,
                     position: 10,
                     forward: true,
-                })
-                .map(PastePosition::Nucl),
+                })),
             ))
             .unwrap();
         app_state
@@ -1454,12 +1448,11 @@ mod tests {
             .unwrap();
         app_state
             .apply_copy_operation(CopyOperation::PositionPastingPoint(
-                Some(Nucl {
+                Some(PastePosition::Nucl(Nucl {
                     helix: 1,
                     position: 5,
                     forward: true,
-                })
-                .map(PastePosition::Nucl),
+                })),
             ))
             .unwrap();
         assert!(
@@ -1483,12 +1476,11 @@ mod tests {
             .unwrap();
         let ret = app_state
             .apply_copy_operation(CopyOperation::PositionPastingPoint(
-                Some(Nucl {
+                Some(PastePosition::Nucl(Nucl {
                     helix: 1,
                     position: 10,
                     forward: true,
-                })
-                .map(PastePosition::Nucl),
+                })),
             ))
             .unwrap();
         println!("{:?}", ret);
@@ -1512,23 +1504,21 @@ mod tests {
         assert_eq!(app_state.0.design.design.strands.len(), 1);
         app_state
             .apply_copy_operation(CopyOperation::PositionPastingPoint(
-                Some(Nucl {
+                Some(PastePosition::Nucl(Nucl {
                     helix: 1,
                     position: 5,
                     forward: true,
-                })
-                .map(PastePosition::Nucl),
+                })),
             ))
             .unwrap();
         assert_eq!(app_state.0.design.design.strands.len(), 2);
         app_state
             .apply_copy_operation(CopyOperation::PositionPastingPoint(
-                Some(Nucl {
+                Some(PastePosition::Nucl(Nucl {
                     helix: 1,
                     position: 3,
                     forward: true,
-                })
-                .map(PastePosition::Nucl),
+                })),
             ))
             .unwrap();
         assert_eq!(app_state.0.design.design.strands.len(), 2);
@@ -1570,12 +1560,11 @@ mod tests {
         assert_eq!(app_state.0.design.design.strands.len(), 1);
         app_state
             .apply_copy_operation(CopyOperation::PositionPastingPoint(
-                Some(Nucl {
+                Some(PastePosition::Nucl(Nucl {
                     helix: 1,
                     position: 5,
                     forward: true,
-                })
-                .map(PastePosition::Nucl),
+                })),
             ))
             .unwrap();
         app_state.update();

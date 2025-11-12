@@ -103,7 +103,7 @@ impl CloseSurfaceTopology {
     }
 
     pub fn number_of_sections_per_segment(&self) -> usize {
-        return self.nb_section_per_segment;
+        self.nb_section_per_segment
     }
 
     pub fn balls_with_successor(&self) -> &[usize] {

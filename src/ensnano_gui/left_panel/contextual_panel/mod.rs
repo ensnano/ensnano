@@ -231,8 +231,7 @@ where
 
     pub fn update(&mut self, app_state: &mut State) -> Command<Message<State>> {
         let selection = app_state
-            .get_selection()
-            .get(0)
+            .get_selection().first()
             .unwrap_or(&Selection::Nothing);
         let nb_selected = app_state
             .get_selection()
@@ -273,8 +272,7 @@ where
         app_state: &State,
     ) -> crate::ensnano_iced::Element<'_, Message<State>> {
         let selection = app_state
-            .get_selection()
-            .get(0)
+            .get_selection().first()
             .unwrap_or(&Selection::Nothing);
 
         let nb_selected = app_state
@@ -360,7 +358,7 @@ where
                 }
                 Selection::Xover(_, _) => {
                     if xover_len.is_none() {
-                        if let Some(info) = info_values.get(0) {
+                        if let Some(info) = info_values.first() {
                             column = column.push(text(info));
                         }
                         if let Some(info) = info_values.get(1) {
@@ -377,7 +375,7 @@ where
         };
 
         if let Some(info_values) = xover_len.map(|v| fmt_xover_len(Some(v))) {
-            if let Some(info) = info_values.get(0) {
+            if let Some(info) = info_values.first() {
                 content = content.push(text(info));
             }
             if let Some(info) = info_values.get(1) {
@@ -777,7 +775,7 @@ fn values_of_selection(selection: &Selection, reader: &dyn GuiDesignReaderExt) -
         Selection::Grid(_, g_id) => {
             let b1 = reader.grid_has_persistent_phantom(*g_id);
             let b2 = reader.grid_has_small_spheres(*g_id);
-            let mut ret: Vec<String> = vec![b1, b2]
+            let mut ret: Vec<String> = [b1, b2]
                 .iter()
                 .map(|b| {
                     if *b {

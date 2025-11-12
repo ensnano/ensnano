@@ -41,6 +41,12 @@ pub struct Design<StrandLabel, DomainLabel> {
     pub parameters: Option<Parameters>,
 }
 
+impl<StrandLabel: serde::Serialize, DomainLabel: serde::Serialize> Default for Design<StrandLabel, DomainLabel> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<StrandLabel: serde::Serialize, DomainLabel: serde::Serialize>
     Design<StrandLabel, DomainLabel>
 {
@@ -91,13 +97,13 @@ fn none<Label>() -> Option<Label> {
 impl<StrandLabel, DomainLabel> Strand<StrandLabel, DomainLabel> {
     /// Provide a default color to the strand.
     pub fn default_color(&self) -> Color {
-        if let Some(domain) = self.domains.get(0) {
+        if let Some(domain) = self.domains.first() {
             let x1 = if domain.forward {
                 domain.end - 1
             } else {
                 domain.start
             };
-            let h = domain.helix as isize;
+            let h = domain.helix;
             let x = x1 + (x1 % 11) + 5 * h;
             let n = KELLY.len() as isize;
             return KELLY[(((x % n) + n) % n) as usize].clone();
@@ -193,7 +199,7 @@ impl<Label> Domain<Label> {
         Domain {
             start: self.start + dx,
             end: self.end + dx,
-            helix: usize::try_from(self.helix as isize + dy).unwrap() as isize,
+            helix: usize::try_from(self.helix + dy).unwrap() as isize,
             ..self
         }
     }
@@ -212,7 +218,7 @@ impl<Label> Domain<Label> {
     pub fn shift_y(self, dy: isize) -> Self {
         use std::convert::TryFrom;
         Domain {
-            helix: usize::try_from(self.helix as isize + dy).unwrap() as isize,
+            helix: usize::try_from(self.helix + dy).unwrap() as isize,
             ..self
         }
     }

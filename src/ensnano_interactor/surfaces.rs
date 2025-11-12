@@ -249,7 +249,7 @@ impl UnrootedRevolutionSurfaceDescriptor {
         }
 
         let nb_helix = half_nb_helix * 2;
-        if nb_helix % nb_spirals == 0 {
+        if nb_helix.is_multiple_of(nb_spirals) {
             let additional_shift = if self.half_turn_count % 2 == 1 {
                 half_nb_helix
             } else {

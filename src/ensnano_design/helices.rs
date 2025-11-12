@@ -301,7 +301,7 @@ impl Helix {
                 group_id
             )));
         };
-        let Some(x) = scad.grid_position.get(0).cloned() else {
+        let Some(x) = scad.grid_position.first().cloned() else {
             return Err(ScadnanoImportError::MissingField(String::from("x")));
         };
         let Some(y) = scad.grid_position.get(1).cloned() else {
@@ -683,7 +683,7 @@ impl Helix {
 
     /// 3D position of a nucleotide on this helix. `n` is the position along the axis, and `forward` is true iff the 5' to 3' direction of the strand containing that nucleotide runs in the same direction as the axis of the helix.
     pub fn space_pos(&self, p: &HelixParameters, n: isize, forward: bool) -> Vec3 {
-        let p = self.helix_parameters.unwrap_or(*p).clone();
+        let p = self.helix_parameters.unwrap_or(*p);
         /*
         match self.helix_parameters {
             None => p.clone(),
@@ -723,7 +723,7 @@ impl Helix {
         forward: bool,
     ) -> Vec3 {
         let mut ret;
-        let p = self.helix_parameters.unwrap_or(*p).clone();
+        let p = self.helix_parameters.unwrap_or(*p);
         /*
         match self.helix_parameters {
             None => p.clone(),
@@ -771,7 +771,7 @@ impl Helix {
         forward: bool,
         shift: f32,
     ) -> Vec3 {
-        let p = self.helix_parameters.unwrap_or(*p).clone();
+        let p = self.helix_parameters.unwrap_or(*p);
         //  match self.helix_parameters {
         //     None => p.clone(),
         //     Some(hp) => hp.clone(),
@@ -784,8 +784,8 @@ impl Helix {
     ///Return an helix that makes an ideal cross-over with self at position n
     pub fn ideal_neighbor(&self, n: isize, forward: bool, p: &HelixParameters) -> Helix {
         let p = match self.helix_parameters {
-            None => p.clone(),
-            Some(hp) => hp.clone(),
+            None => *p,
+            Some(hp) => hp,
         };
         let other_helix_pos = self.position_ideal_neighbor(n, forward, &p);
         let mut new_helix = self.detached_copy_at(other_helix_pos);
@@ -817,8 +817,8 @@ impl Helix {
 
     fn position_ideal_neighbor(&self, n: isize, forward: bool, p: &HelixParameters) -> Vec3 {
         let p = match self.helix_parameters {
-            None => p.clone(),
-            Some(hp) => hp.clone(),
+            None => *p,
+            Some(hp) => hp,
         };
         let axis_pos = self.axis_position(&p, n, forward);
         let my_nucl_pos = self.space_pos(&p, n, forward);
@@ -835,8 +835,8 @@ impl Helix {
         p: &HelixParameters,
     ) {
         let p = match self.helix_parameters {
-            None => p.clone(),
-            Some(hp) => hp.clone(),
+            None => *p,
+            Some(hp) => hp,
         };
         let theta_current = new_helix.theta(0, forward, &p);
         let theta_obj = self.theta(n, forward, &p) + std::f32::consts::PI;
@@ -863,7 +863,7 @@ impl Helix {
                 orientation,
             }
         } else {
-            let p = self.helix_parameters.unwrap_or(*p).clone();
+            let p = self.helix_parameters.unwrap_or(*p);
             Axis::Line {
                 origin: self.position,
                 direction: self.axis_position(&p, 1, true) - self.position,
@@ -884,7 +884,7 @@ impl Helix {
             };
             return point.rotated_by(orientation) + position;
         }
-        let p = self.helix_parameters.unwrap_or(*p).clone();
+        let p = self.helix_parameters.unwrap_or(*p);
         let mut ret = Vec3::new(n as f32 * p.rise, 0., 0.);
 
         ret = self.rotate_point(ret);

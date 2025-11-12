@@ -26,8 +26,10 @@ pub(super) struct DownloadStaples {
     step: Step,
 }
 
+#[derive(Default)]
 enum Step {
     /// The staple downloading request has just started
+    #[default]
     Init,
     /// Asking the user where to write the result
     AskingPath(AskingPath_),
@@ -40,11 +42,6 @@ enum Step {
     Downloading { design_id: usize, path: PathBuf },
 }
 
-impl Default for Step {
-    fn default() -> Self {
-        Self::Init
-    }
-}
 
 impl State for DownloadStaples {
     fn make_progress(self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn State> {

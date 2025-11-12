@@ -116,7 +116,7 @@ impl StaplesDownloader for DesignInteractor {
             let mut group_vec = Vec::from_iter(all_group_names.iter().map(|_| ""));
             for group_name in staple.group_names.iter() {
                 if let Some(index) = group_map.get(&group_name) {
-                    group_vec[*index] = &group_name.as_str();
+                    group_vec[*index] = group_name.as_str();
                 }
             }
             let mut row: Vec<&str> = vec![
@@ -139,7 +139,7 @@ impl StaplesDownloader for DesignInteractor {
         for (sheet_id, rows) in sheets.iter() {
             let sheet: &mut rust_xlsxwriter::Worksheet = wb
                 .add_worksheet()
-                .set_name(&format!("Plate {sheet_id}"))
+                .set_name(format!("Plate {sheet_id}"))
                 .expect("Excel error: cannot create worksheet");
 
             for (i, row) in rows.iter().enumerate() {
@@ -195,7 +195,7 @@ impl StaplesDownloader for DesignInteractor {
 
         let sheet: &mut rust_xlsxwriter::Worksheet = wb
             .add_worksheet()
-            .set_name(&format!("All staples"))
+            .set_name("All staples".to_string())
             .expect("Excel error: cannot create worksheet");
         let mut write_once = true;
         let mut all_i = 0;
@@ -246,7 +246,7 @@ impl StaplesDownloader for DesignInteractor {
                         }
                     }
                     sheet
-                        .write(all_i as u32, j as u16, row[j].to_string())
+                        .write(all_i, j as u16, row[j].to_string())
                         .expect("error write cell");
                 }
                 all_i += 1;

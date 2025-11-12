@@ -34,7 +34,7 @@ fn read_scaffold_seq(
     shift: usize,
 ) -> Result<BTreeMap<Nucl, char>, ErrOperation> {
     let nb_skip = if let Some(sequence) = design.scaffold_sequence.as_ref() {
-        if sequence.len() == 0 {
+        if sequence.is_empty() {
             return Err(ErrOperation::EmptyScaffoldSequence);
         }
         sequence.len() - (shift % sequence.len())

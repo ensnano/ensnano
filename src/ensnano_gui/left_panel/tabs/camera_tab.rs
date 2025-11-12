@@ -228,7 +228,7 @@ impl FogGuiParameters {
             row![
                 subsection("Distance Fog", ui_size),
                 pick_list(
-                    &ALL_FOG_CHOICES[..],
+                    ALL_FOG_CHOICES,
                     Some(FogChoices::from_param(
                         self.is_activated,
                         self.from_camera,
@@ -280,7 +280,9 @@ impl Default for FogGuiParameters {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Copy)]
+#[derive(Default)]
 pub enum FogChoices {
+    #[default]
     None,
     FromCamera,
     FromPivot,
@@ -289,13 +291,8 @@ pub enum FogChoices {
     ReversedFromPivot,
 }
 
-impl Default for FogChoices {
-    fn default() -> Self {
-        Self::None
-    }
-}
 
-const ALL_FOG_CHOICES: &'static [FogChoices] = &[
+const ALL_FOG_CHOICES: &[FogChoices] = &[
     FogChoices::None,
     FogChoices::FromCamera,
     FogChoices::FromPivot,

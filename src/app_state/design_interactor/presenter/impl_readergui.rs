@@ -77,7 +77,6 @@ impl ReaderGui for DesignInteractor {
         self.presenter
             .current_design
             .get_cameras()
-            .into_iter()
             .map(|(id, cam)| (*id, cam.name.as_str()))
             .collect()
     }

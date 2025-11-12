@@ -378,7 +378,7 @@ impl DraggingTransitionTable for MakingXover {
         cursor: DraggedCursor<'_, '_, S>,
     ) -> Option<Consequence> {
         let element = cursor.context.get_element_under_cursor();
-        self.target_element = element.clone();
+        self.target_element = element;
         let projected_position = cursor.context.get_projection_on_plane(self.origin.position);
         self.current_xover = cursor
             .context
@@ -388,7 +388,7 @@ impl DraggingTransitionTable for MakingXover {
     }
 
     fn on_button_released(&self) -> Option<Consequence> {
-        if let Some((source, target, design_id)) = self.current_xover.clone() {
+        if let Some((source, target, design_id)) = self.current_xover {
             Some(Consequence::XoverAttempt(
                 source,
                 target,
@@ -452,7 +452,7 @@ impl DraggingTransitionTable for BuildingStrands {
             cursor
                 .context
                 .get_new_build_position()
-                .map(|p| Consequence::Building(p))
+                .map(Consequence::Building)
         }
     }
 

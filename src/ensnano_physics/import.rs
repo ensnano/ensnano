@@ -55,15 +55,15 @@ impl BaseOrNucleotide {
                 let p2 = p2 - center;
 
                 let rigid_body = RigidBodyBuilder::dynamic()
-                    .translation(center.into())
+                    .translation(center)
                     .linear_damping(BASE_LINEAR_DAMPING)
                     .angular_damping(BASE_ANGULAR_DAMPING);
 
                 let collider1 = ColliderBuilder::ball(NUCLEOTIDE_RADIUS)
-                    .translation(p1.into())
+                    .translation(p1)
                     .build();
                 let collider2 = ColliderBuilder::ball(NUCLEOTIDE_RADIUS)
-                    .translation(p2.into())
+                    .translation(p2)
                     .build();
 
                 let rigid_body_handle = rigid_body_set.insert(rigid_body);
@@ -216,8 +216,6 @@ pub fn generate_springs(
             collider_set,
             impulse_joint_set,
         );
-
-        return;
     }
 
     // in this case, we can't connect anything, so we don't add anything
@@ -358,11 +356,11 @@ pub fn generate_intermediary_representation(
             // in this case, we only have one nucleotide left, so it is alone.
             if nucleotide_list[i].1.forward {
                 current_helix.push(BaseOrNucleotide::ForwardNucleotide(
-                    nucleotide_list[i].clone(),
+                    nucleotide_list[i],
                 ));
             } else {
                 current_helix.push(BaseOrNucleotide::BackwardNucleotide(
-                    nucleotide_list[i].clone(),
+                    nucleotide_list[i],
                 ));
             }
             break;
@@ -373,8 +371,8 @@ pub fn generate_intermediary_representation(
             && nucleotide_list[i].1.position == nucleotide_list[j].1.position
         {
             current_helix.push(BaseOrNucleotide::Base(
-                nucleotide_list[i].clone(),
-                nucleotide_list[j].clone(),
+                nucleotide_list[i],
+                nucleotide_list[j],
             ));
 
             i += 2;
@@ -384,11 +382,11 @@ pub fn generate_intermediary_representation(
         // the next nucleotide is alone
         if nucleotide_list[i].1.forward {
             current_helix.push(BaseOrNucleotide::ForwardNucleotide(
-                nucleotide_list[i].clone(),
+                nucleotide_list[i],
             ));
         } else {
             current_helix.push(BaseOrNucleotide::BackwardNucleotide(
-                nucleotide_list[i].clone(),
+                nucleotide_list[i],
             ));
         }
 

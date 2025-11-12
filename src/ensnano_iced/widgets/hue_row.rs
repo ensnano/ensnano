@@ -52,6 +52,12 @@ pub struct HueRow<'a, Message, Theme = iced::Theme, Renderer = iced::Renderer> {
     _renderer: PhantomData<Renderer>,
 }
 
+impl<'a, Message, Theme> Default for HueRow<'a, Message, Theme, iced::Renderer> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<'a, Message, Theme> HueRow<'a, Message, Theme, iced::Renderer> {
     pub fn new() -> Self {
         Self {
@@ -190,12 +196,10 @@ impl<'a, Message, Theme> Widget<Message, Theme, iced::Renderer>
                 if let Some(on_slide) = &self.on_slide {
                     shell.publish(on_slide(360.));
                 }
-            } else {
-                if let Some(on_slide) = &self.on_slide {
-                    let percent = (x - bounds.x) / bounds.width;
-                    let value: f32 = percent * 360.;
-                    shell.publish(on_slide(value.into()));
-                }
+            } else if let Some(on_slide) = &self.on_slide {
+                let percent = (x - bounds.x) / bounds.width;
+                let value: f32 = percent * 360.;
+                shell.publish(on_slide(value.into()));
             }
         };
 

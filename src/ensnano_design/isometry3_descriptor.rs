@@ -48,7 +48,7 @@ impl Isometry3DescriptorItem {
                 ret.push(f);
             }
         }
-        return ret;
+        ret
     }
 
     fn parse_f32s_separated_by_commas_parenthesis_or_space_with_variables(
@@ -64,7 +64,7 @@ impl Isometry3DescriptorItem {
             } else if let Some(variables) = variables {
                 let parsed_t = t
                     .split(&[' ', '*'])
-                    .filter(|s| *s != "")
+                    .filter(|s| !s.is_empty())
                     .collect::<Vec<&str>>();
                 if parsed_t.len() == 2
                     && let Ok(value) = f32::from_str(parsed_t[0])
@@ -74,7 +74,7 @@ impl Isometry3DescriptorItem {
                 }
             }
         }
-        return ret;
+        ret
     }
 }
 
@@ -188,7 +188,7 @@ impl Isometry3DescriptorItem {
                 _ => (),
             }
         }
-        return Err(ParsePointError);
+        Err(ParsePointError)
     }
 }
 
@@ -196,7 +196,7 @@ impl FromStr for Isometry3DescriptorItem {
     type Err = ParsePointError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        return Self::from_str_with_variables(s, None);
+        Self::from_str_with_variables(s, None)
     }
 }
 
@@ -217,7 +217,7 @@ impl Isometry3MissingMethods for Isometry3 {
     fn from_descriptor(descriptor: &Isometry3Descriptor) -> Isometry3 {
         let mut isometry3 = Isometry3::identity();
 
-        for item in descriptor.into_iter() {
+        for item in descriptor.iter() {
             match item {
                 Isometry3DescriptorItem::Identity => (),
                 Isometry3DescriptorItem::TranslateBy(u) => {
@@ -273,7 +273,7 @@ impl Isometry3MissingMethods for Isometry3 {
             }
         }
 
-        return isometry3;
+        isometry3
     }
 
     fn translation(u: Vec3) -> Isometry3 {
@@ -337,13 +337,11 @@ impl Isometry3MissingMethods for Isometry3 {
     fn from_str_with_variables(s: &str, variables: Option<&HashMap<String, f32>>) -> Isometry3 {
         let descr = s
             .split(&[' ', ')'])
-            .map(|x| Isometry3DescriptorItem::from_str_with_variables(x, variables))
-            .filter(|x| x.is_ok())
-            .map(|x| x.unwrap())
+            .flat_map(|x| Isometry3DescriptorItem::from_str_with_variables(x, variables))
             .collect::<Vec<Isometry3DescriptorItem>>();
 
         // println!("{:?}", descr);
 
-        return Isometry3::from_descriptor(&descr);
+        Isometry3::from_descriptor(&descr)
     }
 }

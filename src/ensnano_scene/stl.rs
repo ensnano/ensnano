@@ -200,7 +200,7 @@ impl StlTriangle {
         result.extend(self.v1.to_vec());
         result.extend(self.v2.to_vec());
         result.extend(self.v3.to_vec());
-        let mut result: Vec<u8> = result.iter().map(|x| x.to_le_bytes()).flatten().collect();
+        let mut result: Vec<u8> = result.iter().flat_map(|x| x.to_le_bytes()).collect();
         result.push(0); // attribute bytes
         result.push(0);
         result

@@ -1,18 +1,15 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Default)]
 pub enum CheckXoversParameter {
+    #[default]
     None,
     Checked,
     Unchecked,
     Both,
 }
 
-impl Default for CheckXoversParameter {
-    fn default() -> Self {
-        Self::None
-    }
-}
 
 impl ToString for CheckXoversParameter {
     fn to_string(&self) -> String {

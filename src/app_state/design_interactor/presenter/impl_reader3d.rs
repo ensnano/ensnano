@@ -219,7 +219,7 @@ impl crate::ensnano_scene::data::SceneDesignReaderExt for DesignInteractor {
     }
 
     fn get_scalebar(&self) -> Option<(f32, f32, fn(f32, f32, f32) -> u32)> {
-        self.presenter.content.scalebar.clone()
+        self.presenter.content.scalebar
     }
 
     fn get_element_axis_position(&self, e_id: u32, referential: Referential) -> Option<Vec3> {
@@ -593,7 +593,7 @@ impl crate::ensnano_scene::data::SceneDesignReaderExt for DesignInteractor {
                             .unwrap_or_else(|| {
                                 unreachable!("nucleotide does not belong to the design content!")
                             });
-                        let position = content.space_position.get(nucl_id).unwrap().clone();
+                        let position = *content.space_position.get(nucl_id).unwrap();
                         pos_seq.push(position);
                         curvatures.push(
                             design
@@ -624,7 +624,7 @@ impl crate::ensnano_scene::data::SceneDesignReaderExt for DesignInteractor {
                 },
             );
         }
-        return nucl_pos;
+        nucl_pos
     }
 }
 

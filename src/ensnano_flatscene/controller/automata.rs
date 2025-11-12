@@ -236,58 +236,56 @@ impl<S: AppState> ControllerState<S> for NormalState {
                                 })),
                                 consequences: Consequence::Nothing,
                             }
-                        } else {
-                            if controller.data.borrow().can_start_builder_at(nucl) {
-                                if !controller.data.borrow().has_nucl(nucl) {
-                                    // If the builder is not on an existing strand, we transition
-                                    // directly to building state
-                                    Transition {
-                                        new_state: Some(Box::new(Building {
-                                            mouse_position: self.mouse_position,
-                                            nucl,
-                                            can_attach: false,
-                                        })),
-                                        consequences: Consequence::InitBuilding(nucl),
-                                    }
-                                } else {
-                                    Transition {
-                                        new_state: Some(Box::new(InitBuilding {
-                                            mouse_position: self.mouse_position,
-                                            nucl,
-                                            end: controller.data.borrow().is_strand_end(nucl),
-                                        })),
-                                        consequences: Consequence::InitBuilding(nucl),
-                                    }
-                                }
-                            } else if let Some(attachment) =
-                                controller.data.borrow().attachable_neighbor(nucl)
-                            {
+                        } else if controller.data.borrow().can_start_builder_at(nucl) {
+                            if !controller.data.borrow().has_nucl(nucl) {
+                                // If the builder is not on an existing strand, we transition
+                                // directly to building state
                                 Transition {
-                                    new_state: Some(Box::new(InitAttachment {
-                                        mouse_position: self.mouse_position,
-                                        from: nucl,
-                                        to: attachment,
-                                    })),
-                                    consequences: Consequence::Nothing,
-                                }
-                            } else if controller.data.borrow().has_nucl(nucl)
-                                && controller.data.borrow().is_xover_end(&nucl).is_none()
-                            {
-                                Transition {
-                                    new_state: Some(Box::new(AddOrXover {
+                                    new_state: Some(Box::new(Building {
                                         mouse_position: self.mouse_position,
                                         nucl,
+                                        can_attach: false,
                                     })),
-                                    consequences: Consequence::Nothing,
+                                    consequences: Consequence::InitBuilding(nucl),
                                 }
                             } else {
                                 Transition {
-                                    new_state: Some(Box::new(DraggingSelection {
+                                    new_state: Some(Box::new(InitBuilding {
                                         mouse_position: self.mouse_position,
-                                        fixed_corner: self.mouse_position,
+                                        nucl,
+                                        end: controller.data.borrow().is_strand_end(nucl),
                                     })),
-                                    consequences: Consequence::Nothing,
+                                    consequences: Consequence::InitBuilding(nucl),
                                 }
+                            }
+                        } else if let Some(attachment) =
+                            controller.data.borrow().attachable_neighbor(nucl)
+                        {
+                            Transition {
+                                new_state: Some(Box::new(InitAttachment {
+                                    mouse_position: self.mouse_position,
+                                    from: nucl,
+                                    to: attachment,
+                                })),
+                                consequences: Consequence::Nothing,
+                            }
+                        } else if controller.data.borrow().has_nucl(nucl)
+                            && controller.data.borrow().is_xover_end(&nucl).is_none()
+                        {
+                            Transition {
+                                new_state: Some(Box::new(AddOrXover {
+                                    mouse_position: self.mouse_position,
+                                    nucl,
+                                })),
+                                consequences: Consequence::Nothing,
+                            }
+                        } else {
+                            Transition {
+                                new_state: Some(Box::new(DraggingSelection {
+                                    mouse_position: self.mouse_position,
+                                    fixed_corner: self.mouse_position,
+                                })),
+                                consequences: Consequence::Nothing,
                             }
                         }
                     }
@@ -751,58 +749,56 @@ impl<S: AppState> ControllerState<S> for ReleasedPivot {
                                 })),
                                 consequences: Consequence::Nothing,
                             }
-                        } else {
-                            if controller.data.borrow().can_start_builder_at(nucl) {
-                                if !controller.data.borrow().has_nucl(nucl) {
-                                    // If the builder is not on an existing strand, we transition
-                                    // directly to building state
-                                    Transition {
-                                        new_state: Some(Box::new(Building {
-                                            mouse_position: self.mouse_position,
-                                            nucl,
-                                            can_attach: false,
-                                        })),
-                                        consequences: Consequence::InitBuilding(nucl),
-                                    }
-                                } else {
-                                    Transition {
-                                        new_state: Some(Box::new(InitBuilding {
-                                            mouse_position: self.mouse_position,
-                                            nucl,
-                                            end: controller.data.borrow().is_strand_end(nucl),
-                                        })),
-                                        consequences: Consequence::InitBuilding(nucl),
-                                    }
-                                }
-                            } else if let Some(attachment) =
-                                controller.data.borrow().attachable_neighbor(nucl)
-                            {
+                        } else if controller.data.borrow().can_start_builder_at(nucl) {
+                            if !controller.data.borrow().has_nucl(nucl) {
+                                // If the builder is not on an existing strand, we transition
+                                // directly to building state
                                 Transition {
-                                    new_state: Some(Box::new(InitAttachment {
-                                        mouse_position: self.mouse_position,
-                                        from: nucl,
-                                        to: attachment,
-                                    })),
-                                    consequences: Consequence::Nothing,
-                                }
-                            } else if controller.data.borrow().has_nucl(nucl)
-                                && controller.data.borrow().is_xover_end(&nucl).is_none()
-                            {
-                                Transition {
-                                    new_state: Some(Box::new(AddOrXover {
+                                    new_state: Some(Box::new(Building {
                                         mouse_position: self.mouse_position,
                                         nucl,
+                                        can_attach: false,
                                     })),
-                                    consequences: Consequence::Nothing,
+                                    consequences: Consequence::InitBuilding(nucl),
                                 }
                             } else {
                                 Transition {
-                                    new_state: Some(Box::new(DraggingSelection {
+                                    new_state: Some(Box::new(InitBuilding {
                                         mouse_position: self.mouse_position,
-                                        fixed_corner: self.mouse_position,
+                                        nucl,
+                                        end: controller.data.borrow().is_strand_end(nucl),
                                     })),
-                                    consequences: Consequence::Nothing,
+                                    consequences: Consequence::InitBuilding(nucl),
                                 }
+                            }
+                        } else if let Some(attachment) =
+                            controller.data.borrow().attachable_neighbor(nucl)
+                        {
+                            Transition {
+                                new_state: Some(Box::new(InitAttachment {
+                                    mouse_position: self.mouse_position,
+                                    from: nucl,
+                                    to: attachment,
+                                })),
+                                consequences: Consequence::Nothing,
+                            }
+                        } else if controller.data.borrow().has_nucl(nucl)
+                            && controller.data.borrow().is_xover_end(&nucl).is_none()
+                        {
+                            Transition {
+                                new_state: Some(Box::new(AddOrXover {
+                                    mouse_position: self.mouse_position,
+                                    nucl,
+                                })),
+                                consequences: Consequence::Nothing,
+                            }
+                        } else {
+                            Transition {
+                                new_state: Some(Box::new(DraggingSelection {
+                                    mouse_position: self.mouse_position,
+                                    fixed_corner: self.mouse_position,
+                                })),
+                                consequences: Consequence::Nothing,
                             }
                         }
                     }
@@ -1537,7 +1533,7 @@ impl<S: AppState> ControllerState<S> for InitBuilding {
             },
             WindowEvent::CursorMoved { .. } => {
                 self.mouse_position = position;
-                if let Some(builder) = app_state.get_strand_builders().get(0) {
+                if let Some(builder) = app_state.get_strand_builders().first() {
                     let (x, y) = controller.get_camera(position.y).borrow().screen_to_world(
                         self.mouse_position.x as f32,
                         self.mouse_position.y as f32,

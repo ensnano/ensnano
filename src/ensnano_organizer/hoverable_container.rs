@@ -146,8 +146,8 @@ where
             .as_widget()
             .layout(&mut tree.children[0], renderer, &limits)
             .move_to(Point::new(
-                self.padding.left.into(),
-                self.padding.top.into(),
+                self.padding.left,
+                self.padding.top,
             ));
 
         let size = limits

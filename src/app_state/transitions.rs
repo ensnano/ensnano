@@ -44,7 +44,7 @@ impl<T: Into<Cow<'static, str>>> From<T> for TransitionLabel {
 
 impl AsRef<str> for TransitionLabel {
     fn as_ref(&self) -> &str {
-        &self.0.as_ref()
+        self.0.as_ref()
     }
 }
 

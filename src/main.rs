@@ -481,7 +481,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         let mut main_state_view = MainStateView {
             main_state: &mut main_state,
-            window_target: &window_target,
+            window_target,
             multiplexer: &mut multiplexer,
             gui: &mut gui,
             scheduler: &mut scheduler,
@@ -527,15 +527,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 //       and the interception is made here.
                 //
                 WindowEvent::KeyboardInput { .. } if main_state.keyboard_priority => {
-                    iced_winit::conversion::window_event(
+                    if let Some(iced_event) = iced_winit::conversion::window_event(
                         iced::window::Id::MAIN,
                         // NOTE: Used to be window.id(). It seems dirty,
                         //       but the same is done in iced/examples/integration
                         window_event,
                         window.scale_factor(),
                         kbd_modifiers,
-                    )
-                    .map(|iced_event| gui.forward_event_all(iced_event));
+                    ) { gui.forward_event_all(iced_event) }
                 }
 
                 WindowEvent::RedrawRequested
@@ -702,26 +701,24 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         // Feed the event to the gui component on which it happened
                         match gui_component_type {
                             component if component.is_panel() => {
-                                iced_winit::conversion::window_event(
+                                if let Some(e) = iced_winit::conversion::window_event(
                                     iced::window::Id::MAIN,
                                     // NOTE: Used to be window.id(). It seems dirty,
                                     //       but the same is done in iced/examples/integration
                                     event,
                                     window.scale_factor(),
                                     kbd_modifiers,
-                                )
-                                .map(|e| gui.forward_event(component, e));
+                                ) { gui.forward_event(component, e) }
                             }
                             GuiComponentType::Overlay(n) => {
-                                iced_winit::conversion::window_event(
+                                if let Some(e) = iced_winit::conversion::window_event(
                                     iced::window::Id::MAIN,
                                     // NOTE: Used to be window.id(). It seems dirty,
                                     //       but the same is done in iced/examples/integration
                                     event,
                                     window.scale_factor(),
                                     kbd_modifiers,
-                                )
-                                .map(|e| overlay_manager.forward_event(e, n));
+                                ) { overlay_manager.forward_event(e, n) }
                             }
                             area if area.is_scene() => {
                                 let cursor_position = multiplexer.get_cursor_position();
@@ -753,7 +750,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
                 let mut main_state_view = MainStateView {
                     main_state: &mut main_state,
-                    window_target: &window_target,
+                    window_target,
                     multiplexer: &mut multiplexer,
                     gui: &mut gui,
                     scheduler: &mut scheduler,
@@ -979,7 +976,7 @@ impl OverlayManager {
     }
 
     fn forward_messages(&mut self, _messages: &mut IcedMessages<AppState>) {
-        ()
+        
     }
 
     fn fetch_change(
@@ -1368,8 +1365,8 @@ impl MainState {
         let state = std::mem::take(&mut self.app_state);
         let old_state = state.clone();
         self.app_state = modification(state);
-        if let Some(label) = undo_label {
-            if old_state != self.app_state && old_state.is_in_stable_state() {
+        if let Some(label) = undo_label
+            && old_state != self.app_state && old_state.is_in_stable_state() {
                 let camera_3d = self.get_camera_3d();
                 self.undo_stack.push(AppStateTransition {
                     state: old_state,
@@ -1378,7 +1375,6 @@ impl MainState {
                 });
                 self.redo_stack.clear();
             }
-        }
     }
 
     fn update_pending_operation(&mut self, operation: Arc<dyn Operation>) {
@@ -1608,8 +1604,7 @@ impl MainState {
             .get_bezier_planes()
             .len()
             == 0
-        {
-            if let Some((position, orientation)) = self.get_bezier_sheet_creation_position() {
+            && let Some((position, orientation)) = self.get_bezier_sheet_creation_position() {
                 self.apply_operation(DesignOperation::AddBezierPlane {
                     desc: crate::ensnano_design::BezierPlaneDescriptor {
                         position,
@@ -1617,7 +1612,6 @@ impl MainState {
                     },
                 })
             }
-        }
     }
 
     fn set_unrooted_surface(&mut self, surface: Option<UnrootedRevolutionSurfaceDescriptor>) {
@@ -1737,7 +1731,7 @@ impl<'a> MainStateView<'a> {
     }
 
     fn main_state(&mut self) -> &mut MainState {
-        &mut self.main_state
+        self.main_state
     }
 
     fn need_backup(&self) -> bool {

@@ -235,7 +235,8 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
             } else {
                 (r_max, r_min)
             };
-            let vec = (0..n)
+            
+            (0..n)
                 .map(|i| -> RawDnaInstance {
                     let r = v_min + i as f32 * (v_max - v_min) / n as f32;
                     PlainRectangleInstance {
@@ -247,8 +248,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
                     }
                     .to_raw_instance()
                 })
-                .collect::<Vec<RawDnaInstance>>();
-            vec
+                .collect::<Vec<RawDnaInstance>>()
         } else {
             vec![]
         }
@@ -655,7 +655,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
             let grey = 0.25 - 0.25 * x;
             return Some((Instance::grey_u32_color_from_f32(grey), 1.0));
         }
-        return Some((0x_00_00_00, 1.0));
+        Some((0x_00_00_00, 1.0))
     }
 
     /// Convert return an instance representing the object with identifier `id`
@@ -1280,7 +1280,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
                     .get_element_position(*id, Referential::World)
             })
             .collect();
-        ret.extend(self.get_all_naked_grids_corners().into_iter());
+        ret.extend(self.get_all_naked_grids_corners());
         ret
     }
 

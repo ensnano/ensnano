@@ -46,11 +46,6 @@ impl SetScaffoldSequence {
     }
 }
 
-impl Default for Step {
-    fn default() -> Self {
-        Self::Init
-    }
-}
 
 impl SetScaffoldSequence {
     fn use_default(shift: usize, sequence: StandardSequence) -> Self {
@@ -70,9 +65,11 @@ impl SetScaffoldSequence {
 }
 
 use std::path::PathBuf;
+#[derive(Default)]
 enum Step {
     /// The request to set the sequence of the scaffold has been acknowledged. User is asked to
     /// chose between the default m13 scaffold or a custom one.
+    #[default]
     Init,
     /// The user has chosen to use a custom scaffold, and is asked a path the sequence file.
     AskPath { path_input: Option<PathInput> },

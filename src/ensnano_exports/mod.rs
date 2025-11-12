@@ -120,7 +120,7 @@ impl<'a> BasisMapper<'a> {
         } else {
             // assign random letters for export to oxdna or pdb if none
             let base = rand_base();
-            self.alternative.insert(nucl.clone(), base);
+            self.alternative.insert(*nucl, base);
             self.alternative.insert(nucl.compl(), compl(base, compl_a));
             base
         }

@@ -961,8 +961,7 @@ impl GridData {
         if let Some(old_grid_position) = h.grid_position
             && let Some(g) = self.grids.get(&old_grid_position.grid)
             && let Axis::Line { origin, direction } = axis
-        {
-            if g.interpolate_helix(origin, direction).is_some() {
+            && g.interpolate_helix(origin, direction).is_some() {
                 let old_roll = h.grid_position.map(|gp| gp.roll).filter(|_| preserve_roll);
                 let candidate_position = g
                     .find_helix_position(h, old_grid_position.grid)
@@ -999,7 +998,6 @@ impl GridData {
                     }
                 }
             }
-        }
         Ok(())
     }
 
@@ -1393,8 +1391,7 @@ impl GridData {
             .as_ref()
             .map(|p| helix.need_curve_update(&self.source_free_grids, p))
             .unwrap_or(true)
-        {
-            if let Some(desc) = helix.instantiated_descriptor.as_ref() {
+            && let Some(desc) = helix.instantiated_descriptor.as_ref() {
                 let hp = helix.helix_parameters.unwrap_or(self.helix_parameters);
                 let curve = desc.make_curve(&hp, cached_curve);
                 curve.update_additional_segments(&mut helix.additional_isometries);
@@ -1403,7 +1400,6 @@ impl GridData {
                     source: desc.clone(),
                 });
             }
-        }
     }
 
     pub fn pos_to_space(&self, position: GridPosition) -> Option<Vec3> {

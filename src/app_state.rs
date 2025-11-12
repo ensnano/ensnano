@@ -432,7 +432,7 @@ impl AppState {
         *self = self.with_candidates(vec![]);
         *self = self.with_action_mode(source.0.action_mode);
         *self = self.with_selection_mode(source.0.selection_mode);
-        *self = self.with_suggestion_parameters(source.0.parameters.suggestion_parameters.clone());
+        *self = self.with_suggestion_parameters(source.0.parameters.suggestion_parameters);
         *self = self.with_check_xovers_parameters(source.0.parameters.check_xover_parameters);
         *self = self.with_updated_parameters(|p| *p = source.0.parameters.clone());
     }
@@ -567,7 +567,7 @@ impl AppState {
 
     fn get_strand_building_state(&self) -> Option<StrandBuildingStatus> {
         let builders = self.0.design.get_strand_builders();
-        builders.get(0).and_then(|b| {
+        builders.first().and_then(|b| {
             let domain_id = b.get_domain_identifier();
             let reader = self.get_design_interactor();
             let domain = reader.get_strand_domain(domain_id.strand, domain_id.domain)?;

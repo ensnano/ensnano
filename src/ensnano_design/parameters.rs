@@ -104,7 +104,7 @@ impl HelixParameters {
     };
 
     pub fn inter_helix_axis_gap(&self) -> f32 {
-        return 2.0 * self.helix_radius + self.inter_helix_gap;
+        2.0 * self.helix_radius + self.inter_helix_gap
     }
 
     pub const GEARY_2014_DNA: HelixParameters =

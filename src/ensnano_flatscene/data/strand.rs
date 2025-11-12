@@ -552,7 +552,7 @@ impl<'a> StrandTopologyReader<'a> {
             } else {
                 self.nb_point_helix = 0;
             }
-            if self.nb_point_helix % 2 == 0 {
+            if self.nb_point_helix.is_multiple_of(2) {
                 // we are drawing two consecutive xovers on the same helix, link them with a
                 // crossover
                 self.xover_instruction(last_nucl, nucl)

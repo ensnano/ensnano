@@ -22,21 +22,21 @@ use {
     std::path::Path,
 };
 
-pub const NO_FILE_RECEIVED_LOAD: &'static str = "Open canceled";
-pub const NO_FILE_RECEIVED_SAVE: &'static str = "Save canceled";
-pub const NO_FILE_RECEIVED_OXDNA: &'static str = "OxDNA export canceled";
-pub const NO_FILE_RECEIVED_SCAFFOLD: &'static str = "Scaffold setting canceled";
-pub const NO_FILE_RECEIVED_STAPLE: &'static str = "Staple export canceled";
+pub const NO_FILE_RECEIVED_LOAD: &str = "Open canceled";
+pub const NO_FILE_RECEIVED_SAVE: &str = "Save canceled";
+pub const NO_FILE_RECEIVED_OXDNA: &str = "OxDNA export canceled";
+pub const NO_FILE_RECEIVED_SCAFFOLD: &str = "Scaffold setting canceled";
+pub const NO_FILE_RECEIVED_STAPLE: &str = "Staple export canceled";
 
 pub fn failed_to_save_msg<D: std::fmt::Debug>(reason: &D) -> String {
     format!("Failed to save {:?}", reason)
 }
 
-pub const NO_SCAFFOLD_SET: &'static str = "No scaffold set. \n
+pub const NO_SCAFFOLD_SET: &str = "No scaffold set. \n
                     Chose a strand and set it as the scaffold by checking the scaffold checkbox\
                     in the status bar";
 
-pub const NO_SCAFFOLD_SEQUENCE_SET: &'static str = "No sequence uploaded for scaffold. \n
+pub const NO_SCAFFOLD_SEQUENCE_SET: &str = "No sequence uploaded for scaffold. \n
                 Upload a sequence for the scaffold by pressing the \"Load scaffold\" button";
 
 pub fn successful_staples_export_msg<P: AsRef<Path>>(file: P) -> String {
@@ -46,14 +46,14 @@ pub fn successful_staples_export_msg<P: AsRef<Path>>(file: P) -> String {
     )
 }
 
-pub const OXDNA_EXPORT_FAILED: &'static str = "OxDNA export failed";
-pub const SAVE_DESIGN_FAILED: &'static str = "Could not save design";
-pub const SAVE_BEFORE_EXIT: &'static str = "Do you want to save your design before exiting?";
-pub const SAVE_BEFORE_LOAD: &'static str =
+pub const OXDNA_EXPORT_FAILED: &str = "OxDNA export failed";
+pub const SAVE_DESIGN_FAILED: &str = "Could not save design";
+pub const SAVE_BEFORE_EXIT: &str = "Do you want to save your design before exiting?";
+pub const SAVE_BEFORE_LOAD: &str =
     "Do you want to save your design before loading an other one?";
-pub const SAVE_BEFORE_RELOAD: &'static str =
+pub const SAVE_BEFORE_RELOAD: &str =
     "Do you want to save your changes in an other file before reloading?";
-pub const SAVE_BEFORE_NEW: &'static str =
+pub const SAVE_BEFORE_NEW: &str =
     "Do you want to save your design before starting a new one?";
 
 pub fn optimize_scaffold_position_msg(default_position: usize) -> String {
@@ -85,7 +85,7 @@ pub const DESIGN_WRITE_FILTER: Filters = &[("ENSnano files", &[ENS_EXTENSION])];
 
 pub const SEQUENCE_FILTERS: Filters = &[("Text files", &["txt"])];
 
-pub const CHANGING_DNA_PARAMETERS_WARNING: &'static str =
+pub const CHANGING_DNA_PARAMETERS_WARNING: &str =
     "Are you sure that you want to change DNA parameters?";
 
 pub const OXDNA_CONFIG_EXTENSION: &str = "oxdna";

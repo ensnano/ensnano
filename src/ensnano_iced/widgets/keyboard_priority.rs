@@ -194,7 +194,7 @@ where
         // Now, update self.
         let state = tree.state.downcast_mut::<State>();
         // Look if the underlying [`TextInput`] is focused.
-        if let Some(tree) = tree.children.get(0) {
+        if let Some(tree) = tree.children.first() {
             // TODO: Make the downcast more robust.
             let text_input_state = tree.state.downcast_ref::<text_input::State<Paragraph>>();
             // Send message if the state has changed.

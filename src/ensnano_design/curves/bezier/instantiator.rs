@@ -132,7 +132,7 @@ pub(crate) trait PieceWiseBezierInstantiator<T: BezierEndCoordinateUnit> {
             if !self.is_cyclic() {
                 // Add manually the first and last vertices
                 let first_point = {
-                    let second_point = bezier_points.get(0)?;
+                    let second_point = bezier_points.first()?;
                     let pos = self.position(0)?;
                     let control =
                         T::from_projection(second_point.position - second_point.vector_in);

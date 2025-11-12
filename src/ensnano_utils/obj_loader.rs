@@ -55,12 +55,12 @@ fn read_mesh(mesh_data: &gltf::Mesh, data: &[gltf::buffer::Data]) -> Result<Gltf
     let reader = primitive.reader(|b| Some(&data.get(b.index())?.0[..b.length()]));
 
     let vertex_positions = {
-        let position_iter = reader.read_positions().ok_or(ErrGltf::NoPosition)?;
-        position_iter
+        
+        reader.read_positions().ok_or(ErrGltf::NoPosition)?
     };
     let vertex_normals = {
-        let normals_iter = reader.read_normals().ok_or(ErrGltf::NoNormal)?;
-        normals_iter
+        
+        reader.read_normals().ok_or(ErrGltf::NoNormal)?
     };
     let vertex_colors = {
         let color_iter = reader.read_colors(0).ok_or(ErrGltf::NoColor)?;
@@ -118,9 +118,9 @@ pub fn load_stl<P: AsRef<Path>>(path: P) -> Result<StlMesh, ErrStl> {
     use std::io::BufReader;
     use ultraviolet::Vec3;
     let color = DEFAULT_STL_COLOR; //[0.55, 0.20, 0.25, 1.];
-    let file = File::open(path).map_err(|e| ErrStl::FileErr(e))?;
+    let file = File::open(path).map_err(ErrStl::FileErr)?;
     let mut stl_buff = BufReader::new(&file);
-    let mesh = nom_stl::parse_stl(&mut stl_buff).map_err(|e| ErrStl::StlParseErr(e))?;
+    let mesh = nom_stl::parse_stl(&mut stl_buff).map_err(ErrStl::StlParseErr)?;
     let mut vertices = Vec::new();
     for t in mesh.triangles().iter() {
         let normal = (Vec3::from(t.vertices()[0]) - Vec3::from(t.vertices()[1]))
@@ -128,7 +128,7 @@ pub fn load_stl<P: AsRef<Path>>(path: P) -> Result<StlMesh, ErrStl> {
         log::trace!("normal: {:?}", normal);
         for v in t.vertices() {
             vertices.push(ModelVertex {
-                color: color.clone(),
+                color,
                 position: [v[0] / 10., v[1] / 10., v[2] / 10.], // scale by 10 Å = 1 nm
                 normal: normal.into(),
             });

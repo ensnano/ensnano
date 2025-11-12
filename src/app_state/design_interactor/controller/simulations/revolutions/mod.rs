@@ -513,7 +513,7 @@ impl crate::ensnano_design::AdditionalStructure for RevolutionSurfaceSystem {
     }
 
     fn number_of_sections(&self) -> usize {
-        return self.topology.number_of_sections_per_segment();
+        self.topology.number_of_sections_per_segment()
     }
 
     fn next(&self) -> Vec<(usize, usize)> {

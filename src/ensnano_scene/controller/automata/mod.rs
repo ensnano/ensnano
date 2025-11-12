@@ -90,7 +90,7 @@ pub(super) trait ControllerState<S: AppState> {
     }
 
     fn give_context<'a>(&mut self, _context: EventContext<'a, S>) {
-        ()
+        
     }
 }
 

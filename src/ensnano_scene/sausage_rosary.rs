@@ -83,7 +83,7 @@ impl SausageRosary {
         //     println!("{:?}", s);
         // }
 
-        let mut color_iter = (0..prev_current_next_p1_p2.len()).map(|i| color(i));
+        let mut color_iter = (0..prev_current_next_p1_p2.len()).map(&color);
 
         let tubes = prev_current_next_p1_p2
             .into_iter()
@@ -108,7 +108,7 @@ impl SausageRosary {
             .collect::<Vec<SlicedTubeInstance>>();
 
         if self.is_cyclic {
-            return (tubes, None);
+            (tubes, None)
         } else {
             let (p0, p1) = (self.positions[0], self.positions[1]);
             // println!("{:?}", p1-p0);
@@ -135,7 +135,7 @@ impl SausageRosary {
                 id,
                 radius,
             };
-            return (tubes, Some((lid_left, lid_right)));
+            (tubes, Some((lid_left, lid_right)))
         }
     }
 }

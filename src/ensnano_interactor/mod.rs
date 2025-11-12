@@ -434,7 +434,9 @@ pub struct ScaffoldInfo {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Default)]
 pub enum SimulationState {
+    #[default]
     None,
     Rolling,
     RigidGrid,
@@ -470,14 +472,11 @@ impl SimulationState {
     }
 }
 
-impl Default for SimulationState {
-    fn default() -> Self {
-        Self::None
-    }
-}
 
 #[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Default)]
 pub enum WidgetBasis {
+    #[default]
     World,
     Object,
 }
@@ -499,11 +498,6 @@ impl WidgetBasis {
     }
 }
 
-impl Default for WidgetBasis {
-    fn default() -> Self {
-        Self::World
-    }
-}
 
 /// Information about the domain being elongated
 #[derive(Debug, Clone)]
@@ -541,8 +535,10 @@ pub struct BezierPlaneHomothethy {
 
 #[derive(Debug, Clone, Copy)]
 /// One of the standard scaffold sequence shipped with ENSnano
+#[derive(Default)]
 pub enum StandardSequence {
     P4844,
+    #[default]
     P7249,
     P7560,
     P8064,
@@ -582,8 +578,3 @@ impl StandardSequence {
     }
 }
 
-impl Default for StandardSequence {
-    fn default() -> Self {
-        Self::P7249
-    }
-}

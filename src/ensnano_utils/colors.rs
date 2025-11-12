@@ -63,9 +63,9 @@ pub fn random_color_with_shade(shade: u32, hue_range: Option<f64>) -> u32 {
         .min(1.)
         .max(0.);
 
-    let color = (hsv_color(hue, saturation, value) & 0xFF_FF_FF) | a;
+    
 
-    return color;
+    (hsv_color(hue, saturation, value) & 0xFF_FF_FF) | a
 }
 
 // Give a color given a set of (t_i,h_i) where t_i is increasing from 0 to 1 such that for t_i ≤ t ≤ t_i+1, the hue is the linear interpolation of h_i and h_i+1 - h is considered modulo 360
@@ -82,7 +82,7 @@ pub const PURPLE_TO_BLUE_GRADIENT: [(f32, f32); 8] = [
 ];
 
 pub fn gradient_color(t: f32, t_hues: &[(f32, f32)]) -> u32 {
-    assert!(t_hues.len() > 0, "/!\\ Empty gradient description");
+    assert!(!t_hues.is_empty(), "/!\\ Empty gradient description");
     if t <= t_hues[0].0 {
         return hsv_color((t_hues[0].1 as f64).rem_euclid(360.), 1., 1.);
     }
@@ -92,7 +92,7 @@ pub fn gradient_color(t: f32, t_hues: &[(f32, f32)]) -> u32 {
             return hsv_color(hue as f64, 1., 1.);
         }
     }
-    return hsv_color((t_hues.last().unwrap().1 as f64).rem_euclid(360.), 1., 1.);
+    hsv_color((t_hues.last().unwrap().1 as f64).rem_euclid(360.), 1., 1.)
 }
 
 #[inline(always)]

@@ -130,7 +130,7 @@ impl Curved for SphereLikeSpiral {
         let x = self.radius
             * PI
             * PI
-            * (-1. * phi.sin() * theta.cos()
+            * (-phi.sin() * theta.cos()
                 - phi.cos() * nb_turn * nb_turn * TAU * theta.sin()
                 - nb_turn
                     * TAU
@@ -139,7 +139,7 @@ impl Curved for SphereLikeSpiral {
         let y = self.radius
             * PI
             * PI
-            * (-1. * phi.sin() * theta.sin()
+            * (-phi.sin() * theta.sin()
                 + phi.cos() * nb_turn * TAU * theta.cos()
                 + nb_turn
                     * TAU

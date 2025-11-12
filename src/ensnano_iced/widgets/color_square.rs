@@ -114,19 +114,19 @@ where
         let vertices = vec![
             SolidVertex2D {
                 position: [0., 0.],
-                color: color,
+                color,
             },
             SolidVertex2D {
                 position: [0., y_max],
-                color: color,
+                color,
             },
             SolidVertex2D {
                 position: [x_max, 0.],
-                color: color,
+                color,
             },
             SolidVertex2D {
                 position: [x_max, y_max],
-                color: color,
+                color,
             },
         ];
         let indices = vec![0, 1, 2, 1, 2, 3];

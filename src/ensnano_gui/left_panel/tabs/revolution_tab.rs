@@ -516,14 +516,13 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
     }
 
     fn update(&mut self, app_state: &mut State) -> Command<Message<State>> {
-        if let Some(r) = app_state.get_current_revolution_radius() {
-            if !self.modifying_radius() {
+        if let Some(r) = app_state.get_current_revolution_radius()
+            && !self.modifying_radius() {
                 self.update_builder_parameter(
                     RevolutionParameterId::RevolutionRadius,
                     format!("{:.3}", r),
                 )
             }
-        }
 
         self.scaling = self
             .scaffold_len_target
@@ -533,8 +532,8 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
                 app_state.get_recommended_scaling_revolution_surface(len_scaffold)
             });
 
-        if self.try_get_shift_per_turn(app_state).is_none() {
-            if let Some((unrooted_surface, nb_spiral)) =
+        if self.try_get_shift_per_turn(app_state).is_none()
+            && let Some((unrooted_surface, nb_spiral)) =
                 self.get_current_unrooted_surface(app_state).zip(
                     self.nb_spiral_state_input
                         .get_value()
@@ -544,8 +543,7 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
                 let half_nb_helix = self.scaling.as_ref().unwrap().nb_helix / 2;
                 self.shift_generator =
                     unrooted_surface.shifts_to_get_n_spirals(half_nb_helix, nb_spiral);
-            }
-        };
+            };
         Command::none()
     }
 
@@ -595,11 +593,10 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
             ]
         } else {
             let mut button = text_button("Start", ui_size);
-            if let SimulationState::None = app_state.get_simulation_state() {
-                if desc.is_some() {
+            if let SimulationState::None = app_state.get_simulation_state()
+                && desc.is_some() {
                     button = button.on_press(Message::InitRevolutionRelaxation);
                 }
-            }
             self::column![button]
         };
 

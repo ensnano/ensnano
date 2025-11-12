@@ -223,8 +223,7 @@ fn split_domain_into_helices_segment(
 
     let intermediate_positions: Vec<isize> = additional_segments
         .iter()
-        .map(|s| [s.left - 1, s.left])
-        .flatten()
+        .flat_map(|s| [s.left - 1, s.left])
         .collect();
 
     let mut iter = intermediate_positions

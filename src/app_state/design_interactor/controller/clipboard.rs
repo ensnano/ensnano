@@ -26,7 +26,9 @@ use crate::ensnano_design::{
 };
 use ultraviolet::{Rotor3, Vec3};
 
+#[derive(Default)]
 pub(super) enum Clipboard {
+    #[default]
     Empty,
     Strands(StrandClipboard),
     Xovers(Vec<(Nucl, Nucl)>),
@@ -81,17 +83,12 @@ impl Clipboard {
 
     fn get_leading_xover_nucl(&self) -> Option<Nucl> {
         match self {
-            Self::Xovers(v) => v.get(0).map(|t| t.0),
+            Self::Xovers(v) => v.first().map(|t| t.0),
             _ => None,
         }
     }
 }
 
-impl Default for Clipboard {
-    fn default() -> Self {
-        Self::Empty
-    }
-}
 
 #[derive(Clone, Debug)]
 pub(super) struct StrandClipboard {
@@ -162,16 +159,16 @@ impl Controller {
             let strand = data
                 .design
                 .strands
-                .get(&id)
+                .get(id)
                 .ok_or(ErrOperation::StrandDoesNotExist(*id))?;
             let template = self.strand_to_template(strand, &data.design.helices, data.grid_data)?;
             templates.push(template);
         }
         let mut edges = vec![];
-        if templates.len() == 0 {
+        if templates.is_empty() {
             self.clipboard = Default::default();
         } else {
-            if let Some(s_id1) = strand_ids.get(0) {
+            if let Some(s_id1) = strand_ids.first() {
                 for s_id2 in strand_ids.iter().skip(1) {
                     edges.push(Self::edge_between_strands(
                         *s_id1,
@@ -313,7 +310,7 @@ impl Controller {
                     .collect();
                 design
                     .copy_grids(&grid_ids, Vec3::zero(), Rotor3::identity())
-                    .map_err(|e| ErrOperation::GridCopyError(e))?;
+                    .map_err(ErrOperation::GridCopyError)?;
                 Ok(design)
             }
             Clipboard::Empty => Err(ErrOperation::EmptyClipboard),
@@ -338,7 +335,7 @@ impl Controller {
         }?;
         if let Some(nucl) = nucl {
             let (pasted_strands, duplication_edge) =
-                self.paste_clipboard(&strand_clipboard, nucl, data)?;
+                self.paste_clipboard(strand_clipboard, nucl, data)?;
             self.state.update_pasting_position(
                 Some(PastePosition::Nucl(nucl)),
                 pasted_strands,
@@ -357,8 +354,7 @@ impl Controller {
     ) -> Result<(Vec<PastedStrand>, Option<(Edge, isize)>), ErrOperation> {
         let mut duplication_edge = None;
         let template_0 = clipboard
-            .templates
-            .get(0)
+            .templates.first()
             .ok_or(ErrOperation::EmptyClipboard)?;
         let domains_0 = self.template_to_domains(
             template_0,
@@ -587,7 +583,7 @@ impl Controller {
         design: &mut Design,
         pasted_strands: &[PastedStrand],
     ) -> Result<(), ErrOperation> {
-        if pasted_strands.get(0).map(|s| s.pastable) == Some(false) {
+        if pasted_strands.first().map(|s| s.pastable) == Some(false) {
             return Err(ErrOperation::CannotPasteHere);
         }
         for pasted_strand in pasted_strands.iter() {
@@ -703,8 +699,7 @@ impl Controller {
                         data.grid_data,
                     )
                     .ok_or(ErrOperation::CannotPasteHere)?;
-                let n1 = xovers
-                    .get(0)
+                let n1 = xovers.first()
                     .map(|n| n.0)
                     .ok_or(ErrOperation::EmptyClipboard)?;
                 let edge = Self::edge_between_nucls(
@@ -737,7 +732,7 @@ impl Controller {
                 let new_duplication_point = data
                     .translate_by_edge(&last_pasting_point.to_helix_pos(), &duplication_edge)
                     .ok_or(ErrOperation::CannotPasteHere)?;
-                let h_id0 = helices.get(0).ok_or(ErrOperation::EmptyClipboard)?;
+                let h_id0 = helices.first().ok_or(ErrOperation::EmptyClipboard)?;
                 let edge = data
                     .get_helix_grid_position(*h_id0)
                     .as_ref()
@@ -840,26 +835,26 @@ impl Controller {
     pub(super) fn get_pasting_point(&self) -> Option<Option<PastePosition>> {
         match self.state {
             ControllerState::PositioningStrandPastingPoint { pasting_point, .. } => {
-                Some(pasting_point.map(|p| PastePosition::Nucl(p.clone())))
+                Some(pasting_point.map(PastePosition::Nucl))
             }
             ControllerState::PositioningStrandDuplicationPoint { pasting_point, .. } => {
-                Some(pasting_point.map(|p| PastePosition::Nucl(p.clone())))
+                Some(pasting_point.map(PastePosition::Nucl))
             }
             ControllerState::DoingFirstXoversDuplication { pasting_point, .. } => {
-                Some(pasting_point.map(|p| PastePosition::Nucl(p.clone())))
+                Some(pasting_point.map(PastePosition::Nucl))
             }
             ControllerState::PastingXovers { pasting_point, .. } => {
-                Some(pasting_point.map(|p| PastePosition::Nucl(p.clone())))
+                Some(pasting_point.map(PastePosition::Nucl))
             }
             ControllerState::PositioningHelicesPastingPoint { pasting_point, .. } => {
-                Some(pasting_point.map(|p| PastePosition::GridPosition(p.clone())))
+                Some(pasting_point.map(PastePosition::GridPosition))
             }
             _ => None,
         }
     }
 
     pub(super) fn copy_xovers(&mut self, xovers: Vec<(Nucl, Nucl)>) -> Result<(), ErrOperation> {
-        if xovers.len() > 0 {
+        if !xovers.is_empty() {
             self.clipboard = AddressPointer::new(Clipboard::Xovers(xovers))
         } else {
             self.clipboard = Default::default()
@@ -868,7 +863,7 @@ impl Controller {
     }
 
     pub(super) fn copy_helices(&mut self, helices: Vec<usize>) -> Result<(), ErrOperation> {
-        if helices.len() > 0 {
+        if !helices.is_empty() {
             self.clipboard = AddressPointer::new(Clipboard::Helices(helices))
         } else {
             self.clipboard = Default::default()
@@ -899,7 +894,7 @@ impl Controller {
         position: Option<PastePosition>,
     ) -> Result<(), ErrOperation> {
         let data = design.get_updated_grid_data();
-        let h_id0 = helices.get(0).ok_or(ErrOperation::EmptyClipboard)?;
+        let h_id0 = helices.first().ok_or(ErrOperation::EmptyClipboard)?;
         log::info!("position = {:?}", position);
         log::info!(
             "source position = {:?}",
@@ -949,11 +944,10 @@ impl Controller {
         self.state
             .update_xover_pasting_position(nucl, edge, design)?;
         let data = design.mut_strand_and_data();
-        if cfg!(test) {
-            if edge.is_none() {
+        if cfg!(test)
+            && edge.is_none() {
                 println!("EDGE IS NONE");
             }
-        }
         if let Some(edge) = edge {
             let clipboard = self.clipboard.clone();
             let xovers = match clipboard.as_ref() {

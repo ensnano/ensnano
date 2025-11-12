@@ -24,17 +24,14 @@ pub const ALL_UI_SIZES: [UiSize; 3] = [UiSize::Small, UiSize::Medium, UiSize::La
 
 /// Size handler for ENSnano's GUI.
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Default)]
 pub enum UiSize {
     Small,
+    #[default]
     Medium,
     Large,
 }
 
-impl Default for UiSize {
-    fn default() -> Self {
-        Self::Medium
-    }
-}
 
 impl UiSize {
     // Text related messages
@@ -123,7 +120,7 @@ impl UiSize {
 
     /// The full height of the tab_bar
     pub fn tab_bar_height(&self) -> f32 {
-        (self.icon() + 25.0) as f32
+        self.icon() + 25.0
         // TODO: This 25.0 is not satisfying. Someday I should find some way to compute
         // the minimum value to fit all icons.
     }

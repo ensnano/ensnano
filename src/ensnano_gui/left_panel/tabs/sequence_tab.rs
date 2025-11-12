@@ -116,12 +116,12 @@ impl<State: AppState> GuiTab<State> for SequenceTab<State> {
             extra_jump(),
             // add_show_sequence_button!
             {
-                let button_show_sequence = if self.toggle_text_value {
+                
+                if self.toggle_text_value {
                     text_button("Hide Sequences", ui_size).on_press(Message::ToggleText(false))
                 } else {
                     text_button("Show Sequences", ui_size).on_press(Message::ToggleText(true))
-                };
-                button_show_sequence
+                }
             },
             extra_jump(),
             section("Scaffold", ui_size),

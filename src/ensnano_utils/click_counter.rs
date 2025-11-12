@@ -33,6 +33,6 @@ impl ClickCounter {
     pub fn next(&mut self) -> u32 {
         let ret = self.value;
         self.value += 1;
-        return ret;
+        ret
     }
 }

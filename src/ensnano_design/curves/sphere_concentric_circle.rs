@@ -45,7 +45,7 @@ impl SphereConcentricCircleDescriptor {
         let inter_helix_center_gap = self
             .inter_helix_center_gap
             .unwrap_or(HelixParameters::INTER_CENTER_GAP as f64);
-        let phi = PI / 2.0 - helix_index * inter_helix_center_gap as f64 / self.radius;
+        let phi = PI / 2.0 - helix_index * inter_helix_center_gap / self.radius;
         let z_radius = self.radius * phi.sin();
         let z = self.radius * phi.cos();
         let perimeter = TAU * z_radius;
@@ -154,7 +154,7 @@ impl Curved for SphereConcentricCircle {
     }
 
     fn objective_nb_nt(&self) -> Option<usize> {
-        return self.target_nb_nt;
+        self.target_nb_nt
     }
 
     fn t_max(&self) -> f64 {
@@ -166,9 +166,9 @@ impl Curved for SphereConcentricCircle {
     }
 
     fn abscissa_converter(&self) -> Option<crate::ensnano_design::AbscissaConverter> {
-        return Some(crate::ensnano_design::AbscissaConverter::linear(
+        Some(crate::ensnano_design::AbscissaConverter::linear(
             self.abscissa_converter_factor.unwrap_or(1.),
-        ));
+        ))
     }
 }
 
@@ -255,11 +255,11 @@ impl Curved for SphereTennisBallSeam {
             };
         }
         let t = (t - self.t3) / self.z;
-        return DVec3 {
+        DVec3 {
             x: self.z_radius,
             y: -self.z * t.sin(),
             z: -self.z * t.cos(),
-        };
+        }
     }
 
     fn speed(&self, t: f64) -> DVec3 {
@@ -289,11 +289,11 @@ impl Curved for SphereTennisBallSeam {
             };
         }
         let t = (t - self.t3) / self.z;
-        return DVec3 {
+        DVec3 {
             x: 0.,
             y: -self.z * t.cos(),
             z: self.z * t.sin(),
-        };
+        }
     }
 
     fn acceleration(&self, t: f64) -> DVec3 {
@@ -323,11 +323,11 @@ impl Curved for SphereTennisBallSeam {
             };
         }
         let t = (t - self.t3) / self.z;
-        return DVec3 {
+        DVec3 {
             x: 0.,
             y: self.z * t.sin(),
             z: self.z * t.cos(),
-        };
+        }
     }
 
     fn curvilinear_abscissa(&self, _t: f64) -> Option<f64> {
@@ -355,7 +355,7 @@ impl Curved for SphereTennisBallSeam {
     }
 
     fn objective_nb_nt(&self) -> Option<usize> {
-        return self.target_nb_nt;
+        self.target_nb_nt
     }
 
     fn t_max(&self) -> f64 {
@@ -492,11 +492,11 @@ impl Curved for PillTennisBallSeam {
             };
         }
         let t = (t - self.t3b) / self.z;
-        return DVec3 {
+        DVec3 {
             x: self.z_radius,
             y: -self.length / 2.0 - self.z * t.sin(),
             z: -self.z * t.cos(),
-        };
+        }
     }
 
     fn speed(&self, t: f64) -> DVec3 {
@@ -554,11 +554,11 @@ impl Curved for PillTennisBallSeam {
             };
         }
         let t = (t - self.t3b) / self.z;
-        return DVec3 {
+        DVec3 {
             x: 0.0,
             y: -self.z * t.cos(),
             z: self.z * t.sin(),
-        };
+        }
     }
 
     fn acceleration(&self, t: f64) -> DVec3 {
@@ -600,11 +600,11 @@ impl Curved for PillTennisBallSeam {
             return DVec3::zero();
         }
         let t = (t - self.t3b) / self.z;
-        return DVec3 {
+        DVec3 {
             x: 0.0,
             y: self.z * t.sin(),
             z: self.z * t.cos(),
-        };
+        }
     }
 
     fn curvilinear_abscissa(&self, _t: f64) -> Option<f64> {
@@ -632,7 +632,7 @@ impl Curved for PillTennisBallSeam {
     }
 
     fn objective_nb_nt(&self) -> Option<usize> {
-        return self.target_nb_nt;
+        self.target_nb_nt
     }
 
     fn t_max(&self) -> f64 {
@@ -665,7 +665,7 @@ impl PillConcentricStadiumDescriptor {
         let inter_helix_center_gap = self
             .inter_helix_center_gap
             .unwrap_or(HelixParameters::INTER_CENTER_GAP as f64);
-        let phi = PI / 2.0 - helix_index * inter_helix_center_gap as f64 / self.radius;
+        let phi = PI / 2.0 - helix_index * inter_helix_center_gap / self.radius;
         let z_radius = self.radius * phi.sin();
         let z = self.radius * phi.cos();
         let t1 = self.length;
@@ -752,11 +752,11 @@ impl Curved for PillConcentricStadium {
             };
         }
         let t = (t - self.t3) / self.z_radius;
-        return DVec3 {
+        DVec3 {
             x: -self.z_radius * t.cos(),
             y: -self.length / 2.0 - self.z_radius * t.sin(),
             z: self.z,
-        };
+        }
     }
 
     fn speed(&self, t: f64) -> DVec3 {
@@ -784,11 +784,11 @@ impl Curved for PillConcentricStadium {
             };
         }
         let t = (t - self.t3) / self.z_radius;
-        return DVec3 {
+        DVec3 {
             x: self.z_radius * t.sin(),
             y: -self.z_radius * t.cos(),
             z: self.z,
-        };
+        }
     }
 
     fn acceleration(&self, t: f64) -> DVec3 {
@@ -808,11 +808,11 @@ impl Curved for PillConcentricStadium {
             return DVec3::zero();
         }
         let t = (t - self.t3) / self.z_radius;
-        return DVec3 {
+        DVec3 {
             x: self.z_radius * t.cos(),
             y: self.z_radius * t.sin(),
             z: self.z,
-        };
+        }
     }
 
     fn curvilinear_abscissa(&self, _t: f64) -> Option<f64> {
@@ -851,7 +851,7 @@ impl Curved for PillConcentricStadium {
     }
 
     fn objective_nb_nt(&self) -> Option<usize> {
-        return self.target_nb_nt;
+        self.target_nb_nt
     }
 
     fn t_max(&self) -> f64 {
@@ -863,8 +863,8 @@ impl Curved for PillConcentricStadium {
     }
 
     fn abscissa_converter(&self) -> Option<crate::ensnano_design::AbscissaConverter> {
-        return Some(crate::ensnano_design::AbscissaConverter::linear(
+        Some(crate::ensnano_design::AbscissaConverter::linear(
             self.abscissa_converter_factor.unwrap_or(1.),
-        ));
+        ))
     }
 }

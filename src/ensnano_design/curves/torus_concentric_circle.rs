@@ -50,7 +50,7 @@ impl TorusConcentricCircleDescriptor {
                 / helix_parameters.rise as f64,
         ); // better <= 1
 
-        let mut circle_helix_parameters = helix_parameters.clone();
+        let mut circle_helix_parameters = *helix_parameters;
         circle_helix_parameters.inter_helix_gap = inter_helix_center_gap as f32;
 
         CircleCurve {
@@ -90,7 +90,7 @@ impl EllipticTorusConcentricCircleDescriptor {
                 / helix_parameters.rise as f64,
         ); // better <= 1
 
-        let circle_helix_parameters = helix_parameters.clone();
+        let circle_helix_parameters = *helix_parameters;
 
         CircleCurve {
             _parameters: circle_helix_parameters,

@@ -470,8 +470,7 @@ impl Instantiable for TubeLidInstance {
 
     fn indices() -> Vec<u16> {
         (0..NB_RAY_TUBE)
-            .map(|i| [0, i as u16 + 2, i as u16 + 1])
-            .flatten()
+            .flat_map(|i| [0, i as u16 + 2, i as u16 + 1])
             .collect()
     }
 
@@ -572,12 +571,10 @@ impl Instantiable for SlicedTubeInstance {
     fn indices() -> Vec<u16> {
         let nb_ray_tube = NB_RAY_TUBE as u16;
         let left = (0..nb_ray_tube)
-            .map(|i| [i, i + nb_ray_tube])
-            .flatten()
+            .flat_map(|i| [i, i + nb_ray_tube])
             .collect::<Vec<u16>>();
         let right = (nb_ray_tube..2 * nb_ray_tube)
-            .map(|i| [i, i + nb_ray_tube])
-            .flatten()
+            .flat_map(|i| [i, i + nb_ray_tube])
             .collect::<Vec<u16>>();
         [
             left,

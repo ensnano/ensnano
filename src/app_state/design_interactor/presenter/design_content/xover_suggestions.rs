@@ -40,7 +40,7 @@ impl XoverSuggestions {
         self.helices_groups
             .entry(nucl.helix)
             .or_default()
-            .push(nucl.clone());
+            .push(nucl);
         self.helices_cubes
             .entry(nucl.helix)
             .or_default()
@@ -55,8 +55,8 @@ impl XoverSuggestions {
             Some(false) => {
                 self.red_cubes
                     .entry(cube)
-                    .or_insert(vec![])
-                    .push(nucl.clone());
+                    .or_default()
+                    .push(nucl);
             }
             None => (),
         }
@@ -150,9 +150,9 @@ impl XoverSuggestions {
         let mut ret = Vec::new();
         let positions = design.get_nucl_position(*nucl)?;
         let cube0 = space_to_cube(positions[0], positions[1], positions[2]);
-        for i in vec![-1, 0, 1].iter() {
-            for j in vec![-1, 0, 1].iter() {
-                for k in vec![-1, 0, 1].iter() {
+        for i in [-1, 0, 1].iter() {
+            for j in [-1, 0, 1].iter() {
+                for k in [-1, 0, 1].iter() {
                     let cube = (cube0.0 + i, cube0.1 + j, cube0.2 + k);
 
                     for (_, cubes) in self.helices_cubes.iter().filter(|(h, _)| **h > nucl.helix) {

@@ -28,7 +28,7 @@ impl Design {
         orientation: Rotor3,
     ) -> Result<(), GridCopyError> {
         let (base_position, base_orientation) = {
-            let grid_id_0 = grid_ids.get(0).ok_or(GridCopyError::NoGridToCopy)?;
+            let grid_id_0 = grid_ids.first().ok_or(GridCopyError::NoGridToCopy)?;
             let source_grid = self
                 .free_grids
                 .get(grid_id_0)
@@ -43,14 +43,14 @@ impl Design {
         let mut new_grids = grids_clone.make_mut();
 
         let new_grid_ids = self.make_grid_copy_grid_map(
-            &grid_ids,
+            grid_ids,
             base_position,
             base_orientation,
             &mut new_grids,
         )?;
 
-        let new_helix_map = self.make_grid_copy_helix_map(&grid_ids);
-        let source_strand_ids = self.get_id_of_strands_on_grids(&grid_ids);
+        let new_helix_map = self.make_grid_copy_helix_map(grid_ids);
+        let source_strand_ids = self.get_id_of_strands_on_grids(grid_ids);
 
         for s_id in source_strand_ids.into_iter() {
             let strand = self.copy_strand_on_new_grids(s_id, &new_helix_map)?;
@@ -70,7 +70,7 @@ impl Design {
                 }?;
                 Some(HelixGridPosition {
                     grid: new_grid_id,
-                    ..gp.clone()
+                    ..gp
                 })
             });
             if grid_position.is_none() {

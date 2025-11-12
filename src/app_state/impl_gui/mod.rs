@@ -113,7 +113,7 @@ impl GuiState for AppState {
     }
 
     fn get_selected_group(&self) -> Option<GroupId> {
-        self.0.selection.selected_group.clone()
+        self.0.selection.selected_group
     }
 
     fn get_suggestion_parameters(&self) -> &SuggestionParameters {
@@ -157,7 +157,7 @@ impl GuiState for AppState {
     }
 
     fn get_selected_bezier_path(&self) -> Option<crate::ensnano_design::BezierPathId> {
-        if let Some(Selection::BezierVertex(vertex)) = self.0.selection.selection.get(0) {
+        if let Some(Selection::BezierVertex(vertex)) = self.0.selection.selection.first() {
             Some(vertex.path_id)
         } else {
             None

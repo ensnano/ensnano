@@ -121,7 +121,7 @@ impl SmoothInterpolatedCurve {
         if curve.is_open() {
             let interpolator = match interpolations.swap_remove(0) {
                 InterpolationDescriptor::PointsValues { points, values } => {
-                    let points_values = points.into_iter().zip(values.into_iter()).collect();
+                    let points_values = points.into_iter().zip(values).collect();
                     chebyshev_polynomials::interpolate_points(points_values, 1e-4)
                 }
                 InterpolationDescriptor::Chebyshev { coeffs, interval } => {

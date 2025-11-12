@@ -80,7 +80,7 @@ impl HelixSystem {
             roll,
             free_nucls_ids: interval_result.free_nucl_ids,
             nb_helices: interval_result.intervals.len(),
-            helix_parameters: self.helix_parameters.clone(),
+            helix_parameters: self.helix_parameters,
             nucl_maps: interval_result.nucl_map,
         }
     }
@@ -358,7 +358,7 @@ impl HelixSystem {
         }
 
         for (nucl, position) in self.anchors.iter() {
-            let point_0 = point_conversion(&nucl);
+            let point_0 = point_conversion(nucl);
             let len = (point_0 - *position).mag();
             let force = if len > 1e-5 {
                 self.rigid_parameters.k_spring * k_anchor * -(point_0 - *position)
@@ -607,7 +607,7 @@ fn distance_segment(a: Vec3, b: Vec3, c: Vec3, d: Vec3) -> (f32, Vec3, Vec3, Vec
 
     let mut lambda = (-((a - c).dot(u)) + mu * u.dot(v)) / (u.mag_sq());
 
-    if 0f32 <= mu && mu <= 1f32 && 0f32 <= lambda && lambda <= 1f32 {
+    if (0f32..=1f32).contains(&mu) && (0f32..=1f32).contains(&lambda) {
         let vec = (a + u * lambda) - (c + v * mu);
         (vec.mag(), vec, a + u * lambda, c + v * mu)
     } else {
@@ -617,11 +617,11 @@ fn distance_segment(a: Vec3, b: Vec3, c: Vec3, d: Vec3) -> (f32, Vec3, Vec3, Vec
         let mut min_point_c = c;
         lambda = 0f32;
         mu = -((c - a).dot(v)) / v.mag_sq();
-        if 0f32 <= mu && mu <= 1f32 {
+        if (0f32..=1f32).contains(&mu) {
             let vec = (a + u * lambda) - (c + v * mu);
             if min_dist > vec.mag() {
                 min_dist = vec.mag();
-                min_vec = vec.clone();
+                min_vec = vec;
                 min_point_a = a + u * lambda;
                 min_point_c = c + v * mu;
             }
@@ -630,7 +630,7 @@ fn distance_segment(a: Vec3, b: Vec3, c: Vec3, d: Vec3) -> (f32, Vec3, Vec3, Vec
             let vec = (a + u * lambda) - (c + v * mu);
             if min_dist > vec.mag() {
                 min_dist = vec.mag();
-                min_vec = vec.clone();
+                min_vec = vec;
                 min_point_a = a + u * lambda;
                 min_point_c = c + v * mu;
             }
@@ -638,19 +638,19 @@ fn distance_segment(a: Vec3, b: Vec3, c: Vec3, d: Vec3) -> (f32, Vec3, Vec3, Vec
             let vec = (a + u * lambda) - (c + v * mu);
             if min_dist > vec.mag() {
                 min_dist = vec.mag();
-                min_vec = vec.clone();
+                min_vec = vec;
                 min_point_a = a + u * lambda;
                 min_point_c = c + v * mu;
             }
         }
         lambda = 1f32;
         mu = (-(c - a).dot(v) + u.dot(v)) / v.mag_sq();
-        if 0f32 <= mu && mu <= 1f32 {
+        if (0f32..=1f32).contains(&mu) {
             min_dist = min_dist.min(((a + u * lambda) - (c + v * mu)).mag());
             let vec = (a + u * lambda) - (c + v * mu);
             if min_dist > vec.mag() {
                 min_dist = vec.mag();
-                min_vec = vec.clone();
+                min_vec = vec;
                 min_point_a = a + u * lambda;
                 min_point_c = c + v * mu;
             }
@@ -659,7 +659,7 @@ fn distance_segment(a: Vec3, b: Vec3, c: Vec3, d: Vec3) -> (f32, Vec3, Vec3, Vec
             let vec = (a + u * lambda) - (c + v * mu);
             if min_dist > vec.mag() {
                 min_dist = vec.mag();
-                min_vec = vec.clone();
+                min_vec = vec;
                 min_point_a = a + u * lambda;
                 min_point_c = c + v * mu;
             }
@@ -667,18 +667,18 @@ fn distance_segment(a: Vec3, b: Vec3, c: Vec3, d: Vec3) -> (f32, Vec3, Vec3, Vec
             let vec = (a + u * lambda) - (c + v * mu);
             if min_dist > vec.mag() {
                 min_dist = vec.mag();
-                min_vec = vec.clone();
+                min_vec = vec;
                 min_point_a = a + u * lambda;
                 min_point_c = c + v * mu;
             }
         }
         mu = 0f32;
         lambda = (-((a - c).dot(u)) + mu * u.dot(v)) / (u.mag_sq());
-        if 0f32 <= lambda && 1f32 >= lambda {
+        if (0f32..=1f32).contains(&lambda) {
             let vec = (a + u * lambda) - (c + v * mu);
             if min_dist > vec.mag() {
                 min_dist = vec.mag();
-                min_vec = vec.clone();
+                min_vec = vec;
                 min_point_a = a + u * lambda;
                 min_point_c = c + v * mu;
             }
@@ -687,7 +687,7 @@ fn distance_segment(a: Vec3, b: Vec3, c: Vec3, d: Vec3) -> (f32, Vec3, Vec3, Vec
             let vec = (a + u * lambda) - (c + v * mu);
             if min_dist > vec.mag() {
                 min_dist = vec.mag();
-                min_vec = vec.clone();
+                min_vec = vec;
                 min_point_a = a + u * lambda;
                 min_point_c = c + v * mu;
             }
@@ -695,18 +695,18 @@ fn distance_segment(a: Vec3, b: Vec3, c: Vec3, d: Vec3) -> (f32, Vec3, Vec3, Vec
             let vec = (a + u * lambda) - (c + v * mu);
             if min_dist > vec.mag() {
                 min_dist = vec.mag();
-                min_vec = vec.clone();
+                min_vec = vec;
                 min_point_a = a + u * lambda;
                 min_point_c = c + v * mu;
             }
         }
         mu = 1f32;
         lambda = (-((a - c).dot(u)) + mu * u.dot(v)) / (u.mag_sq());
-        if 0f32 <= lambda && 1f32 >= lambda {
+        if (0f32..=1f32).contains(&lambda) {
             let vec = (a + u * lambda) - (c + v * mu);
             if min_dist > vec.mag() {
                 min_dist = vec.mag();
-                min_vec = vec.clone();
+                min_vec = vec;
                 min_point_a = a + u * lambda;
                 min_point_c = c + v * mu;
             }
@@ -715,7 +715,7 @@ fn distance_segment(a: Vec3, b: Vec3, c: Vec3, d: Vec3) -> (f32, Vec3, Vec3, Vec
             let vec = (a + u * lambda) - (c + v * mu);
             if min_dist > vec.mag() {
                 min_dist = vec.mag();
-                min_vec = vec.clone();
+                min_vec = vec;
                 min_point_a = a + u * lambda;
                 min_point_c = c + v * mu;
             }
@@ -723,7 +723,7 @@ fn distance_segment(a: Vec3, b: Vec3, c: Vec3, d: Vec3) -> (f32, Vec3, Vec3, Vec
             let vec = (a + u * lambda) - (c + v * mu);
             if min_dist > vec.mag() {
                 min_dist = vec.mag();
-                min_vec = vec.clone();
+                min_vec = vec;
                 min_point_a = a + u * lambda;
                 min_point_c = c + v * mu;
             }
@@ -846,7 +846,7 @@ impl HelixSystemThread {
     }
 
     /// Spawn a thread to run the physical simulation.
-    fn run(mut self) -> () {
+    fn run(mut self) {
         std::thread::spawn(move || {
             while let Some(interface_ptr) = self.interface.upgrade() {
                 let mut interface = interface_ptr.lock().unwrap();
@@ -924,7 +924,7 @@ impl GridsSystemThread {
     }
 
     /// Spawn a thread to run the physical simulation
-    fn run(mut self) -> () {
+    fn run(mut self) {
         std::thread::spawn(move || {
             while let Some(interface_ptr) = self.interface.upgrade() {
                 if let Some(parameters) = interface_ptr.lock().unwrap().parameters_update.take() {
@@ -968,7 +968,6 @@ fn make_flexible_helices_system(
     let helix_parameters = presenter
         .get_design()
         .helix_parameters
-        .clone()
         .unwrap_or_default();
     let mut rigid_helices = Vec::with_capacity(interval_results.helix_map.len());
     for i in 0..interval_results.helix_map.len() {
@@ -1127,11 +1126,11 @@ fn read_intervals(presenter: &Presenter) -> Result<IntervalResult, ErrOperation>
                 && (!nucl_map.contains_key(&nucl) || !nucl.forward)
             {
                 let starting_doubled = presenter.has_nucl(&nucl.compl());
-                let starting_nucl = nucl.clone();
+                let starting_nucl = nucl;
                 let mut prev_doubled = false;
                 let mut moving_nucl = starting_nucl;
                 let mut starting_helix = if starting_doubled {
-                    Some(current_helix.clone())
+                    Some(current_helix)
                 } else {
                     None
                 };
@@ -1185,19 +1184,17 @@ fn read_intervals(presenter: &Presenter) -> Result<IntervalResult, ErrOperation>
                         log::debug!("has compl");
                         let helix = if prev_doubled {
                             current_helix.unwrap()
+                        } else if let Some(helix) = starting_helix.take() {
+                            if let Some(n) = helix { n + 1 } else { 0 }
                         } else {
-                            if let Some(helix) = starting_helix.take() {
-                                if let Some(n) = helix { n + 1 } else { 0 }
+                            helix_map.push(nucl.helix);
+                            intervals.push((moving_nucl.position, moving_nucl.position));
+                            if let Some(n) = current_helix.as_mut() {
+                                *n += 1;
+                                *n
                             } else {
-                                helix_map.push(nucl.helix);
-                                intervals.push((moving_nucl.position, moving_nucl.position));
-                                if let Some(n) = current_helix.as_mut() {
-                                    *n += 1;
-                                    *n
-                                } else {
-                                    current_helix = Some(0);
-                                    0
-                                }
+                                current_helix = Some(0);
+                                0
                             }
                         };
                         log::debug!("helix {}", helix);
@@ -1302,7 +1299,7 @@ impl SimulationInterface for HelixSystemInterface {
 
 impl SimulationUpdate for RigidHelixState {
     fn update_design(&self, _design: &mut Design) {
-        ()
+        
         // since update positions is implemented, we do not need to move the helices.
     }
 
@@ -1621,7 +1618,6 @@ fn make_grid_system(
     let helix_parameters = presenter
         .get_design()
         .helix_parameters
-        .clone()
         .unwrap_or_default();
     let mut selected_grids = HashMap::with_capacity(presenter.get_design().free_grids.len());
     let mut rigid_grids = Vec::with_capacity(presenter.get_design().free_grids.len());
@@ -1637,7 +1633,7 @@ fn make_grid_system(
             rigid_grids.push(rigid_grid);
         }
     }
-    if rigid_grids.len() == 0 {
+    if rigid_grids.is_empty() {
         return Err(ErrOperation::NoGrids);
     }
     let xovers = presenter.get_xovers_list();
@@ -1655,8 +1651,8 @@ fn make_grid_system(
             .ok_or(ErrOperation::HelixDoesNotExists(n2.helix))?;
         let g_id1 = h1.grid_position.map(|gp| gp.grid);
         let g_id2 = h2.grid_position.map(|gp| gp.grid);
-        if let Some((g_id1, g_id2)) = g_id1.zip(g_id2) {
-            if g_id1 != g_id2 {
+        if let Some((g_id1, g_id2)) = g_id1.zip(g_id2)
+            && g_id1 != g_id2 {
                 let rigid_id1 = selected_grids.get(&g_id1).cloned();
                 let rigid_id2 = selected_grids.get(&g_id2).cloned();
                 if let Some((rigid_id1, rigid_id2)) = rigid_id1.zip(rigid_id2) {
@@ -1683,7 +1679,6 @@ fn make_grid_system(
                     springs.push((application_point1, application_point2));
                 }
             }
-        }
     }
     let mut ret = GridsSystem {
         springs,
@@ -1712,7 +1707,7 @@ fn make_rigid_grid(
             rigid_helices.push(rigid_helix)
         }
     }
-    if rigid_helices.len() > 0 {
+    if !rigid_helices.is_empty() {
         Some(RigidGrid::from_helices(
             g_id,
             rigid_helices,

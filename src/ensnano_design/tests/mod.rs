@@ -64,7 +64,7 @@ fn sanitize_domains_scadnano() {
   ]
       }"##;
     let scadnano_design: super::scadnano::ScadnanoDesign =
-        serde_json::from_str(&input).expect("Failed to parse scadnano input");
+        serde_json::from_str(input).expect("Failed to parse scadnano input");
     let ensnano_design = Design::from_scadnano(&scadnano_design)
         .ok()
         .expect("Could not convert to ensnano");
@@ -108,13 +108,13 @@ fn scadnano_import_one_loopout() {
   ]
       }"##;
     let scadnano_design: super::scadnano::ScadnanoDesign =
-        serde_json::from_str(&input).expect("Failed to parse scadnano input");
+        serde_json::from_str(input).expect("Failed to parse scadnano input");
     let ensnano_design = Design::from_scadnano(&scadnano_design)
         .ok()
         .expect("Could not convert to ensnano");
     assert_eq!(ensnano_design.strands.len(), 1);
     let strand = ensnano_design.strands.values().next().unwrap();
-    assert_good_strand(&strand, "[H0: 8 -> 15] [@5] [H1: 8 <- 15]")
+    assert_good_strand(strand, "[H0: 8 -> 15] [@5] [H1: 8 <- 15]")
 }
 
 fn assert_good_strand<S: std::ops::Deref<Target = str>>(strand: &Strand, objective: S) {
@@ -629,7 +629,7 @@ fn test_insertion_right_to_left() {
 /// A strand whose initial topology is [H1: 0 -> 3] [@5] [@3] [H1: 4 -> 7] [@5] [H2: 0 <- 7]
 fn strand_with_insertion() -> Strand {
     let strand_str = include_str!("./strand_with_insertion.json");
-    let strand: Strand = serde_json::from_str(&strand_str).expect("Could not parse strand");
+    let strand: Strand = serde_json::from_str(strand_str).expect("Could not parse strand");
     strand
 }
 

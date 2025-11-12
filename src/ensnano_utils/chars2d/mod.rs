@@ -122,7 +122,7 @@ impl CharDrawer {
                 .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                     bind_group_layouts: &[
                         globals_layout,
-                        &self.instances_bg.get_layout(),
+                        self.instances_bg.get_layout(),
                         &self.letter.bind_group_layout,
                     ],
                     push_constant_ranges: &[],

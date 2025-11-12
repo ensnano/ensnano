@@ -862,7 +862,7 @@ where
             }
             Message::StartTwist => {
                 if let Some(Selection::Grid(_, g_id)) =
-                    self.application_state.get_selection().get(0)
+                    self.application_state.get_selection().first()
                 {
                     self.requests.lock().unwrap().start_twist_simulation(*g_id)
                 }
@@ -1198,7 +1198,7 @@ impl<R: Requests> Program for ColorOverlay<R> {
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         match message {
             ColorMessage::HsvSatValueChanged(_sat, _value) => {}
-            ColorMessage::HueChanged(x) => self.color_picker.change_hue(x as f64),
+            ColorMessage::HueChanged(x) => self.color_picker.change_hue(x),
             ColorMessage::Closed => {
                 self.requests
                     .lock()

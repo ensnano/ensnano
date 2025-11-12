@@ -365,7 +365,7 @@ impl<D: Instantiable> InstanceDrawer<D> {
             instances.iter().map(|d| d.to_raw_instance()).collect();
         self.instances.update(raw_instances.as_slice());
         self.nb_instances = instances.len() as u32;
-        if let Some(indices) = instances.get(0).and_then(D::custom_indices) {
+        if let Some(indices) = instances.first().and_then(D::custom_indices) {
             self.nb_indices = indices.len() as u32;
             self.index_buffer = create_buffer_with_data(
                 self.device.as_ref(),
@@ -374,7 +374,7 @@ impl<D: Instantiable> InstanceDrawer<D> {
                 format!("{} index buffer", self.label).as_str(),
             );
         }
-        if let Some(vertices) = instances.get(0).and_then(D::custom_raw_vertices) {
+        if let Some(vertices) = instances.first().and_then(D::custom_raw_vertices) {
             self.vertex_buffer = create_buffer_with_data(
                 self.device.as_ref(),
                 bytemuck::cast_slice(vertices.as_slice()),
@@ -396,9 +396,9 @@ impl<D: Instantiable> InstanceDrawer<D> {
         label: S,
     ) -> RenderPipeline {
         let viewer_bind_group_layout =
-            device.create_bind_group_layout(&viewer_bind_group_layout_desc);
+            device.create_bind_group_layout(viewer_bind_group_layout_desc);
         let models_bind_group_layout =
-            device.create_bind_group_layout(&models_bind_group_layout_desc);
+            device.create_bind_group_layout(models_bind_group_layout_desc);
 
         // gather the resources, [instance, additional resources]
         let instance_entry = wgpu::BindGroupLayoutEntry {
@@ -441,7 +441,7 @@ impl<D: Instantiable> InstanceDrawer<D> {
                 label: None,
                 entries: D::Resource::resources_layout(),
             });
-        let render_pipeline_layout = if D::Resource::resources_layout().len() > 0 {
+        let render_pipeline_layout = if !D::Resource::resources_layout().is_empty() {
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 bind_group_layouts: &[
                     &viewer_bind_group_layout,
@@ -476,7 +476,7 @@ impl<D: Instantiable> InstanceDrawer<D> {
             _ => None,
         };
 
-        let cull_mode = outliner.then(|| wgpu::Face::Front);
+        let cull_mode = outliner.then_some(wgpu::Face::Front);
 
         let primitive = wgpu::PrimitiveState {
             topology: primitive_topology,
@@ -547,13 +547,13 @@ impl<D: Instantiable> RawDrawer for InstanceDrawer<D> {
         if self.nb_instances > 0 {
             let pipeline = &self.pipeline;
             render_pass.set_pipeline(pipeline);
-            let vbo = if let Some(ref vbo) = self.resource.vertex_buffer() {
+            let vbo = if let Some(vbo) = self.resource.vertex_buffer() {
                 vbo.slice(..)
             } else {
                 self.vertex_buffer.slice(..)
             };
             render_pass.set_vertex_buffer(0, vbo);
-            let ibo = if let Some(ref ibo) = self.resource.index_buffer() {
+            let ibo = if let Some(ibo) = self.resource.index_buffer() {
                 ibo.slice(..)
             } else {
                 self.index_buffer.slice(..)

@@ -230,8 +230,8 @@ fn build_colliders(
                         .collision_groups(InteractionGroups::new(Group::GROUP_2, Group::empty()));
 
                     let capsule = ColliderBuilder::capsule_from_endpoints(
-                        point_from_parts(&i_p),
-                        point_from_parts(&j_p),
+                        point_from_parts(i_p),
+                        point_from_parts(j_p),
                         PAIR_CAPSULE_RADIUS,
                     );
 
@@ -284,10 +284,10 @@ fn up_vector(
         panic!("Incoherent double ranges");
     };
 
-    let up_i = collider_set.get(nucleotide_body_map[&up_i]).unwrap();
-    let up_j = collider_set.get(nucleotide_body_map[&up_j]).unwrap();
-    let down_i = collider_set.get(nucleotide_body_map[&down_i]).unwrap();
-    let down_j = collider_set.get(nucleotide_body_map[&down_j]).unwrap();
+    let up_i = collider_set.get(nucleotide_body_map[up_i]).unwrap();
+    let up_j = collider_set.get(nucleotide_body_map[up_j]).unwrap();
+    let down_i = collider_set.get(nucleotide_body_map[down_i]).unwrap();
+    let down_j = collider_set.get(nucleotide_body_map[down_j]).unwrap();
 
     let up_center = (up_i.translation() + up_j.translation()) / 2.0;
     let down_center = (down_i.translation() + down_j.translation()) / 2.0;

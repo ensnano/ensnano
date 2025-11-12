@@ -552,7 +552,7 @@ impl InstantiatedPath {
     pub fn initial_frame(&self) -> Option<DMat3> {
         self.frames
             .as_ref()
-            .and_then(|fs| fs.get(0))
+            .and_then(|fs| fs.first())
             .as_ref()
             .map(|f| rotor_to_drotor(f.1).into_matrix())
             .map(|m| DMat3::new(m.cols[2], m.cols[1], m.cols[0]))

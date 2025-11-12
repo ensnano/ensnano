@@ -609,7 +609,7 @@ impl<S: AppState> FlatScene<S> {
             .draw(&mut encoder, &texture_view, Some(png_size), Some(glob));
 
         // create a buffer and fill it with the texture
-        let extent = size.clone();
+        let extent = size;
 
         let buffer_dimensions =
             BufferDimensions::new(extent.width as usize, extent.height as usize);

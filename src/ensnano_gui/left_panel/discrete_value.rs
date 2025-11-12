@@ -196,8 +196,8 @@ impl DiscreteValue {
         } else {
             button(text("+"))
         };
-        let factory_id = self.owner_id.clone();
-        let value_id = self.value_id.clone();
+        let factory_id = self.owner_id;
+        let value_id = self.value_id;
         let slider = if active {
             slider(self.min_val..=self.max_val, self.value, move |value| {
                 Message::DiscreteValue {

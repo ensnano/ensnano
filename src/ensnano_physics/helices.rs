@@ -103,11 +103,9 @@ impl IntermediaryHelix {
                 } else {
                     current_range = Some(*position..position + 1);
                 }
-            } else {
-                if let Some(range) = current_range {
-                    result.push(range);
-                    current_range = None;
-                }
+            } else if let Some(range) = current_range {
+                result.push(range);
+                current_range = None;
             }
         }
 

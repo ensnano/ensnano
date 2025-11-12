@@ -58,7 +58,7 @@ impl Camera2D {
     }
 
     fn rotation_sign(&self) -> f32 {
-        self.globals.symmetry.x * self.globals.symmetry.y * -1.0
+        -(self.globals.symmetry.x * self.globals.symmetry.y)
     }
 
     pub fn apply_symmetry_x(&mut self) {
@@ -195,7 +195,6 @@ impl Camera2D {
             (self.globals.scroll_offset[0] + x),
             (self.globals.scroll_offset[1] + y),
         )
-            .into()
     }
 
     pub fn norm_screen_to_world(&self, x_normed: f32, y_normed: f32) -> (f32, f32) {

@@ -90,7 +90,7 @@ impl Curved for CircleCurve {
     }
 
     fn objective_nb_nt(&self) -> Option<usize> {
-        return self.target_nb_nt;
+        self.target_nb_nt
     }
 
     fn full_turn_at_t(&self) -> Option<f64> {
@@ -109,8 +109,8 @@ impl Curved for CircleCurve {
     }
 
     fn abscissa_converter(&self) -> Option<crate::ensnano_design::AbscissaConverter> {
-        return Some(crate::ensnano_design::AbscissaConverter::linear(
+        Some(crate::ensnano_design::AbscissaConverter::linear(
             self.abscissa_converter_factor.unwrap_or(1.),
-        ));
+        ))
     }
 }

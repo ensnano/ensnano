@@ -109,7 +109,7 @@ impl Hyperboloid {
                     t_min: None,
                     t_max: None,
                     orientation,
-                    helix_parameters: helix_parameters.clone(),
+                    helix_parameters: *helix_parameters,
                     grid_center: origin,
                 },
             );

@@ -83,7 +83,7 @@ impl Scheduler {
                 self.needs_redraw.push(*area)
             }
         }
-        self.needs_redraw.len() > 0
+        !self.needs_redraw.is_empty()
     }
 
     /// Request an application to draw on a texture

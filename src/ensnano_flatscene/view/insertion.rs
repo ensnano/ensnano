@@ -100,7 +100,7 @@ impl InsertionDrawer {
     fn update_instances(&mut self) {
         if let Some(ref instances) = self.new_instances {
             self.number_instances = instances.len();
-            let instances_data: Vec<_> = instances.iter().cloned().collect();
+            let instances_data: Vec<_> = instances.to_vec();
             self.instances.update(instances_data.as_slice());
         }
     }
@@ -206,7 +206,7 @@ fn insertion_pipeline(
     let desc = wgpu::RenderPipelineDescriptor {
         layout: Some(&pipeline_layout),
         vertex: wgpu::VertexState {
-            module: &vs_module,
+            module: vs_module,
             entry_point: "main",
             buffers: &[wgpu::VertexBufferLayout {
                 array_stride: std::mem::size_of::<InsertionVertex>() as u64,
@@ -215,7 +215,7 @@ fn insertion_pipeline(
             }],
         },
         fragment: Some(wgpu::FragmentState {
-            module: &fs_module,
+            module: fs_module,
             entry_point: "main",
             targets,
         }),

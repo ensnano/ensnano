@@ -66,7 +66,7 @@ impl<K: PartialEq> OrganizerTree<K> {
         match self {
             Self::Leaf(_) => (),
             Self::Node { children, .. } => {
-                let _ = ret.push(self.get_name_copy_with_id());
+                ret.push(self.get_name_copy_with_id());
                 for c in children {
                     ret.extend(c.get_names_of_all_groups());
                 }
@@ -131,8 +131,7 @@ impl<K: Eq + Hash + Copy> OrganizerTree<K> {
                     match c {
                         Self::Leaf(e) => {
                             let mut e_names: Vec<&str> = hashmap
-                                .get(e)
-                                .map(|x: &Vec<&str>| x.clone())
+                                .get(e).cloned()
                                 .unwrap_or(Vec::new());
                             if has_prefix {
                                 e_names.push(trimmed_name);
@@ -143,8 +142,7 @@ impl<K: Eq + Hash + Copy> OrganizerTree<K> {
                             let c_hashmap = c.get_hashmap_to_all_group_names_with_prefix(prefix);
                             for (e, e_names) in c_hashmap {
                                 let mut new_e_names: Vec<&str> = hashmap
-                                    .get(&e)
-                                    .map(|x: &Vec<&str>| x.clone())
+                                    .get(&e).cloned()
                                     .unwrap_or(Vec::new());
                                 new_e_names.extend(e_names);
                                 if has_prefix {
@@ -157,7 +155,7 @@ impl<K: Eq + Hash + Copy> OrganizerTree<K> {
                 }
             }
         }
-        return hashmap;
+        hashmap
     }
 }
 

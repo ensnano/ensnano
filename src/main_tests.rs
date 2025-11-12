@@ -26,7 +26,7 @@ struct DummyScene {}
 impl Application for DummyScene {
     type AppState = AppState;
     fn on_notify(&mut self, _notification: Notification) {
-        ()
+        
     }
 
     fn needs_redraw(&mut self, _dt: Duration, _app_state: Self::AppState) -> bool {
@@ -38,7 +38,7 @@ impl Application for DummyScene {
         _encoder: &mut wgpu::CommandEncoder,
         _target: &wgpu::TextureView,
     ) {
-        ()
+        
     }
 
     fn is_split(&self) -> bool {
@@ -59,7 +59,7 @@ impl Application for DummyScene {
         _window_size: PhysicalSize<u32>,
         _area: crate::ensnano_interactor::graphics::DrawArea,
     ) {
-        ()
+        
     }
 
     fn get_camera(&self) -> Option<Arc<(crate::ensnano_interactor::application::Camera3D, f32)>> {
@@ -255,12 +255,11 @@ fn position_paste_via_requests() {
         forward: true,
     };
     assert!(
-        !main_state
+        main_state
             .app_state
             .get_design_interactor()
             .is_xover_end(&nucl)
-            .to_opt()
-            .is_some()
+            .to_opt().is_none()
     );
     main_state.apply_copy_operation(CopyOperation::PositionPastingPoint(None));
     main_state.apply_copy_operation(CopyOperation::PositionPastingPoint(Some(
@@ -314,12 +313,11 @@ fn undo_redo_copy_paste_xover() {
     main_state.undo();
     main_state.update();
     assert!(
-        !main_state
+        main_state
             .app_state
             .get_design_interactor()
             .is_xover_end(&nucl)
-            .to_opt()
-            .is_some()
+            .to_opt().is_none()
     );
     main_state.redo();
     main_state.update();

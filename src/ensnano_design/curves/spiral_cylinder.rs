@@ -67,7 +67,7 @@ impl SpiralCylinderDescriptor {
             slope < 1.0,
             "Radius for spiral_cylinder is too small wtr inter helix axis gap"
         );
-        return self.number_of_helices as f64 * inter_helix_axis_gap / (1.0 - slope * slope).sqrt();
+        self.number_of_helices as f64 * inter_helix_axis_gap / (1.0 - slope * slope).sqrt()
     }
 }
 

@@ -414,7 +414,7 @@ impl<S: AppState> Scene<S> {
                 }
             }
             Consequence::InitBuild(nucls) => {
-                if let Some(xover_id) = nucls.get(0).cloned().and_then(|n| {
+                if let Some(xover_id) = nucls.first().cloned().and_then(|n| {
                     app_state
                         .get_design_reader()
                         .get_id_of_xover_involving_nucl(n)
@@ -477,9 +477,7 @@ impl<S: AppState> Scene<S> {
             } => {
                 let mut vertices = vec![BezierVertexId { path_id, vertex_id }];
                 if app_state
-                    .get_selection()
-                    .iter()
-                    .any(|s| *s == Selection::BezierVertex(BezierVertexId { path_id, vertex_id }))
+                    .get_selection().contains(&Selection::BezierVertex(BezierVertexId { path_id, vertex_id }))
                 {
                     for v in app_state.get_selection().iter().filter_map(|s| {
                         if let Selection::BezierVertex(v) = s {
@@ -540,15 +538,14 @@ impl<S: AppState> Scene<S> {
 
     /// Request a cross-over between two nucleotides.
     fn attempt_xover(&mut self, mut source: Nucl, mut target: Nucl, design_id: usize, magic: bool) {
-        if magic {
-            if let Some(opt) = self
+        if magic
+            && let Some(opt) = self
                 .older_state
                 .get_design_reader()
                 .get_optimal_xover_around(source, target)
             {
                 (source, target) = opt;
             }
-        }
         self.requests
             .lock()
             .unwrap()
@@ -861,12 +858,12 @@ impl<S: AppState> Scene<S> {
     fn get_camera(&self) -> Camera3D {
         let view = self.view.borrow();
         let cam = view.get_camera();
-        let ret = Camera3D {
+        
+        Camera3D {
             position: cam.borrow().position,
             orientation: cam.borrow().rotor,
             pivot_position: self.data.borrow().get_pivot_position(),
-        };
-        ret
+        }
     }
 
     fn set_camera_target(&mut self, target: Vec3, up: Vec3, app_state: &S) {
@@ -1084,11 +1081,10 @@ impl<S: AppState> Scene<S> {
         println!("STL export to {:?}", path);
         let raw_instances = self.data.borrow().get_all_raw_instances(app_state);
         let stl_bytes = stl::stl_bytes_export(raw_instances);
-        if let Ok(mut out_file) = fs::File::create(path) {
-            if out_file.write_all(&stl_bytes).is_ok() {
+        if let Ok(mut out_file) = fs::File::create(path)
+            && out_file.write_all(&stl_bytes).is_ok() {
                 return;
             }
-        }
         println!("Export failed!");
     }
 
@@ -1102,11 +1098,10 @@ impl<S: AppState> Scene<S> {
         println!("Nucleotides positions export to {:?}", path);
         if let Some(nucl_pos) = self.data.borrow().get_nucleotides_positions_by_strands() {
             let data = serde_json::to_string(&nucl_pos).unwrap();
-            if let Ok(mut out_file) = fs::File::create(path) {
-                if out_file.write_all(data.as_bytes()).is_ok() {
+            if let Ok(mut out_file) = fs::File::create(path)
+                && out_file.write_all(data.as_bytes()).is_ok() {
                     return;
                 }
-            }
         }
         println!("Export failed!");
     }

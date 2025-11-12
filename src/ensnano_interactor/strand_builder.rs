@@ -412,7 +412,7 @@ impl NeighborDescriptorGiver for Design {
                 if let Some(other) = d.other_end(nucl) {
                     let start = if let Domain::HelixDomain(i) = d {
                         // if the domain has length one, we are not at a specific end
-                        (d.length() > 1).then(|| i.start)
+                        (d.length() > 1).then_some(i.start)
                     } else {
                         None
                     };

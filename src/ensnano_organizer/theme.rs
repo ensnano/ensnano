@@ -45,19 +45,17 @@ impl ColorGradient {
             } else {
                 self.right
             }
+        } else if x <= 0. {
+            self.left
+        } else if x <= 1. {
+            let lerp = |a, b| a * (1. - x) + b * x;
+            Color::from_rgb(
+                lerp(self.left.r, self.right.r),
+                lerp(self.left.g, self.right.g),
+                lerp(self.left.b, self.right.b),
+            )
         } else {
-            if x <= 0. {
-                self.left
-            } else if x <= 1. {
-                let lerp = |a, b| a * (1. - x) + b * x;
-                Color::from_rgb(
-                    lerp(self.left.r, self.right.r),
-                    lerp(self.left.g, self.right.g),
-                    lerp(self.left.b, self.right.b),
-                )
-            } else {
-                self.right
-            }
+            self.right
         }
     }
 }
@@ -219,9 +217,9 @@ impl From<OrganizerThemeLevel> for theme::Container {
 impl OrganizerTheme {
     pub(super) fn level(&self, n: usize) -> OrganizerThemeLevel {
         OrganizerThemeLevel {
-            gradient: self.gradient.clone(),
-            text_color: self.text_color.clone(),
-            border_color: self.border_color.clone(),
+            gradient: self.gradient,
+            text_color: self.text_color,
+            border_color: self.border_color,
             gradient_value: n as f32 / self.max_level as f32,
             selected: false,
         }
