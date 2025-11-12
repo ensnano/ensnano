@@ -20,7 +20,7 @@ use super::{GridId, GridTypeDescr};
 use crate::ensnano_design::BezierVertexId;
 use serde::Deserialize;
 
-#[derive(Deserialize)]
+#[derive(Clone, Copy, Deserialize)]
 enum NewGridTypeDescr {
     Square {
         #[serde(skip_serializing_if = "Option::is_none", default)]
@@ -66,7 +66,7 @@ impl NewGridTypeDescr {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Clone, Copy, Deserialize)]
 enum OldGridTypeDescr {
     Square,
     Honeycomb,
@@ -126,7 +126,7 @@ impl<'de> Deserialize<'de> for GridTypeDescr {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Clone, Copy, Deserialize)]
 enum NewGridId {
     FreeGrid(usize),
     BezierPathGrid(BezierVertexId),

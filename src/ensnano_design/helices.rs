@@ -1023,9 +1023,8 @@ impl Nucl {
     }
 }
 
-/// Represents the axis of an helix. At the moment it is a line. In the future it might also be a
-/// bezier curve
-#[derive(Debug, Clone)]
+/// Represents the axis of an helix
+#[derive(Debug, Clone, Copy)]
 pub enum Axis<'a> {
     Line {
         origin: Vec3,

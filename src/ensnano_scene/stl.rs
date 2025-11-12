@@ -19,7 +19,7 @@ use crate::ensnano_consts::NB_RAY_TUBE;
 use ultraviolet::{Mat3, Vec3};
 
 impl RawDnaInstance {
-    fn to_stl_triangles(&self) -> Vec<StlTriangle> {
+    fn to_stl_triangles(self) -> Vec<StlTriangle> {
         if self.scale.z.abs() < 1e-6 {
             vec![]
         } else {

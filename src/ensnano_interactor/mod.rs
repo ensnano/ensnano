@@ -369,7 +369,7 @@ impl std::fmt::Display for IsometryTarget {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct HyperboloidRequest {
     pub radius: usize,
     pub length: f32,

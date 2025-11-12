@@ -180,7 +180,8 @@ enum NewOrganizerTree<K> {
 }
 
 impl<K> OldOrganizerTree<K> {
-    fn to_new(self) -> OrganizerTree<K> {
+    #[allow(clippy::wrong_self_convention)]
+    fn to_real(self) -> OrganizerTree<K> {
         match self {
             Self::Leaf(k) => OrganizerTree::Leaf(k),
             Self::Node(name, children) => OrganizerTree::Node {
@@ -194,6 +195,7 @@ impl<K> OldOrganizerTree<K> {
 }
 
 impl<K> NewOrganizerTree<K> {
+    #[allow(clippy::wrong_self_convention)]
     fn to_real(self) -> OrganizerTree<K> {
         match self {
             Self::Leaf(k) => OrganizerTree::Leaf(k),
@@ -226,7 +228,7 @@ impl<'de, K: Deserialize<'de>> Deserialize<'de> for OrganizerTree<K> {
     {
         match NewOrOld::deserialize(deserializer) {
             Ok(NewOrOld::New(new_tree)) => Ok(new_tree.to_real()),
-            Ok(NewOrOld::Old(old_tree)) => Ok(old_tree.to_new()),
+            Ok(NewOrOld::Old(old_tree)) => Ok(old_tree.to_real()),
             Err(e) => Err(e),
         }
     }

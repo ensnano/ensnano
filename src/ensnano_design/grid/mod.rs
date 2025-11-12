@@ -115,7 +115,7 @@ impl GridDescriptor {
         }
     }
 
-    pub fn to_grid(&self, default_helix_parameters: HelixParameters) -> Grid {
+    pub fn to_grid(self, default_helix_parameters: HelixParameters) -> Grid {
         Grid {
             position: self.position,
             orientation: self.orientation,
@@ -137,7 +137,7 @@ impl std::fmt::Display for GridTypeDescr {
 }
 
 impl GridTypeDescr {
-    pub fn to_u32(&self) -> u32 {
+    pub fn to_u32(self) -> u32 {
         match self {
             GridTypeDescr::Square { .. } => 0u32,
             GridTypeDescr::Honeycomb { .. } => 1u32,

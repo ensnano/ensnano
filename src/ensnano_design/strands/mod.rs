@@ -1300,7 +1300,7 @@ impl Extremity {
         !matches!(self, Extremity::No)
     }
 
-    pub fn to_opt(&self) -> Option<bool> {
+    pub fn to_opt(self) -> Option<bool> {
         match self {
             Extremity::No => None,
             Extremity::Prime3 => Some(true),

@@ -17,7 +17,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::instances_drawer::{Instantiable, ResourceProvider, Vertexable};
-use std::{convert::TryInto as _, rc::Rc};
+use image::GenericImageView as _;
+use std::rc::Rc;
 use ultraviolet::{Vec2, Vec3};
 use wgpu::{Device, Queue};
 
@@ -284,8 +285,6 @@ impl DirectionTexture {
         let dimensions = diffuse_image.dimensions();
         let bgra = diffuse_image.into_bgra8();
 
-        use image::GenericImageView;
-
         let size = wgpu::Extent3d {
             width: dimensions.0,
             height: dimensions.1,
@@ -312,8 +311,8 @@ impl DirectionTexture {
             &bgra,
             wgpu::ImageDataLayout {
                 offset: 0,
-                bytes_per_row: (4 * dimensions.0).try_into().ok(),
-                rows_per_image: dimensions.1.try_into().ok(),
+                bytes_per_row: Some(4 * dimensions.0),
+                rows_per_image: Some(dimensions.1),
             },
             size,
         );

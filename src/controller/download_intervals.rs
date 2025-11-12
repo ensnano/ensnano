@@ -124,6 +124,7 @@ struct AskingPath_ {
 }
 
 impl AskingPath_ {
+    #[allow(clippy::wrong_self_convention)]
     fn to_state(self) -> Box<DownloadIntervals> {
         Box::new(DownloadIntervals {
             step: Step::AskingPath(self),

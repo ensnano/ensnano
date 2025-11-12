@@ -279,7 +279,7 @@ impl Default for FogGuiParameters {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Copy, Default)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub enum FogChoices {
     #[default]
     None,
@@ -322,7 +322,7 @@ impl FogChoices {
             .reversed(reversed)
     }
 
-    pub fn to_param(&self) -> (bool, bool, bool, bool) {
+    pub fn to_param(self) -> (bool, bool, bool, bool) {
         (
             self.is_visible(),
             self.is_from_camera(),

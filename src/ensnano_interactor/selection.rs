@@ -592,7 +592,7 @@ pub struct PhantomElement {
 }
 
 impl PhantomElement {
-    pub fn to_nucl(&self) -> Nucl {
+    pub fn to_nucl(self) -> Nucl {
         Nucl {
             helix: self.helix_id as usize,
             position: self.position as isize,
