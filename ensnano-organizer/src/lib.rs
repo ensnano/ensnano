@@ -233,7 +233,7 @@ impl<E: OrganizerElement> Organizer<E> {
         let rng = rand::thread_rng();
         let mut sections = Vec::new(); // Hold sections that will be added to [Organizer].
 
-        // NOTE: Sections are yielded from their index, implicitely defined in
+        // NOTE: Sections are yielded from their index, implicitly defined in
         // [ensnano_design::elements::DesignElementKey]
         let mut i = 0usize;
         let mut section: Result<<E::Key as ElementKey>::Section, _> = i.try_into();
@@ -816,7 +816,7 @@ impl<E: OrganizerElement> Organizer<E> {
             .into_iter()
             .flatten()
             .collect::<Vec<(usize, usize)>>();
-        min_max_domain_lengths.sort_by_key(|(_, lmax)| lmax.clone());
+        min_max_domain_lengths.sort_by_key(|(_, l_max)| l_max.clone());
         let upper_domain_length_bounds: (usize, usize) = match min_max_domain_lengths.len() {
             0 => (
                 UPPER_DOMAIN_LENGTH_BOUND.clone(),
