@@ -1278,8 +1278,8 @@ fn helices_pipeline_descr(
     models_layout: &wgpu::BindGroupLayout,
     depth_stencil: Option<wgpu::DepthStencilState>,
 ) -> wgpu::RenderPipeline {
-    let vs_module = &device.create_shader_module(wgpu::include_spirv!("view/grid.vert.spv"));
-    let fs_module = &device.create_shader_module(wgpu::include_spirv!("view/grid.frag.spv"));
+    let vs_module = &device.create_shader_module(wgpu::include_spirv!("./grid.vert.spv"));
+    let fs_module = &device.create_shader_module(wgpu::include_spirv!("./grid.frag.spv"));
     let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         bind_group_layouts: &[globals_layout, models_layout],
         push_constant_ranges: &[],
@@ -1332,8 +1332,8 @@ fn strand_pipeline_descr(
     globals: &wgpu::BindGroupLayout,
     depth_stencil: Option<wgpu::DepthStencilState>,
 ) -> wgpu::RenderPipeline {
-    let vs_module = &device.create_shader_module(wgpu::include_spirv!("view/strand.vert.spv"));
-    let fs_module = &device.create_shader_module(wgpu::include_spirv!("view/strand.frag.spv"));
+    let vs_module = &device.create_shader_module(wgpu::include_spirv!("./strand.vert.spv"));
+    let fs_module = &device.create_shader_module(wgpu::include_spirv!("./strand.frag.spv"));
     let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         bind_group_layouts: &[globals],
         push_constant_ranges: &[],
