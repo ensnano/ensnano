@@ -26,7 +26,7 @@ use super::{
 };
 use ahash::HashMap;
 use serde::{Deserialize, Serialize};
-use std::{collections::BTreeMap, sync::Arc};
+use std::{collections::BTreeMap, f32::consts::TAU, sync::Arc};
 use ultraviolet::{DRotor3, DVec3, Isometry2, Mat4, Rotor2, Rotor3, Vec2, Vec3};
 
 /// A structure mapping helices identifier to `Helix` objects
@@ -236,8 +236,9 @@ pub struct Helix {
     )]
     pub(super) instantiated_curve: Option<InstantiatedCurve>,
 
+    // TODO: remove? Seems to always be 0.0
     #[serde(default, skip_serializing_if = "f32_is_zero")]
-    delta_bppt: f32,
+    delta_bases_per_turn: f32,
 
     #[serde(default, skip_serializing_if = "isize_is_zero")]
     pub initial_nt_index: isize,
@@ -277,7 +278,7 @@ impl Helix {
             curve: None,
             instantiated_curve: None,
             instantiated_descriptor: None,
-            delta_bppt: 0.,
+            delta_bases_per_turn: 0.,
             initial_nt_index: 0,
             support_helix: None,
             path_id: None,
@@ -349,7 +350,7 @@ impl Helix {
             curve: None,
             instantiated_curve: None,
             instantiated_descriptor: None,
-            delta_bppt: 0.,
+            delta_bases_per_turn: 0.,
             initial_nt_index: 0,
             support_helix: None,
             path_id: None,
@@ -402,7 +403,7 @@ impl Helix {
             curve: None,
             instantiated_curve: None,
             instantiated_descriptor: None,
-            delta_bppt: 0.,
+            delta_bases_per_turn: 0.,
             initial_nt_index: 0,
             support_helix: None,
             path_id: None,
@@ -431,7 +432,7 @@ impl Helix {
             curve: None,
             instantiated_curve: None,
             instantiated_descriptor: None,
-            delta_bppt: 0.,
+            delta_bases_per_turn: 0.,
             initial_nt_index: 0,
             support_helix: None,
             path_id: None,
@@ -453,7 +454,7 @@ impl Helix {
             curve: Some(Arc::new(CurveDescriptor::SphereLikeSpiral(desc))),
             instantiated_curve: None,
             instantiated_descriptor: None,
-            delta_bppt: 0.,
+            delta_bases_per_turn: 0.,
             initial_nt_index: 0,
             support_helix: None,
             path_id: None,
@@ -475,7 +476,7 @@ impl Helix {
             curve: Some(Arc::new(CurveDescriptor::TubeSpiral(desc))),
             instantiated_curve: None,
             instantiated_descriptor: None,
-            delta_bppt: 0.,
+            delta_bases_per_turn: 0.,
             initial_nt_index: 0,
             support_helix: None,
             path_id: None,
@@ -497,7 +498,7 @@ impl Helix {
             curve: Some(Arc::new(desc)),
             instantiated_curve: None,
             instantiated_descriptor: None,
-            delta_bppt: 0.,
+            delta_bases_per_turn: 0.,
             initial_nt_index: 0,
             support_helix: None,
             path_id: None,
@@ -594,7 +595,7 @@ impl Helix {
             curve: Some(Arc::new(constructor)),
             instantiated_curve: None,
             instantiated_descriptor: None,
-            delta_bppt: 0.,
+            delta_bases_per_turn: 0.,
             initial_nt_index: 0,
             support_helix: None,
             path_id: None,
@@ -638,7 +639,7 @@ impl Helix {
             curve,
             instantiated_curve: None,
             instantiated_descriptor: None,
-            delta_bppt: 0.,
+            delta_bases_per_turn: 0.,
             initial_nt_index: 0,
             support_helix: None,
             path_id: Some(path_id),
@@ -656,27 +657,23 @@ impl Helix {
     }
 
     pub fn roll_at_pos(&self, n: isize, cst: &HelixParameters) -> f32 {
-        use std::f32::consts::PI;
-        let bpt = match self.helix_parameters {
+        let bases_per_turn = match self.helix_parameters {
             None => cst.bases_per_turn,
             Some(p) => p.bases_per_turn,
-        };
-        let bbpt = bpt + self.delta_bppt;
-        let beta = 2. * PI / bbpt;
+        } + self.delta_bases_per_turn;
+        let beta = TAU / bases_per_turn;
         self.roll - n as f32 * beta // Beta is positive but helix turn clockwise when n increases
     }
 
     /// Angle of base number `n` around this helix.
     pub fn theta(&self, n: isize, forward: bool, cst: &HelixParameters) -> f32 {
-        use std::f32::consts::PI;
         // The groove_angle goes from the backward strand to the forward strand
         let shift = if forward { cst.groove_angle } else { 0. };
-        let bpt = match self.helix_parameters {
+        let bases_per_turn = match self.helix_parameters {
             None => cst.bases_per_turn,
             Some(p) => p.bases_per_turn,
-        };
-        let bbpt = bpt + self.delta_bppt;
-        let beta = 2. * PI / bbpt;
+        } + self.delta_bases_per_turn;
+        let beta = TAU / bases_per_turn;
         self.roll
             -n as f32 * beta  // Beta is positive but helix turn clockwise when n increases
             + shift
@@ -811,7 +808,7 @@ impl Helix {
             curve: None,
             instantiated_curve: None,
             instantiated_descriptor: None,
-            delta_bppt: 0.,
+            delta_bases_per_turn: 0.,
             initial_nt_index: 0,
             support_helix: None,
             path_id: None,
