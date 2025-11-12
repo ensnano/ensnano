@@ -65,7 +65,7 @@ impl InsertionDrawer {
         let new_instances = Some(vec![InsertionInstance {
             position: Vec2::zero(),
             orientation: Mat2::identity(),
-            _pading: 0,
+            _padding: 0,
             depth: 500.,
             color: [0., 0., 0., 1.],
         }]);
@@ -118,7 +118,7 @@ pub struct InsertionVertex {
 pub struct InsertionInstance {
     pub position: Vec2,
     pub depth: f32,
-    pub _pading: u32,
+    pub _padding: u32,
     pub orientation: Mat2,
     pub color: [f32; 4],
 }
@@ -140,7 +140,7 @@ impl InsertionInstance {
         Self {
             position: desc.position,
             depth: desc.depth,
-            _pading: 0,
+            _padding: 0,
             orientation: desc.orientation.into_matrix() * symmetry_matrix,
             color: crate::ensnano_utils::instance::Instance::color_from_u32(desc.color).into(),
         }
@@ -172,7 +172,7 @@ fn make_vertices() -> Vertices {
                 .with_line_join(tessellation::LineJoin::Round),
             &mut tessellation::BuffersBuilder::new(&mut vertices, InsertionVertexBuilder),
         )
-        .expect("Error durring tessellation");
+        .expect("Error during tessellation");
     vertices
 }
 

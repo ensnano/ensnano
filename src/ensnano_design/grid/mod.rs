@@ -835,7 +835,8 @@ impl GridData {
             grids,
             object_to_pos,
             pos_to_object,
-            helix_parameters: design.helix_parameters.unwrap_or_default(), //ne change rien ???
+            // Daria: does not change anything???
+            helix_parameters: design.helix_parameters.unwrap_or_default(),
             no_phantoms: design.no_phantoms.clone(),
             small_spheres: design.small_spheres.clone(),
             center_of_gravity: Default::default(),

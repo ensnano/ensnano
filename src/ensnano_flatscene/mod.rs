@@ -531,14 +531,14 @@ impl<S: AppState> FlatScene<S> {
         }
 
         for v in self.view.iter_mut() {
-            v.borrow_mut().set_splited(self.is_split);
+            v.borrow_mut().set_is_split(self.is_split);
         }
     }
 
     fn split_and_center(&mut self, n1: FlatNucl, n2: FlatNucl) {
         self.is_split = true;
         for v in self.view.iter_mut() {
-            v.borrow_mut().set_splited(self.is_split);
+            v.borrow_mut().set_is_split(self.is_split);
         }
         for c in self.controller.iter_mut() {
             c.set_split(self.is_split, false);
@@ -658,9 +658,9 @@ impl<S: AppState> FlatScene<S> {
         let pixels = {
             let pixels_slice = buffer_slice.get_mapped_range();
             let mut pixels = Vec::with_capacity((size.height * size.width) as usize);
-            for chunck in pixels_slice.chunks(buffer_dimensions.padded_bytes_per_row) {
-                for chunk in chunck.chunks(4) {
-                    // convert Bgra to Rgba
+            for big_chunk in pixels_slice.chunks(buffer_dimensions.padded_bytes_per_row) {
+                for chunk in big_chunk.chunks(4) {
+                    // Bgra -> Rgba
                     pixels.push(chunk[2]);
                     pixels.push(chunk[1]);
                     pixels.push(chunk[0]);
@@ -694,7 +694,7 @@ impl<S: AppState> Application for FlatScene<S> {
     type AppState = S;
     fn on_notify(&mut self, notification: Notification) {
         match notification {
-            Notification::FitRequest => (), // Temporarilly don't fit to make the moebius ring
+            Notification::FitRequest => (), // Temporarily don't fit to make the moebius ring
             Notification::ToggleText(b) => {
                 self.view[self.selected_design].borrow_mut().set_show_sec(b)
             }

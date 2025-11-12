@@ -116,7 +116,7 @@ impl Strand {
                     },
                 ),
             )
-            .expect("Error durring tessellation");
+            .expect("Error during tessellation");
         stroke_tess
             .tessellate_path(
                 &cross_split_path,
@@ -133,7 +133,7 @@ impl Strand {
                     },
                 ),
             )
-            .expect("Error durring tessellation");
+            .expect("Error during tessellation");
         (vertices, cross_split_vertices)
     }
 
@@ -174,7 +174,7 @@ impl Strand {
                     },
                 ),
             )
-            .expect("Error durring tessellation");
+            .expect("Error during tessellation");
         vertices
     }
 
@@ -314,8 +314,8 @@ fn one_point_one_camera<'a>(input: TwoCameraAndPoints<'a>) -> bool {
 struct StrandVertexBuilder<'a> {
     /// The Builder that builds normal path of the strand
     main_path_builder: BuilderWithAttributes,
-    /// The Builder that builds the vertices of the splied cross overs
-    splited_cross_over_builder: BuilderWithAttributes,
+    /// The Builder that builds the vertices of the split cross overs
+    split_cross_over_builder: BuilderWithAttributes,
     /// The current position of the path builders
     last_point: Option<Vec2>,
     /// The sign attribute is used to handle the width of the path. The sign should be flipped
@@ -350,15 +350,15 @@ struct MainXoverDescriptor {
 }
 
 impl<'a> StrandVertexBuilder<'a> {
-    /// Initialise the builder.
+    /// Initialize the builder.
     pub fn init(initializer: StrandVertexBuilderInitializer<'a>) -> Self {
         let main_path_builder = Path::builder_with_attributes(2);
-        let splited_cross_over_builder = Path::builder_with_attributes(2);
+        let split_cross_over_builder = Path::builder_with_attributes(2);
         let last_point = Self::read_free_end(&initializer);
 
         Self {
             main_path_builder,
-            splited_cross_over_builder,
+            split_cross_over_builder,
             last_point,
             sign: 1.0,
             main_camera: initializer.main_camera,
@@ -413,11 +413,11 @@ impl<'a> StrandVertexBuilder<'a> {
                     self.alternative_positions(self.last_point.expect("last point"), to)
                 {
                     self.stop_drawing();
-                    self.splited_cross_over_builder
+                    self.split_cross_over_builder
                         .begin(Point::new(from.x, from.y), &[self.depth, 5.0]);
-                    self.splited_cross_over_builder
+                    self.split_cross_over_builder
                         .line_to(Point::new(to.x, to.y), &[self.depth, 5.0]);
-                    self.splited_cross_over_builder.end(false);
+                    self.split_cross_over_builder.end(false);
                 } else {
                     let origin = self.last_point.expect("last point");
                     if self.can_see(to) || self.can_see(origin) {
@@ -469,11 +469,11 @@ impl<'a> StrandVertexBuilder<'a> {
 
     fn draw_free_end(&mut self, from: Vec2, to: Vec2) {
         if let Some((from, to)) = self.alternative_positions(from, to) {
-            self.splited_cross_over_builder
+            self.split_cross_over_builder
                 .begin(Point::new(from.x, from.y), attributes!(self));
-            self.splited_cross_over_builder
+            self.split_cross_over_builder
                 .line_to(Point::new(to.x, to.y), attributes!(self));
-            self.splited_cross_over_builder.end(false);
+            self.split_cross_over_builder.end(false);
         } else {
             self.depth = 1e-4;
             self.start_drawing_on(from);
@@ -520,12 +520,12 @@ impl<'a> StrandVertexBuilder<'a> {
         self.stop_drawing();
         (
             self.main_path_builder.build(),
-            self.splited_cross_over_builder.build(),
+            self.split_cross_over_builder.build(),
         )
     }
 }
 
-/// An object that reads nucleotides and decide weither drawing the next nucleotide means drawing a
+/// An object that reads nucleotides and decide whether drawing the next nucleotide means drawing a
 /// cross-over or a strand's domain.
 struct StrandTopologyReader<'a> {
     /// The number of points that have been drawn on the current helix
@@ -553,7 +553,7 @@ impl<'a> StrandTopologyReader<'a> {
                 self.nb_point_helix = 0;
             }
             if self.nb_point_helix % 2 == 0 {
-                // we are drawing two consecutives xovers on the same helix, link them with a
+                // we are drawing two consecutive xovers on the same helix, link them with a
                 // crossover
                 self.xover_instruction(last_nucl, nucl)
             } else {
@@ -571,9 +571,9 @@ impl<'a> StrandTopologyReader<'a> {
     fn xover_instruction(&self, last_nucl: FlatNucl, nucl: FlatNucl) -> DrawingInstruction {
         // we start the xover at the 3' end of the source and we go to the 5' end of the target
         let normal_source = self.helices[last_nucl.helix]
-            .get_nucl_position(&last_nucl.prime5(), Shift::Prime3Outsided);
+            .get_nucl_position(&last_nucl.prime5(), Shift::Prime3Outside);
         let normal_target =
-            self.helices[nucl.helix].get_nucl_position(&nucl.prime3(), Shift::Prime5Outsided);
+            self.helices[nucl.helix].get_nucl_position(&nucl.prime3(), Shift::Prime5Outside);
         let to = self.helices[nucl.helix].get_nucl_position(&nucl, Shift::Prime5);
         DrawingInstruction::XoverTo {
             normal_source,

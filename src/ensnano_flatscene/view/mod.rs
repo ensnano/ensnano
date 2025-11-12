@@ -21,13 +21,15 @@ mod helix_view;
 mod insertion;
 mod rectangle;
 
-use super::FlatSelection;
-use super::data::{
-    FlatTorsion, FreeEnd, GpuVertex, Helix, HelixModel, Shift, Strand, StrandVertex,
-    helix::CharCollector,
+pub use insertion::{InsertionDescriptor, InsertionInstance};
+
+use super::{
+    CameraPtr, DrawArea, FlatIdx, FlatNucl, FlatSelection, PhySize,
+    data::{
+        FlatTorsion, FreeEnd, GpuVertex, Helix, HelixModel, Shift, Strand, StrandVertex,
+        helix::CharCollector,
+    },
 };
-use super::{CameraPtr, FlatIdx, FlatNucl};
-use super::{DrawArea, PhySize};
 use crate::ensnano_consts::SAMPLE_COUNT;
 use crate::ensnano_design::{Nucl, NuclCollection};
 use crate::ensnano_utils::{
@@ -42,7 +44,6 @@ use ahash::RandomState;
 use background::Background;
 use helix_view::{HelixView, StrandView};
 use insertion::InsertionDrawer;
-pub use insertion::{InsertionDescriptor, InsertionInstance};
 use rectangle::Rectangle;
 use std::rc::Rc;
 use std::{
@@ -71,7 +72,7 @@ pub struct View {
     strand_pipeline: RenderPipeline,
     camera_top: CameraPtr,
     camera_bottom: CameraPtr,
-    splited: bool,
+    is_split: bool,
     was_updated: bool,
     area_size: PhySize,
     free_end: Option<FreeEnd>,
@@ -117,7 +118,7 @@ impl View {
         area: DrawArea,
         camera_top: CameraPtr,
         camera_bottom: CameraPtr,
-        splited: bool,
+        is_split: bool,
     ) -> Self {
         let depth_texture = Arc::new(Texture::create_depth_texture(
             device.as_ref(),
@@ -233,7 +234,7 @@ impl View {
             strand_pipeline,
             camera_top,
             camera_bottom,
-            splited,
+            is_split,
             was_updated: false,
             area_size: area.size,
             free_end: None,
@@ -277,9 +278,9 @@ impl View {
         self.was_updated = true;
     }
 
-    pub fn set_splited(&mut self, splited: bool) {
+    pub fn set_is_split(&mut self, is_split: bool) {
         self.was_updated = true;
-        self.splited = splited;
+        self.is_split = is_split;
     }
 
     pub fn update_strand_building_info(&mut self, info: Option<EditionInfo>) {
@@ -319,9 +320,9 @@ impl View {
 
     pub fn rm_helices(&mut self, helices: BTreeSet<FlatIdx>) {
         if self.helices.is_empty() {
-            // self was already reseted
-            return;
+            return; // self was already reset
         }
+
         for h in helices.iter().rev() {
             self.helices.remove(h.0);
             self.helices_background.remove(h.0);
@@ -355,7 +356,7 @@ impl View {
     pub fn add_strand(&mut self, strand: &Strand, helices: &[Helix]) {
         self.strands
             .push(StrandView::new(self.device.clone(), self.queue.clone()));
-        let other_cam = if self.splited {
+        let other_cam = if self.is_split {
             &self.camera_bottom
         } else {
             &self.camera_top
@@ -380,7 +381,7 @@ impl View {
     pub fn update_strands(&mut self, strands: &[Strand], helices: &[Helix]) {
         self.strands.truncate(strands.len());
         for (i, s) in self.strands.iter_mut().enumerate() {
-            let other_cam = if self.splited {
+            let other_cam = if self.is_split {
                 &self.camera_bottom
             } else {
                 &self.camera_top
@@ -410,7 +411,7 @@ impl View {
 
     pub fn update_selection(&mut self, strands: &[Strand], helices: &[Helix]) {
         self.selected_strands.clear();
-        let other_cam = if self.splited {
+        let other_cam = if self.is_split {
             &self.camera_bottom
         } else {
             &self.camera_top
@@ -425,7 +426,7 @@ impl View {
 
     pub fn update_candidate(&mut self, strands: &[Strand], helices: &[Helix]) {
         self.candidate_strands.clear();
-        let other_cam = if self.splited {
+        let other_cam = if self.is_split {
             &self.camera_bottom
         } else {
             &self.camera_top
@@ -468,7 +469,7 @@ impl View {
     }
 
     pub fn needs_redraw(&self) -> bool {
-        if self.splited {
+        if self.is_split {
             self.camera_top.borrow().was_updated()
                 | self.was_updated
                 | self.camera_bottom.borrow().was_updated()
@@ -538,7 +539,7 @@ impl View {
     }
 
     pub fn update_rectangle(&mut self, c1: PhysicalPosition<f64>, c2: PhysicalPosition<f64>) {
-        if self.splited {
+        if self.is_split {
             if (c1.y < self.area_size.height as f64 / 2.)
                 != (c2.y < self.area_size.height as f64 / 2.)
             {
@@ -578,7 +579,7 @@ impl View {
     ) {
         let exporting_png = png_size.is_some();
         let texture;
-        let globls_png = if let Some(globals) = png_globals {
+        let globals_png = if let Some(globals) = png_globals {
             Some(UniformBindGroup::new(
                 self.device.clone(),
                 self.queue.clone(),
@@ -588,7 +589,7 @@ impl View {
         } else {
             None
         };
-        let png_glob_bg = globls_png.as_ref().map(|g| g.get_bindgroup());
+        let png_glob_bg = globals_png.as_ref().map(|g| g.get_bindgroup());
         let depth_texture_view = if let Some(size) = png_size {
             texture = Arc::new(Texture::create_depth_texture(
                 self.device.clone().as_ref(),
@@ -621,11 +622,11 @@ impl View {
             self.circle_drawer_bottom
                 .new_instances(Rc::new(instances_bottom));
             self.generate_char_instances();
-            let nucleotide_highliting = Rc::new(self.generate_nucl_highlighting());
+            let nucleotide_highlighting = Rc::new(self.generate_nucl_highlighting());
             self.nucl_highlighter_top
-                .new_instances(nucleotide_highliting.clone());
+                .new_instances(nucleotide_highlighting.clone());
             self.nucl_highlighter_bottom
-                .new_instances(nucleotide_highliting);
+                .new_instances(nucleotide_highlighting);
         }
 
         let msaa_texture = if SAMPLE_COUNT > 1 {
@@ -676,7 +677,7 @@ impl View {
             timestamp_writes: None,
             occlusion_query_set: None,
         });
-        if self.splited && !exporting_png {
+        if self.is_split && !exporting_png {
             render_pass.set_viewport(
                 0.,
                 0.,
@@ -739,7 +740,7 @@ impl View {
             timestamp_writes: None,
             occlusion_query_set: None,
         });
-        if self.splited && !exporting_png {
+        if self.is_split && !exporting_png {
             render_pass.set_viewport(
                 0.,
                 0.,
@@ -812,7 +813,7 @@ impl View {
             timestamp_writes: None,
             occlusion_query_set: None,
         });
-        if self.splited {
+        if self.is_split {
             render_pass.set_viewport(
                 0.,
                 0.,
@@ -851,7 +852,7 @@ impl View {
         }
 
         drop(render_pass);
-        if self.splited {
+        if self.is_split {
             let bottom = true;
             let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: None,
@@ -1169,7 +1170,7 @@ impl View {
     }
 
     /// Collect the torsion indications.
-    /// The radius and color of the circles depends on the strangth amplitude.
+    /// The radius and color of the circles depends on the strength amplitude.
     fn collect_torsion_indications(&self, circles: &mut Vec<CircleInstance>) {
         for ((n0, n1), torsion) in self.torsions.iter() {
             let multiplier = ((torsion.strength_prime5 - torsion.strength_prime3).abs() / 200.)

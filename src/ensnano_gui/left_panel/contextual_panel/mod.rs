@@ -294,7 +294,7 @@ where
 
         let info_values = values_of_selection(selection, app_state.get_reader().as_ref());
 
-        // NOTE: The brancing below determines what is viewed in the contextual panel.
+        // NOTE: The branching below determines what is viewed in the contextual panel.
         //
         let mut content = if self.show_tutorial {
             let link = "http://ens-lyon.fr/ensnano";
@@ -317,7 +317,7 @@ where
         } else if *selection == Selection::Nothing && xover_len.is_none() {
             turn_into_help_column(ui_size)
         } else if nb_selected > 1 {
-            // NOTE: When the number of objects selectet is greater than one,
+            // NOTE: When the number of objects selected is greater than one,
             //       we only print the number of object selected.
             self::column![text(format!("{} objects selected", nb_selected)),]
                 .width(Length::Fill)

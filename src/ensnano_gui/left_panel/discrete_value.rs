@@ -15,8 +15,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-//! A slider to choose a numerical value within a dircrete linear range.
-// TODO: Make it an independent object like ensano_iced::color_picker ?
+
+//! A slider to choose a numerical value within a discrete linear range.
+
+// TODO: Make it an independent object like ensnano_iced::color_picker ?
+
 use super::AppState;
 use super::Message;
 use crate::ensnano_iced::iced;

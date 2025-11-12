@@ -534,7 +534,7 @@ impl ActionMode {
 // Encoding of phantom element identifier.
 // The identifier is an integer of the form helix_id * max_pos_id + pos_id;
 //
-// helix_id is the identifer of the helix and pos_id is of the form
+// helix_id is the identifier of the helix and pos_id is of the form
 // position * nb_kind + element_kid
 // where element_kind is
 // 0 for forward nucl

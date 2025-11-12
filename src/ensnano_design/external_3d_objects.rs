@@ -64,7 +64,7 @@ impl External3DObject {
             })
         } else {
             log::error!(
-                "Coud not compute path diff between {:?} and {:?}",
+                "Could not compute path diff between {:?} and {:?}",
                 desc.object_path.as_ref().to_string_lossy(),
                 desc.design_path.as_ref().to_string_lossy()
             );

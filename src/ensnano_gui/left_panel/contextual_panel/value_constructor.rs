@@ -428,7 +428,7 @@ struct DirectionAngle {
 }
 
 impl DirectionAngle {
-    const CONVERSION_ESPILON: f32 = 1e-6;
+    const CONVERSION_EPSILON: f32 = 1e-6;
 
     fn from_rotor(rotor: Rotor3) -> Self {
         let direction = Vec3::unit_x().rotated_by(rotor);
@@ -479,7 +479,7 @@ impl DirectionAngle {
         let z_angle = direction.y.asin();
         log::info!("z angle {}", z_angle.to_degrees());
 
-        if direction.y.abs() < 1. - Self::CONVERSION_ESPILON {
+        if direction.y.abs() < 1. - Self::CONVERSION_EPSILON {
             let radius = z_angle.cos();
             log::info!("radius {}", radius);
             log::info!("direction.x / radius {}", direction.x / radius);

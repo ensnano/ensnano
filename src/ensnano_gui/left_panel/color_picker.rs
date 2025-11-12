@@ -578,7 +578,7 @@ mod color_square {
             let y_max = b.height;
             let dummy_color = pack([1.0, 0.0, 0.0, 1.0]);
             // TODO: Find an appropriate color.
-            // The primitiver API changed. It now ask for
+            // The primitive API changed. It now ask for
             // some color. I do not now which one to choose now.
             let vertices = vec![
                 SolidVertex2D {
