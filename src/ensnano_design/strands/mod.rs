@@ -1289,24 +1289,15 @@ pub enum Extremity {
 
 impl Extremity {
     pub fn is_3prime(&self) -> bool {
-        match self {
-            Extremity::Prime3 => true,
-            _ => false,
-        }
+        matches!(self, Extremity::Prime3)
     }
 
     pub fn is_5prime(&self) -> bool {
-        match self {
-            Extremity::Prime5 => true,
-            _ => false,
-        }
+        matches!(self, Extremity::Prime5)
     }
 
     pub fn is_end(&self) -> bool {
-        match self {
-            Extremity::No => false,
-            _ => true,
-        }
+        !matches!(self, Extremity::No)
     }
 
     pub fn to_opt(&self) -> Option<bool> {

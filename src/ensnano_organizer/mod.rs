@@ -1444,10 +1444,7 @@ impl<E: OrganizerElement> GroupContent<E> {
     }
 
     fn is_placeholder(&self) -> bool {
-        match self {
-            Self::Placeholder => true,
-            _ => false,
-        }
+        matches!(self, Self::Placeholder)
     }
 
     fn recompute_id(

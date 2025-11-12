@@ -173,22 +173,20 @@ pub enum GuiComponentType {
 impl GuiComponentType {
     /// A panel is filled with buttons, menus, and other dialogs.
     pub fn is_panel(&self) -> bool {
-        match self {
-            GuiComponentType::TopBar
-            | GuiComponentType::LeftPanel
-            | GuiComponentType::StatusBar => true,
-            _ => false,
-        }
+        matches!(
+            self,
+            GuiComponentType::TopBar | GuiComponentType::LeftPanel | GuiComponentType::StatusBar
+        )
     }
 
     /// A scene represent a view to the DNA.
     pub fn is_scene(&self) -> bool {
-        match self {
+        matches!(
+            self,
             GuiComponentType::StereographicScene
-            | GuiComponentType::Scene
-            | GuiComponentType::FlatScene => true,
-            _ => false,
-        }
+                | GuiComponentType::Scene
+                | GuiComponentType::FlatScene
+        )
     }
 }
 
