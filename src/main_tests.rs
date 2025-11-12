@@ -19,7 +19,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! Test suite for the `MainState` structure
 
 use super::*;
-use ensnano_design::Nucl;
+use crate::ensnano_design::Nucl;
 use winit::{dpi::PhysicalPosition, window::CursorIcon};
 
 struct DummyScene {}
@@ -57,13 +57,13 @@ impl Application for DummyScene {
     fn on_resize(
         &mut self,
         _window_size: PhysicalSize<u32>,
-        _area: ensnano_interactor::graphics::DrawArea,
+        _area: crate::ensnano_interactor::graphics::DrawArea,
     ) {
         ()
     }
 
-    fn get_camera(&self) -> Option<Arc<(ensnano_interactor::application::Camera3D, f32)>> {
-        use ensnano_interactor::application::Camera3D;
+    fn get_camera(&self) -> Option<Arc<(crate::ensnano_interactor::application::Camera3D, f32)>> {
+        use crate::ensnano_interactor::application::Camera3D;
         Some(Arc::new((
             Camera3D {
                 position: Vec3::zero(),
@@ -168,7 +168,7 @@ fn duplication_via_requests_correct_status() {
 
 #[test]
 fn duplication_via_requests_strands_are_duplicated() {
-    use ensnano_scene::data::SceneDesignReaderExt as _;
+    use crate::ensnano_scene::data::SceneDesignReaderExt as _;
     let mut main_state = new_state();
     let app_state = pastable_design();
     main_state.clear_app_state(app_state);

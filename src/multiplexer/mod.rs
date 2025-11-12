@@ -33,7 +33,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 pub mod layout_manager;
 
 use crate::{PhySize, controller::normal_state::Action, requests::Requests};
-use ensnano_iced::{
+use crate::ensnano_iced::{
     UiSize,
     iced_wgpu::wgpu,
     iced_wgpu::wgpu::Device,
@@ -44,11 +44,11 @@ use ensnano_iced::{
         window::{CursorIcon, Window},
     },
 };
-use ensnano_interactor::{
+use crate::ensnano_interactor::{
     ActionMode, SelectionMode,
     graphics::{DrawArea, GuiComponentType, SplitMode},
 };
-use ensnano_utils::texture::SampledTexture;
+use crate::ensnano_utils::texture::SampledTexture;
 use layout_manager::{LayoutTree, PixelRegion};
 use std::{
     rc::Rc,
@@ -922,7 +922,7 @@ fn control_key(modifiers: &ModifiersState) -> bool {
     }
 }
 
-use ensnano_interactor::Multiplexer as GuiMultiplexer;
+use crate::ensnano_interactor::Multiplexer as GuiMultiplexer;
 
 impl GuiMultiplexer for Multiplexer {
     fn get_draw_area(&self, element_type: GuiComponentType) -> Option<DrawArea> {

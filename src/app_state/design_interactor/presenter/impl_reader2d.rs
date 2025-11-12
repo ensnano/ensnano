@@ -18,9 +18,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::*;
 use ahash::RandomState;
-use ensnano_design::{Domain, Extremity, HelixInterval, NuclCollection};
-use ensnano_flatscene::FlatSceneDesignReaderExt;
-use ensnano_interactor::{Referential, torsion::Torsion};
+use crate::ensnano_design::{Domain, Extremity, HelixInterval, NuclCollection};
+use crate::ensnano_flatscene::FlatSceneDesignReaderExt;
+use crate::ensnano_interactor::{Referential, torsion::Torsion};
 use std::collections::{BTreeMap, HashMap};
 use std::sync::Arc;
 use ultraviolet::{Isometry2, Vec2, Vec3};
@@ -185,7 +185,7 @@ impl FlatSceneDesignReaderExt for DesignInteractor {
         self.is_xover_end(nucl)
     }
 
-    fn get_helices_map(&self) -> &ensnano_design::Helices {
+    fn get_helices_map(&self) -> &crate::ensnano_design::Helices {
         &self.presenter.current_design.helices
     }
 
@@ -203,7 +203,7 @@ impl FlatSceneDesignReaderExt for DesignInteractor {
         self.presenter.content.nucl_collection.clone()
     }
 
-    fn get_abscissa_converter(&self, h_id: usize) -> ensnano_design::AbscissaConverter {
+    fn get_abscissa_converter(&self, h_id: usize) -> crate::ensnano_design::AbscissaConverter {
         self.presenter
             .current_design
             .try_get_up_to_date()
@@ -214,7 +214,7 @@ impl FlatSceneDesignReaderExt for DesignInteractor {
 
 fn split_domain_into_helices_segment(
     domain: &HelixInterval,
-    helices: &ensnano_design::Helices,
+    helices: &crate::ensnano_design::Helices,
 ) -> Vec<Nucl> {
     let helix = helices.get(&domain.helix);
     let empty = vec![];

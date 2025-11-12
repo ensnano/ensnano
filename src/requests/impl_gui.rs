@@ -16,21 +16,21 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-//! Implements the [Requests](`ensnano_gui::Requests`) trait for [Requests](`super::Requests`).
+//! Implements the [Requests](`crate::ensnano_gui::Requests`) trait for [Requests](`super::Requests`).
 
 use super::*;
-use ensnano_design::grid::GridId;
-use ensnano_exports::ExportType;
-use ensnano_gui::{OverlayType, RigidBodyParametersRequest};
-use ensnano_interactor::{
+use crate::ensnano_design::grid::GridId;
+use crate::ensnano_exports::ExportType;
+use crate::ensnano_gui::{OverlayType, RigidBodyParametersRequest};
+use crate::ensnano_interactor::{
     DesignOperation, InsertionPoint, RevolutionSurfaceSystemDescriptor, RigidBodyConstants,
     RollRequest, application::Notification, graphics::SplitMode,
 };
-use ensnano_organizer::tree::GroupId;
+use crate::ensnano_organizer::tree::GroupId;
 use std::collections::BTreeSet;
 use ultraviolet::{Rotor3, Vec2};
 
-impl ensnano_gui::Requests for Requests {
+impl crate::ensnano_gui::Requests for Requests {
     fn close_overlay(&mut self, overlay_type: OverlayType) {
         self.keep_proceed
             .push_back(Action::CloseOverlay(overlay_type));
@@ -298,18 +298,18 @@ impl ensnano_gui::Requests for Requests {
         self.keep_proceed.push_back(Action::NewCamera);
     }
 
-    fn delete_camera(&mut self, cam_id: ensnano_design::CameraId) {
+    fn delete_camera(&mut self, cam_id: crate::ensnano_design::CameraId) {
         self.keep_proceed
             .push_back(Action::DesignOperation(DesignOperation::DeleteCamera(
                 cam_id,
             )))
     }
 
-    fn select_camera(&mut self, cam_id: ensnano_design::CameraId) {
+    fn select_camera(&mut self, cam_id: crate::ensnano_design::CameraId) {
         self.keep_proceed.push_back(Action::SelectCamera(cam_id))
     }
 
-    fn set_camera_name(&mut self, camera_id: ensnano_design::CameraId, name: String) {
+    fn set_camera_name(&mut self, camera_id: crate::ensnano_design::CameraId, name: String) {
         self.keep_proceed
             .push_back(Action::DesignOperation(DesignOperation::SetCameraName {
                 camera_id,
@@ -397,7 +397,7 @@ impl ensnano_gui::Requests for Requests {
         self.keep_proceed.push_back(Action::DownloadOrigamiRequest);
     }
 
-    fn set_dna_parameters(&mut self, param: ensnano_design::HelixParameters) {
+    fn set_dna_parameters(&mut self, param: crate::ensnano_design::HelixParameters) {
         self.keep_proceed.push_back(Action::SetDnaParameters(param));
     }
 
@@ -417,7 +417,7 @@ impl ensnano_gui::Requests for Requests {
 
     fn turn_path_into_grid(
         &mut self,
-        path_id: ensnano_design::BezierPathId,
+        path_id: crate::ensnano_design::BezierPathId,
         grid_type: GridTypeDescr,
     ) {
         self.keep_proceed.push_back(Action::DesignOperation(
@@ -425,7 +425,7 @@ impl ensnano_gui::Requests for Requests {
         ))
     }
 
-    fn make_bezier_path_cyclic(&mut self, path_id: ensnano_design::BezierPathId, cyclic: bool) {
+    fn make_bezier_path_cyclic(&mut self, path_id: crate::ensnano_design::BezierPathId, cyclic: bool) {
         self.keep_proceed.push_back(Action::DesignOperation(
             DesignOperation::MakeBezierPathCyclic { path_id, cyclic },
         ))
@@ -441,7 +441,7 @@ impl ensnano_gui::Requests for Requests {
 
     fn set_position_of_bezier_vertex(
         &mut self,
-        vertex_id: ensnano_design::BezierVertexId,
+        vertex_id: crate::ensnano_design::BezierVertexId,
         position: Vec2,
     ) {
         self.keep_proceed.push_back(Action::DesignOperation(

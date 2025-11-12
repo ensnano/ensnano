@@ -27,15 +27,15 @@ use self::design_content::Staple;
 
 use super::*;
 use design_content::DesignContent;
-use ensnano_design::{
+use crate::ensnano_design::{
     BezierPathId, Extremity, HelixCollection, InstantiatedPiecewiseBezier, Nucl, NuclCollection,
 };
-use ensnano_interactor::{
+use crate::ensnano_interactor::{
     NeighborDescriptor, NeighborDescriptorGiver, Referential, ScaffoldInfo, Selection,
     application::Camera3D,
 };
-use ensnano_scene::data::{HBond, HalfHBond};
-use ensnano_utils::id_generator::IdGenerator;
+use crate::ensnano_scene::data::{HBond, HalfHBond};
+use crate::ensnano_utils::id_generator::IdGenerator;
 use std::collections::{BTreeMap, HashMap, HashSet};
 use ultraviolet::{Mat4, Rotor3, Vec3};
 
@@ -205,7 +205,7 @@ impl Presenter {
                 .and_then(|s_id| self.current_design.strands.get(s_id))
             {
                 for domain in &strand.domains {
-                    if let ensnano_design::Domain::HelixDomain(dom) = domain {
+                    if let crate::ensnano_design::Domain::HelixDomain(dom) = domain {
                         for nucl_position in dom.iter() {
                             let nucl = Nucl {
                                 helix: dom.helix,
@@ -237,7 +237,7 @@ impl Presenter {
                                 log::error!("Could not get virtual mapping of {:?}", nucl.compl())
                             }
                         }
-                    } else if let ensnano_design::Domain::Insertion { nb_nucl, .. } = domain {
+                    } else if let crate::ensnano_design::Domain::Insertion { nb_nucl, .. } = domain {
                         for _ in 0..*nb_nucl {
                             sequence.next();
                         }
@@ -300,14 +300,14 @@ impl Presenter {
         let a1 = (pos_backward - pos_forward).normalized();
         let forward_half = HalfHBond {
             backbone: pos_forward,
-            center_of_mass: pos_forward + 2. * a1 * ensnano_exports::oxdna::BACKBONE_TO_CM,
+            center_of_mass: pos_forward + 2. * a1 * crate::ensnano_exports::oxdna::BACKBONE_TO_CM,
             base: self.content.letter_map.get(&forward_nucl).cloned(),
             backbone_color: self.content.color_map.get(&forward_id).cloned()?,
         };
 
         let backward_half = HalfHBond {
             backbone: pos_backward,
-            center_of_mass: pos_backward - 2. * a1 * ensnano_exports::oxdna::BACKBONE_TO_CM,
+            center_of_mass: pos_backward - 2. * a1 * crate::ensnano_exports::oxdna::BACKBONE_TO_CM,
             base: self.content.letter_map.get(&backward_nucl).cloned(),
             backbone_color: self.content.color_map.get(&backward_id).cloned()?,
         };
@@ -400,7 +400,7 @@ impl Presenter {
     fn get_name_of_group_having_strand(&self, s_id: usize) -> Vec<String> {
         let tree = &self.current_design.organizer_tree.as_ref();
         tree.map(|t| {
-            t.get_names_of_groups_having(&ensnano_design::elements::DesignElementKey::Strand(s_id))
+            t.get_names_of_groups_having(&crate::ensnano_design::elements::DesignElementKey::Strand(s_id))
         })
         .unwrap_or_default()
     }
@@ -411,7 +411,7 @@ impl Presenter {
             .unwrap_or_default()
     }
 
-    pub fn get_strand_domain(&self, s_id: usize, d_id: usize) -> Option<&ensnano_design::Domain> {
+    pub fn get_strand_domain(&self, s_id: usize, d_id: usize) -> Option<&crate::ensnano_design::Domain> {
         self.current_design
             .strands
             .get(&s_id)
@@ -508,7 +508,7 @@ impl Presenter {
     }
 
     pub fn export(&self, export_path: &PathBuf, export_type: ExportType) -> ExportResult {
-        ensnano_exports::export(
+        crate::ensnano_exports::export(
             &self.current_design,
             export_type,
             Some(self.content.letter_map.as_ref()),
@@ -517,7 +517,7 @@ impl Presenter {
     }
 
     pub fn get_bezier_path_2d(&self, path_id: BezierPathId) -> Option<InstantiatedPiecewiseBezier> {
-        use ensnano_design::Collection;
+        use crate::ensnano_design::Collection;
         self.current_design
             .bezier_paths
             .get(&path_id)
@@ -555,15 +555,15 @@ impl Presenter {
             .map(|set| set.into_iter().collect())
     }
 
-    pub fn get_grid(&self, g_id: GridId) -> Option<&ensnano_design::grid::Grid> {
+    pub fn get_grid(&self, g_id: GridId) -> Option<&crate::ensnano_design::grid::Grid> {
         self.content.grid_manager.grids.get(&g_id)
     }
 
-    pub fn get_helices(&self) -> BTreeMap<usize, ensnano_design::Helix> {
+    pub fn get_helices(&self) -> BTreeMap<usize, crate::ensnano_design::Helix> {
         self.current_design
             .helices
             .iter()
-            .map(|(k, h)| (*k, ensnano_design::Helix::clone(h)))
+            .map(|(k, h)| (*k, crate::ensnano_design::Helix::clone(h)))
             .collect()
     }
 }
@@ -725,7 +725,7 @@ impl DesignInteractor {
         })
     }
 
-    pub fn get_camera_with_id(&self, cam_id: ensnano_design::CameraId) -> Option<Camera3D> {
+    pub fn get_camera_with_id(&self, cam_id: crate::ensnano_design::CameraId) -> Option<Camera3D> {
         self.presenter
             .current_design
             .get_camera(cam_id)

@@ -17,18 +17,18 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::*;
-use ensnano_design::{HelixParameters, elements::DesignElementKey};
-use ensnano_gui::AppState as GuiState;
-use ensnano_gui::ClipboardContent;
-use ensnano_interactor::PastingStatus;
-use ensnano_interactor::{ScaffoldInfo, SelectionConversion, SimulationState};
+use crate::ensnano_design::{HelixParameters, elements::DesignElementKey};
+use crate::ensnano_gui::AppState as GuiState;
+use crate::ensnano_gui::ClipboardContent;
+use crate::ensnano_interactor::PastingStatus;
+use crate::ensnano_interactor::{ScaffoldInfo, SelectionConversion, SimulationState};
 
 mod curve_builders;
 use curve_builders::*;
-use ensnano_organizer::tree::GroupId;
+use crate::ensnano_organizer::tree::GroupId;
 
 impl GuiState for AppState {
-    const POSSIBLE_CURVES: &'static [ensnano_gui::CurveDescriptorBuilder<AppState>] =
+    const POSSIBLE_CURVES: &'static [crate::ensnano_gui::CurveDescriptorBuilder<AppState>] =
         &[ELLIPSE_BUILDER, TWO_SPHERES_BUILDER, BEZIER_CURVE_BUILDER];
 
     fn get_selection_mode(&self) -> SelectionMode {
@@ -72,13 +72,13 @@ impl GuiState for AppState {
 
     fn can_make_grid(&self) -> bool {
         self.selection_content().len() > 4
-            && ensnano_interactor::all_helices_no_grid(
+            && crate::ensnano_interactor::all_helices_no_grid(
                 self.selection_content(),
                 &self.get_design_interactor(),
             )
     }
 
-    fn get_reader(&self) -> Box<dyn ensnano_gui::GuiDesignReaderExt> {
+    fn get_reader(&self) -> Box<dyn crate::ensnano_gui::GuiDesignReaderExt> {
         Box::new(self.get_design_interactor())
     }
 
@@ -104,7 +104,7 @@ impl GuiState for AppState {
         }
     }
 
-    fn get_current_operation_state(&self) -> Option<ensnano_gui::CurrentOpState> {
+    fn get_current_operation_state(&self) -> Option<crate::ensnano_gui::CurrentOpState> {
         self.0.design.get_current_operation_state()
     }
 
@@ -156,7 +156,7 @@ impl GuiState for AppState {
         self.0.parameters.show_bezier_paths
     }
 
-    fn get_selected_bezier_path(&self) -> Option<ensnano_design::BezierPathId> {
+    fn get_selected_bezier_path(&self) -> Option<crate::ensnano_design::BezierPathId> {
         if let Some(Selection::BezierVertex(vertex)) = self.0.selection.selection.get(0) {
             Some(vertex.path_id)
         } else {
@@ -184,7 +184,7 @@ impl GuiState for AppState {
     fn get_recommended_scaling_revolution_surface(
         &self,
         scaffold_len: usize,
-    ) -> Option<ensnano_gui::RevolutionScaling> {
+    ) -> Option<crate::ensnano_gui::RevolutionScaling> {
         let area_surface = self.0.unrooted_surface.area?;
         let perimeter_surface = self
             .0
@@ -203,7 +203,7 @@ impl GuiState for AppState {
         let half_number_helix =
             (scaled_perimeter / 2. / HelixParameters::INTER_CENTER_GAP as f64).floor() as usize;
 
-        Some(ensnano_gui::RevolutionScaling {
+        Some(crate::ensnano_gui::RevolutionScaling {
             nb_helix: half_number_helix * 2,
         })
     }

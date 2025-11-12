@@ -20,13 +20,13 @@ mod cadnano;
 pub mod junctions;
 
 use super::*;
+use crate::ensnano_design::{Nucl, codenano, scadnano};
+use crate::ensnano_utils::id_generator::IdGenerator;
 use crate::{
     app_state::design_interactor::file_parsing::junctions::StrandJunction as _,
     controller::LoadDesignError,
 };
 use cadnano::{Cadnano, FromCadnano};
-use ensnano_design::{Nucl, codenano, scadnano};
-use ensnano_utils::id_generator::IdGenerator;
 use scadnano::ScadnanoImportError;
 use std::path::{Path, PathBuf};
 
@@ -47,7 +47,7 @@ impl DesignInteractor {
 
                 }
                 let grid = new_grids
-                    .get_mut(&ensnano_design::grid::FreeGridId(id))
+                    .get_mut(&crate::ensnano_design::grid::FreeGridId(id))
                     .ok_or(ErrOperation::GridDoesNotExist(grid_id))?;
                 grid.position = position;
                 drop(new_grids);
@@ -87,7 +87,7 @@ fn read_file<P: AsRef<Path> + std::fmt::Debug>(path: P) -> Result<Design, LoadDe
             use version_compare::Cmp;
             log::info!("ok icednano");
             let required_version = design.ensnano_version.clone();
-            let current_version = ensnano_design::ensnano_version();
+            let current_version = crate::ensnano_design::ensnano_version();
             match version_compare::compare(&required_version, &current_version) {
                 Ok(Cmp::Lt) | Ok(Cmp::Eq) => Ok(design),
                 _ => Err(LoadDesignError::IncompatibleVersion {
@@ -132,7 +132,7 @@ impl std::convert::From<ScadnanoImportError> for LoadDesignError {
 
 #[cfg(test)]
 mod tests {
-    use ensnano_design::HelixCollection;
+    use crate::ensnano_design::HelixCollection;
 
     fn one_helix_path() -> PathBuf {
         let mut ret = PathBuf::from(std::env!("CARGO_MANIFEST_DIR"));

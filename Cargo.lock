@@ -1098,131 +1098,16 @@ name = "ensnano"
 version = "0.7.0"
 dependencies = [
  "ahash 0.8.12",
+ "bytemuck",
  "chebyshev_polynomials",
+ "chrono",
  "color_space",
  "confy",
  "dirs",
- "ensnano_consts",
- "ensnano_design",
- "ensnano_exports",
- "ensnano_flatscene",
- "ensnano_gui",
- "ensnano_iced",
- "ensnano_interactor",
- "ensnano_organizer",
- "ensnano_physics",
- "ensnano_scene",
- "ensnano_utils",
- "futures",
- "log",
- "mathru",
- "ordered-float 2.10.1",
- "pretty_env_logger",
- "rand 0.8.5",
- "rand_distr",
- "regex",
- "rfd",
- "rust_xlsxwriter",
- "serde",
- "serde_json",
- "ultraviolet",
- "version-compare",
- "wgpu",
- "winit",
-]
-
-[[package]]
-name = "ensnano_consts"
-version = "0.7.0"
-dependencies = [
- "ultraviolet",
-]
-
-[[package]]
-name = "ensnano_design"
-version = "0.7.0"
-dependencies = [
- "ahash 0.8.12",
- "chebyshev_polynomials",
- "ensnano_organizer",
- "icondata",
- "log",
- "num_enum 0.5.11",
- "ordered-float 2.10.1",
- "pathdiff",
- "quadrature",
- "rand 0.8.5",
- "rand_distr",
- "rayon",
- "regex",
- "relative-path",
- "serde",
- "serde_json",
- "serde_with",
- "strum",
- "svg",
- "ultraviolet",
- "version-compare",
-]
-
-[[package]]
-name = "ensnano_exports"
-version = "0.7.0"
-dependencies = [
- "ahash 0.8.12",
- "ensnano_design",
- "itertools",
- "rand 0.8.5",
- "serde",
- "serde_json",
- "strum",
- "ultraviolet",
-]
-
-[[package]]
-name = "ensnano_flatscene"
-version = "0.7.0"
-dependencies = [
- "ahash 0.8.12",
- "bytemuck",
- "color_space",
- "ensnano_consts",
- "ensnano_design",
- "ensnano_interactor",
- "ensnano_utils",
+ "fontdue",
  "futures",
  "futures-channel",
- "log",
- "lyon",
- "png 0.17.16",
- "ultraviolet",
- "wgpu",
- "winit",
-]
-
-[[package]]
-name = "ensnano_gui"
-version = "0.7.0"
-dependencies = [
- "color_space",
- "ensnano_consts",
- "ensnano_design",
- "ensnano_exports",
- "ensnano_iced",
- "ensnano_interactor",
- "ensnano_organizer",
- "ensnano_utils",
- "log",
- "open",
- "paste",
- "ultraviolet",
-]
-
-[[package]]
-name = "ensnano_iced"
-version = "0.7.0"
-dependencies = [
- "color_space",
+ "gltf",
  "iced",
  "iced_aw",
  "iced_futures",
@@ -1232,88 +1117,38 @@ dependencies = [
  "iced_widget",
  "iced_winit",
  "icondata",
- "log",
- "serde",
-]
-
-[[package]]
-name = "ensnano_interactor"
-version = "0.7.0"
-dependencies = [
- "ensnano_consts",
- "ensnano_design",
- "ensnano_iced",
- "ensnano_organizer",
- "log",
- "rayon",
- "serde",
- "ultraviolet",
-]
-
-[[package]]
-name = "ensnano_organizer"
-version = "0.7.0"
-dependencies = [
- "ensnano_iced",
- "icondata",
- "log",
- "rand 0.8.5",
- "serde",
-]
-
-[[package]]
-name = "ensnano_physics"
-version = "0.7.0"
-dependencies = [
- "ahash 0.8.12",
- "ensnano_design",
- "ensnano_interactor",
- "rapier3d",
- "ultraviolet",
-]
-
-[[package]]
-name = "ensnano_scene"
-version = "0.7.0"
-dependencies = [
- "bytemuck",
- "ensnano_consts",
- "ensnano_design",
- "ensnano_interactor",
- "ensnano_organizer",
- "ensnano_utils",
- "futures",
- "futures-channel",
  "image 0.23.14",
  "int-enum",
+ "itertools",
  "log",
  "lyon",
+ "mathru",
+ "nom_stl",
  "num_enum 0.5.11",
+ "open",
+ "ordered-float 2.10.1",
+ "paste",
+ "pathdiff",
  "png 0.17.16",
+ "pretty_env_logger",
+ "quadrature",
+ "rand 0.8.5",
+ "rand_distr",
+ "rapier3d",
+ "rayon",
+ "regex",
+ "relative-path",
+ "rfd",
+ "rust_xlsxwriter",
+ "serde",
  "serde_json",
+ "serde_with",
+ "strum",
+ "svg",
  "ultraviolet",
+ "version-compare",
  "wgpu",
  "winit",
-]
-
-[[package]]
-name = "ensnano_utils"
-version = "0.7.0"
-dependencies = [
- "ahash 0.8.12",
- "bytemuck",
- "chrono",
- "color_space",
- "ensnano_consts",
- "ensnano_iced",
- "fontdue",
- "gltf",
- "log",
- "nom_stl",
- "rand 0.8.5",
- "serde",
- "ultraviolet",
- "wgpu",
 ]
 
 [[package]]

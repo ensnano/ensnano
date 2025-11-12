@@ -25,13 +25,13 @@ use crate::{
     },
     controller::download_staples::DownloadStaples,
 };
-use ensnano_consts::ENS_EXTENSION;
-use ensnano_design::{
+use crate::ensnano_consts::ENS_EXTENSION;
+use crate::ensnano_design::{
     self, HelixParameters,
     grid::{GridDescriptor, GridId, GridTypeDescr},
     group_attributes::GroupPivot,
 };
-use ensnano_interactor::{
+use crate::ensnano_interactor::{
     DesignOperation, HyperboloidOperation, HyperboloidRequest, RapierSimulationRequest,
     RevolutionSurfaceSystemDescriptor, RigidBodyConstants, RollRequest, application::Notification,
     graphics::FogParameters,
@@ -173,7 +173,7 @@ impl State for NormalState {
                         main_state.get_bezier_sheet_creation_position()
                     {
                         main_state.apply_operation(DesignOperation::AddBezierPlane {
-                            desc: ensnano_design::BezierPlaneDescriptor {
+                            desc: crate::ensnano_design::BezierPlaneDescriptor {
                                 position,
                                 orientation,
                             },
@@ -334,7 +334,7 @@ impl State for ChangingDnaParameters {
 impl NormalState {
     fn turn_selection_into_grid(self: Box<Self>, main_state: &mut MainStateView) -> Box<Self> {
         let selection = main_state.get_selection();
-        if ensnano_interactor::all_helices_no_grid(
+        if crate::ensnano_interactor::all_helices_no_grid(
             selection.as_ref().as_ref(),
             main_state.get_design_reader().as_ref(),
         ) {
@@ -365,7 +365,7 @@ impl NormalState {
     }
 
     fn change_color(self: Box<Self>, main_state: &mut MainStateView, color: u32) -> Box<Self> {
-        let strands = ensnano_interactor::extract_strands_from_selection(
+        let strands = crate::ensnano_interactor::extract_strands_from_selection(
             main_state.get_selection().as_ref().as_ref(),
         );
         main_state.apply_operation(DesignOperation::ChangeColor { color, strands });
@@ -378,7 +378,7 @@ impl NormalState {
         small: bool,
     ) -> Box<Self> {
         let grid_ids =
-            ensnano_interactor::extract_grids(main_state.get_selection().as_ref().as_ref());
+            crate::ensnano_interactor::extract_grids(main_state.get_selection().as_ref().as_ref());
         if !grid_ids.is_empty() {
             main_state.apply_operation(DesignOperation::SetSmallSpheres { grid_ids, small });
         }
@@ -391,7 +391,7 @@ impl NormalState {
         persistent: bool,
     ) -> Box<Self> {
         let grid_ids =
-            ensnano_interactor::extract_grids(main_state.get_selection().as_ref().as_ref());
+            crate::ensnano_interactor::extract_grids(main_state.get_selection().as_ref().as_ref());
         if !grid_ids.is_empty() {
             main_state.apply_operation(DesignOperation::SetHelicesPersistence {
                 grid_ids,
@@ -505,7 +505,7 @@ pub enum Action {
     TranslateGroupPivot(Vec3),
     RotateGroupPivot(Rotor3),
     NewCamera,
-    SelectCamera(ensnano_design::CameraId),
+    SelectCamera(crate::ensnano_design::CameraId),
     SelectFavoriteCamera(u32),
     Toggle2D,
     MakeAllSuggestedXover {

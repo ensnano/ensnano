@@ -20,10 +20,10 @@ const MAX_ACCEL: f64 = 100.;
 
 use super::{SimulationInterface, SimulationUpdate};
 use crate::{app_state::ErrOperation, controller::channel_reader::ChannelReader};
-use ensnano_design::{
+use crate::ensnano_design::{
     self, CurveDescriptor, CurveDescriptor2D, HelixParameters, InterpolationDescriptor,
 };
-use ensnano_interactor::{
+use crate::ensnano_interactor::{
     EquadiffSolvingMethod, RevolutionSimulationParameters, RevolutionSurfaceSystemDescriptor,
     RootedRevolutionSurface,
 };
@@ -494,14 +494,14 @@ impl RevolutionSystemThread {
 }
 
 impl SimulationUpdate for RevolutionSurfaceSystem {
-    fn update_design(&self, design: &mut ensnano_design::Design) {
+    fn update_design(&self, design: &mut crate::ensnano_design::Design) {
         design.additional_structure = Some(Arc::new(self.clone()))
     }
 }
 
-impl ensnano_design::AdditionalStructure for RevolutionSurfaceSystem {
+impl crate::ensnano_design::AdditionalStructure for RevolutionSurfaceSystem {
     fn position(&self) -> Vec<Vec3> {
-        use ensnano_design::utils::dvec_to_vec;
+        use crate::ensnano_design::utils::dvec_to_vec;
         let thetas = self
             .last_thetas
             .clone()
@@ -539,7 +539,7 @@ impl ensnano_design::AdditionalStructure for RevolutionSurfaceSystem {
             let nts = desc.path()?;
             ret.push(
                 nts.into_iter()
-                    .map(ensnano_design::utils::dvec_to_vec)
+                    .map(crate::ensnano_design::utils::dvec_to_vec)
                     .collect(),
             );
         }
@@ -549,7 +549,7 @@ impl ensnano_design::AdditionalStructure for RevolutionSurfaceSystem {
         // The section at -PI/2
         let mut section = Vec::new();
         for n in 0..number_of_steps {
-            section.push(ensnano_design::utils::dvec_to_vec(
+            section.push(crate::ensnano_design::utils::dvec_to_vec(
                 self.topology.surface_position(
                     -std::f64::consts::FRAC_PI_2,
                     n as f64 / number_of_steps as f64,
@@ -591,8 +591,8 @@ struct HelicesRouting {
 }
 
 impl SimulationUpdate for HelicesRouting {
-    fn update_design(&self, design: &mut ensnano_design::Design) {
-        use ensnano_design::{Domain, DomainJunction, Helix, HelixInterval, Strand};
+    fn update_design(&self, design: &mut crate::ensnano_design::Design) {
+        use crate::ensnano_design::{Domain, DomainJunction, Helix, HelixInterval, Strand};
         let helix_parameters = design.helix_parameters.unwrap_or_default();
         let mut helices = design.helices.make_mut();
         let mut strand_to_be_added = Vec::new();
@@ -644,7 +644,7 @@ impl SimulationUpdate for HelicesRouting {
                     forward,
                     sequence: None,
                 });
-                let color = ensnano_utils::colors::new_color(&mut now_s);
+                let color = crate::ensnano_utils::colors::new_color(&mut now_s);
 
                 strands.push(Strand {
                     color,

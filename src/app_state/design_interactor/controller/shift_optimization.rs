@@ -24,7 +24,7 @@ macro_rules! log_err {
     };
 }
 
-use ensnano_design::NuclCollection;
+use crate::ensnano_design::NuclCollection;
 
 use super::*;
 

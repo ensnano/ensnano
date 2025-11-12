@@ -4,6 +4,8 @@ use std::{
     time::Duration,
 };
 
+use crate::ensnano_design::{Design, HelixParameters, NuclCollection};
+use crate::ensnano_physics::RapierPhysicsSystem;
 use crate::{
     app_state::design_interactor::{
         controller::simulations::SimulationInterface,
@@ -11,8 +13,6 @@ use crate::{
     },
     controller::channel_reader::ChannelReader,
 };
-use ensnano_design::{Design, HelixParameters, NuclCollection};
-use ensnano_physics::RapierPhysicsSystem;
 
 #[derive(Default)]
 pub struct RapierPhysicalSystem {

@@ -1,18 +1,3 @@
-[workspace]
-members = [
-    "ensnano-consts",
-    "ensnano-design",
-    "ensnano-exports",
-    "ensnano-flatscene",
-    "ensnano-gui",
-    "ensnano-iced",
-    "ensnano-interactor",
-    "ensnano-organizer",
-    "ensnano-physics",
-    "ensnano-scene",
-    "ensnano-utils",
-]
-
 [workspace.package]
 version = "0.7.0"
 authors = [
@@ -24,19 +9,7 @@ authors = [
 edition = "2024"
 license = "GPL-3.0-or-later"
 
-[workspace.dependencies]
-ensnano_consts = { path = "ensnano-consts" }
-ensnano_design = { path = "ensnano-design" }
-ensnano_exports = { path = "ensnano-exports" }
-ensnano_flatscene = { path = "ensnano-flatscene" }
-ensnano_gui = { path = "ensnano-gui" }
-ensnano_iced = { path = "ensnano-iced" }
-ensnano_interactor = { path = "ensnano-interactor" }
-ensnano_organizer = { path = "ensnano-organizer" }
-ensnano_physics = { path = "ensnano-physics" }
-ensnano_scene = { path = "ensnano-scene" }
-ensnano_utils = { path = "ensnano-utils" }
-
+[dependencies]
 ahash = "0.8.6"
 bytemuck = "1.2.0"
 chebyshev_polynomials = { git = "https://github.com/thenlevy/chebyshev_polynomials" }
@@ -113,41 +86,6 @@ version.workspace = true
 authors.workspace = true
 edition.workspace = true
 license.workspace = true
-
-[dependencies]
-ensnano_consts.workspace = true
-ensnano_design.workspace = true
-ensnano_exports.workspace = true
-ensnano_flatscene.workspace = true
-ensnano_gui.workspace = true
-ensnano_iced.workspace = true
-ensnano_interactor.workspace = true
-ensnano_organizer.workspace = true
-ensnano_physics.workspace = true
-ensnano_scene.workspace = true
-ensnano_utils.workspace = true
-
-ahash.workspace = true
-chebyshev_polynomials.workspace = true
-color_space.workspace = true
-confy.workspace = true
-dirs.workspace = true
-futures.workspace = true
-log.workspace = true
-mathru.workspace = true
-ordered-float.workspace = true
-pretty_env_logger.workspace = true
-rand.workspace = true
-rand_distr.workspace = true
-regex.workspace = true
-rfd.workspace = true
-rust_xlsxwriter.workspace = true
-serde.workspace = true
-serde_json.workspace = true
-ultraviolet.workspace = true
-version-compare.workspace = true
-wgpu.workspace = true
-winit.workspace = true
 
 [features]
 log_after_renderer_setup = []

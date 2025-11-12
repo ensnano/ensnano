@@ -313,8 +313,8 @@ fn warn_scaffold_seq_mismatch(scaffold_length: usize, sequence_length: usize) ->
     )
 }
 
-use ensnano_design::grid::HelixGridPosition;
-use ensnano_interactor::InteractorDesignReaderExt as MainReader;
+use crate::ensnano_design::grid::HelixGridPosition;
+use crate::ensnano_interactor::InteractorDesignReaderExt as MainReader;
 
 impl MainReader for DesignInteractor {
     fn get_xover_id(&self, pair: &(Nucl, Nucl)) -> Option<usize> {
@@ -333,7 +333,7 @@ impl MainReader for DesignInteractor {
             .and_then(|h| h.grid_position)
     }
 
-    fn get_strand_with_id(&self, id: usize) -> Option<&ensnano_design::Strand> {
+    fn get_strand_with_id(&self, id: usize) -> Option<&crate::ensnano_design::Strand> {
         self.presenter.current_design.strands.get(&id)
     }
 

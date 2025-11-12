@@ -21,7 +21,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::*;
 use crate::{MainState, app_state::design_interactor::controller::clipboard::PastePosition};
-use ensnano_interactor::{
+use crate::ensnano_interactor::{
     DesignOperation, HyperboloidOperation, SelectionConversion, application::Notification,
 };
 use std::ops::DerefMut;

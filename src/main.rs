@@ -91,6 +91,18 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 #[cfg(test)]
 mod main_tests;
 
+mod ensnano_consts;
+mod ensnano_design;
+mod ensnano_exports;
+mod ensnano_flatscene;
+mod ensnano_gui;
+mod ensnano_iced;
+mod ensnano_interactor;
+mod ensnano_organizer;
+mod ensnano_physics;
+mod ensnano_scene;
+mod ensnano_utils;
+
 mod app_state;
 mod controller;
 mod dialog;
@@ -116,42 +128,44 @@ use {
                 TargetScaffoldLength,
             },
         },
+        ensnano_consts::{
+            APP_NAME, ENS_BACKUP_EXTENSION, ENS_UNNAMED_FILE_NAME, NO_DESIGN_TITLE,
+            SEC_BETWEEN_BACKUPS, SEC_PER_YEAR, WELCOME_MSG,
+        },
+        ensnano_design::{Camera, grid::GridId},
+        ensnano_exports::{ExportResult, ExportType},
+        ensnano_flatscene::FlatScene,
+        ensnano_gui::{AppState as _, ColorOverlay, Gui, IcedMessages, OverlayType, TopBarState},
+        ensnano_iced::{
+            UiSize, fonts,
+            iced::{self, Event as IcedEvent, Size},
+            iced_futures::futures,
+            iced_graphics::{Antialiasing, Viewport},
+            iced_runtime::{Debug, program},
+            iced_wgpu::{self, Settings},
+            iced_winit, theme,
+        },
+        ensnano_interactor::{
+            ActionMode, CenterOfSelection, DesignOperation, DesignRotation, DesignTranslation,
+            InteractorDesignReaderExt, IsometryTarget, PastingStatus,
+            RevolutionSurfaceSystemDescriptor, RigidBodyConstants, Selection, SelectionMode,
+            UnrootedRevolutionSurfaceDescriptor,
+            app_state_parameters::{
+                AppStateParameters, CheckXoversParameter, SuggestionParameters,
+            },
+            application::{Application, Notification},
+            graphics::{GuiComponentType, SplitMode},
+            operation::Operation,
+        },
+        ensnano_organizer::tree::GroupId,
+        ensnano_scene::{AppState as _, Scene, SceneKind, data::SceneDesignReaderExt as _},
+        ensnano_utils::{PhySize, TEXTURE_FORMAT},
         requests::Requests,
     },
     app_state::AppState,
     controller::{
         Controller, LoadDesignError, SaveDesignError, download_staples::StaplesDownloader,
     },
-    ensnano_consts::{
-        APP_NAME, ENS_BACKUP_EXTENSION, ENS_UNNAMED_FILE_NAME, NO_DESIGN_TITLE,
-        SEC_BETWEEN_BACKUPS, SEC_PER_YEAR, WELCOME_MSG,
-    },
-    ensnano_design::{Camera, grid::GridId},
-    ensnano_exports::{ExportResult, ExportType},
-    ensnano_flatscene::FlatScene,
-    ensnano_gui::{AppState as _, ColorOverlay, Gui, IcedMessages, OverlayType, TopBarState},
-    ensnano_iced::{
-        UiSize, fonts,
-        iced::{self, Event as IcedEvent, Size},
-        iced_futures::futures,
-        iced_graphics::{Antialiasing, Viewport},
-        iced_runtime::{Debug, program},
-        iced_wgpu::{self, Settings},
-        iced_winit, theme,
-    },
-    ensnano_interactor::{
-        ActionMode, CenterOfSelection, DesignOperation, DesignRotation, DesignTranslation,
-        InteractorDesignReaderExt, IsometryTarget, PastingStatus,
-        RevolutionSurfaceSystemDescriptor, RigidBodyConstants, Selection, SelectionMode,
-        UnrootedRevolutionSurfaceDescriptor,
-        app_state_parameters::{AppStateParameters, CheckXoversParameter, SuggestionParameters},
-        application::{Application, Notification},
-        graphics::{GuiComponentType, SplitMode},
-        operation::Operation,
-    },
-    ensnano_organizer::tree::GroupId,
-    ensnano_scene::{AppState as _, Scene, SceneKind, data::SceneDesignReaderExt as _},
-    ensnano_utils::{PhySize, TEXTURE_FORMAT},
     multiplexer::Multiplexer,
     scheduler::Scheduler,
     std::{
@@ -209,8 +223,8 @@ const PANIC_ON_WGPU_ERRORS: bool = true;
 /// * It initializes a multiplexer.
 /// * It initializes applications and GUI component, and associate regions of the screen to these
 /// components
-/// * It initializes the [Mediator](ensnano_interactor::application::AppId::Mediator), the
-/// [Scheduler] and the [Gui manager](ensnano_gui::Gui)
+/// * It initializes the [Mediator](crate::ensnano_interactor::application::AppId::Mediator), the
+/// [Scheduler] and the [Gui manager](crate::ensnano_gui::Gui)
 ///
 /// # Event loop
 ///
@@ -219,9 +233,9 @@ const PANIC_ON_WGPU_ERRORS: bool = true;
 /// * When a event is received, it is forwarded to the multiplexer. The Multiplexer may then
 /// convert this event into an event for a specific screen region.
 /// * When all window events have been handled, the main function reads messages that it received
-/// from the [Gui Manager](ensnano_gui::Gui). The consequences of these messages are forwarded to the
+/// from the [Gui Manager](crate::ensnano_gui::Gui). The consequences of these messages are forwarded to the
 /// applications.
-/// * The main loops then reads the messages that it received from the [Mediator](ensnano_interactor::application::AppId::Mediator) and
+/// * The main loops then reads the messages that it received from the [Mediator](crate::ensnano_interactor::application::AppId::Mediator) and
 /// forwards their consequences to the Gui components.
 /// * Finally, a redraw is requested.
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -1304,7 +1318,7 @@ impl MainState {
 
     fn set_roll_of_selected_helices(&mut self, roll: f32) {
         if let Some((_, helices)) =
-            ensnano_interactor::list_of_helices(self.app_state.get_selection().as_ref())
+            crate::ensnano_interactor::list_of_helices(self.app_state.get_selection().as_ref())
         {
             self.apply_operation(DesignOperation::SetRollHelices { helices, roll })
         }
@@ -1400,15 +1414,19 @@ impl MainState {
         let reader = self.app_state.get_design_interactor();
         let selection = self.app_state.get_selection();
         if let Some((_, xover_ids)) =
-            ensnano_interactor::list_of_xover_as_nucl_pairs(selection.as_ref(), &reader)
+            crate::ensnano_interactor::list_of_xover_as_nucl_pairs(selection.as_ref(), &reader)
         {
             self.apply_copy_operation(CopyOperation::CopyXovers(xover_ids))
-        } else if let Some(grid_ids) = ensnano_interactor::extract_only_grids(selection.as_ref()) {
+        } else if let Some(grid_ids) =
+            crate::ensnano_interactor::extract_only_grids(selection.as_ref())
+        {
             self.apply_copy_operation(CopyOperation::CopyGrids(grid_ids))
-        } else if let Some((_, helices)) = ensnano_interactor::list_of_helices(selection.as_ref()) {
+        } else if let Some((_, helices)) =
+            crate::ensnano_interactor::list_of_helices(selection.as_ref())
+        {
             self.apply_copy_operation(CopyOperation::CopyHelices(helices))
         } else {
-            let strand_ids = ensnano_interactor::extract_strands_from_selection(
+            let strand_ids = crate::ensnano_interactor::extract_strands_from_selection(
                 self.app_state.get_selection().as_ref(),
             );
             self.apply_copy_operation(CopyOperation::CopyStrands(strand_ids))
@@ -1427,17 +1445,17 @@ impl MainState {
     fn request_duplication(&mut self) {
         if self.app_state.can_iterate_duplication() {
             self.apply_copy_operation(CopyOperation::Duplicate)
-        } else if let Some((_, nucl_pairs)) = ensnano_interactor::list_of_xover_as_nucl_pairs(
+        } else if let Some((_, nucl_pairs)) = crate::ensnano_interactor::list_of_xover_as_nucl_pairs(
             self.app_state.get_selection().as_ref(),
             &self.app_state.get_design_interactor(),
         ) {
             self.apply_copy_operation(CopyOperation::InitXoverDuplication(nucl_pairs))
         } else if let Some((_, helices)) =
-            ensnano_interactor::list_of_helices(self.app_state.get_selection().as_ref())
+            crate::ensnano_interactor::list_of_helices(self.app_state.get_selection().as_ref())
         {
             self.apply_copy_operation(CopyOperation::InitHelicesDuplication(helices))
         } else {
-            let strand_ids = ensnano_interactor::extract_strands_from_selection(
+            let strand_ids = crate::ensnano_interactor::extract_strands_from_selection(
                 self.app_state.get_selection().as_ref(),
             );
             self.apply_copy_operation(CopyOperation::InitStrandsDuplication(strand_ids))
@@ -1456,7 +1474,7 @@ impl MainState {
                 orientation: camera.0.orientation,
                 pivot_position: camera.0.pivot_position,
             });
-        let save_info = ensnano_design::SavingInformation { camera };
+        let save_info = crate::ensnano_design::SavingInformation { camera };
         self.app_state.save_design(path, save_info)?;
 
         if self.app_state.is_in_stable_state() {
@@ -1478,7 +1496,7 @@ impl MainState {
                 orientation: camera.0.orientation,
                 pivot_position: camera.0.pivot_position,
             });
-        let save_info = ensnano_design::SavingInformation { camera };
+        let save_info = crate::ensnano_design::SavingInformation { camera };
         let path = if let Some(mut path) = self.app_state.path_to_current_design().cloned() {
             path.set_extension(ENS_BACKUP_EXTENSION);
             path
@@ -1558,7 +1576,7 @@ impl MainState {
         self.modify_state(|s| s.with_show_stereographic_camera(show), None)
     }
 
-    fn set_show_h_bonds(&mut self, show: ensnano_interactor::graphics::HBondDisplay) {
+    fn set_show_h_bonds(&mut self, show: crate::ensnano_interactor::graphics::HBondDisplay) {
         self.modify_state(|s| s.with_show_h_bonds(show), None)
     }
 
@@ -1593,7 +1611,7 @@ impl MainState {
         {
             if let Some((position, orientation)) = self.get_bezier_sheet_creation_position() {
                 self.apply_operation(DesignOperation::AddBezierPlane {
-                    desc: ensnano_design::BezierPlaneDescriptor {
+                    desc: crate::ensnano_design::BezierPlaneDescriptor {
                         position,
                         orientation,
                     },
@@ -1626,11 +1644,14 @@ impl MainState {
         self.modify_state(|s| s.with_toggled_all_helices_on_axis(), None)
     }
 
-    fn set_background_3d(&mut self, bg: ensnano_interactor::graphics::Background3D) {
+    fn set_background_3d(&mut self, bg: crate::ensnano_interactor::graphics::Background3D) {
         self.modify_state(|s| s.with_background3d(bg), None)
     }
 
-    fn set_rendering_mode(&mut self, rendering_mode: ensnano_interactor::graphics::RenderingMode) {
+    fn set_rendering_mode(
+        &mut self,
+        rendering_mode: crate::ensnano_interactor::graphics::RenderingMode,
+    ) {
         self.modify_state(|s| s.with_rendering_mode(rendering_mode), None)
     }
 
@@ -1659,7 +1680,7 @@ impl MainState {
         }
     }
 
-    fn get_camera_3d(&self) -> ensnano_interactor::application::Camera3D {
+    fn get_camera_3d(&self) -> crate::ensnano_interactor::application::Camera3D {
         self.applications
             .get(&GuiComponentType::Scene)
             .expect("Could not get scene element")
@@ -1672,7 +1693,7 @@ impl MainState {
             .0
     }
 
-    fn set_camera_3d(&self, camera: ensnano_interactor::application::Camera3D) {
+    fn set_camera_3d(&self, camera: crate::ensnano_interactor::application::Camera3D) {
         self.applications
             .get(&GuiComponentType::Scene)
             .expect("Could not get scene element")
@@ -1749,7 +1770,7 @@ impl<'a> MainStateView<'a> {
             .get_favorite_camera()
         {
             self.notify_apps(Notification::TeleportCamera(
-                ensnano_interactor::application::Camera3D {
+                crate::ensnano_interactor::application::Camera3D {
                     position,
                     orientation,
                     pivot_position: None,
@@ -1876,7 +1897,7 @@ impl<'a> MainStateView<'a> {
 
     fn delete_selection(&mut self) {
         let selection = self.get_selection();
-        if let Some((_, nucl_pairs)) = ensnano_interactor::list_of_xover_as_nucl_pairs(
+        if let Some((_, nucl_pairs)) = crate::ensnano_interactor::list_of_xover_as_nucl_pairs(
             selection.as_ref().as_ref(),
             self.get_design_reader().as_ref(),
         ) {
@@ -1884,25 +1905,25 @@ impl<'a> MainStateView<'a> {
             self.main_state
                 .apply_operation(DesignOperation::RmXovers { xovers: nucl_pairs })
         } else if let Some((_, strand_ids)) =
-            ensnano_interactor::list_of_strands(selection.as_ref().as_ref())
+            crate::ensnano_interactor::list_of_strands(selection.as_ref().as_ref())
         {
             self.main_state.update_selection(vec![], None);
             self.main_state
                 .apply_operation(DesignOperation::RmStrands { strand_ids })
         } else if let Some((_, h_ids)) =
-            ensnano_interactor::list_of_helices(selection.as_ref().as_ref())
+            crate::ensnano_interactor::list_of_helices(selection.as_ref().as_ref())
         {
             self.main_state.update_selection(vec![], None);
             self.main_state
                 .apply_operation(DesignOperation::RmHelices { h_ids })
         } else if let Some(grid_ids) =
-            ensnano_interactor::list_of_free_grids(selection.as_ref().as_ref())
+            crate::ensnano_interactor::list_of_free_grids(selection.as_ref().as_ref())
         {
             self.main_state.update_selection(vec![], None);
             self.main_state
                 .apply_operation(DesignOperation::RmFreeGrids { grid_ids })
         } else if let Some(vertices) =
-            ensnano_interactor::list_of_bezier_vertices(selection.as_ref().as_ref())
+            crate::ensnano_interactor::list_of_bezier_vertices(selection.as_ref().as_ref())
         {
             self.main_state.update_selection(vec![], None);
             self.main_state
@@ -1949,7 +1970,8 @@ impl<'a> MainStateView<'a> {
 
     fn turn_selection_into_anchor(&mut self) {
         let selection = self.get_selection();
-        let nucls = ensnano_interactor::extract_nucls_from_selection(selection.as_ref().as_ref());
+        let nucls =
+            crate::ensnano_interactor::extract_nucls_from_selection(selection.as_ref().as_ref());
 
         self.main_state
             .apply_operation(DesignOperation::FlipAnchors { nucls });
@@ -2007,7 +2029,10 @@ impl<'a> MainStateView<'a> {
         }
     }
 
-    fn set_current_group_pivot(&mut self, pivot: ensnano_design::group_attributes::GroupPivot) {
+    fn set_current_group_pivot(
+        &mut self,
+        pivot: crate::ensnano_design::group_attributes::GroupPivot,
+    ) {
         if let Some(group_id) = self.main_state.app_state.get_current_group_id() {
             self.apply_operation(DesignOperation::SetGroupPivot { group_id, pivot })
         } else {
@@ -2058,7 +2083,7 @@ impl<'a> MainStateView<'a> {
         }
     }
 
-    fn select_camera(&mut self, camera_id: ensnano_design::CameraId) {
+    fn select_camera(&mut self, camera_id: crate::ensnano_design::CameraId) {
         let reader = self.main_state.app_state.get_design_interactor();
         if let Some(camera) = reader.get_camera_with_id(camera_id) {
             self.notify_apps(Notification::TeleportCamera(camera))

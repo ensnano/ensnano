@@ -37,7 +37,7 @@ use crate::{
     controller::channel_reader::ChannelReader,
 };
 use clipboard::{Clipboard, CopyOperation, PastePosition, PastedStrand, StrandClipboard};
-use ensnano_design::{
+use crate::ensnano_design::{
     self, BezierControlPoint, BezierEnd, BezierPathId, BezierPlaneDescriptor, BezierVertex,
     BezierVertexId, CameraId, Collection, CurveDescriptor, Design, Domain, DomainJunction, Helices,
     Helix, HelixCollection, HelixInterval, Nucl, NuclCollection, Strand, Strands, UpToDateDesign,
@@ -50,15 +50,15 @@ use ensnano_design::{
     group_attributes::GroupPivot,
     mutate_in_arc,
 };
-use ensnano_gui::ClipboardContent;
-use ensnano_interactor::{
+use crate::ensnano_gui::ClipboardContent;
+use crate::ensnano_interactor::{
     BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation, DomainIdentifier,
     HyperboloidOperation, IsometryTarget, NeighborDescriptor, NeighborDescriptorGiver,
     NewBezierTangentVector, PastingStatus, Selection, SimulationState, StrandBuilder,
     operation::{Operation, TranslateBezierPathVertex},
 };
-use ensnano_organizer::tree::GroupId;
-use ensnano_utils::colors;
+use crate::ensnano_organizer::tree::GroupId;
+use crate::ensnano_utils::colors;
 use std::{
     borrow::Cow,
     collections::{BTreeMap, HashMap},
@@ -634,7 +634,7 @@ impl Controller {
         position: Vec3,
         orientation: Rotor3,
     ) -> Result<(), ErrOperation> {
-        use ensnano_design::grid::GridDivision;
+        use crate::ensnano_design::grid::GridDivision;
         // the hyperboloid grid is always the last one that was added to the design
         let grid_id = design
             .free_grids
@@ -711,7 +711,7 @@ impl Controller {
         helix: usize,
         visible: bool,
     ) -> Result<Design, ErrOperation> {
-        ensnano_design::mutate_one_helix(&mut design, helix, |h| h.visible = visible)
+        crate::ensnano_design::mutate_one_helix(&mut design, helix, |h| h.visible = visible)
             .ok_or(ErrOperation::HelixDoesNotExists(helix))?;
         Ok(design)
     }
@@ -794,12 +794,12 @@ impl Controller {
     ) -> Result<(), ErrOperation> {
         match element {
             DesignElementKey::Helix(helix) => {
-                ensnano_design::mutate_one_helix(design, *helix, |h| h.visible = visible)
+                crate::ensnano_design::mutate_one_helix(design, *helix, |h| h.visible = visible)
                     .ok_or(ErrOperation::HelixDoesNotExists(*helix))?;
             }
             DesignElementKey::Grid(g_id) => {
                 let mut grids_mut = design.free_grids.make_mut();
-                let g_id = ensnano_design::grid::FreeGridId(*g_id);
+                let g_id = crate::ensnano_design::grid::FreeGridId(*g_id);
                 let grid = grids_mut
                     .get_mut(&g_id)
                     .ok_or_else(|| ErrOperation::GridDoesNotExist(g_id.to_grid_id()))?;
@@ -842,7 +842,7 @@ impl Controller {
             if !design.helices.contains_key(h_id) {
                 return Err(ErrOperation::HelixDoesNotExists(*h_id));
             }
-            ensnano_design::mutate_one_helix(design, *h_id, |h| h.locked_for_simulations = locked);
+            crate::ensnano_design::mutate_one_helix(design, *h_id, |h| h.locked_for_simulations = locked);
         }
         Ok(())
     }
@@ -1219,8 +1219,8 @@ impl Controller {
         selection: Vec<Selection>,
     ) -> Result<Design, ErrOperation> {
         let helices =
-            ensnano_interactor::list_of_helices(&selection).ok_or(ErrOperation::BadSelection)?;
-        ensnano_design::design_operations::make_grid_from_helices(&mut design, &helices.1)?;
+            crate::ensnano_interactor::list_of_helices(&selection).ok_or(ErrOperation::BadSelection)?;
+        crate::ensnano_design::design_operations::make_grid_from_helices(&mut design, &helices.1)?;
         Ok(design)
     }
 
@@ -1640,7 +1640,7 @@ impl Controller {
         y: isize,
     ) -> Result<Design, ErrOperation> {
         self.update_state_and_design(&mut design);
-        ensnano_design::design_operations::attach_object_to_grid(&mut design, object, grid, x, y)?;
+        crate::ensnano_design::design_operations::attach_object_to_grid(&mut design, object, grid, x, y)?;
         Ok(design)
     }
 
@@ -1685,7 +1685,7 @@ impl Controller {
     ) -> Design {
         self.update_state_and_design(&mut design);
         let mut new_design = design.clone();
-        if ensnano_design::design_operations::translate_helices(
+        if crate::ensnano_design::design_operations::translate_helices(
             &mut new_design,
             snap,
             helices,
@@ -1733,7 +1733,7 @@ impl Controller {
     ) -> Design {
         self.update_state_and_design(&mut design);
         let mut new_design = design.clone();
-        if ensnano_design::design_operations::rotate_helices_3d(
+        if crate::ensnano_design::design_operations::rotate_helices_3d(
             &mut new_design,
             snap,
             helices,
@@ -1895,25 +1895,25 @@ pub enum ErrOperation {
     FinishFirst,
     CameraDoesNotExist(CameraId),
     GridIsNotHyperboloid(GridId),
-    DesignOperationError(ensnano_design::design_operations::ErrOperation),
+    DesignOperationError(crate::ensnano_design::design_operations::ErrOperation),
     NotPiecewiseBezier(usize),
-    GridCopyError(ensnano_design::grid::GridCopyError),
+    GridCopyError(crate::ensnano_design::grid::GridCopyError),
     CouldNotGetPrime3of(usize),
     PathDoesNotExist(BezierPathId),
     VertexDoesNotExist(BezierPathId, usize),
     GridIsNotEmpty(GridId),
     CouldNotMake3DObject,
-    SvgImportError(ensnano_design::SvgImportError),
+    SvgImportError(crate::ensnano_design::SvgImportError),
 }
 
-impl From<ensnano_design::design_operations::ErrOperation> for ErrOperation {
-    fn from(e: ensnano_design::design_operations::ErrOperation) -> Self {
+impl From<crate::ensnano_design::design_operations::ErrOperation> for ErrOperation {
+    fn from(e: crate::ensnano_design::design_operations::ErrOperation) -> Self {
         Self::DesignOperationError(e)
     }
 }
 
-impl From<ensnano_design::SvgImportError> for ErrOperation {
-    fn from(e: ensnano_design::SvgImportError) -> Self {
+impl From<crate::ensnano_design::SvgImportError> for ErrOperation {
+    fn from(e: crate::ensnano_design::SvgImportError) -> Self {
         Self::SvgImportError(e)
     }
 }
@@ -3303,7 +3303,7 @@ impl Controller {
         if let GridId::FreeGrid(id) = grid_id {
             let mut new_grids = design.free_grids.make_mut();
             let grid = new_grids
-                .get_mut(&ensnano_design::grid::FreeGridId(id))
+                .get_mut(&crate::ensnano_design::grid::FreeGridId(id))
                 .ok_or(ErrOperation::GridDoesNotExist(grid_id))?;
             grid.position = position;
             drop(new_grids);
@@ -3323,7 +3323,7 @@ impl Controller {
         if let GridId::FreeGrid(id) = grid_id {
             let mut new_grids = design.free_grids.make_mut();
             let grid = new_grids
-                .get_mut(&ensnano_design::grid::FreeGridId(id))
+                .get_mut(&crate::ensnano_design::grid::FreeGridId(id))
                 .ok_or(ErrOperation::GridDoesNotExist(grid_id))?;
             grid.orientation = orientation;
             drop(new_grids);
@@ -3343,7 +3343,7 @@ impl Controller {
         if let GridId::FreeGrid(id) = grid_id {
             let mut new_grids = design.free_grids.make_mut();
             let grid = new_grids
-                .get_mut(&ensnano_design::grid::FreeGridId(id))
+                .get_mut(&crate::ensnano_design::grid::FreeGridId(id))
                 .ok_or(ErrOperation::GridDoesNotExist(grid_id))?;
             if let GridTypeDescr::Hyperboloid {
                 nb_turn_per_100_nt, ..
@@ -3367,7 +3367,7 @@ impl Controller {
         object_path: PathBuf,
         design_path: PathBuf,
     ) -> Result<Design, ErrOperation> {
-        use ensnano_design::{External3DObject, External3DObjectDescriptor};
+        use crate::ensnano_design::{External3DObject, External3DObjectDescriptor};
         let object = External3DObject::new(External3DObjectDescriptor {
             object_path,
             design_path,
@@ -3384,7 +3384,7 @@ impl Controller {
         mut design: Design,
         path: PathBuf,
     ) -> Result<Design, ErrOperation> {
-        use ensnano_design::BezierPlaneId;
+        use crate::ensnano_design::BezierPlaneId;
 
         // The imported bezier path will be attached to plane 0 so we need to ensure that it exists
         if design.bezier_planes.get(&BezierPlaneId(0)).is_none() {
@@ -3392,7 +3392,7 @@ impl Controller {
         }
 
         let mut paths = design.bezier_paths.make_mut();
-        let path = ensnano_design::read_first_svg_path(&path)?;
+        let path = crate::ensnano_design::read_first_svg_path(&path)?;
         paths.push(path);
 
         drop(paths);

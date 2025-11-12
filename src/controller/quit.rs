@@ -21,7 +21,7 @@ use crate::MainStateView;
 use crate::controller::normal_state::NormalState;
 use crate::dialog::Filters;
 use dialog::PathInput;
-use ensnano_exports::ExportType;
+use crate::ensnano_exports::ExportType;
 use std::path::Path;
 
 pub(super) struct Quit {

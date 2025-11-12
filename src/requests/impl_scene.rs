@@ -16,12 +16,12 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-//! Implements the [Requests](`ensnano_scene::Requests`) trait for [Requests](`super::Requests`).
+//! Implements the [Requests](`crate::ensnano_scene::Requests`) trait for [Requests](`super::Requests`).
 
 use super::*;
 use crate::app_state::design_interactor::controller::clipboard::PastePosition;
-use ensnano_interactor::DesignOperation;
-use ensnano_scene::Requests as SceneRequests;
+use crate::ensnano_interactor::DesignOperation;
+use crate::ensnano_scene::Requests as SceneRequests;
 use ultraviolet::Rotor3;
 
 impl SceneRequests for Requests {
@@ -36,7 +36,7 @@ impl SceneRequests for Requests {
     fn set_selection(
         &mut self,
         selection: Vec<Selection>,
-        center_of_selection: Option<ensnano_interactor::CenterOfSelection>,
+        center_of_selection: Option<crate::ensnano_interactor::CenterOfSelection>,
     ) {
         self.new_selection = Some(selection);
         self.new_center_of_selection = Some(center_of_selection);
@@ -106,7 +106,7 @@ impl SceneRequests for Requests {
         self.keep_proceed.push_back(Action::DesignOperation(op))
     }
 
-    fn set_current_group_pivot(&mut self, pivot: ensnano_design::group_attributes::GroupPivot) {
+    fn set_current_group_pivot(&mut self, pivot: crate::ensnano_design::group_attributes::GroupPivot) {
         self.keep_proceed.push_back(Action::SetGroupPivot(pivot))
     }
 

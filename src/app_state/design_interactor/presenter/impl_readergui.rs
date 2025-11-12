@@ -17,9 +17,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::*;
-use ensnano_design::{CameraId, Collection, elements::DesignElement};
-use ensnano_gui::{EnsnTree, GuiDesignReaderExt as ReaderGui};
-use ensnano_interactor::InsertionPoint;
+use crate::ensnano_design::{CameraId, Collection, elements::DesignElement};
+use crate::ensnano_gui::{EnsnTree, GuiDesignReaderExt as ReaderGui};
+use crate::ensnano_interactor::InsertionPoint;
 use ultraviolet::{Rotor3, Vec2};
 
 impl ReaderGui for DesignInteractor {
@@ -211,7 +211,7 @@ impl ReaderGui for DesignInteractor {
         }
     }
 
-    fn is_bezier_path_cyclic(&self, path_id: ensnano_design::BezierPathId) -> Option<bool> {
+    fn is_bezier_path_cyclic(&self, path_id: crate::ensnano_design::BezierPathId) -> Option<bool> {
         self.presenter
             .current_design
             .bezier_paths
@@ -221,7 +221,7 @@ impl ReaderGui for DesignInteractor {
 
     fn get_bezier_vertex_position(
         &self,
-        vertex_id: ensnano_design::BezierVertexId,
+        vertex_id: crate::ensnano_design::BezierVertexId,
     ) -> Option<Vec2> {
         let path = self
             .presenter

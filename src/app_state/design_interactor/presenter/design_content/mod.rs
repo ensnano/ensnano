@@ -20,22 +20,22 @@ mod xover_suggestions;
 
 use super::*;
 use ahash::RandomState;
-use ensnano_consts::{
+use crate::ensnano_consts::{
     BOND_RADIUS, CLONE_OPACITY, HELIX_CYLINDER_COLOR, HELIX_CYLINDER_RADIUS, SPHERE_RADIUS,
 };
-use ensnano_design::{
+use crate::ensnano_design::{
     drawing_style::{ColorType, DrawingAttribute, DrawingStyle},
     elements::{DesignElement, DesignElementKey},
     grid::{GridData, GridId, GridObject, GridPosition, HelixGridPosition},
     isometry3_descriptor::Isometry3MissingMethods,
     *,
 };
-use ensnano_interactor::{
+use crate::ensnano_interactor::{
     ObjectType,
     graphics::{LoopoutBond, LoopoutNucl},
 };
-use ensnano_scene::view::GridInstance;
-use ensnano_utils::{click_counter::ClickCounter, colors, instance::Instance};
+use crate::ensnano_scene::view::GridInstance;
+use crate::ensnano_utils::{click_counter::ClickCounter, colors, instance::Instance};
 use serde::Serialize;
 use std::{
     borrow::Cow,

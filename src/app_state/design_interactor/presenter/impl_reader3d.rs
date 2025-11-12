@@ -17,21 +17,21 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::*;
-use ensnano_design::{
+use crate::ensnano_design::{
     BezierControlPoint, BezierPlaneDescriptor, BezierPlaneId, BezierVertexId, Collection,
     CurveDescriptor, Domain, Nucl, SurfaceInfo,
     grid::{GridId, GridObject, GridPosition, HelixGridPosition},
 };
-use ensnano_interactor::{
+use crate::ensnano_interactor::{
     ObjectType, Referential,
     graphics::{LoopoutBond, LoopoutNucl},
 };
-use ensnano_scene::view::GridInstance;
-use ensnano_utils::StrandNucleotidesPositions;
+use crate::ensnano_scene::view::GridInstance;
+use crate::ensnano_utils::StrandNucleotidesPositions;
 use std::collections::HashSet;
 use ultraviolet::{Mat4, Rotor3, Vec2, Vec3};
 
-impl ensnano_scene::data::SceneDesignReaderExt for DesignInteractor {
+impl crate::ensnano_scene::data::SceneDesignReaderExt for DesignInteractor {
     fn get_color(&self, e_id: u32) -> Option<u32> {
         self.presenter.content.color_map.get(&e_id).cloned()
     }
@@ -396,7 +396,7 @@ impl ensnano_scene::data::SceneDesignReaderExt for DesignInteractor {
     fn get_cubic_bezier_controls(
         &self,
         helix: usize,
-    ) -> Option<ensnano_design::CubicBezierConstructor> {
+    ) -> Option<crate::ensnano_design::CubicBezierConstructor> {
         let helix = self.presenter.current_design.helices.get(&helix)?;
         if let Some(CurveDescriptor::Bezier(constructor)) = helix.curve.as_ref().map(Arc::as_ref) {
             Some(constructor.clone())
@@ -423,7 +423,7 @@ impl ensnano_scene::data::SceneDesignReaderExt for DesignInteractor {
 
     fn get_bezier_paths(
         &self,
-    ) -> Option<&BTreeMap<ensnano_design::BezierPathId, Arc<ensnano_design::InstantiatedPath>>>
+    ) -> Option<&BTreeMap<crate::ensnano_design::BezierPathId, Arc<crate::ensnano_design::InstantiatedPath>>>
     {
         self.presenter
             .current_design
@@ -440,9 +440,9 @@ impl ensnano_scene::data::SceneDesignReaderExt for DesignInteractor {
 
     fn get_bezier_vertex(
         &self,
-        path_id: ensnano_design::BezierPathId,
+        path_id: crate::ensnano_design::BezierPathId,
         vertex_id: usize,
-    ) -> Option<ensnano_design::BezierVertex> {
+    ) -> Option<crate::ensnano_design::BezierVertex> {
         self.presenter
             .current_design
             .bezier_paths
@@ -540,7 +540,7 @@ impl ensnano_scene::data::SceneDesignReaderExt for DesignInteractor {
         }
     }
 
-    fn get_external_objects(&self) -> &ensnano_design::External3DObjects {
+    fn get_external_objects(&self) -> &crate::ensnano_design::External3DObjects {
         &self.presenter.current_design.external_3d_objects
     }
 
@@ -549,12 +549,12 @@ impl ensnano_scene::data::SceneDesignReaderExt for DesignInteractor {
         helix.get_surface_info_nucl(nucl)
     }
 
-    fn get_surface_info(&self, point: ensnano_design::SurfacePoint) -> Option<SurfaceInfo> {
+    fn get_surface_info(&self, point: crate::ensnano_design::SurfacePoint) -> Option<SurfaceInfo> {
         let helix = self.presenter.current_design.helices.get(&point.helix_id)?;
         helix.get_surface_info(point)
     }
 
-    fn get_additional_structure(&self) -> Option<&dyn ensnano_design::AdditionalStructure> {
+    fn get_additional_structure(&self) -> Option<&dyn crate::ensnano_design::AdditionalStructure> {
         self.presenter
             .current_design
             .additional_structure

@@ -17,10 +17,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::*;
-use ensnano_design::grid::GridId;
-use ensnano_interactor::{StrandBuilder, consts::scroll_sensitivity_conversion};
-use ensnano_organizer::tree::GroupId;
-use ensnano_scene::{AppState as App3D, view::DrawOptions};
+use crate::ensnano_design::grid::GridId;
+use crate::ensnano_interactor::{StrandBuilder, consts::scroll_sensitivity_conversion};
+use crate::ensnano_organizer::tree::GroupId;
+use crate::ensnano_scene::{AppState as App3D, view::DrawOptions};
 
 impl App3D for AppState {
     type AppStateDesignReader = DesignInteractor;
@@ -92,7 +92,7 @@ impl App3D for AppState {
         self.0.center_of_selection
     }
 
-    fn get_current_group_pivot(&self) -> Option<ensnano_design::group_attributes::GroupPivot> {
+    fn get_current_group_pivot(&self) -> Option<crate::ensnano_design::group_attributes::GroupPivot> {
         let reader = self.get_design_interactor();
         self.0
             .selection
@@ -154,7 +154,7 @@ impl App3D for AppState {
         self.0.path_to_current_design.clone()
     }
 
-    fn get_selected_bezier_vertex(&self) -> Option<ensnano_design::BezierVertexId> {
+    fn get_selected_bezier_vertex(&self) -> Option<crate::ensnano_design::BezierVertexId> {
         if let Some(Selection::BezierVertex(vertex)) = self.0.selection.selection.get(0) {
             Some(*vertex)
         } else {

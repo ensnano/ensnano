@@ -29,9 +29,9 @@ pub mod set_scaffold_sequence;
 use super::{OverlayType, SplitMode, dialog};
 use crate::MainStateView;
 use dialog::{MustAckMessage, YesNoQuestion};
-use ensnano_consts::CANNOT_OPEN_DEFAULT_DIR;
-use ensnano_exports::ExportType;
-use ensnano_iced::UiSize;
+use crate::ensnano_consts::CANNOT_OPEN_DEFAULT_DIR;
+use crate::ensnano_exports::ExportType;
+use crate::ensnano_iced::UiSize;
 use normal_state::NormalState;
 use quit::*;
 use set_scaffold_sequence::*;
@@ -174,7 +174,7 @@ impl State for YesNo {
 
 pub enum LoadDesignError {
     JsonError(serde_json::Error),
-    ScadnanoImportError(ensnano_design::scadnano::ScadnanoImportError),
+    ScadnanoImportError(crate::ensnano_design::scadnano::ScadnanoImportError),
     IncompatibleVersion { current: String, required: String },
 }
 

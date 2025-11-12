@@ -21,6 +21,18 @@ pub mod file_parsing;
 pub mod presenter;
 
 use super::AddressPointer;
+use crate::ensnano_consts::UPDATE_VISIBILITY_SIEVE_LABEL;
+use crate::ensnano_design::{
+    BezierPathId, BezierPlaneDescriptor, Design, HelixCollection, HelixParameters,
+    InstantiatedPiecewiseBezier, grid::GridId, group_attributes::GroupAttribute,
+};
+use crate::ensnano_exports::{ExportResult, ExportType};
+use crate::ensnano_gui::CurrentOpState;
+use crate::ensnano_interactor::{
+    DesignOperation, PastingStatus, Selection, SimulationState, StrandBuilder,
+    app_state_parameters::SuggestionParameters, operation::Operation,
+};
+use crate::ensnano_organizer::tree::GroupId;
 use crate::{
     app_state::design_interactor::controller::{
         OkOperation, clipboard::CopyOperation, simulations::SimulationOperation,
@@ -28,18 +40,6 @@ use crate::{
     controller::channel_reader::ChannelReader,
 };
 use controller::{Controller, ErrOperation, InteractorNotification};
-use ensnano_consts::UPDATE_VISIBILITY_SIEVE_LABEL;
-use ensnano_design::{
-    BezierPathId, BezierPlaneDescriptor, Design, HelixCollection, HelixParameters,
-    InstantiatedPiecewiseBezier, grid::GridId, group_attributes::GroupAttribute,
-};
-use ensnano_exports::{ExportResult, ExportType};
-use ensnano_gui::CurrentOpState;
-use ensnano_interactor::{
-    DesignOperation, PastingStatus, Selection, SimulationState, StrandBuilder,
-    app_state_parameters::SuggestionParameters, operation::Operation,
-};
-use ensnano_organizer::tree::GroupId;
 use presenter::{Presenter, SimulationUpdate, apply_simulation_update, update_presenter};
 use std::sync::Arc;
 
@@ -313,7 +313,7 @@ impl DesignInteractor {
         self.new_selection.take()
     }
 
-    pub fn get_clipboard_content(&self) -> ensnano_gui::ClipboardContent {
+    pub fn get_clipboard_content(&self) -> crate::ensnano_gui::ClipboardContent {
         self.controller.get_clipboard_content()
     }
 }
@@ -349,7 +349,7 @@ impl DesignInteractor {
     pub(super) fn save_design(
         &self,
         path: &PathBuf,
-        saving_info: ensnano_design::SavingInformation,
+        saving_info: crate::ensnano_design::SavingInformation,
     ) -> Result<(), SaveDesignError> {
         use std::io::Write;
         let mut design = self.presenter.current_design.clone_inner();
@@ -364,7 +364,11 @@ impl DesignInteractor {
         self.presenter.export(export_path, export_type)
     }
 
-    pub fn get_strand_domain(&self, s_id: usize, d_id: usize) -> Option<&ensnano_design::Domain> {
+    pub fn get_strand_domain(
+        &self,
+        s_id: usize,
+        d_id: usize,
+    ) -> Option<&crate::ensnano_design::Domain> {
         self.presenter.get_strand_domain(s_id, d_id)
     }
 
@@ -381,7 +385,7 @@ impl DesignInteractor {
     }
 
     pub fn get_default_bezier(&self) -> Option<&BezierPlaneDescriptor> {
-        use ensnano_design::Collection;
+        use crate::ensnano_design::Collection;
         self.presenter
             .current_design
             .as_ref()
@@ -391,7 +395,7 @@ impl DesignInteractor {
     }
 
     pub fn get_first_bezier_plane(&self, path_id: BezierPathId) -> Option<&BezierPlaneDescriptor> {
-        use ensnano_design::Collection;
+        use crate::ensnano_design::Collection;
         let path = self
             .presenter
             .current_design
@@ -417,12 +421,12 @@ mod tests {
         CopyOperation, PastePosition,
     };
     use crate::app_state::design_interactor::file_parsing::junctions::StrandJunction as _;
-    use ensnano_design::HelixCollection;
-    use ensnano_design::grid::HelixGridPosition;
-    use ensnano_design::{Collection, DomainJunction, Nucl, Strand, grid::GridDescriptor};
-    use ensnano_interactor::operation::GridHelixCreation;
-    use ensnano_interactor::{InsertionPoint, InteractorDesignReaderExt};
-    use ensnano_scene::data::SceneDesignReaderExt as Reader3d;
+    use crate::ensnano_design::HelixCollection;
+    use crate::ensnano_design::grid::HelixGridPosition;
+    use crate::ensnano_design::{Collection, DomainJunction, Nucl, Strand, grid::GridDescriptor};
+    use crate::ensnano_interactor::operation::GridHelixCreation;
+    use crate::ensnano_interactor::{InsertionPoint, InteractorDesignReaderExt};
+    use crate::ensnano_scene::data::SceneDesignReaderExt as Reader3d;
     use std::path::PathBuf;
     use ultraviolet::{Rotor3, Vec3};
 
@@ -1140,7 +1144,7 @@ mod tests {
 
     fn test_sane_strand(strand: &Strand) {
         let mut strand = Strand::clone(strand);
-        let mut xover_ids = ensnano_utils::id_generator::IdGenerator::default();
+        let mut xover_ids = crate::ensnano_utils::id_generator::IdGenerator::default();
         strand.read_junctions(&mut xover_ids, true);
         strand.read_junctions(&mut xover_ids, false);
     }
@@ -1190,7 +1194,7 @@ mod tests {
                 position: Vec3::zero(),
                 orientation: Rotor3::identity(),
                 helix_parameters: None,
-                grid_type: ensnano_design::grid::GridTypeDescr::Square { twist: None },
+                grid_type: crate::ensnano_design::grid::GridTypeDescr::Square { twist: None },
                 invisible: false,
                 bezier_vertex: None,
             }))
@@ -1210,7 +1214,7 @@ mod tests {
                 position: Vec3::zero(),
                 orientation: Rotor3::identity(),
                 helix_parameters: None,
-                grid_type: ensnano_design::grid::GridTypeDescr::Square { twist: None },
+                grid_type: crate::ensnano_design::grid::GridTypeDescr::Square { twist: None },
                 invisible: false,
                 bezier_vertex: None,
             }))
@@ -1238,7 +1242,7 @@ mod tests {
                 position: Vec3::zero(),
                 orientation: Rotor3::identity(),
                 helix_parameters: None,
-                grid_type: ensnano_design::grid::GridTypeDescr::Square { twist: None },
+                grid_type: crate::ensnano_design::grid::GridTypeDescr::Square { twist: None },
                 invisible: false,
                 bezier_vertex: None,
             }))
@@ -1801,7 +1805,7 @@ mod tests {
             })
             .unwrap();
         app_state.update();
-        let mut xover_ids = ensnano_utils::id_generator::IdGenerator::default();
+        let mut xover_ids = crate::ensnano_utils::id_generator::IdGenerator::default();
 
         let s_id = app_state
             .get_design_interactor()

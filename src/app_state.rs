@@ -32,8 +32,20 @@ pub mod impl_gui;
 pub mod transitions;
 
 #[cfg(test)]
-use ensnano_design::Design;
+use crate::ensnano_design::Design;
 
+use crate::ensnano_consts::{APP_NAME, ENS_BACKUP_EXTENSION, ENS_EXTENSION};
+use crate::ensnano_design::{BezierPathId, SavingInformation, group_attributes::GroupPivot};
+use crate::ensnano_exports::{ExportResult, ExportType};
+use crate::ensnano_iced::UiSize;
+use crate::ensnano_interactor::{
+    ActionMode, CenterOfSelection, DesignOperation, PastingStatus, Selection, SelectionMode,
+    StrandBuildingStatus, UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
+    app_state_parameters::{AppStateParameters, CheckXoversParameter, SuggestionParameters},
+    graphics::{Background3D, HBondDisplay, RenderingMode},
+    operation::Operation,
+};
+use crate::ensnano_organizer::tree::GroupId;
 use crate::{
     app_state::design_interactor::{
         controller::{
@@ -47,18 +59,6 @@ use crate::{
 use address_pointer::AddressPointer;
 use design_interactor::controller::ErrOperation;
 use design_interactor::{DesignInteractor, InteractorResult};
-use ensnano_consts::{APP_NAME, ENS_BACKUP_EXTENSION, ENS_EXTENSION};
-use ensnano_design::{BezierPathId, SavingInformation, group_attributes::GroupPivot};
-use ensnano_exports::{ExportResult, ExportType};
-use ensnano_iced::UiSize;
-use ensnano_interactor::{
-    ActionMode, CenterOfSelection, DesignOperation, PastingStatus, Selection, SelectionMode,
-    StrandBuildingStatus, UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
-    app_state_parameters::{AppStateParameters, CheckXoversParameter, SuggestionParameters},
-    graphics::{Background3D, HBondDisplay, RenderingMode},
-    operation::Operation,
-};
-use ensnano_organizer::tree::GroupId;
 use std::{
     path::PathBuf,
     sync::{Arc, RwLock},
@@ -572,7 +572,7 @@ impl AppState {
             let reader = self.get_design_interactor();
             let domain = reader.get_strand_domain(domain_id.strand, domain_id.domain)?;
             let param = self.0.design.get_dna_parameters();
-            if let ensnano_design::Domain::HelixDomain(interval) = domain {
+            if let crate::ensnano_design::Domain::HelixDomain(interval) = domain {
                 let prime5 = interval.prime5();
                 let prime3 = interval.prime3();
                 let nt_length = domain.length();
@@ -643,7 +643,7 @@ impl AppState {
         *self.0.selection.pivot.write().unwrap() = Some(new_pivot);
     }
 
-    pub fn get_simulation_state(&self) -> ensnano_interactor::SimulationState {
+    pub fn get_simulation_state(&self) -> crate::ensnano_interactor::SimulationState {
         self.0.design.get_simulation_state()
     }
 
@@ -701,7 +701,7 @@ impl AppState_ {
     }
 
     fn set_surface_revolution_radius(&mut self, radius: f64) {
-        use ensnano_interactor::RevolutionSurfaceRadius;
+        use crate::ensnano_interactor::RevolutionSurfaceRadius;
         let mut new_surface = self.unrooted_surface.descriptor.clone();
         if let Some(s) = new_surface.as_mut() {
             s.revolution_radius = RevolutionSurfaceRadius::from_signed_f64(radius);
