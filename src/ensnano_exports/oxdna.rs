@@ -213,7 +213,7 @@ impl<'a> OxDnaMaker<'a> {
     }
 
     pub fn end(self) -> (OxDnaConfig, OxDnaTopology) {
-        let topo = OxDnaTopology {
+        let topology = OxDnaTopology {
             bonds: self.bonds,
             nb_strand: self.nb_strand,
             nb_nucl: self.nucl_id as usize,
@@ -224,7 +224,7 @@ impl<'a> OxDnaMaker<'a> {
             boundaries: self.boundaries,
             nucls: self.nucls,
         };
-        (config, topo)
+        (config, topology)
     }
 }
 

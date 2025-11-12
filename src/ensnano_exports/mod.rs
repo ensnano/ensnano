@@ -191,15 +191,15 @@ pub fn export(
     let basis_mapper = BasisMapper::new(basis_map);
     match export_type {
         ExportType::Oxdna => {
-            let configuration = export_path.clone();
-            let mut topology = export_path.clone();
-            topology.set_extension("top");
-            let (config, topo) = oxdna::to_oxdna(design, basis_mapper);
-            config.write(&configuration)?;
-            topo.write(&topology)?;
+            let configuration_path = export_path.clone();
+            let mut topology_path = export_path.clone();
+            topology_path.set_extension("top");
+            let (config, topology) = oxdna::to_oxdna(design, basis_mapper);
+            config.write(&configuration_path)?;
+            topology.write(&topology_path)?;
             Ok(ExportSuccess::Oxdna {
-                topology,
-                configuration,
+                topology: topology_path,
+                configuration: configuration_path,
             })
         }
         ExportType::Pdb => {
