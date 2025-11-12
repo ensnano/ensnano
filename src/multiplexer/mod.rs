@@ -253,25 +253,11 @@ impl Multiplexer {
             self.pipeline = Some(create_pipeline(self.device.as_ref(), bg_layout));
         }
 
-        let msaa_texture = None;
-
-        let attachment = if msaa_texture.is_some() {
-            msaa_texture.as_ref().unwrap()
-        } else {
-            target
-        };
-
-        let resolve_target = if msaa_texture.is_some() {
-            Some(target)
-        } else {
-            None
-        };
-
         let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("Multiplexer render pass"),
             color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                view: attachment,
-                resolve_target,
+                view: target,
+                resolve_target: None,
                 ops: wgpu::Operations {
                     load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
                     store: wgpu::StoreOp::Store,
@@ -281,6 +267,7 @@ impl Multiplexer {
             timestamp_writes: None,
             occlusion_query_set: None,
         });
+
         if self.window_size.width > 0 && self.window_size.height > 0 {
             for element in [
                 GuiComponentType::TopBar,
