@@ -297,7 +297,7 @@ impl RootingParameters {
          *
          * let d = gcd(q, n). If a ~ b then a = b (mod d)
          *
-         * Recp. if a = b (mod d) there exists x y st xq + yn = d
+         * Reciprocal. if a = b (mod d) there exists x y st xq + yn = d
          *
          * a = k (xq + yn) + b
          * so a ~ b

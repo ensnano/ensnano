@@ -42,7 +42,7 @@ impl IntermediaryPair {
 /// of an helix.
 /// Contains a copy of its parameters, a map
 /// of pairs, and a vector of ranges of indices
-/// that correspond to the continous ranges
+/// that correspond to the continuous ranges
 /// of double pairs within the helix. This
 /// information is computed so that the structure
 /// of those continuous segments can be better

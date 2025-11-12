@@ -223,7 +223,7 @@ pub fn generate_springs(
     // in this case, we can't connect anything, so we don't add anything
 }
 
-// Tries to stick two rigidbody handles in the same place; for this, it
+// Tries to stick two rigid body handles in the same place; for this, it
 // supposes that the rigid bodies are at 0, 0, 0.
 fn link_with_springs(
     left_a: ColliderHandle,

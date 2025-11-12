@@ -485,10 +485,10 @@ impl ToString for ClipboardContent {
     fn to_string(&self) -> String {
         match self {
             Self::Empty => "Empty".into(),
-            Self::Xovers(n) => format!("{n} xover(s)"),
-            Self::Strands(n) => format!("{n} strand(s)"),
-            Self::Grids(n) => format!("{n} grid(s)"),
-            Self::Helices(n) => format!("{n} helice(s)"),
+            Self::Xovers(n) => format!("{n} {}", if *n < 2 { "xover" } else { "xovers" }),
+            Self::Strands(n) => format!("{n} {}", if *n < 2 { "strand" } else { "strands" }),
+            Self::Grids(n) => format!("{n} {}", if *n < 2 { "grid" } else { "grids" }),
+            Self::Helices(n) => format!("{n} {}", if *n < 2 { "helix" } else { "helices" }),
         }
     }
 }

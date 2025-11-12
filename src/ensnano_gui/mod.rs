@@ -28,6 +28,13 @@ pub mod left_panel;
 pub mod status_bar;
 pub mod top_bar;
 
+pub use left_panel::{
+    ColorOverlay, CurveDescriptorBuilder, CurveDescriptorParameter, InstantiatedParameter,
+    LeftPanel, RevolutionScaling, RigidBodyParametersRequest,
+};
+pub use status_bar::{ClipboardContent, CurrentOpState};
+pub use top_bar::TopBar;
+
 use crate::ensnano_design::{
     BezierPathId, BezierVertexId, CameraId, HelixParameters, Nucl,
     elements::{DesignElement, DesignElementKey, DnaAttribute},
@@ -59,18 +66,12 @@ use crate::ensnano_interactor::{
     operation::Operation,
 };
 use crate::ensnano_organizer::tree::{GroupId, OrganizerTree};
-pub use left_panel::{
-    ColorOverlay, CurveDescriptorBuilder, CurveDescriptorParameter, InstantiatedParameter,
-    LeftPanel, RevolutionScaling, RigidBodyParametersRequest,
-};
 use status_bar::StatusBar;
-pub use status_bar::{ClipboardContent, CurrentOpState};
 use std::{
-    collections::{BTreeSet, HashMap},
+    collections::{BTreeSet, HashMap, VecDeque},
     rc::Rc,
     sync::{Arc, Mutex},
 };
-pub use top_bar::TopBar;
 use ultraviolet::{Rotor3, Vec2, Vec3};
 use wgpu::{Device, Queue};
 use winit::{dpi::PhysicalSize, event::Modifiers, window::Window};
@@ -188,7 +189,7 @@ pub trait Requests: 'static + Send {
     fn set_grid_orientation(&mut self, grid_id: GridId, orientation: Rotor3);
     fn toggle_2d(&mut self);
     fn set_nb_turn(&mut self, grid_id: GridId, nb_turn: f32);
-    fn set_check_xover_parameters(&mut self, paramters: CheckXoversParameter);
+    fn set_check_xover_parameters(&mut self, parameters: CheckXoversParameter);
     fn follow_stereographic_camera(&mut self, follow: bool);
     fn set_show_stereographic_camera(&mut self, show: bool);
     fn set_show_h_bonds(&mut self, show: HBondDisplay);
@@ -874,29 +875,24 @@ fn convert_size_u32(size: PhysicalSize<u32>) -> Size<u32> {
     Size::new(size.width, size.height)
 }
 
-use std::collections::VecDeque;
-
 /// Message sent to the gui component
 pub struct IcedMessages<S: AppState> {
     left_panel: VecDeque<left_panel::Message<S>>,
     top_bar: VecDeque<top_bar::Message<S>>,
-    _color_overlay: VecDeque<left_panel::ColorMessage>,
     status_bar: VecDeque<status_bar::Message<S>>,
     application_state: S,
-    last_topbar_state: TopBarState,
+    last_top_bar_state: TopBarState,
     redraw: bool,
 }
 
 impl<S: AppState> IcedMessages<S> {
-    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         Self {
             left_panel: VecDeque::new(),
             top_bar: VecDeque::new(),
-            _color_overlay: VecDeque::new(),
             status_bar: VecDeque::new(),
             application_state: Default::default(),
-            last_topbar_state: Default::default(),
+            last_top_bar_state: Default::default(),
             redraw: false,
         }
     }
@@ -944,8 +940,8 @@ impl<S: AppState> IcedMessages<S> {
     pub fn push_application_state(&mut self, state: S, top_bar_state: TopBarState) {
         log::trace!("Old ptr {:p}, new ptr {:p}", state, self.application_state);
         self.application_state = state.clone();
-        self.redraw |= top_bar_state != self.last_topbar_state;
-        self.last_topbar_state = top_bar_state.clone();
+        self.redraw |= top_bar_state != self.last_top_bar_state;
+        self.last_top_bar_state = top_bar_state.clone();
         let must_update = self.application_state != state || self.redraw;
         if must_update {
             self.left_panel

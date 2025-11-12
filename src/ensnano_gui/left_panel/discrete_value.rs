@@ -134,7 +134,7 @@ impl<R: Requestable> RequestFactory<R> {
     }
 }
 
-/// A slider to choose a numerical value within a dircrete linear range.
+/// A slider to choose a numerical value within a discrete linear range.
 struct DiscreteValue {
     // Current selected value.
     value: f32,
