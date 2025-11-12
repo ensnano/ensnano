@@ -128,6 +128,6 @@ The licenses of the dependencies are listed in `thirdparties/license.html`
 
 This software uses the following fonts which are distributed under the SIL OpenFont License
 * [Inconsolata-Regular](https://fonts.google.com/specimen/Inconsolata)
-* [Inter](https://fonts.google.com/specimen/Inter) (Glyphs from this font are used in the file `font/ensnano2.ttf`)
+* [Inter](https://fonts.google.com/specimen/Inter) (Glyphs from this font are used in the file `fonts/ensnano2.ttf`)
 
-The font `font/DejaVuSansMono.ttf` is in public domain.
+The font `fonts/DejaVuSansMono.ttf` is in public domain.
