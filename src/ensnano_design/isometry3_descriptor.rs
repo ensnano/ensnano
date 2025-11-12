@@ -101,40 +101,36 @@ impl Isometry3DescriptorItem {
 
         if s.starts_with("%id") {
             return Ok(Self::Identity);
-        } else if s.starts_with("%tr(") {
+        } else if let Some(s) = s.strip_prefix("%tr(") {
             let args = Self::parse_f32s_separated_by_commas_parenthesis_or_space_with_variables(
-                &s[4..],
-                variables,
+                s, variables,
             );
             if args.len() == 3 {
                 return Ok(Self::TranslateBy(Vec3::new(args[0], args[1], args[2])));
             }
-        } else if s.starts_with("%tX(") {
+        } else if let Some(s) = s.strip_prefix("%tX(") {
             let args = Self::parse_f32s_separated_by_commas_parenthesis_or_space_with_variables(
-                &s[4..],
-                variables,
+                s, variables,
             );
             if args.len() == 1 {
                 return Ok(Self::TranslateX(args[0]));
             }
-        } else if s.starts_with("%tY(") {
+        } else if let Some(s) = s.strip_prefix("%tY(") {
             let args = Self::parse_f32s_separated_by_commas_parenthesis_or_space_with_variables(
-                &s[4..],
-                variables,
+                s, variables,
             );
             if args.len() == 1 {
                 return Ok(Self::TranslateY(args[0]));
             }
-        } else if s.starts_with("%tZ(") {
+        } else if let Some(s) = s.strip_prefix("%tZ(") {
             let args = Self::parse_f32s_separated_by_commas_parenthesis_or_space_with_variables(
-                &s[4..],
-                variables,
+                s, variables,
             );
             if args.len() == 1 {
                 return Ok(Self::TranslateZ(args[0]));
             }
-        } else if s.starts_with("%rot(") {
-            let args = Self::parse_f32s_separated_by_commas_parenthesis_or_space(&s[5..]);
+        } else if let Some(s) = s.strip_prefix("%rot(") {
+            let args = Self::parse_f32s_separated_by_commas_parenthesis_or_space(s);
             match args.len() {
                 9 => {
                     return Ok(Self::RotateFromToAround(
@@ -151,8 +147,8 @@ impl Isometry3DescriptorItem {
                 }
                 _ => (),
             }
-        } else if s.starts_with("%rotYZ(") {
-            let args = Self::parse_f32s_separated_by_commas_parenthesis_or_space(&s[7..]);
+        } else if let Some(s) = s.strip_prefix("%rotYZ(") {
+            let args = Self::parse_f32s_separated_by_commas_parenthesis_or_space(s);
             match args.len() {
                 1 => return Ok(Self::RotateYZBy(args[0])),
                 4 => {
@@ -163,8 +159,8 @@ impl Isometry3DescriptorItem {
                 }
                 _ => (),
             }
-        } else if s.starts_with("%rotZX(") {
-            let args = Self::parse_f32s_separated_by_commas_parenthesis_or_space(&s[7..]);
+        } else if let Some(s) = s.strip_prefix("%rotZX(") {
+            let args = Self::parse_f32s_separated_by_commas_parenthesis_or_space(s);
             match args.len() {
                 1 => return Ok(Self::RotateZXBy(args[0])),
                 4 => {
@@ -175,8 +171,8 @@ impl Isometry3DescriptorItem {
                 }
                 _ => (),
             }
-        } else if s.starts_with("%rotXY(") {
-            let args = Self::parse_f32s_separated_by_commas_parenthesis_or_space(&s[7..]);
+        } else if let Some(s) = s.strip_prefix("%rotXY(") {
+            let args = Self::parse_f32s_separated_by_commas_parenthesis_or_space(s);
             match args.len() {
                 1 => return Ok(Self::RotateXYBy(args[0])),
                 4 => {

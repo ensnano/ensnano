@@ -1110,7 +1110,7 @@ impl<'a> Axis<'a> {
                 let direction = model_matrix.transform_vec3(*old_direction);
                 Self::Line { origin, direction }
             }
-            _ => self.clone(),
+            _ => *self,
         }
     }
 
