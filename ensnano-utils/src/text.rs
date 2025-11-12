@@ -248,7 +248,7 @@ impl Letter {
 fn get_average_pixel_value(pixels: &Vec<u8>, x: usize, y: usize, width: usize) -> u8 {
     let get = |x, y| pixels[4 * (y * width + x)] as u16;
     let sum = get(2 * x, 2 * y)
-        + get(2 * x + 1, 2 * y)
+        + get(2 * x + 1, 2 * y) // FIXME: very suspicious, should almost certainly be 2x, 2 * y + 1
         + get(2 * x + 1, 2 * y)
         + get(2 * x + 1, 2 * y + 1);
     (sum / 4) as u8
