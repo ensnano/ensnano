@@ -16,6 +16,14 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+mod color_picker;
+mod contextual_panel;
+mod discrete_value;
+mod export_menu;
+mod tabs;
+
+pub use tabs::revolution_tab::*;
+
 use super::{AppState, FogParameters, OverlayType, Requests, fonts};
 use crate::ensnano_design::{
     BezierPathId, CameraId, NamedParameter,
@@ -45,24 +53,16 @@ use crate::ensnano_interactor::{
     graphics::{Background3D, HBondDisplay, RenderingMode},
 };
 use crate::ensnano_organizer::{Organizer, OrganizerMessage, tree::OrganizerTree};
-use std::sync::{Arc, Mutex};
-use ultraviolet::Vec3;
-
-mod discrete_value;
-use discrete_value::{FactoryId, RequestFactory, Requestable, ValueId};
-
-mod contextual_panel;
+use color_picker::ColorPicker;
 use contextual_panel::{ContextualPanel, InstantiatedValue, ValueKind};
-
-mod export_menu;
+use discrete_value::{FactoryId, RequestFactory, Requestable, ValueId};
 use export_menu::ExportMenu;
-
-mod tabs;
-pub use tabs::revolution_tab::*;
+use std::sync::{Arc, Mutex};
 use tabs::{
     CameraShortcutPanel, CameraTab, EditionTab, GridTab, GuiTab, ParametersTab, PenTab,
     SequenceTab, SimulationTab, TabId,
 };
+use ultraviolet::Vec3;
 
 pub struct LeftPanel<R: Requests, S: AppState> {
     logical_size: LogicalSize<f64>,
@@ -1166,9 +1166,6 @@ where
 
 // TODO: Remove ColorOverlay
 
-mod color_picker;
-use color_picker::ColorPicker;
-
 pub struct ColorOverlay<R: Requests> {
     logical_size: LogicalSize<f64>,
     color_picker: ColorPicker,
@@ -1183,17 +1180,12 @@ impl<R: Requests> ColorOverlay<R> {
             requests,
         }
     }
-
-    pub fn resize(&mut self, logical_size: LogicalSize<f64>) {
-        self.logical_size = logical_size;
-    }
 }
 
 #[derive(Debug, Clone)]
 pub enum ColorMessage {
     HsvSatValueChanged(f64, f64),
     HueChanged(f64),
-    Resized(LogicalSize<f64>),
     FinishChangingColor,
     Closed,
 }
@@ -1216,7 +1208,6 @@ impl<R: Requests> Program for ColorOverlay<R> {
             ColorMessage::FinishChangingColor => {
                 self.requests.lock().unwrap().finish_changing_color();
             }
-            ColorMessage::Resized(size) => self.resize(size),
         };
         Command::none()
     }

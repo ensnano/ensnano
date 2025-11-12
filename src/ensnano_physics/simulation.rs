@@ -45,6 +45,7 @@ impl RapierPhysicsSystem {
         )
     }
 
+    #[allow(dead_code)]
     pub fn new(
         // these parameters are all part of DesignContent
         object_type: &HashMap<u32, ObjectType>,

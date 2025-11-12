@@ -512,7 +512,7 @@ impl Curve {
         let nucl_max = (self.nb_points() - self.nucl_t0) as isize;
         if nucl >= nucl_max - 1 {
             match self.geometry.bounds() {
-                CurveBounds::BiInfinite | CurveBounds::PositiveInfinite => {
+                CurveBounds::BiInfinite => {
                     let objective = nucl as f64
                         * helix_parameters.rise as f64
                         * self.geometry.rise_ratio().unwrap_or(1.)
@@ -524,7 +524,7 @@ impl Curve {
                     while delta < DELTA_MAX {
                         let new_t_max = self.geometry.t_max() + delta;
                         if self.length_by_discretization(
-                            0.0, // should not it be self.geometry.t_min() ??? MAY BE NOT BECAUSE INFINITY
+                            0.0, // should not it be self.geometry.t_min() ??? MAY BE NOT BECAUSE BI INFINITE
                             new_t_max,
                             NB_DISCRETIZATION_STEP / 100,
                         ) > objective

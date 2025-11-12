@@ -142,18 +142,6 @@ impl Camera2D {
         self.globals.zoom = self.globals.zoom.max(MAX_ZOOM_2D / 2.);
     }
 
-    /// Discrete zoom on the scene
-    pub fn zoom_in(&mut self) {
-        self.globals.zoom *= 1.25;
-        self.was_updated = true;
-    }
-
-    /// Discrete zoom out of the scene
-    pub fn zoom_out(&mut self) {
-        self.globals.zoom *= 0.8;
-        self.was_updated = true;
-    }
-
     /// Notify the camera that the current movement is over.
     pub fn end_movement(&mut self) {
         self.old_globals = self.globals;

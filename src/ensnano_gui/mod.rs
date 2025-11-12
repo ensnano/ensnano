@@ -906,11 +906,6 @@ impl<S: AppState> IcedMessages<S> {
             .push_back(status_bar::Message::Message(Some(message)));
     }
 
-    pub fn clear_message(&mut self) {
-        self.status_bar
-            .push_back(status_bar::Message::Message(None));
-    }
-
     pub fn push_progress(&mut self, progress_name: String, progress: f32) {
         self.status_bar
             .push_back(status_bar::Message::Progress(Some((

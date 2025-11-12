@@ -19,7 +19,6 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 mod xover_suggestions;
 
 use super::*;
-use ahash::RandomState;
 use crate::ensnano_consts::{
     BOND_RADIUS, CLONE_OPACITY, HELIX_CYLINDER_COLOR, HELIX_CYLINDER_RADIUS, SPHERE_RADIUS,
 };
@@ -36,6 +35,7 @@ use crate::ensnano_interactor::{
 };
 use crate::ensnano_scene::view::GridInstance;
 use crate::ensnano_utils::{click_counter::ClickCounter, colors, instance::Instance};
+use ahash::RandomState;
 use serde::Serialize;
 use std::{
     borrow::Cow,

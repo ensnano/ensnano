@@ -17,7 +17,6 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use std::path::Path as StdPath;
-
 use svg::node::element::path::{Command, Data, Position};
 use svg::parser::Event;
 
@@ -148,11 +147,11 @@ impl MoveToParameter {
 
 #[derive(Debug)]
 pub enum SvgImportError {
-    IOError(std::io::Error),
-    SvgParserError(svg::parser::Error),
+    IOError(#[allow(unused)] std::io::Error),
+    SvgParserError(#[allow(unused)] svg::parser::Error),
     NoPathFound,
-    AttributeNotFound(String),
-    UnexpectedCommand(String),
+    AttributeNotFound(#[allow(unused)] String),
+    UnexpectedCommand(#[allow(unused)] String),
     BadParameters,
 }
 

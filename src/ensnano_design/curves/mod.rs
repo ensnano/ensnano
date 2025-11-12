@@ -252,7 +252,7 @@ pub trait Curved {
         None
     }
 
-    /// This method can be overridden to indicate that the curve can mutst be discretized quickly,
+    /// This method can be overridden to indicate that the curve must be discretized quickly,
     /// even at the cost of precision.
     fn discretize_quickly(&self) -> bool {
         false
@@ -282,8 +282,6 @@ pub trait Curved {
 pub enum CurveBounds {
     /// t ∈ [t_min, t_max]
     Finite,
-    /// t ∈ [t_min, +∞[
-    PositiveInfinite,
     /// t ∈ ]-∞, +∞[
     BiInfinite,
 }
@@ -530,11 +528,13 @@ impl Curve {
             .additional_segment_left
             .iter()
             .enumerate()
-            .map(|(segment_idx, s)| crate::ensnano_design::helices::AdditionalHelix2D {
-                left: *s as isize - self.nucl_t0 as isize,
-                additional_isometry: self.geometry.additional_isometry(segment_idx),
-                additional_symmetry: None,
-            });
+            .map(
+                |(segment_idx, s)| crate::ensnano_design::helices::AdditionalHelix2D {
+                    left: *s as isize - self.nucl_t0 as isize,
+                    additional_isometry: self.geometry.additional_isometry(segment_idx),
+                    additional_symmetry: None,
+                },
+            );
 
         for s in segments.iter_mut() {
             if let Some(i) = iter.next() {

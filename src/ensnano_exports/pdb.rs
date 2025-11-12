@@ -428,14 +428,16 @@ fn read_pdb_string(
 #[derive(Debug)]
 pub enum PdbError {
     ParsingError {
+        #[allow(unused)]
         line_number: usize,
+        #[allow(unused)]
         error: PdbAtomParseError,
     },
     EmptyNucleotide,
     EmptyBase,
-    MissingAtom(String),
+    MissingAtom(#[allow(unused)] String),
     Formatting(std::fmt::Error),
-    IOError(std::io::Error),
+    IOError(#[allow(unused)] std::io::Error),
 }
 
 const OCCUPENCY: f32 = 1.0;

@@ -25,8 +25,7 @@ pub mod pdb;
 use crate::ensnano_design::{Design, Nucl};
 use cadnano::CadnanoError;
 use pdb::PdbError;
-use std::collections::HashMap;
-use std::path::PathBuf;
+use std::{collections::HashMap, path::PathBuf};
 
 /// The file formats to which an export is implemented
 #[derive(Debug, Clone, strum::Display)]
@@ -71,9 +70,9 @@ impl ExportSuccess {
 
 #[derive(Debug)]
 pub enum ExportError {
-    CadnanoConversion(CadnanoError),
-    PdbConversion(PdbError),
-    IOError(std::io::Error),
+    CadnanoConversion(#[allow(unused)] CadnanoError),
+    PdbConversion(#[allow(unused)] PdbError),
+    IOError(#[allow(unused)] std::io::Error),
 }
 
 impl From<CadnanoError> for ExportError {
