@@ -13,8 +13,8 @@ use crate::{
 const NUCLEOTIDE_RADIUS: f32 = 0.05;
 const PAIR_CAPSULE_RADIUS: f32 = 0.1;
 
-const BASE_LINEAR_DAMPING: f32 = 0.04;
-const BASE_ANGULAR_DAMPING: f32 = 0.04;
+const BASE_LINEAR_DAMPING: f32 = 0.06;
+const BASE_ANGULAR_DAMPING: f32 = 0.06;
 
 const STRONG_SPRING_RANGES: [u32; 4] = [1, 2, 4, 8];
 
@@ -25,9 +25,9 @@ const CROSSOVER_STIFFNESS: f32 = 100.0;
 const CROSSOVER_DAMPING: f32 = 50.0;
 const CROSSOVER_SIZE: f32 = 0.64;
 
-// const FREE_NUCLEOTIDE_STIFFNESS: f32 = 100000.0;
-// const FREE_NUCLEOTIDE_DAMPING: f32 = 50000.0;
-// const FREE_NUCLEOTIDE_DISTANCE: f32 = 0.64;
+const FREE_NUCLEOTIDE_STIFFNESS: f32 = 40000.0;
+const FREE_NUCLEOTIDE_DAMPING: f32 = 4000.0;
+const FREE_NUCLEOTIDE_DISTANCE: f32 = 0.332;
 
 /// A trait to represent a strategy of how to attach
 /// colliders to rigid bodies in the simulation.
@@ -205,10 +205,14 @@ pub fn build_simulation<S: SimulationSetup>(
         global_parameters,
     );
 
-    // TODO add free nucleotide springs
-    // 1) add code in the intermediary representation X
-    // to detect single threaded ranges
-    // 2) add simple springs on those single threaded ranges
+    // add free nucleotide springs
+    build_free_springs(
+        intermediary_representation,
+        &nucleotide_body_map,
+        helices,
+        &collider_set,
+        &mut impulse_joint_set,
+    );
 
     // add crossover springs
     add_crossover_springs(
@@ -504,6 +508,95 @@ fn build_strong_springs(
                         true,
                     );
                 }
+            }
+        }
+    }
+}
+
+fn build_free_springs(
+    intermediary_representation: &HashMap<usize, IntermediaryHelix>,
+    nucleotide_body_map: &HashMap<u32, ColliderHandle>,
+    helices: &Helices,
+    collider_set: &ColliderSet,
+    impulse_joint_set: &mut ImpulseJointSet,
+) {
+    for (id, intermediary) in intermediary_representation {
+        let helix = helices
+            .get(id)
+            .expect("Couldn't find an helix in spring creation");
+
+        for range in &intermediary.single_ranges {
+            // we extend the range to connect to the external bits
+            let extended_range = range.start - 1..range.end + 1;
+
+            for down in extended_range {
+                let up = down + 1;
+
+                // we take both nucleotides
+                // -> with the extension, we could be
+                // off range; just continue in this case
+                let Some(down_pair) = intermediary.pairs.get(&down) else {
+                    continue;
+                };
+                let Some(up_pair) = intermediary.pairs.get(&up) else {
+                    continue;
+                };
+
+                // we find the corresponding colliders
+                // -> one of them could be a double
+                let Some((i, _, j, _)) = down_pair.match_single(up_pair) else {
+                    continue;
+                };
+
+                let up_collider = nucleotide_body_map[&i];
+                let down_collider = nucleotide_body_map[&j];
+
+                let Some(up_body_handle) = collider_set
+                    .get(up_collider)
+                    .expect("Couldn't find collider")
+                    .parent()
+                else {
+                    continue;
+                };
+                let Some(down_body_handle) = collider_set
+                    .get(down_collider)
+                    .expect("Couldn't find collider")
+                    .parent()
+                else {
+                    continue;
+                };
+
+                let down_offset = collider_set
+                    .get(down_collider)
+                    .expect("Couldn't find collider")
+                    .position();
+                let up_offset = collider_set
+                    .get(up_collider)
+                    .expect("Couldn't find collider")
+                    .position();
+
+                // we don't attach rigid bodies to themselves
+                if up_body_handle == down_body_handle {
+                    continue;
+                }
+
+                // we compute the offsets from the position of
+                // the nucleotide colliders
+
+                // free nucleotide spring
+                impulse_joint_set.insert(
+                    down_body_handle,
+                    up_body_handle,
+                    SpringJointBuilder::new(
+                        FREE_NUCLEOTIDE_DISTANCE,
+                        FREE_NUCLEOTIDE_STIFFNESS,
+                        FREE_NUCLEOTIDE_DAMPING,
+                    )
+                    .local_anchor1(down_offset.translation.vector.into())
+                    .local_anchor2(up_offset.translation.vector.into())
+                    .build(),
+                    true,
+                );
             }
         }
     }

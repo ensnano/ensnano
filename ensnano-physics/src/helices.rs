@@ -37,6 +37,22 @@ impl IntermediaryPair {
             _ => false,
         }
     }
+
+    /// Matches two pairs to find the way to link them.
+    /// If both are double, or they missmatch, None is returned instead.
+    pub fn match_single(&self, other: &Self) -> Option<(u32, Nucl, u32, Nucl)> {
+        match (self, other) {
+            (IntermediaryPair::OnlyForward(i, n), IntermediaryPair::OnlyForward(j, m))
+            | (IntermediaryPair::OnlyBackward(i, n), IntermediaryPair::OnlyBackward(j, m))
+            | (IntermediaryPair::Pair(i, n, _), IntermediaryPair::OnlyForward(j, m))
+            | (IntermediaryPair::Pair(_, n, i), IntermediaryPair::OnlyBackward(j, m))
+            | (IntermediaryPair::OnlyForward(i, n), IntermediaryPair::Pair(j, m, _))
+            | (IntermediaryPair::OnlyBackward(i, n), IntermediaryPair::Pair(_, m, j)) => {
+                Some((*i, *n, *j, *m))
+            }
+            _ => None,
+        }
+    }
 }
 
 /// Holds the intermediary representation
