@@ -84,7 +84,7 @@ pub struct DesignContent {
     pub insertion_length: HashMap<u32, usize, RandomState>,
     pub xover_coloring_map: HashMap<u32, bool, RandomState>,
     pub with_cones_map: HashMap<u32, bool, RandomState>,
-    // min value, max value and rainbow function(t, min, max)->color
+    // min value, max value and rainbow fn(t, min, max) -> color
     pub scalebar: Option<(f32, f32, fn(f32, f32, f32) -> u32)>,
 }
 
