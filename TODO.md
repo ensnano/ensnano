@@ -80,6 +80,14 @@
 
 ## Refactor
 
+- Remove in-file modules:
+  - `abscissa_converter`
+  - `input_color`
+  - `hue_column`
+  - `light_sat_square`
+  - `color_square`
+  - `gostop`
+  - `fog_kind`
 - Rename structs with the same name in different crates
 - Remove as many `pub use` as possible
 - Remove as many `use *` as possible
