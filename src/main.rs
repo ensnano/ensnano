@@ -185,7 +185,7 @@ use {
     },
 };
 
-const PROGRAM_NAME: &'static str = "ENSnano";
+const PROGRAM_NAME: &str = "ENSnano";
 
 /// Determine if log messages can be printed before the renderer setup.
 ///

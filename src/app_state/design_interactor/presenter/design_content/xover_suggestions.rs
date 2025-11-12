@@ -200,9 +200,9 @@ impl XoverSuggestions {
         let positions = design.get_nucl_position(*nucl)?;
         let cube0 = space_to_cube(positions[0], positions[1], positions[2]);
 
-        for i in vec![-1, 0, 1].iter() {
-            for j in vec![-1, 0, 1].iter() {
-                for k in vec![-1, 0, 1].iter() {
+        for i in [-1, 0, 1] {
+            for j in [-1, 0, 1] {
+                for k in [-1, 0, 1] {
                     let cube = (cube0.0 + i, cube0.1 + j, cube0.2 + k);
 
                     if let Some(v) = self.red_cubes.get(&cube) {

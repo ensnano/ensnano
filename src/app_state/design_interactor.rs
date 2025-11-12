@@ -1609,14 +1609,13 @@ mod tests {
             .unwrap();
         assert_eq!(app_state.get_pasting_status(), PastingStatus::Duplication);
         app_state
-            .apply_copy_operation(CopyOperation::PositionPastingPoint(
-                Some(Nucl {
+            .apply_copy_operation(CopyOperation::PositionPastingPoint(Some(
+                PastePosition::Nucl(Nucl {
                     helix: 1,
                     position: 5,
                     forward: true,
-                })
-                .map(PastePosition::Nucl),
-            ))
+                }),
+            )))
             .unwrap();
         assert_eq!(app_state.get_pasting_status(), PastingStatus::Duplication);
         app_state
