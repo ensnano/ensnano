@@ -18,17 +18,27 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 //! Implements the [Requests](`crate::ensnano_gui::Requests`) trait for [Requests](`super::Requests`).
 
-use super::*;
-use crate::ensnano_design::grid::GridId;
+use crate::controller::normal_state::Action;
+use crate::ensnano_design::{
+    elements::{DesignElementKey, DnaAttribute},
+    grid::{GridId, GridTypeDescr},
+};
 use crate::ensnano_exports::ExportType;
 use crate::ensnano_gui::{OverlayType, RigidBodyParametersRequest};
+use crate::ensnano_iced::UiSize;
 use crate::ensnano_interactor::{
-    DesignOperation, InsertionPoint, RevolutionSurfaceSystemDescriptor, RigidBodyConstants,
-    RollRequest, application::Notification, graphics::SplitMode,
+    ActionMode, DesignOperation, HyperboloidRequest, InsertionPoint, RapierSimulationRequest,
+    RevolutionSurfaceSystemDescriptor, RigidBodyConstants, RollRequest, SelectionMode,
+    UnrootedRevolutionSurfaceDescriptor,
+    app_state_parameters::{CheckXoversParameter, SuggestionParameters},
+    application::Notification,
+    graphics::{Background3D, FogParameters, HBondDisplay, RenderingMode, SplitMode},
+    operation::Operation,
 };
-use crate::ensnano_organizer::tree::GroupId;
-use std::collections::BTreeSet;
-use ultraviolet::{Rotor3, Vec2};
+use crate::ensnano_organizer::tree::{GroupId, OrganizerTree};
+use crate::requests::Requests;
+use std::{collections::BTreeSet, sync::Arc};
+use ultraviolet::{Rotor3, Vec2, Vec3};
 
 impl crate::ensnano_gui::Requests for Requests {
     fn close_overlay(&mut self, overlay_type: OverlayType) {

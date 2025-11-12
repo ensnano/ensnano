@@ -31,7 +31,6 @@ use crate::ensnano_design::{
     elements::{DesignElementKey, DnaAttribute},
     grid::{GridId, GridPosition, GridTypeDescr},
 };
-use crate::ensnano_iced::UiSize;
 use crate::ensnano_interactor::{
     ActionMode, CenterOfSelection, HyperboloidRequest, RapierSimulationRequest, RigidBodyConstants,
     RollRequest, Selection, SelectionMode, UnrootedRevolutionSurfaceDescriptor,
