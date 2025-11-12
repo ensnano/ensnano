@@ -31,6 +31,9 @@ pub mod impl_app3d;
 pub mod impl_gui;
 pub mod transitions;
 
+#[cfg(test)]
+use ensnano_design::Design;
+
 use crate::{
     app_state::design_interactor::{
         controller::{
@@ -45,8 +48,6 @@ use address_pointer::AddressPointer;
 use design_interactor::controller::ErrOperation;
 use design_interactor::{DesignInteractor, InteractorResult};
 use ensnano_consts::{APP_NAME, ENS_BACKUP_EXTENSION, ENS_EXTENSION};
-#[cfg(test)]
-use ensnano_design::Design;
 use ensnano_design::{BezierPathId, SavingInformation, group_attributes::GroupPivot};
 use ensnano_exports::{ExportResult, ExportType};
 use ensnano_iced::UiSize;
@@ -57,7 +58,7 @@ use ensnano_interactor::{
     graphics::{Background3D, HBondDisplay, RenderingMode},
     operation::Operation,
 };
-use ensnano_organizer::GroupId;
+use ensnano_organizer::tree::GroupId;
 use std::{
     path::PathBuf,
     sync::{Arc, RwLock},
@@ -720,7 +721,7 @@ impl AppState_ {
 #[derive(Clone, Default)]
 pub struct AppStateSelection {
     selection: AddressPointer<Vec<Selection>>,
-    selected_group: Option<ensnano_organizer::GroupId>,
+    selected_group: Option<GroupId>,
     pivot: Arc<RwLock<Option<GroupPivot>>>,
     old_pivot: Arc<RwLock<Option<GroupPivot>>>,
 }

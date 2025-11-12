@@ -7,7 +7,7 @@ pub mod drag_drop_target;
 pub mod element;
 pub mod hoverable_container;
 pub mod theme;
-mod tree;
+pub mod tree;
 
 use drag_drop_target::*;
 pub use element::*;
@@ -25,7 +25,7 @@ use std::{
     convert::TryInto,
 };
 use theme::OrganizerTheme;
-pub use tree::{GroupId, OrganizerTree};
+use tree::{GroupId, OrganizerTree};
 
 const LEVELS_V_SPACING: u16 = 2;
 const H_SPACING_IN_UNITS: u16 = 15;

@@ -41,7 +41,7 @@ use ensnano_interactor::{
     graphics::{DrawArea, FogParameters},
     operation::*,
 };
-use ensnano_organizer::GroupId;
+use ensnano_organizer::tree::GroupId;
 use ensnano_utils::{BufferDimensions, PhySize, filename};
 use maths_3d::FiniteVec3;
 use std::{
@@ -1321,7 +1321,7 @@ pub trait AppState: Clone + 'static {
     fn is_changing_color(&self) -> bool;
     fn is_pasting(&self) -> bool;
     fn get_selected_element(&self) -> Option<CenterOfSelection>;
-    fn get_current_group_pivot(&self) -> Option<ensnano_design::group_attributes::GroupPivot>;
+    fn get_current_group_pivot(&self) -> Option<GroupPivot>;
     fn get_current_group_id(&self) -> Option<GroupId>;
     fn suggestion_parameters_were_updated(&self, other: &Self) -> bool;
     fn get_check_xover_parameters(&self) -> CheckXoversParameter;

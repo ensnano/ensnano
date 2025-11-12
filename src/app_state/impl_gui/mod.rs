@@ -25,6 +25,7 @@ use ensnano_interactor::{ScaffoldInfo, SelectionConversion, SimulationState};
 
 mod curve_builders;
 use curve_builders::*;
+use ensnano_organizer::tree::GroupId;
 
 impl GuiState for AppState {
     const POSSIBLE_CURVES: &'static [ensnano_gui::CurveDescriptorBuilder<AppState>] =

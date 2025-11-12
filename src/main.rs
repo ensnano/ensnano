@@ -149,7 +149,7 @@ use {
         graphics::{GuiComponentType, SplitMode},
         operation::Operation,
     },
-    ensnano_organizer::GroupId,
+    ensnano_organizer::tree::GroupId,
     ensnano_scene::{AppState as _, Scene, SceneKind, data::SceneDesignReaderExt as _},
     ensnano_utils::{PhySize, TEXTURE_FORMAT},
     multiplexer::{Multiplexer, Overlay},
@@ -1211,11 +1211,7 @@ impl MainState {
         }
     }
 
-    fn update_selection(
-        &mut self,
-        selection: Vec<Selection>,
-        group_id: Option<ensnano_organizer::GroupId>,
-    ) {
+    fn update_selection(&mut self, selection: Vec<Selection>, group_id: Option<GroupId>) {
         self.modify_state(
             |s| s.with_selection(selection, group_id),
             Some("Selection".into()),

@@ -26,6 +26,7 @@ use ensnano_interactor::{
     DesignOperation, InsertionPoint, RevolutionSurfaceSystemDescriptor, RigidBodyConstants,
     RollRequest, application::Notification, graphics::SplitMode,
 };
+use ensnano_organizer::tree::GroupId;
 use std::collections::BTreeSet;
 use ultraviolet::{Rotor3, Vec2};
 
@@ -182,7 +183,7 @@ impl ensnano_gui::Requests for Requests {
     fn set_selected_keys(
         &mut self,
         selection: Vec<DesignElementKey>,
-        group_id: Option<ensnano_organizer::GroupId>,
+        group_id: Option<GroupId>,
         new_group: bool,
     ) {
         self.organizer_selection = Some((selection, group_id, new_group));

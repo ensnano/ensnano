@@ -88,7 +88,10 @@ impl Selection {
         format!("{:?}", self)
     }
 
-    fn get_helices_containing_self(&self, reader: &dyn InteractorDesignReaderExt) -> Option<Vec<usize>> {
+    fn get_helices_containing_self(
+        &self,
+        reader: &dyn InteractorDesignReaderExt,
+    ) -> Option<Vec<usize>> {
         match self {
             Self::Design(_) => None,
             Self::Grid(_, _) => None,
@@ -110,7 +113,10 @@ impl Selection {
         }
     }
 
-    fn get_grids_containing_self(&self, reader: &dyn InteractorDesignReaderExt) -> Option<Vec<GridId>> {
+    fn get_grids_containing_self(
+        &self,
+        reader: &dyn InteractorDesignReaderExt,
+    ) -> Option<Vec<GridId>> {
         if let Self::Grid(_, g_id) = self {
             Some(vec![*g_id])
         } else {
@@ -372,7 +378,10 @@ pub fn set_of_grids_containing_selection(
 }
 
 /// Return true iff the selection is only made of helices that are not attached to a grid
-pub fn all_helices_no_grid(selection: &[Selection], reader: &dyn InteractorDesignReaderExt) -> bool {
+pub fn all_helices_no_grid(
+    selection: &[Selection],
+    reader: &dyn InteractorDesignReaderExt,
+) -> bool {
     let design_id = selection.get(0).and_then(Selection::get_design);
     let mut nb_helices = 0;
     if design_id.is_none() {

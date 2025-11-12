@@ -39,7 +39,7 @@ use ensnano_design::{
     grid::{GridDescriptor, GridId, GridObject, GridTypeDescr, HelixGridPosition, Hyperboloid},
     group_attributes::GroupPivot,
 };
-use ensnano_organizer::{GroupId, OrganizerTree};
+use ensnano_organizer::tree::{GroupId, OrganizerTree};
 pub use multiplexer::Multiplexer;
 use std::path::PathBuf;
 pub use strand_builder::*;

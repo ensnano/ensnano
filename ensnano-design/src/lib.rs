@@ -46,7 +46,7 @@ pub use bezier_plane::*;
 pub use collection::{Collection, HasMap};
 pub use curves::*;
 use elements::DesignElementKey;
-use ensnano_organizer::OrganizerTree;
+use ensnano_organizer::tree::{GroupId, OrganizerTree};
 pub use external_3d_objects::*;
 use grid::{FreeGrids, GridData, GridDescriptor, GridId};
 use group_attributes::GroupAttribute;
@@ -131,7 +131,7 @@ pub struct Design {
     pub ensnano_version: String,
 
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
-    pub group_attributes: HashMap<ensnano_organizer::GroupId, GroupAttribute>,
+    pub group_attributes: HashMap<GroupId, GroupAttribute>,
 
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     cameras: BTreeMap<CameraId, Camera>,

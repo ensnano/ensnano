@@ -58,7 +58,7 @@ use ensnano_interactor::{
     },
     operation::Operation,
 };
-use ensnano_organizer::{GroupId, OrganizerTree};
+use ensnano_organizer::tree::{GroupId, OrganizerTree};
 pub use left_panel::{
     ColorOverlay, CurveDescriptorBuilder, CurveDescriptorParameter, InstantiatedParameter,
     LeftPanel, RevolutionScaling, RigidBodyParametersRequest,
@@ -139,7 +139,7 @@ pub trait Requests: 'static + Send {
     fn set_selected_keys(
         &mut self,
         selection: Vec<DesignElementKey>,
-        group_id: Option<ensnano_organizer::GroupId>,
+        group_id: Option<GroupId>,
         new_group: bool,
     );
     fn update_organizer_tree(&mut self, tree: OrganizerTree<DesignElementKey>);

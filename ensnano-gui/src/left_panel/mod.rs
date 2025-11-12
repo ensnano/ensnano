@@ -44,7 +44,7 @@ use ensnano_interactor::{
     app_state_parameters::{AppStateParameters, CheckXoversParameter, SuggestionParameters},
     graphics::{Background3D, HBondDisplay, RenderingMode},
 };
-use ensnano_organizer::{Organizer, OrganizerMessage, OrganizerTree};
+use ensnano_organizer::{Organizer, OrganizerMessage, tree::OrganizerTree};
 use std::sync::{Arc, Mutex};
 use ultraviolet::Vec3;
 

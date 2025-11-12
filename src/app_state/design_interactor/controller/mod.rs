@@ -57,7 +57,7 @@ use ensnano_interactor::{
     NewBezierTangentVector, PastingStatus, Selection, SimulationState, StrandBuilder,
     operation::{Operation, TranslateBezierPathVertex},
 };
-use ensnano_organizer::GroupId;
+use ensnano_organizer::tree::GroupId;
 use ensnano_utils::colors;
 use std::{
     borrow::Cow,

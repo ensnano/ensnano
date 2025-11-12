@@ -40,7 +40,7 @@ use ensnano_interactor::{
     graphics::{Background3D, FogParameters, HBondDisplay, RenderingMode},
     operation::Operation,
 };
-use ensnano_organizer::OrganizerTree;
+use ensnano_organizer::tree::{GroupId, OrganizerTree};
 use std::{collections::VecDeque, sync::Arc};
 use ultraviolet::Vec3;
 
@@ -90,11 +90,7 @@ pub struct Requests {
     pub anchor: Option<()>,
     pub rigid_body_parameters: Option<RigidBodyConstants>,
     pub keep_proceed: VecDeque<Action>,
-    pub organizer_selection: Option<(
-        Vec<DesignElementKey>,
-        Option<ensnano_organizer::GroupId>,
-        bool,
-    )>,
+    pub organizer_selection: Option<(Vec<DesignElementKey>, Option<GroupId>, bool)>,
     pub organizer_candidates: Option<Vec<DesignElementKey>>,
     pub new_attribute: Option<(DnaAttribute, Vec<DesignElementKey>)>,
     pub new_tree: Option<OrganizerTree<DesignElementKey>>,

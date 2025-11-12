@@ -39,7 +39,7 @@ use ensnano_interactor::{
     DesignOperation, PastingStatus, Selection, SimulationState, StrandBuilder,
     app_state_parameters::SuggestionParameters, operation::Operation,
 };
-use ensnano_organizer::GroupId;
+use ensnano_organizer::tree::GroupId;
 use presenter::{Presenter, SimulationUpdate, apply_simulation_update, update_presenter};
 use std::sync::Arc;
 
