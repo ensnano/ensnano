@@ -15,11 +15,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
 use super::*;
 use crate::ensnano_design::{Domain, Helix, HelixCollection, HelixParameters, Nucl};
-use std::io::Write;
-use std::mem::ManuallyDrop;
-use std::path::Path;
+use std::{io::Write, mem::ManuallyDrop, path::Path};
 use ultraviolet::{Mat3, Rotor3, Vec3};
 
 pub const OXDNA_LEN_FACTOR: f32 = 1. / 0.8518;

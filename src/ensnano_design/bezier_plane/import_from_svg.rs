@@ -16,11 +16,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use std::path::Path as StdPath;
-use svg::node::element::path::{Command, Data, Position};
-use svg::parser::Event;
-
 use super::*;
+use svg::{
+    node::element::path::{Command, Data, Position},
+    parser::Event,
+};
 
 const SCALE: Vec2 = Vec2 { x: 0.1, y: 0.1 };
 const ORIGIN: Vec2 = Vec2 {
@@ -28,7 +28,7 @@ const ORIGIN: Vec2 = Vec2 {
     y: 13.5557,
 };
 
-pub fn read_first_svg_path(file_path: &StdPath) -> Result<BezierPath, SvgImportError> {
+pub fn read_first_svg_path(file_path: &std::path::Path) -> Result<BezierPath, SvgImportError> {
     let mut content = String::new();
     let events = svg::open(file_path, &mut content)?;
 

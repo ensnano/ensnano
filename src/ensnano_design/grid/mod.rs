@@ -16,31 +16,31 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+mod copy_grid;
+mod deserialize;
+mod grid_collection;
+mod hyperboloid;
+
+pub use copy_grid::GridCopyError;
+pub use grid_collection::*;
+pub use hyperboloid::*;
+
 use super::{
-    Axis, BezierControlPoint, Collection, Design, Helices, Helix, HelixCollection, HelixParameters,
-    Twist, curves,
+    Axis, BezierControlPoint, BezierPathData, BezierPathId, BezierVertexId, Collection,
+    CurveDescriptor, Design, Helices, Helix, HelixCollection, HelixParameters, Twist,
+    curves::{self, AbscissaConverter, CurveDescriptor2D},
     design_operations::{ErrOperation, MIN_HELICES_TO_MAKE_GRID},
     twist_to_omega,
-};
-use super::{
-    BezierPathData, BezierPathId, BezierVertexId, CurveDescriptor,
-    curves::{AbscissaConverter, CurveDescriptor2D},
 };
 use curves::{
     CurveCache, CurveInstantiator, InstantiatedCurve, InstantiatedCurveDescriptor, PathTimeMaps,
     RevolutionCurveTimeMaps,
 };
-use std::collections::{BTreeMap, HashMap, HashSet};
-mod copy_grid;
-mod deserialize;
-mod grid_collection;
-mod hyperboloid;
-pub use copy_grid::GridCopyError;
-pub use grid_collection::*;
-pub use hyperboloid::*;
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
-
+use std::{
+    collections::{BTreeMap, HashMap, HashSet},
+    sync::Arc,
+};
 use ultraviolet::{Rotor3, Vec2, Vec3};
 
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd, Eq, Ord, Serialize, Hash)]

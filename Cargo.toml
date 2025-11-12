@@ -95,4 +95,6 @@ dx12_only = []
 [lints.clippy]
 arc_with_non_send_sync = "allow" # TODO: warn
 too_many_arguments = "allow"     # TODO: warn
+
+get_unwrap = "warn"
 wildcard_imports = "warn"

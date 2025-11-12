@@ -344,14 +344,15 @@ impl InteractorResult {
 }
 
 use crate::controller::SaveDesignError;
+use std::io::Write as _;
 use std::path::PathBuf;
+
 impl DesignInteractor {
     pub(super) fn save_design(
         &self,
         path: &PathBuf,
         saving_info: crate::ensnano_design::SavingInformation,
     ) -> Result<(), SaveDesignError> {
-        use std::io::Write;
         let mut design = self.presenter.current_design.clone_inner();
         design.prepare_for_save(saving_info);
         let json_content = serde_json::to_string_pretty(&design)?;

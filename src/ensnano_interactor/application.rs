@@ -16,19 +16,16 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use std::path::Path;
-
 use super::Selection;
 use super::graphics::*;
 use crate::ensnano_design::group_attributes::GroupPivot;
 use crate::ensnano_iced::{iced_wgpu::wgpu, iced_winit::winit};
-use std::sync::Arc;
-use std::time::Duration;
+use std::{path::Path, sync::Arc, time::Duration};
 use ultraviolet::{Rotor3, Vec3};
-use winit::window::CursorIcon;
 use winit::{
     dpi::{PhysicalPosition, PhysicalSize},
     event::{Modifiers, WindowEvent},
+    window::CursorIcon,
 };
 
 #[derive(Clone, Debug)]

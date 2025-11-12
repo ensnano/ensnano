@@ -15,6 +15,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
+mod import_from_svg;
+
+pub use import_from_svg::*;
+
 use super::Collection;
 use super::HelixParameters;
 use super::PieceWiseBezierInstantiator;
@@ -23,12 +28,8 @@ use super::curves::{BezierEndCoordinates, Curve, InstantiatedPiecewiseBezier};
 use super::grid::*;
 use super::utils::rotor_to_drotor;
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
-use std::sync::Arc;
+use std::{collections::BTreeMap, sync::Arc};
 use ultraviolet::{DMat3, DVec3, Mat3, Rotor3, Vec2, Vec3};
-
-mod import_from_svg;
-pub use import_from_svg::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BezierPlaneDescriptor {

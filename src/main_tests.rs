@@ -20,6 +20,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::*;
 use crate::ensnano_design::Nucl;
+use crate::ensnano_interactor::application::Camera3D;
+use crate::ensnano_scene::data::SceneDesignReaderExt as _;
 use winit::{dpi::PhysicalPosition, window::CursorIcon};
 
 struct DummyScene {}
@@ -59,7 +61,6 @@ impl Application for DummyScene {
     }
 
     fn get_camera(&self) -> Option<Arc<(crate::ensnano_interactor::application::Camera3D, f32)>> {
-        use crate::ensnano_interactor::application::Camera3D;
         Some(Arc::new((
             Camera3D {
                 position: Vec3::zero(),
@@ -164,7 +165,6 @@ fn duplication_via_requests_correct_status() {
 
 #[test]
 fn duplication_via_requests_strands_are_duplicated() {
-    use crate::ensnano_scene::data::SceneDesignReaderExt as _;
     let mut main_state = new_state();
     let app_state = pastable_design();
     main_state.clear_app_state(app_state);

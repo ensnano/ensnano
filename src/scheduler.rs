@@ -16,17 +16,22 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use super::{AppState, Multiplexer};
-use crate::ensnano_iced::iced_wgpu::wgpu;
-use crate::ensnano_interactor::application::Application;
-use crate::ensnano_interactor::graphics::GuiComponentType;
-use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
-use std::time::Duration;
-use winit::{
-    dpi::{PhysicalPosition, PhysicalSize},
-    event::WindowEvent,
-    window::CursorIcon,
+use {
+    super::{AppState, Multiplexer},
+    crate::{
+        ensnano_iced::iced_wgpu::wgpu,
+        ensnano_interactor::{application::Application, graphics::GuiComponentType},
+    },
+    std::{
+        collections::HashMap,
+        sync::{Arc, Mutex},
+        time::Duration,
+    },
+    winit::{
+        dpi::{PhysicalPosition, PhysicalSize},
+        event::WindowEvent,
+        window::CursorIcon,
+    },
 };
 
 /// The scheduler is responsible for running the different applications

@@ -18,7 +18,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 //! A wrapper around an `Arc<T>` that uses `Arc::ptr_eq` to test for equality.
 
-use std::sync::Arc;
+use std::{ops::Deref as _, sync::Arc};
 
 /// A wrapper around an `Arc<T>` that uses `Arc::ptr_eq` to test for equality.
 #[derive(Default)]
@@ -78,7 +78,6 @@ impl<T: Default + Clone> AddressPointer<T> {
     }
 }
 
-use std::ops::Deref;
 impl<T: Clone + Default> AddressPointer<T> {
     /// Return a clone of the pointed value.
     pub fn clone_inner(&self) -> T {
