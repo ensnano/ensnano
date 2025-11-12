@@ -99,16 +99,17 @@ pub enum Message<E: OrganizerElement> {
 }
 
 type TreeId = Vec<usize>;
+
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum NodeId<AutoGroupId> {
-    TreeId(TreeId),
-    SectionId(usize),
-    AutoGroupId(AutoGroupId),
+    Tree(TreeId),
+    Section(usize),
+    AutoGroup(AutoGroupId),
 }
 
 impl<E: std::fmt::Debug> NodeId<E> {
     fn push(&mut self, x: usize) {
-        if let Self::TreeId(v) = self {
+        if let Self::Tree(v) = self {
             v.push(x)
         } else {
             log::error!("Trying to push on {:?}", self)
@@ -117,7 +118,7 @@ impl<E: std::fmt::Debug> NodeId<E> {
 }
 
 fn get_group_id<E>(id: &NodeId<E>) -> Option<&[usize]> {
-    if let NodeId::TreeId(id) = id {
+    if let NodeId::Tree(id) = id {
         Some(id)
     } else {
         None
@@ -125,7 +126,7 @@ fn get_group_id<E>(id: &NodeId<E>) -> Option<&[usize]> {
 }
 
 fn get_section_id<E>(id: &NodeId<E>) -> Option<usize> {
-    if let NodeId::SectionId(n) = id {
+    if let NodeId::Section(n) = id {
         Some(*n)
     } else {
         None
@@ -239,7 +240,7 @@ impl<E: OrganizerElement> Organizer<E> {
         let mut section: Result<<E::Key as ElementKey>::Section, _> = i.try_into();
         while let Ok(s) = section {
             log::info!("section {:?}, {:?}", i, s);
-            let new_section: Section<E> = Section::new(NodeId::SectionId(i), E::Key::name(s));
+            let new_section: Section<E> = Section::new(NodeId::Section(i), E::Key::name(s));
             sections.push(new_section);
             i += 1;
             section = i.try_into();
@@ -357,7 +358,7 @@ impl<E: OrganizerElement> Organizer<E> {
     }
 
     pub fn push_content(&mut self, content: Vec<E::Key>, group_name: String) -> GroupId {
-        let id = NodeId::TreeId(vec![self.groups.len()]);
+        let id = NodeId::Tree(vec![self.groups.len()]);
         let new_group = GroupContent::new(content, group_name, id.clone(), &mut self.rng_thread);
         let ret = new_group
             .get_group_id()
@@ -630,7 +631,7 @@ impl<E: OrganizerElement> Organizer<E> {
             self.groups[id[0]].expand(&id[1..], expanded)
         } else if let Some(id) = get_section_id(id) {
             self.sections[id].expand(expanded)
-        } else if let NodeId::AutoGroupId(name) = id
+        } else if let NodeId::AutoGroup(name) = id
             && let Some(group) = self.auto_groups.get_mut(name)
         {
             group.expand(expanded)
@@ -641,7 +642,7 @@ impl<E: OrganizerElement> Organizer<E> {
         self.groups.retain(|c| !c.is_placeholder());
         self.group_to_node.clear();
         for (i, c) in self.groups.iter_mut().enumerate() {
-            c.recompute_id(NodeId::TreeId(vec![i]), &mut self.group_to_node)
+            c.recompute_id(NodeId::Tree(vec![i]), &mut self.group_to_node)
         }
     }
 
@@ -766,7 +767,7 @@ impl<E: OrganizerElement> Organizer<E> {
     }
 
     fn move_id(&mut self, source: &NodeId<E::AutoGroup>, dest: &NodeId<E::AutoGroup>) {
-        if let (NodeId::TreeId(source), NodeId::TreeId(dest)) = (source, dest) {
+        if let (NodeId::Tree(source), NodeId::Tree(dest)) = (source, dest) {
             if source.len() < dest.len() && dest[..source.len()] == source[..] {
                 println!("prefix");
                 return;
@@ -824,7 +825,7 @@ impl<E: OrganizerElement> Organizer<E> {
             for g in e.auto_groups(upper_domain_length_bounds) {
                 self.auto_groups
                     .entry(g.clone())
-                    .or_insert_with(|| Section::new(NodeId::AutoGroupId(g.clone()), g.to_string()))
+                    .or_insert_with(|| Section::new(NodeId::AutoGroup(g.clone()), g.to_string()))
                     .add_element(e.clone())
             }
         }
@@ -1170,7 +1171,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                 id,
                 ..
             } => {
-                level = if let NodeId::TreeId(id) = id {
+                level = if let NodeId::Tree(id) = id {
                     id.len()
                 } else {
                     0
@@ -1192,7 +1193,7 @@ impl<E: OrganizerElement> GroupContent<E> {
             Self::Leaf {
                 view, element, id, ..
             } => {
-                level = if let NodeId::TreeId(id) = id {
+                level = if let NodeId::Tree(id) = id {
                     id.len()
                 } else {
                     0
@@ -1218,7 +1219,7 @@ impl<E: OrganizerElement> GroupContent<E> {
 
     fn leaf(key: E::Key, id: Vec<usize>) -> Self {
         Self::Leaf {
-            id: NodeId::TreeId(id),
+            id: NodeId::Tree(id),
             element: key,
             view: ElementView::new(),
             attributes: vec![None; E::all_discriminants().len()],
@@ -1232,7 +1233,7 @@ impl<E: OrganizerElement> GroupContent<E> {
     ) -> Self {
         match tree {
             OrganizerTree::Leaf(k) => Self::Leaf {
-                id: NodeId::TreeId(vec![]),
+                id: NodeId::Tree(vec![]),
                 element: k.clone(),
                 view: ElementView::new(),
                 attributes: vec![None; E::all_discriminants().len()],
@@ -1255,7 +1256,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                 });
                 Self::Node {
                     children,
-                    id: NodeId::TreeId(vec![]),
+                    id: NodeId::Tree(vec![]),
                     name: name.clone(),
                     expanded: *expanded,
                     view: NodeTitleBar::new(),
@@ -1661,7 +1662,7 @@ impl<E: OrganizerElement> GroupContent<E> {
         ids_to_remove: &mut Vec<NodeId<E::AutoGroup>>,
         elements: &BTreeSet<E::Key>,
     ) -> bool {
-        let fake_id = &NodeId::TreeId(vec![]);
+        let fake_id = &NodeId::Tree(vec![]);
         let (ret, id) = match self {
             Self::Placeholder => (false, fake_id),
             Self::Leaf { element, id, .. } => (!elements.contains(element), id),

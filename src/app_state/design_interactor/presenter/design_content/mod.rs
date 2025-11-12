@@ -549,7 +549,7 @@ impl DesignContent {
 
         // Scanning strands
         for (s_id, strand) in design.strands.iter_mut() {
-            elements.push(elements::DesignElement::StrandElement {
+            elements.push(elements::DesignElement::Strand {
                 id: *s_id, // the key in design.strands btreemap
                 length: strand.length(),
                 domain_lengths: strand.domain_lengths(),
@@ -608,7 +608,7 @@ impl DesignContent {
                     );
                     if let Some(id) = xover_ids.get_id(&(prime5, prime3)) {
                         // THIS IS A XOVER INTERNAL -> take action
-                        elements.push(DesignElement::CrossOverElement {
+                        elements.push(DesignElement::CrossOver {
                             xover_id: id,
                             helix5prime: prime5.helix,
                             position5prime: prime5.position,
@@ -680,7 +680,7 @@ impl DesignContent {
                             log::error!("Could not get virtual nucl corresponding to {:?}", nucl);
                         }
 
-                        elements.push(DesignElement::NucleotideElement {
+                        elements.push(DesignElement::Nucleotide {
                             helix: nucl.helix,
                             position: nucl.position,
                             forward: nucl.forward,
@@ -841,7 +841,7 @@ impl DesignContent {
                 let (prime5, prime3) = bond;
                 if let Some(id) = new_junctions.get_id(&(prime5, prime3)) {
                     // Final XOVER DE strand cyclic
-                    elements.push(DesignElement::CrossOverElement {
+                    elements.push(DesignElement::CrossOver {
                         xover_id: id,
                         helix5prime: prime5.helix,
                         position5prime: prime5.position,
@@ -930,7 +930,7 @@ impl DesignContent {
         // Scanning grids
         for g_id in grid_manager.grids.keys() {
             if let GridId::FreeGrid(id) = g_id {
-                elements.push(DesignElement::GridElement {
+                elements.push(DesignElement::Grid {
                     id: *id,
                     visible: grid_manager.get_visibility(*g_id),
                 })
@@ -938,7 +938,7 @@ impl DesignContent {
         }
 
         for (h_id, h) in design.helices.iter() {
-            elements.push(DesignElement::HelixElement {
+            elements.push(DesignElement::Helix {
                 id: *h_id,
                 group: groups.get(h_id).cloned(),
                 locked_for_simulations: h.locked_for_simulations,

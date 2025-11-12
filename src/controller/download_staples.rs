@@ -39,7 +39,7 @@ enum Step {
         design_id: usize,
     },
     /// Downloading
-    Downloading { design_id: usize, path: PathBuf },
+    Downloading { path: PathBuf },
 }
 
 impl State for DownloadStaples {
@@ -52,9 +52,7 @@ impl State for DownloadStaples {
                 path_input,
                 design_id,
             } => poll_path(path_input, design_id),
-            Step::Downloading { design_id, path } => {
-                download_staples(downloader.as_ref(), design_id, path)
-            }
+            Step::Downloading { path } => download_staples(downloader.as_ref(), path),
         }
     }
 }
@@ -129,7 +127,7 @@ fn poll_path(path_input: PathInput, design_id: usize) -> Box<dyn State> {
     if let Some(result) = path_input.get() {
         if let Some(path) = result {
             Box::new(DownloadStaples {
-                step: Step::Downloading { path, design_id },
+                step: Step::Downloading { path },
             })
         } else {
             TransitionMessage::new(
@@ -148,11 +146,7 @@ fn poll_path(path_input: PathInput, design_id: usize) -> Box<dyn State> {
     }
 }
 
-fn download_staples(
-    downloader: &dyn StaplesDownloader,
-    _design_id: usize,
-    path: PathBuf,
-) -> Box<dyn State> {
+fn download_staples(downloader: &dyn StaplesDownloader, path: PathBuf) -> Box<dyn State> {
     downloader.write_staples_xlsx(&path);
     let msg = messages::successful_staples_export_msg(&path);
     TransitionMessage::new(msg, rfd::MessageLevel::Error, Box::new(NormalState))

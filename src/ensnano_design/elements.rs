@@ -15,6 +15,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
 use crate::ensnano_organizer::{
     AttributeDisplay, AttributeWidget, ElementKey, OrganizerAttribute,
     OrganizerAttributeDiscriminant, OrganizerElement,
@@ -25,26 +26,26 @@ use serde::{Deserialize, Serialize};
 /// Actual implementation of the OrganizerElement for the LeftPanel.
 #[derive(Clone, Debug)]
 pub enum DesignElement {
-    GridElement {
+    Grid {
         id: usize,
         visible: bool,
     },
-    StrandElement {
+    Strand {
         id: usize,
         length: usize,
         domain_lengths: Vec<usize>,
     },
-    HelixElement {
+    Helix {
         id: usize,
         group: Option<bool>,
         locked_for_simulations: bool,
     },
-    NucleotideElement {
+    Nucleotide {
         helix: usize,
         position: isize,
         forward: bool,
     },
-    CrossOverElement {
+    CrossOver {
         xover_id: usize,
         helix5prime: usize,
         position5prime: isize,
@@ -121,10 +122,10 @@ impl OrganizerElement for DesignElement {
 
     fn key(&self) -> DesignElementKey {
         match self {
-            DesignElement::GridElement { id, .. } => DesignElementKey::Grid(*id),
-            DesignElement::StrandElement { id, .. } => DesignElementKey::Strand(*id),
-            DesignElement::HelixElement { id, .. } => DesignElementKey::Helix(*id),
-            DesignElement::NucleotideElement {
+            DesignElement::Grid { id, .. } => DesignElementKey::Grid(*id),
+            DesignElement::Strand { id, .. } => DesignElementKey::Strand(*id),
+            DesignElement::Helix { id, .. } => DesignElementKey::Helix(*id),
+            DesignElement::Nucleotide {
                 helix,
                 position,
                 forward,
@@ -133,7 +134,7 @@ impl OrganizerElement for DesignElement {
                 position: *position,
                 forward: *forward,
             },
-            DesignElement::CrossOverElement { xover_id, .. } => DesignElementKey::CrossOver {
+            DesignElement::CrossOver { xover_id, .. } => DesignElementKey::CrossOver {
                 xover_id: *xover_id,
             },
         }
@@ -141,15 +142,15 @@ impl OrganizerElement for DesignElement {
 
     fn display_name(&self) -> String {
         match self {
-            DesignElement::GridElement { id, .. } => format!("Grid {}", id),
-            DesignElement::StrandElement { id, .. } => format!("Strand {}", id),
-            DesignElement::HelixElement { id, .. } => format!("Helix {}", id),
-            DesignElement::NucleotideElement {
+            DesignElement::Grid { id, .. } => format!("Grid {}", id),
+            DesignElement::Strand { id, .. } => format!("Strand {}", id),
+            DesignElement::Helix { id, .. } => format!("Helix {}", id),
+            DesignElement::Nucleotide {
                 helix,
                 position,
                 forward,
             } => format!("Nucl {}:{}:{}", helix, position, forward),
-            DesignElement::CrossOverElement {
+            DesignElement::CrossOver {
                 helix5prime,
                 position5prime,
                 forward5prime,
@@ -171,7 +172,7 @@ impl OrganizerElement for DesignElement {
 
     fn attributes(&self) -> Vec<DnaAttribute> {
         match self {
-            DesignElement::HelixElement {
+            DesignElement::Helix {
                 group,
                 locked_for_simulations: locked,
                 ..
@@ -179,14 +180,14 @@ impl OrganizerElement for DesignElement {
                 DnaAttribute::XoverGroup(*group),
                 DnaAttribute::LockedForSimulations(*locked),
             ],
-            DesignElement::GridElement { visible, .. } => vec![DnaAttribute::Visible(*visible)],
+            DesignElement::Grid { visible, .. } => vec![DnaAttribute::Visible(*visible)],
             _ => vec![],
         }
     }
 
     fn min_max_domain_length_if_strand(&self) -> Option<(usize, usize)> {
         match self {
-            DesignElement::StrandElement { domain_lengths, .. } => match (
+            DesignElement::Strand { domain_lengths, .. } => match (
                 domain_lengths.clone().iter().min().copied(),
                 domain_lengths.clone().iter().max().copied(),
             ) {
@@ -200,7 +201,7 @@ impl OrganizerElement for DesignElement {
 
     fn auto_groups(&self, last_domain_length_bounds: (usize, usize)) -> Vec<Self::AutoGroup> {
         match self {
-            DesignElement::StrandElement {
+            DesignElement::Strand {
                 length,
                 domain_lengths,
                 ..
