@@ -15,9 +15,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use ahash::RandomState;
-use std::collections::HashMap;
-use std::hash::Hash;
+
+use {
+    ahash::RandomState,
+    std::{collections::HashMap, hash::Hash},
+};
 
 #[derive(Clone, Debug)]
 pub struct IdGenerator<K: Eq + Hash + Clone> {
@@ -57,6 +59,18 @@ impl<K: Eq + Hash + Clone> IdGenerator<K> {
 
     pub fn get_id(&self, element: &K) -> Option<usize> {
         self.ids.get(element).cloned()
+    }
+
+    #[cfg(test)]
+    pub fn remove(&mut self, id: usize) {
+        let elt = self.get_element(id).expect("Removing non-existent id");
+        self.ids.remove(&elt);
+        self.elements.remove(&id);
+    }
+
+    #[cfg(test)]
+    pub fn is_empty(&self) -> bool {
+        self.ids.is_empty() && self.elements.is_empty()
     }
 
     pub fn get_all_elements(&self) -> Vec<(usize, K)> {
