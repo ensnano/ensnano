@@ -66,7 +66,7 @@ impl GridInstance {
         x: isize,
         y: isize,
         h_id: usize,
-        instances: &mut Vec<Vec<LetterInstance>>,
+        instances: &mut [Vec<LetterInstance>],
         right: Vec3,
         up: Vec3,
     ) {

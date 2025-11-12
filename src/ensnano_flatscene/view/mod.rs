@@ -640,16 +640,9 @@ impl View {
             None
         };
 
-        let attachment = if msaa_texture.is_some() {
-            msaa_texture.as_ref().unwrap()
-        } else {
-            target
-        };
-
-        let resolve_target = if msaa_texture.is_some() {
-            Some(target)
-        } else {
-            None
+        let (attachment, resolve_target) = match msaa_texture.as_ref() {
+            Some(msaa_texture) => (msaa_texture, Some(target)),
+            None => (target, None),
         };
 
         let bottom = false;

@@ -149,7 +149,7 @@ impl FromCadnano for Design {
 fn find_5_end(
     i: usize,
     j: usize,
-    vstrands: &Vec<VStrand>,
+    vstrands: &[VStrand],
     num_to_helix: &HashMap<isize, usize>,
     scaf: bool,
 ) -> (usize, usize, bool) {
@@ -176,7 +176,7 @@ fn find_5_end(
 
 fn make_strand(
     end_5: (usize, usize, bool),
-    vstrands: &Vec<VStrand>,
+    vstrands: &[VStrand],
     num_to_helix: &HashMap<isize, usize>,
     seen: &mut HashSet<(usize, usize, bool)>,
     scaf: bool,
@@ -296,7 +296,7 @@ fn make_strand(
     ret
 }
 
-fn subtract_skips(nucl: usize, helix: usize, vstrands: &Vec<VStrand>) -> isize {
+fn subtract_skips(nucl: usize, helix: usize, vstrands: &[VStrand]) -> isize {
     let skips: isize = (0..(nucl + 1)).map(|n| vstrands[helix].skip[n]).sum();
     nucl as isize + skips
 }

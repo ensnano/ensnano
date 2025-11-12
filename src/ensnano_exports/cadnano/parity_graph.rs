@@ -16,9 +16,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use crate::ensnano_design::HelixCollection;
-
 use super::*;
+use crate::ensnano_design::HelixCollection;
 
 pub fn get_parity(design: &Design, max_helix_idx: usize) -> Result<Vec<bool>, CadnanoError> {
     let mut father = make_group(design, max_helix_idx);
@@ -65,8 +64,8 @@ fn make_graph(
 }
 
 fn get_color_first_helix(design: &Design, father: &[usize]) -> bool {
-    for h_id in 0..father.len() {
-        if father[h_id] == h_id
+    for (h_id, &item) in father.iter().enumerate() {
+        if item == h_id
             && let Some(grid_pos) = design
                 .helices
                 .get(&h_id)
@@ -79,7 +78,7 @@ fn get_color_first_helix(design: &Design, father: &[usize]) -> bool {
 }
 
 fn color_graph(
-    graph: &Vec<Vec<bool>>,
+    graph: &[Vec<bool>],
     max_helix_idx: usize,
     father: &mut Vec<usize>,
     color_first_helix: bool,
@@ -145,7 +144,7 @@ fn make_group(design: &Design, max_helix_idx: usize) -> Vec<usize> {
     father
 }
 
-fn union(i: usize, j: usize, father: &mut Vec<usize>, rank: &mut Vec<usize>) {
+fn union(i: usize, j: usize, father: &mut Vec<usize>, rank: &mut [usize]) {
     let i_root = find(i, father);
     let j_root = find(j, father);
     if i_root != j_root {

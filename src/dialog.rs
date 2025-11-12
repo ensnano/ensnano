@@ -19,6 +19,13 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! Functions that create [states](`crate::controller::State`) in which the user is interacting
 //! with a dialog box (alert, file picker, ...).
 
+use std::{
+    borrow::Cow,
+    path::{Path, PathBuf},
+    sync::mpsc,
+    thread,
+};
+
 macro_rules! log_err {
     ($x:expr) => {
         if $x.is_err() {
@@ -27,12 +34,8 @@ macro_rules! log_err {
     };
 }
 
-use std::path::{Path, PathBuf};
-use std::sync::mpsc;
-use std::thread;
 pub type Filters = &'static [(&'static str, &'static [&'static str])];
 
-use std::borrow::Cow;
 /// A question to which the user must answer yes or no
 pub struct YesNoQuestion(mpsc::Receiver<bool>);
 impl YesNoQuestion {

@@ -110,17 +110,11 @@ fn fill_square_texture(target: &TextureView, device: &Device, encoder: &mut wgpu
         None
     };
 
-    let attachment = if msaa_texture.is_some() {
-        msaa_texture.as_ref().unwrap()
-    } else {
-        target
+    let (attachment, resolve_target) = match msaa_texture.as_ref() {
+        Some(msaa_texture) => (msaa_texture, Some(target)),
+        None => (target, None),
     };
 
-    let resolve_target = if msaa_texture.is_some() {
-        Some(target)
-    } else {
-        None
-    };
     let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
         label: None,
         color_attachments: &[Some(wgpu::RenderPassColorAttachment {
@@ -254,17 +248,11 @@ fn fill_honeycomb_texture(
         None
     };
 
-    let attachment = if msaa_texture.is_some() {
-        msaa_texture.as_ref().unwrap()
-    } else {
-        target
+    let (attachment, resolve_target) = match msaa_texture.as_ref() {
+        Some(msaa_texture) => (msaa_texture, Some(target)),
+        None => (target, None),
     };
 
-    let resolve_target = if msaa_texture.is_some() {
-        Some(target)
-    } else {
-        None
-    };
     let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
         label: None,
         color_attachments: &[Some(wgpu::RenderPassColorAttachment {
