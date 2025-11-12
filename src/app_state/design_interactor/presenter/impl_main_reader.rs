@@ -22,7 +22,7 @@ use crate::controller::download_staples::{
 };
 use rust_xlsxwriter::{Color, Format, Workbook};
 use serde::Serialize;
-use std::{io::Write, path::PathBuf};
+use std::{io::Write as _, path::Path};
 
 impl StaplesDownloader for DesignInteractor {
     fn download_staples(&self) -> Result<DownloadStapleOk, DownloadStapleError> {
@@ -68,7 +68,7 @@ impl StaplesDownloader for DesignInteractor {
         Ok(DownloadStapleOk { warnings })
     }
 
-    fn write_staples_xlsx(&self, xlsx_path: &PathBuf) {
+    fn write_staples_xlsx(&self, xlsx_path: &Path) {
         // use simple_excel_writer::{row, Row, Workbook};
 
         let all_group_names: Vec<String> = self.presenter.get_names_of_all_groups();
@@ -260,7 +260,7 @@ impl StaplesDownloader for DesignInteractor {
         // wb.close().expect("close excel error!");
     }
 
-    fn write_intervals(&self, origami_path: &PathBuf) {
+    fn write_intervals(&self, origami_path: &Path) {
         let staples = self
             .presenter
             .content

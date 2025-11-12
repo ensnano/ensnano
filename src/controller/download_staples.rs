@@ -19,7 +19,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::{NormalState, State, TransitionMessage, messages};
 use crate::{MainStateView, dialog};
 use dialog::{MustAckMessage, PathInput};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 #[derive(Default)]
 pub(super) struct DownloadStaples {
@@ -154,8 +154,8 @@ fn download_staples(downloader: &dyn StaplesDownloader, path: PathBuf) -> Box<dy
 
 pub trait StaplesDownloader {
     fn download_staples(&self) -> Result<DownloadStapleOk, DownloadStapleError>;
-    fn write_staples_xlsx(&self, xlsx_path: &PathBuf);
-    fn write_intervals(&self, origami_path: &PathBuf);
+    fn write_staples_xlsx(&self, xlsx_path: &Path);
+    fn write_intervals(&self, origami_path: &Path);
     fn default_shift(&self) -> Option<usize>;
 }
 

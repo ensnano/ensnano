@@ -62,15 +62,17 @@ pub enum DnaAutoGroup {
     StrandWithDomainOfLength(BoundedLength),
 }
 
-impl ToString for DnaAutoGroup {
-    fn to_string(&self) -> String {
+impl std::fmt::Display for DnaAutoGroup {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::StrandWithLength(length) => format!("Strands with length {}", length.to_string()),
+            Self::StrandWithLength(length) => {
+                write!(f, "Strands with length {}", length.to_string())
+            }
             Self::StrandWithDomainOfLength(length) => match length {
                 BoundedLength::Last(_, _) => {
-                    format!("Strand with domains of lengths {}", length.to_string())
+                    write!(f, "Strand with domains of lengths {}", length.to_string())
                 }
-                _ => format!("Strands with a domain of length {}", length.to_string()),
+                _ => write!(f, "Strands with a domain of length {}", length.to_string()),
             },
         }
     }
