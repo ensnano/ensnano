@@ -71,6 +71,8 @@
 
 ## Long-term
 
+- Fix all merge requests (github | github)
+- Fix all issues (github | github)
 - Update `iced` to 0.13
 - Port to the web with WASM
 - Distribution of strand lengths (analysis tab)
