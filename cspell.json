@@ -1,12 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/streetsidesoftware/cspell/main/cspell.schema.json",
   "version": "0.2",
-  "ignorePaths": [
-    "target/",
-    "thirdparties/",
-    "*.txt",
-    "Cargo.lock"
-  ],
+  "ignorePaths": ["target/", "thirdparties/", "*.txt", "*.pdb", "Cargo.lock"],
   "words": [
     "2KPHSEF9U9",
     "ahash",
@@ -17,6 +12,7 @@
     "autoroll",
     "Bgra",
     "bindgroup",
+    "bitangent",
     "Bivec",
     "btreemap",
     "bytemuck",
@@ -156,6 +152,7 @@
     "supertwist",
     "SUPPR",
     "Tessellator",
+    "tessellators",
     "thenlevy",
     "thirdparties",
     "tickmarks",
