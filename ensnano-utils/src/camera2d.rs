@@ -15,6 +15,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
 //! This modules defines a 2D camera for the FlatScene.
 //!
 //! The [Globals] struct contains the value that must be send to the GPU to compute the view

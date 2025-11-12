@@ -17,7 +17,6 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 //! Defines constants uses throughout the workspace.
-//!
 
 use ultraviolet::{Vec3, Vec4};
 pub const VIEWER_BINDING_ID: u32 = 0;
@@ -51,9 +50,7 @@ pub const UP_CIRCLE_ID: u32 = 4;
 pub const FRONT_CIRCLE_ID: u32 = 5;
 pub const SPHERE_WIDGET_ID: u32 = 6;
 pub const BEZIER_START_WIDGET_ID: u32 = 7;
-#[allow(dead_code)]
 pub const BEZIER_CONTROL1_WIDGET_ID: u32 = 8;
-#[allow(dead_code)]
 pub const BEZIER_CONTROL2_WIDGET_ID: u32 = 9;
 pub const BEZIER_END_WIDGET_ID: u32 = 10;
 pub const SAMPLE_COUNT: u32 = 4;

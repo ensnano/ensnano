@@ -85,7 +85,6 @@
 - Remove as many `use *` as possible
 - Remove as many `#[allow(...)]` as possible
 - Remove copyright from every file? `LICENSE` at the root should be enough
-- Use `mod.rs` everywhere instead of `module.rs` and `<module>/`
 - kebab-case -> snake_case for the crate directories
 - Fix all typos using `cspell`
   - Add serialization/deserialization tests to detect regressions based on typo fixes

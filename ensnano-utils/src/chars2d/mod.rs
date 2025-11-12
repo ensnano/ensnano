@@ -15,18 +15,22 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
+mod text_drawer;
+
+pub use text_drawer::{Line, Sentence, TextDrawer};
+
+use crate::{
+    bindgroup_manager::DynamicBindGroup,
+    text::{Letter, Vertex as CharVertex},
+    texture::Texture,
+};
+use ensnano_consts::{SAMPLE_COUNT, TEXTURE_BINDING_ID};
 use ensnano_iced::iced_wgpu::wgpu;
 use std::collections::HashMap;
 use std::rc::Rc;
 use ultraviolet::{Mat2, Vec2, Vec4};
 use wgpu::{BindGroupLayout, Device, Queue, RenderPass, RenderPipeline, include_spirv};
-
-use crate::bindgroup_manager::DynamicBindGroup;
-use crate::text::{Letter, Vertex as CharVertex};
-use crate::texture::Texture;
-use ensnano_consts::*;
-mod text_drawer;
-pub use text_drawer::{Line, Sentence, TextDrawer};
 
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
