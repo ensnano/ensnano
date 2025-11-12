@@ -741,7 +741,7 @@ pub enum Domain {
         #[serde(
             skip,
             default,
-            alias = "instanciation", // cspell:disable-line
+            alias = "instanciation", // cspell: disable-line
         )]
         instantiation: Option<Arc<InstantiatedInsertion>>,
         #[serde(default)]

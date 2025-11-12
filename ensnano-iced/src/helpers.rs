@@ -120,7 +120,7 @@ where
 // NOTE: It seems since iced 0.12 that giving a size to a button make the (text) content disappear,
 //       therefore we give the size to the underlying text.
 
-// NOTE: This wrapper ensures that every button has a consisent shape.
+// NOTE: This wrapper ensures that every button has a consistent shape.
 macro_rules! button_text_wrapper {
     ($text:expr, $ui_size:ident) => {
         button(
@@ -256,7 +256,6 @@ where
     //       logos such as: ⏵ ⏸ ⏺ ⏹
     if let Some(send_start_stop_message) = start_stop_switch {
         start_stop_button = start_stop_button.on_press(send_start_stop_message(!is_started));
-        // The action is to reverset the state.
     }
     start_stop_button
 }

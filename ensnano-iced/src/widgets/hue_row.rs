@@ -217,7 +217,7 @@ impl<'a, Message, Theme> Widget<Message, Theme, iced::Renderer>
                     event::Status::Captured
                 }
                 mouse::Event::CursorMoved { .. } => {
-                    // NOTE: Using "position" attribute from mouse::Event::CursorMoved dosen't work because
+                    // NOTE: Using "position" attribute from mouse::Event::CursorMoved doesn't work because
                     //       it is not the good coordinates.
                     if state.is_dragging {
                         if let Some(pos) = position {

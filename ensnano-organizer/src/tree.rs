@@ -32,7 +32,7 @@ pub enum OrganizerTree<K> {
     Leaf(K),
     Node {
         name: String,
-        #[serde(alias = "childrens")] // cspell:disable-line
+        #[serde(alias = "childrens")] // cspell: disable-line
         children: Vec<OrganizerTree<K>>,
         expanded: bool,
         #[serde(default)]
@@ -175,7 +175,7 @@ enum NewOrganizerTree<K> {
     Leaf(K),
     Node {
         name: String,
-        #[serde(alias = "childrens")] // cspell:disable-line
+        #[serde(alias = "childrens")] // cspell: disable-line
         children: Vec<OrganizerTree<K>>,
         expanded: bool,
         #[serde(default)]

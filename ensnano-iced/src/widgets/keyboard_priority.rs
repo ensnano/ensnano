@@ -218,7 +218,7 @@ where
         }
     }
 
-    // NOTE: Needed to transmit mouse intercation to child [`TextInput`].
+    // NOTE: Needed to transmit mouse interaction to child [`TextInput`].
     fn mouse_interaction(
         &self,
         tree: &widget::Tree,

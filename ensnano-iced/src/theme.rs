@@ -144,7 +144,7 @@ impl From<DeactivatedSlider> for Slider {
     }
 }
 
-// A TextInput that changes appareance when the contained value is bad.
+// A TextInput that changes appearance when the contained value is bad.
 //
 // A `true` value means bad.
 //

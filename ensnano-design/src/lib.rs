@@ -112,7 +112,7 @@ pub struct Design {
     /// The set of identifiers of grids whose helices are displayed with smaller spheres for the
     /// nucleotides.
     #[serde(
-        alias = "small_shperes", // cspell:disable-line
+        alias = "small_shperes", // cspell: disable-line
         alias = "no_spheres",
         rename(serialize = "no_spheres"),
         skip_serializing_if = "HashSet::is_empty",
@@ -151,7 +151,7 @@ pub struct Design {
 
     #[serde(
         skip,
-        alias = "instanciated_grid_data", // cspell:disable-line
+        alias = "instanciated_grid_data", // cspell: disable-line
     )]
     instantiated_grid_data: Option<GridData>,
 
@@ -166,7 +166,7 @@ pub struct Design {
 
     #[serde(
         skip,
-        alias = "instanciated_paths", // cspell:disable-line
+        alias = "instanciated_paths", // cspell: disable-line
     )]
     instantiated_paths: Option<BezierPathData>,
 

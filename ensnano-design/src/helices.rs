@@ -206,7 +206,7 @@ pub struct Helix {
     #[serde(
         skip_serializing_if = "Vec::is_empty",
         default,
-        alias = "additonal_isometries" // cspell:disable-line
+        alias = "additonal_isometries" // cspell: disable-line
     )]
     pub additional_isometries: Vec<AdditionalHelix2D>,
 
@@ -225,14 +225,14 @@ pub struct Helix {
     #[serde(
         default,
         skip,
-        alias = "instanciated_descriptor", // cspell:disable-line
+        alias = "instanciated_descriptor", // cspell: disable-line
     )]
     pub(super) instantiated_descriptor: Option<Arc<InstantiatedCurveDescriptor>>,
 
     #[serde(
         default,
         skip,
-        alias = "instanciated_curve", // cspell:disable-line
+        alias = "instanciated_curve", // cspell: disable-line
     )]
     pub(super) instantiated_curve: Option<InstantiatedCurve>,
 
