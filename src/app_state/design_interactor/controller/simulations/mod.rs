@@ -965,10 +965,7 @@ fn make_flexible_helices_system(
     presenter: &Presenter,
     interval_results: &IntervalResult,
 ) -> Result<HelixSystem, ErrOperation> {
-    let helix_parameters = presenter
-        .get_design()
-        .helix_parameters
-        .unwrap_or_default();
+    let helix_parameters = presenter.get_design().helix_parameters.unwrap_or_default();
     let mut rigid_helices = Vec::with_capacity(interval_results.helix_map.len());
     for i in 0..interval_results.helix_map.len() {
         let h_id = interval_results.helix_map[i];
@@ -1299,7 +1296,7 @@ impl SimulationInterface for HelixSystemInterface {
 
 impl SimulationUpdate for RigidHelixState {
     fn update_design(&self, _design: &mut Design) {
-        
+
         // since update positions is implemented, we do not need to move the helices.
     }
 
@@ -1615,10 +1612,7 @@ fn make_grid_system(
     rigid_parameters: RigidBodyConstants,
 ) -> Result<GridsSystem, ErrOperation> {
     let intervals = presenter.get_design().strands.get_intervals();
-    let helix_parameters = presenter
-        .get_design()
-        .helix_parameters
-        .unwrap_or_default();
+    let helix_parameters = presenter.get_design().helix_parameters.unwrap_or_default();
     let mut selected_grids = HashMap::with_capacity(presenter.get_design().free_grids.len());
     let mut rigid_grids = Vec::with_capacity(presenter.get_design().free_grids.len());
     for g_id in presenter
@@ -1652,33 +1646,34 @@ fn make_grid_system(
         let g_id1 = h1.grid_position.map(|gp| gp.grid);
         let g_id2 = h2.grid_position.map(|gp| gp.grid);
         if let Some((g_id1, g_id2)) = g_id1.zip(g_id2)
-            && g_id1 != g_id2 {
-                let rigid_id1 = selected_grids.get(&g_id1).cloned();
-                let rigid_id2 = selected_grids.get(&g_id2).cloned();
-                if let Some((rigid_id1, rigid_id2)) = rigid_id1.zip(rigid_id2) {
-                    let grid1 = presenter
-                        .get_grid(g_id1)
-                        .ok_or(ErrOperation::GridDoesNotExist(g_id1))?;
-                    let grid2 = presenter
-                        .get_grid(g_id2)
-                        .ok_or(ErrOperation::GridDoesNotExist(g_id2))?;
-                    let pos1 = (h1.space_pos(&helix_parameters, n1.position, n1.forward)
-                        - rigid_grids[rigid_id1].center_of_mass)
-                        .rotated_by(grid1.orientation.reversed());
-                    let pos2 = (h2.space_pos(&helix_parameters, n2.position, n2.forward)
-                        - rigid_grids[rigid_id2].center_of_mass)
-                        .rotated_by(grid2.orientation.reversed());
-                    let application_point1 = ApplicationPoint {
-                        position_on_grid: pos1,
-                        grid_id: rigid_id1,
-                    };
-                    let application_point2 = ApplicationPoint {
-                        position_on_grid: pos2,
-                        grid_id: rigid_id2,
-                    };
-                    springs.push((application_point1, application_point2));
-                }
+            && g_id1 != g_id2
+        {
+            let rigid_id1 = selected_grids.get(&g_id1).cloned();
+            let rigid_id2 = selected_grids.get(&g_id2).cloned();
+            if let Some((rigid_id1, rigid_id2)) = rigid_id1.zip(rigid_id2) {
+                let grid1 = presenter
+                    .get_grid(g_id1)
+                    .ok_or(ErrOperation::GridDoesNotExist(g_id1))?;
+                let grid2 = presenter
+                    .get_grid(g_id2)
+                    .ok_or(ErrOperation::GridDoesNotExist(g_id2))?;
+                let pos1 = (h1.space_pos(&helix_parameters, n1.position, n1.forward)
+                    - rigid_grids[rigid_id1].center_of_mass)
+                    .rotated_by(grid1.orientation.reversed());
+                let pos2 = (h2.space_pos(&helix_parameters, n2.position, n2.forward)
+                    - rigid_grids[rigid_id2].center_of_mass)
+                    .rotated_by(grid2.orientation.reversed());
+                let application_point1 = ApplicationPoint {
+                    position_on_grid: pos1,
+                    grid_id: rigid_id1,
+                };
+                let application_point2 = ApplicationPoint {
+                    position_on_grid: pos2,
+                    grid_id: rigid_id2,
+                };
+                springs.push((application_point1, application_point2));
             }
+        }
     }
     let mut ret = GridsSystem {
         springs,

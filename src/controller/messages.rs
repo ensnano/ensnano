@@ -49,12 +49,10 @@ pub fn successful_staples_export_msg<P: AsRef<Path>>(file: P) -> String {
 pub const OXDNA_EXPORT_FAILED: &str = "OxDNA export failed";
 pub const SAVE_DESIGN_FAILED: &str = "Could not save design";
 pub const SAVE_BEFORE_EXIT: &str = "Do you want to save your design before exiting?";
-pub const SAVE_BEFORE_LOAD: &str =
-    "Do you want to save your design before loading an other one?";
+pub const SAVE_BEFORE_LOAD: &str = "Do you want to save your design before loading an other one?";
 pub const SAVE_BEFORE_RELOAD: &str =
     "Do you want to save your changes in an other file before reloading?";
-pub const SAVE_BEFORE_NEW: &str =
-    "Do you want to save your design before starting a new one?";
+pub const SAVE_BEFORE_NEW: &str = "Do you want to save your design before starting a new one?";
 
 pub fn optimize_scaffold_position_msg(default_position: usize) -> String {
     format!("Optimize the scaffold position ?\n

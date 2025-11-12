@@ -119,9 +119,11 @@ impl Curve {
                     current_abscissa += (q - p).mag();
 
                     if let Some(t_obj) = self.geometry.full_turn_at_t()
-                        && t >= 0. && t < t_obj {
-                            synchronization_length += (q - p).mag();
-                        }
+                        && t >= 0.
+                        && t < t_obj
+                    {
+                        synchronization_length += (q - p).mag();
+                    }
                     p = q;
                 }
             }

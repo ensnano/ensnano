@@ -750,17 +750,18 @@ impl<E: OrganizerElement> Organizer<E> {
     /// Action performed when dragged content is dropped.
     fn drag_drop(&mut self, k: &DragIdentifier<E::Key, E::AutoGroup>) {
         if let DragIdentifier::Group { id: id_dest } = k
-            && let Some(identifier) = self.dragging.iter().next().cloned() {
-                match identifier {
-                    id if id == k.clone() => (),
-                    DragIdentifier::Group { id } => self.move_id(&id, id_dest),
-                    DragIdentifier::Section { key } => {
-                        if let Some(id) = get_group_id(id_dest) {
-                            self.add_key_at(key, id)
-                        }
+            && let Some(identifier) = self.dragging.iter().next().cloned()
+        {
+            match identifier {
+                id if id == k.clone() => (),
+                DragIdentifier::Group { id } => self.move_id(&id, id_dest),
+                DragIdentifier::Section { key } => {
+                    if let Some(id) = get_group_id(id_dest) {
+                        self.add_key_at(key, id)
                     }
                 }
             }
+        }
         self.dragging = BTreeSet::new();
     }
 
@@ -808,10 +809,7 @@ impl<E: OrganizerElement> Organizer<E> {
             .collect::<Vec<(usize, usize)>>();
         min_max_domain_lengths.sort_by_key(|(_, l_max)| *l_max);
         let upper_domain_length_bounds: (usize, usize) = match min_max_domain_lengths.len() {
-            0 => (
-                UPPER_DOMAIN_LENGTH_BOUND,
-                UPPER_DOMAIN_LENGTH_BOUND,
-            ),
+            0 => (UPPER_DOMAIN_LENGTH_BOUND, UPPER_DOMAIN_LENGTH_BOUND),
             1 => min_max_domain_lengths[0],
             n => {
                 let last = min_max_domain_lengths[n - 1];
@@ -1714,7 +1712,7 @@ fn merge_attributes<T: Ord + Clone + std::fmt::Debug>(
         vec![]
     } else {
         let n = attributes[0].len();
-        
+
         (0..n)
             .map(|attr_n| {
                 (0..attributes.len()).fold(None, |a, n| {

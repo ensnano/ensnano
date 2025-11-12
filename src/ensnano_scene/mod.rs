@@ -477,7 +477,11 @@ impl<S: AppState> Scene<S> {
             } => {
                 let mut vertices = vec![BezierVertexId { path_id, vertex_id }];
                 if app_state
-                    .get_selection().contains(&Selection::BezierVertex(BezierVertexId { path_id, vertex_id }))
+                    .get_selection()
+                    .contains(&Selection::BezierVertex(BezierVertexId {
+                        path_id,
+                        vertex_id,
+                    }))
                 {
                     for v in app_state.get_selection().iter().filter_map(|s| {
                         if let Selection::BezierVertex(v) = s {
@@ -543,9 +547,9 @@ impl<S: AppState> Scene<S> {
                 .older_state
                 .get_design_reader()
                 .get_optimal_xover_around(source, target)
-            {
-                (source, target) = opt;
-            }
+        {
+            (source, target) = opt;
+        }
         self.requests
             .lock()
             .unwrap()
@@ -858,7 +862,7 @@ impl<S: AppState> Scene<S> {
     fn get_camera(&self) -> Camera3D {
         let view = self.view.borrow();
         let cam = view.get_camera();
-        
+
         Camera3D {
             position: cam.borrow().position,
             orientation: cam.borrow().rotor,
@@ -1082,9 +1086,10 @@ impl<S: AppState> Scene<S> {
         let raw_instances = self.data.borrow().get_all_raw_instances(app_state);
         let stl_bytes = stl::stl_bytes_export(raw_instances);
         if let Ok(mut out_file) = fs::File::create(path)
-            && out_file.write_all(&stl_bytes).is_ok() {
-                return;
-            }
+            && out_file.write_all(&stl_bytes).is_ok()
+        {
+            return;
+        }
         println!("Export failed!");
     }
 
@@ -1099,9 +1104,10 @@ impl<S: AppState> Scene<S> {
         if let Some(nucl_pos) = self.data.borrow().get_nucleotides_positions_by_strands() {
             let data = serde_json::to_string(&nucl_pos).unwrap();
             if let Ok(mut out_file) = fs::File::create(path)
-                && out_file.write_all(data.as_bytes()).is_ok() {
-                    return;
-                }
+                && out_file.write_all(data.as_bytes()).is_ok()
+            {
+                return;
+            }
         }
         println!("Export failed!");
     }

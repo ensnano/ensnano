@@ -235,7 +235,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
             } else {
                 (r_max, r_min)
             };
-            
+
             (0..n)
                 .map(|i| -> RawDnaInstance {
                     let r = v_min + i as f32 * (v_max - v_min) / n as f32;

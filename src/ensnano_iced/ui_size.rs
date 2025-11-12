@@ -23,15 +23,13 @@ use serde::{Deserialize, Serialize};
 pub const ALL_UI_SIZES: [UiSize; 3] = [UiSize::Small, UiSize::Medium, UiSize::Large];
 
 /// Size handler for ENSnano's GUI.
-#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
-#[derive(Default)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub enum UiSize {
     Small,
     #[default]
     Medium,
     Large,
 }
-
 
 impl UiSize {
     // Text related messages

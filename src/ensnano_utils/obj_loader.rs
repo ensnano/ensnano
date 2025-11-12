@@ -54,14 +54,8 @@ fn read_mesh(mesh_data: &gltf::Mesh, data: &[gltf::buffer::Data]) -> Result<Gltf
     let primitive = mesh_data.primitives().next().ok_or(ErrGltf::NoPrimitive)?;
     let reader = primitive.reader(|b| Some(&data.get(b.index())?.0[..b.length()]));
 
-    let vertex_positions = {
-        
-        reader.read_positions().ok_or(ErrGltf::NoPosition)?
-    };
-    let vertex_normals = {
-        
-        reader.read_normals().ok_or(ErrGltf::NoNormal)?
-    };
+    let vertex_positions = { reader.read_positions().ok_or(ErrGltf::NoPosition)? };
+    let vertex_normals = { reader.read_normals().ok_or(ErrGltf::NoNormal)? };
     let vertex_colors = {
         let color_iter = reader.read_colors(0).ok_or(ErrGltf::NoColor)?;
         color_iter.into_rgba_u8().map(|v| {

@@ -432,9 +432,10 @@ impl Presenter {
     fn whole_selection_is_visible(&self, selection: &[Selection], compl: bool) -> bool {
         for nucl in self.content.nucleotide.values() {
             if self.selection_contains_nucl(selection, *nucl) != compl
-                && self.invisible_nucls.contains(nucl) {
-                    return false;
-                }
+                && self.invisible_nucls.contains(nucl)
+            {
+                return false;
+            }
         }
         true
     }

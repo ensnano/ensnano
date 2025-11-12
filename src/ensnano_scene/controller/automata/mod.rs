@@ -89,9 +89,7 @@ pub(super) trait ControllerState<S: AppState> {
         None
     }
 
-    fn give_context<'a>(&mut self, _context: EventContext<'a, S>) {
-        
-    }
+    fn give_context<'a>(&mut self, _context: EventContext<'a, S>) {}
 }
 
 pub struct NormalState {

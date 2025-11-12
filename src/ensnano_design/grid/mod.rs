@@ -961,43 +961,44 @@ impl GridData {
         if let Some(old_grid_position) = h.grid_position
             && let Some(g) = self.grids.get(&old_grid_position.grid)
             && let Axis::Line { origin, direction } = axis
-            && g.interpolate_helix(origin, direction).is_some() {
-                let old_roll = h.grid_position.map(|gp| gp.roll).filter(|_| preserve_roll);
-                let candidate_position = g
-                    .find_helix_position(h, old_grid_position.grid)
-                    .map(|g| g.with_roll(old_roll));
-                if let Some(new_grid_position) = candidate_position {
-                    if let Some(object) = self.pos_to_object.get(&new_grid_position.light()) {
-                        log::info!(
-                            "{} collides with {:?}. Authorized collisions are {:?}",
-                            h_id,
-                            object,
-                            authorized_collisions
-                        );
-                        let authorized = if let GridObject::Helix(helix) = object {
-                            authorized_collisions.contains(helix)
-                        } else {
-                            false
-                        };
-                        if authorized {
-                            h.grid_position = candidate_position;
-                            h.position = g.position_helix(new_grid_position.x, new_grid_position.y)
-                                - h.get_axis(&self.helix_parameters)
-                                    .direction()
-                                    .unwrap_or_else(Vec3::zero)
-                        } else {
-                            return Err(ErrOperation::HelixCollisionDuringTranslation);
-                        }
+            && g.interpolate_helix(origin, direction).is_some()
+        {
+            let old_roll = h.grid_position.map(|gp| gp.roll).filter(|_| preserve_roll);
+            let candidate_position = g
+                .find_helix_position(h, old_grid_position.grid)
+                .map(|g| g.with_roll(old_roll));
+            if let Some(new_grid_position) = candidate_position {
+                if let Some(object) = self.pos_to_object.get(&new_grid_position.light()) {
+                    log::info!(
+                        "{} collides with {:?}. Authorized collisions are {:?}",
+                        h_id,
+                        object,
+                        authorized_collisions
+                    );
+                    let authorized = if let GridObject::Helix(helix) = object {
+                        authorized_collisions.contains(helix)
                     } else {
+                        false
+                    };
+                    if authorized {
                         h.grid_position = candidate_position;
                         h.position = g.position_helix(new_grid_position.x, new_grid_position.y)
                             - h.get_axis(&self.helix_parameters)
                                 .direction()
                                 .unwrap_or_else(Vec3::zero)
-                                * new_grid_position.axis_pos as f32
+                    } else {
+                        return Err(ErrOperation::HelixCollisionDuringTranslation);
                     }
+                } else {
+                    h.grid_position = candidate_position;
+                    h.position = g.position_helix(new_grid_position.x, new_grid_position.y)
+                        - h.get_axis(&self.helix_parameters)
+                            .direction()
+                            .unwrap_or_else(Vec3::zero)
+                            * new_grid_position.axis_pos as f32
                 }
             }
+        }
         Ok(())
     }
 
@@ -1391,15 +1392,16 @@ impl GridData {
             .as_ref()
             .map(|p| helix.need_curve_update(&self.source_free_grids, p))
             .unwrap_or(true)
-            && let Some(desc) = helix.instantiated_descriptor.as_ref() {
-                let hp = helix.helix_parameters.unwrap_or(self.helix_parameters);
-                let curve = desc.make_curve(&hp, cached_curve);
-                curve.update_additional_segments(&mut helix.additional_isometries);
-                helix.instantiated_curve = Some(InstantiatedCurve {
-                    curve,
-                    source: desc.clone(),
-                });
-            }
+            && let Some(desc) = helix.instantiated_descriptor.as_ref()
+        {
+            let hp = helix.helix_parameters.unwrap_or(self.helix_parameters);
+            let curve = desc.make_curve(&hp, cached_curve);
+            curve.update_additional_segments(&mut helix.additional_isometries);
+            helix.instantiated_curve = Some(InstantiatedCurve {
+                curve,
+                source: desc.clone(),
+            });
+        }
     }
 
     pub fn pos_to_space(&self, position: GridPosition) -> Option<Vec3> {

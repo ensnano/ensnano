@@ -42,7 +42,6 @@ enum Step {
     Downloading { design_id: usize, path: PathBuf },
 }
 
-
 impl State for DownloadStaples {
     fn make_progress(self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn State> {
         let downloader = main_state.get_staple_downloader();

@@ -166,14 +166,11 @@ impl ColorPicker {
     }
 
     fn view_color_history(&self) -> iced::Element<'_, Message> {
-        let mut color_squares = self
-            .color_history
-            .iter()
-            .map(|c| {
-                color_square(c.to_owned())
-                    .height(Length::Fixed(self.size - GAP))
-                    .width(Length::Fixed(self.size - GAP))
-            });
+        let mut color_squares = self.color_history.iter().map(|c| {
+            color_square(c.to_owned())
+                .height(Length::Fixed(self.size - GAP))
+                .width(Length::Fixed(self.size - GAP))
+        });
         let mut row = Vec::new();
         loop {
             let first_square = color_squares.next();

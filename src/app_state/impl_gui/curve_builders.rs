@@ -42,7 +42,8 @@ fn build_ellipse(
     parameters: &[InstantiatedParameter],
     _: &super::AppState,
 ) -> Option<CurveDescriptor2D> {
-    let a = parameters.first()
+    let a = parameters
+        .first()
         .cloned()
         .and_then(InstantiatedParameter::get_float)?;
     let b = parameters
@@ -85,7 +86,8 @@ fn build_two_spheres(
     parameters: &[InstantiatedParameter],
     _: &super::AppState,
 ) -> Option<CurveDescriptor2D> {
-    let radius_extern = parameters.first()
+    let radius_extern = parameters
+        .first()
         .cloned()
         .and_then(InstantiatedParameter::get_float)?
         .into();
@@ -129,7 +131,8 @@ fn build_bezier(
     parameters: &[InstantiatedParameter],
     app: &super::AppState,
 ) -> Option<CurveDescriptor2D> {
-    let curve_id = parameters.first()
+    let curve_id = parameters
+        .first()
         .cloned()
         .and_then(InstantiatedParameter::get_uint)?;
 
@@ -145,7 +148,8 @@ fn no_bezier_path_id(_: &[InstantiatedParameter]) -> Option<usize> {
 }
 
 fn get_bezier_path_id(parameters: &[InstantiatedParameter]) -> Option<usize> {
-    parameters.first()
+    parameters
+        .first()
         .cloned()
         .and_then(InstantiatedParameter::get_uint)
 }

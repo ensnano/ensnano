@@ -719,12 +719,6 @@ pub(super) struct PillConcentricStadium {
     pub abscissa_converter_factor: Option<f64>,
 }
 
-impl PillConcentricStadium {
-    pub(super) fn t_max(&self) -> f64 {
-        self.perimeter
-    }
-}
-
 impl Curved for PillConcentricStadium {
     fn position(&self, t: f64) -> DVec3 {
         let t = (t * self.perimeter).rem_euclid(self.perimeter);

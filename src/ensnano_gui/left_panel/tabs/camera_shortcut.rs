@@ -228,8 +228,7 @@ impl CameraShortcutPanel {
             .map(|(id, name)| {
                 let being_edited = self.camera_being_edited == Some(id);
                 let name = if being_edited {
-                    self.camera_input_name.as_deref()
-                        .unwrap_or(name)
+                    self.camera_input_name.as_deref().unwrap_or(name)
                 } else {
                     name
                 };

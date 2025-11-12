@@ -528,11 +528,15 @@ impl DesignContent {
                 .collect::<Vec<&str>>();
             println!("{:?}", clone_variables_declaration);
             for x in clone_variables_declaration {
-                let _s = x.split('=').filter(|y| !y.is_empty()).collect::<Vec<&str>>();
+                let _s = x
+                    .split('=')
+                    .filter(|y| !y.is_empty())
+                    .collect::<Vec<&str>>();
                 if _s.len() == 2
-                    && let Ok(value) = f32::from_str(_s[1]) {
-                        clone_variables.insert(_s[0].to_string(), value);
-                    }
+                    && let Ok(value) = f32::from_str(_s[1])
+                {
+                    clone_variables.insert(_s[0].to_string(), value);
+                }
             }
 
             // collect cloning operations from the organizer tree - these are globally applied regardless of the content of the groups
@@ -945,7 +949,8 @@ impl DesignContent {
         if nucl_collection.nb_nucls() > 0 {
             let all_nt = nucl_collection
                 .identifier
-                .keys().copied()
+                .keys()
+                .copied()
                 .collect::<Vec<Nucl>>();
 
             let all_forward_nt = all_nt
@@ -1154,15 +1159,14 @@ impl DesignContent {
                     helix_map.insert(clone_nucl_id, nucl.helix); // get helix_id from bond_id
 
                     let nucl_pos = Vec3::new(position[0], position[1], position[2]);
-                    let clone_pos =
-                        isometry3.translation + nucl_pos.rotated_by(isometry3.rotation);
+                    let clone_pos = isometry3.translation + nucl_pos.rotated_by(isometry3.rotation);
                     space_position
                         .insert(clone_nucl_id, [clone_pos[0], clone_pos[1], clone_pos[2]]);
 
                     let nucl_axis_pos =
                         Vec3::new(axis_position[0], axis_position[1], axis_position[2]);
-                    let clone_axis_pos = isometry3.translation
-                        + nucl_axis_pos.rotated_by(isometry3.rotation);
+                    let clone_axis_pos =
+                        isometry3.translation + nucl_axis_pos.rotated_by(isometry3.rotation);
                     axis_space_position.insert(
                         clone_nucl_id,
                         [clone_axis_pos[0], clone_axis_pos[1], clone_axis_pos[2]],
@@ -1292,22 +1296,22 @@ impl DesignContent {
                 .scaffold_id
                 .as_ref()
                 .and_then(|s_id| design.strands.get(s_id))
-            {
-                for d in s.domains.iter() {
-                    if let Domain::HelixDomain(interval) = d {
-                        for n in interval.iter() {
-                            let nucl = Nucl {
-                                helix: interval.helix,
-                                position: n,
-                                forward: !interval.forward,
-                            };
-                            if !ret.nucl_collection.contains_nucl(&nucl) {
-                                log::warn!("Missing {nucl}");
-                            }
+        {
+            for d in s.domains.iter() {
+                if let Domain::HelixDomain(interval) = d {
+                    for n in interval.iter() {
+                        let nucl = Nucl {
+                            helix: interval.helix,
+                            position: n,
+                            forward: !interval.forward,
+                        };
+                        if !ret.nucl_collection.contains_nucl(&nucl) {
+                            log::warn!("Missing {nucl}");
                         }
                     }
                 }
             }
+        }
 
         #[cfg(test)]
         {

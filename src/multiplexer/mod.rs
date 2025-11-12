@@ -414,12 +414,8 @@ impl Multiplexer {
                     position.x /= self.window_size.width as f64;
                     position.y /= self.window_size.height as f64;
                     *resized = true;
-                    self.layout.resize_click(
-                        *region,
-                        &position,
-                        clicked_position,
-                        *old_proportion,
-                    );
+                    self.layout
+                        .resize_click(*region, &position, clicked_position, *old_proportion);
                     self.icon = Some(CursorIcon::EwResize);
                     captured = true;
                 }

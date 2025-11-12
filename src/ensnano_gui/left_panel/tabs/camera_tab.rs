@@ -279,8 +279,7 @@ impl Default for FogGuiParameters {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Copy)]
-#[derive(Default)]
+#[derive(Clone, Debug, PartialEq, Eq, Copy, Default)]
 pub enum FogChoices {
     #[default]
     None,
@@ -290,7 +289,6 @@ pub enum FogChoices {
     DarkFromPivot,
     ReversedFromPivot,
 }
-
 
 const ALL_FOG_CHOICES: &[FogChoices] = &[
     FogChoices::None,

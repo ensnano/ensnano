@@ -99,10 +99,7 @@ impl Twister {
             keys.push(*key);
             helices.push(helix.clone());
         }
-        let helix_parameters = presenter
-            .get_design()
-            .helix_parameters
-            .unwrap_or_default();
+        let helix_parameters = presenter.get_design().helix_parameters.unwrap_or_default();
         let mut xovers = presenter.get_xovers_list();
         xovers.retain(|(n1, n2)| keys.contains(&n1.helix) && keys.contains(&n2.helix));
         let mut helix_map = HashMap::new();

@@ -2310,7 +2310,8 @@ impl Controller {
             ignored_domains,
         } = &mut self.state
         {
-            let delta = builders.first()
+            let delta = builders
+                .first()
                 .map(|b| n - b.get_moving_end_position())
                 .unwrap_or(0);
             let mut design = initial_design.clone_inner();
@@ -3424,8 +3425,7 @@ fn nucl_pos_2d(helices: &Helices, nucl: &Nucl, segment: usize) -> Option<Vec2> {
     isometry.map(|i| i.into_homogeneous_matrix().transform_point2(local_position))
 }
 
-#[derive(Clone)]
-#[derive(Default)]
+#[derive(Clone, Default)]
 enum ControllerState {
     #[default]
     Normal,
@@ -3528,7 +3528,6 @@ enum ControllerState {
         strand_id: usize,
     },
 }
-
 
 impl ControllerState {
     fn state_name(&self) -> &'static str {

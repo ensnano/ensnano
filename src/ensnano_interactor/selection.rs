@@ -423,8 +423,7 @@ pub fn extract_nucls_from_selection(selection: &[Selection]) -> Vec<Nucl> {
 }
 
 /// Selection modes that can be selected by buttons on the top bar.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-#[derive(Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default)]
 pub enum SelectionMode {
     #[default]
     Nucleotide,
@@ -432,7 +431,6 @@ pub enum SelectionMode {
     Helix,
     Design,
 }
-
 
 impl std::fmt::Display for SelectionMode {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
@@ -469,8 +467,7 @@ impl SelectionMode {
 }
 
 /// Describe the action currently done by the user when they click left
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-#[derive(Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default)]
 pub enum ActionMode {
     /// User is moving the camera
     #[default]
@@ -487,7 +484,6 @@ pub enum ActionMode {
     /// User is drawing a bezier path
     EditBezierPath,
 }
-
 
 impl std::fmt::Display for ActionMode {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {

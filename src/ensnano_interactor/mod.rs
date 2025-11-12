@@ -433,8 +433,7 @@ pub struct ScaffoldInfo {
     pub starting_nucl: Option<Nucl>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[derive(Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum SimulationState {
     #[default]
     None,
@@ -442,7 +441,9 @@ pub enum SimulationState {
     RigidGrid,
     RigidHelices,
     Paused,
-    Twisting { grid_id: GridId },
+    Twisting {
+        grid_id: GridId,
+    },
     Relaxing,
 }
 
@@ -472,9 +473,7 @@ impl SimulationState {
     }
 }
 
-
-#[derive(Clone, Copy, PartialEq, Eq)]
-#[derive(Default)]
+#[derive(Clone, Copy, PartialEq, Eq, Default)]
 pub enum WidgetBasis {
     #[default]
     World,
@@ -497,7 +496,6 @@ impl WidgetBasis {
         }
     }
 }
-
 
 /// Information about the domain being elongated
 #[derive(Debug, Clone)]
@@ -577,4 +575,3 @@ impl StandardSequence {
         ret
     }
 }
-

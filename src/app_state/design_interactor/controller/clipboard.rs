@@ -89,7 +89,6 @@ impl Clipboard {
     }
 }
 
-
 #[derive(Clone, Debug)]
 pub(super) struct StrandClipboard {
     templates: Vec<StrandTemplate>,
@@ -354,7 +353,8 @@ impl Controller {
     ) -> Result<(Vec<PastedStrand>, Option<(Edge, isize)>), ErrOperation> {
         let mut duplication_edge = None;
         let template_0 = clipboard
-            .templates.first()
+            .templates
+            .first()
             .ok_or(ErrOperation::EmptyClipboard)?;
         let domains_0 = self.template_to_domains(
             template_0,
@@ -699,7 +699,8 @@ impl Controller {
                         data.grid_data,
                     )
                     .ok_or(ErrOperation::CannotPasteHere)?;
-                let n1 = xovers.first()
+                let n1 = xovers
+                    .first()
                     .map(|n| n.0)
                     .ok_or(ErrOperation::EmptyClipboard)?;
                 let edge = Self::edge_between_nucls(
@@ -944,10 +945,9 @@ impl Controller {
         self.state
             .update_xover_pasting_position(nucl, edge, design)?;
         let data = design.mut_strand_and_data();
-        if cfg!(test)
-            && edge.is_none() {
-                println!("EDGE IS NONE");
-            }
+        if cfg!(test) && edge.is_none() {
+            println!("EDGE IS NONE");
+        }
         if let Some(edge) = edge {
             let clipboard = self.clipboard.clone();
             let xovers = match clipboard.as_ref() {

@@ -116,7 +116,6 @@ impl<State: AppState> GuiTab<State> for SequenceTab<State> {
             extra_jump(),
             // add_show_sequence_button!
             {
-                
                 if self.toggle_text_value {
                     text_button("Hide Sequences", ui_size).on_press(Message::ToggleText(false))
                 } else {

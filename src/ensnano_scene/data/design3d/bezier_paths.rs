@@ -302,8 +302,7 @@ fn add_raw_instances_representing_bezier_vertex(
 ) {
     let tubes = &mut instances.tubes;
     let spheres = &mut instances.spheres;
-    let color = if selection.contains(&Selection::BezierVertex(vertex.id))
-    {
+    let color = if selection.contains(&Selection::BezierVertex(vertex.id)) {
         [0., 0., 1., 1.].into()
     } else {
         [1., 0., 0., 1.].into()

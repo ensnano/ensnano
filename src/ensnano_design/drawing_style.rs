@@ -110,14 +110,16 @@ impl FromStr for DrawingAttribute {
                 }
 
                 if len > 2
-                    && let Ok(alpha) = f32::from_str(parsed[2]) {
-                        let alpha = (alpha * 255.).min(255.).max(0.).round() as u32;
-                        color = (color & 0xFF_FF_FF) | (alpha << 24);
-                        if parsed.len() > 3
-                            && let Ok(h_range) = f64::from_str(parsed[3]) {
-                                hue_range = Some(h_range);
-                            }
+                    && let Ok(alpha) = f32::from_str(parsed[2])
+                {
+                    let alpha = (alpha * 255.).min(255.).max(0.).round() as u32;
+                    color = (color & 0xFF_FF_FF) | (alpha << 24);
+                    if parsed.len() > 3
+                        && let Ok(h_range) = f64::from_str(parsed[3])
+                    {
+                        hue_range = Some(h_range);
                     }
+                }
 
                 match parsed[0] {
                     "sc" => return Ok(Self::SphereColor(ColorType::Plain(color))),
@@ -148,8 +150,7 @@ impl FromStr for DrawingAttribute {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, Copy)]
-#[derive(Default)]
+#[derive(Serialize, Deserialize, Clone, Debug, Copy, Default)]
 pub struct DrawingStyle {
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub sphere_radius: Option<f32>,
@@ -182,7 +183,6 @@ pub struct DrawingStyle {
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub torsion: Option<(f32, f32)>,
 }
-
 
 impl From<Vec<DrawingAttribute>> for DrawingStyle {
     fn from(attributes: Vec<DrawingAttribute>) -> Self {

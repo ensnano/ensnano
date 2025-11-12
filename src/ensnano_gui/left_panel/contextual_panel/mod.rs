@@ -231,7 +231,8 @@ where
 
     pub fn update(&mut self, app_state: &mut State) -> Command<Message<State>> {
         let selection = app_state
-            .get_selection().first()
+            .get_selection()
+            .first()
             .unwrap_or(&Selection::Nothing);
         let nb_selected = app_state
             .get_selection()
@@ -272,7 +273,8 @@ where
         app_state: &State,
     ) -> crate::ensnano_iced::Element<'_, Message<State>> {
         let selection = app_state
-            .get_selection().first()
+            .get_selection()
+            .first()
             .unwrap_or(&Selection::Nothing);
 
         let nb_selected = app_state

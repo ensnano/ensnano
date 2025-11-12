@@ -129,8 +129,7 @@ impl<State: AppState> SimulationTab<State> {
             .into()
         } else {
             let helices_active = sim_state.is_none() || sim_state.simulating_helices();
-            go_stop
-                .view(helices_active, sim_state.simulating_helices())
+            go_stop.view(helices_active, sim_state.simulating_helices())
         }
     }
 }

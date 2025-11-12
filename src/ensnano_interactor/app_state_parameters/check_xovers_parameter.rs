@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[derive(Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub enum CheckXoversParameter {
     #[default]
     None,
@@ -9,7 +8,6 @@ pub enum CheckXoversParameter {
     Unchecked,
     Both,
 }
-
 
 impl ToString for CheckXoversParameter {
     fn to_string(&self) -> String {

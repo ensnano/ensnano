@@ -143,7 +143,6 @@ fn ndc_to_world(
         let z = (-1. + eta * eta + khi * khi) / (1. + khi * khi + eta * eta);
         p1 + camera.borrow().rotor.reversed() * Vec3 { x, y, z }
     } else {
-        
         {
             let correction = (projection.borrow().get_fovy() / 2.).tan();
             let right = camera.borrow().right_vec() * correction;

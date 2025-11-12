@@ -105,8 +105,7 @@ fn read_file<P: AsRef<Path> + std::fmt::Debug>(path: P) -> Result<Design, LoadDe
 
             // Try codenano format
             if let Ok(scadnano) = scadnano_design {
-                Design::from_scadnano(&scadnano)
-                    .map_err(LoadDesignError::ScadnanoImportError)
+                Design::from_scadnano(&scadnano).map_err(LoadDesignError::ScadnanoImportError)
             } else if let Ok(design) = cdn_design {
                 log::error!("{:?}", scadnano_design.err());
                 log::info!("ok codenano");

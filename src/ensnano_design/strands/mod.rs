@@ -324,14 +324,14 @@ pub fn sanitize_domains(domains: &[Domain], cyclic: bool) -> Vec<Domain> {
             attached_to_prime3,
             ..
         } = ret[0].clone()
-        {
-            ret.remove(0);
-            if attached_to_prime3 {
-                ret.push(Domain::new_prime5_insertion(nb_nucl));
-            } else {
-                ret.push(Domain::new_insertion(nb_nucl));
-            }
+    {
+        ret.remove(0);
+        if attached_to_prime3 {
+            ret.push(Domain::new_prime5_insertion(nb_nucl));
+        } else {
+            ret.push(Domain::new_insertion(nb_nucl));
         }
+    }
     ret
 }
 

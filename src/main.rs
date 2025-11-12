@@ -62,18 +62,18 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! processing of these requests may have three different kind of consequences:
 //!
 //!  * An undoable action is performed on the main `AppState`, modifying it. In that case the
-//!  current `AppState` is copied on the undo stack and the replaced by the modified one.
+//!    current `AppState` is copied on the undo stack and the replaced by the modified one.
 //!
 //!  * A non-undoable action is performed on the main `AppState`, modifying it. In that case, the
-//!  current `AppState` is replaced by the modified one, but not stored on the undo stack.
-//!  This typically happens when the `AppState` is in a transient state for example while the user
-//!  is performing a drag and drop action. Transient states are not stored on the undo stack
-//!  because they are not meant to be restored by undos.
+//!    current `AppState` is replaced by the modified one, but not stored on the undo stack.
+//!    This typically happens when the `AppState` is in a transient state for example while the user
+//!    is performing a drag and drop action. Transient states are not stored on the undo stack
+//!    because they are not meant to be restored by undos.
 //!   
 //!  * An error is returned. In the case the `AppState` is not modified and the user is notified of
-//!  the error. Error typically occur when user attempt to make actions on the design that are not
-//!  permitted by the current state of the program. For example an error is returned if the user
-//!  try to modify the design during a simulation.
+//!    the error. Error typically occur when user attempt to make actions on the design that are not
+//!    permitted by the current state of the program. For example an error is returned if the user
+//!    try to modify the design during a simulation.
 //!
 //!  # Development detail
 //!
@@ -534,7 +534,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         window_event,
                         window.scale_factor(),
                         kbd_modifiers,
-                    ) { gui.forward_event_all(iced_event) }
+                    ) {
+                        gui.forward_event_all(iced_event)
+                    }
                 }
 
                 WindowEvent::RedrawRequested
@@ -708,7 +710,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                     event,
                                     window.scale_factor(),
                                     kbd_modifiers,
-                                ) { gui.forward_event(component, e) }
+                                ) {
+                                    gui.forward_event(component, e)
+                                }
                             }
                             GuiComponentType::Overlay(n) => {
                                 if let Some(e) = iced_winit::conversion::window_event(
@@ -718,7 +722,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                     event,
                                     window.scale_factor(),
                                     kbd_modifiers,
-                                ) { overlay_manager.forward_event(e, n) }
+                                ) {
+                                    overlay_manager.forward_event(e, n)
+                                }
                             }
                             area if area.is_scene() => {
                                 let cursor_position = multiplexer.get_cursor_position();
@@ -975,9 +981,7 @@ impl OverlayManager {
         }
     }
 
-    fn forward_messages(&mut self, _messages: &mut IcedMessages<AppState>) {
-        
-    }
+    fn forward_messages(&mut self, _messages: &mut IcedMessages<AppState>) {}
 
     fn fetch_change(
         &mut self,
@@ -1366,15 +1370,17 @@ impl MainState {
         let old_state = state.clone();
         self.app_state = modification(state);
         if let Some(label) = undo_label
-            && old_state != self.app_state && old_state.is_in_stable_state() {
-                let camera_3d = self.get_camera_3d();
-                self.undo_stack.push(AppStateTransition {
-                    state: old_state,
-                    label,
-                    camera_3d,
-                });
-                self.redo_stack.clear();
-            }
+            && old_state != self.app_state
+            && old_state.is_in_stable_state()
+        {
+            let camera_3d = self.get_camera_3d();
+            self.undo_stack.push(AppStateTransition {
+                state: old_state,
+                label,
+                camera_3d,
+            });
+            self.redo_stack.clear();
+        }
     }
 
     fn update_pending_operation(&mut self, operation: Arc<dyn Operation>) {
@@ -1604,14 +1610,15 @@ impl MainState {
             .get_bezier_planes()
             .len()
             == 0
-            && let Some((position, orientation)) = self.get_bezier_sheet_creation_position() {
-                self.apply_operation(DesignOperation::AddBezierPlane {
-                    desc: crate::ensnano_design::BezierPlaneDescriptor {
-                        position,
-                        orientation,
-                    },
-                })
-            }
+            && let Some((position, orientation)) = self.get_bezier_sheet_creation_position()
+        {
+            self.apply_operation(DesignOperation::AddBezierPlane {
+                desc: crate::ensnano_design::BezierPlaneDescriptor {
+                    position,
+                    orientation,
+                },
+            })
+        }
     }
 
     fn set_unrooted_surface(&mut self, surface: Option<UnrootedRevolutionSurfaceDescriptor>) {

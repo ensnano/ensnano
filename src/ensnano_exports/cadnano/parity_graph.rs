@@ -92,7 +92,6 @@ fn color_graph(
             seen[i] = true;
             let mut to_do: Vec<usize> = vec![i];
             while let Some(i) = to_do.pop() {
-                
                 let i = find(i, father);
                 for j in 0..(max_helix_idx + 1) {
                     let j = find(j, father);

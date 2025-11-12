@@ -53,10 +53,7 @@ impl XoverSuggestions {
                 self.blue_nucl.push(nucl);
             }
             Some(false) => {
-                self.red_cubes
-                    .entry(cube)
-                    .or_default()
-                    .push(nucl);
+                self.red_cubes.entry(cube).or_default().push(nucl);
             }
             None => (),
         }

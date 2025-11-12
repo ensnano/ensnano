@@ -63,8 +63,6 @@ pub fn random_color_with_shade(shade: u32, hue_range: Option<f64>) -> u32 {
         .min(1.)
         .max(0.);
 
-    
-
     (hsv_color(hue, saturation, value) & 0xFF_FF_FF) | a
 }
 

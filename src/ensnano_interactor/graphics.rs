@@ -20,8 +20,7 @@ use crate::ensnano_iced::iced_winit::winit::dpi::{PhysicalPosition, PhysicalSize
 use serde::{Deserialize, Serialize};
 use ultraviolet::Vec3;
 
-#[derive(Clone, Debug, PartialEq, Eq, Copy, Serialize, Deserialize)]
-#[derive(Default)]
+#[derive(Clone, Debug, PartialEq, Eq, Copy, Serialize, Deserialize, Default)]
 pub enum RenderingMode {
     #[default]
     Normal,
@@ -42,7 +41,6 @@ pub const ALL_RENDERING_MODE: &[RenderingMode] = &[
     RenderingMode::BlackAndWhite,
 ];
 
-
 impl std::fmt::Display for RenderingMode {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         let ret = match self {
@@ -55,8 +53,7 @@ impl std::fmt::Display for RenderingMode {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Copy, Serialize, Deserialize)]
-#[derive(Default)]
+#[derive(Clone, Debug, PartialEq, Eq, Copy, Serialize, Deserialize, Default)]
 pub enum Background3D {
     #[default]
     Sky,
@@ -64,7 +61,6 @@ pub enum Background3D {
 }
 
 pub const ALL_BACKGROUND3D: &[Background3D] = &[Background3D::Sky, Background3D::White];
-
 
 impl std::fmt::Display for Background3D {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
@@ -76,15 +72,13 @@ impl std::fmt::Display for Background3D {
     }
 }
 
-#[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq, Eq)]
-#[derive(Default)]
+#[derive(Debug, Copy, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub enum HBondDisplay {
     #[default]
     No,
     Stick,
     Ellipsoid,
 }
-
 
 impl std::fmt::Display for HBondDisplay {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {

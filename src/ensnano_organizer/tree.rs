@@ -130,9 +130,8 @@ impl<K: Eq + Hash + Copy> OrganizerTree<K> {
                 for c in children {
                     match c {
                         Self::Leaf(e) => {
-                            let mut e_names: Vec<&str> = hashmap
-                                .get(e).cloned()
-                                .unwrap_or(Vec::new());
+                            let mut e_names: Vec<&str> =
+                                hashmap.get(e).cloned().unwrap_or(Vec::new());
                             if has_prefix {
                                 e_names.push(trimmed_name);
                             }
@@ -141,9 +140,8 @@ impl<K: Eq + Hash + Copy> OrganizerTree<K> {
                         _ => {
                             let c_hashmap = c.get_hashmap_to_all_group_names_with_prefix(prefix);
                             for (e, e_names) in c_hashmap {
-                                let mut new_e_names: Vec<&str> = hashmap
-                                    .get(&e).cloned()
-                                    .unwrap_or(Vec::new());
+                                let mut new_e_names: Vec<&str> =
+                                    hashmap.get(&e).cloned().unwrap_or(Vec::new());
                                 new_e_names.extend(e_names);
                                 if has_prefix {
                                     new_e_names.push(trimmed_name);

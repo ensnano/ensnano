@@ -114,7 +114,8 @@ impl<State: AppState> GuiTab<State> for EditionTab<State> {
         let sim_state = &app_state.get_simulation_state();
         let autoroll_is_active = sim_state.is_rolling() || !roll_target_helices.is_empty();
         let selection_contains_strand =
-            !crate::ensnano_interactor::extract_strands_from_selection(app_state.get_selection()).is_empty();
+            !crate::ensnano_interactor::extract_strands_from_selection(app_state.get_selection())
+                .is_empty();
         let suggestion_parameters = *app_state.get_suggestion_parameters();
         let mut tighten_helices_button = text_button("Selected", ui_size);
         if !roll_target_helices.is_empty() {

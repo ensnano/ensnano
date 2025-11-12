@@ -210,9 +210,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
         use super::view::ExternalObjects;
         let reader = app_state.get_design_reader();
         let external_objects = reader.get_external_objects();
-        if let Some(new_stamp) =
-            external_objects.was_updated(self.external_3d_objects_stamps)
-        {
+        if let Some(new_stamp) = external_objects.was_updated(self.external_3d_objects_stamps) {
             self.external_3d_objects_stamps = Some(new_stamp);
             let objects: Vec<_> = external_objects
                 .iter()
@@ -383,9 +381,9 @@ impl<R: SceneDesignReaderExt> Data<R> {
             if object_type.is_bond()
                 && let Some(b_id) =
                     self.designs[*d_id as usize].get_element_identifier_from_xover_id(*xover_id)
-                {
-                    ret.push(SceneElement::DesignElement(*d_id, b_id))
-                }
+            {
+                ret.push(SceneElement::DesignElement(*d_id, b_id))
+            }
         } else {
             let group = self.get_group_member(selection);
             for elt in group.iter() {
@@ -686,7 +684,8 @@ impl<R: SceneDesignReaderExt> Data<R> {
             bezier_control,
         } = element
         {
-            self.designs.first()
+            self.designs
+                .first()
                 .and_then(|d| d.get_control_point(*helix_id, *bezier_control))
         } else {
             let design_id = element.get_design()?;
@@ -906,14 +905,16 @@ impl<R: SceneDesignReaderExt> Data<R> {
         }
         if app_state.get_check_xover_parameters().wants_checked() {
             sphere.extend(
-                self.designs.first()
+                self.designs
+                    .first()
                     .map(|d| d.get_all_checked_xover_instance(true))
                     .unwrap_or_default(),
             );
         }
         if app_state.get_check_xover_parameters().wants_unchecked() {
             sphere.extend(
-                self.designs.first()
+                self.designs
+                    .first()
                     .map(|d| d.get_all_checked_xover_instance(false))
                     .unwrap_or_default(),
             );
@@ -1151,10 +1152,9 @@ impl<R: SceneDesignReaderExt> Data<R> {
         element: Option<SceneElement>,
         app_state: &S,
     ) -> Option<Selection> {
-        if log::log_enabled!(log::Level::Info)
-            && element.is_some() {
-                log::debug!("candidate {:?}", element);
-            }
+        if log::log_enabled!(log::Level::Info) && element.is_some() {
+            log::debug!("candidate {:?}", element);
+        }
         self.candidate_element = element;
         if let Some(element) = element.as_ref() {
             let selection = self.element_to_selection(element, app_state.get_selection_mode());
@@ -1189,7 +1189,8 @@ impl<R: SceneDesignReaderExt> Data<R> {
                     bezier_control,
                 } => {
                     self.selected_position = self
-                        .designs.first()
+                        .designs
+                        .first()
                         .and_then(|d| d.get_control_point(helix_id, bezier_control))
                 }
                 _ => (),
@@ -1236,7 +1237,8 @@ impl<R: SceneDesignReaderExt> Data<R> {
         &self,
     ) -> Option<HashMap<usize, StrandNucleotidesPositions>> {
         Some(
-            self.designs.first()?
+            self.designs
+                .first()?
                 .design_reader
                 .get_nucleotides_positions_by_strands(),
         )
@@ -1497,9 +1499,10 @@ impl<R: SceneDesignReaderExt> Data<R> {
         // If we are building helices, we want to show candidates grid circle even when they do not
         // correspond to an existing helix
         if app_state.get_action_mode().0.is_build()
-            && let Some(SceneElement::GridCircle(0, position)) = self.candidate_element.as_ref() {
-                add_discs(*position, discs!(), DiscLevel::Candidate);
-            }
+            && let Some(SceneElement::GridCircle(0, position)) = self.candidate_element.as_ref()
+        {
+            add_discs(*position, discs!(), DiscLevel::Candidate);
+        }
 
         for c in app_state.get_candidates() {
             if let Selection::Helix { helix_id, .. } = c
@@ -1566,7 +1569,8 @@ impl<R: SceneDesignReaderExt> Data<R> {
         let basis = view.get_camera().borrow().get_basis();
         let fovy = view.get_projection().borrow().get_fovy();
         let ratio = view.get_projection().borrow().get_ratio();
-        self.designs.first()
+        self.designs
+            .first()
             .and_then(|d| d.get_fitting_camera_position(basis, fovy, ratio))
     }
 
@@ -1895,7 +1899,8 @@ impl<R: SceneDesignReaderExt> Data<R> {
     }
 
     pub(super) fn get_surface_info_nucl(&self, nucl: Nucl) -> Option<SurfaceInfo> {
-        self.designs.first()
+        self.designs
+            .first()
             .and_then(|d| d.get_surface_info_nucl(nucl))
     }
 }
@@ -1948,7 +1953,8 @@ impl<R: SceneDesignReaderExt> super::controller::Data for Data<R> {
     }
 
     fn get_grid_object(&self, position: GridPosition) -> Option<GridObject> {
-        self.designs.first()
+        self.designs
+            .first()
             .and_then(|d| d.get_grid_object(position))
     }
 

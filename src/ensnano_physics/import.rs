@@ -355,13 +355,9 @@ pub fn generate_intermediary_representation(
         } else {
             // in this case, we only have one nucleotide left, so it is alone.
             if nucleotide_list[i].1.forward {
-                current_helix.push(BaseOrNucleotide::ForwardNucleotide(
-                    nucleotide_list[i],
-                ));
+                current_helix.push(BaseOrNucleotide::ForwardNucleotide(nucleotide_list[i]));
             } else {
-                current_helix.push(BaseOrNucleotide::BackwardNucleotide(
-                    nucleotide_list[i],
-                ));
+                current_helix.push(BaseOrNucleotide::BackwardNucleotide(nucleotide_list[i]));
             }
             break;
         };
@@ -381,13 +377,9 @@ pub fn generate_intermediary_representation(
 
         // the next nucleotide is alone
         if nucleotide_list[i].1.forward {
-            current_helix.push(BaseOrNucleotide::ForwardNucleotide(
-                nucleotide_list[i],
-            ));
+            current_helix.push(BaseOrNucleotide::ForwardNucleotide(nucleotide_list[i]));
         } else {
-            current_helix.push(BaseOrNucleotide::BackwardNucleotide(
-                nucleotide_list[i],
-            ));
+            current_helix.push(BaseOrNucleotide::BackwardNucleotide(nucleotide_list[i]));
         }
 
         // we check if the next nucleotide is connected;

@@ -192,7 +192,6 @@ impl ElementSelector {
         // This pattern is copied from
         //  https://stackoverflow.com/questions/76839881/creating-writing-and-reading-from-buffer-wgpu
 
-        
         {
             let pixels_slice = buffer_slice.get_mapped_range();
             let mut pixels = Vec::with_capacity((size.height * size.width) as usize);

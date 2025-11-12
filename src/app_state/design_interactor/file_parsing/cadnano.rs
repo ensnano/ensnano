@@ -297,8 +297,6 @@ fn make_strand(
 }
 
 fn subtract_skips(nucl: usize, helix: usize, vstrands: &Vec<VStrand>) -> isize {
-    let skips: isize = (0..(nucl + 1))
-        .map(|n| vstrands[helix].skip[n])
-        .sum();
+    let skips: isize = (0..(nucl + 1)).map(|n| vstrands[helix].skip[n]).sum();
     nucl as isize + skips
 }

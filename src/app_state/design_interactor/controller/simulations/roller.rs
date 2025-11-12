@@ -56,10 +56,7 @@ impl PhysicalSystem {
         let intervals_map = presenter.get_design().strands.get_intervals();
         let helices: Vec<Helix> = presenter.get_helices().values().cloned().collect();
         let keys: Vec<usize> = presenter.get_helices().keys().cloned().collect();
-        let helix_parameters = presenter
-            .get_design()
-            .helix_parameters
-            .unwrap_or_default();
+        let helix_parameters = presenter.get_design().helix_parameters.unwrap_or_default();
         let xovers = presenter.get_xovers_list();
         let mut helix_map = HashMap::new();
         let mut intervals = Vec::with_capacity(helices.len());

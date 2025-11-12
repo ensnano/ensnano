@@ -41,7 +41,9 @@ pub struct Design<StrandLabel, DomainLabel> {
     pub parameters: Option<Parameters>,
 }
 
-impl<StrandLabel: serde::Serialize, DomainLabel: serde::Serialize> Default for Design<StrandLabel, DomainLabel> {
+impl<StrandLabel: serde::Serialize, DomainLabel: serde::Serialize> Default
+    for Design<StrandLabel, DomainLabel>
+{
     fn default() -> Self {
         Self::new()
     }
@@ -358,7 +360,7 @@ impl Point {
         }
     }
 
-    pub fn to_vec3(&self) -> DVec3 {
+    pub fn to_vec3(self) -> DVec3 {
         DVec3 {
             x: self.x,
             y: self.y,
