@@ -25,7 +25,7 @@ use crate::ensnano_consts::{
     MOVE_CHAR, NUCL_CHAR, R_CLICK, ROT_CHAR, SELECT_CHAR, SHIFT, STRAND_CHAR, SUPPR_CHAR,
 };
 use crate::ensnano_design::{BezierVertexId, grid::GridId};
-use crate::ensnano_gui::ensnano_iced::{
+use crate::ensnano_iced::{
     helpers::*,
     iced::{self, Alignment, alignment::Horizontal},
     theme,
@@ -271,7 +271,7 @@ where
         &self,
         ui_size: UiSize,
         app_state: &State,
-    ) -> crate::ensnano_gui::ensnano_iced::Element<'_, Message<State>> {
+    ) -> crate::ensnano_iced::Element<'_, Message<State>> {
         let selection = app_state
             .get_selection()
             .get(0)
@@ -516,7 +516,7 @@ fn add_grid_content<'a, State: AppState>(
     info_values: Vec<String>,
     ui_size: UiSize,
     twisting: TwistStatus,
-) -> crate::ensnano_gui::ensnano_iced::Element<'a, Message<State>> {
+) -> crate::ensnano_iced::Element<'a, Message<State>> {
     self::column![
         // twist_button
         match twisting {
@@ -542,7 +542,7 @@ fn add_grid_content<'a, State: AppState>(
 fn add_strand_content<'a, State: AppState>(
     info_values: Vec<String>,
     ui_size: UiSize,
-) -> crate::ensnano_gui::ensnano_iced::Element<'a, Message<State>> {
+) -> crate::ensnano_iced::Element<'a, Message<State>> {
     let s_id = info_values[2].parse::<usize>().unwrap();
     self::column![
         row![
@@ -603,7 +603,7 @@ fn add_help_to_column<'a, State: AppState>(
 
 fn turn_into_help_column<'a, State: AppState>(
     ui_size: UiSize,
-) -> Column<'a, Message<State>, crate::ensnano_gui::ensnano_iced::Theme, crate::ensnano_gui::ensnano_iced::Renderer> {
+) -> Column<'a, Message<State>, crate::ensnano_iced::Theme, crate::ensnano_iced::Renderer> {
     self::column![
         section("Help", ui_size)
             .width(Length::Fill)
@@ -885,7 +885,7 @@ impl AddStrandMenu {
         &self,
         ui_size: UiSize,
         width: u16,
-    ) -> iced::widget::Column<'_, Message<State>, crate::ensnano_gui::ensnano_iced::Theme, crate::ensnano_gui::ensnano_iced::Renderer> {
+    ) -> iced::widget::Column<'_, Message<State>, crate::ensnano_iced::Theme, crate::ensnano_iced::Renderer> {
         let color_choose_strand_start_length = if self.text_inputs_are_active {
             theme::Text::Color(theme::GUI_PALETTE.text)
         } else {

@@ -17,7 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use super::{AppState, Message, Vec3};
 use crate::ensnano_gui::CameraId;
-use crate::ensnano_gui::ensnano_iced::{
+use crate::ensnano_iced::{
     UiSize,
     fonts::{MaterialIcon, MaterialIconStyle},
     helpers::*,
@@ -82,7 +82,7 @@ const PREDEFINED_CAMERA_ORIENTATION: [NamedCameraPosition; 6] = [
 fn named_camera_to_button<State: AppState>(
     position: &NamedCameraPosition,
     ui_size: UiSize,
-) -> crate::ensnano_gui::ensnano_iced::Element<'_, Message<State>> {
+) -> crate::ensnano_iced::Element<'_, Message<State>> {
     fixed_text_button(position.name, 2.0, ui_size)
         .on_press(position.message())
         .into()
@@ -124,8 +124,8 @@ struct CameraWidget {
 }
 
 impl CameraWidget {
-    fn view<State: AppState>(&self, ui_size: UiSize) -> crate::ensnano_gui::ensnano_iced::Element<'_, Message<State>> {
-        let name_field: crate::ensnano_gui::ensnano_iced::Element<'_, _> = if self.being_edited {
+    fn view<State: AppState>(&self, ui_size: UiSize) -> crate::ensnano_iced::Element<'_, Message<State>> {
+        let name_field: crate::ensnano_iced::Element<'_, _> = if self.being_edited {
             keyboard_priority(
                 text_input("Camera name", &self.name)
                     .on_input(Message::EditCameraName)
@@ -256,7 +256,7 @@ impl CameraShortcutPanel {
         &self,
         ui_size: UiSize,
         _state: &State,
-    ) -> crate::ensnano_gui::ensnano_iced::Element<'_, Message<State>> {
+    ) -> crate::ensnano_iced::Element<'_, Message<State>> {
         //let (ui_size, _) = state;
         //let ui_size = ui_size.to_owned();
 

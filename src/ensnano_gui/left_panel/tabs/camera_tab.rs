@@ -19,7 +19,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::{
     AppState, CheckXoversParameter, FogParameters, HBondDisplay, Message, UiSize, tabs::GuiTab,
 };
-use crate::ensnano_gui::ensnano_iced::{
+use crate::ensnano_iced::{
     fonts::{MaterialIcon, icon_to_char},
     helpers::*,
     iced::{Alignment, Length},
@@ -89,7 +89,7 @@ impl<State: AppState> GuiTab<State> for CameraTab<State> {
         &self,
         ui_size: UiSize,
         app_state: &State,
-    ) -> crate::ensnano_gui::ensnano_iced::Element<'_, Message<State>> {
+    ) -> crate::ensnano_iced::Element<'_, Message<State>> {
         let content = self::column![
             section("Camera", ui_size),
             subsection("Toggle visibility", ui_size),
@@ -191,7 +191,7 @@ struct FogGuiParameters {
 }
 
 impl FogGuiParameters {
-    fn view<State: AppState>(&self, ui_size: UiSize) -> crate::ensnano_gui::ensnano_iced::Element<'_, Message<State>> {
+    fn view<State: AppState>(&self, ui_size: UiSize) -> crate::ensnano_iced::Element<'_, Message<State>> {
         let radius_text = if self.is_activated {
             text("Radius")
         } else {

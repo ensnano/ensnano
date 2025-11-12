@@ -18,8 +18,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::tabs::GuiTab;
 use super::{AppState, GridTypeDescr, Message, UiSize};
 use crate::ensnano_consts::{ICON_HONEYCOMB_GRID, ICON_SQUARE_GRID};
-use crate::ensnano_gui::ensnano_iced::iced;
-use crate::ensnano_gui::ensnano_iced::{
+use crate::ensnano_iced::iced;
+use crate::ensnano_iced::{
     fonts::{MaterialIcon, MaterialIconStyle, icon_to_char},
     helpers::*,
     iced_aw::TabLabel,

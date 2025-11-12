@@ -20,13 +20,13 @@ use super::{
     Design, Helix,
     roller::{DesignData, RollSystem},
 };
+use crate::ensnano_design::{
+    Collection, CurveDescriptor, HelixCollection, HelixParameters, Twist,
+    grid::{GridDescriptor, GridTypeDescr, *},
+};
 use crate::{
     app_state::design_interactor::{Presenter, presenter::SimulationUpdate},
     controller::channel_reader::ChannelReader,
-};
-use crate::ensnano_design::{
-    self, Collection, CurveDescriptor, HelixCollection, HelixParameters, Twist,
-    grid::{GridDescriptor, GridTypeDescr, *},
 };
 use std::{
     collections::HashMap,
@@ -166,7 +166,10 @@ impl TwistState {
                 nb_turn_per_100_nt, ..
             } => {
                 *nb_turn_per_100_nt = twist;
-                crate::ensnano_design::nb_turn_per_100_nt_to_omega(*nb_turn_per_100_nt, helix_parameters)
+                crate::ensnano_design::nb_turn_per_100_nt_to_omega(
+                    *nb_turn_per_100_nt,
+                    helix_parameters,
+                )
             }
             GridTypeDescr::Square { twist: grid_twist } => {
                 *grid_twist = Some(twist);
@@ -280,8 +283,11 @@ impl DesignData {
             if let Some(CurveDescriptor::Twist(Twist { omega, .. })) =
                 h.curve.as_mut().map(Arc::make_mut)
             {
-                *omega = crate::ensnano_design::nb_turn_per_100_nt_to_omega(twist, &self.helix_parameters)
-                    .unwrap_or(*omega);
+                *omega = crate::ensnano_design::nb_turn_per_100_nt_to_omega(
+                    twist,
+                    &self.helix_parameters,
+                )
+                .unwrap_or(*omega);
                 h.try_update_curve(&self.helix_parameters);
             } else {
                 log::error!("Update twist: Wrong kind of curve descriptor");

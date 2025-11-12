@@ -17,7 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::ColorMessage;
-use crate::ensnano_gui::ensnano_iced::{helpers::*, iced::Color};
+use crate::ensnano_iced::{helpers::*, iced::Color};
 use hue_column::HueColumn;
 use light_sat_square::LightSatSquare;
 
@@ -34,7 +34,7 @@ impl ColorPicker {
         self.hue = hue
     }
 
-    pub fn new_view(&self) -> crate::ensnano_gui::ensnano_iced::Element<'_, ColorMessage> {
+    pub fn new_view(&self) -> crate::ensnano_iced::Element<'_, ColorMessage> {
         row![
             HueColumn::new(ColorMessage::HueChanged,),
             LightSatSquare::new(
@@ -50,8 +50,7 @@ impl ColorPicker {
 
 /// A Iced Widget to select Hue.
 mod hue_column {
-    use crate::ensnano_gui::ensnano_iced::{
-        self,
+    use crate::ensnano_iced::{
         iced::{
             Length, Point, Rectangle, Renderer, Size, Vector,
             advanced::{
@@ -95,7 +94,7 @@ mod hue_column {
         }
     }
 
-    impl<'a, Message> Widget<Message, crate::ensnano_gui::ensnano_iced::Theme, crate::ensnano_gui::ensnano_iced::Renderer>
+    impl<'a, Message> Widget<Message, crate::ensnano_iced::Theme, crate::ensnano_iced::Renderer>
         for HueColumn<'a, Message>
     {
         fn state(&self) -> widget::tree::State {
@@ -111,7 +110,7 @@ mod hue_column {
         fn layout(
             &self,
             _tree: &mut widget::Tree,
-            _renderer: &crate::ensnano_gui::ensnano_iced::Renderer,
+            _renderer: &crate::ensnano_iced::Renderer,
             limits: &layout::Limits,
         ) -> layout::Node {
             let size = limits.resolve(Length::Fill, Length::Fill, Size::ZERO);
@@ -122,8 +121,8 @@ mod hue_column {
         fn draw(
             &self,
             _tree: &widget::Tree,
-            renderer: &mut crate::ensnano_gui::ensnano_iced::Renderer,
-            _theme: &crate::ensnano_gui::ensnano_iced::Theme,
+            renderer: &mut crate::ensnano_iced::Renderer,
+            _theme: &crate::ensnano_iced::Theme,
             _style: &Style,
             layout: Layout,
             _cursor: Cursor,
@@ -185,7 +184,7 @@ mod hue_column {
             event: event::Event,
             layout: Layout,
             cursor: Cursor,
-            _renderer: &crate::ensnano_gui::ensnano_iced::Renderer,
+            _renderer: &crate::ensnano_iced::Renderer,
             _clipboard: &mut dyn Clipboard,
             shell: &mut Shell<'_, Message>,
             _viewport: &Rectangle,
@@ -237,7 +236,12 @@ mod hue_column {
     }
 
     impl<'a, Message> From<HueColumn<'a, Message>>
-        for crate::ensnano_gui::ensnano_iced::Element<'a, Message, crate::ensnano_gui::ensnano_iced::Theme, crate::ensnano_gui::ensnano_iced::Renderer>
+        for crate::ensnano_iced::Element<
+            'a,
+            Message,
+            crate::ensnano_iced::Theme,
+            crate::ensnano_iced::Renderer,
+        >
     where
         Message: 'a + Clone,
     {
@@ -249,8 +253,7 @@ mod hue_column {
 
 /// A widget to select Lightness and Saturation values.
 mod light_sat_square {
-    use crate::ensnano_gui::ensnano_iced::{
-        self,
+    use crate::ensnano_iced::{
         iced::{
             Length, Point, Rectangle, Renderer, Size, Vector,
             advanced::{
@@ -310,7 +313,7 @@ mod light_sat_square {
         }
     }
 
-    impl<'a, Message> Widget<Message, crate::ensnano_gui::ensnano_iced::Theme, crate::ensnano_gui::ensnano_iced::Renderer>
+    impl<'a, Message> Widget<Message, crate::ensnano_iced::Theme, crate::ensnano_iced::Renderer>
         for LightSatSquare<'a, Message>
     where
         Message: Clone + 'a,
@@ -328,7 +331,7 @@ mod light_sat_square {
         fn layout(
             &self,
             _tree: &mut widget::Tree,
-            _renderer: &crate::ensnano_gui::ensnano_iced::Renderer,
+            _renderer: &crate::ensnano_iced::Renderer,
             limits: &layout::Limits,
         ) -> layout::Node {
             let size = limits.resolve(Length::Fill, Length::Fill, Size::ZERO);
@@ -339,8 +342,8 @@ mod light_sat_square {
         fn draw(
             &self,
             _state: &widget::Tree,
-            renderer: &mut crate::ensnano_gui::ensnano_iced::Renderer,
-            _theme: &crate::ensnano_gui::ensnano_iced::Theme,
+            renderer: &mut crate::ensnano_iced::Renderer,
+            _theme: &crate::ensnano_iced::Theme,
             _style: &Style,
             layout: Layout,
             _cursor: Cursor,
@@ -399,7 +402,7 @@ mod light_sat_square {
             event: event::Event,
             layout: Layout,
             cursor: Cursor,
-            _renderer: &crate::ensnano_gui::ensnano_iced::Renderer,
+            _renderer: &crate::ensnano_iced::Renderer,
             _clipboard: &mut dyn Clipboard,
             shell: &mut Shell<'_, Message>,
             _viewport: &Rectangle,
@@ -461,7 +464,12 @@ mod light_sat_square {
     }
 
     impl<'a, Message> From<LightSatSquare<'a, Message>>
-        for crate::ensnano_gui::ensnano_iced::Element<'a, Message, crate::ensnano_gui::ensnano_iced::Theme, crate::ensnano_gui::ensnano_iced::Renderer>
+        for crate::ensnano_iced::Element<
+            'a,
+            Message,
+            crate::ensnano_iced::Theme,
+            crate::ensnano_iced::Renderer,
+        >
     where
         Message: Clone + 'a,
     {
@@ -474,8 +482,7 @@ mod light_sat_square {
 /// A widget to Visualize selected color.
 mod color_square {
     use super::Color;
-    use crate::ensnano_gui::ensnano_iced::{
-        self,
+    use crate::ensnano_iced::{
         iced::{
             Length, Rectangle, Size, Vector,
             advanced::{
@@ -530,7 +537,7 @@ mod color_square {
         }
     }
 
-    impl<'a, Message> Widget<Message, crate::ensnano_gui::ensnano_iced::Theme, crate::ensnano_gui::ensnano_iced::Renderer>
+    impl<'a, Message> Widget<Message, crate::ensnano_iced::Theme, crate::ensnano_iced::Renderer>
         for ColorSquare<'a, Message>
     where
         Message: Clone + 'a,
@@ -548,7 +555,7 @@ mod color_square {
         fn layout(
             &self,
             _tree: &mut widget::Tree,
-            _renderer: &crate::ensnano_gui::ensnano_iced::Renderer,
+            _renderer: &crate::ensnano_iced::Renderer,
             limits: &layout::Limits,
         ) -> layout::Node {
             let size = limits.resolve(Length::Fill, Length::Fill, Size::ZERO);
@@ -559,8 +566,8 @@ mod color_square {
         fn draw(
             &self,
             _tree: &widget::Tree,
-            renderer: &mut crate::ensnano_gui::ensnano_iced::Renderer,
-            _theme: &crate::ensnano_gui::ensnano_iced::Theme,
+            renderer: &mut crate::ensnano_iced::Renderer,
+            _theme: &crate::ensnano_iced::Theme,
             _style: &Style,
             layout: Layout,
             _cursor: Cursor,
@@ -599,7 +606,7 @@ mod color_square {
             });
 
             match renderer {
-                crate::ensnano_gui::ensnano_iced::Renderer::Wgpu(wgpu_renderer) => {
+                crate::ensnano_iced::Renderer::Wgpu(wgpu_renderer) => {
                     wgpu_renderer.with_translation(Vector::new(b.x, b.y), |renderer| {
                         //renderer.draw_primitive(Primitive::SolidMesh {
                         //    buffers: Indexed { vertices, indices },
@@ -618,7 +625,7 @@ mod color_square {
             event: event::Event,
             layout: Layout,
             cursor: Cursor,
-            _renderer: &crate::ensnano_gui::ensnano_iced::Renderer,
+            _renderer: &crate::ensnano_iced::Renderer,
             _clipboard: &mut dyn Clipboard,
             shell: &mut Shell<'_, Message>,
             _viewport: &Rectangle,
@@ -662,7 +669,12 @@ mod color_square {
     }
 
     impl<'a, Message> From<ColorSquare<'a, Message>>
-        for crate::ensnano_gui::ensnano_iced::Element<'a, Message, crate::ensnano_gui::ensnano_iced::Theme, crate::ensnano_gui::ensnano_iced::Renderer>
+        for crate::ensnano_iced::Element<
+            'a,
+            Message,
+            crate::ensnano_iced::Theme,
+            crate::ensnano_iced::Renderer,
+        >
     where
         Message: Clone + 'a,
     {

@@ -89,12 +89,4 @@ impl Instance {
             alpha as f32 / 255.,
         )
     }
-
-    pub fn id_from_u32(id: u32) -> Vec4 {
-        let a = (id & 0xFF000000) >> 24;
-        let r = (id & 0x00FF0000) >> 16;
-        let g = (id & 0x0000FF00) >> 8;
-        let b = id & 0x000000FF;
-        Vec4::new(r as f32 / 255., g as f32 / 255., b as f32 / 255., a as f32)
-    }
 }

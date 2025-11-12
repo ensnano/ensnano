@@ -19,8 +19,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 // TODO: Make it an independent object like ensano_iced::color_picker ?
 use super::AppState;
 use super::Message;
-use crate::ensnano_gui::ensnano_iced::iced;
-use crate::ensnano_gui::ensnano_iced::{
+use crate::ensnano_iced::iced;
+use crate::ensnano_iced::{
     helpers::*,
     iced::{Alignment, Length, Pixels},
     theme,

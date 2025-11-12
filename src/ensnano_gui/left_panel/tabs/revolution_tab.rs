@@ -20,7 +20,7 @@ use super::tabs::GuiTab;
 use crate::ensnano_gui::left_panel::Message;
 use crate::ensnano_gui::{AppState, SimulationState};
 use crate::ensnano_design::CurveDescriptor2D;
-use crate::ensnano_gui::ensnano_iced::{
+use crate::ensnano_iced::{
     UiSize,
     fonts::{MaterialIcon, icon_to_char},
     helpers::*,
@@ -153,7 +153,7 @@ impl ParameterWidget {
     fn input_view<State: AppState>(
         &self,
         id: RevolutionParameterId,
-    ) -> crate::ensnano_gui::ensnano_iced::Element<'_, Message<State>> {
+    ) -> crate::ensnano_iced::Element<'_, Message<State>> {
         keyboard_priority(
             text_input("", &self.current_text)
                 .on_input(move |s| Message::RevolutionParameterUpdate {
@@ -218,7 +218,7 @@ impl<S: AppState> CurveDescriptorWidget<S> {
         }
     }
 
-    fn view(&self, ui_size: UiSize) -> crate::ensnano_gui::ensnano_iced::Element<'_, Message<S>> {
+    fn view(&self, ui_size: UiSize) -> crate::ensnano_iced::Element<'_, Message<S>> {
         container(column(
             self.parameters
                 .iter()
@@ -553,7 +553,7 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
         &self,
         ui_size: UiSize,
         app_state: &State,
-    ) -> crate::ensnano_gui::ensnano_iced::Element<'_, Self::Message, crate::ensnano_gui::ensnano_iced::Theme, crate::ensnano_gui::ensnano_iced::Renderer> {
+    ) -> crate::ensnano_iced::Element<'_, Self::Message, crate::ensnano_iced::Theme, crate::ensnano_iced::Renderer> {
         let desc = self.get_revolution_system(app_state, false);
 
         let shift_buttons = {

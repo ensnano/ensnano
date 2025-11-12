@@ -11,7 +11,7 @@ pub mod tree;
 
 use drag_drop_target::*;
 pub use element::*;
-use crate::ensnano_organizer::ensnano_iced::{
+use crate::ensnano_iced::{
     Element,
     helpers::*,
     iced::{Length, keyboard::Modifiers},
@@ -317,7 +317,7 @@ impl<E: OrganizerElement> Organizer<E> {
                         "Create new_group from selection",
                         tooltip::Position::FollowCursor,
                     )
-                    .style(crate::ensnano_organizer::ensnano_iced::iced::theme::Container::Box)
+                    .style(crate::ensnano_iced::iced::theme::Container::Box)
                 ],
                 scrollable(content).width(self.width)
             ]

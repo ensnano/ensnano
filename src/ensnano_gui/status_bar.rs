@@ -17,8 +17,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::{AppState, Requests};
-use crate::ensnano_gui::ensnano_iced::{
-    self, UiSize,
+use crate::ensnano_iced::{
+    UiSize,
     helpers::*,
     iced::{self, Alignment, Color, Element, Length},
     iced_graphics::text::Paragraph,
@@ -141,8 +141,8 @@ pub enum Message<S: AppState> {
 
 impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
     type Message = Message<S>;
-    type Theme = crate::ensnano_gui::ensnano_iced::Theme;
-    type Renderer = crate::ensnano_gui::ensnano_iced::Renderer;
+    type Theme = crate::ensnano_iced::Theme;
+    type Renderer = crate::ensnano_iced::Renderer;
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         self.update_operation();
@@ -232,7 +232,7 @@ impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
         let content = self::column![Space::new(Length::Fill, 3), content, pasting_status_row,];
 
         container(content)
-            .style(crate::ensnano_gui::ensnano_iced::theme::GuiBackground)
+            .style(crate::ensnano_iced::theme::GuiBackground)
             .width(size.width as f32)
             .height(Length::Fill)
             .into()
@@ -334,12 +334,7 @@ impl OperationInput {
     fn view<S: AppState>(
         &self,
         ui_size: UiSize,
-    ) -> Row<
-        '_,
-        Message<S>,
-        crate::ensnano_gui::ensnano_iced::Theme,
-        crate::ensnano_gui::ensnano_iced::Renderer,
-    > {
+    ) -> Row<'_, Message<S>, crate::ensnano_iced::Theme, crate::ensnano_iced::Renderer> {
         let mut row = Row::new();
         let op = self.operation.as_ref();
         row = row.push(text(op.description()).size(ui_size.main_text()));
@@ -415,9 +410,7 @@ impl OperationInput {
 
 mod input_color {
     // TODO: Move this in ensnano_iced.
-    use crate::ensnano_gui::ensnano_iced::iced::{
-        Background, Border, Color, theme, widget::text_input::*,
-    };
+    use crate::ensnano_iced::iced::{Background, Border, Color, theme, widget::text_input::*};
 
     pub enum InputValueState {
         Normal,

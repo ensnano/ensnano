@@ -33,7 +33,7 @@ mod surfaces;
 pub mod torsion;
 
 use crate::ensnano_design::{
-    self, BezierControlPoint, BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex,
+    BezierControlPoint, BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex,
     BezierVertexId, CurveDescriptor2D, HelixParameters, Nucl,
     elements::{DesignElementKey, DnaAttribute},
     grid::{GridDescriptor, GridId, GridObject, GridTypeDescr, HelixGridPosition, Hyperboloid},
@@ -560,10 +560,10 @@ impl StandardSequence {
 
     pub fn sequence(&self) -> &'static str {
         match self {
-            Self::P4844 => include_str!("../p4844-Tilibit.txt"),
-            Self::P7249 => include_str!("../p7249-Tilibit.txt"),
-            Self::P7560 => include_str!("../p7560.txt"),
-            Self::P8064 => include_str!("../m13-p8064.txt"),
+            Self::P4844 => include_str!("./p4844-Tilibit.txt"),
+            Self::P7249 => include_str!("./p7249-Tilibit.txt"),
+            Self::P7560 => include_str!("./p7560.txt"),
+            Self::P8064 => include_str!("./m13-p8064.txt"),
         }
     }
 

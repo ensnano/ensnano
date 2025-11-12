@@ -19,14 +19,14 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 const MAX_ACCEL: f64 = 100.;
 
 use super::{SimulationInterface, SimulationUpdate};
-use crate::{app_state::ErrOperation, controller::channel_reader::ChannelReader};
 use crate::ensnano_design::{
-    self, CurveDescriptor, CurveDescriptor2D, HelixParameters, InterpolationDescriptor,
+    CurveDescriptor, CurveDescriptor2D, HelixParameters, InterpolationDescriptor,
 };
 use crate::ensnano_interactor::{
     EquadiffSolvingMethod, RevolutionSimulationParameters, RevolutionSurfaceSystemDescriptor,
     RootedRevolutionSurface,
 };
+use crate::{app_state::ErrOperation, controller::channel_reader::ChannelReader};
 use mathru::{
     algebra::linear::vector::vector::Vector,
     analysis::differential_equation::ordinary::{

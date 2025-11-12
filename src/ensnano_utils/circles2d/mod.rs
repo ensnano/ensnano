@@ -17,8 +17,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use {
-    crate::ensnano_utils::{bindgroup_manager::DynamicBindGroup, texture::Texture},
     crate::ensnano_consts::SAMPLE_COUNT,
+    crate::ensnano_utils::{bindgroup_manager::DynamicBindGroup, texture::Texture},
     std::rc::Rc,
     ultraviolet::Vec2,
     wgpu::{BindGroupLayout, Device, Queue, RenderPass, RenderPipeline, include_spirv},
@@ -51,10 +51,6 @@ impl CircleInstance {
 
     pub fn set_color(&mut self, color: u32) {
         self.color = color
-    }
-
-    pub fn angle(self, angle: f32) -> Self {
-        Self { angle, ..self }
     }
 
     pub fn in_rectangle(&self, c1: &Vec2, c2: &Vec2) -> bool {

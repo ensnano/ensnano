@@ -1,4 +1,4 @@
-use crate::ensnano_organizer::ensnano_iced::{
+use crate::ensnano_iced::{
     helpers::{button, text},
     iced::Element,
 };

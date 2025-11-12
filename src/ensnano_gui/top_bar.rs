@@ -24,7 +24,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::{AppState, TopBarState};
 // NOTE: I would like to rename AppState to ApplicationState, and name AppState the structures that
 //       implement it.
-use crate::ensnano_gui::ensnano_iced::{
+use crate::ensnano_iced::{
     UiSize,
     fonts::{MaterialIcon, MaterialIconStyle},
     helpers::*,
@@ -110,7 +110,7 @@ impl<R: Requests, S: AppState> TopBar<R, S> {
 
 impl<R: Requests, S: AppState> Program for TopBar<R, S> {
     type Message = Message<S>;
-    type Theme = crate::ensnano_gui::ensnano_iced::Theme;
+    type Theme = crate::ensnano_iced::Theme;
     type Renderer = super::Renderer;
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
@@ -485,7 +485,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
 
         container(bar)
             .width(self.logical_size.width as f32)
-            .style(crate::ensnano_gui::ensnano_iced::theme::GuiBackground)
+            .style(crate::ensnano_iced::theme::GuiBackground)
             // HACK: A small padding allow tooltip messages to disappear properly.
             .padding(Padding::from([
                 self.ui_size.button_spacing(),
@@ -504,7 +504,7 @@ fn action_mode_btn<'a, State: AppState>(
     _button_size: impl Into<Length>,
     axis_aligned: bool,
     ui_size: UiSize,
-) -> Button<'a, Message<State>, crate::ensnano_gui::ensnano_iced::Theme, super::Renderer> {
+) -> Button<'a, Message<State>, crate::ensnano_iced::Theme, super::Renderer> {
     let icon_path = if current_action_mode == *mode {
         mode.icon_on(axis_aligned)
     } else {
@@ -525,7 +525,7 @@ fn selection_mode_btn<'a, State: AppState>(
     mode: &SelectionMode,
     current_mode: SelectionMode,
     ui_size: UiSize,
-) -> Button<'a, Message<State>, crate::ensnano_gui::ensnano_iced::Theme, super::Renderer> {
+) -> Button<'a, Message<State>, crate::ensnano_iced::Theme, super::Renderer> {
     let icon_path = if current_mode == *mode {
         mode.icon_on()
     } else {

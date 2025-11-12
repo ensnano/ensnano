@@ -21,7 +21,7 @@ use std::path::Path;
 use super::Selection;
 use super::graphics::*;
 use crate::ensnano_design::group_attributes::GroupPivot;
-use crate::ensnano_interactor::ensnano_iced::{iced_wgpu::wgpu, iced_winit::winit};
+use crate::ensnano_iced::{iced_wgpu::wgpu, iced_winit::winit};
 use std::sync::Arc;
 use std::time::Duration;
 use ultraviolet::{Rotor3, Vec3};

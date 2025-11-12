@@ -23,7 +23,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! coordinate conversion.
 
 use crate::ensnano_consts::MAX_ZOOM_2D;
-use crate::ensnano_utils::ensnano_iced::iced_winit::winit::{dpi::PhysicalPosition, event::MouseScrollDelta};
+use crate::ensnano_iced::iced_winit::winit::{dpi::PhysicalPosition, event::MouseScrollDelta};
 use ultraviolet::{Rotor2, Vec2};
 
 /// A 2D camera for the FlatScene.

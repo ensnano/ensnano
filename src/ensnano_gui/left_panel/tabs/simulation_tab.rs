@@ -18,7 +18,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::tabs::GuiTab;
 use super::*;
 use crate::ensnano_consts::ICON_PHYSICAL_ENGINE;
-use crate::ensnano_gui::ensnano_iced::{helpers::*, iced_aw::TabLabel};
+use crate::ensnano_iced::{helpers::*, iced_aw::TabLabel};
 
 pub struct SimulationTab<State: AppState> {
     rigid_body_factory: RequestFactory<RigidBodyFactory>,
@@ -118,7 +118,7 @@ impl<State: AppState> SimulationTab<State> {
         go_stop: &'a GoStop<State>,
         app_state: &State,
         ui_size: UiSize,
-    ) -> crate::ensnano_gui::ensnano_iced::Element<'a, Message<State>> {
+    ) -> crate::ensnano_iced::Element<'a, Message<State>> {
         let sim_state = app_state.get_simulation_state();
         if sim_state.is_paused() {
             row![
@@ -147,7 +147,7 @@ impl<State: AppState> GuiTab<State> for SimulationTab<State> {
         &self,
         ui_size: UiSize,
         app_state: &State,
-    ) -> crate::ensnano_gui::ensnano_iced::Element<'_, Self::Message> {
+    ) -> crate::ensnano_iced::Element<'_, Self::Message> {
         let sim_state = &app_state.get_simulation_state();
         let rigid_grid_is_active = sim_state.is_none() || sim_state.simulating_grid();
         let roll_active = sim_state.is_none() || sim_state.is_rolling();
@@ -209,7 +209,7 @@ impl PhysicalSimulation {
         name: &'static str,
         active: bool,
         running: bool,
-    ) -> crate::ensnano_gui::ensnano_iced::Element<'_, Message<State>, crate::ensnano_gui::ensnano_iced::Theme, crate::ensnano_gui::ensnano_iced::Renderer>
+    ) -> crate::ensnano_iced::Element<'_, Message<State>, crate::ensnano_iced::Theme, crate::ensnano_iced::Renderer>
     {
         let button_str = if running { "Stop" } else { name };
         let mut button = text_button(button_str, ui_size);

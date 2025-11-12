@@ -17,7 +17,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use super::tabs::GuiTab;
 use super::{AppState, FactoryId, Message, RequestFactory, ScrollSensitivity, UiSize, ValueId};
-use crate::ensnano_gui::ensnano_iced::{
+use crate::ensnano_design::ensnano_version;
+use crate::ensnano_iced::{
     fonts::{MaterialIcon, icon_to_char},
     helpers::*,
     iced_aw::TabLabel,
@@ -66,7 +67,7 @@ impl<State: AppState> GuiTab<State> for ParametersTab<State> {
         &self,
         ui_size: UiSize,
         app_state: &State,
-    ) -> crate::ensnano_gui::ensnano_iced::Element<'_, Self::Message> {
+    ) -> crate::ensnano_iced::Element<'_, Self::Message> {
         let dna_params = &app_state.get_dna_parameters();
 
         let content = self::column![
@@ -74,7 +75,7 @@ impl<State: AppState> GuiTab<State> for ParametersTab<State> {
             extra_jump(),
             subsection("Font size", ui_size),
             pick_list(
-                &crate::ensnano_gui::ensnano_iced::ALL_UI_SIZES[..],
+                &crate::ensnano_iced::ALL_UI_SIZES[..],
                 Some(ui_size),
                 Message::UiSizePicked,
             ),
@@ -118,7 +119,7 @@ impl<State: AppState> GuiTab<State> for ParametersTab<State> {
             ],
             jump_by(10),
             section("About", ui_size),
-            text(format!("Version {}", crate::ensnano_design::ensnano_version())),
+            text(format!("Version {}", ensnano_version())),
             subsection("Development:", ui_size),
             text("Nicolas Levy"),
             extra_jump(),

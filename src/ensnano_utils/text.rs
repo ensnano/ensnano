@@ -16,7 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 //! This module provides utilities for drawing text in the applications
-use crate::ensnano_utils::ensnano_iced::iced_wgpu::wgpu;
+use crate::ensnano_iced::iced_wgpu::wgpu;
 use fontdue::Font;
 use std::convert::TryInto;
 use std::rc::Rc;

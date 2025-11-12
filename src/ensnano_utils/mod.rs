@@ -30,7 +30,7 @@ pub mod obj_loader;
 pub mod text;
 pub mod texture;
 
-use crate::ensnano_utils::ensnano_iced::iced_winit::winit::dpi::{
+use crate::ensnano_iced::iced_winit::winit::dpi::{
     PhysicalPosition, PhysicalSize, Pixel,
 };
 use serde::{Deserialize, Serialize};

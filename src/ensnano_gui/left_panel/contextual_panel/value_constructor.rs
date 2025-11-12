@@ -17,7 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::{Message, Selection, UiSize};
-use crate::ensnano_gui::ensnano_iced::{
+use crate::ensnano_iced::{
     helpers::*,
     iced::{self, Alignment, Length},
 };
@@ -262,7 +262,7 @@ where
         ui_size: UiSize,
         _selection: &Selection,
         _app_state: &State,
-    ) -> iced::Element<'_, super::Message<State>, crate::ensnano_gui::ensnano_iced::Theme, crate::ensnano_gui::ensnano_iced::Renderer> {
+    ) -> iced::Element<'_, super::Message<State>, crate::ensnano_iced::Theme, crate::ensnano_iced::Renderer> {
         self::column![
             text("Position").size(ui_size.intermediate_text()),
             self.position_builder.view(),
@@ -313,7 +313,7 @@ impl GridBuilder {
     fn nb_turn_row<'a, S: AppState>(
         app_state: &S,
         selection: &Selection,
-    ) -> Option<iced::Element<'a, super::Message<S>, crate::ensnano_gui::ensnano_iced::Theme, crate::ensnano_gui::ensnano_iced::Renderer>>
+    ) -> Option<iced::Element<'a, super::Message<S>, crate::ensnano_iced::Theme, crate::ensnano_iced::Renderer>>
     {
         use crate::ensnano_gui::consts;
         if let Selection::Grid(_, g_id) = selection {
@@ -345,7 +345,7 @@ where
         ui_size: UiSize,
         selection: &Selection,
         app_state: &State,
-    ) -> iced::Element<'_, super::Message<State>, crate::ensnano_gui::ensnano_iced::Theme, crate::ensnano_gui::ensnano_iced::Renderer> {
+    ) -> iced::Element<'_, super::Message<State>, crate::ensnano_iced::Theme, crate::ensnano_iced::Renderer> {
         self::column![
             text("Position").size(ui_size.intermediate_text()),
             self.position_builder.view(),
@@ -393,7 +393,7 @@ where
         ui_size: UiSize,
         selection: &Selection,
         app_state: &State,
-    ) -> iced::Element<'a, super::Message<State>, crate::ensnano_gui::ensnano_iced::Theme, crate::ensnano_gui::ensnano_iced::Renderer>;
+    ) -> iced::Element<'a, super::Message<State>, crate::ensnano_iced::Theme, crate::ensnano_iced::Renderer>;
     fn update_str_value(&mut self, value_kind: ValueKind, n: usize, value_str: String);
     fn submit_value(&mut self, value_kind: ValueKind) -> Option<InstantiatedValue>;
 }

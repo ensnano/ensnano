@@ -22,23 +22,8 @@ pub mod simulations;
 pub mod update_insertion_length;
 
 use super::SimulationUpdate;
-use crate::{
-    app_state::{
-        AddressPointer,
-        design_interactor::controller::simulations::{
-            GridSystemInterface, GridsSystemThread, HelixSystemInterface, HelixSystemThread,
-            SimulationOperation,
-            rapier::{RapierInterface, RapierPhysicalSystem},
-            revolutions::{RevolutionSystemInterface, RevolutionSystemThread},
-            roller::{PhysicalSystem, RollInterface},
-            twister::{TwistInterface, Twister},
-        },
-    },
-    controller::channel_reader::ChannelReader,
-};
-use clipboard::{Clipboard, CopyOperation, PastePosition, PastedStrand, StrandClipboard};
 use crate::ensnano_design::{
-    self, BezierControlPoint, BezierEnd, BezierPathId, BezierPlaneDescriptor, BezierVertex,
+    BezierControlPoint, BezierEnd, BezierPathId, BezierPlaneDescriptor, BezierVertex,
     BezierVertexId, CameraId, Collection, CurveDescriptor, Design, Domain, DomainJunction, Helices,
     Helix, HelixCollection, HelixInterval, Nucl, NuclCollection, Strand, Strands, UpToDateDesign,
     drawing_style::{DrawingAttribute, DrawingStyle},
@@ -59,6 +44,21 @@ use crate::ensnano_interactor::{
 };
 use crate::ensnano_organizer::tree::GroupId;
 use crate::ensnano_utils::colors;
+use crate::{
+    app_state::{
+        AddressPointer,
+        design_interactor::controller::simulations::{
+            GridSystemInterface, GridsSystemThread, HelixSystemInterface, HelixSystemThread,
+            SimulationOperation,
+            rapier::{RapierInterface, RapierPhysicalSystem},
+            revolutions::{RevolutionSystemInterface, RevolutionSystemThread},
+            roller::{PhysicalSystem, RollInterface},
+            twister::{TwistInterface, Twister},
+        },
+    },
+    controller::channel_reader::ChannelReader,
+};
+use clipboard::{Clipboard, CopyOperation, PastePosition, PastedStrand, StrandClipboard};
 use std::{
     borrow::Cow,
     collections::{BTreeMap, HashMap},
@@ -842,7 +842,9 @@ impl Controller {
             if !design.helices.contains_key(h_id) {
                 return Err(ErrOperation::HelixDoesNotExists(*h_id));
             }
-            crate::ensnano_design::mutate_one_helix(design, *h_id, |h| h.locked_for_simulations = locked);
+            crate::ensnano_design::mutate_one_helix(design, *h_id, |h| {
+                h.locked_for_simulations = locked
+            });
         }
         Ok(())
     }
@@ -1218,8 +1220,8 @@ impl Controller {
         mut design: Design,
         selection: Vec<Selection>,
     ) -> Result<Design, ErrOperation> {
-        let helices =
-            crate::ensnano_interactor::list_of_helices(&selection).ok_or(ErrOperation::BadSelection)?;
+        let helices = crate::ensnano_interactor::list_of_helices(&selection)
+            .ok_or(ErrOperation::BadSelection)?;
         crate::ensnano_design::design_operations::make_grid_from_helices(&mut design, &helices.1)?;
         Ok(design)
     }
@@ -1640,7 +1642,13 @@ impl Controller {
         y: isize,
     ) -> Result<Design, ErrOperation> {
         self.update_state_and_design(&mut design);
-        crate::ensnano_design::design_operations::attach_object_to_grid(&mut design, object, grid, x, y)?;
+        crate::ensnano_design::design_operations::attach_object_to_grid(
+            &mut design,
+            object,
+            grid,
+            x,
+            y,
+        )?;
         Ok(design)
     }
 

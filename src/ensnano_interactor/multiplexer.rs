@@ -1,5 +1,5 @@
 use super::graphics::{DrawArea, GuiComponentType};
-use crate::ensnano_interactor::ensnano_iced::{
+use crate::ensnano_iced::{
     iced_wgpu::wgpu, iced_winit::winit::dpi::PhysicalPosition,
 };
 

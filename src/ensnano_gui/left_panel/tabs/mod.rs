@@ -60,7 +60,7 @@ pub trait GuiTab<State: AppState> {
         Command::none()
     }
 
-    fn view(&self, ui_size: UiSize, app_state: &State) -> crate::ensnano_gui::ensnano_iced::Element<'_, Self::Message> {
+    fn view(&self, ui_size: UiSize, app_state: &State) -> crate::ensnano_iced::Element<'_, Self::Message> {
         container(self.content(ui_size, app_state))
             .width(Length::Fill)
             .height(Length::Fill)
@@ -71,13 +71,13 @@ pub trait GuiTab<State: AppState> {
         &self,
         ui_size: UiSize,
         app_state: &State,
-    ) -> crate::ensnano_gui::ensnano_iced::Element<'_, Self::Message>;
+    ) -> crate::ensnano_iced::Element<'_, Self::Message>;
 }
 
 mod gostop {
     // TODO: Turn this into a widget
     use super::{AppState, Message};
-    use crate::ensnano_gui::ensnano_iced::{Element, Renderer, Theme, helpers::*, iced};
+    use crate::ensnano_iced::{Element, Renderer, Theme, helpers::*, iced};
 
     pub struct GoStop<State: AppState> {
         pub name: String,

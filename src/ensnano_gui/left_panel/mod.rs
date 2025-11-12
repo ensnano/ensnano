@@ -23,7 +23,7 @@ use crate::ensnano_design::{
     grid::GridTypeDescr,
 };
 use crate::ensnano_exports::ExportType;
-use crate::ensnano_gui::ensnano_iced::{
+use crate::ensnano_iced::{
     UiSize,
     color_picker::ColorPickerMessage,
     iced::{Color, Command, Element, Length},
@@ -317,7 +317,7 @@ where
     R: Requests,
     S: AppState,
 {
-    type Theme = crate::ensnano_gui::ensnano_iced::Theme;
+    type Theme = crate::ensnano_iced::Theme;
     type Renderer = super::Renderer;
     type Message = Message<S>;
 
@@ -1114,7 +1114,7 @@ where
             .text_font(fonts::MATERIAL_ICONS_DARK)
             .text_size(self.ui_size.main_text())
             .tab_bar_height(Length::Fixed(self.ui_size.tab_bar_height()))
-            .tab_bar_style(crate::ensnano_gui::ensnano_iced::theme::GuiBackground.into())
+            .tab_bar_style(crate::ensnano_iced::theme::GuiBackground.into())
             .width(Length::Fixed(width as f32))
             .height(Length::Fill);
         // NOTE: The style, height and width values are necessary to clear the tab when
@@ -1158,7 +1158,7 @@ where
             .width(Length::Fill)
             .padding(1),
         )
-        .style(crate::ensnano_gui::ensnano_iced::theme::GuiBackground)
+        .style(crate::ensnano_iced::theme::GuiBackground)
         .height(self.logical_size.height as f32)
         .into()
     }
@@ -1200,7 +1200,7 @@ pub enum ColorMessage {
 
 impl<R: Requests> Program for ColorOverlay<R> {
     type Renderer = super::Renderer;
-    type Theme = crate::ensnano_gui::ensnano_iced::Theme;
+    type Theme = crate::ensnano_iced::Theme;
     type Message = ColorMessage;
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {

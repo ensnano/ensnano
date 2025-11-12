@@ -26,7 +26,7 @@ use crate::ensnano_utils::{
     texture::Texture,
 };
 use crate::ensnano_consts::{SAMPLE_COUNT, TEXTURE_BINDING_ID};
-use crate::ensnano_utils::ensnano_iced::iced_wgpu::wgpu;
+use crate::ensnano_iced::iced_wgpu::wgpu;
 use std::collections::HashMap;
 use std::rc::Rc;
 use ultraviolet::{Mat2, Vec2, Vec4};

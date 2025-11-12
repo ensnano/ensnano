@@ -20,7 +20,7 @@ mod cadnano;
 pub mod junctions;
 
 use super::*;
-use crate::ensnano_design::{Nucl, codenano, scadnano};
+use crate::ensnano_design::{Nucl, codenano, ensnano_version, scadnano};
 use crate::ensnano_utils::id_generator::IdGenerator;
 use crate::{
     app_state::design_interactor::file_parsing::junctions::StrandJunction as _,
@@ -87,7 +87,7 @@ fn read_file<P: AsRef<Path> + std::fmt::Debug>(path: P) -> Result<Design, LoadDe
             use version_compare::Cmp;
             log::info!("ok icednano");
             let required_version = design.ensnano_version.clone();
-            let current_version = crate::ensnano_design::ensnano_version();
+            let current_version = ensnano_version();
             match version_compare::compare(&required_version, &current_version) {
                 Ok(Cmp::Lt) | Ok(Cmp::Eq) => Ok(design),
                 _ => Err(LoadDesignError::IncompatibleVersion {

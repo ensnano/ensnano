@@ -16,7 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use crate::ensnano_utils::PhySize;
-use crate::ensnano_utils::ensnano_iced::iced_wgpu::wgpu;
+use crate::ensnano_iced::iced_wgpu::wgpu;
 
 pub struct Texture {
     pub view: wgpu::TextureView,
