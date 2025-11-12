@@ -45,7 +45,7 @@ pub struct Controller<S: AppState> {
     area_size: PhySize,
     camera_top: CameraPtr,
     camera_bottom: CameraPtr,
-    splited: bool,
+    is_split: bool,
     state: RefCell<Box<dyn ControllerState<S>>>,
     action_mode: ActionMode,
     modifiers: ModifiersState,
@@ -75,7 +75,7 @@ pub enum Consequence {
     DoubleClick(ClickResult),
     MoveBuilders(isize),
     InitBuilding(FlatNucl),
-    Helix2DMvmtEnded,
+    Helix2DMovementEnded,
     Snap {
         pivots: Vec<FlatNucl>,
         translation: Vec2,
@@ -101,7 +101,7 @@ impl<S: AppState> Controller<S> {
         area_size: PhySize,
         camera_top: CameraPtr,
         camera_bottom: CameraPtr,
-        splited: bool,
+        is_split: bool,
     ) -> Self {
         Self {
             view,
@@ -113,7 +113,7 @@ impl<S: AppState> Controller<S> {
             state: RefCell::new(Box::new(NormalState {
                 mouse_position: PhysicalPosition::new(-1., -1.),
             })),
-            splited,
+            is_split,
             action_mode: ActionMode::Normal,
             modifiers: ModifiersState::empty(),
             mouse_position: PhysicalPosition::from((0., 0.)),
@@ -130,12 +130,12 @@ impl<S: AppState> Controller<S> {
         self.update_globals();
     }
 
-    pub fn set_split(&mut self, splited: bool, refit: bool) {
-        self.splited = splited;
+    pub fn set_split(&mut self, is_split: bool, refit: bool) {
+        self.is_split = is_split;
         let old_rectangle_top = self.camera_top.borrow().get_visible_rectangle();
         self.update_globals();
         if refit {
-            if splited {
+            if is_split {
                 let (new_top, new_bottom) = old_rectangle_top.split_vertically();
                 self.camera_top.borrow_mut().fit_center(new_top);
                 self.camera_bottom.borrow_mut().fit_center(new_bottom);
@@ -147,7 +147,7 @@ impl<S: AppState> Controller<S> {
     }
 
     fn update_globals(&mut self) {
-        if self.splited {
+        if self.is_split {
             self.camera_top.borrow_mut().resize(
                 self.area_size.width as f32,
                 self.area_size.height as f32 / 2.,
@@ -164,7 +164,7 @@ impl<S: AppState> Controller<S> {
     }
 
     pub fn get_camera(&self, y: f64) -> CameraPtr {
-        if self.splited {
+        if self.is_split {
             if y > self.area_size.height as f64 / 2. {
                 self.camera_bottom.clone()
             } else {
@@ -176,7 +176,7 @@ impl<S: AppState> Controller<S> {
     }
 
     pub fn get_other_camera(&self, y: f64) -> Option<CameraPtr> {
-        if self.splited {
+        if self.is_split {
             if y > self.area_size.height as f64 / 2. {
                 Some(self.camera_top.clone())
             } else {
@@ -280,7 +280,7 @@ impl<S: AppState> Controller<S> {
     }
 
     fn get_height(&self) -> u32 {
-        if self.splited {
+        if self.is_split {
             self.area_size.height / 2
         } else {
             self.area_size.height
@@ -288,7 +288,7 @@ impl<S: AppState> Controller<S> {
     }
 
     fn is_bottom(&self, y: f64) -> bool {
-        if self.splited {
+        if self.is_split {
             y > self.area_size.height as f64 / 2.
         } else {
             false

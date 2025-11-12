@@ -190,7 +190,7 @@ impl PdbNucleotide {
             .get("O4'")
             .or_else(|| self.sugar_atoms.get("O4*"))
             .ok_or_else(|| PdbError::MissingAtom(String::from("O4'")))?;
-        let parralel_to = oxygen4.position - base_com;
+        let parallel_to = oxygen4.position - base_com;
 
         let mut ret = Vec3::zero();
 
@@ -212,7 +212,7 @@ impl PdbNucleotide {
 
             if v1.dot(v2).abs() > 0.01 {
                 let mut a3 = v1.cross(v2).normalized();
-                a3 *= a3.dot(parralel_to).signum();
+                a3 *= a3.dot(parallel_to).signum();
                 ret += a3;
             }
         }
@@ -440,7 +440,7 @@ pub enum PdbError {
     IOError(#[allow(unused)] std::io::Error),
 }
 
-const OCCUPENCY: f32 = 1.0;
+const OCCUPANCY: f32 = 1.0;
 const TEMPERATURE_FACTOR: f32 = 1.0;
 
 struct AtomFormatParameter {
@@ -497,7 +497,7 @@ impl PdbAtom {
         // write!(&mut ret, "{:>8.3}", self.position.x)?; // 31-38
         // write!(&mut ret, "{:>8.3}", self.position.y)?; // 39-46
         // write!(&mut ret, "{:>8.3}", self.position.z)?; // 47-54
-        write!(&mut ret, "{:>6.2}", OCCUPENCY)?; // 55-60
+        write!(&mut ret, "{:>6.2}", OCCUPANCY)?; // 55-60
         write!(&mut ret, "{:>6.2}", TEMPERATURE_FACTOR)?; // 61-66
         ret.push_str(&vec![" "; 14].join("")); // 67-80
         Ok(ret)
@@ -616,7 +616,7 @@ impl PdbFormatter {
         })
     }
 
-    /// Create a new strand. The returned value must be droped with `PdbStrand::write`.
+    /// Create a new strand. The returned value must be dropped with `PdbStrand::write`.
     pub fn start_strand<'a>(&'a mut self, cyclic: bool) -> PdbStrand<'a> {
         PdbStrand {
             pdb_formatter: ManuallyDrop::new(self),

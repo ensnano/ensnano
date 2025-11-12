@@ -1016,7 +1016,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
         FlatSelection::from_real(Some(&selection), self.id_map())
     }
 
-    pub(super) fn xover_to_nuclpair(&self, selection: FlatSelection) -> FlatSelection {
+    pub(super) fn xover_to_nucl_pair(&self, selection: FlatSelection) -> FlatSelection {
         if let FlatSelection::Xover(d_id, xover_id) = selection {
             if let Some((n1, n2)) = self.design.get_xover_with_id(xover_id) {
                 let flat_1 = FlatNucl::from_real(&n1, self.id_map());

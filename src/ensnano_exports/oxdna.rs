@@ -47,7 +47,7 @@ impl OxDnaNucl {
 pub struct OxDnaConfig {
     time: f32,
     boundaries: [f32; 3],
-    /// Etot, U and K
+    /// total energy, U and K
     kinetic_energies: [f32; 3],
     nucls: Vec<OxDnaNucl>,
 }
@@ -275,7 +275,7 @@ impl StrandMaker<'_, '_> {
         self.add_ox_nucl(ox_nucl, None)
     }
 
-    // TODO move the strand maker in a wrapper to force the call to end when droping
+    // TODO move the strand maker in a wrapper to force the call to end when dropping
     pub fn end(self, cyclic: bool) {
         if cyclic {
             self.context.bonds.iter_mut().last().unwrap().prime3 = self.first_strand_nucl;

@@ -394,7 +394,7 @@ impl<S: AppState> FlatScene<S> {
                         .request_center_selection(selection, AppId::FlatScene)
                 }
             }
-            Consequence::Helix2DMvmtEnded => self.requests.lock().unwrap().suspend_op(),
+            Consequence::Helix2DMovementEnded => self.requests.lock().unwrap().suspend_op(),
             Consequence::Snap {
                 pivots,
                 translation,
@@ -712,7 +712,7 @@ impl<S: AppState> Application for FlatScene<S> {
                     .convert_to_flat(selection);
                 let flat_selection_bonds = self.data[self.selected_design]
                     .borrow()
-                    .xover_to_nuclpair(flat_selection);
+                    .xover_to_nucl_pair(flat_selection);
                 if app_id != AppId::FlatScene {
                     let xover = self.view[self.selected_design]
                         .borrow_mut()

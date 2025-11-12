@@ -476,14 +476,14 @@ impl<S: AppState> ControllerState<S> for Translating {
                             translation_pivots,
                             rotation_pivots,
                         })),
-                        consequences: Consequence::Helix2DMvmtEnded,
+                        consequences: Consequence::Helix2DMovementEnded,
                     }
                 } else {
                     Transition {
                         new_state: Some(Box::new(NormalState {
                             mouse_position: self.mouse_position,
                         })),
-                        consequences: Consequence::Helix2DMvmtEnded,
+                        consequences: Consequence::Helix2DMovementEnded,
                     }
                 }
             }
@@ -1016,7 +1016,7 @@ impl<S: AppState> ControllerState<S> for ReleasedPivot {
     }
 }
 
-/// This state in entered when use user has clicked after realising a pivot. If the user moves
+/// This state in entered when use user has clicked after realizing a pivot. If the user moves
 /// their mouse, go in moving camera mode without unselecting the helix. If the user release their
 /// click without moving their mouse, clear selection
 pub struct LeavingPivot {

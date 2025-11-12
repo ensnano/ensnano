@@ -170,7 +170,7 @@ impl Helix {
                     }),
                 ),
             )
-            .expect("error durring tessellation");
+            .expect("error during tessellation");
         vertices
     }
 
@@ -220,7 +220,7 @@ impl Helix {
                     }),
                 ),
             )
-            .expect("error durring tessellation");
+            .expect("error during tessellation");
         vertices
     }
 

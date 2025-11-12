@@ -84,7 +84,7 @@ impl<R: FlatSceneDesignReaderExt> Design2d<R> {
     pub fn update(&mut self, design: R) {
         self.design = design;
         log::trace!("updating design");
-        // At the moment we rebuild the strands from scratch. If needed, this might be an optimisation
+        // At the moment we rebuild the strands from scratch. If needed, this might be an optimization
         // target
         self.strands = Vec::new();
         self.update_helices();
@@ -472,7 +472,7 @@ impl<R: FlatSceneDesignReaderExt> Design2d<R> {
     }
 }
 
-/// Store the informations needed to represent an helix from the design
+/// Store the information needed to represent an helix from the design
 #[derive(Debug)]
 pub struct Helix2d {
     /// The id of the helix within the design

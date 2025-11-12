@@ -106,7 +106,7 @@ fn get_grid_type(grids: &GridData) -> Result<GridType, CadnanoError> {
 fn get_cadnano_bonds(design: &Design, grids: &GridData) -> Result<CadnanoBonds, CadnanoError> {
     let ensnano_bonds = get_ensnano_bonds(design);
     let grid_type = get_grid_type(grids)?;
-    Ok(ensnano_bonds.convert_to_cadnanobonds(grid_type))
+    Ok(ensnano_bonds.convert_to_cadnano_bonds(grid_type))
 }
 
 fn init_cadnano_exporter(design: &Design) -> Result<CadnanoExporter, CadnanoError> {
@@ -130,13 +130,13 @@ fn init_cadnano_exporter(design: &Design) -> Result<CadnanoExporter, CadnanoErro
         let max_x = used_coordinates.iter().map(|(x, _)| *x).max().unwrap_or(0);
         let min_y = used_coordinates.iter().map(|(_, y)| *y).min().unwrap_or(0);
 
-        let coordinates_with_helice = {
+        let coordinates_with_helices = {
             let mut v = grids.get_helices_grid_key_coord(*g_id);
             v.sort_unstable(); // sorted by lexicographic order on (x, y)
             v
         };
 
-        for ((x, y), h) in coordinates_with_helice.iter() {
+        for ((x, y), h) in coordinates_with_helices.iter() {
             let mut candidate = (shift_x - min_x + x, shift_y - min_y + y);
             if parity(candidate) != parity_helix[*h] {
                 shift_y += 1;
@@ -182,7 +182,7 @@ struct CadnanoBonds {
 }
 
 impl EnsnanoBonds {
-    fn convert_to_cadnanobonds(self, grid_type: GridType) -> CadnanoBonds {
+    fn convert_to_cadnano_bonds(self, grid_type: GridType) -> CadnanoBonds {
         let max_nt_pos = {
             let value = self.max_nt_pos - self.min_nt_pos;
             match grid_type {
