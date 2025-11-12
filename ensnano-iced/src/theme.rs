@@ -42,7 +42,7 @@ pub const DISABLED_TEXT: Text = Text::Color(Color::from_rgb(
     0.6 * GUI_PALETTE.text.b,
 ));
 
-/// Custom StyleSheet for the background of top_bar, status_bar, and left_pannel.
+/// Custom StyleSheet for the background of top_bar, status_bar, and left_panel.
 #[derive(Default)]
 pub struct GuiBackground;
 
