@@ -9,13 +9,13 @@ pub enum CheckXoversParameter {
     Both,
 }
 
-impl ToString for CheckXoversParameter {
-    fn to_string(&self) -> String {
+impl std::fmt::Display for CheckXoversParameter {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::None => String::from("None"),
-            Self::Checked => String::from("Checked"),
-            Self::Unchecked => String::from("Unchecked"),
-            Self::Both => String::from("Both"),
+            Self::None => write!(f, "None"),
+            Self::Checked => write!(f, "Checked"),
+            Self::Unchecked => write!(f, "Unchecked"),
+            Self::Both => write!(f, "Both"),
         }
     }
 }

@@ -358,13 +358,13 @@ pub enum IsometryTarget {
     ControlPoint(Vec<(usize, BezierControlPoint)>),
 }
 
-impl ToString for IsometryTarget {
-    fn to_string(&self) -> String {
+impl std::fmt::Display for IsometryTarget {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Helices(hs, _) => format!("Helices {:?}", hs),
-            Self::Grids(gs) => format!("Grids {:?}", gs),
-            Self::GroupPivot(_) => "Group pivot".into(),
-            Self::ControlPoint(_) => "Bezier control point".into(),
+            Self::Helices(hs, _) => write!(f, "Helices {:?}", hs),
+            Self::Grids(gs) => write!(f, "Grids {:?}", gs),
+            Self::GroupPivot(_) => write!(f, "Group pivot"),
+            Self::ControlPoint(_) => write!(f, "Bezier control point"),
         }
     }
 }

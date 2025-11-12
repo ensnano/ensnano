@@ -264,9 +264,9 @@ pub struct NamedParameter {
     pub value: HelixParameters,
 }
 
-impl ToString for NamedParameter {
-    fn to_string(&self) -> String {
-        self.name.to_string()
+impl std::fmt::Display for NamedParameter {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.name)
     }
 }
 

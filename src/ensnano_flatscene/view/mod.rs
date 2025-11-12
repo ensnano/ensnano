@@ -1396,8 +1396,8 @@ fn torsion_color(strength: f32) -> u32 {
     (0xFF << 24) | ((rgb.r as u32) << 16) | ((rgb.g as u32) << 8) | (rgb.b as u32)
 }
 
-impl ToString for EditionInfo {
-    fn to_string(&self) -> String {
-        format!("{}nt/{:.1}nm", self.nt_length, self.nm_length)
+impl std::fmt::Display for EditionInfo {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}nt/{:.1}nm", self.nt_length, self.nm_length)
     }
 }

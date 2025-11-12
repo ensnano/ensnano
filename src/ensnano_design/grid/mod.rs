@@ -126,12 +126,12 @@ impl GridDescriptor {
     }
 }
 
-impl ToString for GridTypeDescr {
-    fn to_string(&self) -> String {
+impl std::fmt::Display for GridTypeDescr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            GridTypeDescr::Square { .. } => String::from("Square"),
-            GridTypeDescr::Honeycomb { .. } => String::from("Honeycomb"),
-            GridTypeDescr::Hyperboloid { .. } => String::from("Hyperboloid"),
+            GridTypeDescr::Square { .. } => write!(f, "Square"),
+            GridTypeDescr::Honeycomb { .. } => write!(f, "Honeycomb"),
+            GridTypeDescr::Hyperboloid { .. } => write!(f, "Hyperboloid"),
         }
     }
 }

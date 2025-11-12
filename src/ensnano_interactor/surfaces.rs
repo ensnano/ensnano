@@ -408,11 +408,11 @@ impl EquadiffSolvingMethod {
     pub const ALL_METHODS: &'static [Self] = &[Self::Euler, Self::Ralston];
 }
 
-impl ToString for EquadiffSolvingMethod {
-    fn to_string(&self) -> String {
+impl std::fmt::Display for EquadiffSolvingMethod {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Euler => "Euler".to_string(),
-            Self::Ralston => "Ralston".to_string(),
+            Self::Euler => write!(f, "Euler"),
+            Self::Ralston => write!(f, "Ralston"),
         }
     }
 }

@@ -106,13 +106,13 @@ impl From<(usize, (usize, usize))> for BoundedLength {
     }
 }
 
-impl ToString for BoundedLength {
-    fn to_string(&self) -> String {
+impl std::fmt::Display for BoundedLength {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Last(ll_min, ll_max) => format!("≥ {ll_min} (max {ll_max})"),
-            Self::Long(m) => format!("> {m}"),
-            Self::Short => format!("< {SHORT}"),
-            Self::Between(n) => format!("= {n}"),
+            Self::Last(ll_min, ll_max) => write!(f, "≥ {ll_min} (max {ll_max})"),
+            Self::Long(m) => write!(f, "> {m}"),
+            Self::Short => write!(f, "< {SHORT}"),
+            Self::Between(n) => write!(f, "= {n}"),
         }
     }
 }

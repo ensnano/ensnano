@@ -481,14 +481,14 @@ pub enum ClipboardContent {
     Helices(usize),
 }
 
-impl ToString for ClipboardContent {
-    fn to_string(&self) -> String {
+impl std::fmt::Display for ClipboardContent {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Empty => "Empty".into(),
-            Self::Xovers(n) => format!("{n} {}", if *n < 2 { "xover" } else { "xovers" }),
-            Self::Strands(n) => format!("{n} {}", if *n < 2 { "strand" } else { "strands" }),
-            Self::Grids(n) => format!("{n} {}", if *n < 2 { "grid" } else { "grids" }),
-            Self::Helices(n) => format!("{n} {}", if *n < 2 { "helix" } else { "helices" }),
+            Self::Empty => write!(f, "Empty"),
+            Self::Xovers(n) => write!(f, "{n} {}", if *n < 2 { "xover" } else { "xovers" }),
+            Self::Strands(n) => write!(f, "{n} {}", if *n < 2 { "strand" } else { "strands" }),
+            Self::Grids(n) => write!(f, "{n} {}", if *n < 2 { "grid" } else { "grids" }),
+            Self::Helices(n) => write!(f, "{n} {}", if *n < 2 { "helix" } else { "helices" }),
         }
     }
 }
