@@ -78,8 +78,6 @@ pub struct StrandView {
     split_vbo_bottom: DynamicBuffer,
     split_ibo_bottom: DynamicBuffer,
     num_instance_split_bottom: u32,
-    #[allow(dead_code)]
-    previous_points: Option<Vec<FlatNucl>>,
 }
 
 impl StrandView {
@@ -137,7 +135,6 @@ impl StrandView {
             num_instance_bottom: 0,
             num_instance_split_top: 0,
             num_instance_split_bottom: 0,
-            previous_points: None,
         }
     }
 

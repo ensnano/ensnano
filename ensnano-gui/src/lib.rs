@@ -906,7 +906,6 @@ impl<S: AppState> IcedMessages<S> {
             .push_back(status_bar::Message::Message(Some(message)));
     }
 
-    #[allow(dead_code)]
     pub fn clear_message(&mut self) {
         self.status_bar
             .push_back(status_bar::Message::Message(None));

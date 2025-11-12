@@ -90,7 +90,6 @@ impl Instance {
         )
     }
 
-    #[allow(dead_code)]
     pub fn id_from_u32(id: u32) -> Vec4 {
         let a = (id & 0xFF000000) >> 24;
         let r = (id & 0x00FF0000) >> 16;

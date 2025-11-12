@@ -183,7 +183,6 @@ impl LayoutTree {
     ///
     /// Note — The identifier of the root area is usually `0`.
     ///
-    #[allow(dead_code)]
     pub fn hsplit(
         &mut self,
         parent_ident: usize,
@@ -368,7 +367,6 @@ impl LayoutNode {
     ///
     /// A pair `(l, r)` where `l` is a pointer to the left area and `r` is a pointer to the right
     /// area
-    #[allow(dead_code)]
     pub fn vsplit(
         &mut self,
         left_proportion: f64,

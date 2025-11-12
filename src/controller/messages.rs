@@ -39,9 +39,6 @@ pub const NO_SCAFFOLD_SET: &'static str = "No scaffold set. \n
 pub const NO_SCAFFOLD_SEQUENCE_SET: &'static str = "No sequence uploaded for scaffold. \n
                 Upload a sequence for the scaffold by pressing the \"Load scaffold\" button";
 
-pub const NO_DESIGN_SELECTED: &'static str =
-    "No design selected, select a design by selecting one of its elements";
-
 pub fn successful_staples_export_msg<P: AsRef<Path>>(file: P) -> String {
     format!(
         "Successfully wrote staples in {}",

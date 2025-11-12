@@ -1193,7 +1193,6 @@ impl<R: Requests> ColorOverlay<R> {
 pub enum ColorMessage {
     HsvSatValueChanged(f64, f64),
     HueChanged(f64),
-    #[allow(dead_code)]
     Resized(LogicalSize<f64>),
     FinishChangingColor,
     Closed,

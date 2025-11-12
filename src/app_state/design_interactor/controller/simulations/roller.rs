@@ -31,7 +31,6 @@ use std::{
     f32::consts::{PI, SQRT_2},
     sync::{Arc, Mutex, Weak},
 };
-use ultraviolet::Vec3;
 
 const MASS_HELIX: f32 = 2.;
 const K_SPRING: f32 = 1000.;
@@ -295,21 +294,6 @@ impl RollSystem {
         }
     }
 
-    /// Adjust the helices of the design, do not show intermediate steps
-    #[allow(dead_code)]
-    pub fn solve(&mut self, data: &mut DesignData, dt: f32) {
-        let mut nb_step = 0;
-        let mut done = false;
-        while !done && nb_step < 10000 {
-            self.update_rolls(data, dt);
-            self.update_speed(dt);
-            self.update_acceleration(data);
-            log::trace!("acceleration {:?}", self.acceleration);
-            done = self.acceleration.iter().map(|x| x.abs()).sum::<f32>() < 1e-8;
-            nb_step += 1;
-        }
-    }
-
     /// Do one step of simulation with time step dt
     pub fn solve_one_step(&mut self, data: &mut DesignData, lr: f32) -> f32 {
         self.time_scale = 1.;
@@ -333,31 +317,6 @@ impl RollSystem {
         self.update_rolls(data, dt);
         grad
     }
-}
-
-#[allow(dead_code)]
-fn spring_force(
-    me: &Helix,
-    other: &Helix,
-    helix_parameters: &HelixParameters,
-    n_self: isize,
-    b_self: bool,
-    n_other: isize,
-    b_other: bool,
-    time_scale: &mut bool,
-) -> (Vec3, Vec3) {
-    let nucl_self = me.space_pos(helix_parameters, n_self, b_self);
-    let nucl_other = other.space_pos(helix_parameters, n_other, b_other);
-
-    let real_dist = (nucl_self - nucl_other).mag();
-    if real_dist > dist_ac(helix_parameters) * 10. {
-        *time_scale = true;
-    }
-    let norm = K_SPRING * (real_dist - dist_ac(helix_parameters)) / real_dist;
-    (
-        norm * (nucl_other - nucl_self),
-        norm * (nucl_self - nucl_other),
-    )
 }
 
 pub struct DesignData {

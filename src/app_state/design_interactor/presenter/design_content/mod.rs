@@ -1353,14 +1353,6 @@ impl DesignContent {
         }
     }
 
-    #[allow(dead_code)]
-    pub fn get_shift(&self, g_id: GridId) -> Option<f32> {
-        self.grid_manager
-            .grids
-            .get(&g_id)
-            .and_then(|g| g.grid_type.get_shift())
-    }
-
     pub fn read_simulation_update(&mut self, update: &dyn SimulationUpdate) {
         update.update_positions(self.nucl_collection.as_ref(), &mut self.space_position)
     }

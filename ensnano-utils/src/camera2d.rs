@@ -143,14 +143,12 @@ impl Camera2D {
     }
 
     /// Discrete zoom on the scene
-    #[allow(dead_code)]
     pub fn zoom_in(&mut self) {
         self.globals.zoom *= 1.25;
         self.was_updated = true;
     }
 
     /// Discrete zoom out of the scene
-    #[allow(dead_code)]
     pub fn zoom_out(&mut self) {
         self.globals.zoom *= 0.8;
         self.was_updated = true;

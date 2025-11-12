@@ -31,13 +31,13 @@ const CROSSOVER_SIZE: f32 = 0.64;
 
 /// A trait to represent a strategy of how to attach
 /// colliders to rigid bodies in the simulation.
-/// This is meant to differenciate between
+/// This is meant to differentiate between
 /// full simulation (all bases are simulated),
 /// rigid helices (helices are one rigid body),
 /// or sliced rigid helices (helices are rigid bodies
 /// separated at crossovers)
 pub trait SimulationSetup {
-    // creates rigib bodes and assigns the provided
+    // creates rigid bodes and assigns the provided
     // colliders to them
     fn build_bodies(
         rigid_body_set: &mut RigidBodySet,

@@ -87,11 +87,6 @@ fn get_design_providing_staples(downloader: &dyn StaplesDownloader) -> Box<dyn S
             rfd::MessageLevel::Error,
             Box::new(NormalState),
         ),
-        Err(DownloadStapleError::SeveralDesignNoneSelected) => TransitionMessage::new(
-            messages::NO_DESIGN_SELECTED,
-            rfd::MessageLevel::Error,
-            Box::new(NormalState),
-        ),
     }
 }
 

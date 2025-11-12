@@ -54,8 +54,6 @@ pub struct StatusBar<R: Requests, S: AppState> {
     operation: Option<OperationInput>,
     requests: Arc<Mutex<R>>,
     progress: Option<(String, f32)>,
-    #[allow(dead_code)]
-    slider_state: slider::State,
     app_state: S,
     ui_size: UiSize,
     message: Option<String>,
@@ -73,7 +71,6 @@ impl<R: Requests, State: AppState> StatusBar<R, State> {
             operation: None,
             requests,
             progress: None,
-            slider_state: Default::default(),
             app_state: state.clone(),
             ui_size,
             message: None,

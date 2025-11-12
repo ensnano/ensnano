@@ -850,7 +850,6 @@ impl GridData {
         ret
     }
 
-    #[allow(dead_code)]
     pub fn get_empty_grids_id(&self) -> HashSet<GridId> {
         let mut ret: HashSet<GridId> = self.grids.keys().cloned().collect();
         for position in self.pos_to_object.keys() {

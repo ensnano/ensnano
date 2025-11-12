@@ -53,7 +53,6 @@ impl CircleInstance {
         self.color = color
     }
 
-    #[allow(dead_code)]
     pub fn angle(self, angle: f32) -> Self {
         Self { angle, ..self }
     }

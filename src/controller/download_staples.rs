@@ -82,11 +82,6 @@ fn get_design_providing_staples(downloader: &dyn StaplesDownloader) -> Box<dyn S
             rfd::MessageLevel::Error,
             Box::new(NormalState),
         ),
-        Err(DownloadStapleError::SeveralDesignNoneSelected) => TransitionMessage::new(
-            messages::NO_DESIGN_SELECTED,
-            rfd::MessageLevel::Error,
-            Box::new(NormalState),
-        ),
     }
 }
 
@@ -175,9 +170,6 @@ pub trait StaplesDownloader {
 }
 
 pub enum DownloadStapleError {
-    /// There are several designs and none is selected.
-    #[allow(dead_code)]
-    SeveralDesignNoneSelected,
     /// No strand is set as the scaffold
     NoScaffoldSet,
     /// There is no sequence set for the scaffold

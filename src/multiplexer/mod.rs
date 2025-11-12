@@ -806,22 +806,6 @@ impl Multiplexer {
         self.focus
     }
 
-    pub fn set_overlays(&mut self, overlays: Vec<Overlay>) {
-        self.overlays = overlays;
-        self.overlays_textures.clear();
-        for overlay in self.overlays.iter_mut() {
-            let size = overlay.size;
-            let texture = SampledTexture::create_target_texture(self.device.as_ref(), &size);
-            self.overlays_textures.push(MultiplexerTexture {
-                texture,
-                area: DrawArea {
-                    size,
-                    position: overlay.position,
-                },
-            });
-        }
-    }
-
     pub fn is_showing(&self, area: &GuiComponentType) -> bool {
         match area {
             GuiComponentType::LeftPanel

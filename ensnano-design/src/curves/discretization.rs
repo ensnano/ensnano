@@ -447,7 +447,6 @@ impl Curve {
         }
     }
 
-    #[allow(dead_code)]
     fn iterative_rotated_axis(&self, t: f64, previous: Option<&DMat3>) -> DMat3 {
         let speed = self.geometry.speed(t);
         if speed.mag_sq() < EPSILON {

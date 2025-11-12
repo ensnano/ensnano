@@ -58,7 +58,6 @@ pub trait ControllerState<S: AppState> {
         state: &S,
     ) -> Transition<S>;
 
-    #[allow(dead_code)]
     fn display(&self) -> String;
 
     fn transition_from(&self, controller: &Controller<S>);

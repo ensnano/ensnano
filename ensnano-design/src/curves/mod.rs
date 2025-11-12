@@ -282,7 +282,6 @@ pub trait Curved {
 pub enum CurveBounds {
     /// t ∈ [t_min, t_max]
     Finite,
-    #[allow(dead_code)]
     /// t ∈ [t_min, +∞[
     PositiveInfinite,
     /// t ∈ ]-∞, +∞[

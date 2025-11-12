@@ -531,42 +531,6 @@ impl HelixSystem {
             }
         }
     }
-
-    fn shake_nucl(&mut self, nucl: ShakeTarget) {
-        let mut rnd = rand::thread_rng();
-        let gx: f32 = rnd.sample(StandardNormal);
-        let gy: f32 = rnd.sample(StandardNormal);
-        let gz: f32 = rnd.sample(StandardNormal);
-        let entry = match nucl {
-            ShakeTarget::Helix(h_id) => 13 * h_id,
-            ShakeTarget::FreeNucl(n) => 13 * (self.helices.len() + n),
-        };
-        if let Some(state) = self.last_state.as_mut() {
-            state[entry] += 10. * self.rigid_parameters.brownian_amplitude * gx;
-            state[entry + 1] += 10. * self.rigid_parameters.brownian_amplitude * gy;
-            state[entry + 2] += 10. * self.rigid_parameters.brownian_amplitude * gz;
-            if let ShakeTarget::Helix(_) = nucl {
-                let delta_roll =
-                    rnd.r#gen::<f32>() * 2. * std::f32::consts::PI - std::f32::consts::PI;
-                let mut iterator = state.iter().skip(entry + 3);
-                let rotation = Rotor3::new(
-                    *iterator.next().unwrap(),
-                    Bivec3::new(
-                        *iterator.next().unwrap(),
-                        *iterator.next().unwrap(),
-                        *iterator.next().unwrap(),
-                    ),
-                )
-                .normalized();
-                let rotation = rotation * Rotor3::from_rotation_yz(delta_roll);
-                let mut iterator = state.iter_mut().skip(entry + 3);
-                *iterator.next().unwrap() = rotation.s;
-                *iterator.next().unwrap() = rotation.bv.xy;
-                *iterator.next().unwrap() = rotation.bv.xz;
-                *iterator.next().unwrap() = rotation.bv.yz;
-            }
-        }
-    }
 }
 
 impl RigidHelix {
@@ -620,12 +584,6 @@ impl RigidHelix {
     fn height(&self) -> f32 {
         self.mass
     }
-}
-
-#[allow(dead_code)]
-pub enum ShakeTarget {
-    FreeNucl(usize),
-    Helix(usize),
 }
 
 /// Return the length of the shortest line between a point of [a, b] and a point of [c, d]
@@ -837,7 +795,6 @@ pub(super) struct HelixSystemThread {
 #[derive(Default)]
 pub struct HelixSystemInterface {
     pub new_state: Option<RigidHelixState>,
-    pub(super) nucl_shake: Option<ShakeTarget>,
     pub(super) parameters_update: Option<RigidBodyConstants>,
 }
 
@@ -904,11 +861,6 @@ impl HelixSystemThread {
                 if self.helix_system.rigid_parameters.brownian_motion {
                     self.helix_system.brownian_jump();
                 }
-                let mut interface = interface_ptr.lock().unwrap();
-                if let Some(nucl) = interface.nucl_shake.take() {
-                    self.helix_system.shake_nucl(nucl)
-                }
-                drop(interface);
                 if let Ok((_, y)) = solver.solve(&self.helix_system, &method) {
                     self.helix_system.last_state = y.last().cloned();
                 }
@@ -1308,8 +1260,6 @@ pub enum SimulationOperation<'pres, 'reader> {
     UpdateParameters {
         new_parameters: RigidBodyConstants,
     },
-    #[allow(dead_code)]
-    Shake(ShakeTarget),
     Stop,
     Reset,
     StartRoll {
@@ -1400,8 +1350,6 @@ struct GridsSystem {
     grids: Vec<RigidGrid>,
     time_span: (f32, f32),
     last_state: Option<Vector<f32>>,
-    #[allow(dead_code)]
-    anchors: Vec<(ApplicationPoint, Vec3)>,
     parameters: RigidBodyConstants,
 }
 
@@ -1742,7 +1690,6 @@ fn make_grid_system(
         grids: rigid_grids,
         time_span,
         last_state: None,
-        anchors: vec![],
         parameters: rigid_parameters.clone(),
     };
     ret.update_parameters(rigid_parameters);

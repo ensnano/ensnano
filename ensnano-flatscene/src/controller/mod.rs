@@ -39,10 +39,8 @@ mod automata;
 use automata::{ControllerState, NormalState, Transition, ctrl};
 
 pub struct Controller<S: AppState> {
-    #[allow(dead_code)]
     view: ViewPtr,
     data: DataPtr<S::Reader>,
-    #[allow(dead_code)]
     window_size: PhySize,
     area_size: PhySize,
     camera_top: CameraPtr,
@@ -187,13 +185,6 @@ impl<S: AppState> Controller<S> {
         } else {
             None
         }
-    }
-
-    #[allow(dead_code)]
-    pub fn fit(&mut self) {
-        let rectangle = self.data.borrow().get_fit_rectangle();
-        self.camera_top.borrow_mut().fit_center(rectangle);
-        self.camera_bottom.borrow_mut().fit_center(rectangle);
     }
 
     pub fn input(

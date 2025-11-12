@@ -563,15 +563,6 @@ impl Controller {
                     ));
                 }
             }
-            SimulationOperation::Shake(target) => {
-                if let ControllerState::Simulating { interface, .. } = &ret.state {
-                    interface.lock().unwrap().nucl_shake = Some(target);
-                } else {
-                    return Err(ErrOperation::IncompatibleState(
-                        "No simulation running".into(),
-                    ));
-                }
-            }
             SimulationOperation::Stop => match &ret.state {
                 ControllerState::Simulating { initial_design, .. } => {
                     ret.state = ControllerState::WithPausedSimulation {
@@ -1173,7 +1164,6 @@ impl Controller {
     }
 
     /// Apply an operation that modifies the interactor and not the design, and that cannot fail.
-    #[allow(dead_code)]
     fn ok_no_op<F>(&self, interactor_op: F, design: &Design) -> (OkOperation, Self)
     where
         F: FnOnce(&mut Self, &Design),
@@ -3541,7 +3531,6 @@ impl Default for ControllerState {
 }
 
 impl ControllerState {
-    #[allow(dead_code)]
     fn state_name(&self) -> &'static str {
         match self {
             Self::Normal => "Normal",

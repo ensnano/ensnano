@@ -17,7 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use super::{
     AppState, Flat, HelixVec, PhantomElement, Requests, ViewPtr,
-    flat_types::{FlatPosition, FlatSelection, HelixSegment},
+    flat_types::{FlatSelection, HelixSegment},
     view::EditionInfo,
 };
 use ensnano_design::Nucl;
@@ -412,11 +412,6 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
             forward,
             helix,
         }
-    }
-
-    #[allow(dead_code)]
-    pub fn get_pivot_position(&self, helix: FlatIdx, position: FlatPosition) -> Option<Vec2> {
-        self.helices.get(helix).map(|h| h.get_pivot(position))
     }
 
     pub fn set_selected_helices(&mut self, helices: Vec<FlatHelix>) {

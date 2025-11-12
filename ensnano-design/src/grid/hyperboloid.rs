@@ -16,7 +16,6 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 use super::*;
-use crate::curves::Twist;
 use crate::{CurveDescriptor, Helix};
 use std::sync::Arc;
 
@@ -171,21 +170,6 @@ impl Hyperboloid {
 
     fn radius(&self, helix_parameters: &HelixParameters) -> f32 {
         self.sheet_radii(helix_parameters).0
-    }
-
-    #[allow(dead_code)] // TODO re-implement twisted structure
-    fn curve(&self, n: usize, helix_parameters: &HelixParameters, omega: f64) -> Twist {
-        let radius = self.sheet_radii(helix_parameters).1;
-        let angle = std::f64::consts::TAU / self.radius as f64;
-        Twist {
-            theta0: n as f64 * angle,
-            radius: radius as f64,
-            position: Vec3::zero(),
-            orientation: Rotor3::identity(),
-            omega,
-            t_min: None,
-            t_max: None,
-        }
     }
 
     pub fn grid_radius(&self, helix_parameters: &HelixParameters) -> f32 {

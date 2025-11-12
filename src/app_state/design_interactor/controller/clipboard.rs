@@ -59,7 +59,6 @@ impl PastePosition {
 }
 
 impl Clipboard {
-    #[allow(dead_code)]
     pub fn size(&self) -> usize {
         match self {
             Self::Empty => 0,

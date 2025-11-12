@@ -152,7 +152,7 @@ use {
     ensnano_organizer::tree::GroupId,
     ensnano_scene::{AppState as _, Scene, SceneKind, data::SceneDesignReaderExt as _},
     ensnano_utils::{PhySize, TEXTURE_FORMAT},
-    multiplexer::{Multiplexer, Overlay},
+    multiplexer::Multiplexer,
     scheduler::Scheduler,
     std::{
         collections::{HashMap, VecDeque},
@@ -163,7 +163,7 @@ use {
     },
     ultraviolet::{Rotor3, Vec3},
     winit::{
-        dpi::{PhysicalPosition, PhysicalSize},
+        dpi::PhysicalSize,
         event::{Event, WindowEvent},
         event_loop::{ControlFlow, EventLoop, EventLoopWindowTarget},
         keyboard::{Key, ModifiersState, NamedKey},
@@ -852,7 +852,6 @@ struct OverlayManager {
     color_state: program::State<ColorOverlay<Requests>>,
     color_debug: Debug,
     overlay_types: Vec<OverlayType>,
-    overlays: Vec<Overlay>,
 }
 
 impl OverlayManager {
@@ -873,7 +872,6 @@ impl OverlayManager {
             color_state,
             color_debug,
             overlay_types: Vec::new(),
-            overlays: Vec::new(),
         }
     }
 
@@ -885,18 +883,6 @@ impl OverlayManager {
             }
             Some(OverlayType::Color) => self.color_state.queue_event(event),
         }
-    }
-
-    #[allow(dead_code)]
-    fn add_overlay(&mut self, overlay_type: OverlayType, multiplexer: &mut Multiplexer) {
-        match overlay_type {
-            OverlayType::Color => self.overlays.push(Overlay {
-                position: PhysicalPosition::new(500, 500),
-                size: PhysicalSize::new(250, 250),
-            }),
-        }
-        self.overlay_types.push(overlay_type);
-        self.update_multiplexer(multiplexer);
     }
 
     fn process_event(
@@ -978,32 +964,8 @@ impl OverlayManager {
         }
     }
 
-    #[allow(dead_code)]
-    fn rm_overlay(&mut self, overlay_type: OverlayType, multiplexer: &mut Multiplexer) {
-        let mut rm_idx = Vec::new();
-        for (idx, overlay_type_) in self.overlay_types.iter().rev().enumerate() {
-            if *overlay_type_ == overlay_type {
-                rm_idx.push(idx);
-            }
-        }
-        for idx in rm_idx.iter() {
-            self.overlays.remove(*idx);
-            self.overlay_types.remove(*idx);
-        }
-        self.update_multiplexer(multiplexer);
-    }
-
-    #[allow(dead_code)]
-    fn update_multiplexer(&self, multiplexer: &mut Multiplexer) {
-        multiplexer.set_overlays(self.overlays.clone())
-    }
-
     fn forward_messages(&mut self, _messages: &mut IcedMessages<AppState>) {
         ()
-        /*
-        for m in messages.color_overlay.drain(..) {
-            self.color_state.queue_message(m);
-        }*/
     }
 
     fn fetch_change(

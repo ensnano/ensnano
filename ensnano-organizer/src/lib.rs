@@ -1602,25 +1602,6 @@ impl<E: OrganizerElement> GroupContent<E> {
         }
     }
 
-    #[allow(dead_code)]
-    fn get_expanded_elements_below(&self) -> Vec<E::Key> {
-        match self {
-            Self::Leaf { element, .. } => vec![element.clone()],
-            Self::Node {
-                elements_below,
-                expanded,
-                ..
-            } => {
-                if *expanded {
-                    elements_below.iter().cloned().collect()
-                } else {
-                    vec![]
-                }
-            }
-            Self::Placeholder => vec![],
-        }
-    }
-
     fn get_all_elements_below(&self) -> Vec<E::Key> {
         match self {
             Self::Leaf { element, .. } => vec![element.clone()],
@@ -1634,14 +1615,6 @@ impl<E: OrganizerElement> GroupContent<E> {
             Self::Node { attributes, .. } => attributes,
             Self::Leaf { attributes, .. } => attributes,
             Self::Placeholder => unreachable!("Getting attributes of a placeholder"),
-        }
-    }
-
-    #[allow(dead_code)]
-    fn expanded(&self) -> bool {
-        match self {
-            Self::Node { expanded, .. } => *expanded,
-            _ => true,
         }
     }
 

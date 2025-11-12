@@ -135,7 +135,6 @@ impl Color {
         }
     }
 
-    #[allow(dead_code)]
     /// Kelly color number `n`.
     pub fn kelly(n: usize) -> Self {
         KELLY[n % KELLY.len()].clone()
@@ -174,7 +173,6 @@ impl<Label> Domain<Label> {
     /// Iterate through the positions of this domain, in 5' to 3'
     /// order (meaning that the values produced by this iterator might
     /// be increasing or decreasing).
-    #[allow(dead_code)]
     pub fn iter(&self) -> DomainIter {
         DomainIter {
             start: self.start,
@@ -182,7 +180,7 @@ impl<Label> Domain<Label> {
             forward: self.forward,
         }
     }
-    #[allow(dead_code)]
+
     /// Translate this domain. The first parameter is the translation
     /// along the helix, the second one is a translation across
     /// helices (probably most meaningful for a flat design).
@@ -195,7 +193,7 @@ impl<Label> Domain<Label> {
             ..self
         }
     }
-    #[allow(dead_code)]
+
     /// Translate this domain along its helix.
     pub fn shift_x(self, dx: isize) -> Self {
         Domain {
@@ -204,7 +202,7 @@ impl<Label> Domain<Label> {
             ..self
         }
     }
-    #[allow(dead_code)]
+
     /// Translate this domain to a different helix (probably most
     /// meaningful for a flat design).
     pub fn shift_y(self, dy: isize) -> Self {
@@ -215,13 +213,11 @@ impl<Label> Domain<Label> {
         }
     }
 
-    #[allow(dead_code)]
     /// Number of Nucleotides on the domain
     pub fn length(&self) -> isize {
         self.end - self.start
     }
 
-    #[allow(dead_code)]
     /// Return a domain that has the same bounds as self
     pub fn pseudo_copy(&self) -> Self {
         Domain {
@@ -234,13 +230,11 @@ impl<Label> Domain<Label> {
         }
     }
 
-    #[allow(dead_code)]
     /// Return true iff `self` contains the nucleotide (h, x, b)
     pub fn contains(&self, h: isize, x: isize, b: bool) -> bool {
         self.helix == h && self.forward == b && self.start <= x && self.end > x
     }
 
-    #[allow(dead_code)]
     /// Return the first nucl of `self` or `None` if `self` is empty
     pub fn first_nucl(&self) -> Option<(isize, isize, bool)> {
         if self.start >= self.end {
@@ -252,7 +246,6 @@ impl<Label> Domain<Label> {
         }
     }
 
-    #[allow(dead_code)]
     /// Return the last nucl of `self` or `None` if `self` is empty
     pub fn last_nucl(&self) -> Option<(isize, isize, bool)> {
         if self.start >= self.end {
@@ -413,14 +406,12 @@ impl fmt::Debug for Helix {
 
 impl Helix {
     /// Angle of base number `n` around this helix.
-    #[allow(dead_code)]
     pub fn theta(&self, n: isize, forward: bool, cst: &Parameters) -> f64 {
         let shift = if forward { cst.groove_angle } else { 0. };
         n as f64 * 2. * PI / cst.bases_per_turn + shift + self.roll + PI
     }
 
     /// 3D position of a nucleotide on this helix. `n` is the position along the axis, and `forward` is true iff the 5' to 3' direction of the strand containing that nucleotide runs in the same direction as the axis of the helix.
-    #[allow(dead_code)]
     pub fn space_pos(&self, p: &Parameters, n: isize, forward: bool) -> [f64; 3] {
         let theta = self.theta(n, forward, p);
         let mut ret = [
@@ -460,7 +451,6 @@ impl Helix {
         ]
     }
 
-    #[allow(dead_code)]
     /// Return a basis of the Helix PoV
     pub fn basis(&self) -> [[f64; 3]; 3] {
         [
@@ -470,7 +460,6 @@ impl Helix {
         ]
     }
 
-    #[allow(dead_code)]
     /// 3D position of the projection of the nucleotide on its helix.
     /// `n` is the position along the axis.
     pub fn axis_pos(&self, p: &Parameters, n: isize) -> DVec3 {
@@ -484,7 +473,6 @@ impl Helix {
         ret.into()
     }
 
-    #[allow(dead_code)]
     /// Test if two helices overlap.
     pub fn overlap(&self, other: &Helix, p: &Parameters) -> bool {
         let dir_vec = self.axis_pos(p, 1) - self.position.to_vec3();
@@ -497,7 +485,6 @@ impl Helix {
         }
     }
 
-    #[allow(dead_code)]
     /// A clone of `self` translated by one step along the y vector
     pub fn clone_up(&self, p: &Parameters) -> Self {
         let mut new_position = [0., p.helix_radius * 2. + p.inter_helix_gap, 0.];
@@ -511,7 +498,6 @@ impl Helix {
         }
     }
 
-    #[allow(dead_code)]
     /// A clone of `self` translated by minus one step along the y vector
     pub fn clone_down(&self, p: &Parameters) -> Self {
         let mut new_position = [0., -p.helix_radius * 2. - p.inter_helix_gap, 0.];
@@ -525,7 +511,6 @@ impl Helix {
         }
     }
 
-    #[allow(dead_code)]
     /// A clone of `self` translated by minus one step along the z vector
     pub fn clone_left(&self, p: &Parameters) -> Self {
         let mut new_position = [0., 0., -p.helix_radius * 2. - p.inter_helix_gap];
@@ -539,7 +524,6 @@ impl Helix {
         }
     }
 
-    #[allow(dead_code)]
     /// A clone of `self` translated by one step along the z vector
     pub fn clone_forward(&self, p: &Parameters) -> Self {
         let mut new_position = [0., 0., p.helix_radius * 2. + p.inter_helix_gap];
@@ -553,7 +537,6 @@ impl Helix {
         }
     }
 
-    #[allow(dead_code)]
     /// Return the position on axis that is the closest to the point given in argument
     pub fn closest_nucl(&self, point: [f64; 3], p: &Parameters) -> isize {
         let point: DVec3 = point.into();

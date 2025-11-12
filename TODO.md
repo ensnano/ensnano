@@ -80,6 +80,7 @@
 
 ## Refactor
 
+- Remove dead code
 - Rename structs with the same name in different crates
 - Remove as many `pub use` as possible
 - Remove as many `use *` as possible

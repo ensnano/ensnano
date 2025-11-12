@@ -170,25 +170,6 @@ pub fn get_file_to_write<P1: AsRef<Path>, P2: AsRef<Path>>(
     PathInput(rcv)
 }
 
-#[allow(dead_code)]
-pub fn get_dir() -> PathInput {
-    let dialog = rfd::AsyncFileDialog::new().pick_folder();
-    let (snd, rcv) = mpsc::channel();
-    thread::spawn(move || {
-        let save_op = async move {
-            let file = dialog.await;
-            if let Some(handle) = file {
-                let path_buf: std::path::PathBuf = handle.path().into();
-                log_err![snd.send(Some(path_buf))];
-            } else {
-                log_err![snd.send(None)];
-            }
-        };
-        futures::executor::block_on(save_op);
-    });
-    PathInput(rcv)
-}
-
 pub fn load<P: AsRef<Path>>(starting_path: Option<P>, filters: Filters) -> PathInput {
     let mut dialog = rfd::AsyncFileDialog::new();
     for filter in filters.iter() {
