@@ -91,7 +91,7 @@ impl SpringAnchorsReference {
         // down's up direction
         let down_up = center - down_center;
 
-        // we compute the left and right anchors by rotating each nucletide pair in its
+        // we compute the left and right anchors by rotating each nucleotide pair in its
         // local up axis
 
         let (up_left, up_right) = turn_points(up_nucleotide_forward, up_nucleotide_backward, up_up);
@@ -139,7 +139,7 @@ impl SpringAnchorsReference {
         target_forward: OVector<f32, Const<3>>,
         target_up: OVector<f32, Const<3>>,
     ) -> UnitQuaternion<f32> {
-        // we define a plane orign at 0,
+        // we define a plane origin at 0,
         // normal being the first nucleotide
         // (thanks to the first rotation,
         // current_forward and target_forward are

@@ -142,10 +142,7 @@ impl InsertionInstance {
             depth: desc.depth,
             _pading: 0,
             orientation: desc.orientation.into_matrix() * symmetry_matrix,
-            color: crate::ensnano_utils::instance::Instance::color_from_u32(
-                desc.color,
-            )
-            .into(),
+            color: crate::ensnano_utils::instance::Instance::color_from_u32(desc.color).into(),
         }
     }
 }

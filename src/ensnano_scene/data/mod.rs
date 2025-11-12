@@ -29,8 +29,6 @@ use super::{
         StereographicSphereAndPlane,
     },
 };
-use design3d::Design3D;
-pub use design3d::{HBond, HalfHBond, SceneDesignReaderExt};
 use crate::ensnano_consts::{
     BOND_RADIUS, CANDIDATE_COLOR, CANDIDATE_SCALE_FACTOR, SELECT_SCALE_FACTOR, SELECTED_COLOR,
     SPHERE_RADIUS,
@@ -44,6 +42,8 @@ use crate::ensnano_interactor::{
     SelectionMode, graphics::HBondDisplay,
 };
 use crate::ensnano_utils::StrandNucleotidesPositions;
+use design3d::Design3D;
+pub use design3d::{HBond, HalfHBond, SceneDesignReaderExt};
 use std::{
     cell::RefCell,
     collections::{BTreeMap, HashMap, HashSet},

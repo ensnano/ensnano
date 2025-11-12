@@ -783,9 +783,9 @@ impl Curved for TwistedTorus {
 
 impl crate::ensnano_design::Helix {
     pub fn get_revolution_curve_descriptor(&self) -> Option<&CurveDescriptor2D> {
-        if let Some(crate::ensnano_design::CurveDescriptor::TwistedTorus(TwistedTorusDescriptor {
-            curve, ..
-        })) = self.curve.as_ref().map(Arc::as_ref)
+        if let Some(crate::ensnano_design::CurveDescriptor::TwistedTorus(
+            TwistedTorusDescriptor { curve, .. },
+        )) = self.curve.as_ref().map(Arc::as_ref)
         {
             Some(curve)
         } else {

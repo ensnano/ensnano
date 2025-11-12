@@ -16,7 +16,7 @@ impl RapierPhysicsSystem {
     }
 }
 
-// Following three functions from the "Particle based Viscoelastic Fluid Simulation"
+// Following three functions from the "Particle-based Viscoelastic Fluid Simulation"
 fn simple_kernel_1(r: f32, h: f32) -> f32 {
     let v = 1.0 - r / h;
     v

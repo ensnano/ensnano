@@ -26,9 +26,6 @@ mod sausage_rosary;
 mod stl;
 pub mod view;
 
-use controller::{Consequence, Controller, WidgetTarget};
-use data::{Data, SceneDesignReaderExt};
-use element_selector::{ElementSelector, SceneElement};
 use crate::ensnano_design::{
     BezierVertexId, Nucl, consts::ITERATIVE_AXIS_ALGORITHM, grid::GridPosition,
     grid::HelixGridPosition, group_attributes::GroupPivot,
@@ -43,6 +40,9 @@ use crate::ensnano_interactor::{
 };
 use crate::ensnano_organizer::tree::GroupId;
 use crate::ensnano_utils::{BufferDimensions, PhySize, filename};
+use controller::{Consequence, Controller, WidgetTarget};
+use data::{Data, SceneDesignReaderExt};
+use element_selector::{ElementSelector, SceneElement};
 use maths_3d::FiniteVec3;
 use std::{
     cell::RefCell,
@@ -661,7 +661,8 @@ impl<S: AppState> Scene<S> {
             &reader,
         );
         log::debug!("grids {:?}", grids);
-        let control_points = crate::ensnano_interactor::extract_control_points(app_state.get_selection());
+        let control_points =
+            crate::ensnano_interactor::extract_control_points(app_state.get_selection());
         let at_most_one_grid = grids.as_ref().map(|g| g.len() <= 1).unwrap_or(false);
 
         let group_id = app_state.get_current_group_id();

@@ -209,8 +209,12 @@ impl PhysicalSimulation {
         name: &'static str,
         active: bool,
         running: bool,
-    ) -> crate::ensnano_iced::Element<'_, Message<State>, crate::ensnano_iced::Theme, crate::ensnano_iced::Renderer>
-    {
+    ) -> crate::ensnano_iced::Element<
+        '_,
+        Message<State>,
+        crate::ensnano_iced::Theme,
+        crate::ensnano_iced::Renderer,
+    > {
         let button_str = if running { "Stop" } else { name };
         let mut button = text_button(button_str, ui_size);
         button = if running {

@@ -18,10 +18,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::super::AppState;
 use super::*;
-use crate::ensnano_scene::element_selector;
 use crate::ensnano_consts::*;
 use crate::ensnano_design::{BezierEndCoordinates, BezierVertexId};
 use crate::ensnano_interactor::Selection;
+use crate::ensnano_scene::element_selector;
 
 impl<R: SceneDesignReaderExt> Design3D<R> {
     pub fn get_bezier_elements(&self, h_id: usize) -> (Vec<RawDnaInstance>, Vec<RawDnaInstance>) {

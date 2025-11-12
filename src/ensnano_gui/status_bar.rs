@@ -279,28 +279,6 @@ impl OperationInput {
         }
     }
 
-    // #[must_use = "Do not forget to apply the operation"]
-    // pub fn process_tab(&mut self) -> Option<Arc<dyn Operation>> {
-    //     let mut was_focus = false;
-    //     let mut old_foccussed_idx: Option<usize> = None;
-    //     for (i, p) in self.parameters.iter_mut().enumerate() {
-    //         if was_focus {
-    //             was_focus ^= p.focus()
-    //         } else {
-    //             // if p.has_keyboard_priority() {
-    //             //     p.unfocus();
-    //             //     old_foccussed_idx = Some(i);
-    //             //     was_focus = true;
-    //             // }
-    //         }
-    //     }
-    //
-    //     old_foccussed_idx.and_then(|i| {
-    //         self.inputed_values.insert(i, self.values_str[i].clone());
-    //         self.update_value(i, self.values_str[i].clone())
-    //     })
-    // }
-
     pub fn update(&mut self, operation_state: CurrentOpState) {
         let op_is_new = self.op_id != operation_state.operation_id;
         let operation = operation_state.current_operation;

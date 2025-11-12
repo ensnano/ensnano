@@ -21,11 +21,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use self::gltf_drawer::Object3DDrawer;
 use super::camera;
 use super::{DrawArea, PhySize};
-use camera::{Camera, CameraPtr, Projection, ProjectionPtr};
 use crate::ensnano_consts::*;
 use crate::ensnano_design::{Axis, grid::GridId, group_attributes::GroupPivot};
 use crate::ensnano_interactor::UnrootedRevolutionSurfaceDescriptor;
 use crate::ensnano_utils::{bindgroup_manager, text, texture};
+use camera::{Camera, CameraPtr, Projection, ProjectionPtr};
 use int_enum::IntEnum;
 use std::{cell::RefCell, collections::BTreeMap, rc::Rc, usize};
 use texture::Texture;

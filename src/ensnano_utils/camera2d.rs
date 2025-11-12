@@ -182,7 +182,7 @@ impl Camera2D {
         Rotor2::from_angle(self.globals.tilt)
     }
 
-    /// Convert a *point* in screen ([0, x_res] * [0, y_res]) coordinate to a point in world coordiantes.
+    /// Convert a *point* in screen ([0, x_res] * [0, y_res]) coordinate to a point in world coordinates.
     pub fn screen_to_world(&self, x_screen: f32, mut y_screen: f32) -> (f32, f32) {
         if self.bottom {
             y_screen -= self.globals.resolution[1];
@@ -363,7 +363,7 @@ impl Globals {
     }
 }
 
-/// A structure to compute appropriate vews of the flat scene.
+/// A structure to compute appropriate views of the flat scene.
 #[derive(Debug, Clone, Copy)]
 pub struct FitRectangle {
     x_min: f32,

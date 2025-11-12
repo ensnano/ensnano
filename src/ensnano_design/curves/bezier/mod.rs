@@ -49,7 +49,7 @@ pub enum BezierControlPoint {
 }
 
 pub struct CubicBezier {
-    polynomial: CubicBezierPolynom,
+    polynomial: CubicBezierPolynomial,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -79,7 +79,7 @@ impl CubicBezierConstructor {
 
 impl CubicBezier {
     pub fn new(constructor: CubicBezierConstructor) -> Self {
-        let polynomial = CubicBezierPolynom::new(
+        let polynomial = CubicBezierPolynomial::new(
             vec_to_dvec(constructor.start),
             vec_to_dvec(constructor.control1),
             vec_to_dvec(constructor.control2),
@@ -90,14 +90,14 @@ impl CubicBezier {
     }
 }
 
-struct CubicBezierPolynom {
+struct CubicBezierPolynomial {
     q0: DVec3,
     q1: DVec3,
     q2: DVec3,
     q3: DVec3,
 }
 
-impl CubicBezierPolynom {
+impl CubicBezierPolynomial {
     fn new(start: DVec3, control1: DVec3, control2: DVec3, end: DVec3) -> Self {
         let q0 = start;
         let q1 = 3. * (control1 - start);
@@ -177,7 +177,7 @@ mod tests {
         let control2: DVec3 = [-1., 4., 5.].into();
         let end: DVec3 = [0., 0., 10.].into();
 
-        let poly = CubicBezierPolynom::new(start, control1, control2, end);
+        let poly = CubicBezierPolynomial::new(start, control1, control2, end);
 
         let x = std::f64::consts::PI / 10.;
 
@@ -199,7 +199,7 @@ mod tests {
         let control2: DVec3 = [-1., 4., 5.].into();
         let end: DVec3 = [0., 0., 10.].into();
 
-        let poly = CubicBezierPolynom::new(start, control1, control2, end);
+        let poly = CubicBezierPolynomial::new(start, control1, control2, end);
 
         let x = std::f64::consts::PI / 10.;
 
@@ -221,7 +221,7 @@ mod tests {
         let control2: DVec3 = [-1., 4., 5.].into();
         let end: DVec3 = [0., 0., 10.].into();
 
-        let poly = CubicBezierPolynom::new(start, control1, control2, end);
+        let poly = CubicBezierPolynomial::new(start, control1, control2, end);
 
         let x = std::f64::consts::PI / 10.;
 

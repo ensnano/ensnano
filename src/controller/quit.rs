@@ -20,8 +20,8 @@ use super::{State, TransitionMessage, YesNo, dialog, messages};
 use crate::MainStateView;
 use crate::controller::normal_state::NormalState;
 use crate::dialog::Filters;
-use dialog::PathInput;
 use crate::ensnano_exports::ExportType;
+use dialog::PathInput;
 use std::path::Path;
 
 pub(super) struct Quit {

@@ -17,9 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::{DesignOperation, DesignRotation, DesignTranslation, GroupId, IsometryTarget};
-use crate::ensnano_design::{
-    BezierControlPoint, BezierPlaneId, BezierVertexId, Nucl, grid::*,
-};
+use crate::ensnano_design::{BezierControlPoint, BezierPlaneId, BezierVertexId, Nucl, grid::*};
 use std::sync::Arc;
 use ultraviolet::{Bivec3, Rotor3, Vec2, Vec3};
 

@@ -9,14 +9,14 @@ pub mod hoverable_container;
 pub mod theme;
 pub mod tree;
 
-use drag_drop_target::*;
-pub use element::*;
 use crate::ensnano_iced::{
     Element,
     helpers::*,
     iced::{Length, keyboard::Modifiers},
     icon_to_svg,
 };
+use drag_drop_target::*;
+pub use element::*;
 use hoverable_container::HoverableContainer;
 use icondata::Icon;
 use rand::{Rng, rngs::ThreadRng};

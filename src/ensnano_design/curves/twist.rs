@@ -220,7 +220,8 @@ mod tests {
         let flat_helix = crate::ensnano_design::Helix::new(Vec3::zero(), Rotor3::identity());
         let theta = flat_helix.theta(99, true, &p);
         let nucl_curved = curve.nucl_pos(99, true, theta as f64, &p).unwrap();
-        let nucl_flat = crate::ensnano_design::utils::vec_to_dvec(flat_helix.space_pos(&p, 99, true));
+        let nucl_flat =
+            crate::ensnano_design::utils::vec_to_dvec(flat_helix.space_pos(&p, 99, true));
 
         println!("curved {:?} \n flat {:?}", nucl_curved, nucl_flat);
         // The two nucleotides are not in the same position

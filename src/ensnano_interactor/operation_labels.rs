@@ -74,7 +74,7 @@ impl DesignOperation {
             Self::SetGridPosition { .. } => "Set grid position".into(),
             Self::SetGridOrientation { .. } => "Set grid orientation".into(),
             Self::MakeSeveralXovers { .. } => "Multiple xovers".into(),
-            _ => "Unamed operation".into(),
+            _ => "Unnamed operation".into(),
         }
     }
 }

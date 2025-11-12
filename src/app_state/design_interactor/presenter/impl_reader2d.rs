@@ -17,10 +17,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::*;
-use ahash::RandomState;
 use crate::ensnano_design::{Domain, Extremity, HelixInterval, NuclCollection};
 use crate::ensnano_flatscene::FlatSceneDesignReaderExt;
 use crate::ensnano_interactor::{Referential, torsion::Torsion};
+use ahash::RandomState;
 use std::collections::{BTreeMap, HashMap};
 use std::sync::Arc;
 use ultraviolet::{Isometry2, Vec2, Vec3};

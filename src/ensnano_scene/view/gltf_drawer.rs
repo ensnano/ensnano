@@ -19,7 +19,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use crate::ensnano_consts::*;
 use crate::ensnano_design::{External3DObject, External3DObjectId, PointOnSurface};
 use crate::ensnano_interactor::UnrootedRevolutionSurfaceDescriptor;
-use crate::ensnano_utils::{TEXTURE_FORMAT, create_buffer_with_data, obj_loader::*, texture::Texture};
+use crate::ensnano_utils::{
+    TEXTURE_FORMAT, create_buffer_with_data, obj_loader::*, texture::Texture,
+};
 use std::{
     collections::BTreeMap,
     ffi::OsStr,
@@ -184,8 +186,9 @@ impl MeshGenerator for UnrootedRevolutionSurfaceDescriptor {
                                 0.7,
                                 0.7,
                             );
-                            let color =
-                                crate::ensnano_utils::instance::Instance::color_from_u32(vertex_color);
+                            let color = crate::ensnano_utils::instance::Instance::color_from_u32(
+                                vertex_color,
+                            );
 
                             ModelVertex {
                                 position: position.into(),

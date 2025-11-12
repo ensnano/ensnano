@@ -439,11 +439,10 @@ impl<S: AppState> FlatScene<S> {
                 )
             }
             Consequence::InitBuilding(nucl) => {
-                let mut nucls =
-                    crate::ensnano_interactor::extract_nucls_and_xover_ends(
-                        app_state.get_selection(),
-                        &app_state.get_design_reader(),
-                    );
+                let mut nucls = crate::ensnano_interactor::extract_nucls_and_xover_ends(
+                    app_state.get_selection(),
+                    &app_state.get_design_reader(),
+                );
                 let nucl = nucl.to_real();
 
                 if let Some(idx) = (0..nucls.len()).find(|i| nucls[*i] == nucl) {
@@ -831,8 +830,7 @@ impl<S: AppState> Application for FlatScene<S> {
 }
 
 pub trait AppState: Clone {
-    type Reader: FlatSceneDesignReaderExt
-        + crate::ensnano_interactor::InteractorDesignReaderExt;
+    type Reader: FlatSceneDesignReaderExt + crate::ensnano_interactor::InteractorDesignReaderExt;
     fn selection_was_updated(&self, other: &Self) -> bool;
     fn candidate_was_updated(&self, other: &Self) -> bool;
     fn get_selection(&self) -> &[Selection];

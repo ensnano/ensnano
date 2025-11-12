@@ -28,8 +28,6 @@ use super::data::{
 };
 use super::{CameraPtr, FlatIdx, FlatNucl};
 use super::{DrawArea, PhySize};
-use ahash::RandomState;
-use background::Background;
 use crate::ensnano_consts::SAMPLE_COUNT;
 use crate::ensnano_design::{Nucl, NuclCollection};
 use crate::ensnano_utils::{
@@ -40,6 +38,8 @@ use crate::ensnano_utils::{
     circles2d::{CircleDrawer, CircleInstance, CircleKind},
     texture::Texture,
 };
+use ahash::RandomState;
+use background::Background;
 use helix_view::{HelixView, StrandView};
 use insertion::InsertionDrawer;
 pub use insertion::{InsertionDescriptor, InsertionInstance};

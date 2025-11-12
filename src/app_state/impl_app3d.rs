@@ -92,7 +92,9 @@ impl App3D for AppState {
         self.0.center_of_selection
     }
 
-    fn get_current_group_pivot(&self) -> Option<crate::ensnano_design::group_attributes::GroupPivot> {
+    fn get_current_group_pivot(
+        &self,
+    ) -> Option<crate::ensnano_design::group_attributes::GroupPivot> {
         let reader = self.get_design_interactor();
         self.0
             .selection

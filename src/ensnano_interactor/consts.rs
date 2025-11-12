@@ -16,9 +16,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use crate::ensnano_interactor::RevolutionSimulationParameters;
 use crate::ensnano_consts::*;
 use crate::ensnano_design::BezierControlPoint;
+use crate::ensnano_interactor::RevolutionSimulationParameters;
 
 pub fn bezier_widget_id(helix_id: u32, control_point: BezierControlPoint) -> u32 {
     let bezier_id = bezier_control_id(control_point);

@@ -11,7 +11,7 @@ pub(crate) enum IntermediaryPair {
     OnlyForward(u32, Nucl),
     OnlyBackward(u32, Nucl),
     // always forward, backward
-    // the second nucleotide is redondant
+    // the second nucleotide is redundant
     Pair(u32, Nucl, u32),
 }
 

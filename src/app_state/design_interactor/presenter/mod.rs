@@ -26,7 +26,6 @@ pub mod impl_readergui;
 use self::design_content::Staple;
 
 use super::*;
-use design_content::DesignContent;
 use crate::ensnano_design::{
     BezierPathId, Extremity, HelixCollection, InstantiatedPiecewiseBezier, Nucl, NuclCollection,
 };
@@ -36,6 +35,7 @@ use crate::ensnano_interactor::{
 };
 use crate::ensnano_scene::data::{HBond, HalfHBond};
 use crate::ensnano_utils::id_generator::IdGenerator;
+use design_content::DesignContent;
 use std::collections::{BTreeMap, HashMap, HashSet};
 use ultraviolet::{Mat4, Rotor3, Vec3};
 
@@ -237,7 +237,8 @@ impl Presenter {
                                 log::error!("Could not get virtual mapping of {:?}", nucl.compl())
                             }
                         }
-                    } else if let crate::ensnano_design::Domain::Insertion { nb_nucl, .. } = domain {
+                    } else if let crate::ensnano_design::Domain::Insertion { nb_nucl, .. } = domain
+                    {
                         for _ in 0..*nb_nucl {
                             sequence.next();
                         }
@@ -400,7 +401,9 @@ impl Presenter {
     fn get_name_of_group_having_strand(&self, s_id: usize) -> Vec<String> {
         let tree = &self.current_design.organizer_tree.as_ref();
         tree.map(|t| {
-            t.get_names_of_groups_having(&crate::ensnano_design::elements::DesignElementKey::Strand(s_id))
+            t.get_names_of_groups_having(
+                &crate::ensnano_design::elements::DesignElementKey::Strand(s_id),
+            )
         })
         .unwrap_or_default()
     }
@@ -411,7 +414,11 @@ impl Presenter {
             .unwrap_or_default()
     }
 
-    pub fn get_strand_domain(&self, s_id: usize, d_id: usize) -> Option<&crate::ensnano_design::Domain> {
+    pub fn get_strand_domain(
+        &self,
+        s_id: usize,
+        d_id: usize,
+    ) -> Option<&crate::ensnano_design::Domain> {
         self.current_design
             .strands
             .get(&s_id)

@@ -26,7 +26,7 @@ impl Curve {
     pub(super) fn discretize_legacy(&mut self, nucl_rise: f64, inclination: f64) {
         let nb_step = NB_DISCRETIZATION_STEP;
 
-        let len = self.legacy_length_by_descretisation(self.geometry.t_min(), 1., nb_step);
+        let len = self.legacy_length_by_discretization(self.geometry.t_min(), 1., nb_step);
         let nb_points = (len / nucl_rise) as usize;
         let small_step = 1. / (nb_step as f64 * nb_points as f64);
 
@@ -37,7 +37,7 @@ impl Curve {
         let mut curvature = Vec::with_capacity(nb_points + 1);
         let mut torsion = Vec::with_capacity(nb_points + 1);
         let mut t = self.geometry.t_min();
-        let mut current_axis = self.legacy_itterative_axis(t, None);
+        let mut current_axis = self.legacy_iterative_axis(t, None);
 
         let mut current_segment = 0;
 
@@ -69,12 +69,12 @@ impl Curve {
             first_forward = false;
         }
 
-        let mut current_abcissa = 0.0;
+        let mut current_abscissa = 0.0;
         let mut first_non_negative = t < 0.0;
 
         let mut synchronization_length = 0.;
 
-        // The descritisation stops when t > t_max and when we have as many forward as backwards
+        // The discretization stops when t > t_max and when we have as many forward as backwards
         // point
         while t <= self.geometry.t_max()
             || next_abscissa_backward < next_abscissa_forward + inclination
@@ -86,7 +86,7 @@ impl Curve {
             }
 
             // Decide on which strand belongs the next point that we are looking for and it's
-            // curvilinear abcissa
+            // curvilinear abscissa
             let (next_point_abscissa, next_point_forward) = if t <= self.geometry.t_max() {
                 (
                     next_abscissa_forward.min(next_abscissa_backward),
@@ -105,18 +105,18 @@ impl Curve {
                 .inverse_curvilinear_abscissa(next_point_abscissa)
             {
                 t = t_x;
-                current_abcissa = next_point_abscissa;
-                current_axis = self.legacy_itterative_axis(t, Some(&current_axis));
+                current_abscissa = next_point_abscissa;
+                current_axis = self.legacy_iterative_axis(t, Some(&current_axis));
                 p = self.legacy_point_at_t(t, &current_axis);
             } else {
-                while current_abcissa < next_point_abscissa {
+                while current_abscissa < next_point_abscissa {
                     t += small_step;
 
-                    current_axis = self.legacy_itterative_axis(t, Some(&current_axis));
+                    current_axis = self.legacy_iterative_axis(t, Some(&current_axis));
 
                     let q = self.legacy_point_at_t(t, &current_axis);
 
-                    current_abcissa += (q - p).mag();
+                    current_abscissa += (q - p).mag();
 
                     if let Some(t_obj) = self.geometry.full_turn_at_t() {
                         if t >= 0. && t < t_obj {
@@ -139,7 +139,7 @@ impl Curve {
                     axis_forward.push(current_axis);
                     curvature.push(self.geometry.curvature(t));
                     torsion.push(self.geometry.absolute_torsion(t));
-                    next_abscissa_forward = current_abcissa + nucl_rise;
+                    next_abscissa_forward = current_abscissa + nucl_rise;
                     if self.nucl_pos_full_turn.is_none()
                         && self
                             .geometry
@@ -154,7 +154,7 @@ impl Curve {
             } else {
                 points_backward.push(p);
                 axis_backward.push(current_axis);
-                next_abscissa_backward = current_abcissa + nucl_rise;
+                next_abscissa_backward = current_abscissa + nucl_rise;
             }
         }
         log::info!("Synchronization length by old method {synchronization_length}");
@@ -177,10 +177,10 @@ impl Curve {
         }
     }
 
-    fn legacy_length_by_descretisation(&self, t0: f64, t1: f64, nb_step: usize) -> f64 {
+    fn legacy_length_by_discretization(&self, t0: f64, t1: f64, nb_step: usize) -> f64 {
         if t0 > t1 {
             log::error!(
-                "Bad parameters ofr length by descritisation: \n t0 {} \n t1 {} \n nb_step {}",
+                "Bad parameters ofr length by discretization: \n t0 {} \n t1 {} \n nb_step {}",
                 t0,
                 t1,
                 nb_step
@@ -195,12 +195,12 @@ impl Curve {
             log::info!("length by curvilinear_abscissa = {ret}");
             return x1 - x0;
         }
-        let mut current_axis = self.legacy_itterative_axis(t0, None);
+        let mut current_axis = self.legacy_iterative_axis(t0, None);
         let mut p = self.geometry.position(t0);
         let mut len = 0f64;
         for i in 1..=nb_step {
             let t = t0 + (i as f64) / (nb_step as f64) * (t1 - t0);
-            current_axis = self.legacy_itterative_axis(t, Some(&current_axis));
+            current_axis = self.legacy_iterative_axis(t, Some(&current_axis));
             let q = self.geometry.position(t);
             len += (q - p).mag();
             p = q;
@@ -229,7 +229,7 @@ impl Curve {
         ret
     }
 
-    fn legacy_itterative_axis(&self, t: f64, previous: Option<&DMat3>) -> DMat3 {
+    fn legacy_iterative_axis(&self, t: f64, previous: Option<&DMat3>) -> DMat3 {
         let speed = self.geometry.speed(t);
         if speed.mag_sq() < EPSILON {
             let acceleration = self.geometry.acceleration(t);
@@ -245,7 +245,6 @@ impl Curve {
             DMat3::new(right, up, forward)
         } else {
             perpendicular_basis(speed)
-            //self.itterative_axis(t, Some(&previous))
         }
     }
 

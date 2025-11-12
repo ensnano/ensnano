@@ -24,8 +24,8 @@ use crate::ensnano_interactor::PastingStatus;
 use crate::ensnano_interactor::{ScaffoldInfo, SelectionConversion, SimulationState};
 
 mod curve_builders;
-use curve_builders::*;
 use crate::ensnano_organizer::tree::GroupId;
+use curve_builders::*;
 
 impl GuiState for AppState {
     const POSSIBLE_CURVES: &'static [crate::ensnano_gui::CurveDescriptorBuilder<AppState>] =

@@ -17,9 +17,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::tabs::GuiTab;
+use crate::ensnano_design::CurveDescriptor2D;
 use crate::ensnano_gui::left_panel::Message;
 use crate::ensnano_gui::{AppState, SimulationState};
-use crate::ensnano_design::CurveDescriptor2D;
 use crate::ensnano_iced::{
     UiSize,
     fonts::{MaterialIcon, icon_to_char},
@@ -553,7 +553,12 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
         &self,
         ui_size: UiSize,
         app_state: &State,
-    ) -> crate::ensnano_iced::Element<'_, Self::Message, crate::ensnano_iced::Theme, crate::ensnano_iced::Renderer> {
+    ) -> crate::ensnano_iced::Element<
+        '_,
+        Self::Message,
+        crate::ensnano_iced::Theme,
+        crate::ensnano_iced::Renderer,
+    > {
         let desc = self.get_revolution_system(app_state, false);
 
         let shift_buttons = {

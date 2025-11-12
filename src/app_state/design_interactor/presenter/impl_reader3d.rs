@@ -423,8 +423,12 @@ impl crate::ensnano_scene::data::SceneDesignReaderExt for DesignInteractor {
 
     fn get_bezier_paths(
         &self,
-    ) -> Option<&BTreeMap<crate::ensnano_design::BezierPathId, Arc<crate::ensnano_design::InstantiatedPath>>>
-    {
+    ) -> Option<
+        &BTreeMap<
+            crate::ensnano_design::BezierPathId,
+            Arc<crate::ensnano_design::InstantiatedPath>,
+        >,
+    > {
         self.presenter
             .current_design
             .try_get_up_to_date()

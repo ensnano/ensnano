@@ -22,14 +22,14 @@ use super::{
     Duration, ElementSelector, HandleDir, SceneElement, Stereography, ViewPtr,
     WidgetRotationMode as RotationMode, camera,
 };
-use crate::ensnano_scene::maths_3d::FiniteVec3;
-use crate::ensnano_scene::{PhySize, PhysicalPosition, WindowEvent};
-use camera::CameraController;
 use crate::ensnano_consts::*;
 use crate::ensnano_design::grid::{GridId, GridObject, GridPosition, HelixGridPosition};
 use crate::ensnano_design::{
     BezierPathId, BezierPlaneId, BezierVertex, BezierVertexId, Nucl, SurfaceInfo, SurfacePoint,
 };
+use crate::ensnano_scene::maths_3d::FiniteVec3;
+use crate::ensnano_scene::{PhySize, PhysicalPosition, WindowEvent};
+use camera::CameraController;
 use std::cell::RefCell;
 use std::ops::Deref;
 use std::rc::Rc;

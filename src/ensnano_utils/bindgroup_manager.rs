@@ -22,7 +22,7 @@ use crate::ensnano_utils::create_buffer_with_data;
 use std::rc::Rc;
 use wgpu::{BindGroup, BindGroupLayout, Buffer, BufferDescriptor, Device, Queue};
 
-/// A bind group with an associated buffer whose size may varry
+/// A bind group with an associated buffer whose size may vary
 pub struct DynamicBindGroup {
     layout: BindGroupLayout,
     buffer: Buffer,

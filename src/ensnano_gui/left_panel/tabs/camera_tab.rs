@@ -191,7 +191,10 @@ struct FogGuiParameters {
 }
 
 impl FogGuiParameters {
-    fn view<State: AppState>(&self, ui_size: UiSize) -> crate::ensnano_iced::Element<'_, Message<State>> {
+    fn view<State: AppState>(
+        &self,
+        ui_size: UiSize,
+    ) -> crate::ensnano_iced::Element<'_, Message<State>> {
         let radius_text = if self.is_activated {
             text("Radius")
         } else {

@@ -32,11 +32,11 @@ pub use strand::{FreeEnd, Strand, StrandVertex};
 mod design;
 use super::FlatHelixMaps;
 use super::{CameraPtr, FlatHelix, FlatIdx, FlatNucl};
+use crate::ensnano_consts::*;
+use crate::ensnano_utils::camera2d::FitRectangle;
 use ahash::RandomState;
 use design::{Design2d, Helix2d};
 pub use design::{FlatSceneDesignReaderExt, FlatTorsion};
-use crate::ensnano_consts::*;
-use crate::ensnano_utils::camera2d::FitRectangle;
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 
 pub struct Data<R: FlatSceneDesignReaderExt> {

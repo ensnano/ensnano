@@ -425,7 +425,11 @@ impl crate::ensnano_gui::Requests for Requests {
         ))
     }
 
-    fn make_bezier_path_cyclic(&mut self, path_id: crate::ensnano_design::BezierPathId, cyclic: bool) {
+    fn make_bezier_path_cyclic(
+        &mut self,
+        path_id: crate::ensnano_design::BezierPathId,
+        cyclic: bool,
+    ) {
         self.keep_proceed.push_back(Action::DesignOperation(
             DesignOperation::MakeBezierPathCyclic { path_id, cyclic },
         ))

@@ -21,17 +21,6 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 mod bezier_paths;
 
 use super::{LetterInstance, SceneElement};
-use crate::ensnano_scene::{
-    GridInstance,
-    SceneElement::DesignElement,
-    maths_3d::{Basis3D, UnalignedBoundaries},
-    rotor_utils::SafeRotor as _,
-    sausage_rosary::SausageRosary,
-    view::{
-        ConeInstance, Ellipsoid, Instantiable, PlainRectangleInstance, RawDnaInstance, Sheet2D,
-        SlicedTubeInstance, SphereInstance, TubeInstance, TubeLidInstance,
-    },
-};
 use crate::ensnano_consts::*;
 use crate::ensnano_design::{
     AdditionalStructure, BezierControlPoint, BezierPathId, BezierPlaneDescriptor, BezierPlaneId,
@@ -44,6 +33,17 @@ use crate::ensnano_interactor::{
     consts::*,
     graphics::{LoopoutBond, LoopoutNucl},
     phantom_helix_encoder_bond, phantom_helix_encoder_nucl,
+};
+use crate::ensnano_scene::{
+    GridInstance,
+    SceneElement::DesignElement,
+    maths_3d::{Basis3D, UnalignedBoundaries},
+    rotor_utils::SafeRotor as _,
+    sausage_rosary::SausageRosary,
+    view::{
+        ConeInstance, Ellipsoid, Instantiable, PlainRectangleInstance, RawDnaInstance, Sheet2D,
+        SlicedTubeInstance, SphereInstance, TubeInstance, TubeLidInstance,
+    },
 };
 use crate::ensnano_utils::{StrandNucleotidesPositions, colors, instance::Instance};
 use std::{
@@ -364,11 +364,12 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
                                 + yy[i % NB_COILS] * y_vec
                         })
                         .collect();
-                    let color = crate::ensnano_utils::colors::purple_to_blue_gradient_color_in_range(
-                        uv.mag(),
-                        MIN_SPRING_LENGTH,
-                        MAX_SPRING_LENGTH,
-                    );
+                    let color =
+                        crate::ensnano_utils::colors::purple_to_blue_gradient_color_in_range(
+                            uv.mag(),
+                            MIN_SPRING_LENGTH,
+                            MAX_SPRING_LENGTH,
+                        );
                     let (sliced_tubes, _) = SausageRosary {
                         positions,
                         is_cyclic: false,
@@ -1626,7 +1627,9 @@ pub(super) enum ExpandWith {
 
 // Array of (strand number, array of 3D space position of the nucleotides)
 
-pub trait SceneDesignReaderExt: 'static + crate::ensnano_interactor::InteractorDesignReaderExt {
+pub trait SceneDesignReaderExt:
+    'static + crate::ensnano_interactor::InteractorDesignReaderExt
+{
     /// Return the identifier of all the visible nucleotides
     fn get_all_visible_nucl_ids(&self) -> Vec<u32>;
     /// Return the identifier of all the visible bounds

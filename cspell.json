@@ -1,7 +1,12 @@
 {
   "$schema": "https://raw.githubusercontent.com/streetsidesoftware/cspell/main/cspell.schema.json",
   "version": "0.2",
-  "ignorePaths": ["target/", "thirdparties/", "*.txt", "Cargo.lock"],
+  "ignorePaths": [
+    "target/",
+    "thirdparties/",
+    "*.txt",
+    "Cargo.lock"
+  ],
   "words": [
     "2KPHSEF9U9",
     "ahash",
@@ -32,6 +37,7 @@
     "coprimes",
     "dbivec",
     "decr",
+    "Dehaze",
     "Deque",
     "descr",
     "devel",
@@ -151,6 +157,7 @@
     "Tessellator",
     "thenlevy",
     "thirdparties",
+    "tickmarks",
     "Tilibit",
     "tmin",
     "toggleable",
@@ -171,6 +178,7 @@
     "Videocam",
     "viewbox",
     "viewports",
+    "Viscoelastic",
     "vsplit",
     "vstrands",
     "Vsync",

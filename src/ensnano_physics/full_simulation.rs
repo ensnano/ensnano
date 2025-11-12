@@ -1,6 +1,6 @@
-use ahash::HashMap;
 use crate::ensnano_design::{Helices, HelixCollection, HelixParameters, Nucl};
 use crate::ensnano_interactor::ObjectType;
+use ahash::HashMap;
 use rapier3d::prelude::*;
 
 use crate::ensnano_physics::{
