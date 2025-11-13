@@ -116,10 +116,17 @@ suspicious = { level = "deny", priority = -1 }
 blanket_clippy_restriction_lints = "allow"
 multiple_crate_versions = "allow"
 
+# nursery
+missing_const_for_fn = "allow" # TODO: warn
+
 # restriction
-multiple_inherent_impl = "allow" # TODO: re-enable once clippy 1.92 gets out
+else_if_without_else = "allow"
+implicit_return = "allow"
+missing_docs_in_private_items = "allow" # TODO: warn (major undertaking)
+multiple_inherent_impl = "allow" # TODO: warn once clippy 1.92 gets out
+same_name_method = "allow" # TODO: warn once single-impl traits are removed
 single_call_fn = "allow"
 single_char_lifetime_names = "allow"
 
 # suspicious
-arc_with_non_send_sync = "allow" # TODO: remove (requires understand the multiplexer)
+arc_with_non_send_sync = "allow" # TODO: warn (requires understand the multiplexer)
