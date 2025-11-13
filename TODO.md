@@ -80,6 +80,7 @@
 - Local crossover optimization
 - Animation timeline
 - Publish `ensnano` on crates.io?
+- README for collaborators (dependencies, crates graph, clippy rules...)
 
 ## Refactor
 

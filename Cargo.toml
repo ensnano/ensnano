@@ -111,9 +111,14 @@ perf = { level = "deny", priority = -1 }
 style = { level = "warn", priority = -1 }
 suspicious = { level = "deny", priority = -1 }
 
-arc_with_non_send_sync = "allow"  # TODO: remove
+# cargo
 multiple_crate_versions = "allow"
-too_many_arguments = "allow"      # TODO: remove
 
-get_unwrap = "warn"       # TODO: remove once restriction is activated
-wildcard_imports = "warn" # TODO: remove once pedantic is activated
+# pedantic (TODO: remove section once activated)
+wildcard_imports = "warn"
+
+# restriction (TODO: remove section once activated)
+get_unwrap = "warn"
+
+# suspicious
+arc_with_non_send_sync = "allow" # TODO: remove
