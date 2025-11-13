@@ -101,6 +101,17 @@ version.workspace = true
 log_after_renderer_setup = []
 dx12_only = []
 
+[lints.rust]
+closure_returning_async_block = "warn"
+deref_into_dyn_supertrait = "warn"
+explicit_outlives_requirements = "warn"
+impl_trait_overcaptures = "warn"
+impl_trait_redundant_captures = "warn"
+macro_use_extern_crate = "warn"
+meta_variable_misuse = "warn"
+# TODO: missing_docs = "warn"
+missing_unsafe_on_extern = "warn"
+
 [lints.clippy]
 cargo = { level = "deny", priority = -1 }
 complexity = { level = "warn", priority = -1 }
