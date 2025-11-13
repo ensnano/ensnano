@@ -20,17 +20,20 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! interact with the design.
 
 pub mod app_state_parameters;
-pub mod graphics;
-mod selection;
-pub use selection::*;
 pub mod application;
 pub mod consts;
+pub mod graphics;
 mod multiplexer;
 pub mod operation;
-mod operation_labels;
+mod selection;
 mod strand_builder;
 mod surfaces;
 pub mod torsion;
+
+pub use multiplexer::Multiplexer;
+pub use selection::*;
+pub use strand_builder::*;
+pub use surfaces::*;
 
 use crate::ensnano_design::{
     BezierControlPoint, BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex,
@@ -40,10 +43,7 @@ use crate::ensnano_design::{
     group_attributes::GroupPivot,
 };
 use crate::ensnano_organizer::tree::{GroupId, OrganizerTree};
-pub use multiplexer::Multiplexer;
 use std::path::PathBuf;
-pub use strand_builder::*;
-pub use surfaces::*;
 use ultraviolet::{Isometry2, Rotor3, Vec2, Vec3};
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -81,8 +81,8 @@ pub enum Referential {
     Model,
 }
 
-#[derive(Debug, Clone)]
 /// An operation that can be performed on a design
+#[derive(Debug, Clone)]
 pub enum DesignOperation {
     /// Rotate an element of the design
     Rotation(DesignRotation),
@@ -298,6 +298,65 @@ pub enum DesignOperation {
     ImportSvgPath {
         path: PathBuf,
     },
+}
+
+impl DesignOperation {
+    pub fn label(&self) -> std::borrow::Cow<'static, str> {
+        match self {
+            Self::Rotation(rotation) => format!("Rotation of {}", rotation.target).into(),
+            Self::Translation(translation) => {
+                format!("Translation of {}", translation.target).into()
+            }
+            Self::AddGridHelix { .. } => "Helix creation".into(),
+            Self::AddTwoPointsBezier { .. } => "Bezier curve creation".into(),
+            Self::RmHelices { .. } => "Helix deletion".into(),
+            Self::RmXovers { .. } => "Xover deletion".into(),
+            Self::Cut { nucl, .. } => format!("Cut on {:?}", nucl).into(),
+            Self::GeneralXover { source, target } => {
+                format!("Xover between {:?} and {:?}", source, target).into()
+            }
+            Self::Xover { .. } => "Xover".into(),
+            Self::CrossCut { .. } => "Cut and crossover".into(),
+            Self::RmStrands { .. } => "Strand deletion".into(),
+            Self::AddGrid(_) => "Grid creation".into(),
+            Self::RecolorStaples => "Staple recoloring".into(),
+            Self::ChangeColor { .. } => "Color modification".into(),
+            Self::SetScaffoldId(_) => "Scaffold setting".into(),
+            Self::SetScaffoldSequence { .. } => "Scaffold sequence setting".into(),
+            Self::HyperboloidOperation(_) => "Nanotube operation".into(),
+            Self::CleanDesign => "Clean design".into(),
+            Self::HelicesToGrid(_) => "Grid creation from helices".into(),
+            Self::SetHelicesPersistence {
+                persistent: true, ..
+            } => "Show phantom helices".into(),
+            Self::SetHelicesPersistence {
+                persistent: false, ..
+            } => "Hide phantom helices".into(),
+            Self::UpdateAttribute { .. } => "Update attribute from organizer".into(),
+            Self::SetSmallSpheres { small: true, .. } => "Hide nucleotides".into(),
+            Self::SetSmallSpheres { small: false, .. } => "Show nucleotides".into(),
+            Self::SnapHelices { .. } => "Move 2D helices".into(),
+            Self::RotateHelices { .. } => "Translate 2D helices".into(),
+            Self::SetIsometry { .. } => "Set isometry of helices".into(),
+            Self::RequestStrandBuilders { nucls } => format!("Build on {:?}", nucls).into(),
+            Self::MoveBuilders(_) => "Move builders".into(),
+            Self::SetRollHelices { .. } => "Set roll of helix".into(),
+            Self::SetVisibilityHelix { visible: true, .. } => "Make helices visible".into(),
+            Self::SetVisibilityHelix { visible: false, .. } => "Make helices invisible".into(),
+            Self::FlipHelixGroup { .. } => "Change xover group of helices".into(),
+            Self::FlipAnchors { .. } => "Set/Unset nucl anchor".into(),
+            Self::AttachObject { .. } => "Move grid object".into(),
+            Self::SetOrganizerTree(_) => "Update organizer tree".into(),
+            Self::SetStrandName { .. } => "Update name of strand".into(),
+            Self::SetGroupPivot { .. } => "Set group pivot".into(),
+            Self::DeleteCamera(_) => "Delete camera".into(),
+            Self::CreateNewCamera { .. } => "Create camera shortcut".into(),
+            Self::SetGridPosition { .. } => "Set grid position".into(),
+            Self::SetGridOrientation { .. } => "Set grid orientation".into(),
+            Self::MakeSeveralXovers { .. } => "Multiple xovers".into(),
+            _ => "Unnamed operation".into(),
+        }
+    }
 }
 
 #[derive(Clone, Debug, Copy)]

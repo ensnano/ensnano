@@ -98,7 +98,7 @@ complexity = { level = "warn", priority = -1 }
 correctness = { level = "deny", priority = -1 }
 # nursery = { level = "warn", priority = -1 }
 # pedantic = { level = "warn", priority = -1 }
-perf = { level = "warn", priority = -1 } # TODO: deny
+perf = { level = "deny", priority = -1 }
 # restriction = { level = "warn", priority = -1 }
 style = { level = "warn", priority = -1 }
 suspicious = { level = "deny", priority = -1 }

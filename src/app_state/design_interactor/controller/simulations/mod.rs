@@ -1240,6 +1240,7 @@ pub struct IntervalResult {
     intervals: Vec<(isize, isize)>,
 }
 
+#[expect(clippy::large_enum_variant)]
 pub enum SimulationOperation<'pres, 'reader> {
     StartHelices {
         presenter: &'pres Presenter,

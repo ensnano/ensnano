@@ -231,7 +231,7 @@ pub enum OverlayType {
     Color,
 }
 
-// The state of each Gui Elements.
+#[expect(clippy::large_enum_variant)]
 enum GuiState<R: Requests, S: AppState> {
     TopBar(program::State<TopBar<R, S>>),
     LeftPanel(program::State<LeftPanel<R, S>>),

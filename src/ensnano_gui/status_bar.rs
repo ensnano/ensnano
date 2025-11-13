@@ -192,10 +192,7 @@ impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
     }
 
     fn view(&self) -> Element<'_, Self::Message, Self::Theme, Self::Renderer> {
-        let clipboard_text = format!(
-            "Clipboard: {}",
-            self.app_state.get_clipboard_content().to_string()
-        );
+        let clipboard_text = format!("Clipboard: {}", self.app_state.get_clipboard_content());
         let pasting_text = match self.app_state.get_pasting_status() {
             crate::ensnano_interactor::PastingStatus::Copy => "Pasting",
             crate::ensnano_interactor::PastingStatus::None => "",
