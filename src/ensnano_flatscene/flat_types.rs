@@ -314,9 +314,9 @@ impl FlatNucl {
 }
 
 pub enum FlatSelection {
-    Nucleotide(usize, FlatNucl),
-    Bond(usize, FlatNucl, FlatNucl),
-    Xover(usize, usize),
+    Nucleotide(FlatNucl),
+    Bond(FlatNucl, FlatNucl),
+    Xover(usize),
     Design,
     Strand,
     Helix,
@@ -332,23 +332,23 @@ impl FlatSelection {
         };
 
         match selection {
-            Selection::Nucleotide(d, nucl) => {
+            Selection::Nucleotide(_, nucl) => {
                 if let Some(flat_nucl) = FlatNucl::from_real(nucl, id_map) {
-                    Self::Nucleotide(*d as usize, flat_nucl)
+                    Self::Nucleotide(flat_nucl)
                 } else {
                     Self::Nothing
                 }
             }
-            Selection::Bond(d, n1, n2) => {
+            Selection::Bond(_, n1, n2) => {
                 let n1 = FlatNucl::from_real(n1, id_map);
                 let n2 = FlatNucl::from_real(n2, id_map);
                 if let Some((n1, n2)) = n1.zip(n2) {
-                    Self::Bond(*d as usize, n1, n2)
+                    Self::Bond(n1, n2)
                 } else {
                     Self::Nothing
                 }
             }
-            Selection::Xover(d, xover_id) => Self::Xover(*d as usize, *xover_id),
+            Selection::Xover(_, xover_id) => Self::Xover(*xover_id),
             Selection::Design(..) => Self::Design,
             Selection::Strand(..) => Self::Strand,
             Selection::Helix { helix_id, .. } => {

@@ -16,29 +16,32 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+mod design;
+mod helix;
+mod strand;
+
+pub use design::{FlatSceneDesignReaderExt, FlatTorsion};
+pub use helix::{CharCollector, GpuVertex, Helix, HelixHandle, HelixModel, Shift};
+pub use strand::{FreeEnd, Strand, StrandVertex};
+
+use super::FlatHelixMaps;
 use super::{
-    AppState, Flat, HelixVec, PhantomElement, Requests, ViewPtr,
-    flat_types::{FlatSelection, HelixSegment},
+    AppState, Requests, ViewPtr,
+    flat_types::{Flat, FlatSelection, HelixSegment, HelixVec},
     view::EditionInfo,
 };
-use crate::ensnano_design::Nucl;
-use crate::ensnano_interactor::{Selection, SelectionMode};
-use std::sync::{Arc, Mutex};
-use ultraviolet::Vec2;
-
-pub(crate) mod helix;
-pub use helix::{GpuVertex, Helix, HelixHandle, HelixModel, Shift};
-mod strand;
-pub use strand::{FreeEnd, Strand, StrandVertex};
-mod design;
-use super::FlatHelixMaps;
 use super::{CameraPtr, FlatHelix, FlatIdx, FlatNucl};
 use crate::ensnano_consts::*;
+use crate::ensnano_design::Nucl;
+use crate::ensnano_interactor::{PhantomElement, Selection, SelectionMode};
 use crate::ensnano_utils::camera2d::FitRectangle;
 use ahash::RandomState;
 use design::{Design2d, Helix2d};
-pub use design::{FlatSceneDesignReaderExt, FlatTorsion};
-use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
+use std::{
+    collections::{BTreeMap, BTreeSet, HashMap, HashSet},
+    sync::{Arc, Mutex},
+};
+use ultraviolet::Vec2;
 
 pub struct Data<R: FlatSceneDesignReaderExt> {
     view: ViewPtr,
@@ -989,12 +992,12 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
     }
 
     pub(super) fn xover_to_nucl_pair(&self, selection: FlatSelection) -> FlatSelection {
-        if let FlatSelection::Xover(d_id, xover_id) = selection {
+        if let FlatSelection::Xover(xover_id) = selection {
             if let Some((n1, n2)) = self.design.get_xover_with_id(xover_id) {
                 let flat_1 = FlatNucl::from_real(&n1, self.id_map());
                 let flat_2 = FlatNucl::from_real(&n2, self.id_map());
                 if let Some((flat_1, flat_2)) = flat_1.zip(flat_2) {
-                    FlatSelection::Bond(d_id, flat_1, flat_2)
+                    FlatSelection::Bond(flat_1, flat_2)
                 } else {
                     FlatSelection::Nothing
                 }

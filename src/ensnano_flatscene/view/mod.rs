@@ -24,16 +24,18 @@ mod rectangle;
 pub use insertion::{InsertionDescriptor, InsertionInstance};
 
 use super::{
-    CameraPtr, DrawArea, FlatIdx, FlatNucl, FlatSelection, PhySize,
+    CameraPtr,
     data::{
-        FlatTorsion, FreeEnd, GpuVertex, Helix, HelixModel, Shift, Strand, StrandVertex,
-        helix::CharCollector,
+        CharCollector, FlatTorsion, FreeEnd, GpuVertex, Helix, HelixModel, Shift, Strand,
+        StrandVertex,
     },
+    flat_types::{FlatIdx, FlatNucl, FlatSelection},
 };
 use crate::ensnano_consts::SAMPLE_COUNT;
 use crate::ensnano_design::{Nucl, NuclCollection};
+use crate::ensnano_interactor::graphics::DrawArea;
 use crate::ensnano_utils::{
-    Ndc,
+    Ndc, PhySize,
     bindgroup_manager::{DynamicBindGroup, UniformBindGroup},
     camera2d::Globals,
     chars2d::TextDrawer,
@@ -45,9 +47,9 @@ use background::Background;
 use helix_view::{HelixView, StrandView};
 use insertion::InsertionDrawer;
 use rectangle::Rectangle;
-use std::rc::Rc;
 use std::{
     collections::{BTreeMap, BTreeSet, HashMap},
+    rc::Rc,
     sync::Arc,
 };
 use wgpu::{Device, Queue, RenderPipeline};
@@ -490,7 +492,7 @@ impl View {
         self.camera_top.borrow_mut().zoom_closer();
         self.was_updated = true;
         match selection {
-            FlatSelection::Bond(_, n1, n2) => {
+            FlatSelection::Bond(n1, n2) => {
                 self.helices[n1.helix].make_visible(n1.flat_position, self.camera_top.clone());
                 let world_pos_1 = self.helices[n1.helix].get_nucl_position(&n1, Shift::No);
                 let world_pos_2 = self.helices[n2.helix].get_nucl_position(&n2, Shift::No);
@@ -507,23 +509,20 @@ impl View {
                     > 0.25
                 {
                     // Center the topmost nucleotide on the top camera
-                    if screen_pos_1.1 < screen_pos_2.1 {
-                        Some((n1, n2))
+                    Some(if screen_pos_1.1 < screen_pos_2.1 {
+                        (n1, n2)
                     } else {
-                        Some((n2, n1))
-                    }
+                        (n2, n1)
+                    })
                 } else {
                     None
                 }
             }
-            FlatSelection::Nucleotide(
-                _,
-                FlatNucl {
-                    helix,
-                    flat_position: position,
-                    ..
-                },
-            ) => {
+            FlatSelection::Nucleotide(FlatNucl {
+                helix,
+                flat_position: position,
+                ..
+            }) => {
                 self.helices[helix].make_visible(position, self.camera_top.clone());
                 None
             }
