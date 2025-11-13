@@ -83,7 +83,7 @@ mod rotor_utils;
 
 mod sausage_rosary;
 
-const PNG_SIZE: u32 = 256 * 10;
+const PNG_SIZE: u32 = 8192;
 
 /// A structure responsible of the 3D display of the designs
 pub struct Scene<S: AppState> {
@@ -997,24 +997,20 @@ impl<S: AppState> Scene<S> {
         use ensnano_utils::BufferDimensions;
         use std::io::Write;
 
+        let png_size = device.limits().max_texture_dimension_2d.min(PNG_SIZE);
         let ratio = self.view.borrow().get_projection().borrow().get_ratio();
-        let width = if ratio < 1. {
-            (ratio * PNG_SIZE as f32).floor() as u32
+        let (width, height) = if ratio < 1. {
+            ((ratio * png_size as f32).floor() as u32, png_size)
         } else {
-            PNG_SIZE
+            (png_size, (png_size as f32 / ratio).floor() as u32)
         };
-        let height = if ratio < 1. {
-            PNG_SIZE
-        } else {
-            (PNG_SIZE as f32 / ratio).floor() as u32
-        };
-        let size = wgpu::Extent3d {
+        let extent = wgpu::Extent3d {
             width,
             height,
             depth_or_array_layers: 1,
         };
 
-        let (texture, texture_view) = self.create_png_export_texture(device, size);
+        let (texture, texture_view) = self.create_png_export_texture(device, extent);
 
         let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
             label: Some("3D PNG export"),
@@ -1039,11 +1035,6 @@ impl<S: AppState> Scene<S> {
         );
 
         // create a buffer and fill it with the texture
-        let extent = wgpu::Extent3d {
-            width: size.width,
-            height: size.height,
-            depth_or_array_layers: 1,
-        };
         let buffer_dimensions =
             BufferDimensions::new(extent.width as usize, extent.height as usize);
         let buf_size = buffer_dimensions.padded_bytes_per_row * buffer_dimensions.height;
@@ -1081,7 +1072,7 @@ impl<S: AppState> Scene<S> {
         let pixels = async {
             if let Ok(()) = buffer_future.await {
                 let pixels_slice = buffer_slice.get_mapped_range();
-                let mut pixels = Vec::with_capacity((size.height * size.width) as usize);
+                let mut pixels = Vec::with_capacity(4 * (extent.height * extent.width) as usize);
                 for chunck in pixels_slice.chunks(buffer_dimensions.padded_bytes_per_row) {
                     for chunk in chunck.chunks(4) {
                         // convert Bgra to Rgba
