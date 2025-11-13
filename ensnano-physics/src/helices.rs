@@ -2,6 +2,7 @@ use std::ops::Range;
 
 use ahash::HashMap;
 use ensnano_design::Nucl;
+use ensnano_interactor::ObjectType;
 
 /// Holds the intermediary representation
 /// of a nucleotide pair.
@@ -36,6 +37,22 @@ impl IntermediaryPair {
             _ => false,
         }
     }
+
+    /// Matches two pairs to find the way to link them.
+    /// If both are double, or they missmatch, None is returned instead.
+    pub fn match_single(&self, other: &Self) -> Option<(u32, Nucl, u32, Nucl)> {
+        match (self, other) {
+            (IntermediaryPair::OnlyForward(i, n), IntermediaryPair::OnlyForward(j, m))
+            | (IntermediaryPair::OnlyBackward(i, n), IntermediaryPair::OnlyBackward(j, m))
+            | (IntermediaryPair::Pair(i, n, _), IntermediaryPair::OnlyForward(j, m))
+            | (IntermediaryPair::Pair(_, n, i), IntermediaryPair::OnlyBackward(j, m))
+            | (IntermediaryPair::OnlyForward(i, n), IntermediaryPair::Pair(j, m, _))
+            | (IntermediaryPair::OnlyBackward(i, n), IntermediaryPair::Pair(_, m, j)) => {
+                Some((*i, *n, *j, *m))
+            }
+            _ => None,
+        }
+    }
 }
 
 /// Holds the intermediary representation
@@ -52,9 +69,14 @@ pub(crate) struct IntermediaryHelix {
     pub pairs: HashMap<isize, IntermediaryPair>,
     pub double_ranges: Vec<Range<isize>>,
     pub single_ranges: Vec<Range<isize>>,
+    // a cut at 3 means between levels 2 and 3
+    pub crossover_cuts: Vec<isize>,
 }
 
-pub fn build_helices(nucleotide: &HashMap<u32, Nucl>) -> HashMap<usize, IntermediaryHelix> {
+pub fn build_helices(
+    object_type: &HashMap<u32, ObjectType>,
+    nucleotide: &HashMap<u32, Nucl>,
+) -> HashMap<usize, IntermediaryHelix> {
     let mut result = HashMap::<usize, IntermediaryHelix>::default();
 
     for (&id, &nucl) in nucleotide {
@@ -64,7 +86,68 @@ pub fn build_helices(nucleotide: &HashMap<u32, Nucl>) -> HashMap<usize, Intermed
             .push_nucleotide(id, nucl);
     }
 
+    // we derive cut points from the bonds
+    for object in object_type.values() {
+        match object {
+            ObjectType::Bond(b, c) => {
+                if nucleotide[b].helix == nucleotide[c].helix {
+                    continue;
+                }
+                let b = nucleotide[b];
+                let c = nucleotide[c];
+
+                result
+                    .get_mut(&b.helix)
+                    .expect("Nucleotide with incorrect helix")
+                    .crossover_cuts
+                    .extend([b.position, b.position + 1]);
+                result
+                    .get_mut(&c.helix)
+                    .expect("Nucleotide with incorrect helix")
+                    .crossover_cuts
+                    .extend([c.position, c.position + 1]);
+            }
+            ObjectType::SlicedBond(a, b, c, d) => {
+                if nucleotide[b].helix == nucleotide[c].helix {
+                    continue;
+                }
+                let a = nucleotide[a];
+                let b = nucleotide[b];
+                let c = nucleotide[c];
+                let d = nucleotide[d];
+
+                let b_cut = if a.position < b.position {
+                    b.position
+                } else {
+                    b.position + 1
+                };
+
+                let c_cut = if d.position < c.position {
+                    c.position
+                } else {
+                    c.position + 1
+                };
+
+                result
+                    .get_mut(&b.helix)
+                    .expect("Nucleotide with incorrect helix")
+                    .crossover_cuts
+                    .push(b_cut);
+                result
+                    .get_mut(&c.helix)
+                    .expect("Nucleotide with incorrect helix")
+                    .crossover_cuts
+                    .push(c_cut);
+            }
+            _ => {}
+        }
+    }
+
     result.values_mut().for_each(|helix| helix.compute_ranges());
+
+    result
+        .values_mut()
+        .for_each(|helix| helix.crossover_cuts.sort_unstable());
 
     result
 }

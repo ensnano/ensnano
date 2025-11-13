@@ -46,6 +46,7 @@ use ensnano_interactor::{
     graphics::{Background3D, HBondDisplay, RenderingMode},
 };
 use ensnano_organizer::{Organizer, OrganizerMessage, OrganizerTree};
+use ensnano_physics::parameters::RapierParameters;
 use std::sync::{Arc, Mutex};
 use ultraviolet::Vec3;
 
@@ -104,6 +105,7 @@ pub enum Message<S: AppState> {
     FogRadius(f32),
     FogLength(f32),
     RollSimulationRequest,
+    UpdateRapierParameters(RapierParameters),
     StartRapierSimulation,
     DiscreteValue {
         factory_id: FactoryId,
@@ -438,6 +440,10 @@ where
                     let request = self.simulation_tab.get_physical_simulation_request();
                     self.requests.lock().unwrap().start_roll_simulation(request);
                 }
+                Command::none()
+            }
+            Message::UpdateRapierParameters(parameters) => {
+                self.simulation_tab.rapier_parameters = parameters;
                 Command::none()
             }
             Message::StartRapierSimulation => {

@@ -46,20 +46,21 @@ pub struct PriorityRequest {
 ///
 /// Trigger `on_priority` and `on_unpriority` when the text_input is focused or unfocused.
 pub struct KeyboardPriority<'a, Message, Theme = iced::Theme, Renderer = iced::Renderer> {
-    priority_id: Id,
+    id: Id,
     width: Length,
     height: Length,
     content: iced::Element<'a, Message, Theme, Renderer>,
-    on_priority: Option<Message>,
-    on_unpriority: Option<Message>,
+    on_priority: Message,
+    on_unpriority: Message,
 }
 
 /// A container that gives keyboard priority to it's [text_input::TextInput] content.
 pub fn keyboard_priority<'a, Message>(
     id: impl Into<Cow<'static, str>>,
+    message: impl Fn(PriorityRequest) -> Message,
     content: impl Into<Element<'a, Message>>,
 ) -> KeyboardPriority<'a, Message> {
-    KeyboardPriority::new(id, content)
+    KeyboardPriority::new(id, message, content)
 }
 
 impl<'a, Message, Theme, Renderer> KeyboardPriority<'a, Message, Theme, Renderer>
@@ -69,25 +70,24 @@ where
     /// Creates a new [`KeyboardPriority`] with the given content.
     pub fn new(
         id: impl Into<Cow<'static, str>>,
+        message: impl Fn(PriorityRequest) -> Message,
         content: impl Into<Element<'a, Message, Theme, Renderer>>,
     ) -> Self {
+        let id = Id::new(id);
         let content = content.into();
         let size = content.as_widget().size_hint();
         KeyboardPriority {
-            priority_id: Id::new(id),
+            id: id.clone(),
             width: size.width.fluid(),
             height: size.height.fluid(),
             content,
-            on_priority: None,
-            on_unpriority: None,
+            on_priority: message(PriorityRequest {
+                id: id.clone(),
+                taking: true,
+            }),
+            on_unpriority: message(PriorityRequest { id, taking: false }),
         }
     }
-
-    // /// Sets the [`Id`] of the [`KeyboardPriority`].
-    // pub fn id(mut self, id: Id) -> Self {
-    //     self.id = Some(id);
-    //     self
-    // }
 
     /// Sets the width of the [`KeyboardPriority`].
     pub fn width(mut self, width: Length) -> Self {
@@ -98,19 +98,6 @@ where
     /// Sets the height of the [`KeyboardPriority`].
     pub fn height(mut self, height: Length) -> Self {
         self.height = height;
-        self
-    }
-
-    /// Sets the message that will be produced when the content is hovered or unhovered.
-    pub fn on_priority<F: Fn(PriorityRequest) -> Message>(mut self, f: F) -> Self {
-        self.on_priority = Some(f(PriorityRequest {
-            id: self.priority_id.clone(),
-            taking: true,
-        }));
-        self.on_unpriority = Some(f(PriorityRequest {
-            id: self.priority_id.clone(),
-            taking: false,
-        }));
         self
     }
 }
@@ -172,18 +159,14 @@ where
         renderer: &Renderer,
         operation: &mut dyn widget::Operation<Message>,
     ) {
-        operation.container(
-            Some(&self.priority_id.0),
-            layout.bounds(),
-            &mut |operation| {
-                self.content.as_widget().operate(
-                    &mut tree.children[0],
-                    layout.children().next().unwrap(),
-                    renderer,
-                    operation,
-                );
-            },
-        );
+        operation.container(Some(&self.id.0), layout.bounds(), &mut |operation| {
+            self.content.as_widget().operate(
+                &mut tree.children[0],
+                layout.children().next().unwrap(),
+                renderer,
+                operation,
+            );
+        });
     }
 
     fn on_event(
@@ -218,15 +201,11 @@ where
             // Send message if the state has changed.
             if text_input_state.is_focused() & !state.is_focused() {
                 state.focus();
-                if let Some(on_priority) = &self.on_priority {
-                    shell.publish(on_priority.clone())
-                }
+                shell.publish(self.on_priority.clone());
                 event::Status::Captured
             } else if !text_input_state.is_focused() & state.is_focused() {
                 state.unfocus();
-                if let Some(on_unpriority) = &self.on_unpriority {
-                    shell.publish(on_unpriority.clone())
-                }
+                shell.publish(self.on_unpriority.clone());
                 event::Status::Captured
             } else {
                 status
