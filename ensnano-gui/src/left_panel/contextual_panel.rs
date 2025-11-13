@@ -395,12 +395,12 @@ where
             content = content.push(row![
                 text("Loopout"),
                 keyboard_priority(
+                    "Loopout",
                     text_input("", text_input_content)
                         .on_input(Message::InsertionLengthInput)
                         .on_submit(Message::InsertionLengthSubmitted)
                 )
-                .on_priority(Message::SetKeyboardPriority(true))
-                .on_unpriority(Message::SetKeyboardPriority(false)),
+                .on_priority(Message::SetKeyboardPriority),
             ]);
         }
 
@@ -548,12 +548,12 @@ fn add_strand_content<'a, State: AppState>(
         row![
             text("Name").size(ui_size.main_text()),
             keyboard_priority(
+                "Name",
                 text_input("Name", &info_values[4])
                     .on_input(move |new_name| { Message::StrandNameChanged(s_id, new_name) })
                     .size(ui_size.main_text())
             )
-            .on_priority(Message::SetKeyboardPriority(true))
-            .on_unpriority(Message::SetKeyboardPriority(false)),
+            .on_priority(Message::SetKeyboardPriority),
         ],
         text(format!("length {}", info_values[0])).size(ui_size.main_text()),
         checkbox("Scaffold", info_values[1].parse().unwrap())
@@ -904,26 +904,26 @@ impl AddStrandMenu {
                     text("Starting nt").style(color_choose_strand_start_length),
                     // position_input
                     keyboard_priority(
+                        "Starting nt",
                         text_input("Position", &self.pos_str)
                             .on_input(Message::PositionHelicesChanged)
                             .style(theme::BadValue(self.pos_str == self.helix_pos.to_string()))
                     )
-                    .on_priority(Message::SetKeyboardPriority(true))
-                    .on_unpriority(Message::SetKeyboardPriority(false)),
+                    .on_priority(Message::SetKeyboardPriority),
                 ]
                 .width(width / 2),
                 self::column![
                     text("Length (nt)").style(color_choose_strand_start_length),
                     // length_input
                     keyboard_priority(
+                        "Length (nt)",
                         text_input("Length", &self.length_str)
                             .on_input(Message::LengthHelicesChanged)
                             .style(theme::BadValue(
                                 self.length_str == self.helix_length.to_string()
                             ))
                     )
-                    .on_priority(Message::SetKeyboardPriority(true))
-                    .on_unpriority(Message::SetKeyboardPriority(false)),
+                    .on_priority(Message::SetKeyboardPriority)
                 ],
             ]
         ]

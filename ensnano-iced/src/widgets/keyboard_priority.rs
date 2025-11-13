@@ -16,6 +16,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 //! Gives text_input widgets priority to handle keyboard event.
+use std::borrow::Cow;
+
 use iced::{
     Element, Length, Rectangle, Size, Vector,
     advanced::{
@@ -29,11 +31,22 @@ use iced::{
 };
 use iced_graphics::text::Paragraph;
 
+/// This is sent through messages to indicate
+/// what keyboard priority widget is taking or giving
+/// the priority. Being specific about the id allows
+/// to prevent issues with race conditions in the
+/// order of events.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PriorityRequest {
+    pub id: Id,
+    pub taking: bool,
+}
+
 /// A container that should contain a [text_input::TextInput].
 ///
 /// Trigger `on_priority` and `on_unpriority` when the text_input is focused or unfocused.
 pub struct KeyboardPriority<'a, Message, Theme = iced::Theme, Renderer = iced::Renderer> {
-    id: Option<Id>,
+    priority_id: Id,
     width: Length,
     height: Length,
     content: iced::Element<'a, Message, Theme, Renderer>,
@@ -43,9 +56,10 @@ pub struct KeyboardPriority<'a, Message, Theme = iced::Theme, Renderer = iced::R
 
 /// A container that gives keyboard priority to it's [text_input::TextInput] content.
 pub fn keyboard_priority<'a, Message>(
+    id: impl Into<Cow<'static, str>>,
     content: impl Into<Element<'a, Message>>,
 ) -> KeyboardPriority<'a, Message> {
-    KeyboardPriority::new(content)
+    KeyboardPriority::new(id, content)
 }
 
 impl<'a, Message, Theme, Renderer> KeyboardPriority<'a, Message, Theme, Renderer>
@@ -53,11 +67,14 @@ where
     Renderer: renderer::Renderer,
 {
     /// Creates a new [`KeyboardPriority`] with the given content.
-    pub fn new(content: impl Into<Element<'a, Message, Theme, Renderer>>) -> Self {
+    pub fn new(
+        id: impl Into<Cow<'static, str>>,
+        content: impl Into<Element<'a, Message, Theme, Renderer>>,
+    ) -> Self {
         let content = content.into();
         let size = content.as_widget().size_hint();
         KeyboardPriority {
-            id: None,
+            priority_id: Id::new(id),
             width: size.width.fluid(),
             height: size.height.fluid(),
             content,
@@ -66,11 +83,11 @@ where
         }
     }
 
-    /// Sets the [`Id`] of the [`KeyboardPriority`].
-    pub fn id(mut self, id: Id) -> Self {
-        self.id = Some(id);
-        self
-    }
+    // /// Sets the [`Id`] of the [`KeyboardPriority`].
+    // pub fn id(mut self, id: Id) -> Self {
+    //     self.id = Some(id);
+    //     self
+    // }
 
     /// Sets the width of the [`KeyboardPriority`].
     pub fn width(mut self, width: Length) -> Self {
@@ -84,15 +101,16 @@ where
         self
     }
 
-    /// Sets the message that will be produced when the content is hovered.
-    pub fn on_priority(mut self, message: Message) -> Self {
-        self.on_priority = Some(message);
-        self
-    }
-
-    /// Sets the message that will be produced when the content is unhovered.
-    pub fn on_unpriority(mut self, message: Message) -> Self {
-        self.on_unpriority = Some(message);
+    /// Sets the message that will be produced when the content is hovered or unhovered.
+    pub fn on_priority<F: Fn(PriorityRequest) -> Message>(mut self, f: F) -> Self {
+        self.on_priority = Some(f(PriorityRequest {
+            id: self.priority_id.clone(),
+            taking: true,
+        }));
+        self.on_unpriority = Some(f(PriorityRequest {
+            id: self.priority_id.clone(),
+            taking: false,
+        }));
         self
     }
 }
@@ -155,7 +173,7 @@ where
         operation: &mut dyn widget::Operation<Message>,
     ) {
         operation.container(
-            self.id.as_ref().map(|id| &id.0),
+            Some(&self.priority_id.0),
             layout.bounds(),
             &mut |operation| {
                 self.content.as_widget().operate(

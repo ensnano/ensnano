@@ -1,5 +1,5 @@
-![ensnano-logo](img/ensnano_logo.png)
-<img src="img/made_with_iced_white.svg" width="300">
+![ensnano-logo](readme/ensnano_logo.png)
+<img src="readme/made_with_iced_white.svg" width="300">
 
 # About
 
@@ -83,11 +83,11 @@ when importing a cadnano/scadnano file
 
 In this cadnano design, deleted nucleotides are removed and loops are replaced by single strands
 
-![cadnano_del_loop](img/cadnano_del_loop.png) ![ensnano_del_loop](img/ensnano_del_loop.png)
+![cadnano_del_loop](readme/cadnano_del_loop.png) ![ensnano_del_loop](readme/ensnano_del_loop.png)
 
 In this scadnano design, insertions and loopouts are replaced by single strands
 
-![scadnano_insert_loopout](img/scadnano_insert_loopout.png) ![ensnano_insert_loopout](img/ensnano_insert_loopout.png)
+![scadnano_insert_loopout](readme/scadnano_insert_loopout.png) ![ensnano_insert_loopout](readme/ensnano_insert_loopout.png)
 
 # Troubleshooting
 
