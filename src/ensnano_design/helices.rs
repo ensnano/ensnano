@@ -385,9 +385,7 @@ impl Helix {
             })
         }
     }
-}
 
-impl Helix {
     pub fn new(origin: Vec3, orientation: Rotor3) -> Self {
         Self {
             position: origin,

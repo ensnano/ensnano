@@ -16,13 +16,12 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use crate::MainStateView;
-
-use super::{State, TransitionMessage, YesNo, dialog, messages};
-use crate::ensnano_interactor::StandardSequence;
-
-use dialog::PathInput;
-use std::path::Path;
+use {
+    super::{State, TransitionMessage, YesNo, dialog, messages},
+    crate::{MainStateView, ensnano_interactor::StandardSequence},
+    dialog::PathInput,
+    std::path::{Path, PathBuf},
+};
 
 /// User is in the process of setting the sequence of the scaffold
 pub(super) struct SetScaffoldSequence {
@@ -44,9 +43,7 @@ impl SetScaffoldSequence {
             step: Step::OptimizeScaffoldPosition { design_id: 0 },
         }
     }
-}
 
-impl SetScaffoldSequence {
     fn use_default(shift: usize, sequence: StandardSequence) -> Self {
         let sequence = sequence.sequence().to_string();
         Self {
@@ -63,7 +60,6 @@ impl SetScaffoldSequence {
     }
 }
 
-use std::path::PathBuf;
 #[derive(Default)]
 enum Step {
     /// The request to set the sequence of the scaffold has been acknowledged. User is asked to

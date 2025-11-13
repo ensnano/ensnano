@@ -738,20 +738,7 @@ impl Helix {
                 .transform_vec2(-Vec2::unit_x()),
         }
     }
-}
 
-pub struct CharCollector<'a> {
-    pub camera: &'a CameraPtr,
-    pub text_drawer: &'a mut TextDrawer,
-    pub groups: &'a BTreeMap<usize, bool>,
-    pub basis_map: &'a HashMap<Nucl, char, RandomState>,
-    pub show_seq: bool,
-    pub edition_info: &'a Option<EditionInfo>,
-    pub hovered_nucl: &'a Option<FlatNucl>,
-    pub nucl_collection: &'a NuclCollection,
-}
-
-impl Helix {
     pub fn add_char_instances(&self, char_collector: CharCollector) {
         let candidate_pos: Option<isize> = char_collector
             .hovered_nucl
@@ -1022,6 +1009,17 @@ impl Helix {
             Some((ret[0].min(ret[1]), ret[0].max(ret[1])))
         }
     }
+}
+
+pub struct CharCollector<'a> {
+    pub camera: &'a CameraPtr,
+    pub text_drawer: &'a mut TextDrawer,
+    pub groups: &'a BTreeMap<usize, bool>,
+    pub basis_map: &'a HashMap<Nucl, char, RandomState>,
+    pub show_seq: bool,
+    pub edition_info: &'a Option<EditionInfo>,
+    pub hovered_nucl: &'a Option<FlatNucl>,
+    pub nucl_collection: &'a NuclCollection,
 }
 
 #[repr(C)]

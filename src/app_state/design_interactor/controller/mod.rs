@@ -1815,105 +1815,7 @@ impl Controller {
         drop(new_grids);
         design
     }
-}
 
-/// An operation has been successfully applied on a design, resulting in a new modified design. The
-/// variants of these enums indicate different ways in which the result should be handled
-pub enum OkOperation {
-    /// Push the current design on the undo stack and replace it by the wrapped value. This variant
-    /// is produced when the operation has been performed on a non transitory design and can be
-    /// undone.
-    Push {
-        design: Design,
-        /// A description of the operation that was applied
-        label: std::borrow::Cow<'static, str>,
-    },
-    /// Replace the current design by the wrapped value. This variant is produced when the
-    /// operation has been performed on a transitory design and should not been undone.
-    ///
-    /// This happens for example for operations that are performed by drag and drop, where each new
-    /// mouse movement produce a new design. In this case, the successive design should not be
-    /// pushed on the undo stack, since an undo is expected to revert back to the state prior to
-    /// the whole drag and drop operation.
-    Replace(Design),
-    NoOp,
-}
-
-impl OkOperation {
-    fn into_undoable(self, label: Cow<'static, str>) -> Self {
-        match self {
-            Self::Replace(design) => Self::Push { design, label },
-            // We do not keep the old label
-            Self::Push { design, .. } => Self::Push { design, label },
-            Self::NoOp => Self::NoOp,
-        }
-    }
-
-    fn set_label(&mut self, new_label: Cow<'static, str>) {
-        if let Self::Push { label, .. } = self {
-            *label = new_label;
-        }
-    }
-}
-
-// Some values are only used for logging the error, which Rust considers to be unused
-#[expect(unused)]
-#[derive(Debug)]
-pub enum ErrOperation {
-    GroupHasNoPivot(GroupId),
-    NotImplemented,
-    /// The operation cannot be applied on the current selection
-    BadSelection,
-    /// The controller is in a state incompatible with applying the operation
-    IncompatibleState(String),
-    CannotBuildOn(Nucl),
-    CutNonExistentStrand,
-    GridDoesNotExist(GridId),
-    GridPositionAlreadyUsed,
-    StrandDoesNotExist(usize),
-    HelixDoesNotExists(usize),
-    HelixHasNoGridPosition(usize),
-    CouldNotMakeEdge(HelixGridPosition, HelixGridPosition),
-    MergingSameStrand,
-    NuclDoesNotExist(Nucl),
-    XoverBetweenTwoPrime5,
-    XoverBetweenTwoPrime3,
-    CouldNotCreateEdges,
-    EmptyOrigin,
-    EmptyClipboard,
-    WrongClipboard,
-    CannotPasteHere,
-    HelixNotEmpty(usize),
-    EmptyScaffoldSequence,
-    NoScaffoldSet,
-    NoGrids,
-    FinishFirst,
-    CameraDoesNotExist(CameraId),
-    GridIsNotHyperboloid(GridId),
-    DesignOperationError(crate::ensnano_design::design_operations::ErrOperation),
-    NotPiecewiseBezier(usize),
-    GridCopyError(crate::ensnano_design::grid::GridCopyError),
-    CouldNotGetPrime3of(usize),
-    PathDoesNotExist(BezierPathId),
-    VertexDoesNotExist(BezierPathId, usize),
-    GridIsNotEmpty(GridId),
-    CouldNotMake3DObject,
-    SvgImportError(crate::ensnano_design::SvgImportError),
-}
-
-impl From<crate::ensnano_design::design_operations::ErrOperation> for ErrOperation {
-    fn from(e: crate::ensnano_design::design_operations::ErrOperation) -> Self {
-        Self::DesignOperationError(e)
-    }
-}
-
-impl From<crate::ensnano_design::SvgImportError> for ErrOperation {
-    fn from(e: crate::ensnano_design::SvgImportError) -> Self {
-        Self::SvgImportError(e)
-    }
-}
-
-impl Controller {
     fn fancy_recolor_staples(&mut self, mut design: Design) -> Design {
         let mut drawing_styles = HashMap::<DesignElementKey, DrawingStyle>::default();
 
@@ -3358,6 +3260,102 @@ impl Controller {
         drop(paths);
 
         Ok(design)
+    }
+}
+
+/// An operation has been successfully applied on a design, resulting in a new modified design. The
+/// variants of these enums indicate different ways in which the result should be handled
+pub enum OkOperation {
+    /// Push the current design on the undo stack and replace it by the wrapped value. This variant
+    /// is produced when the operation has been performed on a non transitory design and can be
+    /// undone.
+    Push {
+        design: Design,
+        /// A description of the operation that was applied
+        label: std::borrow::Cow<'static, str>,
+    },
+    /// Replace the current design by the wrapped value. This variant is produced when the
+    /// operation has been performed on a transitory design and should not been undone.
+    ///
+    /// This happens for example for operations that are performed by drag and drop, where each new
+    /// mouse movement produce a new design. In this case, the successive design should not be
+    /// pushed on the undo stack, since an undo is expected to revert back to the state prior to
+    /// the whole drag and drop operation.
+    Replace(Design),
+    NoOp,
+}
+
+impl OkOperation {
+    fn into_undoable(self, label: Cow<'static, str>) -> Self {
+        match self {
+            Self::Replace(design) => Self::Push { design, label },
+            // We do not keep the old label
+            Self::Push { design, .. } => Self::Push { design, label },
+            Self::NoOp => Self::NoOp,
+        }
+    }
+
+    fn set_label(&mut self, new_label: Cow<'static, str>) {
+        if let Self::Push { label, .. } = self {
+            *label = new_label;
+        }
+    }
+}
+
+// Some values are only used for logging the error, which Rust considers to be unused
+#[expect(unused)]
+#[derive(Debug)]
+pub enum ErrOperation {
+    GroupHasNoPivot(GroupId),
+    NotImplemented,
+    /// The operation cannot be applied on the current selection
+    BadSelection,
+    /// The controller is in a state incompatible with applying the operation
+    IncompatibleState(String),
+    CannotBuildOn(Nucl),
+    CutNonExistentStrand,
+    GridDoesNotExist(GridId),
+    GridPositionAlreadyUsed,
+    StrandDoesNotExist(usize),
+    HelixDoesNotExists(usize),
+    HelixHasNoGridPosition(usize),
+    CouldNotMakeEdge(HelixGridPosition, HelixGridPosition),
+    MergingSameStrand,
+    NuclDoesNotExist(Nucl),
+    XoverBetweenTwoPrime5,
+    XoverBetweenTwoPrime3,
+    CouldNotCreateEdges,
+    EmptyOrigin,
+    EmptyClipboard,
+    WrongClipboard,
+    CannotPasteHere,
+    HelixNotEmpty(usize),
+    EmptyScaffoldSequence,
+    NoScaffoldSet,
+    NoGrids,
+    FinishFirst,
+    CameraDoesNotExist(CameraId),
+    GridIsNotHyperboloid(GridId),
+    DesignOperationError(crate::ensnano_design::design_operations::ErrOperation),
+    NotPiecewiseBezier(usize),
+    GridCopyError(crate::ensnano_design::grid::GridCopyError),
+    CouldNotGetPrime3of(usize),
+    PathDoesNotExist(BezierPathId),
+    VertexDoesNotExist(BezierPathId, usize),
+    GridIsNotEmpty(GridId),
+    CouldNotMake3DObject,
+    SvgImportError(crate::ensnano_design::SvgImportError),
+}
+
+impl From<crate::ensnano_design::design_operations::ErrOperation> for ErrOperation {
+    fn from(e: crate::ensnano_design::design_operations::ErrOperation) -> Self {
+        Self::DesignOperationError(e)
+    }
+}
+
+impl From<crate::ensnano_design::SvgImportError> for ErrOperation {
+    fn from(e: crate::ensnano_design::SvgImportError) -> Self {
+        Self::SvgImportError(e)
     }
 }
 

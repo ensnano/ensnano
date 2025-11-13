@@ -1124,6 +1124,7 @@ dependencies = [
  "lyon",
  "mathru",
  "nom_stl",
+ "num",
  "num_enum 0.5.11",
  "open",
  "ordered-float 2.10.1",
@@ -2898,6 +2899,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ded25cbaa1b48f644f6a5635bfe017150aaa7a4d3a970aa6b2258c18fdfd4b87"
 dependencies = [
  "nom",
+]
+
+[[package]]
+name = "num"
+version = "0.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "35bd024e8b2ff75562e5f34e7f4905839deb4b22955ef5e73d2fea1b9813cb23"
+dependencies = [
+ "num-complex",
+ "num-integer",
+ "num-iter",
+ "num-rational 0.4.2",
+ "num-traits",
 ]
 
 [[package]]

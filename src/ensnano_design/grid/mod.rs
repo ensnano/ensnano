@@ -745,30 +745,6 @@ pub struct GridData {
     revolution_curve_time_maps: Arc<HashMap<CurveDescriptor2D, Arc<RevolutionCurveTimeMaps>>>,
 }
 
-#[derive(Default, Debug, Clone)]
-struct CenterOfGravity {
-    center: Option<Vec3>,
-    nb: usize,
-}
-
-impl CenterOfGravity {
-    fn add_point(&mut self, point: Vec3) {
-        if self.nb == 0 {
-            self.center = Some(point);
-            self.nb = 1
-        } else {
-            let new_center = point
-                + self.nb as f32
-                    * self.center.unwrap_or_else(|| {
-                        log::error!("nb > 0 but center is none");
-                        Vec3::zero()
-                    });
-            self.nb += 1;
-            self.center = Some(new_center / (self.nb as f32))
-        }
-    }
-}
-
 impl GridData {
     pub(super) fn is_up_to_date(&self, design: &Design) -> bool {
         Arc::ptr_eq(&self.source_free_grids.0, &design.free_grids.0)
@@ -1241,6 +1217,114 @@ impl GridData {
                     .and_then(|c| c.curve.as_ref().abscissa_converter.clone())
             })
     }
+
+    fn update_instantiated_curve_descriptor(&self, helix: &mut Helix) {
+        if let Some(curve) = helix.curve.clone() {
+            helix.instantiated_descriptor = Some(Arc::new(
+                InstantiatedCurveDescriptor::instantiate(curve, self),
+            ))
+        } else {
+            helix.instantiated_descriptor = None;
+        }
+    }
+
+    pub(super) fn update_curve(&self, helix: &mut Helix, cached_curve: &mut CurveCache) {
+        if self
+            .paths_data
+            .as_ref()
+            .map(|p| helix.need_curve_descriptor_update(&self.source_free_grids, p))
+            .unwrap_or(true)
+        {
+            self.update_instantiated_curve_descriptor(helix)
+        }
+
+        if self
+            .paths_data
+            .as_ref()
+            .map(|p| helix.need_curve_update(&self.source_free_grids, p))
+            .unwrap_or(true)
+            && let Some(desc) = helix.instantiated_descriptor.as_ref()
+        {
+            let hp = helix.helix_parameters.unwrap_or(self.helix_parameters);
+            let curve = desc.make_curve(&hp, cached_curve);
+            curve.update_additional_segments(&mut helix.additional_isometries);
+            helix.instantiated_curve = Some(InstantiatedCurve {
+                curve,
+                source: desc.clone(),
+            });
+        }
+    }
+
+    pub fn pos_to_space(&self, position: GridPosition) -> Option<Vec3> {
+        self.grids
+            .get(&position.grid)
+            .map(|grid| grid.position_helix(position.x, position.y))
+    }
+
+    fn update_support_helices(&mut self) {
+        let old_rolls: Vec<f32> = self.source_helices.values().map(|h| h.roll).collect();
+        let mut helices_mut = self.source_helices.make_mut();
+        for h in helices_mut.values_mut() {
+            if let Some(mother_id) = h.support_helix
+                && let Some(mother_roll) = old_rolls.get(mother_id)
+            {
+                h.roll = *mother_roll;
+            }
+        }
+    }
+
+    pub fn translate_bezier_point(
+        &self,
+        control_point: (usize, BezierControlPoint),
+        translation: Vec3,
+    ) -> Option<GridAwareTranslation> {
+        let helix = self.source_helices.get(&control_point.0)?;
+        match control_point.1 {
+            BezierControlPoint::PiecewiseBezier(n) => {
+                let grid_id = if let Some(CurveDescriptor::PiecewiseBezier { points, .. }) =
+                    helix.curve.as_ref().map(Arc::as_ref)
+                {
+                    points.get(n / 2)
+                } else {
+                    None
+                }?
+                .position
+                .grid;
+                let grid = self.grids.get(&grid_id)?;
+                let ret = if n % 2 == 0 {
+                    (-translation).rotated_by(grid.orientation.reversed())
+                } else {
+                    translation.rotated_by(grid.orientation.reversed())
+                };
+                Some(GridAwareTranslation(ret))
+            }
+            BezierControlPoint::CubicBezier(_) => Some(GridAwareTranslation(translation)),
+        }
+    }
+}
+
+#[derive(Default, Debug, Clone)]
+struct CenterOfGravity {
+    center: Option<Vec3>,
+    nb: usize,
+}
+
+impl CenterOfGravity {
+    fn add_point(&mut self, point: Vec3) {
+        if self.nb == 0 {
+            self.center = Some(point);
+            self.nb = 1
+        } else {
+            let new_center = point
+                + self.nb as f32
+                    * self.center.unwrap_or_else(|| {
+                        log::error!("nb > 0 but center is none");
+                        Vec3::zero()
+                    });
+            self.nb += 1;
+            self.center = Some(new_center / (self.nb as f32))
+        }
+    }
 }
 
 pub(super) fn make_grid_from_helices(
@@ -1363,92 +1447,6 @@ impl CurveInstantiator for GridData {
 
     fn source_paths(&self) -> Option<BezierPathData> {
         self.paths_data.clone()
-    }
-}
-
-impl GridData {
-    fn update_instantiated_curve_descriptor(&self, helix: &mut Helix) {
-        if let Some(curve) = helix.curve.clone() {
-            helix.instantiated_descriptor = Some(Arc::new(
-                InstantiatedCurveDescriptor::instantiate(curve, self),
-            ))
-        } else {
-            helix.instantiated_descriptor = None;
-        }
-    }
-
-    pub(super) fn update_curve(&self, helix: &mut Helix, cached_curve: &mut CurveCache) {
-        if self
-            .paths_data
-            .as_ref()
-            .map(|p| helix.need_curve_descriptor_update(&self.source_free_grids, p))
-            .unwrap_or(true)
-        {
-            self.update_instantiated_curve_descriptor(helix)
-        }
-
-        if self
-            .paths_data
-            .as_ref()
-            .map(|p| helix.need_curve_update(&self.source_free_grids, p))
-            .unwrap_or(true)
-            && let Some(desc) = helix.instantiated_descriptor.as_ref()
-        {
-            let hp = helix.helix_parameters.unwrap_or(self.helix_parameters);
-            let curve = desc.make_curve(&hp, cached_curve);
-            curve.update_additional_segments(&mut helix.additional_isometries);
-            helix.instantiated_curve = Some(InstantiatedCurve {
-                curve,
-                source: desc.clone(),
-            });
-        }
-    }
-
-    pub fn pos_to_space(&self, position: GridPosition) -> Option<Vec3> {
-        self.grids
-            .get(&position.grid)
-            .map(|grid| grid.position_helix(position.x, position.y))
-    }
-
-    fn update_support_helices(&mut self) {
-        let old_rolls: Vec<f32> = self.source_helices.values().map(|h| h.roll).collect();
-        let mut helices_mut = self.source_helices.make_mut();
-        for h in helices_mut.values_mut() {
-            if let Some(mother_id) = h.support_helix
-                && let Some(mother_roll) = old_rolls.get(mother_id)
-            {
-                h.roll = *mother_roll;
-            }
-        }
-    }
-
-    pub fn translate_bezier_point(
-        &self,
-        control_point: (usize, BezierControlPoint),
-        translation: Vec3,
-    ) -> Option<GridAwareTranslation> {
-        let helix = self.source_helices.get(&control_point.0)?;
-        match control_point.1 {
-            BezierControlPoint::PiecewiseBezier(n) => {
-                let grid_id = if let Some(CurveDescriptor::PiecewiseBezier { points, .. }) =
-                    helix.curve.as_ref().map(Arc::as_ref)
-                {
-                    points.get(n / 2)
-                } else {
-                    None
-                }?
-                .position
-                .grid;
-                let grid = self.grids.get(&grid_id)?;
-                let ret = if n % 2 == 0 {
-                    (-translation).rotated_by(grid.orientation.reversed())
-                } else {
-                    translation.rotated_by(grid.orientation.reversed())
-                };
-                Some(GridAwareTranslation(ret))
-            }
-            BezierControlPoint::CubicBezier(_) => Some(GridAwareTranslation(translation)),
-        }
     }
 }
 

@@ -84,6 +84,260 @@ impl HelixSystem {
             nucl_maps: interval_result.nucl_map,
         }
     }
+
+    fn forces_and_torques(
+        &self,
+        positions: &[Vec3],
+        orientations: &[Rotor3],
+    ) -> (Vec<Vec3>, Vec<Vec3>) {
+        let nb_element = self.helices.len() + self.free_nucls.len();
+        let mut forces = vec![Vec3::zero(); nb_element];
+        let mut torques = vec![Vec3::zero(); nb_element];
+
+        const L0: f32 = 0.7;
+        const C_VOLUME: f32 = 2f32;
+        let k_anchor = 1000. * self.rigid_parameters.k_spring;
+
+        let point_conversion = |nucl: &RigidNucl| {
+            let position = positions[nucl.helix]
+                + self.helices[nucl.helix]
+                    .center_to_origin
+                    .rotated_by(orientations[nucl.helix]);
+            let mut helix = Helix::new(position, orientations[nucl.helix]);
+            helix.roll(self.helices[nucl.helix].roll);
+            helix.space_pos(&self.helix_parameters, nucl.position, nucl.forward)
+        };
+        let free_nucl_pos = |n: &usize| positions[*n + self.helices.len()];
+
+        for spring in self.springs.iter() {
+            let point_0 = point_conversion(&spring.0);
+            let point_1 = point_conversion(&spring.1);
+            let len = (point_1 - point_0).mag();
+            let norm = len - L0;
+
+            // The force applied on point 0
+            let force = if len > 1e-5 {
+                self.rigid_parameters.k_spring * norm * (point_1 - point_0) / len
+            } else {
+                Vec3::zero()
+            };
+
+            forces[spring.0.helix] += 10. * force;
+            forces[spring.1.helix] -= 10. * force;
+
+            let torque0 = (point_0 - positions[spring.0.helix]).cross(force);
+            let torque1 = (point_1 - positions[spring.1.helix]).cross(-force);
+
+            torques[spring.0.helix] += torque0;
+            torques[spring.1.helix] += torque1;
+        }
+        for (nucl, free_nucl_id) in self.mixed_springs.iter() {
+            let point_0 = point_conversion(nucl);
+            let point_1 = free_nucl_pos(free_nucl_id);
+            let len = (point_1 - point_0).mag();
+            let norm = len - L0;
+
+            // The force applied on point 0
+            let force = if len > 1e-5 {
+                self.rigid_parameters.k_spring * norm * (point_1 - point_0) / len
+            } else {
+                Vec3::zero()
+            };
+            forces[nucl.helix] += 10. * force;
+            forces[self.helices.len() + *free_nucl_id] -= 10. * force;
+
+            let torque0 = (point_0 - positions[nucl.helix]).cross(force);
+
+            torques[nucl.helix] += torque0;
+        }
+        for (id_0, id_1) in self.free_springs.iter() {
+            let point_0 = free_nucl_pos(id_0);
+            let point_1 = free_nucl_pos(id_1);
+            let len = (point_1 - point_0).mag();
+            let norm = len - L0;
+
+            // The force applied on point 0
+            let force = if len > 1e-5 {
+                self.rigid_parameters.k_spring * norm * (point_1 - point_0) / len
+            } else {
+                Vec3::zero()
+            };
+            forces[self.helices.len() + *id_0] += 10. * force;
+            forces[self.helices.len() + *id_1] -= 10. * force;
+        }
+
+        for (nucl, position) in self.anchors.iter() {
+            let point_0 = point_conversion(nucl);
+            let len = (point_0 - *position).mag();
+            let force = if len > 1e-5 {
+                self.rigid_parameters.k_spring * k_anchor * -(point_0 - *position)
+            } else {
+                Vec3::zero()
+            };
+
+            forces[nucl.helix] += 10. * force;
+
+            let torque0 = (point_0 - positions[nucl.helix]).cross(force);
+
+            torques[nucl.helix] += torque0;
+        }
+        for (id, position) in self.free_anchors.iter() {
+            let point_0 = free_nucl_pos(id);
+            let len = (point_0 - *position).mag();
+            let force = if len > 1e-5 {
+                self.rigid_parameters.k_spring * k_anchor * -(point_0 - *position)
+            } else {
+                Vec3::zero()
+            };
+
+            forces[self.helices.len() + *id] += 10. * force;
+        }
+        let segments: Vec<(Vec3, Vec3)> = (0..self.helices.len())
+            .map(|n| {
+                let position =
+                    positions[n] + self.helices[n].center_to_origin.rotated_by(orientations[n]);
+                let helix = Helix::new(position, orientations[n]);
+                (
+                    helix.axis_position(&self.helix_parameters, self.helices[n].interval.0, true),
+                    helix.axis_position(&self.helix_parameters, self.helices[n].interval.1, true),
+                )
+            })
+            .collect();
+        if self.rigid_parameters.volume_exclusion {
+            for i in 0..self.helices.len() {
+                let (a, b) = segments[i];
+                for j in (i + 1)..self.helices.len() {
+                    let (c, d) = segments[j];
+                    let r = 1.;
+                    let (dist, vec, point_a, point_c) = distance_segment(a, b, c, d);
+                    if dist < 2. * r {
+                        // VOLUME EXCLUSION
+                        let norm =
+                            C_VOLUME * self.rigid_parameters.k_spring * (2. * r - dist).powi(2);
+                        forces[i] += norm * vec;
+                        forces[j] += -norm * vec;
+                        let torque0 = (point_a - positions[i]).cross(norm * vec);
+                        let torque1 = (point_c - positions[j]).cross(-norm * vec);
+                        torques[i] += torque0;
+                        torques[j] += torque1;
+                    }
+                }
+                for nucl_id in 0..self.free_nucls.len() {
+                    let point = free_nucl_pos(&nucl_id);
+                    let (dist, vec, _, _) = distance_segment(a, b, point, point);
+                    let r = 1.35 / 2.;
+                    if dist < 2. * r {
+                        let norm =
+                            C_VOLUME * self.rigid_parameters.k_spring * (2. * r - dist).powi(2);
+                        let norm = norm.min(1e4);
+                        forces[self.helices.len() + nucl_id] -= norm * vec;
+                    }
+                }
+            }
+        }
+
+        for (h_id, h) in self.helices.iter().enumerate() {
+            if h.locked {
+                forces[h_id] = Vec3::zero();
+                torques[h_id] = Vec3::zero();
+            }
+        }
+
+        (forces, torques)
+    }
+
+    fn read_state(&self, x: &Vector<f32>) -> (Vec<Vec3>, Vec<Rotor3>, Vec<Vec3>, Vec<Vec3>) {
+        let mut positions = Vec::with_capacity(self.helices.len() + self.free_nucls.len());
+        let mut rotations = Vec::with_capacity(self.helices.len() + self.free_nucls.len());
+        let mut linear_momentums = Vec::with_capacity(self.helices.len() + self.free_nucls.len());
+        let mut angular_momentums = Vec::with_capacity(self.helices.len() + self.free_nucls.len());
+        let mut iterator = x.iter();
+        let nb_iter = self.helices.len() + self.free_nucls.len();
+        for _ in 0..nb_iter {
+            let position = Vec3::new(
+                *iterator.next().unwrap(),
+                *iterator.next().unwrap(),
+                *iterator.next().unwrap(),
+            );
+            let rotation = Rotor3::new(
+                *iterator.next().unwrap(),
+                Bivec3::new(
+                    *iterator.next().unwrap(),
+                    *iterator.next().unwrap(),
+                    *iterator.next().unwrap(),
+                ),
+            )
+            .normalized();
+            let linear_momentum = Vec3::new(
+                *iterator.next().unwrap(),
+                *iterator.next().unwrap(),
+                *iterator.next().unwrap(),
+            );
+            let angular_momentum = Vec3::new(
+                *iterator.next().unwrap(),
+                *iterator.next().unwrap(),
+                *iterator.next().unwrap(),
+            );
+            positions.push(position);
+            rotations.push(rotation);
+            linear_momentums.push(linear_momentum);
+            angular_momentums.push(angular_momentum);
+        }
+        (positions, rotations, linear_momentums, angular_momentums)
+    }
+
+    fn next_time(&mut self) {
+        self.current_time = self.next_time;
+        if let Some((t, _)) = self.brownian_heap.peek() {
+            // t.0 because t is a &Reverse<_>
+            if self.rigid_parameters.brownian_motion {
+                self.next_time = t.0.into_inner().min(self.current_time + self.max_time_step);
+            } else {
+                self.next_time = self.current_time + self.max_time_step;
+            }
+        } else {
+            self.next_time = self.current_time + self.max_time_step;
+        }
+        self.time_span = (0., self.next_time - self.current_time);
+    }
+
+    fn brownian_jump(&mut self) {
+        let mut rnd = rand::thread_rng();
+        // t.0 because t is a &Reverse<_>
+        if let Some((t, _)) = self.brownian_heap.peek()
+            && self.next_time < t.0.into_inner()
+        {
+            return;
+        }
+        if let Some((_, nucl_id)) = self.brownian_heap.pop() {
+            let gx: f32 = rnd.sample(StandardNormal);
+            let gy: f32 = rnd.sample(StandardNormal);
+            let gz: f32 = rnd.sample(StandardNormal);
+            if let Some(state) = self.last_state.as_mut() {
+                let entry = 13 * (self.helices.len() + nucl_id);
+                state[entry] += self.rigid_parameters.brownian_amplitude * gx;
+                state[entry + 1] += self.rigid_parameters.brownian_amplitude * gy;
+                state[entry + 2] += self.rigid_parameters.brownian_amplitude * gz;
+            }
+
+            let exp_law = Exp::new(self.rigid_parameters.brownian_rate).unwrap();
+            let new_date = rnd.sample(exp_law) + self.next_time;
+            self.brownian_heap.push((Reverse(new_date.into()), nucl_id));
+        }
+    }
+
+    fn update_parameters(&mut self, parameters: RigidBodyConstants) {
+        self.rigid_parameters = parameters;
+        self.brownian_heap.clear();
+        let mut rnd = rand::thread_rng();
+        let exp_law = Exp::new(self.rigid_parameters.brownian_rate).unwrap();
+        for i in 0..self.free_nucls.len() {
+            if !self.free_anchors.iter().any(|(x, _)| *x == i) {
+                let t = rnd.sample(exp_law) + self.next_time;
+                self.brownian_heap.push((Reverse(t.into()), i));
+            }
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -271,264 +525,6 @@ impl ExplicitODE<f32> for HelixSystem {
                 ret.push(angular_momentum.z);
             }
             Vector::new_row(ret)
-        }
-    }
-}
-
-impl HelixSystem {
-    fn forces_and_torques(
-        &self,
-        positions: &[Vec3],
-        orientations: &[Rotor3],
-    ) -> (Vec<Vec3>, Vec<Vec3>) {
-        let nb_element = self.helices.len() + self.free_nucls.len();
-        let mut forces = vec![Vec3::zero(); nb_element];
-        let mut torques = vec![Vec3::zero(); nb_element];
-
-        const L0: f32 = 0.7;
-        const C_VOLUME: f32 = 2f32;
-        let k_anchor = 1000. * self.rigid_parameters.k_spring;
-
-        let point_conversion = |nucl: &RigidNucl| {
-            let position = positions[nucl.helix]
-                + self.helices[nucl.helix]
-                    .center_to_origin
-                    .rotated_by(orientations[nucl.helix]);
-            let mut helix = Helix::new(position, orientations[nucl.helix]);
-            helix.roll(self.helices[nucl.helix].roll);
-            helix.space_pos(&self.helix_parameters, nucl.position, nucl.forward)
-        };
-        let free_nucl_pos = |n: &usize| positions[*n + self.helices.len()];
-
-        for spring in self.springs.iter() {
-            let point_0 = point_conversion(&spring.0);
-            let point_1 = point_conversion(&spring.1);
-            let len = (point_1 - point_0).mag();
-            let norm = len - L0;
-
-            // The force applied on point 0
-            let force = if len > 1e-5 {
-                self.rigid_parameters.k_spring * norm * (point_1 - point_0) / len
-            } else {
-                Vec3::zero()
-            };
-
-            forces[spring.0.helix] += 10. * force;
-            forces[spring.1.helix] -= 10. * force;
-
-            let torque0 = (point_0 - positions[spring.0.helix]).cross(force);
-            let torque1 = (point_1 - positions[spring.1.helix]).cross(-force);
-
-            torques[spring.0.helix] += torque0;
-            torques[spring.1.helix] += torque1;
-        }
-        for (nucl, free_nucl_id) in self.mixed_springs.iter() {
-            let point_0 = point_conversion(nucl);
-            let point_1 = free_nucl_pos(free_nucl_id);
-            let len = (point_1 - point_0).mag();
-            let norm = len - L0;
-
-            // The force applied on point 0
-            let force = if len > 1e-5 {
-                self.rigid_parameters.k_spring * norm * (point_1 - point_0) / len
-            } else {
-                Vec3::zero()
-            };
-            forces[nucl.helix] += 10. * force;
-            forces[self.helices.len() + *free_nucl_id] -= 10. * force;
-
-            let torque0 = (point_0 - positions[nucl.helix]).cross(force);
-
-            torques[nucl.helix] += torque0;
-        }
-        for (id_0, id_1) in self.free_springs.iter() {
-            let point_0 = free_nucl_pos(id_0);
-            let point_1 = free_nucl_pos(id_1);
-            let len = (point_1 - point_0).mag();
-            let norm = len - L0;
-
-            // The force applied on point 0
-            let force = if len > 1e-5 {
-                self.rigid_parameters.k_spring * norm * (point_1 - point_0) / len
-            } else {
-                Vec3::zero()
-            };
-            forces[self.helices.len() + *id_0] += 10. * force;
-            forces[self.helices.len() + *id_1] -= 10. * force;
-        }
-
-        for (nucl, position) in self.anchors.iter() {
-            let point_0 = point_conversion(nucl);
-            let len = (point_0 - *position).mag();
-            let force = if len > 1e-5 {
-                self.rigid_parameters.k_spring * k_anchor * -(point_0 - *position)
-            } else {
-                Vec3::zero()
-            };
-
-            forces[nucl.helix] += 10. * force;
-
-            let torque0 = (point_0 - positions[nucl.helix]).cross(force);
-
-            torques[nucl.helix] += torque0;
-        }
-        for (id, position) in self.free_anchors.iter() {
-            let point_0 = free_nucl_pos(id);
-            let len = (point_0 - *position).mag();
-            let force = if len > 1e-5 {
-                self.rigid_parameters.k_spring * k_anchor * -(point_0 - *position)
-            } else {
-                Vec3::zero()
-            };
-
-            forces[self.helices.len() + *id] += 10. * force;
-        }
-        let segments: Vec<(Vec3, Vec3)> = (0..self.helices.len())
-            .map(|n| {
-                let position =
-                    positions[n] + self.helices[n].center_to_origin.rotated_by(orientations[n]);
-                let helix = Helix::new(position, orientations[n]);
-                (
-                    helix.axis_position(&self.helix_parameters, self.helices[n].interval.0, true),
-                    helix.axis_position(&self.helix_parameters, self.helices[n].interval.1, true),
-                )
-            })
-            .collect();
-        if self.rigid_parameters.volume_exclusion {
-            for i in 0..self.helices.len() {
-                let (a, b) = segments[i];
-                for j in (i + 1)..self.helices.len() {
-                    let (c, d) = segments[j];
-                    let r = 1.;
-                    let (dist, vec, point_a, point_c) = distance_segment(a, b, c, d);
-                    if dist < 2. * r {
-                        // VOLUME EXCLUSION
-                        let norm =
-                            C_VOLUME * self.rigid_parameters.k_spring * (2. * r - dist).powi(2);
-                        forces[i] += norm * vec;
-                        forces[j] += -norm * vec;
-                        let torque0 = (point_a - positions[i]).cross(norm * vec);
-                        let torque1 = (point_c - positions[j]).cross(-norm * vec);
-                        torques[i] += torque0;
-                        torques[j] += torque1;
-                    }
-                }
-                for nucl_id in 0..self.free_nucls.len() {
-                    let point = free_nucl_pos(&nucl_id);
-                    let (dist, vec, _, _) = distance_segment(a, b, point, point);
-                    let r = 1.35 / 2.;
-                    if dist < 2. * r {
-                        let norm =
-                            C_VOLUME * self.rigid_parameters.k_spring * (2. * r - dist).powi(2);
-                        let norm = norm.min(1e4);
-                        forces[self.helices.len() + nucl_id] -= norm * vec;
-                    }
-                }
-            }
-        }
-
-        for (h_id, h) in self.helices.iter().enumerate() {
-            if h.locked {
-                forces[h_id] = Vec3::zero();
-                torques[h_id] = Vec3::zero();
-            }
-        }
-
-        (forces, torques)
-    }
-}
-
-impl HelixSystem {
-    fn read_state(&self, x: &Vector<f32>) -> (Vec<Vec3>, Vec<Rotor3>, Vec<Vec3>, Vec<Vec3>) {
-        let mut positions = Vec::with_capacity(self.helices.len() + self.free_nucls.len());
-        let mut rotations = Vec::with_capacity(self.helices.len() + self.free_nucls.len());
-        let mut linear_momentums = Vec::with_capacity(self.helices.len() + self.free_nucls.len());
-        let mut angular_momentums = Vec::with_capacity(self.helices.len() + self.free_nucls.len());
-        let mut iterator = x.iter();
-        let nb_iter = self.helices.len() + self.free_nucls.len();
-        for _ in 0..nb_iter {
-            let position = Vec3::new(
-                *iterator.next().unwrap(),
-                *iterator.next().unwrap(),
-                *iterator.next().unwrap(),
-            );
-            let rotation = Rotor3::new(
-                *iterator.next().unwrap(),
-                Bivec3::new(
-                    *iterator.next().unwrap(),
-                    *iterator.next().unwrap(),
-                    *iterator.next().unwrap(),
-                ),
-            )
-            .normalized();
-            let linear_momentum = Vec3::new(
-                *iterator.next().unwrap(),
-                *iterator.next().unwrap(),
-                *iterator.next().unwrap(),
-            );
-            let angular_momentum = Vec3::new(
-                *iterator.next().unwrap(),
-                *iterator.next().unwrap(),
-                *iterator.next().unwrap(),
-            );
-            positions.push(position);
-            rotations.push(rotation);
-            linear_momentums.push(linear_momentum);
-            angular_momentums.push(angular_momentum);
-        }
-        (positions, rotations, linear_momentums, angular_momentums)
-    }
-
-    fn next_time(&mut self) {
-        self.current_time = self.next_time;
-        if let Some((t, _)) = self.brownian_heap.peek() {
-            // t.0 because t is a &Reverse<_>
-            if self.rigid_parameters.brownian_motion {
-                self.next_time = t.0.into_inner().min(self.current_time + self.max_time_step);
-            } else {
-                self.next_time = self.current_time + self.max_time_step;
-            }
-        } else {
-            self.next_time = self.current_time + self.max_time_step;
-        }
-        self.time_span = (0., self.next_time - self.current_time);
-    }
-
-    fn brownian_jump(&mut self) {
-        let mut rnd = rand::thread_rng();
-        // t.0 because t is a &Reverse<_>
-        if let Some((t, _)) = self.brownian_heap.peek()
-            && self.next_time < t.0.into_inner()
-        {
-            return;
-        }
-        if let Some((_, nucl_id)) = self.brownian_heap.pop() {
-            let gx: f32 = rnd.sample(StandardNormal);
-            let gy: f32 = rnd.sample(StandardNormal);
-            let gz: f32 = rnd.sample(StandardNormal);
-            if let Some(state) = self.last_state.as_mut() {
-                let entry = 13 * (self.helices.len() + nucl_id);
-                state[entry] += self.rigid_parameters.brownian_amplitude * gx;
-                state[entry + 1] += self.rigid_parameters.brownian_amplitude * gy;
-                state[entry + 2] += self.rigid_parameters.brownian_amplitude * gz;
-            }
-
-            let exp_law = Exp::new(self.rigid_parameters.brownian_rate).unwrap();
-            let new_date = rnd.sample(exp_law) + self.next_time;
-            self.brownian_heap.push((Reverse(new_date.into()), nucl_id));
-        }
-    }
-
-    fn update_parameters(&mut self, parameters: RigidBodyConstants) {
-        self.rigid_parameters = parameters;
-        self.brownian_heap.clear();
-        let mut rnd = rand::thread_rng();
-        let exp_law = Exp::new(self.rigid_parameters.brownian_rate).unwrap();
-        for i in 0..self.free_nucls.len() {
-            if !self.free_anchors.iter().any(|(x, _)| *x == i) {
-                let t = rnd.sample(exp_law) + self.next_time;
-                self.brownian_heap.push((Reverse(t.into()), i));
-            }
         }
     }
 }
@@ -1472,6 +1468,45 @@ impl GridsSystem {
         parameters.k_spring *= k_spring_multiplier;
         self.parameters = parameters;
     }
+
+    fn read_state(&self, x: &Vector<f32>) -> (Vec<Vec3>, Vec<Rotor3>, Vec<Vec3>, Vec<Vec3>) {
+        let mut positions = Vec::with_capacity(self.grids.len());
+        let mut rotations = Vec::with_capacity(self.grids.len());
+        let mut linear_momentums = Vec::with_capacity(self.grids.len());
+        let mut angular_momentums = Vec::with_capacity(self.grids.len());
+        let mut iterator = x.iter();
+        for _ in 0..self.grids.len() {
+            let position = Vec3::new(
+                *iterator.next().unwrap(),
+                *iterator.next().unwrap(),
+                *iterator.next().unwrap(),
+            );
+            let rotation = Rotor3::new(
+                *iterator.next().unwrap(),
+                Bivec3::new(
+                    *iterator.next().unwrap(),
+                    *iterator.next().unwrap(),
+                    *iterator.next().unwrap(),
+                ),
+            )
+            .normalized();
+            let linear_momentum = Vec3::new(
+                *iterator.next().unwrap(),
+                *iterator.next().unwrap(),
+                *iterator.next().unwrap(),
+            );
+            let angular_momentum = Vec3::new(
+                *iterator.next().unwrap(),
+                *iterator.next().unwrap(),
+                *iterator.next().unwrap(),
+            );
+            positions.push(position);
+            rotations.push(rotation);
+            linear_momentums.push(linear_momentum);
+            angular_momentums.push(angular_momentum);
+        }
+        (positions, rotations, linear_momentums, angular_momentums)
+    }
 }
 
 impl ExplicitODE<f32> for GridsSystem {
@@ -1557,47 +1592,6 @@ impl ExplicitODE<f32> for GridsSystem {
             }
             Vector::new_row(ret)
         }
-    }
-}
-
-impl GridsSystem {
-    fn read_state(&self, x: &Vector<f32>) -> (Vec<Vec3>, Vec<Rotor3>, Vec<Vec3>, Vec<Vec3>) {
-        let mut positions = Vec::with_capacity(self.grids.len());
-        let mut rotations = Vec::with_capacity(self.grids.len());
-        let mut linear_momentums = Vec::with_capacity(self.grids.len());
-        let mut angular_momentums = Vec::with_capacity(self.grids.len());
-        let mut iterator = x.iter();
-        for _ in 0..self.grids.len() {
-            let position = Vec3::new(
-                *iterator.next().unwrap(),
-                *iterator.next().unwrap(),
-                *iterator.next().unwrap(),
-            );
-            let rotation = Rotor3::new(
-                *iterator.next().unwrap(),
-                Bivec3::new(
-                    *iterator.next().unwrap(),
-                    *iterator.next().unwrap(),
-                    *iterator.next().unwrap(),
-                ),
-            )
-            .normalized();
-            let linear_momentum = Vec3::new(
-                *iterator.next().unwrap(),
-                *iterator.next().unwrap(),
-                *iterator.next().unwrap(),
-            );
-            let angular_momentum = Vec3::new(
-                *iterator.next().unwrap(),
-                *iterator.next().unwrap(),
-                *iterator.next().unwrap(),
-            );
-            positions.push(position);
-            rotations.push(rotation);
-            linear_momentums.push(linear_momentum);
-            angular_momentums.push(angular_momentum);
-        }
-        (positions, rotations, linear_momentums, angular_momentums)
     }
 }
 

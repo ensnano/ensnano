@@ -42,24 +42,27 @@ pub mod scadnano;
 mod strands;
 pub mod utils;
 
-use crate::ensnano_organizer::tree::{GroupId, OrganizerTree};
 pub use bezier_plane::*;
 pub use collection::{Collection, HasMap};
 pub use curves::*;
-use elements::DesignElementKey;
 pub use external_3d_objects::*;
-use grid::{FreeGrids, GridData, GridDescriptor, GridId};
-use group_attributes::GroupAttribute;
 pub use helices::*;
 pub use isometry3_descriptor::Isometry3Descriptor;
-use material_colors::MaterialColor;
 pub use parameters::*;
+pub use strands::*;
+
+use crate::ensnano_organizer::tree::{GroupId, OrganizerTree};
+use elements::DesignElementKey;
+use grid::{FreeGrids, GridData, GridDescriptor, GridId};
+use group_attributes::GroupAttribute;
+use material_colors::MaterialColor;
 use scadnano::*;
 use serde::{Deserialize, Serialize};
 use serde_with::{DefaultOnError, serde_as};
-use std::collections::{BTreeMap, HashMap, HashSet};
-use std::sync::Arc;
-pub use strands::*;
+use std::{
+    collections::{BTreeMap, HashMap, HashSet},
+    sync::Arc,
+};
 use ultraviolet::{Rotor3, Similarity3, Vec3};
 
 /// The `ensnano` Design structure.
@@ -180,24 +183,6 @@ pub struct Design {
     pub clone_isometries: Option<Vec<Isometry3Descriptor>>,
 }
 
-pub trait AdditionalStructure: Send + Sync {
-    fn frame(&self) -> Similarity3;
-    fn position(&self) -> Vec<Vec3>;
-    fn right(&self) -> Vec<(usize, usize)>;
-    fn next(&self) -> Vec<(usize, usize)>;
-    fn nt_paths(&self) -> Option<Vec<Vec<Vec3>>>;
-    fn current_length(&self) -> Option<usize>;
-    fn number_of_sections(&self) -> usize;
-}
-
-/// An immutable reference to a design whose helices paths and grid data are guaranteed to be up-to
-/// date.
-pub struct UpToDateDesign<'a> {
-    pub design: &'a Design,
-    pub grid_data: &'a GridData,
-    pub paths_data: &'a BezierPathData,
-}
-
 impl Design {
     /// If self is up-to-date return an `UpToDateDesign` reference to self.
     ///
@@ -287,39 +272,7 @@ impl Design {
             true
         }
     }
-}
 
-#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
-pub struct CameraId(u64);
-
-/// A saved camera position. This can be use to register interesting point of views of the design.
-#[serde_as]
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Camera {
-    pub position: Vec3,
-    pub orientation: Rotor3,
-    pub name: String,
-    pub id: CameraId,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[serde_as(deserialize_as = "DefaultOnError")]
-    pub pivot_position: Option<Vec3>,
-}
-
-pub fn ensnano_version() -> String {
-    std::env!("CARGO_PKG_VERSION").to_owned()
-}
-
-fn groups_is_empty<K, V>(groups: &Arc<BTreeMap<K, V>>) -> bool {
-    groups.as_ref().is_empty()
-}
-
-impl Default for Design {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl Design {
     pub fn from_codenano<Sl, Dl>(codenano_design: &codenano::Design<Sl, Dl>) -> Self {
         let mut helices = BTreeMap::new();
         for (i, helix) in codenano_design.helices.iter().enumerate() {
@@ -608,22 +561,7 @@ impl Design {
             helix_parameters: self.helix_parameters.unwrap_or_default(),
         }
     }
-}
 
-/// A structure that wraps a mutable reference to the design's strands along with a read only
-/// access to the grid and helices.
-pub struct MutStrandAndData<'a> {
-    pub strands: &'a mut Strands,
-    pub grid_data: &'a GridData,
-    pub helices: &'a Helices,
-    pub helix_parameters: HelixParameters,
-}
-
-pub struct SavingInformation {
-    pub camera: Option<Camera>,
-}
-
-impl Design {
     pub fn from_scadnano(scad: &ScadnanoDesign) -> Result<Self, ScadnanoImportError> {
         let mut grids = Vec::new();
         let mut group_map = BTreeMap::new();
@@ -682,6 +620,67 @@ impl Design {
     pub fn _set_helices(&mut self, helices: BTreeMap<usize, Arc<Helix>>) {
         self.helices = Helices(Arc::new(helices));
     }
+}
+
+pub trait AdditionalStructure: Send + Sync {
+    fn frame(&self) -> Similarity3;
+    fn position(&self) -> Vec<Vec3>;
+    fn right(&self) -> Vec<(usize, usize)>;
+    fn next(&self) -> Vec<(usize, usize)>;
+    fn nt_paths(&self) -> Option<Vec<Vec<Vec3>>>;
+    fn current_length(&self) -> Option<usize>;
+    fn number_of_sections(&self) -> usize;
+}
+
+/// An immutable reference to a design whose helices paths and grid data are guaranteed to be up-to
+/// date.
+pub struct UpToDateDesign<'a> {
+    pub design: &'a Design,
+    pub grid_data: &'a GridData,
+    pub paths_data: &'a BezierPathData,
+}
+
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub struct CameraId(u64);
+
+/// A saved camera position. This can be use to register interesting point of views of the design.
+#[serde_as]
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Camera {
+    pub position: Vec3,
+    pub orientation: Rotor3,
+    pub name: String,
+    pub id: CameraId,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde_as(deserialize_as = "DefaultOnError")]
+    pub pivot_position: Option<Vec3>,
+}
+
+pub fn ensnano_version() -> String {
+    std::env!("CARGO_PKG_VERSION").to_owned()
+}
+
+fn groups_is_empty<K, V>(groups: &Arc<BTreeMap<K, V>>) -> bool {
+    groups.as_ref().is_empty()
+}
+
+impl Default for Design {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+/// A structure that wraps a mutable reference to the design's strands along with a read only
+/// access to the grid and helices.
+pub struct MutStrandAndData<'a> {
+    pub strands: &'a mut Strands,
+    pub grid_data: &'a GridData,
+    pub helices: &'a Helices,
+    pub helix_parameters: HelixParameters,
+}
+
+pub struct SavingInformation {
+    pub camera: Option<Camera>,
 }
 
 /// Apply a mutating function to the value wrapped in an Arc<Helix>. This will make `helix_ptr`

@@ -114,9 +114,7 @@ impl AppState {
         with_forgot_update.updated_once = false;
         Ok(AppState(AddressPointer::new(with_forgot_update)))
     }
-}
 
-impl AppState {
     pub fn with_selection(
         &self,
         mut selection: Vec<Selection>,

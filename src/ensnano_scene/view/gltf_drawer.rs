@@ -51,15 +51,7 @@ impl Object3DDrawer {
             desired_revolution_shape_drawer: None,
         }
     }
-}
 
-#[derive(Debug)]
-pub struct ExternalObjects {
-    pub path_base: PathBuf,
-    pub objects: Vec<(External3DObjectId, External3DObject)>,
-}
-
-impl Object3DDrawer {
     pub fn draw<'a>(
         &'a mut self,
         render_pass: &mut wgpu::RenderPass<'a>,
@@ -138,6 +130,12 @@ impl Object3DDrawer {
         self.stl_drawers = Default::default();
         self.desired_revolution_shape_drawer = None;
     }
+}
+
+#[derive(Debug)]
+pub struct ExternalObjects {
+    pub path_base: PathBuf,
+    pub objects: Vec<(External3DObjectId, External3DObject)>,
 }
 
 trait MeshGenerator {

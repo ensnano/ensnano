@@ -76,9 +76,7 @@ impl Isometry3DescriptorItem {
         }
         ret
     }
-}
 
-impl Isometry3DescriptorItem {
     /// Parse an Isometry3DescriptorItem:
     /// - %id for Identity
     /// - %tr(xx,yy,zz) for Translation(Vec3::new(xx,yy,zz)) where xx,yy,zz can be f32'*'variable_name where variable_name is in variables

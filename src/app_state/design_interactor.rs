@@ -21,9 +21,10 @@ pub mod file_parsing;
 pub mod presenter;
 
 use super::AddressPointer;
+use crate::controller::SaveDesignError;
 use crate::ensnano_consts::UPDATE_VISIBILITY_SIEVE_LABEL;
 use crate::ensnano_design::{
-    BezierPathId, BezierPlaneDescriptor, Design, HelixCollection, HelixParameters,
+    BezierPathId, BezierPlaneDescriptor, Collection as _, Design, HelixCollection, HelixParameters,
     InstantiatedPiecewiseBezier, grid::GridId, group_attributes::GroupAttribute,
 };
 use crate::ensnano_exports::{ExportResult, ExportType};
@@ -41,7 +42,7 @@ use crate::{
 };
 use controller::{Controller, ErrOperation, InteractorNotification};
 use presenter::{Presenter, SimulationUpdate, apply_simulation_update, update_presenter};
-use std::sync::Arc;
+use std::{io::Write as _, path::PathBuf, sync::Arc};
 
 /// The `DesignInteractor` handles all read/write operations on the design. It is a stateful struct
 /// so it is meant to be cheap to clone.
@@ -316,38 +317,7 @@ impl DesignInteractor {
     pub fn get_clipboard_content(&self) -> crate::ensnano_gui::ClipboardContent {
         self.controller.get_clipboard_content()
     }
-}
 
-/// An operation has been successfully applied to the design, resulting in a new modified
-/// interactor. The variants of these enum indicate different ways in which the result should be
-/// handled
-pub(super) enum InteractorResult {
-    Push {
-        interactor: DesignInteractor,
-        label: std::borrow::Cow<'static, str>,
-    },
-    Replace(DesignInteractor),
-}
-
-impl InteractorResult {
-    pub fn set_operation_state(&mut self, operation: Arc<dyn Operation>, new_op: bool) {
-        let interactor = match self {
-            Self::Push { interactor, .. } => interactor,
-            Self::Replace(interactor) => interactor,
-        };
-        if new_op {
-            interactor.current_operation_id += 1;
-            log::info!("New operation id {}", interactor.current_operation_id);
-        }
-        interactor.current_operation = Some(operation);
-    }
-}
-
-use crate::controller::SaveDesignError;
-use std::io::Write as _;
-use std::path::PathBuf;
-
-impl DesignInteractor {
     pub(super) fn save_design(
         &self,
         path: &PathBuf,
@@ -386,7 +356,6 @@ impl DesignInteractor {
     }
 
     pub fn get_default_bezier(&self) -> Option<&BezierPlaneDescriptor> {
-        use crate::ensnano_design::Collection;
         self.presenter
             .current_design
             .as_ref()
@@ -396,7 +365,6 @@ impl DesignInteractor {
     }
 
     pub fn get_first_bezier_plane(&self, path_id: BezierPathId) -> Option<&BezierPlaneDescriptor> {
-        use crate::ensnano_design::Collection;
         let path = self
             .presenter
             .current_design
@@ -410,6 +378,31 @@ impl DesignInteractor {
             .as_ref()
             .bezier_planes
             .get(&plane_id)
+    }
+}
+
+/// An operation has been successfully applied to the design, resulting in a new modified
+/// interactor. The variants of these enum indicate different ways in which the result should be
+/// handled
+pub(super) enum InteractorResult {
+    Push {
+        interactor: DesignInteractor,
+        label: std::borrow::Cow<'static, str>,
+    },
+    Replace(DesignInteractor),
+}
+
+impl InteractorResult {
+    pub fn set_operation_state(&mut self, operation: Arc<dyn Operation>, new_op: bool) {
+        let interactor = match self {
+            Self::Push { interactor, .. } => interactor,
+            Self::Replace(interactor) => interactor,
+        };
+        if new_op {
+            interactor.current_operation_id += 1;
+            log::info!("New operation id {}", interactor.current_operation_id);
+        }
+        interactor.current_operation = Some(operation);
     }
 }
 
@@ -430,6 +423,7 @@ mod tests {
         InsertionPoint, InteractorDesignReaderExt, operation::GridHelixCreation,
     };
     use crate::ensnano_scene::data::SceneDesignReaderExt;
+    use regex::Regex;
     use std::path::PathBuf;
     use ultraviolet::{Rotor3, Vec3};
 
@@ -452,7 +446,6 @@ mod tests {
     fn assert_good_strand<S: std::ops::Deref<Target = str>>(strand: &Strand, objective: S) {
         println!("self {:?}", strand.formatted_domains());
         println!("objective {}", objective.deref());
-        use regex::Regex;
         let re = Regex::new(r#"\[[^\]]*\]"#).unwrap();
         let formatted_strand = strand.formatted_domains();
         let left = re.find_iter(&formatted_strand);
@@ -466,7 +459,6 @@ mod tests {
     fn assert_good_junctions<S: std::ops::Deref<Target = str>>(strand: &Strand, objective: S) {
         println!("self {:?}", strand.formatted_anonymous_junctions());
         println!("objective {}", objective.deref());
-        use regex::Regex;
         let re = Regex::new(r#"\[[^\]]*\]"#).unwrap();
         let formatted_strand = strand.formatted_anonymous_junctions();
         let left = re.find_iter(&formatted_strand);

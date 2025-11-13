@@ -116,22 +116,7 @@ impl Load {
             Box::new(Load::known_path(path_to_load))
         }
     }
-}
 
-enum LoadStep {
-    Init { need_save: Option<Option<PathBuf>> },
-    AskPath { path_input: Option<PathInput> },
-    GotPath(PathBuf),
-}
-
-#[derive(Copy, Clone)]
-pub(super) enum LoadType {
-    Design,
-    Object3D,
-    SvgPath,
-}
-
-impl Load {
     fn ask_path(load_type: LoadType) -> Box<Self> {
         Box::new(Self {
             step: LoadStep::AskPath { path_input: None },
@@ -145,6 +130,19 @@ impl Load {
             load_type,
         })
     }
+}
+
+enum LoadStep {
+    Init { need_save: Option<Option<PathBuf>> },
+    AskPath { path_input: Option<PathInput> },
+    GotPath(PathBuf),
+}
+
+#[derive(Copy, Clone)]
+pub(super) enum LoadType {
+    Design,
+    Object3D,
+    SvgPath,
 }
 
 impl State for Load {

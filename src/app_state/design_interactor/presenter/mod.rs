@@ -27,7 +27,8 @@ use self::design_content::Staple;
 
 use super::*;
 use crate::ensnano_design::{
-    BezierPathId, Extremity, HelixCollection, InstantiatedPiecewiseBezier, Nucl, NuclCollection,
+    BezierPathId, Collection as _, Extremity, HelixCollection, InstantiatedPiecewiseBezier, Nucl,
+    NuclCollection,
 };
 use crate::ensnano_interactor::{
     NeighborDescriptor, NeighborDescriptorGiver, Referential, ScaffoldInfo, Selection,
@@ -524,7 +525,6 @@ impl Presenter {
     }
 
     pub fn get_bezier_path_2d(&self, path_id: BezierPathId) -> Option<InstantiatedPiecewiseBezier> {
-        use crate::ensnano_design::Collection;
         self.current_design
             .bezier_paths
             .get(&path_id)

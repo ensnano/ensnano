@@ -423,40 +423,7 @@ impl DesignContent {
             .map(|t| *t.0)
             .collect()
     }
-}
 
-#[derive(Debug)]
-pub struct Staple {
-    pub well: String,
-    pub name: Cow<'static, str>,
-    pub sequence: String,
-    pub plate: usize,
-    pub color_str: String,
-    pub group_names: Vec<String>,
-    pub group_names_string: String,
-    pub domain_decomposition: String,
-    pub length_str: String,
-    pub intervals: StapleIntervals,
-}
-
-#[derive(Debug, Serialize, Clone)]
-pub struct StapleIntervals {
-    pub staple_id: usize,
-    pub intervals: Vec<(isize, isize)>,
-}
-
-struct StapleInfo {
-    s_id: usize,
-    sequence: String,
-    strand_name: Option<Cow<'static, str>>,
-    color: u32,
-    group_names: Vec<String>,
-    domain_decomposition: String,
-    length: usize,
-    intervals: StapleIntervals,
-}
-
-impl DesignContent {
     /// Update all the hash maps - called after every edit operation
     pub(super) fn make_hash_maps(
         mut design: Design,
@@ -1348,9 +1315,41 @@ impl DesignContent {
     }
 }
 
+#[derive(Debug)]
+pub struct Staple {
+    pub well: String,
+    pub name: Cow<'static, str>,
+    pub sequence: String,
+    pub plate: usize,
+    pub color_str: String,
+    pub group_names: Vec<String>,
+    pub group_names_string: String,
+    pub domain_decomposition: String,
+    pub length_str: String,
+    pub intervals: StapleIntervals,
+}
+
+#[derive(Debug, Serialize, Clone)]
+pub struct StapleIntervals {
+    pub staple_id: usize,
+    pub intervals: Vec<(isize, isize)>,
+}
+
+struct StapleInfo {
+    s_id: usize,
+    sequence: String,
+    strand_name: Option<Cow<'static, str>>,
+    color: u32,
+    group_names: Vec<String>,
+    domain_decomposition: String,
+    length: usize,
+    intervals: StapleIntervals,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
     impl DesignContent {
         pub(super) fn test_named_junction(
             &self,

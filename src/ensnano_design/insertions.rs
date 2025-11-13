@@ -15,37 +15,22 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use super::*;
 
+use super::*;
 use rand::Rng;
 use rand_distr::StandardNormal;
 use std::f32::consts::{PI, TAU};
 
 const EPSILON_DESC: f32 = 0.05;
+const NB_STEP: usize = 1_000;
+const DT_STEP: f32 = 1e-2;
+const K_SPRING: f32 = 1.0;
+const FRICTION: f32 = 0.1;
+const MASS_NUCL: f32 = 1.0;
 
 struct InsertionDescriptor {
     edge: InsertionEdge,
     nb_nucl: usize,
-}
-
-struct CircleArc {
-    center: Vec3,
-    up: Vec3,
-    right: Vec3,
-    radius: f32,
-    start_angle: f32,
-    bigger_than_half_circle: bool,
-}
-
-impl CircleArc {
-    fn position(&self, t: f32) -> Vec3 {
-        let angle = if self.bigger_than_half_circle {
-            (PI - self.start_angle) * (1. - t) + t * (-PI + self.start_angle)
-        } else {
-            (self.start_angle) * (1. - t) - t * self.start_angle
-        };
-        self.center + self.radius * (self.up * angle.cos() - self.right * angle.sin())
-    }
 }
 
 impl InsertionDescriptor {
@@ -58,6 +43,17 @@ impl InsertionDescriptor {
     }
 
     fn get_circle(&self, helix_parameters: &HelixParameters) -> Option<CircleArc> {
+        fn cord_length(d: f32, h: f32, increasing: bool, nb_nucl: usize) -> f32 {
+            let r = f32::hypot(d, h);
+            let total_angle = if increasing {
+                TAU - 2. * (d / h).atan()
+            } else {
+                2. * (d / h).atan()
+            };
+            let small_angle = total_angle / (nb_nucl as f32 + 1.);
+            2. * r * (small_angle / 2.).sin()
+        }
+
         let bisector_origin = (self.edge.prime_5.position + self.edge.prime_3.position) / 2.;
         let mean_of_up_vecs = (self.edge.prime_5.up_vec + self.edge.prime_3.up_vec) / 2.;
         if mean_of_up_vecs.mag() < 1e-3 {
@@ -119,54 +115,13 @@ impl InsertionDescriptor {
             }
         }
     }
-}
 
-fn cord_length(d: f32, h: f32, increasing: bool, nb_nucl: usize) -> f32 {
-    let r = (d * d + h * h).sqrt();
-    let total_angle = if increasing {
-        TAU - 2. * (d / h).atan()
-    } else {
-        2. * (d / h).atan()
-    };
-    let small_angle = total_angle / (nb_nucl as f32 + 1.);
-    2. * r * (small_angle / 2.).sin()
-}
-struct InsertionEdge {
-    prime_5: InsertionEnd,
-    prime_3: InsertionEnd,
-}
-
-struct InsertionEnd {
-    position: Vec3,
-    up_vec: Vec3,
-}
-
-impl InsertionDescriptor {
     fn is_up_to_date(&self, other: &Self) -> bool {
         self.nb_nucl == other.nb_nucl
             && (self.edge.prime_5.position - other.edge.prime_5.position).mag() < EPSILON_DESC
             && (self.edge.prime_3.position - other.edge.prime_3.position).mag() < EPSILON_DESC
     }
-}
 
-pub struct InstantiatedInsertion {
-    descriptor: InsertionDescriptor,
-    instantiation: Vec<Vec3>,
-}
-
-impl InstantiatedInsertion {
-    pub fn pos(&self) -> &[Vec3] {
-        self.instantiation.as_slice()
-    }
-}
-
-const NB_STEP: usize = 1_000;
-const DT_STEP: f32 = 1e-2;
-const K_SPRING: f32 = 1.0;
-const FRICTION: f32 = 0.1;
-const MASS_NUCL: f32 = 1.0;
-
-impl InsertionDescriptor {
     fn instantiate(&self, helix_parameters: &HelixParameters) -> Vec<Vec3> {
         let mut rnd = rand::thread_rng();
         let mut ret = Vec::with_capacity(self.nb_nucl);
@@ -220,6 +175,47 @@ impl InsertionDescriptor {
         }
 
         ret
+    }
+}
+
+struct CircleArc {
+    center: Vec3,
+    up: Vec3,
+    right: Vec3,
+    radius: f32,
+    start_angle: f32,
+    bigger_than_half_circle: bool,
+}
+
+impl CircleArc {
+    fn position(&self, t: f32) -> Vec3 {
+        let angle = if self.bigger_than_half_circle {
+            (PI - self.start_angle) * (1. - t) + t * (-PI + self.start_angle)
+        } else {
+            (self.start_angle) * (1. - t) - t * self.start_angle
+        };
+        self.center + self.radius * (self.up * angle.cos() - self.right * angle.sin())
+    }
+}
+
+struct InsertionEdge {
+    prime_5: InsertionEnd,
+    prime_3: InsertionEnd,
+}
+
+struct InsertionEnd {
+    position: Vec3,
+    up_vec: Vec3,
+}
+
+pub struct InstantiatedInsertion {
+    descriptor: InsertionDescriptor,
+    instantiation: Vec<Vec3>,
+}
+
+impl InstantiatedInsertion {
+    pub fn pos(&self) -> &[Vec3] {
+        self.instantiation.as_slice()
     }
 }
 

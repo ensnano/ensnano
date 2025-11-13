@@ -196,15 +196,7 @@ impl HelixParameters {
         writeln!(&mut ret, " Expected xover length: {:.2} nm", self.dist_ac()).unwrap_or_default();
         ret
     }
-}
 
-impl std::default::Default for HelixParameters {
-    fn default() -> Self {
-        Self::DEFAULT
-    }
-}
-
-impl HelixParameters {
     /// The angle AOC_2 where
     ///
     /// * A is a base on the helix
@@ -255,6 +247,12 @@ impl HelixParameters {
             + (self.groove_angle - other.groove_angle).abs()
             + (self.rise - other.rise).abs()
             + (self.bases_per_turn - other.bases_per_turn).abs()
+    }
+}
+
+impl std::default::Default for HelixParameters {
+    fn default() -> Self {
+        Self::DEFAULT
     }
 }
 

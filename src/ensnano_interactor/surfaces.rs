@@ -17,6 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 use super::*;
 use crate::ensnano_design::{InterpolatedCurveDescriptor, InterpolationDescriptor};
+use num::integer::gcd;
 use rayon::iter::{IntoParallelIterator as _, ParallelIterator as _};
 use ultraviolet::{DVec3, Isometry3, Similarity3};
 #[derive(Debug, Clone)]
@@ -271,23 +272,6 @@ impl UnrootedRevolutionSurfaceDescriptor {
     }
 }
 
-fn gcd(a: isize, b: isize) -> usize {
-    let mut a = a.unsigned_abs();
-    let mut b = b.unsigned_abs();
-
-    if a < b {
-        std::mem::swap(&mut a, &mut b);
-    }
-
-    while b > 0 {
-        let b_ = b;
-        b = a % b;
-        a = b_;
-    }
-
-    a
-}
-
 impl RootingParameters {
     fn nb_spirals(&self, surface_half_turn_count: isize) -> usize {
         /*
@@ -310,7 +294,7 @@ impl RootingParameters {
             0
         };
         let total_shift = self.shift_per_turn + additional_shift as isize;
-        gcd(total_shift, self.nb_helix_per_half_section as isize * 2)
+        gcd(total_shift, self.nb_helix_per_half_section as isize * 2) as usize
     }
 }
 

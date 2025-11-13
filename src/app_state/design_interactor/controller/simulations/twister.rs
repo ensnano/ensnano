@@ -33,6 +33,11 @@ use std::{
     sync::{Arc, Mutex, Weak},
 };
 
+const NB_ROLL_STEP_PER_TWIST: usize = 500;
+const MIN_OMEGA: f64 = -0.2;
+const MAX_OMEGA: f64 = 0.2;
+const NB_STEP_OMEGA: usize = 300;
+
 struct TwistSystem {
     current_omega: f64,
     best_omega: f64,
@@ -44,42 +49,6 @@ pub struct Twister {
     system: TwistSystem,
     interface: Weak<Mutex<TwistInterface>>,
     state: TwistState,
-}
-
-const NB_ROLL_STEP_PER_TWIST: usize = 500;
-const MIN_OMEGA: f64 = -0.2;
-const MAX_OMEGA: f64 = 0.2;
-const NB_STEP_OMEGA: usize = 300;
-
-#[derive(Clone)]
-pub struct TwistState {
-    grid_id: GridId,
-    helices: HashMap<usize, Helix>,
-    grid: GridDescriptor,
-}
-
-impl SimulationUpdate for TwistState {
-    fn update_design(&self, design: &mut Design) {
-        let mut new_helices = design.helices.make_mut();
-        for (i, h) in self.helices.iter() {
-            new_helices.insert(*i, h.clone())
-        }
-
-        let mut grids_mut = design.free_grids.make_mut();
-        if let Some(grid) =
-            FreeGridId::try_from_grid_id(self.grid_id).and_then(|g_id| grids_mut.get_mut(&g_id))
-        {
-            *grid = self.grid
-        } else {
-            log::error!("COULD NOT UPDATE GRID {:?}", self.grid_id)
-        }
-    }
-}
-
-#[derive(Default)]
-pub struct TwistInterface {
-    pub new_state: Option<TwistState>,
-    stabilized: bool,
 }
 
 impl Twister {
@@ -153,6 +122,46 @@ impl Twister {
         twister.run();
         Some(interface)
     }
+
+    fn evaluate_twist(&mut self, twist: f64) -> f64 {
+        self.data.update_twist(twist);
+        let mut roll_system = RollSystem::new(self.data.helices.len(), None, &self.data.helix_map);
+        for _ in 0..NB_ROLL_STEP_PER_TWIST {
+            roll_system.solve_one_step(&mut self.data, 1e-3);
+        }
+        self.data.square_xover_constraints()
+    }
+
+    fn solve_one_step(&mut self) {
+        let err = self.evaluate_twist(self.system.current_omega);
+        println!("err = {}", err);
+        if err < self.system.best_square_error {
+            println!("best omega = {}", self.system.current_omega);
+            self.system.best_square_error = err;
+            self.system.best_omega = self.system.current_omega;
+            self.state
+                .set_twist(self.system.best_omega, &self.data.helix_parameters);
+        }
+        self.system.current_omega += (MAX_OMEGA - MIN_OMEGA) / (NB_STEP_OMEGA as f64);
+        println!("current_omega = {}", self.system.current_omega);
+    }
+
+    pub fn run(mut self) {
+        std::thread::spawn(move || {
+            while let Some(interface_ptr) = self.interface.upgrade() {
+                self.solve_one_step();
+                interface_ptr.lock().unwrap().stabilized = self.system.current_omega >= MAX_OMEGA;
+                interface_ptr.lock().unwrap().new_state = Some(self.state.clone());
+            }
+        });
+    }
+}
+
+#[derive(Clone)]
+pub struct TwistState {
+    grid_id: GridId,
+    helices: HashMap<usize, Helix>,
+    grid: GridDescriptor,
 }
 
 impl TwistState {
@@ -193,39 +202,28 @@ impl TwistState {
     }
 }
 
-impl Twister {
-    fn evaluate_twist(&mut self, twist: f64) -> f64 {
-        self.data.update_twist(twist);
-        let mut roll_system = RollSystem::new(self.data.helices.len(), None, &self.data.helix_map);
-        for _ in 0..NB_ROLL_STEP_PER_TWIST {
-            roll_system.solve_one_step(&mut self.data, 1e-3);
+impl SimulationUpdate for TwistState {
+    fn update_design(&self, design: &mut Design) {
+        let mut new_helices = design.helices.make_mut();
+        for (i, h) in self.helices.iter() {
+            new_helices.insert(*i, h.clone())
         }
-        self.data.square_xover_constraints()
-    }
 
-    fn solve_one_step(&mut self) {
-        let err = self.evaluate_twist(self.system.current_omega);
-        println!("err = {}", err);
-        if err < self.system.best_square_error {
-            println!("best omega = {}", self.system.current_omega);
-            self.system.best_square_error = err;
-            self.system.best_omega = self.system.current_omega;
-            self.state
-                .set_twist(self.system.best_omega, &self.data.helix_parameters);
+        let mut grids_mut = design.free_grids.make_mut();
+        if let Some(grid) =
+            FreeGridId::try_from_grid_id(self.grid_id).and_then(|g_id| grids_mut.get_mut(&g_id))
+        {
+            *grid = self.grid
+        } else {
+            log::error!("COULD NOT UPDATE GRID {:?}", self.grid_id)
         }
-        self.system.current_omega += (MAX_OMEGA - MIN_OMEGA) / (NB_STEP_OMEGA as f64);
-        println!("current_omega = {}", self.system.current_omega);
     }
+}
 
-    pub fn run(mut self) {
-        std::thread::spawn(move || {
-            while let Some(interface_ptr) = self.interface.upgrade() {
-                self.solve_one_step();
-                interface_ptr.lock().unwrap().stabilized = self.system.current_omega >= MAX_OMEGA;
-                interface_ptr.lock().unwrap().new_state = Some(self.state.clone());
-            }
-        });
-    }
+#[derive(Default)]
+pub struct TwistInterface {
+    pub new_state: Option<TwistState>,
+    stabilized: bool,
 }
 
 impl SimulationInterface for TwistInterface {

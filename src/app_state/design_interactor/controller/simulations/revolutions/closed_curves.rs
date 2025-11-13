@@ -91,9 +91,7 @@ impl CloseSurfaceTopology {
             interpolator,
         }
     }
-}
 
-impl CloseSurfaceTopology {
     pub fn nb_balls(&self) -> usize {
         self.nb_section_per_segment * self.nb_segment
     }

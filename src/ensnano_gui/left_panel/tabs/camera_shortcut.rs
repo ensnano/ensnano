@@ -244,9 +244,7 @@ impl CameraShortcutPanel {
     pub fn scroll_down(&mut self) {
         self.scroll_state.snap_to(scrollable::RelativeOffset::END);
     }
-}
 
-impl CameraShortcutPanel {
     pub fn update<State: AppState>(&mut self, app_state: &State) -> Command<Message<State>> {
         self.set_camera_widget(app_state);
         Command::none()

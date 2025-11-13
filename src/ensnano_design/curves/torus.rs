@@ -18,6 +18,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::Curved;
 use crate::ensnano_design::{HelixParameters, InstantiatedPiecewiseBezier};
+use num::integer::gcd;
 use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
 use std::f64::consts::{PI, TAU};
@@ -430,6 +431,16 @@ impl CurveDescriptor2D {
             Self::Parabola { .. } => 0.,
         }
     }
+
+    fn instantiate(self) -> Arc<dyn Curve2D + Sync + Send> {
+        match self {
+            Self::Ellipse {
+                semi_minor_axis,
+                semi_major_axis,
+            } => Arc::new(InstantiatedEllipse::new(*semi_minor_axis, *semi_major_axis)),
+            _ => todo!(),
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -504,18 +515,6 @@ impl Curve2D for InstantiatedEllipse {
 
     fn get_cached_curvilinear_abscissa_mut(&mut self) -> Option<&mut Vec<f64>> {
         Some(&mut self.cached_curvilinear_abscissa)
-    }
-}
-
-impl CurveDescriptor2D {
-    fn instantiate(self) -> Arc<dyn Curve2D + Sync + Send> {
-        match self {
-            Self::Ellipse {
-                semi_minor_axis,
-                semi_major_axis,
-            } => Arc::new(InstantiatedEllipse::new(*semi_minor_axis, *semi_major_axis)),
-            _ => todo!(),
-        }
     }
 }
 
@@ -688,7 +687,7 @@ impl TwistedTorus {
         //  =>   k = gcm(total_shift, nb_helices) / total_shift
         //  =>   k * gcd(total_shift, nb_helices) = nb_helices * total_shift / total_shift
         //  =>   k = nb_helices / gcd(total_shift, nb_helices)
-        let nb_turn_per_helix = nb_helices / gcd(nb_helices as isize, total_shift);
+        let nb_turn_per_helix = nb_helices / gcd(nb_helices as isize, total_shift) as usize;
 
         Self {
             descriptor,
@@ -699,25 +698,7 @@ impl TwistedTorus {
             helix_parameters: *helix_parameters,
         }
     }
-}
 
-fn gcd(a: isize, b: isize) -> usize {
-    let mut a = a.unsigned_abs();
-    let mut b = b.unsigned_abs();
-
-    if a < b {
-        std::mem::swap(&mut a, &mut b);
-    }
-
-    while b > 0 {
-        let b_ = b;
-        b = a % b;
-        a = b_;
-    }
-    a
-}
-
-impl TwistedTorus {
     fn theta(&self, t: f64) -> f64 {
         self.nb_turn_per_helix as f64 * t * TAU
     }

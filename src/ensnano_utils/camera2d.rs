@@ -44,13 +44,7 @@ impl Camera2D {
             bottom,
         }
     }
-}
 
-/// Movement mechanism.
-///
-/// The movement can be decomposed in multiple steps.
-///
-impl Camera2D {
     /// Return true if the globals have been modified since the last time `self.get_update()` was
     /// called.
     pub fn was_updated(&self) -> bool {
@@ -371,8 +365,9 @@ pub struct FitRectangle {
     y_max: f32,
 }
 
-/// Creation and basic fitting methods.
 impl FitRectangle {
+    // === CREATION AND BASIC FITTING METHODS ===
+
     /// Create a new [FitRectangle] that fits only `point`.
     ///
     /// Use as a starting point, to add new points.
@@ -385,6 +380,7 @@ impl FitRectangle {
             y_max: y,
         }
     }
+
     /// Add a new point to include into the [FitRectangle].
     pub fn add_point(&mut self, point: impl Into<[f32; 2]>) -> Self {
         let [x, y] = point.into();
@@ -394,6 +390,7 @@ impl FitRectangle {
         self.y_max = f32::max(self.y_max, y);
         *self
     }
+
     pub fn from_points(points: impl IntoIterator<Item = [f32; 2]>) -> Option<Self> {
         let mut points = points.into_iter();
         if let Some(point) = points.next() {
@@ -406,29 +403,30 @@ impl FitRectangle {
             None
         }
     }
-}
 
-/// Introspection.
-impl FitRectangle {
+    // === INTROSPECTION ===
+
     pub fn width(&self) -> f32 {
         self.x_max - self.x_min
     }
+
     pub fn height(&self) -> f32 {
         self.y_max - self.y_min
     }
+
     pub fn center(&self) -> [f32; 2] {
         [
             (self.x_min + self.x_max) / 2.,
             (self.y_min + self.y_max) / 2.,
         ]
     }
+
     pub fn top_left(&self) -> [f32; 2] {
         [self.x_min, self.y_max]
     }
-}
 
-/// Special methods.
-impl FitRectangle {
+    // === SPECIAL METHODS ===
+
     /// Ensure a minimal rectangle size.
     ///
     /// If the width or height must be increased, use the given center of mass.
@@ -456,10 +454,9 @@ impl FitRectangle {
         self.y_max += factor * (1.0 - y_center);
         self
     }
-}
 
-/// Needed by controller.
-impl FitRectangle {
+    // === NEEDED BY CONTROLLER ===
+
     pub fn split_vertically(self) -> (Self, Self) {
         self.ensure_min_size([20., 35.], [0.25, 0.14285715]);
         let Self {
@@ -490,9 +487,7 @@ impl FitRectangle {
         self.y_max += 2.0 * self.height();
         self
     }
-}
 
-impl FitRectangle {
     /// An initial rectangle to give to the software at startup.
     pub const INITIAL_RECTANGLE: Self = Self {
         x_min: -7.,

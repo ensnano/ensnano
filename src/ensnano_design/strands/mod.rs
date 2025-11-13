@@ -799,6 +799,14 @@ impl HelixInterval {
             }
         }
     }
+
+    pub fn iter(&self) -> DomainIter {
+        DomainIter {
+            start: self.start,
+            end: self.end,
+            forward: self.forward,
+        }
+    }
 }
 
 impl Domain {
@@ -1143,16 +1151,6 @@ impl Domain {
                 && (*my_start == 0 || *other_start == 0)
         } else {
             false
-        }
-    }
-}
-
-impl HelixInterval {
-    pub fn iter(&self) -> DomainIter {
-        DomainIter {
-            start: self.start,
-            end: self.end,
-            forward: self.forward,
         }
     }
 }
