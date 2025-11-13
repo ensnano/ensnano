@@ -37,6 +37,7 @@ use ensnano_iced::{
             event::Modifiers,
         },
     },
+    widgets::keyboard_priority::PriorityRequest,
 };
 use ensnano_interactor::{
     ActionMode, EquadiffSolvingMethod, HyperboloidRequest, RapierSimulationRequest, Selection,
@@ -196,7 +197,7 @@ pub enum Message<S: AppState> {
     SaveNucleotidesPositions,
     IncrRevolutionShift,
     DecrRevolutionShift,
-    SetKeyboardPriority(bool),
+    SetKeyboardPriority(PriorityRequest),
     SetFocus(text_input::Id),
 }
 

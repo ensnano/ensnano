@@ -189,6 +189,7 @@ impl<State: AppState> GuiTab<State> for SequenceTab<State> {
             row![
                 text("Starting position").width(Length::FillPortion(2)),
                 keyboard_priority(
+                    "Scaffold position",
                     text_input("Scaffold position", &self.scaffold_position_str)
                         .on_input(Message::ScaffoldPositionInput,)
                         .style(theme::BadValue(
@@ -196,8 +197,7 @@ impl<State: AppState> GuiTab<State> for SequenceTab<State> {
                         ))
                 )
                 .width(Length::FillPortion(1))
-                .on_priority(Message::SetKeyboardPriority(true))
-                .on_unpriority(Message::SetKeyboardPriority(false)),
+                .on_priority(Message::SetKeyboardPriority)
             ],
             // add_optimize_scaffold_shift_button!
             text_button("Optimize starting position", ui_size)

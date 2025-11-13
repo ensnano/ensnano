@@ -138,6 +138,7 @@ use {
         iced_runtime::{Debug, program},
         iced_wgpu::{self, Settings},
         iced_winit, theme,
+        widgets::keyboard_priority::Id,
     },
     ensnano_interactor::{
         ActionMode, CenterOfSelection, DesignOperation, DesignRotation, DesignTranslation,
@@ -512,7 +513,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 //       as shortcuts by the UI. The “keyboard priority” feature has been made for this,
                 //       and the interception is made here.
                 //
-                WindowEvent::KeyboardInput { .. } if main_state.keyboard_priority => {
+                WindowEvent::KeyboardInput { ref event, .. }
+                    if main_state.keyboard_priority.is_some() =>
+                {
                     iced_winit::conversion::window_event(
                         iced::window::Id::MAIN,
                         // NOTE: Used to be window.id(). It seems dirty,
@@ -1078,7 +1081,8 @@ struct MainState {
     applications: HashMap<GuiComponentType, Arc<Mutex<dyn Application<AppState = AppState>>>>,
     focused_component: Option<GuiComponentType>,
     /// Disable the interception of keyboard events, to let the user input text.
-    keyboard_priority: bool,
+    /// Some(id) indicates that object id has the priority; None indicates none have the priority.
+    keyboard_priority: Option<Id>,
     last_saved_state: AppState,
 
     /// The name of the file containing the current design.
@@ -1112,7 +1116,7 @@ impl MainState {
             messages,
             applications: Default::default(),
             focused_component: None,
-            keyboard_priority: false,
+            keyboard_priority: None,
             last_saved_state: app_state.clone(),
             file_name: None,
             wants_fit: false,

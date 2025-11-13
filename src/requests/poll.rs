@@ -381,7 +381,21 @@ pub(crate) fn poll_all<R: DerefMut<Target = Requests>>(
         main_state.create_default_bezier_plane();
     }
 
-    if let Some(priority) = requests.set_keyboard_priority.take() {
-        main_state.keyboard_priority = priority;
+    if let Some(priorities) = requests.set_keyboard_priority.take() {
+        for request in priorities {
+            match request.taking {
+                true => {
+                    main_state.keyboard_priority = Some(request.id);
+                }
+                false => match &main_state.keyboard_priority {
+                    Some(id) => {
+                        if *id == request.id {
+                            main_state.keyboard_priority = None;
+                        }
+                    }
+                    None => {}
+                },
+            }
+        }
     }
 }

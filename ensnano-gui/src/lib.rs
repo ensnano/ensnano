@@ -45,6 +45,7 @@ use ensnano_iced::{
     iced_runtime::{Debug, program},
     iced_wgpu::{self, Backend, wgpu},
     iced_winit::{conversion, winit},
+    widgets::keyboard_priority::PriorityRequest,
 };
 use ensnano_interactor::{
     ActionMode, HyperboloidRequest, InsertionPoint, Multiplexer, PastingStatus,
@@ -222,7 +223,7 @@ pub trait Requests: 'static + Send {
     fn notify_revolution_tab(&mut self);
     fn request_stl_export(&mut self);
     /// Set keyboard priority, i.e. whether activate keyboard shortcuts.
-    fn set_keyboard_priority(&mut self, priority: bool);
+    fn set_keyboard_priority(&mut self, priority: PriorityRequest);
 }
 
 #[derive(Clone, Debug, PartialEq)]
