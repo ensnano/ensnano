@@ -1211,6 +1211,7 @@ dependencies = [
  "ensnano_iced",
  "ensnano_interactor",
  "ensnano_organizer",
+ "ensnano_physics",
  "ensnano_utils",
  "log",
  "open",

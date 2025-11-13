@@ -24,6 +24,7 @@ mod anchors;
 mod full_simulation;
 mod helices;
 mod import;
+pub mod parameters;
 mod repulsion;
 mod simulation;
 
