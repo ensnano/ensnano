@@ -176,7 +176,7 @@ impl Eq for FlatHelix {}
 
 impl std::cmp::PartialOrd for FlatHelix {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        self.flat.partial_cmp(&other.flat)
+        Some(self.cmp(other))
     }
 }
 
