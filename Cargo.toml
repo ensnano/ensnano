@@ -1,5 +1,4 @@
 [workspace.package]
-version = "0.7.0"
 authors = [
     "thenlevy <nicolaspierrelevy@gmail.com>",
     "Nicolas Schabanel <nicolas.schabanel@gmail.com>",
@@ -8,7 +7,10 @@ authors = [
     "Axel Brisse <axel.brisse@gmail.com>",
 ]
 edition = "2024"
+homepage = "https://www.ens-lyon.fr/ensnano/"
 license = "GPL-3.0-or-later"
+repository = "https://github.com/ensnano/ensnano"
+version = "0.7.0"
 
 [dependencies]
 ahash = "0.8.6"
@@ -81,19 +83,25 @@ winit = "0.29"
 opt-level = 3
 
 [package]
+authors.workspace = true
+categories = ["graphics", "science", "simulation"]
+description = "A 3D graphical application for DNA nanostructures"
+edition.workspace = true
+keywords = ["dna", "ensnano", "nanostructures"]
+homepage.workspace = true
+license.workspace = true
 name = "ensnano"
+repository.workspace = true
+readme = "README.md"
 resolver = "2"
 version.workspace = true
-authors.workspace = true
-edition.workspace = true
-license.workspace = true
 
 [features]
 log_after_renderer_setup = []
 dx12_only = []
 
 [lints.clippy]
-# cargo = { level = "deny", priority = -1 }
+cargo = { level = "deny", priority = -1 }
 complexity = { level = "warn", priority = -1 }
 correctness = { level = "deny", priority = -1 }
 # nursery = { level = "warn", priority = -1 }
@@ -103,8 +111,9 @@ perf = { level = "deny", priority = -1 }
 style = { level = "warn", priority = -1 }
 suspicious = { level = "deny", priority = -1 }
 
-arc_with_non_send_sync = "allow" # TODO: remove
-too_many_arguments = "allow"     # TODO: remove
+arc_with_non_send_sync = "allow"  # TODO: remove
+multiple_crate_versions = "allow"
+too_many_arguments = "allow"      # TODO: remove
 
-get_unwrap = "warn"
-wildcard_imports = "warn"
+get_unwrap = "warn"       # TODO: remove once restriction is activated
+wildcard_imports = "warn" # TODO: remove once pedantic is activated
