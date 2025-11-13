@@ -16,7 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use super::{CurveInstantiator, Edge};
+use super::{CurveInstantiator, Curved, Edge};
 use crate::ensnano_design::grid::GridPosition;
 use crate::ensnano_design::utils::vec_to_dvec;
 use num_enum::{IntoPrimitive, TryFromPrimitive};
@@ -239,7 +239,7 @@ mod tests {
     }
 }
 
-impl super::Curved for CubicBezier {
+impl Curved for CubicBezier {
     fn position(&self, t: f64) -> DVec3 {
         self.polynomial.evaluate(t)
     }

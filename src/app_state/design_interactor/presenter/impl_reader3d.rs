@@ -17,21 +17,24 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::*;
-use crate::ensnano_design::{
-    BezierControlPoint, BezierPlaneDescriptor, BezierPlaneId, BezierVertexId, Collection,
-    CurveDescriptor, Domain, Nucl, SurfaceInfo,
-    grid::{GridId, GridObject, GridPosition, HelixGridPosition},
-};
 use crate::ensnano_interactor::{
     ObjectType, Referential,
     graphics::{LoopoutBond, LoopoutNucl},
 };
 use crate::ensnano_scene::view::GridInstance;
 use crate::ensnano_utils::StrandNucleotidesPositions;
+use crate::{
+    ensnano_design::{
+        AdditionalStructure, BezierControlPoint, BezierPlaneDescriptor, BezierPlaneId,
+        BezierVertexId, Collection, CurveDescriptor, Domain, Nucl, SurfaceInfo,
+        grid::{GridId, GridObject, GridPosition, HelixGridPosition},
+    },
+    ensnano_scene::data::SceneDesignReaderExt,
+};
 use std::collections::HashSet;
 use ultraviolet::{Mat4, Rotor3, Vec2, Vec3};
 
-impl crate::ensnano_scene::data::SceneDesignReaderExt for DesignInteractor {
+impl SceneDesignReaderExt for DesignInteractor {
     fn get_color(&self, e_id: u32) -> Option<u32> {
         self.presenter.content.color_map.get(&e_id).cloned()
     }
@@ -558,7 +561,7 @@ impl crate::ensnano_scene::data::SceneDesignReaderExt for DesignInteractor {
         helix.get_surface_info(point)
     }
 
-    fn get_additional_structure(&self) -> Option<&dyn crate::ensnano_design::AdditionalStructure> {
+    fn get_additional_structure(&self) -> Option<&dyn AdditionalStructure> {
         self.presenter
             .current_design
             .additional_structure

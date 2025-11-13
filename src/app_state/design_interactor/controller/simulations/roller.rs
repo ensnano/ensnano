@@ -21,7 +21,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! them. These springs aim at minimizing the difference between the cross-over length and the
 //! normal distance between two consecutive nucleotides.
 
-use super::{Helix, HelixParameters, Nucl};
+use super::{Helix, HelixParameters, Nucl, SimulationInterface};
 use crate::{
     app_state::design_interactor::presenter::{Presenter, SimulationUpdate},
     controller::channel_reader::ChannelReader,
@@ -72,7 +72,7 @@ impl PhysicalSystem {
             helix_parameters,
         };
         let interface = Arc::new(Mutex::new(RollInterface::default()));
-        let interface_dyn: Arc<Mutex<dyn super::SimulationInterface>> = interface.clone();
+        let interface_dyn: Arc<Mutex<dyn SimulationInterface>> = interface.clone();
         reader.attach_state(&interface_dyn);
 
         let system = Self {
@@ -336,7 +336,7 @@ pub struct RollInterface {
     stabilized: bool,
 }
 
-impl super::SimulationInterface for RollInterface {
+impl SimulationInterface for RollInterface {
     fn get_simulation_state(&mut self) -> Option<Box<dyn SimulationUpdate>> {
         let s = self.new_state.take()?;
         Some(Box::new(s))
@@ -349,7 +349,7 @@ impl super::SimulationInterface for RollInterface {
 
 pub struct RollState(HashMap<usize, Helix>);
 
-impl super::SimulationUpdate for RollState {
+impl SimulationUpdate for RollState {
     fn update_design(&self, design: &mut crate::ensnano_design::Design) {
         let mut new_helices = design.helices.make_mut();
         for (i, h) in self.0.iter() {

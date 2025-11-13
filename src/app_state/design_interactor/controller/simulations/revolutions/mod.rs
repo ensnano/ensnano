@@ -20,7 +20,8 @@ const MAX_ACCEL: f64 = 100.;
 
 use super::{SimulationInterface, SimulationUpdate};
 use crate::ensnano_design::{
-    CurveDescriptor, CurveDescriptor2D, HelixParameters, InterpolationDescriptor,
+    AdditionalStructure, CurveDescriptor, CurveDescriptor2D, HelixParameters,
+    InterpolationDescriptor,
 };
 use crate::ensnano_interactor::{
     EquadiffSolvingMethod, RevolutionSimulationParameters, RevolutionSurfaceSystemDescriptor,
@@ -499,7 +500,7 @@ impl SimulationUpdate for RevolutionSurfaceSystem {
     }
 }
 
-impl crate::ensnano_design::AdditionalStructure for RevolutionSurfaceSystem {
+impl AdditionalStructure for RevolutionSurfaceSystem {
     fn position(&self) -> Vec<Vec3> {
         use crate::ensnano_design::utils::dvec_to_vec;
         let thetas = self

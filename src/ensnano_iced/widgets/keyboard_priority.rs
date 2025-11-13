@@ -15,14 +15,16 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
 //! Gives text_input widgets priority to handle keyboard event.
+
 use iced::{
     Element, Length, Rectangle, Size, Vector,
     advanced::{
+        Clipboard, Shell,
         layout::{self, Layout},
-        renderer,
-        widget::{self, Widget, operation::Focusable as _},
-        {Clipboard, Shell, mouse},
+        mouse, renderer,
+        widget::{self, Widget, operation::Focusable},
     },
     event, overlay,
     widget::text_input,
@@ -319,7 +321,7 @@ pub struct State {
     is_focused: bool,
 }
 
-impl widget::operation::Focusable for State {
+impl Focusable for State {
     fn is_focused(&self) -> bool {
         self.is_focused
     }

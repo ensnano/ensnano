@@ -16,6 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+use super::Curved;
 use serde::{Deserialize, Serialize};
 use std::f64::consts::{PI, TAU};
 use ultraviolet::{DVec2, DVec3};
@@ -33,7 +34,7 @@ pub struct SuperTwist {
     t_min: Option<f64>,
 }
 
-impl super::Curved for SuperTwist {
+impl Curved for SuperTwist {
     fn bounds(&self) -> super::CurveBounds {
         super::CurveBounds::BiInfinite
     }

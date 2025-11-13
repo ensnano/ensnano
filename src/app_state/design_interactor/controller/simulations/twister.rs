@@ -17,7 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::{
-    Design, Helix,
+    Design, Helix, SimulationInterface,
     roller::{DesignData, RollSystem},
 };
 use crate::ensnano_design::{
@@ -122,7 +122,7 @@ impl Twister {
         };
 
         let interface = Arc::new(Mutex::new(TwistInterface::default()));
-        let interface_dyn: Arc<Mutex<dyn super::SimulationInterface>> = interface.clone();
+        let interface_dyn: Arc<Mutex<dyn SimulationInterface>> = interface.clone();
         reader.attach_state(&interface_dyn);
 
         let initial_state = if let Some(grid) = FreeGridId::try_from_grid_id(target_grid)
@@ -228,7 +228,7 @@ impl Twister {
     }
 }
 
-impl super::SimulationInterface for TwistInterface {
+impl SimulationInterface for TwistInterface {
     fn get_simulation_state(&mut self) -> Option<Box<dyn SimulationUpdate>> {
         let s = self.new_state.take()?;
         Some(Box::new(s))

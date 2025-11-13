@@ -418,16 +418,18 @@ mod tests {
     use super::super::OkOperation as TopOkOperation;
     use super::super::*;
     use super::*;
-    use crate::app_state::design_interactor::controller::clipboard::{
-        CopyOperation, PastePosition,
+    use crate::app_state::design_interactor::{
+        controller::clipboard::{CopyOperation, PastePosition},
+        file_parsing::junctions::StrandJunction as _,
     };
-    use crate::app_state::design_interactor::file_parsing::junctions::StrandJunction as _;
-    use crate::ensnano_design::HelixCollection;
-    use crate::ensnano_design::grid::HelixGridPosition;
-    use crate::ensnano_design::{Collection, DomainJunction, Nucl, Strand, grid::GridDescriptor};
-    use crate::ensnano_interactor::operation::GridHelixCreation;
-    use crate::ensnano_interactor::{InsertionPoint, InteractorDesignReaderExt};
-    use crate::ensnano_scene::data::SceneDesignReaderExt as Reader3d;
+    use crate::ensnano_design::{
+        Collection, DomainJunction, HelixCollection, Nucl, Strand,
+        grid::{GridDescriptor, HelixGridPosition},
+    };
+    use crate::ensnano_interactor::{
+        InsertionPoint, InteractorDesignReaderExt, operation::GridHelixCreation,
+    };
+    use crate::ensnano_scene::data::SceneDesignReaderExt;
     use std::path::PathBuf;
     use ultraviolet::{Rotor3, Vec3};
 
