@@ -984,34 +984,6 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
         }
     }
 
-    /*
-    pub fn set_selection(&mut self, mut selection: Vec<Selection>) {
-        self.selection = selection.clone();
-        if selection.len() == 1 {
-            let xover = if let Some(Selection::Xover(d_id, xover_id)) = selection.get(0) {
-                Some(*d_id).zip(self.design.get_xover_with_id(*xover_id))
-            } else {
-                None
-            };
-            if let Some((d_id, (n1, n2))) = xover {
-                selection[0] = Selection::Bound(d_id, n1, n2);
-            }
-            self.view
-                .borrow_mut()
-                .set_selection(super::FlatSelection::from_real(
-                    selection.get(0),
-                    self.id_map(),
-                ));
-        }
-        self.selection_updated = true;
-    }*/
-
-    /*
-    pub fn set_candidate(&mut self, candidates: Vec<Selection>) {
-        self.candidates = candidates;
-        self.selection_updated = true;
-    }*/
-
     pub(super) fn convert_to_flat(&self, selection: Selection) -> FlatSelection {
         FlatSelection::from_real(Some(&selection), self.id_map())
     }
