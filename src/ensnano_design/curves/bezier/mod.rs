@@ -31,7 +31,7 @@ pub(crate) use instantiator::PieceWiseBezierInstantiator;
 #[repr(usize)]
 /// A control point of a cubic bezier curve.
 ///
-/// This enum implements Into<usize>.
+/// This enum implements `Into<usize>`.
 pub enum CubicBezierControlPoint {
     Start,
     End,

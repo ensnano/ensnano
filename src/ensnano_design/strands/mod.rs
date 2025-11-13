@@ -266,7 +266,7 @@ struct InsertionAccumulator {
 }
 
 /// Return a list of domains that validate the following condition:
-/// [SaneDomains]: There must always be a Domain::HelixDomain between two Domain::Insertion. If the
+/// SaneDomains: There must always be a Domain::HelixDomain between two Domain::Insertion. If the
 /// strand is cyclic, this include the first and the last domain.
 pub fn sanitize_domains(domains: &[Domain], cyclic: bool) -> Vec<Domain> {
     let mut ret = Vec::with_capacity(domains.len());
@@ -1181,14 +1181,14 @@ impl Iterator for DomainIter {
 
 /// Add the correct junction between current and next to junctions.
 /// Assumes and preserve the following invariant
-/// Invariant [read_junctions::PrevDomain]: One of the following is true
+/// Invariant read_junctions::PrevDomain: One of the following is true
 /// * the strand is not cyclic
 /// * the strand is cyclic and its first domain is NOT and insertion.
 /// * previous domain points to some Domain::HelixDomain.
 ///
 /// Moreover at the end of each iteration of the loop, previous_domain points to some
 /// Domain::HelixDomain. The loop is responsible for preserving the invariant. The invariant is
-/// true at initialization if [SaneDomains] is true.
+/// true at initialization if SaneDomains is true.
 fn add_junction<'b, 'a: 'b>(
     junctions: &'b mut Vec<DomainJunction>,
     current: &'a Domain,

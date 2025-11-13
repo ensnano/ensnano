@@ -567,7 +567,7 @@ impl View {
     ///
     /// # Arguments
     ///
-    /// [png_size]: Export resolution; use area's size if None.
+    /// * png_size: Export resolution; use area's size if None.
     ///
     pub fn draw(
         &mut self,

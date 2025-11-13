@@ -41,7 +41,7 @@ const LONG_HOLDING_TIME: std::time::Duration = std::time::Duration::from_millis(
 ///
 /// If `None`, the controller's automata will transition to `NormalState` when the event occur.
 ///
-/// The state is produced in a function and not stored by the object because Box<dyn> cannot be
+/// The state is produced in a function and not stored by the object because `Box<dyn>` cannot be
 /// cloned.
 trait OptionalTransition<S: AppState>:
     Fn(ClickInfo) -> Option<Box<dyn ControllerState<S>>> + 'static

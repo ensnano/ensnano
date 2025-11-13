@@ -74,7 +74,7 @@ impl StrandJunction for Strand {
                         } else if let Domain::Insertion { .. } = next {
                             panic!("UnidentifiedXover before an insertion");
                         } else if let Domain::Insertion { .. } = previous_domain {
-                            panic!("Invariant violated: [SaneDomains]");
+                            panic!("Invariant violated: SaneDomains");
                         } else {
                             unreachable!("Non-exhaustive match");
                         }
@@ -96,7 +96,7 @@ impl StrandJunction for Strand {
                         } else if let Domain::Insertion { .. } = next {
                             panic!("IdentifiedXover before an insertion");
                         } else if let Domain::Insertion { .. } = previous_domain {
-                            panic!("Invariant violated: [SaneDomains]");
+                            panic!("Invariant violated: SaneDomains");
                         } else {
                             unreachable!("Non-exhaustive match");
                         }
@@ -125,14 +125,14 @@ pub(super) fn junction(prime5: &HelixInterval, prime3: &HelixInterval) -> Domain
 
 /// Add the correct junction between current and next to junctions.
 /// Assumes and preserve the following invariant
-/// Invariant [read_junctions::PrevDomain]: One of the following is true
+/// Invariant read_junctions::PrevDomain: One of the following is true
 /// * the strand is not cyclic
 /// * the strand is cyclic and its first domain is NOT and insertion.
 /// * previous domain points to some Domain::HelixDomain.
 ///
 /// Moreover at the end of each iteration of the loop, previous_domain points to some
 /// Domain::HelixDomain. The loop is responsible for preserving the invariant. The invariant is
-/// true at initialization if `[SaneDomains]` is true.
+/// true at initialization if SaneDomains is true.
 fn add_junction<'b, 'a: 'b>(
     junctions: &'b mut Vec<DomainJunction>,
     current: &'a Domain,

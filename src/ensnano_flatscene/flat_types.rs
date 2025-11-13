@@ -207,7 +207,7 @@ impl FlatHelix {
     }
 }
 
-/// This trait is a marker, indicating that if T:Flat, then [T] can be indexed by a FlatHelix.
+/// This trait is a marker, indicating that if T:Flat, then `[T]` can be indexed by a FlatHelix.
 pub trait Flat {}
 
 impl<T: Flat> std::ops::Index<FlatHelix> for [T] {

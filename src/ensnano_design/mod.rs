@@ -683,7 +683,7 @@ pub struct SavingInformation {
     pub camera: Option<Camera>,
 }
 
-/// Apply a mutating function to the value wrapped in an Arc<Helix>. This will make `helix_ptr`
+/// Apply a mutating function to the value wrapped in an `Arc<Helix>`. This will make `helix_ptr`
 /// point to a new helix on which the update has been applied.
 pub fn mutate_in_arc<F, Obj: Clone>(obj_ptr: &mut Arc<Obj>, mut mutation: F)
 where

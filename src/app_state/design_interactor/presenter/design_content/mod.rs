@@ -570,7 +570,7 @@ impl DesignContent {
                         &mut new_junctions,
                         last_xover_junction
                             .as_mut()
-                            .expect("Broke Invariant [LastXoverJunction]"),
+                            .expect("Broke Invariant LastXoverJunction"),
                         (prime5, prime3),
                     );
                     if let Some(id) = xover_ids.get_id(&(prime5, prime3)) {
@@ -802,7 +802,7 @@ impl DesignContent {
                     strand
                         .junctions
                         .last_mut()
-                        .expect("Broke Invariant [LastXoverJunction]"),
+                        .expect("Broke Invariant LastXoverJunction"),
                     (bond.0, bond.1),
                 );
                 let (prime5, prime3) = bond;

@@ -15,14 +15,15 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-//! This modules defines the [Instantiable](Instantiable) trait. Types that implement the
+
+//! This modules defines the [Instantiable] trait. Types that implement the
 //! `Instantiable` trait can be turned into instances that can be drawn by an
-//! [InstanceDrawer](InstanceDrawer).
+//! [InstanceDrawer].
 
 use crate::ensnano_consts::*;
-use crate::ensnano_utils::bindgroup_manager::DynamicBindGroup;
-use crate::ensnano_utils::create_buffer_with_data;
-use crate::ensnano_utils::texture::Texture;
+use crate::ensnano_utils::{
+    bindgroup_manager::DynamicBindGroup, create_buffer_with_data, texture::Texture,
+};
 use std::rc::Rc;
 use wgpu::{
     BindGroupLayoutDescriptor, Device, PrimitiveTopology, Queue, RenderPass, RenderPipeline,
@@ -87,7 +88,7 @@ pub trait Instantiable {
     /// The vertices must be the same for all the instances drawn by an
     /// `Instantiable`. However, vertices can depend on the particular instantiation of the type
     /// that implements `Instantiable`. In that case, the implementation of `Instantiable` must
-    /// overwrite the [`custom_vertices`](`custom_vertices`) method.
+    /// overwrite the [`custom_vertices`](Instantiable::custom_vertices) method.
     fn vertices() -> Vec<Self::Vertex>
     where
         Self: Sized;
@@ -96,7 +97,7 @@ pub trait Instantiable {
     /// The indices must be the same for all the instances drawn by an
     /// `Instantiable`. However, indices can depend on the particular instantiation of the type
     /// that implements `Instantiable`. In that case, the implementation of `Instantiable` must
-    /// overwrite the [`custom_indices`](`custom_indices`) method.
+    /// overwrite the [`custom_indices`](Instantiable::custom_indices) method.
     fn indices() -> Vec<u16>
     where
         Self: Sized;

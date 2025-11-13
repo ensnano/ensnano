@@ -612,7 +612,7 @@ impl Helix {
     }
 
     /// Return the nucl under the center of the helix's circle widget.
-    /// See [get_circle](get_circle).
+    /// See [Self::get_circle].
     pub fn get_circle_pivot(&self, camera: &CameraPtr) -> Option<FlatNucl> {
         let (left, right) = self.screen_intersection(camera)?;
         if self.leftmost_x() > right || self.rightmost_x() < left {
