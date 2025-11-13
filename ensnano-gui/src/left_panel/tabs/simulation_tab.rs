@@ -18,7 +18,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::tabs::GuiTab;
 use super::*;
 use ensnano_consts::ICON_PHYSICAL_ENGINE;
-use ensnano_iced::{helpers::*, iced_aw::TabLabel};
+use ensnano_iced::{helpers::*, iced_aw::TabLabel, widgets::keyboard_priority};
 use ensnano_physics::parameters::{RapierParameters, RapierSimulationType};
 
 pub struct SimulationTab<State: AppState> {
@@ -228,18 +228,20 @@ where
 {
     let current_value = value.to_string();
 
+    let description = description.to_string();
+
     row![
-        text(description),
-        text_input(&current_value, &current_value).on_input(move |str| {
-            println!("str : {str}");
-            match str.parse::<f32>() {
-                Ok(new_value) => {
-                    println!("new value : {new_value}");
-                    message_builder(new_value)
+        text(&description),
+        keyboard_priority(
+            "Rapier parameters ".to_owned() + &description,
+            text_input(&current_value, &current_value).on_input(move |str| {
+                match str.parse::<f32>() {
+                    Ok(new_value) => message_builder(new_value),
+                    _ => message_builder(value),
                 }
-                _ => message_builder(value),
-            }
-        })
+            })
+        )
+        .on_priority(Message::<State>::SetKeyboardPriority),
     ]
     .into()
 }
