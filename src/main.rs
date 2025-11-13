@@ -982,7 +982,7 @@ impl OverlayManager {
         }
     }
 
-    fn forward_messages(&mut self, _messages: &mut IcedMessages<AppState>) {}
+    fn forward_messages(&self, _messages: &mut IcedMessages<AppState>) {}
 
     fn fetch_change(
         &mut self,
@@ -1142,7 +1142,7 @@ impl MainState {
         self.pending_actions.push_back(action)
     }
 
-    fn get_app_state(&mut self) -> AppState {
+    fn get_app_state(&self) -> AppState {
         self.app_state.clone()
     }
 
@@ -1744,7 +1744,7 @@ impl<'a> MainStateView<'a> {
         Instant::now() - self.main_state.last_backup_date > Duration::from_secs(SEC_BETWEEN_BACKUPS)
     }
 
-    fn exit_control_flow(&mut self) {
+    fn exit_control_flow(&self) {
         self.window_target.exit()
     }
 
@@ -1849,11 +1849,11 @@ impl<'a> MainStateView<'a> {
         }
     }
 
-    fn get_selection(&mut self) -> Box<dyn AsRef<[Selection]>> {
+    fn get_selection(&self) -> Box<dyn AsRef<[Selection]>> {
         Box::new(self.main_state.app_state.get_selection())
     }
 
-    fn get_design_reader(&mut self) -> Box<dyn InteractorDesignReaderExt> {
+    fn get_design_reader(&self) -> Box<dyn InteractorDesignReaderExt> {
         Box::new(self.main_state.app_state.get_design_interactor())
     }
 

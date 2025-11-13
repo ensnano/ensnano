@@ -715,7 +715,7 @@ impl Multiplexer {
         self.generate_textures();
     }
 
-    pub fn resize(&mut self, window_size: PhySize, scale_factor: f64) -> bool {
+    pub fn resize(&self, window_size: PhySize, scale_factor: f64) -> bool {
         let ret = self.window_size != window_size;
         let top_panel_prop =
             self.ui_size.top_bar_height() * scale_factor / window_size.height as f64;
@@ -727,7 +727,7 @@ impl Multiplexer {
         ret
     }
 
-    fn texture(&mut self, element_type: GuiComponentType) -> Option<MultiplexerTexture> {
+    fn texture(&self, element_type: GuiComponentType) -> Option<MultiplexerTexture> {
         let area = self.get_draw_area(element_type)?;
         log::debug!("texture of {:?}: {:?}", element_type, area);
         let texture = SampledTexture::create_target_texture(self.device.as_ref(), &area.size);

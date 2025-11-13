@@ -248,12 +248,12 @@ impl RollSystem {
         Some(mother.roll)
     }
 
-    fn update_rolls(&mut self, data: &mut DesignData, dt: f32) {
+    fn update_rolls(&self, data: &mut DesignData, dt: f32) {
         self.update_rolls_aux(data, dt, SYNC_ROLLS_INSTEAD_OF_COPY_ROLLS);
     }
 
     fn update_rolls_aux(
-        &mut self,
+        &self,
         data: &mut DesignData,
         dt: f32,
         sync_roll_instead_of_copy_roll: bool,

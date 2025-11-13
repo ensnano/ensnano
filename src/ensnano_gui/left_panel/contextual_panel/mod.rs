@@ -229,7 +229,7 @@ where
         self.width = width;
     }
 
-    pub fn update(&mut self, app_state: &mut State) -> Command<Message<State>> {
+    pub fn update(&mut self, app_state: &State) -> Command<Message<State>> {
         let selection = app_state
             .get_selection()
             .first()
@@ -408,12 +408,7 @@ where
         // NOTE: I don't really understand why there is a “- 2” here.
     }
 
-    pub fn selection_value_changed<R: Requests>(
-        &mut self,
-        _n: usize,
-        s: String,
-        requests: Arc<Mutex<R>>,
-    ) {
+    pub fn selection_value_changed<R: Requests>(&self, s: String, requests: Arc<Mutex<R>>) {
         if let Ok(g_id) = s.parse() {
             requests
                 .lock()
@@ -422,11 +417,11 @@ where
         }
     }
 
-    pub fn set_small_sphere<R: Requests>(&mut self, b: bool, requests: Arc<Mutex<R>>) {
+    pub fn set_small_sphere<R: Requests>(&self, b: bool, requests: Arc<Mutex<R>>) {
         requests.lock().unwrap().set_small_sphere(b);
     }
 
-    pub fn scaffold_id_set<R: Requests>(&mut self, n: usize, b: bool, requests: Arc<Mutex<R>>) {
+    pub fn scaffold_id_set<R: Requests>(&self, n: usize, b: bool, requests: Arc<Mutex<R>>) {
         if b {
             requests.lock().unwrap().set_scaffold_id(Some(n))
         } else {
@@ -528,7 +523,7 @@ fn add_grid_content<'a, State: AppState>(
             "Persistent phantoms",
             info_values[0].parse::<bool>().unwrap()
         )
-        .on_toggle(|b| Message::SelectionValueChanged(0, bool_to_string(b)),)
+        .on_toggle(|b| Message::SelectionValueChanged(bool_to_string(b)),)
         .size(ui_size.checkbox())
         .text_size(ui_size.main_text()),
         checkbox("No sphere", info_values[1].parse::<bool>().unwrap())

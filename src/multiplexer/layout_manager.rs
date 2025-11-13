@@ -261,12 +261,12 @@ impl LayoutTree {
         self.area_identifiers.insert(element_type, area_ident);
     }
 
-    pub fn resize(&mut self, node_id: usize, new_prop: f64) {
+    pub fn resize(&self, node_id: usize, new_prop: f64) {
         self.areas[node_id].borrow_mut().resize(new_prop)
     }
 
     pub fn resize_click(
-        &mut self,
+        &self,
         node_id: usize,
         position: &PhysicalPosition<f64>,
         clicked_position: &PhysicalPosition<f64>,

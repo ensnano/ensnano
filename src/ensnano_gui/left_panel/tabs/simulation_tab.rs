@@ -64,7 +64,7 @@ impl<State: AppState> SimulationTab<State> {
         self.rigid_body_factory.requestable.brownian_motion = brownian_motion;
     }
 
-    pub fn make_rigid_body_request(&mut self, request: &mut Option<RigidBodyParametersRequest>) {
+    pub fn make_rigid_body_request(&self, request: &mut Option<RigidBodyParametersRequest>) {
         self.rigid_body_factory.make_request(request)
     }
 
@@ -93,7 +93,7 @@ impl<State: AppState> SimulationTab<State> {
         self.physical_simulation.request()
     }
 
-    pub fn leave_tab<R: Requests>(&mut self, requests: Arc<Mutex<R>>, app_state: &State) {
+    pub fn leave_tab<R: Requests>(&self, requests: Arc<Mutex<R>>, app_state: &State) {
         if app_state.get_simulation_state() == SimulationState::RigidGrid {
             self.request_stop_rigid_body_simulation(requests);
             println!("stop grids");
@@ -103,7 +103,7 @@ impl<State: AppState> SimulationTab<State> {
         }
     }
 
-    fn request_stop_rigid_body_simulation<R: Requests>(&mut self, requests: Arc<Mutex<R>>) {
+    fn request_stop_rigid_body_simulation<R: Requests>(&self, requests: Arc<Mutex<R>>) {
         let mut request = None;
         self.make_rigid_body_request(&mut request);
         if let Some(request) = request {

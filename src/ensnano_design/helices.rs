@@ -523,7 +523,7 @@ impl Helix {
     }
 
     pub fn translate_bezier_point(
-        &mut self,
+        &self,
         _bezier_point: BezierControlPoint,
         _translation: GridAwareTranslation,
     ) -> Result<(), ErrOperation> {

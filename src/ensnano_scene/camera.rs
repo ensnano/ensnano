@@ -403,7 +403,7 @@ impl CameraController {
         } * sensitivity;
     }
 
-    pub fn update_stereographic_zoom(&mut self, delta: &MouseScrollDelta) {
+    pub fn update_stereographic_zoom(&self, delta: &MouseScrollDelta) {
         let direction = match delta {
             MouseScrollDelta::LineDelta(_, scroll) => scroll.signum(),
             MouseScrollDelta::PixelDelta(PhysicalPosition { y: scroll, .. }) => {
@@ -695,7 +695,7 @@ impl CameraController {
         self.cam0 = camera.clone();
     }
 
-    pub fn resize(&mut self, size: PhySize) {
+    pub fn resize(&self, size: PhySize) {
         self.projection.borrow_mut().resize(size.width, size.height)
     }
 
@@ -751,7 +751,7 @@ impl CameraController {
 
     /// Modify the camera's rotor so that the camera looks at `point`.
     /// `point` is given in the world's coordinates
-    pub fn look_at_point(&mut self, point: Vec3, up: Vec3) {
+    pub fn look_at_point(&self, point: Vec3, up: Vec3) {
         let new_direction = (point - self.camera.borrow().position).normalized();
         let right = new_direction.cross(up);
         let matrix = Mat3::new(right, up, -new_direction);
@@ -810,7 +810,7 @@ impl CameraController {
         self.cam0.rotor = new_rotor;
     }
 
-    pub fn continuous_tilt(&mut self, angle_xy: f32) {
+    pub fn continuous_tilt(&self, angle_xy: f32) {
         let rotation = Rotor3::from_rotation_xy(angle_xy);
         let new_rotor = rotation * self.cam0.rotor;
         self.camera.borrow_mut().rotor = new_rotor;

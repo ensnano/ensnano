@@ -247,7 +247,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
         ret
     }
 
-    fn update_bezier<S: AppState>(&mut self, app_state: &S) {
+    fn update_bezier<S: AppState>(&self, app_state: &S) {
         let selected_helices =
             crate::ensnano_interactor::extract_helices_with_controls(app_state.get_selection());
         log::debug!("selected helices {:?}", selected_helices);
@@ -1245,7 +1245,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
     }
 
     /// Notify the view that the instances of candidates have changed
-    fn update_candidate<S: AppState>(&mut self, candidates: &[Selection], app_state: &S) {
+    fn update_candidate<S: AppState>(&self, candidates: &[Selection], app_state: &S) {
         self.view.borrow_mut().update(ViewUpdate::RawDna(
             Mesh::CandidateTube,
             self.get_candidate_tubes(candidates, app_state),
@@ -1268,7 +1268,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
         self.view.borrow_mut().set_candidate_grid(grids);
     }
 
-    fn update_pivot(&mut self) {
+    fn update_pivot(&self) {
         let mut spheres = vec![];
         if let Some(pivot) = self.pivot_position {
             let radius = {
@@ -1301,7 +1301,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
         self.pivot_update = true;
     }
 
-    fn update_free_xover(&mut self, candidates: &[Selection]) {
+    fn update_free_xover(&self, candidates: &[Selection]) {
         let mut spheres = vec![];
         let mut tubes = vec![];
         let mut pos1 = None;
@@ -1351,7 +1351,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
     }
 
     /// Notify the view that the set of instances have been modified.
-    fn update_instances<S: AppState>(&mut self, app_state: &S) {
+    fn update_instances<S: AppState>(&self, app_state: &S) {
         let mut spheres = Vec::with_capacity(10_000);
         let mut tubes = Vec::with_capacity(10_000);
         let mut tube_lids = Vec::with_capacity(10_000);
@@ -1477,7 +1477,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
         ));
     }
 
-    fn update_discs<S: AppState>(&mut self, app_state: &S) {
+    fn update_discs<S: AppState>(&self, app_state: &S) {
         let mut discs = Vec::new();
         let mut letters: Vec<Vec<LetterInstance>> = vec![vec![]; 10];
         let right = self.view.borrow().get_camera().borrow().right_vec();
@@ -1554,7 +1554,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
     }
 
     /// Notify the view of an update of the model matrices
-    fn update_matrices(&mut self) {
+    fn update_matrices(&self) {
         let mut matrices = Vec::new();
         for design in self.designs.iter() {
             matrices.push(design.get_model_matrix());

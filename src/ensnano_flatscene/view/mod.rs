@@ -530,7 +530,7 @@ impl View {
         }
     }
 
-    pub fn center_split(&mut self, n1: FlatNucl, n2: FlatNucl) {
+    pub fn center_split(&self, n1: FlatNucl, n2: FlatNucl) {
         let zoom = self.camera_top.borrow().get_globals().zoom;
         self.camera_bottom.borrow_mut().set_zoom(zoom);
         self.helices[n1.helix].make_visible(n1.flat_position, self.camera_top.clone());

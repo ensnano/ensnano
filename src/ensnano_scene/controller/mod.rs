@@ -440,7 +440,7 @@ impl<S: AppState> Controller<S> {
         self.shift_cam();
     }
 
-    pub fn continuous_tilt(&mut self, angle: f32) {
+    pub fn continuous_tilt(&self, angle: f32) {
         self.camera_controller.continuous_tilt(angle);
     }
 
@@ -452,7 +452,7 @@ impl<S: AppState> Controller<S> {
         self.camera_controller.stop_camera_movement()
     }
 
-    pub fn update_data(&mut self) {
+    pub fn update_data(&self) {
         self.update_handle_colors();
     }
 

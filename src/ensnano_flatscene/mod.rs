@@ -187,7 +187,7 @@ impl<S: AppState> FlatScene<S> {
     }
 
     /// Draw the view of the currently selected design
-    fn draw_view(&mut self, encoder: &mut wgpu::CommandEncoder, target: &wgpu::TextureView) {
+    fn draw_view(&self, encoder: &mut wgpu::CommandEncoder, target: &wgpu::TextureView) {
         if let Some(view) = self.view.get(self.selected_design) {
             log::trace!("draw flatscene");
             view.borrow_mut().draw(encoder, target, None, None);
@@ -223,7 +223,7 @@ impl<S: AppState> FlatScene<S> {
         }
     }
 
-    fn read_consequence(&mut self, consequence: controller::Consequence, new_state: Option<&S>) {
+    fn read_consequence(&self, consequence: controller::Consequence, new_state: Option<&S>) {
         let app_state = new_state.unwrap_or(&self.old_state);
         use controller::Consequence;
         match consequence {

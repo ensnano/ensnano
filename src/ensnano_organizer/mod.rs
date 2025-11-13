@@ -462,11 +462,7 @@ impl<E: OrganizerElement> Organizer<E> {
         None
     }
 
-    fn hover(
-        &mut self,
-        id: &NodeId<E::AutoGroup>,
-        hovered_in: bool,
-    ) -> Option<OrganizerMessage<E>> {
+    fn hover(&self, id: &NodeId<E::AutoGroup>, hovered_in: bool) -> Option<OrganizerMessage<E>> {
         if hovered_in {
             self.get_group(id)
                 .map(|g| OrganizerMessage::Candidates(g.get_all_elements_below()))
@@ -480,7 +476,7 @@ impl<E: OrganizerElement> Organizer<E> {
         }
     }
 
-    fn key_hover(&mut self, key: E::Key, hovered_in: bool) -> Option<OrganizerMessage<E>> {
+    fn key_hover(&self, key: E::Key, hovered_in: bool) -> Option<OrganizerMessage<E>> {
         if hovered_in {
             Some(OrganizerMessage::Candidates(vec![key]))
         } else if self.hovered_in.is_none() {
@@ -577,7 +573,7 @@ impl<E: OrganizerElement> Organizer<E> {
     }
 
     fn set_selection(
-        &mut self,
+        &self,
         key: &E::Key,
         mut current_selection: BTreeSet<E::Key>,
     ) -> BTreeSet<E::Key> {

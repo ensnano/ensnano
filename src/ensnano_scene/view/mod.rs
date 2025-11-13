@@ -439,7 +439,7 @@ impl View {
         }
     }
 
-    fn update_viewers(&mut self) {
+    fn update_viewers(&self) {
         self.viewer.update(&Uniforms::from_view_proj_fog(
             self.camera.clone(),
             self.projection.clone(),

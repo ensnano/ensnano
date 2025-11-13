@@ -350,7 +350,7 @@ impl<R: FlatSceneDesignReaderExt> Design2d<R> {
         }
     }
 
-    pub fn flip_group(&mut self, helix: FlatHelix) {
+    pub fn flip_group(&self, helix: FlatHelix) {
         self.requests
             .lock()
             .unwrap()

@@ -706,7 +706,7 @@ impl Controller {
     }
 
     fn set_visibility_helix(
-        &mut self,
+        &self,
         mut design: Design,
         helix: usize,
         visible: bool,
@@ -716,11 +716,7 @@ impl Controller {
         Ok(design)
     }
 
-    fn flip_helix_group(
-        &mut self,
-        mut design: Design,
-        helix: usize,
-    ) -> Result<Design, ErrOperation> {
+    fn flip_helix_group(&self, mut design: Design, helix: usize) -> Result<Design, ErrOperation> {
         let mut new_groups = BTreeMap::clone(design.groups.as_ref());
         log::info!("setting group {:?}", new_groups.get(&helix));
         match new_groups.remove(&helix) {
@@ -737,7 +733,7 @@ impl Controller {
     }
 
     fn set_group_pivot(
-        &mut self,
+        &self,
         mut design: Design,
         group_id: GroupId,
         pivot: GroupPivot,
@@ -750,7 +746,7 @@ impl Controller {
     }
 
     fn update_attribute(
-        &mut self,
+        &self,
         mut design: Design,
         attribute: DnaAttribute,
         elements: Vec<DesignElementKey>,
@@ -768,11 +764,7 @@ impl Controller {
         Ok(design)
     }
 
-    fn flip_anchors(
-        &mut self,
-        mut design: Design,
-        nucls: Vec<Nucl>,
-    ) -> Result<Design, ErrOperation> {
+    fn flip_anchors(&self, mut design: Design, nucls: Vec<Nucl>) -> Result<Design, ErrOperation> {
         let new_anchor_status = !nucls.iter().all(|n| design.anchors.contains(n));
         if new_anchor_status {
             for n in nucls.into_iter() {
@@ -1215,7 +1207,7 @@ impl Controller {
     }
 
     fn turn_selection_into_grid(
-        &mut self,
+        &self,
         mut design: Design,
         selection: Vec<Selection>,
     ) -> Result<Design, ErrOperation> {
@@ -1225,18 +1217,14 @@ impl Controller {
         Ok(design)
     }
 
-    fn add_grid(&mut self, mut design: Design, descriptor: GridDescriptor) -> Design {
+    fn add_grid(&self, mut design: Design, descriptor: GridDescriptor) -> Design {
         let mut new_grids = design.free_grids.make_mut();
         new_grids.push(descriptor);
         drop(new_grids);
         design
     }
 
-    fn add_bezier_plane(
-        &mut self,
-        mut design: Design,
-        descriptor: BezierPlaneDescriptor,
-    ) -> Design {
+    fn add_bezier_plane(&self, mut design: Design, descriptor: BezierPlaneDescriptor) -> Design {
         let mut new_planes = design.bezier_planes.make_mut();
         new_planes.push(descriptor);
         drop(new_planes);
@@ -1293,7 +1281,7 @@ impl Controller {
     }
 
     fn rm_bezier_vertices(
-        &mut self,
+        &self,
         mut design: Design,
         mut vertices: Vec<BezierVertexId>,
     ) -> Result<Design, ErrOperation> {
@@ -1380,7 +1368,7 @@ impl Controller {
 
     /// Set the position of a bezier vertex as a single revertible operation.
     fn set_bezier_vertex_position(
-        &mut self,
+        &self,
         mut design: Design,
         vertex_id: BezierVertexId,
         position: Vec2,
@@ -1403,7 +1391,7 @@ impl Controller {
     }
 
     fn make_bezier_path_cyclic(
-        &mut self,
+        &self,
         mut design: Design,
         path_id: BezierPathId,
         cyclic: bool,
@@ -1466,7 +1454,7 @@ impl Controller {
     }
 
     fn turn_bezier_path_into_grids(
-        &mut self,
+        &self,
         mut design: Design,
         path_id: BezierPathId,
         desc: GridTypeDescr,
@@ -1525,7 +1513,7 @@ impl Controller {
     }
 
     fn create_camera(
-        &mut self,
+        &self,
         mut design: Design,
         position: Vec3,
         orientation: Rotor3,
@@ -1535,7 +1523,7 @@ impl Controller {
         design
     }
 
-    fn delete_camera(&mut self, mut design: Design, id: CameraId) -> Result<Design, ErrOperation> {
+    fn delete_camera(&self, mut design: Design, id: CameraId) -> Result<Design, ErrOperation> {
         if !design.rm_camera(id) {
             Err(ErrOperation::CameraDoesNotExist(id))
         } else {
@@ -1544,7 +1532,7 @@ impl Controller {
     }
 
     fn set_camera_name(
-        &mut self,
+        &self,
         mut design: Design,
         id: CameraId,
         name: String,
@@ -1967,12 +1955,7 @@ impl Controller {
         design
     }
 
-    fn set_scaffold_sequence(
-        &mut self,
-        mut design: Design,
-        sequence: String,
-        shift: usize,
-    ) -> Design {
+    fn set_scaffold_sequence(&self, mut design: Design, sequence: String, shift: usize) -> Design {
         design.scaffold_sequence = Some(sequence);
         design.scaffold_shift = Some(shift);
         design
@@ -2002,7 +1985,7 @@ impl Controller {
     }
 
     fn set_helices_persistence(
-        &mut self,
+        &self,
         mut design: Design,
         grid_ids: Vec<GridId>,
         persistent: bool,
@@ -2017,12 +2000,7 @@ impl Controller {
         design
     }
 
-    fn set_small_spheres(
-        &mut self,
-        mut design: Design,
-        grid_ids: Vec<GridId>,
-        small: bool,
-    ) -> Design {
+    fn set_small_spheres(&self, mut design: Design, grid_ids: Vec<GridId>, small: bool) -> Design {
         for g_id in grid_ids.into_iter() {
             if small {
                 Arc::make_mut(&mut design.small_spheres).insert(g_id);
@@ -2064,7 +2042,7 @@ impl Controller {
     }
 
     fn set_isometry(
-        &mut self,
+        &self,
         mut design: Design,
         h_id: usize,
         segment: usize,
@@ -2087,7 +2065,7 @@ impl Controller {
     }
 
     fn apply_symmetry_to_helices(
-        &mut self,
+        &self,
         mut design: Design,
         helices_id: Vec<usize>,
         centers: Vec<Vec2>,
@@ -2185,7 +2163,7 @@ impl Controller {
     }
 
     fn strand_builder_on_existing(
-        &mut self,
+        &self,
         design: &Design,
         nucl: Nucl,
         ignored_domains: &[DomainIdentifier],
@@ -3005,11 +2983,7 @@ impl Controller {
         Ok(design)
     }
 
-    fn check_xovers(
-        &mut self,
-        mut design: Design,
-        xovers: Vec<usize>,
-    ) -> Result<Design, ErrOperation> {
+    fn check_xovers(&self, mut design: Design, xovers: Vec<usize>) -> Result<Design, ErrOperation> {
         let xovers_set = &mut design.checked_xovers;
         for x in xovers {
             if !xovers_set.insert(x) {
@@ -3235,7 +3209,7 @@ impl Controller {
     }
 
     fn delete_strands(
-        &mut self,
+        &self,
         mut design: Design,
         strand_ids: Vec<usize>,
     ) -> Result<Design, ErrOperation> {
@@ -3246,7 +3220,7 @@ impl Controller {
     }
 
     fn delete_helices(
-        &mut self,
+        &self,
         mut design: Design,
         helices_id: Vec<usize>,
     ) -> Result<Design, ErrOperation> {
@@ -3261,7 +3235,7 @@ impl Controller {
     }
 
     fn delete_free_grids(
-        &mut self,
+        &self,
         mut design: Design,
         grid_ids: Vec<usize>,
     ) -> Result<Design, ErrOperation> {
@@ -3285,7 +3259,7 @@ impl Controller {
     }
 
     fn set_grid_position(
-        &mut self,
+        &self,
         mut design: Design,
         grid_id: GridId,
         position: Vec3,
@@ -3305,7 +3279,7 @@ impl Controller {
     }
 
     fn set_grid_orientation(
-        &mut self,
+        &self,
         mut design: Design,
         grid_id: GridId,
         orientation: Rotor3,
@@ -3325,7 +3299,7 @@ impl Controller {
     }
 
     fn set_grid_nb_turn(
-        &mut self,
+        &self,
         mut design: Design,
         grid_id: GridId,
         x: f64,
@@ -3352,7 +3326,7 @@ impl Controller {
     }
 
     fn add_3d_object(
-        &mut self,
+        &self,
         mut design: Design,
         object_path: PathBuf,
         design_path: PathBuf,
@@ -3369,11 +3343,7 @@ impl Controller {
         Ok(design)
     }
 
-    fn import_svg_path(
-        &mut self,
-        mut design: Design,
-        path: PathBuf,
-    ) -> Result<Design, ErrOperation> {
+    fn import_svg_path(&self, mut design: Design, path: PathBuf) -> Result<Design, ErrOperation> {
         use crate::ensnano_design::BezierPlaneId;
 
         // The imported bezier path will be attached to plane 0 so we need to ensure that it exists

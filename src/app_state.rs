@@ -399,7 +399,7 @@ impl AppState {
         self.clone().with_interactor(new_interactor)
     }
 
-    pub fn finish_operation(&mut self) {
+    pub fn finish_operation(&self) {
         let pivot = *self.0.selection.pivot.read().unwrap();
         log::info!("Setting pivot {:?}", pivot);
         log::info!("was {:?}", self.0.selection.old_pivot.read().unwrap());
@@ -597,7 +597,7 @@ impl AppState {
         self.0.selection.selected_group
     }
 
-    pub fn set_current_group_pivot(&mut self, pivot: GroupPivot) {
+    pub fn set_current_group_pivot(&self, pivot: GroupPivot) {
         if self.0.selection.pivot.read().unwrap().is_none() {
             log::info!("resetting selection pivot {:?}", pivot);
             *self.0.selection.pivot.write().unwrap() = Some(pivot);
@@ -609,7 +609,7 @@ impl AppState {
         }
     }
 
-    pub fn translate_group_pivot(&mut self, translation: Vec3) {
+    pub fn translate_group_pivot(&self, translation: Vec3) {
         log::debug!("old pivot {:p}", Arc::as_ptr(&self.0.selection.old_pivot));
         log::info!("is {:?}", self.0.selection.old_pivot.read().unwrap());
         let new_pivot = {
@@ -626,7 +626,7 @@ impl AppState {
         *self.0.selection.pivot.write().unwrap() = Some(new_pivot);
     }
 
-    pub fn rotate_group_pivot(&mut self, rotation: Rotor3) {
+    pub fn rotate_group_pivot(&self, rotation: Rotor3) {
         log::debug!("old pivot {:p}", Arc::as_ptr(&self.0.selection.old_pivot));
         log::info!("is {:?}", self.0.selection.old_pivot.read().unwrap());
         let new_pivot = {

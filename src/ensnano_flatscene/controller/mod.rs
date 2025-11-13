@@ -22,11 +22,14 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! scene, that describes the consequences that the input must have on the view or the data held by
 //! the scene.
 
-use super::data::{ClickResult, FreeEnd};
+mod automata;
+
 use super::{
     ActionMode, AppState, CameraPtr, DataPtr, FlatHelix, FlatNucl, PhySize, PhysicalPosition,
     Selection, ViewPtr, WindowEvent,
+    data::{ClickResult, FreeEnd},
 };
+use automata::{ControllerState, NormalState, Transition, ctrl};
 use std::cell::RefCell;
 use ultraviolet::Vec2;
 use winit::{
@@ -34,9 +37,6 @@ use winit::{
     keyboard::{Key, ModifiersState, NamedKey},
     window::CursorIcon,
 };
-
-mod automata;
-use automata::{ControllerState, NormalState, Transition, ctrl};
 
 pub struct Controller<S: AppState> {
     view: ViewPtr,
@@ -146,7 +146,7 @@ impl<S: AppState> Controller<S> {
         }
     }
 
-    fn update_globals(&mut self) {
+    fn update_globals(&self) {
         if self.is_split {
             self.camera_top.borrow_mut().resize(
                 self.area_size.width as f32,
@@ -306,7 +306,7 @@ impl<S: AppState> Controller<S> {
         transition.consequences
     }
 
-    pub fn flip_split_views(&mut self) {
+    pub fn flip_split_views(&self) {
         self.camera_bottom
             .borrow_mut()
             .swap(&mut self.camera_top.borrow_mut())

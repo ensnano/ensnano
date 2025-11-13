@@ -117,7 +117,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
         self.design.id_map()
     }
 
-    pub fn update_highlight<S: AppState>(&mut self, new_state: &S) {
+    pub fn update_highlight<S: AppState>(&self, new_state: &S) {
         let mut selected_strands = HashSet::new();
         let mut candidate_strands = HashSet::new();
         let mut selected_xovers = HashSet::new();
@@ -418,16 +418,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
         }
     }
 
-    pub fn set_selected_helices(&mut self, helices: Vec<FlatHelix>) {
-        /*
-        for h in self.helices.iter_mut() {
-            h.set_color(HELIX_BORDER_COLOR);
-        }
-        for h in helices {
-            self.helices[h.flat].set_color(SELECTED_HELIX2D_COLOR);
-        }
-        self.instance_update = true;
-        */
+    pub fn set_selected_helices(&self, helices: Vec<FlatHelix>) {
         let new_selection = helices
             .into_iter()
             .map(|flat| Selection::Helix {
@@ -438,12 +429,6 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
             .collect();
         self.requests.lock().unwrap().new_selection(new_selection);
     }
-
-    /*
-    pub fn snap_helix(&mut self, pivot: FlatNucl, translation: Vec2) {
-        self.helices[pivot.helix.flat].snap(pivot, translation);
-        self.instance_update = true;
-    }*/
 
     pub fn move_handle(&mut self, helix: FlatHelix, handle: HelixHandle, position: Vec2) {
         let (left, right) = self.helices[helix.flat].move_handle(handle, position);
@@ -491,17 +476,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
         self.notify_update();
     }
 
-    /*
-    pub fn rotate_helix(&mut self, helix: FlatHelix, pivot: Vec2, angle: f32) {
-        self.helices[helix.flat].rotate(pivot, angle);
-        self.instance_update = true;
-    }*/
-
-    pub fn end_movement(&mut self) {
-        /*
-        for h in self.helices.iter_mut() {
-            h.end_movement()
-        }*/
+    pub fn end_movement(&self) {
         self.requests.lock().unwrap().suspend_op()
     }
 
@@ -665,7 +640,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
         self.design.flip_visibility(h_id, apply_to_other)
     }
 
-    pub fn flip_group(&mut self, h_id: FlatHelix) {
+    pub fn flip_group(&self, h_id: FlatHelix) {
         self.design.flip_group(h_id)
     }
 
@@ -797,7 +772,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
     }
 
     fn select_xovers_rectangle(
-        &mut self,
+        &self,
         camera: &CameraPtr,
         c1: Vec2,
         c2: Vec2,
@@ -870,7 +845,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
     }
 
     fn select_strands_rectangle(
-        &mut self,
+        &self,
         camera: &CameraPtr,
         c1: Vec2,
         c2: Vec2,

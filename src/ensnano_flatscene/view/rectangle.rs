@@ -145,7 +145,7 @@ impl Rectangle {
         render_pass.draw_indexed(0..4, 0, 0..1);
     }
 
-    fn update_vertices(&mut self, corners: Option<[Ndc; 2]>) {
+    fn update_vertices(&self, corners: Option<[Ndc; 2]>) {
         let vertices = if let Some([c1, c2]) = corners {
             let min_x = c1.x.min(c2.x);
             let max_x = c1.x.max(c2.x);

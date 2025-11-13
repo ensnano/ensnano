@@ -232,7 +232,7 @@ impl GltfDrawer {
     }
 
     pub fn draw<'a>(
-        &'a mut self,
+        &'a self,
         render_pass: &mut wgpu::RenderPass<'a>,
         viewer_bind_group: &'a wgpu::BindGroup,
     ) {
@@ -301,7 +301,7 @@ impl StlDrawer {
     }
 
     pub fn draw<'a>(
-        &'a mut self,
+        &'a self,
         render_pass: &mut wgpu::RenderPass<'a>,
         viewer_bind_group: &'a wgpu::BindGroup,
     ) {

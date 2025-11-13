@@ -120,4 +120,4 @@ single_call_fn = "allow"
 single_char_lifetime_names = "allow"
 
 # suspicious
-arc_with_non_send_sync = "allow" # TODO: remove
+arc_with_non_send_sync = "allow" # TODO: remove (requires understand the multiplexer)

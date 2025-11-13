@@ -151,7 +151,7 @@ impl<S: AppState> Scene<S> {
     }
 
     /// Remove all designs
-    fn clear_design(&mut self) {
+    fn clear_design(&self) {
         self.data.borrow_mut().clear_designs()
     }
 
@@ -541,7 +541,7 @@ impl<S: AppState> Scene<S> {
     }
 
     /// Request a cross-over between two nucleotides.
-    fn attempt_xover(&mut self, mut source: Nucl, mut target: Nucl, design_id: usize, magic: bool) {
+    fn attempt_xover(&self, mut source: Nucl, mut target: Nucl, design_id: usize, magic: bool) {
         if magic
             && let Some(opt) = self
                 .older_state
@@ -570,7 +570,7 @@ impl<S: AppState> Scene<S> {
         grid.or_else(move || self.element_selector.set_selected_id(clicked_pixel))
     }
 
-    fn select(&mut self, element: Option<SceneElement>, app_state: &S) {
+    fn select(&self, element: Option<SceneElement>, app_state: &S) {
         let (selection, center_of_selection) =
             self.data.borrow_mut().set_selection(element, app_state);
         if let Some(selection) = selection {
@@ -582,7 +582,7 @@ impl<S: AppState> Scene<S> {
     }
 
     fn add_selection(
-        &mut self,
+        &self,
         element: Option<SceneElement>,
         current_selection: &[Selection],
         app_state: &S,
@@ -599,7 +599,7 @@ impl<S: AppState> Scene<S> {
         }
     }
 
-    fn attempt_paste(&mut self, element: Option<SceneElement>) {
+    fn attempt_paste(&self, element: Option<SceneElement>) {
         if let Some(SceneElement::GridCircle(_, gp)) = element {
             log::info!("Attempt past on {:?}", gp);
             self.requests.lock().unwrap().attempt_paste_on_grid(gp);
@@ -625,7 +625,7 @@ impl<S: AppState> Scene<S> {
         }
     }
 
-    fn set_candidate(&mut self, element: Option<SceneElement>, app_state: &S) {
+    fn set_candidate(&self, element: Option<SceneElement>, app_state: &S) {
         let new_candidates = self.data.borrow_mut().set_candidate(element, app_state);
         let widget = if let Some(SceneElement::WidgetElement(widget_id)) = element {
             Some(widget_id)
@@ -641,7 +641,7 @@ impl<S: AppState> Scene<S> {
         self.requests.lock().unwrap().set_candidate(selection);
     }
 
-    fn translate_selected_design(&mut self, translation: Vec3, app_state: &S) {
+    fn translate_selected_design(&self, translation: Vec3, app_state: &S) {
         let rotor = self.data.borrow().get_widget_basis(app_state);
         self.view.borrow_mut().translate_widgets(translation);
         if rotor.is_none() {
@@ -716,7 +716,7 @@ impl<S: AppState> Scene<S> {
             .update_operation(translation_op);
     }
 
-    fn translate_group_pivot(&mut self, translation: Vec3) {
+    fn translate_group_pivot(&self, translation: Vec3) {
         self.view.borrow_mut().translate_widgets(translation);
         self.requests
             .lock()
@@ -725,7 +725,7 @@ impl<S: AppState> Scene<S> {
     }
 
     fn rotate_selected_design(
-        &mut self,
+        &self,
         rotation: Rotor3,
         origin: Vec3,
         positive: bool,
@@ -829,7 +829,7 @@ impl<S: AppState> Scene<S> {
 
     /// Draw the scene
     fn draw_view(
-        &mut self,
+        &self,
         encoder: &mut wgpu::CommandEncoder,
         target: &wgpu::TextureView,
         app_state: &S,
@@ -1136,7 +1136,7 @@ impl<S: AppState> Scene<S> {
             .resize(self.controller.get_window_size(), self.area);
     }
 
-    pub fn fog_request(&mut self, fog: FogParameters) {
+    pub fn fog_request(&self, fog: FogParameters) {
         if !self.is_stereographic() {
             self.view.borrow_mut().update(ViewUpdate::Fog(fog))
         }

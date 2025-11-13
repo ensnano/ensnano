@@ -200,7 +200,7 @@ impl UniformBindGroup {
         }
     }
 
-    pub fn update<I: bytemuck::Pod>(&mut self, new_data: &I) {
+    pub fn update<I: bytemuck::Pod>(&self, new_data: &I) {
         self.queue
             .write_buffer(&self.buffer, 0, bytemuck::cast_slice(&[*new_data]));
     }

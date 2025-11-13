@@ -133,7 +133,7 @@ pub enum Message<S: AppState> {
     BrownianMotion(bool),
     Nothing,
     CancelHyperboloid,
-    SelectionValueChanged(usize, String),
+    SelectionValueChanged(String),
     SetSmallSpheres(bool),
     ScaffoldIdSet(usize, bool),
     SelectScaffold,
@@ -706,9 +706,9 @@ where
                 self.requests.lock().unwrap().cancel_hyperboloid();
                 Command::none()
             }
-            Message::SelectionValueChanged(n, s) => {
+            Message::SelectionValueChanged(s) => {
                 self.contextual_panel
-                    .selection_value_changed(n, s, Arc::clone(&self.requests));
+                    .selection_value_changed(s, Arc::clone(&self.requests));
                 Command::none()
             }
             Message::SetSmallSpheres(b) => {

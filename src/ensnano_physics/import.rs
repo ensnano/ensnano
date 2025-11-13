@@ -174,8 +174,8 @@ pub fn generate_springs(
         Option<ColliderHandle>,
         Option<ColliderHandle>,
     ),
-    rigid_body_set: &mut RigidBodySet,
-    collider_set: &mut ColliderSet,
+    rigid_body_set: &RigidBodySet,
+    collider_set: &ColliderSet,
     impulse_joint_set: &mut ImpulseJointSet,
 ) {
     if from.1.is_some() && from.2.is_some() && to.1.is_some() && to.2.is_some() {
@@ -228,8 +228,8 @@ fn link_with_springs(
     right_a: ColliderHandle,
     left_b: ColliderHandle,
     right_b: ColliderHandle,
-    rigid_body_set: &mut RigidBodySet,
-    collider_set: &mut ColliderSet,
+    rigid_body_set: &RigidBodySet,
+    collider_set: &ColliderSet,
     impulse_joint_set: &mut ImpulseJointSet,
 ) {
     let a_handle = collider_set.get(left_a).unwrap().parent().unwrap();
@@ -294,7 +294,7 @@ fn create_spring(
 fn generate_single_spring(
     from: (RigidBodyHandle, ColliderHandle),
     to: (RigidBodyHandle, ColliderHandle),
-    collider_set: &mut ColliderSet,
+    collider_set: &ColliderSet,
     impulse_joint_set: &mut ImpulseJointSet,
 ) {
     let anchor1 = collider_set

@@ -247,7 +247,7 @@ impl CameraShortcutPanel {
 }
 
 impl CameraShortcutPanel {
-    pub fn update<State: AppState>(&mut self, app_state: &mut State) -> Command<Message<State>> {
+    pub fn update<State: AppState>(&mut self, app_state: &State) -> Command<Message<State>> {
         self.set_camera_widget(app_state);
         Command::none()
     }

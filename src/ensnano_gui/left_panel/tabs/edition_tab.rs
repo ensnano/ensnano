@@ -72,7 +72,7 @@ impl<State: AppState> EditionTab<State> {
             .update_request(value_id, value, request);
     }
 
-    pub fn get_roll_request(&mut self, selection: &[DesignElementKey]) -> Option<RollRequest> {
+    pub fn get_roll_request(&self, selection: &[DesignElementKey]) -> Option<RollRequest> {
         let roll_target_helices = self.get_roll_target_helices(selection);
         if !roll_target_helices.is_empty() {
             Some(RollRequest {
@@ -83,7 +83,7 @@ impl<State: AppState> EditionTab<State> {
         }
     }
 
-    pub fn current_strand_color(&mut self) -> u32 {
+    pub fn current_strand_color(&self) -> u32 {
         let color = self.color_picker.current_color();
         super::color_to_u32(color)
     }
