@@ -82,6 +82,7 @@ impl SimulationSetup for FullSimulationSetup {
     }
 }
 
+#[allow(dead_code)]
 pub struct RigidHelicesSetup;
 
 impl SimulationSetup for RigidHelicesSetup {
@@ -209,7 +210,6 @@ pub fn build_simulation<S: SimulationSetup>(
     build_free_springs(
         intermediary_representation,
         &nucleotide_body_map,
-        helices,
         &collider_set,
         &mut impulse_joint_set,
     );
@@ -516,15 +516,10 @@ fn build_strong_springs(
 fn build_free_springs(
     intermediary_representation: &HashMap<usize, IntermediaryHelix>,
     nucleotide_body_map: &HashMap<u32, ColliderHandle>,
-    helices: &Helices,
     collider_set: &ColliderSet,
     impulse_joint_set: &mut ImpulseJointSet,
 ) {
-    for (id, intermediary) in intermediary_representation {
-        let helix = helices
-            .get(id)
-            .expect("Couldn't find an helix in spring creation");
-
+    for intermediary in intermediary_representation.values() {
         for range in &intermediary.single_ranges {
             // we extend the range to connect to the external bits
             let extended_range = range.start - 1..range.end + 1;

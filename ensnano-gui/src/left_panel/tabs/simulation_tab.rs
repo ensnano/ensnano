@@ -234,6 +234,7 @@ where
         text(&description),
         keyboard_priority(
             "Rapier parameters ".to_owned() + &description,
+            Message::<State>::SetKeyboardPriority,
             text_input(&current_value, &current_value).on_input(move |str| {
                 match str.parse::<f32>() {
                     Ok(new_value) => message_builder(new_value),
@@ -241,7 +242,6 @@ where
                 }
             })
         )
-        .on_priority(Message::<State>::SetKeyboardPriority),
     ]
     .into()
 }

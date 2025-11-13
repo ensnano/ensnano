@@ -128,11 +128,11 @@ impl CameraWidget {
         let name_field: ensnano_iced::Element<'_, _> = if self.being_edited {
             keyboard_priority(
                 "Camera name",
+                Message::SetKeyboardPriority,
                 text_input("Camera name", &self.name)
                     .on_input(Message::EditCameraName)
                     .on_submit(Message::SubmitCameraName),
             )
-            .on_priority(Message::SetKeyboardPriority)
             .into()
         } else {
             text(&self.name).into()

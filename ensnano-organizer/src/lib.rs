@@ -1075,12 +1075,12 @@ impl<E: OrganizerElement> NodeTitleBar<E> {
                     Space::with_width(5.0),
                     keyboard_priority(
                         "New group name...",
+                        OrganizerMessage::SetKeyboardPriority,
                         text_input("New group name...", &name)
                             .id(self.name_input_id.clone())
                             .on_input(|s| { OrganizerMessage::name_input(s) })
                             .on_submit(OrganizerMessage::stop_edit())
-                    )
-                    .on_priority(OrganizerMessage::SetKeyboardPriority),
+                    ),
                     horizontal_space(),
                     button(plus_icon())
                         .on_press(OrganizerMessage::add_selection_to_group(id.clone())), // TODO: change icon later !!!

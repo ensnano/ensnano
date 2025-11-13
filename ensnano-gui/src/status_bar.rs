@@ -370,10 +370,11 @@ impl OperationInput {
                 row = row
                     .spacing(20)
                     .push(text(param).size(ui_size.main_text()))
-                    .push(
-                        keyboard_priority("Status bar unamed priority", input)
-                            .on_priority(Message::SetKeyboardPriority),
-                    )
+                    .push(keyboard_priority(
+                        "Status bar unamed priority",
+                        Message::SetKeyboardPriority,
+                        input,
+                    ))
             }
         }
         if need_validation {

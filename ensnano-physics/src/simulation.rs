@@ -3,7 +3,7 @@ use ahash::HashMap;
 use ensnano_interactor::ObjectType;
 
 use crate::{
-    full_simulation::{CutHelicesSetup, RigidHelicesSetup, build_simulation},
+    full_simulation::{CutHelicesSetup, build_simulation},
     helices::build_helices,
 };
 use ensnano_design::{Helices, HelixParameters, Nucl};
