@@ -112,13 +112,12 @@ style = { level = "warn", priority = -1 }
 suspicious = { level = "deny", priority = -1 }
 
 # cargo
+blanket_clippy_restriction_lints = "allow"
 multiple_crate_versions = "allow"
 
-# pedantic (TODO: remove section once activated)
-wildcard_imports = "warn"
-
-# restriction (TODO: remove section once activated)
-get_unwrap = "warn"
+# restriction
+single_call_fn = "allow"
+single_char_lifetime_names = "allow"
 
 # suspicious
 arc_with_non_send_sync = "allow" # TODO: remove
