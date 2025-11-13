@@ -82,7 +82,7 @@ pub struct FreeGridsMut<'a> {
     new_map: BTreeMap<FreeGridId, Arc<GridDescriptor>>,
 }
 
-impl<'a> FreeGridsMut<'a> {
+impl FreeGridsMut<'_> {
     pub fn push(&mut self, desc: GridDescriptor) -> GridId {
         let new_key = self
             .new_map
@@ -109,7 +109,7 @@ impl<'a> FreeGridsMut<'a> {
     }
 }
 
-impl<'a> Drop for FreeGridsMut<'a> {
+impl Drop for FreeGridsMut<'_> {
     fn drop(&mut self) {
         *self.source = FreeGrids(Arc::new(std::mem::take(&mut self.new_map)))
     }

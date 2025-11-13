@@ -23,9 +23,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! In such a state, cursor movement all cursor movement have similar consequences such has moving
 //! the camera or moving an object.
 
-use crate::ensnano_design::BezierVertexId;
-
 use super::*;
+use crate::ensnano_design::BezierVertexId;
 
 pub(super) struct DraggedCursor<'a, 'b, S: AppState> {
     /// The cursor position when the mouse button was pressed
@@ -165,11 +164,7 @@ impl<S: AppState, Table: DraggingTransitionTable> ControllerState<S> for Draggin
         Table::description().into()
     }
 
-    fn input<'a>(
-        &mut self,
-        event: &WindowEvent,
-        mut context: EventContext<'a, S>,
-    ) -> Transition<S> {
+    fn input(&mut self, event: &WindowEvent, mut context: EventContext<'_, S>) -> Transition<S> {
         match event {
             WindowEvent::MouseInput {
                 button,

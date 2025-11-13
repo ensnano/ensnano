@@ -19,12 +19,19 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! Export to pdb file format. The method used here is an adaptation from the one used in
 //! [tacOxDNA](https://github.com/lorenzo-rovigatti/tacoxDNA)
 
-use super::PathBuf;
 use crate::ensnano_design::{Design, Domain, HelixCollection, Nucl};
 use crate::ensnano_exports::BasisMapper;
 use crate::ensnano_exports::oxdna::{OXDNA_LEN_FACTOR, OxDnaHelix};
 use ahash::AHashMap;
-use std::borrow::Cow;
+use itertools::Itertools as _;
+use std::{
+    borrow::Cow,
+    fmt::Write as _,
+    fs::File,
+    io::Write as _,
+    mem::ManuallyDrop,
+    path::{Path, PathBuf},
+};
 use ultraviolet::{Mat3, Rotor3, Vec3};
 
 const MAX_ATOM_SERIAL_NUMBER: usize = 99_999;
@@ -201,7 +208,6 @@ impl PdbNucleotide {
         };
         let ring_atom_names = ["C2", "C4", "C5", "C6", "N1", "N3"];
 
-        use itertools::Itertools;
         for perm in ring_atom_names.iter().permutations(3) {
             let p = get_base_atom(perm[0])?;
             let q = get_base_atom(perm[1])?;
@@ -466,7 +472,6 @@ impl PdbAtom {
 
     fn pdb_repr(&self, residue_type: ResidueType) -> Result<String, std::fmt::Error> {
         // https://www.cgl.ucsf.edu/chimera/docs/UsersGuide/tutorials/framepdbintro.html
-        use std::fmt::Write;
         let mut ret = String::with_capacity(80);
         write!(&mut ret, "ATOM")?; // 1-4
         ret.push_str("  "); // 5-6
@@ -568,8 +573,6 @@ pub enum PdbAtomParseError {
     InvalidCoordinateZ,
 }
 
-use std::fs::File;
-use std::mem::ManuallyDrop;
 pub struct PdbFormatter {
     out_file: File,
     current_strand_id: usize,
@@ -598,7 +601,6 @@ impl NucleicAcidKind {
     }
 }
 
-use std::path::Path;
 impl PdbFormatter {
     pub fn new<P: AsRef<Path>>(path: P, nu_kind: NucleicAcidKind) -> Result<Self, PdbError> {
         let out_file = std::fs::File::create(path).map_err(PdbError::IOError)?;
@@ -617,7 +619,7 @@ impl PdbFormatter {
     }
 
     /// Create a new strand. The returned value must be dropped with `PdbStrand::write`.
-    pub fn start_strand<'a>(&'a mut self, cyclic: bool) -> PdbStrand<'a> {
+    pub fn start_strand(&mut self, cyclic: bool) -> PdbStrand<'_> {
         PdbStrand {
             pdb_formatter: ManuallyDrop::new(self),
             nucleotides: Vec::new(),
@@ -675,7 +677,6 @@ impl PdbStrand<'_> {
 
         let to_write = nucls_strs.join("\n");
 
-        use std::io::Write;
         writeln!(&mut pdb_formatter.out_file, "{to_write}").map_err(PdbError::IOError)?;
 
         pdb_formatter.current_strand_id += 1;

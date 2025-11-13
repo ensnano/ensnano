@@ -190,7 +190,7 @@ impl Design {
     /// `UpToDateDesign` reference to the data.
     /// Having an option to not mutate the design is meant to prevent unnecessary run-time cloning
     /// of the design
-    pub fn try_get_up_to_date<'a>(&'a self) -> Option<UpToDateDesign<'a>> {
+    pub fn try_get_up_to_date(&self) -> Option<UpToDateDesign<'_>> {
         let paths_data = self
             .instantiated_paths
             .as_ref()
@@ -211,7 +211,7 @@ impl Design {
     }
 
     /// Update self if necessary and returns an up-to-date reference to self.
-    pub fn get_up_to_date<'a>(&'a mut self) -> UpToDateDesign<'a> {
+    pub fn get_up_to_date(&mut self) -> UpToDateDesign<'_> {
         let helix_parameters = self
             .helix_parameters
             .as_ref()

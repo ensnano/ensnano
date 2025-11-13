@@ -131,8 +131,12 @@ multiple_crate_versions = "allow"
 missing_const_for_fn = "allow" # TODO: warn
 
 # restriction
+arbitrary_source_item_ordering = "allow" # TODO: warn (requires some thought and configuration)
+as_conversions = "allow"
+cast_precision_loss = "allow"
 else_if_without_else = "allow"
 implicit_return = "allow"
+min_ident_chars = "allow"
 missing_docs_in_private_items = "allow" # TODO: warn (major undertaking)
 multiple_inherent_impl = "allow" # TODO: warn once clippy 1.92 gets out
 same_name_method = "allow" # TODO: warn once single-impl traits are removed

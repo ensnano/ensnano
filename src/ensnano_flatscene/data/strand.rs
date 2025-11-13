@@ -15,14 +15,14 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
 use super::super::view::InsertionInstance;
 use super::helix::{Helix, Shift};
 use super::{CameraPtr, FlatNucl};
-use lyon::tessellation::{StrokeVertex, StrokeVertexConstructor};
 use lyon::{
     math::Point,
     path::{Path, path::BuilderWithAttributes},
-    tessellation,
+    tessellation::{self, StrokeVertex, StrokeVertexConstructor},
 };
 use ultraviolet::Vec2;
 
@@ -294,7 +294,7 @@ struct TwoCameraAndPoints<'a> {
 
 /// Return true if `a` and `b` are both visible by exactly one camera, and each camera can see
 /// exactly one of the points.
-fn one_point_one_camera<'a>(input: TwoCameraAndPoints<'a>) -> bool {
+fn one_point_one_camera(input: TwoCameraAndPoints<'_>) -> bool {
     let a = input.point_1;
     let b = input.point_2;
     let my_cam = input.cam_1;

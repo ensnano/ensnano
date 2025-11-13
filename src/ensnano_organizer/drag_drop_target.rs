@@ -1,4 +1,6 @@
 //! Allow your users to drag and drop widgets.
+
+use super::OrganizerMessage;
 use crate::ensnano_iced::iced::{
     Element, Length, Padding, Rectangle, Size, Vector,
     advanced::{
@@ -10,8 +12,6 @@ use crate::ensnano_iced::iced::{
     alignment, event, overlay,
     widget::container,
 };
-
-use super::OrganizerMessage;
 
 /// Identifier for drag-drop widgets.
 #[derive(Debug, Clone, PartialOrd, PartialEq, Eq, Ord)]
@@ -41,8 +41,8 @@ impl<'a, Message, Theme, Renderer, K, E> DragDropTarget<'a, Message, Theme, Rend
     }
 }
 
-impl<'a, E, Theme, Renderer> Widget<OrganizerMessage<E>, Theme, Renderer>
-    for DragDropTarget<'a, OrganizerMessage<E>, Theme, Renderer, E::Key, E::AutoGroup>
+impl<E, Theme, Renderer> Widget<OrganizerMessage<E>, Theme, Renderer>
+    for DragDropTarget<'_, OrganizerMessage<E>, Theme, Renderer, E::Key, E::AutoGroup>
 where
     E: super::OrganizerElement,
     Renderer: renderer::Renderer,

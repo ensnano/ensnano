@@ -16,7 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use crate::ensnano_design::{Axis, Domain, Nucl, OwnedAxis};
+use crate::ensnano_design::{Axis, Design, Domain, Nucl, OwnedAxis};
 use std::cmp::Ordering;
 
 #[derive(Clone, Debug)]
@@ -342,7 +342,7 @@ impl StrandBuilder {
         }
     }
 
-    pub fn get_axis<'a>(&'a self) -> Axis<'a> {
+    pub fn get_axis(&self) -> Axis<'_> {
         self.axis.borrow()
     }
 
@@ -400,7 +400,6 @@ impl DomainIdentifier {
     }
 }
 
-use crate::ensnano_design::Design;
 pub trait NeighborDescriptorGiver {
     fn get_neighbor_nucl(&self, nucl: Nucl) -> Option<NeighborDescriptor>;
 }

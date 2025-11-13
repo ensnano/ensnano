@@ -65,7 +65,7 @@ impl<S: AppState> Transition<S> {
 }
 
 pub(super) trait ControllerState<S: AppState> {
-    fn input<'a>(&mut self, event: &WindowEvent, context: EventContext<'a, S>) -> Transition<S>;
+    fn input(&mut self, event: &WindowEvent, context: EventContext<'_, S>) -> Transition<S>;
 
     fn display(&self) -> Cow<'static, str>;
 
@@ -89,7 +89,7 @@ pub(super) trait ControllerState<S: AppState> {
         None
     }
 
-    fn give_context<'a>(&mut self, _context: EventContext<'a, S>) {}
+    fn give_context(&mut self, _context: EventContext<'_, S>) {}
 }
 
 pub struct NormalState {
@@ -97,11 +97,7 @@ pub struct NormalState {
 }
 
 impl<S: AppState> ControllerState<S> for NormalState {
-    fn input<'a>(
-        &mut self,
-        event: &WindowEvent,
-        mut context: EventContext<'a, S>,
-    ) -> Transition<S> {
+    fn input(&mut self, event: &WindowEvent, mut context: EventContext<'_, S>) -> Transition<S> {
         match event {
             WindowEvent::CursorMoved { .. } if context.is_pasting() => {
                 self.mouse_position = context.cursor_position;

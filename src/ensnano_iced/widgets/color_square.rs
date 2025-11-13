@@ -1,5 +1,4 @@
 //! A widget to Visualize selected color.
-use std::marker::PhantomData;
 
 use iced::{
     Color, Length, Rectangle, Size, Vector,
@@ -16,6 +15,7 @@ use iced_graphics::{
     mesh::{Indexed, Mesh, SolidVertex2D},
 };
 use iced_wgpu as wgpu;
+use std::marker::PhantomData;
 
 const DEFAULT_SIZE: f32 = 90.0;
 
@@ -73,8 +73,8 @@ impl<'a, Message, Theme> ColorSquare<'a, Message, Theme, iced::Renderer> {
     }
 }
 
-impl<'a, Message, Theme> Widget<Message, Theme, iced::Renderer>
-    for ColorSquare<'a, Message, Theme, iced::Renderer>
+impl<Message, Theme> Widget<Message, Theme, iced::Renderer>
+    for ColorSquare<'_, Message, Theme, iced::Renderer>
 where
     Message: Clone,
 {

@@ -278,7 +278,7 @@ impl CadnanoExporter {
         }
     }
 
-    fn new_strand<'a>(&'a mut self) -> CadnanoStrand<'a> {
+    fn new_strand(&mut self) -> CadnanoStrand<'_> {
         CadnanoStrand {
             exporter: self,
             previous_nucl: None,

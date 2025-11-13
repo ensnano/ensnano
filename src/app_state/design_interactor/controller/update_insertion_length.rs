@@ -145,10 +145,10 @@ impl Controller {
 
 /// If there already is an insertion at insertion point, return a mutable reference to its
 /// length. Otherwise return None
-fn get_insertion_length_mut<'a>(
-    strand: &'a mut Strand,
+fn get_insertion_length_mut(
+    strand: &mut Strand,
     insertion_point: InsertionPoint,
-) -> Option<InsertionMut<'a>> {
+) -> Option<InsertionMut<'_>> {
     let mut insertion_id: Option<usize> = None;
     let domains_iterator: Box<dyn Iterator<Item = ((usize, &Domain), (usize, &Domain))>> =
         if strand.is_cyclic {

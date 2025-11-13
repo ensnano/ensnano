@@ -1,6 +1,6 @@
 //! A widget to select Lightness and Saturation values.
-use std::marker::PhantomData;
 
+use color_space::{Hsv, Rgb};
 use iced::{
     Length, Point, Rectangle, Size, Vector,
     advanced::{
@@ -15,8 +15,7 @@ use iced_graphics::{
     mesh::{Indexed, Mesh, SolidVertex2D},
 };
 use iced_wgpu as wgpu;
-
-use color_space::{Hsv, Rgb};
+use std::marker::PhantomData;
 
 const DEFAULT_SIZE: f32 = 360.0;
 
@@ -85,8 +84,8 @@ impl<'a, Message, Theme> LightSatSquare<'a, Message, Theme, iced::Renderer> {
     }
 }
 
-impl<'a, Message, Theme> Widget<Message, Theme, iced::Renderer>
-    for LightSatSquare<'a, Message, Theme, iced::Renderer>
+impl<Message, Theme> Widget<Message, Theme, iced::Renderer>
+    for LightSatSquare<'_, Message, Theme, iced::Renderer>
 where
     Message: Clone,
 {

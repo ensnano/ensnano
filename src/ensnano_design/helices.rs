@@ -34,7 +34,7 @@ use ultraviolet::{DRotor3, DVec3, Isometry2, Mat4, Rotor2, Rotor3, Vec2, Vec3};
 pub struct Helices(pub(super) Arc<BTreeMap<usize, Arc<Helix>>>);
 
 impl Helices {
-    pub fn make_mut<'a>(&'a mut self) -> HelicesMut<'a> {
+    pub fn make_mut(&mut self) -> HelicesMut<'_> {
         let new_map = BTreeMap::clone(self.0.as_ref());
         HelicesMut {
             source: self,
@@ -65,7 +65,7 @@ impl HasHelixCollection for Helices {
     }
 }
 
-impl<'a> HasHelixCollection for HelicesMut<'a> {
+impl HasHelixCollection for HelicesMut<'_> {
     fn get_collection(&self) -> &BTreeMap<usize, Arc<Helix>> {
         &self.new_map
     }
@@ -109,7 +109,7 @@ pub struct HelicesMut<'a> {
     new_map: BTreeMap<usize, Arc<Helix>>,
 }
 
-impl<'a> HelicesMut<'a> {
+impl HelicesMut<'_> {
     pub fn get_mut(&mut self, id: &usize) -> Option<&mut Helix> {
         self.new_map.get_mut(id).map(|arc| {
             // For the same reasons as above, ensure that a new helix is created so that the
@@ -156,13 +156,13 @@ impl<'a> HelicesMut<'a> {
     }
 }
 
-impl<'a> AsRef<Helices> for HelicesMut<'a> {
+impl AsRef<Helices> for HelicesMut<'_> {
     fn as_ref(&self) -> &Helices {
         self.source
     }
 }
 
-impl<'a> Drop for HelicesMut<'a> {
+impl Drop for HelicesMut<'_> {
     fn drop(&mut self) {
         *self.source = Helices(Arc::new(std::mem::take(&mut self.new_map)))
     }
@@ -1052,7 +1052,7 @@ pub enum OwnedAxis {
     },
 }
 
-impl<'a> Axis<'a> {
+impl Axis<'_> {
     pub fn to_owned(self) -> OwnedAxis {
         match self {
             Self::Line { origin, direction } => OwnedAxis::Line { origin, direction },
@@ -1074,7 +1074,7 @@ impl<'a> Axis<'a> {
 }
 
 impl OwnedAxis {
-    pub fn borrow<'a>(&'a self) -> Axis<'a> {
+    pub fn borrow(&self) -> Axis<'_> {
         match self {
             Self::Line { origin, direction } => Axis::Line {
                 origin: *origin,
@@ -1097,7 +1097,7 @@ impl OwnedAxis {
     }
 }
 
-impl<'a> Axis<'a> {
+impl Axis<'_> {
     pub fn transformed(&self, model_matrix: &Mat4) -> Self {
         match self {
             Self::Line {

@@ -83,7 +83,7 @@ mod hue_column {
         //       than None.
     }
 
-    impl<'a, Message> HueColumn<'a, Message> {
+    impl<Message> HueColumn<'_, Message> {
         pub fn new<F>(on_slide: F) -> Self
         where
             F: 'static + Fn(f64) -> Message,
@@ -94,8 +94,8 @@ mod hue_column {
         }
     }
 
-    impl<'a, Message> Widget<Message, crate::ensnano_iced::Theme, crate::ensnano_iced::Renderer>
-        for HueColumn<'a, Message>
+    impl<Message> Widget<Message, crate::ensnano_iced::Theme, crate::ensnano_iced::Renderer>
+        for HueColumn<'_, Message>
     {
         fn state(&self) -> widget::tree::State {
             widget::tree::State::Some(Box::new(HueColumnState::default()))

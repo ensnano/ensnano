@@ -158,11 +158,7 @@ impl<S: AppState> PointAndClicking<S> {
 }
 
 impl<S: AppState> ControllerState<S> for PointAndClicking<S> {
-    fn input<'a>(
-        &mut self,
-        event: &WindowEvent,
-        mut context: EventContext<'a, S>,
-    ) -> Transition<S> {
+    fn input(&mut self, event: &WindowEvent, mut context: EventContext<'_, S>) -> Transition<S> {
         let position = context.cursor_position;
         match event {
             WindowEvent::CursorMoved { .. } => {
@@ -238,7 +234,7 @@ impl<S: AppState> ControllerState<S> for PointAndClicking<S> {
         Transition::nothing()
     }
 
-    fn give_context<'a>(&mut self, mut context: EventContext<'a, S>) {
+    fn give_context(&mut self, mut context: EventContext<'_, S>) {
         if let Some(transition_maker) = self.long_hold_state_maker.as_ref() {
             let position = context.cursor_position;
             self.long_hold_state = Some(OptionalTransitionPtr::Owned(transition_maker(
@@ -411,8 +407,8 @@ impl<S: AppState> PointAndClicking<S> {
     }
 }
 
-fn making_xover_maker<'a, S: AppState>(
-    context: &mut EventContext<'a, S>,
+fn making_xover_maker<S: AppState>(
+    context: &mut EventContext<'_, S>,
     _click: ClickInfo,
 ) -> Box<dyn OptionalTransition<S>> {
     let origin = context.get_xover_origin_under_cursor();

@@ -147,7 +147,7 @@ pub struct BezierPlanesMut<'a> {
     new_map: BTreeMap<BezierPlaneId, Arc<BezierPlaneDescriptor>>,
 }
 
-impl<'a> BezierPlanesMut<'a> {
+impl BezierPlanesMut<'_> {
     pub fn push(&mut self, desc: BezierPlaneDescriptor) {
         let new_key = self
             .new_map
@@ -159,7 +159,7 @@ impl<'a> BezierPlanesMut<'a> {
     }
 }
 
-impl<'a> Drop for BezierPlanesMut<'a> {
+impl Drop for BezierPlanesMut<'_> {
     fn drop(&mut self) {
         *self.source = BezierPlanes(Arc::new(std::mem::take(&mut self.new_map)))
     }
@@ -195,7 +195,7 @@ impl BezierPaths {
     }
 }
 
-impl<'a> BezierPathsMut<'a> {
+impl BezierPathsMut<'_> {
     pub fn create_path(&mut self, first_vertex: BezierVertex) -> BezierPathId {
         let new_key = self
             .new_map
@@ -241,7 +241,7 @@ impl<'a> BezierPathsMut<'a> {
     }
 }
 
-impl<'a> Drop for BezierPathsMut<'a> {
+impl Drop for BezierPathsMut<'_> {
     fn drop(&mut self) {
         *self.source = BezierPaths(Arc::new(std::mem::take(&mut self.new_map)))
     }

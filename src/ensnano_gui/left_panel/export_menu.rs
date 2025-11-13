@@ -23,7 +23,7 @@ use crate::ensnano_iced::{helpers::*, iced};
 pub struct ExportMenu {}
 
 impl ExportMenu {
-    pub fn view<'a, State>(&'a self) -> iced::Element<'a, Message<State>>
+    pub fn view<State>(&self) -> iced::Element<'_, Message<State>>
     where
         State: AppState,
     {

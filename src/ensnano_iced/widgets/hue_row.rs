@@ -15,9 +15,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-//! A Iced Widget to select Hue.
-use std::marker::PhantomData;
 
+//! A Iced Widget to select Hue.
+
+use color_space::{Hsv, Rgb};
 use iced::{
     Length, Point, Rectangle, Size, Vector,
     advanced::{
@@ -32,8 +33,7 @@ use iced_graphics::{
     mesh::{Indexed, Mesh, SolidVertex2D},
 };
 use iced_wgpu;
-
-use color_space::{Hsv, Rgb};
+use std::marker::PhantomData;
 
 const DEFAULT_SIZE: f32 = 90.0;
 
@@ -52,7 +52,7 @@ pub struct HueRow<'a, Message, Theme = iced::Theme, Renderer = iced::Renderer> {
     _renderer: PhantomData<Renderer>,
 }
 
-impl<'a, Message, Theme> Default for HueRow<'a, Message, Theme, iced::Renderer> {
+impl<Message, Theme> Default for HueRow<'_, Message, Theme, iced::Renderer> {
     fn default() -> Self {
         Self::new()
     }
@@ -96,8 +96,8 @@ impl<'a, Message, Theme> HueRow<'a, Message, Theme, iced::Renderer> {
     }
 }
 
-impl<'a, Message, Theme> Widget<Message, Theme, iced::Renderer>
-    for HueRow<'a, Message, Theme, iced::Renderer>
+impl<Message, Theme> Widget<Message, Theme, iced::Renderer>
+    for HueRow<'_, Message, Theme, iced::Renderer>
 {
     fn state(&self) -> widget::tree::State {
         widget::tree::State::Some(Box::new(State::default()))

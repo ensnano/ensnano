@@ -1712,7 +1712,7 @@ struct MainStateView<'a> {
     resized: bool,
 }
 
-impl<'a> MainStateView<'a> {
+impl MainStateView<'_> {
     fn pop_action(&mut self) -> Option<Action> {
         if !self.main_state.pending_actions.is_empty() {
             log::debug!("pending actions {:?}", self.main_state.pending_actions);
@@ -2146,7 +2146,7 @@ impl<'a> MainStateView<'a> {
     }
 }
 
-impl<'a> ScaffoldSetter for MainStateView<'a> {
+impl ScaffoldSetter for MainStateView<'_> {
     fn set_scaffold_sequence(
         &mut self,
         sequence: String,
@@ -2159,11 +2159,11 @@ impl<'a> ScaffoldSetter for MainStateView<'a> {
             .apply_design_op(DesignOperation::SetScaffoldSequence { sequence, shift })
         {
             Ok(OkOperation::Undoable { state, label }) => {
-                self.main_state.save_old_state(state, label)
+                self.main_state.save_old_state(state, label);
             }
             Ok(OkOperation::NotUndoable) => (),
-            Err(e) => return Err(SetScaffoldSequenceError(format!("{:?}", e))),
-        };
+            Err(e) => return Err(SetScaffoldSequenceError(format!("{e:?}"))),
+        }
         let default_shift = self.get_staple_downloader().default_shift();
         let scaffold_length = self.get_scaffold_length().unwrap_or(0);
         let target_scaffold_length = if len == scaffold_length {

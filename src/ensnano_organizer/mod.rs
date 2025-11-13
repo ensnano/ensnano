@@ -9,6 +9,8 @@ pub mod hoverable_container;
 pub mod theme;
 pub mod tree;
 
+pub use element::*;
+
 use crate::ensnano_iced::{
     Element,
     helpers::*,
@@ -16,7 +18,6 @@ use crate::ensnano_iced::{
     icon_to_svg,
 };
 use drag_drop_target::*;
-pub use element::*;
 use hoverable_container::HoverableContainer;
 use icondata::Icon;
 use rand::{Rng, rngs::ThreadRng};
@@ -272,7 +273,7 @@ impl<E: OrganizerElement> Organizer<E> {
         self.width = width;
     }
 
-    pub fn view<'a>(&'a self, selection: BTreeSet<E::Key>) -> Element<'a, OrganizerMessage<E>> {
+    pub fn view(&self, selection: BTreeSet<E::Key>) -> Element<'_, OrganizerMessage<E>> {
         //self.hovered_in = None;
         // TODO: This comment may break some functionality. Not observed so far.
         let mut content = Column::new().spacing(5.0f32); // TODO: Find a way to use `ui_size` here.

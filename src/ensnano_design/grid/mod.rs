@@ -1365,7 +1365,7 @@ pub(super) struct HelicesTranslator<'a> {
     grid_data: GridData,
 }
 
-impl<'a> Drop for HelicesTranslator<'a> {
+impl Drop for HelicesTranslator<'_> {
     fn drop(&mut self) {
         self.design.helices = self.grid_data.source_helices.clone();
     }
