@@ -24,6 +24,7 @@ use ensnano_iced::{
     iced_graphics::text::Paragraph,
     iced_runtime::{Command, Program},
     iced_winit::winit::dpi::LogicalSize,
+    widgets::keyboard_priority::PriorityRequest,
 };
 use ensnano_interactor::{StrandBuildingStatus, operation::Operation};
 use std::{
@@ -139,7 +140,7 @@ pub enum Message<S: AppState> {
     TabPressed,
     Message(Option<String>),
     Resize(LogicalSize<f64>),
-    SetKeyboardPriority(bool),
+    SetKeyboardPriority(PriorityRequest),
 }
 
 impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
@@ -370,9 +371,8 @@ impl OperationInput {
                     .spacing(20)
                     .push(text(param).size(ui_size.main_text()))
                     .push(
-                        keyboard_priority(input)
-                            .on_priority(Message::SetKeyboardPriority(true))
-                            .on_unpriority(Message::SetKeyboardPriority(false)),
+                        keyboard_priority("Status bar unamed priority", input)
+                            .on_priority(Message::SetKeyboardPriority),
                     )
             }
         }

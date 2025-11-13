@@ -31,7 +31,7 @@ use ensnano_design::{
     elements::{DesignElementKey, DnaAttribute},
     grid::{GridId, GridPosition, GridTypeDescr},
 };
-use ensnano_iced::UiSize;
+use ensnano_iced::{UiSize, widgets::keyboard_priority::PriorityRequest};
 use ensnano_interactor::{
     ActionMode, CenterOfSelection, HyperboloidRequest, RapierSimulationRequest, RigidBodyConstants,
     RollRequest, Selection, SelectionMode, UnrootedRevolutionSurfaceDescriptor,
@@ -140,5 +140,5 @@ pub struct Requests {
     pub new_unrooted_surface: Option<Option<UnrootedRevolutionSurfaceDescriptor>>,
     pub switched_to_revolution_tab: Option<()>,
     /// A request to toggle the keyboard priority mode.
-    pub set_keyboard_priority: Option<bool>,
+    pub set_keyboard_priority: Option<Vec<PriorityRequest>>,
 }

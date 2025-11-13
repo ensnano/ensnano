@@ -22,6 +22,7 @@ use super::*;
 use ensnano_design::grid::GridId;
 use ensnano_exports::ExportType;
 use ensnano_gui::{OverlayType, RigidBodyParametersRequest};
+use ensnano_iced::widgets::keyboard_priority::PriorityRequest;
 use ensnano_interactor::{
     DesignOperation, InsertionPoint, RevolutionSurfaceSystemDescriptor, RigidBodyConstants,
     RollRequest, application::Notification, graphics::SplitMode,
@@ -512,8 +513,10 @@ impl ensnano_gui::Requests for Requests {
                 Notification::StlExport(path)
             }));
     }
-    fn set_keyboard_priority(&mut self, priority: bool) {
-        self.set_keyboard_priority = Some(priority)
+    fn set_keyboard_priority(&mut self, priority: PriorityRequest) {
+        self.set_keyboard_priority
+            .get_or_insert_default()
+            .push(priority);
     }
 }
 
