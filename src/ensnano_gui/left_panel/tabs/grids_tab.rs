@@ -16,16 +16,14 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use super::tabs::GuiTab;
 use super::{
     AppState, FactoryId, GridTypeDescr, Hyperboloid_, HyperboloidRequest, Message, RequestFactory,
-    UiSize, ValueId,
+    UiSize, ValueId, tabs::GuiTab,
 };
 use crate::ensnano_consts::{ICON_HONEYCOMB_GRID, ICON_NANOTUBE, ICON_SQUARE_GRID};
 use crate::ensnano_iced::{
     fonts::{MaterialIcon, icon_to_char},
     helpers::*,
-    theme,
 };
 use iced::Length;
 use iced_aw::TabLabel;
@@ -87,10 +85,10 @@ impl<State: AppState> GuiTab<State> for GridTab<State> {
                 row![
                     text_button("Cancel", ui_size)
                         .on_press(Message::CancelHyperboloid)
-                        .style(theme::Button::Destructive),
+                        .style(iced::theme::Button::Destructive),
                     text_button("Finish", ui_size)
                         .on_press(Message::FinalizeHyperboloid)
-                        .style(theme::Button::Positive),
+                        .style(iced::theme::Button::Positive),
                 ]
                 .spacing(ui_size.button_spacing())
             } else {
@@ -111,7 +109,7 @@ impl<State: AppState> GuiTab<State> for GridTab<State> {
                 text("Select ≥4 unattached helices").size(ui_size.main_text()),
                 tooltip::Position::FollowCursor,
             )
-            .style(theme::Container::Box),
+            .style(iced::theme::Container::Box),
         ]
         .spacing(5);
         scrollable(content).width(Length::Fill).into()

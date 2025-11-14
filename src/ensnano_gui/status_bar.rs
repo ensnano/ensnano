@@ -116,7 +116,7 @@ pub enum Message<S: AppState> {
 
 impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
     type Message = Message<S>;
-    type Theme = crate::ensnano_iced::Theme;
+    type Theme = iced::Theme;
     type Renderer = iced::Renderer;
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
@@ -284,7 +284,7 @@ impl OperationInput {
     fn view<S: AppState>(
         &self,
         ui_size: UiSize,
-    ) -> Row<'_, Message<S>, crate::ensnano_iced::Theme, iced::Renderer> {
+    ) -> Row<'_, Message<S>, iced::Theme, iced::Renderer> {
         let mut row = Row::new();
         let op = self.operation.as_ref();
         row = row.push(text(op.description()).size(ui_size.main_text()));

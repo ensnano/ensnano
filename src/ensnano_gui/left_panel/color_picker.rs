@@ -92,9 +92,7 @@ mod hue_column {
         }
     }
 
-    impl<Message> Widget<Message, crate::ensnano_iced::Theme, iced::Renderer>
-        for HueColumn<'_, Message>
-    {
+    impl<Message> Widget<Message, iced::Theme, iced::Renderer> for HueColumn<'_, Message> {
         fn state(&self) -> widget::tree::State {
             widget::tree::State::Some(Box::new(HueColumnState::default()))
         }
@@ -120,7 +118,7 @@ mod hue_column {
             &self,
             _tree: &widget::Tree,
             renderer: &mut iced::Renderer,
-            _theme: &crate::ensnano_iced::Theme,
+            _theme: &iced::Theme,
             _style: &Style,
             layout: Layout,
             _cursor: Cursor,
@@ -235,7 +233,7 @@ mod hue_column {
     }
 
     impl<'a, Message> From<HueColumn<'a, Message>>
-        for iced::Element<'a, Message, crate::ensnano_iced::Theme, iced::Renderer>
+        for iced::Element<'a, Message, iced::Theme, iced::Renderer>
     where
         Message: 'a + Clone,
     {
@@ -304,8 +302,7 @@ mod light_sat_square {
         }
     }
 
-    impl<'a, Message> Widget<Message, crate::ensnano_iced::Theme, iced::Renderer>
-        for LightSatSquare<'a, Message>
+    impl<'a, Message> Widget<Message, iced::Theme, iced::Renderer> for LightSatSquare<'a, Message>
     where
         Message: Clone + 'a,
     {
@@ -334,7 +331,7 @@ mod light_sat_square {
             &self,
             _state: &widget::Tree,
             renderer: &mut iced::Renderer,
-            _theme: &crate::ensnano_iced::Theme,
+            _theme: &iced::Theme,
             _style: &Style,
             layout: Layout,
             _cursor: Cursor,
@@ -456,7 +453,7 @@ mod light_sat_square {
     }
 
     impl<'a, Message> From<LightSatSquare<'a, Message>>
-        for iced::Element<'a, Message, crate::ensnano_iced::Theme, iced::Renderer>
+        for iced::Element<'a, Message, iced::Theme, iced::Renderer>
     where
         Message: Clone + 'a,
     {
@@ -522,8 +519,7 @@ mod color_square {
         }
     }
 
-    impl<'a, Message> Widget<Message, crate::ensnano_iced::Theme, iced::Renderer>
-        for ColorSquare<'a, Message>
+    impl<'a, Message> Widget<Message, iced::Theme, iced::Renderer> for ColorSquare<'a, Message>
     where
         Message: Clone + 'a,
     {
@@ -552,7 +548,7 @@ mod color_square {
             &self,
             _tree: &widget::Tree,
             renderer: &mut iced::Renderer,
-            _theme: &crate::ensnano_iced::Theme,
+            _theme: &iced::Theme,
             _style: &Style,
             layout: Layout,
             _cursor: Cursor,
@@ -650,7 +646,7 @@ mod color_square {
     }
 
     impl<'a, Message> From<ColorSquare<'a, Message>>
-        for iced::Element<'a, Message, crate::ensnano_iced::Theme, iced::Renderer>
+        for iced::Element<'a, Message, iced::Theme, iced::Renderer>
     where
         Message: Clone + 'a,
     {

@@ -75,7 +75,7 @@ pub trait GuiTab<State: AppState> {
 mod gostop {
     // TODO: Turn this into a widget
     use super::{AppState, Message};
-    use crate::ensnano_iced::{Theme, helpers::*};
+    use crate::ensnano_iced::helpers::*;
 
     pub struct GoStop<State: AppState> {
         pub name: String,

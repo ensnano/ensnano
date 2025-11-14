@@ -6,12 +6,11 @@
 //!
 //! Therefore, in other crates, do not use Iced directly, but go through ensnano_iced.
 
+pub mod color_picker;
 pub mod fonts;
 pub mod helpers;
 pub mod theme;
 pub mod widgets;
-pub use theme::Theme; // TODO: don't re-export
-pub mod color_picker;
 
 mod ui_size;
 pub use ui_size::{ALL_UI_SIZES, UiSize};

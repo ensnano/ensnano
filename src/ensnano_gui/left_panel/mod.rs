@@ -313,7 +313,7 @@ where
     R: Requests,
     S: AppState,
 {
-    type Theme = crate::ensnano_iced::Theme;
+    type Theme = iced::Theme;
     type Renderer = super::Renderer;
     type Message = Message<S>;
 
@@ -1188,7 +1188,7 @@ pub enum ColorMessage {
 
 impl<R: Requests> Program for ColorOverlay<R> {
     type Renderer = super::Renderer;
-    type Theme = crate::ensnano_iced::Theme;
+    type Theme = iced::Theme;
     type Message = ColorMessage;
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {

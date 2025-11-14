@@ -263,11 +263,7 @@ where
         }
     }
 
-    pub fn view(
-        &self,
-        ui_size: UiSize,
-        app_state: &State,
-    ) -> iced::Element<'_, Message<State>> {
+    pub fn view(&self, ui_size: UiSize, app_state: &State) -> iced::Element<'_, Message<State>> {
         let selection = app_state
             .get_selection()
             .first()
@@ -594,7 +590,7 @@ fn add_help_to_column<'a, State: AppState>(
 
 fn turn_into_help_column<'a, State: AppState>(
     ui_size: UiSize,
-) -> Column<'a, Message<State>, crate::ensnano_iced::Theme, iced::Renderer> {
+) -> Column<'a, Message<State>, iced::Theme, iced::Renderer> {
     self::column![
         section("Help", ui_size)
             .width(Length::Fill)
@@ -861,9 +857,9 @@ impl AddStrandMenu {
         &self,
         ui_size: UiSize,
         width: u16,
-    ) -> iced::widget::Column<'_, Message<State>, crate::ensnano_iced::Theme, iced::Renderer> {
+    ) -> iced::widget::Column<'_, Message<State>, iced::Theme, iced::Renderer> {
         let color_choose_strand_start_length = if self.text_inputs_are_active {
-            theme::Text::Color(theme::GUI_PALETTE.text)
+            iced::theme::Text::Color(theme::GUI_PALETTE.text)
         } else {
             theme::DISABLED_TEXT
         };

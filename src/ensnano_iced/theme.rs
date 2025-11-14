@@ -1,16 +1,16 @@
 //! ENSnano theme.
 //!
 //! The theme of the GUI is defined here
-use std::rc::Rc;
 
-pub use iced::theme::*;
 use iced::{
-    Background, Border, Color,
+    Background, Border, Color, Theme,
     advanced::renderer::Style,
     border::Radius,
+    theme::{Container, Palette, Slider, Text, TextInput},
     widget::{container, slider, text_input},
 };
 use iced_aw::widgets::tab_bar;
+use std::rc::Rc;
 
 /// Color palette
 pub const GUI_PALETTE: Palette = Palette {
