@@ -43,6 +43,8 @@ use std::{
 use ultraviolet::{Bivec3, Mat3};
 
 const MAX_DERIVATIVE_NORM: f32 = 1e4;
+const L0: f32 = 0.7;
+const C_VOLUME: f32 = 2f32;
 
 macro_rules! bound_derivative {
     ($obj:ident) => {
@@ -94,8 +96,6 @@ impl HelixSystem {
         let mut forces = vec![Vec3::zero(); nb_element];
         let mut torques = vec![Vec3::zero(); nb_element];
 
-        const L0: f32 = 0.7;
-        const C_VOLUME: f32 = 2f32;
         let k_anchor = 1000. * self.rigid_parameters.k_spring;
 
         let point_conversion = |nucl: &RigidNucl| {
@@ -1389,7 +1389,6 @@ impl GridsSystem {
         let mut forces = vec![Vec3::zero(); self.grids.len()];
         let mut torques = vec![Vec3::zero(); self.grids.len()];
 
-        const L0: f32 = 0.7;
         let k_springs = self.parameters.k_spring;
 
         let point_conversion = |application_point: &ApplicationPoint| {

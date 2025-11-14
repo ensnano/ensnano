@@ -29,6 +29,7 @@ use crate::{
 use cadnano::{Cadnano, FromCadnano};
 use scadnano::ScadnanoImportError;
 use std::path::{Path, PathBuf};
+use version_compare::Cmp;
 
 impl DesignInteractor {
     /// Create a new data by reading a file. At the moment, the supported format are
@@ -84,7 +85,6 @@ fn read_file<P: AsRef<Path> + std::fmt::Debug>(path: P) -> Result<Design, LoadDe
     match design {
         Ok(mut design) => {
             design.update_version();
-            use version_compare::Cmp;
             log::info!("ok icednano");
             let required_version = design.ensnano_version.clone();
             let current_version = ensnano_version();
@@ -131,6 +131,7 @@ impl std::convert::From<ScadnanoImportError> for LoadDesignError {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     use crate::ensnano_design::HelixCollection;
 
     fn one_helix_path() -> PathBuf {
@@ -139,8 +140,6 @@ mod tests {
         ret.push("one_helix.json");
         ret
     }
-
-    use super::*;
 
     #[test]
     fn parse_one_helix() {

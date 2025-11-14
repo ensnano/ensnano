@@ -19,6 +19,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::*;
 use crate::ensnano_design::{curves::torus::PointOnSurface_, utils::dvec_to_vec};
 use chebyshev_polynomials::ChebyshevPolynomial;
+use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::f64::consts::{PI, TAU};
 use ultraviolet::{DRotor2, DVec2, Mat3, Rotor2};
@@ -324,7 +325,6 @@ impl Revolution {
             t0 += 1.;
         }
 
-        use rayon::prelude::*;
         self.curvilinear_abscissa = curvilinear_abscissa_interpolation_points
             .into_par_iter()
             .map(|v| chebyshev_polynomials::interpolate_points(v, 10. * INTERPOLATION_ERROR))

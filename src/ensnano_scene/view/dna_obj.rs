@@ -15,12 +15,13 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
 //! This modules defines the meshes that are used to draw DNA.
 
 use super::instances_drawer::{Instantiable, Vertexable};
 use crate::ensnano_consts::*;
 use std::{
-    f32::consts::{PI, TAU},
+    f32::consts::{FRAC_1_SQRT_2, PI, TAU},
     iter::zip,
     mem::size_of,
 };
@@ -651,7 +652,6 @@ impl Instantiable for ConeInstance {
                 let height = if i % 2 == 0 { radius } else { 0. };
                 let theta = (point as f32) * TAU / NB_RAY_TUBE as f32;
                 let position = [side, theta.sin() * height, theta.cos() * height];
-                use std::f32::consts::FRAC_1_SQRT_2;
 
                 let normal = [
                     FRAC_1_SQRT_2,

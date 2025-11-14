@@ -16,7 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-const MAX_ACCEL: f64 = 100.;
+mod closed_curves;
 
 use super::{SimulationInterface, SimulationUpdate};
 use crate::ensnano_design::utils::dvec_to_vec;
@@ -30,6 +30,7 @@ use crate::ensnano_interactor::{
 };
 use crate::ensnano_utils::colors::new_color;
 use crate::{app_state::ErrOperation, controller::channel_reader::ChannelReader};
+use closed_curves::CloseSurfaceTopology;
 use mathru::{
     algebra::linear::vector::vector::Vector,
     analysis::differential_equation::ordinary::{
@@ -37,15 +38,14 @@ use mathru::{
         solver::runge_kutta::{ExplicitEuler, Ralston4, explicit::fixed::FixedStepper},
     },
 };
-use std::f64::consts::FRAC_PI_2;
 use std::{
-    f64::consts::TAU,
+    f64::consts::{FRAC_PI_2, TAU},
     sync::{Arc, Mutex, Weak},
+    time::{SystemTime, UNIX_EPOCH},
 };
 use ultraviolet::{DVec3, Isometry2, Isometry3, Rotor2, Similarity3, Vec2, Vec3};
 
-mod closed_curves;
-use closed_curves::CloseSurfaceTopology;
+const MAX_ACCEL: f64 = 100.;
 
 pub struct RevolutionSurfaceSystem {
     topology: CloseSurfaceTopology,
@@ -616,7 +616,6 @@ impl SimulationUpdate for HelicesRouting {
         let strands = design.mut_strand_and_data().strands;
 
         // Use "random" integer to determine new strands color
-        use std::time::{SystemTime, UNIX_EPOCH};
         let mut now_s = (SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap_or_default()

@@ -22,6 +22,7 @@ use crate::ensnano_design::{
     utils::{rotor_to_drotor, vec_to_dvec},
 };
 use serde::{Deserialize, Serialize};
+use std::f64::consts::TAU;
 use ultraviolet::{DVec3, Rotor3, Vec3};
 
 #[allow(non_snake_case)]
@@ -33,7 +34,6 @@ pub fn nb_turn_per_100_nt_to_omega(
         return Some(0.0);
     }
     let Z: f64 = 100.0 * helix_parameters.rise as f64;
-    use std::f64::consts::TAU;
     Some(TAU * nb_turn_per_100_nt / Z)
 }
 

@@ -25,7 +25,7 @@ pub mod pdb;
 use crate::ensnano_design::{Design, Nucl};
 use cadnano::CadnanoError;
 use pdb::PdbError;
-use std::{collections::HashMap, path::PathBuf};
+use std::{collections::HashMap, io::Write as _, path::PathBuf};
 
 /// The file formats to which an export is implemented
 #[derive(Debug, Clone, strum::Display)]
@@ -209,7 +209,6 @@ pub fn export(
         ExportType::Cadnano => {
             let cadnano_content = cadnano::cadnano_export(design)?;
             let mut out_file = std::fs::File::create(export_path)?;
-            use std::io::Write;
             writeln!(&mut out_file, "{cadnano_content}")?;
             Ok(ExportSuccess::Cadnano(export_path.clone()))
         }

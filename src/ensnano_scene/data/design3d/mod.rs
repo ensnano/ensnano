@@ -259,6 +259,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
     }
 
     /// Return the list of tube instances to be displayed to represent the design
+    #[expect(clippy::items_after_statements)]
     pub fn get_tubes_raw(&self, show_insertion_discriminants: bool) -> Rc<Vec<RawDnaInstance>> {
         let mut visible_bonds_ids = self.design_reader.get_all_visible_bond_ids();
         if !show_insertion_discriminants {
@@ -336,6 +337,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
             const SPRING_THICKNESS: f32 = SPRING_RADIUS / 4.;
             const MIN_SPRING_LENGTH: f32 = 2.65 / 1.5;
             const MAX_SPRING_LENGTH: f32 = 2.65 * 1.5;
+
             let alpha = NB_COILS as f32 * TAU / NB_STEPS as f32;
             let xx = (0..NB_COILS)
                 .map(|i| SPRING_RADIUS * (i as f32 * alpha).cos())
