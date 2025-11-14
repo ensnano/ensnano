@@ -223,8 +223,6 @@ impl Curve {
         for _ in torsion.len()..points_forward.len() {
             torsion.push(last_torsion);
         }
-        // println!("Torsion: {} {}", torsion.len(), last_torsion);
-        // println!("Axis: {} {}", points_forward.len(), points_forward[0].x);
 
         if PRINTOUT_NUCL_3D_POSITIONS {
             println!(

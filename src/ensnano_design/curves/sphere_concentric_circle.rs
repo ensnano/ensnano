@@ -722,7 +722,6 @@ pub(super) struct PillConcentricStadium {
 impl Curved for PillConcentricStadium {
     fn position(&self, t: f64) -> DVec3 {
         let t = (t * self.perimeter).rem_euclid(self.perimeter);
-        // println!("{}, {}, {}, {}", t, self.t1, self.t2, self.t3);
         if t < self.t1 {
             return DVec3 {
                 x: self.z_radius,

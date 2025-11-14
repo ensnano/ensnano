@@ -84,7 +84,6 @@ impl Torus {
     fn position_moebius(&self, t: f64) -> DVec3 {
         let p = 9.688448061179066_f64;
         let perimeter = 4. * INTER_HELIX_GAP * self.half_nb_helix as f64;
-        // println!("p: {}\t P: {}\tφ:{}\tφφ:{}", perimeter, self.perimeter_ellipse(2.,1., NB_STEPS), self.t_for_curvilinear_abscissa_poly(perimeter/2.), self.t_for_curvilinear_abscissa(perimeter/2.));
         let scale = perimeter / p;
         let a = 2. * scale;
         let b = 1. * scale;

@@ -202,7 +202,6 @@ impl CloseSurfaceTopology {
                     next_value += 1.;
                 }
                 segment_thetas.push(next_value);
-                //println!("thetas {:.2?}", segment_thetas);
                 let s = (0..=self.nb_section_per_segment)
                     .map(|x| x as f64 / self.nb_section_per_segment as f64);
                 let pv: Vec<_> = s.zip(segment_thetas.into_iter()).collect();

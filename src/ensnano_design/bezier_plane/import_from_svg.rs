@@ -41,7 +41,6 @@ pub fn read_first_svg_path(file_path: &std::path::Path) -> Result<BezierPath, Sv
 
             let mut ret = PathBuilder::default();
             for command in data.iter() {
-                // println!("{:?}",command); // ADD MISSING SVG COMMANDS HERE
                 match command {
                     Command::Close => return Ok(ret.close()),
                     Command::Move(Position::Absolute, parameters) => {

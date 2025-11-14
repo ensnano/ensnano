@@ -70,7 +70,6 @@ fn read_mesh(mesh_data: &gltf::Mesh, data: &[gltf::buffer::Data]) -> Result<Gltf
     };
     let indices = reader.read_indices().unwrap().into_u32().collect();
 
-    // println!("I'm here !!");
     let vertices: Vec<ModelVertex> = vertex_positions
         .zip(vertex_normals.zip(vertex_colors))
         .map(|(position, (normal, color))| ModelVertex {

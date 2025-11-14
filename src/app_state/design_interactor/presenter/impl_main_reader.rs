@@ -169,7 +169,6 @@ impl StaplesDownloader for DesignInteractor {
                             let (r, g, b) =
                                 ((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF);
                             let luminance = r + b + 3 * g;
-                            // println!("{color:06X} {luminance} {r:0X} {g:0X} {b:0X} {:06X}", (r<<16) + (g<<8) + b);
                             let font_color = if luminance >= threshold_black_white_font_color {
                                 Color::Black
                             } else {

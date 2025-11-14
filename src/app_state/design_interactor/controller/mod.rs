@@ -2262,8 +2262,6 @@ impl Controller {
         if strand.is_cyclic {
             let new_strand = Self::break_cycle(strand.clone(), *nucl, force_end);
             strands.insert(id, new_strand);
-            //self.clean_domains_one_strand(id);
-            //println!("Cutting cyclic strand");
             return Ok(id);
         }
         if strand.length() <= 1 {
@@ -2820,9 +2818,7 @@ impl Controller {
             .get(&target_strand)
             .ok_or(ErrOperation::StrandDoesNotExist(target_strand))?
             .is_cyclic;
-        //println!("half1 {}, ; half0 {}", new_id, target_strand);
         Self::split_strand(strands, &nucl, Some(target_3prime), color_idx)?;
-        //println!("split");
 
         if !was_cyclic && source_strand != target_strand {
             if target_3prime {

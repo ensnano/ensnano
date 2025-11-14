@@ -344,7 +344,6 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
                 .map(|i| SPRING_RADIUS * (i as f32 * alpha).sin())
                 .collect::<Vec<f32>>();
             if draw_springs {
-                // println!("drawing springs...");
                 for (me, other) in additional_structure.next().into_iter() {
                     let pos_left = transformation.transform_vec(positions[me]);
                     let pos_right = transformation.transform_vec(positions[other]);
@@ -384,7 +383,6 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
                     );
                     ret.extend(sliced_tubes.into_iter().map(|s| s.to_raw_instance()));
                 }
-                // println!("drawing springs... Done");
             }
         }
 
@@ -444,7 +442,6 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
                     let id = id | self.id << 24;
                     let (lid1, tube, lid2) =
                         create_helix_cylinder(pos1, pos2, radius, color, id, true);
-                    // println!("Lid1: {:?}\nTube: {:?}\nLid2: {:?}", lid1.position, tube.position, lid2.position);
                     vec![
                         lid1.to_raw_instance(),
                         tube.to_raw_instance(),
@@ -781,7 +778,6 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
                     let radius = self.get_radius(id).unwrap_or(HELIX_CYLINDER_RADIUS);
                     let (lid1, tube, lid2) =
                         create_helix_cylinder(pos1, pos2, radius, color, id, true);
-                    // println!("Lid1: {:?}\nTube: {:?}\nLid2: {:?}", lid1.position, tube.position, lid2.position);
                     vec![
                         lid1.to_raw_instance(),
                         tube.to_raw_instance(),
@@ -833,7 +829,6 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
                             .unwrap()
                         })
                         .collect::<Vec<Vec3>>();
-                    // println!("{:?}", positions);
                     let colors = match kind {
                         ObjectType::ColoredHelixCylinder(_, _, colors) => colors.clone(),
                         _ => vec![],

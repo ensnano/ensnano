@@ -122,7 +122,6 @@ impl DesignContent {
 
     pub(super) fn get_element_graphic_position(&self, id: u32) -> Option<Vec3> {
         if let Some(true) = self.on_axis.get(&id) {
-            // println!("{id} on axis");
             return self.get_element_axis_position(id);
         }
         self.get_element_position(id)

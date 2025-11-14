@@ -79,10 +79,6 @@ impl SausageRosary {
                 .collect::<Vec<(Vec3, Vec3, Vec3, Vec3, Vec3)>>()
         };
 
-        // for s in prev_current_next_p1_p2.clone().into_iter() {
-        //     println!("{:?}", s);
-        // }
-
         let mut color_iter = (0..prev_current_next_p1_p2.len()).map(&color);
 
         let tubes = prev_current_next_p1_p2
@@ -111,7 +107,6 @@ impl SausageRosary {
             (tubes, None)
         } else {
             let (p0, p1) = (self.positions[0], self.positions[1]);
-            // println!("{:?}", p1-p0);
             let u = (p0 - p1).normalized();
             let rotor = Rotor3::safe_from_rotation_from_unit_x_to(u);
 
@@ -125,7 +120,6 @@ impl SausageRosary {
 
             let (p0, p1) = (self.positions[n - 2], self.positions[n - 1]);
             let u = (p1 - p0).normalized();
-            // println!("{:?}", p1-p0);
             let rotor = Rotor3::safe_from_rotation_from_unit_x_to(u);
 
             let lid_right = TubeLidInstance {

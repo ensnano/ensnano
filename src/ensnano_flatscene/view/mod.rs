@@ -1381,7 +1381,6 @@ fn torsion_color(strength: f32) -> u32 {
     const BLUE_HUE: f32 = 240.;
     const MAX_STRENGTH: f32 = 200.;
     let hue = if strength > 0. { RED_HUE } else { BLUE_HUE };
-    //println!("strength {}", strength);
     let sat = (strength / MAX_STRENGTH).min(1.).max(-1.);
     let val = (strength / MAX_STRENGTH).min(1.).max(-1.);
     let hsv = color_space::Hsv::new(hue as f64, sat.abs() as f64, val.abs() as f64);

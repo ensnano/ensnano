@@ -1407,7 +1407,6 @@ impl GridsSystem {
             let point_0 = point_conversion(&spring.0);
             let point_1 = point_conversion(&spring.1);
             let len = (point_1 - point_0).mag();
-            //println!("len {}", len);
             let norm = len - L0;
 
             // The force applied on point 0

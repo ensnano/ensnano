@@ -317,8 +317,6 @@ impl Isometry3MissingMethods for Isometry3 {
             .flat_map(|x| Isometry3DescriptorItem::from_str_with_variables(x, variables))
             .collect::<Vec<Isometry3DescriptorItem>>();
 
-        // println!("{:?}", descr);
-
         Isometry3::from_descriptor(&descr)
     }
 }

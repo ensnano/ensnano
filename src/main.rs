@@ -456,6 +456,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut controller = Controller::new();
 
     println!("{WELCOME_MSG}");
+
     if !EARLY_LOG {
         pretty_env_logger::init();
     }
