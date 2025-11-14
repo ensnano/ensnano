@@ -128,21 +128,33 @@ multiple_crate_versions = "allow"
 # nursery
 missing_const_for_fn = "allow" # TODO: warn
 
+# pedantic
+cast_possible_truncation = "allow"
+option_option = "allow"
+
 # restriction
 arbitrary_source_item_ordering = "allow" # TODO: warn (requires some thought and configuration)
 arithmetic_side_effects = "allow"
 as_conversions = "allow"
 cast_precision_loss = "allow"
+default_numeric_fallback = "allow"
 else_if_without_else = "allow"
+expect_used = "allow"
+float_arithmetic = "allow"
 implicit_return = "allow"
+indexing_slicing = "allow"
+iter_over_hash_type = "allow"
 min_ident_chars = "allow"
 missing_docs_in_private_items = "allow" # TODO: warn (major undertaking)
 multiple_inherent_impl = "allow" # TODO: warn once clippy 1.92 gets out
+pattern_type_mismatch = "allow"
 print_stdout = "allow" # TODO: warn and use log crate everywhere
 question_mark_used = "allow"
 same_name_method = "allow" # TODO: warn once single-impl traits are removed
 single_call_fn = "allow"
 single_char_lifetime_names = "allow"
+std_instead_of_alloc = "allow"
+std_instead_of_core = "allow"
 unwrap_used = "allow"
 
 # suspicious
@@ -161,4 +173,4 @@ arc_with_non_send_sync = "allow" # TODO: warn (requires understand the multiplex
 # restriction = { level = "allow", priority = -1 }
 # style = { level = "allow", priority = -1 }
 # suspicious = { level = "allow", priority = -1 }
-# unnecessary_lazy_evaluations = "deny"
+# option_option = "deny"
