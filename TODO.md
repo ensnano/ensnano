@@ -97,7 +97,6 @@
 - Remove as many `use *` as possible
 - Remove as many `use ... as ...` as possible
 - Remove as many `#[allow(...)]` as possible
-- Remove copyright from every file? `LICENSE` at the root should be enough
 - kebab-case -> snake_case for the crate directories
 - More consistent styling:
   - Create some `rustfmt.toml` rules?
