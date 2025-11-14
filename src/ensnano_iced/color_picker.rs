@@ -15,13 +15,13 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
 //! A handmade color picker for ENSnano.
 //!
 //! This module is an example of how to embed mini iced applications. It is inspired by the
 //! [`Component`](https://docs.rs/iced/0.12.1/iced/widget/trait.Component.html) trait, but it does
 //! not use it as this trait is deprecated since v0.13…
-//!
-//!
+
 use super::widgets::{ColorSquare, HueRow, LightSatSquare};
 use color_space::{Hsv, Rgb};
 use iced::{

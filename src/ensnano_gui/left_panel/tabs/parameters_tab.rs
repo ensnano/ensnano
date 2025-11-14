@@ -20,6 +20,7 @@ use super::{
     AppState, FactoryId, Message, RequestFactory, ScrollSensitivity, UiSize, ValueId, tabs::GuiTab,
 };
 use crate::ensnano_design::ensnano_version;
+use crate::ensnano_iced::ui_size::ALL_UI_SIZES;
 use crate::ensnano_iced::{
     fonts::{MaterialIcon, icon_to_char},
     helpers::*,
@@ -72,11 +73,7 @@ impl<State: AppState> GuiTab<State> for ParametersTab<State> {
             section("Parameters", ui_size),
             extra_jump(),
             subsection("Font size", ui_size),
-            pick_list(
-                &crate::ensnano_iced::ALL_UI_SIZES[..],
-                Some(ui_size),
-                Message::UiSizePicked,
-            ),
+            pick_list(&ALL_UI_SIZES[..], Some(ui_size), Message::UiSizePicked,),
             extra_jump(),
             subsection("Scrolling", ui_size),
             column(

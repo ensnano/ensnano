@@ -136,7 +136,7 @@ use {
         ensnano_exports::{ExportResult, ExportType},
         ensnano_flatscene::FlatScene,
         ensnano_gui::{AppState as _, ColorOverlay, Gui, IcedMessages, OverlayType, TopBarState},
-        ensnano_iced::{UiSize, fonts, theme},
+        ensnano_iced::{fonts, theme, ui_size::UiSize},
         ensnano_interactor::{
             ActionMode, CenterOfSelection, DesignOperation, DesignRotation, DesignTranslation,
             InteractorDesignReaderExt, IsometryTarget, PastingStatus,

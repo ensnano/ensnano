@@ -132,6 +132,7 @@ suboptimal_flops = "allow"
 # pedantic
 cast_lossless = "allow"
 cast_possible_truncation = "allow"
+cast_possible_wrap = "allow"
 option_option = "allow"
 similar_names = "allow"
 
@@ -152,6 +153,8 @@ integer_division_remainder_used = "allow"
 iter_over_hash_type = "allow"
 min_ident_chars = "allow"
 missing_docs_in_private_items = "allow" # TODO: warn (major undertaking)
+missing_trait_methods = "allow"
+mod_module_files = "allow"
 multiple_inherent_impl = "allow" # TODO: warn once clippy 1.92 gets out
 pattern_type_mismatch = "allow"
 partial_pub_fields = "allow"

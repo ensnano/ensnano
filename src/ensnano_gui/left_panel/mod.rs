@@ -26,7 +26,9 @@ pub use tabs::revolution_tab::*;
 
 use super::{AppState, FogParameters, OverlayType, Requests};
 use crate::ensnano_exports::ExportType;
-use crate::ensnano_iced::{UiSize, color_picker::ColorPickerMessage, theme::GuiBackground};
+use crate::ensnano_iced::{
+    color_picker::ColorPickerMessage, theme::GuiBackground, ui_size::UiSize,
+};
 use crate::ensnano_interactor::{
     ActionMode, EquadiffSolvingMethod, HyperboloidRequest, RapierSimulationRequest, Selection,
     SelectionConversion,

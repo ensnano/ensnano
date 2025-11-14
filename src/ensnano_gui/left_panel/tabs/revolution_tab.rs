@@ -20,10 +20,10 @@ use super::tabs::GuiTab;
 use crate::ensnano_design::CurveDescriptor2D;
 use crate::ensnano_gui::{AppState, SimulationState, left_panel::Message};
 use crate::ensnano_iced::{
-    UiSize,
     fonts::{MaterialIcon, icon_to_char},
     helpers::*,
     theme,
+    ui_size::UiSize,
 };
 use crate::ensnano_interactor::{
     EquadiffSolvingMethod, RevolutionSimulationParameters, RevolutionSurfaceRadius,

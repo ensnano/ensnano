@@ -37,7 +37,7 @@ pub use left_panel::{
 pub use status_bar::{ClipboardContent, CurrentOpState};
 pub use top_bar::TopBar;
 
-use crate::ensnano_iced::fonts::INTER_REGULAR_FONT;
+use crate::ensnano_iced::{fonts::INTER_REGULAR_FONT, ui_size::UiSize};
 use crate::ensnano_interactor::{
     ActionMode, HyperboloidRequest, InsertionPoint, Multiplexer, PastingStatus,
     RapierSimulationRequest, RevolutionSurfaceSystemDescriptor, RollRequest, ScaffoldInfo,
@@ -110,7 +110,7 @@ pub trait Requests: 'static + Send {
     fn set_scaffold_sequence(&mut self, shift: usize);
     fn set_scaffold_shift(&mut self, shift: usize);
     /// Change the size of the UI components
-    fn set_ui_size(&mut self, size: crate::ensnano_iced::UiSize);
+    fn set_ui_size(&mut self, size: UiSize);
     /// Finalize the currently edited hyperboloid grid
     fn finalize_hyperboloid(&mut self);
     fn stop_roll_simulation(&mut self);
@@ -403,7 +403,7 @@ impl<R: Requests, S: AppState> GuiComponent<R, S> {
         requests: Arc<Mutex<R>>,
         app_state: S,
         top_bar_state: TopBarState,
-        ui_size: crate::ensnano_iced::UiSize,
+        ui_size: UiSize,
     ) -> Self {
         let top_bar_area = multiplexer.get_draw_area(GuiComponentType::TopBar).unwrap();
         let top_bar = TopBar::new(
@@ -472,7 +472,7 @@ impl<R: Requests, S: AppState> GuiComponent<R, S> {
         multiplexer: &dyn Multiplexer,
         requests: Arc<Mutex<R>>,
         state: &S,
-        ui_size: crate::ensnano_iced::UiSize,
+        ui_size: UiSize,
     ) -> Self {
         let status_bar_area = multiplexer
             .get_draw_area(GuiComponentType::StatusBar)
@@ -810,7 +810,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
 
     pub fn new_ui_size(
         &mut self,
-        ui_size: crate::ensnano_iced::UiSize,
+        ui_size: UiSize,
         window: &Window,
         multiplexer: &dyn Multiplexer,
         app_state: &State,
@@ -922,7 +922,7 @@ impl<S: AppState> IcedMessages<S> {
             .push_back(left_panel::Message::ModifiersChanged(modifiers));
     }
 
-    pub fn new_ui_size(&mut self, ui_size: crate::ensnano_iced::UiSize) {
+    pub fn new_ui_size(&mut self, ui_size: UiSize) {
         self.left_panel
             .push_back(left_panel::Message::UiSizeChanged(ui_size));
         self.top_bar

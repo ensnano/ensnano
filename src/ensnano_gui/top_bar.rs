@@ -25,10 +25,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::{AppState, Requests, SplitMode, TopBarState};
 use crate::ensnano_iced::{
-    UiSize,
     fonts::{ENSNANO_FONT, MaterialIcon, MaterialIconStyle},
     helpers::*,
     theme::GuiBackground,
+    ui_size::UiSize,
 };
 use crate::ensnano_interactor::{ActionMode, SelectionMode};
 use iced::{Element, Length, Padding};

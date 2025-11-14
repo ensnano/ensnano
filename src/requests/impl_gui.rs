@@ -25,7 +25,7 @@ use crate::ensnano_design::{
 };
 use crate::ensnano_exports::ExportType;
 use crate::ensnano_gui::{OverlayType, RigidBodyParametersRequest};
-use crate::ensnano_iced::UiSize;
+use crate::ensnano_iced::ui_size::UiSize;
 use crate::ensnano_interactor::{
     ActionMode, DesignOperation, HyperboloidRequest, InsertionPoint, RapierSimulationRequest,
     RevolutionSurfaceSystemDescriptor, RigidBodyConstants, RollRequest, SelectionMode,

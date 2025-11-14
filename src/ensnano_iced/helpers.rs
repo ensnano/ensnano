@@ -17,7 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 pub use super::widgets::*;
-use crate::ensnano_iced::{UiSize, fonts::*};
+use crate::ensnano_iced::{fonts::*, ui_size::UiSize};
 pub use iced::widget::*;
 use iced::{
     Font, Length, advanced,
