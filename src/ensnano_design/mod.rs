@@ -196,7 +196,7 @@ impl Design {
             .as_ref()
             .filter(|data| !data.need_update(&self.bezier_planes, &self.bezier_paths))?;
         if let Some(data) = self.instantiated_grid_data.as_ref() {
-            data.is_up_to_date(self).then(|| UpToDateDesign {
+            data.is_up_to_date(self).then_some(UpToDateDesign {
                 design: self,
                 grid_data: data,
                 paths_data,

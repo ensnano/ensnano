@@ -978,7 +978,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
         let xovers_list = self.design.get_xovers_list();
         xovers_list
             .iter()
-            .find_map(|(id, (n1, n2))| (*n1 == *nucl || *n2 == *nucl).then(|| *id))
+            .find_map(|(id, (n1, n2))| (*n1 == *nucl || *n2 == *nucl).then_some(*id))
     }
 
     pub fn phantom_to_selection(

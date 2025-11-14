@@ -139,6 +139,7 @@ min_ident_chars = "allow"
 missing_docs_in_private_items = "allow" # TODO: warn (major undertaking)
 multiple_inherent_impl = "allow" # TODO: warn once clippy 1.92 gets out
 print_stdout = "allow" # TODO: warn and use log crate everywhere
+question_mark_used = "allow"
 same_name_method = "allow" # TODO: warn once single-impl traits are removed
 single_call_fn = "allow"
 single_char_lifetime_names = "allow"
@@ -160,4 +161,4 @@ arc_with_non_send_sync = "allow" # TODO: warn (requires understand the multiplex
 # restriction = { level = "allow", priority = -1 }
 # style = { level = "allow", priority = -1 }
 # suspicious = { level = "allow", priority = -1 }
-# if_then_some_else_none = "deny"
+# unnecessary_lazy_evaluations = "deny"

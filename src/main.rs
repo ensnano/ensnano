@@ -1133,7 +1133,7 @@ impl MainState {
             .app_state
             .get_simulation_state()
             .is_running()
-            .then(|| CursorIcon::Progress)
+            .then_some(CursorIcon::Progress)
     }
 
     fn push_action(&mut self, action: Action) {
@@ -1995,7 +1995,7 @@ impl MainStateView<'_> {
             Some(first_ancestor)
         } else {
             let second_ancestor = ancestors.next()?;
-            second_ancestor.is_dir().then(|| second_ancestor)
+            second_ancestor.is_dir().then_some(second_ancestor)
         }
     }
 

@@ -1384,7 +1384,9 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
             position: phantom_element.position as isize,
             forward: phantom_element.forward,
         };
-        self.design_reader.can_start_builder_at(&nucl).then(|| nucl)
+        self.design_reader
+            .can_start_builder_at(&nucl)
+            .then_some(nucl)
     }
 
     pub fn get_grid(&self) -> BTreeMap<GridId, GridInstance> {
