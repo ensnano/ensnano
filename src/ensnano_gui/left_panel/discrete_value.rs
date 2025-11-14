@@ -114,7 +114,7 @@ impl<R: Requestable> RequestFactory<R> {
             .get_mut(&value_id)
             .unwrap()
             .update_value(new_val);
-        let values: Vec<f32> = self.values.values().map(|v| v.get_value()).collect();
+        let values: Vec<f32> = self.values.values().map(DiscreteValue::get_value).collect();
         self.requestable.make_request(&values, request);
     }
 
@@ -123,12 +123,12 @@ impl<R: Requestable> RequestFactory<R> {
             .get_mut(&value_id)
             .unwrap()
             .update_value(new_val);
-        let values: Vec<f32> = self.values.values().map(|v| v.get_value()).collect();
+        let values: Vec<f32> = self.values.values().map(DiscreteValue::get_value).collect();
         self.requestable.request_from_values(&values)
     }
 
     pub fn make_request(&self, request: &mut Option<R::Request>) {
-        let values: Vec<f32> = self.values.values().map(|v| v.get_value()).collect();
+        let values: Vec<f32> = self.values.values().map(DiscreteValue::get_value).collect();
         self.requestable.make_request(&values, request);
     }
 }

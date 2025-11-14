@@ -627,7 +627,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
                         h.get_pivot(h.get_flat_right()),
                     ]
                 })
-                .map(|v| v.into()),
+                .map(Into::into),
         )
         .unwrap()
     }

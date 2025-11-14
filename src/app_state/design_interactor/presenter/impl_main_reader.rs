@@ -20,6 +20,7 @@ use super::*;
 use crate::controller::download_staples::{
     DownloadStapleError, DownloadStapleOk, StaplesDownloader,
 };
+use crate::ensnano_design::Strand;
 use rust_xlsxwriter::{Color, Format, Workbook};
 use serde::Serialize;
 use std::{io::Write as _, path::Path};
@@ -52,7 +53,7 @@ impl StaplesDownloader for DesignInteractor {
                     .current_design
                     .strands
                     .get(s_id)
-                    .map(|s| s.length())
+                    .map(Strand::length)
             })
             .unwrap();
         let sequence_length = self
@@ -60,7 +61,7 @@ impl StaplesDownloader for DesignInteractor {
             .current_design
             .scaffold_sequence
             .as_ref()
-            .map(|s| s.len())
+            .map(String::len)
             .unwrap();
         if scaffold_length != sequence_length {
             warnings.push(warn_scaffold_seq_mismatch(scaffold_length, sequence_length));
@@ -345,7 +346,7 @@ impl MainReader for DesignInteractor {
             .current_design
             .strands
             .get(&s_id)
-            .map(|s| s.domain_ends())
+            .map(Strand::domain_ends)
     }
 }
 

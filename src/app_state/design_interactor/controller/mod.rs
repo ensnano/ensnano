@@ -433,12 +433,12 @@ impl Controller {
                 up_to_date_design.design,
             ),
             CopyOperation::Duplicate => {
-                self.apply(|c, d| c.apply_duplication(d), up_to_date_design.design)
+                self.apply(Controller::apply_duplication, up_to_date_design.design)
             }
             CopyOperation::Paste => {
                 log::info!("nb helices {}", up_to_date_design.design.helices.len());
                 self.make_undoable(
-                    self.apply(|c, d| c.apply_paste(d), up_to_date_design.design),
+                    self.apply(Controller::apply_paste, up_to_date_design.design),
                     "Paste".into(),
                 )
             }
@@ -2087,7 +2087,7 @@ impl Controller {
             .filter(|d| !ignored_domains.contains(d))
             .is_some()
             .then_some(desc.fixed_end);
-        match design.strands.get(&strand_id).map(|s| s.length()) {
+        match design.strands.get(&strand_id).map(Strand::length) {
             Some(n) if n > 1 => Some(StrandBuilder::init_existing(
                 desc.identifier,
                 nucl,
@@ -2635,8 +2635,8 @@ impl Controller {
             };
             let skip_domain;
             let skip_junction;
-            let last_helix = domains.last().and_then(|d| d.half_helix());
-            let next_helix = strand3prime.domains.first().and_then(|d| d.half_helix());
+            let last_helix = domains.last().and_then(Domain::half_helix);
+            let next_helix = strand3prime.domains.first().and_then(Domain::half_helix);
             if last_helix == next_helix
                 && domains
                     .last()

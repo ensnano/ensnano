@@ -97,7 +97,7 @@ impl<Attrib: OrganizerAttribute> AttributeDisplayer<Attrib> {
     }
 
     pub fn update_attribute(&mut self, attribute: Option<Attrib>) {
-        self.update_widget(attribute.as_ref().map(|a| a.widget()));
+        self.update_widget(attribute.as_ref().map(OrganizerAttribute::widget));
         self.attribute = attribute;
     }
 
@@ -108,7 +108,7 @@ impl<Attrib: OrganizerAttribute> AttributeDisplayer<Attrib> {
 
     pub fn view(&self) -> Option<Element<'_, Attrib, super::Theme, super::Renderer>> {
         self.widget.as_ref().map(|widget| {
-            match self.attribute.as_ref().map(|a| a.char_repr()) {
+            match self.attribute.as_ref().map(OrganizerAttribute::char_repr) {
                 Some(AttributeDisplay::Icon(c)) => button(super::icon::icon(c)),
                 Some(AttributeDisplay::Text(s)) => {
                     button(text(s.clone()).size(super::icon::ICON_SIZE))

@@ -1367,7 +1367,7 @@ impl RigidGrid {
         // Inertia matrix when the orientation is the identity
         let inertia_matrix = inertia_helices(&helices, center_of_mass);
         let inertia_inverse = inertia_matrix.inversed();
-        let mass = helices.iter().map(|h| h.height()).sum();
+        let mass = helices.iter().map(RigidHelix::height).sum();
         Self {
             center_of_mass: center_of_mass.rotated_by(orientation) + position_grid,
             center_of_mass_from_grid: center_of_mass,

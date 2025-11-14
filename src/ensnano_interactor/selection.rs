@@ -17,7 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use crate::ensnano_design::{
-    BezierControlPoint, BezierPathId, BezierVertexId, Nucl, Strand,
+    BezierControlPoint, BezierPathId, BezierVertexId, Domain, Nucl, Strand,
     grid::{GridId, HelixGridPosition},
 };
 use std::collections::BTreeSet;
@@ -100,7 +100,7 @@ impl Selection {
             Self::Phantom(pe) => Some(vec![pe.to_nucl().helix]),
             Self::Strand(_, s_id) => {
                 let strand = reader.get_strand_with_id(*s_id as usize)?;
-                Some(strand.domains.iter().filter_map(|d| d.helix()).collect())
+                Some(strand.domains.iter().filter_map(Domain::helix).collect())
             }
             Self::Xover(_, xover_id) => {
                 let (n1, n2) = reader.get_xover_with_id(*xover_id)?;

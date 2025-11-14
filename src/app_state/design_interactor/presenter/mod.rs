@@ -29,8 +29,8 @@ use super::*;
 use crate::ensnano_design::elements::DesignElementKey;
 use crate::ensnano_design::grid::Grid;
 use crate::ensnano_design::{
-    BezierPathId, Collection as _, Extremity, HelixCollection, InstantiatedPiecewiseBezier, Nucl,
-    NuclCollection,
+    BezierPath, BezierPathId, Collection as _, Extremity, HelixCollection,
+    InstantiatedPiecewiseBezier, Nucl, NuclCollection, Strand,
 };
 use crate::ensnano_exports::oxdna::BACKBONE_TO_CM;
 use crate::ensnano_interactor::{
@@ -526,7 +526,7 @@ impl Presenter {
         self.current_design
             .bezier_paths
             .get(&path_id)
-            .and_then(|path| path.to_instantiated_path_2d())
+            .and_then(BezierPath::to_instantiated_path_2d)
     }
 
     pub fn get_xovers_list(&self) -> Vec<(Nucl, Nucl)> {
@@ -547,7 +547,7 @@ impl Presenter {
 
     pub fn get_space_position(&self, nucl: &Nucl) -> Option<Vec3> {
         self.get_identifier(nucl)
-            .and_then(|id| self.content.space_position.get(&id).map(|v| v.into()))
+            .and_then(|id| self.content.space_position.get(&id).map(Into::into))
     }
 
     pub fn has_nucl(&self, nucl: &Nucl) -> bool {
@@ -710,7 +710,7 @@ impl DesignInteractor {
             .current_design
             .strands
             .get(&s_id)
-            .map(|s| s.length())
+            .map(Strand::length)
     }
 
     pub fn get_scaffold_info(&self) -> Option<ScaffoldInfo> {

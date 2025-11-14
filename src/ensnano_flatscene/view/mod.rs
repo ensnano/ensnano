@@ -584,7 +584,7 @@ impl View {
         } else {
             None
         };
-        let png_glob_bg = globals_png.as_ref().map(|g| g.get_bindgroup());
+        let png_glob_bg = globals_png.as_ref().map(UniformBindGroup::get_bindgroup);
         let depth_texture_view = if let Some(size) = png_size {
             texture = Arc::new(Texture::create_depth_texture(
                 self.device.clone().as_ref(),

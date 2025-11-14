@@ -17,12 +17,15 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::*;
-use crate::ensnano_interactor::{
-    ObjectType, Referential,
-    graphics::{LoopoutBond, LoopoutNucl},
-};
 use crate::ensnano_scene::view::GridInstance;
 use crate::ensnano_utils::StrandNucleotidesPositions;
+use crate::{
+    ensnano_design::Helix,
+    ensnano_interactor::{
+        ObjectType, Referential,
+        graphics::{LoopoutBond, LoopoutNucl},
+    },
+};
 use crate::{
     ensnano_design::{
         AdditionalStructure, BezierControlPoint, BezierPlaneDescriptor, BezierPlaneId,
@@ -377,7 +380,7 @@ impl SceneDesignReaderExt for DesignInteractor {
             .current_design
             .helices
             .get(&h_id)
-            .and_then(|h| h.get_curve_range())
+            .and_then(Helix::get_curve_range)
     }
 
     fn get_checked_xovers_ids(&self, checked: bool) -> Vec<u32> {

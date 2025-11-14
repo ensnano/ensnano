@@ -17,7 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::*;
-use crate::ensnano_design::{Domain, Extremity, HelixInterval, NuclCollection};
+use crate::ensnano_design::{Domain, Extremity, HelixInterval, NuclCollection, Strand};
 use crate::ensnano_flatscene::FlatSceneDesignReaderExt;
 use crate::ensnano_interactor::{Referential, torsion::Torsion};
 use ahash::RandomState;
@@ -109,7 +109,7 @@ impl FlatSceneDesignReaderExt for DesignInteractor {
             .current_design
             .strands
             .get(&s_id)
-            .map(|s| s.get_insertions())
+            .map(Strand::get_insertions)
     }
 
     fn get_copy_points(&self) -> Vec<Vec<Nucl>> {

@@ -75,7 +75,7 @@ impl Strands {
     }
 
     pub fn has_at_least_on_strand_with_insertions(&self) -> bool {
-        self.0.values().any(|s| s.has_insertions())
+        self.0.values().any(Strand::has_insertions)
     }
 
     /// Return the strand end status of nucl
@@ -299,7 +299,10 @@ pub fn sanitize_domains(domains: &[Domain], cyclic: bool) -> Vec<Domain> {
                     current_insertion = Some(InsertionAccumulator {
                         length: *m,
                         attached_to_prime3: *attached_to_prime3,
-                        sequence: sequence.as_ref().map(|s| s.to_string()).unwrap_or_default(),
+                        sequence: sequence
+                            .as_ref()
+                            .map(ToString::to_string)
+                            .unwrap_or_default(),
                     });
                 }
             }
@@ -437,7 +440,7 @@ impl Strand {
     }
 
     pub fn length(&self) -> usize {
-        self.domains.iter().map(|d| d.length()).sum()
+        self.domains.iter().map(Domain::length).sum()
     }
 
     /// Merge all consecutive domains that are on the same helix
@@ -585,7 +588,7 @@ impl Strand {
     pub fn insertion_points(&self) -> Vec<(Option<Nucl>, Option<Nucl>)> {
         let mut ret = Vec::new();
         let mut prev_prime3 = if self.is_cyclic {
-            self.domains.last().and_then(|d| d.prime3_end())
+            self.domains.last().and_then(Domain::prime3_end)
         } else {
             None
         };
@@ -600,7 +603,7 @@ impl Strand {
             if self.is_cyclic {
                 ret.push((
                     prev_prime3,
-                    self.domains.first().and_then(|d| d.prime5_end()),
+                    self.domains.first().and_then(Domain::prime5_end),
                 ));
             } else {
                 ret.push((prev_prime3, None));
@@ -1074,8 +1077,11 @@ impl Domain {
                     ..
                 },
             ) => {
-                let s1 = sequence.as_ref().map(|s| s.to_string()).unwrap_or_default();
-                let s2 = s2.as_ref().map(|s2| s2.to_string()).unwrap_or_default();
+                let s1 = sequence
+                    .as_ref()
+                    .map(ToString::to_string)
+                    .unwrap_or_default();
+                let s2 = s2.as_ref().map(ToString::to_string).unwrap_or_default();
                 *n1 += *n2;
                 *sequence = Some(Cow::Owned(format!("{s1}{s2}")));
             }

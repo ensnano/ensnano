@@ -386,7 +386,7 @@ impl<E: OrganizerElement> Organizer<E> {
             }
             Message::Edit { id } => {
                 log::info!("Message edit {id:?}");
-                if let Some(group_id) = self.get_group(id).and_then(|g| g.get_group_id()) {
+                if let Some(group_id) = self.get_group(id).and_then(GroupContent::get_group_id) {
                     self.start_editing(group_id);
                     if let Some(GroupContent::Node { view, .. }) = self.get_group(id) {
                         log::debug!("SetFocus()");
@@ -417,7 +417,11 @@ impl<E: OrganizerElement> Organizer<E> {
             }
             Message::AddSelectionToGroup { id } => {
                 log::info!("Add selection to group with id {id:?}");
-                if self.get_group(id).and_then(|g| g.get_group_id()).is_some() {
+                if self
+                    .get_group(id)
+                    .and_then(GroupContent::get_group_id)
+                    .is_some()
+                {
                     let _ = self.add_content_to_group(id, selection.iter().cloned().collect());
                     return Some(OrganizerMessage::NewTree(self.tree()));
                 } else {
@@ -531,7 +535,7 @@ impl<E: OrganizerElement> Organizer<E> {
             self.selected_nodes = BTreeSet::new();
             self.selected_nodes.insert(id.clone());
             current_selection = self.get_keys_below(id).iter().cloned().collect();
-            self.get_group(id).and_then(|g| g.get_group_id())
+            self.get_group(id).and_then(GroupContent::get_group_id)
         };
         log::info!("Selected nodes = {:?}", self.selected_nodes);
         (current_selection, group_id)
@@ -640,7 +644,7 @@ impl<E: OrganizerElement> Organizer<E> {
     }
 
     pub fn tree(&self) -> OrganizerTree<E::Key> {
-        let groups = self.groups.iter().filter_map(|g| g.tree()).collect();
+        let groups = self.groups.iter().filter_map(GroupContent::tree).collect();
         OrganizerTree::Node {
             name: "root".to_owned(),
             children: groups,
@@ -786,7 +790,7 @@ impl<E: OrganizerElement> Organizer<E> {
         //second-last element actually
         let mut min_max_domain_lengths: Vec<(usize, usize)> = elements
             .iter()
-            .filter_map(|e| e.min_max_domain_length_if_strand())
+            .filter_map(OrganizerElement::min_max_domain_length_if_strand)
             .collect::<Vec<(usize, usize)>>();
         min_max_domain_lengths.sort_by_key(|(_, l_max)| *l_max);
         let upper_domain_length_bounds: (usize, usize) = match min_max_domain_lengths.len() {
@@ -811,7 +815,7 @@ impl<E: OrganizerElement> Organizer<E> {
         }
         self.auto_groups.retain(|_, g| !g.elements.is_empty());
 
-        let ret = self.delete_useless_leaves(elements.iter().map(|e| e.key()).collect());
+        let ret = self.delete_useless_leaves(elements.iter().map(OrganizerElement::key).collect());
         self.update_attributes();
         ret
     }

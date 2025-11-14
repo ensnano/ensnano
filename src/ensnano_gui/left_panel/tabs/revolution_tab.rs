@@ -333,7 +333,7 @@ impl<State: AppState> RevolutionTab<State> {
     pub fn get_current_bezier_path_id(&self) -> Option<usize> {
         self.curve_descriptor_widget
             .as_ref()
-            .and_then(|w| w.get_bezier_path_id())
+            .and_then(CurveDescriptorWidget::get_bezier_path_id)
     }
 
     pub fn update_builder_parameter(&mut self, param_id: RevolutionParameterId, text: String) {

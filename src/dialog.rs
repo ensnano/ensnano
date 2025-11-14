@@ -21,6 +21,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use std::{
     borrow::Cow,
+    ffi::OsStr,
     path::{Path, PathBuf},
     sync::mpsc,
     thread,
@@ -127,7 +128,7 @@ pub fn get_file_to_write<P1: AsRef<Path>, P2: AsRef<Path>>(
             let new_extension = default_extension.unwrap_or(&"").to_string();
             path_buf.set_extension(new_extension);
         }
-        path_buf.file_name().map(|s| s.to_os_string())
+        path_buf.file_name().map(OsStr::to_os_string)
     });
     log::info!("starting name filtered {starting_name:?}");
     for filter in extension_filter.iter() {
@@ -135,7 +136,7 @@ pub fn get_file_to_write<P1: AsRef<Path>, P2: AsRef<Path>>(
     }
     log::info!(
         "starting path filtered {:?}",
-        starting_path.as_ref().map(|p| p.as_ref())
+        starting_path.as_ref().map(AsRef::as_ref)
     );
     if let Some(path) = starting_path {
         dialog = dialog.set_directory(path);
@@ -180,7 +181,7 @@ pub fn load<P: AsRef<Path>>(starting_path: Option<P>, filters: Filters) -> PathI
     }
     log::info!(
         "starting path {:?}",
-        starting_path.as_ref().map(|p| p.as_ref())
+        starting_path.as_ref().map(AsRef::as_ref)
     );
     if let Some(path) = starting_path {
         dialog = dialog.set_directory(path);

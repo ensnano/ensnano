@@ -80,7 +80,7 @@ where
     T: HasHelixCollection,
 {
     fn get(&self, id: &usize) -> Option<&Helix> {
-        self.get_collection().get(id).map(|arc| arc.as_ref())
+        self.get_collection().get(id).map(AsRef::as_ref)
     }
 
     fn iter<'a>(&'a self) -> Box<dyn Iterator<Item = (&'a usize, &'a Helix)> + 'a> {
@@ -96,7 +96,7 @@ where
     }
 
     fn values<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Helix> + 'a> {
-        Box::new(self.get_collection().values().map(|arc| arc.as_ref()))
+        Box::new(self.get_collection().values().map(AsRef::as_ref))
     }
 
     fn len(&self) -> usize {

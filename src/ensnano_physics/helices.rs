@@ -55,7 +55,9 @@ pub fn build_helices(nucleotide: &HashMap<u32, Nucl>) -> HashMap<usize, Intermed
             .push_nucleotide(id, nucl);
     }
 
-    result.values_mut().for_each(|helix| helix.compute_ranges());
+    result
+        .values_mut()
+        .for_each(IntermediaryHelix::compute_ranges);
 
     result
 }

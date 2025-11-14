@@ -362,8 +362,10 @@ impl<D: Instantiable> InstanceDrawer<D> {
     }
 
     pub fn new_instances(&mut self, instances: Vec<D>) {
-        let raw_instances: Vec<D::RawInstance> =
-            instances.iter().map(|d| d.to_raw_instance()).collect();
+        let raw_instances: Vec<D::RawInstance> = instances
+            .iter()
+            .map(Instantiable::to_raw_instance)
+            .collect();
         self.instances.update(raw_instances.as_slice());
         self.nb_instances = instances.len() as u32;
         if let Some(indices) = instances.first().and_then(D::custom_indices) {

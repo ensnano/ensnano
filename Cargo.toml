@@ -133,8 +133,10 @@ suboptimal_flops = "allow"
 cast_lossless = "allow"
 cast_possible_truncation = "allow"
 cast_possible_wrap = "allow"
+default_trait_access = "allow"
 doc_markdown = "allow" # TODO: warn
 if_not_else = "allow"
+needless_pass_by_value = "allow" # TODO: warn
 option_option = "allow"
 similar_names = "allow"
 
@@ -163,6 +165,7 @@ partial_pub_fields = "allow"
 print_stdout = "allow" # TODO: warn and use log crate everywhere
 pub_with_shorthand = "allow"
 question_mark_used = "allow"
+impl_trait_in_params = "allow"
 same_name_method = "allow" # TODO: warn once single-impl traits are removed
 single_call_fn = "allow"
 single_char_lifetime_names = "allow"
@@ -187,4 +190,4 @@ arc_with_non_send_sync = "allow" # TODO: warn (requires understand the multiplex
 # restriction = { level = "allow", priority = -1 }
 # style = { level = "allow", priority = -1 }
 # suspicious = { level = "allow", priority = -1 }
-# map_unwrap_or = "deny"
+# redundant_closure_for_method_calls = "deny"

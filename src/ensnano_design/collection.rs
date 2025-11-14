@@ -43,7 +43,7 @@ where
     type Item = <T as HasMap>::Item;
 
     fn get(&self, id: &T::Key) -> Option<&Self::Item> {
-        self.get_map().get(id).map(|arc| arc.as_ref())
+        self.get_map().get(id).map(AsRef::as_ref)
     }
 
     fn iter<'a>(&'a self) -> Box<dyn Iterator<Item = (&'a Self::Key, &'a Self::Item)> + 'a> {
@@ -55,7 +55,7 @@ where
     }
 
     fn values<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Self::Item> + 'a> {
-        Box::new(self.get_map().values().map(|arc| arc.as_ref()))
+        Box::new(self.get_map().values().map(AsRef::as_ref))
     }
 
     fn len(&self) -> usize {

@@ -164,7 +164,7 @@ fn correct_sanitization_cyclic() {
     strand.is_cyclic = true;
     let sane_domains = sanitize_domains(&strand.domains, true);
     assert_eq!(
-        sane_domains.iter().map(|d| d.length()).collect::<Vec<_>>(),
+        sane_domains.iter().map(Domain::length).collect::<Vec<_>>(),
         vec![4, 8, 4, 5, 8]
     );
 }
@@ -179,7 +179,7 @@ fn correct_sanitization_cyclic_pathological() {
     strand.domains.push(Domain::new_insertion(add_prime3));
     let sane_domains = sanitize_domains(&strand.domains, true);
     assert_eq!(
-        sane_domains.iter().map(|d| d.length()).collect::<Vec<_>>(),
+        sane_domains.iter().map(Domain::length).collect::<Vec<_>>(),
         vec![4, 8, 4, 5, 8, add_prime5 + add_prime3]
     );
     strand.domains = sane_domains;
@@ -198,7 +198,7 @@ fn correct_sanitization_cyclic_insertion_5prime() {
         .insert(0, Domain::new_insertion(insertion_prime5));
     let sane_domains = sanitize_domains(&strand.domains, true);
     assert_eq!(
-        sane_domains.iter().map(|d| d.length()).collect::<Vec<_>>(),
+        sane_domains.iter().map(Domain::length).collect::<Vec<_>>(),
         vec![4, 8, 4, 5, 8, insertion_prime5]
     );
 }
@@ -211,7 +211,7 @@ fn correct_sanitization_cyclic_insertion_3prime() {
     strand.domains.push(Domain::new_insertion(insertion_prime3));
     let sane_domains = sanitize_domains(&strand.domains, true);
     assert_eq!(
-        sane_domains.iter().map(|d| d.length()).collect::<Vec<_>>(),
+        sane_domains.iter().map(Domain::length).collect::<Vec<_>>(),
         vec![4, 8, 4, 5, 8, insertion_prime3]
     );
 }
@@ -228,7 +228,7 @@ fn correct_sanitization_cyclic_insertion_3prime_5prime() {
     strand.domains.push(Domain::new_insertion(insertion_prime3));
     let sane_domains = sanitize_domains(&strand.domains, true);
     assert_eq!(
-        sane_domains.iter().map(|d| d.length()).collect::<Vec<_>>(),
+        sane_domains.iter().map(Domain::length).collect::<Vec<_>>(),
         vec![4, 8, 4, 5, 8, insertion_prime3 + insertion_prime5]
     );
 }

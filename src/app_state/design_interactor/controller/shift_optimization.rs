@@ -117,7 +117,7 @@ fn get_shift_optimization_result(
     let len = design
         .scaffold_sequence
         .as_ref()
-        .map(|s| s.len())
+        .map(String::len)
         .ok_or(ErrOperation::NoScaffoldSet)?;
     for shift in 0..len {
         if shift % 100 == 0 {

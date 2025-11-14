@@ -17,6 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::*;
+use crate::ensnano_design::Strand;
 use crate::ensnano_design::{CameraId, Collection, elements::DesignElement};
 use crate::ensnano_gui::{EnsnTree, GuiDesignReaderExt as ReaderGui};
 use crate::ensnano_interactor::InsertionPoint;
@@ -40,7 +41,7 @@ impl ReaderGui for DesignInteractor {
             .current_design
             .strands
             .get(&s_id)
-            .map(|s| s.length())
+            .map(Strand::length)
     }
 
     fn is_id_of_scaffold(&self, s_id: usize) -> bool {
@@ -68,7 +69,7 @@ impl ReaderGui for DesignInteractor {
             .current_design
             .strands
             .get(&s_id)
-            .and_then(|s| s.name.as_ref().map(|n| n.to_string()))
+            .and_then(|s| s.name.as_ref().map(ToString::to_string))
             .unwrap_or_else(|| String::from("Unnamed strand"))
     }
 

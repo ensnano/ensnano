@@ -169,7 +169,7 @@ use {
     scheduler::Scheduler,
     std::{
         collections::{HashMap, VecDeque},
-        path::{Path, PathBuf},
+        path::{Component, Path, PathBuf},
         rc::Rc,
         sync::{Arc, Mutex},
         time::{Duration, Instant},
@@ -1027,7 +1027,7 @@ fn formatted_path_end<P: AsRef<Path>>(path: P) -> String {
     let components: Vec<_> = path
         .as_ref()
         .components()
-        .map(|comp| comp.as_os_str())
+        .map(Component::as_os_str)
         .collect();
     let mut ret = if components.len() > 3 {
         vec!["..."]
@@ -1543,7 +1543,7 @@ impl MainState {
     }
 
     fn get_current_file_name(&self) -> Option<&Path> {
-        self.file_name.as_ref().map(|p| p.as_ref())
+        self.file_name.as_ref().map(AsRef::as_ref)
     }
 
     fn update_current_file_name(&mut self) {
@@ -1552,7 +1552,7 @@ impl MainState {
             .path_to_current_design()
             .as_ref()
             .filter(|p| p.is_file())
-            .map(|p| p.into());
+            .map(Into::into);
     }
 
     fn set_suggestion_parameters(&mut self, param: SuggestionParameters) {

@@ -302,7 +302,7 @@ impl<S: AppState> FlatScene<S> {
                 .requests
                 .lock()
                 .unwrap()
-                .set_paste_candidate(candidate.map(|n| n.to_real())),
+                .set_paste_candidate(candidate.map(FlatNucl::to_real)),
             Consequence::NewCandidate(candidate) => {
                 let phantom = candidate.map(|n| PhantomElement {
                     position: n.flat_position.to_real(n.helix.segment_left) as i32,
@@ -366,7 +366,7 @@ impl<S: AppState> FlatScene<S> {
                 self.requests
                     .lock()
                     .unwrap()
-                    .attempt_paste(nucl.map(|n| n.to_real()));
+                    .attempt_paste(nucl.map(FlatNucl::to_real));
             }
             Consequence::AddClick(click, add) => {
                 let mut new_selection = app_state.get_selection().to_vec();

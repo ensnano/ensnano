@@ -103,7 +103,7 @@ impl DesignContent {
     pub(super) fn get_element_position(&self, id: u32) -> Option<Vec3> {
         if let Some(object_type) = self.object_type.get(&id) {
             match object_type {
-                ObjectType::Nucleotide(id) => self.space_position.get(id).map(|x| x.into()),
+                ObjectType::Nucleotide(id) => self.space_position.get(id).map(Into::into),
                 ObjectType::Bond(e1, e2) | ObjectType::SlicedBond(_, e1, e2, _) => {
                     let a = self.space_position.get(e1)?;
                     let b = self.space_position.get(e2)?;
@@ -130,7 +130,7 @@ impl DesignContent {
     pub(super) fn get_element_axis_position(&self, id: u32) -> Option<Vec3> {
         if let Some(object_type) = self.object_type.get(&id) {
             match object_type {
-                ObjectType::Nucleotide(id) => self.axis_space_position.get(id).map(|x| x.into()),
+                ObjectType::Nucleotide(id) => self.axis_space_position.get(id).map(Into::into),
                 ObjectType::Bond(e1, e2)
                 | ObjectType::HelixCylinder(e1, e2)
                 | ObjectType::ColoredHelixCylinder(e1, e2, _)
@@ -1019,7 +1019,7 @@ impl DesignContent {
                     .unwrap_or(HELIX_CYLINDER_RADIUS);
                 let color = helix_style
                     .helix_as_cylinder_color
-                    .map_or(HELIX_CYLINDER_COLOR, |ct| ct.to_u32());
+                    .map_or(HELIX_CYLINDER_COLOR, ColorType::to_u32);
                 for (i, j) in a {
                     let bond_id = id_click_counter.next();
                     let n_i = Nucl {
