@@ -1159,9 +1159,8 @@ impl View {
     /// The radius and color of the circles depends on the strength amplitude.
     fn collect_torsion_indications(&self, circles: &mut Vec<CircleInstance>) {
         for ((n0, n1), torsion) in self.torsions.iter() {
-            let multiplier = ((torsion.strength_prime5 - torsion.strength_prime3).abs() / 200.)
-                .max(0.08)
-                .min(1.);
+            let multiplier =
+                ((torsion.strength_prime5 - torsion.strength_prime3).abs() / 200.).clamp(0.08, 1.);
             let color = torsion_color(torsion.strength_prime5 - torsion.strength_prime3);
             let h0 = &self.helices[n0.helix];
             let mut circle = h0.get_circle_nucl(n0.flat_position, n0.forward, color);
@@ -1374,8 +1373,8 @@ fn torsion_color(strength: f32) -> u32 {
     const BLUE_HUE: f32 = 240.;
     const MAX_STRENGTH: f32 = 200.;
     let hue = if strength > 0. { RED_HUE } else { BLUE_HUE };
-    let sat = (strength / MAX_STRENGTH).min(1.).max(-1.);
-    let val = (strength / MAX_STRENGTH).min(1.).max(-1.);
+    let sat = (strength / MAX_STRENGTH).clamp(-1., 1.);
+    let val = (strength / MAX_STRENGTH).clamp(-1., 1.);
     let hsv = color_space::Hsv::new(hue as f64, sat.abs() as f64, val.abs() as f64);
     let rgb = color_space::Rgb::from(hsv);
     (0xFF << 24) | ((rgb.r as u32) << 16) | ((rgb.g as u32) << 8) | (rgb.b as u32)

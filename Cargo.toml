@@ -190,4 +190,4 @@ arc_with_non_send_sync = "allow" # TODO: warn (requires understand the multiplex
 # restriction = { level = "allow", priority = -1 }
 # style = { level = "allow", priority = -1 }
 # suspicious = { level = "allow", priority = -1 }
-# equatable_if_let = "deny"
+# manual_clamp = "deny"

@@ -15,6 +15,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
 use ultraviolet::{Mat4, Vec4};
 
 #[derive(Debug, Copy, Clone)]
@@ -60,7 +61,7 @@ impl Instance {
     pub fn color_au32_with_alpha_scaled_by(color: u32, alpha_scale: f32) -> u32 {
         let alpha = (color & 0xFF_00_00_00) >> 24;
         let alpha = if alpha == 0 { 0xFF } else { alpha };
-        let alpha = (alpha as f32 * alpha_scale).round().max(0.).min(255.) as u32;
+        let alpha = (alpha as f32 * alpha_scale).round().clamp(0., 255.) as u32;
         (color & 0xFF_FF_FF) | (alpha << 24)
     }
 

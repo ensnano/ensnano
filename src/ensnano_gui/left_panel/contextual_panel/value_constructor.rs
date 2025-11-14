@@ -456,9 +456,9 @@ impl DirectionAngle {
             log::info!("radius {radius}");
             log::info!("direction.x / radius {}", direction.x / radius);
             let y_angle = if direction.z > 0. {
-                -(direction.x / radius).min(1.).max(-1.).acos()
+                -(direction.x / radius).clamp(-1., 1.).acos()
             } else {
-                (direction.x / radius).min(1.).max(-1.).acos()
+                (direction.x / radius).clamp(-1., 1.).acos()
             };
             log::info!("y angle {}", y_angle.to_degrees());
 

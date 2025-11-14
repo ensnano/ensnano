@@ -393,7 +393,7 @@ impl CameraController {
         self.y_scroll = y_cursor;
         self.scroll = match delta {
             // I'm assuming a line is about 100 pixels
-            MouseScrollDelta::LineDelta(_, scroll) => scroll.min(1.).max(-1.),
+            MouseScrollDelta::LineDelta(_, scroll) => scroll.clamp(-1., 1.),
             MouseScrollDelta::PixelDelta(PhysicalPosition { y: scroll, .. }) => {
                 scroll.signum() as f32
             }

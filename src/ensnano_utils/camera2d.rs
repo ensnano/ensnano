@@ -110,14 +110,13 @@ impl Camera2D {
         delta: &MouseScrollDelta,
         cursor_position: PhysicalPosition<f64>,
     ) {
-        let scroll = match delta {
+        let scroll = (match delta {
             MouseScrollDelta::LineDelta(_, scroll) => *scroll,
             MouseScrollDelta::PixelDelta(PhysicalPosition { y: scroll, .. }) => {
                 (*scroll as f32) / 100.
             }
-        }
-        .min(1.)
-        .max(-1.);
+        })
+        .clamp(-1., 1.);
         let fixed_point =
             Vec2::from(self.screen_to_world(cursor_position.x as f32, cursor_position.y as f32));
         self.globals.zoom *= 1.25_f32.powf(scroll);
