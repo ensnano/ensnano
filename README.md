@@ -28,7 +28,7 @@ the conference.
 
 # Installation
 
-We try to frequently release binaries for Windows and MacOS.
+We try to frequently release binaries for Windows and macOS.
 
 Alternatively you can clone this repository and build the software from source, following instructions below:
 

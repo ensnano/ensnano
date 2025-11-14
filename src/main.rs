@@ -282,7 +282,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .await
             .expect("Could not get adapter\n\
                      This might be because gpu drivers are missing.\n\
-                     You need Vulkan, Metal (for MacOS) or DirectX (for Windows) drivers to run this software");
+                     You need Vulkan, Metal (for macOS) or DirectX (for Windows) drivers to run this software");
 
         let adapter_features = adapter.features();
         let needed_limits = wgpu::Limits::default();
