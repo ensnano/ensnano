@@ -125,10 +125,7 @@ struct CameraWidget {
 }
 
 impl CameraWidget {
-    fn view<State: AppState>(
-        &self,
-        ui_size: UiSize,
-    ) -> iced::Element<'_, Message<State>> {
+    fn view<State: AppState>(&self, ui_size: UiSize) -> iced::Element<'_, Message<State>> {
         let name_field: iced::Element<'_, _> = if self.being_edited {
             keyboard_priority(
                 text_input("Camera name", &self.name)

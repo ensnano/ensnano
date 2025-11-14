@@ -1076,13 +1076,11 @@ fn line_intersect(u0: Vec2, v0: Vec2, u1: Vec2, v1: Vec2) -> Option<(f32, f32)> 
     let x11 = v1.x;
     let y11 = v1.y;
     let d = x11 * y01 - x01 * y11;
-    if d.abs() > 1e-5 {
+    (d.abs() > 1e-5).then(|| {
         let s = (1. / d) * ((x00 - x10) * y01 - (y00 - y10) * x01);
         let t = (1. / d) * -(-(x00 - x10) * y11 + (y00 - y10) * x11);
-        Some((t, s))
-    } else {
-        None
-    }
+        (t, s)
+    })
 }
 
 pub(super) fn rectangle_intersect(rect_0: Vec2, rect_1: Vec2, a: Vec2, b: Vec2) -> bool {

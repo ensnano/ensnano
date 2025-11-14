@@ -146,22 +146,19 @@ impl GridInstance {
             let y_dir = Vec3::unit_y().rotated_by(self.grid.orientation);
             (vec.dot(x_dir), vec.dot(y_dir))
         };
-        if self.contains_point(x, y) {
+        self.contains_point(x, y).then(|| {
             let (x, y) = self
                 .grid
                 .grid_type
                 .interpolate(&self.grid.helix_parameters, x, y);
-
-            Some(GridIntersection {
+            GridIntersection {
                 depth: ret,
                 grid_id: self.id,
                 design_id: self.design,
                 x,
                 y,
-            })
-        } else {
-            None
-        }
+            }
+        })
     }
 
     fn convert_coord(&self, x: f32, y: f32) -> (f32, f32) {

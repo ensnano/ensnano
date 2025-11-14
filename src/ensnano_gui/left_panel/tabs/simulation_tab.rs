@@ -143,11 +143,7 @@ impl<State: AppState> GuiTab<State> for SimulationTab<State> {
         TabLabel::Icon(ICON_PHYSICAL_ENGINE)
     }
 
-    fn content(
-        &self,
-        ui_size: UiSize,
-        app_state: &State,
-    ) -> iced::Element<'_, Self::Message> {
+    fn content(&self, ui_size: UiSize, app_state: &State) -> iced::Element<'_, Self::Message> {
         let sim_state = &app_state.get_simulation_state();
         let rigid_grid_is_active = sim_state.is_none() || sim_state.simulating_grid();
         let roll_active = sim_state.is_none() || sim_state.is_rolling();
@@ -163,11 +159,7 @@ impl<State: AppState> GuiTab<State> for SimulationTab<State> {
                 start_stop_button(
                     "Rigid Grids",
                     ui_size,
-                    if rigid_grid_is_active {
-                        Some(Message::RigidGridSimulation)
-                    } else {
-                        None
-                    },
+                    rigid_grid_is_active.then_some(Message::RigidGridSimulation),
                     sim_state.simulating_grid()
                 ),
                 Self::helix_btns(&self.rigid_helices_button, app_state, ui_size,),
@@ -209,8 +201,7 @@ impl PhysicalSimulation {
         name: &'static str,
         active: bool,
         running: bool,
-    ) -> iced::Element<'_, Message<State>, iced::Theme, iced::Renderer>
-    {
+    ) -> iced::Element<'_, Message<State>, iced::Theme, iced::Renderer> {
         let button_str = if running { "Stop" } else { name };
         let mut button = text_button(button_str, ui_size);
         button = if running {

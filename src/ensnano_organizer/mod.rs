@@ -678,11 +678,7 @@ impl<E: OrganizerElement> Organizer<E> {
         if let Some(id) = get_group_id(id) {
             let ret;
             if id.len() < 2 {
-                ret = if self.groups.len() > id[0] {
-                    Some(self.groups.remove(id[0]))
-                } else {
-                    None
-                };
+                ret = (self.groups.len() > id[0]).then(|| self.groups.remove(id[0]));
             } else {
                 ret = self.groups.get_mut(id[0]).and_then(|c| c.pop_id(&id[1..]));
             }
@@ -698,14 +694,8 @@ impl<E: OrganizerElement> Organizer<E> {
     fn pop_id_no_recompute(&mut self, id: &[usize]) -> Option<GroupContent<E>> {
         let ret;
         if id.len() < 2 {
-            ret = if self.groups.len() > id[0] {
-                Some(std::mem::replace(
-                    &mut self.groups[id[0]],
-                    GroupContent::Placeholder,
-                ))
-            } else {
-                None
-            };
+            ret = (self.groups.len() > id[0])
+                .then(|| std::mem::replace(&mut self.groups[id[0]], GroupContent::Placeholder));
         } else {
             ret = self.groups.get_mut(id[0]).and_then(|c| c.pop_id(&id[1..]));
         }

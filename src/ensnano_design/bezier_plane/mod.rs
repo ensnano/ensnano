@@ -232,12 +232,10 @@ impl BezierPathsMut<'_> {
 
     #[must_use]
     pub fn remove_path(&mut self, path_id: &BezierPathId) -> Option<()> {
-        if self.new_map.contains_key(path_id) {
+        self.new_map.contains_key(path_id).then(|| {
             self.new_map.remove(path_id);
-            Some(())
-        } else {
-            None
-        }
+            ()
+        })
     }
 }
 
@@ -276,12 +274,10 @@ impl BezierPath {
 
     #[must_use]
     pub fn remove_vertex(&mut self, v_id: usize) -> Option<()> {
-        if self.vertices.len() > v_id {
+        (self.vertices.len() > v_id).then(|| {
             self.vertices.remove(v_id);
-            Some(())
-        } else {
-            None
-        }
+            ()
+        })
     }
 
     pub fn set_vector_out(&mut self, i: usize, vector_out: Vec3, planes: &BezierPlanes) {
@@ -524,11 +520,8 @@ impl InstantiatedPath {
         source_path: Arc<BezierPath>,
         helix_parameters: &HelixParameters,
     ) -> Option<Self> {
-        if self.need_update(&source_planes, &source_path) {
-            Some(Self::new(source_planes, source_path, helix_parameters))
-        } else {
-            None
-        }
+        self.need_update(&source_planes, &source_path)
+            .then(|| Self::new(source_planes, source_path, helix_parameters))
     }
 
     fn need_update(&self, source_planes: &BezierPlanes, source_path: &Arc<BezierPath>) -> bool {
@@ -616,7 +609,7 @@ impl BezierPathData {
         source_paths: BezierPaths,
         helix_parameters: &HelixParameters,
     ) -> Option<Self> {
-        if self.need_update(&source_planes, &source_paths) {
+        self.need_update(&source_planes, &source_paths).then(|| {
             let instantiated_paths: BTreeMap<_, _> = source_paths
                 .0
                 .iter()
@@ -635,14 +628,12 @@ impl BezierPathData {
                     (*id, path)
                 })
                 .collect();
-            Some(Self {
+            Self {
                 instantiated_paths: Arc::new(instantiated_paths),
                 source_planes,
                 source_paths,
-            })
-        } else {
-            None
-        }
+            }
+        })
     }
 
     pub fn ptr_eq(a: &Self, b: &Self) -> bool {

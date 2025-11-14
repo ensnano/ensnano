@@ -1129,11 +1129,11 @@ impl MainState {
     }
 
     fn update_simulation_cursor(&mut self) {
-        self.simulation_cursor = if self.app_state.get_simulation_state().is_running() {
-            Some(CursorIcon::Progress)
-        } else {
-            None
-        }
+        self.simulation_cursor = self
+            .app_state
+            .get_simulation_state()
+            .is_running()
+            .then(|| CursorIcon::Progress)
     }
 
     fn push_action(&mut self, action: Action) {
@@ -1978,11 +1978,9 @@ impl MainStateView<'_> {
     }
 
     fn need_save(&self) -> Option<Option<PathBuf>> {
-        if self.main_state.need_save() {
-            Some(self.get_current_file_name().map(Path::to_path_buf))
-        } else {
-            None
-        }
+        self.main_state
+            .need_save()
+            .then(|| self.get_current_file_name().map(Path::to_path_buf))
     }
 
     fn get_current_design_directory(&self) -> Option<&Path> {
@@ -1997,11 +1995,7 @@ impl MainStateView<'_> {
             Some(first_ancestor)
         } else {
             let second_ancestor = ancestors.next()?;
-            if second_ancestor.is_dir() {
-                Some(second_ancestor)
-            } else {
-                None
-            }
+            second_ancestor.is_dir().then(|| second_ancestor)
         }
     }
 

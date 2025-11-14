@@ -551,8 +551,7 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
         &self,
         ui_size: UiSize,
         app_state: &State,
-    ) -> iced::Element<'_, Self::Message, iced::Theme, iced::Renderer>
-    {
+    ) -> iced::Element<'_, Self::Message, iced::Theme, iced::Renderer> {
         let desc = self.get_revolution_system(app_state, false);
 
         let shift_buttons = {

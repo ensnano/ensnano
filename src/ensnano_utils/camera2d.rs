@@ -83,12 +83,10 @@ impl Camera2D {
 
     /// Return the globals if self was updated,
     pub fn update(&mut self) -> Option<&Globals> {
-        if self.was_updated {
+        self.was_updated.then(|| {
             self.was_updated = false;
-            Some(&self.globals)
-        } else {
-            None
-        }
+            &self.globals
+        })
     }
 
     /// Moves the camera, according to a mouse movement expressed in *normalized screen

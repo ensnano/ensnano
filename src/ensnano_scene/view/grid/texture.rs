@@ -99,16 +99,14 @@ fn fill_square_texture(target: &TextureView, device: &Device, encoder: &mut wgpu
         height: TEXTURE_SIZE,
     };
 
-    let msaa_texture = if SAMPLE_COUNT > 1 {
-        Some(Texture::create_msaa_texture(
+    let msaa_texture = (SAMPLE_COUNT > 1).then(|| {
+        Texture::create_msaa_texture(
             device,
             &texture_size,
             SAMPLE_COUNT,
             wgpu::TextureFormat::Bgra8UnormSrgb,
-        ))
-    } else {
-        None
-    };
+        )
+    });
 
     let (attachment, resolve_target) = match msaa_texture.as_ref() {
         Some(msaa_texture) => (msaa_texture, Some(target)),
@@ -237,16 +235,14 @@ fn fill_honeycomb_texture(
         height: TEXTURE_SIZE,
     };
 
-    let msaa_texture = if SAMPLE_COUNT > 1 {
-        Some(Texture::create_msaa_texture(
+    let msaa_texture = (SAMPLE_COUNT > 1).then(|| {
+        Texture::create_msaa_texture(
             device,
             &texture_size,
             SAMPLE_COUNT,
             wgpu::TextureFormat::Bgra8UnormSrgb,
-        ))
-    } else {
-        None
-    };
+        )
+    });
 
     let (attachment, resolve_target) = match msaa_texture.as_ref() {
         Some(msaa_texture) => (msaa_texture, Some(target)),

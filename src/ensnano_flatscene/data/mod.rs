@@ -976,13 +976,9 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
 
     fn xover_containing_nucl(&self, nucl: &FlatNucl) -> Option<usize> {
         let xovers_list = self.design.get_xovers_list();
-        xovers_list.iter().find_map(|(id, (n1, n2))| {
-            if *n1 == *nucl || *n2 == *nucl {
-                Some(*id)
-            } else {
-                None
-            }
-        })
+        xovers_list
+            .iter()
+            .find_map(|(id, (n1, n2))| (*n1 == *nucl || *n2 == *nucl).then(|| *id))
     }
 
     pub fn phantom_to_selection(

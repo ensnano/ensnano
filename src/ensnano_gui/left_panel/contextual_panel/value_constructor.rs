@@ -305,8 +305,7 @@ impl GridBuilder {
     fn nb_turn_row<'a, S: AppState>(
         app_state: &S,
         selection: &Selection,
-    ) -> Option<iced::Element<'a, super::Message<S>, iced::Theme, iced::Renderer>>
-    {
+    ) -> Option<iced::Element<'a, super::Message<S>, iced::Theme, iced::Renderer>> {
         use crate::ensnano_gui::consts;
         if let Selection::Grid(_, g_id) = selection {
             if let Some(nb_turn) = app_state.get_reader().get_grid_nb_turn(*g_id) {

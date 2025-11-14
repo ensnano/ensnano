@@ -1101,24 +1101,20 @@ impl GridData {
     }
 
     pub fn get_helices_on_grid(&self, g_id: GridId) -> Option<HashSet<usize>> {
-        if self.grids.contains_key(&g_id) {
-            Some(
-                self.pos_to_object
-                    .iter()
-                    .filter(|(pos, _)| pos.grid == g_id)
-                    .filter_map(|(_, obj)| {
-                        if let GridObject::Helix(h) = obj {
-                            Some(h)
-                        } else {
-                            None
-                        }
-                    })
-                    .cloned()
-                    .collect(),
-            )
-        } else {
-            None
-        }
+        self.grids.contains_key(&g_id).then(|| {
+            self.pos_to_object
+                .iter()
+                .filter(|(pos, _)| pos.grid == g_id)
+                .filter_map(|(_, obj)| {
+                    if let GridObject::Helix(h) = obj {
+                        Some(h)
+                    } else {
+                        None
+                    }
+                })
+                .cloned()
+                .collect()
+        })
     }
 
     pub fn get_used_coordinates_on_grid(&self, g_id: GridId) -> Vec<(isize, isize)> {

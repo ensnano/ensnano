@@ -411,11 +411,7 @@ impl Curve {
             Some(n as usize + self.nucl_t0)
         } else {
             let nb_neg = self.nucl_t0;
-            if ((-n) as usize) <= nb_neg {
-                Some(nb_neg - ((-n) as usize))
-            } else {
-                None
-            }
+            (((-n) as usize) <= nb_neg).then(|| nb_neg - ((-n) as usize))
         }
     }
 

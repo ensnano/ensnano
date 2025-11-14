@@ -842,11 +842,8 @@ impl AddStrandMenu {
     }
 
     fn get_new_strand_parameters(&self) -> Option<(isize, usize)> {
-        if self.text_inputs_are_active {
-            Some((self.helix_pos, self.helix_length))
-        } else {
-            None
-        }
+        self.text_inputs_are_active
+            .then_some((self.helix_pos, self.helix_length))
     }
 
     fn set_show_strand(&mut self, show: bool) {

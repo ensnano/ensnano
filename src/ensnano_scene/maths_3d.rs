@@ -26,19 +26,16 @@ use super::{
 /// We want to find the shortest line between the segment (P1, P2) and (P3, P4).
 /// This line is a line (Pa, Pb) where Pa = P1 + mua (P2 - P1).
 /// This function returns mua
+/// http://paulbourke.net/geometry/pointlineplane/
 fn mu_unprojection(p1: Vec3, p2: Vec3, p3: Vec3, p4: Vec3) -> Option<f32> {
-    if (p2 - p1).cross(p4 - p3).mag() > 1e-3 {
-        // http://paulbourke.net/geometry/pointlineplane/
-
+    ((p2 - p1).cross(p4 - p3).mag() > 1e-3).then(|| {
         let d = |x: Vec3, y: Vec3, z: Vec3, w: Vec3| (x - y).dot(z - w);
         // mua = ( d1343 d4321 - d1321 d4343 ) / ( d2121 d4343 - d4321 d4321 )
 
         let mu_num = d(p1, p3, p4, p3) * d(p4, p3, p2, p1) - d(p1, p3, p2, p1) * d(p4, p3, p4, p3);
         let mu_den = d(p2, p1, p2, p1) * d(p4, p3, p4, p3) - d(p4, p3, p2, p1) * d(p4, p3, p2, p1);
-        Some(mu_num / mu_den)
-    } else {
-        None
-    }
+        mu_num / mu_den
+    })
 }
 
 /// Create a line that goes from the camera to a point on the screen and project that line on a
@@ -116,12 +113,10 @@ pub fn unproject_point_on_plane(
     let dir = p2 - p1;
 
     let denom = dir.dot(objective_normal);
-    if denom.abs() > 1e-3 {
+    (denom.abs() > 1e-3).then(|| {
         let mu = (objective_origin - p1).dot(objective_normal) / denom;
-        Some(p1 + mu * dir)
-    } else {
-        None
-    }
+        p1 + mu * dir
+    })
 }
 
 /// Convert a point on the screen into a point in the world. Useful for casting rays
@@ -231,11 +226,8 @@ impl UnalignedBoundaries {
         let y = (self.min_y + self.max_y) / 2.;
         let z = (self.min_z + self.max_z) / 2.;
 
-        if x.is_finite() && y.is_finite() && z.is_finite() {
-            Some(self.basis.convert_point_from_self(Vec3::new(x, y, z)))
-        } else {
-            None
-        }
+        (x.is_finite() && y.is_finite() && z.is_finite())
+            .then(|| self.basis.convert_point_from_self(Vec3::new(x, y, z)))
     }
 
     fn bounding_sphere_radius(&self) -> Option<f32> {

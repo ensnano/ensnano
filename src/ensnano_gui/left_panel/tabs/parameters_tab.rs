@@ -65,11 +65,7 @@ impl<State: AppState> GuiTab<State> for ParametersTab<State> {
         TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Settings)))
     }
 
-    fn content(
-        &self,
-        ui_size: UiSize,
-        app_state: &State,
-    ) -> iced::Element<'_, Self::Message> {
+    fn content(&self, ui_size: UiSize, app_state: &State) -> iced::Element<'_, Self::Message> {
         let dna_params = &app_state.get_dna_parameters();
 
         let content = self::column![

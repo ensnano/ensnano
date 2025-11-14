@@ -73,13 +73,9 @@ impl<State: AppState> EditionTab<State> {
 
     pub fn get_roll_request(&self, selection: &[DesignElementKey]) -> Option<RollRequest> {
         let roll_target_helices = self.get_roll_target_helices(selection);
-        if !roll_target_helices.is_empty() {
-            Some(RollRequest {
-                target_helices: Some(roll_target_helices.clone()),
-            })
-        } else {
-            None
-        }
+        (!roll_target_helices.is_empty()).then(|| RollRequest {
+            target_helices: Some(roll_target_helices.clone()),
+        })
     }
 
     pub fn current_strand_color(&self) -> u32 {
@@ -129,11 +125,7 @@ impl<State: AppState> GuiTab<State> for EditionTab<State> {
             start_stop_button(
                 "Autoroll selected helices",
                 ui_size,
-                if autoroll_is_active {
-                    Some(Message::RollTargeted)
-                } else {
-                    None
-                },
+                autoroll_is_active.then_some(Message::RollTargeted),
                 sim_state.is_rolling()
             ),
             // add_color_square!

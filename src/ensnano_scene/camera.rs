@@ -837,11 +837,9 @@ impl CameraController {
     }
 
     pub fn get_current_surface_pivot(&self) -> Option<Vec3> {
-        if self.surface_point.is_some() {
+        self.surface_point.is_some().then(|| {
             let dist = self.dist_to_surface.unwrap_or(DEFAULT_DIST_TO_SURFACE);
-            Some(self.camera.borrow().direction() * dist + self.camera.borrow().position)
-        } else {
-            None
-        }
+            self.camera.borrow().direction() * dist + self.camera.borrow().position
+        })
     }
 }

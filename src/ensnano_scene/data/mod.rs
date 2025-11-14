@@ -2022,21 +2022,13 @@ fn add_discs<R: SceneDesignReaderExt>(pos: GridPosition, discs: Discs<R>, level:
                 discs.candidates.push(pos);
                 Some(grid.disc(pos.x, pos.y, level.color(), 0))
             }
-            DiscLevel::Selection => {
-                if !discs.candidates.contains(&pos) {
-                    discs.selection.push(pos);
-                    Some(grid.disc(pos.x, pos.y, level.color(), 0))
-                } else {
-                    None
-                }
-            }
-            DiscLevel::Scene => {
-                if !discs.candidates.contains(&pos) && !discs.selection.contains(&pos) {
-                    Some(grid.disc(pos.x, pos.y, level.color(), 0))
-                } else {
-                    None
-                }
-            }
+            DiscLevel::Selection => (!discs.candidates.contains(&pos)).then(|| {
+                discs.selection.push(pos);
+                grid.disc(pos.x, pos.y, level.color(), 0)
+            }),
+            DiscLevel::Scene => (!discs.candidates.contains(&pos)
+                && !discs.selection.contains(&pos))
+            .then(|| grid.disc(pos.x, pos.y, level.color(), 0)),
         };
         if let Some((d1, d2)) = new_disc_instances {
             discs.discs.push(d1);

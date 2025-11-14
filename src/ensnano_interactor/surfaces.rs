@@ -252,7 +252,7 @@ impl UnrootedRevolutionSurfaceDescriptor {
         }
 
         let nb_helix = half_nb_helix * 2;
-        if nb_helix.is_multiple_of(nb_spirals) {
+        nb_helix.is_multiple_of(nb_spirals).then(|| {
             let additional_shift = if self.half_turn_count % 2 == 1 {
                 half_nb_helix
             } else {
@@ -262,15 +262,13 @@ impl UnrootedRevolutionSurfaceDescriptor {
             let coprimes = (1..a)
                 .filter(|n| gcd(*n as isize, a as isize) == 1)
                 .collect();
-            Some(ShiftGenerator {
+            ShiftGenerator {
                 coprimes_with_a: coprimes,
                 nb_spirals,
                 additional_shift,
                 nb_section: nb_helix,
-            })
-        } else {
-            None
-        }
+            }
+        })
     }
 }
 

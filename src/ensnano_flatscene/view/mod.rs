@@ -505,19 +505,14 @@ impl View {
                     .camera_top
                     .borrow()
                     .world_to_norm_screen(world_pos_2.x, world_pos_2.y);
-                if (screen_pos_1.0 - screen_pos_2.0) * (screen_pos_1.0 - screen_pos_2.0)
+                ((screen_pos_1.0 - screen_pos_2.0) * (screen_pos_1.0 - screen_pos_2.0)
                     + (screen_pos_1.1 - screen_pos_2.1) * (screen_pos_1.1 - screen_pos_2.1)
-                    > 0.25
-                {
-                    // Center the topmost nucleotide on the top camera
-                    Some(if screen_pos_1.1 < screen_pos_2.1 {
+                    > 0.25)
+                    .then_some(if screen_pos_1.1 < screen_pos_2.1 {
                         (n1, n2)
                     } else {
                         (n2, n1)
                     })
-                } else {
-                    None
-                }
             }
             FlatSelection::Nucleotide(FlatNucl {
                 helix,
@@ -629,16 +624,14 @@ impl View {
                 .new_instances(nucleotide_highlighting);
         }
 
-        let msaa_texture = if SAMPLE_COUNT > 1 {
-            Some(Texture::create_msaa_texture(
+        let msaa_texture = (SAMPLE_COUNT > 1).then(|| {
+            Texture::create_msaa_texture(
                 self.device.clone().as_ref(),
                 &target_size,
                 SAMPLE_COUNT,
                 wgpu::TextureFormat::Bgra8UnormSrgb,
-            ))
-        } else {
-            None
-        };
+            )
+        });
 
         let (attachment, resolve_target) = match msaa_texture.as_ref() {
             Some(msaa_texture) => (msaa_texture, Some(target)),

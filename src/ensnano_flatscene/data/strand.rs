@@ -486,19 +486,18 @@ impl<'a> StrandVertexBuilder<'a> {
     }
 
     fn alternative_positions(&self, from: Vec2, to: Vec2) -> Option<(Vec2, Vec2)> {
-        if one_point_one_camera(TwoCameraAndPoints {
+        one_point_one_camera(TwoCameraAndPoints {
             point_1: from,
             point_2: to,
             cam_1: self.main_camera,
             cam_2: self.alternative_camera,
-        }) {
-            Some((
+        })
+        .then(|| {
+            (
                 self.alternative_position_one_point(from),
                 self.alternative_position_one_point(to),
-            ))
-        } else {
-            None
-        }
+            )
+        })
     }
 
     fn alternative_position_one_point(&self, point: Vec2) -> Vec2 {

@@ -2516,17 +2516,15 @@ impl<S: AppState> ControllerState<S> for DraggingSelection {
                     .get_camera(position.y)
                     .borrow()
                     .screen_to_world(self.mouse_position.x as f32, self.mouse_position.y as f32);
-                let rectangle_selection = if valid_rectangle {
-                    Some(controller.data.borrow_mut().select_rectangle(
+                let rectangle_selection = valid_rectangle.then(|| {
+                    controller.data.borrow_mut().select_rectangle(
                         corner1_world.into(),
                         corner2_world.into(),
                         &controller.get_camera(position.y),
                         controller.modifiers.shift_key(),
                         app_state,
-                    ))
-                } else {
-                    None
-                };
+                    )
+                });
                 if let Some(rectangle_selection) = rectangle_selection {
                     Transition {
                         new_state: Some(Box::new(ReleasedPivot {

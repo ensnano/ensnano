@@ -1122,11 +1122,7 @@ fn read_intervals(presenter: &Presenter) -> Result<IntervalResult, ErrOperation>
                 let starting_nucl = nucl;
                 let mut prev_doubled = false;
                 let mut moving_nucl = starting_nucl;
-                let mut starting_helix = if starting_doubled {
-                    Some(current_helix)
-                } else {
-                    None
-                };
+                let mut starting_helix = starting_doubled.then_some(current_helix);
                 while presenter.has_nucl(&moving_nucl) {
                     log::debug!("nucl {moving_nucl:?}");
                     let doubled = presenter.has_nucl(&moving_nucl.compl());
@@ -1696,16 +1692,8 @@ fn make_rigid_grid(
             rigid_helices.push(rigid_helix);
         }
     }
-    if !rigid_helices.is_empty() {
-        Some(RigidGrid::from_helices(
-            g_id,
-            rigid_helices,
-            grid.position,
-            grid.orientation,
-        ))
-    } else {
-        None
-    }
+    (!rigid_helices.is_empty())
+        .then(|| RigidGrid::from_helices(g_id, rigid_helices, grid.position, grid.orientation))
 }
 
 fn make_rigid_helix_grid_pov(

@@ -580,16 +580,14 @@ impl View {
             self.depth_texture =
                 Texture::create_depth_texture(self.device.as_ref(), &area.size, SAMPLE_COUNT);
             self.fake_depth_texture = Texture::create_depth_texture(self.device.as_ref(), &size, 1);
-            self.msaa_texture = if SAMPLE_COUNT > 1 {
-                Some(Texture::create_msaa_texture(
+            self.msaa_texture = (SAMPLE_COUNT > 1).then(|| {
+                Texture::create_msaa_texture(
                     self.device.clone().as_ref(),
                     &area.size,
                     SAMPLE_COUNT,
                     wgpu::TextureFormat::Bgra8UnormSrgb,
-                ))
-            } else {
-                None
-            };
+                )
+            });
         }
 
         let fake_color = draw_type.is_fake();
@@ -621,17 +619,15 @@ impl View {
                 }
             }
             DrawType::Png { width, height } => {
-                png_msaa = if SAMPLE_COUNT > 1 {
+                png_msaa = (SAMPLE_COUNT > 1).then(|| {
                     let size = PhySize::new(width, height);
-                    Some(Texture::create_msaa_texture(
+                    Texture::create_msaa_texture(
                         self.device.clone().as_ref(),
                         &size,
                         SAMPLE_COUNT,
                         wgpu::TextureFormat::Bgra8UnormSrgb,
-                    ))
-                } else {
-                    None
-                };
+                    )
+                });
                 png_msaa.as_ref().unwrap_or(target)
             }
             DrawType::Design | DrawType::Widget | DrawType::Phantom | DrawType::Grid => target,
