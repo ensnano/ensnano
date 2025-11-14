@@ -17,15 +17,15 @@ pub(crate) enum IntermediaryPair {
 
 impl IntermediaryPair {
     pub fn is_a_pair(&self) -> bool {
-        matches!(self, IntermediaryPair::Pair(..))
+        matches!(self, Self::Pair(..))
     }
 
     pub fn is_only_forward(&self) -> bool {
-        matches!(self, IntermediaryPair::OnlyForward(..))
+        matches!(self, Self::OnlyForward(..))
     }
 
     pub fn is_only_backward(&self) -> bool {
-        matches!(self, IntermediaryPair::OnlyBackward(..))
+        matches!(self, Self::OnlyBackward(..))
     }
 }
 

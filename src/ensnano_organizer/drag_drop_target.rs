@@ -174,7 +174,7 @@ where
 {
     fn from(
         value: DragDropTarget<'a, OrganizerMessage<E>, Theme, Renderer, E::Key, E::AutoGroup>,
-    ) -> Element<'a, OrganizerMessage<E>, Theme, Renderer> {
+    ) -> Self {
         Element::new(value)
     }
 }

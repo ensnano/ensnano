@@ -57,7 +57,7 @@ impl State for NormalState {
                     self
                 }
                 Action::ErrorMsg(msg) => {
-                    TransitionMessage::new(msg, rfd::MessageLevel::Error, Box::new(NormalState))
+                    TransitionMessage::new(msg, rfd::MessageLevel::Error, Box::new(Self))
                 }
                 Action::DesignOperation(op) => {
                     main_state.apply_operation(op);
@@ -99,7 +99,7 @@ impl State for NormalState {
                         TransitionMessage::new(
                             messages::SET_DESIGN_DIRECTORY_FIRST,
                             rfd::MessageLevel::Error,
-                            Box::new(NormalState),
+                            Box::new(Self),
                         )
                     }
                 }

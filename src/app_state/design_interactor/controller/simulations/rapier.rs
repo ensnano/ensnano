@@ -50,7 +50,7 @@ impl RapierPhysicalSystem {
             force_stop: false,
         }));
 
-        let result = RapierPhysicalSystem {
+        let result = Self {
             system,
             interface: Arc::downgrade(&interface),
         };

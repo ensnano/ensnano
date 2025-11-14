@@ -520,7 +520,7 @@ impl RigidHelix {
         roll: f32,
         orientation: Rotor3,
         interval: (isize, isize),
-    ) -> RigidHelix {
+    ) -> Self {
         Self {
             roll,
             orientation,
@@ -542,7 +542,7 @@ impl RigidHelix {
         roll: f32,
         orientation: Rotor3,
         interval: (isize, isize),
-    ) -> RigidHelix {
+    ) -> Self {
         Self {
             roll,
             orientation,

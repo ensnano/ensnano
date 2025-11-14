@@ -1399,11 +1399,11 @@ impl Helix {
 impl InterpolationDescriptor {
     pub fn instantiated(self) -> chebyshev_polynomials::ChebyshevPolynomial {
         match self {
-            InterpolationDescriptor::PointsValues { points, values } => {
+            Self::PointsValues { points, values } => {
                 let points_values = points.into_iter().zip(values).collect();
                 chebyshev_polynomials::interpolate_points(points_values, 1e-4)
             }
-            InterpolationDescriptor::Chebyshev { coeffs, interval } => {
+            Self::Chebyshev { coeffs, interval } => {
                 chebyshev_polynomials::ChebyshevPolynomial::from_coeffs_interval(coeffs, interval)
             }
         }

@@ -10,7 +10,7 @@ use crate::ensnano_organizer::tree::GroupId;
 use curve_builders::*;
 
 impl GuiState for AppState {
-    const POSSIBLE_CURVES: &'static [crate::ensnano_gui::CurveDescriptorBuilder<AppState>] =
+    const POSSIBLE_CURVES: &'static [crate::ensnano_gui::CurveDescriptorBuilder<Self>] =
         &[ELLIPSE_BUILDER, TWO_SPHERES_BUILDER, BEZIER_CURVE_BUILDER];
 
     fn get_selection_mode(&self) -> SelectionMode {

@@ -54,13 +54,13 @@ pub(super) enum CadnanoError {
 
 impl std::convert::From<std::io::Error> for CadnanoError {
     fn from(e: std::io::Error) -> Self {
-        CadnanoError::IO(e)
+        Self::IO(e)
     }
 }
 
 impl std::convert::From<serde_json::Error> for CadnanoError {
     fn from(e: serde_json::Error) -> Self {
-        CadnanoError::Json(e)
+        Self::Json(e)
     }
 }
 
@@ -75,7 +75,7 @@ impl FromCadnano for Design {
     fn from_cadnano(nano: Cadnano) -> Self {
         let vstrands = nano.vstrands;
         let mut seen: HashSet<(usize, usize, bool)> = HashSet::new();
-        let mut design = Design::new();
+        let mut design = Self::new();
         let mut nb_strand = 0;
         let mut colors = BTreeMap::new();
 

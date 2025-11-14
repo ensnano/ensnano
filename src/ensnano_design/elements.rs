@@ -104,10 +104,10 @@ impl OrganizerElement for DesignElement {
 
     fn key(&self) -> DesignElementKey {
         match self {
-            DesignElement::Grid { id, .. } => DesignElementKey::Grid(*id),
-            DesignElement::Strand { id, .. } => DesignElementKey::Strand(*id),
-            DesignElement::Helix { id, .. } => DesignElementKey::Helix(*id),
-            DesignElement::Nucleotide {
+            Self::Grid { id, .. } => DesignElementKey::Grid(*id),
+            Self::Strand { id, .. } => DesignElementKey::Strand(*id),
+            Self::Helix { id, .. } => DesignElementKey::Helix(*id),
+            Self::Nucleotide {
                 helix,
                 position,
                 forward,
@@ -116,7 +116,7 @@ impl OrganizerElement for DesignElement {
                 position: *position,
                 forward: *forward,
             },
-            DesignElement::CrossOver { xover_id, .. } => DesignElementKey::CrossOver {
+            Self::CrossOver { xover_id, .. } => DesignElementKey::CrossOver {
                 xover_id: *xover_id,
             },
         }
@@ -124,15 +124,15 @@ impl OrganizerElement for DesignElement {
 
     fn display_name(&self) -> String {
         match self {
-            DesignElement::Grid { id, .. } => format!("Grid {id}"),
-            DesignElement::Strand { id, .. } => format!("Strand {id}"),
-            DesignElement::Helix { id, .. } => format!("Helix {id}"),
-            DesignElement::Nucleotide {
+            Self::Grid { id, .. } => format!("Grid {id}"),
+            Self::Strand { id, .. } => format!("Strand {id}"),
+            Self::Helix { id, .. } => format!("Helix {id}"),
+            Self::Nucleotide {
                 helix,
                 position,
                 forward,
             } => format!("Nucl {helix}:{position}:{forward}"),
-            DesignElement::CrossOver {
+            Self::CrossOver {
                 helix5prime,
                 position5prime,
                 forward5prime,
@@ -148,7 +148,7 @@ impl OrganizerElement for DesignElement {
 
     fn attributes(&self) -> Vec<DnaAttribute> {
         match self {
-            DesignElement::Helix {
+            Self::Helix {
                 group,
                 locked_for_simulations: locked,
                 ..
@@ -156,14 +156,14 @@ impl OrganizerElement for DesignElement {
                 DnaAttribute::XoverGroup(*group),
                 DnaAttribute::LockedForSimulations(*locked),
             ],
-            DesignElement::Grid { visible, .. } => vec![DnaAttribute::Visible(*visible)],
+            Self::Grid { visible, .. } => vec![DnaAttribute::Visible(*visible)],
             _ => vec![],
         }
     }
 
     fn min_max_domain_length_if_strand(&self) -> Option<(usize, usize)> {
         match self {
-            DesignElement::Strand { domain_lengths, .. } => match (
+            Self::Strand { domain_lengths, .. } => match (
                 domain_lengths.clone().iter().min().copied(),
                 domain_lengths.clone().iter().max().copied(),
             ) {
@@ -177,7 +177,7 @@ impl OrganizerElement for DesignElement {
 
     fn auto_groups(&self, last_domain_length_bounds: (usize, usize)) -> Vec<Self::AutoGroup> {
         match self {
-            DesignElement::Strand {
+            Self::Strand {
                 length,
                 domain_lengths,
                 ..
@@ -285,42 +285,38 @@ impl OrganizerAttribute for DnaAttribute {
 
     fn discriminant(&self) -> DnaAttributeDiscriminant {
         match self {
-            DnaAttribute::Visible(_) => DnaAttributeDiscriminant::Visible,
-            DnaAttribute::XoverGroup(_) => DnaAttributeDiscriminant::XoverGroup,
-            DnaAttribute::LockedForSimulations(_) => DnaAttributeDiscriminant::LockedForSimulations,
+            Self::Visible(_) => DnaAttributeDiscriminant::Visible,
+            Self::XoverGroup(_) => DnaAttributeDiscriminant::XoverGroup,
+            Self::LockedForSimulations(_) => DnaAttributeDiscriminant::LockedForSimulations,
         }
     }
 
-    fn widget(&self) -> AttributeWidget<DnaAttribute> {
+    fn widget(&self) -> AttributeWidget<Self> {
         match self {
-            DnaAttribute::Visible(b) => AttributeWidget::new(DnaAttribute::Visible(!b)),
-            DnaAttribute::LockedForSimulations(b) => {
-                AttributeWidget::new(DnaAttribute::LockedForSimulations(!b))
-            }
-            DnaAttribute::XoverGroup(None) => {
-                AttributeWidget::new(DnaAttribute::XoverGroup(Some(false)))
-            }
-            DnaAttribute::XoverGroup(Some(b)) => AttributeWidget::new(if *b {
-                DnaAttribute::XoverGroup(None)
+            Self::Visible(b) => AttributeWidget::new(Self::Visible(!b)),
+            Self::LockedForSimulations(b) => AttributeWidget::new(Self::LockedForSimulations(!b)),
+            Self::XoverGroup(None) => AttributeWidget::new(Self::XoverGroup(Some(false))),
+            Self::XoverGroup(Some(b)) => AttributeWidget::new(if *b {
+                Self::XoverGroup(None)
             } else {
-                DnaAttribute::XoverGroup(Some(true))
+                Self::XoverGroup(Some(true))
             }),
         }
     }
 
     fn char_repr(&self) -> AttributeDisplay {
         match self {
-            DnaAttribute::Visible(b) => AttributeDisplay::Icon(if *b {
+            Self::Visible(b) => AttributeDisplay::Icon(if *b {
                 icondata::BsEyeFill
             } else {
                 icondata::BsEyeSlash
             }),
-            DnaAttribute::XoverGroup(group) => match group {
+            Self::XoverGroup(group) => match group {
                 None => AttributeDisplay::Text("\u{2205}".to_owned()),
                 Some(false) => AttributeDisplay::Text("G".to_owned()),
                 Some(true) => AttributeDisplay::Text("R".to_owned()),
             },
-            DnaAttribute::LockedForSimulations(b) => AttributeDisplay::Icon(if *b {
+            Self::LockedForSimulations(b) => AttributeDisplay::Icon(if *b {
                 icondata::BsLock
             } else {
                 icondata::BsUnlock

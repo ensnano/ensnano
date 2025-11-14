@@ -110,9 +110,9 @@ impl UiSize {
 impl std::fmt::Display for UiSize {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         let ret = match self {
-            UiSize::Small => "Small",
-            UiSize::Medium => "Medium",
-            UiSize::Large => "Large",
+            Self::Small => "Small",
+            Self::Medium => "Medium",
+            Self::Large => "Large",
         };
         write!(f, "{ret}")
     }

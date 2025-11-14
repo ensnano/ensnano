@@ -229,24 +229,24 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
         }) = event
         {
             match self {
-                GuiState::StatusBar(_) => {
+                Self::StatusBar(_) => {
                     self.queue_status_bar_message(status_bar::Message::TabPressed);
                 }
-                GuiState::TopBar(_) => (),
-                GuiState::LeftPanel(_) => (),
+                Self::TopBar(_) => (),
+                Self::LeftPanel(_) => (),
             }
         } else {
             match self {
-                GuiState::TopBar(state) => state.queue_event(event),
-                GuiState::LeftPanel(state) => state.queue_event(event),
-                GuiState::StatusBar(state) => state.queue_event(event),
+                Self::TopBar(state) => state.queue_event(event),
+                Self::LeftPanel(state) => state.queue_event(event),
+                Self::StatusBar(state) => state.queue_event(event),
             }
         }
     }
 
     fn queue_top_bar_message(&mut self, message: top_bar::Message<S>) {
         log::trace!("Queue top bar {message:?}");
-        if let GuiState::TopBar(state) = self {
+        if let Self::TopBar(state) = self {
             state.queue_message(message);
         } else {
             panic!("wrong message type")
@@ -255,7 +255,7 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
 
     fn queue_left_panel_message(&mut self, message: left_panel::Message<S>) {
         log::trace!("Queue left panel {message:?}");
-        if let GuiState::LeftPanel(state) = self {
+        if let Self::LeftPanel(state) = self {
             state.queue_message(message);
         } else {
             panic!("wrong message type")
@@ -264,7 +264,7 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
 
     fn queue_status_bar_message(&mut self, message: status_bar::Message<S>) {
         log::trace!("Queue status_bar {message:?}");
-        if let GuiState::StatusBar(state) = self {
+        if let Self::StatusBar(state) = self {
             state.queue_message(message);
         } else {
             panic!("wrong message type")
@@ -273,14 +273,14 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
 
     fn resize(&mut self, area: DrawArea, window: &Window) {
         match self {
-            GuiState::TopBar(state) => state.queue_message(top_bar::Message::Resize(
+            Self::TopBar(state) => state.queue_message(top_bar::Message::Resize(
                 area.size.to_logical(window.scale_factor()),
             )),
-            GuiState::LeftPanel(state) => state.queue_message(left_panel::Message::Resized(
+            Self::LeftPanel(state) => state.queue_message(left_panel::Message::Resized(
                 area.size.to_logical(window.scale_factor()),
                 area.position.to_logical(window.scale_factor()),
             )),
-            GuiState::StatusBar(state) => state.queue_message(status_bar::Message::Resize(
+            Self::StatusBar(state) => state.queue_message(status_bar::Message::Resize(
                 area.size.to_logical(window.scale_factor()),
             )),
         }
@@ -288,9 +288,9 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
 
     fn is_queue_empty(&self) -> bool {
         match self {
-            GuiState::TopBar(state) => state.is_queue_empty(),
-            GuiState::LeftPanel(state) => state.is_queue_empty(),
-            GuiState::StatusBar(state) => state.is_queue_empty(),
+            Self::TopBar(state) => state.is_queue_empty(),
+            Self::LeftPanel(state) => state.is_queue_empty(),
+            Self::StatusBar(state) => state.is_queue_empty(),
         }
     }
 
@@ -305,13 +305,13 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
     ) {
         let mut clipboard = clipboard::Null;
         match self {
-            GuiState::TopBar(state) => {
+            Self::TopBar(state) => {
                 let _ = state.update(size, cursor, renderer, theme, style, &mut clipboard, debug);
             }
-            GuiState::LeftPanel(state) => {
+            Self::LeftPanel(state) => {
                 let _ = state.update(size, cursor, renderer, theme, style, &mut clipboard, debug);
             }
-            GuiState::StatusBar(state) => {
+            Self::StatusBar(state) => {
                 let _ = state.update(size, cursor, renderer, theme, style, &mut clipboard, debug);
             }
         }
@@ -350,14 +350,14 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
         }
 
         match self {
-            GuiState::TopBar(state) => *mouse_interaction = state.mouse_interaction(),
-            GuiState::LeftPanel(state) => {
+            Self::TopBar(state) => *mouse_interaction = state.mouse_interaction(),
+            Self::LeftPanel(state) => {
                 let icon = state.mouse_interaction();
                 if icon > *mouse_interaction {
                     *mouse_interaction = icon;
                 }
             }
-            GuiState::StatusBar(state) => {
+            Self::StatusBar(state) => {
                 let icon = state.mouse_interaction();
                 if icon > *mouse_interaction {
                     *mouse_interaction = icon;

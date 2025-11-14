@@ -44,11 +44,11 @@ pub enum ObjectType {
 
 impl ObjectType {
     pub fn is_bond(&self) -> bool {
-        matches!(self, ObjectType::Bond(_, _))
+        matches!(self, Self::Bond(_, _))
     }
 
     pub fn is_helix_cylinder(&self) -> bool {
-        matches!(self, ObjectType::HelixCylinder(_, _))
+        matches!(self, Self::HelixCylinder(_, _))
     }
 
     pub fn same_type(&self, other: &Self) -> bool {
@@ -524,9 +524,9 @@ pub enum WidgetBasis {
 impl WidgetBasis {
     pub fn toggle(&mut self) {
         *self = if self.is_axis_aligned() {
-            WidgetBasis::Object
+            Self::Object
         } else {
-            WidgetBasis::World
+            Self::World
         };
     }
 

@@ -39,7 +39,7 @@ impl BezierEndCoordinateUnit for Vec3 {
     }
 
     fn one() -> Self {
-        Vec3::one()
+        Self::one()
     }
 }
 
@@ -49,7 +49,7 @@ impl BezierEndCoordinateUnit for Vec2 {
         vector_in: Self,
         vector_out: Self,
     ) -> BezierEndCoordinates {
-        let to_vec3 = |v: Vec2| Vec3 {
+        let to_vec3 = |v: Self| Vec3 {
             x: v.x,
             y: v.y,
             z: 0.0,

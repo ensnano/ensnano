@@ -227,9 +227,7 @@ where
     Theme: 'a,
     Renderer: 'a + renderer::Renderer,
 {
-    fn from(
-        value: HoverableContainer<'a, Message, Theme, Renderer>,
-    ) -> Element<'a, Message, Theme, Renderer> {
+    fn from(value: HoverableContainer<'a, Message, Theme, Renderer>) -> Self {
         Element::new(value)
     }
 }

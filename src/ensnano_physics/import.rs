@@ -40,7 +40,7 @@ impl BaseOrNucleotide {
         Option<ColliderHandle>,
     ) {
         match self {
-            BaseOrNucleotide::Base((k1, _), (k2, _)) => {
+            Self::Base((k1, _), (k2, _)) => {
                 let p1 = space_position
                     .get(&k1)
                     .expect("Couldn't get position of nucl");
@@ -81,7 +81,7 @@ impl BaseOrNucleotide {
                     Some(collider_handle2),
                 )
             }
-            BaseOrNucleotide::BackwardNucleotide((k1, _)) => {
+            Self::BackwardNucleotide((k1, _)) => {
                 let position = space_position
                     .get(&k1)
                     .expect("Couldn't get position of nucl");
@@ -99,7 +99,7 @@ impl BaseOrNucleotide {
 
                 (rigid_body_handle, Some(collider_handle), None)
             }
-            BaseOrNucleotide::ForwardNucleotide((k2, _)) => {
+            Self::ForwardNucleotide((k2, _)) => {
                 let position = space_position
                     .get(&k2)
                     .expect("Couldn't get position of nucl");

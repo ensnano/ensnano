@@ -36,7 +36,7 @@ impl<StrandLabel: serde::Serialize, DomainLabel: serde::Serialize>
 {
     /// Initiates a design.
     pub fn new() -> Self {
-        Design {
+        Self {
             version: env!("CARGO_PKG_VERSION").to_string(),
             helices: Vec::new(),
             strands: Vec::new(),
@@ -119,13 +119,13 @@ impl Color {
     /// Returns the u32 encoding this color.
     pub fn as_int(&self) -> u32 {
         match *self {
-            Color::Int(n) => n,
-            Color::Hex(ref s) => {
+            Self::Int(n) => n,
+            Self::Hex(ref s) => {
                 let s = s.trim_start_matches("0x");
                 let s = s.trim_start_matches('#');
                 u32::from_str_radix(s, 16).unwrap()
             }
-            Color::Rgb { r, g, b } => ((r as u32) << 16) | ((g as u32) << 8) | (b as u32),
+            Self::Rgb { r, g, b } => ((r as u32) << 16) | ((g as u32) << 8) | (b as u32),
         }
     }
 
@@ -180,7 +180,7 @@ impl<Label> Domain<Label> {
     /// helices (probably most meaningful for a flat design).
     pub fn translate(self, dx: isize, dy: isize) -> Self {
         use std::convert::TryFrom;
-        Domain {
+        Self {
             start: self.start + dx,
             end: self.end + dx,
             helix: usize::try_from(self.helix + dy).unwrap() as isize,
@@ -190,7 +190,7 @@ impl<Label> Domain<Label> {
 
     /// Translate this domain along its helix.
     pub fn shift_x(self, dx: isize) -> Self {
-        Domain {
+        Self {
             start: self.start + dx,
             end: self.end + dx,
             ..self
@@ -201,7 +201,7 @@ impl<Label> Domain<Label> {
     /// meaningful for a flat design).
     pub fn shift_y(self, dy: isize) -> Self {
         use std::convert::TryFrom;
-        Domain {
+        Self {
             helix: usize::try_from(self.helix + dy).unwrap() as isize,
             ..self
         }
@@ -214,7 +214,7 @@ impl<Label> Domain<Label> {
 
     /// Return a domain that has the same bounds as self
     pub fn pseudo_copy(&self) -> Self {
-        Domain {
+        Self {
             helix: self.helix,
             start: self.start,
             end: self.end,
@@ -304,7 +304,7 @@ pub struct Parameters {
 
 impl Parameters {
     /// Default values for the parameters of DNA, taken from the literature.
-    pub const DEFAULT: Parameters = Parameters {
+    pub const DEFAULT: Self = Self {
         // z-step and helix radius from:
         //
         // Single-molecule portrait of DNA and RNA double helices,
@@ -335,7 +335,7 @@ pub struct Point {
 impl Point {
     /// Convert an array of 3 floats into a Point
     pub fn from_coord(coord: [f64; 3]) -> Self {
-        Point {
+        Self {
             x: coord[0],
             y: coord[1],
             z: coord[2],
@@ -464,7 +464,7 @@ impl Helix {
     }
 
     /// Test if two helices overlap.
-    pub fn overlap(&self, other: &Helix, p: &Parameters) -> bool {
+    pub fn overlap(&self, other: &Self, p: &Parameters) -> bool {
         let dir_vec = self.axis_pos(p, 1) - self.position.to_vec3();
         let vec1 = other.axis_pos(p, 30) - self.position.to_vec3();
         if vec1.cross(dir_vec).mag() / dir_vec.mag() > p.helix_radius {
@@ -482,7 +482,7 @@ impl Helix {
         new_position[0] += self.position.x;
         new_position[1] += self.position.y;
         new_position[2] += self.position.z;
-        Helix {
+        Self {
             position: Point::from_coord(new_position),
             ..self.clone()
         }
@@ -495,7 +495,7 @@ impl Helix {
         new_position[0] += self.position.x;
         new_position[1] += self.position.y;
         new_position[2] += self.position.z;
-        Helix {
+        Self {
             position: Point::from_coord(new_position),
             ..self.clone()
         }
@@ -508,7 +508,7 @@ impl Helix {
         new_position[0] += self.position.x;
         new_position[1] += self.position.y;
         new_position[2] += self.position.z;
-        Helix {
+        Self {
             position: Point::from_coord(new_position),
             ..self.clone()
         }
@@ -521,7 +521,7 @@ impl Helix {
         new_position[0] += self.position.x;
         new_position[1] += self.position.y;
         new_position[2] += self.position.z;
-        Helix {
+        Self {
             position: Point::from_coord(new_position),
             ..self.clone()
         }

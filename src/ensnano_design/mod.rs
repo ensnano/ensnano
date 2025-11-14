@@ -773,7 +773,7 @@ impl Nucl {
         }
     }
 
-    pub fn is_neighbor(&self, other: &Nucl) -> bool {
+    pub fn is_neighbor(&self, other: &Self) -> bool {
         self.helix == other.helix
             && self.forward == other.forward
             && (self.position - other.position).abs() == 1

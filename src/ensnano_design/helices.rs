@@ -758,7 +758,7 @@ impl Helix {
     }
 
     ///Return an helix that makes an ideal cross-over with self at position n
-    pub fn ideal_neighbor(&self, n: isize, forward: bool, p: &HelixParameters) -> Helix {
+    pub fn ideal_neighbor(&self, n: isize, forward: bool, p: &HelixParameters) -> Self {
         let p = match self.helix_parameters {
             None => *p,
             Some(hp) => hp,
@@ -769,8 +769,8 @@ impl Helix {
         new_helix
     }
 
-    fn detached_copy_at(&self, position: Vec3) -> Helix {
-        Helix {
+    fn detached_copy_at(&self, position: Vec3) -> Self {
+        Self {
             position,
             orientation: self.orientation,
             helix_parameters: None,
@@ -807,7 +807,7 @@ impl Helix {
         &self,
         n: isize,
         forward: bool,
-        new_helix: &mut Helix,
+        new_helix: &mut Self,
         p: &HelixParameters,
     ) {
         let p = match self.helix_parameters {
@@ -985,13 +985,13 @@ impl NuclCollection {
 }
 
 impl Nucl {
-    pub fn map_to_virtual_nucl(nucl: Nucl, helices: &Helices) -> Option<VirtualNucl> {
+    pub fn map_to_virtual_nucl(nucl: Self, helices: &Helices) -> Option<VirtualNucl> {
         let h = helices.get(&nucl.helix)?;
         let support_helix_id = h
             .support_helix
             .or(Some(nucl.helix))
             .filter(|h_id| helices.contains_key(h_id))?;
-        Some(VirtualNucl(Nucl {
+        Some(VirtualNucl(Self {
             helix: support_helix_id,
             position: nucl.position + h.initial_nt_index,
             forward: nucl.forward,

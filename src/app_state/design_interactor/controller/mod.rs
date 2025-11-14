@@ -415,12 +415,12 @@ impl Controller {
                 up_to_date_design.design,
             ),
             CopyOperation::Duplicate => {
-                self.apply(Controller::apply_duplication, up_to_date_design.design)
+                self.apply(Self::apply_duplication, up_to_date_design.design)
             }
             CopyOperation::Paste => {
                 log::info!("nb helices {}", up_to_date_design.design.helices.len());
                 self.make_undoable(
-                    self.apply(Controller::apply_paste, up_to_date_design.design),
+                    self.apply(Self::apply_paste, up_to_date_design.design),
                     "Paste".into(),
                 )
             }
@@ -3668,10 +3668,10 @@ pub(super) enum StatePersistence {
 
 impl StatePersistence {
     pub fn is_persistent(&self) -> bool {
-        matches!(self, StatePersistence::Persistent)
+        matches!(self, Self::Persistent)
     }
 
     pub fn is_transitory(&self) -> bool {
-        matches!(self, StatePersistence::Transitory)
+        matches!(self, Self::Transitory)
     }
 }

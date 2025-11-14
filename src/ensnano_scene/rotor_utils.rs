@@ -15,11 +15,11 @@ impl SafeRotor for Rotor3 {
         let ux = Vec3::unit_x();
         let ux_dot_u = u.x; //ux.dot(u);
         if ux_dot_u > 1. - eps {
-            Rotor3::identity()
+            Self::identity()
         } else if ux_dot_u < -1. + eps {
-            Rotor3::from_rotation_xy(PI)
+            Self::from_rotation_xy(PI)
         } else {
-            Rotor3::from_rotation_between(ux, u)
+            Self::from_rotation_between(ux, u)
         }
     }
 
@@ -29,11 +29,11 @@ impl SafeRotor for Rotor3 {
         let ux = Vec3::unit_x();
         let ux_dot_u = u.x; //ux.dot(u);
         if ux_dot_u > 1. - eps {
-            Rotor3::identity()
+            Self::identity()
         } else if ux_dot_u < -1. + eps {
-            Rotor3::from_rotation_xy(PI)
+            Self::from_rotation_xy(PI)
         } else {
-            Rotor3::from_rotation_between(u, ux)
+            Self::from_rotation_between(u, ux)
         }
     }
 }

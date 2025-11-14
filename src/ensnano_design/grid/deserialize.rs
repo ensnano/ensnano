@@ -137,7 +137,7 @@ impl<'de> Deserialize<'de> for GridId {
     {
         match NewOrOldGridId::deserialize(deserializer) {
             Ok(NewOrOldGridId::New(id)) => Ok(id.to_real()),
-            Ok(NewOrOldGridId::Old(id)) => Ok(GridId::FreeGrid(id)),
+            Ok(NewOrOldGridId::Old(id)) => Ok(Self::FreeGrid(id)),
             Err(e) => Err(e),
         }
     }

@@ -309,7 +309,7 @@ pub enum FlatSelection {
 }
 
 impl FlatSelection {
-    pub fn from_real(selection: Option<&Selection>, id_map: &FlatHelixMaps) -> FlatSelection {
+    pub fn from_real(selection: Option<&Selection>, id_map: &FlatHelixMaps) -> Self {
         let Some(selection) = selection else {
             return Self::Nothing;
         };

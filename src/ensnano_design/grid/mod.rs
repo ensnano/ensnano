@@ -112,9 +112,9 @@ impl GridDescriptor {
 impl std::fmt::Display for GridTypeDescr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            GridTypeDescr::Square { .. } => write!(f, "Square"),
-            GridTypeDescr::Honeycomb { .. } => write!(f, "Honeycomb"),
-            GridTypeDescr::Hyperboloid { .. } => write!(f, "Hyperboloid"),
+            Self::Square { .. } => write!(f, "Square"),
+            Self::Honeycomb { .. } => write!(f, "Honeycomb"),
+            Self::Hyperboloid { .. } => write!(f, "Hyperboloid"),
         }
     }
 }
@@ -122,9 +122,9 @@ impl std::fmt::Display for GridTypeDescr {
 impl GridTypeDescr {
     pub fn to_u32(self) -> u32 {
         match self {
-            GridTypeDescr::Square { .. } => 0u32,
-            GridTypeDescr::Honeycomb { .. } => 1u32,
-            GridTypeDescr::Hyperboloid { .. } => 2u32,
+            Self::Square { .. } => 0u32,
+            Self::Honeycomb { .. } => 1u32,
+            Self::Hyperboloid { .. } => 2u32,
         }
     }
 
@@ -161,49 +161,49 @@ pub enum GridType {
 impl GridDivision for GridType {
     fn origin_helix(&self, helix_parameters: &HelixParameters, x: isize, y: isize) -> Vec2 {
         match self {
-            GridType::Square(grid) => grid.origin_helix(helix_parameters, x, y),
-            GridType::Honeycomb(grid) => grid.origin_helix(helix_parameters, x, y),
-            GridType::Hyperboloid(grid) => grid.origin_helix(helix_parameters, x, y),
+            Self::Square(grid) => grid.origin_helix(helix_parameters, x, y),
+            Self::Honeycomb(grid) => grid.origin_helix(helix_parameters, x, y),
+            Self::Hyperboloid(grid) => grid.origin_helix(helix_parameters, x, y),
         }
     }
 
     fn orientation_helix(&self, helix_parameters: &HelixParameters, x: isize, y: isize) -> Rotor3 {
         match self {
-            GridType::Square(grid) => grid.orientation_helix(helix_parameters, x, y),
-            GridType::Honeycomb(grid) => grid.orientation_helix(helix_parameters, x, y),
-            GridType::Hyperboloid(grid) => grid.orientation_helix(helix_parameters, x, y),
+            Self::Square(grid) => grid.orientation_helix(helix_parameters, x, y),
+            Self::Honeycomb(grid) => grid.orientation_helix(helix_parameters, x, y),
+            Self::Hyperboloid(grid) => grid.orientation_helix(helix_parameters, x, y),
         }
     }
 
     fn interpolate(&self, helix_parameters: &HelixParameters, x: f32, y: f32) -> (isize, isize) {
         match self {
-            GridType::Square(grid) => grid.interpolate(helix_parameters, x, y),
-            GridType::Honeycomb(grid) => grid.interpolate(helix_parameters, x, y),
-            GridType::Hyperboloid(grid) => grid.interpolate(helix_parameters, x, y),
+            Self::Square(grid) => grid.interpolate(helix_parameters, x, y),
+            Self::Honeycomb(grid) => grid.interpolate(helix_parameters, x, y),
+            Self::Hyperboloid(grid) => grid.interpolate(helix_parameters, x, y),
         }
     }
 
     fn translation_to_edge(&self, x1: isize, y1: isize, x2: isize, y2: isize) -> Edge {
         match self {
-            GridType::Square(grid) => grid.translation_to_edge(x1, y1, x2, y2),
-            GridType::Honeycomb(grid) => grid.translation_to_edge(x1, y1, x2, y2),
-            GridType::Hyperboloid(grid) => grid.translation_to_edge(x1, y1, x2, y2),
+            Self::Square(grid) => grid.translation_to_edge(x1, y1, x2, y2),
+            Self::Honeycomb(grid) => grid.translation_to_edge(x1, y1, x2, y2),
+            Self::Hyperboloid(grid) => grid.translation_to_edge(x1, y1, x2, y2),
         }
     }
 
     fn translate_by_edge(&self, x1: isize, y1: isize, edge: Edge) -> Option<(isize, isize)> {
         match self {
-            GridType::Square(grid) => grid.translate_by_edge(x1, y1, edge),
-            GridType::Honeycomb(grid) => grid.translate_by_edge(x1, y1, edge),
-            GridType::Hyperboloid(grid) => grid.translate_by_edge(x1, y1, edge),
+            Self::Square(grid) => grid.translate_by_edge(x1, y1, edge),
+            Self::Honeycomb(grid) => grid.translate_by_edge(x1, y1, edge),
+            Self::Hyperboloid(grid) => grid.translate_by_edge(x1, y1, edge),
         }
     }
 
     fn curve(&self, x: isize, y: isize, info: CurveInfo) -> Option<Arc<CurveDescriptor>> {
         match self {
-            GridType::Hyperboloid(grid) => grid.curve(x, y, info),
-            GridType::Square(grid) => grid.curve(x, y, info),
-            GridType::Honeycomb(grid) => grid.curve(x, y, info),
+            Self::Hyperboloid(grid) => grid.curve(x, y, info),
+            Self::Square(grid) => grid.curve(x, y, info),
+            Self::Honeycomb(grid) => grid.curve(x, y, info),
         }
     }
 }
@@ -223,9 +223,9 @@ impl GridType {
 
     pub fn descr(&self) -> GridTypeDescr {
         match self {
-            GridType::Square(SquareGrid { twist }) => GridTypeDescr::Square { twist: *twist },
-            GridType::Honeycomb(HoneyComb { twist }) => GridTypeDescr::Honeycomb { twist: *twist },
-            GridType::Hyperboloid(h) => GridTypeDescr::Hyperboloid {
+            Self::Square(SquareGrid { twist }) => GridTypeDescr::Square { twist: *twist },
+            Self::Honeycomb(HoneyComb { twist }) => GridTypeDescr::Honeycomb { twist: *twist },
+            Self::Hyperboloid(h) => GridTypeDescr::Hyperboloid {
                 radius: h.radius,
                 shift: h.shift,
                 length: h.length,
@@ -238,25 +238,25 @@ impl GridType {
 
     pub fn get_shift(&self) -> Option<f32> {
         match self {
-            GridType::Square(_) => None,
-            GridType::Honeycomb(_) => None,
-            GridType::Hyperboloid(h) => Some(h.shift),
+            Self::Square(_) => None,
+            Self::Honeycomb(_) => None,
+            Self::Hyperboloid(h) => Some(h.shift),
         }
     }
 
     pub fn get_nb_turn(&self) -> Option<f64> {
         match self {
-            GridType::Square(s) => s.twist,
-            GridType::Honeycomb(h) => h.twist,
-            GridType::Hyperboloid(h) => Some(h.nb_turn_per_100_nt),
+            Self::Square(s) => s.twist,
+            Self::Honeycomb(h) => h.twist,
+            Self::Hyperboloid(h) => Some(h.nb_turn_per_100_nt),
         }
     }
 
     pub fn set_shift(&mut self, shift: f32, helix_parameters: &HelixParameters) {
         match self {
-            GridType::Square(_) => println!("WARNING changing shift of non hyperboloid grid"),
-            GridType::Honeycomb(_) => println!("WARNING changing shift of non hyperboloid grid"),
-            GridType::Hyperboloid(h) => h.modify_shift(shift, helix_parameters),
+            Self::Square(_) => println!("WARNING changing shift of non hyperboloid grid"),
+            Self::Honeycomb(_) => println!("WARNING changing shift of non hyperboloid grid"),
+            Self::Hyperboloid(h) => h.modify_shift(shift, helix_parameters),
         }
     }
 }

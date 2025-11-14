@@ -15,13 +15,13 @@ impl App3D for AppState {
         self.0.candidates.as_slice()
     }
 
-    fn selection_was_updated(&self, other: &AppState) -> bool {
+    fn selection_was_updated(&self, other: &Self) -> bool {
         self.selection_content() != other.selection_content()
             || self.0.center_of_selection != other.0.center_of_selection
             || self.is_changing_color() != other.is_changing_color()
     }
 
-    fn candidates_set_was_updated(&self, other: &AppState) -> bool {
+    fn candidates_set_was_updated(&self, other: &Self) -> bool {
         self.0.candidates != other.0.candidates
     }
 

@@ -1696,23 +1696,23 @@ pub enum DrawType {
 impl DrawType {
     fn is_fake(&self) -> bool {
         match self {
-            DrawType::Scene => false,
-            DrawType::Png { .. } => false,
-            DrawType::Design => true,
-            DrawType::Widget => true,
-            DrawType::Phantom => true,
-            DrawType::Grid => true,
+            Self::Scene => false,
+            Self::Png { .. } => false,
+            Self::Design => true,
+            Self::Widget => true,
+            Self::Phantom => true,
+            Self::Grid => true,
         }
     }
 
     fn wants_widget(&self) -> bool {
         match self {
-            DrawType::Scene => true,
-            DrawType::Design => false,
-            DrawType::Widget => true,
-            DrawType::Phantom => false,
-            DrawType::Grid => false,
-            DrawType::Png { .. } => false,
+            Self::Scene => true,
+            Self::Design => false,
+            Self::Widget => true,
+            Self::Phantom => false,
+            Self::Grid => false,
+            Self::Png { .. } => false,
         }
     }
 }

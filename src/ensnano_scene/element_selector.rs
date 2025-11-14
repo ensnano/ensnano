@@ -289,15 +289,15 @@ impl CornerType {
 impl SceneElement {
     pub fn get_design(&self) -> Option<u32> {
         match self {
-            SceneElement::DesignElement(d, _) => Some(*d),
-            SceneElement::WidgetElement(_) => None,
-            SceneElement::PhantomElement(p) => Some(p.design_id),
-            SceneElement::Grid(d, _) => Some(*d),
-            SceneElement::GridCircle(d, _) => Some(*d),
-            SceneElement::BezierControl { .. } => None,
-            SceneElement::BezierVertex { .. } => Some(0),
-            SceneElement::PlaneCorner { .. } => Some(0),
-            SceneElement::BezierTangent { .. } => Some(0),
+            Self::DesignElement(d, _) => Some(*d),
+            Self::WidgetElement(_) => None,
+            Self::PhantomElement(p) => Some(p.design_id),
+            Self::Grid(d, _) => Some(*d),
+            Self::GridCircle(d, _) => Some(*d),
+            Self::BezierControl { .. } => None,
+            Self::BezierVertex { .. } => Some(0),
+            Self::PlaneCorner { .. } => Some(0),
+            Self::BezierTangent { .. } => Some(0),
         }
     }
 

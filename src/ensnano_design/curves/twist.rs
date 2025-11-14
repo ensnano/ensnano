@@ -183,19 +183,19 @@ mod tests {
         let p = HelixParameters::DEFAULT;
         let nb_turn = 0.1234;
         let omega = nb_turn_per_100_nt_to_omega(nb_turn, &p).unwrap();
-        let Z = 100. * p.rise as f64;
-        assert!(((omega * Z) - (TAU * nb_turn)).abs() < 1e-5);
+        let z = 100. * p.rise as f64;
+        assert!(((omega * z) - (TAU * nb_turn)).abs() < 1e-5);
     }
 
     #[ignore = "need fix"]
     #[test]
     fn rise_ratio_is_correct() {
         let p = HelixParameters::DEFAULT;
-        let Z = 100.0 * p.rise as f64;
+        let z = 100.0 * p.rise as f64;
         let nb_turn = 0.1234;
         let omega = nb_turn_per_100_nt_to_omega(nb_turn, &p).unwrap();
         let mut twist = Twist::with_omega(omega);
-        twist.t_max = Some(Z);
+        twist.t_max = Some(z);
         let descriptor = super::super::InstantiatedCurveDescriptor_::Twist(twist);
         let curve = descriptor.try_into_curve(&p).unwrap();
         let flat_helix = crate::ensnano_design::Helix::new(Vec3::zero(), Rotor3::identity());
@@ -212,13 +212,13 @@ mod tests {
 
     fn roll_adjustment_is_correct(nb_turn: f64) {
         let p = HelixParameters::DEFAULT;
-        let Z = 100.0 * p.rise as f64;
+        let z = 100.0 * p.rise as f64;
         let omega = nb_turn_per_100_nt_to_omega(nb_turn, &p).unwrap();
         let mut twist = Twist::with_omega(omega);
-        twist.t_max = Some(Z);
+        twist.t_max = Some(z);
         let descriptor = super::super::InstantiatedCurveDescriptor_::Twist(twist.clone());
         let curve = descriptor.try_into_curve(&p).unwrap();
-        println!("abscissa {:?}", twist.curvilinear_abscissa(Z));
+        println!("abscissa {:?}", twist.curvilinear_abscissa(z));
         println!("z ratio {:?}", twist.rise_ratio());
         assert!(twist.theta_shift(&p).is_some());
         let flat_helix = crate::ensnano_design::Helix::new(Vec3::zero(), Rotor3::identity());

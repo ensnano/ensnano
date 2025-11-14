@@ -66,15 +66,15 @@ macro_rules! parameters_from_p_stick_model_plus_or_minus {
 }
 
 impl HelixParameters {
-    pub const INTER_CENTER_GAP: f32 = HelixParameters::ENSNANO_2021.helix_radius * 2.
-        + HelixParameters::ENSNANO_2021.inter_helix_gap;
+    pub const INTER_CENTER_GAP: f32 =
+        Self::ENSNANO_2021.helix_radius * 2. + Self::ENSNANO_2021.inter_helix_gap;
 
     /// Value used for versions >= 0.4.1.
     /// Taken from "Design Principles for Single-Stranded RNA Origami Structures, Geary & Andersen
     /// 2014
-    pub const GEARY_2014_DNA_P_STICK: HelixParameters = {
+    pub const GEARY_2014_DNA_P_STICK: Self = {
         let helix_radius = 0.93;
-        HelixParameters {
+        Self {
             rise: 0.332,
             helix_radius,
             bases_per_turn: 10.44,
@@ -89,15 +89,14 @@ impl HelixParameters {
         2.0 * self.helix_radius + self.inter_helix_gap
     }
 
-    pub const GEARY_2014_DNA: HelixParameters =
-        parameters_from_p_stick_model!(Self::GEARY_2014_DNA_P_STICK);
+    pub const GEARY_2014_DNA: Self = parameters_from_p_stick_model!(Self::GEARY_2014_DNA_P_STICK);
 
     /// Value used for RNA designs
     /// Taken from "Design Principles for Single-Stranded RNA Origami Structures, Geary & Andersen
     /// 2014
-    pub const GEARY_2014_RNA_P_STICK: HelixParameters = {
+    pub const GEARY_2014_RNA_P_STICK: Self = {
         let helix_radius = 0.87;
-        HelixParameters {
+        Self {
             helix_radius,
             rise: 0.281,
             inclination: -0.745,
@@ -107,17 +106,16 @@ impl HelixParameters {
         }
     };
 
-    pub const GEARY_2014_RNA: HelixParameters =
-        parameters_from_p_stick_model!(Self::GEARY_2014_RNA_P_STICK);
+    pub const GEARY_2014_RNA: Self = parameters_from_p_stick_model!(Self::GEARY_2014_RNA_P_STICK);
 
-    pub const GEARY_2014_RNA2: HelixParameters =
+    pub const GEARY_2014_RNA2: Self =
         parameters_from_p_stick_model_plus_or_minus!(Self::GEARY_2014_RNA_P_STICK);
 
     pub const DEFAULT: Self = Self::GEARY_2014_DNA;
 
     /// Values used in version prior to 0.4.1, taken from the literature (Wikipedia, Cargo
     /// sorting paper, Woo 2011).
-    pub const ENSNANO_2021: HelixParameters = HelixParameters {
+    pub const ENSNANO_2021: Self = Self {
         // z-step and helix radius from: Wikipedia
         rise: 0.332,
         helix_radius: 1.,
@@ -131,10 +129,10 @@ impl HelixParameters {
         inclination: 0.0,
     };
 
-    pub const TRIPLEX_DNA_TWO_HELICES: HelixParameters = {
+    pub const TRIPLEX_DNA_TWO_HELICES: Self = {
         let helix_diameter = 2.75; // nm
         let helix_radius = helix_diameter / 2.0; // nm
-        HelixParameters {
+        Self {
             rise: 0.34,                       // nm
             helix_radius,                     // nm
             bases_per_turn: 11.9,             // bp per turn

@@ -334,7 +334,7 @@ pub struct GridVertex {
 }
 
 impl Vertexable for GridVertex {
-    type RawType = GridVertex;
+    type RawType = Self;
 
     fn to_raw(&self) -> Self {
         *self
@@ -342,7 +342,7 @@ impl Vertexable for GridVertex {
 
     fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
         wgpu::VertexBufferLayout {
-            array_stride: std::mem::size_of::<GridVertex>() as wgpu::BufferAddress,
+            array_stride: std::mem::size_of::<Self>() as wgpu::BufferAddress,
             step_mode: wgpu::VertexStepMode::Vertex,
             attributes: &wgpu::vertex_attr_array![0 => Float32x2],
         }

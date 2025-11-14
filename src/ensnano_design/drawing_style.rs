@@ -11,7 +11,7 @@ pub enum ColorType {
 impl ColorType {
     pub fn to_u32(self) -> u32 {
         match self {
-            ColorType::Plain(color) => color,
+            Self::Plain(color) => color,
         }
     }
 }
@@ -168,7 +168,7 @@ pub struct DrawingStyle {
 
 impl From<Vec<DrawingAttribute>> for DrawingStyle {
     fn from(attributes: Vec<DrawingAttribute>) -> Self {
-        let mut ret = DrawingStyle::default();
+        let mut ret = Self::default();
         for att in attributes {
             match att {
                 DrawingAttribute::SphereRadius(r) => {
@@ -214,56 +214,56 @@ impl From<Vec<DrawingAttribute>> for DrawingStyle {
 impl DrawingStyle {
     pub fn complete_with_attribute(&self, att: DrawingAttribute) -> Self {
         match att {
-            DrawingAttribute::SphereRadius(r) => DrawingStyle {
+            DrawingAttribute::SphereRadius(r) => Self {
                 sphere_radius: self.sphere_radius.or(Some(r)),
                 ..*self
             },
-            DrawingAttribute::BondRadius(r) => DrawingStyle {
+            DrawingAttribute::BondRadius(r) => Self {
                 bond_radius: self.bond_radius.or(Some(r)),
                 ..*self
             },
-            DrawingAttribute::DoubleHelixAsCylinderRadius(r) => DrawingStyle {
+            DrawingAttribute::DoubleHelixAsCylinderRadius(r) => Self {
                 helix_as_cylinder_radius: self.helix_as_cylinder_radius.or(Some(r)),
                 ..*self
             },
-            DrawingAttribute::SphereColor(c) => DrawingStyle {
+            DrawingAttribute::SphereColor(c) => Self {
                 sphere_color: self.sphere_color.or(Some(c.to_u32())),
                 ..*self
             },
-            DrawingAttribute::BondColor(c) => DrawingStyle {
+            DrawingAttribute::BondColor(c) => Self {
                 bond_color: self.bond_color.or(Some(c.to_u32())),
                 ..*self
             },
-            DrawingAttribute::DoubleHelixAsCylinderColor(c) => DrawingStyle {
+            DrawingAttribute::DoubleHelixAsCylinderColor(c) => Self {
                 helix_as_cylinder_color: self.helix_as_cylinder_color.or(Some(c)),
                 ..*self
             },
-            DrawingAttribute::RainbowStrand(b) => DrawingStyle {
+            DrawingAttribute::RainbowStrand(b) => Self {
                 rainbow_strand: self.rainbow_strand.or(Some(b)),
                 ..*self
             },
-            DrawingAttribute::XoverColoring(b) => DrawingStyle {
+            DrawingAttribute::XoverColoring(b) => Self {
                 xover_coloring: self.xover_coloring.or(Some(b)),
                 ..*self
             },
-            DrawingAttribute::WithCones(b) => DrawingStyle {
+            DrawingAttribute::WithCones(b) => Self {
                 with_cones: self.with_cones.or(Some(b)),
                 ..*self
             },
-            DrawingAttribute::ColorShade(c, hue_range) => DrawingStyle {
+            DrawingAttribute::ColorShade(c, hue_range) => Self {
                 color_shade: self.color_shade.or(Some(c)),
                 hue_range,
                 ..*self
             },
-            DrawingAttribute::OnAxis(b) => DrawingStyle {
+            DrawingAttribute::OnAxis(b) => Self {
                 on_axis: self.on_axis.or(Some(b)),
                 ..*self
             },
-            DrawingAttribute::Curvature(r_min, r_max) => DrawingStyle {
+            DrawingAttribute::Curvature(r_min, r_max) => Self {
                 curvature: self.curvature.or(Some((r_min, r_max))),
                 ..*self
             },
-            DrawingAttribute::Torsion(t_min, t_max) => DrawingStyle {
+            DrawingAttribute::Torsion(t_min, t_max) => Self {
                 torsion: self.torsion.or(Some((t_min, t_max))),
                 ..*self
             },
@@ -279,7 +279,7 @@ impl DrawingStyle {
     }
 
     pub fn complete_with(&self, other: &Self) -> Self {
-        DrawingStyle {
+        Self {
             sphere_radius: self.sphere_radius.or(other.sphere_radius),
             bond_radius: self.bond_radius.or(other.bond_radius),
             helix_as_cylinder_radius: self

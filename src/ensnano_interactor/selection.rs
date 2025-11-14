@@ -52,17 +52,17 @@ pub enum CenterOfSelection {
 impl Selection {
     pub fn get_design(&self) -> Option<u32> {
         match self {
-            Selection::Design(d) => Some(*d),
-            Selection::Bond(d, _, _) => Some(*d),
-            Selection::Strand(d, _) => Some(*d),
-            Selection::Helix { design_id, .. } => Some(*design_id),
-            Selection::Nucleotide(d, _) => Some(*d),
-            Selection::Grid(d, _) => Some(*d),
-            Selection::Phantom(pe) => Some(pe.design_id),
-            Selection::Nothing => None,
-            Selection::BezierControlPoint { .. } => Some(0),
-            Selection::Xover(d, _) => Some(*d),
-            Selection::BezierVertex(_) => Some(0),
+            Self::Design(d) => Some(*d),
+            Self::Bond(d, _, _) => Some(*d),
+            Self::Strand(d, _) => Some(*d),
+            Self::Helix { design_id, .. } => Some(*design_id),
+            Self::Nucleotide(d, _) => Some(*d),
+            Self::Grid(d, _) => Some(*d),
+            Self::Phantom(pe) => Some(pe.design_id),
+            Self::Nothing => None,
+            Self::BezierControlPoint { .. } => Some(0),
+            Self::Xover(d, _) => Some(*d),
+            Self::BezierVertex(_) => Some(0),
         }
     }
 
@@ -420,30 +420,25 @@ impl std::fmt::Display for SelectionMode {
             f,
             "{}",
             match self {
-                SelectionMode::Design => "Design",
-                SelectionMode::Nucleotide => "Nucleotide",
-                SelectionMode::Strand => "Strand",
-                SelectionMode::Helix => "Helix",
+                Self::Design => "Design",
+                Self::Nucleotide => "Nucleotide",
+                Self::Strand => "Strand",
+                Self::Helix => "Helix",
             }
         )
     }
 }
 
 impl SelectionMode {
-    pub const ALL: [SelectionMode; 4] = [
-        SelectionMode::Nucleotide,
-        SelectionMode::Design,
-        SelectionMode::Strand,
-        SelectionMode::Helix,
-    ];
+    pub const ALL: [Self; 4] = [Self::Nucleotide, Self::Design, Self::Strand, Self::Helix];
 
     pub fn tooltip_description(&self) -> &'static str {
         // TODO: better descriptions
         match self {
-            SelectionMode::Nucleotide => "Nucleotide",
-            SelectionMode::Strand => "Strand",
-            SelectionMode::Helix => "Helix",
-            SelectionMode::Design => "Design",
+            Self::Nucleotide => "Nucleotide",
+            Self::Strand => "Strand",
+            Self::Helix => "Helix",
+            Self::Design => "Design",
         }
     }
 }
@@ -473,12 +468,12 @@ impl std::fmt::Display for ActionMode {
             f,
             "{}",
             match self {
-                ActionMode::Normal => "Select",
-                ActionMode::Translate => "Move",
-                ActionMode::Rotate => "Rotate",
-                ActionMode::BuildHelix { .. } => "Build",
-                ActionMode::Cut => "Cut",
-                ActionMode::EditBezierPath => "Edit path",
+                Self::Normal => "Select",
+                Self::Translate => "Move",
+                Self::Rotate => "Rotate",
+                Self::BuildHelix { .. } => "Build",
+                Self::Cut => "Cut",
+                Self::EditBezierPath => "Edit path",
             }
         )
     }
@@ -492,12 +487,12 @@ impl ActionMode {
     pub fn tooltip_description(&self) -> &'static str {
         // TODO: better descriptions
         match self {
-            ActionMode::Normal => "Normal",
-            ActionMode::Translate => "Translate",
-            ActionMode::Rotate => "Rotate",
-            ActionMode::BuildHelix { .. } => "BuildHelix",
-            ActionMode::Cut => "Cut",
-            ActionMode::EditBezierPath => "EditBezierPath",
+            Self::Normal => "Normal",
+            Self::Translate => "Translate",
+            Self::Rotate => "Rotate",
+            Self::BuildHelix { .. } => "BuildHelix",
+            Self::Cut => "Cut",
+            Self::EditBezierPath => "EditBezierPath",
         }
     }
 }

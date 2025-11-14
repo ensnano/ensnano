@@ -34,11 +34,9 @@ impl fmt::Display for Domain {
 impl DomainJunction {
     fn anonymous_fmt(&self) -> String {
         match self {
-            DomainJunction::Prime3 => String::from("[3']"),
-            DomainJunction::Adjacent => String::from("[->]"),
-            DomainJunction::UnidentifiedXover | DomainJunction::IdentifiedXover(_) => {
-                String::from("[x]")
-            }
+            Self::Prime3 => String::from("[3']"),
+            Self::Adjacent => String::from("[->]"),
+            Self::UnidentifiedXover | Self::IdentifiedXover(_) => String::from("[x]"),
         }
     }
 }

@@ -1026,34 +1026,34 @@ impl Domain {
 
     pub fn helix(&self) -> Option<usize> {
         match self {
-            Domain::HelixDomain(domain) => Some(domain.helix),
-            Domain::Insertion { .. } => None,
+            Self::HelixDomain(domain) => Some(domain.helix),
+            Self::Insertion { .. } => None,
         }
     }
 
     pub fn half_helix(&self) -> Option<(usize, bool)> {
         match self {
-            Domain::HelixDomain(domain) => Some((domain.helix, domain.forward)),
-            Domain::Insertion { .. } => None,
+            Self::HelixDomain(domain) => Some((domain.helix, domain.forward)),
+            Self::Insertion { .. } => None,
         }
     }
 
-    pub fn merge(&mut self, other: &Domain) {
+    pub fn merge(&mut self, other: &Self) {
         let old_self = self.clone();
         match (self, other) {
-            (Domain::HelixDomain(dom1), Domain::HelixDomain(dom2)) if dom1.helix == dom2.helix => {
+            (Self::HelixDomain(dom1), Self::HelixDomain(dom2)) if dom1.helix == dom2.helix => {
                 let start = dom1.start.min(dom2.start);
                 let end = dom1.end.max(dom2.end);
                 dom1.start = start;
                 dom1.end = end;
             }
             (
-                Domain::Insertion {
+                Self::Insertion {
                     nb_nucl: n1,
                     sequence,
                     ..
                 },
-                Domain::Insertion {
+                Self::Insertion {
                     nb_nucl: n2,
                     sequence: s2,
                     ..
@@ -1071,9 +1071,9 @@ impl Domain {
         }
     }
 
-    pub fn can_merge(&self, other: &Domain) -> bool {
+    pub fn can_merge(&self, other: &Self) -> bool {
         match (self, other) {
-            (Domain::HelixDomain(dom1), Domain::HelixDomain(dom2)) => {
+            (Self::HelixDomain(dom1), Self::HelixDomain(dom2)) => {
                 if dom1.forward {
                     dom1.helix == dom2.helix
                         && dom1.end == dom2.start
@@ -1084,14 +1084,14 @@ impl Domain {
                         && dom1.forward == dom2.forward
                 }
             }
-            (Domain::Insertion { .. }, Domain::Insertion { .. }) => true,
+            (Self::Insertion { .. }, Self::Insertion { .. }) => true,
             _ => false,
         }
     }
 
-    pub fn intersect(&self, other: &Domain) -> bool {
+    pub fn intersect(&self, other: &Self) -> bool {
         match (self, other) {
-            (Domain::HelixDomain(dom1), Domain::HelixDomain(dom2)) => {
+            (Self::HelixDomain(dom1), Self::HelixDomain(dom2)) => {
                 dom1.helix == dom2.helix
                     && dom1.start < dom2.end
                     && dom2.start < dom1.end
@@ -1272,22 +1272,22 @@ pub enum Extremity {
 
 impl Extremity {
     pub fn is_3prime(&self) -> bool {
-        matches!(self, Extremity::Prime3)
+        matches!(self, Self::Prime3)
     }
 
     pub fn is_5prime(&self) -> bool {
-        matches!(self, Extremity::Prime5)
+        matches!(self, Self::Prime5)
     }
 
     pub fn is_end(&self) -> bool {
-        !matches!(self, Extremity::No)
+        !matches!(self, Self::No)
     }
 
     pub fn to_opt(self) -> Option<bool> {
         match self {
-            Extremity::No => None,
-            Extremity::Prime3 => Some(true),
-            Extremity::Prime5 => Some(false),
+            Self::No => None,
+            Self::Prime3 => Some(true),
+            Self::Prime5 => Some(false),
         }
     }
 }

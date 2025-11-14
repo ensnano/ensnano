@@ -21,15 +21,15 @@ const VERTEX_ATTR_ARRAY: [wgpu::VertexAttribute; 2] =
     wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3];
 
 impl Vertexable for DnaVertex {
-    type RawType = DnaVertex;
+    type RawType = Self;
 
-    fn to_raw(&self) -> DnaVertex {
+    fn to_raw(&self) -> Self {
         *self
     }
 
     fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
         wgpu::VertexBufferLayout {
-            array_stride: size_of::<DnaVertex>() as wgpu::BufferAddress,
+            array_stride: size_of::<Self>() as wgpu::BufferAddress,
             step_mode: wgpu::VertexStepMode::Vertex,
             attributes: &VERTEX_ATTR_ARRAY,
         }

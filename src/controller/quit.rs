@@ -92,10 +92,10 @@ impl Load {
     ) -> Box<dyn State> {
         if let Some(save_path) = need_save {
             let yes = save_before_known_path(save_path, path_to_load.clone());
-            let no = Box::new(Load::known_path(path_to_load));
+            let no = Box::new(Self::known_path(path_to_load));
             Box::new(YesNo::new(messages::SAVE_BEFORE_RELOAD, yes, no))
         } else {
-            Box::new(Load::known_path(path_to_load))
+            Box::new(Self::known_path(path_to_load))
         }
     }
 

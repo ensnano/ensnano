@@ -16,11 +16,11 @@ impl SkyBox {
 }
 
 impl Instantiable for SkyBox {
-    type RawInstance = SkyBox;
+    type RawInstance = Self;
     type Resource = ();
     type Vertex = CubeVertex;
 
-    fn to_raw_instance(&self) -> SkyBox {
+    fn to_raw_instance(&self) -> Self {
         *self
     }
 
@@ -58,11 +58,11 @@ impl DirectionCube {
 }
 
 impl Instantiable for DirectionCube {
-    type RawInstance = DirectionCube;
+    type RawInstance = Self;
     type Resource = DirectionTexture;
     type Vertex = CubeVertex;
 
-    fn to_raw_instance(&self) -> DirectionCube {
+    fn to_raw_instance(&self) -> Self {
         *self
     }
 
@@ -203,16 +203,16 @@ pub struct CubeVertex {
 const CUBE_VERTEX_ARRAY: [wgpu::VertexAttribute; 2] =
     wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x2];
 impl Vertexable for CubeVertex {
-    type RawType = CubeVertex;
+    type RawType = Self;
 
-    fn to_raw(&self) -> CubeVertex {
+    fn to_raw(&self) -> Self {
         *self
     }
 
     fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
         use std::mem;
         wgpu::VertexBufferLayout {
-            array_stride: mem::size_of::<CubeVertex>() as wgpu::BufferAddress,
+            array_stride: mem::size_of::<Self>() as wgpu::BufferAddress,
             step_mode: wgpu::VertexStepMode::Vertex,
             attributes: &CUBE_VERTEX_ARRAY,
         }

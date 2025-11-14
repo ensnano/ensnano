@@ -70,14 +70,14 @@ impl std::fmt::Pointer for AppState {
 
 impl Default for AppState {
     fn default() -> Self {
-        let mut ret = AppState(Default::default());
+        let mut ret = Self(Default::default());
         log::trace!("call from default");
         // Synchronize all the pointers.
         // This turns updated_once to true so we must set it back to false afterwards
         ret = ret.updated();
         let mut with_forgot_update = ret.0.clone_inner();
         with_forgot_update.updated_once = false;
-        AppState(AddressPointer::new(with_forgot_update))
+        Self(AddressPointer::new(with_forgot_update))
     }
 }
 
@@ -87,14 +87,14 @@ impl AppState {
             parameters: confy::load(APP_NAME, APP_NAME)?,
             ..Default::default()
         };
-        let mut ret = AppState(AddressPointer::new(state));
+        let mut ret = Self(AddressPointer::new(state));
         log::trace!("call from default");
         // Synchronize all the pointers.
         // This turns updated_once to true so we must set it back to false afterwards
         ret = ret.updated();
         let mut with_forgot_update = ret.0.clone_inner();
         with_forgot_update.updated_once = false;
-        Ok(AppState(AddressPointer::new(with_forgot_update)))
+        Ok(Self(AddressPointer::new(with_forgot_update)))
     }
 
     pub fn with_selection(
