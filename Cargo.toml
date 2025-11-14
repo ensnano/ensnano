@@ -190,4 +190,4 @@ arc_with_non_send_sync = "allow" # TODO: warn (requires understand the multiplex
 # restriction = { level = "allow", priority = -1 }
 # style = { level = "allow", priority = -1 }
 # suspicious = { level = "allow", priority = -1 }
-# redundant_closure_for_method_calls = "deny"
+# match_wildcard_for_single_variants = "deny"

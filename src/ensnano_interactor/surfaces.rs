@@ -560,7 +560,7 @@ impl RootedRevolutionSurface {
         match &mut self.surface.revolution_radius {
             RevolutionSurfaceRadius::Left(x) => *x += incr,
             RevolutionSurfaceRadius::Right(x) => *x += incr,
-            _ => (),
+            RevolutionSurfaceRadius::Inside(_) => (),
         }
     }
 

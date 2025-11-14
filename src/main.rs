@@ -973,7 +973,7 @@ impl OverlayManager {
                                 );
                             });
                         }
-                        _ => panic!("Unhandled renderer"),
+                        iced::Renderer::TinySkia(_) => panic!("Unhandled renderer"),
                     };
                 }
             }
@@ -1434,7 +1434,7 @@ impl MainState {
         match self.app_state.get_pasting_status() {
             PastingStatus::Copy => self.apply_copy_operation(CopyOperation::Paste),
             PastingStatus::Duplication => self.apply_copy_operation(CopyOperation::Duplicate),
-            _ => log::info!("Not pasting"),
+            PastingStatus::None => log::info!("Not pasting"),
         }
     }
 

@@ -171,7 +171,7 @@ mod hue_column {
                         renderer.draw_primitive(Primitive::Custom(mesh));
                     });
                 }
-                _ => panic!("Unhandled renderer"),
+                Renderer::TinySkia(_) => panic!("Unhandled renderer"),
             }
         }
 
@@ -381,7 +381,7 @@ mod light_sat_square {
                         renderer.draw_primitive(Primitive::Custom(mesh));
                     });
                 }
-                _ => panic!("Unhandled renderer"),
+                Renderer::TinySkia(_) => panic!("Unhandled renderer"),
             }
         }
 
@@ -592,7 +592,7 @@ mod color_square {
                         renderer.draw_primitive(Primitive::Custom(mesh));
                     })
                 }
-                _ => panic!("Unhandled renderer."),
+                iced::Renderer::TinySkia(_) => panic!("Unhandled renderer."),
             };
         }
 

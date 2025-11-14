@@ -357,7 +357,9 @@ where
         match value_kind {
             ValueKind::HelixGridPosition => self.position_builder.update_str_value(n, value_str),
             ValueKind::GridOrientation => self.orientation_builder.update_str_value(n, value_str),
-            vk => log::error!("Unexpected value kind for GridBuilder {vk:?}"),
+            vk @ ValueKind::BezierVertexPosition => {
+                log::error!("Unexpected value kind for GridBuilder {vk:?}")
+            }
         }
     }
 
@@ -365,7 +367,7 @@ where
         match value_kind {
             ValueKind::HelixGridPosition => self.position_builder.submit_value(),
             ValueKind::GridOrientation => self.orientation_builder.submit_value(),
-            vk => {
+            vk @ ValueKind::BezierVertexPosition => {
                 log::error!("Unexpected value kind for GridBuilder {vk:?}");
                 None
             }

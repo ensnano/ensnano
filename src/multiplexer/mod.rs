@@ -504,7 +504,7 @@ impl Multiplexer {
                             self.state = State::Normal { mouse_position };
                         }
                     },
-                    _ => unreachable!(),
+                    PixelRegion::Area(_) => unreachable!(),
                 }
             }
             WindowEvent::KeyboardInput {

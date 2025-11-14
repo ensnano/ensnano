@@ -171,7 +171,7 @@ impl<Message, Theme> Widget<Message, Theme, iced::Renderer>
                     renderer.draw_primitive(Primitive::Custom(mesh));
                 });
             }
-            _ => panic!("Unhandled renderer"),
+            iced::Renderer::TinySkia(_) => panic!("Unhandled renderer"),
         }
     }
 

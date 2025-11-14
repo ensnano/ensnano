@@ -30,7 +30,7 @@ impl HasIcon for SelectionMode {
             Self::Helix => include_bytes!("../../icons/icons/Helix-on32.png").to_vec(),
             Self::Nucleotide => include_bytes!("../../icons/icons/Nucleotide-on32.png").to_vec(),
             Self::Strand => include_bytes!("../../icons/icons/Strand-on32.png").to_vec(),
-            _ => vec![],
+            Self::Design => vec![],
         };
         Handle::from_memory(bytes)
     }
@@ -40,7 +40,7 @@ impl HasIcon for SelectionMode {
             Self::Helix => include_bytes!("../../icons/icons/Helix-off32.png").to_vec(),
             Self::Nucleotide => include_bytes!("../../icons/icons/Nucleotide-off32.png").to_vec(),
             Self::Strand => include_bytes!("../../icons/icons/Strand-off32.png").to_vec(),
-            _ => vec![],
+            Self::Design => vec![],
         };
         Handle::from_memory(bytes)
     }

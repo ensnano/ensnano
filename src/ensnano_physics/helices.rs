@@ -128,7 +128,7 @@ impl IntermediaryHelix {
                     *pair = IntermediaryPair::Pair(id, nucl, *i);
                     return Some(());
                 }
-                _ => {
+                IntermediaryPair::Pair(..) => {
                     return None;
                 }
             }

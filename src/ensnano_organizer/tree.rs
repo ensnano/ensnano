@@ -51,7 +51,9 @@ impl<K: PartialEq> OrganizerTree<K> {
                     match c {
                         Self::Leaf(k) if k == element => ret.push(rename.clone()),
                         Self::Leaf(_) => (),
-                        node => ret.extend(node.get_names_of_groups_having(element)),
+                        node @ Self::Node { .. } => {
+                            ret.extend(node.get_names_of_groups_having(element))
+                        }
                     }
                 }
             }
@@ -137,7 +139,7 @@ impl<K: Eq + Hash + Copy> OrganizerTree<K> {
                             }
                             hashmap.insert(*e, e_names);
                         }
-                        _ => {
+                        Self::Node { .. } => {
                             let c_hashmap = c.get_hashmap_to_all_group_names_with_prefix(prefix);
                             for (e, e_names) in c_hashmap {
                                 let mut new_e_names: Vec<&str> =

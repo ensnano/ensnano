@@ -99,7 +99,9 @@ fn get_grid_type(grids: &GridData) -> Result<GridType, CadnanoError> {
                     ret = Some(GridType::HoneyComb);
                 }
             }
-            t => return Err(CadnanoError::UnhandledGridType(t)),
+            t @ GridTypeDescr::Hyperboloid { .. } => {
+                return Err(CadnanoError::UnhandledGridType(t));
+            }
         }
     }
 
@@ -190,7 +192,7 @@ impl EnsnanoBonds {
             let value = self.max_nt_pos - self.min_nt_pos;
             match grid_type {
                 GridType::Square => ((1 + value / 21) * 21) as usize,
-                _ => ((1 + value / 32) * 32) as usize,
+                GridType::HoneyComb => ((1 + value / 32) * 32) as usize,
             }
         };
 

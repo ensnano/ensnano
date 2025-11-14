@@ -485,7 +485,7 @@ impl LayoutNode {
                 }
                 _ => panic!("You cannot merge non-Area nodes."),
             },
-            _ => panic!("You cannot merge an Area."),
+            LayoutNode::Area { .. } => panic!("You cannot merge an Area."),
         };
         *self = new_self;
         merged_node

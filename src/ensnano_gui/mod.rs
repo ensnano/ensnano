@@ -364,7 +364,7 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
                     );
                 });
             }
-            _ => panic!("Unhandled renderer"),
+            Renderer::TinySkia(_) => panic!("Unhandled renderer"),
         }
 
         match self {

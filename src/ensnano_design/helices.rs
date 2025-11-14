@@ -1104,7 +1104,7 @@ impl Axis<'_> {
                 let direction = model_matrix.transform_vec3(*old_direction);
                 Self::Line { origin, direction }
             }
-            _ => *self,
+            Self::Curve { .. } => *self,
         }
     }
 

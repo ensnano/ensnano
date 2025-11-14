@@ -269,7 +269,7 @@ impl StrandBuilder {
                     need_update = true;
                 }
             }
-            _ => (),
+            Ordering::Equal => (),
         }
         if need_update {
             self.update(design);

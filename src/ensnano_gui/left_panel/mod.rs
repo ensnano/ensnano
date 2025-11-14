@@ -304,7 +304,7 @@ impl<R: Requests, S: AppState> LeftPanel<R, S> {
                 .unwrap()
                 .set_keyboard_priority(priority),
             OrganizerMessage::SetFocus(id) => return Some(Message::SetFocus(id)),
-            _ => (),
+            OrganizerMessage::ElementUpdate(_) => (),
         }
         None
     }
