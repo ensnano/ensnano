@@ -34,7 +34,7 @@ impl Strand {
     pub fn formatted_anonymous_junctions(&self) -> String {
         let mut ret = String::new();
         for j in self.junctions.iter() {
-            ret.push_str(&format!("{} ", j.anonymous_fmt()))
+            ret.push_str(&format!("{} ", j.anonymous_fmt()));
         }
         ret
     }

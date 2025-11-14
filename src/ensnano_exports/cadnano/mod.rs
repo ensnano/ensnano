@@ -86,14 +86,14 @@ fn get_grid_type(grids: &GridData) -> Result<GridType, CadnanoError> {
                 if ret == Some(GridType::HoneyComb) {
                     return Err(CadnanoError::NonHomogeneousGridTypes);
                 } else {
-                    ret = Some(GridType::Square)
+                    ret = Some(GridType::Square);
                 }
             }
             crate::ensnano_design::grid::GridTypeDescr::Honeycomb { .. } => {
                 if ret == Some(GridType::Square) {
                     return Err(CadnanoError::NonHomogeneousGridTypes);
                 } else {
-                    ret = Some(GridType::HoneyComb)
+                    ret = Some(GridType::HoneyComb);
                 }
             }
             t => return Err(CadnanoError::UnhandledGridType(t)),
@@ -156,7 +156,7 @@ fn init_cadnano_exporter(design: &Design) -> Result<CadnanoExporter, CadnanoErro
             let cadnano_helix = CadnanoHelix::new(num, candidate, bonds.max_nt_pos);
             cadnano_helices.insert(*h, cadnano_helix);
         }
-        shift_x += max_x + 1
+        shift_x += max_x + 1;
     }
 
     Ok(CadnanoExporter {
@@ -274,7 +274,7 @@ impl CadnanoExporter {
             helix.stap_colors.push((
                 prime5_nucl.position - self.bonds.shift,
                 color % 0x01_00_00_00,
-            ))
+            ));
         }
     }
 
@@ -313,7 +313,7 @@ impl CadnanoStrand<'_> {
         }
 
         if let Some(nucl) = self.first_nucl {
-            self.exporter.set_staple_color(nucl, color)
+            self.exporter.set_staple_color(nucl, color);
         }
 
         Ok(())

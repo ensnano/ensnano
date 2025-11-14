@@ -125,7 +125,7 @@ impl Helix {
         };
         if let Some(flat_id) = FlatHelix::from_real(segment, id_map) {
             left = flat_id.segment_left;
-            self.flat_id = flat_id
+            self.flat_id = flat_id;
         } else {
             log::error!("real id does not exist {}", self.real_id);
             left = None;
@@ -134,7 +134,7 @@ impl Helix {
         self.abscissa_converter = Arc::new(AbscissaConverter {
             converter: helix2d.abscissa_converter.clone(),
             left,
-        })
+        });
     }
 
     pub fn background_vertices(&self) -> Vertices {
@@ -348,10 +348,10 @@ impl Helix {
         let (pos, _) = self.get_click_unbounded(position.x, position.y);
         match handle {
             HelixHandle::Left => {
-                self.left = (self.right - 2).min(pos.right().to_real(self.flat_id.segment_left))
+                self.left = (self.right - 2).min(pos.right().to_real(self.flat_id.segment_left));
             }
             HelixHandle::Right => {
-                self.right = (self.left + 2).max(pos.left().to_real(self.flat_id.segment_left))
+                self.right = (self.left + 2).max(pos.left().to_real(self.flat_id.segment_left));
             }
         }
         (self.left, self.right)
@@ -434,7 +434,7 @@ impl Helix {
     }
 
     pub fn set_color(&mut self, color: u32) {
-        self.color = color
+        self.color = color;
     }
 
     pub fn get_depth(&self) -> f32 {
@@ -680,7 +680,7 @@ impl Helix {
             true
         };
         if need_center {
-            camera.borrow_mut().set_center(self.get_pivot(position))
+            camera.borrow_mut().set_center(self.get_pivot(position));
         }
     }
 

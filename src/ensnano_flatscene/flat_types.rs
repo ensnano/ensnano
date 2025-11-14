@@ -15,6 +15,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
 //! This modules introduces types that are used in the flatscene's data structures.
 //!
 //! The motivation behind these types is that flatscene's representation of helices are stored in a
@@ -415,7 +416,7 @@ impl<T: Flat> HelixVec<T> {
     }
 
     pub fn push(&mut self, value: T) {
-        self.0.push(value)
+        self.0.push(value);
     }
 
     pub fn get(&self, idx: FlatIdx) -> Option<&T> {

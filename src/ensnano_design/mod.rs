@@ -357,7 +357,7 @@ impl Design {
             if let Some(helix_parameters) = self.helix_parameters.as_mut() {
                 helix_parameters.groove_angle *= -1.;
             } else {
-                self.helix_parameters = Some(Default::default())
+                self.helix_parameters = Some(Default::default());
             }
             mutate_all_helices(self, |h| h.roll *= -1.);
             self.ensnano_version = ensnano_version();
@@ -582,7 +582,7 @@ impl Design {
         }
         for s in scad.strands.iter() {
             for d in s.domains.iter() {
-                insertion_deletions.read_domain(d)
+                insertion_deletions.read_domain(d);
             }
         }
         let mut helices = BTreeMap::new();
@@ -691,7 +691,7 @@ where
 {
     let mut new_obj = Obj::clone(obj_ptr);
     mutation(&mut new_obj);
-    *obj_ptr = Arc::new(new_obj)
+    *obj_ptr = Arc::new(new_obj);
 }
 
 /// Apply a mutating function to all the helices of a design.
@@ -701,7 +701,7 @@ where
 {
     let mut new_helices_map = BTreeMap::clone(design.helices.0.as_ref());
     for h in new_helices_map.values_mut() {
-        mutate_in_arc(h, mutation.clone())
+        mutate_in_arc(h, mutation.clone());
     }
     design.helices = Helices(Arc::new(new_helices_map));
 }

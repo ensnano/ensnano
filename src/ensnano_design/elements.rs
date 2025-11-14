@@ -215,7 +215,7 @@ impl OrganizerElement for DesignElement {
                 for len in lengths {
                     ret.push(DnaAutoGroup::StrandWithDomainOfLength(
                         (len, last_domain_length_bounds).into(),
-                    ))
+                    ));
                 }
                 ret
             }

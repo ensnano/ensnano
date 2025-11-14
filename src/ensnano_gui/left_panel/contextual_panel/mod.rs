@@ -118,7 +118,7 @@ impl ValueRequest {
                 .unwrap()
                 .set_grid_orientation(*grid_id, *orientation),
             Self::GridNbTurn { grid_id, nb_turn } => {
-                request.lock().unwrap().set_nb_turn(*grid_id, *nb_turn)
+                request.lock().unwrap().set_nb_turn(*grid_id, *nb_turn);
             }
             Self::BezierVertexPosition {
                 vertex_id,
@@ -260,7 +260,7 @@ where
                     self.builder = None;
                 }
             } else {
-                self.builder = InstantiatedBuilder::new(s, reader)
+                self.builder = InstantiatedBuilder::new(s, reader);
             }
         } else {
             self.builder = None;
@@ -349,10 +349,10 @@ where
                         SimulationState::None => TwistStatus::CanTwist,
                         _ => TwistStatus::CannotTwist,
                     };
-                    column = column.push(add_grid_content(info_values.clone(), ui_size, twisting))
+                    column = column.push(add_grid_content(info_values.clone(), ui_size, twisting));
                 }
                 Selection::Strand(_, _) => {
-                    column = column.push(add_strand_content(info_values.clone(), ui_size))
+                    column = column.push(add_strand_content(info_values.clone(), ui_size));
                 }
                 Selection::Nucleotide(_, _) => {
                     let anchor = info_values[0].clone();
@@ -371,7 +371,7 @@ where
                 _ => (),
             }
             if let Some(builder) = &self.builder {
-                column = column.push(builder.builder.view(ui_size, selection, app_state))
+                column = column.push(builder.builder.view(ui_size, selection, app_state));
             }
             column
         };
@@ -423,9 +423,9 @@ where
 
     pub fn scaffold_id_set<R: Requests>(&self, n: usize, b: bool, requests: Arc<Mutex<R>>) {
         if b {
-            requests.lock().unwrap().set_scaffold_id(Some(n))
+            requests.lock().unwrap().set_scaffold_id(Some(n));
         } else {
-            requests.lock().unwrap().set_scaffold_id(None)
+            requests.lock().unwrap().set_scaffold_id(None);
         }
     }
 
@@ -451,12 +451,12 @@ where
     }
 
     pub fn set_show_strand(&mut self, show: bool) {
-        self.add_strand_menu.set_show_strand(show)
+        self.add_strand_menu.set_show_strand(show);
     }
 
     pub fn update_builder_value(&mut self, kind: ValueKind, n: usize, value: String) {
         if let Some(b) = &mut self.builder {
-            b.builder.update_str_value(kind, n, value)
+            b.builder.update_str_value(kind, n, value);
         } else {
             log::error!("Cannot update value: No instantiated builder");
         }
@@ -848,7 +848,7 @@ impl AddStrandMenu {
 
     fn update_length_str(&mut self, length_str: String) -> (isize, usize) {
         if let Ok(length) = length_str.parse::<usize>() {
-            self.helix_length = length
+            self.helix_length = length;
         }
         self.length_str = length_str;
         self.set_show_strand(true);

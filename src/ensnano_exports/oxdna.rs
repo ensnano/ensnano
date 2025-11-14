@@ -271,7 +271,7 @@ impl StrandMaker<'_, '_> {
             free_idx,
             &self.context.helix_parameters,
         );
-        self.add_ox_nucl(ox_nucl, None)
+        self.add_ox_nucl(ox_nucl, None);
     }
 
     // TODO move the strand maker in a wrapper to force the call to end when dropping

@@ -137,9 +137,9 @@ impl StrandBuilder {
                 Some(EditDirection::Negative)
             };
             if desc.initial_moving_end > initial_position {
-                max_pos = max_pos.or(Some(desc.fixed_end - 1))
+                max_pos = max_pos.or(Some(desc.fixed_end - 1));
             } else {
-                min_pos = min_pos.or(Some(desc.fixed_end + 1))
+                min_pos = min_pos.or(Some(desc.fixed_end + 1));
             }
         } else {
             neighbor_strand = None;
@@ -272,7 +272,7 @@ impl StrandBuilder {
             _ => (),
         }
         if need_update {
-            self.update(design)
+            self.update(design);
         }
     }
 
@@ -303,10 +303,10 @@ impl StrandBuilder {
             self.fixed_end.unwrap_or(self.initial_position),
         );
         if let Some(desc) = self.neighbor_strand {
-            Self::update_strand(design, desc.identifier, desc.moving_end, desc.fixed_end)
+            Self::update_strand(design, desc.identifier, desc.moving_end, desc.fixed_end);
         }
         if let Some(desc) = self.detached_neighbor.take() {
-            Self::update_strand(design, desc.identifier, desc.moving_end, desc.fixed_end)
+            Self::update_strand(design, desc.identifier, desc.moving_end, desc.fixed_end);
         }
     }
 

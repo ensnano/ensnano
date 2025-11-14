@@ -58,13 +58,13 @@ impl Object3DDrawer {
         viewer_bind_group: &'a wgpu::BindGroup,
     ) {
         for d in self.gltf_drawers.values_mut() {
-            d.draw(render_pass, viewer_bind_group)
+            d.draw(render_pass, viewer_bind_group);
         }
         for d in self.stl_drawers.values_mut() {
-            d.draw(render_pass, viewer_bind_group)
+            d.draw(render_pass, viewer_bind_group);
         }
         if let Some(ref mut d) = self.desired_revolution_shape_drawer {
-            d.drawer.draw(render_pass, viewer_bind_group)
+            d.drawer.draw(render_pass, viewer_bind_group);
         }
     }
 

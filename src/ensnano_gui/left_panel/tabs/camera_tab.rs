@@ -50,23 +50,23 @@ impl<State: AppState> CameraTab<State> {
     }
 
     pub fn fog_visible(&mut self, visible: bool) {
-        self.fog.is_activated = visible
+        self.fog.is_activated = visible;
     }
 
     pub fn fog_dark(&mut self, dark: bool) {
-        self.fog.dark = dark
+        self.fog.dark = dark;
     }
 
     pub fn fog_reversed(&mut self, reversed: bool) {
-        self.fog.is_reversed = reversed
+        self.fog.is_reversed = reversed;
     }
 
     pub fn fog_length(&mut self, length: f32) {
-        self.fog.length = length
+        self.fog.length = length;
     }
 
     pub fn fog_radius(&mut self, radius: f32) {
-        self.fog.softness = radius
+        self.fog.softness = radius;
     }
 
     pub fn fog_camera(&mut self, from_camera: bool) {

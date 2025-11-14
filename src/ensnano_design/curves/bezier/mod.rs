@@ -288,7 +288,7 @@ impl Eq for InstantiatedPiecewiseBezier {}
 
 impl std::hash::Hash for InstantiatedPiecewiseBezier {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        self.id.hash(state)
+        self.id.hash(state);
     }
 }
 

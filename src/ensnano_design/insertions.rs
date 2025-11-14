@@ -166,11 +166,11 @@ impl InsertionDescriptor {
             }
 
             for (a_id, speed_a) in speed.iter_mut().enumerate() {
-                *speed_a += DT_STEP * forces[a_id] / MASS_NUCL
+                *speed_a += DT_STEP * forces[a_id] / MASS_NUCL;
             }
 
             for (a_id, pos_a) in ret.iter_mut().enumerate() {
-                *pos_a += speed[a_id] * DT_STEP
+                *pos_a += speed[a_id] * DT_STEP;
             }
         }
 
@@ -289,7 +289,7 @@ impl Strand {
                 *instantiation = Some(Arc::new(InstantiatedInsertion {
                     instantiation: descriptor.instantiate(helix_parameters),
                     descriptor,
-                }))
+                }));
             }
         } else {
             log::error!("Wrong domain id");

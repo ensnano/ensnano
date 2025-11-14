@@ -101,7 +101,7 @@ impl<R: FlatSceneDesignReaderExt> Design2d<R> {
                 0
             });
             for nucl in strand.iter() {
-                self.read_nucl(nucl)
+                self.read_nucl(nucl);
             }
             let flat_strand: Vec<_> = strand
                 .iter()
@@ -127,7 +127,7 @@ impl<R: FlatSceneDesignReaderExt> Design2d<R> {
             .map(|nucls| {
                 let color = crate::ensnano_consts::CANDIDATE_COLOR;
                 for nucl in nucls.iter() {
-                    self.read_nucl(nucl)
+                    self.read_nucl(nucl);
                 }
                 let flat_strand = nucls
                     .iter()
@@ -146,7 +146,7 @@ impl<R: FlatSceneDesignReaderExt> Design2d<R> {
         for (segment, flat_idx) in self.id_map.iter() {
             let visibility = self.design.get_visibility_helix(segment.helix_idx);
             if let Some(h) = self.helices.get_mut(*flat_idx) {
-                h.visible = visibility.unwrap_or(false)
+                h.visible = visibility.unwrap_or(false);
             }
         }
 
@@ -218,7 +218,7 @@ impl<R: FlatSceneDesignReaderExt> Design2d<R> {
                 helix2d.right = helix2d.right.min(max_right);
             }
         } else {
-            log::error!("Could not convert {nucl} to flat nucl")
+            log::error!("Could not convert {nucl} to flat nucl");
         }
     }
 
@@ -247,7 +247,7 @@ impl<R: FlatSceneDesignReaderExt> Design2d<R> {
                     self.read_helix_segment(HelixSegment {
                         helix_idx: *h_id,
                         segment_idx,
-                    })
+                    });
                 }
             }
         }
@@ -340,13 +340,13 @@ impl<R: FlatSceneDesignReaderExt> Design2d<R> {
                 self.requests
                     .lock()
                     .unwrap()
-                    .set_visibility_helix(segment.helix_idx, visibility)
+                    .set_visibility_helix(segment.helix_idx, visibility);
             }
         } else {
             self.requests.lock().unwrap().set_visibility_helix(
                 flat_helix.segment.helix_idx,
                 !self.helices[flat_helix.flat].visible,
-            )
+            );
         }
     }
 
@@ -354,7 +354,7 @@ impl<R: FlatSceneDesignReaderExt> Design2d<R> {
         self.requests
             .lock()
             .unwrap()
-            .flip_group(helix.segment.helix_idx)
+            .flip_group(helix.segment.helix_idx);
     }
 
     pub fn can_start_builder_at(&self, nucl: Nucl) -> bool {

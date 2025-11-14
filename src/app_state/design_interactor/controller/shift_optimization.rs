@@ -16,6 +16,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+use super::*;
+use crate::ensnano_design::NuclCollection;
+
 macro_rules! log_err {
     ($x:expr) => {
         if $x.is_err() {
@@ -23,10 +26,6 @@ macro_rules! log_err {
         }
     };
 }
-
-use crate::ensnano_design::NuclCollection;
-
-use super::*;
 
 fn read_scaffold_seq(
     design: &Design,
@@ -121,7 +120,7 @@ fn get_shift_optimization_result(
         .ok_or(ErrOperation::NoScaffoldSet)?;
     for shift in 0..len {
         if shift % 100 == 0 {
-            log_err!(progress_channel.send(shift as f32 / len as f32))
+            log_err!(progress_channel.send(shift as f32 / len as f32));
         }
         let char_map = read_scaffold_seq(design, nucl_collection, shift)?;
         let (score, result) = evaluate_shift(design, &char_map);

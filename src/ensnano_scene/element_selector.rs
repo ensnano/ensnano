@@ -82,7 +82,7 @@ impl ElementSelector {
         if self.readers[0].pixels.is_none() || self.view.borrow().need_redraw_fake() {
             for i in 0..self.readers.len() {
                 let pixels = self.update_fake_pixels(self.readers[i].draw_type, self.stereographic);
-                self.readers[i].pixels = Some(pixels)
+                self.readers[i].pixels = Some(pixels);
             }
         }
 

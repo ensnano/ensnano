@@ -15,6 +15,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
 //! The [GUI Manager](Gui) handles redraw request on textures that corresponds to regions
 //! attributed to GUI components and events happening on these regions.
 //!
@@ -247,7 +248,7 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
         {
             match self {
                 GuiState::StatusBar(_) => {
-                    self.queue_status_bar_message(status_bar::Message::TabPressed)
+                    self.queue_status_bar_message(status_bar::Message::TabPressed);
                 }
                 GuiState::TopBar(_) => (),
                 GuiState::LeftPanel(_) => (),
@@ -264,7 +265,7 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
     fn queue_top_bar_message(&mut self, message: top_bar::Message<S>) {
         log::trace!("Queue top bar {:?}", message);
         if let GuiState::TopBar(state) = self {
-            state.queue_message(message)
+            state.queue_message(message);
         } else {
             panic!("wrong message type")
         }
@@ -273,7 +274,7 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
     fn queue_left_panel_message(&mut self, message: left_panel::Message<S>) {
         log::trace!("Queue left panel {:?}", message);
         if let GuiState::LeftPanel(state) = self {
-            state.queue_message(message)
+            state.queue_message(message);
         } else {
             panic!("wrong message type")
         }
@@ -282,7 +283,7 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
     fn queue_status_bar_message(&mut self, message: status_bar::Message<S>) {
         log::trace!("Queue status_bar {:?}", message);
         if let GuiState::StatusBar(state) = self {
-            state.queue_message(message)
+            state.queue_message(message);
         } else {
             panic!("wrong message type")
         }
@@ -360,11 +361,12 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
                         primitives,
                         viewport,
                         &debug.overlay(),
-                    )
-                })
+                    );
+                });
             }
             _ => panic!("Unhandled renderer"),
-        };
+        }
+
         match self {
             GuiState::TopBar(state) => *mouse_interaction = state.mouse_interaction(),
             GuiState::LeftPanel(state) => {
@@ -498,7 +500,7 @@ impl<R: Requests, S: AppState> GuiComponent<R, S> {
     }
 
     fn forward_event(&mut self, event: Event) {
-        self.state.queue_event(event)
+        self.state.queue_event(event);
     }
 
     fn get_state(&mut self) -> &mut GuiState<R, S> {
@@ -734,13 +736,13 @@ impl<R: Requests, State: AppState> Gui<R, State> {
             }));
             elt.forward_event(event::Event::Mouse(Event::ButtonPressed(
                 mouse::Button::Left,
-            )))
+            )));
         }
     }
 
     pub fn forward_event_all(&mut self, event: event::Event) {
         for e in self.components.values_mut() {
-            e.forward_event(event.clone())
+            e.forward_event(event.clone());
         }
     }
 
@@ -772,7 +774,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
     /// Get the new size of each gui component from the multiplexer and forwards them.
     pub fn resize(&mut self, multiplexer: &dyn Multiplexer, window: &Window) {
         for element in self.components.values_mut() {
-            element.resize(window, multiplexer)
+            element.resize(window, multiplexer);
         }
         self.resized = true;
     }
@@ -858,7 +860,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
                 window,
                 multiplexer,
                 mouse_interaction,
-            )
+            );
         }
     }
 }
@@ -907,17 +909,17 @@ impl<S: AppState> IcedMessages<S> {
             .push_back(status_bar::Message::Progress(Some((
                 progress_name,
                 progress,
-            ))))
+            ))));
     }
 
     pub fn finish_progress(&mut self) {
         self.status_bar
-            .push_back(status_bar::Message::Progress(None))
+            .push_back(status_bar::Message::Progress(None));
     }
 
     pub fn update_modifiers(&mut self, modifiers: Modifiers) {
         self.left_panel
-            .push_back(left_panel::Message::ModifiersChanged(modifiers))
+            .push_back(left_panel::Message::ModifiersChanged(modifiers));
     }
 
     pub fn new_ui_size(&mut self, ui_size: crate::ensnano_iced::UiSize) {

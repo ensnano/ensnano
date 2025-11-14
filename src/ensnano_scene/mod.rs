@@ -152,7 +152,7 @@ impl<S: AppState> Scene<S> {
 
     /// Remove all designs
     fn clear_design(&self) {
-        self.data.borrow_mut().clear_designs()
+        self.data.borrow_mut().clear_designs();
     }
 
     fn is_stereographic(&self) -> bool {
@@ -235,7 +235,7 @@ impl<S: AppState> Scene<S> {
                         },
                     );
                 } else {
-                    log::error!("No suggested cross over target for nucl {:?}", nucl)
+                    log::error!("No suggested cross over target for nucl {:?}", nucl);
                 }
             }
             Consequence::Translation(dir, x_coord, y_coord, target) => {
@@ -249,7 +249,7 @@ impl<S: AppState> Scene<S> {
                         WidgetTarget::Object => {
                             self.translate_selected_design(t, app_state);
                             if app_state.get_current_group_id().is_none() {
-                                self.translate_group_pivot(t)
+                                self.translate_group_pivot(t);
                             }
                         }
                         WidgetTarget::Pivot => self.translate_group_pivot(t),
@@ -285,14 +285,14 @@ impl<S: AppState> Scene<S> {
                     if target == WidgetTarget::Pivot
                         && let WidgetBasis::World = app_state.get_widget_basis()
                     {
-                        self.requests.lock().unwrap().toggle_widget_basis()
+                        self.requests.lock().unwrap().toggle_widget_basis();
                     }
                 }
             }
             Consequence::InitTranslation(x, y, _target) => {
                 self.view.borrow_mut().init_translation(x as f32, y as f32);
                 if let Some(pivot) = self.view.borrow().get_group_pivot() {
-                    self.requests.lock().unwrap().set_current_group_pivot(pivot)
+                    self.requests.lock().unwrap().set_current_group_pivot(pivot);
                 }
             }
             Consequence::Rotation(x, y, target) => {
@@ -303,17 +303,17 @@ impl<S: AppState> Scene<S> {
                             WidgetTarget::Object => {
                                 self.rotate_selected_design(rotation, origin, positive, app_state);
                                 if app_state.get_current_group_id().is_none() {
-                                    self.requests.lock().unwrap().rotate_group_pivot(rotation)
+                                    self.requests.lock().unwrap().rotate_group_pivot(rotation);
                                 }
                             }
                             WidgetTarget::Pivot => {
-                                self.requests.lock().unwrap().rotate_group_pivot(rotation)
+                                self.requests.lock().unwrap().rotate_group_pivot(rotation);
                             }
                         }
                     }
                     self.data.borrow_mut().notify_handle_movement();
                 } else {
-                    log::warn!("Warning rotation was None")
+                    log::warn!("Warning rotation was None");
                 }
             }
             Consequence::Swing(x, y) => {
@@ -347,9 +347,9 @@ impl<S: AppState> Scene<S> {
             }
             Consequence::ElementSelected(element, adding) => {
                 if adding {
-                    self.add_selection(element, app_state.get_selection(), app_state)
+                    self.add_selection(element, app_state.get_selection(), app_state);
                 } else {
-                    self.select(element, app_state)
+                    self.select(element, app_state);
                 }
             }
             Consequence::MoveFreeXover(element, position) => self
@@ -384,7 +384,7 @@ impl<S: AppState> Scene<S> {
                                 },
                             )),
                             app_state,
-                        )
+                        );
                     }
                 } else {
                     // build regular grid helix
@@ -444,7 +444,7 @@ impl<S: AppState> Scene<S> {
                     self.requests
                         .lock()
                         .unwrap()
-                        .apply_design_operation(DesignOperation::CheckXovers { xovers })
+                        .apply_design_operation(DesignOperation::CheckXovers { xovers });
                 }
             }
             Consequence::AlignWithStereo => {
@@ -460,13 +460,13 @@ impl<S: AppState> Scene<S> {
                             path_id: path,
                             vertex,
                         },
-                    )
+                    );
                 } else {
                     self.requests.lock().unwrap().apply_design_operation(
                         DesignOperation::CreateBezierPath {
                             first_vertex: vertex,
                         },
-                    )
+                    );
                 }
             }
             Consequence::MoveBezierVertex {
@@ -496,7 +496,7 @@ impl<S: AppState> Scene<S> {
                 self.requests
                     .lock()
                     .unwrap()
-                    .update_operation(Arc::new(TranslateBezierPathVertex { vertices, x, y }))
+                    .update_operation(Arc::new(TranslateBezierPathVertex { vertices, x, y }));
             }
             Consequence::ReleaseBezierVertex => self.requests.lock().unwrap().suspend_op(),
             Consequence::MoveBezierCorner {
@@ -553,7 +553,7 @@ impl<S: AppState> Scene<S> {
         self.requests
             .lock()
             .unwrap()
-            .xover_request(source, target, design_id)
+            .xover_request(source, target, design_id);
     }
 
     fn element_center(&mut self, _app_state: &S) -> Option<SceneElement> {
@@ -855,7 +855,7 @@ impl<S: AppState> Scene<S> {
             self.current_camera = Arc::new((
                 self.get_camera(),
                 self.view.borrow().get_projection().borrow().get_ratio(),
-            ))
+            ));
         }
     }
 
@@ -1138,7 +1138,7 @@ impl<S: AppState> Scene<S> {
 
     pub fn fog_request(&self, fog: FogParameters) {
         if !self.is_stereographic() {
-            self.view.borrow_mut().update(ViewUpdate::Fog(fog))
+            self.view.borrow_mut().update(ViewUpdate::Fog(fog));
         }
     }
 }
@@ -1209,7 +1209,7 @@ impl<S: AppState> Application for Scene<S> {
             }
             Notification::ShowTorsion(_) => (),
             Notification::ModifiersChanged(modifiers) => {
-                self.controller.update_modifiers(modifiers)
+                self.controller.update_modifiers(modifiers);
             }
             Notification::Split2d => (),
             Notification::Redim2dHelices(_) => (),
@@ -1270,7 +1270,7 @@ impl<S: AppState> Application for Scene<S> {
     }
 
     fn on_resize(&mut self, window_size: PhySize, area: DrawArea) {
-        self.notify(SceneNotification::NewSize(window_size, area))
+        self.notify(SceneNotification::NewSize(window_size, area));
     }
 
     fn on_redraw_request(
@@ -1279,7 +1279,7 @@ impl<S: AppState> Application for Scene<S> {
         target: &wgpu::TextureView,
     ) {
         let older_state = self.older_state.clone();
-        self.draw_view(encoder, target, &older_state)
+        self.draw_view(encoder, target, &older_state);
     }
 
     fn needs_redraw(&mut self, dt: Duration, state: S) -> bool {

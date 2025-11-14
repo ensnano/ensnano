@@ -145,7 +145,7 @@ impl Design {
                 }
             }
             if insert {
-                ret.push(*s_id)
+                ret.push(*s_id);
             }
         }
         ret
@@ -210,7 +210,7 @@ impl Design {
             match j {
                 DomainJunction::Prime3 => new_junctions.push(DomainJunction::Prime3),
                 DomainJunction::IdentifiedXover(_) | DomainJunction::UnidentifiedXover => {
-                    new_junctions.push(DomainJunction::UnidentifiedXover)
+                    new_junctions.push(DomainJunction::UnidentifiedXover);
                 }
                 DomainJunction::Adjacent => new_junctions.push(DomainJunction::Adjacent),
             }

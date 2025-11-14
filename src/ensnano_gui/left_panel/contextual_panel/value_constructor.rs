@@ -278,12 +278,12 @@ where
 
     fn update_str_value(&mut self, value_kind: ValueKind, n: usize, value_str: String) {
         if let ValueKind::BezierVertexPosition = value_kind {
-            self.position_builder.update_str_value(n, value_str)
+            self.position_builder.update_str_value(n, value_str);
         } else {
             log::error!(
                 "Unexpected value kind {:?} for BezierVertexBuilder",
                 value_kind
-            )
+            );
         }
     }
 

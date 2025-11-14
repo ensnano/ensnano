@@ -889,7 +889,7 @@ impl GridData {
                     center_of_gravity,
                 ) {
                     log::info!("setting curve");
-                    h.curve = Some(curve)
+                    h.curve = Some(curve);
                 }
             }
         }
@@ -961,7 +961,7 @@ impl GridData {
                         h.position = g.position_helix(new_grid_position.x, new_grid_position.y)
                             - h.get_axis(&self.helix_parameters)
                                 .direction()
-                                .unwrap_or_else(Vec3::zero)
+                                .unwrap_or_else(Vec3::zero);
                     } else {
                         return Err(ErrOperation::HelixCollisionDuringTranslation);
                     }
@@ -971,7 +971,7 @@ impl GridData {
                         - h.get_axis(&self.helix_parameters)
                             .direction()
                             .unwrap_or_else(Vec3::zero)
-                            * new_grid_position.axis_pos as f32
+                            * new_grid_position.axis_pos as f32;
                 }
             }
         }
@@ -981,7 +981,7 @@ impl GridData {
     fn attach_to(&self, helix: &Helix, g_id: GridId) -> Option<HelixGridPosition> {
         let mut ret = None;
         if let Some(g) = self.grids.get(&g_id) {
-            ret = g.find_helix_position(helix, g_id)
+            ret = g.find_helix_position(helix, g_id);
         }
         ret
     }
@@ -1020,7 +1020,7 @@ impl GridData {
                     let err = grid.error_group(group, &self.source_helices);
                     if err < best_err {
                         hex_grid = grid;
-                        best_err = err
+                        best_err = err;
                     }
                 }
             }
@@ -1045,7 +1045,7 @@ impl GridData {
             let err = grid.error_group(group, &self.source_helices);
             if err < best_square_err {
                 square_grid = grid;
-                best_square_err = err
+                best_square_err = err;
             }
         }
         if best_square_err < best_err {
@@ -1222,7 +1222,7 @@ impl GridData {
         if let Some(curve) = helix.curve.clone() {
             helix.instantiated_descriptor = Some(Arc::new(
                 InstantiatedCurveDescriptor::instantiate(curve, self),
-            ))
+            ));
         } else {
             helix.instantiated_descriptor = None;
         }
@@ -1235,7 +1235,7 @@ impl GridData {
             .map(|p| helix.need_curve_descriptor_update(&self.source_free_grids, p))
             .unwrap_or(true)
         {
-            self.update_instantiated_curve_descriptor(helix)
+            self.update_instantiated_curve_descriptor(helix);
         }
 
         if self
@@ -1313,7 +1313,7 @@ impl CenterOfGravity {
     fn add_point(&mut self, point: Vec3) {
         if self.nb == 0 {
             self.center = Some(point);
-            self.nb = 1
+            self.nb = 1;
         } else {
             let new_center = point
                 + self.nb as f32
@@ -1322,7 +1322,7 @@ impl CenterOfGravity {
                         Vec3::zero()
                     });
             self.nb += 1;
-            self.center = Some(new_center / (self.nb as f32))
+            self.center = Some(new_center / (self.nb as f32));
         }
     }
 }
@@ -1350,7 +1350,7 @@ pub(super) fn make_grid_from_helices(
             && h.grid_position.is_none()
             && let Some(position) = grid_data.attach_to(h, new_id)
         {
-            h.grid_position = Some(position)
+            h.grid_position = Some(position);
         }
     }
     drop(helices_mut);
@@ -1407,7 +1407,7 @@ impl<'a> HelicesTranslator<'a> {
         let mut new_helices = self.grid_data.source_helices.make_mut();
         for h_id in helices.iter() {
             if let Some(h) = new_helices.get_mut(h_id) {
-                h.rotate_around(rotation, origin)
+                h.rotate_around(rotation, origin);
             }
         }
         drop(new_helices);

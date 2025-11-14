@@ -27,7 +27,7 @@ impl ClickCounter {
     }
 
     pub fn set(&mut self, value: u32) {
-        self.value = value
+        self.value = value;
     }
 
     pub fn next(&mut self) -> u32 {

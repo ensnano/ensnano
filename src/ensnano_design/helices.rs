@@ -164,7 +164,7 @@ impl AsRef<Helices> for HelicesMut<'_> {
 
 impl Drop for HelicesMut<'_> {
     fn drop(&mut self) {
-        *self.source = Helices(Arc::new(std::mem::take(&mut self.new_map)))
+        *self.source = Helices(Arc::new(std::mem::take(&mut self.new_map)));
     }
 }
 
@@ -914,11 +914,11 @@ impl Helix {
     }
 
     pub fn roll(&mut self, roll: f32) {
-        self.roll += roll
+        self.roll += roll;
     }
 
     pub fn set_roll(&mut self, roll: f32) {
-        self.roll = roll
+        self.roll = roll;
     }
 
     pub fn get_bezier_controls(&self) -> Option<CubicBezierConstructor> {

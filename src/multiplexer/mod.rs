@@ -239,7 +239,7 @@ impl Multiplexer {
     }
 
     pub fn update_modifiers(&mut self, modifiers: Modifiers) {
-        self.modifiers_state = modifiers.state()
+        self.modifiers_state = modifiers.state();
     }
 
     pub fn draw(
@@ -524,14 +524,14 @@ impl Multiplexer {
                 captured = true;
                 match logical_key.as_ref() {
                     Key::Named(NamedKey::Escape) => {
-                        self.requests.lock().unwrap().action_mode = Some(ActionMode::Normal)
+                        self.requests.lock().unwrap().action_mode = Some(ActionMode::Normal);
                     }
                     Key::Character("X") | Key::Character("x") if self.modifiers_state.alt_key() => {
                         self.requests.lock().unwrap().keep_proceed.push_back(
                             Action::MakeAllSuggestedXover {
                                 doubled: self.modifiers_state.shift_key(),
                             },
-                        )
+                        );
                     }
                     Key::Character("X") | Key::Character("x") => {
                         self.requests.lock().unwrap().toggle_all_helices_on_axis = Some(());
@@ -540,7 +540,7 @@ impl Multiplexer {
                         if control_key(&self.modifiers_state) =>
                     {
                         if self.modifiers_state.shift_key() {
-                            self.requests.lock().unwrap().redo = Some(())
+                            self.requests.lock().unwrap().redo = Some(());
                         } else {
                             self.requests.lock().unwrap().undo = Some(());
                         }
@@ -573,17 +573,17 @@ impl Multiplexer {
                     Key::Character("R") | Key::Character("r")
                         if !control_key(&self.modifiers_state) =>
                     {
-                        self.requests.lock().unwrap().action_mode = Some(ActionMode::Rotate)
+                        self.requests.lock().unwrap().action_mode = Some(ActionMode::Rotate);
                     }
                     Key::Character("T") | Key::Character("t") => {
-                        self.requests.lock().unwrap().action_mode = Some(ActionMode::Translate)
+                        self.requests.lock().unwrap().action_mode = Some(ActionMode::Translate);
                     }
                     Key::Character("N") | Key::Character("n") => {
                         self.requests.lock().unwrap().selection_mode =
-                            Some(SelectionMode::Nucleotide)
+                            Some(SelectionMode::Nucleotide);
                     }
                     Key::Character("H") | Key::Character("h") => {
-                        self.requests.lock().unwrap().selection_mode = Some(SelectionMode::Helix)
+                        self.requests.lock().unwrap().selection_mode = Some(SelectionMode::Helix);
                     }
                     Key::Character("S") | Key::Character("s")
                         if control_key(&self.modifiers_state) =>
@@ -609,7 +609,7 @@ impl Multiplexer {
                             .push_back(Action::Exit);
                     }
                     Key::Character("S") | Key::Character("s") => {
-                        self.requests.lock().unwrap().selection_mode = Some(SelectionMode::Strand)
+                        self.requests.lock().unwrap().selection_mode = Some(SelectionMode::Strand);
                     }
                     Key::Character("K") | Key::Character("k") => {
                         self.requests.lock().unwrap().recolor_staples = Some(());
@@ -636,7 +636,7 @@ impl Multiplexer {
                                 .keep_proceed
                                 .push_back(Action::SelectFavoriteCamera(num));
                         } else {
-                            captured = false
+                            captured = false;
                         }
                     }
                     _ => captured = false,
@@ -697,7 +697,7 @@ impl Multiplexer {
             self.element_2d = GuiComponentType::FlatScene;
         }
         if let Some(id) = self.layout.get_area_id(old_element_2d) {
-            self.layout.attribute_element(id, self.element_2d)
+            self.layout.attribute_element(id, self.element_2d);
         }
         log::info!("new element_2d {:?}", self.element_2d);
         if log::log_enabled!(log::Level::Info) {
@@ -709,7 +709,7 @@ impl Multiplexer {
 
     pub fn change_split(&mut self, split_mode: SplitMode) {
         if split_mode != self.split_mode {
-            self.change_split_(split_mode)
+            self.change_split_(split_mode);
         }
         self.split_mode = split_mode;
         self.generate_textures();

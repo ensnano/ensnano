@@ -193,10 +193,10 @@ impl SmoothInterpolatedCurve {
                     let v2 = (interpolators[helix_idx].evaluate(v * a)).rem_euclid(1.);
 
                     while v1 > v2 + 0.5 {
-                        v1 -= 1.
+                        v1 -= 1.;
                     }
                     while v1 < v2 - 0.5 {
-                        v1 += 1.
+                        v1 += 1.;
                     }
                     (1. - v) * v1 + v * v2
                 } else if u > 1. - a {
@@ -206,10 +206,10 @@ impl SmoothInterpolatedCurve {
                     let mut v2 = (interpolators[next_idx].evaluate(v * a) - shift).rem_euclid(1.);
 
                     while v2 > v1 + 0.5 {
-                        v2 -= 1.
+                        v2 -= 1.;
                     }
                     while v2 < v1 - 0.5 {
-                        v2 += 1.
+                        v2 += 1.;
                     }
 
                     (1. - v) * v1 + v * v2
@@ -332,7 +332,7 @@ impl Revolution {
         self.inverse_curvilinear_abscissa = inverse_ca_interpolation_points
             .into_par_iter()
             .map(|v| chebyshev_polynomials::interpolate_points(v, INTERPOLATION_ERROR))
-            .collect()
+            .collect();
     }
 
     fn get_surface_info(&self, point: SurfacePoint) -> Option<SurfaceInfo> {

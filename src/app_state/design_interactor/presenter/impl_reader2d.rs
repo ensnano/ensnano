@@ -70,7 +70,7 @@ impl FlatSceneDesignReaderExt for DesignInteractor {
             }
         }
         if strand.is_cyclic {
-            ret.push(ret[0])
+            ret.push(ret[0]);
         }
         Some(ret)
     }

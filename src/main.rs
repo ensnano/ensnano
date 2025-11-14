@@ -154,7 +154,7 @@ use {
                 AppStateParameters, CheckXoversParameter, SuggestionParameters,
             },
             application::{Application, Notification},
-            graphics::{GuiComponentType, SplitMode},
+            graphics::{Background3D, GuiComponentType, RenderingMode, SplitMode},
             operation::Operation,
         },
         ensnano_organizer::tree::GroupId,
@@ -449,7 +449,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Add a design to the scene if one was given as a command line argument
     if path.is_some() {
-        main_state.push_action(Action::LoadDesign(path))
+        main_state.push_action(Action::LoadDesign(path));
     }
     main_state.update();
     main_state.last_saved_state = main_state.app_state.clone();
@@ -517,7 +517,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 } if (key_event.logical_key == Key::Named(NamedKey::Escape)
                     && window.fullscreen().is_some()) =>
                 {
-                    window.set_fullscreen(None)
+                    window.set_fullscreen(None);
                 }
 
                 // NOTE: KEYBOARD PRIORITY MODE
@@ -534,7 +534,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         window.scale_factor(),
                         kbd_modifiers,
                     ) {
-                        gui.forward_event_all(iced_event)
+                        gui.forward_event_all(iced_event);
                     }
                 }
 
@@ -692,7 +692,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 .as_ref()
                                 .and_then(|elt| main_state.applications.get(elt))
                             {
-                                app.lock().unwrap().on_notify(Notification::WindowFocusLost)
+                                app.lock().unwrap().on_notify(Notification::WindowFocusLost);
                             }
                             main_state.focused_component = Some(gui_component_type);
                             main_state.update_candidates(vec![]);
@@ -710,7 +710,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                     window.scale_factor(),
                                     kbd_modifiers,
                                 ) {
-                                    gui.forward_event(component, e)
+                                    gui.forward_event(component, e);
                                 }
                             }
                             GuiComponentType::Overlay(n) => {
@@ -722,7 +722,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                     window.scale_factor(),
                                     kbd_modifiers,
                                 ) {
-                                    overlay_manager.forward_event(e, n)
+                                    overlay_manager.forward_event(e, n);
                                 }
                             }
                             area if area.is_scene() => {
@@ -798,10 +798,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             }
                         }
                         ChannelReaderUpdate::SimulationUpdate(update) => {
-                            main_state.app_state.apply_simulation_update(update)
+                            main_state.app_state.apply_simulation_update(update);
                         }
                         ChannelReaderUpdate::SimulationExpired => {
-                            main_state.update_simulation(SimulationOperation::Stop)
+                            main_state.update_simulation(SimulationOperation::Stop);
                         }
                     }
                 }
@@ -970,8 +970,8 @@ impl OverlayManager {
                                     primitives,
                                     &color_viewport,
                                     &self.color_debug.overlay(),
-                                )
-                            })
+                                );
+                            });
                         }
                         _ => panic!("Unhandled renderer"),
                     };
@@ -1110,7 +1110,7 @@ impl MainState {
                 .map(|e| e.is_scene())
                 .unwrap_or(false)
         {
-            self.applications_cursor = Some(CursorIcon::NotAllowed)
+            self.applications_cursor = Some(CursorIcon::NotAllowed);
         }
         let new_cursor = if self.simulation_cursor.is_some() {
             multiplexer
@@ -1137,7 +1137,7 @@ impl MainState {
     }
 
     fn push_action(&mut self, action: Action) {
-        self.pending_actions.push_back(action)
+        self.pending_actions.push_back(action);
     }
 
     fn get_app_state(&self) -> AppState {
@@ -1168,7 +1168,7 @@ impl MainState {
                 .unwrap()
                 .on_notify(Notification::NewStereographicCamera(camera_ptr));
         }
-        self.app_state.update()
+        self.app_state.update();
     }
 
     fn update_candidates(&mut self, candidates: Vec<Selection>) {
@@ -1181,7 +1181,7 @@ impl MainState {
             .get(&GuiComponentType::Scene)
             .and_then(|app| app.lock().unwrap().get_current_selection_pivot());
         if let Some(pivot) = self.app_state.get_current_group_pivot().or(scene_pivot) {
-            self.apply_operation(DesignOperation::SetGroupPivot { group_id, pivot })
+            self.apply_operation(DesignOperation::SetGroupPivot { group_id, pivot });
         }
     }
 
@@ -1193,7 +1193,7 @@ impl MainState {
     }
 
     fn update_center_of_selection(&mut self, center: Option<CenterOfSelection>) {
-        self.modify_state(|s| s.with_center_of_selection(center), None)
+        self.modify_state(|s| s.with_center_of_selection(center), None);
     }
 
     fn apply_copy_operation(&mut self, operation: CopyOperation) {
@@ -1298,7 +1298,7 @@ impl MainState {
                     |s| s.notified(InteractorNotification::FinishOperation),
                     None,
                 );
-                self.apply_silent_operation(operation)
+                self.apply_silent_operation(operation);
             }
             Err(e) => log::warn!("{:?}", e),
         }
@@ -1318,7 +1318,7 @@ impl MainState {
         if let Some((_, helices)) =
             crate::ensnano_interactor::list_of_helices(self.app_state.get_selection().as_ref())
         {
-            self.apply_operation(DesignOperation::SetRollHelices { helices, roll })
+            self.apply_operation(DesignOperation::SetRollHelices { helices, roll });
         }
     }
 
@@ -1387,7 +1387,7 @@ impl MainState {
                 |s| s.notified(InteractorNotification::FinishOperation),
                 None,
             );
-            self.update_pending_operation(operation)
+            self.update_pending_operation(operation);
         }
         self.apply_operation_result(result);
     }
@@ -1405,7 +1405,7 @@ impl MainState {
             Err(e) => log::warn!("{:?}", e),
         }
         if let Some(new_selection) = self.app_state.get_new_selection() {
-            self.modify_state(|s| s.with_selection(new_selection, None), None)
+            self.modify_state(|s| s.with_selection(new_selection, None), None);
         }
     }
 
@@ -1415,20 +1415,20 @@ impl MainState {
         if let Some((_, xover_ids)) =
             crate::ensnano_interactor::list_of_xover_as_nucl_pairs(selection.as_ref(), &reader)
         {
-            self.apply_copy_operation(CopyOperation::CopyXovers(xover_ids))
+            self.apply_copy_operation(CopyOperation::CopyXovers(xover_ids));
         } else if let Some(grid_ids) =
             crate::ensnano_interactor::extract_only_grids(selection.as_ref())
         {
-            self.apply_copy_operation(CopyOperation::CopyGrids(grid_ids))
+            self.apply_copy_operation(CopyOperation::CopyGrids(grid_ids));
         } else if let Some((_, helices)) =
             crate::ensnano_interactor::list_of_helices(selection.as_ref())
         {
-            self.apply_copy_operation(CopyOperation::CopyHelices(helices))
+            self.apply_copy_operation(CopyOperation::CopyHelices(helices));
         } else {
             let strand_ids = crate::ensnano_interactor::extract_strands_from_selection(
                 self.app_state.get_selection().as_ref(),
             );
-            self.apply_copy_operation(CopyOperation::CopyStrands(strand_ids))
+            self.apply_copy_operation(CopyOperation::CopyStrands(strand_ids));
         }
     }
 
@@ -1443,21 +1443,21 @@ impl MainState {
 
     fn request_duplication(&mut self) {
         if self.app_state.can_iterate_duplication() {
-            self.apply_copy_operation(CopyOperation::Duplicate)
+            self.apply_copy_operation(CopyOperation::Duplicate);
         } else if let Some((_, nucl_pairs)) = crate::ensnano_interactor::list_of_xover_as_nucl_pairs(
             self.app_state.get_selection().as_ref(),
             &self.app_state.get_design_interactor(),
         ) {
-            self.apply_copy_operation(CopyOperation::InitXoverDuplication(nucl_pairs))
+            self.apply_copy_operation(CopyOperation::InitXoverDuplication(nucl_pairs));
         } else if let Some((_, helices)) =
             crate::ensnano_interactor::list_of_helices(self.app_state.get_selection().as_ref())
         {
-            self.apply_copy_operation(CopyOperation::InitHelicesDuplication(helices))
+            self.apply_copy_operation(CopyOperation::InitHelicesDuplication(helices));
         } else {
             let strand_ids = crate::ensnano_interactor::extract_strands_from_selection(
                 self.app_state.get_selection().as_ref(),
             );
-            self.apply_copy_operation(CopyOperation::InitStrandsDuplication(strand_ids))
+            self.apply_copy_operation(CopyOperation::InitStrandsDuplication(strand_ids));
         }
     }
 
@@ -1510,36 +1510,35 @@ impl MainState {
             ret.set_extension(ENS_BACKUP_EXTENSION);
             ret
         };
+
         if self.app_state.is_in_stable_state() {
             self.app_state.save_design(&path, save_info)?;
             self.last_backed_up_state = self.app_state.clone();
             log::warn!("Saved backup to {}", path.to_string_lossy());
-        } else {
-            // Do nothing. We do not want to save backup in transitory states.
         }
 
         Ok(())
     }
 
     fn change_selection_mode(&mut self, mode: SelectionMode) {
-        self.modify_state(|s| s.with_selection_mode(mode), None)
+        self.modify_state(|s| s.with_selection_mode(mode), None);
     }
 
     fn change_action_mode(&mut self, mode: ActionMode) {
-        self.modify_state(|s| s.with_action_mode(mode), None)
+        self.modify_state(|s| s.with_action_mode(mode), None);
     }
 
     fn change_double_strand_parameters(&mut self, parameters: Option<(isize, usize)>) {
-        self.modify_state(|s| s.with_strand_on_helix(parameters), None)
+        self.modify_state(|s| s.with_strand_on_helix(parameters), None);
     }
 
     fn toggle_widget_basis(&mut self) {
-        self.modify_state(|s| s.with_toggled_widget_basis(), None)
+        self.modify_state(|s| s.with_toggled_widget_basis(), None);
     }
 
     fn set_visibility_sieve(&mut self, selection: Vec<Selection>, compl: bool) {
         let result = self.app_state.set_visibility_sieve(selection, compl);
-        self.apply_operation_result(result)
+        self.apply_operation_result(result);
     }
 
     fn need_save(&self) -> bool {
@@ -1556,47 +1555,47 @@ impl MainState {
             .path_to_current_design()
             .as_ref()
             .filter(|p| p.is_file())
-            .map(|p| p.into())
+            .map(|p| p.into());
     }
 
     fn set_suggestion_parameters(&mut self, param: SuggestionParameters) {
-        self.modify_state(|s| s.with_suggestion_parameters(param), None)
+        self.modify_state(|s| s.with_suggestion_parameters(param), None);
     }
 
     fn set_check_xovers_parameters(&mut self, param: CheckXoversParameter) {
-        self.modify_state(|s| s.with_check_xovers_parameters(param), None)
+        self.modify_state(|s| s.with_check_xovers_parameters(param), None);
     }
 
     fn set_follow_stereographic_camera(&mut self, follow: bool) {
-        self.modify_state(|s| s.with_follow_stereographic_camera(follow), None)
+        self.modify_state(|s| s.with_follow_stereographic_camera(follow), None);
     }
 
     fn set_show_stereographic_camera(&mut self, show: bool) {
-        self.modify_state(|s| s.with_show_stereographic_camera(show), None)
+        self.modify_state(|s| s.with_show_stereographic_camera(show), None);
     }
 
     fn set_show_h_bonds(&mut self, show: crate::ensnano_interactor::graphics::HBondDisplay) {
-        self.modify_state(|s| s.with_show_h_bonds(show), None)
+        self.modify_state(|s| s.with_show_h_bonds(show), None);
     }
 
     fn set_show_bezier_paths(&mut self, show: bool) {
-        self.modify_state(|s| s.with_show_bezier_paths(show), None)
+        self.modify_state(|s| s.with_show_bezier_paths(show), None);
     }
 
     fn set_all_helices_on_axis(&mut self, off_axis: bool) {
-        self.modify_state(|s| s.all_helices_on_axis(off_axis), None)
+        self.modify_state(|s| s.all_helices_on_axis(off_axis), None);
     }
 
     fn set_bezier_revolution_id(&mut self, id: Option<usize>) {
-        self.modify_state(|s| s.set_bezier_revolution_id(id), None)
+        self.modify_state(|s| s.set_bezier_revolution_id(id), None);
     }
 
     fn set_bezier_revolution_radius(&mut self, radius: f64) {
-        self.modify_state(|s| s.set_bezier_revolution_radius(radius), None)
+        self.modify_state(|s| s.set_bezier_revolution_radius(radius), None);
     }
 
     fn set_revolution_axis_position(&mut self, position: f64) {
-        self.modify_state(|s| s.set_revolution_axis_position(position), None)
+        self.modify_state(|s| s.set_revolution_axis_position(position), None);
     }
 
     /// Create a bezier plane where the user is looking at if there are no bezier plane yet.
@@ -1614,12 +1613,12 @@ impl MainState {
                     position,
                     orientation,
                 },
-            })
+            });
         }
     }
 
     fn set_unrooted_surface(&mut self, surface: Option<UnrootedRevolutionSurfaceDescriptor>) {
-        self.modify_state(|s| s.set_unrooted_surface(surface), None)
+        self.modify_state(|s| s.set_unrooted_surface(surface), None);
     }
 
     fn get_grid_creation_position(&self) -> Option<(Vec3, Rotor3)> {
@@ -1639,26 +1638,23 @@ impl MainState {
     }
 
     fn toggle_all_helices_on_axis(&mut self) {
-        self.modify_state(|s| s.with_toggled_all_helices_on_axis(), None)
+        self.modify_state(|s| s.with_toggled_all_helices_on_axis(), None);
     }
 
-    fn set_background_3d(&mut self, bg: crate::ensnano_interactor::graphics::Background3D) {
-        self.modify_state(|s| s.with_background3d(bg), None)
+    fn set_background_3d(&mut self, bg: Background3D) {
+        self.modify_state(|s| s.with_background3d(bg), None);
     }
 
-    fn set_rendering_mode(
-        &mut self,
-        rendering_mode: crate::ensnano_interactor::graphics::RenderingMode,
-    ) {
-        self.modify_state(|s| s.with_rendering_mode(rendering_mode), None)
+    fn set_rendering_mode(&mut self, rendering_mode: RenderingMode) {
+        self.modify_state(|s| s.with_rendering_mode(rendering_mode), None);
     }
 
     fn set_scroll_sensitivity(&mut self, sensitivity: f32) {
-        self.modify_state(|s| s.with_scroll_sensitivity(sensitivity), None)
+        self.modify_state(|s| s.with_scroll_sensitivity(sensitivity), None);
     }
 
     fn set_invert_y_scroll(&mut self, inverted: bool) {
-        self.modify_state(|s| s.with_inverted_y_scroll(inverted), None)
+        self.modify_state(|s| s.with_inverted_y_scroll(inverted), None);
     }
 
     fn gui_state(&self, multiplexer: &Multiplexer) -> TopBarState {
@@ -1730,7 +1726,7 @@ impl MainStateView<'_> {
                 .last_saved_state
                 .design_was_modified(&self.main_state.app_state)
         {
-            self.main_state.last_backup_date = Instant::now()
+            self.main_state.last_backup_date = Instant::now();
         }
     }
 
@@ -1743,12 +1739,12 @@ impl MainStateView<'_> {
     }
 
     fn exit_control_flow(&self) {
-        self.window_target.exit()
+        self.window_target.exit();
     }
 
     fn new_design(&mut self) {
         self.notify_apps(Notification::ClearDesigns);
-        self.main_state.new_design()
+        self.main_state.new_design();
     }
 
     fn export(&mut self, path: &PathBuf, export_type: ExportType) -> ExportResult {
@@ -1782,11 +1778,11 @@ impl MainStateView<'_> {
     }
 
     fn apply_operation(&mut self, operation: DesignOperation) {
-        self.main_state.apply_operation(operation)
+        self.main_state.apply_operation(operation);
     }
 
     fn apply_silent_operation(&mut self, operation: DesignOperation) {
-        self.main_state.apply_silent_operation(operation)
+        self.main_state.apply_silent_operation(operation);
     }
 
     fn undo(&mut self) {
@@ -1837,13 +1833,12 @@ impl MainStateView<'_> {
         self.main_state
             .modify_state(|s| s.with_ui_size(ui_size), None);
         self.resized = true;
-        //messages.lock().unwrap().new_ui_size(ui_size);
     }
 
     fn notify_apps(&mut self, notification: Notification) {
         log::info!("Notify apps {:?}", notification);
         for app in self.main_state.applications.values_mut() {
-            app.lock().unwrap().on_notify(notification.clone())
+            app.lock().unwrap().on_notify(notification.clone());
         }
     }
 
@@ -1872,7 +1867,7 @@ impl MainStateView<'_> {
     }
 
     fn request_copy(&mut self) {
-        self.main_state.request_copy()
+        self.main_state.request_copy();
     }
 
     fn init_paste(&mut self) {
@@ -1890,7 +1885,7 @@ impl MainStateView<'_> {
 
     fn request_pasting_candidate(&mut self, candidate: Option<PastePosition>) {
         self.main_state
-            .apply_copy_operation(CopyOperation::PositionPastingPoint(candidate))
+            .apply_copy_operation(CopyOperation::PositionPastingPoint(candidate));
     }
 
     fn delete_selection(&mut self) {
@@ -1901,31 +1896,31 @@ impl MainStateView<'_> {
         ) {
             self.main_state.update_selection(vec![], None);
             self.main_state
-                .apply_operation(DesignOperation::RmXovers { xovers: nucl_pairs })
+                .apply_operation(DesignOperation::RmXovers { xovers: nucl_pairs });
         } else if let Some((_, strand_ids)) =
             crate::ensnano_interactor::list_of_strands(selection.as_ref().as_ref())
         {
             self.main_state.update_selection(vec![], None);
             self.main_state
-                .apply_operation(DesignOperation::RmStrands { strand_ids })
+                .apply_operation(DesignOperation::RmStrands { strand_ids });
         } else if let Some((_, h_ids)) =
             crate::ensnano_interactor::list_of_helices(selection.as_ref().as_ref())
         {
             self.main_state.update_selection(vec![], None);
             self.main_state
-                .apply_operation(DesignOperation::RmHelices { h_ids })
+                .apply_operation(DesignOperation::RmHelices { h_ids });
         } else if let Some(grid_ids) =
             crate::ensnano_interactor::list_of_free_grids(selection.as_ref().as_ref())
         {
             self.main_state.update_selection(vec![], None);
             self.main_state
-                .apply_operation(DesignOperation::RmFreeGrids { grid_ids })
+                .apply_operation(DesignOperation::RmFreeGrids { grid_ids });
         } else if let Some(vertices) =
             crate::ensnano_interactor::list_of_bezier_vertices(selection.as_ref().as_ref())
         {
             self.main_state.update_selection(vec![], None);
             self.main_state
-                .apply_operation(DesignOperation::RmBezierVertices { vertices })
+                .apply_operation(DesignOperation::RmBezierVertices { vertices });
         }
     }
 
@@ -1938,7 +1933,7 @@ impl MainStateView<'_> {
             .map(|info| info.id);
         if let Some(s_id) = scaffold_id {
             self.main_state
-                .update_selection(vec![Selection::Strand(0, s_id as u32)], None)
+                .update_selection(vec![Selection::Strand(0, s_id as u32)], None);
         }
     }
 
@@ -1951,7 +1946,7 @@ impl MainStateView<'_> {
     }
 
     fn start_revolution_simulation(&mut self, desc: RevolutionSurfaceSystemDescriptor) {
-        self.main_state.start_revolution_simulation(desc)
+        self.main_state.start_revolution_simulation(desc);
     }
 
     fn start_roll_simulation(&mut self, target_helices: Option<Vec<usize>>) {
@@ -1959,11 +1954,11 @@ impl MainStateView<'_> {
     }
 
     fn update_simulation(&mut self, request: SimulationOperation) {
-        self.main_state.update_simulation(request)
+        self.main_state.update_simulation(request);
     }
 
     fn set_roll_of_selected_helices(&mut self, roll: f32) {
-        self.main_state.set_roll_of_selected_helices(roll)
+        self.main_state.set_roll_of_selected_helices(roll);
     }
 
     fn turn_selection_into_anchor(&mut self) {
@@ -2032,7 +2027,7 @@ impl MainStateView<'_> {
         pivot: crate::ensnano_design::group_attributes::GroupPivot,
     ) {
         if let Some(group_id) = self.main_state.app_state.get_current_group_id() {
-            self.apply_operation(DesignOperation::SetGroupPivot { group_id, pivot })
+            self.apply_operation(DesignOperation::SetGroupPivot { group_id, pivot });
         } else {
             self.main_state.app_state.set_current_group_pivot(pivot);
         }
@@ -2044,7 +2039,7 @@ impl MainStateView<'_> {
                 target: IsometryTarget::GroupPivot(group_id),
                 translation,
                 group_id: None,
-            }))
+            }));
         } else {
             self.main_state.app_state.translate_group_pivot(translation);
         }
@@ -2057,7 +2052,7 @@ impl MainStateView<'_> {
                 rotation,
                 origin: Vec3::zero(),
                 group_id: None,
-            }))
+            }));
         } else {
             self.main_state.app_state.rotate_group_pivot(rotation);
         }
@@ -2075,7 +2070,7 @@ impl MainStateView<'_> {
                     position: camera.0.position,
                     orientation: camera.0.orientation,
                     pivot_position: camera.0.pivot_position,
-                })
+                });
         } else {
             log::error!("Could not get current camera position");
         }
@@ -2084,16 +2079,16 @@ impl MainStateView<'_> {
     fn select_camera(&mut self, camera_id: crate::ensnano_design::CameraId) {
         let reader = self.main_state.app_state.get_design_interactor();
         if let Some(camera) = reader.get_camera_with_id(camera_id) {
-            self.notify_apps(Notification::TeleportCamera(camera))
+            self.notify_apps(Notification::TeleportCamera(camera));
         } else {
-            log::error!("Could not get camera {:?}", camera_id)
+            log::error!("Could not get camera {:?}", camera_id);
         }
     }
 
     fn select_favorite_camera(&mut self, n_camera: u32) {
         let reader = self.main_state.app_state.get_design_interactor();
         if let Some(camera) = reader.get_nth_camera(n_camera) {
-            self.notify_apps(Notification::TeleportCamera(camera))
+            self.notify_apps(Notification::TeleportCamera(camera));
         } else {
             log::error!("Design has less than {} cameras", n_camera + 1);
         }
@@ -2108,11 +2103,11 @@ impl MainStateView<'_> {
     fn make_all_suggested_xover(&mut self, doubled: bool) {
         let reader = self.main_state.app_state.get_design_interactor();
         let xovers = reader.get_suggestions();
-        self.apply_operation(DesignOperation::MakeSeveralXovers { xovers, doubled })
+        self.apply_operation(DesignOperation::MakeSeveralXovers { xovers, doubled });
     }
 
     fn flip_split_views(&mut self) {
-        self.notify_apps(Notification::FlipSplitViews)
+        self.notify_apps(Notification::FlipSplitViews);
     }
 
     fn start_twist(&mut self, g_id: GridId) {
@@ -2126,7 +2121,7 @@ impl MainStateView<'_> {
 
     fn set_exporting(&mut self, exporting: bool) {
         self.main_state
-            .modify_state(|app| app.exporting(exporting), None)
+            .modify_state(|app| app.exporting(exporting), None);
     }
 
     fn load_3d_object(&mut self, path: PathBuf) {
@@ -2138,7 +2133,7 @@ impl MainStateView<'_> {
         self.apply_operation(DesignOperation::Add3DObject {
             file_path: path,
             design_path,
-        })
+        });
     }
 
     fn load_svg(&mut self, path: PathBuf) {

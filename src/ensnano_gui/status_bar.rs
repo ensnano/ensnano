@@ -162,7 +162,7 @@ impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
         match message {
             Message::ValueStrChanged(n, s) => {
                 if let Some(operation) = self.operation.as_mut() {
-                    operation.update_input_str(n, s)
+                    operation.update_input_str(n, s);
                 }
             }
             Message::ValueSet(n, s) => {
@@ -299,7 +299,7 @@ impl OperationInput {
                         .inputted_values
                         .get(&v_id)
                         .cloned()
-                        .unwrap_or(v.clone())
+                        .unwrap_or(v.clone());
                 }
             }
         }
@@ -345,7 +345,7 @@ impl OperationInput {
                         keyboard_priority(input)
                             .on_priority(Message::SetKeyboardPriority(true))
                             .on_unpriority(Message::SetKeyboardPriority(false)),
-                    )
+                    );
             }
         }
         if need_validation {
@@ -363,7 +363,7 @@ impl OperationInput {
 
     fn update_input_str(&mut self, value_id: usize, new_str: String) {
         if let Some(s) = self.values_str.get_mut(value_id) {
-            *s = new_str.clone()
+            *s = new_str.clone();
         } else {
             log::error!(
                 "Changing str of value_id {} but self has {} values",

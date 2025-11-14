@@ -278,7 +278,7 @@ impl<R: Requests, S: AppState> LeftPanel<R, S> {
                     .update_attribute_of_elements(a, keys.into_iter().collect());
             }
             OrganizerMessage::NewTree(tree) => {
-                self.requests.lock().unwrap().update_organizer_tree(tree)
+                self.requests.lock().unwrap().update_organizer_tree(tree);
             }
             OrganizerMessage::Candidates(candidates) => self
                 .requests
@@ -342,7 +342,7 @@ where
             self.requests
                 .lock()
                 .unwrap()
-                .update_organizer_tree(self.organizer.tree())
+                .update_organizer_tree(self.organizer.tree());
         }
         log::debug!("Message: {:?}", &message);
         let command = match message {
@@ -432,7 +432,7 @@ where
             }
             Message::RollSimulationRequest => {
                 if self.application_state.get_simulation_state().is_rolling() {
-                    self.requests.lock().unwrap().stop_simulations()
+                    self.requests.lock().unwrap().stop_simulations();
                 } else {
                     let request = self.simulation_tab.get_physical_simulation_request();
                     self.requests.lock().unwrap().start_roll_simulation(request);
@@ -628,7 +628,7 @@ where
                         .leave_tab(Arc::clone(&self.requests), &self.application_state);
                 }
                 if tab_id == TabId::Revolution {
-                    self.requests.lock().unwrap().notify_revolution_tab()
+                    self.requests.lock().unwrap().notify_revolution_tab();
                 }
                 self.active_tab = tab_id;
                 Command::none()
@@ -816,7 +816,7 @@ where
             }
             Message::ContextualValueSubmitted(kind) => {
                 if let Some(request) = self.contextual_panel.submit_value(kind) {
-                    request.make_request(Arc::clone(&self.requests))
+                    request.make_request(Arc::clone(&self.requests));
                 }
                 Command::none()
             }
@@ -826,7 +826,7 @@ where
             }
             Message::InstantiatedValueSubmitted(value) => {
                 if let Some(request) = self.contextual_panel.request_from_value(value) {
-                    request.make_request(Arc::clone(&self.requests))
+                    request.make_request(Arc::clone(&self.requests));
                 }
                 Command::none()
             }
@@ -864,7 +864,7 @@ where
                 if let Some(Selection::Grid(_, g_id)) =
                     self.application_state.get_selection().first()
                 {
-                    self.requests.lock().unwrap().start_twist_simulation(*g_id)
+                    self.requests.lock().unwrap().start_twist_simulation(*g_id);
                 }
                 Command::none()
             }
@@ -897,7 +897,7 @@ where
                         self.requests
                             .lock()
                             .unwrap()
-                            .set_insertion_length(insertion_point, request.length)
+                            .set_insertion_length(insertion_point, request.length);
                     } else {
                         log::error!("No insertion point for {:?}", request.selection);
                     }

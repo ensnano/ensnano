@@ -203,7 +203,7 @@ impl<S: AppState> ControllerState<S> for NormalState {
                             consequences: Consequence::Nothing,
                         };
                     }
-                    log::error!("Could not get vertex {:?}, {vertex_id}", path_id)
+                    log::error!("Could not get vertex {:?}, {vertex_id}", path_id);
                 }
                 match element {
                     Some(SceneElement::GridCircle(d_id, grid_position)) => {

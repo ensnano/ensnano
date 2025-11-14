@@ -27,8 +27,7 @@ use crate::ensnano_utils::{
     text::{Letter, Vertex as CharVertex},
     texture::Texture,
 };
-use std::collections::HashMap;
-use std::rc::Rc;
+use std::{collections::HashMap, rc::Rc};
 use ultraviolet::{Mat2, Vec2, Vec4};
 use wgpu::{BindGroupLayout, Device, Queue, RenderPass, RenderPipeline, include_spirv};
 
@@ -97,7 +96,7 @@ impl CharDrawer {
     }
 
     pub fn new_instances(&mut self, instances: Rc<Vec<CharInstance>>) {
-        self.new_instances = Some(instances)
+        self.new_instances = Some(instances);
     }
 
     fn update_instances(&mut self) {

@@ -161,7 +161,7 @@ impl BezierPlanesMut<'_> {
 
 impl Drop for BezierPlanesMut<'_> {
     fn drop(&mut self) {
-        *self.source = BezierPlanes(Arc::new(std::mem::take(&mut self.new_map)))
+        *self.source = BezierPlanes(Arc::new(std::mem::take(&mut self.new_map)));
     }
 }
 
@@ -243,7 +243,7 @@ impl BezierPathsMut<'_> {
 
 impl Drop for BezierPathsMut<'_> {
     fn drop(&mut self) {
-        *self.source = BezierPaths(Arc::new(std::mem::take(&mut self.new_map)))
+        *self.source = BezierPaths(Arc::new(std::mem::take(&mut self.new_map)));
     }
 }
 
@@ -286,7 +286,7 @@ impl BezierPath {
 
     pub fn set_vector_out(&mut self, i: usize, vector_out: Vec3, planes: &BezierPlanes) {
         if let Some(v) = self.vertices_mut().get_mut(i) {
-            v.set_vector_out(vector_out, planes)
+            v.set_vector_out(vector_out, planes);
         }
     }
 
@@ -353,7 +353,7 @@ impl BezierVertex {
     }
 
     pub fn add_translation(&mut self, translation: Vec3) {
-        self.grid_translation += translation
+        self.grid_translation += translation;
     }
 
     pub fn new(plane_id: BezierPlaneId, position: Vec2) -> Self {

@@ -338,17 +338,17 @@ impl View {
     }
 
     pub fn set_torsions(&mut self, torsions: HashMap<(FlatNucl, FlatNucl), FlatTorsion>) {
-        self.torsions = torsions
+        self.torsions = torsions;
     }
 
     pub fn update_helices(&mut self, helices: &[Helix]) {
         for (i, h) in self.helices_view.iter_mut().enumerate() {
             self.helices_model[i] = helices[i].model();
             self.helices_background[i].update(&helices[i]);
-            h.update(&helices[i])
+            h.update(&helices[i]);
         }
         for helix in helices.iter().skip(self.helices_view.len()) {
-            self.add_helix(helix)
+            self.add_helix(helix);
         }
         self.models.update(self.helices_model.as_slice());
         self.helices = helices.to_vec();
@@ -399,7 +399,7 @@ impl View {
             }
         }
         for strand in strands.iter().skip(self.strands.len()) {
-            self.add_strand(strand, helices)
+            self.add_strand(strand, helices);
         }
         let mut insertions = Vec::new();
         for s in strands.iter() {
@@ -1078,7 +1078,7 @@ impl View {
                 circles.push(circle);
             }
             for circle in h.handle_circles() {
-                circles.push(circle)
+                circles.push(circle);
             }
         }
         for h_id in self
@@ -1143,7 +1143,7 @@ impl View {
             if let Some(h1) = self.helices.get(n.helix.flat.0) {
                 let mut c = h1.get_circle_nucl(n.flat_position, n.forward, candidate_color);
                 c.set_radius(1. / 2.);
-                circles.push(c)
+                circles.push(c);
             } else {
                 log::error!("Could not get flat helix {}", n.helix.flat.0);
             }
@@ -1154,7 +1154,7 @@ impl View {
             if let Some(h1) = self.helices.get(n.helix.flat.0) {
                 let mut c = h1.get_circle_nucl(n.flat_position, n.forward, selected_color);
                 c.set_radius(std::f32::consts::FRAC_1_SQRT_2);
-                circles.push(c)
+                circles.push(c);
             } else {
                 log::error!("Could not get flat helix {}", n.helix.flat.0);
             }
@@ -1243,7 +1243,7 @@ impl View {
                 edition_info: &self.edition_info,
                 hovered_nucl: &self.hovered_nucl,
                 nucl_collection: self.nucl_collection.as_ref(),
-            })
+            });
         }
     }
 

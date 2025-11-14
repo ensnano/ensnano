@@ -138,13 +138,13 @@ impl PdbNucleotide {
         }
 
         for a in self.sugar_atoms.values() {
-            ret += a.position
+            ret += a.position;
         }
         for a in self.phosphate_atoms.values() {
-            ret += a.position
+            ret += a.position;
         }
         for a in self.base_atoms.values() {
-            ret += a.position
+            ret += a.position;
         }
 
         Ok(ret / (nb_atoms as f32))
@@ -159,7 +159,7 @@ impl PdbNucleotide {
         }
 
         for a in self.base_atoms.values() {
-            ret += a.position
+            ret += a.position;
         }
 
         Ok(ret / (nb_atoms as f32))

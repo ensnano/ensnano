@@ -130,7 +130,7 @@ impl StaplesDownloader for DesignInteractor {
                 &staple.group_names_string,
             ];
             row.extend(group_vec.iter());
-            sheet.push(row)
+            sheet.push(row);
         }
 
         let threshold_black_white_font_color = (5 * 255) / 2;

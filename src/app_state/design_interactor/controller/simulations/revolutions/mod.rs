@@ -207,7 +207,7 @@ impl RevolutionSurfaceSystem {
         for i in self.topology.balls_with_successor() {
             ret += (self.position_section(self.topology.successor(*i), thetas)
                 - self.position_section(*i, thetas))
-            .mag()
+            .mag();
         }
         ret
     }
@@ -496,7 +496,7 @@ impl RevolutionSystemThread {
 
 impl SimulationUpdate for RevolutionSurfaceSystem {
     fn update_design(&self, design: &mut crate::ensnano_design::Design) {
-        design.additional_structure = Some(Arc::new(self.clone()))
+        design.additional_structure = Some(Arc::new(self.clone()));
     }
 }
 
@@ -675,7 +675,7 @@ impl RevolutionSystemInterface {
     }
 
     pub fn finish(&mut self) {
-        self.finished = true
+        self.finished = true;
     }
 }
 
@@ -707,7 +707,7 @@ impl<T> OptionOnce<T> {
 
     fn set(&mut self, ret: T) {
         if let Self::NeverTaken(_) = self {
-            *self = Self::NeverTaken(Some(ret))
+            *self = Self::NeverTaken(Some(ret));
         }
     }
 }

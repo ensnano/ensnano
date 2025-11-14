@@ -57,10 +57,10 @@ impl ChannelReader {
             if let Some(interface) = interface_ptr.upgrade() {
                 if !interface.lock().unwrap().still_valid() {
                     invalidated = true;
-                    updates.push(ChannelReaderUpdate::SimulationExpired)
+                    updates.push(ChannelReaderUpdate::SimulationExpired);
                 }
                 if let Some(new_state) = interface.lock().unwrap().get_simulation_state() {
-                    updates.push(ChannelReaderUpdate::SimulationUpdate(new_state))
+                    updates.push(ChannelReaderUpdate::SimulationUpdate(new_state));
                 }
             } else {
                 invalidated = true;

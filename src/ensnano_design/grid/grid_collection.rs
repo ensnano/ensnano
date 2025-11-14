@@ -111,6 +111,6 @@ impl FreeGridsMut<'_> {
 
 impl Drop for FreeGridsMut<'_> {
     fn drop(&mut self) {
-        *self.source = FreeGrids(Arc::new(std::mem::take(&mut self.new_map)))
+        *self.source = FreeGrids(Arc::new(std::mem::take(&mut self.new_map)));
     }
 }

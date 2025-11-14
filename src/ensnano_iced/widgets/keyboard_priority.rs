@@ -203,13 +203,13 @@ where
             if text_input_state.is_focused() & !state.is_focused() {
                 state.focus();
                 if let Some(on_priority) = &self.on_priority {
-                    shell.publish(on_priority.clone())
+                    shell.publish(on_priority.clone());
                 }
                 event::Status::Captured
             } else if !text_input_state.is_focused() & state.is_focused() {
                 state.unfocus();
                 if let Some(on_unpriority) = &self.on_unpriority {
-                    shell.publish(on_unpriority.clone())
+                    shell.publish(on_unpriority.clone());
                 }
                 event::Status::Captured
             } else {

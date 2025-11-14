@@ -148,7 +148,7 @@ impl ScadnanoStrand {
 
     pub fn read_deletions(&self, deletions: &mut BTreeMap<usize, BTreeSet<isize>>) {
         for d in self.domains.iter() {
-            d.read_deletions(deletions)
+            d.read_deletions(deletions);
         }
     }
 }
@@ -242,7 +242,7 @@ impl ScadnanoInsertionsDeletions {
         let mut ret = position;
         if let Some(counts) = self.count.get(&helix) {
             for (_, c) in counts.iter().take_while(|(y, _)| **y <= position) {
-                ret += *c / 2
+                ret += *c / 2;
             }
         }
         ret

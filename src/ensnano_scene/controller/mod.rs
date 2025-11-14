@@ -221,7 +221,7 @@ impl<S: AppState> Controller<S> {
 
     /// Keep the camera orientation and make it face a given point.
     pub fn center_camera(&mut self, center: Vec3) {
-        self.camera_controller.center_camera(center)
+        self.camera_controller.center_camera(center);
     }
 
     pub fn check_timers(&mut self) -> Consequence {
@@ -353,17 +353,17 @@ impl<S: AppState> Controller<S> {
                 {
                     self.camera_controller.set_surface_point_if_unset(info);
                 }
-                self.init_movement(translation && self.current_modifiers_state.shift_key())
+                self.init_movement(translation && self.current_modifiers_state.shift_key());
             }
             TransitionConsequence::EndCameraMovement => self.end_movement(),
             TransitionConsequence::InitFreeXover(nucl, d_id, position) => {
-                self.data.borrow_mut().init_free_xover(nucl, position, d_id)
+                self.data.borrow_mut().init_free_xover(nucl, position, d_id);
             }
             TransitionConsequence::StartRotatingPivot => {
-                self.data.borrow_mut().notify_rotating_pivot()
+                self.data.borrow_mut().notify_rotating_pivot();
             }
             TransitionConsequence::StopRotatingPivot => {
-                self.data.borrow_mut().stop_rotating_pivot()
+                self.data.borrow_mut().stop_rotating_pivot();
             }
         }
     }
@@ -375,7 +375,7 @@ impl<S: AppState> Controller<S> {
 
     /// Set the pivot point of the camera
     pub fn set_pivot_point(&mut self, point: Option<FiniteVec3>) {
-        self.camera_controller.set_pivot_point(point)
+        self.camera_controller.set_pivot_point(point);
     }
 
     /// Swing the camera around its pivot point
@@ -414,7 +414,7 @@ impl<S: AppState> Controller<S> {
         self.camera_controller.init_movement(along_surface);
         if !ctrl(&self.current_modifiers_state) {
             self.camera_controller
-                .init_constrained_rotation(!self.current_modifiers_state.alt_key())
+                .init_constrained_rotation(!self.current_modifiers_state.alt_key());
         }
     }
 
@@ -430,7 +430,7 @@ impl<S: AppState> Controller<S> {
     }
 
     pub fn translate_camera(&mut self, dx: f64, dy: f64) {
-        self.camera_controller.process_mouse(dx, dy)
+        self.camera_controller.process_mouse(dx, dy);
     }
 
     pub fn rotate_camera(&mut self, xz: f32, yz: f32, xy: f32, pivot: Option<Vec3>) {
@@ -445,11 +445,11 @@ impl<S: AppState> Controller<S> {
     }
 
     fn shift_cam(&mut self) {
-        self.camera_controller.shift()
+        self.camera_controller.shift();
     }
 
     pub fn stop_camera_movement(&mut self) {
-        self.camera_controller.stop_camera_movement()
+        self.camera_controller.stop_camera_movement();
     }
 
     pub fn update_data(&self) {

@@ -225,7 +225,7 @@ impl StrokeVertexConstructor<StrandVertex> for WithAttributes {
             vertex.interpolated_attributes()[0]
         };
         if let Some(thickness) = self.highlight {
-            depth *= 0.99 + (thickness / 1000.)
+            depth *= 0.99 + (thickness / 1000.);
         }
 
         StrandVertex {
@@ -426,10 +426,10 @@ impl<'a> StrandVertexBuilder<'a> {
                             origin,
                             normal_source,
                             normal_target,
-                        })
+                        });
                     } else {
                         // We do not draw cross overs whose extremities are both out of sight
-                        self.stop_drawing()
+                        self.stop_drawing();
                     }
                 }
                 self.depth = depth_to;

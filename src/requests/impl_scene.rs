@@ -76,7 +76,7 @@ impl SceneRequests for Requests {
             .push_back(Action::DesignOperation(DesignOperation::GeneralXover {
                 source,
                 target,
-            }))
+            }));
     }
 
     fn suspend_op(&mut self) {
@@ -99,30 +99,30 @@ impl SceneRequests for Requests {
         self.keep_proceed
             .push_back(Action::DesignOperation(DesignOperation::MoveBuilders(
                 position,
-            )))
+            )));
     }
 
     fn toggle_widget_basis(&mut self) {
-        self.toggle_widget_basis = Some(())
+        self.toggle_widget_basis = Some(());
     }
 
     fn apply_design_operation(&mut self, op: DesignOperation) {
-        self.keep_proceed.push_back(Action::DesignOperation(op))
+        self.keep_proceed.push_back(Action::DesignOperation(op));
     }
 
     fn set_current_group_pivot(
         &mut self,
         pivot: crate::ensnano_design::group_attributes::GroupPivot,
     ) {
-        self.keep_proceed.push_back(Action::SetGroupPivot(pivot))
+        self.keep_proceed.push_back(Action::SetGroupPivot(pivot));
     }
 
     fn translate_group_pivot(&mut self, translation: Vec3) {
         if let Some(Action::TranslateGroupPivot(t)) = self.keep_proceed.iter_mut().last() {
-            *t = translation
+            *t = translation;
         } else {
             self.keep_proceed
-                .push_back(Action::TranslateGroupPivot(translation))
+                .push_back(Action::TranslateGroupPivot(translation));
         }
     }
 
@@ -131,7 +131,7 @@ impl SceneRequests for Requests {
             *r = rotation;
         } else {
             self.keep_proceed
-                .push_back(Action::RotateGroupPivot(rotation))
+                .push_back(Action::RotateGroupPivot(rotation));
         }
     }
 

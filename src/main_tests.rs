@@ -115,7 +115,7 @@ fn empty_selections_dont_pollute_undo_stack() {
 fn recolor_staple_undoable() {
     let mut state = new_state();
     state.apply_operation(DesignOperation::RecolorStaples);
-    assert!(!state.undo_stack.is_empty())
+    assert!(!state.undo_stack.is_empty());
 }
 
 /// A design with one strand h1: -1 -> 7 ; h2: -1 <- 7 ; h3: 0 -> 9 that can be pasted on

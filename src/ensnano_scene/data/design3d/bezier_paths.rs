@@ -158,7 +158,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
                             spheres: &mut spheres,
                         },
                         selection,
-                    )
+                    );
                 }
                 for point in path.get_curve_points().iter() {
                     spheres.push(

@@ -15,14 +15,17 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
 use super::*;
-use lyon::math::Point;
-use lyon::path::Path;
-use lyon::tessellation;
-use lyon::tessellation::{StrokeVertex, StrokeVertexConstructor};
+use lyon::{
+    math::Point,
+    path::Path,
+    tessellation::{self, StrokeVertex, StrokeVertexConstructor},
+};
 use ultraviolet::{Mat2, Rotor2, Vec2};
-use wgpu::util::DeviceExt;
-use wgpu::{BindGroupLayout, Buffer, DepthStencilState, RenderPass, RenderPipeline};
+use wgpu::{
+    BindGroupLayout, Buffer, DepthStencilState, RenderPass, RenderPipeline, util::DeviceExt,
+};
 
 pub struct InsertionDrawer {
     new_instances: Option<Vec<InsertionInstance>>,
@@ -94,7 +97,7 @@ impl InsertionDrawer {
     }
 
     pub fn new_instances(&mut self, instances: Vec<InsertionInstance>) {
-        self.new_instances = Some(instances)
+        self.new_instances = Some(instances);
     }
 
     fn update_instances(&mut self) {

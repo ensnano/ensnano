@@ -82,7 +82,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
         let mut ret = Vec::new();
         for id in ids.iter() {
             if let Some(instances) = self.make_raw_instances(*id) {
-                ret.extend(instances)
+                ret.extend(instances);
             }
         }
         ret
@@ -272,7 +272,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
                         false,
                     )
                     .to_raw_instance(),
-                )
+                );
             }
         }
 
@@ -321,7 +321,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
                         )
                         .with_radius(1.5 * SPHERE_RADIUS)
                         .to_raw_instance(),
-                    )
+                    );
                 }
             }
 
@@ -490,7 +490,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
                     )
                     .with_radius(radius)
                     .to_raw_instance(),
-                )
+                );
             }
         }
         if let Some(ExpandWith::Spheres) = expand_with {
@@ -1287,7 +1287,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
     fn boundaries_unaligned(&self, basis: Basis3D) -> UnalignedBoundaries {
         let mut ret = UnalignedBoundaries::from_basis(basis);
         for point in self.get_all_points().into_iter() {
-            ret.add_point(point)
+            ret.add_point(point);
         }
         ret
     }

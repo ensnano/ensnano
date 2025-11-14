@@ -165,7 +165,7 @@ impl RotationWidget {
                 viewer_bind_group,
                 viewer_bind_group_layout,
                 fake,
-            )
+            );
         }
     }
 
@@ -231,7 +231,7 @@ impl RotationWidget {
         if let Some(ref mut sphere) = self.sphere {
             sphere.translate(translation);
         }
-        self.update_drawers()
+        self.update_drawers();
     }
 
     pub fn get_pivot_position(&self) -> Option<GroupPivot> {
@@ -459,7 +459,7 @@ impl Drawable for Sphere {
                     self.translation + self.position + Vec3::new(x, y, z),
                     color,
                     fake,
-                ))
+                ));
             }
         }
         vertices

@@ -15,6 +15,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
 use super::{CameraPtr, FlatNucl, FreeEnd, Helix, Strand};
 use std::rc::Rc;
 use wgpu::{Buffer, Device, Queue, RenderPass};
@@ -257,7 +258,7 @@ impl DynamicBuffer {
         let mut bytes: Vec<u8> = bytemuck::cast_slice(data).into();
         let length = bytes.len();
         while !bytes.len().is_multiple_of(4) {
-            bytes.push(0)
+            bytes.push(0);
         }
         if self.capacity < bytes.len() {
             self.length = length as u64;

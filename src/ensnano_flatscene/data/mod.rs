@@ -457,7 +457,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
                         segment_idx: *segment_id,
                     };
                     if let Some(h) = self.design.id_map().get_segment_idx(segment) {
-                        ids.push(h)
+                        ids.push(h);
                     }
                 }
             }
@@ -477,7 +477,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
     }
 
     pub fn end_movement(&self) {
-        self.requests.lock().unwrap().suspend_op()
+        self.requests.lock().unwrap().suspend_op();
     }
 
     pub fn move_helix_forward(&mut self) {
@@ -637,11 +637,11 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
     }
 
     pub fn flip_visibility(&mut self, h_id: FlatHelix, apply_to_other: bool) {
-        self.design.flip_visibility(h_id, apply_to_other)
+        self.design.flip_visibility(h_id, apply_to_other);
     }
 
     pub fn flip_group(&self, h_id: FlatHelix) {
-        self.design.flip_group(h_id)
+        self.design.flip_group(h_id);
     }
 
     pub fn get_best_suggestion(&self, nucl: FlatNucl) -> Option<FlatNucl> {
@@ -809,7 +809,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
         for end in self.design.get_strand_ends() {
             let h1 = &self.helices[end.helix.flat];
             if h1.rectangle_has_nucl(end, left, top, right, bottom, camera) {
-                selection.push(Selection::Nucleotide(self.id, end.to_real()))
+                selection.push(Selection::Nucleotide(self.id, end.to_real()));
             }
         }
         selection.dedup();
@@ -840,7 +840,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
             }
         }
         for xover_id in selection_set.into_iter() {
-            selection.push(Selection::Xover(self.id, xover_id))
+            selection.push(Selection::Xover(self.id, xover_id));
         }
     }
 
@@ -909,7 +909,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
         selection_mode: SelectionMode,
     ) {
         if !adding {
-            new_selection.clear()
+            new_selection.clear();
         }
         match click_result {
             ClickResult::CircleWidget { translation_pivot } => {

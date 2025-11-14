@@ -239,7 +239,7 @@ impl GridManager {
 
     /// Request an update of the set of instances to draw. This update take effects on the next frame
     pub fn new_instances(&mut self, instances: BTreeMap<GridId, GridInstance>) {
-        self.new_instances = Some(instances)
+        self.new_instances = Some(instances);
     }
 
     /// If one or several update of the set of instances were requested before the last call of
@@ -271,10 +271,10 @@ impl GridManager {
         }
         if fake {
             self.fake_drawer
-                .draw(render_pass, viewer_bind_group, model_bind_group)
+                .draw(render_pass, viewer_bind_group, model_bind_group);
         } else {
             self.drawer
-                .draw(render_pass, viewer_bind_group, model_bind_group)
+                .draw(render_pass, viewer_bind_group, model_bind_group);
         }
     }
 
@@ -305,23 +305,23 @@ impl GridManager {
 
     pub fn set_candidate_grid(&mut self, grids: Vec<(usize, GridId)>) {
         self.need_new_colors = true;
-        self.candidate = grids
+        self.candidate = grids;
     }
 
     pub fn set_selected_grid(&mut self, grids: Vec<(usize, GridId)>) {
         self.need_new_colors = true;
-        self.selected = grids
+        self.selected = grids;
     }
 
     fn update_colors(&mut self) {
         for instance in self.instances.values_mut() {
-            if self.selected.contains(&(instance.design, instance.id)) {
-                instance.color = 0xFF_00_00
+            instance.color = if self.selected.contains(&(instance.design, instance.id)) {
+                0xFF_00_00
             } else if self.candidate.contains(&(instance.design, instance.id)) {
-                instance.color = 0x00_FF_00
+                0x00_FF_00
             } else {
-                instance.color = 0x00_00_FF
-            }
+                0x00_00_FF
+            };
         }
         self.drawer
             .new_instances(self.instances.values().cloned().collect());

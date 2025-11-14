@@ -15,6 +15,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
 use super::{CameraPtr, Drawable, Drawer, ProjectionPtr, Vertex};
 use crate::ensnano_consts::*;
 use crate::ensnano_design::group_attributes::GroupPivot;
@@ -154,7 +155,7 @@ impl HandlesDrawer {
     }
 
     pub fn init_translation(&mut self, x: f32, y: f32) {
-        self.origin_translation = Some((x, y))
+        self.origin_translation = Some((x, y));
     }
 
     pub fn get_origin_translation(&self) -> Option<(f32, f32)> {
@@ -172,7 +173,7 @@ impl HandlesDrawer {
             }
         }
         self.select_handle(self.selected);
-        self.big_handle_drawer.new_object(self.big_handle)
+        self.big_handle_drawer.new_object(self.big_handle);
     }
 
     pub fn get_handle(&self, direction: HandleDir) -> Option<(Vec3, Vec3)> {
@@ -220,7 +221,7 @@ impl HandlesDrawer {
             })
             .unwrap_or(());
         if let Some(h) = self.big_handle.as_mut() {
-            h.translation = translation
+            h.translation = translation;
         }
         self.update_drawers();
     }

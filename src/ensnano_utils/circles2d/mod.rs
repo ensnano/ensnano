@@ -50,7 +50,7 @@ impl CircleInstance {
     }
 
     pub fn set_color(&mut self, color: u32) {
-        self.color = color
+        self.color = color;
     }
 
     pub fn in_rectangle(&self, c1: &Vec2, c2: &Vec2) -> bool {
@@ -120,7 +120,7 @@ impl CircleDrawer {
     }
 
     pub fn new_instances(&mut self, instances: Rc<Vec<CircleInstance>>) {
-        self.new_instances = Some(instances)
+        self.new_instances = Some(instances);
     }
 
     fn update_instances(&mut self) {

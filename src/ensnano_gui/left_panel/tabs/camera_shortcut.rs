@@ -15,6 +15,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
 use super::{AppState, Message, Vec3};
 use crate::ensnano_gui::CameraId;
 use crate::ensnano_iced::{
@@ -193,7 +194,7 @@ impl CameraShortcutPanel {
     pub fn reset_angles(&mut self) {
         self.xz = 0;
         self.yz = 0;
-        self.xy = 0
+        self.xy = 0;
     }
 
     pub fn set_angles(&mut self, xz: isize, yz: isize, xy: isize) {

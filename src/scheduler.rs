@@ -85,7 +85,7 @@ impl Scheduler {
             if multiplexer.is_showing(area)
                 && app.lock().unwrap().needs_redraw(dt, app_state.clone())
             {
-                self.needs_redraw.push(*area)
+                self.needs_redraw.push(*area);
             }
         }
         !self.needs_redraw.is_empty()

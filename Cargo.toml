@@ -142,6 +142,23 @@ multiple_inherent_impl = "allow" # TODO: warn once clippy 1.92 gets out
 same_name_method = "allow" # TODO: warn once single-impl traits are removed
 single_call_fn = "allow"
 single_char_lifetime_names = "allow"
+unwrap_used = "allow"
 
 # suspicious
 arc_with_non_send_sync = "allow" # TODO: warn (requires understand the multiplexer)
+
+# =============
+# = TEMPORARY =
+# =============
+# [lints.clippy]
+# warnings = { level = "allow", priority = -1 }
+# cargo = { level = "allow", priority = -1 }
+# complexity = { level = "allow", priority = -1 }
+# correctness = { level = "allow", priority = -1 }
+# nursery = { level = "allow", priority = -1 }
+# pedantic = { level = "allow", priority = -1 }
+# perf = { level = "allow", priority = -1 }
+# restriction = { level = "allow", priority = -1 }
+# style = { level = "allow", priority = -1 }
+# suspicious = { level = "allow", priority = -1 }
+# semicolon_if_nothing_returned = "deny"

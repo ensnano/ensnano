@@ -194,7 +194,7 @@ impl Curve {
                     let segment_idx = self.geometry.subdivision_for_t(t).unwrap_or(0);
                     if segment_idx != current_segment {
                         current_segment = segment_idx;
-                        self.additional_segment_left.push(points_forward.len())
+                        self.additional_segment_left.push(points_forward.len());
                     }
                     points_forward.push(p);
                     axis_forward.push(current_axis);

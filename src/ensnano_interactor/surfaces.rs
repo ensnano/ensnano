@@ -15,11 +15,13 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
 use super::*;
 use crate::ensnano_design::{InterpolatedCurveDescriptor, InterpolationDescriptor};
 use num::integer::gcd;
 use rayon::iter::{IntoParallelIterator as _, ParallelIterator as _};
 use ultraviolet::{DVec3, Isometry3, Similarity3};
+
 #[derive(Debug, Clone)]
 pub struct RevolutionSurfaceSystemDescriptor {
     pub scaffold_len_target: usize,
@@ -146,7 +148,7 @@ impl UnrootedRevolutionSurfaceDescriptor {
     }
 
     pub fn set_axis_position(&mut self, position: f64) {
-        self.set_axis_position_when_scaled(position, 1.)
+        self.set_axis_position_when_scaled(position, 1.);
     }
 
     /// Set the position of the axis of revolution, assuming that the section is scaled.

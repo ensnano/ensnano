@@ -15,6 +15,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
 use super::tabs::GuiTab;
 use super::*;
 use crate::ensnano_consts::ICON_PHYSICAL_ENGINE;
@@ -65,7 +66,7 @@ impl<State: AppState> SimulationTab<State> {
     }
 
     pub fn make_rigid_body_request(&self, request: &mut Option<RigidBodyParametersRequest>) {
-        self.rigid_body_factory.make_request(request)
+        self.rigid_body_factory.make_request(request);
     }
 
     pub fn update_request(
@@ -75,7 +76,7 @@ impl<State: AppState> SimulationTab<State> {
         request: &mut Option<RigidBodyParametersRequest>,
     ) {
         self.rigid_body_factory
-            .update_request(value_id, value, request)
+            .update_request(value_id, value, request);
     }
 
     pub fn update_brownian(
@@ -86,7 +87,7 @@ impl<State: AppState> SimulationTab<State> {
     ) {
         let new_brownian = self.brownian_factory.update_value(value_id, value);
         self.rigid_body_factory.requestable.brownian_parameters = new_brownian;
-        self.rigid_body_factory.make_request(request)
+        self.rigid_body_factory.make_request(request);
     }
 
     pub fn get_physical_simulation_request(&self) -> RollRequest {
@@ -110,7 +111,7 @@ impl<State: AppState> SimulationTab<State> {
             requests
                 .lock()
                 .unwrap()
-                .update_rigid_body_simulation_parameters(request)
+                .update_rigid_body_simulation_parameters(request);
         }
     }
 

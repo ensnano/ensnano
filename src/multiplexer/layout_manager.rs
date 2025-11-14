@@ -22,13 +22,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! * [LayoutNode::Area] — represents an actual —or drawable— region.
 //! * [LayoutNode::VSplit] — represents a region divided vertically between two subregions.
 //! * [LayoutNode::HSplit] — represents a region divided horizontally between two subregions.
-//!
-use super::PhysicalPosition;
-use std::cell::RefCell;
-use std::collections::HashMap;
-use std::rc::Rc;
 
-use super::GuiComponentType;
+use super::{GuiComponentType, PhysicalPosition};
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 /// Half-width of a “resize region”.
 const RESIZE_REGION_WIDTH: f64 = 0.001;
@@ -262,7 +258,7 @@ impl LayoutTree {
     }
 
     pub fn resize(&self, node_id: usize, new_prop: f64) {
-        self.areas[node_id].borrow_mut().resize(new_prop)
+        self.areas[node_id].borrow_mut().resize(new_prop);
     }
 
     pub fn resize_click(

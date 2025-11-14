@@ -54,7 +54,7 @@ pub fn read_first_svg_path(file_path: &std::path::Path) -> Result<BezierPath, Sv
                     }
                     Command::CubicCurve(Position::Absolute, parameters) => {
                         let arg = MoveToParameter::from_svg_parameter(parameters)?;
-                        ret.move_to(arg)?
+                        ret.move_to(arg)?;
                     }
                     _ => (),
                 }
@@ -80,7 +80,7 @@ impl PathBuilder {
                 position_out: None,
                 grid_translation: Vec3::zero(),
                 angle_with_plane: 0.,
-            }]
+            }];
         } else {
             return Err(SvgImportError::UnexpectedCommand(String::from("Move")));
         }

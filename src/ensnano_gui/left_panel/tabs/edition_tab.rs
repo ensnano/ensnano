@@ -56,7 +56,7 @@ impl<State: AppState> EditionTab<State> {
         let mut ret = vec![];
         for s in selection.iter() {
             if let DesignElementKey::Helix(h) = s {
-                ret.push(*h)
+                ret.push(*h);
             }
         }
         ret
@@ -89,7 +89,7 @@ impl<State: AppState> EditionTab<State> {
     }
 
     pub fn update_color_picker(&mut self, message: ColorPickerMessage) {
-        self.color_picker.update(message)
+        self.color_picker.update(message);
     }
 }
 

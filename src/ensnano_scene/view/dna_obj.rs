@@ -19,10 +19,12 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::instances_drawer::{Instantiable, Vertexable};
 use crate::ensnano_consts::*;
-use std::f32::consts::{PI, TAU};
+use std::{
+    f32::consts::{PI, TAU},
+    iter::zip,
+    mem::size_of,
+};
 use ultraviolet::{Mat4, Rotor3, Vec3, Vec4};
-
-use std::iter::zip;
 
 /// The vertex type for the meshes used to draw DNA.
 #[repr(C)]
@@ -34,16 +36,17 @@ pub struct DnaVertex {
 
 const VERTEX_ATTR_ARRAY: [wgpu::VertexAttribute; 2] =
     wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3];
+
 impl Vertexable for DnaVertex {
     type RawType = DnaVertex;
+
     fn to_raw(&self) -> DnaVertex {
         *self
     }
 
     fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
-        use std::mem;
         wgpu::VertexBufferLayout {
-            array_stride: mem::size_of::<DnaVertex>() as wgpu::BufferAddress,
+            array_stride: size_of::<DnaVertex>() as wgpu::BufferAddress,
             step_mode: wgpu::VertexStepMode::Vertex,
             attributes: &VERTEX_ATTR_ARRAY,
         }
@@ -192,7 +195,7 @@ impl Instantiable for SphereInstance {
                 let position = [x, y, z];
                 let normal = [x, y, z];
 
-                vertices.push(DnaVertex { position, normal })
+                vertices.push(DnaVertex { position, normal });
             }
         }
         vertices

@@ -847,7 +847,7 @@ impl HelixSystemThread {
             while let Some(interface_ptr) = self.interface.upgrade() {
                 let mut interface = interface_ptr.lock().unwrap();
                 if let Some(parameters) = interface.parameters_update.take() {
-                    self.helix_system.update_parameters(parameters)
+                    self.helix_system.update_parameters(parameters);
                 }
                 interface.new_state = Some(self.get_state());
                 drop(interface);
@@ -1694,7 +1694,7 @@ fn make_rigid_grid(
         if let Some(rigid_helix) =
             make_rigid_helix_grid_pov(presenter, h, intervals, helix_parameters)
         {
-            rigid_helices.push(rigid_helix)
+            rigid_helices.push(rigid_helix);
         }
     }
     if !rigid_helices.is_empty() {

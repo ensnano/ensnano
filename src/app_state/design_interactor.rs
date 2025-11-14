@@ -112,7 +112,7 @@ impl DesignInteractor {
             .update_pending_operation(self.design.as_ref(), operation.clone());
         let mut ret = self.handle_operation_result(result);
         if let Ok(ret) = ret.as_mut() {
-            ret.set_operation_state(operation, op_is_new)
+            ret.set_operation_state(operation, op_is_new);
         }
         ret
     }
@@ -501,7 +501,7 @@ mod tests {
         let interactor = DesignInteractor::new_with_path(&path).ok().unwrap();
         let suggestion_parameters = Default::default();
         let interactor = interactor.with_updated_design_reader(&suggestion_parameters);
-        assert_eq!(interactor.get_all_visible_nucl_ids().len(), 24)
+        assert_eq!(interactor.get_all_visible_nucl_ids().len(), 24);
     }
 
     #[test]
@@ -577,7 +577,7 @@ mod tests {
         assert_eq!(
             strand.junctions,
             vec![DomainJunction::IdentifiedXover(0), DomainJunction::Prime3]
-        )
+        );
     }
 
     const INSERTION_LEN_0: usize = 3;
@@ -1198,7 +1198,7 @@ mod tests {
         assert_eq!(
             app_state.0.design.presenter.current_design.free_grids.len(),
             1
-        )
+        );
     }
 
     #[test]
@@ -1226,7 +1226,7 @@ mod tests {
             }))
             .unwrap();
         app_state.update();
-        assert_eq!(app_state.0.design.presenter.current_design.helices.len(), 1)
+        assert_eq!(app_state.0.design.presenter.current_design.helices.len(), 1);
     }
 
     #[test]
@@ -1251,7 +1251,7 @@ mod tests {
             })
             .unwrap();
         app_state.update();
-        assert_eq!(app_state.0.design.presenter.current_design.helices.len(), 1)
+        assert_eq!(app_state.0.design.presenter.current_design.helices.len(), 1);
     }
 
     #[ignore]
@@ -1363,7 +1363,7 @@ mod tests {
         app_state
             .apply_copy_operation(CopyOperation::CopyStrands(vec![0]))
             .unwrap();
-        assert_eq!(app_state.get_pasting_status(), PastingStatus::None)
+        assert_eq!(app_state.get_pasting_status(), PastingStatus::None);
     }
 
     #[test]
@@ -1375,7 +1375,7 @@ mod tests {
         app_state
             .apply_copy_operation(CopyOperation::PositionPastingPoint(None))
             .unwrap();
-        assert_eq!(app_state.get_pasting_status(), PastingStatus::Copy)
+        assert_eq!(app_state.get_pasting_status(), PastingStatus::Copy);
     }
 
     #[test]
@@ -1397,7 +1397,7 @@ mod tests {
             .apply_copy_operation(CopyOperation::Paste)
             .unwrap();
         app_state.update();
-        assert_eq!(app_state.get_pasting_status(), PastingStatus::None)
+        assert_eq!(app_state.get_pasting_status(), PastingStatus::None);
     }
 
     #[test]
@@ -1406,7 +1406,7 @@ mod tests {
         app_state
             .apply_copy_operation(CopyOperation::InitStrandsDuplication(vec![0]))
             .unwrap();
-        assert_eq!(app_state.get_pasting_status(), PastingStatus::Duplication)
+        assert_eq!(app_state.get_pasting_status(), PastingStatus::Duplication);
     }
 
     #[test]
@@ -1635,9 +1635,9 @@ mod tests {
         let staples = app_state.get_design_interactor().presenter.get_staples();
         for s in staples.iter() {
             if s.name.contains("5':h1:nt7") {
-                assert_eq!(s.sequence, "CCAA TTTT") // cspell: disable-line
+                assert_eq!(s.sequence, "CCAA TTTT"); // cspell: disable-line
             } else if s.name.contains("5':h2:nt0") {
-                assert_eq!(s.sequence, "AAAA GGTT") // cspell: disable-line
+                assert_eq!(s.sequence, "AAAA GGTT"); // cspell: disable-line
             } else {
                 panic!("Incorrect staple name {:?}", s.name);
             }
@@ -1667,9 +1667,9 @@ mod tests {
         let staples = app_state.get_design_interactor().presenter.get_staples();
         for s in staples.iter() {
             if s.name.contains("5':h1:nt7") {
-                assert_eq!(s.sequence, "AGGT TCCA") // cspell: disable-line
+                assert_eq!(s.sequence, "AGGT TCCA"); // cspell: disable-line
             } else if s.name.contains("5':h2:nt0") {
-                assert_eq!(s.sequence, "ATTT TAAA") // cspell: disable-line
+                assert_eq!(s.sequence, "ATTT TAAA"); // cspell: disable-line
             } else {
                 panic!("Incorrect staple name {:?}", s.name);
             }

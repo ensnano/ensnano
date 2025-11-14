@@ -15,6 +15,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
 //! The [Controller] struct handles the event that happens on the drawing area of the scene.
 //!
 //! The [Controller] is internally implemented as a finite automata that transitions when a event
@@ -256,12 +257,12 @@ impl<S: AppState> Controller<S> {
                 Key::Named(NamedKey::ArrowLeft) | Key::Named(NamedKey::ArrowRight)
                     if ctrl(&self.modifiers) =>
                 {
-                    camera.borrow_mut().apply_symmetry_x()
+                    camera.borrow_mut().apply_symmetry_x();
                 }
                 Key::Named(NamedKey::ArrowUp) | Key::Named(NamedKey::ArrowDown)
                     if ctrl(&self.modifiers) =>
                 {
-                    camera.borrow_mut().apply_symmetry_y()
+                    camera.borrow_mut().apply_symmetry_y();
                 }
                 Key::Character("J") => {
                     self.data.borrow_mut().move_helix_backward();
@@ -309,7 +310,7 @@ impl<S: AppState> Controller<S> {
     pub fn flip_split_views(&self) {
         self.camera_bottom
             .borrow_mut()
-            .swap(&mut self.camera_top.borrow_mut())
+            .swap(&mut self.camera_top.borrow_mut());
     }
 
     pub fn get_icon(&self) -> Option<CursorIcon> {

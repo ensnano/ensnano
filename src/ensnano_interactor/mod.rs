@@ -541,18 +541,15 @@ pub enum WidgetBasis {
 
 impl WidgetBasis {
     pub fn toggle(&mut self) {
-        if self.is_axis_aligned() {
-            *self = WidgetBasis::Object
+        *self = if self.is_axis_aligned() {
+            WidgetBasis::Object
         } else {
-            *self = WidgetBasis::World
+            WidgetBasis::World
         };
     }
 
     pub fn is_axis_aligned(&self) -> bool {
-        match self {
-            Self::World => true,
-            Self::Object => false,
-        }
+        matches!(self, Self::World)
     }
 }
 

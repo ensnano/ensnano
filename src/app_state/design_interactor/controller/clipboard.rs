@@ -204,7 +204,7 @@ impl Controller {
         for domain in strand.domains.iter() {
             match domain {
                 Domain::Insertion { nb_nucl, .. } => {
-                    domains.push(DomainTemplate::Insertion(*nb_nucl))
+                    domains.push(DomainTemplate::Insertion(*nb_nucl));
                 }
                 Domain::HelixDomain(dom) => {
                     if let Some(ref pos1) = previous_position {
@@ -633,7 +633,7 @@ impl Controller {
                     };
                 } else {
                     // If it is not possible to duplicate here, cancel the duplication
-                    self.state = ControllerState::Normal
+                    self.state = ControllerState::Normal;
                 }
                 Ok(design)
             }
@@ -680,7 +680,7 @@ impl Controller {
                         xovers,
                     };
                 } else {
-                    self.state = ControllerState::Normal
+                    self.state = ControllerState::Normal;
                 }
                 Ok(design)
             }
@@ -774,7 +774,7 @@ impl Controller {
                         helices,
                     };
                 } else {
-                    self.state = ControllerState::Normal
+                    self.state = ControllerState::Normal;
                 }
                 Ok(design)
             }
@@ -828,7 +828,7 @@ impl Controller {
                     }
                 }
             }
-            ret.push(points)
+            ret.push(points);
         }
         ret
     }
@@ -855,20 +855,20 @@ impl Controller {
     }
 
     pub(super) fn copy_xovers(&mut self, xovers: Vec<(Nucl, Nucl)>) -> Result<(), ErrOperation> {
-        if !xovers.is_empty() {
-            self.clipboard = AddressPointer::new(Clipboard::Xovers(xovers))
+        self.clipboard = if !xovers.is_empty() {
+            AddressPointer::new(Clipboard::Xovers(xovers))
         } else {
-            self.clipboard = Default::default()
-        }
+            Default::default()
+        };
         Ok(())
     }
 
     pub(super) fn copy_helices(&mut self, helices: Vec<usize>) -> Result<(), ErrOperation> {
-        if !helices.is_empty() {
-            self.clipboard = AddressPointer::new(Clipboard::Helices(helices))
+        self.clipboard = if !helices.is_empty() {
+            AddressPointer::new(Clipboard::Helices(helices))
         } else {
-            self.clipboard = Default::default()
-        }
+            Default::default()
+        };
         Ok(())
     }
 

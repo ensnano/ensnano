@@ -18,6 +18,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::IdGenerator;
 use crate::ensnano_design::*;
+
 pub trait StrandJunction {
     /// Read the junctions for self when loading the design.
     /// If `identified` is true (i.e. during the first pass), read the IdentifiedXover
@@ -159,7 +160,7 @@ fn add_junction<'b, 'a: 'b>(
                     } else {
                         // previous domain MUST point to some Domain::HelixDomain.
                         if let Domain::HelixDomain(prime5) = *previous_domain {
-                            junctions.push(junction(prime5, prime3))
+                            junctions.push(junction(prime5, prime3));
                         } else if i == 0 {
                             panic!("Invariant violated: SaneDomains");
                         } else {
@@ -203,7 +204,7 @@ pub(super) fn read_junctions(domains: &[Domain], cyclic: bool) -> Vec<DomainJunc
             domains.len() - 1,
         );
     } else {
-        ret.push(DomainJunction::Prime3)
+        ret.push(DomainJunction::Prime3);
     }
 
     ret

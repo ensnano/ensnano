@@ -15,6 +15,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
 use super::*;
 use fontdue::layout::Layout;
 use ultraviolet::Rotor2;
@@ -71,7 +72,7 @@ impl TextDrawer {
     pub fn draw<'a>(&'a mut self, render_pass: &mut RenderPass<'a>) {
         for (c, v) in self.char_map.iter() {
             if let Some(drawer_mut) = self.char_drawers.get_mut(c) {
-                drawer_mut.new_instances(Rc::new(v.clone()))
+                drawer_mut.new_instances(Rc::new(v.clone()));
             } else {
                 eprintln!("Unprintable char {}", c);
             }
@@ -121,7 +122,7 @@ impl TextDrawer {
                 z_index: sentence.z_index,
                 color: sentence.color,
                 size: sentence.size,
-            })
+            });
         }
     }
 }

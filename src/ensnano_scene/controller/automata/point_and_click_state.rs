@@ -166,7 +166,7 @@ impl<S: AppState> ControllerState<S> for PointAndClicking<S> {
                     self.away_state = OptionalTransitionPtr::Owned(transition_maker(
                         &mut context,
                         self.get_click_info(position),
-                    ))
+                    ));
                 }
                 if position_difference(position, self.clicked_position) > FAR_AWAY {
                     let new_state =
@@ -181,10 +181,9 @@ impl<S: AppState> ControllerState<S> for PointAndClicking<S> {
                     }
                 } else {
                     if let Some(transition_maker) = self.long_hold_state_maker.as_ref() {
-                        self.long_hold_state = Some(OptionalTransitionPtr::Owned(transition_maker(
-                            &mut context,
-                            self.get_click_info(position),
-                        )))
+                        self.long_hold_state = Some(OptionalTransitionPtr::Owned(
+                            transition_maker(&mut context, self.get_click_info(position)),
+                        ));
                     }
                     Transition::nothing()
                 }
@@ -240,7 +239,7 @@ impl<S: AppState> ControllerState<S> for PointAndClicking<S> {
             self.long_hold_state = Some(OptionalTransitionPtr::Owned(transition_maker(
                 &mut context,
                 self.get_click_info(position),
-            )))
+            )));
         }
     }
 }

@@ -167,7 +167,7 @@ impl CloseSurfaceTopology {
     }
 
     pub fn rescale_section(&mut self, scaling_factor: f64) {
-        self.target.rescale_section(scaling_factor)
+        self.target.rescale_section(scaling_factor);
     }
 
     pub fn axis(&self, revolution_angle: f64) -> DVec3 {
@@ -196,10 +196,10 @@ impl CloseSurfaceTopology {
                 }
                 let last_value = segment_thetas.last().unwrap();
                 while next_value >= 0.5 + last_value {
-                    next_value -= 1.
+                    next_value -= 1.;
                 }
                 while next_value <= last_value - 0.5 {
-                    next_value += 1.
+                    next_value += 1.;
                 }
                 segment_thetas.push(next_value);
                 //println!("thetas {:.2?}", segment_thetas);
@@ -211,7 +211,7 @@ impl CloseSurfaceTopology {
                 interpolations.push(InterpolationDescriptor::Chebyshev {
                     coeffs: polynomials.coeffs,
                     interval,
-                })
+                });
             }
             let rem = self.target_scaffold_length % self.target.nb_spirals();
 
@@ -226,7 +226,7 @@ impl CloseSurfaceTopology {
                 self.target
                     .curve_descriptor(interpolations, objective_number_of_nts),
                 theta_0,
-            ))
+            ));
         }
         ret.sort_by_key(|(_, k)| ordered_float::OrderedFloat::from(*k));
 

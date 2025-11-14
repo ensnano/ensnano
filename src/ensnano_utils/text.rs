@@ -15,11 +15,12 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
 //! This module provides utilities for drawing text in the applications
+
 use crate::ensnano_iced::iced_wgpu::wgpu;
 use fontdue::Font;
-use std::convert::TryInto;
-use std::rc::Rc;
+use std::{convert::TryInto, rc::Rc};
 use wgpu::{
     BindGroup, BindGroupLayout, Device, Extent3d, Queue, Sampler, TextureView, util::DeviceExt,
 };
@@ -135,7 +136,7 @@ impl Letter {
                         let coverage =
                             get_average_pixel_value(previous, x, y, 2 * size.width as usize);
                         for i in 0..4 {
-                            pixels[4 * (y * size.width as usize + x) + i] = coverage
+                            pixels[4 * (y * size.width as usize + x) + i] = coverage;
                         }
                     }
                 }

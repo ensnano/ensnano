@@ -39,7 +39,7 @@ fn sanitize_with_insertions() {
             sequence: None,
         }),
     ];
-    assert_sane_domains_non_cyclic(sanitize_domains(&domains, false).as_slice())
+    assert_sane_domains_non_cyclic(sanitize_domains(&domains, false).as_slice());
 }
 
 #[test]
@@ -112,7 +112,7 @@ fn scadnano_import_one_loopout() {
         Design::from_scadnano(&scadnano_design).expect("Could not convert to ensnano");
     assert_eq!(ensnano_design.strands.len(), 1);
     let strand = ensnano_design.strands.values().next().unwrap();
-    assert_good_strand(strand, "[H0: 8 -> 15] [@5] [H1: 8 <- 15]")
+    assert_good_strand(strand, "[H0: 8 -> 15] [@5] [H1: 8 <- 15]");
 }
 
 fn assert_good_strand<S: std::ops::Deref<Target = str>>(strand: &Strand, objective: S) {
@@ -642,5 +642,5 @@ fn formatted_sane_strand_with_insertion() -> &'static str {
 #[test]
 fn check_formatted_strand_with_insertion() {
     let strand = strand_with_insertion();
-    assert_good_strand(&strand, formatted_strand_with_insertion())
+    assert_good_strand(&strand, formatted_strand_with_insertion());
 }

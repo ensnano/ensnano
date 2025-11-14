@@ -519,12 +519,12 @@ impl<S: AppState> ControllerState<S> for Translating {
     }
 
     fn transition_from(&self, controller: &Controller<S>) {
-        controller.data.borrow_mut().end_movement()
+        controller.data.borrow_mut().end_movement();
     }
 
     fn transition_to(&self, controller: &Controller<S>) {
         let helices = self.translation_pivots.iter().map(|p| p.helix).collect();
-        controller.data.borrow_mut().set_selected_helices(helices)
+        controller.data.borrow_mut().set_selected_helices(helices);
     }
 
     fn cursor(&self) -> Option<CursorIcon> {
@@ -2893,7 +2893,7 @@ impl<S: AppState> ControllerState<S> for TranslatingHandle {
                     controller
                         .data
                         .borrow_mut()
-                        .auto_redim_helix(self.h_id, self.handle)
+                        .auto_redim_helix(self.h_id, self.handle);
                 }
                 Transition {
                     new_state: Some(Box::new(NormalState {

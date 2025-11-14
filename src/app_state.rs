@@ -140,7 +140,7 @@ impl AppState {
             new_state.center_of_selection = None;
             let mut ret = Self(AddressPointer::new(new_state));
             if selection_len > 0 {
-                ret = ret.notified(InteractorNotification::NewSelection)
+                ret = ret.notified(InteractorNotification::NewSelection);
             }
             ret
         }
@@ -228,7 +228,7 @@ impl AppState {
 
     #[cfg(test)]
     pub fn update_design(&mut self, design: Design) {
-        apply_update(self, |s| s.with_updated_design(design))
+        apply_update(self, |s| s.with_updated_design(design));
     }
 
     #[cfg(test)]
@@ -270,11 +270,11 @@ impl AppState {
 
     pub(super) fn update(&mut self) {
         log::trace!("update");
-        apply_update(self, Self::updated)
+        apply_update(self, Self::updated);
     }
 
     pub(super) fn apply_simulation_update(&mut self, update: Box<dyn SimulationUpdate>) {
-        apply_update(self, |s| s.with_simulation_update_applied(update))
+        apply_update(self, |s| s.with_simulation_update_applied(update));
     }
 
     fn with_simulation_update_applied(self, update: Box<dyn SimulationUpdate>) -> Self {
@@ -709,7 +709,7 @@ impl AppState_ {
     fn set_surface_axis_position(&mut self, position: f64) {
         let mut new_surface = self.unrooted_surface.descriptor.clone();
         if let Some(s) = new_surface.as_mut() {
-            s.set_axis_position(position)
+            s.set_axis_position(position);
         }
         self.set_unrooted_surface(new_surface);
     }

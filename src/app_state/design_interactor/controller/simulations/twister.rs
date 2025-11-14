@@ -206,16 +206,16 @@ impl SimulationUpdate for TwistState {
     fn update_design(&self, design: &mut Design) {
         let mut new_helices = design.helices.make_mut();
         for (i, h) in self.helices.iter() {
-            new_helices.insert(*i, h.clone())
+            new_helices.insert(*i, h.clone());
         }
 
         let mut grids_mut = design.free_grids.make_mut();
         if let Some(grid) =
             FreeGridId::try_from_grid_id(self.grid_id).and_then(|g_id| grids_mut.get_mut(&g_id))
         {
-            *grid = self.grid
+            *grid = self.grid;
         } else {
-            log::error!("COULD NOT UPDATE GRID {:?}", self.grid_id)
+            log::error!("COULD NOT UPDATE GRID {:?}", self.grid_id);
         }
     }
 }

@@ -16,11 +16,14 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use super::tabs::GuiTab;
-use super::{AppState, DesignElementKey, Message, UiSize};
+use super::{AppState, DesignElementKey, Message, UiSize, tabs::GuiTab};
 use crate::ensnano_consts::ICON_ATGC;
-use crate::ensnano_iced::iced;
-use crate::ensnano_iced::{helpers::*, iced::Length, iced_aw::TabLabel, theme};
+use crate::ensnano_iced::{
+    helpers::*,
+    iced::{self, Length},
+    iced_aw::TabLabel,
+    theme,
+};
 use crate::ensnano_interactor::StandardSequence;
 use std::marker::PhantomData;
 
@@ -158,7 +161,7 @@ impl<State: AppState> GuiTab<State> for SequenceTab<State> {
                 };
                 let mut length_text = text(length_text);
                 if app_state.get_scaffold_info().is_none() {
-                    length_text = length_text.style(theme::DISABLED_TEXT)
+                    length_text = length_text.style(theme::DISABLED_TEXT);
                 }
                 self::column![text(scaffold_text).size(ui_size.main_text()), length_text,]
             },
@@ -223,7 +226,7 @@ impl<State: AppState> GuiTab<State> for SequenceTab<State> {
                 };
                 let mut nucl_text = text(nucl_text).size(ui_size.main_text());
                 if starting_nucl.is_none() {
-                    nucl_text = nucl_text.style(theme::DISABLED_TEXT)
+                    nucl_text = nucl_text.style(theme::DISABLED_TEXT);
                 }
                 nucl_text
             },

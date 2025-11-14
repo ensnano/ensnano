@@ -37,7 +37,7 @@ impl Strands {
         let mut ret = vec![];
         for s in self.0.values() {
             for x in s.xovers() {
-                ret.push(x)
+                ret.push(x);
             }
         }
         ret
@@ -70,7 +70,7 @@ impl Strands {
 
     pub fn remove_empty_domains(&mut self) {
         for s in self.0.values_mut() {
-            s.remove_empty_domains()
+            s.remove_empty_domains();
         }
     }
 
@@ -447,7 +447,7 @@ impl Strand {
             let dom1 = &self.domains[n];
             let dom2 = &self.domains[n + 1];
             if dom1.can_merge(dom2) {
-                to_merge.push(n)
+                to_merge.push(n);
             }
         }
         while let Some(n) = to_merge.pop() {
@@ -513,7 +513,7 @@ impl Strand {
             if let Some(n) = d.has_nucl(nucl) {
                 return Some(ret + n);
             }
-            ret += d.length()
+            ret += d.length();
         }
         None
     }
@@ -524,7 +524,7 @@ impl Strand {
             if let Some(n) = d.has_virtual_nucl(nucl, helices) {
                 return Some(ret + n);
             }
-            ret += d.length()
+            ret += d.length();
         }
         None
     }
@@ -538,7 +538,7 @@ impl Strand {
                     if let Some(nucl) = last_nucl {
                         ret.push(nucl);
                     } else if let Some(nucl) = self.get_5prime() {
-                        ret.push(nucl)
+                        ret.push(nucl);
                     }
                 }
                 Domain::Insertion { .. } => (),
@@ -558,7 +558,7 @@ impl Strand {
                 println!("Warning, removing empty domain {:?}", d);
                 false
             }
-        })
+        });
     }
 
     pub fn get_nth_nucl(&self, n: usize) -> Option<Nucl> {
@@ -576,7 +576,7 @@ impl Strand {
                     return None;
                 }
             } else {
-                seen += d.length()
+                seen += d.length();
             }
         }
         None
@@ -591,9 +591,9 @@ impl Strand {
         };
         for (d1, d2) in self.domains.iter().zip(self.domains.iter().skip(1)) {
             if let Domain::Insertion { .. } = d1 {
-                ret.push((prev_prime3, d2.prime5_end()))
+                ret.push((prev_prime3, d2.prime5_end()));
             } else {
-                prev_prime3 = d1.prime3_end()
+                prev_prime3 = d1.prime3_end();
             }
         }
         if let Some(Domain::Insertion { .. }) = self.domains.last() {
@@ -601,9 +601,9 @@ impl Strand {
                 ret.push((
                     prev_prime3,
                     self.domains.first().and_then(|d| d.prime5_end()),
-                ))
+                ));
             } else {
-                ret.push((prev_prime3, None))
+                ret.push((prev_prime3, None));
             }
         }
         ret
@@ -685,7 +685,7 @@ impl Strand {
     }
 
     pub fn set_name<S: Into<Cow<'static, str>>>(&mut self, name: S) {
-        self.name = Some(name.into())
+        self.name = Some(name.into());
     }
 
     pub fn domain_ends(&self) -> Vec<Nucl> {
@@ -1215,7 +1215,7 @@ fn add_junction<'b, 'a: 'b>(
                     } else {
                         // previous domain MUST point to some Domain::HelixDomain.
                         if let Domain::HelixDomain(prime5) = *previous_domain {
-                            junctions.push(junction(prime5, prime3))
+                            junctions.push(junction(prime5, prime3));
                         } else if i == 0 {
                             panic!("Invariant violated: SaneDomains");
                         } else {
@@ -1259,7 +1259,7 @@ pub fn read_junctions(domains: &[Domain], cyclic: bool) -> Vec<DomainJunction> {
             domains.len() - 1,
         );
     } else {
-        ret.push(DomainJunction::Prime3)
+        ret.push(DomainJunction::Prime3);
     }
 
     ret

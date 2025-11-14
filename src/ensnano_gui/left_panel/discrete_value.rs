@@ -44,7 +44,7 @@ pub trait Requestable {
     fn name_val(&self, n: usize) -> String;
 
     fn make_request(&self, values: &[f32], request: &mut Option<Self::Request>) {
-        *request = Some(self.request_from_values(values))
+        *request = Some(self.request_from_values(values));
     }
 
     fn hidden(&self, _: usize) -> bool {
@@ -119,7 +119,7 @@ impl<R: Requestable> RequestFactory<R> {
             .unwrap()
             .update_value(new_val);
         let values: Vec<f32> = self.values.values().map(|v| v.get_value()).collect();
-        self.requestable.make_request(&values, request)
+        self.requestable.make_request(&values, request);
     }
 
     pub fn update_value(&mut self, value_id: ValueId, new_val: f32) -> R::Request {
@@ -133,7 +133,7 @@ impl<R: Requestable> RequestFactory<R> {
 
     pub fn make_request(&self, request: &mut Option<R::Request>) {
         let values: Vec<f32> = self.values.values().map(|v| v.get_value()).collect();
-        self.requestable.make_request(&values, request)
+        self.requestable.make_request(&values, request);
     }
 }
 
@@ -243,6 +243,6 @@ impl DiscreteValue {
     }
 
     fn update_value(&mut self, new_val: f32) {
-        self.value = new_val
+        self.value = new_val;
     }
 }

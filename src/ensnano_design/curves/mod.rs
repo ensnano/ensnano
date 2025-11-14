@@ -1421,7 +1421,7 @@ impl Helix {
                 self.instantiated_curve = Some(InstantiatedCurve {
                     curve,
                     source: desc,
-                })
+                });
             }
         }
     }

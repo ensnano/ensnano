@@ -177,7 +177,7 @@ impl State for NormalState {
                                 position,
                                 orientation,
                             },
-                        })
+                        });
                     }
                     self
                 }
@@ -357,7 +357,7 @@ impl NormalState {
                 helix_parameters: None, // Some(HelixParameters::GEARY_2014_RNA), // c'est ici
                 invisible: false,
                 bezier_vertex: None,
-            }))
+            }));
         } else {
             println!("Could not get position and orientation for new grid");
         }

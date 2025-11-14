@@ -237,7 +237,7 @@ impl<S: AppState> FlatScene<S> {
                         prime3_id,
                         prime5_id,
                         undo: false,
-                    }))
+                    }));
             }
             Consequence::Cut(nucl) => {
                 let strand_id = self.data[self.selected_design].borrow().get_strand_id(nucl);
@@ -247,7 +247,7 @@ impl<S: AppState> FlatScene<S> {
                     self.requests
                         .lock()
                         .unwrap()
-                        .update_operation(Arc::new(Cut { nucl }))
+                        .update_operation(Arc::new(Cut { nucl }));
                 }
             }
             Consequence::FreeEnd(free_end) => {
@@ -274,7 +274,7 @@ impl<S: AppState> FlatScene<S> {
                     self.requests
                         .lock()
                         .unwrap()
-                        .update_operation(Arc::new(Cut { nucl }))
+                        .update_operation(Arc::new(Cut { nucl }));
                 }
                 self.data[self.selected_design]
                     .borrow_mut()
@@ -293,7 +293,7 @@ impl<S: AppState> FlatScene<S> {
                                 target_id,
                                 target_3prime,
                                 nucl: to.to_real(),
-                            }))
+                            }));
                     }
                 }
             }
@@ -322,7 +322,7 @@ impl<S: AppState> FlatScene<S> {
                 self.requests
                     .lock()
                     .unwrap()
-                    .new_candidates(candidate.iter().cloned().collect())
+                    .new_candidates(candidate.iter().cloned().collect());
             }
             Consequence::Built => {
                 self.requests.lock().unwrap().suspend_op();
@@ -391,7 +391,7 @@ impl<S: AppState> FlatScene<S> {
                     self.requests
                         .lock()
                         .unwrap()
-                        .request_center_selection(selection, AppId::FlatScene)
+                        .request_center_selection(selection, AppId::FlatScene);
                 }
             }
             Consequence::Helix2DMovementEnded => self.requests.lock().unwrap().suspend_op(),
@@ -422,7 +422,7 @@ impl<S: AppState> FlatScene<S> {
                         center,
                         angle,
                     },
-                )
+                );
             }
             Consequence::Symmetry {
                 helices,
@@ -436,7 +436,7 @@ impl<S: AppState> FlatScene<S> {
                         symmetry,
                         centers,
                     },
-                )
+                );
             }
             Consequence::InitBuilding(nucl) => {
                 let mut nucls = crate::ensnano_interactor::extract_nucls_and_xover_ends(
@@ -696,7 +696,7 @@ impl<S: AppState> Application for FlatScene<S> {
         match notification {
             Notification::FitRequest => (), // Temporarily don't fit to make the moebius ring
             Notification::ToggleText(b) => {
-                self.view[self.selected_design].borrow_mut().set_show_sec(b)
+                self.view[self.selected_design].borrow_mut().set_show_sec(b);
             }
             Notification::ShowTorsion(b) => {
                 for v in self.view.iter() {
@@ -725,7 +725,7 @@ impl<S: AppState> Application for FlatScene<S> {
             Notification::CameraRotation(_, _, _) => (),
             Notification::ModifiersChanged(modifiers) => {
                 for c in self.controller.iter_mut() {
-                    c.update_modifiers(modifiers.state())
+                    c.update_modifiers(modifiers.state());
                 }
             }
             Notification::Split2d => self.toggle_split_from_btn(),
@@ -737,7 +737,7 @@ impl<S: AppState> Application for FlatScene<S> {
                 };
                 self.data[self.selected_design]
                     .borrow_mut()
-                    .redim_helices(selection)
+                    .redim_helices(selection);
             }
             Notification::Fog(_) => (),
             Notification::WindowFocusLost => (),
@@ -794,7 +794,7 @@ impl<S: AppState> Application for FlatScene<S> {
     }
 
     fn on_resize(&mut self, window_size: PhySize, area: DrawArea) {
-        self.resize(window_size, area)
+        self.resize(window_size, area);
     }
 
     fn on_event(
@@ -811,7 +811,7 @@ impl<S: AppState> Application for FlatScene<S> {
         encoder: &mut wgpu::CommandEncoder,
         target: &wgpu::TextureView,
     ) {
-        self.draw_view(encoder, target)
+        self.draw_view(encoder, target);
     }
 
     fn needs_redraw(&mut self, _: Duration, state: S) -> bool {

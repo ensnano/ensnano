@@ -18,8 +18,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::tabs::GuiTab;
 use crate::ensnano_design::CurveDescriptor2D;
-use crate::ensnano_gui::left_panel::Message;
-use crate::ensnano_gui::{AppState, SimulationState};
+use crate::ensnano_gui::{AppState, SimulationState, left_panel::Message};
 use crate::ensnano_iced::{
     UiSize,
     fonts::{MaterialIcon, icon_to_char},
@@ -242,7 +241,7 @@ impl<S: AppState> CurveDescriptorWidget<S> {
 
     fn update_builder_parameter(&mut self, param_id: usize, text: String) {
         if let Some(p) = self.parameters.get_mut(param_id) {
-            p.1.set_text(text)
+            p.1.set_text(text);
         }
     }
 
@@ -323,7 +322,7 @@ impl<State: AppState> Default for RevolutionTab<State> {
 impl<State: AppState> RevolutionTab<State> {
     pub fn set_builder(&mut self, builder: CurveDescriptorBuilder<State>) {
         if self.curve_descriptor_widget.as_ref().map(|w| w.curve_name) != Some(builder.curve_name) {
-            self.curve_descriptor_widget = Some(CurveDescriptorWidget::new(builder))
+            self.curve_descriptor_widget = Some(CurveDescriptorWidget::new(builder));
         }
     }
 
@@ -341,7 +340,7 @@ impl<State: AppState> RevolutionTab<State> {
         match param_id {
             RevolutionParameterId::SectionParameter(id) => {
                 if let Some(widget) = self.curve_descriptor_widget.as_mut() {
-                    widget.update_builder_parameter(id, text)
+                    widget.update_builder_parameter(id, text);
                 }
             }
             param => {
@@ -522,7 +521,7 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
             self.update_builder_parameter(
                 RevolutionParameterId::RevolutionRadius,
                 format!("{:.3}", r),
-            )
+            );
         }
 
         self.scaling = self

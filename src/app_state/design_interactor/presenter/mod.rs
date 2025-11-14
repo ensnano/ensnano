@@ -235,7 +235,7 @@ impl Presenter {
                                     ran_out = true;
                                 }
                             } else {
-                                log::error!("Could not get virtual mapping of {:?}", nucl.compl())
+                                log::error!("Could not get virtual mapping of {:?}", nucl.compl());
                             }
                         }
                     } else if let crate::ensnano_design::Domain::Insertion { nb_nucl, .. } = domain
@@ -486,7 +486,7 @@ impl Presenter {
                 && !checked_nucl.contains(&n1.prime5())
                 && let Some(id) = self.content.identifier_bond.get(&(n1, n2))
             {
-                ret.push(*id)
+                ret.push(*id);
             }
         }
         ret

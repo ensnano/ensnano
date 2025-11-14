@@ -79,7 +79,7 @@ impl Controller {
                 println!(
                     "junction after split {}",
                     strand_mut.formatted_anonymous_junctions()
-                )
+                );
             }
             if insertion_point.nucl_is_prime5_of_insertion {
                 // The nucl is the 3' end of the split strand

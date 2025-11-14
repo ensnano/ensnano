@@ -109,7 +109,7 @@ impl<D: Drawable> Drawer<D> {
         if self.vertex_buffer.is_some() {
             let pipeline = if fake {
                 if self.pipeline_fake.is_none() {
-                    self.pipeline_fake = Some(self.create_pipeline(viewer_bind_group_layout, true))
+                    self.pipeline_fake = Some(self.create_pipeline(viewer_bind_group_layout, true));
                 }
                 self.pipeline_fake.as_ref().unwrap()
             } else {

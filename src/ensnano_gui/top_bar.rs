@@ -15,15 +15,15 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
 //! Implementation of the top bar part of the GUI.
 //!
 //! The top bar consist of a row of buttons that covers various actions: load/save a model, change
 //! the selection mode, modify the layout of the window, etc.
 //!
 //! Drawing the top bar, and triggering events from it is handled here.
-use super::{AppState, TopBarState};
-// NOTE: I would like to rename AppState to ApplicationState, and name AppState the structures that
-//       implement it.
+
+use super::{AppState, Requests, SplitMode, TopBarState};
 use crate::ensnano_iced::{
     UiSize,
     fonts::{MaterialIcon, MaterialIconStyle},
@@ -34,8 +34,6 @@ use crate::ensnano_iced::{
 };
 use crate::ensnano_interactor::{ActionMode, SelectionMode};
 use std::sync::{Arc, Mutex};
-
-use super::{Requests, SplitMode};
 
 /// Top bar object
 pub struct TopBar<R: Requests, S: AppState> {
@@ -155,7 +153,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
                     self.requests
                         .lock()
                         .unwrap()
-                        .change_action_mode(action_mode)
+                        .change_action_mode(action_mode);
                 } else {
                     match action_mode {
                         ActionMode::Rotate | ActionMode::Translate => {

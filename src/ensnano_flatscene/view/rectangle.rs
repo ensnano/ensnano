@@ -15,11 +15,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
 use super::Rc;
 use crate::ensnano_utils::Ndc;
-
-use wgpu::util::DeviceExt;
-use wgpu::{Device, Queue, RenderPipeline};
+use wgpu::{Device, Queue, RenderPipeline, util::DeviceExt};
 
 const SELECT_COLOR: [f32; 4] = [0.26, 0.64, 0.85, 0.6];
 
@@ -132,7 +131,7 @@ impl Rectangle {
     }
 
     pub fn update_corners(&mut self, corner: Option<[Ndc; 2]>) {
-        self.corner = Some(corner)
+        self.corner = Some(corner);
     }
 
     pub fn draw<'a>(&'a mut self, render_pass: &mut wgpu::RenderPass<'a>) {

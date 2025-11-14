@@ -35,7 +35,7 @@ impl FlatSceneRequests for Requests {
             .push_back(Action::DesignOperation(DesignOperation::GeneralXover {
                 source,
                 target,
-            }))
+            }));
     }
 
     fn request_center_selection(&mut self, selection: Selection, app_id: AppId) {
@@ -67,7 +67,7 @@ impl FlatSceneRequests for Requests {
                 isometry,
                 segment,
             },
-        ))
+        ));
     }
 
     fn set_visibility_helix(&mut self, helix: usize, visibility: bool) {
@@ -76,14 +76,14 @@ impl FlatSceneRequests for Requests {
                 helix,
                 visible: visibility,
             },
-        ))
+        ));
     }
 
     fn flip_group(&mut self, helix: usize) {
         self.keep_proceed
             .push_back(Action::DesignOperation(DesignOperation::FlipHelixGroup {
                 helix,
-            }))
+            }));
     }
 
     fn suspend_op(&mut self) {
@@ -91,7 +91,7 @@ impl FlatSceneRequests for Requests {
     }
 
     fn apply_design_operation(&mut self, op: DesignOperation) {
-        self.keep_proceed.push_back(Action::DesignOperation(op))
+        self.keep_proceed.push_back(Action::DesignOperation(op));
     }
 
     fn set_paste_candidate(&mut self, candidate: Option<Nucl>) {

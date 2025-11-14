@@ -111,9 +111,9 @@ pub enum NodeId<AutoGroupId> {
 impl<E: std::fmt::Debug> NodeId<E> {
     fn push(&mut self, x: usize) {
         if let Self::Tree(v) = self {
-            v.push(x)
+            v.push(x);
         } else {
-            log::error!("Trying to push on {:?}", self)
+            log::error!("Trying to push on {:?}", self);
         }
     }
 }
@@ -295,7 +295,7 @@ impl<E: OrganizerElement> Organizer<E> {
                 tabulation(),
                 s.view(&self.theme, &selection)
                     .width(Length::FillPortion(8))
-            ])
+            ]);
         }
 
         // Add Auto groups
@@ -304,7 +304,7 @@ impl<E: OrganizerElement> Organizer<E> {
                 tabulation(),
                 s.view(&self.theme, &selection)
                     .width(Length::FillPortion(8))
-            ])
+            ]);
         }
         let mut new_group_button = button(text("New Group"));
         if !selection.is_empty() {
@@ -350,7 +350,7 @@ impl<E: OrganizerElement> Organizer<E> {
                     .and_then(|c| c.add_content(&id_local[1..], id, content));
             }
             if ret.is_some() {
-                self.recompute_id()
+                self.recompute_id();
             }
             ret
         } else {
@@ -625,13 +625,13 @@ impl<E: OrganizerElement> Organizer<E> {
 
     fn expand(&mut self, id: &NodeId<E::AutoGroup>, expanded: bool) {
         if let Some(id) = get_group_id(id) {
-            self.groups[id[0]].expand(&id[1..], expanded)
+            self.groups[id[0]].expand(&id[1..], expanded);
         } else if let Some(id) = get_section_id(id) {
-            self.sections[id].expand(expanded)
+            self.sections[id].expand(expanded);
         } else if let NodeId::AutoGroup(name) = id
             && let Some(group) = self.auto_groups.get_mut(name)
         {
-            group.expand(expanded)
+            group.expand(expanded);
         }
     }
 
@@ -639,7 +639,7 @@ impl<E: OrganizerElement> Organizer<E> {
         self.groups.retain(|c| !c.is_placeholder());
         self.group_to_node.clear();
         for (i, c) in self.groups.iter_mut().enumerate() {
-            c.recompute_id(NodeId::Tree(vec![i]), &mut self.group_to_node)
+            c.recompute_id(NodeId::Tree(vec![i]), &mut self.group_to_node);
         }
     }
 
@@ -670,7 +670,7 @@ impl<E: OrganizerElement> Organizer<E> {
             self.recompute_id();
             self.update_attributes();
             if let Some(group_id) = self.editing {
-                self.start_editing(group_id)
+                self.start_editing(group_id);
             }
         }
         let ret = self.must_update_tree;
@@ -682,16 +682,16 @@ impl<E: OrganizerElement> Organizer<E> {
         if let Some(id) = get_group_id(id) {
             let ret;
             if id.len() < 2 {
-                if self.groups.len() > id[0] {
-                    ret = Some(self.groups.remove(id[0]))
+                ret = if self.groups.len() > id[0] {
+                    Some(self.groups.remove(id[0]))
                 } else {
-                    ret = None;
-                }
+                    None
+                };
             } else {
                 ret = self.groups.get_mut(id[0]).and_then(|c| c.pop_id(&id[1..]));
             }
             if ret.is_some() {
-                self.recompute_id()
+                self.recompute_id();
             }
             ret
         } else {
@@ -702,14 +702,14 @@ impl<E: OrganizerElement> Organizer<E> {
     fn pop_id_no_recompute(&mut self, id: &[usize]) -> Option<GroupContent<E>> {
         let ret;
         if id.len() < 2 {
-            if self.groups.len() > id[0] {
-                ret = Some(std::mem::replace(
+            ret = if self.groups.len() > id[0] {
+                Some(std::mem::replace(
                     &mut self.groups[id[0]],
                     GroupContent::Placeholder,
                 ))
             } else {
-                ret = None;
-            }
+                None
+            };
         } else {
             ret = self.groups.get_mut(id[0]).and_then(|c| c.pop_id(&id[1..]));
         }
@@ -738,7 +738,7 @@ impl<E: OrganizerElement> Organizer<E> {
             let insertion_point = if from_top { id[0] + 1 } else { id[0] };
             self.groups.insert(insertion_point, content);
         } else {
-            self.groups[id[0]].add_at_id(&id[1..], content, from_top)
+            self.groups[id[0]].add_at_id(&id[1..], content, from_top);
         }
     }
 
@@ -752,7 +752,7 @@ impl<E: OrganizerElement> Organizer<E> {
                 DragIdentifier::Group { id } => self.move_id(&id, id_dest),
                 DragIdentifier::Section { key } => {
                     if let Some(id) = get_group_id(id_dest) {
-                        self.add_key_at(key, id)
+                        self.add_key_at(key, id);
                     }
                 }
             }
@@ -769,7 +769,7 @@ impl<E: OrganizerElement> Organizer<E> {
             let from_top = source <= dest;
             if let Some(content) = self.pop_id_no_recompute(source) {
                 self.add_at_id(content, dest, from_top);
-                self.recompute_id()
+                self.recompute_id();
             }
             self.must_update_tree = true;
         }
@@ -781,7 +781,7 @@ impl<E: OrganizerElement> Organizer<E> {
                 "I have not decided what to do when moving a key at the root level of the organizer"
             );
         } else if let Some(group) = self.groups.get_mut(dest[0]) {
-            group.add_key_at(key, &dest[1..])
+            group.add_key_at(key, &dest[1..]);
         }
         self.recompute_id();
         self.must_update_tree = true;
@@ -820,7 +820,7 @@ impl<E: OrganizerElement> Organizer<E> {
                 self.auto_groups
                     .entry(g.clone())
                     .or_insert_with(|| Section::new(NodeId::AutoGroup(g.clone()), g.to_string()))
-                    .add_element(e.clone())
+                    .add_element(e.clone());
             }
         }
         self.auto_groups.retain(|_, g| !g.elements.is_empty());
@@ -835,7 +835,7 @@ impl<E: OrganizerElement> Organizer<E> {
             g.update_attributes(&self.sections);
         }
         for s in self.sections.iter_mut() {
-            s.update_attributes()
+            s.update_attributes();
         }
     }
 }
@@ -863,7 +863,7 @@ impl<E: OrganizerElement> Section<E> {
     }
 
     fn expand(&mut self, expanded: bool) {
-        self.expanded = expanded
+        self.expanded = expanded;
     }
 }
 
@@ -884,7 +884,7 @@ impl<E: OrganizerElement> Section<E> {
                     container(e.view(theme, &self.content[e_id], selection, None,))
                         .style(theme.level(1))
                         .width(Length::FillPortion(8)),
-                ])
+                ]);
             }
         }
         container(content).style(theme.level(0))
@@ -899,7 +899,7 @@ impl<E: OrganizerElement> Section<E> {
     fn update_attributes(&mut self) {
         for (k, e) in self.content.iter() {
             if let Some(view) = self.elements.get_mut(k) {
-                view.update_element(e)
+                view.update_element(e);
             }
         }
     }
@@ -943,7 +943,7 @@ impl<E: OrganizerElement> ElementView<E> {
                 content =
                     content.push(view.map(move |m| {
                         OrganizerMessage::<E>::NewAttribute(m, vec![elt_key.clone()])
-                    }))
+                    }));
             }
         }
         if let Some(id) = deletable.clone() {
@@ -956,27 +956,27 @@ impl<E: OrganizerElement> ElementView<E> {
                 .width(Length::Fill),
             //.style(iced_theme::Button::from(theme.selected(selected)))
         );
-        if let Some(id) = deletable {
-            content = content
+        content = if let Some(id) = deletable {
+            content
                 .on_hover(OrganizerMessage::node_hovered(id.clone(), true))
                 .on_unhover(OrganizerMessage::node_hovered(id, false))
         } else {
-            content = content
+            content
                 .on_hover(OrganizerMessage::key_hovered(element.key(), true))
                 .on_unhover(OrganizerMessage::key_hovered(element.key(), false))
-        }
+        };
         DragDropTarget::new(container(content).width(Length::Fill), identifier)
     }
 
     fn update_attributes(&mut self, attributes: &[Option<E::Attribute>]) {
         for (i, a) in attributes.iter().enumerate() {
-            self.attribute_displayers[i].update_attribute(a.clone())
+            self.attribute_displayers[i].update_attribute(a.clone());
         }
     }
 
     fn update_element(&mut self, element: &E) {
         for e in element.attributes() {
-            self.attribute_displayers[e.discriminant().into()].update_attribute(Some(e.clone()))
+            self.attribute_displayers[e.discriminant().into()].update_attribute(Some(e.clone()));
         }
     }
 }
@@ -1041,7 +1041,7 @@ impl<E: OrganizerElement> NodeTitleBar<E> {
                         let id = id.clone();
                         row = row.push(
                             view.map(move |m| OrganizerMessage::attribute_selected(m, id.clone())),
-                        )
+                        );
                     }
                 }
 
@@ -1073,7 +1073,7 @@ impl<E: OrganizerElement> NodeTitleBar<E> {
                         let id = id.clone();
                         row = row.push(
                             view.map(move |m| OrganizerMessage::attribute_selected(m, id.clone())),
-                        )
+                        );
                     }
                 }
                 row = row.push(
@@ -1115,7 +1115,7 @@ impl<E: OrganizerElement> NodeTitleBar<E> {
 
     fn update_attributes(&mut self, attributes: &[Option<E::Attribute>]) {
         for (i, a) in attributes.iter().enumerate() {
-            self.attribute_displayers[i].update_attribute(a.clone())
+            self.attribute_displayers[i].update_attribute(a.clone());
         }
     }
 }
@@ -1179,7 +1179,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                             container(c.view(theme, sections, selection, selected_nodes))
                                 .width(Length::FillPortion(8))
                         ];
-                        col = col.push(r)
+                        col = col.push(r);
                     }
                 }
                 col
@@ -1491,7 +1491,7 @@ impl<E: OrganizerElement> GroupContent<E> {
         match self {
             Self::Node { children, .. } => {
                 if id.len() > 1 {
-                    children[id[0]].add_at_id(&id[1..], content, from_top)
+                    children[id[0]].add_at_id(&id[1..], content, from_top);
                 } else {
                     let insertion_point = if from_top { id[0] + 1 } else { id[0] };
                     if !content_key {
@@ -1509,7 +1509,7 @@ impl<E: OrganizerElement> GroupContent<E> {
         match self {
             Self::Node { children, .. } => {
                 if id.len() > 1 {
-                    children[id[0]].add_key_at(key, &id[1..])
+                    children[id[0]].add_key_at(key, &id[1..]);
                 } else if !has_key {
                     let leaf = Self::leaf(key, vec![]);
                     children.insert(id[0], leaf);
@@ -1546,7 +1546,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                 if let Some(element) = get_element(sections, element) {
                     for attr in element.attributes() {
                         let attr_id: usize = attr.discriminant().into();
-                        attributes[attr_id] = Some(attr.clone())
+                        attributes[attr_id] = Some(attr.clone());
                     }
                 }
                 view.update_attributes(attributes);

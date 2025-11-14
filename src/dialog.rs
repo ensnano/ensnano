@@ -78,7 +78,7 @@ pub fn blocking_message(message: Cow<'static, str>, level: rfd::MessageLevel) ->
     let (snd, rcv) = mpsc::channel();
     thread::spawn(move || {
         futures::executor::block_on(msg);
-        log_err!(snd.send(()))
+        log_err!(snd.send(()));
     });
     MustAckMessage(rcv)
 }

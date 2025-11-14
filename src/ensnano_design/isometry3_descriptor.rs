@@ -212,59 +212,42 @@ impl Isometry3MissingMethods for Isometry3 {
         let mut isometry3 = Isometry3::identity();
 
         for item in descriptor.iter() {
-            match item {
-                Isometry3DescriptorItem::Identity => (),
-                Isometry3DescriptorItem::TranslateBy(u) => {
-                    isometry3 = isometry3.composed_with(Isometry3::translation(*u))
-                }
-                Isometry3DescriptorItem::TranslateX(dx) => {
-                    isometry3 =
+            isometry3 =
+                match item {
+                    Isometry3DescriptorItem::Identity => isometry3,
+                    Isometry3DescriptorItem::TranslateBy(u) => {
+                        isometry3.composed_with(Isometry3::translation(*u))
+                    }
+                    Isometry3DescriptorItem::TranslateX(dx) => {
                         isometry3.composed_with(Isometry3::translation(Vec3::new(*dx, 0., 0.)))
-                }
-                Isometry3DescriptorItem::TranslateY(dy) => {
-                    isometry3 =
+                    }
+                    Isometry3DescriptorItem::TranslateY(dy) => {
                         isometry3.composed_with(Isometry3::translation(Vec3::new(0., *dy, 0.)))
-                }
-                Isometry3DescriptorItem::TranslateZ(dz) => {
-                    isometry3 =
+                    }
+                    Isometry3DescriptorItem::TranslateZ(dz) => {
                         isometry3.composed_with(Isometry3::translation(Vec3::new(0., 0., *dz)))
-                }
-                Isometry3DescriptorItem::RotateFromToAround(u, v, c) => {
-                    isometry3 =
+                    }
+                    Isometry3DescriptorItem::RotateFromToAround(u, v, c) => {
                         isometry3.composed_with(Isometry3::rotation_from_to_around(*u, *v, *c))
-                }
-                Isometry3DescriptorItem::RotateFromTo(u, v) => {
-                    isometry3 = isometry3.composed_with(Isometry3::rotation_from_to_around(
-                        *u,
-                        *v,
-                        Vec3::zero(),
-                    ))
-                }
-                Isometry3DescriptorItem::RotateYZByAround(degree, c) => {
-                    isometry3 =
+                    }
+                    Isometry3DescriptorItem::RotateFromTo(u, v) => isometry3
+                        .composed_with(Isometry3::rotation_from_to_around(*u, *v, Vec3::zero())),
+                    Isometry3DescriptorItem::RotateYZByAround(degree, c) => {
                         isometry3.composed_with(Isometry3::rotation_yz_by_around(*degree, *c))
-                }
-                Isometry3DescriptorItem::RotateZXByAround(degree, c) => {
-                    isometry3 =
+                    }
+                    Isometry3DescriptorItem::RotateZXByAround(degree, c) => {
                         isometry3.composed_with(Isometry3::rotation_zx_by_around(*degree, *c))
-                }
-                Isometry3DescriptorItem::RotateXYByAround(degree, c) => {
-                    isometry3 =
+                    }
+                    Isometry3DescriptorItem::RotateXYByAround(degree, c) => {
                         isometry3.composed_with(Isometry3::rotation_xy_by_around(*degree, *c))
-                }
-                Isometry3DescriptorItem::RotateYZBy(degree) => {
-                    isometry3 = isometry3
-                        .composed_with(Isometry3::rotation_yz_by_around(*degree, Vec3::zero()))
-                }
-                Isometry3DescriptorItem::RotateZXBy(degree) => {
-                    isometry3 = isometry3
-                        .composed_with(Isometry3::rotation_zx_by_around(*degree, Vec3::zero()))
-                }
-                Isometry3DescriptorItem::RotateXYBy(degree) => {
-                    isometry3 = isometry3
-                        .composed_with(Isometry3::rotation_xy_by_around(*degree, Vec3::zero()))
-                }
-            }
+                    }
+                    Isometry3DescriptorItem::RotateYZBy(degree) => isometry3
+                        .composed_with(Isometry3::rotation_yz_by_around(*degree, Vec3::zero())),
+                    Isometry3DescriptorItem::RotateZXBy(degree) => isometry3
+                        .composed_with(Isometry3::rotation_zx_by_around(*degree, Vec3::zero())),
+                    Isometry3DescriptorItem::RotateXYBy(degree) => isometry3
+                        .composed_with(Isometry3::rotation_xy_by_around(*degree, Vec3::zero())),
+                };
         }
 
         isometry3

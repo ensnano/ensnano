@@ -137,12 +137,13 @@ where
         });
 
         match renderer {
-            iced::Renderer::Wgpu(wgpu_renderer) => wgpu_renderer
-                .with_translation(Vector::new(b.x, b.y), |renderer| {
-                    renderer.draw_primitive(Primitive::Custom(mesh))
-                }),
+            iced::Renderer::Wgpu(wgpu_renderer) => {
+                wgpu_renderer.with_translation(Vector::new(b.x, b.y), |renderer| {
+                    renderer.draw_primitive(Primitive::Custom(mesh));
+                });
+            }
             _ => panic!("Unhandled renderer"),
-        };
+        }
     }
 
     fn on_event(

@@ -31,7 +31,7 @@ impl ColorPicker {
     }
 
     pub fn change_hue(&mut self, hue: f64) {
-        self.hue = hue
+        self.hue = hue;
     }
 
     pub fn new_view(&self) -> crate::ensnano_iced::Element<'_, ColorMessage> {
@@ -170,12 +170,13 @@ mod hue_column {
             });
 
             match renderer {
-                Renderer::Wgpu(wgpu_renderer) => wgpu_renderer
-                    .with_translation(Vector::new(b.x, b.y), |renderer| {
-                        renderer.draw_primitive(Primitive::Custom(mesh))
-                    }),
+                Renderer::Wgpu(wgpu_renderer) => {
+                    wgpu_renderer.with_translation(Vector::new(b.x, b.y), |renderer| {
+                        renderer.draw_primitive(Primitive::Custom(mesh));
+                    });
+                }
                 _ => panic!("Unhandled renderer"),
-            };
+            }
         }
 
         fn on_event(
@@ -388,12 +389,13 @@ mod light_sat_square {
             });
 
             match renderer {
-                Renderer::Wgpu(wgpu_renderer) => wgpu_renderer
-                    .with_translation(Vector::new(b.x, b.y), |renderer| {
-                        renderer.draw_primitive(Primitive::Custom(mesh))
-                    }),
+                Renderer::Wgpu(wgpu_renderer) => {
+                    wgpu_renderer.with_translation(Vector::new(b.x, b.y), |renderer| {
+                        renderer.draw_primitive(Primitive::Custom(mesh));
+                    });
+                }
                 _ => panic!("Unhandled renderer"),
-            };
+            }
         }
 
         fn on_event(
@@ -606,15 +608,10 @@ mod color_square {
             });
 
             match renderer {
-                crate::ensnano_iced::Renderer::Wgpu(wgpu_renderer) => {
-                    wgpu_renderer.with_translation(Vector::new(b.x, b.y), |renderer| {
-                        //renderer.draw_primitive(Primitive::SolidMesh {
-                        //    buffers: Indexed { vertices, indices },
-                        //    size: b.size(),
-                        //})
-                        renderer.draw_primitive(Primitive::Custom(mesh))
-                    })
-                }
+                crate::ensnano_iced::Renderer::Wgpu(wgpu_renderer) => wgpu_renderer
+                    .with_translation(Vector::new(b.x, b.y), |renderer| {
+                        renderer.draw_primitive(Primitive::Custom(mesh));
+                    }),
                 _ => panic!("Unhandled renderer."),
             };
         }

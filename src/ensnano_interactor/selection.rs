@@ -416,7 +416,7 @@ pub fn extract_nucls_from_selection(selection: &[Selection]) -> Vec<Nucl> {
     let mut ret = vec![];
     for s in selection.iter() {
         if let Selection::Nucleotide(_, nucl) = s {
-            ret.push(*nucl)
+            ret.push(*nucl);
         }
     }
     ret

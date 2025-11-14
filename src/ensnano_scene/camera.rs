@@ -353,7 +353,7 @@ impl CameraController {
                 normal: (self.camera.borrow().position - origin),
             });
         }
-        self.pivot_point = point
+        self.pivot_point = point;
     }
 
     pub fn get_projection(
@@ -562,9 +562,9 @@ impl CameraController {
                 .and_then(|p| surface_info_provider.get_surface_info(p.clone())),
         ) {
             if self.scroll > 0. {
-                *dist_to_surface /= 1.1
+                *dist_to_surface /= 1.1;
             } else {
-                *dist_to_surface *= 1.1
+                *dist_to_surface *= 1.1;
             };
             let cam_pos = surface_info.position
                 + self.dist_to_surface.unwrap_or(DEFAULT_DIST_TO_SURFACE)
@@ -638,7 +638,7 @@ impl CameraController {
 
     pub fn set_surface_point_if_unset(&mut self, info: SurfaceInfo) {
         if self.surface_point.is_none() {
-            self.set_surface_point(info)
+            self.set_surface_point(info);
         }
     }
 
@@ -696,7 +696,7 @@ impl CameraController {
     }
 
     pub fn resize(&self, size: PhySize) {
-        self.projection.borrow_mut().resize(size.width, size.height)
+        self.projection.borrow_mut().resize(size.width, size.height);
     }
 
     /// Swing the camera around `self.pivot_point`. Assumes that the pivot_point is where the
@@ -746,7 +746,7 @@ impl CameraController {
         let new_up = self.camera.borrow().up_vec();
         let new_right = self.camera.borrow().right_vec();
         self.camera.borrow_mut().position =
-            point - dir * new_direction - up * new_up - right * new_right
+            point - dir * new_direction - up * new_up - right * new_right;
     }
 
     /// Modify the camera's rotor so that the camera looks at `point`.

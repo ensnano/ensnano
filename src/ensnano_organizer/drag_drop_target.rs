@@ -60,7 +60,7 @@ where
     }
 
     fn diff(&self, tree: &mut widget::Tree) {
-        self.content.as_widget().diff(tree)
+        self.content.as_widget().diff(tree);
     }
 
     fn size(&self) -> Size<Length> {
@@ -113,12 +113,12 @@ where
         match event {
             event::Event::Mouse(mouse::Event::ButtonReleased(mouse::Button::Left)) => {
                 if cursor_position.is_over(layout.bounds()) {
-                    shell.publish(OrganizerMessage::drag_dropped(self.identifier.clone()))
+                    shell.publish(OrganizerMessage::drag_dropped(self.identifier.clone()));
                 }
             }
             event::Event::Mouse(mouse::Event::ButtonPressed(mouse::Button::Left)) => {
                 if cursor_position.is_over(layout.bounds()) {
-                    shell.publish(OrganizerMessage::dragging(self.identifier.clone()))
+                    shell.publish(OrganizerMessage::dragging(self.identifier.clone()));
                 }
                 return event::Status::Captured;
             }
@@ -145,7 +145,7 @@ where
             layout.children().next().unwrap(),
             cursor_position,
             viewport,
-        )
+        );
     }
 
     fn overlay<'b>(

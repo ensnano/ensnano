@@ -59,15 +59,15 @@ impl crate::ensnano_gui::Requests for Requests {
     }
 
     fn set_scaffold_from_selection(&mut self) {
-        self.select_scaffold = Some(())
+        self.select_scaffold = Some(());
     }
 
     fn cancel_hyperboloid(&mut self) {
-        self.cancel_hyperboloid = Some(())
+        self.cancel_hyperboloid = Some(());
     }
 
     fn invert_scroll(&mut self, inverted: bool) {
-        self.set_invert_y_scroll = Some(inverted)
+        self.set_invert_y_scroll = Some(inverted);
     }
 
     fn resize_2d_helices(&mut self, all: bool) {
@@ -91,7 +91,7 @@ impl crate::ensnano_gui::Requests for Requests {
     }
 
     fn toggle_widget_basis(&mut self) {
-        self.toggle_widget_basis = Some(())
+        self.toggle_widget_basis = Some(());
     }
 
     fn set_dna_sequences_visibility(&mut self, visible: bool) {
@@ -99,7 +99,7 @@ impl crate::ensnano_gui::Requests for Requests {
     }
 
     fn download_staples(&mut self) {
-        self.keep_proceed.push_back(Action::DownloadStaplesRequest)
+        self.keep_proceed.push_back(Action::DownloadStaplesRequest);
     }
 
     fn set_scaffold_sequence(&mut self, shift: usize) {
@@ -116,11 +116,11 @@ impl crate::ensnano_gui::Requests for Requests {
     }
 
     fn finalize_hyperboloid(&mut self) {
-        self.finalize_hyperboloid = Some(())
+        self.finalize_hyperboloid = Some(());
     }
 
     fn stop_roll_simulation(&mut self) {
-        self.stop_roll = Some(())
+        self.stop_roll = Some(());
     }
 
     fn start_roll_simulation(&mut self, request: RollRequest) {
@@ -183,7 +183,7 @@ impl crate::ensnano_gui::Requests for Requests {
     }
 
     fn create_bezier_plane(&mut self) {
-        self.new_bezier_plane = Some(())
+        self.new_bezier_plane = Some(());
     }
 
     fn set_candidates_keys(&mut self, candidates: Vec<DesignElementKey>) {
@@ -212,11 +212,11 @@ impl crate::ensnano_gui::Requests for Requests {
     }
 
     fn change_split_mode(&mut self, split_mode: SplitMode) {
-        self.keep_proceed.push_back(Action::ToggleSplit(split_mode))
+        self.keep_proceed.push_back(Action::ToggleSplit(split_mode));
     }
 
     fn export(&mut self, export_type: ExportType) {
-        self.keep_proceed.push_back(Action::Export(export_type))
+        self.keep_proceed.push_back(Action::Export(export_type));
     }
 
     fn toggle_2d_view_split(&mut self) {
@@ -240,7 +240,7 @@ impl crate::ensnano_gui::Requests for Requests {
     }
 
     fn new_design(&mut self) {
-        self.keep_proceed.push_back(Action::NewDesign)
+        self.keep_proceed.push_back(Action::NewDesign);
     }
 
     fn save_as(&mut self) {
@@ -281,15 +281,15 @@ impl crate::ensnano_gui::Requests for Requests {
     }
 
     fn stop_simulations(&mut self) {
-        self.keep_proceed.push_back(Action::StopSimulation)
+        self.keep_proceed.push_back(Action::StopSimulation);
     }
 
     fn reset_simulations(&mut self) {
-        self.keep_proceed.push_back(Action::ResetSimulation)
+        self.keep_proceed.push_back(Action::ResetSimulation);
     }
 
     fn reload_file(&mut self) {
-        self.keep_proceed.push_back(Action::ReloadFile)
+        self.keep_proceed.push_back(Action::ReloadFile);
     }
 
     fn add_double_strand_on_new_helix(&mut self, parameters: Option<(isize, usize)>) {
@@ -312,11 +312,11 @@ impl crate::ensnano_gui::Requests for Requests {
         self.keep_proceed
             .push_back(Action::DesignOperation(DesignOperation::DeleteCamera(
                 cam_id,
-            )))
+            )));
     }
 
     fn select_camera(&mut self, cam_id: crate::ensnano_design::CameraId) {
-        self.keep_proceed.push_back(Action::SelectCamera(cam_id))
+        self.keep_proceed.push_back(Action::SelectCamera(cam_id));
     }
 
     fn set_camera_name(&mut self, camera_id: crate::ensnano_design::CameraId, name: String) {
@@ -324,7 +324,7 @@ impl crate::ensnano_gui::Requests for Requests {
             .push_back(Action::DesignOperation(DesignOperation::SetCameraName {
                 camera_id,
                 name,
-            }))
+            }));
     }
 
     fn set_suggestion_parameters(&mut self, param: SuggestionParameters) {
@@ -336,7 +336,7 @@ impl crate::ensnano_gui::Requests for Requests {
             .push_back(Action::DesignOperation(DesignOperation::SetGridPosition {
                 grid_id,
                 position,
-            }))
+            }));
     }
 
     fn set_grid_orientation(&mut self, grid_id: GridId, orientation: Rotor3) {
@@ -345,11 +345,11 @@ impl crate::ensnano_gui::Requests for Requests {
                 grid_id,
                 orientation,
             },
-        ))
+        ));
     }
 
     fn toggle_2d(&mut self) {
-        self.keep_proceed.push_back(Action::Toggle2D)
+        self.keep_proceed.push_back(Action::Toggle2D);
     }
 
     fn set_nb_turn(&mut self, grid_id: GridId, nb_turn: f32) {
@@ -357,7 +357,7 @@ impl crate::ensnano_gui::Requests for Requests {
             .push_back(Action::DesignOperation(DesignOperation::SetGridNbTurn {
                 grid_id,
                 nb_turn,
-            }))
+            }));
     }
 
     fn set_check_xover_parameters(&mut self, parameters: CheckXoversParameter) {
@@ -375,7 +375,7 @@ impl crate::ensnano_gui::Requests for Requests {
     fn set_rainbow_scaffold(&mut self, rainbow: bool) {
         self.keep_proceed.push_back(Action::DesignOperation(
             DesignOperation::SetRainbowScaffold(rainbow),
-        ))
+        ));
     }
 
     fn set_show_stereographic_camera(&mut self, show: bool) {
@@ -392,7 +392,7 @@ impl crate::ensnano_gui::Requests for Requests {
 
     fn set_all_helices_on_axis(&mut self, off_axis: bool) {
         // thick helices = normal helices; thin helices = only axis
-        self.set_all_helices_on_axis = Some(off_axis)
+        self.set_all_helices_on_axis = Some(off_axis);
     }
 
     fn start_twist_simulation(&mut self, grid_id: GridId) {
@@ -413,7 +413,7 @@ impl crate::ensnano_gui::Requests for Requests {
 
     fn set_expand_insertions(&mut self, expand: bool) {
         self.keep_proceed
-            .push_back(Action::SetExpandInsertions(expand))
+            .push_back(Action::SetExpandInsertions(expand));
     }
 
     fn set_insertion_length(&mut self, insertion_point: InsertionPoint, length: usize) {
@@ -422,7 +422,7 @@ impl crate::ensnano_gui::Requests for Requests {
                 length,
                 insertion_point,
             },
-        ))
+        ));
     }
 
     fn turn_path_into_grid(
@@ -432,7 +432,7 @@ impl crate::ensnano_gui::Requests for Requests {
     ) {
         self.keep_proceed.push_back(Action::DesignOperation(
             DesignOperation::TurnPathVerticesIntoGrid { path_id, grid_type },
-        ))
+        ));
     }
 
     fn make_bezier_path_cyclic(
@@ -442,15 +442,15 @@ impl crate::ensnano_gui::Requests for Requests {
     ) {
         self.keep_proceed.push_back(Action::DesignOperation(
             DesignOperation::MakeBezierPathCyclic { path_id, cyclic },
-        ))
+        ));
     }
 
     fn set_exporting(&mut self, exporting: bool) {
-        self.keep_proceed.push_back(Action::SetExporting(exporting))
+        self.keep_proceed.push_back(Action::SetExporting(exporting));
     }
 
     fn import_3d_object(&mut self) {
-        self.keep_proceed.push_back(Action::Import3DObject)
+        self.keep_proceed.push_back(Action::Import3DObject);
     }
 
     fn set_position_of_bezier_vertex(
@@ -463,25 +463,25 @@ impl crate::ensnano_gui::Requests for Requests {
                 vertex_id,
                 position,
             },
-        ))
+        ));
     }
 
     fn optimize_scaffold_shift(&mut self) {
-        self.keep_proceed.push_back(Action::OptimizeShift)
+        self.keep_proceed.push_back(Action::OptimizeShift);
     }
 
     fn start_revolution_relaxation(&mut self, desc: RevolutionSurfaceSystemDescriptor) {
         self.keep_proceed
-            .push_back(Action::RevolutionSimulation { desc })
+            .push_back(Action::RevolutionSimulation { desc });
     }
 
     fn finish_revolution_relaxation(&mut self) {
         self.keep_proceed
-            .push_back(Action::FinishRelaxationSimulation)
+            .push_back(Action::FinishRelaxationSimulation);
     }
 
     fn load_svg(&mut self) {
-        self.keep_proceed.push_back(Action::ImportSvg)
+        self.keep_proceed.push_back(Action::ImportSvg);
     }
 
     fn set_bezier_revolution_id(&mut self, id: Option<usize>) {
@@ -528,7 +528,7 @@ impl crate::ensnano_gui::Requests for Requests {
             }));
     }
     fn set_keyboard_priority(&mut self, priority: bool) {
-        self.set_keyboard_priority = Some(priority)
+        self.set_keyboard_priority = Some(priority);
     }
 }
 

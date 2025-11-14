@@ -190,26 +190,26 @@ impl From<Vec<DrawingAttribute>> for DrawingStyle {
         for att in attributes {
             match att {
                 DrawingAttribute::SphereRadius(r) => {
-                    ret.sphere_radius = ret.sphere_radius.or(Some(r))
+                    ret.sphere_radius = ret.sphere_radius.or(Some(r));
                 }
                 DrawingAttribute::BondRadius(r) => ret.bond_radius = ret.bond_radius.or(Some(r)),
                 DrawingAttribute::DoubleHelixAsCylinderRadius(r) => {
-                    ret.helix_as_cylinder_radius = ret.helix_as_cylinder_radius.or(Some(r))
+                    ret.helix_as_cylinder_radius = ret.helix_as_cylinder_radius.or(Some(r));
                 }
                 DrawingAttribute::SphereColor(c) => {
-                    ret.sphere_color = ret.sphere_color.or(Some(c.to_u32()))
+                    ret.sphere_color = ret.sphere_color.or(Some(c.to_u32()));
                 }
                 DrawingAttribute::BondColor(c) => {
-                    ret.bond_color = ret.bond_color.or(Some(c.to_u32()))
+                    ret.bond_color = ret.bond_color.or(Some(c.to_u32()));
                 }
                 DrawingAttribute::DoubleHelixAsCylinderColor(c) => {
-                    ret.helix_as_cylinder_color = ret.helix_as_cylinder_color.or(Some(c))
+                    ret.helix_as_cylinder_color = ret.helix_as_cylinder_color.or(Some(c));
                 }
                 DrawingAttribute::RainbowStrand(b) => {
-                    ret.rainbow_strand = ret.rainbow_strand.or(Some(b))
+                    ret.rainbow_strand = ret.rainbow_strand.or(Some(b));
                 }
                 DrawingAttribute::XoverColoring(b) => {
-                    ret.xover_coloring = ret.xover_coloring.or(Some(b))
+                    ret.xover_coloring = ret.xover_coloring.or(Some(b));
                 }
                 DrawingAttribute::WithCones(b) => ret.with_cones = ret.with_cones.or(Some(b)),
                 DrawingAttribute::ColorShade(c, hue_range) => {
@@ -218,10 +218,10 @@ impl From<Vec<DrawingAttribute>> for DrawingStyle {
                 }
                 DrawingAttribute::OnAxis(b) => ret.on_axis = ret.on_axis.or(Some(b)),
                 DrawingAttribute::Curvature(r_min, r_max) => {
-                    ret.curvature = ret.curvature.or(Some((r_min, r_max)))
+                    ret.curvature = ret.curvature.or(Some((r_min, r_max)));
                 }
                 DrawingAttribute::Torsion(t_min, t_max) => {
-                    ret.torsion = ret.torsion.or(Some((t_min, t_max)))
+                    ret.torsion = ret.torsion.or(Some((t_min, t_max)));
                 }
             }
         }

@@ -202,7 +202,7 @@ mod tests {
         let nb_turn = 0.1234;
         let omega = nb_turn_per_100_nt_to_omega(nb_turn, &p).unwrap();
         let Z = 100. * p.rise as f64;
-        assert!(((omega * Z) - (std::f64::consts::TAU * nb_turn)).abs() < 1e-5)
+        assert!(((omega * Z) - (std::f64::consts::TAU * nb_turn)).abs() < 1e-5);
     }
 
     #[ignore = "need fix"]

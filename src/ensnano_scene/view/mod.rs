@@ -15,34 +15,15 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
 //! The view module handles the drawing of the scene on texture. The scene can be drawn on the next
 //! frame to be displayed, or on a "fake texture" that is used to map pixels to objects.
 
-use self::gltf_drawer::Object3DDrawer;
-use super::camera;
-use super::{DrawArea, PhySize};
-use crate::ensnano_consts::*;
-use crate::ensnano_design::{Axis, grid::GridId, group_attributes::GroupPivot};
-use crate::ensnano_interactor::UnrootedRevolutionSurfaceDescriptor;
-use crate::ensnano_utils::{bindgroup_manager, text, texture};
-use camera::{Camera, CameraPtr, Projection, ProjectionPtr};
-use int_enum::IntEnum;
-use std::{cell::RefCell, collections::BTreeMap, rc::Rc};
-use texture::Texture;
-use ultraviolet::{Mat4, Rotor3, Vec3};
-use wgpu::util::DeviceExt as _;
-use wgpu::{Device, Queue};
-
-/// A `Uniform` is a structure that manages view and projection matrices.
-mod uniforms;
-pub use uniforms::Stereography;
-use uniforms::Uniforms;
 mod direction_cube;
 pub mod dna_obj;
 /// This modules defines a trait for drawing widget made of several meshes.
 mod drawable;
 mod gltf_drawer;
-pub use gltf_drawer::ExternalObjects;
 mod grid;
 mod grid_disc;
 /// A HandleDrawer draws the widget for translating objects
@@ -52,34 +33,52 @@ mod letter;
 /// A RotationWidget draws the widget for rotating objects
 mod rotation_widget;
 mod sheet_2d;
+/// A `Uniform` is a structure that manages view and projection matrices.
+mod uniforms;
 
-use super::maths_3d::{self, distance_to_cursor_with_penalty};
-use bindgroup_manager::{DynamicBindGroup, UniformBindGroup};
-use direction_cube::*;
 pub use dna_obj::{
     ConeInstance, Ellipsoid, PlainRectangleInstance, RawDnaInstance, SlicedTubeInstance,
     SphereInstance, StereographicSphereAndPlane, TubeInstance, TubeLidInstance,
 };
-use drawable::{Drawable, Drawer, Vertex};
+pub use gltf_drawer::ExternalObjects;
 pub use grid::{GridInstance, GridIntersection};
-use grid::{GridManager, GridTextures};
 pub use grid_disc::GridDisc;
-use handle_drawer::HandlesDrawer;
 pub use handle_drawer::{HandleColors, HandleDir, HandlesDescriptor};
 pub use instances_drawer::Instantiable;
-use instances_drawer::{InstanceDrawer, RawDrawer};
 pub use letter::LetterInstance;
-use maths_3d::unproject_point_on_line;
-use rotation_widget::RotationWidget;
 pub use rotation_widget::{
     AvailableRotationAxes, RotationMode, RotationWidgetDescriptor, RotationWidgetOrientation,
 };
 pub use sheet_2d::Sheet2D;
-use text::Letter;
+pub use uniforms::Stereography;
 
+use self::gltf_drawer::Object3DDrawer;
+use super::camera;
+use super::maths_3d::{self, distance_to_cursor_with_penalty};
+use super::{DrawArea, PhySize};
+use crate::ensnano_consts::*;
+use crate::ensnano_design::{Axis, grid::GridId, group_attributes::GroupPivot};
+use crate::ensnano_interactor::UnrootedRevolutionSurfaceDescriptor;
 use crate::ensnano_interactor::graphics::{
     Background3D, CutPlaneParameters, FogParameters, HBondDisplay, RenderingMode,
 };
+use crate::ensnano_utils::{bindgroup_manager, text, texture};
+use bindgroup_manager::{DynamicBindGroup, UniformBindGroup};
+use camera::{Camera, CameraPtr, Projection, ProjectionPtr};
+use direction_cube::*;
+use drawable::{Drawable, Drawer, Vertex};
+use grid::{GridManager, GridTextures};
+use handle_drawer::HandlesDrawer;
+use instances_drawer::{InstanceDrawer, RawDrawer};
+use int_enum::IntEnum;
+use maths_3d::unproject_point_on_line;
+use rotation_widget::RotationWidget;
+use std::{cell::RefCell, collections::BTreeMap, rc::Rc};
+use text::Letter;
+use texture::Texture;
+use ultraviolet::{Mat4, Rotor3, Vec3};
+use uniforms::Uniforms;
+use wgpu::{Device, Queue, util::DeviceExt as _};
 
 static MODEL_BG_ENTRY: &[wgpu::BindGroupLayoutEntry] = &[wgpu::BindGroupLayoutEntry {
     binding: 0,
@@ -734,7 +733,7 @@ impl View {
                         &mut render_pass,
                         viewer_bind_group,
                         self.models.get_bindgroup(),
-                    )
+                    );
                 }
             }
 
@@ -755,13 +754,13 @@ impl View {
                         &mut render_pass,
                         viewer_bind_group,
                         self.models.get_bindgroup(),
-                    )
+                    );
                 }
                 self.sheets_drawer.draw(
                     &mut render_pass,
                     viewer_bind_group,
                     self.models.get_bindgroup(),
-                )
+                );
             }
 
             if draw_type.wants_widget() && !stereographic {
@@ -966,7 +965,7 @@ impl View {
     }
 
     pub fn end_movement(&mut self) {
-        self.handle_drawers.end_movement()
+        self.handle_drawers.end_movement();
     }
 
     pub fn get_stereography(&self) -> Stereography {
@@ -1014,13 +1013,13 @@ impl View {
     /// Initialize the rotation that will be applied on objects affected by the rotation widget.
     pub fn init_rotation(&mut self, mode: RotationMode, x_coord: f32, y_coord: f32) {
         self.need_redraw = true;
-        self.rotation_widget.init_rotation(x_coord, y_coord, mode)
+        self.rotation_widget.init_rotation(x_coord, y_coord, mode);
     }
 
     /// Initialize the translation that will be applied on objects affected by the handle widget.
     pub fn init_translation(&mut self, x: f32, y: f32) {
         self.need_redraw = true;
-        self.handle_drawers.init_translation(x, y)
+        self.handle_drawers.init_translation(x, y);
     }
 
     /// Compute the rotation that needs to be applied to the objects affected by the rotation
@@ -1081,7 +1080,7 @@ impl View {
                     .unwrap_or(f32::INFINITY);
                     if d < opt {
                         opt = d;
-                        ret = i as isize - nucl_t0 as isize
+                        ret = i as isize - nucl_t0 as isize;
                     }
                 }
                 Some(ret - shift)
@@ -1117,11 +1116,11 @@ impl View {
     }
 
     pub fn set_candidate_grid(&mut self, grids: Vec<(usize, GridId)>) {
-        self.grid_manager.set_candidate_grid(grids)
+        self.grid_manager.set_candidate_grid(grids);
     }
 
     pub fn set_selected_grid(&mut self, grids: Vec<(usize, GridId)>) {
-        self.grid_manager.set_selected_grid(grids)
+        self.grid_manager.set_selected_grid(grids);
     }
 
     pub fn get_group_pivot(&self) -> Option<GroupPivot> {
@@ -1370,7 +1369,7 @@ impl DnaDrawers {
             }
         }
         if draw_options.show_stereographic_camera {
-            ret.push(&mut self.stereographic_sphere)
+            ret.push(&mut self.stereographic_sphere);
         }
         ret
     }

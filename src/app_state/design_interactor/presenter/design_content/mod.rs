@@ -292,10 +292,10 @@ impl DesignContent {
                     }
                 } else if let Domain::Insertion { nb_nucl, .. } = domain {
                     // Number of nucleotides inserted added
-                    sequence.push_str(&format!("**INSERTION {nb_nucl}**"))
+                    sequence.push_str(&format!("**INSERTION {nb_nucl}**"));
                 }
                 if let Some(d) = staple_domain {
-                    intervals.intervals.push(d.finish())
+                    intervals.intervals.push(d.finish());
                 }
             }
             let group_names = presenter.get_name_of_group_having_strand(*s_id);
@@ -898,7 +898,7 @@ impl DesignContent {
                 elements.push(DesignElement::Grid {
                     id: *id,
                     visible: grid_manager.get_visibility(*g_id),
-                })
+                });
             }
         }
 
@@ -1311,7 +1311,7 @@ impl DesignContent {
     }
 
     pub fn read_simulation_update(&mut self, update: &dyn SimulationUpdate) {
-        update.update_positions(self.nucl_collection.as_ref(), &mut self.space_position)
+        update.update_positions(self.nucl_collection.as_ref(), &mut self.space_position);
     }
 }
 

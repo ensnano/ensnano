@@ -556,7 +556,7 @@ impl Controller {
                 if let ControllerState::Simulating { interface, .. } = &ret.state {
                     interface.lock().unwrap().parameters_update = Some(new_parameters);
                 } else if let ControllerState::SimulatingGrids { interface, .. } = &ret.state {
-                    interface.lock().unwrap().parameters_update = Some(new_parameters)
+                    interface.lock().unwrap().parameters_update = Some(new_parameters);
                 } else {
                     return Err(ErrOperation::IncompatibleState(
                         "No simulation running".into(),
@@ -577,7 +577,7 @@ impl Controller {
                 ControllerState::Relaxing { interface, .. } => {
                     interface.lock().unwrap().kill();
                     design.additional_structure = None;
-                    ret.state = ControllerState::Normal
+                    ret.state = ControllerState::Normal;
                 }
                 ControllerState::RapierSimulating {
                     interface,
@@ -659,7 +659,7 @@ impl Controller {
                         twist.orientation = orientation;
                         twist.position = position;
                     }
-                })
+                });
             }
             h.grid_position = Some(HelixGridPosition {
                 grid: grid_id.to_grid_id(),
@@ -757,7 +757,7 @@ impl Controller {
                 DnaAttribute::Visible(b) => self.make_element_visible(&mut design, elt, b)?,
                 DnaAttribute::XoverGroup(g) => self.set_xover_group_of_elt(&mut design, elt, g)?,
                 DnaAttribute::LockedForSimulations(locked) => {
-                    self.set_lock_during_simulation(&mut design, elt, locked)?
+                    self.set_lock_during_simulation(&mut design, elt, locked)?;
                 }
             }
         }
@@ -835,7 +835,7 @@ impl Controller {
                 return Err(ErrOperation::HelixDoesNotExists(*h_id));
             }
             crate::ensnano_design::mutate_one_helix(design, *h_id, |h| {
-                h.locked_for_simulations = locked
+                h.locked_for_simulations = locked;
             });
         }
         Ok(())
@@ -986,7 +986,7 @@ impl Controller {
         match notification {
             InteractorNotification::FinishOperation => new_interactor.state = self.state.finish(),
             InteractorNotification::NewSelection => {
-                new_interactor.state = self.state.acknowledge_new_selection()
+                new_interactor.state = self.state.acknowledge_new_selection();
             }
         }
         new_interactor
@@ -1798,7 +1798,7 @@ impl Controller {
         let mut new_paths = design.bezier_paths.make_mut();
         for (vertex_id, new_vector_out) in new_vectors_out.into_iter() {
             if let Some(path) = new_paths.get_mut(&vertex_id.path_id) {
-                path.set_vector_out(vertex_id.vertex_id, new_vector_out, &design.bezier_planes)
+                path.set_vector_out(vertex_id.vertex_id, new_vector_out, &design.bezier_planes);
             }
         }
 
@@ -1935,7 +1935,7 @@ impl Controller {
                     h.isometry2d.as_mut()
                 };
                 if let Some(isometry) = isometry {
-                    isometry.append_translation(position - old_pos)
+                    isometry.append_translation(position - old_pos);
                 }
             }
         }
@@ -2225,7 +2225,7 @@ impl Controller {
             } else {
                 for builder in builders.iter_mut() {
                     let to = builder.get_moving_end_position() + delta;
-                    builder.move_to(to, &mut design, ignored_domains)
+                    builder.move_to(to, &mut design, ignored_domains);
                 }
             }
             *initializing = false;
@@ -2476,9 +2476,9 @@ impl Controller {
         }
 
         if let Some((ref d1, _)) = replace_last_dom {
-            new_domains.push(d1.clone())
+            new_domains.push(d1.clone());
         } else {
-            new_domains.push(strand.domains[last_dom].clone())
+            new_domains.push(strand.domains[last_dom].clone());
         }
         junctions.push(DomainJunction::Prime3);
 
@@ -2672,7 +2672,7 @@ impl Controller {
                 junctions.pop();
             } else {
                 if let Some(j) = junctions.iter_mut().last() {
-                    *j = junction_between_merge
+                    *j = junction_between_merge;
                 }
                 if let Some(Domain::Insertion { .. }) = strand3prime.domains.first() {
                     skip_domain = 1;
@@ -2944,7 +2944,7 @@ impl Controller {
                     source_nucl,
                     target_nucl,
                     e
-                )
+                );
             }
         }
         Ok(design)
@@ -2991,17 +2991,17 @@ impl Controller {
             (Some(true), Some(false)) => {
                 // We can xover directly
                 if source_id == target_id {
-                    Self::make_cycle(strands, source_id, true)?
+                    Self::make_cycle(strands, source_id, true)?;
                 } else {
-                    Self::merge_strands(strands, source_id, target_id)?
+                    Self::merge_strands(strands, source_id, target_id)?;
                 }
             }
             (Some(false), Some(true)) => {
                 // We can xover directly but we must reverse the xover
                 if source_id == target_id {
-                    Self::make_cycle(strands, target_id, true)?
+                    Self::make_cycle(strands, target_id, true)?;
                 } else {
-                    Self::merge_strands(strands, target_id, source_id)?
+                    Self::merge_strands(strands, target_id, source_id)?;
                 }
             }
             (Some(b), None) => {
@@ -3016,7 +3016,7 @@ impl Controller {
                         target_nucl,
                         target_3prime,
                         &mut self.color_idx,
-                    )?
+                    )?;
                 }
             }
             (None, Some(b)) => {
@@ -3030,7 +3030,7 @@ impl Controller {
                         source_nucl,
                         target_3prime,
                         &mut self.color_idx,
-                    )?
+                    )?;
                 }
             }
             (None, None) => {
