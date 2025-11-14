@@ -1,5 +1,6 @@
 use super::graphics::{DrawArea, GuiComponentType};
-use crate::ensnano_iced::{iced_wgpu::wgpu, iced_winit::winit::dpi::PhysicalPosition};
+use crate::ensnano_iced::iced_wgpu::wgpu;
+use winit::dpi::PhysicalPosition;
 
 /// An object mapping ElementType to DrawArea
 pub trait Multiplexer {

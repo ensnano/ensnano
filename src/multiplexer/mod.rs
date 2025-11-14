@@ -32,17 +32,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 pub mod layout_manager;
 
-use crate::ensnano_iced::{
-    UiSize,
-    iced_wgpu::wgpu,
-    iced_wgpu::wgpu::Device,
-    iced_winit::winit::{
-        dpi::{PhysicalPosition, PhysicalSize},
-        event::{ElementState, KeyEvent, Modifiers, WindowEvent},
-        keyboard::{Key, KeyLocation, ModifiersState, NamedKey},
-        window::{CursorIcon, Window},
-    },
-};
+use crate::ensnano_iced::{UiSize, iced_wgpu::wgpu, iced_wgpu::wgpu::Device};
 use crate::ensnano_interactor::{
     ActionMode, SelectionMode,
     graphics::{DrawArea, GuiComponentType, SplitMode},
@@ -53,6 +43,12 @@ use layout_manager::{LayoutTree, PixelRegion};
 use std::{
     rc::Rc,
     sync::{Arc, Mutex},
+};
+use winit::{
+    dpi::{PhysicalPosition, PhysicalSize},
+    event::{ElementState, KeyEvent, Modifiers, WindowEvent},
+    keyboard::{Key, KeyLocation, ModifiersState, NamedKey},
+    window::{CursorIcon, Window},
 };
 
 /// A structure that handles the division of the window into different `DrawArea`.

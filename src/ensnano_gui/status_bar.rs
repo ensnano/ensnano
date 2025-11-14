@@ -22,7 +22,6 @@ use crate::ensnano_iced::{
     helpers::*,
     iced_graphics::text::Paragraph,
     iced_runtime::{Command, Program},
-    iced_winit::winit::dpi::LogicalSize,
     theme::GuiBackground,
 };
 use crate::ensnano_interactor::{StrandBuildingStatus, operation::Operation};
@@ -31,6 +30,7 @@ use std::{
     collections::HashMap,
     sync::{Arc, Mutex},
 };
+use winit::dpi::LogicalSize;
 
 const GOLD_ORANGE: Color = Color::from_rgb(0.84, 0.57, 0.20);
 

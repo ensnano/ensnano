@@ -29,12 +29,12 @@ use crate::ensnano_iced::{
     fonts::{ENSNANO_FONT, MaterialIcon, MaterialIconStyle},
     helpers::*,
     iced_runtime::{Command, Program},
-    iced_winit::winit::dpi::LogicalSize,
     theme::GuiBackground,
 };
 use crate::ensnano_interactor::{ActionMode, SelectionMode};
 use iced::{Element, Length, Padding};
 use std::sync::{Arc, Mutex};
+use winit::dpi::LogicalSize;
 
 /// Top bar object
 pub struct TopBar<R: Requests, S: AppState> {

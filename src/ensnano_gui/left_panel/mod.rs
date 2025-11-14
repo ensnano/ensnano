@@ -31,13 +31,7 @@ use crate::ensnano_iced::{
     color_picker::ColorPickerMessage,
     iced_aw::widgets::{TabBarPosition, TabLabel, Tabs},
     iced_runtime::Program,
-    iced_winit::{
-        conversion,
-        winit::{
-            dpi::{LogicalPosition, LogicalSize},
-            event::Modifiers,
-        },
-    },
+    iced_winit::conversion,
     theme::GuiBackground,
 };
 use crate::ensnano_interactor::{
@@ -66,6 +60,10 @@ use tabs::{
     SequenceTab, SimulationTab, TabId,
 };
 use ultraviolet::Vec3;
+use winit::{
+    dpi::{LogicalPosition, LogicalSize},
+    event::Modifiers,
+};
 
 pub struct LeftPanel<R: Requests, S: AppState> {
     logical_size: LogicalSize<f64>,

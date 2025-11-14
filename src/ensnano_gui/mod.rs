@@ -42,7 +42,7 @@ use crate::ensnano_iced::{
     iced_graphics,
     iced_runtime::{Debug, program},
     iced_wgpu::{self, Backend, wgpu},
-    iced_winit::{conversion, winit},
+    iced_winit::conversion,
 };
 use crate::ensnano_interactor::{
     ActionMode, HyperboloidRequest, InsertionPoint, Multiplexer, PastingStatus,

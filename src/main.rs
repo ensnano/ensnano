@@ -141,7 +141,7 @@ use {
             iced_graphics::{Antialiasing, Viewport},
             iced_runtime::{Debug, program},
             iced_wgpu::{self, Settings},
-            iced_winit, theme,
+            theme,
         },
         ensnano_interactor::{
             ActionMode, CenterOfSelection, DesignOperation, DesignRotation, DesignTranslation,

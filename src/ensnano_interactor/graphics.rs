@@ -16,9 +16,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use crate::ensnano_iced::iced_winit::winit::dpi::{PhysicalPosition, PhysicalSize};
 use serde::{Deserialize, Serialize};
 use ultraviolet::Vec3;
+use winit::dpi::{PhysicalPosition, PhysicalSize};
 
 #[derive(Clone, Debug, PartialEq, Eq, Copy, Serialize, Deserialize, Default)]
 pub enum RenderingMode {

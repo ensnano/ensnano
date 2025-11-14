@@ -23,8 +23,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! coordinate conversion.
 
 use crate::ensnano_consts::MAX_ZOOM_2D;
-use crate::ensnano_iced::iced_winit::winit::{dpi::PhysicalPosition, event::MouseScrollDelta};
+use std::f32::consts::PI;
 use ultraviolet::{Rotor2, Vec2};
+use winit::{dpi::PhysicalPosition, event::MouseScrollDelta};
 
 /// A 2D camera for the FlatScene.
 pub struct Camera2D {
@@ -66,12 +67,12 @@ impl Camera2D {
     }
 
     pub fn tilt_right(&mut self) {
-        self.globals.tilt -= std::f32::consts::PI / 12. * self.rotation_sign();
+        self.globals.tilt -= PI / 12. * self.rotation_sign();
         self.end_movement();
     }
 
     pub fn tilt_left(&mut self) {
-        self.globals.tilt += std::f32::consts::PI / 12. * self.rotation_sign();
+        self.globals.tilt += PI / 12. * self.rotation_sign();
         self.end_movement();
     }
 
