@@ -28,11 +28,11 @@ use crate::ensnano_iced::{
     UiSize,
     fonts::{ENSNANO_FONT, MaterialIcon, MaterialIconStyle},
     helpers::*,
-    iced_runtime::{Command, Program},
     theme::GuiBackground,
 };
 use crate::ensnano_interactor::{ActionMode, SelectionMode};
 use iced::{Element, Length, Padding};
+use iced_runtime::{Command, Program};
 use std::sync::{Arc, Mutex};
 use winit::dpi::LogicalSize;
 

@@ -17,15 +17,11 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::{AppState, Requests};
-use crate::ensnano_iced::{
-    UiSize,
-    helpers::*,
-    iced_graphics::text::Paragraph,
-    iced_runtime::{Command, Program},
-    theme::GuiBackground,
-};
+use crate::ensnano_iced::{UiSize, helpers::*, theme::GuiBackground};
 use crate::ensnano_interactor::{StrandBuildingStatus, operation::Operation};
 use iced::{Alignment, Color, Element, Length};
+use iced_graphics::text::Paragraph;
+use iced_runtime::{Command, Program};
 use std::{
     collections::HashMap,
     sync::{Arc, Mutex},

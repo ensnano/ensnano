@@ -18,10 +18,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use {
     super::{AppState, Multiplexer},
-    crate::{
-        ensnano_iced::iced_wgpu::wgpu,
-        ensnano_interactor::{application::Application, graphics::GuiComponentType},
-    },
+    crate::ensnano_interactor::{application::Application, graphics::GuiComponentType},
     std::{
         collections::HashMap,
         sync::{Arc, Mutex},

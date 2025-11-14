@@ -21,7 +21,6 @@ mod text_drawer;
 pub use text_drawer::{Line, Sentence, TextDrawer};
 
 use crate::ensnano_consts::{SAMPLE_COUNT, TEXTURE_BINDING_ID};
-use crate::ensnano_iced::iced_wgpu::wgpu;
 use crate::ensnano_utils::{
     bindgroup_manager::DynamicBindGroup,
     text::{Letter, Vertex as CharVertex},

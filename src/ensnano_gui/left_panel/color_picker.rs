@@ -51,14 +51,6 @@ impl ColorPicker {
 
 /// A Iced Widget to select Hue.
 mod hue_column {
-    use crate::ensnano_iced::{
-        iced_graphics::{
-            Primitive,
-            color::pack,
-            mesh::{Indexed, Mesh, SolidVertex2D},
-        },
-        iced_wgpu,
-    };
     use color_space::{Hsv, Rgb};
     use iced::{
         Length, Point, Rectangle, Renderer, Size, Vector,
@@ -69,6 +61,12 @@ mod hue_column {
         event,
         mouse::Cursor,
     };
+    use iced_graphics::{
+        Primitive,
+        color::pack,
+        mesh::{Indexed, Mesh, SolidVertex2D},
+    };
+    use iced_wgpu::primitive::Custom;
 
     /// The internal state of a [HueColumnState].
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -164,7 +162,7 @@ mod hue_column {
                 }
             }
 
-            let mesh = iced_wgpu::primitive::Custom::Mesh(Mesh::Solid {
+            let mesh = Custom::Mesh(Mesh::Solid {
                 buffers: Indexed { vertices, indices },
                 size: b.size(),
             });
@@ -249,14 +247,7 @@ mod hue_column {
 
 /// A widget to select Lightness and Saturation values.
 mod light_sat_square {
-    use crate::ensnano_iced::{
-        iced_graphics::{
-            Primitive,
-            color::pack,
-            mesh::{Indexed, Mesh, SolidVertex2D},
-        },
-        iced_wgpu,
-    };
+    use color_space::{Hsv, Rgb};
     use iced::{
         Length, Point, Rectangle, Renderer, Size, Vector,
         advanced::{
@@ -266,8 +257,12 @@ mod light_sat_square {
         event,
         mouse::Cursor,
     };
-
-    use color_space::{Hsv, Rgb};
+    use iced_graphics::{
+        Primitive,
+        color::pack,
+        mesh::{Indexed, Mesh, SolidVertex2D},
+    };
+    use iced_wgpu::primitive::Custom;
 
     /// The internal state of a [LightSatSquare].
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -378,7 +373,7 @@ mod light_sat_square {
                 }
             }
 
-            let mesh = iced_wgpu::primitive::Custom::Mesh(Mesh::Solid {
+            let mesh = Custom::Mesh(Mesh::Solid {
                 size: b.size(),
                 buffers: Indexed { vertices, indices },
             });
@@ -474,14 +469,6 @@ mod light_sat_square {
 /// A widget to Visualize selected color.
 mod color_square {
     use super::Color;
-    use crate::ensnano_iced::{
-        iced_graphics::{
-            Primitive,
-            color::pack,
-            mesh::{Indexed, Mesh, SolidVertex2D},
-        },
-        iced_wgpu,
-    };
     use iced::{
         Length, Rectangle, Size, Vector,
         advanced::{
@@ -491,6 +478,12 @@ mod color_square {
         event,
         mouse::Cursor,
     };
+    use iced_graphics::{
+        Primitive,
+        color::pack,
+        mesh::{Indexed, Mesh, SolidVertex2D},
+    };
+    use iced_wgpu::primitive::Custom;
 
     /// The State of a [ColorSquare]
     #[derive(Default, Clone, Eq, PartialEq)]
@@ -592,7 +585,7 @@ mod color_square {
             ];
             let indices = vec![0, 1, 2, 1, 2, 3];
 
-            let mesh = iced_wgpu::primitive::Custom::Mesh(Mesh::Solid {
+            let mesh = Custom::Mesh(Mesh::Solid {
                 buffers: Indexed { vertices, indices },
                 size: b.size(),
             });

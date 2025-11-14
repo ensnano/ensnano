@@ -21,8 +21,8 @@ use crate::ensnano_consts::{ICON_HONEYCOMB_GRID, ICON_SQUARE_GRID};
 use crate::ensnano_iced::{
     fonts::{MaterialIcon, MaterialIconStyle, icon_to_char},
     helpers::*,
-    iced_aw::TabLabel,
 };
+use iced_aw::TabLabel;
 use std::marker::PhantomData;
 
 const NEW_BEZIER_PLANE_ICON: MaterialIcon = MaterialIcon::HistoryEdu;

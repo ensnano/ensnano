@@ -23,7 +23,6 @@ use crate::ensnano_iced::{
     UiSize,
     fonts::{MaterialIcon, icon_to_char},
     helpers::*,
-    iced_aw::TabLabel,
     theme,
 };
 use crate::ensnano_interactor::{
@@ -32,6 +31,7 @@ use crate::ensnano_interactor::{
     UnrootedRevolutionSurfaceDescriptor,
 };
 use iced::{Alignment, Command, Length};
+use iced_aw::TabLabel;
 use std::fmt;
 use ultraviolet::{Rotor3, Vec3};
 

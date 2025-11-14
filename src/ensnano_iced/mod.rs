@@ -6,11 +6,6 @@
 //!
 //! Therefore, in other crates, do not use Iced directly, but go through ensnano_iced.
 
-pub use iced_aw;
-pub use iced_graphics;
-pub use iced_runtime;
-pub use iced_wgpu;
-
 pub type Element<'a, Message, Theme = iced::Theme, Renderer = iced::Renderer> =
     iced::Element<'a, Message, Theme, Renderer>;
 

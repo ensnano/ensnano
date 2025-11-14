@@ -23,8 +23,8 @@ use crate::ensnano_design::ensnano_version;
 use crate::ensnano_iced::{
     fonts::{MaterialIcon, icon_to_char},
     helpers::*,
-    iced_aw::TabLabel,
 };
+use iced_aw::TabLabel;
 use std::marker::PhantomData;
 
 pub struct ParametersTab<State: AppState> {

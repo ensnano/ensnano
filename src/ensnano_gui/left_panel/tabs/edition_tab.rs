@@ -24,9 +24,9 @@ use crate::ensnano_iced::{
     color_picker::{ColorPicker, ColorPickerMessage},
     fonts::{MaterialIcon, icon_to_char},
     helpers::*,
-    iced_aw::TabLabel,
 };
 use iced::Command;
+use iced_aw::TabLabel;
 use std::marker::PhantomData;
 
 pub struct EditionTab<State: AppState> {

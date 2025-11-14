@@ -37,12 +37,7 @@ pub use left_panel::{
 pub use status_bar::{ClipboardContent, CurrentOpState};
 pub use top_bar::TopBar;
 
-use crate::ensnano_iced::{
-    fonts::INTER_REGULAR_FONT,
-    iced_graphics,
-    iced_runtime::{Debug, program},
-    iced_wgpu::{self, Backend, wgpu},
-};
+use crate::ensnano_iced::fonts::INTER_REGULAR_FONT;
 use crate::ensnano_interactor::{
     ActionMode, HyperboloidRequest, InsertionPoint, Multiplexer, PastingStatus,
     RapierSimulationRequest, RevolutionSurfaceSystemDescriptor, RollRequest, ScaffoldInfo,
@@ -70,6 +65,8 @@ use iced::{
     event::{self, Event},
     keyboard,
 };
+use iced_runtime::{Debug, program};
+use iced_wgpu::Backend;
 use status_bar::StatusBar;
 use std::{
     collections::{BTreeSet, HashMap, VecDeque},

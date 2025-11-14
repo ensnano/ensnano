@@ -19,7 +19,6 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::Selection;
 use super::graphics::*;
 use crate::ensnano_design::group_attributes::GroupPivot;
-use crate::ensnano_iced::iced_wgpu::wgpu;
 use std::{path::Path, sync::Arc, time::Duration};
 use ultraviolet::{Rotor3, Vec3};
 use winit::{

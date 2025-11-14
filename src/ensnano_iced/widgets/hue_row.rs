@@ -32,7 +32,7 @@ use iced_graphics::{
     color::pack,
     mesh::{Indexed, Mesh, SolidVertex2D},
 };
-use iced_wgpu;
+use iced_wgpu::primitive::Custom;
 use std::marker::PhantomData;
 
 const DEFAULT_SIZE: f32 = 90.0;
@@ -160,7 +160,7 @@ impl<Message, Theme> Widget<Message, Theme, iced::Renderer>
             }
         }
 
-        let mesh = iced_wgpu::primitive::Custom::Mesh(Mesh::Solid {
+        let mesh = Custom::Mesh(Mesh::Solid {
             buffers: Indexed { vertices, indices },
             size: b.size(),
         });

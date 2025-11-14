@@ -14,7 +14,7 @@ use iced_graphics::{
     color::pack,
     mesh::{Indexed, Mesh, SolidVertex2D},
 };
-use iced_wgpu as wgpu;
+use iced_wgpu::primitive::Custom;
 use std::marker::PhantomData;
 
 const DEFAULT_SIZE: f32 = 90.0;
@@ -131,7 +131,7 @@ where
         ];
         let indices = vec![0, 1, 2, 1, 2, 3];
 
-        let mesh = wgpu::primitive::Custom::Mesh(Mesh::Solid {
+        let mesh = Custom::Mesh(Mesh::Solid {
             buffers: Indexed { vertices, indices },
             size: b.size(),
         });

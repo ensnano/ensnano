@@ -1,5 +1,4 @@
 use super::graphics::{DrawArea, GuiComponentType};
-use crate::ensnano_iced::iced_wgpu::wgpu;
 use winit::dpi::PhysicalPosition;
 
 /// An object mapping ElementType to DrawArea

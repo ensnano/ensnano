@@ -136,13 +136,7 @@ use {
         ensnano_exports::{ExportResult, ExportType},
         ensnano_flatscene::FlatScene,
         ensnano_gui::{AppState as _, ColorOverlay, Gui, IcedMessages, OverlayType, TopBarState},
-        ensnano_iced::{
-            UiSize, fonts,
-            iced_graphics::{Antialiasing, Viewport},
-            iced_runtime::{Debug, program},
-            iced_wgpu::{self, Settings},
-            theme,
-        },
+        ensnano_iced::{UiSize, fonts, theme},
         ensnano_interactor::{
             ActionMode, CenterOfSelection, DesignOperation, DesignRotation, DesignTranslation,
             InteractorDesignReaderExt, IsometryTarget, PastingStatus,
@@ -168,6 +162,9 @@ use {
         advanced::{clipboard, renderer},
         mouse::Cursor,
     },
+    iced_graphics::{Antialiasing, Viewport},
+    iced_runtime::{Debug, program},
+    iced_wgpu::Settings,
     multiplexer::Multiplexer,
     scheduler::Scheduler,
     std::{
