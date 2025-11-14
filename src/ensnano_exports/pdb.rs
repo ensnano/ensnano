@@ -729,7 +729,7 @@ pub(super) fn pdb_export(
             } = d
             {
                 for (insertion_idx, position) in instantiation.pos().iter().enumerate() {
-                    let ox_nucl = crate::ensnano_exports::oxdna::free_oxdna_nucl(
+                    let ox_nucl = super::oxdna::free_oxdna_nucl(
                         *position,
                         previous_position,
                         insertion_idx,

@@ -33,11 +33,10 @@ mod tube_spiral;
 mod twist;
 
 use super::{Helix, HelixParameters};
-use crate::ensnano_design::grid::*;
 use crate::ensnano_design::{
-    BezierPathData, BezierPathId,
+    AdditionalHelix2D, BezierPathData, BezierPathId,
     curves::chebyshev::{PolynomialCoordinates, PolynomialCoordinates_},
-    grid::{Edge, GridPosition},
+    grid::{Edge, GridPosition, *},
     utils::vec_to_dvec,
 };
 pub use bezier::InstantiatedPiecewiseBezier;
@@ -47,6 +46,7 @@ pub use bezier::{
     BezierControlPoint, BezierEnd, BezierEndCoordinates, CubicBezierConstructor,
     CubicBezierControlPoint,
 };
+use rand::prelude::*;
 pub use revolution::{InterpolatedCurveDescriptor, InterpolationDescriptor};
 use serde::{Deserialize, Serialize};
 pub use sphere_concentric_circle::{
@@ -56,6 +56,7 @@ pub use sphere_concentric_circle::{
 pub use sphere_like_spiral::SphereLikeSpiralDescriptor;
 pub use spiral_cylinder::SpiralCylinderDescriptor;
 use std::collections::HashMap;
+use std::f64::consts::{PI, TAU};
 use std::sync::Arc;
 pub use supertwist::SuperTwist;
 pub use time_nucl_map::AbscissaConverter;
@@ -425,8 +426,6 @@ impl Curve {
         theta: f64,
         helix_parameters: &HelixParameters,
     ) -> Option<DVec3> {
-        use std::f64::consts::{PI, TAU};
-
         if self.geometry.legacy() {
             return self.legacy_nucl_pos(n, forward, theta, helix_parameters);
         }
@@ -519,22 +518,17 @@ impl Curve {
         self.nucl_t0
     }
 
-    pub fn update_additional_segments(
-        &self,
-        segments: &mut Vec<crate::ensnano_design::helices::AdditionalHelix2D>,
-    ) {
+    pub fn update_additional_segments(&self, segments: &mut Vec<AdditionalHelix2D>) {
         segments.truncate(self.additional_segment_left.len());
         let mut iter = self
             .additional_segment_left
             .iter()
             .enumerate()
-            .map(
-                |(segment_idx, s)| crate::ensnano_design::helices::AdditionalHelix2D {
-                    left: *s as isize - self.nucl_t0 as isize,
-                    additional_isometry: self.geometry.additional_isometry(segment_idx),
-                    additional_symmetry: None,
-                },
-            );
+            .map(|(segment_idx, s)| AdditionalHelix2D {
+                left: *s as isize - self.nucl_t0 as isize,
+                additional_isometry: self.geometry.additional_isometry(segment_idx),
+                additional_symmetry: None,
+            });
 
         for s in segments.iter_mut() {
             if let Some(i) = iter.next() {
@@ -1042,7 +1036,6 @@ impl InstantiatedPiecewiseBezierDescriptor {
         t_min: Option<f64>,
         t_max: Option<f64>,
     ) -> Self {
-        use rand::prelude::*;
         let mut rng = rand::thread_rng();
         log::debug!("Instantiating {points:?}");
         let instantiator = PieceWiseBezierInstantiator_ {

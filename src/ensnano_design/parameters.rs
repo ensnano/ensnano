@@ -20,7 +20,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::codenano;
 use serde::{Deserialize, Serialize};
-use std::f32::consts::{SQRT_2, TAU};
+use std::f32::consts::{PI, SQRT_2, TAU};
 
 /// DNA geometric parameters.
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
@@ -56,7 +56,7 @@ macro_rules! parameters_from_p_stick_model {
     ($p_stick_model: expr) => {
         HelixParameters {
             groove_angle: ($p_stick_model).groove_angle
-                - 2.0 * std::f32::consts::PI / ($p_stick_model).bases_per_turn,
+                - 2.0 * PI / ($p_stick_model).bases_per_turn,
             inclination: ($p_stick_model).inclination - ($p_stick_model).rise,
             ..($p_stick_model)
         }
@@ -68,14 +68,14 @@ macro_rules! parameters_from_p_stick_model_plus_or_minus {
         if ($p_stick_model).inclination >= 0.0 {
             HelixParameters {
                 groove_angle: ($p_stick_model).groove_angle
-                    - 2.0 * std::f32::consts::PI / ($p_stick_model).bases_per_turn,
+                    - 2.0 * PI / ($p_stick_model).bases_per_turn,
                 inclination: ($p_stick_model).inclination - ($p_stick_model).rise,
                 ..($p_stick_model)
             }
         } else {
             HelixParameters {
                 groove_angle: ($p_stick_model).groove_angle
-                    + 2.0 * std::f32::consts::PI / ($p_stick_model).bases_per_turn,
+                    + 2.0 * PI / ($p_stick_model).bases_per_turn,
                 inclination: ($p_stick_model).inclination + ($p_stick_model).rise,
                 ..($p_stick_model)
             }
@@ -96,7 +96,7 @@ impl HelixParameters {
             rise: 0.332,
             helix_radius,
             bases_per_turn: 10.44,
-            groove_angle: 170.4 / 180.0 * std::f32::consts::PI,
+            groove_angle: 170.4 / 180.0 * PI,
             inclination: 0.375,
             // From Paul's paper.
             inter_helix_gap: Self::INTER_CENTER_GAP - 2. * helix_radius,
@@ -119,7 +119,7 @@ impl HelixParameters {
             helix_radius,
             rise: 0.281,
             inclination: -0.745,
-            groove_angle: 139.9 / 180.0 * std::f32::consts::PI,
+            groove_angle: 139.9 / 180.0 * PI,
             bases_per_turn: 11.0,
             inter_helix_gap: Self::INTER_CENTER_GAP - 2. * helix_radius,
         }
@@ -153,11 +153,11 @@ impl HelixParameters {
         let helix_diameter = 2.75; // nm
         let helix_radius = helix_diameter / 2.0; // nm
         HelixParameters {
-            rise: 0.34,                                         // nm
-            helix_radius,                                       // nm
-            bases_per_turn: 11.9,                               // bp per turn
-            groove_angle: 120.0 / 180.0 * std::f32::consts::PI, // rad
-            inclination: 0.0,                                   // nm
+            rise: 0.34,                       // nm
+            helix_radius,                     // nm
+            bases_per_turn: 11.9,             // bp per turn
+            groove_angle: 120.0 / 180.0 * PI, // rad
+            inclination: 0.0,                 // nm
             // From Paul's paper.
             inter_helix_gap: 0.70, // nm
         }

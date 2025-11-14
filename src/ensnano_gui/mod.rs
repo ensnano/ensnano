@@ -29,6 +29,7 @@ pub mod left_panel;
 pub mod status_bar;
 pub mod top_bar;
 
+use iced::advanced::renderer;
 pub use left_panel::{
     ColorOverlay, CurveDescriptorBuilder, CurveDescriptorParameter, InstantiatedParameter,
     LeftPanel, RevolutionScaling, RigidBodyParametersRequest,
@@ -36,13 +37,8 @@ pub use left_panel::{
 pub use status_bar::{ClipboardContent, CurrentOpState};
 pub use top_bar::TopBar;
 
-use crate::ensnano_design::{
-    BezierPathId, BezierVertexId, CameraId, HelixParameters, Nucl,
-    elements::{DesignElement, DesignElementKey, DnaAttribute},
-    grid::{GridId, GridTypeDescr},
-};
 use crate::ensnano_iced::{
-    fonts,
+    fonts::INTER_REGULAR_FONT,
     iced::{
         self, Renderer, Size,
         advanced::{clipboard, mouse},
@@ -67,6 +63,14 @@ use crate::ensnano_interactor::{
     operation::Operation,
 };
 use crate::ensnano_organizer::tree::{GroupId, OrganizerTree};
+use crate::{
+    ensnano_design::{
+        BezierPathId, BezierVertexId, CameraId, HelixParameters, Nucl,
+        elements::{DesignElement, DesignElementKey, DnaAttribute},
+        grid::{GridId, GridTypeDescr},
+    },
+    ensnano_iced::fonts::load_fonts,
+};
 use status_bar::StatusBar;
 use std::{
     collections::{BTreeSet, HashMap, VecDeque},
@@ -318,7 +322,7 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
         cursor: iced::mouse::Cursor,
         renderer: &mut Renderer,
         theme: &iced::Theme,
-        style: &iced::advanced::renderer::Style,
+        style: &renderer::Style,
         debug: &mut Debug,
     ) {
         let mut clipboard = clipboard::Null;
@@ -518,7 +522,7 @@ impl<R: Requests, S: AppState> GuiComponent<R, S> {
         &mut self,
         window: &Window,
         theme: &iced::Theme,
-        style: &iced::advanced::renderer::Style,
+        style: &renderer::Style,
         multiplexer: &dyn Multiplexer,
         resized: bool,
     ) -> bool {
@@ -613,7 +617,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
     ) -> Self {
         let wgpu_settings = iced_wgpu::Settings {
             antialiasing: Some(iced_graphics::Antialiasing::MSAAx4),
-            default_font: crate::ensnano_gui::fonts::INTER_REGULAR_FONT,
+            default_font: INTER_REGULAR_FONT,
             default_text_size: iced::Pixels(parameters.ui_size.main_text()),
             ..Default::default()
         };
@@ -663,7 +667,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
             self.wgpu_settings.default_font,
             self.wgpu_settings.default_text_size,
         ));
-        crate::ensnano_gui::fonts::load_fonts(&mut top_bar_renderer);
+        load_fonts(&mut top_bar_renderer);
         self.components.insert(
             GuiComponentType::TopBar,
             GuiComponent::top_bar(
@@ -687,7 +691,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
             self.wgpu_settings.default_font,
             self.wgpu_settings.default_text_size,
         ));
-        crate::ensnano_gui::fonts::load_fonts(&mut left_panel_renderer);
+        load_fonts(&mut left_panel_renderer);
         self.components.insert(
             GuiComponentType::LeftPanel,
             GuiComponent::left_panel(
@@ -784,7 +788,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
         &mut self,
         window: &Window,
         theme: &iced::Theme,
-        style: &iced::advanced::renderer::Style,
+        style: &renderer::Style,
         multiplexer: &dyn Multiplexer,
     ) -> bool {
         let mut ret = false;
@@ -799,7 +803,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
         &mut self,
         multiplexer: &dyn Multiplexer,
         theme: &iced::Theme,
-        style: &iced::advanced::renderer::Style,
+        style: &renderer::Style,
         window: &Window,
     ) {
         for elements in self.components.values_mut() {

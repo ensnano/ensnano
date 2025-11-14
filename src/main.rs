@@ -132,7 +132,7 @@ use {
             APP_NAME, ENS_BACKUP_EXTENSION, ENS_UNNAMED_FILE_NAME, NO_DESIGN_TITLE,
             SEC_BETWEEN_BACKUPS, SEC_PER_YEAR, WELCOME_MSG,
         },
-        ensnano_design::{Camera, grid::GridId},
+        ensnano_design::{Camera, grid::GridId, group_attributes::GroupPivot},
         ensnano_exports::{ExportResult, ExportType},
         ensnano_flatscene::FlatScene,
         ensnano_gui::{AppState as _, ColorOverlay, Gui, IcedMessages, OverlayType, TopBarState},
@@ -153,8 +153,8 @@ use {
             app_state_parameters::{
                 AppStateParameters, CheckXoversParameter, SuggestionParameters,
             },
-            application::{Application, Notification},
-            graphics::{Background3D, GuiComponentType, RenderingMode, SplitMode},
+            application::{Application, Camera3D, Notification},
+            graphics::{Background3D, GuiComponentType, HBondDisplay, RenderingMode, SplitMode},
             operation::Operation,
         },
         ensnano_organizer::tree::GroupId,
@@ -166,6 +166,7 @@ use {
     controller::{
         Controller, LoadDesignError, SaveDesignError, download_staples::StaplesDownloader,
     },
+    iced::advanced::{clipboard, renderer},
     multiplexer::Multiplexer,
     scheduler::Scheduler,
     std::{
@@ -247,7 +248,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Initialize winit. Create an event_loop and a window.
     let event_loop = EventLoop::new()?;
-    let window = Arc::new(winit::window::Window::new(&event_loop)?);
+    let window = Arc::new(Window::new(&event_loop)?);
     window.set_title(PROGRAM_NAME);
     window.set_maximized(true);
     window.set_min_inner_size(Some(PhySize::new(500, 500)));
@@ -434,7 +435,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         OverlayManager::new(Arc::clone(&requests), &window, &mut overlay_renderer);
 
     // Run event loop
-    let mut last_render_time = std::time::Instant::now();
+    let mut last_render_time = Instant::now();
     let mut mouse_interaction = iced::mouse::Interaction::Pointer;
 
     main_state
@@ -905,7 +906,7 @@ impl OverlayManager {
         &mut self,
         renderer: &mut iced::Renderer,
         theme: &iced::Theme,
-        style: &iced::advanced::renderer::Style,
+        style: &renderer::Style,
         resized: bool,
         multiplexer: &Multiplexer,
         window: &Window,
@@ -920,7 +921,7 @@ impl OverlayManager {
             } else {
                 iced::mouse::Cursor::Unavailable
             };
-            let mut clipboard = iced::advanced::clipboard::Null;
+            let mut clipboard = clipboard::Null;
             match overlay {
                 OverlayType::Color => {
                     if !self.color_state.is_queue_empty() || resized {
@@ -988,7 +989,7 @@ impl OverlayManager {
         window: &Window,
         renderer: &mut iced::Renderer,
         theme: &iced::Theme,
-        style: &iced::advanced::renderer::Style,
+        style: &renderer::Style,
     ) -> bool {
         let mut ret = false;
         for (n, overlay) in self.overlay_types.iter().enumerate() {
@@ -1001,7 +1002,7 @@ impl OverlayManager {
             } else {
                 iced::mouse::Cursor::Unavailable
             };
-            let mut clipboard = iced::advanced::clipboard::Null;
+            let mut clipboard = clipboard::Null;
             match overlay {
                 OverlayType::Color => {
                     if !self.color_state.is_queue_empty() {
@@ -1574,7 +1575,7 @@ impl MainState {
         self.modify_state(|s| s.with_show_stereographic_camera(show), None);
     }
 
-    fn set_show_h_bonds(&mut self, show: crate::ensnano_interactor::graphics::HBondDisplay) {
+    fn set_show_h_bonds(&mut self, show: HBondDisplay) {
         self.modify_state(|s| s.with_show_h_bonds(show), None);
     }
 
@@ -1674,7 +1675,7 @@ impl MainState {
         }
     }
 
-    fn get_camera_3d(&self) -> crate::ensnano_interactor::application::Camera3D {
+    fn get_camera_3d(&self) -> Camera3D {
         self.applications
             .get(&GuiComponentType::Scene)
             .expect("Could not get scene element")
@@ -1687,7 +1688,7 @@ impl MainState {
             .0
     }
 
-    fn set_camera_3d(&self, camera: crate::ensnano_interactor::application::Camera3D) {
+    fn set_camera_3d(&self, camera: Camera3D) {
         self.applications
             .get(&GuiComponentType::Scene)
             .expect("Could not get scene element")
@@ -1763,13 +1764,11 @@ impl MainStateView<'_> {
             .get_design_interactor()
             .get_favorite_camera()
         {
-            self.notify_apps(Notification::TeleportCamera(
-                crate::ensnano_interactor::application::Camera3D {
-                    position,
-                    orientation,
-                    pivot_position: None,
-                },
-            ));
+            self.notify_apps(Notification::TeleportCamera(Camera3D {
+                position,
+                orientation,
+                pivot_position: None,
+            }));
         } else {
             self.main_state.wants_fit = true;
         }
@@ -2022,10 +2021,7 @@ impl MainStateView<'_> {
         }
     }
 
-    fn set_current_group_pivot(
-        &mut self,
-        pivot: crate::ensnano_design::group_attributes::GroupPivot,
-    ) {
+    fn set_current_group_pivot(&mut self, pivot: GroupPivot) {
         if let Some(group_id) = self.main_state.app_state.get_current_group_id() {
             self.apply_operation(DesignOperation::SetGroupPivot { group_id, pivot });
         } else {

@@ -18,6 +18,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::*;
 use crate::ensnano_design::NuclCollection;
+use std::sync::mpsc;
 
 macro_rules! log_err {
     ($x:expr) => {
@@ -94,8 +95,8 @@ pub fn optimize_shift(
     nucl_collection: Arc<NuclCollection>,
     chanel_reader: &mut ChannelReader,
 ) {
-    let (progress_snd, progress_rcv) = std::sync::mpsc::channel();
-    let (result_snd, result_rcv) = std::sync::mpsc::channel();
+    let (progress_snd, progress_rcv) = mpsc::channel();
+    let (result_snd, result_rcv) = mpsc::channel();
     chanel_reader.attach_result_chanel(result_rcv);
     chanel_reader.attach_progress_chanel(progress_rcv);
     std::thread::spawn(move || {
@@ -107,7 +108,7 @@ pub fn optimize_shift(
 
 fn get_shift_optimization_result(
     design: &Design,
-    progress_channel: std::sync::mpsc::Sender<f32>,
+    progress_channel: mpsc::Sender<f32>,
     nucl_collection: &NuclCollection,
 ) -> ShiftOptimizationResult {
     let mut best_score = usize::MAX;

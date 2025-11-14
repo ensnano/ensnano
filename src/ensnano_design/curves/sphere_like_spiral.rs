@@ -82,7 +82,7 @@ impl SphereLikeSpiral {
     }
 
     fn nb_turn(&self) -> f64 {
-        std::f64::consts::PI * self.radius / self.dist_turn()
+        PI * self.radius / self.dist_turn()
     }
 
     fn orientation(&self) -> f64 {

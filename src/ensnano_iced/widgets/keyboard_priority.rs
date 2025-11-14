@@ -27,7 +27,7 @@ use iced::{
         widget::{self, Widget, operation::Focusable},
     },
     event, overlay,
-    widget::text_input,
+    widget::{container, text_input},
 };
 use iced_graphics::text::Paragraph;
 
@@ -132,7 +132,7 @@ where
         renderer: &Renderer,
         limits: &layout::Limits,
     ) -> layout::Node {
-        iced::widget::container::layout(
+        container::layout(
             limits,
             self.width,
             self.height,

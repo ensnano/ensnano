@@ -19,14 +19,18 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::{
     BezierPathId, HelixParameters, Nucl, codenano,
     curves::*,
-    design_operations::ErrOperation,
+    design_operations::ErrDesignOperation,
     grid::{Grid, GridData, HelixGridPosition, *},
     scadnano::*,
     utils::*,
 };
 use ahash::HashMap;
 use serde::{Deserialize, Serialize};
-use std::{collections::BTreeMap, f32::consts::TAU, sync::Arc};
+use std::{
+    collections::BTreeMap,
+    f32::consts::{FRAC_PI_2, PI, TAU},
+    sync::Arc,
+};
 use ultraviolet::{DRotor3, DVec3, Isometry2, Mat4, Rotor2, Rotor3, Vec2, Vec3};
 
 /// A structure mapping helices identifier to `Helix` objects
@@ -354,11 +358,7 @@ impl Helix {
         })
     }
 
-    pub fn translated_by(
-        &self,
-        edge: crate::ensnano_design::grid::Edge,
-        grid_data: &GridData,
-    ) -> Option<Self> {
+    pub fn translated_by(&self, edge: super::grid::Edge, grid_data: &GridData) -> Option<Self> {
         log::debug!("attempt to translate helix");
         let grid_position = self
             .grid_position
@@ -521,7 +521,7 @@ impl Helix {
         &self,
         _bezier_point: BezierControlPoint,
         _translation: GridAwareTranslation,
-    ) -> Result<(), ErrOperation> {
+    ) -> Result<(), ErrDesignOperation> {
         /*
         let point = match bezier_point {
             BezierControlPoint::PiecewiseBezier(n) => {
@@ -557,10 +557,10 @@ impl Helix {
         grid_manager: &GridData,
         grid_pos_start: HelixGridPosition,
         grid_pos_end: HelixGridPosition,
-    ) -> Result<Self, ErrOperation> {
+    ) -> Result<Self, ErrDesignOperation> {
         let position = grid_manager
             .pos_to_space(grid_pos_start.light())
-            .ok_or(ErrOperation::GridDoesNotExist(grid_pos_start.grid))?;
+            .ok_or(ErrDesignOperation::GridDoesNotExist(grid_pos_start.grid))?;
         let point_start = BezierEnd {
             position: grid_pos_start.light(),
             inward_coeff: 1.,
@@ -605,7 +605,7 @@ impl Helix {
         grid_manager: &GridData,
         grid_pos: HelixGridPosition,
         path_id: BezierPathId,
-    ) -> Result<Self, ErrOperation> {
+    ) -> Result<Self, ErrDesignOperation> {
         let translation = (|| {
             let grid = grid_manager.grids.get(&grid_pos.grid)?;
             let position = grid.position_helix_in_grid_coordinates(grid_pos.x, grid_pos.y);
@@ -672,7 +672,7 @@ impl Helix {
         self.roll
             -n as f32 * beta  // Beta is positive but helix turn clockwise when n increases
             + shift
-            + std::f32::consts::FRAC_PI_2 // Add PI/2 so that when the roll is 0,
+            + FRAC_PI_2 // Add PI/2 so that when the roll is 0,
         // the backward strand is at vertical position on nucl 0
     }
 
@@ -834,7 +834,7 @@ impl Helix {
             Some(hp) => hp,
         };
         let theta_current = new_helix.theta(0, forward, &p);
-        let theta_obj = self.theta(n, forward, &p) + std::f32::consts::PI;
+        let theta_obj = self.theta(n, forward, &p) + PI;
         new_helix.roll = theta_obj - theta_current;
     }
 

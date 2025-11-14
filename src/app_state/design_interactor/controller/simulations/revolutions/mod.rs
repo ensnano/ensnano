@@ -19,6 +19,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 const MAX_ACCEL: f64 = 100.;
 
 use super::{SimulationInterface, SimulationUpdate};
+use crate::ensnano_design::utils::dvec_to_vec;
 use crate::ensnano_design::{
     AdditionalStructure, CurveDescriptor, CurveDescriptor2D, HelixParameters,
     InterpolationDescriptor,
@@ -27,6 +28,7 @@ use crate::ensnano_interactor::{
     EquadiffSolvingMethod, RevolutionSimulationParameters, RevolutionSurfaceSystemDescriptor,
     RootedRevolutionSurface,
 };
+use crate::ensnano_utils::colors::new_color;
 use crate::{app_state::ErrOperation, controller::channel_reader::ChannelReader};
 use mathru::{
     algebra::linear::vector::vector::Vector,
@@ -35,6 +37,7 @@ use mathru::{
         solver::runge_kutta::{ExplicitEuler, Ralston4, explicit::fixed::FixedStepper},
     },
 };
+use std::f64::consts::FRAC_PI_2;
 use std::{
     f64::consts::TAU,
     sync::{Arc, Mutex, Weak},
@@ -529,11 +532,7 @@ impl AdditionalStructure for RevolutionSurfaceSystem {
         let curve_desc = self.to_curve_desc(false)?;
         for desc in curve_desc {
             let nts = desc.path()?;
-            ret.push(
-                nts.into_iter()
-                    .map(crate::ensnano_design::utils::dvec_to_vec)
-                    .collect(),
-            );
+            ret.push(nts.into_iter().map(dvec_to_vec).collect());
         }
 
         let number_of_steps = 1000;
@@ -541,11 +540,9 @@ impl AdditionalStructure for RevolutionSurfaceSystem {
         // The section at -PI/2
         let mut section = Vec::new();
         for n in 0..number_of_steps {
-            section.push(crate::ensnano_design::utils::dvec_to_vec(
-                self.topology.surface_position(
-                    -std::f64::consts::FRAC_PI_2,
-                    n as f64 / number_of_steps as f64,
-                ),
+            section.push(dvec_to_vec(
+                self.topology
+                    .surface_position(-FRAC_PI_2, n as f64 / number_of_steps as f64),
             ));
         }
         ret.push(section);
@@ -636,7 +633,7 @@ impl SimulationUpdate for HelicesRouting {
                     forward,
                     sequence: None,
                 });
-                let color = crate::ensnano_utils::colors::new_color(&mut now_s);
+                let color = new_color(&mut now_s);
 
                 strands.push(Strand {
                     color,

@@ -158,6 +158,8 @@ impl Curved for Twist {
 
 #[cfg(test)]
 mod tests {
+    use std::f64::consts::TAU;
+
     use super::*;
 
     impl Twist {
@@ -202,7 +204,7 @@ mod tests {
         let nb_turn = 0.1234;
         let omega = nb_turn_per_100_nt_to_omega(nb_turn, &p).unwrap();
         let Z = 100. * p.rise as f64;
-        assert!(((omega * Z) - (std::f64::consts::TAU * nb_turn)).abs() < 1e-5);
+        assert!(((omega * Z) - (TAU * nb_turn)).abs() < 1e-5);
     }
 
     #[ignore = "need fix"]
@@ -220,8 +222,7 @@ mod tests {
         let flat_helix = crate::ensnano_design::Helix::new(Vec3::zero(), Rotor3::identity());
         let theta = flat_helix.theta(99, true, &p);
         let nucl_curved = curve.nucl_pos(99, true, theta as f64, &p).unwrap();
-        let nucl_flat =
-            crate::ensnano_design::utils::vec_to_dvec(flat_helix.space_pos(&p, 99, true));
+        let nucl_flat = vec_to_dvec(flat_helix.space_pos(&p, 99, true));
 
         println!("curved {nucl_curved:?} \n flat {nucl_flat:?}");
         // The two nucleotides are not in the same position

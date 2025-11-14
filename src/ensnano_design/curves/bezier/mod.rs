@@ -169,6 +169,8 @@ impl CubicBezierPolynomial {
 #[cfg(test)]
 mod tests {
     const EPSILON: f64 = 1e-6;
+    use std::f64::consts::PI;
+
     use super::*;
     #[test]
     fn correct_evaluation() {
@@ -179,15 +181,14 @@ mod tests {
 
         let poly = CubicBezierPolynomial::new(start, control1, control2, end);
 
-        let x = std::f64::consts::PI / 10.;
-
         let classical_evaluation = |t: f64| {
             start * (1. - t).powi(3)
                 + control1 * 3. * (1. - t).powi(2) * t
                 + control2 * 3. * (1. - t) * t.powi(2)
                 + end * t.powi(3)
         };
-        assert!((poly.evaluate(x) - classical_evaluation(x)).mag() < EPSILON);
+
+        assert!((poly.evaluate(PI / 10.) - classical_evaluation(PI / 10.)).mag() < EPSILON);
         assert!((poly.evaluate(0.0) - classical_evaluation(0.0)).mag() < EPSILON);
         assert!((poly.evaluate(1.0) - classical_evaluation(1.0)).mag() < EPSILON);
     }
@@ -201,15 +202,14 @@ mod tests {
 
         let poly = CubicBezierPolynomial::new(start, control1, control2, end);
 
-        let x = std::f64::consts::PI / 10.;
-
         let classical_evaluation = |t: f64| {
             -3. * start * (1. - t).powi(2)
                 + control1 * 3. * (3. * t.powi(2) - 4. * t + 1.)
                 + control2 * 3. * t * (2. - 3. * t)
                 + 3. * end * t.powi(2)
         };
-        assert!((poly.derivative(x) - classical_evaluation(x)).mag() < EPSILON);
+
+        assert!((poly.derivative(PI / 10.) - classical_evaluation(PI / 10.)).mag() < EPSILON);
         assert!((poly.derivative(0.0) - classical_evaluation(0.0)).mag() < EPSILON);
         assert!((poly.derivative(1.0) - classical_evaluation(1.0)).mag() < EPSILON);
     }
@@ -223,17 +223,18 @@ mod tests {
 
         let poly = CubicBezierPolynomial::new(start, control1, control2, end);
 
-        let x = std::f64::consts::PI / 10.;
-
         let classical_evaluation = |t: f64| {
             6. * start * (1. - t)
                 + control1 * 3. * (6. * t - 4.)
                 + control2 * 6. * (1. - 3. * t)
                 + 6. * end * t
         };
+
+        let x = PI / 10.;
         println!("acc {:?}", poly.acceleration(x));
         println!("classical {:?}", classical_evaluation(x));
         assert!((poly.acceleration(x) - classical_evaluation(x)).mag_sq() < EPSILON);
+
         assert!((poly.acceleration(0.0) - classical_evaluation(0.0)).mag_sq() < EPSILON);
         assert!((poly.acceleration(1.0) - classical_evaluation(1.0)).mag_sq() < EPSILON);
     }

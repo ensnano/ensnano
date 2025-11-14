@@ -26,11 +26,12 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 use super::{AppState, Requests, SplitMode, TopBarState};
 use crate::ensnano_iced::{
     UiSize,
-    fonts::{MaterialIcon, MaterialIconStyle},
+    fonts::{ENSNANO_FONT, MaterialIcon, MaterialIconStyle},
     helpers::*,
     iced::{self, Element, Length, Padding},
     iced_runtime::{Command, Program},
     iced_winit::winit::dpi::LogicalSize,
+    theme::GuiBackground,
 };
 use crate::ensnano_interactor::{ActionMode, SelectionMode};
 use std::sync::{Arc, Mutex};
@@ -473,7 +474,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
             row![button_help, button_tutorial,].spacing(self.ui_size.button_spacing()),
             // ENSnano logo, placed on the right.
             text("\u{e91c}")
-                .font(crate::ensnano_gui::fonts::ENSNANO_FONT)
+                .font(ENSNANO_FONT)
                 .width(Length::Fill)
                 .horizontal_alignment(iced::alignment::Horizontal::Right)
                 .vertical_alignment(iced::alignment::Vertical::Center),
@@ -483,7 +484,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
 
         container(bar)
             .width(self.logical_size.width as f32)
-            .style(crate::ensnano_iced::theme::GuiBackground)
+            .style(GuiBackground)
             // HACK: A small padding allow tooltip messages to disappear properly.
             .padding(Padding::from([
                 self.ui_size.button_spacing(),

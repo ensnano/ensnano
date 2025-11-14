@@ -21,6 +21,7 @@ use crate::ensnano_design::{HelixParameters, InstantiatedPiecewiseBezier};
 use num::integer::gcd;
 use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
+use std::f32::consts::FRAC_PI_2;
 use std::f64::consts::{PI, TAU};
 use std::sync::Arc;
 use ultraviolet::{DVec2, DVec3, Isometry3, Rotor3};
@@ -366,7 +367,7 @@ impl CurveDescriptor2D {
         let mut ret = Isometry3::identity();
 
         // First inverse the transformation that is performed by the construction of the curve
-        ret.append_rotation(Rotor3::from_rotation_yz(-std::f32::consts::FRAC_PI_2));
+        ret.append_rotation(Rotor3::from_rotation_yz(-FRAC_PI_2));
         ret
     }
 

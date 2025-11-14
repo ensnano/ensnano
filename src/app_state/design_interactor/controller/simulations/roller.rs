@@ -28,7 +28,7 @@ use crate::{
 };
 use std::{
     collections::HashMap,
-    f32::consts::{SQRT_2, TAU},
+    f32::consts::{FRAC_PI_2, SQRT_2, TAU},
     sync::{Arc, Mutex, Weak},
 };
 
@@ -132,7 +132,7 @@ pub(super) fn cross_over_force(
     // position of self is [0, sin(theta), cos(theta)]
     // so the derivative is [0, cos(theta), -sin(theta)]
 
-    let derivative_shift = std::f32::consts::FRAC_PI_2;
+    let derivative_shift = FRAC_PI_2;
     let vec_self = me.shifted_space_pos(helix_parameters, n_self, b_self, derivative_shift)
         - me.axis_position(helix_parameters, n_self, b_self);
     let vec_other = other.shifted_space_pos(helix_parameters, n_other, b_other, derivative_shift)

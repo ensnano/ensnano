@@ -24,6 +24,7 @@ use crate::ensnano_iced::{
     iced_graphics::text::Paragraph,
     iced_runtime::{Command, Program},
     iced_winit::winit::dpi::LogicalSize,
+    theme::GuiBackground,
 };
 use crate::ensnano_interactor::{StrandBuildingStatus, operation::Operation};
 use std::{
@@ -229,7 +230,7 @@ impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
         let content = self::column![Space::new(Length::Fill, 3), content, pasting_status_row,];
 
         container(content)
-            .style(crate::ensnano_iced::theme::GuiBackground)
+            .style(GuiBackground)
             .width(size.width as f32)
             .height(Length::Fill)
             .into()

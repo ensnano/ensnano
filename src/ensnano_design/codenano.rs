@@ -433,17 +433,13 @@ impl Helix {
         ];
 
         ret = self.rotate_point(ret);
-        /*
-        ret = Helix::ry(&ret, self.yaw);
-        ret = Helix::rz(&ret, self.pitch);
-        */
         ret[0] += self.position.x;
         ret[1] += self.position.y;
         ret[2] += self.position.z;
         ret
     }
 
-    pub(crate) fn rotate_point(&self, ret: [f64; 3]) -> [f64; 3] {
+    pub fn rotate_point(&self, ret: [f64; 3]) -> [f64; 3] {
         let forward = [
             self.yaw.cos() * self.pitch.cos(),
             self.pitch.sin(),

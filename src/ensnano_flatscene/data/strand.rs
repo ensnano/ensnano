@@ -16,9 +16,13 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use super::super::view::InsertionInstance;
-use super::helix::{Helix, Shift};
-use super::{CameraPtr, FlatNucl};
+use crate::ensnano_utils::instance::Instance;
+
+use super::{
+    super::view::InsertionInstance,
+    CameraPtr, FlatNucl,
+    helix::{Helix, Shift},
+};
 use lyon::{
     math::Point,
     path::{Path, path::BuilderWithAttributes},
@@ -61,9 +65,9 @@ impl Strand {
 
     fn get_path_color(&self) -> [f32; 4] {
         let color = if self.highlight.is_some() {
-            crate::ensnano_utils::instance::Instance::color_from_au32(self.color)
+            Instance::color_from_au32(self.color)
         } else {
-            crate::ensnano_utils::instance::Instance::color_from_u32(self.color)
+            Instance::color_from_u32(self.color)
         };
         [color.x, color.y, color.z, color.w]
     }

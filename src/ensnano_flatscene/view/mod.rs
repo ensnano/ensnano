@@ -49,6 +49,7 @@ use insertion::InsertionDrawer;
 use rectangle::Rectangle;
 use std::{
     collections::{BTreeMap, BTreeSet, HashMap},
+    f32::consts::FRAC_1_SQRT_2,
     rc::Rc,
     sync::Arc,
 };
@@ -629,7 +630,7 @@ impl View {
         }
 
         let msaa_texture = if SAMPLE_COUNT > 1 {
-            Some(crate::ensnano_utils::texture::Texture::create_msaa_texture(
+            Some(Texture::create_msaa_texture(
                 self.device.clone().as_ref(),
                 &target_size,
                 SAMPLE_COUNT,
@@ -1153,7 +1154,7 @@ impl View {
             let selected_color = crate::ensnano_consts::SELECTED_COLOR;
             if let Some(h1) = self.helices.get(n.helix.flat.0) {
                 let mut c = h1.get_circle_nucl(n.flat_position, n.forward, selected_color);
-                c.set_radius(std::f32::consts::FRAC_1_SQRT_2);
+                c.set_radius(FRAC_1_SQRT_2);
                 circles.push(c);
             } else {
                 log::error!("Could not get flat helix {}", n.helix.flat.0);

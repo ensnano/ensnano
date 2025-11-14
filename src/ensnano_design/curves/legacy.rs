@@ -16,6 +16,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+use std::f64::consts::FRAC_PI_2;
+
 use super::*;
 
 /// The number of points used in the iterative version of the discretization algorithm.
@@ -262,7 +264,7 @@ impl Curve {
             let final_angle = -pos_full_turn * TAU / helix_parameters.bases_per_turn as f64;
             let rem = final_angle.rem_euclid(TAU);
 
-            let mut full_delta = -rem - std::f64::consts::FRAC_PI_2;
+            let mut full_delta = -rem - FRAC_PI_2;
             full_delta = full_delta.rem_euclid(TAU);
             if full_delta > PI {
                 full_delta -= TAU;

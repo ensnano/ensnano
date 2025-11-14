@@ -24,9 +24,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 // NOTE: Other help from forums
 //
 //        https://github.com/BillyDM/iced_baseview/issues/39
-use std::borrow::Cow;
 
-use iced::font;
+use iced::{advanced::text, font};
+use std::borrow::Cow;
 
 pub mod material_icons;
 pub use material_icons::{MATERIAL_ICONS_DARK, MaterialIcon, MaterialIconStyle, icon_to_char};
@@ -55,7 +55,7 @@ pub use iced::Font;
 // https://rsms.me/inter
 
 /// Load custom font for ENSnano GUI.
-pub fn load_fonts(renderer: &mut impl iced::advanced::text::Renderer) {
+pub fn load_fonts(renderer: &mut impl text::Renderer) {
     let fonts = [
         material_icons::MATERIAL_ICONS_LIGHT_BYTES,
         material_icons::MATERIAL_ICONS_DARK_BYTES,

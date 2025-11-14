@@ -24,20 +24,15 @@ mod tabs;
 
 pub use tabs::revolution_tab::*;
 
-use super::{AppState, FogParameters, OverlayType, Requests, fonts};
-use crate::ensnano_design::{
-    BezierPathId, CameraId, NamedParameter,
-    elements::{DesignElement, DesignElementKey},
-    grid::GridTypeDescr,
-};
+use super::{AppState, FogParameters, OverlayType, Requests};
 use crate::ensnano_exports::ExportType;
 use crate::ensnano_iced::{
     UiSize,
     color_picker::ColorPickerMessage,
+    iced::widget::*,
     iced::{Color, Command, Element, Length},
     iced_aw::widgets::{TabBarPosition, TabLabel, Tabs},
     iced_runtime::Program,
-    iced_widget::*,
     iced_winit::{
         conversion,
         winit::{
@@ -45,6 +40,7 @@ use crate::ensnano_iced::{
             event::Modifiers,
         },
     },
+    theme::GuiBackground,
 };
 use crate::ensnano_interactor::{
     ActionMode, EquadiffSolvingMethod, HyperboloidRequest, RapierSimulationRequest, Selection,
@@ -53,6 +49,14 @@ use crate::ensnano_interactor::{
     graphics::{Background3D, HBondDisplay, RenderingMode},
 };
 use crate::ensnano_organizer::{Organizer, OrganizerMessage, tree::OrganizerTree};
+use crate::{
+    ensnano_design::{
+        BezierPathId, CameraId, NamedParameter,
+        elements::{DesignElement, DesignElementKey},
+        grid::GridTypeDescr,
+    },
+    ensnano_iced::fonts::{ENSNANO_FONT, MATERIAL_ICONS_DARK},
+};
 use color_picker::ColorPicker;
 use contextual_panel::{ContextualPanel, InstantiatedValue, ValueKind};
 use discrete_value::{FactoryId, RequestFactory, Requestable, ValueId};
@@ -1109,12 +1113,12 @@ where
             )
             .set_active_tab(&self.active_tab)
             .tab_bar_position(TabBarPosition::Top)
-            .icon_font(fonts::ENSNANO_FONT)
+            .icon_font(ENSNANO_FONT)
             .icon_size(self.ui_size.icon())
-            .text_font(fonts::MATERIAL_ICONS_DARK)
+            .text_font(MATERIAL_ICONS_DARK)
             .text_size(self.ui_size.main_text())
             .tab_bar_height(Length::Fixed(self.ui_size.tab_bar_height()))
-            .tab_bar_style(crate::ensnano_iced::theme::GuiBackground.into())
+            .tab_bar_style(GuiBackground.into())
             .width(Length::Fixed(width as f32))
             .height(Length::Fill);
         // NOTE: The style, height and width values are necessary to clear the tab when
@@ -1158,7 +1162,7 @@ where
             .width(Length::Fill)
             .padding(1),
         )
-        .style(crate::ensnano_iced::theme::GuiBackground)
+        .style(GuiBackground)
         .height(self.logical_size.height as f32)
         .into()
     }

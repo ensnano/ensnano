@@ -1114,7 +1114,6 @@ dependencies = [
  "iced_graphics",
  "iced_runtime",
  "iced_wgpu",
- "iced_widget",
  "iced_winit",
  "icondata",
  "image 0.23.14",

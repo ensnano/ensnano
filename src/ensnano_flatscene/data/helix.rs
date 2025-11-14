@@ -37,7 +37,7 @@ use ahash::RandomState;
 use lyon::{
     math::{Point, rect},
     path::{
-        Path,
+        Path, Winding,
         builder::{BorderRadii, PathBuilder},
     },
     tessellation::{
@@ -46,6 +46,7 @@ use lyon::{
 };
 use std::{
     collections::{BTreeMap, HashMap},
+    f32::consts::PI,
     sync::Arc,
 };
 use ultraviolet::{Mat2, Rotor2, Vec2, Vec4};
@@ -155,7 +156,7 @@ impl Helix {
         builder.add_rounded_rectangle(
             &rect(left, top, right - left, bottom - top),
             &BorderRadii::new(0.1),
-            lyon::tessellation::path::Winding::Positive,
+            Winding::Positive,
         );
         let path = builder.build();
         fill_tess
@@ -194,7 +195,7 @@ impl Helix {
         builder.add_rounded_rectangle(
             &rect(left, top, right - left, bottom - top),
             &BorderRadii::new(0.1),
-            lyon::tessellation::path::Winding::Positive,
+            Winding::Positive,
         );
         for i in (self.left + 1)..=self.right {
             let x = self
@@ -688,7 +689,7 @@ impl Helix {
         let position = self.get_nucl_position(nucl, Shift::Prime3);
         let mut orientation = self.isometry.rotation;
         if nucl.forward {
-            orientation = Rotor2::from_angle(std::f32::consts::PI) * orientation;
+            orientation = Rotor2::from_angle(PI) * orientation;
         }
 
         InsertionInstance::new(InsertionDescriptor {

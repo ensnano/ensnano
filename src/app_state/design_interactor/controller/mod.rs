@@ -26,15 +26,19 @@ use crate::ensnano_design::{
     BezierControlPoint, BezierEnd, BezierPathId, BezierPlaneDescriptor, BezierPlaneId,
     BezierVertex, BezierVertexId, CameraId, Collection, CurveDescriptor, Design, Domain,
     DomainJunction, External3DObject, External3DObjectDescriptor, Helices, Helix, HelixCollection,
-    HelixInterval, Nucl, NuclCollection, Strand, Strands, UpToDateDesign,
+    HelixInterval, Nucl, NuclCollection, Strand, Strands, SvgImportError, UpToDateDesign,
+    design_operations::{
+        ErrDesignOperation, attach_object_to_grid, make_grid_from_helices, rotate_helices_3d,
+        translate_helices,
+    },
     drawing_style::{DrawingAttribute, DrawingStyle},
     elements::{DesignElementKey, DnaAttribute},
     grid::{
-        Edge, FreeGridId, GridDescriptor, GridDivision, GridId, GridObject, GridPosition,
-        GridTypeDescr, HelixGridPosition, Hyperboloid,
+        Edge, FreeGridId, GridCopyError, GridDescriptor, GridDivision, GridId, GridObject,
+        GridPosition, GridTypeDescr, HelixGridPosition, Hyperboloid,
     },
     group_attributes::GroupPivot,
-    mutate_in_arc,
+    mutate_in_arc, read_first_svg_path,
 };
 use crate::ensnano_gui::ClipboardContent;
 use crate::ensnano_interactor::{
@@ -63,6 +67,7 @@ use clipboard::{Clipboard, CopyOperation, PastePosition, PastedStrand, StrandCli
 use std::{
     borrow::Cow,
     collections::{BTreeMap, HashMap},
+    f32::consts::PI,
     path::PathBuf,
     str::FromStr,
     sync::{Arc, Mutex},
@@ -791,7 +796,7 @@ impl Controller {
             }
             DesignElementKey::Grid(g_id) => {
                 let mut grids_mut = design.free_grids.make_mut();
-                let g_id = crate::ensnano_design::grid::FreeGridId(*g_id);
+                let g_id = FreeGridId(*g_id);
                 let grid = grids_mut
                     .get_mut(&g_id)
                     .ok_or_else(|| ErrOperation::GridDoesNotExist(g_id.to_grid_id()))?;
@@ -1213,7 +1218,7 @@ impl Controller {
     ) -> Result<Design, ErrOperation> {
         let helices = crate::ensnano_interactor::list_of_helices(&selection)
             .ok_or(ErrOperation::BadSelection)?;
-        crate::ensnano_design::design_operations::make_grid_from_helices(&mut design, &helices.1)?;
+        make_grid_from_helices(&mut design, &helices.1)?;
         Ok(design)
     }
 
@@ -1629,13 +1634,7 @@ impl Controller {
         y: isize,
     ) -> Result<Design, ErrOperation> {
         self.update_state_and_design(&mut design);
-        crate::ensnano_design::design_operations::attach_object_to_grid(
-            &mut design,
-            object,
-            grid,
-            x,
-            y,
-        )?;
+        attach_object_to_grid(&mut design, object, grid, x, y)?;
         Ok(design)
     }
 
@@ -1680,14 +1679,7 @@ impl Controller {
     ) -> Design {
         self.update_state_and_design(&mut design);
         let mut new_design = design.clone();
-        if crate::ensnano_design::design_operations::translate_helices(
-            &mut new_design,
-            snap,
-            helices,
-            translation,
-        )
-        .is_ok()
-        {
+        if translate_helices(&mut new_design, snap, helices, translation).is_ok() {
             new_design
         } else {
             design
@@ -1728,15 +1720,7 @@ impl Controller {
     ) -> Design {
         self.update_state_and_design(&mut design);
         let mut new_design = design.clone();
-        if crate::ensnano_design::design_operations::rotate_helices_3d(
-            &mut new_design,
-            snap,
-            helices,
-            rotation,
-            origin,
-        )
-        .is_ok()
-        {
+        if rotate_helices_3d(&mut new_design, snap, helices, rotation, origin).is_ok() {
             new_design
         } else {
             design
@@ -2000,7 +1984,7 @@ impl Controller {
         angle: f32,
     ) -> Design {
         self.update_state_and_design(&mut design);
-        let step = std::f32::consts::FRAC_PI_6 / 2.; // = Pi / 12 = 15 degrees
+        let step = PI / 12.; // 15 degrees
         let angle = {
             let k = (angle / step).round();
             k * step
@@ -2263,7 +2247,7 @@ impl Controller {
     /// If `force_end` is `None`, nucl will be on the 5 prime half of the split unless nucl is the 3
     /// prime extremity of a crossover, in which case nucl will be on the 3 prime half of the
     /// split.
-    pub(crate) fn split_strand(
+    pub fn split_strand(
         strands: &mut Strands,
         nucl: &Nucl,
         force_end: Option<bool>,
@@ -3160,7 +3144,7 @@ impl Controller {
         if let GridId::FreeGrid(id) = grid_id {
             let mut new_grids = design.free_grids.make_mut();
             let grid = new_grids
-                .get_mut(&crate::ensnano_design::grid::FreeGridId(id))
+                .get_mut(&FreeGridId(id))
                 .ok_or(ErrOperation::GridDoesNotExist(grid_id))?;
             grid.position = position;
             drop(new_grids);
@@ -3180,7 +3164,7 @@ impl Controller {
         if let GridId::FreeGrid(id) = grid_id {
             let mut new_grids = design.free_grids.make_mut();
             let grid = new_grids
-                .get_mut(&crate::ensnano_design::grid::FreeGridId(id))
+                .get_mut(&FreeGridId(id))
                 .ok_or(ErrOperation::GridDoesNotExist(grid_id))?;
             grid.orientation = orientation;
             drop(new_grids);
@@ -3200,7 +3184,7 @@ impl Controller {
         if let GridId::FreeGrid(id) = grid_id {
             let mut new_grids = design.free_grids.make_mut();
             let grid = new_grids
-                .get_mut(&crate::ensnano_design::grid::FreeGridId(id))
+                .get_mut(&FreeGridId(id))
                 .ok_or(ErrOperation::GridDoesNotExist(grid_id))?;
             if let GridTypeDescr::Hyperboloid {
                 nb_turn_per_100_nt, ..
@@ -3242,7 +3226,7 @@ impl Controller {
         }
 
         let mut paths = design.bezier_paths.make_mut();
-        let path = crate::ensnano_design::read_first_svg_path(&path)?;
+        let path = read_first_svg_path(&path)?;
         paths.push(path);
 
         drop(paths);
@@ -3324,19 +3308,19 @@ pub enum ErrOperation {
     FinishFirst,
     CameraDoesNotExist(CameraId),
     GridIsNotHyperboloid(GridId),
-    DesignOperationError(crate::ensnano_design::design_operations::ErrOperation),
+    DesignOperationError(ErrDesignOperation),
     NotPiecewiseBezier(usize),
-    GridCopyError(crate::ensnano_design::grid::GridCopyError),
+    GridCopyError(GridCopyError),
     CouldNotGetPrime3of(usize),
     PathDoesNotExist(BezierPathId),
     VertexDoesNotExist(BezierPathId, usize),
     GridIsNotEmpty(GridId),
     CouldNotMake3DObject,
-    SvgImportError(crate::ensnano_design::SvgImportError),
+    SvgImportError(SvgImportError),
 }
 
-impl From<crate::ensnano_design::design_operations::ErrOperation> for ErrOperation {
-    fn from(e: crate::ensnano_design::design_operations::ErrOperation) -> Self {
+impl From<ErrDesignOperation> for ErrOperation {
+    fn from(e: ErrDesignOperation) -> Self {
         Self::DesignOperationError(e)
     }
 }

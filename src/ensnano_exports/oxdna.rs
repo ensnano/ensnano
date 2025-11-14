@@ -18,7 +18,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::*;
 use crate::ensnano_design::{Domain, Helix, HelixCollection, HelixParameters, Nucl};
-use std::{io::Write, mem::ManuallyDrop, path::Path};
+use std::{f32::consts::TAU, io::Write, mem::ManuallyDrop, path::Path};
 use ultraviolet::{Mat3, Rotor3, Vec3};
 
 pub const OXDNA_LEN_FACTOR: f32 = 1. / 0.8518;
@@ -163,7 +163,7 @@ pub fn free_oxdna_nucl(
     let a1 = {
         let tangent = normal.cross(Vec3::new(-normal.z, normal.x, normal.y));
         let bitangent = normal.cross(tangent);
-        let angle = std::f32::consts::TAU / helix_parameters.bases_per_turn * -(free_idx as f32);
+        let angle = TAU / helix_parameters.bases_per_turn * -(free_idx as f32);
         tangent * angle.sin() + bitangent * angle.cos()
     };
     let cm_position = backbone_position * OXDNA_LEN_FACTOR + a1 * BACKBONE_TO_CM;

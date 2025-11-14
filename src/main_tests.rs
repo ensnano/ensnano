@@ -19,8 +19,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 //! Test suite for the `MainState` structure
 
 use super::*;
-use crate::ensnano_design::Nucl;
 use crate::ensnano_interactor::application::Camera3D;
+use crate::{ensnano_design::Nucl, ensnano_interactor::graphics::DrawArea};
 use winit::{dpi::PhysicalPosition, window::CursorIcon};
 
 struct DummyScene {}
@@ -52,14 +52,9 @@ impl Application for DummyScene {
         None
     }
 
-    fn on_resize(
-        &mut self,
-        _window_size: PhysicalSize<u32>,
-        _area: crate::ensnano_interactor::graphics::DrawArea,
-    ) {
-    }
+    fn on_resize(&mut self, _window_size: PhysicalSize<u32>, _area: DrawArea) {}
 
-    fn get_camera(&self) -> Option<Arc<(crate::ensnano_interactor::application::Camera3D, f32)>> {
+    fn get_camera(&self) -> Option<Arc<(Camera3D, f32)>> {
         Some(Arc::new((
             Camera3D {
                 position: Vec3::zero(),

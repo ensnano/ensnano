@@ -21,7 +21,10 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 mod parity_graph;
 
-use crate::ensnano_design::{Collection, Design, Domain, Nucl, grid::GridData};
+use crate::ensnano_design::{
+    Collection, Design, Domain, Nucl,
+    grid::{GridData, GridTypeDescr},
+};
 use std::collections::HashMap;
 
 pub fn cadnano_export(design: &Design) -> Result<String, CadnanoError> {
@@ -82,14 +85,14 @@ fn get_grid_type(grids: &GridData) -> Result<GridType, CadnanoError> {
 
     for g in grids.source_free_grids.values() {
         match g.grid_type {
-            crate::ensnano_design::grid::GridTypeDescr::Square { .. } => {
+            GridTypeDescr::Square { .. } => {
                 if ret == Some(GridType::HoneyComb) {
                     return Err(CadnanoError::NonHomogeneousGridTypes);
                 } else {
                     ret = Some(GridType::Square);
                 }
             }
-            crate::ensnano_design::grid::GridTypeDescr::Honeycomb { .. } => {
+            GridTypeDescr::Honeycomb { .. } => {
                 if ret == Some(GridType::Square) {
                     return Err(CadnanoError::NonHomogeneousGridTypes);
                 } else {
@@ -203,7 +206,7 @@ impl EnsnanoBonds {
 pub enum CadnanoError {
     Not2Colorable,
     NonHomogeneousGridTypes,
-    UnhandledGridType(#[allow(unused)] crate::ensnano_design::grid::GridTypeDescr),
+    UnhandledGridType(#[allow(unused)] GridTypeDescr),
     ImpossibleBond,
     HelixNotFound(#[allow(unused)] usize),
     SerdeError(#[allow(unused)] serde_json::Error),

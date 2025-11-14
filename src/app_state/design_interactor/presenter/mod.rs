@@ -26,10 +26,13 @@ pub mod impl_readergui;
 use self::design_content::Staple;
 
 use super::*;
+use crate::ensnano_design::elements::DesignElementKey;
+use crate::ensnano_design::grid::Grid;
 use crate::ensnano_design::{
     BezierPathId, Collection as _, Extremity, HelixCollection, InstantiatedPiecewiseBezier, Nucl,
     NuclCollection,
 };
+use crate::ensnano_exports::oxdna::BACKBONE_TO_CM;
 use crate::ensnano_interactor::{
     NeighborDescriptor, NeighborDescriptorGiver, Referential, ScaffoldInfo, Selection,
     application::Camera3D,
@@ -301,14 +304,14 @@ impl Presenter {
         let a1 = (pos_backward - pos_forward).normalized();
         let forward_half = HalfHBond {
             backbone: pos_forward,
-            center_of_mass: pos_forward + 2. * a1 * crate::ensnano_exports::oxdna::BACKBONE_TO_CM,
+            center_of_mass: pos_forward + 2. * a1 * BACKBONE_TO_CM,
             base: self.content.letter_map.get(&forward_nucl).cloned(),
             backbone_color: self.content.color_map.get(&forward_id).cloned()?,
         };
 
         let backward_half = HalfHBond {
             backbone: pos_backward,
-            center_of_mass: pos_backward - 2. * a1 * crate::ensnano_exports::oxdna::BACKBONE_TO_CM,
+            center_of_mass: pos_backward - 2. * a1 * BACKBONE_TO_CM,
             base: self.content.letter_map.get(&backward_nucl).cloned(),
             backbone_color: self.content.color_map.get(&backward_id).cloned()?,
         };
@@ -400,12 +403,8 @@ impl Presenter {
 
     fn get_name_of_group_having_strand(&self, s_id: usize) -> Vec<String> {
         let tree = &self.current_design.organizer_tree.as_ref();
-        tree.map(|t| {
-            t.get_names_of_groups_having(
-                &crate::ensnano_design::elements::DesignElementKey::Strand(s_id),
-            )
-        })
-        .unwrap_or_default()
+        tree.map(|t| t.get_names_of_groups_having(&DesignElementKey::Strand(s_id)))
+            .unwrap_or_default()
     }
 
     fn get_names_of_all_groups(&self) -> Vec<String> {
@@ -561,7 +560,7 @@ impl Presenter {
             .map(|set| set.into_iter().collect())
     }
 
-    pub fn get_grid(&self, g_id: GridId) -> Option<&crate::ensnano_design::grid::Grid> {
+    pub fn get_grid(&self, g_id: GridId) -> Option<&Grid> {
         self.content.grid_manager.grids.get(&g_id)
     }
 

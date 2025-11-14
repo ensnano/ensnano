@@ -27,10 +27,10 @@ mod quit;
 pub mod set_scaffold_sequence;
 
 use super::{OverlayType, SplitMode, dialog};
-use crate::MainStateView;
 use crate::ensnano_consts::CANNOT_OPEN_DEFAULT_DIR;
 use crate::ensnano_exports::ExportType;
 use crate::ensnano_iced::UiSize;
+use crate::{MainStateView, ensnano_design::scadnano::ScadnanoImportError};
 use dialog::{MustAckMessage, YesNoQuestion};
 use normal_state::NormalState;
 use quit::*;
@@ -55,7 +55,7 @@ impl Controller {
 
     /// This function is called to update the state of ENSnano. Its behavior depends on the state
     /// of the [Controller](`Controller`).
-    pub(crate) fn make_progress(&mut self, main_state: &mut MainStateView) {
+    pub fn make_progress(&mut self, main_state: &mut MainStateView) {
         main_state.check_backup();
         if main_state.need_backup() {
             if let Err(e) = main_state.save_backup() {
@@ -68,7 +68,7 @@ impl Controller {
     }
 }
 
-pub(crate) trait State {
+pub trait State {
     /// Operate on [MainStateView] and return the new State of the automata
     fn make_progress(self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn State>;
 }
@@ -174,7 +174,7 @@ impl State for YesNo {
 
 pub enum LoadDesignError {
     JsonError(serde_json::Error),
-    ScadnanoImportError(crate::ensnano_design::scadnano::ScadnanoImportError),
+    ScadnanoImportError(ScadnanoImportError),
     IncompatibleVersion { current: String, required: String },
 }
 

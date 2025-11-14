@@ -411,10 +411,6 @@ mod tests {
     use super::super::OkOperation as TopOkOperation;
     use super::super::*;
     use super::*;
-    use crate::app_state::design_interactor::{
-        controller::clipboard::{CopyOperation, PastePosition},
-        file_parsing::junctions::StrandJunction as _,
-    };
     use crate::ensnano_design::{
         Collection, DomainJunction, HelixCollection, Nucl, Strand,
         grid::{GridDescriptor, HelixGridPosition},
@@ -423,6 +419,14 @@ mod tests {
         InsertionPoint, InteractorDesignReaderExt, operation::GridHelixCreation,
     };
     use crate::ensnano_scene::data::SceneDesignReaderExt;
+    use crate::{
+        app_state::design_interactor::{
+            controller::clipboard::{CopyOperation, PastePosition},
+            file_parsing::junctions::StrandJunction as _,
+        },
+        ensnano_design::grid::GridTypeDescr,
+        ensnano_utils::id_generator::IdGenerator,
+    };
     use regex::Regex;
     use std::path::PathBuf;
     use ultraviolet::{Rotor3, Vec3};
@@ -1125,7 +1129,7 @@ mod tests {
 
     fn test_sane_strand(strand: &Strand) {
         let mut strand = Strand::clone(strand);
-        let mut xover_ids = crate::ensnano_utils::id_generator::IdGenerator::default();
+        let mut xover_ids = IdGenerator::default();
         strand.read_junctions(&mut xover_ids, true);
         strand.read_junctions(&mut xover_ids, false);
     }
@@ -1175,7 +1179,7 @@ mod tests {
                 position: Vec3::zero(),
                 orientation: Rotor3::identity(),
                 helix_parameters: None,
-                grid_type: crate::ensnano_design::grid::GridTypeDescr::Square { twist: None },
+                grid_type: GridTypeDescr::Square { twist: None },
                 invisible: false,
                 bezier_vertex: None,
             }))
@@ -1195,7 +1199,7 @@ mod tests {
                 position: Vec3::zero(),
                 orientation: Rotor3::identity(),
                 helix_parameters: None,
-                grid_type: crate::ensnano_design::grid::GridTypeDescr::Square { twist: None },
+                grid_type: GridTypeDescr::Square { twist: None },
                 invisible: false,
                 bezier_vertex: None,
             }))
@@ -1223,7 +1227,7 @@ mod tests {
                 position: Vec3::zero(),
                 orientation: Rotor3::identity(),
                 helix_parameters: None,
-                grid_type: crate::ensnano_design::grid::GridTypeDescr::Square { twist: None },
+                grid_type: GridTypeDescr::Square { twist: None },
                 invisible: false,
                 bezier_vertex: None,
             }))
@@ -1774,7 +1778,7 @@ mod tests {
             })
             .unwrap();
         app_state.update();
-        let mut xover_ids = crate::ensnano_utils::id_generator::IdGenerator::default();
+        let mut xover_ids = IdGenerator::default();
 
         let s_id = app_state
             .get_design_interactor()
