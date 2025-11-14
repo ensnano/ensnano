@@ -472,7 +472,7 @@ impl Curve {
     ) -> Option<f64> {
         let nucl_min = -(self.nucl_t0 as isize);
         if nucl < nucl_min {
-            if let CurveBounds::BiInfinite = self.geometry.bounds() {
+            if self.geometry.bounds() == CurveBounds::BiInfinite {
                 let objective = (-nucl) as f64
                     * helix_parameters.rise as f64
                     * self.geometry.rise_ratio().unwrap_or(1.);

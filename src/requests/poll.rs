@@ -355,7 +355,7 @@ pub fn poll_all<R: DerefMut<Target = Requests>>(mut requests: R, main_state: &mu
         main_state.set_all_helices_on_axis(b);
     }
 
-    if let Some(()) = requests.toggle_all_helices_on_axis.take() {
+    if requests.toggle_all_helices_on_axis.take().is_some() {
         main_state.toggle_all_helices_on_axis();
     }
 

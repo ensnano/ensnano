@@ -284,7 +284,7 @@ impl<S: AppState> Scene<S> {
                 if let Some(pivot) = self.view.borrow().get_group_pivot() {
                     self.requests.lock().unwrap().set_current_group_pivot(pivot);
                     if target == WidgetTarget::Pivot
-                        && let WidgetBasis::World = app_state.get_widget_basis()
+                        && app_state.get_widget_basis() == WidgetBasis::World
                     {
                         self.requests.lock().unwrap().toggle_widget_basis();
                     }

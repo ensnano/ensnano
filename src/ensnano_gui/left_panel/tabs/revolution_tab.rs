@@ -573,8 +573,7 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
             }
         };
 
-        let simulation_buttons = if let SimulationState::Relaxing = app_state.get_simulation_state()
-        {
+        let simulation_buttons = if app_state.get_simulation_state() == SimulationState::Relaxing {
             self::column![
                 text_button("Abort", ui_size).on_press(Message::StopSimulation),
                 jump_by(2),
@@ -588,9 +587,7 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
             ]
         } else {
             let mut button = text_button("Start", ui_size);
-            if let SimulationState::None = app_state.get_simulation_state()
-                && desc.is_some()
-            {
+            if app_state.get_simulation_state() == SimulationState::None && desc.is_some() {
                 button = button.on_press(Message::InitRevolutionRelaxation);
             }
             self::column![button]

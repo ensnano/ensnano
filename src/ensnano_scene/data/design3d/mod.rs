@@ -475,44 +475,49 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
             };
             ret.extend(instantiables.iter());
         }
-        if let Some(ExpandWith::Tubes) = expand_with {
-            for loopout_bond in self
-                .design_reader
-                .get_all_loopout_bonds()
-                .iter()
-                .filter(|lb| lb.repr_bond_identifier == id)
-            {
-                ret.push(
-                    create_dna_bond(
-                        loopout_bond.position_prime5,
-                        loopout_bond.position_prime3,
-                        color,
-                        loopout_bond.repr_bond_identifier,
-                        true,
-                    )
-                    .with_radius(radius)
-                    .to_raw_instance(),
-                );
+
+        match expand_with {
+            Some(ExpandWith::Tubes) => {
+                for loopout_bond in self
+                    .design_reader
+                    .get_all_loopout_bonds()
+                    .iter()
+                    .filter(|lb| lb.repr_bond_identifier == id)
+                {
+                    ret.push(
+                        create_dna_bond(
+                            loopout_bond.position_prime5,
+                            loopout_bond.position_prime3,
+                            color,
+                            loopout_bond.repr_bond_identifier,
+                            true,
+                        )
+                        .with_radius(radius)
+                        .to_raw_instance(),
+                    );
+                }
             }
-        }
-        if let Some(ExpandWith::Spheres) = expand_with {
-            for loopout_nucl in self
-                .design_reader
-                .get_all_loopout_nucl()
-                .iter()
-                .filter(|ln| ln.repr_bond_identifier == id)
-            {
-                ret.push(
-                    SphereInstance {
-                        position: loopout_nucl.position,
-                        color: Instance::color_from_au32(color),
-                        id: loopout_nucl.repr_bond_identifier,
-                        radius,
-                    }
-                    .to_raw_instance(),
-                );
+            Some(ExpandWith::Spheres) => {
+                for loopout_nucl in self
+                    .design_reader
+                    .get_all_loopout_nucl()
+                    .iter()
+                    .filter(|ln| ln.repr_bond_identifier == id)
+                {
+                    ret.push(
+                        SphereInstance {
+                            position: loopout_nucl.position,
+                            color: Instance::color_from_au32(color),
+                            id: loopout_nucl.repr_bond_identifier,
+                            radius,
+                        }
+                        .to_raw_instance(),
+                    );
+                }
             }
+            None => {}
         }
+
         ret
     }
 

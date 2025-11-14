@@ -270,7 +270,7 @@ where
     }
 
     fn update_str_value(&mut self, value_kind: ValueKind, n: usize, value_str: String) {
-        if let ValueKind::BezierVertexPosition = value_kind {
+        if matches!(value_kind, ValueKind::BezierVertexPosition) {
             self.position_builder.update_str_value(n, value_str);
         } else {
             log::error!("Unexpected value kind {value_kind:?} for BezierVertexBuilder",);
@@ -278,7 +278,7 @@ where
     }
 
     fn submit_value(&mut self, value_kind: ValueKind) -> Option<InstantiatedValue> {
-        if let ValueKind::BezierVertexPosition = value_kind {
+        if matches!(value_kind, ValueKind::BezierVertexPosition) {
             self.position_builder
                 .submit_value()
                 .map(InstantiatedValue::BezierVertexPosition)

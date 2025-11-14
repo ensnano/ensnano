@@ -934,17 +934,16 @@ impl Controller {
         nucl_collection: Arc<NuclCollection>,
         design: &Design,
     ) -> Result<(OkOperation, Self), ErrOperation> {
-        if let OperationCompatibility::Incompatible =
-            self.check_compatibility(&DesignOperation::SetScaffoldShift(0))
-        {
-            return Err(ErrOperation::IncompatibleState(
+        match self.check_compatibility(&DesignOperation::SetScaffoldShift(0)) {
+            OperationCompatibility::Incompatible => Err(ErrOperation::IncompatibleState(
                 self.state.state_name().to_string(),
-            ));
+            )),
+            OperationCompatibility::Compatible | OperationCompatibility::FinishFirst => Ok(self
+                .ok_no_op(
+                    |c, d| c.start_shift_optimization(d, chanel_reader, nucl_collection),
+                    design,
+                )),
         }
-        Ok(self.ok_no_op(
-            |c, d| c.start_shift_optimization(d, chanel_reader, nucl_collection),
-            design,
-        ))
     }
 
     fn start_shift_optimization(
@@ -1848,7 +1847,7 @@ impl Controller {
     }
 
     fn set_scaffold_shift(&mut self, mut design: Design, shift: usize) -> Design {
-        if let ControllerState::OptimizingScaffoldPosition = self.state {
+        if matches!(self.state, ControllerState::OptimizingScaffoldPosition) {
             self.state = ControllerState::Normal;
         }
         design.scaffold_shift = Some(shift);

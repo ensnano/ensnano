@@ -196,7 +196,8 @@ impl<S: AppState> Controller<S> {
     ) -> Consequence {
         self.update_hovered_nucl(position);
         self.mouse_position = position;
-        let transition = if let WindowEvent::Focused(false) = event {
+
+        let transition = if matches!(event, WindowEvent::Focused(false)) {
             Transition {
                 new_state: Some(Box::new(NormalState {
                     mouse_position: PhysicalPosition::new(-1., -1.),

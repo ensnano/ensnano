@@ -960,7 +960,7 @@ where
                 Command::none()
             }
             Message::RevolutionParameterUpdate { parameter_id, text } => {
-                if let RevolutionParameterId::RevolutionRadius = parameter_id
+                if matches!(parameter_id, RevolutionParameterId::RevolutionRadius)
                     && let Some(radius) = text.parse::<f64>().ok()
                 {
                     self.requests
@@ -968,6 +968,7 @@ where
                         .unwrap()
                         .set_bezier_revolution_radius(radius);
                 }
+
                 self.revolution_tab
                     .update_builder_parameter(parameter_id, text);
                 let bezier_path_id = self.revolution_tab.get_current_bezier_path_id();

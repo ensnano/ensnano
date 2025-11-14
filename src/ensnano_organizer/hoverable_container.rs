@@ -96,7 +96,7 @@ where
         shell: &mut Shell<'_, Message>,
         viewport: &Rectangle,
     ) -> event::Status {
-        if let event::Status::Captured = self.content.as_widget_mut().on_event(
+        if self.content.as_widget_mut().on_event(
             &mut tree.children[0],
             event,
             layout.children().next().unwrap(),
@@ -105,9 +105,11 @@ where
             clipboard,
             shell,
             viewport,
-        ) {
+        ) == event::Status::Captured
+        {
             return event::Status::Captured;
         }
+
         let state = tree.state.downcast_mut::<State>();
         let was_hovered = state.is_hovered;
         let now_hovered = cursor_position.is_over(layout.bounds());

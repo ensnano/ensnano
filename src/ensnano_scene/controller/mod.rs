@@ -255,80 +255,86 @@ impl<S: AppState> Controller<S> {
         pixel_reader: &mut ElementSelector,
         app_state: &S,
     ) -> Consequence {
-        let transition = if let WindowEvent::Focused(false) = event {
-            self.camera_controller.stop_camera_movement();
-            Transition {
-                new_state: Some(Box::new(NormalState {
-                    mouse_position: PhysicalPosition::new(-1., -1.),
-                })),
-                consequences: Consequence::Nothing,
+        let transition = match event {
+            WindowEvent::Focused(false) => {
+                self.camera_controller.stop_camera_movement();
+                Transition {
+                    new_state: Some(Box::new(NormalState {
+                        mouse_position: PhysicalPosition::new(-1., -1.),
+                    })),
+                    consequences: Consequence::Nothing,
+                }
             }
-        } else if let WindowEvent::MouseWheel { delta, .. } = event {
-            let mouse_x = position.x / self.area_size.width as f64;
-            let mouse_y = position.y / self.area_size.height as f64;
-            if ctrl(&self.current_modifiers_state) {
-                self.camera_controller.update_stereographic_zoom(delta);
-                Transition::consequence(Consequence::CameraMoved)
-            } else {
-                self.camera_controller.process_scroll(
-                    delta,
-                    mouse_x as f32,
-                    mouse_y as f32,
-                    app_state.get_scroll_sensitivity(),
-                );
-                Transition::consequence(Consequence::CameraMoved)
+            WindowEvent::MouseWheel { delta, .. } => {
+                let mouse_x = position.x / self.area_size.width as f64;
+                let mouse_y = position.y / self.area_size.height as f64;
+                if ctrl(&self.current_modifiers_state) {
+                    self.camera_controller.update_stereographic_zoom(delta);
+                    Transition::consequence(Consequence::CameraMoved)
+                } else {
+                    self.camera_controller.process_scroll(
+                        delta,
+                        mouse_x as f32,
+                        mouse_y as f32,
+                        app_state.get_scroll_sensitivity(),
+                    );
+                    Transition::consequence(Consequence::CameraMoved)
+                }
             }
-        } else if let WindowEvent::KeyboardInput {
-            event:
-                KeyEvent {
-                    physical_key,
-                    logical_key,
-                    state,
-                    ..
-                },
-            ..
-        } = event
-        {
-            let csq = match logical_key.as_ref() {
-                Key::Character("a") if *state == ElementState::Pressed => {
-                    Consequence::AlignWithStereo
-                }
-                Key::Character("c") if *state == ElementState::Pressed => Consequence::CheckXovers,
-                Key::Character("z")
-                    if ctrl(&self.current_modifiers_state) && *state == ElementState::Pressed =>
-                {
-                    Consequence::Undo
-                }
-                Key::Character("r")
-                    if ctrl(&self.current_modifiers_state) && *state == ElementState::Pressed =>
-                {
-                    Consequence::Redo
-                }
-                Key::Character("q") => Consequence::PivotCenter,
-                Key::Character("w") if *state == ElementState::Pressed => {
-                    Consequence::ReverseSurfaceDirection
-                }
-                Key::Named(NamedKey::Space) if *state == ElementState::Pressed => {
-                    Consequence::ToggleWidget
-                }
-                _ => {
-                    if let PhysicalKey::Code(key_code) = physical_key
-                        && self
-                            .camera_controller
-                            .process_keyboard(key_code.to_owned(), *state)
-                    {
-                        Consequence::CameraMoved
-                    } else {
-                        Consequence::Nothing
+            WindowEvent::KeyboardInput {
+                event:
+                    KeyEvent {
+                        physical_key,
+                        logical_key,
+                        state,
+                        ..
+                    },
+                ..
+            } => {
+                let csq = match logical_key.as_ref() {
+                    Key::Character("a") if *state == ElementState::Pressed => {
+                        Consequence::AlignWithStereo
                     }
-                }
-            };
-            Transition::consequence(csq)
-        } else {
-            self.state.borrow_mut().input(
+                    Key::Character("c") if *state == ElementState::Pressed => {
+                        Consequence::CheckXovers
+                    }
+                    Key::Character("z")
+                        if ctrl(&self.current_modifiers_state)
+                            && *state == ElementState::Pressed =>
+                    {
+                        Consequence::Undo
+                    }
+                    Key::Character("r")
+                        if ctrl(&self.current_modifiers_state)
+                            && *state == ElementState::Pressed =>
+                    {
+                        Consequence::Redo
+                    }
+                    Key::Character("q") => Consequence::PivotCenter,
+                    Key::Character("w") if *state == ElementState::Pressed => {
+                        Consequence::ReverseSurfaceDirection
+                    }
+                    Key::Named(NamedKey::Space) if *state == ElementState::Pressed => {
+                        Consequence::ToggleWidget
+                    }
+                    _ => {
+                        if let PhysicalKey::Code(key_code) = physical_key
+                            && self
+                                .camera_controller
+                                .process_keyboard(key_code.to_owned(), *state)
+                        {
+                            Consequence::CameraMoved
+                        } else {
+                            Consequence::Nothing
+                        }
+                    }
+                };
+                Transition::consequence(csq)
+            }
+            _ => self.state.borrow_mut().input(
                 event,
                 EventContext::new(self, app_state, pixel_reader, position),
-            )
+            ),
         };
 
         if let Some(mut state) = transition.new_state {

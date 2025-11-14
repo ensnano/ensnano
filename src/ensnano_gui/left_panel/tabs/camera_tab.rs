@@ -326,7 +326,7 @@ impl FogChoices {
 
     fn visible(self, visible: bool) -> Self {
         if visible {
-            if let Self::None = self {
+            if self == Self::None {
                 Self::FromPivot
             } else {
                 self

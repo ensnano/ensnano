@@ -1201,7 +1201,7 @@ impl MainState {
     fn apply_operation(&mut self, operation: DesignOperation) {
         log::debug!("Applying operation {operation:?}");
         let result = self.app_state.apply_design_op(operation.clone());
-        if let Err(ErrOperation::FinishFirst) = result {
+        if matches!(result, Err(ErrOperation::FinishFirst)) {
             self.modify_state(
                 |s| s.notified(InteractorNotification::FinishOperation),
                 None,
@@ -1379,7 +1379,7 @@ impl MainState {
 
     fn update_pending_operation(&mut self, operation: Arc<dyn Operation>) {
         let result = self.app_state.update_pending_operation(operation.clone());
-        if let Err(ErrOperation::FinishFirst) = result {
+        if matches!(result, Err(ErrOperation::FinishFirst)) {
             self.modify_state(
                 |s| s.notified(InteractorNotification::FinishOperation),
                 None,
