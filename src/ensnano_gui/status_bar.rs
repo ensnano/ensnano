@@ -20,13 +20,13 @@ use super::{AppState, Requests};
 use crate::ensnano_iced::{
     UiSize,
     helpers::*,
-    iced::{self, Alignment, Color, Element, Length},
     iced_graphics::text::Paragraph,
     iced_runtime::{Command, Program},
     iced_winit::winit::dpi::LogicalSize,
     theme::GuiBackground,
 };
 use crate::ensnano_interactor::{StrandBuildingStatus, operation::Operation};
+use iced::{Alignment, Color, Element, Length};
 use std::{
     collections::HashMap,
     sync::{Arc, Mutex},
@@ -102,28 +102,6 @@ impl<R: Requests, State: AppState> StatusBar<R, State> {
                 .size(self.ui_size.main_text()),
         ]
     }
-
-    /* TODO
-    fn view_overed_strand(&self) -> Element<Message<S>, iced_wgpu::Renderer> {
-        let mut row = Row::new();
-        if let Some(strand) = self.app_state.get_overed_strand() {
-            row = row.push(Text::new(strand.info()).size(self.ui_size.status_font())
-        }
-        row.into()
-    }*/
-
-    // NOTE: process_tag seems useless without keyboard priority. Reactivate it if something
-    //       broken.
-
-    // pub fn process_tab(&mut self) {
-    //     let op = self.operation.as_mut().and_then(|op| op.process_tab());
-    //     // if !self.has_keyboard_priority() {
-    //     //     log::info!("Updating operation");
-    //     //     if let Some(op) = op {
-    //     //         self.requests.lock().unwrap().update_current_operation(op)
-    //     //     }
-    //     // }
-    // }
 }
 
 // List of Messages that can be send by the status bar.
@@ -143,7 +121,7 @@ pub enum Message<S: AppState> {
 impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
     type Message = Message<S>;
     type Theme = crate::ensnano_iced::Theme;
-    type Renderer = crate::ensnano_iced::Renderer;
+    type Renderer = iced::Renderer;
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         self.update_operation();
@@ -310,7 +288,7 @@ impl OperationInput {
     fn view<S: AppState>(
         &self,
         ui_size: UiSize,
-    ) -> Row<'_, Message<S>, crate::ensnano_iced::Theme, crate::ensnano_iced::Renderer> {
+    ) -> Row<'_, Message<S>, crate::ensnano_iced::Theme, iced::Renderer> {
         let mut row = Row::new();
         let op = self.operation.as_ref();
         row = row.push(text(op.description()).size(ui_size.main_text()));
@@ -386,7 +364,7 @@ impl OperationInput {
 
 mod input_color {
     // TODO: Move this in ensnano_iced.
-    use crate::ensnano_iced::iced::{Background, Border, Color, theme, widget::text_input::*};
+    use iced::{Background, Border, Color, theme, widget::text_input::*};
 
     pub enum InputValueState {
         Normal,

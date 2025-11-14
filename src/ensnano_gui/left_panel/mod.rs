@@ -29,8 +29,6 @@ use crate::ensnano_exports::ExportType;
 use crate::ensnano_iced::{
     UiSize,
     color_picker::ColorPickerMessage,
-    iced::widget::*,
-    iced::{Color, Command, Element, Length},
     iced_aw::widgets::{TabBarPosition, TabLabel, Tabs},
     iced_runtime::Program,
     iced_winit::{
@@ -61,6 +59,7 @@ use color_picker::ColorPicker;
 use contextual_panel::{ContextualPanel, InstantiatedValue, ValueKind};
 use discrete_value::{FactoryId, RequestFactory, Requestable, ValueId};
 use export_menu::ExportMenu;
+use iced::{Color, Command, Element, Length, widget::*};
 use std::sync::{Arc, Mutex};
 use tabs::{
     CameraShortcutPanel, CameraTab, EditionTab, GridTab, GuiTab, ParametersTab, PenTab,

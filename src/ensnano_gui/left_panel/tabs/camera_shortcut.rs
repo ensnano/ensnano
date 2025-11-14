@@ -22,8 +22,8 @@ use crate::ensnano_iced::{
     UiSize,
     fonts::{MaterialIcon, MaterialIconStyle},
     helpers::*,
-    iced::{Alignment, Command, Length, alignment::Horizontal},
 };
+use iced::{Alignment, Command, Length, alignment::Horizontal};
 
 /// A named camera orientation.
 ///

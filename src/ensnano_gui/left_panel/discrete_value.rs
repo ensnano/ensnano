@@ -22,12 +22,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::AppState;
 use super::Message;
-use crate::ensnano_iced::iced;
-use crate::ensnano_iced::{
-    helpers::*,
-    iced::{Alignment, Length, Pixels},
-    theme,
-};
+use crate::ensnano_iced::{helpers::*, theme};
+use iced::{Alignment, Length, Pixels};
 use std::collections::BTreeMap;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]

@@ -17,8 +17,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::ColorMessage;
-use crate::ensnano_iced::{helpers::*, iced::Color};
+use crate::ensnano_iced::helpers::*;
 use hue_column::HueColumn;
+use iced::Color;
 use light_sat_square::LightSatSquare;
 
 pub struct ColorPicker {
@@ -51,15 +52,6 @@ impl ColorPicker {
 /// A Iced Widget to select Hue.
 mod hue_column {
     use crate::ensnano_iced::{
-        iced::{
-            Length, Point, Rectangle, Renderer, Size, Vector,
-            advanced::{
-                Clipboard, Layout, Renderer as RendererTrait, Shell, Widget, layout, mouse,
-                renderer::Style, widget,
-            },
-            event,
-            mouse::Cursor,
-        },
         iced_graphics::{
             Primitive,
             color::pack,
@@ -67,8 +59,16 @@ mod hue_column {
         },
         iced_wgpu,
     };
-
     use color_space::{Hsv, Rgb};
+    use iced::{
+        Length, Point, Rectangle, Renderer, Size, Vector,
+        advanced::{
+            Clipboard, Layout, Renderer as RendererTrait, Shell, Widget, layout, mouse,
+            renderer::Style, widget,
+        },
+        event,
+        mouse::Cursor,
+    };
 
     /// The internal state of a [HueColumnState].
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -94,7 +94,7 @@ mod hue_column {
         }
     }
 
-    impl<Message> Widget<Message, crate::ensnano_iced::Theme, crate::ensnano_iced::Renderer>
+    impl<Message> Widget<Message, crate::ensnano_iced::Theme, iced::Renderer>
         for HueColumn<'_, Message>
     {
         fn state(&self) -> widget::tree::State {
@@ -110,7 +110,7 @@ mod hue_column {
         fn layout(
             &self,
             _tree: &mut widget::Tree,
-            _renderer: &crate::ensnano_iced::Renderer,
+            _renderer: &iced::Renderer,
             limits: &layout::Limits,
         ) -> layout::Node {
             let size = limits.resolve(Length::Fill, Length::Fill, Size::ZERO);
@@ -121,7 +121,7 @@ mod hue_column {
         fn draw(
             &self,
             _tree: &widget::Tree,
-            renderer: &mut crate::ensnano_iced::Renderer,
+            renderer: &mut iced::Renderer,
             _theme: &crate::ensnano_iced::Theme,
             _style: &Style,
             layout: Layout,
@@ -185,7 +185,7 @@ mod hue_column {
             event: event::Event,
             layout: Layout,
             cursor: Cursor,
-            _renderer: &crate::ensnano_iced::Renderer,
+            _renderer: &iced::Renderer,
             _clipboard: &mut dyn Clipboard,
             shell: &mut Shell<'_, Message>,
             _viewport: &Rectangle,
@@ -237,12 +237,7 @@ mod hue_column {
     }
 
     impl<'a, Message> From<HueColumn<'a, Message>>
-        for crate::ensnano_iced::Element<
-            'a,
-            Message,
-            crate::ensnano_iced::Theme,
-            crate::ensnano_iced::Renderer,
-        >
+        for crate::ensnano_iced::Element<'a, Message, crate::ensnano_iced::Theme, iced::Renderer>
     where
         Message: 'a + Clone,
     {
@@ -255,21 +250,21 @@ mod hue_column {
 /// A widget to select Lightness and Saturation values.
 mod light_sat_square {
     use crate::ensnano_iced::{
-        iced::{
-            Length, Point, Rectangle, Renderer, Size, Vector,
-            advanced::{
-                Clipboard, Layout, Renderer as RendererTrait, Shell, Widget, layout, mouse,
-                renderer::Style, widget,
-            },
-            event,
-            mouse::Cursor,
-        },
         iced_graphics::{
             Primitive,
             color::pack,
             mesh::{Indexed, Mesh, SolidVertex2D},
         },
         iced_wgpu,
+    };
+    use iced::{
+        Length, Point, Rectangle, Renderer, Size, Vector,
+        advanced::{
+            Clipboard, Layout, Renderer as RendererTrait, Shell, Widget, layout, mouse,
+            renderer::Style, widget,
+        },
+        event,
+        mouse::Cursor,
     };
 
     use color_space::{Hsv, Rgb};
@@ -314,7 +309,7 @@ mod light_sat_square {
         }
     }
 
-    impl<'a, Message> Widget<Message, crate::ensnano_iced::Theme, crate::ensnano_iced::Renderer>
+    impl<'a, Message> Widget<Message, crate::ensnano_iced::Theme, iced::Renderer>
         for LightSatSquare<'a, Message>
     where
         Message: Clone + 'a,
@@ -332,7 +327,7 @@ mod light_sat_square {
         fn layout(
             &self,
             _tree: &mut widget::Tree,
-            _renderer: &crate::ensnano_iced::Renderer,
+            _renderer: &iced::Renderer,
             limits: &layout::Limits,
         ) -> layout::Node {
             let size = limits.resolve(Length::Fill, Length::Fill, Size::ZERO);
@@ -343,7 +338,7 @@ mod light_sat_square {
         fn draw(
             &self,
             _state: &widget::Tree,
-            renderer: &mut crate::ensnano_iced::Renderer,
+            renderer: &mut iced::Renderer,
             _theme: &crate::ensnano_iced::Theme,
             _style: &Style,
             layout: Layout,
@@ -404,7 +399,7 @@ mod light_sat_square {
             event: event::Event,
             layout: Layout,
             cursor: Cursor,
-            _renderer: &crate::ensnano_iced::Renderer,
+            _renderer: &iced::Renderer,
             _clipboard: &mut dyn Clipboard,
             shell: &mut Shell<'_, Message>,
             _viewport: &Rectangle,
@@ -466,12 +461,7 @@ mod light_sat_square {
     }
 
     impl<'a, Message> From<LightSatSquare<'a, Message>>
-        for crate::ensnano_iced::Element<
-            'a,
-            Message,
-            crate::ensnano_iced::Theme,
-            crate::ensnano_iced::Renderer,
-        >
+        for crate::ensnano_iced::Element<'a, Message, crate::ensnano_iced::Theme, iced::Renderer>
     where
         Message: Clone + 'a,
     {
@@ -485,21 +475,21 @@ mod light_sat_square {
 mod color_square {
     use super::Color;
     use crate::ensnano_iced::{
-        iced::{
-            Length, Rectangle, Size, Vector,
-            advanced::{
-                Clipboard, Layout, Renderer as RendererTrait, Shell, Widget, layout, mouse,
-                renderer::Style, widget,
-            },
-            event,
-            mouse::Cursor,
-        },
         iced_graphics::{
             Primitive,
             color::pack,
             mesh::{Indexed, Mesh, SolidVertex2D},
         },
         iced_wgpu,
+    };
+    use iced::{
+        Length, Rectangle, Size, Vector,
+        advanced::{
+            Clipboard, Layout, Renderer as RendererTrait, Shell, Widget, layout, mouse,
+            renderer::Style, widget,
+        },
+        event,
+        mouse::Cursor,
     };
 
     /// The State of a [ColorSquare]
@@ -539,7 +529,7 @@ mod color_square {
         }
     }
 
-    impl<'a, Message> Widget<Message, crate::ensnano_iced::Theme, crate::ensnano_iced::Renderer>
+    impl<'a, Message> Widget<Message, crate::ensnano_iced::Theme, iced::Renderer>
         for ColorSquare<'a, Message>
     where
         Message: Clone + 'a,
@@ -557,7 +547,7 @@ mod color_square {
         fn layout(
             &self,
             _tree: &mut widget::Tree,
-            _renderer: &crate::ensnano_iced::Renderer,
+            _renderer: &iced::Renderer,
             limits: &layout::Limits,
         ) -> layout::Node {
             let size = limits.resolve(Length::Fill, Length::Fill, Size::ZERO);
@@ -568,7 +558,7 @@ mod color_square {
         fn draw(
             &self,
             _tree: &widget::Tree,
-            renderer: &mut crate::ensnano_iced::Renderer,
+            renderer: &mut iced::Renderer,
             _theme: &crate::ensnano_iced::Theme,
             _style: &Style,
             layout: Layout,
@@ -608,10 +598,11 @@ mod color_square {
             });
 
             match renderer {
-                crate::ensnano_iced::Renderer::Wgpu(wgpu_renderer) => wgpu_renderer
-                    .with_translation(Vector::new(b.x, b.y), |renderer| {
+                iced::Renderer::Wgpu(wgpu_renderer) => {
+                    wgpu_renderer.with_translation(Vector::new(b.x, b.y), |renderer| {
                         renderer.draw_primitive(Primitive::Custom(mesh));
-                    }),
+                    })
+                }
                 _ => panic!("Unhandled renderer."),
             };
         }
@@ -622,7 +613,7 @@ mod color_square {
             event: event::Event,
             layout: Layout,
             cursor: Cursor,
-            _renderer: &crate::ensnano_iced::Renderer,
+            _renderer: &iced::Renderer,
             _clipboard: &mut dyn Clipboard,
             shell: &mut Shell<'_, Message>,
             _viewport: &Rectangle,
@@ -666,12 +657,7 @@ mod color_square {
     }
 
     impl<'a, Message> From<ColorSquare<'a, Message>>
-        for crate::ensnano_iced::Element<
-            'a,
-            Message,
-            crate::ensnano_iced::Theme,
-            crate::ensnano_iced::Renderer,
-        >
+        for crate::ensnano_iced::Element<'a, Message, crate::ensnano_iced::Theme, iced::Renderer>
     where
         Message: Clone + 'a,
     {

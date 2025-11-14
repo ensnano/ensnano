@@ -17,7 +17,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::{AppState, ExportType, Message};
-use crate::ensnano_iced::{helpers::*, iced};
+use crate::ensnano_iced::helpers::*;
 
 #[derive(Default)]
 pub struct ExportMenu {}

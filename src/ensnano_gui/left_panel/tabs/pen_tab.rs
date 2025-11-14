@@ -21,7 +21,6 @@ use crate::ensnano_consts::{ICON_HONEYCOMB_GRID, ICON_SQUARE_GRID};
 use crate::ensnano_iced::{
     fonts::{MaterialIcon, MaterialIconStyle, icon_to_char},
     helpers::*,
-    iced,
     iced_aw::TabLabel,
 };
 use std::marker::PhantomData;

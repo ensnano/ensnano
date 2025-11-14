@@ -39,12 +39,6 @@ pub use top_bar::TopBar;
 
 use crate::ensnano_iced::{
     fonts::INTER_REGULAR_FONT,
-    iced::{
-        self, Renderer, Size,
-        advanced::{clipboard, mouse},
-        event::{self, Event},
-        keyboard,
-    },
     iced_graphics,
     iced_runtime::{Debug, program},
     iced_wgpu::{self, Backend, wgpu},
@@ -70,6 +64,12 @@ use crate::{
         grid::{GridId, GridTypeDescr},
     },
     ensnano_iced::fonts::load_fonts,
+};
+use iced::{
+    Renderer, Size,
+    advanced::{clipboard, mouse},
+    event::{self, Event},
+    keyboard,
 };
 use status_bar::StatusBar;
 use std::{

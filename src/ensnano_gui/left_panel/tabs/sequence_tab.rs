@@ -18,13 +18,9 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
 use super::{AppState, DesignElementKey, Message, UiSize, tabs::GuiTab};
 use crate::ensnano_consts::ICON_ATGC;
-use crate::ensnano_iced::{
-    helpers::*,
-    iced::{self, Length},
-    iced_aw::TabLabel,
-    theme,
-};
+use crate::ensnano_iced::{helpers::*, iced_aw::TabLabel, theme};
 use crate::ensnano_interactor::StandardSequence;
+use iced::Length;
 use std::marker::PhantomData;
 
 pub struct SequenceTab<State: AppState> {

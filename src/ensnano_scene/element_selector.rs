@@ -23,7 +23,6 @@ use crate::ensnano_design::{
 };
 use crate::ensnano_interactor::{PhantomElement, phantom_helix_decoder};
 use crate::ensnano_utils::BufferDimensions;
-use futures::executor;
 use num_enum::IntoPrimitive;
 use std::{convert::TryInto, rc::Rc};
 use winit::dpi::{PhysicalPosition, PhysicalSize};
@@ -183,7 +182,7 @@ impl ElementSelector {
             let _ = sender.send(result);
         });
         self.device.poll(wgpu::Maintain::Wait);
-        executor::block_on(async {
+        futures::executor::block_on(async {
             receiver
                 .await
                 .expect("communication failed")

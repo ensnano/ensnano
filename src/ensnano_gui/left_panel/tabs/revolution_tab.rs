@@ -23,7 +23,6 @@ use crate::ensnano_iced::{
     UiSize,
     fonts::{MaterialIcon, icon_to_char},
     helpers::*,
-    iced::{Alignment, Command, Length},
     iced_aw::TabLabel,
     theme,
 };
@@ -32,6 +31,7 @@ use crate::ensnano_interactor::{
     RevolutionSurfaceSystemDescriptor, RootingParameters, ShiftGenerator,
     UnrootedRevolutionSurfaceDescriptor,
 };
+use iced::{Alignment, Command, Length};
 use std::fmt;
 use ultraviolet::{Rotor3, Vec3};
 
@@ -551,12 +551,8 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
         &self,
         ui_size: UiSize,
         app_state: &State,
-    ) -> crate::ensnano_iced::Element<
-        '_,
-        Self::Message,
-        crate::ensnano_iced::Theme,
-        crate::ensnano_iced::Renderer,
-    > {
+    ) -> crate::ensnano_iced::Element<'_, Self::Message, crate::ensnano_iced::Theme, iced::Renderer>
+    {
         let desc = self.get_revolution_system(app_state, false);
 
         let shift_buttons = {

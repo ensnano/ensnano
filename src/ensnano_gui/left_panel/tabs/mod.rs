@@ -15,6 +15,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
 use super::*;
 use crate::ensnano_interactor::{RollRequest, SimulationState};
 
@@ -27,6 +28,7 @@ pub use camera_shortcut::CameraShortcutPanel;
 mod camera_tab;
 pub use camera_tab::{CameraTab, FogChoices};
 mod simulation_tab;
+use iced::widget::container;
 pub use simulation_tab::SimulationTab;
 mod parameters_tab;
 pub use parameters_tab::ParametersTab;
@@ -81,7 +83,7 @@ pub trait GuiTab<State: AppState> {
 mod gostop {
     // TODO: Turn this into a widget
     use super::{AppState, Message};
-    use crate::ensnano_iced::{Element, Renderer, Theme, helpers::*, iced};
+    use crate::ensnano_iced::{Element, Theme, helpers::*};
 
     pub struct GoStop<State: AppState> {
         pub name: String,

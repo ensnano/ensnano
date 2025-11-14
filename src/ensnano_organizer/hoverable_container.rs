@@ -10,7 +10,7 @@
 //!
 //!    <https://docs.rs/iced_widget/0.12.1/src/iced_widget/container.rs.html>
 
-use crate::ensnano_iced::iced::{
+use iced::{
     Element, Length, Padding, Point, Rectangle, Size, Vector,
     advanced::{
         Clipboard, Shell,

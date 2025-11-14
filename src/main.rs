@@ -138,8 +138,6 @@ use {
         ensnano_gui::{AppState as _, ColorOverlay, Gui, IcedMessages, OverlayType, TopBarState},
         ensnano_iced::{
             UiSize, fonts,
-            iced::{self, Event as IcedEvent, Size},
-            iced_futures::futures,
             iced_graphics::{Antialiasing, Viewport},
             iced_runtime::{Debug, program},
             iced_wgpu::{self, Settings},
@@ -892,7 +890,7 @@ impl OverlayManager {
         }
     }
 
-    fn forward_event(&mut self, event: IcedEvent, n: usize) {
+    fn forward_event(&mut self, event: iced::Event, n: usize) {
         match self.overlay_types.get(n) {
             None => {
                 log::error!("receive event from non existing overlay");
@@ -2191,10 +2189,10 @@ where
     *obj = update_func(tmp);
 }
 
-fn convert_size_f32(size: PhySize) -> Size<f32> {
-    Size::new(size.width as f32, size.height as f32)
+fn convert_size_f32(size: PhySize) -> iced::Size<f32> {
+    iced::Size::new(size.width as f32, size.height as f32)
 }
 
-fn convert_size_u32(size: PhySize) -> Size<u32> {
-    Size::new(size.width, size.height)
+fn convert_size_u32(size: PhySize) -> iced::Size<u32> {
+    iced::Size::new(size.width, size.height)
 }

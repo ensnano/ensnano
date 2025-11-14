@@ -22,7 +22,6 @@ use super::{
 use crate::ensnano_iced::{
     fonts::{MaterialIcon, icon_to_char},
     helpers::*,
-    iced::{Alignment, Length},
     iced_aw::TabLabel,
     theme,
 };
@@ -30,6 +29,7 @@ use crate::ensnano_interactor::{
     app_state_parameters::AppStateParameters,
     graphics::{ALL_BACKGROUND3D, ALL_RENDERING_MODE, Background3D, RenderingMode},
 };
+use iced::{Alignment, Length};
 use std::marker::PhantomData;
 
 pub struct CameraTab<State: AppState> {

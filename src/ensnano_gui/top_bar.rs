@@ -28,12 +28,12 @@ use crate::ensnano_iced::{
     UiSize,
     fonts::{ENSNANO_FONT, MaterialIcon, MaterialIconStyle},
     helpers::*,
-    iced::{self, Element, Length, Padding},
     iced_runtime::{Command, Program},
     iced_winit::winit::dpi::LogicalSize,
     theme::GuiBackground,
 };
 use crate::ensnano_interactor::{ActionMode, SelectionMode};
+use iced::{Element, Length, Padding};
 use std::sync::{Arc, Mutex};
 
 /// Top bar object

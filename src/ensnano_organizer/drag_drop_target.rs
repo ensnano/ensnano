@@ -1,7 +1,7 @@
 //! Allow your users to drag and drop widgets.
 
 use super::OrganizerMessage;
-use crate::ensnano_iced::iced::{
+use iced::{
     Element, Length, Padding, Rectangle, Size, Vector,
     advanced::{
         layout::{self, Layout},

@@ -25,12 +25,9 @@ use crate::ensnano_consts::{
     MOVE_CHAR, NUCL_CHAR, R_CLICK, ROT_CHAR, SELECT_CHAR, SHIFT, STRAND_CHAR, SUPPR_CHAR,
 };
 use crate::ensnano_design::{BezierVertexId, grid::GridId};
-use crate::ensnano_iced::{
-    helpers::*,
-    iced::{self, Alignment, alignment::Horizontal},
-    theme,
-};
+use crate::ensnano_iced::{helpers::*, theme};
 use crate::ensnano_interactor::{Selection, SimulationState};
+use iced::{Alignment, alignment::Horizontal};
 use ultraviolet::{Rotor3, Vec2};
 use value_constructor::{BezierVertexBuilder, Builder, GridBuilder};
 pub use value_constructor::{InstantiatedValue, ValueKind};
@@ -597,7 +594,7 @@ fn add_help_to_column<'a, State: AppState>(
 
 fn turn_into_help_column<'a, State: AppState>(
     ui_size: UiSize,
-) -> Column<'a, Message<State>, crate::ensnano_iced::Theme, crate::ensnano_iced::Renderer> {
+) -> Column<'a, Message<State>, crate::ensnano_iced::Theme, iced::Renderer> {
     self::column![
         section("Help", ui_size)
             .width(Length::Fill)
@@ -864,12 +861,7 @@ impl AddStrandMenu {
         &self,
         ui_size: UiSize,
         width: u16,
-    ) -> iced::widget::Column<
-        '_,
-        Message<State>,
-        crate::ensnano_iced::Theme,
-        crate::ensnano_iced::Renderer,
-    > {
+    ) -> iced::widget::Column<'_, Message<State>, crate::ensnano_iced::Theme, iced::Renderer> {
         let color_choose_strand_start_length = if self.text_inputs_are_active {
             theme::Text::Color(theme::GUI_PALETTE.text)
         } else {

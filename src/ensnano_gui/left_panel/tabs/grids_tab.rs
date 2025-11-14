@@ -25,10 +25,10 @@ use crate::ensnano_consts::{ICON_HONEYCOMB_GRID, ICON_NANOTUBE, ICON_SQUARE_GRID
 use crate::ensnano_iced::{
     fonts::{MaterialIcon, icon_to_char},
     helpers::*,
-    iced::{self, Length},
     iced_aw::TabLabel,
     theme,
 };
+use iced::Length;
 use std::marker::PhantomData;
 
 pub struct GridTab<State: AppState> {

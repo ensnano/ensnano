@@ -15,20 +15,19 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
+use super::{
+    AppState, DesignElementKey, FactoryId, HelixRoll, Message, RequestFactory, RollRequest, UiSize,
+    ValueId, tabs::GuiTab,
+};
 use crate::ensnano_iced::{
     color_picker::{ColorPicker, ColorPickerMessage},
     fonts::{MaterialIcon, icon_to_char},
     helpers::*,
-    iced::Command,
     iced_aw::TabLabel,
 };
+use iced::Command;
 use std::marker::PhantomData;
-
-use super::tabs::GuiTab;
-use super::{
-    AppState, DesignElementKey, FactoryId, HelixRoll, Message, RequestFactory, RollRequest, UiSize,
-    ValueId,
-};
 
 pub struct EditionTab<State: AppState> {
     helix_roll_factory: RequestFactory<HelixRoll>,

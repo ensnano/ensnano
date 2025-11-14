@@ -31,7 +31,6 @@ iced_aw = { version = "0.9", default-features = false, features = [
     "tabs",
     "tab_bar",
 ] }
-iced_futures = "0.12"
 iced_graphics = "0.12"
 iced_runtime = "0.12"
 iced_wgpu = "0.12"
