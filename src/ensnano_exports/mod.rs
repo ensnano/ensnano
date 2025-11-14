@@ -52,9 +52,9 @@ impl ExportSuccess {
 
 #[derive(Debug)]
 pub enum ExportError {
-    CadnanoConversion(#[allow(unused)] CadnanoError),
-    PdbConversion(#[allow(unused)] PdbError),
-    IOError(#[allow(unused)] std::io::Error),
+    CadnanoConversion(#[expect(unused)] CadnanoError),
+    PdbConversion(#[expect(unused)] PdbError),
+    IOError(#[expect(unused)] std::io::Error),
 }
 
 impl From<CadnanoError> for ExportError {

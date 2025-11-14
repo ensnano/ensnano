@@ -7,7 +7,6 @@ use serde::{Deserialize, Serialize};
 use std::f64::consts::TAU;
 use ultraviolet::{DVec3, Rotor3, Vec3};
 
-#[allow(non_snake_case)]
 pub fn nb_turn_per_100_nt_to_omega(
     nb_turn_per_100_nt: f64,
     helix_parameters: &HelixParameters,
@@ -15,8 +14,8 @@ pub fn nb_turn_per_100_nt_to_omega(
     if nb_turn_per_100_nt.abs() < 1e-3 {
         return Some(0.0);
     }
-    let Z: f64 = 100.0 * helix_parameters.rise as f64;
-    Some(TAU * nb_turn_per_100_nt / Z)
+    let z: f64 = 100.0 * helix_parameters.rise as f64;
+    Some(TAU * nb_turn_per_100_nt / z)
 }
 
 pub fn twist_to_omega(twist: f64, helix_parameters: &HelixParameters) -> Option<f64> {
@@ -179,7 +178,6 @@ mod tests {
         assert!((s - expected).abs() < 1e-3);
     }
 
-    #[allow(non_snake_case)]
     #[test]
     fn nb_turn_per_100_nt_is_correct() {
         let p = HelixParameters::DEFAULT;
@@ -190,7 +188,6 @@ mod tests {
     }
 
     #[ignore = "need fix"]
-    #[allow(non_snake_case)]
     #[test]
     fn rise_ratio_is_correct() {
         let p = HelixParameters::DEFAULT;
@@ -213,7 +210,6 @@ mod tests {
         assert!((nucl_curved.x - nucl_flat.x).abs() < 1e-2);
     }
 
-    #[allow(non_snake_case)]
     fn roll_adjustment_is_correct(nb_turn: f64) {
         let p = HelixParameters::DEFAULT;
         let Z = 100.0 * p.rise as f64;

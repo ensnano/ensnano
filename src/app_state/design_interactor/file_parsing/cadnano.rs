@@ -48,8 +48,8 @@ struct VStrand {
 
 #[derive(Debug)]
 pub(super) enum CadnanoError {
-    IO(#[allow(unused)] std::io::Error),
-    Json(#[allow(unused)] serde_json::Error),
+    IO(#[expect(unused)] std::io::Error),
+    Json(#[expect(unused)] serde_json::Error),
 }
 
 impl std::convert::From<std::io::Error> for CadnanoError {

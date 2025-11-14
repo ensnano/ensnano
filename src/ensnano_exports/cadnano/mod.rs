@@ -190,10 +190,10 @@ impl EnsnanoBonds {
 pub enum CadnanoError {
     Not2Colorable,
     NonHomogeneousGridTypes,
-    UnhandledGridType(#[allow(unused)] GridTypeDescr),
+    UnhandledGridType(#[expect(unused)] GridTypeDescr),
     ImpossibleBond,
-    HelixNotFound(#[allow(unused)] usize),
-    SerdeError(#[allow(unused)] serde_json::Error),
+    HelixNotFound(#[expect(unused)] usize),
+    SerdeError(#[expect(unused)] serde_json::Error),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

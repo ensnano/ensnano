@@ -128,11 +128,11 @@ impl MoveToParameter {
 
 #[derive(Debug)]
 pub enum SvgImportError {
-    IOError(#[allow(unused)] std::io::Error),
-    SvgParserError(#[allow(unused)] svg::parser::Error),
+    IOError(#[expect(unused)] std::io::Error),
+    SvgParserError(#[expect(unused)] svg::parser::Error),
     NoPathFound,
-    AttributeNotFound(#[allow(unused)] String),
-    UnexpectedCommand(#[allow(unused)] String),
+    AttributeNotFound(#[expect(unused)] String),
+    UnexpectedCommand(#[expect(unused)] String),
     BadParameters,
 }
 

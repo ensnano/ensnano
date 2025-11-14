@@ -217,4 +217,4 @@ pub enum TargetScaffoldLength {
 }
 
 #[derive(Debug)]
-pub struct SetScaffoldSequenceError(#[allow(unused)] pub String);
+pub struct SetScaffoldSequenceError(#[expect(unused)] pub String);

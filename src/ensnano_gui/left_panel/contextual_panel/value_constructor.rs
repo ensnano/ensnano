@@ -9,6 +9,7 @@ macro_rules! type_builder {
         paste! {
             pub struct $builder_name {
                 $(
+                    #[expect(clippy::allow_attributes)]
                     #[allow(dead_code)]
                     $param: $param_type,
                     [<$param _string>]: String,

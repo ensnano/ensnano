@@ -570,7 +570,7 @@ mod tests {
     use super::*;
 
     #[test]
-    #[allow(non_snake_case)]
+    #[expect(non_snake_case)]
     fn surface_area() {
         let r = 1.0;
         let R = 3.0;

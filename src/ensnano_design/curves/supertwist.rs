@@ -41,7 +41,7 @@ impl Curved for SuperTwist {
         let ct = (t * self.omega).cos();
         let st = (t * self.omega).sin();
 
-        #[allow(non_snake_case)]
+        #[expect(non_snake_case)]
         let M = DVec3 {
             x: self.r * ct,
             y: self.r * st,
@@ -56,23 +56,17 @@ impl Curved for SuperTwist {
 
         let ds = DVec2::new(self.r * self.omega, self.delta).mag();
 
-        #[allow(non_snake_case)]
+        #[expect(non_snake_case)]
         let Z = dm_dt / ds;
 
-        let _ddm_ddt = DVec3 {
-            x: -self.r * self.omega * self.omega * ct,
-            y: -self.r * self.omega * self.omega * st,
-            z: 0.0,
-        };
-
-        #[allow(non_snake_case)]
+        #[expect(non_snake_case)]
         let X = DVec3 {
             x: -ct,
             y: -st,
             z: 0.0,
         };
 
-        #[allow(non_snake_case)]
+        #[expect(non_snake_case)]
         let Y = Z.cross(X);
 
         let omega_ = TAU * ds / (self.nb_helices as f64 * INTER_HELIX_GAP);

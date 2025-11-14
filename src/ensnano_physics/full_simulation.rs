@@ -49,7 +49,7 @@ pub trait SimulationSetup {
 
 // This is used for full simulations; not used right now, but will be
 // with a proper interface.
-#[allow(dead_code)]
+#[expect(dead_code)]
 pub struct FullSimulationSetup;
 
 impl SimulationSetup for FullSimulationSetup {

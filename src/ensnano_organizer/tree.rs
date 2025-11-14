@@ -164,7 +164,6 @@ enum NewOrganizerTree<K> {
 }
 
 impl<K> OldOrganizerTree<K> {
-    #[allow(clippy::wrong_self_convention)]
     fn to_real(self) -> OrganizerTree<K> {
         match self {
             Self::Leaf(k) => OrganizerTree::Leaf(k),
@@ -179,7 +178,6 @@ impl<K> OldOrganizerTree<K> {
 }
 
 impl<K> NewOrganizerTree<K> {
-    #[allow(clippy::wrong_self_convention)]
     fn to_real(self) -> OrganizerTree<K> {
         match self {
             Self::Leaf(k) => OrganizerTree::Leaf(k),

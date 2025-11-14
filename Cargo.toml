@@ -159,6 +159,7 @@ min_ident_chars = "allow"
 missing_docs_in_private_items = "allow" # TODO: warn (major undertaking)
 missing_trait_methods = "allow"
 mod_module_files = "allow"
+non_ascii_literal = "allow"
 multiple_inherent_impl = "allow" # TODO: warn once clippy 1.92 gets out
 pattern_type_mismatch = "allow"
 partial_pub_fields = "allow"
