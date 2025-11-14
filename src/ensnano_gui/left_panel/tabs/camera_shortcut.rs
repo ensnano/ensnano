@@ -83,7 +83,7 @@ const PREDEFINED_CAMERA_ORIENTATION: [NamedCameraPosition; 6] = [
 fn named_camera_to_button<State: AppState>(
     position: &NamedCameraPosition,
     ui_size: UiSize,
-) -> crate::ensnano_iced::Element<'_, Message<State>> {
+) -> iced::Element<'_, Message<State>> {
     fixed_text_button(position.name, 2.0, ui_size)
         .on_press(position.message())
         .into()
@@ -128,8 +128,8 @@ impl CameraWidget {
     fn view<State: AppState>(
         &self,
         ui_size: UiSize,
-    ) -> crate::ensnano_iced::Element<'_, Message<State>> {
-        let name_field: crate::ensnano_iced::Element<'_, _> = if self.being_edited {
+    ) -> iced::Element<'_, Message<State>> {
+        let name_field: iced::Element<'_, _> = if self.being_edited {
             keyboard_priority(
                 text_input("Camera name", &self.name)
                     .on_input(Message::EditCameraName)
@@ -255,7 +255,7 @@ impl CameraShortcutPanel {
         &self,
         ui_size: UiSize,
         _state: &State,
-    ) -> crate::ensnano_iced::Element<'_, Message<State>> {
+    ) -> iced::Element<'_, Message<State>> {
         //let (ui_size, _) = state;
         //let ui_size = ui_size.to_owned();
 

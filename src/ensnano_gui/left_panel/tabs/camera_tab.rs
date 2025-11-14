@@ -85,11 +85,7 @@ impl<State: AppState> GuiTab<State> for CameraTab<State> {
         TabLabel::Text(format!("{}", icon_to_char(MaterialIcon::Videocam)))
     }
 
-    fn content(
-        &self,
-        ui_size: UiSize,
-        app_state: &State,
-    ) -> crate::ensnano_iced::Element<'_, Message<State>> {
+    fn content(&self, ui_size: UiSize, app_state: &State) -> iced::Element<'_, Message<State>> {
         let content = self::column![
             section("Camera", ui_size),
             subsection("Toggle visibility", ui_size),
@@ -191,10 +187,7 @@ struct FogGuiParameters {
 }
 
 impl FogGuiParameters {
-    fn view<State: AppState>(
-        &self,
-        ui_size: UiSize,
-    ) -> crate::ensnano_iced::Element<'_, Message<State>> {
+    fn view<State: AppState>(&self, ui_size: UiSize) -> iced::Element<'_, Message<State>> {
         let radius_text = if self.is_activated {
             text("Radius")
         } else {

@@ -69,7 +69,7 @@ impl<State: AppState> GuiTab<State> for ParametersTab<State> {
         &self,
         ui_size: UiSize,
         app_state: &State,
-    ) -> crate::ensnano_iced::Element<'_, Self::Message> {
+    ) -> iced::Element<'_, Self::Message> {
         let dna_params = &app_state.get_dna_parameters();
 
         let content = self::column![

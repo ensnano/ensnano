@@ -6,22 +6,15 @@
 //!
 //! Therefore, in other crates, do not use Iced directly, but go through ensnano_iced.
 
-pub type Element<'a, Message, Theme = iced::Theme, Renderer = iced::Renderer> =
-    iced::Element<'a, Message, Theme, Renderer>;
-
 pub mod fonts;
+pub mod helpers;
+pub mod theme;
+pub mod widgets;
+pub use theme::Theme; // TODO: don't re-export
+pub mod color_picker;
 
 mod ui_size;
 pub use ui_size::{ALL_UI_SIZES, UiSize};
-
-pub mod widgets;
-
-pub mod helpers;
-
-pub mod theme;
-pub use theme::Theme;
-
-pub mod color_picker;
 
 mod icons;
 pub use icons::icon_to_svg;

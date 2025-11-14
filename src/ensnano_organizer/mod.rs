@@ -11,10 +11,10 @@ pub mod tree;
 
 pub use element::*;
 
-use crate::ensnano_iced::{Element, helpers::*, icon_to_svg};
+use crate::ensnano_iced::{helpers::*, icon_to_svg};
 use drag_drop_target::*;
 use hoverable_container::HoverableContainer;
-use iced::{Length, keyboard::Modifiers};
+use iced::{Element, Length, keyboard::Modifiers};
 use icondata::Icon;
 use rand::{Rng, rngs::ThreadRng};
 use std::{

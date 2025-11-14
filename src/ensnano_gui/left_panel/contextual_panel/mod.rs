@@ -267,7 +267,7 @@ where
         &self,
         ui_size: UiSize,
         app_state: &State,
-    ) -> crate::ensnano_iced::Element<'_, Message<State>> {
+    ) -> iced::Element<'_, Message<State>> {
         let selection = app_state
             .get_selection()
             .first()
@@ -507,7 +507,7 @@ fn add_grid_content<'a, State: AppState>(
     info_values: Vec<String>,
     ui_size: UiSize,
     twisting: TwistStatus,
-) -> crate::ensnano_iced::Element<'a, Message<State>> {
+) -> iced::Element<'a, Message<State>> {
     self::column![
         // twist_button
         match twisting {
@@ -533,7 +533,7 @@ fn add_grid_content<'a, State: AppState>(
 fn add_strand_content<'a, State: AppState>(
     info_values: Vec<String>,
     ui_size: UiSize,
-) -> crate::ensnano_iced::Element<'a, Message<State>> {
+) -> iced::Element<'a, Message<State>> {
     let s_id = info_values[2].parse::<usize>().unwrap();
     self::column![
         row![

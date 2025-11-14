@@ -35,7 +35,7 @@ impl ColorPicker {
         self.hue = hue;
     }
 
-    pub fn new_view(&self) -> crate::ensnano_iced::Element<'_, ColorMessage> {
+    pub fn new_view(&self) -> iced::Element<'_, ColorMessage> {
         row![
             HueColumn::new(ColorMessage::HueChanged,),
             LightSatSquare::new(
@@ -235,7 +235,7 @@ mod hue_column {
     }
 
     impl<'a, Message> From<HueColumn<'a, Message>>
-        for crate::ensnano_iced::Element<'a, Message, crate::ensnano_iced::Theme, iced::Renderer>
+        for iced::Element<'a, Message, crate::ensnano_iced::Theme, iced::Renderer>
     where
         Message: 'a + Clone,
     {
@@ -456,7 +456,7 @@ mod light_sat_square {
     }
 
     impl<'a, Message> From<LightSatSquare<'a, Message>>
-        for crate::ensnano_iced::Element<'a, Message, crate::ensnano_iced::Theme, iced::Renderer>
+        for iced::Element<'a, Message, crate::ensnano_iced::Theme, iced::Renderer>
     where
         Message: Clone + 'a,
     {
@@ -650,7 +650,7 @@ mod color_square {
     }
 
     impl<'a, Message> From<ColorSquare<'a, Message>>
-        for crate::ensnano_iced::Element<'a, Message, crate::ensnano_iced::Theme, iced::Renderer>
+        for iced::Element<'a, Message, crate::ensnano_iced::Theme, iced::Renderer>
     where
         Message: Clone + 'a,
     {

@@ -152,7 +152,7 @@ impl ParameterWidget {
     fn input_view<State: AppState>(
         &self,
         id: RevolutionParameterId,
-    ) -> crate::ensnano_iced::Element<'_, Message<State>> {
+    ) -> iced::Element<'_, Message<State>> {
         keyboard_priority(
             text_input("", &self.current_text)
                 .on_input(move |s| Message::RevolutionParameterUpdate {
@@ -217,7 +217,7 @@ impl<S: AppState> CurveDescriptorWidget<S> {
         }
     }
 
-    fn view(&self, ui_size: UiSize) -> crate::ensnano_iced::Element<'_, Message<S>> {
+    fn view(&self, ui_size: UiSize) -> iced::Element<'_, Message<S>> {
         container(column(
             self.parameters
                 .iter()
@@ -551,7 +551,7 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
         &self,
         ui_size: UiSize,
         app_state: &State,
-    ) -> crate::ensnano_iced::Element<'_, Self::Message, crate::ensnano_iced::Theme, iced::Renderer>
+    ) -> iced::Element<'_, Self::Message, crate::ensnano_iced::Theme, iced::Renderer>
     {
         let desc = self.get_revolution_system(app_state, false);
 
