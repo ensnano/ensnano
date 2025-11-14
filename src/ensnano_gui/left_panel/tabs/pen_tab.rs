@@ -42,9 +42,10 @@ impl<State: AppState> GuiTab<State> for PenTab<State> {
 
     fn content(&self, ui_size: UiSize, app_state: &State) -> iced::Element<'_, Self::Message> {
         let selected_path_id = app_state.get_selected_bezier_path();
-        let path_txt = selected_path_id
-            .map(|p| format!("{p:?}"))
-            .unwrap_or_else(|| "None".to_string());
+        let path_txt = match selected_path_id {
+            Some(p) => format!("{p:?}"),
+            None => "None".to_string(),
+        };
 
         let content = self::column![
             section("Bezier Planes", ui_size),

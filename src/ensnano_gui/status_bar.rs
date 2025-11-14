@@ -332,8 +332,7 @@ impl OperationInput {
     fn active_input(&self, i: usize) -> bool {
         self.parameters
             .get(i)
-            .map(|p| p.has_keyboard_priority())
-            .unwrap_or(false)
+            .is_some_and(|p| p.has_keyboard_priority())
     }
 
     fn update_input_str(&mut self, value_id: usize, new_str: String) {

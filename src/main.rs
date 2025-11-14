@@ -1105,10 +1105,7 @@ impl MainState {
         self.update_simulation_cursor();
         // Useful to remember to finish hyperboloid before trying to edit
         if self.app_state.is_building_hyperboloid()
-            && multiplexer
-                .focused_element()
-                .map(|e| e.is_scene())
-                .unwrap_or(false)
+            && multiplexer.focused_element().is_some_and(|e| e.is_scene())
         {
             self.applications_cursor = Some(CursorIcon::NotAllowed);
         }
@@ -1667,8 +1664,7 @@ impl MainState {
             is_split_2d: self
                 .applications
                 .get(&GuiComponentType::FlatScene)
-                .map(|app| app.lock().unwrap().is_split())
-                .unwrap_or(false),
+                .is_some_and(|app| app.lock().unwrap().is_split()),
             can_toggle_2d: multiplexer.is_showing(&GuiComponentType::FlatScene)
                 || multiplexer.is_showing(&GuiComponentType::StereographicScene),
         }
@@ -1735,7 +1731,7 @@ impl MainStateView<'_> {
     }
 
     fn need_backup(&self) -> bool {
-        Instant::now() - self.main_state.last_backup_date > Duration::from_secs(SEC_BETWEEN_BACKUPS)
+        self.main_state.last_backup_date.elapsed() > Duration::from_secs(SEC_BETWEEN_BACKUPS)
     }
 
     fn exit_control_flow(&self) {

@@ -179,8 +179,7 @@ impl<State: AppState> GuiTab<State> for SequenceTab<State> {
                 let name = app_state
                     .get_reader()
                     .get_scaffold_sequence()
-                    .map(get_sequence_name)
-                    .unwrap_or("None");
+                    .map_or("None", get_sequence_name);
                 text(format!("current sequence: {name}"))
             },
             extra_jump(),

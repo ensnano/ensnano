@@ -436,12 +436,11 @@ impl Curve {
                 .get(pos_full_turn.round() as usize + 1)
                 .or_else(|| self.axis_forward.last())
                 .zip(self.axis_forward.first())
-                .map(|(f1, f2)| {
+                .map_or(0., |(f1, f2)| {
                     let y = f2[0].dot(f1[1]);
                     let x = f2[0].dot(f1[0]);
                     y.atan2(x)
-                })
-                .unwrap_or(0.);
+                });
             let final_angle =
                 pos_full_turn * TAU / -helix_parameters.bases_per_turn as f64 + additional_angle;
             let rem = final_angle.rem_euclid(TAU);
@@ -895,8 +894,7 @@ impl InstantiatedCurveDescriptor {
                         && instantiated_descriptor
                             .paths_data
                             .as_ref()
-                            .map(|data| BezierPathData::ptr_eq(paths_data, data))
-                            .unwrap_or(false)
+                            .is_some_and(|data| BezierPathData::ptr_eq(paths_data, data))
                 }
                 InstantiatedCurveDescriptor_::TranslatedBezierPath {
                     paths_data: source_paths,

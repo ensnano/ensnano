@@ -127,8 +127,7 @@ impl External3DObjects {
             .0
             .keys()
             .min_by_key(|k| k.0)
-            .map(|k| External3DObjectId(k.0 + 1))
-            .unwrap_or(External3DObjectId(0));
+            .map_or(External3DObjectId(0), |k| External3DObjectId(k.0 + 1));
         Arc::make_mut(&mut self.0).insert(key, object);
     }
 }

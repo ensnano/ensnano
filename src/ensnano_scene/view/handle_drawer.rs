@@ -212,14 +212,12 @@ impl HandlesDrawer {
     }
 
     pub fn translate(&mut self, translation: Vec3) {
-        self.handles
-            .as_mut()
-            .map(|handles| {
-                for h in handles.iter_mut() {
-                    h.translation = translation;
-                }
-            })
-            .unwrap_or(());
+        if let Some(handles) = self.handles.as_mut() {
+            for h in handles.iter_mut() {
+                h.translation = translation;
+            }
+        }
+
         if let Some(h) = self.big_handle.as_mut() {
             h.translation = translation;
         }

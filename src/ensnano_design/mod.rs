@@ -405,8 +405,7 @@ impl Design {
             .cameras
             .keys()
             .max()
-            .map(|id| CameraId(id.0 + 1))
-            .unwrap_or(CameraId(1));
+            .map_or(CameraId(1), |id| CameraId(id.0 + 1));
         let new_camera = Camera {
             position,
             orientation,
@@ -519,8 +518,7 @@ impl Design {
                             replace |= h_mut
                                 .curve
                                 .as_mut()
-                                .map(|c| Arc::make_mut(c).set_t_min(t_min))
-                                .unwrap_or(false);
+                                .is_some_and(|c| Arc::make_mut(c).set_t_min(t_min));
                         }
                     }
                     if let Some(t_max) = curve
@@ -532,8 +530,7 @@ impl Design {
                             replace |= h_mut
                                 .curve
                                 .as_mut()
-                                .map(|c| Arc::make_mut(c).set_t_max(t_max))
-                                .unwrap_or(false);
+                                .is_some_and(|c| Arc::make_mut(c).set_t_max(t_max));
                         }
                     }
                 }

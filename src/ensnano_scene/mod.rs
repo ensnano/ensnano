@@ -665,7 +665,7 @@ impl<S: AppState> Scene<S> {
         log::debug!("grids {grids:?}");
         let control_points =
             crate::ensnano_interactor::extract_control_points(app_state.get_selection());
-        let at_most_one_grid = grids.as_ref().map(|g| g.len() <= 1).unwrap_or(false);
+        let at_most_one_grid = grids.as_ref().is_some_and(|g| g.len() <= 1);
 
         let group_id = app_state.get_current_group_id();
 

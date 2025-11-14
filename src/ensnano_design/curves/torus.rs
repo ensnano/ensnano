@@ -528,8 +528,8 @@ trait Curve2D {
     fn get_cached_curvilinear_abscissa(&self) -> Option<&[f64]>;
 
     fn t_for_curvilinear_abscissa(&self, s_objective: f64) -> f64 {
-        self.get_cached_curvilinear_abscissa()
-            .map(|cache| {
+        match self.get_cached_curvilinear_abscissa() {
+            Some(cache) => {
                 let idx = binary_search(s_objective, cache).expect("binary search");
                 let s = cache[idx];
                 let mut t = idx as f64 / (cache.len() - 1) as f64;
@@ -539,8 +539,8 @@ trait Curve2D {
                     t += interpolation / (cache.len() - 1) as f64;
                 }
                 t
-            })
-            .unwrap_or_else(|| {
+            }
+            None => {
                 let mut sp = s_objective;
                 let mut u = self.position(0.);
                 let mut t = 0.;
@@ -555,7 +555,8 @@ trait Curve2D {
                     u = v;
                 }
                 t
-            })
+            }
+        }
     }
 
     fn curvilinear_abscissa(&self, t: f64) -> f64 {

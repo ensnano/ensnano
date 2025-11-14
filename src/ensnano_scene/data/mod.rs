@@ -390,8 +390,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
             for elt in group.iter() {
                 if self.designs[d_id]
                     .get_element_type(*elt)
-                    .map(|elt| elt.same_type(&object_type))
-                    .unwrap_or(false)
+                    .is_some_and(|elt| elt.same_type(&object_type))
                 {
                     ret.push(SceneElement::DesignElement(d_id as u32, *elt));
                 }

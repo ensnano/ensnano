@@ -198,7 +198,7 @@ impl Strands {
     }
 
     pub fn push(&mut self, strand: Strand) {
-        let id = self.0.keys().max().map(|m| m + 1).unwrap_or(0);
+        let id = self.0.keys().max().map_or(0, |m| m + 1);
         self.0.insert(id, strand);
     }
     //============================================================================================
@@ -947,7 +947,7 @@ impl Domain {
                 helix,
                 ..
             }) => {
-                let shift = helices.get(helix).map(|h| h.initial_nt_index).unwrap_or(0);
+                let shift = helices.get(helix).map_or(0, |h| h.initial_nt_index);
                 let helix = helices
                     .get(helix)
                     .and_then(|h| h.support_helix)

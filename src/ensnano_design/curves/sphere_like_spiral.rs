@@ -169,8 +169,9 @@ impl Curved for SphereLikeSpiral {
         self.minimum_diameter
             .map(|d| d / self.radius)
             .filter(|normalized_diameter| normalized_diameter <= &2.0)
-            .map(|normalized_diameter| (normalized_diameter / 2.).asin() / PI)
-            .unwrap_or(0.)
+            .map_or(0., |normalized_diameter| {
+                (normalized_diameter / 2.).asin() / PI
+            })
     }
 
     fn t_max(&self) -> f64 {

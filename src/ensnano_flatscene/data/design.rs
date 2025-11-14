@@ -290,7 +290,7 @@ impl<R: FlatSceneDesignReaderExt> Design2d<R> {
             self.helices.push(Helix2d {
                 id: segment.helix_idx,
                 segment_idx: segment.segment_idx,
-                left: min_left.map(|x| x - 1).unwrap_or(-1),
+                left: min_left.map_or(-1, |x| x - 1),
                 right: left + 2,
                 max_right,
                 min_left,

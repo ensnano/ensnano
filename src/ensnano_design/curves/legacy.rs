@@ -147,8 +147,7 @@ impl Curve {
                         && self
                             .geometry
                             .full_turn_at_t()
-                            .map(|t_obj| t > t_obj)
-                            .unwrap_or(false)
+                            .is_some_and(|t_obj| t > t_obj)
                     {
                         self.nucl_pos_full_turn =
                             Some((points_forward.len() as isize - self.nucl_t0 as isize) as f64);

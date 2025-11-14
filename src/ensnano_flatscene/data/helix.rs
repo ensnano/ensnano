@@ -852,11 +852,10 @@ impl Helix {
             }
             .to_real();
             if char_collector.nucl_collection.contains_nucl(&nucl) {
-                let (c, color) = char_collector
-                    .basis_map
-                    .get(&nucl)
-                    .map(|c| (c.to_string(), BLACK_VEC4))
-                    .unwrap_or(('?'.to_string(), GREY_UNKNOWN_NUCL_VEC4));
+                let (c, color) = match char_collector.basis_map.get(&nucl) {
+                    Some(c) => (c.to_string(), BLACK_VEC4),
+                    None => ('?'.to_string(), GREY_UNKNOWN_NUCL_VEC4),
+                };
                 let sentence = Sentence {
                     text: &c,
                     size: size_pos * zoom_font,

@@ -57,12 +57,12 @@ impl Curve {
         } else {
             NB_DISCRETIZATION_STEP
         };
-        let len = polynomials
-            .as_ref()
-            .map(|p| p.curvilinear_abscissa.evaluate(self.geometry.t_max()))
-            .unwrap_or_else(|| {
+        let len = match polynomials.as_ref() {
+            Some(p) => p.curvilinear_abscissa.evaluate(self.geometry.t_max()),
+            None => {
                 self.length_by_discretization(self.geometry.t_min(), self.geometry.t_max(), nb_step)
-            });
+            }
+        };
         let nb_points = (len / nucl_rise) as usize;
         let small_step = 0.1 / (nb_step as f64);
         log::info!("small step = {small_step}");
@@ -315,11 +315,10 @@ impl Curve {
             NB_DISCRETIZATION_STEP
         };
         if let Some(last_t) = self.geometry.full_turn_at_t() {
-            let synchronization_length = polynomials
-                .map(|p| p.curvilinear_abscissa.evaluate(last_t))
-                .unwrap_or_else(|| {
-                    self.length_by_discretization(self.geometry.t_min(), last_t, nb_step)
-                });
+            let synchronization_length = match polynomials {
+                Some(p) => p.curvilinear_abscissa.evaluate(last_t),
+                None => self.length_by_discretization(self.geometry.t_min(), last_t, nb_step),
+            };
 
             if let Some(n) = self.geometry.objective_nb_nt() {
                 // If a given number of nucleotide is specified we adjust nucl_rise accordingly

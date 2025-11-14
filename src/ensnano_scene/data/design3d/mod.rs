@@ -1247,8 +1247,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
             if self
                 .design_reader
                 .get_helices_on_grid(*grid_id)
-                .map(|s| s.is_empty())
-                .unwrap_or(false)
+                .is_some_and(|s| s.is_empty())
             {
                 ret.push(
                     grid.grid

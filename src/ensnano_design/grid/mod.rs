@@ -754,12 +754,11 @@ impl GridData {
                 .instantiated_paths
                 .as_ref()
                 .zip(self.paths_data.as_ref())
-                .map(|(data, paths_data)| BezierPathData::ptr_eq(data, paths_data))
-                .unwrap_or(false)
+                .is_some_and(|(data, paths_data)| BezierPathData::ptr_eq(data, paths_data))
     }
 
     pub fn get_visibility(&self, g_id: GridId) -> bool {
-        self.grids.get(&g_id).map(|g| !g.invisible).unwrap_or(false)
+        self.grids.get(&g_id).is_some_and(|g| !g.invisible)
     }
 
     pub fn new_by_updating_design(design: &mut Design) -> Self {
@@ -1221,21 +1220,15 @@ impl GridData {
     }
 
     pub(super) fn update_curve(&self, helix: &mut Helix, cached_curve: &mut CurveCache) {
-        if self
-            .paths_data
-            .as_ref()
-            .map(|p| helix.need_curve_descriptor_update(&self.source_free_grids, p))
-            .unwrap_or(true)
-        {
+        if self.paths_data.as_ref().map_or(true, |p| {
+            helix.need_curve_descriptor_update(&self.source_free_grids, p)
+        }) {
             self.update_instantiated_curve_descriptor(helix);
         }
 
-        if self
-            .paths_data
-            .as_ref()
-            .map(|p| helix.need_curve_update(&self.source_free_grids, p))
-            .unwrap_or(true)
-            && let Some(desc) = helix.instantiated_descriptor.as_ref()
+        if self.paths_data.as_ref().map_or(true, |p| {
+            helix.need_curve_update(&self.source_free_grids, p)
+        }) && let Some(desc) = helix.instantiated_descriptor.as_ref()
         {
             let hp = helix.helix_parameters.unwrap_or(self.helix_parameters);
             let curve = desc.make_curve(&hp, cached_curve);

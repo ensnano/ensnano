@@ -118,7 +118,7 @@ impl Design {
     }
 
     fn make_grid_copy_helix_map(&self, grid_ids: &[FreeGridId]) -> HashMap<usize, usize> {
-        let mut new_helix_id = self.helices.keys().max().map(|n| n + 1).unwrap_or(0);
+        let mut new_helix_id = self.helices.keys().max().map_or(0, |n| n + 1);
 
         let mut ret = HashMap::new();
 

@@ -1431,10 +1431,10 @@ impl Controller {
             if request.full_symmetry_other_tangent {
                 vertex.position_out = Some(vertex.position - request.new_vector);
             } else {
-                let norm = vertex
-                    .position_out
-                    .map(|p| (vertex.position - p).mag())
-                    .unwrap_or_else(|| request.new_vector.mag());
+                let norm = match vertex.position_out {
+                    Some(p) => (vertex.position - p).mag(),
+                    None => request.new_vector.mag(),
+                };
                 let out_vec = request.new_vector.normalized() * -norm;
                 log::info!("norm {norm:?}");
                 log::info!("new vec {:?}", request.new_vector);
@@ -1446,10 +1446,10 @@ impl Controller {
             if request.full_symmetry_other_tangent {
                 vertex.position_in = Some(vertex.position - request.new_vector);
             } else {
-                let norm = vertex
-                    .position_in
-                    .map(|p| (vertex.position - p).mag())
-                    .unwrap_or_else(|| request.new_vector.mag());
+                let norm = match vertex.position_in {
+                    Some(p) => (vertex.position - p).mag(),
+                    None => request.new_vector.mag(),
+                };
                 let in_vec = request.new_vector.normalized() * -norm;
                 vertex.position_in = Some(vertex.position + in_vec);
             }
@@ -2133,7 +2133,7 @@ impl Controller {
     }
 
     fn init_strand(&mut self, design: &mut Design, nucl: Nucl) -> usize {
-        let s_id = design.strands.keys().max().map(|n| n + 1).unwrap_or(0);
+        let s_id = design.strands.keys().max().map_or(0, |n| n + 1);
         let color = colors::new_color(&mut self.color_idx);
         design.strands.insert(
             s_id,
@@ -2175,8 +2175,7 @@ impl Controller {
         {
             let delta = builders
                 .first()
-                .map(|b| n - b.get_moving_end_position())
-                .unwrap_or(0);
+                .map_or(0, |b| n - b.get_moving_end_position());
             let mut design = initial_design.clone_inner();
             if builders.len() > 1 {
                 let sign = delta.signum();
@@ -2813,7 +2812,7 @@ impl Controller {
         target_3prime: bool,
         color_idx: &mut usize,
     ) -> Result<(), ErrOperation> {
-        let new_id = strands.keys().max().map(|n| n + 1).unwrap_or(0);
+        let new_id = strands.keys().max().map_or(0, |n| n + 1);
         let was_cyclic = strands
             .get(&target_strand)
             .ok_or(ErrOperation::StrandDoesNotExist(target_strand))?

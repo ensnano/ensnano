@@ -283,8 +283,7 @@ impl Strand {
             };
             let up_to_date = instantiation
                 .as_ref()
-                .map(|i| i.descriptor.is_up_to_date(&descriptor))
-                .unwrap_or(false);
+                .is_some_and(|i| i.descriptor.is_up_to_date(&descriptor));
             if !up_to_date {
                 *instantiation = Some(Arc::new(InstantiatedInsertion {
                     instantiation: descriptor.instantiate(helix_parameters),

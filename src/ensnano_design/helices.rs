@@ -647,8 +647,7 @@ impl Helix {
     pub fn nb_bezier_nucls(&self) -> usize {
         self.instantiated_curve
             .as_ref()
-            .map(|c| c.curve.as_ref().nb_points())
-            .unwrap_or(0)
+            .map_or(0, |c| c.curve.as_ref().nb_points())
     }
 
     pub fn roll_at_pos(&self, n: isize, cst: &HelixParameters) -> f32 {

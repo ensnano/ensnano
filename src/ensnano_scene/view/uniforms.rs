@@ -89,7 +89,7 @@ impl Uniforms {
         } else {
             Mat4::identity()
         };
-        let stereography_radius = stereography.as_ref().map(|s| s.radius).unwrap_or(0.0);
+        let stereography_radius = stereography.as_ref().map_or(0.0, |s| s.radius);
         Self {
             camera_position: camera.borrow().position.into_homogeneous_point(),
             view: camera.borrow().calc_matrix(),
@@ -125,7 +125,7 @@ impl Uniforms {
         } else {
             Mat4::identity()
         };
-        let stereography_radius = stereography.as_ref().map(|s| s.radius).unwrap_or(0.0);
+        let stereography_radius = stereography.as_ref().map_or(0.0, |s| s.radius);
         let mut make_fog = fog.fog_kind;
         if !fog.from_camera && fog.alt_fog_center.is_none() {
             make_fog = fog_kind::NO_FOG;

@@ -691,7 +691,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
         let mut selection = Vec::new();
         for h in self.helices.iter_mut() {
             let c = h.get_circle(camera, &BTreeMap::new());
-            if c.map(|c| c.in_rectangle(&c1, &c2)).unwrap_or(false) {
+            if c.is_some_and(|c| c.in_rectangle(&c1, &c2)) {
                 let translation_pivot = h
                     .get_circle_pivot(camera)
                     .unwrap_or_else(|| h.default_pivot());

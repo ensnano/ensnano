@@ -225,8 +225,7 @@ impl BezierPathsMut<'_> {
             .new_map
             .keys()
             .max()
-            .map(|BezierPathId(n)| BezierPathId(n + 1))
-            .unwrap_or(BezierPathId(0));
+            .map_or(BezierPathId(0), |BezierPathId(n)| BezierPathId(n + 1));
         self.new_map.insert(id, Arc::new(path));
     }
 
@@ -532,15 +531,13 @@ impl InstantiatedPath {
     pub fn bezier_controls(&self) -> &[BezierEndCoordinates] {
         self.curve_descriptor_2d
             .as_ref()
-            .map(|c| c.ends.as_slice())
-            .unwrap_or(&[])
+            .map_or(&[], |c| c.ends.as_slice())
     }
 
     pub fn get_curve_points(&self) -> &[DVec3] {
         self.curve_2d
             .as_ref()
-            .map(|c| c.positions_forward.as_slice())
-            .unwrap_or(&[])
+            .map_or(&[], |c| c.positions_forward.as_slice())
     }
 
     pub fn initial_frame(&self) -> Option<DMat3> {
@@ -616,8 +613,7 @@ impl BezierPathData {
                 .map(|(id, source_path)| {
                     let path = if let Some(path) = self.instantiated_paths.get(id) {
                         path.updated(source_planes.clone(), source_path.clone(), helix_parameters)
-                            .map(Arc::new)
-                            .unwrap_or_else(|| path.clone())
+                            .map_or_else(|| path.clone(), Arc::new)
                     } else {
                         Arc::new(InstantiatedPath::new(
                             source_planes.clone(),
