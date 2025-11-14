@@ -237,14 +237,10 @@ impl<S: AppState> Controller<S> {
                 Key::Named(NamedKey::ArrowRight) if self.modifiers.alt_key() => {
                     camera.borrow_mut().tilt_right();
                 }
-                Key::Named(NamedKey::ArrowLeft) | Key::Named(NamedKey::ArrowRight)
-                    if ctrl(&self.modifiers) =>
-                {
+                Key::Named(NamedKey::ArrowLeft | NamedKey::ArrowRight) if ctrl(&self.modifiers) => {
                     camera.borrow_mut().apply_symmetry_x();
                 }
-                Key::Named(NamedKey::ArrowUp) | Key::Named(NamedKey::ArrowDown)
-                    if ctrl(&self.modifiers) =>
-                {
+                Key::Named(NamedKey::ArrowUp | NamedKey::ArrowDown) if ctrl(&self.modifiers) => {
                     camera.borrow_mut().apply_symmetry_y();
                 }
                 Key::Character("J") => {

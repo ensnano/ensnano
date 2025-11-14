@@ -947,7 +947,7 @@ impl<S: AppState> ControllerState<S> for ReleasedPivot {
                     },
                 ..
             } => match *logical_key {
-                Key::Named(NamedKey::ArrowLeft) | Key::Named(NamedKey::ArrowRight)
+                Key::Named(NamedKey::ArrowLeft | NamedKey::ArrowRight)
                     if ctrl(&controller.modifiers) =>
                 {
                     let csq = Consequence::Symmetry {
@@ -962,7 +962,7 @@ impl<S: AppState> ControllerState<S> for ReleasedPivot {
                     };
                     Transition::consequence(csq)
                 }
-                Key::Named(NamedKey::ArrowUp) | Key::Named(NamedKey::ArrowDown)
+                Key::Named(NamedKey::ArrowUp | NamedKey::ArrowDown)
                     if ctrl(&controller.modifiers) =>
                 {
                     let csq = Consequence::Symmetry {

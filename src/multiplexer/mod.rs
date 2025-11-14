@@ -505,80 +505,62 @@ impl Multiplexer {
                     Key::Named(NamedKey::Escape) => {
                         self.requests.lock().unwrap().action_mode = Some(ActionMode::Normal);
                     }
-                    Key::Character("X") | Key::Character("x") if self.modifiers_state.alt_key() => {
+                    Key::Character("X" | "x") if self.modifiers_state.alt_key() => {
                         self.requests.lock().unwrap().keep_proceed.push_back(
                             Action::MakeAllSuggestedXover {
                                 doubled: self.modifiers_state.shift_key(),
                             },
                         );
                     }
-                    Key::Character("X") | Key::Character("x") => {
+                    Key::Character("X" | "x") => {
                         self.requests.lock().unwrap().toggle_all_helices_on_axis = Some(());
                     }
-                    Key::Character("Z") | Key::Character("z")
-                        if control_key(&self.modifiers_state) =>
-                    {
+                    Key::Character("Z" | "z") if control_key(&self.modifiers_state) => {
                         if self.modifiers_state.shift_key() {
                             self.requests.lock().unwrap().redo = Some(());
                         } else {
                             self.requests.lock().unwrap().undo = Some(());
                         }
                     }
-                    Key::Character("R") | Key::Character("r")
-                        if control_key(&self.modifiers_state) =>
-                    {
+                    Key::Character("R" | "r") if control_key(&self.modifiers_state) => {
                         self.requests.lock().unwrap().redo = Some(());
                     }
-                    Key::Character("C") | Key::Character("c")
-                        if control_key(&self.modifiers_state) =>
-                    {
+                    Key::Character("C" | "c") if control_key(&self.modifiers_state) => {
                         self.requests.lock().unwrap().copy = Some(());
                     }
-                    Key::Character("V") | Key::Character("v")
-                        if control_key(&self.modifiers_state) =>
-                    {
+                    Key::Character("V" | "v") if control_key(&self.modifiers_state) => {
                         self.requests.lock().unwrap().paste = Some(());
                     }
-                    Key::Character("J") | Key::Character("j")
-                        if control_key(&self.modifiers_state) =>
-                    {
+                    Key::Character("J" | "j") if control_key(&self.modifiers_state) => {
                         self.requests.lock().unwrap().duplication = Some(());
                     }
-                    Key::Character("L") | Key::Character("l")
-                        if control_key(&self.modifiers_state) =>
-                    {
+                    Key::Character("L" | "l") if control_key(&self.modifiers_state) => {
                         self.requests.lock().unwrap().anchor = Some(());
                     }
-                    Key::Character("R") | Key::Character("r")
-                        if !control_key(&self.modifiers_state) =>
-                    {
+                    Key::Character("R" | "r") if !control_key(&self.modifiers_state) => {
                         self.requests.lock().unwrap().action_mode = Some(ActionMode::Rotate);
                     }
-                    Key::Character("T") | Key::Character("t") => {
+                    Key::Character("T" | "t") => {
                         self.requests.lock().unwrap().action_mode = Some(ActionMode::Translate);
                     }
-                    Key::Character("N") | Key::Character("n") => {
+                    Key::Character("N" | "n") => {
                         self.requests.lock().unwrap().selection_mode =
                             Some(SelectionMode::Nucleotide);
                     }
-                    Key::Character("H") | Key::Character("h") => {
+                    Key::Character("H" | "h") => {
                         self.requests.lock().unwrap().selection_mode = Some(SelectionMode::Helix);
                     }
-                    Key::Character("S") | Key::Character("s")
-                        if control_key(&self.modifiers_state) =>
-                    {
+                    Key::Character("S" | "s") if control_key(&self.modifiers_state) => {
                         self.requests.lock().unwrap().save_shortcut = Some(());
                     }
-                    Key::Character("O") | Key::Character("o")
-                        if control_key(&self.modifiers_state) =>
-                    {
+                    Key::Character("O" | "o") if control_key(&self.modifiers_state) => {
                         self.requests
                             .lock()
                             .unwrap()
                             .keep_proceed
                             .push_back(Action::LoadDesign(None));
                     }
-                    Key::Character("Q") | Key::Character("q")
+                    Key::Character("Q" | "q")
                         if control_key(&self.modifiers_state) && cfg!(target_os = "macos") =>
                     {
                         self.requests
@@ -587,25 +569,16 @@ impl Multiplexer {
                             .keep_proceed
                             .push_back(Action::Exit);
                     }
-                    Key::Character("S") | Key::Character("s") => {
+                    Key::Character("S" | "s") => {
                         self.requests.lock().unwrap().selection_mode = Some(SelectionMode::Strand);
                     }
-                    Key::Character("K") | Key::Character("k") => {
+                    Key::Character("K" | "k") => {
                         self.requests.lock().unwrap().recolor_staples = Some(());
                     }
-                    Key::Named(NamedKey::Delete) | Key::Named(NamedKey::Backspace) => {
+                    Key::Named(NamedKey::Delete | NamedKey::Backspace) => {
                         self.requests.lock().unwrap().delete_selection = Some(());
                     }
-                    Key::Character("0")
-                    | Key::Character("1")
-                    | Key::Character("2")
-                    | Key::Character("3")
-                    | Key::Character("4")
-                    | Key::Character("5")
-                    | Key::Character("6")
-                    | Key::Character("7")
-                    | Key::Character("8")
-                    | Key::Character("9")
+                    Key::Character("0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9")
                         if location == &KeyLocation::Standard =>
                     {
                         if let Some(num) = keycode_to_num(logical_key, location) {

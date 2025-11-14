@@ -71,7 +71,7 @@ fn read_file<P: AsRef<Path> + std::fmt::Debug>(path: P) -> Result<Design, LoadDe
             let required_version = design.ensnano_version.clone();
             let current_version = ensnano_version();
             match version_compare::compare(&required_version, &current_version) {
-                Ok(Cmp::Lt) | Ok(Cmp::Eq) => Ok(design),
+                Ok(Cmp::Lt | Cmp::Eq) => Ok(design),
                 _ => Err(LoadDesignError::IncompatibleVersion {
                     current: current_version,
                     required: required_version,
