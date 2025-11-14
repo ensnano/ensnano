@@ -946,10 +946,7 @@ impl GridData {
             if let Some(new_grid_position) = candidate_position {
                 if let Some(object) = self.pos_to_object.get(&new_grid_position.light()) {
                     log::info!(
-                        "{} collides with {:?}. Authorized collisions are {:?}",
-                        h_id,
-                        object,
-                        authorized_collisions
+                        "{h_id} collides with {object:?}. Authorized collisions are {authorized_collisions:?}",
                     );
                     let authorized = if let GridObject::Helix(helix) = object {
                         authorized_collisions.contains(helix)
@@ -1086,7 +1083,7 @@ impl GridData {
         pos1: &HelixGridPosition,
         edge: &Edge,
     ) -> Option<HelixGridPosition> {
-        log::debug!("translate by edge {:?} {:?}", pos1, edge);
+        log::debug!("translate by edge {pos1:?} {edge:?}");
         let position = self
             .grids
             .get(&pos1.grid)

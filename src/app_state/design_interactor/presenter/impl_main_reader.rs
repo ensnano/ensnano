@@ -282,7 +282,7 @@ impl StaplesDownloader for DesignInteractor {
         if let Ok(json_content) = serde_json::to_string_pretty(&origamis) {
             if let Ok(mut f) = std::fs::File::create(origami_path) {
                 if let Err(e) = f.write_all(json_content.as_bytes()) {
-                    log::error!("Could not write to file {}", e);
+                    log::error!("Could not write to file {e}");
                 }
             } else {
                 log::error!("Could not open file");
@@ -298,18 +298,14 @@ impl StaplesDownloader for DesignInteractor {
 }
 
 fn warn_all_staples_not_paired(first_unpaired: Nucl) -> String {
-    format!(
-        "All staples are not paired. First unpaired nucleotide: {}",
-        first_unpaired
-    )
+    format!("All staples are not paired. First unpaired nucleotide: {first_unpaired}")
 }
 
 fn warn_scaffold_seq_mismatch(scaffold_length: usize, sequence_length: usize) -> String {
     format!(
         "The length of the scaffold is not equal to the length of the sequence.\n
-        length of the scaffold: {}\n
-        length of the sequence: {}",
-        scaffold_length, sequence_length
+        length of the scaffold: {scaffold_length}\n
+        length of the sequence: {sequence_length}",
     )
 }
 

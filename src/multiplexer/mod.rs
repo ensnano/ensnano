@@ -280,7 +280,7 @@ impl Multiplexer {
             ]
             .iter()
             {
-                log::debug!("Draw {:?}", element);
+                log::debug!("Draw {element:?}");
                 if let Some(area) = self.get_texture_size(*element) {
                     render_pass.set_bind_group(0, self.get_bind_group(element), &[]);
 
@@ -729,7 +729,7 @@ impl Multiplexer {
 
     fn texture(&self, element_type: GuiComponentType) -> Option<MultiplexerTexture> {
         let area = self.get_draw_area(element_type)?;
-        log::debug!("texture of {:?}: {:?}", element_type, area);
+        log::debug!("texture of {element_type:?}: {area:?}");
         let texture = SampledTexture::create_target_texture(self.device.as_ref(), &area.size);
         Some(MultiplexerTexture { area, texture })
     }

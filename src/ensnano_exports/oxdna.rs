@@ -56,7 +56,7 @@ impl OxDnaConfig {
         let mut file = std::fs::File::create(path)?;
         let max = self.boundaries[0].max(self.boundaries[1].max(self.boundaries[2]));
         writeln!(&mut file, "t = {}", self.time)?;
-        writeln!(&mut file, "b = {} {} {}", max, max, max)?;
+        writeln!(&mut file, "b = {max} {max} {max}")?;
         writeln!(
             &mut file,
             "E = {} {} {}",

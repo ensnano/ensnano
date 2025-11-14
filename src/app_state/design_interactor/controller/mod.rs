@@ -23,14 +23,15 @@ pub mod update_insertion_length;
 
 use super::SimulationUpdate;
 use crate::ensnano_design::{
-    BezierControlPoint, BezierEnd, BezierPathId, BezierPlaneDescriptor, BezierVertex,
-    BezierVertexId, CameraId, Collection, CurveDescriptor, Design, Domain, DomainJunction, Helices,
-    Helix, HelixCollection, HelixInterval, Nucl, NuclCollection, Strand, Strands, UpToDateDesign,
+    BezierControlPoint, BezierEnd, BezierPathId, BezierPlaneDescriptor, BezierPlaneId,
+    BezierVertex, BezierVertexId, CameraId, Collection, CurveDescriptor, Design, Domain,
+    DomainJunction, External3DObject, External3DObjectDescriptor, Helices, Helix, HelixCollection,
+    HelixInterval, Nucl, NuclCollection, Strand, Strands, UpToDateDesign,
     drawing_style::{DrawingAttribute, DrawingStyle},
     elements::{DesignElementKey, DnaAttribute},
     grid::{
-        Edge, FreeGridId, GridDescriptor, GridId, GridObject, GridPosition, GridTypeDescr,
-        HelixGridPosition, Hyperboloid,
+        Edge, FreeGridId, GridDescriptor, GridDivision, GridId, GridObject, GridPosition,
+        GridTypeDescr, HelixGridPosition, Hyperboloid,
     },
     group_attributes::GroupPivot,
     mutate_in_arc,
@@ -98,7 +99,7 @@ impl Controller {
         design: &Design,
         operation: DesignOperation,
     ) -> Result<(OkOperation, Self), ErrOperation> {
-        log::debug!("operation {:?}", operation);
+        log::debug!("operation {operation:?}");
         match self.check_compatibility(&operation) {
             OperationCompatibility::Incompatible => {
                 return Err(ErrOperation::IncompatibleState(
@@ -487,7 +488,7 @@ impl Controller {
         match operation {
             SimulationOperation::RevolutionRelaxation { system, reader } => {
                 self.check_state_compatible_with_simulation()?;
-                println!("system {:#?}", system);
+                println!("system {system:#?}");
                 let interface = RevolutionSystemThread::start_new(system, reader)?;
                 ret.state = ControllerState::Relaxing {
                     interface,
@@ -634,7 +635,6 @@ impl Controller {
         position: Vec3,
         orientation: Rotor3,
     ) -> Result<(), ErrOperation> {
-        use crate::ensnano_design::grid::GridDivision;
         // the hyperboloid grid is always the last one that was added to the design
         let grid_id = design
             .free_grids
@@ -751,7 +751,7 @@ impl Controller {
         attribute: DnaAttribute,
         elements: Vec<DesignElementKey>,
     ) -> Result<Design, ErrOperation> {
-        log::info!("updating attribute {:?}, {:?}", attribute, elements);
+        log::info!("updating attribute {attribute:?}, {elements:?}");
         for elt in elements.iter() {
             match attribute {
                 DnaAttribute::Visible(b) => self.make_element_visible(&mut design, elt, b)?,
@@ -1431,9 +1431,9 @@ impl Controller {
                     .map(|p| (vertex.position - p).mag())
                     .unwrap_or_else(|| request.new_vector.mag());
                 let out_vec = request.new_vector.normalized() * -norm;
-                log::info!("norm {:?}", norm);
+                log::info!("norm {norm:?}");
                 log::info!("new vec {:?}", request.new_vector);
-                log::info!("out vec {:?}", out_vec);
+                log::info!("out vec {out_vec:?}");
                 vertex.position_out = Some(vertex.position + out_vec);
             }
         } else {
@@ -1474,7 +1474,7 @@ impl Controller {
         homothethy: BezierPlaneHomothethy,
     ) -> Design {
         self.update_state_and_design(&mut design);
-        log::info!("Applying homothethy {:?}", homothethy);
+        log::info!("Applying homothethy {homothethy:?}");
         let mut paths_mut = design.bezier_paths.make_mut();
         let angle_origin = {
             let ab = homothethy.origin_moving_corner - homothethy.fixed_corner;
@@ -1950,7 +1950,7 @@ impl Controller {
         segment: usize,
         isometry: Isometry2,
     ) -> Design {
-        log::info!("setting isometry {h_id} {segment} {:?}", isometry);
+        log::info!("setting isometry {h_id} {segment} {isometry:?}");
         let mut new_helices = design.helices.make_mut();
         if segment == 0 {
             if let Some(h) = new_helices.get_mut(&h_id) {
@@ -2039,7 +2039,7 @@ impl Controller {
                     .ok_or(ErrOperation::CannotBuildOn(nucl))?,
             );
         }
-        log::info!("Ignored domains: {:?}", ignored_domains);
+        log::info!("Ignored domains: {ignored_domains:?}");
         self.state = ControllerState::BuildingStrand {
             builders,
             initializing: true,
@@ -2092,7 +2092,7 @@ impl Controller {
                     && d.identifier.strand == desc.identifier.strand
             })
             .is_some();
-        log::info!("stick {}", stick);
+        log::info!("stick {stick}");
         if left.filter(filter).and(right.filter(filter)).is_some() {
             // TODO maybe we should do something else ?
             return None;
@@ -2379,11 +2379,11 @@ impl Controller {
             seq_prim5 = None;
         }
 
-        log::info!("prime5 {:?}", prim5_domains);
-        log::info!("prime5 {:?}", prime5_junctions);
+        log::info!("prime5 {prim5_domains:?}");
+        log::info!("prime5 {prime5_junctions:?}");
+        log::info!("prime3 {prim3_domains:?}");
+        log::info!("prime3 {prime3_junctions:?}");
 
-        log::info!("prime3 {:?}", prim3_domains);
-        log::info!("prime3 {:?}", prime3_junctions);
         let mut strand_5prime = Strand {
             domains: prim5_domains,
             color: strand.color,
@@ -2402,7 +2402,7 @@ impl Controller {
             name,
         };
         let new_id = (*strands.keys().max().unwrap_or(&0)).max(id) + 1;
-        log::info!("new id {}, ; id {}", new_id, id);
+        log::info!("new id {new_id}; id {id}");
         let (id_5prime, id_3prime) = if !on_3prime {
             strand_3prime.color = Self::new_color(color_idx);
             (id, new_id)
@@ -2535,7 +2535,7 @@ impl Controller {
         start: HelixGridPosition,
         end: HelixGridPosition,
     ) -> Result<Design, ErrOperation> {
-        log::info!("Add {:?} {:?}", start, end);
+        log::info!("Add {start:?} {end:?}");
         let grid_manager = design.get_updated_grid_data();
         if let Some(obj) = grid_manager.pos_to_object(start.light()) {
             if grid_manager.pos_to_object(end.light()).is_some() {
@@ -2939,12 +2939,7 @@ impl Controller {
         };
         for (source_nucl, target_nucl) in pairs {
             if let Err(e) = self.general_cross_over(&mut design.strands, source_nucl, target_nucl) {
-                log::error!(
-                    "when making xover {:?} {:?} : {:?}",
-                    source_nucl,
-                    target_nucl,
-                    e
-                );
+                log::error!("when making xover {source_nucl:?} {target_nucl:?} : {e:?}",);
             }
         }
         Ok(design)
@@ -2956,7 +2951,7 @@ impl Controller {
         source_nucl: Nucl,
         target_nucl: Nucl,
     ) -> Result<(), ErrOperation> {
-        log::info!("cross over between {:?} and {:?}", source_nucl, target_nucl);
+        log::info!("cross over between {source_nucl:?} and {target_nucl:?}");
         let source_id = strands
             .get_strand_nucl(&source_nucl)
             .ok_or(ErrOperation::NuclDoesNotExist(source_nucl))?;
@@ -2975,11 +2970,7 @@ impl Controller {
 
         let source_strand_end = strands.is_strand_end(&source_nucl);
         let target_strand_end = strands.is_strand_end(&target_nucl);
-        log::info!(
-            "source strand {:?}, target strand {:?}",
-            source_id,
-            target_id
-        );
+        log::info!("source strand {source_id:?}, target strand {target_id:?}",);
         log::info!(
             "source end {:?}, target end {:?}",
             source_strand_end.to_opt(),
@@ -3233,7 +3224,6 @@ impl Controller {
         object_path: PathBuf,
         design_path: PathBuf,
     ) -> Result<Design, ErrOperation> {
-        use crate::ensnano_design::{External3DObject, External3DObjectDescriptor};
         let object = External3DObject::new(External3DObjectDescriptor {
             object_path,
             design_path,
@@ -3246,8 +3236,6 @@ impl Controller {
     }
 
     fn import_svg_path(&self, mut design: Design, path: PathBuf) -> Result<Design, ErrOperation> {
-        use crate::ensnano_design::BezierPlaneId;
-
         // The imported bezier path will be attached to plane 0 so we need to ensure that it exists
         if design.bezier_planes.get(&BezierPlaneId(0)).is_none() {
             design = self.add_bezier_plane(design, Default::default());

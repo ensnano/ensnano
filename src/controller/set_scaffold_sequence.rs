@@ -199,7 +199,7 @@ fn set_sequence(
             ),
         },
         Err(err) => TransitionMessage::new(
-            format!("{:?}", err),
+            format!("{err:?}"),
             rfd::MessageLevel::Error,
             Box::new(super::NormalState),
         ),

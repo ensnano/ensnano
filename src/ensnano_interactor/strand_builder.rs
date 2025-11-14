@@ -157,7 +157,7 @@ impl StrandBuilder {
             min_pos,
             detached_neighbor: None,
         };
-        log::info!("builder {:?}", ret);
+        log::info!("builder {ret:?}");
         ret
     }
 
@@ -253,8 +253,8 @@ impl StrandBuilder {
         design: &mut Design,
         ignored_domains: &[DomainIdentifier],
     ) {
-        log::info!("self {:?}", self);
-        log::info!("move to {}", objective);
+        log::info!("self {self:?}");
+        log::info!("move to {objective}");
         let mut need_update = true;
         match objective.cmp(&self.moving_end.position) {
             Ordering::Greater => {
@@ -316,12 +316,7 @@ impl StrandBuilder {
         position: isize,
         fixed_position: isize,
     ) {
-        log::info!(
-            "updating {:?}, position {}, fixed_position {}",
-            identifier,
-            position,
-            fixed_position
-        );
+        log::info!("updating {identifier:?}, position {position}, fixed_position {fixed_position}",);
         let domain =
             &mut design.strands.get_mut(&identifier.strand).unwrap().domains[identifier.domain];
         if let Domain::HelixDomain(domain) = domain {

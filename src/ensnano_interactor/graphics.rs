@@ -49,7 +49,7 @@ impl std::fmt::Display for RenderingMode {
             Self::Outline => "Outline",
             Self::BlackAndWhite => "Black and white",
         };
-        write!(f, "{}", ret)
+        write!(f, "{ret}")
     }
 }
 
@@ -68,7 +68,7 @@ impl std::fmt::Display for Background3D {
             Self::White => "White",
             Self::Sky => "Sky",
         };
-        write!(f, "{}", ret)
+        write!(f, "{ret}")
     }
 }
 
@@ -87,7 +87,7 @@ impl std::fmt::Display for HBondDisplay {
             Self::Stick => "Sticks",
             Self::Ellipsoid => "Ellipsoid",
         };
-        write!(f, "{}", ret)
+        write!(f, "{ret}")
     }
 }
 

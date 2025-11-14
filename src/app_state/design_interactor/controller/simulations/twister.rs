@@ -108,7 +108,7 @@ impl Twister {
                     .collect(),
             }
         } else {
-            log::error!("Could not get grid {:?}", target_grid);
+            log::error!("Could not get grid {target_grid:?}");
             return None;
         };
 
@@ -134,7 +134,7 @@ impl Twister {
 
     fn solve_one_step(&mut self) {
         let err = self.evaluate_twist(self.system.current_omega);
-        println!("err = {}", err);
+        println!("err = {err}");
         if err < self.system.best_square_error {
             println!("best omega = {}", self.system.current_omega);
             self.system.best_square_error = err;

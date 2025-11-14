@@ -37,6 +37,9 @@ mod data;
 mod flat_types;
 mod view;
 
+pub use camera2d::{Camera2D, FitRectangle};
+pub use data::FlatSceneDesignReaderExt;
+
 use crate::ensnano_consts::{EXPORT_2D_MARGIN, EXPORT_2D_MAX_SIZE};
 use crate::ensnano_design::{Nucl, consts::ITERATIVE_AXIS_ALGORITHM};
 use crate::ensnano_interactor::{
@@ -46,15 +49,14 @@ use crate::ensnano_interactor::{
     graphics::DrawArea,
     operation::*,
 };
-use crate::ensnano_utils::{PhySize, camera2d, filename};
-pub use camera2d::{Camera2D, FitRectangle};
-use controller::Controller;
+use crate::ensnano_utils::{BufferDimensions, PhySize, camera2d, filename};
+use controller::{Consequence, Controller};
 use data::Data;
-pub use data::FlatSceneDesignReaderExt;
 use flat_types::*;
 use std::{
     cell::RefCell,
     collections::HashMap,
+    io::Write as _,
     path::PathBuf,
     rc::Rc,
     sync::{Arc, Mutex},
@@ -225,7 +227,6 @@ impl<S: AppState> FlatScene<S> {
 
     fn read_consequence(&self, consequence: controller::Consequence, new_state: Option<&S>) {
         let app_state = new_state.unwrap_or(&self.old_state);
-        use controller::Consequence;
         match consequence {
             Consequence::Xover(nucl1, nucl2) => {
                 let (prime5_id, prime3_id) =
@@ -242,7 +243,7 @@ impl<S: AppState> FlatScene<S> {
             Consequence::Cut(nucl) => {
                 let strand_id = self.data[self.selected_design].borrow().get_strand_id(nucl);
                 if strand_id.is_some() {
-                    log::info!("cutting {:?}", nucl);
+                    log::info!("cutting {nucl:?}");
                     let nucl = nucl.to_real();
                     self.requests
                         .lock()
@@ -269,7 +270,7 @@ impl<S: AppState> FlatScene<S> {
             Consequence::CutFreeEnd(nucl, free_end) => {
                 let strand_id = self.data[self.selected_design].borrow().get_strand_id(nucl);
                 if strand_id.is_some() {
-                    log::info!("cutting {:?}", nucl);
+                    log::info!("cutting {nucl:?}");
                     let nucl = nucl.to_real();
                     self.requests
                         .lock()
@@ -482,7 +483,7 @@ impl<S: AppState> FlatScene<S> {
                     Some(format!("{ITERATIVE_AXIS_ALGORITHM}").as_str()),
                     Some("png"),
                 );
-                println!("2D PNG export to {:?}", path);
+                println!("2D PNG export to {path:?}");
                 self.export_2d_png(path, glob_png);
                 self.view[self.selected_design]
                     .borrow_mut()
@@ -586,9 +587,7 @@ impl<S: AppState> FlatScene<S> {
         let device = self.device.as_ref();
         let queue = self.queue.as_ref();
 
-        log::info!("2D PNG export to {:?}", path);
-        use crate::ensnano_utils::BufferDimensions;
-        use std::io::Write;
+        log::info!("2D PNG export to {path:?}");
 
         let png_size = PhySize::from(glob.resolution);
 
@@ -706,7 +705,7 @@ impl<S: AppState> Application for FlatScene<S> {
             Notification::CameraTarget(_) => (),
             Notification::ClearDesigns => self.data[0].borrow_mut().clear_design(),
             Notification::CenterSelection(selection, app_id) => {
-                log::info!("2D view centering selection {:?}", selection);
+                log::info!("2D view centering selection {selection:?}");
                 let flat_selection = self.data[self.selected_design]
                     .borrow()
                     .convert_to_flat(selection);
@@ -776,7 +775,7 @@ impl<S: AppState> Application for FlatScene<S> {
                             ),
                             Some("png"),
                         );
-                        println!("2D PNG export to {:?}", path);
+                        println!("2D PNG export to {path:?}");
                         self.export_2d_png(path.clone(), glob_png);
                         println!(
                             "File {:?} saved [{}/{}]",

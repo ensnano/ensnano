@@ -131,6 +131,6 @@ impl std::fmt::Display for UiSize {
             UiSize::Medium => "Medium",
             UiSize::Large => "Large",
         };
-        write!(f, "{}", ret)
+        write!(f, "{ret}")
     }
 }

@@ -59,7 +59,7 @@ impl Controller {
         main_state.check_backup();
         if main_state.need_backup() {
             if let Err(e) = main_state.save_backup() {
-                log::error!("{:?}", e);
+                log::error!("{e:?}");
             }
         } else {
             let old_state = std::mem::replace(&mut self.state, Box::new(OhNo));
@@ -186,8 +186,7 @@ impl std::fmt::Display for LoadDesignError {
                 write!(
                     f,
                     "Scadnano file detected but the following error was encountered:
-                {:?}",
-                    e
+                {e:?}",
                 )
             }
             Self::IncompatibleVersion { current, required } => {
@@ -207,7 +206,7 @@ pub struct SaveDesignError(String);
 
 impl<E: std::error::Error> From<E> for SaveDesignError {
     fn from(e: E) -> Self {
-        Self(format!("{}", e))
+        Self(format!("{e}"))
     }
 }
 

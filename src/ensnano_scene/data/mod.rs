@@ -251,7 +251,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
     fn update_bezier<S: AppState>(&self, app_state: &S) {
         let selected_helices =
             crate::ensnano_interactor::extract_helices_with_controls(app_state.get_selection());
-        log::debug!("selected helices {:?}", selected_helices);
+        log::debug!("selected helices {selected_helices:?}");
         let mut spheres = Vec::new();
         let mut tubes = Vec::new();
         for h_id in selected_helices {
@@ -300,7 +300,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
             } else {
                 None
             };
-        log::debug!("{:?}", handle_descr);
+        log::debug!("{handle_descr:?}");
         self.view
             .borrow_mut()
             .update(ViewUpdate::Handles(handle_descr));
@@ -729,7 +729,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
         if let Some(SceneElement::WidgetElement(_)) = element {
             return (None, None);
         }
-        log::debug!("selected {:?}", element);
+        log::debug!("selected {element:?}");
         let future_selection = element;
         let new_center_of_selection =
             element.and_then(|element| self.scene_element_to_center_of_selection(element));
@@ -886,7 +886,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
         selection_.dedup();
         let selection = selection_.as_slice();
 
-        log::trace!("Update selection {:?}", selection);
+        log::trace!("Update selection {selection:?}");
         let mut sphere = self.get_selected_spheres(selection, app_state);
         let tubes = self.get_selected_tubes(selection, app_state);
         let pos: Vec3 = sphere
@@ -1154,7 +1154,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
         app_state: &S,
     ) -> Option<Selection> {
         if log::log_enabled!(log::Level::Info) && element.is_some() {
-            log::debug!("candidate {:?}", element);
+            log::debug!("candidate {element:?}");
         }
         self.candidate_element = element;
         if let Some(element) = element.as_ref() {

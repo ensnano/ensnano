@@ -297,8 +297,7 @@ impl Helix {
             .unwrap_or_else(|| String::from("default_group"));
         let Some(grid_id) = group_map.get(&group_id) else {
             return Err(ScadnanoImportError::MissingField(format!(
-                "group {}",
-                group_id
+                "group {group_id}",
             )));
         };
         let Some(x) = scad.grid_position.first().cloned() else {
@@ -309,17 +308,15 @@ impl Helix {
         };
         let Some(group) = groups.get(*grid_id) else {
             return Err(ScadnanoImportError::MissingField(format!(
-                "group {}",
-                grid_id
+                "group {grid_id}",
             )));
         };
 
-        println!("helices per group {:?}", group_map);
-        println!("helices per group {:?}", helix_per_group);
+        println!("helices per group {group_map:?}");
+        println!("helices per group {helix_per_group:?}");
         let Some(nb_helices) = helix_per_group.get_mut(*grid_id) else {
             return Err(ScadnanoImportError::MissingField(format!(
-                "helix_per_group {}",
-                grid_id
+                "helix_per_group {grid_id}",
             )));
         };
         let rotation = Rotor2::from_angle(group.pitch.unwrap_or_default().to_radians());

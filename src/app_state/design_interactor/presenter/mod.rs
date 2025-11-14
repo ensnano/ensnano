@@ -215,7 +215,7 @@ impl Presenter {
                             };
                             let basis = sequence.next();
                             let basis_compl = compl(basis);
-                            log::debug!("basis {:?}, basis_compl {:?}", basis, basis_compl);
+                            log::debug!("basis {basis:?}, basis_compl {basis_compl:?}");
                             if let Some((basis, basis_compl)) = basis.zip(basis_compl) {
                                 basis_map.insert(nucl, basis);
                                 if let Some(virtual_compl) = Nucl::map_to_virtual_nucl(
@@ -229,8 +229,7 @@ impl Presenter {
                             } else if basis.is_none() {
                                 if !ran_out {
                                     log::error!(
-                                        "Ran out of base for nucleotide {:?}. Scaffold sequence is too short",
-                                        nucl
+                                        "Ran out of base for nucleotide {nucl:?}. Scaffold sequence is too short",
                                     );
                                     ran_out = true;
                                 }
@@ -392,7 +391,7 @@ impl Presenter {
             let lengths = strand.domain_lengths();
             for len in lengths.iter() {
                 let sign = if first { '=' } else { '+' };
-                ret.push_str(&format!(" {} {}", sign, len));
+                ret.push_str(&format!(" {sign} {len}"));
                 first = false;
             }
         }

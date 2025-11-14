@@ -225,7 +225,7 @@ impl Design {
             name: source_strand
                 .name
                 .as_ref()
-                .map(|n| Cow::from(format!("{}_copy", n))),
+                .map(|n| Cow::from(format!("{n}_copy"))),
         })
     }
 }

@@ -131,7 +131,7 @@ fn assert_sane_domains_non_cyclic(dom: &[Domain]) {
     for d in dom.iter() {
         if let Domain::Insertion { .. } = d {
             if prev_insertion {
-                panic!("Two successive Insertions in {:?}", dom);
+                panic!("Two successive Insertions in {dom:?}");
             } else {
                 prev_insertion = true;
             }
@@ -586,8 +586,7 @@ fn test_insertion_left_to_right() {
     );
 
     let objective = format!(
-        "[H1: 0 -> 3] [@8] [H1: 4 -> 6] [@{}] [H1: 7 -> 7] [@5] [H2: 5 <- 7] [@{}] [H2: 0 <- 4]",
-        first_insertion, second_insertion
+        "[H1: 0 -> 3] [@8] [H1: 4 -> 6] [@{first_insertion}] [H1: 7 -> 7] [@5] [H2: 5 <- 7] [@{second_insertion}] [H2: 0 <- 4]",
     );
     assert_good_strand(&strand, objective);
 }
@@ -618,8 +617,7 @@ fn test_insertion_right_to_left() {
     );
 
     let objective = format!(
-        "[H1: 0 -> 3] [@8] [H1: 4 -> 6] [@{}] [H1: 7 -> 7] [@5] [H2: 5 <- 7] [@{}] [H2: 0 <- 4]",
-        first_insertion, second_insertion
+        "[H1: 0 -> 3] [@8] [H1: 4 -> 6] [@{first_insertion}] [H1: 7 -> 7] [@5] [H2: 5 <- 7] [@{second_insertion}] [H2: 0 <- 4]",
     );
     assert_good_strand(&strand, objective);
 }

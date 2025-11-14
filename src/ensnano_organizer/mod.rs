@@ -113,7 +113,7 @@ impl<E: std::fmt::Debug> NodeId<E> {
         if let Self::Tree(v) = self {
             v.push(x);
         } else {
-            log::error!("Trying to push on {:?}", self);
+            log::error!("Trying to push on {self:?}");
         }
     }
 }
@@ -240,7 +240,7 @@ impl<E: OrganizerElement> Organizer<E> {
         let mut i = 0usize;
         let mut section: Result<<E::Key as ElementKey>::Section, _> = i.try_into();
         while let Ok(s) = section {
-            log::info!("section {:?}, {:?}", i, s);
+            log::info!("section {i:?}, {s:?}");
             let new_section: Section<E> = Section::new(NodeId::Section(i), E::Key::name(s));
             sections.push(new_section);
             i += 1;
@@ -374,7 +374,7 @@ impl<E: OrganizerElement> Organizer<E> {
         message: &Message<E>,
         selection: &BTreeSet<E::Key>,
     ) -> Option<OrganizerMessage<E>> {
-        log::trace!("{:?}", message);
+        log::trace!("{message:?}");
         match &message {
             Message::Expand { id, expanded } => {
                 self.expand(id, *expanded);
@@ -389,7 +389,7 @@ impl<E: OrganizerElement> Organizer<E> {
                 ));
             }
             Message::Edit { id } => {
-                log::info!("Message edit {:?}", id);
+                log::info!("Message edit {id:?}");
                 if let Some(group_id) = self.get_group(id).and_then(|g| g.get_group_id()) {
                     self.start_editing(group_id);
                     if let Some(GroupContent::Node { view, .. }) = self.get_group(id) {
@@ -420,7 +420,7 @@ impl<E: OrganizerElement> Organizer<E> {
                 ));
             }
             Message::AddSelectionToGroup { id } => {
-                log::info!("Add selection to group with id {:?}", id);
+                log::info!("Add selection to group with id {id:?}");
                 if self.get_group(id).and_then(|g| g.get_group_id()).is_some() {
                     let _ = self.add_content_to_group(id, selection.iter().cloned().collect());
                     return Some(OrganizerMessage::NewTree(self.tree()));
@@ -591,7 +591,7 @@ impl<E: OrganizerElement> Organizer<E> {
         self.stop_editing();
         let node_id = self.group_to_node.get(&id);
         if let Some(id_slice) = node_id.and_then(get_group_id) {
-            log::info!("start editing {:?}", id);
+            log::info!("start editing {id:?}");
             self.groups[id_slice[0]].start_editing(&id_slice[1..]);
             self.editing = Some(id);
             // TODO: Set focus.

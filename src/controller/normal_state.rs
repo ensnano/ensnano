@@ -259,7 +259,7 @@ impl State for NormalState {
                     self
                 }
                 Action::TranslateGroupPivot(translation) => {
-                    log::info!("Translating group pivot {:?}", translation);
+                    log::info!("Translating group pivot {translation:?}");
                     main_state.translate_group_pivot(translation);
                     self
                 }

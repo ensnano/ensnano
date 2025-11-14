@@ -15,13 +15,13 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-use super::tabs::GuiTab;
-use super::{AppState, GridTypeDescr, Message, UiSize};
+
+use super::{AppState, GridTypeDescr, Message, UiSize, tabs::GuiTab};
 use crate::ensnano_consts::{ICON_HONEYCOMB_GRID, ICON_SQUARE_GRID};
-use crate::ensnano_iced::iced;
 use crate::ensnano_iced::{
     fonts::{MaterialIcon, MaterialIconStyle, icon_to_char},
     helpers::*,
+    iced,
     iced_aw::TabLabel,
 };
 use std::marker::PhantomData;
@@ -44,7 +44,7 @@ impl<State: AppState> GuiTab<State> for PenTab<State> {
     fn content(&self, ui_size: UiSize, app_state: &State) -> iced::Element<'_, Self::Message> {
         let selected_path_id = app_state.get_selected_bezier_path();
         let path_txt = selected_path_id
-            .map(|p| format!("{:?}", p))
+            .map(|p| format!("{p:?}"))
             .unwrap_or_else(|| "None".to_string());
 
         let content = self::column![

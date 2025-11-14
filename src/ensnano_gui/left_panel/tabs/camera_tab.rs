@@ -309,7 +309,7 @@ impl std::fmt::Display for FogChoices {
             Self::DarkFromPivot => "Dark from Pivot",
             Self::ReversedFromPivot => "Reversed from Pivot",
         };
-        write!(f, "{}", ret)
+        write!(f, "{ret}")
     }
 }
 

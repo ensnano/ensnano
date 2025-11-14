@@ -366,7 +366,7 @@ impl Controller {
         let mut domains_vec = vec![domains_0];
         for n in 1..clipboard.templates.len() {
             let t = clipboard.templates.get(n);
-            log::info!("updated template {:?}", t);
+            log::info!("updated template {t:?}");
             let domains = t.as_ref().and_then(|t| {
                 clipboard
                     .template_edges
@@ -739,7 +739,7 @@ impl Controller {
                     .as_ref()
                     .zip(Some(new_duplication_point))
                     .and_then(|(source, dest)| {
-                        log::info!("source {:?}, dest {:?}", source, dest);
+                        log::info!("source {source:?}, dest {dest:?}");
                         data.get_edge(source, &dest)
                     })
                     .ok_or(ErrOperation::CannotPasteHere)?;
@@ -896,7 +896,7 @@ impl Controller {
     ) -> Result<(), ErrOperation> {
         let data = design.get_updated_grid_data();
         let h_id0 = helices.first().ok_or(ErrOperation::EmptyClipboard)?;
-        log::info!("position = {:?}", position);
+        log::info!("position = {position:?}");
         log::info!(
             "source position = {:?}",
             data.get_helix_grid_position(*h_id0)
@@ -906,10 +906,10 @@ impl Controller {
             .as_ref()
             .zip(position.and_then(PastePosition::to_grid_position).as_ref())
             .and_then(|(source, dest)| {
-                log::info!("source {:?}, dest {:?}", source, dest);
+                log::info!("source {source:?}, dest {dest:?}");
                 data.get_edge(source, &dest.to_helix_pos())
             });
-        log::info!("edge = {:?}", edge);
+        log::info!("edge = {edge:?}");
         let grid_data = data.clone();
         self.state
             .update_helices_pasting_position(position, edge, design)?;
@@ -970,9 +970,9 @@ impl Controller {
         let (edge, shift) = copy_edge;
         for (n1, n2) in xovers.iter() {
             let copy_1 = self.translate_nucl_by_edge(n1, &edge, shift, helices, grid_manager);
-            log::debug!("copy 1 {:?}", copy_1);
+            log::debug!("copy 1 {copy_1:?}");
             let copy_2 = self.translate_nucl_by_edge(n2, &edge, shift, helices, grid_manager);
-            log::debug!("copy 2 {:?}", copy_2);
+            log::debug!("copy 2 {copy_2:?}");
             if let Some(copy_1) = copy_1
                 && let Some(copy_2) = copy_2
                 && !strands.is_true_xover_end(&copy_1)

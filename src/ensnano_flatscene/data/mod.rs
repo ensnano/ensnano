@@ -685,7 +685,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
                 return GraphicalSelection::selection_only(new_selection);
             }
         }
-        log::debug!("rectangle selection: {:?} {:?}", c1, c2);
+        log::debug!("rectangle selection: {c1:?} {c2:?}");
         let mut translation_pivots = vec![];
         let mut rotation_pivots = vec![];
         let mut selection = Vec::new();
@@ -785,13 +785,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
         let right = x1.max(x2);
         let top = y1.min(y2);
         let bottom = y1.max(y2);
-        log::debug!(
-            "rectangle corners: {}, {}, {}, {}",
-            left,
-            top,
-            right,
-            bottom
-        );
+        log::debug!("rectangle corners: {left}, {top}, {right}, {bottom}",);
         let mut selection = Vec::new();
         for (xover_id, (flat_1, flat_2)) in self.design.get_xovers_list() {
             let h1 = &self.helices[flat_1.helix.flat];
@@ -825,7 +819,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
         } else {
             *new_selection = selection;
         }
-        log::debug!("returned selection {:?}", new_selection);
+        log::debug!("returned selection {new_selection:?}");
     }
 
     fn add_long_xover_rectangle(&self, selection: &mut Vec<Selection>, c1: Vec2, c2: Vec2) {
@@ -858,7 +852,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
         let right = x1.max(x2);
         let top = y1.min(y2);
         let bottom = y1.max(y2);
-        log::debug!("rectangle corner {}, {}, {}, {}", left, top, right, bottom);
+        log::debug!("rectangle corner {left}, {top}, {right}, {bottom}");
         let mut selection = BTreeSet::new();
         for s in self.design.get_strands().iter() {
             for n in s.points.iter() {
@@ -945,13 +939,9 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
                         selection_pool.push(Selection::Strand(self.id, s_id as u32));
                     }
                     selection_pool.push(Selection::Nothing);
-                    log::info!("selection pool {:?}", selection_pool);
+                    log::info!("selection pool {selection_pool:?}");
                     let selection = self.last_click.select(&mut selection_pool);
-                    log::info!(
-                        "selected {:?}, selection_pool {:?}",
-                        selection,
-                        selection_pool
-                    );
+                    log::info!("selected {selection:?}, selection_pool {selection_pool:?}",);
 
                     new_selection.push(selection);
                     new_selection.retain(|s| !selection_pool.contains(s));

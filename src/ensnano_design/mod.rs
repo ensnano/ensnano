@@ -508,17 +508,17 @@ impl Design {
         let mut replace = false;
         let helix_parameters = self.helix_parameters.unwrap_or_default();
         for (h_id, h) in self.helices.iter() {
-            log::debug!("Helix {}", h_id);
+            log::debug!("Helix {h_id}");
             if let Some((n_min, n_max)) =
                 self.strands.get_used_bounds_for_helix(*h_id, &self.helices)
             {
-                log::debug!("bounds {} {}", n_min, n_max);
+                log::debug!("bounds {n_min} {n_max}");
                 if let Some(curve) = h.instantiated_curve.as_ref() {
                     if let Some(t_min) = curve
                         .curve
                         .left_extension_to_have_nucl(n_min, &helix_parameters)
                     {
-                        log::debug!("t_min {}", t_min);
+                        log::debug!("t_min {t_min}");
                         if let Some(h_mut) = new_helices_mut.get_mut(h_id) {
                             replace |= h_mut
                                 .curve
@@ -531,7 +531,7 @@ impl Design {
                         .curve
                         .right_extension_to_have_nucl(n_max, &helix_parameters)
                     {
-                        log::debug!("t_max {}", t_max);
+                        log::debug!("t_max {t_max}");
                         if let Some(h_mut) = new_helices_mut.get_mut(h_id) {
                             replace |= h_mut
                                 .curve
@@ -595,8 +595,8 @@ impl Design {
             let strand = Strand::from_scadnano(s, &insertion_deletions)?;
             strands.insert(i, strand);
         }
-        println!("grids {:?}", grids);
-        println!("helices {:?}", helices);
+        println!("grids {grids:?}");
+        println!("helices {helices:?}");
         Ok(Self {
             free_grids: FreeGrids::from_vec(grids),
             helices: Helices(Arc::new(helices)),

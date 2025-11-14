@@ -125,7 +125,7 @@ impl RevolutionSurfaceSystem {
         let mut total_len = 0;
         for desc in curve_desc {
             let len = desc.compute_length().unwrap();
-            println!("length ~= {:?}", len);
+            println!("length ~= {len:?}");
             println!("length ~= {:?} nt", len / self.helix_parameters.rise as f64);
             total_len += (len / self.helix_parameters.rise as f64).floor() as usize;
         }
@@ -154,7 +154,7 @@ impl RevolutionSurfaceSystem {
                 second_derivative_thetas: vec![0.; total_nb_section],
             };
             self.apply_springs(&mut system, Some(&mut spring_relaxation_state));
-            println!("initial spring relax state: {:?}", spring_relaxation_state);
+            println!("initial spring relax state: {spring_relaxation_state:?}");
             let rescaling_factor = 1. / spring_relaxation_state.avg_ext;
             self.topology.rescale_section(rescaling_factor);
             *first = false;
@@ -176,21 +176,12 @@ impl RevolutionSurfaceSystem {
         } else {
             log::error!("error while solving ODE");
         };
-        /*self.target.curve_scale_factor /= (spring_relaxation_state.min_ext
-        + spring_relaxation_state.max_ext
-        + 2. * spring_relaxation_state.avg_ext)
-        / 4.;*/
 
-        /*
-        self.target.curve_scale_factor /=
-            (spring_relaxation_state.min_ext + spring_relaxation_state.max_ext) / 2.;
-        */
         let rescaling_factor =
             2. / (spring_relaxation_state.min_ext + spring_relaxation_state.max_ext);
         self.topology.rescale_section(rescaling_factor);
 
-        println!("spring_relax state {:?}", spring_relaxation_state);
-        //println!("curve scale {}", self.target.curve_scale_factor);
+        println!("spring_relax state {spring_relaxation_state:?}");
         spring_relaxation_state
             .max_ext
             .max(1. / spring_relaxation_state.min_ext)

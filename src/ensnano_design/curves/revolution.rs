@@ -336,14 +336,14 @@ impl Revolution {
     }
 
     fn get_surface_info(&self, point: SurfacePoint) -> Option<SurfaceInfo> {
-        log::info!("Info point point {:?}", point);
+        log::info!("Info point point {point:?}");
         let section_rotation = point.section_rotation_angle;
 
         let section_tangent = self
             .curve
             .normalized_tangent_at_s(point.abscissa_along_section)
             .rotated_by(DRotor2::from_angle(section_rotation));
-        log::info!("section tangent {:?}", section_tangent);
+        log::info!("section tangent {section_tangent:?}");
 
         let right = dvec_to_vec(DVec3 {
             x: -point.revolution_angle.sin(),

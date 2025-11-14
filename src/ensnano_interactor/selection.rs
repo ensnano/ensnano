@@ -85,7 +85,7 @@ impl Selection {
     }
 
     pub fn info(&self) -> String {
-        format!("{:?}", self)
+        format!("{self:?}")
     }
 
     fn get_helices_containing_self(
@@ -148,14 +148,14 @@ pub fn extract_nucls_and_xover_ends(
                     ret.push(n1);
                     ret.push(n2);
                 } else {
-                    log::error!("No xover with id {}", xover_id);
+                    log::error!("No xover with id {xover_id}");
                 }
             }
             Selection::Strand(_, s_id) => {
                 if let Some(ends) = reader.get_domain_ends(*s_id as usize) {
                     ret.extend(ends);
                 } else {
-                    log::error!("No strand with id {}", s_id);
+                    log::error!("No strand with id {s_id}");
                 }
             }
             _ => (),

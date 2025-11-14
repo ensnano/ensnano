@@ -117,7 +117,7 @@ pub fn load_stl<P: AsRef<Path>>(path: P) -> Result<StlMesh, ErrStl> {
     for t in mesh.triangles().iter() {
         let normal = (Vec3::from(t.vertices()[0]) - Vec3::from(t.vertices()[1]))
             .cross(Vec3::from(t.vertices()[1]) - Vec3::from(t.vertices()[2]));
-        log::trace!("normal: {:?}", normal);
+        log::trace!("normal: {normal:?}");
         for v in t.vertices() {
             vertices.push(ModelVertex {
                 color,

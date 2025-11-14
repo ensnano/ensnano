@@ -23,7 +23,7 @@ impl Strand {
     pub fn formatted_domains(&self) -> String {
         let mut ret = String::new();
         for d in self.domains.iter() {
-            writeln!(&mut ret, "{}", d).unwrap_or_default();
+            writeln!(&mut ret, "{d}").unwrap_or_default();
         }
         if self.is_cyclic {
             writeln!(&mut ret, "[cycle]").unwrap_or_default();
@@ -43,8 +43,8 @@ impl Strand {
 impl fmt::Display for Domain {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Self::Insertion { nb_nucl, .. } => write!(f, "[@{}]", nb_nucl),
-            Self::HelixDomain(dom) => write!(f, "{}", dom),
+            Self::Insertion { nb_nucl, .. } => write!(f, "[@{nb_nucl}]"),
+            Self::HelixDomain(dom) => write!(f, "{dom}"),
         }
     }
 }
@@ -63,7 +63,7 @@ impl DomainJunction {
 
 impl fmt::Debug for Domain {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self)
+        write!(f, "{self}")
     }
 }
 
@@ -79,6 +79,6 @@ impl fmt::Display for HelixInterval {
 
 impl fmt::Debug for HelixInterval {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self)
+        write!(f, "{self}")
     }
 }

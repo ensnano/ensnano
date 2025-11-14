@@ -77,7 +77,7 @@ impl DesignInteractor {
 /// Create a design by parsing a file
 fn read_file<P: AsRef<Path> + std::fmt::Debug>(path: P) -> Result<Design, LoadDesignError> {
     let json_str =
-        std::fs::read_to_string(&path).unwrap_or_else(|_| panic!("File not found {:?}", path));
+        std::fs::read_to_string(&path).unwrap_or_else(|_| panic!("File not found {path:?}"));
 
     let design: Result<Design, _> = serde_json::from_str(&json_str);
     // First try to read icednano format
@@ -114,7 +114,7 @@ fn read_file<P: AsRef<Path> + std::fmt::Debug>(path: P) -> Result<Design, LoadDe
                 log::info!("ok cadnano");
                 Ok(Design::from_cadnano(cadnano))
             } else {
-                log::error!("{:?}", e);
+                log::error!("{e:?}");
                 // The file is not in any supported format
                 //message("Unrecognized file format".into(), rfd::MessageLevel::Error);
                 Err(LoadDesignError::JsonError(e))

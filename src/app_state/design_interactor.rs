@@ -203,7 +203,7 @@ impl DesignInteractor {
             print!("New design: ");
             new_design.show_address();
         }
-        log::trace!("Interactor design <- {:p}", new_design);
+        log::trace!("Interactor design <- {new_design:p}");
         self.design = new_design;
         if let Some(update) = self.simulation_update.take() {
             if !self.controller.get_simulation_state().is_running() {
@@ -235,7 +235,7 @@ impl DesignInteractor {
             suggestion_parameters,
         );
         self.presenter = new_presenter;
-        log::trace!("Interactor design <- {:p}", new_design);
+        log::trace!("Interactor design <- {new_design:p}");
         self.design = new_design;
         self
     }
@@ -863,8 +863,7 @@ mod tests {
             .get(&0)
             .expect("No strand 0");
         let expected_result = format!(
-            "[@{}] [H1: -1 -> 3] [@{}] [H1: 4 -> 7] [@{}] [H2: -1 <- 7] [@{}] [H3: 0 -> 9] [@{}]",
-            INSERTION_LEN_0, INSERTION_LEN_1, INSERTION_LEN_2, INSERTION_LEN_3, INSERTION_LEN_4
+            "[@{INSERTION_LEN_0}] [H1: -1 -> 3] [@{INSERTION_LEN_1}] [H1: 4 -> 7] [@{INSERTION_LEN_2}] [H2: -1 <- 7] [@{INSERTION_LEN_3}] [H3: 0 -> 9] [@{INSERTION_LEN_4}]",
         );
         assert_good_strand(strand, expected_result);
     }
@@ -888,10 +887,7 @@ mod tests {
             .get(&0)
             .expect("No strand 0");
         let expected_result = format!(
-            "[H1: -1 -> 3] [@{}] [H1: 4 -> 7] [@{}] [H2: -1 <- 7] [@{}] [H3: 0 -> 9] [@{}] [cycle]",
-            INSERTION_LEN_1,
-            INSERTION_LEN_2,
-            INSERTION_LEN_3,
+            "[H1: -1 -> 3] [@{INSERTION_LEN_1}] [H1: 4 -> 7] [@{INSERTION_LEN_2}] [H2: -1 <- 7] [@{INSERTION_LEN_3}] [H3: 0 -> 9] [@{}] [cycle]",
             INSERTION_LEN_4 + INSERTION_LEN_0
         );
         assert_good_strand(strand, expected_result);
@@ -929,8 +925,7 @@ mod tests {
             .get(&0)
             .expect("No strand 0");
         let expected_result = format!(
-            "[H1: -1 -> 3] [@{}] [H1: 4 -> 7] [@{}] [H2: -1 <- 7] [@{}] [H3: 0 -> 9] [@{}] [cycle]",
-            INSERTION_LEN_1, INSERTION_LEN_2, INSERTION_LEN_3, INSERTION_LEN_0
+            "[H1: -1 -> 3] [@{INSERTION_LEN_1}] [H1: 4 -> 7] [@{INSERTION_LEN_2}] [H2: -1 <- 7] [@{INSERTION_LEN_3}] [H3: 0 -> 9] [@{INSERTION_LEN_0}] [cycle]",
         );
         assert_good_strand(strand, expected_result);
     }
@@ -967,8 +962,7 @@ mod tests {
             .get(&0)
             .expect("No strand 0");
         let expected_result = format!(
-            "[H1: -1 -> 3] [@{}] [H1: 4 -> 7] [@{}] [H2: -1 <- 7] [@{}] [H3: 0 -> 9] [@{}] [cycle]",
-            INSERTION_LEN_1, INSERTION_LEN_2, INSERTION_LEN_3, INSERTION_LEN_4
+            "[H1: -1 -> 3] [@{INSERTION_LEN_1}] [H1: 4 -> 7] [@{INSERTION_LEN_2}] [H2: -1 <- 7] [@{INSERTION_LEN_3}] [H3: 0 -> 9] [@{INSERTION_LEN_4}] [cycle]",
         );
         assert_good_strand(strand, expected_result);
     }
@@ -1009,10 +1003,8 @@ mod tests {
             .strands
             .get(&0)
             .expect("No strand 0");
-        let expected_result = format!(
-            "[H1: -1 -> 7] [H2: -1 <- 7] [H3: 0 -> 9] [@{}] [cycle]",
-            insertion_len_0
-        );
+        let expected_result =
+            format!("[H1: -1 -> 7] [H2: -1 <- 7] [H3: 0 -> 9] [@{insertion_len_0}] [cycle]",);
         assert_good_strand(strand, expected_result);
 
         // middle of domain
@@ -1039,8 +1031,7 @@ mod tests {
             .get(&0)
             .expect("No strand 0");
         let expected_result = format!(
-            "[H1: -1 -> 3] [@{}] [H1: 4 -> 7] [H2: -1 <- 7] [H3: 0 -> 9] [@{}] [cycle]",
-            insertion_len_1, insertion_len_0
+            "[H1: -1 -> 3] [@{insertion_len_1}] [H1: 4 -> 7] [H2: -1 <- 7] [H3: 0 -> 9] [@{insertion_len_0}] [cycle]",
         );
         assert_good_strand(strand, expected_result);
 
@@ -1068,8 +1059,7 @@ mod tests {
             .get(&0)
             .expect("No strand 0");
         let expected_result = format!(
-            "[H1: -1 -> 3] [@{}] [H1: 4 -> 7] [@{}] [H2: -1 <- 7] [H3: 0 -> 9] [@{}] [cycle]",
-            insertion_len_1, insertion_len_2, insertion_len_0
+            "[H1: -1 -> 3] [@{insertion_len_1}] [H1: 4 -> 7] [@{insertion_len_2}] [H2: -1 <- 7] [H3: 0 -> 9] [@{insertion_len_0}] [cycle]",
         );
         assert_good_strand(strand, expected_result);
 
@@ -1098,8 +1088,7 @@ mod tests {
             .get(&0)
             .expect("No strand 0");
         let expected_result = format!(
-            "[H1: -1 -> 3] [@{}] [H1: 4 -> 7] [@{}] [H2: -1 <- 7] [@{}] [H3: 0 -> 9] [@{}] [cycle]",
-            insertion_len_1, insertion_len_2, insertion_len_3, insertion_len_0
+            "[H1: -1 -> 3] [@{insertion_len_1}] [H1: 4 -> 7] [@{insertion_len_2}] [H2: -1 <- 7] [@{insertion_len_3}] [H3: 0 -> 9] [@{insertion_len_0}] [cycle]",
         );
         assert_good_strand(strand, expected_result);
 
@@ -1128,10 +1117,7 @@ mod tests {
             .get(&0)
             .expect("No strand 0");
         let expected_result = format!(
-            "[H1: -1 -> 3] [@{}] [H1: 4 -> 7] [@{}] [H2: -1 <- 7] [@{}] [H3: 0 -> 9] [@{}] [cycle]",
-            insertion_len_1,
-            insertion_len_2,
-            insertion_len_3,
+            "[H1: -1 -> 3] [@{insertion_len_1}] [H1: 4 -> 7] [@{insertion_len_2}] [H2: -1 <- 7] [@{insertion_len_3}] [H3: 0 -> 9] [@{}] [cycle]",
             insertion_len_4 + insertion_len_0
         );
         assert_good_strand(strand, expected_result);
@@ -1353,7 +1339,7 @@ mod tests {
             .unwrap();
         match app_state.apply_copy_operation(CopyOperation::Paste) {
             Err(ErrOperation::CannotPasteHere) => (),
-            x => panic!("expected CannotPasteHere, got {:?}", x),
+            x => panic!("expected CannotPasteHere, got {x:?}"),
         }
     }
 
@@ -1478,7 +1464,7 @@ mod tests {
                 }),
             )))
             .unwrap();
-        println!("{:?}", ret);
+        println!("{ret:?}");
         app_state.update();
         assert!(app_state.design_was_modified(&old_app_state));
     }
@@ -1705,7 +1691,7 @@ mod tests {
         let s_id = app_state
             .get_design_interactor()
             .get_id_of_strand_containing_nucl(&first_nucl)
-            .unwrap_or_else(|| panic!("no strand containing {:?}", first_nucl));
+            .unwrap_or_else(|| panic!("no strand containing {first_nucl:?}"));
         let strand = app_state
             .0
             .design
@@ -1733,11 +1719,11 @@ mod tests {
         let s_id_first = app_state
             .get_design_interactor()
             .get_id_of_strand_containing_nucl(&first_nucl)
-            .unwrap_or_else(|| panic!("no strand containing {:?}", first_nucl));
+            .unwrap_or_else(|| panic!("no strand containing {first_nucl:?}"));
         let s_id_last = app_state
             .get_design_interactor()
             .get_id_of_strand_containing_nucl(&last_nucl)
-            .unwrap_or_else(|| panic!("no strand containing {:?}", last_nucl));
+            .unwrap_or_else(|| panic!("no strand containing {last_nucl:?}"));
         app_state
             .apply_design_op(DesignOperation::Xover {
                 prime5_id: s_id_last,
@@ -1749,7 +1735,7 @@ mod tests {
         let s_id = app_state
             .get_design_interactor()
             .get_id_of_strand_containing_nucl(&first_nucl)
-            .unwrap_or_else(|| panic!("no strand containing {:?}", first_nucl));
+            .unwrap_or_else(|| panic!("no strand containing {first_nucl:?}"));
         let strand = app_state
             .0
             .design
@@ -1793,7 +1779,7 @@ mod tests {
         let s_id = app_state
             .get_design_interactor()
             .get_id_of_strand_containing_nucl(&source_nucl)
-            .unwrap_or_else(|| panic!("no strand containing {:?}", source_nucl));
+            .unwrap_or_else(|| panic!("no strand containing {source_nucl:?}"));
         let strand = app_state
             .0
             .design
@@ -1833,7 +1819,7 @@ mod tests {
         let s_id = app_state
             .get_design_interactor()
             .get_id_of_strand_containing_nucl(&source_nucl)
-            .unwrap_or_else(|| panic!("no strand containing {:?}", source_nucl));
+            .unwrap_or_else(|| panic!("no strand containing {source_nucl:?}"));
         let strand = app_state
             .0
             .design

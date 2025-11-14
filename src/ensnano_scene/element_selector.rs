@@ -377,13 +377,7 @@ impl SceneReader {
         let r = (*pixels.get(byte0 + 2)? as u32) << 16;
         let g = (*pixels.get(byte0 + 1)? as u32) << 8;
         let b = (*pixels.get(byte0)?) as u32;
-        log::trace!(
-            "pixel color: r {} \n  g  \n {} \n b {}  \n a {}",
-            r,
-            g,
-            b,
-            a
-        );
+        log::trace!("pixel color:\n r={r}\n g={g}\n b={b}\n a={a}",);
 
         if a == u32::from(ObjType::None) {
             return None;

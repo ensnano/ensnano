@@ -151,7 +151,7 @@ impl<S: AppState> ControllerState<S> for NormalState {
                 ..
             } => {
                 let element = context.get_element_under_cursor();
-                log::info!("Clicked on {:?}", element);
+                log::info!("Clicked on {element:?}");
                 if let Some(SceneElement::PlaneCorner {
                     plane_id,
                     corner_type,
@@ -203,7 +203,7 @@ impl<S: AppState> ControllerState<S> for NormalState {
                             consequences: Consequence::Nothing,
                         };
                     }
-                    log::error!("Could not get vertex {:?}, {vertex_id}", path_id);
+                    log::error!("Could not get vertex {path_id:?}, {vertex_id}");
                 }
                 match element {
                     Some(SceneElement::GridCircle(d_id, grid_position)) => {
@@ -417,7 +417,7 @@ impl<S: AppState> ControllerState<S> for NormalState {
                         let path_id = context.get_bezier_vertex_being_edited().map(|v| v.path_id);
 
                         if let Some((plane_id, intersection)) = context.get_plane_under_cursor() {
-                            println!("{:?}", intersection);
+                            println!("{intersection:?}");
                             let click_info =
                                 ClickInfo::new(MouseButton::Left, context.cursor_position);
 

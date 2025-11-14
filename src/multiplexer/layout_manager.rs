@@ -15,6 +15,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
 //! Manage the layout of the window in different areas.
 //!
 //! The layout is a tree-like structure. A [LayoutNode] can be one of the three following variants:
@@ -272,7 +273,7 @@ impl LayoutTree {
             .borrow_mut()
             .resize_click(position, clicked_position, old_proportion);
         if log::log_enabled!(log::Level::Debug) {
-            log::debug!("node {} resized", node_id);
+            log::debug!("node {node_id} resized");
             log::debug!("{:#?}", self.areas[node_id]);
         }
     }

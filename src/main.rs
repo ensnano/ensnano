@@ -14,7 +14,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
+*/
 
 //! `ensnano` is a software for designing 3D DNA nanostructures.
 //!
@@ -315,7 +315,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     });
 
     if !PANIC_ON_WGPU_ERRORS {
-        device.on_uncaptured_error(Box::new(|e| log::error!("wgpu error {:?}", e)));
+        device.on_uncaptured_error(Box::new(|e| log::error!("wgpu error {e:?}")));
     }
 
     let physical_size = window.inner_size();
@@ -456,7 +456,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut controller = Controller::new();
 
-    println!("{}", WELCOME_MSG);
+    println!("{WELCOME_MSG}");
     if !EARLY_LOG {
         pretty_env_logger::init();
     }
@@ -1202,7 +1202,7 @@ impl MainState {
     }
 
     fn apply_operation(&mut self, operation: DesignOperation) {
-        log::debug!("Applying operation {:?}", operation);
+        log::debug!("Applying operation {operation:?}");
         let result = self.app_state.apply_design_op(operation.clone());
         if let Err(ErrOperation::FinishFirst) = result {
             self.modify_state(
@@ -1300,7 +1300,7 @@ impl MainState {
                 );
                 self.apply_silent_operation(operation);
             }
-            Err(e) => log::warn!("{:?}", e),
+            Err(e) => log::warn!("{e:?}"),
         }
     }
 
@@ -1402,7 +1402,7 @@ impl MainState {
         match result {
             Ok(OkOperation::Undoable { state, label }) => self.save_old_state(state, label),
             Ok(OkOperation::NotUndoable) => (),
-            Err(e) => log::warn!("{:?}", e),
+            Err(e) => log::warn!("{e:?}"),
         }
         if let Some(new_selection) = self.app_state.get_new_selection() {
             self.modify_state(|s| s.with_selection(new_selection, None), None);
@@ -1836,7 +1836,7 @@ impl MainStateView<'_> {
     }
 
     fn notify_apps(&mut self, notification: Notification) {
-        log::info!("Notify apps {:?}", notification);
+        log::info!("Notify apps {notification:?}");
         for app in self.main_state.applications.values_mut() {
             app.lock().unwrap().on_notify(notification.clone());
         }
@@ -2081,7 +2081,7 @@ impl MainStateView<'_> {
         if let Some(camera) = reader.get_camera_with_id(camera_id) {
             self.notify_apps(Notification::TeleportCamera(camera));
         } else {
-            log::error!("Could not get camera {:?}", camera_id);
+            log::error!("Could not get camera {camera_id:?}");
         }
     }
 

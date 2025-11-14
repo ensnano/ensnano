@@ -88,7 +88,7 @@ impl Object3DDrawer {
         bg_desc: &BindGroupLayoutDescriptor,
     ) {
         let path = object.get_path_to_source_file(base_path);
-        println!("{:?}", path);
+        println!("{path:?}");
         if path.extension() == Some(OsStr::new("stl")) {
             let mut drawer = StlDrawer::new(self.device.as_ref(), bg_desc);
             drawer.add_stl(self.device.as_ref(), path);
@@ -249,7 +249,7 @@ impl GltfDrawer {
                 self.set_meshes(device, file.meshes);
             }
             Err(err) => {
-                log::error!("Could not read gltf file: {:?}", err);
+                log::error!("Could not read gltf file: {err:?}");
             }
         }
     }
@@ -323,7 +323,7 @@ impl StlDrawer {
                 ));
             }
             Err(err) => {
-                log::error!("Could not read stl file: {:?}", err);
+                log::error!("Could not read stl file: {err:?}");
             }
         }
     }

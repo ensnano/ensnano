@@ -263,7 +263,7 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
     }
 
     fn queue_top_bar_message(&mut self, message: top_bar::Message<S>) {
-        log::trace!("Queue top bar {:?}", message);
+        log::trace!("Queue top bar {message:?}");
         if let GuiState::TopBar(state) = self {
             state.queue_message(message);
         } else {
@@ -272,7 +272,7 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
     }
 
     fn queue_left_panel_message(&mut self, message: left_panel::Message<S>) {
-        log::trace!("Queue left panel {:?}", message);
+        log::trace!("Queue left panel {message:?}");
         if let GuiState::LeftPanel(state) = self {
             state.queue_message(message);
         } else {
@@ -281,7 +281,7 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
     }
 
     fn queue_status_bar_message(&mut self, message: status_bar::Message<S>) {
-        log::trace!("Queue status_bar {:?}", message);
+        log::trace!("Queue status_bar {message:?}");
         if let GuiState::StatusBar(state) = self {
             state.queue_message(message);
         } else {
@@ -510,7 +510,7 @@ impl<R: Requests, S: AppState> GuiComponent<R, S> {
     fn resize(&mut self, window: &Window, multiplexer: &dyn Multiplexer) {
         let area = multiplexer.get_draw_area(self.element_type).unwrap();
         self.state.resize(area, window);
-        log::debug!("resizing {:?}", area);
+        log::debug!("resizing {area:?}");
         self.redraw = true;
     }
 
@@ -851,7 +851,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
     ) {
         *mouse_interaction = Default::default();
         for (element_key, element) in self.components.iter_mut() {
-            log::trace!("render {:?}", element_key);
+            log::trace!("render {element_key:?}");
             element.render(
                 self.device.as_ref(),
                 self.queue.as_ref(),

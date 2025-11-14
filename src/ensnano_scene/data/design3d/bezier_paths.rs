@@ -77,11 +77,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
         h_id: usize,
         bezier_control: BezierControlPoint,
     ) -> Option<Rotor3> {
-        log::info!(
-            "Getting bezier basis {:?} of helix {}",
-            bezier_control,
-            h_id
-        );
+        log::info!("Getting bezier basis {bezier_control:?} of helix {h_id}",);
         match bezier_control {
             BezierControlPoint::CubicBezier(_) => None,
             BezierControlPoint::PiecewiseBezier(n) => {

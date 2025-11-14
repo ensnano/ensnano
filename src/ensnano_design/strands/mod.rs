@@ -555,7 +555,7 @@ impl Strand {
             if d.length() > 0 {
                 true
             } else {
-                println!("Warning, removing empty domain {:?}", d);
+                println!("Warning, removing empty domain {d:?}");
                 false
             }
         });
@@ -1079,10 +1079,7 @@ impl Domain {
                 *n1 += *n2;
                 *sequence = Some(Cow::Owned(format!("{s1}{s2}")));
             }
-            _ => println!(
-                "Warning attempt to merge unmergeable domains {:?}, {:?}",
-                old_self, other
-            ),
+            _ => println!("Warning attempt to merge unmergeable domains {old_self:?}, {other:?}",),
         }
     }
 

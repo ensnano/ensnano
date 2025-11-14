@@ -427,7 +427,7 @@ fn read_pdb_string(
     if let Some(nucl) = current_nucl.take() {
         ret.present_candidate(nucl)?;
     }
-    println!("{:#?}", ret);
+    println!("{ret:#?}");
     Ok(ret)
 }
 
@@ -502,8 +502,8 @@ impl PdbAtom {
         // write!(&mut ret, "{:>8.3}", self.position.x)?; // 31-38
         // write!(&mut ret, "{:>8.3}", self.position.y)?; // 39-46
         // write!(&mut ret, "{:>8.3}", self.position.z)?; // 47-54
-        write!(&mut ret, "{:>6.2}", OCCUPANCY)?; // 55-60
-        write!(&mut ret, "{:>6.2}", TEMPERATURE_FACTOR)?; // 61-66
+        write!(&mut ret, "{OCCUPANCY:>6.2}")?; // 55-60
+        write!(&mut ret, "{TEMPERATURE_FACTOR:>6.2}")?; // 61-66
         ret.push_str(&vec![" "; 14].join("")); // 67-80
         Ok(ret)
     }

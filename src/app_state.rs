@@ -386,7 +386,7 @@ impl AppState {
                 Ok(OkOperation::NotUndoable)
             }
             Err(e) => {
-                log::error!("error {:?}", e);
+                log::error!("error {e:?}");
                 Err(e)
             }
         }
@@ -399,7 +399,7 @@ impl AppState {
 
     pub fn finish_operation(&self) {
         let pivot = *self.0.selection.pivot.read().unwrap();
-        log::info!("Setting pivot {:?}", pivot);
+        log::info!("Setting pivot {pivot:?}");
         log::info!("was {:?}", self.0.selection.old_pivot.read().unwrap());
         *self.0.selection.old_pivot.write().unwrap() = pivot;
         log::info!("is {:?}", self.0.selection.old_pivot.read().unwrap());
@@ -520,7 +520,7 @@ impl AppState {
         let mut new_state = (*self.0).clone();
         update(&mut new_state.parameters);
         if let Err(e) = confy::store(APP_NAME, APP_NAME, new_state.parameters.clone()) {
-            log::error!("Could not save preferences {:?}", e);
+            log::error!("Could not save preferences {e:?}");
         };
         Self(AddressPointer::new(new_state))
     }
@@ -597,7 +597,7 @@ impl AppState {
 
     pub fn set_current_group_pivot(&self, pivot: GroupPivot) {
         if self.0.selection.pivot.read().unwrap().is_none() {
-            log::info!("resetting selection pivot {:?}", pivot);
+            log::info!("resetting selection pivot {pivot:?}");
             *self.0.selection.pivot.write().unwrap() = Some(pivot);
             *self.0.selection.old_pivot.write().unwrap() = Some(pivot);
             log::debug!(

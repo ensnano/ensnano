@@ -201,7 +201,7 @@ impl<S: AppState> Scene<S> {
 
     fn read_consequence(&mut self, consequence: Consequence, app_state: &S) {
         if !matches!(consequence, Consequence::Nothing) {
-            log::info!("Consequence {:?}", consequence);
+            log::info!("Consequence {consequence:?}");
         }
         match consequence {
             Consequence::Nothing => (),
@@ -235,7 +235,7 @@ impl<S: AppState> Scene<S> {
                         },
                     );
                 } else {
-                    log::error!("No suggested cross over target for nucl {:?}", nucl);
+                    log::error!("No suggested cross over target for nucl {nucl:?}");
                 }
             }
             Consequence::Translation(dir, x_coord, y_coord, target) => {
@@ -257,7 +257,7 @@ impl<S: AppState> Scene<S> {
                 }
             }
             Consequence::ObjectTranslated { object, grid, x, y } => {
-                log::info!("Moving helix {:?} to grid {:?} ({} {})", object, grid, x, y);
+                log::info!("Moving helix {object:?} to grid {grid:?} ({x} {y})");
                 self.requests
                     .lock()
                     .unwrap()
@@ -601,7 +601,7 @@ impl<S: AppState> Scene<S> {
 
     fn attempt_paste(&self, element: Option<SceneElement>) {
         if let Some(SceneElement::GridCircle(_, gp)) = element {
-            log::info!("Attempt past on {:?}", gp);
+            log::info!("Attempt past on {gp:?}");
             self.requests.lock().unwrap().attempt_paste_on_grid(gp);
         } else {
             let nucl = self.data.borrow().element_to_nucl(&element, false);
@@ -614,7 +614,7 @@ impl<S: AppState> Scene<S> {
 
     fn pasting_candidate(&self, element: Option<SceneElement>) {
         if let Some(SceneElement::GridCircle(_, gp)) = element {
-            log::info!("Paste candidate on {:?}", gp);
+            log::info!("Paste candidate on {gp:?}");
             self.requests.lock().unwrap().paste_candidate_on_grid(gp);
         } else {
             let nucl = self.data.borrow().element_to_nucl(&element, false);
@@ -661,7 +661,7 @@ impl<S: AppState> Scene<S> {
             app_state.get_selection(),
             &reader,
         );
-        log::debug!("grids {:?}", grids);
+        log::debug!("grids {grids:?}");
         let control_points =
             crate::ensnano_interactor::extract_control_points(app_state.get_selection());
         let at_most_one_grid = grids.as_ref().map(|g| g.len() <= 1).unwrap_or(false);
@@ -749,7 +749,7 @@ impl<S: AppState> Scene<S> {
             app_state.get_selection(),
             &app_state.get_design_reader(),
         );
-        log::debug!("rotating grids {:?}", grids);
+        log::debug!("rotating grids {grids:?}");
         let group_id = app_state.get_current_group_id();
         let rotation: Arc<dyn Operation> = if let Some(grid_ids) = grids.filter(|v| !v.is_empty()) {
             Arc::new(GridRotation {
@@ -907,7 +907,7 @@ impl<S: AppState> Scene<S> {
                 .get_selected_position()
                 .filter(|r| !r.x.is_nan() && !r.y.is_nan() && !r.z.is_nan())
         });
-        log::info!("pivot {:?}", pivot);
+        log::info!("pivot {pivot:?}");
         self.controller.rotate_camera(xz, yz, xy, pivot);
     }
 
@@ -951,7 +951,7 @@ impl<S: AppState> Scene<S> {
             Some(format!("{ITERATIVE_AXIS_ALGORITHM}").as_str()),
             Some("png"),
         );
-        println!("3D PNG export to {:?}", path);
+        println!("3D PNG export to {path:?}");
         let device = self.element_selector.device.as_ref();
         let queue = self.element_selector.queue.as_ref();
 
@@ -1082,7 +1082,7 @@ impl<S: AppState> Scene<S> {
             Some(format!("{ITERATIVE_AXIS_ALGORITHM}").as_str()),
             Some("stl"),
         );
-        println!("STL export to {:?}", path);
+        println!("STL export to {path:?}");
         let raw_instances = self.data.borrow().get_all_raw_instances(app_state);
         let stl_bytes = stl::stl_bytes_export(raw_instances);
         if let Ok(mut out_file) = fs::File::create(path)
@@ -1100,7 +1100,7 @@ impl<S: AppState> Scene<S> {
             Some(format!("{ITERATIVE_AXIS_ALGORITHM}").as_str()),
             Some("json"),
         );
-        println!("Nucleotides positions export to {:?}", path);
+        println!("Nucleotides positions export to {path:?}");
         if let Some(nucl_pos) = self.data.borrow().get_nucleotides_positions_by_strands() {
             let data = serde_json::to_string(&nucl_pos).unwrap();
             if let Ok(mut out_file) = fs::File::create(path)
@@ -1163,7 +1163,7 @@ pub enum SceneNotification {
 impl<S: AppState> Application for Scene<S> {
     type AppState = S;
     fn on_notify(&mut self, notification: Notification) {
-        log::info!("scene notified {:?}", notification);
+        log::info!("scene notified {notification:?}");
         let older_state = self.older_state.clone();
         match notification {
             Notification::ClearDesigns => self.clear_design(),

@@ -125,7 +125,7 @@ fn get_shift_optimization_result(
         let char_map = read_scaffold_seq(design, nucl_collection, shift)?;
         let (score, result) = evaluate_shift(design, &char_map);
         if score < best_score {
-            println!("shift {} score {}", shift, score);
+            println!("shift {shift} score {score}");
             best_score = score;
             best_shift = shift;
             best_result = result;
@@ -218,7 +218,7 @@ fn evaluate_shift(design: &Design, basis_map: &BTreeMap<Nucl, char>) -> (usize, 
         }
         result
     };
-    log::debug!("ret {}, {}", ret, result);
+    log::debug!("ret {ret}, {result}");
     (ret, result)
 }
 

@@ -603,7 +603,7 @@ impl View {
         let target_size = png_size.unwrap_or(self.area_size);
         let mut need_new_circles = false;
         if let Some(globals) = self.camera_top.borrow_mut().update() {
-            log::debug!("new camera globals: {:?}", globals);
+            log::debug!("new camera globals: {globals:?}");
             self.globals_top.update(globals);
             need_new_circles = true;
         }

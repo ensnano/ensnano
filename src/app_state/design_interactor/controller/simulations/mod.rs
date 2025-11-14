@@ -1128,7 +1128,7 @@ fn read_intervals(presenter: &Presenter) -> Result<IntervalResult, ErrOperation>
                     None
                 };
                 while presenter.has_nucl(&moving_nucl) {
-                    log::debug!("nucl {:?}", moving_nucl);
+                    log::debug!("nucl {moving_nucl:?}");
                     let doubled = presenter.has_nucl(&moving_nucl.compl());
                     if doubled && nucl.forward {
                         log::debug!("has compl");
@@ -1145,7 +1145,7 @@ fn read_intervals(presenter: &Presenter) -> Result<IntervalResult, ErrOperation>
                                 0
                             }
                         };
-                        log::debug!("helix {}", helix);
+                        log::debug!("helix {helix}");
                         nucl_map
                             .insert(moving_nucl, FreeNucl::with_helix(&moving_nucl, Some(helix)));
                         nucl_map.insert(
@@ -1171,7 +1171,7 @@ fn read_intervals(presenter: &Presenter) -> Result<IntervalResult, ErrOperation>
                 prev_doubled = starting_doubled;
                 moving_nucl = starting_nucl.right();
                 while presenter.has_nucl(&moving_nucl) {
-                    log::debug!("nucl {:?}", moving_nucl);
+                    log::debug!("nucl {moving_nucl:?}");
                     let doubled = presenter.has_nucl(&moving_nucl.compl());
                     if doubled && nucl.forward {
                         log::debug!("has compl");
@@ -1190,7 +1190,7 @@ fn read_intervals(presenter: &Presenter) -> Result<IntervalResult, ErrOperation>
                                 0
                             }
                         };
-                        log::debug!("helix {}", helix);
+                        log::debug!("helix {helix}");
                         intervals[helix].0 = intervals[helix].0.min(moving_nucl.position);
                         intervals[helix].1 = intervals[helix].1.max(moving_nucl.position);
                         nucl_map
@@ -1365,7 +1365,7 @@ impl RigidGrid {
         orientation: Rotor3,
     ) -> Self {
         // Center of mass in the grid coordinates.
-        log::debug!("helices {:?}", helices);
+        log::debug!("helices {helices:?}");
         let center_of_mass = center_of_mass_helices(&helices);
 
         // Inertia matrix when the orientation is the identity

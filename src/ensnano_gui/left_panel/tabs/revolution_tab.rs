@@ -139,7 +139,7 @@ struct ParameterWidget {
 impl ParameterWidget {
     fn new(initial_value: InstantiatedParameter) -> Self {
         let (current_text, parameter_kind) = match initial_value {
-            InstantiatedParameter::Float(x) => (format!("{:.3}", x), ParameterKind::Float),
+            InstantiatedParameter::Float(x) => (format!("{x:.3}"), ParameterKind::Float),
             InstantiatedParameter::Int(x) => (x.to_string(), ParameterKind::Int),
             InstantiatedParameter::Uint(x) => (x.to_string(), ParameterKind::Uint),
         };
@@ -520,7 +520,7 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
         {
             self.update_builder_parameter(
                 RevolutionParameterId::RevolutionRadius,
-                format!("{:.3}", r),
+                format!("{r:.3}"),
             );
         }
 

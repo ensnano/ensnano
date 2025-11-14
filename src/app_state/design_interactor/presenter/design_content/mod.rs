@@ -341,7 +341,7 @@ impl DesignContent {
             };
             ret.push(Staple {
                 plate,
-                well: format!("{}{}", column, row),
+                well: format!("{column}{row}"),
                 sequence: staple_info.sequence.clone(),
                 name: (if let Some(name) = &staple_info.strand_name {
                     format!("{name} #{}", staple_info.s_id).into()
@@ -493,7 +493,7 @@ impl DesignContent {
                 .filter(|g| g.starts_with("vars:"))
                 .flat_map(|x| x[5..].split(&[' ', ',']).filter(|y| !y.is_empty()))
                 .collect::<Vec<&str>>();
-            println!("{:?}", clone_variables_declaration);
+            println!("{clone_variables_declaration:?}");
             for x in clone_variables_declaration {
                 let _s = x
                     .split('=')
@@ -637,14 +637,11 @@ impl DesignContent {
                             let previous = nucl_collection.insert_virtual(v_nucl, nucl);
                             if previous.is_some() && previous != Some(nucl) {
                                 log::error!(
-                                    "NUCLEOTIDE CONFLICTS: nucls {:?} and {:?} are mapped to the same virtual position {:?}",
-                                    previous,
-                                    nucl,
-                                    v_nucl
+                                    "NUCLEOTIDE CONFLICTS: nucls {previous:?} and {nucl:?} are mapped to the same virtual position {v_nucl:?}",
                                 );
                             }
                         } else {
-                            log::error!("Could not get virtual nucl corresponding to {:?}", nucl);
+                            log::error!("Could not get virtual nucl corresponding to {nucl:?}");
                         }
 
                         elements.push(DesignElement::Nucleotide {

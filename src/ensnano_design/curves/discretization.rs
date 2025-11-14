@@ -209,7 +209,7 @@ impl Curve {
             }
         }
         log::info!("Synchronization length by old method {synchronization_length}");
-        log::debug!("t_nucl {:.4?}", t_nucl);
+        log::debug!("t_nucl {t_nucl:.4?}");
 
         // Computing the discrete torsion
         for (p0, (p1, (p2, p3))) in points_forward.iter().zip(
@@ -364,10 +364,7 @@ impl Curve {
     pub fn length_by_discretization(&self, t0: f64, t1: f64, nb_step: usize) -> f64 {
         if t0 > t1 {
             log::error!(
-                "Bad parameters or length for discretization: \n t0 {} \n t1 {} \n nb_step {}",
-                t0,
-                t1,
-                nb_step
+                "Bad parameters or length for discretization: \n t0 {t0} \n t1 {t1} \n nb_step {nb_step}",
             );
         }
         if let Some((x0, x1)) = self
@@ -390,7 +387,7 @@ impl Curve {
             p = q;
         }
         let quad = quadrature::integrate(|x| self.geometry.speed(x).mag(), t0, t1, 1e-7).integral;
-        log::info!("by quadrature {}", quad);
+        log::info!("by quadrature {quad}");
         len
     }
 

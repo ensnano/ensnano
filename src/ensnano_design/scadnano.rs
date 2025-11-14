@@ -45,7 +45,7 @@ impl ScadnanoDesign {
             "square" => Ok(GridTypeDescr::Square { twist: None }),
             "honeycomb" => Ok(GridTypeDescr::Honeycomb { twist: None }),
             grid_type => {
-                println!("Unsupported grid type: {}", grid_type);
+                println!("Unsupported grid type: {grid_type}");
                 Err(ScadnanoImportError::UnsupportedGridType(
                     grid_type.to_string(),
                 ))
@@ -80,7 +80,7 @@ impl ScadnanoGroup {
             "square" => Ok(GridTypeDescr::Square { twist: None }),
             "honeycomb" => Ok(GridTypeDescr::Honeycomb { twist: None }),
             grid_type => {
-                println!("Unsupported grid type: {}", grid_type);
+                println!("Unsupported grid type: {grid_type}");
                 Err(ScadnanoImportError::UnsupportedGridType(
                     grid_type.to_string(),
                 ))

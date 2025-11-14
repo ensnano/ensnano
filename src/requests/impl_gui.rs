@@ -542,6 +542,6 @@ fn rigid_parameters(parameters: RigidBodyParametersRequest) -> RigidBodyConstant
         brownian_rate: 10f32.powf(parameters.brownian_rate),
         brownian_amplitude: parameters.brownian_amplitude,
     };
-    log::info!("rigid parameters {:?}", ret);
+    log::info!("rigid parameters {ret:?}");
     ret
 }

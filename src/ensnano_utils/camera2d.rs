@@ -347,7 +347,7 @@ impl Globals {
     where
         F: Fn([f32; 2]) -> [f32; 2],
     {
-        log::debug!("Corners: {:?}, {:?}", top_left, bottom_right);
+        log::debug!("Corners: {top_left:?}, {bottom_right:?}");
         let size = [
             (bottom_right.x - top_left.x).abs(),
             (bottom_right.y - top_left.y).abs(),

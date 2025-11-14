@@ -687,13 +687,13 @@ impl CurveDescriptor {
                 t_max,
                 t_min,
             } => {
-                log::debug!("translating {:?}", points);
+                log::debug!("translating {points:?}");
                 let translated_points: Option<Vec<_>> = points
                     .clone()
                     .into_iter()
                     .map(|p| {
                         let ret = p.clone().translated_by(edge, grid_reader);
-                        log::debug!("{:?} -> {:?}", p, ret);
+                        log::debug!("{p:?} -> {ret:?}");
                         ret
                     })
                     .collect();
@@ -1044,7 +1044,7 @@ impl InstantiatedPiecewiseBezierDescriptor {
     ) -> Self {
         use rand::prelude::*;
         let mut rng = rand::thread_rng();
-        log::debug!("Instantiating {:?}", points);
+        log::debug!("Instantiating {points:?}");
         let instantiator = PieceWiseBezierInstantiator_ {
             points,
             grid_reader,

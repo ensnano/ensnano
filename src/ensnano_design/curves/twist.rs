@@ -190,8 +190,8 @@ mod tests {
             p = q;
         }
         let expected = twist.curvilinear_abscissa(1.0).unwrap();
-        println!("s = {}", s);
-        println!("expected = {}", expected);
+        println!("s = {s}");
+        println!("expected = {expected}");
         assert!((s - expected).abs() < 1e-3);
     }
 
@@ -223,7 +223,7 @@ mod tests {
         let nucl_flat =
             crate::ensnano_design::utils::vec_to_dvec(flat_helix.space_pos(&p, 99, true));
 
-        println!("curved {:?} \n flat {:?}", nucl_curved, nucl_flat);
+        println!("curved {nucl_curved:?} \n flat {nucl_flat:?}");
         // The two nucleotides are not in the same position
         assert!((nucl_curved - nucl_flat).mag() > 0.5);
         // But have almost the same x coordinate

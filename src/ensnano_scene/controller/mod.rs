@@ -185,7 +185,7 @@ impl<S: AppState> Controller<S> {
     }
 
     pub fn update_modifiers(&mut self, modifiers: Modifiers) {
-        log::info!("New modifiers {:?}", modifiers);
+        log::info!("New modifiers {modifiers:?}");
         self.current_modifiers_state = modifiers.state();
         if !self.current_modifiers_state.shift_key() {
             self.bezier_curve_origin = None;

@@ -65,12 +65,12 @@ pub enum DnaAutoGroup {
 impl std::fmt::Display for DnaAutoGroup {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::StrandWithLength(length) => write!(f, "Strands with length {}", length),
+            Self::StrandWithLength(length) => write!(f, "Strands with length {length}"),
             Self::StrandWithDomainOfLength(length) => match length {
                 BoundedLength::Last(_, _) => {
-                    write!(f, "Strand with domains of lengths {}", length)
+                    write!(f, "Strand with domains of lengths {length}")
                 }
-                _ => write!(f, "Strands with a domain of length {}", length),
+                _ => write!(f, "Strands with a domain of length {length}"),
             },
         }
     }
@@ -142,14 +142,14 @@ impl OrganizerElement for DesignElement {
 
     fn display_name(&self) -> String {
         match self {
-            DesignElement::Grid { id, .. } => format!("Grid {}", id),
-            DesignElement::Strand { id, .. } => format!("Strand {}", id),
-            DesignElement::Helix { id, .. } => format!("Helix {}", id),
+            DesignElement::Grid { id, .. } => format!("Grid {id}"),
+            DesignElement::Strand { id, .. } => format!("Strand {id}"),
+            DesignElement::Helix { id, .. } => format!("Helix {id}"),
             DesignElement::Nucleotide {
                 helix,
                 position,
                 forward,
-            } => format!("Nucl {}:{}:{}", helix, position, forward),
+            } => format!("Nucl {helix}:{position}:{forward}"),
             DesignElement::CrossOver {
                 helix5prime,
                 position5prime,
@@ -159,13 +159,7 @@ impl OrganizerElement for DesignElement {
                 forward3prime,
                 ..
             } => format!(
-                "Xover ({}:{}:{}) -> ({}:{}:{})",
-                helix5prime,
-                position5prime,
-                forward5prime,
-                helix3prime,
-                position3prime,
-                forward3prime
+                "Xover ({helix5prime}:{position5prime}:{forward5prime}) -> ({helix3prime}:{position3prime}:{forward3prime})"
             ),
         }
     }

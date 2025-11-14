@@ -29,7 +29,7 @@ pub const NO_FILE_RECEIVED_SCAFFOLD: &str = "Scaffold setting canceled";
 pub const NO_FILE_RECEIVED_STAPLE: &str = "Staple export canceled";
 
 pub fn failed_to_save_msg<D: std::fmt::Debug>(reason: &D) -> String {
-    format!("Failed to save {:?}", reason)
+    format!("Failed to save {reason:?}")
 }
 
 pub const NO_SCAFFOLD_SET: &str = "No scaffold set. \n
@@ -58,14 +58,13 @@ pub fn optimize_scaffold_position_msg(default_position: usize) -> String {
     format!("Optimize the scaffold position ?\n
               If you chose \"Yes\", ENSnano will position the scaffold in a way that minimizes the \
               number of anti-pattern (G^4, C^4 (A|T)^7) in the staples sequence. If you chose \"No\", \
-              the scaffold sequence will begin at position {}", default_position)
+              the scaffold sequence will begin at position {default_position}")
 }
 
 pub fn invalid_sequence_file(first_invalid_char_position: usize) -> String {
     format!(
         "This text file does not contain a valid DNA sequence.\n
-             First invalid char at position {}",
-        first_invalid_char_position
+             First invalid char at position {first_invalid_char_position}"
     )
 }
 

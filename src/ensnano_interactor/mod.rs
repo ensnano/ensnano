@@ -311,9 +311,9 @@ impl DesignOperation {
             Self::AddTwoPointsBezier { .. } => "Bezier curve creation".into(),
             Self::RmHelices { .. } => "Helix deletion".into(),
             Self::RmXovers { .. } => "Xover deletion".into(),
-            Self::Cut { nucl, .. } => format!("Cut on {:?}", nucl).into(),
+            Self::Cut { nucl, .. } => format!("Cut on {nucl:?}").into(),
             Self::GeneralXover { source, target } => {
-                format!("Xover between {:?} and {:?}", source, target).into()
+                format!("Xover between {source:?} and {target:?}").into()
             }
             Self::Xover { .. } => "Xover".into(),
             Self::CrossCut { .. } => "Cut and crossover".into(),
@@ -338,7 +338,7 @@ impl DesignOperation {
             Self::SnapHelices { .. } => "Move 2D helices".into(),
             Self::RotateHelices { .. } => "Translate 2D helices".into(),
             Self::SetIsometry { .. } => "Set isometry of helices".into(),
-            Self::RequestStrandBuilders { nucls } => format!("Build on {:?}", nucls).into(),
+            Self::RequestStrandBuilders { nucls } => format!("Build on {nucls:?}").into(),
             Self::MoveBuilders(_) => "Move builders".into(),
             Self::SetRollHelices { .. } => "Set roll of helix".into(),
             Self::SetVisibilityHelix { visible: true, .. } => "Make helices visible".into(),
@@ -420,8 +420,8 @@ pub enum IsometryTarget {
 impl std::fmt::Display for IsometryTarget {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Helices(hs, _) => write!(f, "Helices {:?}", hs),
-            Self::Grids(gs) => write!(f, "Grids {:?}", gs),
+            Self::Helices(hs, _) => write!(f, "Helices {hs:?}"),
+            Self::Grids(gs) => write!(f, "Grids {gs:?}"),
             Self::GroupPivot(_) => write!(f, "Group pivot"),
             Self::ControlPoint(_) => write!(f, "Bezier control point"),
         }

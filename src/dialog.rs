@@ -129,7 +129,7 @@ pub fn get_file_to_write<P1: AsRef<Path>, P2: AsRef<Path>>(
         }
         path_buf.file_name().map(|s| s.to_os_string())
     });
-    log::info!("starting name filtered {:?}", starting_name);
+    log::info!("starting name filtered {starting_name:?}");
     for filter in extension_filter.iter() {
         dialog = dialog.add_filter(filter.0, filter.1);
     }

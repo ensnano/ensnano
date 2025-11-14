@@ -114,7 +114,7 @@ struct FloatFormatter;
 
 impl FloatFormatter {
     fn fmt(float: &f32) -> String {
-        format!("{:.2}", float)
+        format!("{float:.2}")
     }
 
     fn parse(float_str: &str) -> Option<f32> {
@@ -280,10 +280,7 @@ where
         if let ValueKind::BezierVertexPosition = value_kind {
             self.position_builder.update_str_value(n, value_str);
         } else {
-            log::error!(
-                "Unexpected value kind {:?} for BezierVertexBuilder",
-                value_kind
-            );
+            log::error!("Unexpected value kind {value_kind:?} for BezierVertexBuilder",);
         }
     }
 
@@ -293,10 +290,7 @@ where
                 .submit_value()
                 .map(InstantiatedValue::BezierVertexPosition)
         } else {
-            log::error!(
-                "Unexpected value kind {:?} for BezierVertexBuilder",
-                value_kind
-            );
+            log::error!("Unexpected value kind {value_kind:?} for BezierVertexBuilder",);
             None
         }
     }
@@ -330,7 +324,7 @@ impl GridBuilder {
         if let Selection::Grid(_, g_id) = selection {
             if let Some(nb_turn) = app_state.get_reader().get_grid_nb_turn(*g_id) {
                 let row = row![
-                    text(format!("{:.2}", nb_turn)),
+                    text(format!("{nb_turn:.2}")),
                     slider(consts::MIN_NB_TURN..=consts::MAX_NB_TURN, nb_turn, |x| {
                         super::Message::InstantiatedValueSubmitted(InstantiatedValue::GridNbTurn(x))
                     })
@@ -382,7 +376,7 @@ where
         match value_kind {
             ValueKind::HelixGridPosition => self.position_builder.update_str_value(n, value_str),
             ValueKind::GridOrientation => self.orientation_builder.update_str_value(n, value_str),
-            vk => log::error!("Unexpected value kind for GridBuilder {:?}", vk),
+            vk => log::error!("Unexpected value kind for GridBuilder {vk:?}"),
         }
     }
 
@@ -391,7 +385,7 @@ where
             ValueKind::HelixGridPosition => self.position_builder.submit_value(),
             ValueKind::GridOrientation => self.orientation_builder.submit_value(),
             vk => {
-                log::error!("Unexpected value kind for GridBuilder {:?}", vk);
+                log::error!("Unexpected value kind for GridBuilder {vk:?}");
                 None
             }
         }
@@ -432,16 +426,16 @@ impl DirectionAngle {
 
     fn from_rotor(rotor: Rotor3) -> Self {
         let direction = Vec3::unit_x().rotated_by(rotor);
-        log::info!("direction {:?}", direction);
+        log::info!("direction {direction:?}");
 
         let real_z = Self::real_z(direction);
-        log::info!("real z {:?}", real_z);
+        log::info!("real z {real_z:?}");
         let real_y = real_z.cross(direction);
-        log::info!("real y {:?}", real_y);
+        log::info!("real y {real_y:?}");
 
         let cos_angle = Vec3::unit_z().rotated_by(rotor).dot(real_z);
         let sin_angle = -Vec3::unit_z().rotated_by(rotor).dot(real_y);
-        log::info!("cos = {}, sin = {}", cos_angle, sin_angle);
+        log::info!("cos = {cos_angle}, sin = {sin_angle}");
         let angle = sin_angle.atan2(cos_angle);
 
         Self {
@@ -462,15 +456,15 @@ impl DirectionAngle {
 
         let angle = self.angle;
         let real_z = Self::real_z(direction);
-        log::info!("real z {:?}", real_z);
+        log::info!("real z {real_z:?}");
         let z = real_z.rotated_by(Rotor3::from_angle_plane(
             angle,
             Bivec3::from_normalized_axis(direction),
         ));
         let y = z.cross(direction);
-        log::info!(" x {:?}", direction);
-        log::info!(" y {:?}", y);
-        log::info!(" z {:?}", real_z);
+        log::info!(" x {direction:?}");
+        log::info!(" y {y:?}");
+        log::info!(" z {real_z:?}");
 
         Mat3::new(direction, y, z).into_rotor3()
     }
@@ -481,7 +475,7 @@ impl DirectionAngle {
 
         if direction.y.abs() < 1. - Self::CONVERSION_EPSILON {
             let radius = z_angle.cos();
-            log::info!("radius {}", radius);
+            log::info!("radius {radius}");
             log::info!("direction.x / radius {}", direction.x / radius);
             let y_angle = if direction.z > 0. {
                 -(direction.x / radius).min(1.).max(-1.).acos()

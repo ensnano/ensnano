@@ -129,9 +129,9 @@ impl FromCadnano for Design {
                 for j in 0..v.stap.len() {
                     let result = if scaf { v.scaf[j] } else { v.stap[j] };
                     if seen.insert((i, j, scaf)) && result != (-1, -1, -1, -1) {
-                        println!("{}, {}, {}", scaf, i, j);
+                        println!("{scaf}, {i}, {j}");
                         let end_5 = find_5_end(i, j, &vstrands, &num_to_helix, scaf);
-                        println!("end: {:?}", end_5);
+                        println!("end: {end_5:?}");
                         let strand =
                             make_strand(end_5, &vstrands, &num_to_helix, &mut seen, scaf, &colors);
                         design.strands.insert(nb_strand, strand);
@@ -140,7 +140,7 @@ impl FromCadnano for Design {
                 }
             }
         }
-        println!("color {:?}", colors);
+        println!("color {colors:?}");
         design._set_helices(helices);
         design
     }
@@ -182,7 +182,7 @@ fn make_strand(
     scaf: bool,
     colors: &BTreeMap<(usize, usize), usize>,
 ) -> Strand {
-    println!("making strand {:?}", end_5);
+    println!("making strand {end_5:?}");
     let cyclic = end_5.2;
     let (mut i, mut j) = (end_5.0, end_5.1);
     let mut ret = Strand {
@@ -206,7 +206,7 @@ fn make_strand(
         while i == current_helix && (i != end_5.0 || j != end_5.1 || !once) {
             once = true;
             current_3 = j;
-            println!("nucl {}, {}", i, j);
+            println!("nucl {i}, {j}");
             if let Some(color) = colors.get(&(i, j)).filter(|_| !scaf) {
                 ret.color = *color as u32;
             }
@@ -220,7 +220,7 @@ fn make_strand(
             if vstrands[i].loop_[j] > 0 {
                 insertions_on_dom.push((j, insertion_size));
             }
-            println!("result {:?}", result);
+            println!("result {result:?}");
             i = num_to_helix[&result.2];
             j = result.3 as usize;
         }
@@ -247,7 +247,7 @@ fn make_strand(
             ));
         }
 
-        println!("pushing {} {} {} {}", current_helix, start, end, forward);
+        println!("pushing {current_helix} {start} {end} {forward}");
         ret.domains.push(Domain::HelixDomain(HelixInterval {
             helix: current_helix,
             start,
