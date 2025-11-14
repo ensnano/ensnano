@@ -29,7 +29,7 @@ pub mod left_panel;
 pub mod status_bar;
 pub mod top_bar;
 
-use iced::advanced::renderer;
+use iced::{advanced::renderer, mouse::Cursor};
 pub use left_panel::{
     ColorOverlay, CurveDescriptorBuilder, CurveDescriptorParameter, InstantiatedParameter,
     LeftPanel, RevolutionScaling, RigidBodyParametersRequest,
@@ -42,7 +42,6 @@ use crate::ensnano_iced::{
     iced_graphics,
     iced_runtime::{Debug, program},
     iced_wgpu::{self, Backend, wgpu},
-    iced_winit::conversion,
 };
 use crate::ensnano_interactor::{
     ActionMode, HyperboloidRequest, InsertionPoint, Multiplexer, PastingStatus,
@@ -319,7 +318,7 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
     fn update(
         &mut self,
         size: iced::Size,
-        cursor: iced::mouse::Cursor,
+        cursor: Cursor,
         renderer: &mut Renderer,
         theme: &iced::Theme,
         style: &renderer::Style,
@@ -528,13 +527,13 @@ impl<R: Requests, S: AppState> GuiComponent<R, S> {
     ) -> bool {
         let area = multiplexer.get_draw_area(self.element_type).unwrap();
         let cursor = if multiplexer.focused_element() == Some(self.element_type) {
-            let point = conversion::cursor_position(
+            let point = iced_winit::conversion::cursor_position(
                 multiplexer.get_cursor_position(),
                 window.scale_factor(),
             );
-            iced::mouse::Cursor::Available(point)
+            Cursor::Available(point)
         } else {
-            iced::mouse::Cursor::Unavailable
+            Cursor::Unavailable
         };
         if !self.state.is_queue_empty() || resized {
             // We update iced

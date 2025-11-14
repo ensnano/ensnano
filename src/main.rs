@@ -164,7 +164,10 @@ use {
     controller::{
         Controller, LoadDesignError, SaveDesignError, download_staples::StaplesDownloader,
     },
-    iced::advanced::{clipboard, renderer},
+    iced::{
+        advanced::{clipboard, renderer},
+        mouse::Cursor,
+    },
     multiplexer::Multiplexer,
     scheduler::Scheduler,
     std::{
@@ -915,9 +918,9 @@ impl OverlayManager {
                     multiplexer.get_cursor_position(),
                     window.scale_factor(),
                 );
-                iced::mouse::Cursor::Available(point)
+                Cursor::Available(point)
             } else {
-                iced::mouse::Cursor::Unavailable
+                Cursor::Unavailable
             };
             let mut clipboard = clipboard::Null;
             match overlay {
@@ -996,9 +999,9 @@ impl OverlayManager {
                     multiplexer.get_cursor_position(),
                     window.scale_factor(),
                 );
-                iced::mouse::Cursor::Available(point)
+                Cursor::Available(point)
             } else {
-                iced::mouse::Cursor::Unavailable
+                Cursor::Unavailable
             };
             let mut clipboard = clipboard::Null;
             match overlay {

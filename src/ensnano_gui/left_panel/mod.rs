@@ -31,7 +31,6 @@ use crate::ensnano_iced::{
     color_picker::ColorPickerMessage,
     iced_aw::widgets::{TabBarPosition, TabLabel, Tabs},
     iced_runtime::Program,
-    iced_winit::conversion,
     theme::GuiBackground,
 };
 use crate::ensnano_interactor::{
@@ -644,7 +643,7 @@ where
             }
             Message::ModifiersChanged(modifiers) => {
                 self.organizer
-                    .new_modifiers(conversion::modifiers(modifiers.state()));
+                    .new_modifiers(iced_winit::conversion::modifiers(modifiers.state()));
                 Command::none()
             }
             Message::UiSizePicked(ui_size) => {
