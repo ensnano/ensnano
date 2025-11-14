@@ -17,6 +17,8 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use super::instances_drawer::Instantiable;
+use crate::ensnano_utils::instance::Instance;
+use std::f32::consts::TAU;
 use ultraviolet::{Mat4, Rotor3, Vec3, Vec4};
 use wgpu::{Device, PrimitiveTopology, include_spirv};
 
@@ -63,7 +65,7 @@ impl super::instances_drawer::Vertexable for GridDiscVertex {
     fn to_raw(&self) -> GridDiscVertexRaw {
         GridDiscVertexRaw {
             position: self.position,
-            color: crate::ensnano_utils::instance::Instance::color_from_au32(self.color),
+            color: Instance::color_from_au32(self.color),
         }
     }
 
@@ -80,6 +82,7 @@ impl Instantiable for GridDisc {
     type Vertex = GridDiscVertex;
     type RawInstance = GridDiscRaw;
     type Resource = ();
+
     fn vertices() -> Vec<GridDiscVertex> {
         let color = 0xFF_FF_FF_FF; // we will multiply by the instance's color in the fragment shader
         let mut ret = vec![GridDiscVertex {
@@ -88,7 +91,7 @@ impl Instantiable for GridDisc {
         }];
         ret.reserve(NB_EDGE);
         for i in 0..(NB_EDGE + 1) {
-            let theta = i as f32 / NB_EDGE as f32 * 2. * std::f32::consts::PI;
+            let theta = i as f32 / NB_EDGE as f32 * TAU;
             let position = Vec3::new(0., theta.cos(), theta.sin());
             ret.push(GridDiscVertex { position, color });
         }
@@ -121,7 +124,7 @@ impl Instantiable for GridDisc {
         GridDiscRaw {
             model_matrix: Mat4::from_translation(self.position)
                 * self.orientation.into_matrix().into_homogeneous(),
-            color: crate::ensnano_utils::instance::Instance::color_from_au32(self.color),
+            color: Instance::color_from_au32(self.color),
             radius: self.radius,
             model_id: self.model_id,
             _padding: [0, 0],

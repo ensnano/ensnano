@@ -462,7 +462,7 @@ impl Instantiable for TubeLidInstance {
                         normal,
                     }
                 } else {
-                    let phi = i as f32 / NB_RAY_TUBE as f32 * 2. * std::f32::consts::PI;
+                    let phi = i as f32 / NB_RAY_TUBE as f32 * TAU;
                     let position = [0., phi.sin(), phi.cos()];
                     DnaVertex { position, normal }
                 }
@@ -538,7 +538,7 @@ impl Instantiable for SlicedTubeInstance {
         // Precomputation of the cos and sin
         let circle: Vec<[f32; 3]> = (0..3 * NB_RAY_TUBE)
             .map(|i| {
-                let phi = (i % NB_RAY_TUBE) as f32 / NB_RAY_TUBE as f32 * 2. * std::f32::consts::PI;
+                let phi = (i % NB_RAY_TUBE) as f32 / NB_RAY_TUBE as f32 * TAU;
                 let x = match i / NB_RAY_TUBE {
                     0 => -0.5,
                     1 => 0.,
@@ -550,7 +550,7 @@ impl Instantiable for SlicedTubeInstance {
 
         let circle_normal: Vec<[f32; 3]> = (0..3 * NB_RAY_TUBE)
             .map(|i| {
-                let phi = (i % NB_RAY_TUBE) as f32 / NB_RAY_TUBE as f32 * 2. * std::f32::consts::PI;
+                let phi = (i % NB_RAY_TUBE) as f32 / NB_RAY_TUBE as f32 * TAU;
                 [0., phi.sin(), phi.cos()]
             })
             .collect();

@@ -16,7 +16,7 @@ ENSnano, a 3d graphical application for DNA nanostructures.
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use crate::ensnano_consts::*;
+use crate::{ensnano_consts::*, ensnano_utils::texture::Texture};
 use lyon::{
     math::Point,
     path::Path,
@@ -100,7 +100,7 @@ fn fill_square_texture(target: &TextureView, device: &Device, encoder: &mut wgpu
     };
 
     let msaa_texture = if SAMPLE_COUNT > 1 {
-        Some(crate::ensnano_utils::texture::Texture::create_msaa_texture(
+        Some(Texture::create_msaa_texture(
             device,
             &texture_size,
             SAMPLE_COUNT,
@@ -238,7 +238,7 @@ fn fill_honeycomb_texture(
     };
 
     let msaa_texture = if SAMPLE_COUNT > 1 {
-        Some(crate::ensnano_utils::texture::Texture::create_msaa_texture(
+        Some(Texture::create_msaa_texture(
             device,
             &texture_size,
             SAMPLE_COUNT,

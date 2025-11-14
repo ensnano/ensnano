@@ -21,7 +21,9 @@ use crate::ensnano_design::{
     BezierControlPoint, BezierPathId, BezierPlaneId, BezierVertexId,
     grid::{GridId, GridPosition},
 };
-use crate::ensnano_interactor::{PhantomElement, phantom_helix_decoder};
+use crate::ensnano_interactor::{
+    PhantomElement, consts::widget_id_to_bezier, phantom_helix_decoder,
+};
 use crate::ensnano_utils::BufferDimensions;
 use num_enum::IntoPrimitive;
 use std::{convert::TryInto, rc::Rc};
@@ -319,8 +321,7 @@ impl SceneElement {
 
     pub fn transform_into_bezier(self) -> Self {
         if let Self::WidgetElement(id) = self
-            && let Some((helix_id, bezier_control)) =
-                crate::ensnano_interactor::consts::widget_id_to_bezier(id)
+            && let Some((helix_id, bezier_control)) = widget_id_to_bezier(id)
         {
             Self::BezierControl {
                 bezier_control,

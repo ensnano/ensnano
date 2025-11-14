@@ -21,15 +21,17 @@ use {
         PhySize, Stereography,
         maths_3d::{self, FiniteVec3, Plane},
     },
-    crate::ensnano_consts::{DEFAULT_STEREOGRAPHIC_ZOOM, STEREOGRAPHIC_ZOOM_STEP},
-    crate::ensnano_design::{SurfaceInfo, SurfacePoint},
+    crate::{
+        ensnano_consts::{DEFAULT_STEREOGRAPHIC_ZOOM, STEREOGRAPHIC_ZOOM_STEP},
+        ensnano_design::{SurfaceInfo, SurfacePoint},
+    },
     std::{
         cell::RefCell,
         f32::consts::{FRAC_PI_2, PI},
         rc::Rc,
         time::Duration,
     },
-    ultraviolet::{Mat3, Mat4, Rotor3, Vec2, Vec3},
+    ultraviolet::{Mat3, Mat4, Rotor3, Vec2, Vec3, projection::rh_yup},
     winit::{
         dpi::PhysicalPosition,
         event::*,
@@ -116,12 +118,7 @@ impl Projection {
 
     /// Computes the projection matrix.
     pub fn calc_matrix(&self) -> Mat4 {
-        ultraviolet::projection::rh_yup::perspective_wgpu_dx(
-            self.fovy,
-            self.aspect,
-            self.znear,
-            self.zfar,
-        )
+        rh_yup::perspective_wgpu_dx(self.fovy, self.aspect, self.znear, self.zfar)
     }
 
     pub fn get_fovy(&self) -> f32 {

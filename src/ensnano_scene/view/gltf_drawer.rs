@@ -17,13 +17,17 @@ ENSnano, a 3d graphical application for DNA nanostructures.
 */
 
 use crate::ensnano_consts::*;
-use crate::ensnano_design::{External3DObject, External3DObjectId, PointOnSurface};
+use crate::ensnano_design::{
+    External3DObject, External3DObjectId, PointOnSurface, utils::dvec_to_vec,
+};
 use crate::ensnano_interactor::UnrootedRevolutionSurfaceDescriptor;
 use crate::ensnano_utils::{
-    TEXTURE_FORMAT, create_buffer_with_data, obj_loader::*, texture::Texture,
+    TEXTURE_FORMAT, colors::hsv_color, create_buffer_with_data, instance::Instance, obj_loader::*,
+    texture::Texture,
 };
 use std::{
     collections::BTreeMap,
+    f64::consts::TAU,
     ffi::OsStr,
     path::{Path, PathBuf},
     rc::Rc,
@@ -148,7 +152,6 @@ const NB_SECTION_PER_STRIP: usize = 1_000;
 
 impl MeshGenerator for UnrootedRevolutionSurfaceDescriptor {
     fn meshes(&self) -> Vec<GltfMesh> {
-        use crate::ensnano_design::utils::dvec_to_vec;
         let frame = self.get_frame();
 
         (0..NB_STRIP)
@@ -159,9 +162,7 @@ impl MeshGenerator for UnrootedRevolutionSurfaceDescriptor {
                 let vertices: Vec<ModelVertex> = (0..=(NB_SECTION_PER_STRIP + 1))
                     .flat_map(|section_idx| {
                         [s_high, s_low].into_iter().map(move |s| {
-                            use std::f64::consts::TAU;
                             let revolution_fract = section_idx as f64 / NB_SECTION_PER_STRIP as f64;
-
                             let revolution_angle = TAU * revolution_fract;
 
                             let surface_point = PointOnSurface {
@@ -179,14 +180,8 @@ impl MeshGenerator for UnrootedRevolutionSurfaceDescriptor {
                                 self.curve.normal_of_surface(&surface_point),
                             ));
 
-                            let vertex_color = crate::ensnano_utils::colors::hsv_color(
-                                revolution_angle.to_degrees(),
-                                0.7,
-                                0.7,
-                            );
-                            let color = crate::ensnano_utils::instance::Instance::color_from_u32(
-                                vertex_color,
-                            );
+                            let vertex_color = hsv_color(revolution_angle.to_degrees(), 0.7, 0.7);
+                            let color = Instance::color_from_u32(vertex_color);
 
                             ModelVertex {
                                 position: position.into(),

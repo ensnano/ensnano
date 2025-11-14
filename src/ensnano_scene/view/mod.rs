@@ -57,6 +57,7 @@ use super::camera;
 use super::maths_3d::{self, distance_to_cursor_with_penalty};
 use super::{DrawArea, PhySize};
 use crate::ensnano_consts::*;
+use crate::ensnano_design::utils::dvec_to_vec;
 use crate::ensnano_design::{Axis, grid::GridId, group_attributes::GroupPivot};
 use crate::ensnano_interactor::UnrootedRevolutionSurfaceDescriptor;
 use crate::ensnano_interactor::graphics::{
@@ -1069,7 +1070,7 @@ impl View {
                 for (i, point) in points.iter().enumerate() {
                     let point = point.rotated_by(orientation) + position;
                     let d = distance_to_cursor_with_penalty(
-                        crate::ensnano_design::utils::dvec_to_vec(point),
+                        dvec_to_vec(point),
                         self.camera.clone(),
                         self.projection.clone(),
                         mouse_x as f32,

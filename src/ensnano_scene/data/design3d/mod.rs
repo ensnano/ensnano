@@ -45,7 +45,11 @@ use crate::ensnano_scene::{
         SlicedTubeInstance, SphereInstance, TubeInstance, TubeLidInstance,
     },
 };
-use crate::ensnano_utils::{StrandNucleotidesPositions, colors, instance::Instance};
+use crate::ensnano_utils::{
+    StrandNucleotidesPositions,
+    colors::{self, purple_to_blue_gradient_color_in_range},
+    instance::Instance,
+};
 use std::{
     collections::{BTreeMap, HashMap, HashSet, hash_map::RandomState},
     f32::consts::TAU,
@@ -364,12 +368,11 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
                                 + yy[i % NB_COILS] * y_vec
                         })
                         .collect();
-                    let color =
-                        crate::ensnano_utils::colors::purple_to_blue_gradient_color_in_range(
-                            uv.mag(),
-                            MIN_SPRING_LENGTH,
-                            MAX_SPRING_LENGTH,
-                        );
+                    let color = purple_to_blue_gradient_color_in_range(
+                        uv.mag(),
+                        MIN_SPRING_LENGTH,
+                        MAX_SPRING_LENGTH,
+                    );
                     let (sliced_tubes, _) = SausageRosary {
                         positions,
                         is_cyclic: false,

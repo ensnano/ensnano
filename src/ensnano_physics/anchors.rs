@@ -1,11 +1,11 @@
 use crate::ensnano_design::{Helix, HelixParameters};
+use crate::ensnano_physics::vec_to_vector;
 use rapier3d::{
     na::{Const, OVector, Rotation2, Unit, UnitQuaternion},
     prelude::*,
 };
+use std::f32::consts::FRAC_PI_2;
 use ultraviolet::{Rotor3, Vec3};
-
-use crate::ensnano_physics::vec_to_vector;
 
 /// An internal structure, which is made from an Helix
 /// and computes the ideal spring anchor points to enforce
@@ -40,8 +40,7 @@ fn turn_points(
     let c_forward = forward - center;
     let c_backward = backward - center;
 
-    let rotation =
-        UnitQuaternion::from_axis_angle(&Unit::new_normalize(axis), std::f32::consts::FRAC_PI_2);
+    let rotation = UnitQuaternion::from_axis_angle(&Unit::new_normalize(axis), FRAC_PI_2);
 
     (
         rotation * c_forward + center,
@@ -243,9 +242,9 @@ impl SpringAnchorsReference {
 
 #[cfg(test)]
 mod tests {
-
     use super::*;
     use crate::ensnano_design::HelixParameters;
+    use std::f32::consts::PI;
 
     #[test]
     fn anchors() {
@@ -255,7 +254,7 @@ mod tests {
             rise: 1.0,
             helix_radius: 1.0,
             bases_per_turn: 4.0,
-            groove_angle: std::f32::consts::PI,
+            groove_angle: PI,
             inter_helix_gap: 1.0,
             inclination: 0.0,
         };

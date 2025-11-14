@@ -585,7 +585,10 @@ fn area_strip<I: Iterator<Item = DVec3> + Clone>(vertices: I, nb_section_per_str
 
 #[cfg(test)]
 mod tests {
+    use std::f64::consts::PI;
+
     use super::*;
+
     #[test]
     #[allow(non_snake_case)]
     fn surface_area() {
@@ -602,8 +605,7 @@ mod tests {
             curve_plane_orientation: Rotor3::identity(),
         };
 
-        let expected = 4. * std::f64::consts::PI * std::f64::consts::PI * r * R;
-
+        let expected = 4. * PI * PI * r * R;
         let actual = surface.approx_surface_area(1_000, 1_000).unwrap();
 
         assert!(

@@ -46,7 +46,7 @@ log = "0.4"
 lyon = { git = "https://github.com/nical/lyon", rev = "ea6d904c6c9ec0445c5653c119a48c43ea76cee9" }
 mathru = "0.13"
 nom_stl = "0.2.2"
-num = {version="0.4",default-features = false}
+num = { version = "0.4", default-features = false }
 num_enum = "0.5.1"
 open = "1"
 ordered-float = { version = "2.0", features = ["serde"] }
@@ -99,65 +99,64 @@ version.workspace = true
 log_after_renderer_setup = []
 dx12_only = []
 
-# [lints.rust]
-# closure_returning_async_block = "warn"
-# deref_into_dyn_supertrait = "warn"
-# explicit_outlives_requirements = "warn"
-# impl_trait_overcaptures = "warn"
-# impl_trait_redundant_captures = "warn"
-# macro_use_extern_crate = "warn"
-# meta_variable_misuse = "warn"
-# # TODO: missing_docs = "warn"
-# missing_unsafe_on_extern = "warn"
+[lints.rust]
+closure_returning_async_block = "warn"
+deref_into_dyn_supertrait = "warn"
+explicit_outlives_requirements = "warn"
+impl_trait_overcaptures = "warn"
+impl_trait_redundant_captures = "warn"
+macro_use_extern_crate = "warn"
+meta_variable_misuse = "warn"
+# TODO: missing_docs = "warn"
+missing_unsafe_on_extern = "warn"
 
-# [lints.clippy]
-# cargo = { level = "deny", priority = -1 }
-# complexity = { level = "warn", priority = -1 }
-# correctness = { level = "deny", priority = -1 }
-# nursery = { level = "warn", priority = -1 }
-# pedantic = { level = "warn", priority = -1 }
-# perf = { level = "deny", priority = -1 }
-# restriction = { level = "warn", priority = -1 }
-# style = { level = "warn", priority = -1 }
-# suspicious = { level = "deny", priority = -1 }
+[lints.clippy]
+cargo = { level = "deny", priority = -1 }
+complexity = { level = "warn", priority = -1 }
+correctness = { level = "deny", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+perf = { level = "deny", priority = -1 }
+restriction = { level = "warn", priority = -1 }
+style = { level = "warn", priority = -1 }
+suspicious = { level = "deny", priority = -1 }
 
-# # cargo
-# blanket_clippy_restriction_lints = "allow"
-# multiple_crate_versions = "allow"
+# cargo
+blanket_clippy_restriction_lints = "allow"
+multiple_crate_versions = "allow"
 
-# # nursery
-# missing_const_for_fn = "allow" # TODO: warn
+# nursery
+missing_const_for_fn = "allow" # TODO: warn
 
-# # restriction
-# arbitrary_source_item_ordering = "allow" # TODO: warn (requires some thought and configuration)
-# arithmetic_side_effects = "allow"
-# as_conversions = "allow"
-# cast_precision_loss = "allow"
-# else_if_without_else = "allow"
-# implicit_return = "allow"
-# min_ident_chars = "allow"
-# missing_docs_in_private_items = "allow" # TODO: warn (major undertaking)
-# multiple_inherent_impl = "allow" # TODO: warn once clippy 1.92 gets out
-# same_name_method = "allow" # TODO: warn once single-impl traits are removed
-# single_call_fn = "allow"
-# single_char_lifetime_names = "allow"
-# unwrap_used = "allow"
+# restriction
+arbitrary_source_item_ordering = "allow" # TODO: warn (requires some thought and configuration)
+arithmetic_side_effects = "allow"
+as_conversions = "allow"
+cast_precision_loss = "allow"
+else_if_without_else = "allow"
+implicit_return = "allow"
+min_ident_chars = "allow"
+missing_docs_in_private_items = "allow" # TODO: warn (major undertaking)
+multiple_inherent_impl = "allow" # TODO: warn once clippy 1.92 gets out
+same_name_method = "allow" # TODO: warn once single-impl traits are removed
+single_call_fn = "allow"
+single_char_lifetime_names = "allow"
+unwrap_used = "allow"
 
-# # suspicious
-# arc_with_non_send_sync = "allow" # TODO: warn (requires understand the multiplexer)
+# suspicious
+arc_with_non_send_sync = "allow" # TODO: warn (requires understand the multiplexer)
 
 # =============
 # = TEMPORARY =
 # =============
-[lints.clippy]
-warnings = { level = "allow", priority = -1 }
-cargo = { level = "allow", priority = -1 }
-complexity = { level = "allow", priority = -1 }
-correctness = { level = "allow", priority = -1 }
-nursery = { level = "allow", priority = -1 }
-pedantic = { level = "allow", priority = -1 }
-perf = { level = "allow", priority = -1 }
-restriction = { level = "allow", priority = -1 }
-style = { level = "allow", priority = -1 }
-suspicious = { level = "allow", priority = -1 }
-absolute_paths = "deny"
+# [lints.clippy]
+# cargo = { level = "allow", priority = -1 }
+# complexity = { level = "allow", priority = -1 }
+# correctness = { level = "allow", priority = -1 }
+# nursery = { level = "allow", priority = -1 }
+# pedantic = { level = "allow", priority = -1 }
+# perf = { level = "allow", priority = -1 }
+# restriction = { level = "allow", priority = -1 }
+# style = { level = "allow", priority = -1 }
+# suspicious = { level = "allow", priority = -1 }
+# absolute_paths = "deny"

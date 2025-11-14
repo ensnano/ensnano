@@ -46,6 +46,7 @@ use element_selector::{ElementSelector, SceneElement};
 use maths_3d::FiniteVec3;
 use std::{
     cell::RefCell,
+    f32::consts::{FRAC_PI_2, TAU},
     fs,
     io::Write as _,
     path::{Path, PathBuf},
@@ -323,7 +324,7 @@ impl<S: AppState> Scene<S> {
             }
             Consequence::Tilt(x) => {
                 self.set_pivot_point(app_state);
-                let angle = x as f32 * -std::f32::consts::TAU;
+                let angle = x as f32 * -TAU;
                 self.controller.continuous_tilt(angle);
                 self.notify(SceneNotification::CameraMoved);
             }
@@ -1289,8 +1290,7 @@ impl<S: AppState> Application for Scene<S> {
     fn get_position_for_new_grid(&self) -> Option<(Vec3, Rotor3)> {
         let camera = self.view.borrow().get_camera();
         let position = camera.borrow().position + 10_f32 * camera.borrow().direction();
-        let orientation = camera.borrow().rotor.reversed()
-            * Rotor3::from_rotation_xz(std::f32::consts::FRAC_PI_2);
+        let orientation = camera.borrow().rotor.reversed() * Rotor3::from_rotation_xz(FRAC_PI_2);
         Some((position, orientation))
     }
 

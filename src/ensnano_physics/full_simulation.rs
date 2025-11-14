@@ -212,7 +212,7 @@ fn build_colliders(
     for helix in intermediary_representation.values() {
         for pair in helix.pairs.values() {
             match pair {
-                crate::ensnano_physics::helices::IntermediaryPair::Pair(i, n, j) => {
+                IntermediaryPair::Pair(i, n, j) => {
                     let i_p = space_position
                         .get(i)
                         .expect("Couldn't get position of nucl");
@@ -251,8 +251,7 @@ fn build_colliders(
                         vec![i_collider_handle, j_collider_handle, capsule_handle],
                     );
                 }
-                crate::ensnano_physics::helices::IntermediaryPair::OnlyForward(id, n)
-                | crate::ensnano_physics::helices::IntermediaryPair::OnlyBackward(id, n) => {
+                IntermediaryPair::OnlyForward(id, n) | IntermediaryPair::OnlyBackward(id, n) => {
                     let position = space_position
                         .get(id)
                         .expect("Couldn't get position of nucl");
