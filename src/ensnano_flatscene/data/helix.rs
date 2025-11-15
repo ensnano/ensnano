@@ -20,7 +20,7 @@ use lyon::{
     math::{Point, rect},
     path::{
         Path, Winding,
-        builder::{BorderRadii, PathBuilder},
+        builder::{BorderRadii, PathBuilder as _},
     },
     tessellation::{
         self, FillVertex, FillVertexConstructor, StrokeVertex, StrokeVertexConstructor,

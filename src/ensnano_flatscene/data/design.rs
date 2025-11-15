@@ -3,7 +3,7 @@ use crate::ensnano_consts::{
     CANDIDATE_STRAND_HIGHLIGHT_FACTOR_2D, SELECTED_STRAND_HIGHLIGHT_FACTOR_2D,
 };
 use crate::ensnano_design::{
-    AbscissaConverter, Extremity, Helix as DesignHelix, HelixCollection, NuclCollection,
+    AbscissaConverter, Extremity, Helix as DesignHelix, HelixCollection as _, NuclCollection,
 };
 use crate::ensnano_flatscene::{
     FlatHelix, FlatIdx, FlatNucl, HelixSegment, Requests, flat_types::FlatHelixMaps,

@@ -8,7 +8,7 @@ use lyon::{
 };
 use ultraviolet::{Mat2, Rotor2, Vec2};
 use wgpu::{
-    BindGroupLayout, Buffer, DepthStencilState, RenderPass, RenderPipeline, util::DeviceExt,
+    BindGroupLayout, Buffer, DepthStencilState, RenderPass, RenderPipeline, util::DeviceExt as _,
 };
 
 pub struct InsertionDrawer {

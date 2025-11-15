@@ -13,7 +13,7 @@ use crate::ensnano_scene::maths_3d::FiniteVec3;
 use crate::ensnano_scene::{PhySize, PhysicalPosition, WindowEvent};
 use camera::CameraController;
 use std::cell::RefCell;
-use std::ops::Deref;
+use std::ops::Deref as _;
 use std::rc::Rc;
 use ultraviolet::{Rotor3, Vec2, Vec3};
 use winit::event::{ElementState, KeyEvent, Modifiers};

@@ -478,7 +478,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
     }
 }
 
-use super::icon::{HasIcon, HasIconDependentOnAxis};
+use super::icon::{HasIcon as _, HasIconDependentOnAxis as _};
 fn action_mode_btn<'a, State: AppState>(
     mode: &ActionMode,
     current_action_mode: ActionMode,

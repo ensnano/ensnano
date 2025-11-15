@@ -1,7 +1,7 @@
 mod texture;
 
 use super::{LetterInstance, grid_disc::GridDisc, instances_drawer::*};
-use crate::ensnano_design::grid::{Grid, GridDivision, GridId, GridPosition, GridType};
+use crate::ensnano_design::grid::{Grid, GridDivision as _, GridId, GridPosition, GridType};
 use std::collections::BTreeMap;
 use ultraviolet::{Mat4, Vec2, Vec3, Vec4};
 use wgpu::{Device, RenderPass, include_spirv};

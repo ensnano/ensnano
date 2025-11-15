@@ -23,8 +23,8 @@ use crate::ensnano_scene::{
     rotor_utils::SafeRotor as _,
     sausage_rosary::SausageRosary,
     view::{
-        ConeInstance, Ellipsoid, Instantiable, PlainRectangleInstance, RawDnaInstance, Sheet2D,
-        SlicedTubeInstance, SphereInstance, TubeInstance, TubeLidInstance,
+        ConeInstance, Ellipsoid, Instantiable as _, PlainRectangleInstance, RawDnaInstance,
+        Sheet2D, SlicedTubeInstance, SphereInstance, TubeInstance, TubeLidInstance,
     },
 };
 use crate::ensnano_utils::{

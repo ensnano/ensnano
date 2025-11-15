@@ -1,4 +1,4 @@
-use crate::ensnano_design::{Helices, HelixCollection, HelixParameters, Nucl};
+use crate::ensnano_design::{Helices, HelixCollection as _, HelixParameters, Nucl};
 use crate::ensnano_interactor::ObjectType;
 use ahash::HashMap;
 use rapier3d::prelude::*;

@@ -8,7 +8,7 @@ use crate::ensnano_design::{
     drawing_style::{ColorType, DrawingAttribute, DrawingStyle},
     elements::{DesignElement, DesignElementKey},
     grid::{GridData, GridId, GridObject, GridPosition, HelixGridPosition},
-    isometry3_descriptor::Isometry3MissingMethods,
+    isometry3_descriptor::Isometry3MissingMethods as _,
     *,
 };
 use crate::ensnano_interactor::{
@@ -22,7 +22,7 @@ use serde::Serialize;
 use std::{
     borrow::Cow,
     collections::{BTreeMap, HashMap, HashSet},
-    str::FromStr,
+    str::FromStr as _,
     sync::Arc,
 };
 use ultraviolet::{Isometry3, Vec3};
@@ -335,7 +335,8 @@ impl DesignContent {
                     .into()
                 }),
                 color_str: format!("{:#08X}", staple_info.color)
-                    .trim_start_matches("0x").to_owned(),
+                    .trim_start_matches("0x")
+                    .to_owned(),
                 group_names: staple_info.group_names.clone(),
                 group_names_string: staple_info.group_names.join(" ; "),
                 length_str: staple_info.length.to_string(),

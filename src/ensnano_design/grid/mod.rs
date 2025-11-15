@@ -8,8 +8,8 @@ pub use grid_collection::*;
 pub use hyperboloid::*;
 
 use super::{
-    Axis, BezierControlPoint, BezierPathData, BezierPathId, BezierVertexId, Collection,
-    CurveDescriptor, Design, Helices, Helix, HelixCollection, HelixParameters, Twist,
+    Axis, BezierControlPoint, BezierPathData, BezierPathId, BezierVertexId, Collection as _,
+    CurveDescriptor, Design, Helices, Helix, HelixCollection as _, HelixParameters, Twist,
     curves::{self, AbscissaConverter, CurveDescriptor2D},
     design_operations::{ErrDesignOperation, MIN_HELICES_TO_MAKE_GRID},
     twist_to_omega,

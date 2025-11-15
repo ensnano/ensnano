@@ -1,7 +1,7 @@
 use rapier3d::{
     parry::query::DefaultQueryDispatcher,
     prelude::*,
-    rayon::iter::{IntoParallelIterator, ParallelIterator},
+    rayon::iter::{IntoParallelIterator as _, ParallelIterator as _},
 };
 
 use crate::ensnano_physics::simulation::RapierPhysicsSystem;

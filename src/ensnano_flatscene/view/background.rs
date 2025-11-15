@@ -6,7 +6,7 @@
 use super::*;
 use lyon::geom::*;
 use lyon::tessellation::*;
-use wgpu::util::DeviceExt;
+use wgpu::util::DeviceExt as _;
 
 pub struct Background {
     pipeline: wgpu::RenderPipeline,

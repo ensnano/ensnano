@@ -1,6 +1,6 @@
 use super::*;
-use crate::ensnano_design::{Domain, Helix, HelixCollection, HelixParameters, Nucl};
-use std::{f32::consts::TAU, io::Write, mem::ManuallyDrop, path::Path};
+use crate::ensnano_design::{Domain, Helix, HelixCollection as _, HelixParameters, Nucl};
+use std::{f32::consts::TAU, io::Write as _, mem::ManuallyDrop, path::Path};
 use ultraviolet::{Mat3, Rotor3, Vec3};
 
 pub const OXDNA_LEN_FACTOR: f32 = 1. / 0.8518;

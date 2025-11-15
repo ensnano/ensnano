@@ -3,7 +3,7 @@ use super::{
     HelixInterval, Nucl, Strand,
 };
 use crate::ensnano_design::{
-    Helices, HelixCollection, HelixParameters, MutStrandAndData, Strands, UpToDateDesign,
+    Helices, HelixCollection as _, HelixParameters, MutStrandAndData, Strands, UpToDateDesign,
     grid::{Edge, FreeGridId, GridData, GridId, GridPosition},
 };
 use ultraviolet::{Rotor3, Vec3};

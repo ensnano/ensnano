@@ -13,7 +13,7 @@ use crate::ensnano_iced::{
 };
 use crate::ensnano_interactor::{
     ActionMode, EquadiffSolvingMethod, HyperboloidRequest, RapierSimulationRequest, Selection,
-    SelectionConversion,
+    SelectionConversion as _,
     app_state_parameters::{AppStateParameters, CheckXoversParameter, SuggestionParameters},
     graphics::{Background3D, HBondDisplay, RenderingMode},
 };
@@ -35,7 +35,7 @@ use iced_aw::widgets::{TabBarPosition, TabLabel, Tabs};
 use iced_runtime::Program;
 use std::sync::{Arc, Mutex};
 use tabs::{
-    CameraShortcutPanel, CameraTab, EditionTab, GridTab, GuiTab, ParametersTab, PenTab,
+    CameraShortcutPanel, CameraTab, EditionTab, GridTab, GuiTab as _, ParametersTab, PenTab,
     SequenceTab, SimulationTab, TabId,
 };
 use ultraviolet::Vec3;

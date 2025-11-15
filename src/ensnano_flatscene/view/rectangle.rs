@@ -1,6 +1,6 @@
 use super::Rc;
 use crate::ensnano_utils::Ndc;
-use wgpu::{Device, Queue, RenderPipeline, util::DeviceExt};
+use wgpu::{Device, Queue, RenderPipeline, util::DeviceExt as _};
 
 const SELECT_COLOR: [f32; 4] = [0.26, 0.64, 0.85, 0.6];
 

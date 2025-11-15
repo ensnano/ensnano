@@ -256,8 +256,7 @@ impl Multiplexer {
                 GuiComponentType::FlatScene,
                 GuiComponentType::StereographicScene,
                 GuiComponentType::StatusBar,
-            ]
-            {
+            ] {
                 log::debug!("Draw {element:?}");
                 if let Some(area) = self.get_texture_size(*element) {
                     render_pass.set_bind_group(0, self.get_bind_group(element), &[]);

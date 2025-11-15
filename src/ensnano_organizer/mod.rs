@@ -17,10 +17,10 @@ use crate::ensnano_iced::helpers::*;
 use drag_drop_target::*;
 use hoverable_container::HoverableContainer;
 use iced::{Element, Length, keyboard::Modifiers};
-use rand::{Rng, rngs::ThreadRng};
+use rand::{Rng as _, rngs::ThreadRng};
 use std::{
     collections::{BTreeMap, BTreeSet, HashMap},
-    convert::TryInto,
+    convert::TryInto as _,
 };
 use theme::OrganizerTheme;
 use tree::{GroupId, OrganizerTree};

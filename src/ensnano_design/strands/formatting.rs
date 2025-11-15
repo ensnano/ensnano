@@ -1,5 +1,5 @@
 use super::*;
-use std::fmt::{self, Write};
+use std::fmt::{self, Write as _};
 
 impl Strand {
     pub fn formatted_domains(&self) -> String {

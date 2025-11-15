@@ -6,8 +6,8 @@ use super::AddressPointer;
 use crate::controller::SaveDesignError;
 use crate::ensnano_consts::UPDATE_VISIBILITY_SIEVE_LABEL;
 use crate::ensnano_design::{
-    BezierPathId, BezierPlaneDescriptor, Collection as _, Design, HelixCollection, HelixParameters,
-    InstantiatedPiecewiseBezier, grid::GridId, group_attributes::GroupAttribute,
+    BezierPathId, BezierPlaneDescriptor, Collection as _, Design, HelixCollection as _,
+    HelixParameters, InstantiatedPiecewiseBezier, grid::GridId, group_attributes::GroupAttribute,
 };
 use crate::ensnano_exports::{ExportResult, ExportType};
 use crate::ensnano_gui::CurrentOpState;

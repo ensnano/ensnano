@@ -37,8 +37,7 @@ mod hue_column {
     use iced::{
         Length, Point, Rectangle, Renderer, Size, Vector,
         advanced::{
-            Clipboard, Layout, Renderer as RendererTrait, Shell, Widget, layout, mouse,
-            renderer::Style, widget,
+            Clipboard, Layout, Renderer as _, Shell, Widget, layout, mouse, renderer::Style, widget,
         },
         event,
         mouse::Cursor,
@@ -231,8 +230,7 @@ mod light_sat_square {
     use iced::{
         Length, Point, Rectangle, Renderer, Size, Vector,
         advanced::{
-            Clipboard, Layout, Renderer as RendererTrait, Shell, Widget, layout, mouse,
-            renderer::Style, widget,
+            Clipboard, Layout, Renderer as _, Shell, Widget, layout, mouse, renderer::Style, widget,
         },
         event,
         mouse::Cursor,
@@ -451,8 +449,7 @@ mod color_square {
     use iced::{
         Length, Rectangle, Size, Vector,
         advanced::{
-            Clipboard, Layout, Renderer as RendererTrait, Shell, Widget, layout, mouse,
-            renderer::Style, widget,
+            Clipboard, Layout, Renderer as _, Shell, Widget, layout, mouse, renderer::Style, widget,
         },
         event,
         mouse::Cursor,

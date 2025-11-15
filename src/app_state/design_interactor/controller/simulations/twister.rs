@@ -3,7 +3,7 @@ use super::{
     roller::{DesignData, RollSystem},
 };
 use crate::ensnano_design::{
-    Collection, CurveDescriptor, HelixCollection, HelixParameters, Twist,
+    Collection as _, CurveDescriptor, HelixCollection as _, HelixParameters, Twist,
     grid::{GridDescriptor, GridTypeDescr, *},
 };
 use crate::{

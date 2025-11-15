@@ -11,7 +11,7 @@
 //!     u16      – Attribute byte count   -  2 bytes
 
 use super::view::{
-    ConeInstance, Ellipsoid, Instantiable, Mesh, Mesh::*, RawDnaInstance, SlicedTubeInstance,
+    ConeInstance, Ellipsoid, Instantiable as _, Mesh, Mesh::*, RawDnaInstance, SlicedTubeInstance,
     SphereInstance, TubeInstance, TubeLidInstance,
 };
 use crate::ensnano_consts::NB_RAY_TUBE;

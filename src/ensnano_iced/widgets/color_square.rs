@@ -3,8 +3,7 @@
 use iced::{
     Color, Length, Rectangle, Size, Vector,
     advanced::{
-        Clipboard, Layout, Renderer as RendererTrait, Shell, Widget, layout, mouse,
-        renderer::Style, widget,
+        Clipboard, Layout, Renderer as _, Shell, Widget, layout, mouse, renderer::Style, widget,
     },
     event,
     mouse::Cursor,

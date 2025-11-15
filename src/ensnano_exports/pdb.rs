@@ -1,9 +1,9 @@
 //! Export to pdb file format. The method used here is an adaptation from the one used in
 //! [tacOxDNA](https://github.com/lorenzo-rovigatti/tacoxDNA)
 
-use crate::ensnano_design::{Design, Domain, HelixCollection, Nucl};
+use crate::ensnano_design::{Design, Domain, HelixCollection as _, Nucl};
 use crate::ensnano_exports::BasisMapper;
-use crate::ensnano_exports::oxdna::{OXDNA_LEN_FACTOR, OxDnaHelix};
+use crate::ensnano_exports::oxdna::{OXDNA_LEN_FACTOR, OxDnaHelix as _};
 use ahash::AHashMap;
 use itertools::Itertools as _;
 use std::{

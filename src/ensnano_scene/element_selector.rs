@@ -8,7 +8,7 @@ use crate::ensnano_interactor::{
 };
 use crate::ensnano_utils::BufferDimensions;
 use num_enum::IntoPrimitive;
-use std::{convert::TryInto, rc::Rc};
+use std::{convert::TryInto as _, rc::Rc};
 use winit::dpi::{PhysicalPosition, PhysicalSize};
 
 pub struct ElementSelector {

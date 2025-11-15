@@ -15,7 +15,7 @@ use mathru::{
     },
 };
 use ordered_float::OrderedFloat;
-use rand::Rng;
+use rand::Rng as _;
 use rand_distr::{Exp, StandardNormal};
 use std::{
     cmp::Reverse,

@@ -1,6 +1,6 @@
 use super::insertions::InstantiatedInsertion;
 use super::scadnano::*;
-use super::{Helices, HelixCollection, Nucl, VirtualNucl, codenano};
+use super::{Helices, HelixCollection as _, Nucl, VirtualNucl, codenano};
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 use std::collections::BTreeMap;

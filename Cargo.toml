@@ -99,118 +99,118 @@ version.workspace = true
 log_after_renderer_setup = []
 dx12_only = []
 
-[lints.rust]
-closure_returning_async_block = "warn"
-deref_into_dyn_supertrait = "warn"
-explicit_outlives_requirements = "warn"
-impl_trait_overcaptures = "warn"
-impl_trait_redundant_captures = "warn"
-macro_use_extern_crate = "warn"
-meta_variable_misuse = "warn"
-missing_docs = "allow" # TODO: warn (major undertaking)
-missing_unsafe_on_extern = "warn"
+# [lints.rust]
+# closure_returning_async_block = "warn"
+# deref_into_dyn_supertrait = "warn"
+# explicit_outlives_requirements = "warn"
+# impl_trait_overcaptures = "warn"
+# impl_trait_redundant_captures = "warn"
+# macro_use_extern_crate = "warn"
+# meta_variable_misuse = "warn"
+# missing_docs = "allow" # TODO: warn (major undertaking)
+# missing_unsafe_on_extern = "warn"
 
-[lints.clippy]
-cargo = { level = "deny", priority = -1 }
-complexity = { level = "warn", priority = -1 }
-correctness = { level = "deny", priority = -1 }
-nursery = { level = "warn", priority = -1 }
-pedantic = { level = "warn", priority = -1 }
-perf = { level = "deny", priority = -1 }
-restriction = { level = "warn", priority = -1 }
-style = { level = "warn", priority = -1 }
-suspicious = { level = "deny", priority = -1 }
+# [lints.clippy]
+# cargo = { level = "deny", priority = -1 }
+# complexity = { level = "warn", priority = -1 }
+# correctness = { level = "deny", priority = -1 }
+# nursery = { level = "warn", priority = -1 }
+# pedantic = { level = "warn", priority = -1 }
+# perf = { level = "deny", priority = -1 }
+# restriction = { level = "warn", priority = -1 }
+# style = { level = "warn", priority = -1 }
+# suspicious = { level = "deny", priority = -1 }
 
-# cargo
-blanket_clippy_restriction_lints = "allow"
-multiple_crate_versions = "allow"
+# # cargo
+# blanket_clippy_restriction_lints = "allow"
+# multiple_crate_versions = "allow"
 
-# nursery
-missing_const_for_fn = "allow" # TODO: warn
-option_if_let_else = "allow"
-suboptimal_flops = "allow"
+# # nursery
+# missing_const_for_fn = "allow" # TODO: warn
+# option_if_let_else = "allow"
+# suboptimal_flops = "allow"
 
-# pedantic
-cast_lossless = "allow"
-cast_possible_truncation = "allow"
-cast_possible_wrap = "allow"
-default_trait_access = "allow"
-doc_markdown = "allow" # TODO: warn
-if_not_else = "allow"
-needless_pass_by_value = "allow" # TODO: warn
-option_option = "allow"
-unused_self = "allow" # TODO: warn (weird that we have 64 occurrences)
-similar_names = "allow"
-struct_field_names = "allow"
-too_many_lines = "allow" # TODO: warn
+# # pedantic
+# cast_lossless = "allow"
+# cast_possible_truncation = "allow"
+# cast_possible_wrap = "allow"
+# default_trait_access = "allow"
+# doc_markdown = "allow" # TODO: warn
+# if_not_else = "allow"
+# needless_pass_by_value = "allow" # TODO: warn
+# option_option = "allow"
+# unused_self = "allow" # TODO: warn (weird that we have 64 occurrences)
+# similar_names = "allow"
+# struct_field_names = "allow"
+# too_many_lines = "allow" # TODO: warn
 
-# restriction
-allow_attributes_without_reason = "allow"
-arbitrary_source_item_ordering = "allow" # TODO: warn (requires some thought and configuration)
-arithmetic_side_effects = "allow"
-as_conversions = "allow"
-cast_precision_loss = "allow"
-clone_on_ref_ptr = "allow" # TODO: warn (too much manual work for now)
-cognitive_complexity = "allow" # TODO: warn (surprisingly good suggestions)
-default_numeric_fallback = "allow"
-else_if_without_else = "allow"
-expect_used = "allow"
-float_arithmetic = "allow"
-implicit_return = "allow"
-impl_trait_in_params = "allow"
-indexing_slicing = "allow"
-integer_division = "allow"
-integer_division_remainder_used = "allow"
-iter_over_hash_type = "allow"
-let_underscore_untyped = "allow"
-min_ident_chars = "allow"
-missing_assert_message = "allow"
-missing_docs_in_private_items = "allow" # TODO: warn (major undertaking)
-missing_trait_methods = "allow"
-mod_module_files = "allow"
-module_name_repetitions = "allow"
-non_ascii_literal = "allow"
-multiple_inherent_impl = "allow" # TODO: warn once clippy 1.92 gets out
-pattern_type_mismatch = "allow"
-partial_pub_fields = "allow"
-pathbuf_init_then_push = "allow"
-precedence_bits = "allow"
-print_stdout = "allow" # TODO: warn and use log! everywhere
-pub_with_shorthand = "allow"
-question_mark_used = "allow"
-same_name_method = "allow" # TODO: warn once single-impl traits are removed
-semicolon_outside_block = "allow"
-shadow_reuse = "allow"
-shadow_same = "allow"
-shadow_unrelated = "allow"
-single_call_fn = "allow"
-single_char_lifetime_names = "allow"
-std_instead_of_alloc = "allow"
-std_instead_of_core = "allow"
-unreachable = "allow"
-unseparated_literal_suffix = "allow"
-unwrap_in_result = "allow"
-unwrap_used = "allow"
-use_debug = "allow" # TODO: warn once log! is used everywhere instead of println!
-wildcard_enum_match_arm = "allow"
+# # restriction
+# allow_attributes_without_reason = "allow"
+# arbitrary_source_item_ordering = "allow" # TODO: warn (requires some thought and configuration)
+# arithmetic_side_effects = "allow"
+# as_conversions = "allow"
+# cast_precision_loss = "allow"
+# clone_on_ref_ptr = "allow" # TODO: warn (too much manual work for now)
+# cognitive_complexity = "allow" # TODO: warn (surprisingly good suggestions)
+# default_numeric_fallback = "allow"
+# else_if_without_else = "allow"
+# expect_used = "allow"
+# float_arithmetic = "allow"
+# implicit_return = "allow"
+# impl_trait_in_params = "allow"
+# indexing_slicing = "allow"
+# integer_division = "allow"
+# integer_division_remainder_used = "allow"
+# iter_over_hash_type = "allow"
+# let_underscore_untyped = "allow"
+# min_ident_chars = "allow"
+# missing_assert_message = "allow"
+# missing_docs_in_private_items = "allow" # TODO: warn (major undertaking)
+# missing_trait_methods = "allow"
+# mod_module_files = "allow"
+# module_name_repetitions = "allow"
+# non_ascii_literal = "allow"
+# multiple_inherent_impl = "allow" # TODO: warn once clippy 1.92 gets out
+# pattern_type_mismatch = "allow"
+# partial_pub_fields = "allow"
+# pathbuf_init_then_push = "allow"
+# precedence_bits = "allow"
+# print_stdout = "allow" # TODO: warn and use log! everywhere
+# pub_with_shorthand = "allow"
+# question_mark_used = "allow"
+# same_name_method = "allow" # TODO: warn once single-impl traits are removed
+# semicolon_outside_block = "allow"
+# shadow_reuse = "allow"
+# shadow_same = "allow"
+# shadow_unrelated = "allow"
+# single_call_fn = "allow"
+# single_char_lifetime_names = "allow"
+# std_instead_of_alloc = "allow"
+# std_instead_of_core = "allow"
+# unreachable = "allow"
+# unseparated_literal_suffix = "allow"
+# unwrap_in_result = "allow"
+# unwrap_used = "allow"
+# use_debug = "allow" # TODO: warn once log! is used everywhere instead of println!
+# wildcard_enum_match_arm = "allow"
 
-# style
-wrong_self_convention = "allow" # TODO: warn
+# # style
+# wrong_self_convention = "allow" # TODO: warn
 
-# suspicious
-arc_with_non_send_sync = "allow" # TODO: warn (requires understand the multiplexer)
+# # suspicious
+# arc_with_non_send_sync = "allow" # TODO: warn (requires understand the multiplexer)
 
 # =============
 # = TEMPORARY =
 # =============
-# [lints.clippy]
-# cargo = { level = "allow", priority = -1 }
-# complexity = { level = "allow", priority = -1 }
-# correctness = { level = "allow", priority = -1 }
-# nursery = { level = "allow", priority = -1 }
-# pedantic = { level = "allow", priority = -1 }
-# perf = { level = "allow", priority = -1 }
-# restriction = { level = "allow", priority = -1 }
-# style = { level = "allow", priority = -1 }
-# suspicious = { level = "allow", priority = -1 }
-# str_to_string = "deny"
+[lints.clippy]
+cargo = { level = "allow", priority = -1 }
+complexity = { level = "allow", priority = -1 }
+correctness = { level = "allow", priority = -1 }
+nursery = { level = "allow", priority = -1 }
+pedantic = { level = "allow", priority = -1 }
+perf = { level = "allow", priority = -1 }
+restriction = { level = "allow", priority = -1 }
+style = { level = "allow", priority = -1 }
+suspicious = { level = "allow", priority = -1 }
+unused_trait_names = "deny"

@@ -125,7 +125,7 @@ fn get_shift_optimization_result(
 /// Evaluate a scaffold position. The score of the position is given by
 /// score = nb((A|T)^7) + 10 nb(G^4 | C ^4) + 100 nb (G^5 | C^5) + 1000 nb (G^6 | C^6)
 fn evaluate_shift(design: &Design, basis_map: &BTreeMap<Nucl, char>) -> (usize, String) {
-    use std::fmt::Write;
+    use std::fmt::Write as _;
     let mut ret = 0;
     let mut shown = false;
     let bad = regex::Regex::new(r"[AT]{7,}?").unwrap();

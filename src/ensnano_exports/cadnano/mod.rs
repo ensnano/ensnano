@@ -4,7 +4,7 @@
 mod parity_graph;
 
 use crate::ensnano_design::{
-    Collection, Design, Domain, Nucl,
+    Collection as _, Design, Domain, Nucl,
     grid::{GridData, GridTypeDescr},
 };
 use std::collections::HashMap;

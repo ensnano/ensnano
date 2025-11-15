@@ -2,7 +2,7 @@ mod import_from_svg;
 
 pub use import_from_svg::*;
 
-use super::Collection;
+use super::Collection as _;
 use super::HelixParameters;
 use super::PieceWiseBezierInstantiator;
 use super::collection::HasMap;

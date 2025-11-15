@@ -154,7 +154,8 @@ impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
             crate::ensnano_interactor::PastingStatus::Copy => "Pasting",
             crate::ensnano_interactor::PastingStatus::None => "",
             crate::ensnano_interactor::PastingStatus::Duplication => "Duplicating",
-        }.to_owned();
+        }
+        .to_owned();
 
         let size = self.logical_size;
         let mut content = if self.progress.is_some() {

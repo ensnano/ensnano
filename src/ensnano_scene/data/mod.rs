@@ -9,7 +9,7 @@ use super::{
     AppState, Camera3D, HandlesDescriptor, LetterInstance, RotationWidgetDescriptor,
     RotationWidgetOrientation, SceneElement, View, ViewUpdate,
     view::{
-        AvailableRotationAxes, GridDisc, HandleColors, Instantiable, Mesh, RawDnaInstance,
+        AvailableRotationAxes, GridDisc, HandleColors, Instantiable as _, Mesh, RawDnaInstance,
         StereographicSphereAndPlane,
     },
 };
@@ -18,7 +18,7 @@ use crate::ensnano_consts::{
     SPHERE_RADIUS,
 };
 use crate::ensnano_design::{
-    BezierVertexId, Collection, External3DObjectsStamp, Nucl, SurfaceInfo, SurfacePoint,
+    BezierVertexId, Collection as _, External3DObjectsStamp, Nucl, SurfaceInfo, SurfacePoint,
     grid::{GridId, GridObject, GridPosition},
 };
 use crate::ensnano_interactor::{
@@ -389,9 +389,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
     ) -> Vec<RawDnaInstance> {
         let mut ret = Vec::new();
         for selection in selection {
-            for element in &self
-                .expand_selection(ObjectType::Nucleotide(0), selection)
-            {
+            for element in &self.expand_selection(ObjectType::Nucleotide(0), selection) {
                 match element {
                     SceneElement::DesignElement(d_id, id) => {
                         let instances = self.designs[*d_id as usize].make_instance(
@@ -437,9 +435,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
     ) -> Rc<Vec<RawDnaInstance>> {
         let mut ret = Vec::new();
         for selection in selection {
-            for element in &self
-                .expand_selection(ObjectType::Bond(0, 0), selection)
-            {
+            for element in &self.expand_selection(ObjectType::Bond(0, 0), selection) {
                 match element {
                     SceneElement::DesignElement(d_id, id) => {
                         let instance = self.designs[*d_id as usize].make_instance(
@@ -485,9 +481,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
     ) -> Rc<Vec<RawDnaInstance>> {
         let mut ret = Vec::new();
         for candidate in candidates {
-            for element in &self
-                .expand_selection(ObjectType::Nucleotide(0), candidate)
-            {
+            for element in &self.expand_selection(ObjectType::Nucleotide(0), candidate) {
                 match element {
                     SceneElement::DesignElement(d_id, id) => {
                         let instances = self.designs[*d_id as usize].make_instance(
@@ -533,9 +527,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
     ) -> Rc<Vec<RawDnaInstance>> {
         let mut ret = Vec::new();
         for candidate in candidates {
-            for element in &self
-                .expand_selection(ObjectType::Bond(0, 0), candidate)
-            {
+            for element in &self.expand_selection(ObjectType::Bond(0, 0), candidate) {
                 match element {
                     SceneElement::DesignElement(d_id, id) => {
                         let instances = self.designs[*d_id as usize].make_instance(

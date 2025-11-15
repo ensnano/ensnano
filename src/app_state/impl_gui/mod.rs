@@ -3,7 +3,7 @@ use crate::ensnano_design::{HelixParameters, elements::DesignElementKey};
 use crate::ensnano_gui::AppState as GuiState;
 use crate::ensnano_gui::ClipboardContent;
 use crate::ensnano_interactor::PastingStatus;
-use crate::ensnano_interactor::{ScaffoldInfo, SelectionConversion, SimulationState};
+use crate::ensnano_interactor::{ScaffoldInfo, SelectionConversion as _, SimulationState};
 
 mod curve_builders;
 use crate::ensnano_organizer::tree::GroupId;

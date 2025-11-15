@@ -6,9 +6,10 @@ pub mod update_insertion_length;
 use super::SimulationUpdate;
 use crate::ensnano_design::{
     BezierControlPoint, BezierEnd, BezierPathId, BezierPlaneDescriptor, BezierPlaneId,
-    BezierVertex, BezierVertexId, CameraId, Collection, CurveDescriptor, Design, Domain,
-    DomainJunction, External3DObject, External3DObjectDescriptor, Helices, Helix, HelixCollection,
-    HelixInterval, Nucl, NuclCollection, Strand, Strands, SvgImportError, UpToDateDesign,
+    BezierVertex, BezierVertexId, CameraId, Collection as _, CurveDescriptor, Design, Domain,
+    DomainJunction, External3DObject, External3DObjectDescriptor, Helices, Helix,
+    HelixCollection as _, HelixInterval, Nucl, NuclCollection, Strand, Strands, SvgImportError,
+    UpToDateDesign,
     design_operations::{
         ErrDesignOperation, attach_object_to_grid, make_grid_from_helices, rotate_helices_3d,
         translate_helices,
@@ -16,7 +17,7 @@ use crate::ensnano_design::{
     drawing_style::{DrawingAttribute, DrawingStyle},
     elements::{DesignElementKey, DnaAttribute},
     grid::{
-        Edge, FreeGridId, GridCopyError, GridDescriptor, GridDivision, GridId, GridObject,
+        Edge, FreeGridId, GridCopyError, GridDescriptor, GridDivision as _, GridId, GridObject,
         GridPosition, GridTypeDescr, HelixGridPosition, Hyperboloid,
     },
     group_attributes::GroupPivot,
@@ -25,7 +26,7 @@ use crate::ensnano_design::{
 use crate::ensnano_gui::ClipboardContent;
 use crate::ensnano_interactor::{
     BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation, DomainIdentifier,
-    HyperboloidOperation, IsometryTarget, NeighborDescriptor, NeighborDescriptorGiver,
+    HyperboloidOperation, IsometryTarget, NeighborDescriptor, NeighborDescriptorGiver as _,
     NewBezierTangentVector, PastingStatus, Selection, SimulationState, StrandBuilder,
     operation::{Operation, TranslateBezierPathVertex},
 };
@@ -51,7 +52,7 @@ use std::{
     collections::{BTreeMap, HashMap},
     f32::consts::PI,
     path::PathBuf,
-    str::FromStr,
+    str::FromStr as _,
     sync::{Arc, Mutex},
 };
 use ultraviolet::{Isometry2, Rotor2, Rotor3, Vec2, Vec3};

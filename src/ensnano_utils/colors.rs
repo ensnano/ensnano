@@ -2,7 +2,7 @@ use crate::ensnano_consts::{
     RANDOM_COLOR_SHADE_HUE_RANGE, RANDOM_COLOR_SHADE_SATURATION_RANGE,
     RANDOM_COLOR_SHADE_VALUE_RANGE,
 };
-use rand::Rng;
+use rand::Rng as _;
 
 pub fn hsv_color(hue: f64, saturation: f64, value: f64) -> u32 {
     let hsv = color_space::Hsv::new(hue, saturation, value);

@@ -1,5 +1,5 @@
 use super::*;
-use rand::Rng;
+use rand::Rng as _;
 use rand_distr::StandardNormal;
 use std::f32::consts::{PI, TAU};
 

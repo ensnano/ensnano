@@ -13,7 +13,7 @@ pub mod text;
 pub mod texture;
 
 use serde::{Deserialize, Serialize};
-use wgpu::util::{BufferInitDescriptor, DeviceExt};
+use wgpu::util::{BufferInitDescriptor, DeviceExt as _};
 use winit::dpi::{PhysicalPosition, PhysicalSize, Pixel};
 
 pub type PhySize = PhysicalSize<u32>;
