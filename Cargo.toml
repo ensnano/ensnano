@@ -147,6 +147,7 @@ arbitrary_source_item_ordering = "allow" # TODO: warn (requires some thought and
 arithmetic_side_effects = "allow"
 as_conversions = "allow"
 cast_precision_loss = "allow"
+clone_on_ref_ptr = "allow" # TODO: warn (too much manual work for now)
 default_numeric_fallback = "allow"
 else_if_without_else = "allow"
 expect_used = "allow"
@@ -196,4 +197,4 @@ arc_with_non_send_sync = "allow" # TODO: warn (requires understand the multiplex
 # restriction = { level = "allow", priority = -1 }
 # style = { level = "allow", priority = -1 }
 # suspicious = { level = "allow", priority = -1 }
-# unnested_or_patterns = "deny"
+# unnecessary_wraps = "deny"

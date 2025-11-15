@@ -572,7 +572,7 @@ mod color_square {
                 iced::Renderer::Wgpu(wgpu_renderer) => {
                     wgpu_renderer.with_translation(Vector::new(b.x, b.y), |renderer| {
                         renderer.draw_primitive(Primitive::Custom(mesh));
-                    })
+                    });
                 }
                 iced::Renderer::TinySkia(_) => panic!("Unhandled renderer."),
             };

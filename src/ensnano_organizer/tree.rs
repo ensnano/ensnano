@@ -34,7 +34,7 @@ impl<K: PartialEq> OrganizerTree<K> {
                         Self::Leaf(k) if k == element => ret.push(rename.clone()),
                         Self::Leaf(_) => (),
                         node @ Self::Node { .. } => {
-                            ret.extend(node.get_names_of_groups_having(element))
+                            ret.extend(node.get_names_of_groups_having(element));
                         }
                     }
                 }

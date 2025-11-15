@@ -1112,7 +1112,7 @@ impl MainState {
             .app_state
             .get_simulation_state()
             .is_running()
-            .then_some(CursorIcon::Progress)
+            .then_some(CursorIcon::Progress);
     }
 
     fn push_action(&mut self, action: Action) {

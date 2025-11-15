@@ -215,7 +215,6 @@ impl BezierPathsMut<'_> {
     pub fn remove_path(&mut self, path_id: &BezierPathId) -> Option<()> {
         self.new_map.contains_key(path_id).then(|| {
             self.new_map.remove(path_id);
-            ()
         })
     }
 }
@@ -257,7 +256,6 @@ impl BezierPath {
     pub fn remove_vertex(&mut self, v_id: usize) -> Option<()> {
         (self.vertices.len() > v_id).then(|| {
             self.vertices.remove(v_id);
-            ()
         })
     }
 

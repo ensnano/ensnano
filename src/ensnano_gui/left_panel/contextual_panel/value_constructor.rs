@@ -341,7 +341,7 @@ where
             ValueKind::HelixGridPosition => self.position_builder.update_str_value(n, value_str),
             ValueKind::GridOrientation => self.orientation_builder.update_str_value(n, value_str),
             vk @ ValueKind::BezierVertexPosition => {
-                log::error!("Unexpected value kind for GridBuilder {vk:?}")
+                log::error!("Unexpected value kind for GridBuilder {vk:?}");
             }
         }
     }
