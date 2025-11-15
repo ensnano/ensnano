@@ -305,7 +305,7 @@ impl<S: AppState> FlatScene<S> {
                 self.requests
                     .lock()
                     .unwrap()
-                    .new_candidates(candidate.iter().cloned().collect());
+                    .new_candidates(candidate.iter().copied().collect());
             }
             Consequence::Built => {
                 self.requests.lock().unwrap().suspend_op();

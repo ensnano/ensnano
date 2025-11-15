@@ -750,7 +750,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
                 _ => None,
             })
             .collect();
-        ret.map(|v| v.iter().cloned().unzip())
+        ret.map(|v| v.iter().copied().unzip())
     }
 
     fn select_xovers_rectangle(

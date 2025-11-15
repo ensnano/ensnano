@@ -26,11 +26,11 @@ fn build_ellipse(
 ) -> Option<CurveDescriptor2D> {
     let a = parameters
         .first()
-        .cloned()
+        .copied()
         .and_then(InstantiatedParameter::get_float)?;
     let b = parameters
         .get(1)
-        .cloned()
+        .copied()
         .and_then(InstantiatedParameter::get_float)?;
     Some(CurveDescriptor2D::Ellipse {
         semi_minor_axis: b.into(),
@@ -70,22 +70,22 @@ fn build_two_spheres(
 ) -> Option<CurveDescriptor2D> {
     let radius_extern = parameters
         .first()
-        .cloned()
+        .copied()
         .and_then(InstantiatedParameter::get_float)?
         .into();
     let radius_intern = parameters
         .get(1)
-        .cloned()
+        .copied()
         .and_then(InstantiatedParameter::get_float)?
         .into();
     let radius_tube = parameters
         .get(2)
-        .cloned()
+        .copied()
         .and_then(InstantiatedParameter::get_float)?
         .into();
     let smooth_ceil = parameters
         .get(3)
-        .cloned()
+        .copied()
         .and_then(InstantiatedParameter::get_float)?
         .into();
 
@@ -115,7 +115,7 @@ fn build_bezier(
 ) -> Option<CurveDescriptor2D> {
     let curve_id = parameters
         .first()
-        .cloned()
+        .copied()
         .and_then(InstantiatedParameter::get_uint)?;
 
     app.0
@@ -132,7 +132,7 @@ fn no_bezier_path_id(_: &[InstantiatedParameter]) -> Option<usize> {
 fn get_bezier_path_id(parameters: &[InstantiatedParameter]) -> Option<usize> {
     parameters
         .first()
-        .cloned()
+        .copied()
         .and_then(InstantiatedParameter::get_uint)
 }
 

@@ -40,7 +40,7 @@ impl<K: Eq + Hash + Clone> IdGenerator<K> {
     }
 
     pub fn get_id(&self, element: &K) -> Option<usize> {
-        self.ids.get(element).cloned()
+        self.ids.get(element).copied()
     }
 
     #[cfg(test)]

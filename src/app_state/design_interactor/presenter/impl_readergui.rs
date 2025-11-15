@@ -121,7 +121,7 @@ impl ReaderGui for DesignInteractor {
                     .content
                     .insertion_length
                     .get(bond_id)
-                    .cloned()
+                    .copied()
                     .or(Some(0))
             }
             Selection::Xover(_, xover_id) => {
@@ -136,7 +136,7 @@ impl ReaderGui for DesignInteractor {
                     .content
                     .insertion_length
                     .get(bond_id)
-                    .cloned()
+                    .copied()
                     .or(Some(0))
             }
             Selection::Nucleotide(_, nucl) => {
@@ -152,7 +152,7 @@ impl ReaderGui for DesignInteractor {
                         .content
                         .insertion_length
                         .get(nucl_id)
-                        .cloned()
+                        .copied()
                         .or(Some(0))
                 } else {
                     None

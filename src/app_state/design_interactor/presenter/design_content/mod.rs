@@ -884,7 +884,7 @@ impl DesignContent {
         for (h_id, h) in design.helices.iter() {
             elements.push(DesignElement::Helix {
                 id: *h_id,
-                group: groups.get(h_id).cloned(),
+                group: groups.get(h_id).copied(),
                 locked_for_simulations: h.locked_for_simulations,
             });
         }

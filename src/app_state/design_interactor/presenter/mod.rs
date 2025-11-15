@@ -275,27 +275,27 @@ impl Presenter {
             .content
             .space_position
             .get(&forward_id)
-            .cloned()?
+            .copied()?
             .into();
         let pos_backward: Vec3 = self
             .content
             .space_position
             .get(&backward_id)
-            .cloned()?
+            .copied()?
             .into();
         let a1 = (pos_backward - pos_forward).normalized();
         let forward_half = HalfHBond {
             backbone: pos_forward,
             center_of_mass: pos_forward + 2. * a1 * BACKBONE_TO_CM,
-            base: self.content.letter_map.get(&forward_nucl).cloned(),
-            backbone_color: self.content.color_map.get(&forward_id).cloned()?,
+            base: self.content.letter_map.get(&forward_nucl).copied(),
+            backbone_color: self.content.color_map.get(&forward_id).copied()?,
         };
 
         let backward_half = HalfHBond {
             backbone: pos_backward,
             center_of_mass: pos_backward - 2. * a1 * BACKBONE_TO_CM,
-            base: self.content.letter_map.get(&backward_nucl).cloned(),
-            backbone_color: self.content.color_map.get(&backward_id).cloned()?,
+            base: self.content.letter_map.get(&backward_nucl).copied(),
+            backbone_color: self.content.color_map.get(&backward_id).copied()?,
         };
         Some(HBond {
             forward: forward_half,
@@ -341,7 +341,7 @@ impl Presenter {
                 || match s {
                     Selection::Design(_) => true,
                     Selection::Strand(_, s_id) => {
-                        self.content.strand_map.get(identifier_nucl).cloned()
+                        self.content.strand_map.get(identifier_nucl).copied()
                             == Some(*s_id as usize)
                     }
                     Selection::Grid(_, _) => false,
@@ -443,7 +443,7 @@ impl Presenter {
                     .as_ref()
                     .and_then(|bound_id| self.content.identifier_bond.get(bound_id))
             })
-            .cloned()
+            .copied()
             .collect()
     }
 
@@ -518,11 +518,11 @@ impl Presenter {
     }
 
     pub fn get_all_bonds(&self) -> Vec<(Nucl, Nucl)> {
-        self.content.identifier_bond.keys().cloned().collect()
+        self.content.identifier_bond.keys().copied().collect()
     }
 
     pub fn get_identifier(&self, nucl: &Nucl) -> Option<u32> {
-        self.content.nucl_collection.get_identifier(nucl).cloned()
+        self.content.nucl_collection.get_identifier(nucl).copied()
     }
 
     pub fn get_space_position(&self, nucl: &Nucl) -> Option<Vec3> {
@@ -655,7 +655,7 @@ impl DesignInteractor {
             .content
             .nucl_collection
             .get_identifier(nucl)?;
-        self.presenter.content.strand_map.get(e_id).cloned()
+        self.presenter.content.strand_map.get(e_id).copied()
     }
 
     /// Return the xover extremity status of nucl.

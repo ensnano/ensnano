@@ -57,7 +57,7 @@ impl Twister {
         let mut intervals = Vec::with_capacity(helices.len());
         for (n, k) in keys.iter().enumerate() {
             helix_map.insert(*k, n);
-            intervals.push(intervals_map.get(k).cloned());
+            intervals.push(intervals_map.get(k).copied());
         }
         let system = TwistSystem {
             current_omega: MIN_OMEGA,
@@ -251,7 +251,7 @@ impl DesignData {
             .support_helix
             .as_ref()
             .and_then(|h_id| self.helix_map.get(h_id))
-            .cloned()
+            .copied()
     }
 
     fn update_twist(&mut self, twist: f64) {

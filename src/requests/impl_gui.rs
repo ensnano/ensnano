@@ -190,7 +190,7 @@ impl crate::ensnano_gui::Requests for Requests {
         attribute: DnaAttribute,
         keys: BTreeSet<DesignElementKey>,
     ) {
-        self.new_attribute = Some((attribute, keys.iter().cloned().collect()));
+        self.new_attribute = Some((attribute, keys.iter().copied().collect()));
     }
 
     fn change_split_mode(&mut self, split_mode: SplitMode) {

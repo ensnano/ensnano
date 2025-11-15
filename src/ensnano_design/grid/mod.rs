@@ -808,7 +808,7 @@ impl GridData {
     }
 
     pub fn get_empty_grids_id(&self) -> HashSet<GridId> {
-        let mut ret: HashSet<GridId> = self.grids.keys().cloned().collect();
+        let mut ret: HashSet<GridId> = self.grids.keys().copied().collect();
         for position in self.pos_to_object.keys() {
             ret.remove(&position.grid);
         }
@@ -1093,7 +1093,7 @@ impl GridData {
                         None
                     }
                 })
-                .cloned()
+                .copied()
                 .collect()
         })
     }
@@ -1116,7 +1116,7 @@ impl GridData {
     }
 
     pub fn get_helix_grid_position(&self, h_id: usize) -> Option<HelixGridPosition> {
-        self.object_to_pos.get(&GridObject::Helix(h_id)).cloned()
+        self.object_to_pos.get(&GridObject::Helix(h_id)).copied()
     }
 
     /// Return a list of pairs ((x, y), h_id) of all the used helices on the grid g_id

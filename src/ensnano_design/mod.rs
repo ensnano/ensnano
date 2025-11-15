@@ -402,7 +402,7 @@ impl Design {
     pub fn rm_camera(&mut self, cam_id: CameraId) -> bool {
         if self.cameras.remove(&cam_id).is_some() {
             if self.favorite_camera == Some(cam_id) {
-                self.favorite_camera = self.cameras.keys().min().cloned();
+                self.favorite_camera = self.cameras.keys().min().copied();
             }
             true
         } else {

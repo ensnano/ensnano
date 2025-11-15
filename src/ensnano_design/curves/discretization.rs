@@ -545,8 +545,8 @@ impl Curve {
 
             let abscissa_t = abscissas
                 .iter()
-                .cloned()
-                .zip(ts.iter().cloned())
+                .copied()
+                .zip(ts.iter().copied())
                 .step_by(10) // (1)
                 .collect();
             let t_abscissa = ts

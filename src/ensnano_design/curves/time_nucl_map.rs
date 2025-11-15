@@ -207,7 +207,7 @@ impl RevolutionCurveTimeMaps {
                 {
                     positions.push(next_left);
                 }
-                if positions.last().cloned() != Some(curve.curve.t_nucl.len() as isize) {
+                if positions.last().copied() != Some(curve.curve.t_nucl.len() as isize) {
                     positions.push(curve.curve.t_nucl.len() as isize);
                 }
                 for (a, b) in positions.iter().zip(positions.iter().skip(1)) {

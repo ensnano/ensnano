@@ -62,7 +62,7 @@ impl FlatSceneDesignReaderExt for DesignInteractor {
             .current_design
             .strands
             .keys()
-            .cloned()
+            .copied()
             .collect()
     }
 
@@ -111,7 +111,7 @@ impl FlatSceneDesignReaderExt for DesignInteractor {
             .content
             .nucl_collection
             .get_identifier(nucl)
-            .cloned()
+            .copied()
     }
 
     fn get_visibility_helix(&self, h_id: usize) -> Option<bool> {
@@ -136,7 +136,7 @@ impl FlatSceneDesignReaderExt for DesignInteractor {
     }
 
     fn get_id_of_strand_containing_elt(&self, e_id: u32) -> Option<usize> {
-        self.presenter.content.strand_map.get(&e_id).cloned()
+        self.presenter.content.strand_map.get(&e_id).copied()
     }
 
     fn get_id_of_strand_containing_nucl(&self, nucl: &Nucl) -> Option<usize> {
@@ -144,7 +144,7 @@ impl FlatSceneDesignReaderExt for DesignInteractor {
     }
 
     fn get_id_of_of_helix_containing_elt(&self, e_id: u32) -> Option<usize> {
-        self.presenter.content.helix_map.get(&e_id).cloned()
+        self.presenter.content.helix_map.get(&e_id).copied()
     }
 
     fn has_helix(&self, h_id: usize) -> bool {

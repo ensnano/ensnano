@@ -203,13 +203,13 @@ impl<S: AppState> Scene<S> {
                 let mut pair = suggestions
                     .iter()
                     .find(|(a, b)| *a == nucl || *b == nucl)
-                    .cloned();
+                    .copied();
                 if let Some((n1, n2)) = pair {
                     if doubled {
                         pair = suggestions
                             .iter()
                             .find(|(a, b)| *a == n1.prime5() || *b == n1.prime5())
-                            .cloned();
+                            .copied();
                     }
                     self.requests.lock().unwrap().apply_design_operation(
                         DesignOperation::MakeSeveralXovers {
@@ -397,7 +397,7 @@ impl<S: AppState> Scene<S> {
                 }
             }
             Consequence::InitBuild(nucls) => {
-                if let Some(xover_id) = nucls.first().cloned().and_then(|n| {
+                if let Some(xover_id) = nucls.first().copied().and_then(|n| {
                     app_state
                         .get_design_reader()
                         .get_id_of_xover_involving_nucl(n)

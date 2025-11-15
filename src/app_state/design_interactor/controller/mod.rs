@@ -1309,7 +1309,7 @@ impl Controller {
         mut vertices: Vec<BezierVertexId>,
         position: Vec2,
     ) -> Result<Design, ErrOperation> {
-        if let Some(BezierVertexId { path_id, vertex_id }) = vertices.first().cloned() {
+        if let Some(BezierVertexId { path_id, vertex_id }) = vertices.first().copied() {
             self.update_state_and_design(&mut design);
             vertices.sort();
             vertices.dedup();
@@ -1677,7 +1677,7 @@ impl Controller {
         let grid_data = design.get_updated_grid_data();
         let translations: Vec<_> = control_points
             .iter()
-            .cloned()
+            .copied()
             .map(|cp| grid_data.translate_bezier_point(cp, translation))
             .collect();
         let mut new_helices = design.helices.make_mut();

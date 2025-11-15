@@ -1590,7 +1590,7 @@ fn make_grid_system(
         .get_design()
         .free_grids
         .keys()
-        .cloned()
+        .copied()
         .map(FreeGridId::to_grid_id)
     {
         if let Some(rigid_grid) = make_rigid_grid(presenter, g_id, &intervals, &helix_parameters) {
@@ -1619,8 +1619,8 @@ fn make_grid_system(
         if let Some((g_id1, g_id2)) = g_id1.zip(g_id2)
             && g_id1 != g_id2
         {
-            let rigid_id1 = selected_grids.get(&g_id1).cloned();
-            let rigid_id2 = selected_grids.get(&g_id2).cloned();
+            let rigid_id1 = selected_grids.get(&g_id1).copied();
+            let rigid_id2 = selected_grids.get(&g_id2).copied();
             if let Some((rigid_id1, rigid_id2)) = rigid_id1.zip(rigid_id2) {
                 let grid1 = presenter
                     .get_grid(g_id1)

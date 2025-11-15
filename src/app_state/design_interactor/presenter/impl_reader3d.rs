@@ -1,31 +1,25 @@
 use super::*;
-use crate::ensnano_scene::view::GridInstance;
+use crate::ensnano_design::{
+    AdditionalStructure, BezierControlPoint, BezierPlaneDescriptor, BezierPlaneId, BezierVertexId,
+    Collection, CurveDescriptor, Domain, Helix, Nucl, SurfaceInfo,
+    grid::{GridId, GridObject, GridPosition, HelixGridPosition},
+};
+use crate::ensnano_interactor::{
+    ObjectType, Referential,
+    graphics::{LoopoutBond, LoopoutNucl},
+};
+use crate::ensnano_scene::{data::SceneDesignReaderExt, view::GridInstance};
 use crate::ensnano_utils::StrandNucleotidesPositions;
-use crate::{
-    ensnano_design::Helix,
-    ensnano_interactor::{
-        ObjectType, Referential,
-        graphics::{LoopoutBond, LoopoutNucl},
-    },
-};
-use crate::{
-    ensnano_design::{
-        AdditionalStructure, BezierControlPoint, BezierPlaneDescriptor, BezierPlaneId,
-        BezierVertexId, Collection, CurveDescriptor, Domain, Nucl, SurfaceInfo,
-        grid::{GridId, GridObject, GridPosition, HelixGridPosition},
-    },
-    ensnano_scene::data::SceneDesignReaderExt,
-};
 use std::collections::HashSet;
 use ultraviolet::{Mat4, Rotor3, Vec2, Vec3};
 
 impl SceneDesignReaderExt for DesignInteractor {
     fn get_color(&self, e_id: u32) -> Option<u32> {
-        self.presenter.content.color_map.get(&e_id).cloned()
+        self.presenter.content.color_map.get(&e_id).copied()
     }
 
     fn get_radius(&self, e_id: u32) -> Option<f32> {
-        self.presenter.content.radius_map.get(&e_id).cloned()
+        self.presenter.content.radius_map.get(&e_id).copied()
     }
 
     fn get_xover_coloring(&self, e_id: u32) -> Option<bool> {
@@ -33,11 +27,11 @@ impl SceneDesignReaderExt for DesignInteractor {
             .content
             .xover_coloring_map
             .get(&e_id)
-            .cloned()
+            .copied()
     }
 
     fn get_with_cones(&self, e_id: u32) -> Option<bool> {
-        self.presenter.content.with_cones_map.get(&e_id).cloned()
+        self.presenter.content.with_cones_map.get(&e_id).copied()
     }
 
     fn get_symbol(&self, e_id: u32) -> Option<char> {
@@ -46,7 +40,7 @@ impl SceneDesignReaderExt for DesignInteractor {
             .nucleotide
             .get(&e_id)
             .and_then(|nucl| self.presenter.content.letter_map.get(nucl))
-            .cloned()
+            .copied()
     }
 
     fn get_grid_basis(&self, g_id: GridId) -> Option<Rotor3> {
@@ -81,7 +75,7 @@ impl SceneDesignReaderExt for DesignInteractor {
     }
 
     fn get_all_nucl_ids(&self) -> Vec<u32> {
-        self.presenter.content.nucleotide.keys().cloned().collect()
+        self.presenter.content.nucleotide.keys().copied().collect()
     }
 
     fn get_model_matrix(&self) -> Mat4 {
@@ -90,7 +84,7 @@ impl SceneDesignReaderExt for DesignInteractor {
     }
 
     fn get_nucl_with_id(&self, e_id: u32) -> Option<Nucl> {
-        self.presenter.content.nucleotide.get(&e_id).cloned()
+        self.presenter.content.nucleotide.get(&e_id).copied()
     }
 
     fn get_all_bond_ids(&self) -> Vec<u32> {
@@ -98,7 +92,7 @@ impl SceneDesignReaderExt for DesignInteractor {
             .content
             .nucleotides_involved
             .keys()
-            .cloned()
+            .copied()
             .collect()
     }
 
@@ -128,7 +122,7 @@ impl SceneDesignReaderExt for DesignInteractor {
             .content
             .nucl_collection
             .get_identifier(nucl)
-            .cloned()
+            .copied()
     }
 
     fn get_position_of_nucl_on_helix(
@@ -170,7 +164,7 @@ impl SceneDesignReaderExt for DesignInteractor {
             .content
             .identifier_bond
             .get(&(n1, n2))
-            .cloned()
+            .copied()
     }
 
     fn get_helix_grid_position(&self, h_id: u32) -> Option<HelixGridPosition> {
@@ -249,7 +243,7 @@ impl SceneDesignReaderExt for DesignInteractor {
     }
 
     fn get_id_of_strand_containing(&self, e_id: u32) -> Option<usize> {
-        self.presenter.content.strand_map.get(&e_id).cloned()
+        self.presenter.content.strand_map.get(&e_id).copied()
     }
 
     fn get_used_coordinates_on_grid(&self, g_id: GridId) -> Option<Vec<(isize, isize)>> {
@@ -275,7 +269,7 @@ impl SceneDesignReaderExt for DesignInteractor {
             .iter()
             .filter(|(_k, (n1, n2))| n1.helix == h_id && n2.helix == h_id)
             .map(|t| t.0);
-        nucls.chain(bonds).cloned().collect()
+        nucls.chain(bonds).copied().collect()
     }
 
     fn get_ids_of_elements_belonging_to_strand(&self, s_id: usize) -> Vec<u32> {
@@ -292,7 +286,7 @@ impl SceneDesignReaderExt for DesignInteractor {
             .nucleotides_involved
             .keys()
             .filter(belong_to_strand);
-        nucls.chain(bonds).cloned().collect()
+        nucls.chain(bonds).copied().collect()
     }
 
     fn prime5_of_which_strand(&self, nucl: Nucl) -> Option<usize> {
@@ -322,7 +316,7 @@ impl SceneDesignReaderExt for DesignInteractor {
             .content
             .insertion_length
             .get(&bond_id)
-            .cloned()
+            .copied()
             .unwrap_or(0)
     }
 
@@ -346,14 +340,14 @@ impl SceneDesignReaderExt for DesignInteractor {
         let helix = self.presenter.current_design.helices.get(&helix)?;
         if let BezierControlPoint::PiecewiseBezier(n) = control {
             let points = helix.piecewise_bezier_points()?;
-            points.get(n).cloned()
+            points.get(n).copied()
         } else {
             let points = helix.cubic_bezier_points()?;
             match control {
                 BezierControlPoint::CubicBezier(point) => points.get(usize::from(point)),
                 BezierControlPoint::PiecewiseBezier { .. } => None,
             }
-            .cloned()
+            .copied()
         }
     }
 
@@ -440,7 +434,7 @@ impl SceneDesignReaderExt for DesignInteractor {
             .bezier_paths
             .get(&path_id)
             .and_then(|p| p.vertices().get(vertex_id))
-            .cloned()
+            .copied()
     }
 
     fn get_corners_of_plane(&self, plane_id: BezierPlaneId) -> [Vec2; 4] {

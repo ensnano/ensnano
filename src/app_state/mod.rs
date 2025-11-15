@@ -594,7 +594,7 @@ impl AppState {
         log::info!("is {:?}", self.0.selection.old_pivot.read().unwrap());
         let new_pivot = {
             if let Some(Some(mut old_pivot)) =
-                self.0.selection.old_pivot.read().as_deref().ok().cloned()
+                self.0.selection.old_pivot.read().as_deref().ok().copied()
             {
                 old_pivot.position += translation;
                 old_pivot
@@ -611,7 +611,7 @@ impl AppState {
         log::info!("is {:?}", self.0.selection.old_pivot.read().unwrap());
         let new_pivot = {
             if let Some(Some(mut old_pivot)) =
-                self.0.selection.old_pivot.read().as_deref().ok().cloned()
+                self.0.selection.old_pivot.read().as_deref().ok().copied()
             {
                 old_pivot.orientation = rotation * old_pivot.orientation;
                 old_pivot

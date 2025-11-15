@@ -286,10 +286,10 @@ impl Helix {
                 "group {group_id}",
             )));
         };
-        let Some(x) = scad.grid_position.first().cloned() else {
+        let Some(x) = scad.grid_position.first().copied() else {
             return Err(ScadnanoImportError::MissingField(String::from("x")));
         };
-        let Some(y) = scad.grid_position.get(1).cloned() else {
+        let Some(y) = scad.grid_position.get(1).copied() else {
             return Err(ScadnanoImportError::MissingField(String::from("y")));
         };
         let Some(group) = groups.get(*grid_id) else {

@@ -229,7 +229,7 @@ impl LayoutTree {
     }
 
     pub fn get_area_id(&self, element: GuiComponentType) -> Option<usize> {
-        self.area_identifiers.get(&element).cloned()
+        self.area_identifiers.get(&element).copied()
     }
 
     /// Attribute an element_type to an area.

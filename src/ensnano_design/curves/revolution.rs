@@ -286,8 +286,8 @@ impl Revolution {
             log::info!("Interpolating inverse...");
             let abscissa_t: Vec<_> = abscissas
                 .iter()
-                .cloned()
-                .zip(ts.iter().cloned())
+                .copied()
+                .zip(ts.iter().copied())
                 .step_by(10) // (1)
                 .collect();
 

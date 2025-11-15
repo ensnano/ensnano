@@ -377,15 +377,15 @@ impl Curve {
     pub fn axis_pos(&self, n: isize, forward: bool) -> Option<DVec3> {
         let idx = self.idx_conversion(n)?;
         if forward {
-            self.positions_forward.get(idx).cloned()
+            self.positions_forward.get(idx).copied()
         } else {
-            self.positions_backward.get(idx).cloned()
+            self.positions_backward.get(idx).copied()
         }
     }
 
     pub fn nucl_time(&self, n: isize) -> Option<f64> {
         let idx = self.idx_conversion(n)?;
-        self.t_nucl.get(idx).cloned()
+        self.t_nucl.get(idx).copied()
     }
 
     pub fn idx_conversion(&self, n: isize) -> Option<usize> {
@@ -447,7 +447,7 @@ impl Curve {
         } else {
             &self.positions_backward
         };
-        if let Some(matrix) = axis.get(idx).cloned() {
+        if let Some(matrix) = axis.get(idx).copied() {
             let mut ret = matrix
                 * DVec3::new(
                     -theta.cos() * helix_parameters.helix_radius as f64,
@@ -468,17 +468,17 @@ impl Curve {
         } else {
             &self.axis_backward
         };
-        axis.get(idx).cloned()
+        axis.get(idx).copied()
     }
 
     pub fn curvature_at_pos(&self, position: isize) -> Option<f64> {
         let idx = self.idx_conversion(position)?;
-        self.curvature.get(idx).cloned()
+        self.curvature.get(idx).copied()
     }
 
     pub fn torsion_at_pos(&self, position: isize) -> Option<f64> {
         let idx = self.idx_conversion(position)?;
-        self.torsion.get(idx).cloned()
+        self.torsion.get(idx).copied()
     }
 
     pub fn points(&self) -> &[DVec3] {

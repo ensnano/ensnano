@@ -71,23 +71,23 @@ impl FlatHelixMaps {
     }
 
     pub fn get_segment_idx(&self, segment: HelixSegment) -> Option<FlatIdx> {
-        self.real_to_flat.get(&segment).cloned()
+        self.real_to_flat.get(&segment).copied()
     }
 
     pub fn get_segment(&self, idx: FlatIdx) -> Option<HelixSegment> {
-        self.flat_to_real.get(&idx).cloned()
+        self.flat_to_real.get(&idx).copied()
     }
 
     pub fn get_max_right(&self, segment: HelixSegment) -> Option<isize> {
         self.segments
             .get(&segment.helix_idx)
-            .and_then(|segments| segments.get(segment.segment_idx).cloned())
+            .and_then(|segments| segments.get(segment.segment_idx).copied())
     }
 
     pub fn get_min_left(&self, segment: HelixSegment) -> Option<isize> {
         self.segments.get(&segment.helix_idx).and_then(|segments| {
             if segment.segment_idx > 0 {
-                segments.get(segment.segment_idx - 1).cloned()
+                segments.get(segment.segment_idx - 1).copied()
             } else {
                 None
             }
@@ -116,7 +116,7 @@ impl FlatHelixMaps {
             self.segments
                 .get(&nucl.helix)
                 .and_then(|segments| segments.get(segment_idx - 1))
-                .cloned()
+                .copied()
         };
         let flat = self.get_segment_idx(HelixSegment {
             helix_idx: nucl.helix,
@@ -180,7 +180,7 @@ impl FlatHelix {
                 .segments
                 .get(&segment.helix_idx)
                 .and_then(|segments| segments.get(segment.segment_idx - 1))
-                .cloned()
+                .copied()
         };
         Some(Self {
             flat,

@@ -46,7 +46,7 @@ impl Design {
                 .ok_or(GridCopyError::HelixDoesNotExist(*old_h_id))?;
             let grid_position = old_helix.grid_position.and_then(|gp| {
                 let new_grid_id = if let GridId::FreeGrid(id) = gp.grid {
-                    new_grid_ids.get(&FreeGridId(id)).cloned()
+                    new_grid_ids.get(&FreeGridId(id)).copied()
                 } else {
                     None
                 }?;
@@ -173,7 +173,7 @@ impl Design {
                 }) => {
                     let new_domain_helix = new_helices_map
                         .get(helix)
-                        .cloned()
+                        .copied()
                         .ok_or(GridCopyError::HelixIdNotInNewHelixMap(*helix))?;
                     let new_domain = Domain::HelixDomain(HelixInterval {
                         helix: new_domain_helix,

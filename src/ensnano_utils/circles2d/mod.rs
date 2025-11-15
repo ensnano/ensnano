@@ -108,7 +108,7 @@ impl CircleDrawer {
     fn update_instances(&mut self) {
         if let Some(ref instances) = self.new_instances {
             self.number_instances = instances.len();
-            let instances_data: Vec<_> = instances.iter().cloned().collect();
+            let instances_data: Vec<_> = instances.iter().copied().collect();
             self.instances_bg.update(instances_data.as_slice());
         }
     }

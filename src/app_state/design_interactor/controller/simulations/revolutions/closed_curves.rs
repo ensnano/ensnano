@@ -254,6 +254,6 @@ fn interpolator_inverse_curvilinear_abscissa(curve: &CurveDescriptor2D) -> Cheby
     }
 
     log::info!("Interpolating inverse...");
-    let abscissa_t = abscissas.iter().cloned().zip(ts.iter().cloned()).collect();
+    let abscissa_t = abscissas.iter().copied().zip(ts.iter().copied()).collect();
     chebyshev_polynomials::interpolate_points(abscissa_t, INTERPOLATION_ERROR)
 }

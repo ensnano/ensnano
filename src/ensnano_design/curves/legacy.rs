@@ -265,7 +265,7 @@ impl Curve {
         } else {
             &self.positions_backward
         };
-        if let Some(matrix) = axis.get(idx).cloned() {
+        if let Some(matrix) = axis.get(idx).copied() {
             let mut ret = matrix
                 * DVec3::new(
                     -theta.cos() * helix_parameters.helix_radius as f64,

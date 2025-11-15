@@ -625,17 +625,17 @@ impl<R: SceneDesignReaderExt> Data<R> {
             Selection::Nucleotide(d_id, nucl) => self.designs[*d_id as usize]
                 .get_identifier_nucl(nucl)
                 .iter()
-                .cloned()
+                .copied()
                 .collect(),
             Selection::Bond(d_id, n1, n2) => self.designs[*d_id as usize]
                 .get_identifier_bond(*n1, *n2)
                 .iter()
-                .cloned()
+                .copied()
                 .collect(),
             Selection::Xover(d_id, xover_id) => self.designs[*d_id as usize]
                 .get_element_identifier_from_xover_id(*xover_id)
                 .iter()
-                .cloned()
+                .copied()
                 .collect(),
             Selection::Helix {
                 design_id,
@@ -845,7 +845,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
         // selected
         let mut selection_: Vec<_> = selection
             .iter()
-            .cloned()
+            .copied()
             .map(|s| {
                 if let Selection::Helix {
                     design_id,
@@ -940,10 +940,10 @@ impl<R: SceneDesignReaderExt> Data<R> {
         for (d_id, set) in phantom_map.iter() {
             let (spheres, tubes) =
                 self.designs[*d_id as usize].make_phantom_helix_instances_raw(set);
-            for sphere in spheres.iter().cloned() {
+            for sphere in spheres.iter().copied() {
                 ret_sphere.push(sphere);
             }
-            for tube in tubes.iter().cloned() {
+            for tube in tubes.iter().copied() {
                 ret_tube.push(tube);
             }
         }
