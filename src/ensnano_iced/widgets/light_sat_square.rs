@@ -163,7 +163,7 @@ where
                 });
             }
             iced::Renderer::TinySkia(_) => panic!("Unhandled renderer"),
-        };
+        }
     }
 
     fn on_event(

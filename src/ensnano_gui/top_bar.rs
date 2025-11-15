@@ -154,7 +154,7 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
             // TODO: Consider rename message ThickHelices → AllHelicesOnAxis
             Message::AlignHorizon => self.requests.lock().unwrap().align_horizon(),
             Message::Import3D => self.requests.lock().unwrap().import_3d_object(),
-        };
+        }
         Command::none()
     }
 

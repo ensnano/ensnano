@@ -163,7 +163,7 @@ impl UnrootedRevolutionSurfaceDescriptor {
                 with_radius_0.revolution_radius = RevolutionSurfaceRadius::Right(0.);
                 with_radius_1.revolution_radius = RevolutionSurfaceRadius::Right(1.);
             }
-        };
+        }
 
         let area_0 = with_radius_0.approx_surface_area(1000, 1000)?;
         let area_1 = with_radius_1.approx_surface_area(1000, 1000)?;

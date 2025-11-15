@@ -544,7 +544,7 @@ impl CameraController {
                 *dist_to_surface /= 1.1;
             } else {
                 *dist_to_surface *= 1.1;
-            };
+            }
             let cam_pos = surface_info.position
                 + self.dist_to_surface.unwrap_or(DEFAULT_DIST_TO_SURFACE)
                     * Vec3::unit_z().rotated_by(surface_info.local_frame);
@@ -664,7 +664,7 @@ impl CameraController {
             angle -= PI;
         } else if angle < -FRAC_PI_2 {
             angle += PI;
-        };
+        }
         angle
     }
 

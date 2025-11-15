@@ -520,7 +520,7 @@ impl<S: AppState> Scene<S> {
                     .unwrap()
                     .set_revolution_axis_position(r);
             }
-        };
+        }
     }
 
     /// Request a cross-over between two nucleotides.
@@ -1107,7 +1107,7 @@ impl<S: AppState> Scene<S> {
                 self.area = area;
                 self.resize(window_size);
             }
-        };
+        }
         self.update.need_update = true;
     }
 

@@ -160,7 +160,7 @@ impl RevolutionSurfaceSystem {
             self.last_dthetas = None;
         } else {
             log::error!("error while solving ODE");
-        };
+        }
 
         let rescaling_factor =
             2. / (spring_relaxation_state.min_ext + spring_relaxation_state.max_ext);

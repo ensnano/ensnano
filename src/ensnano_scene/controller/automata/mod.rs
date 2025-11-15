@@ -293,7 +293,7 @@ impl<S: AppState> ControllerState<S> for NormalState {
                             } else {
                                 clicked_element = element;
                                 object = None;
-                            };
+                            }
                             if let Some(obj) = object {
                                 // if helix is Some, intersection is also Some
                                 let intersection = grid_intersection.unwrap();

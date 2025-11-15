@@ -395,7 +395,7 @@ where
             Message::ScaffoldPositionInput(position_str) => {
                 if let Some(n) = self.sequence_tab.update_pos_str(position_str) {
                     self.requests.lock().unwrap().set_scaffold_shift(n);
-                };
+                }
                 Command::none()
             }
             Message::FogLength(length) => {
@@ -1189,7 +1189,7 @@ impl<R: Requests> Program for ColorOverlay<R> {
             ColorMessage::FinishChangingColor => {
                 self.requests.lock().unwrap().finish_changing_color();
             }
-        };
+        }
         Command::none()
     }
 

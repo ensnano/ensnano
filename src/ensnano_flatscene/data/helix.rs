@@ -344,7 +344,7 @@ impl Helix {
         match handle {
             HelixHandle::Left => self.left = self.right - 1,
             HelixHandle::Right => self.right = self.left + 1,
-        };
+        }
         (self.left, self.right)
     }
 

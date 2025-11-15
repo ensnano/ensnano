@@ -525,7 +525,7 @@ impl<E: OrganizerElement> Organizer<E> {
                     Self::add_selection(&mut current_selection, key, false);
                 }
                 self.selected_nodes.insert(id.clone());
-            };
+            }
             None
         } else if self.selected_nodes.len() == 1 && self.selected_nodes.contains(id) {
             self.selected_nodes = BTreeSet::new();
@@ -583,7 +583,7 @@ impl<E: OrganizerElement> Organizer<E> {
         } else {
             current_selection.clear();
             current_selection.insert(key.clone());
-        };
+        }
         current_selection
     }
 

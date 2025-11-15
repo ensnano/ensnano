@@ -115,7 +115,7 @@ impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
             log::trace!("operation is some");
         } else {
             log::trace!("operation is none");
-        };
+        }
         match message {
             Message::ValueStrChanged(n, s) => {
                 if let Some(operation) = self.operation.as_mut() {

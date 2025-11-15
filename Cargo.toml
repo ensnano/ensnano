@@ -158,6 +158,7 @@ indexing_slicing = "allow"
 integer_division = "allow"
 integer_division_remainder_used = "allow"
 iter_over_hash_type = "allow"
+let_underscore_untyped = "allow"
 min_ident_chars = "allow"
 missing_assert_message = "allow"
 missing_docs_in_private_items = "allow" # TODO: warn (major undertaking)

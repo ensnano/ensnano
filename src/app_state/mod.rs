@@ -503,7 +503,7 @@ impl AppState {
         update(&mut new_state.parameters);
         if let Err(e) = confy::store(APP_NAME, APP_NAME, new_state.parameters.clone()) {
             log::error!("Could not save preferences {e:?}");
-        };
+        }
         Self(AddressPointer::new(new_state))
     }
 

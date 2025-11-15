@@ -165,7 +165,7 @@ fn triangle_indices_from_strip(indices: Vec<u16>) -> Vec<u16> {
             triangle_from_strip_indices.push(indices[i + 1]);
             triangle_from_strip_indices.push(indices[i]);
             triangle_from_strip_indices.push(indices[i + 2]);
-        };
+        }
     }
     triangle_from_strip_indices
 }

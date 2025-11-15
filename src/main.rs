@@ -832,7 +832,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         last_gui_state.1.clone(),
                     );
                     redraw = true;
-                };
+                }
                 last_render_time = now;
 
                 if redraw {
@@ -956,7 +956,7 @@ impl OverlayManager {
                             });
                         }
                         iced::Renderer::TinySkia(_) => panic!("Unhandled renderer"),
-                    };
+                    }
                 }
             }
         }

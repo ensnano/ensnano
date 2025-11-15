@@ -123,7 +123,7 @@ where
                 return event::Status::Captured;
             }
             _ => (),
-        };
+        }
         status
     }
 
