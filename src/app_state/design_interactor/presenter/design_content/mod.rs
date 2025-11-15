@@ -335,15 +335,14 @@ impl DesignContent {
                     .into()
                 }),
                 color_str: format!("{:#08X}", staple_info.color)
-                    .trim_start_matches("0x")
-                    .to_string(),
+                    .trim_start_matches("0x").to_owned(),
                 group_names: staple_info.group_names.clone(),
                 group_names_string: staple_info.group_names.join(" ; "),
                 length_str: staple_info.length.to_string(),
                 domain_decomposition: staple_info
                     .domain_decomposition
                     .split_once("=")
-                    .map(|split| split.1.to_string())
+                    .map(|split| split.1.to_owned())
                     .unwrap_or(staple_info.domain_decomposition.clone()),
                 intervals: staple_info.intervals.clone(),
             });
@@ -484,7 +483,7 @@ impl DesignContent {
                 if _s.len() == 2
                     && let Ok(value) = f32::from_str(_s[1])
                 {
-                    clone_variables.insert(_s[0].to_string(), value);
+                    clone_variables.insert(_s[0].to_owned(), value);
                 }
             }
 
@@ -1171,8 +1170,8 @@ impl DesignContent {
         }
 
         if PRINTOUT_NUCL_POSITIONS && !nucleotide.is_empty() {
-            let mut s1 = "{\n\t".to_string();
-            let mut s2 = "{\n\t".to_string();
+            let mut s1 = "{\n\t".to_owned();
+            let mut s2 = "{\n\t".to_owned();
             for (i, n) in &nucleotide {
                 let p = &axis_space_position[i];
                 s1.push_str(

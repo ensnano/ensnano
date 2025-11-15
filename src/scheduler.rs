@@ -43,13 +43,14 @@ impl Scheduler {
         cursor_position: PhysicalPosition<f64>,
         app_state: AppState,
     ) -> Option<CursorIcon> {
-        if let Some(app) = self.applications.get_mut(&area) {
-            app.lock()
-                .unwrap()
-                .on_event(event, cursor_position, &app_state)
-        } else {
-            None
-        }
+        self.applications
+            .get_mut(&area)
+            .map(|app| {
+                app.lock()
+                    .unwrap()
+                    .on_event(event, cursor_position, &app_state)
+            })
+            .flatten()
     }
 
     pub fn check_redraw(

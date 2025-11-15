@@ -127,6 +127,7 @@ multiple_crate_versions = "allow"
 
 # nursery
 missing_const_for_fn = "allow" # TODO: warn
+option_if_let_else = "allow"
 suboptimal_flops = "allow"
 
 # pedantic
@@ -140,6 +141,8 @@ needless_pass_by_value = "allow" # TODO: warn
 option_option = "allow"
 unused_self = "allow" # TODO: warn (weird that we have 64 occurrences)
 similar_names = "allow"
+struct_field_names = "allow"
+too_many_lines = "allow" # TODO: warn
 
 # restriction
 allow_attributes_without_reason = "allow"
@@ -148,6 +151,7 @@ arithmetic_side_effects = "allow"
 as_conversions = "allow"
 cast_precision_loss = "allow"
 clone_on_ref_ptr = "allow" # TODO: warn (too much manual work for now)
+cognitive_complexity = "allow" # TODO: warn (surprisingly good suggestions)
 default_numeric_fallback = "allow"
 else_if_without_else = "allow"
 expect_used = "allow"
@@ -187,6 +191,7 @@ unreachable = "allow"
 unseparated_literal_suffix = "allow"
 unwrap_used = "allow"
 use_debug = "allow" # TODO: warn once log! is used everywhere instead of println!
+wildcard_enum_match_arm = "allow"
 
 # suspicious
 arc_with_non_send_sync = "allow" # TODO: warn (requires understand the multiplexer)
@@ -204,4 +209,4 @@ arc_with_non_send_sync = "allow" # TODO: warn (requires understand the multiplex
 # restriction = { level = "allow", priority = -1 }
 # style = { level = "allow", priority = -1 }
 # suspicious = { level = "allow", priority = -1 }
-# explicit_iter_loop = "deny"
+# str_to_string = "deny"

@@ -340,7 +340,7 @@ impl State for SaveAs {
                         )
                     } else {
                         TransitionMessage::new(
-                            "Saved successfully".to_string(),
+                            "Saved successfully".to_owned(),
                             rfd::MessageLevel::Info,
                             self.on_success,
                         )
@@ -383,7 +383,7 @@ impl State for SaveWithPath {
             )
         } else {
             TransitionMessage::new(
-                "Saved successfully".to_string(),
+                "Saved successfully".to_owned(),
                 rfd::MessageLevel::Info,
                 self.on_success,
             )

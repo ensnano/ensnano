@@ -918,7 +918,7 @@ impl Controller {
     ) -> Result<(OkOperation, Self), ErrOperation> {
         match self.check_compatibility(&DesignOperation::SetScaffoldShift(0)) {
             OperationCompatibility::Incompatible => Err(ErrOperation::IncompatibleState(
-                self.state.state_name().to_string(),
+                self.state.state_name().to_owned(),
             )),
             OperationCompatibility::Compatible | OperationCompatibility::FinishFirst => Ok(self
                 .ok_no_op(
@@ -3491,7 +3491,7 @@ impl ControllerState {
                 Ok(())
             }
             _ => Err(ErrOperation::IncompatibleState(
-                self.state_name().to_string(),
+                self.state_name().to_owned(),
             )),
         }
     }
@@ -3528,7 +3528,7 @@ impl ControllerState {
                 Ok(())
             }
             _ => Err(ErrOperation::IncompatibleState(
-                self.state_name().to_string(),
+                self.state_name().to_owned(),
             )),
         }
     }
@@ -3564,7 +3564,7 @@ impl ControllerState {
                 Ok(())
             }
             _ => Err(ErrOperation::IncompatibleState(
-                self.state_name().to_string(),
+                self.state_name().to_owned(),
             )),
         }
     }

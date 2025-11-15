@@ -213,7 +213,7 @@ impl CameraShortcutPanel {
                     name
                 };
                 CameraWidget {
-                    name: name.to_string(),
+                    name: name.to_owned(),
                     being_edited,
                     camera_id: id,
                 }

@@ -735,9 +735,9 @@ fn values_of_selection(selection: &Selection, reader: &dyn GuiDesignReaderExt) -
                 .iter()
                 .map(|b| {
                     if *b {
-                        "true".to_string()
+                        "true".to_owned()
                     } else {
-                        "false".to_string()
+                        "false".to_owned()
                     }
                 })
                 .collect();

@@ -101,7 +101,7 @@ impl<S: AppState> fmt::Debug for CurveDescriptorBuilder<S> {
 
 impl<S: AppState> ToString for CurveDescriptorBuilder<S> {
     fn to_string(&self) -> String {
-        self.curve_name.to_string()
+        self.curve_name.to_owned()
     }
 }
 

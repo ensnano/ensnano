@@ -456,58 +456,58 @@ impl ExplicitODE<f32> for HelixSystem {
     }
 
     fn init_cond(&self) -> Vector<f32> {
-        if let Some(state) = self.last_state.clone() {
-            state
-        } else {
-            let nb_iter = self.helices.len() + self.free_nucls.len();
-            let mut ret = Vec::with_capacity(13 * nb_iter);
-            for i in 0..self.helices.len() {
-                let position = self.helices[i].center_of_mass();
-                ret.push(position.x);
-                ret.push(position.y);
-                ret.push(position.z);
-                let rotation = self.helices[i].orientation;
-
-                ret.push(rotation.s);
-                ret.push(rotation.bv.xy);
-                ret.push(rotation.bv.xz);
-                ret.push(rotation.bv.yz);
-
-                let linear_momentum = Vec3::zero();
-
-                ret.push(linear_momentum.x);
-                ret.push(linear_momentum.y);
-                ret.push(linear_momentum.z);
-
-                let angular_momentum = Vec3::zero();
-                ret.push(angular_momentum.x);
-                ret.push(angular_momentum.y);
-                ret.push(angular_momentum.z);
-            }
-            for pos in &self.free_nucl_position {
-                ret.push(pos.x);
-                ret.push(pos.y);
-                ret.push(pos.z);
-
-                let rotation = Rotor3::identity();
-                ret.push(rotation.s);
-                ret.push(rotation.bv.xy);
-                ret.push(rotation.bv.xz);
-                ret.push(rotation.bv.yz);
-
-                let linear_momentum = Vec3::zero();
-
-                ret.push(linear_momentum.x);
-                ret.push(linear_momentum.y);
-                ret.push(linear_momentum.z);
-
-                let angular_momentum = Vec3::zero();
-                ret.push(angular_momentum.x);
-                ret.push(angular_momentum.y);
-                ret.push(angular_momentum.z);
-            }
-            Vector::new_row(ret)
+        if let Some(ref state) = self.last_state {
+            return state.clone();
         }
+
+        let nb_iter = self.helices.len() + self.free_nucls.len();
+        let mut ret = Vec::with_capacity(13 * nb_iter);
+        for i in 0..self.helices.len() {
+            let position = self.helices[i].center_of_mass();
+            ret.push(position.x);
+            ret.push(position.y);
+            ret.push(position.z);
+            let rotation = self.helices[i].orientation;
+
+            ret.push(rotation.s);
+            ret.push(rotation.bv.xy);
+            ret.push(rotation.bv.xz);
+            ret.push(rotation.bv.yz);
+
+            let linear_momentum = Vec3::zero();
+
+            ret.push(linear_momentum.x);
+            ret.push(linear_momentum.y);
+            ret.push(linear_momentum.z);
+
+            let angular_momentum = Vec3::zero();
+            ret.push(angular_momentum.x);
+            ret.push(angular_momentum.y);
+            ret.push(angular_momentum.z);
+        }
+        for pos in &self.free_nucl_position {
+            ret.push(pos.x);
+            ret.push(pos.y);
+            ret.push(pos.z);
+
+            let rotation = Rotor3::identity();
+            ret.push(rotation.s);
+            ret.push(rotation.bv.xy);
+            ret.push(rotation.bv.xz);
+            ret.push(rotation.bv.yz);
+
+            let linear_momentum = Vec3::zero();
+
+            ret.push(linear_momentum.x);
+            ret.push(linear_momentum.y);
+            ret.push(linear_momentum.z);
+
+            let angular_momentum = Vec3::zero();
+            ret.push(angular_momentum.x);
+            ret.push(angular_momentum.y);
+            ret.push(angular_momentum.z);
+        }
+        Vector::new_row(ret)
     }
 }
 

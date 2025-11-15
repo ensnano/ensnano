@@ -26,7 +26,7 @@ impl<State: AppState> GuiTab<State> for PenTab<State> {
         let selected_path_id = app_state.get_selected_bezier_path();
         let path_txt = match selected_path_id {
             Some(p) => format!("{p:?}"),
-            None => "None".to_string(),
+            None => "None".to_owned(),
         };
 
         let content = self::column![

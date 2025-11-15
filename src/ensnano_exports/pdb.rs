@@ -160,11 +160,11 @@ impl PdbNucleotide {
             let p = self
                 .base_atoms
                 .get(pair[0])
-                .ok_or_else(|| PdbError::MissingAtom(pair[0].to_string()))?;
+                .ok_or_else(|| PdbError::MissingAtom(pair[0].to_owned()))?;
             let q = self
                 .base_atoms
                 .get(pair[1])
-                .ok_or_else(|| PdbError::MissingAtom(pair[1].to_string()))?;
+                .ok_or_else(|| PdbError::MissingAtom(pair[1].to_owned()))?;
             ret += p.position - q.position;
         }
 
@@ -186,7 +186,7 @@ impl PdbNucleotide {
         let get_base_atom = |name: &str| {
             self.base_atoms
                 .get(name)
-                .ok_or_else(|| PdbError::MissingAtom(name.to_string()))
+                .ok_or_else(|| PdbError::MissingAtom(name.to_owned()))
         };
         let ring_atom_names = ["C2", "C4", "C5", "C6", "N1", "N3"];
 
@@ -247,12 +247,12 @@ impl PdbNucleotide {
         let get_phosphate_atom = |name: &str| {
             self.phosphate_atoms
                 .get(name)
-                .ok_or_else(|| PdbError::MissingAtom(name.to_string()))
+                .ok_or_else(|| PdbError::MissingAtom(name.to_owned()))
         };
         let get_sugar_atom = |name: &str| {
             self.sugar_atoms
                 .get(name)
-                .ok_or_else(|| PdbError::MissingAtom(name.to_string()))
+                .ok_or_else(|| PdbError::MissingAtom(name.to_owned()))
         };
         match residue_type {
             ResidueType::Prime5 => {
@@ -508,8 +508,8 @@ impl PdbAtom {
             .trim()
             .parse::<usize>()
             .map_err(|_| PdbAtomParseError::InvalidSerialNumber)?;
-        let name = input[12..16].trim().to_string();
-        let residue_name = input[17..20].trim().to_string();
+        let name = input[12..16].trim().to_owned();
+        let residue_name = input[17..20].trim().to_owned();
         let chain_id: char = input
             .chars()
             .nth(21)
@@ -622,7 +622,7 @@ impl PdbStrand<'_> {
             .reference
             .get_nucl(&base.to_string())
             .or_else(|| self.pdb_formatter.reference.get_nucl("A"))
-            .ok_or_else(|| PdbError::MissingAtom("A".to_string()))?
+            .ok_or_else(|| PdbError::MissingAtom("A".to_owned()))?
             .clone()
             .with_residue_idx(self.nucleotides.len() + 1)
             .translated_by(position)

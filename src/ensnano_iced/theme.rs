@@ -22,7 +22,7 @@ pub const GUI_PALETTE: Palette = Palette {
 };
 
 pub fn gui_theme() -> Theme {
-    Theme::custom("ENSnano UI Theme".to_string(), GUI_PALETTE)
+    Theme::custom("ENSnano UI Theme".to_owned(), GUI_PALETTE)
 }
 
 pub fn gui_style(theme: &Theme) -> Style {

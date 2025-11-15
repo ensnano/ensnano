@@ -194,6 +194,6 @@ impl<E: std::error::Error> From<E> for SaveDesignError {
 
 impl SaveDesignError {
     pub fn cannot_open_default_dir() -> Self {
-        Self(CANNOT_OPEN_DEFAULT_DIR.to_string())
+        Self(CANNOT_OPEN_DEFAULT_DIR.to_owned())
     }
 }

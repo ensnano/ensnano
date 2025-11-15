@@ -161,13 +161,13 @@ impl StaplesDownloader for DesignInteractor {
                                 .set_background_color(Color::RGB(color))
                                 .set_font_color(font_color);
                             sheet
-                                .write_with_format(i as u32, j as u16, row[j].to_string(), &format)
+                                .write_with_format(i as u32, j as u16, row[j].to_owned(), &format)
                                 .expect("error write cell");
                             continue;
                         }
                     }
                     sheet
-                        .write(i as u32, j as u16, row[j].to_string())
+                        .write(i as u32, j as u16, row[j].to_owned())
                         .expect("error write cell");
                 }
             }
@@ -177,7 +177,7 @@ impl StaplesDownloader for DesignInteractor {
 
         let sheet: &mut rust_xlsxwriter::Worksheet = wb
             .add_worksheet()
-            .set_name("All staples".to_string())
+            .set_name("All staples".to_owned())
             .expect("Excel error: cannot create worksheet");
         let mut write_once = true;
         let mut all_i = 0;
@@ -222,13 +222,13 @@ impl StaplesDownloader for DesignInteractor {
                                 .set_background_color(Color::RGB(color))
                                 .set_font_color(font_color);
                             sheet
-                                .write_with_format(all_i, j as u16, row[j].to_string(), &format)
+                                .write_with_format(all_i, j as u16, row[j].to_owned(), &format)
                                 .expect("error write cell");
                             continue;
                         }
                     }
                     sheet
-                        .write(all_i, j as u16, row[j].to_string())
+                        .write(all_i, j as u16, row[j].to_owned())
                         .expect("error write cell");
                 }
                 all_i += 1;
@@ -253,7 +253,7 @@ impl StaplesDownloader for DesignInteractor {
                 .current_design
                 .scaffold_sequence
                 .clone()
-                .unwrap_or("NO SEQUENCE".to_string()),
+                .unwrap_or("NO SEQUENCE".to_owned()),
             intervals: staples
                 .iter()
                 .map(|s| (s.intervals.staple_id, s.intervals.intervals.clone()))

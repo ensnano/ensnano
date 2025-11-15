@@ -298,7 +298,7 @@ impl<D: Instantiable> InstanceDrawer<D> {
         } else {
             D::primitive_topology()
         };
-        let label_string = label.as_ref().to_string();
+        let label_string = label.as_ref().to_owned();
 
         let pipeline = Self::create_pipeline(
             &device,

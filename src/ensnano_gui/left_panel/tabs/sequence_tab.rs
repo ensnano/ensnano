@@ -39,7 +39,7 @@ impl<State: AppState> SequenceTab<State> {
     pub fn new() -> Self {
         Self {
             toggle_text_value: false,
-            scaffold_position_str: "0".to_string(),
+            scaffold_position_str: "0".to_owned(),
             scaffold_position: 0,
             _state_type: PhantomData,
         }

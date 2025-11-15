@@ -37,7 +37,7 @@ impl<StrandLabel: serde::Serialize, DomainLabel: serde::Serialize>
     /// Initiates a design.
     pub fn new() -> Self {
         Self {
-            version: env!("CARGO_PKG_VERSION").to_string(),
+            version: env!("CARGO_PKG_VERSION").to_owned(),
             helices: Vec::new(),
             strands: Vec::new(),
             parameters: Some(Parameters::DEFAULT),

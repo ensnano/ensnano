@@ -761,7 +761,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 .messages
                                 .lock()
                                 .unwrap()
-                                .push_progress("Optimizing: ".to_string(), x);
+                                .push_progress("Optimizing: ".to_owned(), x);
                         }
                         ChannelReaderUpdate::ScaffoldShiftOptimizationResult(result) => {
                             main_state.messages.lock().unwrap().finish_progress();

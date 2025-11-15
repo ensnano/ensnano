@@ -495,9 +495,9 @@ impl Operation for Xover {
 
     fn description(&self) -> String {
         if self.undo {
-            "Undo Cut".to_string()
+            "Undo Cut".to_owned()
         } else {
-            "Do Cut".to_string()
+            "Do Cut".to_owned()
         }
     }
 }

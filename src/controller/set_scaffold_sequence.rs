@@ -27,7 +27,7 @@ impl SetScaffoldSequence {
     }
 
     fn use_default(shift: usize, sequence: StandardSequence) -> Self {
-        let sequence = sequence.sequence().to_string();
+        let sequence = sequence.sequence().to_owned();
         Self {
             step: Step::SetSequence(sequence),
             shift,

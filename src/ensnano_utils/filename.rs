@@ -16,7 +16,7 @@ pub fn derive_path_with_prefix_and_time_stamp_and_suffix(
     let suffix = if let Some(suf) = suffix {
         format!("-{suf}")
     } else {
-        "".to_string()
+        "".to_owned()
     };
     let extension = extension.unwrap_or(DEFAULT_FILE_EXTENSION);
     match from_path {
@@ -24,7 +24,7 @@ pub fn derive_path_with_prefix_and_time_stamp_and_suffix(
             let file_stem = if let Some(stem) = path.file_stem() {
                 stem.to_str().unwrap().to_owned() + "-"
             } else {
-                "".to_string()
+                "".to_owned()
             };
             let file_name = format!("{file_stem}{prefix}-{time_stamp}{suffix}.{extension}");
             path.with_file_name(file_name)

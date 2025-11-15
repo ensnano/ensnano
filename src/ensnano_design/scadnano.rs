@@ -29,7 +29,7 @@ impl ScadnanoDesign {
             grid_type => {
                 println!("Unsupported grid type: {grid_type}");
                 Err(ScadnanoImportError::UnsupportedGridType(
-                    grid_type.to_string(),
+                    grid_type.to_owned(),
                 ))
             }
         }?;
@@ -64,7 +64,7 @@ impl ScadnanoGroup {
             grid_type => {
                 println!("Unsupported grid type: {grid_type}");
                 Err(ScadnanoImportError::UnsupportedGridType(
-                    grid_type.to_string(),
+                    grid_type.to_owned(),
                 ))
             }
         }?;
@@ -124,7 +124,7 @@ impl ScadnanoStrand {
         if let Ok(ret) = ret {
             Ok(ret)
         } else {
-            Err(ScadnanoImportError::InvalidColor(color_str.to_string()))
+            Err(ScadnanoImportError::InvalidColor(color_str.to_owned()))
         }
     }
 
