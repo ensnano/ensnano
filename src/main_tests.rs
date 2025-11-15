@@ -1,8 +1,8 @@
 //! Test suite for the `MainState` structure
 
 use super::*;
-use crate::ensnano_interactor::application::Camera3D;
-use crate::{ensnano_design::Nucl, ensnano_interactor::graphics::DrawArea};
+use crate::ensnano_design::Nucl;
+use crate::ensnano_interactor::{application::Camera3D, graphics::DrawArea};
 use winit::{dpi::PhysicalPosition, window::CursorIcon};
 
 struct DummyScene {}

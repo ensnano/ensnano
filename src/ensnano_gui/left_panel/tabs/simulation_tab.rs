@@ -174,7 +174,7 @@ impl<State: AppState> GuiTab<State> for SimulationTab<State> {
 }
 
 #[derive(Default)]
-struct PhysicalSimulation {}
+struct PhysicalSimulation;
 
 impl PhysicalSimulation {
     fn view<'b, State: AppState>(

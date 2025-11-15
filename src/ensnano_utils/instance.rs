@@ -2,7 +2,7 @@ use ultraviolet::{Mat4, Vec4};
 
 #[derive(Debug, Copy, Clone)]
 /// The instantiation of an object
-pub struct Instance {}
+pub struct Instance;
 
 #[repr(C)]
 #[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]

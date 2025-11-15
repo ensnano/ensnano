@@ -1212,7 +1212,7 @@ impl<R: Requests> Program for ColorOverlay<R> {
     }
 }
 
-pub struct Hyperboloid_ {}
+pub struct Hyperboloid_;
 
 impl Requestable for Hyperboloid_ {
     type Request = HyperboloidRequest;
@@ -1323,7 +1323,7 @@ impl Requestable for ScrollSensitivity {
     }
 }
 
-struct HelixRoll {}
+struct HelixRoll;
 
 impl Requestable for HelixRoll {
     type Request = f32;

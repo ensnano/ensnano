@@ -2,7 +2,7 @@ use super::{AppState, ExportType, Message};
 use crate::ensnano_iced::helpers::*;
 
 #[derive(Default)]
-pub struct ExportMenu {}
+pub struct ExportMenu;
 
 impl ExportMenu {
     pub fn view<State>(&self) -> iced::Element<'_, Message<State>>
