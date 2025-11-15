@@ -332,9 +332,7 @@ impl Presenter {
     }
 
     fn selection_contains_nucl(&self, selection: &[Selection], nucl: Nucl) -> bool {
-        let identifier_nucl = if let Some(id) = self.content.nucl_collection.get_identifier(&nucl) {
-            id
-        } else {
+        let Some(identifier_nucl) = self.content.nucl_collection.get_identifier(&nucl) else {
             return false;
         };
         let mut ret = false;
@@ -662,19 +660,15 @@ impl DesignInteractor {
 
     /// Return the xover extremity status of nucl.
     pub fn is_xover_end(&self, nucl: &Nucl) -> Extremity {
-        let strand_id = if let Some(id) = self.get_id_of_strand_containing_nucl(nucl) {
-            id
-        } else {
+        let Some(strand_id) = self.get_id_of_strand_containing_nucl(nucl) else {
+            return Extremity::No;
+        };
+        let Some(strand) = self.presenter.current_design.strands.get(&strand_id) else {
             return Extremity::No;
         };
 
-        let strand = if let Some(strand) = self.presenter.current_design.strands.get(&strand_id) {
-            strand
-        } else {
-            return Extremity::No;
-        };
         let mut prev_helix = None;
-        for domain in strand.domains.iter() {
+        for domain in &strand.domains {
             if domain.prime5_end() == Some(*nucl) && prev_helix != domain.half_helix() {
                 return Extremity::Prime5;
             } else if domain.prime3_end() == Some(*nucl) {
