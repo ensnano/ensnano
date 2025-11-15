@@ -118,14 +118,14 @@ pub enum Color {
 impl Color {
     /// Returns the u32 encoding this color.
     pub fn as_int(&self) -> u32 {
-        match *self {
-            Self::Int(n) => n,
-            Self::Hex(ref s) => {
+        match self {
+            Self::Int(n) => *n,
+            Self::Hex(s) => {
                 let s = s.trim_start_matches("0x");
                 let s = s.trim_start_matches('#');
                 u32::from_str_radix(s, 16).unwrap()
             }
-            Self::Rgb { r, g, b } => ((r as u32) << 16) | ((g as u32) << 8) | (b as u32),
+            Self::Rgb { r, g, b } => ((*r as u32) << 16) | ((*g as u32) << 8) | (*b as u32),
         }
     }
 

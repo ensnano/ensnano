@@ -110,7 +110,7 @@ impl Letter {
             };
             let mut pixels = vec![0u8; (size.width * size.height * 4) as usize];
 
-            if let Some(ref previous) = last_pixels {
+            if let Some(previous) = &last_pixels {
                 for x in 0..size.width as usize {
                     for y in 0..size.height as usize {
                         // We use 4 bytes per pixel because we use BgraUnormSrgb format

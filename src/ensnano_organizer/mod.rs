@@ -1475,7 +1475,7 @@ impl<E: OrganizerElement> GroupContent<E> {
     }
 
     fn add_at_id(&mut self, id: &[usize], content: Self, from_top: bool) {
-        let content_key = if let Self::Leaf { ref element, .. } = content {
+        let content_key = if let Self::Leaf { element, .. } = &content {
             self.has_key_no_rec(element)
         } else {
             false

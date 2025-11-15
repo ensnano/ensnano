@@ -547,7 +547,7 @@ impl Design {
         grids.push(default_grid);
         let mut helices_per_group = vec![0];
         let mut groups: Vec<ScadnanoGroup> = vec![Default::default()];
-        if let Some(ref scad_groups) = scad.groups {
+        if let Some(scad_groups) = &scad.groups {
             for (name, g) in scad_groups {
                 let group = g.to_grid_desc()?;
                 groups.push(g.clone());

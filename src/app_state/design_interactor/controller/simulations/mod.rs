@@ -456,7 +456,7 @@ impl ExplicitODE<f32> for HelixSystem {
     }
 
     fn init_cond(&self) -> Vector<f32> {
-        if let Some(ref state) = self.last_state {
+        if let Some(state) = &self.last_state {
             return state.clone();
         }
 

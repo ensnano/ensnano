@@ -479,8 +479,8 @@ impl View {
                     self.projection.clone(),
                 );
             }
-            ViewUpdate::ModelMatrices(ref matrices) => {
-                self.models.update(matrices.clone().as_slice());
+            ViewUpdate::ModelMatrices(matrices) => {
+                self.models.update(matrices.as_slice());
             }
             ViewUpdate::Letter(letter) => {
                 for (i, instance) in letter.into_iter().enumerate() {
@@ -594,7 +594,7 @@ impl View {
 
         let attachment = match draw_type {
             DrawType::Scene => {
-                if let Some(ref msaa) = self.msaa_texture {
+                if let Some(msaa) = &self.msaa_texture {
                     msaa
                 } else {
                     target

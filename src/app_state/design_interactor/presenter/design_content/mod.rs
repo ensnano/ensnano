@@ -451,7 +451,7 @@ impl DesignContent {
         let grid_manager = design.get_updated_grid_data().clone();
 
         // Build drawing style map from organizer tree
-        if let Some(ref t) = design.organizer_tree {
+        if let Some(t) = &design.organizer_tree {
             // Read drawing style
             let prefix = "style:"; // PREFIX SHOULD BELONG TO CONST.RS
             let h = t.get_hashmap_to_all_group_names_with_prefix(prefix);
@@ -1072,7 +1072,7 @@ impl DesignContent {
 
             // Clone - hacked version
             // Get the clone transformations from the file
-            if let Some(ref clone_isometries_descriptors) = design.clone_isometries {
+            if let Some(clone_isometries_descriptors) = &design.clone_isometries {
                 clone_transformations.extend(
                     clone_isometries_descriptors
                         .iter()

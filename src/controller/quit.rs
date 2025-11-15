@@ -329,9 +329,9 @@ impl SaveAs {
 
 impl State for SaveAs {
     fn make_progress(mut self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn State> {
-        if let Some(ref getter) = self.file_getter {
+        if let Some(getter) = &self.file_getter {
             if let Some(path_opt) = getter.get() {
-                if let Some(ref path) = path_opt {
+                if let Some(path) = &path_opt {
                     if let Err(err) = main_state.save_design(path) {
                         TransitionMessage::new(
                             format!("Failed to save: {:?}", err.0),
@@ -415,9 +415,9 @@ impl Exporting {
 
 impl State for Exporting {
     fn make_progress(mut self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn State> {
-        if let Some(ref getter) = self.file_getter {
+        if let Some(getter) = &self.file_getter {
             if let Some(path_opt) = getter.get() {
-                if let Some(ref path) = path_opt {
+                if let Some(path) = &path_opt {
                     match main_state.export(path, self.export_type) {
                         Err(err) => TransitionMessage::new(
                             messages::failed_to_save_msg(&err),

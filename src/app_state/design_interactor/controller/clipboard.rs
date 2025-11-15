@@ -189,7 +189,7 @@ impl Controller {
                     domains.push(DomainTemplate::Insertion(*nb_nucl));
                 }
                 Domain::HelixDomain(dom) => {
-                    if let Some(ref pos1) = previous_position {
+                    if let Some(pos1) = &previous_position {
                         let helix = helices
                             .get(&dom.helix)
                             .ok_or(ErrOperation::HelixDoesNotExists(dom.helix))?;
@@ -401,7 +401,7 @@ impl Controller {
                     end,
                     forward,
                 } => {
-                    if let Some(ref pos1) = previous_position {
+                    if let Some(pos1) = &previous_position {
                         let edge = edge_iter.next().ok_or(ErrOperation::CannotPasteHere)?;
                         let pos2 = grid_manager
                             .translate_by_edge(pos1, edge)
@@ -768,31 +768,27 @@ impl Controller {
     }
 
     pub fn get_pasted_position(&self) -> Vec<(Vec<Vec3>, bool)> {
-        match self.state {
-            ControllerState::PositioningStrandPastingPoint {
-                ref pasted_strands, ..
-            } => pasted_strands
+        match &self.state {
+            ControllerState::PositioningStrandPastingPoint { pasted_strands, .. } => pasted_strands
                 .iter()
                 .map(|s| (s.nucl_position.clone(), s.pastable))
                 .collect(),
-            ControllerState::PositioningStrandDuplicationPoint {
-                ref pasted_strands, ..
-            } => pasted_strands
-                .iter()
-                .map(|s| (s.nucl_position.clone(), s.pastable))
-                .collect(),
+            ControllerState::PositioningStrandDuplicationPoint { pasted_strands, .. } => {
+                pasted_strands
+                    .iter()
+                    .map(|s| (s.nucl_position.clone(), s.pastable))
+                    .collect()
+            }
             _ => vec![],
         }
     }
 
     pub fn get_copy_points(&self) -> Vec<Vec<Nucl>> {
-        let pasted_strands = match self.state {
-            ControllerState::PositioningStrandPastingPoint {
-                ref pasted_strands, ..
-            } => pasted_strands,
-            ControllerState::PositioningStrandDuplicationPoint {
-                ref pasted_strands, ..
-            } => pasted_strands,
+        let pasted_strands = match &self.state {
+            ControllerState::PositioningStrandPastingPoint { pasted_strands, .. } => pasted_strands,
+            ControllerState::PositioningStrandDuplicationPoint { pasted_strands, .. } => {
+                pasted_strands
+            }
             _ => return vec![],
         };
 

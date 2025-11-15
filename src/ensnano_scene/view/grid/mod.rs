@@ -84,7 +84,7 @@ impl GridInstance {
     fn to_raw(&self) -> GridInstanceRaw {
         use crate::ensnano_utils::instance::Instance;
         let (min_x, min_y, max_x, max_y);
-        if let GridType::Hyperboloid(ref h) = self.grid.grid_type {
+        if let GridType::Hyperboloid(h) = &self.grid.grid_type {
             min_x = -h.grid_radius(&self.grid.helix_parameters);
             max_x = h.grid_radius(&self.grid.helix_parameters);
             min_y = -h.grid_radius(&self.grid.helix_parameters);
@@ -160,7 +160,7 @@ impl GridInstance {
     }
 
     fn contains_point(&self, x: f32, y: f32) -> bool {
-        if let GridType::Hyperboloid(ref h) = self.grid.grid_type {
+        if let GridType::Hyperboloid(h) = &self.grid.grid_type {
             h.contains_point(&self.grid.helix_parameters, x, y)
         } else {
             let (x, y) = self.convert_coord(x, y);

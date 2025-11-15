@@ -192,7 +192,7 @@ impl StrandBuilder {
                     .any(|d| d.is_same_domain_than(&neighbor.identifier))
             })
             .filter(|neighbor| neighbor.identifier.start != self.identifier.start);
-        if let Some(ref desc) = desc
+        if let Some(desc) = &desc
             && self.attach_neighbor(desc)
         {
             self.max_pos = self.max_pos.or(Some(desc.fixed_end - 1));
@@ -220,7 +220,7 @@ impl StrandBuilder {
                     .any(|d| d.is_same_domain_than(&neighbor.identifier))
             })
             .filter(|neighbor| neighbor.identifier.start != self.identifier.start);
-        if let Some(ref desc) = desc
+        if let Some(desc) = &desc
             && self.attach_neighbor(desc)
         {
             self.min_pos = self.min_pos.or(Some(desc.fixed_end + 1));

@@ -85,7 +85,7 @@ impl InsertionDrawer {
     }
 
     fn update_instances(&mut self) {
-        if let Some(ref instances) = self.new_instances {
+        if let Some(instances) = &self.new_instances {
             self.number_instances = instances.len();
             let instances_data: Vec<_> = instances.to_vec();
             self.instances.update(instances_data.as_slice());

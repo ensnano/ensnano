@@ -547,7 +547,7 @@ impl<D: Instantiable> RawDrawer for InstanceDrawer<D> {
             render_pass.set_bind_group(0, viewer_bind_group, &[]);
             render_pass.set_bind_group(1, model_bind_group, &[]);
             render_pass.set_bind_group(2, self.instances.get_bindgroup(), &[]);
-            if let Some(ref additional_bind_group) = self.additional_bind_group {
+            if let Some(additional_bind_group) = &self.additional_bind_group {
                 render_pass.set_bind_group(3, additional_bind_group, &[]);
             }
 

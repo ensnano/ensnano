@@ -1088,8 +1088,8 @@ impl InstantiatedCurveDescriptor_ {
                 helix_parameters,
             )),
             Self::SuperTwist(twist) => Arc::new(Curve::new(twist, helix_parameters)),
-            Self::TwistedTorus(ref desc) => {
-                if let Some(curve) = cache.0.get(desc) {
+            Self::TwistedTorus(desc) => {
+                if let Some(curve) = cache.0.get(&desc) {
                     curve.clone()
                 } else {
                     let ret = Arc::new(Curve::new(

@@ -1785,7 +1785,7 @@ impl Controller {
     fn fancy_recolor_staples(&mut self, mut design: Design) -> Design {
         let mut drawing_styles = HashMap::<DesignElementKey, DrawingStyle>::default();
 
-        if let Some(ref t) = design.organizer_tree {
+        if let Some(t) = &design.organizer_tree {
             // Read drawing style -> this should be a function on its own, the exact same code is used in design-content
             let prefix = "style:"; // PREFIX SHOULD BELONG TO CONST.RS
             let h = t.get_hashmap_to_all_group_names_with_prefix(prefix);
@@ -2318,7 +2318,7 @@ impl Controller {
             prev_helix = domain.half_helix();
         }
 
-        if let Some(ref domains) = domains {
+        if let Some(domains) = &domains {
             prim5_domains.push(domains.0.clone());
             prim3_domains.push(domains.1.clone());
             i += 1;
@@ -2425,7 +2425,7 @@ impl Controller {
         }
         let last_dom = last_dom.expect("Could not find nucl in strand");
         let mut new_domains = Vec::new();
-        if let Some((_, ref d2)) = replace_last_dom {
+        if let Some((_, d2)) = &replace_last_dom {
             new_domains.push(d2.clone());
             junctions.push(strand.junctions[last_dom].clone());
         }
@@ -2438,7 +2438,7 @@ impl Controller {
             junctions.push(strand.junctions[i].clone());
         }
 
-        if let Some((ref d1, _)) = replace_last_dom {
+        if let Some((d1, _)) = &replace_last_dom {
             new_domains.push(d1.clone());
         } else {
             new_domains.push(strand.domains[last_dom].clone());
@@ -2662,7 +2662,7 @@ impl Controller {
             {
                 let new_seq = seq5.into_owned() + &seq3;
                 Some(Cow::Owned(new_seq))
-            } else if let Some(ref seq5) = strand5prime.sequence {
+            } else if let Some(seq5) = &strand5prime.sequence {
                 Some(seq5.clone())
             } else {
                 strand3prime.sequence.as_ref().cloned()
