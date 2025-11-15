@@ -189,9 +189,13 @@ std_instead_of_alloc = "allow"
 std_instead_of_core = "allow"
 unreachable = "allow"
 unseparated_literal_suffix = "allow"
+unwrap_in_result = "allow"
 unwrap_used = "allow"
 use_debug = "allow" # TODO: warn once log! is used everywhere instead of println!
 wildcard_enum_match_arm = "allow"
+
+# style
+wrong_self_convention = "allow" # TODO: warn
 
 # suspicious
 arc_with_non_send_sync = "allow" # TODO: warn (requires understand the multiplexer)
