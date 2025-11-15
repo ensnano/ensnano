@@ -129,7 +129,7 @@ impl ScadnanoStrand {
     }
 
     pub fn read_deletions(&self, deletions: &mut BTreeMap<usize, BTreeSet<isize>>) {
-        for d in self.domains.iter() {
+        for d in &self.domains {
             d.read_deletions(deletions);
         }
     }
@@ -162,7 +162,7 @@ impl ScadnanoDomain {
             } => {
                 if let Some(vec) = deletions {
                     let entry = deletions_map.entry(*helix).or_default();
-                    for d in vec.iter() {
+                    for d in vec {
                         entry.insert(*d);
                     }
                 }
@@ -202,14 +202,14 @@ impl ScadnanoInsertionsDeletions {
             } => {
                 if let Some(vec) = deletions {
                     let entry = self.count.entry(*helix).or_default();
-                    for d in vec.iter() {
+                    for d in vec {
                         let count_entry = entry.entry(*d).or_default();
                         *count_entry -= 1;
                     }
                 }
                 if let Some(vec) = insertions {
                     let entry = self.count.entry(*helix).or_default();
-                    for insertion in vec.iter() {
+                    for insertion in vec {
                         let position = insertion[0];
                         let count = insertion[1];
                         let count_entry = entry.entry(position).or_default();

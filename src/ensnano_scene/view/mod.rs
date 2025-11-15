@@ -500,7 +500,7 @@ impl View {
                     .new_instances_raw(instances.as_ref());
                 if let Some(_mesh) = mesh.to_fake() {
                     let mut instances = instances.as_ref().clone();
-                    for i in instances.iter_mut() {
+                    for i in &mut instances {
                         if i.scale.z <= crate::ensnano_consts::MIN_RADIUS_FOR_FAKE_UPSCALING {
                             i.scale *= crate::ensnano_consts::SELECT_SCALE_FACTOR;
                         }
@@ -707,7 +707,7 @@ impl View {
             }
 
             if !fake_color && !stereographic && self.draw_letter {
-                for drawer in self.letter_drawer.iter_mut() {
+                for drawer in &mut self.letter_drawer {
                     drawer.draw(
                         &mut render_pass,
                         viewer_bind_group,
@@ -728,7 +728,7 @@ impl View {
                     viewer_bind_group,
                     self.models.get_bindgroup(),
                 );
-                for drawer in self.helix_letter_drawer.iter_mut() {
+                for drawer in &mut self.helix_letter_drawer {
                     drawer.draw(
                         &mut render_pass,
                         viewer_bind_group,

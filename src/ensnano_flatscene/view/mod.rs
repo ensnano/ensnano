@@ -385,7 +385,7 @@ impl View {
             self.add_strand(strand, helices);
         }
         let mut insertions = Vec::new();
-        for s in strands.iter() {
+        for s in strands {
             for i in s.get_insertions(helices) {
                 insertions.push(i);
             }
@@ -401,7 +401,7 @@ impl View {
         } else {
             &self.camera_top
         };
-        for s in strands.iter() {
+        for s in strands {
             let mut strand_view = StrandView::new(self.device.clone(), self.queue.clone());
             strand_view.update(s, helices, &None, &self.camera_top, other_cam);
             self.selected_strands.push(strand_view);
@@ -416,7 +416,7 @@ impl View {
         } else {
             &self.camera_top
         };
-        for s in strands.iter() {
+        for s in strands {
             let mut strand_view = StrandView::new(self.device.clone(), self.queue.clone());
             strand_view.update(s, helices, &None, &self.camera_top, other_cam);
             self.candidate_strands.push(strand_view);
@@ -669,12 +669,12 @@ impl View {
         render_pass.set_pipeline(&self.helices_pipeline);
 
         log::trace!("Draw helices background..");
-        for background in self.helices_background.iter() {
+        for background in &self.helices_background {
             background.draw(&mut render_pass);
         }
         log::trace!("Done..");
         log::trace!("Draw helices..");
-        for helix in self.helices_view.iter() {
+        for helix in &self.helices_view {
             helix.draw(&mut render_pass);
         }
         log::trace!("Done..");
@@ -730,27 +730,27 @@ impl View {
         self.insertion_drawer.draw(&mut render_pass);
         render_pass.set_pipeline(&self.strand_pipeline);
         log::trace!("Draw strands..");
-        for strand in self.strands.iter() {
+        for strand in &self.strands {
             strand.draw(&mut render_pass, bottom);
         }
         log::trace!("..OK");
         log::trace!("Draw pasted strands..");
-        for strand in self.pasted_strands.iter() {
+        for strand in &self.pasted_strands {
             strand.draw(&mut render_pass, bottom);
         }
         log::trace!("..OK");
         log::trace!("Draw suggestion..");
-        for suggestion in self.suggestions_view.iter() {
+        for suggestion in &self.suggestions_view {
             suggestion.draw(&mut render_pass, bottom);
         }
         log::trace!("..OK");
         log::trace!("Draw selected strands..");
-        for highlight in self.selected_strands.iter() {
+        for highlight in &self.selected_strands {
             highlight.draw(&mut render_pass, bottom);
         }
         log::trace!("..OK");
         log::trace!("Draw candidate strands..");
-        for highlight in self.candidate_strands.iter() {
+        for highlight in &self.candidate_strands {
             highlight.draw(&mut render_pass, bottom);
         }
         log::trace!("..OK");
@@ -803,19 +803,19 @@ impl View {
         }
 
         render_pass.set_pipeline(&self.strand_pipeline);
-        for strand in self.strands.iter() {
+        for strand in &self.strands {
             strand.draw_split(&mut render_pass, bottom);
         }
-        for strand in self.pasted_strands.iter() {
+        for strand in &self.pasted_strands {
             strand.draw_split(&mut render_pass, bottom);
         }
-        for suggestion in self.suggestions_view.iter() {
+        for suggestion in &self.suggestions_view {
             suggestion.draw_split(&mut render_pass, bottom);
         }
-        for highlight in self.selected_strands.iter() {
+        for highlight in &self.selected_strands {
             highlight.draw_split(&mut render_pass, bottom);
         }
-        for highlight in self.candidate_strands.iter() {
+        for highlight in &self.candidate_strands {
             highlight.draw_split(&mut render_pass, bottom);
         }
 
@@ -866,10 +866,10 @@ impl View {
 
             render_pass.set_pipeline(&self.helices_pipeline);
 
-            for background in self.helices_background.iter() {
+            for background in &self.helices_background {
                 background.draw(&mut render_pass);
             }
-            for helix in self.helices_view.iter() {
+            for helix in &self.helices_view {
                 helix.draw(&mut render_pass);
             }
             self.rotation_widget.draw(&mut render_pass);
@@ -918,19 +918,19 @@ impl View {
             self.text_drawer_bottom.draw(&mut render_pass);
             self.insertion_drawer.draw(&mut render_pass);
             render_pass.set_pipeline(&self.strand_pipeline);
-            for strand in self.strands.iter() {
+            for strand in &self.strands {
                 strand.draw(&mut render_pass, bottom);
             }
-            for strand in self.pasted_strands.iter() {
+            for strand in &self.pasted_strands {
                 strand.draw(&mut render_pass, bottom);
             }
-            for suggestion in self.suggestions_view.iter() {
+            for suggestion in &self.suggestions_view {
                 suggestion.draw(&mut render_pass, bottom);
             }
-            for highlight in self.selected_strands.iter() {
+            for highlight in &self.selected_strands {
                 highlight.draw(&mut render_pass, bottom);
             }
-            for highlight in self.candidate_strands.iter() {
+            for highlight in &self.candidate_strands {
                 highlight.draw(&mut render_pass, bottom);
             }
             render_pass.set_pipeline(&self.helices_pipeline);
@@ -979,19 +979,19 @@ impl View {
             self.background.draw_border(&mut render_pass);
 
             render_pass.set_pipeline(&self.strand_pipeline);
-            for strand in self.strands.iter() {
+            for strand in &self.strands {
                 strand.draw_split(&mut render_pass, bottom);
             }
-            for strand in self.pasted_strands.iter() {
+            for strand in &self.pasted_strands {
                 strand.draw_split(&mut render_pass, bottom);
             }
-            for suggestion in self.suggestions_view.iter() {
+            for suggestion in &self.suggestions_view {
                 suggestion.draw_split(&mut render_pass, bottom);
             }
-            for highlight in self.selected_strands.iter() {
+            for highlight in &self.selected_strands {
                 highlight.draw_split(&mut render_pass, bottom);
             }
-            for highlight in self.candidate_strands.iter() {
+            for highlight in &self.candidate_strands {
                 highlight.draw_split(&mut render_pass, bottom);
             }
         }
@@ -1049,7 +1049,7 @@ impl View {
 
     /// Add the helices circles to the list of circle instances
     fn collect_helices_circles(&self, circles: &mut Vec<CircleInstance>, camera: &CameraPtr) {
-        for h in self.helices.iter() {
+        for h in &self.helices {
             if let Some(circle) = h.get_circle(camera, self.groups.as_ref()) {
                 circles.push(circle);
             }
@@ -1073,7 +1073,7 @@ impl View {
             }
         }
 
-        for h_id in self.candidate_helices.iter() {
+        for h_id in &self.candidate_helices {
             if let Some(mut circle) = self
                 .helices
                 .get(h_id.0)
@@ -1090,7 +1090,7 @@ impl View {
     fn collect_suggestions(&self, circles: &mut Vec<CircleInstance>) {
         let mut last_blue = None;
         let mut k = 1000;
-        for (n1, n2) in self.suggestions.iter() {
+        for (n1, n2) in &self.suggestions {
             // Don't change the color if the value of n1 hasn't change, so that all suggested
             // cross-overs for n1 appears with the same color
             if last_blue != Some(n1) {
@@ -1114,7 +1114,7 @@ impl View {
 
     /// Collect the candidate/selection circles
     fn collect_nucl_highlight(&self, circles: &mut Vec<CircleInstance>) {
-        for n in self.candidate_nucl.iter() {
+        for n in &self.candidate_nucl {
             let candidate_color = crate::ensnano_consts::CANDIDATE_COLOR;
             if let Some(h1) = self.helices.get(n.helix.flat.0) {
                 let mut c = h1.get_circle_nucl(n.flat_position, n.forward, candidate_color);
@@ -1125,7 +1125,7 @@ impl View {
             }
         }
 
-        for n in self.selected_nucl.iter() {
+        for n in &self.selected_nucl {
             let selected_color = crate::ensnano_consts::SELECTED_COLOR;
             if let Some(h1) = self.helices.get(n.helix.flat.0) {
                 let mut c = h1.get_circle_nucl(n.flat_position, n.forward, selected_color);
@@ -1140,7 +1140,7 @@ impl View {
     /// Collect the torsion indications.
     /// The radius and color of the circles depends on the strength amplitude.
     fn collect_torsion_indications(&self, circles: &mut Vec<CircleInstance>) {
-        for ((n0, n1), torsion) in self.torsions.iter() {
+        for ((n0, n1), torsion) in &self.torsions {
             let multiplier =
                 ((torsion.strength_prime5 - torsion.strength_prime3).abs() / 200.).clamp(0.08, 1.);
             let color = torsion_color(torsion.strength_prime5 - torsion.strength_prime3);
@@ -1167,7 +1167,7 @@ impl View {
 
     fn view_suggestion(&mut self) {
         self.suggestions_view.clear();
-        for (n1, n2) in self.suggestions.iter() {
+        for (n1, n2) in &self.suggestions {
             let mut view = StrandView::new(self.device.clone(), self.queue.clone());
             view.set_indication(*n1, *n2, &self.helices);
             self.suggestions_view.push(view);
@@ -1198,7 +1198,7 @@ impl View {
         self.text_drawer_top.clear();
         self.text_drawer_bottom.clear();
 
-        for h in self.helices.iter() {
+        for h in &self.helices {
             h.add_char_instances(CharCollector {
                 camera: &self.camera_top,
                 text_drawer: &mut self.text_drawer_top,

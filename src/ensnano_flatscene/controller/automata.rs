@@ -438,7 +438,7 @@ impl<S: AppState> ControllerState<S> for Translating {
             } => {
                 let mut translation_pivots = vec![];
                 let mut rotation_pivots = vec![];
-                for pivot in self.translation_pivots.iter() {
+                for pivot in &self.translation_pivots {
                     if let Some(rotation_pivot) = controller
                         .data
                         .borrow()
@@ -1130,7 +1130,7 @@ impl Rotating {
         let mut max_x = rotation_pivots[0].x;
         let mut min_y = rotation_pivots[0].y;
         let mut max_y = rotation_pivots[0].y;
-        for p in rotation_pivots.iter() {
+        for p in &rotation_pivots {
             min_x = min_x.min(p.x);
             max_x = max_x.max(p.x);
             min_y = min_y.min(p.y);

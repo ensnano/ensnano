@@ -130,7 +130,7 @@ pub fn add_crossover_springs(
 ) {
     let mut bonds: Vec<(u32, u32)> = Default::default();
 
-    for (_, ty) in object_type.iter() {
+    for (_, ty) in object_type {
         match ty {
             ObjectType::Bond(a, b) | ObjectType::SlicedBond(_, a, b, _) => {
                 if nucleotide[a].helix == nucleotide[b].helix {

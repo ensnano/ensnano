@@ -59,7 +59,7 @@ impl SimulationSetup for FullSimulationSetup {
         collider_map: &HashMap<(usize, isize), Vec<ColliderHandle>>,
         intermediary_representation: &HashMap<usize, IntermediaryHelix>,
     ) {
-        for (helix_index, helix) in intermediary_representation.iter() {
+        for (helix_index, helix) in intermediary_representation {
             for pair_position in helix.pairs.keys() {
                 let rigid_body = RigidBodyBuilder::dynamic()
                     .linear_damping(BASE_LINEAR_DAMPING)
@@ -91,7 +91,7 @@ impl SimulationSetup for RigidHelicesSetup {
         collider_map: &HashMap<(usize, isize), Vec<ColliderHandle>>,
         intermediary_representation: &HashMap<usize, IntermediaryHelix>,
     ) {
-        for (helix_index, helix) in intermediary_representation.iter() {
+        for (helix_index, helix) in intermediary_representation {
             let rigid_body = RigidBodyBuilder::dynamic()
                 .linear_damping(BASE_LINEAR_DAMPING)
                 .angular_damping(BASE_ANGULAR_DAMPING);
@@ -477,7 +477,7 @@ pub fn add_crossover_springs(
 ) {
     let mut bonds: Vec<(u32, u32)> = Default::default();
 
-    for (_, ty) in object_type.iter() {
+    for (_, ty) in object_type {
         match ty {
             ObjectType::Bond(a, b) | ObjectType::SlicedBond(_, a, b, _) => {
                 if nucleotide[a].helix == nucleotide[b].helix {

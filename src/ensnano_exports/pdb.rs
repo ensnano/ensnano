@@ -683,7 +683,7 @@ pub(super) fn pdb_export(
     for s in design.strands.values() {
         let mut pdb_strand = exporter.start_strand(s.is_cyclic);
 
-        for d in s.domains.iter() {
+        for d in &s.domains {
             if let Domain::HelixDomain(dom) = d {
                 for position in dom.iter() {
                     let ox_nucl = design.helices.get(&dom.helix).unwrap().ox_dna_nucl(

@@ -97,7 +97,7 @@ impl StaplesDownloader for DesignInteractor {
                 .entry(staple.plate)
                 .or_insert_with(|| vec![first_row_content.clone()]);
             let mut group_vec = Vec::from_iter(all_group_names.iter().map(|_| ""));
-            for group_name in staple.group_names.iter() {
+            for group_name in &staple.group_names {
                 if let Some(index) = group_map.get(&group_name) {
                     group_vec[*index] = group_name.as_str();
                 }
@@ -119,7 +119,7 @@ impl StaplesDownloader for DesignInteractor {
         let threshold_black_white_font_color = (5 * 255) / 2;
 
         // Add one sheet per plate
-        for (sheet_id, rows) in sheets.iter() {
+        for (sheet_id, rows) in &sheets {
             let sheet: &mut rust_xlsxwriter::Worksheet = wb
                 .add_worksheet()
                 .set_name(format!("Plate {sheet_id}"))
@@ -181,7 +181,7 @@ impl StaplesDownloader for DesignInteractor {
             .expect("Excel error: cannot create worksheet");
         let mut write_once = true;
         let mut all_i = 0;
-        for (_, rows) in sheets.iter() {
+        for (_, rows) in &sheets {
             for (i, row) in rows.iter().enumerate() {
                 if i == 0 {
                     if write_once {

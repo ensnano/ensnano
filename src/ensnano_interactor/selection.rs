@@ -118,7 +118,7 @@ pub fn extract_nucls_and_xover_ends(
     reader: &dyn InteractorDesignReaderExt,
 ) -> Vec<Nucl> {
     let mut ret = Vec::with_capacity(2 * selection.len());
-    for s in selection.iter() {
+    for s in selection {
         match s {
             Selection::Nucleotide(_, n) => ret.push(*n),
             Selection::Bond(_, n1, n2) => {
@@ -178,7 +178,7 @@ fn extract_one_grid(selection: &Selection) -> Option<GridId> {
 pub fn list_of_strands(selection: &[Selection]) -> Option<(usize, Vec<usize>)> {
     let design_id = selection.first().and_then(Selection::get_design)?;
     let mut strands = BTreeSet::new();
-    for s in selection.iter() {
+    for s in selection {
         match s {
             Selection::Strand(d_id, s_id) => {
                 if *d_id != design_id {
@@ -200,7 +200,7 @@ pub fn list_of_xover_ids(
 ) -> Option<(usize, Vec<usize>)> {
     let design_id = selection.first().and_then(Selection::get_design)?;
     let mut xovers = BTreeSet::new();
-    for s in selection.iter() {
+    for s in selection {
         match s {
             Selection::Bond(d_id, n1, n2) => {
                 if *d_id != design_id {
@@ -229,7 +229,7 @@ pub fn list_of_xover_as_nucl_pairs(
 ) -> Option<(usize, Vec<(Nucl, Nucl)>)> {
     let design_id = selection.first().and_then(Selection::get_design)?;
     let mut xovers = BTreeSet::new();
-    for s in selection.iter() {
+    for s in selection {
         match s {
             Selection::Bond(d_id, n1, n2) => {
                 if *d_id != design_id {
@@ -261,7 +261,7 @@ pub fn list_of_xover_as_nucl_pairs(
 pub fn list_of_helices(selection: &[Selection]) -> Option<(usize, Vec<usize>)> {
     let design_id = selection.first().and_then(Selection::get_design)?;
     let mut helices = BTreeSet::new();
-    for s in selection.iter() {
+    for s in selection {
         match s {
             Selection::Helix {
                 design_id: d_id,
@@ -281,7 +281,7 @@ pub fn list_of_helices(selection: &[Selection]) -> Option<(usize, Vec<usize>)> {
 
 pub fn list_of_free_grids(selection: &[Selection]) -> Option<Vec<usize>> {
     let mut ret = Vec::new();
-    for s in selection.iter() {
+    for s in selection {
         match s {
             Selection::Grid(_, GridId::FreeGrid(g_id)) => ret.push(*g_id),
             _ => return None,
@@ -305,7 +305,7 @@ pub fn list_of_bezier_vertices(selection: &[Selection]) -> Option<Vec<BezierVert
 
 pub fn extract_helices_with_controls(selection: &[Selection]) -> Vec<usize> {
     let mut ret = Vec::new();
-    for s in selection.iter() {
+    for s in selection {
         if let Selection::Helix { helix_id, .. } = s {
             ret.push(*helix_id);
         } else if let Selection::BezierControlPoint { helix_id, .. } = s {
@@ -318,7 +318,7 @@ pub fn extract_helices_with_controls(selection: &[Selection]) -> Vec<usize> {
 
 pub fn extract_control_points(selection: &[Selection]) -> Vec<(usize, BezierControlPoint)> {
     let mut ret = Vec::new();
-    for s in selection.iter() {
+    for s in selection {
         if let Selection::BezierControlPoint {
             helix_id,
             bezier_control,
@@ -371,7 +371,7 @@ pub fn all_helices_no_grid(
     }
     let design_id = design_id.unwrap();
 
-    for s in selection.iter() {
+    for s in selection {
         match s {
             Selection::Helix {
                 design_id: d_id,
@@ -396,7 +396,7 @@ pub fn all_helices_no_grid(
 /// Extract all the elements of the form Selection::Nucl(_) from a slice of selection
 pub fn extract_nucls_from_selection(selection: &[Selection]) -> Vec<Nucl> {
     let mut ret = vec![];
-    for s in selection.iter() {
+    for s in selection {
         if let Selection::Nucleotide(_, nucl) = s {
             ret.push(*nucl);
         }

@@ -35,7 +35,7 @@ impl<State: AppState> EditionTab<State> {
 
     fn get_roll_target_helices(&self, selection: &[DesignElementKey]) -> Vec<usize> {
         let mut ret = vec![];
-        for s in selection.iter() {
+        for s in selection {
             if let DesignElementKey::Helix(h) = s {
                 ret.push(*h);
             }

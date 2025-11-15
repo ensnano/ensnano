@@ -121,7 +121,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
         let mut tubes = Vec::new();
         let selection = app_state.get_selection();
         if let Some(paths) = self.design_reader.get_bezier_paths() {
-            for (path_id, path) in paths.iter() {
+            for (path_id, path) in paths {
                 for (vertex_id, coordinates) in path.bezier_controls().iter().enumerate() {
                     add_raw_instances_representing_bezier_vertex(
                         BezierVertex {
@@ -138,7 +138,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
                         selection,
                     );
                 }
-                for point in path.get_curve_points().iter() {
+                for point in path.get_curve_points() {
                     spheres.push(
                         SphereInstance {
                             position: Vec3::new(point.x as f32, point.y as f32, point.z as f32),

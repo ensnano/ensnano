@@ -216,7 +216,7 @@ impl OperationInput {
         let mut status_parameters = Vec::new();
 
         // This looks suspicious
-        for _ in parameters.iter() {
+        for _ in parameters {
             status_parameters.push(StatusParameter::new());
         }
 

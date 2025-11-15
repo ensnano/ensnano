@@ -126,7 +126,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
             || app_state.selection_was_updated(older_app_state)
             || app_state.revolution_bezier_updated(older_app_state)
         {
-            for d in self.designs.iter_mut() {
+            for d in &mut self.designs {
                 d.all_helices_on_axis = app_state.get_draw_options().all_helices_on_axis;
             }
             self.update_instances(app_state);
@@ -369,7 +369,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
             }
         } else {
             let group = self.get_group_member(selection);
-            for elt in group.iter() {
+            for elt in &group {
                 if self.designs[d_id]
                     .get_element_type(*elt)
                     .is_some_and(|elt| elt.same_type(&object_type))
@@ -388,10 +388,9 @@ impl<R: SceneDesignReaderExt> Data<R> {
         app_state: &S,
     ) -> Vec<RawDnaInstance> {
         let mut ret = Vec::new();
-        for selection in selection.iter() {
-            for element in self
+        for selection in selection {
+            for element in &self
                 .expand_selection(ObjectType::Nucleotide(0), selection)
-                .iter()
             {
                 match element {
                     SceneElement::DesignElement(d_id, id) => {
@@ -437,10 +436,9 @@ impl<R: SceneDesignReaderExt> Data<R> {
         app_state: &S,
     ) -> Rc<Vec<RawDnaInstance>> {
         let mut ret = Vec::new();
-        for selection in selection.iter() {
-            for element in self
+        for selection in selection {
+            for element in &self
                 .expand_selection(ObjectType::Bond(0, 0), selection)
-                .iter()
             {
                 match element {
                     SceneElement::DesignElement(d_id, id) => {
@@ -486,10 +484,9 @@ impl<R: SceneDesignReaderExt> Data<R> {
         app_state: &S,
     ) -> Rc<Vec<RawDnaInstance>> {
         let mut ret = Vec::new();
-        for candidate in candidates.iter() {
-            for element in self
+        for candidate in candidates {
+            for element in &self
                 .expand_selection(ObjectType::Nucleotide(0), candidate)
-                .iter()
             {
                 match element {
                     SceneElement::DesignElement(d_id, id) => {
@@ -535,10 +532,9 @@ impl<R: SceneDesignReaderExt> Data<R> {
         app_state: &S,
     ) -> Rc<Vec<RawDnaInstance>> {
         let mut ret = Vec::new();
-        for candidate in candidates.iter() {
-            for element in self
+        for candidate in candidates {
+            for element in &self
                 .expand_selection(ObjectType::Bond(0, 0), candidate)
-                .iter()
             {
                 match element {
                     SceneElement::DesignElement(d_id, id) => {
@@ -921,7 +917,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
             } else {
                 vec![]
             };
-        for s in selection.iter() {
+        for s in selection {
             if let Selection::Grid(d_id, g_id) = s {
                 grids.push((*d_id as usize, *g_id));
             }
@@ -937,7 +933,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
         let phantom_map = self.get_phantom_helices_set(app_state);
         let mut ret_sphere = Vec::new();
         let mut ret_tube = Vec::new();
-        for (d_id, set) in phantom_map.iter() {
+        for (d_id, set) in &phantom_map {
             let (spheres, tubes) =
                 self.designs[*d_id as usize].make_phantom_helix_instances_raw(set);
             for sphere in spheres.iter().copied() {
@@ -961,7 +957,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
         for (d_id, design) in self.designs.iter().enumerate() {
             let new_helices = design.get_persistent_phantom_helices();
             let set = ret.entry(d_id as u32).or_insert_with(HashMap::new);
-            for h_id in new_helices.iter() {
+            for h_id in &new_helices {
                 set.insert(*h_id, true);
             }
         }
@@ -985,7 +981,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
                             .get_helices_grid(g_id)
                             .unwrap_or_default();
                         let set = ret.entry(d_id).or_insert_with(HashMap::new);
-                        for h_id in new_helices.iter() {
+                        for h_id in &new_helices {
                             set.insert(*h_id as u32, true);
                         }
                     }
@@ -1188,7 +1184,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
     pub fn get_all_raw_instances<S: AppState>(&self, app_state: &S) -> Vec<RawDnaInstance> {
         let mut instances = vec![];
         let show_insertion_discriminants = app_state.show_insertion_discriminants();
-        for design in self.designs.iter() {
+        for design in &self.designs {
             for sphere in design.get_spheres_raw(show_insertion_discriminants).iter() {
                 instances.push(*sphere);
             }
@@ -1242,7 +1238,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
             } else {
                 vec![]
             };
-        for c in candidates.iter() {
+        for c in candidates {
             if let Selection::Grid(d_id, g_id) = c {
                 grids.push((*d_id as usize, *g_id));
             }
@@ -1347,7 +1343,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
         let mut letters = Vec::new();
         let mut grids = BTreeMap::new();
         let mut cones = Vec::new();
-        for design in self.designs.iter() {
+        for design in &self.designs {
             for sphere in design
                 .get_spheres_raw(app_state.show_insertion_discriminants())
                 .iter()
@@ -1501,7 +1497,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
                 add_discs(pos.light(), discs!(), DiscLevel::Selection);
             }
         }
-        for design in self.designs.iter() {
+        for design in &self.designs {
             for grid in design.get_grid().values().filter(|g| g.visible) {
                 for (x, y) in design.get_helices_grid_coord(grid.id) {
                     add_discs(
@@ -1538,7 +1534,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
     /// Notify the view of an update of the model matrices
     fn update_matrices(&self) {
         let mut matrices = Vec::new();
-        for design in self.designs.iter() {
+        for design in &self.designs {
             matrices.push(design.get_model_matrix());
         }
         self.view

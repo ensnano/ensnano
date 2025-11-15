@@ -4,7 +4,7 @@ use std::fmt::{self, Write};
 impl Strand {
     pub fn formatted_domains(&self) -> String {
         let mut ret = String::new();
-        for d in self.domains.iter() {
+        for d in &self.domains {
             writeln!(&mut ret, "{d}").unwrap_or_default();
         }
         if self.is_cyclic {
@@ -15,7 +15,7 @@ impl Strand {
 
     pub fn formatted_anonymous_junctions(&self) -> String {
         let mut ret = String::new();
-        for j in self.junctions.iter() {
+        for j in &self.junctions {
             ret.push_str(&format!("{} ", j.anonymous_fmt()));
         }
         ret

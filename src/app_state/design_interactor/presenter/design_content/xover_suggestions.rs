@@ -64,7 +64,7 @@ impl XoverSuggestions {
         design: &Design,
         suggestion_parameters: &SuggestionParameters,
     ) {
-        for blue_nucl in self.blue_nucl.iter() {
+        for blue_nucl in &self.blue_nucl {
             let neighbor = self
                 .get_possible_cross_over_groups(design, blue_nucl, suggestion_parameters)
                 .unwrap_or_default();
@@ -109,7 +109,7 @@ impl XoverSuggestions {
         suggestion_parameters: &SuggestionParameters,
     ) {
         for nucls in self.helices_groups.values() {
-            for n in nucls.iter() {
+            for n in nucls {
                 let neighbor = self
                     .get_possible_cross_over_all_helices(design, n, suggestion_parameters)
                     .unwrap_or_default();
@@ -129,9 +129,9 @@ impl XoverSuggestions {
         let mut ret = Vec::new();
         let positions = design.get_nucl_position(*nucl)?;
         let cube0 = space_to_cube(positions[0], positions[1], positions[2]);
-        for i in [-1, 0, 1].iter() {
-            for j in [-1, 0, 1].iter() {
-                for k in [-1, 0, 1].iter() {
+        for i in &[-1, 0, 1] {
+            for j in &[-1, 0, 1] {
+                for k in &[-1, 0, 1] {
                     let cube = (cube0.0 + i, cube0.1 + j, cube0.2 + k);
 
                     for (_, cubes) in self.helices_cubes.iter().filter(|(h, _)| **h > nucl.helix) {

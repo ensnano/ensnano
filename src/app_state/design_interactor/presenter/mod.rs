@@ -336,7 +336,7 @@ impl Presenter {
             return false;
         };
         let mut ret = false;
-        for s in selection.iter() {
+        for s in selection {
             ret = ret
                 || match s {
                     Selection::Design(_) => true,
@@ -372,7 +372,7 @@ impl Presenter {
             ret.push_str(&strand.length().to_string());
             let mut first = true;
             let lengths = strand.domain_lengths();
-            for len in lengths.iter() {
+            for len in &lengths {
                 let sign = if first { '=' } else { '+' };
                 ret.push_str(&format!(" {sign} {len}"));
                 first = false;

@@ -249,7 +249,7 @@ fn interpolator_inverse_curvilinear_abscissa(curve: &CurveDescriptor2D) -> Cheby
 
     let perimeter = *abscissas.last().unwrap();
 
-    for x in abscissas.iter_mut() {
+    for x in &mut abscissas {
         *x /= perimeter;
     }
 

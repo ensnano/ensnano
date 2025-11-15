@@ -799,12 +799,12 @@ impl DesignContent {
                 }
             } else if let Some(len) = insertion_length.remove(&id_tmp) {
                 insertion_length.insert(id_tmp - 1, len);
-                for loopout_nucl in loopout_nucls.iter_mut() {
+                for loopout_nucl in &mut loopout_nucls {
                     if loopout_nucl.repr_bond_identifier == id_tmp {
                         loopout_nucl.repr_bond_identifier = id_tmp - 1;
                     }
                 }
-                for loopout_bond in loopout_bonds.iter_mut() {
+                for loopout_bond in &mut loopout_bonds {
                     if loopout_bond.repr_bond_identifier == id_tmp {
                         loopout_bond.repr_bond_identifier = id_tmp - 1;
                     }
@@ -1084,7 +1084,7 @@ impl DesignContent {
             // Cloned Nucleotide
             for isometry3 in &clone_transformations {
                 let mut nucleotides_clones = HashMap::new();
-                for (nucl, nucl_id) in nucl_collection.identifier.iter() {
+                for (nucl, nucl_id) in &nucl_collection.identifier {
                     let clone_nucl_id = id_click_counter.next();
                     nucleotides_clones.insert(nucl, clone_nucl_id);
                     let nucl_color = color_map.get(nucl_id).unwrap_or(&0);
@@ -1173,7 +1173,7 @@ impl DesignContent {
         if PRINTOUT_NUCL_POSITIONS && !nucleotide.is_empty() {
             let mut s1 = "{\n\t".to_string();
             let mut s2 = "{\n\t".to_string();
-            for (i, n) in nucleotide.iter() {
+            for (i, n) in &nucleotide {
                 let p = &axis_space_position[i];
                 s1.push_str(
                     format!(
@@ -1241,7 +1241,7 @@ impl DesignContent {
                 .as_ref()
                 .and_then(|s_id| design.strands.get(s_id))
         {
-            for d in s.domains.iter() {
+            for d in &s.domains {
                 if let Domain::HelixDomain(interval) = d {
                     for n in interval.iter() {
                         let nucl = Nucl {
@@ -1420,7 +1420,7 @@ trait GridInstancesMaker {
 impl GridInstancesMaker for GridData {
     fn grid_instances(&self, design_id: usize) -> BTreeMap<GridId, GridInstance> {
         let mut ret = BTreeMap::new();
-        for (g_id, g) in self.grids.iter() {
+        for (g_id, g) in &self.grids {
             let grid = GridInstance {
                 grid: g.clone(),
                 min_x: -2,

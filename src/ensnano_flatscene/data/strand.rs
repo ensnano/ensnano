@@ -77,7 +77,7 @@ impl Strand {
         });
         let mut strand_topology_reader = StrandTopologyReader::init(helices);
 
-        for nucl in self.points.iter() {
+        for nucl in &self.points {
             let instruction = strand_topology_reader.read_nucl(*nucl);
             strand_vertex_builder.draw(instruction);
         }
@@ -125,7 +125,7 @@ impl Strand {
 
     pub fn get_insertions(&self, helices: &[Helix]) -> Vec<InsertionInstance> {
         let mut ret = Vec::with_capacity(self.insertions.len());
-        for i in self.insertions.iter() {
+        for i in &self.insertions {
             ret.push(helices[i.helix].insertion_instance(i, self.color));
         }
         ret

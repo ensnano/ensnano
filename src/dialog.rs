@@ -74,7 +74,7 @@ impl PathInput {
 }
 
 fn filter_has_extension(filter: &Filters, extension: &str) -> bool {
-    for f in filter.iter() {
+    for f in *filter {
         if f.1.contains(&extension) {
             return true;
         }
@@ -113,7 +113,7 @@ pub fn get_file_to_write<P1: AsRef<Path>, P2: AsRef<Path>>(
         path_buf.file_name().map(OsStr::to_os_string)
     });
     log::info!("starting name filtered {starting_name:?}");
-    for filter in extension_filter.iter() {
+    for filter in *extension_filter {
         dialog = dialog.add_filter(filter.0, filter.1);
     }
     log::info!(
@@ -158,7 +158,7 @@ pub fn get_file_to_write<P1: AsRef<Path>, P2: AsRef<Path>>(
 
 pub fn load<P: AsRef<Path>>(starting_path: Option<P>, filters: Filters) -> PathInput {
     let mut dialog = rfd::AsyncFileDialog::new();
-    for filter in filters.iter() {
+    for filter in filters {
         dialog = dialog.add_filter(filter.0, filter.1);
     }
     log::info!(

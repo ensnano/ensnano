@@ -832,7 +832,7 @@ impl<R: Requests, State: AppState> Gui<R, State> {
         mouse_interaction: &mut iced::mouse::Interaction,
     ) {
         *mouse_interaction = Default::default();
-        for (element_key, element) in self.components.iter_mut() {
+        for (element_key, element) in &mut self.components {
             log::trace!("render {element_key:?}");
             element.render(
                 self.device.as_ref(),

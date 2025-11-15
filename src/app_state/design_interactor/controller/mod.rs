@@ -660,7 +660,7 @@ impl Controller {
         }
         drop(helices_mut);
         for key in keys.into_iter() {
-            for b in [true, false].iter() {
+            for b in &[true, false] {
                 //let new_key = self.add_strand(design, key, -(nb_nucl as isize) / 2, *b);
                 let new_key = self.add_strand(design, key, 0, *b);
                 if let Domain::HelixDomain(ref mut dom) =
@@ -680,7 +680,7 @@ impl Controller {
         roll: f32,
     ) -> Result<Design, ErrOperation> {
         let mut helices_mut = design.helices.make_mut();
-        for h in helices.iter() {
+        for h in &helices {
             if let Some(helix) = helices_mut.get_mut(h) {
                 helix.roll = roll;
             } else {
@@ -739,7 +739,7 @@ impl Controller {
         elements: Vec<DesignElementKey>,
     ) -> Result<Design, ErrOperation> {
         log::info!("updating attribute {attribute:?}, {elements:?}");
-        for elt in elements.iter() {
+        for elt in &elements {
             match attribute {
                 DnaAttribute::Visible(b) => self.make_element_visible(&mut design, elt, b)?,
                 DnaAttribute::XoverGroup(g) => self.set_xover_group_of_elt(&mut design, elt, g)?,
@@ -758,7 +758,7 @@ impl Controller {
                 design.anchors.insert(n);
             }
         } else {
-            for n in nucls.iter() {
+            for n in &nucls {
                 design.anchors.remove(n);
             }
         }
@@ -1716,7 +1716,7 @@ impl Controller {
     ) -> Result<Design, ErrOperation> {
         self.update_state_and_design(&mut design);
         let mut new_paths = design.bezier_paths.make_mut();
-        for g_id in grid_ids.iter() {
+        for g_id in &grid_ids {
             if let GridId::BezierPathGrid(vertex_id) = g_id {
                 let path = new_paths
                     .get_mut(&vertex_id.path_id)
@@ -1751,7 +1751,7 @@ impl Controller {
         let bezier_paths = design.get_up_to_date_paths();
         let mut new_vectors_out = BTreeMap::new();
 
-        for g_id in grid_ids.iter() {
+        for g_id in &grid_ids {
             if let GridId::BezierPathGrid(vertex_id) = g_id
                 && let Some(old_vector_out) = bezier_paths.get_vector_out(*vertex_id)
             {
@@ -1843,7 +1843,7 @@ impl Controller {
         strands: Vec<usize>,
     ) -> Design {
         self.state = ControllerState::ChangingColor;
-        for s_id in strands.iter() {
+        for s_id in &strands {
             if let Some(strand) = design.strands.get_mut(s_id) {
                 strand.color = color;
             }
@@ -1886,7 +1886,7 @@ impl Controller {
     ) -> Design {
         self.update_state_and_design(&mut design);
         let mut new_helices = design.helices.make_mut();
-        for (p, segment_idx) in pivots.iter() {
+        for (p, segment_idx) in &pivots {
             if let Some(old_pos) = nucl_pos_2d(new_helices.as_ref(), p, *segment_idx)
                 && let Some(h) = new_helices.get_mut(&p.helix)
             {
@@ -1971,7 +1971,7 @@ impl Controller {
             k * step
         };
         let mut new_helices = design.helices.make_mut();
-        for h_id in helices.iter() {
+        for h_id in &helices {
             if let Some(h) = new_helices.get_mut(h_id)
                 && let Some(isometry) = h.isometry2d.as_mut()
             {
@@ -2164,7 +2164,7 @@ impl Controller {
                 if delta != 0 {
                     for i in 0..(sign * delta) {
                         let mut copy_builder = builders.clone();
-                        for builder in copy_builder.iter_mut() {
+                        for builder in &mut copy_builder {
                             if (sign > 0 && !builder.try_incr(&current_design, ignored_domains))
                                 || (sign < 0 && !builder.try_decr(&current_design, ignored_domains))
                             {
@@ -2206,7 +2206,7 @@ impl Controller {
         mut design: Design,
         xovers: &[(Nucl, Nucl)],
     ) -> Result<Design, ErrOperation> {
-        for (n1, _) in xovers.iter() {
+        for (n1, _) in xovers {
             let _ = Self::split_strand(&mut design.strands, n1, None, &mut self.color_idx)?;
         }
         Ok(design)
@@ -2479,7 +2479,7 @@ impl Controller {
         let helix_id = new_helices.push_helix(helix);
         drop(new_helices);
         if length > 0 {
-            for b in [false, true].iter() {
+            for b in &[false, true] {
                 let new_key = self.add_strand(&mut design, helix_id, start, *b);
                 if let Domain::HelixDomain(ref mut dom) =
                     design.strands.get_mut(&new_key).unwrap().domains[0]
@@ -2520,7 +2520,7 @@ impl Controller {
         let helix_id = new_helices.push_helix(helix);
         drop(new_helices);
         if length > 0 {
-            for b in [false, true].iter() {
+            for b in &[false, true] {
                 let new_key = self.add_strand(&mut design, helix_id, 0, *b);
                 if let Domain::HelixDomain(ref mut dom) =
                     design.strands.get_mut(&new_key).unwrap().domains[0]
@@ -3066,7 +3066,7 @@ impl Controller {
         mut design: Design,
         strand_ids: Vec<usize>,
     ) -> Result<Design, ErrOperation> {
-        for s_id in strand_ids.iter() {
+        for s_id in &strand_ids {
             design.strands.remove(s_id);
         }
         Ok(design)
@@ -3077,7 +3077,7 @@ impl Controller {
         mut design: Design,
         helices_id: Vec<usize>,
     ) -> Result<Design, ErrOperation> {
-        for h_id in helices_id.iter() {
+        for h_id in &helices_id {
             if design.strands.uses_helix(*h_id) {
                 return Err(ErrOperation::HelixNotEmpty(*h_id));
             } else {

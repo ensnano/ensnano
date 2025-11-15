@@ -193,7 +193,7 @@ impl CameraShortcutPanel {
     }
 
     pub fn start_editing(&mut self, id: CameraId) {
-        for cam in self.camera_widgets.iter() {
+        for cam in &self.camera_widgets {
             if cam.camera_id == id {
                 self.camera_being_edited = Some(id);
             }

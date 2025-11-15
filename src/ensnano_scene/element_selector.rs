@@ -89,7 +89,7 @@ impl ElementSelector {
                 for y in min_y..=max_y {
                     let byte0 =
                         (y * self.window_size.width + x) as usize * std::mem::size_of::<u32>();
-                    for reader in self.readers.iter() {
+                    for reader in &self.readers {
                         if let Some(element) = reader.read_pixel(byte0) {
                             return Some(element);
                         }
@@ -179,7 +179,7 @@ impl ElementSelector {
             let pixels_slice = buffer_slice.get_mapped_range();
             let mut pixels = Vec::with_capacity((size.height * size.width) as usize);
             for chunk in pixels_slice.chunks(buffer_dimensions.padded_bytes_per_row) {
-                for byte in chunk[..buffer_dimensions.unpadded_bytes_per_row].iter() {
+                for byte in &chunk[..buffer_dimensions.unpadded_bytes_per_row] {
                     pixels.push(*byte);
                 }
             }

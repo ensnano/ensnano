@@ -14,7 +14,7 @@ pub fn cadnano_export(design: &Design) -> Result<String, CadnanoError> {
 
     for s in design.strands.values() {
         let mut strand = exporter.new_strand();
-        for d in s.domains.iter() {
+        for d in &s.domains {
             if let Domain::HelixDomain(d) = d {
                 for pos in d.iter() {
                     let nucl = Nucl {
@@ -46,7 +46,7 @@ fn get_ensnano_bonds(design: &Design) -> EnsnanoBonds {
     let mut max_helix_idx = 0;
 
     for s in design.strands.values() {
-        for d in s.domains.iter() {
+        for d in &s.domains {
             if let Domain::HelixDomain(d) = d {
                 min_nt_pos = min_nt_pos.min(d.start);
                 max_nt_pos = max_nt_pos.max(d.end - 1);
@@ -123,7 +123,7 @@ fn init_cadnano_exporter(design: &Design) -> Result<CadnanoExporter, CadnanoErro
             v
         };
 
-        for ((x, y), h) in coordinates_with_helices.iter() {
+        for ((x, y), h) in &coordinates_with_helices {
             let mut candidate = (shift_x - min_x + x, shift_y - min_y + y);
             if parity(candidate) != parity_helix[*h] {
                 shift_y += 1;

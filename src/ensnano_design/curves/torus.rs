@@ -232,7 +232,7 @@ impl CurveDescriptor2D {
                 let smoothening_ceil = f64::from(*smooth_ceil);
 
                 let t = t.rem_euclid(1.);
-                for x in discontinuities.iter() {
+                for x in &discontinuities {
                     if (t - x).abs() < smoothening_ceil {
                         let v = (t - x + smoothening_ceil) / 2. / smoothening_ceil;
                         let left = x - smoothening_ceil + smoothening_ceil * v;

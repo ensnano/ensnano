@@ -72,7 +72,7 @@ impl<R: FlatSceneDesignReaderExt> Design2d<R> {
         self.update_helices();
         self.rm_deleted_helices();
         let strand_ids = self.design.get_all_strand_ids();
-        for strand_id in strand_ids.iter() {
+        for strand_id in &strand_ids {
             let strand_opt = self.design.get_strand_points(*strand_id);
             log::debug!("strand {strand_id}\n strand points: {strand_opt:?}");
             // Unwrap: `strand_id` is in the list returned by `get_all_strand_ids` so it
@@ -82,7 +82,7 @@ impl<R: FlatSceneDesignReaderExt> Design2d<R> {
                 log::warn!("Warning: could not find strand color, this is not normal");
                 0
             });
-            for nucl in strand.iter() {
+            for nucl in &strand {
                 self.read_nucl(nucl);
             }
             let flat_strand: Vec<_> = strand
@@ -108,7 +108,7 @@ impl<R: FlatSceneDesignReaderExt> Design2d<R> {
             .iter()
             .map(|nucls| {
                 let color = crate::ensnano_consts::CANDIDATE_COLOR;
-                for nucl in nucls.iter() {
+                for nucl in nucls {
                     self.read_nucl(nucl);
                 }
                 let flat_strand = nucls

@@ -96,7 +96,7 @@ impl HandlesDrawer {
         viewer_bind_group_layout: &'a wgpu::BindGroupLayout,
         fake: bool,
     ) {
-        for drawer in self.drawers.iter_mut() {
+        for drawer in &mut self.drawers {
             drawer.draw(
                 render_pass,
                 viewer_bind_group,
@@ -266,9 +266,9 @@ impl Drawable for Handle {
             length / 30.
         };
         let color = if fake { self.id } else { self.color };
-        for x in [-1f32, 1.].iter() {
-            for y in [-1., 1.].iter() {
-                for z in [0., 1.].iter() {
+        for x in &[-1f32, 1.] {
+            for y in &[-1., 1.] {
+                for z in &[0., 1.] {
                     ret.push(Vertex::new(
                         self.origin
                             + self.normal * *x * width

@@ -39,7 +39,7 @@ impl Design {
             self.strands.push(strand);
         }
 
-        for (old_h_id, new_h_id) in new_helix_map.iter() {
+        for (old_h_id, new_h_id) in &new_helix_map {
             let old_helix = self
                 .helices
                 .get(old_h_id)
@@ -78,7 +78,7 @@ impl Design {
         new_grids: &mut FreeGridsMut,
     ) -> Result<HashMap<FreeGridId, GridId>, GridCopyError> {
         let mut ret = HashMap::new();
-        for grid_id in grid_ids.iter() {
+        for grid_id in grid_ids {
             let source_grid = self
                 .free_grids
                 .get(grid_id)
@@ -119,7 +119,7 @@ impl Design {
         let mut ret = Vec::new();
         for (s_id, s) in self.strands.iter() {
             let mut insert = true;
-            for d in s.domains.iter() {
+            for d in &s.domains {
                 if matches!(d, Domain::HelixDomain(HelixInterval { helix, .. }) if !self.helix_is_on_grids(*helix, grid_ids))
                 {
                     insert = false;
@@ -151,7 +151,7 @@ impl Design {
             .strands
             .get(&s_id)
             .ok_or(GridCopyError::StrandDoesNotExist(s_id))?;
-        for d in source_strand.domains.iter() {
+        for d in &source_strand.domains {
             match d {
                 Domain::Insertion {
                     nb_nucl,
@@ -188,7 +188,7 @@ impl Design {
         }
 
         let mut new_junctions = Vec::new();
-        for j in source_strand.junctions.iter() {
+        for j in &source_strand.junctions {
             match j {
                 DomainJunction::Prime3 => new_junctions.push(DomainJunction::Prime3),
                 DomainJunction::IdentifiedXover(_) | DomainJunction::UnidentifiedXover => {

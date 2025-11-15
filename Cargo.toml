@@ -204,4 +204,4 @@ arc_with_non_send_sync = "allow" # TODO: warn (requires understand the multiplex
 # restriction = { level = "allow", priority = -1 }
 # style = { level = "allow", priority = -1 }
 # suspicious = { level = "allow", priority = -1 }
-# cloned_instead_of_copied = "deny"
+# explicit_iter_loop = "deny"

@@ -273,7 +273,7 @@ impl<E: OrganizerElement> Organizer<E> {
         //self.hovered_in = None;
         // TODO: This comment may break some functionality. Not observed so far.
         let mut content = Column::new().spacing(5.0f32); // TODO: Find a way to use `ui_size` here.
-        for c in self.groups.iter() {
+        for c in &self.groups {
             content = content.push(row![
                 tabulation(),
                 container(c.view(
@@ -286,7 +286,7 @@ impl<E: OrganizerElement> Organizer<E> {
             ]);
         }
         // Add Sections
-        for s in self.sections.iter() {
+        for s in &self.sections {
             content = content.push(row![
                 tabulation(),
                 s.view(&self.theme, &selection)
@@ -515,13 +515,13 @@ impl<E: OrganizerElement> Organizer<E> {
         let group_id = if add {
             if self.selected_nodes.contains(id) {
                 let keys: BTreeSet<E::Key> = self.get_keys_below(id).into_iter().collect();
-                for key in keys.iter() {
+                for key in &keys {
                     current_selection.remove(key);
                 }
                 self.selected_nodes.remove(id);
             } else {
                 let keys: BTreeSet<E::Key> = self.get_keys_below(id).into_iter().collect();
-                for key in keys.iter() {
+                for key in &keys {
                     Self::add_selection(&mut current_selection, key, false);
                 }
                 self.selected_nodes.insert(id.clone());
@@ -708,7 +708,7 @@ impl<E: OrganizerElement> Organizer<E> {
 
     fn delete_useless_leaves(&mut self, elements: BTreeSet<E::Key>) -> bool {
         let mut ids_to_remove: Vec<NodeId<E::AutoGroup>> = Vec::new();
-        for g in self.groups.iter_mut() {
+        for g in &mut self.groups {
             g.delete_useless_leaves(&mut ids_to_remove, &elements);
         }
         ids_to_remove.sort_unstable();
@@ -779,7 +779,7 @@ impl<E: OrganizerElement> Organizer<E> {
 
     /// Update the elements in the tree and return true if the tree graph was modified
     pub fn update_elements(&mut self, elements: &[E]) -> bool {
-        for s in self.sections.iter_mut() {
+        for s in &mut self.sections {
             s.elements.clear();
             s.content.clear();
         }
@@ -802,7 +802,7 @@ impl<E: OrganizerElement> Organizer<E> {
                 ((before_last.1).max(last.0 - 1) + 1, last.1) // in reality, it is not the first length....
             }
         };
-        for e in elements.iter() {
+        for e in elements {
             let key = e.key();
             let section_id: usize = key.section().into();
             self.sections[section_id].add_element(e.clone());
@@ -821,10 +821,10 @@ impl<E: OrganizerElement> Organizer<E> {
     }
 
     fn update_attributes(&mut self) {
-        for g in self.groups.iter_mut() {
+        for g in &mut self.groups {
             g.update_attributes(&self.sections);
         }
-        for s in self.sections.iter_mut() {
+        for s in &mut self.sections {
             s.update_attributes();
         }
     }
@@ -868,7 +868,7 @@ impl<E: OrganizerElement> Section<E> {
             .view(&self.name, self.id.clone(), self.expanded);
         let mut content = Column::new().spacing(LEVELS_V_SPACING).push(title_row);
         if self.expanded {
-            for (e_id, e) in self.elements.iter() {
+            for (e_id, e) in &self.elements {
                 content = content.push(row![
                     tabulation(),
                     container(e.view(theme, &self.content[e_id], selection, None,))
@@ -887,7 +887,7 @@ impl<E: OrganizerElement> Section<E> {
     }
 
     fn update_attributes(&mut self) {
-        for (k, e) in self.content.iter() {
+        for (k, e) in &self.content {
             if let Some(view) = self.elements.get_mut(k) {
                 view.update_element(e);
             }
@@ -925,7 +925,7 @@ impl<E: OrganizerElement> ElementView<E> {
                 key: element.key().clone(),
             },
         };
-        for ad in self.attribute_displayers.iter() {
+        for ad in &self.attribute_displayers {
             if let Some(view) = ad.view() {
                 let mut elt = BTreeSet::new();
                 elt.insert(element.key());
@@ -1026,7 +1026,7 @@ impl<E: OrganizerElement> NodeTitleBar<E> {
                     button(icon::edit_icon()).on_press(OrganizerMessage::edit(id.clone())),
                 ];
 
-                for ad in self.attribute_displayers.iter() {
+                for ad in &self.attribute_displayers {
                     if let Some(view) = ad.view() {
                         let id = id.clone();
                         row = row.push(
@@ -1059,7 +1059,7 @@ impl<E: OrganizerElement> NodeTitleBar<E> {
                         .on_press(OrganizerMessage::add_selection_to_group(id.clone())), // TODO: change icon later !!!
                     button(icon::edit_icon()).on_press(OrganizerMessage::stop_edit()),
                 ];
-                for ad in self.attribute_displayers.iter() {
+                for ad in &self.attribute_displayers {
                     if let Some(view) = ad.view() {
                         let id = id.clone();
                         row = row.push(
@@ -1165,7 +1165,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                 let title_row = view.view(name, id.clone(), *expanded);
                 let mut col = self::column![title_row].spacing(LEVELS_V_SPACING);
                 if *expanded {
-                    for c in children.iter() {
+                    for c in children {
                         let r = row![
                             tabulation(),
                             container(c.view(theme, sections, selection, selected_nodes))
@@ -1555,7 +1555,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                 *attributes = vec![None; E::all_discriminants().len()];
                 for c in children.iter_mut() {
                     c.update_attributes(sections);
-                    for elt in c.get_all_elements_below().iter() {
+                    for elt in &c.get_all_elements_below() {
                         elements_below.insert(elt.clone());
                     }
                 }
@@ -1651,7 +1651,7 @@ impl<E: OrganizerElement> GroupContent<E> {
             Self::Leaf { element, id, .. } => (!elements.contains(element), id),
             Self::Node { children, id, .. } => {
                 let mut _ret = true;
-                for c in children.iter() {
+                for c in children {
                     _ret &= c.delete_useless_leaves(ids_to_remove, elements);
                 }
                 // Uncomment this to also remove empty groups (ret, id)

@@ -425,7 +425,7 @@ impl Grid {
 
     fn error_group(&self, group: &[usize], helices: &Helices) -> f32 {
         let mut ret = 0f32;
-        for h_id in group.iter() {
+        for h_id in group {
             let helix = helices.get(h_id).unwrap();
             let axis = helix.get_axis(&self.helix_parameters);
             if let Axis::Line { origin, direction } = axis {
@@ -573,8 +573,8 @@ impl GridDivision for HoneyComb {
         let mut best_dist = (self.origin_helix(helix_parameters, first_guess.0, first_guess.1)
             - Vec2::new(x, y))
         .mag_sq();
-        for dx in [-2, -1, 0, 1, 2].iter() {
-            for dy in [-2, -1, 0, 1, 2].iter() {
+        for dx in &[-2, -1, 0, 1, 2] {
+            for dy in &[-2, -1, 0, 1, 2] {
                 let guess = (first_guess.0 + dx, first_guess.1 + dy);
                 let dist = (self.origin_helix(helix_parameters, guess.0, guess.1)
                     - Vec2::new(x, y))
@@ -982,8 +982,8 @@ impl GridData {
             GridType::honeycomb(None),
         );
         let mut best_err = hex_grid.error_group(group, &self.source_helices);
-        for dx in [-1, 0, 1].iter() {
-            for dy in [-1, 0, 1].iter() {
+        for dx in &[-1, 0, 1] {
+            for dy in &[-1, 0, 1] {
                 let position = hex_grid.position_helix(*dx, *dy);
                 for i in 0..100 {
                     let angle = i as f32 * FRAC_PI_2 / 100.;
@@ -1312,7 +1312,7 @@ pub(super) fn make_grid_from_helices(
     let grid_data = design.get_updated_grid_data();
     let mut new_helices = grid_data.source_helices.clone();
     let mut helices_mut = new_helices.make_mut();
-    for h_id in helices.iter() {
+    for h_id in helices {
         if let Some(h) = helices_mut.get_mut(h_id)
             && h.grid_position.is_none()
             && let Some(position) = grid_data.attach_to(h, new_id)
@@ -1351,7 +1351,7 @@ impl<'a> HelicesTranslator<'a> {
         translation: Vec3,
     ) -> Result<(), ErrDesignOperation> {
         let mut new_helices = self.grid_data.source_helices.make_mut();
-        for h_id in helices.iter() {
+        for h_id in &helices {
             if let Some(h) = new_helices.get_mut(h_id) {
                 h.translate(translation);
             }
@@ -1372,7 +1372,7 @@ impl<'a> HelicesTranslator<'a> {
         origin: Vec3,
     ) -> Result<(), ErrDesignOperation> {
         let mut new_helices = self.grid_data.source_helices.make_mut();
-        for h_id in helices.iter() {
+        for h_id in &helices {
             if let Some(h) = new_helices.get_mut(h_id) {
                 h.rotate_around(rotation, origin);
             }
@@ -1386,7 +1386,7 @@ impl<'a> HelicesTranslator<'a> {
     }
 
     fn attempt_reattach(&mut self, helices: &[usize]) -> Result<(), ErrDesignOperation> {
-        for h_id in helices.iter() {
+        for h_id in helices {
             self.grid_data.reattach_helix(*h_id, true, helices)?;
         }
         Ok(())

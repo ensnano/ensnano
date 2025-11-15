@@ -30,8 +30,8 @@ fn make_graph(
             }
         }
 
-        for i in group_sens.iter() {
-            for j in group_anti.iter() {
+        for i in &group_sens {
+            for j in &group_anti {
                 let repr_i = find(*i, father);
                 let repr_j = find(*j, father);
                 if repr_i == repr_j {
@@ -112,13 +112,13 @@ fn make_group(design: &Design, max_helix_idx: usize) -> Vec<usize> {
                 }
             }
         }
-        for i in group_sens.iter() {
-            for j in group_sens.iter() {
+        for i in &group_sens {
+            for j in &group_sens {
                 union(*i, *j, &mut father, &mut rank);
             }
         }
-        for i in group_anti.iter() {
-            for j in group_anti.iter() {
+        for i in &group_anti {
+            for j in &group_anti {
                 union(*i, *j, &mut father, &mut rank);
             }
         }

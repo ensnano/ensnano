@@ -149,7 +149,7 @@ impl RollSystem {
         let acceleration = vec![0.; nb_helices];
         let must_roll = if let Some(target) = target_helices {
             let mut ret = vec![0.; nb_helices];
-            for t in target.iter() {
+            for t in &target {
                 ret[helix_map[t]] = 1.;
             }
             ret
@@ -177,7 +177,7 @@ impl RollSystem {
         for i in 0..self.acceleration.len() {
             self.acceleration[i] = -self.speed[i] * FRICTION / MASS_HELIX;
         }
-        for (n1, n2) in cross_overs.iter() {
+        for (n1, n2) in cross_overs {
             /*if h1 >= h2 {
                 continue;
             }*/
@@ -306,7 +306,7 @@ pub struct DesignData {
 impl DesignData {
     fn get_roll_state(&self) -> RollState {
         let mut ret = HashMap::new();
-        for (k, n) in self.helix_map.iter() {
+        for (k, n) in &self.helix_map {
             ret.insert(*k, self.helices[*n].clone());
         }
         RollState(ret)
@@ -335,7 +335,7 @@ pub struct RollState(HashMap<usize, Helix>);
 impl SimulationUpdate for RollState {
     fn update_design(&self, design: &mut crate::ensnano_design::Design) {
         let mut new_helices = design.helices.make_mut();
-        for (i, h) in self.0.iter() {
+        for (i, h) in &self.0 {
             new_helices.insert(*i, h.clone());
         }
     }

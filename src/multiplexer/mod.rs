@@ -248,7 +248,7 @@ impl Multiplexer {
         });
 
         if self.window_size.width > 0 && self.window_size.height > 0 {
-            for element in [
+            for element in &[
                 GuiComponentType::TopBar,
                 GuiComponentType::LeftPanel,
                 GuiComponentType::GridPanel,
@@ -257,7 +257,6 @@ impl Multiplexer {
                 GuiComponentType::StereographicScene,
                 GuiComponentType::StatusBar,
             ]
-            .iter()
             {
                 log::debug!("Draw {element:?}");
                 if let Some(area) = self.get_texture_size(*element) {
@@ -696,7 +695,7 @@ impl Multiplexer {
         self.stereographic_scene_texture = self.texture(GuiComponentType::StereographicScene);
 
         self.overlays_textures.clear();
-        for overlay in self.overlays.iter() {
+        for overlay in &self.overlays {
             let position = overlay.position;
             let size = overlay.size;
             let texture = SampledTexture::create_target_texture(self.device.as_ref(), &size);

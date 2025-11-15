@@ -52,7 +52,7 @@ impl TextDrawer {
     }
 
     pub fn draw<'a>(&'a mut self, render_pass: &mut RenderPass<'a>) {
-        for (c, v) in self.char_map.iter() {
+        for (c, v) in &self.char_map {
             if let Some(drawer_mut) = self.char_drawers.get_mut(c) {
                 drawer_mut.new_instances(Rc::new(v.clone()));
             } else {
@@ -90,7 +90,7 @@ impl TextDrawer {
         );
         let shift = rectangle.shift(bound, center_position);
 
-        for g in rectangle.glyphs.iter() {
+        for g in rectangle.glyphs {
             let c = g.parent;
             let pos = (Vec2 {
                 x: g.x / PX_PER_SQUARE * sentence.size,
@@ -185,7 +185,7 @@ impl<'a> SentenceRectangle<'a> {
         let mut ret = Vec2::zero();
         let mut mag = 0.0;
 
-        for c in self.corners().iter() {
+        for c in &self.corners() {
             let point_no_shift =
                 center + ((*c - self.center()) * self.symmetry).rotated_by(self.rotation);
             let shift = line.shift(point_no_shift);

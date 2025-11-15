@@ -193,7 +193,7 @@ impl Isometry3MissingMethods for Isometry3 {
     fn from_descriptor(descriptor: &Isometry3Descriptor) -> Isometry3 {
         let mut isometry3 = Self::identity();
 
-        for item in descriptor.iter() {
+        for item in descriptor {
             isometry3 = match item {
                 Isometry3DescriptorItem::Identity => isometry3,
                 Isometry3DescriptorItem::TranslateBy(u) => {

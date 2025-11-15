@@ -127,7 +127,7 @@ impl RotationWidget {
         viewer_bind_group_layout: &'a wgpu::BindGroupLayout,
         fake: bool,
     ) {
-        for drawer in self.circle_drawers.iter_mut() {
+        for drawer in &mut self.circle_drawers {
             drawer.draw(
                 render_pass,
                 viewer_bind_group,

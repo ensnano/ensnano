@@ -28,7 +28,7 @@ impl Strands {
     pub fn get_intervals(&self) -> BTreeMap<usize, (isize, isize)> {
         let mut ret = BTreeMap::new();
         for s in self.0.values() {
-            for d in s.domains.iter() {
+            for d in &s.domains {
                 if let Domain::HelixDomain(dom) = d {
                     let left = dom.start;
                     let right = dom.end - 1;
@@ -42,7 +42,7 @@ impl Strands {
     }
 
     pub fn get_strand_nucl(&self, nucl: &Nucl) -> Option<usize> {
-        for (s_id, s) in self.0.iter() {
+        for (s_id, s) in &self.0 {
             if s.has_nucl(nucl) {
                 return Some(*s_id);
             }
@@ -75,7 +75,7 @@ impl Strands {
     pub fn is_domain_end(&self, nucl: &Nucl) -> Extremity {
         for strand in self.0.values() {
             let mut prev_helix = None;
-            for domain in strand.domains.iter() {
+            for domain in &strand.domains {
                 if domain.prime5_end() == Some(*nucl) && prev_helix != domain.half_helix() {
                     return Extremity::Prime5;
                 } else if domain.prime3_end() == Some(*nucl) {
@@ -96,7 +96,7 @@ impl Strands {
     /// Return true if at least one strand goes through helix h_id
     pub fn uses_helix(&self, h_id: usize) -> bool {
         for s in self.0.values() {
-            for d in s.domains.iter() {
+            for d in &s.domains {
                 if let Domain::HelixDomain(interval) = d
                     && interval.helix == h_id
                 {
@@ -116,7 +116,7 @@ impl Strands {
         let mut max = None;
 
         for s in self.0.values() {
-            for d in s.domains.iter() {
+            for d in &s.domains {
                 if let Domain::HelixDomain(i) = d {
                     for nucl in [i.prime5(), i.prime3()] {
                         let (helix, pos) =
@@ -388,7 +388,7 @@ impl Strand {
     }
 
     pub fn get_5prime(&self) -> Option<Nucl> {
-        for domain in self.domains.iter() {
+        for domain in &self.domains {
             match domain {
                 Domain::Insertion { .. } => (),
                 Domain::HelixDomain(h) => {
@@ -473,8 +473,8 @@ impl Strand {
     }
 
     pub fn intersect_domains(&self, domains: &[Domain]) -> bool {
-        for d in self.domains.iter() {
-            for other in domains.iter() {
+        for d in &self.domains {
+            for other in domains {
                 if d.intersect(other) {
                     return true;
                 }
@@ -484,7 +484,7 @@ impl Strand {
     }
 
     pub fn has_nucl(&self, nucl: &Nucl) -> bool {
-        for d in self.domains.iter() {
+        for d in &self.domains {
             if d.has_nucl(nucl).is_some() {
                 return true;
             }
@@ -494,7 +494,7 @@ impl Strand {
 
     pub fn find_nucl(&self, nucl: &Nucl) -> Option<usize> {
         let mut ret = 0;
-        for d in self.domains.iter() {
+        for d in &self.domains {
             if let Some(n) = d.has_nucl(nucl) {
                 return Some(ret + n);
             }
@@ -505,7 +505,7 @@ impl Strand {
 
     pub fn find_virtual_nucl(&self, nucl: &VirtualNucl, helices: &Helices) -> Option<usize> {
         let mut ret = 0;
-        for d in self.domains.iter() {
+        for d in &self.domains {
             if let Some(n) = d.has_virtual_nucl(nucl, helices) {
                 return Some(ret + n);
             }
@@ -517,7 +517,7 @@ impl Strand {
     pub fn get_insertions(&self) -> Vec<Nucl> {
         let mut last_nucl = None;
         let mut ret = Vec::with_capacity(self.domains.len());
-        for d in self.domains.iter() {
+        for d in &self.domains {
             match d {
                 Domain::Insertion { nb_nucl, .. } if *nb_nucl > 0 => {
                     if let Some(nucl) = last_nucl {
@@ -548,7 +548,7 @@ impl Strand {
 
     pub fn get_nth_nucl(&self, n: usize) -> Option<Nucl> {
         let mut seen = 0;
-        for d in self.domains.iter() {
+        for d in &self.domains {
             if seen + d.length() > n {
                 if let Domain::HelixDomain(d) = d {
                     let position = d.iter().nth(n - seen);
@@ -595,7 +595,7 @@ impl Strand {
     }
 
     pub fn has_insertions(&self) -> bool {
-        for d in self.domains.iter() {
+        for d in &self.domains {
             if let Domain::Insertion { .. } = d {
                 return true;
             }
@@ -684,7 +684,7 @@ impl Strand {
     pub fn domain_lengths(&self) -> Vec<usize> {
         let mut previous_domain: Option<Domain> = None;
         let mut lengths: Vec<usize> = vec![];
-        for d in self.domains.iter() {
+        for d in &self.domains {
             if previous_domain.filter(|prev| prev.is_neighbor(d)).is_some() {
                 *lengths.last_mut().unwrap() += d.length();
             } else {

@@ -95,7 +95,7 @@ pub fn load_stl<P: AsRef<Path>>(path: P) -> Result<StlMesh, ErrStl> {
     let mut stl_buff = BufReader::new(&file);
     let mesh = nom_stl::parse_stl(&mut stl_buff).map_err(ErrStl::StlParseErr)?;
     let mut vertices = Vec::new();
-    for t in mesh.triangles().iter() {
+    for t in mesh.triangles() {
         let normal = (Vec3::from(t.vertices()[0]) - Vec3::from(t.vertices()[1]))
             .cross(Vec3::from(t.vertices()[1]) - Vec3::from(t.vertices()[2]));
         log::trace!("normal: {normal:?}");

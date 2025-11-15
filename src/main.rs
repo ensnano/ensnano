@@ -932,7 +932,7 @@ impl OverlayManager {
         window: &Window,
         renderer: &mut iced::Renderer,
     ) {
-        for overlay_type in self.overlay_types.iter() {
+        for overlay_type in &self.overlay_types {
             match overlay_type {
                 OverlayType::Color => {
                     let color_viewport = Viewport::with_physical_size(

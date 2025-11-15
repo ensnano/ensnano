@@ -109,7 +109,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
         let mut candidate_nucls = Vec::new();
         let mut selected_nucls = Vec::new();
         let id_map = self.design.id_map();
-        for s in new_state.get_selection().iter() {
+        for s in new_state.get_selection() {
             match s {
                 Selection::Strand(_, s_id) if !new_state.is_changing_color() => {
                     selected_strands.insert(*s_id as usize);
@@ -146,7 +146,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
             }
         }
         let mut suggestions = Vec::new();
-        for c in new_state.get_candidates().iter() {
+        for c in new_state.get_candidates() {
             match c {
                 Selection::Strand(_, s_id) => {
                     candidate_strands.insert(*s_id as usize);
@@ -189,7 +189,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
         }
         let mut selection_highlight = Vec::new();
         let mut candidate_highlight = Vec::new();
-        for s in self.design.get_strands().iter() {
+        for s in self.design.get_strands() {
             if selected_strands.contains(&s.id) {
                 selection_highlight
                     .push(s.highlighted(SELECTED_COLOR, SELECTED_STRAND_HIGHLIGHT_FACTOR_2D));
@@ -199,10 +199,10 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
                     .push(s.highlighted(CANDIDATE_COLOR, CANDIDATE_STRAND_HIGHLIGHT_FACTOR_2D));
             }
         }
-        for xover in selected_xovers.iter() {
+        for xover in &selected_xovers {
             selection_highlight.push(self.design.strand_from_xover(xover, SELECTED_COLOR, true));
         }
-        for xover in candidate_xovers.iter() {
+        for xover in &candidate_xovers {
             candidate_highlight.push(self.design.strand_from_xover(xover, CANDIDATE_COLOR, true));
         }
         self.view
@@ -244,7 +244,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
         for (i, helix) in self.helices.iter_mut().enumerate() {
             helix.update(&new_helices[i], id_map);
         }
-        for h in new_helices[nb_helix..].iter() {
+        for h in &new_helices[nb_helix..] {
             let segment = HelixSegment {
                 helix_idx: h.id,
                 segment_idx: h.segment_idx,
@@ -279,7 +279,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
 
     fn update_suggestion(&mut self, suggestion: &[(FlatNucl, FlatNucl)]) {
         self.suggestions.clear();
-        for (n1, n2) in suggestion.iter() {
+        for (n1, n2) in suggestion {
             self.suggestions.entry(*n1).or_default().insert(*n2);
             self.suggestions.entry(*n2).or_default().insert(*n1);
         }
@@ -427,7 +427,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
     pub fn redim_helices(&mut self, selection: Option<&[Selection]>) {
         if let Some(selection) = selection {
             let mut ids = Vec::new();
-            for s in selection.iter() {
+            for s in selection {
                 if let Selection::Helix {
                     helix_id,
                     segment_id,
@@ -443,7 +443,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
                     }
                 }
             }
-            for h_id in ids.iter() {
+            for h_id in &ids {
                 if let Some(h) = self.helices.get_mut(*h_id) {
                     let (left, right) = h.redim_zero();
                     self.design.update_helix(h.flat_id, left, right);
@@ -793,7 +793,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
             self.add_long_xover_rectangle(&mut selection, c1, c2);
         }
         if adding {
-            for s in selection.iter() {
+            for s in &selection {
                 if !new_selection.contains(s) {
                     new_selection.push(*s);
                 }
@@ -836,8 +836,8 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
         let bottom = y1.max(y2);
         log::debug!("rectangle corner {left}, {top}, {right}, {bottom}");
         let mut selection = BTreeSet::new();
-        for s in self.design.get_strands().iter() {
-            for n in s.points.iter() {
+        for s in self.design.get_strands() {
+            for n in &s.points {
                 let h = &self.helices[n.helix.flat];
                 if h.rectangle_has_nucl(*n, left, top, right, bottom, camera) {
                     selection.insert(s.id);
@@ -850,7 +850,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
             .map(|s_id| Selection::Strand(self.id, *s_id as u32))
             .collect();
         if adding {
-            for s in selection.iter() {
+            for s in &selection {
                 if !new_selection.contains(s) {
                     new_selection.push(*s);
                 }

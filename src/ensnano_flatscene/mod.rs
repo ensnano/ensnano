@@ -182,10 +182,10 @@ impl<S: AppState> FlatScene<S> {
     fn resize(&mut self, window_size: PhySize, area: DrawArea) {
         self.window_size = window_size;
         self.area = area;
-        for view in self.view.iter() {
+        for view in &self.view {
             view.borrow_mut().resize(area);
         }
-        for controller in self.controller.iter_mut() {
+        for controller in &mut self.controller {
             controller.resize(window_size, area.size);
         }
     }
@@ -509,21 +509,21 @@ impl<S: AppState> FlatScene<S> {
 
     fn toggle_split_from_btn(&mut self) {
         self.is_split ^= true;
-        for c in self.controller.iter_mut() {
+        for c in &mut self.controller {
             c.set_split(self.is_split, true);
         }
 
-        for v in self.view.iter_mut() {
+        for v in &mut self.view {
             v.borrow_mut().set_is_split(self.is_split);
         }
     }
 
     fn split_and_center(&mut self, n1: FlatNucl, n2: FlatNucl) {
         self.is_split = true;
-        for v in self.view.iter_mut() {
+        for v in &mut self.view {
             v.borrow_mut().set_is_split(self.is_split);
         }
-        for c in self.controller.iter_mut() {
+        for c in &mut self.controller {
             c.set_split(self.is_split, false);
         }
         self.view[self.selected_design]
@@ -680,7 +680,7 @@ impl<S: AppState> Application for FlatScene<S> {
                 self.view[self.selected_design].borrow_mut().set_show_sec(b);
             }
             Notification::ShowTorsion(b) => {
-                for v in self.view.iter() {
+                for v in &self.view {
                     v.borrow_mut().set_show_torsion(b);
                 }
             }
@@ -705,7 +705,7 @@ impl<S: AppState> Application for FlatScene<S> {
             }
             Notification::CameraRotation(_, _, _) => (),
             Notification::ModifiersChanged(modifiers) => {
-                for c in self.controller.iter_mut() {
+                for c in &mut self.controller {
                     c.update_modifiers(modifiers.state());
                 }
             }

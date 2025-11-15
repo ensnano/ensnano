@@ -99,7 +99,7 @@ impl FromCadnano for Design {
             let position = grid.position_helix(v.col, v.row);
             let helix = Helix::new(position, Rotor3::identity());
             helices.insert(i, Arc::new(helix));
-            for (j, color) in v.stap_colors.iter() {
+            for (j, color) in &v.stap_colors {
                 colors.insert((i, *j as usize), *color as usize);
             }
         }
@@ -272,7 +272,7 @@ fn make_strand(
             }
         }
     }
-    for (nucl, n) in insertions.iter() {
+    for (nucl, n) in &insertions {
         ret.add_insertion_at_nucl(nucl, *n as usize);
     }
     ret

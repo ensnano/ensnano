@@ -44,7 +44,7 @@ impl OxDnaConfig {
             "E = {} {} {}",
             self.kinetic_energies[0], self.kinetic_energies[1], self.kinetic_energies[2]
         )?;
-        for n in self.nucls.iter() {
+        for n in &self.nucls {
             writeln!(
                 &mut file,
                 "{} {} {} {} {} {} {} {} {} {} {} {} {} {} {}",
@@ -79,7 +79,7 @@ impl OxDnaTopology {
     pub fn write<P: AsRef<Path>>(&self, path: P) -> Result<(), std::io::Error> {
         let mut file = std::fs::File::create(path)?;
         writeln!(&mut file, "{} {}", self.nb_nucl, self.nb_strand)?;
-        for bond in self.bonds.iter() {
+        for bond in &self.bonds {
             writeln!(
                 &mut file,
                 "{} {} {} {}",
@@ -272,7 +272,7 @@ pub(super) fn to_oxdna(design: &Design, basis_map: BasisMapper) -> (OxDnaConfig,
     for (strand_id, s) in design.strands.values().enumerate() {
         let mut strand_maker = maker.new_strand(strand_id);
 
-        for d in s.domains.iter() {
+        for d in &s.domains {
             if let Domain::HelixDomain(dom) = d {
                 for position in dom.iter() {
                     let ox_nucl = design.helices.get(&dom.helix).unwrap().ox_dna_nucl(

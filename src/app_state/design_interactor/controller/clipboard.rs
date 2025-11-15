@@ -121,7 +121,7 @@ impl Controller {
         design: &Design,
         grid_ids: Vec<GridId>,
     ) -> Result<(), ErrOperation> {
-        for grid_id in grid_ids.iter() {
+        for grid_id in &grid_ids {
             if design.free_grids.get_from_g_id(grid_id).is_none() {
                 return Err(ErrOperation::GridDoesNotExist(*grid_id));
             }
@@ -136,7 +136,7 @@ impl Controller {
         strand_ids: Vec<usize>,
     ) -> Result<(), ErrOperation> {
         let mut templates = Vec::with_capacity(strand_ids.len());
-        for id in strand_ids.iter() {
+        for id in &strand_ids {
             let strand = data
                 .design
                 .strands
@@ -183,7 +183,7 @@ impl Controller {
         let mut domains = Vec::with_capacity(strand.domains.len());
         let mut edges = Vec::with_capacity(strand.domains.len());
         let mut previous_position = None;
-        for domain in strand.domains.iter() {
+        for domain in &strand.domains {
             match domain {
                 Domain::Insertion { nb_nucl, .. } => {
                     domains.push(DomainTemplate::Insertion(*nb_nucl));
@@ -393,7 +393,7 @@ impl Controller {
         } else {
             start_nucl.position - template.origin.start + 1
         };
-        for domain in template.domains.iter() {
+        for domain in &template.domains {
             match domain {
                 DomainTemplate::Insertion(n) => ret.push(Domain::new_insertion(*n)),
                 DomainTemplate::HelixInterval {
@@ -480,7 +480,7 @@ impl Controller {
         let mut pasted_strands = vec![];
         for domains in domains_vec.into_iter() {
             let mut nucl_position = Vec::with_capacity(domains.len() * 15);
-            for dom in domains.iter() {
+            for dom in &domains {
                 if let Domain::HelixDomain(dom) = dom {
                     let helix = helices.get(&dom.helix).unwrap();
                     for position in dom.iter() {
@@ -568,7 +568,7 @@ impl Controller {
         if pasted_strands.first().map(|s| s.pastable) == Some(false) {
             return Err(ErrOperation::CannotPasteHere);
         }
-        for pasted_strand in pasted_strands.iter() {
+        for pasted_strand in pasted_strands {
             let color = Self::new_color(color_idx);
             if pasted_strand.pastable {
                 let junctions =
@@ -726,7 +726,7 @@ impl Controller {
                     })
                     .ok_or(ErrOperation::CannotPasteHere)?;
                 let mut helices_mut = design.helices.make_mut();
-                for h_id in helices.iter() {
+                for h_id in &helices {
                     let h = helices_mut
                         .get(h_id)
                         .ok_or(ErrOperation::HelixDoesNotExists(*h_id))?;
@@ -797,9 +797,9 @@ impl Controller {
         };
 
         let mut ret = Vec::new();
-        for strand in pasted_strands.iter() {
+        for strand in pasted_strands {
             let mut points = Vec::new();
-            for domain in strand.domains.iter() {
+            for domain in &strand.domains {
                 if let Domain::HelixDomain(domain) = domain {
                     if domain.forward {
                         points.push(Nucl::new(domain.helix, domain.start, domain.forward));
@@ -950,7 +950,7 @@ impl Controller {
         copy_edge: (Edge, isize),
     ) -> Result<(), ErrOperation> {
         let (edge, shift) = copy_edge;
-        for (n1, n2) in xovers.iter() {
+        for (n1, n2) in xovers {
             let copy_1 = self.translate_nucl_by_edge(n1, &edge, shift, helices, grid_manager);
             log::debug!("copy 1 {copy_1:?}");
             let copy_2 = self.translate_nucl_by_edge(n2, &edge, shift, helices, grid_manager);

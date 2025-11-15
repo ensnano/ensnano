@@ -91,7 +91,7 @@ impl HelixSystem {
         };
         let free_nucl_pos = |n: &usize| positions[*n + self.helices.len()];
 
-        for spring in self.springs.iter() {
+        for spring in &self.springs {
             let point_0 = point_conversion(&spring.0);
             let point_1 = point_conversion(&spring.1);
             let len = (point_1 - point_0).mag();
@@ -113,7 +113,7 @@ impl HelixSystem {
             torques[spring.0.helix] += torque0;
             torques[spring.1.helix] += torque1;
         }
-        for (nucl, free_nucl_id) in self.mixed_springs.iter() {
+        for (nucl, free_nucl_id) in &self.mixed_springs {
             let point_0 = point_conversion(nucl);
             let point_1 = free_nucl_pos(free_nucl_id);
             let len = (point_1 - point_0).mag();
@@ -132,7 +132,7 @@ impl HelixSystem {
 
             torques[nucl.helix] += torque0;
         }
-        for (id_0, id_1) in self.free_springs.iter() {
+        for (id_0, id_1) in &self.free_springs {
             let point_0 = free_nucl_pos(id_0);
             let point_1 = free_nucl_pos(id_1);
             let len = (point_1 - point_0).mag();
@@ -148,7 +148,7 @@ impl HelixSystem {
             forces[self.helices.len() + *id_1] -= 10. * force;
         }
 
-        for (nucl, position) in self.anchors.iter() {
+        for (nucl, position) in &self.anchors {
             let point_0 = point_conversion(nucl);
             let len = (point_0 - *position).mag();
             let force = if len > 1e-5 {
@@ -163,7 +163,7 @@ impl HelixSystem {
 
             torques[nucl.helix] += torque0;
         }
-        for (id, position) in self.free_anchors.iter() {
+        for (id, position) in &self.free_anchors {
             let point_0 = free_nucl_pos(id);
             let len = (point_0 - *position).mag();
             let force = if len > 1e-5 {
@@ -484,7 +484,7 @@ impl ExplicitODE<f32> for HelixSystem {
                 ret.push(angular_momentum.y);
                 ret.push(angular_momentum.z);
             }
-            for pos in self.free_nucl_position.iter() {
+            for pos in &self.free_nucl_position {
                 ret.push(pos.x);
                 ret.push(pos.y);
                 ret.push(pos.z);
@@ -723,7 +723,7 @@ fn inertia_helix(h: f32, r: f32) -> Mat3 {
 fn center_of_mass_helices(helices: &[RigidHelix]) -> Vec3 {
     let mut total_mass = 0f32;
     let mut ret = Vec3::zero();
-    for h in helices.iter() {
+    for h in helices {
         ret += h.center_of_mass() * h.height();
         total_mass += h.height();
     }
@@ -754,7 +754,7 @@ fn inertia_point(point: Vec3) -> Mat3 {
 fn inertia_helices(helices: &[RigidHelix], center_of_mass: Vec3) -> Mat3 {
     const HELIX_RADIUS: f32 = 1.;
     let mut ret = Mat3::from_scale(0f32);
-    for h in helices.iter() {
+    for h in helices {
         let helix_center = h.center_of_mass();
         let inertia = inertia_helix(h.height(), HELIX_RADIUS);
         ret += inertia_point(helix_center - center_of_mass) * h.height() + inertia;
@@ -1014,7 +1014,7 @@ fn make_flexible_helices_system(
     }
     let mut anchors = vec![];
     let mut free_anchors = vec![];
-    for anchor in presenter.get_design().anchors.iter() {
+    for anchor in &presenter.get_design().anchors {
         if let Some(position) = presenter.get_space_position(anchor)
             && let Some(free_nucl) = interval_results.nucl_map.get(anchor)
         {
@@ -1095,7 +1095,7 @@ fn read_intervals(presenter: &Presenter) -> Result<IntervalResult, ErrOperation>
     let mut free_nucl_position = Vec::new();
     let mut intervals = Vec::new();
     for s in presenter.get_design().strands.values() {
-        for d in s.domains.iter() {
+        for d in &s.domains {
             log::debug!("New dom");
             if let Some(nucl) = d.prime5_end()
                 && (!nucl_map.contains_key(&nucl) || !nucl.forward)
@@ -1380,7 +1380,7 @@ impl GridsSystem {
             application_point.position_on_grid.rotated_by(orientation) + position
         };
 
-        for spring in self.springs.iter() {
+        for spring in &self.springs {
             let point_0 = point_conversion(&spring.0);
             let point_1 = point_conversion(&spring.1);
             let len = (point_1 - point_0).mag();

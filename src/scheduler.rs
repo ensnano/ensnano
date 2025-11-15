@@ -60,7 +60,7 @@ impl Scheduler {
     ) -> bool {
         log::debug!("Scheduler checking redraw");
         self.needs_redraw.clear();
-        for (area, app) in self.applications.iter_mut() {
+        for (area, app) in &mut self.applications {
             if multiplexer.is_showing(area)
                 && app.lock().unwrap().needs_redraw(dt, app_state.clone())
             {
@@ -72,7 +72,7 @@ impl Scheduler {
 
     /// Request an application to draw on a texture
     pub fn draw_apps(&mut self, encoder: &mut wgpu::CommandEncoder, multiplexer: &Multiplexer) {
-        for area in self.needs_redraw.iter() {
+        for area in &self.needs_redraw {
             let app = self.applications.get_mut(area).unwrap();
             if let Some(target) = multiplexer.get_texture_view(*area) {
                 app.lock().unwrap().on_redraw_request(encoder, target);
@@ -83,7 +83,7 @@ impl Scheduler {
     /// Notify all applications that the size of the window has been modified
     pub fn forward_new_size(&mut self, window_size: PhysicalSize<u32>, multiplexer: &Multiplexer) {
         if window_size.height > 0 && window_size.width > 0 {
-            for (area, app) in self.applications.iter_mut() {
+            for (area, app) in &mut self.applications {
                 if let Some(draw_area) = multiplexer.get_draw_area(*area) {
                     app.lock().unwrap().on_resize(window_size, draw_area);
                     self.needs_redraw.push(*area);

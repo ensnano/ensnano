@@ -351,7 +351,7 @@ impl Design {
         let mut nucls = Vec::new();
         let helix_parameters = self.helix_parameters.unwrap_or_default();
         for s in self.strands.values() {
-            for d in s.domains.iter() {
+            for d in &s.domains {
                 if let Domain::HelixDomain(interval) = d {
                     for i in interval.iter() {
                         let nucl = Nucl {
@@ -548,7 +548,7 @@ impl Design {
         let mut helices_per_group = vec![0];
         let mut groups: Vec<ScadnanoGroup> = vec![Default::default()];
         if let Some(ref scad_groups) = scad.groups {
-            for (name, g) in scad_groups.iter() {
+            for (name, g) in scad_groups {
                 let group = g.to_grid_desc()?;
                 groups.push(g.clone());
                 group_map.insert(name.clone(), grids.len());
@@ -556,8 +556,8 @@ impl Design {
                 helices_per_group.push(0);
             }
         }
-        for s in scad.strands.iter() {
-            for d in s.domains.iter() {
+        for s in &scad.strands {
+            for d in &s.domains {
                 insertion_deletions.read_domain(d);
             }
         }

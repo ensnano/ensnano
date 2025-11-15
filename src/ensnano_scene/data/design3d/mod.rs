@@ -66,7 +66,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
     /// Convert a list of ids into a list of instances
     pub fn id_to_raw_instances(&self, ids: Vec<u32>) -> Vec<RawDnaInstance> {
         let mut ret = Vec::new();
-        for id in ids.iter() {
+        for id in &ids {
             if let Some(instances) = self.make_raw_instances(*id) {
                 ret.extend(instances);
             }
@@ -139,7 +139,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
                 SELECTED_COLOR
             };
             let color_vec4 = Instance::color_from_au32(color);
-            for position in positions.iter() {
+            for position in &positions {
                 let sphere = SphereInstance {
                     position: *position,
                     color: color_vec4,
@@ -1007,13 +1007,13 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
     ) -> (Rc<Vec<RawDnaInstance>>, Rc<Vec<RawDnaInstance>>) {
         let mut spheres = Vec::new();
         let mut tubes = Vec::new();
-        for (helix_id, short) in helix_ids.iter() {
+        for (helix_id, short) in helix_ids {
             let range_phantom = if *short {
                 PHANTOM_RANGE / 10
             } else {
                 PHANTOM_RANGE
             } as isize;
-            for forward in [false, true].iter() {
+            for forward in &[false, true] {
                 let mut previous_nucl = None;
                 let range = self
                     .design_reader
@@ -1230,7 +1230,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
     /// Return the list of corners of grid with no helices on them
     fn get_all_naked_grids_corners(&self) -> Vec<Vec3> {
         let mut ret = Vec::new();
-        for (grid_id, grid) in self.get_grid().iter() {
+        for (grid_id, grid) in &self.get_grid() {
             if self
                 .design_reader
                 .get_helices_on_grid(*grid_id)
@@ -1290,10 +1290,10 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
 
     pub fn get_all_elements(&self) -> HashSet<u32> {
         let mut ret = HashSet::new();
-        for x in self.design_reader.get_all_nucl_ids().iter() {
+        for x in &self.design_reader.get_all_nucl_ids() {
             ret.insert(*x);
         }
-        for x in self.design_reader.get_all_bond_ids().iter() {
+        for x in &self.design_reader.get_all_bond_ids() {
             ret.insert(*x);
         }
         ret

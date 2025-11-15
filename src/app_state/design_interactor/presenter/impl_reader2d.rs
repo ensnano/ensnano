@@ -46,7 +46,7 @@ impl FlatSceneDesignReaderExt for DesignInteractor {
         let strand = self.presenter.current_design.strands.get(&s_id)?;
         let helices = &self.presenter.current_design.helices;
         let mut ret = Vec::new();
-        for domain in strand.domains.iter() {
+        for domain in &strand.domains {
             if let Domain::HelixDomain(domain) = domain {
                 ret.extend(split_domain_into_helices_segment(domain, helices));
             }

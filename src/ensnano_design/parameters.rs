@@ -210,7 +210,7 @@ impl HelixParameters {
     pub fn name(&self) -> &'static NamedParameter {
         let mut best_name = &NAMED_DNA_PARAMETERS[0];
         let mut best_delta = f32::INFINITY;
-        for p in NAMED_DNA_PARAMETERS.iter() {
+        for p in &NAMED_DNA_PARAMETERS {
             let delta = self.delta_model(&p.value);
             if delta < best_delta {
                 best_name = p;

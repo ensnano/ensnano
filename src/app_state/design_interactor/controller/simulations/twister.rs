@@ -187,7 +187,7 @@ impl TwistState {
 impl SimulationUpdate for TwistState {
     fn update_design(&self, design: &mut Design) {
         let mut new_helices = design.helices.make_mut();
-        for (i, h) in self.helices.iter() {
+        for (i, h) in &self.helices {
             new_helices.insert(*i, h.clone());
         }
 
@@ -224,7 +224,7 @@ impl DesignData {
         use crate::ensnano_design::utils::vec_to_dvec;
         let mut ret = 0.0;
         let len_0 = super::roller::dist_ac(&self.helix_parameters) as f64;
-        for (n1, n2) in self.xovers.iter() {
+        for (n1, n2) in &self.xovers {
             let hid_1 = &self.helix_map[&n1.helix];
             let hid_2 = &self.helix_map[&n2.helix];
             let helix_1 = &self.helices[*hid_1];
@@ -255,7 +255,7 @@ impl DesignData {
     }
 
     fn update_twist(&mut self, twist: f64) {
-        for h in self.helices.iter_mut() {
+        for h in &mut self.helices {
             if let Some(CurveDescriptor::Twist(Twist { omega, .. })) =
                 h.curve.as_mut().map(Arc::make_mut)
             {
