@@ -162,7 +162,7 @@ where
                     renderer.draw_primitive(Primitive::Custom(mesh));
                 });
             }
-            iced::Renderer::TinySkia(_) => panic!("Unhandled renderer"),
+            iced::Renderer::TinySkia(_) => unreachable!(),
         }
     }
 

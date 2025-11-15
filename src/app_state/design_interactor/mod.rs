@@ -376,10 +376,7 @@ pub(super) enum InteractorResult {
 
 impl InteractorResult {
     pub fn set_operation_state(&mut self, operation: Arc<dyn Operation>, new_op: bool) {
-        let interactor = match self {
-            Self::Push { interactor, .. } => interactor,
-            Self::Replace(interactor) => interactor,
-        };
+        let (Self::Push { interactor, .. } | Self::Replace(interactor)) = self;
         if new_op {
             interactor.current_operation_id += 1;
             log::info!("New operation id {}", interactor.current_operation_id);

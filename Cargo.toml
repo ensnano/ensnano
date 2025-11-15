@@ -107,7 +107,7 @@ impl_trait_overcaptures = "warn"
 impl_trait_redundant_captures = "warn"
 macro_use_extern_crate = "warn"
 meta_variable_misuse = "warn"
-# TODO: missing_docs = "warn"
+missing_docs = "allow" # TODO: warn (major undertaking)
 missing_unsafe_on_extern = "warn"
 
 [lints.clippy]
@@ -175,6 +175,7 @@ print_stdout = "allow" # TODO: warn and use log! everywhere
 pub_with_shorthand = "allow"
 question_mark_used = "allow"
 same_name_method = "allow" # TODO: warn once single-impl traits are removed
+semicolon_outside_block = "allow"
 shadow_reuse = "allow"
 shadow_same = "allow"
 shadow_unrelated = "allow"

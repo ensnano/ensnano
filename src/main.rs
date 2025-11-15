@@ -955,7 +955,7 @@ impl OverlayManager {
                                 );
                             });
                         }
-                        iced::Renderer::TinySkia(_) => panic!("Unhandled renderer"),
+                        iced::Renderer::TinySkia(_) => unreachable!(),
                     }
                 }
             }
