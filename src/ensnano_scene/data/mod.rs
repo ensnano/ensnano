@@ -1241,20 +1241,16 @@ impl<R: SceneDesignReaderExt> Data<R> {
     fn update_pivot(&self) {
         let mut spheres = vec![];
         if let Some(pivot) = self.pivot_position {
-            let radius = {
-                if let Some(element) = self.pivot_element {
-                    if let SceneElement::DesignElement(d_id, e_id) = element {
-                        self.designs[d_id as usize]
-                            .design_reader
-                            .get_radius(e_id)
-                            .unwrap_or(SPHERE_RADIUS)
-                            .max(SPHERE_RADIUS)
-                    } else {
-                        SPHERE_RADIUS
-                    }
-                } else {
-                    SPHERE_RADIUS
-                }
+            let radius = if let Some(element) = self.pivot_element
+                && let SceneElement::DesignElement(d_id, e_id) = element
+            {
+                self.designs[d_id as usize]
+                    .design_reader
+                    .get_radius(e_id)
+                    .unwrap_or(SPHERE_RADIUS)
+                    .max(SPHERE_RADIUS)
+            } else {
+                SPHERE_RADIUS
             };
             spheres.push(Design3D::<R>::pivot_sphere(pivot, radius));
         }
