@@ -164,6 +164,7 @@ cognitive_complexity = "allow" # TODO: warn (surprisingly good suggestions)
 default_numeric_fallback = "allow"
 else_if_without_else = "allow"
 expect_used = "allow"
+field_scoped_visibility_modifiers = "allow"
 float_arithmetic = "allow"
 implicit_return = "allow"
 impl_trait_in_params = "allow"
