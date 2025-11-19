@@ -667,6 +667,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
                 return GraphicalSelection::selection_only(new_selection);
             }
         }
+
         log::debug!("rectangle selection: {c1:?} {c2:?}");
         let mut translation_pivots = vec![];
         let mut rotation_pivots = vec![];
@@ -688,6 +689,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
                 });
             }
         }
+
         if adding {
             if let Some((mut old_translation_pivots, mut old_rotation_pivots)) =
                 self.get_pivot_of_selected_helices(camera, &new_selection)
@@ -702,10 +704,9 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
             }
             apply_symmetric_difference_to_selection(&mut selection, &mut new_selection);
             selection.append(&mut new_selection);
-            new_selection = selection;
-        } else {
-            new_selection = selection;
         }
+        new_selection = selection;
+
         GraphicalSelection {
             translation_pivots,
             rotation_pivots,

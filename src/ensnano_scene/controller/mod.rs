@@ -252,7 +252,6 @@ impl<S: AppState> Controller<S> {
                 let mouse_y = position.y / self.area_size.height as f64;
                 if ctrl(&self.current_modifiers_state) {
                     self.camera_controller.update_stereographic_zoom(delta);
-                    Transition::consequence(Consequence::CameraMoved)
                 } else {
                     self.camera_controller.process_scroll(
                         delta,
@@ -260,8 +259,8 @@ impl<S: AppState> Controller<S> {
                         mouse_y as f32,
                         app_state.get_scroll_sensitivity(),
                     );
-                    Transition::consequence(Consequence::CameraMoved)
                 }
+                Transition::consequence(Consequence::CameraMoved)
             }
             WindowEvent::KeyboardInput {
                 event:

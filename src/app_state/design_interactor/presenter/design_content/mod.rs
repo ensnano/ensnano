@@ -645,7 +645,7 @@ impl DesignContent {
                                 repr_bond_identifier: id_tmp,
                             });
                         }
-                        nucl_id = if let Some(prev_nucl) = prev_nucl {
+                        if let Some(prev_nucl) = prev_nucl {
                             let bond_id = id_tmp;
                             id_tmp += 1;
                             let bond = (prev_nucl, nucl);
@@ -662,10 +662,8 @@ impl DesignContent {
                             if Some(false) == strand_style.with_cones {
                                 with_cones_map.insert(bond_id, false);
                             }
-                            id_tmp
-                        } else {
-                            id_tmp
-                        };
+                        }
+                        nucl_id = id_tmp;
                         id_tmp += 1;
                         object_type.insert(nucl_id, ObjectType::Nucleotide(nucl_id));
                         nucleotide.insert(nucl_id, nucl);

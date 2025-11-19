@@ -189,10 +189,10 @@ impl Controller {
                     domains.push(DomainTemplate::Insertion(*nb_nucl));
                 }
                 Domain::HelixDomain(dom) => {
+                    let helix = helices
+                        .get(&dom.helix)
+                        .ok_or(ErrOperation::HelixDoesNotExists(dom.helix))?;
                     if let Some(pos1) = &previous_position {
-                        let helix = helices
-                            .get(&dom.helix)
-                            .ok_or(ErrOperation::HelixDoesNotExists(dom.helix))?;
                         let pos2 = helix
                             .grid_position
                             .ok_or(ErrOperation::HelixHasNoGridPosition(dom.helix))?;
@@ -201,15 +201,7 @@ impl Controller {
                             .ok_or(ErrOperation::CouldNotMakeEdge(*pos1, pos2))?;
                         edges.push(edge);
                         previous_position = Some(pos2);
-                        domains.push(DomainTemplate::HelixInterval {
-                            start: dom.start,
-                            end: dom.end,
-                            forward: dom.forward,
-                        });
                     } else {
-                        let helix = helices
-                            .get(&dom.helix)
-                            .ok_or(ErrOperation::HelixDoesNotExists(dom.helix))?;
                         let grid_position = helix
                             .grid_position
                             .ok_or(ErrOperation::HelixHasNoGridPosition(dom.helix))?;
@@ -220,12 +212,12 @@ impl Controller {
                             forward: dom.forward,
                         });
                         previous_position = Some(grid_position);
-                        domains.push(DomainTemplate::HelixInterval {
-                            start: dom.start,
-                            end: dom.end,
-                            forward: dom.forward,
-                        });
                     }
+                    domains.push(DomainTemplate::HelixInterval {
+                        start: dom.start,
+                        end: dom.end,
+                        forward: dom.forward,
+                    });
                 }
             }
         }

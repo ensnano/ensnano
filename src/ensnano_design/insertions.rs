@@ -53,12 +53,11 @@ impl InsertionDescriptor {
                 None
             } else {
                 let d = edge_direction.mag() / 2.;
+                let a = 0.0;
                 let (mut a, mut b, increasing) = if objective_len > PI * edge_direction.mag() {
-                    let a = 0.0;
                     let b = ((2. * objective_len).powi(2) - d.powi(2)).sqrt();
                     (a, 2. * b, true)
                 } else {
-                    let a = 0.0;
                     let b = 10. * d;
                     if cord_length(a, b, false, self.nb_nucl) > helix_parameters.dist_ac() {
                         // objective_len is very close to the length of the straight line

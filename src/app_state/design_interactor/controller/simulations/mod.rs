@@ -565,6 +565,8 @@ impl RigidHelix {
 }
 
 /// Return the length of the shortest line between a point of [a, b] and a point of [c, d]
+// TODO: fix lints (this function scares me)
+#[expect(clippy::branches_sharing_code, clippy::many_single_char_names)]
 fn distance_segment(a: Vec3, b: Vec3, c: Vec3, d: Vec3) -> (f32, Vec3, Vec3, Vec3) {
     let u = b - a;
     let v = d - c;

@@ -555,7 +555,6 @@ impl View {
         png_globals: Option<Globals>,
     ) {
         let exporting_png = png_size.is_some();
-        let texture;
         let globals_png = if let Some(globals) = png_globals {
             Some(UniformBindGroup::new(
                 self.device.clone(),
@@ -567,17 +566,16 @@ impl View {
             None
         };
         let png_glob_bg = globals_png.as_ref().map(UniformBindGroup::get_bindgroup);
-        let depth_texture_view = if let Some(size) = png_size {
-            texture = Arc::new(Texture::create_depth_texture(
+        let depth_texture = if let Some(size) = png_size {
+            Arc::new(Texture::create_depth_texture(
                 self.device.clone().as_ref(),
                 &size,
                 SAMPLE_COUNT,
-            ));
-            &texture.view
+            ))
         } else {
-            texture = self.depth_texture.clone();
-            &texture.view
+            self.depth_texture.clone()
         };
+        let depth_texture_view = &depth_texture.view;
         let target_size = png_size.unwrap_or(self.area_size);
         let mut need_new_circles = false;
         if let Some(globals) = self.camera_top.borrow_mut().update() {

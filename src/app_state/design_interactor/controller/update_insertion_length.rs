@@ -34,14 +34,13 @@ impl Controller {
         if let Some(insertion_mut) = get_insertion_length_mut(strand_mut, insertion_point) {
             if length > 0 {
                 *insertion_mut.length = length;
-                Ok(design)
             } else {
                 let d_id = insertion_mut.domain_id;
                 strand_mut.domains.remove(d_id);
                 strand_mut.junctions.remove(d_id);
                 strand_mut.merge_consecutive_domains();
-                Ok(design)
             }
+            Ok(design)
         } else if length > 0 {
             // if the nucl is the 5' end of the insertion we want it to be the 3' end of the
             // resulting strand, and therefore be on the 5' end of the split

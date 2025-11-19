@@ -314,11 +314,11 @@ impl Curve {
 
                 log::info!("Synchronization length by discretization {synchronization_length}");
 
+                let n = synchronization_length.div_euclid(*nucl_rise);
                 if epsilon > *nucl_rise / 2. {
                     // n and epsilon are chosen so that
                     // synchronization_length = n * len_segment - epsilon
                     //                        = n * (len_segment - epsilon / n)
-                    let n: f64 = synchronization_length.div_euclid(*nucl_rise);
 
                     // synchronization_length = len_segment * n + epsilon
                     //                        = len_segment * (n + 1) - len_segment + epsilon
@@ -330,8 +330,6 @@ impl Curve {
                     // n and epsilon are chosen so that
                     // synchronization_length = n * len_segment + epsilon
                     //                        = n * (len_segment + epsilon / n)
-                    let n: f64 = synchronization_length.div_euclid(*nucl_rise);
-
                     *nucl_rise += epsilon / n;
                 }
             }
@@ -471,10 +469,8 @@ impl Curve {
                     }
                     delta *= 2.0;
                 }
-                None
-            } else {
-                None
             }
+            None
         } else {
             Some(self.geometry.t_min())
         }

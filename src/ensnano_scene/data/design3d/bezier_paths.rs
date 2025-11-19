@@ -9,6 +9,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
     pub fn get_bezier_elements(&self, h_id: usize) -> (Vec<RawDnaInstance>, Vec<RawDnaInstance>) {
         let mut spheres = Vec::new();
         let mut tubes = Vec::new();
+
         if let Some(constructor) = self.design_reader.get_cubic_bezier_controls(h_id) {
             log::info!("got control");
             for (control_point, position) in constructor.iter() {
@@ -27,7 +28,6 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
                 constructor.control2,
             ));
             tubes.push(make_bezier_skeleton(constructor.control2, constructor.end));
-            (spheres, tubes)
         } else if let Some(controls) = self.design_reader.get_piecewise_bezier_controls(h_id) {
             let mut iter = controls.into_iter().enumerate();
             while let Some(((n1, c1), (n2, c2))) = iter.next().zip(iter.next()) {
@@ -43,10 +43,9 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
                 ));
                 tubes.push(make_bezier_skeleton(c1, c2));
             }
-            (spheres, tubes)
-        } else {
-            (spheres, tubes)
         }
+
+        (spheres, tubes)
     }
 
     pub fn get_control_point(&self, helix_id: usize, control: BezierControlPoint) -> Option<Vec3> {
