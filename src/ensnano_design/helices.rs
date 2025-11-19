@@ -1066,7 +1066,7 @@ impl OwnedAxis {
                 position,
             } => Axis::Curve {
                 shift: *shift,
-                points: &points[..],
+                points,
                 nucl_t0: *nucl_t0,
                 orientation: *orientation,
                 position: *position,
