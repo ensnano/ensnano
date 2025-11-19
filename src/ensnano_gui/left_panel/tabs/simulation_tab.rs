@@ -177,7 +177,7 @@ impl<State: AppState> GuiTab<State> for SimulationTab<State> {
 struct PhysicalSimulation;
 
 impl PhysicalSimulation {
-    fn view<'b, State: AppState>(
+    fn view<State: AppState>(
         &self,
         ui_size: UiSize,
         name: &'static str,

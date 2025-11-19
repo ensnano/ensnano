@@ -37,7 +37,7 @@ macro_rules! type_builder {
                     }
                 }
 
-                fn view<'a, State: AppState>(&self) -> iced::Element<'_, Message<State>, Theme, Renderer> {
+                fn view<State: AppState>(&self) -> iced::Element<'_, Message<State>, Theme, Renderer> {
                     let str_values = [$(& self.[<$param _string>],)*];
                     let mut ret = Column::new().width(Length::Fill).align_items(Alignment::End);
                     let value_to_modify = self.value_to_modify;
@@ -168,7 +168,7 @@ impl GridPositionBuilder {
         Self::Cartesian(Vec3Builder::new(ValueKind::HelixGridPosition, position))
     }
 
-    fn view<'a, State: AppState>(&self) -> iced::Element<'_, Message<State>, Theme, Renderer> {
+    fn view<State: AppState>(&self) -> iced::Element<'_, Message<State>, Theme, Renderer> {
         match self {
             Self::Cartesian(builder) => builder.view(),
         }

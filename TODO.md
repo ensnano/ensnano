@@ -109,8 +109,9 @@
   - `ScaffoldSetter`
   - `Multiplexer`
 - Remove enums with one variant -> struct or raw value:
-  - `OverlayType`
   - `AppOperation`
+  - `GridPositionBuilder`
+  - `OverlayType`
   - `RotationWidgetOrientation`
 - Replace `ensnano_iced/fonts/material_icons` by SVG icons from `icondata` lib
 - `cargo clippy --workspace --all-targets --all-features`
