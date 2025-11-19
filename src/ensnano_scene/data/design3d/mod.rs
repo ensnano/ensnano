@@ -208,7 +208,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
         let filter = |_n: &Nucl| true;
         let vec: Vec<_> = ids
             .iter()
-            .flat_map(|id| self.make_cone_from_bond(*id, &filter))
+            .filter_map(|id| self.make_cone_from_bond(*id, &filter))
             .collect();
         vec
     }

@@ -176,7 +176,7 @@ impl FlatSceneDesignReaderExt for DesignInteractor {
             .current_design
             .strands
             .values()
-            .flat_map(|s| Some([s.get_5prime()?, s.get_3prime()?]))
+            .filter_map(|s| Some([s.get_5prime()?, s.get_3prime()?]))
             .flatten()
             .collect()
     }
