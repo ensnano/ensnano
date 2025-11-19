@@ -39,7 +39,6 @@ impl Twister {
         target_grid: GridId,
         reader: &mut ChannelReader,
     ) -> Option<Arc<Mutex<TwistInterface>>> {
-        let intervals_map = presenter.get_design().strands.get_intervals();
         let mut helices: Vec<Helix> = Vec::new();
         let mut keys: Vec<usize> = Vec::new();
         for (key, helix) in presenter.get_helices().iter().filter(|(_, h)| {
@@ -54,10 +53,8 @@ impl Twister {
         let mut xovers = presenter.get_xovers_list();
         xovers.retain(|(n1, n2)| keys.contains(&n1.helix) && keys.contains(&n2.helix));
         let mut helix_map = HashMap::new();
-        let mut intervals = Vec::with_capacity(helices.len());
         for (n, k) in keys.iter().enumerate() {
             helix_map.insert(*k, n);
-            intervals.push(intervals_map.get(k).copied());
         }
         let system = TwistSystem {
             current_omega: MIN_OMEGA,

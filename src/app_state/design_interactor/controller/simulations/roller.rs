@@ -36,16 +36,13 @@ impl PhysicalSystem {
         target_helices: Option<Vec<usize>>,
         reader: &mut ChannelReader,
     ) -> Arc<Mutex<RollInterface>> {
-        let intervals_map = presenter.get_design().strands.get_intervals();
         let helices: Vec<Helix> = presenter.get_helices().values().cloned().collect();
         let keys: Vec<usize> = presenter.get_helices().keys().copied().collect();
         let helix_parameters = presenter.get_design().helix_parameters.unwrap_or_default();
         let xovers = presenter.get_xovers_list();
         let mut helix_map = HashMap::new();
-        let mut intervals = Vec::with_capacity(helices.len());
         for (n, k) in keys.iter().enumerate() {
             helix_map.insert(*k, n);
-            intervals.push(intervals_map.get(k).copied());
         }
         let roller = RollSystem::new(helices.len(), target_helices, &helix_map);
         let data = DesignData {

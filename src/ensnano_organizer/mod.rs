@@ -927,8 +927,6 @@ impl<E: OrganizerElement> ElementView<E> {
         };
         for ad in &self.attribute_displayers {
             if let Some(view) = ad.view() {
-                let mut elt = BTreeSet::new();
-                elt.insert(element.key());
                 let elt_key = element.key();
                 content =
                     content.push(view.map(move |m| {
