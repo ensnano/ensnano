@@ -1178,12 +1178,7 @@ impl DesignContent {
                 s1.push_str(
                     format!(
                         "({},{},{}):({},{},{}),",
-                        n.helix,
-                        n.position,
-                        if n.forward { 1 } else { 0 },
-                        p[0],
-                        p[1],
-                        p[2]
+                        n.helix, n.position, n.forward as u32, p[0], p[1], p[2]
                     )
                     .as_str(),
                 );
@@ -1191,12 +1186,7 @@ impl DesignContent {
                 s2.push_str(
                     format!(
                         "({},{},{}):({},{},{}),",
-                        n.helix,
-                        n.position,
-                        if n.forward { 1 } else { 0 },
-                        p[0],
-                        p[1],
-                        p[2]
+                        n.helix, n.position, n.forward as u32, p[0], p[1], p[2]
                     )
                     .as_str(),
                 );

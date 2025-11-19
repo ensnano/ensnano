@@ -519,7 +519,7 @@ pub fn phantom_helix_encoder_nucl(
     position: i32,
     forward: bool,
 ) -> u32 {
-    let pos_id = (position + PHANTOM_RANGE) as u32 * 4 + if forward { 0 } else { 1 };
+    let pos_id = (position + PHANTOM_RANGE) as u32 * 4 + !forward as u32;
     let max_pos_id = (2 * PHANTOM_RANGE) as u32 * 4 + 3;
     let helix = helix_id * max_pos_id;
     assert!(helix <= 0xFF_FF_FF);

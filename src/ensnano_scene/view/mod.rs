@@ -1729,11 +1729,7 @@ impl PostProcessingUniform {
     fn new(rendering_mode: RenderingMode) -> Self {
         Self {
             sample_count: SAMPLE_COUNT,
-            only_outline: if rendering_mode == RenderingMode::Outline {
-                1
-            } else {
-                0
-            },
+            only_outline: (rendering_mode == RenderingMode::Outline) as u32,
             camera_near: CAMERA_NEAR,
             camera_far: CAMERA_FAR,
         }
