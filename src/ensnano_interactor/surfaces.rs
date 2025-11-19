@@ -121,11 +121,10 @@ impl UnrootedRevolutionSurfaceDescriptor {
     ///
     /// Note that the revolution radius is *not* scaled.
     fn get_axis_position_when_scaled(&self, scale: f64) -> f64 {
-        use RevolutionSurfaceRadius::*;
         match self.revolution_radius {
-            Left(x) => self.curve.min_x() * scale - x,
-            Right(x) => x + self.curve.max_x() * scale,
-            Inside(x) => x,
+            RevolutionSurfaceRadius::Left(x) => self.curve.min_x() * scale - x,
+            RevolutionSurfaceRadius::Right(x) => x + self.curve.max_x() * scale,
+            RevolutionSurfaceRadius::Inside(x) => x,
         }
     }
 

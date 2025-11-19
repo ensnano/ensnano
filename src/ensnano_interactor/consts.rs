@@ -1,5 +1,5 @@
 use crate::ensnano_consts::*;
-use crate::ensnano_design::BezierControlPoint;
+use crate::ensnano_design::{BezierControlPoint, CubicBezierControlPoint};
 use crate::ensnano_interactor::RevolutionSimulationParameters;
 
 pub fn bezier_widget_id(helix_id: u32, control_point: BezierControlPoint) -> u32 {
@@ -21,12 +21,11 @@ pub fn widget_id_to_bezier(id: u32) -> Option<(usize, BezierControlPoint)> {
 }
 
 pub const fn bezier_control_color(control_point: BezierControlPoint) -> u32 {
-    use crate::ensnano_design::CubicBezierControlPoint::*;
     match control_point {
-        BezierControlPoint::CubicBezier(Start) => BEZIER_START_COLOR,
-        BezierControlPoint::CubicBezier(Control1) => BEZIER_CONTROL1_COLOR,
-        BezierControlPoint::CubicBezier(Control2) => BEZIER_CONTROL2_COLOR,
-        BezierControlPoint::CubicBezier(End) => BEZIER_END_COLOR,
+        BezierControlPoint::CubicBezier(CubicBezierControlPoint::Start) => BEZIER_START_COLOR,
+        BezierControlPoint::CubicBezier(CubicBezierControlPoint::Control1) => BEZIER_CONTROL1_COLOR,
+        BezierControlPoint::CubicBezier(CubicBezierControlPoint::Control2) => BEZIER_CONTROL2_COLOR,
+        BezierControlPoint::CubicBezier(CubicBezierControlPoint::End) => BEZIER_END_COLOR,
         BezierControlPoint::PiecewiseBezier(_) => PIECEWISE_BEZIER_COLOR,
     }
 }

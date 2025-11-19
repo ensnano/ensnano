@@ -326,20 +326,21 @@ impl<State: AppState> RevolutionTab<State> {
                 }
             }
             param => {
-                use RevolutionParameterId::*;
                 let widget = match param {
-                    SectionParameter(_) => unreachable!(),
-                    HalfTurnCount => &mut self.half_turn_count,
-                    NbSpiral => &mut self.nb_spiral_state_input,
-                    RevolutionRadius => &mut self.radius_input,
-                    ScaffoldLenTarget => &mut self.scaffold_len_target,
-                    NbSectionPerSegment => &mut self.nb_section_per_segment_input,
-                    SpringStiffness => &mut self.spring_stiffness,
-                    TorsionStiffness => &mut self.torsion_stiffness,
-                    FluidFriction => &mut self.fluid_friction,
-                    BallMass => &mut self.ball_mass,
-                    TimeSpan => &mut self.time_span,
-                    SimulationStep => &mut self.simulation_step,
+                    RevolutionParameterId::SectionParameter(_) => unreachable!(),
+                    RevolutionParameterId::HalfTurnCount => &mut self.half_turn_count,
+                    RevolutionParameterId::NbSpiral => &mut self.nb_spiral_state_input,
+                    RevolutionParameterId::RevolutionRadius => &mut self.radius_input,
+                    RevolutionParameterId::ScaffoldLenTarget => &mut self.scaffold_len_target,
+                    RevolutionParameterId::NbSectionPerSegment => {
+                        &mut self.nb_section_per_segment_input
+                    }
+                    RevolutionParameterId::SpringStiffness => &mut self.spring_stiffness,
+                    RevolutionParameterId::TorsionStiffness => &mut self.torsion_stiffness,
+                    RevolutionParameterId::FluidFriction => &mut self.fluid_friction,
+                    RevolutionParameterId::BallMass => &mut self.ball_mass,
+                    RevolutionParameterId::TimeSpan => &mut self.time_span,
+                    RevolutionParameterId::SimulationStep => &mut self.simulation_step,
                 };
                 widget.set_text(text);
             }

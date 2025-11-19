@@ -11,7 +11,7 @@
 //!     u16      – Attribute byte count   -  2 bytes
 
 use super::view::{
-    ConeInstance, Ellipsoid, Instantiable as _, Mesh, Mesh::*, RawDnaInstance, SlicedTubeInstance,
+    ConeInstance, Ellipsoid, Instantiable as _, Mesh, RawDnaInstance, SlicedTubeInstance,
     SphereInstance, TubeInstance, TubeLidInstance,
 };
 use crate::ensnano_consts::NB_RAY_TUBE;
@@ -32,12 +32,12 @@ impl RawDnaInstance {
     fn transformed_vertices_normal(&self) -> Vec<([f32; 3], [f32; 3])> {
         let mesh = Mesh::try_from(self.mesh).unwrap();
         let vertices_normal = match mesh {
-            Sphere => SphereInstance::vertices(),
-            Tube => TubeInstance::vertices(),
-            SlicedTube => SlicedTubeInstance::vertices(),
-            TubeLid => TubeLidInstance::vertices(),
-            Prime3Cone => ConeInstance::vertices(),
-            BaseEllipsoid => Ellipsoid::vertices(),
+            Mesh::Sphere => SphereInstance::vertices(),
+            Mesh::Tube => TubeInstance::vertices(),
+            Mesh::SlicedTube => SlicedTubeInstance::vertices(),
+            Mesh::TubeLid => TubeLidInstance::vertices(),
+            Mesh::Prime3Cone => ConeInstance::vertices(),
+            Mesh::BaseEllipsoid => Ellipsoid::vertices(),
             _ => vec![],
         };
         let model = self.model;
@@ -47,7 +47,7 @@ impl RawDnaInstance {
             m4[0][0], m4[0][1], m4[0][2], m4[1][0], m4[1][1], m4[1][2], m4[2][0], m4[2][1],
             m4[2][2],
         ]);
-        if mesh != SlicedTube {
+        if mesh != Mesh::SlicedTube {
             vertices_normal
                 .iter()
                 .map(|v| (Vec3::from(v.position) * scale, Vec3::from(v.normal)))
@@ -139,12 +139,12 @@ impl RawDnaInstance {
     fn triangle_list_indices(&self) -> Vec<usize> {
         let mesh = Mesh::try_from(self.mesh).unwrap();
         match mesh {
-            Sphere => SphereInstance::indices(),
-            Tube => triangle_indices_from_strip(TubeInstance::indices()),
-            SlicedTube => triangle_indices_from_strip(SlicedTubeInstance::indices()),
-            TubeLid => TubeLidInstance::indices(),
-            Prime3Cone => ConeInstance::indices(),
-            BaseEllipsoid => Ellipsoid::indices(),
+            Mesh::Sphere => SphereInstance::indices(),
+            Mesh::Tube => triangle_indices_from_strip(TubeInstance::indices()),
+            Mesh::SlicedTube => triangle_indices_from_strip(SlicedTubeInstance::indices()),
+            Mesh::TubeLid => TubeLidInstance::indices(),
+            Mesh::Prime3Cone => ConeInstance::indices(),
+            Mesh::BaseEllipsoid => Ellipsoid::indices(),
             _ => vec![],
         }
         .iter()
