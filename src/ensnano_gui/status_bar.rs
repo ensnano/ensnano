@@ -91,6 +91,7 @@ pub enum Message<S: AppState> {
     NewApplicationState(S),
     UiSizeChanged(UiSize),
     TabPressed,
+    #[expect(clippy::enum_variant_names)]
     Message(Option<String>),
     Resize(LogicalSize<f64>),
     SetKeyboardPriority(bool),
