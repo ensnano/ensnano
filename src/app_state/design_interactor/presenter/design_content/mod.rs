@@ -909,13 +909,13 @@ impl DesignContent {
                 .collect::<Vec<(usize, isize)>>();
 
             let mut hash_f = BTreeMap::new();
-            for (h, i) in all_forward_nt.into_iter() {
+            for (h, i) in all_forward_nt {
                 let mut a = hash_f.get(&h).unwrap_or(&Vec::<isize>::new()).clone();
                 a.push(i);
                 hash_f.insert(h, a);
             }
             let mut hash_b = BTreeMap::new();
-            for (h, i) in all_backward_nt.into_iter() {
+            for (h, i) in all_backward_nt {
                 let mut a = hash_b.get(&h).unwrap_or(&Vec::<isize>::new()).clone();
                 a.push(i);
                 hash_b.insert(h, a);
@@ -961,7 +961,7 @@ impl DesignContent {
                 let mut b = Vec::new();
                 let mut last_i = None;
                 let mut current_start = None;
-                for i in a.into_iter() {
+                for i in a {
                     match last_i {
                         Some(l_i) if l_i + 1 < i => {
                             b.push((current_start.unwrap(), l_i + 1));

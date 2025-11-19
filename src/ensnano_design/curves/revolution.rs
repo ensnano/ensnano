@@ -120,7 +120,7 @@ impl SmoothInterpolatedCurve {
             }
         } else {
             let mut interpolators = Vec::with_capacity(interpolations.len());
-            for interpolation in interpolations.into_iter() {
+            for interpolation in interpolations {
                 let interpolator = match interpolation {
                     InterpolationDescriptor::PointsValues { points, values } => {
                         let points_values = points.into_iter().zip(values.into_iter()).collect();

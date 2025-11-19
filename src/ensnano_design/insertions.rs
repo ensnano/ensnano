@@ -241,7 +241,7 @@ impl Strand {
                 }
             }
         }
-        for (d_id, edge) in to_be_updated.into_iter() {
+        for (d_id, edge) in to_be_updated {
             self.update_insertion(d_id, edge, helix_parameters);
         }
     }

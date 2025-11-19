@@ -59,7 +59,7 @@ impl Object3DDrawer {
         objects: ExternalObjects,
         bg_desc: &BindGroupLayoutDescriptor,
     ) {
-        for (obj_id, object) in objects.objects.into_iter() {
+        for (obj_id, object) in objects.objects {
             if !self.stl_drawers.contains_key(&obj_id) && !self.gltf_drawers.contains_key(&obj_id) {
                 self.add_object(obj_id, object, &objects.path_base, bg_desc);
             }

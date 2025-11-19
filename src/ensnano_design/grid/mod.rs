@@ -750,7 +750,7 @@ impl GridData {
         let helix_parameters = design.helix_parameters.unwrap_or_default();
         let source_grids = design.free_grids.clone();
         let paths_data = design.get_up_to_date_paths().clone();
-        for (g_id, desc) in paths_data.grids().into_iter() {
+        for (g_id, desc) in paths_data.grids() {
             grids.insert(g_id, desc.to_grid(helix_parameters));
         }
         for (g_id, desc) in source_grids.iter() {

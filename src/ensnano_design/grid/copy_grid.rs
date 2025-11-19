@@ -34,7 +34,7 @@ impl Design {
         let new_helix_map = self.make_grid_copy_helix_map(grid_ids);
         let source_strand_ids = self.get_id_of_strands_on_grids(grid_ids);
 
-        for s_id in source_strand_ids.into_iter() {
+        for s_id in source_strand_ids {
             let strand = self.copy_strand_on_new_grids(s_id, &new_helix_map)?;
             self.strands.push(strand);
         }

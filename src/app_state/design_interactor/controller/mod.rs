@@ -660,7 +660,7 @@ impl Controller {
             keys.push(key);
         }
         drop(helices_mut);
-        for key in keys.into_iter() {
+        for key in keys {
             for b in &[true, false] {
                 //let new_key = self.add_strand(design, key, -(nb_nucl as isize) / 2, *b);
                 let new_key = self.add_strand(design, key, 0, *b);
@@ -755,7 +755,7 @@ impl Controller {
     fn flip_anchors(&self, mut design: Design, nucls: Vec<Nucl>) -> Result<Design, ErrOperation> {
         let new_anchor_status = !nucls.iter().all(|n| design.anchors.contains(n));
         if new_anchor_status {
-            for n in nucls.into_iter() {
+            for n in nucls {
                 design.anchors.insert(n);
             }
         } else {
@@ -1328,7 +1328,7 @@ impl Controller {
 
             let mut new_paths = design.bezier_paths.make_mut();
             let mut next_selection = Vec::new();
-            for BezierVertexId { path_id, vertex_id } in vertices.into_iter() {
+            for BezierVertexId { path_id, vertex_id } in vertices {
                 let path = new_paths
                     .get_mut(&path_id)
                     .ok_or(ErrOperation::PathDoesNotExist(path_id))?;
@@ -1730,7 +1730,7 @@ impl Controller {
         }
         drop(new_paths);
         let mut new_grids = design.free_grids.make_mut();
-        for g_id in grid_ids.into_iter() {
+        for g_id in grid_ids {
             if let Some(desc) =
                 FreeGridId::try_from_grid_id(g_id).and_then(|g_id| new_grids.get_mut(&g_id))
             {
@@ -1762,7 +1762,7 @@ impl Controller {
         }
 
         let mut new_paths = design.bezier_paths.make_mut();
-        for (vertex_id, new_vector_out) in new_vectors_out.into_iter() {
+        for (vertex_id, new_vector_out) in new_vectors_out {
             if let Some(path) = new_paths.get_mut(&vertex_id.path_id) {
                 path.set_vector_out(vertex_id.vertex_id, new_vector_out, &design.bezier_planes);
             }
@@ -1770,7 +1770,7 @@ impl Controller {
 
         drop(new_paths);
         let mut new_grids = design.free_grids.make_mut();
-        for g_id in grid_ids.into_iter() {
+        for g_id in grid_ids {
             if let Some(desc) = new_grids.get_mut_g_id(&g_id) {
                 desc.position -= origin;
                 desc.orientation = rotation * desc.orientation;
@@ -1858,7 +1858,7 @@ impl Controller {
         grid_ids: Vec<GridId>,
         persistent: bool,
     ) -> Design {
-        for g_id in grid_ids.into_iter() {
+        for g_id in grid_ids {
             if persistent {
                 Arc::make_mut(&mut design.no_phantoms).remove(&g_id);
             } else {
@@ -1869,7 +1869,7 @@ impl Controller {
     }
 
     fn set_small_spheres(&self, mut design: Design, grid_ids: Vec<GridId>, small: bool) -> Design {
-        for g_id in grid_ids.into_iter() {
+        for g_id in grid_ids {
             if small {
                 Arc::make_mut(&mut design.small_spheres).insert(g_id);
             } else {
@@ -1999,7 +1999,7 @@ impl Controller {
                     .map(|neighbor| neighbor.identifier)
             })
             .collect();
-        for nucl in nucls.into_iter() {
+        for nucl in nucls {
             builders.push(
                 self.request_one_builder(&mut design, nucl, &ignored_domains)
                     .ok_or(ErrOperation::CannotBuildOn(nucl))?,
@@ -3097,7 +3097,7 @@ impl Controller {
         let empty_grids = data.get_empty_grids_id();
 
         let mut free_grids_mut = design.free_grids.make_mut();
-        for id in grid_ids.into_iter() {
+        for id in grid_ids {
             let g_id = GridId::FreeGrid(id);
             if !empty_grids.contains(&g_id) {
                 return Err(ErrOperation::GridIsNotEmpty(g_id));

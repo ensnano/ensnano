@@ -470,7 +470,7 @@ impl Controller {
         helix_parameters: &HelixParameters,
     ) -> Vec<PastedStrand> {
         let mut pasted_strands = vec![];
-        for domains in domains_vec.into_iter() {
+        for domains in domains_vec {
             let mut nucl_position = Vec::with_capacity(domains.len() * 15);
             for dom in &domains {
                 if let Domain::HelixDomain(dom) = dom {

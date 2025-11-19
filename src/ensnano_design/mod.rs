@@ -314,7 +314,7 @@ impl Design {
         // the version.
         let grids = std::mem::take(&mut self.old_grids);
         let mut grids_mut = self.free_grids.make_mut();
-        for g in grids.into_iter() {
+        for g in grids {
             grids_mut.push(g);
         }
         drop(grids_mut);

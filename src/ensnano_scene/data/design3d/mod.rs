@@ -294,7 +294,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
             // Draw grey bars between the masses defining for the broken lines corresponding to each helix
             // -> To be replaced by a SausageRosary passing through the nt_paths
             if draw_broken_lines {
-                for (me, next) in additional_structure.right().into_iter() {
+                for (me, next) in additional_structure.right() {
                     let pos_left = transformation.transform_vec(positions[me]);
                     let pos_right = transformation.transform_vec(positions[next]);
                     let mut color_idx = me / additional_structure.number_of_sections();
@@ -328,7 +328,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
                 .map(|i| SPRING_RADIUS * (i as f32 * alpha).sin())
                 .collect::<Vec<f32>>();
             if draw_springs {
-                for (me, other) in additional_structure.next().into_iter() {
+                for (me, other) in additional_structure.next() {
                     let pos_left = transformation.transform_vec(positions[me]);
                     let pos_right = transformation.transform_vec(positions[other]);
 
@@ -1272,7 +1272,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
 
     fn boundaries_unaligned(&self, basis: Basis3D) -> UnalignedBoundaries {
         let mut ret = UnalignedBoundaries::from_basis(basis);
-        for point in self.get_all_points().into_iter() {
+        for point in self.get_all_points() {
             ret.add_point(point);
         }
         ret

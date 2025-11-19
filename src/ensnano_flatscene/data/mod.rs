@@ -816,7 +816,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
                 selection_set.insert(xover_id);
             }
         }
-        for xover_id in selection_set.into_iter() {
+        for xover_id in selection_set {
             selection.push(Selection::Xover(self.id, xover_id));
         }
     }

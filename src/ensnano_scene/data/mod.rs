@@ -954,44 +954,45 @@ impl<R: SceneDesignReaderExt> Data<R> {
             }
         }
         if self.must_draw_phantom(app_state) {
-            for element in self.selected_element(app_state).into_iter() {
-                match element {
-                    SceneElement::DesignElement(d_id, elt_id) => {
-                        let set = ret.entry(d_id).or_insert_with(HashMap::new);
-                        if let Some(h_id) = self.get_helix_identifier(d_id, elt_id) {
-                            set.insert(h_id, false);
-                        }
+            match self.selected_element(app_state) {
+                Some(SceneElement::DesignElement(d_id, elt_id)) => {
+                    let set = ret.entry(d_id).or_insert_with(HashMap::new);
+                    if let Some(h_id) = self.get_helix_identifier(d_id, elt_id) {
+                        set.insert(h_id, false);
                     }
-                    SceneElement::PhantomElement(phantom_element) => {
-                        let set = ret
-                            .entry(phantom_element.design_id)
-                            .or_insert_with(HashMap::new);
-                        set.insert(phantom_element.helix_id, false);
-                    }
-                    SceneElement::Grid(d_id, g_id) => {
-                        let new_helices = self.designs[d_id as usize]
-                            .get_helices_grid(g_id)
-                            .unwrap_or_default();
-                        let set = ret.entry(d_id).or_insert_with(HashMap::new);
-                        for h_id in &new_helices {
-                            set.insert(*h_id as u32, true);
-                        }
-                    }
-                    SceneElement::GridCircle(d_id, position) => {
-                        if let Some(h_id) = self.designs[d_id as usize].get_helix_grid(position) {
-                            let set = ret.entry(d_id).or_insert_with(HashMap::new);
-                            set.insert(h_id, false);
-                        }
-                    }
-                    SceneElement::WidgetElement(_) => unreachable!(),
-                    SceneElement::BezierControl { helix_id, .. } => {
-                        let set = ret.entry(0).or_insert_with(HashMap::new);
-                        set.insert(helix_id as u32, false);
-                    }
-                    SceneElement::BezierVertex { .. } => (),
-                    SceneElement::BezierTangent { .. } => (),
-                    SceneElement::PlaneCorner { .. } => (),
                 }
+                Some(SceneElement::PhantomElement(phantom_element)) => {
+                    let set = ret
+                        .entry(phantom_element.design_id)
+                        .or_insert_with(HashMap::new);
+                    set.insert(phantom_element.helix_id, false);
+                }
+                Some(SceneElement::Grid(d_id, g_id)) => {
+                    let new_helices = self.designs[d_id as usize]
+                        .get_helices_grid(g_id)
+                        .unwrap_or_default();
+                    let set = ret.entry(d_id).or_insert_with(HashMap::new);
+                    for h_id in &new_helices {
+                        set.insert(*h_id as u32, true);
+                    }
+                }
+                Some(SceneElement::GridCircle(d_id, position)) => {
+                    if let Some(h_id) = self.designs[d_id as usize].get_helix_grid(position) {
+                        let set = ret.entry(d_id).or_insert_with(HashMap::new);
+                        set.insert(h_id, false);
+                    }
+                }
+                Some(SceneElement::BezierControl { helix_id, .. }) => {
+                    let set = ret.entry(0).or_insert_with(HashMap::new);
+                    set.insert(helix_id as u32, false);
+                }
+                Some(SceneElement::WidgetElement(_)) => unreachable!(),
+                Some(
+                    SceneElement::BezierVertex { .. }
+                    | SceneElement::BezierTangent { .. }
+                    | SceneElement::PlaneCorner { .. },
+                )
+                | None => {}
             }
         }
         ret
