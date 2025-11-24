@@ -109,7 +109,7 @@ impl Curved for Twist {
             // https://mathcurve.com/courbes3d.gb/helicecirculaire/helicecirculaire.shtml
             let a = self.radius;
             let b = 1. / self.omega;
-            Some((a * a + b * b).sqrt() * t * self.omega.abs())
+            Some(f64::hypot(a, b) * t * self.omega.abs())
         }
     }
 
@@ -120,28 +120,20 @@ impl Curved for Twist {
             // https://mathcurve.com/courbes3d.gb/helicecirculaire/helicecirculaire.shtml
             let a = self.radius;
             let b = 1. / self.omega;
-            let s = (a * a + b * b).sqrt();
+            let s = f64::hypot(a, b);
             Some(x / self.omega.abs() / s)
         }
     }
 
     fn rise_ratio(&self) -> Option<f64> {
-        /*
-        if self.omega.abs() < 1e-5 {
-            None
-        } else {
-            self.curvilinear_abscissa(1.0)
-        }
-        */
         None
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::f64::consts::TAU;
-
     use super::*;
+    use std::f64::consts::TAU;
 
     impl Twist {
         fn with_omega(omega: f64) -> Self {

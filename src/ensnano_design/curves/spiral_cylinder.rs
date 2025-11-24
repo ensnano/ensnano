@@ -29,7 +29,7 @@ impl SpiralCylinderDescriptor {
         };
         let rise_per_turn = self.rise_per_turn(inter_helix_axis_gap);
         let rt = self.radius * TAU;
-        let d_curvilinear_abscissa = (rt * rt + rise_per_turn * rise_per_turn).sqrt();
+        let d_curvilinear_abscissa = f64::hypot(rt, rise_per_turn);
         SpiralCylinder {
             theta_0: self.theta_0,
             radius: self.radius,
