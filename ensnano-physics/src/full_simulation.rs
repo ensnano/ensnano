@@ -7,6 +7,7 @@ use crate::{
     RapierPhysicsSystem,
     anchors::SpringAnchorsReference,
     helices::{IntermediaryHelix, IntermediaryPair},
+    parameters::RapierParameters,
     point_from_parts,
 };
 
@@ -160,6 +161,7 @@ pub fn build_simulation<S: SimulationSetup>(
     space_position: &HashMap<u32, [f32; 3]>,
     helices: &Helices,
     global_parameters: &HelixParameters,
+    rapier_parameters: &RapierParameters,
 ) -> RapierPhysicsSystem {
     let mut rigid_body_set: RigidBodySet = Default::default();
     let mut collider_set: ColliderSet = Default::default();

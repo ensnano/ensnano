@@ -5,6 +5,7 @@ use ensnano_interactor::ObjectType;
 use crate::{
     full_simulation::{CutHelicesSetup, build_simulation},
     helices::build_helices,
+    parameters::RapierParameters,
 };
 use ensnano_design::{Helices, HelixParameters, Nucl};
 use rapier3d::{na::Vector3, prelude::*};
@@ -28,6 +29,7 @@ pub struct RapierPhysicsSystem {
 impl RapierPhysicsSystem {
     pub fn full_simulation(
         parameters: HelixParameters,
+        rapier_parameters: RapierParameters,
         object_type: &HashMap<u32, ObjectType>,
         nucleotide: &HashMap<u32, Nucl>,
         space_position: &HashMap<u32, [f32; 3]>,
@@ -42,6 +44,7 @@ impl RapierPhysicsSystem {
             space_position,
             helices,
             &parameters,
+            &rapier_parameters,
         )
     }
 
