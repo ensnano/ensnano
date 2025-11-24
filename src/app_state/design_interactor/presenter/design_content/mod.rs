@@ -358,12 +358,7 @@ impl DesignContent {
         invisible_nucls: &HashSet<Nucl>,
     ) -> Vec<u32> {
         let check_visibility = |&(_, v): &(&u32, &Nucl)| {
-            !invisible_nucls.contains(v)
-                && design
-                    .helices
-                    .get(&v.helix)
-                    .map(|h| h.visible)
-                    .unwrap_or_default()
+            !invisible_nucls.contains(v) && design.helices.get(&v.helix).is_some_and(|h| h.visible)
         };
         self.nucleotide
             .iter()
@@ -388,16 +383,8 @@ impl DesignContent {
                 // visible // Apparently this return always true has the field .visible of an helix is never used...
             } else {
                 !(invisible_nucls.contains(&bond.0) && invisible_nucls.contains(&bond.1))
-                    && (design
-                        .helices
-                        .get(&bond.0.helix)
-                        .map(|h| h.visible)
-                        .unwrap_or_default()
-                        || design
-                            .helices
-                            .get(&bond.1.helix)
-                            .map(|h| h.visible)
-                            .unwrap_or_default())
+                    && (design.helices.get(&bond.0.helix).is_some_and(|h| h.visible)
+                        || design.helices.get(&bond.1.helix).is_some_and(|h| h.visible))
             }
         };
         self.nucleotides_involved

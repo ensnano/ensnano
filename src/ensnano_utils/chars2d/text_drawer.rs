@@ -69,8 +69,7 @@ impl TextDrawer {
             .text
             .chars()
             .next()
-            .map(|c| c.is_ascii_uppercase())
-            .unwrap_or_default()
+            .is_some_and(|c| c.is_ascii_uppercase())
         {
             [&self.char_drawers[&'A'].letter.font]
         } else {

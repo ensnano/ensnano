@@ -557,7 +557,7 @@ impl Controller {
         design: &mut Design,
         pasted_strands: &[PastedStrand],
     ) -> Result<(), ErrOperation> {
-        if pasted_strands.first().map(|s| s.pastable) == Some(false) {
+        if pasted_strands.first().is_some_and(|s| !s.pastable) {
             return Err(ErrOperation::CannotPasteHere);
         }
         for pasted_strand in pasted_strands {

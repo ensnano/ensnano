@@ -960,8 +960,7 @@ fn make_flexible_helices_system(
             .get_design()
             .helices
             .get(&h_id)
-            .map(|h| h.locked_for_simulations)
-            .unwrap_or_default();
+            .is_some_and(|h| h.locked_for_simulations);
         rigid_helices.push(rigid_helix);
     }
     let xovers = presenter.get_xovers_list();
