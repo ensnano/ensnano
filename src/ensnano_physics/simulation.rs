@@ -80,11 +80,12 @@ impl RapierPhysicsSystem {
         for helix in &handles {
             for link_size in [2, 3, 4, 8] {
                 for window in helix.windows(link_size) {
+                    assert!(window.len() >= 2);
                     generate_springs(
                         window[0],
                         window[1],
-                        &mut rigid_body_set,
-                        &mut collider_set,
+                        &rigid_body_set,
+                        &collider_set,
                         &mut impulse_joint_set,
                     );
                 }

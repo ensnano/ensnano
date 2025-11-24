@@ -2005,19 +2005,12 @@ fn add_discs<R: SceneDesignReaderExt>(pos: GridPosition, discs: Discs<R>, level:
 }
 
 fn candidate_xover(candidates: &[Selection]) -> Option<FreeXover> {
-    if candidates.len() == 2 {
-        if let (Selection::Nucleotide(_, n1), Selection::Nucleotide(_, n2)) =
-            (candidates[0], candidates[1])
-        {
-            Some(FreeXover {
-                source: FreeXoverEnd::Nucl(n1),
-                target: FreeXoverEnd::Nucl(n2),
-                design_id: 0,
-            })
-        } else {
-            None
-        }
-    } else {
-        None
+    match candidates {
+        [Selection::Nucleotide(_, n1), Selection::Nucleotide(_, n2)] => Some(FreeXover {
+            source: FreeXoverEnd::Nucl(*n1),
+            target: FreeXoverEnd::Nucl(*n2),
+            design_id: 0,
+        }),
+        _ => None,
     }
 }

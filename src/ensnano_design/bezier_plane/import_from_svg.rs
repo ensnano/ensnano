@@ -25,14 +25,13 @@ pub fn read_first_svg_path(file_path: &std::path::Path) -> Result<BezierPath, Sv
             for command in data.iter() {
                 match command {
                     Command::Close => return Ok(ret.close()),
-                    Command::Move(Position::Absolute, parameters) => {
-                        if parameters.len() != 2 {
-                            return Err(SvgImportError::BadParameters);
-                        } else {
-                            let at = Vec2::new(parameters[0], parameters[1]);
+                    Command::Move(Position::Absolute, parameters) => match parameters.as_ref() {
+                        [x, y] => {
+                            let at = Vec2::new(*x, *y);
                             ret.start(at)?;
                         }
-                    }
+                        _ => return Err(SvgImportError::BadParameters),
+                    },
                     Command::CubicCurve(Position::Absolute, parameters) => {
                         let arg = MoveToParameter::from_svg_parameter(parameters)?;
                         ret.move_to(arg)?;
@@ -114,14 +113,13 @@ struct MoveToParameter {
 
 impl MoveToParameter {
     fn from_svg_parameter(parameters: &[f32]) -> Result<Self, SvgImportError> {
-        if parameters.len() != 6 {
-            Err(SvgImportError::BadParameters)
-        } else {
-            Ok(Self {
-                control_1: Vec2::new(parameters[0], parameters[1]),
-                control_2: Vec2::new(parameters[2], parameters[3]),
-                position: Vec2::new(parameters[4], parameters[5]),
-            })
+        match parameters {
+            [c1x, c1y, c2x, c2y, px, py] => Ok(Self {
+                control_1: Vec2::new(*c1x, *c1y),
+                control_2: Vec2::new(*c2x, *c2y),
+                position: Vec2::new(*px, *py),
+            }),
+            _ => Err(SvgImportError::BadParameters),
         }
     }
 }

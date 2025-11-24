@@ -1,14 +1,14 @@
 use crate::ensnano_design::{Helices, HelixCollection as _, HelixParameters, Nucl};
 use crate::ensnano_interactor::ObjectType;
-use ahash::HashMap;
-use rapier3d::prelude::*;
-
 use crate::ensnano_physics::{
     RapierPhysicsSystem,
     anchors::SpringAnchorsReference,
     helices::{IntermediaryHelix, IntermediaryPair},
     point_from_parts,
 };
+use ahash::HashMap;
+use itertools::Itertools as _;
+use rapier3d::prelude::*;
 
 const NUCLEOTIDE_RADIUS: f32 = 0.05;
 const PAIR_CAPSULE_RADIUS: f32 = 0.1;
@@ -324,17 +324,17 @@ fn build_strong_springs(
             // instead
             // (we could do an average here between up and -down when both exist)
 
-            for window in range.windows(2) {
-                let down_pair = intermediary.pairs[&window[0]];
-                let up_pair = intermediary.pairs[&window[1]];
+            for (&a, &b) in range.iter().tuple_windows() {
+                let down_pair = intermediary.pairs[&a];
+                let up_pair = intermediary.pairs[&b];
 
                 let result = up_vector(&down_pair, &up_pair, nucleotide_body_map, collider_set);
 
-                up_vectors.insert(window[0], result);
+                up_vectors.insert(a, result);
                 // we always insert a copy up
                 // so that the last pair also gets
                 // an up vector
-                up_vectors.insert(window[0] + 1, result);
+                up_vectors.insert(a + 1, result);
             }
 
             for distance in STRONG_SPRING_RANGES {
