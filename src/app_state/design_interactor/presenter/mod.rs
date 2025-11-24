@@ -8,11 +8,10 @@ pub mod impl_readergui;
 use self::design_content::Staple;
 
 use super::*;
-use crate::ensnano_design::elements::DesignElementKey;
-use crate::ensnano_design::grid::Grid;
 use crate::ensnano_design::{
     BezierPath, BezierPathId, Collection as _, Extremity, HelixCollection as _,
-    InstantiatedPiecewiseBezier, Nucl, NuclCollection, Strand,
+    InstantiatedPiecewiseBezier, Nucl, NuclCollection, Strand, elements::DesignElementKey,
+    grid::Grid,
 };
 use crate::ensnano_exports::oxdna::BACKBONE_TO_CM;
 use crate::ensnano_interactor::{
@@ -22,7 +21,10 @@ use crate::ensnano_interactor::{
 use crate::ensnano_scene::data::{HBond, HalfHBond};
 use crate::ensnano_utils::id_generator::IdGenerator;
 use design_content::DesignContent;
-use std::collections::{BTreeMap, HashMap, HashSet};
+use std::{
+    collections::{BTreeMap, HashMap, HashSet},
+    fmt::Write as _,
+};
 use ultraviolet::{Mat4, Rotor3, Vec3};
 
 type JunctionsIds = IdGenerator<(Nucl, Nucl)>;
@@ -374,7 +376,7 @@ impl Presenter {
             let lengths = strand.domain_lengths();
             for len in &lengths {
                 let sign = if first { '=' } else { '+' };
-                ret.push_str(&format!(" {sign} {len}"));
+                let _ = write!(ret, " {sign} {len}");
                 first = false;
             }
         }

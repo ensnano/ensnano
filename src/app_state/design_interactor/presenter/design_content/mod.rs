@@ -22,6 +22,7 @@ use serde::Serialize;
 use std::{
     borrow::Cow,
     collections::{BTreeMap, HashMap, HashSet},
+    fmt::Write as _,
     str::FromStr as _,
     sync::Arc,
 };
@@ -274,7 +275,7 @@ impl DesignContent {
                     }
                 } else if let Domain::Insertion { nb_nucl, .. } = domain {
                     // Number of nucleotides inserted added
-                    sequence.push_str(&format!("**INSERTION {nb_nucl}**"));
+                    let _ = write!(sequence, "**INSERTION {nb_nucl}**");
                 }
                 if let Some(d) = staple_domain {
                     intervals.intervals.push(d.finish());

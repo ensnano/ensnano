@@ -16,7 +16,7 @@ impl Strand {
     pub fn formatted_anonymous_junctions(&self) -> String {
         let mut ret = String::new();
         for j in &self.junctions {
-            ret.push_str(&format!("{} ", j.anonymous_fmt()));
+            let _ = write!(ret, "{} ", j.anonymous_fmt());
         }
         ret
     }
