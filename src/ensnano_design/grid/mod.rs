@@ -142,9 +142,9 @@ impl GridTypeDescr {
             } => GridType::Hyperboloid(Hyperboloid {
                 radius,
                 shift,
-                forced_radius,
                 length,
                 radius_shift,
+                forced_radius,
                 nb_turn_per_100_nt,
             }),
         }

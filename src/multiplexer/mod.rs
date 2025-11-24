@@ -702,7 +702,7 @@ impl Multiplexer {
 
             self.overlays_textures.push(MultiplexerTexture {
                 texture,
-                area: DrawArea { size, position },
+                area: DrawArea { position, size },
             });
         }
     }

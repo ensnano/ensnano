@@ -22,10 +22,10 @@ impl<'a, S: AppState> EventContext<'a, S> {
         cursor_position: PhysicalPosition<f64>,
     ) -> Self {
         Self {
-            cursor_position,
             controller,
             app_state,
             pixel_reader,
+            cursor_position,
         }
     }
     pub fn normalized_cursor_position(&self) -> PhysicalPosition<f64> {

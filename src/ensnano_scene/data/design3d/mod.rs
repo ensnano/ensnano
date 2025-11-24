@@ -446,9 +446,9 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
                     vec![
                         SphereInstance {
                             position,
-                            radius,
                             color,
                             id,
+                            radius,
                         }
                         .to_raw_instance(),
                     ]
@@ -580,8 +580,8 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
             full_h_bonds.push(full_bond.to_raw_instance());
         }
         HBondsInstances {
-            partial_h_bonds,
             full_h_bonds,
+            partial_h_bonds,
             ellipsoids,
         }
     }

@@ -1199,10 +1199,10 @@ fn read_intervals(presenter: &Presenter) -> Result<IntervalResult, ErrOperation>
     Ok(IntervalResult {
         nucl_map,
         helix_map,
-        free_nucl_ids,
         free_nucls,
-        intervals,
+        free_nucl_ids,
         free_nucl_position,
+        intervals,
     })
 }
 

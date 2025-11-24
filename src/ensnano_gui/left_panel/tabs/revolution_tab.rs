@@ -375,8 +375,8 @@ impl<State: AppState> RevolutionTab<State> {
             curve,
             revolution_radius,
             half_turn_count,
-            curve_plane_orientation,
             curve_plane_position,
+            curve_plane_orientation,
         })
     }
 
@@ -477,8 +477,8 @@ impl<State: AppState> RevolutionTab<State> {
             torsion_stiffness,
             fluid_friction,
             ball_mass,
-            simulation_step,
             time_span,
+            simulation_step,
             method,
         })
     }

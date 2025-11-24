@@ -226,11 +226,11 @@ impl DynamicBuffer {
         let length = 0;
 
         Self {
-            device,
-            queue,
             buffer,
             capacity,
             length,
+            device,
+            queue,
             usage,
         }
     }

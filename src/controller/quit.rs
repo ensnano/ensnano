@@ -175,8 +175,8 @@ fn save_before_known_path(path_to_save: Option<PathBuf>, path_to_load: PathBuf) 
     if let Some(path) = path_to_save {
         Box::new(SaveWithPath {
             path,
-            on_success,
             on_error,
+            on_success,
         })
     } else {
         Box::new(SaveAs::new(on_success, on_error))
@@ -302,9 +302,9 @@ fn save_before_new(path_to_save: Option<PathBuf>) -> Box<dyn State> {
     let on_error = Box::new(super::NormalState);
     if let Some(path) = path_to_save {
         Box::new(SaveWithPath {
-            on_success,
-            on_error,
             path,
+            on_error,
+            on_success,
         })
     } else {
         Box::new(SaveAs::new(on_success, on_error))

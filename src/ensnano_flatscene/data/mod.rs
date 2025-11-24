@@ -394,9 +394,9 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
     pub fn get_click_unbounded_helix(&self, x: f32, y: f32, helix: FlatHelix) -> FlatNucl {
         let (flat_position, forward) = self.helices[helix.flat].get_click_unbounded(x, y);
         FlatNucl {
+            helix,
             flat_position,
             forward,
-            helix,
         }
     }
 

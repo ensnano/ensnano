@@ -58,13 +58,13 @@ impl DynamicBindGroup {
         });
 
         Self {
-            device,
-            queue,
-            bind_group,
             layout,
             buffer,
             capacity,
             length,
+            bind_group,
+            device,
+            queue,
         }
     }
 
@@ -175,10 +175,10 @@ impl UniformBindGroup {
         });
 
         Self {
-            queue,
-            bind_group,
             layout,
             buffer,
+            bind_group,
+            queue,
         }
     }
 

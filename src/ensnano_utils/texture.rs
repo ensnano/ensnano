@@ -134,8 +134,8 @@ impl SampledTexture {
         });
         Self {
             view,
-            bind_group,
             bg_layout,
+            bind_group,
         }
     }
 }

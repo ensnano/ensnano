@@ -39,8 +39,8 @@ impl Strand {
         Self {
             color,
             points,
-            id,
             insertions,
+            id,
             highlight,
         }
     }

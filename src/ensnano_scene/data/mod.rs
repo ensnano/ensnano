@@ -204,8 +204,8 @@ impl<R: SceneDesignReaderExt> Data<R> {
                 self.view
                     .borrow_mut()
                     .update(ViewUpdate::External3DObjects(ExternalObjects {
-                        objects,
                         path_base,
+                        objects,
                     }));
             }
         }
