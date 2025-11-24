@@ -609,9 +609,7 @@ impl Strand {
             self.add_insertion_at_dom_position(d_id, n, insertion_size);
         } else {
             println!("Could not add insertion");
-            if cfg!(test) {
-                panic!("Could not locate nucleotide in strand");
-            }
+            assert!(!cfg!(test), "Could not locate nucleotide in strand");
         }
     }
 
@@ -663,9 +661,7 @@ impl Strand {
             }
         } else {
             println!("Could not split");
-            if cfg!(test) {
-                panic!("Could not split domain");
-            }
+            assert!(!cfg!(test), "Could not split domain");
         }
     }
 
