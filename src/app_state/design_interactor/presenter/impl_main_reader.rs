@@ -3,6 +3,7 @@ use crate::controller::download_staples::{
     DownloadStapleError, DownloadStapleOk, StaplesDownloader,
 };
 use crate::ensnano_design::Strand;
+use itertools::Itertools as _;
 use rust_xlsxwriter::{Color, Format, Workbook};
 use serde::Serialize;
 use std::{io::Write as _, path::Path};
@@ -96,7 +97,7 @@ impl StaplesDownloader for DesignInteractor {
             let sheet = sheets
                 .entry(staple.plate)
                 .or_insert_with(|| vec![first_row_content.clone()]);
-            let mut group_vec = Vec::from_iter(all_group_names.iter().map(|_| ""));
+            let mut group_vec = all_group_names.iter().map(|_| "").collect_vec();
             for group_name in &staple.group_names {
                 if let Some(index) = group_map.get(&group_name) {
                     group_vec[*index] = group_name.as_str();
