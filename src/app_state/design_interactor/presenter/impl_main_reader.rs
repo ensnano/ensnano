@@ -128,10 +128,10 @@ impl StaplesDownloader for DesignInteractor {
 
             for (i, row) in rows.iter().enumerate() {
                 if i == 0 {
-                    for (j, data) in row.iter().enumerate() {
+                    for (j, &data) in row.iter().enumerate() {
                         let bold = Format::new().set_bold();
                         sheet
-                            .write_with_format(0, j as u16, data.to_string(), &bold)
+                            .write_with_format(0, j as u16, data.to_owned(), &bold)
                             .expect("error write cell");
                     }
                     continue;
@@ -186,10 +186,10 @@ impl StaplesDownloader for DesignInteractor {
             for (i, row) in rows.iter().enumerate() {
                 if i == 0 {
                     if write_once {
-                        for (j, data) in row.iter().enumerate() {
+                        for (j, &data) in row.iter().enumerate() {
                             let bold = Format::new().set_bold();
                             sheet
-                                .write_with_format(0, j as u16, data.to_string(), &bold)
+                                .write_with_format(0, j as u16, data.to_owned(), &bold)
                                 .expect("error write cell");
                         }
                         write_once = false;
