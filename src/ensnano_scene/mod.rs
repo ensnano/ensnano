@@ -25,6 +25,7 @@ use crate::ensnano_utils::{BufferDimensions, PhySize, filename};
 use controller::{Consequence, Controller, WidgetTarget};
 use data::{Data, SceneDesignReaderExt};
 use element_selector::{ElementSelector, SceneElement};
+use itertools::Itertools as _;
 use maths_3d::FiniteVec3;
 use std::{
     cell::RefCell,
@@ -1020,12 +1021,9 @@ impl<S: AppState> Scene<S> {
             let pixels_slice = buffer_slice.get_mapped_range();
             let mut pixels = Vec::with_capacity(4 * (extent.height * extent.width) as usize);
             for row in pixels_slice.chunks(buffer_dimensions.padded_bytes_per_row) {
-                for chunk in row.chunks(4) {
-                    // convert Bgra to Rgba
-                    pixels.push(chunk[2]);
-                    pixels.push(chunk[1]);
-                    pixels.push(chunk[0]);
-                    pixels.push(chunk[3]);
+                // convert BGRA to RGBA
+                for (b, g, r, a) in row.iter().copied().tuples() {
+                    pixels.extend_from_slice(&[r, g, b, a]);
                 }
             }
             drop(pixels_slice);

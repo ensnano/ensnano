@@ -1221,12 +1221,16 @@ impl Requestable for Hyperboloid_ {
     type Request = HyperboloidRequest;
 
     fn request_from_values(&self, values: &[f32]) -> HyperboloidRequest {
+        let &[radius, length, shift, radius_shift, nb_turn] = values else {
+            panic!("expected 5 inputs to Hyperboloid_::request_from_values")
+        };
+
         HyperboloidRequest {
-            radius: values[0].round() as usize,
-            length: values[1],
-            shift: values[2],
-            radius_shift: values[3],
-            nb_turn: values[4] as f64,
+            radius: radius.round() as usize,
+            length,
+            shift,
+            radius_shift,
+            nb_turn: nb_turn as f64,
         }
     }
 
@@ -1417,10 +1421,10 @@ impl Requestable for BrownianParametersFactory {
     type Request = Self;
 
     fn request_from_values(&self, values: &[f32]) -> Self {
-        Self {
-            rate: values[0],
-            amplitude: values[1],
-        }
+        let &[rate, amplitude] = values else {
+            panic!("expected 2 inputs to BrownianParametersFactory::request_from_values")
+        };
+        Self { rate, amplitude }
     }
 
     fn nb_values(&self) -> usize {
@@ -1472,10 +1476,14 @@ impl Requestable for RigidBodyFactory {
     type Request = RigidBodyParametersRequest;
 
     fn request_from_values(&self, values: &[f32]) -> RigidBodyParametersRequest {
+        let &[k_springs, k_friction, mass_factor] = values else {
+            panic!("expected 3 inputs to RigidBodyFactory::request_from_values")
+        };
+
         RigidBodyParametersRequest {
-            k_springs: values[0],
-            k_friction: values[1],
-            mass_factor: values[2],
+            k_springs,
+            k_friction,
+            mass_factor,
             volume_exclusion: self.volume_exclusion,
             brownian_motion: self.brownian_motion,
             brownian_rate: self.brownian_parameters.rate,

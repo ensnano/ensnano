@@ -35,6 +35,7 @@ use crate::ensnano_utils::{BufferDimensions, PhySize, camera2d, filename};
 use controller::{Consequence, Controller};
 use data::Data;
 use flat_types::*;
+use itertools::Itertools as _;
 use std::{
     cell::RefCell,
     collections::HashMap,
@@ -639,13 +640,10 @@ impl<S: AppState> FlatScene<S> {
         let pixels = {
             let pixels_slice = buffer_slice.get_mapped_range();
             let mut pixels = Vec::with_capacity((size.height * size.width) as usize);
-            for big_chunk in pixels_slice.chunks(buffer_dimensions.padded_bytes_per_row) {
-                for chunk in big_chunk.chunks(4) {
-                    // Bgra -> Rgba
-                    pixels.push(chunk[2]);
-                    pixels.push(chunk[1]);
-                    pixels.push(chunk[0]);
-                    pixels.push(chunk[3]);
+            for row in pixels_slice.chunks(buffer_dimensions.padded_bytes_per_row) {
+                // convert BGRA to RGBA
+                for (b, g, r, a) in row.iter().copied().tuples() {
+                    pixels.extend_from_slice(&[r, g, b, a]);
                 }
             }
             drop(pixels_slice);
