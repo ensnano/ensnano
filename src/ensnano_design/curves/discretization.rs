@@ -389,7 +389,7 @@ impl Curve {
     }
 
     /// Allow to select the iterative axis computation method
-    #[inline(always)]
+    #[inline]
     fn iterative_axis(&self, t: f64, previous: Option<&DMat3>) -> DMat3 {
         match ITERATIVE_AXIS_ALGORITHM {
             IterativeFrameAlgorithm::BasedOnGeometry => {

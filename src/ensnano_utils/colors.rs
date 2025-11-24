@@ -73,12 +73,12 @@ pub fn gradient_color(t: f32, t_hues: &[(f32, f32)]) -> u32 {
     hsv_color((t_hues.last().unwrap().1 as f64).rem_euclid(360.), 1., 1.)
 }
 
-#[inline(always)]
+#[inline]
 pub fn purple_to_blue_gradient_color(t: f32) -> u32 {
     gradient_color(t, &PURPLE_TO_BLUE_GRADIENT)
 }
 
-#[inline(always)]
+#[inline]
 pub fn purple_to_blue_gradient_color_in_range(t: f32, t_min: f32, t_max: f32) -> u32 {
     if t_min < t_max {
         purple_to_blue_gradient_color((t - t_min) / (t_max - t_min))
