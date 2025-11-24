@@ -51,11 +51,7 @@ impl UiSize {
     }
 
     pub fn checkbox(&self) -> u16 {
-        match self {
-            Self::Small => 15,
-            Self::Medium => 15,
-            Self::Large => 15,
-        }
+        15
     }
 
     pub fn checkbox_spacing(&self) -> u16 {

@@ -1581,8 +1581,7 @@ impl<E: OrganizerElement> GroupContent<E> {
 
     fn get_attributes(&self) -> &Vec<Option<E::Attribute>> {
         match self {
-            Self::Node { attributes, .. } => attributes,
-            Self::Leaf { attributes, .. } => attributes,
+            Self::Node { attributes, .. } | Self::Leaf { attributes, .. } => attributes,
             Self::Placeholder => unreachable!("Getting attributes of a placeholder"),
         }
     }
@@ -1596,8 +1595,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                     children.get(id[0])
                 }
             }
-            Self::Leaf { .. } => None,
-            Self::Placeholder => None,
+            Self::Leaf { .. } | Self::Placeholder => None,
         }
     }
 

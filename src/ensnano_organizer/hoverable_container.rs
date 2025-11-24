@@ -114,8 +114,7 @@ where
         let was_hovered = state.is_hovered;
         let now_hovered = cursor_position.is_over(layout.bounds());
         match (was_hovered, now_hovered) {
-            (true, true) => {}
-            (false, false) => {}
+            (true, true) | (false, false) => {}
             (true, false) => {
                 // exited hover
                 state.is_hovered = now_hovered;

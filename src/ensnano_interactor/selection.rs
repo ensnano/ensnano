@@ -1,5 +1,6 @@
 use crate::ensnano_design::{
     BezierControlPoint, BezierPathId, BezierVertexId, Domain, Nucl, Strand,
+    elements::*,
     grid::{GridId, HelixGridPosition},
 };
 use std::collections::BTreeSet;
@@ -52,17 +53,16 @@ pub enum CenterOfSelection {
 impl Selection {
     pub fn get_design(&self) -> Option<u32> {
         match self {
-            Self::Design(d) => Some(*d),
-            Self::Bond(d, _, _) => Some(*d),
-            Self::Strand(d, _) => Some(*d),
-            Self::Helix { design_id, .. } => Some(*design_id),
-            Self::Nucleotide(d, _) => Some(*d),
-            Self::Grid(d, _) => Some(*d),
-            Self::Phantom(pe) => Some(pe.design_id),
+            Self::Helix { design_id, .. }
+            | Self::Phantom(PhantomElement { design_id, .. })
+            | Self::Design(design_id)
+            | Self::Bond(design_id, _, _)
+            | Self::Strand(design_id, _)
+            | Self::Nucleotide(design_id, _)
+            | Self::Grid(design_id, _)
+            | Self::Xover(design_id, _) => Some(*design_id),
+            Self::BezierControlPoint { .. } | Self::BezierVertex(_) => Some(0),
             Self::Nothing => None,
-            Self::BezierControlPoint { .. } => Some(0),
-            Self::Xover(d, _) => Some(*d),
-            Self::BezierVertex(_) => Some(0),
         }
     }
 
@@ -75,8 +75,6 @@ impl Selection {
         reader: &dyn InteractorDesignReaderExt,
     ) -> Option<Vec<usize>> {
         match self {
-            Self::Design(_) => None,
-            Self::Grid(_, _) => None,
             Self::Helix { helix_id, .. } => Some(vec![(*helix_id)]),
             Self::Nucleotide(_, nucl) => Some(vec![nucl.helix]),
             Self::Phantom(pe) => Some(vec![pe.to_nucl().helix]),
@@ -90,8 +88,10 @@ impl Selection {
             }
             Self::Bond(_, n1, n2) => Some(vec![n1.helix, n2.helix]),
             Self::Nothing => Some(vec![]),
-            Self::BezierControlPoint { .. } => None,
-            Self::BezierVertex(_) => None,
+            Self::Design(_)
+            | Self::Grid(_, _)
+            | Self::BezierControlPoint { .. }
+            | Self::BezierVertex(_) => None,
         }
     }
 
@@ -592,14 +592,14 @@ pub trait SelectionConversion: Sized {
     fn to_selection(&self, d_id: u32) -> Selection;
 }
 
-use crate::ensnano_design::elements::*;
 impl SelectionConversion for DesignElementKey {
     fn from_selection(selection: &Selection, d_id: u32) -> Option<Self> {
-        if selection.get_design() == Some(d_id) {
-            match selection {
+        if selection.get_design() != Some(d_id) {
+            return None;
+        }
+
+        match selection {
                 Selection::Grid(_, GridId::FreeGrid(g_id)) => Some(Self::Grid(*g_id)),
-                Selection::Grid(_, _) => None,
-                Selection::Design(_) => None,
                 Selection::Helix { helix_id, .. } => Some(Self::Helix(*helix_id)),
                 Selection::Strand(_, s_id) => Some(Self::Strand(*s_id as usize)),
                 Selection::Nucleotide(_, nucl) => Some(Self::Nucleotide {
@@ -607,7 +607,6 @@ impl SelectionConversion for DesignElementKey {
                     position: nucl.position,
                     forward: nucl.forward,
                 }),
-                Selection::Bond(_, _, _) => None,
                 Selection::Xover(_, xover_id) => Some(Self::CrossOver {
                     xover_id: *xover_id,
                 }),
@@ -623,13 +622,13 @@ impl SelectionConversion for DesignElementKey {
                         })
                     }
                 }
-                Selection::Nothing => None,
-                Selection::BezierControlPoint { .. } => None, //TODO make DesignElement out of these
-                Selection::BezierVertex(_) => None,
+                Selection::Grid(_, _)
+                | Selection::Design(_)
+                | Selection::Bond(_, _, _)
+                | Selection::Nothing
+                | Selection::BezierControlPoint { .. } // TODO: make DesignElement out of these
+                | Selection::BezierVertex(_) => None,
             }
-        } else {
-            None
-        }
     }
 
     fn to_selection(&self, d_id: u32) -> Selection {

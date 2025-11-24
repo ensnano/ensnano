@@ -539,8 +539,7 @@ impl RootedRevolutionSurface {
         let incr = (objective as f64 - actual as f64) / self.area_per_radius_unit;
 
         match &mut self.surface.revolution_radius {
-            RevolutionSurfaceRadius::Left(x) => *x += incr,
-            RevolutionSurfaceRadius::Right(x) => *x += incr,
+            RevolutionSurfaceRadius::Left(x) | RevolutionSurfaceRadius::Right(x) => *x += incr,
             RevolutionSurfaceRadius::Inside(_) => (),
         }
     }

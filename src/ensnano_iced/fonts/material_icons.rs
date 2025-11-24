@@ -2212,6 +2212,7 @@ pub enum MaterialIcon {
     ZoomOutMap,
 }
 
+#[expect(clippy::match_same_arms)]
 pub fn icon_to_char(icon: MaterialIcon) -> char {
     match icon {
         MaterialIcon::_10K => '\u{e951}',

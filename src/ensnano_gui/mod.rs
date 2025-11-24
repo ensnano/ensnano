@@ -232,8 +232,7 @@ impl<R: Requests, S: AppState> GuiState<R, S> {
                 Self::StatusBar(_) => {
                     self.queue_status_bar_message(status_bar::Message::TabPressed);
                 }
-                Self::TopBar(_) => (),
-                Self::LeftPanel(_) => (),
+                Self::TopBar(_) | Self::LeftPanel(_) => (),
             }
         } else {
             match self {
