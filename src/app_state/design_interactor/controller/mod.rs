@@ -1073,9 +1073,7 @@ impl Controller {
     }
 
     fn update_state_not_design(&mut self, design: &Design) {
-        if let ControllerState::ApplyingOperation { .. } = &self.state {
-            return;
-        } else {
+        if !matches!(self.state, ControllerState::ApplyingOperation { .. }) {
             self.state = ControllerState::ApplyingOperation {
                 design: AddressPointer::new(design.clone()),
                 operation: None,

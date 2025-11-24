@@ -1062,8 +1062,7 @@ impl DesignContent {
                 clone_transformations.extend(
                     clone_isometries_descriptors
                         .iter()
-                        .map(Isometry3::from_descriptor)
-                        .collect::<Vec<Isometry3>>(),
+                        .map(Isometry3::from_descriptor),
                 );
             }
 

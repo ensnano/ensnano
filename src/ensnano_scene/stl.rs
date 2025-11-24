@@ -29,6 +29,7 @@ impl RawDnaInstance {
         }
     }
 
+    #[expect(clippy::needless_range_loop)]
     fn transformed_vertices_normal(&self) -> Vec<([f32; 3], [f32; 3])> {
         let mesh = Mesh::try_from(self.mesh).unwrap();
         let vertices_normal = match mesh {

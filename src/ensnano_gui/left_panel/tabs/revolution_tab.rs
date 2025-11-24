@@ -200,24 +200,20 @@ impl<S: AppState> CurveDescriptorWidget<S> {
     }
 
     fn view(&self, ui_size: UiSize) -> iced::Element<'_, Message<S>> {
-        container(column(
-            self.parameters
-                .iter()
-                .enumerate()
-                .map(|(param_id, param)| {
-                    row![
-                        Space::with_width(ui_size.checkbox_spacing()),
-                        text(param.0),
-                        Space::with_width(ui_size.checkbox_spacing()),
-                        param
-                            .1
-                            .input_view(RevolutionParameterId::SectionParameter(param_id))
-                    ]
-                    .align_items(Alignment::Center)
-                    .into()
-                })
-                .collect::<Vec<_>>(),
-        ))
+        container(column(self.parameters.iter().enumerate().map(
+            |(param_id, param)| {
+                row![
+                    Space::with_width(ui_size.checkbox_spacing()),
+                    text(param.0),
+                    Space::with_width(ui_size.checkbox_spacing()),
+                    param
+                        .1
+                        .input_view(RevolutionParameterId::SectionParameter(param_id))
+                ]
+                .align_items(Alignment::Center)
+                .into()
+            },
+        )))
         .into()
     }
 

@@ -680,12 +680,11 @@ impl<E: OrganizerElement> Organizer<E> {
 
     fn pop_id(&mut self, id: &NodeId<E::AutoGroup>) -> Option<GroupContent<E>> {
         if let Some(id) = get_group_id(id) {
-            let ret;
-            if id.len() < 2 {
-                ret = (self.groups.len() > id[0]).then(|| self.groups.remove(id[0]));
+            let ret = if id.len() < 2 {
+                (self.groups.len() > id[0]).then(|| self.groups.remove(id[0]))
             } else {
-                ret = self.groups.get_mut(id[0]).and_then(|c| c.pop_id(&id[1..]));
-            }
+                self.groups.get_mut(id[0]).and_then(|c| c.pop_id(&id[1..]))
+            };
             if ret.is_some() {
                 self.recompute_id();
             }
@@ -696,14 +695,12 @@ impl<E: OrganizerElement> Organizer<E> {
     }
 
     fn pop_id_no_recompute(&mut self, id: &[usize]) -> Option<GroupContent<E>> {
-        let ret;
         if id.len() < 2 {
-            ret = (self.groups.len() > id[0])
-                .then(|| std::mem::replace(&mut self.groups[id[0]], GroupContent::Placeholder));
+            (self.groups.len() > id[0])
+                .then(|| std::mem::replace(&mut self.groups[id[0]], GroupContent::Placeholder))
         } else {
-            ret = self.groups.get_mut(id[0]).and_then(|c| c.pop_id(&id[1..]));
+            self.groups.get_mut(id[0]).and_then(|c| c.pop_id(&id[1..]))
         }
-        ret
     }
 
     fn delete_useless_leaves(&mut self, elements: BTreeSet<E::Key>) -> bool {

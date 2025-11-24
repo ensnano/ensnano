@@ -48,8 +48,7 @@ impl SausageRosary {
                 self.positions
                     .iter()
                     .zip(self.positions.iter().skip(1))
-                    .map(|(prev, point)| *point - *prev)
-                    .collect::<Vec<Vec3>>(),
+                    .map(|(prev, point)| *point - *prev),
             );
             vecs.push(Vec3::zero());
             vecs.iter()

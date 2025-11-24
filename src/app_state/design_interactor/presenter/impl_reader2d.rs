@@ -203,13 +203,9 @@ fn split_domain_into_helices_segment(
     let additional_segments = helix.map_or(&empty, |h| &h.additional_isometries);
     let mut ret = Vec::new();
 
-    let intermediate_positions: Vec<isize> = additional_segments
+    let mut iter = additional_segments
         .iter()
         .flat_map(|s| [s.left - 1, s.left])
-        .collect();
-
-    let mut iter = intermediate_positions
-        .into_iter()
         .skip_while(|pos| *pos <= domain.start);
 
     ret.push(Nucl {
