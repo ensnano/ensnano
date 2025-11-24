@@ -863,7 +863,6 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
 
     pub fn double_click_to_selection(&self, click_result: ClickResult) -> Option<Selection> {
         match click_result {
-            ClickResult::CircleWidget { .. } => None,
             ClickResult::Nucl(nucl) => {
                 if let Some(xover) = self.xover_containing_nucl(&nucl) {
                     let selection = Selection::Xover(self.id, xover);
@@ -873,8 +872,9 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
                     Some(selection)
                 }
             }
-            ClickResult::HelixHandle { .. } => None,
-            ClickResult::Nothing => None,
+            ClickResult::CircleWidget { .. }
+            | ClickResult::HelixHandle { .. }
+            | ClickResult::Nothing => None,
         }
     }
 
@@ -930,8 +930,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
                     new_selection.retain(|s| !selection_pool.contains(s));
                 }
             },
-            ClickResult::HelixHandle { .. } => (),
-            ClickResult::Nothing => (),
+            ClickResult::HelixHandle { .. } | ClickResult::Nothing => (),
         }
     }
 

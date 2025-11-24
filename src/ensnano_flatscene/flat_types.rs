@@ -351,9 +351,9 @@ impl FlatSelection {
             }
             Selection::Grid(..) => Self::Grid,
             Selection::Phantom(..) => Self::Phantom,
-            Selection::BezierControlPoint { .. } => Self::Nothing,
-            Selection::BezierVertex(_) => Self::Nothing,
-            Selection::Nothing => Self::Nothing,
+            Selection::BezierControlPoint { .. }
+            | Selection::BezierVertex(_)
+            | Selection::Nothing => Self::Nothing,
         }
     }
 }

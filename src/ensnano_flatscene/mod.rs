@@ -673,9 +673,9 @@ impl<S: AppState> FlatScene<S> {
 
 impl<S: AppState> Application for FlatScene<S> {
     type AppState = S;
+
     fn on_notify(&mut self, notification: Notification) {
         match notification {
-            Notification::FitRequest => (), // Temporarily don't fit to make the moebius ring
             Notification::ToggleText(b) => {
                 self.view[self.selected_design].borrow_mut().set_show_sec(b);
             }
@@ -684,7 +684,6 @@ impl<S: AppState> Application for FlatScene<S> {
                     v.borrow_mut().set_show_torsion(b);
                 }
             }
-            Notification::CameraTarget(_) => (),
             Notification::ClearDesigns => self.data[0].borrow_mut().clear_design(),
             Notification::CenterSelection(selection, app_id) => {
                 log::info!("2D view centering selection {selection:?}");
@@ -703,7 +702,6 @@ impl<S: AppState> Application for FlatScene<S> {
                     }
                 }
             }
-            Notification::CameraRotation(_, _, _) => (),
             Notification::ModifiersChanged(modifiers) => {
                 for c in &mut self.controller {
                     c.update_modifiers(modifiers.state());
@@ -720,12 +718,7 @@ impl<S: AppState> Application for FlatScene<S> {
                     .borrow_mut()
                     .redim_helices(selection);
             }
-            Notification::Fog(_) => (),
-            Notification::WindowFocusLost => (),
-            Notification::TeleportCamera(_) => (),
-            Notification::NewStereographicCamera(_) => (),
             Notification::FlipSplitViews => self.controller[0].flip_split_views(),
-            Notification::HorizonAligned => (),
             Notification::ScreenShot2D(design_path) => {
                 // NOTE: When flatscene is split, return the whole view.
                 let rectangle = self.data[0].borrow().get_fit_rectangle();
@@ -768,9 +761,17 @@ impl<S: AppState> Application for FlatScene<S> {
                     }
                 }
             }
-            Notification::ScreenShot3D(_) => (), // Nothing to do in the flatscene.
-            Notification::SaveNucleotidesPositions(_) => (), // Nothing to do in the flatscene.
-            Notification::StlExport(_) => (),
+            Notification::FitRequest  // Temporarily don't fit to make the moebius ring
+            | Notification::CameraTarget(_)
+            | Notification::CameraRotation(_, _, _)
+            | Notification::Fog(_)
+            | Notification::WindowFocusLost
+            | Notification::TeleportCamera(_)
+            | Notification::NewStereographicCamera(_)
+            | Notification::HorizonAligned
+            | Notification::ScreenShot3D(_)  // Nothing to do in the flatscene.
+            | Notification::SaveNucleotidesPositions(_)  // Nothing to do in the flatscene.
+            | Notification::StlExport(_) => (),
         }
     }
 
