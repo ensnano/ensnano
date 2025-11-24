@@ -490,6 +490,7 @@ impl PdbAtom {
         Ok(ret)
     }
 
+    #[expect(clippy::map_err_ignore)]
     fn parse_line<S: AsRef<str>>(input: &S) -> Result<Self, PdbAtomParseError> {
         let input: &str = input.as_ref();
         if !input.is_ascii() {
