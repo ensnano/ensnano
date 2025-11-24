@@ -181,7 +181,7 @@ impl StaplesDownloader for DesignInteractor {
             .expect("Excel error: cannot create worksheet");
         let mut write_once = true;
         let mut all_i = 0;
-        for (_, rows) in &sheets {
+        for rows in sheets.values() {
             for (i, row) in rows.iter().enumerate() {
                 if i == 0 {
                     if write_once {
