@@ -1,6 +1,7 @@
 use super::{FlatNucl, Helix2d};
 use crate::ensnano_consts::{
-    BLACK_VEC4, CIRCLE2D_GREY, GREY_UNKNOWN_NUCL_VEC4, HELIX_BORDER_COLOR,
+    BLACK_VEC4, CIRCLE2D_BLUE, CIRCLE2D_GREEN, CIRCLE2D_GREY, CIRCLE2D_RED, GREY_UNKNOWN_NUCL_VEC4,
+    HELIX_BORDER_COLOR,
 };
 use crate::ensnano_design::{Nucl, NuclCollection};
 use crate::ensnano_flatscene::{
@@ -564,9 +565,9 @@ impl Helix {
             CIRCLE2D_GREY
         } else {
             match groups.get(&self.real_id) {
-                None => CIRCLE2D_GREY,
-                Some(true) => CIRCLE2D_GREY,
-                Some(false) => CIRCLE2D_GREY,
+                None => CIRCLE2D_BLUE,
+                Some(true) => CIRCLE2D_RED,
+                Some(false) => CIRCLE2D_GREEN,
             }
         };
         let radius = if camera.borrow().get_globals().zoom < ZOOM_THRESHOLD {

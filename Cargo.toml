@@ -217,18 +217,3 @@ wrong_self_convention = "allow" # TODO: warn
 
 # suspicious
 arc_with_non_send_sync = "allow" # TODO: warn (requires understand the multiplexer)
-
-# =============
-# = TEMPORARY =
-# =============
-# [lints.clippy]
-# cargo = { level = "allow", priority = -1 }
-# complexity = { level = "allow", priority = -1 }
-# correctness = { level = "allow", priority = -1 }
-# nursery = { level = "allow", priority = -1 }
-# pedantic = { level = "allow", priority = -1 }
-# perf = { level = "allow", priority = -1 }
-# restriction = { level = "allow", priority = -1 }
-# style = { level = "allow", priority = -1 }
-# suspicious = { level = "allow", priority = -1 }
-# ref_patterns = "deny"

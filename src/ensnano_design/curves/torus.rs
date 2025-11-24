@@ -146,8 +146,7 @@ impl CurveDescriptor2D {
     pub fn is_open(&self) -> bool {
         match self {
             Self::Parabola { .. } => true,
-            Self::Ellipse { .. } => false,
-            Self::TwoBalls { .. } => false,
+            Self::Ellipse { .. } | Self::TwoBalls { .. } => false,
             Self::Bezier(bezier) => !bezier.is_cyclic,
         }
     }
@@ -408,9 +407,8 @@ impl CurveDescriptor2D {
                 let b = f64::from(*semi_minor_axis);
                 -a.abs().max(b.abs())
             }
-            Self::TwoBalls { .. } => 0.,
+            Self::TwoBalls { .. } | Self::Parabola { .. } => 0.,
             Self::Bezier(curve) => curve.min_x(),
-            Self::Parabola { .. } => 0.,
         }
     }
 

@@ -846,8 +846,9 @@ impl InstantiatedCurveDescriptor {
             CurveDescriptor::TwistedTorus(t) => {
                 Some(InstantiatedCurveDescriptor_::TwistedTorus(t.clone()))
             }
-            CurveDescriptor::PiecewiseBezier { .. } => None,
-            CurveDescriptor::TranslatedPath { .. } => None,
+            CurveDescriptor::PiecewiseBezier { .. } | CurveDescriptor::TranslatedPath { .. } => {
+                None
+            }
             CurveDescriptor::InterpolatedCurve(desc) => Some(
                 InstantiatedCurveDescriptor_::InterpolatedCurve(desc.clone()),
             ),
@@ -1171,8 +1172,7 @@ impl InstantiatedCurveDescriptor_ {
                 helix_parameters,
             ))),
             Self::SuperTwist(twist) => Some(Arc::new(Curve::new(twist.clone(), helix_parameters))),
-            Self::TwistedTorus(_) => None,
-            Self::PiecewiseBezier(_) => None,
+            Self::TwistedTorus(_) | Self::PiecewiseBezier(_) => None,
             Self::TranslatedBezierPath {
                 path_curve,
                 translation,
@@ -1233,8 +1233,7 @@ impl InstantiatedCurveDescriptor_ {
                 torus.clone().with_helix_parameters(helix_parameters),
             )),
             Self::SuperTwist(twist) => Some(Curve::compute_length(twist.clone())),
-            Self::TwistedTorus(_) => None,
-            Self::PiecewiseBezier(_) => None,
+            Self::TwistedTorus(_) | Self::PiecewiseBezier(_) => None,
             Self::TranslatedBezierPath {
                 path_curve,
                 translation,
@@ -1287,8 +1286,7 @@ impl InstantiatedCurveDescriptor_ {
                 torus.clone().with_helix_parameters(helix_parameters),
             )),
             Self::SuperTwist(twist) => Some(Curve::path(twist.clone())),
-            Self::TwistedTorus(_) => None,
-            Self::PiecewiseBezier(_) => None,
+            Self::TwistedTorus(_) | Self::PiecewiseBezier(_) => None,
             Self::TranslatedBezierPath {
                 path_curve,
                 translation,
