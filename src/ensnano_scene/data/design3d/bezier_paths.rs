@@ -274,11 +274,11 @@ struct RawDnaInstances<'a> {
 
 fn add_raw_instances_representing_bezier_vertex(
     vertex: BezierVertex,
-    mut instances: RawDnaInstances,
+    instances: RawDnaInstances,
     selection: &[Selection],
 ) {
-    let tubes = &mut instances.tubes;
-    let spheres = &mut instances.spheres;
+    let tubes = instances.tubes;
+    let spheres = instances.spheres;
     let color = if selection.contains(&Selection::BezierVertex(vertex.id)) {
         [0., 0., 1., 1.].into()
     } else {
