@@ -143,6 +143,7 @@ doc_markdown = "allow" # TODO: warn
 fn_params_excessive_bools = "allow"
 if_not_else = "allow"
 manual_midpoint = "allow"
+many_single_char_names = "allow"
 missing_fields_in_debug = "allow"
 needless_pass_by_value = "allow" # TODO: warn
 option_option = "allow"
