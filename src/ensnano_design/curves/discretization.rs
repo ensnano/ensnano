@@ -211,7 +211,7 @@ impl Curve {
                 "points_forward.append([\n\t{}\n])\n",
                 points_forward
                     .iter()
-                    .fold("".to_owned(), |a, p| if !a.is_empty() {
+                    .fold(String::new(), |a, p| if !a.is_empty() {
                         format!("{}, ({}, {}, {})", a, p.x, p.y, p.z)
                     } else {
                         format!("({}, {}, {})", p.x, p.y, p.z)
@@ -221,7 +221,7 @@ impl Curve {
                 "points_backward.append([\n\t{}\n])\n",
                 points_backward
                     .iter()
-                    .fold("".to_owned(), |a, p| if !a.is_empty() {
+                    .fold(String::new(), |a, p| if !a.is_empty() {
                         format!("{}, ({}, {}, {})", a, p.x, p.y, p.z)
                     } else {
                         format!("({}, {}, {})", p.x, p.y, p.z)

@@ -564,7 +564,7 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
                     app_state
                         .get_reader()
                         .get_current_length_of_relaxed_shape()
-                        .map_or("".into(), |l| format!("Current total length: {l}"))
+                        .map_or(String::new(), |l| format!("Current total length: {l}"))
                 ),
                 text_button("Finish", ui_size).on_press(Message::FinishRelaxation),
             ]
