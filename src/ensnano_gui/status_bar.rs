@@ -104,10 +104,7 @@ impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         self.update_operation();
-        if self.progress.is_some() {
-            self.operation = None;
-            self.message = None;
-        } else if self.app_state.get_strand_building_state().is_some() {
+        if self.progress.is_some() || self.app_state.get_strand_building_state().is_some() {
             self.operation = None;
             self.message = None;
         } else if self.message.is_some() {
