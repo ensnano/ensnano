@@ -571,7 +571,6 @@ impl<R: SceneDesignReaderExt> Data<R> {
             Some(SceneElement::DesignElement(design_id, element_id)) => {
                 let selection_mode = self.get_sub_selection_mode(app_state);
                 self.get_group_identifier(design_id, element_id, selection_mode)
-                    .map(|x| x)
             }
             Some(SceneElement::PhantomElement(phantom_element)) => Some(phantom_element.helix_id),
             Some(SceneElement::Grid(_, GridId::FreeGrid(g_id))) => Some(g_id as u32),
