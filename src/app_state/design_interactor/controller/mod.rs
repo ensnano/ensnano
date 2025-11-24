@@ -561,8 +561,9 @@ impl Controller {
                 ControllerState::SimulatingGrids { .. } => {
                     ret.state = ControllerState::Normal;
                 }
-                ControllerState::Rolling { .. } => ret.state = ControllerState::Normal,
-                ControllerState::Twisting { .. } => ret.state = ControllerState::Normal,
+                ControllerState::Rolling { .. } | ControllerState::Twisting { .. } => {
+                    ret.state = ControllerState::Normal;
+                }
                 ControllerState::Relaxing { interface, .. } => {
                     interface.lock().unwrap().kill();
                     design.additional_structure = None;
@@ -956,14 +957,14 @@ impl Controller {
 
     pub fn get_pasting_status(&self) -> PastingStatus {
         match self.state {
-            ControllerState::PositioningStrandPastingPoint { .. } => PastingStatus::Copy,
-            ControllerState::PositioningStrandDuplicationPoint { .. } => PastingStatus::Duplication,
-            ControllerState::PastingXovers { .. } => PastingStatus::Copy,
-            ControllerState::DoingFirstXoversDuplication { .. } => PastingStatus::Duplication,
-            ControllerState::PositioningHelicesPastingPoint { .. } => PastingStatus::Copy,
-            ControllerState::PositioningHelicesDuplicationPoint { .. } => {
+            ControllerState::PositioningStrandDuplicationPoint { .. }
+            | ControllerState::DoingFirstXoversDuplication { .. }
+            | ControllerState::PositioningHelicesDuplicationPoint { .. } => {
                 PastingStatus::Duplication
             }
+            ControllerState::PositioningStrandPastingPoint { .. }
+            | ControllerState::PastingXovers { .. }
+            | ControllerState::PositioningHelicesPastingPoint { .. } => PastingStatus::Copy,
             _ => PastingStatus::None,
         }
     }
@@ -981,7 +982,6 @@ impl Controller {
 
     fn check_compatibility(&self, operation: &DesignOperation) -> OperationCompatibility {
         match self.state {
-            ControllerState::Normal => OperationCompatibility::Compatible,
             ControllerState::MakingHyperboloid { .. } => {
                 if let DesignOperation::HyperboloidOperation(op) = operation {
                     if let HyperboloidOperation::New { .. } = op {
@@ -992,16 +992,6 @@ impl Controller {
                 } else {
                     OperationCompatibility::Incompatible
                 }
-            }
-            ControllerState::WithPendingOp { .. } => OperationCompatibility::Compatible,
-            ControllerState::WithPendingStrandDuplication { .. } => {
-                OperationCompatibility::Compatible
-            }
-            ControllerState::WithPendingHelicesDuplication { .. } => {
-                OperationCompatibility::Compatible
-            }
-            ControllerState::WithPendingXoverDuplication { .. } => {
-                OperationCompatibility::Compatible
             }
             ControllerState::ChangingColor => {
                 if let DesignOperation::ChangeColor { .. } = operation {
@@ -1017,7 +1007,6 @@ impl Controller {
                     OperationCompatibility::FinishFirst
                 }
             }
-            ControllerState::ApplyingOperation { .. } => OperationCompatibility::Compatible,
             ControllerState::BuildingStrand { initializing, .. } => {
                 if let DesignOperation::MoveBuilders(_) = operation {
                     OperationCompatibility::Compatible
@@ -1048,7 +1037,24 @@ impl Controller {
                 }
             }
             ControllerState::WithPausedSimulation { .. } => OperationCompatibility::FinishFirst,
-            _ => OperationCompatibility::Incompatible,
+            ControllerState::WithPendingStrandDuplication { .. }
+            | ControllerState::WithPendingHelicesDuplication { .. }
+            | ControllerState::WithPendingXoverDuplication { .. }
+            | ControllerState::Normal
+            | ControllerState::WithPendingOp { .. }
+            | ControllerState::ApplyingOperation { .. } => OperationCompatibility::Compatible,
+            ControllerState::PositioningStrandPastingPoint { .. }
+            | ControllerState::PositioningStrandDuplicationPoint { .. }
+            | ControllerState::PositioningHelicesPastingPoint { .. }
+            | ControllerState::PositioningHelicesDuplicationPoint { .. }
+            | ControllerState::DoingFirstXoversDuplication { .. }
+            | ControllerState::PastingXovers { .. }
+            | ControllerState::Simulating { .. }
+            | ControllerState::RapierSimulating { .. }
+            | ControllerState::SimulatingGrids { .. }
+            | ControllerState::Relaxing { .. }
+            | ControllerState::Rolling { .. }
+            | ControllerState::Twisting { .. } => OperationCompatibility::Incompatible,
         }
     }
 
@@ -1118,15 +1124,33 @@ impl Controller {
 
     pub(super) fn is_in_persistent_state(&self) -> StatePersistence {
         match self.state {
-            ControllerState::Normal => StatePersistence::Persistent,
-            ControllerState::WithPendingOp { .. } => StatePersistence::Persistent,
-            ControllerState::WithPendingStrandDuplication { .. } => StatePersistence::Persistent,
-            ControllerState::WithPendingXoverDuplication { .. } => StatePersistence::Persistent,
-            ControllerState::WithPendingHelicesDuplication { .. } => StatePersistence::Persistent,
-            ControllerState::WithPausedSimulation { .. } => StatePersistence::NeedFinish,
-            ControllerState::SettingRollHelices => StatePersistence::NeedFinish,
-            ControllerState::ChangingStrandName { .. } => StatePersistence::NeedFinish,
-            _ => StatePersistence::Transitory,
+            ControllerState::Normal
+            | ControllerState::WithPendingOp { .. }
+            | ControllerState::WithPendingStrandDuplication { .. }
+            | ControllerState::WithPendingXoverDuplication { .. }
+            | ControllerState::WithPendingHelicesDuplication { .. } => StatePersistence::Persistent,
+            ControllerState::WithPausedSimulation { .. }
+            | ControllerState::SettingRollHelices
+            | ControllerState::ChangingStrandName { .. } => StatePersistence::NeedFinish,
+            ControllerState::MakingHyperboloid { .. }
+            | ControllerState::BuildingStrand { .. }
+            | ControllerState::ChangingColor
+            | ControllerState::ApplyingOperation { .. }
+            | ControllerState::PositioningStrandPastingPoint { .. }
+            | ControllerState::PositioningHelicesPastingPoint { .. }
+            | ControllerState::PastingXovers { .. }
+            | ControllerState::DoingFirstXoversDuplication { .. }
+            | ControllerState::OptimizingScaffoldPosition
+            | ControllerState::Simulating { .. }
+            | ControllerState::RapierSimulating { .. }
+            | ControllerState::SimulatingGrids { .. }
+            | ControllerState::Relaxing { .. }
+            | ControllerState::Rolling { .. }
+            | ControllerState::Twisting { .. }
+            | ControllerState::PositioningStrandDuplicationPoint { .. }
+            | ControllerState::PositioningHelicesDuplicationPoint { .. } => {
+                StatePersistence::Transitory
+            }
         }
     }
 
@@ -3237,9 +3261,7 @@ pub enum OkOperation {
 impl OkOperation {
     fn into_undoable(self, label: Cow<'static, str>) -> Self {
         match self {
-            Self::Replace(design) => Self::Push { design, label },
-            // We do not keep the old label
-            Self::Push { design, .. } => Self::Push { design, label },
+            Self::Replace(design) | Self::Push { design, .. } => Self::Push { design, label },
             Self::NoOp => Self::NoOp,
         }
     }
@@ -3580,11 +3602,6 @@ impl ControllerState {
 
     fn finish(&self) -> Self {
         match self {
-            Self::Normal => Self::Normal,
-            Self::MakingHyperboloid { .. } => self.clone(),
-            Self::BuildingStrand { .. } => Self::Normal,
-            Self::ChangingColor => Self::Normal,
-            Self::WithPendingOp { .. } => self.clone(),
             Self::ApplyingOperation {
                 operation: Some(op),
                 design,
@@ -3592,26 +3609,31 @@ impl ControllerState {
                 operation: op.clone(),
                 design: design.clone(),
             },
-            Self::ApplyingOperation { .. } => Self::Normal,
-            Self::PositioningStrandPastingPoint { .. } => self.clone(),
-            Self::PositioningStrandDuplicationPoint { .. } => self.clone(),
-            Self::WithPendingStrandDuplication { .. } => self.clone(),
-            Self::WithPendingXoverDuplication { .. } => self.clone(),
-            Self::PastingXovers { .. } => self.clone(),
-            Self::DoingFirstXoversDuplication { .. } => self.clone(),
-            Self::OptimizingScaffoldPosition => self.clone(),
-            Self::Simulating { .. } => self.clone(),
-            Self::RapierSimulating { .. } => self.clone(),
-            Self::SimulatingGrids { .. } => self.clone(),
-            Self::Relaxing { .. } => self.clone(),
-            Self::WithPausedSimulation { .. } => Self::Normal,
-            Self::Rolling { .. } => Self::Normal,
-            Self::SettingRollHelices => Self::Normal,
-            Self::Twisting { .. } => Self::Normal,
-            Self::ChangingStrandName { .. } => Self::Normal,
-            Self::PositioningHelicesPastingPoint { .. } => self.clone(),
-            Self::PositioningHelicesDuplicationPoint { .. } => self.clone(),
-            Self::WithPendingHelicesDuplication { .. } => self.clone(),
+            Self::MakingHyperboloid { .. }
+            | Self::WithPendingOp { .. }
+            | Self::PositioningStrandPastingPoint { .. }
+            | Self::PositioningStrandDuplicationPoint { .. }
+            | Self::WithPendingStrandDuplication { .. }
+            | Self::WithPendingXoverDuplication { .. }
+            | Self::PastingXovers { .. }
+            | Self::DoingFirstXoversDuplication { .. }
+            | Self::OptimizingScaffoldPosition
+            | Self::Simulating { .. }
+            | Self::RapierSimulating { .. }
+            | Self::SimulatingGrids { .. }
+            | Self::Relaxing { .. }
+            | Self::PositioningHelicesPastingPoint { .. }
+            | Self::PositioningHelicesDuplicationPoint { .. }
+            | Self::WithPendingHelicesDuplication { .. } => self.clone(),
+            Self::Normal
+            | Self::BuildingStrand { .. }
+            | Self::ChangingColor
+            | Self::ApplyingOperation { .. }
+            | Self::WithPausedSimulation { .. }
+            | Self::Rolling { .. }
+            | Self::SettingRollHelices
+            | Self::Twisting { .. }
+            | Self::ChangingStrandName { .. } => Self::Normal,
         }
     }
 

@@ -1624,8 +1624,7 @@ impl<E: OrganizerElement> GroupContent<E> {
     fn get_group_id(&self) -> Option<GroupId> {
         match self {
             Self::Node { group_id, .. } => Some(*group_id),
-            Self::Leaf { .. } => None,
-            Self::Placeholder => None,
+            Self::Leaf { .. } | Self::Placeholder => None,
         }
     }
 

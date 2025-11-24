@@ -346,10 +346,8 @@ impl Presenter {
                         self.content.strand_map.get(identifier_nucl).copied()
                             == Some(*s_id as usize)
                     }
-                    Selection::Grid(_, _) => false,
                     Selection::Nucleotide(_, n) => nucl == *n,
                     Selection::Helix { helix_id, .. } => nucl.helix == *helix_id,
-                    Selection::Nothing => false,
                     Selection::Xover(_, xover_id) => {
                         if let Some((n1, n2)) = self.junctions_ids.get_element(*xover_id) {
                             n1 == nucl || n2 == nucl
@@ -359,8 +357,10 @@ impl Presenter {
                     }
                     Selection::Bond(_, n1, n2) => *n1 == nucl || *n2 == nucl,
                     Selection::Phantom(e) => e.to_nucl() == nucl,
-                    Selection::BezierControlPoint { .. } => false,
-                    Selection::BezierVertex(_) => false,
+                    Selection::Grid(_, _)
+                    | Selection::Nothing
+                    | Selection::BezierControlPoint { .. }
+                    | Selection::BezierVertex(_) => false,
                 };
         }
         ret

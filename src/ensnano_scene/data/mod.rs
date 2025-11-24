@@ -629,15 +629,16 @@ impl<R: SceneDesignReaderExt> Data<R> {
                 helix_id,
                 ..
             } => self.designs[*design_id as usize].get_helix_elements(*helix_id as u32),
-            Selection::BezierControlPoint { .. } => HashSet::new(),
             Selection::Strand(d_id, s_id) => {
                 self.designs[*d_id as usize].get_strand_elements(*s_id)
             }
-            Selection::Grid(_, _) => HashSet::new(), // A grid is not made of atomic elements
-            Selection::Phantom(_) => HashSet::new(),
-            Selection::BezierVertex(_) => HashSet::new(),
-            Selection::Nothing => HashSet::new(),
+            // A grid is not made of atomic elements
             Selection::Design(d_id) => self.designs[*d_id as usize].get_all_elements(),
+            Selection::BezierControlPoint { .. }
+            | Selection::Grid(_, _)
+            | Selection::Phantom(_)
+            | Selection::BezierVertex(_)
+            | Selection::Nothing => HashSet::new(),
         }
     }
 
@@ -1080,14 +1081,13 @@ impl<R: SceneDesignReaderExt> Data<R> {
                 bezier_control: *bezier_control,
                 helix_id: *helix_id,
             },
-            SceneElement::PlaneCorner { .. } => Selection::Nothing,
+            SceneElement::PlaneCorner { .. } | SceneElement::WidgetElement(_) => Selection::Nothing,
             SceneElement::BezierVertex { path_id, vertex_id } => {
                 Selection::BezierVertex(BezierVertexId {
                     path_id: *path_id,
                     vertex_id: *vertex_id,
                 })
             }
-            SceneElement::WidgetElement(_) => Selection::Nothing,
             SceneElement::BezierTangent {
                 path_id, vertex_id, ..
             } => Selection::BezierVertex(BezierVertexId {
@@ -1844,7 +1844,6 @@ impl<R: SceneDesignReaderExt> Data<R> {
                         })
                 })
             }
-            SceneElement::WidgetElement(_) => None,
             SceneElement::BezierControl {
                 helix_id,
                 bezier_control,
@@ -1855,8 +1854,9 @@ impl<R: SceneDesignReaderExt> Data<R> {
             SceneElement::BezierVertex { vertex_id, path_id } => {
                 Some(CenterOfSelection::BezierVertex { path_id, vertex_id })
             }
-            SceneElement::BezierTangent { .. } => None,
-            SceneElement::PlaneCorner { .. } => None,
+            SceneElement::WidgetElement(_)
+            | SceneElement::BezierTangent { .. }
+            | SceneElement::PlaneCorner { .. } => None,
         }
     }
 

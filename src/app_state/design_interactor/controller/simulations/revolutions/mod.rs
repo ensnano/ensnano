@@ -662,7 +662,6 @@ impl<T> Default for OptionOnce<T> {
 impl<T> OptionOnce<T> {
     fn take(&mut self) -> Option<T> {
         match self {
-            Self::Taken => None,
             Self::NeverTaken(Some(_)) => {
                 if let Self::NeverTaken(ret) = std::mem::replace(self, Self::Taken) {
                     ret
@@ -670,7 +669,7 @@ impl<T> OptionOnce<T> {
                     unreachable!()
                 }
             }
-            Self::NeverTaken(None) => None,
+            Self::Taken | Self::NeverTaken(None) => None,
         }
     }
 

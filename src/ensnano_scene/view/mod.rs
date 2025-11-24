@@ -1180,8 +1180,7 @@ impl Mesh {
     fn to_fake(self) -> Option<Self> {
         match self {
             Self::Sphere => Some(Self::FakeSphere),
-            Self::Tube => Some(Self::FakeTube),
-            Self::SlicedTube => Some(Self::FakeTube),
+            Self::Tube | Self::SlicedTube => Some(Self::FakeTube),
             Self::PhantomSphere => Some(Self::FakePhantomSphere),
             Self::PhantomTube => Some(Self::FakePhantomTube),
             Self::BezierControl => Some(Self::FakeBezierControl),
@@ -1696,23 +1695,15 @@ pub enum DrawType {
 impl DrawType {
     fn is_fake(&self) -> bool {
         match self {
-            Self::Scene => false,
-            Self::Png { .. } => false,
-            Self::Design => true,
-            Self::Widget => true,
-            Self::Phantom => true,
-            Self::Grid => true,
+            Self::Design | Self::Widget | Self::Phantom | Self::Grid => true,
+            Self::Scene | Self::Png { .. } => false,
         }
     }
 
     fn wants_widget(&self) -> bool {
         match self {
-            Self::Scene => true,
-            Self::Design => false,
-            Self::Widget => true,
-            Self::Phantom => false,
-            Self::Grid => false,
-            Self::Png { .. } => false,
+            Self::Scene | Self::Widget => true,
+            Self::Design | Self::Phantom | Self::Grid | Self::Png { .. } => false,
         }
     }
 }

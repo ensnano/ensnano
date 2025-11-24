@@ -289,15 +289,14 @@ impl CornerType {
 impl SceneElement {
     pub fn get_design(&self) -> Option<u32> {
         match self {
-            Self::DesignElement(d, _) => Some(*d),
-            Self::WidgetElement(_) => None,
-            Self::PhantomElement(p) => Some(p.design_id),
-            Self::Grid(d, _) => Some(*d),
-            Self::GridCircle(d, _) => Some(*d),
-            Self::BezierControl { .. } => None,
-            Self::BezierVertex { .. } => Some(0),
-            Self::PlaneCorner { .. } => Some(0),
-            Self::BezierTangent { .. } => Some(0),
+            Self::DesignElement(design_id, _)
+            | Self::PhantomElement(PhantomElement { design_id, .. })
+            | Self::Grid(design_id, _)
+            | Self::GridCircle(design_id, _) => Some(*design_id),
+            Self::BezierVertex { .. } | Self::PlaneCorner { .. } | Self::BezierTangent { .. } => {
+                Some(0)
+            }
+            Self::WidgetElement(_) | Self::BezierControl { .. } => None,
         }
     }
 
@@ -408,8 +407,7 @@ impl SceneReader {
             }
             DrawType::Phantom => SceneElement::PhantomElement(phantom_helix_decoder(color)),
             DrawType::Widget => SceneElement::WidgetElement(color).transform_into_bezier(),
-            DrawType::Scene => unreachable!(),
-            DrawType::Png { .. } => unreachable!(),
+            DrawType::Scene | DrawType::Png { .. } => unreachable!(),
         })
     }
 }

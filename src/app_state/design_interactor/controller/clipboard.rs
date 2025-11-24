@@ -57,9 +57,9 @@ impl Clipboard {
         match self {
             Self::Empty => Err(ErrOperation::EmptyClipboard),
             Self::Strands(strand_clipboard) => Ok(strand_clipboard.clone()),
-            Self::Xovers(_) => Err(ErrOperation::WrongClipboard),
-            Self::Grids(_) => Err(ErrOperation::WrongClipboard),
-            Self::Helices(_) => Err(ErrOperation::WrongClipboard),
+            Self::Xovers(_) | Self::Grids(_) | Self::Helices(_) => {
+                Err(ErrOperation::WrongClipboard)
+            }
         }
     }
 
@@ -536,10 +536,8 @@ impl Controller {
 
     fn apply_paste_strands(&mut self, mut design: Design) -> Result<Design, ErrOperation> {
         let pasted_strands = match &self.state {
-            ControllerState::PositioningStrandPastingPoint { pasted_strands, .. } => {
-                Ok(pasted_strands)
-            }
-            ControllerState::PositioningStrandDuplicationPoint { pasted_strands, .. } => {
+            ControllerState::PositioningStrandPastingPoint { pasted_strands, .. }
+            | ControllerState::PositioningStrandDuplicationPoint { pasted_strands, .. } => {
                 Ok(pasted_strands)
             }
             _ => Err(ErrOperation::IncompatibleState(format!(
@@ -805,16 +803,10 @@ impl Controller {
 
     pub(super) fn get_pasting_point(&self) -> Option<Option<PastePosition>> {
         match self.state {
-            ControllerState::PositioningStrandPastingPoint { pasting_point, .. } => {
-                Some(pasting_point.map(PastePosition::Nucl))
-            }
-            ControllerState::PositioningStrandDuplicationPoint { pasting_point, .. } => {
-                Some(pasting_point.map(PastePosition::Nucl))
-            }
-            ControllerState::DoingFirstXoversDuplication { pasting_point, .. } => {
-                Some(pasting_point.map(PastePosition::Nucl))
-            }
-            ControllerState::PastingXovers { pasting_point, .. } => {
+            ControllerState::PositioningStrandPastingPoint { pasting_point, .. }
+            | ControllerState::PositioningStrandDuplicationPoint { pasting_point, .. }
+            | ControllerState::DoingFirstXoversDuplication { pasting_point, .. }
+            | ControllerState::PastingXovers { pasting_point, .. } => {
                 Some(pasting_point.map(PastePosition::Nucl))
             }
             ControllerState::PositioningHelicesPastingPoint { pasting_point, .. } => {
@@ -845,13 +837,9 @@ impl Controller {
     pub(super) fn get_design_being_pasted_on(&self) -> Option<&AddressPointer<Design>> {
         match &self.state {
             ControllerState::PastingXovers { initial_design, .. } => Some(initial_design),
-            ControllerState::DoingFirstXoversDuplication { initial_design, .. } => {
-                Some(initial_design)
-            }
-            ControllerState::PositioningHelicesPastingPoint { initial_design, .. } => {
-                Some(initial_design)
-            }
-            ControllerState::PositioningHelicesDuplicationPoint { initial_design, .. } => {
+            ControllerState::DoingFirstXoversDuplication { initial_design, .. }
+            | ControllerState::PositioningHelicesPastingPoint { initial_design, .. }
+            | ControllerState::PositioningHelicesDuplicationPoint { initial_design, .. } => {
                 Some(initial_design)
             }
             _ => None,

@@ -313,7 +313,10 @@ impl<S: AppState> Scene<S> {
             Consequence::ToggleWidget => {
                 self.requests.lock().unwrap().toggle_widget_basis();
             }
-            Consequence::BuildEnded => self.requests.lock().unwrap().suspend_op(),
+            Consequence::BuildEnded
+            | Consequence::ReleaseBezierVertex
+            | Consequence::ReleaseBezierCorner
+            | Consequence::ReleaseBezierTangent => self.requests.lock().unwrap().suspend_op(),
             Consequence::Undo => self.requests.lock().unwrap().undo(),
             Consequence::Redo => self.requests.lock().unwrap().redo(),
             Consequence::Building(position) => {
@@ -481,7 +484,6 @@ impl<S: AppState> Scene<S> {
                     .unwrap()
                     .update_operation(Arc::new(TranslateBezierPathVertex { vertices, x, y }));
             }
-            Consequence::ReleaseBezierVertex => self.requests.lock().unwrap().suspend_op(),
             Consequence::MoveBezierCorner {
                 plane_id,
                 original_corner_position,
@@ -495,8 +497,6 @@ impl<S: AppState> Scene<S> {
                     moving_corner,
                 },
             )),
-            Consequence::ReleaseBezierCorner => self.requests.lock().unwrap().suspend_op(),
-            Consequence::ReleaseBezierTangent => self.requests.lock().unwrap().suspend_op(),
             Consequence::MoveBezierTangent {
                 vertex_id,
                 tangent_in,
@@ -1145,6 +1145,7 @@ pub enum SceneNotification {
 
 impl<S: AppState> Application for Scene<S> {
     type AppState = S;
+
     fn on_notify(&mut self, notification: Notification) {
         log::info!("scene notified {notification:?}");
         let older_state = self.older_state.clone();
@@ -1190,12 +1191,9 @@ impl<S: AppState> Application for Scene<S> {
                     self.notify(SceneNotification::CameraMoved);
                 }
             }
-            Notification::ShowTorsion(_) => (),
             Notification::ModifiersChanged(modifiers) => {
                 self.controller.update_modifiers(modifiers);
             }
-            Notification::Split2d => (),
-            Notification::Redim2dHelices(_) => (),
             Notification::Fog(fog) => self.fog_request(fog),
             Notification::WindowFocusLost => self.controller.stop_camera_movement(),
             Notification::NewStereographicCamera(camera_ptr) => {
@@ -1209,12 +1207,10 @@ impl<S: AppState> Application for Scene<S> {
                     }
                 }
             }
-            Notification::FlipSplitViews => (),
             Notification::HorizonAligned => {
                 self.controller.align_horizon();
                 self.notify(SceneNotification::CameraMoved);
             }
-            Notification::ScreenShot2D(_) => (),
             Notification::ScreenShot3D(design_path) => {
                 if !self.is_stereographic() {
                     self.export_3d_png(design_path);
@@ -1232,6 +1228,11 @@ impl<S: AppState> Application for Scene<S> {
                     self.export_stl(design_path, &self.older_state);
                 }
             }
+            Notification::ShowTorsion(_)
+            | Notification::Split2d
+            | Notification::Redim2dHelices(_)
+            | Notification::FlipSplitViews
+            | Notification::ScreenShot2D(_) => (),
         }
     }
 

@@ -155,11 +155,8 @@ impl TwistState {
                     helix_parameters,
                 )
             }
-            GridTypeDescr::Square { twist: grid_twist } => {
-                *grid_twist = Some(twist);
-                crate::ensnano_design::twist_to_omega(twist, helix_parameters)
-            }
-            GridTypeDescr::Honeycomb { twist: grid_twist } => {
+            GridTypeDescr::Square { twist: grid_twist }
+            | GridTypeDescr::Honeycomb { twist: grid_twist } => {
                 *grid_twist = Some(twist);
                 crate::ensnano_design::twist_to_omega(twist, helix_parameters)
             }
