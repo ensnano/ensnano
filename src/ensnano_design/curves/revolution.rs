@@ -429,6 +429,7 @@ impl Curved for Revolution {
     }
 
     fn curvilinear_abscissa(&self, t: f64) -> Option<f64> {
+        #[expect(clippy::float_cmp)]
         if t == self.t_max() {
             self.curvilinear_abscissa.last().map(|p| p.evaluate(t))
         } else {

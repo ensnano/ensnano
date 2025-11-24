@@ -343,6 +343,7 @@ impl Multiplexer {
     }
 
     pub fn check_scale_factor(&mut self, window: &crate::Window) -> bool {
+        #[expect(clippy::float_cmp)]
         if self.scale_factor != window.scale_factor() {
             self.scale_factor = window.scale_factor();
             self.window_size = window.inner_size();
