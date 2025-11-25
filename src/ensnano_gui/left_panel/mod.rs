@@ -1037,8 +1037,8 @@ where
             self.parameters_tab.update(&mut self.application_state),
             self.pen_tab.update(&mut self.application_state),
             self.revolution_tab.update(&mut self.application_state),
-            self.camera_shortcut.update(&mut self.application_state),
-            self.contextual_panel.update(&mut self.application_state),
+            self.camera_shortcut.update(&self.application_state),
+            self.contextual_panel.update(&self.application_state),
         ]);
         log::debug!("Command: {:?}", &command);
         command
