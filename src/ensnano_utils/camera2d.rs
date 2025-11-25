@@ -101,7 +101,7 @@ impl Camera2D {
         .clamp(-1., 1.);
         let fixed_point =
             Vec2::from(self.screen_to_world(cursor_position.x as f32, cursor_position.y as f32));
-        self.globals.zoom *= 1.25_f32.powf(scroll);
+        self.globals.zoom *= 1.25f32.powf(scroll);
         self.globals.zoom = self.globals.zoom.min(MAX_ZOOM_2D);
         let delta = fixed_point
             - Vec2::from(self.screen_to_world(cursor_position.x as f32, cursor_position.y as f32));

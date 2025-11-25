@@ -32,7 +32,7 @@ impl Torus {
     }
 
     fn t_for_curvilinear_abscissa(&self, s: f64) -> f64 {
-        let p = 9.688448061179066_f64;
+        let p = 9.688448061179066f64;
         let perimeter = 4. * INTER_HELIX_GAP * self.half_nb_helix as f64;
         let scale = perimeter / p;
         let mut sp = s / scale;
@@ -64,7 +64,7 @@ impl Torus {
     }
 
     fn position_moebius(&self, t: f64) -> DVec3 {
-        let p = 9.688448061179066_f64;
+        let p = 9.688448061179066f64;
         let perimeter = 4. * INTER_HELIX_GAP * self.half_nb_helix as f64;
         let scale = perimeter / p;
         let a = 2. * scale;

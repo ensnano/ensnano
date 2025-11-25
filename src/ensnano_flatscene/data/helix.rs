@@ -936,11 +936,11 @@ impl Helix {
     ) -> Option<(f32, f32)> {
         let mut ret = Vec::new();
         let x0_screen = {
-            let world = self.x_position(0_f32, line);
+            let world = self.x_position(0f32, line);
             camera.borrow().world_to_norm_screen(world.x, world.y)
         };
         let x1_screen = {
-            let world = self.x_position(1_f32, line);
+            let world = self.x_position(1f32, line);
             camera.borrow().world_to_norm_screen(world.x, world.y)
         };
         let on_segment = |(_, t): &(f32, f32)| *t >= 0. && *t <= 1.;
