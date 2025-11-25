@@ -135,9 +135,12 @@ impl Controller {
             } => Ok(self.ok_apply(|c, d| c.snap_helices(d, pivots, translation), design)),
             DesignOperation::SetIsometry {
                 helix,
-                segment,
+                segment_idx,
                 isometry,
-            } => Ok(self.ok_apply(|c, d| c.set_isometry(d, helix, segment, isometry), design)),
+            } => Ok(self.ok_apply(
+                |c, d| c.set_isometry(d, helix, segment_idx, isometry),
+                design,
+            )),
             DesignOperation::RotateHelices {
                 helices,
                 center,
@@ -248,8 +251,8 @@ impl Controller {
                 |c, d| c.create_camera(d, position, orientation, pivot_position),
                 design,
             )),
-            DesignOperation::DeleteCamera(cam_id) => {
-                self.apply(|c, d| c.delete_camera(d, cam_id), design)
+            DesignOperation::DeleteCamera(camera_id) => {
+                self.apply(|c, d| c.delete_camera(d, camera_id), design)
             }
             DesignOperation::SetCameraName { camera_id, name } => {
                 self.apply(|c, d| c.set_camera_name(d, camera_id, name), design)
@@ -1936,18 +1939,18 @@ impl Controller {
         &self,
         mut design: Design,
         h_id: usize,
-        segment: usize,
+        segment_idx: usize,
         isometry: Isometry2,
     ) -> Design {
-        log::info!("setting isometry {h_id} {segment} {isometry:?}");
+        log::info!("setting isometry {h_id} {segment_idx} {isometry:?}");
         let mut new_helices = design.helices.make_mut();
-        if segment == 0 {
+        if segment_idx == 0 {
             if let Some(h) = new_helices.get_mut(&h_id) {
                 h.isometry2d = Some(isometry);
             }
         } else if let Some(i) = new_helices
             .get_mut(&h_id)
-            .and_then(|h| h.additional_isometries.get_mut(segment - 1))
+            .and_then(|h| h.additional_isometries.get_mut(segment_idx - 1))
         {
             i.additional_isometry = Some(isometry);
         }

@@ -481,9 +481,9 @@ impl<S: AppState> FlatScene<S> {
         self.read_consequence(consequence, None);
     }
 
-    fn attempt_xover(&self, nucl1: FlatNucl, nucl2: FlatNucl) {
-        let source = nucl1.to_real();
-        let target = nucl2.to_real();
+    fn attempt_xover(&self, source: FlatNucl, target: FlatNucl) {
+        let source = source.to_real();
+        let target = target.to_real();
         self.requests
             .lock()
             .unwrap()
@@ -781,9 +781,9 @@ impl<S: AppState> Application for FlatScene<S> {
         &mut self,
         event: &WindowEvent,
         cursor_position: PhysicalPosition<f64>,
-        state: &S,
+        app_state: &S,
     ) -> Option<CursorIcon> {
-        self.input(event, cursor_position, state)
+        self.input(event, cursor_position, app_state)
     }
 
     fn on_redraw_request(
@@ -794,13 +794,13 @@ impl<S: AppState> Application for FlatScene<S> {
         self.draw_view(encoder, target);
     }
 
-    fn needs_redraw(&mut self, _: Duration, state: S) -> bool {
+    fn needs_redraw(&mut self, _: Duration, app_state: S) -> bool {
         let now = Instant::now();
         if (now - self.last_update).as_millis() < 25 {
             false
         } else {
             self.last_update = now;
-            self.needs_redraw_(state)
+            self.needs_redraw_(app_state)
         }
     }
 

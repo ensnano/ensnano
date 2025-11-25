@@ -169,7 +169,7 @@ impl<Message, Theme> Widget<Message, Theme, iced::Renderer>
         _viewport: &Rectangle,
     ) -> event::Status {
         // A closure that takes an absolute position and send Message.
-        let mut change = |Point { x, y: _ }| {
+        let mut change = |Point { x, .. }| {
             let bounds = layout.bounds();
             if x <= bounds.x {
                 if let Some(on_slide) = &self.on_slide {

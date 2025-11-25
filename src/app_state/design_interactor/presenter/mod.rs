@@ -710,10 +710,13 @@ impl DesignInteractor {
         })
     }
 
-    pub fn get_camera_with_id(&self, cam_id: crate::ensnano_design::CameraId) -> Option<Camera3D> {
+    pub fn get_camera_with_id(
+        &self,
+        camera_id: crate::ensnano_design::CameraId,
+    ) -> Option<Camera3D> {
         self.presenter
             .current_design
-            .get_camera(cam_id)
+            .get_camera(camera_id)
             .cloned()
             .map(|c| Camera3D {
                 position: c.position,

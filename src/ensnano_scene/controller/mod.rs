@@ -496,7 +496,7 @@ pub(super) trait Data {
     fn attempt_xover(
         &self,
         source: Option<&SceneElement>,
-        dest: Option<&SceneElement>,
+        target: Option<&SceneElement>,
     ) -> Option<(Nucl, Nucl, usize)>;
     fn can_start_builder(&self, element: Option<SceneElement>) -> Option<Nucl>;
     fn get_grid_object(&self, position: GridPosition) -> Option<GridObject>;

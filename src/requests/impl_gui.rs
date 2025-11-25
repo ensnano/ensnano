@@ -36,8 +36,8 @@ impl crate::ensnano_gui::Requests for Requests {
         self.background3d = Some(bg);
     }
 
-    fn change_3d_rendering_mode(&mut self, mode: RenderingMode) {
-        self.rendering_mode = Some(mode);
+    fn change_3d_rendering_mode(&mut self, rendering_mode: RenderingMode) {
+        self.rendering_mode = Some(rendering_mode);
     }
 
     fn set_scaffold_from_selection(&mut self) {
@@ -48,8 +48,8 @@ impl crate::ensnano_gui::Requests for Requests {
         self.cancel_hyperboloid = Some(());
     }
 
-    fn invert_scroll(&mut self, inverted: bool) {
-        self.set_invert_y_scroll = Some(inverted);
+    fn invert_scroll(&mut self, invert: bool) {
+        self.set_invert_y_scroll = Some(invert);
     }
 
     fn resize_2d_helices(&mut self, all: bool) {
@@ -60,8 +60,8 @@ impl crate::ensnano_gui::Requests for Requests {
         self.all_visible = Some(());
     }
 
-    fn toggle_visibility(&mut self, compl: bool) {
-        self.toggle_visibility = Some(compl);
+    fn toggle_visibility(&mut self, visible: bool) {
+        self.toggle_visibility = Some(visible);
     }
 
     fn change_action_mode(&mut self, action_mode: ActionMode) {
@@ -105,8 +105,8 @@ impl crate::ensnano_gui::Requests for Requests {
         self.stop_roll = Some(());
     }
 
-    fn start_roll_simulation(&mut self, request: RollRequest) {
-        self.roll_request = Some(request);
+    fn start_roll_simulation(&mut self, roll_request: RollRequest) {
+        self.roll_request = Some(roll_request);
     }
 
     fn request_rapier_simulation(&mut self, request: RapierSimulationRequest) {
@@ -290,15 +290,15 @@ impl crate::ensnano_gui::Requests for Requests {
         self.keep_proceed.push_back(Action::NewCamera);
     }
 
-    fn delete_camera(&mut self, cam_id: crate::ensnano_design::CameraId) {
+    fn delete_camera(&mut self, camera_id: crate::ensnano_design::CameraId) {
         self.keep_proceed
             .push_back(Action::DesignOperation(DesignOperation::DeleteCamera(
-                cam_id,
+                camera_id,
             )));
     }
 
-    fn select_camera(&mut self, cam_id: crate::ensnano_design::CameraId) {
-        self.keep_proceed.push_back(Action::SelectCamera(cam_id));
+    fn select_camera(&mut self, camera_id: crate::ensnano_design::CameraId) {
+        self.keep_proceed.push_back(Action::SelectCamera(camera_id));
     }
 
     fn set_camera_name(&mut self, camera_id: crate::ensnano_design::CameraId, name: String) {

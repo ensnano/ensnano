@@ -167,7 +167,7 @@ mod hue_column {
             shell: &mut Shell<'_, Message>,
             _viewport: &Rectangle,
         ) -> event::Status {
-            let mut change = |Point { x: _, y }| {
+            let mut change = |Point { y, .. }| {
                 let bounds = layout.bounds();
                 if y <= bounds.y {
                     shell.publish((self.on_slide)(0.));

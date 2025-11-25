@@ -148,9 +148,9 @@ impl<'a, S: AppState> EventContext<'a, S> {
     pub fn attempt_xover(
         &self,
         source: Option<&SceneElement>,
-        dest: Option<&SceneElement>,
+        target: Option<&SceneElement>,
     ) -> Option<(Nucl, Nucl, usize)> {
-        self.controller.data.borrow().attempt_xover(source, dest)
+        self.controller.data.borrow().attempt_xover(source, target)
     }
 
     /// Return a reference to the current ModifiersState

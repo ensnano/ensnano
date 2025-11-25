@@ -163,7 +163,7 @@ pub enum DesignOperation {
     },
     SetIsometry {
         helix: usize,
-        segment: usize,
+        segment_idx: usize,
         isometry: Isometry2,
     },
     RequestStrandBuilders {

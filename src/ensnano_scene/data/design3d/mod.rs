@@ -1604,8 +1604,6 @@ pub(super) enum ExpandWith {
     Tubes,
 }
 
-// Array of (strand number, array of 3D space position of the nucleotides)
-
 pub trait SceneDesignReaderExt:
     'static + crate::ensnano_interactor::InteractorDesignReaderExt
 {
@@ -1636,8 +1634,8 @@ pub trait SceneDesignReaderExt:
     fn get_grid_position(&self, g_id: GridId) -> Option<Vec3>;
     fn get_grid_lattice_position(&self, position: GridPosition) -> Option<Vec3>;
     fn get_element_position(&self, e_id: u32, referential: Referential) -> Option<Vec3>;
-    fn get_element_axis_position(&self, id: u32, referential: Referential) -> Option<Vec3>;
-    fn get_element_graphic_position(&self, id: u32, referential: Referential) -> Option<Vec3>;
+    fn get_element_axis_position(&self, e_id: u32, referential: Referential) -> Option<Vec3>;
+    fn get_element_graphic_position(&self, e_id: u32, referential: Referential) -> Option<Vec3>;
     fn get_color(&self, e_id: u32) -> Option<u32>;
     fn get_radius(&self, e_id: u32) -> Option<f32>;
     fn get_xover_coloring(&self, e_id: u32) -> Option<bool>;

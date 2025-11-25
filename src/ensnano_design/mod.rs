@@ -384,7 +384,7 @@ impl Design {
         orientation: Rotor3,
         pivot_position: Option<Vec3>,
     ) {
-        let cam_id = self
+        let camera_id = self
             .cameras
             .keys()
             .max()
@@ -392,16 +392,16 @@ impl Design {
         let new_camera = Camera {
             position,
             orientation,
-            name: format!("Camera {}", cam_id.0),
-            id: cam_id,
+            name: format!("Camera {}", camera_id.0),
+            id: camera_id,
             pivot_position,
         };
-        self.cameras.insert(cam_id, new_camera);
+        self.cameras.insert(camera_id, new_camera);
     }
 
-    pub fn rm_camera(&mut self, cam_id: CameraId) -> bool {
-        if self.cameras.remove(&cam_id).is_some() {
-            if self.favorite_camera == Some(cam_id) {
+    pub fn rm_camera(&mut self, camera_id: CameraId) -> bool {
+        if self.cameras.remove(&camera_id).is_some() {
+            if self.favorite_camera == Some(camera_id) {
                 self.favorite_camera = self.cameras.keys().min().copied();
             }
             true
@@ -410,12 +410,12 @@ impl Design {
         }
     }
 
-    pub fn get_camera_mut(&mut self, cam_id: CameraId) -> Option<&mut Camera> {
-        self.cameras.get_mut(&cam_id)
+    pub fn get_camera_mut(&mut self, camera_id: CameraId) -> Option<&mut Camera> {
+        self.cameras.get_mut(&camera_id)
     }
 
-    pub fn get_camera(&self, cam_id: CameraId) -> Option<&Camera> {
-        self.cameras.get(&cam_id)
+    pub fn get_camera(&self, camera_id: CameraId) -> Option<&Camera> {
+        self.cameras.get(&camera_id)
     }
 
     pub fn get_favorite_camera(&self) -> Option<&Camera> {
@@ -429,10 +429,10 @@ impl Design {
         self.favorite_camera
     }
 
-    pub fn set_favorite_camera(&mut self, cam_id: CameraId) -> bool {
-        if self.cameras.contains_key(&cam_id) {
-            if self.favorite_camera != Some(cam_id) {
-                self.favorite_camera = Some(cam_id);
+    pub fn set_favorite_camera(&mut self, camera_id: CameraId) -> bool {
+        if self.cameras.contains_key(&camera_id) {
+            if self.favorite_camera != Some(camera_id) {
+                self.favorite_camera = Some(camera_id);
             } else {
                 self.favorite_camera = None;
             }

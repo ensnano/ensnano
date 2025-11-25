@@ -11,7 +11,6 @@ pub mod left_panel;
 pub mod status_bar;
 pub mod top_bar;
 
-use iced::{advanced::renderer, mouse::Cursor};
 pub use left_panel::{
     ColorOverlay, CurveDescriptorBuilder, CurveDescriptorParameter, InstantiatedParameter,
     LeftPanel, RevolutionScaling, RigidBodyParametersRequest,
@@ -19,7 +18,15 @@ pub use left_panel::{
 pub use status_bar::{ClipboardContent, CurrentOpState};
 pub use top_bar::TopBar;
 
-use crate::ensnano_iced::{fonts::INTER_REGULAR_FONT, ui_size::UiSize};
+use crate::ensnano_design::{
+    BezierPathId, BezierVertexId, CameraId, HelixParameters, Nucl,
+    elements::{DesignElement, DesignElementKey, DnaAttribute},
+    grid::{GridId, GridTypeDescr},
+};
+use crate::ensnano_iced::{
+    fonts::{INTER_REGULAR_FONT, load_fonts},
+    ui_size::UiSize,
+};
 use crate::ensnano_interactor::{
     ActionMode, HyperboloidRequest, InsertionPoint, Multiplexer, PastingStatus,
     RapierSimulationRequest, RevolutionSurfaceSystemDescriptor, RollRequest, ScaffoldInfo,
@@ -33,19 +40,12 @@ use crate::ensnano_interactor::{
     operation::Operation,
 };
 use crate::ensnano_organizer::tree::{GroupId, OrganizerTree};
-use crate::{
-    ensnano_design::{
-        BezierPathId, BezierVertexId, CameraId, HelixParameters, Nucl,
-        elements::{DesignElement, DesignElementKey, DnaAttribute},
-        grid::{GridId, GridTypeDescr},
-    },
-    ensnano_iced::fonts::load_fonts,
-};
 use iced::{
     Renderer, Size,
-    advanced::{clipboard, mouse},
+    advanced::{clipboard, mouse, renderer},
     event::{self, Event},
     keyboard,
+    mouse::Cursor,
 };
 use iced_runtime::{Debug, program};
 use iced_wgpu::Backend;
@@ -164,9 +164,9 @@ pub trait Requests: 'static + Send {
     fn add_double_strand_on_new_helix(&mut self, parameters: Option<(isize, usize)>);
     fn set_strand_name(&mut self, s_id: usize, name: String);
     fn create_new_camera(&mut self);
-    fn delete_camera(&mut self, cam_id: CameraId);
-    fn select_camera(&mut self, cam_id: CameraId);
-    fn set_camera_name(&mut self, cam_id: CameraId, name: String);
+    fn delete_camera(&mut self, camera_id: CameraId);
+    fn select_camera(&mut self, camera_id: CameraId);
+    fn set_camera_name(&mut self, camera_id: CameraId, name: String);
     fn set_suggestion_parameters(&mut self, param: SuggestionParameters);
     fn set_grid_position(&mut self, grid_id: GridId, position: Vec3);
     fn set_grid_orientation(&mut self, grid_id: GridId, orientation: Rotor3);
@@ -178,7 +178,7 @@ pub trait Requests: 'static + Send {
     fn set_show_h_bonds(&mut self, show: HBondDisplay);
     fn flip_split_views(&mut self);
     fn set_rainbow_scaffold(&mut self, rainbow: bool);
-    fn set_all_helices_on_axis(&mut self, thick: bool);
+    fn set_all_helices_on_axis(&mut self, off_axis: bool);
     fn align_horizon(&mut self);
     fn download_origamis(&mut self);
     fn set_dna_parameters(&mut self, param: HelixParameters);

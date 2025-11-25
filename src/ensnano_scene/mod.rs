@@ -1264,13 +1264,13 @@ impl<S: AppState> Application for Scene<S> {
         self.draw_view(encoder, target, &older_state);
     }
 
-    fn needs_redraw(&mut self, dt: Duration, state: S) -> bool {
-        self.need_redraw(dt, state)
+    fn needs_redraw(&mut self, dt: Duration, app_state: S) -> bool {
+        self.need_redraw(dt, app_state)
     }
 
     fn get_position_for_new_grid(&self) -> Option<(Vec3, Rotor3)> {
         let camera = self.view.borrow().get_camera();
-        let position = camera.borrow().position + 10_f32 * camera.borrow().direction();
+        let position = camera.borrow().position + 10f32 * camera.borrow().direction();
         let orientation = camera.borrow().rotor.reversed() * Rotor3::from_rotation_xz(FRAC_PI_2);
         Some((position, orientation))
     }

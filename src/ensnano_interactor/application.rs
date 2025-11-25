@@ -36,7 +36,7 @@ pub trait Application {
     fn on_event(
         &mut self,
         event: &WindowEvent,
-        position: PhysicalPosition<f64>,
+        cursor_position: PhysicalPosition<f64>,
         app_state: &Self::AppState,
     ) -> Option<CursorIcon>;
     /// The method is used to forwards redraw_requests to applications

@@ -35,11 +35,11 @@ impl Quit {
 }
 
 impl State for Quit {
-    fn make_progress(self: Box<Self>, pending_action: &mut MainStateView) -> Box<dyn State> {
+    fn make_progress(self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn State> {
         match self.step {
             QuitStep::Init { need_save } => init_quit(need_save),
             QuitStep::Quitting => {
-                pending_action.exit_control_flow();
+                main_state.exit_control_flow();
                 Box::new(super::NormalState)
             }
         }
@@ -128,18 +128,18 @@ pub(super) enum LoadType {
 }
 
 impl State for Load {
-    fn make_progress(self: Box<Self>, state: &mut MainStateView) -> Box<dyn State> {
+    fn make_progress(self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn State> {
         match self.step {
             LoadStep::Init { need_save } => init_load(need_save, self.load_type),
             LoadStep::AskPath { path_input } => ask_path(
                 path_input,
-                state.get_current_design_directory(),
+                main_state.get_current_design_directory(),
                 self.load_type,
             ),
             LoadStep::GotPath(path) => match self.load_type {
-                LoadType::Design => load_design(path, state),
-                LoadType::Object3D => load_3d_object(path, state),
-                LoadType::SvgPath => load_svg(path, state),
+                LoadType::Design => load_design(path, main_state),
+                LoadType::Object3D => load_3d_object(path, main_state),
+                LoadType::SvgPath => load_svg(path, main_state),
             },
         }
     }
