@@ -1202,15 +1202,19 @@ impl GridData {
     }
 
     pub(super) fn update_curve(&self, helix: &mut Helix, cached_curve: &mut CurveCache) {
-        if self.paths_data.as_ref().map_or(true, |p| {
-            helix.need_curve_descriptor_update(&self.source_free_grids, p)
-        }) {
+        if self
+            .paths_data
+            .as_ref()
+            .is_none_or(|p| helix.need_curve_descriptor_update(&self.source_free_grids, p))
+        {
             self.update_instantiated_curve_descriptor(helix);
         }
 
-        if self.paths_data.as_ref().map_or(true, |p| {
-            helix.need_curve_update(&self.source_free_grids, p)
-        }) && let Some(desc) = helix.instantiated_descriptor.as_ref()
+        if self
+            .paths_data
+            .as_ref()
+            .is_none_or(|p| helix.need_curve_update(&self.source_free_grids, p))
+            && let Some(desc) = helix.instantiated_descriptor.as_ref()
         {
             let hp = helix.helix_parameters.unwrap_or(self.helix_parameters);
             let curve = desc.make_curve(&hp, cached_curve);
