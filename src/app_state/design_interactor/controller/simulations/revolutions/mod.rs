@@ -59,7 +59,6 @@ impl RevolutionSurfaceSystem {
         let dna_parameters = desc.helix_parameters;
         let simulation_parameters = desc.simulation_parameters.clone();
         let topology = if desc.target.curve_is_open() {
-            //Box::new(OpenSurfaceTopology::new(desc))
             todo!("Refactor open curves")
         } else {
             CloseSurfaceTopology::new(desc)
