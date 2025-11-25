@@ -193,6 +193,7 @@ panic = "allow" # TODO: warn (use assert!, todo!, unreachable! or proper error h
 pattern_type_mismatch = "allow"
 partial_pub_fields = "allow"
 pathbuf_init_then_push = "allow"
+pointer_format = "allow"
 precedence_bits = "allow"
 print_stdout = "allow" # TODO: warn and use log! everywhere
 pub_with_shorthand = "allow"
