@@ -83,10 +83,40 @@ impl PathInput {
     }
 }
 
-fn filter_has_extension(dialog_filters: DialogFilters, extension: &str) -> bool {
-    dialog_filters
-        .iter()
-        .any(|df| df.extensions.contains(&extension))
+/// Normalize a path's extension according to the dialog filters and default extension.
+fn normalize_extension(
+    path: &mut PathBuf,
+    dialog_filters: DialogFilters,
+    default_extension: Option<&str>,
+    append_on_mismatch: bool,
+) {
+    // If we don't have a default extension, there's nothing to normalize to.
+    let Some(default) = default_extension else {
+        return;
+    };
+
+    let current_extension = path
+        .extension()
+        .and_then(|ext| ext.to_str())
+        .filter(|ext| !ext.is_empty());
+
+    match current_extension {
+        None => {
+            path.set_extension(default);
+        }
+        Some(current) => {
+            let is_known_extension = dialog_filters
+                .iter()
+                .any(|df| df.extensions.contains(&current));
+            if !is_known_extension {
+                if append_on_mismatch {
+                    path.set_extension(format!("{current}.{default}"));
+                } else {
+                    path.set_extension(default);
+                }
+            }
+        }
+    }
 }
 
 pub fn get_file_to_write(
@@ -102,70 +132,50 @@ pub fn get_file_to_write(
         "starting name {:?}",
         starting_name.as_ref().and_then(|p| p.as_ref().to_str())
     );
-    let mut dialog = rfd::AsyncFileDialog::new();
 
     let default_extension = dialog_filters
         .first()
         .and_then(|f| f.extensions.first().copied());
 
-    let starting_name = starting_name.and_then(|p| {
-        let mut path_buf = PathBuf::from(p.as_ref());
-        let extension = path_buf.extension();
-        if extension.is_none() && default_extension.is_some() {
-            path_buf.set_extension(default_extension.unwrap());
-        } else if let Some(current_extension) = extension
-            && !filter_has_extension(
-                dialog_filters,
-                current_extension.to_str().unwrap_or_default(),
-            )
-        {
-            let new_extension = default_extension.unwrap_or_default();
-            path_buf.set_extension(new_extension);
-        }
+    let starting_name = starting_name.and_then(|name| {
+        let mut path_buf = PathBuf::from(name.as_ref());
+        normalize_extension(&mut path_buf, dialog_filters, default_extension, false);
         path_buf.file_name().map(OsStr::to_os_string)
     });
 
-    log::info!("starting name filtered {starting_name:?}");
-    for filter in dialog_filters {
-        dialog = dialog.add_filter(filter.name, filter.extensions);
-    }
     log::info!(
         "starting path filtered {:?}",
         starting_path.as_ref().map(AsRef::as_ref)
     );
+    log::info!("starting name filtered {starting_name:?}");
+
+    let mut dialog = rfd::AsyncFileDialog::new();
+    for filter in dialog_filters {
+        dialog = dialog.add_filter(filter.name, filter.extensions);
+    }
     if let Some(path) = starting_path {
         dialog = dialog.set_directory(path);
     }
     if let Some(name) = starting_name {
         dialog = dialog.set_file_name(&*name.to_string_lossy());
     }
+
     let future_file = dialog.save_file();
     let (snd, rcv) = mpsc::channel();
+
     thread::spawn(move || {
         let save_op = async move {
             let file = future_file.await;
-            let result = file.map(|handle| {
+
+            let path_buf = file.map(|handle| {
                 let mut path_buf: PathBuf = handle.path().into();
-                let extension = path_buf.extension();
-                if extension.is_none() && default_extension.is_some() {
-                    path_buf.set_extension(default_extension.unwrap());
-                } else if let Some(current_extension) = extension
-                    && !filter_has_extension(
-                        dialog_filters,
-                        current_extension.to_str().unwrap_or_default(),
-                    )
-                {
-                    let new_extension = format!(
-                        "{}.{}",
-                        current_extension.to_str().unwrap(),
-                        default_extension.unwrap_or_default()
-                    );
-                    path_buf.set_extension(new_extension);
-                }
+                normalize_extension(&mut path_buf, dialog_filters, default_extension, true);
                 path_buf
             });
-            log_err![snd.send(result)];
+
+            log_err![snd.send(path_buf)];
         };
+
         futures::executor::block_on(save_op);
     });
 
