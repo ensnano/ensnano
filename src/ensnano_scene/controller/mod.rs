@@ -492,7 +492,7 @@ pub(super) trait Data {
         element: Option<&SceneElement>,
         non_phantom: bool,
     ) -> Option<(Nucl, usize)>;
-    fn get_nucl_position(&self, nucl: Nucl, d_id: usize) -> Option<Vec3>;
+    fn get_nucl_position(&self, nucl: Nucl, design_id: usize) -> Option<Vec3>;
     fn attempt_xover(
         &self,
         source: Option<&SceneElement>,

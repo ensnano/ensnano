@@ -227,7 +227,7 @@ where
         theme: &Theme,
         style: &renderer::Style,
         layout: Layout,
-        cursor_position: mouse::Cursor,
+        cursor: mouse::Cursor,
         _viewport: &Rectangle,
     ) {
         let bounds = layout.bounds();
@@ -239,7 +239,7 @@ where
             theme,
             style,
             content_layout,
-            cursor_position,
+            cursor,
             &bounds,
         );
     }

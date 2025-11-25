@@ -5,7 +5,10 @@
 //!
 //! Drawing the top bar, and triggering events from it is handled here.
 
-use super::{AppState, Requests, SplitMode, TopBarState};
+use super::{
+    AppState, Requests, SplitMode, TopBarState,
+    icon::{HasIcon as _, HasIconDependentOnAxis as _},
+};
 use crate::ensnano_iced::{
     fonts::{ENSNANO_FONT, MaterialIcon, MaterialIconStyle},
     helpers::*,
@@ -478,7 +481,6 @@ impl<R: Requests, S: AppState> Program for TopBar<R, S> {
     }
 }
 
-use super::icon::{HasIcon as _, HasIconDependentOnAxis as _};
 fn action_mode_btn<'a, State: AppState>(
     mode: &ActionMode,
     current_action_mode: ActionMode,

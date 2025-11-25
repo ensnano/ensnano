@@ -29,8 +29,8 @@ impl HasIcon for SelectionMode {
 }
 
 pub trait HasIconDependentOnAxis {
-    fn icon_on(&self, on_axis: bool) -> Handle;
-    fn icon_off(&self, on_axis: bool) -> Handle;
+    fn icon_on(&self, axis_aligned: bool) -> Handle;
+    fn icon_off(&self, axis_aligned: bool) -> Handle;
 }
 
 impl HasIconDependentOnAxis for ActionMode {

@@ -37,7 +37,7 @@ pub trait ControllerState<S: AppState> {
         event: &WindowEvent,
         position: PhysicalPosition<f64>,
         controller: &Controller<S>,
-        state: &S,
+        app_state: &S,
     ) -> Transition<S>;
 
     fn display(&self) -> String;

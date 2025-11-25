@@ -195,29 +195,29 @@ pub trait Flat {}
 
 impl<T: Flat> std::ops::Index<FlatHelix> for [T] {
     type Output = T;
-    fn index(&self, idx: FlatHelix) -> &Self::Output {
-        &self[idx.flat.0]
+    fn index(&self, index: FlatHelix) -> &Self::Output {
+        &self[index.flat.0]
     }
 }
 
 impl<T: Flat> std::ops::Index<FlatHelix> for Vec<T> {
     type Output = T;
-    fn index(&self, idx: FlatHelix) -> &Self::Output {
-        &self[idx.flat.0]
+    fn index(&self, index: FlatHelix) -> &Self::Output {
+        &self[index.flat.0]
     }
 }
 
 impl<T: Flat> std::ops::Index<FlatIdx> for [T] {
     type Output = T;
-    fn index(&self, idx: FlatIdx) -> &Self::Output {
-        &self[idx.0]
+    fn index(&self, index: FlatIdx) -> &Self::Output {
+        &self[index.0]
     }
 }
 
 impl<T: Flat> std::ops::Index<FlatIdx> for Vec<T> {
     type Output = T;
-    fn index(&self, idx: FlatIdx) -> &Self::Output {
-        &self[idx.0]
+    fn index(&self, index: FlatIdx) -> &Self::Output {
+        &self[index.0]
     }
 }
 
@@ -363,14 +363,14 @@ pub struct HelixVec<T: Flat>(Vec<T>);
 impl<T: Flat> std::ops::Index<FlatIdx> for HelixVec<T> {
     type Output = T;
 
-    fn index(&self, idx: FlatIdx) -> &T {
-        &self.0[idx.0]
+    fn index(&self, index: FlatIdx) -> &T {
+        &self.0[index.0]
     }
 }
 
 impl<T: Flat> std::ops::IndexMut<FlatIdx> for HelixVec<T> {
-    fn index_mut(&mut self, idx: FlatIdx) -> &mut Self::Output {
-        &mut self.0[idx.0]
+    fn index_mut(&mut self, index: FlatIdx) -> &mut Self::Output {
+        &mut self.0[index.0]
     }
 }
 

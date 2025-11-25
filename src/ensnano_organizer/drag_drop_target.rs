@@ -134,7 +134,7 @@ where
         theme: &Theme,
         style: &renderer::Style,
         layout: layout::Layout,
-        cursor_position: mouse::Cursor,
+        cursor: mouse::Cursor,
         viewport: &Rectangle,
     ) {
         self.content.as_widget().draw(
@@ -143,7 +143,7 @@ where
             theme,
             style,
             layout.children().next().unwrap(),
-            cursor_position,
+            cursor,
             viewport,
         );
     }

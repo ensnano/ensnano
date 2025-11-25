@@ -40,7 +40,7 @@ pub trait OrganizerElement: Clone + Debug + 'static {
         Self::Attribute::all_discriminants()
     }
     fn min_max_domain_length_if_strand(&self) -> Option<(usize, usize)>;
-    fn auto_groups(&self, upper_domain_length_bounds: (usize, usize)) -> Vec<Self::AutoGroup>;
+    fn auto_groups(&self, last_domain_length_bounds: (usize, usize)) -> Vec<Self::AutoGroup>;
 }
 
 pub trait OrganizerAttributeDiscriminant:
