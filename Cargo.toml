@@ -159,6 +159,7 @@ too_many_lines = "allow" # TODO: warn
 trivially_copy_pass_by_ref = "allow"
 unnecessary_box_returns = "allow" # TODO: warn
 unnecessary_wraps = "allow" # TODO: warn (some functions wrap because they need to conform to an API)
+unreadable_literal = "allow"
 
 # restriction
 allow_attributes_without_reason = "allow"
