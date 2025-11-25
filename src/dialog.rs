@@ -113,8 +113,11 @@ pub fn get_file_to_write(
         let extension = path_buf.extension();
         if extension.is_none() && default_extension.is_some() {
             path_buf.set_extension(default_extension.unwrap());
-        } else if let Some(_current_extension) = extension
-            .filter(|ext| !filter_has_extension(dialog_filters, ext.to_str().unwrap_or_default()))
+        } else if let Some(current_extension) = extension
+            && !filter_has_extension(
+                dialog_filters,
+                current_extension.to_str().unwrap_or_default(),
+            )
         {
             let new_extension = default_extension.unwrap_or_default();
             path_buf.set_extension(new_extension);
@@ -147,7 +150,10 @@ pub fn get_file_to_write(
                 if extension.is_none() && default_extension.is_some() {
                     path_buf.set_extension(default_extension.unwrap());
                 } else if let Some(current_extension) = extension
-                    .filter(|ext| !filter_has_extension(dialog_filters, ext.to_str().unwrap_or("")))
+                    && !filter_has_extension(
+                        dialog_filters,
+                        current_extension.to_str().unwrap_or_default(),
+                    )
                 {
                     let new_extension = format!(
                         "{}.{}",
