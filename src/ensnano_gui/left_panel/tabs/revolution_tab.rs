@@ -99,9 +99,9 @@ impl<S: AppState> fmt::Debug for CurveDescriptorBuilder<S> {
     }
 }
 
-impl<S: AppState> ToString for CurveDescriptorBuilder<S> {
-    fn to_string(&self) -> String {
-        self.curve_name.to_owned()
+impl<S: AppState> std::fmt::Display for CurveDescriptorBuilder<S> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.curve_name)
     }
 }
 
