@@ -593,7 +593,7 @@ impl Design {
         })
     }
 
-    pub fn _set_helices(&mut self, helices: BTreeMap<usize, Arc<Helix>>) {
+    pub fn set_helices(&mut self, helices: BTreeMap<usize, Arc<Helix>>) {
         self.helices = Helices(Arc::new(helices));
     }
 }

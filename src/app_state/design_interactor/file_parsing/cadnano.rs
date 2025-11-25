@@ -123,7 +123,7 @@ impl FromCadnano for Design {
             }
         }
         println!("color {colors:?}");
-        design._set_helices(helices);
+        design.set_helices(helices);
         design
     }
 }
