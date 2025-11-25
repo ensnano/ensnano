@@ -2687,7 +2687,7 @@ impl Controller {
             } else if let Some(seq5) = &strand5prime.sequence {
                 Some(seq5.clone())
             } else {
-                strand3prime.sequence.as_ref().cloned()
+                strand3prime.sequence.clone()
             };
             let mut new_strand = Strand {
                 domains,
