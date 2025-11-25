@@ -281,19 +281,19 @@ impl<S: AppState> ControllerState<S> for NormalState {
                                 }
                             }
                         } else {
-                            let clicked_element;
-                            let object;
-                            if let Some(intersection) = grid_intersection.as_ref() {
-                                clicked_element = Some(SceneElement::GridCircle(
-                                    d_id,
-                                    intersection.grid_position(),
-                                ));
-                                object =
-                                    context.get_object_at_grid_pos(intersection.grid_position());
-                            } else {
-                                clicked_element = element;
-                                object = None;
-                            }
+                            let (clicked_element, object) =
+                                if let Some(intersection) = grid_intersection.as_ref() {
+                                    let clicked_element = Some(SceneElement::GridCircle(
+                                        d_id,
+                                        intersection.grid_position(),
+                                    ));
+                                    let object = context
+                                        .get_object_at_grid_pos(intersection.grid_position());
+                                    (clicked_element, object)
+                                } else {
+                                    (element, None)
+                                };
+
                             if let Some(obj) = object {
                                 // if helix is Some, intersection is also Some
                                 let intersection = grid_intersection.unwrap();

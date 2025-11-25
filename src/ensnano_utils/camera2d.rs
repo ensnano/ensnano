@@ -238,15 +238,16 @@ impl Camera2D {
             .adjust_height(1.1, 0.5);
         let zoom_x = self.globals.resolution[0] / rectangle.width();
         let zoom_y = self.globals.resolution[1] / rectangle.height();
-        let mut excess_height = 0.;
-        if zoom_x < zoom_y {
-            self.globals.zoom = zoom_x;
 
+        let excess_height = if zoom_x < zoom_y {
+            self.globals.zoom = zoom_x;
             let seen_height = self.globals.resolution[1] / zoom_x;
-            excess_height = seen_height - rectangle.height();
+            seen_height - rectangle.height()
         } else {
             self.globals.zoom = zoom_y;
-        }
+            0.0
+        };
+
         let [center_x, center_y] = rectangle.center();
         self.globals.scroll_offset[0] = center_x;
         self.globals.scroll_offset[1] = center_y + excess_height / 2.;

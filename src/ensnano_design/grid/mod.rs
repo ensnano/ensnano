@@ -956,11 +956,11 @@ impl GridData {
     }
 
     fn attach_to(&self, helix: &Helix, g_id: GridId) -> Option<HelixGridPosition> {
-        let mut ret = None;
         if let Some(g) = self.grids.get(&g_id) {
-            ret = g.find_helix_position(helix, g_id);
+            g.find_helix_position(helix, g_id)
+        } else {
+            None
         }
-        ret
     }
 
     fn find_grid_for_group(&self, group: &[usize]) -> GridDescriptor {

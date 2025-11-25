@@ -1,7 +1,7 @@
 //! This module provides utilities for drawing text in the applications
 
 use fontdue::Font;
-use std::{convert::TryInto as _, rc::Rc};
+use std::rc::Rc;
 use wgpu::{
     BindGroup, BindGroupLayout, Device, Extent3d, Queue, Sampler, TextureView, util::DeviceExt as _,
 };

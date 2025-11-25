@@ -33,6 +33,7 @@ impl Curve {
 
         // Decide if the the point at t = self.geometry.t_min() belongs to the backward or the
         // forward strand.
+        #[expect(clippy::useless_let_if_seq)]
         let first_forward;
         if inclination >= 0. {
             // The forward strand is behind
@@ -82,7 +83,7 @@ impl Curve {
                 (next_abscissa_forward, true)
             };
 
-            let mut p = self.legacy_point_at_t(t, &current_axis);
+            let mut p;
 
             if let Some(t_x) = self
                 .geometry
@@ -93,6 +94,7 @@ impl Curve {
                 current_axis = self.legacy_iterative_axis(t, Some(&current_axis));
                 p = self.legacy_point_at_t(t, &current_axis);
             } else {
+                p = self.legacy_point_at_t(t, &current_axis);
                 while current_abscissa < next_point_abscissa {
                     t += small_step;
 

@@ -575,6 +575,8 @@ impl View {
         };
         let depth_texture_view = &depth_texture.view;
         let target_size = png_size.unwrap_or(self.area_size);
+
+        #[expect(clippy::useless_let_if_seq)] // false positive in my opinion
         let mut need_new_circles = false;
         if let Some(globals) = self.camera_top.borrow_mut().update() {
             log::debug!("new camera globals: {globals:?}");
@@ -585,6 +587,7 @@ impl View {
             self.globals_bottom.update(globals);
             need_new_circles = true;
         }
+
         if need_new_circles || self.was_updated {
             let instances_top = self.generate_circle_instances(&self.camera_top);
             let instances_bottom = self.generate_circle_instances(&self.camera_bottom);

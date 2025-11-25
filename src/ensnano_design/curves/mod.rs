@@ -532,10 +532,12 @@ pub fn perpendicular_basis(point: DVec3) -> DMat3 {
 
     let axis_z = point.normalized();
 
-    let mut axis_x = DVec3::unit_x();
-    if axis_z.x.abs() >= 0.9 {
-        axis_x = DVec3::unit_y();
-    }
+    let mut axis_x = if axis_z.x.abs() >= 0.9 {
+        DVec3::unit_y()
+    } else {
+        DVec3::unit_x()
+    };
+
     let axis_y = axis_z.cross(axis_x).normalized();
     axis_x = axis_y.cross(axis_z).normalized();
 
