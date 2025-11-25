@@ -58,6 +58,7 @@ impl DesignInteractor {
 }
 
 /// Create a design by parsing a file
+#[expect(clippy::panic_in_result_fn)] // FIXME
 fn read_file<P: AsRef<Path> + std::fmt::Debug>(path: P) -> Result<Design, LoadDesignError> {
     let json_str =
         std::fs::read_to_string(&path).unwrap_or_else(|_| panic!("File not found {path:?}"));

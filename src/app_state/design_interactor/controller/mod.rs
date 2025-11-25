@@ -2712,6 +2712,7 @@ impl Controller {
     }
 
     /// Make a strand cyclic by linking the 3' and the 5' end, or undo this operation.
+    #[expect(clippy::panic_in_result_fn)] // FIXME
     fn make_cycle(
         strands: &mut Strands,
         strand_id: usize,

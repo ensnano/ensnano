@@ -480,9 +480,9 @@ impl<State: AppState> RevolutionTab<State> {
     }
 
     pub fn modifying_radius(&self) -> bool {
-        //self.radius_input.state.is_focused()
+        // self.radius_input.state.is_focused()
+        // FIXME
         false
-        // TODO: Fix me
     }
 }
 
