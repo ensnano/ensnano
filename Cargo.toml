@@ -129,6 +129,7 @@ multiple_crate_versions = "allow"
 derive_partial_eq_without_eq = "allow"
 missing_const_for_fn = "allow" # TODO: warn
 option_if_let_else = "allow"
+significant_drop_in_scrutinee = "allow" # TODO: warn (requires testing to avoid deadlocks)
 suboptimal_flops = "allow"
 tuple_array_conversions = "allow"
 while_float = "allow"
