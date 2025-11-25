@@ -1065,6 +1065,7 @@ impl Domain {
         }
     }
 
+    #[expect(clippy::suspicious_operation_groupings)]
     pub fn can_merge(&self, other: &Self) -> bool {
         match (self, other) {
             (Self::HelixDomain(dom1), Self::HelixDomain(dom2)) => {
@@ -1083,6 +1084,7 @@ impl Domain {
         }
     }
 
+    #[expect(clippy::suspicious_operation_groupings)]
     pub fn intersect(&self, other: &Self) -> bool {
         match (self, other) {
             (Self::HelixDomain(dom1), Self::HelixDomain(dom2)) => {
