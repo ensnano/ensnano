@@ -255,20 +255,18 @@ impl UnrootedRevolutionSurfaceDescriptor {
 
 impl RootingParameters {
     fn nb_spirals(&self, surface_half_turn_count: isize) -> usize {
-        /*
-         * let q be the total shift and n be the number of segments
-         * Spirals seen as set of segments are class of equivalence for the relation ~
-         * where a ~ b iff there exists k1, k2 st a = b  + k1 q + k2 n
-         *
-         * let d = gcd(q, n). If a ~ b then a = b (mod d)
-         *
-         * Reciprocal. if a = b (mod d) there exists x y st xq + yn = d
-         *
-         * a = k (xq + yn) + b
-         * so a ~ b
-         *
-         * So ~ is the relation of equivalence modulo d and has d classes.
-         */
+        // let q be the total shift and n be the number of segments
+        // Spirals seen as set of segments are class of equivalence for the relation ~
+        // where a ~ b iff there exists k1, k2 st a = b  + k1 q + k2 n
+        //
+        // let d = gcd(q, n). If a ~ b then a = b (mod d)
+        //
+        // Reciprocal. if a = b (mod d) there exists x y st xq + yn = d
+        //
+        // a = k (xq + yn) + b
+        // so a ~ b
+        //
+        // So ~ is the relation of equivalence modulo d and has d classes.
         let additional_shift = if surface_half_turn_count % 2 == 1 {
             self.nb_helix_per_half_section
         } else {
@@ -298,17 +296,15 @@ impl ShiftGenerator {
     ) -> Option<isize> {
         self.still_valid(nb_spirals, surface, half_nb_helix)
             .then(|| {
-                /*
-                To get a rooting with `d` spirals within `k` segments. We must have
-                `gcd(total_shift, k) = d` (see the implementation of `Rooting::Parameters::nb_spirals`)
-                this means that
-                (1) `d` divides `k`, so `k = a·d` for an integer `a`.
-                (2) total_shift = b·d` where `a` and `b` are coprimes.
-
-                So if `a = k / d` and `ℤ_a*` is the set of all numbers <= `a` that are coprime with `a`,
-                the set of total_shift that give the desired amount of spirals is
-                `Shifts_d = {(n·a + p) * d | n ∈ ℤ, p ∈ ℤ_a* }`
-                */
+                // To get a rooting with `d` spirals within `k` segments. We must have
+                // `gcd(total_shift, k) = d` (see the implementation of `Rooting::Parameters::nb_spirals`)
+                // this means that
+                // (1) `d` divides `k`, so `k = a·d` for an integer `a`.
+                // (2) total_shift = b·d` where `a` and `b` are coprimes.
+                //
+                // So if `a = k / d` and `ℤ_a*` is the set of all numbers <= `a` that are coprime with `a`,
+                // the set of total_shift that give the desired amount of spirals is
+                // `Shifts_d = {(n·a + p) * d | n ∈ ℤ, p ∈ ℤ_a* }`
                 let nb_coprime = self.coprimes_with_a.len();
                 let p = {
                     let idx = i.rem_euclid(nb_coprime as isize) as usize;

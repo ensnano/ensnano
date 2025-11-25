@@ -168,19 +168,6 @@ impl ConstrainedRotation {
         } else {
             let horizon_x = current_rotor.reversed() * Vec3::unit_x();
 
-            /*
-            let horizon_z = if horizon_x.cross(Vec3::unit_y()).mag() > 1e-3 {
-                let current_up = current_rotor.reversed() * Vec3::from([0., 1., 0.]);
-                let upside_down = if current_up.dot(Vec3::unit_y()) >= 0. {
-                    1.
-                } else {
-                    // We are looking upside down
-                    -1.
-                };
-               upside_down * horizon_x.cross(Vec3::unit_y()).normalized()
-            } else {
-                current_rotor.reversed() * Vec3::unit_z()
-            };*/
             let horizon_z = current_rotor.reversed() * Vec3::unit_z();
             let theta = current_pos_on_sphere
                 .dot(horizon_x)

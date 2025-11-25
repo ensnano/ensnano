@@ -16,23 +16,6 @@ impl HelixTimeMap {
         if self.nucl_time.len() < 2 {
             x / self.square_per_time
         } else {
-            /*
-            let time_per_x = 1. / self.square_per_time;
-
-            let time = time_per_x * x;
-
-            if time < *self.nucl_time.first().unwrap() {
-                let remainder_time = time - *self.nucl_time.first().unwrap();
-                self.nb_negative_nucl as f64 + remainder_time / time_per_x
-            } else if time > *self.nucl_time.last().unwrap() {
-                let remainder_time = time - *self.nucl_time.last().unwrap();
-                (self.nucl_time.len() - self.nb_negative_nucl) as f64 + remainder_time / time_per_x
-            } else {
-                let n = self.find_time(time);
-                let remainder_time = time - self.nucl_time[n];
-                n as f64 - self.nb_negative_nucl as f64 + remainder_time / time_per_x
-            }
-            */
             let time = x / self.square_per_time;
             let nucl_idx = self.find_time(time);
             let t_left = self.time_nucl(nucl_idx);

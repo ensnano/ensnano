@@ -292,14 +292,13 @@ impl RevolutionSurfaceSystem {
     }
 
     fn compute_accelerations(&self, system: &mut RelaxationSystem) {
-        /* Newton's second law of motion:
-         * F/m = d2pos / d2 t
-         * F / m = (d2 theta / dt2) * (dpos / d theta)  + (d theta / dt) ^ 2 * (d2pos / d theta2)
-         *
-         * apply < • | dpos/ dt> to both sides
-         * (d2 theta / dt2) ||dpos / d theta||^2
-         *      = <F/m - (d theta / dt) ^ 2 * (d2pos / d theta2) | dpos / d theta>
-         */
+        // Newton's second law of motion:
+        // F/m = d2pos / d2 t
+        // F / m = (d2 theta / dt2) * (dpos / d theta)  + (d theta / dt) ^ 2 * (d2pos / d theta2)
+        //
+        // apply < • | dpos/ dt> to both sides
+        // (d2 theta / dt2) ||dpos / d theta||^2
+        //      = <F/m - (d theta / dt) ^ 2 * (d2pos / d theta2) | dpos / d theta>
 
         let total_nb_segment = self.topology.nb_balls();
 

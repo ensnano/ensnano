@@ -504,25 +504,6 @@ impl Helix {
         _bezier_point: BezierControlPoint,
         _translation: GridAwareTranslation,
     ) -> Result<(), ErrDesignOperation> {
-        /*
-        let point = match bezier_point {
-            BezierControlPoint::PiecewiseBezier(n) => {
-                if let Some(CurveDescriptor::PiecewiseBezier { tangents, .. }) =
-                    self.curve.as_mut().map(Arc::make_mut)
-                {
-                    tangents.get_mut(n / 2)
-                } else {
-                    None
-                }
-            }
-            _ => {
-                log::error!("Translation of cubic bezier point not implemented");
-                None
-            }
-        }
-        .ok_or(ErrOperation::NotEnoughBezierPoints)?;
-        *point += translation.0;
-        */
         log::error!("Translation of cubic bezier point not implemented");
         Ok(())
     }
@@ -660,12 +641,6 @@ impl Helix {
     /// 3D position of a nucleotide on this helix. `n` is the position along the axis, and `forward` is true iff the 5' to 3' direction of the strand containing that nucleotide runs in the same direction as the axis of the helix.
     pub fn space_pos(&self, p: &HelixParameters, n: isize, forward: bool) -> Vec3 {
         let p = self.helix_parameters.unwrap_or(*p);
-        /*
-        match self.helix_parameters {
-            None => p.clone(),
-            Some(hp) => hp.clone(),
-        };
-        */
         self.shifted_space_pos(&p, n, forward, 0.0)
     }
 

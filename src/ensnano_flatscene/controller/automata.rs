@@ -134,10 +134,6 @@ impl<S: AppState> ControllerState<S> for NormalState {
                     "On left button pressed, pasting = {}",
                     app_state.is_pasting()
                 );
-                /*assert!(
-                    *state == ElementState::Pressed,
-                    "Released mouse button in normal mode"
-                );*/
                 if *state == ElementState::Released {
                     return Transition::nothing();
                 }
@@ -473,13 +469,6 @@ impl<S: AppState> ControllerState<S> for Translating {
                     .get_camera(position.y)
                     .borrow()
                     .screen_to_world(position.x as f32, position.y as f32);
-                /*
-                for pivot in self.translation_pivots.iter() {
-                    controller
-                        .data
-                        .borrow_mut()
-                        .snap_helix(*pivot, Vec2::new(x, y) - self.world_clicked);
-                }*/
                 Transition::consequence(Consequence::Snap {
                     pivots: self.translation_pivots.clone(),
                     translation: Vec2::new(x, y) - self.world_clicked,
@@ -1034,11 +1023,6 @@ impl<S: AppState> ControllerState<S> for LeavingPivot {
                 state,
                 ..
             } => {
-                /*
-                assert!(
-                    *state == ElementState::Released,
-                    "Pressed mouse button in LeavingPivot state"
-                );*/
                 if *state == ElementState::Pressed {
                     return Transition::nothing();
                 }
@@ -1054,10 +1038,6 @@ impl<S: AppState> ControllerState<S> for LeavingPivot {
                 state,
                 ..
             } => {
-                /*assert!(
-                    *state == ElementState::Pressed,
-                    "Released right mouse button in ReleasedPivot state"
-                );*/
                 if *state == ElementState::Released {
                     return Transition::nothing();
                 }
@@ -1407,10 +1387,6 @@ impl<S: AppState> ControllerState<S> for InitAttachment {
                 state,
                 ..
             } => {
-                /*assert!(
-                    *state == ElementState::Released,
-                    "Pressed mouse button in Init Building state"
-                );*/
                 if *state == ElementState::Pressed {
                     return Transition::nothing();
                 }
@@ -1659,10 +1635,6 @@ impl<S: AppState> ControllerState<S> for MovingFreeEnd {
                 state,
                 ..
             } => {
-                /*assert!(
-                    *state == ElementState::Released,
-                    "Pressed mouse button in Moving Free End state"
-                );*/
                 if *state == ElementState::Pressed {
                     return Transition::nothing();
                 }
@@ -1881,10 +1853,6 @@ impl<S: AppState> ControllerState<S> for Crossing {
                 state,
                 ..
             } => {
-                /*assert!(
-                    *state == ElementState::Released,
-                    "Pressed mouse button in Crossing state"
-                );*/
                 if *state == ElementState::Pressed {
                     return Transition::nothing();
                 }
@@ -2066,24 +2034,6 @@ impl<S: AppState> ControllerState<S> for RmHelix {
                 if *state == ElementState::Pressed {
                     return Transition::nothing();
                 }
-                // let (x, y) = controller
-                //     .get_camera(position.y)
-                //     .borrow()
-                //     .screen_to_world(self.mouse_position.x as f32, self.mouse_position.y as f32);
-                // let nucl =
-                //     controller
-                //         .data
-                //         .borrow()
-                //         .get_click(x, y, &controller.get_camera(position.y));
-                // let consequences = if let ClickResult::CircleWidget { translation_pivot } = nucl {
-                //     if translation_pivot.helix == self.helix {
-                //         Consequence::RmHelix(self.helix)
-                //     } else {
-                //         Consequence::Nothing
-                //     }
-                // } else {
-                //     Consequence::Nothing
-                // };
                 let consequences = Consequence::Nothing;
                 Transition {
                     new_state: Some(Box::new(NormalState {
@@ -2139,10 +2089,6 @@ impl<S: AppState> ControllerState<S> for FlipGroup {
                 state,
                 ..
             } => {
-                /*assert!(
-                    *state == ElementState::Released,
-                    "Pressed mouse button in Cutting state"
-                );*/
                 if *state == ElementState::Pressed {
                     return Transition::nothing();
                 }
@@ -2219,10 +2165,6 @@ impl<S: AppState> ControllerState<S> for FlipVisibility {
                 state,
                 ..
             } => {
-                /*assert!(
-                    *state == ElementState::Released,
-                    "Pressed mouse button in Cutting state"
-                );*/
                 if *state == ElementState::Pressed {
                     return Transition::nothing();
                 }
@@ -2680,10 +2622,6 @@ impl<S: AppState> ControllerState<S> for AddCirclePivot {
                 state,
                 ..
             } => {
-                /*assert!(
-                    *state == ElementState::Released,
-                    "Pressed mouse button in Cutting state"
-                );*/
                 if *state == ElementState::Pressed {
                     return Transition::nothing();
                 }
@@ -2779,11 +2717,6 @@ impl<S: AppState> ControllerState<S> for InitHelixTranslation {
                 state,
                 ..
             } => {
-                /*
-                assert!(
-                    *state == ElementState::Released,
-                    "Pressed mouse button in LeavingPivot state"
-                );*/
                 if *state == ElementState::Pressed {
                     return Transition::nothing();
                 }
@@ -2890,10 +2823,6 @@ impl<S: AppState> ControllerState<S> for TranslatingHandle {
                     .get_camera(position.y)
                     .borrow()
                     .screen_to_world(position.x as f32, position.y as f32);
-                /*controller
-                .data
-                .borrow_mut()
-                .translate_helix(Vec2::new(mouse_dx, mouse_dy));*/
                 controller
                     .data
                     .borrow_mut()

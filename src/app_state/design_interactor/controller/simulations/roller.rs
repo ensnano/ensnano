@@ -175,9 +175,6 @@ impl RollSystem {
             self.acceleration[i] = -self.speed[i] * FRICTION / MASS_HELIX;
         }
         for (n1, n2) in cross_overs {
-            /*if h1 >= h2 {
-                continue;
-            }*/
             let h1 = &data.helix_map[&n1.helix];
             let h2 = &data.helix_map[&n2.helix];
             let me = &data.helices[*h1];

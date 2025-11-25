@@ -1367,7 +1367,6 @@ impl GridsSystem {
         &self,
         positions: &[Vec3],
         orientations: &[Rotor3],
-        _volume_exclusion: f32,
     ) -> (Vec<Vec3>, Vec<Vec3>) {
         let mut forces = vec![Vec3::zero(); self.grids.len()];
         let mut torques = vec![Vec3::zero(); self.grids.len()];
@@ -1403,36 +1402,6 @@ impl GridsSystem {
             torques[spring.0.grid_id] += torque0;
             torques[spring.1.grid_id] += torque1;
         }
-        /*
-        for i in 0..self.grids.len() {
-            for j in (i + 1)..self.grids.len() {
-                let grid_1 = &self.grids[i];
-                let grid_2 = &self.grids[j];
-                for h1 in grid_1.helices.iter() {
-                    let a = Vec3::new(h1.x_min, h1.y_pos, h1.z_pos);
-                    let a = a.rotated_by(orientations[i]) + positions[i];
-                    let b = Vec3::new(h1.x_max, h1.y_pos, h1.z_pos);
-                    let b = b.rotated_by(orientations[i]) + positions[i];
-                    for h2 in grid_2.helices.iter() {
-                        let c = Vec3::new(h2.x_min, h2.y_pos, h2.z_pos);
-                        let c = c.rotated_by(orientations[j]) + positions[j];
-                        let d = Vec3::new(h2.x_max, h2.y_pos, h2.z_pos);
-                        let d = d.rotated_by(orientations[j]) + positions[j];
-                        let r = 2.;
-                        let (dist, vec, point_a, point_c) = distance_segment(a, b, c, d);
-                        if dist < r {
-                            let norm = ((dist - r) / dist).powi(2) / 1. * 1000.;
-                            forces[i] += norm * vec;
-                            forces[j] += -norm * vec;
-                            let torque0 = (point_a - positions[i]).cross(norm * vec);
-                            let torque1 = (point_c - positions[j]).cross(-norm * vec);
-                            torques[i] += torque0;
-                            torques[j] += torque1;
-                        }
-                    }
-                }
-            }
-        }*/
 
         (forces, torques)
     }
@@ -1495,8 +1464,7 @@ impl ExplicitODE<f32> for GridsSystem {
 
     fn func(&self, _t: &f32, x: &Vector<f32>) -> Vector<f32> {
         let (positions, rotations, linear_momentums, angular_momentums) = self.read_state(x);
-        let volume_exclusion = 1.;
-        let (forces, torques) = self.forces_and_torques(&positions, &rotations, volume_exclusion);
+        let (forces, torques) = self.forces_and_torques(&positions, &rotations);
 
         let mut ret = Vec::with_capacity(13 * self.grids.len());
         for i in 0..self.grids.len() {

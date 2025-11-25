@@ -113,10 +113,11 @@
   - `GridPositionBuilder`
   - `OverlayType`
   - `RotationWidgetOrientation`
-- Replace `ensnano_iced/fonts/material_icons` by SVG icons from `icondata` lib
+- Replace `ensnano_iced/fonts/material_icons.rs` by SVG icons from `icondata` lib
 - `cargo clippy --workspace --all-targets --all-features`
 - `build.rs` for shaders instead of manual compilation
 - Merge `ensnano_organizer` and `ensnano_gui`
 - Merge `ensnano_interactor` and `ensnano_utils`?
 - Share more code between `ensnano_scene` and `ensnano_flatscene`:
   - e.g. `export_2d_png` and `export_3d_png` are pretty much the same
+- Split `src/controller/quit.rs` in multiple file

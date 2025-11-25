@@ -136,14 +136,6 @@ type_builder!(
     angle: f32 % DegreeAngleFormatter
 );
 
-/*type_builder!(
-NbTurnBuilder,
-f32,
-f32,
-std::convert::identity,
-std::convert::identity,
-nb_turn: f32 %*/
-
 #[derive(Clone, Copy, Debug)]
 pub enum ValueKind {
     HelixGridPosition,

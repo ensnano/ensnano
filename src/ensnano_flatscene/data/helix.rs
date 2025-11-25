@@ -296,20 +296,6 @@ impl Helix {
             .transform_point2(self.scale * local_position)
     }
 
-    /*
-    fn get_old_pivot_position(&self, nucl: &FlatNucl) -> Vec2 {
-        let local_position = nucl.position as f32 * Vec2::unit_x()
-            + if nucl.forward {
-                Vec2::zero()
-            } else {
-                Vec2::unit_y()
-            };
-
-        self.old_isometry
-            .into_homogeneous_matrix()
-            .transform_point2(self.scale * local_position)
-    }*/
-
     /// Return the nucleotide displayed at position (x, y) or None if (x, y) is outside the helix
     pub fn get_click(&self, x: f32, y: f32, bounded: bool) -> Option<(FlatPosition, bool)> {
         let click = {
