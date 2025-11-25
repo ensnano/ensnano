@@ -17,8 +17,17 @@ macro_rules! log_err {
     };
 }
 
-pub type Filter = (&'static str, &'static [&'static str]);
-pub type Filters = &'static [Filter];
+pub struct DialogFilter {
+    name: &'static str,
+    extensions: &'static [&'static str],
+}
+impl DialogFilter {
+    pub const fn new(name: &'static str, extensions: &'static [&'static str]) -> Self {
+        Self { name, extensions }
+    }
+}
+
+pub type DialogFilters = &'static [DialogFilter];
 
 /// A question to which the user must answer yes or no
 pub struct YesNoQuestion(mpsc::Receiver<bool>);
@@ -74,17 +83,14 @@ impl PathInput {
     }
 }
 
-fn filter_has_extension(filter: &Filters, extension: &str) -> bool {
-    for f in *filter {
-        if f.1.contains(&extension) {
-            return true;
-        }
-    }
-    false
+fn filter_has_extension(dialog_filters: DialogFilters, extension: &str) -> bool {
+    dialog_filters
+        .iter()
+        .any(|df| df.extensions.contains(&extension))
 }
 
 pub fn get_file_to_write(
-    extension_filter: &'static Filters,
+    dialog_filters: DialogFilters,
     starting_path: Option<impl AsRef<Path>>,
     starting_name: Option<impl AsRef<Path>>,
 ) -> PathInput {
@@ -98,7 +104,9 @@ pub fn get_file_to_write(
     );
     let mut dialog = rfd::AsyncFileDialog::new();
 
-    let default_extension = extension_filter.first().and_then(|f| f.1.first().copied());
+    let default_extension = dialog_filters
+        .first()
+        .and_then(|f| f.extensions.first().copied());
 
     let starting_name = starting_name.and_then(|p| {
         let mut path_buf = PathBuf::from(p.as_ref());
@@ -106,7 +114,7 @@ pub fn get_file_to_write(
         if extension.is_none() && default_extension.is_some() {
             path_buf.set_extension(default_extension.unwrap());
         } else if let Some(_current_extension) = extension
-            .filter(|ext| !filter_has_extension(extension_filter, ext.to_str().unwrap_or_default()))
+            .filter(|ext| !filter_has_extension(dialog_filters, ext.to_str().unwrap_or_default()))
         {
             let new_extension = default_extension.unwrap_or_default();
             path_buf.set_extension(new_extension);
@@ -115,8 +123,8 @@ pub fn get_file_to_write(
     });
 
     log::info!("starting name filtered {starting_name:?}");
-    for filter in *extension_filter {
-        dialog = dialog.add_filter(filter.0, filter.1);
+    for filter in dialog_filters {
+        dialog = dialog.add_filter(filter.name, filter.extensions);
     }
     log::info!(
         "starting path filtered {:?}",
@@ -138,9 +146,9 @@ pub fn get_file_to_write(
                 let extension = path_buf.extension();
                 if extension.is_none() && default_extension.is_some() {
                     path_buf.set_extension(default_extension.unwrap());
-                } else if let Some(current_extension) = extension.filter(|ext| {
-                    !filter_has_extension(extension_filter, ext.to_str().unwrap_or(""))
-                }) {
+                } else if let Some(current_extension) = extension
+                    .filter(|ext| !filter_has_extension(dialog_filters, ext.to_str().unwrap_or("")))
+                {
                     let new_extension = format!(
                         "{}.{}",
                         current_extension.to_str().unwrap(),
@@ -158,10 +166,10 @@ pub fn get_file_to_write(
     PathInput(rcv)
 }
 
-pub fn load<P: AsRef<Path>>(starting_path: Option<P>, filters: Filters) -> PathInput {
+pub fn load<P: AsRef<Path>>(starting_path: Option<P>, dialog_filters: DialogFilters) -> PathInput {
     let mut dialog = rfd::AsyncFileDialog::new();
-    for filter in filters {
-        dialog = dialog.add_filter(filter.0, filter.1);
+    for dialog_filter in dialog_filters {
+        dialog = dialog.add_filter(dialog_filter.name, dialog_filter.extensions);
     }
     log::info!(
         "starting path {:?}",

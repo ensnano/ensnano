@@ -73,7 +73,7 @@ fn ask_path(mut state: AskingPath_, main_state: &MainStateView) -> Box<DownloadS
         state.with_ack(must_ack)
     } else {
         let path_input = dialog::get_file_to_write(
-            &messages::STAPLES_FILTER,
+            messages::STAPLES_FILTERS,
             main_state.get_current_design_directory(),
             main_state.get_current_file_name(),
         );

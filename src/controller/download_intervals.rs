@@ -86,7 +86,7 @@ fn ask_path(mut state: AskingPath_, main_state: &MainStateView) -> Box<DownloadI
         });
         let starting_directory = main_state.get_current_design_directory();
         let path_input = dialog::get_file_to_write(
-            &messages::ORIGAMI_FILTER,
+            messages::ORIGAMI_FILTERS,
             starting_directory.as_ref(),
             candidate_name,
         );

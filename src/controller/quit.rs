@@ -1,6 +1,6 @@
 use super::{State, TransitionMessage, YesNo, dialog, messages};
 use crate::{
-    MainStateView, controller::normal_state::NormalState, dialog::Filters,
+    MainStateView, controller::normal_state::NormalState, dialog::DialogFilters,
     ensnano_exports::ExportType,
 };
 use dialog::PathInput;
@@ -215,7 +215,7 @@ fn ask_path<P: AsRef<Path>>(
     } else {
         let filters = match load_type {
             LoadType::Object3D => messages::OBJECT3D_FILTERS,
-            LoadType::Design => messages::DESIGN_LOAD_FILTER,
+            LoadType::Design => messages::DESIGN_LOAD_FILTERS,
             LoadType::SvgPath => messages::SVG_FILTERS,
         };
         let path_input = dialog::load(starting_directory, filters);
@@ -359,7 +359,7 @@ impl State for SaveAs {
             }
         } else {
             let getter = dialog::get_file_to_write(
-                &messages::DESIGN_WRITE_FILTER,
+                messages::DESIGN_WRITE_FILTERS,
                 main_state.get_current_design_directory(),
                 main_state.get_current_file_name(),
             );
@@ -467,10 +467,10 @@ fn export_extension(export_type: ExportType) -> &'static str {
     }
 }
 
-fn export_filters(export_type: ExportType) -> &'static Filters {
+fn export_filters(export_type: ExportType) -> DialogFilters {
     match export_type {
-        ExportType::Oxdna => &messages::OXDNA_CONFIG_FILTERS,
-        ExportType::Pdb => &messages::PDB_FILTER,
-        ExportType::Cadnano => &messages::CADNANO_FILTER,
+        ExportType::Oxdna => messages::OXDNA_CONFIG_FILTERS,
+        ExportType::Pdb => messages::PDB_FILTERS,
+        ExportType::Cadnano => messages::CADNANO_FILTERS,
     }
 }

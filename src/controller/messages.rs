@@ -1,6 +1,8 @@
 use {
-    crate::dialog::Filters,
-    crate::ensnano_consts::{ENS_BACKUP_EXTENSION, ENS_EXTENSION, ORIGAMI_EXTENSION},
+    crate::{
+        dialog::{DialogFilter, DialogFilters},
+        ensnano_consts::{ENS_BACKUP_EXTENSION, ENS_EXTENSION, ORIGAMI_EXTENSION},
+    },
     std::path::Path,
 };
 
@@ -36,6 +38,11 @@ pub const SAVE_BEFORE_RELOAD: &str =
     "Do you want to save your changes in an other file before reloading?";
 pub const SAVE_BEFORE_NEW: &str = "Do you want to save your design before starting a new one?";
 
+pub const CHANGING_DNA_PARAMETERS_WARNING: &str =
+    "Are you sure that you want to change DNA parameters?";
+
+pub const OXDNA_CONFIG_EXTENSION: &str = "oxdna";
+
 pub fn optimize_scaffold_position_msg(default_position: usize) -> String {
     format!("Optimize the scaffold position ?\n
               If you chose \"Yes\", ENSnano will position the scaffold in a way that minimizes the \
@@ -50,41 +57,33 @@ pub fn invalid_sequence_file(first_invalid_char_position: usize) -> String {
     )
 }
 
-pub const DESIGN_LOAD_FILTER: Filters = &[
-    (
+pub const CADNANO_FILTERS: DialogFilters = &[DialogFilter::new("Cadnano files", &["json"])];
+pub const DESIGN_LOAD_FILTERS: DialogFilters = &[
+    DialogFilter::new(
         "All supported files",
         &[ENS_EXTENSION, ENS_BACKUP_EXTENSION, "json", "sc"],
     ),
-    ("ENSnano files", &[ENS_EXTENSION, ENS_BACKUP_EXTENSION]),
-    ("json files", &["json"]),
-    ("scadnano files", &["sc"]),
+    DialogFilter::new("ENSnano files", &[ENS_EXTENSION, ENS_BACKUP_EXTENSION]),
+    DialogFilter::new("json files", &["json"]),
+    DialogFilter::new("scadnano files", &["sc"]),
 ];
-
-pub const DESIGN_WRITE_FILTER: Filters = &[("ENSnano files", &[ENS_EXTENSION])];
-
-pub const SEQUENCE_FILTERS: Filters = &[("Text files", &["txt"])];
-
-pub const CHANGING_DNA_PARAMETERS_WARNING: &str =
-    "Are you sure that you want to change DNA parameters?";
-
-pub const OXDNA_CONFIG_EXTENSION: &str = "oxdna";
-
-pub const OXDNA_CONFIG_FILTERS: Filters = &[("Oxdna config files", &[OXDNA_CONFIG_EXTENSION])];
-
-pub const STAPLES_FILTER: Filters = &[("Excel files", &["xlsx"])];
-
-pub const ORIGAMI_FILTER: Filters = &[("Origami files", &[ORIGAMI_EXTENSION])];
-
-pub const PDB_FILTER: Filters = &[("Pdb files", &["pdb"])];
-pub const CADNANO_FILTER: Filters = &[("Cadnano files", &["json"])];
-
-pub const OBJECT3D_FILTERS: Filters = &[
-    ("All supported files", &["gltf", "stl"]),
-    ("Stl files", &["stl"]),
-    ("Gltf files", &["gltf"]),
+pub const DESIGN_WRITE_FILTERS: DialogFilters =
+    &[DialogFilter::new("ENSnano files", &[ENS_EXTENSION])];
+pub const OBJECT3D_FILTERS: DialogFilters = &[
+    DialogFilter::new("All supported files", &["gltf", "stl"]),
+    DialogFilter::new("Stl files", &["stl"]),
+    DialogFilter::new("Gltf files", &["gltf"]),
 ];
-
-pub const SVG_FILTERS: Filters = &[("Svg files", &["svg"])];
+pub const ORIGAMI_FILTERS: DialogFilters =
+    &[DialogFilter::new("Origami files", &[ORIGAMI_EXTENSION])];
+pub const OXDNA_CONFIG_FILTERS: DialogFilters = &[DialogFilter::new(
+    "Oxdna config files",
+    &[OXDNA_CONFIG_EXTENSION],
+)];
+pub const PDB_FILTERS: DialogFilters = &[DialogFilter::new("Pdb files", &["pdb"])];
+pub const SEQUENCE_FILTERS: DialogFilters = &[DialogFilter::new("Text files", &["txt"])];
+pub const STAPLES_FILTERS: DialogFilters = &[DialogFilter::new("Excel files", &["xlsx"])];
+pub const SVG_FILTERS: DialogFilters = &[DialogFilter::new("Svg files", &["svg"])];
 
 pub const SET_DESIGN_DIRECTORY_FIRST: &str =
     "It is not possible to import 3D objects in an unnamed design.
