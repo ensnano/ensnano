@@ -72,7 +72,7 @@ impl Instantiable for GridDisc {
             color,
         }];
         ret.reserve(NB_EDGE);
-        for i in 0..(NB_EDGE + 1) {
+        for i in 0..=NB_EDGE {
             let theta = i as f32 / NB_EDGE as f32 * TAU;
             let position = Vec3::new(0., theta.cos(), theta.sin());
             ret.push(GridDiscVertex { position, color });

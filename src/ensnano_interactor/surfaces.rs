@@ -185,7 +185,7 @@ impl UnrootedRevolutionSurfaceDescriptor {
                 let s_high = strip_idx as f64 / nb_strip as f64;
                 let s_low = s_high + 1. / nb_strip as f64;
 
-                let vertices = (0..(nb_section_per_strip + 1)).flat_map(|section_idx| {
+                let vertices = (0..=nb_section_per_strip).flat_map(|section_idx| {
                     [s_high, s_low].into_iter().map(move |section_parameter| {
                         use std::f64::consts::TAU;
                         let revolution_fract = section_idx as f64 / nb_section_per_strip as f64;

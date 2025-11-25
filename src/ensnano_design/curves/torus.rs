@@ -47,7 +47,7 @@ impl Torus {
         let nb_steps = NB_STEPS;
         let mut u = DVec2 { x: a, y: 0. };
         let mut t = 0f64;
-        for i in 0..nb_steps + 1 {
+        for i in 0..=nb_steps {
             // SHOULD COMPUTE A CHEBYSHEV POLY APPROX
             if sp <= 0. {
                 break;

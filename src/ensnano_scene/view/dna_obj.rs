@@ -437,7 +437,7 @@ impl Instantiable for TubeLidInstance {
 
     fn vertices() -> Vec<DnaVertex> {
         let normal = [1., 0., 0.];
-        (-1..(NB_RAY_TUBE as isize + 1))
+        ((-1)..=(NB_RAY_TUBE as isize))
             .map(|i| {
                 if i < 0 {
                     DnaVertex {

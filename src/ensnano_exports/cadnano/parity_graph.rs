@@ -66,15 +66,15 @@ fn color_graph(
     color_first_helix: bool,
 ) -> Result<Vec<bool>, CadnanoError> {
     let mut color = vec![color_first_helix; max_helix_idx + 1];
-    let mut seen: Vec<bool> = (0..(max_helix_idx + 1)).map(|i| i != father[i]).collect();
+    let mut seen: Vec<bool> = (0..=max_helix_idx).map(|i| i != father[i]).collect();
 
-    for i in 0..(max_helix_idx + 1) {
+    for i in 0..=max_helix_idx {
         if !seen[i] {
             seen[i] = true;
             let mut to_do: Vec<usize> = vec![i];
             while let Some(i) = to_do.pop() {
                 let i = find(i, father);
-                for j in 0..(max_helix_idx + 1) {
+                for j in 0..=max_helix_idx {
                     let j = find(j, father);
                     if graph[i][j] && !seen[j] {
                         if seen[j] && color[j] == color[i] {
@@ -89,7 +89,7 @@ fn color_graph(
         }
     }
 
-    for i in 0..(max_helix_idx + 1) {
+    for i in 0..=max_helix_idx {
         let repr_i = find(i, father);
         color[i] = color[repr_i];
     }
@@ -97,7 +97,7 @@ fn color_graph(
 }
 
 fn make_group(design: &Design, max_helix_idx: usize) -> Vec<usize> {
-    let mut father: Vec<usize> = (0..(max_helix_idx + 1)).collect();
+    let mut father: Vec<usize> = (0..=max_helix_idx).collect();
     let mut rank: Vec<usize> = vec![0; max_helix_idx + 1];
     for s in design.strands.values() {
         let mut group_sens: Vec<usize> = Vec::new();
