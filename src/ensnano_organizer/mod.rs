@@ -1530,7 +1530,6 @@ impl<E: OrganizerElement> GroupContent<E> {
                 attributes,
                 elements_below,
                 view,
-                //expanded,
                 ..
             } => {
                 *elements_below = BTreeSet::new();
@@ -1543,12 +1542,9 @@ impl<E: OrganizerElement> GroupContent<E> {
                 }
                 let attr_children: Vec<_> = children
                     .iter()
-                    //.filter(|c| c.expanded())
                     .map(|c| c.get_attributes().as_slice())
                     .collect();
-                //if *expanded {
                 *attributes = merge_attributes(attr_children.as_slice());
-                //}
                 view.update_attributes(attributes);
             }
             Self::Placeholder => (),
@@ -1648,26 +1644,18 @@ fn tabulation() -> Space {
     Space::with_width(H_SPACING_IN_UNITS)
 }
 
-fn merge_attributes<T: Ord + Clone + std::fmt::Debug>(
-    attributes: &[&[Option<T>]],
-) -> Vec<Option<T>> {
+fn merge_attributes<T: Ord + Clone>(attributes: &[&[Option<T>]]) -> Vec<Option<T>> {
     if attributes.is_empty() {
-        return vec![];
+        return Vec::new();
     }
 
-    let n = attributes[0].len();
-    (0..n)
-        .map(|attr_n| {
-            (0..attributes.len()).fold(None, |a, n| {
-                merge_opt(&a, attributes[n].get(attr_n).unwrap_or(&None))
-            })
+    (0..attributes[0].len())
+        .map(|col| {
+            attributes
+                .iter()
+                .filter_map(|row| row.get(col).and_then(Option::as_ref))
+                .min()
+                .cloned()
         })
         .collect()
-}
-
-fn merge_opt<T: Ord + Clone>(a: &Option<T>, b: &Option<T>) -> Option<T> {
-    match (a, b) {
-        (Some(a), Some(b)) => Some(a.min(b).clone()),
-        _ => a.clone().or_else(|| b.clone()),
-    }
 }
