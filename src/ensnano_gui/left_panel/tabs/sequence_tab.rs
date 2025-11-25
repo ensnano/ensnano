@@ -133,10 +133,7 @@ impl<State: AppState> GuiTab<State> for SequenceTab<State> {
                         format!(scaffold_length_fmt!(), info.length),
                     )
                 } else {
-                    (
-                        "NOT SET".to_owned(),
-                        format!(scaffold_length_fmt!(), "—").to_owned(),
-                    )
+                    ("NOT SET".to_owned(), format!(scaffold_length_fmt!(), "—"))
                 };
                 let mut length_text = text(length_text);
                 if app_state.get_scaffold_info().is_none() {

@@ -45,7 +45,7 @@ impl CharDrawer {
         character: char,
     ) -> Self {
         let instances_bg = DynamicBindGroup::new(device.clone(), queue.clone(), "chars instances");
-        let char_texture = Rc::new(Letter::new(character, device.clone(), queue.clone()));
+        let char_texture = Rc::new(Letter::new(character, device.clone(), queue));
 
         let new_instances = vec![CharInstance {
             top_left: Vec2::zero(),
@@ -60,7 +60,7 @@ impl CharDrawer {
             number_instances: 0,
             pipeline: None,
             instances_bg,
-            letter: char_texture.clone(),
+            letter: char_texture,
         };
         let pipeline = ret.create_pipeline(globals_layout);
         ret.pipeline = Some(pipeline);

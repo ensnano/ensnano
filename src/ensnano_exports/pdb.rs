@@ -475,11 +475,11 @@ impl PdbAtom {
         write!(&mut ret, " {}", self.chain_id)?; //21-22
         write!(&mut ret, "{:>4}", self.residue_idx)?; // 23-26
         ret.push_str(&[" "; 4].join("")); // 27-30
-        let s_x = format!("{:>8.3}", self.position.x).to_string(); // 31-38
+        let s_x = format!("{:>8.3}", self.position.x); // 31-38
         write!(&mut ret, "{}", &s_x[0..8])?;
-        let s_y = format!("{:>8.3}", self.position.y).to_string(); // 39-46
+        let s_y = format!("{:>8.3}", self.position.y); // 39-46
         write!(&mut ret, "{}", &s_y[0..8])?;
-        let s_z = format!("{:>8.3}", self.position.z).to_string(); // 47-54
+        let s_z = format!("{:>8.3}", self.position.z); // 47-54
         write!(&mut ret, "{}", &s_z[0..8])?;
         // write!(&mut ret, "{:>8.3}", self.position.x)?; // 31-38
         // write!(&mut ret, "{:>8.3}", self.position.y)?; // 39-46

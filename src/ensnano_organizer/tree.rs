@@ -89,7 +89,7 @@ impl<K: PartialEq> OrganizerTree<K> {
             Self::Leaf(_) => String::new(),
             Self::Node { name, id, .. } => {
                 if let Some(GroupId(x)) = id {
-                    format!("{name}_{:0X}", x & 0xFFFF).to_string()
+                    format!("{name}_{:0X}", x & 0xFFFF)
                 } else {
                     name.clone()
                 }

@@ -110,9 +110,7 @@ impl<Attrib: OrganizerAttribute> AttributeDisplayer<Attrib> {
         self.widget.as_ref().map(|widget| {
             match self.attribute.as_ref().map(OrganizerAttribute::char_repr) {
                 Some(AttributeDisplay::Icon(c)) => button(super::icon::icon(c)),
-                Some(AttributeDisplay::Text(s)) => {
-                    button(text(s.clone()).size(super::icon::ICON_SIZE))
-                }
+                Some(AttributeDisplay::Text(s)) => button(text(s).size(super::icon::ICON_SIZE)),
                 _ => button(text("???")),
             }
             .on_press(widget.value_if_pressed.clone())

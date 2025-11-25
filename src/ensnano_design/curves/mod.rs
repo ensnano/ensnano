@@ -321,7 +321,7 @@ impl Curve {
         geometry: T,
         helix_parameters: &HelixParameters,
     ) -> Self {
-        let abscissa_converter = geometry.abscissa_converter().clone();
+        let abscissa_converter = geometry.abscissa_converter();
         let mut ret = Self {
             geometry: Arc::new(geometry),
             positions_forward: Vec::new(),
@@ -1098,7 +1098,7 @@ impl InstantiatedCurveDescriptor_ {
                         helix_parameters,
                     ));
                     println!("Number of nucleotides {}", ret.nb_points());
-                    cache.0.insert(desc.clone(), ret.clone());
+                    cache.0.insert(desc, ret.clone());
                     ret
                 }
             }

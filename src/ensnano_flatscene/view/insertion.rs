@@ -28,7 +28,7 @@ impl InsertionDrawer {
         globals: &BindGroupLayout,
         depth_stencil_state: Option<DepthStencilState>,
     ) -> Self {
-        let instances = DynamicBindGroup::new(device.clone(), queue.clone(), "insertion instances");
+        let instances = DynamicBindGroup::new(device.clone(), queue, "insertion instances");
         let pipeline = insertion_pipeline(
             device.as_ref(),
             globals,

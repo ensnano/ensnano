@@ -77,8 +77,7 @@ impl CircleDrawer {
         globals_layout: &BindGroupLayout,
         circle_kind: CircleKind,
     ) -> Self {
-        let instances_bg =
-            DynamicBindGroup::new(device.clone(), queue.clone(), "circles instances");
+        let instances_bg = DynamicBindGroup::new(device.clone(), queue, "circles instances");
 
         let mut ret = Self {
             device,

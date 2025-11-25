@@ -814,7 +814,7 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
                         })
                         .collect::<Vec<Vec3>>();
                     let colors = match kind {
-                        ObjectType::ColoredHelixCylinder(_, _, colors) => colors.clone(),
+                        ObjectType::ColoredHelixCylinder(_, _, colors) => colors,
                         _ => vec![],
                     };
                     let color = |i| -> u32 { *(colors.get(i).unwrap_or(&color)) };

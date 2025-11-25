@@ -218,7 +218,7 @@ impl OperationInput {
             status_parameters.push(StatusParameter::new());
         }
 
-        let values = operation.values().clone();
+        let values = operation.values();
         let values_str = values.clone();
         let op_id = operation_state.operation_id;
         Self {
@@ -234,7 +234,7 @@ impl OperationInput {
     pub fn update(&mut self, operation_state: CurrentOpState) {
         let op_is_new = self.op_id != operation_state.operation_id;
         let operation = operation_state.current_operation;
-        self.values = operation.values().clone();
+        self.values = operation.values();
         if op_is_new {
             self.values_str = self.values.clone();
             self.op_id = operation_state.operation_id;
@@ -317,7 +317,7 @@ impl OperationInput {
 
     fn update_input_str(&mut self, value_id: usize, new_str: String) {
         if let Some(s) = self.values_str.get_mut(value_id) {
-            *s = new_str.clone();
+            *s = new_str;
         } else {
             log::error!(
                 "Changing str of value_id {} but self has {} values",

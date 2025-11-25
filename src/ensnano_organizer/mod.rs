@@ -351,7 +351,7 @@ impl<E: OrganizerElement> Organizer<E> {
 
     pub fn push_content(&mut self, content: Vec<E::Key>, group_name: String) -> GroupId {
         let id = NodeId::Tree(vec![self.groups.len()]);
-        let new_group = GroupContent::new(content, group_name, id.clone(), &mut self.rng_thread);
+        let new_group = GroupContent::new(content, group_name, id, &mut self.rng_thread);
         let ret = new_group
             .get_group_id()
             .expect("new group should have an Id");
@@ -914,9 +914,7 @@ impl<E: OrganizerElement> ElementView<E> {
         // [DragIdentifier::Group] are deletable, [DragIdentifier::Section] are not.
         let identifier = match deletable.as_ref() {
             Some(id) => DragIdentifier::Group { id: id.clone() },
-            None => DragIdentifier::Section {
-                key: element.key().clone(),
-            },
+            None => DragIdentifier::Section { key: element.key() },
         };
         for ad in &self.attribute_displayers {
             if let Some(view) = ad.view() {
@@ -933,7 +931,7 @@ impl<E: OrganizerElement> ElementView<E> {
         }
         let mut content = HoverableContainer::new(
             button(content)
-                .on_press(OrganizerMessage::element_selected(element.key().clone()))
+                .on_press(OrganizerMessage::element_selected(element.key()))
                 .width(Length::Fill),
             //.style(iced_theme::Button::from(theme.selected(selected)))
         );
@@ -1091,7 +1089,7 @@ impl<E: OrganizerElement> NodeTitleBar<E> {
         //TODO: REACTIVATE ME!
         let title_button = DragDropTarget::new(
             container(title_button).width(Length::Fill),
-            DragIdentifier::Group { id: id.clone() },
+            DragIdentifier::Group { id },
         );
         container(title_button).into()
     }
@@ -1258,7 +1256,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                 id.push(i);
                 Self::Leaf {
                     id,
-                    element: e.clone(),
+                    element: e,
                     view: ElementView::new(),
                     attributes: vec![None; E::all_discriminants().len()],
                 }
@@ -1311,7 +1309,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                         id.push(i);
                         Self::Leaf {
                             id,
-                            element: e.clone(),
+                            element: e,
                             view: ElementView::new(),
                             attributes: vec![None; E::all_discriminants().len()],
                         }
