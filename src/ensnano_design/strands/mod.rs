@@ -550,19 +550,18 @@ impl Strand {
         let mut seen = 0;
         for d in &self.domains {
             if seen + d.length() > n {
-                if let Domain::HelixDomain(d) = d {
+                return if let Domain::HelixDomain(d) = d {
                     let position = d.iter().nth(n - seen);
-                    return position.map(|position| Nucl {
+                    position.map(|position| Nucl {
                         position,
                         helix: d.helix,
                         forward: d.forward,
-                    });
+                    })
                 } else {
-                    return None;
-                }
-            } else {
-                seen += d.length();
+                    None
+                };
             }
+            seen += d.length();
         }
         None
     }
@@ -641,9 +640,8 @@ impl Strand {
                     pos_on_domain: n,
                     pos_on_strand: n + len,
                 });
-            } else {
-                len += d.length();
             }
+            len += d.length();
         }
         None
     }

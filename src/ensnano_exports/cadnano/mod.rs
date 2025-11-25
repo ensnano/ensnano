@@ -70,16 +70,14 @@ fn get_grid_type(grids: &GridData) -> Result<GridType, CadnanoError> {
             GridTypeDescr::Square { .. } => {
                 if ret == Some(GridType::HoneyComb) {
                     return Err(CadnanoError::NonHomogeneousGridTypes);
-                } else {
-                    ret = Some(GridType::Square);
                 }
+                ret = Some(GridType::Square);
             }
             GridTypeDescr::Honeycomb { .. } => {
                 if ret == Some(GridType::Square) {
                     return Err(CadnanoError::NonHomogeneousGridTypes);
-                } else {
-                    ret = Some(GridType::HoneyComb);
                 }
+                ret = Some(GridType::HoneyComb);
             }
             t @ GridTypeDescr::Hyperboloid { .. } => {
                 return Err(CadnanoError::UnhandledGridType(t));
@@ -223,33 +221,34 @@ impl CadnanoExporter {
 
         if (num_prime5 % 2 == num_prime3 % 2) != (prime5.forward == prime3.forward) {
             return Err(CadnanoError::ImpossibleBond);
-        } else {
-            let helix_prime5 = self
-                .helices
-                .get_mut(&prime5.helix)
-                .ok_or(CadnanoError::HelixNotFound(prime5.helix))?;
-
-            let cadnano_prime5_nucl = if (helix_prime5.num % 2 == 0) == prime5.forward {
-                &mut helix_prime5.scaf[(prime5.position - self.bonds.shift) as usize]
-            } else {
-                &mut helix_prime5.stap[(prime5.position - self.bonds.shift) as usize]
-            };
-            cadnano_prime5_nucl.2 = num_prime3;
-            cadnano_prime5_nucl.3 = prime3.position - self.bonds.shift;
-
-            let helix_prime3 = self
-                .helices
-                .get_mut(&prime3.helix)
-                .ok_or(CadnanoError::HelixNotFound(prime3.helix))?;
-
-            let cadnano_prime3_nucl = if (helix_prime3.num % 2 == 0) == prime3.forward {
-                &mut helix_prime3.scaf[(prime3.position - self.bonds.shift) as usize]
-            } else {
-                &mut helix_prime3.stap[(prime3.position - self.bonds.shift) as usize]
-            };
-            cadnano_prime3_nucl.0 = num_prime5;
-            cadnano_prime3_nucl.1 = prime5.position - self.bonds.shift;
         }
+
+        let helix_prime5 = self
+            .helices
+            .get_mut(&prime5.helix)
+            .ok_or(CadnanoError::HelixNotFound(prime5.helix))?;
+
+        let cadnano_prime5_nucl = if (helix_prime5.num % 2 == 0) == prime5.forward {
+            &mut helix_prime5.scaf[(prime5.position - self.bonds.shift) as usize]
+        } else {
+            &mut helix_prime5.stap[(prime5.position - self.bonds.shift) as usize]
+        };
+        cadnano_prime5_nucl.2 = num_prime3;
+        cadnano_prime5_nucl.3 = prime3.position - self.bonds.shift;
+
+        let helix_prime3 = self
+            .helices
+            .get_mut(&prime3.helix)
+            .ok_or(CadnanoError::HelixNotFound(prime3.helix))?;
+
+        let cadnano_prime3_nucl = if (helix_prime3.num % 2 == 0) == prime3.forward {
+            &mut helix_prime3.scaf[(prime3.position - self.bonds.shift) as usize]
+        } else {
+            &mut helix_prime3.stap[(prime3.position - self.bonds.shift) as usize]
+        };
+        cadnano_prime3_nucl.0 = num_prime5;
+        cadnano_prime3_nucl.1 = prime5.position - self.bonds.shift;
+
         Ok(())
     }
 

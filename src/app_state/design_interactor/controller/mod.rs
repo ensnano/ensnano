@@ -2337,11 +2337,11 @@ impl Controller {
                 prime5_junctions.push(DomainJunction::Prime3);
                 prime3_junctions.push(strand.junctions[d_id].clone());
                 break;
-            } else {
-                len_prim5 += domain.length();
-                prim5_domains.push(domain.clone());
-                prime5_junctions.push(strand.junctions[d_id].clone());
             }
+
+            len_prim5 += domain.length();
+            prim5_domains.push(domain.clone());
+            prime5_junctions.push(strand.junctions[d_id].clone());
             prev_helix = domain.half_helix();
         }
 
@@ -2406,12 +2406,7 @@ impl Controller {
         if !strand_3prime.domains.is_empty() {
             strands.insert(id_3prime, strand_3prime);
         }
-        //self.make_hash_maps();
 
-        /*
-        if crate::MUST_TEST {
-            self.test_named_junction("TEST AFTER SPLIT STRAND");
-        }*/
         Ok(new_id)
     }
 
@@ -3109,9 +3104,8 @@ impl Controller {
         for h_id in &helices_id {
             if design.strands.uses_helix(*h_id) {
                 return Err(ErrOperation::HelixNotEmpty(*h_id));
-            } else {
-                design.helices.make_mut().remove(h_id);
             }
+            design.helices.make_mut().remove(h_id);
         }
         Ok(design)
     }
@@ -3129,11 +3123,10 @@ impl Controller {
             let g_id = GridId::FreeGrid(id);
             if !empty_grids.contains(&g_id) {
                 return Err(ErrOperation::GridIsNotEmpty(g_id));
-            } else {
-                free_grids_mut
-                    .remove(&g_id)
-                    .ok_or(ErrOperation::GridDoesNotExist(g_id))?;
             }
+            free_grids_mut
+                .remove(&g_id)
+                .ok_or(ErrOperation::GridDoesNotExist(g_id))?;
         }
 
         drop(free_grids_mut);

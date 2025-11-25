@@ -419,10 +419,9 @@ impl<E: OrganizerElement> Organizer<E> {
                 {
                     let _ = self.add_content_to_group(id, selection.iter().cloned().collect());
                     return Some(OrganizerMessage::NewTree(self.tree()));
-                } else {
-                    log::error!("Could not get group id");
                 }
 
+                log::error!("Could not get group id");
                 // TODO: fill in what to do
             }
             Message::NewGroup => {

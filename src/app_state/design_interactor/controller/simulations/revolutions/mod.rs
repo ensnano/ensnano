@@ -462,9 +462,8 @@ impl RevolutionSystemThread {
                         interface_ptr.lock().unwrap().helices_routing.set(routing);
                     }
                     break;
-                } else {
-                    self.system.current_scaffold_length = Some(current_len);
                 }
+                self.system.current_scaffold_length = Some(current_len);
             }
         });
     }

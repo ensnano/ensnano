@@ -698,43 +698,27 @@ impl Helix {
         theta: f32,
         forward: bool,
     ) -> Vec3 {
-        let mut ret;
         let p = self.helix_parameters.unwrap_or(*p);
-        /*
-        match self.helix_parameters {
-            None => p.clone(),
-            Some(hp) => hp.clone(),
-        };
-        */
-        if let Some(curve) = self.instantiated_curve.as_ref() {
-            if let Some(point) = curve
+        if let Some(curve) = self.instantiated_curve.as_ref()
+            && let Some(point) = curve
                 .as_ref()
                 .nucl_pos(n, forward, theta as f64, &p)
                 .map(dvec_to_vec)
-            {
-                let (position, orientation) = if curve.as_ref().has_its_own_encoded_frame() {
-                    (Vec3::zero(), Rotor3::identity()) // position and orientation ignored
-                } else {
-                    (self.position, self.orientation)
-                };
-                return point.rotated_by(orientation) + position;
+        {
+            let (position, orientation) = if curve.as_ref().has_its_own_encoded_frame() {
+                (Vec3::zero(), Rotor3::identity()) // position and orientation ignored
             } else {
-                let delta_inclination = if forward { 0.0 } else { p.inclination };
-                ret = Vec3::new(
-                    n as f32 * p.rise + delta_inclination,
-                    theta.sin() * p.helix_radius,
-                    theta.cos() * p.helix_radius,
-                );
-            }
-        } else {
-            let delta_inclination = if forward { 0.0 } else { p.inclination };
-            ret = Vec3::new(
-                n as f32 * p.rise + delta_inclination,
-                theta.sin() * p.helix_radius,
-                theta.cos() * p.helix_radius,
-            );
+                (self.position, self.orientation)
+            };
+            return point.rotated_by(orientation) + position;
         }
 
+        let delta_inclination = if forward { 0.0 } else { p.inclination };
+        let mut ret = Vec3::new(
+            n as f32 * p.rise + delta_inclination,
+            theta.sin() * p.helix_radius,
+            theta.cos() * p.helix_radius,
+        );
         ret = self.rotate_point(ret);
         ret += self.position;
         ret
