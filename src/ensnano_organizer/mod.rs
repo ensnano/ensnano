@@ -276,13 +276,8 @@ impl<E: OrganizerElement> Organizer<E> {
         for c in &self.groups {
             content = content.push(row![
                 tabulation(),
-                container(c.view(
-                    &self.theme,
-                    &self.sections,
-                    &selection,
-                    &self.selected_nodes,
-                ))
-                .width(Length::FillPortion(8)),
+                container(c.view(&self.theme, &self.sections, &selection,))
+                    .width(Length::FillPortion(8)),
             ]);
         }
         // Add Sections
@@ -334,7 +329,7 @@ impl<E: OrganizerElement> Organizer<E> {
             let ret;
             if id_local.len() < 2 {
                 if self.groups.len() > id_local[0] {
-                    self.groups[id_local[0]].add_content(&id_local[1..], id, content);
+                    self.groups[id_local[0]].add_content(&id_local[1..], content);
                     ret = Some(());
                 } else {
                     ret = None;
@@ -343,7 +338,7 @@ impl<E: OrganizerElement> Organizer<E> {
                 ret = self
                     .groups
                     .get_mut(id_local[0])
-                    .and_then(|c| c.add_content(&id_local[1..], id, content));
+                    .and_then(|c| c.add_content(&id_local[1..], content));
             }
             if ret.is_some() {
                 self.recompute_id();
@@ -1140,7 +1135,6 @@ impl<E: OrganizerElement> GroupContent<E> {
         theme: &OrganizerTheme,
         sections: &[Section<E>],
         selection: &BTreeSet<E::Key>,
-        selected_nodes: &BTreeSet<NodeId<E::AutoGroup>>,
     ) -> Element<'_, OrganizerMessage<E>> {
         let level; // Need this variable at this level.
         let column = match self {
@@ -1163,7 +1157,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                     for c in children {
                         let r = row![
                             tabulation(),
-                            container(c.view(theme, sections, selection, selected_nodes))
+                            container(c.view(theme, sections, selection))
                                 .width(Length::FillPortion(8))
                         ];
                         col = col.push(r);
@@ -1283,12 +1277,7 @@ impl<E: OrganizerElement> GroupContent<E> {
     }
 
     /// Add content to an existing group
-    fn add_content(
-        &mut self,
-        id_local: &[usize],
-        id: &NodeId<E::AutoGroup>,
-        content: Vec<E::Key>,
-    ) -> Option<()> {
+    fn add_content(&mut self, id_local: &[usize], content: Vec<E::Key>) -> Option<()> {
         match self {
             Self::Leaf { .. } => {
                 println!("Impossible to add content to leaf");
@@ -1303,7 +1292,7 @@ impl<E: OrganizerElement> GroupContent<E> {
                 if !id_local.is_empty() {
                     children
                         .get_mut(id_local[0])
-                        .and_then(|c| c.add_content(&id_local[1..], id, content))
+                        .and_then(|c| c.add_content(&id_local[1..], content))
                 } else {
                     let children_content: Vec<E::Key> = children
                         .iter()
