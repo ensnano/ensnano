@@ -20,6 +20,7 @@ enum QuitStep {
     Quitting,
 }
 
+#[expect(clippy::self_named_constructors)]
 impl Quit {
     fn quitting() -> Self {
         Self {
@@ -78,6 +79,7 @@ pub(super) struct Load {
     load_type: LoadType,
 }
 
+#[expect(clippy::self_named_constructors)]
 impl Load {
     pub(super) fn known_path(path: PathBuf) -> Self {
         Self {
