@@ -39,7 +39,7 @@ fn hsv_to_color(hsv: Hsv) -> Color {
 }
 
 fn color_to_hsv(color: Color) -> Hsv {
-    let Color { r, g, b, a: _ } = color;
+    let Color { r, g, b, .. } = color;
     Hsv::from(Rgb {
         r: r as f64 * 255.,
         g: g as f64 * 255.,
