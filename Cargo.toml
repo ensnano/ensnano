@@ -111,6 +111,7 @@ missing_docs = "allow" # TODO: warn (major undertaking)
 missing_unsafe_on_extern = "warn"
 
 [lints.clippy]
+# Warn or deny all lints by default
 cargo = { level = "deny", priority = -1 }
 complexity = { level = "warn", priority = -1 }
 correctness = { level = "deny", priority = -1 }

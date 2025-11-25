@@ -17,7 +17,8 @@ macro_rules! log_err {
     };
 }
 
-pub type Filters = &'static [(&'static str, &'static [&'static str])];
+pub type Filter = (&'static str, &'static [&'static str]);
+pub type Filters = &'static [Filter];
 
 /// A question to which the user must answer yes or no
 pub struct YesNoQuestion(mpsc::Receiver<bool>);
@@ -82,10 +83,10 @@ fn filter_has_extension(filter: &Filters, extension: &str) -> bool {
     false
 }
 
-pub fn get_file_to_write<P1: AsRef<Path>, P2: AsRef<Path>>(
+pub fn get_file_to_write(
     extension_filter: &'static Filters,
-    starting_path: Option<P1>,
-    starting_name: Option<P2>,
+    starting_path: Option<impl AsRef<Path>>,
+    starting_name: Option<impl AsRef<Path>>,
 ) -> PathInput {
     log::info!(
         "starting path {:?}",
@@ -105,13 +106,14 @@ pub fn get_file_to_write<P1: AsRef<Path>, P2: AsRef<Path>>(
         if extension.is_none() && default_extension.is_some() {
             path_buf.set_extension(default_extension.unwrap());
         } else if let Some(_current_extension) = extension
-            .filter(|ext| !filter_has_extension(extension_filter, ext.to_str().unwrap_or("")))
+            .filter(|ext| !filter_has_extension(extension_filter, ext.to_str().unwrap_or_default()))
         {
             let new_extension = default_extension.unwrap_or_default();
             path_buf.set_extension(new_extension);
         }
         path_buf.file_name().map(OsStr::to_os_string)
     });
+
     log::info!("starting name filtered {starting_name:?}");
     for filter in *extension_filter {
         dialog = dialog.add_filter(filter.0, filter.1);
@@ -131,7 +133,7 @@ pub fn get_file_to_write<P1: AsRef<Path>, P2: AsRef<Path>>(
     thread::spawn(move || {
         let save_op = async move {
             let file = future_file.await;
-            if let Some(handle) = file {
+            let result = file.map(|handle| {
                 let mut path_buf: PathBuf = handle.path().into();
                 let extension = path_buf.extension();
                 if extension.is_none() && default_extension.is_some() {
@@ -142,17 +144,17 @@ pub fn get_file_to_write<P1: AsRef<Path>, P2: AsRef<Path>>(
                     let new_extension = format!(
                         "{}.{}",
                         current_extension.to_str().unwrap(),
-                        default_extension.unwrap_or(&"")
+                        default_extension.unwrap_or_default()
                     );
                     path_buf.set_extension(new_extension);
                 }
-                log_err![snd.send(Some(path_buf))];
-            } else {
-                log_err![snd.send(None)];
-            }
+                path_buf
+            });
+            log_err![snd.send(result)];
         };
         futures::executor::block_on(save_op);
     });
+
     PathInput(rcv)
 }
 
