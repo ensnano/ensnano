@@ -147,8 +147,8 @@ impl Letter {
                 // The layout of the texture
                 wgpu::ImageDataLayout {
                     offset: 0,
-                    bytes_per_row: (4 * size.width).try_into().ok(),
-                    rows_per_image: size.height.try_into().ok(),
+                    bytes_per_row: Some(4 * size.width),
+                    rows_per_image: Some(size.height),
                 },
                 size,
             );

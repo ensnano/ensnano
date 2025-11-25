@@ -143,17 +143,14 @@ impl ElementSelector {
             buffer: &staging_buffer,
             layout: wgpu::ImageDataLayout {
                 offset: 0,
-                bytes_per_row: (buffer_dimensions.padded_bytes_per_row as u32)
-                    .try_into()
-                    .ok(),
+                bytes_per_row: Some(buffer_dimensions.padded_bytes_per_row as u32),
                 rows_per_image: None,
             },
         };
-        let origin = wgpu::Origin3d { x: 0, y: 0, z: 0 };
         let texture_copy_view = wgpu::ImageCopyTexture {
             texture: &texture,
             mip_level: 0,
-            origin,
+            origin: wgpu::Origin3d::ZERO,
             aspect: Default::default(),
         };
 

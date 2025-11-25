@@ -986,9 +986,7 @@ impl<S: AppState> Scene<S> {
             buffer: &staging_buffer,
             layout: wgpu::ImageDataLayout {
                 offset: 0,
-                bytes_per_row: (buffer_dimensions.padded_bytes_per_row as u32)
-                    .try_into()
-                    .ok(),
+                bytes_per_row: Some(buffer_dimensions.padded_bytes_per_row as u32),
                 rows_per_image: None,
             },
         };
