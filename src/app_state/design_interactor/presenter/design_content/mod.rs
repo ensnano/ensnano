@@ -341,11 +341,10 @@ impl DesignContent {
                 group_names: staple_info.group_names.clone(),
                 group_names_string: staple_info.group_names.join(" ; "),
                 length_str: staple_info.length.to_string(),
-                domain_decomposition: staple_info
-                    .domain_decomposition
-                    .split_once('=')
-                    .map(|split| split.1.to_owned())
-                    .unwrap_or_else(|| staple_info.domain_decomposition.clone()),
+                domain_decomposition: match staple_info.domain_decomposition.split_once('=') {
+                    Some(split) => split.1.to_owned(),
+                    None => staple_info.domain_decomposition.clone(),
+                },
                 intervals: staple_info.intervals.clone(),
             });
         }

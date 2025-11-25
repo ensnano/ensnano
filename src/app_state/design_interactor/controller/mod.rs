@@ -563,10 +563,9 @@ impl Controller {
                         initial_design: initial_design.clone(),
                     };
                 }
-                ControllerState::SimulatingGrids { .. } => {
-                    ret.state = ControllerState::Normal;
-                }
-                ControllerState::Rolling { .. } | ControllerState::Twisting { .. } => {
+                ControllerState::SimulatingGrids { .. }
+                | ControllerState::Rolling { .. }
+                | ControllerState::Twisting { .. } => {
                     ret.state = ControllerState::Normal;
                 }
                 ControllerState::Relaxing { interface, .. } => {
