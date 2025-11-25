@@ -29,8 +29,8 @@ trait OptionalTransition<S: AppState>:
     Fn(ClickInfo) -> Option<Box<dyn ControllerState<S>>> + 'static
 {
 }
-impl<S: AppState, F: 'static> OptionalTransition<S> for F where
-    F: Fn(ClickInfo) -> Option<Box<dyn ControllerState<S>>>
+impl<S: AppState, F: Fn(ClickInfo) -> Option<Box<dyn ControllerState<S>>> + 'static>
+    OptionalTransition<S> for F
 {
 }
 
@@ -93,8 +93,11 @@ impl<S: AppState> std::ops::Deref for ContextDependentTransitionPtr<S> {
     }
 }
 
-impl<S: AppState, F: 'static> ContextDependentTransition<S> for F where
+impl<
+    S: AppState,
     F: for<'a, 'b> Fn(&'b mut EventContext<'a, S>, ClickInfo) -> Box<dyn OptionalTransition<S>>
+        + 'static,
+> ContextDependentTransition<S> for F
 {
 }
 
