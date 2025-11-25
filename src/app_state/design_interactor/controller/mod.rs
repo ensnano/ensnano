@@ -1829,9 +1829,10 @@ impl Controller {
             // recoloring only concerns the non-scaffold strands
             if Some(*s_id) != design.scaffold_id {
                 // Compute strand drawing style
-                let strand_style = *drawing_styles
+                let strand_style = drawing_styles
                     .get(&DesignElementKey::Strand(*s_id))
-                    .unwrap_or(&DrawingStyle::default());
+                    .copied()
+                    .unwrap_or_default();
 
                 let color = if let Some(shade) = strand_style.color_shade {
                     colors::random_color_with_shade(shade, strand_style.hue_range)
@@ -2081,8 +2082,12 @@ impl Controller {
             })
             .is_some();
         log::info!("stick {stick}");
-        if left.filter(filter).and(right.filter(filter)).is_some() {
-            // TODO maybe we should do something else ?
+        if left
+            .filter(filter)
+            .and_then(|_| right.filter(filter))
+            .is_some()
+        {
+            // TODO: maybe we should do something else ?
             return None;
         }
         let other_end = desc

@@ -179,10 +179,10 @@ impl From<Vec<DrawingAttribute>> for DrawingStyle {
                     ret.helix_as_cylinder_radius = ret.helix_as_cylinder_radius.or(Some(r));
                 }
                 DrawingAttribute::SphereColor(c) => {
-                    ret.sphere_color = ret.sphere_color.or(Some(c.to_u32()));
+                    ret.sphere_color = ret.sphere_color.or_else(|| Some(c.to_u32()));
                 }
                 DrawingAttribute::BondColor(c) => {
-                    ret.bond_color = ret.bond_color.or(Some(c.to_u32()));
+                    ret.bond_color = ret.bond_color.or_else(|| Some(c.to_u32()));
                 }
                 DrawingAttribute::DoubleHelixAsCylinderColor(c) => {
                     ret.helix_as_cylinder_color = ret.helix_as_cylinder_color.or(Some(c));
@@ -227,11 +227,11 @@ impl DrawingStyle {
                 ..*self
             },
             DrawingAttribute::SphereColor(c) => Self {
-                sphere_color: self.sphere_color.or(Some(c.to_u32())),
+                sphere_color: self.sphere_color.or_else(|| Some(c.to_u32())),
                 ..*self
             },
             DrawingAttribute::BondColor(c) => Self {
-                bond_color: self.bond_color.or(Some(c.to_u32())),
+                bond_color: self.bond_color.or_else(|| Some(c.to_u32())),
                 ..*self
             },
             DrawingAttribute::DoubleHelixAsCylinderColor(c) => Self {

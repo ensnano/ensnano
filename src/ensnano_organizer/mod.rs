@@ -462,9 +462,10 @@ impl<E: OrganizerElement> Organizer<E> {
         if hovered_in {
             self.get_group(id)
                 .map(|g| OrganizerMessage::Candidates(g.get_all_elements_below()))
-                .or(self
-                    .get_section_id(id)
-                    .map(|s| OrganizerMessage::Candidates(s.get_all_keys())))
+                .or_else(|| {
+                    self.get_section_id(id)
+                        .map(|s| OrganizerMessage::Candidates(s.get_all_keys()))
+                })
         } else if self.hovered_in.is_none() {
             Some(OrganizerMessage::Candidates(vec![]))
         } else {
@@ -1654,23 +1655,22 @@ fn merge_attributes<T: Ord + Clone + std::fmt::Debug>(
     attributes: &[&[Option<T>]],
 ) -> Vec<Option<T>> {
     if attributes.is_empty() {
-        vec![]
-    } else {
-        let n = attributes[0].len();
-
-        (0..n)
-            .map(|attr_n| {
-                (0..attributes.len()).fold(None, |a, n| {
-                    merge_opt(&a, attributes[n].get(attr_n).unwrap_or(&None))
-                })
-            })
-            .collect()
+        return vec![];
     }
+
+    let n = attributes[0].len();
+    (0..n)
+        .map(|attr_n| {
+            (0..attributes.len()).fold(None, |a, n| {
+                merge_opt(&a, attributes[n].get(attr_n).unwrap_or(&None))
+            })
+        })
+        .collect()
 }
 
 fn merge_opt<T: Ord + Clone>(a: &Option<T>, b: &Option<T>) -> Option<T> {
     match (a, b) {
         (Some(a), Some(b)) => Some(a.min(b).clone()),
-        _ => a.clone().or(b.clone()),
+        _ => a.clone().or_else(|| b.clone()),
     }
 }

@@ -402,7 +402,7 @@ impl Multiplexer {
                             }
                             PixelRegion::Area(_) => unreachable!(),
                         }
-                        .or(self.focus.and_then(|e| self.get_draw_area(e)));
+                        .or_else(|| self.focus.and_then(|e| self.get_draw_area(e)));
 
                         if let Some(area) = area {
                             self.cursor_position.x = position.x - area.position.cast::<f64>().x;
@@ -620,7 +620,7 @@ impl Multiplexer {
                 let id = self
                     .layout
                     .get_area_id(self.element_3d)
-                    .or(self.layout.get_area_id(self.element_2d))
+                    .or_else(|| self.layout.get_area_id(self.element_2d))
                     .unwrap();
                 match split_mode {
                     SplitMode::Both => {

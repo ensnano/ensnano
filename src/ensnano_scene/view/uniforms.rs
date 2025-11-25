@@ -127,7 +127,7 @@ impl Uniforms {
             fog_radius: fog.softness,
             make_fog,
             fog_from_camera: fog.from_camera as u32,
-            fog_alt_center: fog.alt_fog_center.unwrap_or(Vec3::zero()),
+            fog_alt_center: fog.alt_fog_center.unwrap_or_default(),
             stereography_view,
             stereography_radius,
             aspect_ratio: projection.borrow().get_ratio(),

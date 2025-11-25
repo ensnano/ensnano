@@ -78,7 +78,9 @@ impl Presenter {
             if let Some(desc) = self.current_design.get_neighbor_nucl(nucl) {
                 let filter =
                     |d: &NeighborDescriptor| !(d.identifier.is_same_domain_than(&desc.identifier));
-                left.filter(filter).and(right.filter(filter)).is_none()
+                left.filter(filter)
+                    .and_then(|_| right.filter(filter))
+                    .is_none()
             } else {
                 false
             }

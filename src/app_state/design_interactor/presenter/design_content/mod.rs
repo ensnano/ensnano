@@ -343,9 +343,9 @@ impl DesignContent {
                 length_str: staple_info.length.to_string(),
                 domain_decomposition: staple_info
                     .domain_decomposition
-                    .split_once("=")
+                    .split_once('=')
                     .map(|split| split.1.to_owned())
-                    .unwrap_or(staple_info.domain_decomposition.clone()),
+                    .unwrap_or_else(|| staple_info.domain_decomposition.clone()),
                 intervals: staple_info.intervals.clone(),
             });
         }
@@ -500,8 +500,8 @@ impl DesignContent {
             // Compute strand drawing style
             let strand_style = drawing_styles
                 .get(&DesignElementKey::Strand(*s_id))
-                .unwrap_or(&DrawingStyle::default())
-                .clone()
+                .copied()
+                .unwrap_or_default()
                 .complete_with_attributes(vec![
                     DrawingAttribute::SphereColor(ColorType::Plain(strand_color)), // strand color gets after color in strand style
                     DrawingAttribute::BondColor(ColorType::Plain(strand_color)), // strand color gets after color in strand style
@@ -621,10 +621,11 @@ impl DesignContent {
                         });
 
                         let rainbow_color = rainbow_iterator.next();
-                        let bond_color = rainbow_color.unwrap_or(domain_style.bond_color.unwrap());
+                        let bond_color =
+                            rainbow_color.unwrap_or_else(|| domain_style.bond_color.unwrap());
 
                         let nucl_color =
-                            rainbow_color.unwrap_or(domain_style.sphere_color.unwrap());
+                            rainbow_color.unwrap_or_else(|| domain_style.sphere_color.unwrap());
                         if let Some(prev_pos) = prev_loopout_pos.take() {
                             loopout_bonds.push(LoopoutBond {
                                 position_prime5: prev_pos,
@@ -713,10 +714,9 @@ impl DesignContent {
                                 repr_bond_identifier: id_tmp,
                                 basis: basis.and_then(|b| (*b).try_into().ok()),
                             });
-                            if let Some(prev_pos) =
-                                prev_loopout_pos.take().or(prev_nucl_id
-                                    .and_then(|id| space_position.get(&id).map(Vec3::from)))
-                            {
+                            if let Some(prev_pos) = prev_loopout_pos.take().or_else(|| {
+                                prev_nucl_id.and_then(|id| space_position.get(&id).map(Vec3::from))
+                            }) {
                                 loopout_bonds.push(LoopoutBond {
                                     position_prime5: prev_pos,
                                     position_prime3: *pos,
@@ -974,9 +974,10 @@ impl DesignContent {
             // USE id_click_counter
             let mut helix_cylinders = Vec::new();
             for (h, a) in hash_intervals {
-                let mut helix_style = *drawing_styles
+                let mut helix_style = drawing_styles
                     .get(&DesignElementKey::Helix(h))
-                    .unwrap_or(&DrawingStyle::default());
+                    .copied()
+                    .unwrap_or_default();
                 if let Some(grid_position) = grid_manager.get_helix_grid_position(h)
                     && let GridId::FreeGrid(h) = grid_position.grid
                     && let Some(grid_style) = drawing_styles.get(&DesignElementKey::Grid(h))

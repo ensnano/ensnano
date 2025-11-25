@@ -608,9 +608,9 @@ impl<State: AppState> GuiTab<State> for RevolutionTab<State> {
                         .input_view(RevolutionParameterId::HalfTurnCount),
                 ]
                 .align_items(Alignment::Center),
-                text(self.scaling.map_or(
-                    "Nb helix: ###".into(),
-                    |RevolutionScaling { nb_helix, .. }| format!("Nb helix: {nb_helix}")
+                text(self.scaling.map_or_else(
+                    || "Nb helix: ###".into(),
+                    |RevolutionScaling { nb_helix }| format!("Nb helix: {nb_helix}")
                 )),
                 row![
                     text("Nb spiral"),

@@ -185,12 +185,13 @@ impl SceneDesignReaderExt for DesignInteractor {
     }
 
     fn get_nucl_with_id_relaxed(&self, e_id: u32) -> Option<Nucl> {
-        self.get_nucl_with_id(e_id).or(self
-            .presenter
-            .content
-            .nucleotides_involved
-            .get(&e_id)
-            .map(|t| t.0))
+        self.get_nucl_with_id(e_id).or_else(|| {
+            self.presenter
+                .content
+                .nucleotides_involved
+                .get(&e_id)
+                .map(|t| t.0)
+        })
     }
 
     fn get_all_visible_bond_ids(&self) -> Vec<u32> {

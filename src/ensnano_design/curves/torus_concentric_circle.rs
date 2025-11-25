@@ -18,7 +18,7 @@ impl TorusConcentricCircleDescriptor {
     pub(super) fn with_helix_parameters(self, helix_parameters: &HelixParameters) -> CircleCurve {
         let inter_helix_center_gap = self
             .inter_helix_center_gap
-            .unwrap_or(helix_parameters.inter_helix_axis_gap() as f64);
+            .unwrap_or_else(|| helix_parameters.inter_helix_axis_gap() as f64);
         let inter_helix_angle = TAU / (self.number_of_helices as f64);
         let section_radius = inter_helix_center_gap / 2. / (inter_helix_angle / 2.).sin();
         let phi =

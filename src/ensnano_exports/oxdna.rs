@@ -231,7 +231,7 @@ impl StrandMaker<'_, '_> {
             .map(|nucl| self.context.basis_map.get_basis(nucl, 'T'));
 
         let bond = OxDnaBond {
-            base: base.unwrap_or(super::rand_base()),
+            base: base.unwrap_or_else(super::rand_base),
             strand_id: self.strand_id,
             prime3: -1,
             prime5: self.prev_nucl.unwrap_or(-1),

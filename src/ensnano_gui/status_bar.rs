@@ -254,7 +254,7 @@ impl OperationInput {
                         .inputted_values
                         .get(&v_id)
                         .cloned()
-                        .unwrap_or(v.clone());
+                        .unwrap_or_else(|| v.clone());
                 }
             }
         }

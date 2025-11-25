@@ -221,13 +221,16 @@ impl<S: AppState> Controller<S> {
     }
 
     fn handles_color_system(&self) -> HandleColors {
-        self.state.borrow().handles_color_system().unwrap_or(
-            if self.current_modifiers_state.shift_key() {
-                HandleColors::Cym
-            } else {
-                HandleColors::Rgb
-            },
-        )
+        self.state
+            .borrow()
+            .handles_color_system()
+            .unwrap_or_else(|| {
+                if self.current_modifiers_state.shift_key() {
+                    HandleColors::Cym
+                } else {
+                    HandleColors::Rgb
+                }
+            })
     }
 
     pub fn input(

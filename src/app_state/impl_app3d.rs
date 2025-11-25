@@ -81,7 +81,7 @@ impl App3D for AppState {
             .selected_group
             .and_then(|g_id| reader.get_group_attributes(g_id))
             .and_then(|attributes| attributes.pivot)
-            .or(*self.0.selection.pivot.read().as_deref().unwrap())
+            .or_else(|| *self.0.selection.pivot.read().as_deref().unwrap())
     }
 
     fn get_current_group_id(&self) -> Option<GroupId> {

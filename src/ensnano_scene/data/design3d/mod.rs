@@ -401,10 +401,10 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
                 Some(ObjectType::Bond(id1, id2)) => {
                     let pos1 = self
                         .get_graphic_element_position(&SceneElement::DesignElement(self.id, id1))
-                        .unwrap_or(f32::NAN * Vec3::unit_x());
+                        .unwrap_or_else(|| f32::NAN * Vec3::unit_x());
                     let pos2 = self
                         .get_graphic_element_position(&SceneElement::DesignElement(self.id, id2))
-                        .unwrap_or(f32::NAN * Vec3::unit_x());
+                        .unwrap_or_else(|| f32::NAN * Vec3::unit_x());
                     let id = id | self.id << 24;
                     vec![
                         create_dna_bond(pos1, pos2, color, id, true)
@@ -417,12 +417,12 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
                         .get_graphic_element_axis_position(&SceneElement::DesignElement(
                             self.id, id1,
                         ))
-                        .unwrap_or(f32::NAN * Vec3::unit_x());
+                        .unwrap_or_else(|| f32::NAN * Vec3::unit_x());
                     let pos2 = self
                         .get_graphic_element_axis_position(&SceneElement::DesignElement(
                             self.id, id2,
                         ))
-                        .unwrap_or(f32::NAN * Vec3::unit_x());
+                        .unwrap_or_else(|| f32::NAN * Vec3::unit_x());
                     let id = id | self.id << 24;
                     let (lid1, tube, lid2) =
                         create_helix_cylinder(pos1, pos2, radius, color, id, true);
@@ -435,14 +435,9 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
                 Some(ObjectType::Nucleotide(id)) => {
                     let position = self
                         .get_graphic_element_position(&SceneElement::DesignElement(self.id, id))
-                        .unwrap_or(f32::NAN * Vec3::unit_x());
+                        .unwrap_or_else(|| f32::NAN * Vec3::unit_x());
                     let id = id | self.id << 24;
                     let color = Instance::color_from_au32(color);
-                    // let small = self.design_reader.has_small_spheres_nucl_id(id);
-                    // if radius > 1.01 && small {
-                    //     radius *= 2.5;
-                    // }
-                    // radius = if small { radius / 3.5 } else { radius };
                     vec![
                         SphereInstance {
                             position,
@@ -625,13 +620,13 @@ impl<R: SceneDesignReaderExt> Design3D<R> {
                 &SceneElement::DesignElement(self.id, id1),
                 Referential::World,
             )
-            .unwrap_or(f32::NAN * Vec3::unit_x());
+            .unwrap_or_else(|| f32::NAN * Vec3::unit_x());
         let real_pos2 = self
             .get_element_position(
                 &SceneElement::DesignElement(self.id, id2),
                 Referential::World,
             )
-            .unwrap_or(f32::NAN * Vec3::unit_x());
+            .unwrap_or_else(|| f32::NAN * Vec3::unit_x());
         let length = (real_pos2 - real_pos1).mag();
         let expected_length = self.design_reader.get_expected_bond_length(); // SHOULD DEPEND ON THE HELIX_MODEL OF THE STRAND -> SHOULD BE MODIFIED LATER
         let critical_length_low = expected_length / 0.7; // TO BE MADE A CONSTANT IN CONST.RS

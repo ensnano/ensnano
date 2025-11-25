@@ -254,7 +254,7 @@ impl StaplesDownloader for DesignInteractor {
                 .current_design
                 .scaffold_sequence
                 .clone()
-                .unwrap_or("NO SEQUENCE".to_owned()),
+                .unwrap_or_else(|| "NO SEQUENCE".to_owned()),
             intervals: staples
                 .iter()
                 .map(|s| (s.intervals.staple_id, s.intervals.intervals.clone()))

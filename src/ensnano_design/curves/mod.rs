@@ -1021,7 +1021,7 @@ impl InstantiatedPiecewiseBezierDescriptor {
         };
         let mut desc = instantiator
             .instantiate()
-            .unwrap_or(InstantiatedPiecewiseBezier {
+            .unwrap_or_else(|| InstantiatedPiecewiseBezier {
                 ends: vec![],
                 t_min: None,
                 t_max: None,

@@ -663,7 +663,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
             match selection_mode {
                 SelectionMode::Helix => design
                     .get_element_axis_position(element, referential)
-                    .or(design.get_element_position(element, referential)),
+                    .or_else(|| design.get_element_position(element, referential)),
                 SelectionMode::Nucleotide | SelectionMode::Strand | SelectionMode::Design => {
                     design.get_element_position(element, referential)
                 }

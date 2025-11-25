@@ -570,13 +570,13 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
         if let Some(s1) = self
             .design
             .prime5_of(nucl1)
-            .and(self.design.prime3_of(nucl1))
+            .and_then(|_| self.design.prime3_of(nucl1))
         {
-            if let Some(s2) = self.design.prime5_of(nucl2) {
-                return (s1, s2);
+            return if let Some(s2) = self.design.prime5_of(nucl2) {
+                (s1, s2)
             } else {
-                return (self.design.prime3_of(nucl2).unwrap(), s1);
-            }
+                (self.design.prime3_of(nucl2).unwrap(), s1)
+            };
         }
 
         // The 3 prime strand is the strand whose **5prime** end is in the xover
