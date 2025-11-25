@@ -109,7 +109,7 @@ impl<R: Requests, S: AppState> Program for StatusBar<R, S> {
             self.message = None;
         } else if self.message.is_some() {
             self.operation = None;
-        } else if let Some(_) = self.operation {
+        } else if self.operation.is_some() {
             log::trace!("operation is some");
         } else {
             log::trace!("operation is none");
