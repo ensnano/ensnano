@@ -74,7 +74,7 @@ impl Object3DDrawer {
         bg_desc: &BindGroupLayoutDescriptor,
     ) {
         let path = object.get_path_to_source_file(base_path);
-        println!("{path:?}");
+        println!("{}", path.display());
         if path.extension() == Some(OsStr::new("stl")) {
             let mut drawer = StlDrawer::new(self.device.as_ref(), bg_desc);
             drawer.add_stl(self.device.as_ref(), path);

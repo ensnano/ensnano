@@ -466,7 +466,7 @@ impl<S: AppState> FlatScene<S> {
                     Some(format!("{ITERATIVE_AXIS_ALGORITHM}").as_str()),
                     Some("png"),
                 );
-                println!("2D PNG export to {path:?}");
+                println!("2D PNG export to {}", path.display());
                 self.export_2d_png(path, glob_png);
                 self.view[self.selected_design]
                     .borrow_mut()
@@ -570,7 +570,7 @@ impl<S: AppState> FlatScene<S> {
         let device = self.device.as_ref();
         let queue = self.queue.as_ref();
 
-        log::info!("2D PNG export to {path:?}");
+        log::info!("2D PNG export to {}", path.display());
 
         let png_size = PhySize::from(glob.resolution);
 
@@ -748,11 +748,11 @@ impl<S: AppState> Application for FlatScene<S> {
                             ),
                             Some("png"),
                         );
-                        println!("2D PNG export to {path:?}");
+                        println!("2D PNG export to {}", path.display());
                         self.export_2d_png(path.clone(), glob_png);
                         println!(
-                            "File {:?} saved [{}/{}]",
-                            path.file_stem().unwrap(),
+                            "File {} saved [{}/{}]",
+                            path.file_stem().unwrap().display(),
                             i * h_cuts + j + 1,
                             w_cuts * h_cuts
                         );

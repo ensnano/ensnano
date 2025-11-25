@@ -935,7 +935,7 @@ impl<S: AppState> Scene<S> {
             Some(format!("{ITERATIVE_AXIS_ALGORITHM}").as_str()),
             Some("png"),
         );
-        println!("3D PNG export to {path:?}");
+        println!("3D PNG export to {}", path.display());
         let device = self.element_selector.device.as_ref();
         let queue = self.element_selector.queue.as_ref();
 
@@ -1063,7 +1063,7 @@ impl<S: AppState> Scene<S> {
             Some(format!("{ITERATIVE_AXIS_ALGORITHM}").as_str()),
             Some("stl"),
         );
-        println!("STL export to {path:?}");
+        println!("STL export to {}", path.display());
         let raw_instances = self.data.borrow().get_all_raw_instances(app_state);
         let stl_bytes = stl::stl_bytes_export(raw_instances);
         if let Ok(mut out_file) = fs::File::create(path)
@@ -1081,7 +1081,7 @@ impl<S: AppState> Scene<S> {
             Some(format!("{ITERATIVE_AXIS_ALGORITHM}").as_str()),
             Some("json"),
         );
-        println!("Nucleotides positions export to {path:?}");
+        println!("Nucleotides positions export to {}", path.display());
         if let Some(nucl_pos) = self.data.borrow().get_nucleotides_positions_by_strands() {
             let data = serde_json::to_string(&nucl_pos).unwrap();
             if let Ok(mut out_file) = fs::File::create(path)
