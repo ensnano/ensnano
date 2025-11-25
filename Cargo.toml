@@ -198,6 +198,7 @@ precedence_bits = "allow"
 print_stdout = "allow" # TODO: warn and use log! everywhere
 pub_with_shorthand = "allow"
 question_mark_used = "allow"
+rc_buffer = "allow" # TODO: warn
 same_name_method = "allow" # TODO: warn once single-impl traits are removed
 semicolon_outside_block = "allow"
 shadow_reuse = "allow"
