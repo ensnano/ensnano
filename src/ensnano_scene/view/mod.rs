@@ -178,7 +178,7 @@ impl View {
             label: None,
         };
         log::info!("Create letter drawer");
-        let letter_drawer = crate::ensnano_consts::PRINTABLE_CHARS
+        let letter_drawer = PRINTABLE_CHARS
             .iter()
             .map(|c| {
                 let letter = Letter::new(*c, device.clone(), queue.clone());
@@ -498,20 +498,20 @@ impl View {
                 self.dna_drawers
                     .get_mut(mesh)
                     .new_instances_raw(instances.as_ref());
-                if let Some(_mesh) = mesh.to_fake() {
+                if let Some(mesh) = mesh.to_fake() {
                     let mut instances = instances.as_ref().clone();
                     for i in &mut instances {
-                        if i.scale.z <= crate::ensnano_consts::MIN_RADIUS_FOR_FAKE_UPSCALING {
-                            i.scale *= crate::ensnano_consts::SELECT_SCALE_FACTOR;
+                        if i.scale.z <= MIN_RADIUS_FOR_FAKE_UPSCALING {
+                            i.scale *= SELECT_SCALE_FACTOR;
                         }
                     }
                     self.dna_drawers
-                        .get_mut(_mesh)
+                        .get_mut(mesh)
                         .new_instances_raw(instances.as_ref());
                 }
-                if let Some(_mesh) = mesh.to_outline() {
+                if let Some(mesh) = mesh.to_outline() {
                     self.dna_drawers
-                        .get_mut(_mesh)
+                        .get_mut(mesh)
                         .new_instances_raw(instances.as_ref());
                 }
             }

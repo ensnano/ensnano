@@ -1,6 +1,6 @@
 use super::{Flat, HelixVec, Nucl, Strand};
 use crate::ensnano_consts::{
-    CANDIDATE_STRAND_HIGHLIGHT_FACTOR_2D, SELECTED_STRAND_HIGHLIGHT_FACTOR_2D,
+    CANDIDATE_COLOR, CANDIDATE_STRAND_HIGHLIGHT_FACTOR_2D, SELECTED_STRAND_HIGHLIGHT_FACTOR_2D,
 };
 use crate::ensnano_design::{
     AbscissaConverter, Extremity, Helix as DesignHelix, HelixCollection as _, NuclCollection,
@@ -107,7 +107,6 @@ impl<R: FlatSceneDesignReaderExt> Design2d<R> {
         self.pasted_strands = nucls_opt
             .iter()
             .map(|nucls| {
-                let color = crate::ensnano_consts::CANDIDATE_COLOR;
                 for nucl in nucls {
                     self.read_nucl(nucl);
                 }
@@ -116,7 +115,7 @@ impl<R: FlatSceneDesignReaderExt> Design2d<R> {
                     .filter_map(|n| FlatNucl::from_real(n, self.id_map()))
                     .collect();
                 Strand::new(
-                    color,
+                    CANDIDATE_COLOR,
                     flat_strand,
                     vec![],
                     0,

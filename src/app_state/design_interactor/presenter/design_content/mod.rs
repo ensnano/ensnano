@@ -465,14 +465,14 @@ impl DesignContent {
                 .collect::<Vec<&str>>();
             println!("{clone_variables_declaration:?}");
             for x in clone_variables_declaration {
-                let _s = x
+                let s = x
                     .split('=')
                     .filter(|y| !y.is_empty())
                     .collect::<Vec<&str>>();
-                if _s.len() == 2
-                    && let Ok(value) = f32::from_str(_s[1])
+                if s.len() == 2
+                    && let Ok(value) = f32::from_str(s[1])
                 {
-                    clone_variables.insert(_s[0].to_owned(), value);
+                    clone_variables.insert(s[0].to_owned(), value);
                 }
             }
 

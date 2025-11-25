@@ -261,8 +261,8 @@ impl RotationWidgetDescriptor {
             AvailableRotationAxes::NoZ => (1., 0.),
         };
         let colors = match self.colors {
-            HandleColors::Cym => crate::ensnano_consts::CYM_HANDLE_COLORS,
-            HandleColors::Rgb => crate::ensnano_consts::RGB_HANDLE_COLORS,
+            HandleColors::Cym => CYM_HANDLE_COLORS,
+            HandleColors::Rgb => RGB_HANDLE_COLORS,
         };
         [
             Circle::new(

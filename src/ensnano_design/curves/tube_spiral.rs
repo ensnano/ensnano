@@ -26,7 +26,7 @@ impl TubeSpiralDescriptor {
         TubeSpiral {
             theta_0: self.theta_0,
             big_axis: self.big_axis,
-            _parameters: helix_parameters,
+            parameters: helix_parameters,
             height: self.height,
             number_of_helices: self.number_of_helices,
             small_axis: self.small_axis,
@@ -47,7 +47,7 @@ impl TubeSpiralDescriptor {
 pub(super) struct TubeSpiral {
     pub theta_0: f64,
     pub big_axis: f64,
-    pub _parameters: HelixParameters,
+    pub parameters: HelixParameters,
     pub height: f64,
     pub number_of_helices: usize,
     pub small_axis: f64,
@@ -59,7 +59,7 @@ pub(super) struct TubeSpiral {
 impl TubeSpiral {
     fn dist_turn(&self) -> f64 {
         let nb_helices = self.number_of_helices as f64;
-        nb_helices * self._parameters.inter_helix_axis_gap() as f64 / self.inclination().cos()
+        nb_helices * self.parameters.inter_helix_axis_gap() as f64 / self.inclination().cos()
     }
 
     fn nb_turn(&self) -> f64 {
@@ -75,7 +75,7 @@ impl TubeSpiral {
             // the correct result is the perimeter of the polygon inscribed in the helix
             let slice_width = self.perimeter / 2. / PI * (PI / nb_helices).sin();
 
-            (self._parameters.inter_helix_axis_gap() as f64 / 2. / slice_width).asin()
+            (self.parameters.inter_helix_axis_gap() as f64 / 2. / slice_width).asin()
         }
     }
 }

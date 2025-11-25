@@ -317,12 +317,10 @@ impl Instantiable for StereographicSphereAndPlane {
 
     fn to_raw_instance(&self) -> Self::RawInstance {
         use crate::ensnano_utils::instance::Instance;
-        let color = Instance::color_from_au32(crate::ensnano_consts::STEREOGRAPHIC_SPHERE_COLOR);
+        let color = Instance::color_from_au32(STEREOGRAPHIC_SPHERE_COLOR);
         let model = Mat4::from_translation(self.position)
             * self.orientation.into_matrix().into_homogeneous();
-        let scale = crate::ensnano_consts::STEREOGRAPHIC_SPHERE_RADIUS
-            / crate::ensnano_consts::SPHERE_RADIUS
-            * Vec3::new(self.ratio, 1., 1.);
+        let scale = STEREOGRAPHIC_SPHERE_RADIUS / SPHERE_RADIUS * Vec3::new(self.ratio, 1., 1.);
         RawDnaInstance {
             model,
             color,

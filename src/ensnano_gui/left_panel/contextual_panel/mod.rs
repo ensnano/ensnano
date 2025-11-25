@@ -1,5 +1,7 @@
 mod value_constructor;
 
+pub use value_constructor::{InstantiatedValue, ValueKind};
+
 use super::super::GuiDesignReaderExt;
 use super::*;
 use crate::ensnano_consts::{
@@ -12,7 +14,6 @@ use crate::ensnano_interactor::{Selection, SimulationState};
 use iced::{Alignment, alignment::Horizontal};
 use ultraviolet::{Rotor3, Vec2};
 use value_constructor::{BezierVertexBuilder, Builder, GridBuilder};
-pub use value_constructor::{InstantiatedValue, ValueKind};
 
 pub enum ValueRequest {
     HelixGridPosition {

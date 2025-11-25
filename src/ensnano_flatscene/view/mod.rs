@@ -13,7 +13,7 @@ use super::{
     },
     flat_types::{FlatIdx, FlatNucl, FlatSelection},
 };
-use crate::ensnano_consts::SAMPLE_COUNT;
+use crate::ensnano_consts::{CANDIDATE_COLOR, PRINTABLE_CHARS, SAMPLE_COUNT, SELECTED_COLOR};
 use crate::ensnano_design::{Nucl, NuclCollection};
 use crate::ensnano_interactor::graphics::DrawArea;
 use crate::ensnano_utils::{
@@ -187,13 +187,13 @@ impl View {
         let rectangle = Rectangle::new(&device, queue.clone());
 
         let text_drawer_top = TextDrawer::new(
-            crate::ensnano_consts::PRINTABLE_CHARS,
+            PRINTABLE_CHARS,
             device.clone(),
             queue.clone(),
             globals_top.get_layout(),
         );
         let text_drawer_bottom = TextDrawer::new(
-            crate::ensnano_consts::PRINTABLE_CHARS,
+            PRINTABLE_CHARS,
             device.clone(),
             queue.clone(),
             globals_bottom.get_layout(),
@@ -1111,9 +1111,8 @@ impl View {
     /// Collect the candidate/selection circles
     fn collect_nucl_highlight(&self, circles: &mut Vec<CircleInstance>) {
         for n in &self.candidate_nucl {
-            let candidate_color = crate::ensnano_consts::CANDIDATE_COLOR;
             if let Some(h1) = self.helices.get(n.helix.flat.0) {
-                let mut c = h1.get_circle_nucl(n.flat_position, n.forward, candidate_color);
+                let mut c = h1.get_circle_nucl(n.flat_position, n.forward, CANDIDATE_COLOR);
                 c.set_radius(1. / 2.);
                 circles.push(c);
             } else {
@@ -1122,9 +1121,8 @@ impl View {
         }
 
         for n in &self.selected_nucl {
-            let selected_color = crate::ensnano_consts::SELECTED_COLOR;
             if let Some(h1) = self.helices.get(n.helix.flat.0) {
-                let mut c = h1.get_circle_nucl(n.flat_position, n.forward, selected_color);
+                let mut c = h1.get_circle_nucl(n.flat_position, n.forward, SELECTED_COLOR);
                 c.set_radius(FRAC_1_SQRT_2);
                 circles.push(c);
             } else {

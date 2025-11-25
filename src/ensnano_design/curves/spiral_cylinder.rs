@@ -119,11 +119,11 @@ impl Curved for SpiralCylinder {
         Some(1.0)
     }
 
-    fn curvilinear_abscissa(&self, _t: f64) -> Option<f64> {
-        Some(self.d_curvilinear_abscissa * (_t - self.t_min()))
+    fn curvilinear_abscissa(&self, t: f64) -> Option<f64> {
+        Some(self.d_curvilinear_abscissa * (t - self.t_min()))
     }
 
-    fn inverse_curvilinear_abscissa(&self, _x: f64) -> Option<f64> {
-        Some(_x / self.d_curvilinear_abscissa + self.t_min())
+    fn inverse_curvilinear_abscissa(&self, x: f64) -> Option<f64> {
+        Some(x / self.d_curvilinear_abscissa + self.t_min())
     }
 }

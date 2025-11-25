@@ -25,8 +25,8 @@ impl HandlesDescriptor {
         let (right, up, dir) = self.make_axis();
         let length = self.size * dist * (projection.borrow().get_fovy() / 2.).tan();
         let colors = match self.colors {
-            HandleColors::Cym => crate::ensnano_consts::CYM_HANDLE_COLORS,
-            HandleColors::Rgb => crate::ensnano_consts::RGB_HANDLE_COLORS,
+            HandleColors::Cym => CYM_HANDLE_COLORS,
+            HandleColors::Rgb => RGB_HANDLE_COLORS,
         };
         [
             Handle::new(self.origin, right, up, colors[0], RIGHT_HANDLE_ID, length),

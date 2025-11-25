@@ -59,12 +59,12 @@ impl Curved for CircleCurve {
         DVec3 { x, y, z }
     }
 
-    fn curvilinear_abscissa(&self, _t: f64) -> Option<f64> {
-        Some(self.radius * TAU * _t)
+    fn curvilinear_abscissa(&self, t: f64) -> Option<f64> {
+        Some(self.radius * TAU * t)
     }
 
-    fn inverse_curvilinear_abscissa(&self, _x: f64) -> Option<f64> {
-        Some(_x / TAU / self.radius)
+    fn inverse_curvilinear_abscissa(&self, x: f64) -> Option<f64> {
+        Some(x / TAU / self.radius)
     }
 
     fn bounds(&self) -> super::CurveBounds {

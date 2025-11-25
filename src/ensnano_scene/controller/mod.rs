@@ -1,28 +1,26 @@
-use super::AppState;
-use super::view::HandleColors;
+mod automata;
+
+pub use automata::WidgetTarget;
+
 use super::{
-    Duration, ElementSelector, HandleDir, SceneElement, Stereography, ViewPtr,
-    WidgetRotationMode as RotationMode, camera,
+    AppState, Duration, ElementSelector, HandleDir, SceneElement, Stereography, ViewPtr,
+    WidgetRotationMode as RotationMode, camera, view::HandleColors,
 };
 use crate::ensnano_consts::*;
-use crate::ensnano_design::grid::{GridId, GridObject, GridPosition, HelixGridPosition};
 use crate::ensnano_design::{
     BezierPathId, BezierPlaneId, BezierVertex, BezierVertexId, Nucl, SurfaceInfo, SurfacePoint,
+    grid::{GridId, GridObject, GridPosition, HelixGridPosition},
 };
-use crate::ensnano_scene::maths_3d::FiniteVec3;
-use crate::ensnano_scene::{PhySize, PhysicalPosition, WindowEvent};
-use camera::CameraController;
-use std::cell::RefCell;
-use std::ops::Deref as _;
-use std::rc::Rc;
-use ultraviolet::{Rotor3, Vec2, Vec3};
-use winit::event::{ElementState, KeyEvent, Modifiers};
-use winit::keyboard::{Key, ModifiersState, NamedKey, PhysicalKey};
-use winit::window::CursorIcon;
-
-mod automata;
-pub use automata::WidgetTarget;
+use crate::ensnano_scene::{PhySize, PhysicalPosition, WindowEvent, maths_3d::FiniteVec3};
 use automata::{EventContext, NormalState, State, Transition};
+use camera::CameraController;
+use std::{cell::RefCell, ops::Deref as _, rc::Rc};
+use ultraviolet::{Rotor3, Vec2, Vec3};
+use winit::{
+    event::{ElementState, KeyEvent, Modifiers},
+    keyboard::{Key, ModifiersState, NamedKey, PhysicalKey},
+    window::CursorIcon,
+};
 
 /// An object handling input and notification for the scene.
 pub struct Controller<S: AppState> {

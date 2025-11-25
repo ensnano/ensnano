@@ -1,5 +1,6 @@
 use super::super::{FlatHelix, FlatNucl, data::ClickResult};
 use super::*;
+use crate::ensnano_consts::*;
 use crate::ensnano_utils::circles2d::CircleInstance;
 use std::time::Instant;
 use winit::{
@@ -8,7 +9,6 @@ use winit::{
 };
 
 const WHEEL_RADIUS: f32 = 1.5;
-use crate::ensnano_consts::*;
 
 pub struct Transition<S: AppState> {
     pub new_state: Option<Box<dyn ControllerState<S>>>,

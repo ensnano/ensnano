@@ -116,12 +116,12 @@ impl Curved for SphereConcentricCircle {
         DVec3 { x, y, z }
     }
 
-    fn curvilinear_abscissa(&self, _t: f64) -> Option<f64> {
-        Some(self.z_radius * TAU * _t)
+    fn curvilinear_abscissa(&self, t: f64) -> Option<f64> {
+        Some(self.z_radius * TAU * t)
     }
 
-    fn inverse_curvilinear_abscissa(&self, _x: f64) -> Option<f64> {
-        Some(_x / TAU / self.z_radius)
+    fn inverse_curvilinear_abscissa(&self, x: f64) -> Option<f64> {
+        Some(x / TAU / self.z_radius)
     }
 
     fn bounds(&self) -> super::CurveBounds {
@@ -312,12 +312,12 @@ impl Curved for SphereTennisBallSeam {
         }
     }
 
-    fn curvilinear_abscissa(&self, _t: f64) -> Option<f64> {
-        Some(_t)
+    fn curvilinear_abscissa(&self, t: f64) -> Option<f64> {
+        Some(t)
     }
 
-    fn inverse_curvilinear_abscissa(&self, _x: f64) -> Option<f64> {
-        Some(_x)
+    fn inverse_curvilinear_abscissa(&self, x: f64) -> Option<f64> {
+        Some(x)
     }
 
     fn bounds(&self) -> super::CurveBounds {
@@ -589,12 +589,12 @@ impl Curved for PillTennisBallSeam {
         }
     }
 
-    fn curvilinear_abscissa(&self, _t: f64) -> Option<f64> {
-        Some(_t * self.perimeter)
+    fn curvilinear_abscissa(&self, t: f64) -> Option<f64> {
+        Some(t * self.perimeter)
     }
 
-    fn inverse_curvilinear_abscissa(&self, _x: f64) -> Option<f64> {
-        Some(_x / self.perimeter)
+    fn inverse_curvilinear_abscissa(&self, x: f64) -> Option<f64> {
+        Some(x / self.perimeter)
     }
 
     fn bounds(&self) -> super::CurveBounds {
@@ -790,12 +790,12 @@ impl Curved for PillConcentricStadium {
         }
     }
 
-    fn curvilinear_abscissa(&self, _t: f64) -> Option<f64> {
-        Some(_t * self.perimeter)
+    fn curvilinear_abscissa(&self, t: f64) -> Option<f64> {
+        Some(t * self.perimeter)
     }
 
-    fn inverse_curvilinear_abscissa(&self, _x: f64) -> Option<f64> {
-        Some(_x / self.perimeter)
+    fn inverse_curvilinear_abscissa(&self, x: f64) -> Option<f64> {
+        Some(x / self.perimeter)
     }
 
     fn bounds(&self) -> super::CurveBounds {

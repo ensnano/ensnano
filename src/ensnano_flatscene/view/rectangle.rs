@@ -1,5 +1,5 @@
 use super::Rc;
-use crate::ensnano_utils::Ndc;
+use crate::{ensnano_consts::SAMPLE_COUNT, ensnano_utils::Ndc};
 use wgpu::{Device, Queue, RenderPipeline, util::DeviceExt as _};
 
 const SELECT_COLOR: [f32; 4] = [0.26, 0.64, 0.85, 0.6];
@@ -96,7 +96,7 @@ impl Rectangle {
             primitive,
             depth_stencil,
             multisample: wgpu::MultisampleState {
-                count: crate::ensnano_consts::SAMPLE_COUNT,
+                count: SAMPLE_COUNT,
                 mask: !0,
                 alpha_to_coverage_enabled: false,
             },
