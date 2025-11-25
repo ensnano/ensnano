@@ -2,9 +2,12 @@ use super::{
     AddressPointer, Controller, ControllerState, Design, Domain, ErrOperation, HelixGridPosition,
     HelixInterval, Nucl, Strand,
 };
-use crate::ensnano_design::{
-    Helices, HelixCollection as _, HelixParameters, MutStrandAndData, Strands, UpToDateDesign,
-    grid::{Edge, FreeGridId, GridData, GridId, GridPosition},
+use crate::{
+    app_state::design_interactor::controller::DuplicationEdge,
+    ensnano_design::{
+        Helices, HelixCollection as _, HelixParameters, MutStrandAndData, Strands, UpToDateDesign,
+        grid::{Edge, FreeGridId, GridData, GridId, GridPosition},
+    },
 };
 use ultraviolet::{Rotor3, Vec3};
 
@@ -74,7 +77,7 @@ impl Clipboard {
 #[derive(Clone, Debug)]
 pub(super) struct StrandClipboard {
     templates: Vec<StrandTemplate>,
-    template_edges: Vec<(Edge, isize)>,
+    template_edges: Vec<DuplicationEdge>,
 }
 
 #[derive(Debug, Clone)]
@@ -160,7 +163,7 @@ impl Controller {
                     ));
                 }
             }
-            let edges = edges.into_iter().collect::<Option<Vec<(Edge, isize)>>>();
+            let edges = edges.into_iter().collect::<Option<Vec<DuplicationEdge>>>();
             if let Some(edges) = edges {
                 self.clipboard = AddressPointer::new(Clipboard::Strands(StrandClipboard {
                     templates,
@@ -236,7 +239,7 @@ impl Controller {
         helices: &Helices,
         strands: &Strands,
         grid_manager: &GridData,
-    ) -> Option<(Edge, isize)> {
+    ) -> Option<DuplicationEdge> {
         let strand1 = strands.get(&s_id1)?;
         let strand2 = strands.get(&s_id2)?;
         let nucl1 = strand1.get_5prime()?;
@@ -253,7 +256,7 @@ impl Controller {
         grid_manager: &GridData,
         n1: &Nucl,
         n2: &Nucl,
-    ) -> Option<(Edge, isize)> {
+    ) -> Option<DuplicationEdge> {
         let pos1 = helices.get(&n1.helix).and_then(|h| h.grid_position)?;
         let pos2 = helices.get(&n2.helix).and_then(|h| h.grid_position)?;
         grid_manager
@@ -324,7 +327,7 @@ impl Controller {
         clipboard: &StrandClipboard,
         nucl: Nucl,
         data: &mut MutStrandAndData,
-    ) -> Result<(Vec<PastedStrand>, Option<(Edge, isize)>), ErrOperation> {
+    ) -> Result<(Vec<PastedStrand>, Option<DuplicationEdge>), ErrOperation> {
         let mut duplication_edge = None;
         let template_0 = clipboard
             .templates
@@ -372,7 +375,7 @@ impl Controller {
         &self,
         template: &StrandTemplate,
         start_nucl: Nucl,
-        duplication_info: &mut Option<(Edge, isize)>,
+        duplication_edge: &mut Option<DuplicationEdge>,
         helices: &Helices,
         grid_manager: &GridData,
     ) -> Result<Vec<Domain>, ErrOperation> {
@@ -438,7 +441,7 @@ impl Controller {
                 }
             }
         }
-        *duplication_info = edge_opt.zip(Some(shift));
+        *duplication_edge = edge_opt.zip(Some(shift));
         Ok(ret)
     }
 
@@ -923,9 +926,8 @@ impl Controller {
         strands: &mut Strands,
         helices: &Helices,
         xovers: &[(Nucl, Nucl)],
-        copy_edge: (Edge, isize),
+        (edge, shift): DuplicationEdge,
     ) -> Result<(), ErrOperation> {
-        let (edge, shift) = copy_edge;
         for (n1, n2) in xovers {
             let copy_1 = self.translate_nucl_by_edge(n1, &edge, shift, helices, grid_manager);
             log::debug!("copy 1 {copy_1:?}");

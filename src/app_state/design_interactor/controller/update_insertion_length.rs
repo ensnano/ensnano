@@ -130,25 +130,25 @@ fn get_insertion_length_mut(
     strand: &mut Strand,
     insertion_point: InsertionPoint,
 ) -> Option<InsertionMut<'_>> {
+    let domains_iterator: Box<dyn Iterator<Item = _>> = if strand.is_cyclic {
+        Box::new(
+            strand
+                .domains
+                .iter()
+                .enumerate()
+                .zip(strand.domains.iter().cycle().enumerate().skip(1)),
+        )
+    } else {
+        Box::new(
+            strand
+                .domains
+                .iter()
+                .enumerate()
+                .zip(strand.domains.iter().enumerate().skip(1)),
+        )
+    };
+
     let mut insertion_id: Option<usize> = None;
-    let domains_iterator: Box<dyn Iterator<Item = ((usize, &Domain), (usize, &Domain))>> =
-        if strand.is_cyclic {
-            Box::new(
-                strand
-                    .domains
-                    .iter()
-                    .enumerate()
-                    .zip(strand.domains.iter().cycle().enumerate().skip(1)),
-            )
-        } else {
-            Box::new(
-                strand
-                    .domains
-                    .iter()
-                    .enumerate()
-                    .zip(strand.domains.iter().enumerate().skip(1)),
-            )
-        };
     if insertion_point.nucl_is_prime5_of_insertion {
         // look for an insertion after the domain ending with the desired nucl
         for ((_, d_nucl), (d_id, d_insertion)) in domains_iterator {

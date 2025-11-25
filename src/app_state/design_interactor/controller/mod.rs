@@ -57,6 +57,8 @@ use std::{
 };
 use ultraviolet::{Isometry2, Rotor2, Rotor3, Vec2, Vec3};
 
+type DuplicationEdge = (Edge, isize);
+
 #[derive(Clone, Default)]
 pub struct Controller {
     color_idx: usize,
@@ -3382,7 +3384,7 @@ enum ControllerState {
     PositioningStrandDuplicationPoint {
         pasting_point: Option<Nucl>,
         pasted_strands: Vec<PastedStrand>,
-        duplication_edge: Option<(Edge, isize)>,
+        duplication_edge: Option<DuplicationEdge>,
         clipboard: StrandClipboard,
     },
     PositioningHelicesPastingPoint {
@@ -3402,12 +3404,12 @@ enum ControllerState {
     },
     WithPendingStrandDuplication {
         last_pasting_point: Nucl,
-        duplication_edge: (Edge, isize),
+        duplication_edge: DuplicationEdge,
         clipboard: StrandClipboard,
     },
     WithPendingXoverDuplication {
         last_pasting_point: Nucl,
-        duplication_edge: (Edge, isize),
+        duplication_edge: DuplicationEdge,
         xovers: Vec<(Nucl, Nucl)>,
     },
     PastingXovers {
@@ -3416,7 +3418,7 @@ enum ControllerState {
     },
     DoingFirstXoversDuplication {
         initial_design: AddressPointer<Design>,
-        duplication_edge: Option<(Edge, isize)>,
+        duplication_edge: Option<DuplicationEdge>,
         xovers: Vec<(Nucl, Nucl)>,
         pasting_point: Option<Nucl>,
     },
@@ -3490,7 +3492,7 @@ impl ControllerState {
         &mut self,
         point: Option<PastePosition>,
         strands: Vec<PastedStrand>,
-        duplication_edge: Option<(Edge, isize)>,
+        duplication_edge: Option<DuplicationEdge>,
     ) -> Result<(), ErrOperation> {
         match self {
             Self::PositioningStrandPastingPoint { .. }
@@ -3559,7 +3561,7 @@ impl ControllerState {
     fn update_xover_pasting_position(
         &mut self,
         point: Option<Nucl>,
-        edge: Option<(Edge, isize)>,
+        edge: Option<DuplicationEdge>,
         design: &Design,
     ) -> Result<(), ErrOperation> {
         match self {

@@ -15,7 +15,7 @@ use crate::ensnano_interactor::{
     ObjectType,
     graphics::{LoopoutBond, LoopoutNucl},
 };
-use crate::ensnano_scene::view::GridInstance;
+use crate::ensnano_scene::{data::Scalebar, view::GridInstance};
 use crate::ensnano_utils::{click_counter::ClickCounter, colors, instance::Instance};
 use ahash::RandomState;
 use serde::Serialize;
@@ -68,7 +68,7 @@ pub struct DesignContent {
     pub xover_coloring_map: HashMap<u32, bool, RandomState>,
     pub with_cones_map: HashMap<u32, bool, RandomState>,
     // min value, max value and rainbow fn(t, min, max) -> color
-    pub scalebar: Option<(f32, f32, fn(f32, f32, f32) -> u32)>,
+    pub scalebar: Option<Scalebar>,
 }
 
 impl DesignContent {
@@ -428,7 +428,7 @@ impl DesignContent {
         let mut insertion_length = HashMap::default();
         let mut xover_coloring_map = HashMap::default();
         let mut clone_variables: HashMap<String, f32> = HashMap::new();
-        let mut scalebar: Option<(f32, f32, fn(f32, f32, f32) -> u32)> = None;
+        let mut scalebar: Option<Scalebar> = None;
 
         // Maps identifiers to drawing styles
         let mut drawing_styles = HashMap::<DesignElementKey, DrawingStyle, RandomState>::default();

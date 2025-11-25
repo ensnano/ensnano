@@ -3,7 +3,7 @@
 
 mod design3d;
 
-pub use design3d::{HBond, HalfHBond, SceneDesignReaderExt};
+pub use design3d::{HBond, HalfHBond, Scalebar, SceneDesignReaderExt};
 
 use super::{
     AppState, Camera3D, HandlesDescriptor, LetterInstance, RotationWidgetDescriptor,

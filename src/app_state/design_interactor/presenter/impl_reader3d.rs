@@ -8,7 +8,10 @@ use crate::ensnano_interactor::{
     ObjectType, Referential,
     graphics::{LoopoutBond, LoopoutNucl},
 };
-use crate::ensnano_scene::{data::SceneDesignReaderExt, view::GridInstance};
+use crate::ensnano_scene::{
+    data::{Scalebar, SceneDesignReaderExt},
+    view::GridInstance,
+};
 use crate::ensnano_utils::StrandNucleotidesPositions;
 use std::collections::HashSet;
 use ultraviolet::{Mat4, Rotor3, Vec2, Vec3};
@@ -201,7 +204,7 @@ impl SceneDesignReaderExt for DesignInteractor {
         )
     }
 
-    fn get_scalebar(&self) -> Option<(f32, f32, fn(f32, f32, f32) -> u32)> {
+    fn get_scalebar(&self) -> Option<Scalebar> {
         self.presenter.content.scalebar
     }
 

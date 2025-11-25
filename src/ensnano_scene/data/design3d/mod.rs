@@ -1604,6 +1604,8 @@ pub(super) enum ExpandWith {
     Tubes,
 }
 
+pub type Scalebar = (f32, f32, fn(f32, f32, f32) -> u32);
+
 pub trait SceneDesignReaderExt:
     'static + crate::ensnano_interactor::InteractorDesignReaderExt
 {
@@ -1621,7 +1623,7 @@ pub trait SceneDesignReaderExt:
     /// nucleotide.
     fn get_symbol(&self, e_id: u32) -> Option<char>;
     fn get_model_matrix(&self) -> Mat4;
-    fn get_scalebar(&self) -> Option<(f32, f32, fn(f32, f32, f32) -> u32)>;
+    fn get_scalebar(&self) -> Option<Scalebar>;
     /// Return the list of pairs of nucleotides that can be linked by a cross-over
     fn get_suggestions(&self) -> Vec<(Nucl, Nucl)>;
     fn get_position_of_nucl_on_helix(
