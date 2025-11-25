@@ -712,7 +712,7 @@ impl DesignContent {
                                 position: *pos,
                                 color,
                                 repr_bond_identifier: id_tmp,
-                                basis: basis.and_then(|b| (*b).try_into().ok()),
+                                basis: basis.map(|&b| b.into()),
                             });
                             if let Some(prev_pos) = prev_loopout_pos.take().or_else(|| {
                                 prev_nucl_id.and_then(|id| space_position.get(&id).map(Vec3::from))
