@@ -56,7 +56,7 @@ impl TextDrawer {
             if let Some(drawer_mut) = self.char_drawers.get_mut(c) {
                 drawer_mut.new_instances(Rc::new(v.clone()));
             } else {
-                eprintln!("Unprintable char {c}");
+                log::warn!("Unprintable char: '{c}'");
             }
         }
         for d in self.char_drawers.values_mut() {
