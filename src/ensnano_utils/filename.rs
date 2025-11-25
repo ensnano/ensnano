@@ -19,19 +19,16 @@ pub fn derive_path_with_prefix_and_time_stamp_and_suffix(
         String::new()
     };
     let extension = extension.unwrap_or(DEFAULT_FILE_EXTENSION);
-    match from_path {
-        Some(path) => {
-            let file_stem = if let Some(stem) = path.file_stem() {
-                stem.to_str().unwrap().to_owned() + "-"
-            } else {
-                String::new()
-            };
-            let file_name = format!("{file_stem}{prefix}-{time_stamp}{suffix}.{extension}");
-            path.with_file_name(file_name)
-        }
-        None => {
-            let file_name = format!("{prefix}-{time_stamp}{suffix}.{extension}");
-            PathBuf::from(file_name)
-        }
+    if let Some(path) = from_path {
+        let file_stem = if let Some(stem) = path.file_stem() {
+            stem.to_str().unwrap().to_owned() + "-"
+        } else {
+            String::new()
+        };
+        let file_name = format!("{file_stem}{prefix}-{time_stamp}{suffix}.{extension}");
+        path.with_file_name(file_name)
+    } else {
+        let file_name = format!("{prefix}-{time_stamp}{suffix}.{extension}");
+        PathBuf::from(file_name)
     }
 }

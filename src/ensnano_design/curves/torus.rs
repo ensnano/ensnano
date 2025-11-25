@@ -508,34 +508,31 @@ trait Curve2D {
     fn get_cached_curvilinear_abscissa(&self) -> Option<&[f64]>;
 
     fn t_for_curvilinear_abscissa(&self, s_objective: f64) -> f64 {
-        match self.get_cached_curvilinear_abscissa() {
-            Some(cache) => {
-                let idx = binary_search(s_objective, cache).expect("binary search");
-                let s = cache[idx];
-                let mut t = idx as f64 / (cache.len() - 1) as f64;
-                if idx < cache.len() - 1 {
-                    let s_ = cache[idx + 1];
-                    let interpolation = (s_objective - s) / (s_ - s);
-                    t += interpolation / (cache.len() - 1) as f64;
-                }
-                t
+        if let Some(cache) = self.get_cached_curvilinear_abscissa() {
+            let idx = binary_search(s_objective, cache).expect("binary search");
+            let s = cache[idx];
+            let mut t = idx as f64 / (cache.len() - 1) as f64;
+            if idx < cache.len() - 1 {
+                let s_ = cache[idx + 1];
+                let interpolation = (s_objective - s) / (s_ - s);
+                t += interpolation / (cache.len() - 1) as f64;
             }
-            None => {
-                let mut sp = s_objective;
-                let mut u = self.position(0.);
-                let mut t = 0.;
-                for i in 0..=NB_STEPS {
-                    // SHOULD COMPUTE A CHEBYSHEV POLY APPROX
-                    if sp <= 0. {
-                        return t;
-                    }
-                    t = TAU * i as f64 / NB_STEPS as f64;
-                    let v = self.position(t);
-                    sp -= (v - u).mag();
-                    u = v;
+            t
+        } else {
+            let mut sp = s_objective;
+            let mut u = self.position(0.);
+            let mut t = 0.;
+            for i in 0..=NB_STEPS {
+                // SHOULD COMPUTE A CHEBYSHEV POLY APPROX
+                if sp <= 0. {
+                    return t;
                 }
-                t
+                t = TAU * i as f64 / NB_STEPS as f64;
+                let v = self.position(t);
+                sp -= (v - u).mag();
+                u = v;
             }
+            t
         }
     }
 

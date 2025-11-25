@@ -162,17 +162,16 @@ impl<S: AppState> ControllerState<S> for NormalState {
                 {
                     if let Some(vertex) = context.get_bezier_vertex(path_id, vertex_id) {
                         let click_info = ClickInfo::new(MouseButton::Left, context.cursor_position);
-                        let current_tangent_position = match context
+                        let current_tangent_position = if let Some(i) = context
                             .get_current_cursor_intersection_with_bezier_plane(vertex.plane_id)
                         {
-                            Some(i) => i.position(),
-                            None => {
-                                log::error!(
-                                    "Could not get cursor intersection with plane {:?}",
-                                    vertex.plane_id
-                                );
-                                Vec2::unit_x()
-                            }
+                            i.position()
+                        } else {
+                            log::error!(
+                                "Could not get cursor intersection with plane {:?}",
+                                vertex.plane_id
+                            );
+                            Vec2::unit_x()
                         };
                         let new_state = dragging_state::moving_bezier_tangent(
                             click_info,

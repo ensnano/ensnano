@@ -901,8 +901,8 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
                     new_selection.push(selection);
                 }
             }
-            ClickResult::Nucl(nucl) => match selection_mode {
-                SelectionMode::Strand => {
+            ClickResult::Nucl(nucl) => {
+                if selection_mode == SelectionMode::Strand {
                     if let Some(s_id) = self.design.get_strand_id(nucl.to_real()) {
                         let selection = Selection::Strand(self.id, s_id as u32);
                         if let Some(pos) = new_selection.iter().position(|x| *x == selection) {
@@ -911,8 +911,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
                             new_selection.push(selection);
                         }
                     }
-                }
-                _ => {
+                } else {
                     self.last_click.click_on(nucl);
                     let mut selection_pool = vec![Selection::Nucleotide(self.id, nucl.to_real())];
                     if let Some(xover) = self.xover_containing_nucl(&nucl) {
@@ -929,7 +928,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
                     new_selection.push(selection);
                     new_selection.retain(|s| !selection_pool.contains(s));
                 }
-            },
+            }
             ClickResult::HelixHandle { .. } | ClickResult::Nothing => (),
         }
     }
