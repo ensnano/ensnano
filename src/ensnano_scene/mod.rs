@@ -588,7 +588,7 @@ impl<S: AppState> Scene<S> {
             log::info!("Attempt past on {gp:?}");
             self.requests.lock().unwrap().attempt_paste_on_grid(gp);
         } else {
-            let nucl = self.data.borrow().element_to_nucl(&element, false);
+            let nucl = self.data.borrow().element_to_nucl(element.as_ref(), false);
             self.requests
                 .lock()
                 .unwrap()
@@ -601,7 +601,7 @@ impl<S: AppState> Scene<S> {
             log::info!("Paste candidate on {gp:?}");
             self.requests.lock().unwrap().paste_candidate_on_grid(gp);
         } else {
-            let nucl = self.data.borrow().element_to_nucl(&element, false);
+            let nucl = self.data.borrow().element_to_nucl(element.as_ref(), false);
             self.requests
                 .lock()
                 .unwrap()

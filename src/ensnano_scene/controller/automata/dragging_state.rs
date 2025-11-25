@@ -357,9 +357,10 @@ impl DraggingTransitionTable for MakingXover {
         let element = cursor.context.get_element_under_cursor();
         self.target_element = element;
         let projected_position = cursor.context.get_projection_on_plane(self.origin.position);
-        self.current_xover = cursor
-            .context
-            .attempt_xover(&self.origin.scene_element, &self.target_element);
+        self.current_xover = cursor.context.attempt_xover(
+            self.origin.scene_element.as_ref(),
+            self.target_element.as_ref(),
+        );
         self.magic_xover = cursor.context.get_modifiers().shift_key();
         Some(Consequence::MoveFreeXover(element, projected_position))
     }

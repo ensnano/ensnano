@@ -393,12 +393,12 @@ fn making_xover_maker<S: AppState>(
     _click: ClickInfo,
 ) -> Box<dyn OptionalTransition<S>> {
     let origin = context.get_xover_origin_under_cursor();
-    Box::new(move |click: ClickInfo| making_xover(click, &origin))
+    Box::new(move |click: ClickInfo| making_xover(click, origin.as_ref()))
 }
 
 fn making_xover<S: AppState>(
     click: ClickInfo,
-    origin: &Option<XoverOrigin>,
+    origin: Option<&XoverOrigin>,
 ) -> Option<Box<dyn ControllerState<S>>> {
     if let Some(source) = origin {
         Some(Box::new(dragging_state::making_xover(

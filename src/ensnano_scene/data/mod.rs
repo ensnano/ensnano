@@ -774,8 +774,8 @@ impl<R: SceneDesignReaderExt> Data<R> {
     /// on the same design, return the pair of nucleotides. Otherwise return None
     pub fn attempt_xover(
         &self,
-        source: &Option<SceneElement>,
-        target: &Option<SceneElement>,
+        source: Option<&SceneElement>,
+        target: Option<&SceneElement>,
     ) -> Option<(Nucl, Nucl, usize)> {
         let design_id;
         let source_nucl = if let Some(SceneElement::DesignElement(d_id, e_id)) = source {
@@ -1636,7 +1636,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
 
     pub fn element_to_nucl(
         &self,
-        element: &Option<SceneElement>,
+        element: Option<&SceneElement>,
         non_phantom: bool,
     ) -> Option<(Nucl, usize)> {
         match element {
@@ -1672,7 +1672,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
 
     pub fn update_free_xover_target(&mut self, element: Option<SceneElement>, position: Vec3) {
         self.free_xover_update = true;
-        let nucl = self.element_to_nucl(&element, true);
+        let nucl = self.element_to_nucl(element.as_ref(), true);
         if let Some(free_xover) = self.free_xover.as_mut() {
             free_xover.target = FreeXoverEnd::Free(position);
             if let FreeXoverEnd::Nucl(origin_nucl) = free_xover.source
@@ -1896,7 +1896,7 @@ fn toggle_selection(mode: SelectionMode) -> SelectionMode {
 impl<R: SceneDesignReaderExt> super::controller::Data for Data<R> {
     fn element_to_nucl(
         &self,
-        element: &Option<SceneElement>,
+        element: Option<&SceneElement>,
         non_phantom: bool,
     ) -> Option<(Nucl, usize)> {
         self.element_to_nucl(element, non_phantom)
@@ -1908,8 +1908,8 @@ impl<R: SceneDesignReaderExt> super::controller::Data for Data<R> {
 
     fn attempt_xover(
         &self,
-        source: &Option<SceneElement>,
-        target: &Option<SceneElement>,
+        source: Option<&SceneElement>,
+        target: Option<&SceneElement>,
     ) -> Option<(Nucl, Nucl, usize)> {
         self.attempt_xover(source, target)
     }

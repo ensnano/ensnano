@@ -57,7 +57,7 @@ impl Strand {
     pub fn to_vertices(
         &self,
         helices: &[Helix],
-        free_end: &Option<FreeEnd>,
+        free_end: Option<&FreeEnd>,
         my_cam: &CameraPtr,
         other_cam: &CameraPtr,
     ) -> (Vertices, Vertices) {
@@ -81,7 +81,7 @@ impl Strand {
             let instruction = strand_topology_reader.read_nucl(*nucl);
             strand_vertex_builder.draw(instruction);
         }
-        if let Some(instruction) = strand_topology_reader.finish(&filtered_free_end) {
+        if let Some(instruction) = strand_topology_reader.finish(filtered_free_end.as_ref()) {
             strand_vertex_builder.draw(instruction);
         }
 
@@ -238,9 +238,8 @@ struct FilteredFreeEnd {
 }
 
 impl FilteredFreeEnd {
-    fn read(free_end: &Option<FreeEnd>, strand_id: usize) -> Option<Self> {
+    fn read(free_end: Option<&FreeEnd>, strand_id: usize) -> Option<Self> {
         free_end
-            .as_ref()
             .filter(|f| f.strand_id == strand_id)
             .map(|free_end| Self {
                 point: free_end.point,
@@ -355,7 +354,7 @@ impl<'a> StrandVertexBuilder<'a> {
 
     fn read_free_end(initializer: &StrandVertexBuilderInitializer) -> Option<Vec2> {
         match initializer.free_end {
-            Some(FilteredFreeEnd { point, prime3, .. }) if !prime3 => alternative_position(
+            Some(FilteredFreeEnd { point, prime3 }) if !prime3 => alternative_position(
                 *point,
                 initializer.main_camera,
                 initializer.alternative_camera,
@@ -580,8 +579,8 @@ impl<'a> StrandTopologyReader<'a> {
         self.helices[nucl.helix].get_depth()
     }
 
-    fn finish(&mut self, free_end: &Option<FilteredFreeEnd>) -> Option<DrawingInstruction> {
-        if let Some(free_end) = free_end.as_ref().filter(|free_end| free_end.prime3) {
+    fn finish(&mut self, free_end: Option<&FilteredFreeEnd>) -> Option<DrawingInstruction> {
+        if let Some(free_end) = free_end.filter(|free_end| free_end.prime3) {
             Some(DrawingInstruction::FreeEndPrime3(free_end.point))
         } else {
             self.last_nucl.take().map(|nucl| {

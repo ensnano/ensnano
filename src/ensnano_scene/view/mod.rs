@@ -427,7 +427,7 @@ impl View {
             self.projection.clone(),
             &self.fog_parameters,
             None,
-            &self.cut_plane_parameters,
+            self.cut_plane_parameters.as_ref(),
         ));
         self.stereographic_viewer
             .update(&Uniforms::from_view_proj_fog(
@@ -435,7 +435,7 @@ impl View {
                 self.projection.clone(),
                 &self.fog_parameters,
                 Some(&self.stereography),
-                &self.cut_plane_parameters,
+                self.cut_plane_parameters.as_ref(),
             ));
     }
 

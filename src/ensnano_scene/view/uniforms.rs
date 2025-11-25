@@ -99,7 +99,7 @@ impl Uniforms {
         projection: ProjectionPtr,
         fog: &FogParameters,
         stereography: Option<&Stereography>,
-        cut: &Option<CutPlaneParameters>,
+        cut: Option<&CutPlaneParameters>,
     ) -> Self {
         let stereography_view = if let Some(s) = stereography {
             s.calc_matrix()
@@ -108,10 +108,11 @@ impl Uniforms {
             Mat4::identity()
         };
         let stereography_radius = stereography.as_ref().map_or(0.0, |s| s.radius);
-        let mut make_fog = fog.fog_kind;
-        if !fog.from_camera && fog.alt_fog_center.is_none() {
-            make_fog = fog_kind::NO_FOG;
-        }
+        let make_fog = if !fog.from_camera && fog.alt_fog_center.is_none() {
+            fog_kind::NO_FOG
+        } else {
+            fog.fog_kind
+        };
         let (_, cut_normal, cut_dot_value) = if let Some(cut_param) = cut {
             (1, cut_param.normal, cut_param.dot_value)
         } else {

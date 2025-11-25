@@ -125,7 +125,7 @@ impl StrandView {
         &mut self,
         strand: &Strand,
         helices: &[Helix],
-        free_end: &Option<FreeEnd>,
+        free_end: Option<&FreeEnd>,
         top_cam: &CameraPtr,
         bottom_cam: &CameraPtr,
     ) {

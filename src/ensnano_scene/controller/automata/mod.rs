@@ -1,3 +1,9 @@
+mod dragging_state;
+mod event_context;
+mod point_and_click_state;
+
+pub use event_context::EventContext;
+
 use super::*;
 use crate::ensnano_design::{
     BezierPlaneId,
@@ -5,18 +11,13 @@ use crate::ensnano_design::{
 };
 use crate::ensnano_interactor::ActionMode;
 use crate::ensnano_scene::controller::automata::dragging_state::translating_grid_object;
+use dragging_state::*;
+use event_context::*;
+use point_and_click_state::PointAndClicking;
 use std::borrow::Cow;
 use std::cell::RefCell;
 use ultraviolet::Vec2;
 use winit::event::{ElementState, MouseButton};
-
-mod dragging_state;
-use dragging_state::*;
-mod point_and_click_state;
-use point_and_click_state::PointAndClicking;
-mod event_context;
-pub use event_context::EventContext;
-use event_context::*;
 
 pub(super) type State<S> = RefCell<Box<dyn ControllerState<S>>>;
 
@@ -102,7 +103,7 @@ impl<S: AppState> ControllerState<S> for NormalState {
                 let click_info = ClickInfo::new(MouseButton::Left, context.cursor_position);
                 let clicked_nucl = context
                     .get_element_under_cursor()
-                    .and_then(|elt| context.element_to_nucl(&Some(elt), true));
+                    .and_then(|elt| context.element_to_nucl(Some(&elt), true));
                 Transition {
                     new_state: Some(Box::new(dragging_state::translating_camera(
                         click_info,
@@ -383,9 +384,9 @@ impl<S: AppState> ControllerState<S> for NormalState {
                     }
                     Some(SceneElement::DesignElement(_, _))
                         if ctrl(context.get_modifiers())
-                            && context.element_to_nucl(&element, true).is_some() =>
+                            && context.element_to_nucl(element.as_ref(), true).is_some() =>
                     {
-                        if let Some(nucl) = context.element_to_nucl(&element, true) {
+                        if let Some(nucl) = context.element_to_nucl(element.as_ref(), true) {
                             Transition::consequence(Consequence::QuickXoverAttempt {
                                 nucl,
                                 doubled: context.get_modifiers().shift_key(),
@@ -478,7 +479,7 @@ impl<S: AppState> ControllerState<S> for NormalState {
                 let click_info = ClickInfo::new(MouseButton::Middle, context.cursor_position);
                 let clicked_nucl = context
                     .get_element_under_cursor()
-                    .and_then(|elt| context.element_to_nucl(&Some(elt), true));
+                    .and_then(|elt| context.element_to_nucl(Some(&elt), true));
                 Transition {
                     new_state: Some(Box::new(dragging_state::translating_camera(
                         click_info,

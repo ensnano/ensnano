@@ -85,7 +85,7 @@ impl<'a, S: AppState> EventContext<'a, S> {
 
     pub fn element_to_nucl(
         &self,
-        element: &Option<SceneElement>,
+        element: Option<&SceneElement>,
         no_phantom: bool,
     ) -> Option<Nucl> {
         self.controller
@@ -102,7 +102,7 @@ impl<'a, S: AppState> EventContext<'a, S> {
     /// If self is over a possible cross-over origin, return it.
     pub(super) fn get_xover_origin_under_cursor(&mut self) -> Option<XoverOrigin> {
         let element = self.get_element_under_cursor();
-        let nucl = self.element_to_nucl(&element, true)?;
+        let nucl = self.element_to_nucl(element.as_ref(), true)?;
         let position = self.get_nucl_position(nucl)?;
         Some(XoverOrigin {
             scene_element: element,
@@ -136,7 +136,7 @@ impl<'a, S: AppState> EventContext<'a, S> {
         // search
         let no_phantom = false;
 
-        let nucl_under_cursor = self.element_to_nucl(&element, no_phantom);
+        let nucl_under_cursor = self.element_to_nucl(element.as_ref(), no_phantom);
 
         nucl_under_cursor
             .map(|n| n.position)
@@ -147,8 +147,8 @@ impl<'a, S: AppState> EventContext<'a, S> {
     /// made, return that pair of nucleotide.
     pub fn attempt_xover(
         &self,
-        source: &Option<SceneElement>,
-        dest: &Option<SceneElement>,
+        source: Option<&SceneElement>,
+        dest: Option<&SceneElement>,
     ) -> Option<(Nucl, Nucl, usize)> {
         self.controller.data.borrow().attempt_xover(source, dest)
     }

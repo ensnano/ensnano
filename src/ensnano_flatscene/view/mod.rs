@@ -149,7 +149,11 @@ impl View {
             depth_stencil_state.clone(),
         );
 
-        let background = Background::new(&device, globals_top.get_layout(), &depth_stencil_state);
+        let background = Background::new(
+            &device,
+            globals_top.get_layout(),
+            depth_stencil_state.as_ref(),
+        );
         let circle_drawer_top = CircleDrawer::new(
             device.clone(),
             queue.clone(),
@@ -349,7 +353,7 @@ impl View {
         self.strands.iter_mut().last().unwrap().update(
             strand,
             helices,
-            &self.free_end,
+            self.free_end.as_ref(),
             &self.camera_top,
             other_cam,
         );
@@ -375,7 +379,7 @@ impl View {
                 s.update(
                     &strands[i],
                     helices,
-                    &self.free_end,
+                    self.free_end.as_ref(),
                     &self.camera_top,
                     other_cam,
                 );
@@ -403,7 +407,7 @@ impl View {
         };
         for s in strands {
             let mut strand_view = StrandView::new(self.device.clone(), self.queue.clone());
-            strand_view.update(s, helices, &None, &self.camera_top, other_cam);
+            strand_view.update(s, helices, None, &self.camera_top, other_cam);
             self.selected_strands.push(strand_view);
         }
         self.was_updated = true;
@@ -418,7 +422,7 @@ impl View {
         };
         for s in strands {
             let mut strand_view = StrandView::new(self.device.clone(), self.queue.clone());
-            strand_view.update(s, helices, &None, &self.camera_top, other_cam);
+            strand_view.update(s, helices, None, &self.camera_top, other_cam);
             self.candidate_strands.push(strand_view);
         }
         self.was_updated = true;
@@ -437,13 +441,7 @@ impl View {
             .iter()
             .map(|strand| {
                 let mut pasted_strand = StrandView::new(self.device.clone(), self.queue.clone());
-                pasted_strand.update(
-                    strand,
-                    helices,
-                    &None,
-                    &self.camera_top,
-                    &self.camera_bottom,
-                );
+                pasted_strand.update(strand, helices, None, &self.camera_top, &self.camera_bottom);
                 pasted_strand
             })
             .collect();

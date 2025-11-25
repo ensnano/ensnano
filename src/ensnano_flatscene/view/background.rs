@@ -19,7 +19,7 @@ impl Background {
     pub fn new(
         device: &Device,
         globals_layout: &wgpu::BindGroupLayout,
-        depth_stencil: &Option<wgpu::DepthStencilState>,
+        depth_stencil: Option<&wgpu::DepthStencilState>,
     ) -> Self {
         let mut bg_geometry: VertexBuffers<BgPoint, u16> = VertexBuffers::new();
         let mut fill_tess = FillTessellator::new();
@@ -88,7 +88,7 @@ impl Background {
                 entry_point: "main",
                 targets,
             }),
-            depth_stencil: depth_stencil.clone(),
+            depth_stencil: depth_stencil.cloned(),
             primitive,
             multisample: wgpu::MultisampleState {
                 count: SAMPLE_COUNT,
@@ -114,7 +114,7 @@ impl Background {
                 entry_point: "main",
                 targets,
             }),
-            depth_stencil: depth_stencil.clone(),
+            depth_stencil: depth_stencil.cloned(),
             primitive,
             multisample: wgpu::MultisampleState {
                 count: SAMPLE_COUNT,
