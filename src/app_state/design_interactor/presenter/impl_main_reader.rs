@@ -3,7 +3,7 @@ use crate::controller::download_staples::{
     DownloadStapleError, DownloadStapleOk, StaplesDownloader,
 };
 use crate::ensnano_design::grid::HelixGridPosition;
-use crate::ensnano_interactor::InteractorDesignReaderExt as MainReader;
+use crate::ensnano_interactor::selection::InteractorDesignReaderExt as MainReader;
 use itertools::Itertools as _;
 use rust_xlsxwriter::{Color, Format, Workbook};
 use serde::Serialize;

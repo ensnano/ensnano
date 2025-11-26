@@ -120,19 +120,27 @@ use {
         ensnano_gui::{AppState as _, ColorOverlay, Gui, IcedMessages, OverlayType, TopBarState},
         ensnano_iced::{fonts, theme, ui_size::UiSize},
         ensnano_interactor::{
-            ActionMode, CenterOfSelection, DesignOperation, DesignRotation, DesignTranslation,
-            InteractorDesignReaderExt, IsometryTarget, PastingStatus,
-            RevolutionSurfaceSystemDescriptor, RigidBodyConstants, Selection, SelectionMode,
-            UnrootedRevolutionSurfaceDescriptor,
+            DesignOperation, DesignRotation, DesignTranslation, IsometryTarget, PastingStatus,
+            RigidBodyConstants,
             app_state_parameters::{
-                AppStateParameters, CheckXoversParameter, SuggestionParameters,
+                AppStateParameters, check_xovers_parameter::CheckXoversParameter,
+                suggestion_parameters::SuggestionParameters,
             },
             application::{Application, Camera3D, Notification},
             graphics::{Background3D, GuiComponentType, HBondDisplay, RenderingMode, SplitMode},
             operation::Operation,
+            selection::{
+                ActionMode, CenterOfSelection, InteractorDesignReaderExt, Selection, SelectionMode,
+                extract_nucls_from_selection, extract_only_grids, extract_strands_from_selection,
+                list_of_bezier_vertices, list_of_free_grids, list_of_helices, list_of_strands,
+                list_of_xover_as_nucl_pairs,
+            },
+            surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},
         },
         ensnano_organizer::tree::GroupId,
-        ensnano_scene::{AppState as _, Scene, SceneKind, data::SceneDesignReaderExt as _},
+        ensnano_scene::{
+            AppState as _, Scene, SceneKind, data::design3d::SceneDesignReaderExt as _,
+        },
         ensnano_utils::{PhySize, TEXTURE_FORMAT},
         requests::Requests,
     },
@@ -1294,9 +1302,7 @@ impl MainState {
     }
 
     fn set_roll_of_selected_helices(&mut self, roll: f32) {
-        if let Some((_, helices)) =
-            crate::ensnano_interactor::list_of_helices(self.app_state.get_selection().as_ref())
-        {
+        if let Some((_, helices)) = list_of_helices(self.app_state.get_selection().as_ref()) {
             self.apply_operation(DesignOperation::SetRollHelices { helices, roll });
         }
     }
@@ -1391,22 +1397,15 @@ impl MainState {
     fn request_copy(&mut self) {
         let reader = self.app_state.get_design_interactor();
         let selection = self.app_state.get_selection();
-        if let Some((_, xover_ids)) =
-            crate::ensnano_interactor::list_of_xover_as_nucl_pairs(selection.as_ref(), &reader)
-        {
+        if let Some((_, xover_ids)) = list_of_xover_as_nucl_pairs(selection.as_ref(), &reader) {
             self.apply_copy_operation(CopyOperation::CopyXovers(xover_ids));
-        } else if let Some(grid_ids) =
-            crate::ensnano_interactor::extract_only_grids(selection.as_ref())
-        {
+        } else if let Some(grid_ids) = extract_only_grids(selection.as_ref()) {
             self.apply_copy_operation(CopyOperation::CopyGrids(grid_ids));
-        } else if let Some((_, helices)) =
-            crate::ensnano_interactor::list_of_helices(selection.as_ref())
-        {
+        } else if let Some((_, helices)) = list_of_helices(selection.as_ref()) {
             self.apply_copy_operation(CopyOperation::CopyHelices(helices));
         } else {
-            let strand_ids = crate::ensnano_interactor::extract_strands_from_selection(
-                self.app_state.get_selection().as_ref(),
-            );
+            let strand_ids =
+                extract_strands_from_selection(self.app_state.get_selection().as_ref());
             self.apply_copy_operation(CopyOperation::CopyStrands(strand_ids));
         }
     }
@@ -1423,19 +1422,17 @@ impl MainState {
     fn request_duplication(&mut self) {
         if self.app_state.can_iterate_duplication() {
             self.apply_copy_operation(CopyOperation::Duplicate);
-        } else if let Some((_, nucl_pairs)) = crate::ensnano_interactor::list_of_xover_as_nucl_pairs(
+        } else if let Some((_, nucl_pairs)) = list_of_xover_as_nucl_pairs(
             self.app_state.get_selection().as_ref(),
             &self.app_state.get_design_interactor(),
         ) {
             self.apply_copy_operation(CopyOperation::InitXoverDuplication(nucl_pairs));
-        } else if let Some((_, helices)) =
-            crate::ensnano_interactor::list_of_helices(self.app_state.get_selection().as_ref())
+        } else if let Some((_, helices)) = list_of_helices(self.app_state.get_selection().as_ref())
         {
             self.apply_copy_operation(CopyOperation::InitHelicesDuplication(helices));
         } else {
-            let strand_ids = crate::ensnano_interactor::extract_strands_from_selection(
-                self.app_state.get_selection().as_ref(),
-            );
+            let strand_ids =
+                extract_strands_from_selection(self.app_state.get_selection().as_ref());
             self.apply_copy_operation(CopyOperation::InitStrandsDuplication(strand_ids));
         }
     }
@@ -1866,34 +1863,26 @@ impl MainStateView<'_> {
 
     fn delete_selection(&mut self) {
         let selection = self.get_selection();
-        if let Some((_, nucl_pairs)) = crate::ensnano_interactor::list_of_xover_as_nucl_pairs(
+        if let Some((_, nucl_pairs)) = list_of_xover_as_nucl_pairs(
             selection.as_ref().as_ref(),
             self.get_design_reader().as_ref(),
         ) {
             self.main_state.update_selection(vec![], None);
             self.main_state
                 .apply_operation(DesignOperation::RmXovers { xovers: nucl_pairs });
-        } else if let Some((_, strand_ids)) =
-            crate::ensnano_interactor::list_of_strands(selection.as_ref().as_ref())
-        {
+        } else if let Some((_, strand_ids)) = list_of_strands(selection.as_ref().as_ref()) {
             self.main_state.update_selection(vec![], None);
             self.main_state
                 .apply_operation(DesignOperation::RmStrands { strand_ids });
-        } else if let Some((_, h_ids)) =
-            crate::ensnano_interactor::list_of_helices(selection.as_ref().as_ref())
-        {
+        } else if let Some((_, h_ids)) = list_of_helices(selection.as_ref().as_ref()) {
             self.main_state.update_selection(vec![], None);
             self.main_state
                 .apply_operation(DesignOperation::RmHelices { h_ids });
-        } else if let Some(grid_ids) =
-            crate::ensnano_interactor::list_of_free_grids(selection.as_ref().as_ref())
-        {
+        } else if let Some(grid_ids) = list_of_free_grids(selection.as_ref().as_ref()) {
             self.main_state.update_selection(vec![], None);
             self.main_state
                 .apply_operation(DesignOperation::RmFreeGrids { grid_ids });
-        } else if let Some(vertices) =
-            crate::ensnano_interactor::list_of_bezier_vertices(selection.as_ref().as_ref())
-        {
+        } else if let Some(vertices) = list_of_bezier_vertices(selection.as_ref().as_ref()) {
             self.main_state.update_selection(vec![], None);
             self.main_state
                 .apply_operation(DesignOperation::RmBezierVertices { vertices });
@@ -1939,9 +1928,7 @@ impl MainStateView<'_> {
 
     fn turn_selection_into_anchor(&mut self) {
         let selection = self.get_selection();
-        let nucls =
-            crate::ensnano_interactor::extract_nucls_from_selection(selection.as_ref().as_ref());
-
+        let nucls = extract_nucls_from_selection(selection.as_ref().as_ref());
         self.main_state
             .apply_operation(DesignOperation::FlipAnchors { nucls });
     }

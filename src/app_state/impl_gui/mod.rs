@@ -3,7 +3,8 @@ mod curve_builders;
 use super::*;
 use crate::ensnano_design::{HelixParameters, elements::DesignElementKey};
 use crate::ensnano_gui::{AppState as GuiState, ClipboardContent};
-use crate::ensnano_interactor::{ScaffoldInfo, SelectionConversion as _, SimulationState};
+use crate::ensnano_interactor::selection::{SelectionConversion as _, all_helices_no_grid};
+use crate::ensnano_interactor::{ScaffoldInfo, SimulationState};
 use curve_builders::*;
 
 impl GuiState for AppState {
@@ -51,10 +52,7 @@ impl GuiState for AppState {
 
     fn can_make_grid(&self) -> bool {
         self.selection_content().len() > 4
-            && crate::ensnano_interactor::all_helices_no_grid(
-                self.selection_content(),
-                &self.get_design_interactor(),
-            )
+            && all_helices_no_grid(self.selection_content(), &self.get_design_interactor())
     }
 
     fn get_reader(&self) -> Box<dyn crate::ensnano_gui::GuiDesignReaderExt> {

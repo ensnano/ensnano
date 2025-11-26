@@ -1,9 +1,7 @@
 //! This modules handles internal information about the scene, such as the selected objects etc..
 //! It also communicates with the designs to get the position of the objects to draw on the scene.
 
-mod design3d;
-
-pub use design3d::{HBond, HalfHBond, Scalebar, SceneDesignReaderExt};
+pub mod design3d;
 
 use super::{AppState, Camera3D, SceneElement, View, ViewUpdate, view::Mesh};
 use crate::ensnano_consts::{
@@ -14,24 +12,22 @@ use crate::ensnano_design::{
     BezierVertexId, Collection as _, External3DObjectsStamp, Nucl, SurfaceInfo, SurfacePoint,
     grid::{GridId, GridObject, GridPosition},
 };
-use crate::ensnano_interactor::{
-    ActionMode, CenterOfSelection, ObjectType, PhantomElement, Referential, Selection,
-    SelectionMode, graphics::HBondDisplay,
+use crate::ensnano_interactor::selection::{
+    ActionMode, CenterOfSelection, PhantomElement, Selection, SelectionMode,
+    extract_helices_with_controls,
 };
-use crate::ensnano_scene::view::dna_obj::RawDnaInstance;
-use crate::ensnano_scene::view::gltf_drawer::ExternalObjects;
-use crate::ensnano_scene::view::grid_disc::GridDisc;
-use crate::ensnano_scene::view::handle_drawer::HandlesDescriptor;
-use crate::ensnano_scene::view::instances_drawer::Instantiable as _;
-use crate::ensnano_scene::view::letter::LetterInstance;
-use crate::ensnano_scene::view::rotation_widget::{
-    AvailableRotationAxes, RotationWidgetDescriptor, RotationWidgetOrientation,
-};
+use crate::ensnano_interactor::{ObjectType, Referential, graphics::HBondDisplay};
 use crate::ensnano_scene::view::{
-    dna_obj::StereographicSphereAndPlane, handle_drawer::HandleColors,
+    dna_obj::{RawDnaInstance, StereographicSphereAndPlane},
+    gltf_drawer::ExternalObjects,
+    grid_disc::GridDisc,
+    handle_drawer::{HandleColors, HandlesDescriptor},
+    instances_drawer::Instantiable as _,
+    letter::LetterInstance,
+    rotation_widget::{AvailableRotationAxes, RotationWidgetDescriptor, RotationWidgetOrientation},
 };
 use crate::ensnano_utils::StrandNucleotidesPositions;
-use design3d::Design3D;
+use design3d::{Design3D, SceneDesignReaderExt};
 use std::{
     cell::RefCell,
     collections::{BTreeMap, HashMap, HashSet},
@@ -235,8 +231,7 @@ impl<R: SceneDesignReaderExt> Data<R> {
     }
 
     fn update_bezier<S: AppState>(&self, app_state: &S) {
-        let selected_helices =
-            crate::ensnano_interactor::extract_helices_with_controls(app_state.get_selection());
+        let selected_helices = extract_helices_with_controls(app_state.get_selection());
         log::debug!("selected helices {selected_helices:?}");
         let mut spheres = Vec::new();
         let mut tubes = Vec::new();

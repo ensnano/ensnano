@@ -5,9 +5,8 @@ use crate::ensnano_design::{
     AdditionalStructure, CurveDescriptor, CurveDescriptor2D, Domain, DomainJunction, Helix,
     HelixInterval, HelixParameters, InterpolationDescriptor, Strand, utils::dvec_to_vec,
 };
-use crate::ensnano_interactor::{
+use crate::ensnano_interactor::surfaces::{
     EquadiffSolvingMethod, RevolutionSimulationParameters, RevolutionSurfaceSystemDescriptor,
-    RootedRevolutionSurface,
 };
 use crate::ensnano_utils::colors::new_color;
 use crate::{app_state::ErrOperation, controller::channel_reader::ChannelReader};

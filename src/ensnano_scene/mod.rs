@@ -12,18 +12,24 @@ use crate::ensnano_design::{
     BezierVertexId, Nucl, consts::ITERATIVE_AXIS_ALGORITHM, grid::GridPosition,
     grid::HelixGridPosition, group_attributes::GroupPivot,
 };
+use crate::ensnano_interactor::surfaces::UnrootedRevolutionSurfaceDescriptor;
 use crate::ensnano_interactor::{
-    ActionMode, CenterOfSelection, DesignOperation, NewBezierTangentVector, Selection,
-    SelectionMode, StrandBuilder, UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
-    app_state_parameters::CheckXoversParameter,
+    DesignOperation, NewBezierTangentVector, WidgetBasis,
+    app_state_parameters::check_xovers_parameter::CheckXoversParameter,
     application::{AppId, Application, Camera3D, Notification},
     graphics::{DrawArea, FogParameters},
     operation::*,
+    selection::{
+        ActionMode, CenterOfSelection, Selection, SelectionMode, extract_control_points,
+        list_of_xover_ids, set_of_grids_containing_selection, set_of_helices_containing_selection,
+    },
+    strand_builder::StrandBuilder,
 };
 use crate::ensnano_organizer::tree::GroupId;
+use crate::ensnano_scene::controller::automata::WidgetTarget;
 use crate::ensnano_utils::{BufferDimensions, PhySize, filename};
-use controller::{Consequence, Controller, WidgetTarget};
-use data::{Data, SceneDesignReaderExt};
+use controller::{Consequence, Controller};
+use data::{Data, design3d::SceneDesignReaderExt};
 use element_selector::{ElementSelector, SceneElement};
 use itertools::Itertools as _;
 use maths_3d::FiniteVec3;
@@ -419,10 +425,8 @@ impl<S: AppState> Scene<S> {
                     .update(ViewUpdate::FogCenter(Some(Vec3::zero())));
             }
             Consequence::CheckXovers => {
-                let xovers = crate::ensnano_interactor::list_of_xover_ids(
-                    app_state.get_selection(),
-                    &app_state.get_design_reader(),
-                );
+                let xovers =
+                    list_of_xover_ids(app_state.get_selection(), &app_state.get_design_reader());
                 if let Some((_, xovers)) = xovers {
                     self.requests
                         .lock()
@@ -633,17 +637,10 @@ impl<S: AppState> Scene<S> {
         let dir = Vec3::unit_z().rotated_by(rotor);
 
         let reader = app_state.get_design_reader();
-        let helices = crate::ensnano_interactor::set_of_helices_containing_selection(
-            app_state.get_selection(),
-            &reader,
-        );
-        let grids = crate::ensnano_interactor::set_of_grids_containing_selection(
-            app_state.get_selection(),
-            &reader,
-        );
+        let helices = set_of_helices_containing_selection(app_state.get_selection(), &reader);
+        let grids = set_of_grids_containing_selection(app_state.get_selection(), &reader);
         log::debug!("grids {grids:?}");
-        let control_points =
-            crate::ensnano_interactor::extract_control_points(app_state.get_selection());
+        let control_points = extract_control_points(app_state.get_selection());
         let at_most_one_grid = grids.as_ref().is_some_and(|g| g.len() <= 1);
 
         let group_id = app_state.get_current_group_id();
@@ -721,11 +718,11 @@ impl<S: AppState> Scene<S> {
             angle *= -1.;
             plane *= -1.;
         }
-        let grids = crate::ensnano_interactor::set_of_grids_containing_selection(
+        let grids = set_of_grids_containing_selection(
             app_state.get_selection(),
             &app_state.get_design_reader(),
         );
-        let helices = crate::ensnano_interactor::set_of_helices_containing_selection(
+        let helices = set_of_helices_containing_selection(
             app_state.get_selection(),
             &app_state.get_design_reader(),
         );

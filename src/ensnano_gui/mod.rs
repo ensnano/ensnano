@@ -18,28 +18,38 @@ pub use left_panel::{
 pub use status_bar::{ClipboardContent, CurrentOpState};
 pub use top_bar::TopBar;
 
-use crate::ensnano_design::{
-    BezierPathId, BezierVertexId, CameraId, HelixParameters, Nucl,
-    elements::{DesignElement, DesignElementKey, DnaAttribute},
-    grid::{GridId, GridTypeDescr},
-};
-use crate::ensnano_iced::{
-    fonts::{INTER_REGULAR_FONT, load_fonts},
-    ui_size::UiSize,
-};
 use crate::ensnano_interactor::{
-    ActionMode, HyperboloidRequest, InsertionPoint, Multiplexer, PastingStatus,
-    RapierSimulationRequest, RevolutionSurfaceSystemDescriptor, RollRequest, ScaffoldInfo,
-    Selection, SelectionMode, SimulationState, StrandBuildingStatus,
-    UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
-    app_state_parameters::{AppStateParameters, CheckXoversParameter, SuggestionParameters},
+    HyperboloidRequest, InsertionPoint, PastingStatus, RapierSimulationRequest, RollRequest,
+    ScaffoldInfo, SimulationState, StrandBuildingStatus, WidgetBasis,
+    app_state_parameters::{
+        AppStateParameters, check_xovers_parameter::CheckXoversParameter,
+        suggestion_parameters::SuggestionParameters,
+    },
     graphics::{
         Background3D, DrawArea, FogParameters, GuiComponentType, HBondDisplay, RenderingMode,
         SplitMode,
     },
+    multiplexer::Multiplexer,
     operation::Operation,
+    selection::Selection,
+    surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},
 };
 use crate::ensnano_organizer::tree::{GroupId, OrganizerTree};
+use crate::{
+    ensnano_design::{
+        BezierPathId, BezierVertexId, CameraId, HelixParameters, Nucl,
+        elements::{DesignElement, DesignElementKey, DnaAttribute},
+        grid::{GridId, GridTypeDescr},
+    },
+    ensnano_interactor::selection::ActionMode,
+};
+use crate::{
+    ensnano_iced::{
+        fonts::{INTER_REGULAR_FONT, load_fonts},
+        ui_size::UiSize,
+    },
+    ensnano_interactor::selection::SelectionMode,
+};
 use iced::{
     Renderer, Size,
     advanced::{clipboard, mouse, renderer},

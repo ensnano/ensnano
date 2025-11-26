@@ -10,11 +10,14 @@ use crate::ensnano_design::{
     HelixParameters, InstantiatedPath, Nucl, SurfaceInfo, SurfacePoint,
     grid::{GridId, GridObject, GridPosition, HelixGridPosition},
 };
+use crate::ensnano_interactor::selection::{
+    PHANTOM_RANGE, PhantomElement, phantom_helix_encoder_bond, phantom_helix_encoder_nucl,
+};
 use crate::ensnano_interactor::{
-    ObjectType, PHANTOM_RANGE, PhantomElement, Referential,
+    ObjectType, Referential,
     consts::*,
     graphics::{LoopoutBond, LoopoutNucl},
-    phantom_helix_encoder_bond, phantom_helix_encoder_nucl,
+    selection::InteractorDesignReaderExt,
 };
 use crate::ensnano_scene::{
     SceneElement::DesignElement,
@@ -1609,9 +1612,7 @@ pub(super) enum ExpandWith {
 
 pub type Scalebar = (f32, f32, fn(f32, f32, f32) -> u32);
 
-pub trait SceneDesignReaderExt:
-    'static + crate::ensnano_interactor::InteractorDesignReaderExt
-{
+pub trait SceneDesignReaderExt: 'static + InteractorDesignReaderExt {
     /// Return the identifier of all the visible nucleotides
     fn get_all_visible_nucl_ids(&self) -> Vec<u32>;
     /// Return the identifier of all the visible bounds

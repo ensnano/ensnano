@@ -5,17 +5,12 @@ pub mod app_state_parameters;
 pub mod application;
 pub mod consts;
 pub mod graphics;
-mod multiplexer;
+pub mod multiplexer;
 pub mod operation;
-mod selection;
-mod strand_builder;
-mod surfaces;
+pub mod selection;
+pub mod strand_builder;
+pub mod surfaces;
 pub mod torsion;
-
-pub use multiplexer::Multiplexer;
-pub use selection::*;
-pub use strand_builder::*;
-pub use surfaces::*;
 
 use crate::ensnano_design::{
     BezierControlPoint, BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex,
@@ -25,7 +20,9 @@ use crate::ensnano_design::{
     group_attributes::GroupPivot,
 };
 use crate::ensnano_organizer::tree::{GroupId, OrganizerTree};
+use selection::*;
 use std::path::PathBuf;
+use surfaces::*;
 use ultraviolet::{Isometry2, Rotor3, Vec2, Vec3};
 
 #[derive(Clone, Eq, PartialEq, Debug)]

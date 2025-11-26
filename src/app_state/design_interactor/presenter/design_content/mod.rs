@@ -15,7 +15,8 @@ use crate::ensnano_interactor::{
     ObjectType,
     graphics::{LoopoutBond, LoopoutNucl},
 };
-use crate::ensnano_scene::{data::Scalebar, view::grid::GridInstance};
+use crate::ensnano_scene::data::design3d::Scalebar;
+use crate::ensnano_scene::view::grid::GridInstance;
 use crate::ensnano_utils::{click_counter::ClickCounter, colors, instance::Instance};
 use ahash::RandomState;
 use serde::Serialize;

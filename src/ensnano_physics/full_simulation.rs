@@ -1,10 +1,10 @@
 use crate::ensnano_design::{Helices, HelixCollection as _, HelixParameters, Nucl};
 use crate::ensnano_interactor::ObjectType;
 use crate::ensnano_physics::{
-    RapierPhysicsSystem,
     anchors::SpringAnchorsReference,
     helices::{IntermediaryHelix, IntermediaryPair},
     point_from_parts,
+    simulation::RapierPhysicsSystem,
 };
 use ahash::HashMap;
 use itertools::Itertools as _;

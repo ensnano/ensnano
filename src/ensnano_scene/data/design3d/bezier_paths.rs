@@ -1,7 +1,7 @@
 use super::*;
 use crate::ensnano_consts::*;
 use crate::ensnano_design::{BezierEndCoordinates, BezierVertexId};
-use crate::ensnano_interactor::Selection;
+use crate::ensnano_interactor::selection::Selection;
 use crate::ensnano_scene::{
     AppState, element_selector,
     view::{instances_drawer::Instantiable as _, sheet_2d::Sheet2D},

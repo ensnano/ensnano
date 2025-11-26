@@ -7,7 +7,7 @@ use crate::ensnano_iced::{
     theme,
     ui_size::UiSize,
 };
-use crate::ensnano_interactor::{
+use crate::ensnano_interactor::surfaces::{
     EquadiffSolvingMethod, RevolutionSimulationParameters, RevolutionSurfaceRadius,
     RevolutionSurfaceSystemDescriptor, RootingParameters, ShiftGenerator,
     UnrootedRevolutionSurfaceDescriptor,

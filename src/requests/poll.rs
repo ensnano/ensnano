@@ -3,7 +3,8 @@
 
 use crate::controller::normal_state::Action;
 use crate::ensnano_interactor::{
-    DesignOperation, HyperboloidOperation, SelectionConversion as _, application::Notification,
+    DesignOperation, HyperboloidOperation, application::Notification,
+    selection::SelectionConversion as _,
 };
 use crate::requests::Requests;
 use crate::{MainState, app_state::design_interactor::controller::clipboard::PastePosition};

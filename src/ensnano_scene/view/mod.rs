@@ -23,13 +23,12 @@ use super::{
     DrawArea, PhySize, camera,
     maths_3d::{self, distance_to_cursor_with_penalty},
 };
-use crate::ensnano_consts::*;
 use crate::ensnano_design::{Axis, grid::GridId, group_attributes::GroupPivot, utils::dvec_to_vec};
-use crate::ensnano_interactor::{
-    UnrootedRevolutionSurfaceDescriptor,
-    graphics::{Background3D, CutPlaneParameters, FogParameters, HBondDisplay, RenderingMode},
+use crate::ensnano_interactor::graphics::{
+    Background3D, CutPlaneParameters, FogParameters, HBondDisplay, RenderingMode,
 };
 use crate::ensnano_utils::{bindgroup_manager, text, texture};
+use crate::{ensnano_consts::*, ensnano_interactor::surfaces::UnrootedRevolutionSurfaceDescriptor};
 use bindgroup_manager::{DynamicBindGroup, UniformBindGroup};
 use camera::{Camera, CameraPtr, Projection, ProjectionPtr};
 use direction_cube::*;

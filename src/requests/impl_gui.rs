@@ -8,14 +8,18 @@ use crate::ensnano_design::{
 use crate::ensnano_exports::ExportType;
 use crate::ensnano_gui::{OverlayType, RigidBodyParametersRequest};
 use crate::ensnano_iced::ui_size::UiSize;
+use crate::ensnano_interactor::app_state_parameters::check_xovers_parameter::CheckXoversParameter;
+use crate::ensnano_interactor::app_state_parameters::suggestion_parameters::SuggestionParameters;
+use crate::ensnano_interactor::surfaces::{
+    RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor,
+};
 use crate::ensnano_interactor::{
-    ActionMode, DesignOperation, HyperboloidRequest, InsertionPoint, RapierSimulationRequest,
-    RevolutionSurfaceSystemDescriptor, RigidBodyConstants, RollRequest, SelectionMode,
-    UnrootedRevolutionSurfaceDescriptor,
-    app_state_parameters::{CheckXoversParameter, SuggestionParameters},
+    DesignOperation, HyperboloidRequest, InsertionPoint, RapierSimulationRequest,
+    RigidBodyConstants, RollRequest,
     application::Notification,
     graphics::{Background3D, FogParameters, HBondDisplay, RenderingMode, SplitMode},
     operation::Operation,
+    selection::{ActionMode, SelectionMode},
 };
 use crate::ensnano_organizer::tree::{GroupId, OrganizerTree};
 use crate::requests::Requests;

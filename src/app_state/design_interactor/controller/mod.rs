@@ -4,31 +4,15 @@ pub mod simulations;
 pub mod update_insertion_length;
 
 use super::SimulationUpdate;
-use crate::ensnano_design::{
-    BezierControlPoint, BezierEnd, BezierPathId, BezierPlaneDescriptor, BezierPlaneId,
-    BezierVertex, BezierVertexId, CameraId, Collection as _, CurveDescriptor, Design, Domain,
-    DomainJunction, External3DObject, External3DObjectDescriptor, Helices, Helix,
-    HelixCollection as _, HelixInterval, Nucl, NuclCollection, Strand, Strands, SvgImportError,
-    UpToDateDesign,
-    design_operations::{
-        ErrDesignOperation, attach_object_to_grid, make_grid_from_helices, rotate_helices_3d,
-        translate_helices,
-    },
-    drawing_style::{DrawingAttribute, DrawingStyle},
-    elements::{DesignElementKey, DnaAttribute},
-    grid::{
-        Edge, FreeGridId, GridCopyError, GridDescriptor, GridDivision as _, GridId, GridObject,
-        GridPosition, GridTypeDescr, HelixGridPosition, Hyperboloid,
-    },
-    group_attributes::GroupPivot,
-    mutate_in_arc, read_first_svg_path,
-};
 use crate::ensnano_gui::ClipboardContent;
 use crate::ensnano_interactor::{
-    BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation, DomainIdentifier,
-    HyperboloidOperation, IsometryTarget, NeighborDescriptor, NeighborDescriptorGiver as _,
-    NewBezierTangentVector, PastingStatus, Selection, SimulationState, StrandBuilder,
+    BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation,
+    HyperboloidOperation, IsometryTarget, NewBezierTangentVector, PastingStatus, SimulationState,
     operation::{Operation, TranslateBezierPathVertex},
+    selection::Selection,
+    strand_builder::{
+        DomainIdentifier, NeighborDescriptor, NeighborDescriptorGiver as _, StrandBuilder,
+    },
 };
 use crate::ensnano_organizer::tree::GroupId;
 use crate::ensnano_utils::colors;
@@ -45,6 +29,28 @@ use crate::{
         },
     },
     controller::channel_reader::ChannelReader,
+};
+use crate::{
+    ensnano_design::{
+        BezierControlPoint, BezierEnd, BezierPathId, BezierPlaneDescriptor, BezierPlaneId,
+        BezierVertex, BezierVertexId, CameraId, Collection as _, CurveDescriptor, Design, Domain,
+        DomainJunction, External3DObject, External3DObjectDescriptor, Helices, Helix,
+        HelixCollection as _, HelixInterval, Nucl, NuclCollection, Strand, Strands, SvgImportError,
+        UpToDateDesign,
+        design_operations::{
+            ErrDesignOperation, attach_object_to_grid, make_grid_from_helices, rotate_helices_3d,
+            translate_helices,
+        },
+        drawing_style::{DrawingAttribute, DrawingStyle},
+        elements::{DesignElementKey, DnaAttribute},
+        grid::{
+            Edge, FreeGridId, GridCopyError, GridDescriptor, GridDivision as _, GridId, GridObject,
+            GridPosition, GridTypeDescr, HelixGridPosition, Hyperboloid,
+        },
+        group_attributes::GroupPivot,
+        mutate_in_arc, read_first_svg_path,
+    },
+    ensnano_interactor::selection::list_of_helices,
 };
 use clipboard::{Clipboard, CopyOperation, PastePosition, PastedStrand, StrandClipboard};
 use std::{
@@ -1224,8 +1230,7 @@ impl Controller {
         mut design: Design,
         selection: Vec<Selection>,
     ) -> Result<Design, ErrOperation> {
-        let helices = crate::ensnano_interactor::list_of_helices(&selection)
-            .ok_or(ErrOperation::BadSelection)?;
+        let helices = list_of_helices(&selection).ok_or(ErrOperation::BadSelection)?;
         make_grid_from_helices(&mut design, &helices.1)?;
         Ok(design)
     }

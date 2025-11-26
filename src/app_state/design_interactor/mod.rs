@@ -11,9 +11,10 @@ use crate::ensnano_design::{
 };
 use crate::ensnano_exports::{ExportResult, ExportType};
 use crate::ensnano_gui::CurrentOpState;
+use crate::ensnano_interactor::app_state_parameters::suggestion_parameters::SuggestionParameters;
+use crate::ensnano_interactor::strand_builder::StrandBuilder;
 use crate::ensnano_interactor::{
-    DesignOperation, PastingStatus, Selection, SimulationState, StrandBuilder,
-    app_state_parameters::SuggestionParameters, operation::Operation,
+    DesignOperation, PastingStatus, SimulationState, operation::Operation, selection::Selection,
 };
 use crate::ensnano_organizer::tree::GroupId;
 use crate::{
@@ -393,9 +394,9 @@ mod tests {
         grid::{GridDescriptor, GridTypeDescr, HelixGridPosition},
     };
     use crate::ensnano_interactor::{
-        InsertionPoint, InteractorDesignReaderExt as _, operation::GridHelixCreation,
+        InsertionPoint, operation::GridHelixCreation, selection::InteractorDesignReaderExt as _,
     };
-    use crate::ensnano_scene::data::SceneDesignReaderExt as _;
+    use crate::ensnano_scene::data::design3d::SceneDesignReaderExt as _;
     use crate::ensnano_utils::id_generator::IdGenerator;
     use crate::{
         OkOperation as TopOkOperation,

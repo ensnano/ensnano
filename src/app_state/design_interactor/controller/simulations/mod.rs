@@ -4,9 +4,12 @@ pub mod roller;
 pub mod twister;
 
 use super::*;
-use crate::app_state::design_interactor::Presenter;
 use crate::ensnano_design::HelixParameters;
-use crate::ensnano_interactor::{RevolutionSurfaceSystemDescriptor, RigidBodyConstants};
+use crate::ensnano_interactor::RigidBodyConstants;
+use crate::{
+    app_state::design_interactor::Presenter,
+    ensnano_interactor::surfaces::RevolutionSurfaceSystemDescriptor,
+};
 use mathru::{
     algebra::linear::vector::vector::Vector,
     analysis::differential_equation::ordinary::{

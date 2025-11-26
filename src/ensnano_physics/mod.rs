@@ -7,9 +7,7 @@ mod full_simulation;
 mod helices;
 mod import;
 mod repulsion;
-mod simulation;
-
-pub use simulation::RapierPhysicsSystem;
+pub mod simulation;
 
 use rapier3d::{
     na::{Const, OVector, Point3},

@@ -15,9 +15,10 @@
 pub mod layout_manager;
 
 use crate::ensnano_iced::ui_size::UiSize;
+use crate::ensnano_interactor::selection::{ActionMode, SelectionMode};
 use crate::ensnano_interactor::{
-    ActionMode, Multiplexer as GuiMultiplexer, SelectionMode,
     graphics::{DrawArea, GuiComponentType, SplitMode},
+    multiplexer::Multiplexer as GuiMultiplexer,
 };
 use crate::ensnano_utils::texture::SampledTexture;
 use crate::{PhySize, controller::normal_state::Action, requests::Requests};

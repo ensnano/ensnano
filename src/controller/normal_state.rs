@@ -7,10 +7,13 @@ use crate::ensnano_design::{
     grid::{GridDescriptor, GridId, GridTypeDescr},
     group_attributes::GroupPivot,
 };
+use crate::ensnano_interactor::surfaces::RevolutionSurfaceSystemDescriptor;
 use crate::ensnano_interactor::{
     DesignOperation, HyperboloidOperation, HyperboloidRequest, RapierSimulationRequest,
-    RevolutionSurfaceSystemDescriptor, RigidBodyConstants, RollRequest, application::Notification,
+    RigidBodyConstants, RollRequest,
+    application::Notification,
     graphics::FogParameters,
+    selection::{all_helices_no_grid, extract_grids, extract_strands_from_selection},
 };
 use crate::{
     app_state::design_interactor::controller::{
@@ -316,7 +319,7 @@ impl State for ChangingDnaParameters {
 impl NormalState {
     fn turn_selection_into_grid(self: Box<Self>, main_state: &mut MainStateView) -> Box<Self> {
         let selection = main_state.get_selection();
-        if crate::ensnano_interactor::all_helices_no_grid(
+        if all_helices_no_grid(
             selection.as_ref().as_ref(),
             main_state.get_design_reader().as_ref(),
         ) {
@@ -347,9 +350,7 @@ impl NormalState {
     }
 
     fn change_color(self: Box<Self>, main_state: &mut MainStateView, color: u32) -> Box<Self> {
-        let strands = crate::ensnano_interactor::extract_strands_from_selection(
-            main_state.get_selection().as_ref().as_ref(),
-        );
+        let strands = extract_strands_from_selection(main_state.get_selection().as_ref().as_ref());
         main_state.apply_operation(DesignOperation::ChangeColor { color, strands });
         self
     }
@@ -359,8 +360,7 @@ impl NormalState {
         main_state: &mut MainStateView,
         small: bool,
     ) -> Box<Self> {
-        let grid_ids =
-            crate::ensnano_interactor::extract_grids(main_state.get_selection().as_ref().as_ref());
+        let grid_ids = extract_grids(main_state.get_selection().as_ref().as_ref());
         if !grid_ids.is_empty() {
             main_state.apply_operation(DesignOperation::SetSmallSpheres { grid_ids, small });
         }
@@ -372,8 +372,7 @@ impl NormalState {
         main_state: &mut MainStateView,
         persistent: bool,
     ) -> Box<Self> {
-        let grid_ids =
-            crate::ensnano_interactor::extract_grids(main_state.get_selection().as_ref().as_ref());
+        let grid_ids = extract_grids(main_state.get_selection().as_ref().as_ref());
         if !grid_ids.is_empty() {
             main_state.apply_operation(DesignOperation::SetHelicesPersistence {
                 grid_ids,

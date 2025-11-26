@@ -7,9 +7,11 @@
 
 mod automata;
 
+use crate::ensnano_interactor::selection::ActionMode;
+
 use super::{
-    ActionMode, AppState, CameraPtr, DataPtr, FlatHelix, FlatNucl, PhySize, PhysicalPosition,
-    Selection, ViewPtr, WindowEvent,
+    AppState, CameraPtr, DataPtr, FlatHelix, FlatNucl, PhySize, PhysicalPosition, Selection,
+    ViewPtr, WindowEvent,
     data::{ClickResult, FreeEnd},
 };
 use automata::{ControllerState, NormalState, Transition, ctrl};

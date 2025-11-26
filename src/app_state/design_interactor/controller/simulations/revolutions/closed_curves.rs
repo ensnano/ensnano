@@ -1,3 +1,5 @@
+use crate::ensnano_interactor::surfaces::RootedRevolutionSurface;
+
 use super::*;
 use chebyshev_polynomials::ChebyshevPolynomial;
 

@@ -15,25 +15,30 @@
 //!    positioned.
 
 mod controller;
-mod data;
+pub mod data;
 mod flat_types;
 mod view;
-
-pub use camera2d::{Camera2D, FitRectangle};
-pub use data::FlatSceneDesignReaderExt;
 
 use crate::ensnano_consts::{EXPORT_2D_MARGIN, EXPORT_2D_MAX_SIZE};
 use crate::ensnano_design::{Nucl, consts::ITERATIVE_AXIS_ALGORITHM};
 use crate::ensnano_interactor::{
-    ActionMode, DesignOperation, PhantomElement, Selection, SelectionMode, StrandBuilder,
-    StrandBuildingStatus,
+    DesignOperation, StrandBuildingStatus,
     application::{AppId, Application, Notification},
     graphics::DrawArea,
     operation::*,
+    selection::{
+        InteractorDesignReaderExt, PhantomElement, Selection, SelectionMode,
+        extract_nucls_and_xover_ends,
+    },
+    strand_builder::StrandBuilder,
 };
-use crate::ensnano_utils::{BufferDimensions, PhySize, camera2d, filename};
+use crate::ensnano_utils::{
+    BufferDimensions, PhySize,
+    camera2d::{self, Camera2D, FitRectangle},
+    filename::derive_path_with_prefix_and_time_stamp_and_suffix,
+};
 use controller::{Consequence, Controller};
-use data::Data;
+use data::{Data, FlatSceneDesignReaderExt};
 use flat_types::*;
 use itertools::Itertools as _;
 use std::{
@@ -423,7 +428,7 @@ impl<S: AppState> FlatScene<S> {
                 );
             }
             Consequence::InitBuilding(nucl) => {
-                let mut nucls = crate::ensnano_interactor::extract_nucls_and_xover_ends(
+                let mut nucls = extract_nucls_and_xover_ends(
                     app_state.get_selection(),
                     &app_state.get_design_reader(),
                 );
@@ -460,7 +465,7 @@ impl<S: AppState> FlatScene<S> {
             Consequence::PngExport(corner1, corner2) => {
                 println!("I'd like to know how you got there !");
                 let glob_png = camera2d::Globals::from_corners(corner1, corner2, png_resolution);
-                let path = filename::derive_path_with_prefix_and_time_stamp_and_suffix(
+                let path = derive_path_with_prefix_and_time_stamp_and_suffix(
                     Some(Arc::from(PathBuf::new())),
                     Some("export_2d"),
                     Some(format!("{ITERATIVE_AXIS_ALGORITHM}").as_str()),
@@ -737,7 +742,7 @@ impl<S: AppState> Application for FlatScene<S> {
                             .into(),
                             png_resolution,
                         );
-                        let path = filename::derive_path_with_prefix_and_time_stamp_and_suffix(
+                        let path = derive_path_with_prefix_and_time_stamp_and_suffix(
                             design_path.clone(),
                             Some("export_2d"),
                             Some(
@@ -807,7 +812,8 @@ impl<S: AppState> Application for FlatScene<S> {
 }
 
 pub trait AppState: Clone {
-    type Reader: FlatSceneDesignReaderExt + crate::ensnano_interactor::InteractorDesignReaderExt;
+    type Reader: FlatSceneDesignReaderExt + InteractorDesignReaderExt;
+
     fn selection_was_updated(&self, other: &Self) -> bool;
     fn candidate_was_updated(&self, other: &Self) -> bool;
     fn get_selection(&self) -> &[Selection];

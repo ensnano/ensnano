@@ -6,7 +6,7 @@ use crate::controller::normal_state::Action;
 use crate::ensnano_design::Nucl;
 use crate::ensnano_flatscene::Requests as FlatSceneRequests;
 use crate::ensnano_interactor::{
-    DesignOperation, Selection, application::AppId, operation::Operation,
+    DesignOperation, application::AppId, operation::Operation, selection::Selection,
 };
 use std::sync::Arc;
 use ultraviolet::Isometry2;

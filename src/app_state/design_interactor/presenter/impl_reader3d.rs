@@ -1,9 +1,5 @@
 use super::*;
-use crate::ensnano_interactor::{
-    ObjectType,
-    graphics::{LoopoutBond, LoopoutNucl},
-};
-use crate::ensnano_scene::data::{Scalebar, SceneDesignReaderExt};
+use crate::ensnano_scene::data::design3d::Scalebar;
 use crate::ensnano_utils::StrandNucleotidesPositions;
 use crate::{
     ensnano_design::{
@@ -12,6 +8,13 @@ use crate::{
         grid::{GridObject, GridPosition, HelixGridPosition},
     },
     ensnano_scene::view::grid::GridInstance,
+};
+use crate::{
+    ensnano_interactor::{
+        ObjectType,
+        graphics::{LoopoutBond, LoopoutNucl},
+    },
+    ensnano_scene::data::design3d::SceneDesignReaderExt,
 };
 use ultraviolet::Vec2;
 

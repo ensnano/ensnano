@@ -10,10 +10,9 @@ mod icon;
 pub mod theme;
 pub mod tree;
 
-pub use element::*;
-
 use crate::ensnano_iced::helpers::*;
 use drag_drop_target::*;
+use element::*;
 use hoverable_container::HoverableContainer;
 use iced::{Element, Length, keyboard::Modifiers};
 use rand::{Rng as _, rngs::ThreadRng};

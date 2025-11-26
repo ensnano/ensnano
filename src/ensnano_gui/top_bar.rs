@@ -15,7 +15,7 @@ use crate::ensnano_iced::{
     theme::GuiBackground,
     ui_size::UiSize,
 };
-use crate::ensnano_interactor::{ActionMode, SelectionMode};
+use crate::ensnano_interactor::selection::{ActionMode, SelectionMode};
 use iced::{Element, Length, Padding};
 use iced_runtime::{Command, Program};
 use std::sync::{Arc, Mutex};

@@ -11,10 +11,13 @@ use crate::ensnano_exports::ExportType;
 use crate::ensnano_iced::{
     color_picker::ColorPickerMessage, theme::GuiBackground, ui_size::UiSize,
 };
+use crate::ensnano_interactor::app_state_parameters::check_xovers_parameter::CheckXoversParameter;
+use crate::ensnano_interactor::app_state_parameters::suggestion_parameters::SuggestionParameters;
+use crate::ensnano_interactor::selection::{ActionMode, Selection, SelectionConversion as _};
+use crate::ensnano_interactor::surfaces::EquadiffSolvingMethod;
 use crate::ensnano_interactor::{
-    ActionMode, EquadiffSolvingMethod, HyperboloidRequest, RapierSimulationRequest, Selection,
-    SelectionConversion as _,
-    app_state_parameters::{AppStateParameters, CheckXoversParameter, SuggestionParameters},
+    HyperboloidRequest, RapierSimulationRequest,
+    app_state_parameters::AppStateParameters,
     graphics::{Background3D, HBondDisplay, RenderingMode},
 };
 use crate::ensnano_organizer::{Organizer, OrganizerMessage, tree::OrganizerTree};

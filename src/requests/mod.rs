@@ -13,10 +13,14 @@ use crate::ensnano_design::{
     elements::{DesignElementKey, DnaAttribute},
     grid::{GridId, GridPosition, GridTypeDescr},
 };
+use crate::ensnano_interactor::app_state_parameters::check_xovers_parameter::CheckXoversParameter;
+use crate::ensnano_interactor::app_state_parameters::suggestion_parameters::SuggestionParameters;
+use crate::ensnano_interactor::selection::{
+    ActionMode, CenterOfSelection, Selection, SelectionMode,
+};
+use crate::ensnano_interactor::surfaces::UnrootedRevolutionSurfaceDescriptor;
 use crate::ensnano_interactor::{
-    ActionMode, CenterOfSelection, HyperboloidRequest, RapierSimulationRequest, RigidBodyConstants,
-    RollRequest, Selection, SelectionMode, UnrootedRevolutionSurfaceDescriptor,
-    app_state_parameters::{CheckXoversParameter, SuggestionParameters},
+    HyperboloidRequest, RapierSimulationRequest, RigidBodyConstants, RollRequest,
     application::AppId,
     graphics::{Background3D, FogParameters, HBondDisplay, RenderingMode},
     operation::Operation,

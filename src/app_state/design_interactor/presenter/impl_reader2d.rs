@@ -1,6 +1,6 @@
 use super::*;
 use crate::ensnano_design::{Domain, HelixInterval};
-use crate::ensnano_flatscene::FlatSceneDesignReaderExt;
+use crate::ensnano_flatscene::data::FlatSceneDesignReaderExt;
 use crate::ensnano_interactor::torsion::Torsion;
 use ahash::RandomState;
 use ultraviolet::{Isometry2, Vec2};

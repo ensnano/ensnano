@@ -1,9 +1,10 @@
-use crate::ensnano_organizer::{
+use num_enum::{IntoPrimitive, TryFromPrimitive};
+use serde::{Deserialize, Serialize};
+
+use crate::ensnano_organizer::element::{
     AttributeDisplay, AttributeWidget, ElementKey, OrganizerAttribute,
     OrganizerAttributeDiscriminant, OrganizerElement,
 };
-use num_enum::{IntoPrimitive, TryFromPrimitive};
-use serde::{Deserialize, Serialize};
 
 /// Actual implementation of the OrganizerElement for the LeftPanel.
 #[derive(Clone, Debug)]

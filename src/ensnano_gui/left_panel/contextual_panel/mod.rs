@@ -10,7 +10,7 @@ use crate::ensnano_consts::{
 };
 use crate::ensnano_design::{BezierVertexId, grid::GridId};
 use crate::ensnano_iced::{helpers::*, theme};
-use crate::ensnano_interactor::{Selection, SimulationState};
+use crate::ensnano_interactor::{SimulationState, selection::Selection};
 use iced::{Alignment, alignment::Horizontal};
 use ultraviolet::{Rotor3, Vec2};
 use value_constructor::{BezierVertexBuilder, Builder, GridBuilder};

@@ -1,6 +1,11 @@
-use super::*;
-use crate::ensnano_flatscene::AppState as App2D;
-use crate::ensnano_interactor::StrandBuilder;
+use crate::{
+    app_state::{AppState, design_interactor::DesignInteractor},
+    ensnano_flatscene::AppState as App2D,
+    ensnano_interactor::{
+        selection::{Selection, SelectionMode},
+        strand_builder::StrandBuilder,
+    },
+};
 
 impl App2D for AppState {
     type Reader = DesignInteractor;

@@ -4,8 +4,9 @@ use super::Requests;
 use crate::app_state::design_interactor::controller::clipboard::PastePosition;
 use crate::controller::normal_state::Action;
 use crate::ensnano_design::{Nucl, grid::GridPosition, group_attributes::GroupPivot};
+use crate::ensnano_interactor::selection::CenterOfSelection;
 use crate::ensnano_interactor::{
-    DesignOperation, Selection, application::AppId, operation::Operation,
+    DesignOperation, application::AppId, operation::Operation, selection::Selection,
 };
 use crate::ensnano_scene::Requests as SceneRequests;
 use std::sync::Arc;
@@ -23,7 +24,7 @@ impl SceneRequests for Requests {
     fn set_selection(
         &mut self,
         selection: Vec<Selection>,
-        center_of_selection: Option<crate::ensnano_interactor::CenterOfSelection>,
+        center_of_selection: Option<CenterOfSelection>,
     ) {
         self.new_selection = Some(selection);
         self.new_center_of_selection = Some(center_of_selection);

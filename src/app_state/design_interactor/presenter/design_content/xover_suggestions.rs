@@ -1,4 +1,6 @@
-use super::{Design, Nucl, SuggestionParameters};
+use crate::ensnano_interactor::app_state_parameters::suggestion_parameters::SuggestionParameters;
+
+use super::{Design, Nucl};
 use ahash::RandomState;
 use std::collections::{BTreeMap, HashMap, HashSet};
 use ultraviolet::Vec3;

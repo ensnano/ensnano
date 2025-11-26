@@ -13,11 +13,11 @@ use crate::ensnano_design::{
     elements::DesignElementKey, grid::Grid,
 };
 use crate::ensnano_exports::oxdna::BACKBONE_TO_CM;
+use crate::ensnano_interactor::strand_builder::{NeighborDescriptor, NeighborDescriptorGiver as _};
 use crate::ensnano_interactor::{
-    NeighborDescriptor, NeighborDescriptorGiver as _, Referential, ScaffoldInfo, Selection,
-    application::Camera3D,
+    Referential, ScaffoldInfo, application::Camera3D, selection::Selection,
 };
-use crate::ensnano_scene::data::{HBond, HalfHBond};
+use crate::ensnano_scene::data::design3d::{HBond, HalfHBond};
 use crate::ensnano_utils::id_generator::IdGenerator;
 use design_content::DesignContent;
 use std::{

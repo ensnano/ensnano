@@ -11,10 +11,9 @@ use super::{
     flat_types::{Flat, FlatSelection, HelixSegment, HelixVec},
     view::EditionInfo,
 };
-use crate::ensnano_consts::*;
-use crate::ensnano_design::Nucl;
-use crate::ensnano_interactor::{PhantomElement, Selection, SelectionMode};
-use crate::ensnano_utils::camera2d::FitRectangle;
+use crate::{ensnano_consts::*, ensnano_interactor::selection::Selection};
+use crate::{ensnano_design::Nucl, ensnano_interactor::selection::SelectionMode};
+use crate::{ensnano_interactor::selection::PhantomElement, ensnano_utils::camera2d::FitRectangle};
 use ahash::RandomState;
 use design::{Design2d, Helix2d};
 use std::{

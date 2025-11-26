@@ -1,15 +1,15 @@
 mod dragging_state;
-mod event_context;
+pub mod event_context;
 mod point_and_click_state;
 
-pub use event_context::EventContext;
-
 use super::*;
-use crate::ensnano_design::{
-    BezierPlaneId,
-    grid::{GridId, GridObject},
+use crate::{
+    ensnano_design::{
+        BezierPlaneId,
+        grid::{GridId, GridObject},
+    },
+    ensnano_interactor::selection::ActionMode,
 };
-use crate::ensnano_interactor::ActionMode;
 use dragging_state::*;
 use event_context::*;
 use point_and_click_state::PointAndClicking;

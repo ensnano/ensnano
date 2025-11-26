@@ -1,7 +1,18 @@
-use super::*;
+use crate::app_state::AppState;
+use crate::app_state::design_interactor::DesignInteractor;
 use crate::ensnano_design::grid::GridId;
-use crate::ensnano_interactor::{StrandBuilder, consts::scroll_sensitivity_conversion};
+use crate::ensnano_design::group_attributes::GroupPivot;
+use crate::ensnano_interactor::WidgetBasis;
+use crate::ensnano_interactor::{
+    app_state_parameters::check_xovers_parameter::CheckXoversParameter,
+    consts::scroll_sensitivity_conversion,
+    selection::{ActionMode, CenterOfSelection, Selection, SelectionMode},
+    strand_builder::StrandBuilder,
+    surfaces::UnrootedRevolutionSurfaceDescriptor,
+};
+use crate::ensnano_organizer::tree::GroupId;
 use crate::ensnano_scene::{AppState as App3D, view::DrawOptions};
+use std::path::PathBuf;
 
 impl App3D for AppState {
     type AppStateDesignReader = DesignInteractor;

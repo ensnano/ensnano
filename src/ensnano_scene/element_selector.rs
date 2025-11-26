@@ -1,12 +1,14 @@
 use super::{Device, DrawArea, DrawType, Queue, ViewPtr};
-use crate::ensnano_design::{
-    BezierControlPoint, BezierPathId, BezierPlaneId, BezierVertexId,
-    grid::{GridId, GridPosition},
-};
-use crate::ensnano_interactor::{
-    PhantomElement, consts::widget_id_to_bezier, phantom_helix_decoder,
-};
+use crate::ensnano_interactor::consts::widget_id_to_bezier;
+use crate::ensnano_interactor::selection::phantom_helix_decoder;
 use crate::ensnano_utils::BufferDimensions;
+use crate::{
+    ensnano_design::{
+        BezierControlPoint, BezierPathId, BezierPlaneId, BezierVertexId,
+        grid::{GridId, GridPosition},
+    },
+    ensnano_interactor::selection::PhantomElement,
+};
 use num_enum::IntoPrimitive;
 use std::rc::Rc;
 use winit::dpi::{PhysicalPosition, PhysicalSize};

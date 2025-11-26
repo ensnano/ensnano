@@ -1,14 +1,12 @@
-mod check_xovers_parameter;
-mod suggestion_parameters;
-
-pub use self::{
-    check_xovers_parameter::CheckXoversParameter, suggestion_parameters::SuggestionParameters,
-};
+pub mod check_xovers_parameter;
+pub mod suggestion_parameters;
 
 use {
     super::graphics::{Background3D, HBondDisplay, RenderingMode},
     crate::ensnano_iced::ui_size::UiSize,
+    check_xovers_parameter::CheckXoversParameter,
     serde::{Deserialize, Serialize},
+    suggestion_parameters::SuggestionParameters,
 };
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
