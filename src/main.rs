@@ -514,9 +514,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 //       as shortcuts by the UI. The “keyboard priority” feature has been made for this,
                 //       and the interception is made here.
                 //
-                WindowEvent::KeyboardInput { ref event, .. }
-                    if main_state.keyboard_priority.is_some() =>
-                {
+                WindowEvent::KeyboardInput { .. } if main_state.keyboard_priority.is_some() => {
                     iced_winit::conversion::window_event(
                         iced::window::Id::MAIN,
                         // NOTE: Used to be window.id(). It seems dirty,

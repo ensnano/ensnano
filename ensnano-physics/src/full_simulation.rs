@@ -16,19 +16,19 @@ const PAIR_CAPSULE_RADIUS: f32 = 0.1;
 
 const STRONG_SPRING_RANGES: [u32; 4] = [1, 2, 4, 8];
 
-const BASE_LINEAR_DAMPING: f32 = 0.06;
-const BASE_ANGULAR_DAMPING: f32 = 0.06;
+// const BASE_LINEAR_DAMPING: f32 = 0.06;
+// const BASE_ANGULAR_DAMPING: f32 = 0.06;
 
-const INTERBASE_SPRING_STIFFNESS: f32 = 10000.0;
-const INTERBASE_SPRING_DAMPING: f32 = 1000.0;
+// const INTERBASE_SPRING_STIFFNESS: f32 = 10000.0;
+// const INTERBASE_SPRING_DAMPING: f32 = 1000.0;
 
-const CROSSOVER_STIFFNESS: f32 = 100.0;
-const CROSSOVER_DAMPING: f32 = 50.0;
-const CROSSOVER_SIZE: f32 = 0.64;
+// const CROSSOVER_STIFFNESS: f32 = 100.0;
+// const CROSSOVER_DAMPING: f32 = 50.0;
+// const CROSSOVER_SIZE: f32 = 0.64;
 
-const FREE_NUCLEOTIDE_STIFFNESS: f32 = 40000.0;
-const FREE_NUCLEOTIDE_DAMPING: f32 = 4000.0;
-const FREE_NUCLEOTIDE_DISTANCE: f32 = 0.332;
+// const FREE_NUCLEOTIDE_STIFFNESS: f32 = 40000.0;
+// const FREE_NUCLEOTIDE_DAMPING: f32 = 4000.0;
+// const FREE_NUCLEOTIDE_DISTANCE: f32 = 0.332;
 
 /// A trait to represent a strategy of how to attach
 /// colliders to rigid bodies in the simulation.
@@ -45,6 +45,7 @@ pub trait SimulationSetup {
         collider_set: &mut ColliderSet,
         collider_map: &HashMap<(usize, isize), Vec<ColliderHandle>>,
         intermediary_representation: &HashMap<usize, IntermediaryHelix>,
+        rapier_parameters: &RapierParameters,
     );
 }
 
@@ -59,12 +60,13 @@ impl SimulationSetup for FullSimulationSetup {
         collider_set: &mut ColliderSet,
         collider_map: &HashMap<(usize, isize), Vec<ColliderHandle>>,
         intermediary_representation: &HashMap<usize, IntermediaryHelix>,
+        rapier_parameters: &RapierParameters,
     ) {
         for (helix_index, helix) in intermediary_representation.iter() {
             for pair_position in helix.pairs.keys() {
                 let rigid_body = RigidBodyBuilder::dynamic()
-                    .linear_damping(BASE_LINEAR_DAMPING)
-                    .angular_damping(BASE_ANGULAR_DAMPING);
+                    .linear_damping(rapier_parameters.linear_damping)
+                    .angular_damping(rapier_parameters.angular_damping);
 
                 let rigid_body_handle = rigid_body_set.insert(rigid_body);
 
@@ -92,11 +94,12 @@ impl SimulationSetup for RigidHelicesSetup {
         collider_set: &mut ColliderSet,
         collider_map: &HashMap<(usize, isize), Vec<ColliderHandle>>,
         intermediary_representation: &HashMap<usize, IntermediaryHelix>,
+        rapier_parameters: &RapierParameters,
     ) {
         for (helix_index, helix) in intermediary_representation.iter() {
             let rigid_body = RigidBodyBuilder::dynamic()
-                .linear_damping(BASE_LINEAR_DAMPING)
-                .angular_damping(BASE_ANGULAR_DAMPING);
+                .linear_damping(rapier_parameters.linear_damping)
+                .angular_damping(rapier_parameters.angular_damping);
             let rigid_body_handle = rigid_body_set.insert(rigid_body);
             for pair_position in helix.pairs.keys() {
                 for collider_handle in collider_map
@@ -122,10 +125,11 @@ impl SimulationSetup for CutHelicesSetup {
         collider_set: &mut ColliderSet,
         collider_map: &HashMap<(usize, isize), Vec<ColliderHandle>>,
         intermediary_representation: &HashMap<usize, IntermediaryHelix>,
+        rapier_parameters: &RapierParameters,
     ) {
         let rigid_body = RigidBodyBuilder::dynamic()
-            .linear_damping(BASE_LINEAR_DAMPING)
-            .angular_damping(BASE_ANGULAR_DAMPING);
+            .linear_damping(rapier_parameters.linear_damping)
+            .angular_damping(rapier_parameters.angular_damping);
 
         // for each helix
         for (helix_index, helix) in intermediary_representation.iter() {
@@ -172,8 +176,6 @@ pub fn build_simulation<S: SimulationSetup>(
     // Stores the colliders per helix and per position in the helix
     let mut collider_map: HashMap<(usize, isize), Vec<ColliderHandle>> = Default::default();
 
-    println!("{rapier_parameters:?}");
-
     // Create objects and store them in the map
     // 1) for each helix, for each level of the helix
     // 2) create either 2 balls and one capsule, or just 1 ball
@@ -193,6 +195,7 @@ pub fn build_simulation<S: SimulationSetup>(
         &mut collider_set,
         &collider_map,
         intermediary_representation,
+        rapier_parameters,
     );
 
     // create springs from double helix portions;
@@ -208,6 +211,7 @@ pub fn build_simulation<S: SimulationSetup>(
         &collider_set,
         &mut impulse_joint_set,
         global_parameters,
+        rapier_parameters,
     );
 
     // add free nucleotide springs
@@ -216,6 +220,7 @@ pub fn build_simulation<S: SimulationSetup>(
         &nucleotide_body_map,
         &collider_set,
         &mut impulse_joint_set,
+        rapier_parameters,
     );
 
     // add crossover springs
@@ -225,6 +230,7 @@ pub fn build_simulation<S: SimulationSetup>(
         &nucleotide_body_map,
         &collider_set,
         &mut impulse_joint_set,
+        rapier_parameters,
     );
 
     // we return the physics system
@@ -233,6 +239,7 @@ pub fn build_simulation<S: SimulationSetup>(
         collider_set,
         impulse_joint_set,
         nucleotide_body_map,
+        rapier_parameters: *rapier_parameters,
         ..Default::default()
     }
 }
@@ -350,6 +357,7 @@ fn build_strong_springs(
     collider_set: &ColliderSet,
     impulse_joint_set: &mut ImpulseJointSet,
     global_parameters: &HelixParameters,
+    rapier_parameters: &RapierParameters,
 ) {
     for (id, intermediary) in intermediary_representation {
         let helix = helices
@@ -458,8 +466,8 @@ fn build_strong_springs(
                         up_body_handle,
                         SpringJointBuilder::new(
                             0.0,
-                            INTERBASE_SPRING_STIFFNESS,
-                            INTERBASE_SPRING_DAMPING,
+                            rapier_parameters.interbase_spring_stiffness,
+                            rapier_parameters.interbase_spring_damping,
                         )
                         .local_anchor1(down_forward)
                         .local_anchor2(up_forward)
@@ -473,8 +481,8 @@ fn build_strong_springs(
                         up_body_handle,
                         SpringJointBuilder::new(
                             0.0,
-                            INTERBASE_SPRING_STIFFNESS,
-                            INTERBASE_SPRING_DAMPING,
+                            rapier_parameters.interbase_spring_stiffness,
+                            rapier_parameters.interbase_spring_damping,
                         )
                         .local_anchor1(down_backward)
                         .local_anchor2(up_backward)
@@ -488,8 +496,8 @@ fn build_strong_springs(
                         up_body_handle,
                         SpringJointBuilder::new(
                             0.0,
-                            INTERBASE_SPRING_STIFFNESS,
-                            INTERBASE_SPRING_DAMPING,
+                            rapier_parameters.interbase_spring_stiffness,
+                            rapier_parameters.interbase_spring_damping,
                         )
                         .local_anchor1(down_left)
                         .local_anchor2(up_left)
@@ -503,8 +511,8 @@ fn build_strong_springs(
                         up_body_handle,
                         SpringJointBuilder::new(
                             0.0,
-                            INTERBASE_SPRING_STIFFNESS,
-                            INTERBASE_SPRING_DAMPING,
+                            rapier_parameters.interbase_spring_stiffness,
+                            rapier_parameters.interbase_spring_damping,
                         )
                         .local_anchor1(down_right)
                         .local_anchor2(up_right)
@@ -522,6 +530,7 @@ fn build_free_springs(
     nucleotide_body_map: &HashMap<u32, ColliderHandle>,
     collider_set: &ColliderSet,
     impulse_joint_set: &mut ImpulseJointSet,
+    rapier_parameters: &RapierParameters,
 ) {
     for intermediary in intermediary_representation.values() {
         for range in &intermediary.single_ranges {
@@ -587,9 +596,9 @@ fn build_free_springs(
                     down_body_handle,
                     up_body_handle,
                     SpringJointBuilder::new(
-                        FREE_NUCLEOTIDE_DISTANCE,
-                        FREE_NUCLEOTIDE_STIFFNESS,
-                        FREE_NUCLEOTIDE_DAMPING,
+                        rapier_parameters.free_nucleotide_rest_length,
+                        rapier_parameters.free_nucleotide_stiffness,
+                        rapier_parameters.free_nucleotide_damping,
                     )
                     .local_anchor1(down_offset.translation.vector.into())
                     .local_anchor2(up_offset.translation.vector.into())
@@ -607,6 +616,7 @@ pub fn add_crossover_springs(
     nucleotide_body_map: &HashMap<u32, ColliderHandle>,
     collider_set: &ColliderSet,
     impulse_joint_set: &mut ImpulseJointSet,
+    rapier_parameters: &RapierParameters,
 ) {
     let mut bonds: Vec<(u32, u32)> = Default::default();
 
@@ -634,10 +644,14 @@ pub fn add_crossover_springs(
         impulse_joint_set.insert(
             a.parent().expect("Collider without parent"),
             b.parent().expect("Collider without parent"),
-            SpringJointBuilder::new(CROSSOVER_SIZE, CROSSOVER_STIFFNESS, CROSSOVER_DAMPING)
-                .local_anchor1(a.position_wrt_parent().unwrap().translation.vector.into())
-                .local_anchor2(b.position_wrt_parent().unwrap().translation.vector.into())
-                .build(),
+            SpringJointBuilder::new(
+                rapier_parameters.crossover_rest_length,
+                rapier_parameters.crossover_stiffness,
+                rapier_parameters.crossover_damping,
+            )
+            .local_anchor1(a.position_wrt_parent().unwrap().translation.vector.into())
+            .local_anchor2(b.position_wrt_parent().unwrap().translation.vector.into())
+            .build(),
             true,
         );
     }

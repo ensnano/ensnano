@@ -6,8 +6,8 @@ use rapier3d::{
 
 use crate::simulation::RapierPhysicsSystem;
 
-const FORCE_RANGE: f32 = 5.0;
-const FORCE_STRENGTH: f32 = 0.1;
+// const FORCE_RANGE: f32 = 5.0;
+// const FORCE_STRENGTH: f32 = 0.1;
 
 impl RapierPhysicsSystem {
     pub fn repulsion_step(&mut self, delta: f32) {
@@ -35,6 +35,9 @@ fn repulsion_step(system: &mut RapierPhysicsSystem, delta: f32) {
             let body = system.collider_set.get(handle).unwrap();
             let position = body.position().clone();
 
+            let force_range = system.rapier_parameters.repulsion_range;
+            let force_strength = system.rapier_parameters.repulsion_strength;
+
             let query_pipeline = system.broad_phase.as_query_pipeline(
                 &DefaultQueryDispatcher,
                 &system.rigid_body_set,
@@ -46,7 +49,7 @@ fn repulsion_step(system: &mut RapierPhysicsSystem, delta: f32) {
                 .intersect_shape(
                     *body.position(),
                     &Ball {
-                        radius: FORCE_RANGE,
+                        radius: force_range,
                     },
                 )
                 // from that we get a list of relative vectors
@@ -54,11 +57,11 @@ fn repulsion_step(system: &mut RapierPhysicsSystem, delta: f32) {
                     position.translation.vector - collider.position().translation.vector
                 })
                 // which we then filter to only keep valid ranges
-                .filter(|v| v.norm_squared() > 0.0 && v.norm_squared() <= FORCE_RANGE * FORCE_RANGE)
+                .filter(|v| v.norm_squared() > 0.0 && v.norm_squared() <= force_range * force_range)
                 // which we then normalize while keeping its length
                 .map(|v| (v.normalize(), v.norm()))
                 // which we then multiply by that square, and some other constants
-                .map(|(v, d)| v * simple_kernel_1(d, FORCE_RANGE) * delta * FORCE_STRENGTH)
+                .map(|(v, d)| v * simple_kernel_1(d, force_range) * delta * force_strength)
                 // and we then sum all these forces
                 .sum()
         })

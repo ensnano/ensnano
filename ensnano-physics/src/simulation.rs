@@ -23,6 +23,8 @@ pub struct RapierPhysicsSystem {
     pub multibody_join_set: MultibodyJointSet,
     pub ccd_solver: CCDSolver,
 
+    pub rapier_parameters: RapierParameters,
+
     pub nucleotide_body_map: HashMap<u32, ColliderHandle>,
 }
 

@@ -107,6 +107,7 @@ pub enum Message<S: AppState> {
     /// Changes rapier parameters, including
     /// if a simulation is running.
     UpdateRapierParameters(RapierParameters),
+    UpdateRapierParameterField(String, String),
     DiscreteValue {
         factory_id: FactoryId,
         value_id: ValueId,
@@ -448,6 +449,12 @@ where
                     .lock()
                     .unwrap()
                     .request_rapier_simulation(parameters);
+                Command::none()
+            }
+            Message::UpdateRapierParameterField(key, value) => {
+                self.simulation_tab
+                    .rapier_parameter_fields
+                    .insert(key, value);
                 Command::none()
             }
             Message::FogChoice(choice) => {
@@ -861,6 +868,7 @@ where
                 Command::none()
             }
             Message::StopSimulation => {
+                self.simulation_tab.rapier_parameters.is_simulation_running = false;
                 self.requests.lock().unwrap().stop_simulations();
                 Command::none()
             }

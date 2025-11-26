@@ -16,6 +16,40 @@ pub struct RapierParameters {
     pub repulsion_range: f32,
 }
 
+impl RapierParameters {
+    pub fn parameters_array(&self) -> [f32; 12] {
+        [
+            self.linear_damping,
+            self.angular_damping,
+            self.interbase_spring_stiffness,
+            self.interbase_spring_damping,
+            self.crossover_stiffness,
+            self.crossover_damping,
+            self.crossover_rest_length,
+            self.free_nucleotide_stiffness,
+            self.free_nucleotide_damping,
+            self.free_nucleotide_rest_length,
+            self.repulsion_strength,
+            self.repulsion_range,
+        ]
+    }
+
+    pub fn set_parameters_array(&mut self, array: &[f32]) {
+        self.linear_damping = array[0];
+        self.angular_damping = array[1];
+        self.interbase_spring_stiffness = array[2];
+        self.interbase_spring_damping = array[3];
+        self.crossover_stiffness = array[4];
+        self.crossover_damping = array[5];
+        self.crossover_rest_length = array[6];
+        self.free_nucleotide_stiffness = array[7];
+        self.free_nucleotide_damping = array[8];
+        self.free_nucleotide_rest_length = array[9];
+        self.repulsion_strength = array[10];
+        self.repulsion_range = array[11];
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RapierSimulationType {
     Full,
