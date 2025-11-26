@@ -2,8 +2,8 @@
 
 use super::*;
 use crate::ensnano_design::Nucl;
-use crate::ensnano_interactor::{application::Camera3D, graphics::DrawArea};
-use winit::{dpi::PhysicalPosition, window::CursorIcon};
+use crate::ensnano_interactor::graphics::DrawArea;
+use winit::dpi::PhysicalPosition;
 
 struct DummyScene {}
 impl Application for DummyScene {

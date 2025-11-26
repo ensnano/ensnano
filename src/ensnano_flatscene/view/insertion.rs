@@ -1,15 +1,12 @@
-use crate::ensnano_utils::instance::Instance;
-
 use super::*;
+use crate::ensnano_utils::instance::Instance;
 use lyon::{
     math::Point,
     path::Path,
     tessellation::{self, StrokeVertex, StrokeVertexConstructor},
 };
 use ultraviolet::{Mat2, Rotor2, Vec2};
-use wgpu::{
-    BindGroupLayout, Buffer, DepthStencilState, RenderPass, RenderPipeline, util::DeviceExt as _,
-};
+use wgpu::{BindGroupLayout, Buffer, DepthStencilState, RenderPass, util::DeviceExt as _};
 
 pub struct InsertionDrawer {
     new_instances: Option<Vec<InsertionInstance>>,

@@ -1,11 +1,9 @@
 use super::*;
-use crate::ensnano_design::{Domain, Extremity, HelixInterval, NuclCollection, Strand};
+use crate::ensnano_design::{Domain, HelixInterval};
 use crate::ensnano_flatscene::FlatSceneDesignReaderExt;
-use crate::ensnano_interactor::{Referential, torsion::Torsion};
+use crate::ensnano_interactor::torsion::Torsion;
 use ahash::RandomState;
-use std::collections::{BTreeMap, HashMap};
-use std::sync::Arc;
-use ultraviolet::{Isometry2, Vec2, Vec3};
+use ultraviolet::{Isometry2, Vec2};
 
 impl FlatSceneDesignReaderExt for DesignInteractor {
     fn get_isometry(&self, h_id: usize, segment_idx: usize) -> Option<Isometry2> {

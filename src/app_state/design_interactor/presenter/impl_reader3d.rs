@@ -1,11 +1,11 @@
 use super::*;
 use crate::ensnano_design::{
-    AdditionalStructure, BezierControlPoint, BezierPlaneDescriptor, BezierPlaneId, BezierVertexId,
-    Collection, CurveDescriptor, Domain, Helix, Nucl, SurfaceInfo,
-    grid::{GridId, GridObject, GridPosition, HelixGridPosition},
+    AdditionalStructure, BezierControlPoint, BezierPlaneId, BezierVertexId, Collection,
+    CurveDescriptor, Domain, Helix, SurfaceInfo,
+    grid::{GridObject, GridPosition, HelixGridPosition},
 };
 use crate::ensnano_interactor::{
-    ObjectType, Referential,
+    ObjectType,
     graphics::{LoopoutBond, LoopoutNucl},
 };
 use crate::ensnano_scene::{
@@ -13,8 +13,7 @@ use crate::ensnano_scene::{
     view::GridInstance,
 };
 use crate::ensnano_utils::StrandNucleotidesPositions;
-use std::collections::HashSet;
-use ultraviolet::{Mat4, Rotor3, Vec2, Vec3};
+use ultraviolet::Vec2;
 
 impl SceneDesignReaderExt for DesignInteractor {
     fn get_color(&self, e_id: u32) -> Option<u32> {

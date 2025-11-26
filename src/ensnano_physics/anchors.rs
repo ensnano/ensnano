@@ -243,7 +243,6 @@ impl SpringAnchorsReference {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ensnano_design::HelixParameters;
     use std::f32::consts::PI;
 
     #[test]

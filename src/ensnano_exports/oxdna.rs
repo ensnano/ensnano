@@ -1,5 +1,5 @@
 use super::*;
-use crate::ensnano_design::{Domain, Helix, HelixCollection as _, HelixParameters, Nucl};
+use crate::ensnano_design::{Domain, Helix, HelixCollection as _, HelixParameters};
 use std::{f32::consts::TAU, io::Write as _, mem::ManuallyDrop, path::Path};
 use ultraviolet::{Mat3, Rotor3, Vec3};
 

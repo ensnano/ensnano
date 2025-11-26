@@ -8,7 +8,6 @@
 //! If the cursor moves away form this position this causes a transition to either the normal
 //! state, or a specific DraggingState.
 
-use super::dragging_state::ClickInfo;
 use super::*;
 use std::time::Instant;
 

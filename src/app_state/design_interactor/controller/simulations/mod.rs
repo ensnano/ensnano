@@ -5,7 +5,7 @@ pub mod twister;
 
 use super::*;
 use crate::app_state::design_interactor::Presenter;
-use crate::ensnano_design::{HelixParameters, NuclCollection};
+use crate::ensnano_design::HelixParameters;
 use crate::ensnano_interactor::{RevolutionSurfaceSystemDescriptor, RigidBodyConstants};
 use mathru::{
     algebra::linear::vector::vector::Vector,
@@ -17,11 +17,7 @@ use mathru::{
 use ordered_float::OrderedFloat;
 use rand::Rng as _;
 use rand_distr::{Exp, StandardNormal};
-use std::{
-    cmp::Reverse,
-    collections::{BinaryHeap, HashMap},
-    sync::{Arc, Mutex, Weak},
-};
+use std::{cmp::Reverse, collections::BinaryHeap, sync::Weak};
 use ultraviolet::{Bivec3, Mat3};
 
 const MAX_DERIVATIVE_NORM: f32 = 1e4;

@@ -18,7 +18,7 @@ use super::{Helix, HelixParameters};
 use crate::ensnano_design::{
     AdditionalHelix2D, BezierPathData, BezierPathId,
     curves::chebyshev::{PolynomialCoordinates, PolynomialCoordinates_},
-    grid::{Edge, GridPosition, *},
+    grid::{Edge, *},
     utils::vec_to_dvec,
 };
 pub use bezier::InstantiatedPiecewiseBezier;

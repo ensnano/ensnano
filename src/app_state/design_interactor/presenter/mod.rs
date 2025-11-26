@@ -9,9 +9,8 @@ use self::design_content::Staple;
 
 use super::*;
 use crate::ensnano_design::{
-    BezierPath, BezierPathId, Collection as _, Extremity, HelixCollection as _,
-    InstantiatedPiecewiseBezier, Nucl, NuclCollection, Strand, elements::DesignElementKey,
-    grid::Grid,
+    BezierPath, Collection as _, Extremity, HelixCollection as _, Nucl, NuclCollection, Strand,
+    elements::DesignElementKey, grid::Grid,
 };
 use crate::ensnano_exports::oxdna::BACKBONE_TO_CM;
 use crate::ensnano_interactor::{

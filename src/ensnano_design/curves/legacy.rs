@@ -238,7 +238,6 @@ impl Curve {
         theta: f64,
         helix_parameters: &HelixParameters,
     ) -> Option<DVec3> {
-        use std::f64::consts::{PI, TAU};
         let idx = self.idx_conversion(n)?;
         let theta = if let Some(real_theta) = self.geometry.theta_shift(helix_parameters) {
             let base_theta = TAU / helix_parameters.bases_per_turn as f64;

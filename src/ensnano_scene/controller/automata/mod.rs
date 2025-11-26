@@ -10,12 +10,10 @@ use crate::ensnano_design::{
     grid::{GridId, GridObject},
 };
 use crate::ensnano_interactor::ActionMode;
-use crate::ensnano_scene::controller::automata::dragging_state::translating_grid_object;
 use dragging_state::*;
 use event_context::*;
 use point_and_click_state::PointAndClicking;
 use std::borrow::Cow;
-use std::cell::RefCell;
 use ultraviolet::Vec2;
 use winit::event::{ElementState, MouseButton};
 

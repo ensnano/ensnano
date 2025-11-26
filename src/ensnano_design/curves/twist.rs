@@ -133,7 +133,6 @@ impl Curved for Twist {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::f64::consts::TAU;
 
     impl Twist {
         fn with_omega(omega: f64) -> Self {

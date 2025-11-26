@@ -1,5 +1,4 @@
 use crate::ensnano_iced::helpers::{button, text};
-use core::convert::{Into, TryFrom};
 use iced::Element;
 use icondata::Icon;
 use serde::{Deserialize, Serialize};

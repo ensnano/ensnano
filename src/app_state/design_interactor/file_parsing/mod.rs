@@ -10,7 +10,7 @@ use crate::{
 };
 use cadnano::{Cadnano, FromCadnano as _};
 use scadnano::ScadnanoImportError;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use version_compare::Cmp;
 
 impl DesignInteractor {

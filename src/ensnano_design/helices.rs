@@ -1,10 +1,6 @@
 use super::{
-    BezierPathId, HelixParameters, Nucl, codenano,
-    curves::*,
-    design_operations::ErrDesignOperation,
-    grid::{Grid, GridData, HelixGridPosition, *},
-    scadnano::*,
-    utils::*,
+    BezierPathId, HelixParameters, Nucl, codenano, curves::*,
+    design_operations::ErrDesignOperation, grid::*, scadnano::*, utils::*,
 };
 use ahash::HashMap;
 use serde::{Deserialize, Serialize};

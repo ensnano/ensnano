@@ -1,12 +1,8 @@
-use super::super::{FlatHelix, FlatNucl, data::ClickResult};
 use super::*;
 use crate::ensnano_consts::*;
 use crate::ensnano_utils::circles2d::CircleInstance;
 use std::time::Instant;
-use winit::{
-    event::MouseButton,
-    keyboard::{Key, ModifiersState, NamedKey},
-};
+use winit::event::MouseButton;
 
 const WHEEL_RADIUS: f32 = 1.5;
 

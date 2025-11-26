@@ -475,7 +475,6 @@ impl SimulationUpdate for RevolutionSurfaceSystem {
 
 impl AdditionalStructure for RevolutionSurfaceSystem {
     fn position(&self) -> Vec<Vec3> {
-        use crate::ensnano_design::utils::dvec_to_vec;
         let thetas = self
             .last_thetas
             .clone()

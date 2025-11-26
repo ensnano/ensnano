@@ -1,27 +1,27 @@
+mod camera_shortcut;
+mod camera_tab;
+mod edition_tab;
+mod grids_tab;
+mod parameters_tab;
+mod pen_tab;
+pub(super) mod revolution_tab;
+mod sequence_tab;
+mod simulation_tab;
+
+pub use camera_shortcut::CameraShortcutPanel;
+pub use camera_tab::{CameraTab, FogChoices};
+pub use edition_tab::EditionTab;
+pub use grids_tab::GridTab;
+pub use parameters_tab::ParametersTab;
+pub use pen_tab::PenTab;
+pub use sequence_tab::SequenceTab;
+pub use simulation_tab::SimulationTab;
+
 use super::*;
 use crate::ensnano_interactor::{RollRequest, SimulationState};
 
-mod edition_tab;
-pub use edition_tab::EditionTab;
-mod grids_tab;
-pub use grids_tab::GridTab;
-mod camera_shortcut;
-pub use camera_shortcut::CameraShortcutPanel;
-mod camera_tab;
-pub use camera_tab::{CameraTab, FogChoices};
-mod simulation_tab;
-use iced::widget::container;
-pub use simulation_tab::SimulationTab;
-mod parameters_tab;
-pub use parameters_tab::ParametersTab;
-mod sequence_tab;
-pub use sequence_tab::SequenceTab;
-mod pen_tab;
-pub use pen_tab::PenTab;
-pub(super) mod revolution_tab;
-
-pub use gostop::*;
 // TODO: Move gostop to widgets.
+pub use gostop::*;
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub enum TabId {

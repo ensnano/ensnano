@@ -6,7 +6,6 @@
 //! the camera or moving an object.
 
 use super::*;
-use crate::ensnano_design::BezierVertexId;
 
 pub(super) struct DraggedCursor<'a, 'b, S: AppState> {
     /// The cursor position when the mouse button was pressed

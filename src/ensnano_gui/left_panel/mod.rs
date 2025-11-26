@@ -1372,7 +1372,6 @@ impl Requestable for HelixRoll {
     }
 
     fn max_val(&self, n: usize) -> f32 {
-        use std::f32::consts::PI;
         match n {
             0 => PI,
             _ => unreachable!(),

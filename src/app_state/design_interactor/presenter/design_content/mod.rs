@@ -6,8 +6,8 @@ use crate::ensnano_consts::{
 };
 use crate::ensnano_design::{
     drawing_style::{ColorType, DrawingAttribute, DrawingStyle},
-    elements::{DesignElement, DesignElementKey},
-    grid::{GridData, GridId, GridObject, GridPosition, HelixGridPosition},
+    elements::DesignElement,
+    grid::{GridData, GridObject, GridPosition, HelixGridPosition},
     isometry3_descriptor::Isometry3MissingMethods as _,
     *,
 };
@@ -19,14 +19,8 @@ use crate::ensnano_scene::{data::Scalebar, view::GridInstance};
 use crate::ensnano_utils::{click_counter::ClickCounter, colors, instance::Instance};
 use ahash::RandomState;
 use serde::Serialize;
-use std::{
-    borrow::Cow,
-    collections::{BTreeMap, HashMap, HashSet},
-    fmt::Write as _,
-    str::FromStr as _,
-    sync::Arc,
-};
-use ultraviolet::{Isometry3, Vec3};
+use std::{borrow::Cow, fmt::Write as _, str::FromStr as _};
+use ultraviolet::Isometry3;
 use xover_suggestions::XoverSuggestions;
 
 const PRINTOUT_NUCL_POSITIONS: bool = false; // true;

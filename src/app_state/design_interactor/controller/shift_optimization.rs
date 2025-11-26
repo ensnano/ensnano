@@ -1,5 +1,4 @@
 use super::*;
-use crate::ensnano_design::NuclCollection;
 use std::{fmt::Write as _, sync::mpsc};
 
 macro_rules! log_err {

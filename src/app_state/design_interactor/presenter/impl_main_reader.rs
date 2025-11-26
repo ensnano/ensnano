@@ -2,7 +2,6 @@ use super::*;
 use crate::controller::download_staples::{
     DownloadStapleError, DownloadStapleOk, StaplesDownloader,
 };
-use crate::ensnano_design::Strand;
 use itertools::Itertools as _;
 use rust_xlsxwriter::{Color, Format, Workbook};
 use serde::Serialize;
@@ -333,7 +332,6 @@ impl MainReader for DesignInteractor {
     }
 }
 
-use std::collections::BTreeMap;
 #[derive(Serialize)]
 struct Origamis(BTreeMap<usize, Origami>);
 

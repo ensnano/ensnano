@@ -3,7 +3,6 @@ use crate::ensnano_design::{curves::torus::PointOnSurface_, utils::dvec_to_vec};
 use chebyshev_polynomials::ChebyshevPolynomial;
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
-use std::f64::consts::{PI, TAU};
 use ultraviolet::{DRotor2, DVec2, Mat3, Rotor2};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

@@ -1,8 +1,9 @@
 pub use super::widgets::*;
-use crate::ensnano_iced::{fonts::*, ui_size::UiSize};
 pub use iced::widget::*;
+
+use crate::ensnano_iced::{fonts::*, ui_size::UiSize};
 use iced::{
-    Font, Length, advanced,
+    Length, advanced,
     alignment::{Alignment, Horizontal, Vertical},
 };
 

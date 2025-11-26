@@ -388,26 +388,26 @@ impl InteractorResult {
 #[cfg(test)]
 mod tests {
     use super::super::OkOperation as TopOkOperation;
-    use super::super::*;
     use super::*;
-    use crate::ensnano_design::{
-        Collection, DomainJunction, HelixCollection, Nucl, Strand,
-        grid::{GridDescriptor, HelixGridPosition},
-    };
     use crate::ensnano_interactor::{
         InsertionPoint, InteractorDesignReaderExt, operation::GridHelixCreation,
     };
     use crate::ensnano_scene::data::SceneDesignReaderExt;
     use crate::{
+        app_state::AppState,
+        ensnano_design::{
+            Collection, DomainJunction, HelixCollection, Nucl, Strand,
+            grid::{GridDescriptor, HelixGridPosition},
+        },
+    };
+    use crate::{
         app_state::design_interactor::{
-            controller::clipboard::{CopyOperation, PastePosition},
-            file_parsing::junctions::StrandJunction as _,
+            controller::clipboard::PastePosition, file_parsing::junctions::StrandJunction as _,
         },
         ensnano_design::grid::GridTypeDescr,
         ensnano_utils::id_generator::IdGenerator,
     };
     use regex::Regex;
-    use std::path::PathBuf;
     use ultraviolet::{Rotor3, Vec3};
 
     fn test_path(design_name: &'static str) -> PathBuf {

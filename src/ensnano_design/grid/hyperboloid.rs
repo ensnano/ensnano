@@ -1,8 +1,5 @@
 use super::*;
-use crate::ensnano_design::{CurveDescriptor, Helix};
-use std::sync::Arc;
-
-use ultraviolet::{Isometry2, Rotor2, Rotor3, Vec2, Vec3};
+use ultraviolet::{Isometry2, Rotor2};
 
 /// A structure made of helices arranged circularly on two planes.
 #[derive(Clone, Debug)]
@@ -48,7 +45,6 @@ impl GridDivision for Hyperboloid {
     }
 
     fn interpolate(&self, _helix_parameters: &HelixParameters, x: f32, y: f32) -> (isize, isize) {
-        use std::f32::consts::PI;
         let angle = PI / self.radius as f32;
         let plane_angle = y.atan2(x);
         let i = (plane_angle / angle / 2.).round();
@@ -128,7 +124,6 @@ impl Hyperboloid {
     /// hyperboloid or at the extremity of the hyperboloid
     fn sheet_radii(&self, helix_parameters: &HelixParameters) -> (f32, f32) {
         // First determine the radius in the center of the hyperboloid.
-        use std::f32::consts::PI;
         let angle = PI / self.radius as f32;
         let center_radius =
             (helix_parameters.helix_radius + helix_parameters.inter_helix_gap / 2.) / angle.sin();
@@ -164,7 +159,6 @@ impl Hyperboloid {
     }
 
     fn origin(&self, i: isize, helix_parameters: &HelixParameters) -> Vec3 {
-        use std::f32::consts::PI;
         let angle = PI / self.radius as f32;
         let grid_radius = self.radius(helix_parameters);
         let i = i % (self.radius as isize);
@@ -173,7 +167,6 @@ impl Hyperboloid {
     }
 
     fn destination(&self, i: isize, helix_parameters: &HelixParameters) -> Vec3 {
-        use std::f32::consts::PI;
         let angle = PI / self.radius as f32;
         let grid_radius = self.radius(helix_parameters);
         let i = i % (self.radius as isize);

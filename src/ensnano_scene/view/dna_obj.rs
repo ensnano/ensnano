@@ -5,7 +5,6 @@ use crate::ensnano_consts::*;
 use std::{
     f32::consts::{FRAC_1_SQRT_2, PI, TAU},
     iter::zip,
-    mem::size_of,
 };
 use ultraviolet::{Mat4, Rotor3, Vec3, Vec4};
 

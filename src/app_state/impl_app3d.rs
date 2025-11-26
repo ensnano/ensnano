@@ -1,7 +1,6 @@
 use super::*;
-use crate::ensnano_design::{grid::GridId, group_attributes::GroupPivot};
+use crate::ensnano_design::grid::GridId;
 use crate::ensnano_interactor::{StrandBuilder, consts::scroll_sensitivity_conversion};
-use crate::ensnano_organizer::tree::GroupId;
 use crate::ensnano_scene::{AppState as App3D, view::DrawOptions};
 
 impl App3D for AppState {

@@ -109,6 +109,8 @@ macro_use_extern_crate = "warn"
 meta_variable_misuse = "warn"
 missing_docs = "allow" # TODO: warn (major undertaking)
 missing_unsafe_on_extern = "warn"
+non_ascii_idents = "warn"
+redundant_imports = "warn"
 
 [lints.clippy]
 # Warn or deny all lints by default

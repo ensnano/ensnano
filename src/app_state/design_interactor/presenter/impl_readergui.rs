@@ -1,9 +1,8 @@
 use super::*;
-use crate::ensnano_design::Strand;
 use crate::ensnano_design::{CameraId, Collection as _, elements::DesignElement};
 use crate::ensnano_gui::{EnsnTree, GuiDesignReaderExt as ReaderGui};
 use crate::ensnano_interactor::InsertionPoint;
-use ultraviolet::{Rotor3, Vec2};
+use ultraviolet::Vec2;
 
 impl ReaderGui for DesignInteractor {
     fn grid_has_small_spheres(&self, g_id: GridId) -> bool {
