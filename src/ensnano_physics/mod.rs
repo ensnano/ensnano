@@ -9,11 +9,12 @@ mod import;
 mod repulsion;
 mod simulation;
 
+pub use simulation::RapierPhysicsSystem;
+
 use rapier3d::{
     na::{Const, OVector, Point3},
     prelude::*,
 };
-pub use simulation::RapierPhysicsSystem;
 use ultraviolet::Vec3;
 
 /// Conversion method

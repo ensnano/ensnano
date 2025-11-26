@@ -1,12 +1,11 @@
 use super::import::*;
-use crate::ensnano_interactor::ObjectType;
-use ahash::HashMap;
-
 use crate::ensnano_design::{Helices, HelixParameters, Nucl};
+use crate::ensnano_interactor::ObjectType;
 use crate::ensnano_physics::{
     full_simulation::{RigidHelicesSetup, build_simulation},
     helices::build_helices,
 };
+use ahash::HashMap;
 use rapier3d::{na::Vector3, prelude::*};
 
 #[derive(Default)]

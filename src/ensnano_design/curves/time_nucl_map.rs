@@ -1,4 +1,5 @@
 use super::*;
+use ordered_float::OrderedFloat;
 use std::collections::BTreeMap;
 
 /// A structure that can map time points to nucleotide indices.
@@ -77,7 +78,6 @@ impl HelixTimeMap {
     }
 
     fn square_per_time_for_time_map(nucl_time: &[f64]) -> f64 {
-        use ordered_float::OrderedFloat;
         if nucl_time.len() < 3 {
             1.
         } else {

@@ -1,11 +1,11 @@
-use super::insertions::InstantiatedInsertion;
-use super::scadnano::*;
-use super::{Helices, HelixCollection as _, Nucl, VirtualNucl, codenano};
-use serde::{Deserialize, Serialize};
-use std::borrow::Cow;
-use std::collections::BTreeMap;
-use std::sync::Arc;
 mod formatting;
+
+use super::{
+    Helices, HelixCollection as _, Nucl, VirtualNucl, codenano, insertions::InstantiatedInsertion,
+    scadnano::*,
+};
+use serde::{Deserialize, Serialize};
+use std::{borrow::Cow, collections::BTreeMap, sync::Arc};
 
 /// A collection of strands, that maps strand identifier to strands.
 ///

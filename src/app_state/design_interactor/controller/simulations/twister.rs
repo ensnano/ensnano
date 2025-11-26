@@ -4,6 +4,7 @@ use super::{
 };
 use crate::ensnano_design::{
     Collection as _, CurveDescriptor, HelixCollection as _, HelixParameters, Twist, grid::*,
+    utils::vec_to_dvec,
 };
 use crate::{
     app_state::design_interactor::{Presenter, presenter::SimulationUpdate},
@@ -214,7 +215,6 @@ impl SimulationInterface for TwistInterface {
 
 impl DesignData {
     fn square_xover_constraints(&self) -> f64 {
-        use crate::ensnano_design::utils::vec_to_dvec;
         let mut ret = 0.0;
         let len_0 = super::roller::dist_ac(&self.helix_parameters) as f64;
         for (n1, n2) in &self.xovers {

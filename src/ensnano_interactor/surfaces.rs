@@ -1,7 +1,8 @@
 use super::*;
-use crate::ensnano_design::{InterpolatedCurveDescriptor, InterpolationDescriptor};
+use crate::ensnano_design::{InterpolatedCurveDescriptor, InterpolationDescriptor, PointOnSurface};
 use num::integer::gcd;
 use rayon::iter::{IntoParallelIterator as _, ParallelIterator as _};
+use std::f64::consts::TAU;
 use ultraviolet::{DVec3, Isometry3, Similarity3};
 
 #[derive(Debug, Clone)]
@@ -187,11 +188,8 @@ impl UnrootedRevolutionSurfaceDescriptor {
 
                 let vertices = (0..=nb_section_per_strip).flat_map(|section_idx| {
                     [s_high, s_low].into_iter().map(move |section_parameter| {
-                        use std::f64::consts::TAU;
                         let revolution_fract = section_idx as f64 / nb_section_per_strip as f64;
-
                         let revolution_angle = TAU * revolution_fract;
-
                         self.position(section_parameter, revolution_angle)
                     })
                 });
@@ -212,7 +210,6 @@ impl UnrootedRevolutionSurfaceDescriptor {
         revolution_angle: f64,
         scale: f64,
     ) -> DVec3 {
-        use crate::ensnano_design::PointOnSurface;
         let surface_point = PointOnSurface {
             revolution_angle,
             section_parameter,
@@ -438,7 +435,6 @@ impl RootedRevolutionSurface {
     }
 
     pub fn dpos_dtheta(&self, revolution_angle: f64, section_parameter: f64) -> DVec3 {
-        use crate::ensnano_design::PointOnSurface;
         let surface_point = PointOnSurface {
             revolution_angle,
             section_parameter,
@@ -454,7 +450,6 @@ impl RootedRevolutionSurface {
     }
 
     pub fn d2pos_dtheta2(&self, revolution_angle: f64, section_parameter: f64) -> DVec3 {
-        use crate::ensnano_design::PointOnSurface;
         let surface_point = PointOnSurface {
             revolution_angle,
             section_parameter,
@@ -559,9 +554,8 @@ fn area_strip<I: Iterator<Item = DVec3> + Clone>(vertices: I, nb_section_per_str
 
 #[cfg(test)]
 mod tests {
-    use std::f64::consts::PI;
-
     use super::*;
+    use std::f64::consts::PI;
 
     #[test]
     #[expect(non_snake_case)]

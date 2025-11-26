@@ -1,5 +1,7 @@
 use super::*;
+
 type Xover = (Nucl, Nucl);
+
 /// Represent the torsion applied on each helices implied in a cross_over.
 ///
 /// The strength is defined as the cross-over's component in the radial acceleration of the helix

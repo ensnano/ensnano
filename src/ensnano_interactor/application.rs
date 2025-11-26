@@ -1,5 +1,4 @@
-use super::Selection;
-use super::graphics::*;
+use super::{Selection, graphics::*};
 use crate::ensnano_design::group_attributes::GroupPivot;
 use std::{path::Path, sync::Arc, time::Duration};
 use ultraviolet::{Rotor3, Vec3};

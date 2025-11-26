@@ -16,7 +16,7 @@ pub mod layout_manager;
 
 use crate::ensnano_iced::ui_size::UiSize;
 use crate::ensnano_interactor::{
-    ActionMode, SelectionMode,
+    ActionMode, Multiplexer as GuiMultiplexer, SelectionMode,
     graphics::{DrawArea, GuiComponentType, SplitMode},
 };
 use crate::ensnano_utils::texture::SampledTexture;
@@ -851,8 +851,6 @@ fn control_key(modifiers: &ModifiersState) -> bool {
         modifiers.control_key() // Ctrl
     }
 }
-
-use crate::ensnano_interactor::Multiplexer as GuiMultiplexer;
 
 impl GuiMultiplexer for Multiplexer {
     fn get_draw_area(&self, element_type: GuiComponentType) -> Option<DrawArea> {

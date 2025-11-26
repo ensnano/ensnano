@@ -3,10 +3,10 @@
 use super::Requests;
 use crate::app_state::design_interactor::controller::clipboard::PastePosition;
 use crate::controller::normal_state::Action;
-use crate::ensnano_design::group_attributes::GroupPivot;
-use crate::ensnano_design::{Nucl, grid::GridPosition};
-use crate::ensnano_interactor::operation::Operation;
-use crate::ensnano_interactor::{DesignOperation, Selection, application::AppId};
+use crate::ensnano_design::{Nucl, grid::GridPosition, group_attributes::GroupPivot};
+use crate::ensnano_interactor::{
+    DesignOperation, Selection, application::AppId, operation::Operation,
+};
 use crate::ensnano_scene::Requests as SceneRequests;
 use std::sync::Arc;
 use ultraviolet::{Rotor3, Vec3};

@@ -9,8 +9,8 @@ use super::{
     AppState, Camera3D, HandlesDescriptor, LetterInstance, RotationWidgetDescriptor,
     RotationWidgetOrientation, SceneElement, View, ViewUpdate,
     view::{
-        AvailableRotationAxes, GridDisc, HandleColors, Instantiable as _, Mesh, RawDnaInstance,
-        StereographicSphereAndPlane,
+        AvailableRotationAxes, ExternalObjects, GridDisc, HandleColors, Instantiable as _, Mesh,
+        RawDnaInstance, StereographicSphereAndPlane,
     },
 };
 use crate::ensnano_consts::{
@@ -190,7 +190,6 @@ impl<R: SceneDesignReaderExt> Data<R> {
     }
 
     fn update_external_3d_objects<S: AppState>(&mut self, app_state: &S) {
-        use super::view::ExternalObjects;
         let reader = app_state.get_design_reader();
         let external_objects = reader.get_external_objects();
         if let Some(new_stamp) = external_objects.was_updated(self.external_3d_objects_stamps) {

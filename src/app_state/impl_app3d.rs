@@ -172,6 +172,7 @@ impl App3D for AppState {
 #[cfg(test)]
 mod tests {
     use super::*;
+
     #[test]
     fn selection_update() {
         let mut state = AppState::default();

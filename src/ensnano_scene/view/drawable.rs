@@ -1,6 +1,5 @@
 use crate::ensnano_consts::*;
-use crate::ensnano_utils::create_buffer_with_data;
-use crate::ensnano_utils::texture::Texture;
+use crate::ensnano_utils::{create_buffer_with_data, texture::Texture};
 use std::rc::Rc;
 use ultraviolet::Vec3;
 use wgpu::{Device, RenderPass, RenderPipeline, include_spirv};

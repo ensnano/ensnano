@@ -6,10 +6,9 @@
 pub mod drag_drop_target;
 pub mod element;
 pub mod hoverable_container;
+mod icon;
 pub mod theme;
 pub mod tree;
-
-mod icon;
 
 pub use element::*;
 

@@ -1,6 +1,7 @@
 //! Defines constants uses throughout the workspace.
 
 use ultraviolet::{Vec3, Vec4};
+
 pub const VIEWER_BINDING_ID: u32 = 0;
 pub const TEXTURE_BINDING_ID: u32 = 2;
 

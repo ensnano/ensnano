@@ -7,6 +7,7 @@ use crate::ensnano_design::{
     Collection as _, Design, Domain, Nucl,
     grid::{GridData, GridTypeDescr},
 };
+use serde::Serialize;
 use std::collections::HashMap;
 
 pub fn cadnano_export(design: &Design) -> Result<String, CadnanoError> {
@@ -305,8 +306,6 @@ impl CadnanoStrand<'_> {
         Ok(())
     }
 }
-
-use serde::Serialize;
 
 const NO_CADNANO_NUCL: (isize, isize, isize, isize) = (-1, -1, -1, -1);
 

@@ -1,6 +1,5 @@
-use crate::ensnano_interactor::InsertionPoint;
-
 use super::*;
+use crate::ensnano_interactor::InsertionPoint;
 
 impl Controller {
     pub(super) fn update_insertion_length(

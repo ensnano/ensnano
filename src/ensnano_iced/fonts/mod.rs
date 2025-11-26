@@ -7,11 +7,13 @@
 //
 //        https://github.com/BillyDM/iced_baseview/issues/39
 
+pub mod material_icons;
+
+pub use iced::Font;
+pub use material_icons::{MATERIAL_ICONS_DARK, MaterialIcon, MaterialIconStyle, icon_to_char};
+
 use iced::{advanced::text, font};
 use std::borrow::Cow;
-
-pub mod material_icons;
-pub use material_icons::{MATERIAL_ICONS_DARK, MaterialIcon, MaterialIconStyle, icon_to_char};
 
 const ENSNANO_FONT_BYTES: &[u8] = include_bytes!("../../../fonts/ensnano2.ttf");
 const INTER_BOLD_FONT_BYTES: &[u8] = include_bytes!("../../../fonts/Inter-Bold.ttf");
@@ -31,8 +33,6 @@ pub const INTER_REGULAR_FONT: Font = Font {
     style: font::Style::Normal,
     stretch: font::Stretch::Normal,
 };
-
-pub use iced::Font;
 
 // https://rsms.me/inter
 

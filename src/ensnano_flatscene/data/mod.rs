@@ -6,13 +6,11 @@ pub use design::{FlatSceneDesignReaderExt, FlatTorsion};
 pub use helix::{CharCollector, GpuVertex, Helix, HelixHandle, HelixModel, Shift};
 pub use strand::{FreeEnd, Strand, StrandVertex};
 
-use super::FlatHelixMaps;
 use super::{
-    AppState, Requests, ViewPtr,
+    AppState, CameraPtr, FlatHelix, FlatHelixMaps, FlatIdx, FlatNucl, Requests, ViewPtr,
     flat_types::{Flat, FlatSelection, HelixSegment, HelixVec},
     view::EditionInfo,
 };
-use super::{CameraPtr, FlatHelix, FlatIdx, FlatNucl};
 use crate::ensnano_consts::*;
 use crate::ensnano_design::Nucl;
 use crate::ensnano_interactor::{PhantomElement, Selection, SelectionMode};

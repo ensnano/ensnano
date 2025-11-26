@@ -4,8 +4,7 @@
 // A copy of the original license is available in thirdparties/lyon/LICENSE
 
 use super::*;
-use lyon::geom::*;
-use lyon::tessellation::*;
+use lyon::{geom::*, tessellation::*};
 use wgpu::util::DeviceExt as _;
 
 pub struct Background {

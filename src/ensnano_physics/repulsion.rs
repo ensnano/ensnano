@@ -1,10 +1,9 @@
+use crate::ensnano_physics::simulation::RapierPhysicsSystem;
 use rapier3d::{
     parry::query::DefaultQueryDispatcher,
     prelude::*,
     rayon::iter::{IntoParallelIterator as _, ParallelIterator as _},
 };
-
-use crate::ensnano_physics::simulation::RapierPhysicsSystem;
 
 const FORCE_RANGE: f32 = 5.0;
 const FORCE_STRENGTH: f32 = 0.1;

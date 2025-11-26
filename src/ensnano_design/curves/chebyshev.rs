@@ -1,5 +1,4 @@
 use super::*;
-
 use chebyshev_polynomials::ChebyshevPolynomial;
 use serde::{Deserialize, Serialize};
 

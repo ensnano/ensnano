@@ -2,8 +2,10 @@
 //! [tacOxDNA](https://github.com/lorenzo-rovigatti/tacoxDNA)
 
 use crate::ensnano_design::{Design, Domain, HelixCollection as _, Nucl};
-use crate::ensnano_exports::BasisMapper;
-use crate::ensnano_exports::oxdna::{OXDNA_LEN_FACTOR, OxDnaHelix as _};
+use crate::ensnano_exports::{
+    BasisMapper,
+    oxdna::{OXDNA_LEN_FACTOR, OxDnaHelix as _},
+};
 use ahash::AHashMap;
 use itertools::Itertools as _;
 use std::{

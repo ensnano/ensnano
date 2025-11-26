@@ -39,11 +39,10 @@ use super::camera;
 use super::maths_3d::{self, distance_to_cursor_with_penalty};
 use super::{DrawArea, PhySize};
 use crate::ensnano_consts::*;
-use crate::ensnano_design::utils::dvec_to_vec;
-use crate::ensnano_design::{Axis, grid::GridId, group_attributes::GroupPivot};
-use crate::ensnano_interactor::UnrootedRevolutionSurfaceDescriptor;
-use crate::ensnano_interactor::graphics::{
-    Background3D, CutPlaneParameters, FogParameters, HBondDisplay, RenderingMode,
+use crate::ensnano_design::{Axis, grid::GridId, group_attributes::GroupPivot, utils::dvec_to_vec};
+use crate::ensnano_interactor::{
+    UnrootedRevolutionSurfaceDescriptor,
+    graphics::{Background3D, CutPlaneParameters, FogParameters, HBondDisplay, RenderingMode},
 };
 use crate::ensnano_utils::{bindgroup_manager, text, texture};
 use bindgroup_manager::{DynamicBindGroup, UniformBindGroup};

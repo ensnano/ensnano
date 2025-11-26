@@ -2,6 +2,7 @@ mod texture;
 
 use super::{LetterInstance, grid_disc::GridDisc, instances_drawer::*};
 use crate::ensnano_design::grid::{Grid, GridDivision as _, GridId, GridPosition, GridType};
+use crate::ensnano_utils::instance::Instance;
 use std::collections::BTreeMap;
 use ultraviolet::{Mat4, Vec2, Vec3, Vec4};
 use wgpu::{Device, RenderPass, include_spirv};
@@ -82,7 +83,6 @@ impl GridInstance {
     }
 
     fn to_raw(&self) -> GridInstanceRaw {
-        use crate::ensnano_utils::instance::Instance;
         let (min_x, min_y, max_x, max_y);
         if let GridType::Hyperboloid(h) = &self.grid.grid_type {
             min_x = -h.grid_radius(&self.grid.helix_parameters);

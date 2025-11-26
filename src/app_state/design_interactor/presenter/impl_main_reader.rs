@@ -2,6 +2,8 @@ use super::*;
 use crate::controller::download_staples::{
     DownloadStapleError, DownloadStapleOk, StaplesDownloader,
 };
+use crate::ensnano_design::grid::HelixGridPosition;
+use crate::ensnano_interactor::InteractorDesignReaderExt as MainReader;
 use itertools::Itertools as _;
 use rust_xlsxwriter::{Color, Format, Workbook};
 use serde::Serialize;
@@ -290,9 +292,6 @@ fn warn_scaffold_seq_mismatch(scaffold_length: usize, sequence_length: usize) ->
         length of the sequence: {sequence_length}",
     )
 }
-
-use crate::ensnano_design::grid::HelixGridPosition;
-use crate::ensnano_interactor::InteractorDesignReaderExt as MainReader;
 
 impl MainReader for DesignInteractor {
     fn get_xover_id(&self, pair: &(Nucl, Nucl)) -> Option<usize> {

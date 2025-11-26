@@ -1,6 +1,5 @@
-use std::f64::consts::FRAC_PI_2;
-
 use super::*;
+use std::f64::consts::FRAC_PI_2;
 
 /// The number of points used in the iterative version of the discretization algorithm.
 const NB_DISCRETIZATION_STEP: usize = 100;

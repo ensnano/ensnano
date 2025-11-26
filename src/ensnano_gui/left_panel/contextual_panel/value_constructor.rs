@@ -1,4 +1,5 @@
-use super::{Message, Selection, UiSize};
+use super::{AppState, Message, Selection, UiSize};
+use crate::ensnano_gui::consts::{MAX_NB_TURN, MIN_NB_TURN, NB_TURN_SLIDER_SPACING, NB_TURN_STEP};
 use crate::ensnano_iced::helpers::*;
 use iced::{Alignment, Length};
 use paste::paste;
@@ -281,17 +282,16 @@ impl GridBuilder {
         app_state: &S,
         selection: &Selection,
     ) -> Option<iced::Element<'a, super::Message<S>, iced::Theme, iced::Renderer>> {
-        use crate::ensnano_gui::consts;
         if let Selection::Grid(_, g_id) = selection {
             if let Some(nb_turn) = app_state.get_reader().get_grid_nb_turn(*g_id) {
                 let row = row![
                     text(format!("{nb_turn:.2}")),
-                    slider(consts::MIN_NB_TURN..=consts::MAX_NB_TURN, nb_turn, |x| {
+                    slider(MIN_NB_TURN..=MAX_NB_TURN, nb_turn, |x| {
                         super::Message::InstantiatedValueSubmitted(InstantiatedValue::GridNbTurn(x))
                     })
-                    .step(consts::NB_TURN_STEP),
+                    .step(NB_TURN_STEP),
                 ]
-                .spacing(consts::NB_TURN_SLIDER_SPACING);
+                .spacing(NB_TURN_SLIDER_SPACING);
                 Some(row.into())
             } else {
                 None
@@ -349,8 +349,6 @@ where
         }
     }
 }
-
-use super::AppState;
 
 pub trait Builder<State>
 where

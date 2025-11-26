@@ -1,10 +1,9 @@
 mod closed_curves;
 
 use super::{SimulationInterface, SimulationUpdate};
-use crate::ensnano_design::utils::dvec_to_vec;
 use crate::ensnano_design::{
-    AdditionalStructure, CurveDescriptor, CurveDescriptor2D, HelixParameters,
-    InterpolationDescriptor,
+    AdditionalStructure, CurveDescriptor, CurveDescriptor2D, Domain, DomainJunction, Helix,
+    HelixInterval, HelixParameters, InterpolationDescriptor, Strand, utils::dvec_to_vec,
 };
 use crate::ensnano_interactor::{
     EquadiffSolvingMethod, RevolutionSimulationParameters, RevolutionSurfaceSystemDescriptor,
@@ -559,7 +558,6 @@ struct HelicesRouting {
 
 impl SimulationUpdate for HelicesRouting {
     fn update_design(&self, design: &mut crate::ensnano_design::Design) {
-        use crate::ensnano_design::{Domain, DomainJunction, Helix, HelixInterval, Strand};
         let helix_parameters = design.helix_parameters.unwrap_or_default();
         let mut helices = design.helices.make_mut();
         let mut strand_to_be_added = Vec::new();

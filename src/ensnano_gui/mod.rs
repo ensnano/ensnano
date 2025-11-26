@@ -711,11 +711,10 @@ impl<R: Requests, State: AppState> Gui<R, State> {
     /// Clear the focus of all components of the GUI
     pub fn clear_focus(&mut self) {
         for elt in self.components.values_mut() {
-            use iced::advanced::mouse::Event;
-            elt.forward_event(event::Event::Mouse(Event::CursorMoved {
+            elt.forward_event(event::Event::Mouse(mouse::Event::CursorMoved {
                 position: [-1., -1.].into(),
             }));
-            elt.forward_event(event::Event::Mouse(Event::ButtonPressed(
+            elt.forward_event(event::Event::Mouse(mouse::Event::ButtonPressed(
                 mouse::Button::Left,
             )));
         }

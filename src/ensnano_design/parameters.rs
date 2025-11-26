@@ -2,7 +2,10 @@
 
 use super::codenano;
 use serde::{Deserialize, Serialize};
-use std::f32::consts::{PI, SQRT_2, TAU};
+use std::{
+    f32::consts::{PI, SQRT_2, TAU},
+    fmt::Write as _,
+};
 
 /// DNA geometric parameters.
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
@@ -155,7 +158,6 @@ impl HelixParameters {
     }
 
     pub fn formatted_string(&self) -> String {
-        use std::fmt::Write as _;
         let mut ret = String::new();
         writeln!(&mut ret, "  Radius: {:.3} nm", self.helix_radius).unwrap_or_default();
         writeln!(&mut ret, "  Rise: {:.3} nm", self.rise).unwrap_or_default();

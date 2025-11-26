@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::{
     borrow::Cow,
+    convert::TryFrom as _,
     f64::consts::{PI, TAU},
     fmt,
 };
@@ -179,7 +180,6 @@ impl<Label> Domain<Label> {
     /// along the helix, the second one is a translation across
     /// helices (probably most meaningful for a flat design).
     pub fn translate(self, dx: isize, dy: isize) -> Self {
-        use std::convert::TryFrom as _;
         Self {
             start: self.start + dx,
             end: self.end + dx,
@@ -200,7 +200,6 @@ impl<Label> Domain<Label> {
     /// Translate this domain to a different helix (probably most
     /// meaningful for a flat design).
     pub fn shift_y(self, dy: isize) -> Self {
-        use std::convert::TryFrom as _;
         Self {
             helix: usize::try_from(self.helix + dy).unwrap() as isize,
             ..self

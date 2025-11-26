@@ -3,9 +3,11 @@ use crate::ensnano_design::{HelixParameters, InstantiatedPiecewiseBezier};
 use num::integer::gcd;
 use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
-use std::f32::consts::FRAC_PI_2;
-use std::f64::consts::{PI, TAU};
-use std::sync::Arc;
+use std::{
+    f32::consts::FRAC_PI_2,
+    f64::consts::{PI, TAU},
+    sync::Arc,
+};
 use ultraviolet::{DVec2, DVec3, Isometry3, Rotor3};
 
 const INTER_HELIX_GAP: f64 = HelixParameters::DEFAULT.helix_radius as f64

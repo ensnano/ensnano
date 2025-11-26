@@ -387,25 +387,24 @@ impl InteractorResult {
 
 #[cfg(test)]
 mod tests {
-    use super::super::OkOperation as TopOkOperation;
     use super::*;
+    use crate::ensnano_design::{
+        Collection, DomainJunction, HelixCollection, Nucl, Strand,
+        grid::{GridDescriptor, GridTypeDescr, HelixGridPosition},
+    };
     use crate::ensnano_interactor::{
         InsertionPoint, InteractorDesignReaderExt, operation::GridHelixCreation,
     };
     use crate::ensnano_scene::data::SceneDesignReaderExt;
+    use crate::ensnano_utils::id_generator::IdGenerator;
     use crate::{
-        app_state::AppState,
-        ensnano_design::{
-            Collection, DomainJunction, HelixCollection, Nucl, Strand,
-            grid::{GridDescriptor, HelixGridPosition},
+        OkOperation as TopOkOperation,
+        app_state::{
+            AppState,
+            design_interactor::{
+                controller::clipboard::PastePosition, file_parsing::junctions::StrandJunction as _,
+            },
         },
-    };
-    use crate::{
-        app_state::design_interactor::{
-            controller::clipboard::PastePosition, file_parsing::junctions::StrandJunction as _,
-        },
-        ensnano_design::grid::GridTypeDescr,
-        ensnano_utils::id_generator::IdGenerator,
     };
     use regex::Regex;
     use ultraviolet::{Rotor3, Vec3};

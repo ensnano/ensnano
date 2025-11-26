@@ -1,4 +1,5 @@
 use super::*;
+use rand::Rng as _;
 use ultraviolet::Vec2;
 
 const DEFAULT_BEZIER_TANGENT_NORM: f32 = 1. / 3.;
@@ -79,7 +80,6 @@ pub(crate) trait PieceWiseBezierInstantiator<T: BezierEndCoordinateUnit> {
     fn is_cyclic(&self) -> bool;
 
     fn instantiate(&self) -> Option<InstantiatedPiecewiseBezier> {
-        use rand::prelude::*;
         let descriptor = if self.nb_vertices() > 2 {
             let n = self.nb_vertices();
             let idx_iterator: Box<dyn Iterator<Item = ((usize, usize), usize)>> =

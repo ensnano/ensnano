@@ -1,9 +1,3 @@
-use std::collections::HashMap;
-use std::{
-    sync::{Arc, Mutex, Weak},
-    time::Duration,
-};
-
 use crate::ensnano_design::{Design, HelixParameters, NuclCollection};
 use crate::ensnano_physics::RapierPhysicsSystem;
 use crate::{
@@ -12,6 +6,11 @@ use crate::{
         presenter::{Presenter, SimulationUpdate},
     },
     controller::channel_reader::ChannelReader,
+};
+use std::{
+    collections::HashMap,
+    sync::{Arc, Mutex, Weak},
+    time::Duration,
 };
 
 #[derive(Default)]

@@ -2,10 +2,10 @@ use super::{
     AppState, FactoryId, Message, RequestFactory, ScrollSensitivity, UiSize, ValueId, tabs::GuiTab,
 };
 use crate::ensnano_design::ensnano_version;
-use crate::ensnano_iced::ui_size::ALL_UI_SIZES;
 use crate::ensnano_iced::{
     fonts::{MaterialIcon, icon_to_char},
     helpers::*,
+    ui_size::ALL_UI_SIZES,
 };
 use iced_aw::TabLabel;
 use std::marker::PhantomData;

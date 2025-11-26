@@ -1,7 +1,6 @@
-use std::ops::Range;
-
 use crate::ensnano_design::Nucl;
 use ahash::HashMap;
+use std::ops::Range;
 
 /// Holds the intermediary representation
 /// of a nucleotide pair.
@@ -149,6 +148,7 @@ impl IntermediaryHelix {
 #[cfg(test)]
 mod tests {
     use super::*;
+
     #[test]
     fn helix_ranges() {
         let mut helix = IntermediaryHelix::default();

@@ -21,7 +21,7 @@ use curves::{
 use serde::{Deserialize, Serialize};
 use std::{
     collections::{BTreeMap, HashMap, HashSet},
-    f32::consts::PI,
+    f32::consts::{FRAC_PI_2, PI},
     sync::Arc,
 };
 use ultraviolet::{Rotor3, Vec2, Vec3};
@@ -956,7 +956,6 @@ impl GridData {
     }
 
     fn find_grid_for_group(&self, group: &[usize]) -> GridDescriptor {
-        use std::f32::consts::FRAC_PI_2;
         let helix_parameters = self.helix_parameters;
         let leader = self.source_helices.get(&group[0]).unwrap();
         let orientation = Rotor3::from_rotation_between(

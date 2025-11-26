@@ -1,6 +1,8 @@
 use chrono::Local;
-use std::path::{Path, PathBuf};
-use std::sync::Arc;
+use std::{
+    path::{Path, PathBuf},
+    sync::Arc,
+};
 
 pub const DEFAULT_FILE_PREFIX: &str = "export";
 pub const DEFAULT_FILE_EXTENSION: &str = "none";

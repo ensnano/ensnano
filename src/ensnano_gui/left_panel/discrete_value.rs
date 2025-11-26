@@ -2,8 +2,7 @@
 
 // TODO: Make it an independent object like ensnano_iced::color_picker ?
 
-use super::AppState;
-use super::Message;
+use super::{AppState, Message};
 use crate::ensnano_iced::{helpers::*, theme};
 use iced::{Alignment, Length, Pixels};
 use std::collections::BTreeMap;

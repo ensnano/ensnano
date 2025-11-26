@@ -2,13 +2,13 @@ mod import_from_svg;
 
 pub use import_from_svg::*;
 
-use super::Collection as _;
-use super::HelixParameters;
-use super::PieceWiseBezierInstantiator;
-use super::collection::HasMap;
-use super::curves::{BezierEndCoordinates, Curve, InstantiatedPiecewiseBezier};
-use super::grid::*;
-use super::utils::rotor_to_drotor;
+use super::{
+    Collection as _, HelixParameters, PieceWiseBezierInstantiator,
+    collection::HasMap,
+    curves::{BezierEndCoordinates, Curve, InstantiatedPiecewiseBezier},
+    grid::*,
+    utils::rotor_to_drotor,
+};
 use serde::{Deserialize, Serialize};
 use std::{collections::BTreeMap, sync::Arc};
 use ultraviolet::{DMat3, DVec3, Mat3, Rotor3, Vec2, Vec3};

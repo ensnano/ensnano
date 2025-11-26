@@ -14,6 +14,29 @@ mod torus_concentric_circle;
 mod tube_spiral;
 mod twist;
 
+pub use bezier::{
+    BezierControlPoint, BezierEnd, BezierEndCoordinates, CubicBezierConstructor,
+    CubicBezierControlPoint, InstantiatedPiecewiseBezier,
+};
+pub use revolution::{InterpolatedCurveDescriptor, InterpolationDescriptor};
+pub use sphere_concentric_circle::{
+    PillConcentricStadiumDescriptor, PillTennisBallSeamDescriptor,
+    SphereConcentricCircleDescriptor, SphereTennisBallSeamDescriptor,
+};
+pub use sphere_like_spiral::SphereLikeSpiralDescriptor;
+pub use spiral_cylinder::SpiralCylinderDescriptor;
+pub use supertwist::SuperTwist;
+pub use time_nucl_map::AbscissaConverter;
+pub use torus::{CurveDescriptor2D, PointOnSurface, Torus, TwistedTorusDescriptor};
+pub use torus_concentric_circle::{
+    EllipticTorusConcentricCircleDescriptor, TorusConcentricCircleDescriptor,
+};
+pub use tube_spiral::TubeSpiralDescriptor;
+pub use twist::{Twist, nb_turn_per_100_nt_to_omega, twist_to_omega};
+
+pub(crate) use bezier::PieceWiseBezierInstantiator;
+pub(crate) use time_nucl_map::{PathTimeMaps, RevolutionCurveTimeMaps};
+
 use super::{Helix, HelixParameters};
 use crate::ensnano_design::{
     AdditionalHelix2D, BezierPathData, BezierPathId,
@@ -21,36 +44,15 @@ use crate::ensnano_design::{
     grid::{Edge, *},
     utils::vec_to_dvec,
 };
-pub use bezier::InstantiatedPiecewiseBezier;
-pub(crate) use bezier::PieceWiseBezierInstantiator;
 use bezier::TranslatedPiecewiseBezier;
-pub use bezier::{
-    BezierControlPoint, BezierEnd, BezierEndCoordinates, CubicBezierConstructor,
-    CubicBezierControlPoint,
-};
 use rand::prelude::*;
-pub use revolution::{InterpolatedCurveDescriptor, InterpolationDescriptor};
 use serde::{Deserialize, Serialize};
-pub use sphere_concentric_circle::{
-    PillConcentricStadiumDescriptor, PillTennisBallSeamDescriptor,
-    SphereConcentricCircleDescriptor, SphereTennisBallSeamDescriptor,
+use std::{
+    collections::HashMap,
+    f64::consts::{PI, TAU},
+    sync::Arc,
 };
-pub use sphere_like_spiral::SphereLikeSpiralDescriptor;
-pub use spiral_cylinder::SpiralCylinderDescriptor;
-use std::collections::HashMap;
-use std::f64::consts::{PI, TAU};
-use std::sync::Arc;
-pub use supertwist::SuperTwist;
-pub use time_nucl_map::AbscissaConverter;
-pub(crate) use time_nucl_map::{PathTimeMaps, RevolutionCurveTimeMaps};
 use torus::TwistedTorus;
-pub use torus::{CurveDescriptor2D, TwistedTorusDescriptor};
-pub use torus::{PointOnSurface, Torus};
-pub use torus_concentric_circle::{
-    EllipticTorusConcentricCircleDescriptor, TorusConcentricCircleDescriptor,
-};
-pub use tube_spiral::TubeSpiralDescriptor;
-pub use twist::{Twist, nb_turn_per_100_nt_to_omega, twist_to_omega};
 use ultraviolet::{DMat3, DVec3, Isometry2, Rotor3, Vec2, Vec3};
 
 /// To compute curvilinear abscissa over long distances

@@ -4,6 +4,7 @@ use crate::ensnano_interactor::{StrandBuildingStatus, operation::Operation};
 use iced::{Alignment, Color, Element, Length};
 use iced_graphics::text::Paragraph;
 use iced_runtime::{Command, Program};
+use input_color::InputValueState;
 use std::{
     collections::HashMap,
     sync::{Arc, Mutex},
@@ -282,7 +283,6 @@ impl OperationInput {
                     .width(40)
                     .on_submit(Message::ValueSet(i, str_values[i].clone()));
                 if active_input.get(i) == Some(&true) {
-                    use input_color::InputValueState;
                     let state = if values.get(i) == str_values.get(i) {
                         InputValueState::Normal
                     } else if op.with_new_value(i, str_values[i].clone()).is_some() {

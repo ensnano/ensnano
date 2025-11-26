@@ -1,10 +1,9 @@
-use crate::ensnano_utils::instance::Instance;
-
 use super::{
     super::view::InsertionInstance,
     CameraPtr, FlatNucl,
     helix::{Helix, Shift},
 };
+use crate::ensnano_utils::instance::Instance;
 use lyon::{
     math::Point,
     path::{Path, path::BuilderWithAttributes},

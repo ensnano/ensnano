@@ -1,13 +1,13 @@
+mod instantiator;
+
+pub(crate) use instantiator::PieceWiseBezierInstantiator;
+
 use super::{CurveInstantiator, Curved, Edge};
-use crate::ensnano_design::grid::GridPosition;
-use crate::ensnano_design::utils::vec_to_dvec;
+use crate::ensnano_design::{grid::GridPosition, utils::vec_to_dvec};
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use ultraviolet::{DMat3, DVec3, Vec3};
-
-mod instantiator;
-pub(crate) use instantiator::PieceWiseBezierInstantiator;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, IntoPrimitive, TryFromPrimitive, PartialOrd, Ord)]
 #[repr(usize)]
@@ -150,10 +150,11 @@ impl CubicBezierPolynomial {
 
 #[cfg(test)]
 mod tests {
-    const EPSILON: f64 = 1e-6;
+    use super::*;
     use std::f64::consts::PI;
 
-    use super::*;
+    const EPSILON: f64 = 1e-6;
+
     #[test]
     fn correct_evaluation() {
         let start = DVec3::zero();

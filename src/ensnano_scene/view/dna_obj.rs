@@ -2,6 +2,7 @@
 
 use super::instances_drawer::{Instantiable, Vertexable};
 use crate::ensnano_consts::*;
+use crate::ensnano_utils::instance::Instance;
 use std::{
     f32::consts::{FRAC_1_SQRT_2, PI, TAU},
     iter::zip,
@@ -315,7 +316,6 @@ impl Instantiable for StereographicSphereAndPlane {
     }
 
     fn to_raw_instance(&self) -> Self::RawInstance {
-        use crate::ensnano_utils::instance::Instance;
         let color = Instance::color_from_au32(STEREOGRAPHIC_SPHERE_COLOR);
         let model = Mat4::from_translation(self.position)
             * self.orientation.into_matrix().into_homogeneous();
