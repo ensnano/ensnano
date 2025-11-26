@@ -1,5 +1,4 @@
-use super::*;
-use crate::ensnano_design::{CameraId, Collection as _, elements::DesignElement};
+use crate::ensnano_design::{CameraId, elements::DesignElement};
 use crate::ensnano_gui::{EnsnTree, GuiDesignReaderExt as ReaderGui};
 use crate::ensnano_interactor::InsertionPoint;
 use ultraviolet::Vec2;

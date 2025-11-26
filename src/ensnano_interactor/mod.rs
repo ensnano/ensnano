@@ -13,10 +13,9 @@ pub mod surfaces;
 pub mod torsion;
 
 use crate::ensnano_design::{
-    BezierControlPoint, BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex,
-    BezierVertexId, CurveDescriptor2D, HelixParameters, Nucl,
+    Nucl,
     elements::{DesignElementKey, DnaAttribute},
-    grid::{GridDescriptor, GridId, GridObject, GridTypeDescr, HelixGridPosition, Hyperboloid},
+    grid::{GridDescriptor, GridId, GridObject, GridTypeDescr, HelixGridPosition},
     group_attributes::GroupPivot,
 };
 use crate::ensnano_organizer::tree::{GroupId, OrganizerTree};

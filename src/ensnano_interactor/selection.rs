@@ -1,5 +1,5 @@
 use crate::ensnano_design::{
-    BezierControlPoint, BezierPathId, BezierVertexId, Domain, Nucl, Strand,
+    Nucl,
     elements::*,
     grid::{GridId, HelixGridPosition},
 };

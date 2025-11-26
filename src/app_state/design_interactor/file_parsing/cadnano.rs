@@ -1,7 +1,7 @@
 use {
     crate::ensnano_consts::SCAFFOLD_COLOR,
     crate::ensnano_design::{
-        Design, Domain, Helix, HelixInterval, Nucl, Strand,
+        Design, Nucl,
         grid::{Grid, GridType},
     },
     serde::{Deserialize, Serialize},

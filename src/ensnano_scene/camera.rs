@@ -1,12 +1,7 @@
 use {
-    super::{
-        PhySize,
-        maths_3d::{self, FiniteVec3, Plane},
-    },
     crate::{
         ensnano_consts::{DEFAULT_STEREOGRAPHIC_ZOOM, STEREOGRAPHIC_ZOOM_STEP},
-        ensnano_design::{SurfaceInfo, SurfacePoint},
-        ensnano_scene::view::uniforms::Stereography,
+        ensnano_scene::{controller::Data, view::uniforms::Stereography},
     },
     std::{
         cell::RefCell,
@@ -381,7 +376,7 @@ impl CameraController {
     }
 
     /// Translate the camera
-    fn translate_camera(&mut self, surface_info_provider: &dyn super::controller::Data) {
+    fn translate_camera(&mut self, surface_info_provider: &dyn Data) {
         let right = self.mouse_horizontal;
         let up = -self.mouse_vertical;
 
@@ -425,7 +420,7 @@ impl CameraController {
         &mut self,
         dt: Duration,
         modifier: &ModifiersState,
-        surface_info_provider: &dyn super::controller::Data,
+        surface_info_provider: &dyn Data,
     ) {
         let dt = dt.as_secs_f32();
 
@@ -549,7 +544,7 @@ impl CameraController {
         &mut self,
         dt: Duration,
         modifier: &ModifiersState,
-        surface_info_provider: &dyn super::controller::Data,
+        surface_info_provider: &dyn Data,
     ) {
         if self.processed_move {
             self.translate_camera(surface_info_provider);
@@ -618,10 +613,7 @@ impl CameraController {
         self.surface_point = Some(info.point);
     }
 
-    pub(super) fn reverse_surface_direction(
-        &mut self,
-        surface_info_provider: &dyn super::controller::Data,
-    ) {
+    pub(super) fn reverse_surface_direction(&mut self, surface_info_provider: &dyn Data) {
         if let Some(point) = self.surface_point.as_mut() {
             point.reversed_direction ^= true;
             if let Some(surface_info) = surface_info_provider.get_surface_info(point.clone()) {

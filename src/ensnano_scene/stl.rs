@@ -235,10 +235,8 @@ fn vertices_indices_to_stl_triangles(
 
 #[cfg(test)]
 mod tests {
-    use {
-        super::*,
-        std::io::{self, Write as _},
-    };
+    use super::*;
+    use std::io::{self, Write as _};
 
     fn stl_file_from_triangles(path: &str, triangles: Vec<StlTriangle>) -> Result<(), io::Error> {
         let mut out_file = std::fs::File::create(path)?;

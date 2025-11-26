@@ -1,9 +1,5 @@
-use {
-    super::{State, TransitionMessage, YesNo, dialog, messages},
-    crate::{MainStateView, ensnano_interactor::StandardSequence},
-    dialog::PathInput,
-    std::path::{Path, PathBuf},
-};
+use crate::{MainStateView, ensnano_interactor::StandardSequence};
+use std::path::{Path, PathBuf};
 
 /// User is in the process of setting the sequence of the scaffold
 pub(super) struct SetScaffoldSequence {
@@ -109,7 +105,7 @@ fn ask_path<P: AsRef<Path>>(
                 TransitionMessage::new(
                     messages::NO_FILE_RECEIVED_SCAFFOLD,
                     rfd::MessageLevel::Error,
-                    Box::new(super::NormalState),
+                    Box::new(NormalState),
                 )
             }
         } else {
@@ -138,7 +134,7 @@ fn got_path(path: PathBuf, shift: usize) -> Box<dyn State> {
         content.find(|c: char| c != 'A' && c != 'T' && c != 'G' && c != 'C' && !c.is_whitespace())
     {
         let msg = messages::invalid_sequence_file(n);
-        TransitionMessage::new(msg, rfd::MessageLevel::Error, Box::new(super::NormalState))
+        TransitionMessage::new(msg, rfd::MessageLevel::Error, Box::new(NormalState))
     } else {
         Box::new(SetScaffoldSequence {
             step: Step::SetSequence(content),
@@ -164,7 +160,7 @@ fn set_sequence(
                     step: Step::OptimizeScaffoldPosition { design_id: 0 },
                     shift,
                 });
-                let no = Box::new(super::NormalState);
+                let no = Box::new(NormalState);
                 Box::new(YesNo::new(message, yes, no))
             }
             TargetScaffoldLength::NotOk {
@@ -177,20 +173,20 @@ fn set_sequence(
                 Input sequence length: {input_scaffold_length}"
                 ),
                 rfd::MessageLevel::Warning,
-                Box::new(super::NormalState),
+                Box::new(NormalState),
             ),
         },
         Err(err) => TransitionMessage::new(
             format!("{err:?}"),
             rfd::MessageLevel::Error,
-            Box::new(super::NormalState),
+            Box::new(NormalState),
         ),
     }
 }
 
 fn optimize_scaffold_position(_design_id: usize, main_state: &mut MainStateView) -> Box<dyn State> {
     main_state.optimize_shift();
-    Box::new(super::NormalState)
+    Box::new(NormalState)
 }
 
 pub trait ScaffoldSetter {

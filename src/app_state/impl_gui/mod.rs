@@ -1,7 +1,6 @@
 mod curve_builders;
 
-use super::*;
-use crate::ensnano_design::{HelixParameters, elements::DesignElementKey};
+use crate::ensnano_design::elements::DesignElementKey;
 use crate::ensnano_gui::{AppState as GuiState, ClipboardContent};
 use crate::ensnano_interactor::selection::{SelectionConversion as _, all_helices_no_grid};
 use crate::ensnano_interactor::{ScaffoldInfo, SimulationState};

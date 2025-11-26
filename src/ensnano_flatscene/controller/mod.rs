@@ -8,12 +8,6 @@
 mod automata;
 
 use crate::ensnano_interactor::selection::ActionMode;
-
-use super::{
-    AppState, CameraPtr, DataPtr, FlatHelix, FlatNucl, PhySize, PhysicalPosition, Selection,
-    ViewPtr, WindowEvent,
-    data::{ClickResult, FreeEnd},
-};
 use automata::{ControllerState, NormalState, Transition, ctrl};
 use std::cell::RefCell;
 use ultraviolet::Vec2;

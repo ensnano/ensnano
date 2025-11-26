@@ -1,5 +1,4 @@
-use super::circle_curve::CircleCurve;
-use crate::ensnano_design::HelixParameters;
+use crate::ensnano_design::{curves::circle_curve::CircleCurve, parameters::HelixParameters};
 use serde::{Deserialize, Serialize};
 use std::f64::consts::TAU;
 

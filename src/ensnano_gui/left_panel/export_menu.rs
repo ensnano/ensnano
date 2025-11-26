@@ -1,5 +1,8 @@
-use super::{AppState, ExportType, Message};
-use crate::ensnano_iced::helpers::*;
+use crate::{
+    ensnano_exports::ExportType,
+    ensnano_gui::{AppState, left_panel::Message},
+};
+use iced::widget::{button, column, scrollable, text};
 
 #[derive(Default)]
 pub struct ExportMenu;

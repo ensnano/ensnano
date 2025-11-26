@@ -1,3 +1,4 @@
+use crate::ensnano_design::utils::is_false;
 use serde::{Deserialize, Serialize};
 use std::{
     borrow::Cow,
@@ -69,10 +70,6 @@ pub struct Strand<Label, DomainLabel> {
     /// `serde_json::Value::Null`, and skipped in the serialization.
     #[serde(skip_serializing_if = "Option::is_none", default = "none")]
     pub label: Option<Label>,
-}
-
-fn is_false(x: &bool) -> bool {
-    !*x
 }
 
 fn none<Label>() -> Option<Label> {

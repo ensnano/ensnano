@@ -1,5 +1,7 @@
-use super::Curved;
-use crate::ensnano_design::HelixParameters;
+use crate::ensnano_design::{
+    curves::{CurveBounds, Curved},
+    parameters::HelixParameters,
+};
 use serde::{Deserialize, Serialize};
 use std::f64::consts::{PI, TAU};
 use ultraviolet::{DRotor3, DVec3};
@@ -118,8 +120,8 @@ impl Curved for TubeSpiral {
         DVec3 { x, y, z }.rotated_by(DRotor3::from_rotation_xy(self.theta_0))
     }
 
-    fn bounds(&self) -> super::CurveBounds {
-        super::CurveBounds::Finite
+    fn bounds(&self) -> CurveBounds {
+        CurveBounds::Finite
     }
 
     fn subdivision_for_t(&self, t: f64) -> Option<usize> {

@@ -38,8 +38,7 @@ use crate::ensnano_utils::{
     filename::derive_path_with_prefix_and_time_stamp_and_suffix,
 };
 use controller::{Consequence, Controller};
-use data::{Data, FlatSceneDesignReaderExt};
-use flat_types::*;
+use data::Data;
 use itertools::Itertools as _;
 use std::{
     cell::RefCell,

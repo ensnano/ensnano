@@ -1,19 +1,18 @@
 mod value_constructor;
 
-pub use value_constructor::{InstantiatedValue, ValueKind};
-
-use super::super::GuiDesignReaderExt;
-use super::*;
 use crate::ensnano_consts::{
     ALT, BACKSPACE_CHAR, CTRL, HELIX_CHAR, KEY_DOWN, KEY_LEFT, KEY_RIGHT, KEY_UP, L_CLICK, M_CLICK,
     MOVE_CHAR, NUCL_CHAR, R_CLICK, ROT_CHAR, SELECT_CHAR, SHIFT, STRAND_CHAR, SUPPR_CHAR,
 };
-use crate::ensnano_design::{BezierVertexId, grid::GridId};
-use crate::ensnano_iced::{helpers::*, theme};
+use crate::ensnano_design::grid::GridId;
+use crate::ensnano_gui::GuiDesignReaderExt;
+use crate::ensnano_iced::helpers::{extra_jump, right_checkbox, section, subsection, text_button};
+use crate::ensnano_iced::{theme, widgets::keyboard_priority::keyboard_priority};
 use crate::ensnano_interactor::{SimulationState, selection::Selection};
+use iced::widget::{Column, Space, checkbox, column, row, scrollable, text, text_input};
 use iced::{Alignment, alignment::Horizontal};
 use ultraviolet::{Rotor3, Vec2};
-use value_constructor::{BezierVertexBuilder, Builder, GridBuilder};
+use value_constructor::{BezierVertexBuilder, Builder, GridBuilder, InstantiatedValue, ValueKind};
 
 pub enum ValueRequest {
     HelixGridPosition {

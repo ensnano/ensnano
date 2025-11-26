@@ -1,4 +1,3 @@
-use super::*;
 use std::fmt::{self, Write as _};
 
 impl Strand {

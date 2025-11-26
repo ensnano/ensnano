@@ -1,6 +1,5 @@
-use super::*;
 use crate::ensnano_consts::ICON_PHYSICAL_ENGINE;
-use crate::ensnano_iced::helpers::*;
+use iced::widget::{column, row};
 
 pub struct SimulationTab<State: AppState> {
     rigid_body_factory: RequestFactory<RigidBodyFactory>,

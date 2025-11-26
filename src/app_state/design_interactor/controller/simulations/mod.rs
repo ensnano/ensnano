@@ -3,8 +3,6 @@ pub mod revolutions;
 pub mod roller;
 pub mod twister;
 
-use super::*;
-use crate::ensnano_design::HelixParameters;
 use crate::ensnano_interactor::RigidBodyConstants;
 use crate::{
     app_state::design_interactor::Presenter,

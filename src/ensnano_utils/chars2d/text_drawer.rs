@@ -1,4 +1,3 @@
-use super::*;
 use fontdue::layout::Layout;
 use ultraviolet::Rotor2;
 

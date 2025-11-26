@@ -17,7 +17,7 @@ pub mod transitions;
 use crate::ensnano_design::Design;
 
 use crate::ensnano_consts::{APP_NAME, ENS_BACKUP_EXTENSION, ENS_EXTENSION};
-use crate::ensnano_design::{BezierPathId, SavingInformation, group_attributes::GroupPivot};
+use crate::ensnano_design::{SavingInformation, group_attributes::GroupPivot};
 use crate::ensnano_exports::{ExportResult, ExportType};
 use crate::ensnano_iced::ui_size::UiSize;
 use crate::ensnano_interactor::app_state_parameters::check_xovers_parameter::CheckXoversParameter;

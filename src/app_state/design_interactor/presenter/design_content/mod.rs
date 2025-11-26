@@ -1,6 +1,5 @@
 mod xover_suggestions;
 
-use super::*;
 use crate::ensnano_consts::{
     BOND_RADIUS, CLONE_OPACITY, HELIX_CYLINDER_COLOR, HELIX_CYLINDER_RADIUS, SPHERE_RADIUS,
 };

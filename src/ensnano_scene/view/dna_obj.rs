@@ -1,8 +1,7 @@
 //! This modules defines the meshes that are used to draw DNA.
 
-use super::instances_drawer::{Instantiable, Vertexable};
-use crate::ensnano_consts::*;
 use crate::ensnano_utils::instance::Instance;
+use crate::{ensnano_consts::*, ensnano_scene::view::Mesh};
 use std::{
     f32::consts::{FRAC_1_SQRT_2, PI, TAU},
     iter::zip,
@@ -117,7 +116,7 @@ impl Instantiable for PlainRectangleInstance {
             scale: Vec3::new(self.width, self.height, 1.),
             id: self.id,
             inversed_model: model.inversed(),
-            mesh: super::Mesh::PlainRectangle as u32,
+            mesh: Mesh::PlainRectangle as u32,
             prev: Vec3::zero(),
             next: Vec3::zero(),
             _padding: Default::default(),
@@ -222,7 +221,7 @@ impl Instantiable for SphereInstance {
             scale: Vec3::new(self.radius, self.radius, self.radius),
             id: self.id,
             inversed_model: model.inversed(),
-            mesh: super::Mesh::Sphere as u32,
+            mesh: Mesh::Sphere as u32,
             prev: Vec3::zero(),
             next: Vec3::zero(),
             _padding: Default::default(),
@@ -326,7 +325,7 @@ impl Instantiable for StereographicSphereAndPlane {
             scale,
             id: 0,
             inversed_model: model.inversed(),
-            mesh: super::Mesh::StereographicSphere as u32,
+            mesh: Mesh::StereographicSphere as u32,
             prev: Vec3::zero(),
             next: Vec3::zero(),
             _padding: Default::default(),
@@ -410,7 +409,7 @@ impl Instantiable for TubeInstance {
             scale: Vec3::new(self.length, self.radius, self.radius),
             id: self.id,
             inversed_model: model.inversed(),
-            mesh: super::Mesh::Tube as u32,
+            mesh: Mesh::Tube as u32,
             prev: Vec3::zero(),
             next: Vec3::zero(),
             _padding: Default::default(),
@@ -489,7 +488,7 @@ impl Instantiable for TubeLidInstance {
             scale: Vec3::new(1.0, self.radius, self.radius),
             id: self.id,
             inversed_model: model.inversed(),
-            mesh: super::Mesh::TubeLid as u32,
+            mesh: Mesh::TubeLid as u32,
             prev: Vec3::zero(),
             next: Vec3::zero(),
             _padding: Default::default(),
@@ -599,7 +598,7 @@ impl Instantiable for SlicedTubeInstance {
             scale: Vec3::new(self.length, self.radius, self.radius),
             id: self.id,
             inversed_model: model.inversed(),
-            mesh: super::Mesh::SlicedTube as u32,
+            mesh: Mesh::SlicedTube as u32,
             prev: self.prev,
             next: self.next,
             _padding: Default::default(),
@@ -700,7 +699,7 @@ impl Instantiable for ConeInstance {
             scale: Vec3::new(self.length, self.radius, self.radius),
             id: self.id,
             inversed_model: model.inversed(),
-            mesh: super::Mesh::Prime3Cone as u32,
+            mesh: Mesh::Prime3Cone as u32,
             prev: Vec3::zero(),
             next: Vec3::zero(),
             _padding: Default::default(),

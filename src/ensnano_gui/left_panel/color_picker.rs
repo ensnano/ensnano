@@ -1,7 +1,5 @@
-use super::ColorMessage;
-use crate::ensnano_iced::helpers::*;
 use hue_column::HueColumn;
-use iced::Color;
+use iced::{Color, widget::row};
 use light_sat_square::LightSatSquare;
 
 pub struct ColorPicker {
@@ -445,7 +443,6 @@ mod light_sat_square {
 
 /// A widget to Visualize selected color.
 mod color_square {
-    use super::Color;
     use iced::{
         Length, Rectangle, Size, Vector,
         advanced::{

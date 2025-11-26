@@ -5,38 +5,29 @@
 #[cfg(test)]
 mod tests;
 
-mod bezier_plane;
+pub mod bezier_plane;
 pub mod codenano;
-mod collection;
+pub mod collection;
 pub mod consts;
-mod curves;
+pub mod curves;
 pub mod design_operations;
 pub mod drawing_style;
 pub mod elements;
-mod external_3d_objects;
+pub mod external_3d_objects;
 pub mod grid;
 pub mod group_attributes;
-mod helices;
+pub mod helices;
 mod insertions;
 pub mod isometry3_descriptor;
 mod material_colors;
-mod parameters;
+pub mod parameters;
 pub mod scadnano;
-mod strands;
+pub mod strands;
 pub mod utils;
-
-pub use bezier_plane::*;
-pub use collection::{Collection, HasMap};
-pub use curves::*;
-pub use external_3d_objects::*;
-pub use helices::*;
-pub use isometry3_descriptor::Isometry3Descriptor;
-pub use parameters::*;
-pub use strands::*;
 
 use crate::ensnano_organizer::tree::{GroupId, OrganizerTree};
 use elements::DesignElementKey;
-use grid::{FreeGrids, GridData, GridDescriptor, GridId};
+use grid::{GridData, GridDescriptor, GridId};
 use group_attributes::GroupAttribute;
 use material_colors::MaterialColor;
 use scadnano::*;

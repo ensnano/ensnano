@@ -1,8 +1,11 @@
-use super::Curved;
-use crate::ensnano_design::HelixParameters;
 use serde::{Deserialize, Serialize};
 use std::f64::consts::{FRAC_PI_2, PI, TAU};
 use ultraviolet::DVec3;
+
+use crate::ensnano_design::{
+    curves::{CurveBounds, Curved},
+    parameters::HelixParameters,
+};
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct SphereLikeSpiralDescriptor {
@@ -132,8 +135,8 @@ impl Curved for SphereLikeSpiral {
         DVec3 { x, y, z }
     }
 
-    fn bounds(&self) -> super::CurveBounds {
-        super::CurveBounds::Finite
+    fn bounds(&self) -> CurveBounds {
+        CurveBounds::Finite
     }
 
     fn subdivision_for_t(&self, t: f64) -> Option<usize> {

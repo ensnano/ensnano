@@ -5,18 +5,20 @@
 //!
 //! Drawing the top bar, and triggering events from it is handled here.
 
-use super::{
-    AppState, Requests, SplitMode, TopBarState,
-    icon::{HasIcon as _, HasIconDependentOnAxis as _},
-};
 use crate::ensnano_iced::{
-    fonts::{ENSNANO_FONT, MaterialIcon, MaterialIconStyle},
-    helpers::*,
+    fonts::{
+        ENSNANO_FONT,
+        material_icons::{MaterialIcon, MaterialIconStyle},
+    },
+    helpers::{fixed_text_button, image_button, material_icon_button, text_button},
     theme::GuiBackground,
     ui_size::UiSize,
 };
 use crate::ensnano_interactor::selection::{ActionMode, SelectionMode};
-use iced::{Element, Length, Padding};
+use iced::{
+    Element, Length, Padding, theme,
+    widget::{Button, Row, container, row, text, tooltip},
+};
 use iced_runtime::{Command, Program};
 use std::sync::{Arc, Mutex};
 use winit::dpi::LogicalSize;
@@ -95,7 +97,7 @@ impl<R: Requests, S: AppState> TopBar<R, S> {
 impl<R: Requests, S: AppState> Program for TopBar<R, S> {
     type Message = Message<S>;
     type Theme = iced::Theme;
-    type Renderer = super::Renderer;
+    type Renderer = iced::Renderer;
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         match message {
@@ -487,7 +489,7 @@ fn action_mode_btn<'a, State: AppState>(
     _button_size: impl Into<Length>,
     axis_aligned: bool,
     ui_size: UiSize,
-) -> Button<'a, Message<State>, iced::Theme, super::Renderer> {
+) -> Button<'a, Message<State>, iced::Theme, iced::Renderer> {
     let icon_path = if current_action_mode == *mode {
         mode.icon_on(axis_aligned)
     } else {
@@ -508,7 +510,7 @@ fn selection_mode_btn<'a, State: AppState>(
     mode: &SelectionMode,
     current_mode: SelectionMode,
     ui_size: UiSize,
-) -> Button<'a, Message<State>, iced::Theme, super::Renderer> {
+) -> Button<'a, Message<State>, iced::Theme, iced::Renderer> {
     let icon_path = if current_mode == *mode {
         mode.icon_on()
     } else {

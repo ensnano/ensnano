@@ -1,5 +1,3 @@
-use super::*;
-use crate::ensnano_design::{InterpolatedCurveDescriptor, InterpolationDescriptor, PointOnSurface};
 use num::integer::gcd;
 use rayon::iter::{IntoParallelIterator as _, ParallelIterator as _};
 use std::f64::consts::TAU;

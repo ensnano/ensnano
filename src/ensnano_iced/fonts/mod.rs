@@ -9,10 +9,8 @@
 
 pub mod material_icons;
 
-pub use iced::Font;
-pub use material_icons::{MATERIAL_ICONS_DARK, MaterialIcon, MaterialIconStyle, icon_to_char};
-
-use iced::{advanced::text, font};
+use iced::{Font, advanced::text, font};
+use material_icons::{MATERIAL_ICONS_DARK, MaterialIcon, MaterialIconStyle, icon_to_char};
 use std::borrow::Cow;
 
 const ENSNANO_FONT_BYTES: &[u8] = include_bytes!("../../../fonts/ensnano2.ttf");

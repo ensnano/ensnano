@@ -1,4 +1,3 @@
-use super::*;
 use crate::controller::download_staples::{
     DownloadStapleError, DownloadStapleOk, StaplesDownloader,
 };

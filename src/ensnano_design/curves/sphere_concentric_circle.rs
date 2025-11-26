@@ -1,10 +1,13 @@
 // TODO: check all unused fields (starting with _)
 
-use super::Curved;
-use crate::ensnano_design::HelixParameters;
 use serde::{Deserialize, Serialize};
 use std::f64::consts::{PI, TAU};
 use ultraviolet::DVec3;
+
+use crate::ensnano_design::{
+    curves::{CurveBounds, Curved, time_nucl_map::AbscissaConverter},
+    parameters::HelixParameters,
+};
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct SphereConcentricCircleDescriptor {
@@ -124,8 +127,8 @@ impl Curved for SphereConcentricCircle {
         Some(x / TAU / self.z_radius)
     }
 
-    fn bounds(&self) -> super::CurveBounds {
-        super::CurveBounds::Finite
+    fn bounds(&self) -> CurveBounds {
+        CurveBounds::Finite
     }
 
     fn full_turn_at_t(&self) -> Option<f64> {
@@ -147,8 +150,8 @@ impl Curved for SphereConcentricCircle {
         self.t_min
     }
 
-    fn abscissa_converter(&self) -> Option<crate::ensnano_design::AbscissaConverter> {
-        Some(crate::ensnano_design::AbscissaConverter::linear(
+    fn abscissa_converter(&self) -> Option<AbscissaConverter> {
+        Some(AbscissaConverter::linear(
             self.abscissa_converter_factor.unwrap_or(1.),
         ))
     }
@@ -320,17 +323,9 @@ impl Curved for SphereTennisBallSeam {
         Some(x)
     }
 
-    fn bounds(&self) -> super::CurveBounds {
-        super::CurveBounds::Finite
+    fn bounds(&self) -> CurveBounds {
+        CurveBounds::Finite
     }
-
-    // fn subdivision_for_t(&self, t: f64) -> Option<usize> {
-    //     None
-    // }
-
-    // fn is_time_maps_singleton(&self) -> bool {
-    //     true
-    // }
 
     fn full_turn_at_t(&self) -> Option<f64> {
         Some(self.t_max())
@@ -597,17 +592,9 @@ impl Curved for PillTennisBallSeam {
         Some(x / self.perimeter)
     }
 
-    fn bounds(&self) -> super::CurveBounds {
-        super::CurveBounds::Finite
+    fn bounds(&self) -> CurveBounds {
+        CurveBounds::Finite
     }
-
-    // fn subdivision_for_t(&self, t: f64) -> Option<usize> {
-    //     None
-    // }
-
-    // fn is_time_maps_singleton(&self) -> bool {
-    //     true
-    // }
 
     fn full_turn_at_t(&self) -> Option<f64> {
         Some(self.t_max())
@@ -798,25 +785,9 @@ impl Curved for PillConcentricStadium {
         Some(x / self.perimeter)
     }
 
-    fn bounds(&self) -> super::CurveBounds {
-        super::CurveBounds::Finite
+    fn bounds(&self) -> CurveBounds {
+        CurveBounds::Finite
     }
-
-    // fn subdivision_for_t(&self, t: f64) -> Option<usize> {
-    //     None
-    // }
-
-    // fn is_time_maps_singleton(&self) -> bool {
-    //     true
-    // }
-
-    // fn first_theta(&self) -> Option<f64> {
-    //     Some(self.theta_0)
-    // }
-
-    // fn last_theta(&self) -> Option<f64> {
-    //     Some(self.last_theta())
-    // }
 
     fn full_turn_at_t(&self) -> Option<f64> {
         match self.is_closed {
@@ -837,8 +808,8 @@ impl Curved for PillConcentricStadium {
         self.t_min
     }
 
-    fn abscissa_converter(&self) -> Option<crate::ensnano_design::AbscissaConverter> {
-        Some(crate::ensnano_design::AbscissaConverter::linear(
+    fn abscissa_converter(&self) -> Option<AbscissaConverter> {
+        Some(AbscissaConverter::linear(
             self.abscissa_converter_factor.unwrap_or(1.),
         ))
     }

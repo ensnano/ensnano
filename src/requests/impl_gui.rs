@@ -1,6 +1,7 @@
 //! Implements the [Requests](`crate::ensnano_gui::Requests`) trait for [Requests](`super::Requests`).
 
 use crate::controller::normal_state::Action;
+use crate::ensnano_design::parameters::HelixParameters;
 use crate::ensnano_design::{
     elements::{DesignElementKey, DnaAttribute},
     grid::{GridId, GridTypeDescr},
@@ -393,7 +394,7 @@ impl crate::ensnano_gui::Requests for Requests {
         self.keep_proceed.push_back(Action::DownloadOrigamiRequest);
     }
 
-    fn set_dna_parameters(&mut self, param: crate::ensnano_design::HelixParameters) {
+    fn set_dna_parameters(&mut self, param: HelixParameters) {
         self.keep_proceed.push_back(Action::SetDnaParameters(param));
     }
 

@@ -1,9 +1,6 @@
 mod formatting;
 
-use super::{
-    Helices, HelixCollection as _, Nucl, VirtualNucl, codenano, insertions::InstantiatedInsertion,
-    scadnano::*,
-};
+use crate::ensnano_design::utils::is_false;
 use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, collections::BTreeMap, sync::Arc};
 
@@ -110,7 +107,7 @@ impl Strands {
     pub fn get_used_bounds_for_helix(
         &self,
         h_id: usize,
-        helices: &super::Helices,
+        helices: &Helices,
     ) -> Option<(isize, isize)> {
         let mut min = None;
         let mut max = None;
@@ -205,11 +202,6 @@ pub enum DomainJunction {
     Adjacent,
     /// Indicate that the previous domain is the end of the strand.
     Prime3,
-}
-
-// used to serialize `Strand.cyclic`
-fn is_false(x: &bool) -> bool {
-    !*x
 }
 
 /// A DNA strand. Strands are represented as sequences of `Domains`.

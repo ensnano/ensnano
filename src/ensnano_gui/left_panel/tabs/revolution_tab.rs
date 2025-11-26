@@ -1,9 +1,6 @@
-use super::tabs::GuiTab;
-use crate::ensnano_design::CurveDescriptor2D;
 use crate::ensnano_gui::{AppState, SimulationState, left_panel::Message};
 use crate::ensnano_iced::{
     fonts::{MaterialIcon, icon_to_char},
-    helpers::*,
     theme,
     ui_size::UiSize,
 };
@@ -12,6 +9,7 @@ use crate::ensnano_interactor::surfaces::{
     RevolutionSurfaceSystemDescriptor, RootingParameters, ShiftGenerator,
     UnrootedRevolutionSurfaceDescriptor,
 };
+use iced::widget::{column, row};
 use iced::{Alignment, Command, Length};
 use iced_aw::TabLabel;
 use std::fmt;

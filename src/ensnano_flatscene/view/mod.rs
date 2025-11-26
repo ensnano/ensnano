@@ -1,20 +1,10 @@
 mod background;
 mod helix_view;
-mod insertion;
+pub mod insertion;
 mod rectangle;
 
-pub use insertion::{InsertionDescriptor, InsertionInstance};
-
-use super::{
-    CameraPtr,
-    data::{
-        CharCollector, FlatTorsion, FreeEnd, GpuVertex, Helix, HelixModel, Shift, Strand,
-        StrandVertex,
-    },
-    flat_types::{FlatIdx, FlatNucl, FlatSelection},
-};
 use crate::ensnano_consts::{CANDIDATE_COLOR, PRINTABLE_CHARS, SAMPLE_COUNT, SELECTED_COLOR};
-use crate::ensnano_design::{Nucl, NuclCollection};
+use crate::ensnano_design::Nucl;
 use crate::ensnano_interactor::graphics::DrawArea;
 use crate::ensnano_utils::{
     Ndc, PhySize,

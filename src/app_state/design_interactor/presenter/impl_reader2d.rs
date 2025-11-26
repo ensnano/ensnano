@@ -1,7 +1,6 @@
-use super::*;
-use crate::ensnano_design::{Domain, HelixInterval};
-use crate::ensnano_flatscene::data::FlatSceneDesignReaderExt;
-use crate::ensnano_interactor::torsion::Torsion;
+use crate::{
+    ensnano_design::curves::time_nucl_map::AbscissaConverter, ensnano_interactor::torsion::Torsion,
+};
 use ahash::RandomState;
 use ultraviolet::{Isometry2, Vec2};
 
@@ -183,7 +182,7 @@ impl FlatSceneDesignReaderExt for DesignInteractor {
         self.presenter.content.nucl_collection.clone()
     }
 
-    fn get_abscissa_converter(&self, h_id: usize) -> crate::ensnano_design::AbscissaConverter {
+    fn get_abscissa_converter(&self, h_id: usize) -> AbscissaConverter {
         self.presenter
             .current_design
             .try_get_up_to_date()

@@ -1,8 +1,16 @@
-use super::*;
-use crate::ensnano_consts::*;
+use crate::ensnano_flatscene::AppState;
+use crate::ensnano_flatscene::controller::Consequence;
+use crate::ensnano_flatscene::flat_types::FlatNucl;
+use crate::ensnano_interactor::selection::ActionMode;
 use crate::ensnano_utils::circles2d::CircleInstance;
+use crate::{ensnano_consts::*, ensnano_flatscene::data::ClickResult};
 use std::time::Instant;
-use winit::event::MouseButton;
+use ultraviolet::Vec2;
+use winit::{
+    dpi::PhysicalPosition,
+    event::{MouseButton, WindowEvent},
+    window::CursorIcon,
+};
 
 const WHEEL_RADIUS: f32 = 1.5;
 
@@ -2761,7 +2769,7 @@ impl<S: AppState> ControllerState<S> for InitHelixTranslation {
 
 struct TranslatingHandle {
     h_id: FlatHelix,
-    handle: super::super::data::HelixHandle,
+    handle: HelixHandle,
     auto: bool,
     clicked_position_screen: PhysicalPosition<f64>,
 }
@@ -2769,7 +2777,7 @@ struct TranslatingHandle {
 impl TranslatingHandle {
     fn new(
         h_id: FlatHelix,
-        handle: super::super::data::HelixHandle,
+        handle: HelixHandle,
         clicked_position_screen: PhysicalPosition<f64>,
     ) -> Self {
         Self {

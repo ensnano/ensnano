@@ -1,13 +1,7 @@
-use super::{
-    AppState, FactoryId, GridTypeDescr, Hyperboloid_, HyperboloidRequest, Message, RequestFactory,
-    UiSize, ValueId, tabs::GuiTab,
-};
 use crate::ensnano_consts::{ICON_HONEYCOMB_GRID, ICON_NANOTUBE, ICON_SQUARE_GRID};
-use crate::ensnano_iced::{
-    fonts::{MaterialIcon, icon_to_char},
-    helpers::*,
-};
-use iced::Length;
+use crate::ensnano_iced::fonts::material_icons::{MaterialIcon, icon_to_char};
+use iced::widget::row;
+use iced::{Length, widget::column};
 use iced_aw::TabLabel;
 use std::marker::PhantomData;
 

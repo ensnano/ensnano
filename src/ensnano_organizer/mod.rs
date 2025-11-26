@@ -10,11 +10,15 @@ mod icon;
 pub mod theme;
 pub mod tree;
 
-use crate::ensnano_iced::helpers::*;
-use drag_drop_target::*;
-use element::*;
 use hoverable_container::HoverableContainer;
-use iced::{Element, Length, keyboard::Modifiers};
+use iced::{
+    Element, Length, Renderer, Theme,
+    keyboard::Modifiers,
+    widget::{
+        Column, Container, Row, Space, button, column, container, horizontal_space, mouse_area,
+        row, scrollable, text, text_input, tooltip,
+    },
+};
 use rand::{Rng as _, rngs::ThreadRng};
 use std::{
     collections::{BTreeMap, BTreeSet, HashMap},
@@ -22,6 +26,8 @@ use std::{
 };
 use theme::OrganizerTheme;
 use tree::{GroupId, OrganizerTree};
+
+use crate::ensnano_iced::widgets::keyboard_priority::keyboard_priority;
 
 const LEVELS_V_SPACING: u16 = 2;
 const H_SPACING_IN_UNITS: u16 = 15;

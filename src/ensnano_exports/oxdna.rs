@@ -1,5 +1,7 @@
-use super::*;
-use crate::ensnano_design::{Domain, Helix, HelixCollection as _, HelixParameters};
+use crate::{
+    ensnano_design::{Design, Nucl, helices::Helix, parameters::HelixParameters, strands::Domain},
+    ensnano_exports::{BasisMapper, rand_base},
+};
 use std::{f32::consts::TAU, io::Write as _, mem::ManuallyDrop, path::Path};
 use ultraviolet::{Mat3, Rotor3, Vec3};
 
@@ -231,7 +233,7 @@ impl StrandMaker<'_, '_> {
             .map(|nucl| self.context.basis_map.get_basis(nucl, 'T'));
 
         let bond = OxDnaBond {
-            base: base.unwrap_or_else(super::rand_base),
+            base: base.unwrap_or_else(rand_base),
             strand_id: self.strand_id,
             prime3: -1,
             prime5: self.prev_nucl.unwrap_or(-1),

@@ -11,13 +11,6 @@ pub mod left_panel;
 pub mod status_bar;
 pub mod top_bar;
 
-pub use left_panel::{
-    ColorOverlay, CurveDescriptorBuilder, CurveDescriptorParameter, InstantiatedParameter,
-    LeftPanel, RevolutionScaling, RigidBodyParametersRequest,
-};
-pub use status_bar::{ClipboardContent, CurrentOpState};
-pub use top_bar::TopBar;
-
 use crate::ensnano_interactor::{
     HyperboloidRequest, InsertionPoint, PastingStatus, RapierSimulationRequest, RollRequest,
     ScaffoldInfo, SimulationState, StrandBuildingStatus, WidgetBasis,
@@ -37,7 +30,7 @@ use crate::ensnano_interactor::{
 use crate::ensnano_organizer::tree::{GroupId, OrganizerTree};
 use crate::{
     ensnano_design::{
-        BezierPathId, BezierVertexId, CameraId, HelixParameters, Nucl,
+        CameraId, Nucl,
         elements::{DesignElement, DesignElementKey, DnaAttribute},
         grid::{GridId, GridTypeDescr},
     },
@@ -59,12 +52,15 @@ use iced::{
 };
 use iced_runtime::{Debug, program};
 use iced_wgpu::Backend;
+use left_panel::{ColorOverlay, LeftPanel, RigidBodyParametersRequest};
 use status_bar::StatusBar;
+use status_bar::{ClipboardContent, CurrentOpState};
 use std::{
     collections::{BTreeSet, HashMap, VecDeque},
     rc::Rc,
     sync::{Arc, Mutex},
 };
+use top_bar::TopBar;
 use ultraviolet::{Rotor3, Vec2, Vec3};
 use wgpu::{Device, Queue};
 use winit::{dpi::PhysicalSize, event::Modifiers, window::Window};

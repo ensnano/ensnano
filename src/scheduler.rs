@@ -1,16 +1,13 @@
-use {
-    super::{AppState, Multiplexer},
-    crate::ensnano_interactor::{application::Application, graphics::GuiComponentType},
-    std::{
-        collections::HashMap,
-        sync::{Arc, Mutex},
-        time::Duration,
-    },
-    winit::{
-        dpi::{PhysicalPosition, PhysicalSize},
-        event::WindowEvent,
-        window::CursorIcon,
-    },
+use crate::ensnano_interactor::{application::Application, graphics::GuiComponentType};
+use std::{
+    collections::HashMap,
+    sync::{Arc, Mutex},
+    time::Duration,
+};
+use winit::{
+    dpi::{PhysicalPosition, PhysicalSize},
+    event::WindowEvent,
+    window::CursorIcon,
 };
 
 /// The scheduler is responsible for running the different applications

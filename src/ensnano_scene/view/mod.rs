@@ -19,18 +19,14 @@ pub mod sheet_2d;
 pub mod uniforms;
 
 use self::gltf_drawer::Object3DDrawer;
-use super::{
-    DrawArea, PhySize, camera,
-    maths_3d::{self, distance_to_cursor_with_penalty},
-};
-use crate::ensnano_design::{Axis, grid::GridId, group_attributes::GroupPivot, utils::dvec_to_vec};
+use crate::ensnano_design::{grid::GridId, group_attributes::GroupPivot, utils::dvec_to_vec};
 use crate::ensnano_interactor::graphics::{
     Background3D, CutPlaneParameters, FogParameters, HBondDisplay, RenderingMode,
 };
+use crate::ensnano_scene::maths_3d::cast_ray;
 use crate::ensnano_utils::{bindgroup_manager, text, texture};
 use crate::{ensnano_consts::*, ensnano_interactor::surfaces::UnrootedRevolutionSurfaceDescriptor};
 use bindgroup_manager::{DynamicBindGroup, UniformBindGroup};
-use camera::{Camera, CameraPtr, Projection, ProjectionPtr};
 use direction_cube::*;
 use dna_obj::{
     PlainRectangleInstance, RawDnaInstance, SlicedTubeInstance, SphereInstance,
@@ -44,7 +40,6 @@ use handle_drawer::{HandleColors, HandleDir, HandlesDescriptor, HandlesDrawer};
 use instances_drawer::{InstanceDrawer, RawDrawer};
 use int_enum::IntEnum;
 use letter::LetterInstance;
-use maths_3d::unproject_point_on_line;
 use rotation_widget::{RotationMode, RotationWidget, RotationWidgetDescriptor};
 use sheet_2d::Sheet2D;
 use std::{cell::RefCell, collections::BTreeMap, rc::Rc};
@@ -1056,7 +1051,7 @@ impl View {
     }
 
     pub fn grid_intersection(&self, x_ndc: f32, y_ndc: f32) -> Option<GridIntersection> {
-        let ray = maths_3d::cast_ray(
+        let ray = cast_ray(
             x_ndc,
             y_ndc,
             self.camera.clone(),
@@ -1072,7 +1067,7 @@ impl View {
         y_ndc: f32,
         g_id: GridId,
     ) -> Option<GridIntersection> {
-        let ray = maths_3d::cast_ray(
+        let ray = cast_ray(
             x_ndc,
             y_ndc,
             self.camera.clone(),

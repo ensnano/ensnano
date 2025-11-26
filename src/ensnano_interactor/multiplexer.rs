@@ -1,4 +1,3 @@
-use super::graphics::{DrawArea, GuiComponentType};
 use winit::dpi::PhysicalPosition;
 
 /// An object mapping ElementType to DrawArea

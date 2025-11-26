@@ -1,10 +1,14 @@
-use super::{AppState, Message, Vec3};
 use crate::ensnano_gui::CameraId;
-use crate::ensnano_iced::{
-    fonts::{MaterialIcon, MaterialIconStyle},
-    helpers::*,
-    ui_size::UiSize,
+use crate::ensnano_iced::helpers::{
+    extra_jump, fixed_text_button, material_icon, material_icon_button, rotation_icon_button,
+    section, subsection,
 };
+use crate::ensnano_iced::{
+    fonts::material_icons::{MaterialIcon, MaterialIconStyle},
+    ui_size::UiSize,
+    widgets::keyboard_priority::keyboard_priority,
+};
+use iced::widget::{Column, Space, column, row, scrollable, text, text_input};
 use iced::{Alignment, Command, Length, alignment::Horizontal};
 
 /// A named camera orientation.

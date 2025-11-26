@@ -1,4 +1,3 @@
-use super::*;
 use std::{fmt::Write as _, sync::mpsc};
 
 macro_rules! log_err {

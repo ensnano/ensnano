@@ -1,22 +1,23 @@
-mod copy_grid;
+pub mod copy_grid;
 mod deserialize;
-mod grid_collection;
-mod hyperboloid;
+pub mod grid_collection;
+pub mod hyperboloid;
 
-pub use copy_grid::GridCopyError;
-pub use grid_collection::*;
-pub use hyperboloid::*;
-
-use super::{
-    Axis, BezierControlPoint, BezierPathData, BezierPathId, BezierVertexId, Collection as _,
-    CurveDescriptor, Design, Helices, Helix, HelixCollection as _, HelixParameters, Twist,
-    curves::{self, AbscissaConverter, CurveDescriptor2D},
+use crate::ensnano_design::{
+    Design,
+    bezier_plane::{BezierPathData, BezierPathId, BezierVertexId},
+    curves::{
+        CurveCache, CurveDescriptor, CurveInstantiator, InstantiatedCurve,
+        InstantiatedCurveDescriptor,
+        bezier::BezierControlPoint,
+        time_nucl_map::{AbscissaConverter, PathTimeMaps, RevolutionCurveTimeMaps},
+        torus::CurveDescriptor2D,
+        twist::{Twist, twist_to_omega},
+    },
     design_operations::{ErrDesignOperation, MIN_HELICES_TO_MAKE_GRID},
-    twist_to_omega,
-};
-use curves::{
-    CurveCache, CurveInstantiator, InstantiatedCurve, InstantiatedCurveDescriptor, PathTimeMaps,
-    RevolutionCurveTimeMaps,
+    grid::{grid_collection::FreeGrids, hyperboloid::Hyperboloid},
+    helices::{Axis, Helices, Helix},
+    parameters::HelixParameters,
 };
 use serde::{Deserialize, Serialize};
 use std::{
@@ -355,12 +356,8 @@ impl Grid {
         )
     }
 
-    pub fn find_helix_position(
-        &self,
-        helix: &super::Helix,
-        g_id: GridId,
-    ) -> Option<HelixGridPosition> {
-        if let super::Axis::Line { origin, direction } = helix.get_axis(&self.helix_parameters) {
+    pub fn find_helix_position(&self, helix: &Helix, g_id: GridId) -> Option<HelixGridPosition> {
+        if let Axis::Line { origin, direction } = helix.get_axis(&self.helix_parameters) {
             let (x, y) = self.interpolate_helix(origin, direction)?;
             let intersection = self.position_helix(x, y);
             // direction is the vector from the origin of the helix to its first axis position

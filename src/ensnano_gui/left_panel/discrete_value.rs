@@ -2,9 +2,14 @@
 
 // TODO: Make it an independent object like ensnano_iced::color_picker ?
 
-use super::{AppState, Message};
-use crate::ensnano_iced::{helpers::*, theme};
-use iced::{Alignment, Length, Pixels};
+use crate::{
+    ensnano_gui::{AppState, left_panel::Message},
+    ensnano_iced::theme,
+};
+use iced::{
+    Alignment, Length, Pixels,
+    widget::{Space, button, row, slider, text},
+};
 use std::collections::BTreeMap;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]

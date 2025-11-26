@@ -4,7 +4,9 @@
 //! [`Component`](https://docs.rs/iced/0.12.1/iced/widget/trait.Component.html) trait, but it does
 //! not use it as this trait is deprecated since v0.13…
 
-use super::widgets::{ColorSquare, HueRow, LightSatSquare};
+use crate::ensnano_iced::widgets::{
+    color_square::ColorSquare, hue_row::HueRow, light_sat_square::LightSatSquare,
+};
 use color_space::{Hsv, Rgb};
 use iced::{
     Color, Length,

@@ -1,8 +1,10 @@
-use super::*;
 use svg::{
     node::element::path::{Command, Data, Position},
     parser::Event,
 };
+use ultraviolet::{Vec2, Vec3};
+
+use crate::ensnano_design::bezier_plane::{BezierPath, BezierPlaneId, BezierVertex};
 
 const SCALE: Vec2 = Vec2 { x: 0.1, y: 0.1 };
 const ORIGIN: Vec2 = Vec2 {

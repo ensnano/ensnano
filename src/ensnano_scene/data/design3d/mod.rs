@@ -2,12 +2,9 @@
 
 mod bezier_paths;
 
-use super::{LetterInstance, SceneElement};
 use crate::ensnano_consts::*;
 use crate::ensnano_design::{
-    AdditionalStructure, BezierControlPoint, BezierPathId, BezierPlaneDescriptor, BezierPlaneId,
-    BezierVertex, Collection, CubicBezierConstructor, CurveDescriptor, External3DObjects,
-    HelixParameters, InstantiatedPath, Nucl, SurfaceInfo, SurfacePoint,
+    AdditionalStructure, Nucl,
     grid::{GridId, GridObject, GridPosition, HelixGridPosition},
 };
 use crate::ensnano_interactor::selection::{

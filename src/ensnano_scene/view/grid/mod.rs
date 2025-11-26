@@ -1,7 +1,7 @@
 mod texture;
 
-use super::{LetterInstance, grid_disc::GridDisc, instances_drawer::*};
 use crate::ensnano_design::grid::{Grid, GridDivision as _, GridId, GridPosition, GridType};
+use crate::ensnano_scene::element_selector::bezier_vertex_id;
 use crate::ensnano_utils::instance::Instance;
 use std::collections::BTreeMap;
 use ultraviolet::{Mat4, Vec2, Vec3, Vec4};
@@ -71,9 +71,7 @@ impl GridInstance {
     fn to_fake(&self) -> Self {
         let color = match self.id {
             GridId::FreeGrid(id) => id as u32,
-            GridId::BezierPathGrid(vertex) => {
-                super::super::element_selector::bezier_vertex_id(vertex.path_id, vertex.vertex_id)
-            }
+            GridId::BezierPathGrid(vertex) => bezier_vertex_id(vertex.path_id, vertex.vertex_id),
         };
         Self {
             color,

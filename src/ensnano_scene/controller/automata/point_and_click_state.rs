@@ -8,7 +8,6 @@
 //! If the cursor moves away form this position this causes a transition to either the normal
 //! state, or a specific DraggingState.
 
-use super::*;
 use std::time::Instant;
 
 /// The limit between "near" and "far" distances.
@@ -367,7 +366,7 @@ impl<S: AppState> PointAndClicking<S> {
         }
     }
 
-    pub(super) fn building_helix(state: super::BuildingHelix) -> Self {
+    pub(super) fn building_helix(state: BuildingHelix) -> Self {
         Self {
             away_state: Default::default(),
             away_state_maker: None,

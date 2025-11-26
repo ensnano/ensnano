@@ -1,7 +1,5 @@
 use crate::ensnano_consts::*;
-use crate::ensnano_design::{
-    External3DObject, External3DObjectId, PointOnSurface, utils::dvec_to_vec,
-};
+use crate::ensnano_design::utils::dvec_to_vec;
 use crate::ensnano_interactor::surfaces::UnrootedRevolutionSurfaceDescriptor;
 use crate::ensnano_utils::{
     TEXTURE_FORMAT, colors::hsv_color, create_buffer_with_data, instance::Instance, obj_loader::*,

@@ -1,16 +1,7 @@
-mod design;
-mod helix;
-mod strand;
+pub mod design;
+pub mod helix;
+pub mod strand;
 
-pub use design::{FlatSceneDesignReaderExt, FlatTorsion};
-pub use helix::{CharCollector, GpuVertex, Helix, HelixHandle, HelixModel, Shift};
-pub use strand::{FreeEnd, Strand, StrandVertex};
-
-use super::{
-    AppState, CameraPtr, FlatHelix, FlatHelixMaps, FlatIdx, FlatNucl, Requests, ViewPtr,
-    flat_types::{Flat, FlatSelection, HelixSegment, HelixVec},
-    view::EditionInfo,
-};
 use crate::{ensnano_consts::*, ensnano_interactor::selection::Selection};
 use crate::{ensnano_design::Nucl, ensnano_interactor::selection::SelectionMode};
 use crate::{ensnano_interactor::selection::PhantomElement, ensnano_utils::camera2d::FitRectangle};
@@ -222,7 +213,7 @@ impl<R: FlatSceneDesignReaderExt> Data<R> {
         );
     }
 
-    fn update_strand_building_info(&self, info: Option<super::StrandBuildingStatus>) {
+    fn update_strand_building_info(&self, info: Option<StrandBuildingStatus>) {
         let flat_info = info.and_then(|info| info.to_flat(self.id_map()));
         self.view
             .borrow_mut()
@@ -1116,11 +1107,11 @@ fn apply_symmetric_difference_to_selection(
 }
 
 trait ToFlatInfo {
-    fn to_flat(self, id_map: &FlatHelixMaps) -> Option<super::view::EditionInfo>;
+    fn to_flat(self, id_map: &FlatHelixMaps) -> Option<EditionInfo>;
 }
 
-impl ToFlatInfo for super::StrandBuildingStatus {
-    fn to_flat(self, id_map: &FlatHelixMaps) -> Option<super::view::EditionInfo> {
+impl ToFlatInfo for StrandBuildingStatus {
+    fn to_flat(self, id_map: &FlatHelixMaps) -> Option<EditionInfo> {
         let flat_nucl = FlatNucl::from_real(&self.dragged_nucl, id_map)?;
         Some(EditionInfo {
             nt_length: self.nt_length,

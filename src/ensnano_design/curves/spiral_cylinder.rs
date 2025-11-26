@@ -1,5 +1,7 @@
-use super::Curved;
-use crate::ensnano_design::HelixParameters;
+use crate::ensnano_design::{
+    curves::{CurveBounds, Curved},
+    parameters::HelixParameters,
+};
 use serde::{Deserialize, Serialize};
 use std::f64::consts::TAU;
 use ultraviolet::DVec3;
@@ -107,8 +109,8 @@ impl Curved for SpiralCylinder {
         }
     }
 
-    fn bounds(&self) -> super::CurveBounds {
-        super::CurveBounds::BiInfinite
+    fn bounds(&self) -> CurveBounds {
+        CurveBounds::BiInfinite
     }
 
     fn is_time_maps_singleton(&self) -> bool {

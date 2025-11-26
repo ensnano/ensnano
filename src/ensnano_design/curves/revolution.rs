@@ -1,9 +1,16 @@
-use super::*;
-use crate::ensnano_design::{curves::torus::PointOnSurface_, utils::dvec_to_vec};
+use std::f64::consts::{PI, TAU};
+
+use crate::ensnano_design::{
+    curves::{
+        CurveBounds, Curved, EPSILON_DERIVATIVE, SurfaceInfo, SurfacePoint,
+        torus::{CurveDescriptor2D, PointOnSurface_},
+    },
+    utils::dvec_to_vec,
+};
 use chebyshev_polynomials::ChebyshevPolynomial;
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
-use ultraviolet::{DRotor2, DVec2, Mat3, Rotor2};
+use ultraviolet::{DRotor2, DVec2, DVec3, Isometry2, Mat3, Rotor2, Vec2};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct InterpolatedCurveDescriptor {
@@ -462,7 +469,7 @@ impl Curved for Revolution {
     }
 
     fn surface_info_time(&self, t: f64, helix_id: usize) -> Option<SurfaceInfo> {
-        let point = super::SurfacePoint {
+        let point = SurfacePoint {
             revolution_angle: self.t_to_revolution_angle(t),
             abscissa_along_section: self.curve.curvilinear_abscissa(t),
             helix_id,

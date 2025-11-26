@@ -1,6 +1,3 @@
-use super::{
-    CameraPtr, Drawable, Drawer, GroupPivot, HandleColors, ProjectionPtr, Vertex, maths_3d,
-};
 use crate::ensnano_consts::*;
 use std::{
     f32::consts::{PI, TAU},

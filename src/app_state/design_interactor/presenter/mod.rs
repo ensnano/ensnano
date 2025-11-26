@@ -7,11 +7,8 @@ pub mod impl_readergui;
 #[cfg(test)]
 use self::design_content::Staple;
 
-use super::*;
-use crate::ensnano_design::{
-    BezierPath, Collection as _, Extremity, HelixCollection as _, Nucl, NuclCollection, Strand,
-    elements::DesignElementKey, grid::Grid,
-};
+use crate::ensnano_design::helices::Helix;
+use crate::ensnano_design::{Nucl, elements::DesignElementKey, grid::Grid};
 use crate::ensnano_exports::oxdna::BACKBONE_TO_CM;
 use crate::ensnano_interactor::strand_builder::{NeighborDescriptor, NeighborDescriptorGiver as _};
 use crate::ensnano_interactor::{
@@ -547,11 +544,11 @@ impl Presenter {
         self.content.grid_manager.grids.get(&g_id)
     }
 
-    pub fn get_helices(&self) -> BTreeMap<usize, crate::ensnano_design::Helix> {
+    pub fn get_helices(&self) -> BTreeMap<usize, Helix> {
         self.current_design
             .helices
             .iter()
-            .map(|(k, h)| (*k, crate::ensnano_design::Helix::clone(h)))
+            .map(|(k, h)| (*k, Helix::clone(h)))
             .collect()
     }
 }

@@ -1,12 +1,12 @@
 pub mod automata;
 
-use super::{AppState, Duration, ElementSelector, SceneElement, ViewPtr, camera};
 use crate::ensnano_consts::*;
 use crate::ensnano_design::{
-    BezierPathId, BezierPlaneId, BezierVertex, BezierVertexId, Nucl, SurfaceInfo, SurfacePoint,
+    Nucl,
     grid::{GridId, GridObject, GridPosition, HelixGridPosition},
 };
 use crate::ensnano_scene::controller::automata::event_context::EventContext;
+use crate::ensnano_scene::element_selector::SceneElement;
 use crate::ensnano_scene::{
     PhySize, PhysicalPosition, WindowEvent,
     maths_3d::FiniteVec3,
@@ -17,7 +17,6 @@ use crate::ensnano_scene::{
     },
 };
 use automata::{NormalState, State, Transition, WidgetTarget};
-use camera::CameraController;
 use std::{cell::RefCell, ops::Deref as _, rc::Rc};
 use ultraviolet::{Rotor3, Vec2, Vec3};
 use winit::{
@@ -68,10 +67,10 @@ pub enum Consequence {
     Building(isize),
     Undo,
     Redo,
-    Candidate(Option<super::SceneElement>),
-    PivotElement(Option<super::SceneElement>),
-    ElementSelected(Option<super::SceneElement>, bool),
-    MoveFreeXover(Option<super::SceneElement>, Vec3),
+    Candidate(Option<SceneElement>),
+    PivotElement(Option<SceneElement>),
+    ElementSelected(Option<SceneElement>, bool),
+    MoveFreeXover(Option<SceneElement>, Vec3),
     EndFreeXover,
     BuildHelix {
         design_id: u32,
@@ -81,9 +80,9 @@ pub enum Consequence {
         x: isize,
         y: isize,
     },
-    PasteCandidate(Option<super::SceneElement>),
-    Paste(Option<super::SceneElement>),
-    DoubleClick(Option<super::SceneElement>),
+    PasteCandidate(Option<SceneElement>),
+    Paste(Option<SceneElement>),
+    DoubleClick(Option<SceneElement>),
     InitBuild(Vec<Nucl>),
     ObjectTranslated {
         object: GridObject,
@@ -393,9 +392,7 @@ impl<S: AppState> Controller<S> {
         self.area_size = area_size;
         self.camera_controller.resize(area_size);
         // the view needs the window size to build a depth texture
-        self.view
-            .borrow_mut()
-            .update(super::view::ViewUpdate::Size(window_size));
+        self.view.borrow_mut().update(ViewUpdate::Size(window_size));
     }
 
     pub fn get_window_size(&self) -> PhySize {

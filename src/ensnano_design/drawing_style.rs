@@ -1,6 +1,7 @@
-use super::MaterialColor;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
+
+use crate::ensnano_design::material_colors::MaterialColor;
 
 #[derive(Serialize, PartialEq, Deserialize, Clone, Debug, Copy)]
 pub enum ColorType {

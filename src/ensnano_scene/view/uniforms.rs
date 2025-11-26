@@ -1,4 +1,3 @@
-use super::camera::{CameraPtr, ProjectionPtr};
 use crate::ensnano_consts::NB_RAY_TUBE;
 use crate::ensnano_interactor::graphics::{CutPlaneParameters, FogParameters, fog_kind};
 use ultraviolet::{Mat4, Rotor3, Vec3, Vec4};

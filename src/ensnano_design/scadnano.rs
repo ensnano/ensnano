@@ -1,5 +1,4 @@
-use super::HelixParameters;
-use super::grid::{GridDescriptor, GridTypeDescr};
+use crate::ensnano_design::grid::GridDescriptor;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use ultraviolet::{Rotor3, Vec3};

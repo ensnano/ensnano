@@ -1,9 +1,7 @@
-use super::{State, TransitionMessage, YesNo, dialog, messages};
 use crate::{
     MainStateView, controller::normal_state::NormalState, dialog::DialogFilters,
     ensnano_exports::ExportType,
 };
-use dialog::PathInput;
 use std::path::{Path, PathBuf};
 
 pub(super) struct Quit {
@@ -41,7 +39,7 @@ impl State for Quit {
             QuitStep::Init { need_save } => init_quit(need_save),
             QuitStep::Quitting => {
                 main_state.exit_control_flow();
-                Box::new(super::NormalState)
+                Box::new(NormalState)
             }
         }
     }
@@ -62,7 +60,7 @@ fn init_quit(need_save: Option<Option<PathBuf>>) -> Box<dyn State> {
 
 fn save_before_quit(path: Option<PathBuf>) -> Box<dyn State> {
     let on_success = Box::new(Quit::quitting());
-    let on_error = Box::new(super::NormalState);
+    let on_error = Box::new(NormalState);
     if let Some(path) = path {
         Box::new(SaveWithPath {
             path,
@@ -159,7 +157,7 @@ fn init_load(path_to_save: Option<Option<PathBuf>>, load_type: LoadType) -> Box<
 
 fn save_before_load(path_to_save: Option<PathBuf>, load_type: LoadType) -> Box<dyn State> {
     let on_success = Load::ask_path(load_type);
-    let on_error = Box::new(super::NormalState);
+    let on_error = Box::new(NormalState);
     if let Some(path) = path_to_save {
         Box::new(SaveWithPath {
             path,
@@ -201,7 +199,7 @@ fn ask_path<P: AsRef<Path>>(
                 TransitionMessage::new(
                     messages::NO_FILE_RECEIVED_LOAD,
                     rfd::MessageLevel::Error,
-                    Box::new(super::NormalState),
+                    Box::new(NormalState),
                 )
             }
         } else {
@@ -233,21 +231,21 @@ fn load_design(path: PathBuf, state: &mut MainStateView) -> Box<dyn State> {
         TransitionMessage::new(
             format!("Error when loading design:\n{err}"),
             rfd::MessageLevel::Error,
-            Box::new(super::NormalState),
+            Box::new(NormalState),
         )
     } else {
-        Box::new(super::NormalState)
+        Box::new(NormalState)
     }
 }
 
 fn load_3d_object(path: PathBuf, state: &mut MainStateView) -> Box<dyn State> {
     state.load_3d_object(path);
-    Box::new(super::NormalState)
+    Box::new(NormalState)
 }
 
 fn load_svg(path: PathBuf, state: &mut MainStateView) -> Box<dyn State> {
     state.load_svg(path);
-    Box::new(super::NormalState)
+    Box::new(NormalState)
 }
 
 pub(super) struct NewDesign {
@@ -296,12 +294,12 @@ fn init_new_design(path_to_save: Option<PathBuf>) -> Box<dyn State> {
 
 fn new_design(main_state: &mut MainStateView) -> Box<dyn State> {
     main_state.new_design();
-    Box::new(super::NormalState)
+    Box::new(NormalState)
 }
 
 fn save_before_new(path_to_save: Option<PathBuf>) -> Box<dyn State> {
     let on_success = NewDesign::make_new_design();
-    let on_error = Box::new(super::NormalState);
+    let on_error = Box::new(NormalState);
     if let Some(path) = path_to_save {
         Box::new(SaveWithPath {
             path,
@@ -351,7 +349,7 @@ impl State for SaveAs {
                     TransitionMessage::new(
                         messages::NO_FILE_RECEIVED_SAVE,
                         rfd::MessageLevel::Error,
-                        Box::new(super::NormalState),
+                        Box::new(NormalState),
                     )
                 }
             } else {

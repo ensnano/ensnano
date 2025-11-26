@@ -1,7 +1,9 @@
-use super::{AppState, Message, Selection, UiSize};
 use crate::ensnano_gui::consts::{MAX_NB_TURN, MIN_NB_TURN, NB_TURN_SLIDER_SPACING, NB_TURN_STEP};
-use crate::ensnano_iced::helpers::*;
-use iced::{Alignment, Length};
+use crate::ensnano_iced::widgets::keyboard_priority::keyboard_priority;
+use iced::{
+    Alignment, Length, Renderer, Theme,
+    widget::{Column, Space, column, row, slider, text, text_input},
+};
 use paste::paste;
 use ultraviolet::{Bivec3, Mat3, Rotor3, Vec2, Vec3};
 
@@ -236,7 +238,7 @@ where
         ui_size: UiSize,
         _selection: &Selection,
         _app_state: &State,
-    ) -> iced::Element<'_, super::Message<State>, iced::Theme, iced::Renderer> {
+    ) -> iced::Element<'_, Message<State>, iced::Theme, iced::Renderer> {
         self::column![
             text("Position").size(ui_size.intermediate_text()),
             self.position_builder.view(),
@@ -281,13 +283,13 @@ impl GridBuilder {
     fn nb_turn_row<'a, S: AppState>(
         app_state: &S,
         selection: &Selection,
-    ) -> Option<iced::Element<'a, super::Message<S>, iced::Theme, iced::Renderer>> {
+    ) -> Option<iced::Element<'a, Message<S>, iced::Theme, iced::Renderer>> {
         if let Selection::Grid(_, g_id) = selection {
             if let Some(nb_turn) = app_state.get_reader().get_grid_nb_turn(*g_id) {
                 let row = row![
                     text(format!("{nb_turn:.2}")),
                     slider(MIN_NB_TURN..=MAX_NB_TURN, nb_turn, |x| {
-                        super::Message::InstantiatedValueSubmitted(InstantiatedValue::GridNbTurn(x))
+                        Message::InstantiatedValueSubmitted(InstantiatedValue::GridNbTurn(x))
                     })
                     .step(NB_TURN_STEP),
                 ]
@@ -311,7 +313,7 @@ where
         ui_size: UiSize,
         selection: &Selection,
         app_state: &State,
-    ) -> iced::Element<'_, super::Message<State>, iced::Theme, iced::Renderer> {
+    ) -> iced::Element<'_, Message<State>, iced::Theme, iced::Renderer> {
         self::column![
             text("Position").size(ui_size.intermediate_text()),
             self.position_builder.view(),
@@ -359,7 +361,7 @@ where
         ui_size: UiSize,
         selection: &Selection,
         app_state: &State,
-    ) -> iced::Element<'a, super::Message<State>, iced::Theme, iced::Renderer>;
+    ) -> iced::Element<'a, Message<State>, iced::Theme, iced::Renderer>;
     fn update_str_value(&mut self, value_kind: ValueKind, n: usize, value_str: String);
     fn submit_value(&mut self, value_kind: ValueKind) -> Option<InstantiatedValue>;
 }

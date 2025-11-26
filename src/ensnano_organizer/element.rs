@@ -1,8 +1,12 @@
-use crate::ensnano_iced::helpers::{button, text};
-use iced::Element;
+use iced::{
+    Element,
+    widget::{button, text},
+};
 use icondata::Icon;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
+
+use crate::ensnano_organizer::icon::{ICON_SIZE, icon};
 
 /// A key identifying an element
 pub trait ElementKey: Clone + Ord + Debug + Serialize + Deserialize<'static> {
@@ -105,11 +109,11 @@ impl<Attrib: OrganizerAttribute> AttributeDisplayer<Attrib> {
         self.widget = widget;
     }
 
-    pub fn view(&self) -> Option<Element<'_, Attrib, super::Theme, super::Renderer>> {
+    pub fn view(&self) -> Option<Element<'_, Attrib, iced::Theme, iced::Renderer>> {
         self.widget.as_ref().map(|widget| {
             match self.attribute.as_ref().map(OrganizerAttribute::char_repr) {
-                Some(AttributeDisplay::Icon(c)) => button(super::icon::icon(c)),
-                Some(AttributeDisplay::Text(s)) => button(text(s).size(super::icon::ICON_SIZE)),
+                Some(AttributeDisplay::Icon(c)) => button(icon(c)),
+                Some(AttributeDisplay::Text(s)) => button(text(s).size(ICON_SIZE)),
                 _ => button(text("???")),
             }
             .on_press(widget.value_if_pressed.clone())

@@ -1,5 +1,7 @@
-use super::Curved;
-use crate::ensnano_design::HelixParameters;
+use crate::ensnano_design::{
+    curves::{CurveBounds, Curved, time_nucl_map::AbscissaConverter},
+    parameters::HelixParameters,
+};
 use serde::{Deserialize, Serialize};
 use std::f64::consts::TAU;
 use ultraviolet::DVec3;
@@ -67,8 +69,8 @@ impl Curved for CircleCurve {
         Some(x / TAU / self.radius)
     }
 
-    fn bounds(&self) -> super::CurveBounds {
-        super::CurveBounds::Finite
+    fn bounds(&self) -> CurveBounds {
+        CurveBounds::Finite
     }
 
     fn objective_nb_nt(&self) -> Option<usize> {
@@ -90,8 +92,8 @@ impl Curved for CircleCurve {
         0.
     }
 
-    fn abscissa_converter(&self) -> Option<crate::ensnano_design::AbscissaConverter> {
-        Some(crate::ensnano_design::AbscissaConverter::linear(
+    fn abscissa_converter(&self) -> Option<AbscissaConverter> {
+        Some(AbscissaConverter::linear(
             self.abscissa_converter_factor.unwrap_or(1.),
         ))
     }

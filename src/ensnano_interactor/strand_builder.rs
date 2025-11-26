@@ -1,4 +1,4 @@
-use crate::ensnano_design::{Axis, Design, Domain, Nucl, OwnedAxis};
+use crate::ensnano_design::{Design, Nucl};
 use std::cmp::Ordering;
 
 #[derive(Clone, Debug)]

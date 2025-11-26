@@ -1,27 +1,14 @@
-mod camera_shortcut;
-mod camera_tab;
-mod edition_tab;
-mod grids_tab;
-mod parameters_tab;
-mod pen_tab;
-pub(super) mod revolution_tab;
-mod sequence_tab;
-mod simulation_tab;
+pub mod camera_shortcut;
+pub mod camera_tab;
+pub mod edition_tab;
+pub mod grids_tab;
+pub mod parameters_tab;
+pub mod pen_tab;
+pub mod revolution_tab;
+pub mod sequence_tab;
+pub mod simulation_tab;
 
-pub use camera_shortcut::CameraShortcutPanel;
-pub use camera_tab::{CameraTab, FogChoices};
-pub use edition_tab::EditionTab;
-pub use grids_tab::GridTab;
-pub use parameters_tab::ParametersTab;
-pub use pen_tab::PenTab;
-pub use sequence_tab::SequenceTab;
-pub use simulation_tab::SimulationTab;
-
-use super::*;
 use crate::ensnano_interactor::{RollRequest, SimulationState};
-
-// TODO: Move gostop to widgets.
-pub use gostop::*;
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub enum TabId {
@@ -54,10 +41,12 @@ pub trait GuiTab<State: AppState> {
     fn content(&self, ui_size: UiSize, app_state: &State) -> iced::Element<'_, Self::Message>;
 }
 
-mod gostop {
-    // TODO: Turn this into a widget
-    use super::{AppState, Message};
-    use crate::ensnano_iced::helpers::*;
+// TODO: Turn this into a widget
+pub mod gostop {
+    use iced::{
+        Renderer, Theme,
+        widget::{button, row, text},
+    };
 
     pub struct GoStop<State: AppState> {
         pub name: String,

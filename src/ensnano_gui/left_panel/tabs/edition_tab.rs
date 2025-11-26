@@ -1,16 +1,16 @@
-use super::{
-    AppState, DesignElementKey, FactoryId, HelixRoll, Message, RequestFactory, RollRequest, UiSize,
-    ValueId, tabs::GuiTab,
-};
+use crate::ensnano_interactor::selection::extract_strands_from_selection;
 use crate::{
+    ensnano_gui::left_panel::color_to_u32,
     ensnano_iced::{
         color_picker::{ColorPicker, ColorPickerMessage},
-        fonts::{MaterialIcon, icon_to_char},
-        helpers::*,
+        fonts::material_icons::{MaterialIcon, icon_to_char},
+        helpers::{right_checkbox, section, start_stop_button, subsection, text_button},
     },
-    ensnano_interactor::selection::extract_strands_from_selection,
 };
-use iced::Command;
+use iced::{
+    Command,
+    widget::{column, row, scrollable},
+};
 use iced_aw::TabLabel;
 use std::marker::PhantomData;
 
@@ -65,7 +65,7 @@ impl<State: AppState> EditionTab<State> {
 
     pub fn current_strand_color(&self) -> u32 {
         let color = self.color_picker.current_color();
-        super::color_to_u32(color)
+        color_to_u32(color)
     }
 
     pub fn update_color_picker(&mut self, message: ColorPickerMessage) {

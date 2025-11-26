@@ -8,12 +8,10 @@ pub mod normal_state;
 mod quit;
 pub mod set_scaffold_sequence;
 
-use super::{OverlayType, SplitMode, dialog};
 use crate::ensnano_consts::CANNOT_OPEN_DEFAULT_DIR;
 use crate::ensnano_exports::ExportType;
 use crate::ensnano_iced::ui_size::UiSize;
 use crate::{MainStateView, ensnano_design::scadnano::ScadnanoImportError};
-use dialog::{MustAckMessage, YesNoQuestion};
 use normal_state::NormalState;
 use quit::*;
 use set_scaffold_sequence::*;

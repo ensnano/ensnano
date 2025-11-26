@@ -1,4 +1,3 @@
-use super::{NormalState, State, TransitionMessage, messages};
 use crate::ensnano_consts::ORIGAMI_EXTENSION;
 use crate::{
     MainStateView,

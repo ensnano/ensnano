@@ -1,8 +1,10 @@
-use super::{AppState, DesignElementKey, Message, UiSize, tabs::GuiTab};
 use crate::ensnano_consts::ICON_ATGC;
-use crate::ensnano_iced::{helpers::*, theme};
+use crate::ensnano_iced::theme;
 use crate::ensnano_interactor::StandardSequence;
-use iced::Length;
+use iced::{
+    Length,
+    widget::{column, row},
+};
 use iced_aw::TabLabel;
 use std::marker::PhantomData;
 

@@ -1,6 +1,7 @@
-use super::{AppState, Requests};
-use crate::ensnano_iced::{helpers::*, theme::GuiBackground, ui_size::UiSize};
+use crate::ensnano_iced::widgets::keyboard_priority::keyboard_priority;
+use crate::ensnano_iced::{theme::GuiBackground, ui_size::UiSize};
 use crate::ensnano_interactor::{StrandBuildingStatus, operation::Operation};
+use iced::widget::{Row, Space, Text, column, container, horizontal_space, row, text, text_input};
 use iced::{Alignment, Color, Element, Length};
 use iced_graphics::text::Paragraph;
 use iced_runtime::{Command, Program};
@@ -341,6 +342,8 @@ mod input_color {
     // TODO: Move this in ensnano_iced.
     use iced::{Background, Border, Color, theme, widget::text_input::*};
 
+    use crate::ensnano_gui::status_bar::GOLD_ORANGE;
+
     pub enum InputValueState {
         Normal,
         BeingTyped,
@@ -379,7 +382,7 @@ mod input_color {
             match self {
                 Self::Normal => Color::from_rgb(0.3, 0.3, 0.3),
                 Self::Invalid => Color::from_rgb(1., 0.3, 0.3),
-                Self::BeingTyped => super::GOLD_ORANGE,
+                Self::BeingTyped => GOLD_ORANGE,
             }
         }
 

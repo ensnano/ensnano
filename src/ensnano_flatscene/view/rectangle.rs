@@ -1,4 +1,3 @@
-use super::Rc;
 use crate::{ensnano_consts::SAMPLE_COUNT, ensnano_utils::Ndc};
 use wgpu::{Device, Queue, RenderPipeline, util::DeviceExt as _};
 

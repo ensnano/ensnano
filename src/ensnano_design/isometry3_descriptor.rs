@@ -1,4 +1,3 @@
-use super::drawing_style::ParsePointError;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, f32::consts::PI, str::FromStr};
 use ultraviolet::{Isometry3, Rotor3, Vec3};

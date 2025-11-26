@@ -1,5 +1,3 @@
-use super::*;
-use crate::ensnano_design::{Axis, BezierPlaneIntersection};
 use crate::ensnano_scene::{
     data::design3d::SceneDesignReaderExt as _, element_selector::CornerType,
     view::grid::GridIntersection,

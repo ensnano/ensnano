@@ -5,8 +5,6 @@
 //! In such a state, cursor movement all cursor movement have similar consequences such has moving
 //! the camera or moving an object.
 
-use super::*;
-
 pub(super) struct DraggedCursor<'a, 'b, S: AppState> {
     /// The cursor position when the mouse button was pressed
     clicked_position: PhysicalPosition<f64>,

@@ -1,5 +1,7 @@
-use super::{DesignOperation, DesignRotation, DesignTranslation, GroupId, IsometryTarget};
-use crate::ensnano_design::{BezierControlPoint, BezierPlaneId, BezierVertexId, Nucl, grid::*};
+use crate::{
+    ensnano_design::{Nucl, grid::*},
+    ensnano_interactor::BezierPlaneHomothethy,
+};
 use std::sync::Arc;
 use ultraviolet::{Bivec3, Rotor3, Vec2, Vec3};
 
@@ -238,7 +240,7 @@ impl Operation for TranslateBezierSheetCorner {
 
     fn effect(&self) -> DesignOperation {
         DesignOperation::ApplyHomothethyOnBezierPlane {
-            homothethy: super::BezierPlaneHomothethy {
+            homothethy: BezierPlaneHomothethy {
                 plane_id: self.plane_id,
                 fixed_corner: self.fixed_corner,
                 origin_moving_corner: self.origin_moving_corner,

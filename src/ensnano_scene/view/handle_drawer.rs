@@ -1,4 +1,3 @@
-use super::{CameraPtr, Drawable, Drawer, ProjectionPtr, Vertex};
 use crate::ensnano_consts::*;
 use crate::ensnano_design::group_attributes::GroupPivot;
 use std::rc::Rc;

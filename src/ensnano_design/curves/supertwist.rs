@@ -1,4 +1,4 @@
-use super::Curved;
+use crate::ensnano_design::curves::{CurveBounds, Curved};
 use serde::{Deserialize, Serialize};
 use std::f64::consts::{PI, TAU};
 use ultraviolet::{DVec2, DVec3};
@@ -17,8 +17,8 @@ pub struct SuperTwist {
 }
 
 impl Curved for SuperTwist {
-    fn bounds(&self) -> super::CurveBounds {
-        super::CurveBounds::BiInfinite
+    fn bounds(&self) -> CurveBounds {
+        CurveBounds::BiInfinite
     }
 
     fn t_max(&self) -> f64 {

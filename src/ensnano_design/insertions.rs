@@ -1,7 +1,9 @@
-use super::*;
 use rand::Rng as _;
 use rand_distr::StandardNormal;
 use std::f32::consts::{PI, TAU};
+use ultraviolet::Vec3;
+
+use crate::ensnano_design::parameters::HelixParameters;
 
 const EPSILON_DESC: f32 = 0.05;
 const NB_STEP: usize = 1_000;

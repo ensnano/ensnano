@@ -1,6 +1,21 @@
-use super::{
-    BezierPathId, HelixParameters, Nucl, codenano, curves::*,
-    design_operations::ErrDesignOperation, grid::*, scadnano::*, utils::*,
+use crate::ensnano_design::{
+    Nucl,
+    bezier_plane::BezierPathId,
+    codenano,
+    curves::{
+        CurveDescriptor, InstantiatedCurve, InstantiatedCurveDescriptor, SurfaceInfo, SurfacePoint,
+        bezier::{BezierControlPoint, BezierEnd, CubicBezierConstructor},
+        sphere_like_spiral::SphereLikeSpiralDescriptor,
+        tube_spiral::TubeSpiralDescriptor,
+    },
+    design_operations::ErrDesignOperation,
+    grid::{Edge, Grid, GridAwareTranslation, GridData, GridId, HelixGridPosition},
+    parameters::HelixParameters,
+    scadnano::{ScadnanoGroup, ScadnanoHelix, ScadnanoImportError},
+    utils::{
+        default_visibility, dvec_to_vec, f32_is_zero, is_false, isize_is_zero, rotor_to_drotor,
+        vec_to_dvec,
+    },
 };
 use ahash::HashMap;
 use serde::{Deserialize, Serialize};
@@ -336,7 +351,7 @@ impl Helix {
         })
     }
 
-    pub fn translated_by(&self, edge: super::grid::Edge, grid_data: &GridData) -> Option<Self> {
+    pub fn translated_by(&self, edge: Edge, grid_data: &GridData) -> Option<Self> {
         log::debug!("attempt to translate helix");
         let grid_position = self
             .grid_position

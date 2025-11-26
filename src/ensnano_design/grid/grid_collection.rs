@@ -1,5 +1,11 @@
-use super::*;
-use crate::ensnano_design::HasMap;
+use std::{collections::BTreeMap, sync::Arc};
+
+use serde::{Deserialize, Serialize};
+
+use crate::ensnano_design::{
+    collection::HasMap,
+    grid::{GridDescriptor, GridId},
+};
 
 #[derive(
     Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Default, Hash,

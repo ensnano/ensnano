@@ -1,7 +1,13 @@
-use crate::ensnano_interactor::surfaces::RootedRevolutionSurface;
+use std::f64::consts::TAU;
 
-use super::*;
+use crate::{
+    ensnano_design::curves::{
+        CurveDescriptor, revolution::InterpolationDescriptor, torus::CurveDescriptor2D,
+    },
+    ensnano_interactor::surfaces::{RevolutionSurfaceSystemDescriptor, RootedRevolutionSurface},
+};
 use chebyshev_polynomials::ChebyshevPolynomial;
+use ultraviolet::{DVec3, Similarity3};
 
 const NB_POINT_INTERPOLATION: usize = 100_000;
 const INTERPOLATION_ERROR: f64 = 1e-4;

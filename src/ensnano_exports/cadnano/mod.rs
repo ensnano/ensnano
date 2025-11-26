@@ -4,7 +4,7 @@
 mod parity_graph;
 
 use crate::ensnano_design::{
-    Collection as _, Design, Domain, Nucl,
+    Design, Nucl,
     grid::{GridData, GridTypeDescr},
 };
 use serde::Serialize;

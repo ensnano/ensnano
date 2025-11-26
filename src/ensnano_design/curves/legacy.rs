@@ -1,5 +1,13 @@
-use super::*;
-use std::f64::consts::FRAC_PI_2;
+use ultraviolet::{DMat3, DVec3};
+
+use crate::ensnano_design::{
+    curves::{Curve, EPSILON, perpendicular_basis, time_nucl_map::AbscissaConverter},
+    parameters::HelixParameters,
+};
+use std::{
+    f64::consts::{FRAC_PI_2, PI, TAU},
+    sync::Arc,
+};
 
 /// The number of points used in the iterative version of the discretization algorithm.
 const NB_DISCRETIZATION_STEP: usize = 100;

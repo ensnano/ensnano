@@ -1,5 +1,7 @@
-use super::*;
-use crate::ensnano_design::HelixCollection as _;
+use crate::{
+    ensnano_design::{Design, strands::Domain},
+    ensnano_exports::cadnano::CadnanoError,
+};
 
 pub fn get_parity(design: &Design, max_helix_idx: usize) -> Result<Vec<bool>, CadnanoError> {
     let mut father = make_group(design, max_helix_idx);

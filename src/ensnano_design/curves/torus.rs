@@ -1,5 +1,8 @@
-use super::Curved;
-use crate::ensnano_design::{HelixParameters, InstantiatedPiecewiseBezier};
+use crate::ensnano_design::{
+    curves::{CurveBounds, CurveDescriptor, Curved, bezier::InstantiatedPiecewiseBezier},
+    helices::Helix,
+    parameters::HelixParameters,
+};
 use num::integer::gcd;
 use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
@@ -113,8 +116,8 @@ impl Curved for Torus {
         self.acceleration_moebius(t)
     }
 
-    fn bounds(&self) -> super::CurveBounds {
-        super::CurveBounds::Finite
+    fn bounds(&self) -> CurveBounds {
+        CurveBounds::Finite
     }
 
     fn t_max(&self) -> f64 {
@@ -728,8 +731,8 @@ impl Curved for TwistedTorus {
         Some((self.nb_turn_per_helix as f64 * t).floor() as usize)
     }
 
-    fn bounds(&self) -> super::CurveBounds {
-        super::CurveBounds::Finite
+    fn bounds(&self) -> CurveBounds {
+        CurveBounds::Finite
     }
 
     fn full_turn_at_t(&self) -> Option<f64> {
@@ -741,11 +744,10 @@ impl Curved for TwistedTorus {
     }
 }
 
-impl crate::ensnano_design::Helix {
+impl Helix {
     pub fn get_revolution_curve_descriptor(&self) -> Option<&CurveDescriptor2D> {
-        if let Some(crate::ensnano_design::CurveDescriptor::TwistedTorus(
-            TwistedTorusDescriptor { curve, .. },
-        )) = self.curve.as_ref().map(Arc::as_ref)
+        if let Some(CurveDescriptor::TwistedTorus(TwistedTorusDescriptor { curve, .. })) =
+            self.curve.as_ref().map(Arc::as_ref)
         {
             Some(curve)
         } else {

@@ -5,12 +5,9 @@
 //! converted. For both the flatscene and the design, usize could be used but having distinct types
 //! reduces the confusion, since errors will be detected by the typechecker.
 
-use {
-    super::{HashMap, Nucl, Selection},
-    std::{
-        collections::BTreeMap,
-        hash::{Hash, Hasher},
-    },
+use std::{
+    collections::BTreeMap,
+    hash::{Hash, Hasher},
 };
 
 /// An helix identifier in the flatscene data structures.

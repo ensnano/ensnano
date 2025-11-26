@@ -1,57 +1,58 @@
-mod bezier;
+pub mod bezier;
 mod chebyshev;
 mod circle_curve;
 mod discretization;
 mod legacy;
-mod revolution;
-mod sphere_concentric_circle;
-mod sphere_like_spiral;
-mod spiral_cylinder;
-mod supertwist;
-mod time_nucl_map;
-mod torus;
-mod torus_concentric_circle;
-mod tube_spiral;
-mod twist;
+pub mod revolution;
+pub mod sphere_concentric_circle;
+pub mod sphere_like_spiral;
+pub mod spiral_cylinder;
+pub mod supertwist;
+pub mod time_nucl_map;
+pub mod torus;
+pub mod torus_concentric_circle;
+pub mod tube_spiral;
+pub mod twist;
 
-pub use bezier::{
-    BezierControlPoint, BezierEnd, BezierEndCoordinates, CubicBezierConstructor,
-    CubicBezierControlPoint, InstantiatedPiecewiseBezier,
-};
-pub use revolution::{InterpolatedCurveDescriptor, InterpolationDescriptor};
-pub use sphere_concentric_circle::{
-    PillConcentricStadiumDescriptor, PillTennisBallSeamDescriptor,
-    SphereConcentricCircleDescriptor, SphereTennisBallSeamDescriptor,
-};
-pub use sphere_like_spiral::SphereLikeSpiralDescriptor;
-pub use spiral_cylinder::SpiralCylinderDescriptor;
-pub use supertwist::SuperTwist;
-pub use time_nucl_map::AbscissaConverter;
-pub use torus::{CurveDescriptor2D, PointOnSurface, Torus, TwistedTorusDescriptor};
-pub use torus_concentric_circle::{
-    EllipticTorusConcentricCircleDescriptor, TorusConcentricCircleDescriptor,
-};
-pub use tube_spiral::TubeSpiralDescriptor;
-pub use twist::{Twist, nb_turn_per_100_nt_to_omega, twist_to_omega};
-
-pub(crate) use bezier::PieceWiseBezierInstantiator;
-pub(crate) use time_nucl_map::{PathTimeMaps, RevolutionCurveTimeMaps};
-
-use super::{Helix, HelixParameters};
 use crate::ensnano_design::{
-    AdditionalHelix2D, BezierPathData, BezierPathId,
-    curves::chebyshev::{PolynomialCoordinates, PolynomialCoordinates_},
-    grid::{Edge, *},
-    utils::vec_to_dvec,
+    bezier_plane::{BezierPathData, BezierPathId},
+    codenano::Helix,
+    curves::{
+        bezier::{
+            BezierEnd, CubicBezierConstructor, InstantiatedPiecewiseBezier,
+            instantiator::PieceWiseBezierInstantiator,
+        },
+        revolution::InterpolatedCurveDescriptor,
+        sphere_concentric_circle::{
+            PillConcentricStadiumDescriptor, PillTennisBallSeamDescriptor,
+            SphereConcentricCircleDescriptor, SphereTennisBallSeamDescriptor,
+        },
+        sphere_like_spiral::SphereLikeSpiralDescriptor,
+        spiral_cylinder::SpiralCylinderDescriptor,
+        supertwist::SuperTwist,
+        torus::{Torus, TwistedTorusDescriptor},
+        torus_concentric_circle::{
+            EllipticTorusConcentricCircleDescriptor, TorusConcentricCircleDescriptor,
+        },
+        tube_spiral::TubeSpiralDescriptor,
+        twist::Twist,
+    },
+    grid::{Edge, grid_collection::FreeGrids, *},
+    helices::AdditionalHelix2D,
+    parameters::HelixParameters,
+    utils::{is_false, vec_to_dvec},
 };
 use bezier::TranslatedPiecewiseBezier;
+use chebyshev::{PolynomialCoordinates, PolynomialCoordinates_};
 use rand::prelude::*;
+use revolution::InterpolationDescriptor;
 use serde::{Deserialize, Serialize};
 use std::{
     collections::HashMap,
     f64::consts::{PI, TAU},
     sync::Arc,
 };
+use time_nucl_map::AbscissaConverter;
 use torus::TwistedTorus;
 use ultraviolet::{DMat3, DVec3, Isometry2, Rotor3, Vec2, Vec3};
 
@@ -578,10 +579,6 @@ pub enum CurveDescriptor {
     SuperTwist(SuperTwist),
     InterpolatedCurve(InterpolatedCurveDescriptor),
     Chebyshev(PolynomialCoordinates),
-}
-
-fn is_false(b: &bool) -> bool {
-    !b
 }
 
 const NO_BEZIER: &[BezierEnd] = &[];

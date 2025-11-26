@@ -1,4 +1,3 @@
-use super::*;
 use crate::ensnano_interactor::InsertionPoint;
 
 impl Controller {

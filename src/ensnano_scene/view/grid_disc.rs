@@ -1,5 +1,4 @@
-use super::instances_drawer::Instantiable;
-use crate::ensnano_utils::instance::Instance;
+use crate::{ensnano_scene::view::instances_drawer::Vertexable, ensnano_utils::instance::Instance};
 use std::f32::consts::TAU;
 use ultraviolet::{Mat4, Rotor3, Vec3, Vec4};
 use wgpu::{Device, PrimitiveTopology, include_spirv};
@@ -41,7 +40,8 @@ pub struct GridDiscVertexRaw {
 
 const VERTEX_ATTR_ARRAY: [wgpu::VertexAttribute; 2] =
     wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x4];
-impl super::instances_drawer::Vertexable for GridDiscVertex {
+
+impl Vertexable for GridDiscVertex {
     type RawType = GridDiscVertexRaw;
 
     fn to_raw(&self) -> GridDiscVertexRaw {

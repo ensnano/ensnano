@@ -1,9 +1,10 @@
-mod instantiator;
+pub mod instantiator;
 
-pub(crate) use instantiator::PieceWiseBezierInstantiator;
-
-use super::{CurveInstantiator, Curved, Edge};
-use crate::ensnano_design::{grid::GridPosition, utils::vec_to_dvec};
+use crate::ensnano_design::{
+    curves::{CurveBounds, CurveInstantiator, Curved},
+    grid::{Edge, GridPosition},
+    utils::{is_false, vec_to_dvec},
+};
 use num_enum::{IntoPrimitive, TryFromPrimitive};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -236,8 +237,8 @@ impl Curved for CubicBezier {
         self.polynomial.acceleration(t)
     }
 
-    fn bounds(&self) -> super::CurveBounds {
-        super::CurveBounds::BiInfinite
+    fn bounds(&self) -> CurveBounds {
+        CurveBounds::BiInfinite
     }
 }
 
@@ -256,10 +257,6 @@ pub struct InstantiatedPiecewiseBezier {
     #[serde(default, skip_serializing_if = "is_false")]
     /// Indicate that this curve must be discretized quickly, even at the cost of precision.
     pub discretize_quickly: bool,
-}
-
-fn is_false(b: &bool) -> bool {
-    !b
 }
 
 impl PartialEq for InstantiatedPiecewiseBezier {
@@ -381,7 +378,7 @@ struct SegmentTime {
     time: f64,
 }
 
-impl super::Curved for InstantiatedPiecewiseBezier {
+impl Curved for InstantiatedPiecewiseBezier {
     fn t_max(&self) -> f64 {
         let n = if self.is_cyclic {
             self.ends.len() as f64
@@ -421,8 +418,8 @@ impl super::Curved for InstantiatedPiecewiseBezier {
         b_i.acceleration(s.time)
     }
 
-    fn bounds(&self) -> super::CurveBounds {
-        super::CurveBounds::BiInfinite
+    fn bounds(&self) -> CurveBounds {
+        CurveBounds::BiInfinite
     }
 
     fn discretize_quickly(&self) -> bool {
@@ -437,7 +434,7 @@ pub(super) struct TranslatedPiecewiseBezier {
     pub legacy: bool,
 }
 
-impl super::Curved for TranslatedPiecewiseBezier {
+impl Curved for TranslatedPiecewiseBezier {
     fn position(&self, t: f64) -> DVec3 {
         self.original_curve.position(t)
     }
@@ -450,7 +447,7 @@ impl super::Curved for TranslatedPiecewiseBezier {
         self.original_curve.acceleration(t)
     }
 
-    fn bounds(&self) -> super::CurveBounds {
+    fn bounds(&self) -> CurveBounds {
         self.original_curve.bounds()
     }
 

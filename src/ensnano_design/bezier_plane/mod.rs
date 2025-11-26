@@ -1,12 +1,16 @@
-mod import_from_svg;
+pub mod import_from_svg;
 
-pub use import_from_svg::*;
-
-use super::{
-    Collection as _, HelixParameters, PieceWiseBezierInstantiator,
+use crate::ensnano_design::{
     collection::HasMap,
-    curves::{BezierEndCoordinates, Curve, InstantiatedPiecewiseBezier},
-    grid::*,
+    curves::{
+        Curve,
+        bezier::{
+            BezierEndCoordinates, InstantiatedPiecewiseBezier,
+            instantiator::PieceWiseBezierInstantiator,
+        },
+    },
+    grid::{GridDescriptor, GridId, GridTypeDescr},
+    parameters::HelixParameters,
     utils::rotor_to_drotor,
 };
 use serde::{Deserialize, Serialize};

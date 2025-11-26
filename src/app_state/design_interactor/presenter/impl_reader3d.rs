@@ -1,10 +1,8 @@
-use super::*;
 use crate::ensnano_scene::data::design3d::Scalebar;
 use crate::ensnano_utils::StrandNucleotidesPositions;
 use crate::{
     ensnano_design::{
-        AdditionalStructure, BezierControlPoint, BezierPlaneId, BezierVertexId, Collection,
-        CurveDescriptor, Domain, Helix, SurfaceInfo,
+        AdditionalStructure,
         grid::{GridObject, GridPosition, HelixGridPosition},
     },
     ensnano_scene::view::grid::GridInstance,

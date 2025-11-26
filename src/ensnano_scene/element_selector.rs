@@ -1,12 +1,8 @@
-use super::{Device, DrawArea, DrawType, Queue, ViewPtr};
 use crate::ensnano_interactor::consts::widget_id_to_bezier;
 use crate::ensnano_interactor::selection::phantom_helix_decoder;
 use crate::ensnano_utils::BufferDimensions;
 use crate::{
-    ensnano_design::{
-        BezierControlPoint, BezierPathId, BezierPlaneId, BezierVertexId,
-        grid::{GridId, GridPosition},
-    },
+    ensnano_design::grid::{GridId, GridPosition},
     ensnano_interactor::selection::PhantomElement,
 };
 use num_enum::IntoPrimitive;

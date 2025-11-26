@@ -1,6 +1,6 @@
-use super::Curved;
 use crate::ensnano_design::{
-    HelixParameters,
+    curves::{CurveBounds, Curved},
+    parameters::HelixParameters,
     utils::{rotor_to_drotor, vec_to_dvec},
 };
 use serde::{Deserialize, Serialize};
@@ -98,8 +98,8 @@ impl Curved for Twist {
         orientation * pos_0
     }
 
-    fn bounds(&self) -> super::CurveBounds {
-        super::CurveBounds::BiInfinite
+    fn bounds(&self) -> CurveBounds {
+        CurveBounds::BiInfinite
     }
 
     fn curvilinear_abscissa(&self, t: f64) -> Option<f64> {
@@ -132,6 +132,10 @@ impl Curved for Twist {
 
 #[cfg(test)]
 mod tests {
+    use crate::ensnano_design::{
+        curves::InstantiatedCurveDescriptor_, helices::Helix, parameters::HelixParameters,
+    };
+
     use super::*;
 
     impl Twist {
@@ -187,9 +191,9 @@ mod tests {
         let omega = nb_turn_per_100_nt_to_omega(nb_turn, &p).unwrap();
         let mut twist = Twist::with_omega(omega);
         twist.t_max = Some(z);
-        let descriptor = super::super::InstantiatedCurveDescriptor_::Twist(twist);
+        let descriptor = InstantiatedCurveDescriptor_::Twist(twist);
         let curve = descriptor.try_into_curve(&p).unwrap();
-        let flat_helix = crate::ensnano_design::Helix::new(Vec3::zero(), Rotor3::identity());
+        let flat_helix = Helix::new(Vec3::zero(), Rotor3::identity());
         let theta = flat_helix.theta(99, true, &p);
         let nucl_curved = curve.nucl_pos(99, true, theta as f64, &p).unwrap();
         let nucl_flat = vec_to_dvec(flat_helix.space_pos(&p, 99, true));
@@ -207,12 +211,12 @@ mod tests {
         let omega = nb_turn_per_100_nt_to_omega(nb_turn, &p).unwrap();
         let mut twist = Twist::with_omega(omega);
         twist.t_max = Some(z);
-        let descriptor = super::super::InstantiatedCurveDescriptor_::Twist(twist.clone());
+        let descriptor = InstantiatedCurveDescriptor_::Twist(twist.clone());
         let curve = descriptor.try_into_curve(&p).unwrap();
         println!("abscissa {:?}", twist.curvilinear_abscissa(z));
         println!("z ratio {:?}", twist.rise_ratio());
         assert!(twist.theta_shift(&p).is_some());
-        let flat_helix = crate::ensnano_design::Helix::new(Vec3::zero(), Rotor3::identity());
+        let flat_helix = Helix::new(Vec3::zero(), Rotor3::identity());
         let theta_99 = flat_helix.theta(99, true, &p);
         let theta_98 = flat_helix.theta(98, true, &p);
         let nucl_98 = curve.nucl_pos(98, true, theta_98 as f64, &p).unwrap();

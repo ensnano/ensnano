@@ -4,7 +4,6 @@
 //! them. These springs aim at minimizing the difference between the cross-over length and the
 //! normal distance between two consecutive nucleotides.
 
-use super::{Helix, HelixParameters, Nucl, SimulationInterface};
 use crate::{
     app_state::design_interactor::presenter::{Presenter, SimulationUpdate},
     controller::channel_reader::ChannelReader,

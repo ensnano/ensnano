@@ -1,10 +1,12 @@
 //! Export to pdb file format. The method used here is an adaptation from the one used in
 //! [tacOxDNA](https://github.com/lorenzo-rovigatti/tacoxDNA)
 
-use crate::ensnano_design::{Design, Domain, HelixCollection as _, Nucl};
+use crate::ensnano_design::strands::Domain;
+use crate::ensnano_design::{Design, Nucl};
+use crate::ensnano_exports::rand_base_from_symbol;
 use crate::ensnano_exports::{
     BasisMapper,
-    oxdna::{OXDNA_LEN_FACTOR, OxDnaHelix as _},
+    oxdna::{OXDNA_LEN_FACTOR, OxDnaHelix as _, free_oxdna_nucl},
 };
 use ahash::AHashMap;
 use itertools::Itertools as _;
@@ -701,7 +703,7 @@ pub(super) fn pdb_export(
                     };
                     previous_position = Some(ox_nucl.position);
                     let symbol = basis_map.get_basis(&nucl, na_kind.compl_to_a());
-                    let base = super::rand_base_from_symbol(symbol, na_kind.compl_to_a());
+                    let base = rand_base_from_symbol(symbol, na_kind.compl_to_a());
                     pdb_strand.add_nucl(
                         base,
                         ox_nucl.position * 10. / OXDNA_LEN_FACTOR,
@@ -714,7 +716,7 @@ pub(super) fn pdb_export(
             } = d
             {
                 for (insertion_idx, position) in instantiation.pos().iter().enumerate() {
-                    let ox_nucl = super::oxdna::free_oxdna_nucl(
+                    let ox_nucl = free_oxdna_nucl(
                         *position,
                         previous_position,
                         insertion_idx,

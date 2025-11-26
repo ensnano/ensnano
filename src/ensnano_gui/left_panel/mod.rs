@@ -2,38 +2,41 @@ mod color_picker;
 mod contextual_panel;
 mod discrete_value;
 mod export_menu;
-mod tabs;
+pub mod tabs;
 
-pub use tabs::revolution_tab::*;
-
-use super::{AppState, FogParameters, OverlayType, Requests};
 use crate::ensnano_exports::ExportType;
+use crate::ensnano_gui::Requests;
 use crate::ensnano_iced::{
-    color_picker::ColorPickerMessage, theme::GuiBackground, ui_size::UiSize,
+    color_picker::ColorPickerMessage,
+    fonts::{ENSNANO_FONT, material_icons::MATERIAL_ICONS_DARK},
+    theme::GuiBackground,
+    ui_size::UiSize,
 };
-use crate::ensnano_interactor::app_state_parameters::check_xovers_parameter::CheckXoversParameter;
-use crate::ensnano_interactor::app_state_parameters::suggestion_parameters::SuggestionParameters;
-use crate::ensnano_interactor::selection::{ActionMode, Selection, SelectionConversion as _};
-use crate::ensnano_interactor::surfaces::EquadiffSolvingMethod;
 use crate::ensnano_interactor::{
     HyperboloidRequest, RapierSimulationRequest,
-    app_state_parameters::AppStateParameters,
+    app_state_parameters::{
+        AppStateParameters, check_xovers_parameter::CheckXoversParameter,
+        suggestion_parameters::SuggestionParameters,
+    },
     graphics::{Background3D, HBondDisplay, RenderingMode},
+    selection::{ActionMode, Selection, SelectionConversion as _},
+    surfaces::EquadiffSolvingMethod,
 };
 use crate::ensnano_organizer::{Organizer, OrganizerMessage, tree::OrganizerTree};
 use crate::{
     ensnano_design::{
-        BezierPathId, CameraId, NamedParameter,
+        CameraId,
         elements::{DesignElement, DesignElementKey},
         grid::GridTypeDescr,
     },
-    ensnano_iced::fonts::{ENSNANO_FONT, MATERIAL_ICONS_DARK},
+    ensnano_gui::AppState,
 };
 use color_picker::ColorPicker;
-use contextual_panel::{ContextualPanel, InstantiatedValue, ValueKind};
+use contextual_panel::ContextualPanel;
+use contextual_panel::value_constructor::ValueKind;
 use discrete_value::{FactoryId, RequestFactory, Requestable, ValueId};
 use export_menu::ExportMenu;
-use iced::{Color, Command, Element, Length, widget::*};
+use iced::{Color, Command, Element, Length, widget::column};
 use iced_aw::widgets::{TabBarPosition, TabLabel, Tabs};
 use iced_runtime::Program;
 use std::{
@@ -41,8 +44,9 @@ use std::{
     sync::{Arc, Mutex},
 };
 use tabs::{
-    CameraShortcutPanel, CameraTab, EditionTab, GridTab, GuiTab as _, ParametersTab, PenTab,
-    SequenceTab, SimulationTab, TabId,
+    GuiTab as _, TabId, camera_shortcut::CameraShortcutPanel, camera_tab::CameraTab,
+    edition_tab::EditionTab, grids_tab::GridTab, parameters_tab::ParametersTab, pen_tab::PenTab,
+    revolution_tab::RevolutionTab, sequence_tab::SequenceTab, simulation_tab::SimulationTab,
 };
 use ultraviolet::Vec3;
 use winit::{
@@ -304,7 +308,7 @@ where
     S: AppState,
 {
     type Theme = iced::Theme;
-    type Renderer = super::Renderer;
+    type Renderer = iced::Renderer;
     type Message = Message<S>;
 
     // BUG: Increasing the left panel too much crashes ENSnano.
@@ -1178,7 +1182,7 @@ pub enum ColorMessage {
 }
 
 impl<R: Requests> Program for ColorOverlay<R> {
-    type Renderer = super::Renderer;
+    type Renderer = iced::Renderer;
     type Theme = iced::Theme;
     type Message = ColorMessage;
 

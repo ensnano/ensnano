@@ -1,17 +1,17 @@
-use super::{AppState, FogParameters, HBondDisplay, Message, UiSize, tabs::GuiTab};
+use crate::ensnano_iced::{
+    fonts::material_icons::{MaterialIcon, icon_to_char},
+    theme,
+};
 use crate::ensnano_interactor::{
-    app_state_parameters::AppStateParameters,
-    graphics::{ALL_BACKGROUND3D, ALL_RENDERING_MODE, Background3D, RenderingMode, fog_kind},
-};
-use crate::{
-    ensnano_iced::{
-        fonts::{MaterialIcon, icon_to_char},
-        helpers::*,
-        theme,
+    app_state_parameters::{AppStateParameters, check_xovers_parameter::CheckXoversParameter},
+    graphics::{
+        ALL_BACKGROUND3D, ALL_RENDERING_MODE, Background3D, HBondDisplay, RenderingMode, fog_kind,
     },
-    ensnano_interactor::app_state_parameters::check_xovers_parameter::CheckXoversParameter,
 };
-use iced::{Alignment, Length};
+use iced::{
+    Alignment, Length,
+    widget::{checkbox, column, pick_list, row, scrollable, slider, text},
+};
 use iced_aw::TabLabel;
 use std::marker::PhantomData;
 

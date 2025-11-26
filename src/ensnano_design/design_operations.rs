@@ -2,7 +2,12 @@
 //! The functions that apply these operations take a mutable reference to the design that they are
 //! modifying and may return an `ErrOperation` if the operation could not be applied.
 
-use super::{CurveDescriptor, Design, bezier_plane::*, grid::*};
+use crate::ensnano_design::{
+    Design,
+    bezier_plane::{BezierPathId, BezierVertexId},
+    curves::CurveDescriptor,
+    grid::{GridId, GridObject, GridPosition, HelicesTranslator, HelixGridPosition},
+};
 use std::sync::Arc;
 use ultraviolet::{Rotor3, Vec3};
 
@@ -28,7 +33,7 @@ pub fn make_grid_from_helices(
     design: &mut Design,
     helices: &[usize],
 ) -> Result<(), ErrDesignOperation> {
-    super::grid::make_grid_from_helices(design, helices)?;
+    make_grid_from_helices(design, helices)?;
     Ok(())
 }
 

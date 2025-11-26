@@ -3,7 +3,6 @@ pub mod shift_optimization;
 pub mod simulations;
 pub mod update_insertion_length;
 
-use super::SimulationUpdate;
 use crate::ensnano_gui::ClipboardContent;
 use crate::ensnano_interactor::{
     BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation,
@@ -32,10 +31,6 @@ use crate::{
 };
 use crate::{
     ensnano_design::{
-        BezierControlPoint, BezierEnd, BezierPathId, BezierPlaneDescriptor, BezierPlaneId,
-        BezierVertex, BezierVertexId, CameraId, Collection as _, CurveDescriptor, Design, Domain,
-        DomainJunction, External3DObject, External3DObjectDescriptor, Helices, Helix,
-        HelixCollection as _, HelixInterval, Nucl, NuclCollection, Strand, Strands, SvgImportError,
         UpToDateDesign,
         design_operations::{
             ErrDesignOperation, attach_object_to_grid, make_grid_from_helices, rotate_helices_3d,
@@ -44,11 +39,11 @@ use crate::{
         drawing_style::{DrawingAttribute, DrawingStyle},
         elements::{DesignElementKey, DnaAttribute},
         grid::{
-            Edge, FreeGridId, GridCopyError, GridDescriptor, GridDivision as _, GridId, GridObject,
-            GridPosition, GridTypeDescr, HelixGridPosition, Hyperboloid,
+            Edge, GridDescriptor, GridDivision as _, GridId, GridObject, GridPosition,
+            GridTypeDescr, HelixGridPosition,
         },
         group_attributes::GroupPivot,
-        mutate_in_arc, read_first_svg_path,
+        mutate_in_arc,
     },
     ensnano_interactor::selection::list_of_helices,
 };

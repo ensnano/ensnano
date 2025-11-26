@@ -1,4 +1,7 @@
 use super::*;
+use crate::ensnano_design::strands::{
+    Domain, DomainJunction, HelixInterval, Strand, read_junctions, sanitize_domains,
+};
 use regex::Regex;
 use std::fmt::Write as _;
 
@@ -46,7 +49,7 @@ fn sanitize_domains_scadnano() {
     }
   ]
       }"##;
-    let scadnano_design: super::scadnano::ScadnanoDesign =
+    let scadnano_design: ScadnanoDesign =
         serde_json::from_str(input).expect("Failed to parse scadnano input");
     let ensnano_design =
         Design::from_scadnano(&scadnano_design).expect("Could not convert to ensnano");
@@ -89,7 +92,7 @@ fn scadnano_import_one_loopout() {
     }
   ]
       }"##;
-    let scadnano_design: super::scadnano::ScadnanoDesign =
+    let scadnano_design: ScadnanoDesign =
         serde_json::from_str(input).expect("Failed to parse scadnano input");
     let ensnano_design =
         Design::from_scadnano(&scadnano_design).expect("Could not convert to ensnano");

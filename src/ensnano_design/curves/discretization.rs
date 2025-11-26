@@ -1,9 +1,16 @@
 //! Implementation of the curve discretization algorithm.
 
-use super::*;
-use crate::ensnano_design::consts::{ITERATIVE_AXIS_ALGORITHM, IterativeFrameAlgorithm};
+use crate::ensnano_design::{
+    consts::{ITERATIVE_AXIS_ALGORITHM, IterativeFrameAlgorithm},
+    curves::{
+        Curve, CurveBounds, DELTA_MAX, EPSILON, perpendicular_basis,
+        time_nucl_map::AbscissaConverter,
+    },
+    parameters::HelixParameters,
+};
 use chebyshev_polynomials::ChebyshevPolynomial;
-use ultraviolet::DRotor3;
+use std::sync::Arc;
+use ultraviolet::{DMat3, DRotor3, DVec3};
 
 /// The number of points used in the iterative version of the discretization algorithm.
 const NB_DISCRETIZATION_STEP: usize = 100_000;

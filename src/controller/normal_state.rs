@@ -1,9 +1,6 @@
-use super::download_intervals::DownloadIntervals;
-use super::messages::CHANGING_DNA_PARAMETERS_WARNING;
-use super::*;
+use crate::MainStateView;
 use crate::ensnano_consts::ENS_EXTENSION;
 use crate::ensnano_design::{
-    HelixParameters,
     grid::{GridDescriptor, GridId, GridTypeDescr},
     group_attributes::GroupPivot,
 };
@@ -24,7 +21,7 @@ use crate::{
 use std::sync::Arc;
 
 /// User is interacting with graphical components.
-pub(super) struct NormalState;
+pub struct NormalState;
 
 impl State for NormalState {
     fn make_progress(self: Box<Self>, main_state: &mut MainStateView) -> Box<dyn State> {

@@ -1,4 +1,3 @@
-use super::IdGenerator;
 use crate::ensnano_design::*;
 
 pub trait StrandJunction {

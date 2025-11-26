@@ -1,6 +1,6 @@
 //! Allow your users to drag and drop widgets.
 
-use super::OrganizerMessage;
+use crate::ensnano_organizer::{NodeId, OrganizerMessage, element::OrganizerElement};
 use iced::{
     Element, Length, Padding, Rectangle, Size, Vector,
     advanced::{
@@ -16,7 +16,7 @@ use iced::{
 /// Identifier for drag-drop widgets.
 #[derive(Debug, Clone, PartialOrd, PartialEq, Eq, Ord)]
 pub enum DragIdentifier<K, AutoGroup> {
-    Group { id: super::NodeId<AutoGroup> },
+    Group { id: NodeId<AutoGroup> },
     Section { key: K },
 }
 
@@ -44,7 +44,7 @@ impl<'a, Message, Theme, Renderer, K, E> DragDropTarget<'a, Message, Theme, Rend
 impl<E, Theme, Renderer> Widget<OrganizerMessage<E>, Theme, Renderer>
     for DragDropTarget<'_, OrganizerMessage<E>, Theme, Renderer, E::Key, E::AutoGroup>
 where
-    E: super::OrganizerElement,
+    E: OrganizerElement,
     Renderer: renderer::Renderer,
 {
     fn tag(&self) -> widget::tree::Tag {
@@ -168,7 +168,7 @@ impl<'a, E, Theme, Renderer>
     From<DragDropTarget<'a, OrganizerMessage<E>, Theme, Renderer, E::Key, E::AutoGroup>>
     for Element<'a, OrganizerMessage<E>, Theme, Renderer>
 where
-    E: super::OrganizerElement,
+    E: OrganizerElement,
     Theme: 'a,
     Renderer: 'a + renderer::Renderer,
 {

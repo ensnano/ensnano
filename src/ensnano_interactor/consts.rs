@@ -1,6 +1,6 @@
 use crate::ensnano_consts::*;
-use crate::ensnano_design::{BezierControlPoint, CubicBezierControlPoint};
 use crate::ensnano_interactor::RevolutionSimulationParameters;
+use crate::ensnano_interactor::surfaces::EquadiffSolvingMethod;
 
 pub fn bezier_widget_id(helix_id: u32, control_point: BezierControlPoint) -> u32 {
     let bezier_id = bezier_control_id(control_point);
@@ -55,5 +55,5 @@ pub const DEFAULT_REVOLUTION_SIMULATION_PARAMETERS: RevolutionSimulationParamete
         ball_mass: 10.0,
         time_span: 5.0e-2,
         simulation_step: 1e-3,
-        method: super::EquadiffSolvingMethod::Ralston,
+        method: EquadiffSolvingMethod::Ralston,
     };

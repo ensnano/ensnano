@@ -1,4 +1,3 @@
-use super::*;
 use crate::ensnano_utils::instance::Instance;
 use lyon::{
     math::Point,

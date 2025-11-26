@@ -3,13 +3,12 @@
 
 pub mod design3d;
 
-use super::{AppState, Camera3D, SceneElement, View, ViewUpdate, view::Mesh};
 use crate::ensnano_consts::{
     BOND_RADIUS, CANDIDATE_COLOR, CANDIDATE_SCALE_FACTOR, SELECT_SCALE_FACTOR, SELECTED_COLOR,
     SPHERE_RADIUS,
 };
 use crate::ensnano_design::{
-    BezierVertexId, Collection as _, External3DObjectsStamp, Nucl, SurfaceInfo, SurfacePoint,
+    Nucl,
     grid::{GridId, GridObject, GridPosition},
 };
 use crate::ensnano_interactor::selection::{
@@ -17,6 +16,7 @@ use crate::ensnano_interactor::selection::{
     extract_helices_with_controls,
 };
 use crate::ensnano_interactor::{ObjectType, Referential, graphics::HBondDisplay};
+use crate::ensnano_scene::camera::CameraController;
 use crate::ensnano_scene::view::{
     dna_obj::{RawDnaInstance, StereographicSphereAndPlane},
     gltf_drawer::ExternalObjects,
@@ -573,9 +573,9 @@ impl<R: SceneDesignReaderExt> Data<R> {
             }
             Some(SceneElement::PhantomElement(phantom_element)) => Some(phantom_element.helix_id),
             Some(SceneElement::Grid(_, GridId::FreeGrid(g_id))) => Some(g_id as u32),
-            Some(SceneElement::Grid(_, GridId::BezierPathGrid(vertex))) => Some(
-                super::element_selector::bezier_vertex_id(vertex.path_id, vertex.vertex_id),
-            ),
+            Some(SceneElement::Grid(_, GridId::BezierPathGrid(vertex))) => {
+                Some(bezier_vertex_id(vertex.path_id, vertex.vertex_id))
+            }
             _ => None,
         }
     }
@@ -1892,7 +1892,7 @@ fn toggle_selection(mode: SelectionMode) -> SelectionMode {
     }
 }
 
-impl<R: SceneDesignReaderExt> super::controller::Data for Data<R> {
+impl<R: SceneDesignReaderExt> crate::controller::Data for Data<R> {
     fn element_to_nucl(
         &self,
         element: Option<&SceneElement>,
@@ -1950,7 +1950,7 @@ impl<R: SceneDesignReaderExt> super::controller::Data for Data<R> {
         self.get_surface_info_nucl(nucl)
     }
 
-    fn notify_camera_movement(&mut self, camera: &super::camera::CameraController) {
+    fn notify_camera_movement(&mut self, camera: &CameraController) {
         self.update_surface_pivot(camera.get_current_surface_pivot());
     }
 }

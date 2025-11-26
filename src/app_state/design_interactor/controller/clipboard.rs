@@ -1,12 +1,8 @@
-use super::{
-    AddressPointer, Controller, ControllerState, Design, Domain, ErrOperation, HelixGridPosition,
-    HelixInterval, Nucl, Strand,
-};
 use crate::{
     app_state::design_interactor::controller::DuplicationEdge,
     ensnano_design::{
-        Helices, HelixCollection as _, HelixParameters, MutStrandAndData, Strands, UpToDateDesign,
-        grid::{Edge, FreeGridId, GridData, GridId, GridPosition},
+        MutStrandAndData, UpToDateDesign,
+        grid::{Edge, GridData, GridId, GridPosition},
     },
 };
 use ultraviolet::{Rotor3, Vec3};

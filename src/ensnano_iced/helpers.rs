@@ -1,10 +1,17 @@
-pub use super::widgets::*;
-pub use iced::widget::*;
-
-use crate::ensnano_iced::{fonts::*, ui_size::UiSize};
+use crate::ensnano_iced::{
+    fonts::{
+        ENSNANO_FONT, INTER_BOLD_FONT,
+        material_icons::{
+            MATERIAL_ICONS_DARK, MATERIAL_ICONS_LIGHT, MaterialIcon, MaterialIconStyle,
+            icon_to_char,
+        },
+    },
+    ui_size::UiSize,
+};
 use iced::{
-    Length, advanced,
+    Font, Length, advanced,
     alignment::{Alignment, Horizontal, Vertical},
+    widget::{Button, Image, Row, Space, Text, button, checkbox, row, text},
 };
 
 // === SPACING FUNCTIONS ===
@@ -63,8 +70,8 @@ where
 {
     text(icon_to_char(icon))
         .font(match style {
-            MaterialIconStyle::Light => material_icons::MATERIAL_ICONS_LIGHT,
-            MaterialIconStyle::Dark => material_icons::MATERIAL_ICONS_DARK,
+            MaterialIconStyle::Light => MATERIAL_ICONS_LIGHT,
+            MaterialIconStyle::Dark => MATERIAL_ICONS_DARK,
         })
         .size(ui_size.icon())
 }
@@ -215,14 +222,14 @@ pub fn start_stop_button<'a, F, Message, Theme, Renderer>(
 where
     F: 'static + Fn(bool) -> Message,
     Theme: button::StyleSheet + text::StyleSheet + 'a,
-    <Theme as button::StyleSheet>::Style: From<theme::Button>,
+    <Theme as button::StyleSheet>::Style: From<iced::theme::Button>,
     Renderer: advanced::text::Renderer + 'a,
     <Renderer as advanced::text::Renderer>::Font: From<Font>,
 {
     let style = if is_started {
-        theme::Button::Destructive
+        iced::theme::Button::Destructive
     } else {
-        theme::Button::Positive
+        iced::theme::Button::Positive
     };
     let mut start_stop_button = text_button(label, ui_size).style(style);
     // NOTE: In the previous version of the start_stop_button (i.e. GoStop),

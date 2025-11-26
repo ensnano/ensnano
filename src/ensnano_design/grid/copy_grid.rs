@@ -1,6 +1,14 @@
-use super::*;
-use crate::ensnano_design::strands::*;
-use std::borrow::Cow;
+use crate::ensnano_design::{
+    Design,
+    grid::{
+        GridDescriptor, GridId, HelixGridPosition,
+        grid_collection::{FreeGridId, FreeGrids, FreeGridsMut},
+    },
+    helices::Helix,
+    strands::{Domain, DomainJunction, HelixInterval, Strand},
+};
+use std::{borrow::Cow, collections::HashMap};
+use ultraviolet::{Rotor3, Vec3};
 
 impl Design {
     pub fn copy_grids(

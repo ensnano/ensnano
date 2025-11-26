@@ -1,5 +1,3 @@
-use super::instances_drawer::*;
-use crate::ensnano_design::BezierPlaneId;
 use ultraviolet::{Mat4, Rotor3, Vec2, Vec3};
 use wgpu::{Device, include_spirv};
 

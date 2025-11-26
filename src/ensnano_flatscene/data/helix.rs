@@ -1,13 +1,12 @@
-use super::{FlatNucl, Helix2d};
 use crate::ensnano_consts::{
     BLACK_VEC4, CIRCLE2D_BLUE, CIRCLE2D_GREEN, CIRCLE2D_GREY, CIRCLE2D_RED, GREY_UNKNOWN_NUCL_VEC4,
     HELIX_BORDER_COLOR,
 };
-use crate::ensnano_design::{Nucl, NuclCollection};
+use crate::ensnano_design::Nucl;
 use crate::ensnano_flatscene::{
-    CameraPtr, Flat, FlatHelix,
+    CameraPtr,
     flat_types::{FlatHelixMaps, FlatPosition, HelixSegment},
-    view::{EditionInfo, InsertionDescriptor, InsertionInstance},
+    view::EditionInfo,
 };
 use crate::ensnano_utils::{
     chars2d::text_drawer::{Line, Sentence, TextDrawer},
@@ -15,7 +14,7 @@ use crate::ensnano_utils::{
     full_isometry::FullIsometry,
     instance::Instance,
 };
-use abscissa_converter::{AbscissaConverter, AbscissaConverter_};
+use abscissa_converter::AbscissaConverter;
 use ahash::RandomState;
 use lyon::{
     math::{Point, rect},
@@ -1105,8 +1104,7 @@ pub enum HelixHandle {
 }
 
 mod abscissa_converter {
-    use super::*;
-    pub(super) use crate::ensnano_design::AbscissaConverter as AbscissaConverter_;
+    use std::sync::Arc;
 
     #[derive(Debug)]
     pub(super) struct AbscissaConverter {

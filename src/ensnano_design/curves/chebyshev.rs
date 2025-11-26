@@ -1,6 +1,7 @@
-use super::*;
+use crate::ensnano_design::curves::{CurveBounds, Curved, revolution::InterpolationDescriptor};
 use chebyshev_polynomials::ChebyshevPolynomial;
 use serde::{Deserialize, Serialize};
+use ultraviolet::DVec3;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PolynomialCoordinates {

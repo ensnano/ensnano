@@ -1,10 +1,5 @@
 use crate::ensnano_scene::view::uniforms::Stereography;
 
-use super::{
-    Vec3,
-    camera::{CameraPtr, ProjectionPtr},
-};
-
 /// Computes the shortest line between two lines in 3D.
 /// Let P1, P2, P3, P4 be 4 points.
 /// We want to find the shortest line between the segment (P1, P2) and (P3, P4).

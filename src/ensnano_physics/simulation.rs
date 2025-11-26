@@ -1,5 +1,4 @@
-use super::import::*;
-use crate::ensnano_design::{Helices, HelixParameters, Nucl};
+use crate::ensnano_design::Nucl;
 use crate::ensnano_interactor::ObjectType;
 use crate::ensnano_physics::{
     full_simulation::{RigidHelicesSetup, build_simulation},

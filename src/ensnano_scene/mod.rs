@@ -9,8 +9,8 @@ mod stl;
 pub mod view;
 
 use crate::ensnano_design::{
-    BezierVertexId, Nucl, consts::ITERATIVE_AXIS_ALGORITHM, grid::GridPosition,
-    grid::HelixGridPosition, group_attributes::GroupPivot,
+    Nucl, consts::ITERATIVE_AXIS_ALGORITHM, grid::GridPosition, grid::HelixGridPosition,
+    group_attributes::GroupPivot,
 };
 use crate::ensnano_interactor::surfaces::UnrootedRevolutionSurfaceDescriptor;
 use crate::ensnano_interactor::{

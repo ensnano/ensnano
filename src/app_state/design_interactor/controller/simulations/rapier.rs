@@ -1,4 +1,4 @@
-use crate::ensnano_design::{Design, HelixParameters, NuclCollection};
+use crate::ensnano_design::Design;
 use crate::ensnano_physics::simulation::RapierPhysicsSystem;
 use crate::{
     app_state::design_interactor::{

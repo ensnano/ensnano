@@ -1,6 +1,9 @@
-use super::{GridId, GridTypeDescr};
-use crate::ensnano_design::BezierVertexId;
 use serde::Deserialize;
+
+use crate::ensnano_design::{
+    bezier_plane::BezierVertexId,
+    grid::{GridId, GridTypeDescr},
+};
 
 #[derive(Clone, Copy, Deserialize)]
 enum NewGridTypeDescr {

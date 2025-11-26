@@ -2,13 +2,9 @@ pub mod controller;
 pub mod file_parsing;
 pub mod presenter;
 
-use super::AddressPointer;
 use crate::controller::SaveDesignError;
 use crate::ensnano_consts::UPDATE_VISIBILITY_SIEVE_LABEL;
-use crate::ensnano_design::{
-    BezierPathId, BezierPlaneDescriptor, Collection as _, Design, HelixCollection as _,
-    HelixParameters, InstantiatedPiecewiseBezier, grid::GridId, group_attributes::GroupAttribute,
-};
+use crate::ensnano_design::{grid::GridId, group_attributes::GroupAttribute};
 use crate::ensnano_exports::{ExportResult, ExportType};
 use crate::ensnano_gui::CurrentOpState;
 use crate::ensnano_interactor::app_state_parameters::suggestion_parameters::SuggestionParameters;
@@ -390,7 +386,7 @@ impl InteractorResult {
 mod tests {
     use super::*;
     use crate::ensnano_design::{
-        DomainJunction, Nucl, Strand,
+        Nucl,
         grid::{GridDescriptor, GridTypeDescr, HelixGridPosition},
     };
     use crate::ensnano_interactor::{

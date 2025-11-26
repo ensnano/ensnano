@@ -1,4 +1,3 @@
-use super::{NormalState, State, TransitionMessage, messages};
 use crate::{MainStateView, dialog};
 use dialog::{MustAckMessage, PathInput};
 use std::path::{Path, PathBuf};
