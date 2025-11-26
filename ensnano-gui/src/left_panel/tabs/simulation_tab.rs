@@ -55,10 +55,6 @@ impl<State: AppState> SimulationTab<State> {
                 String::from("Rigid Helices"),
                 Message::RigidHelicesSimulation,
             ),
-            //rigid_grid_button: GoStop::new(
-            //    String::from("Rigid Grids"),
-            //    Message::RigidGridSimulation,
-            //),
             physical_simulation: Default::default(),
             rapier_parameters: Default::default(),
             rapier_parameter_fields: Default::default(),
@@ -208,7 +204,7 @@ impl<State: AppState> GuiTab<State> for SimulationTab<State> {
                         RapierSimulationType::Rigid,
                         RapierSimulationType::Cut
                     ],
-                    Some(RapierSimulationType::Cut),
+                    Some(self.rapier_parameters.simulation_type),
                     |simulation_type| Message::UpdateRapierParameters(RapierParameters {
                         simulation_type,
                         ..self.rapier_parameters
@@ -216,7 +212,7 @@ impl<State: AppState> GuiTab<State> for SimulationTab<State> {
                 )],
                 self::row![
                     text_button("Start", ui_size).on_press_maybe(
-                        if self.rapier_parameters.is_simulation_running {
+                        if self.rapier_parameters.is_simulation_running || sim_state.is_paused() {
                             None
                         } else {
                             Some(Message::UpdateRapierParameters(RapierParameters {
@@ -226,9 +222,19 @@ impl<State: AppState> GuiTab<State> for SimulationTab<State> {
                         }
                     ),
                     Space::with_width(ui_size.button_spacing()),
-                    text_button("Stop", ui_size).on_press(Message::StopSimulation),
+                    text_button("Stop", ui_size).on_press_maybe(
+                        if !self.rapier_parameters.is_simulation_running || sim_state.is_paused() {
+                            None
+                        } else {
+                            Some(Message::StopSimulation)
+                        }
+                    ),
                     Space::with_width(ui_size.button_spacing()),
-                    text_button("Reset", ui_size).on_press(Message::ResetSimulation),
+                    text_button("Reset", ui_size).on_press_maybe(if sim_state.is_paused() {
+                        Some(Message::ResetSimulation)
+                    } else {
+                        None
+                    }),
                 ],
             ]
             .spacing(ui_size.button_spacing()),
@@ -298,15 +304,19 @@ fn rapier_parameters_field_editor<State: AppState>(
         keyboard_priority(
             "Rapier parameters ".to_owned() + &description,
             Message::<State>::SetKeyboardPriority,
-            text_input(current_value, current_value)
-                .on_input(move |str| {
-                    Message::UpdateRapierParameterField(description.clone(), str)
-                })
-                .on_submit(Message::UpdateRapierParameters(apply_parameter_fields(
-                    fields, parameters
-                )))
-                .width(70)
-                .style(BadValue(true)),
+            if parameters.is_simulation_running {
+                text_input(current_value, current_value)
+            } else {
+                text_input(current_value, current_value)
+                    .on_input(move |str| {
+                        Message::UpdateRapierParameterField(description.clone(), str)
+                    })
+                    .on_submit(Message::UpdateRapierParameters(apply_parameter_fields(
+                        fields, parameters,
+                    )))
+            }
+            .width(70)
+            .style(BadValue(true)),
         )
     ]
     .align_items(Alignment::Center)

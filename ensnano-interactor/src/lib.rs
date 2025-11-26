@@ -439,7 +439,6 @@ pub enum SimulationState {
     Rolling,
     RigidGrid,
     RigidHelices,
-    Rapier,
     Paused,
     Twisting { grid_id: GridId },
     Relaxing,
@@ -464,10 +463,6 @@ impl SimulationState {
 
     pub fn is_paused(&self) -> bool {
         matches!(self, Self::Paused)
-    }
-
-    pub fn is_rapier(&self) -> bool {
-        matches!(self, Self::Rapier)
     }
 
     pub fn is_running(&self) -> bool {

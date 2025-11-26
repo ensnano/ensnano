@@ -41,6 +41,7 @@ pub trait SimulationSetup {
     // creates rigib bodes and assigns the provided
     // colliders to them
     fn build_bodies(
+        &self,
         rigid_body_set: &mut RigidBodySet,
         collider_set: &mut ColliderSet,
         collider_map: &HashMap<(usize, isize), Vec<ColliderHandle>>,
@@ -56,6 +57,7 @@ pub struct FullSimulationSetup;
 
 impl SimulationSetup for FullSimulationSetup {
     fn build_bodies(
+        &self,
         rigid_body_set: &mut RigidBodySet,
         collider_set: &mut ColliderSet,
         collider_map: &HashMap<(usize, isize), Vec<ColliderHandle>>,
@@ -90,6 +92,7 @@ pub struct RigidHelicesSetup;
 
 impl SimulationSetup for RigidHelicesSetup {
     fn build_bodies(
+        &self,
         rigid_body_set: &mut RigidBodySet,
         collider_set: &mut ColliderSet,
         collider_map: &HashMap<(usize, isize), Vec<ColliderHandle>>,
@@ -121,6 +124,7 @@ pub struct CutHelicesSetup;
 
 impl SimulationSetup for CutHelicesSetup {
     fn build_bodies(
+        &self,
         rigid_body_set: &mut RigidBodySet,
         collider_set: &mut ColliderSet,
         collider_map: &HashMap<(usize, isize), Vec<ColliderHandle>>,
@@ -159,6 +163,7 @@ impl SimulationSetup for CutHelicesSetup {
 }
 
 pub fn build_simulation<S: SimulationSetup>(
+    setup: S,
     intermediary_representation: &HashMap<usize, IntermediaryHelix>,
     object_type: &HashMap<u32, ObjectType>,
     nucleotide: &HashMap<u32, Nucl>,
@@ -190,7 +195,7 @@ pub fn build_simulation<S: SimulationSetup>(
         space_position,
     );
 
-    S::build_bodies(
+    setup.build_bodies(
         &mut rigid_body_set,
         &mut collider_set,
         &collider_map,
