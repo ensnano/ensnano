@@ -229,7 +229,7 @@ pub fn build_simulation<S: SimulationSetup>(
     );
 
     // add crossover springs
-    add_crossover_springs(
+    let crossovers = add_crossover_springs(
         object_type,
         nucleotide,
         &nucleotide_body_map,
@@ -245,6 +245,7 @@ pub fn build_simulation<S: SimulationSetup>(
         impulse_joint_set,
         nucleotide_body_map,
         rapier_parameters: *rapier_parameters,
+        crossovers,
         ..Default::default()
     }
 }
@@ -622,7 +623,7 @@ pub fn add_crossover_springs(
     collider_set: &ColliderSet,
     impulse_joint_set: &mut ImpulseJointSet,
     rapier_parameters: &RapierParameters,
-) {
+) -> Vec<(ColliderHandle, ColliderHandle)> {
     let mut bonds: Vec<(u32, u32)> = Default::default();
 
     for (_, ty) in object_type.iter() {
@@ -637,8 +638,11 @@ pub fn add_crossover_springs(
         }
     }
 
+    let mut result = vec![];
+
     // for each bond, a spring
     for (a, b) in bonds {
+        result.push((nucleotide_body_map[&a], nucleotide_body_map[&b]));
         let a = collider_set
             .get(nucleotide_body_map[&a])
             .expect("Error fetching nucleotide body");
@@ -660,4 +664,6 @@ pub fn add_crossover_springs(
             true,
         );
     }
+
+    result
 }

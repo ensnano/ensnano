@@ -1,4 +1,4 @@
-use super::import::*;
+// use super::import::*;
 use ahash::HashMap;
 use ensnano_interactor::ObjectType;
 
@@ -25,6 +25,7 @@ pub struct RapierPhysicsSystem {
 
     pub rapier_parameters: RapierParameters,
 
+    pub crossovers: Vec<(ColliderHandle, ColliderHandle)>,
     pub nucleotide_body_map: HashMap<u32, ColliderHandle>,
 }
 
@@ -38,6 +39,8 @@ impl RapierPhysicsSystem {
         helices: &Helices,
     ) -> Self {
         let intermediary = build_helices(object_type, nucleotide);
+
+        println!("{rapier_parameters:?}");
 
         match rapier_parameters.simulation_type {
             crate::parameters::RapierSimulationType::Full => build_simulation(
@@ -73,69 +76,6 @@ impl RapierPhysicsSystem {
         }
     }
 
-    pub fn new(
-        // these parameters are all part of DesignContent
-        object_type: &HashMap<u32, ObjectType>,
-        nucleotide: &HashMap<u32, Nucl>,
-        space_position: &HashMap<u32, [f32; 3]>,
-    ) -> Self {
-        let mut rigid_body_set: RigidBodySet = Default::default();
-        let mut collider_set: ColliderSet = Default::default();
-        let mut impulse_joint_set: ImpulseJointSet = Default::default();
-
-        let mut nucleotide_body_map: HashMap<u32, ColliderHandle> = Default::default();
-
-        let handles = generate_intermediary_representation(nucleotide)
-            .into_iter()
-            .map(|v| {
-                v.into_iter()
-                    .map(|b| {
-                        b.into_rigid_body(
-                            space_position,
-                            &mut rigid_body_set,
-                            &mut collider_set,
-                            &mut nucleotide_body_map,
-                        )
-                    })
-                    .collect::<Vec<_>>()
-            })
-            .collect::<Vec<_>>();
-
-        // TODO for now we only do direct connections.
-        // In the future, we want to check for continuous double helix
-        // strands portions and link them more tightly.
-        for helix in &handles {
-            for link_size in [2, 3, 4, 8] {
-                for window in helix.windows(link_size) {
-                    generate_springs(
-                        window[0],
-                        window[1],
-                        &mut rigid_body_set,
-                        &mut collider_set,
-                        &mut impulse_joint_set,
-                    );
-                }
-            }
-        }
-
-        // we add crossover springs
-        add_crossover_springs(
-            object_type,
-            nucleotide,
-            &nucleotide_body_map,
-            &collider_set,
-            &mut impulse_joint_set,
-        );
-
-        Self {
-            rigid_body_set,
-            collider_set,
-            impulse_joint_set,
-            nucleotide_body_map,
-            ..Default::default()
-        }
-    }
-
     pub fn step(&mut self) {
         self.repulsion_step(1.0 / 24.0);
 
@@ -153,6 +93,25 @@ impl RapierPhysicsSystem {
             &(),
             &(),
         );
+
+        // let mut sum = 0.0;
+        // let mut count = 0;
+        // for (a, b) in &self.crossovers {
+        //     let Some(a) = self.collider_set.get(*a) else {
+        //         continue;
+        //     };
+        //     let Some(b) = self.collider_set.get(*b) else {
+        //         continue;
+        //     };
+
+        //     sum += a.translation().metric_distance(&b.translation());
+
+        //     count += 1;
+        // }
+
+        // let average = sum / count as f32;
+
+        // println!("Average : {average}");
     }
 
     pub fn get_positions(&self) -> Vec<(u32, [f32; 3])> {

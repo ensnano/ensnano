@@ -215,10 +215,13 @@ impl<State: AppState> GuiTab<State> for SimulationTab<State> {
                         if self.rapier_parameters.is_simulation_running || sim_state.is_paused() {
                             None
                         } else {
-                            Some(Message::UpdateRapierParameters(RapierParameters {
-                                is_simulation_running: true,
-                                ..self.rapier_parameters
-                            }))
+                            Some(Message::UpdateRapierParameters(apply_parameter_fields(
+                                &self.rapier_parameter_fields,
+                                &RapierParameters {
+                                    is_simulation_running: true,
+                                    ..self.rapier_parameters
+                                },
+                            )))
                         }
                     ),
                     Space::with_width(ui_size.button_spacing()),
@@ -265,7 +268,7 @@ const PARAMETER_FIELD_NAMES: [&'static str; 12] = [
     "Repulsion range",
 ];
 
-fn apply_parameter_fields(
+pub fn apply_parameter_fields(
     fields: &HashMap<String, String>,
     parameters: &RapierParameters,
 ) -> RapierParameters {
