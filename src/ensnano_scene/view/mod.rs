@@ -692,10 +692,7 @@ impl View {
                 DrawType::Design => self.dna_drawers.fakes(),
                 DrawType::Phantom => self.dna_drawers.phantoms(),
                 DrawType::Grid => self.dna_drawers.fakes_and_phantoms(), // to fill the depth buffer
-                DrawType::Widget => vec![
-                    &mut self.dna_drawers.fake_bezier_control
-                        as &mut dyn RawDrawer<RawInstance = RawDnaInstance>,
-                ],
+                DrawType::Widget => vec![&mut self.dna_drawers.fake_bezier_control as _],
             };
 
             for drawer in drawers {
