@@ -2,6 +2,15 @@ pub mod design;
 pub mod helix;
 pub mod strand;
 
+use crate::ensnano_flatscene::data::design::FlatSceneDesignReaderExt;
+use crate::ensnano_flatscene::data::helix::{Helix, HelixHandle};
+use crate::ensnano_flatscene::data::strand::FreeEnd;
+use crate::ensnano_flatscene::flat_types::{
+    FlatHelix, FlatHelixMaps, FlatIdx, FlatNucl, FlatSelection, HelixSegment, HelixVec,
+};
+use crate::ensnano_flatscene::view::EditionInfo;
+use crate::ensnano_flatscene::{AppState, CameraPtr, Requests, ViewPtr};
+use crate::ensnano_interactor::StrandBuildingStatus;
 use crate::{ensnano_consts::*, ensnano_interactor::selection::Selection};
 use crate::{ensnano_design::Nucl, ensnano_interactor::selection::SelectionMode};
 use crate::{ensnano_interactor::selection::PhantomElement, ensnano_utils::camera2d::FitRectangle};

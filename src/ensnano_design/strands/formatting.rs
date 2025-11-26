@@ -1,3 +1,4 @@
+use crate::ensnano_design::strands::{Domain, DomainJunction, HelixInterval, Strand};
 use std::fmt::{self, Write as _};
 
 impl Strand {

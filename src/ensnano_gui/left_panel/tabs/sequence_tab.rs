@@ -1,9 +1,17 @@
-use crate::ensnano_consts::ICON_ATGC;
+use crate::ensnano_design::elements::DesignElementKey;
+use crate::ensnano_gui::AppState;
+use crate::ensnano_gui::left_panel::Message;
+use crate::ensnano_gui::left_panel::tabs::GuiTab;
+use crate::ensnano_iced::helpers::{right_checkbox, section, text_button};
 use crate::ensnano_iced::theme;
+use crate::ensnano_iced::ui_size::UiSize;
+use crate::ensnano_iced::widgets::keyboard_priority::keyboard_priority;
 use crate::ensnano_interactor::StandardSequence;
+use crate::{ensnano_consts::ICON_ATGC, ensnano_iced::helpers::extra_jump};
+use iced::widget::{scrollable, text_input};
 use iced::{
     Length,
-    widget::{column, row},
+    widget::{column, row, text},
 };
 use iced_aw::TabLabel;
 use std::marker::PhantomData;

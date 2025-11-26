@@ -5,7 +5,7 @@ mod export_menu;
 pub mod tabs;
 
 use crate::ensnano_exports::ExportType;
-use crate::ensnano_gui::Requests;
+use crate::ensnano_gui::{OverlayType, Requests};
 use crate::ensnano_iced::{
     color_picker::ColorPickerMessage,
     fonts::{ENSNANO_FONT, material_icons::MATERIAL_ICONS_DARK},
@@ -36,6 +36,7 @@ use contextual_panel::ContextualPanel;
 use contextual_panel::value_constructor::ValueKind;
 use discrete_value::{FactoryId, RequestFactory, Requestable, ValueId};
 use export_menu::ExportMenu;
+use iced::widget::Column;
 use iced::{Color, Command, Element, Length, widget::column};
 use iced_aw::widgets::{TabBarPosition, TabLabel, Tabs};
 use iced_runtime::Program;

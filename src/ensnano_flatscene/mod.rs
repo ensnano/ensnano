@@ -21,6 +21,8 @@ mod view;
 
 use crate::ensnano_consts::{EXPORT_2D_MARGIN, EXPORT_2D_MAX_SIZE};
 use crate::ensnano_design::{Nucl, consts::ITERATIVE_AXIS_ALGORITHM};
+use crate::ensnano_flatscene::data::design::FlatSceneDesignReaderExt;
+use crate::ensnano_flatscene::flat_types::FlatNucl;
 use crate::ensnano_interactor::{
     DesignOperation, StrandBuildingStatus,
     application::{AppId, Application, Notification},
@@ -33,7 +35,7 @@ use crate::ensnano_interactor::{
     strand_builder::StrandBuilder,
 };
 use crate::ensnano_utils::{
-    BufferDimensions, PhySize,
+    BufferDimensions,
     camera2d::{self, Camera2D, FitRectangle},
     filename::derive_path_with_prefix_and_time_stamp_and_suffix,
 };

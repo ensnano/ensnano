@@ -16,8 +16,6 @@ use serde::{Deserialize, Serialize};
 use wgpu::util::{BufferInitDescriptor, DeviceExt as _};
 use winit::dpi::{PhysicalPosition, PhysicalSize, Pixel};
 
-pub type PhySize = PhysicalSize<u32>;
-
 pub const TEXTURE_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Bgra8UnormSrgb;
 
 #[derive(Serialize, Deserialize, Debug)]

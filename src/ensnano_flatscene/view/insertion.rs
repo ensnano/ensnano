@@ -1,11 +1,19 @@
-use crate::ensnano_utils::instance::Instance;
+use std::rc::Rc;
+
+use crate::{
+    ensnano_consts::SAMPLE_COUNT,
+    ensnano_utils::{bindgroup_manager::DynamicBindGroup, instance::Instance},
+};
 use lyon::{
     math::Point,
     path::Path,
     tessellation::{self, StrokeVertex, StrokeVertexConstructor},
 };
 use ultraviolet::{Mat2, Rotor2, Vec2};
-use wgpu::{BindGroupLayout, Buffer, DepthStencilState, RenderPass, util::DeviceExt as _};
+use wgpu::{
+    BindGroupLayout, Buffer, DepthStencilState, Device, Queue, RenderPass, RenderPipeline,
+    util::DeviceExt as _,
+};
 
 pub struct InsertionDrawer {
     new_instances: Option<Vec<InsertionInstance>>,

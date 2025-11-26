@@ -1,5 +1,22 @@
-use crate::ensnano_consts::ICON_PHYSICAL_ENGINE;
-use iced::widget::{column, row};
+use crate::{
+    ensnano_consts::ICON_PHYSICAL_ENGINE,
+    ensnano_gui::{
+        AppState, Requests,
+        left_panel::{
+            BrownianParametersFactory, Message, RigidBodyFactory, RigidBodyParametersRequest,
+            discrete_value::{FactoryId, RequestFactory, ValueId},
+            tabs::{GuiTab, gostop::GoStop},
+        },
+    },
+    ensnano_iced::{
+        helpers::{right_checkbox, section, start_stop_button, subsection, text_button},
+        ui_size::UiSize,
+    },
+    ensnano_interactor::{RollRequest, SimulationState},
+};
+use iced::widget::{Column, column, row, scrollable};
+use iced_aw::TabLabel;
+use std::sync::{Arc, Mutex};
 
 pub struct SimulationTab<State: AppState> {
     rigid_body_factory: RequestFactory<RigidBodyFactory>,
@@ -29,10 +46,6 @@ impl<State: AppState> SimulationTab<State> {
                 String::from("Rigid Helices"),
                 Message::RigidHelicesSimulation,
             ),
-            //rigid_grid_button: GoStop::new(
-            //    String::from("Rigid Grids"),
-            //    Message::RigidGridSimulation,
-            //),
             physical_simulation: Default::default(),
         }
     }
@@ -184,9 +197,9 @@ impl PhysicalSimulation {
         let button_str = if running { "Stop" } else { name };
         let mut button = text_button(button_str, ui_size);
         button = if running {
-            button.style(theme::Button::Destructive)
+            button.style(iced::theme::Button::Destructive)
         } else {
-            button.style(theme::Button::Positive)
+            button.style(iced::theme::Button::Positive)
         };
         if active {
             button = button.on_press(Message::RollSimulationRequest);

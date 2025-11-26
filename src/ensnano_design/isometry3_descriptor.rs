@@ -2,6 +2,8 @@ use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, f32::consts::PI, str::FromStr};
 use ultraviolet::{Isometry3, Rotor3, Vec3};
 
+use crate::ensnano_design::drawing_style::ParsePointError;
+
 #[derive(Serialize, Deserialize, Clone, Copy, Debug)]
 pub enum Isometry3DescriptorItem {
     Identity,                             // %id

@@ -1,5 +1,3 @@
-use crate::ensnano_utils::PhySize;
-
 pub struct Texture {
     pub view: wgpu::TextureView,
 }

@@ -6,6 +6,7 @@ mod parity_graph;
 use crate::ensnano_design::{
     Design, Nucl,
     grid::{GridData, GridTypeDescr},
+    strands::Domain,
 };
 use serde::Serialize;
 use std::collections::HashMap;

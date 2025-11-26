@@ -1,9 +1,16 @@
 use rand::Rng as _;
 use rand_distr::StandardNormal;
-use std::f32::consts::{PI, TAU};
+use std::{
+    f32::consts::{PI, TAU},
+    sync::Arc,
+};
 use ultraviolet::Vec3;
 
-use crate::ensnano_design::parameters::HelixParameters;
+use crate::ensnano_design::{
+    helices::HelixCollection,
+    parameters::HelixParameters,
+    strands::{Domain, Strand},
+};
 
 const EPSILON_DESC: f32 = 0.05;
 const NB_STEP: usize = 1_000;

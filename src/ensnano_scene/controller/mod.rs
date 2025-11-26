@@ -8,7 +8,7 @@ use crate::ensnano_design::{
 use crate::ensnano_scene::controller::automata::event_context::EventContext;
 use crate::ensnano_scene::element_selector::SceneElement;
 use crate::ensnano_scene::{
-    PhySize, PhysicalPosition, WindowEvent,
+    PhysicalPosition, WindowEvent,
     maths_3d::FiniteVec3,
     view::{
         handle_drawer::{HandleColors, HandleDir},

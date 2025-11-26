@@ -127,7 +127,9 @@ use {
                 suggestion_parameters::SuggestionParameters,
             },
             application::{Application, Camera3D, Notification},
-            graphics::{Background3D, GuiComponentType, HBondDisplay, RenderingMode, SplitMode},
+            graphics::{
+                Background3D, GuiComponentType, HBondDisplay, PhySize, RenderingMode, SplitMode,
+            },
             operation::Operation,
             selection::{
                 ActionMode, CenterOfSelection, InteractorDesignReaderExt, Selection, SelectionMode,
@@ -141,7 +143,7 @@ use {
         ensnano_scene::{
             AppState as _, Scene, SceneKind, data::design3d::SceneDesignReaderExt as _,
         },
-        ensnano_utils::{PhySize, TEXTURE_FORMAT},
+        ensnano_utils::TEXTURE_FORMAT,
         requests::Requests,
     },
     app_state::AppState,

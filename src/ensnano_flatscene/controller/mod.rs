@@ -7,12 +7,23 @@
 
 mod automata;
 
-use crate::ensnano_interactor::selection::ActionMode;
+use crate::{
+    ensnano_flatscene::{
+        AppState, CameraPtr, DataPtr, ViewPtr,
+        data::{ClickResult, strand::FreeEnd},
+        flat_types::{FlatHelix, FlatNucl},
+    },
+    ensnano_interactor::{
+        graphics::PhySize,
+        selection::{ActionMode, Selection},
+    },
+};
 use automata::{ControllerState, NormalState, Transition, ctrl};
 use std::cell::RefCell;
 use ultraviolet::Vec2;
 use winit::{
-    event::{ElementState, KeyEvent},
+    dpi::PhysicalPosition,
+    event::{ElementState, KeyEvent, WindowEvent},
     keyboard::{Key, ModifiersState, NamedKey},
     window::CursorIcon,
 };

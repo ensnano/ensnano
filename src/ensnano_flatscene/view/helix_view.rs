@@ -1,3 +1,11 @@
+use crate::ensnano_flatscene::{
+    CameraPtr,
+    data::{
+        helix::Helix,
+        strand::{FreeEnd, Strand},
+    },
+    flat_types::FlatNucl,
+};
 use std::rc::Rc;
 use wgpu::{Buffer, Device, Queue, RenderPass};
 

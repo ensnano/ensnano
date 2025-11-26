@@ -1,4 +1,7 @@
-use crate::ensnano_design::grid::GridDescriptor;
+use crate::ensnano_design::{
+    grid::{GridDescriptor, GridTypeDescr},
+    parameters::HelixParameters,
+};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use ultraviolet::{Rotor3, Vec3};

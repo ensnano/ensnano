@@ -1,5 +1,6 @@
 //! DNA geometric parameters.
 
+use crate::ensnano_design::codenano;
 use serde::{Deserialize, Serialize};
 use std::{
     f32::consts::{PI, SQRT_2, TAU},
@@ -290,6 +291,8 @@ impl Eq for NamedParameter {}
 
 #[cfg(test)]
 mod tests {
+    use crate::ensnano_design::helices::Helix;
+
     use super::*;
     use ultraviolet::{Rotor3, Vec3};
 

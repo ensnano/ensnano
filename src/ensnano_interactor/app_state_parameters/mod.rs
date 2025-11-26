@@ -1,7 +1,10 @@
 pub mod check_xovers_parameter;
 pub mod suggestion_parameters;
 
-use crate::ensnano_iced::ui_size::UiSize;
+use crate::{
+    ensnano_iced::ui_size::UiSize,
+    ensnano_interactor::graphics::{Background3D, HBondDisplay, RenderingMode},
+};
 use check_xovers_parameter::CheckXoversParameter;
 use serde::{Deserialize, Serialize};
 use suggestion_parameters::SuggestionParameters;

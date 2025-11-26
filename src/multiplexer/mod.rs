@@ -21,7 +21,7 @@ use crate::ensnano_interactor::{
     multiplexer::Multiplexer as GuiMultiplexer,
 };
 use crate::ensnano_utils::texture::SampledTexture;
-use crate::{PhySize, controller::normal_state::Action, requests::Requests};
+use crate::{controller::normal_state::Action, requests::Requests};
 use iced_wgpu::wgpu::Device;
 use layout_manager::{LayoutTree, PixelRegion};
 use std::{

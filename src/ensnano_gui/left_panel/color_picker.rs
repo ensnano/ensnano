@@ -1,3 +1,4 @@
+use crate::ensnano_gui::left_panel::ColorMessage;
 use hue_column::HueColumn;
 use iced::{Color, widget::row};
 use light_sat_square::LightSatSquare;
@@ -470,8 +471,8 @@ mod color_square {
         Message: Clone,
     {
         //state: &'a mut State,
-        color: Color,
-        on_click: Box<dyn Fn(Color) -> Message + 'a>,
+        color: iced::Color,
+        on_click: Box<dyn Fn(iced::Color) -> Message + 'a>,
         // TODO: Mimic iced like in Checkbox: Option<Box<…>>, then a method to set something else
         //       than None.
         on_release: Message,
@@ -482,9 +483,9 @@ mod color_square {
     where
         Message: Clone,
     {
-        pub fn new<F>(color: Color, on_click: F, on_release: Message) -> Self
+        pub fn new<F>(color: iced::Color, on_click: F, on_release: Message) -> Self
         where
-            F: 'static + Fn(Color) -> Message + 'a,
+            F: 'static + Fn(iced::Color) -> Message + 'a,
         {
             Self {
                 //state,

@@ -25,12 +25,25 @@ pub mod scadnano;
 pub mod strands;
 pub mod utils;
 
-use crate::ensnano_organizer::tree::{GroupId, OrganizerTree};
+use crate::{
+    ensnano_design::{
+        bezier_plane::{BezierPathData, BezierPaths, BezierPlanes},
+        curves::CurveCache,
+        external_3d_objects::External3DObjects,
+        grid::grid_collection::FreeGrids,
+        helices::{Helices, Helix},
+        isometry3_descriptor::Isometry3Descriptor,
+        parameters::HelixParameters,
+        scadnano::{
+            ScadnanoDesign, ScadnanoGroup, ScadnanoImportError, ScadnanoInsertionsDeletions,
+        },
+        strands::{Domain, Strand, Strands},
+    },
+    ensnano_organizer::tree::{GroupId, OrganizerTree},
+};
 use elements::DesignElementKey;
 use grid::{GridData, GridDescriptor, GridId};
 use group_attributes::GroupAttribute;
-use material_colors::MaterialColor;
-use scadnano::*;
 use serde::{Deserialize, Serialize};
 use serde_with::{DefaultOnError, serde_as};
 use std::{

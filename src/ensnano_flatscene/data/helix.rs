@@ -3,6 +3,11 @@ use crate::ensnano_consts::{
     HELIX_BORDER_COLOR,
 };
 use crate::ensnano_design::Nucl;
+use crate::ensnano_design::curves::time_nucl_map::AbscissaConverter as AbscissaConverter_;
+use crate::ensnano_design::helices::NuclCollection;
+use crate::ensnano_flatscene::data::design::Helix2d;
+use crate::ensnano_flatscene::flat_types::{FlatHelix, FlatNucl};
+use crate::ensnano_flatscene::view::insertion::{InsertionDescriptor, InsertionInstance};
 use crate::ensnano_flatscene::{
     CameraPtr,
     flat_types::{FlatHelixMaps, FlatPosition, HelixSegment},
@@ -1104,6 +1109,8 @@ pub enum HelixHandle {
 }
 
 mod abscissa_converter {
+    use crate::ensnano_design::curves::time_nucl_map::AbscissaConverter as AbscissaConverter_;
+    use crate::ensnano_flatscene::flat_types::FlatPosition;
     use std::sync::Arc;
 
     #[derive(Debug)]

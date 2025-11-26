@@ -6,6 +6,8 @@
 use lyon::{geom::*, tessellation::*};
 use wgpu::util::DeviceExt as _;
 
+use crate::ensnano_consts::SAMPLE_COUNT;
+
 pub struct Background {
     pipeline: wgpu::RenderPipeline,
     border_pipeline: wgpu::RenderPipeline,
@@ -15,7 +17,7 @@ pub struct Background {
 
 impl Background {
     pub fn new(
-        device: &Device,
+        device: &wgpu::Device,
         globals_layout: &wgpu::BindGroupLayout,
         depth_stencil: Option<&wgpu::DepthStencilState>,
     ) -> Self {

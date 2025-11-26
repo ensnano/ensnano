@@ -10,6 +10,13 @@ mod icon;
 pub mod theme;
 pub mod tree;
 
+use crate::{
+    ensnano_iced::widgets::keyboard_priority::keyboard_priority,
+    ensnano_organizer::{
+        drag_drop_target::{DragDropTarget, DragIdentifier},
+        element::{AttributeDisplayer, ElementKey, OrganizerElement},
+    },
+};
 use hoverable_container::HoverableContainer;
 use iced::{
     Element, Length, Renderer, Theme,
@@ -26,8 +33,6 @@ use std::{
 };
 use theme::OrganizerTheme;
 use tree::{GroupId, OrganizerTree};
-
-use crate::ensnano_iced::widgets::keyboard_priority::keyboard_priority;
 
 const LEVELS_V_SPACING: u16 = 2;
 const H_SPACING_IN_UNITS: u16 = 15;
