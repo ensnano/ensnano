@@ -146,7 +146,6 @@ style = { level = "warn", priority = -1 }
 suspicious = { level = "deny", priority = -1 }
 
 # cargo
-blanket_clippy_restriction_lints = "allow"
 multiple_crate_versions = "allow"
 
 # nursery
@@ -163,6 +162,7 @@ assigning_clones = "allow"
 cast_lossless = "allow"
 cast_possible_truncation = "allow"
 cast_possible_wrap = "allow"
+cast_precision_loss = "allow"
 cast_sign_loss = "allow"
 default_trait_access = "allow"
 doc_markdown = "allow" # TODO: warn
@@ -173,7 +173,6 @@ many_single_char_names = "allow"
 missing_fields_in_debug = "allow"
 needless_pass_by_value = "allow" # TODO: warn
 option_option = "allow"
-unused_self = "allow" # TODO: warn (weird that we have 64 occurrences)
 similar_names = "allow"
 stable_sort_primitive = "allow"
 struct_excessive_bools = "allow"
@@ -183,6 +182,7 @@ trivially_copy_pass_by_ref = "allow"
 unnecessary_box_returns = "allow" # TODO: warn
 unnecessary_wraps = "allow" # TODO: warn (some functions wrap because they need to conform to an API)
 unreadable_literal = "allow"
+unused_self = "allow" # TODO: warn (weird that we have 64 occurrences)
 
 # restriction
 allow_attributes_without_reason = "allow"
@@ -191,7 +191,6 @@ arithmetic_side_effects = "allow"
 as_conversions = "allow"
 as_underscore = "allow"
 big_endian_bytes = "allow"
-cast_precision_loss = "allow"
 clone_on_ref_ptr = "allow" # TODO: warn (too much manual work for now)
 cognitive_complexity = "allow" # TODO: warn (surprisingly good suggestions)
 default_numeric_fallback = "allow"
@@ -199,8 +198,8 @@ else_if_without_else = "allow"
 expect_used = "allow"
 field_scoped_visibility_modifiers = "allow"
 float_arithmetic = "allow"
-implicit_return = "allow"
 impl_trait_in_params = "allow"
+implicit_return = "allow"
 indexing_slicing = "allow"
 integer_division = "allow"
 integer_division_remainder_used = "allow"
@@ -215,12 +214,12 @@ missing_trait_methods = "allow"
 mod_module_files = "allow"
 module_name_repetitions = "allow"
 modulo_arithmetic = "allow"
-non_ascii_literal = "allow"
 multiple_inherent_impl = "allow" # TODO: warn once clippy 1.92 gets out
+non_ascii_literal = "allow"
 panic = "allow" # TODO: warn (use assert!, todo!, unreachable! or proper error handling)
-pattern_type_mismatch = "allow"
 partial_pub_fields = "allow"
 pathbuf_init_then_push = "allow"
+pattern_type_mismatch = "allow"
 pointer_format = "allow"
 precedence_bits = "allow"
 print_stdout = "allow" # TODO: warn and use log! everywhere
@@ -252,3 +251,4 @@ wrong_self_convention = "allow" # TODO: warn
 
 # suspicious
 arc_with_non_send_sync = "allow" # TODO: warn (requires understand the multiplexer)
+blanket_clippy_restriction_lints = "allow"
