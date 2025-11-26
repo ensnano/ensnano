@@ -34,29 +34,25 @@ use bindgroup_manager::{DynamicBindGroup, UniformBindGroup};
 use camera::{Camera, CameraPtr, Projection, ProjectionPtr};
 use direction_cube::*;
 use dna_obj::{
-    ConeInstance, Ellipsoid, PlainRectangleInstance, RawDnaInstance, SlicedTubeInstance,
-    SphereInstance, StereographicSphereAndPlane, TubeInstance, TubeLidInstance,
+    PlainRectangleInstance, RawDnaInstance, SlicedTubeInstance, SphereInstance,
+    StereographicSphereAndPlane, TubeInstance, TubeLidInstance,
 };
 use drawable::{Drawable, Drawer, Vertex};
 use gltf_drawer::ExternalObjects;
-use grid::{GridInstance, GridIntersection};
-use grid::{GridManager, GridTextures};
+use grid::{GridInstance, GridIntersection, GridManager, GridTextures};
 use grid_disc::GridDisc;
-use handle_drawer::HandlesDrawer;
-use handle_drawer::{HandleColors, HandleDir, HandlesDescriptor};
-use instances_drawer::Instantiable;
+use handle_drawer::{HandleColors, HandleDir, HandlesDescriptor, HandlesDrawer};
 use instances_drawer::{InstanceDrawer, RawDrawer};
 use int_enum::IntEnum;
 use letter::LetterInstance;
 use maths_3d::unproject_point_on_line;
-use rotation_widget::{AvailableRotationAxes, RotationMode, RotationWidget, RotationWidgetDescriptor, RotationWidgetOrientation};
+use rotation_widget::{RotationMode, RotationWidget, RotationWidgetDescriptor};
 use sheet_2d::Sheet2D;
 use std::{cell::RefCell, collections::BTreeMap, rc::Rc};
 use text::Letter;
 use texture::Texture;
 use ultraviolet::{Mat4, Rotor3, Vec3};
-use uniforms::Stereography;
-use uniforms::Uniforms;
+use uniforms::{Stereography, Uniforms};
 use wgpu::{Device, Queue, util::DeviceExt as _};
 
 static MODEL_BG_ENTRY: &[wgpu::BindGroupLayoutEntry] = &[wgpu::BindGroupLayoutEntry {

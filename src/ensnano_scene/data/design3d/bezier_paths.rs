@@ -2,10 +2,10 @@ use super::*;
 use crate::ensnano_consts::*;
 use crate::ensnano_design::{BezierEndCoordinates, BezierVertexId};
 use crate::ensnano_interactor::Selection;
-use crate::ensnano_scene::view::dna_obj::TubeInstance;
-use crate::ensnano_scene::view::instances_drawer::Instantiable as _;
-use crate::ensnano_scene::view::sheet_2d::Sheet2D;
-use crate::ensnano_scene::{AppState, element_selector};
+use crate::ensnano_scene::{
+    AppState, element_selector,
+    view::{instances_drawer::Instantiable as _, sheet_2d::Sheet2D},
+};
 
 impl<R: SceneDesignReaderExt> Design3D<R> {
     pub fn get_bezier_elements(&self, h_id: usize) -> (Vec<RawDnaInstance>, Vec<RawDnaInstance>) {

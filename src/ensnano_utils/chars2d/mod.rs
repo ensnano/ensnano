@@ -7,7 +7,6 @@ use crate::ensnano_utils::{
     texture::Texture,
 };
 use std::{collections::HashMap, rc::Rc};
-use text_drawer::TextDrawer;
 use ultraviolet::{Mat2, Vec2, Vec4};
 use wgpu::{BindGroupLayout, Device, Queue, RenderPass, RenderPipeline, include_spirv};
 
