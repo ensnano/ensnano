@@ -25,6 +25,7 @@ use super::*;
 use crate::app_state::design_interactor::Presenter;
 use ensnano_design::{HelixParameters, NuclCollection};
 use ensnano_interactor::{RevolutionSurfaceSystemDescriptor, RigidBodyConstants};
+use ensnano_physics::parameters::RapierParameters;
 use mathru::{
     algebra::linear::vector::vector::Vector,
     analysis::differential_equation::ordinary::{
@@ -1327,9 +1328,10 @@ pub enum SimulationOperation<'pres, 'reader> {
         reader: &'reader mut ChannelReader,
     },
     FinishRelaxation,
-    StartRapierSimulation {
+    UpdateRapierParameters {
         presenter: &'pres Presenter,
         reader: &'reader mut ChannelReader,
+        parameters: RapierParameters,
     },
 }
 

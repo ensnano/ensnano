@@ -13,6 +13,7 @@ use crate::{
 };
 use ensnano_design::{Design, HelixParameters, NuclCollection};
 use ensnano_physics::RapierPhysicsSystem;
+use ensnano_physics::parameters::RapierParameters;
 
 #[derive(Default)]
 pub struct RapierPhysicalSystem {
@@ -24,6 +25,7 @@ impl RapierPhysicalSystem {
     pub fn start_new(
         presenter: &Presenter,
         reader: &mut ChannelReader,
+        parameters: RapierParameters,
     ) -> Arc<Mutex<RapierInterface>> {
         // first prototype simulation
         // let system = RapierPhysicsSystem::new(
@@ -39,6 +41,7 @@ impl RapierPhysicalSystem {
                 .get_design()
                 .helix_parameters
                 .unwrap_or(HelixParameters::GEARY_2014_DNA_P_STICK),
+            parameters,
             &presenter.content.object_type,
             &presenter.content.nucleotide,
             &presenter.content.space_position,

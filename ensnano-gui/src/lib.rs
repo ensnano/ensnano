@@ -49,9 +49,8 @@ use ensnano_iced::{
 };
 use ensnano_interactor::{
     ActionMode, HyperboloidRequest, InsertionPoint, Multiplexer, PastingStatus,
-    RapierSimulationRequest, RevolutionSurfaceSystemDescriptor, RollRequest, ScaffoldInfo,
-    Selection, SelectionMode, SimulationState, StrandBuildingStatus,
-    UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
+    RevolutionSurfaceSystemDescriptor, RollRequest, ScaffoldInfo, Selection, SelectionMode,
+    SimulationState, StrandBuildingStatus, UnrootedRevolutionSurfaceDescriptor, WidgetBasis,
     app_state_parameters::{AppStateParameters, CheckXoversParameter, SuggestionParameters},
     graphics::{
         Background3D, DrawArea, FogParameters, GuiComponentType, HBondDisplay, RenderingMode,
@@ -60,6 +59,7 @@ use ensnano_interactor::{
     operation::Operation,
 };
 use ensnano_organizer::{GroupId, OrganizerTree};
+use ensnano_physics::parameters::RapierParameters;
 pub use left_panel::{
     ColorOverlay, CurveDescriptorBuilder, CurveDescriptorParameter, InstantiatedParameter,
     LeftPanel, RevolutionScaling, RigidBodyParametersRequest,
@@ -115,7 +115,7 @@ pub trait Requests: 'static + Send {
     fn stop_roll_simulation(&mut self);
     fn start_roll_simulation(&mut self, roll_request: RollRequest);
     /// Request a Rapier simulation of the current design
-    fn request_rapier_simulation(&mut self, request: RapierSimulationRequest);
+    fn request_rapier_simulation(&mut self, parameters: RapierParameters);
     /// Make a grid from the set of selected helices
     fn make_grid_from_selection(&mut self);
     /// Start of Update the rigid helices simulation

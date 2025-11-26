@@ -205,12 +205,22 @@ impl<State: AppState> GuiTab<State> for SimulationTab<State> {
                         RapierSimulationType::Cut
                     ],
                     Some(RapierSimulationType::Cut),
-                    |_| Message::StartRapierSimulation,
+                    |simulation_type| Message::UpdateRapierParameters(RapierParameters {
+                        simulation_type,
+                        ..self.rapier_parameters
+                    }),
                 )],
                 self::row![
-                    text_button("Start", ui_size).on_press(Message::StartRapierSimulation),
+                    text_button("Start", ui_size).on_press(Message::UpdateRapierParameters(
+                        RapierParameters {
+                            is_simulation_running: true,
+                            ..self.rapier_parameters
+                        }
+                    )),
                     Space::with_width(ui_size.button_spacing()),
-                    text_button("Stop", ui_size),
+                    text_button("Stop", ui_size).on_press(Message::StopSimulation),
+                    Space::with_width(ui_size.button_spacing()),
+                    text_button("Reset", ui_size).on_press(Message::ResetSimulation),
                 ],
             ]
             .spacing(ui_size.button_spacing()),

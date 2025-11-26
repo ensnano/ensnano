@@ -1,5 +1,6 @@
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct RapierParameters {
+    pub is_simulation_running: bool,
     pub simulation_type: RapierSimulationType,
     pub linear_damping: f32,
     pub angular_damping: f32,
@@ -34,6 +35,7 @@ impl std::fmt::Display for RapierSimulationType {
 
 impl RapierParameters {
     const DEFAULT: RapierParameters = RapierParameters {
+        is_simulation_running: false,
         simulation_type: RapierSimulationType::Cut,
         linear_damping: 0.06,
         angular_damping: 0.06,

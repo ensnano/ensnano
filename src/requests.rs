@@ -33,14 +33,15 @@ use ensnano_design::{
 };
 use ensnano_iced::{UiSize, widgets::keyboard_priority::PriorityRequest};
 use ensnano_interactor::{
-    ActionMode, CenterOfSelection, HyperboloidRequest, RapierSimulationRequest, RigidBodyConstants,
-    RollRequest, Selection, SelectionMode, UnrootedRevolutionSurfaceDescriptor,
+    ActionMode, CenterOfSelection, HyperboloidRequest, RigidBodyConstants, RollRequest, Selection,
+    SelectionMode, UnrootedRevolutionSurfaceDescriptor,
     app_state_parameters::{CheckXoversParameter, SuggestionParameters},
     application::AppId,
     graphics::{Background3D, FogParameters, HBondDisplay, RenderingMode},
     operation::Operation,
 };
 use ensnano_organizer::OrganizerTree;
+use ensnano_physics::parameters::RapierParameters;
 use std::{collections::VecDeque, sync::Arc};
 use ultraviolet::Vec3;
 
@@ -74,7 +75,7 @@ pub struct Requests {
     pub set_scaffold_id: Option<Option<usize>>,
     pub recolor_staples: Option<()>,
     pub roll_request: Option<RollRequest>,
-    pub rapier_simulation_request: Option<RapierSimulationRequest>,
+    pub rapier_simulation_parameters: Option<RapierParameters>,
     pub show_torsion_request: Option<bool>,
     pub fog: Option<FogParameters>,
     pub hyperboloid_update: Option<HyperboloidRequest>,

@@ -518,13 +518,30 @@ impl Controller {
                     _initial_design: AddressPointer::new(design.clone()),
                 };
             }
-            SimulationOperation::StartRapierSimulation { presenter, reader } => {
-                self.check_state_compatible_with_simulation()?;
-                let interface = RapierPhysicalSystem::start_new(presenter, reader);
-                ret.state = ControllerState::RapierSimulating {
-                    interface,
-                    initial_design: AddressPointer::new(design.clone()),
-                };
+            SimulationOperation::UpdateRapierParameters {
+                presenter,
+                reader,
+                parameters,
+            } => {
+                // if no simulation is requested, no operation is necessary
+                if parameters.is_simulation_running {
+                    self.check_state_compatible_with_simulation()?;
+                    let new_interface =
+                        RapierPhysicalSystem::start_new(presenter, reader, parameters);
+                    if let ControllerState::RapierSimulating { initial_design, .. } = &self.state {
+                        // the simulation is ongoing, we preserve the initial design
+                        ret.state = ControllerState::RapierSimulating {
+                            interface: new_interface,
+                            initial_design: initial_design.clone(),
+                        }
+                    } else {
+                        // the simulation is starting, we save the initial design
+                        ret.state = ControllerState::RapierSimulating {
+                            interface: new_interface,
+                            initial_design: AddressPointer::new(design.clone()),
+                        };
+                    }
+                }
             }
             SimulationOperation::StartRoll {
                 presenter,

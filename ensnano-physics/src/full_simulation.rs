@@ -172,6 +172,8 @@ pub fn build_simulation<S: SimulationSetup>(
     // Stores the colliders per helix and per position in the helix
     let mut collider_map: HashMap<(usize, isize), Vec<ColliderHandle>> = Default::default();
 
+    println!("{rapier_parameters:?}");
+
     // Create objects and store them in the map
     // 1) for each helix, for each level of the helix
     // 2) create either 2 balls and one capsule, or just 1 ball

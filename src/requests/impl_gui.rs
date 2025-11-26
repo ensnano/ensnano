@@ -27,6 +27,7 @@ use ensnano_interactor::{
     DesignOperation, InsertionPoint, RevolutionSurfaceSystemDescriptor, RigidBodyConstants,
     RollRequest, application::Notification, graphics::SplitMode,
 };
+use ensnano_physics::parameters::RapierParameters;
 use std::collections::BTreeSet;
 use ultraviolet::{Rotor3, Vec2};
 
@@ -117,8 +118,8 @@ impl ensnano_gui::Requests for Requests {
         self.roll_request = Some(request);
     }
 
-    fn request_rapier_simulation(&mut self, request: RapierSimulationRequest) {
-        self.rapier_simulation_request = Some(request);
+    fn request_rapier_simulation(&mut self, parameters: RapierParameters) {
+        self.rapier_simulation_parameters = Some(parameters);
     }
 
     fn make_grid_from_selection(&mut self) {

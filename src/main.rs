@@ -151,6 +151,7 @@ use {
         operation::Operation,
     },
     ensnano_organizer::GroupId,
+    ensnano_physics::parameters::RapierParameters,
     ensnano_scene::{AppState as _, Scene, SceneKind, data::SceneDesignReaderExt as _},
     ensnano_utils::{PhySize, TEXTURE_FORMAT},
     multiplexer::{Multiplexer, Overlay},
@@ -1307,13 +1308,14 @@ impl MainState {
         self.apply_operation_result(result);
     }
 
-    fn start_rapier_simulation(&mut self) {
+    fn update_rapier_parameters(&mut self, parameters: RapierParameters) {
         let presenter = self.app_state.0.design.presenter.clone();
         let result = self
             .app_state
-            .start_simulation(SimulationOperation::StartRapierSimulation {
+            .start_simulation(SimulationOperation::UpdateRapierParameters {
                 presenter: presenter.as_ref(),
                 reader: &mut self.channel_reader,
+                parameters,
             });
         self.apply_operation_result(result);
     }

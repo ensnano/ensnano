@@ -40,8 +40,7 @@ use ensnano_iced::{
     widgets::keyboard_priority::PriorityRequest,
 };
 use ensnano_interactor::{
-    ActionMode, EquadiffSolvingMethod, HyperboloidRequest, RapierSimulationRequest, Selection,
-    SelectionConversion,
+    ActionMode, EquadiffSolvingMethod, HyperboloidRequest, Selection, SelectionConversion,
     app_state_parameters::{AppStateParameters, CheckXoversParameter, SuggestionParameters},
     graphics::{Background3D, HBondDisplay, RenderingMode},
 };
@@ -105,8 +104,9 @@ pub enum Message<S: AppState> {
     FogRadius(f32),
     FogLength(f32),
     RollSimulationRequest,
+    /// Changes rapier parameters, including
+    /// if a simulation is running.
     UpdateRapierParameters(RapierParameters),
-    StartRapierSimulation,
     DiscreteValue {
         factory_id: FactoryId,
         value_id: ValueId,
@@ -444,13 +444,10 @@ where
             }
             Message::UpdateRapierParameters(parameters) => {
                 self.simulation_tab.rapier_parameters = parameters;
-                Command::none()
-            }
-            Message::StartRapierSimulation => {
                 self.requests
                     .lock()
                     .unwrap()
-                    .request_rapier_simulation(RapierSimulationRequest::Start);
+                    .request_rapier_simulation(parameters);
                 Command::none()
             }
             Message::FogChoice(choice) => {

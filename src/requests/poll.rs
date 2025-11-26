@@ -106,8 +106,8 @@ pub(crate) fn poll_all<R: DerefMut<Target = Requests>>(
         main_state.push_action(Action::RollRequest(roll_request))
     }
 
-    if let Some(request) = requests.rapier_simulation_request.take() {
-        main_state.push_action(Action::RapierSimulationRequest(request))
+    if let Some(parameters) = requests.rapier_simulation_parameters.take() {
+        main_state.push_action(Action::UpdateRapierParameters(parameters))
     }
 
     if let Some(b) = requests.show_torsion_request.take() {
