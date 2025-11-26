@@ -190,6 +190,7 @@ arbitrary_source_item_ordering = "allow" # TODO: warn (requires some thought and
 arithmetic_side_effects = "allow"
 as_conversions = "allow"
 as_underscore = "allow"
+assertions_on_result_states = "allow"
 big_endian_bytes = "allow"
 clone_on_ref_ptr = "allow" # TODO: warn (too much manual work for now)
 cognitive_complexity = "allow" # TODO: warn (surprisingly good suggestions)

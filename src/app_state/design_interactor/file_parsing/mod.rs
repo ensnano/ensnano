@@ -100,7 +100,7 @@ impl std::convert::From<ScadnanoImportError> for LoadDesignError {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ensnano_design::HelixCollection;
+    use crate::ensnano_design::HelixCollection as _;
 
     fn one_helix_path() -> PathBuf {
         let mut ret = PathBuf::from(std::env!("CARGO_MANIFEST_DIR"));

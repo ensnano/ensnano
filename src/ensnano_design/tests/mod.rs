@@ -1,6 +1,6 @@
 use super::*;
 use regex::Regex;
-use std::fmt::Write;
+use std::fmt::Write as _;
 
 #[test]
 fn sanitize_with_insertions() {
@@ -99,7 +99,7 @@ fn scadnano_import_one_loopout() {
 }
 
 fn assert_good_strand<S: std::ops::Deref<Target = str>>(strand: &Strand, objective: S) {
-    let re = Regex::new(r#"\[[^\]]*\]"#).unwrap();
+    let re = Regex::new(r"\[[^\]]*\]").unwrap();
     let formatted_strand = strand.formatted_domains();
     let left = re.find_iter(&formatted_strand);
     let right = re.find_iter(&objective);
@@ -110,7 +110,7 @@ fn assert_good_strand<S: std::ops::Deref<Target = str>>(strand: &Strand, objecti
 
 fn assert_sane_domains_non_cyclic(dom: &[Domain]) {
     let mut prev_insertion = false;
-    for d in dom.iter() {
+    for d in dom {
         if let Domain::Insertion { .. } = d {
             if prev_insertion {
                 panic!("Two successive Insertions in {dom:?}");
@@ -543,7 +543,7 @@ fn correct_junction_cyclic_pathological() {
 }
 
 #[test]
-fn test_insertion_left_to_right() {
+fn correct_insertion_left_to_right() {
     let mut strand = strand_with_insertion();
     let domains = sanitize_domains(&strand.domains, strand.is_cyclic);
     strand.domains = domains;
@@ -574,7 +574,7 @@ fn test_insertion_left_to_right() {
 }
 
 #[test]
-fn test_insertion_right_to_left() {
+fn correct_insertion_right_to_left() {
     let mut strand = strand_with_insertion();
     let domains = sanitize_domains(&strand.domains, strand.is_cyclic);
     strand.domains = domains;

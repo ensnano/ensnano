@@ -252,6 +252,7 @@ mod tests {
         out_file.write_all(&bytes)?;
         Ok(())
     }
+
     #[test]
     fn empty_stl_test() {
         assert!(stl_file_from_triangles("blop.stl", vec![]).is_ok()); // cspell: disable-line

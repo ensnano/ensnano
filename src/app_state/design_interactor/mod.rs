@@ -389,13 +389,13 @@ impl InteractorResult {
 mod tests {
     use super::*;
     use crate::ensnano_design::{
-        Collection, DomainJunction, HelixCollection, Nucl, Strand,
+        DomainJunction, Nucl, Strand,
         grid::{GridDescriptor, GridTypeDescr, HelixGridPosition},
     };
     use crate::ensnano_interactor::{
-        InsertionPoint, InteractorDesignReaderExt, operation::GridHelixCreation,
+        InsertionPoint, InteractorDesignReaderExt as _, operation::GridHelixCreation,
     };
-    use crate::ensnano_scene::data::SceneDesignReaderExt;
+    use crate::ensnano_scene::data::SceneDesignReaderExt as _;
     use crate::ensnano_utils::id_generator::IdGenerator;
     use crate::{
         OkOperation as TopOkOperation,
@@ -427,8 +427,8 @@ mod tests {
 
     fn assert_good_strand<S: std::ops::Deref<Target = str>>(strand: &Strand, objective: S) {
         println!("self {:?}", strand.formatted_domains());
-        println!("objective {}", objective.deref());
-        let re = Regex::new(r#"\[[^\]]*\]"#).unwrap();
+        println!("objective {}", &*objective);
+        let re = Regex::new(r"\[[^\]]*\]").unwrap();
         let formatted_strand = strand.formatted_domains();
         let left = re.find_iter(&formatted_strand);
         let right = re.find_iter(&objective);
@@ -440,8 +440,8 @@ mod tests {
 
     fn assert_good_junctions<S: std::ops::Deref<Target = str>>(strand: &Strand, objective: S) {
         println!("self {:?}", strand.formatted_anonymous_junctions());
-        println!("objective {}", objective.deref());
-        let re = Regex::new(r#"\[[^\]]*\]"#).unwrap();
+        println!("objective {}", &*objective);
+        let re = Regex::new(r"\[[^\]]*\]").unwrap();
         let formatted_strand = strand.formatted_anonymous_junctions();
         let left = re.find_iter(&formatted_strand);
         let right = re.find_iter(&objective);
@@ -704,12 +704,12 @@ mod tests {
             .unwrap();
 
         let strand = strands.get(&s_id_prime5).expect("No strand 5'");
-        let expected_result = "[->] [x] [3']".to_string();
+        let expected_result = "[->] [x] [3']".to_owned();
         assert_good_junctions(strand, expected_result);
         println!("OK for 5' end");
 
         let strand = strands.get(&s_id_prime3).expect("No strand 3'");
-        let expected_result = "[3']".to_string();
+        let expected_result = "[3']".to_owned();
         assert_good_junctions(strand, expected_result);
     }
 
@@ -763,7 +763,7 @@ mod tests {
             .strands
             .get(&0)
             .expect("No strand 0");
-        let expected_result = "[->] [x] [->] [x] [3']".to_string();
+        let expected_result = "[->] [x] [->] [x] [3']".to_owned();
         assert_good_junctions(strand, expected_result);
     }
 
@@ -829,7 +829,7 @@ mod tests {
             .strands
             .get(&0)
             .expect("No strand 0");
-        let expected_result = "[->] [x] [->] [x] [->] [3']".to_string();
+        let expected_result = "[->] [x] [->] [x] [->] [3']".to_owned();
         assert_good_junctions(strand, expected_result);
     }
 
@@ -1222,15 +1222,15 @@ mod tests {
         assert_eq!(app_state.0.design.presenter.current_design.helices.len(), 1);
     }
 
-    #[ignore]
+    #[ignore = "need fix"]
     #[test]
     fn copy_creates_clipboard() {
         let mut app_state = pastable_design();
         app_state
             .apply_copy_operation(CopyOperation::CopyStrands(vec![0]))
             .unwrap();
-        //Fix this path
-        //assert_eq!(app_state.0.design.controller.clipboard.size(), 1)
+        // Fix this path
+        // assert_eq!(app_state.0.design.controller.clipboard.size(), 1)
     }
 
     #[test]
@@ -1601,7 +1601,7 @@ mod tests {
             .unwrap();
         app_state.update();
         let staples = app_state.get_design_interactor().presenter.get_staples();
-        for s in staples.iter() {
+        for s in staples {
             if s.name.contains("5':h1:nt7") {
                 assert_eq!(s.sequence, "CCAA TTTT"); // cspell: disable-line
             } else if s.name.contains("5':h2:nt0") {
@@ -1633,7 +1633,7 @@ mod tests {
             .unwrap();
         app_state.update();
         let staples = app_state.get_design_interactor().presenter.get_staples();
-        for s in staples.iter() {
+        for s in staples {
             if s.name.contains("5':h1:nt7") {
                 assert_eq!(s.sequence, "AGGT TCCA"); // cspell: disable-line
             } else if s.name.contains("5':h2:nt0") {

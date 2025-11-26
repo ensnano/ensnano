@@ -5,7 +5,8 @@ use crate::ensnano_design::Nucl;
 use crate::ensnano_interactor::graphics::DrawArea;
 use winit::dpi::PhysicalPosition;
 
-struct DummyScene {}
+struct DummyScene;
+
 impl Application for DummyScene {
     type AppState = AppState;
     fn on_notify(&mut self, _notification: Notification) {}
