@@ -3,6 +3,19 @@ pub mod shift_optimization;
 pub mod simulations;
 pub mod update_insertion_length;
 
+use crate::ensnano_design::bezier_plane::import_from_svg::{SvgImportError, read_first_svg_path};
+use crate::ensnano_design::bezier_plane::{
+    BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, BezierVertexId,
+};
+use crate::ensnano_design::curves::CurveDescriptor;
+use crate::ensnano_design::curves::bezier::{BezierControlPoint, BezierEnd};
+use crate::ensnano_design::external_3d_objects::{External3DObject, External3DObjectDescriptor};
+use crate::ensnano_design::grid::copy_grid::GridCopyError;
+use crate::ensnano_design::grid::grid_collection::FreeGridId;
+use crate::ensnano_design::grid::hyperboloid::Hyperboloid;
+use crate::ensnano_design::helices::{Helices, Helix, NuclCollection};
+use crate::ensnano_design::strands::{Domain, DomainJunction, HelixInterval, Strand, Strands};
+use crate::ensnano_design::{CameraId, Design, Nucl, mutate_one_helix};
 use crate::ensnano_gui::ClipboardContent;
 use crate::ensnano_interactor::{
     BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation,
@@ -705,7 +718,7 @@ impl Controller {
         helix: usize,
         visible: bool,
     ) -> Result<Design, ErrOperation> {
-        crate::ensnano_design::mutate_one_helix(&mut design, helix, |h| h.visible = visible)
+        mutate_one_helix(&mut design, helix, |h| h.visible = visible)
             .ok_or(ErrOperation::HelixDoesNotExists(helix))?;
         Ok(design)
     }
@@ -780,7 +793,7 @@ impl Controller {
     ) -> Result<(), ErrOperation> {
         match element {
             DesignElementKey::Helix(helix) => {
-                crate::ensnano_design::mutate_one_helix(design, *helix, |h| h.visible = visible)
+                mutate_one_helix(design, *helix, |h| h.visible = visible)
                     .ok_or(ErrOperation::HelixDoesNotExists(*helix))?;
             }
             DesignElementKey::Grid(g_id) => {
@@ -828,7 +841,7 @@ impl Controller {
             if !design.helices.contains_key(h_id) {
                 return Err(ErrOperation::HelixDoesNotExists(*h_id));
             }
-            crate::ensnano_design::mutate_one_helix(design, *h_id, |h| {
+            mutate_one_helix(design, *h_id, |h| {
                 h.locked_for_simulations = locked;
             });
         }
@@ -3325,8 +3338,8 @@ impl From<ErrDesignOperation> for ErrOperation {
     }
 }
 
-impl From<crate::ensnano_design::SvgImportError> for ErrOperation {
-    fn from(e: crate::ensnano_design::SvgImportError) -> Self {
+impl From<SvgImportError> for ErrOperation {
+    fn from(e: SvgImportError) -> Self {
         Self::SvgImportError(e)
     }
 }

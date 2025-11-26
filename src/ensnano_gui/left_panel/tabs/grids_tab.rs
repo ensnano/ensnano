@@ -1,6 +1,14 @@
 use crate::ensnano_consts::{ICON_HONEYCOMB_GRID, ICON_NANOTUBE, ICON_SQUARE_GRID};
+use crate::ensnano_design::grid::GridTypeDescr;
+use crate::ensnano_gui::AppState;
+use crate::ensnano_gui::left_panel::discrete_value::{FactoryId, RequestFactory, ValueId};
+use crate::ensnano_gui::left_panel::tabs::GuiTab;
+use crate::ensnano_gui::left_panel::{Hyperboloid_, Message};
 use crate::ensnano_iced::fonts::material_icons::{MaterialIcon, icon_to_char};
-use iced::widget::row;
+use crate::ensnano_iced::helpers::{extra_jump, icon_button, section, subsection, text_button};
+use crate::ensnano_iced::ui_size::UiSize;
+use crate::ensnano_interactor::HyperboloidRequest;
+use iced::widget::{Column, row, scrollable, text, tooltip};
 use iced::{Length, widget::column};
 use iced_aw::TabLabel;
 use std::marker::PhantomData;

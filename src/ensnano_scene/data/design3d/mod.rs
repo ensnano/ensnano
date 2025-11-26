@@ -3,6 +3,14 @@
 mod bezier_paths;
 
 use crate::ensnano_consts::*;
+use crate::ensnano_design::bezier_plane::{
+    BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, InstantiatedPath,
+};
+use crate::ensnano_design::collection::Collection;
+use crate::ensnano_design::curves::bezier::{BezierControlPoint, CubicBezierConstructor};
+use crate::ensnano_design::curves::{CurveDescriptor, SurfaceInfo, SurfacePoint};
+use crate::ensnano_design::external_3d_objects::External3DObjects;
+use crate::ensnano_design::parameters::HelixParameters;
 use crate::ensnano_design::{
     AdditionalStructure, Nucl,
     grid::{GridId, GridObject, GridPosition, HelixGridPosition},
@@ -16,6 +24,8 @@ use crate::ensnano_interactor::{
     graphics::{LoopoutBond, LoopoutNucl},
     selection::InteractorDesignReaderExt,
 };
+use crate::ensnano_scene::element_selector::SceneElement;
+use crate::ensnano_scene::view::letter::LetterInstance;
 use crate::ensnano_scene::{
     SceneElement::DesignElement,
     maths_3d::{Basis3D, UnalignedBoundaries},

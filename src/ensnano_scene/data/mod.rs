@@ -7,16 +7,23 @@ use crate::ensnano_consts::{
     BOND_RADIUS, CANDIDATE_COLOR, CANDIDATE_SCALE_FACTOR, SELECT_SCALE_FACTOR, SELECTED_COLOR,
     SPHERE_RADIUS,
 };
+use crate::ensnano_design::bezier_plane::BezierVertexId;
+use crate::ensnano_design::curves::{SurfaceInfo, SurfacePoint};
+use crate::ensnano_design::external_3d_objects::External3DObjectsStamp;
 use crate::ensnano_design::{
     Nucl,
     grid::{GridId, GridObject, GridPosition},
 };
+use crate::ensnano_interactor::application::Camera3D;
 use crate::ensnano_interactor::selection::{
     ActionMode, CenterOfSelection, PhantomElement, Selection, SelectionMode,
     extract_helices_with_controls,
 };
 use crate::ensnano_interactor::{ObjectType, Referential, graphics::HBondDisplay};
+use crate::ensnano_scene::AppState;
 use crate::ensnano_scene::camera::CameraController;
+use crate::ensnano_scene::element_selector::{SceneElement, bezier_vertex_id};
+use crate::ensnano_scene::view::{Mesh, View, ViewUpdate};
 use crate::ensnano_scene::view::{
     dna_obj::{RawDnaInstance, StereographicSphereAndPlane},
     gltf_drawer::ExternalObjects,
@@ -1892,7 +1899,7 @@ fn toggle_selection(mode: SelectionMode) -> SelectionMode {
     }
 }
 
-impl<R: SceneDesignReaderExt> crate::controller::Data for Data<R> {
+impl<R: SceneDesignReaderExt> crate::ensnano_scene::controller::Data for Data<R> {
     fn element_to_nucl(
         &self,
         element: Option<&SceneElement>,

@@ -92,88 +92,80 @@ mod multiplexer;
 mod requests;
 mod scheduler;
 
-use {
-    crate::{
-        app_state::{
-            design_interactor::controller::{
-                ErrOperation, InteractorNotification,
-                clipboard::{CopyOperation, PastePosition},
-                simulations::SimulationOperation,
-            },
-            transitions::{AppStateTransition, OkOperation, TransitionLabel},
-        },
-        controller::{
-            channel_reader::{ChannelReader, ChannelReaderUpdate},
-            normal_state::Action,
-            set_scaffold_sequence::{
-                ScaffoldSetter, SetScaffoldSequenceError, SetScaffoldSequenceOk,
-                TargetScaffoldLength,
-            },
-        },
-        ensnano_consts::{
-            APP_NAME, ENS_BACKUP_EXTENSION, ENS_UNNAMED_FILE_NAME, NO_DESIGN_TITLE,
-            SEC_BETWEEN_BACKUPS, SEC_PER_YEAR, WELCOME_MSG,
-        },
-        ensnano_design::{Camera, grid::GridId, group_attributes::GroupPivot},
-        ensnano_exports::{ExportResult, ExportType},
-        ensnano_flatscene::FlatScene,
-        ensnano_gui::{AppState as _, ColorOverlay, Gui, IcedMessages, OverlayType, TopBarState},
-        ensnano_iced::{fonts, theme, ui_size::UiSize},
-        ensnano_interactor::{
-            DesignOperation, DesignRotation, DesignTranslation, IsometryTarget, PastingStatus,
-            RigidBodyConstants,
-            app_state_parameters::{
-                AppStateParameters, check_xovers_parameter::CheckXoversParameter,
-                suggestion_parameters::SuggestionParameters,
-            },
-            application::{Application, Camera3D, Notification},
-            graphics::{
-                Background3D, GuiComponentType, HBondDisplay, PhySize, RenderingMode, SplitMode,
-            },
-            operation::Operation,
-            selection::{
-                ActionMode, CenterOfSelection, InteractorDesignReaderExt, Selection, SelectionMode,
-                extract_nucls_from_selection, extract_only_grids, extract_strands_from_selection,
-                list_of_bezier_vertices, list_of_free_grids, list_of_helices, list_of_strands,
-                list_of_xover_as_nucl_pairs,
-            },
-            surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},
-        },
-        ensnano_organizer::tree::GroupId,
-        ensnano_scene::{
-            AppState as _, Scene, SceneKind, data::design3d::SceneDesignReaderExt as _,
-        },
-        ensnano_utils::TEXTURE_FORMAT,
-        requests::Requests,
+use crate::ensnano_consts::{
+    APP_NAME, ENS_BACKUP_EXTENSION, ENS_UNNAMED_FILE_NAME, NO_DESIGN_TITLE, SEC_BETWEEN_BACKUPS,
+    SEC_PER_YEAR, WELCOME_MSG,
+};
+use crate::ensnano_design::{Camera, grid::GridId, group_attributes::GroupPivot};
+use crate::ensnano_exports::{ExportResult, ExportType};
+use crate::ensnano_flatscene::FlatScene;
+use crate::ensnano_gui::{AppState as _, Gui, IcedMessages, OverlayType, TopBarState};
+use crate::ensnano_iced::{fonts, theme, ui_size::UiSize};
+use crate::ensnano_interactor::{
+    DesignOperation, DesignRotation, DesignTranslation, IsometryTarget, PastingStatus,
+    RigidBodyConstants,
+    app_state_parameters::{
+        AppStateParameters, check_xovers_parameter::CheckXoversParameter,
+        suggestion_parameters::SuggestionParameters,
     },
-    app_state::AppState,
-    controller::{
-        Controller, LoadDesignError, SaveDesignError, download_staples::StaplesDownloader,
+    application::{Application, Camera3D, Notification},
+    graphics::{Background3D, GuiComponentType, HBondDisplay, PhySize, RenderingMode, SplitMode},
+    operation::Operation,
+    selection::{
+        ActionMode, CenterOfSelection, InteractorDesignReaderExt, Selection, SelectionMode,
+        extract_nucls_from_selection, extract_only_grids, extract_strands_from_selection,
+        list_of_bezier_vertices, list_of_free_grids, list_of_helices, list_of_strands,
+        list_of_xover_as_nucl_pairs,
     },
-    iced::{
-        advanced::{clipboard, renderer},
-        mouse::Cursor,
+    surfaces::{RevolutionSurfaceSystemDescriptor, UnrootedRevolutionSurfaceDescriptor},
+};
+use crate::ensnano_organizer::tree::GroupId;
+use crate::ensnano_scene::{
+    AppState as _, Scene, SceneKind, data::design3d::SceneDesignReaderExt as _,
+};
+use crate::ensnano_utils::TEXTURE_FORMAT;
+use app_state::{
+    AppState,
+    design_interactor::controller::{
+        ErrOperation, InteractorNotification,
+        clipboard::{CopyOperation, PastePosition},
+        simulations::SimulationOperation,
     },
-    iced_graphics::{Antialiasing, Viewport},
-    iced_runtime::{Debug, program},
-    iced_wgpu::Settings,
-    multiplexer::Multiplexer,
-    scheduler::Scheduler,
-    std::{
-        collections::{HashMap, VecDeque},
-        path::{Component, Path, PathBuf},
-        rc::Rc,
-        sync::{Arc, Mutex},
-        time::{Duration, Instant},
+    transitions::{AppStateTransition, OkOperation, TransitionLabel},
+};
+use controller::{
+    Controller, LoadDesignError, SaveDesignError,
+    channel_reader::{ChannelReader, ChannelReaderUpdate},
+    download_staples::StaplesDownloader,
+    normal_state::Action,
+    set_scaffold_sequence::{
+        ScaffoldSetter, SetScaffoldSequenceError, SetScaffoldSequenceOk, TargetScaffoldLength,
     },
-    ultraviolet::{Rotor3, Vec3},
-    winit::{
-        dpi::PhysicalSize,
-        event::{Event, WindowEvent},
-        event_loop::{ControlFlow, EventLoop, EventLoopWindowTarget},
-        keyboard::{Key, ModifiersState, NamedKey},
-        window::{CursorIcon, Window},
-    },
+};
+use iced::{
+    advanced::{clipboard, renderer},
+    mouse::Cursor,
+};
+use iced_graphics::{Antialiasing, Viewport};
+use iced_runtime::{Debug, program};
+use iced_wgpu::Settings;
+use multiplexer::Multiplexer;
+use requests::Requests;
+use scheduler::Scheduler;
+use std::{
+    collections::{HashMap, VecDeque},
+    path::{Component, Path, PathBuf},
+    rc::Rc,
+    sync::{Arc, Mutex},
+    time::{Duration, Instant},
+};
+use ultraviolet::{Rotor3, Vec3};
+use winit::{
+    dpi::PhysicalSize,
+    event::{Event, WindowEvent},
+    event_loop::{ControlFlow, EventLoop, EventLoopWindowTarget},
+    keyboard::{Key, ModifiersState, NamedKey},
+    window::{CursorIcon, Window},
 };
 
 const PROGRAM_NAME: &str = "ENSnano";

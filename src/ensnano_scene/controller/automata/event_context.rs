@@ -1,7 +1,24 @@
-use crate::ensnano_scene::{
-    data::design3d::SceneDesignReaderExt as _, element_selector::CornerType,
-    view::grid::GridIntersection,
+use crate::{
+    ensnano_design::{
+        Nucl,
+        bezier_plane::{
+            BezierPathId, BezierPlaneId, BezierPlaneIntersection, BezierVertex, BezierVertexId,
+            ray_bezier_plane_intersection,
+        },
+        grid::{GridId, GridObject, GridPosition},
+        helices::Axis,
+    },
+    ensnano_interactor::selection::ActionMode,
+    ensnano_scene::{
+        AppState,
+        controller::Controller,
+        data::design3d::SceneDesignReaderExt as _,
+        element_selector::{CornerType, ElementSelector, SceneElement},
+        view::grid::GridIntersection,
+    },
 };
+use ultraviolet::{Vec2, Vec3};
+use winit::{dpi::PhysicalPosition, keyboard::ModifiersState};
 
 const REVOLUTION_AXIS_WIDTH: f32 = 1.;
 
@@ -217,7 +234,7 @@ impl<'a, S: AppState> EventContext<'a, S> {
     /// the projection of the cursor on the plane
     pub fn get_plane_under_cursor(&self) -> Option<(BezierPlaneId, BezierPlaneIntersection)> {
         let ray = self.shoot_ray(self.cursor_position);
-        crate::ensnano_design::ray_bezier_plane_intersection(
+        ray_bezier_plane_intersection(
             self.app_state
                 .get_design_reader()
                 .get_bezier_planes()

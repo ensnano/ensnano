@@ -1,4 +1,9 @@
-use crate::ensnano_scene::view::uniforms::Stereography;
+use ultraviolet::Vec3;
+
+use crate::ensnano_scene::{
+    camera::{CameraPtr, ProjectionPtr},
+    view::uniforms::Stereography,
+};
 
 /// Computes the shortest line between two lines in 3D.
 /// Let P1, P2, P3, P4 be 4 points.

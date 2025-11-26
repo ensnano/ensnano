@@ -1,4 +1,13 @@
-use std::{fmt::Write as _, sync::mpsc};
+use crate::{
+    app_state::design_interactor::controller::ErrOperation,
+    controller::channel_reader::ChannelReader,
+    ensnano_design::{Design, Nucl, helices::NuclCollection, strands::Domain},
+};
+use std::{
+    collections::BTreeMap,
+    fmt::Write as _,
+    sync::{Arc, mpsc},
+};
 
 macro_rules! log_err {
     ($x:expr) => {

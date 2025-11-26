@@ -1,5 +1,6 @@
 //! This modules defines the meshes that are used to draw DNA.
 
+use crate::ensnano_scene::view::instances_drawer::{Instantiable, Vertexable};
 use crate::ensnano_utils::instance::Instance;
 use crate::{ensnano_consts::*, ensnano_scene::view::Mesh};
 use std::{

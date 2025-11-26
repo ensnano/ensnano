@@ -1,5 +1,10 @@
 use crate::{
-    MainStateView, controller::normal_state::NormalState, dialog::DialogFilters,
+    MainStateView,
+    controller::{
+        messages::{CADNANO_FILTERS, OXDNA_CONFIG_EXTENSION, OXDNA_CONFIG_FILTERS, PDB_FILTERS},
+        normal_state::NormalState,
+    },
+    dialog::DialogFilters,
     ensnano_exports::ExportType,
 };
 use std::path::{Path, PathBuf};
@@ -459,7 +464,7 @@ impl State for Exporting {
 
 fn export_extension(export_type: ExportType) -> &'static str {
     match export_type {
-        ExportType::Oxdna => messages::OXDNA_CONFIG_EXTENSION,
+        ExportType::Oxdna => OXDNA_CONFIG_EXTENSION,
         ExportType::Pdb => "pdb",
         ExportType::Cadnano => "json",
     }
@@ -467,8 +472,8 @@ fn export_extension(export_type: ExportType) -> &'static str {
 
 fn export_filters(export_type: ExportType) -> DialogFilters {
     match export_type {
-        ExportType::Oxdna => messages::OXDNA_CONFIG_FILTERS,
-        ExportType::Pdb => messages::PDB_FILTERS,
-        ExportType::Cadnano => messages::CADNANO_FILTERS,
+        ExportType::Oxdna => OXDNA_CONFIG_FILTERS,
+        ExportType::Pdb => PDB_FILTERS,
+        ExportType::Cadnano => CADNANO_FILTERS,
     }
 }

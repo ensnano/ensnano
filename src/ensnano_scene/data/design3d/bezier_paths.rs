@@ -1,9 +1,20 @@
 use crate::ensnano_consts::*;
+use crate::ensnano_design::bezier_plane::{
+    BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertexId,
+};
+use crate::ensnano_design::curves::CurveDescriptor;
+use crate::ensnano_design::curves::bezier::{BezierControlPoint, BezierEndCoordinates};
+use crate::ensnano_design::parameters::HelixParameters;
+use crate::ensnano_interactor::consts::{bezier_control_color, bezier_widget_id};
 use crate::ensnano_interactor::selection::Selection;
+use crate::ensnano_scene::data::design3d::{Design3D, SceneDesignReaderExt, create_dna_bond};
+use crate::ensnano_scene::view::dna_obj::{RawDnaInstance, SphereInstance, TubeInstance};
 use crate::ensnano_scene::{
     AppState, element_selector,
     view::{instances_drawer::Instantiable as _, sheet_2d::Sheet2D},
 };
+use crate::ensnano_utils::instance::Instance;
+use ultraviolet::{Rotor3, Vec2, Vec3};
 
 impl<R: SceneDesignReaderExt> Design3D<R> {
     pub fn get_bezier_elements(&self, h_id: usize) -> (Vec<RawDnaInstance>, Vec<RawDnaInstance>) {

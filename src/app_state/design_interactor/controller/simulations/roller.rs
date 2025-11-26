@@ -5,8 +5,12 @@
 //! normal distance between two consecutive nucleotides.
 
 use crate::{
-    app_state::design_interactor::presenter::{Presenter, SimulationUpdate},
+    app_state::design_interactor::{
+        controller::simulations::SimulationInterface,
+        presenter::{Presenter, SimulationUpdate},
+    },
     controller::channel_reader::ChannelReader,
+    ensnano_design::{Nucl, helices::Helix, parameters::HelixParameters},
 };
 use std::{
     collections::HashMap,

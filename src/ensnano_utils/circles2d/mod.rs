@@ -1,10 +1,8 @@
-use {
-    crate::ensnano_consts::SAMPLE_COUNT,
-    crate::ensnano_utils::{bindgroup_manager::DynamicBindGroup, texture::Texture},
-    std::rc::Rc,
-    ultraviolet::Vec2,
-    wgpu::{BindGroupLayout, Device, Queue, RenderPass, RenderPipeline, include_spirv},
-};
+use crate::ensnano_consts::SAMPLE_COUNT;
+use crate::ensnano_utils::{bindgroup_manager::DynamicBindGroup, texture::Texture};
+use std::rc::Rc;
+use ultraviolet::Vec2;
+use wgpu::{BindGroupLayout, Device, Queue, RenderPass, RenderPipeline, include_spirv};
 
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]

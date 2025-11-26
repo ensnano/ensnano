@@ -1,4 +1,7 @@
-use crate::{ensnano_scene::view::instances_drawer::Vertexable, ensnano_utils::instance::Instance};
+use crate::{
+    ensnano_scene::view::instances_drawer::{Instantiable, Vertexable},
+    ensnano_utils::instance::Instance,
+};
 use std::f32::consts::TAU;
 use ultraviolet::{Mat4, Rotor3, Vec3, Vec4};
 use wgpu::{Device, PrimitiveTopology, include_spirv};

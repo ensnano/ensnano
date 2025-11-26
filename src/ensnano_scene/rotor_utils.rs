@@ -1,7 +1,5 @@
-use {
-    std::f32::consts::PI,
-    ultraviolet::{Rotor3, Vec3},
-};
+use std::f32::consts::PI;
+use ultraviolet::{Rotor3, Vec3};
 
 pub trait SafeRotor {
     fn safe_from_rotation_from_unit_x_to(u: Vec3) -> Rotor3;

@@ -1,17 +1,25 @@
-mod value_constructor;
+pub mod value_constructor;
 
 use crate::ensnano_consts::{
     ALT, BACKSPACE_CHAR, CTRL, HELIX_CHAR, KEY_DOWN, KEY_LEFT, KEY_RIGHT, KEY_UP, L_CLICK, M_CLICK,
     MOVE_CHAR, NUCL_CHAR, R_CLICK, ROT_CHAR, SELECT_CHAR, SHIFT, STRAND_CHAR, SUPPR_CHAR,
 };
-use crate::ensnano_design::grid::GridId;
-use crate::ensnano_gui::GuiDesignReaderExt;
-use crate::ensnano_iced::helpers::{extra_jump, right_checkbox, section, subsection, text_button};
-use crate::ensnano_iced::{theme, widgets::keyboard_priority::keyboard_priority};
-use crate::ensnano_interactor::{SimulationState, selection::Selection};
+use crate::ensnano_design::{bezier_plane::BezierVertexId, grid::GridId};
+use crate::ensnano_gui::{AppState, GuiDesignReaderExt, Requests, left_panel::Message};
+use crate::ensnano_iced::{
+    helpers::{extra_jump, right_checkbox, section, subsection, text_button},
+    theme,
+    ui_size::UiSize,
+    widgets::keyboard_priority::keyboard_priority,
+};
+use crate::ensnano_interactor::{
+    SimulationState,
+    selection::{ActionMode, Selection},
+};
 use iced::widget::{Column, Space, checkbox, column, row, scrollable, text, text_input};
-use iced::{Alignment, alignment::Horizontal};
-use ultraviolet::{Rotor3, Vec2};
+use iced::{Alignment, Command, Length, alignment::Horizontal};
+use std::sync::{Arc, Mutex};
+use ultraviolet::{Rotor3, Vec2, Vec3};
 use value_constructor::{BezierVertexBuilder, Builder, GridBuilder, InstantiatedValue, ValueKind};
 
 pub enum ValueRequest {

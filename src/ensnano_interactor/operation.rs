@@ -1,6 +1,14 @@
 use crate::{
-    ensnano_design::{Nucl, grid::*},
-    ensnano_interactor::BezierPlaneHomothethy,
+    ensnano_design::{
+        Nucl,
+        bezier_plane::{BezierPlaneId, BezierVertexId},
+        curves::bezier::BezierControlPoint,
+        grid::*,
+    },
+    ensnano_interactor::{
+        BezierPlaneHomothethy, DesignOperation, DesignRotation, DesignTranslation, IsometryTarget,
+    },
+    ensnano_organizer::tree::GroupId,
 };
 use std::sync::Arc;
 use ultraviolet::{Bivec3, Rotor3, Vec2, Vec3};

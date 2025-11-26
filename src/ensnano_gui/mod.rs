@@ -12,6 +12,9 @@ pub mod status_bar;
 pub mod top_bar;
 
 use crate::ensnano_design::parameters::HelixParameters;
+use crate::ensnano_gui::left_panel::tabs::revolution_tab::{
+    CurveDescriptorBuilder, RevolutionScaling,
+};
 use crate::ensnano_organizer::tree::{GroupId, OrganizerTree};
 use crate::{
     ensnano_design::bezier_plane::{BezierPathId, BezierVertexId},
@@ -953,6 +956,7 @@ pub trait AppState:
     Default + PartialEq + Clone + 'static + Send + std::fmt::Debug + std::fmt::Pointer
 {
     const POSSIBLE_CURVES: &'static [CurveDescriptorBuilder<Self>];
+
     fn get_selection_mode(&self) -> SelectionMode;
     fn get_action_mode(&self) -> ActionMode;
     fn get_build_helix_mode(&self) -> ActionMode;

@@ -1,20 +1,24 @@
-use {
-    crate::{
-        ensnano_consts::{DEFAULT_STEREOGRAPHIC_ZOOM, STEREOGRAPHIC_ZOOM_STEP},
-        ensnano_scene::{controller::Data, view::uniforms::Stereography},
+use crate::{
+    ensnano_consts::{DEFAULT_STEREOGRAPHIC_ZOOM, STEREOGRAPHIC_ZOOM_STEP},
+    ensnano_design::curves::{SurfaceInfo, SurfacePoint},
+    ensnano_interactor::graphics::PhySize,
+    ensnano_scene::{
+        controller::Data,
+        maths_3d::{Basis3D, FiniteVec3, Plane, cast_ray, unproject_point_on_plane},
+        view::uniforms::Stereography,
     },
-    std::{
-        cell::RefCell,
-        f32::consts::{FRAC_PI_2, PI},
-        rc::Rc,
-        time::Duration,
-    },
-    ultraviolet::{Mat3, Mat4, Rotor3, Vec2, Vec3, projection::rh_yup},
-    winit::{
-        dpi::PhysicalPosition,
-        event::*,
-        keyboard::{KeyCode, ModifiersState},
-    },
+};
+use std::{
+    cell::RefCell,
+    f32::consts::{FRAC_PI_2, PI},
+    rc::Rc,
+    time::Duration,
+};
+use ultraviolet::{Mat3, Mat4, Rotor3, Vec2, Vec3, projection::rh_yup};
+use winit::{
+    dpi::PhysicalPosition,
+    event::*,
+    keyboard::{KeyCode, ModifiersState},
 };
 
 const DEFAULT_DIST_TO_SURFACE: f32 = 20.;
@@ -61,8 +65,8 @@ impl Camera {
         self.right_vec().cross(self.direction())
     }
 
-    pub fn get_basis(&self) -> maths_3d::Basis3D {
-        maths_3d::Basis3D::from_vecs(self.right_vec(), self.up_vec(), -self.direction())
+    pub fn get_basis(&self) -> Basis3D {
+        Basis3D::from_vecs(self.right_vec(), self.up_vec(), -self.direction())
     }
 }
 
@@ -329,7 +333,7 @@ impl CameraController {
             origin,
             normal: (self.camera.borrow().position - origin),
         };
-        maths_3d::unproject_point_on_plane(
+        unproject_point_on_plane(
             plane.origin,
             plane.normal,
             self.camera.clone(),
@@ -485,7 +489,7 @@ impl CameraController {
                     .dot(-plane.normal.normalized())
                     > 0.9)
                     .then(|| {
-                        maths_3d::unproject_point_on_plane(
+                        unproject_point_on_plane(
                             plane.origin,
                             plane.normal,
                             self.camera.clone(),
@@ -789,7 +793,7 @@ impl CameraController {
     }
 
     pub fn ray(&self, x_ndc: f32, y_ndc: f32) -> (Vec3, Vec3) {
-        maths_3d::cast_ray(
+        cast_ray(
             x_ndc,
             y_ndc,
             self.camera.clone(),

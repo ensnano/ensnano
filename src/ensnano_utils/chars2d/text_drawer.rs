@@ -1,5 +1,8 @@
+use crate::ensnano_utils::chars2d::{CharDrawer, CharInstance};
 use fontdue::layout::Layout;
-use ultraviolet::Rotor2;
+use std::{collections::HashMap, rc::Rc};
+use ultraviolet::{Mat2, Rotor2, Vec2, Vec4};
+use wgpu::{BindGroupLayout, Device, Queue, RenderPass};
 
 pub struct TextDrawer {
     char_drawers: HashMap<char, CharDrawer>,

@@ -1,7 +1,10 @@
 use crate::ensnano_design::{
     Nucl,
+    bezier_plane::{BezierPathId, BezierVertexId},
+    curves::bezier::BezierControlPoint,
     elements::*,
     grid::{GridId, HelixGridPosition},
+    strands::{Domain, Strand},
 };
 use std::collections::BTreeSet;
 

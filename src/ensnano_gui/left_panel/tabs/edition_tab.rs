@@ -1,3 +1,10 @@
+use crate::ensnano_design::elements::DesignElementKey;
+use crate::ensnano_gui::AppState;
+use crate::ensnano_gui::left_panel::discrete_value::{FactoryId, RequestFactory, ValueId};
+use crate::ensnano_gui::left_panel::tabs::GuiTab;
+use crate::ensnano_gui::left_panel::{HelixRoll, Message};
+use crate::ensnano_iced::ui_size::UiSize;
+use crate::ensnano_interactor::RollRequest;
 use crate::ensnano_interactor::selection::extract_strands_from_selection;
 use crate::{
     ensnano_gui::left_panel::color_to_u32,
@@ -27,11 +34,6 @@ impl<State: AppState> EditionTab<State> {
         Self {
             helix_roll_factory: RequestFactory::new(FactoryId::HelixRoll, HelixRoll {}),
             color_picker: ColorPicker::new(),
-            //_sequence_input: SequenceInput::new(),
-            //roll_target_btn: GoStop::new(
-            //    "Autoroll selected helices".to_owned(),
-            //    Message::RollTargeted,
-            //),
             _state_type: PhantomData,
         }
     }

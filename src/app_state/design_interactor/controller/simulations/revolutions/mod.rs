@@ -1,8 +1,11 @@
 mod closed_curves;
 
+use crate::app_state::design_interactor::controller::simulations::SimulationInterface;
 use crate::app_state::design_interactor::presenter::SimulationUpdate;
 use crate::ensnano_design::curves::CurveDescriptor;
+use crate::ensnano_design::helices::Helix;
 use crate::ensnano_design::parameters::HelixParameters;
+use crate::ensnano_design::strands::{Domain, DomainJunction, HelixInterval, Strand};
 use crate::ensnano_design::{AdditionalStructure, utils::dvec_to_vec};
 use crate::ensnano_interactor::surfaces::{
     EquadiffSolvingMethod, RevolutionSimulationParameters, RevolutionSurfaceSystemDescriptor,

@@ -6,7 +6,7 @@ use crate::ensnano_utils::{
     text::{Letter, Vertex as CharVertex},
     texture::Texture,
 };
-use std::{collections::HashMap, rc::Rc};
+use std::rc::Rc;
 use ultraviolet::{Mat2, Vec2, Vec4};
 use wgpu::{BindGroupLayout, Device, Queue, RenderPass, RenderPipeline, include_spirv};
 

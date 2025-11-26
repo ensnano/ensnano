@@ -8,7 +8,14 @@ pub mod revolution_tab;
 pub mod sequence_tab;
 pub mod simulation_tab;
 
-use crate::ensnano_interactor::{RollRequest, SimulationState};
+use iced::{Command, Length, widget::container};
+use iced_aw::TabLabel;
+
+use crate::{
+    ensnano_gui::{AppState, left_panel::Message},
+    ensnano_iced::ui_size::UiSize,
+    ensnano_interactor::{RollRequest, SimulationState},
+};
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub enum TabId {
@@ -43,6 +50,7 @@ pub trait GuiTab<State: AppState> {
 
 // TODO: Turn this into a widget
 pub mod gostop {
+    use crate::ensnano_gui::{AppState, left_panel::Message};
     use iced::{
         Renderer, Theme,
         widget::{button, row, text},

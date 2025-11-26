@@ -23,6 +23,7 @@ use crate::ensnano_consts::{EXPORT_2D_MARGIN, EXPORT_2D_MAX_SIZE};
 use crate::ensnano_design::{Nucl, consts::ITERATIVE_AXIS_ALGORITHM};
 use crate::ensnano_flatscene::data::design::FlatSceneDesignReaderExt;
 use crate::ensnano_flatscene::flat_types::FlatNucl;
+use crate::ensnano_interactor::graphics::PhySize;
 use crate::ensnano_interactor::{
     DesignOperation, StrandBuildingStatus,
     application::{AppId, Application, Notification},

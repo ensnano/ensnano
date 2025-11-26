@@ -4,7 +4,13 @@ mod discrete_value;
 mod export_menu;
 pub mod tabs;
 
+use crate::ensnano_design::bezier_plane::BezierPathId;
+use crate::ensnano_design::parameters::NamedParameter;
 use crate::ensnano_exports::ExportType;
+use crate::ensnano_gui::left_panel::tabs::camera_tab::FogChoices;
+use crate::ensnano_gui::left_panel::tabs::revolution_tab::{
+    CurveDescriptorBuilder, RevolutionParameterId,
+};
 use crate::ensnano_gui::{OverlayType, Requests};
 use crate::ensnano_iced::{
     color_picker::ColorPickerMessage,
@@ -33,10 +39,10 @@ use crate::{
 };
 use color_picker::ColorPicker;
 use contextual_panel::ContextualPanel;
-use contextual_panel::value_constructor::ValueKind;
+use contextual_panel::value_constructor::{InstantiatedValue, ValueKind};
 use discrete_value::{FactoryId, RequestFactory, Requestable, ValueId};
 use export_menu::ExportMenu;
-use iced::widget::Column;
+use iced::widget::{Button, Column, Container, Text, container, horizontal_rule, text_input};
 use iced::{Color, Command, Element, Length, widget::column};
 use iced_aw::widgets::{TabBarPosition, TabLabel, Tabs};
 use iced_runtime::Program;
@@ -134,7 +140,7 @@ pub enum Message<S: AppState> {
     Background3D(Background3D),
     OpenLink(&'static str),
     NewApplicationState(S),
-    FogChoice(tabs::FogChoices),
+    FogChoice(FogChoices),
     SetScaffoldSeqButtonPressed,
     OptimizeScaffoldShiftPressed,
     ResetSimulation,

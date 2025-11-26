@@ -1,4 +1,6 @@
 use crate::ensnano_design::Nucl;
+use crate::ensnano_design::helices::Helices;
+use crate::ensnano_design::parameters::HelixParameters;
 use crate::ensnano_interactor::ObjectType;
 use crate::ensnano_physics::{
     anchors::SpringAnchorsReference,

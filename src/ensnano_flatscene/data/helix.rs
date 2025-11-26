@@ -6,7 +6,7 @@ use crate::ensnano_design::Nucl;
 use crate::ensnano_design::curves::time_nucl_map::AbscissaConverter as AbscissaConverter_;
 use crate::ensnano_design::helices::NuclCollection;
 use crate::ensnano_flatscene::data::design::Helix2d;
-use crate::ensnano_flatscene::flat_types::{FlatHelix, FlatNucl};
+use crate::ensnano_flatscene::flat_types::{Flat, FlatHelix, FlatNucl};
 use crate::ensnano_flatscene::view::insertion::{InsertionDescriptor, InsertionInstance};
 use crate::ensnano_flatscene::{
     CameraPtr,

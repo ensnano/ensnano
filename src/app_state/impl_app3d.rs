@@ -1,5 +1,6 @@
 use crate::app_state::AppState;
 use crate::app_state::design_interactor::DesignInteractor;
+use crate::ensnano_design::bezier_plane::BezierVertexId;
 use crate::ensnano_design::grid::GridId;
 use crate::ensnano_design::group_attributes::GroupPivot;
 use crate::ensnano_interactor::WidgetBasis;
@@ -146,7 +147,7 @@ impl App3D for AppState {
         self.0.path_to_current_design.clone()
     }
 
-    fn get_selected_bezier_vertex(&self) -> Option<crate::ensnano_design::BezierVertexId> {
+    fn get_selected_bezier_vertex(&self) -> Option<BezierVertexId> {
         if let Some(Selection::BezierVertex(vertex)) = self.0.selection.selection.first() {
             Some(*vertex)
         } else {

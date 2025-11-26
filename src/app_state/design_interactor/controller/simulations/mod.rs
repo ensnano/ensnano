@@ -3,6 +3,14 @@ pub mod revolutions;
 pub mod roller;
 pub mod twister;
 
+use crate::app_state::design_interactor::controller::ErrOperation;
+use crate::app_state::design_interactor::presenter::SimulationUpdate;
+use crate::controller::channel_reader::ChannelReader;
+use crate::ensnano_design::grid::GridId;
+use crate::ensnano_design::grid::grid_collection::FreeGridId;
+use crate::ensnano_design::helices::{Helix, NuclCollection};
+use crate::ensnano_design::parameters::HelixParameters;
+use crate::ensnano_design::{Design, Nucl};
 use crate::ensnano_interactor::RigidBodyConstants;
 use crate::{
     app_state::design_interactor::Presenter,
@@ -18,8 +26,10 @@ use mathru::{
 use ordered_float::OrderedFloat;
 use rand::Rng as _;
 use rand_distr::{Exp, StandardNormal};
+use std::collections::{BTreeMap, HashMap};
+use std::sync::{Arc, Mutex};
 use std::{cmp::Reverse, collections::BinaryHeap, sync::Weak};
-use ultraviolet::{Bivec3, Mat3};
+use ultraviolet::{Bivec3, Mat3, Rotor3, Vec3};
 
 const MAX_DERIVATIVE_NORM: f32 = 1e4;
 const L0: f32 = 0.7;

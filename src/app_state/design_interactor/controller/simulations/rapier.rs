@@ -1,4 +1,6 @@
 use crate::ensnano_design::Design;
+use crate::ensnano_design::helices::NuclCollection;
+use crate::ensnano_design::parameters::HelixParameters;
 use crate::ensnano_physics::simulation::RapierPhysicsSystem;
 use crate::{
     app_state::design_interactor::{
@@ -24,15 +26,6 @@ impl RapierPhysicalSystem {
         presenter: &Presenter,
         reader: &mut ChannelReader,
     ) -> Arc<Mutex<RapierInterface>> {
-        // first prototype simulation
-        // let system = RapierPhysicsSystem::new(
-        //     &presenter.content.object_type,
-        //     &presenter.content.nucleotide,
-        //     &presenter.content.space_position,
-        //     &presenter.content.helix_map,
-        //     &presenter.get_design().helices,
-        // );
-
         let system = RapierPhysicsSystem::full_simulation(
             presenter
                 .get_design()

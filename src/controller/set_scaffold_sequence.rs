@@ -1,4 +1,13 @@
-use crate::{MainStateView, ensnano_interactor::StandardSequence};
+use crate::{
+    MainStateView,
+    controller::{
+        State, TransitionMessage, YesNo,
+        messages::{NO_FILE_RECEIVED_SCAFFOLD, SEQUENCE_FILTERS, optimize_scaffold_position_msg},
+        normal_state::NormalState,
+    },
+    dialog::{self, PathInput},
+    ensnano_interactor::StandardSequence,
+};
 use std::path::{Path, PathBuf};
 
 /// User is in the process of setting the sequence of the scaffold
@@ -103,7 +112,7 @@ fn ask_path<P: AsRef<Path>>(
                 })
             } else {
                 TransitionMessage::new(
-                    messages::NO_FILE_RECEIVED_SCAFFOLD,
+                    NO_FILE_RECEIVED_SCAFFOLD,
                     rfd::MessageLevel::Error,
                     Box::new(NormalState),
                 )
@@ -117,7 +126,7 @@ fn ask_path<P: AsRef<Path>>(
             })
         }
     } else {
-        let path_input = dialog::load(starting_directory, messages::SEQUENCE_FILTERS);
+        let path_input = dialog::load(starting_directory, SEQUENCE_FILTERS);
         Box::new(SetScaffoldSequence {
             step: Step::AskPath {
                 path_input: Some(path_input),
@@ -155,7 +164,7 @@ fn set_sequence(
             target_scaffold_length,
         }) => match target_scaffold_length {
             TargetScaffoldLength::Ok => {
-                let message = messages::optimize_scaffold_position_msg(default_shift.unwrap_or(0));
+                let message = optimize_scaffold_position_msg(default_shift.unwrap_or(0));
                 let yes = Box::new(SetScaffoldSequence {
                     step: Step::OptimizeScaffoldPosition { design_id: 0 },
                     shift,

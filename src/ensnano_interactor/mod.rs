@@ -14,9 +14,17 @@ pub mod torsion;
 
 use crate::ensnano_design::{
     Nucl,
+    bezier_plane::{
+        BezierPathId, BezierPlaneDescriptor, BezierPlaneId, BezierVertex, BezierVertexId,
+    },
+    curves::bezier::BezierControlPoint,
     elements::{DesignElementKey, DnaAttribute},
-    grid::{GridDescriptor, GridId, GridObject, GridTypeDescr, HelixGridPosition},
+    grid::{
+        GridDescriptor, GridId, GridObject, GridTypeDescr, HelixGridPosition,
+        hyperboloid::Hyperboloid,
+    },
     group_attributes::GroupPivot,
+    parameters::HelixParameters,
 };
 use crate::ensnano_organizer::tree::{GroupId, OrganizerTree};
 use selection::*;

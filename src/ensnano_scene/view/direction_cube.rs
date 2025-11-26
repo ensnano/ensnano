@@ -3,6 +3,8 @@ use std::rc::Rc;
 use ultraviolet::{Vec2, Vec3};
 use wgpu::{Device, Queue};
 
+use crate::ensnano_scene::view::instances_drawer::{Instantiable, ResourceProvider, Vertexable};
+
 #[repr(C)]
 #[derive(Debug, Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct SkyBox {
@@ -201,6 +203,7 @@ pub struct CubeVertex {
 
 const CUBE_VERTEX_ARRAY: [wgpu::VertexAttribute; 2] =
     wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x2];
+
 impl Vertexable for CubeVertex {
     type RawType = Self;
 

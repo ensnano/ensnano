@@ -1,4 +1,15 @@
-use crate::ensnano_consts::*;
+use crate::{
+    ensnano_consts::*,
+    ensnano_design::group_attributes::GroupPivot,
+    ensnano_scene::{
+        camera::{CameraPtr, ProjectionPtr},
+        maths_3d::unproject_point_on_plane,
+        view::{
+            drawable::{Drawable, Drawer, Vertex},
+            handle_drawer::HandleColors,
+        },
+    },
+};
 use std::{
     f32::consts::{PI, TAU},
     rc::Rc,
@@ -177,7 +188,7 @@ impl RotationWidget {
         let origin = self.rotation_origin?;
         let normal = self.rotation_normal?;
         log::debug!("rotation origin {:?}", self.rotation_origin);
-        let point_clicked = maths_3d::unproject_point_on_plane(
+        let point_clicked = unproject_point_on_plane(
             origin,
             normal,
             camera.clone(),
@@ -187,8 +198,7 @@ impl RotationWidget {
             None,
         )?;
         log::debug!("Point clicked {point_clicked:?}");
-        let point_moved =
-            maths_3d::unproject_point_on_plane(origin, normal, camera, projection, x, y, None)?;
+        let point_moved = unproject_point_on_plane(origin, normal, camera, projection, x, y, None)?;
         log::debug!("Point moved {point_moved:?}");
         let rotation = Rotor3::from_rotation_between(
             (point_clicked - origin).normalized(),

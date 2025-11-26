@@ -1,4 +1,5 @@
 use crate::ensnano_consts::*;
+use crate::ensnano_design::curves::bezier::{BezierControlPoint, CubicBezierControlPoint};
 use crate::ensnano_interactor::RevolutionSimulationParameters;
 use crate::ensnano_interactor::surfaces::EquadiffSolvingMethod;
 

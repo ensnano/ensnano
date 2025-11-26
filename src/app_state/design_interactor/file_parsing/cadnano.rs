@@ -1,17 +1,16 @@
-use {
-    crate::ensnano_consts::SCAFFOLD_COLOR,
-    crate::ensnano_design::{
-        Design, Nucl,
-        grid::{Grid, GridType},
-    },
-    serde::{Deserialize, Serialize},
-    std::{
-        collections::{BTreeMap, HashMap, HashSet},
-        sync::Arc,
-    },
-    std::{fs::File, path::Path},
-    ultraviolet::{Rotor3, Vec3},
+
+use crate::ensnano_consts::SCAFFOLD_COLOR;
+use crate::ensnano_design::{
+    Design, Nucl,
+    grid::{Grid, GridType},
 };
+use serde::{Deserialize, Serialize};
+use std::{
+    collections::{BTreeMap, HashMap, HashSet},
+    sync::Arc,
+};
+use std::{fs::File, path::Path};
+use ultraviolet::{Rotor3, Vec3};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub(super) struct Cadnano {

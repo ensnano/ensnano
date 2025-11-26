@@ -19,11 +19,15 @@ pub mod sheet_2d;
 pub mod uniforms;
 
 use self::gltf_drawer::Object3DDrawer;
+use crate::ensnano_design::helices::Axis;
 use crate::ensnano_design::{grid::GridId, group_attributes::GroupPivot, utils::dvec_to_vec};
 use crate::ensnano_interactor::graphics::{
-    Background3D, CutPlaneParameters, FogParameters, HBondDisplay, RenderingMode,
+    Background3D, CutPlaneParameters, DrawArea, FogParameters, HBondDisplay, PhySize, RenderingMode,
 };
-use crate::ensnano_scene::maths_3d::cast_ray;
+use crate::ensnano_scene::camera::{Camera, CameraPtr, Projection, ProjectionPtr};
+use crate::ensnano_scene::maths_3d::{
+    cast_ray, distance_to_cursor_with_penalty, unproject_point_on_line,
+};
 use crate::ensnano_utils::{bindgroup_manager, text, texture};
 use crate::{ensnano_consts::*, ensnano_interactor::surfaces::UnrootedRevolutionSurfaceDescriptor};
 use bindgroup_manager::{DynamicBindGroup, UniformBindGroup};

@@ -1,4 +1,7 @@
-use crate::ensnano_physics::vec_to_vector;
+use crate::{
+    ensnano_design::{helices::Helix, parameters::HelixParameters},
+    ensnano_physics::vec_to_vector,
+};
 use rapier3d::{
     na::{Const, OVector, Rotation2, Unit, UnitQuaternion},
     prelude::*,

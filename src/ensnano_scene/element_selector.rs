@@ -1,5 +1,10 @@
+use crate::ensnano_design::bezier_plane::{BezierPathId, BezierPlaneId, BezierVertexId};
+use crate::ensnano_design::curves::bezier::BezierControlPoint;
 use crate::ensnano_interactor::consts::widget_id_to_bezier;
+use crate::ensnano_interactor::graphics::DrawArea;
 use crate::ensnano_interactor::selection::phantom_helix_decoder;
+use crate::ensnano_scene::ViewPtr;
+use crate::ensnano_scene::view::DrawType;
 use crate::ensnano_utils::BufferDimensions;
 use crate::{
     ensnano_design::grid::{GridId, GridPosition},
@@ -7,6 +12,7 @@ use crate::{
 };
 use num_enum::IntoPrimitive;
 use std::rc::Rc;
+use wgpu::{Device, Queue};
 use winit::dpi::{PhysicalPosition, PhysicalSize};
 
 pub struct ElementSelector {

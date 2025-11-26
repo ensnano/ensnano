@@ -1,7 +1,5 @@
-use {
-    ahash::RandomState,
-    std::{collections::HashMap, hash::Hash},
-};
+use ahash::RandomState;
+use std::{collections::HashMap, hash::Hash};
 
 #[derive(Clone, Debug)]
 pub struct IdGenerator<K: Eq + Hash + Clone> {

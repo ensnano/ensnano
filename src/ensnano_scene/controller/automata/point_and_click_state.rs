@@ -8,7 +8,25 @@
 //! If the cursor moves away form this position this causes a transition to either the normal
 //! state, or a specific DraggingState.
 
-use std::time::Instant;
+use crate::{
+    ensnano_design::Nucl,
+    ensnano_scene::{
+        AppState,
+        controller::{
+            Consequence, Controller, Transition,
+            automata::{
+                BuildingHelix, ClickInfo, ControllerState, MovingBezierVertex, NormalState,
+                XoverOrigin, dragging_state, event_context::EventContext,
+            },
+        },
+        element_selector::SceneElement,
+    },
+};
+use std::{borrow::Cow, time::Instant};
+use winit::{
+    dpi::PhysicalPosition,
+    event::{ElementState, MouseButton, WindowEvent},
+};
 
 /// The limit between "near" and "far" distances.
 const FAR_AWAY: f64 = 5.0;
@@ -201,7 +219,7 @@ impl<S: AppState> ControllerState<S> for PointAndClicking<S> {
             log::info!("Some long hold state");
             let now = Instant::now();
             if (now - self.clicked_date) > LONG_HOLDING_TIME
-                || other_ctrl(&controller.current_modifiers_state)
+                || super::other_ctrl(&controller.current_modifiers_state)
             {
                 if let Some(new_state) = transition(self.get_click_info(self.clicked_position)) {
                     return Transition {

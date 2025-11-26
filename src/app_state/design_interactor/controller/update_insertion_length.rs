@@ -1,4 +1,11 @@
-use crate::ensnano_interactor::InsertionPoint;
+use crate::{
+    app_state::design_interactor::controller::{Controller, ErrOperation},
+    ensnano_design::{
+        Design,
+        strands::{Domain, DomainJunction, Strand},
+    },
+    ensnano_interactor::InsertionPoint,
+};
 
 impl Controller {
     pub(super) fn update_insertion_length(

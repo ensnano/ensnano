@@ -1,11 +1,20 @@
-use crate::ensnano_iced::{
-    fonts::material_icons::{MaterialIcon, icon_to_char},
-    theme,
-};
-use crate::ensnano_interactor::{
-    app_state_parameters::{AppStateParameters, check_xovers_parameter::CheckXoversParameter},
-    graphics::{
-        ALL_BACKGROUND3D, ALL_RENDERING_MODE, Background3D, HBondDisplay, RenderingMode, fog_kind,
+use crate::{
+    ensnano_gui::{
+        AppState,
+        left_panel::{Message, tabs::GuiTab},
+    },
+    ensnano_iced::{
+        fonts::material_icons::{MaterialIcon, icon_to_char},
+        helpers::{extra_jump, right_checkbox, section, subsection, text_button},
+        theme,
+        ui_size::UiSize,
+    },
+    ensnano_interactor::{
+        app_state_parameters::{AppStateParameters, check_xovers_parameter::CheckXoversParameter},
+        graphics::{
+            ALL_BACKGROUND3D, ALL_RENDERING_MODE, Background3D, FogParameters, HBondDisplay,
+            RenderingMode, fog_kind,
+        },
     },
 };
 use iced::{

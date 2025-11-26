@@ -7,9 +7,14 @@ pub mod impl_readergui;
 #[cfg(test)]
 use self::design_content::Staple;
 
-use crate::ensnano_design::helices::Helix;
+use crate::app_state::address_pointer::AddressPointer;
+use crate::app_state::design_interactor::DesignInteractor;
+use crate::ensnano_design::Design;
+use crate::ensnano_design::helices::{Helix, NuclCollection};
+use crate::ensnano_design::strands::{Extremity, Strand};
 use crate::ensnano_design::{Nucl, elements::DesignElementKey, grid::Grid};
 use crate::ensnano_exports::oxdna::BACKBONE_TO_CM;
+use crate::ensnano_interactor::app_state_parameters::suggestion_parameters::SuggestionParameters;
 use crate::ensnano_interactor::strand_builder::{NeighborDescriptor, NeighborDescriptorGiver as _};
 use crate::ensnano_interactor::{
     Referential, ScaffoldInfo, application::Camera3D, selection::Selection,

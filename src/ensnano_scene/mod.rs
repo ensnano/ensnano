@@ -8,10 +8,12 @@ mod sausage_rosary;
 mod stl;
 pub mod view;
 
+use crate::ensnano_design::bezier_plane::BezierVertexId;
 use crate::ensnano_design::{
     Nucl, consts::ITERATIVE_AXIS_ALGORITHM, grid::GridPosition, grid::HelixGridPosition,
     group_attributes::GroupPivot,
 };
+use crate::ensnano_interactor::graphics::PhySize;
 use crate::ensnano_interactor::surfaces::UnrootedRevolutionSurfaceDescriptor;
 use crate::ensnano_interactor::{
     DesignOperation, NewBezierTangentVector, WidgetBasis,

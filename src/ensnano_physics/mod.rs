@@ -1,6 +1,5 @@
 //! This module handles porting the data from ensnano to a physical simulation
 //! done through the rapier3d crate.
-//!
 
 mod anchors;
 mod full_simulation;

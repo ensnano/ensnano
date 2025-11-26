@@ -1,3 +1,4 @@
+use crate::ensnano_interactor::graphics::{DrawArea, GuiComponentType};
 use winit::dpi::PhysicalPosition;
 
 /// An object mapping ElementType to DrawArea

@@ -1,9 +1,16 @@
 use crate::ensnano_design::ensnano_version;
+use crate::ensnano_design::parameters::NAMED_DNA_PARAMETERS;
+use crate::ensnano_gui::AppState;
+use crate::ensnano_gui::left_panel::discrete_value::{FactoryId, RequestFactory, ValueId};
+use crate::ensnano_gui::left_panel::tabs::GuiTab;
+use crate::ensnano_gui::left_panel::{Message, ScrollSensitivity};
+use crate::ensnano_iced::helpers::{extra_jump, jump_by, right_checkbox, section, subsection};
+use crate::ensnano_iced::ui_size::UiSize;
 use crate::ensnano_iced::{
     fonts::material_icons::{MaterialIcon, icon_to_char},
     ui_size::ALL_UI_SIZES,
 };
-use iced::widget::column;
+use iced::widget::{column, pick_list, scrollable, text};
 use iced_aw::TabLabel;
 use std::marker::PhantomData;
 
@@ -68,7 +75,7 @@ impl<State: AppState> GuiTab<State> for ParametersTab<State> {
             jump_by(10),
             section("DNA/RNA model", ui_size),
             pick_list(
-                &crate::ensnano_design::NAMED_DNA_PARAMETERS[..],
+                &NAMED_DNA_PARAMETERS[..],
                 Some(app_state.get_dna_parameters().name().clone()),
                 Message::NewDnaParameters,
             ),

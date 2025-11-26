@@ -7,15 +7,32 @@ use crate::{
         DIR_HANDLE_ID, FRONT_CIRCLE_ID, RIGHT_CIRCLE_ID, RIGHT_HANDLE_ID, UP_CIRCLE_ID,
         UP_HANDLE_ID,
     },
-    ensnano_design::grid::{GridId, GridObject},
+    ensnano_design::{
+        bezier_plane::{BezierVertex, BezierVertexId},
+        grid::GridId,
+    },
     ensnano_interactor::selection::ActionMode,
+    ensnano_scene::{
+        AppState,
+        controller::{Consequence, Controller, TransitionConsequence},
+        element_selector::SceneElement,
+        view::{
+            handle_drawer::{HandleColors, HandleDir},
+            rotation_widget::RotationMode,
+        },
+    },
 };
 use dragging_state::*;
 use event_context::*;
 use point_and_click_state::PointAndClicking;
-use std::borrow::Cow;
+use std::{borrow::Cow, cell::RefCell};
 use ultraviolet::Vec2;
-use winit::event::{ElementState, MouseButton};
+use winit::{
+    dpi::PhysicalPosition,
+    event::{ElementState, MouseButton, WindowEvent},
+    keyboard::ModifiersState,
+    window::CursorIcon,
+};
 
 pub(super) type State<S> = RefCell<Box<dyn ControllerState<S>>>;
 

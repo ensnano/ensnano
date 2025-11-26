@@ -3,7 +3,7 @@ use crate::ensnano_consts::{
 };
 use crate::ensnano_design::Nucl;
 use crate::ensnano_design::curves::time_nucl_map::AbscissaConverter;
-use crate::ensnano_design::helices::NuclCollection;
+use crate::ensnano_design::helices::{Helix, NuclCollection};
 use crate::ensnano_design::strands::{Extremity, Strand};
 use crate::ensnano_flatscene::flat_types::{
     Flat, FlatHelix, FlatIdx, FlatNucl, HelixSegment, HelixVec,
@@ -32,7 +32,7 @@ pub(super) struct Design2d<R: FlatSceneDesignReaderExt> {
     last_flip_other: Option<FlatHelix>,
     removed: BTreeSet<FlatIdx>,
     requests: Arc<Mutex<dyn Requests>>,
-    known_helices: HashMap<usize, *const DesignHelix>,
+    known_helices: HashMap<usize, *const Helix>,
     known_map: *const crate::ensnano_design::Helices,
 }
 

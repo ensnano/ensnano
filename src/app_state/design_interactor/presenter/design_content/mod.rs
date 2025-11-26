@@ -1,8 +1,13 @@
 mod xover_suggestions;
 
+use crate::app_state::design_interactor::presenter::{JunctionsIds, Presenter, SimulationUpdate};
 use crate::ensnano_consts::{
     BOND_RADIUS, CLONE_OPACITY, HELIX_CYLINDER_COLOR, HELIX_CYLINDER_RADIUS, SPHERE_RADIUS,
 };
+use crate::ensnano_design::elements::DesignElementKey;
+use crate::ensnano_design::grid::GridId;
+use crate::ensnano_design::helices::NuclCollection;
+use crate::ensnano_design::strands::{Domain, DomainJunction};
 use crate::ensnano_design::{
     drawing_style::{ColorType, DrawingAttribute, DrawingStyle},
     elements::DesignElement,
@@ -10,6 +15,7 @@ use crate::ensnano_design::{
     isometry3_descriptor::Isometry3MissingMethods as _,
     *,
 };
+use crate::ensnano_interactor::app_state_parameters::suggestion_parameters::SuggestionParameters;
 use crate::ensnano_interactor::{
     ObjectType,
     graphics::{LoopoutBond, LoopoutNucl},
@@ -19,8 +25,10 @@ use crate::ensnano_scene::view::grid::GridInstance;
 use crate::ensnano_utils::{click_counter::ClickCounter, colors, instance::Instance};
 use ahash::RandomState;
 use serde::Serialize;
+use std::collections::{BTreeMap, HashMap, HashSet};
+use std::sync::Arc;
 use std::{borrow::Cow, fmt::Write as _, str::FromStr as _};
-use ultraviolet::Isometry3;
+use ultraviolet::{Isometry3, Vec3};
 use xover_suggestions::XoverSuggestions;
 
 const PRINTOUT_NUCL_POSITIONS: bool = false; // true;

@@ -1,8 +1,18 @@
 use crate::{
-    app_state::design_interactor::controller::DuplicationEdge,
+    app_state::{
+        address_pointer::AddressPointer,
+        design_interactor::controller::{
+            Controller, ControllerState, DuplicationEdge, ErrOperation,
+        },
+    },
     ensnano_design::{
-        MutStrandAndData, UpToDateDesign,
-        grid::{Edge, GridData, GridId, GridPosition},
+        Design, MutStrandAndData, Nucl, UpToDateDesign,
+        grid::{
+            Edge, GridData, GridId, GridPosition, HelixGridPosition, grid_collection::FreeGridId,
+        },
+        helices::Helices,
+        parameters::HelixParameters,
+        strands::{Domain, HelixInterval, Strand, Strands, read_junctions},
     },
 };
 use ultraviolet::{Rotor3, Vec3};
@@ -560,8 +570,7 @@ impl Controller {
         for pasted_strand in pasted_strands {
             let color = Self::new_color(color_idx);
             if pasted_strand.pastable {
-                let junctions =
-                    crate::ensnano_design::read_junctions(pasted_strand.domains.as_slice(), false);
+                let junctions = read_junctions(pasted_strand.domains.as_slice(), false);
                 let strand = Strand {
                     domains: pasted_strand.domains.clone(),
                     color,

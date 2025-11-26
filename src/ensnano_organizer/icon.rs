@@ -1,10 +1,8 @@
-use {
-    iced::widget::{Svg, svg::Handle},
-    icondata::Icon,
-    std::{
-        collections::HashMap,
-        sync::{LazyLock, Mutex},
-    },
+use iced::widget::{Svg, svg::Handle};
+use icondata::Icon;
+use std::{
+    collections::HashMap,
+    sync::{LazyLock, Mutex},
 };
 
 static ICON_HANDLE_CACHE: LazyLock<Mutex<HashMap<Icon, Handle>>> =

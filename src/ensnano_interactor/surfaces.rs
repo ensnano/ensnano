@@ -1,7 +1,17 @@
+use crate::{
+    ensnano_design::{
+        curves::{
+            revolution::{InterpolatedCurveDescriptor, InterpolationDescriptor},
+            torus::{CurveDescriptor2D, PointOnSurface},
+        },
+        parameters::HelixParameters,
+    },
+    ensnano_interactor::consts::DEFAULT_REVOLUTION_SIMULATION_PARAMETERS,
+};
 use num::integer::gcd;
 use rayon::iter::{IntoParallelIterator as _, ParallelIterator as _};
 use std::f64::consts::TAU;
-use ultraviolet::{DVec3, Isometry3, Similarity3};
+use ultraviolet::{DVec3, Isometry3, Rotor3, Similarity3, Vec3};
 
 #[derive(Debug, Clone)]
 pub struct RevolutionSurfaceSystemDescriptor {
@@ -350,7 +360,7 @@ pub struct RevolutionSimulationParameters {
 
 impl Default for RevolutionSimulationParameters {
     fn default() -> Self {
-        consts::DEFAULT_REVOLUTION_SIMULATION_PARAMETERS
+        DEFAULT_REVOLUTION_SIMULATION_PARAMETERS
     }
 }
 

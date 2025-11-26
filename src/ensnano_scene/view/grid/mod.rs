@@ -2,6 +2,11 @@ mod texture;
 
 use crate::ensnano_design::grid::{Grid, GridDivision as _, GridId, GridPosition, GridType};
 use crate::ensnano_scene::element_selector::bezier_vertex_id;
+use crate::ensnano_scene::view::grid_disc::GridDisc;
+use crate::ensnano_scene::view::instances_drawer::{
+    InstanceDrawer, Instantiable, ResourceProvider, Vertexable,
+};
+use crate::ensnano_scene::view::letter::LetterInstance;
 use crate::ensnano_utils::instance::Instance;
 use std::collections::BTreeMap;
 use ultraviolet::{Mat4, Vec2, Vec3, Vec4};
