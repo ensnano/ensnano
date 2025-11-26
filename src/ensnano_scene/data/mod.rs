@@ -5,14 +5,7 @@ mod design3d;
 
 pub use design3d::{HBond, HalfHBond, Scalebar, SceneDesignReaderExt};
 
-use super::{
-    AppState, Camera3D, HandlesDescriptor, LetterInstance, RotationWidgetDescriptor,
-    RotationWidgetOrientation, SceneElement, View, ViewUpdate,
-    view::{
-        AvailableRotationAxes, ExternalObjects, GridDisc, HandleColors, Instantiable as _, Mesh,
-        RawDnaInstance, StereographicSphereAndPlane,
-    },
-};
+use super::{AppState, Camera3D, SceneElement, View, ViewUpdate, view::Mesh};
 use crate::ensnano_consts::{
     BOND_RADIUS, CANDIDATE_COLOR, CANDIDATE_SCALE_FACTOR, SELECT_SCALE_FACTOR, SELECTED_COLOR,
     SPHERE_RADIUS,
@@ -24,6 +17,18 @@ use crate::ensnano_design::{
 use crate::ensnano_interactor::{
     ActionMode, CenterOfSelection, ObjectType, PhantomElement, Referential, Selection,
     SelectionMode, graphics::HBondDisplay,
+};
+use crate::ensnano_scene::view::dna_obj::RawDnaInstance;
+use crate::ensnano_scene::view::gltf_drawer::ExternalObjects;
+use crate::ensnano_scene::view::grid_disc::GridDisc;
+use crate::ensnano_scene::view::handle_drawer::HandlesDescriptor;
+use crate::ensnano_scene::view::instances_drawer::Instantiable as _;
+use crate::ensnano_scene::view::letter::LetterInstance;
+use crate::ensnano_scene::view::rotation_widget::{
+    AvailableRotationAxes, RotationWidgetDescriptor, RotationWidgetOrientation,
+};
+use crate::ensnano_scene::view::{
+    dna_obj::StereographicSphereAndPlane, handle_drawer::HandleColors,
 };
 use crate::ensnano_utils::StrandNucleotidesPositions;
 use design3d::Design3D;

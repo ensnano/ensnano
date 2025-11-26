@@ -38,11 +38,7 @@ use std::{
     time::Duration,
 };
 use ultraviolet::{Rotor3, Vec3};
-use view::{
-    DrawOptions, DrawType, GridInstance, HandleDir, HandlesDescriptor, LetterInstance,
-    RotationMode as WidgetRotationMode, RotationWidgetDescriptor, RotationWidgetOrientation,
-    Stereography, View, ViewUpdate,
-};
+use view::{DrawOptions, DrawType, View, ViewUpdate};
 use wgpu::{Device, Queue};
 use winit::{dpi::PhysicalPosition, event::WindowEvent, window::CursorIcon};
 

@@ -17,14 +17,17 @@ use crate::ensnano_interactor::{
     phantom_helix_encoder_bond, phantom_helix_encoder_nucl,
 };
 use crate::ensnano_scene::{
-    GridInstance,
     SceneElement::DesignElement,
     maths_3d::{Basis3D, UnalignedBoundaries},
     rotor_utils::SafeRotor as _,
     sausage_rosary::SausageRosary,
     view::{
-        ConeInstance, Ellipsoid, Instantiable as _, PlainRectangleInstance, RawDnaInstance,
-        Sheet2D, SlicedTubeInstance, SphereInstance, TubeInstance, TubeLidInstance,
+        dna_obj::{
+            ConeInstance, Ellipsoid, PlainRectangleInstance, RawDnaInstance, SlicedTubeInstance,
+            SphereInstance, TubeInstance, TubeLidInstance,
+        },
+        grid::GridInstance,
+        instances_drawer::Instantiable as _,
     },
 };
 use crate::ensnano_utils::{

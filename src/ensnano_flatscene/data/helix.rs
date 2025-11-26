@@ -10,7 +10,7 @@ use crate::ensnano_flatscene::{
     view::{EditionInfo, InsertionDescriptor, InsertionInstance},
 };
 use crate::ensnano_utils::{
-    chars2d::{Line, Sentence, TextDrawer},
+    chars2d::text_drawer::{Line, Sentence, TextDrawer},
     circles2d::CircleInstance,
     full_isometry::FullIsometry,
     instance::Instance,

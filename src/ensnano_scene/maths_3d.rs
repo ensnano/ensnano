@@ -1,5 +1,7 @@
+use crate::ensnano_scene::view::uniforms::Stereography;
+
 use super::{
-    Stereography, Vec3,
+    Vec3,
     camera::{CameraPtr, ProjectionPtr},
 };
 

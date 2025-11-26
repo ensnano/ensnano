@@ -2,6 +2,9 @@ use super::*;
 use crate::ensnano_consts::*;
 use crate::ensnano_design::{BezierEndCoordinates, BezierVertexId};
 use crate::ensnano_interactor::Selection;
+use crate::ensnano_scene::view::dna_obj::TubeInstance;
+use crate::ensnano_scene::view::instances_drawer::Instantiable as _;
+use crate::ensnano_scene::view::sheet_2d::Sheet2D;
 use crate::ensnano_scene::{AppState, element_selector};
 
 impl<R: SceneDesignReaderExt> Design3D<R> {

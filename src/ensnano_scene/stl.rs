@@ -10,11 +10,15 @@
 //!     [f32; 3] – Vertex 3               - 12 bytes
 //!     u16      – Attribute byte count   -  2 bytes
 
-use super::view::{
-    ConeInstance, Ellipsoid, Instantiable as _, Mesh, RawDnaInstance, SlicedTubeInstance,
-    SphereInstance, TubeInstance, TubeLidInstance,
-};
 use crate::ensnano_consts::NB_RAY_TUBE;
+use crate::ensnano_scene::view::{
+    Mesh,
+    dna_obj::{
+        ConeInstance, Ellipsoid, RawDnaInstance, SlicedTubeInstance, SphereInstance, TubeInstance,
+        TubeLidInstance,
+    },
+    instances_drawer::Instantiable as _,
+};
 use ultraviolet::{Mat3, Vec3};
 
 impl RawDnaInstance {

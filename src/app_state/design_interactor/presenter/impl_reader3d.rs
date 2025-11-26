@@ -1,18 +1,18 @@
 use super::*;
-use crate::ensnano_design::{
-    AdditionalStructure, BezierControlPoint, BezierPlaneId, BezierVertexId, Collection,
-    CurveDescriptor, Domain, Helix, SurfaceInfo,
-    grid::{GridObject, GridPosition, HelixGridPosition},
-};
 use crate::ensnano_interactor::{
     ObjectType,
     graphics::{LoopoutBond, LoopoutNucl},
 };
-use crate::ensnano_scene::{
-    data::{Scalebar, SceneDesignReaderExt},
-    view::GridInstance,
-};
+use crate::ensnano_scene::data::{Scalebar, SceneDesignReaderExt};
 use crate::ensnano_utils::StrandNucleotidesPositions;
+use crate::{
+    ensnano_design::{
+        AdditionalStructure, BezierControlPoint, BezierPlaneId, BezierVertexId, Collection,
+        CurveDescriptor, Domain, Helix, SurfaceInfo,
+        grid::{GridObject, GridPosition, HelixGridPosition},
+    },
+    ensnano_scene::view::grid::GridInstance,
+};
 use ultraviolet::Vec2;
 
 impl SceneDesignReaderExt for DesignInteractor {

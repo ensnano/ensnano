@@ -5,39 +5,24 @@ mod direction_cube;
 pub mod dna_obj;
 /// This modules defines a trait for drawing widget made of several meshes.
 mod drawable;
-mod gltf_drawer;
-mod grid;
-mod grid_disc;
+pub mod gltf_drawer;
+pub mod grid;
+pub mod grid_disc;
 /// A HandleDrawer draws the widget for translating objects
-mod handle_drawer;
+pub mod handle_drawer;
 pub mod instances_drawer;
-mod letter;
+pub mod letter;
 /// A RotationWidget draws the widget for rotating objects
-mod rotation_widget;
-mod sheet_2d;
+pub mod rotation_widget;
+pub mod sheet_2d;
 /// A `Uniform` is a structure that manages view and projection matrices.
-mod uniforms;
-
-pub use dna_obj::{
-    ConeInstance, Ellipsoid, PlainRectangleInstance, RawDnaInstance, SlicedTubeInstance,
-    SphereInstance, StereographicSphereAndPlane, TubeInstance, TubeLidInstance,
-};
-pub use gltf_drawer::ExternalObjects;
-pub use grid::{GridInstance, GridIntersection};
-pub use grid_disc::GridDisc;
-pub use handle_drawer::{HandleColors, HandleDir, HandlesDescriptor};
-pub use instances_drawer::Instantiable;
-pub use letter::LetterInstance;
-pub use rotation_widget::{
-    AvailableRotationAxes, RotationMode, RotationWidgetDescriptor, RotationWidgetOrientation,
-};
-pub use sheet_2d::Sheet2D;
-pub use uniforms::Stereography;
+pub mod uniforms;
 
 use self::gltf_drawer::Object3DDrawer;
-use super::camera;
-use super::maths_3d::{self, distance_to_cursor_with_penalty};
-use super::{DrawArea, PhySize};
+use super::{
+    DrawArea, PhySize, camera,
+    maths_3d::{self, distance_to_cursor_with_penalty},
+};
 use crate::ensnano_consts::*;
 use crate::ensnano_design::{Axis, grid::GridId, group_attributes::GroupPivot, utils::dvec_to_vec};
 use crate::ensnano_interactor::{
@@ -48,17 +33,29 @@ use crate::ensnano_utils::{bindgroup_manager, text, texture};
 use bindgroup_manager::{DynamicBindGroup, UniformBindGroup};
 use camera::{Camera, CameraPtr, Projection, ProjectionPtr};
 use direction_cube::*;
+use dna_obj::{
+    ConeInstance, Ellipsoid, PlainRectangleInstance, RawDnaInstance, SlicedTubeInstance,
+    SphereInstance, StereographicSphereAndPlane, TubeInstance, TubeLidInstance,
+};
 use drawable::{Drawable, Drawer, Vertex};
+use gltf_drawer::ExternalObjects;
+use grid::{GridInstance, GridIntersection};
 use grid::{GridManager, GridTextures};
+use grid_disc::GridDisc;
 use handle_drawer::HandlesDrawer;
+use handle_drawer::{HandleColors, HandleDir, HandlesDescriptor};
+use instances_drawer::Instantiable;
 use instances_drawer::{InstanceDrawer, RawDrawer};
 use int_enum::IntEnum;
+use letter::LetterInstance;
 use maths_3d::unproject_point_on_line;
-use rotation_widget::RotationWidget;
+use rotation_widget::{AvailableRotationAxes, RotationMode, RotationWidget, RotationWidgetDescriptor, RotationWidgetOrientation};
+use sheet_2d::Sheet2D;
 use std::{cell::RefCell, collections::BTreeMap, rc::Rc};
 use text::Letter;
 use texture::Texture;
 use ultraviolet::{Mat4, Rotor3, Vec3};
+use uniforms::Stereography;
 use uniforms::Uniforms;
 use wgpu::{Device, Queue, util::DeviceExt as _};
 

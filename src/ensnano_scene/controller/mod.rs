@@ -2,15 +2,15 @@ mod automata;
 
 pub use automata::WidgetTarget;
 
-use super::{
-    AppState, Duration, ElementSelector, HandleDir, SceneElement, Stereography, ViewPtr,
-    WidgetRotationMode as RotationMode, camera, view::HandleColors,
-};
+use super::{AppState, Duration, ElementSelector, SceneElement, ViewPtr, camera};
 use crate::ensnano_consts::*;
 use crate::ensnano_design::{
     BezierPathId, BezierPlaneId, BezierVertex, BezierVertexId, Nucl, SurfaceInfo, SurfacePoint,
     grid::{GridId, GridObject, GridPosition, HelixGridPosition},
 };
+use crate::ensnano_scene::view::handle_drawer::{HandleColors, HandleDir};
+use crate::ensnano_scene::view::rotation_widget::RotationMode;
+use crate::ensnano_scene::view::uniforms::Stereography;
 use crate::ensnano_scene::{PhySize, PhysicalPosition, WindowEvent, maths_3d::FiniteVec3};
 use automata::{EventContext, NormalState, State, Transition};
 use camera::CameraController;

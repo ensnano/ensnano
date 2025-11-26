@@ -1,11 +1,12 @@
 use {
     super::{
-        PhySize, Stereography,
+        PhySize,
         maths_3d::{self, FiniteVec3, Plane},
     },
     crate::{
         ensnano_consts::{DEFAULT_STEREOGRAPHIC_ZOOM, STEREOGRAPHIC_ZOOM_STEP},
         ensnano_design::{SurfaceInfo, SurfacePoint},
+        ensnano_scene::view::uniforms::Stereography,
     },
     std::{
         cell::RefCell,

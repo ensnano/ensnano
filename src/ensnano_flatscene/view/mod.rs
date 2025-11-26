@@ -20,7 +20,7 @@ use crate::ensnano_utils::{
     Ndc, PhySize,
     bindgroup_manager::{DynamicBindGroup, UniformBindGroup},
     camera2d::Globals,
-    chars2d::TextDrawer,
+    chars2d::text_drawer::TextDrawer,
     circles2d::{CircleDrawer, CircleInstance, CircleKind},
     texture::Texture,
 };

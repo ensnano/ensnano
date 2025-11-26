@@ -1,8 +1,7 @@
 use super::*;
 use crate::ensnano_design::{Axis, BezierPlaneIntersection};
-use crate::ensnano_scene::{
-    data::SceneDesignReaderExt as _, element_selector::CornerType, view::GridIntersection,
-};
+use crate::ensnano_scene::view::grid::GridIntersection;
+use crate::ensnano_scene::{data::SceneDesignReaderExt as _, element_selector::CornerType};
 
 const REVOLUTION_AXIS_WIDTH: f32 = 1.;
 
