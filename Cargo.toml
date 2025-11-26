@@ -121,6 +121,17 @@ unit_bindings = "warn"
 # TODO: unnameable_types = "warn" (after crates are split up)
 # TODO: unqualified_local_imports = "warn" (not stabilized yet)
 # TODO: unreachable_pub = "warn" (after crates are split up)
+unsafe_attr_outside_unsafe = "warn"
+unsafe_code = "warn"
+unsafe_op_in_unsafe_fn = "warn"
+unstable_features = "warn"
+unused_crate_dependencies = "warn"
+unused_extern_crates = "warn"
+unused_import_braces = "warn"
+unused_lifetimes = "warn"
+unused_macro_rules = "warn"
+# TODO: unused_qualifications = "warn" (after crates are split up)
+variant_size_differences = "warn"
 
 [lints.clippy]
 # Warn or deny all lints by default
