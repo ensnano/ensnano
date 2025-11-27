@@ -40,8 +40,6 @@ impl RapierPhysicsSystem {
     ) -> Self {
         let intermediary = build_helices(object_type, nucleotide);
 
-        println!("{rapier_parameters:?}");
-
         match rapier_parameters.simulation_type {
             crate::parameters::RapierSimulationType::Full => build_simulation(
                 FullSimulationSetup,

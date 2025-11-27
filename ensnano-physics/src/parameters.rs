@@ -77,12 +77,12 @@ impl RapierParameters {
         interbase_spring_damping: 1000.0,
         crossover_stiffness: 100.0,
         crossover_damping: 50.0,
-        crossover_rest_length: 0.64,
-        free_nucleotide_stiffness: 40000.0,
-        free_nucleotide_damping: 4000.0,
+        crossover_rest_length: 1.28,
+        free_nucleotide_stiffness: 40.0,
+        free_nucleotide_damping: 40.0,
         free_nucleotide_rest_length: 0.332,
         repulsion_strength: 0.1,
-        repulsion_range: 0.32,
+        repulsion_range: 0.64,
     };
 }
 
