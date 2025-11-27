@@ -14,7 +14,8 @@ use crate::{
 const NUCLEOTIDE_RADIUS: f32 = 0.05;
 const PAIR_CAPSULE_RADIUS: f32 = 0.1;
 
-const STRONG_SPRING_RANGES: [u32; 4] = [1, 2, 4, 8];
+// const STRONG_SPRING_RANGES: [u32; 4] = [1, 2, 4, 8];
+const STRONG_SPRING_RANGES: [u32; 1] = [2];
 
 // const BASE_LINEAR_DAMPING: f32 = 0.06;
 // const BASE_ANGULAR_DAMPING: f32 = 0.06;
@@ -52,7 +53,7 @@ pub trait SimulationSetup {
 
 // This is used for full simulations; not used right now, but will be
 // with a proper interface.
-#[allow(dead_code)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct FullSimulationSetup;
 
 impl SimulationSetup for FullSimulationSetup {
@@ -87,7 +88,7 @@ impl SimulationSetup for FullSimulationSetup {
     }
 }
 
-#[allow(dead_code)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct RigidHelicesSetup;
 
 impl SimulationSetup for RigidHelicesSetup {
@@ -120,6 +121,7 @@ impl SimulationSetup for RigidHelicesSetup {
     }
 }
 
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct CutHelicesSetup;
 
 impl SimulationSetup for CutHelicesSetup {
@@ -157,6 +159,55 @@ impl SimulationSetup for CutHelicesSetup {
                         rigid_body_set,
                     );
                 }
+            }
+        }
+    }
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub struct KCutHelicesSetup;
+
+impl SimulationSetup for KCutHelicesSetup {
+    fn build_bodies(
+        &self,
+        rigid_body_set: &mut RigidBodySet,
+        collider_set: &mut ColliderSet,
+        collider_map: &HashMap<(usize, isize), Vec<ColliderHandle>>,
+        intermediary_representation: &HashMap<usize, IntermediaryHelix>,
+        rapier_parameters: &RapierParameters,
+    ) {
+        let rigid_body = RigidBodyBuilder::dynamic()
+            .linear_damping(rapier_parameters.linear_damping)
+            .angular_damping(rapier_parameters.angular_damping);
+
+        // for each helix
+        for (helix_index, helix) in intermediary_representation.iter() {
+            let mut current_rigid_body_handle = rigid_body_set.insert(rigid_body.clone());
+            // iterate through the positions, from bottom to top
+            let mut positions = helix.pairs.keys().copied().collect::<Vec<_>>();
+
+            positions.sort_unstable();
+
+            let mut count = 0;
+
+            for k in positions {
+                // switch rigid body when meeting a cut or when
+                // the collider count meets the threshold
+                if helix.crossover_cuts.contains(&k) || count >= rapier_parameters.k_cut_threshold {
+                    current_rigid_body_handle = rigid_body_set.insert(rigid_body.clone());
+                    count = 0;
+                }
+
+                // accumulate colliders in a rigid body
+                for collider_handle in collider_map.get(&(*helix_index, k)).unwrap_or(&vec![]) {
+                    collider_set.set_parent(
+                        *collider_handle,
+                        Some(current_rigid_body_handle),
+                        rigid_body_set,
+                    );
+                }
+
+                count += 1;
             }
         }
     }
@@ -214,6 +265,7 @@ pub fn build_simulation<S: SimulationSetup>(
         &nucleotide_body_map,
         helices,
         &collider_set,
+        &rigid_body_set,
         &mut impulse_joint_set,
         global_parameters,
         rapier_parameters,
@@ -361,6 +413,7 @@ fn build_strong_springs(
     nucleotide_body_map: &HashMap<u32, ColliderHandle>,
     helices: &Helices,
     collider_set: &ColliderSet,
+    rigid_body_set: &RigidBodySet,
     impulse_joint_set: &mut ImpulseJointSet,
     global_parameters: &HelixParameters,
     rapier_parameters: &RapierParameters,
@@ -465,6 +518,8 @@ fn build_strong_springs(
                     if up_body_handle == down_body_handle {
                         continue;
                     }
+
+                    println!("{down_forward}, {up_forward}");
 
                     // forward spring
                     impulse_joint_set.insert(

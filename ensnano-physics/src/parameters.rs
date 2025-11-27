@@ -2,6 +2,7 @@
 pub struct RapierParameters {
     pub is_simulation_running: bool,
     pub simulation_type: RapierSimulationType,
+    pub k_cut_threshold: u32,
     pub linear_damping: f32,
     pub angular_damping: f32,
     pub interbase_spring_stiffness: f32,
@@ -55,6 +56,7 @@ pub enum RapierSimulationType {
     Full,
     Rigid,
     Cut,
+    KCut,
 }
 
 impl std::fmt::Display for RapierSimulationType {
@@ -63,6 +65,7 @@ impl std::fmt::Display for RapierSimulationType {
             RapierSimulationType::Full => "Full",
             RapierSimulationType::Rigid => "Rigid",
             RapierSimulationType::Cut => "Cut",
+            RapierSimulationType::KCut => "KCut",
         })
     }
 }
@@ -71,6 +74,7 @@ impl RapierParameters {
     const DEFAULT: RapierParameters = RapierParameters {
         is_simulation_running: false,
         simulation_type: RapierSimulationType::Cut,
+        k_cut_threshold: 10,
         linear_damping: 0.06,
         angular_damping: 0.06,
         interbase_spring_stiffness: 10000.0,

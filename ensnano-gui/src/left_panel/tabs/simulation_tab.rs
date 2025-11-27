@@ -202,7 +202,8 @@ impl<State: AppState> GuiTab<State> for SimulationTab<State> {
                     [
                         RapierSimulationType::Full,
                         RapierSimulationType::Rigid,
-                        RapierSimulationType::Cut
+                        RapierSimulationType::Cut,
+                        RapierSimulationType::KCut,
                     ],
                     Some(self.rapier_parameters.simulation_type),
                     |simulation_type| Message::UpdateRapierParameters(RapierParameters {
@@ -241,6 +242,11 @@ impl<State: AppState> GuiTab<State> for SimulationTab<State> {
                 ],
             ]
             .spacing(ui_size.button_spacing()),
+            kcut_threshold_editor(
+                &self.rapier_parameters,
+                &self.rapier_parameter_fields,
+                ui_size
+            ),
             view_rapier_parameters(
                 self.rapier_parameters,
                 &self.rapier_parameter_fields,
@@ -251,6 +257,53 @@ impl<State: AppState> GuiTab<State> for SimulationTab<State> {
 
         scrollable(content).into()
     }
+}
+
+fn kcut_threshold_editor<State: AppState>(
+    parameters: &RapierParameters,
+    fields: &HashMap<String, String>,
+    ui_size: UiSize,
+) -> ensnano_iced::Element<'static, Message<State>, ensnano_iced::Theme, ensnano_iced::Renderer> {
+    row![
+        text("KCut threshold"),
+        Space::with_width(ui_size.checkbox_spacing()),
+        text_button("-", ui_size).on_press_maybe(
+            if parameters.simulation_type == RapierSimulationType::KCut {
+                let new_value = if parameters.k_cut_threshold <= 1 {
+                    1
+                } else {
+                    parameters.k_cut_threshold - 1
+                };
+                Some(Message::UpdateRapierParameters(apply_parameter_fields(
+                    fields,
+                    &RapierParameters {
+                        k_cut_threshold: new_value,
+                        ..*parameters
+                    },
+                )))
+            } else {
+                None
+            }
+        ),
+        text_button("+", ui_size).on_press_maybe(
+            if parameters.simulation_type == RapierSimulationType::KCut {
+                let new_value = parameters.k_cut_threshold + 1;
+                Some(Message::UpdateRapierParameters(apply_parameter_fields(
+                    fields,
+                    &RapierParameters {
+                        k_cut_threshold: new_value,
+                        ..*parameters
+                    },
+                )))
+            } else {
+                None
+            }
+        ),
+        Space::with_width(ui_size.checkbox_spacing()),
+        text(parameters.k_cut_threshold)
+    ]
+    .align_items(Alignment::Center)
+    .into()
 }
 
 const PARAMETER_FIELD_NAMES: [&'static str; 12] = [
@@ -268,7 +321,7 @@ const PARAMETER_FIELD_NAMES: [&'static str; 12] = [
     "Repulsion range",
 ];
 
-pub fn apply_parameter_fields(
+fn apply_parameter_fields(
     fields: &HashMap<String, String>,
     parameters: &RapierParameters,
 ) -> RapierParameters {
